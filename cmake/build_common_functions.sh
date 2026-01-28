@@ -163,7 +163,11 @@ export_cuda_paths() {
 # ==============================================================================
 
 # Install dependencies using apt-get (Debian/Ubuntu)
+# Arguments:
+#   $1 = pip target directory (optional, for installing Python packages)
 install_deps_apt() {
+  local pip_target="${1:-}"
+
   echo "Installing dependencies via apt-get..."
 
   apt-get update -y
@@ -198,8 +202,12 @@ install_deps_apt() {
     python3-pip \
     python-is-python3
 
-  # Install numpy via pip
-  python -m pip install numpy==1.25.2
+  # Install numpy via pip (to target directory if specified, otherwise system)
+  if [ -n "$pip_target" ]; then
+    python -m pip install --target "$pip_target" numpy==1.25.2
+  else
+    python -m pip install numpy==1.25.2
+  fi
 
   echo "apt-get dependency installation complete"
 }
@@ -304,18 +312,29 @@ setup_gcc_toolset() {
 # This fixes the "pkgutil.ImpImporter" error with old setuptools
 # Arguments:
 #   $1 = Python executable (default: python)
+#   $2 = pip target directory (optional, for installing to specific location)
 upgrade_pip_setuptools() {
   local python_exec="${1:-python}"
+  local pip_target="${2:-}"
 
   echo "Upgrading pip and setuptools for $python_exec..."
 
-  # Upgrade pip first
-  "$python_exec" -m pip install --upgrade pip 2>/dev/null || true
+  if [ -n "$pip_target" ]; then
+    # Install to target directory (pip itself can't be upgraded to a target, skip it)
+    # Upgrade setuptools to a version compatible with Python 3.12+
+    # setuptools >= 67.0.0 removed pkg_resources.ImpImporter usage
+    # wheel >= 0.45.0 requires setuptools >= 70.1 for bdist_wheel compatibility
+    "$python_exec" -m pip install --target "$pip_target" --upgrade "setuptools>=75.3.0" "wheel>=0.45.0" 2>/dev/null || true
+  else
+    # System-wide upgrade (for Docker/container builds)
+    # Upgrade pip first
+    "$python_exec" -m pip install --upgrade pip 2>/dev/null || true
 
-  # Upgrade setuptools to a version compatible with Python 3.12+
-  # setuptools >= 67.0.0 removed pkg_resources.ImpImporter usage
-  # wheel >= 0.45.0 requires setuptools >= 70.1 for bdist_wheel compatibility
-  "$python_exec" -m pip install --upgrade "setuptools>=75.3.0" "wheel>=0.45.0" 2>/dev/null || true
+    # Upgrade setuptools to a version compatible with Python 3.12+
+    # setuptools >= 67.0.0 removed pkg_resources.ImpImporter usage
+    # wheel >= 0.45.0 requires setuptools >= 70.1 for bdist_wheel compatibility
+    "$python_exec" -m pip install --upgrade "setuptools>=75.3.0" "wheel>=0.45.0" 2>/dev/null || true
+  fi
 
   echo "pip and setuptools upgrade complete"
 }
