@@ -206,7 +206,7 @@ if( VIAME_ENABLE_PYTORCH-LEARN OR
 endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
-  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "supervision" )
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "supervision" "defusedxml>=0.7.1" )
 endif()
 
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------
