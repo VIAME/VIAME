@@ -128,6 +128,7 @@ set( CORE_PIPELINE_FILES
   common_default_initializer.pipe
   common_train_detector.conf
   common_default_input.pipe
+  common_default_input_16bit.pipe
   common_default_input_with_downsampler.pipe
   common_foundation_stereo.pipe
   common_image_stabilizer.pipe
@@ -158,6 +159,7 @@ set( CORE_PIPELINE_FILES
   filter_default.pipe
   filter_draw_dets.pipe
   filter_enhance.pipe
+  filter_normalize_16bit.pipe
   filter_split_and_debayer.pipe
   filter_split_left_side.pipe
   filter_split_right_side.pipe
@@ -192,6 +194,8 @@ set( CORE_PIPELINE_FILES
   train_aug_intensity_color_freq_motion.pipe
   train_aug_intensity_hue_motion.pipe
   train_aug_motion_only.pipe
+  train_aug_percentile_norm.pipe
+  train_aug_percentile_norm_npy.pipe
   train_aug_split_and_stereo.pipe
   train_aug_split.pipe
   train_aug_warp_ir_to_eo.pipe
