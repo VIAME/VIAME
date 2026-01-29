@@ -363,7 +363,7 @@ class ChannelSpec(ub.NiceRepr):
 
             fused = {}
             for key, idx_list in new_fused_indices.items():
-                parts = [item[item_key][item_sl] for item_key, item_sl in idx_list]
+                parts = [item[item_key][tuple(item_sl)] for item_key, item_sl in idx_list]
                 if len(parts) == 1:
                     fused[key] = parts[0]
                 else:

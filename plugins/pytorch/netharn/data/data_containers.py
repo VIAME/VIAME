@@ -117,7 +117,8 @@ class BatchContainer(ub.NiceRepr):
 
     def __getitem__(self, index):
         cls = self.__class__
-        return cls([d[index] for d in self.data], **self.meta)
+        idx = tuple(index) if isinstance(index, list) else index
+        return cls([d[idx] for d in self.data], **self.meta)
 
     @property
     def cpu_only(self):
