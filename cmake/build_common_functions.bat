@@ -260,6 +260,47 @@ IF ERRORLEVEL 1 (
 )
 ECHO [OK] Renamed install to VIAME
 
+REM Remove directories not needed for desktop distribution (matches Linux behavior)
+ECHO Removing development folders to reduce package size...
+IF EXIST "%~3\VIAME\sbin" (
+    RMDIR /S /Q "%~3\VIAME\sbin"
+    ECHO [OK] Removed sbin/
+)
+IF EXIST "%~3\VIAME\qml" (
+    RMDIR /S /Q "%~3\VIAME\qml"
+    ECHO [OK] Removed qml/
+)
+IF EXIST "%~3\VIAME\include" (
+    RMDIR /S /Q "%~3\VIAME\include"
+    ECHO [OK] Removed include/
+)
+IF EXIST "%~3\VIAME\mkspecs" (
+    RMDIR /S /Q "%~3\VIAME\mkspecs"
+    ECHO [OK] Removed mkspecs/
+)
+IF EXIST "%~3\VIAME\etc" (
+    RMDIR /S /Q "%~3\VIAME\etc"
+    ECHO [OK] Removed etc/
+)
+IF EXIST "%~3\VIAME\doc" (
+    RMDIR /S /Q "%~3\VIAME\doc"
+    ECHO [OK] Removed doc/
+)
+IF EXIST "%~3\VIAME\share" (
+    REM Preserve share/postgresql if it exists
+    IF EXIST "%~3\VIAME\share\postgresql" (
+        ECHO Preserving share/postgresql...
+        MOVE "%~3\VIAME\share\postgresql" "%~3\VIAME\postgresql_temp" >NUL 2>&1
+        RMDIR /S /Q "%~3\VIAME\share"
+        MKDIR "%~3\VIAME\share"
+        MOVE "%~3\VIAME\postgresql_temp" "%~3\VIAME\share\postgresql" >NUL 2>&1
+        ECHO [OK] Removed share/ (preserved postgresql)
+    ) ELSE (
+        RMDIR /S /Q "%~3\VIAME\share"
+        ECHO [OK] Removed share/
+    )
+)
+
 ECHO Creating zip archive (this may take a while)...
 "%~5\7z.exe" a -tzip "%~3\%~4" "%~3\VIAME"
 SET "ZIP_RESULT=!ERRORLEVEL!"
