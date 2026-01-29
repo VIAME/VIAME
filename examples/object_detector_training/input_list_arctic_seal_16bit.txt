@@ -1,0 +1,2 @@
+../example_imagery/arctic_seal_example_set1/CHESS_FL4_C_160410_200007.344_THERM-16BIT.PNG
+../example_imagery/arctic_seal_example_set1/CHESS_FL4_C_160410_222712.510_THERM-16BIT.PNG
