@@ -7,7 +7,7 @@
 
 process input1
   :: video_input
-  :video_filename                                       cam1_list.txt
+  :video_filename                                       cam1_images.txt
   :frame_time                                           1
   :exit_on_invalid                                      false
 
@@ -36,7 +36,7 @@ process input1
 
 process input2
   :: video_input
-  :video_filename                                       cam2_list.txt
+  :video_filename                                       cam2_images.txt
   :frame_time                                           1
   :exit_on_invalid                                      false
 
