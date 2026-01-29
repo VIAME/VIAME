@@ -213,14 +213,37 @@ static bool validate_trainer_output_keys(
       continue;
     }
 
-    // 'eval' is a special key that doesn't need to be in the inference config
-    if( key == "eval" )
+    // 'eval' and 'type' are special keys that don't need to be in the inference config.
+    // 'type' specifies the algorithm type in the pipeline template.
+    if( key == "eval" || key == "type" )
+    {
+      continue;
+    }
+
+    // Skip nested algorithm config keys (e.g., "ocv_windowed:detector:netharn:deployed").
+    // These can't be validated without knowing and instantiating the nested algorithm.
+    std::string algo_prefix = algorithm_type + ":";
+    std::string nested_prefix = algo_prefix + "detector:";
+    if( key.find( nested_prefix ) == 0 )
     {
       continue;
     }
 
     // Check if the key exists in the algorithm's config
-    std::string full_key = "detector:" + algorithm_type + ":" + key;
+    // If the key already starts with the algorithm prefix (e.g., "ocv_windowed:mode"),
+    // don't add it again. The trainer outputs prefixed keys for template replacement.
+    std::string full_key;
+    if( key.find( algo_prefix ) == 0 )
+    {
+      // Key already has algorithm prefix, just add "detector:"
+      full_key = "detector:" + key;
+    }
+    else
+    {
+      // Key doesn't have algorithm prefix, add both
+      full_key = "detector:" + algorithm_type + ":" + key;
+    }
+
     if( !algo_config->has_value( full_key ) )
     {
       std::cerr << "Error: Trainer returned key '" << key

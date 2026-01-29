@@ -7,7 +7,7 @@ export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run standalone script
-python -m viame.processes.opencv.ocv_stereo_demo \
+python -m viame.opencv.stereo_demo \
        --left=../example_imagery/camtrawl_example_image_set1/left \
        --right=../example_imagery/camtrawl_example_image_set1/right \
        --cal=calibration_matrices.npz \
