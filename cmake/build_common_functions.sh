@@ -779,11 +779,15 @@ fix_libsvm_symlink() {
 prepare_linux_desktop_install() {
   local install_dir="${1:-install}"
   local source_dir="${2:-..}"
+  local excluded_dir="${install_dir}_excluded"
 
   echo "Preparing Linux desktop install..."
 
-  # Remove directories not needed for desktop distribution
-  local dirs_to_remove=(
+  # Move directories not needed for desktop distribution to temp location
+  rm -rf "$excluded_dir"
+  mkdir -p "$excluded_dir"
+
+  local dirs_to_exclude=(
     "sbin"
     "qml"
     "include"
@@ -792,24 +796,24 @@ prepare_linux_desktop_install() {
     "doc"
   )
 
-  for dir in "${dirs_to_remove[@]}"; do
+  for dir in "${dirs_to_exclude[@]}"; do
     if [ -d "$install_dir/$dir" ]; then
-      rm -rf "$install_dir/$dir"
-      echo "  Removed $dir"
+      mv "$install_dir/$dir" "$excluded_dir/$dir"
+      echo "  Moved $dir"
     fi
   done
 
-  # Remove share directory but preserve share/postgresql
+  # Move share directory but preserve share/postgresql in the package
   if [ -d "$install_dir/share" ]; then
     if [ -d "$install_dir/share/postgresql" ]; then
       mv "$install_dir/share/postgresql" "$install_dir/postgresql_temp"
     fi
-    rm -rf "$install_dir/share"
+    mv "$install_dir/share" "$excluded_dir/share"
     if [ -d "$install_dir/postgresql_temp" ]; then
       mkdir -p "$install_dir/share"
       mv "$install_dir/postgresql_temp" "$install_dir/share/postgresql"
     fi
-    echo "  Removed share (preserved share/postgresql)"
+    echo "  Moved share (preserved share/postgresql)"
   fi
 
   # Copy LICENSE.txt to install root
@@ -821,6 +825,51 @@ prepare_linux_desktop_install() {
   fi
 
   echo "Linux desktop install preparation complete"
+}
+
+# Restore directories moved out by prepare_linux_desktop_install
+# Arguments:
+#   $1 = install directory (default: install)
+restore_linux_desktop_install() {
+  local install_dir="${1:-install}"
+  local excluded_dir="${install_dir}_excluded"
+
+  if [ ! -d "$excluded_dir" ]; then
+    echo "No excluded directories to restore"
+    return 0
+  fi
+
+  echo "Restoring development folders..."
+
+  local dirs_to_restore=(
+    "sbin"
+    "qml"
+    "include"
+    "mkspecs"
+    "etc"
+    "doc"
+  )
+
+  for dir in "${dirs_to_restore[@]}"; do
+    if [ -d "$excluded_dir/$dir" ]; then
+      mv "$excluded_dir/$dir" "$install_dir/$dir"
+    fi
+  done
+
+  # Restore share directory, merging back with preserved postgresql
+  if [ -d "$excluded_dir/share" ]; then
+    if [ -d "$install_dir/share/postgresql" ]; then
+      mv "$install_dir/share/postgresql" "$install_dir/postgresql_temp"
+      rm -rf "$install_dir/share"
+    fi
+    mv "$excluded_dir/share" "$install_dir/share"
+    if [ -d "$install_dir/postgresql_temp" ]; then
+      mv "$install_dir/postgresql_temp" "$install_dir/share/postgresql"
+    fi
+  fi
+
+  rm -rf "$excluded_dir"
+  echo "Development folders restored"
 }
 
 # Create tarball of install directory

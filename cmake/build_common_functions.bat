@@ -260,50 +260,55 @@ IF ERRORLEVEL 1 (
 )
 ECHO [OK] Renamed install to VIAME
 
-REM Remove directories not needed for desktop distribution (matches Linux behavior)
-ECHO Removing development folders to reduce package size...
-IF EXIST "%~3\VIAME\sbin" (
-    RMDIR /S /Q "%~3\VIAME\sbin"
-    ECHO [OK] Removed sbin/
-)
-IF EXIST "%~3\VIAME\qml" (
-    RMDIR /S /Q "%~3\VIAME\qml"
-    ECHO [OK] Removed qml/
-)
-IF EXIST "%~3\VIAME\include" (
-    RMDIR /S /Q "%~3\VIAME\include"
-    ECHO [OK] Removed include/
-)
-IF EXIST "%~3\VIAME\mkspecs" (
-    RMDIR /S /Q "%~3\VIAME\mkspecs"
-    ECHO [OK] Removed mkspecs/
-)
-IF EXIST "%~3\VIAME\etc" (
-    RMDIR /S /Q "%~3\VIAME\etc"
-    ECHO [OK] Removed etc/
-)
-IF EXIST "%~3\VIAME\doc" (
-    RMDIR /S /Q "%~3\VIAME\doc"
-    ECHO [OK] Removed doc/
+REM Move directories not needed for desktop distribution to temp location
+SET "EXCLUDED_DIR=%~3\VIAME_excluded"
+IF EXIST "!EXCLUDED_DIR!" RMDIR /S /Q "!EXCLUDED_DIR!"
+MKDIR "!EXCLUDED_DIR!"
+ECHO Moving development folders out to reduce package size...
+FOR %%D IN (sbin qml include mkspecs etc doc) DO (
+    IF EXIST "%~3\VIAME\%%D" (
+        MOVE "%~3\VIAME\%%D" "!EXCLUDED_DIR!\%%D" >NUL 2>&1
+        ECHO [OK] Moved %%D/
+    )
 )
 IF EXIST "%~3\VIAME\share" (
-    REM Preserve share/postgresql if it exists
+    REM Move share but preserve share/postgresql in the package
     IF EXIST "%~3\VIAME\share\postgresql" (
-        ECHO Preserving share/postgresql...
         MOVE "%~3\VIAME\share\postgresql" "%~3\VIAME\postgresql_temp" >NUL 2>&1
-        RMDIR /S /Q "%~3\VIAME\share"
+        MOVE "%~3\VIAME\share" "!EXCLUDED_DIR!\share" >NUL 2>&1
         MKDIR "%~3\VIAME\share"
         MOVE "%~3\VIAME\postgresql_temp" "%~3\VIAME\share\postgresql" >NUL 2>&1
-        ECHO [OK] Removed share/ (preserved postgresql)
+        ECHO [OK] Moved share/ (preserved postgresql)
     ) ELSE (
-        RMDIR /S /Q "%~3\VIAME\share"
-        ECHO [OK] Removed share/
+        MOVE "%~3\VIAME\share" "!EXCLUDED_DIR!\share" >NUL 2>&1
+        ECHO [OK] Moved share/
     )
 )
 
 ECHO Creating zip archive (this may take a while)...
 "%~5\7z.exe" a -tzip "%~3\%~4" "%~3\VIAME"
 SET "ZIP_RESULT=!ERRORLEVEL!"
+
+REM Restore excluded directories back into VIAME
+ECHO Restoring development folders...
+FOR %%D IN (sbin qml include mkspecs etc doc) DO (
+    IF EXIST "!EXCLUDED_DIR!\%%D" (
+        MOVE "!EXCLUDED_DIR!\%%D" "%~3\VIAME\%%D" >NUL 2>&1
+    )
+)
+IF EXIST "!EXCLUDED_DIR!\share" (
+    IF EXIST "%~3\VIAME\share\postgresql" (
+        MOVE "%~3\VIAME\share\postgresql" "%~3\VIAME\postgresql_temp" >NUL 2>&1
+        RMDIR /S /Q "%~3\VIAME\share"
+    )
+    MOVE "!EXCLUDED_DIR!\share" "%~3\VIAME\share" >NUL 2>&1
+    IF EXIST "%~3\VIAME\postgresql_temp" (
+        MOVE "%~3\VIAME\postgresql_temp" "%~3\VIAME\share\postgresql" >NUL 2>&1
+    )
+)
+RMDIR /S /Q "!EXCLUDED_DIR!" 2>NUL
+ECHO [OK] Development folders restored
+
 IF !ZIP_RESULT! NEQ 0 (
     ECHO [ERROR] 7-Zip failed with error code !ZIP_RESULT!
     ECHO Restoring install directory...
