@@ -203,6 +203,12 @@ if( VIAME_ENABLE_PYTHON )
     TestEnhance
     image_enhancement
   )
+  add_example_script_test(
+    viame_examples:normalize_16bit
+    test_16bit_normalization.py
+    TestNormalize16bit
+    image_enhancement
+  )
 
   # ============================================================================
   # Object Detection Tests - CRITICAL
@@ -248,6 +254,12 @@ if( VIAME_ENABLE_PYTHON )
     viame_examples:train_netharn_cfrnn_from_viame_csv
     test_object_detector_training.py
     TestTrainNetharnCfrnnFromViameCsv
+    object_detector_training
+  )
+  add_example_script_test(
+    viame_examples:train_netharn_rf_detr_16bit
+    test_16bit_normalization.py
+    TestTrainNetharnRfDetr16bit
     object_detector_training
   )
   add_example_script_test(
