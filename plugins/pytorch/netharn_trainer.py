@@ -834,7 +834,6 @@ class NetHarnTrainer( TrainDetector ):
                 if eval_candidates:
                     # Use eval_folder key - train tool will copy the entire folder
                     output["eval_folder"] = eval_candidates[0]
-                    print( "Found evaluation folder: " + eval_candidates[0] )
 
         print( "\nThe " + self._train_directory + " directory can now be deleted, " \
                "unless you want to review training metrics or generated plots in " \
