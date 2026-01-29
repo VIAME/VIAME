@@ -165,6 +165,7 @@ set( CORE_PIPELINE_FILES
   filter_to_kwa.pipe
   filter_to_video.pipe
   filter_tracks_only.pipe
+  filter_tracks_only_adjust_csv.pipe
   frame_classifier_project_folder.pipe
   frame_classifier_svm.pipe
   index_default.trk.pipe

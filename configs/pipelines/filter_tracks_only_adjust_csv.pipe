@@ -1,0 +1,119 @@
+# =============================================================================
+# Title: Extract frames with detections and output renumbered CSVs
+#
+# Description: Extracts only frames containing detections/tracks and outputs
+# new CSV files with renumbered frame references matching the extracted images.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+# ============================= INPUT FRAME LIST ==============================
+
+include common_default_input.pipe
+
+process downsampler
+  :: downsample
+  :target_frame_rate                           5
+  :renumber_frames                             true
+
+connect from input.image
+        to   downsampler.input_1
+connect from input.file_name
+        to   downsampler.input_2
+connect from input.frame_rate
+        to   downsampler.frame_rate
+connect from input.timestamp
+        to   downsampler.timestamp
+
+process detection_reader
+  :: detected_object_input
+  :file_name                                   [INSERT_ME]
+  :reader:type                                 viame_csv
+  :reader:viame_csv:poly_to_mask               false
+
+connect from downsampler.output_2
+        to   detection_reader.image_file_name
+
+process detection_filter
+  :: detected_object_filter
+  :filter:type                                 class_probablity_filter
+
+  block filter:class_probablity_filter
+    :threshold                                 0.001
+    :keep_all_classes                          true
+    :keep_classes                              vertebrate;invertebrate
+    :required_count                            0
+    :top_category_only                         false
+  endblock
+
+connect from detection_reader.detected_object_set
+        to   detection_filter.detected_object_set
+
+process track_reader
+  :: read_object_track
+  :file_name                                   [INSERT_ME]
+  :reader:type                                 viame_csv
+
+connect from downsampler.output_2
+        to   track_reader.image_file_name
+
+process downsampler2
+  :: downsample
+  :renumber_frames                             false
+  :only_frames_with_dets                       true
+  :renumber_frames                             true
+
+connect from downsampler.timestamp
+        to   downsampler2.timestamp
+
+connect from downsampler.output_1
+        to   downsampler2.input_1
+connect from downsampler.output_2
+        to   downsampler2.input_2
+connect from detection_filter.detected_object_set
+        to   downsampler2.input_3
+connect from track_reader.object_track_set
+        to   downsampler2.input_4
+
+
+# ================================== OUTPUT ===================================
+
+process image_writer
+  :: image_writer
+  :file_name_template                          frame%06d.jpg
+  :image_writer:type                           vxl
+
+connect from downsampler2.original_timestamp
+        to   image_writer.timestamp
+connect from downsampler2.output_1
+        to   image_writer.image
+
+process detector_writer
+  :: detected_object_output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:write_time_as_uid          false
+
+connect from downsampler2.output_3
+        to   detector_writer.detected_object_set
+connect from downsampler2.timestamp
+        to   detector_writer.timestamp
+connect from image_writer.image_file_name
+        to   detector_writer.image_file_name
+
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:write_time_as_uid          false
+
+connect from downsampler2.output_4
+        to   track_writer.object_track_set
+connect from downsampler2.timestamp
+        to   track_writer.timestamp
+connect from image_writer.image_file_name
+        to   track_writer.image_file_name
+
+
+# -- end of file --
