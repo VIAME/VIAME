@@ -549,7 +549,7 @@ class DetectFitDataset(torch.utils.data.Dataset):
                         mask = sseg.to_mask(dims=chw01.shape[1:])
                         c_mask = mask.to_c_mask().data
                         mask_tensor = torch.tensor(c_mask, dtype=torch.uint8)
-                        class_mask_list.append(mask_tensor[None, :])
+                        class_mask_list.append(mask_tensor.unsqueeze(0))
                         has_mask_list.append(1)
                     else:
                         bad_mask = torch.empty((1, h, w), dtype=torch.uint8)
@@ -578,7 +578,7 @@ class DetectFitDataset(torch.utils.data.Dataset):
                                     endAngle=360.0, color=color_, thickness=-1)
 
                         mask_tensor = torch.tensor(mask, dtype=torch.float32)
-                        class_mask_list.append(mask_tensor[None, :])
+                        class_mask_list.append(mask_tensor.unsqueeze(0))
                         has_mask_list.append(1)
                     else:
                         bad_mask = torch.empty((1, h, w), dtype=torch.float32)
@@ -603,7 +603,7 @@ class DetectFitDataset(torch.utils.data.Dataset):
                         # mask = pts.data['xy'].fill(mask, value=1.0)
                         pts.data['xy'].soft_fill(mask, coord_axes=[1, 0], radius=5)
                         mask_tensor = torch.tensor(mask, dtype=torch.float32)
-                        class_mask_list.append(mask_tensor[None, :])
+                        class_mask_list.append(mask_tensor.unsqueeze(0))
                         has_mask_list.append(1)
                     else:
                         bad_mask = torch.empty((1, h, w), dtype=torch.float32)
