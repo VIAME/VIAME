@@ -631,17 +631,9 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
             if os.path.isdir(path):
                 vital_modules.load_module(path)
 
-    # Read config file
-    cfg = vital_config.empty_config()
-
-    with open(config_path, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            if '=' in line:
-                key, value = line.split('=', 1)
-                cfg.set_value(key.strip(), value.strip())
+    # Read config file using vital's built-in loader (supports includes)
+    config_dir = os.path.dirname(os.path.abspath(config_path))
+    cfg = vital_config.read_config_file(config_path, [config_dir])
 
     # Create compute_stereo_depth_map algorithm
     stereo_algo = None
