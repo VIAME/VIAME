@@ -85,13 +85,28 @@ CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_window
 "%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
 IF %ERRORLEVEL% NEQ 0 (
     ECHO.
-    ECHO ========================================
+    ECHO ========================================================================
     ECHO WARNING: CTest returned error code %ERRORLEVEL%
     ECHO This may be due to compiler warnings/errors detected by CTest launchers.
-    ECHO Continuing with final install steps...
-    ECHO ========================================
+    ECHO ========================================================================
     ECHO.
 )
+
+REM Check if build actually completed by looking for setup_viame.bat
+IF NOT EXIST "%VIAME_INSTALL_DIR%\setup_viame.bat" (
+    ECHO.
+    ECHO ==============================================
+    ECHO ERROR: Build did not complete successfully
+    ECHO setup_viame.bat not found in install directory
+    ECHO ==============================================
+    EXIT /B 1
+)
+
+ECHO.
+ECHO ==========================================================
+ECHO Build completed, proceeding with final install steps...
+ECHO ==========================================================
+ECHO.
 
 REM -------------------------------------------------------------------------------------------------------
 REM Final Install Generation Hacks Until Handled Better in VIAME CMake
