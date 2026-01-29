@@ -248,6 +248,7 @@ set( process_headers
   pair_stereo_detections_process.h
   read_habcam_metadata_process.h
   refine_measurements_process.h
+  resample_object_tracks_process.h
   select_database_query_process.h
   split_tracks_to_feature_landmarks_process.h
   stack_frames_process.h
@@ -277,6 +278,7 @@ set( process_sources
   pair_stereo_detections_process.cxx
   read_habcam_metadata_process.cxx
   refine_measurements_process.cxx
+  resample_object_tracks_process.cxx
   select_database_query_process.cxx
   split_tracks_to_feature_landmarks_process.cxx
   stack_frames_process.cxx
