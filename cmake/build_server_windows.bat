@@ -118,10 +118,6 @@ DEL "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*" 2>NUL
 
 CALL %~dp0build_common_functions.bat :CopyCuda12Dlls "%CUDA_ROOT%" "%VIAME_INSTALL_DIR%\bin"
 
-ECHO.
-ECHO Copying CUPTI DLL...
-CALL %~dp0build_common_functions.bat :CopyDllWithStatus "%CUDA_ROOT%\extras\CUPTI\lib64\cupti64_2025.1.0.dll" "%VIAME_INSTALL_DIR%\bin"
-
 REM -------------------------------------------------------------------------------------------------------
 REM Generate Final Zip File
 REM -------------------------------------------------------------------------------------------------------

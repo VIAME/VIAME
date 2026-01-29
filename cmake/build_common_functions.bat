@@ -144,12 +144,12 @@ ECHO ========================================
 ECHO Copying System DLLs
 ECHO ========================================
 ECHO.
-CALL :CopyDllWithStatus "%WINDIR%\System32\msvcr100.dll" "%~2"
-CALL :CopyDllWithStatus "%WINDIR%\System32\vcruntime140_1.dll" "%~2"
-CALL :CopyDllWithStatus "%~3\vcomp140.dll" "%~2"
-CALL :CopyDllWithStatus "%WINDIR%\SysWOW64\msvcr120.dll" "%~2"
-CALL :CopyDllWithStatus "%~4\dll_x64\zlibwapi.dll" "%~2"
-IF NOT "%~5"=="" CALL :CopyDllWithStatus "%~5\Release\zlib1.dll" "%~2"
+CALL :CopyDll "%WINDIR%\System32\msvcr100.dll" "%~2"
+CALL :CopyDll "%WINDIR%\System32\vcruntime140_1.dll" "%~2"
+CALL :CopyDll "%~3\vcomp140.dll" "%~2"
+CALL :CopyDll "%WINDIR%\SysWOW64\msvcr120.dll" "%~2"
+CALL :CopyDll "%~4\dll_x64\zlibwapi.dll" "%~2"
+IF NOT "%~5"=="" CALL :CopyDll "%~5\Release\zlib1.dll" "%~2"
 ECHO.
 GOTO :EOF
 
@@ -166,43 +166,45 @@ ECHO ========================================
 ECHO Copying CUDA 12.x and cuDNN 9.x DLLs
 ECHO ========================================
 ECHO.
-CALL :CopyDllWithStatus "%~2\bin\cublas64_12.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cublasLt64_12.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudart64_12.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn_adv64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn_cnn64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn_engines_precompiled64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn_engines_runtime_compiled64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn_graph64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn_heuristic64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn_ops64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cufft64_11.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cufftw64_11.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\curand64_10.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cusolver64_11.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cusolverMg64_11.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cusparse64_12.dll" "%~3"
+CALL :CopyDll "%~2\bin\cublas64_12.dll" "%~3"
+CALL :CopyDll "%~2\bin\cublasLt64_12.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudart64_12.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn_adv64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn_cnn64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn_engines_precompiled64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn_engines_runtime_compiled64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn_graph64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn_heuristic64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn_ops64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cufft64_11.dll" "%~3"
+CALL :CopyDll "%~2\bin\cufftw64_11.dll" "%~3"
+CALL :CopyDll "%~2\bin\curand64_10.dll" "%~3"
+CALL :CopyDll "%~2\bin\cusolver64_11.dll" "%~3"
+CALL :CopyDll "%~2\bin\cusolverMg64_11.dll" "%~3"
+CALL :CopyDll "%~2\bin\cusparse64_12.dll" "%~3"
+CALL :CopyDll "%~2\bin\nvJitLink_120_0.dll" "%~3"
+CALL :CopyDll "%~2\extras\CUPTI\lib64\cupti64_2025.1.0.dll" "%~3"
 ECHO.
 GOTO :EOF
 
 REM ==============================================================================
-REM CopyDllWithStatus
+REM CopyDll (internal helper)
 REM Copy a single DLL and print status message
 REM Arguments:
-REM   %2 = Source DLL path
-REM   %3 = Destination directory
+REM   %1 = Source DLL path
+REM   %2 = Destination directory
 REM ==============================================================================
-:CopyDllWithStatus
-IF EXIST "%~2" (
-    COPY "%~2" "%~3" >NUL 2>&1
+:CopyDll
+IF EXIST "%~1" (
+    COPY "%~1" "%~2" >NUL 2>&1
     IF ERRORLEVEL 1 (
-        ECHO [FAILED] %~nx2 - copy failed
+        ECHO [FAILED] %~nx1 - copy failed
     ) ELSE (
-        ECHO [OK] %~nx2
+        ECHO [OK] %~nx1
     )
 ) ELSE (
-    ECHO [MISSING] %~nx2 - source not found: %~2
+    ECHO [MISSING] %~nx1 - source not found: %~1
 )
 GOTO :EOF
 
@@ -347,4 +349,3 @@ IF %ERRORLEVEL% NEQ 0 (
     EXIT /B %ERRORLEVEL%
 )
 GOTO :EOF
-
