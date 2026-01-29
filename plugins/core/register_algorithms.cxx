@@ -19,6 +19,7 @@
 #include "empty_detector.h"
 #include "full_frame_detector.h"
 #include "merge_detections_suppress_in_regions.h"
+#include "normalize_image_percentile.h"
 #include "read_detected_object_set_auto.h"
 #include "read_detected_object_set_cvat.h"
 #include "read_detected_object_set_dive.h"
@@ -99,6 +100,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< ::viame::average_track_descriptors >();
   reg.register_algorithm< ::viame::full_frame_detector >();
   reg.register_algorithm< ::viame::merge_detections_suppress_in_regions >();
+  reg.register_algorithm< ::viame::normalize_image_percentile >();
   reg.register_algorithm< ::viame::refine_detections_add_fixed >();
   reg.register_algorithm< ::viame::refine_detections_nms >();
   reg.register_algorithm< ::viame::windowed_detector >();
