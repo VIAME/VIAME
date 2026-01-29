@@ -38,6 +38,7 @@
 #include <iostream>
 #include <sstream>
 #include <iterator>
+#include <cstdlib>
 #include <memory>
 #include <cctype>
 #include <regex>
@@ -149,40 +150,14 @@ static kv::config_block_sptr default_config()
 }
 
 // =======================================================================================
-// Known Python-based detector types that cannot be instantiated from C++.
-// These are used by wrapper detectors like ocv_windowed.
-static const std::unordered_set< std::string > python_detector_types = {
-  "netharn", "mmdet", "full_frame_classifier", "viame_csv_file"
-};
-
-// =======================================================================================
 // Try to instantiate a detector and get its configuration.
 // The output_map is used to pre-configure nested detector types if present.
-// Returns nullptr if the detector cannot be instantiated (e.g., Python-based algorithms).
+// Returns nullptr if the detector cannot be instantiated.
 static kv::config_block_sptr try_get_detector_config(
     const std::string& algo_type,
     const std::map< std::string, std::string >& output_map = {} )
 {
   if( algo_type.empty() )
-  {
-    return nullptr;
-  }
-
-  // Check if this algo has a nested detector that's Python-based
-  // If so, skip instantiation to avoid KWIVER warnings
-  std::string nested_type_key = algo_type + ":detector:type";
-  auto it = output_map.find( nested_type_key );
-  if( it != output_map.end() && !it->second.empty() )
-  {
-    if( python_detector_types.count( it->second ) > 0 )
-    {
-      // Nested detector is Python-based, can't instantiate from C++
-      return nullptr;
-    }
-  }
-
-  // Also skip if the type itself is Python-based
-  if( python_detector_types.count( algo_type ) > 0 )
   {
     return nullptr;
   }
@@ -194,6 +169,10 @@ static kv::config_block_sptr try_get_detector_config(
     temp_config->set_value( "detector:type", algo_type );
 
     // Pre-configure nested detector type from output map if present
+    // e.g., if algo_type is "ocv_windowed" and output map has
+    // "ocv_windowed:detector:type" = "netharn", set it before instantiation
+    std::string nested_type_key = algo_type + ":detector:type";
+    auto it = output_map.find( nested_type_key );
     if( it != output_map.end() && !it->second.empty() )
     {
       temp_config->set_value( "detector:" + nested_type_key, it->second );
@@ -212,7 +191,7 @@ static kv::config_block_sptr try_get_detector_config(
   }
   catch( ... )
   {
-    // Algorithm couldn't be instantiated (e.g., Python-based)
+    // Algorithm couldn't be instantiated
   }
 
   return nullptr;
@@ -1049,15 +1028,23 @@ train_applet
   // Handle --normalize-16bit option
   if( opt_normalize_16bit )
   {
+    // Get VIAME_INSTALL from environment to build full paths
+    const char* viame_install = std::getenv( "VIAME_INSTALL" );
+    std::string pipeline_prefix;
+    if( viame_install )
+    {
+      pipeline_prefix = std::string( viame_install ) + "/configs/pipelines/";
+    }
+
     if( pipeline_file.empty() )
     {
-      pipeline_file = "train_aug_percentile_norm.pipe";
+      pipeline_file = pipeline_prefix + "train_aug_percentile_norm.pipe";
       std::cout << "Using percentile normalization augmentation pipeline" << std::endl;
     }
     if( pipeline_template.empty() ||
         pipeline_template.find( "default" ) != std::string::npos )
     {
-      pipeline_template = "templates/embedded_16bit.pipe";
+      pipeline_template = pipeline_prefix + "templates/embedded_16bit.pipe";
       std::cout << "Using 16-bit normalization inference template" << std::endl;
     }
   }

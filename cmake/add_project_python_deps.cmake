@@ -30,8 +30,8 @@ else()
   list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy>=1.26.0,<=2.0.2" )
 endif()
 
-# Testing infastructure
-if( VIAME_BUILD_TESTS )
+# Testing infrastructure
+if( VIAME_ENABLE_TESTS )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pytest" )
 endif()
 

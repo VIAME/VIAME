@@ -13,6 +13,7 @@ export KWIVER_DEFAULT_LOG_LEVEL=info
 viame train \
   --input-list input_list_arctic_seal_16bit.txt \
   --input-truth groundtruth_arctic_seal_16bit.csv \
+  --labels labels_arctic_seal_16bit.txt \
   -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_rf_detr.conf \
   --normalize-16bit \
   --threshold 0.0

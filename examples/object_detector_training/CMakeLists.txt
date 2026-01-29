@@ -54,7 +54,8 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          train_netharn_mit_yolo.bat
          train_netharn_rf_detr_16bit.bat
          input_list_arctic_seal_16bit.txt
-         groundtruth_arctic_seal_16bit.csv )
+         groundtruth_arctic_seal_16bit.csv
+         labels_arctic_seal_16bit.txt )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
@@ -67,7 +68,8 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          train_netharn_mit_yolo.sh
          train_netharn_rf_detr_16bit.sh
          input_list_arctic_seal_16bit.txt
-         groundtruth_arctic_seal_16bit.csv )
+         groundtruth_arctic_seal_16bit.csv
+         labels_arctic_seal_16bit.txt )
   endif()
 endif()
 
