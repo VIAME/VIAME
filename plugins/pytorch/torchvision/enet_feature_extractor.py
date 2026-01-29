@@ -65,7 +65,7 @@ class EfficientNetFeatureExtractor(object):
 
         # load the efficientnet50 model. Maybe this shouldn't be hardcoded?
         self._model = models.efficientnet_v2_s()
-        weights = torch.load( model_path )
+        weights = torch.load( model_path, weights_only=False )
 
         self._model.load_state_dict( weights )
         self._model.train( False )

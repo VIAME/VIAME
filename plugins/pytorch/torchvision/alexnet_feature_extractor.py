@@ -68,7 +68,7 @@ class AlexNetFeatureExtractor(object):
         # load the alexnet model. Maybe this shouldn't be hardcoded?
         self._alexnet_model = models.alexnet()
         print( alexnet_model_path )
-        weights = torch.load( alexnet_model_path )
+        weights = torch.load( alexnet_model_path, weights_only=False )
 
         self._alexnet_model.load_state_dict( weights )
         new_classifier = nn.Sequential(*list(self._alexnet_model.classifier.children())[:-1])

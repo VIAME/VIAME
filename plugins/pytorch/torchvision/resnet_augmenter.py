@@ -101,7 +101,7 @@ class AugmentedResNetFeatureExtractor(object):
         # load the resnet50 model. Maybe this shouldn't be hardcoded?
         self._resnet_model = models.resnet50()
 
-        weights = torch.load( resnet_model_path )
+        weights = torch.load( resnet_model_path, weights_only=False )
         self._resnet_model.load_state_dict( weights )
         self._resnet_model = nn.Sequential(*list(self._resnet_model.children())[:-1])
 

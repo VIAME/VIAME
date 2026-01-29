@@ -67,7 +67,7 @@ class ResNetFeatureExtractor(object):
         self._resnet_model = models.resnet50()
         #self._resnet_model.fc = nn.Linear(2048, 46)
         print( resnet_model_path )
-        weights = torch.load( resnet_model_path )
+        weights = torch.load( resnet_model_path, weights_only=False )
 
         self._resnet_model.load_state_dict( weights )
         self._resnet_model = nn.Sequential(*list(self._resnet_model.children())[:-1])
