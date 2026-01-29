@@ -10,15 +10,19 @@ if( VIAME_ENABLE_OPENCV )
          ${EXAMPLE_INSTALL_FILES}
          input_list_raw_images.txt
          input_list_rgb_images.txt
+         input_list_16bit_images.txt
          debayer_and_enhance.bat
-         enhance.bat )
+         enhance.bat
+         normalize_16bit.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          input_list_raw_images.txt
          input_list_rgb_images.txt
+         input_list_16bit_images.txt
          debayer_and_enhance.sh
-         enhance.sh )
+         enhance.sh
+         normalize_16bit.sh )
   endif()
 endif()
 

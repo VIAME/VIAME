@@ -1,0 +1,43 @@
+# =============================================================================
+# Title: Normalize 16-bit or floating point imagery to 8-bit
+#
+# Description: Applies percentile-based normalization to convert non-8-bit
+# imagery (16-bit, float, etc.) to standard 8-bit format for visualization
+# or use with models that expect 8-bit input.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+# ================================ INPUT VIDEO ================================
+
+include common_default_input_16bit.pipe
+
+# ================================== FILTERS ==================================
+
+process filter
+  :: image_filter
+  :filter:type                                 percentile_norm
+
+  block filter:percentile_norm
+    :lower_percentile                          1.0
+    :upper_percentile                          99.0
+    :output_format                             8-bit
+  endblock
+
+connect from input.image
+        to   filter.image
+
+# ================================== OUTPUT ===================================
+
+process image_writer
+  :: image_writer
+  :file_name_template                          frame%06d.png
+  :image_writer:type                           vxl
+
+connect from filter.image
+        to   image_writer.image
+connect from input.file_name
+        to   image_writer.image_file_name
+
+# -- end of file --
