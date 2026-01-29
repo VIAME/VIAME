@@ -902,61 +902,68 @@ def interpolated_colormap(colors, resolution=64, space='lch-ab'):
     indices = np.maximum(indices, 1)
     cpool = []
 
-    from colormath import color_conversions
-    # FIXME: need to ensure monkeypatch for networkx 2.0 in colormath
-    # color_conversions._conversion_manager = color_conversions.GraphConversionManager()
-    from colormath import color_objects
-    def new_convertor(target_obj):
-        source_obj = color_objects.sRGBColor
-        def to_target(src_tup):
-            src_tup = src_tup[0:3]
-            src_co = source_obj(*src_tup)
-            target_co = color_conversions.convert_color(src_co, target_obj)
-            target_tup = target_co.get_value_tuple()
-            return target_tup
+    from skimage import color as skcolor
 
-        def from_target(target_tup):
-            target_co = target_obj(*target_tup)
-            src_co = color_conversions.convert_color(target_co, source_obj)
-            src_tup = src_co.get_value_tuple()
-            return src_tup
-        return to_target, from_target
+    def _skimage_pair(to_fn, from_fn):
+        """Build (rgb_to_space, space_to_rgb) operating on 3-tuples."""
+        def forward(rgb_tup):
+            pixel = np.array(rgb_tup[0:3]).reshape(1, 1, 3)
+            return tuple(to_fn(pixel).ravel())
+        def inverse(space_tup):
+            pixel = np.array(space_tup).reshape(1, 1, 3)
+            return tuple(from_fn(pixel).ravel())
+        return forward, inverse
 
-    def from_hsv(rgb):
-        return colorsys.rgb_to_hsv(*rgb[0:3])
+    def _lch_ab_pair():
+        def forward(rgb_tup):
+            pixel = np.array(rgb_tup[0:3]).reshape(1, 1, 3)
+            lab = skcolor.rgb2lab(pixel)
+            lch = skcolor.lab2lch(lab)
+            return tuple(lch.ravel())
+        def inverse(lch_tup):
+            pixel = np.array(lch_tup).reshape(1, 1, 3)
+            lab = skcolor.lch2lab(pixel)
+            rgb = skcolor.lab2rgb(lab)
+            return tuple(rgb.ravel())
+        return forward, inverse
 
-    def to_hsv(hsv):
-        return colorsys.hsv_to_rgb(*hsv[0:3].tolist())
+    def _lch_uv_pair():
+        def forward(rgb_tup):
+            pixel = np.array(rgb_tup[0:3]).reshape(1, 1, 3)
+            luv = skcolor.rgb2luv(pixel).ravel()
+            L, u, v = luv
+            C = np.sqrt(u ** 2 + v ** 2)
+            H = np.arctan2(v, u)
+            return (L, C, H)
+        def inverse(lch_tup):
+            L, C, H = lch_tup
+            u = C * np.cos(H)
+            v = C * np.sin(H)
+            pixel = np.array([L, u, v]).reshape(1, 1, 3)
+            rgb = skcolor.luv2rgb(pixel)
+            return tuple(rgb.ravel())
+        return forward, inverse
 
-    classnames = {
-        # 'AdobeRGBColor',
-        # 'BaseRGBColor',
-        'cmk': 'CMYColor',
-        'cmyk': 'CMYKColor',
-        'hsl': 'HSLColor',
-        'hsv': 'HSVColor',
-        'ipt': 'IPTColor',
-        'lch-ab': 'LCHabColor',
-        'lch-uv': 'LCHuvColor',
-        'lab': 'LabColor',
-        'luv': 'LuvColor',
-        # 'SpectralColor',
-        'xyz':  'XYZColor',
-        # 'sRGBColor',
-        'xyy': 'xyYColor'
+    def _hsl_pair():
+        def forward(rgb_tup):
+            h, l, s = colorsys.rgb_to_hls(*rgb_tup[0:3])
+            return (h, s, l)
+        def inverse(hsl_tup):
+            h, s, l = hsl_tup
+            return colorsys.hls_to_rgb(h, l, s)
+        return forward, inverse
+
+    conversions = {
+        'lab': _skimage_pair(skcolor.rgb2lab, skcolor.lab2rgb),
+        'luv': _skimage_pair(skcolor.rgb2luv, skcolor.luv2rgb),
+        'xyz': _skimage_pair(skcolor.rgb2xyz, skcolor.xyz2rgb),
+        'hsv': _skimage_pair(skcolor.rgb2hsv, skcolor.hsv2rgb),
+        'lch-ab': _lch_ab_pair(),
+        'lch-uv': _lch_uv_pair(),
+        'hsl': _hsl_pair(),
     }
 
-    conversions = {k: new_convertor(getattr(color_objects, v))
-                   for k, v in classnames.items()}
-
-    from_rgb, to_rgb = conversions['hsv']
-    from_rgb, to_rgb = conversions['xyz']
-    from_rgb, to_rgb = conversions['lch-uv']
-    from_rgb, to_rgb = conversions['lch-ab']
     from_rgb, to_rgb = conversions[space]
-    # from_rgb, to_rgb = conversions['lch']
-    # from_rgb, to_rgb = conversions['lab']
-    # from_rgb, to_rgb = conversions['lch-uv']
 
     for idx2, b in zip(indices, basis):
         idx1 = idx2 - 1
