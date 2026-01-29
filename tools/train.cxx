@@ -191,7 +191,9 @@ static kv::config_block_sptr try_get_detector_config(
   }
   catch( ... )
   {
-    // Algorithm couldn't be instantiated
+    // Some detectors (e.g., netharn, mmdet) require model files to be
+    // instantiated and will fail here. This is expected - we'll skip
+    // detailed validation for these detectors.
   }
 
   return nullptr;
