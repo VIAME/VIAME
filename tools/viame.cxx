@@ -30,13 +30,14 @@
 
 #include <vital/applets/kwiver_applet.h>
 #include <vital/applets/applet_context.h>
+#include <vital/config/config_block.h>
 
 #include <vital/applets/applet_registrar.h>
 #include <vital/exceptions/base.h>
-#include <vital/plugin_loader/plugin_factory.h>
-#include <vital/plugin_loader/plugin_filter_category.h>
-#include <vital/plugin_loader/plugin_filter_default.h>
-#include <vital/plugin_loader/plugin_manager_internal.h>
+#include <vital/plugin_management/plugin_factory.h>
+#include <vital/plugin_management/plugin_filter_category.h>
+#include <vital/plugin_management/plugin_filter_default.h>
+#include <vital/plugin_management/plugin_manager_internal.h>
 #include <vital/util/get_paths.h>
 
 #include <algorithm>
@@ -249,7 +250,7 @@ void help_applet( const command_line_parser& options,
   auto fact = app_fact.find_factory( options.m_applet_args[1] );
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
 
-  kwiver::tools::kwiver_applet_sptr applet( app_fact.create( options.m_applet_args[1] ) );
+  kwiver::tools::kwiver_applet_sptr applet( app_fact.create( options.m_applet_args[1], kwiver::vital::config_block::empty_config() ) );
   tool_context->m_applet_name = options.m_applet_args[1];
   applet->initialize( tool_context.get() );
   applet->add_command_options();
@@ -299,7 +300,7 @@ int main(int argc, char *argv[])
   {
     // Create applet based on the name provided
     applet_factory app_fact;
-    kwiver::tools::kwiver_applet_sptr applet( app_fact.create( options.m_applet_name ) );
+    kwiver::tools::kwiver_applet_sptr applet( app_fact.create( options.m_applet_name, kwiver::vital::config_block::empty_config() ) );
 
     tool_context->m_applet_name = options.m_applet_name;
     tool_context->m_argv = options.m_applet_args; // save a copy of the args

@@ -8,6 +8,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/image_filter.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -15,17 +16,17 @@ class VIAME_OPENCV_EXPORT debayer_filter
   : public kwiver::vital::algo::image_filter
 {
 public:
-  PLUGIN_INFO( "ocv_debayer",
-               "OpenCV debayer filter for converting to RGB or grayscale" )
-  
-  debayer_filter();
-  virtual ~debayer_filter();
+  PLUGGABLE_IMPL(
+    debayer_filter,
+    "OpenCV debayer filter for converting to RGB or grayscale",
+    PARAM_DEFAULT( pattern, std::string,
+      "Bayer pattern, can either be: BG, GB, RG, or GR. The two letters indicate the particular pattern type.", "BG" ),
+    PARAM_DEFAULT( force_8bit, bool,
+      "Force output to be 8 bit", false )
+  )
 
-  // Get the current configuration (parameters) for this filter
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
+  virtual ~debayer_filter() = default;
 
-  // Set configurations automatically parsed from input pipeline and config files
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   // Main filtering method
@@ -33,8 +34,7 @@ public:
     kwiver::vital::image_container_sptr image_data );
 
 private:
-  class priv;
-  const std::unique_ptr< priv > d;
+  mutable bool m_is_first = true;
 };
 
 } // end namespace

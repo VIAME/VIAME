@@ -48,12 +48,9 @@ double filter_number( std::string str )
 class read_detected_object_set_oceaneyes::priv
 {
 public:
-  priv( read_detected_object_set_oceaneyes* parent )
-    : m_parent( parent )
+  priv( read_detected_object_set_oceaneyes& parent )
+    : m_parent( &parent )
     , m_first( true )
-    , c_no_fish_string( "no fish" )
-    , c_box_expansion( 0.30 )
-    , c_max_aspect_ratio( 2.25 )
   {}
 
   ~priv() { }
@@ -62,9 +59,6 @@ public:
 
   read_detected_object_set_oceaneyes* m_parent;
   bool m_first;
-  std::string c_no_fish_string;
-  double c_box_expansion;
-  double c_max_aspect_ratio;
 
   typedef std::map< std::string, kwiver::vital::detected_object_set_sptr > map_type;
 
@@ -79,8 +73,8 @@ public:
 // ===================================================================================
 read_detected_object_set_oceaneyes
 ::read_detected_object_set_oceaneyes()
-  : d( new read_detected_object_set_oceaneyes::priv( this ) )
 {
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
   attach_logger( "viame.core.read_detected_object_set_oceaneyes" );
 }
 
@@ -88,18 +82,6 @@ read_detected_object_set_oceaneyes
 read_detected_object_set_oceaneyes
 ::~read_detected_object_set_oceaneyes()
 {
-}
-
-
-// -----------------------------------------------------------------------------------
-void
-read_detected_object_set_oceaneyes
-::set_configuration( kwiver::vital::config_block_sptr config )
-{
-  d->c_no_fish_string =
-    config->get_value< std::string >( "no_fish_string", d->c_no_fish_string );
-  d->c_box_expansion =
-    config->get_value< double >( "box_expansion", d->c_box_expansion );
 }
 
 
@@ -240,7 +222,7 @@ read_detected_object_set_oceaneyes::priv
         std::make_shared<kwiver::vital::detected_object_set>();
     }
 
-    if( COL_SPECIES_ID > 0 && col[ COL_SPECIES_ID ] == c_no_fish_string )
+    if( COL_SPECIES_ID > 0 && col[ COL_SPECIES_ID ] == m_parent->c_no_fish_string )
     {
       continue;
     }
@@ -261,21 +243,21 @@ read_detected_object_set_oceaneyes::priv
     double c_x = ( x_min + x_max ) / 2.0;
     double c_y = ( y_min + y_max ) / 2.0;
 
-    double width = ( x_max - x_min ) * ( 1.0 + c_box_expansion );
-    double height = ( y_max - y_min ) * ( 1.0 + c_box_expansion );
+    double width = ( x_max - x_min ) * ( 1.0 + m_parent->c_box_expansion );
+    double height = ( y_max - y_min ) * ( 1.0 + m_parent->c_box_expansion );
 
     if( width == 0 || height == 0 )
     {
       continue;
     }
 
-    if( height / width > c_max_aspect_ratio )
+    if( height / width > m_parent->c_max_aspect_ratio )
     {
-      width = height / c_max_aspect_ratio;
+      width = height / m_parent->c_max_aspect_ratio;
     }
-    if( width / height > c_max_aspect_ratio )
+    if( width / height > m_parent->c_max_aspect_ratio )
     {
-      height = width / c_max_aspect_ratio;
+      height = width / m_parent->c_max_aspect_ratio;
     }
 
     kwiver::vital::bounding_box_d bbox(

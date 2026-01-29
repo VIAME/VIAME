@@ -294,8 +294,8 @@ read_habcam_metadata_process
       CHECK_FIELD( "hdg", kwiver::vital::VITAL_META_SENSOR_YAW_ANGLE );
       CHECK_FIELD( "pitch", kwiver::vital::VITAL_META_SENSOR_PITCH_ANGLE );
       CHECK_FIELD( "roll", kwiver::vital::VITAL_META_SENSOR_ROLL_ANGLE );
-      CHECK_FIELD( "alt0", kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
-      CHECK_FIELD( "alt1", kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
+      CHECK_FIELD( "alt0", kwiver::vital::VITAL_META_DENSITY_ALTITUDE );
+      CHECK_FIELD( "alt1", kwiver::vital::VITAL_META_DENSITY_ALTITUDE );
     }
   }
   else
@@ -334,7 +334,7 @@ read_habcam_metadata_process
 
     if( image_id_ind + 6 <= static_cast<int>( tokens.size() ) )
     {
-      output_md->add< kwiver::vital::VITAL_META_SENSOR_ALTITUDE >(
+      output_md->add< kwiver::vital::VITAL_META_DENSITY_ALTITUDE >(
         std::stod( tokens[ image_id_ind + 2 ] ) );
       output_md->add< kwiver::vital::VITAL_META_SENSOR_YAW_ANGLE >(
         std::stod( tokens[ image_id_ind + 3 ] ) );

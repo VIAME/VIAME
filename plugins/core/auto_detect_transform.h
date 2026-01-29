@@ -9,6 +9,7 @@
 
 #include <vital/algo/transform_2d_io.h>
 #include <vital/types/transform_2d.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 
 namespace viame
@@ -19,25 +20,12 @@ class VIAME_CORE_EXPORT auto_detect_transform_io
   : public kwiver::vital::algo::transform_2d_io
 {
 public:
+  PLUGGABLE_IMPL( auto_detect_transform_io,
+    "Automatically detect a transform type stored in either an ITK (.h5) "
+    "or simple homography (.txt) format." )
+  virtual ~auto_detect_transform_io() = default;
 
-  static constexpr char const* name = "auto";
-
-  static constexpr char const* description = "Automatically detect a transform "
-    "type stored in either an ITK (.h5) or simple homography (.txt) format.";
-
-  /// Constructor
-  auto_detect_transform_io();
-
-  /// Destructor
-  virtual ~auto_detect_transform_io();
-
-  /// Get this algorithm's \link vital::config_block configuration block \endlink
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
-  /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
-
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
 private:
   /// Implementation specific load functionality.
   /**

@@ -11,28 +11,30 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/refine_detections.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
 /// A class for drawing various information about feature tracks
 class VIAME_OPENCV_EXPORT refine_detections_grabcut
-: public kwiver::vital::algorithm_impl<refine_detections_grabcut,
-    kwiver::vital::algo::refine_detections>
+  : public kwiver::vital::algo::refine_detections
 {
 public:
-  PLUGIN_INFO( "ocv_grabcut",
-               "Estimate a segmentation using GrabCut" )
+  PLUGGABLE_IMPL(
+    refine_detections_grabcut,
+    "Estimate a segmentation using GrabCut",
+    PARAM_DEFAULT( iter_count, int,
+      "Number of iterations GrabCut should perform for each detection", 2 ),
+    PARAM_DEFAULT( context_scale_factor, double,
+      "Amount to scale the detection by to produce a context region", 2.0 ),
+    PARAM_DEFAULT( seed_with_existing_masks, bool,
+      "If true, use existing masks as \"certainly foreground\" seed regions", true ),
+    PARAM_DEFAULT( foreground_scale_factor, double,
+      "Amount to scale the detection by to produce a region considered certainly foreground", 0.0 )
+  )
 
-  /// Constructor
-  refine_detections_grabcut();
+  virtual ~refine_detections_grabcut() = default;
 
-  /// Destructor
-  virtual ~refine_detections_grabcut();
-
-  /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration(kwiver::vital::config_block_sptr config);
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
 
@@ -48,12 +50,6 @@ public:
   virtual kwiver::vital::detected_object_set_sptr
   refine( kwiver::vital::image_container_sptr image_data,
           kwiver::vital::detected_object_set_sptr detections ) const;
-
-private:
-
-  /// private implementation class
-  class priv;
-  const std::unique_ptr<priv> d_;
 };
 
 } // end namespace viame

@@ -16,6 +16,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/refine_detections.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -76,7 +77,7 @@ enum cameraSource { STEREO_NONE, STEREO_LEFT, STEREO_RIGHT, STEREO_BOTH };
 // ============================================================================
 // FGObject - Foreground Object class for tracking detected objects
 // ============================================================================
-class FGObject
+class VIAME_OPENCV_EXPORT FGObject
 {
 public:
   double area;
@@ -139,7 +140,7 @@ private:
 // ============================================================================
 // FGExtraction - Foreground Extraction class
 // ============================================================================
-class FGExtraction
+class VIAME_OPENCV_EXPORT FGExtraction
 {
 public:
   FGExtraction();
@@ -212,7 +213,7 @@ public:
 // ============================================================================
 // FeatureExtraction - Feature Extraction class for fish classification
 // ============================================================================
-class FeatureExtraction
+class VIAME_OPENCV_EXPORT FeatureExtraction
 {
 public:
   FeatureExtraction();
@@ -263,7 +264,7 @@ public:
 // ============================================================================
 // ClassHierarchyNode - Node in the classification hierarchy tree
 // ============================================================================
-class ClassHierarchyNode
+class VIAME_OPENCV_EXPORT ClassHierarchyNode
 {
 public:
   ClassHierarchyNode() {
@@ -311,7 +312,7 @@ private:
 // ============================================================================
 // ClassHierarchy - Class Hierarchy for hierarchical classification
 // ============================================================================
-class ClassHierarchy
+class VIAME_OPENCV_EXPORT ClassHierarchy
 {
 public:
   ClassHierarchy();
@@ -344,7 +345,7 @@ private:
 // ============================================================================
 // FishSpeciesID - Hierarchical Partial Classifier for fish species
 // ============================================================================
-class FishSpeciesID
+class VIAME_OPENCV_EXPORT FishSpeciesID
 {
 public:
   FishSpeciesID();
@@ -402,28 +403,31 @@ std::string numToStr(const T& num)
 // ============================================================================
 // classify_fish_hierarchical_svm - KWIVER algorithm wrapper
 // ============================================================================
-class VIAME_OPENCV_EXPORT classify_fish_hierarchical_svm :
-  public kwiver::vital::algorithm_impl<
-    classify_fish_hierarchical_svm, kwiver::vital::algo::refine_detections>
+class VIAME_OPENCV_EXPORT classify_fish_hierarchical_svm
+  : public kwiver::vital::algo::refine_detections
 {
 public:
-  PLUGIN_INFO( "hierarchical_svm",
-               "Hierarchical SVM fish species classifier" )
+  PLUGGABLE_IMPL(
+    classify_fish_hierarchical_svm,
+    "Hierarchical SVM fish species classifier",
+    PARAM_DEFAULT( model_file, std::string,
+      "Name of hierarchical SVM model file.", "" )
+  )
 
-  classify_fish_hierarchical_svm();
-  virtual ~classify_fish_hierarchical_svm();
+  virtual ~classify_fish_hierarchical_svm() = default;
 
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-  virtual void set_configuration(kwiver::vital::config_block_sptr config);
-  virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const
+  {
+    return true;
+  }
 
   virtual kwiver::vital::detected_object_set_sptr refine(
     kwiver::vital::image_container_sptr image_data,
     kwiver::vital::detected_object_set_sptr input_dets) const;
 
 private:
-  class priv;
-  const std::unique_ptr<priv> d;
+  mutable FishSpeciesID m_fish_model;
+  mutable bool m_model_loaded = false;
 };
 
 } // end namespace viame

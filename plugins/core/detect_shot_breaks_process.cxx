@@ -8,6 +8,9 @@
  */
 
 #include "detect_shot_breaks_process.h"
+
+#include <vital/algo/algorithm.txx>
+
 #include "detect_shot_breaks.h"
 
 #include <vital/vital_types.h>
@@ -588,11 +591,11 @@ detect_shot_breaks_process
   {
     kv::config_block_sptr algo_config = get_config();
 
-    kv::algo::detect_features::set_nested_algo_configuration(
+    kv::set_nested_algo_configuration<kv::algo::detect_features>(
       "feature_detector", algo_config, d->m_feature_detector );
-    kv::algo::extract_descriptors::set_nested_algo_configuration(
+    kv::set_nested_algo_configuration<kv::algo::extract_descriptors>(
       "descriptor_extractor", algo_config, d->m_descriptor_extractor );
-    kv::algo::match_features::set_nested_algo_configuration(
+    kv::set_nested_algo_configuration<kv::algo::match_features>(
       "feature_matcher", algo_config, d->m_feature_matcher );
 
     if( !d->m_feature_detector )
@@ -617,7 +620,7 @@ detect_shot_breaks_process
   {
     kv::config_block_sptr algo_config = get_config();
 
-    kv::algo::extract_descriptors::set_nested_algo_configuration(
+    kv::set_nested_algo_configuration<kv::algo::extract_descriptors>(
       "frame_descriptor_extractor", algo_config, d->m_frame_descriptor_extractor );
 
     if( !d->m_frame_descriptor_extractor )

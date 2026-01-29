@@ -437,8 +437,8 @@ parse_dive_json_file( std::string const& filename,
 class read_detected_object_set_dive::priv
 {
 public:
-  priv( read_detected_object_set_dive* parent )
-    : m_parent( parent )
+  priv( read_detected_object_set_dive& parent )
+    : m_parent( &parent )
     , m_first( true )
     , m_current_frame( 0 )
     , m_max_frame( -1 )
@@ -465,35 +465,18 @@ public:
 
 // ===================================================================================
 read_detected_object_set_dive
-::read_detected_object_set_dive()
-  : d( new read_detected_object_set_dive::priv( this ) )
-{
-  attach_logger( "viame.core.read_detected_object_set_dive" );
-}
-
-
-read_detected_object_set_dive
 ::~read_detected_object_set_dive()
 {
 }
 
 
 // -----------------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
-read_detected_object_set_dive
-::get_configuration() const
-{
-  auto config = kwiver::vital::algo::detected_object_set_input::get_configuration();
-  return config;
-}
-
-
-// -----------------------------------------------------------------------------------
 void
 read_detected_object_set_dive
-::set_configuration( kwiver::vital::config_block_sptr config )
+::initialize()
 {
-  // No configuration options currently
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
+  attach_logger( "viame.core.read_detected_object_set_dive" );
 }
 
 

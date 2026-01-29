@@ -31,126 +31,12 @@ namespace viame {
 
 
 // --------------------------------------------------------------------------------
-class write_detected_object_set_viame_csv::priv
-{
-public:
-  priv( write_detected_object_set_viame_csv* parent)
-    : m_parent( parent )
-    , m_first( true )
-    , m_frame_number( 0 )
-    , m_write_frame_number( true )
-    , m_stream_identifier( "" )
-    , m_model_identifier( "" )
-    , m_version_identifier( "" )
-    , m_frame_rate( "" )
-    , m_mask_to_poly_tol( -1 )
-    , m_mask_to_poly_points( 20 )
-    , m_top_n_classes( 0 )
-  {}
-
-  ~priv() {}
-
-  write_detected_object_set_viame_csv* m_parent;
-  bool m_first;
-  int m_frame_number;
-  bool m_write_frame_number;
-  std::string m_stream_identifier;
-  std::string m_model_identifier;
-  std::string m_version_identifier;
-  std::string m_frame_rate;
-  double m_mask_to_poly_tol;
-  int m_mask_to_poly_points;
-  unsigned m_top_n_classes;
-};
-
-
-// ================================================================================
-write_detected_object_set_viame_csv
-::write_detected_object_set_viame_csv()
-  : d( new write_detected_object_set_viame_csv::priv( this ) )
-{
-  attach_logger( "viame.core.write_detected_object_set_viame_csv" );
-}
-
-
-write_detected_object_set_viame_csv
-::~write_detected_object_set_viame_csv()
-{
-}
-
-
-// --------------------------------------------------------------------------------
 void
 write_detected_object_set_viame_csv
-::set_configuration( kwiver::vital::config_block_sptr config_in )
+::initialize()
 {
-  kwiver::vital::config_block_sptr config = this->get_configuration();
-
-  config->merge_config( config_in );
-
-  d->m_write_frame_number =
-    config->get_value< bool >( "write_frame_number" );
-  d->m_stream_identifier =
-    config->get_value< std::string >( "stream_identifier" );
-  d->m_model_identifier =
-    config->get_value< std::string >( "model_identifier" );
-  d->m_version_identifier =
-    config->get_value< std::string >( "version_identifier" );
-  d->m_frame_rate =
-    config->get_value< std::string >( "frame_rate" );
-  d->m_mask_to_poly_tol =
-    config->get_value< double >( "mask_to_poly_tol" );
-  d->m_mask_to_poly_points =
-    config->get_value< int >( "mask_to_poly_points" );
-  d->m_top_n_classes =
-    config->get_value< unsigned >( "top_n_classes" );
-
-  if( d->m_mask_to_poly_tol >= 0 && d->m_mask_to_poly_points >= 0 )
-  {
-    throw std::runtime_error(
-      "At most one of use mask_to_poly_tol and mask_to_poly_points "
-      "can be enabled (nonnegative)" );
-  }
-#ifndef VIAME_ENABLE_OPENCV
-  if( d->m_mask_to_poly_tol >= 0 || d->m_mask_to_poly_points >= 0 )
-  {
-    throw std::runtime_error(
-      "Must have OpenCV enabled to use mask_to_poly_tol or mask_to_poly_points" );
-  }
-#endif
-}
-
-
-// --------------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
-write_detected_object_set_viame_csv
-::get_configuration() const
-{
-  // get base config from base class
-  kwiver::vital::config_block_sptr config = algorithm::get_configuration();
-
-  // Class parameters
-  config->set_value( "write_frame_number", d->m_write_frame_number,
-    "Write a frame number for the unique frame ID field (as opposed to a string "
-    "identifier) for column 3 in the output csv." );
-  config->set_value( "stream_identifier", d->m_stream_identifier,
-    "Optional fixed video name over-ride to write to output column 2 in the csv." );
-  config->set_value( "model_identifier", d->m_model_identifier,
-    "Model identifier string to write to the header or the csv." );
-  config->set_value( "frame_rate", d->m_frame_rate,
-    "Frame rate string to write to the header or the csv." );
-  config->set_value( "version_identifier", d->m_version_identifier,
-    "Version identifier string to write to the header or the csv." );
-  config->set_value( "mask_to_poly_tol", d->m_mask_to_poly_tol,
-    "Write segmentation masks when available as polygons with the specified "
-    "relative tolerance for the conversion.  Set to a negative value to disable." );
-  config->set_value( "mask_to_poly_points", d->m_mask_to_poly_points,
-    "Write segmentation masks when available as polygons with the specified "
-    "maximum number of points.  Set to a negative value to disable." );
-  config->set_value( "top_n_classes", d->m_top_n_classes,
-    "Only print out this maximum number of classes (highest score first)" );
-
-  return config;
+  m_first = true;
+  m_frame_number = 0;
 }
 
 
@@ -169,7 +55,21 @@ write_detected_object_set_viame_csv
 ::write_set( const kwiver::vital::detected_object_set_sptr set,
            std::string const& image_name )
 {
-  if( d->m_first )
+  if( c_mask_to_poly_tol >= 0 && c_mask_to_poly_points >= 0 )
+  {
+    throw std::runtime_error(
+      "At most one of use mask_to_poly_tol and mask_to_poly_points "
+      "can be enabled (nonnegative)" );
+  }
+#ifndef VIAME_ENABLE_OPENCV
+  if( c_mask_to_poly_tol >= 0 || c_mask_to_poly_points >= 0 )
+  {
+    throw std::runtime_error(
+      "Must have OpenCV enabled to use mask_to_poly_tol or mask_to_poly_points" );
+  }
+#endif
+
+  if( m_first )
   {
     std::time_t current_time;
     struct tm* timeinfo;
@@ -193,31 +93,31 @@ write_detected_object_set_viame_csv
     // Write metadata(s)
     stream() << "# metadata";
 
-    if( !d->m_frame_rate.empty() )
+    if( !c_frame_rate.empty() )
     {
-      stream() << ", fps: " << d->m_frame_rate;
+      stream() << ", fps: " << c_frame_rate;
     }
 
     stream() << ", exported_by: write_detected_object_set_viame_csv";
     stream() << ", exported_at: " << formatted_time;
 
-    if( !d->m_model_identifier.empty() )
+    if( !c_model_identifier.empty() )
     {
-      stream() << ", model: " << d->m_model_identifier;
+      stream() << ", model: " << c_model_identifier;
     }
-    if( !d->m_version_identifier.empty() )
+    if( !c_version_identifier.empty() )
     {
-      stream() << ", software: " << d->m_version_identifier;
+      stream() << ", software: " << c_version_identifier;
     }
     stream() << std::endl;
 
-    d->m_first = false;
+    m_first = false;
   } // end first
 
   // process all detections if a valid input set was provided
   if( !set )
   {
-    ++d->m_frame_number;
+    ++m_frame_number;
     return;
   }
 
@@ -231,9 +131,9 @@ write_detected_object_set_viame_csv
     const unsigned det_id = id_counter++;
 
     std::string video_id;
-    if( !d->m_stream_identifier.empty() )
+    if( !c_stream_identifier.empty() )
     {
-      video_id = d->m_stream_identifier;
+      video_id = c_stream_identifier;
     }
     else
     {
@@ -248,9 +148,9 @@ write_detected_object_set_viame_csv
     stream() << det_id << ","               // 1: track id
              << video_id << ",";            // 2: video or image id
 
-    if( d->m_write_frame_number )
+    if( c_write_frame_number )
     {
-      stream() << d->m_frame_number << ","; // 3: frame number
+      stream() << m_frame_number << ","; // 3: frame number
     }
     else
     {
@@ -261,14 +161,30 @@ write_detected_object_set_viame_csv
              << bbox.min_y() << ","         // 5: TL-y
              << bbox.max_x() << ","         // 6: BR-x
              << bbox.max_y() << ","         // 7: BR-y
-             << (*det)->confidence() << "," // 8: confidence
-             << "0";                        // 9: length
+             << (*det)->confidence() << ",";// 8: confidence
+
+    // 9: length - read from attributes if available
+    if( (*det)->has_attribute( "length" ) )
+    {
+      try
+      {
+        stream() << (*det)->get_attribute< double >( "length" );
+      }
+      catch( ... )
+      {
+        stream() << "0";
+      }
+    }
+    else
+    {
+      stream() << "0";
+    }
 
     const auto dot = (*det)->type();
 
     if( dot )
     {
-      for( auto name : dot->top_class_names( d->m_top_n_classes ) )
+      for( auto name : dot->top_class_names( c_top_n_classes ) )
       {
         // Write out the <name> <score> pair
         stream() << "," << name << "," << dot->score( name );
@@ -277,8 +193,8 @@ write_detected_object_set_viame_csv
 
     // Preferentially write out the explicit polygon
     if( !(*det)->polygon().empty() &&
-        ( ( d->m_mask_to_poly_tol < 0 &&
-            d->m_mask_to_poly_points < 0 ) ||
+        ( ( c_mask_to_poly_tol < 0 &&
+            c_mask_to_poly_points < 0 ) ||
            !(*det)->mask() ) )
     {
       stream() << ",(poly)";
@@ -289,8 +205,8 @@ write_detected_object_set_viame_csv
       }
     }
 #ifdef VIAME_ENABLE_OPENCV
-    else if( (*det)->mask() && ( d->m_mask_to_poly_tol >= 0 ||
-                                 d->m_mask_to_poly_points >= 0 ) )
+    else if( (*det)->mask() && ( c_mask_to_poly_tol >= 0 ||
+                                 c_mask_to_poly_points >= 0 ) )
     {
       using ic = kwiver::arrows::ocv::image_container;
       auto ref_x = static_cast< int >( bbox.min_x() );
@@ -316,10 +232,10 @@ write_detected_object_set_viame_csv
           y_max = std::max( y_max, contour[j].y );
         }
         std::vector< kwiver::vital::point_2i > simp_contour;
-        if( d->m_mask_to_poly_tol >= 0 )
+        if( c_mask_to_poly_tol >= 0 )
         {
-          double tol = d->m_mask_to_poly_tol * std::min( x_max - x_min + 1,
-                                                         y_max - y_min + 1 );
+          double tol = c_mask_to_poly_tol * std::min( x_max - x_min + 1,
+                                                       y_max - y_min + 1 );
           std::vector< cv::Point > approx;
           cv::approxPolyDP( contour, approx, tol, /*closed:*/ true );
           for( auto const& p : approx )
@@ -335,7 +251,7 @@ write_detected_object_set_viame_csv
           {
             kwiver_contour.emplace_back( p.x, p.y );
           }
-          simp_contour = simplify_polygon( kwiver_contour, d->m_mask_to_poly_points );
+          simp_contour = simplify_polygon( kwiver_contour, c_mask_to_poly_points );
         }
         stream() << ( hierarchy[i][3] < 0 ? ",(poly)" : ",(hole)" );
         for( auto const& p : simp_contour )
@@ -367,7 +283,7 @@ write_detected_object_set_viame_csv
   stream().flush();
 
   // Put each set on a new frame
-  ++d->m_frame_number;
+  ++m_frame_number;
 }
 
 } // end namespace viame

@@ -190,7 +190,7 @@ darknet_detector
   d->m_names.clear();
   if( !fin )
   {
-    LOG_ERROR( logger(), "Unable to open labels file" );
+    LOG_ERROR( logger(), "Unable to open labels file: " << d->m_class_names );
   }
   std::string line;
   while( std::getline( fin, line ) )

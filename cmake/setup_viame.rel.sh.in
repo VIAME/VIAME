@@ -37,7 +37,6 @@ export VIDTK_MODULE_PATH=$this_dir/lib/modules
 @SETUP_PYTHON_LIBRARY_PATH@
 export PYTHONPATH=$this_dir/python:$this_dir/lib/@VIAME_PYTHON_STRING@
 export PYTHONPATH=$this_dir/lib/@VIAME_PYTHON_STRING@/site-packages:$PYTHONPATH
-export PYTHONPATH=$this_dir/lib/@VIAME_PYTHON_STRING@/dist-packages:$PYTHONPATH
 
 # Excessive KWIVER python arrow and process import locations
 export SPROKIT_PYTHON_MODULES=kwiver.sprokit.processes:kwiver.sprokit.schedulers

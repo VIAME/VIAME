@@ -18,9 +18,9 @@ process nms_refiner1
 
 process detector_filter1
   :: detected_object_filter
-  :filter:type                                 class_probablity_filter
+  :filter:type                                 class_probability_filter
 
-  block filter:class_probablity_filter
+  block filter:class_probability_filter
     :threshold                                 0.001
     :keep_all_classes                          true
     :keep_classes                              vertebrate;invertebrate
@@ -45,9 +45,9 @@ process nms_refiner2
 
 process detector_filter2
   :: detected_object_filter
-  :filter:type                                 class_probablity_filter
+  :filter:type                                 class_probability_filter
 
-  block filter:class_probablity_filter
+  block filter:class_probability_filter
     :threshold                                 0.001
     :keep_all_classes                          true
     :keep_classes                              vertebrate;invertebrate

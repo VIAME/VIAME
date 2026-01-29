@@ -8,6 +8,7 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/image_filter.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -18,26 +19,26 @@ class VIAME_OPENCV_EXPORT convert_color_space
   : public kwiver::vital::algo::image_filter
 {
 public:
-  PLUGIN_INFO( "ocv_convert_color",
-               "Convert image between color spaces" )
+  PLUGGABLE_IMPL( convert_color_space,
+                  "Convert image between color spaces",
+    PARAM_DEFAULT( input_color_space, std::string,
+                   "Input color space.", "RGB" ),
+    PARAM_DEFAULT( output_color_space, std::string,
+                   "Output color space.", "HLS" )
+  )
 
-  convert_color_space();
-  virtual ~convert_color_space();
+  virtual ~convert_color_space() = default;
 
-  // Get the current configuration (parameters) for this filter
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-
-  // Set configurations automatically parsed from input pipeline and config files
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   // Main filtering method
   virtual kwiver::vital::image_container_sptr filter(
     kwiver::vital::image_container_sptr image_data );
 
+  virtual void post_set_configuration();
+
 private:
-  class priv;
-  const std::unique_ptr< priv > d;
+  int m_conversion_code = -1;
 };
 
 } // end namespace

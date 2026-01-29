@@ -23,7 +23,6 @@ ExternalProject_Add(vivia
   CMAKE_GENERATOR ${gen}
   CMAKE_CACHE_ARGS
     ${VIAME_ARGS_COMMON}
-    ${VIAME_ARGS_Boost}
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_libkml}

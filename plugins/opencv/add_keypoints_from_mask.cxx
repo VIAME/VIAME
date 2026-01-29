@@ -597,55 +597,6 @@ keypoint_method_description()
 // Algorithm class implementation
 // =============================================================================
 
-// Private implementation class
-class add_keypoints_from_mask::priv
-{
-public:
-  priv()
-    : method( "oriented_bbox" )
-  {
-  }
-
-  ~priv()
-  {
-  }
-
-  // Configuration
-  std::string method;
-};
-
-// =============================================================================
-add_keypoints_from_mask
-::add_keypoints_from_mask()
-  : d( new priv() )
-{
-}
-
-add_keypoints_from_mask
-::~add_keypoints_from_mask()
-{
-}
-
-// -----------------------------------------------------------------------------
-kv::config_block_sptr
-add_keypoints_from_mask
-::get_configuration() const
-{
-  kv::config_block_sptr config = kv::algo::refine_detections::get_configuration();
-
-  config->set_value( "method", d->method, keypoint_method_description() );
-
-  return config;
-}
-
-// -----------------------------------------------------------------------------
-void
-add_keypoints_from_mask
-::set_configuration( kv::config_block_sptr config )
-{
-  d->method = config->get_value< std::string >( "method", d->method );
-}
-
 // -----------------------------------------------------------------------------
 bool
 add_keypoints_from_mask
@@ -674,7 +625,7 @@ add_keypoints_from_mask
   {
     if( det->mask() )
     {
-      auto keypoints = compute_keypoints( det, d->method );
+      auto keypoints = compute_keypoints( det, c_method );
 
       det->add_keypoint( "head", kv::point_2d( keypoints.first.x, keypoints.first.y ) );
       det->add_keypoint( "tail", kv::point_2d( keypoints.second.x, keypoints.second.y ) );

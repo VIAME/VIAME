@@ -28,7 +28,6 @@ cmake ../ \
   -C ../cmake/build_cmake_base.cmake \
   -C ../cmake/build_cmake_docker.cmake \
   -DVIAME_ENABLE_ITK:BOOL=ON \
-  -DVIAME_ENABLE_KWANT:BOOL=ON \
   -DVIAME_ENABLE_PYTORCH-LEARN:BOOL=ON \
   -DVIAME_ENABLE_TENSORFLOW:BOOL=ON \
   -DVIAME_ENABLE_WEB_EXCLUDES:BOOL=ON \

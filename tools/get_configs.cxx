@@ -8,11 +8,10 @@
 
 #include <vital/kwiver-include-paths.h>
 
-#include <vital/plugin_loader/plugin_manager.h>
-#include <vital/plugin_loader/plugin_factory.h>
+#include <vital/plugin_management/plugin_manager.h>
+#include <vital/plugin_management/plugin_factory.h>
 #include <vital/config/config_block.h>
 #include <vital/config/config_block_io.h>
-#include <vital/algo/algorithm_factory.h>
 #include <vital/logger/logger.h>
 
 #include <sprokit/pipeline/process_factory.h>
@@ -469,20 +468,11 @@ get_algorithm_implementations( const std::string& algo_type )
 kwiver::vital::config_block_sptr
 get_algorithm_config( const std::string& algo_type, const std::string& impl_name )
 {
-  try
-  {
-    auto algo = kwiver::vital::create_algorithm( algo_type, impl_name );
-    if( algo )
-    {
-      return algo->get_configuration();
-    }
-  }
-  catch( const std::exception& e )
-  {
-    LOG_DEBUG( g_logger, "Could not create algorithm " << algo_type << ":" << impl_name
-               << " - " << e.what() );
-  }
-
+  // Note: create_algorithm is now a template function requiring compile-time type.
+  // Dynamic algorithm creation by type name at runtime is not supported.
+  // This function returns nullptr; configuration is obtained from process defaults.
+  (void)algo_type;
+  (void)impl_name;
   return nullptr;
 }
 

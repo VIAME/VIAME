@@ -8,6 +8,7 @@
 #include "viame_vxl_export.h"
 
 #include <vital/algo/image_filter.h>
+#include "viame_algorithm_plugin_interface.h"
 
 #include <vil/vil_image_view.h>
 #include <vil/vil_resample_bilin.h>
@@ -623,10 +624,10 @@ inline void auto_white_balancer<vxl_byte>
  * images via performing assorted white balancing operations.
  */
 class VIAME_VXL_EXPORT perform_white_balancing
-  : public kv::algorithm_impl< perform_white_balancing,
-      kv::algo::image_filter >
+  : public kv::algo::image_filter
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( perform_white_balancing )
 
   PLUGIN_INFO( "vxl_white_balancing",
                "Perform auotomatic white balancing on some input." )

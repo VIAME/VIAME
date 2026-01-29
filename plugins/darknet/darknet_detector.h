@@ -8,6 +8,7 @@
 #include "viame_darknet_export.h"
 
 #include <vital/algo/image_object_detector.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -15,6 +16,8 @@ class VIAME_DARKNET_EXPORT darknet_detector :
   public kwiver::vital::algo::image_object_detector
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( darknet_detector )
+
   darknet_detector();
   virtual ~darknet_detector();
 

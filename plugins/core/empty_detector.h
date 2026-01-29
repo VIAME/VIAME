@@ -8,6 +8,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/image_object_detector.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -17,23 +18,20 @@ class VIAME_CORE_EXPORT empty_detector :
   public kwiver::vital::algo::image_object_detector
 {
 public:
-  static constexpr char const* name = "empty";
+  PLUGGABLE_IMPL(
+    empty_detector,
+    "Produce empty detector output" )
 
-  static constexpr char const* description = "Produce empty detector output";
+  virtual ~empty_detector() = default;
 
-  empty_detector();
-  virtual ~empty_detector();
-
-  // Get the current configuration (parameters) for this detector
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-
-  // Set configurations automatically parsed from input pipeline and config files
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  bool check_configuration( kwiver::vital::config_block_sptr config ) const override
+  {
+    return true;
+  }
 
   // Main detection method
   virtual kwiver::vital::detected_object_set_sptr detect(
-    kwiver::vital::image_container_sptr image_data ) const;
+    kwiver::vital::image_container_sptr image_data ) const override;
 };
 
 } // end namespace

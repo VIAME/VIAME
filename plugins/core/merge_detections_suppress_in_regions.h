@@ -8,6 +8,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/merge_detections.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -18,22 +19,46 @@ namespace viame {
  * \brief Prunes detections overlapping with regions identified by class string
  */
 class VIAME_CORE_EXPORT merge_detections_suppress_in_regions
-  : public kwiver::vital::algorithm_impl< merge_detections_suppress_in_regions,
-    kwiver::vital::algo::merge_detections >
+  : public kwiver::vital::algo::merge_detections
 {
 
 public:
-  PLUGIN_INFO( "suppress_in_regions",
+  PLUGGABLE_IMPL(
+    merge_detections_suppress_in_regions,
     "Suppresses detections within regions indicated by a certain fixed category "
-    "of detections. Can either remove the detections or reduce their probability." )
+    "of detections. Can either remove the detections or reduce their probability.",
+    PARAM_DEFAULT(
+      suppression_class, std::string,
+      "Suppression region class IDs, will eliminate any detections overlapping with "
+      "this class entirely.",
+      "" ),
+    PARAM_DEFAULT(
+      borderline_class, std::string,
+      "Borderline region class IDs, will reduce the probability of any detections "
+      "overlapping with the class by some fixed scale factor.",
+      "" ),
+    PARAM_DEFAULT(
+      borderline_scale_factor, double,
+      "The factor by which the detections are scaled when overlapping with borderline "
+      "regions.",
+      0.5 ),
+    PARAM_DEFAULT(
+      min_overlap, double,
+      "The minimum percent a detection can overlap with a suppression category before "
+      "it's discarded or reduced. Range [0.0,1.0].",
+      0.5 ),
+    PARAM_DEFAULT(
+      output_region_classes, bool,
+      "Add suppression and borderline classes to output.",
+      true ),
+    PARAM_DEFAULT(
+      case_sensitive, bool,
+      "Treat class names as case sensitive or insensitive.",
+      false )
+  )
 
-  merge_detections_suppress_in_regions();
-  virtual ~merge_detections_suppress_in_regions();
+  virtual ~merge_detections_suppress_in_regions() = default;
 
-  /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
@@ -48,10 +73,7 @@ public:
   merge( std::vector< kwiver::vital::detected_object_set_sptr > const& sets ) const;
 
 private:
-
-  /// private implementation class
-  class priv;
-  const std::unique_ptr< priv > d;
+  bool compare_classes( const std::string& c1, const std::string& c2 ) const;
 
 }; // end class merge_detections_suppress_in_regions
 

@@ -9,6 +9,8 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/refine_detections.h>
+#include <vital/algo/algorithm.txx>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -20,20 +22,80 @@ namespace viame {
  * windowed regions of an image, scaling input detections to each region.
  */
 class VIAME_OPENCV_EXPORT windowed_refiner
-  : public kwiver::vital::algorithm_impl< windowed_refiner,
-      kwiver::vital::algo::refine_detections >
+  : public kwiver::vital::algo::refine_detections
 {
 public:
+  PLUGGABLE_IMPL(
+    windowed_refiner,
+    "Window some other arbitrary refiner across the image",
+    PARAM_DEFAULT(
+      mode, std::string,
+      "Pre-processing resize option, can be: disabled, maintain_ar, scale, "
+      "chip, chip_and_original, original_and_resized, or adaptive.",
+      "disabled" ),
+    PARAM_DEFAULT(
+      scale, double,
+      "Image scaling factor used when mode is scale or chip.",
+      1.0 ),
+    PARAM_DEFAULT(
+      chip_width, int,
+      "When in chip mode, the chip width.",
+      1000 ),
+    PARAM_DEFAULT(
+      chip_height, int,
+      "When in chip mode, the chip height.",
+      1000 ),
+    PARAM_DEFAULT(
+      chip_step_width, int,
+      "When in chip mode, the chip step size between chips.",
+      500 ),
+    PARAM_DEFAULT(
+      chip_step_height, int,
+      "When in chip mode, the chip step size between chips.",
+      500 ),
+    PARAM_DEFAULT(
+      chip_edge_filter, int,
+      "If using chipping, filter out detections this pixel count near borders.",
+      -1 ),
+    PARAM_DEFAULT(
+      chip_edge_max_prob, double,
+      "If using chipping, maximum type probability for edge detections",
+      -1.0 ),
+    PARAM_DEFAULT(
+      chip_adaptive_thresh, int,
+      "If using adaptive selection, total pixel count at which we start to chip.",
+      2000000 ),
+    PARAM_DEFAULT(
+      batch_size, int,
+      "Optional processing batch size to send to the detector.",
+      1 ),
+    PARAM_DEFAULT(
+      min_detection_dim, int,
+      "Minimum detection dimension in original image space.",
+      1 ),
+    PARAM_DEFAULT(
+      original_to_chip_size, bool,
+      "Optionally enforce the input image is the specified chip size",
+      false ),
+    PARAM_DEFAULT(
+      black_pad, bool,
+      "Black pad the edges of resized chips to ensure consistent dimensions",
+      false ),
+    PARAM_DEFAULT(
+      process_boundary_dets, bool,
+      "Pass through detections touching tile boundaries unmodified in refiner",
+      false ),
+    PARAM_DEFAULT(
+      overlapping_proc_once, bool,
+      "Only refine each detection once if it appears in multiple tiles",
+      true ),
+    PARAM(
+      refiner, kwiver::vital::algo::refine_detections_sptr,
+      "Algorithm pointer to nested refiner" )
+  )
 
-  PLUGIN_INFO( "ocv_windowed",
-               "Window some other arbitrary refiner across the image" )
-
-  windowed_refiner();
   virtual ~windowed_refiner();
 
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   virtual kwiver::vital::detected_object_set_sptr refine(
@@ -42,8 +104,7 @@ public:
 
 private:
 
-  class priv;
-  const std::unique_ptr< priv > d;
+
 };
 
 } // end namespace viame

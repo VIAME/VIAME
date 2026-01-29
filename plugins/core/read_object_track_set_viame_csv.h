@@ -13,6 +13,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/read_object_track_set.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 #include <memory>
 
@@ -22,10 +23,8 @@ class VIAME_CORE_EXPORT read_object_track_set_viame_csv
   : public kwiver::vital::algo::read_object_track_set
 {
 public:
-
-  static constexpr char const* name = "viame_csv";
-
-  static constexpr char const* description =
+  PLUGGABLE_IMPL(
+    read_object_track_set_viame_csv,
     "Object track set viame_csv reader.\n\n"
     "  - Column(s) 1: Detection or Track ID\n"
     "  - Column(s) 2: Video or Image Identifier\n"
@@ -33,21 +32,50 @@ public:
     "  - Column(s) 4-7: Img-bbox(TL_x,TL_y,BR_x,BR_y)"
     "  - Column(s) 8: Detection Confidence\n"
     "  - Column(s) 9: Target Length (0 or less if uncomputed)\n"
-    "  - Column(s) 10-11+: Repeated Species, Confidence Pairs\n";
+    "  - Column(s) 10-11+: Repeated Species, Confidence Pairs\n",
+    PARAM_DEFAULT(
+      delimiter, std::string,
+      "The delimiter used in the CSV file.",
+      "," ),
+    PARAM_DEFAULT(
+      batch_load, bool,
+      "Load all tracks at once in batch mode.",
+      false ),
+    PARAM_DEFAULT(
+      confidence_override, double,
+      "Override confidence value for all detections (-1.0 to disable).",
+      -1.0 ),
+    PARAM_DEFAULT(
+      poly_to_mask, bool,
+      "Convert polygon annotations to detection masks.",
+      false ),
+    PARAM_DEFAULT(
+      frame_id_adjustment, int,
+      "Adjustment to add to all frame IDs.",
+      0 ),
+    PARAM_DEFAULT(
+      single_state_only, bool,
+      "Only output tracks with a single state.",
+      false ),
+    PARAM_DEFAULT(
+      multi_state_only, bool,
+      "Only output tracks with multiple states.",
+      false )
+  )
 
-  read_object_track_set_viame_csv();
   virtual ~read_object_track_set_viame_csv();
 
-  virtual void open( std::string const& filename );
+  void open( std::string const& filename ) override;
 
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
 
-  virtual bool read_set( kwiver::vital::object_track_set_sptr& set );
+  bool read_set( kwiver::vital::object_track_set_sptr& set ) override;
 
 private:
+  void initialize() override;
+
   class priv;
-  std::unique_ptr< priv > d;
+  KWIVER_UNIQUE_PTR( priv, d );
 };
 
 } // end namespace

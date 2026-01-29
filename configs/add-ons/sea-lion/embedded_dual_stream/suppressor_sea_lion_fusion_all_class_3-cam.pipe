@@ -304,10 +304,10 @@ process track_initializer_1
   :track_initializer:type                      threshold
 
   block track_initializer:threshold:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.001
-    :class_probablity_filter:keep_all_class  true
-    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
+    :type                                      class_probability_filter
+    :class_probability_filter:threshold         0.001
+    :class_probability_filter:keep_all_class  true
+    :class_probability_filter:keep_classes      ex1;ex2;these_are_unused
   endblock
 
 connect from suppressor.det_objs_1
@@ -326,10 +326,10 @@ process track_initializer_2
   :track_initializer:type                      threshold
 
   block track_initializer:threshold:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.001
-    :class_probablity_filter:keep_all_class  true
-    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
+    :type                                      class_probability_filter
+    :class_probability_filter:threshold         0.001
+    :class_probability_filter:keep_all_class  true
+    :class_probability_filter:keep_classes      ex1;ex2;these_are_unused
   endblock
 
 connect from suppressor.det_objs_2
@@ -348,10 +348,10 @@ process track_initializer_3
   :track_initializer:type                      threshold
 
   block track_initializer:threshold:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.001
-    :class_probablity_filter:keep_all_class  true
-    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
+    :type                                      class_probability_filter
+    :class_probability_filter:threshold         0.001
+    :class_probability_filter:keep_all_class  true
+    :class_probability_filter:keep_classes      ex1;ex2;these_are_unused
   endblock
 
 connect from suppressor.det_objs_3

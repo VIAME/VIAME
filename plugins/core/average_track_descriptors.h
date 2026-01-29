@@ -8,24 +8,37 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/compute_track_descriptors.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
-#include <memory>
+#include <deque>
+#include <map>
+#include <vector>
 
 namespace viame {
 
 class VIAME_CORE_EXPORT average_track_descriptors
-  : public kwiver::vital::algorithm_impl< average_track_descriptors,
-      kwiver::vital::algo::compute_track_descriptors >
+  : public kwiver::vital::algo::compute_track_descriptors
 {
 public:
-  PLUGIN_INFO( "average",
-               "Track descriptor consolidation using simple averaging" )
+  PLUGGABLE_IMPL(
+    average_track_descriptors,
+    "Track descriptor consolidation using simple averaging",
+    PARAM_DEFAULT(
+      rolling, bool,
+      "When set, produce an output for each input as the rolling average "
+      "of the last N descriptors, where N is the interval. When reset, "
+      "produce an output only for the first input and then every Nth input "
+      "thereafter for any given track.",
+      false ),
+    PARAM_DEFAULT(
+      interval, unsigned int,
+      "When the interval is N, every descriptor output (after the first N inputs) "
+      "is based on the last N descriptors seen as input for the given track.",
+      5 )
+  )
 
-  average_track_descriptors();
-  virtual ~average_track_descriptors();
+  virtual ~average_track_descriptors() = default;
 
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   virtual kwiver::vital::track_descriptor_set_sptr
@@ -36,8 +49,10 @@ public:
   virtual kwiver::vital::track_descriptor_set_sptr flush();
 
 private:
-  class priv;
-  const std::unique_ptr<priv> d;
+  void initialize() override;
+
+  kwiver::vital::logger_handle_t m_logger;
+  std::map< kwiver::vital::track_id_t, std::deque< std::vector< double > > > m_history;
 };
 
 } // end namespace viame

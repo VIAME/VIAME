@@ -20,8 +20,7 @@
 namespace viame {
 
 class VIAME_CPPDB_EXPORT query_track_descriptor_set_db
-  : public kwiver::vital::algorithm_impl< query_track_descriptor_set_db,
-      kwiver::vital::algo::query_track_descriptor_set >
+  : public kwiver::vital::algo::query_track_descriptor_set
 {
 public:
   query_track_descriptor_set_db();

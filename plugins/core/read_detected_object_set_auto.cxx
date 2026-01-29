@@ -15,6 +15,7 @@
 #include "read_detected_object_set_yolo.h"
 #include "utilities_file.h"
 
+#include <vital/algo/algorithm.txx>
 #include <vital/algo/detected_object_set_input.h>
 #include <vital/exceptions.h>
 
@@ -102,8 +103,8 @@ std::string detect_json_format( std::string const& content )
 class read_detected_object_set_auto::priv
 {
 public:
-  priv( read_detected_object_set_auto* parent )
-    : m_parent( parent )
+  priv( read_detected_object_set_auto& parent )
+    : m_parent( &parent )
     , m_detected_format( "" )
   { }
 
@@ -118,8 +119,6 @@ public:
   // The underlying reader we delegate to
   kwiver::vital::algo::detected_object_set_input_sptr m_reader;
 
-  // Configuration to pass to underlying readers
-  kwiver::vital::config_block_sptr m_config;
 };
 
 
@@ -212,50 +211,18 @@ read_detected_object_set_auto::priv
 
 // ===================================================================================
 read_detected_object_set_auto
-::read_detected_object_set_auto()
-  : d( new read_detected_object_set_auto::priv( this ) )
-{
-  attach_logger( "viame.core.read_detected_object_set_auto" );
-}
-
-
-read_detected_object_set_auto
 ::~read_detected_object_set_auto()
 {
 }
 
 
 // -----------------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
-read_detected_object_set_auto
-::get_configuration() const
-{
-  auto config = kwiver::vital::algo::detected_object_set_input::get_configuration();
-
-  // Add configuration options that may be needed by underlying readers
-
-  // YOLO options (all optional - will auto-detect if not specified)
-  config->set_value( "yolo:classes_file", "",
-    "Path to YOLO classes file. If empty, searches for labels.txt/classes.txt." );
-  config->set_value( "yolo:image_width", "0",
-    "Image width in pixels. If 0, auto-detects from first image." );
-  config->set_value( "yolo:image_height", "0",
-    "Image height in pixels. If 0, auto-detects from first image." );
-
-  // CVAT options
-  config->set_value( "cvat:default_confidence", "1.0",
-    "Default confidence for CVAT detections" );
-
-  return config;
-}
-
-
-// -----------------------------------------------------------------------------------
 void
 read_detected_object_set_auto
-::set_configuration( kwiver::vital::config_block_sptr config )
+::initialize()
 {
-  d->m_config = config;
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
+  attach_logger( "viame.core.read_detected_object_set_auto" );
 }
 
 
@@ -288,23 +255,13 @@ read_detected_object_set_auto
   }
   else if( d->m_detected_format == "coco" )
   {
-    // COCO reader is in Python, use algorithm factory
-    kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration(
-      "reader", d->m_config, d->m_reader );
-
-    if( !d->m_reader )
+    // COCO reader is implemented in Python
+    // Try to create via algorithm factory
+    if( kwiver::vital::has_algorithm_impl_name<
+          kwiver::vital::algo::detected_object_set_input >( "coco" ) )
     {
-      // Try to create via factory
-      kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration(
-        "reader", d->m_config, d->m_reader );
-
-      if( d->m_config )
-      {
-        d->m_config->set_value( "reader:type", "coco" );
-      }
-
-      kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration(
-        "reader", d->m_config, d->m_reader );
+      d->m_reader = kwiver::vital::create_algorithm<
+        kwiver::vital::algo::detected_object_set_input >( "coco" );
     }
 
     // If still no reader, throw error
@@ -321,54 +278,11 @@ read_detected_object_set_auto
   }
   else if( d->m_detected_format == "yolo" )
   {
-    auto yolo_reader = std::make_shared< read_detected_object_set_yolo >();
-
-    // Configure YOLO reader if we have config
-    if( d->m_config )
-    {
-      auto yolo_config = yolo_reader->get_configuration();
-
-      // Transfer YOLO-specific config
-      if( d->m_config->has_value( "yolo:classes_file" ) )
-      {
-        yolo_config->set_value( "classes_file",
-          d->m_config->get_value< std::string >( "yolo:classes_file" ) );
-      }
-      if( d->m_config->has_value( "yolo:image_width" ) )
-      {
-        yolo_config->set_value( "image_width",
-          d->m_config->get_value< std::string >( "yolo:image_width" ) );
-      }
-      if( d->m_config->has_value( "yolo:image_height" ) )
-      {
-        yolo_config->set_value( "image_height",
-          d->m_config->get_value< std::string >( "yolo:image_height" ) );
-      }
-
-      yolo_reader->set_configuration( yolo_config );
-    }
-
-    d->m_reader = yolo_reader;
+    d->m_reader = std::make_shared< read_detected_object_set_yolo >();
   }
   else if( d->m_detected_format == "cvat" )
   {
-    auto cvat_reader = std::make_shared< read_detected_object_set_cvat >();
-
-    // Configure CVAT reader if we have config
-    if( d->m_config )
-    {
-      auto cvat_config = cvat_reader->get_configuration();
-
-      if( d->m_config->has_value( "cvat:default_confidence" ) )
-      {
-        cvat_config->set_value( "default_confidence",
-          d->m_config->get_value< std::string >( "cvat:default_confidence" ) );
-      }
-
-      cvat_reader->set_configuration( cvat_config );
-    }
-
-    d->m_reader = cvat_reader;
+    d->m_reader = std::make_shared< read_detected_object_set_cvat >();
   }
   else
   {

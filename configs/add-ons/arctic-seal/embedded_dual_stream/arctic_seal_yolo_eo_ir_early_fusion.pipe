@@ -190,9 +190,9 @@ connect from downsampler.output_2
 #  :track_initializer:type                      threshold
 #
 #  block track_initializer:threshold:filter
-#    :type                                      class_probablity_filter
-#    :class_probablity_filter:threshold         0.010
-#    :class_probablity_filter:keep_all_classes  true
+#    :type                                      class_probability_filter
+#    :class_probability_filter:threshold         0.010
+#    :class_probability_filter:keep_all_classes  true
 #  endblock
 
 #process fusion_writer_db

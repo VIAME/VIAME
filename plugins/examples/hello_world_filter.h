@@ -8,6 +8,7 @@
 #include "viame_examples_export.h"
 
 #include <vital/algo/image_filter.h>
+#include "viame_algorithm_plugin_interface.h"
 
 namespace viame {
 
@@ -49,6 +50,8 @@ class VIAME_EXAMPLES_EXPORT hello_world_filter :
   public kwiver::vital::algo::image_filter
 {
 public:
+  VIAME_ALGORITHM_PLUGIN_INTERFACE( hello_world_filter )
+
   /// Algorithm registration name used in pipeline configuration
   static constexpr char const* name = "hello_world_filter";
 

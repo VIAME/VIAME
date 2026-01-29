@@ -55,7 +55,7 @@ target_link_libraries( viame
                kwiver::vital_logger
                kwiver::vital_util
                kwiver::kwiversys
-               kwiver::kwiver_tools_applet
+               kwiver::vital_applets
   )
 
 ###
@@ -85,7 +85,7 @@ kwiver_add_plugin( viame_tools_applets
                kwiver::vital_algo
                kwiver::vital_util
                kwiver::kwiversys
-               kwiver::kwiver_tools_applet
+               kwiver::vital_applets
                kwiver::sprokit_pipeline
                kwiver::kwiver_adapter
                viame_core

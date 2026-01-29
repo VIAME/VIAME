@@ -11,9 +11,8 @@
 
 namespace viame {
 
-class VIAME_@TEMPLATE_LIB@_EXPORT @template@_detector :
-  public kwiver::vital::algorithm_impl<
-    @template@_detector, kwiver::vital::algo::image_object_detector >
+class VIAME_@TEMPLATE_LIB@_EXPORT @template@_detector
+  : public kwiver::vital::algo::image_object_detector
 {
 public:
   @template@_detector();

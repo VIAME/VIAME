@@ -104,9 +104,9 @@ connect from downsampler.output_4
 #  :track_initializer:type                      threshold
 #
 #  block track_initializer:threshold:filter
-#    :type                                      class_probablity_filter
-#    :class_probablity_filter:threshold         0.010
-#    :class_probablity_filter:keep_all_classes  true
+#    :type                                      class_probability_filter
+#    :class_probability_filter:threshold         0.010
+#    :class_probability_filter:keep_all_classes  true
 #  endblock
 
 #process optical_writer_db
@@ -134,9 +134,9 @@ connect from downsampler.output_4
 #  :track_initializer:type                      threshold
 #
 #  block track_initializer:threshold:filter
-#    :type                                      class_probablity_filter
-#    :class_probablity_filter:threshold         0.010
-#    :class_probablity_filter:keep_all_classes  true
+#    :type                                      class_probability_filter
+#    :class_probability_filter:threshold         0.010
+#    :class_probability_filter:keep_all_classes  true
 #  endblock
 
 #process thermal_writer_db
