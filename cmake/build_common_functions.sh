@@ -788,7 +788,6 @@ prepare_linux_desktop_install() {
     "qml"
     "include"
     "mkspecs"
-    "share"
     "etc"
     "doc"
   )
@@ -799,6 +798,19 @@ prepare_linux_desktop_install() {
       echo "  Removed $dir"
     fi
   done
+
+  # Remove share directory but preserve share/postgresql
+  if [ -d "$install_dir/share" ]; then
+    if [ -d "$install_dir/share/postgresql" ]; then
+      mv "$install_dir/share/postgresql" "$install_dir/postgresql_temp"
+    fi
+    rm -rf "$install_dir/share"
+    if [ -d "$install_dir/postgresql_temp" ]; then
+      mkdir -p "$install_dir/share"
+      mv "$install_dir/postgresql_temp" "$install_dir/share/postgresql"
+    fi
+    echo "  Removed share (preserved share/postgresql)"
+  fi
 
   # Copy LICENSE.txt to install root
   if [ -f "$source_dir/LICENSE.txt" ]; then

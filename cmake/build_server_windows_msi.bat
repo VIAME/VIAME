@@ -357,15 +357,15 @@ IF ERRORLEVEL 1 EXIT /B 1
 GOTO :EOF
 
 :SnapshotFiles
-REM Create a file list snapshot, excluding include and share directories
+REM Create a file list snapshot, excluding include and share directories (except share\postgresql)
 REM %1 = output filename
-powershell.exe -NoProfile -Command "Get-ChildItem -Recurse '%VIAME_INSTALL_DIR%' -File | Resolve-Path -Relative | Where-Object { $_ -notmatch 'install\\include' -and $_ -notmatch 'install\\share' }" > %~1
+powershell.exe -NoProfile -Command "Get-ChildItem -Recurse '%VIAME_INSTALL_DIR%' -File | Resolve-Path -Relative | Where-Object { $_ -notmatch 'install\\include' -and ($_ -notmatch 'install\\share' -or $_ -match 'install\\share\\postgresql') }" > %~1
 GOTO :EOF
 
 :SnapshotDevHeaders
-REM Create a file list snapshot of ONLY include and share directories
+REM Create a file list snapshot of ONLY include and share directories (except share\postgresql)
 REM %1 = output filename
-powershell.exe -NoProfile -Command "Get-ChildItem -Recurse '%VIAME_INSTALL_DIR%' -File | Resolve-Path -Relative | Where-Object { $_ -match 'install\\include' -or $_ -match 'install\\share' }" > %~1
+powershell.exe -NoProfile -Command "Get-ChildItem -Recurse '%VIAME_INSTALL_DIR%' -File | Resolve-Path -Relative | Where-Object { $_ -match 'install\\include' -or ($_ -match 'install\\share' -and $_ -notmatch 'install\\share\\postgresql') }" > %~1
 GOTO :EOF
 
 :DiffFiles
