@@ -704,6 +704,66 @@ bool copy_file( const std::string& source, const std::string& destination )
   return true;
 }
 
+bool copy_folder( const std::string& source, const std::string& destination )
+{
+  if( !does_folder_exist( source ) )
+  {
+    std::cerr << "Source folder does not exist: " << source << std::endl;
+    return false;
+  }
+
+  // Create destination folder
+  if( !create_folder( destination ) )
+  {
+    std::cerr << "Failed to create destination folder: " << destination << std::endl;
+    return false;
+  }
+
+  bool all_success = true;
+
+  try
+  {
+    for( const auto& entry : filesystem::recursive_directory_iterator( source ) )
+    {
+      const auto& path = entry.path();
+      auto relative_path = filesystem::relative( path, source );
+      auto dest_path = filesystem::path( destination ) / relative_path;
+
+      if( filesystem::is_directory( path ) )
+      {
+        filesystem::create_directories( dest_path );
+      }
+      else if( filesystem::is_regular_file( path ) )
+      {
+        // Check if destination path is too long (common filesystem limit)
+        if( dest_path.string().length() > 250 )
+        {
+          // Skip files with paths that are too long
+          continue;
+        }
+
+        filesystem::create_directories( dest_path.parent_path() );
+
+        std::error_code ec;
+        filesystem::copy_file( path, dest_path,
+          filesystem::copy_options::overwrite_existing, ec );
+
+        if( ec )
+        {
+          all_success = false;
+        }
+      }
+    }
+  }
+  catch( const std::exception& e )
+  {
+    std::cerr << "Error copying folder: " << e.what() << std::endl;
+    return false;
+  }
+
+  return all_success;
+}
+
 bool replace_keywords_in_template_to_string(
     const std::string& input_file,
     const std::map< std::string, std::string >& replacements,

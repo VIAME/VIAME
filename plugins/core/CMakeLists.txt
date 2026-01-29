@@ -35,6 +35,7 @@ set( plugin_headers
   refine_detections_add_fixed.h
   refine_detections_nms.h
   utilities_file.h
+  utilities_image.h
   utilities_segmentation.h
   utilities_training.h
   windowed_detector.h
@@ -81,6 +82,7 @@ set( plugin_sources
   refine_detections_add_fixed.cxx
   refine_detections_nms.cxx
   utilities_file.cxx
+  utilities_image.cxx
   utilities_segmentation.cxx
   utilities_training.cxx
   windowed_detector.cxx

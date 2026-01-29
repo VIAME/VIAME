@@ -332,6 +332,15 @@ bool replace_keywords_in_template_file(
 VIAME_CORE_EXPORT
 bool copy_file( const std::string& source, const std::string& destination );
 
+/// Recursively copy a folder's contents to a destination
+///
+/// \param source Path to source folder
+/// \param destination Path to destination folder
+/// \returns true if all files copied, false if any errors occurred
+/// \note Files with paths longer than 250 characters are skipped
+VIAME_CORE_EXPORT
+bool copy_folder( const std::string& source, const std::string& destination );
+
 /// Replace keywords in a template and return the result as a string
 ///
 /// \param input_file Path to template file
