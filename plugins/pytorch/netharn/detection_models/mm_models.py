@@ -913,7 +913,7 @@ class MM_Detector(nh.layers.Module):
         if return_result:
             with torch.no_grad():
                 imgs_norm = self.input_norm(imgs)
-                hack_imgs = [g[None, :] for g in imgs_norm]
+                hack_imgs = [g.unsqueeze(0) for g in imgs_norm]
                 # For whaver reason we cant run more than one test image at the
                 # same time.
                 batch_results = []

@@ -25,7 +25,6 @@ class UltralyticsTrainerConfig(scfg.DataConfig):
     """
     identifier = "viame-ultralytics-detector"
     train_directory = "deep_training"
-    output_directory = "category_models"
     seed_model = ""
 
     # Model configuration
@@ -208,9 +207,6 @@ class UltralyticsTrainer(TrainDetector):
         """Create necessary directories for training."""
         if self._train_directory:
             os.makedirs(self._train_directory, exist_ok=True)
-
-        if self._output_directory:
-            os.makedirs(self._output_directory, exist_ok=True)
 
     def check_configuration(self, cfg):
         if not cfg.has_value("identifier") or len(cfg.get_value("identifier")) == 0:

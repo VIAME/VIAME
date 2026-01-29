@@ -152,19 +152,18 @@ std::string format_output_as_pipe_blocks(
       const pipe_entry& e = group_entries[0];
       std::string line_content = ":" + prefix + ":" + e.param_name;
 
+      // Calculate padding based on full line width (including indent)
+      std::string full_line = base_indent + line_content;
+      std::size_t pad = ( full_line.size() < align_col )
+          ? ( align_col - full_line.size() ) : 1;
+
       // First line has no leading indent (template provides it)
       if( first_group )
       {
-        // Pad to align column
-        std::size_t pad = ( line_content.size() < align_col )
-            ? ( align_col - line_content.size() ) : 1;
         out << line_content << std::string( pad, ' ' ) << e.value;
       }
       else
       {
-        std::string full_line = base_indent + line_content;
-        std::size_t pad = ( full_line.size() < align_col )
-            ? ( align_col - full_line.size() ) : 1;
         out << base_indent << line_content << std::string( pad, ' ' ) << e.value;
       }
     }

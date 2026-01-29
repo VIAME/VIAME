@@ -31,7 +31,6 @@ class MMDetTrainer( TrainDetector ):
         self._config_file = ""
         self._seed_weights = ""
         self._train_directory = "deep_training"
-        self._output_directory = "category_models"
         self._output_prefix = "custom_cfrnn"
         self._pipeline_template = ""
         self._gpu_count = -1
@@ -51,7 +50,6 @@ class MMDetTrainer( TrainDetector ):
         cfg.set_value( "config_file", self._config_file )
         cfg.set_value( "seed_weights", self._seed_weights )
         cfg.set_value( "train_directory", self._train_directory )
-        cfg.set_value( "output_directory", self._output_directory )
         cfg.set_value( "output_prefix", self._output_prefix )
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
@@ -71,7 +69,6 @@ class MMDetTrainer( TrainDetector ):
         self._config_file = str( cfg.get_value( "config_file" ) )
         self._seed_weights = str( cfg.get_value( "seed_weights" ) )
         self._train_directory = str( cfg.get_value( "train_directory" ) )
-        self._output_directory = str( cfg.get_value( "output_directory" ) )
         self._output_prefix = str( cfg.get_value( "output_prefix" ) )
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
@@ -301,7 +298,7 @@ class MMDetTrainer( TrainDetector ):
 
         print( "\nModel training complete!\n" )
 
-        return {"type": "mmdet"}
+        return self.get_output_map()
 
     def internal_update( self ):
         self.load_network()
@@ -363,25 +360,17 @@ class MMDetTrainer( TrainDetector ):
         sys.exit( 0 )
 
     def save_model_files( self, is_final=False ):
+        """Write model files to train directory for later copying by train tool."""
         input_wgt_file_fp = os.path.join( self._train_directory, "latest.pth" )
 
         output_cfg_file = self._output_prefix + ".py"
         output_wgt_file = self._output_prefix + ".pth"
         output_lbl_file = self._output_prefix + ".lbl"
-        output_pipeline = "detector.pipe"
 
-        if len( self._output_directory ) > 0:
-            if not os.path.exists( self._output_directory ):
-                os.mkdir( self._output_directory )
-            output_cfg_file_fp = os.path.join( self._output_directory, output_cfg_file )
-            output_wgt_file_fp = os.path.join( self._output_directory, output_wgt_file )
-            output_lbl_file_fp = os.path.join( self._output_directory, output_lbl_file )
-            output_pipeline_fp = os.path.join( self._output_directory, output_pipeline )
-        else:
-            output_cfg_file_fp = output_cfg_file
-            output_wgt_file_fp = output_wgt_file
-            output_lbl_file_fp = output_lbl_file
-            output_pipeline_fp = output_pipeline
+        # Write files to train_directory (train.cxx will copy to output_directory)
+        output_cfg_file_fp = os.path.join( self._train_directory, output_cfg_file )
+        output_wgt_file_fp = os.path.join( self._train_directory, output_wgt_file )
+        output_lbl_file_fp = os.path.join( self._train_directory, output_lbl_file )
 
         self.insert_training_params( self._config_file, output_cfg_file_fp )
 
@@ -392,17 +381,47 @@ class MMDetTrainer( TrainDetector ):
             for category in self._categories:
                 fout.write( category + "\n" )
 
-        if len( self._pipeline_template ) > 0:
-            input_wgt_relpath = input_wgt_file_fp
+    def get_output_map( self ):
+        """
+        Build and return output map containing template replacements and file copies.
 
-            if not os.path.isabs( input_wgt_file_fp ):
-                input_wgt_relpath = os.path.join( "..", input_wgt_relpath )
+        Returns a dict where:
+        - Keys containing ':' are config values (key=config_key, value=filename)
+        - Other keys are file copies (key=output filename, value=source path)
+        """
+        output = {}
 
-            self.insert_model_files( self._pipeline_template,
-                                     output_pipeline_fp,
-                                     output_cfg_file,
-                                     output_wgt_file if is_final else input_wgt_relpath,
-                                     output_lbl_file )
+        output_cfg_file = self._output_prefix + ".py"
+        output_wgt_file = self._output_prefix + ".pth"
+        output_lbl_file = self._output_prefix + ".lbl"
+
+        output_cfg_file_fp = os.path.join( self._train_directory, output_cfg_file )
+        output_wgt_file_fp = os.path.join( self._train_directory, output_wgt_file )
+        output_lbl_file_fp = os.path.join( self._train_directory, output_lbl_file )
+
+        if not os.path.exists( output_wgt_file_fp ):
+            print( "\nNo model found, training may have failed\n" )
+            return output
+
+        algo = "mmdet"
+
+        output["type"] = algo
+
+        # Config keys matching mmdet_detector inference config
+        output[algo + ":net_config"] = output_cfg_file
+        output[algo + ":weight_file"] = output_wgt_file
+        output[algo + ":class_names"] = output_lbl_file
+
+        # File copies (key=output filename, value=source path)
+        output[output_cfg_file] = output_cfg_file_fp
+        output[output_wgt_file] = output_wgt_file_fp
+        output[output_lbl_file] = output_lbl_file_fp
+
+        print( "\nModel files found in: " + self._train_directory )
+        print( "\nThe " + self._train_directory + " directory can now be deleted, " \
+               "unless you want to review training metrics first.\n" )
+
+        return output
 
     def insert_training_params( self, input_cfg, output_cfg ):
 
