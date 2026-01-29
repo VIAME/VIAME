@@ -1069,13 +1069,7 @@ train_applet
   // Option 1: a typical training data directory is input
   if( !opt_input_dir.empty() )
   {
-    std::string input_dir = opt_input_dir;
-
-    if( !does_folder_exist( input_dir ) && does_folder_exist( input_dir + ".lnk" ) )
-    {
-      input_dir = filesystem::canonical(
-        filesystem::path( input_dir + ".lnk" ) ).string();
-    }
+    std::string input_dir = resolve_path_with_link( opt_input_dir );
 
     if( !does_folder_exist( input_dir ) && opt_out_config.empty() )
     {
@@ -1304,35 +1298,39 @@ train_applet
 
     if( is_video && auto_detect_truth )
     {
-      std::string video_truth = replace_ext_with( data_item, groundtruth_exts[0] );
+      std::string video_truth = find_associated_file( data_item, groundtruth_exts[0] );
 
-      if( !does_file_exist( video_truth ) )
+      if( video_truth.empty() )
       {
-        std::string error_msg = "Error: cannot find " + video_truth;
-        video_truth = add_ext_unto( data_item, groundtruth_exts[0] );
-
-        if( !does_file_exist( video_truth ) )
-        {
-          std::cout << error_msg << std::endl;
-          return EXIT_FAILURE;
-        }
+        std::cout << "Error: cannot find groundtruth for " << data_item << std::endl;
+        return EXIT_FAILURE;
       }
 
       gt_files.resize( 1, video_truth );
     }
     else if( !is_video && auto_detect_truth )
     {
-      list_files_in_folder( data_item, gt_files, false, groundtruth_exts );
-      std::sort( gt_files.begin(), gt_files.end() );
+      gt_files = find_files_in_folder_or_alongside( data_item, groundtruth_exts );
 
-      if( gt_files.empty() )
+      // Handle multiple groundtruth files: allow if different extensions, select by priority
+      if( !one_file_per_image && gt_files.size() > 1 )
       {
-        std::string truth = add_ext_unto( data_item, groundtruth_exts[0] );
+        std::vector< std::string > priority_exts = { ".csv", ".json", ".xml", ".kw18" };
+        std::string selected, error_msg;
 
-        if( does_file_exist( truth ) )
+        if( !select_file_by_extension_priority(
+              gt_files, priority_exts, groundtruth_exts, selected, error_msg ) )
         {
-          gt_files.push_back( truth );
+          std::cout << "Error: item " << data_item
+                    << " contains " << error_msg << std::endl;
+          return EXIT_FAILURE;
         }
+
+        std::cout << "Multiple groundtruth files found, selected: "
+                  << get_filename_no_path( selected ) << std::endl;
+
+        gt_files.clear();
+        gt_files.push_back( selected );
       }
 
       if( one_file_per_image && ( image_files.size() != gt_files.size() ) )
@@ -2077,29 +2075,15 @@ train_applet
 
         if( is_video && auto_detect_truth )
         {
-          std::string video_truth = replace_ext_with( data_item, groundtruth_exts[0] );
-          if( !does_file_exist( video_truth ) )
-          {
-            video_truth = add_ext_unto( data_item, groundtruth_exts[0] );
-          }
-          if( does_file_exist( video_truth ) )
+          std::string video_truth = find_associated_file( data_item, groundtruth_exts[0] );
+          if( !video_truth.empty() )
           {
             gt_files.push_back( video_truth );
           }
         }
         else if( !is_video && auto_detect_truth )
         {
-          list_files_in_folder( data_item, gt_files, false, groundtruth_exts );
-          std::sort( gt_files.begin(), gt_files.end() );
-
-          if( gt_files.empty() )
-          {
-            std::string truth = add_ext_unto( data_item, groundtruth_exts[0] );
-            if( does_file_exist( truth ) )
-            {
-              gt_files.push_back( truth );
-            }
-          }
+          gt_files = find_files_in_folder_or_alongside( data_item, groundtruth_exts );
         }
         else if( i < all_truth.size() )
         {
