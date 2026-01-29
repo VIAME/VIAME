@@ -26,6 +26,7 @@
 #include <sprokit/pipeline/process_exception.h>
 
 #include <plugins/core/utilities_file.h>
+#include <plugins/core/utilities_image.h>
 #include <plugins/core/utilities_training.h>
 #include <plugins/core/manipulate_pipelines.h>
 
@@ -148,6 +149,76 @@ static kv::config_block_sptr default_config()
 }
 
 // =======================================================================================
+// Known Python-based detector types that cannot be instantiated from C++.
+// These are used by wrapper detectors like ocv_windowed.
+static const std::unordered_set< std::string > python_detector_types = {
+  "netharn", "mmdet", "full_frame_classifier", "viame_csv_file"
+};
+
+// =======================================================================================
+// Try to instantiate a detector and get its configuration.
+// The output_map is used to pre-configure nested detector types if present.
+// Returns nullptr if the detector cannot be instantiated (e.g., Python-based algorithms).
+static kv::config_block_sptr try_get_detector_config(
+    const std::string& algo_type,
+    const std::map< std::string, std::string >& output_map = {} )
+{
+  if( algo_type.empty() )
+  {
+    return nullptr;
+  }
+
+  // Check if this algo has a nested detector that's Python-based
+  // If so, skip instantiation to avoid KWIVER warnings
+  std::string nested_type_key = algo_type + ":detector:type";
+  auto it = output_map.find( nested_type_key );
+  if( it != output_map.end() && !it->second.empty() )
+  {
+    if( python_detector_types.count( it->second ) > 0 )
+    {
+      // Nested detector is Python-based, can't instantiate from C++
+      return nullptr;
+    }
+  }
+
+  // Also skip if the type itself is Python-based
+  if( python_detector_types.count( algo_type ) > 0 )
+  {
+    return nullptr;
+  }
+
+  try
+  {
+    kv::algo::image_object_detector_sptr detector;
+    kv::config_block_sptr temp_config = kv::config_block::empty_config();
+    temp_config->set_value( "detector:type", algo_type );
+
+    // Pre-configure nested detector type from output map if present
+    if( it != output_map.end() && !it->second.empty() )
+    {
+      temp_config->set_value( "detector:" + nested_type_key, it->second );
+    }
+
+    kv::algo::image_object_detector::set_nested_algo_configuration(
+      "detector", temp_config, detector );
+
+    if( detector )
+    {
+      kv::config_block_sptr config = kv::config_block::empty_config();
+      kv::algo::image_object_detector::get_nested_algo_configuration(
+        "detector", config, detector );
+      return config;
+    }
+  }
+  catch( ... )
+  {
+    // Algorithm couldn't be instantiated (e.g., Python-based)
+  }
+
+  return nullptr;
+}
+
+// =======================================================================================
 // Validate that trainer output keys match the inference algorithm's config.
 // Returns true if all keys are valid, false otherwise.
 static bool validate_trainer_output_keys(
@@ -160,97 +231,95 @@ static bool validate_trainer_output_keys(
     return true;
   }
 
-  // Try to get the inference algorithm's default configuration
-  kv::config_block_sptr algo_config;
-
-  try
+  if( !is_detector )
   {
-    if( is_detector )
+    // For trackers, validation is less strict since tracker configs vary more
+    return true;
+  }
+
+  // Check for nested detector type (e.g., "ocv_windowed:detector:type" = "netharn")
+  std::string nested_type;
+  std::string nested_type_key = algorithm_type + ":detector:type";
+  auto nested_it = output_map.find( nested_type_key );
+  if( nested_it != output_map.end() && !nested_it->second.empty() )
+  {
+    nested_type = nested_it->second;
+  }
+
+  // Get the outer algorithm's config (e.g., ocv_windowed)
+  // Pass output_map so nested detector type is pre-configured for wrapper types
+  kv::config_block_sptr outer_config = try_get_detector_config( algorithm_type, output_map );
+
+  // Get nested algorithm's config if available
+  kv::config_block_sptr nested_config = try_get_detector_config( nested_type );
+
+  // If neither config could be obtained, skip validation with a warning
+  if( !outer_config && !nested_config )
+  {
+    if( !nested_type.empty() )
     {
-      kv::algo::image_object_detector_sptr detector;
-
-      kv::config_block_sptr temp_config = kv::config_block::empty_config();
-      temp_config->set_value( "detector:type", algorithm_type );
-      kv::algo::image_object_detector::set_nested_algo_configuration(
-        "detector", temp_config, detector );
-
-      if( detector )
-      {
-        algo_config = kv::config_block::empty_config();
-        kv::algo::image_object_detector::get_nested_algo_configuration(
-          "detector", algo_config, detector );
-      }
+      std::cerr << "Warning: Could not validate output keys - unable to instantiate '"
+                << algorithm_type << "' or nested '" << nested_type << "'" << std::endl;
     }
     else
     {
-      // For trackers, validation is less strict since tracker configs vary more
-      return true;
+      std::cerr << "Warning: Could not validate output keys - unable to instantiate '"
+                << algorithm_type << "'" << std::endl;
     }
-  }
-  catch( ... )
-  {
-    // If we can't instantiate the algorithm, skip validation
-    std::cerr << "Warning: Could not validate output keys against algorithm '"
-              << algorithm_type << "'" << std::endl;
     return true;
   }
 
-  if( !algo_config )
-  {
-    return true;
-  }
-
-  // Check each non-file key against the algorithm config
+  // Validate keys against appropriate configs
   bool all_valid = true;
+  std::string outer_prefix = algorithm_type + ":";
+  std::string nested_prefix = outer_prefix + "detector:";
+
   for( const auto& pair : output_map )
   {
     const std::string& key = pair.first;
     const std::string& value = pair.second;
 
-    // Skip if value is an existing file (it's a file copy, not a config key)
-    if( !value.empty() && does_file_exist( value ) )
+    // Skip file copies and special keys
+    if( !value.empty() && ( does_file_exist( value ) || does_folder_exist( value ) ) )
+    {
+      continue;
+    }
+    if( key == "eval" || key == "type" || key == "eval_folder" )
     {
       continue;
     }
 
-    // 'eval' and 'type' are special keys that don't need to be in the inference config.
-    // 'type' specifies the algorithm type in the pipeline template.
-    if( key == "eval" || key == "type" )
-    {
-      continue;
-    }
-
-    // Skip nested algorithm config keys (e.g., "ocv_windowed:detector:netharn:deployed").
-    // These can't be validated without knowing and instantiating the nested algorithm.
-    std::string algo_prefix = algorithm_type + ":";
-    std::string nested_prefix = algo_prefix + "detector:";
+    // Determine which config to validate against based on key prefix
     if( key.find( nested_prefix ) == 0 )
     {
-      continue;
-    }
+      // Key like "ocv_windowed:detector:netharn:deployed" - validate against nested config
+      if( nested_config )
+      {
+        std::string nested_key = "detector:" + nested_type + ":" +
+          key.substr( nested_prefix.size() + nested_type.size() + 1 );
 
-    // Check if the key exists in the algorithm's config
-    // If the key already starts with the algorithm prefix (e.g., "ocv_windowed:mode"),
-    // don't add it again. The trainer outputs prefixed keys for template replacement.
-    std::string full_key;
-    if( key.find( algo_prefix ) == 0 )
-    {
-      // Key already has algorithm prefix, just add "detector:"
-      full_key = "detector:" + key;
+        if( !nested_config->has_value( nested_key ) )
+        {
+          std::cerr << "Error: Invalid nested key '" << key << "' for algorithm '"
+                    << nested_type << "'" << std::endl;
+          all_valid = false;
+        }
+      }
+      // else: nested detector couldn't be instantiated, skip validation for this key
     }
-    else
+    else if( key.find( outer_prefix ) == 0 && outer_config )
     {
-      // Key doesn't have algorithm prefix, add both
-      full_key = "detector:" + algorithm_type + ":" + key;
-    }
+      // Key like "ocv_windowed:mode" - validate against outer config
+      std::string outer_key = "detector:" + key;
 
-    if( !algo_config->has_value( full_key ) )
-    {
-      std::cerr << "Error: Trainer returned key '" << key
-                << "' which is not a valid config key for algorithm '"
-                << algorithm_type << "'" << std::endl;
-      all_valid = false;
+      if( !outer_config->has_value( outer_key ) )
+      {
+        std::cerr << "Error: Invalid key '" << key << "' for algorithm '"
+                  << algorithm_type << "'" << std::endl;
+        all_valid = false;
+      }
     }
+    // Keys without prefix are silently skipped (they may be template-only keys)
   }
 
   return all_valid;
@@ -289,11 +358,19 @@ static void process_trainer_output(
   // Separate template replacements from file copies based on whether value is a file
   std::map< std::string, std::string > template_replacements;
   std::map< std::string, std::string > file_copies;
+  std::string eval_folder;  // Optional evaluation folder to copy
 
   for( const auto& pair : output_map )
   {
     const std::string& key = pair.first;
     const std::string& value = pair.second;
+
+    // Special key for evaluation folder
+    if( key == "eval_folder" && !value.empty() && does_folder_exist( value ) )
+    {
+      eval_folder = value;
+      continue;
+    }
 
     // If value is an existing file, treat as file copy
     if( !value.empty() && does_file_exist( value ) )
@@ -393,6 +470,8 @@ static void process_trainer_output(
   }
 
   // Copy model files to output directory
+  std::cout << std::endl;
+
   for( const auto& pair : file_copies )
   {
     const std::string& dest_filename = pair.first;
@@ -409,6 +488,22 @@ static void process_trainer_output(
     {
       std::cerr << "Warning: failed to copy " << source_path
                 << " to " << dest_path << std::endl;
+    }
+  }
+
+  // Copy evaluation folder if specified
+  if( !eval_folder.empty() )
+  {
+    std::string eval_dest = output_directory.empty() ?
+      "model_evaluation" : append_path( output_directory, "model_evaluation" );
+
+    if( copy_folder( eval_folder, eval_dest ) )
+    {
+      std::cout << "Copied evaluation results to: " << eval_dest << std::endl;
+    }
+    else
+    {
+      std::cerr << "Warning: failed to copy evaluation folder" << std::endl;
     }
   }
 
@@ -488,6 +583,8 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "path" )
     ( "output-file", "Output zip file for model and pipeline (overrides output-dir)",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "normalize-16bit", "Enable percentile normalization for 16-bit/float imagery",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
     ;
 }
 
@@ -535,6 +632,7 @@ train_applet
   std::string opt_timeout = cmd_args[ "timeout" ].as< std::string >();
   std::string opt_init_weights = cmd_args[ "init-weights" ].as< std::string >();
   std::string opt_output_file = cmd_args[ "output-file" ].as< std::string >();
+  bool opt_normalize_16bit = cmd_args[ "normalize-16bit" ].as< bool >();
 
   // List option
   if( opt_list )
@@ -924,7 +1022,7 @@ train_applet
     output_file = opt_output_file;
   }
 
-  if( convert_to_full_frame && !kv::algo::image_io::
+  if( !kv::algo::image_io::
         check_nested_algo_configuration( "image_reader", config ) )
   {
     std::cout << "Invalid image reader type specified" << std::endl;
@@ -946,6 +1044,22 @@ train_applet
   if( !opt_pipeline_file.empty() )
   {
     pipeline_file = opt_pipeline_file;
+  }
+
+  // Handle --normalize-16bit option
+  if( opt_normalize_16bit )
+  {
+    if( pipeline_file.empty() )
+    {
+      pipeline_file = "train_aug_percentile_norm.pipe";
+      std::cout << "Using percentile normalization augmentation pipeline" << std::endl;
+    }
+    if( pipeline_template.empty() ||
+        pipeline_template.find( "default" ) != std::string::npos )
+    {
+      pipeline_template = "templates/embedded_16bit.pipe";
+      std::cout << "Using 16-bit normalization inference template" << std::endl;
+    }
   }
 
   if( !augmented_cache.empty() &&
@@ -1048,17 +1162,15 @@ train_applet
     }
   }
 
-  // Image reader and width/height only required for certain operations
-  if( convert_to_full_frame )
-  {
-    kv::algo::image_io::set_nested_algo_configuration
-      ( "image_reader", config, image_reader );
-    kv::algo::image_io::get_nested_algo_configuration
-      ( "image_reader", config, image_reader );
-  }
+  // Image reader used for convert_to_full_frame and bit depth checking
+  kv::algo::image_io::set_nested_algo_configuration
+    ( "image_reader", config, image_reader );
+  kv::algo::image_io::get_nested_algo_configuration
+    ( "image_reader", config, image_reader );
 
   unsigned image_width = 0, image_height = 0;
   bool variable_resolution_sequences = false;
+  bool bit_depth_checked = false;
 
   // Data regardless of source
   std::vector< std::string > all_data;  // List of folders, image lists, or videos
@@ -1398,6 +1510,43 @@ train_applet
     }
 
     std::sort( image_files.begin(), image_files.end() );
+
+    // Check bit depth of a few sample images to detect non-8-bit imagery
+    if( !bit_depth_checked && !image_files.empty() )
+    {
+      bit_depth_checked = true;
+
+      // Sample up to 3 images to check bit depth
+      const unsigned num_samples = std::min( static_cast< unsigned >( image_files.size() ), 3u );
+
+      for( unsigned s = 0; s < num_samples; ++s )
+      {
+        try
+        {
+          auto sample_image = image_reader->load( image_files[s] );
+          std::string bit_depth_desc;
+
+          if( is_non_8bit_image( sample_image, bit_depth_desc ) )
+          {
+            if( pipeline_file.empty() )
+            {
+              std::cerr << std::endl;
+              std::cerr << "ERROR: Input imagery is " << bit_depth_desc << " format." << std::endl;
+              std::cerr << "       Most detection models expect 8-bit imagery. Either use the" << std::endl;
+              std::cerr << "       --normalize-16bit flag or specify an augmentation_pipeline" << std::endl;
+              std::cerr << "       to normalize the imagery to 8-bit before training." << std::endl;
+              std::cerr << std::endl;
+              return EXIT_FAILURE;
+            }
+            break; // Found non-8-bit, but pipeline is set, so proceed
+          }
+        }
+        catch( const std::exception& e )
+        {
+          // Ignore errors during bit depth check for individual images
+        }
+      }
+    }
 
     // Load groundtruth file for this entry
     kv::algo::detected_object_set_input_sptr gt_reader;

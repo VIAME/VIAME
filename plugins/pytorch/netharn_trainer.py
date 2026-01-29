@@ -822,16 +822,19 @@ class NetHarnTrainer( TrainDetector ):
 
         # Handle evaluation plots if enabled
         if self._output_plots:
-            eval_folder = os.path.join( self._train_directory,
-               "fit", "nice", self._identifier, "eval" )
-            if os.path.exists( eval_folder ):
-                # Walk through eval folder and add all files
-                for root, dirs, files in os.walk( eval_folder ):
-                    for file in files:
-                        src_path = os.path.join( root, file )
-                        rel_path = os.path.relpath( src_path, eval_folder )
-                        output_name = os.path.join( "model_evaluation", rel_path )
-                        output[output_name] = src_path
+            # Look for eval folder in runs directory (where netharn stores evaluation)
+            runs_dir = os.path.join( self._train_directory,
+               "fit", "runs", self._identifier )
+            if os.path.isdir( runs_dir ):
+                # Find the most recent run's eval folder
+                import glob
+                eval_candidates = sorted(
+                    glob.glob( os.path.join( runs_dir, "*/eval" ) ),
+                    key=os.path.getmtime, reverse=True )
+                if eval_candidates:
+                    # Use eval_folder key - train tool will copy the entire folder
+                    output["eval_folder"] = eval_candidates[0]
+                    print( "Found evaluation folder: " + eval_candidates[0] )
 
         print( "\nThe " + self._train_directory + " directory can now be deleted, " \
                "unless you want to review training metrics or generated plots in " \
