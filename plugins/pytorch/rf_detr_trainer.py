@@ -2,16 +2,10 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-from kwiver.vital.algo import (
-    DetectedObjectSetOutput,
-    ImageObjectDetector,
-    TrainDetector
-)
-
+import json
 import os
 
-from .kwcoco_train_detector import KWCocoTrainDetector
-from .kwcoco_train_detector import KWCocoTrainDetectorConfig
+from kwiver.vital.algo import TrainDetector
 
 import scriptconfig as scfg
 import ubelt as ub
@@ -22,20 +16,17 @@ from viame.pytorch.utilities import (
     parse_bool,
     register_vital_algorithm,
     TrainingInterruptHandler,
+    ensure_rfdetr_compatibility,
 )
 
 
-class RFDETRTrainerConfig(KWCocoTrainDetectorConfig):
+class RFDETRTrainerConfig(scfg.DataConfig):
     """
     The configuration for :class:`RFDETRTrainer`.
     """
     identifier = "viame-rf-detr-detector"
     train_directory = "deep_training"
-    output_directory = "category_models"
     seed_model = ""
-
-    tmp_training_file = "training_truth.json"
-    tmp_validation_file = "validation_truth.json"
 
     # RF-DETR model configuration
     model_size = scfg.Value('base', help='Model size: nano, small, medium, base, or large')
@@ -68,25 +59,28 @@ class RFDETRTrainerConfig(KWCocoTrainDetectorConfig):
     # Logging
     use_tensorboard = scfg.Value(True, help='Enable TensorBoard logging')
 
-    pipeline_template = ""
-
     categories = []
 
     def __post_init__(self):
         super().__post_init__()
 
 
-class RFDETRTrainer(KWCocoTrainDetector):
+class RFDETRTrainer(TrainDetector):
     """
-    Implementation of TrainDetector for RF-DETR models
+    Implementation of TrainDetector for RF-DETR models.
     """
     def __init__(self):
         TrainDetector.__init__(self)
         self._config = RFDETRTrainerConfig()
+        self._class_names = []
+        self._train_image_files = []
+        self._train_detections = []
+        self._test_image_files = []
+        self._test_detections = []
 
     def get_configuration(self):
         print('[RFDETRTrainer] get_configuration')
-        cfg = super().get_configuration()
+        cfg = super(TrainDetector, self).get_configuration()
         for key, value in self._config.items():
             cfg.set_value(key, str(value))
         return cfg
@@ -102,82 +96,11 @@ class RFDETRTrainer(KWCocoTrainDetector):
         for key, value in self._config.items():
             setattr(self, "_" + key, value)
 
-        self._post_config_set()
-        return True
-
-    def _post_config_set(self):
-        print('[RFDETRTrainer] _post_config_set')
-        assert self._config['mode'] == "detector"
-
         if self._train_directory is not None:
             if not os.path.exists(self._train_directory):
                 os.mkdir(self._train_directory)
-            self._training_file = os.path.join(
-                self._train_directory, self._tmp_training_file)
-            self._validation_file = os.path.join(
-                self._train_directory, self._tmp_validation_file)
-            self._chip_directory = os.path.join(
-                self._train_directory, "image_chips")
-        else:
-            self._training_file = self._tmp_training_file
-            self._validation_file = self._tmp_validation_file
 
-        if self._output_directory is not None:
-            if not os.path.exists(self._output_directory):
-                os.mkdir(self._output_directory)
-
-        from kwiver.vital.modules import load_known_modules
-        load_known_modules()
-
-        if not self._no_format:
-            self._training_writer = DetectedObjectSetOutput.create("coco")
-            self._validation_writer = DetectedObjectSetOutput.create("coco")
-
-            writer_conf = self._training_writer.get_configuration()
-            self._training_writer.set_configuration(writer_conf)
-
-            writer_conf = self._validation_writer.get_configuration()
-            self._validation_writer.set_configuration(writer_conf)
-
-            self._training_writer.open(self._training_file)
-            self._validation_writer.open(self._validation_file)
-
-        if self._mode == "detection_refiner" and not os.path.exists(self._chip_directory):
-            os.mkdir(self._chip_directory)
-
-        if self._detector_model:
-            self._detector = ImageObjectDetector.create("yolo")
-            detector_config = self._detector.get_configuration()
-            detector_config.set_value("deployed", self._detector_model)
-            if not self._detector.set_configuration(detector_config):
-                print("Unable to configure detector")
-                return False
-
-        if self._chip_extension and self._chip_extension[0] != '.':
-            self._chip_extension = '.' + self._chip_extension
-
-        if int(self._chip_height) <= 0:
-            self._chip_height = self._chip_width
-        if int(self._chip_width) <= 0:
-            self._chip_width = self._chip_height
-
-        self._training_data = []
-        self._validation_data = []
-        self._sample_count = 0
-
-    def _ensure_format_writers(self):
-        if not self._no_format:
-            self._training_writer.complete()
-            self._validation_writer.complete()
-
-            import kwcoco
-            paths_to_fix = [self._training_file, self._validation_file]
-            for fpath in paths_to_fix:
-                fpath = ub.Path(fpath)
-                if fpath.exists():
-                    dset = kwcoco.CocoDataset(fpath)
-                    dset.conform()
-                    dset.dump()
+        return True
 
     def check_configuration(self, cfg):
         if not cfg.has_value("identifier") or len(cfg.get_value("identifier")) == 0:
@@ -185,122 +108,155 @@ class RFDETRTrainer(KWCocoTrainDetector):
             return False
         return True
 
-    def _convert_coco_to_roboflow_format(self, train_coco_path, val_coco_path, output_dir):
+    def add_data_from_disk(self, categories, train_files, train_dets,
+                           test_files, test_dets):
+        print("[RFDETRTrainer] Adding training data from disk")
+        print("  Training files: ", len(train_files))
+        print("  Training detections: ", len(train_dets))
+        print("  Test files: ", len(test_files))
+        print("  Test detections: ", len(test_dets))
+
+        if categories is not None:
+            self._class_names = categories.all_class_names()
+        else:
+            self._class_names = []
+
+        self._train_image_files = list(train_files)
+        self._train_detections = list(train_dets)
+        self._test_image_files = list(test_files)
+        self._test_detections = list(test_dets)
+
+    def _prepare_roboflow_dataset(self):
         """
-        Convert COCO format annotations to Roboflow format expected by RF-DETR.
+        Convert stored kwiver data directly to Roboflow directory format
+        expected by RF-DETR.
 
-        Roboflow format expects:
-          output_dir/
-            train/
-              _annotations.coco.json
-            valid/
-              _annotations.coco.json
-            test/
-              _annotations.coco.json
+        Creates:
+          rf_detr_dataset/
+            train/_annotations.coco.json
+            valid/_annotations.coco.json
+            test/_annotations.coco.json
 
-        Uses absolute paths in the COCO JSON to avoid copying images.
+        Returns (dataset_dir, class_names).
         """
-        import json
+        from PIL import Image
 
-        output_dir = ub.Path(output_dir)
-        train_dir = output_dir / "train"
-        valid_dir = output_dir / "valid"
-        test_dir = output_dir / "test"
+        dataset_dir = ub.Path(self._train_directory) / "rf_detr_dataset"
+        train_dir = dataset_dir / "train"
+        valid_dir = dataset_dir / "valid"
+        test_dir = dataset_dir / "test"
 
-        # Create directory structure
-        (train_dir).ensuredir()
-        (valid_dir).ensuredir()
-        (test_dir).ensuredir()
+        train_dir.ensuredir()
+        valid_dir.ensuredir()
+        test_dir.ensuredir()
 
-        def process_split(coco_path, split_dir):
-            coco_path = ub.Path(coco_path)
-            if not coco_path.exists():
-                print(f"[RFDETRTrainer] Warning: {coco_path} does not exist")
-                return
+        # Build category mapping (0-indexed for RF-DETR)
+        class_names = list(self._class_names)
+        cat_name_to_id = {name: idx for idx, name in enumerate(class_names)}
 
-            with open(coco_path, 'r') as f:
-                coco_data = json.load(f)
+        categories_json = [
+            {"id": idx, "name": name, "supercategory": name}
+            for idx, name in enumerate(class_names)
+        ]
 
-            # Convert to absolute paths without copying
-            new_images = []
-            for img in coco_data.get('images', []):
-                old_path = ub.Path(img['file_name'])
-                if not old_path.is_absolute():
-                    old_path = coco_path.parent / old_path
+        def build_coco_json(image_files, detection_sets):
+            images_json = []
+            annotations_json = []
+            ann_id = 1
 
-                if old_path.exists():
-                    # Use absolute path directly
-                    img['file_name'] = str(old_path.resolve())
-                    new_images.append(img)
+            for img_idx, (img_path, det_set) in enumerate(
+                zip(image_files, detection_sets)
+            ):
+                img_path = str(img_path)
+                if not os.path.exists(img_path):
+                    continue
 
-            coco_data['images'] = new_images
+                # Read dimensions from header only
+                with Image.open(img_path) as im:
+                    width, height = im.size
 
-            # Ensure categories have supercategory field (required by RF-DETR)
-            # Also remap category IDs to be 0-indexed (RF-DETR expects 0-indexed)
-            old_id_to_new = {}
-            for new_id, cat in enumerate(coco_data.get('categories', [])):
-                old_id_to_new[cat['id']] = new_id
-                cat['id'] = new_id
-                if 'supercategory' not in cat:
-                    cat['supercategory'] = cat.get('name', 'object')
+                img_id = img_idx
+                abs_path = os.path.abspath(img_path)
 
-            # Update annotation category IDs
-            for ann in coco_data.get('annotations', []):
-                if ann['category_id'] in old_id_to_new:
-                    ann['category_id'] = old_id_to_new[ann['category_id']]
+                images_json.append({
+                    "id": img_id,
+                    "file_name": abs_path,
+                    "width": width,
+                    "height": height,
+                })
 
-            # Write the annotations file
-            annotations_path = split_dir / "_annotations.coco.json"
-            with open(annotations_path, 'w') as f:
-                json.dump(coco_data, f)
+                if det_set is None:
+                    continue
 
-            print(f"[RFDETRTrainer] Prepared {len(new_images)} images for {split_dir}")
+                for det in det_set:
+                    bbox = det.bounding_box
+                    x1, y1 = bbox.min_x(), bbox.min_y()
+                    x2, y2 = bbox.max_x(), bbox.max_y()
+                    w = x2 - x1
+                    h = y2 - y1
 
-        process_split(train_coco_path, train_dir)
-        process_split(val_coco_path, valid_dir)
-        # RF-DETR requires a test split; use validation data for test
-        process_split(val_coco_path, test_dir)
+                    if w <= 0 or h <= 0:
+                        continue
 
-        return output_dir
+                    det_type = det.type
+                    if det_type is None:
+                        continue
+                    class_name = det_type.get_most_likely_class()
+                    if class_name not in cat_name_to_id:
+                        continue
+
+                    annotations_json.append({
+                        "id": ann_id,
+                        "image_id": img_id,
+                        "category_id": cat_name_to_id[class_name],
+                        "bbox": [x1, y1, w, h],
+                        "area": w * h,
+                        "iscrowd": 0,
+                    })
+                    ann_id += 1
+
+            return {
+                "images": images_json,
+                "annotations": annotations_json,
+                "categories": categories_json,
+            }
+
+        # Build train split
+        train_coco = build_coco_json(
+            self._train_image_files, self._train_detections
+        )
+        with open(train_dir / "_annotations.coco.json", "w") as f:
+            json.dump(train_coco, f)
+        print(f"[RFDETRTrainer] Train: {len(train_coco['images'])} images, "
+              f"{len(train_coco['annotations'])} annotations")
+
+        # Build valid split (from test data)
+        valid_coco = build_coco_json(
+            self._test_image_files, self._test_detections
+        )
+        with open(valid_dir / "_annotations.coco.json", "w") as f:
+            json.dump(valid_coco, f)
+        print(f"[RFDETRTrainer] Valid: {len(valid_coco['images'])} images, "
+              f"{len(valid_coco['annotations'])} annotations")
+
+        # RF-DETR requires a test split; reuse validation data
+        with open(test_dir / "_annotations.coco.json", "w") as f:
+            json.dump(valid_coco, f)
+
+        return dataset_dir, class_names
 
     def update_model(self):
         import torch
 
-        self._ensure_format_writers()
-
         print("[RFDETRTrainer] Starting RF-DETR training")
 
         # Prepare dataset directory in Roboflow format
-        dataset_dir = ub.Path(self._train_directory) / "rf_detr_dataset"
-        dataset_dir.ensuredir()
-
-        self._convert_coco_to_roboflow_format(
-            self._training_file,
-            self._validation_file,
-            dataset_dir
-        )
+        dataset_dir, self._class_names = self._prepare_roboflow_dataset()
 
         # Determine device
         device = resolve_device_str(self._device)
 
-        # Compatibility shim: rfdetr was written for transformers 4.x which
-        # had find_pruneable_heads_and_indices in pytorch_utils. It was removed
-        # in transformers 5.0. Inject it before importing rfdetr.
-        import transformers.pytorch_utils as _pt_utils
-        if not hasattr( _pt_utils, 'find_pruneable_heads_and_indices' ):
-            def _find_pruneable_heads_and_indices( heads, n_heads, head_size,
-                                                   already_pruned_heads ):
-                mask = torch.ones( n_heads, head_size )
-                heads = set( heads ) - already_pruned_heads
-                for head in heads:
-                    head -= sum( 1 if h < head else 0
-                                 for h in already_pruned_heads )
-                    mask[head] = 0
-                index = torch.arange( len( mask.view( -1 ) ) )[
-                    mask.view( -1 ).contiguous().eq( 1 ) ].long()
-                return heads, index
-            _pt_utils.find_pruneable_heads_and_indices = \
-                _find_pruneable_heads_and_indices
+        ensure_rfdetr_compatibility()
 
         # Select model class based on size
         model_size = self._model_size.lower()
@@ -322,7 +278,7 @@ class RFDETRTrainer(KWCocoTrainDetector):
         # Create model
         if len(self._seed_model) > 0 and ub.Path(self._seed_model).exists():
             # Load from checkpoint
-            checkpoint = torch.load(self._seed_model, map_location=device)
+            checkpoint = torch.load(self._seed_model, map_location=device, weights_only=False)
             if 'args' in checkpoint and 'num_classes' in checkpoint['args']:
                 num_classes = checkpoint['args']['num_classes']
             else:
@@ -388,66 +344,77 @@ class RFDETRTrainer(KWCocoTrainDetector):
 
             self._interrupted = handler.interrupted
 
-        self.save_final_model(model, output_dir)
+        output = self._get_output_map(output_dir)
 
-        print("\n[RFDETRTrainer] Model training complete!\n")
+        print("\n[RFDETRTrainer] Model training complete!")
 
-        return {"type": "rf_detr"}
+        return output
 
-    def save_final_model(self, model=None, output_dir=None):
-        import shutil
-
-        output_model_name = "trained_rf_detr_checkpoint.pth"
-        output_dpath = ub.Path(self._output_directory)
-        output_model = output_dpath / output_model_name
+    def _get_output_map(self, output_dir):
+        """
+        Build and return output map containing template replacements and
+        file copies. The C++ process_trainer_output handles copying files
+        to the output directory and generating the pipeline from a template.
+        """
+        output = {}
+        output_model_name = "trained_detector.pth"
 
         # Find the best checkpoint
-        if output_dir is not None:
-            output_dir = ub.Path(output_dir)
-            checkpoint_candidates = sorted(output_dir.glob("*.pth"))
+        output_dir = ub.Path(output_dir)
+        checkpoint_candidates = sorted(output_dir.glob("*.pth"))
 
-            # Prefer best checkpoints in order of preference
-            best_candidates = [
-                output_dir / "checkpoint_best_total.pth",
-                output_dir / "checkpoint_best_ema.pth",
-                output_dir / "checkpoint_best_regular.pth",
-                output_dir / "checkpoint_best.pth",
-            ]
+        best_candidates = [
+            output_dir / "checkpoint_best_total.pth",
+            output_dir / "checkpoint_best_ema.pth",
+            output_dir / "checkpoint_best_regular.pth",
+            output_dir / "checkpoint_best.pth",
+        ]
 
-            final_ckpt = None
-            for candidate in best_candidates:
-                if candidate.exists():
-                    final_ckpt = candidate
-                    break
+        final_ckpt = None
+        for candidate in best_candidates:
+            if candidate.exists():
+                final_ckpt = candidate
+                break
 
-            if final_ckpt is None and checkpoint_candidates:
-                final_ckpt = checkpoint_candidates[-1]
+        if final_ckpt is None and checkpoint_candidates:
+            final_ckpt = checkpoint_candidates[-1]
 
-            if final_ckpt is None:
-                print("[RFDETRTrainer] No checkpoint found")
-                return
+        if final_ckpt is None:
+            print("\n[RFDETRTrainer] No checkpoint found, training may have failed")
+            return output
 
-            # Copy checkpoint to output directory
-            shutil.copy2(final_ckpt, output_model)
-            print(f"[RFDETRTrainer] Copied {final_ckpt} to {output_model}")
-        else:
-            print("[RFDETRTrainer] No output directory specified")
-            return
+        # Embed class metadata into the checkpoint so the detector knows
+        # the trained categories and model architecture.
+        if hasattr(self, '_class_names') and self._class_names:
+            import torch
+            checkpoint = torch.load(final_ckpt, map_location='cpu', weights_only=False)
+            if not isinstance(checkpoint, dict):
+                checkpoint = {'model': checkpoint}
+            args = checkpoint.get('args', {})
+            if not isinstance(args, dict):
+                args = vars(args)
+            args['num_classes'] = len(self._class_names)
+            args['class_names'] = self._class_names
+            args['model_size'] = self._model_size
+            checkpoint['args'] = args
+            torch.save(checkpoint, final_ckpt)
+            print(f"[RFDETRTrainer] Embedded {len(self._class_names)} class names into checkpoint")
 
-        # Generate pipeline file if template exists
-        if len(self._pipeline_template) > 0 and ub.Path(self._pipeline_template).exists():
-            with open(self._pipeline_template, 'r') as fin:
-                all_lines = fin.readlines()
+        algo = "rf_detr"
 
-            with open(output_dpath / "detector.pipe", 'w') as fout:
-                for line in all_lines:
-                    line = line.replace("[-MODEL-FILE-]", output_model_name)
-                    line = line.replace("[-WINDOW-OPTION-]", self._resize_option)
-                    fout.write(line)
+        output["type"] = algo
 
-        print(f"[RFDETRTrainer] Wrote finalized model to {output_model}")
-        print(f"[RFDETRTrainer] The {self._train_directory} directory can now be deleted, "
+        # Config key matching rf_detr detector inference config
+        output[algo + ":deployed"] = output_model_name
+
+        # File copy entry (key=destination filename, value=source path)
+        output[output_model_name] = str(final_ckpt)
+
+        print(f"\nModel found at: {final_ckpt}")
+        print(f"\nThe {self._train_directory} directory can now be deleted, "
               "unless you want to review training metrics first.")
+
+        return output
 
 
 def __vital_algorithm_register__():
