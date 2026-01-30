@@ -291,7 +291,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
 
         output = {}
         output["type"] = "mit_yolo"
-        output["mit_yolo:deployed"] = output_model_name
+        output["mit_yolo:weight"] = output_model_name
         output[output_model_name] = str(final_ckpt)
         return output
 

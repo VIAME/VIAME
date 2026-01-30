@@ -338,7 +338,6 @@ endif()
 if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_detectron2_frcnn.conf
-    train_detector_dino_remax.conf
   )
 endif()
 
