@@ -393,7 +393,8 @@ class RFDETRTrainer(TrainDetector):
             args = checkpoint.get('args', {})
             if not isinstance(args, dict):
                 args = vars(args)
-            args['num_classes'] = len(self._class_names)
+            if 'num_classes' not in args:
+                args['num_classes'] = len(self._class_names)
             args['class_names'] = self._class_names
             args['model_size'] = self._model_size
             checkpoint['args'] = args

@@ -91,13 +91,22 @@ class RFDETRDetector(ImageObjectDetector):
 
         if weight_fpath and ub.Path(weight_fpath).exists():
             # Load trained weights
-            checkpoint = torch.load(weight_fpath, map_location=device)
+            checkpoint = torch.load(weight_fpath, map_location=device, weights_only=False)
 
-            # Determine number of classes from checkpoint
-            if 'args' in checkpoint and 'num_classes' in checkpoint['args']:
-                num_classes = checkpoint['args']['num_classes']
+            # Determine the actual class_embed dimension from weights.
+            # RF-DETR's build_model adds +1 to num_classes for a background
+            # class, but reinitialize_detection_head and the training loop
+            # store weights with the raw dataset class count.  We therefore
+            # read the true dimension from the checkpoint weights and call
+            # reinitialize_detection_head to make the model match before
+            # loading the state dict (mirroring RF-DETR's own loading path).
+            state_dict = checkpoint.get('model', checkpoint)
+            if 'class_embed.weight' in state_dict:
+                ckpt_num_classes = state_dict['class_embed.weight'].shape[0]
+            elif 'args' in checkpoint and 'num_classes' in checkpoint['args']:
+                ckpt_num_classes = checkpoint['args']['num_classes']
             else:
-                num_classes = 90  # default COCO classes
+                ckpt_num_classes = 90  # default COCO classes
 
             # Get class names if available
             if 'args' in checkpoint and 'class_names' in checkpoint['args']:
@@ -105,9 +114,13 @@ class RFDETRDetector(ImageObjectDetector):
 
             self._model = RFDETRModel(
                 pretrain_weights=None,
-                num_classes=num_classes,
+                num_classes=ckpt_num_classes,
                 device=device
             )
+
+            # The constructor adds +1 for background, so resize the
+            # detection head to match the checkpoint's actual dimensions.
+            self._model.model.reinitialize_detection_head(ckpt_num_classes)
 
             # Load the state dict
             if 'model' in checkpoint:
