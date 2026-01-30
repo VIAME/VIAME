@@ -176,6 +176,7 @@ set( CORE_PIPELINE_FILES
   index_frame.svm.pipe
   index_frame.svm.annot_only.pipe
   interactive_segmenter_default.conf
+  interactive_segmenter_watershed.conf
   interactive_stereo_default.conf
   measurement_fully_auto_fish_default.pipe
   measurement_fully_auto_gmm_motion.pipe
