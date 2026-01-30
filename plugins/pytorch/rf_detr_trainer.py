@@ -405,7 +405,7 @@ class RFDETRTrainer(TrainDetector):
         output["type"] = algo
 
         # Config key matching rf_detr detector inference config
-        output[algo + ":deployed"] = output_model_name
+        output[algo + ":weight"] = output_model_name
 
         # File copy entry (key=destination filename, value=source path)
         output[output_model_name] = str(final_ckpt)

@@ -257,7 +257,8 @@ static bool validate_trainer_output_keys(
     {
       continue;
     }
-    if( key == "eval" || key == "type" || key == "eval_folder" )
+    if( key == "eval" || key == "type" || key == "eval_folder" ||
+        key == nested_type_key )
     {
       continue;
     }
@@ -266,6 +267,15 @@ static bool validate_trainer_output_keys(
     if( key.find( nested_prefix ) == 0 )
     {
       // Key like "ocv_windowed:detector:netharn:deployed" - validate against nested config
+      std::string after_prefix = key.substr( nested_prefix.size() );
+      std::string expected_start = nested_type + ":";
+
+      if( after_prefix.size() <= expected_start.size() ||
+          after_prefix.substr( 0, expected_start.size() ) != expected_start )
+      {
+        continue;
+      }
+
       if( nested_config )
       {
         std::string nested_key = "detector:" + nested_type + ":" +
