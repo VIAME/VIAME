@@ -29,7 +29,6 @@ add_option("VIAME_BUILD_KWIVER_DIR" "C:/tmp/kv2")
 add_option("VIAME_BUILD_PLUGINS_DIR" "C:/tmp/vm2")
 
 # Windows-specific overrides
-add_option("VIAME_ENABLE_DARKNET" "OFF")
 add_option("VIAME_BUILD_DIVE_FROM_SOURCE" "ON")
 
 # Finalize OPTIONS variable
