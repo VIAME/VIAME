@@ -1,9 +1,9 @@
 @ECHO OFF
 SETLOCAL EnableDelayedExpansion
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Setup Paths
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 SET "VIAME_SOURCE_DIR=C:\VIAME-Builds\GPU"
 
@@ -16,7 +16,8 @@ FOR /f "tokens=1 delims= " %%a IN (%VIAME_SOURCE_DIR%\RELEASE_NOTES.md) DO (
 
 SET "OUTPUT_FILE=VIAME-%VIAME_VERSION%-Windows-64Bit.zip"
 
-REM Make sure to have all of these things installed (and cuDNN in CUDA_ROOT)
+REM Make sure to have all of these things installed
+REM (and cuDNN in CUDA_ROOT)
 
 SET "CMAKE_ROOT=C:\Program Files\CMake"
 SET "GIT_ROOT=C:\Program Files\Git"
@@ -34,35 +35,49 @@ SET "WIN_ROOT=C:\Windows"
 SET "WIN32_ROOT=%WIN_ROOT%\System32"
 SET "WIN64_ROOT=%WIN_ROOT%\SysWOW64"
 
-REM Do not modify the below unless you are changing python versions or have alternatively modified
-REM the build and install directories in cmake or the platforms.cmake file
+REM Do not modify the below unless you are changing python
+REM versions or have alternatively modified the build and
+REM install directories in cmake or the platforms.cmake file
 
 SET "VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build"
 SET "VIAME_INSTALL_DIR=%VIAME_BUILD_DIR%\install"
 
 SET "PYTHON_SUBDIR=lib\python3.10"
 
-SET "PATH=%WIN_ROOT%;%WIN32_ROOT%;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
-SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;%NVIDIA_ROOT%\PhysX\Common;%NVIDIA_ROOT%\NVIDIA NvDLISR;%PATH%"
-SET "PATH=%APPDATA%\npm;%NODEJS_ROOT%;%GIT_ROOT%\cmd;%CMAKE_ROOT%\bin;%PATH%"
-SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
+SET "PATH=%WIN_ROOT%;%WIN32_ROOT%"
+SET "PATH=%PATH%;%WIN32_ROOT%\Wbem"
+SET "PATH=%PATH%;%WIN32_ROOT%\WindowsPowerShell\v1.0"
+SET "PATH=%PATH%;%WIN32_ROOT%\OpenSSH"
+SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;%PATH%"
+SET "PATH=%NVIDIA_ROOT%\PhysX\Common;%PATH%"
+SET "PATH=%NVIDIA_ROOT%\NVIDIA NvDLISR;%PATH%"
+SET "PATH=%APPDATA%\npm;%NODEJS_ROOT%;%PATH%"
+SET "PATH=%GIT_ROOT%\cmd;%CMAKE_ROOT%\bin;%PATH%"
+SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%"
+SET "PYTHONPATH=%PYTHONPATH%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
 
 SET "VDIST_VER_STR=%MSVS_TOOLSET:.=%"
-SET "VDIST_ROOT=%MSVS_ROOT%\VC\Redist\MSVC\%MSVS_REDIST_VER%\%MSVS_ARCH%\Microsoft.VC%VDIST_VER_STR%.OpenMP"
+SET "VDIST_ROOT=%MSVS_ROOT%\VC\Redist\MSVC"
+SET "VDIST_ROOT=%VDIST_ROOT%\%MSVS_REDIST_VER%"
+SET "VDIST_ROOT=%VDIST_ROOT%\%MSVS_ARCH%\Microsoft.VC%VDIST_VER_STR%.OpenMP"
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Check Build Dependencies
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
-CALL %~dp0build_common_functions.bat :CheckBuildDependencies "%CMAKE_ROOT%" "%GIT_ROOT%" "%ZIP_ROOT%" "%ZLIB_ROOT%" "%CUDA_ROOT%"
+CALL %~dp0build_common_functions.bat ^
+    :CheckBuildDependencies ^
+    "%CMAKE_ROOT%" "%GIT_ROOT%" ^
+    "%ZIP_ROOT%" "%ZLIB_ROOT%" "%CUDA_ROOT%"
 IF ERRORLEVEL 1 EXIT /B 1
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Perform Actual Build
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
-REM This build proceedure currently requires making TMP directories at C:\tmp to get around paths
-REM which sometimes become too long for windows.
+REM This build proceedure currently requires making TMP
+REM directories at C:\tmp to get around paths which
+REM sometimes become too long for windows.
 
 IF "%1"=="true" (
   ECHO "Not erasing build folder"
@@ -79,19 +94,24 @@ git config --system core.longpaths true
 git submodule update --init --recursive
 
 REM Generate CTest dashboard file
-CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_windows.cmake ctest_build_steps.cmake %VIAME_SOURCE_DIR%
+CALL %~dp0build_common_functions.bat ^
+    :GenerateCTestDashboard ^
+    build_server_windows.cmake ^
+    ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
+"%CMAKE_ROOT%\bin\ctest.exe" ^
+    -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
 IF %ERRORLEVEL% NEQ 0 (
     ECHO.
-    ECHO ========================================================================
+    ECHO ============================================================
     ECHO WARNING: CTest returned error code %ERRORLEVEL%
-    ECHO This may be due to compiler warnings/errors detected by CTest launchers.
-    ECHO ========================================================================
+    ECHO This may be due to compiler warnings/errors detected
+    ECHO by CTest launchers.
+    ECHO ============================================================
     ECHO.
 )
 
-REM Check if build actually completed by looking for setup_viame.bat
+REM Check if build actually completed
 IF NOT EXIST "%VIAME_INSTALL_DIR%\setup_viame.bat" (
     ECHO.
     ECHO ==============================================
@@ -107,29 +127,42 @@ ECHO Build completed, proceeding with final install steps...
 ECHO ==========================================================
 ECHO.
 
-REM -------------------------------------------------------------------------------------------------------
-REM Read build paths from CMakeCache (single source of truth is the .cmake platform file)
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
+REM Read build paths from CMakeCache
+REM (single source of truth is the .cmake platform file)
+REM --------------------------------------------------------------------------
 
-FOR /f "tokens=2 delims==" %%a IN ('FINDSTR /B "VIAME_BUILD_FLETCH_DIR:" "%VIAME_BUILD_DIR%\CMakeCache.txt"') DO SET "FLETCH_BUILD_DIR=%%a"
+FOR /f "tokens=2 delims==" %%a IN ( ^
+    'FINDSTR /B "VIAME_BUILD_FLETCH_DIR:" ^
+    "%VIAME_BUILD_DIR%\CMakeCache.txt"' ^
+) DO SET "FLETCH_BUILD_DIR=%%a"
 SET "ZLIB_BUILD_DIR=%FLETCH_BUILD_DIR%\build\src\ZLib-build"
 
-REM -------------------------------------------------------------------------------------------------------
-REM Final Install Generation Hacks Until Handled Better in VIAME CMake
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
+REM Final Install Generation Hacks
+REM Until Handled Better in VIAME CMake
+REM --------------------------------------------------------------------------
 
-CALL %~dp0build_common_functions.bat :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%VDIST_ROOT%" "%ZLIB_ROOT%" "%ZLIB_BUILD_DIR%"
-CALL %~dp0build_common_functions.bat :CopyMsysDlls "%FLETCH_BUILD_DIR%" "%VIAME_INSTALL_DIR%\bin"
+CALL %~dp0build_common_functions.bat ^
+    :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" ^
+    "%VDIST_ROOT%" "%ZLIB_ROOT%" "%ZLIB_BUILD_DIR%"
+CALL %~dp0build_common_functions.bat ^
+    :CopyMsysDlls "%FLETCH_BUILD_DIR%" ^
+    "%VIAME_INSTALL_DIR%\bin"
 
 DEL "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*" 2>NUL
 
-CALL %~dp0build_common_functions.bat :CopyCuda12Dlls "%CUDA_ROOT%" "%VIAME_INSTALL_DIR%\bin"
+CALL %~dp0build_common_functions.bat ^
+    :CopyCuda12Dlls "%CUDA_ROOT%" ^
+    "%VIAME_INSTALL_DIR%\bin"
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Generate Final Zip File
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
-CALL %~dp0build_common_functions.bat :CreateZipPackage "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%ZIP_ROOT%"
+CALL %~dp0build_common_functions.bat ^
+    :CreateZipPackage "%VIAME_INSTALL_DIR%" ^
+    "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%ZIP_ROOT%"
 IF ERRORLEVEL 1 (
     ECHO.
     ECHO ========================================

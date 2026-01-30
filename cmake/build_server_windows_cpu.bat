@@ -1,9 +1,9 @@
 @ECHO OFF
 SETLOCAL EnableDelayedExpansion
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Setup Paths
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 SET "VIAME_SOURCE_DIR=C:\VIAME-Builds\CPU"
 
@@ -27,34 +27,46 @@ SET "NODEJS_ROOT=C:\Program Files\nodejs"
 SET "WIN_ROOT=C:\Windows"
 SET "WIN32_ROOT=%WIN_ROOT%\System32"
 SET "WIN64_ROOT=%WIN_ROOT%\SysWOW64"
-SET "VDIST_ROOT=C:\Program Files (x86)\Microsoft Visual Studio\2026\Community\VC\Redist\MSVC\14.40.33807\x64\Microsoft.VC144.OpenMP"
+SET "VDIST_ROOT=C:\Program Files (x86)\Microsoft Visual Studio"
+SET "VDIST_ROOT=%VDIST_ROOT%\2026\Community\VC\Redist\MSVC"
+SET "VDIST_ROOT=%VDIST_ROOT%\14.40.33807\x64\Microsoft.VC144.OpenMP"
 
-REM Do not modify the below unless you are changing python versions or have alternatively modified
-REM the build and install directories in cmake or the platforms.cmake file
+REM Do not modify the below unless you are changing python
+REM versions or have alternatively modified the build and
+REM install directories in cmake or the platforms.cmake file
 
 SET "VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build"
 SET "VIAME_INSTALL_DIR=%VIAME_BUILD_DIR%\install"
 
 SET "PYTHON_SUBDIR=lib\python3.10"
-SET "ZLIB_BUILD_DIR=%VIAME_BUILD_DIR%\build\src\fletch-build\build\src\ZLib-build"
+SET "ZLIB_BUILD_DIR=%VIAME_BUILD_DIR%\build\src\fletch-build"
+SET "ZLIB_BUILD_DIR=%ZLIB_BUILD_DIR%\build\src\ZLib-build"
 
-SET "PATH=%WIN_ROOT%;%WIN32_ROOT%;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
+SET "PATH=%WIN_ROOT%;%WIN32_ROOT%"
+SET "PATH=%PATH%;%WIN32_ROOT%\Wbem"
+SET "PATH=%PATH%;%WIN32_ROOT%\WindowsPowerShell\v1.0"
+SET "PATH=%PATH%;%WIN32_ROOT%\OpenSSH"
 SET "PATH=%NODEJS_ROOT%;%GIT_ROOT%\cmd;%CMAKE_ROOT%\bin;%PATH%"
-SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
+SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%"
+SET "PYTHONPATH=%PYTHONPATH%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Check Build Dependencies
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
-CALL %~dp0build_common_functions.bat :CheckBuildDependencies "%CMAKE_ROOT%" "%GIT_ROOT%" "%ZIP_ROOT%" "%ZLIB_ROOT%" "SKIP"
+CALL %~dp0build_common_functions.bat ^
+    :CheckBuildDependencies ^
+    "%CMAKE_ROOT%" "%GIT_ROOT%" ^
+    "%ZIP_ROOT%" "%ZLIB_ROOT%" "SKIP"
 IF ERRORLEVEL 1 EXIT /B 1
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Perform Actual Build
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
-REM This build proceedure currently requires making TMP directories at C:\tmp to get around paths
-REM which sometimes become too long for windows.
+REM This build proceedure currently requires making TMP
+REM directories at C:\tmp to get around paths which
+REM sometimes become too long for windows.
 
 IF EXIST build rmdir /s /q build
 
@@ -66,22 +78,31 @@ git config --system core.longpaths true
 git submodule update --init --recursive
 
 REM Generate CTest dashboard file
-CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_windows_cpu.cmake ctest_build_steps.cmake %VIAME_SOURCE_DIR%
+CALL %~dp0build_common_functions.bat ^
+    :GenerateCTestDashboard ^
+    build_server_windows_cpu.cmake ^
+    ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
+"%CMAKE_ROOT%\bin\ctest.exe" ^
+    -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
 IF %ERRORLEVEL% NEQ 0 (
     ECHO CTest build failed with error code %ERRORLEVEL%
     EXIT /B %ERRORLEVEL%
 )
 
-REM -------------------------------------------------------------------------------------------------------
-REM Final Install Generation Hacks Until Handled Better in VIAME CMake
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
+REM Final Install Generation Hacks
+REM Until Handled Better in VIAME CMake
+REM --------------------------------------------------------------------------
 
-CALL %~dp0build_common_functions.bat :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%VDIST_ROOT%" "%ZLIB_ROOT%" "%ZLIB_BUILD_DIR%"
+CALL %~dp0build_common_functions.bat ^
+    :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" ^
+    "%VDIST_ROOT%" "%ZLIB_ROOT%" "%ZLIB_BUILD_DIR%"
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Generate Final Zip File
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
-CALL %~dp0build_common_functions.bat :CreateZipPackage "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%ZIP_ROOT%"
+CALL %~dp0build_common_functions.bat ^
+    :CreateZipPackage "%VIAME_INSTALL_DIR%" ^
+    "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%ZIP_ROOT%"
