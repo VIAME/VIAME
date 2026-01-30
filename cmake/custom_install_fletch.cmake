@@ -51,10 +51,32 @@ if( PYTHON_VERSION_STRING )
     file( REMOVE_RECURSE "${ALT_PYTHON_FOLDER}" )
   endforeach()
 
-  # OpenCV often installs just a .so without proper python headers or an absolute path in file
-  if( NOT WIN32 AND VIAME_ENABLE_OPENCV )
+  # Install OpenCV Python dist-info so pip thinks opencv-python is already installed.
+  # This prevents transitive dependencies (e.g. mmengine pulled in by mmdeploy) from
+  # installing a pip opencv-python package that overwrites fletch's cv2 Python wrapper
+  # with a version that doesn't match the fletch-built cv2 binary.
+  if( VIAME_ENABLE_OPENCV )
     set( PATCH_DIR ${VIAME_CMAKE_DIR}/../packages/patches/fletch )
     file( COPY ${PATCH_DIR}/opencv_python-4.9.0.80.dist-info DESTINATION ${OUTPUT_PYTHON_DIR} )
+  endif()
+
+  # Patch cv2/__init__.py to catch AttributeError in addition to ImportError when
+  # loading extra submodules. This prevents import failures when the cv2 Python
+  # wrapper references features not compiled into the cv2 binary (e.g. GStreamer).
+  if( VIAME_ENABLE_OPENCV )
+    set( CV2_INIT_FILE "${OUTPUT_PYTHON_DIR}/cv2/__init__.py" )
+    if( EXISTS "${CV2_INIT_FILE}" )
+      file( READ "${CV2_INIT_FILE}" CV2_INIT_DATA )
+      string( FIND "${CV2_INIT_DATA}" "except (ImportError, AttributeError)" _cv2_patched )
+      if( _cv2_patched EQUAL -1 )
+        string( REPLACE
+          "except ImportError as err:"
+          "except (ImportError, AttributeError) as err:"
+          CV2_INIT_DATA "${CV2_INIT_DATA}" )
+        file( WRITE "${CV2_INIT_FILE}" "${CV2_INIT_DATA}" )
+        message( STATUS "Patched cv2/__init__.py to handle AttributeError in submodule loading" )
+      endif()
+    endif()
   endif()
 
   set( PYTHON_ID "${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION}" )
