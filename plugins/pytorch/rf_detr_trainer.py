@@ -283,6 +283,25 @@ class RFDETRTrainer(KWCocoTrainDetector):
         # Determine device
         device = resolve_device_str(self._device)
 
+        # Compatibility shim: rfdetr was written for transformers 4.x which
+        # had find_pruneable_heads_and_indices in pytorch_utils. It was removed
+        # in transformers 5.0. Inject it before importing rfdetr.
+        import transformers.pytorch_utils as _pt_utils
+        if not hasattr( _pt_utils, 'find_pruneable_heads_and_indices' ):
+            def _find_pruneable_heads_and_indices( heads, n_heads, head_size,
+                                                   already_pruned_heads ):
+                mask = torch.ones( n_heads, head_size )
+                heads = set( heads ) - already_pruned_heads
+                for head in heads:
+                    head -= sum( 1 if h < head else 0
+                                 for h in already_pruned_heads )
+                    mask[head] = 0
+                index = torch.arange( len( mask.view( -1 ) ) )[
+                    mask.view( -1 ).contiguous().eq( 1 ) ].long()
+                return heads, index
+            _pt_utils.find_pruneable_heads_and_indices = \
+                _find_pruneable_heads_and_indices
+
         # Select model class based on size
         model_size = self._model_size.lower()
         if model_size == 'nano':
