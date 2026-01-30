@@ -739,7 +739,7 @@ class NetHarnTrainer( TrainDetector ):
 
         output = self.get_output_map()
 
-        print( "\nModel training complete!\n" )
+        print( "\nModel training complete!" )
 
         return output
 
@@ -826,13 +826,14 @@ class NetHarnTrainer( TrainDetector ):
             runs_dir = os.path.join( self._train_directory,
                "fit", "runs", self._identifier )
             if os.path.isdir( runs_dir ):
-                # Find the most recent run's eval folder
+                # Find the most recent eval results directory containing
+                # pred/, metrics/, viz/, draw/ subdirectories. The full
+                # structure is: <hash>/eval/<dataset>/<deploy>/<config>/
                 import glob
                 eval_candidates = sorted(
-                    glob.glob( os.path.join( runs_dir, "*/eval" ) ),
+                    glob.glob( os.path.join( runs_dir, "*/eval/*/*/*" ) ),
                     key=os.path.getmtime, reverse=True )
                 if eval_candidates:
-                    # Use eval_folder key - train tool will copy the entire folder
                     output["eval_folder"] = eval_candidates[0]
 
         print( "\nThe " + self._train_directory + " directory can now be deleted, " \

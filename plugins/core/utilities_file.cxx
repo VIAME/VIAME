@@ -139,7 +139,7 @@ bool create_folder( const std::string& location )
     return filesystem::create_directories( dir );
   }
 
-  return false;
+  return true;
 }
 
 bool folder_contains_less_than_n_files( const std::string& folder, unsigned n )

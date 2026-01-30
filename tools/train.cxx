@@ -234,19 +234,11 @@ static bool validate_trainer_output_keys(
   // Get nested algorithm's config if available
   kv::config_block_sptr nested_config = try_get_detector_config( nested_type );
 
-  // If neither config could be obtained, skip validation with a warning
+  // If neither config could be obtained, skip validation silently.
+  // This is expected for Python-based detectors (e.g. netharn) that
+  // cannot be instantiated without a model file.
   if( !outer_config && !nested_config )
   {
-    if( !nested_type.empty() )
-    {
-      std::cerr << "Warning: Could not validate output keys - unable to instantiate '"
-                << algorithm_type << "' or nested '" << nested_type << "'" << std::endl;
-    }
-    else
-    {
-      std::cerr << "Warning: Could not validate output keys - unable to instantiate '"
-                << algorithm_type << "'" << std::endl;
-    }
     return true;
   }
 
@@ -504,6 +496,8 @@ static void process_trainer_output(
       std::cerr << "Warning: failed to generate pipeline from template" << std::endl;
     }
   }
+
+  std::cout << std::endl;
 }
 
 // =======================================================================================
@@ -1053,8 +1047,9 @@ train_applet
 
   if( !augmented_cache.empty() &&
       !pipeline_file.empty() &&
-      create_folder( augmented_cache ) )
+      !does_folder_exist( augmented_cache ) )
   {
+    create_folder( augmented_cache );
     regenerate_cache = true;
   }
 
