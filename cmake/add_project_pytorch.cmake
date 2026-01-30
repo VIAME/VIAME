@@ -111,6 +111,8 @@ if( VIAME_ENABLE_CUDA )
   list( APPEND PYTORCH_ENV_VARS "TORCH_CUDA_ARCH_LIST=${CUDA_ARCHITECTURES}" )
   list( APPEND PYTORCH_ENV_VARS "TORCH_NVCC_FLAGS=-Xfatbin -compress-all" )
   list( APPEND PYTORCH_ENV_VARS "NVCC_FLAGS=-allow-unsupported-compiler" )
+  list( APPEND PYTORCH_ENV_VARS "CUDAFLAGS=-allow-unsupported-compiler" )
+  list( APPEND PYTORCH_ENV_VARS "CMAKE_CUDA_FLAGS=--allow-unsupported-compiler" )
   list( APPEND PYTORCH_ENV_VARS "MMCV_CUDA_ARGS=-allow-unsupported-compiler" )
   list( APPEND PYTORCH_ENV_VARS "NO_CAFFE2_OPS=1" )
 else()
@@ -127,6 +129,22 @@ endif()
 
 if( WIN32 AND VIAME_ENABLE_PYTORCH-LEARN )
   list( APPEND PYTORCH_ENV_VARS "SETUPTOOLS_USE_DISTUTILS=1" )
+endif()
+
+if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
+  list( APPEND PYTORCH_ENV_VARS "DISTUTILS_USE_SDK=1" )
+  list( APPEND PYTORCH_ENV_VARS "CMAKE_PREFIX_PATH=${VIAME_INSTALL_PREFIX}" )
+  list( APPEND PYTORCH_ENV_VARS "USE_DISTRIBUTED=0" )
+  list( APPEND PYTORCH_ENV_VARS "USE_NCCL=0" )
+  list( APPEND PYTORCH_ENV_VARS "CC=${CMAKE_C_COMPILER}" )
+  list( APPEND PYTORCH_ENV_VARS "CXX=${CMAKE_CXX_COMPILER}" )
+
+  # Prepend pytorch source dir to PYTHONPATH so PyTorch's own 'tools' package
+  # takes priority over any conflicting package (e.g. detectron2 installs a
+  # 'tools' package into site-packages which shadows PyTorch's tools.pyi)
+  list( FILTER PYTORCH_ENV_VARS EXCLUDE REGEX "^PYTHONPATH=" )
+  list( APPEND PYTORCH_ENV_VARS
+    "PYTHONPATH=${VIAME_PACKAGES_DIR}/pytorch<PS>${VIAME_PYTHON_PATH}" )
 endif()
 
 # On Windows, add torch lib directory to PATH so DLLs can be found when importing torch
@@ -147,6 +165,9 @@ if( WIN32 )
     get_filename_component( MSVC_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY )
     get_filename_component( MSVC_INCLUDE_DIR "${MSVC_BIN_DIR}/../../../include" ABSOLUTE )
     get_filename_component( MSVC_LIB_DIR "${MSVC_BIN_DIR}/../../../lib/x64" ABSOLUTE )
+
+    # Add MSVC bin directory to PATH so cl.exe is discoverable by pytorch's CMake
+    set( TORCH_DLL_PATH "${TORCH_DLL_PATH}<PS>${MSVC_BIN_DIR}" )
 
     # Find Windows SDK path
     set( WIN_SDK_ROOT "C:/Program Files (x86)/Windows Kits/10" )
@@ -171,13 +192,16 @@ if( WIN32 )
           message( STATUS "VIAME: Added Windows SDK bin to PATH: ${SDK_BIN_X64}" )
         endif()
 
-        # Set INCLUDE env var for distutils/setuptools
+        # Merge MSVC/SDK paths with existing INCLUDE/LIB from PYTHON_DEP_ENV_VARS
+        # Remove existing entries first, then add combined versions so both
+        # MSVC/SDK paths and VIAME install/system paths are preserved
         set( MSVC_INCLUDE_PATHS "${MSVC_INCLUDE_DIR}<PS>${SDK_UCRT_INCLUDE}<PS>${SDK_SHARED_INCLUDE}<PS>${SDK_UM_INCLUDE}" )
-        list( APPEND PYTORCH_ENV_VARS "INCLUDE=${MSVC_INCLUDE_PATHS}" )
-
-        # Set LIB env var for linker
         set( MSVC_LIB_PATHS "${MSVC_LIB_DIR}<PS>${SDK_UCRT_LIB}<PS>${SDK_UM_LIB}" )
-        list( APPEND PYTORCH_ENV_VARS "LIB=${MSVC_LIB_PATHS}" )
+
+        list( FILTER PYTORCH_ENV_VARS EXCLUDE REGEX "^INCLUDE=" )
+        list( FILTER PYTORCH_ENV_VARS EXCLUDE REGEX "^LIB=" )
+        list( APPEND PYTORCH_ENV_VARS "INCLUDE=${MSVC_INCLUDE_PATHS}<PS>${ADJ_INCLUDE_PATH}" )
+        list( APPEND PYTORCH_ENV_VARS "LIB=${MSVC_LIB_PATHS}<PS>${ADJ_LIBRARY_PATH}" )
 
         message( STATUS "VIAME: Set INCLUDE/LIB for MSVC ${CMAKE_CXX_COMPILER_VERSION} and Windows SDK ${SDK_VERSION}" )
       endif()
@@ -255,7 +279,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
           --wheel-dir ${LIBRARY_PIP_BUILD_DIR}
           ${LIBRARY_LOCATION}
       )
-    elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
+    elseif( "${LIB}" STREQUAL "pytorch" OR "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
       # Use pip wheel instead of setup.py bdist_wheel to avoid Windows cleanup
       # errors ("no such file or directory" when removing bdist temp directory)
       # Must use --no-cache-dir to ensure wheel is written to --wheel-dir (not just cached)
