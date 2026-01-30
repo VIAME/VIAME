@@ -16,18 +16,17 @@
 #include <vital/types/detected_object.h>
 #include <vital/types/detected_object_type.h>
 #include <vital/types/bounding_box.h>
-#include <vital/util/tokenize.h>
+#include <vital/algo/read_object_track_set.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <sprokit/pipeline/process_exception.h>
 
 #include <algorithm>
-#include <fstream>
 #include <map>
-#include <sstream>
 #include <vector>
 
 namespace kv = kwiver::vital;
+namespace algo = kwiver::vital::algo;
 
 namespace viame
 {
@@ -36,7 +35,7 @@ namespace core
 {
 
 create_config_trait( track_file, std::string, "",
-  "Path to input VIAME CSV track file" );
+  "Path to input track file" );
 create_config_trait( input_rate, unsigned, "1",
   "The downsample rate the input tracks were generated at "
   "(e.g. 5 = every 5th frame)" );
@@ -44,20 +43,7 @@ create_config_trait( output_rate, unsigned, "1",
   "The desired output downsample rate "
   "(e.g. 2 = every 2nd frame)" );
 
-// Column indices for VIAME CSV format
-enum
-{
-  COL_DET_ID = 0,   // Track ID
-  COL_SOURCE_ID,     // Video/Image Identifier
-  COL_FRAME_ID,      // Frame Number
-  COL_MIN_X,         // Bbox top-left X
-  COL_MIN_Y,         // Bbox top-left Y
-  COL_MAX_X,         // Bbox bottom-right X
-  COL_MAX_Y,         // Bbox bottom-right Y
-  COL_CONFIDENCE,    // Confidence
-  COL_LENGTH,        // Target Length
-  COL_TOT            // Start of class/score pairs
-};
+create_algorithm_name_config_trait( reader );
 
 // Per-track state: frame id and associated detected object
 struct track_entry
@@ -74,7 +60,7 @@ public:
   priv();
   ~priv();
 
-  void read_track_file( const std::string& filename );
+  void load_tracks();
 
   kv::detected_object_sptr interpolate(
     const track_entry& e1,
@@ -85,6 +71,9 @@ public:
   std::string m_track_file;
   unsigned m_input_rate;
   unsigned m_output_rate;
+
+  // Algorithm reader
+  algo::read_object_track_set_sptr m_reader;
 
   // Loaded tracks: track_id -> sorted vector of track entries
   std::map< int, std::vector< track_entry > > m_tracks;
@@ -112,81 +101,43 @@ resample_object_tracks_process::priv
 // -----------------------------------------------------------------------------
 void
 resample_object_tracks_process::priv
-::read_track_file( const std::string& filename )
+::load_tracks()
 {
-  std::ifstream fin( filename );
+  m_reader->open( m_track_file );
 
-  if( !fin )
+  kv::object_track_set_sptr track_set;
+
+  while( m_reader->read_set( track_set ) )
   {
-    std::stringstream ss;
-    ss << "Unable to open track file: " << filename;
-    VITAL_THROW( kv::file_not_found_exception, filename, ss.str() );
-  }
-
-  std::string line;
-
-  while( std::getline( fin, line ) )
-  {
-    // Skip empty lines and comments
-    if( line.empty() || line[0] == '#' )
+    if( !track_set )
     {
       continue;
     }
 
-    std::vector< std::string > col;
-    kv::tokenize( line, col, ",", false );
-
-    if( col.size() < 9 )
+    for( auto const& trk : track_set->tracks() )
     {
-      LOG_WARN( m_logger, "Skipping malformed CSV line (fewer than 9 columns): "
-                << line );
-      continue;
-    }
+      int trk_id = static_cast< int >( trk->id() );
 
-    int trk_id = atoi( col[COL_DET_ID].c_str() );
-    kv::frame_id_t frame_id = atoi( col[COL_FRAME_ID].c_str() );
-
-    kv::bounding_box_d bbox(
-      atof( col[COL_MIN_X].c_str() ),
-      atof( col[COL_MIN_Y].c_str() ),
-      atof( col[COL_MAX_X].c_str() ),
-      atof( col[COL_MAX_Y].c_str() ) );
-
-    double conf = atof( col[COL_CONFIDENCE].c_str() );
-
-    // Parse class/score pairs
-    kv::detected_object_type_sptr dot =
-      std::make_shared< kv::detected_object_type >();
-
-    for( unsigned i = COL_TOT; i + 1 < col.size(); i += 2 )
-    {
-      if( col[i].empty() || col[i][0] == '(' )
+      for( auto const& state_sptr : *trk )
       {
-        break;
+        auto ots = std::dynamic_pointer_cast<
+          kv::object_track_state >( state_sptr );
+
+        if( !ots || !ots->detection() )
+        {
+          continue;
+        }
+
+        track_entry entry;
+        entry.frame_id = ots->frame();
+        entry.detection = ots->detection();
+
+        m_tracks[ trk_id ].push_back( entry );
       }
-
-      std::string spec_id = col[i];
-      double spec_conf = atof( col[i + 1].c_str() );
-      dot->set_score( spec_id, spec_conf );
     }
-
-    kv::detected_object_sptr dob;
-
-    if( COL_TOT < col.size() && !col[COL_TOT].empty() && col[COL_TOT][0] != '(' )
-    {
-      dob = std::make_shared< kv::detected_object >( bbox, conf, dot );
-    }
-    else
-    {
-      dob = std::make_shared< kv::detected_object >( bbox, conf );
-    }
-
-    track_entry entry;
-    entry.frame_id = frame_id;
-    entry.detection = dob;
-
-    m_tracks[ trk_id ].push_back( entry );
   }
+
+  m_reader->close();
 
   // Sort each track's entries by frame id
   for( auto& pair : m_tracks )
@@ -198,7 +149,8 @@ resample_object_tracks_process::priv
       } );
   }
 
-  LOG_INFO( m_logger, "Loaded " << m_tracks.size() << " tracks from " << filename );
+  LOG_INFO( m_logger, "Loaded " << m_tracks.size()
+            << " tracks from " << m_track_file );
 }
 
 
@@ -285,6 +237,7 @@ resample_object_tracks_process
   declare_config_using_trait( track_file );
   declare_config_using_trait( input_rate );
   declare_config_using_trait( output_rate );
+  declare_config_using_trait( reader );
 }
 
 
@@ -315,7 +268,25 @@ resample_object_tracks_process
                  name(), "output_rate must be greater than 0" );
   }
 
-  d->read_track_file( d->m_track_file );
+  kv::config_block_sptr algo_config = get_config();
+
+  if( !algo::read_object_track_set::check_nested_algo_configuration_using_trait(
+        reader, algo_config ) )
+  {
+    VITAL_THROW( sprokit::invalid_configuration_exception,
+                 name(), "Reader algorithm configuration check failed." );
+  }
+
+  algo::read_object_track_set::set_nested_algo_configuration_using_trait(
+    reader, algo_config, d->m_reader );
+
+  if( !d->m_reader )
+  {
+    VITAL_THROW( sprokit::invalid_configuration_exception,
+                 name(), "Unable to create track reader." );
+  }
+
+  d->load_tracks();
 }
 
 

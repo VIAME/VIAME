@@ -1,0 +1,61 @@
+# =============================================================================
+# Title: Transcode video at native FPS with upsampled tracks
+#
+# Description: Reads a video at native frame rate (no downsampling), resamples
+# existing tracks from a downsampled rate to the native rate via bounding box
+# interpolation, and outputs both the video and tracks at native FPS.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+# ============================= INPUT FRAME LIST ==============================
+
+include common_default_input.pipe
+
+# ================================= RESAMPLE ==================================
+
+process track_resampler
+  :: resample_object_tracks
+  :track_file                                  [INSERT_ME]
+  :input_rate                                  5
+  :output_rate                                 1
+  :reader:type                                 viame_csv
+
+connect from input.timestamp
+        to   track_resampler.timestamp
+
+# ================================== OUTPUT ===================================
+
+process filter
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+  :filter:ocv_enhancer:force_8bit              true
+
+connect from input.image
+        to   filter.image
+
+process video_writer
+  :: video_output
+  :video_filename                              video_writer.mp4
+  :video_writer:type                           ffmpeg
+
+connect from filter.image
+        to   video_writer.image
+connect from input.timestamp
+        to   video_writer.timestamp
+connect from input.frame_rate
+        to   video_writer.frame_rate
+
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:write_time_as_uid          true
+
+connect from track_resampler.object_track_set
+        to   track_writer.object_track_set
+connect from input.timestamp
+        to   track_writer.timestamp
+
+# -- end of file --
