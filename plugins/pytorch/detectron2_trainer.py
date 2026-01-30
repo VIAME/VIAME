@@ -182,9 +182,6 @@ class Detectron2TrainerConfig(KWCocoTrainDetectorConfig):
         help='Resume training from last checkpoint'
     )
 
-    # Pipeline template
-    pipeline_template = ""
-
     # Categories (populated during training)
     categories = []
 
@@ -609,7 +606,7 @@ class Detectron2Trainer(KWCocoTrainDetector):
         # Save final model
         self.save_final_model(cfg, thing_classes)
 
-        print("\n[Detectron2Trainer] Model training complete!\n")
+        print("\n[Detectron2Trainer] Model training complete!")
 
         return self.get_output_map()
 
@@ -698,7 +695,7 @@ class Detectron2Trainer(KWCocoTrainDetector):
 
         print(f"\n[Detectron2Trainer] Model found at: {output_model_path}")
         print(f"\n[Detectron2Trainer] The {self._train_directory} directory can now be deleted, "
-              "unless you want to review training metrics first.\n")
+              "unless you want to review training metrics first.")
 
         return output
 

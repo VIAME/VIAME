@@ -22,7 +22,6 @@ import ubelt as ub
 from collections import namedtuple
 from PIL import Image
 from distutils.util import strtobool
-from shutil import copyfile
 from pathlib import Path
 from mmcv.runner import load_checkpoint
 from mmdet.utils import collect_env
@@ -51,10 +50,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
         
         _Option('_cutler_config_file', 'cutler_config_file', '', str, ''),
 
-        _Option('_seed_weights', 'seed_weights', '', str, ''),
-
-        _Option('_output_directory', 'output_directory', 'category_models', str, ''),
-        _Option('_pipeline_template', 'pipeline_template', '', str, '')
+        _Option('_seed_weights', 'seed_weights', '', str, '')
     ]
 
     def __init__( self ):
@@ -435,12 +431,12 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
             if os.path.exists(os.path.join(self.work_dir, "train_data_coco.json")):
                 shutil.copy(os.path.join(self.work_dir, "train_data_coco.json"), os.path.join(self.work_dir, fname))
 
-        self.save_final_model()
+        output = self._get_output_map()
 
         gc.collect()  # Make sure all object have ben deallocated if not used
         torch.cuda.empty_cache()
 
-        return {"type": "mmdet_convnext"}
+        return output
 
 
     def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
@@ -531,66 +527,50 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
             if timeout > 5:
                 self.proc.kill()
                 break
-        self.save_final_model()
         sys.exit( 0 )
 
-    def save_final_model( self ):
-        if not self._output_directory:
-            return
-
-        final_model = os.path.join( self.config["work_dir"], "latest.pth" )
+    def _get_output_map( self ):
+        output = {}
 
         net_fn = "convnext_xl_cascade_rcnn.py"
         weight_fn = "convnext_xl_cascade_rcnn.pth"
         label_fn = "convnext_xl_cascade_rcnn.txt"
-        pipe_fn = "detector.pipe"
-  
-        if not os.path.exists( self._output_directory ):
-            os.mkdir( self._output_directory )
 
-        output_net = os.path.join( self._output_directory, net_fn )
-        output_model = os.path.join( self._output_directory, weight_fn )
-        output_label = os.path.join( self._output_directory, label_fn )
-        output_pipe = os.path.join( self._output_directory, pipe_fn )
+        final_model = os.path.join( self.config["work_dir"], "latest.pth" )
+        net_src = os.path.join( self.config["work_dir"], net_fn )
+        label_src = os.path.join( self.config["work_dir"], label_fn )
 
         if not os.path.exists( final_model ):
-            print( "\nModel failed to finsh training\n" )
-            sys.exit( 0 )
+            print( "\nModel failed to finish training" )
+            return output
 
-        # Copy final model weights
-        copyfile( final_model, output_model )
+        # Write the config file to work_dir
+        self.insert_training_params( self.mmdet_config_file, net_src )
 
-        # Copy network py file
-        self.insert_training_params( self.mmdet_config_file, output_net )
-
-        # Write out labels file
-        with open( output_label, "w" ) as fout:
+        # Write labels file to work_dir
+        with open( label_src, "w" ) as fout:
             for category in self.cats:
                 fout.write( category + "\n" )
 
-        with open( os.path.join( self._output_directory, "tmp.zip" ), "w" ) as fout:
-            fout.write( "placeholder\n" )
+        algo = "mmdet_convnext"
 
-        # Write out pipeline template
-        if len( self._pipeline_template ) > 0:
-            self.insert_model_files( self._pipeline_template,
-                                     output_pipe,
-                                     net_fn,
-                                     weight_fn,
-                                     label_fn )
+        output["type"] = algo
+        output[algo + ":net_config"] = net_fn
+        output[algo + ":weight_file"] = weight_fn
+        output[algo + ":class_names"] = label_fn
 
-        # Output additional completion text
-        print( "\nWrote finalized model to " + output_model )
+        output[net_fn] = net_src
+        output[weight_fn] = final_model
+        output[label_fn] = label_src
+
+        print( "\nModel found at: " + final_model )
+        print( "\nThe " + self.config["work_dir"] + " directory can now be deleted, "
+               "unless you want to review training metrics first." )
+
+        return output
 
     def insert_training_params( self, input_cfg, output_cfg ):
         repl_strs = [ [ "[-CLASS_COUNT_INSERT-]", str(len(self.cats)+1) ] ]
-        self.replace_strs_in_file( input_cfg, output_cfg, repl_strs )
-
-    def insert_model_files( self, input_cfg, output_cfg, net, wgt, cls ):
-        repl_strs = [ [ "[-NETWORK-CONFIG-]", net ],
-                      [ "[-NETWORK-WEIGHTS-]", wgt ],
-                      [ "[-NETWORK-CLASSES-]", cls ],
-                      [ "[-LEARN-FLAG-]", "true" ] ]
         self.replace_strs_in_file( input_cfg, output_cfg, repl_strs )
 
     def replace_strs_in_file( self, input_cfg, output_cfg, repl_strs ):

@@ -13,6 +13,7 @@ from viame.pytorch.utilities import (
     supervision_to_kwiver_detections,
     register_vital_algorithm,
     parse_bool,
+    ensure_rfdetr_compatibility,
 )
 
 
@@ -52,7 +53,7 @@ class RFDETRDetector(ImageObjectDetector):
 
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
-        _vital_config_update(cfg, cfg_in)
+        vital_config_update(cfg, cfg_in)
 
         for key in self._kwiver_config.keys():
             self._kwiver_config[key] = str(cfg.get_value(key))
@@ -67,6 +68,8 @@ class RFDETRDetector(ImageObjectDetector):
         model_size = self._kwiver_config['model_size'].lower()
         device = resolve_device_str(self._kwiver_config['device'])
         optimize = parse_bool(self._kwiver_config['optimize_inference'])
+
+        ensure_rfdetr_compatibility()
 
         # Import the appropriate RF-DETR model class based on size
         if model_size == 'nano':

@@ -43,7 +43,6 @@ class ReMaxDINOTrainer( TrainDetector ):
         _Option('_threshold', 'threshold', 0.0, float, ''),
         _Option('_model_checkpoint_file', 'model_checkpoint_file', '', str, ''),
         _Option('_work_dir', 'work_dir', '', str, ''),
-        _Option('_output_directory', 'output_directory', '', str, ''),
         _Option('_feature_directory', 'feature_dir', '', str, ''),
         _Option('_debug_mode', 'debug_mode', False, bool, ''),
         _Option('_feature_cache', 'feature_cache', '', str, '')
@@ -59,9 +58,7 @@ class ReMaxDINOTrainer( TrainDetector ):
         self._config_file = ""
         self._seed_weights = ""
         self._train_directory = "deep_training"
-        self._output_directory = "category_models"
         self._output_prefix = "custom_cfrnn"
-        self._pipeline_template = ""
         self._gpu_count = -1
         self._random_seed = "none"
         self._tmp_training_file = "training_truth.pickle"
@@ -272,25 +269,32 @@ class ReMaxDINOTrainer( TrainDetector ):
 
         self.remax_model = ReMax(train_data)
 
-        self.save_final_model()
+        return self._get_output_map()
 
-        return {"type": "dino_remax"}
-
-    def save_final_model( self ):
+    def _get_output_map( self ):
+        output = {}
         output_model_name = "remax.pkl"
-        output_model = os.path.join( self._output_directory,
-            output_model_name )
-        with open(output_model, 'wb') as f:
-            pickle.dump(self.remax_model, f)
 
+        output_model = os.path.join( self._train_directory, output_model_name )
+
+        with open( output_model, 'wb' ) as f:
+            pickle.dump( self.remax_model, f )
 
         if not os.path.exists( output_model ):
-            print( "\nModel failed to finsh training\n" )
-            sys.exit( 0 )
+            print( "\nModel failed to finish training" )
+            return output
 
+        algo = "dino_remax"
 
-        # Output additional completion text
-        print( "\nWrote finalized model to " + output_model )
+        output["type"] = algo
+        output[algo + ":deployed"] = output_model_name
+        output[output_model_name] = output_model
+
+        print( "\nModel found at: " + output_model )
+        print( "\nThe " + self._train_directory + " directory can now be deleted, "
+               "unless you want to review training metrics first." )
+
+        return output
 
     def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
         print('add_data_from_disk')

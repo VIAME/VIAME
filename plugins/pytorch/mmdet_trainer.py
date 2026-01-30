@@ -32,7 +32,6 @@ class MMDetTrainer( TrainDetector ):
         self._seed_weights = ""
         self._train_directory = "deep_training"
         self._output_prefix = "custom_cfrnn"
-        self._pipeline_template = ""
         self._gpu_count = -1
         self._random_seed = "none"
         self._tmp_training_file = "training_truth.pickle"
@@ -51,7 +50,6 @@ class MMDetTrainer( TrainDetector ):
         cfg.set_value( "seed_weights", self._seed_weights )
         cfg.set_value( "train_directory", self._train_directory )
         cfg.set_value( "output_prefix", self._output_prefix )
-        cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
         cfg.set_value( "random_seed", str( self._random_seed ) )
         cfg.set_value( "validate", str( self._validate ) )
@@ -70,7 +68,6 @@ class MMDetTrainer( TrainDetector ):
         self._seed_weights = str( cfg.get_value( "seed_weights" ) )
         self._train_directory = str( cfg.get_value( "train_directory" ) )
         self._output_prefix = str( cfg.get_value( "output_prefix" ) )
-        self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
         self._validate = strtobool( cfg.get_value( "validate" ) )
         self._gt_frames_only = strtobool( cfg.get_value( "gt_frames_only" ) )
@@ -296,7 +293,7 @@ class MMDetTrainer( TrainDetector ):
 
         self.save_model_files( is_final=True )
 
-        print( "\nModel training complete!\n" )
+        print( "\nModel training complete!" )
 
         return self.get_output_map()
 
@@ -419,7 +416,7 @@ class MMDetTrainer( TrainDetector ):
 
         print( "\nModel files found in: " + self._train_directory )
         print( "\nThe " + self._train_directory + " directory can now be deleted, " \
-               "unless you want to review training metrics first.\n" )
+               "unless you want to review training metrics first." )
 
         return output
 

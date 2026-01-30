@@ -90,8 +90,6 @@ class UltralyticsTrainerConfig(scfg.DataConfig):
     # Resume training
     resume = scfg.Value(False, help='Resume training from last checkpoint')
 
-    pipeline_template = ""
-
     def __post_init__(self):
         super().__post_init__()
 

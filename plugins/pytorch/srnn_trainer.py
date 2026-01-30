@@ -24,7 +24,6 @@ from kwiver.vital.types import (
 )
 
 from distutils.util import strtobool
-from shutil import copyfile
 from pathlib import Path
 
 import os
@@ -48,9 +47,6 @@ class SRNNTrainer( TrainTracker ):
 
         self._identifier = "viame-srnn-tracker"
         self._train_directory = "deep_training"
-        self._output_directory = "category_models"
-        self._output_prefix = "srnn_tracker"
-        self._pipeline_template = ""
         self._gpu_count = -1
         self._threshold = "0.00"
         self._timeout = "604800"  # 1 week default
@@ -73,9 +69,6 @@ class SRNNTrainer( TrainTracker ):
 
         cfg.set_value( "identifier", self._identifier )
         cfg.set_value( "train_directory", self._train_directory )
-        cfg.set_value( "output_directory", self._output_directory )
-        cfg.set_value( "output_prefix", self._output_prefix )
-        cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
         cfg.set_value( "threshold", self._threshold )
         cfg.set_value( "timeout", self._timeout )
@@ -93,9 +86,6 @@ class SRNNTrainer( TrainTracker ):
 
         self._identifier = str( cfg.get_value( "identifier" ) )
         self._train_directory = str( cfg.get_value( "train_directory" ) )
-        self._output_directory = str( cfg.get_value( "output_directory" ) )
-        self._output_prefix = str( cfg.get_value( "output_prefix" ) )
-        self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
         self._threshold = str( cfg.get_value( "threshold" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
@@ -120,10 +110,6 @@ class SRNNTrainer( TrainTracker ):
         if self._train_directory:
             if not os.path.exists( self._train_directory ):
                 os.makedirs( self._train_directory )
-
-        if self._output_directory:
-            if not os.path.exists( self._output_directory ):
-                os.makedirs( self._output_directory )
 
         return True
 
@@ -310,11 +296,11 @@ class SRNNTrainer( TrainTracker ):
         if self.proc.returncode != 0:
             print( f"Warning: Training process exited with code {self.proc.returncode}" )
 
-        self._save_final_model( srnn_output )
+        output = self._get_output_map( srnn_output )
 
-        print( "\nSRNN training complete!\n" )
+        print( "\nSRNN training complete!" )
 
-        return {"type": "srnn"}
+        return output
 
     def _interrupt_handler( self ):
         self.proc.send_signal( signal.SIGINT )
@@ -327,75 +313,48 @@ class SRNNTrainer( TrainTracker ):
                 break
         sys.exit( 0 )
 
-    def _save_final_model( self, srnn_output ):
-        """
-        Copy trained models to output directory and generate pipeline file.
-        """
+    def _get_output_map( self, srnn_output ):
+        """Build output map for process_trainer_output."""
+        output = {}
+
         srnn_output = Path( srnn_output )
 
         # Find best models
-        model_files = []
-
-        # Siamese model
         siamese_model = srnn_output / "siamese" / "best_model.pt"
+        target_lstm_F = srnn_output / "target_lstm" / "best_F_model.pt"
+        target_lstm_V = srnn_output / "target_lstm" / "best_V_model.pt"
+
+        found_any = False
+
+        algo = "srnn"
+        output["type"] = algo
+
         if siamese_model.exists():
-            dst = Path( self._output_directory ) / "siamese_model.pt"
-            copyfile( siamese_model, dst )
-            model_files.append( ( "siamese", dst ) )
-            print( f"Copied Siamese model to {dst}" )
+            output[algo + ":siamese_model"] = "siamese_model.pt"
+            output["siamese_model.pt"] = str( siamese_model )
+            found_any = True
+            print( f"Found Siamese model: {siamese_model}" )
 
-        # Target LSTM models (fixed and variable length)
-        for fix_letter in ['F', 'V']:
-            lstm_model = srnn_output / "target_lstm" / f"best_{fix_letter}_model.pt"
-            if lstm_model.exists():
-                dst = Path( self._output_directory ) / f"target_lstm_{fix_letter}.pt"
-                copyfile( lstm_model, dst )
-                model_files.append( ( f"target_lstm_{fix_letter}", dst ) )
-                print( f"Copied Target LSTM model to {dst}" )
+        if target_lstm_F.exists():
+            output[algo + ":target_lstm_fixed"] = "target_lstm_F.pt"
+            output["target_lstm_F.pt"] = str( target_lstm_F )
+            found_any = True
+            print( f"Found Target LSTM (fixed) model: {target_lstm_F}" )
 
-        if not model_files:
-            print( "Warning: No trained models found" )
-            return
+        if target_lstm_V.exists():
+            output[algo + ":target_lstm_variable"] = "target_lstm_V.pt"
+            output["target_lstm_V.pt"] = str( target_lstm_V )
+            found_any = True
+            print( f"Found Target LSTM (variable) model: {target_lstm_V}" )
 
-        # Generate pipeline file from template if provided
-        if self._pipeline_template and os.path.exists( self._pipeline_template ):
-            with open( self._pipeline_template, 'r' ) as fin:
-                template_content = fin.read()
+        if not found_any:
+            print( "\nNo trained models found, training may have failed" )
+            return output
 
-            # Replace model path placeholders
-            pipeline_content = template_content
-            for model_name, model_path in model_files:
-                placeholder = f"[-{model_name.upper().replace('_', '-')}-MODEL-]"
-                pipeline_content = pipeline_content.replace(
-                    placeholder, model_path.name
-                )
+        print( f"\nThe {self._train_directory} directory can now be deleted, "
+               "unless you want to review training metrics first." )
 
-            output_pipeline = os.path.join(
-                self._output_directory, "tracker.pipe"
-            )
-
-            with open( output_pipeline, 'w' ) as fout:
-                fout.write( pipeline_content )
-
-            print( f"Generated pipeline file: {output_pipeline}" )
-        else:
-            # Generate a simple config snippet
-            config_content = f"""# SRNN tracker configuration
-# Generated by srnn_trainer
-
-# Siamese appearance model
-siamese_model = siamese_model.pt
-
-# Target LSTM models
-target_lstm_fixed = target_lstm_F.pt
-target_lstm_variable = target_lstm_V.pt
-
-# RNN components used: {self._rnn_component}
-"""
-            config_file = os.path.join( self._output_directory, "srnn_config.txt" )
-            with open( config_file, 'w' ) as f:
-                f.write( config_content )
-            print( f"Generated config file: {config_file}" )
+        return output
 
 
 def __vital_algorithm_register__():
