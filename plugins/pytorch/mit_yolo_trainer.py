@@ -276,7 +276,8 @@ class MITYoloTrainer( KWCocoTrainDetector ):
         output_model_name = "trained_mit_yolo_checkpoint.ckpt"
 
         train_dpath = ub.Path(self._train_directory)
-        checkpoint_dpath = train_dpath / 'train' / self._identifier / 'checkpoints'
+        yolo_train_dpath = train_dpath / 'train' / self._identifier
+        checkpoint_dpath = yolo_train_dpath / 'checkpoints'
         candiate_checkpoints = sorted(checkpoint_dpath.glob('*'))
         if len(candiate_checkpoints) == 0:
             print( "\nNo checkpoints found, model may have failed to train" )
@@ -293,6 +294,13 @@ class MITYoloTrainer( KWCocoTrainDetector ):
         output["type"] = "mit_yolo"
         output["mit_yolo:weight"] = output_model_name
         output[output_model_name] = str(final_ckpt)
+
+        # The detector needs train_config.yaml next to the checkpoint
+        # to introspect model architecture and class list.
+        train_config_fpath = yolo_train_dpath / 'train_config.yaml'
+        if train_config_fpath.exists():
+            output["train_config.yaml"] = str(train_config_fpath)
+
         return output
 
 
