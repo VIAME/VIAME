@@ -63,7 +63,7 @@ IF EXIST C:\tmp\kv2 rmdir /s /q C:\tmp\kv2
 IF EXIST C:\tmp\vm2 rmdir /s /q C:\tmp\vm2
 
 git config --system core.longpaths true
-git submodule update --init
+git submodule update --init --recursive
 
 REM Generate CTest dashboard file
 CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_windows_cpu.cmake ctest_build_steps.cmake %VIAME_SOURCE_DIR%
