@@ -477,6 +477,13 @@ if( VIAME_ENABLE_CUDA )
   set( CUDA_ARCHITECTURES "${DEF_CUDA_ARCHS}" CACHE STRING "CUDA Architectures" )
   mark_as_advanced( CUDA_ARCHITECTURES )
 
+  # CUDA 12.x does not officially support VS versions after 2022, pass flag
+  # to nvcc to allow compilation with newer host compilers (e.g. VS 2025)
+  if( WIN32 )
+    set( CMAKE_CUDA_FLAGS "--allow-unsupported-compiler ${CMAKE_CUDA_FLAGS}"
+      CACHE STRING "CUDA compilation flags" FORCE )
+  endif()
+
   if( WIN32 )
     set( VIAME_EXECUTABLES_PATH
       ${VIAME_BUILD_INSTALL_PREFIX}/bin;${CUDA_TOOLKIT_ROOT_DIR}/bin;$ENV{PATH}
