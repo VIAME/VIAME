@@ -111,7 +111,7 @@ REM ----------------------------------------------------------------------------
 REM Read build paths from CMakeCache (single source of truth is the .cmake platform file)
 REM -------------------------------------------------------------------------------------------------------
 
-FOR /f "tokens=2 delims==" %%a IN ('FINDSTR /B "VIAME_BUILD_FLETCH_DIR:PATH=" "%VIAME_BUILD_DIR%\CMakeCache.txt"') DO SET "FLETCH_BUILD_DIR=%%a"
+FOR /f "tokens=2 delims==" %%a IN ('FINDSTR /B "VIAME_BUILD_FLETCH_DIR:" "%VIAME_BUILD_DIR%\CMakeCache.txt"') DO SET "FLETCH_BUILD_DIR=%%a"
 SET "ZLIB_BUILD_DIR=%FLETCH_BUILD_DIR%\build\src\ZLib-build"
 
 REM -------------------------------------------------------------------------------------------------------
