@@ -154,6 +154,24 @@ ECHO.
 GOTO :EOF
 
 REM ==============================================================================
+REM CopyMsysDlls
+REM Copy MinGW runtime DLLs required by FFmpeg
+REM Arguments:
+REM   %2 = Fletch build directory (e.g., C:\tmp\fl1)
+REM   %3 = Install bin directory
+REM ==============================================================================
+:CopyMsysDlls
+ECHO.
+ECHO ========================================
+ECHO Copying MinGW Runtime DLLs (for FFmpeg)
+ECHO ========================================
+ECHO.
+CALL :CopyDll "%~2\build\src\msys2\mingw64\bin\libwinpthread-1.dll" "%~3"
+CALL :CopyDll "%~2\build\src\msys2\mingw64\bin\libiconv-2.dll" "%~3"
+ECHO.
+GOTO :EOF
+
+REM ==============================================================================
 REM CopyCuda12Dlls
 REM Copy CUDA 12.x and cuDNN 9.x DLLs to install directory
 REM Arguments:
