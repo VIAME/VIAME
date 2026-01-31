@@ -499,6 +499,18 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
     LIST_SEPARATOR "----" )
 
+  # On Windows, enable git long paths for PyTorch submodules to handle
+  # composable_kernel files that exceed the 260-char MAX_PATH limit
+  if( WIN32 AND "${LIB}" STREQUAL "pytorch" )
+    ExternalProject_Add_Step(${LIB}
+      git_longpaths
+      COMMAND git config core.longpaths true
+      WORKING_DIRECTORY ${LIBRARY_LOCATION}
+      DEPENDEES patch
+      DEPENDERS build
+      COMMENT "Enabling git long paths for PyTorch submodules on Windows" )
+  endif()
+
   if( "${LIB}" STREQUAL "mmdeploy" )
     set( MMDEPLOY_INSTALL_DIR ${VIAME_PYTHON_INSTALL}/site-packages/mmdeploy )
     ExternalProject_Add_Step(${LIB}
