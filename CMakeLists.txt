@@ -450,7 +450,7 @@ if( VIAME_ENABLE_CUDA )
   option( VIAME_FORCE_CUDA_CSTD98 "Build all cuda code with C++ standard 98" FALSE )
   mark_as_advanced( VIAME_FORCE_CUDA_CSTD98 )
 
-  set( DEF_CUDA_ARCHS "5.0 5.2 6.0 6.1 7.0 7.5" )
+  set( DEF_CUDA_ARCHS "6.0 6.1 7.0 7.5" )
 
   if( CUDA_VERSION VERSION_LESS "12.0" )
     set( DEF_CUDA_ARCHS "3.5 ${DEF_CUDA_ARCHS}" )
