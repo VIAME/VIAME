@@ -139,6 +139,14 @@ if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
   list( APPEND PYTORCH_ENV_VARS "CC=${CMAKE_C_COMPILER}" )
   list( APPEND PYTORCH_ENV_VARS "CXX=${CMAKE_CXX_COMPILER}" )
 
+  # Limit parallel compile jobs to prevent MSVC from running out of heap space
+  # (C1060) when building oneDNN/mkl-dnn. Each compiler instance can use several
+  # GB for these large translation units.
+  if( NOT DEFINED VIAME_PYTORCH_MAX_JOBS )
+    set( VIAME_PYTORCH_MAX_JOBS 4 )
+  endif()
+  list( APPEND PYTORCH_ENV_VARS "MAX_JOBS=${VIAME_PYTORCH_MAX_JOBS}" )
+
   # Save PYTHONPATH with pytorch source prepended for the pytorch build only.
   # PyTorch needs its source dir on PYTHONPATH so its 'tools' and 'torchgen'
   # packages are found during build. Downstream libs (torchvision, mmcv, etc.)
@@ -154,6 +162,10 @@ if( WIN32 )
   set( TORCH_DLL_PATH "${VIAME_PYTHON_PACKAGES}/torch/lib<PS>${VIAME_INSTALL_PREFIX}/bin" )
   if( VIAME_ENABLE_CUDA AND CUDA_TOOLKIT_ROOT_DIR )
     set( TORCH_DLL_PATH "${TORCH_DLL_PATH}<PS>${CUDA_TOOLKIT_ROOT_DIR}/bin" )
+    # CUPTI DLLs are in extras/CUPTI/lib64, not in the main bin directory
+    if( EXISTS "${CUDA_TOOLKIT_ROOT_DIR}/extras/CUPTI/lib64" )
+      set( TORCH_DLL_PATH "${TORCH_DLL_PATH}<PS>${CUDA_TOOLKIT_ROOT_DIR}/extras/CUPTI/lib64" )
+    endif()
   endif()
 
   # For torchvision and other PyTorch extensions on Windows, we need to provide
@@ -421,6 +433,12 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE AND "${LIB}" STREQUAL "pytorch" )
     list( FILTER PYTORCH_ENV_VARS_WITH_BUILD_DIR EXCLUDE REGEX "^PYTHONPATH=" )
     list( APPEND PYTORCH_ENV_VARS_WITH_BUILD_DIR "${PYTORCH_SOURCE_PYTHONPATH}" )
+    # PyTorch's internal build uses "Visual Studio 16 2019" generator which sets up
+    # its own INCLUDE/LIB paths via MSBuild. Passing the host VS (2026) INCLUDE/LIB
+    # causes VS 2019 cl.exe to compile against VS 2026 headers, leading to ABI
+    # incompatibilities in DLL static initialization (c10 registry conflicts).
+    list( FILTER PYTORCH_ENV_VARS_WITH_BUILD_DIR EXCLUDE REGEX "^INCLUDE=" )
+    list( FILTER PYTORCH_ENV_VARS_WITH_BUILD_DIR EXCLUDE REGEX "^LIB=" )
   endif()
 
   # Set SAM2_BUILD_CUDA based on whether CUDA is enabled
@@ -517,6 +535,42 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       DEPENDEES patch
       DEPENDERS build
       COMMENT "Enabling git long paths for PyTorch submodules on Windows" )
+  endif()
+
+  # On Windows, copy runtime DLLs that torch depends on but doesn't bundle in the wheel.
+  # libomp140.x86_64.dll (LLVM OpenMP runtime) is needed by torch_cpu.dll.
+  # cupti64 (CUDA Profiling Tools) is in extras/CUPTI/lib64, not the main CUDA bin.
+  if( WIN32 AND "${LIB}" STREQUAL "pytorch" )
+    set( TORCH_LIB_DIR "${VIAME_PYTHON_PACKAGES}/torch/lib" )
+
+    # Find and copy libomp140.x86_64.dll from the VS 2019 redistributable
+    # (PyTorch uses VS 2019 internally with -openmp:experimental which links to LLVM OpenMP)
+    set( VS2019_BASE "C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional" )
+    file( GLOB VS2019_REDIST_DIRS "${VS2019_BASE}/VC/Redist/MSVC/*/debug_nonredist/x64/Microsoft.VC142.OpenMP.LLVM" )
+    if( VS2019_REDIST_DIRS )
+      list( GET VS2019_REDIST_DIRS -1 VS2019_OMP_DIR )
+      ExternalProject_Add_Step(${LIB}
+        copy_libomp
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "${VS2019_OMP_DIR}/libomp140.x86_64.dll" "${TORCH_LIB_DIR}/libomp140.x86_64.dll"
+        DEPENDEES install
+        COMMENT "Copying libomp140.x86_64.dll to torch/lib" )
+    endif()
+
+    # Copy CUPTI DLL to torch/lib for reliable loading
+    if( VIAME_ENABLE_CUDA AND CUDA_TOOLKIT_ROOT_DIR )
+      file( GLOB CUPTI_DLLS "${CUDA_TOOLKIT_ROOT_DIR}/extras/CUPTI/lib64/cupti64*.dll" )
+      if( CUPTI_DLLS )
+        list( GET CUPTI_DLLS 0 CUPTI_DLL )
+        get_filename_component( CUPTI_DLL_NAME "${CUPTI_DLL}" NAME )
+        ExternalProject_Add_Step(${LIB}
+          copy_cupti
+          COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CUPTI_DLL}" "${TORCH_LIB_DIR}/${CUPTI_DLL_NAME}"
+          DEPENDEES install
+          COMMENT "Copying ${CUPTI_DLL_NAME} to torch/lib" )
+      endif()
+    endif()
   endif()
 
   if( "${LIB}" STREQUAL "mmdeploy" )
