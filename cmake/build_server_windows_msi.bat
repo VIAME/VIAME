@@ -63,7 +63,9 @@ SET VIAME_INSTALL_DIR=%VIAME_BUILD_DIR%\install
 REM Make sure to have all of these things installed
 REM (and cuDNN in CUDA)
 
-SET "CMAKE_ROOT=C:\Program Files\CMake"
+REM Use VIAME_CMAKE_DIR instead of CMAKE_ROOT to prevent PyTorch's
+REM cmake.py from picking it up (any CMAKE_* env var gets passed as -D)
+SET "VIAME_CMAKE_DIR=C:\Program Files\CMake"
 SET "GIT_ROOT=C:\Program Files\Git"
 SET "ZIP_ROOT=C:\Program Files\7-Zip"
 SET "ZLIB_ROOT=C:\Program Files\ZLib"
@@ -84,7 +86,7 @@ SET "PATH=%PATH%;%WIN32_ROOT%\OpenSSH"
 SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;%PATH%"
 SET "PATH=%NVIDIA_ROOT%\PhysX\Common;%PATH%"
 SET "PATH=%NVIDIA_ROOT%\NVIDIA NvDLISR;%PATH%"
-SET "PATH=%NODEJS_ROOT%;%GIT_ROOT%\cmd;%CMAKE_ROOT%\bin;%PATH%"
+SET "PATH=%NODEJS_ROOT%;%GIT_ROOT%\cmd;%VIAME_CMAKE_DIR%\bin;%PATH%"
 SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%"
 SET "PYTHONPATH=%PYTHONPATH%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
 
@@ -94,7 +96,7 @@ REM --------------------------------------------------------------------------
 
 CALL %~dp0build_common_functions.bat ^
     :CheckBuildDependencies ^
-    "%CMAKE_ROOT%" "%GIT_ROOT%" ^
+    "%VIAME_CMAKE_DIR%" "%GIT_ROOT%" ^
     "%ZIP_ROOT%" "%ZLIB_ROOT%" "%CUDA_ROOT%"
 IF ERRORLEVEL 1 EXIT /B 1
 
@@ -406,7 +408,7 @@ CALL %~dp0build_common_functions.bat ^
     build_server_windows_msi.cmake ^
     ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%CMAKE_ROOT%\bin\ctest.exe" ^
+"%VIAME_CMAKE_DIR%\bin\ctest.exe" ^
     -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
 IF ERRORLEVEL 1 EXIT /B 1
 GOTO :EOF

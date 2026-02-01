@@ -14,7 +14,7 @@ REM ============================================================================
 REM CheckBuildDependencies
 REM Verify that all required build tools are installed
 REM Arguments:
-REM   %2 = CMAKE_ROOT path
+REM   %2 = VIAME_CMAKE_DIR path
 REM   %3 = GIT_ROOT path
 REM   %4 = ZIP_ROOT path
 REM   %5 = ZLIB_ROOT path
