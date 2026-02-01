@@ -139,11 +139,12 @@ if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
   list( APPEND PYTORCH_ENV_VARS "CC=${CMAKE_C_COMPILER}" )
   list( APPEND PYTORCH_ENV_VARS "CXX=${CMAKE_CXX_COMPILER}" )
 
-  # Prepend pytorch source dir to PYTHONPATH so PyTorch's own 'tools' package
-  # takes priority over any conflicting package (e.g. detectron2 installs a
-  # 'tools' package into site-packages which shadows PyTorch's tools.pyi)
-  list( FILTER PYTORCH_ENV_VARS EXCLUDE REGEX "^PYTHONPATH=" )
-  list( APPEND PYTORCH_ENV_VARS
+  # Save PYTHONPATH with pytorch source prepended for the pytorch build only.
+  # PyTorch needs its source dir on PYTHONPATH so its 'tools' and 'torchgen'
+  # packages are found during build. Downstream libs (torchvision, mmcv, etc.)
+  # must NOT have it because importing torch from the source tree fails on
+  # Windows due to DLL dependency resolution issues (WinError 126).
+  set( PYTORCH_SOURCE_PYTHONPATH
     "PYTHONPATH=${VIAME_PACKAGES_DIR}/pytorch<PS>${VIAME_PYTHON_PATH}" )
 endif()
 
@@ -414,6 +415,13 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
 
   # Convert lists to ----separated strings for passing through ExternalProject_Add
   set( PYTORCH_ENV_VARS_WITH_BUILD_DIR ${PYTORCH_ENV_VARS} "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}" )
+
+  # Only the pytorch build itself needs its source dir on PYTHONPATH (for torchgen/tools).
+  # Downstream libs must import torch from the installed site-packages.
+  if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE AND "${LIB}" STREQUAL "pytorch" )
+    list( FILTER PYTORCH_ENV_VARS_WITH_BUILD_DIR EXCLUDE REGEX "^PYTHONPATH=" )
+    list( APPEND PYTORCH_ENV_VARS_WITH_BUILD_DIR "${PYTORCH_SOURCE_PYTHONPATH}" )
+  endif()
 
   # Set SAM2_BUILD_CUDA based on whether CUDA is enabled
   if( "${LIB}" STREQUAL "sam2" )
