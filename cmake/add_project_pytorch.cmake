@@ -146,6 +146,24 @@ if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
     list( APPEND PYTORCH_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
   endif()
 
+  # Force Ninja generator for PyTorch's internal CMake build.
+  # The Visual Studio generator produces DLLs whose DllMain initialization fails
+  # at runtime with WinError 1114 (see https://github.com/pytorch/pytorch/issues/146166).
+  # Ninja uses the host MSVC compiler directly via CC/CXX, producing compatible binaries.
+  list( APPEND PYTORCH_ENV_VARS "CMAKE_GENERATOR=Ninja" )
+
+  # Add Ninja to the build PATH - prefer the copy bundled with Visual Studio
+  get_filename_component( MSVS_ROOT "${CMAKE_CXX_COMPILER}" DIRECTORY )
+  get_filename_component( MSVS_ROOT "${MSVS_ROOT}/../../../../../../.." ABSOLUTE )
+  set( NINJA_DIR "${MSVS_ROOT}/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja" )
+  if( NOT EXISTS "${NINJA_DIR}/ninja.exe" )
+    # Fallback: look for ninja on the system PATH
+    find_program( NINJA_EXECUTABLE ninja )
+    if( NINJA_EXECUTABLE )
+      get_filename_component( NINJA_DIR "${NINJA_EXECUTABLE}" DIRECTORY )
+    endif()
+  endif()
+
   # Save PYTHONPATH with pytorch source prepended for the pytorch build only.
   # PyTorch needs its source dir on PYTHONPATH so its 'tools' and 'torchgen'
   # packages are found during build. Downstream libs (torchvision, mmcv, etc.)
@@ -218,6 +236,12 @@ if( WIN32 )
         message( STATUS "VIAME: Set INCLUDE/LIB for MSVC ${CMAKE_CXX_COMPILER_VERSION} and Windows SDK ${SDK_VERSION}" )
       endif()
     endif()
+  endif()
+
+  # Add Ninja build tool to PATH if found
+  if( EXISTS "${NINJA_DIR}/ninja.exe" )
+    set( TORCH_DLL_PATH "${TORCH_DLL_PATH}<PS>${NINJA_DIR}" )
+    message( STATUS "VIAME: Added Ninja to PyTorch PATH: ${NINJA_DIR}" )
   endif()
 
   # Prepend our paths to existing PATH (use <PS> as placeholder for path separator)
@@ -432,12 +456,9 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE AND "${LIB}" STREQUAL "pytorch" )
     list( FILTER PYTORCH_ENV_VARS_WITH_BUILD_DIR EXCLUDE REGEX "^PYTHONPATH=" )
     list( APPEND PYTORCH_ENV_VARS_WITH_BUILD_DIR "${PYTORCH_SOURCE_PYTHONPATH}" )
-    # PyTorch's internal build uses "Visual Studio 16 2019" generator which sets up
-    # its own INCLUDE/LIB paths via MSBuild. Passing the host VS (2026) INCLUDE/LIB
-    # causes VS 2019 cl.exe to compile against VS 2026 headers, leading to ABI
-    # incompatibilities in DLL static initialization (c10 registry conflicts).
-    list( FILTER PYTORCH_ENV_VARS_WITH_BUILD_DIR EXCLUDE REGEX "^INCLUDE=" )
-    list( FILTER PYTORCH_ENV_VARS_WITH_BUILD_DIR EXCLUDE REGEX "^LIB=" )
+    # With the Ninja generator, INCLUDE/LIB are kept so that cl.exe can find
+    # the host MSVC headers and libraries. The VS generator previously caused
+    # DllMain failures (WinError 1114) due to how it handled mixed toolsets.
   endif()
 
   # Set SAM2_BUILD_CUDA based on whether CUDA is enabled
