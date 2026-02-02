@@ -38,6 +38,9 @@ add_option("VIAME_BUILD_FLETCH_DIR" "C:/tmp/fl3")
 add_option("VIAME_BUILD_KWIVER_DIR" "C:/tmp/kv3")
 add_option("VIAME_BUILD_PLUGINS_DIR" "C:/tmp/vm3")
 
+# Windows-specific overrides
+add_option("VIAME_BUILD_MAX_THREADS" "5")
+
 # Base settings - everything off initially
 add_option("VIAME_FIXUP_BUNDLE" "ON")
 add_option("VIAME_BUILD_PYTHON_FROM_SOURCE" "ON")

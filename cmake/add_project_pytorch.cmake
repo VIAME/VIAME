@@ -142,10 +142,9 @@ if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
   # Limit parallel compile jobs to prevent MSVC from running out of heap space
   # (C1060) when building oneDNN/mkl-dnn. Each compiler instance can use several
   # GB for these large translation units.
-  if( NOT DEFINED VIAME_PYTORCH_MAX_JOBS )
-    set( VIAME_PYTORCH_MAX_JOBS 4 )
+  if( VIAME_BUILD_MAX_THREADS )
+    list( APPEND PYTORCH_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
   endif()
-  list( APPEND PYTORCH_ENV_VARS "MAX_JOBS=${VIAME_PYTORCH_MAX_JOBS}" )
 
   # Save PYTHONPATH with pytorch source prepended for the pytorch build only.
   # PyTorch needs its source dir on PYTHONPATH so its 'tools' and 'torchgen'

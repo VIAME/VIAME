@@ -31,6 +31,9 @@ add_option("VIAME_BUILD_FLETCH_DIR" "C:/tmp/fl4")
 add_option("VIAME_BUILD_KWIVER_DIR" "C:/tmp/kv4")
 add_option("VIAME_BUILD_PLUGINS_DIR" "C:/tmp/vm4")
 
+# Windows-specific overrides
+add_option("VIAME_BUILD_MAX_THREADS" "5")
+
 # Seal-specific overrides
 add_option("VIAME_ENABLE_PYTORCH-ULTRALYTICS" "ON")
 add_option("VIAME_ENABLE_SEAL" "ON")
