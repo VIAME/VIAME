@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Backwards compatibility wrapper: viame_train_detector -> viame train
+# This script will be removed once all tools are updated.
+exec "$(dirname "$(readlink -f "$0")")/viame" train "$@"

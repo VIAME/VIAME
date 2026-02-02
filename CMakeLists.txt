@@ -1096,6 +1096,8 @@ else()
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
     install( PROGRAMS      ${VIAME_CMAKE_DIR}/limit_train_time_for_viame_web.sh
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
+    install( PROGRAMS      ${VIAME_CMAKE_DIR}/viame_train_detector
+             DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
 
     if( VIAME_ENABLE_SEAL )
       install( PROGRAMS      "${VIAME_CMAKE_DIR}/launch_seal_interface.sh"
