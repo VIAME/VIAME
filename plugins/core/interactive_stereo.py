@@ -205,11 +205,33 @@ class InteractiveStereoService:
         left_container = self._load_image(left_path)
         right_container = self._load_image(right_path)
 
+        if left_container is None or right_container is None:
+            raise RuntimeError(
+                f"Failed to load stereo images: left={left_path}, right={right_path}"
+            )
+
+        left_img = left_container.image()
+        right_img = right_container.image()
+        left_size = (left_img.width(), left_img.height())
+        right_size = (right_img.width(), right_img.height())
+
+        if left_size != right_size:
+            raise RuntimeError(
+                f"Left/right image size mismatch: left={left_size}, right={right_size} "
+                f"(left_path={left_path}, right_path={right_path})"
+            )
+
         if self._cancel_event.is_set():
             return None
 
         # Call the algorithm's compute method
         result_container = self._stereo_algo.compute(left_container, right_container)
+
+        if result_container is None:
+            raise RuntimeError(
+                "Stereo algorithm returned None — check algorithm configuration "
+                f"(input sizes: {left_size})"
+            )
 
         if self._cancel_event.is_set():
             return None
