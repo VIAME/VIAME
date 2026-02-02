@@ -7,13 +7,21 @@ if( WIN32 )
   if( MSVC AND MSVC_VERSION EQUAL 1900 )
     RenameSubstr( ${VIAME_INSTALL_PREFIX}/lib/libboost* vc120 vc140 )
   endif()
- 
+
   if( VIAME_ENABLE_OPENCV )
     CopyFiles( ${VIAME_INSTALL_PREFIX}/x86/*/bin/*.dll ${VIAME_INSTALL_PREFIX}/bin )
     CopyFiles( ${VIAME_INSTALL_PREFIX}/x86/*/lib/*.lib ${VIAME_INSTALL_PREFIX}/lib )
 
     CopyFiles( ${VIAME_INSTALL_PREFIX}/x64/*/bin/*.dll ${VIAME_INSTALL_PREFIX}/bin )
     CopyFiles( ${VIAME_INSTALL_PREFIX}/x64/*/lib/*.lib ${VIAME_INSTALL_PREFIX}/lib )
+  endif()
+
+  # Qt's forced install step may not copy rcc.exe to the install prefix.
+  # Copy it here (after all install steps) to ensure it's always present.
+  set( QT_RCC_SRC "${VIAME_BUILD_PREFIX}/build/src/Qt/qtbase/bin/rcc.exe" )
+  if( EXISTS "${QT_RCC_SRC}" AND NOT EXISTS "${VIAME_INSTALL_PREFIX}/bin/rcc.exe" )
+    file( COPY "${QT_RCC_SRC}" DESTINATION "${VIAME_INSTALL_PREFIX}/bin" )
+    message( STATUS "Copied rcc.exe to install prefix" )
   endif()
 endif()
 
