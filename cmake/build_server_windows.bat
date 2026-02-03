@@ -152,7 +152,9 @@ CALL %~dp0build_common_functions.bat ^
     :CopyMsysDlls "%FLETCH_BUILD_DIR%" ^
     "%VIAME_INSTALL_DIR%\bin"
 
-DEL "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*" 2>NUL
+IF EXIST "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib" (
+  DEL /Q "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*"
+)
 
 CALL %~dp0build_common_functions.bat ^
     :CopyCuda12Dlls "%CUDA_ROOT%" ^

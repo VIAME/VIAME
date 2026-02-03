@@ -215,7 +215,7 @@ REM   %2 = Destination directory
 REM ==============================================================================
 :CopyDll
 IF EXIST "%~1" (
-    COPY "%~1" "%~2" >NUL 2>&1
+    COPY "%~1" "%~2" 1>NUL
     IF ERRORLEVEL 1 (
         ECHO [FAILED] %~nx1 - copy failed
     ) ELSE (
@@ -326,7 +326,7 @@ IF EXIST "!EXCLUDED_DIR!\share" (
         MOVE "%~3\VIAME\postgresql_temp" "%~3\VIAME\share\postgresql" >NUL 2>&1
     )
 )
-RMDIR /S /Q "!EXCLUDED_DIR!" 2>NUL
+IF EXIST "!EXCLUDED_DIR!" RMDIR /S /Q "!EXCLUDED_DIR!"
 ECHO [OK] Development folders restored
 
 IF !ZIP_RESULT! NEQ 0 (
