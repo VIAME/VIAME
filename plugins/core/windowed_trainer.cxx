@@ -261,10 +261,17 @@ windowed_trainer
   // the correct .pipe path (e.g. windowed:detector:netharn:deployed).
   // File copy entries (value is an existing file) keep their original
   // key since that key is the destination filename, not a config path.
+  // Special keys like "eval_folder" are also passed through unchanged.
   for( const auto& pair : nested_output )
   {
     if( !pair.second.empty() && does_file_exist( pair.second ) )
     {
+      output[ pair.first ] = pair.second;
+    }
+    else if( pair.first == "eval_folder" && !pair.second.empty() &&
+             does_folder_exist( pair.second ) )
+    {
+      // Pass through eval_folder key unchanged for directory copies
       output[ pair.first ] = pair.second;
     }
     else

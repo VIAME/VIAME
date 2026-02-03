@@ -1,0 +1,57 @@
+# =============================================================================
+# Title: Training - Aug Percentile Normalization (Python/NumPy)
+#
+# Description: Training augmentation pipeline that applies percentile-based
+# normalization to convert non-8-bit imagery (16-bit, float, etc.) to 8-bit.
+# Uses the Python/NumPy implementation of the percentile_norm filter.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    10
+
+# =============================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+process image_reader
+ :: image_file_reader
+ :image_reader:type                            vxl
+
+connect from in_adapt.input_file_name
+        to   image_reader.image_file_name
+
+# =============================================================================
+
+process percentile_norm
+  :: image_filter
+  :filter:type                                 percentile_norm_npy
+
+  block filter:percentile_norm_npy
+    :lower_percentile                          1.0
+    :upper_percentile                          99.0
+    :output_format                             8-bit
+  endblock
+
+connect from image_reader.image
+        to   percentile_norm.image
+
+# =============================================================================
+
+process image_writer
+ :: image_writer
+ :image_writer:type                             vxl
+ :image_writer:vxl:split_channels               false
+
+connect from in_adapt.output_file_name
+        to   image_writer.image_file_name
+connect from percentile_norm.image
+        to   image_writer.image
+
+connect from image_writer.success_flag
+        to   out_adapt.success_flag
+
+
+# -- end of file --

@@ -256,7 +256,7 @@ def _demo_batch(bsize=1, channels='rgb', h=256, w=256, classes=3,
                         c_mask = mask.to_c_mask().data
                         mask_tensor = torch.tensor(c_mask, dtype=torch.uint8)
 
-                    class_mask_list.append(mask_tensor[None, :])
+                    class_mask_list.append(mask_tensor.unsqueeze(0))
                     has_mask_list.append(1)
                 else:
                     class_mask_list.append(None)
@@ -671,12 +671,18 @@ class MM_Coder(object):
 
             if mm_bbox_results is not None:
                 # Stack the results into a detections object
+                # Note: avoid [:, x] syntax due to torch_liberator AST unparsing bug
                 pred_cidxs = []
+                pred_tlbr_parts = []
+                pred_score_parts = []
                 for cidx, cls_results in enumerate(mm_bbox_results, start=start):
                     # assert cls_results.shape == (None, 5)
                     pred_cidxs.extend([cidx + class_offset] * len(cls_results))
-                pred_tlbr = np.vstack([r[:, 0:4] for r in mm_bbox_results])
-                pred_score = np.hstack([r[:, 4] for r in mm_bbox_results])
+                    # Use transpose to avoid multi-dim slice syntax
+                    pred_tlbr_parts.append(cls_results.T[0:4].T)
+                    pred_score_parts.append(cls_results.T[4])
+                pred_tlbr = np.vstack(pred_tlbr_parts)
+                pred_score = np.hstack(pred_score_parts)
             else:
                 raise AssertionError('should always have bboxes')
 
@@ -913,7 +919,7 @@ class MM_Detector(nh.layers.Module):
         if return_result:
             with torch.no_grad():
                 imgs_norm = self.input_norm(imgs)
-                hack_imgs = [g[None, :] for g in imgs_norm]
+                hack_imgs = [g.unsqueeze(0) for g in imgs_norm]
                 # For whaver reason we cant run more than one test image at the
                 # same time.
                 batch_results = []

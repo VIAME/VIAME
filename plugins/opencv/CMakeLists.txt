@@ -185,6 +185,7 @@ if( VIAME_ENABLE_PYTHON )
     stereo_pipeline
     stereo_processes
     stereo_utils
+    watershed_segmenter
   )
 
   foreach( rel_modname IN ITEMS ${_rel_modnames} )

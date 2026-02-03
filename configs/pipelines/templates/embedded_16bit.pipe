@@ -1,0 +1,48 @@
+# =============================================================================
+# Title: Detector Template with Percentile Normalization
+#
+# Description: Runs object detection pipeline on input imagery from memory,
+# applying percentile-based normalization before detection. This template is
+# designed for non-8-bit imagery (16-bit, float, etc.).
+# =============================================================================
+
+process detector_input
+  :: image_filter
+  :filter:type                                 percentile_norm
+
+  block filter:percentile_norm
+    :lower_percentile                          1.0
+    :upper_percentile                          99.0
+    :output_format                             8-bit
+  endblock
+
+# =============================================================================
+
+process detector1
+  :: image_object_detector
+  [-DETECTOR-IMPL-]
+
+connect from detector_input.image
+        to   detector1.image
+
+# =============================================================================
+
+process detector_merger
+  :: merge_detection_sets
+
+connect from detector1.detected_object_set
+        to   detector_merger.detected_object_set1
+
+process detector_output
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from detector_merger.detected_object_set
+        to   detector_output.detected_object_set
+

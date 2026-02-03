@@ -31,7 +31,6 @@ class LitDetTrainerConfig(KWCocoTrainDetectorConfig):
     """
     identifier = "viame-litdet-detector"
     train_directory = "deep_training"
-    output_directory = "category_models"
     seed_model = ""
 
     tmp_training_file = "training_truth.json"
@@ -68,8 +67,6 @@ class LitDetTrainerConfig(KWCocoTrainDetectorConfig):
 
     # Seed
     seed = scfg.Value(None, help='Random seed for reproducibility')
-
-    pipeline_template = ""
 
     categories = []
 
@@ -124,10 +121,6 @@ class LitDetTrainer(KWCocoTrainDetector):
         else:
             self._training_file = self._tmp_training_file
             self._validation_file = self._tmp_validation_file
-
-        if self._output_directory is not None:
-            if not os.path.exists(self._output_directory):
-                os.mkdir(self._output_directory)
 
         from kwiver.vital.modules import load_known_modules
         load_known_modules()
@@ -728,20 +721,16 @@ class LitDetTrainer(KWCocoTrainDetector):
         # Clear Hydra after training
         GlobalHydra.instance().clear()
 
-        self.save_final_model(output_dir)
+        output = self._get_output_map(output_dir)
 
-        print("\n[LitDetTrainer] Model training complete!\n")
+        print("\n[LitDetTrainer] Model training complete!")
 
-        return {"type": "litdet"}
+        return output
 
-    def save_final_model(self, output_dir=None):
-        import shutil
-
+    def _get_output_map(self, output_dir):
+        output = {}
         output_model_name = "trained_litdet_checkpoint.ckpt"
-        output_dpath = ub.Path(self._output_directory)
-        output_model = output_dpath / output_model_name
 
-        # Find the best checkpoint
         if output_dir is not None:
             output_dir = ub.Path(output_dir)
             checkpoint_dir = output_dir / "checkpoints"
@@ -749,12 +738,10 @@ class LitDetTrainer(KWCocoTrainDetector):
             if checkpoint_dir.exists():
                 checkpoint_candidates = sorted(checkpoint_dir.glob("*.ckpt"))
 
-                # Prefer 'last.ckpt' or best checkpoint
                 best_candidates = [
                     checkpoint_dir / "last.ckpt",
                 ]
 
-                # Also look for epoch checkpoints
                 epoch_ckpts = sorted(checkpoint_dir.glob("epoch_*.ckpt"))
                 if epoch_ckpts:
                     best_candidates.append(epoch_ckpts[-1])
@@ -769,33 +756,27 @@ class LitDetTrainer(KWCocoTrainDetector):
                     final_ckpt = checkpoint_candidates[-1]
 
                 if final_ckpt is None:
-                    print("[LitDetTrainer] No checkpoint found")
-                    return
-
-                # Copy checkpoint to output directory
-                shutil.copy2(final_ckpt, output_model)
-                print(f"[LitDetTrainer] Copied {final_ckpt} to {output_model}")
+                    print("[LitDetTrainer] No checkpoint found, training may have failed")
+                    return output
             else:
                 print("[LitDetTrainer] No checkpoint directory found")
-                return
+                return output
         else:
             print("[LitDetTrainer] No output directory specified")
-            return
+            return output
 
-        # Generate pipeline file if template exists
-        if len(self._pipeline_template) > 0 and ub.Path(self._pipeline_template).exists():
-            with open(self._pipeline_template, 'r') as fin:
-                all_lines = fin.readlines()
+        algo = "litdet"
 
-            with open(output_dpath / "detector.pipe", 'w') as fout:
-                for line in all_lines:
-                    line = line.replace("[-MODEL-FILE-]", output_model_name)
-                    line = line.replace("[-WINDOW-OPTION-]", self._resize_option)
-                    fout.write(line)
+        output["type"] = algo
 
-        print(f"[LitDetTrainer] Wrote finalized model to {output_model}")
-        print(f"[LitDetTrainer] The {self._train_directory} directory can now be deleted, "
+        output[algo + ":deployed"] = output_model_name
+        output[output_model_name] = str(final_ckpt)
+
+        print(f"\n[LitDetTrainer] Model found at: {final_ckpt}")
+        print(f"\n[LitDetTrainer] The {self._train_directory} directory can now be deleted, "
               "unless you want to review training metrics first.")
+
+        return output
 
 
 def __vital_algorithm_register__():

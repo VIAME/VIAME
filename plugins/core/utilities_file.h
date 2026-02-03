@@ -136,6 +136,71 @@ VIAME_CORE_EXPORT
 bool ends_with_extension( const std::string& str,
                           const std::vector< std::string >& exts );
 
+/// Get the file extension from a path (lowercase, including dot)
+///
+/// \param path File path
+/// \returns Extension in lowercase (e.g., ".csv") or empty string if none
+VIAME_CORE_EXPORT
+std::string get_file_extension( const std::string& path );
+
+/// Select a single file from a list based on extension priority
+///
+/// Given multiple files, this function checks that no two files share the same
+/// extension. If all extensions are unique, it selects the file whose extension
+/// appears earliest in the priority list. Only extensions that are also in the
+/// allowed_exts list are considered for priority selection.
+///
+/// \param files List of file paths to choose from
+/// \param priority_exts Extensions in priority order (e.g., {".csv", ".json", ".xml", ".kw18"})
+/// \param allowed_exts Extensions that are allowed (filters priority_exts)
+/// \param[out] selected The selected file path (or first file if no priority match)
+/// \param[out] error_msg Error message if duplicate extensions found
+/// \returns true if selection succeeded, false if duplicate extensions exist
+VIAME_CORE_EXPORT
+bool select_file_by_extension_priority(
+    const std::vector< std::string >& files,
+    const std::vector< std::string >& priority_exts,
+    const std::vector< std::string >& allowed_exts,
+    std::string& selected,
+    std::string& error_msg );
+
+/// Find an associated file by trying different extension strategies
+///
+/// Given a base path (typically a video or data file), this function attempts
+/// to find an associated file (like groundtruth) by:
+/// 1. Replacing the extension with the target extension
+/// 2. Adding the extension to the path (for paths without extensions or folders)
+///
+/// \param base_path The original file path
+/// \param ext The target extension (including dot, e.g., ".csv")
+/// \returns The path that exists, or empty string if neither strategy works
+VIAME_CORE_EXPORT
+std::string find_associated_file( const std::string& base_path, const std::string& ext );
+
+/// Resolve a path, handling Windows .lnk shortcut files
+///
+/// If the path doesn't exist but path + ".lnk" does, resolves the link
+/// to its target. Works for both files and directories.
+///
+/// \param path The path to resolve
+/// \returns The resolved path (original if no .lnk, resolved target if .lnk exists)
+VIAME_CORE_EXPORT
+std::string resolve_path_with_link( const std::string& path );
+
+/// Find files in a folder with fallback to file alongside folder
+///
+/// Lists files in the folder matching the given extensions. If no files are found,
+/// tries to find a file by adding the first extension to the folder path itself
+/// (e.g., for "data/folder" with ext ".csv", tries "data/folder.csv").
+///
+/// \param folder_path The folder to search in
+/// \param extensions Extensions to filter by (e.g., {".csv", ".json"})
+/// \returns Vector of found file paths (sorted), may be empty if nothing found
+VIAME_CORE_EXPORT
+std::vector< std::string > find_files_in_folder_or_alongside(
+    const std::string& folder_path,
+    const std::vector< std::string >& extensions );
+
 /// Wrap a string in double quotes
 ///
 /// \param str String to quote
@@ -266,6 +331,15 @@ bool replace_keywords_in_template_file(
 /// \returns true on success, false if source cannot be read or destination cannot be written
 VIAME_CORE_EXPORT
 bool copy_file( const std::string& source, const std::string& destination );
+
+/// Recursively copy a folder's contents to a destination
+///
+/// \param source Path to source folder
+/// \param destination Path to destination folder
+/// \returns true if all files copied, false if any errors occurred
+/// \note Files with paths longer than 250 characters are skipped
+VIAME_CORE_EXPORT
+bool copy_folder( const std::string& source, const std::string& destination );
 
 /// Replace keywords in a template and return the result as a string
 ///

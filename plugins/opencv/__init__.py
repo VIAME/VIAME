@@ -29,3 +29,12 @@ def __sprokit_register__():
     stereo_processes.__sprokit_register__()
 
     process_factory.mark_process_module_as_loaded( module_name )
+
+
+def __vital_algorithm_register__():
+    """Register vital algorithm implementations."""
+    try:
+        from viame.opencv import watershed_segmenter
+        watershed_segmenter.__vital_algorithm_register__()
+    except ImportError:
+        pass

@@ -1,4 +1,4 @@
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM VIAME Windows MSI Build Script
 REM
 REM Builds VIAME in stages to create separate installable packages:
@@ -12,16 +12,22 @@ REM   7. SEAL        - adds SEAL toolkit
 REM   8. Dev-Headers - include and share folders (development headers)
 REM   9. WiX Build   - builds the network installer bundle (requires WiX v5)
 REM
-REM Note: Stages 1-7 exclude include/ and share/ folders; Stage 8 contains only those
-REM       Stage 9 builds the WiX installer (runs automatically, requires WiX v5 CLI)
-REM       Model packages are downloaded at install time from download_viame_addons.csv
+REM Note: Stages 1-7 exclude include/ and share/ folders;
+REM       Stage 8 contains only those
+REM       Stage 9 builds the WiX installer (runs automatically,
+REM       requires WiX v5 CLI)
+REM       Model packages are downloaded at install time
+REM       from download_viame_addons.csv
 REM
 REM Usage: build_server_windows_msi.bat [start_stage]
-REM   start_stage - Optional stage number (1-8) to resume from. Default is 1.
-REM   Example: build_server_windows_msi.bat 3  (resumes from PyTorch stage)
+REM   start_stage - Optional stage number (1-8) to resume
+REM                 from. Default is 1.
+REM   Example: build_server_windows_msi.bat 3
+REM            (resumes from PyTorch stage)
 REM
-REM Uses VIAME_MSI_STAGE environment variable to control cmake configuration
-REM -------------------------------------------------------------------------------------------------------
+REM Uses VIAME_MSI_STAGE environment variable to control
+REM cmake configuration
+REM --------------------------------------------------------------------------
 
 @ECHO OFF
 SETLOCAL EnableDelayedExpansion
@@ -46,17 +52,20 @@ ECHO VIAME MSI Build - Starting from Stage %START_STAGE%
 ECHO ========================================
 ECHO.
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Setup Paths
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 SET VIAME_SOURCE_DIR=C:\VIAME-Builds\GPU-MSI
 SET VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build
 SET VIAME_INSTALL_DIR=%VIAME_BUILD_DIR%\install
 
-REM Make sure to have all of these things installed (and cuDNN in CUDA)
+REM Make sure to have all of these things installed
+REM (and cuDNN in CUDA)
 
-SET "CMAKE_ROOT=C:\Program Files\CMake"
+REM Use VIAME_CMAKE_DIR instead of CMAKE_ROOT to prevent PyTorch's
+REM cmake.py from picking it up (any CMAKE_* env var gets passed as -D)
+SET "VIAME_CMAKE_DIR=C:\Program Files\CMake"
 SET "GIT_ROOT=C:\Program Files\Git"
 SET "ZIP_ROOT=C:\Program Files\7-Zip"
 SET "ZLIB_ROOT=C:\Program Files\ZLib"
@@ -70,21 +79,30 @@ SET "WIN64_ROOT=%WIN_ROOT%\SysWOW64"
 
 SET "PYTHON_SUBDIR=lib\python3.10"
 
-SET "PATH=%WIN_ROOT%;%WIN32_ROOT%;%WIN32_ROOT%\Wbem;%WIN32_ROOT%\WindowsPowerShell\v1.0;%WIN32_ROOT%\OpenSSH"
-SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;%NVIDIA_ROOT%\PhysX\Common;%NVIDIA_ROOT%\NVIDIA NvDLISR;%PATH%"
-SET "PATH=%NODEJS_ROOT%;%GIT_ROOT%\cmd;%CMAKE_ROOT%\bin;%PATH%"
-SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
+SET "PATH=%WIN_ROOT%;%WIN32_ROOT%"
+SET "PATH=%PATH%;%WIN32_ROOT%\Wbem"
+SET "PATH=%PATH%;%WIN32_ROOT%\WindowsPowerShell\v1.0"
+SET "PATH=%PATH%;%WIN32_ROOT%\OpenSSH"
+SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;%PATH%"
+SET "PATH=%NVIDIA_ROOT%\PhysX\Common;%PATH%"
+SET "PATH=%NVIDIA_ROOT%\NVIDIA NvDLISR;%PATH%"
+SET "PATH=%NODEJS_ROOT%;%GIT_ROOT%\cmd;%VIAME_CMAKE_DIR%\bin;%PATH%"
+SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%"
+SET "PYTHONPATH=%PYTHONPATH%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Check Build Dependencies
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
-CALL %~dp0build_common_functions.bat :CheckBuildDependencies "%CMAKE_ROOT%" "%GIT_ROOT%" "%ZIP_ROOT%" "%ZLIB_ROOT%" "%CUDA_ROOT%"
+CALL %~dp0build_common_functions.bat ^
+    :CheckBuildDependencies ^
+    "%VIAME_CMAKE_DIR%" "%GIT_ROOT%" ^
+    "%ZIP_ROOT%" "%ZLIB_ROOT%" "%CUDA_ROOT%"
 IF ERRORLEVEL 1 EXIT /B 1
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Initialize Build Environment
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 IF %START_STAGE% EQU 1 (
     ECHO Initializing fresh build environment...
@@ -98,51 +116,71 @@ IF %START_STAGE% EQU 1 (
     git config --system core.longpaths true
     git submodule update --init
 ) ELSE (
-    ECHO Resuming from stage %START_STAGE%, skipping initialization...
-    REM Restore install directory from previous stage if resuming
-    IF %START_STAGE% EQU 2 IF EXIST "%VIAME_BUILD_DIR%\VIAME-Core" XCOPY /E /I /Q "%VIAME_BUILD_DIR%\VIAME-Core" "%VIAME_INSTALL_DIR%"
-    IF %START_STAGE% GTR 2 IF EXIST "%VIAME_BUILD_DIR%\VIAME-Full" XCOPY /E /I /Q "%VIAME_BUILD_DIR%\VIAME-Full" "%VIAME_INSTALL_DIR%"
+    ECHO Resuming from stage %START_STAGE%...
+    REM Restore install directory from previous stage
+    IF %START_STAGE% EQU 2 ^
+        IF EXIST "%VIAME_BUILD_DIR%\VIAME-Core" ^
+        XCOPY /E /I /Q ^
+        "%VIAME_BUILD_DIR%\VIAME-Core" ^
+        "%VIAME_INSTALL_DIR%"
+    IF %START_STAGE% GTR 2 ^
+        IF EXIST "%VIAME_BUILD_DIR%\VIAME-Full" ^
+        XCOPY /E /I /Q ^
+        "%VIAME_BUILD_DIR%\VIAME-Full" ^
+        "%VIAME_INSTALL_DIR%"
 )
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Stage 1 - Core (fletch + kwiver + vxl + opencv + python, CPU only)
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 IF %START_STAGE% LEQ 1 (
     CALL :BuildStage core "Core (fletch + kwiver, CPU only)"
     IF ERRORLEVEL 1 GOTO :BuildFailed
 
-    CALL %~dp0build_common_functions.bat :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" "%WIN64_ROOT%" "%ZLIB_ROOT%"
+    CALL %~dp0build_common_functions.bat ^
+        :CopySystemDlls ^
+        "%VIAME_INSTALL_DIR%\bin" ^
+        "%WIN64_ROOT%" "%ZLIB_ROOT%"
 
     CALL :SnapshotFiles files-core.txt
-    "%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Core.zip" @files-core.txt
+    "%ZIP_ROOT%\7z.exe" a -tzip ^
+        "%VIAME_BUILD_DIR%\VIAME-Core.zip" ^
+        @files-core.txt
     IF ERRORLEVEL 1 GOTO :ZipFailed
     CALL :ReportPackageSize "VIAME-Core.zip"
 
     MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME-Core"
 )
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Stage 2 - CUDA (adds CUDA/cuDNN support + DLLs)
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 IF %START_STAGE% LEQ 2 (
-    IF %START_STAGE% EQU 2 XCOPY /E /I /Q "%VIAME_BUILD_DIR%\VIAME-Core" "%VIAME_INSTALL_DIR%"
+    IF %START_STAGE% EQU 2 ^
+        XCOPY /E /I /Q ^
+        "%VIAME_BUILD_DIR%\VIAME-Core" ^
+        "%VIAME_INSTALL_DIR%"
 
     CALL :BuildStage cuda "CUDA/cuDNN support"
     IF ERRORLEVEL 1 GOTO :BuildFailed
 
-    CALL %~dp0build_common_functions.bat :CopyCuda12Dlls "%CUDA_ROOT%" "%VIAME_INSTALL_DIR%\bin"
+    CALL %~dp0build_common_functions.bat ^
+        :CopyCuda12Dlls ^
+        "%CUDA_ROOT%" "%VIAME_INSTALL_DIR%\bin"
 
     CALL :DiffFiles files-core.txt files-cuda.txt diff-cuda.lst
-    "%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-CUDA.zip" @diff-cuda.lst
+    "%ZIP_ROOT%\7z.exe" a -tzip ^
+        "%VIAME_BUILD_DIR%\VIAME-CUDA.zip" ^
+        @diff-cuda.lst
     IF ERRORLEVEL 1 GOTO :ZipFailed
     CALL :ReportPackageSize "VIAME-CUDA.zip"
 )
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Stage 3 - PyTorch (adds PyTorch + all pytorch-libs)
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 IF %START_STAGE% LEQ 3 (
     CALL :BuildStage pytorch "PyTorch + pytorch-libs"
@@ -152,83 +190,95 @@ IF %START_STAGE% LEQ 3 (
     DEL "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*" 2>NUL
 
     CALL :DiffFiles files-cuda.txt files-pytorch.txt diff-pytorch.lst
-    "%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-PyTorch.zip" @diff-pytorch.lst
+    "%ZIP_ROOT%\7z.exe" a -tzip ^
+        "%VIAME_BUILD_DIR%\VIAME-PyTorch.zip" ^
+        @diff-pytorch.lst
     IF ERRORLEVEL 1 GOTO :ZipFailed
     CALL :ReportPackageSize "VIAME-PyTorch.zip"
 )
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Stage 4 - Extra-CPP (adds Darknet, SVM, PostgreSQL)
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 IF %START_STAGE% LEQ 4 (
     CALL :BuildStage extra-cpp "Extra CPP (Darknet, SVM, PostgreSQL)"
     IF ERRORLEVEL 1 GOTO :BuildFailed
 
     CALL :DiffFiles files-pytorch.txt files-extra-cpp.txt diff-extra-cpp.lst
-    "%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Extra-CPP.zip" @diff-extra-cpp.lst
+    "%ZIP_ROOT%\7z.exe" a -tzip ^
+        "%VIAME_BUILD_DIR%\VIAME-Extra-CPP.zip" ^
+        @diff-extra-cpp.lst
     IF ERRORLEVEL 1 GOTO :ZipFailed
     CALL :ReportPackageSize "VIAME-Extra-CPP.zip"
 )
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Stage 5 - DIVE (adds DIVE GUI)
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 IF %START_STAGE% LEQ 5 (
     CALL :BuildStage dive "DIVE GUI"
     IF ERRORLEVEL 1 GOTO :BuildFailed
 
     CALL :DiffFiles files-extra-cpp.txt files-dive.txt diff-dive.lst
-    "%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-DIVE.zip" @diff-dive.lst
+    "%ZIP_ROOT%\7z.exe" a -tzip ^
+        "%VIAME_BUILD_DIR%\VIAME-DIVE.zip" ^
+        @diff-dive.lst
     IF ERRORLEVEL 1 GOTO :ZipFailed
     CALL :ReportPackageSize "VIAME-DIVE.zip"
 )
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Stage 6 - VIVIA (adds VIVIA interface with Qt, VTK, GDAL)
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 IF %START_STAGE% LEQ 6 (
     CALL :BuildStage vivia "VIVIA interface"
     IF ERRORLEVEL 1 GOTO :BuildFailed
 
     CALL :DiffFiles files-dive.txt files-vivia.txt diff-vivia.lst
-    "%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-VIVIA.zip" @diff-vivia.lst
+    "%ZIP_ROOT%\7z.exe" a -tzip ^
+        "%VIAME_BUILD_DIR%\VIAME-VIVIA.zip" ^
+        @diff-vivia.lst
     IF ERRORLEVEL 1 GOTO :ZipFailed
     CALL :ReportPackageSize "VIAME-VIVIA.zip"
 )
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Stage 7 - SEAL (adds SEAL toolkit)
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 IF %START_STAGE% LEQ 7 (
     CALL :BuildStage seal "SEAL toolkit"
     IF ERRORLEVEL 1 GOTO :BuildFailed
 
     CALL :DiffFiles files-vivia.txt files-seal.txt diff-seal.lst
-    "%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-SEAL.zip" @diff-seal.lst
+    "%ZIP_ROOT%\7z.exe" a -tzip ^
+        "%VIAME_BUILD_DIR%\VIAME-SEAL.zip" ^
+        @diff-seal.lst
     IF ERRORLEVEL 1 GOTO :ZipFailed
     CALL :ReportPackageSize "VIAME-SEAL.zip"
 )
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Stage 8 - Dev-Headers (include and share folders for development)
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 IF %START_STAGE% LEQ 8 (
     CALL :SnapshotDevHeaders files-dev-headers.txt
-    "%ZIP_ROOT%\7z.exe" a -tzip "%VIAME_BUILD_DIR%\VIAME-Dev-Headers.zip" @files-dev-headers.txt
+    "%ZIP_ROOT%\7z.exe" a -tzip ^
+        "%VIAME_BUILD_DIR%\VIAME-Dev-Headers.zip" ^
+        @files-dev-headers.txt
     IF ERRORLEVEL 1 GOTO :ZipFailed
     CALL :ReportPackageSize "VIAME-Dev-Headers.zip"
 
     MOVE "%VIAME_INSTALL_DIR%" "%VIAME_BUILD_DIR%\VIAME-Full"
 )
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Stage 9 - Build WiX Network Installer
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 ECHO.
 ECHO ========================================
@@ -258,10 +308,13 @@ IF ERRORLEVEL 1 (
 REM Build the network installer bundle
 ECHO Building network installer with WiX v5...
 pushd "%~dp0"
-wix build -ext WixToolset.Bal.wixext msi_viame_network.wxs -o "%VIAME_BUILD_DIR%\viame-installer.exe"
+wix build -ext WixToolset.Bal.wixext ^
+    msi_viame_network.wxs ^
+    -o "%VIAME_BUILD_DIR%\viame-installer.exe"
 IF ERRORLEVEL 1 (
     ECHO.
-    ECHO WARNING: WiX build failed. Check WiX installation and extension.
+    ECHO WARNING: WiX build failed.
+    ECHO Check WiX installation and extension.
     popd
     GOTO :SkipWixBuild
 )
@@ -274,9 +327,9 @@ FOR %%F IN ("%VIAME_BUILD_DIR%\viame-installer.exe") DO (
 
 :SkipWixBuild
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Build Complete
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 ECHO.
 ECHO ========================================
@@ -309,9 +362,9 @@ ECHO.
 
 GOTO :EOF
 
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 REM Error Handlers
-REM -------------------------------------------------------------------------------------------------------
+REM --------------------------------------------------------------------------
 
 :BuildFailed
 ECHO.
@@ -334,13 +387,13 @@ ECHO Failed to create zip package.
 ECHO.
 EXIT /B 1
 
-REM ==============================================================================
+REM ======================================================================
 REM Local Subroutines
-REM ==============================================================================
+REM ======================================================================
 
 :BuildStage
 REM Build a specific stage
-REM %1 = stage name (core, cuda, pytorch, extra-cpp, dive, vivia, seal, models)
+REM %1 = stage name (core, cuda, pytorch, extra-cpp, etc.)
 REM %2 = display name for logging
 ECHO.
 ECHO ========================================
@@ -350,35 +403,61 @@ ECHO.
 
 SET "VIAME_MSI_STAGE=%~1"
 
-CALL %~dp0build_common_functions.bat :GenerateCTestDashboard build_server_windows_msi.cmake ctest_build_steps.cmake %VIAME_SOURCE_DIR%
+CALL %~dp0build_common_functions.bat ^
+    :GenerateCTestDashboard ^
+    build_server_windows_msi.cmake ^
+    ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%CMAKE_ROOT%\bin\ctest.exe" -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
+"%VIAME_CMAKE_DIR%\bin\ctest.exe" ^
+    -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
 IF ERRORLEVEL 1 EXIT /B 1
 GOTO :EOF
 
 :SnapshotFiles
-REM Create a file list snapshot, excluding include and share directories
+REM Create a file list snapshot, excluding include and
+REM share directories (except share\postgresql)
 REM %1 = output filename
-powershell.exe -NoProfile -Command "Get-ChildItem -Recurse '%VIAME_INSTALL_DIR%' -File | Resolve-Path -Relative | Where-Object { $_ -notmatch 'install\\include' -and $_ -notmatch 'install\\share' }" > %~1
+powershell.exe -NoProfile -Command ^
+    "Get-ChildItem -Recurse" ^
+    "'%VIAME_INSTALL_DIR%' -File" ^
+    "| Resolve-Path -Relative" ^
+    "| Where-Object {" ^
+    "$_ -notmatch 'install\\include' -and" ^
+    "($_ -notmatch 'install\\share'" ^
+    "-or $_ -match 'install\\share\\postgresql')" ^
+    "}" > %~1
 GOTO :EOF
 
 :SnapshotDevHeaders
-REM Create a file list snapshot of ONLY include and share directories
+REM Create a file list snapshot of ONLY include and
+REM share directories (except share\postgresql)
 REM %1 = output filename
-powershell.exe -NoProfile -Command "Get-ChildItem -Recurse '%VIAME_INSTALL_DIR%' -File | Resolve-Path -Relative | Where-Object { $_ -match 'install\\include' -or $_ -match 'install\\share' }" > %~1
+powershell.exe -NoProfile -Command ^
+    "Get-ChildItem -Recurse" ^
+    "'%VIAME_INSTALL_DIR%' -File" ^
+    "| Resolve-Path -Relative" ^
+    "| Where-Object {" ^
+    "$_ -match 'install\\include' -or" ^
+    "($_ -match 'install\\share'" ^
+    "-and $_ -notmatch 'install\\share\\postgresql')" ^
+    "}" > %~1
 GOTO :EOF
 
 :DiffFiles
-REM Create a diff between two file lists (optimized PowerShell version)
+REM Create a diff between two file lists
 REM %1 = previous file list
 REM %2 = current file list (will be created)
 REM %3 = output diff list
 CALL :SnapshotFiles %~2
-powershell.exe -NoProfile -Command "$prev = Get-Content '%~1'; $curr = Get-Content '%~2'; $curr | Where-Object { $prev -notcontains $_ }" > %~3
+powershell.exe -NoProfile -Command ^
+    "$prev = Get-Content '%~1';" ^
+    "$curr = Get-Content '%~2';" ^
+    "$curr | Where-Object {" ^
+    "$prev -notcontains $_ }" > %~3
 GOTO :EOF
 
 :ReportPackageSize
-REM Report the size of a package immediately after creation
+REM Report the size of a package after creation
 REM %1 = package filename (just the name, not full path)
 FOR %%F IN ("%VIAME_BUILD_DIR%\%~1") DO (
     CALL :FormatSize "%%~zF" "%~1"

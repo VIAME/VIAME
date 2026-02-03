@@ -21,7 +21,7 @@ FROM nvidia/cuda:12.9.1-cudnn-runtime-ubuntu22.04
 RUN apt-get update -y && \
     apt-get install -y wget tar openssl curl bzip2 gfortran libharfbuzz0b && \
     apt-get install -y python3-pip python-is-python3 && \
-    python -m pip install numpy==1.25.2
+    python -m pip install numpy==2.0.2
 
-COPY --from=builder /usr/local/cuda/targets/x86_64-linux/lib/libcupti.so* /usr/local/cuda/lib64
+COPY --from=builder /usr/local/cuda-12.9/targets/x86_64-linux/lib/libcupti.so* /usr/local/cuda/lib64
 COPY --from=builder /opt/noaa/viame /opt/noaa/viame

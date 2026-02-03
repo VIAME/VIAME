@@ -106,6 +106,7 @@ class InteractiveStereoService:
         # Background computation
         self._compute_thread: Optional[threading.Thread] = None
         self._cancel_event = threading.Event()
+        self._disparity_event = threading.Event()
         self._compute_lock = threading.Lock()
         self._compute_queue = queue.Queue()
 
@@ -204,11 +205,33 @@ class InteractiveStereoService:
         left_container = self._load_image(left_path)
         right_container = self._load_image(right_path)
 
+        if left_container is None or right_container is None:
+            raise RuntimeError(
+                f"Failed to load stereo images: left={left_path}, right={right_path}"
+            )
+
+        left_img = left_container.image()
+        right_img = right_container.image()
+        left_size = (left_img.width(), left_img.height())
+        right_size = (right_img.width(), right_img.height())
+
+        if left_size != right_size:
+            raise RuntimeError(
+                f"Left/right image size mismatch: left={left_size}, right={right_size} "
+                f"(left_path={left_path}, right_path={right_path})"
+            )
+
         if self._cancel_event.is_set():
             return None
 
         # Call the algorithm's compute method
         result_container = self._stereo_algo.compute(left_container, right_container)
+
+        if result_container is None:
+            raise RuntimeError(
+                "Stereo algorithm returned None — check algorithm configuration "
+                f"(input sizes: {left_size})"
+            )
 
         if self._cancel_event.is_set():
             return None
@@ -221,6 +244,10 @@ class InteractiveStereoService:
         # Convert back to float disparity values
         if disp_npy.dtype == np.uint16:
             disp_npy = disp_npy.astype(np.float32) / 256.0
+
+        # Ensure 2D (H, W) — KWIVER images may be (H, W, 1) for single-channel
+        if disp_npy.ndim == 3 and disp_npy.shape[2] == 1:
+            disp_npy = disp_npy[:, :, 0]
 
         return disp_npy
 
@@ -253,6 +280,7 @@ class InteractiveStereoService:
                                 self._current_right_path == right_path):
                             self._current_disparity = disparity
                             self._disparity_ready = True
+                            self._disparity_event.set()
                             self._log(f"Disparity ready for {left_path}")
                             # Send async notification
                             self._send_response({
@@ -330,6 +358,7 @@ class InteractiveStereoService:
         self._cancel_computation()
         self._current_disparity = None
         self._disparity_ready = False
+        self._disparity_event.clear()
         self._current_left_path = None
         self._current_right_path = None
         self._enabled = False
@@ -397,6 +426,7 @@ class InteractiveStereoService:
                 self._current_right_path = right_path
                 self._current_disparity = cached_disparity
                 self._disparity_ready = True
+                self._disparity_event.set()
                 return {
                     "success": True,
                     "message": "Disparity loaded from cache",
@@ -409,6 +439,7 @@ class InteractiveStereoService:
             self._current_right_path = right_path
             self._current_disparity = None
             self._disparity_ready = False
+            self._disparity_event.clear()
 
         # Queue the new computation
         self._compute_queue.put((request_id, left_path, right_path))
@@ -439,32 +470,18 @@ class InteractiveStereoService:
                 "has_calibration": self._calibration is not None,
             }
 
-    def handle_transfer_line(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Transfer a line from left image to right image using disparity.
-
-        Given a line defined by two points on the left image, compute the
-        corresponding points on the right image using the disparity map.
-        For horizontal stereo, x_right = x_left - disparity.
-        """
-        if not self._enabled:
-            raise ValueError("Service not enabled. Call enable first.")
-
+    def _do_transfer_line(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute line transfer with lock already held or disparity known ready."""
         with self._compute_lock:
-            if not self._disparity_ready or self._current_disparity is None:
-                raise ValueError("Disparity not ready. Wait for disparity computation.")
-
             line = request.get("line")
             if not line or len(line) != 2:
                 raise ValueError("line must be a list of two [x, y] points")
 
-            # Extract points
             p1 = line[0]
             p2 = line[1]
 
             H, W = self._current_disparity.shape[:2]
 
-            # Clamp coordinates to image bounds
             def clamp_point(p):
                 x = max(0, min(W - 1, int(round(p[0]))))
                 y = max(0, min(H - 1, int(round(p[1]))))
@@ -473,25 +490,19 @@ class InteractiveStereoService:
             x1, y1 = clamp_point(p1)
             x2, y2 = clamp_point(p2)
 
-            # Get disparity values at the line endpoints
             disp1 = float(self._current_disparity[y1, x1])
             disp2 = float(self._current_disparity[y2, x2])
 
-            # For horizontal stereo: x_right = x_left - disparity
-            # y stays the same (rectified stereo)
             x1_right = p1[0] - disp1
             x2_right = p2[0] - disp2
 
-            # Return transferred line
             transferred_line = [
                 [float(x1_right), float(p1[1])],
                 [float(x2_right), float(p2[1])],
             ]
 
-            # Also compute depth if calibration is available
             depth_info = None
             if self._focal_length > 0 and self._baseline > 0:
-                # depth = focal_length * baseline / disparity
                 depth1 = (self._focal_length * self._baseline) / max(disp1, 1e-6) if disp1 > 0 else None
                 depth2 = (self._focal_length * self._baseline) / max(disp2, 1e-6) if disp2 > 0 else None
                 depth_info = {
@@ -508,17 +519,9 @@ class InteractiveStereoService:
                 "depth_info": depth_info,
             }
 
-    def handle_transfer_points(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Transfer multiple points from left image to right image using disparity.
-        """
-        if not self._enabled:
-            raise ValueError("Service not enabled. Call enable first.")
-
+    def _do_transfer_points(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute points transfer with lock already held or disparity known ready."""
         with self._compute_lock:
-            if not self._disparity_ready or self._current_disparity is None:
-                raise ValueError("Disparity not ready. Wait for disparity computation.")
-
             points = request.get("points")
             if not points:
                 raise ValueError("points is required")
@@ -543,6 +546,81 @@ class InteractiveStereoService:
                 "original_points": points,
                 "disparity_values": disparity_values,
             }
+
+    def _deferred_transfer(self, request_id, handler, request):
+        """Wait for disparity in a background thread, then send the response."""
+        try:
+            if not self._disparity_event.wait(timeout=120):
+                self._send_response({
+                    "id": request_id,
+                    "success": False,
+                    "error": "Disparity computation timed out",
+                })
+                return
+            response = handler(request)
+            response["id"] = request_id
+            self._send_response(response)
+        except Exception as e:
+            self._send_response({
+                "id": request_id,
+                "success": False,
+                "error": str(e),
+            })
+
+    def handle_transfer_line(self, request: Dict[str, Any]):
+        """
+        Transfer a line from left image to right image using disparity.
+
+        Given a line defined by two points on the left image, compute the
+        corresponding points on the right image using the disparity map.
+        For horizontal stereo, x_right = x_left - disparity.
+
+        If disparity is not yet ready, defers the response until it is.
+        """
+        if not self._enabled:
+            raise ValueError("Service not enabled. Call enable first.")
+
+        # Check readiness under the lock, then release before calling
+        # _do_transfer_line (which acquires its own lock). Using a non-
+        # reentrant Lock twice from the same thread would deadlock.
+        with self._compute_lock:
+            ready = self._disparity_ready and self._current_disparity is not None
+
+        if ready:
+            return self._do_transfer_line(request)
+
+        # Disparity not ready — wait in background thread so main loop stays responsive
+        request_id = request.get("id")
+        threading.Thread(
+            target=self._deferred_transfer,
+            args=(request_id, self._do_transfer_line, request),
+            daemon=True,
+        ).start()
+        return None
+
+    def handle_transfer_points(self, request: Dict[str, Any]):
+        """
+        Transfer multiple points from left image to right image using disparity.
+
+        If disparity is not yet ready, defers the response until it is.
+        """
+        if not self._enabled:
+            raise ValueError("Service not enabled. Call enable first.")
+
+        with self._compute_lock:
+            ready = self._disparity_ready and self._current_disparity is not None
+
+        if ready:
+            return self._do_transfer_points(request)
+
+        # Disparity not ready — wait in background thread so main loop stays responsive
+        request_id = request.get("id")
+        threading.Thread(
+            target=self._deferred_transfer,
+            args=(request_id, self._do_transfer_points, request),
+            daemon=True,
+        ).start()
+        return None
 
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Route request to appropriate handler."""
@@ -594,8 +672,9 @@ class InteractiveStereoService:
 
                 # Process request
                 response = self.handle_request(request)
-                response["id"] = request_id
-                self._send_response(response)
+                if response is not None:
+                    response["id"] = request_id
+                    self._send_response(response)
 
             except json.JSONDecodeError as e:
                 self._send_error(request_id, f"Invalid JSON: {e}")
@@ -631,17 +710,9 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
             if os.path.isdir(path):
                 vital_modules.load_module(path)
 
-    # Read config file
-    cfg = vital_config.empty_config()
-
-    with open(config_path, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            if '=' in line:
-                key, value = line.split('=', 1)
-                cfg.set_value(key.strip(), value.strip())
+    # Read config file using vital's built-in loader (supports includes)
+    config_dir = os.path.dirname(os.path.abspath(config_path))
+    cfg = vital_config.read_config_file(config_path, [config_dir])
 
     # Create compute_stereo_depth_map algorithm
     stereo_algo = None

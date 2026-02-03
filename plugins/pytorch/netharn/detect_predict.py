@@ -165,7 +165,8 @@ def _ensure_upgraded_model(deployed_fpath):
     # that use 'import netharn' or 'import bioharn' instead of 'viame.pytorch.netharn'
     setup_module_aliases()
 
-    print('Ensure upgraded model: deployed_fpath = {!r}'.format(deployed_fpath))
+    if deployed_fpath:
+        print('Ensure upgraded model: deployed_fpath = {!r}'.format(deployed_fpath))
 
     if not exists(deployed_fpath):
         # Case where old model was upgraded and may have been deleted

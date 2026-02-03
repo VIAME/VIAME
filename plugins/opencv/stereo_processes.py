@@ -395,11 +395,11 @@ class MeasureProcess(KwiverProcess):
             output_dets2[i2].set_attribute("length", match["fishlen"])
 
             head, tail = detections1[i1].center_keypoints()
-            output_dets1[i1].add_keypoint('head', Point2d(head))
-            output_dets1[i1].add_keypoint('tail', Point2d(tail))
+            output_dets1[i1].add_keypoint('head', Point2d(float(head[0]), float(head[1])))
+            output_dets1[i1].add_keypoint('tail', Point2d(float(tail[0]), float(tail[1])))
             head, tail = detections2[i2].center_keypoints()
-            output_dets2[i2].add_keypoint('head', Point2d(head))
-            output_dets2[i2].add_keypoint('tail', Point2d(tail))
+            output_dets2[i2].add_keypoint('head', Point2d(float(head[0]), float(head[1])))
+            output_dets2[i2].add_keypoint('tail', Point2d(float(tail[0]), float(tail[1])))
 
             state1 = ObjectTrackState(timestamp, output_dets1[i1])
             state2 = ObjectTrackState(timestamp, output_dets2[i2])
@@ -506,8 +506,8 @@ class KeypointProcess(KwiverProcess):
             if not output1[i].mask:
                 continue
             head, tail = detections1[i].center_keypoints()
-            output1[i].add_keypoint('head', Point2d(head))
-            output1[i].add_keypoint('tail', Point2d(tail))
+            output1[i].add_keypoint('head', Point2d(float(head[0]), float(head[1])))
+            output1[i].add_keypoint('tail', Point2d(float(tail[0]), float(tail[1])))
 
         output1 = DetectedObjectSet(output1)
 

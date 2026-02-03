@@ -46,7 +46,6 @@ class NetHarnTrainer( TrainDetector ):
         self._arch = ""
         self._seed_model = ""
         self._train_directory = "deep_training"
-        self._output_directory = "category_models"
         self._output_prefix = "custom_cfrnn"
         self._output_plots = True
         self._pipeline_template = ""
@@ -71,7 +70,6 @@ class NetHarnTrainer( TrainDetector ):
         self._backbone = ""
         self._pipeline_template = ""
         self._categories = []
-        self._resize_option = "original_and_resized"
         self._max_scale_wrt_chip = 2.0
         self._no_format = False
         self._allow_unicode = "auto" if os.name == "nt" else "False"
@@ -99,7 +97,6 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "arch", self._arch )
         cfg.set_value( "seed_model", self._seed_model )
         cfg.set_value( "train_directory", self._train_directory )
-        cfg.set_value( "output_directory", self._output_directory )
         cfg.set_value( "output_prefix", self._output_prefix )
         cfg.set_value( "output_plots", str( self._output_plots ) )
         cfg.set_value( "pipeline_template", self._pipeline_template )
@@ -149,7 +146,6 @@ class NetHarnTrainer( TrainDetector ):
         self._arch = str( cfg.get_value( "arch" ) )
         self._seed_model = str( cfg.get_value( "seed_model" ) )
         self._train_directory = str( cfg.get_value( "train_directory" ) )
-        self._output_directory = str( cfg.get_value( "output_directory" ) )
         self._output_prefix = str( cfg.get_value( "output_prefix" ) )
         self._output_plots = strtobool( cfg.get_value( "output_plots" ) )
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
@@ -251,10 +247,6 @@ class NetHarnTrainer( TrainDetector ):
         else:
             self._training_file = self._tmp_training_file
             self._validation_file = self._tmp_validation_file
-
-        if self._output_directory is not None:
-            if not os.path.exists( self._output_directory ):
-                os.mkdir( self._output_directory )
 
         from kwiver.vital.modules import load_known_modules
         load_known_modules()
@@ -747,7 +739,7 @@ class NetHarnTrainer( TrainDetector ):
 
         output = self.get_output_map()
 
-        print( "\nModel training complete!\n" )
+        print( "\nModel training complete!" )
 
         return output
 
@@ -782,15 +774,30 @@ class NetHarnTrainer( TrainDetector ):
         final_model = os.path.join( self._train_directory,
           "fit", "nice", self._identifier, "deploy.zip" )
 
-        # If deploy.zip doesn't exist, look for checkpoint files (e.g., for MIT-YOLO)
+        # If deploy.zip doesn't exist, look for checkpoint files
         if not os.path.exists( final_model ):
-            # Search for best_snapshot.pt in runs directory
             import glob
+
+            # First check standard netharn location for best_snapshot.pt
+            nice_snapshot = os.path.join( self._train_directory,
+              "fit", "nice", self._identifier, "best_snapshot.pt" )
+
+            # Also check MIT-YOLO location
             runs_pattern = os.path.join( self._train_directory,
               "fit", "runs", self._identifier, "*", "best_snapshot.pt" )
-            candidates = glob.glob( runs_pattern )
-            if candidates:
-                final_model = candidates[0]
+            runs_candidates = glob.glob( runs_pattern )
+
+            if os.path.exists( nice_snapshot ):
+                final_model = nice_snapshot
+                print( "\nWARNING: deploy.zip not found, using checkpoint file instead." )
+                print( "This may indicate deployment failed during training.\n" )
+                # Use .pt extension for checkpoint files
+                if self._mode == "frame_classifier" or self._mode == "detection_refiner":
+                    output_model_name = "trained_classifier.pt"
+                else:
+                    output_model_name = "trained_detector.pt"
+            elif runs_candidates:
+                final_model = runs_candidates[0]
                 # Use .pt extension for checkpoint files
                 if self._mode == "frame_classifier" or self._mode == "detection_refiner":
                     output_model_name = "trained_classifier.pt"
@@ -807,7 +814,6 @@ class NetHarnTrainer( TrainDetector ):
 
         # Config keys matching netharn_detector inference config
         output[algo + ":deployed"] = output_model_name
-        output[algo + ":window_option"] = self._resize_option
 
         # File copies (key=output filename, value=source path)
         output[output_model_name] = final_model
@@ -816,16 +822,19 @@ class NetHarnTrainer( TrainDetector ):
 
         # Handle evaluation plots if enabled
         if self._output_plots:
-            eval_folder = os.path.join( self._train_directory,
-               "fit", "nice", self._identifier, "eval" )
-            if os.path.exists( eval_folder ):
-                # Walk through eval folder and add all files
-                for root, dirs, files in os.walk( eval_folder ):
-                    for file in files:
-                        src_path = os.path.join( root, file )
-                        rel_path = os.path.relpath( src_path, eval_folder )
-                        output_name = os.path.join( "model_evaluation", rel_path )
-                        output[output_name] = src_path
+            # Look for eval folder in runs directory (where netharn stores evaluation)
+            runs_dir = os.path.join( self._train_directory,
+               "fit", "runs", self._identifier )
+            if os.path.isdir( runs_dir ):
+                # Find the most recent eval results directory containing
+                # pred/, metrics/, viz/, draw/ subdirectories. The full
+                # structure is: <hash>/eval/<dataset>/<deploy>/<config>/
+                import glob
+                eval_candidates = sorted(
+                    glob.glob( os.path.join( runs_dir, "*/eval/*/*/*" ) ),
+                    key=os.path.getmtime, reverse=True )
+                if eval_candidates:
+                    output["eval_folder"] = eval_candidates[0]
 
         print( "\nThe " + self._train_directory + " directory can now be deleted, " \
                "unless you want to review training metrics or generated plots in " \

@@ -34,7 +34,6 @@ class MITYoloConfig(KWCocoTrainDetectorConfig):
     """
     identifier = "viame-mit-yolo-detector"
     train_directory = "deep_training"
-    output_directory = "category_models"
     seed_model = ""
 
     tmp_training_file = "training_truth.json"
@@ -51,8 +50,6 @@ class MITYoloConfig(KWCocoTrainDetectorConfig):
     max_epochs = scfg.Value(500, help='Maximum number of epochs to train for')
     batch_size = scfg.Value(4, help='Number of chips per batch.')
     learning_rate = scfg.Value(3e-4, help='Learning rate for gradient update steps.')
-
-    pipeline_template = ""  # is this necessary?
 
     def __post_init__(self):
         super().__post_init__()
@@ -108,10 +105,6 @@ class MITYoloTrainer( KWCocoTrainDetector ):
         else:
             self._training_file = self._tmp_training_file
             self._validation_file = self._tmp_validation_file
-
-        if self._output_directory is not None:
-            if not os.path.exists( self._output_directory ):
-                os.mkdir( self._output_directory )
 
         from kwiver.vital.modules import load_known_modules
         load_known_modules()
@@ -262,11 +255,11 @@ class MITYoloTrainer( KWCocoTrainDetector ):
         self.proc = subprocess.Popen( cmd )
         self.proc.wait()
 
-        self.save_final_model()
+        output = self._get_output_map()
 
-        print( "\nModel training complete!\n" )
+        print( "\nModel training complete!" )
 
-        return {"type": "mit_yolo"}
+        return output
 
     def interupt_handler( self ):
         self.proc.send_signal( signal.SIGINT )
@@ -277,54 +270,38 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             if timeout > 5:
                 self.proc.kill()
                 break
-        self.save_final_model()
         sys.exit( 0 )
 
-    def save_final_model( self ):
-        # Copy model file to final directory
+    def _get_output_map( self ):
         output_model_name = "trained_mit_yolo_checkpoint.ckpt"
 
         train_dpath = ub.Path(self._train_directory)
-        output_dpath = ub.Path(self._output_directory)
-        checkpoint_dpath = train_dpath / 'train' / self._identifier / 'checkpoints'
+        yolo_train_dpath = train_dpath / 'train' / self._identifier
+        checkpoint_dpath = yolo_train_dpath / 'checkpoints'
         candiate_checkpoints = sorted(checkpoint_dpath.glob('*'))
         if len(candiate_checkpoints) == 0:
-            print( "\nNo checkpoints found, model may have failed to train\n" )
-            return
+            print( "\nNo checkpoints found, model may have failed to train" )
+            return {"type": "mit_yolo"}
 
-        final_ckpt_fpath = candiate_checkpoints[-1]
+        final_ckpt = candiate_checkpoints[-1]
 
-        if not final_ckpt_fpath.exists():
-            print( "\nModel failed to finish training\n" )
-            return
-
-        # Ensure output directory exists
-        output_dpath.ensuredir()
-
-        output_model = output_dpath / output_model_name
-        final_ckpt_fpath.copy( output_model )
-
-        # Output completion text
-        print( "\nWrote finalized model to " + str(output_model) )
-
-        # Copy pipeline file if template is specified
-        if len( self._pipeline_template ) > 0:
-            fin = open( self._pipeline_template )
-            fout = open( output_dpath / "detector.pipe", 'w' )
-            all_lines = []
-            for s in list( fin ):
-                all_lines.append( s )
-            for i, line in enumerate( all_lines ):
-                line = line.replace( "[-MODEL-FILE-]", output_model_name )
-                all_lines[i] = line.replace( "[-WINDOW-OPTION-]", self._resize_option )
-            for s in all_lines:
-                fout.write( s )
-            fout.close()
-            fin.close()
-
+        print( "\nModel found at " + str(final_ckpt) )
         print( "\nThe " + self._train_directory + " directory can now be deleted, "
                "unless you want to review training metrics or generated plots in "
                "there first." )
+
+        output = {}
+        output["type"] = "mit_yolo"
+        output["mit_yolo:weight"] = output_model_name
+        output[output_model_name] = str(final_ckpt)
+
+        # The detector needs train_config.yaml next to the checkpoint
+        # to introspect model architecture and class list.
+        train_config_fpath = yolo_train_dpath / 'train_config.yaml'
+        if train_config_fpath.exists():
+            output["train_config.yaml"] = str(train_config_fpath)
+
+        return output
 
 
 def __vital_algorithm_register__():

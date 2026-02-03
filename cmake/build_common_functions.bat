@@ -14,7 +14,7 @@ REM ============================================================================
 REM CheckBuildDependencies
 REM Verify that all required build tools are installed
 REM Arguments:
-REM   %2 = CMAKE_ROOT path
+REM   %2 = VIAME_CMAKE_DIR path
 REM   %3 = GIT_ROOT path
 REM   %4 = ZIP_ROOT path
 REM   %5 = ZLIB_ROOT path
@@ -144,12 +144,30 @@ ECHO ========================================
 ECHO Copying System DLLs
 ECHO ========================================
 ECHO.
-CALL :CopyDllWithStatus "%WINDIR%\System32\msvcr100.dll" "%~2"
-CALL :CopyDllWithStatus "%WINDIR%\System32\vcruntime140_1.dll" "%~2"
-CALL :CopyDllWithStatus "%~3\vcomp140.dll" "%~2"
-CALL :CopyDllWithStatus "%WINDIR%\SysWOW64\msvcr120.dll" "%~2"
-CALL :CopyDllWithStatus "%~4\dll_x64\zlibwapi.dll" "%~2"
-IF NOT "%~5"=="" CALL :CopyDllWithStatus "%~5\Release\zlib1.dll" "%~2"
+CALL :CopyDll "%WINDIR%\System32\msvcr100.dll" "%~2"
+CALL :CopyDll "%WINDIR%\System32\vcruntime140_1.dll" "%~2"
+CALL :CopyDll "%~3\vcomp140.dll" "%~2"
+CALL :CopyDll "%WINDIR%\SysWOW64\msvcr120.dll" "%~2"
+CALL :CopyDll "%~4\dll_x64\zlibwapi.dll" "%~2"
+IF NOT "%~5"=="" CALL :CopyDll "%~5\Release\zlib1.dll" "%~2"
+ECHO.
+GOTO :EOF
+
+REM ==============================================================================
+REM CopyMsysDlls
+REM Copy MinGW runtime DLLs required by FFmpeg
+REM Arguments:
+REM   %2 = Fletch build directory (e.g., C:\tmp\fl1)
+REM   %3 = Install bin directory
+REM ==============================================================================
+:CopyMsysDlls
+ECHO.
+ECHO ========================================
+ECHO Copying MinGW Runtime DLLs (for FFmpeg)
+ECHO ========================================
+ECHO.
+CALL :CopyDll "%~2\build\src\msys2\mingw64\bin\libwinpthread-1.dll" "%~3"
+CALL :CopyDll "%~2\build\src\msys2\mingw64\bin\libiconv-2.dll" "%~3"
 ECHO.
 GOTO :EOF
 
@@ -166,43 +184,45 @@ ECHO ========================================
 ECHO Copying CUDA 12.x and cuDNN 9.x DLLs
 ECHO ========================================
 ECHO.
-CALL :CopyDllWithStatus "%~2\bin\cublas64_12.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cublasLt64_12.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudart64_12.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn_adv64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn_cnn64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn_engines_precompiled64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn_engines_runtime_compiled64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn_graph64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn_heuristic64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn_ops64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cudnn64_9.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cufft64_11.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cufftw64_11.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\curand64_10.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cusolver64_11.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cusolverMg64_11.dll" "%~3"
-CALL :CopyDllWithStatus "%~2\bin\cusparse64_12.dll" "%~3"
+CALL :CopyDll "%~2\bin\cublas64_12.dll" "%~3"
+CALL :CopyDll "%~2\bin\cublasLt64_12.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudart64_12.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn_adv64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn_cnn64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn_engines_precompiled64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn_engines_runtime_compiled64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn_graph64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn_heuristic64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn_ops64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cudnn64_9.dll" "%~3"
+CALL :CopyDll "%~2\bin\cufft64_11.dll" "%~3"
+CALL :CopyDll "%~2\bin\cufftw64_11.dll" "%~3"
+CALL :CopyDll "%~2\bin\curand64_10.dll" "%~3"
+CALL :CopyDll "%~2\bin\cusolver64_11.dll" "%~3"
+CALL :CopyDll "%~2\bin\cusolverMg64_11.dll" "%~3"
+CALL :CopyDll "%~2\bin\cusparse64_12.dll" "%~3"
+CALL :CopyDll "%~2\bin\nvJitLink_120_0.dll" "%~3"
+CALL :CopyDll "%~2\extras\CUPTI\lib64\cupti64_2025.1.1.dll" "%~3"
 ECHO.
 GOTO :EOF
 
 REM ==============================================================================
-REM CopyDllWithStatus
+REM CopyDll (internal helper)
 REM Copy a single DLL and print status message
 REM Arguments:
-REM   %2 = Source DLL path
-REM   %3 = Destination directory
+REM   %1 = Source DLL path
+REM   %2 = Destination directory
 REM ==============================================================================
-:CopyDllWithStatus
-IF EXIST "%~2" (
-    COPY "%~2" "%~3" >NUL 2>&1
+:CopyDll
+IF EXIST "%~1" (
+    COPY "%~1" "%~2" 1>NUL
     IF ERRORLEVEL 1 (
-        ECHO [FAILED] %~nx2 - copy failed
+        ECHO [FAILED] %~nx1 - copy failed
     ) ELSE (
-        ECHO [OK] %~nx2
+        ECHO [OK] %~nx1
     )
 ) ELSE (
-    ECHO [MISSING] %~nx2 - source not found: %~2
+    ECHO [MISSING] %~nx1 - source not found: %~1
 )
 GOTO :EOF
 
@@ -260,9 +280,55 @@ IF ERRORLEVEL 1 (
 )
 ECHO [OK] Renamed install to VIAME
 
+REM Move directories not needed for desktop distribution to temp location
+SET "EXCLUDED_DIR=%~3\VIAME_excluded"
+IF EXIST "!EXCLUDED_DIR!" RMDIR /S /Q "!EXCLUDED_DIR!"
+MKDIR "!EXCLUDED_DIR!"
+ECHO Moving development folders out to reduce package size...
+FOR %%D IN (sbin qml include mkspecs etc doc) DO (
+    IF EXIST "%~3\VIAME\%%D" (
+        MOVE "%~3\VIAME\%%D" "!EXCLUDED_DIR!\%%D" >NUL 2>&1
+        ECHO [OK] Moved %%D/
+    )
+)
+IF EXIST "%~3\VIAME\share" (
+    REM Move share but preserve share/postgresql in the package
+    IF EXIST "%~3\VIAME\share\postgresql" (
+        MOVE "%~3\VIAME\share\postgresql" "%~3\VIAME\postgresql_temp" >NUL 2>&1
+        MOVE "%~3\VIAME\share" "!EXCLUDED_DIR!\share" >NUL 2>&1
+        MKDIR "%~3\VIAME\share"
+        MOVE "%~3\VIAME\postgresql_temp" "%~3\VIAME\share\postgresql" >NUL 2>&1
+        ECHO [OK] Moved share/ (preserved postgresql)
+    ) ELSE (
+        MOVE "%~3\VIAME\share" "!EXCLUDED_DIR!\share" >NUL 2>&1
+        ECHO [OK] Moved share/
+    )
+)
+
 ECHO Creating zip archive (this may take a while)...
 "%~5\7z.exe" a -tzip "%~3\%~4" "%~3\VIAME"
 SET "ZIP_RESULT=!ERRORLEVEL!"
+
+REM Restore excluded directories back into VIAME
+ECHO Restoring development folders...
+FOR %%D IN (sbin qml include mkspecs etc doc) DO (
+    IF EXIST "!EXCLUDED_DIR!\%%D" (
+        MOVE "!EXCLUDED_DIR!\%%D" "%~3\VIAME\%%D" >NUL 2>&1
+    )
+)
+IF EXIST "!EXCLUDED_DIR!\share" (
+    IF EXIST "%~3\VIAME\share\postgresql" (
+        MOVE "%~3\VIAME\share\postgresql" "%~3\VIAME\postgresql_temp" >NUL 2>&1
+        RMDIR /S /Q "%~3\VIAME\share"
+    )
+    MOVE "!EXCLUDED_DIR!\share" "%~3\VIAME\share" >NUL 2>&1
+    IF EXIST "%~3\VIAME\postgresql_temp" (
+        MOVE "%~3\VIAME\postgresql_temp" "%~3\VIAME\share\postgresql" >NUL 2>&1
+    )
+)
+IF EXIST "!EXCLUDED_DIR!" RMDIR /S /Q "!EXCLUDED_DIR!"
+ECHO [OK] Development folders restored
+
 IF !ZIP_RESULT! NEQ 0 (
     ECHO [ERROR] 7-Zip failed with error code !ZIP_RESULT!
     ECHO Restoring install directory...
@@ -301,4 +367,3 @@ IF %ERRORLEVEL% NEQ 0 (
     EXIT /B %ERRORLEVEL%
 )
 GOTO :EOF
-

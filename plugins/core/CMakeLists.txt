@@ -19,6 +19,7 @@ set( plugin_headers
   manipulate_pipelines.h
   measurement_utilities.h
   merge_detections_suppress_in_regions.h
+  normalize_image_percentile.h
   pair_stereo_detections.h
   read_detected_object_set_auto.h
   read_detected_object_set_cvat.h
@@ -34,6 +35,7 @@ set( plugin_headers
   refine_detections_add_fixed.h
   refine_detections_nms.h
   utilities_file.h
+  utilities_image.h
   utilities_segmentation.h
   utilities_training.h
   windowed_detector.h
@@ -64,6 +66,7 @@ set( plugin_sources
   manipulate_pipelines.cxx
   measurement_utilities.cxx
   merge_detections_suppress_in_regions.cxx
+  normalize_image_percentile.cxx
   pair_stereo_detections.cxx
   read_detected_object_set_auto.cxx
   read_detected_object_set_cvat.cxx
@@ -79,6 +82,7 @@ set( plugin_sources
   refine_detections_add_fixed.cxx
   refine_detections_nms.cxx
   utilities_file.cxx
+  utilities_image.cxx
   utilities_segmentation.cxx
   utilities_training.cxx
   windowed_detector.cxx
@@ -224,6 +228,7 @@ set( process_headers
   pair_stereo_detections_process.h
   read_habcam_metadata_process.h
   refine_measurements_process.h
+  resample_object_tracks_process.h
   select_database_query_process.h
   split_tracks_to_feature_landmarks_process.h
   stack_frames_process.h
@@ -253,6 +258,7 @@ set( process_sources
   pair_stereo_detections_process.cxx
   read_habcam_metadata_process.cxx
   refine_measurements_process.cxx
+  resample_object_tracks_process.cxx
   select_database_query_process.cxx
   split_tracks_to_feature_landmarks_process.cxx
   stack_frames_process.cxx
@@ -319,9 +325,9 @@ if( VIAME_ENABLE_PYTHON )
     multicam_homog_tracker )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/normalize_image_npy.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/normalize_image_percentile.py
     core
-    normalize_image_npy )
+    normalize_image_percentile )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_tracker.py

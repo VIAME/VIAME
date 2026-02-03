@@ -30,8 +30,8 @@ else()
   list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy>=1.26.0,<=2.0.2" )
 endif()
 
-# Testing infastructure
-if( VIAME_BUILD_TESTS )
+# Testing infrastructure
+if( VIAME_ENABLE_TESTS )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pytest" )
 endif()
 
@@ -84,7 +84,7 @@ endif()
 
 # For LEARN models
 if( VIAME_ENABLE_PYTORCH-LEARN )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb" "fsspec" "pyarrow" "filelock" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb" "fsspec" "filelock" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "submitit" "scikit-learn" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "scipy" "termcolor" "addict" "yapf" )
 endif()
@@ -102,14 +102,13 @@ if( VIAME_ENABLE_PYTORCH )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-build" "async_generator" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-build" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "six" "scriptconfig" "parse" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "scriptconfig" "parse" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "kwarray" "kwimage" "kwplot" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "astunparse" "pyflakes" "pygtrie" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx-algo-common-subtree" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "astunparse" "pygtrie" )
 endif()
 
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
@@ -118,10 +117,10 @@ if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
 
   if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx>=3.4" "pandas>=2.2.0" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio>=2.36.0" "colormath==1.0.0" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio>=2.36.0" )
   else()
     list( APPEND VIAME_PYTHON_BASIC_DEPS "networkx>=3.2,<=3.4" "pandas>=2.1.0,<=2.2.3" )
-    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio>=2.34.0" "colormath==1.0.0" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "imageio>=2.34.0" )
   endif()
 
   if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )

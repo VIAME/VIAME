@@ -52,11 +52,23 @@ ExternalProject_Add(darknet
     -DENABLE_CUDA_OPENGL_INTEGRATION:BOOL=OFF
     -DENABLE_CUDNN:BOOL=${VIAME_ENABLE_CUDNN}
     -DENABLE_OPENCV:BOOL=${VIAME_ENABLE_OPENCV}
+    -DENABLE_DEPLOY_CUSTOM_CMAKE_MODULES:BOOL=ON
     -DCMAKE_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
     -DINSTALL_BIN_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/bin
     -DINSTALL_LIB_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/lib
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
+
+if( WIN32 )
+  set( DARKNET_PTHREADS_DIR ${VIAME_PACKAGES_DIR}/darknet/3rdparty/pthreads )
+  ExternalProject_Add_Step(darknet install_pthreads
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "${DARKNET_PTHREADS_DIR}/bin/pthreadVC2.dll"
+      "${VIAME_BUILD_INSTALL_PREFIX}/bin/pthreadVC2.dll"
+    COMMENT "Installing pthreadVC2.dll to install prefix"
+    DEPENDEES install
+    )
+endif()
 
 if( VIAME_BUILD_FORCE_REBUILD )
   RemoveProjectCMakeStamp( darknet )
@@ -64,4 +76,5 @@ endif()
 
 set( VIAME_ARGS_darknet
   -DDarknet_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/share/darknet
+  -DPThreads4W_ROOT:PATH=${VIAME_PACKAGES_DIR}/darknet/3rdparty/pthreads
   )

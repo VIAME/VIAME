@@ -8,20 +8,7 @@
  */
 
 #include "viame_core_plugin_export.h"
-#include <vital/plugin_management/plugin_loader.h>
-
-#include <vital/algo/compute_track_descriptors.h>
-#include <vital/algo/detected_object_set_input.h>
-#include <vital/algo/detected_object_set_output.h>
-#include <vital/algo/image_io.h>
-#include <vital/algo/image_object_detector.h>
-#include <vital/algo/merge_detections.h>
-#include <vital/algo/read_object_track_set.h>
-#include <vital/algo/refine_detections.h>
-#include <vital/algo/train_detector.h>
-#include <vital/algo/train_tracker.h>
-#include <vital/algo/transform_2d_io.h>
-#include <vital/algo/write_object_track_set.h>
+#include <vital/algo/algorithm_factory.h>
 
 #include "adaptive_tracker_trainer.h"
 #include "adaptive_detector_trainer.h"
@@ -32,6 +19,7 @@
 #include "empty_detector.h"
 #include "full_frame_detector.h"
 #include "merge_detections_suppress_in_regions.h"
+#include "normalize_image_percentile.h"
 #include "read_detected_object_set_auto.h"
 #include "read_detected_object_set_cvat.h"
 #include "read_detected_object_set_dive.h"
@@ -54,148 +42,70 @@
 
 namespace viame {
 
-namespace kv = kwiver::vital;
+namespace {
+
+static auto const module_name         = std::string{ "viame.core" };
+static auto const module_version      = std::string{ "1.0" };
+static auto const module_organization = std::string{ "Kitware Inc." };
+
+// ----------------------------------------------------------------------------
+template <typename algorithm_t>
+void register_algorithm( kwiver::vital::plugin_loader& vpm )
+{
+  using kvpf = kwiver::vital::plugin_factory;
+
+  auto fact = vpm.ADD_ALGORITHM( algorithm_t::name, algorithm_t );
+  fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::description )
+       .add_attribute( kvpf::PLUGIN_MODULE_NAME,  module_name )
+       .add_attribute( kvpf::PLUGIN_VERSION,      module_version )
+       .add_attribute( kvpf::PLUGIN_ORGANIZATION, module_organization )
+       ;
+}
+
+}
 
 extern "C"
 VIAME_CORE_PLUGIN_EXPORT
 void
-register_factories( kv::plugin_loader& vpm )
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  using kvpf = kv::plugin_factory;
-  const std::string module_name = "viame.core";
-
   if( vpm.is_module_loaded( module_name ) )
   {
     return;
   }
 
-  auto fact = vpm.add_factory< kv::algo::image_io, add_timestamp_from_filename >(
-    add_timestamp_from_filename::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+  register_algorithm< add_timestamp_from_filename >( vpm );
+  register_algorithm< auto_detect_transform_io >( vpm );
+  register_algorithm< convert_head_tail_points >( vpm );
+  register_algorithm< empty_detector >( vpm );
+  register_algorithm< read_detected_object_set_auto >( vpm );
+  register_algorithm< read_detected_object_set_cvat >( vpm );
+  register_algorithm< read_detected_object_set_dive >( vpm );
+  register_algorithm< read_detected_object_set_fishnet >( vpm );
+  register_algorithm< read_detected_object_set_habcam >( vpm );
+  register_algorithm< read_detected_object_set_oceaneyes >( vpm );
+  register_algorithm< read_detected_object_set_viame_csv >( vpm );
+  register_algorithm< read_detected_object_set_yolo >( vpm );
+  register_algorithm< read_object_track_set_auto >( vpm );
+  register_algorithm< read_object_track_set_dive >( vpm );
+  register_algorithm< read_object_track_set_viame_csv >( vpm );
+  register_algorithm< write_detected_object_set_viame_csv >( vpm );
+  register_algorithm< write_disparity_maps >( vpm );
+  register_algorithm< write_object_track_set_viame_csv >( vpm );
 
-  fact = vpm.add_factory< kv::algo::transform_2d_io, auto_detect_transform_io >(
-    auto_detect_transform_io::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::refine_detections, convert_head_tail_points >(
-    convert_head_tail_points::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::image_object_detector, empty_detector >(
-    empty_detector::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_auto >(
-    read_detected_object_set_auto::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_cvat >(
-    read_detected_object_set_cvat::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_dive >(
-    read_detected_object_set_dive::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_fishnet >(
-    read_detected_object_set_fishnet::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_habcam >(
-    read_detected_object_set_habcam::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_oceaneyes >(
-    read_detected_object_set_oceaneyes::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_viame_csv >(
-    read_detected_object_set_viame_csv::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_yolo >(
-    read_detected_object_set_yolo::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  // Add alias "viame_csv" for backward compatibility with existing pipeline configs
-  fact = vpm.add_factory< kv::algo::detected_object_set_input, read_detected_object_set_viame_csv >(
-    "viame_csv" );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::read_object_track_set, read_object_track_set_auto >(
-    read_object_track_set_auto::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::read_object_track_set, read_object_track_set_dive >(
-    read_object_track_set_dive::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::read_object_track_set, read_object_track_set_viame_csv >(
-    read_object_track_set_viame_csv::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::detected_object_set_output, write_detected_object_set_viame_csv >(
-    write_detected_object_set_viame_csv::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  // Add alias "viame_csv" for backward compatibility with existing pipeline configs
-  fact = vpm.add_factory< kv::algo::detected_object_set_output, write_detected_object_set_viame_csv >(
-    "viame_csv" );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::image_io, write_disparity_maps >(
-    write_disparity_maps::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::write_object_track_set, write_object_track_set_viame_csv >(
-    write_object_track_set_viame_csv::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  // Algorithms using PLUGGABLE_IMPL macro
-  fact = vpm.add_factory< kv::algo::train_tracker, adaptive_tracker_trainer >(
-    adaptive_tracker_trainer::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::train_detector, adaptive_detector_trainer >(
-    adaptive_detector_trainer::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::compute_track_descriptors, average_track_descriptors >(
-    average_track_descriptors::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::image_object_detector, full_frame_detector >(
-    full_frame_detector::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::merge_detections, merge_detections_suppress_in_regions >(
-    merge_detections_suppress_in_regions::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::refine_detections, refine_detections_add_fixed >(
-    refine_detections_add_fixed::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::refine_detections, refine_detections_nms >(
-    refine_detections_nms::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  // Add alias "nms" for backward compatibility with existing pipeline configs
-  fact = vpm.add_factory< kv::algo::refine_detections, refine_detections_nms >(
-    "nms" );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::image_object_detector, windowed_detector >(
-    windowed_detector::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::refine_detections, windowed_refiner >(
-    windowed_refiner::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::train_detector, windowed_trainer >(
-    windowed_trainer::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+  // Algorithms using PLUGIN_INFO macro
+  ::kwiver::vital::algorithm_registrar reg( vpm, module_name );
+  reg.register_algorithm< ::viame::adaptive_tracker_trainer >();
+  reg.register_algorithm< ::viame::adaptive_detector_trainer >();
+  reg.register_algorithm< ::viame::average_track_descriptors >();
+  reg.register_algorithm< ::viame::full_frame_detector >();
+  reg.register_algorithm< ::viame::merge_detections_suppress_in_regions >();
+  reg.register_algorithm< ::viame::normalize_image_percentile >();
+  reg.register_algorithm< ::viame::refine_detections_add_fixed >();
+  reg.register_algorithm< ::viame::refine_detections_nms >();
+  reg.register_algorithm< ::viame::windowed_detector >();
+  reg.register_algorithm< ::viame::windowed_refiner >();
+  reg.register_algorithm< ::viame::windowed_trainer >();
 
   vpm.mark_module_as_loaded( module_name );
 }

@@ -64,7 +64,6 @@ class Detectron2TrainerConfig(KWCocoTrainDetectorConfig):
     # Trainer identification
     identifier = "viame-detectron2-detector"
     train_directory = "deep_training"
-    output_directory = "category_models"
     seed_model = ""
 
     # Temporary file paths
@@ -183,9 +182,6 @@ class Detectron2TrainerConfig(KWCocoTrainDetectorConfig):
         help='Resume training from last checkpoint'
     )
 
-    # Pipeline template
-    pipeline_template = ""
-
     # Categories (populated during training)
     categories = []
 
@@ -276,10 +272,6 @@ class Detectron2Trainer(KWCocoTrainDetector):
         else:
             self._training_file = self._tmp_training_file
             self._validation_file = self._tmp_validation_file
-
-        if self._output_directory is not None:
-            if not os.path.exists(self._output_directory):
-                os.makedirs(self._output_directory, exist_ok=True)
 
         # Load KWIVER modules for writers
         from kwiver.vital.modules import load_known_modules
@@ -614,13 +606,13 @@ class Detectron2Trainer(KWCocoTrainDetector):
         # Save final model
         self.save_final_model(cfg, thing_classes)
 
-        print("\n[Detectron2Trainer] Model training complete!\n")
+        print("\n[Detectron2Trainer] Model training complete!")
 
-        return {"type": "detectron2"}
+        return self.get_output_map()
 
     def save_final_model(self, cfg=None, class_names=None):
         """
-        Save the final trained model and generate pipeline file.
+        Save the final trained model to train directory.
 
         Args:
             cfg: Detectron2 config used for training
@@ -629,11 +621,8 @@ class Detectron2Trainer(KWCocoTrainDetector):
         import torch
         import shutil
 
-        if len(self._pipeline_template) == 0:
-            return
-
         output_model_name = "trained_detectron2_model.pth"
-        output_dpath = ub.Path(self._output_directory)
+        output_dpath = ub.Path(self._train_directory)
         output_model = output_dpath / output_model_name
 
         if cfg is not None:
@@ -662,7 +651,7 @@ class Detectron2Trainer(KWCocoTrainDetector):
                 checkpoint['args']['class_names'] = class_names
                 checkpoint['args']['num_classes'] = len(class_names)
 
-            # Save enriched checkpoint
+            # Save enriched checkpoint to train directory (train.cxx will copy to output)
             torch.save(checkpoint, output_model)
             print(f"[Detectron2Trainer] Saved model to {output_model}")
 
@@ -671,22 +660,44 @@ class Detectron2Trainer(KWCocoTrainDetector):
             if config_file.exists():
                 shutil.copy2(config_file, output_dpath / "model_config.yaml")
 
-        # Generate pipeline file
-        if ub.Path(self._pipeline_template).exists():
-            with open(self._pipeline_template, 'r') as fin:
-                all_lines = fin.readlines()
+    def get_output_map(self):
+        """
+        Build and return output map containing template replacements and file copies.
 
-            with open(output_dpath / "detector.pipe", 'w') as fout:
-                for line in all_lines:
-                    line = line.replace("[-MODEL-FILE-]", output_model_name)
-                    line = line.replace("[-MODEL-BASE-]", str(self._base))
-                    if hasattr(self, '_resize_option'):
-                        line = line.replace("[-WINDOW-OPTION-]", self._resize_option)
-                    fout.write(line)
+        Returns a dict where:
+        - Keys containing ':' are config values (key=config_key, value=filename)
+        - Other keys are file copies (key=output filename, value=source path)
+        """
+        output = {}
 
-        print(f"\n[Detectron2Trainer] Wrote finalized model to {output_model}")
+        output_model_name = "trained_detectron2_model.pth"
+        output_model_path = ub.Path(self._train_directory) / output_model_name
+
+        if not output_model_path.exists():
+            print("\n[Detectron2Trainer] No model found, training may have failed\n")
+            return output
+
+        algo = "detectron2"
+
+        output["type"] = algo
+
+        # Config keys matching detectron2_detector inference config
+        output[algo + ":checkpoint_fpath"] = output_model_name
+        output[algo + ":base"] = str(self._base)
+
+        # File copies (key=output filename, value=source path)
+        output[output_model_name] = str(output_model_path)
+
+        # Include config file if it exists
+        config_file_path = ub.Path(self._train_directory) / "model_config.yaml"
+        if config_file_path.exists():
+            output["model_config.yaml"] = str(config_file_path)
+
+        print(f"\n[Detectron2Trainer] Model found at: {output_model_path}")
         print(f"\n[Detectron2Trainer] The {self._train_directory} directory can now be deleted, "
               "unless you want to review training metrics first.")
+
+        return output
 
 
 def __vital_algorithm_register__():

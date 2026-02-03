@@ -128,6 +128,7 @@ set( CORE_PIPELINE_FILES
   common_default_initializer.pipe
   common_train_detector.conf
   common_default_input.pipe
+  common_default_input_16bit.pipe
   common_default_input_with_downsampler.pipe
   common_foundation_stereo.pipe
   common_image_stabilizer.pipe
@@ -158,6 +159,7 @@ set( CORE_PIPELINE_FILES
   filter_default.pipe
   filter_draw_dets.pipe
   filter_enhance.pipe
+  filter_normalize_16bit.pipe
   filter_split_and_debayer.pipe
   filter_split_left_side.pipe
   filter_split_right_side.pipe
@@ -165,6 +167,7 @@ set( CORE_PIPELINE_FILES
   filter_to_kwa.pipe
   filter_to_video.pipe
   filter_tracks_only.pipe
+  filter_tracks_only_adjust_csv.pipe
   frame_classifier_project_folder.pipe
   frame_classifier_svm.pipe
   index_default.trk.pipe
@@ -173,10 +176,11 @@ set( CORE_PIPELINE_FILES
   index_frame.svm.pipe
   index_frame.svm.annot_only.pipe
   interactive_segmenter_default.conf
+  interactive_segmenter_watershed.conf
   interactive_stereo_default.conf
+  interactive_stereo_template.conf
   measurement_fully_auto_fish_default.pipe
   measurement_fully_auto_gmm_motion.pipe
-  measurement_from_annotations.pipe
   query_from_track.pipe
   query_retrieval_and_iqr.pipe
   query_video_exemplar.pipe
@@ -191,6 +195,8 @@ set( CORE_PIPELINE_FILES
   train_aug_intensity_color_freq_motion.pipe
   train_aug_intensity_hue_motion.pipe
   train_aug_motion_only.pipe
+  train_aug_percentile_norm.pipe
+  train_aug_percentile_norm_npy.pipe
   train_aug_split_and_stereo.pipe
   train_aug_split.pipe
   train_aug_warp_ir_to_eo.pipe
@@ -333,7 +339,6 @@ endif()
 if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_detectron2_frcnn.conf
-    train_detector_dino_remax.conf
   )
 endif()
 

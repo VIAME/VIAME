@@ -449,7 +449,7 @@ if( VIAME_ENABLE_CUDA )
   option( VIAME_FORCE_CUDA_CSTD98 "Build all cuda code with C++ standard 98" FALSE )
   mark_as_advanced( VIAME_FORCE_CUDA_CSTD98 )
 
-  set( DEF_CUDA_ARCHS "5.0 5.2 6.0 6.1 7.0 7.5" )
+  set( DEF_CUDA_ARCHS "6.0 6.1 7.0 7.5" )
 
   if( CUDA_VERSION VERSION_LESS "12.0" )
     set( DEF_CUDA_ARCHS "3.5 ${DEF_CUDA_ARCHS}" )
@@ -475,6 +475,13 @@ if( VIAME_ENABLE_CUDA )
 
   set( CUDA_ARCHITECTURES "${DEF_CUDA_ARCHS}" CACHE STRING "CUDA Architectures" )
   mark_as_advanced( CUDA_ARCHITECTURES )
+
+  # CUDA 12.x does not officially support VS versions after 2022, pass flag
+  # to nvcc to allow compilation with newer host compilers (e.g. VS 2025)
+  if( WIN32 )
+    set( CMAKE_CUDA_FLAGS "--allow-unsupported-compiler ${CMAKE_CUDA_FLAGS}"
+      CACHE STRING "CUDA compilation flags" FORCE )
+  endif()
 
   if( WIN32 )
     set( VIAME_EXECUTABLES_PATH
@@ -1083,6 +1090,8 @@ else()
     install( PROGRAMS      ${VIAME_CMAKE_DIR}/filter_non_web_pipelines.sh
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
     install( PROGRAMS      ${VIAME_CMAKE_DIR}/limit_train_time_for_viame_web.sh
+             DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
+    install( PROGRAMS      ${VIAME_CMAKE_DIR}/viame_train_detector
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
 
     if( VIAME_ENABLE_SEAL )

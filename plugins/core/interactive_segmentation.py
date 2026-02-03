@@ -417,6 +417,7 @@ class InteractiveSegmentationService:
 
     def run(self) -> None:
         """Main loop: read JSON requests from stdin, write responses to stdout."""
+        self._log("model initialized successfully")
         self._log("Service started, waiting for requests...")
 
         for line in sys.stdin:

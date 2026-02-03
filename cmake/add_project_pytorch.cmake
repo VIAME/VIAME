@@ -111,6 +111,8 @@ if( VIAME_ENABLE_CUDA )
   list( APPEND PYTORCH_ENV_VARS "TORCH_CUDA_ARCH_LIST=${CUDA_ARCHITECTURES}" )
   list( APPEND PYTORCH_ENV_VARS "TORCH_NVCC_FLAGS=-Xfatbin -compress-all" )
   list( APPEND PYTORCH_ENV_VARS "NVCC_FLAGS=-allow-unsupported-compiler" )
+  list( APPEND PYTORCH_ENV_VARS "CUDAFLAGS=-allow-unsupported-compiler" )
+  list( APPEND PYTORCH_ENV_VARS "CMAKE_CUDA_FLAGS=--allow-unsupported-compiler" )
   list( APPEND PYTORCH_ENV_VARS "MMCV_CUDA_ARGS=-allow-unsupported-compiler" )
   list( APPEND PYTORCH_ENV_VARS "NO_CAFFE2_OPS=1" )
 else()
@@ -129,12 +131,58 @@ if( WIN32 AND VIAME_ENABLE_PYTORCH-LEARN )
   list( APPEND PYTORCH_ENV_VARS "SETUPTOOLS_USE_DISTUTILS=1" )
 endif()
 
+if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
+  list( APPEND PYTORCH_ENV_VARS "DISTUTILS_USE_SDK=1" )
+  list( APPEND PYTORCH_ENV_VARS "CMAKE_PREFIX_PATH=${VIAME_INSTALL_PREFIX}" )
+  list( APPEND PYTORCH_ENV_VARS "USE_DISTRIBUTED=0" )
+  list( APPEND PYTORCH_ENV_VARS "USE_NCCL=0" )
+  list( APPEND PYTORCH_ENV_VARS "CC=${CMAKE_C_COMPILER}" )
+  list( APPEND PYTORCH_ENV_VARS "CXX=${CMAKE_CXX_COMPILER}" )
+
+  # Limit parallel compile jobs to prevent MSVC from running out of heap space
+  # (C1060) when building oneDNN/mkl-dnn. Each compiler instance can use several
+  # GB for these large translation units.
+  if( VIAME_BUILD_MAX_THREADS )
+    list( APPEND PYTORCH_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
+  endif()
+
+  # Force Ninja generator for PyTorch's internal CMake build.
+  # The Visual Studio generator produces DLLs whose DllMain initialization fails
+  # at runtime with WinError 1114 (see https://github.com/pytorch/pytorch/issues/146166).
+  # Ninja uses the host MSVC compiler directly via CC/CXX, producing compatible binaries.
+  list( APPEND PYTORCH_ENV_VARS "CMAKE_GENERATOR=Ninja" )
+
+  # Add Ninja to the build PATH - prefer the copy bundled with Visual Studio
+  get_filename_component( MSVS_ROOT "${CMAKE_CXX_COMPILER}" DIRECTORY )
+  get_filename_component( MSVS_ROOT "${MSVS_ROOT}/../../../../../../.." ABSOLUTE )
+  set( NINJA_DIR "${MSVS_ROOT}/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja" )
+  if( NOT EXISTS "${NINJA_DIR}/ninja.exe" )
+    # Fallback: look for ninja on the system PATH
+    find_program( NINJA_EXECUTABLE ninja )
+    if( NINJA_EXECUTABLE )
+      get_filename_component( NINJA_DIR "${NINJA_EXECUTABLE}" DIRECTORY )
+    endif()
+  endif()
+
+  # Save PYTHONPATH with pytorch source prepended for the pytorch build only.
+  # PyTorch needs its source dir on PYTHONPATH so its 'tools' and 'torchgen'
+  # packages are found during build. Downstream libs (torchvision, mmcv, etc.)
+  # must NOT have it because importing torch from the source tree fails on
+  # Windows due to DLL dependency resolution issues (WinError 126).
+  set( PYTORCH_SOURCE_PYTHONPATH
+    "PYTHONPATH=${VIAME_PACKAGES_DIR}/pytorch<PS>${VIAME_PYTHON_PATH}" )
+endif()
+
 # On Windows, add torch lib directory to PATH so DLLs can be found when importing torch
 # This is required because Python 3.8+ changed DLL search behavior on Windows
 if( WIN32 )
   set( TORCH_DLL_PATH "${VIAME_PYTHON_PACKAGES}/torch/lib<PS>${VIAME_INSTALL_PREFIX}/bin" )
   if( VIAME_ENABLE_CUDA AND CUDA_TOOLKIT_ROOT_DIR )
     set( TORCH_DLL_PATH "${TORCH_DLL_PATH}<PS>${CUDA_TOOLKIT_ROOT_DIR}/bin" )
+    # CUPTI DLLs are in extras/CUPTI/lib64, not in the main bin directory
+    if( EXISTS "${CUDA_TOOLKIT_ROOT_DIR}/extras/CUPTI/lib64" )
+      set( TORCH_DLL_PATH "${TORCH_DLL_PATH}<PS>${CUDA_TOOLKIT_ROOT_DIR}/extras/CUPTI/lib64" )
+    endif()
   endif()
 
   # For torchvision and other PyTorch extensions on Windows, we need to provide
@@ -147,6 +195,9 @@ if( WIN32 )
     get_filename_component( MSVC_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY )
     get_filename_component( MSVC_INCLUDE_DIR "${MSVC_BIN_DIR}/../../../include" ABSOLUTE )
     get_filename_component( MSVC_LIB_DIR "${MSVC_BIN_DIR}/../../../lib/x64" ABSOLUTE )
+
+    # Add MSVC bin directory to PATH so cl.exe is discoverable by pytorch's CMake
+    set( TORCH_DLL_PATH "${TORCH_DLL_PATH}<PS>${MSVC_BIN_DIR}" )
 
     # Find Windows SDK path
     set( WIN_SDK_ROOT "C:/Program Files (x86)/Windows Kits/10" )
@@ -171,17 +222,26 @@ if( WIN32 )
           message( STATUS "VIAME: Added Windows SDK bin to PATH: ${SDK_BIN_X64}" )
         endif()
 
-        # Set INCLUDE env var for distutils/setuptools
+        # Merge MSVC/SDK paths with existing INCLUDE/LIB from PYTHON_DEP_ENV_VARS
+        # Remove existing entries first, then add combined versions so both
+        # MSVC/SDK paths and VIAME install/system paths are preserved
         set( MSVC_INCLUDE_PATHS "${MSVC_INCLUDE_DIR}<PS>${SDK_UCRT_INCLUDE}<PS>${SDK_SHARED_INCLUDE}<PS>${SDK_UM_INCLUDE}" )
-        list( APPEND PYTORCH_ENV_VARS "INCLUDE=${MSVC_INCLUDE_PATHS}" )
-
-        # Set LIB env var for linker
         set( MSVC_LIB_PATHS "${MSVC_LIB_DIR}<PS>${SDK_UCRT_LIB}<PS>${SDK_UM_LIB}" )
-        list( APPEND PYTORCH_ENV_VARS "LIB=${MSVC_LIB_PATHS}" )
+
+        list( FILTER PYTORCH_ENV_VARS EXCLUDE REGEX "^INCLUDE=" )
+        list( FILTER PYTORCH_ENV_VARS EXCLUDE REGEX "^LIB=" )
+        list( APPEND PYTORCH_ENV_VARS "INCLUDE=${MSVC_INCLUDE_PATHS}<PS>${ADJ_INCLUDE_PATH}" )
+        list( APPEND PYTORCH_ENV_VARS "LIB=${MSVC_LIB_PATHS}<PS>${ADJ_LIBRARY_PATH}" )
 
         message( STATUS "VIAME: Set INCLUDE/LIB for MSVC ${CMAKE_CXX_COMPILER_VERSION} and Windows SDK ${SDK_VERSION}" )
       endif()
     endif()
+  endif()
+
+  # Add Ninja build tool to PATH if found
+  if( EXISTS "${NINJA_DIR}/ninja.exe" )
+    set( TORCH_DLL_PATH "${TORCH_DLL_PATH}<PS>${NINJA_DIR}" )
+    message( STATUS "VIAME: Added Ninja to PyTorch PATH: ${NINJA_DIR}" )
   endif()
 
   # Prepend our paths to existing PATH (use <PS> as placeholder for path separator)
@@ -255,7 +315,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
           --wheel-dir ${LIBRARY_PIP_BUILD_DIR}
           ${LIBRARY_LOCATION}
       )
-    elseif( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
+    elseif( "${LIB}" STREQUAL "pytorch" OR "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
       # Use pip wheel instead of setup.py bdist_wheel to avoid Windows cleanup
       # errors ("no such file or directory" when removing bdist temp directory)
       # Must use --no-cache-dir to ensure wheel is written to --wheel-dir (not just cached)
@@ -391,6 +451,16 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   # Convert lists to ----separated strings for passing through ExternalProject_Add
   set( PYTORCH_ENV_VARS_WITH_BUILD_DIR ${PYTORCH_ENV_VARS} "PYTORCH_BUILD_DIR=${LIBRARY_PIP_BUILD_DIR}" )
 
+  # Only the pytorch build itself needs its source dir on PYTHONPATH (for torchgen/tools).
+  # Downstream libs must import torch from the installed site-packages.
+  if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE AND "${LIB}" STREQUAL "pytorch" )
+    list( FILTER PYTORCH_ENV_VARS_WITH_BUILD_DIR EXCLUDE REGEX "^PYTHONPATH=" )
+    list( APPEND PYTORCH_ENV_VARS_WITH_BUILD_DIR "${PYTORCH_SOURCE_PYTHONPATH}" )
+    # With the Ninja generator, INCLUDE/LIB are kept so that cl.exe can find
+    # the host MSVC headers and libraries. The VS generator previously caused
+    # DllMain failures (WinError 1114) due to how it handled mixed toolsets.
+  endif()
+
   # Set SAM2_BUILD_CUDA based on whether CUDA is enabled
   if( "${LIB}" STREQUAL "sam2" )
     if( VIAME_ENABLE_CUDA )
@@ -474,6 +544,54 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     BUILD_COMMAND ${CONDITIONAL_BUILD_CMD}
     INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
     LIST_SEPARATOR "----" )
+
+  # On Windows, enable git long paths for PyTorch submodules to handle
+  # composable_kernel files that exceed the 260-char MAX_PATH limit
+  if( WIN32 AND "${LIB}" STREQUAL "pytorch" )
+    ExternalProject_Add_Step(${LIB}
+      git_longpaths
+      COMMAND git config core.longpaths true
+      WORKING_DIRECTORY ${LIBRARY_LOCATION}
+      DEPENDEES patch
+      DEPENDERS build
+      COMMENT "Enabling git long paths for PyTorch submodules on Windows" )
+  endif()
+
+  # On Windows, copy runtime DLLs that torch depends on but doesn't bundle in the wheel.
+  # libomp140.x86_64.dll (LLVM OpenMP runtime) is needed by torch_cpu.dll.
+  # cupti64 (CUDA Profiling Tools) is in extras/CUPTI/lib64, not the main CUDA bin.
+  if( WIN32 AND "${LIB}" STREQUAL "pytorch" )
+    set( TORCH_LIB_DIR "${VIAME_PYTHON_PACKAGES}/torch/lib" )
+
+    # Find and copy libomp140.x86_64.dll from the VS 2019 redistributable
+    # (PyTorch uses VS 2019 internally with -openmp:experimental which links to LLVM OpenMP)
+    set( VS2019_BASE "C:/Program Files (x86)/Microsoft Visual Studio/2019/Professional" )
+    file( GLOB VS2019_REDIST_DIRS "${VS2019_BASE}/VC/Redist/MSVC/*/debug_nonredist/x64/Microsoft.VC142.OpenMP.LLVM" )
+    if( VS2019_REDIST_DIRS )
+      list( GET VS2019_REDIST_DIRS -1 VS2019_OMP_DIR )
+      ExternalProject_Add_Step(${LIB}
+        copy_libomp
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "${VS2019_OMP_DIR}/libomp140.x86_64.dll" "${TORCH_LIB_DIR}/libomp140.x86_64.dll"
+        DEPENDEES install
+        COMMENT "Copying libomp140.x86_64.dll to torch/lib" )
+    endif()
+
+    # Copy CUPTI DLL to torch/lib for reliable loading
+    if( VIAME_ENABLE_CUDA AND CUDA_TOOLKIT_ROOT_DIR )
+      file( GLOB CUPTI_DLLS "${CUDA_TOOLKIT_ROOT_DIR}/extras/CUPTI/lib64/cupti64*.dll" )
+      if( CUPTI_DLLS )
+        list( GET CUPTI_DLLS 0 CUPTI_DLL )
+        get_filename_component( CUPTI_DLL_NAME "${CUPTI_DLL}" NAME )
+        ExternalProject_Add_Step(${LIB}
+          copy_cupti
+          COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CUPTI_DLL}" "${TORCH_LIB_DIR}/${CUPTI_DLL_NAME}"
+          DEPENDEES install
+          COMMENT "Copying ${CUPTI_DLL_NAME} to torch/lib" )
+      endif()
+    endif()
+  endif()
 
   if( "${LIB}" STREQUAL "mmdeploy" )
     set( MMDEPLOY_INSTALL_DIR ${VIAME_PYTHON_INSTALL}/site-packages/mmdeploy )

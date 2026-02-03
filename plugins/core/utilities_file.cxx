@@ -4,6 +4,7 @@
 
 #include "utilities_file.h"
 
+#include <algorithm>
 #include <fstream>
 #include <map>
 #include <sstream>
@@ -138,7 +139,7 @@ bool create_folder( const std::string& location )
     return filesystem::create_directories( dir );
   }
 
-  return false;
+  return true;
 }
 
 bool folder_contains_less_than_n_files( const std::string& folder, unsigned n )
@@ -233,6 +234,168 @@ bool ends_with_extension( const std::string& str,
     }
   }
   return false;
+}
+
+std::string get_file_extension( const std::string& path )
+{
+  size_t dot_pos = path.rfind( '.' );
+  if( dot_pos == std::string::npos )
+  {
+    return "";
+  }
+
+  std::string ext = path.substr( dot_pos );
+
+  // Convert to lowercase
+  for( auto& c : ext )
+  {
+    c = static_cast< char >( std::tolower( static_cast< unsigned char >( c ) ) );
+  }
+
+  return ext;
+}
+
+bool select_file_by_extension_priority(
+    const std::vector< std::string >& files,
+    const std::vector< std::string >& priority_exts,
+    const std::vector< std::string >& allowed_exts,
+    std::string& selected,
+    std::string& error_msg )
+{
+  selected.clear();
+  error_msg.clear();
+
+  if( files.empty() )
+  {
+    return true;
+  }
+
+  if( files.size() == 1 )
+  {
+    selected = files[0];
+    return true;
+  }
+
+  // Group files by extension
+  std::map< std::string, std::string > files_by_ext;
+
+  for( const auto& f : files )
+  {
+    std::string ext = get_file_extension( f );
+
+    if( files_by_ext.count( ext ) )
+    {
+      error_msg = "multiple files with extension " + ext;
+      return false;
+    }
+    files_by_ext[ ext ] = f;
+  }
+
+  // Build set of allowed extensions (lowercase)
+  std::unordered_set< std::string > allowed_set;
+  for( const auto& ext : allowed_exts )
+  {
+    std::string ext_lower = ext;
+    for( auto& c : ext_lower )
+    {
+      c = static_cast< char >( std::tolower( static_cast< unsigned char >( c ) ) );
+    }
+    allowed_set.insert( ext_lower );
+  }
+
+  // Select based on priority
+  for( const auto& ext : priority_exts )
+  {
+    std::string ext_lower = ext;
+    for( auto& c : ext_lower )
+    {
+      c = static_cast< char >( std::tolower( static_cast< unsigned char >( c ) ) );
+    }
+
+    // Only consider if this extension is allowed
+    if( !allowed_set.empty() && !allowed_set.count( ext_lower ) )
+    {
+      continue;
+    }
+
+    if( files_by_ext.count( ext_lower ) )
+    {
+      selected = files_by_ext[ ext_lower ];
+      return true;
+    }
+  }
+
+  // Fallback to first file if no priority match
+  selected = files[0];
+  return true;
+}
+
+std::string find_associated_file( const std::string& base_path, const std::string& ext )
+{
+  // Strategy 1: Replace the existing extension
+  std::string replaced = replace_ext_with( base_path, ext );
+  if( does_file_exist( replaced ) )
+  {
+    return replaced;
+  }
+
+  // Strategy 2: Add extension to the path (handles folders or extensionless files)
+  std::string added = add_ext_unto( base_path, ext );
+  if( does_file_exist( added ) )
+  {
+    return added;
+  }
+
+  return "";
+}
+
+std::string resolve_path_with_link( const std::string& path )
+{
+  // Check if the path exists directly
+  if( does_file_exist( path ) || does_folder_exist( path ) )
+  {
+    return path;
+  }
+
+  // Try resolving as a .lnk file (Windows shortcut)
+  std::string lnk_path = path + ".lnk";
+  if( does_file_exist( lnk_path ) || does_folder_exist( lnk_path ) )
+  {
+    try
+    {
+      return filesystem::canonical( filesystem::path( lnk_path ) ).string();
+    }
+    catch( ... )
+    {
+      // If canonical fails, return original path
+      return path;
+    }
+  }
+
+  return path;
+}
+
+std::vector< std::string > find_files_in_folder_or_alongside(
+    const std::string& folder_path,
+    const std::vector< std::string >& extensions )
+{
+  std::vector< std::string > files;
+
+  // Try listing files in the folder
+  list_files_in_folder( folder_path, files, false, extensions );
+  std::sort( files.begin(), files.end() );
+
+  // If no files found and we have extensions, try adding first extension to folder path
+  if( files.empty() && !extensions.empty() )
+  {
+    std::string alongside = add_ext_unto( folder_path, extensions[0] );
+    if( does_file_exist( alongside ) )
+    {
+      files.push_back( alongside );
+    }
+  }
+
+  return files;
 }
 
 std::string add_quotes( const std::string& str )
@@ -539,6 +702,66 @@ bool copy_file( const std::string& source, const std::string& destination )
   fout.close();
 
   return true;
+}
+
+bool copy_folder( const std::string& source, const std::string& destination )
+{
+  if( !does_folder_exist( source ) )
+  {
+    std::cerr << "Source folder does not exist: " << source << std::endl;
+    return false;
+  }
+
+  // Create destination folder
+  if( !create_folder( destination ) )
+  {
+    std::cerr << "Failed to create destination folder: " << destination << std::endl;
+    return false;
+  }
+
+  bool all_success = true;
+
+  try
+  {
+    for( const auto& entry : filesystem::recursive_directory_iterator( source ) )
+    {
+      const auto& path = entry.path();
+      auto relative_path = filesystem::relative( path, source );
+      auto dest_path = filesystem::path( destination ) / relative_path;
+
+      if( filesystem::is_directory( path ) )
+      {
+        filesystem::create_directories( dest_path );
+      }
+      else if( filesystem::is_regular_file( path ) )
+      {
+        // Check if destination path is too long (common filesystem limit)
+        if( dest_path.string().length() > 250 )
+        {
+          // Skip files with paths that are too long
+          continue;
+        }
+
+        filesystem::create_directories( dest_path.parent_path() );
+
+        std::error_code ec;
+        filesystem::copy_file( path, dest_path,
+          filesystem::copy_options::overwrite_existing, ec );
+
+        if( ec )
+        {
+          all_success = false;
+        }
+      }
+    }
+  }
+  catch( const std::exception& e )
+  {
+    std::cerr << "Error copying folder: " << e.what() << std::endl;
+    return false;
+  }
+
+  return all_success;
 }
 
 bool replace_keywords_in_template_to_string(

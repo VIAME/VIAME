@@ -204,9 +204,9 @@ install_deps_apt() {
 
   # Install numpy via pip (to target directory if specified, otherwise system)
   if [ -n "$pip_target" ]; then
-    python -m pip install --target "$pip_target" numpy==1.25.2
+    python -m pip install --target "$pip_target" numpy==2.0.2
   else
-    python -m pip install numpy==1.25.2
+    python -m pip install numpy==2.0.2
   fi
 
   echo "apt-get dependency installation complete"
@@ -779,26 +779,42 @@ fix_libsvm_symlink() {
 prepare_linux_desktop_install() {
   local install_dir="${1:-install}"
   local source_dir="${2:-..}"
+  local excluded_dir="${install_dir}_excluded"
 
   echo "Preparing Linux desktop install..."
 
-  # Remove directories not needed for desktop distribution
-  local dirs_to_remove=(
+  # Move directories not needed for desktop distribution to temp location
+  rm -rf "$excluded_dir"
+  mkdir -p "$excluded_dir"
+
+  local dirs_to_exclude=(
     "sbin"
     "qml"
     "include"
     "mkspecs"
-    "share"
     "etc"
     "doc"
   )
 
-  for dir in "${dirs_to_remove[@]}"; do
+  for dir in "${dirs_to_exclude[@]}"; do
     if [ -d "$install_dir/$dir" ]; then
-      rm -rf "$install_dir/$dir"
-      echo "  Removed $dir"
+      mv "$install_dir/$dir" "$excluded_dir/$dir"
+      echo "  Moved $dir"
     fi
   done
+
+  # Move share directory but preserve share/postgresql in the package
+  if [ -d "$install_dir/share" ]; then
+    if [ -d "$install_dir/share/postgresql" ]; then
+      mv "$install_dir/share/postgresql" "$install_dir/postgresql_temp"
+    fi
+    mv "$install_dir/share" "$excluded_dir/share"
+    if [ -d "$install_dir/postgresql_temp" ]; then
+      mkdir -p "$install_dir/share"
+      mv "$install_dir/postgresql_temp" "$install_dir/share/postgresql"
+    fi
+    echo "  Moved share (preserved share/postgresql)"
+  fi
 
   # Copy LICENSE.txt to install root
   if [ -f "$source_dir/LICENSE.txt" ]; then
@@ -809,6 +825,51 @@ prepare_linux_desktop_install() {
   fi
 
   echo "Linux desktop install preparation complete"
+}
+
+# Restore directories moved out by prepare_linux_desktop_install
+# Arguments:
+#   $1 = install directory (default: install)
+restore_linux_desktop_install() {
+  local install_dir="${1:-install}"
+  local excluded_dir="${install_dir}_excluded"
+
+  if [ ! -d "$excluded_dir" ]; then
+    echo "No excluded directories to restore"
+    return 0
+  fi
+
+  echo "Restoring development folders..."
+
+  local dirs_to_restore=(
+    "sbin"
+    "qml"
+    "include"
+    "mkspecs"
+    "etc"
+    "doc"
+  )
+
+  for dir in "${dirs_to_restore[@]}"; do
+    if [ -d "$excluded_dir/$dir" ]; then
+      mv "$excluded_dir/$dir" "$install_dir/$dir"
+    fi
+  done
+
+  # Restore share directory, merging back with preserved postgresql
+  if [ -d "$excluded_dir/share" ]; then
+    if [ -d "$install_dir/share/postgresql" ]; then
+      mv "$install_dir/share/postgresql" "$install_dir/postgresql_temp"
+      rm -rf "$install_dir/share"
+    fi
+    mv "$excluded_dir/share" "$install_dir/share"
+    if [ -d "$install_dir/postgresql_temp" ]; then
+      mv "$install_dir/postgresql_temp" "$install_dir/share/postgresql"
+    fi
+  fi
+
+  rm -rf "$excluded_dir"
+  echo "Development folders restored"
 }
 
 # Create tarball of install directory

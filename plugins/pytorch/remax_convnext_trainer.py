@@ -36,7 +36,6 @@ _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse'])
 class ReMaxConvNextTrainer( TrainDetector ):
     _options = [
         _Option('_gpu_count', 'gpu_count', -1, int),
-        _Option('_output_directory', 'output_directory', '', str),
         _Option('_debug_mode', 'debug_mode', False, bool),
         _Option('_feature_cache', 'feature_cache', '', str),
         _Option('_net_config', 'net_config', '', str),
@@ -56,9 +55,7 @@ class ReMaxConvNextTrainer( TrainDetector ):
         self._config_file = ""
         self._seed_weights = ""
         self._train_directory = "deep_training"
-        self._output_directory = "category_models"
         self._output_prefix = "custom_cfrnn"
-        self._pipeline_template = ""
         self._gpu_count = -1
         self._random_seed = "none"
         self._tmp_training_file = "training_truth.pickle"
@@ -79,9 +76,7 @@ class ReMaxConvNextTrainer( TrainDetector ):
         cfg.set_value( "config_file", self._config_file )
         cfg.set_value( "seed_weights", self._seed_weights )
         cfg.set_value( "train_directory", self._train_directory )
-        cfg.set_value( "output_directory", self._output_directory )
         cfg.set_value( "output_prefix", self._output_prefix )
-        cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
         cfg.set_value( "random_seed", str( self._random_seed ) )
         cfg.set_value( "validate", str( self._validate ) )
@@ -406,25 +401,33 @@ class ReMaxConvNextTrainer( TrainDetector ):
         
         self.remax_model = ReMax(train_data)
 
-        self.save_final_model()
+        return self._get_output_map()
 
-        return {"type": "remax_convnext"}
-
-    def save_final_model( self ):
+    def _get_output_map( self ):
+        output = {}
         output_model_name = "remax.pkl"
-        output_model = os.path.join( self._output_directory,
-            output_model_name )
-        
-        with open(output_model, 'wb') as f:
-            pickle.dump(self.remax_model, f)
 
+        # Save to train directory instead of output directory
+        output_model = os.path.join( self._train_directory, output_model_name )
+
+        with open( output_model, 'wb' ) as f:
+            pickle.dump( self.remax_model, f )
 
         if not os.path.exists( output_model ):
-            print( "\nModel failed to finsh training\n" )
-            sys.exit( 0 )
+            print( "\nModel failed to finish training" )
+            return output
 
-        # Output additional completion text
-        print( "\nWrote finalized model to " + output_model )
+        algo = "remax_convnext"
+
+        output["type"] = algo
+        output[algo + ":deployed"] = output_model_name
+        output[output_model_name] = output_model
+
+        print( "\nModel found at: " + output_model )
+        print( "\nThe " + self._train_directory + " directory can now be deleted, "
+               "unless you want to review training metrics first." )
+
+        return output
 
     def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
         print('add_data_from_disk')

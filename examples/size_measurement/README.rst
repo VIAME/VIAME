@@ -115,13 +115,13 @@ You should be able to run the help command
 
 :: 
 
-    python -m viame.processes.opencv.ocv_stereo_demo --help
+    python -m viame.opencv.stereo_demo --help
 
 The script can be run on the demodata via
 
 ::
 
-    python -m viame.processes.opencv.ocv_stereo_demo \
+    python -m viame.opencv.stereo_demo \
         --left=camtrawl_demodata/left --right=camtrawl_demodata/right \
         --cal=camtrawl_demodata/cal.npz \
         --out=out --draw -f
@@ -141,8 +141,8 @@ VIAME)
     # First move to the example directory
     cd [viame-source]/examples/size_measurement
 
-    # Run the camtrawl module directly via the path
-    python ../../plugins/opencv/python/viame/processes/opencv \
+    # Run the stereo_demo module directly via the path
+    python ../../plugins/opencv/stereo_demo.py \
         --left=camtrawl_demodata/left --right=camtrawl_demodata/right \
         --cal=camtrawl_demodata/cal.npz \
         --out=out --draw -f

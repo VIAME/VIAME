@@ -26,6 +26,7 @@
 #include <sprokit/pipeline/process_exception.h>
 
 #include <plugins/core/utilities_file.h>
+#include <plugins/core/utilities_image.h>
 #include <plugins/core/utilities_training.h>
 #include <plugins/core/manipulate_pipelines.h>
 
@@ -37,6 +38,7 @@
 #include <iostream>
 #include <sstream>
 #include <iterator>
+#include <cstdlib>
 #include <memory>
 #include <cctype>
 #include <regex>
@@ -148,6 +150,56 @@ static kv::config_block_sptr default_config()
 }
 
 // =======================================================================================
+// Try to instantiate a detector and get its configuration.
+// The output_map is used to pre-configure nested detector types if present.
+// Returns nullptr if the detector cannot be instantiated.
+static kv::config_block_sptr try_get_detector_config(
+    const std::string& algo_type,
+    const std::map< std::string, std::string >& output_map = {} )
+{
+  if( algo_type.empty() )
+  {
+    return nullptr;
+  }
+
+  try
+  {
+    kv::algo::image_object_detector_sptr detector;
+    kv::config_block_sptr temp_config = kv::config_block::empty_config();
+    temp_config->set_value( "detector:type", algo_type );
+
+    // Pre-configure nested detector type from output map if present
+    // e.g., if algo_type is "ocv_windowed" and output map has
+    // "ocv_windowed:detector:type" = "netharn", set it before instantiation
+    std::string nested_type_key = algo_type + ":detector:type";
+    auto it = output_map.find( nested_type_key );
+    if( it != output_map.end() && !it->second.empty() )
+    {
+      temp_config->set_value( "detector:" + nested_type_key, it->second );
+    }
+
+    kv::algo::image_object_detector::set_nested_algo_configuration(
+      "detector", temp_config, detector );
+
+    if( detector )
+    {
+      kv::config_block_sptr config = kv::config_block::empty_config();
+      kv::algo::image_object_detector::get_nested_algo_configuration(
+        "detector", config, detector );
+      return config;
+    }
+  }
+  catch( ... )
+  {
+    // Some detectors (e.g., netharn, mmdet) require model files to be
+    // instantiated and will fail here. This is expected - we'll skip
+    // detailed validation for these detectors.
+  }
+
+  return nullptr;
+}
+
+// =======================================================================================
 // Validate that trainer output keys match the inference algorithm's config.
 // Returns true if all keys are valid, false otherwise.
 static bool validate_trainer_output_keys(
@@ -160,74 +212,97 @@ static bool validate_trainer_output_keys(
     return true;
   }
 
-  // Try to get the inference algorithm's default configuration
-  kv::config_block_sptr algo_config;
-
-  try
+  if( !is_detector )
   {
-    if( is_detector )
-    {
-      kv::algo::image_object_detector_sptr detector;
-
-      kv::config_block_sptr temp_config = kv::config_block::empty_config();
-      temp_config->set_value( "detector:type", algorithm_type );
-      kv::set_nested_algo_configuration< kv::algo::image_object_detector >
-        ( "detector", temp_config, detector );
-
-      if( detector )
-      {
-        algo_config = kv::config_block::empty_config();
-        kv::get_nested_algo_configuration< kv::algo::image_object_detector >
-          ( "detector", algo_config, detector );
-      }
-    }
-    else
-    {
-      // For trackers, validation is less strict since tracker configs vary more
-      return true;
-    }
-  }
-  catch( ... )
-  {
-    // If we can't instantiate the algorithm, skip validation
-    std::cerr << "Warning: Could not validate output keys against algorithm '"
-              << algorithm_type << "'" << std::endl;
+    // For trackers, validation is less strict since tracker configs vary more
     return true;
   }
 
-  if( !algo_config )
+  // Check for nested detector type (e.g., "ocv_windowed:detector:type" = "netharn")
+  std::string nested_type;
+  std::string nested_type_key = algorithm_type + ":detector:type";
+  auto nested_it = output_map.find( nested_type_key );
+  if( nested_it != output_map.end() && !nested_it->second.empty() )
+  {
+    nested_type = nested_it->second;
+  }
+
+  // Get the outer algorithm's config (e.g., ocv_windowed)
+  // Pass output_map so nested detector type is pre-configured for wrapper types
+  kv::config_block_sptr outer_config = try_get_detector_config( algorithm_type, output_map );
+
+  // Get nested algorithm's config if available
+  kv::config_block_sptr nested_config = try_get_detector_config( nested_type );
+
+  // If neither config could be obtained, skip validation silently.
+  // This is expected for Python-based detectors (e.g. netharn) that
+  // cannot be instantiated without a model file.
+  if( !outer_config && !nested_config )
   {
     return true;
   }
 
-  // Check each non-file key against the algorithm config
+  // Validate keys against appropriate configs
   bool all_valid = true;
+  std::string outer_prefix = algorithm_type + ":";
+  std::string nested_prefix = outer_prefix + "detector:";
+
   for( const auto& pair : output_map )
   {
     const std::string& key = pair.first;
     const std::string& value = pair.second;
 
-    // Skip if value is an existing file (it's a file copy, not a config key)
-    if( !value.empty() && does_file_exist( value ) )
+    // Skip file copies and special keys
+    if( !value.empty() && ( does_file_exist( value ) || does_folder_exist( value ) ) )
+    {
+      continue;
+    }
+    if( key == "eval" || key == "type" || key == "eval_folder" ||
+        key == nested_type_key )
     {
       continue;
     }
 
-    // 'eval' is a special key that doesn't need to be in the inference config
-    if( key == "eval" )
+    // Determine which config to validate against based on key prefix
+    if( key.find( nested_prefix ) == 0 )
     {
-      continue;
-    }
+      // Key like "ocv_windowed:detector:netharn:deployed" - validate against nested config
+      std::string after_prefix = key.substr( nested_prefix.size() );
+      std::string expected_start = nested_type + ":";
 
-    // Check if the key exists in the algorithm's config
-    std::string full_key = "detector:" + algorithm_type + ":" + key;
-    if( !algo_config->has_value( full_key ) )
-    {
-      std::cerr << "Error: Trainer returned key '" << key
-                << "' which is not a valid config key for algorithm '"
-                << algorithm_type << "'" << std::endl;
-      all_valid = false;
+      if( after_prefix.size() <= expected_start.size() ||
+          after_prefix.substr( 0, expected_start.size() ) != expected_start )
+      {
+        continue;
+      }
+
+      if( nested_config )
+      {
+        std::string nested_key = "detector:" + nested_type + ":" +
+          key.substr( nested_prefix.size() + nested_type.size() + 1 );
+
+        if( !nested_config->has_value( nested_key ) )
+        {
+          std::cerr << "Error: Invalid nested key '" << key << "' for algorithm '"
+                    << nested_type << "'" << std::endl;
+          all_valid = false;
+        }
+      }
+      // else: nested detector couldn't be instantiated, skip validation for this key
     }
+    else if( key.find( outer_prefix ) == 0 && outer_config )
+    {
+      // Key like "ocv_windowed:mode" - validate against outer config
+      std::string outer_key = "detector:" + key;
+
+      if( !outer_config->has_value( outer_key ) )
+      {
+        std::cerr << "Error: Invalid key '" << key << "' for algorithm '"
+                  << algorithm_type << "'" << std::endl;
+        all_valid = false;
+      }
+    }
+    // Keys without prefix are silently skipped (they may be template-only keys)
   }
 
   return all_valid;
@@ -266,11 +341,19 @@ static void process_trainer_output(
   // Separate template replacements from file copies based on whether value is a file
   std::map< std::string, std::string > template_replacements;
   std::map< std::string, std::string > file_copies;
+  std::string eval_folder;  // Optional evaluation folder to copy
 
   for( const auto& pair : output_map )
   {
     const std::string& key = pair.first;
     const std::string& value = pair.second;
+
+    // Special key for evaluation folder
+    if( key == "eval_folder" && !value.empty() && does_folder_exist( value ) )
+    {
+      eval_folder = value;
+      continue;
+    }
 
     // If value is an existing file, treat as file copy
     if( !value.empty() && does_file_exist( value ) )
@@ -370,6 +453,8 @@ static void process_trainer_output(
   }
 
   // Copy model files to output directory
+  std::cout << std::endl;
+
   for( const auto& pair : file_copies )
   {
     const std::string& dest_filename = pair.first;
@@ -389,6 +474,22 @@ static void process_trainer_output(
     }
   }
 
+  // Copy evaluation folder if specified
+  if( !eval_folder.empty() )
+  {
+    std::string eval_dest = output_directory.empty() ?
+      "model_evaluation" : append_path( output_directory, "model_evaluation" );
+
+    if( copy_folder( eval_folder, eval_dest ) )
+    {
+      std::cout << "Copied evaluation results to: " << eval_dest << std::endl;
+    }
+    else
+    {
+      std::cerr << "Warning: failed to copy evaluation folder" << std::endl;
+    }
+  }
+
   // Generate pipeline from template if configured
   if( !pipeline_template.empty() && does_file_exist( pipeline_template ) )
   {
@@ -405,6 +506,8 @@ static void process_trainer_output(
       std::cerr << "Warning: failed to generate pipeline from template" << std::endl;
     }
   }
+
+  std::cout << std::endl;
 }
 
 // =======================================================================================
@@ -465,6 +568,8 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "path" )
     ( "output-file", "Output zip file for model and pipeline (overrides output-dir)",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "normalize-16bit", "Enable percentile normalization for 16-bit/float imagery",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
     ;
 }
 
@@ -512,6 +617,7 @@ train_applet
   std::string opt_timeout = cmd_args[ "timeout" ].as< std::string >();
   std::string opt_init_weights = cmd_args[ "init-weights" ].as< std::string >();
   std::string opt_output_file = cmd_args[ "output-file" ].as< std::string >();
+  bool opt_normalize_16bit = cmd_args[ "normalize-16bit" ].as< bool >();
 
   // List option
   if( opt_list )
@@ -899,7 +1005,7 @@ train_applet
     output_file = opt_output_file;
   }
 
-  if( convert_to_full_frame && !kv::check_nested_algo_configuration< kv::algo::image_io >( "image_reader", config ) )
+  if( !kv::check_nested_algo_configuration< kv::algo::image_io >( "image_reader", config ) )
   {
     std::cout << "Invalid image reader type specified" << std::endl;
     return EXIT_FAILURE;
@@ -922,10 +1028,35 @@ train_applet
     pipeline_file = opt_pipeline_file;
   }
 
+  // Handle --normalize-16bit option
+  if( opt_normalize_16bit )
+  {
+    // Get VIAME_INSTALL from environment to build full paths
+    const char* viame_install = std::getenv( "VIAME_INSTALL" );
+    std::string pipeline_prefix;
+    if( viame_install )
+    {
+      pipeline_prefix = std::string( viame_install ) + "/configs/pipelines/";
+    }
+
+    if( pipeline_file.empty() )
+    {
+      pipeline_file = pipeline_prefix + "train_aug_percentile_norm.pipe";
+      std::cout << "Using percentile normalization augmentation pipeline" << std::endl;
+    }
+    if( pipeline_template.empty() ||
+        pipeline_template.find( "default" ) != std::string::npos )
+    {
+      pipeline_template = pipeline_prefix + "templates/embedded_16bit.pipe";
+      std::cout << "Using 16-bit normalization inference template" << std::endl;
+    }
+  }
+
   if( !augmented_cache.empty() &&
       !pipeline_file.empty() &&
-      create_folder( augmented_cache ) )
+      !does_folder_exist( augmented_cache ) )
   {
+    create_folder( augmented_cache );
     regenerate_cache = true;
   }
 
@@ -1022,17 +1153,15 @@ train_applet
     }
   }
 
-  // Image reader and width/height only required for certain operations
-  if( convert_to_full_frame )
-  {
-    kv::set_nested_algo_configuration< kv::algo::image_io >
-      ( "image_reader", config, image_reader );
-    kv::get_nested_algo_configuration< kv::algo::image_io >
-      ( "image_reader", config, image_reader );
-  }
+  // Image reader used for convert_to_full_frame and bit depth checking
+  kv::set_nested_algo_configuration< kv::algo::image_io >
+    ( "image_reader", config, image_reader );
+  kv::get_nested_algo_configuration< kv::algo::image_io >
+    ( "image_reader", config, image_reader );
 
   unsigned image_width = 0, image_height = 0;
   bool variable_resolution_sequences = false;
+  bool bit_depth_checked = false;
 
   // Data regardless of source
   std::vector< std::string > all_data;  // List of folders, image lists, or videos
@@ -1043,13 +1172,7 @@ train_applet
   // Option 1: a typical training data directory is input
   if( !opt_input_dir.empty() )
   {
-    std::string input_dir = opt_input_dir;
-
-    if( !does_folder_exist( input_dir ) && does_folder_exist( input_dir + ".lnk" ) )
-    {
-      input_dir = filesystem::canonical(
-        filesystem::path( input_dir + ".lnk" ) ).string();
-    }
+    std::string input_dir = resolve_path_with_link( opt_input_dir );
 
     if( !does_folder_exist( input_dir ) && opt_out_config.empty() )
     {
@@ -1278,35 +1401,39 @@ train_applet
 
     if( is_video && auto_detect_truth )
     {
-      std::string video_truth = replace_ext_with( data_item, groundtruth_exts[0] );
+      std::string video_truth = find_associated_file( data_item, groundtruth_exts[0] );
 
-      if( !does_file_exist( video_truth ) )
+      if( video_truth.empty() )
       {
-        std::string error_msg = "Error: cannot find " + video_truth;
-        video_truth = add_ext_unto( data_item, groundtruth_exts[0] );
-
-        if( !does_file_exist( video_truth ) )
-        {
-          std::cout << error_msg << std::endl;
-          return EXIT_FAILURE;
-        }
+        std::cout << "Error: cannot find groundtruth for " << data_item << std::endl;
+        return EXIT_FAILURE;
       }
 
       gt_files.resize( 1, video_truth );
     }
     else if( !is_video && auto_detect_truth )
     {
-      list_files_in_folder( data_item, gt_files, false, groundtruth_exts );
-      std::sort( gt_files.begin(), gt_files.end() );
+      gt_files = find_files_in_folder_or_alongside( data_item, groundtruth_exts );
 
-      if( gt_files.empty() )
+      // Handle multiple groundtruth files: allow if different extensions, select by priority
+      if( !one_file_per_image && gt_files.size() > 1 )
       {
-        std::string truth = add_ext_unto( data_item, groundtruth_exts[0] );
+        std::vector< std::string > priority_exts = { ".csv", ".json", ".xml", ".kw18" };
+        std::string selected, error_msg;
 
-        if( does_file_exist( truth ) )
+        if( !select_file_by_extension_priority(
+              gt_files, priority_exts, groundtruth_exts, selected, error_msg ) )
         {
-          gt_files.push_back( truth );
+          std::cout << "Error: item " << data_item
+                    << " contains " << error_msg << std::endl;
+          return EXIT_FAILURE;
         }
+
+        std::cout << "Multiple groundtruth files found, selected: "
+                  << get_filename_no_path( selected ) << std::endl;
+
+        gt_files.clear();
+        gt_files.push_back( selected );
       }
 
       if( one_file_per_image && ( image_files.size() != gt_files.size() ) )
@@ -1374,6 +1501,43 @@ train_applet
     }
 
     std::sort( image_files.begin(), image_files.end() );
+
+    // Check bit depth of a few sample images to detect non-8-bit imagery
+    if( !bit_depth_checked && !image_files.empty() )
+    {
+      bit_depth_checked = true;
+
+      // Sample up to 3 images to check bit depth
+      const unsigned num_samples = std::min( static_cast< unsigned >( image_files.size() ), 3u );
+
+      for( unsigned s = 0; s < num_samples; ++s )
+      {
+        try
+        {
+          auto sample_image = image_reader->load( image_files[s] );
+          std::string bit_depth_desc;
+
+          if( is_non_8bit_image( sample_image, bit_depth_desc ) )
+          {
+            if( pipeline_file.empty() )
+            {
+              std::cerr << std::endl;
+              std::cerr << "ERROR: Input imagery is " << bit_depth_desc << " format." << std::endl;
+              std::cerr << "       Most detection models expect 8-bit imagery. Either use the" << std::endl;
+              std::cerr << "       --normalize-16bit flag or specify an augmentation_pipeline" << std::endl;
+              std::cerr << "       to normalize the imagery to 8-bit before training." << std::endl;
+              std::cerr << std::endl;
+              return EXIT_FAILURE;
+            }
+            break; // Found non-8-bit, but pipeline is set, so proceed
+          }
+        }
+        catch( const std::exception& e )
+        {
+          // Ignore errors during bit depth check for individual images
+        }
+      }
+    }
 
     // Load groundtruth file for this entry
     kv::algo::detected_object_set_input_sptr gt_reader;
@@ -2050,29 +2214,15 @@ train_applet
 
         if( is_video && auto_detect_truth )
         {
-          std::string video_truth = replace_ext_with( data_item, groundtruth_exts[0] );
-          if( !does_file_exist( video_truth ) )
-          {
-            video_truth = add_ext_unto( data_item, groundtruth_exts[0] );
-          }
-          if( does_file_exist( video_truth ) )
+          std::string video_truth = find_associated_file( data_item, groundtruth_exts[0] );
+          if( !video_truth.empty() )
           {
             gt_files.push_back( video_truth );
           }
         }
         else if( !is_video && auto_detect_truth )
         {
-          list_files_in_folder( data_item, gt_files, false, groundtruth_exts );
-          std::sort( gt_files.begin(), gt_files.end() );
-
-          if( gt_files.empty() )
-          {
-            std::string truth = add_ext_unto( data_item, groundtruth_exts[0] );
-            if( does_file_exist( truth ) )
-            {
-              gt_files.push_back( truth );
-            }
-          }
+          gt_files = find_files_in_folder_or_alongside( data_item, groundtruth_exts );
         }
         else if( i < all_truth.size() )
         {
