@@ -204,9 +204,9 @@ install_deps_apt() {
 
   # Install numpy via pip (to target directory if specified, otherwise system)
   if [ -n "$pip_target" ]; then
-    python -m pip install --target "$pip_target" numpy==1.25.2
+    python -m pip install --target "$pip_target" numpy==2.0.2
   else
-    python -m pip install numpy==1.25.2
+    python -m pip install numpy==2.0.2
   fi
 
   echo "apt-get dependency installation complete"
