@@ -92,7 +92,7 @@ IF "%1"=="true" (
   IF EXIST C:\tmp\vm1 rmdir /s /q C:\tmp\vm1
 )
 
-git config --system core.longpaths true
+git config --global core.longpaths true
 git submodule update --init --recursive
 
 REM Generate CTest dashboard file
@@ -134,10 +134,7 @@ REM Read build paths from CMakeCache
 REM (single source of truth is the .cmake platform file)
 REM --------------------------------------------------------------------------
 
-FOR /f "tokens=2 delims==" %%a IN ( ^
-    'FINDSTR /B "VIAME_BUILD_FLETCH_DIR:" ^
-    "%VIAME_BUILD_DIR%\CMakeCache.txt"' ^
-) DO SET "FLETCH_BUILD_DIR=%%a"
+FOR /f "tokens=2 delims==" %%a IN ('FINDSTR /B "VIAME_BUILD_FLETCH_DIR:" "%VIAME_BUILD_DIR%\CMakeCache.txt"') DO SET "FLETCH_BUILD_DIR=%%a"
 SET "ZLIB_BUILD_DIR=%FLETCH_BUILD_DIR%\build\src\ZLib-build"
 
 REM --------------------------------------------------------------------------
