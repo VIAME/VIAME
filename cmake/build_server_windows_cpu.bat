@@ -76,7 +76,7 @@ IF NOT EXIST C:\tmp mkdir C:\tmp
 IF EXIST C:\tmp\kv2 rmdir /s /q C:\tmp\kv2
 IF EXIST C:\tmp\vm2 rmdir /s /q C:\tmp\vm2
 
-git config --system core.longpaths true
+git config --global core.longpaths true
 git submodule update --init --recursive
 
 REM Generate CTest dashboard file

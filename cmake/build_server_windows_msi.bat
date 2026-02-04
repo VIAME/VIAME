@@ -113,7 +113,7 @@ IF %START_STAGE% EQU 1 (
     IF EXIST C:\tmp\kv5 rmdir /s /q C:\tmp\kv5
     IF EXIST C:\tmp\vm5 rmdir /s /q C:\tmp\vm5
 
-    git config --system core.longpaths true
+    git config --global core.longpaths true
     git submodule update --init
 ) ELSE (
     ECHO Resuming from stage %START_STAGE%...
@@ -187,7 +187,9 @@ IF %START_STAGE% LEQ 3 (
     IF ERRORLEVEL 1 GOTO :BuildFailed
 
     REM Remove duplicate CUDA libs from torch to save space
-    DEL "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*" 2>NUL
+    IF EXIST "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib" (
+        DEL /Q "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib\cu*"
+    )
 
     CALL :DiffFiles files-cuda.txt files-pytorch.txt diff-pytorch.lst
     "%ZIP_ROOT%\7z.exe" a -tzip ^
