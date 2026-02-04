@@ -77,11 +77,13 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
+         train_rf_detr_n_384.bat
          train_rf_detr_b_560.bat
          train_rf_detr_l_728.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
+         train_rf_detr_n_384.sh
          train_rf_detr_b_560.sh
          train_rf_detr_l_728.sh )
   endif()

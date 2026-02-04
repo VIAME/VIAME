@@ -327,6 +327,7 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_detector_rf_detr_n_384.conf
     train_detector_rf_detr_b_560.conf
     train_detector_rf_detr_l_728.conf )
 endif()
