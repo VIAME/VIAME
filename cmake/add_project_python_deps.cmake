@@ -180,7 +180,8 @@ list( REMOVE_DUPLICATES VIAME_PYTHON_BASIC_DEPS )
 set( VIAME_PYTHON_DEPS_REQ_TORCH "" )
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "torch_liberator" "liberator" )
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "torch_liberator" "liberator"
+    "networkx-algo-common-subtree>=0.2.0" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
