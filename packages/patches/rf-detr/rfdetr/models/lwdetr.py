@@ -343,8 +343,7 @@ class SetCriterion(nn.Module):
             pos_weights = torch.zeros_like(src_logits)
             neg_weights =  prob ** gamma
 
-            pos_ind=[id for id in idx]
-            pos_ind.append(target_classes_o)
+            pos_ind = (*idx, target_classes_o)
 
             t = prob[pos_ind].pow(alpha) * pos_ious.pow(1 - alpha)
             t = torch.clamp(t, 0.01).detach()
@@ -370,8 +369,7 @@ class SetCriterion(nn.Module):
             cls_iou_func_targets = torch.zeros((src_logits.shape[0], src_logits.shape[1],self.num_classes),
                                         dtype=src_logits.dtype, device=src_logits.device)
 
-            pos_ind=[id for id in idx]
-            pos_ind.append(target_classes_o)
+            pos_ind = (*idx, target_classes_o)
             cls_iou_func_targets[pos_ind] = pos_ious_func
             norm_cls_iou_func_targets = cls_iou_func_targets \
                 / (cls_iou_func_targets.view(cls_iou_func_targets.shape[0], -1, 1).amax(1, True) + 1e-8)
@@ -389,8 +387,7 @@ class SetCriterion(nn.Module):
             cls_iou_targets = torch.zeros((src_logits.shape[0], src_logits.shape[1],self.num_classes),
                                         dtype=src_logits.dtype, device=src_logits.device)
 
-            pos_ind=[id for id in idx]
-            pos_ind.append(target_classes_o)
+            pos_ind = (*idx, target_classes_o)
             cls_iou_targets[pos_ind] = pos_ious
             loss_ce = sigmoid_varifocal_loss(src_logits, cls_iou_targets, num_boxes, alpha=self.focal_alpha, gamma=2) * src_logits.shape[1]
         else:
