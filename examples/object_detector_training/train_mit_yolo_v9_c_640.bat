@@ -11,7 +11,7 @@ SET KWIVER_DEFAULT_LOG_LEVEL=info
 REM Run pipeline
 viame.exe train ^
   -i training_data_mouss ^
-  -c "%VIAME_INSTALL%\configs\pipelines\train_detector_mit_yolo_640.conf" ^
+  -c "%VIAME_INSTALL%\configs\pipelines\train_detector_mit_yolo_v9_c_640.conf" ^
   --threshold 0.0
 
 pause

@@ -51,7 +51,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          train_netharn_mask_rcnn.bat
          train_netharn_motion_cfrnn.bat
          train_netharn_rf_detr_b.bat
-         train_netharn_mit_yolo.bat
+         train_netharn_mit_yolo_v9_c.bat
          train_netharn_rf_detr_b_16bit.bat
          input_list_arctic_seal_16bit.txt
          groundtruth_arctic_seal_16bit.csv
@@ -65,7 +65,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          train_netharn_mask_rcnn.sh
          train_netharn_motion_cfrnn.sh
          train_netharn_rf_detr_b.sh
-         train_netharn_mit_yolo.sh
+         train_netharn_mit_yolo_v9_c.sh
          train_netharn_rf_detr_b_16bit.sh
          input_list_arctic_seal_16bit.txt
          groundtruth_arctic_seal_16bit.csv
@@ -93,11 +93,11 @@ if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_mit_yolo_640.bat )
+         train_mit_yolo_v9_c_640.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_mit_yolo_640.sh )
+         train_mit_yolo_v9_c_640.sh )
   endif()
 endif()
 
