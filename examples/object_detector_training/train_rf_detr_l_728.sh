@@ -11,5 +11,5 @@ export KWIVER_DEFAULT_LOG_LEVEL=info
 # Run pipeline
 viame train \
   -i training_data_mouss \
-  -c ${VIAME_INSTALL}/configs/pipelines/train_detector_rf_detr_560.conf \
+  -c ${VIAME_INSTALL}/configs/pipelines/train_detector_rf_detr_l_728.conf \
   --threshold 0.0
