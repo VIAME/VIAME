@@ -14,11 +14,11 @@ REM ============================================================================
 REM CheckBuildDependencies
 REM Verify that all required build tools are installed
 REM Arguments:
-REM   %2 = VIAME_CMAKE_DIR path
-REM   %3 = GIT_ROOT path
-REM   %4 = ZIP_ROOT path
-REM   %5 = ZLIB_ROOT path
-REM   %6 = CUDA_ROOT path (pass "SKIP" to skip CUDA check for CPU builds)
+REM   %2 = INSTALL_DIR_CMAKE path
+REM   %3 = INSTALL_DIR_GIT path
+REM   %4 = INSTALL_DIR_ZIP path
+REM   %5 = INSTALL_DIR_ZLIB path
+REM   %6 = INSTALL_DIR_CUDA path (pass "SKIP" to skip CUDA check for CPU builds)
 REM Returns: Sets ERRORLEVEL to 1 if any required dependency is missing
 REM ==============================================================================
 :CheckBuildDependencies
@@ -134,8 +134,8 @@ REM CopySystemDlls
 REM Copy common system runtime DLLs to install directory
 REM Arguments:
 REM   %2 = Install bin directory
-REM   %3 = VDIST_ROOT (Visual Studio OpenMP redistributable path)
-REM   %4 = ZLIB_ROOT
+REM   %3 = INSTALL_DIR_VDIST (Visual Studio OpenMP redistributable path)
+REM   %4 = INSTALL_DIR_ZLIB
 REM   %5 = ZLIB_BUILD_DIR (optional - if provided, copies zlib1.dll from build)
 REM ==============================================================================
 :CopySystemDlls

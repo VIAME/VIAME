@@ -16,20 +16,16 @@ FOR /f "tokens=1 delims= " %%a IN (%VIAME_SOURCE_DIR%\RELEASE_NOTES.md) DO (
 
 SET "OUTPUT_FILE=VIAME-%VIAME_VERSION%-Windows-64Bit.zip"
 
-REM Make sure to have all of these things installed
-REM (and cuDNN in CUDA_ROOT)
+REM Location of required libraries installed on the system
+SET "INSTALL_DIR_CMAKE=C:\Program Files\CMake"
+SET "INSTALL_DIR_GIT=C:\Program Files\Git"
+SET "INSTALL_DIR_ZIP=C:\Program Files\7-Zip"
+SET "INSTALL_DIR_ZLIB=C:\Program Files\ZLib"
+SET "INSTALL_DIR_NODEJS=C:\Program Files\nodejs"
+SET "INSTALL_DIR_NVIDIA=C:\Program Files (x86)\NVIDIA Corporation"
+SET "INSTALL_DIR_CUDA=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8"
+SET "INSTALL_DIR_MSVS=C:\Program Files\Microsoft Visual Studio\18\Community"
 
-REM Use VIAME_CMAKE_DIR instead of CMAKE_ROOT to prevent PyTorch's
-REM cmake.py from picking it up (any CMAKE_* env var gets passed as -D)
-SET "VIAME_CMAKE_DIR=C:\Program Files\CMake"
-SET "GIT_ROOT=C:\Program Files\Git"
-SET "ZIP_ROOT=C:\Program Files\7-Zip"
-SET "ZLIB_ROOT=C:\Program Files\ZLib"
-SET "NODEJS_ROOT=C:\Program Files\nodejs"
-SET "NVIDIA_ROOT=C:\Program Files (x86)\NVIDIA Corporation"
-SET "CUDA_ROOT=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8"
-
-SET "MSVS_ROOT=C:\Program Files\Microsoft Visual Studio\18\Community"
 SET "MSVS_ARCH=x64"
 SET "MSVS_TOOLSET=14.5"
 SET "MSVS_REDIST_VER=14.50.35710"
@@ -50,18 +46,18 @@ SET "PATH=%WIN_ROOT%;%WIN32_ROOT%"
 SET "PATH=%PATH%;%WIN32_ROOT%\Wbem"
 SET "PATH=%PATH%;%WIN32_ROOT%\WindowsPowerShell\v1.0"
 SET "PATH=%PATH%;%WIN32_ROOT%\OpenSSH"
-SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;%PATH%"
-SET "PATH=%NVIDIA_ROOT%\PhysX\Common;%PATH%"
-SET "PATH=%NVIDIA_ROOT%\NVIDIA NvDLISR;%PATH%"
-SET "PATH=%APPDATA%\npm;%NODEJS_ROOT%;%PATH%"
-SET "PATH=%GIT_ROOT%\cmd;%VIAME_CMAKE_DIR%\bin;%PATH%"
+SET "PATH=%INSTALL_DIR_CUDA%\bin;%INSTALL_DIR_CUDA%\libnvvp;%PATH%"
+SET "PATH=%INSTALL_DIR_NVIDIA%\PhysX\Common;%PATH%"
+SET "PATH=%INSTALL_DIR_NVIDIA%\NVIDIA NvDLISR;%PATH%"
+SET "PATH=%APPDATA%\npm;%INSTALL_DIR_NODEJS%;%PATH%"
+SET "PATH=%INSTALL_DIR_GIT%\cmd;%INSTALL_DIR_CMAKE%\bin;%PATH%"
 SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%"
 SET "PYTHONPATH=%PYTHONPATH%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
 
 SET "VDIST_VER_STR=%MSVS_TOOLSET:.=%"
-SET "VDIST_ROOT=%MSVS_ROOT%\VC\Redist\MSVC"
-SET "VDIST_ROOT=%VDIST_ROOT%\%MSVS_REDIST_VER%"
-SET "VDIST_ROOT=%VDIST_ROOT%\%MSVS_ARCH%\Microsoft.VC%VDIST_VER_STR%.OpenMP"
+SET "INSTALL_DIR_VDIST=%INSTALL_DIR_MSVS%\VC\Redist\MSVC"
+SET "INSTALL_DIR_VDIST=%INSTALL_DIR_VDIST%\%MSVS_REDIST_VER%"
+SET "INSTALL_DIR_VDIST=%INSTALL_DIR_VDIST%\%MSVS_ARCH%\Microsoft.VC%VDIST_VER_STR%.OpenMP"
 
 REM --------------------------------------------------------------------------
 REM Check Build Dependencies
@@ -69,8 +65,8 @@ REM --------------------------------------------------------------------------
 
 CALL %~dp0build_common_functions.bat ^
     :CheckBuildDependencies ^
-    "%VIAME_CMAKE_DIR%" "%GIT_ROOT%" ^
-    "%ZIP_ROOT%" "%ZLIB_ROOT%" "%CUDA_ROOT%"
+    "%INSTALL_DIR_CMAKE%" "%INSTALL_DIR_GIT%" ^
+    "%INSTALL_DIR_ZIP%" "%INSTALL_DIR_ZLIB%" "%INSTALL_DIR_CUDA%"
 IF ERRORLEVEL 1 EXIT /B 1
 
 REM --------------------------------------------------------------------------
@@ -101,7 +97,7 @@ CALL %~dp0build_common_functions.bat ^
     build_server_windows.cmake ^
     ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%VIAME_CMAKE_DIR%\bin\ctest.exe" ^
+"%INSTALL_DIR_CMAKE%\bin\ctest.exe" ^
     -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
 IF %ERRORLEVEL% NEQ 0 (
     ECHO.
@@ -144,7 +140,7 @@ REM --------------------------------------------------------------------------
 
 CALL %~dp0build_common_functions.bat ^
     :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" ^
-    "%VDIST_ROOT%" "%ZLIB_ROOT%" "%ZLIB_BUILD_DIR%"
+    "%INSTALL_DIR_VDIST%" "%INSTALL_DIR_ZLIB%" "%ZLIB_BUILD_DIR%"
 CALL %~dp0build_common_functions.bat ^
     :CopyMsysDlls "%FLETCH_BUILD_DIR%" ^
     "%VIAME_INSTALL_DIR%\bin"
@@ -154,7 +150,7 @@ IF EXIST "%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages\torch\lib" (
 )
 
 CALL %~dp0build_common_functions.bat ^
-    :CopyCuda12Dlls "%CUDA_ROOT%" ^
+    :CopyCuda12Dlls "%INSTALL_DIR_CUDA%" ^
     "%VIAME_INSTALL_DIR%\bin"
 
 REM --------------------------------------------------------------------------
@@ -163,7 +159,7 @@ REM --------------------------------------------------------------------------
 
 CALL %~dp0build_common_functions.bat ^
     :CreateZipPackage "%VIAME_INSTALL_DIR%" ^
-    "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%ZIP_ROOT%"
+    "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%INSTALL_DIR_ZIP%"
 IF ERRORLEVEL 1 (
     ECHO.
     ECHO ========================================

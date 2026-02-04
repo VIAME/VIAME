@@ -60,18 +60,14 @@ SET VIAME_SOURCE_DIR=C:\VIAME-Builds\GPU-MSI
 SET VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build
 SET VIAME_INSTALL_DIR=%VIAME_BUILD_DIR%\install
 
-REM Make sure to have all of these things installed
-REM (and cuDNN in CUDA)
-
-REM Use VIAME_CMAKE_DIR instead of CMAKE_ROOT to prevent PyTorch's
-REM cmake.py from picking it up (any CMAKE_* env var gets passed as -D)
-SET "VIAME_CMAKE_DIR=C:\Program Files\CMake"
-SET "GIT_ROOT=C:\Program Files\Git"
-SET "ZIP_ROOT=C:\Program Files\7-Zip"
-SET "ZLIB_ROOT=C:\Program Files\ZLib"
-SET "NODEJS_ROOT=C:\Program Files\nodejs"
-SET "NVIDIA_ROOT=C:\Program Files (x86)\NVIDIA Corporation"
-SET "CUDA_ROOT=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.6"
+REM Location of required libraries installed on the system
+SET "INSTALL_DIR_CMAKE=C:\Program Files\CMake"
+SET "INSTALL_DIR_GIT=C:\Program Files\Git"
+SET "INSTALL_DIR_ZIP=C:\Program Files\7-Zip"
+SET "INSTALL_DIR_ZLIB=C:\Program Files\ZLib"
+SET "INSTALL_DIR_NODEJS=C:\Program Files\nodejs"
+SET "INSTALL_DIR_NVIDIA=C:\Program Files (x86)\NVIDIA Corporation"
+SET "INSTALL_DIR_CUDA=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.6"
 
 SET "WIN_ROOT=C:\Windows"
 SET "WIN32_ROOT=%WIN_ROOT%\System32"
@@ -83,10 +79,10 @@ SET "PATH=%WIN_ROOT%;%WIN32_ROOT%"
 SET "PATH=%PATH%;%WIN32_ROOT%\Wbem"
 SET "PATH=%PATH%;%WIN32_ROOT%\WindowsPowerShell\v1.0"
 SET "PATH=%PATH%;%WIN32_ROOT%\OpenSSH"
-SET "PATH=%CUDA_ROOT%\bin;%CUDA_ROOT%\libnvvp;%PATH%"
-SET "PATH=%NVIDIA_ROOT%\PhysX\Common;%PATH%"
-SET "PATH=%NVIDIA_ROOT%\NVIDIA NvDLISR;%PATH%"
-SET "PATH=%NODEJS_ROOT%;%GIT_ROOT%\cmd;%VIAME_CMAKE_DIR%\bin;%PATH%"
+SET "PATH=%INSTALL_DIR_CUDA%\bin;%INSTALL_DIR_CUDA%\libnvvp;%PATH%"
+SET "PATH=%INSTALL_DIR_NVIDIA%\PhysX\Common;%PATH%"
+SET "PATH=%INSTALL_DIR_NVIDIA%\NVIDIA NvDLISR;%PATH%"
+SET "PATH=%INSTALL_DIR_NODEJS%;%INSTALL_DIR_GIT%\cmd;%INSTALL_DIR_CMAKE%\bin;%PATH%"
 SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%"
 SET "PYTHONPATH=%PYTHONPATH%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
 
@@ -96,8 +92,8 @@ REM --------------------------------------------------------------------------
 
 CALL %~dp0build_common_functions.bat ^
     :CheckBuildDependencies ^
-    "%VIAME_CMAKE_DIR%" "%GIT_ROOT%" ^
-    "%ZIP_ROOT%" "%ZLIB_ROOT%" "%CUDA_ROOT%"
+    "%INSTALL_DIR_CMAKE%" "%INSTALL_DIR_GIT%" ^
+    "%INSTALL_DIR_ZIP%" "%INSTALL_DIR_ZLIB%" "%INSTALL_DIR_CUDA%"
 IF ERRORLEVEL 1 EXIT /B 1
 
 REM --------------------------------------------------------------------------
@@ -141,10 +137,10 @@ IF %START_STAGE% LEQ 1 (
     CALL %~dp0build_common_functions.bat ^
         :CopySystemDlls ^
         "%VIAME_INSTALL_DIR%\bin" ^
-        "%WIN64_ROOT%" "%ZLIB_ROOT%"
+        "%WIN64_ROOT%" "%INSTALL_DIR_ZLIB%"
 
     CALL :SnapshotFiles files-core.txt
-    "%ZIP_ROOT%\7z.exe" a -tzip ^
+    "%INSTALL_DIR_ZIP%\7z.exe" a -tzip ^
         "%VIAME_BUILD_DIR%\VIAME-Core.zip" ^
         @files-core.txt
     IF ERRORLEVEL 1 GOTO :ZipFailed
@@ -168,10 +164,10 @@ IF %START_STAGE% LEQ 2 (
 
     CALL %~dp0build_common_functions.bat ^
         :CopyCuda12Dlls ^
-        "%CUDA_ROOT%" "%VIAME_INSTALL_DIR%\bin"
+        "%INSTALL_DIR_CUDA%" "%VIAME_INSTALL_DIR%\bin"
 
     CALL :DiffFiles files-core.txt files-cuda.txt diff-cuda.lst
-    "%ZIP_ROOT%\7z.exe" a -tzip ^
+    "%INSTALL_DIR_ZIP%\7z.exe" a -tzip ^
         "%VIAME_BUILD_DIR%\VIAME-CUDA.zip" ^
         @diff-cuda.lst
     IF ERRORLEVEL 1 GOTO :ZipFailed
@@ -192,7 +188,7 @@ IF %START_STAGE% LEQ 3 (
     )
 
     CALL :DiffFiles files-cuda.txt files-pytorch.txt diff-pytorch.lst
-    "%ZIP_ROOT%\7z.exe" a -tzip ^
+    "%INSTALL_DIR_ZIP%\7z.exe" a -tzip ^
         "%VIAME_BUILD_DIR%\VIAME-PyTorch.zip" ^
         @diff-pytorch.lst
     IF ERRORLEVEL 1 GOTO :ZipFailed
@@ -208,7 +204,7 @@ IF %START_STAGE% LEQ 4 (
     IF ERRORLEVEL 1 GOTO :BuildFailed
 
     CALL :DiffFiles files-pytorch.txt files-extra-cpp.txt diff-extra-cpp.lst
-    "%ZIP_ROOT%\7z.exe" a -tzip ^
+    "%INSTALL_DIR_ZIP%\7z.exe" a -tzip ^
         "%VIAME_BUILD_DIR%\VIAME-Extra-CPP.zip" ^
         @diff-extra-cpp.lst
     IF ERRORLEVEL 1 GOTO :ZipFailed
@@ -224,7 +220,7 @@ IF %START_STAGE% LEQ 5 (
     IF ERRORLEVEL 1 GOTO :BuildFailed
 
     CALL :DiffFiles files-extra-cpp.txt files-dive.txt diff-dive.lst
-    "%ZIP_ROOT%\7z.exe" a -tzip ^
+    "%INSTALL_DIR_ZIP%\7z.exe" a -tzip ^
         "%VIAME_BUILD_DIR%\VIAME-DIVE.zip" ^
         @diff-dive.lst
     IF ERRORLEVEL 1 GOTO :ZipFailed
@@ -240,7 +236,7 @@ IF %START_STAGE% LEQ 6 (
     IF ERRORLEVEL 1 GOTO :BuildFailed
 
     CALL :DiffFiles files-dive.txt files-vivia.txt diff-vivia.lst
-    "%ZIP_ROOT%\7z.exe" a -tzip ^
+    "%INSTALL_DIR_ZIP%\7z.exe" a -tzip ^
         "%VIAME_BUILD_DIR%\VIAME-VIVIA.zip" ^
         @diff-vivia.lst
     IF ERRORLEVEL 1 GOTO :ZipFailed
@@ -256,7 +252,7 @@ IF %START_STAGE% LEQ 7 (
     IF ERRORLEVEL 1 GOTO :BuildFailed
 
     CALL :DiffFiles files-vivia.txt files-seal.txt diff-seal.lst
-    "%ZIP_ROOT%\7z.exe" a -tzip ^
+    "%INSTALL_DIR_ZIP%\7z.exe" a -tzip ^
         "%VIAME_BUILD_DIR%\VIAME-SEAL.zip" ^
         @diff-seal.lst
     IF ERRORLEVEL 1 GOTO :ZipFailed
@@ -269,7 +265,7 @@ REM --------------------------------------------------------------------------
 
 IF %START_STAGE% LEQ 8 (
     CALL :SnapshotDevHeaders files-dev-headers.txt
-    "%ZIP_ROOT%\7z.exe" a -tzip ^
+    "%INSTALL_DIR_ZIP%\7z.exe" a -tzip ^
         "%VIAME_BUILD_DIR%\VIAME-Dev-Headers.zip" ^
         @files-dev-headers.txt
     IF ERRORLEVEL 1 GOTO :ZipFailed
@@ -410,7 +406,7 @@ CALL %~dp0build_common_functions.bat ^
     build_server_windows_msi.cmake ^
     ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%VIAME_CMAKE_DIR%\bin\ctest.exe" ^
+"%INSTALL_DIR_CMAKE%\bin\ctest.exe" ^
     -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
 IF ERRORLEVEL 1 EXIT /B 1
 GOTO :EOF
