@@ -34,6 +34,9 @@ classifiers = [
 ]
 keywords = ["machine-learning", "deep-learning", "vision", "ML", "DL", "AI", "DETR", "RF-DETR", "Roboflow"]
 
+# Note: roboflow, supervision, and rf100vl removed from core dependencies to avoid
+# opencv-python-headless being installed from PyPI. OpenCV is built from source in fletch.
+# supervision -> opencv-python-headless, rf100vl -> roboflow -> opencv-python-headless.
 dependencies = [
     "pycocotools",
     "torch>=1.13.0,<=2.8.0", # TODO: Torch >=2.9.0 is excluded due to known issues. PRs that help lift this restriction are welcome.
@@ -44,15 +47,19 @@ dependencies = [
     "transformers>4.0.0, <5.0.0",
     "peft",
     "polygraphy",
-    "rf100vl",
     "pydantic",
-    "supervision",
     "matplotlib",
-    "roboflow",
     "pillow-avif-plugin<1.5.3" # TODO: # Temporary pin. pillow-avif-plugin 1.5.3 fails to install in CI due to a broken wheel. Remove once the upstream issue is fixed.
 ]
 
 [project.optional-dependencies]
+roboflow = [
+    "roboflow"
+]
+cv-deps = [
+    "supervision",
+    "rf100vl"
+]
 onnxexport = [
     "onnx",
     "onnxsim",
