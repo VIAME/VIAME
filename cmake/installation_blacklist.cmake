@@ -108,3 +108,13 @@ foreach( binary_file ${VIAME_BLACKLISTED_BINARIES} )
     file( REMOVE ${VIAME_INSTALL_PREFIX}/bin/${binary_file}.exe )
   endif()
 endforeach()
+
+# Remove python ._pth file from installer. This file is generated during the
+# build with hardcoded absolute paths and overrides Python's normal sys.path
+# initialization, preventing scripts from importing sibling modules (e.g.
+# process_video.py importing database_tool). setup_viame.bat already sets
+# PYTHONPATH correctly for runtime use.
+file( GLOB PYTHON_PTH_FILES "${VIAME_INSTALL_PREFIX}/bin/python*._pth" )
+foreach( pth_file ${PYTHON_PTH_FILES} )
+  file( REMOVE ${pth_file} )
+endforeach()
