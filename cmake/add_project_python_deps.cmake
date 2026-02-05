@@ -37,7 +37,7 @@ endif()
 
 # For KWIVER v2.0
 if( VIAME_ENABLE_KWIVER )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "pygccxml" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "pygccxml" "castxml" )
 endif()
 
 # For scoring and plotting

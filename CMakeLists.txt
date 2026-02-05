@@ -944,6 +944,7 @@ if( VIAME_BUILD_DEPENDENCIES )
 else()
 
   include_directories( "${CMAKE_CURRENT_BINARY_DIR}" )
+  include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/plugins" )
 
   ###
   # Look for and use Fletch to find dependencies
