@@ -75,6 +75,9 @@ class RFDETR_Coder:
             List[kwimage.Detections]: One detection object per batch item
         """
         batch_results = outputs['batch_results']
+        # Unwrap BatchContainer if present (single-GPU path)
+        if isinstance(batch_results, data_containers.BatchContainer):
+            batch_results = batch_results.data
         batch_dets = []
 
         for result in batch_results:
@@ -159,19 +162,31 @@ def _batch_to_rfdetr_targets(batch, image_size, device=None):
     class_container = label['class_idxs']
     weight_container = label.get('weight', None)
 
-    # Unwrap containers
+    # Unwrap containers (after scatter, these may already be plain lists)
+    _BC = data_containers.BatchContainer
+    boxes_data = (boxes_container.data if isinstance(boxes_container, _BC)
+                  else boxes_container)
+    class_data = (class_container.data if isinstance(class_container, _BC)
+                  else class_container)
+    if weight_container is not None:
+        weight_data = (weight_container.data
+                       if isinstance(weight_container, _BC)
+                       else weight_container)
+    else:
+        weight_data = None
+
     all_boxes_lists = []
     all_cidxs_lists = []
     all_weights_lists = []
 
     for device_idx, (device_data_boxes, device_data_cidxs) in enumerate(
-            zip(boxes_container.data, class_container.data)):
+            zip(boxes_data, class_data)):
         if isinstance(device_data_boxes, (list, tuple)):
             all_boxes_lists.extend(device_data_boxes)
             all_cidxs_lists.extend(device_data_cidxs)
-            if weight_container is not None:
-                if device_idx < len(weight_container.data):
-                    device_weights = weight_container.data[device_idx]
+            if weight_data is not None:
+                if device_idx < len(weight_data):
+                    device_weights = weight_data[device_idx]
                     if isinstance(device_weights, (list, tuple)):
                         all_weights_lists.extend(device_weights)
                     else:
@@ -179,8 +194,8 @@ def _batch_to_rfdetr_targets(batch, image_size, device=None):
         else:
             all_boxes_lists.append(device_data_boxes)
             all_cidxs_lists.append(device_data_cidxs)
-            if weight_container is not None and device_idx < len(weight_container.data):
-                all_weights_lists.append(weight_container.data[device_idx])
+            if weight_data is not None and device_idx < len(weight_data):
+                all_weights_lists.append(weight_data[device_idx])
 
     # Build target list
     targets = []
@@ -739,7 +754,8 @@ class RFDETR_Detector(nh.layers.Module):
         B, C, H, W = images.shape
 
         # Move model components to device if needed
-        if next(self.model.parameters()).device != device:
+        first_param = next(self.model.parameters(), None)
+        if first_param is not None and first_param.device != device:
             self.model = self.model.to(device)
             self.criterion = self.criterion.to(device)
             self.input_norm = self.input_norm.to(device)
@@ -785,7 +801,8 @@ class RFDETR_Detector(nh.layers.Module):
                 # Apply postprocessor
                 results = self.postprocess(raw_outputs, target_sizes)
 
-                outputs['batch_results'] = results
+                outputs['batch_results'] = data_containers.BatchContainer(
+                    results, stack=False)
 
         return outputs
 

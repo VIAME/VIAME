@@ -11,6 +11,23 @@ It provides FitHarn, XPU, and other training utilities.
 
 __version__ = '0.6.2'
 
+# Suppress known harmless warnings:
+# - RuntimeWarning from runpy when running submodules with python -m
+#   (the package __init__ imports submodules before runpy executes them)
+# - NCCL not compiled warning (Windows does not support NCCL)
+import warnings as _warnings
+_warnings.filterwarnings(
+    'ignore',
+    message=r".*found in sys\.modules after import of package.*",
+    category=RuntimeWarning,
+)
+_warnings.filterwarnings(
+    'ignore',
+    message=r".*not compiled with NCCL support.*",
+    category=UserWarning,
+)
+del _warnings
+
 try:
     # PIL 7.0.0 removed PIL_VERSION, which breaks torchvision, monkey patch it
     # back in.

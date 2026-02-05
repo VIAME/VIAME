@@ -634,9 +634,7 @@ class ContainerScatter(object):
         streams = None
         if input_device == -1:
             # Perform CPU to GPU copies in a background stream
-            # FIXME: the updated version of this function in torch
-            # might require a torch device instead of an int.
-            streams = [_get_stream(device) for device in target_gpus]
+            streams = [_get_stream(torch.device('cuda', device) if isinstance(device, int) else device) for device in target_gpus]
 
         outputs = _fn_scatter(input, target_gpus, streams)
         # Synchronize with the copy stream

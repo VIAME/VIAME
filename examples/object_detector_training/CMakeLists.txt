@@ -49,10 +49,10 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          train_netharn_cfrnn.bat
          train_netharn_cfrnn_habcam_csv.bat
          train_netharn_mask_rcnn.bat
-         train_motion_cfrnn.bat
-         train_netharn_rf_detr.bat
-         train_netharn_mit_yolo.bat
-         train_netharn_rf_detr_16bit.bat
+         train_netharn_motion_cfrnn.bat
+         train_netharn_rf_detr_b.bat
+         train_netharn_mit_yolo_v9_c.bat
+         train_netharn_rf_detr_b_16bit.bat
          input_list_arctic_seal_16bit.txt
          groundtruth_arctic_seal_16bit.csv
          labels_arctic_seal_16bit.txt )
@@ -63,10 +63,10 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          train_netharn_cfrnn.sh
          train_netharn_cfrnn_habcam_csv.sh
          train_netharn_mask_rcnn.sh
-         train_motion_cfrnn.sh
-         train_netharn_rf_detr.sh
-         train_netharn_mit_yolo.sh
-         train_netharn_rf_detr_16bit.sh
+         train_netharn_motion_cfrnn.sh
+         train_netharn_rf_detr_b.sh
+         train_netharn_mit_yolo_v9_c.sh
+         train_netharn_rf_detr_b_16bit.sh
          input_list_arctic_seal_16bit.txt
          groundtruth_arctic_seal_16bit.csv
          labels_arctic_seal_16bit.txt )
@@ -74,23 +74,39 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
-  if( NOT WIN32 )
+  if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_rf_detr.sh )
+         train_rf_detr_n_384.bat
+         train_rf_detr_b_560.bat
+         train_rf_detr_l_728.bat )
+  else()
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         train_rf_detr_n_384.sh
+         train_rf_detr_b_560.sh
+         train_rf_detr_l_728.sh )
   endif()
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
-  if( NOT WIN32 )
+  if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_mit_yolo.sh )
+         train_mit_yolo_v9_c_640.bat )
+  else()
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         train_mit_yolo_v9_c_640.sh )
   endif()
 endif()
 
 if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
-  if( NOT WIN32 )
+  if( WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         train_detectron2_frcnn.bat )
+  else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          train_detectron2_frcnn.sh )

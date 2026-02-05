@@ -16,22 +16,19 @@ FOR /f "tokens=1 delims= " %%a IN (%VIAME_SOURCE_DIR%\RELEASE_NOTES.md) DO (
 
 SET "OUTPUT_FILE=VIAME-CPU-%VIAME_VERSION%-Windows-64Bit.zip"
 
-REM Make sure to have all of these things installed
-
-REM Use VIAME_CMAKE_DIR instead of CMAKE_ROOT to prevent PyTorch's
-REM cmake.py from picking it up (any CMAKE_* env var gets passed as -D)
-SET "VIAME_CMAKE_DIR=C:\Program Files\CMake"
-SET "GIT_ROOT=C:\Program Files\Git"
-SET "ZIP_ROOT=C:\Program Files\7-Zip"
-SET "ZLIB_ROOT=C:\Program Files\ZLib"
-SET "NODEJS_ROOT=C:\Program Files\nodejs"
+REM Location of required libraries installed on the system
+SET "INSTALL_DIR_CMAKE=C:\Program Files\CMake"
+SET "INSTALL_DIR_GIT=C:\Program Files\Git"
+SET "INSTALL_DIR_ZIP=C:\Program Files\7-Zip"
+SET "INSTALL_DIR_ZLIB=C:\Program Files\ZLib"
+SET "INSTALL_DIR_NODEJS=C:\Program Files\nodejs"
+SET "INSTALL_DIR_VDIST=C:\Program Files (x86)\Microsoft Visual Studio"
+SET "INSTALL_DIR_VDIST=%INSTALL_DIR_VDIST%\2026\Community\VC\Redist\MSVC"
+SET "INSTALL_DIR_VDIST=%INSTALL_DIR_VDIST%\14.40.33807\x64\Microsoft.VC144.OpenMP"
 
 SET "WIN_ROOT=C:\Windows"
 SET "WIN32_ROOT=%WIN_ROOT%\System32"
 SET "WIN64_ROOT=%WIN_ROOT%\SysWOW64"
-SET "VDIST_ROOT=C:\Program Files (x86)\Microsoft Visual Studio"
-SET "VDIST_ROOT=%VDIST_ROOT%\2026\Community\VC\Redist\MSVC"
-SET "VDIST_ROOT=%VDIST_ROOT%\14.40.33807\x64\Microsoft.VC144.OpenMP"
 
 REM Do not modify the below unless you are changing python
 REM versions or have alternatively modified the build and
@@ -48,7 +45,7 @@ SET "PATH=%WIN_ROOT%;%WIN32_ROOT%"
 SET "PATH=%PATH%;%WIN32_ROOT%\Wbem"
 SET "PATH=%PATH%;%WIN32_ROOT%\WindowsPowerShell\v1.0"
 SET "PATH=%PATH%;%WIN32_ROOT%\OpenSSH"
-SET "PATH=%NODEJS_ROOT%;%GIT_ROOT%\cmd;%VIAME_CMAKE_DIR%\bin;%PATH%"
+SET "PATH=%INSTALL_DIR_NODEJS%;%INSTALL_DIR_GIT%\cmd;%INSTALL_DIR_CMAKE%\bin;%PATH%"
 SET "PYTHONPATH=%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%"
 SET "PYTHONPATH=%PYTHONPATH%;%VIAME_INSTALL_DIR%\%PYTHON_SUBDIR%\site-packages"
 
@@ -58,8 +55,8 @@ REM --------------------------------------------------------------------------
 
 CALL %~dp0build_common_functions.bat ^
     :CheckBuildDependencies ^
-    "%VIAME_CMAKE_DIR%" "%GIT_ROOT%" ^
-    "%ZIP_ROOT%" "%ZLIB_ROOT%" "SKIP"
+    "%INSTALL_DIR_CMAKE%" "%INSTALL_DIR_GIT%" ^
+    "%INSTALL_DIR_ZIP%" "%INSTALL_DIR_ZLIB%" "SKIP"
 IF ERRORLEVEL 1 EXIT /B 1
 
 REM --------------------------------------------------------------------------
@@ -76,7 +73,7 @@ IF NOT EXIST C:\tmp mkdir C:\tmp
 IF EXIST C:\tmp\kv2 rmdir /s /q C:\tmp\kv2
 IF EXIST C:\tmp\vm2 rmdir /s /q C:\tmp\vm2
 
-git config --system core.longpaths true
+git config --global core.longpaths true
 git submodule update --init --recursive
 
 REM Generate CTest dashboard file
@@ -85,7 +82,7 @@ CALL %~dp0build_common_functions.bat ^
     build_server_windows_cpu.cmake ^
     ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
-"%VIAME_CMAKE_DIR%\bin\ctest.exe" ^
+"%INSTALL_DIR_CMAKE%\bin\ctest.exe" ^
     -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
 IF %ERRORLEVEL% NEQ 0 (
     ECHO CTest build failed with error code %ERRORLEVEL%
@@ -99,7 +96,7 @@ REM --------------------------------------------------------------------------
 
 CALL %~dp0build_common_functions.bat ^
     :CopySystemDlls "%VIAME_INSTALL_DIR%\bin" ^
-    "%VDIST_ROOT%" "%ZLIB_ROOT%" "%ZLIB_BUILD_DIR%"
+    "%INSTALL_DIR_VDIST%" "%INSTALL_DIR_ZLIB%" "%ZLIB_BUILD_DIR%"
 
 REM --------------------------------------------------------------------------
 REM Generate Final Zip File
@@ -107,4 +104,4 @@ REM --------------------------------------------------------------------------
 
 CALL %~dp0build_common_functions.bat ^
     :CreateZipPackage "%VIAME_INSTALL_DIR%" ^
-    "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%ZIP_ROOT%"
+    "%VIAME_BUILD_DIR%" "%OUTPUT_FILE%" "%INSTALL_DIR_ZIP%"
