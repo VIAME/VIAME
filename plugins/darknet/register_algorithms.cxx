@@ -30,11 +30,11 @@ register_factories( kv::plugin_loader& vpm )
   }
 
   auto fact = vpm.add_factory< kv::algo::image_object_detector, darknet_detector >(
-    darknet_detector::_plugin_name );
+    darknet_detector::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::train_detector, darknet_trainer >(
-    darknet_trainer::_plugin_name );
+    darknet_trainer::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   vpm.mark_module_as_loaded( module_name );

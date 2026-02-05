@@ -47,7 +47,7 @@ const std::string div = "/";
 class darknet_trainer::priv
 {
 public:
-  priv()
+  priv( darknet_trainer& )
     : m_net_config( "" )
     , m_seed_weights( "" )
     , m_train_directory( "deep_training" )
@@ -185,10 +185,11 @@ public:
 
 // =============================================================================
 
+void
 darknet_trainer
-::darknet_trainer()
-  : d( new priv() )
+::initialize()
 {
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
   attach_logger( "viame.darknet.darknet_trainer" );
   d->m_logger = logger();
 }
@@ -204,63 +205,14 @@ kv::config_block_sptr
 darknet_trainer
 ::get_configuration() const
 {
-  // Get base config from base class
-  kv::config_block_sptr config = kv::algorithm::get_configuration();
+  // Get base config from base class (includes PLUGGABLE_IMPL params)
+  kv::config_block_sptr config = kv::algo::train_detector::get_configuration();
 
-  config->set_value( "net_config", d->m_net_config,
-    "Name of network config file." );
-  config->set_value( "seed_weights", d->m_seed_weights,
-    "Optional input seed weights file." );
-  config->set_value( "train_directory", d->m_train_directory,
-    "Temp directory for all files used in training." );
-  config->set_value( "output_directory", d->m_output_directory,
-    "Final directory to output all models to." );
-  config->set_value( "output_model_name", d->m_output_model_name,
-    "Optional model name over-ride, if unspecified default used." );
-  config->set_value( "pipeline_template", d->m_pipeline_template,
-    "Optional output kwiver pipeline for this detector" );
-  config->set_value( "model_type", d->m_model_type,
-    "Type of model (values understood are \"yolov2\" and \"yolov3\" [the "
-    "default])." );
-  config->set_value( "skip_format", d->m_skip_format,
-    "Skip file formatting, assume that the train_directory is pre-populated "
-    "with all files required for model training." );
-  config->set_value( "gpu_index", d->m_gpu_index,
-    "GPU index. Only used when darknet is compiled with GPU support." );
-  config->set_value( "resize_option", d->m_resize_option,
-    "Pre-processing resize option, can be: disabled, maintain_ar, scale, "
-    "chip, or chip_and_original." );
-  config->set_value( "scale", d->m_scale,
-    "Image scaling factor used when resize_option is scale or chip." );
-  config->set_value( "resize_width", d->m_resize_width,
-    "Width resolution after resizing" );
-  config->set_value( "resize_height", d->m_resize_height,
-    "Height resolution after resizing" );
-  config->set_value( "chip_step", d->m_chip_step,
-    "When in chip mode, the chip step size between chips." );
-  config->set_value( "overlap_required", d->m_overlap_required,
-    "Percentage of which a target must appear on a chip for it to be included "
-    "as a training sample for said chip." );
-  config->set_value( "random_int_shift", d->m_random_int_shift,
-    "Random intensity shift to add to each extracted chip [0.0,1.0]." );
-  config->set_value( "gs_to_rgb", d->m_gs_to_rgb,
-    "Convert input greyscale images to rgb before processing." );
-  config->set_value( "chips_w_gt_only", d->m_chips_w_gt_only,
-    "Only chips with valid groundtruth objects on them will be included in "
-    "training." );
-  config->set_value( "max_neg_ratio", d->m_max_neg_ratio,
-    "Do not use more than this many more frames without groundtruth in "
-    "training than there are frames with truth." );
-  config->set_value( "ignore_category", d->m_ignore_category,
-    "Ignore this category in training, but still include chips around it." );
-  config->set_value( "min_train_box_length", d->m_min_train_box_length,
-    "If a box resizes to smaller than this during training, the input frame "
-    "will not be used in training." );
-  config->set_value( "batch_size", d->m_batch_size,
-    "Number of images per batch (and thus how many images constitute an iteration)" );
-  config->set_value( "batch_subdivisions", d->m_batch_subdivisions,
-    "Number of subdivisions to split a batch into (thereby saving memory)" );
+  // Add static params from this class
+  kv::config_block_sptr cb = config;
+  CPP_MAGIC_MAP( PARAM_CONFIG_GET_FROM_THIS, CPP_MAGIC_EMPTY, VIAME_DARKNET_DT_PARAMS )
 
+  // Add nested algorithm config
   kv::get_nested_algo_configuration<kva::image_io>( "image_reader",
     config, d->m_image_io );
 
@@ -271,38 +223,34 @@ darknet_trainer
 // -----------------------------------------------------------------------------
 void
 darknet_trainer
-::set_configuration( kv::config_block_sptr config_in )
+::set_configuration_internal( kv::config_block_sptr config )
 {
-  // Starting with our generated config_block to ensure that assumed values are present
-  // An alternative is to check for key presence before performing a get_value() call.
-  kv::config_block_sptr config = this->get_configuration();
+  // Copy config params from class members to priv
+  d->m_net_config  = c_net_config;
+  d->m_seed_weights = c_seed_weights;
+  d->m_train_directory = c_train_directory;
+  d->m_output_directory = c_output_directory;
+  d->m_output_model_name = c_output_model_name;
+  d->m_pipeline_template = c_pipeline_template;
+  d->m_model_type = c_model_type;
+  d->m_skip_format = c_skip_format;
+  d->m_gpu_index   = c_gpu_index;
+  d->m_resize_option = c_resize_option;
+  d->m_scale       = c_scale;
+  d->m_resize_width = c_resize_width;
+  d->m_resize_height = c_resize_height;
+  d->m_chip_step   = c_chip_step;
+  d->m_overlap_required = c_overlap_required;
+  d->m_random_int_shift = c_random_int_shift;
+  d->m_gs_to_rgb   = c_gs_to_rgb;
+  d->m_chips_w_gt_only = c_chips_w_gt_only;
+  d->m_max_neg_ratio = c_max_neg_ratio;
+  d->m_ignore_category = c_ignore_category;
+  d->m_min_train_box_length = c_min_train_box_length;
+  d->m_batch_size  = c_batch_size;
+  d->m_batch_subdivisions = c_batch_subdivisions;
 
-  config->merge_config( config_in );
-
-  d->m_net_config  = config->get_value< std::string >( "net_config" );
-  d->m_seed_weights = config->get_value< std::string >( "seed_weights" );
-  d->m_train_directory = config->get_value< std::string >( "train_directory" );
-  d->m_output_directory = config->get_value< std::string >( "output_directory" );
-  d->m_output_model_name = config->get_value< std::string >( "output_model_name" );
-  d->m_pipeline_template = config->get_value< std::string >( "pipeline_template" );
-  d->m_model_type = config->get_value< std::string >( "model_type" );
-  d->m_skip_format = config->get_value< bool >( "skip_format" );
-  d->m_gpu_index   = config->get_value< int >( "gpu_index" );
-  d->m_resize_option = config->get_value< std::string >( "resize_option" );
-  d->m_scale       = config->get_value< double >( "scale" );
-  d->m_resize_width = config->get_value< int >( "resize_width" );
-  d->m_resize_height = config->get_value< int >( "resize_height" );
-  d->m_chip_step   = config->get_value< int >( "chip_step" );
-  d->m_overlap_required = config->get_value< double >( "overlap_required" );
-  d->m_random_int_shift = config->get_value< double >( "random_int_shift" );
-  d->m_gs_to_rgb   = config->get_value< bool >( "gs_to_rgb" );
-  d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
-  d->m_max_neg_ratio = config->get_value< double >( "max_neg_ratio" );
-  d->m_ignore_category = config->get_value< std::string >( "ignore_category" );
-  d->m_min_train_box_length = config->get_value< int >( "min_train_box_length" );
-  d->m_batch_size  = config->get_value< int >( "batch_size" );
-  d->m_batch_subdivisions = config->get_value< int >( "batch_subdivisions" );
-
+  // Handle nested algorithm
   kva::image_io_sptr io;
   kv::set_nested_algo_configuration< kva::image_io >(
     "image_reader", config, io );
