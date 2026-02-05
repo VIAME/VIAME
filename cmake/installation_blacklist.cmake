@@ -109,12 +109,10 @@ foreach( binary_file ${VIAME_BLACKLISTED_BINARIES} )
   endif()
 endforeach()
 
-# Remove python ._pth file from installer. This file is generated during the
-# build with hardcoded absolute paths and overrides Python's normal sys.path
-# initialization, preventing scripts from importing sibling modules (e.g.
-# process_video.py importing database_tool). setup_viame.bat already sets
-# PYTHONPATH correctly for runtime use.
-file( GLOB PYTHON_PTH_FILES "${VIAME_INSTALL_PREFIX}/bin/python*._pth" )
-foreach( pth_file ${PYTHON_PTH_FILES} )
-  file( REMOVE ${pth_file} )
-endforeach()
+# Remove pywin32.pth which references directories (win32, win32\lib) that
+# don't exist in the VIAME install layout, causing import errors on startup.
+# pywin32 is only a transitive dependency and is not required at runtime.
+set( PYTHON_SITE_PACKAGES "${VIAME_INSTALL_PREFIX}/lib/python3.10/site-packages" )
+if( EXISTS "${PYTHON_SITE_PACKAGES}/pywin32.pth" )
+  file( REMOVE "${PYTHON_SITE_PACKAGES}/pywin32.pth" )
+endif()
