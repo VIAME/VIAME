@@ -8,7 +8,7 @@
 #include "viame_examples_export.h"
 
 #include <vital/algo/image_filter.h>
-#include "viame_algorithm_plugin_interface.h"
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -40,7 +40,7 @@ namespace viame {
  *   1. Copy this .h and .cxx file and rename appropriately
  *   2. Update the class name, namespace, and include guards
  *   3. Implement your image processing logic in filter()
- *   4. Add configuration parameters in get_configuration()
+ *   4. Add configuration parameters in PLUGGABLE_IMPL
  *   5. Register your algorithm in register_algorithms.cxx
  *   6. Update CMakeLists.txt to include your new files
  *
@@ -50,65 +50,21 @@ class VIAME_EXAMPLES_EXPORT hello_world_filter :
   public kwiver::vital::algo::image_filter
 {
 public:
-  VIAME_ALGORITHM_PLUGIN_INTERFACE( hello_world_filter )
+  PLUGGABLE_IMPL(
+    hello_world_filter,
+    "Example hello world image filter",
+    PARAM_DEFAULT(
+      text, std::string,
+      "Message to display when processing each image.",
+      "Hello World" )
+  )
 
-  /// Algorithm registration name used in pipeline configuration
-  static constexpr char const* name = "hello_world_filter";
-
-  /// Human-readable description shown in algorithm listings
-  static constexpr char const* description = "Example hello world image filter";
-
-  hello_world_filter();
   virtual ~hello_world_filter();
 
-  /**
-   * @brief Get the current configuration for this filter.
-   *
-   * Returns a config_block containing all configuration parameters
-   * with their current values and descriptions. The base class
-   * configuration is included automatically.
-   *
-   * @return Configuration block with current parameter values
-   */
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-
-  /**
-   * @brief Apply configuration values to this filter.
-   *
-   * Called by the pipeline system after parsing configuration files.
-   * Extract your parameter values from the config block here.
-   *
-   * @param config Configuration block containing parameter values
-   */
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
-
-  /**
-   * @brief Validate the configuration.
-   *
-   * Called to verify that configuration values are valid before
-   * processing begins. Return false and log an error if invalid.
-   *
-   * @param config Configuration block to validate
-   * @return true if configuration is valid, false otherwise
-   */
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
-  /**
-   * @brief Main filtering method - implement your algorithm here.
-   *
-   * This is the core method where your image processing runs.
-   * It receives an input image and should return the processed image.
-   *
-   * @param image_data Input image to process
-   * @return Processed output image
-   */
   virtual kwiver::vital::image_container_sptr filter(
     kwiver::vital::image_container_sptr image_data );
-
-private:
-  /// Private implementation class (Pimpl pattern for binary compatibility)
-  class priv;
-  const std::unique_ptr< priv > d;
 };
 
 } // end namespace viame
