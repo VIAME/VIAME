@@ -1042,7 +1042,7 @@ train_applet
 
     if( pipeline_file.empty() )
     {
-      pipeline_file = pipeline_prefix + "train_aug_percentile_norm.pipe";
+      pipeline_file = pipeline_prefix + "train_aug_equalize_via_percentiles.pipe";
       std::cout << "Using percentile normalization augmentation pipeline" << std::endl;
     }
     if( pipeline_template.empty() ||

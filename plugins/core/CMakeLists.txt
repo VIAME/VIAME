@@ -19,7 +19,7 @@ set( plugin_headers
   manipulate_pipelines.h
   measurement_utilities.h
   merge_detections_suppress_in_regions.h
-  normalize_image_percentile.h
+  equalize_via_percentiles.h
   pair_stereo_detections.h
   read_detected_object_set_auto.h
   read_detected_object_set_cvat.h
@@ -66,7 +66,7 @@ set( plugin_sources
   manipulate_pipelines.cxx
   measurement_utilities.cxx
   merge_detections_suppress_in_regions.cxx
-  normalize_image_percentile.cxx
+  equalize_via_percentiles.cxx
   pair_stereo_detections.cxx
   read_detected_object_set_auto.cxx
   read_detected_object_set_cvat.cxx
@@ -325,9 +325,9 @@ if( VIAME_ENABLE_PYTHON )
     multicam_homog_tracker )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/normalize_image_percentile.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/equalize_via_percentiles.py
     core
-    normalize_image_percentile )
+    equalize_via_percentiles )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_tracker.py
