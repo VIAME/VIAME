@@ -39,9 +39,7 @@ class refine_detections_svm::priv
  public:
 
   /// Constructor
-  priv()
-    : model_dir( "" ),
-      override_original( true )
+  priv( refine_detections_svm& )
   {
   }
 
@@ -50,12 +48,6 @@ class refine_detections_svm::priv
   {
   }
 
-  /// Parameters
-  std::string model_dir;
-
-  /// Variables
-  bool override_original;
-
   /// Vector of models
   std::vector< svm_model* > models;
   std::vector< bool > models_first_is_pos;
@@ -63,7 +55,7 @@ class refine_detections_svm::priv
 
   /// Helpers
   void dealloc_models();
-  void load_models();
+  void load_models( const std::string& model_dir );
 
   kwiver::vital::logger_handle_t m_logger;
 
@@ -71,13 +63,13 @@ class refine_detections_svm::priv
 };
 
 
-/// Constructor
+/// Initialize the priv class
+void
 refine_detections_svm
-::refine_detections_svm()
-    : d_( new priv() )
+::initialize()
 {
-  attach_logger( "viame.svm.refine_detections_svm" );
-  d_->m_logger = logger();
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d_ );
+  d_->m_logger = this->logger();
 }
 
 
@@ -86,6 +78,17 @@ refine_detections_svm
 ::~refine_detections_svm()
 {
   d_->dealloc_models();
+}
+
+
+/// Post-configuration setup
+void
+refine_detections_svm
+::set_configuration_internal( kv::config_block_sptr )
+{
+  d_->m_logger = logger();
+  d_->dealloc_models();
+  d_->load_models( get_model_dir() );
 }
 
 
@@ -108,7 +111,7 @@ refine_detections_svm::priv
 /// Helper function to load models from folder
 void
 refine_detections_svm::priv
-::load_models()
+::load_models( const std::string& model_dir )
 {
   std::filesystem::path p( model_dir );
   std::filesystem::directory_iterator it{ p };
@@ -145,37 +148,6 @@ refine_detections_svm::priv
   delete[] labels;
 }
 
-
-/// Get this algorithm's \link vital::config_block configuration block \endlink
-kv::config_block_sptr
-refine_detections_svm
-::get_configuration() const
-{
-  kv::config_block_sptr config = kv::algo::refine_detections::get_configuration();
-
-  config->set_value( "model_dir", d_->model_dir,
-                     "The directory where the SVM models are placed." );
-  config->set_value( "override_original", d_->override_original,
-                     "Replace original scores with new scores." );
-
-  return config;
-}
-
-
-/// Set this algorithm's properties via a config block
-void
-refine_detections_svm
-::set_configuration( kv::config_block_sptr in_config )
-{
-  kv::config_block_sptr config = this->get_configuration();
-  config->merge_config( in_config );
-
-  d_->model_dir = config->get_value<std::string>( "model_dir" );
-  d_->override_original = config->get_value<bool>( "override_original" );
-
-  d_->dealloc_models();
-  d_->load_models();
-}
 
 /// Check that the algorithm's currently configuration is valid
 bool
@@ -233,7 +205,7 @@ refine_detections_svm
     // Set output detected object type using map
     kv::detected_object_type_sptr new_type;
 
-    if( d_->override_original || !det->type() )
+    if( get_override_original() || !det->type() )
     {
       new_type = std::make_shared< kv::detected_object_type >();
     }
