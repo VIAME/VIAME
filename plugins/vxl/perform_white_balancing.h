@@ -8,7 +8,7 @@
 #include "viame_vxl_export.h"
 
 #include <vital/algo/image_filter.h>
-#include "viame_algorithm_plugin_interface.h"
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 #include <vil/vil_image_view.h>
 #include <vil/vil_resample_bilin.h>
@@ -627,18 +627,40 @@ class VIAME_VXL_EXPORT perform_white_balancing
   : public kv::algo::image_filter
 {
 public:
-  VIAME_ALGORITHM_PLUGIN_INTERFACE( perform_white_balancing )
+#define VIAME_VXL_PWB_PARAMS \
+    PARAM_DEFAULT( \
+      white_scale_factor, double, \
+      "A measure of how much to over or under correct white " \
+      "reference points. A value near 1.0 will attempt to make " \
+      "the whitest thing in the image very close to pure white.", \
+      0.95 ), \
+    PARAM_DEFAULT( \
+      black_scale_factor, double, \
+      "A measure of how much to over or under correct black " \
+      "reference points. A value near 1.0 will attempt to make " \
+      "the blackest thing in the image very close to pure black.", \
+      0.75 ), \
+    PARAM_DEFAULT( \
+      exp_history_factor, double, \
+      "The exponential averaging factor for correction matrices", \
+      0.25 ), \
+    PARAM_DEFAULT( \
+      matrix_resolution, unsigned, \
+      "The resolution of the correction matrix", \
+      8 )
 
-  PLUGIN_INFO( "vxl_white_balancing",
-               "Perform auotomatic white balancing on some input." )
+  PLUGGABLE_VARIABLES( VIAME_VXL_PWB_PARAMS )
+  PLUGGABLE_CONSTRUCTOR( perform_white_balancing, VIAME_VXL_PWB_PARAMS )
 
-  perform_white_balancing();
+  static std::string plugin_name() { return "vxl_white_balancing"; }
+  static std::string plugin_description() { return "Perform automatic white balancing on some input."; }
+
+  PLUGGABLE_STATIC_FROM_CONFIG( perform_white_balancing, VIAME_VXL_PWB_PARAMS )
+  PLUGGABLE_STATIC_GET_DEFAULT( VIAME_VXL_PWB_PARAMS )
+  PLUGGABLE_SET_CONFIGURATION( perform_white_balancing, VIAME_VXL_PWB_PARAMS )
+
   virtual ~perform_white_balancing();
 
-  /// Get this algorithm's \link vital::config_block configuration block \endlink
-  virtual kv::config_block_sptr get_configuration() const;
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration( kv::config_block_sptr config );
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration( kv::config_block_sptr config ) const;
 
@@ -646,10 +668,13 @@ public:
   virtual kv::image_container_sptr filter(
     kv::image_container_sptr image_data );
 
+  void set_configuration_internal( kv::config_block_sptr config ) override;
+
 private:
+  void initialize() override;
 
   class priv;
-  const std::unique_ptr<priv> d;
+  KWIVER_UNIQUE_PTR( priv, d );
 };
 
 } // end namespace viame
