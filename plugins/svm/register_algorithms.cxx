@@ -34,11 +34,11 @@ register_factories( kv::plugin_loader& vpm )
   }
 
   auto fact = vpm.add_factory< kv::algo::refine_detections, refine_detections_svm >(
-    refine_detections_svm::_plugin_name );
+    refine_detections_svm::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::train_detector, train_detector_svm >(
-    train_detector_svm::_plugin_name );
+    train_detector_svm::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   vpm.mark_module_as_loaded( module_name );

@@ -41,45 +41,15 @@ class train_detector_svm::priv
 public:
 
   /// Constructor
-  priv()
-    : descriptor_index_file( "descriptors.csv" )
-    , label_folder( "database" )
-    , label_extension( "lbl" )
-    , output_directory( "category_models" )
-    , background_category( "background" )
-    , maximum_positive_count( 75 )
-    , maximum_negative_count( 750 )
-    , minimum_positive_threshold( 1 )
-    , minimum_negative_threshold( 1 )
-    , train_on_neighbors_only( false )
-    , two_stage_training( true )
-    , svm_rerank_negatives( true )
-    , auto_compute_neighbors( true )
-    , pos_seed_neighbors( 10 )
-    , min_pos_seed_neighbors( 2 )
-    , feedback_sample_count( 0 )
-    , svm_kernel_type( "linear" )
-    , svm_c( 1.0 )
-    , svm_gamma( 0.001 )
-    , normalize_descriptors( true )
-    , score_normalization( "sigmoid" )
-    , use_class_weights( false )
-    , distance_metric( "euclidean" )
-    , random_seed( 0 )
-    , nn_index_type( "brute_force" )
-    , lsh_model_dir( "" )
-    , lsh_bit_length( 256 )
-    , lsh_itq_iterations( 100 )
-    , lsh_random_seed( 0 )
-    , lsh_hash_ratio( 0.2 )
-    , m_categories( nullptr )
+  priv( train_detector_svm& )
+    : m_categories( nullptr )
     , m_lsh_initialized( false )
   {}
 
   /// Destructor
   ~priv() {}
 
-  // Configuration parameters
+  // Configuration parameters (synced from parent class in set_configuration_internal)
   std::string descriptor_index_file;
   std::string label_folder;
   std::string label_extension;
@@ -1735,13 +1705,13 @@ train_detector_svm::priv
 
 
 // =============================================================================
-/// Constructor
+/// Initialize the priv class
+void
 train_detector_svm
-::train_detector_svm()
-  : d_( new priv() )
+::initialize()
 {
-  attach_logger( "viame.svm.train_detector_svm" );
-  d_->m_logger = logger();
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d_ );
+  d_->m_logger = this->logger();
 }
 
 
@@ -1754,163 +1724,42 @@ train_detector_svm
 
 
 // -----------------------------------------------------------------------------
-/// Get this algorithm's configuration block
-kv::config_block_sptr
-train_detector_svm
-::get_configuration() const
-{
-  kv::config_block_sptr config = kv::algo::train_detector::get_configuration();
-
-  config->set_value( "descriptor_index_file", d_->descriptor_index_file,
-    "Path to CSV file containing descriptor index (uid,v1,v2,...)" );
-
-  config->set_value( "label_folder", d_->label_folder,
-    "Folder containing label files with descriptor UIDs per category" );
-
-  config->set_value( "label_extension", d_->label_extension,
-    "File extension for label files" );
-
-  config->set_value( "output_directory", d_->output_directory,
-    "Output directory for trained SVM model files" );
-
-  config->set_value( "background_category", d_->background_category,
-    "Category name to skip (background class)" );
-
-  config->set_value( "maximum_positive_count", d_->maximum_positive_count,
-    "Maximum number of positive samples per category" );
-
-  config->set_value( "maximum_negative_count", d_->maximum_negative_count,
-    "Maximum number of negative samples per category" );
-
-  config->set_value( "minimum_positive_threshold", d_->minimum_positive_threshold,
-    "Minimum number of positive samples required to train a category model" );
-
-  config->set_value( "minimum_negative_threshold", d_->minimum_negative_threshold,
-    "Minimum number of negative samples required to train a category model" );
-
-  config->set_value( "train_on_neighbors_only", d_->train_on_neighbors_only,
-    "If true, only use nearest-neighbor hard negatives. "
-    "If false, use 50/50 split of NN hard negatives and random negatives." );
-
-  config->set_value( "two_stage_training", d_->two_stage_training,
-    "If true, train initial SVM to find hard negatives, then retrain. "
-    "If false, use single-stage training with NN-based hard negatives." );
-
-  config->set_value( "svm_rerank_negatives", d_->svm_rerank_negatives,
-    "If true (default), train an intermediate SVM to re-rank and select hard negatives. "
-    "If false, use only centroid similarity for hard negative selection. "
-    "Only applies when two_stage_training is true." );
-
-  config->set_value( "auto_compute_neighbors", d_->auto_compute_neighbors,
-    "If true, automatically compute pos_seed_neighbors as "
-    "maximum_negative_count / maximum_positive_count. "
-    "If false, use the manually specified pos_seed_neighbors value." );
-
-  config->set_value( "pos_seed_neighbors", d_->pos_seed_neighbors,
-    "Number of nearest neighbors per positive sample for hard negative mining. "
-    "Only used if auto_compute_neighbors is false." );
-
-  config->set_value( "min_pos_seed_neighbors", d_->min_pos_seed_neighbors,
-    "Minimum number of neighbors per positive sample. "
-    "Enforced even when auto_compute_neighbors is true." );
-
-  config->set_value( "feedback_sample_count", d_->feedback_sample_count,
-    "Number of uncertain samples (near decision boundary) to include as additional "
-    "hard negatives. Set to 0 to disable." );
-
-  config->set_value( "svm_kernel_type", d_->svm_kernel_type,
-    "SVM kernel type: linear, poly, rbf, sigmoid." );
-
-  config->set_value( "svm_c", d_->svm_c,
-    "SVM regularization parameter C" );
-
-  config->set_value( "svm_gamma", d_->svm_gamma,
-    "SVM gamma parameter for rbf/poly/sigmoid kernels" );
-
-  config->set_value( "normalize_descriptors", d_->normalize_descriptors,
-    "If true (default), L2-normalize descriptor vectors before training and scoring. "
-    "This is recommended for most descriptor types." );
-
-  config->set_value( "score_normalization", d_->score_normalization,
-    "How to convert SVM output to [0,1] scores: "
-    "'sigmoid' (default) uses 1/(1+exp(-decision_value)), "
-    "'probability' uses libsvm's probability estimates (requires more training time)." );
-
-  config->set_value( "use_class_weights", d_->use_class_weights,
-    "If true, weight SVM classes inversely proportional to their frequency "
-    "to handle class imbalance" );
-
-  config->set_value( "distance_metric", d_->distance_metric,
-    "Distance metric for nearest neighbor search: euclidean or cosine" );
-
-  config->set_value( "random_seed", d_->random_seed,
-    "Random seed for reproducibility. Use -1 for random initialization." );
-
-  config->set_value( "nn_index_type", d_->nn_index_type,
-    "Nearest neighbor index type: 'brute_force' (default) or 'lsh'. "
-    "LSH uses ITQ locality-sensitive hashing for faster approximate NN search." );
-
-  config->set_value( "lsh_model_dir", d_->lsh_model_dir,
-    "Directory containing ITQ model files from generate_nn_index.py."
-    "Required when nn_index_type is 'lsh'." );
-
-  config->set_value( "lsh_bit_length", d_->lsh_bit_length,
-    "Number of bits in the ITQ hash code. Must match the trained model." );
-
-  config->set_value( "lsh_itq_iterations", d_->lsh_itq_iterations,
-    "Number of ITQ iterations used when training the model." );
-
-  config->set_value( "lsh_random_seed", d_->lsh_random_seed,
-    "Random seed used when training the ITQ model." );
-
-  config->set_value( "lsh_hash_ratio", d_->lsh_hash_ratio,
-    "Fraction of hash codes to search when using LSH. "
-    "Higher values give better recall but slower search. "
-    "Default is 0.2 (search top 20% of hash codes by Hamming distance)." );
-
-  return config;
-}
-
-
-// -----------------------------------------------------------------------------
-/// Set this algorithm's properties via a config block
+/// Post-configuration setup: sync config values from parent class to priv
 void
 train_detector_svm
-::set_configuration( kv::config_block_sptr in_config )
+::set_configuration_internal( kv::config_block_sptr )
 {
-  kv::config_block_sptr config = this->get_configuration();
-  config->merge_config( in_config );
-
-  d_->descriptor_index_file = config->get_value< std::string >( "descriptor_index_file" );
-  d_->label_folder = config->get_value< std::string >( "label_folder" );
-  d_->label_extension = config->get_value< std::string >( "label_extension" );
-  d_->output_directory = config->get_value< std::string >( "output_directory" );
-  d_->background_category = config->get_value< std::string >( "background_category" );
-  d_->maximum_positive_count = config->get_value< unsigned >( "maximum_positive_count" );
-  d_->maximum_negative_count = config->get_value< unsigned >( "maximum_negative_count" );
-  d_->minimum_positive_threshold = config->get_value< unsigned >( "minimum_positive_threshold" );
-  d_->minimum_negative_threshold = config->get_value< unsigned >( "minimum_negative_threshold" );
-  d_->train_on_neighbors_only = config->get_value< bool >( "train_on_neighbors_only" );
-  d_->two_stage_training = config->get_value< bool >( "two_stage_training" );
-  d_->svm_rerank_negatives = config->get_value< bool >( "svm_rerank_negatives" );
-  d_->auto_compute_neighbors = config->get_value< bool >( "auto_compute_neighbors" );
-  d_->pos_seed_neighbors = config->get_value< unsigned >( "pos_seed_neighbors" );
-  d_->min_pos_seed_neighbors = config->get_value< unsigned >( "min_pos_seed_neighbors" );
-  d_->feedback_sample_count = config->get_value< unsigned >( "feedback_sample_count" );
-  d_->svm_kernel_type = config->get_value< std::string >( "svm_kernel_type" );
-  d_->svm_c = config->get_value< double >( "svm_c" );
-  d_->svm_gamma = config->get_value< double >( "svm_gamma" );
-  d_->normalize_descriptors = config->get_value< bool >( "normalize_descriptors" );
-  d_->score_normalization = config->get_value< std::string >( "score_normalization" );
-  d_->use_class_weights = config->get_value< bool >( "use_class_weights" );
-  d_->distance_metric = config->get_value< std::string >( "distance_metric" );
-  d_->random_seed = config->get_value< int >( "random_seed" );
-  d_->nn_index_type = config->get_value< std::string >( "nn_index_type" );
-  d_->lsh_model_dir = config->get_value< std::string >( "lsh_model_dir" );
-  d_->lsh_bit_length = config->get_value< unsigned >( "lsh_bit_length" );
-  d_->lsh_itq_iterations = config->get_value< unsigned >( "lsh_itq_iterations" );
-  d_->lsh_random_seed = config->get_value< int >( "lsh_random_seed" );
-  d_->lsh_hash_ratio = config->get_value< double >( "lsh_hash_ratio" );
+  d_->m_logger = logger();
+  d_->descriptor_index_file = c_descriptor_index_file;
+  d_->label_folder = c_label_folder;
+  d_->label_extension = c_label_extension;
+  d_->output_directory = c_output_directory;
+  d_->background_category = c_background_category;
+  d_->maximum_positive_count = c_maximum_positive_count;
+  d_->maximum_negative_count = c_maximum_negative_count;
+  d_->minimum_positive_threshold = c_minimum_positive_threshold;
+  d_->minimum_negative_threshold = c_minimum_negative_threshold;
+  d_->train_on_neighbors_only = c_train_on_neighbors_only;
+  d_->two_stage_training = c_two_stage_training;
+  d_->svm_rerank_negatives = c_svm_rerank_negatives;
+  d_->auto_compute_neighbors = c_auto_compute_neighbors;
+  d_->pos_seed_neighbors = c_pos_seed_neighbors;
+  d_->min_pos_seed_neighbors = c_min_pos_seed_neighbors;
+  d_->feedback_sample_count = c_feedback_sample_count;
+  d_->svm_kernel_type = c_svm_kernel_type;
+  d_->svm_c = c_svm_c;
+  d_->svm_gamma = c_svm_gamma;
+  d_->normalize_descriptors = c_normalize_descriptors;
+  d_->score_normalization = c_score_normalization;
+  d_->use_class_weights = c_use_class_weights;
+  d_->distance_metric = c_distance_metric;
+  d_->random_seed = c_random_seed;
+  d_->nn_index_type = c_nn_index_type;
+  d_->lsh_model_dir = c_lsh_model_dir;
+  d_->lsh_bit_length = c_lsh_bit_length;
+  d_->lsh_itq_iterations = c_lsh_itq_iterations;
+  d_->lsh_random_seed = c_lsh_random_seed;
+  d_->lsh_hash_ratio = c_lsh_hash_ratio;
 }
 
 
