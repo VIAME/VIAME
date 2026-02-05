@@ -34,13 +34,13 @@ register_factories( kv::plugin_loader& vpm )
   }
 
   auto fact = vpm.add_factory< kv::algo::image_object_detector, hello_world_detector >(
-    hello_world_detector::name );
-  fact->add_attribute( kvpf::PLUGIN_DESCRIPTION, hello_world_detector::description );
+    hello_world_detector::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_DESCRIPTION, hello_world_detector::plugin_description() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::image_filter, hello_world_filter >(
-    hello_world_filter::name );
-  fact->add_attribute( kvpf::PLUGIN_DESCRIPTION, hello_world_filter::description );
+    hello_world_filter::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_DESCRIPTION, hello_world_filter::plugin_description() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   vpm.mark_module_as_loaded( module_name );
