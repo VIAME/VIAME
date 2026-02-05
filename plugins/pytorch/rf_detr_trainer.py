@@ -316,7 +316,7 @@ class RFDETRTrainer(TrainDetector):
         output_dir.ensuredir()
 
         # Signal handler for graceful interruption
-        with TrainingInterruptHandler("RFDETRTrainer") as handler:
+        with TrainingInterruptHandler("RFDETRTrainer", on_interrupt=model.request_early_stop) as handler:
             try:
                 # Train the model
                 model.train(

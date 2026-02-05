@@ -866,18 +866,20 @@ class TrainingInterruptHandler:
             save_model()
     """
 
-    def __init__(self, trainer_name="Trainer"):
+    def __init__(self, trainer_name="Trainer", on_interrupt=None):
         """
         Initialize the interrupt handler.
 
         Args:
             trainer_name: Name to display in interrupt messages
+            on_interrupt: Optional callback to invoke when interrupted
         """
         import signal
         import threading
 
         self.trainer_name = trainer_name
         self.interrupted = False
+        self._on_interrupt = on_interrupt
         self._original_sigint = None
         self._original_sigterm = None
         self._signal = signal
@@ -887,6 +889,8 @@ class TrainingInterruptHandler:
         def signal_handler(signum, frame):
             print(f"\n[{self.trainer_name}] Training interrupted, saving model...")
             self.interrupted = True
+            if self._on_interrupt is not None:
+                self._on_interrupt()
 
         if self._threading.current_thread().__class__.__name__ == '_MainThread':
             self._original_sigint = self._signal.signal(
