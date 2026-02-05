@@ -164,29 +164,30 @@ static kv::config_block_sptr try_get_detector_config(
 
   try
   {
-    kv::algo::image_object_detector_sptr detector;
-    kv::config_block_sptr temp_config = kv::config_block::empty_config();
-    temp_config->set_value( "detector:type", algo_type );
+    // Use the v2.0 plugin factory API to find and query the detector
+    kv::implementation_factory_by_name< kv::algo::image_object_detector > factory;
+    kv::plugin_factory_handle_t fact = factory.find_factory( algo_type );
 
-    // Pre-configure nested detector type from output map if present
-    // e.g., if algo_type is "ocv_windowed" and output map has
-    // "ocv_windowed:detector:type" = "netharn", set it before instantiation
+    // Get the default configuration for this detector type
+    kv::config_block_sptr config = kv::config_block::empty_config();
+    fact->get_default_config( *config );
+
+    // Apply any nested detector type settings from the output map
     std::string nested_type_key = algo_type + ":detector:type";
     auto it = output_map.find( nested_type_key );
     if( it != output_map.end() && !it->second.empty() )
     {
-      temp_config->set_value( "detector:" + nested_type_key, it->second );
+      config->set_value( "detector:type", it->second );
     }
 
-    kv::algo::image_object_detector::set_nested_algo_configuration(
-      "detector", temp_config, detector );
+    // Try to instantiate the detector with the config
+    auto detector = std::dynamic_pointer_cast< kv::algo::image_object_detector >(
+      fact->from_config( config ) );
 
     if( detector )
     {
-      kv::config_block_sptr config = kv::config_block::empty_config();
-      kv::algo::image_object_detector::get_nested_algo_configuration(
-        "detector", config, detector );
-      return config;
+      // Get the full configuration from the instantiated detector
+      return detector->get_configuration();
     }
   }
   catch( ... )

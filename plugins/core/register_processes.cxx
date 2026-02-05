@@ -359,15 +359,18 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
-  fact = vpm.ADD_PROCESS( viame::core::resample_object_tracks_process );
+  fact = new sprokit::cpp_process_factory(
+    typeid( viame::core::resample_object_tracks_process ).name(),
+    sprokit::process::interface_name(),
+    sprokit::create_new_process< viame::core::resample_object_tracks_process > );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
                         "resample_object_tracks" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Resample object tracks from one downsample rate to another" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+  vpm.add_factory( fact );
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );
