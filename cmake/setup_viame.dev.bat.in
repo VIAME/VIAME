@@ -3,7 +3,7 @@ REM This script sets up all paths required for standard VIAME Usage
 
 SET VIAME_INSTALL=%~dp0
 
-SET PATH=%VIAME_INSTALL%\bin;%VIAME_INSTALL%\lib\postgresql\bin;%VIAME_INSTALL%\Scripts;%PATH%
+SET PATH=%VIAME_INSTALL%\bin;%VIAME_INSTALL%\Scripts;%PATH%
 
 SET LD_LIBRARY_PATH=%VIAME_INSTALL%\bin;%PATH%
 
