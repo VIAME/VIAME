@@ -327,8 +327,7 @@ class RFDETRTrainer(TrainDetector):
         output_dir = ub.Path(self._train_directory) / "rf_detr_output"
         output_dir.ensuredir()
 
-        # Create timeout callback if timeout is specified
-        callbacks = defaultdict(list)
+        # Add timeout callback to model's callbacks if timeout is specified
         if timeout_seconds is not None:
             train_start_time = time.time()
             def timeout_callback(log_stats):
@@ -336,14 +335,13 @@ class RFDETRTrainer(TrainDetector):
                 if elapsed >= timeout_seconds:
                     print(f"[RFDETRTrainer] Timeout reached ({elapsed:.0f}s >= {timeout_seconds:.0f}s)")
                     model.request_early_stop()
-            callbacks["on_fit_epoch_end"].append(timeout_callback)
+            model.callbacks["on_fit_epoch_end"].append(timeout_callback)
 
         # Signal handler for graceful interruption
         with TrainingInterruptHandler("RFDETRTrainer", on_interrupt=model.request_early_stop) as handler:
             try:
                 # Train the model
                 model.train(
-                    callbacks,
                     dataset_dir=str(dataset_dir),
                     output_dir=str(output_dir),
                     epochs=epochs,
