@@ -202,8 +202,8 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             f"task.data.batch_size={self._batch_size}",
             f"task.optimizer.args.lr={self._learning_rate}",
             f"task.epoch={self._max_epochs}",
-            f"timeout={self._timeout}",
-            "save_best=True"
+            f"+timeout={self._timeout}",
+            "+save_best=True"
         ]
         if len(self._seed_model) > 0:
             hydra_overrides += [f"weight={self._seed_model}"]
