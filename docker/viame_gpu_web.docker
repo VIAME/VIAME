@@ -23,5 +23,5 @@ RUN apt-get update -y && \
     apt-get install -y python3-pip python-is-python3 && \
     python -m pip install numpy==2.0.2
 
-COPY --from=builder /usr/local/cuda-12.9/targets/x86_64-linux/lib/libcupti.so* /usr/local/cuda/lib64
+COPY --from=builder /usr/local/cuda-12.9/targets/x86_64-linux/lib/libcupti.so* /usr/local/cuda/lib64/
 COPY --from=builder /opt/noaa/viame /opt/noaa/viame

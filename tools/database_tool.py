@@ -104,12 +104,13 @@ def init(log_file="", prompt=True):
     global _log_file
     _log_file = log_file
 
-    if log_file and os.path.exists(log_file):
-        os.remove(log_file)
-
     try:
-        # Stop any existing database
+        # Stop any existing database first (before removing log file,
+        # since pg_ctl may still hold the log file open)
         stop(quiet=True)
+
+        if log_file and os.path.exists(log_file):
+            os.remove(log_file)
 
         # Remove existing database directory
         if os.path.exists(DATABASE_DIR):

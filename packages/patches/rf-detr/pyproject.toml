@@ -37,10 +37,11 @@ keywords = ["machine-learning", "deep-learning", "vision", "ML", "DL", "AI", "DE
 # Note: roboflow, supervision, and rf100vl removed from core dependencies to avoid
 # opencv-python-headless being installed from PyPI. OpenCV is built from source in fletch.
 # supervision -> opencv-python-headless, rf100vl -> roboflow -> opencv-python-headless.
+# Note: torch and torchvision removed because they are built from source in VIAME.
+# Keeping them here causes pip to download PyPI wheels which lack development headers
+# needed by detectron2/mmcv CUDA extensions.
 dependencies = [
     "pycocotools",
-    "torch>=1.13.0,<=2.8.0", # TODO: Torch >=2.9.0 is excluded due to known issues. PRs that help lift this restriction are welcome.
-    "torchvision>=0.14.0",
     "scipy",
     "tqdm",
     "numpy",

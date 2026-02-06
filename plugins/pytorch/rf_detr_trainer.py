@@ -59,6 +59,9 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     # Logging
     use_tensorboard = scfg.Value(True, help='Enable TensorBoard logging')
 
+    # Timeout
+    timeout = scfg.Value('1209600', help='Max training time in seconds (default=1209600, two weeks)')
+
     categories = []
 
     def __post_init__(self):
@@ -312,11 +315,30 @@ class RFDETRTrainer(TrainDetector):
         checkpoint_interval = int(self._checkpoint_interval)
         use_tensorboard = parse_bool(self._use_tensorboard)
 
+        # Parse timeout (in seconds, or "default" for no limit)
+        import time
+        from collections import defaultdict
+        timeout_str = str(self._timeout).lower()
+        if timeout_str == "default" or timeout_str == "none" or timeout_str == "":
+            timeout_seconds = None
+        else:
+            timeout_seconds = float(self._timeout)
+
         output_dir = ub.Path(self._train_directory) / "rf_detr_output"
         output_dir.ensuredir()
 
+        # Add timeout callback to model's callbacks if timeout is specified
+        if timeout_seconds is not None:
+            train_start_time = time.time()
+            def timeout_callback(log_stats):
+                elapsed = time.time() - train_start_time
+                if elapsed >= timeout_seconds:
+                    print(f"[RFDETRTrainer] Timeout reached ({elapsed:.0f}s >= {timeout_seconds:.0f}s)")
+                    model.request_early_stop()
+            model.callbacks["on_fit_epoch_end"].append(timeout_callback)
+
         # Signal handler for graceful interruption
-        with TrainingInterruptHandler("RFDETRTrainer") as handler:
+        with TrainingInterruptHandler("RFDETRTrainer", on_interrupt=model.request_early_stop) as handler:
             try:
                 # Train the model
                 model.train(

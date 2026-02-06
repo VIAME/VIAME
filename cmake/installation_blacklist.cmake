@@ -108,3 +108,11 @@ foreach( binary_file ${VIAME_BLACKLISTED_BINARIES} )
     file( REMOVE ${VIAME_INSTALL_PREFIX}/bin/${binary_file}.exe )
   endif()
 endforeach()
+
+# Remove pywin32.pth which references directories (win32, win32\lib) that
+# don't exist in the VIAME install layout, causing import errors on startup.
+# pywin32 is only a transitive dependency and is not required at runtime.
+set( PYTHON_SITE_PACKAGES "${VIAME_INSTALL_PREFIX}/lib/python3.10/site-packages" )
+if( EXISTS "${PYTHON_SITE_PACKAGES}/pywin32.pth" )
+  file( REMOVE "${PYTHON_SITE_PACKAGES}/pywin32.pth" )
+endif()

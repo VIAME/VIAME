@@ -52,6 +52,7 @@ class MITYoloConfig(KWCocoTrainDetectorConfig):
     max_epochs = scfg.Value(500, help='Maximum number of epochs to train for')
     batch_size = scfg.Value(4, help='Number of chips per batch.')
     learning_rate = scfg.Value(3e-4, help='Learning rate for gradient update steps.')
+    timeout = scfg.Value('1209600', help='Max training time in seconds (default=1209600, two weeks)')
 
     def __post_init__(self):
         super().__post_init__()
@@ -200,7 +201,9 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             f"accelerator={self._accelerator}",
             f"task.data.batch_size={self._batch_size}",
             f"task.optimizer.args.lr={self._learning_rate}",
-            f"task.epoch={self._max_epochs}"
+            f"task.epoch={self._max_epochs}",
+            f"+timeout={self._timeout}",
+            "+save_best=True"
         ]
         if len(self._seed_model) > 0:
             hydra_overrides += [f"weight={self._seed_model}"]
@@ -243,9 +246,15 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             print( "\nNo checkpoints found, model may have failed to train" )
             return {"type": "mit_yolo"}
 
-        final_ckpt = candiate_checkpoints[-1]
+        # Prefer best checkpoint, fall back to last checkpoint
+        best_checkpoints = sorted(checkpoint_dpath.glob('best-*.ckpt'))
+        if best_checkpoints:
+            final_ckpt = best_checkpoints[-1]
+            print( "\nBest model found at " + str(final_ckpt) )
+        else:
+            final_ckpt = candiate_checkpoints[-1]
+            print( "\nModel found at " + str(final_ckpt) )
 
-        print( "\nModel found at " + str(final_ckpt) )
         print( "\nThe " + self._train_directory + " directory can now be deleted, "
                "unless you want to review training metrics or generated plots in "
                "there first." )
