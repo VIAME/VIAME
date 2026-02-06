@@ -334,11 +334,11 @@ class RFDETRTrainer(TrainDetector):
                 elapsed = time.time() - train_start_time
                 if elapsed >= timeout_seconds:
                     print(f"[RFDETRTrainer] Timeout reached ({elapsed:.0f}s >= {timeout_seconds:.0f}s)")
-                    model.request_early_stop()
+                    model.model.request_early_stop()
             model.callbacks["on_fit_epoch_end"].append(timeout_callback)
 
         # Signal handler for graceful interruption
-        with TrainingInterruptHandler("RFDETRTrainer", on_interrupt=model.request_early_stop) as handler:
+        with TrainingInterruptHandler("RFDETRTrainer", on_interrupt=model.model.request_early_stop) as handler:
             try:
                 # Train the model
                 model.train(
