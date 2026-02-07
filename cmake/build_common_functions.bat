@@ -147,7 +147,8 @@ ECHO.
 CALL :CopyDll "%WINDIR%\System32\msvcr100.dll" "%~2"
 CALL :CopyDll "%WINDIR%\System32\vcruntime140_1.dll" "%~2"
 CALL :CopyDll "%~3\vcomp140.dll" "%~2"
-CALL :CopyDll "%WINDIR%\SysWOW64\msvcr120.dll" "%~2"
+CALL :CopyDll "%WINDIR%\System32\msvcr120.dll" "%~2"
+CALL :CopyDll "%WINDIR%\System32\msvcp120.dll" "%~2"
 CALL :CopyDll "%~4\dll_x64\zlibwapi.dll" "%~2"
 IF NOT "%~5"=="" CALL :CopyDll "%~5\Release\zlib1.dll" "%~2"
 ECHO.
@@ -292,13 +293,33 @@ FOR %%D IN (sbin qml include mkspecs etc doc) DO (
     )
 )
 IF EXIST "%~3\VIAME\share" (
-    REM Move share but preserve share/postgresql in the package
-    IF EXIST "%~3\VIAME\share\postgresql" (
-        MOVE "%~3\VIAME\share\postgresql" "%~3\VIAME\postgresql_temp" >NUL 2>&1
+    REM Move share but preserve postgresql files in the package
+    IF EXIST "%~3\VIAME\share\postgres.bki" (
+        MKDIR "%~3\VIAME\postgresql_temp"
+        FOR %%F IN (postgres.bki postgres.description postgres.shdescription
+                    conversion_create.sql information_schema.sql snowball_create.sql
+                    sql_features.txt system_views.sql
+                    pg_hba.conf.sample pg_ident.conf.sample pg_service.conf.sample
+                    postgresql.conf.sample psqlrc.sample recovery.conf.sample) DO (
+            IF EXIST "%~3\VIAME\share\%%F" (
+                MOVE "%~3\VIAME\share\%%F" "%~3\VIAME\postgresql_temp\%%F" >NUL 2>&1
+            )
+        )
+        FOR %%D IN (timezone timezonesets tsearch_data extension) DO (
+            IF EXIST "%~3\VIAME\share\%%D" (
+                MOVE "%~3\VIAME\share\%%D" "%~3\VIAME\postgresql_temp\%%D" >NUL 2>&1
+            )
+        )
         MOVE "%~3\VIAME\share" "!EXCLUDED_DIR!\share" >NUL 2>&1
         MKDIR "%~3\VIAME\share"
-        MOVE "%~3\VIAME\postgresql_temp" "%~3\VIAME\share\postgresql" >NUL 2>&1
-        ECHO [OK] Moved share/ (preserved postgresql)
+        FOR /D %%D IN ("%~3\VIAME\postgresql_temp\*") DO (
+            MOVE "%%D" "%~3\VIAME\share\%%~nxD" >NUL 2>&1
+        )
+        FOR %%F IN ("%~3\VIAME\postgresql_temp\*") DO (
+            MOVE "%%F" "%~3\VIAME\share\%%~nxF" >NUL 2>&1
+        )
+        RMDIR /S /Q "%~3\VIAME\postgresql_temp" >NUL 2>&1
+        ECHO [OK] Moved share/ (preserved postgresql files)
     ) ELSE (
         MOVE "%~3\VIAME\share" "!EXCLUDED_DIR!\share" >NUL 2>&1
         ECHO [OK] Moved share/
@@ -317,13 +338,26 @@ FOR %%D IN (sbin qml include mkspecs etc doc) DO (
     )
 )
 IF EXIST "!EXCLUDED_DIR!\share" (
-    IF EXIST "%~3\VIAME\share\postgresql" (
-        MOVE "%~3\VIAME\share\postgresql" "%~3\VIAME\postgresql_temp" >NUL 2>&1
+    REM Move postgresql files out of share temporarily before restoring full share
+    IF EXIST "%~3\VIAME\share" (
+        MKDIR "%~3\VIAME\postgresql_temp" >NUL 2>&1
+        FOR /D %%D IN ("%~3\VIAME\share\*") DO (
+            MOVE "%%D" "%~3\VIAME\postgresql_temp\%%~nxD" >NUL 2>&1
+        )
+        FOR %%F IN ("%~3\VIAME\share\*") DO (
+            MOVE "%%F" "%~3\VIAME\postgresql_temp\%%~nxF" >NUL 2>&1
+        )
         RMDIR /S /Q "%~3\VIAME\share"
     )
     MOVE "!EXCLUDED_DIR!\share" "%~3\VIAME\share" >NUL 2>&1
     IF EXIST "%~3\VIAME\postgresql_temp" (
-        MOVE "%~3\VIAME\postgresql_temp" "%~3\VIAME\share\postgresql" >NUL 2>&1
+        FOR /D %%D IN ("%~3\VIAME\postgresql_temp\*") DO (
+            MOVE "%%D" "%~3\VIAME\share\%%~nxD" >NUL 2>&1
+        )
+        FOR %%F IN ("%~3\VIAME\postgresql_temp\*") DO (
+            MOVE "%%F" "%~3\VIAME\share\%%~nxF" >NUL 2>&1
+        )
+        RMDIR /S /Q "%~3\VIAME\postgresql_temp" >NUL 2>&1
     )
 )
 IF EXIST "!EXCLUDED_DIR!" RMDIR /S /Q "!EXCLUDED_DIR!"
