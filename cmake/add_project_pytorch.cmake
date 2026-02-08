@@ -413,10 +413,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( PROJECT_DEPS ${PROJECT_DEPS} mmcv )
   elseif( "${LIB}" STREQUAL "mmdeploy" )
     set( PROJECT_DEPS ${PROJECT_DEPS} mmdetection onnxruntimelibs )
-  elseif( "${LIB}" STREQUAL "rf-detr" )
-    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${VIAME_PATCHES_DIR}/rf-detr
-      ${VIAME_PACKAGES_DIR}/pytorch-libs/rf-detr )
   elseif( "${LIB}" STREQUAL "detectron2" )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   elseif( "${LIB}" STREQUAL "sam3" )
