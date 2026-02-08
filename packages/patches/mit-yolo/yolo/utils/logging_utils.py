@@ -146,7 +146,7 @@ class YOLORichProgressBar(RichProgressBar):
         self.past_results.append((trainer.current_epoch, ap_main))
 
     @override
-    def refresh(self) -> None:
+    def refresh(self, hard: bool = False) -> None:
         if self.progress:
             self.progress.refresh()
 

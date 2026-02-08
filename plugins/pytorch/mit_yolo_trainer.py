@@ -182,6 +182,14 @@ class MITYoloTrainer( KWCocoTrainDetector ):
         self._ensure_format_writers()
         self._accelerator = 'auto'
 
+        # On Windows, reconfigure stdout/stderr to use UTF-8 encoding.
+        # Third-party libraries (rich, lightning, yolo) use emoji characters
+        # that cannot be encoded in the default cp1252 Windows codepage.
+        if sys.platform == 'win32':
+            for stream in (sys.stdout, sys.stderr):
+                if hasattr(stream, 'reconfigure'):
+                    stream.reconfigure(encoding='utf-8', errors='replace')
+
         # Initialize hydra config
         import yolo.config
         config_dir = ub.Path(yolo.config.__file__).parent

@@ -42,4 +42,8 @@ SET PYTHONPATH=%VIAME_INSTALL%\python;%PYTHONPATH%
 SET PYTHONPATH=%VIAME_INSTALL%\lib\@VIAME_PYTHON_STRING@;%PYTHONPATH%
 SET PYTHONPATH=%VIAME_INSTALL%\lib\@VIAME_PYTHON_STRING@\site-packages;%PYTHONPATH%
 
+REM Force UTF-8 encoding for Python to avoid UnicodeEncodeError with emoji
+REM characters in third-party libraries (rich, lightning, yolo) on Windows
+SET PYTHONUTF8=1
+
 SET KWIVER_DEFAULT_LOG_LEVEL=info
