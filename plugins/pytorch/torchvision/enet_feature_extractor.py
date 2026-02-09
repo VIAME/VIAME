@@ -11,6 +11,23 @@ from PIL import Image as pilImage
 
 from viame.pytorch.utilities import get_gpu_device, init_cudnn
 
+class SafeNormalize(object):
+    """Per-channel normalize that avoids PyTorch vectorization bug on Windows.
+
+    transforms.Normalize uses in-place broadcasting ops that produce garbage
+    values on large tensors (>64x64 per channel) in PyTorch 2.10.0a0 Windows
+    builds. This version normalizes one channel at a time to bypass the bug.
+    """
+    def __init__(self, mean, std):
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, tensor):
+        result = torch.zeros_like(tensor)
+        for i in range(tensor.shape[0]):
+            result[i] = (tensor[i] - self.mean[i]) / self.std[i]
+        return result
+
 class EfficientNetDataLoader(data.Dataset):# This is the same as the siamese one it was based on
     def __init__(self, bbox_list, transform, frame_img, in_size):
         self._frame_img = pilImage.new( "RGB", frame_img.size )
@@ -43,7 +60,7 @@ class EfficientNetDataLoader(data.Dataset):# This is the same as the siamese one
         )
 
         im = im.resize((self._in_size, self._in_size), pilImage.BILINEAR)
-        im.convert('RGB')
+        im = im.convert('RGB')
 
         if self._transform is not None:
             im = self._transform(im)
@@ -74,7 +91,7 @@ class EfficientNetFeatureExtractor(object):
         self._transform = transforms.Compose([
             transforms.Resize(img_size),
             transforms.ToTensor(),
-            transforms.Normalize( [0.485, 0.456, 0.406], [0.229, 0.224, 0.225] )
+            SafeNormalize( [0.485, 0.456, 0.406], [0.229, 0.224, 0.225] )
         ])
         self._img_size = img_size
         self._b_size = batch_size
