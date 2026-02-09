@@ -1219,6 +1219,14 @@ private:
       }
     }
 
+    // probA and probB are required for svm_predict_probability to fill
+    // prob_estimates. Without them it silently returns the predicted label
+    // and leaves prob_estimates uninitialized.
+    if( m_svm_model->probA == nullptr || m_svm_model->probB == nullptr )
+    {
+      return false;
+    }
+
     return true;
   }
 
