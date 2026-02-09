@@ -4,7 +4,7 @@
 
 /**
  * \file
- * \brief Process query descriptors using IQR and SVM ranking
+ * \brief Process query descriptors using IQR and AdaBoost ranking
  */
 
 // Define _USE_MATH_DEFINES before cmath to get M_PI on Windows
@@ -12,8 +12,8 @@
 #define _USE_MATH_DEFINES
 #endif
 
-#include "process_query_process.h"
-#include "iqr_session_svm.h"
+#include "process_query_process_adaboost.h"
+#include "iqr_session_adaboost.h"
 
 #include <vital/vital_types.h>
 #include <vital/types/descriptor.h>
@@ -35,9 +35,6 @@
 namespace viame
 {
 
-namespace svm
-{
-
 using namespace viame::iqr;
 
 // Port traits for this process
@@ -54,7 +51,7 @@ create_port_trait( iqr_positive_uids, string_vector,
 create_port_trait( iqr_negative_uids, string_vector,
   "Negative sample UIDs from IQR feedback" );
 create_port_trait( iqr_query_model, uchar_vector,
-  "Input SVM model bytes for query" );
+  "Input AdaBoost model bytes for query" );
 create_port_trait( result_uids, string_vector,
   "Result ranked descriptor UIDs in rank order" );
 create_port_trait( result_scores, double_vector,
@@ -66,9 +63,9 @@ create_port_trait( feedback_distances, double_vector,
 create_port_trait( feedback_scores, double_vector,
   "Feedback descriptor scores" );
 create_port_trait( result_model, uchar_vector,
-  "Trained SVM model bytes" );
+  "Trained AdaBoost model bytes" );
 
-// Config traits
+// Config traits - shared
 create_config_trait( descriptor_index_file, std::string, "",
   "Path to the CSV file containing the searchable descriptor index (used if conn_str is empty)" );
 create_config_trait( conn_str, std::string, "",
@@ -78,12 +75,6 @@ create_config_trait( pos_seed_neighbors, unsigned, "500",
   "Number of nearest neighbors to retrieve for each positive example" );
 create_config_trait( query_return_size, unsigned, "500",
   "Number of ranked elements to return. 0 returns all." );
-create_config_trait( svm_kernel_type, std::string, "histogram",
-  "SVM kernel type: linear, poly, rbf, sigmoid, or histogram" );
-create_config_trait( svm_c, double, "2.0",
-  "SVM regularization parameter C" );
-create_config_trait( svm_gamma, double, "0.0078125",
-  "SVM gamma parameter for rbf/poly/sigmoid kernels" );
 create_config_trait( nn_max_linear_search, unsigned, "50000",
   "Maximum number of descriptors for brute-force linear NN search. "
   "For larger indexes, approximate search with random sampling is used." );
@@ -94,12 +85,11 @@ create_config_trait( autoneg_select_ratio, unsigned, "0",
   "Number of maximally distant descriptors to auto-select as negatives "
   "for each positive example when no negative examples are provided. "
   "Set to 0 (default) to disable auto-negatives. "
-  "Set to 1+ to enable SVM training on the first query iteration." );
+  "Set to 1+ to enable model training on the first query iteration." );
 create_config_trait( autoneg_from_full_index, bool, "false",
   "When auto-selecting negatives, choose from the full descriptor index "
   "instead of just the working index (neighbors of positives). "
   "When false (default), negatives are selected from the working index only. "
-  "This matches SMQTK's behavior. "
   "When true, negatives are selected from all indexed descriptors." );
 
 // LSH (Locality Sensitive Hashing) config traits for fast approximate NN search
@@ -126,15 +116,9 @@ create_config_trait( nn_distance_method, std::string, "euclidean",
   "Distance method for nearest neighbor re-ranking after LSH candidate retrieval. "
   "Options: 'euclidean', 'cosine', 'hik' (histogram intersection). "
   "Default is 'euclidean'." );
-create_config_trait( use_platt_scaling, bool, "false",
-  "Use custom Platt scaling with HIK distance for probability estimation. "
-  "When true, uses custom Platt scaling with explicit HIK distance computation. "
-  "When false (default), uses libsvm's built-in probability prediction. "
-  "The default matches SMQTK's behavior which uses libsvm probability." );
 create_config_trait( force_exemplar_scores, bool, "true",
   "Force positive exemplars to score 1.0 and negative exemplars to score 0.0. "
   "When true (default), exemplar scores are overwritten after prediction. "
-  "This matches SMQTK's behavior. "
   "When false, exemplars receive their predicted scores." );
 create_config_trait( scoring_norm, bool, "true",
   "Enforce L2 normalization of descriptors before computing Euclidean distance or hash codes. "
@@ -144,9 +128,22 @@ create_config_trait( score_multiplier, double, "1.0",
   "Multiplier applied to the distance before converting to a similarity score. "
   "Used to tune the score distribution to match external baselines. Default 1.0." );
 
+// Config traits - AdaBoost specific
+create_config_trait( boost_type, std::string, "gentle",
+  "AdaBoost type: discrete, real, logit, or gentle" );
+create_config_trait( boost_weak_count, int, "100",
+  "Number of weak classifiers (decision stumps) in the ensemble" );
+create_config_trait( boost_max_depth, int, "1",
+  "Maximum depth of each weak classifier tree. "
+  "1 = decision stumps (default), higher = more complex weak learners." );
+create_config_trait( boost_weight_trim_rate, double, "0.95",
+  "Weight trimming rate for AdaBoost. "
+  "Samples with weights below this percentile are excluded during training. "
+  "0.0 disables trimming. Default 0.95." );
+
 //--------------------------------------------------------------------------------
 // Private implementation class
-class process_query_process::priv
+class process_query_process_adaboost::priv
 {
 public:
   priv()
@@ -154,9 +151,6 @@ public:
     , m_conn_str( "" )
     , m_pos_seed_neighbors( 500 )
     , m_query_return_size( 300 )
-    , m_svm_kernel_type( "histogram" )
-    , m_svm_c( 2.0 )
-    , m_svm_gamma( 0.0078125 )
     , m_nn_max_linear_search( 50000 )
     , m_nn_sample_fraction( 0.1 )
     , m_autoneg_select_ratio( 0 )
@@ -164,14 +158,17 @@ public:
     , m_use_lsh_index( true )
     , m_lsh_bit_length( 256 )
     , m_lsh_neighbor_multiplier( 10 )
-    , m_use_platt_scaling( false )
     , m_force_exemplar_scores( true )
     , m_scoring_norm( true )
     , m_score_multiplier( 1.0 )
+    , m_boost_type( "gentle" )
+    , m_boost_weak_count( 100 )
+    , m_boost_max_depth( 1 )
+    , m_boost_weight_trim_rate( 0.95 )
     , m_index_loaded( false )
     , m_lsh_loaded( false )
     , m_iqr_session( nullptr )
-    , m_logger( kwiver::vital::get_logger( "viame.svm.process_query" ) ) {}
+    , m_logger( kwiver::vital::get_logger( "viame.opencv.process_query_adaboost" ) ) {}
 
   ~priv() {}
 
@@ -179,9 +176,6 @@ public:
   std::string m_conn_str;
   unsigned m_pos_seed_neighbors;
   unsigned m_query_return_size;
-  std::string m_svm_kernel_type;
-  double m_svm_c;
-  double m_svm_gamma;
   unsigned m_nn_max_linear_search;
   double m_nn_sample_fraction;
   unsigned m_autoneg_select_ratio;
@@ -196,10 +190,15 @@ public:
   unsigned m_lsh_bit_length;
   unsigned m_lsh_neighbor_multiplier;
   std::string m_nn_distance_method;
-  bool m_use_platt_scaling;
   bool m_force_exemplar_scores;
   bool m_scoring_norm;
   double m_score_multiplier;
+
+  // AdaBoost configuration
+  std::string m_boost_type;
+  int m_boost_weak_count;
+  int m_boost_max_depth;
+  double m_boost_weight_trim_rate;
 
   bool m_index_loaded;
   bool m_lsh_loaded;
@@ -211,7 +210,7 @@ public:
   lsh_index m_lsh_index;
 
   // IQR session
-  std::unique_ptr< iqr_session_svm > m_iqr_session;
+  std::unique_ptr< iqr_session_adaboost > m_iqr_session;
 
   kwiver::vital::logger_handle_t m_logger;
 
@@ -289,7 +288,6 @@ public:
       res.fetch( 1, vector_data );
 
       // Parse PostgreSQL array format: {val1,val2,val3,...}
-      // Remove curly braces if present
       if( !vector_data.empty() && vector_data.front() == '{' )
       {
         vector_data = vector_data.substr( 1 );
@@ -322,34 +320,31 @@ public:
 
 // ===============================================================================
 
-process_query_process
-::process_query_process( config_block_sptr const& config )
+process_query_process_adaboost
+::process_query_process_adaboost( config_block_sptr const& config )
   : process( config ),
-    d( new process_query_process::priv() )
+    d( new process_query_process_adaboost::priv() )
 {
   make_ports();
   make_config();
 }
 
 
-process_query_process
-::~process_query_process()
+process_query_process_adaboost
+::~process_query_process_adaboost()
 {
 }
 
 
 // -------------------------------------------------------------------------------
 void
-process_query_process
+process_query_process_adaboost
 ::_configure()
 {
   d->m_descriptor_index_file = config_value_using_trait( descriptor_index_file );
   d->m_conn_str = config_value_using_trait( conn_str );
   d->m_pos_seed_neighbors = config_value_using_trait( pos_seed_neighbors );
   d->m_query_return_size = config_value_using_trait( query_return_size );
-  d->m_svm_kernel_type = config_value_using_trait( svm_kernel_type );
-  d->m_svm_c = config_value_using_trait( svm_c );
-  d->m_svm_gamma = config_value_using_trait( svm_gamma );
   d->m_nn_max_linear_search = config_value_using_trait( nn_max_linear_search );
   d->m_nn_sample_fraction = config_value_using_trait( nn_sample_fraction );
   d->m_autoneg_select_ratio = config_value_using_trait( autoneg_select_ratio );
@@ -364,10 +359,15 @@ process_query_process
   d->m_lsh_bit_length = config_value_using_trait( lsh_bit_length );
   d->m_lsh_neighbor_multiplier = config_value_using_trait( lsh_neighbor_multiplier );
   d->m_nn_distance_method = config_value_using_trait( nn_distance_method );
-  d->m_use_platt_scaling = config_value_using_trait( use_platt_scaling );
   d->m_force_exemplar_scores = config_value_using_trait( force_exemplar_scores );
   d->m_scoring_norm = config_value_using_trait( scoring_norm );
   d->m_score_multiplier = config_value_using_trait( score_multiplier );
+
+  // AdaBoost configuration
+  d->m_boost_type = config_value_using_trait( boost_type );
+  d->m_boost_weak_count = config_value_using_trait( boost_weak_count );
+  d->m_boost_max_depth = config_value_using_trait( boost_max_depth );
+  d->m_boost_weight_trim_rate = config_value_using_trait( boost_weight_trim_rate );
 
   d->load_descriptor_index();
 
@@ -403,10 +403,11 @@ process_query_process
   }
 
   // Create IQR session
-  d->m_iqr_session = std::make_unique< iqr_session_svm >( d->m_pos_seed_neighbors );
-  d->m_iqr_session->set_kernel_type( d->m_svm_kernel_type );
-  d->m_iqr_session->set_c( d->m_svm_c );
-  d->m_iqr_session->set_gamma( d->m_svm_gamma );
+  d->m_iqr_session = std::make_unique< iqr_session_adaboost >( d->m_pos_seed_neighbors );
+  d->m_iqr_session->set_boost_type( d->m_boost_type );
+  d->m_iqr_session->set_weak_count( d->m_boost_weak_count );
+  d->m_iqr_session->set_max_depth( d->m_boost_max_depth );
+  d->m_iqr_session->set_weight_trim_rate( d->m_boost_weight_trim_rate );
   d->m_iqr_session->set_nn_max_linear_search( d->m_nn_max_linear_search );
   d->m_iqr_session->set_nn_sample_fraction( d->m_nn_sample_fraction );
   d->m_iqr_session->set_autoneg_select_ratio( d->m_autoneg_select_ratio );
@@ -420,7 +421,6 @@ process_query_process
     d->m_iqr_session->set_lsh_neighbor_multiplier( d->m_lsh_neighbor_multiplier );
   }
   d->m_iqr_session->set_nn_distance_method( d->m_nn_distance_method );
-  d->m_iqr_session->set_use_platt_scaling( d->m_use_platt_scaling );
   d->m_iqr_session->set_force_exemplar_scores( d->m_force_exemplar_scores );
   d->m_iqr_session->set_scoring_norm( d->m_scoring_norm );
   d->m_iqr_session->set_score_multiplier( d->m_score_multiplier );
@@ -429,7 +429,7 @@ process_query_process
 
 // -------------------------------------------------------------------------------
 void
-process_query_process
+process_query_process_adaboost
 ::_step()
 {
   // Grab inputs
@@ -504,8 +504,7 @@ process_query_process
 
   // Log IQR feedback resolution
   {
-    auto logger = kwiver::vital::get_logger( "viame.svm.process_query" );
-    LOG_INFO( logger, "IQR feedback: "
+    LOG_INFO( d->m_logger, "IQR feedback: "
       << iqr_pos_uids->size() << " positive UIDs received, "
       << iqr_pos_elements.size() << " resolved; "
       << iqr_neg_uids->size() << " negative UIDs received, "
@@ -514,17 +513,17 @@ process_query_process
     if( iqr_pos_elements.size() < iqr_pos_uids->size() )
     {
       size_t n_failed = iqr_pos_uids->size() - iqr_pos_elements.size();
-      LOG_WARN( logger, n_failed
+      LOG_WARN( d->m_logger, n_failed
         << " positive IQR UIDs failed to resolve in descriptor index" );
     }
     if( iqr_neg_elements.size() < iqr_neg_uids->size() )
     {
       size_t n_failed = iqr_neg_uids->size() - iqr_neg_elements.size();
-      LOG_WARN( logger, n_failed
+      LOG_WARN( d->m_logger, n_failed
         << " negative IQR UIDs failed to resolve in descriptor index" );
     }
 
-    LOG_INFO( logger, "User-provided: "
+    LOG_INFO( d->m_logger, "User-provided: "
       << user_pos_elements.size() << " positives, "
       << user_neg_elements.size() << " negatives" );
   }
@@ -535,24 +534,18 @@ process_query_process
   // Adjudicate with IQR feedback
   d->m_iqr_session->adjudicate( iqr_pos_elements, iqr_neg_elements );
 
-  {
-    auto logger = kwiver::vital::get_logger( "viame.svm.process_query" );
-    LOG_INFO( logger, "Session after adjudication: "
-      << d->m_iqr_session->num_positives() << " total positives, "
-      << d->m_iqr_session->num_negatives() << " total negatives" );
-  }
+  LOG_INFO( d->m_logger, "Session after adjudication: "
+    << d->m_iqr_session->num_positives() << " total positives, "
+    << d->m_iqr_session->num_negatives() << " total negatives" );
 
   // Update working index with nearest neighbors
   d->m_iqr_session->update_working_index( d->m_descriptor_index );
 
-  // Train SVM and refine
-  bool svm_trained = d->m_iqr_session->refine();
+  // Train AdaBoost and refine
+  bool model_trained = d->m_iqr_session->refine();
 
-  {
-    auto logger = kwiver::vital::get_logger( "viame.svm.process_query" );
-    LOG_INFO( logger, "SVM refine result: "
-      << ( svm_trained ? "model trained" : "no model (skipped or failed)" ) );
-  }
+  LOG_INFO( d->m_logger, "AdaBoost refine result: "
+    << ( model_trained ? "model trained" : "no model (skipped or failed)" ) );
 
   // Get ordered results
   auto ordered_results = d->m_iqr_session->ordered_results();
@@ -596,7 +589,7 @@ process_query_process
       1.0 - static_cast< double >( i ) / ( n_feedback - 1.0 ) : 1.0 );
   }
 
-  // Get SVM model bytes
+  // Get model bytes
   auto model_bytes = d->m_iqr_session->get_model_bytes();
   auto result_model_vec = std::make_shared< kwiver::vital::uchar_vector >(
     model_bytes.begin(), model_bytes.end() );
@@ -613,7 +606,7 @@ process_query_process
 
 // -------------------------------------------------------------------------------
 void
-process_query_process
+process_query_process_adaboost
 ::make_ports()
 {
   sprokit::process::port_flags_t optional;
@@ -642,16 +635,13 @@ process_query_process
 
 // -------------------------------------------------------------------------------
 void
-process_query_process
+process_query_process_adaboost
 ::make_config()
 {
   declare_config_using_trait( descriptor_index_file );
   declare_config_using_trait( conn_str );
   declare_config_using_trait( pos_seed_neighbors );
   declare_config_using_trait( query_return_size );
-  declare_config_using_trait( svm_kernel_type );
-  declare_config_using_trait( svm_c );
-  declare_config_using_trait( svm_gamma );
   declare_config_using_trait( nn_max_linear_search );
   declare_config_using_trait( nn_sample_fraction );
   declare_config_using_trait( autoneg_select_ratio );
@@ -666,12 +656,15 @@ process_query_process
   declare_config_using_trait( lsh_bit_length );
   declare_config_using_trait( lsh_neighbor_multiplier );
   declare_config_using_trait( nn_distance_method );
-  declare_config_using_trait( use_platt_scaling );
   declare_config_using_trait( force_exemplar_scores );
   declare_config_using_trait( scoring_norm );
   declare_config_using_trait( score_multiplier );
-}
 
-} // end namespace svm
+  // AdaBoost configuration
+  declare_config_using_trait( boost_type );
+  declare_config_using_trait( boost_weak_count );
+  declare_config_using_trait( boost_max_depth );
+  declare_config_using_trait( boost_weight_trim_rate );
+}
 
 } // end namespace viame
