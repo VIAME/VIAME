@@ -13,3 +13,4 @@ LEARN, https://viame.kitware.com/girder/api/v1/item/64e2c485ef791ec92a7221b2/dow
 DARKNET-YOLO, https://data.kitware.com/api/v1/item/656fd7b6dfc0e5d60cffa247/download, Additional Darknet YOLO model architectures, fc1f4e11da230f23209c5f390d554629, ALL-PLATFORMS, "PYTORCH, PYTORCH-LEARN"
 EXTRA-FISH, https://data.kitware.com/api/v1/item/6611cf192357cf6b55ca8ad3/download, Additional 1-class fish detection models, 47b7a95f923e8ebb7698db0045d0559f, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 GROUPER-MOON, https://viame.kitware.com/api/v1/item/68001795334bc54295c78afd/download, Grouper Moon project detection and tracking models, ac841d8fc0f31d60fc9481c43471b44b, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
+SAM2, https://data.kitware.com/api/v1/item/698a1c455389b41db2e728a6/download, SAM2 segmentation and interactive segmentation models, 48f84a0e9c3a693aef2d4578d996d911, ALL-PLATFORMS, "PYTORCH, PYTORCH-SAM2"
