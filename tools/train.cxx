@@ -1397,6 +1397,9 @@ train_applet
     }
   }
 
+  // Load shared augmentation pipeline for single-image data items
+  pipeline_t shared_augmentation_pipe = load_embedded_pipeline( pipeline_file );
+
   for( unsigned i = 0; i < all_data.size(); i++ )
   {
     // Get next data entry to process
@@ -1578,7 +1581,15 @@ train_applet
     }
 
     // Perform any augmentation for this entry, if enabled
-    pipeline_t augmentation_pipe = load_embedded_pipeline( pipeline_file );
+    pipeline_t augmentation_pipe;
+
+    if( !is_image )
+    {
+      // Directories/videos get a fresh pipeline per data item
+      augmentation_pipe = load_embedded_pipeline( pipeline_file );
+    }
+
+    pipeline_t& active_pipe = is_image ? shared_augmentation_pipe : augmentation_pipe;
     std::string last_subdir;
 
     if( !augmented_cache.empty() && !pipeline_file.empty() )
@@ -1639,14 +1650,14 @@ train_applet
       bool use_image = true;
       std::string filtered_image_file;
 
-      if( augmentation_pipe )
+      if( active_pipe )
       {
         filtered_image_file = get_augmented_filename( image_file, last_subdir,
           augmented_cache, augmented_ext_override );
 
         if( regenerate_cache )
         {
-          if( !run_pipeline_on_image( augmentation_pipe, pipeline_file,
+          if( !run_pipeline_on_image( active_pipe, pipeline_file,
                 image_file, filtered_image_file ) )
           {
             use_image = false;
@@ -1808,6 +1819,12 @@ train_applet
     {
       break;
     }
+  }
+
+  if( shared_augmentation_pipe )
+  {
+    shared_augmentation_pipe->send_end_of_input();
+    shared_augmentation_pipe->wait();
   }
 
   if( validation_pivot > 0 )
