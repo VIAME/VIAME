@@ -1384,6 +1384,19 @@ train_applet
   // Retain class counts for error checking
   std::map< std::string, int > label_counts;
 
+  // Pre-compute which image base filenames appear more than once
+  std::map< std::string, int > augmented_name_counts;
+
+  for( unsigned i = 0; i < all_data.size(); i++ )
+  {
+    if( ends_with_extension( all_data[i], image_exts ) )
+    {
+      std::string base_name =
+        kwiversys::SystemTools::GetFilenameName( all_data[i] );
+      augmented_name_counts[base_name]++;
+    }
+  }
+
   for( unsigned i = 0; i < all_data.size(); i++ )
   {
     // Get next data entry to process
@@ -1570,13 +1583,45 @@ train_applet
 
     if( !augmented_cache.empty() && !pipeline_file.empty() )
     {
-      std::vector< std::string > cache_path, split_folder;
-      kwiversys::SystemTools::SplitPath( data_item, split_folder );
-      last_subdir = ( split_folder.empty() ? data_item : split_folder.back() );
+      if( is_image )
+      {
+        // For single images, only use a subdirectory if the base filename
+        // appears more than once (to avoid output file collisions)
+        std::string base_name =
+          kwiversys::SystemTools::GetFilenameName( data_item );
 
+        if( augmented_name_counts[base_name] > 1 )
+        {
+          // Use parent directory to disambiguate
+          std::vector< std::string > split_folder;
+          kwiversys::SystemTools::SplitPath( data_item, split_folder );
+
+          if( split_folder.size() >= 2 )
+          {
+            last_subdir = split_folder[split_folder.size() - 2];
+          }
+          else
+          {
+            last_subdir = base_name;
+          }
+        }
+      }
+      else
+      {
+        // For directories/videos, use the last path component as a subdirectory
+        std::vector< std::string > split_folder;
+        kwiversys::SystemTools::SplitPath( data_item, split_folder );
+        last_subdir = ( split_folder.empty() ? data_item : split_folder.back() );
+      }
+
+      std::vector< std::string > cache_path;
       cache_path.push_back( "" );
       cache_path.push_back( augmented_cache );
-      cache_path.push_back( last_subdir );
+
+      if( !last_subdir.empty() )
+      {
+        cache_path.push_back( last_subdir );
+      }
 
       create_folder( kwiversys::SystemTools::JoinPath( cache_path ) );
     }
