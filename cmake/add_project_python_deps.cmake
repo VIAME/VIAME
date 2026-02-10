@@ -103,7 +103,7 @@ endif()
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "scriptconfig" "parse" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "kwarray" "kwimage" "kwplot" )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "astunparse" "pygtrie" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "astunparse" "pygtrie" "pyflakes" )
 endif()
 
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
@@ -181,7 +181,7 @@ set( VIAME_PYTHON_DEPS_REQ_TORCH "" )
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "torch_liberator" "liberator"
-    "networkx-algo-common-subtree>=0.2.0" )
+    "networkx-algo-common-subtree>=0.2.0" "colormath" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
