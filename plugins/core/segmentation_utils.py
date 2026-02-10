@@ -469,6 +469,97 @@ def mask_to_polygon(
     return polygon, bounds
 
 
+def mask_to_polygons(
+    mask: np.ndarray,
+    hole_policy: str = "allow",
+    multipolygon_policy: str = "allow",
+    min_area_fraction: float = 0.01,
+) -> Tuple[List[dict], List[float]]:
+    """
+    Convert binary mask to multiple polygon coordinates with hole support.
+
+    Returns all polygons (optionally with holes) from the mask, unlike
+    mask_to_polygon() which returns only a single polygon exterior.
+
+    Each polygon dict has:
+        - "exterior": List of [x, y] coordinate pairs for the outer ring
+        - "holes": List of hole rings, each a list of [x, y] pairs
+
+    Small disconnected polygons (area < min_area_fraction of the largest)
+    are discarded as noise.
+
+    Args:
+        mask: Binary mask as numpy array (H, W) with non-zero values indicating the mask
+        hole_policy: How to handle holes in polygons:
+            - "allow": Keep holes as-is (default)
+            - "remove": Remove interior rings
+        multipolygon_policy: How to handle multiple polygons:
+            - "allow": Keep all polygons (default)
+            - "largest": Keep only the largest polygon by area
+            - "convex_hull": Return the convex hull of all polygons
+        min_area_fraction: Minimum polygon area as fraction of the largest polygon.
+            Polygons smaller than this are discarded as noise. (default: 0.01 = 1%)
+
+    Returns:
+        Tuple of:
+            - polygons: List of dicts with "exterior" and "holes" keys
+            - bounds: [x_min, y_min, x_max, y_max] overall bounds
+    """
+    from shapely.geometry import Polygon as ShapelyPolygon
+
+    # Convert mask to shapely geometry
+    shape = kwimage_mask_to_shapely(mask)
+    if shape is None:
+        return [], [0, 0, 0, 0]
+
+    # Apply policies
+    shape = apply_polygon_policies(shape, hole_policy, multipolygon_policy)
+    if shape is None:
+        return [], [0, 0, 0, 0]
+
+    # Collect individual shapely polygons
+    shapely_polys: list = []
+    if shape.type == 'Polygon':
+        if not shape.is_empty and shape.exterior is not None:
+            shapely_polys.append(shape)
+    elif shape.type == 'MultiPolygon':
+        for geom in shape.geoms:
+            if geom.type == 'Polygon' and not geom.is_empty and geom.exterior is not None:
+                shapely_polys.append(geom)
+
+    if not shapely_polys:
+        return [], [0, 0, 0, 0]
+
+    # Filter small polygons by area relative to the largest
+    if len(shapely_polys) > 1 and min_area_fraction > 0:
+        max_area = max(p.area for p in shapely_polys)
+        threshold = max_area * min_area_fraction
+        shapely_polys = [p for p in shapely_polys if p.area >= threshold]
+
+    if not shapely_polys:
+        return [], [0, 0, 0, 0]
+
+    # Sort by area descending (largest first = primary polygon)
+    shapely_polys.sort(key=lambda p: p.area, reverse=True)
+
+    # Extract coordinates
+    polygons = []
+    for poly in shapely_polys:
+        exterior = [[float(x), float(y)] for x, y in poly.exterior.coords]
+        holes = []
+        for interior in poly.interiors:
+            hole = [[float(x), float(y)] for x, y in interior.coords]
+            holes.append(hole)
+        polygons.append({"exterior": exterior, "holes": holes})
+
+    # Compute overall bounds from all polygons
+    from shapely.ops import unary_union
+    combined = unary_union(shapely_polys)
+    overall_bounds = list(combined.bounds)  # (minx, miny, maxx, maxy)
+
+    return polygons, overall_bounds
+
+
 def shapely_to_kwimage_multipolygon(shape):
     """
     Convert a shapely geometry back to kwimage.MultiPolygon.

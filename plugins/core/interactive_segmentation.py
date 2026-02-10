@@ -85,8 +85,8 @@ class InteractiveSegmentationService:
         segment_via_points_algo,
         perform_text_query_algo=None,
         image_io_algo=None,
-        hole_policy: str = "remove",
-        multipolygon_policy: str = "largest",
+        hole_policy: str = "allow",
+        multipolygon_policy: str = "allow",
         max_polygon_points: int = 25,
         adaptive_simplify: bool = False,
     ):
@@ -147,6 +147,7 @@ class InteractiveSegmentationService:
         """Convert DetectedObjectSet to response dictionaries."""
         from viame.core.segmentation_utils import (
             mask_to_polygon,
+            mask_to_polygons,
             simplify_polygon_to_max_points,
             adaptive_simplify_polygon,
         )
@@ -160,6 +161,7 @@ class InteractiveSegmentationService:
 
             # Get polygon from mask if available
             polygon = None
+            polygons_data = None
             rle_mask = None
             mask_shape = None
 
@@ -171,7 +173,12 @@ class InteractiveSegmentationService:
                         mask = mask[:, :, 0]
                     mask = (mask > 0).astype(np.uint8)
 
-                    polygon, _ = mask_to_polygon(
+                    polygon, poly_bounds = mask_to_polygon(
+                        mask, self._hole_policy, self._multipolygon_policy
+                    )
+
+                    # Get multi-polygon data with holes
+                    raw_polygons, mp_bounds = mask_to_polygons(
                         mask, self._hole_policy, self._multipolygon_policy
                     )
 
@@ -189,10 +196,59 @@ class InteractiveSegmentationService:
                         if len(polygon) != original_points:
                             self._log(f"Simplified polygon: {original_points} -> {len(polygon)} points")
 
+                    # Simplify each polygon in multi-polygon data
+                    if raw_polygons:
+                        for poly_data in raw_polygons:
+                            ext = poly_data["exterior"]
+                            if len(ext) > self._max_polygon_points:
+                                if self._adaptive_simplify:
+                                    poly_data["exterior"] = adaptive_simplify_polygon(
+                                        ext, self._max_polygon_points, min_points=4
+                                    )
+                                else:
+                                    poly_data["exterior"] = simplify_polygon_to_max_points(
+                                        ext, self._max_polygon_points
+                                    )
+                            for i, hole in enumerate(poly_data["holes"]):
+                                if len(hole) > self._max_polygon_points:
+                                    if self._adaptive_simplify:
+                                        poly_data["holes"][i] = adaptive_simplify_polygon(
+                                            hole, self._max_polygon_points, min_points=4
+                                        )
+                                    else:
+                                        poly_data["holes"][i] = simplify_polygon_to_max_points(
+                                            hole, self._max_polygon_points
+                                        )
+
                     # Offset polygon to original image coordinates (mask is cropped to bbox)
+                    offset_x, offset_y = bbox.min_x(), bbox.min_y()
                     if polygon:
-                        offset_x, offset_y = bbox.min_x(), bbox.min_y()
                         polygon = [[x + offset_x, y + offset_y] for x, y in polygon]
+
+                    # Offset multi-polygon data
+                    if raw_polygons:
+                        for poly_data in raw_polygons:
+                            poly_data["exterior"] = [
+                                [x + offset_x, y + offset_y]
+                                for x, y in poly_data["exterior"]
+                            ]
+                            poly_data["holes"] = [
+                                [[x + offset_x, y + offset_y] for x, y in hole]
+                                for hole in poly_data["holes"]
+                            ]
+                        polygons_data = raw_polygons
+
+                    # Use polygon-derived bounds instead of detection bbox
+                    if polygon and poly_bounds and poly_bounds != [0, 0, 0, 0]:
+                        bounds = [
+                            poly_bounds[0] + offset_x, poly_bounds[1] + offset_y,
+                            poly_bounds[2] + offset_x, poly_bounds[3] + offset_y,
+                        ]
+                    elif raw_polygons and mp_bounds and mp_bounds != [0, 0, 0, 0]:
+                        bounds = [
+                            mp_bounds[0] + offset_x, mp_bounds[1] + offset_y,
+                            mp_bounds[2] + offset_x, mp_bounds[3] + offset_y,
+                        ]
 
                     # Create RLE mask for efficient transfer
                     flat_mask = mask.flatten().astype(np.uint8)
@@ -215,6 +271,9 @@ class InteractiveSegmentationService:
                 "bounds": bounds,
                 "score": score,
             }
+
+            if polygons_data is not None:
+                result["polygons"] = polygons_data
 
             if rle_mask is not None:
                 result["rle_mask"] = rle_mask
@@ -532,8 +591,8 @@ def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None
 
     # Extract service configuration
     service_config = {
-        "hole_policy": cfg.get_value("service:hole_policy") if cfg.has_value("service:hole_policy") else "remove",
-        "multipolygon_policy": cfg.get_value("service:multipolygon_policy") if cfg.has_value("service:multipolygon_policy") else "largest",
+        "hole_policy": cfg.get_value("service:hole_policy") if cfg.has_value("service:hole_policy") else "allow",
+        "multipolygon_policy": cfg.get_value("service:multipolygon_policy") if cfg.has_value("service:multipolygon_policy") else "allow",
         "max_polygon_points": int(cfg.get_value("service:max_polygon_points")) if cfg.has_value("service:max_polygon_points") else 25,
         "adaptive_simplify": cfg.get_value("service:adaptive_simplify").lower() in ('true', '1', 'yes') if cfg.has_value("service:adaptive_simplify") else False,
     }
@@ -601,8 +660,8 @@ segment_via_points:sam2:cfg = configs/sam2.1/sam2.1_hiera_b+.yaml
 segment_via_points:sam2:device = cuda
 
 # Service settings
-service:hole_policy = remove
-service:multipolygon_policy = largest
+service:hole_policy = allow
+service:multipolygon_policy = allow
 service:max_polygon_points = 25
 service:adaptive_simplify = false
 """
@@ -633,8 +692,8 @@ perform_text_query:sam3:detection_threshold = 0.3
 perform_text_query:sam3:max_detections = 10
 
 # Service settings
-service:hole_policy = remove
-service:multipolygon_policy = largest
+service:hole_policy = allow
+service:multipolygon_policy = allow
 service:max_polygon_points = 25
 service:adaptive_simplify = false
 """
