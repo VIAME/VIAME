@@ -533,7 +533,7 @@ class Detectron2Trainer(KWCocoTrainDetector):
         except ImportError:
             import detectron2  # NOQA
 
-        from detectron2.engine import DefaultTrainer
+        from detectron2.engine import DefaultTrainer, HookBase
         from detectron2.evaluation import COCOEvaluator
 
         # Register datasets
@@ -595,10 +595,20 @@ class Detectron2Trainer(KWCocoTrainDetector):
                 output_folder.ensuredir()
                 return COCOEvaluator(dataset_name, output_dir=str(output_folder))
 
+        # Hook to stop training after the current iteration on interrupt
+        class InterruptHook(HookBase):
+            def __init__(self, interrupt_handler):
+                self._handler = interrupt_handler
+
+            def after_step(self):
+                if self._handler.interrupted:
+                    raise KeyboardInterrupt
+
         # Signal handler for graceful interruption
         with TrainingInterruptHandler("Detectron2Trainer") as handler:
             try:
                 trainer = Trainer(cfg)
+                trainer.register_hooks([InterruptHook(handler)])
                 trainer.resume_or_load(resume=parse_bool(self._resume))
                 trainer.train()
             except KeyboardInterrupt:

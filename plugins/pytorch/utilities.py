@@ -887,7 +887,16 @@ class TrainingInterruptHandler:
 
     def __enter__(self):
         def signal_handler(signum, frame):
+            if self.interrupted:
+                # Second interrupt: restore default handler and re-raise
+                print(f"\n[{self.trainer_name}] Forcing exit...")
+                if self._original_sigint is not None:
+                    self._signal.signal(self._signal.SIGINT, self._original_sigint)
+                if self._original_sigterm is not None:
+                    self._signal.signal(self._signal.SIGTERM, self._original_sigterm)
+                raise KeyboardInterrupt
             print(f"\n[{self.trainer_name}] Training interrupted, saving model...")
+            print(f"[{self.trainer_name}] Press Ctrl+C again to force exit.")
             self.interrupted = True
             if self._on_interrupt is not None:
                 self._on_interrupt()
