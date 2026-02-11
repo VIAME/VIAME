@@ -14,6 +14,19 @@ config _scheduler
 
 include common_default_input_with_downsampler.pipe
 
+# =============================== TRACK INPUT =================================
+
+process track_reader
+  :: read_object_track
+  :file_name                                   [INSERT_ME]
+  :reader:type                                 viame_csv
+
+connect from input.file_name
+        to   track_reader.image_file_name
+
+connect from track_reader.object_track_set
+        to   downsampler.input_3
+
 # ================================== OUTPUT ===================================
 
 process image_writer
@@ -25,5 +38,18 @@ connect from downsampler.output_1
         to   image_writer.image
 connect from downsampler.output_2
         to   image_writer.image_file_name
+
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:write_time_as_uid          false
+
+connect from downsampler.output_3
+        to   track_writer.object_track_set
+connect from downsampler.timestamp
+        to   track_writer.timestamp
+connect from image_writer.image_file_name
+        to   track_writer.image_file_name
 
 # -- end of file --
