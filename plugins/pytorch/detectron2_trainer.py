@@ -368,13 +368,16 @@ class Detectron2Trainer(KWCocoTrainDetector):
         categories = coco_data.get('categories', [])
         thing_classes = [cat['name'] for cat in sorted(categories, key=lambda x: x['id'])]
 
-        # Register dataset
+        # Register dataset - pass dataset_name so load_coco_json builds
+        # thing_dataset_id_to_contiguous_id mapping (remaps 1-based COCO
+        # category IDs to 0-based contiguous IDs)
         DatasetCatalog.register(
             name,
-            lambda jf=json_file, ir=image_root: load_coco_json(jf, ir)
+            lambda jf=json_file, ir=image_root, dn=name: load_coco_json(jf, ir, dataset_name=dn)
         )
 
-        # Set metadata
+        # Set metadata (thing_classes will be overwritten by load_coco_json
+        # when dataset_name is provided, but set here as well for clarity)
         MetadataCatalog.get(name).set(
             json_file=json_file,
             image_root=image_root,
@@ -530,7 +533,7 @@ class Detectron2Trainer(KWCocoTrainDetector):
         except ImportError:
             import detectron2  # NOQA
 
-        from detectron2.engine import DefaultTrainer
+        from detectron2.engine import DefaultTrainer, HookBase
         from detectron2.evaluation import COCOEvaluator
 
         # Register datasets
@@ -592,10 +595,20 @@ class Detectron2Trainer(KWCocoTrainDetector):
                 output_folder.ensuredir()
                 return COCOEvaluator(dataset_name, output_dir=str(output_folder))
 
+        # Hook to stop training after the current iteration on interrupt
+        class InterruptHook(HookBase):
+            def __init__(self, interrupt_handler):
+                self._handler = interrupt_handler
+
+            def after_step(self):
+                if self._handler.interrupted:
+                    raise KeyboardInterrupt
+
         # Signal handler for graceful interruption
         with TrainingInterruptHandler("Detectron2Trainer") as handler:
             try:
                 trainer = Trainer(cfg)
+                trainer.register_hooks([InterruptHook(handler)])
                 trainer.resume_or_load(resume=parse_bool(self._resume))
                 trainer.train()
             except KeyboardInterrupt:

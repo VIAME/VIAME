@@ -1382,6 +1382,22 @@ train_applet
   // Retain class counts for error checking
   std::map< std::string, int > label_counts;
 
+  // Pre-compute which image base filenames appear more than once
+  std::map< std::string, int > augmented_name_counts;
+
+  for( unsigned i = 0; i < all_data.size(); i++ )
+  {
+    if( ends_with_extension( all_data[i], image_exts ) )
+    {
+      std::string base_name =
+        kwiversys::SystemTools::GetFilenameName( all_data[i] );
+      augmented_name_counts[base_name]++;
+    }
+  }
+
+  // Load shared augmentation pipeline for single-image data items
+  pipeline_t shared_augmentation_pipe = load_embedded_pipeline( pipeline_file );
+
   for( unsigned i = 0; i < all_data.size(); i++ )
   {
     // Get next data entry to process
@@ -1563,18 +1579,58 @@ train_applet
     }
 
     // Perform any augmentation for this entry, if enabled
-    pipeline_t augmentation_pipe = load_embedded_pipeline( pipeline_file );
+    pipeline_t augmentation_pipe;
+
+    if( !is_image )
+    {
+      // Directories/videos get a fresh pipeline per data item
+      augmentation_pipe = load_embedded_pipeline( pipeline_file );
+    }
+
+    pipeline_t& active_pipe = is_image ? shared_augmentation_pipe : augmentation_pipe;
     std::string last_subdir;
 
     if( !augmented_cache.empty() && !pipeline_file.empty() )
     {
-      std::vector< std::string > cache_path, split_folder;
-      kwiversys::SystemTools::SplitPath( data_item, split_folder );
-      last_subdir = ( split_folder.empty() ? data_item : split_folder.back() );
+      if( is_image )
+      {
+        // For single images, only use a subdirectory if the base filename
+        // appears more than once (to avoid output file collisions)
+        std::string base_name =
+          kwiversys::SystemTools::GetFilenameName( data_item );
 
+        if( augmented_name_counts[base_name] > 1 )
+        {
+          // Use parent directory to disambiguate
+          std::vector< std::string > split_folder;
+          kwiversys::SystemTools::SplitPath( data_item, split_folder );
+
+          if( split_folder.size() >= 2 )
+          {
+            last_subdir = split_folder[split_folder.size() - 2];
+          }
+          else
+          {
+            last_subdir = base_name;
+          }
+        }
+      }
+      else
+      {
+        // For directories/videos, use the last path component as a subdirectory
+        std::vector< std::string > split_folder;
+        kwiversys::SystemTools::SplitPath( data_item, split_folder );
+        last_subdir = ( split_folder.empty() ? data_item : split_folder.back() );
+      }
+
+      std::vector< std::string > cache_path;
       cache_path.push_back( "" );
       cache_path.push_back( augmented_cache );
-      cache_path.push_back( last_subdir );
+
+      if( !last_subdir.empty() )
+      {
+        cache_path.push_back( last_subdir );
+      }
 
       create_folder( kwiversys::SystemTools::JoinPath( cache_path ) );
     }
@@ -1592,14 +1648,14 @@ train_applet
       bool use_image = true;
       std::string filtered_image_file;
 
-      if( augmentation_pipe )
+      if( active_pipe )
       {
         filtered_image_file = get_augmented_filename( image_file, last_subdir,
           augmented_cache, augmented_ext_override );
 
         if( regenerate_cache )
         {
-          if( !run_pipeline_on_image( augmentation_pipe, pipeline_file,
+          if( !run_pipeline_on_image( active_pipe, pipeline_file,
                 image_file, filtered_image_file ) )
           {
             use_image = false;
@@ -1761,6 +1817,12 @@ train_applet
     {
       break;
     }
+  }
+
+  if( shared_augmentation_pipe )
+  {
+    shared_augmentation_pipe->send_end_of_input();
+    shared_augmentation_pipe->wait();
   }
 
   if( validation_pivot > 0 )

@@ -359,8 +359,6 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     train_detector_netharn_mask_rcnn_1280.conf
     train_detector_netharn_mask_rcnn_720.conf
     train_detector_netharn_mask_rcnn_grid.conf
-    train_detector_netharn_mit_yolo_v9_c.conf
-    train_detector_netharn_rf_detr_b.conf
     train_frame_classifier_netharn_efficientnet.conf
     train_frame_classifier_netharn_efficientnet.continue.conf
     train_frame_classifier_netharn_resnet.conf

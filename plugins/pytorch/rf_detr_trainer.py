@@ -4,6 +4,7 @@
 
 import json
 import os
+import sys
 
 from kwiver.vital.algo import TrainDetector
 
@@ -251,6 +252,14 @@ class RFDETRTrainer(TrainDetector):
     def update_model(self):
         import torch
 
+        # On Windows, reconfigure stdout/stderr to use UTF-8 encoding.
+        # Third-party libraries (rich, etc.) use emoji characters that
+        # cannot be encoded in the default cp1252 Windows codepage.
+        if sys.platform == 'win32':
+            for stream in (sys.stdout, sys.stderr):
+                if hasattr(stream, 'reconfigure'):
+                    stream.reconfigure(encoding='utf-8', errors='replace')
+
         print("[RFDETRTrainer] Starting RF-DETR training")
 
         # Prepare dataset directory in Roboflow format
@@ -334,33 +343,39 @@ class RFDETRTrainer(TrainDetector):
                 elapsed = time.time() - train_start_time
                 if elapsed >= timeout_seconds:
                     print(f"[RFDETRTrainer] Timeout reached ({elapsed:.0f}s >= {timeout_seconds:.0f}s)")
-                    model.request_early_stop()
+                    model.model.request_early_stop()
             model.callbacks["on_fit_epoch_end"].append(timeout_callback)
 
+        # On Windows, DataLoader worker subprocesses fail because
+        # multiprocessing spawn tries to re-invoke viame.exe as Python.
+        train_kwargs = dict(
+            dataset_dir=str(dataset_dir),
+            output_dir=str(output_dir),
+            epochs=epochs,
+            batch_size=batch_size,
+            lr=lr,
+            lr_encoder=lr_encoder,
+            grad_accum_steps=grad_accum_steps,
+            weight_decay=weight_decay,
+            warmup_epochs=warmup_epochs,
+            lr_drop=lr_drop,
+            use_ema=use_ema,
+            ema_decay=ema_decay,
+            early_stopping=early_stopping,
+            early_stopping_patience=early_stopping_patience,
+            multi_scale=multi_scale,
+            checkpoint_interval=checkpoint_interval,
+            tensorboard=use_tensorboard,
+            wandb=False,
+        )
+        if sys.platform == "win32":
+            train_kwargs["num_workers"] = 0
+
         # Signal handler for graceful interruption
-        with TrainingInterruptHandler("RFDETRTrainer", on_interrupt=model.request_early_stop) as handler:
+        with TrainingInterruptHandler("RFDETRTrainer", on_interrupt=model.model.request_early_stop) as handler:
             try:
                 # Train the model
-                model.train(
-                    dataset_dir=str(dataset_dir),
-                    output_dir=str(output_dir),
-                    epochs=epochs,
-                    batch_size=batch_size,
-                    lr=lr,
-                    lr_encoder=lr_encoder,
-                    grad_accum_steps=grad_accum_steps,
-                    weight_decay=weight_decay,
-                    warmup_epochs=warmup_epochs,
-                    lr_drop=lr_drop,
-                    use_ema=use_ema,
-                    ema_decay=ema_decay,
-                    early_stopping=early_stopping,
-                    early_stopping_patience=early_stopping_patience,
-                    multi_scale=multi_scale,
-                    checkpoint_interval=checkpoint_interval,
-                    tensorboard=use_tensorboard,
-                    wandb=False,
-                )
+                model.train(**train_kwargs)
             except KeyboardInterrupt:
                 print("[RFDETRTrainer] Training interrupted by user")
 

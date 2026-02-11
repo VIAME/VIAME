@@ -403,11 +403,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   elseif( "${LIB}" STREQUAL "torchvideo" )
     set( PROJECT_DEPS ${PROJECT_DEPS} pyav )
   elseif( "${LIB}" STREQUAL "mmcv" )
-    if( WIN32 )
-      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${VIAME_PATCHES_DIR}/mmcv
-        ${VIAME_PACKAGES_DIR}/pytorch-libs/mmcv )
-    endif()
   elseif( "${LIB}" STREQUAL "sam2" )
     if( WIN32 )
       set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -418,14 +413,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( PROJECT_DEPS ${PROJECT_DEPS} mmcv )
   elseif( "${LIB}" STREQUAL "mmdeploy" )
     set( PROJECT_DEPS ${PROJECT_DEPS} mmdetection onnxruntimelibs )
-  elseif( "${LIB}" STREQUAL "mit-yolo" )
-    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${VIAME_PATCHES_DIR}/mit-yolo
-      ${VIAME_PACKAGES_DIR}/pytorch-libs/mit-yolo )
-  elseif( "${LIB}" STREQUAL "rf-detr" )
-    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${VIAME_PATCHES_DIR}/rf-detr
-      ${VIAME_PACKAGES_DIR}/pytorch-libs/rf-detr )
   elseif( "${LIB}" STREQUAL "detectron2" )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   elseif( "${LIB}" STREQUAL "sam3" )

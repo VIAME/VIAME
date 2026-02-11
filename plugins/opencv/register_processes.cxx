@@ -11,6 +11,7 @@
 #include "pair_stereo_detections_process.h"
 #include "pair_stereo_tracks_process.h"
 #include "detect_in_subregions_process.h"
+#include "process_query_process_adaboost.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -84,6 +85,17 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "by an incoming detected_object_set" )
     .add_attribute( kvpf::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
+
+  // ---------------------------------------------------------------------------
+  fact = vpm.ADD_PROCESS( viame::process_query_process_adaboost );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME,
+                       "process_query_adaboost" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Process query descriptors using IQR and AdaBoost ranking" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );

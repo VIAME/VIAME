@@ -90,6 +90,7 @@ kwiver_add_plugin( viame_processes_svm
 target_include_directories( viame_processes_svm PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/plugins>
   )
 
 # Optionally link CppDB for database backend support in process_query

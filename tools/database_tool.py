@@ -177,13 +177,18 @@ def stop(quiet=False):
 
     try:
         if _is_windows():
-            _execute_cmd("net", ["stop", "postgresql-x64-9.5 (64-bit windows)"])
+            # Kill any running postgres processes on Windows
+            subprocess.call(["taskkill", "/F", "/IM", "postgres.exe"],
+                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         else:
             # Kill any postgres processes more aggressively
             subprocess.call(["pkill", "-9", "postgres"],
                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except Exception:
         pass
+
+    # Wait for port to be released before returning
+    _wait_for_port_available(DEFAULT_DB_PORT, timeout=10)
 
     _log_file = original
 

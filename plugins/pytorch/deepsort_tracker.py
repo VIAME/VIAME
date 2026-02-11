@@ -188,11 +188,22 @@ class FeatureExtractor:
             self.model = self.model.to(self.device)
             self.model.eval()
 
+            class SafeNormalize(object):
+                """Per-channel normalize avoiding PyTorch vectorization bug."""
+                def __init__(self, mean, std):
+                    self.mean = mean
+                    self.std = std
+                def __call__(self, tensor):
+                    result = torch.zeros_like(tensor)
+                    for i in range(tensor.shape[0]):
+                        result[i] = (tensor[i] - self.mean[i]) / self.std[i]
+                    return result
+
             self.transform = transforms.Compose([
                 transforms.ToPILImage(),
                 transforms.Resize((128, 64)),
                 transforms.ToTensor(),
-                transforms.Normalize(
+                SafeNormalize(
                     mean=[0.485, 0.456, 0.406],
                     std=[0.229, 0.224, 0.225]
                 )

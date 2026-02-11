@@ -30,14 +30,12 @@ if( VIAME_ENABLE_DARKNET )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          train_darknet_yolo.bat
-         train_darknet_yolo_habcam_csv.bat
-         train_darknet_yolo_kw18.bat )
+         train_darknet_yolo_habcam.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          train_darknet_yolo.sh
-         train_darknet_yolo_habcam_csv.sh
-         train_darknet_yolo_kw18.sh )
+         train_darknet_yolo_habcam.sh )
   endif()
 endif()
 
@@ -47,12 +45,9 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          ${EXAMPLE_INSTALL_FILES}
          continue_training_cfrnn.bat
          train_netharn_cfrnn.bat
-         train_netharn_cfrnn_habcam_csv.bat
+         train_netharn_cfrnn_habcam.bat
          train_netharn_mask_rcnn.bat
          train_netharn_motion_cfrnn.bat
-         train_netharn_rf_detr_b.bat
-         train_netharn_mit_yolo_v9_c.bat
-         train_netharn_rf_detr_b_16bit.bat
          input_list_arctic_seal_16bit.txt
          groundtruth_arctic_seal_16bit.csv
          labels_arctic_seal_16bit.txt )
@@ -61,12 +56,9 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          ${EXAMPLE_INSTALL_FILES}
          continue_training_cfrnn.sh
          train_netharn_cfrnn.sh
-         train_netharn_cfrnn_habcam_csv.sh
+         train_netharn_cfrnn_habcam.sh
          train_netharn_mask_rcnn.sh
          train_netharn_motion_cfrnn.sh
-         train_netharn_rf_detr_b.sh
-         train_netharn_mit_yolo_v9_c.sh
-         train_netharn_rf_detr_b_16bit.sh
          input_list_arctic_seal_16bit.txt
          groundtruth_arctic_seal_16bit.csv
          labels_arctic_seal_16bit.txt )
@@ -79,12 +71,14 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
          ${EXAMPLE_INSTALL_FILES}
          train_rf_detr_n_384.bat
          train_rf_detr_b_560.bat
+         train_rf_detr_b_560_16bit.bat
          train_rf_detr_l_728.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          train_rf_detr_n_384.sh
          train_rf_detr_b_560.sh
+         train_rf_detr_b_560_16bit.sh
          train_rf_detr_l_728.sh )
   endif()
 endif()

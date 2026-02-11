@@ -59,7 +59,6 @@ set( VIAME_BLACKLISTED_BINARIES
   qttracereplay
   ras2tiff
   raw2tiff
-  rcc
   rdjpgcom
   rgb2ycbcr
   test_net

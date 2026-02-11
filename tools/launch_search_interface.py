@@ -11,7 +11,9 @@ import atexit
 import glob
 import os
 import shutil
+import signal
 import string
+import subprocess
 import sys
 import tempfile
 import urllib.parse as urlparse
@@ -52,7 +54,17 @@ def _find_file(filename):
 def _execute_command(cmd):
     if os.name == 'nt':
         return os.system(cmd)
-    return os.system(f'/bin/bash -c "{cmd}"')
+    proc = subprocess.Popen(cmd, shell=True, executable='/bin/bash')
+    try:
+        return proc.wait()
+    except KeyboardInterrupt:
+        proc.send_signal(signal.SIGINT)
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.terminate()
+            proc.wait(timeout=5)
+        return 1
 
 
 def _make_uri(scheme='file', authority='', path='', query=''):
