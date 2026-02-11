@@ -304,6 +304,11 @@ endif()
 if( VIAME_ENABLE_PYTORCH-DETECTRON2 )
 
     kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/detectron2_detector.py
+      pytorch
+      detectron2_detector )
+
+    kwiver_add_python_module(
       ${CMAKE_CURRENT_SOURCE_DIR}/detectron2_trainer.py
       pytorch
       detectron2_trainer )

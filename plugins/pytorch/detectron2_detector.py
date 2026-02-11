@@ -262,6 +262,17 @@ class Detectron2Detector(ImageObjectDetector):
                             [item for pair in custom_cfg.items() for item in pair]
                         )
 
+            # Set NUM_CLASSES from checkpoint metadata to match trained model
+            import torch as _torch
+            try:
+                ckpt_path = cfg.MODEL.WEIGHTS
+                if ckpt_path and ub.Path(ckpt_path).exists():
+                    ckpt = _torch.load(ckpt_path, map_location='cpu', weights_only=False)
+                    if 'args' in ckpt and 'num_classes' in ckpt['args']:
+                        cfg.MODEL.ROI_HEADS.NUM_CLASSES = ckpt['args']['num_classes']
+            except Exception:
+                pass
+
             # Set device
             cfg.MODEL.DEVICE = device
 
@@ -286,15 +297,29 @@ class Detectron2Detector(ImageObjectDetector):
 
     def _get_class_names(self):
         """
-        Attempt to retrieve class names from the model.
+        Attempt to retrieve class names from the model checkpoint.
+
+        Checks the checkpoint file for class names saved during training
+        before falling back to COCO defaults.
 
         Returns:
             list or None: List of class names if available
         """
+        import torch
+
+        # Try to get from checkpoint metadata (saved by Detectron2Trainer)
         try:
-            # Try to get from detectron2's MetadataCatalog
+            checkpoint_path = self._checkpoint_fpath
+            if checkpoint_path and checkpoint_path != 'noop' and ub.Path(checkpoint_path).exists():
+                checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
+                if 'args' in checkpoint and 'class_names' in checkpoint['args']:
+                    return list(checkpoint['args']['class_names'])
+        except Exception:
+            pass
+
+        # Fall back to COCO metadata
+        try:
             from detectron2.data import MetadataCatalog
-            # Common COCO metadata
             metadata = MetadataCatalog.get("coco_2017_val")
             return list(metadata.thing_classes)
         except Exception:
