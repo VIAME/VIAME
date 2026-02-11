@@ -368,13 +368,16 @@ class Detectron2Trainer(KWCocoTrainDetector):
         categories = coco_data.get('categories', [])
         thing_classes = [cat['name'] for cat in sorted(categories, key=lambda x: x['id'])]
 
-        # Register dataset
+        # Register dataset - pass dataset_name so load_coco_json builds
+        # thing_dataset_id_to_contiguous_id mapping (remaps 1-based COCO
+        # category IDs to 0-based contiguous IDs)
         DatasetCatalog.register(
             name,
-            lambda jf=json_file, ir=image_root: load_coco_json(jf, ir)
+            lambda jf=json_file, ir=image_root, dn=name: load_coco_json(jf, ir, dataset_name=dn)
         )
 
-        # Set metadata
+        # Set metadata (thing_classes will be overwritten by load_coco_json
+        # when dataset_name is provided, but set here as well for clarity)
         MetadataCatalog.get(name).set(
             json_file=json_file,
             image_root=image_root,
