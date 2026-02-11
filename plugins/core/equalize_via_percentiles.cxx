@@ -2,7 +2,7 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#include "normalize_image_percentile.h"
+#include "equalize_via_percentiles.h"
 
 #include <vital/types/image.h>
 #include <vital/types/image_container.h>
@@ -13,85 +13,21 @@
 
 namespace viame {
 
-// -----------------------------------------------------------------------------------------------
-/// @brief Storage class for private member variables
-class normalize_image_percentile::priv
-{
-public:
-  priv()
-    : m_lower_percentile( 1.0 )
-    , m_upper_percentile( 100.0 )
-    , m_output_format( "8-bit" )
-  {}
-
-  ~priv() {}
-
-  double m_lower_percentile;
-  double m_upper_percentile;
-  std::string m_output_format;
-};
-
 // =================================================================================================
 
-normalize_image_percentile::
-normalize_image_percentile()
-  : d( new priv )
-{
-  attach_logger( "viame.core.normalize_image_percentile" );
-}
-
-
-normalize_image_percentile::
-~normalize_image_percentile()
+equalize_via_percentiles::
+~equalize_via_percentiles()
 {}
 
 
 // -------------------------------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
-normalize_image_percentile::
-get_configuration() const
-{
-  kwiver::vital::config_block_sptr config =
-    kwiver::vital::algo::image_filter::get_configuration();
-
-  config->set_value( "lower_percentile", d->m_lower_percentile,
-    "Lower percentile for minimum value calculation (0.0 to 100.0). "
-    "Default is 1.0 to exclude outliers." );
-
-  config->set_value( "upper_percentile", d->m_upper_percentile,
-    "Upper percentile for maximum value calculation (0.0 to 100.0). "
-    "Default is 100.0 (maximum value)." );
-
-  config->set_value( "output_format", d->m_output_format,
-    "Output format: '8-bit' for 8-bit unsigned output, 'native' for same "
-    "type as input with values stretched to full range. Default is '8-bit'." );
-
-  return config;
-}
-
-
-// -------------------------------------------------------------------------------------------------
-void
-normalize_image_percentile::
-set_configuration( kwiver::vital::config_block_sptr config_in )
-{
-  kwiver::vital::config_block_sptr config = this->get_configuration();
-  config->merge_config( config_in );
-
-  d->m_lower_percentile = config->get_value< double >( "lower_percentile" );
-  d->m_upper_percentile = config->get_value< double >( "upper_percentile" );
-  d->m_output_format = config->get_value< std::string >( "output_format" );
-}
-
-
-// -------------------------------------------------------------------------------------------------
 bool
-normalize_image_percentile::
+equalize_via_percentiles::
 check_configuration( kwiver::vital::config_block_sptr config ) const
 {
   double lower = config->get_value< double >( "lower_percentile" );
   double upper = config->get_value< double >( "upper_percentile" );
-  std::string output_format = config->get_value< std::string >( "output_format" );
+  std::string fmt = config->get_value< std::string >( "output_format" );
 
   if( lower < 0.0 || lower > 100.0 )
   {
@@ -111,7 +47,7 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
     return false;
   }
 
-  if( output_format != "8-bit" && output_format != "native" )
+  if( fmt != "8-bit" && fmt != "native" )
   {
     LOG_ERROR( logger(), "output_format must be '8-bit' or 'native'" );
     return false;
@@ -201,7 +137,7 @@ void set_pixel_value( kwiver::vital::image& img, size_t i, size_t j, size_t p,
 
 // -------------------------------------------------------------------------------------------------
 kwiver::vital::image_container_sptr
-normalize_image_percentile::
+equalize_via_percentiles::
 filter( kwiver::vital::image_container_sptr image_data )
 {
   if( !image_data )
@@ -234,15 +170,15 @@ filter( kwiver::vital::image_container_sptr image_data )
     {
       std::vector< uint8_t > values = extract_pixel_values< uint8_t >( input_img );
       std::sort( values.begin(), values.end() );
-      p_low = calculate_percentile( values, d->m_lower_percentile );
-      p_high = calculate_percentile( values, d->m_upper_percentile );
+      p_low = calculate_percentile( values, get_lower_percentile() );
+      p_high = calculate_percentile( values, get_upper_percentile() );
     }
     else if( input_traits.num_bytes == 2 )
     {
       std::vector< uint16_t > values = extract_pixel_values< uint16_t >( input_img );
       std::sort( values.begin(), values.end() );
-      p_low = calculate_percentile( values, d->m_lower_percentile );
-      p_high = calculate_percentile( values, d->m_upper_percentile );
+      p_low = calculate_percentile( values, get_lower_percentile() );
+      p_high = calculate_percentile( values, get_upper_percentile() );
     }
     else
     {
@@ -256,8 +192,8 @@ filter( kwiver::vital::image_container_sptr image_data )
     {
       std::vector< int16_t > values = extract_pixel_values< int16_t >( input_img );
       std::sort( values.begin(), values.end() );
-      p_low = calculate_percentile( values, d->m_lower_percentile );
-      p_high = calculate_percentile( values, d->m_upper_percentile );
+      p_low = calculate_percentile( values, get_lower_percentile() );
+      p_high = calculate_percentile( values, get_upper_percentile() );
     }
     else
     {
@@ -271,15 +207,15 @@ filter( kwiver::vital::image_container_sptr image_data )
     {
       std::vector< float > values = extract_pixel_values< float >( input_img );
       std::sort( values.begin(), values.end() );
-      p_low = calculate_percentile( values, d->m_lower_percentile );
-      p_high = calculate_percentile( values, d->m_upper_percentile );
+      p_low = calculate_percentile( values, get_lower_percentile() );
+      p_high = calculate_percentile( values, get_upper_percentile() );
     }
     else if( input_traits.num_bytes == 8 )
     {
       std::vector< double > values = extract_pixel_values< double >( input_img );
       std::sort( values.begin(), values.end() );
-      p_low = calculate_percentile( values, d->m_lower_percentile );
-      p_high = calculate_percentile( values, d->m_upper_percentile );
+      p_low = calculate_percentile( values, get_lower_percentile() );
+      p_high = calculate_percentile( values, get_upper_percentile() );
     }
     else
     {
@@ -306,7 +242,7 @@ filter( kwiver::vital::image_container_sptr image_data )
   double output_max = 255.0;
   double output_min = 0.0;
 
-  if( d->m_output_format == "native" )
+  if( get_output_format() == "native" )
   {
     output_traits = input_traits;
 
@@ -400,7 +336,7 @@ filter( kwiver::vital::image_container_sptr image_data )
         }
 
         // Set output value based on output format
-        if( d->m_output_format == "native" )
+        if( get_output_format() == "native" )
         {
           if( output_traits.type == kwiver::vital::image_pixel_traits::UNSIGNED )
           {

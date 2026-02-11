@@ -3,6 +3,9 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "windowed_trainer.h"
+
+#include <vital/algo/algorithm.txx>
+
 #include "windowed_utils.h"
 
 #include <plugins/core/utilities_file.h>
@@ -16,6 +19,7 @@
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #include <string>
 #include <sstream>
@@ -35,421 +39,11 @@ namespace ocv = kwiver::arrows::ocv;
 #endif
 
 // =============================================================================
-class windowed_trainer::priv
-{
-public:
-  priv()
-    : m_train_directory( "deep_training" )
-    , m_chip_subdirectory( "cached_chips" )
-    , m_chip_format( "png" )
-    , m_skip_format( false )
-    , m_chip_random_factor( -1.0 )
-    , m_always_write_image( false )
-    , m_ensure_standard( false )
-    , m_overlap_required( 0.05 )
-    , m_chips_w_gt_only( false )
-    , m_max_neg_ratio( 0.0 )
-    , m_random_validation( 0.0 )
-    , m_ignore_category( "false_alarm" )
-    , m_min_train_box_length( 0 )
-    , m_min_train_box_edge_dist( 0 )
-    , m_small_box_area( 0 )
-    , m_small_action( "" )
-    , m_synthetic_labels( true )
-    , m_detect_small( false )
-  {
-    // Set trainer-specific defaults (different from detector/refiner)
-    m_settings.original_to_chip_size = true;
-  }
-
-  ~priv()
-  {}
-
-  // Common chip settings (shared with detector/refiner)
-  window_settings m_settings;
-
-  // Trainer-specific settings
-  std::string m_train_directory;
-  std::string m_chip_subdirectory;
-  std::string m_chip_format;
-  bool m_skip_format;
-  double m_chip_random_factor;
-  bool m_always_write_image;
-  bool m_ensure_standard;
-  double m_overlap_required;
-  bool m_chips_w_gt_only;
-  double m_max_neg_ratio;
-  double m_random_validation;
-  std::string m_ignore_category;
-  int m_min_train_box_length;
-  double m_min_train_box_edge_dist;
-  int m_small_box_area;
-  std::string m_small_action;
-
-  // Helper functions
-  void format_images_from_disk(
-    std::vector< std::string > image_names,
-    std::vector< kv::detected_object_set_sptr > groundtruth,
-    std::vector< std::string >& formatted_names,
-    std::vector< kv::detected_object_set_sptr >& formatted_truth );
-
-  void format_image_from_memory(
-    const cv::Mat& image,
-    kv::detected_object_set_sptr groundtruth,
-    const rescale_option format_method,
-    std::vector< std::string >& formatted_names,
-    std::vector< kv::detected_object_set_sptr >& formatted_truth );
-
-  bool filter_detections_in_roi(
-    kv::detected_object_set_sptr all_detections,
-    kv::bounding_box_d region,
-    kv::detected_object_set_sptr& filt_detections );
-
-  std::string generate_filename( const int len = 10 );
-
-  void write_chip_to_disk( const std::string& filename, const cv::Mat& image );
-
-  bool m_synthetic_labels;
-  bool m_detect_small;
-  kv::category_hierarchy_sptr m_labels;
-  std::map< std::string, int > m_category_map;
-  kv::algo::image_io_sptr m_image_io;
-  kv::algo::train_detector_sptr m_trainer;
-  kv::logger_handle_t m_logger;
-};
-
-
-// =============================================================================
-windowed_trainer
-::windowed_trainer()
-  : d( new priv() )
-{
-  attach_logger( "viame.opencv.windowed_trainer" );
-
-  d->m_logger = logger();
-}
-
-windowed_trainer
-::~windowed_trainer()
-{
-}
-
-
-// -----------------------------------------------------------------------------
-kv::config_block_sptr
-windowed_trainer
-::get_configuration() const
-{
-  // Get base config from base class
-  kv::config_block_sptr config = kv::algorithm::get_configuration();
-
-  // Trainer-specific settings
-  config->set_value( "train_directory", d->m_train_directory,
-    "Directory for all files used in training." );
-  config->set_value( "chip_format", d->m_chip_format,
-    "Image format for output chips." );
-  config->set_value( "skip_format", d->m_skip_format,
-    "Skip file formatting, assume that the train_directory is pre-populated "
-    "with all files required for model training." );
-
-  // Common chip settings (shared with detector/refiner)
-  config->merge_config( d->m_settings.chip_config() );
-
-  // Additional trainer-specific settings
-  config->set_value( "chip_random_factor", d->m_chip_random_factor,
-    "A percentage [0.0, 1.0] of chips to randomly use in training" );
-  config->set_value( "always_write_image", d->m_always_write_image,
-    "Always re-write images to training directory even if they already exist "
-    "elsewhere on disk." );
-  config->set_value( "ensure_standard", d->m_ensure_standard,
-    "If images are not one of 3 common formats (jpg, jpeg, png) or 3 channel "
-    "write them to the training directory even if they are elsewhere already" );
-  config->set_value( "overlap_required", d->m_overlap_required,
-    "Percentage of which a target must appear on a chip for it to be included "
-    "as a training sample for said chip." );
-  config->set_value( "chips_w_gt_only", d->m_chips_w_gt_only,
-    "Only chips with valid groundtruth objects on them will be included in "
-    "training." );
-  config->set_value( "max_neg_ratio", d->m_max_neg_ratio,
-    "Do not use more than this many more frames without groundtruth in "
-    "training than there are frames with truth." );
-  config->set_value( "random_validation", d->m_random_validation,
-    "Randomly add this percentage of training frames to validation." );
-  config->set_value( "ignore_category", d->m_ignore_category,
-    "Ignore this category in training, but still include chips around it." );
-  config->set_value( "min_train_box_length", d->m_min_train_box_length,
-    "If a box resizes to smaller than this during training, the input frame "
-    "will not be used in training." );
-  config->set_value( "min_train_box_edge_dist", d->m_min_train_box_edge_dist,
-    "If non-zero and a box is within a chip boundary adjusted by this many "
-    "pixels, do not train on the chip." );
-  config->set_value( "small_box_area", d->m_small_box_area,
-    "If a box resizes to smaller than this during training, consider it a small "
-    "detection which might lead to several modifications to it." );
-  config->set_value( "small_action", d->m_small_action,
-    "Action to take in the event that a detection is considered small. Can "
-    "either be none, remove, or any other string which will over-ride the "
-    "detection type to be that string." );
-
-  kv::algo::image_io::get_nested_algo_configuration( "image_reader",
-    config, d->m_image_io );
-  kv::algo::train_detector::get_nested_algo_configuration( "trainer",
-    config, d->m_trainer );
-
-  return config;
-}
-
-
 // -----------------------------------------------------------------------------
 void
 windowed_trainer
-::set_configuration( kv::config_block_sptr config_in )
-{
-  // Starting with our generated config_block to ensure that assumed values are present
-  // An alternative is to check for key presence before performing a get_value() call.
-  kv::config_block_sptr config = this->get_configuration();
-
-  config->merge_config( config_in );
-
-  // Trainer-specific settings
-  d->m_train_directory = config->get_value< std::string >( "train_directory" );
-  d->m_chip_format = config->get_value< std::string >( "chip_format" );
-  d->m_skip_format = config->get_value< bool >( "skip_format" );
-
-  // Common chip settings (shared with detector/refiner)
-  d->m_settings.set_chip_config( config );
-
-  // Additional trainer-specific settings
-  d->m_chip_random_factor = config->get_value< double >( "chip_random_factor" );
-  d->m_always_write_image = config->get_value< bool >( "always_write_image" );
-  d->m_ensure_standard = config->get_value< bool >( "ensure_standard" );
-  d->m_overlap_required = config->get_value< double >( "overlap_required" );
-  d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
-  d->m_max_neg_ratio = config->get_value< double >( "max_neg_ratio" );
-  d->m_random_validation = config->get_value< double >( "random_validation" );
-  d->m_ignore_category = config->get_value< std::string >( "ignore_category" );
-  d->m_min_train_box_length = config->get_value< int >( "min_train_box_length" );
-  d->m_min_train_box_edge_dist = config->get_value< double >( "min_train_box_edge_dist" );
-  d->m_small_box_area = config->get_value< int >( "small_box_area" );
-  d->m_small_action = config->get_value< std::string >( "small_action" );
-
-  if( !d->m_skip_format )
-  {
-    // Delete and reset folder contents
-    if( kwiversys::SystemTools::FileExists( d->m_train_directory ) &&
-        kwiversys::SystemTools::FileIsDirectory( d->m_train_directory ) )
-    {
-      kwiversys::SystemTools::RemoveADirectory( d->m_train_directory );
-
-#ifndef WIN32
-      if( kwiversys::SystemTools::FileExists( d->m_train_directory ) )
-      {
-        LOG_ERROR( d->m_logger, "Unable to delete pre-existing training dir" );
-        return;
-      }
-#endif
-    }
-
-    kwiversys::SystemTools::MakeDirectory( d->m_train_directory );
-
-    if( !d->m_chip_subdirectory.empty() )
-    {
-      std::string folder = d->m_train_directory + div + d->m_chip_subdirectory;
-      kwiversys::SystemTools::MakeDirectory( folder );
-    }
-  }
-
-  d->m_detect_small = ( !d->m_small_action.empty() && d->m_small_action != "none" );
-
-  kv::algo::image_io_sptr io;
-  kv::algo::image_io::set_nested_algo_configuration( "image_reader", config, io );
-  d->m_image_io = io;
-
-  kv::algo::train_detector_sptr trainer;
-  kv::algo::train_detector::set_nested_algo_configuration( "trainer", config, trainer );
-  d->m_trainer = trainer;
-}
-
-
-// -----------------------------------------------------------------------------
-bool
-windowed_trainer
-::check_configuration( kv::config_block_sptr config ) const
-{
-  return kv::algo::image_io::check_nested_algo_configuration(
-     "image_reader", config )
-   && kv::algo::train_detector::check_nested_algo_configuration(
-     "trainer", config );
-}
-
-
-// -----------------------------------------------------------------------------
-void
-windowed_trainer
-::add_data_from_disk(
-  kv::category_hierarchy_sptr object_labels,
-  std::vector< std::string > train_image_names,
-  std::vector< kv::detected_object_set_sptr > train_groundtruth,
-  std::vector< std::string > test_image_names,
-  std::vector< kv::detected_object_set_sptr > test_groundtruth)
-{
-  if( object_labels )
-  {
-    d->m_labels = object_labels;
-    d->m_synthetic_labels = false;
-  }
-
-  std::vector< std::string > filtered_train_names;
-  std::vector< kv::detected_object_set_sptr > filtered_train_truth;
-  std::vector< std::string > filtered_test_names;
-  std::vector< kv::detected_object_set_sptr > filtered_test_truth;
-
-  if( !d->m_skip_format )
-  {
-    d->format_images_from_disk(
-      train_image_names, train_groundtruth,
-      filtered_train_names, filtered_train_truth );
-
-    d->format_images_from_disk(
-      test_image_names, test_groundtruth,
-      filtered_test_names, filtered_test_truth );
-  }
-
-  if( d->m_synthetic_labels )
-  {
-    kv::category_hierarchy_sptr all_labels =
-      std::make_shared< kv::category_hierarchy >();
-
-    for( auto p = d->m_category_map.begin(); p != d->m_category_map.end(); p++ )
-    {
-      all_labels->add_class( p->first );
-    }
-
-    d->m_trainer->add_data_from_disk(
-      all_labels,
-      filtered_train_names, filtered_train_truth,
-      filtered_test_names, filtered_test_truth );
-  }
-  else
-  {
-    d->m_trainer->add_data_from_disk(
-      object_labels,
-      filtered_train_names, filtered_train_truth,
-      filtered_test_names, filtered_test_truth );
-  }
-}
-
-void
-windowed_trainer
-::add_data_from_memory(
-  kv::category_hierarchy_sptr object_labels,
-  std::vector< kv::image_container_sptr > train_images,
-  std::vector< kv::detected_object_set_sptr > train_groundtruth,
-  std::vector< kv::image_container_sptr > test_images,
-  std::vector< kv::detected_object_set_sptr > test_groundtruth)
-{
-  if( object_labels )
-  {
-    d->m_labels = object_labels;
-    d->m_synthetic_labels = false;
-  }
-
-  std::vector< std::string > filtered_train_names;
-  std::vector< kv::detected_object_set_sptr > filtered_train_truth;
-  std::vector< std::string > filtered_test_names;
-  std::vector< kv::detected_object_set_sptr > filtered_test_truth;
-
-  if( !d->m_skip_format )
-  {
-    for( unsigned i = 0; i < train_images.size(); ++i )
-    {
-      cv::Mat image = ocv::image_container::vital_to_ocv(
-        train_images[i]->get_image(), ocv::image_container::RGB_COLOR );
-
-      if( d->m_random_validation > 0.0 &&
-          static_cast< double >( rand() ) / RAND_MAX <= d->m_random_validation )
-      {
-        d->format_image_from_memory(
-          image, train_groundtruth[i], d->m_settings.mode,
-          filtered_test_names, filtered_test_truth );
-      }
-      else
-      {
-        d->format_image_from_memory(
-          image, train_groundtruth[i], d->m_settings.mode,
-          filtered_train_names, filtered_train_truth );
-      }
-    }
-    for( unsigned i = 0; i < test_images.size(); ++i )
-    {
-      cv::Mat image = ocv::image_container::vital_to_ocv(
-        test_images[i]->get_image(), ocv::image_container::RGB_COLOR );
-
-      d->format_image_from_memory(
-        image, test_groundtruth[i], d->m_settings.mode,
-        filtered_test_names, filtered_test_truth );
-    }
-  }
-
-  d->m_trainer->add_data_from_disk(
-    object_labels,
-    filtered_train_names, filtered_train_truth,
-    filtered_test_names, filtered_test_truth );
-}
-
-std::map<std::string, std::string>
-windowed_trainer
-::update_model()
-{
-  std::map<std::string, std::string> nested_output = d->m_trainer->update_model();
-
-  const std::string algo = "ocv_windowed";
-  const std::string nested_prefix = algo + ":detector:";
-
-  std::map<std::string, std::string> output;
-
-  // Re-key nested trainer output so config entries land under
-  // the correct .pipe path (e.g. ocv_windowed:detector:netharn:deployed).
-  // File copy entries (value is an existing file) keep their original
-  // key since that key is the destination filename, not a config path.
-  // Special keys like "eval_folder" are also passed through unchanged.
-  for( const auto& pair : nested_output )
-  {
-    if( !pair.second.empty() && does_file_exist( pair.second ) )
-    {
-      output[ pair.first ] = pair.second;
-    }
-    else if( pair.first == "eval_folder" && !pair.second.empty() &&
-             does_folder_exist( pair.second ) )
-    {
-      // Pass through eval_folder key unchanged for directory copies
-      output[ pair.first ] = pair.second;
-    }
-    else
-    {
-      output[ nested_prefix + pair.first ] = pair.second;
-    }
-  }
-
-  // Add ocv_windowed trainer's own config entries
-  output["type"] = algo;
-  output[algo + ":mode"] = rescale_option_converter().to_string( d->m_settings.mode );
-  output[algo + ":scale"] = std::to_string( d->m_settings.scale );
-  output[algo + ":chip_width"] = std::to_string( d->m_settings.chip_width );
-  output[algo + ":chip_height"] = std::to_string( d->m_settings.chip_height );
-  output[algo + ":chip_step_width"] = std::to_string( d->m_settings.chip_step_width );
-  output[algo + ":chip_step_height"] = std::to_string( d->m_settings.chip_step_height );
-  output[algo + ":chip_adaptive_thresh"] = std::to_string( d->m_settings.chip_adaptive_thresh );
-  output[algo + ":original_to_chip_size"] = d->m_settings.original_to_chip_size ? "true" : "false";
-  output[algo + ":black_pad"] = d->m_settings.black_pad ? "true" : "false";
-
-  return output;
-}
-
-// -----------------------------------------------------------------------------
-void
-windowed_trainer::priv
 ::format_images_from_disk(
+  const window_settings& settings,
   std::vector< std::string > image_names,
   std::vector< kv::detected_object_set_sptr > groundtruth,
   std::vector< std::string >& formatted_names,
@@ -457,7 +51,7 @@ windowed_trainer::priv
 {
   double negative_ds_factor = -1.0;
 
-  if( m_max_neg_ratio > 0.0 && groundtruth.size() > 10 )
+  if( c_max_neg_ratio > 0.0 && groundtruth.size() > 10 )
   {
     unsigned gt = 0, no_gt = 0;
 
@@ -477,9 +71,9 @@ windowed_trainer::priv
     {
       double current_ratio = static_cast< double >( no_gt ) / gt;
 
-      if( current_ratio > m_max_neg_ratio )
+      if( current_ratio > c_max_neg_ratio )
       {
-        negative_ds_factor = m_max_neg_ratio / current_ratio;
+        negative_ds_factor = c_max_neg_ratio / current_ratio;
       }
     }
   }
@@ -495,7 +89,7 @@ windowed_trainer::priv
 
     const std::string image_fn = image_names[fid];
 
-    if( m_settings.mode == DISABLED && !m_always_write_image && !m_ensure_standard )
+    if( settings.mode == DISABLED && !c_always_write_image && !c_ensure_standard )
     {
       formatted_names.push_back( image_fn );
       formatted_truth.push_back( groundtruth[fid] );
@@ -508,14 +102,14 @@ windowed_trainer::priv
     cv::Mat original_image;
     kv::detected_object_set_sptr filtered_truth;
 
-    rescale_option format_mode = m_settings.mode;
+    rescale_option format_mode = settings.mode;
     std::string ext = image_fn.substr( image_fn.find_last_of( "." ) + 1 );
 
     try
     {
-      LOG_INFO( m_logger, "Loading image: " << image_fn );
+      LOG_INFO( logger(), "Loading image: " << image_fn );
 
-      vital_image = m_image_io->load( image_fn );
+      vital_image = c_image_reader->load( image_fn );
 
       original_image = ocv::image_container::vital_to_ocv(
         vital_image->get_image(), ocv::image_container::RGB_COLOR );
@@ -525,20 +119,20 @@ windowed_trainer::priv
     }
     catch( const kv::vital_exception& e )
     {
-      LOG_ERROR( m_logger, "Caught exception reading image: " << e.what() );
+      LOG_ERROR( logger(), "Caught exception reading image: " << e.what() );
       return;
     }
 
     // Early exit don't need to read all images every iteration
     if( format_mode == ADAPTIVE )
     {
-      if( ( original_image.rows * original_image.cols ) < m_settings.chip_adaptive_thresh )
+      if( ( original_image.rows * original_image.cols ) < settings.chip_adaptive_thresh )
       {
-        if( m_always_write_image ||
-            ( m_settings.original_to_chip_size &&
-              ( original_image.cols > m_settings.chip_width ||
-                original_image.rows > m_settings.chip_height ) ) ||
-            ( m_ensure_standard &&
+        if( c_always_write_image ||
+            ( settings.original_to_chip_size &&
+              ( original_image.cols > settings.chip_width ||
+                original_image.rows > settings.chip_height ) ) ||
+            ( c_ensure_standard &&
               ( original_image.channels() != 3 ||
                !( ext == "jpg" || ext == "png" || ext == "jpeg" ) ) ) )
         {
@@ -561,8 +155,8 @@ windowed_trainer::priv
     }
     else if( format_mode == ORIGINAL_AND_RESIZED )
     {
-      if( original_image.rows <= m_settings.chip_height &&
-          original_image.cols <= m_settings.chip_width )
+      if( original_image.rows <= settings.chip_height &&
+          original_image.cols <= settings.chip_width )
       {
         if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
         {
@@ -574,7 +168,7 @@ windowed_trainer::priv
 
       format_mode = MAINTAIN_AR;
 
-      if( ( original_image.rows * original_image.cols ) >= m_settings.chip_adaptive_thresh )
+      if( ( original_image.rows * original_image.cols ) >= settings.chip_adaptive_thresh )
       {
         if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
         {
@@ -586,14 +180,15 @@ windowed_trainer::priv
 
     // Format image and write new ones to disk
     format_image_from_memory(
-      original_image, groundtruth[fid], format_mode,
+      settings, original_image, groundtruth[fid], format_mode,
       formatted_names, formatted_truth );
   }
 }
 
 void
-windowed_trainer::priv
+windowed_trainer
 ::format_image_from_memory(
+  const window_settings& settings,
   const cv::Mat& image,
   kv::detected_object_set_sptr groundtruth,
   const rescale_option format_method,
@@ -609,8 +204,8 @@ windowed_trainer::priv
   if( format_method != DISABLED )
   {
     resized_scale = format_image( image, resized_image,
-      format_method, m_settings.scale, m_settings.chip_width,
-      m_settings.chip_height, m_settings.black_pad );
+      format_method, settings.scale, settings.chip_width,
+      settings.chip_height, settings.black_pad );
 
     scaled_groundtruth->scale( resized_scale );
   }
@@ -637,10 +232,10 @@ windowed_trainer::priv
   {
     // Chip up and process scaled image
     for( int i = 0;
-         i < resized_image.cols - m_settings.chip_width + m_settings.chip_step_width;
-         i += m_settings.chip_step_width )
+         i < resized_image.cols - settings.chip_width + settings.chip_step_width;
+         i += settings.chip_step_width )
     {
-      int cw = i + m_settings.chip_width;
+      int cw = i + settings.chip_width;
 
       if( cw > resized_image.cols )
       {
@@ -648,22 +243,22 @@ windowed_trainer::priv
       }
       else
       {
-        cw = m_settings.chip_width;
+        cw = settings.chip_width;
       }
 
       for( int j = 0;
-           j < resized_image.rows - m_settings.chip_height + m_settings.chip_step_height;
-           j += m_settings.chip_step_height )
+           j < resized_image.rows - settings.chip_height + settings.chip_step_height;
+           j += settings.chip_step_height )
       {
         // random downsampling
-        if( m_chip_random_factor > 0.0 &&
+        if( c_chip_random_factor > 0.0 &&
               static_cast< double >( rand() ) / static_cast<double>( RAND_MAX )
-                > m_chip_random_factor )
+                > c_chip_random_factor )
         {
           continue;
         }
 
-        int ch = j + m_settings.chip_height;
+        int ch = j + settings.chip_height;
 
         if( ch > resized_image.rows )
         {
@@ -671,7 +266,7 @@ windowed_trainer::priv
         }
         else
         {
-          ch = m_settings.chip_height;
+          ch = settings.chip_height;
         }
 
         // Only necessary in a few circumstances when chip_step exceeds image size.
@@ -684,11 +279,11 @@ windowed_trainer::priv
         cv::Mat resized_crop;
 
         scale_image_maintaining_ar( cropped_image,
-          resized_crop, m_settings.chip_width, m_settings.chip_height,
-          m_settings.black_pad );
+          resized_crop, settings.chip_width, settings.chip_height,
+          settings.black_pad );
 
-        kv::bounding_box_d roi_box( i, j, i + m_settings.chip_width,
-          j + m_settings.chip_height );
+        kv::bounding_box_d roi_box( i, j, i + settings.chip_width,
+          j + settings.chip_height );
 
         if( filter_detections_in_roi( scaled_groundtruth, roi_box, filtered_truth ) )
         {
@@ -707,8 +302,8 @@ windowed_trainer::priv
       cv::Mat scaled_original;
 
       double scaled_original_scale = scale_image_maintaining_ar( image,
-        scaled_original, m_settings.chip_width, m_settings.chip_height,
-        m_settings.black_pad );
+        scaled_original, settings.chip_width, settings.chip_height,
+        settings.black_pad );
 
       kv::detected_object_set_sptr scaled_original_dets_ptr = groundtruth->clone();
       scaled_original_dets_ptr->scale( scaled_original_scale );
@@ -729,7 +324,7 @@ windowed_trainer::priv
 
 
 bool
-windowed_trainer::priv
+windowed_trainer
 ::filter_detections_in_roi(
   kv::detected_object_set_sptr all_detections,
   kv::bounding_box_d region,
@@ -739,13 +334,15 @@ windowed_trainer::priv
 
   filtered_detections = std::make_shared< kv::detected_object_set >();
 
+  bool detect_small = ( !c_small_action.empty() && c_small_action != "none" );
+
   for( auto detection = all_detections->cbegin(); detection != ie; ++detection )
   {
     kv::bounding_box_d det_box = (*detection)->bounding_box();
     kv::bounding_box_d overlap = kv::intersection( region, det_box );
 
-    if( det_box.width() < m_min_train_box_length ||
-        det_box.height() < m_min_train_box_length )
+    if( det_box.width() < c_min_train_box_length ||
+        det_box.height() < c_min_train_box_length )
     {
       return false;
     }
@@ -753,19 +350,19 @@ windowed_trainer::priv
     if( det_box.area() > 0 &&
         overlap.max_x() > overlap.min_x() &&
         overlap.max_y() > overlap.min_y() &&
-        overlap.area() / det_box.area() >= m_overlap_required )
+        overlap.area() / det_box.area() >= c_overlap_required )
     {
       std::string category;
 
       if( !(*detection)->type() )
       {
-        LOG_ERROR( m_logger, "Input detection is missing type category" );
+        LOG_ERROR( logger(), "Input detection is missing type category" );
         return false;
       }
 
       (*detection)->type()->get_most_likely( category );
 
-      if( !m_ignore_category.empty() && category == m_ignore_category )
+      if( !c_ignore_category.empty() && category == c_ignore_category )
       {
         continue;
       }
@@ -783,7 +380,7 @@ windowed_trainer::priv
       }
       else
       {
-        LOG_WARN( m_logger, "Ignoring unlisted class " << category );
+        LOG_WARN( logger(), "Ignoring unlisted class " << category );
         continue;
       }
 
@@ -792,11 +389,11 @@ windowed_trainer::priv
       double max_x = det_box.max_x() - region.min_x();
       double max_y = det_box.max_y() - region.min_y();
 
-      if( m_min_train_box_edge_dist != 0 &&
-          ( min_x <= m_min_train_box_edge_dist ||
-            min_y <= m_min_train_box_edge_dist ||
-            max_x >= region.width() - m_min_train_box_edge_dist ||
-            max_y >= region.height() - m_min_train_box_edge_dist ) )
+      if( c_min_train_box_edge_dist != 0 &&
+          ( min_x <= c_min_train_box_edge_dist ||
+            min_y <= c_min_train_box_edge_dist ||
+            max_x >= region.width() - c_min_train_box_edge_dist ||
+            max_y >= region.height() - c_min_train_box_edge_dist ) )
       {
         return false;
       }
@@ -806,57 +403,274 @@ windowed_trainer::priv
       auto odet = (*detection)->clone();
       odet->set_bounding_box( bbox );
 
-      if( m_detect_small && det_box.area() < m_small_box_area )
+      if( detect_small && det_box.area() < c_small_box_area )
       {
-        if( m_small_action == "remove" )
+        if( c_small_action == "remove" )
         {
           continue;
         }
-        else if( m_small_action == "skip-chip" )
+        else if( c_small_action == "skip-chip" )
         {
           return false;
         }
-
-        auto dot_ovr = std::make_shared< kv::detected_object_type >(
-          m_small_action, 1.0 );
-
-        odet->set_type( dot_ovr );
+        else
+        {
+          odet->set_type( std::make_shared< kv::detected_object_type >( c_small_action, 1.0 ) );
+        }
+      }
+      else
+      {
+        odet->set_type( std::make_shared< kv::detected_object_type >( category, 1.0 ) );
       }
 
       filtered_detections->add( odet );
     }
   }
 
+  if( c_chips_w_gt_only && filtered_detections->empty() )
+  {
+    return false;
+  }
+
   return true;
 }
 
-
 std::string
-windowed_trainer::priv
+windowed_trainer
 ::generate_filename( const int len )
 {
-  static int sample_counter = 0;
-  sample_counter++;
+  static const char alphanum[] =
+    "0123456789"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz";
 
-  std::ostringstream ss;
-  ss << std::setw( len ) << std::setfill( '0' ) << sample_counter;
-  std::string s = ss.str();
+  static bool seeded = false;
 
-  return m_train_directory + div +
-         m_chip_subdirectory + div +
-         s + "." + m_chip_format;
+  if( !seeded )
+  {
+    srand( ( unsigned ) time( NULL ) + getpid() );
+    seeded = true;
+  }
+
+  std::string str;
+
+  for ( int i = 0; i < len; ++i )
+  {
+    str += alphanum[ rand() % ( sizeof( alphanum ) - 1 ) ];
+  }
+
+  return c_train_directory + div + m_chip_subdirectory + div + str + "." + c_chip_format;
 }
-
 
 void
-windowed_trainer::priv
+windowed_trainer
 ::write_chip_to_disk( const std::string& filename, const cv::Mat& image )
 {
-  m_image_io->save( filename,
-    kv::image_container_sptr(
-      new ocv::image_container( image,
-        ocv::image_container::RGB_COLOR ) ) );
+  cv::imwrite( filename, image );
 }
 
+
+// -----------------------------------------------------------------------------
+void
+windowed_trainer
+::add_data_from_disk(
+  kv::category_hierarchy_sptr object_labels,
+  std::vector< std::string > train_image_names,
+  std::vector< kv::detected_object_set_sptr > train_groundtruth,
+  std::vector< std::string > test_image_names,
+  std::vector< kv::detected_object_set_sptr > test_groundtruth)
+{
+  if( object_labels )
+  {
+    m_labels = object_labels;
+    m_synthetic_labels = false;
+  }
+
+  std::vector< std::string > filtered_train_names;
+  std::vector< kv::detected_object_set_sptr > filtered_train_truth;
+  std::vector< std::string > filtered_test_names;
+  std::vector< kv::detected_object_set_sptr > filtered_test_truth;
+
+  if( !c_skip_format )
+  {
+    // Reconstruct settings
+    window_settings settings;
+    rescale_option_converter conv;
+    settings.mode = conv.from_string( c_mode );
+    settings.scale = c_scale;
+    settings.chip_width = c_chip_width;
+    settings.chip_height = c_chip_height;
+    settings.chip_step_width = c_chip_step_width;
+    settings.chip_step_height = c_chip_step_height;
+    settings.chip_edge_filter = c_chip_edge_filter;
+    settings.chip_edge_max_prob = c_chip_edge_max_prob;
+    settings.chip_adaptive_thresh = c_chip_adaptive_thresh;
+    settings.batch_size = c_batch_size;
+    settings.min_detection_dim = c_min_detection_dim;
+    settings.original_to_chip_size = c_original_to_chip_size;
+    settings.black_pad = c_black_pad;
+
+    // Derived detect_small
+    bool detect_small = ( !c_small_action.empty() && c_small_action != "none" );
+
+    // Ensure directories exist
+    if( kwiversys::SystemTools::FileExists( c_train_directory ) &&
+        kwiversys::SystemTools::FileIsDirectory( c_train_directory ) )
+    {
+      kwiversys::SystemTools::RemoveADirectory( c_train_directory );
+    }
+    kwiversys::SystemTools::MakeDirectory( c_train_directory );
+    if( !m_chip_subdirectory.empty() )
+    {
+      std::string folder = c_train_directory + div + m_chip_subdirectory;
+      kwiversys::SystemTools::MakeDirectory( folder );
+    }
+
+    format_images_from_disk(
+      settings,
+      train_image_names, train_groundtruth,
+      filtered_train_names, filtered_train_truth );
+
+    format_images_from_disk(
+      settings,
+      test_image_names, test_groundtruth,
+      filtered_test_names, filtered_test_truth );
+  }
+
+  if( m_synthetic_labels )
+  {
+    kv::category_hierarchy_sptr all_labels =
+      std::make_shared< kv::category_hierarchy >();
+
+    for( auto p = m_category_map.begin(); p != m_category_map.end(); p++ )
+    {
+      all_labels->add_class( p->first );
+    }
+
+    c_trainer->add_data_from_disk(
+      all_labels,
+      filtered_train_names, filtered_train_truth,
+      filtered_test_names, filtered_test_truth );
+  }
+  else
+  {
+    c_trainer->add_data_from_disk(
+      object_labels,
+      filtered_train_names, filtered_train_truth,
+      filtered_test_names, filtered_test_truth );
+  }
+}
+
+void
+windowed_trainer
+::add_data_from_memory(
+  kv::category_hierarchy_sptr object_labels,
+  std::vector< kv::image_container_sptr > train_images,
+  std::vector< kv::detected_object_set_sptr > train_groundtruth,
+  std::vector< kv::image_container_sptr > test_images,
+  std::vector< kv::detected_object_set_sptr > test_groundtruth)
+{
+  if( object_labels )
+  {
+    m_labels = object_labels;
+    m_synthetic_labels = false;
+  }
+
+  std::vector< std::string > filtered_train_names;
+  std::vector< kv::detected_object_set_sptr > filtered_train_truth;
+  std::vector< std::string > filtered_test_names;
+  std::vector< kv::detected_object_set_sptr > filtered_test_truth;
+
+  if( !c_skip_format )
+  {
+    // Reconstruct settings
+    window_settings settings;
+    rescale_option_converter conv;
+    settings.mode = conv.from_string( c_mode );
+    settings.scale = c_scale;
+    settings.chip_width = c_chip_width;
+    settings.chip_height = c_chip_height;
+    settings.chip_step_width = c_chip_step_width;
+    settings.chip_step_height = c_chip_step_height;
+    settings.chip_edge_filter = c_chip_edge_filter;
+    settings.chip_edge_max_prob = c_chip_edge_max_prob;
+    settings.chip_adaptive_thresh = c_chip_adaptive_thresh;
+    settings.batch_size = c_batch_size;
+    settings.min_detection_dim = c_min_detection_dim;
+    settings.original_to_chip_size = c_original_to_chip_size;
+    settings.black_pad = c_black_pad;
+
+    // Ensure directories exist (duplicated logic from add_data_from_disk, could be helper)
+    if( kwiversys::SystemTools::FileExists( c_train_directory ) &&
+        kwiversys::SystemTools::FileIsDirectory( c_train_directory ) )
+    {
+      kwiversys::SystemTools::RemoveADirectory( c_train_directory );
+    }
+    kwiversys::SystemTools::MakeDirectory( c_train_directory );
+    if( !m_chip_subdirectory.empty() )
+    {
+      std::string folder = c_train_directory + div + m_chip_subdirectory;
+      kwiversys::SystemTools::MakeDirectory( folder );
+    }
+
+    for( unsigned i = 0; i < train_images.size(); ++i )
+    {
+      cv::Mat image = ocv::image_container::vital_to_ocv(
+        train_images[i]->get_image(), ocv::image_container::RGB_COLOR );
+
+      if( c_random_validation > 0.0 &&
+          static_cast< double >( rand() ) / RAND_MAX <= c_random_validation )
+      {
+        format_image_from_memory(
+          settings, image, train_groundtruth[i], settings.mode,
+          filtered_test_names, filtered_test_truth );
+      }
+      else
+      {
+        format_image_from_memory(
+          settings, image, train_groundtruth[i], settings.mode,
+          filtered_train_names, filtered_train_truth );
+      }
+    }
+    for( unsigned i = 0; i < test_images.size(); ++i )
+    {
+      cv::Mat image = ocv::image_container::vital_to_ocv(
+        test_images[i]->get_image(), ocv::image_container::RGB_COLOR );
+
+      format_image_from_memory(
+        settings, image, test_groundtruth[i], settings.mode,
+        filtered_test_names, filtered_test_truth );
+    }
+  }
+
+  c_trainer->add_data_from_disk(
+    object_labels,
+    filtered_train_names, filtered_train_truth,
+    filtered_test_names, filtered_test_truth );
+}
+
+std::map<std::string, std::string>
+windowed_trainer
+::update_model()
+{
+  std::map<std::string, std::string> output = c_trainer->update_model();
+
+  const std::string algo = "ocv_windowed";
+
+  output["type"] = algo;
+  output[algo + ":mode"] = c_mode;
+  output[algo + ":scale"] = std::to_string( c_scale );
+  output[algo + ":chip_width"] = std::to_string( c_chip_width );
+  output[algo + ":chip_height"] = std::to_string( c_chip_height );
+  output[algo + ":chip_step_width"] = std::to_string( c_chip_step_width );
+  output[algo + ":chip_step_height"] = std::to_string( c_chip_step_height );
+  output[algo + ":chip_adaptive_thresh"] = std::to_string( c_chip_adaptive_thresh );
+  output[algo + ":original_to_chip_size"] = c_original_to_chip_size ? "true" : "false";
+  output[algo + ":black_pad"] = c_black_pad ? "true" : "false";
+
+  return output;
+}
+
+// -----------------------------------------------------------------------------
 
 } // end namespace viame

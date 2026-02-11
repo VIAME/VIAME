@@ -53,9 +53,9 @@ process nms_refiner
 
 process detector_filter
   :: detected_object_filter
-  :filter:type                                 class_probablity_filter
+  :filter:type                                 class_probability_filter
 
-  block filter:class_probablity_filter
+  block filter:class_probability_filter
     :threshold                                 0.001
     :keep_all_classes                          true
     :keep_classes                              generic_object_proposal

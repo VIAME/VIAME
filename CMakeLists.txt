@@ -133,7 +133,6 @@ mark_as_advanced( VIAME_ENABLE_SEAGIS )
 # Add core utilities enable flags
 ##
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
-option( VIAME_ENABLE_KWANT          "Enable KWANT Scoring Code"     OFF )
 option( VIAME_ENABLE_POSTGRESQL     "Enable PostgreSQL plugins"     OFF )
 
 if( WIN32 )
@@ -353,7 +352,7 @@ if( VIAME_ENABLE_DARKNET )
   set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"  FORCE )
 endif()
 
-if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_VIVIA OR VIAME_ENABLE_ITK )
+if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_ITK )
   set( VIAME_ENABLE_VXL     ON CACHE BOOL "VXL required for other projects"     FORCE )
 endif()
 
@@ -899,10 +898,6 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_DIVE )
     include( add_project_dive )
-  endif()
-
-  if( VIAME_ENABLE_KWANT )
-    include( add_project_kwant )
   endif()
 
   if( VIAME_ENABLE_TENSORRT )

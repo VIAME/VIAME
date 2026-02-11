@@ -195,8 +195,8 @@ set( CORE_PIPELINE_FILES
   train_aug_intensity_color_freq_motion.pipe
   train_aug_intensity_hue_motion.pipe
   train_aug_motion_only.pipe
-  train_aug_percentile_norm.pipe
-  train_aug_percentile_norm_npy.pipe
+  train_aug_equalize_via_percentiles.pipe
+  train_aug_equalize_via_percentiles_npy.pipe
   train_aug_split_and_stereo.pipe
   train_aug_split.pipe
   train_aug_warp_ir_to_eo.pipe

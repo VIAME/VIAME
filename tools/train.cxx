@@ -12,7 +12,7 @@
 #include <vital/config/config_block_io.h>
 #include <vital/util/demangle.h>
 #include <vital/util/wrap_text_block.h>
-#include <vital/algo/algorithm_factory.h>
+#include <vital/algo/algorithm.txx>
 #include <vital/algo/train_detector.h>
 #include <vital/algo/train_tracker.h>
 #include <vital/algo/detected_object_set_input.h>
@@ -135,15 +135,15 @@ static kv::config_block_sptr default_config()
   config->set_value( "output_pipeline_name", "detector.pipe",
     "Name for the generated output pipeline file." );
 
-  kv::algo::detected_object_set_input::get_nested_algo_configuration
+  kv::get_nested_algo_configuration< kv::algo::detected_object_set_input >
     ( "groundtruth_reader", config, kv::algo::detected_object_set_input_sptr() );
-  kv::algo::image_io::get_nested_algo_configuration
+  kv::get_nested_algo_configuration< kv::algo::image_io >
     ( "image_reader", config, kv::algo::image_io_sptr() );
-  kv::algo::train_detector::get_nested_algo_configuration
+  kv::get_nested_algo_configuration< kv::algo::train_detector >
     ( "detector_trainer", config, kv::algo::train_detector_sptr() );
-  kv::algo::train_tracker::get_nested_algo_configuration
+  kv::get_nested_algo_configuration< kv::algo::train_tracker >
     ( "tracker_trainer", config, kv::algo::train_tracker_sptr() );
-  kv::algo::read_object_track_set::get_nested_algo_configuration
+  kv::get_nested_algo_configuration< kv::algo::read_object_track_set >
     ( "track_reader", config, kv::algo::read_object_track_set_sptr() );
 
   return config;
@@ -164,29 +164,30 @@ static kv::config_block_sptr try_get_detector_config(
 
   try
   {
-    kv::algo::image_object_detector_sptr detector;
-    kv::config_block_sptr temp_config = kv::config_block::empty_config();
-    temp_config->set_value( "detector:type", algo_type );
+    // Use the v2.0 plugin factory API to find and query the detector
+    kv::implementation_factory_by_name< kv::algo::image_object_detector > factory;
+    kv::plugin_factory_handle_t fact = factory.find_factory( algo_type );
 
-    // Pre-configure nested detector type from output map if present
-    // e.g., if algo_type is "ocv_windowed" and output map has
-    // "ocv_windowed:detector:type" = "netharn", set it before instantiation
+    // Get the default configuration for this detector type
+    kv::config_block_sptr config = kv::config_block::empty_config();
+    fact->get_default_config( *config );
+
+    // Apply any nested detector type settings from the output map
     std::string nested_type_key = algo_type + ":detector:type";
     auto it = output_map.find( nested_type_key );
     if( it != output_map.end() && !it->second.empty() )
     {
-      temp_config->set_value( "detector:" + nested_type_key, it->second );
+      config->set_value( "detector:type", it->second );
     }
 
-    kv::algo::image_object_detector::set_nested_algo_configuration(
-      "detector", temp_config, detector );
+    // Try to instantiate the detector with the config
+    auto detector = std::dynamic_pointer_cast< kv::algo::image_object_detector >(
+      fact->from_config( config ) );
 
     if( detector )
     {
-      kv::config_block_sptr config = kv::config_block::empty_config();
-      kv::algo::image_object_detector::get_nested_algo_configuration(
-        "detector", config, detector );
-      return config;
+      // Get the full configuration from the instantiated detector
+      return detector->get_configuration();
     }
   }
   catch( ... )
@@ -897,26 +898,24 @@ train_applet
     }
   }
 
-  kv::algo::train_detector::set_nested_algo_configuration
+  kv::set_nested_algo_configuration< kv::algo::train_detector >
     ( "detector_trainer", config, detector_trainer );
-  kv::algo::train_detector::get_nested_algo_configuration
+  kv::get_nested_algo_configuration< kv::algo::train_detector >
     ( "detector_trainer", config, detector_trainer );
 
-  kv::algo::detected_object_set_input::set_nested_algo_configuration
+  kv::set_nested_algo_configuration< kv::algo::detected_object_set_input >
     ( "groundtruth_reader", config, groundtruth_reader );
-  kv::algo::detected_object_set_input::get_nested_algo_configuration
+  kv::get_nested_algo_configuration< kv::algo::detected_object_set_input >
     ( "groundtruth_reader", config, groundtruth_reader );
 
   bool valid_config = true;
 
-  if( !kv::algo::detected_object_set_input::
-        check_nested_algo_configuration( "groundtruth_reader", config ) )
+  if( !kv::check_nested_algo_configuration< kv::algo::detected_object_set_input >( "groundtruth_reader", config ) )
   {
     valid_config = false;
   }
 
-  if( !kv::algo::train_detector::
-        check_nested_algo_configuration( "detector_trainer", config ) )
+  if( !kv::check_nested_algo_configuration< kv::algo::train_detector >( "detector_trainer", config ) )
   {
     valid_config = false;
   }
@@ -1007,8 +1006,7 @@ train_applet
     output_file = opt_output_file;
   }
 
-  if( !kv::algo::image_io::
-        check_nested_algo_configuration( "image_reader", config ) )
+  if( !kv::check_nested_algo_configuration< kv::algo::image_io >( "image_reader", config ) )
   {
     std::cout << "Invalid image reader type specified" << std::endl;
     return EXIT_FAILURE;
@@ -1044,7 +1042,7 @@ train_applet
 
     if( pipeline_file.empty() )
     {
-      pipeline_file = pipeline_prefix + "train_aug_percentile_norm.pipe";
+      pipeline_file = pipeline_prefix + "train_aug_equalize_via_percentiles.pipe";
       std::cout << "Using percentile normalization augmentation pipeline" << std::endl;
     }
     if( pipeline_template.empty() ||
@@ -1157,9 +1155,9 @@ train_applet
   }
 
   // Image reader used for convert_to_full_frame and bit depth checking
-  kv::algo::image_io::set_nested_algo_configuration
+  kv::set_nested_algo_configuration< kv::algo::image_io >
     ( "image_reader", config, image_reader );
-  kv::algo::image_io::get_nested_algo_configuration
+  kv::get_nested_algo_configuration< kv::algo::image_io >
     ( "image_reader", config, image_reader );
 
   unsigned image_width = 0, image_height = 0;
@@ -1570,9 +1568,9 @@ train_applet
         return EXIT_FAILURE;
       }
 
-      kv::algo::detected_object_set_input::set_nested_algo_configuration
+      kv::set_nested_algo_configuration< kv::algo::detected_object_set_input >
         ( "groundtruth_reader", config, gt_reader );
-      kv::algo::detected_object_set_input::get_nested_algo_configuration
+      kv::get_nested_algo_configuration< kv::algo::detected_object_set_input >
         ( "groundtruth_reader", config, gt_reader );
 
       std::cout << "Opening groundtruth file " << gt_files[0] << std::endl;
@@ -1681,9 +1679,9 @@ train_applet
       {
         gt_reader.reset();
 
-        kv::algo::detected_object_set_input::set_nested_algo_configuration
+        kv::set_nested_algo_configuration< kv::algo::detected_object_set_input >
           ( "groundtruth_reader", config, gt_reader );
-        kv::algo::detected_object_set_input::get_nested_algo_configuration
+        kv::get_nested_algo_configuration< kv::algo::detected_object_set_input >
           ( "groundtruth_reader", config, gt_reader );
 
         gt_reader->open( gt_files[j] );
@@ -2166,13 +2164,12 @@ train_applet
 
       // Reinitialize detector trainer for this model
       detector_trainer.reset();
-      kv::algo::train_detector::set_nested_algo_configuration
+      kv::set_nested_algo_configuration< kv::algo::train_detector >
         ( "detector_trainer", current_config, detector_trainer );
-      kv::algo::train_detector::get_nested_algo_configuration
+      kv::get_nested_algo_configuration< kv::algo::train_detector >
         ( "detector_trainer", current_config, detector_trainer );
 
-      if( !kv::algo::train_detector::
-            check_nested_algo_configuration( "detector_trainer", current_config ) )
+      if( !kv::check_nested_algo_configuration< kv::algo::train_detector >( "detector_trainer", current_config ) )
       {
         std::cout << "Configuration not valid for model " << ( model_idx + 1 ) << std::endl;
         continue;
@@ -2260,7 +2257,7 @@ train_applet
     std::vector< kv::object_track_set_sptr > validation_tracks;
 
     // Configure track reader
-    kv::algo::read_object_track_set::set_nested_algo_configuration
+    kv::set_nested_algo_configuration< kv::algo::read_object_track_set >
       ( "track_reader", config, track_reader );
 
     if( track_reader )
@@ -2363,13 +2360,12 @@ train_applet
         }
       }
 
-      kv::algo::train_tracker::set_nested_algo_configuration
+      kv::set_nested_algo_configuration< kv::algo::train_tracker >
         ( "tracker_trainer", tracker_config, tracker_trainer );
-      kv::algo::train_tracker::get_nested_algo_configuration
+      kv::get_nested_algo_configuration< kv::algo::train_tracker >
         ( "tracker_trainer", tracker_config, tracker_trainer );
 
-      if( !kv::algo::train_tracker::
-            check_nested_algo_configuration( "tracker_trainer", tracker_config ) )
+      if( !kv::check_nested_algo_configuration< kv::algo::train_tracker >( "tracker_trainer", tracker_config ) )
       {
         std::cout << "Configuration not valid for tracker: " << current_tracker << std::endl;
         continue;

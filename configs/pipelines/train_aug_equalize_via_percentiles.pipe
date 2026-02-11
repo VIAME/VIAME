@@ -3,7 +3,7 @@
 #
 # Description: Training augmentation pipeline that applies percentile-based
 # normalization to convert non-8-bit imagery (16-bit, float, etc.) to 8-bit.
-# Uses the C++ implementation of the percentile_norm filter.
+# Uses the C++ implementation of the equalize_via_percentiles filter.
 # =============================================================================
 
 config _pipeline:_edge
@@ -25,18 +25,18 @@ connect from in_adapt.input_file_name
 
 # =============================================================================
 
-process percentile_norm
+process equalize_via_percentiles
   :: image_filter
-  :filter:type                                 percentile_norm
+  :filter:type                                 equalize_via_percentiles
 
-  block filter:percentile_norm
+  block filter:equalize_via_percentiles
     :lower_percentile                          1.0
     :upper_percentile                          99.0
     :output_format                             8-bit
   endblock
 
 connect from image_reader.image
-        to   percentile_norm.image
+        to   equalize_via_percentiles.image
 
 # =============================================================================
 
@@ -47,7 +47,7 @@ process image_writer
 
 connect from in_adapt.output_file_name
         to   image_writer.image_file_name
-connect from percentile_norm.image
+connect from equalize_via_percentiles.image
         to   image_writer.image
 
 connect from image_writer.success_flag

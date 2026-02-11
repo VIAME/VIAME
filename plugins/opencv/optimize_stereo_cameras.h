@@ -13,32 +13,37 @@
 #include "viame_opencv_export.h"
 
 #include <vital/algo/optimize_cameras.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
-#include <memory>
+#include "calibrate_stereo_cameras.h"
+#include "filter_stereo_feature_tracks.h"
+
+#include <opencv2/core/core.hpp>
 
 namespace viame {
 
 /// A class for optimization of camera paramters using OpenCV
-class VIAME_OPENCV_EXPORT optimize_stereo_cameras :
-  public kwiver::vital::algorithm_impl<
-    optimize_stereo_cameras, kwiver::vital::algo::optimize_cameras >
+class VIAME_OPENCV_EXPORT optimize_stereo_cameras
+  : public kwiver::vital::algo::optimize_cameras
 {
 public:
-  PLUGIN_INFO( "ocv_optimize_stereo_cameras",
-               "Camera optimizer for stereo configurations." )
+  PLUGGABLE_IMPL( optimize_stereo_cameras,
+                  "Camera optimizer for stereo configurations.",
+    PARAM_DEFAULT( image_width, unsigned, "sensor image width (0 to derive from data)", 0 ),
+    PARAM_DEFAULT( image_height, unsigned, "sensor image height (0 to derive from data)", 0 ),
+    PARAM_DEFAULT( frame_count_threshold, unsigned, "max number of frames to use during optimization", 0 ),
+    PARAM_DEFAULT( output_calibration_directory, std::string, "output path for the generated calibration files (OpenCV YAML format)", "" ),
+    PARAM_DEFAULT( output_json_file, std::string, "output path for JSON calibration file (compatible with camera_rig_io)", "" ),
+    PARAM_DEFAULT( square_size, double, "calibration pattern square size in world units (e.g., mm)", 1.0 )
+  )
 
-  /// Constructor
-  optimize_stereo_cameras();
+  virtual ~optimize_stereo_cameras() = default;
 
-  /// Destructor
-  virtual ~optimize_stereo_cameras();
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const
+  {
+    return true;
+  }
 
-  /// Get this algorithm's \link vital::config_block configuration block \endlink
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
-  /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   /// Optimize Stereo camera parameters given sets of landmarks and feature tracks
   /**
@@ -85,9 +90,44 @@ public:
             kwiver::vital::sfm_constraints_sptr constraints = nullptr ) const;
 
 private:
-  /// private implementation class
-  class priv;
-  const std::unique_ptr<priv> d_;
+  // Shared calibration utility
+  mutable calibrate_stereo_cameras m_calibrator;
+
+  static kwiver::vital::feature_track_set_sptr
+  merge_features_track( const kwiver::vital::feature_track_set_sptr& feature_track,
+                        const kwiver::vital::feature_track_set_sptr& feature_track1,
+                        const kwiver::vital::feature_track_set_sptr& feature_track2 );
+
+  void calibrate_camera( const kwiver::vital::camera_sptr& camera,
+                         const kwiver::vital::feature_track_set_sptr& features,
+                         const kwiver::vital::landmark_map_sptr& landmarks,
+                         const std::string& suffix ) const;
+
+  void calibrate_stereo_camera( kwiver::vital::camera_map::map_camera_t cameras,
+                                const kwiver::vital::feature_track_set_sptr& features1,
+                                const kwiver::vital::feature_track_set_sptr& features2,
+                                const kwiver::vital::landmark_map_sptr& landmarks1,
+                                const kwiver::vital::landmark_map_sptr& landmarks2 ) const;
+
+  StereoPointCoordinates
+  convert_features_and_landmarks_to_calib_points( const FeatureTracks& features,
+                                                  const Landmarks& landmarks,
+                                                  bool& success ) const;
+
+  bool try_improve_camera_calibration( const std::vector< std::vector< cv::Point3f > >& world_points,
+                                       const std::vector< std::vector< cv::Point2f > >& image_points,
+                                       const cv::Size& image_size,
+                                       cv::Mat& K1, cv::Mat& D1, cv::Mat& R1, cv::Mat& T1,
+                                       int flags, double max_error, double& error,
+                                       const std::string& context ) const;
+
+  void write_stereo_calibration_file( const cv::Mat& M1, const cv::Mat& M2,
+                                      const std::vector< double >& D1,
+                                      const std::vector< double >& D2,
+                                      const cv::Mat& R, const cv::Mat& T,
+                                      const cv::Mat& R1, const cv::Mat& R2,
+                                      const cv::Mat& P1, const cv::Mat& P2,
+                                      const cv::Mat& Q ) const;
 };
 
 } // end namespace viame

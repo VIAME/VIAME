@@ -20,8 +20,7 @@
 namespace viame {
 
 class VIAME_CPPDB_EXPORT read_object_track_set_db
-  : public kwiver::vital::algorithm_impl< read_object_track_set_db,
-      kwiver::vital::algo::read_object_track_set >
+  : public kwiver::vital::algo::read_object_track_set
 {
 public:
   read_object_track_set_db();

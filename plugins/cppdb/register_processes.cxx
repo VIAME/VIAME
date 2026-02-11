@@ -19,26 +19,28 @@ VIAME_PROCESSES_CPPDB_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name =
-    kwiver::vital::plugin_manager::module_t( "viame_processes_cppdb" );
-
-  if( sprokit::is_process_module_loaded( vpm, module_name ) )
+  using namespace sprokit;
+  static auto const module_name = kwiver::vital::plugin_manager::module_t( "viame_processes_cppdb" );
+  kwiver::vital::plugin_factory_handle_t fact_handle;
+    if( sprokit::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
   // ---------------------------------------------------------------------------
-  auto fact = vpm.ADD_PROCESS( viame::cppdb::ingest_descriptors_db_process );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "ingest_descriptors_db" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
-                    module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Ingest descriptors with UIDs and write to database" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
+  using kvpf = kwiver::vital::plugin_factory;
 
-  fact = vpm.ADD_PROCESS( viame::cppdb::fetch_descriptors_db_process );
+  kwiver::vital::plugin_factory* fact = new sprokit::cpp_process_factory(
+    typeid( viame::cppdb::ingest_descriptors_db_process ).name(),
+    sprokit::process::interface_name(),
+    sprokit::create_new_process< viame::cppdb::ingest_descriptors_db_process > );
+  
+  // PLUGIN_NAME will be extracted from process or set manually in add_attribute calls below
+  // fact->add_attribute( kvpf::PLUGIN_NAME, "name_here" );  
+  
+  vpm.add_factory( fact );
+
+  fact_handle = vpm.ADD_PROCESS( viame::cppdb::fetch_descriptors_db_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
                         "fetch_descriptors_db" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
@@ -48,7 +50,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-  fact = vpm.ADD_PROCESS( viame::cppdb::object_track_descriptors_db_process );
+  fact_handle = vpm.ADD_PROCESS( viame::cppdb::object_track_descriptors_db_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
                         "object_track_descriptors_db" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,

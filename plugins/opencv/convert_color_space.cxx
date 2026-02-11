@@ -132,81 +132,21 @@ cv_convert_code lookup_cv_conversion_code(
 } // end anonymous namespace
 
 // --------------------------------------------------------------------------------------
-/// Private implementation class
-class convert_color_space::priv
-{
-public:
-
-  priv()
-   : input_color_space( kwiver::vital::RGB )
-   , output_color_space( kwiver::vital::HLS )
-   , conversion_code( cv::COLOR_RGB2HLS )
-  {
-  }
-
-  ~priv()
-  {
-  }
-
-  kwiver::vital::color_space input_color_space;
-  kwiver::vital::color_space output_color_space;
-
-  cv_convert_code conversion_code;
-};
-
-// --------------------------------------------------------------------------------------
-convert_color_space
-::convert_color_space()
-: d( new priv() )
-{
-  attach_logger( "viame.opencv.convert_color_space" );
-}
-
-convert_color_space
-::~convert_color_space()
-{
-}
-
-kwiver::vital::config_block_sptr
-convert_color_space
-::get_configuration() const
-{
-  // get base config from base class
-  kwiver::vital::config_block_sptr config = algorithm::get_configuration();
-
-  config->set_value( "input_color_space",
-    kwiver::vital::color_space_to_string( d->input_color_space ),
-    "Input color space." );
-  config->set_value( "output_color_space",
-    kwiver::vital::color_space_to_string( d->output_color_space ),
-    "Output color space." );
-
-  return config;
-}
-
 void
 convert_color_space
-::set_configuration( kwiver::vital::config_block_sptr in_config )
+::post_set_configuration()
 {
-  // Starting with our generated config_block to ensure that assumed values
-  // are present. An alternative is to check for key presence before performing a
-  // get_value() call.
-  kwiver::vital::config_block_sptr config = this->get_configuration();
-  config->merge_config( in_config );
+  kwiver::vital::color_space input_cs =
+    kwiver::vital::string_to_color_space( c_input_color_space );
+  kwiver::vital::color_space output_cs =
+    kwiver::vital::string_to_color_space( c_output_color_space );
 
-  // Settings for conversion
-  d->input_color_space = kwiver::vital::string_to_color_space(
-    config->get_value< std::string >( "input_color_space" ) );
-  d->output_color_space = kwiver::vital::string_to_color_space(
-    config->get_value< std::string >( "output_color_space" ) );
+  m_conversion_code = lookup_cv_conversion_code( input_cs, output_cs );
 
-  d->conversion_code = lookup_cv_conversion_code(
-    d->input_color_space, d->output_color_space );
-
-  if( d->conversion_code == CV_Invalid )
+  if( m_conversion_code == CV_Invalid )
   {
     throw kwiver::vital::algorithm_configuration_exception(
-      type_name(), impl_name(),
+      "convert_color_space", this->impl_name(),
       "No conversion available between specified color spaces" );
   }
 }
@@ -219,7 +159,7 @@ convert_color_space
     config->get_value< std::string >( "input_color_space" ) ) == kwiver::vital::INVALID_CS )
   {
     throw kwiver::vital::algorithm_configuration_exception(
-      type_name(), impl_name(),
+      "convert_color_space", this->impl_name(),
       "Invalid input color space specified: " +
       config->get_value< std::string >( "input_color_space" ) );
   }
@@ -227,7 +167,7 @@ convert_color_space
     config->get_value< std::string >( "output_color_space" ) ) == kwiver::vital::INVALID_CS )
   {
     throw kwiver::vital::algorithm_configuration_exception(
-      type_name(), impl_name(),
+      "convert_color_space", this->impl_name(),
       "Invalid output color space specified: " +
       config->get_value< std::string >( "output_color_space" ) );
   }
@@ -249,7 +189,7 @@ convert_color_space
     kwiver::arrows::ocv::image_container::vital_to_ocv(
       image_data->get_image(), kwiver::arrows::ocv::image_container::RGB_COLOR );
 
-  cv::cvtColor( cv_input, cv_output, d->conversion_code );
+  cv::cvtColor( cv_input, cv_output, m_conversion_code );
 
   return kwiver::vital::image_container_sptr(
     new kwiver::arrows::ocv::image_container( cv_output,

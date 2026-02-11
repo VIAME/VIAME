@@ -4,78 +4,19 @@
 
 #include "average_track_descriptors.h"
 
-#include <deque>
 #include <utility>
 
 namespace viame {
 
 namespace kv = kwiver::vital;
 
-// ==================================================================================
-class average_track_descriptors::priv
-{
-public:
-  priv( average_track_descriptors* parent )
-    : m_parent( parent )
-    , m_logger( kv::get_logger( "average_track_descriptors" ) )
-    , m_rolling( false )
-    , m_interval( 5 )
-  { }
-
-  ~priv() { }
-
-  average_track_descriptors* m_parent;
-  kv::logger_handle_t m_logger;
-  bool m_rolling;
-  unsigned int m_interval;
-
-  std::map< kv::track_id_t, std::deque< std::vector< double > > > m_history;
-};
-
-
-// ==================================================================================
-average_track_descriptors
-::average_track_descriptors()
-  : d( new priv( this ) )
-{
-}
-
-
-// ----------------------------------------------------------------------------------
-average_track_descriptors
-::~average_track_descriptors()
-{
-}
-
-
-// ----------------------------------------------------------------------------------
-kv::config_block_sptr
-average_track_descriptors
-::get_configuration() const
-{
-  // Get base config from base class
-  kv::config_block_sptr config = kv::algorithm::get_configuration();
-
-  config->set_value( "rolling", d->m_rolling,
-    "When set, produce an output for each input as the rolling average"
-    " of the last N descriptors, where N is the interval.  When reset,"
-    " produce an output only for the first input and then every Nth input"
-    " thereafter for any given track." );
-  config->set_value( "interval", d->m_interval,
-    "When the interval is N, every descriptor output (after the first N inputs)"
-    " is based on the last N descriptors seen as input for the given track." );
-
-  return config;
-}
-
 
 // ----------------------------------------------------------------------------------
 void
 average_track_descriptors
-::set_configuration( kv::config_block_sptr config )
+::initialize()
 {
-  d->m_rolling = config->get_value< bool >( "rolling", d->m_rolling );
-  d->m_interval = config->get_value< unsigned int >( "interval", d->m_interval );
+  m_logger = kv::get_logger( "average_track_descriptors" );
 }
 
 
@@ -103,7 +44,7 @@ average_track_descriptors
     {
       if( !track )
       {
-        LOG_WARN( d->m_logger, "Warning: Invalid Track" );
+        LOG_WARN( m_logger, "Warning: Invalid Track" );
         continue;
       }
 
@@ -117,21 +58,21 @@ average_track_descriptors
         {
           std::vector< double > descriptor = ots->detection()->descriptor()->as_double();
           std::vector< double > average;
-          if( !d->m_rolling && !d->m_history.count( track->id() ) )
+          if( !c_rolling && !m_history.count( track->id() ) )
           {
             // This is the first detection in the track, so output it
             // as-is.  This ensures that every input track has a
             // corresponding output track.
             average = std::move( descriptor );
             // Create an empty deque in the map
-            d->m_history[ track->id() ];
+            m_history[ track->id() ];
           }
           else
           {
-            std::deque< std::vector< double > >& average_history = d->m_history[ track->id() ];
+            std::deque< std::vector< double > >& average_history = m_history[ track->id() ];
 
             average_history.push_back( std::move( descriptor ) );
-            if( !d->m_rolling && average_history.size() != d->m_interval )
+            if( !c_rolling && average_history.size() != c_interval )
             {
               continue;
             }
@@ -166,9 +107,9 @@ average_track_descriptors
                 }
               }
 
-              if( d->m_rolling )
+              if( c_rolling )
               {
-                if( average_history.size() == d->m_interval )
+                if( average_history.size() == c_interval )
                 {
                   average_history.pop_front();
                 }

@@ -40,10 +40,10 @@ process tracker
   :matrix_generator:from_features:max_distance 3500
 
   block matrix_generator:from_features:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.100
-    :class_probablity_filter:keep_all_classes  true
-    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
+    :type                                      class_probability_filter
+    :class_probability_filter:threshold         0.100
+    :class_probability_filter:keep_all_classes  true
+    :class_probability_filter:keep_classes      ex1;ex2;these_are_unused
   endblock
 
 process track_associator
@@ -57,10 +57,10 @@ process track_initializer
   :track_initializer:type                      threshold
 
   block track_initializer:threshold:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.001
-    :class_probablity_filter:keep_all_classes  true
-    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
+    :type                                      class_probability_filter
+    :class_probability_filter:threshold         0.001
+    :class_probability_filter:keep_all_classes  true
+    :class_probability_filter:keep_classes      ex1;ex2;these_are_unused
   endblock
 
 # Connect inputs to detection descriptor

@@ -35,6 +35,11 @@ if( VIAME_ENABLE_TESTS )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pytest" )
 endif()
 
+# For KWIVER v2.0
+if( VIAME_ENABLE_KWIVER )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "pygccxml" "castxml" )
+endif()
+
 # For scoring and plotting
 list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver" )
 if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )

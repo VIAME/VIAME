@@ -54,8 +54,7 @@ private:
 
 /// A class for using ITK to read and write arbitrary transforms
 class VIAME_ITK_EXPORT ITKTransformIO
-  : public kwiver::vital::algorithm_impl<
-      ITKTransformIO, kwiver::vital::algo::transform_2d_io>
+  : public kwiver::vital::algo::transform_2d_io
 {
 public:
   /// Constructor

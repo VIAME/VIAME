@@ -9,9 +9,9 @@ from kwiver.vital.types import ImageContainer
 
 import numpy as np
 
-class PercentileNormalization( ImageFilter ):
+class EqualizeViaPercentiles( ImageFilter ):
   """
-  Percentile-based image normalization filter.
+  Percentile-based image normalization filter (NumPy implementation).
 
   This filter normalizes image intensity values using percentile-based
   min/max calculation. It supports arbitrary input types and can output
@@ -108,12 +108,12 @@ def __vital_algorithm_register__():
   from kwiver.vital.algo import algorithm_factory
 
   # Register Algorithm
-  implementation_name  = "percentile_norm_npy"
+  implementation_name  = "equalize_via_percentiles_npy"
   if algorithm_factory.has_algorithm_impl_name(
-      PercentileNormalization.static_type_name(), implementation_name ):
+      EqualizeViaPercentiles.static_type_name(), implementation_name ):
     return
 
   algorithm_factory.add_algorithm( implementation_name,
-    "Numpy percentile normalization with configurable output format", PercentileNormalization )
+    "Numpy percentile normalization with configurable output format", EqualizeViaPercentiles )
 
   algorithm_factory.mark_algorithm_as_loaded( implementation_name )

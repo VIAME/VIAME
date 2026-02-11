@@ -8,6 +8,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/refine_detections.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -24,24 +25,27 @@ namespace viame {
  * \oport{pruned_detections}
  */
 class VIAME_CORE_EXPORT refine_detections_add_fixed
-  : public kwiver::vital::algorithm_impl<refine_detections_add_fixed,
-    kwiver::vital::algo::refine_detections>
+  : public kwiver::vital::algo::refine_detections
 {
 
 public:
-
-  PLUGIN_INFO( "add_fixed",
+  PLUGGABLE_IMPL(
+    refine_detections_add_fixed,
     "Adds a fixed detection into the current set.\n\n"
     "The fixed detection can be either a config defined box or "
-    "based on the input image size." )
+    "based on the input image size.",
+    PARAM_DEFAULT(
+      add_full_image_detection, bool,
+      "Add full image detection of the same size as the input image.",
+      true ),
+    PARAM_DEFAULT(
+      detection_type, std::string,
+      "Object type to add to newly created detected objects",
+      "generic_object_proposal" )
+  )
 
-  refine_detections_add_fixed();
-  virtual ~refine_detections_add_fixed();
+  virtual ~refine_detections_add_fixed() = default;
 
-  /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration(kwiver::vital::config_block_sptr config);
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
 
@@ -57,12 +61,6 @@ public:
   virtual kwiver::vital::detected_object_set_sptr
   refine( kwiver::vital::image_container_sptr image_data,
           kwiver::vital::detected_object_set_sptr detections ) const;
-
-private:
-
-  /// private implementation class
-  class priv;
-  const std::unique_ptr<priv> d_;
 
  }; // end class refine_detections_add_fixed
 

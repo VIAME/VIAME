@@ -7,6 +7,10 @@
  * \brief Stereo detection pairing process implementation
  */
 
+#include "pair_stereo_detections_process.h"
+
+#include <vital/algo/algorithm.txx>
+
 #include <algorithm>
 #include <limits>
 #include <cmath>
@@ -34,7 +38,6 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
-#include "pair_stereo_detections_process.h"
 #include "pair_stereo_detections.h"
 #include "measurement_utilities.h"
 #include "camera_rig_io.h"
@@ -329,16 +332,16 @@ pair_stereo_detections_process
   declare_config_using_trait( min_inliers_for_head_tail );
 
   // Algorithm configuration (nested algorithms for feature matching)
-  kv::algo::detect_features::get_nested_algo_configuration(
+  kv::get_nested_algo_configuration<kv::algo::detect_features>(
     "feature_detector", get_config(), d->m_feature_detector );
 
-  kv::algo::extract_descriptors::get_nested_algo_configuration(
+  kv::get_nested_algo_configuration<kv::algo::extract_descriptors>(
     "descriptor_extractor", get_config(), d->m_descriptor_extractor );
 
-  kv::algo::match_features::get_nested_algo_configuration(
+  kv::get_nested_algo_configuration<kv::algo::match_features>(
     "feature_matcher", get_config(), d->m_feature_matcher );
 
-  kv::algo::estimate_homography::get_nested_algo_configuration(
+  kv::get_nested_algo_configuration<kv::algo::estimate_homography>(
     "homography_estimator", get_config(), d->m_homography_estimator );
 }
 
@@ -402,18 +405,18 @@ pair_stereo_detections_process
     // Get nested algorithm configuration
     kv::config_block_sptr config = get_config();
 
-    kv::algo::detect_features::set_nested_algo_configuration(
+    kv::set_nested_algo_configuration<kv::algo::detect_features>(
       "feature_detector", config, d->m_feature_detector );
 
-    kv::algo::extract_descriptors::set_nested_algo_configuration(
+    kv::set_nested_algo_configuration<kv::algo::extract_descriptors>(
       "descriptor_extractor", config, d->m_descriptor_extractor );
 
-    kv::algo::match_features::set_nested_algo_configuration(
+    kv::set_nested_algo_configuration<kv::algo::match_features>(
       "feature_matcher", config, d->m_feature_matcher );
 
     if( d->m_use_homography_filtering )
     {
-      kv::algo::estimate_homography::set_nested_algo_configuration(
+      kv::set_nested_algo_configuration<kv::algo::estimate_homography>(
         "homography_estimator", config, d->m_homography_estimator );
     }
 

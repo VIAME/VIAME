@@ -13,6 +13,7 @@
 #include "viame_svm_export.h"
 
 #include <vital/algo/refine_detections.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 namespace viame {
 
@@ -20,24 +21,32 @@ namespace kv = kwiver::vital;
 
 /// A class for drawing various information about feature tracks
 class VIAME_SVM_EXPORT refine_detections_svm
-: public kv::algorithm_impl<refine_detections_svm,
-    kv::algo::refine_detections>
+  : public kv::algo::refine_detections
 {
 public:
+#define VIAME_SVM_RDS_PARAMS \
+    PARAM_DEFAULT( \
+      model_dir, std::string, \
+      "The directory where the SVM models are placed.", \
+      "" ), \
+    PARAM_DEFAULT( \
+      override_original, bool, \
+      "Replace original scores with new scores.", \
+      true )
 
-  PLUGIN_INFO( "svm_refiner",
-               "Refine detections using SVM." )
+  PLUGGABLE_VARIABLES( VIAME_SVM_RDS_PARAMS )
+  PLUGGABLE_CONSTRUCTOR( refine_detections_svm, VIAME_SVM_RDS_PARAMS )
 
-  /// Constructor
-  refine_detections_svm();
+  static std::string plugin_name() { return "svm_refiner"; }
+  static std::string plugin_description() { return "Refine detections using SVM."; }
+
+  PLUGGABLE_STATIC_FROM_CONFIG( refine_detections_svm, VIAME_SVM_RDS_PARAMS )
+  PLUGGABLE_STATIC_GET_DEFAULT( VIAME_SVM_RDS_PARAMS )
+  PLUGGABLE_SET_CONFIGURATION( refine_detections_svm, VIAME_SVM_RDS_PARAMS )
 
   /// Destructor
   virtual ~refine_detections_svm();
 
-  /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
-  virtual kv::config_block_sptr get_configuration() const;
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration(kv::config_block_sptr config);
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(kv::config_block_sptr config) const;
 
@@ -55,10 +64,12 @@ public:
           kv::detected_object_set_sptr detections ) const;
 
 private:
+  void initialize() override;
+  void set_configuration_internal( kv::config_block_sptr config ) override;
 
   /// Private implementation class
   class priv;
-  const std::unique_ptr<priv> d_;
+  KWIVER_UNIQUE_PTR( priv, d_ );
 };
 
 } // end namespace viame

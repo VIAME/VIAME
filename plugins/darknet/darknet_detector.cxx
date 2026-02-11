@@ -32,7 +32,7 @@ namespace viame {
 class darknet_detector::priv
 {
 public:
-  priv()
+  priv( darknet_detector& )
     : m_thresh( 0.24 )
     , m_hier_thresh( 0.5 )
     , m_gpu_index( -1 )
@@ -105,10 +105,11 @@ public:
 
 // =============================================================================
 
+void
 darknet_detector
-::darknet_detector()
-  : d( new priv() )
+::initialize()
 {
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
   attach_logger( "viame.darknet.darknet_detector" );
   d->m_logger = logger();
 }
@@ -120,77 +121,31 @@ darknet_detector
 
 
 // -----------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
-darknet_detector
-::get_configuration() const
-{
-  // Get base config from base class
-  kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
-
-  config->set_value( "net_config", d->m_net_config,
-    "Name of network config file." );
-  config->set_value( "weight_file", d->m_weight_file,
-    "Name of optional weight file." );
-  config->set_value( "class_names", d->m_class_names,
-    "Name of file that contains the class names." );
-  config->set_value( "thresh", d->m_thresh,
-    "Threshold value." );
-  config->set_value( "hier_thresh", d->m_hier_thresh,
-    "Hier threshold value." );
-  config->set_value( "gpu_index", d->m_gpu_index,
-    "GPU index. Only used when darknet is compiled with GPU support." );
-  config->set_value( "resize_option", d->m_resize_option,
-    "Pre-processing resize option, can be: disabled, maintain_ar, scale, "
-    "chip, chip_and_original, or adaptive." );
-  config->set_value( "scale", d->m_scale,
-    "Image scaling factor used when resize_option is scale or chip." );
-  config->set_value( "chip_step", d->m_chip_step,
-    "When in chip mode, the chip step size between chips." );
-  config->set_value( "nms_threshold", d->m_nms_threshold,
-    "Non-maximum suppression threshold." );
-  config->set_value( "gs_to_rgb", d->m_gs_to_rgb,
-    "Convert input greyscale images to rgb before processing." );
-  config->set_value( "chip_edge_filter", d->m_chip_edge_filter,
-    "If using chipping, filter out detections this pixel count near borders." );
-  config->set_value( "chip_adaptive_thresh", d->m_chip_adaptive_thresh,
-    "If using adaptive selection, total pixel count at which we start to chip." );
-
-  return config;
-}
-
-
-// -----------------------------------------------------------------------------
 void
 darknet_detector
-::set_configuration( kwiver::vital::config_block_sptr config_in )
+::set_configuration_internal( kwiver::vital::config_block_sptr config )
 {
-  // Starting with our generated config_block to ensure that assumed values
-  // are present. An alternative is to check for key presence before performing
-  // a get_value() call.
-  kwiver::vital::config_block_sptr config = this->get_configuration();
-
-  config->merge_config( config_in );
-
-  d->m_net_config  = config->get_value< std::string >( "net_config" );
-  d->m_weight_file = config->get_value< std::string >( "weight_file" );
-  d->m_class_names = config->get_value< std::string >( "class_names" );
-  d->m_thresh      = config->get_value< float >( "thresh" );
-  d->m_hier_thresh = config->get_value< float >( "hier_thresh" );
-  d->m_gpu_index   = config->get_value< int >( "gpu_index" );
-  d->m_resize_option = config->get_value< std::string >( "resize_option" );
-  d->m_scale       = config->get_value< double >( "scale" );
-  d->m_chip_step   = config->get_value< int >( "chip_step" );
-  d->m_nms_threshold = config->get_value< double >( "nms_threshold" );
-  d->m_gs_to_rgb   = config->get_value< bool >( "gs_to_rgb" );
-  d->m_chip_edge_filter = config->get_value< int >( "chip_edge_filter" );
-  d->m_chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
+  // Copy config params from class members to priv
+  d->m_net_config  = c_net_config;
+  d->m_weight_file = c_weight_file;
+  d->m_class_names = c_class_names;
+  d->m_thresh      = c_thresh;
+  d->m_hier_thresh = c_hier_thresh;
+  d->m_gpu_index   = c_gpu_index;
+  d->m_resize_option = c_resize_option;
+  d->m_scale       = c_scale;
+  d->m_chip_step   = c_chip_step;
+  d->m_nms_threshold = c_nms_threshold;
+  d->m_gs_to_rgb   = c_gs_to_rgb;
+  d->m_chip_edge_filter = c_chip_edge_filter;
+  d->m_chip_adaptive_thresh = c_chip_adaptive_thresh;
 
   // Open file and return 'list' of labels
   std::ifstream fin( d->m_class_names.c_str() );
   d->m_names.clear();
   if( !fin )
   {
-    LOG_ERROR( logger(), "Unable to open labels file" );
+    LOG_ERROR( logger(), "Unable to open labels file: " << d->m_class_names );
   }
   std::string line;
   while( std::getline( fin, line ) )

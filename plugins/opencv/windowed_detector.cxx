@@ -3,6 +3,9 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "windowed_detector.h"
+
+#include <vital/algo/algorithm.txx>
+
 #include "windowed_utils.h"
 
 #include <vital/util/wall_timer.h>
@@ -27,82 +30,14 @@ namespace kv = kwiver::vital;
 namespace ocv = kwiver::arrows::ocv;
 
 // =============================================================================
-class windowed_detector::priv
-{
-public:
-  priv()
-  {}
-
-  ~priv() {}
-
-  // Settings from the config
-  window_settings m_settings;
-
-  kv::algo::image_object_detector_sptr m_detector;
-  kv::logger_handle_t m_logger;
-};
-
-
 // =============================================================================
-windowed_detector
-::windowed_detector()
-  : d( new priv() )
-{
-  attach_logger( "viame.opencv.windowed_detector" );
-
-  d->m_logger = logger();
-}
-
-
-windowed_detector
-::~windowed_detector()
-{}
-
-
-// -----------------------------------------------------------------------------
-kv::config_block_sptr
-windowed_detector
-::get_configuration() const
-{
-  // Get base config from base class
-  kv::config_block_sptr config = kv::algorithm::get_configuration();
-
-  // Merge window settings configuration
-  config->merge_config( d->m_settings.config() );
-
-  kv::algo::image_object_detector::get_nested_algo_configuration(
-    "detector", config, d->m_detector );
-
-  return config;
-}
-
-
-// -----------------------------------------------------------------------------
-void
-windowed_detector
-::set_configuration( kv::config_block_sptr config_in )
-{
-  // Starting with our generated config_block to ensure that assumed values
-  // are present. An alternative is to check for key presence before performing
-  // a get_value() call.
-  kv::config_block_sptr config = this->get_configuration();
-
-  config->merge_config( config_in );
-
-  // Set window settings from configuration
-  d->m_settings.set_config( config );
-
-  kv::algo::image_object_detector::set_nested_algo_configuration(
-    "detector", config, d->m_detector );
-}
-
 
 // -----------------------------------------------------------------------------
 bool
 windowed_detector
 ::check_configuration( kv::config_block_sptr config ) const
 {
-  return kv::algo::image_object_detector::check_nested_algo_configuration(
+  return kv::check_nested_algo_configuration<kv::algo::image_object_detector>(
     "detector", config );
 }
 
@@ -116,7 +51,7 @@ windowed_detector
 
   if( !image_data )
   {
-    LOG_WARN( d->m_logger, "Input image is empty." );
+    LOG_WARN( logger(), "Input image is empty." );
     return std::make_shared< kv::detected_object_set >();
   }
 
@@ -125,20 +60,37 @@ windowed_detector
 
   if( cv_image.rows == 0 || cv_image.cols == 0 )
   {
-    LOG_WARN( d->m_logger, "Input image is empty." );
+    LOG_WARN( logger(), "Input image is empty." );
     return std::make_shared< kv::detected_object_set >();
   }
+
+  // Construct settings from current configuration
+  window_settings settings;
+  rescale_option_converter conv;
+  settings.mode = conv.from_string( c_mode );
+  settings.scale = c_scale;
+  settings.chip_width = c_chip_width;
+  settings.chip_height = c_chip_height;
+  settings.chip_step_width = c_chip_step_width;
+  settings.chip_step_height = c_chip_step_height;
+  settings.chip_edge_filter = c_chip_edge_filter;
+  settings.chip_edge_max_prob = c_chip_edge_max_prob;
+  settings.chip_adaptive_thresh = c_chip_adaptive_thresh;
+  settings.batch_size = c_batch_size;
+  settings.min_detection_dim = c_min_detection_dim;
+  settings.original_to_chip_size = c_original_to_chip_size;
+  settings.black_pad = c_black_pad;
 
   // Prepare image regions using utility function
   std::vector< cv::Mat > regions_to_process;
   std::vector< windowed_region_prop > region_properties;
 
-  prepare_image_regions( cv_image, d->m_settings, regions_to_process, region_properties );
+  prepare_image_regions( cv_image, settings, regions_to_process, region_properties );
 
   // Run detector
   kv::detected_object_set_sptr detections = std::make_shared< kv::detected_object_set >();
 
-  unsigned max_count = d->m_settings.batch_size;
+  unsigned max_count = settings.batch_size;
 
   for( unsigned i = 0; i < regions_to_process.size(); i+= max_count )
   {
@@ -156,16 +108,16 @@ windowed_detector
     }
 
     std::vector< kv::detected_object_set_sptr > out =
-      d->m_detector->batch_detect( imgs );
+      c_detector->batch_detect( imgs );
 
     for( unsigned j = 0; j < batch_size; j++ )
     {
       detections->add( rescale_detections( out[ j ],
-        region_properties[ i + j ], d->m_settings.chip_edge_max_prob ) );
+        region_properties[ i + j ], settings.chip_edge_max_prob ) );
     }
   }
 
-  const int min_dim = d->m_settings.min_detection_dim;
+  const int min_dim = settings.min_detection_dim;
 
   detections->filter([&min_dim](kv::detected_object_sptr dos)
   {

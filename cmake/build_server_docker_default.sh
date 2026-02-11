@@ -26,7 +26,6 @@ setup_basic_build_environment /viame/build/install /usr/local/cuda
 cmake ../ \
   -C ../cmake/build_cmake_base.cmake \
   -C ../cmake/build_cmake_docker.cmake \
-  -DVIAME_ENABLE_KWANT:BOOL=ON \
   -DVIAME_ENABLE_PYTORCH-LEARN:BOOL=ON \
   -DVIAME_ENABLE_ONNX:BOOL=ON \
   -DVIAME_BUILD_TORCHVISION_FROM_SOURCE=ON \

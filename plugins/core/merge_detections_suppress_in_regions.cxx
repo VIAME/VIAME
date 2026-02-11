@@ -12,43 +12,12 @@ namespace viame {
 
 namespace kv = kwiver::vital;
 
-/// Private implementation class
-class merge_detections_suppress_in_regions::priv
-{
-public:
-
-  /// Constructor
-  priv()
-  : suppression_class( "" ),
-    borderline_class( "" ),
-    borderline_scale_factor( 0.5 ),
-    min_overlap( 0.5 ),
-    output_region_classes( true ),
-    case_sensitive( false )
-  {}
-
-  /// Destructor
-  ~priv() {}
-
-  /// Parameters
-  std::string suppression_class;
-  std::string borderline_class;
-  double borderline_scale_factor;
-  double min_overlap;
-  bool output_region_classes;
-  bool case_sensitive;
-
-  /// Functions
-  bool compare_classes( const std::string& c1, const std::string& c2 );
-};
-
-
 /// Helper Function
 bool
-merge_detections_suppress_in_regions::priv
-::compare_classes( const std::string& c1, const std::string& c2 )
+merge_detections_suppress_in_regions
+::compare_classes( const std::string& c1, const std::string& c2 ) const
 {
-  if( case_sensitive )
+  if( c_case_sensitive )
   {
     return c1 == c2;
   }
@@ -58,71 +27,6 @@ merge_detections_suppress_in_regions::priv
     {
       return std::tolower( i ) == std::tolower( j );
     } );
-}
-
-
-/// Constructor
-merge_detections_suppress_in_regions
-::merge_detections_suppress_in_regions()
-: d( new priv() )
-{
-}
-
-
-/// Destructor
-merge_detections_suppress_in_regions
-::~merge_detections_suppress_in_regions()
-{
-}
-
-
-/// Get this algorithm's \link vital::config_block configuration block \endlink
-kv::config_block_sptr
-merge_detections_suppress_in_regions
-::get_configuration() const
-{
-  kv::config_block_sptr config = kv::algo::merge_detections::get_configuration();
-
-  config->set_value( "suppression_class", d->suppression_class,
-    "Suppression region class IDs, will eliminate any detections overlapping with "
-    "this class entirely." );
-
-  config->set_value( "borderline_class", d->borderline_class,
-    "Borderline region class IDs, will reduce the probability of any detections "
-    "overlapping with the class by some fixed scale factor." );
-
-  config->set_value( "borderline_scale_factor", d->borderline_scale_factor,
-    "The factor by which the detections are scaled when overlapping with borderline "
-    "regions." );
-
-  config->set_value( "min_overlap", d->min_overlap,
-    "The minimum percent a detection can overlap with a suppression category before "
-    "it's discarded or reduced. Range [0.0,1.0]." );
-
-  config->set_value( "output_region_classes", d->output_region_classes,
-    "Add suppression and borderline classes to output." );
-
-  config->set_value( "case_sensitive", d->case_sensitive,
-    "Treat class names as case sensitive or insensitive." );
-
-  return config;
-}
-
-
-/// Set this algorithm's properties via a config block
-void
-merge_detections_suppress_in_regions
-::set_configuration( kv::config_block_sptr in_config )
-{
-  kv::config_block_sptr config = this->get_configuration();
-  config->merge_config( in_config );
-
-  d->suppression_class = config->get_value< std::string >( "suppression_class" );
-  d->borderline_class = config->get_value< std::string >( "borderline_class" );
-  d->borderline_scale_factor = config->get_value< double >( "borderline_scale_factor" );
-  d->min_overlap = config->get_value< double >( "min_overlap" );
-  d->output_region_classes = config->get_value< bool >( "output_region_classes" );
-  d->case_sensitive = config->get_value< bool >( "case_sensitive" );
 }
 
 /// Check that the algorithm's currently configuration is valid
@@ -168,7 +72,7 @@ merge_detections_suppress_in_regions
 
         // Check how much they overlap. Only keep if the overlapped percent isn't too high
         if( overlap.min_x() < overlap.max_x() && overlap.min_y() < overlap.max_y() &&
-            ( overlap.area() / det_bbox.area() ) >= d->min_overlap )
+            ( overlap.area() / det_bbox.area() ) >= c_min_overlap )
         {
           std::string reg_class;
 
@@ -177,13 +81,13 @@ merge_detections_suppress_in_regions
             region->type()->get_most_likely( reg_class );
           }
 
-          if( d->compare_classes( d->suppression_class, reg_class ) ||
-              ( d->suppression_class.empty() && d->borderline_class.empty() ) )
+          if( compare_classes( c_suppression_class, reg_class ) ||
+              ( c_suppression_class.empty() && c_borderline_class.empty() ) )
           {
             should_add = false;
           }
-          else if( !d->borderline_class.empty() &&
-                    d->compare_classes( d->borderline_class, reg_class ) )
+          else if( !c_borderline_class.empty() &&
+                    compare_classes( c_borderline_class, reg_class ) )
           {
             should_adjust = true;
           }
@@ -198,7 +102,7 @@ merge_detections_suppress_in_regions
 
           for( auto cls_pair : *adj_type )
           {
-            cls_pair.second = cls_pair.second * d->borderline_scale_factor;
+            cls_pair.second = cls_pair.second * c_borderline_scale_factor;
           }
 
           new_det->set_type( adj_type );
@@ -212,7 +116,7 @@ merge_detections_suppress_in_regions
     }
   }
 
-  if( d->output_region_classes )
+  if( c_output_region_classes )
   {
     for( auto region : *region_set )
     {
