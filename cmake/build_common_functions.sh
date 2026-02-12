@@ -321,19 +321,17 @@ upgrade_pip_setuptools() {
 
   if [ -n "$pip_target" ]; then
     # Install to target directory (pip itself can't be upgraded to a target, skip it)
-    # Upgrade setuptools to a version compatible with Python 3.12+
-    # setuptools >= 67.0.0 removed pkg_resources.ImpImporter usage
-    # wheel >= 0.45.0 requires setuptools >= 70.1 for bdist_wheel compatibility
-    "$python_exec" -m pip install --target "$pip_target" --upgrade "setuptools>=75.3.0" "wheel>=0.45.0" 2>/dev/null || true
+    # Cap at <76 because 76.0 removed pkg_resources.get_distribution/DistributionNotFound
+    # which breaks builds of imgaug, mmcv, and other third-party packages
+    "$python_exec" -m pip install --target "$pip_target" --upgrade "setuptools<76" "wheel" 2>/dev/null || true
   else
     # System-wide upgrade (for Docker/container builds)
     # Upgrade pip first
     "$python_exec" -m pip install --upgrade pip 2>/dev/null || true
 
-    # Upgrade setuptools to a version compatible with Python 3.12+
-    # setuptools >= 67.0.0 removed pkg_resources.ImpImporter usage
-    # wheel >= 0.45.0 requires setuptools >= 70.1 for bdist_wheel compatibility
-    "$python_exec" -m pip install --upgrade "setuptools>=75.3.0" "wheel>=0.45.0" 2>/dev/null || true
+    # Cap at <76 because 76.0 removed pkg_resources.get_distribution/DistributionNotFound
+    # which breaks builds of imgaug, mmcv, and other third-party packages
+    "$python_exec" -m pip install --upgrade "setuptools<76" "wheel" 2>/dev/null || true
   fi
 
   echo "pip and setuptools upgrade complete"
