@@ -403,9 +403,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   elseif( "${LIB}" STREQUAL "torchvideo" )
     set( PROJECT_DEPS ${PROJECT_DEPS} pyav )
   elseif( "${LIB}" STREQUAL "torchvision" )
-    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${VIAME_PATCHES_DIR}/torchvision
-      ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvision )
   elseif( "${LIB}" STREQUAL "mmcv" )
   elseif( "${LIB}" STREQUAL "sam2" )
     if( WIN32 )
