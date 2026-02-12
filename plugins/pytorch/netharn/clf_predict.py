@@ -133,6 +133,11 @@ class ClfPredictor(object):
     def _ensure_model(predictor):
         # Just make sure the model is in memory (it might not be on the XPU yet)
         if predictor.model is None:
+            # Set up module aliases for backwards compatibility with old models
+            # that use 'import netharn' or 'import bioharn' instead of 'viame.pytorch.netharn'
+            from viame.pytorch.netharn.detect_predict import setup_module_aliases
+            setup_module_aliases()
+
             xpu = nh.XPU.coerce(predictor.config['xpu'])
             deployed = torch_liberator.DeployedModel.coerce(predictor.config['deployed'])
             model = deployed.load_model()
