@@ -12,8 +12,9 @@ Pipeline:
   7. Export PLY point cloud + PLY/OBJ mesh
 
 Usage:
+  python reconstruct_3d.py --install-deps          # check/install dependencies
   python reconstruct_3d.py <image_folder> [--output <output_dir>] [--scale <0.25>]
-  python reconstruct_3d.py --all   # process all subfolders
+  python reconstruct_3d.py --all                    # process all subfolders
 """
 
 import os
@@ -21,12 +22,120 @@ import sys
 import json
 import argparse
 import time
+import subprocess
+import importlib
 from pathlib import Path
 
-import numpy as np
-import cv2
-import pycolmap
-import open3d as o3d
+
+# ---------------------------------------------------------------------------
+# Dependency management
+# ---------------------------------------------------------------------------
+
+# Map of import name -> pip package name
+REQUIRED_PACKAGES = {
+    'numpy': 'numpy',
+    'cv2': 'opencv-python',
+    'pycolmap': 'pycolmap',
+    'open3d': 'open3d',
+}
+
+
+def check_dependencies():
+    """Check which required packages are missing. Returns list of (import_name, pip_name)."""
+    missing = []
+    for import_name, pip_name in REQUIRED_PACKAGES.items():
+        try:
+            importlib.import_module(import_name)
+        except ImportError:
+            missing.append((import_name, pip_name))
+    return missing
+
+
+def install_dependencies(missing, target_dir=None):
+    """Install missing packages via pip in a subprocess.
+
+    Args:
+        missing: list of (import_name, pip_name) tuples
+        target_dir: if set, pass --target to pip to install into that directory
+    """
+    pip_names = [pip_name for _, pip_name in missing]
+    cmd = [sys.executable, '-m', 'pip', 'install'] + pip_names
+    if target_dir:
+        cmd += ['--target', target_dir]
+    print(f"Running: {' '.join(cmd)}")
+    ret = subprocess.call(cmd)
+    if ret != 0:
+        print(f"ERROR: pip install failed (exit code {ret})")
+        sys.exit(1)
+    print("Dependencies installed successfully.")
+
+
+def ensure_dependencies(install=False, target_dir=None):
+    """Check deps and optionally install. Returns True if all present."""
+    missing = check_dependencies()
+    if not missing:
+        print("All dependencies are installed.")
+        return True
+
+    print("Missing dependencies:")
+    for import_name, pip_name in missing:
+        print(f"  {pip_name} (import {import_name})")
+
+    if not install:
+        print(f"\nRun with --install-deps to install them, or manually:")
+        pip_names = ' '.join(p for _, p in missing)
+        print(f"  python -m pip install {pip_names}")
+        return False
+
+    # Prompt user for confirmation
+    print(f"\nThe following packages will be installed: "
+          f"{', '.join(p for _, p in missing)}")
+    if target_dir:
+        print(f"Target directory: {target_dir}")
+    response = input("Proceed? [y/N] ").strip().lower()
+    if response not in ('y', 'yes'):
+        print("Aborted.")
+        sys.exit(0)
+
+    install_dependencies(missing, target_dir)
+    return True
+
+
+def _get_viame_site_packages():
+    """Try to find the VIAME install's site-packages directory."""
+    # Check for VIAME install env variable
+    viame_dir = os.environ.get('VIAME_INSTALL')
+    if viame_dir:
+        sp = os.path.join(viame_dir, 'lib', 'python' +
+                          f'{sys.version_info.major}.{sys.version_info.minor}',
+                          'site-packages')
+        if os.path.isdir(sp):
+            return sp
+    # Fall back to user site-packages (pip default without --target)
+    return None
+
+
+def import_dependencies():
+    """Import required packages, with a clear error message if missing."""
+    global np, cv2, pycolmap, o3d
+    try:
+        import numpy as np_
+        import cv2 as cv2_
+        import pycolmap as pycolmap_
+        import open3d as o3d_
+        np = np_
+        cv2 = cv2_
+        pycolmap = pycolmap_
+        o3d = o3d_
+    except ImportError:
+        missing = check_dependencies()
+        if missing:
+            print("ERROR: Missing required dependencies:")
+            for import_name, pip_name in missing:
+                print(f"  {pip_name} (import {import_name})")
+            print(f"\nRun: python {sys.argv[0]} --install-deps")
+            sys.exit(1)
+        raise
 
 
 # ---------------------------------------------------------------------------
@@ -626,7 +735,21 @@ def main():
                         help="Max dense-stereo pairs per image (default 3)")
     parser.add_argument("--view", "-v", default=None,
                         help="View a PLY/OBJ file instead of running reconstruction")
+    parser.add_argument("--install-deps", action="store_true",
+                        help="Check and install missing Python dependencies")
+    parser.add_argument("--deps-target", default=None,
+                        help="pip --target directory for dependency install "
+                             "(default: auto-detect VIAME site-packages or user site)")
     args = parser.parse_args()
+
+    # --- Dependency install mode (no imports needed) ---
+    if args.install_deps:
+        target = args.deps_target or _get_viame_site_packages()
+        ensure_dependencies(install=True, target_dir=target)
+        return
+
+    # --- Import dependencies (after --install-deps check) ---
+    import_dependencies()
 
     # --- View mode ---
     if args.view:
