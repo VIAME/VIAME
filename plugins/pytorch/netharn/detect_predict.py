@@ -134,6 +134,9 @@ def setup_module_aliases():
         'bioharn.detect_predict': nh.detect_predict,
         'bioharn.detect_fit': nh.detect_fit,
         'bioharn.detect_dataset': nh.detect_dataset,
+        'bioharn.clf_predict': nh.clf_predict,
+        'bioharn.clf_fit': nh.clf_fit,
+        'bioharn.clf_dataset': nh.clf_dataset,
     }
 
     for old_name, new_module in alias_mappings.items():

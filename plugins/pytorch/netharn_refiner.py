@@ -70,7 +70,7 @@ class NetharnRefiner(RefineDetections):
 
     def set_configuration(self, cfg_in):
         import torch
-        from bioharn import clf_predict
+        from viame.pytorch.netharn import clf_predict
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)
 

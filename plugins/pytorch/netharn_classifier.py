@@ -63,7 +63,7 @@ class NetharnClassifier(ImageObjectDetector):
         Returns:
             str: file path to a scallop classifier
         """
-        from bioharn import clf_fit
+        from viame.pytorch.netharn import clf_fit
         harn = clf_fit.setup_harn(cmdline=False, dataset='special:shapes128',
                                   max_epoch=1, timeout=60)
         harn.initialize()
@@ -108,7 +108,7 @@ class NetharnClassifier(ImageObjectDetector):
 
     def set_configuration(self, cfg_in):
         import torch
-        from bioharn import clf_predict
+        from viame.pytorch.netharn import clf_predict
         cfg = self.get_configuration()
 
         # HACK: merge config doesn't support dictionary input
@@ -192,7 +192,7 @@ class NetharnClassifier(ImageObjectDetector):
         Convert kwarray classifications to kwiver deteted object sets
 
         Args:
-            classification (bioharn.clf_predict.Classification)
+            classification (viame.pytorch.netharn.clf_predict.Classification)
             w (int): width of image
             h (int): height of image
 
