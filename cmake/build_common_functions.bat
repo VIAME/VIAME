@@ -203,6 +203,7 @@ CALL :CopyDll "%~2\bin\cusolver64_11.dll" "%~3"
 CALL :CopyDll "%~2\bin\cusolverMg64_11.dll" "%~3"
 CALL :CopyDll "%~2\bin\cusparse64_12.dll" "%~3"
 CALL :CopyDll "%~2\bin\nvJitLink_120_0.dll" "%~3"
+CALL :CopyDll "%~2\bin\nvrtc64_120_0.dll" "%~3"
 CALL :CopyDll "%~2\extras\CUPTI\lib64\cupti64_2025.1.1.dll" "%~3"
 ECHO.
 GOTO :EOF
