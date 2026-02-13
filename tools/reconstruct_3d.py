@@ -7,14 +7,16 @@ Pipeline:
   2. Feature matching (exhaustive <=50 images, sequential otherwise)
   3. Incremental Structure from Motion -> sparse point cloud + cameras
   3b. (Optional) Prior-coverage polygon output (--coverage-class)
-  4. Dense feature matching between overlapping image pairs (OpenCV)  [skip with --no-dense]
-  5. Triangulate dense matches -> dense colored point cloud            [skip with --no-dense]
-  6. Poisson surface reconstruction (Open3D) -> triangle mesh          [skip with --no-dense]
-  7. Export PLY point cloud + PLY/OBJ mesh
+  4. Densification (one of two methods):                                [skip with --no-dense]
+     a. --dense-method sift (default): OpenCV SIFT matching + triangulation (CPU)
+     b. --dense-method mvs: COLMAP PatchMatch stereo + fusion (requires CUDA)
+  5. Poisson surface reconstruction (Open3D) -> triangle mesh          [skip with --no-dense]
+  6. Export PLY point cloud + PLY/OBJ mesh
 
 Usage:
   python reconstruct_3d.py --install-deps          # check/install dependencies
   python reconstruct_3d.py <image_folder> [--output <output_dir>] [--scale <0.25>]
+  python reconstruct_3d.py <image_folder> --dense-method mvs   # use COLMAP MVS (GPU)
   python reconstruct_3d.py --all                    # process all subfolders
 """
 
@@ -668,6 +670,102 @@ def run_dense(rec, image_folder, output_dir, scale=0.25, max_pairs_per_image=3):
 
 
 # ---------------------------------------------------------------------------
+# Stage 4-5 (alt): COLMAP PatchMatch MVS dense reconstruction
+# ---------------------------------------------------------------------------
+
+def check_colmap_cuda():
+    """Check if the colmap CLI is installed and built with CUDA.
+    Returns (available: bool, has_cuda: bool, message: str)."""
+    import shutil
+    colmap_bin = shutil.which("colmap")
+    if colmap_bin is None:
+        return False, False, "colmap binary not found in PATH"
+    try:
+        result = subprocess.run([colmap_bin, "-h"], capture_output=True, text=True, timeout=10)
+        output = result.stdout + result.stderr
+    except Exception as e:
+        return False, False, f"Failed to run colmap: {e}"
+    if "with CUDA" in output and "without CUDA" not in output:
+        return True, True, f"{colmap_bin} (with CUDA)"
+    elif "without CUDA" in output:
+        return True, False, f"{colmap_bin} (without CUDA — patch_match_stereo requires CUDA)"
+    # Ambiguous; assume no CUDA
+    return True, False, f"{colmap_bin} (CUDA support unknown)"
+
+
+def run_dense_mvs(rec, image_folder, output_dir):
+    """Dense reconstruction via COLMAP PatchMatch MVS + stereo fusion.
+
+    Requires the colmap CLI binary compiled with CUDA support.
+    Uses the sparse reconstruction already written to output_dir/sparse/.
+
+    Returns an Open3D PointCloud or None.
+    """
+    sparse_dir = os.path.join(output_dir, "sparse")
+    mvs_dir = os.path.join(output_dir, "dense_mvs")
+    fused_ply = os.path.join(mvs_dir, "fused.ply")
+
+    # Step 1: Undistort images
+    with timeit("COLMAP image undistortion"):
+        ret = subprocess.run([
+            "colmap", "image_undistorter",
+            "--image_path", image_folder,
+            "--input_path", sparse_dir,
+            "--output_path", mvs_dir,
+            "--output_type", "COLMAP",
+        ], capture_output=True, text=True)
+        if ret.returncode != 0:
+            print(f"  ERROR: image_undistorter failed (exit {ret.returncode})")
+            print(ret.stderr[-500:] if ret.stderr else "(no stderr)")
+            return None
+        print(ret.stdout[-300:] if ret.stdout else "  (no stdout)")
+
+    # Step 2: PatchMatch stereo (GPU)
+    with timeit("COLMAP PatchMatch stereo (GPU)"):
+        ret = subprocess.run([
+            "colmap", "patch_match_stereo",
+            "--workspace_path", mvs_dir,
+            "--PatchMatchStereo.geom_consistency", "true",
+        ], capture_output=True, text=True, timeout=3600)
+        if ret.returncode != 0:
+            print(f"  ERROR: patch_match_stereo failed (exit {ret.returncode})")
+            print(ret.stderr[-500:] if ret.stderr else "(no stderr)")
+            return None
+        print(ret.stdout[-300:] if ret.stdout else "  (no stdout)")
+
+    # Step 3: Stereo fusion
+    with timeit("COLMAP stereo fusion"):
+        ret = subprocess.run([
+            "colmap", "stereo_fusion",
+            "--workspace_path", mvs_dir,
+            "--output_path", fused_ply,
+        ], capture_output=True, text=True, timeout=600)
+        if ret.returncode != 0:
+            print(f"  ERROR: stereo_fusion failed (exit {ret.returncode})")
+            print(ret.stderr[-500:] if ret.stderr else "(no stderr)")
+            return None
+        print(ret.stdout[-300:] if ret.stdout else "  (no stdout)")
+
+    if not os.path.exists(fused_ply):
+        print("  ERROR: fused.ply was not created.")
+        return None
+
+    pcd = o3d.io.read_point_cloud(fused_ply)
+    n = len(pcd.points)
+    print(f"  MVS fused cloud: {n} points")
+
+    if n == 0:
+        return None
+
+    # Statistical outlier removal
+    if n > 100:
+        pcd, _ = pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
+        print(f"  After outlier removal: {len(pcd.points)} points")
+
+    return pcd
+
+
+# ---------------------------------------------------------------------------
 # Stage 6: Surface reconstruction
 # ---------------------------------------------------------------------------
 
@@ -740,7 +838,7 @@ def reconstruction_to_pointcloud(rec):
 
 def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
                     coverage_class=None, coverage_file="prior_coverage.csv",
-                    dense=True):
+                    dense=True, dense_method="sift"):
     """Full pipeline for one image folder."""
     folder_name = os.path.basename(image_folder.rstrip('/'))
     print(f"\n{'#'*70}")
@@ -781,8 +879,11 @@ def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
     mesh_obj = None
 
     if dense:
-        dense_pcd = run_dense(rec, image_folder, output_dir, scale=scale,
-                              max_pairs_per_image=max_pairs_per_image)
+        if dense_method == "mvs":
+            dense_pcd = run_dense_mvs(rec, image_folder, output_dir)
+        else:
+            dense_pcd = run_dense(rec, image_folder, output_dir, scale=scale,
+                                  max_pairs_per_image=max_pairs_per_image)
 
         # Merge sparse + dense
         if dense_pcd is not None and len(dense_pcd.points) > 0:
@@ -895,6 +996,10 @@ def main():
                         help="Max dense-stereo pairs per image (default 3)")
     parser.add_argument("--view", "-v", default=None,
                         help="View a PLY/OBJ file instead of running reconstruction")
+    parser.add_argument("--dense-method", choices=["sift", "mvs"], default="sift",
+                        help="Dense reconstruction method: 'sift' for OpenCV SIFT "
+                             "matching (CPU, default), 'mvs' for COLMAP PatchMatch "
+                             "stereo (requires CUDA-enabled colmap binary)")
     parser.add_argument("--no-dense", action="store_true",
                         help="Skip dense matching, triangulation, and meshing "
                              "(steps 4-6); only run SfM and optional coverage")
@@ -944,6 +1049,19 @@ def main():
         print("No image folders found.")
         sys.exit(1)
 
+    # Validate MVS prerequisites before starting any work
+    if args.dense_method == "mvs" and not args.no_dense:
+        avail, has_cuda, msg = check_colmap_cuda()
+        if not avail:
+            print(f"ERROR: --dense-method mvs requires colmap: {msg}")
+            sys.exit(1)
+        if not has_cuda:
+            print(f"ERROR: --dense-method mvs requires CUDA-enabled colmap: {msg}")
+            print("  Install a CUDA build of COLMAP (build from source with "
+                  "-DCUDA_ENABLED=ON, or use conda-forge).")
+            sys.exit(1)
+        print(f"  COLMAP MVS: {msg}")
+
     t_total = time.time()
     results = {}
     for folder in folders:
@@ -953,7 +1071,8 @@ def main():
                             max_pairs_per_image=args.max_pairs,
                             coverage_class=args.coverage_class,
                             coverage_file=args.coverage_file,
-                            dense=not args.no_dense)
+                            dense=not args.no_dense,
+                            dense_method=args.dense_method)
         results[name] = ok
 
     dt = time.time() - t_total
