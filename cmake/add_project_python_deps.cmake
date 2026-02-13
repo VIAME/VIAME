@@ -19,9 +19,12 @@ if( WIN32 AND VIAME_ENABLE_PYTORCH-NETHARN AND VIAME_ENABLE_GDAL )
   # Legacy constraint for GDAL compatibility - use older wheel that works with old setuptools
   list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==57.5.0" "wheel<0.45.0" )
 else()
+  # Require >=75.3.0 so setuptools has builtin bdist_wheel (added in 70.1.0);
+  # without a lower bound, old pip may consider the system setuptools (e.g. 59.x)
+  # as already satisfying the constraint and skip the upgrade.
   # Cap at <76 because 76.0 removed pkg_resources.get_distribution/DistributionNotFound
-  # which breaks builds of imgaug, mmcv, and other third-party packages
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools<76" "wheel" )
+  # which breaks builds of imgaug, mmcv, and other third-party packages.
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools>=75.3.0,<76" "wheel>=0.45.0" )
 endif()
 
 # Numpy versioning
