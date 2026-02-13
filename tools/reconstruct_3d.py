@@ -6,9 +6,10 @@ Pipeline:
   1. SIFT feature extraction (pycolmap)
   2. Feature matching (exhaustive <=50 images, sequential otherwise)
   3. Incremental Structure from Motion -> sparse point cloud + cameras
-  4. Dense feature matching between overlapping image pairs (OpenCV)
-  5. Triangulate dense matches -> dense colored point cloud
-  6. Poisson surface reconstruction (Open3D) -> triangle mesh
+  3b. (Optional) Prior-coverage polygon output (--coverage-class)
+  4. Dense feature matching between overlapping image pairs (OpenCV)  [skip with --no-dense]
+  5. Triangulate dense matches -> dense colored point cloud            [skip with --no-dense]
+  6. Poisson surface reconstruction (Open3D) -> triangle mesh          [skip with --no-dense]
   7. Export PLY point cloud + PLY/OBJ mesh
 
 Usage:
@@ -281,6 +282,147 @@ def image_pose(image):
     R = np.array(cfw.rotation.matrix())
     t = np.array(cfw.translation)
     return R, t
+
+
+# ---------------------------------------------------------------------------
+# Prior Coverage
+# ---------------------------------------------------------------------------
+
+def generate_prior_coverage(rec, output_csv, class_name):
+    """Write a VIAME-CSV file with one polygon per frame marking the prior-coverage region.
+
+    For each registered image (filename-sorted), the 3D points observed by all
+    *previous* frames are projected into the current camera.  The convex hull of
+    those projections is stored as a flattened polygon on a DetectedObject.
+
+    Args:
+        rec:         pycolmap.Reconstruction after SfM.
+        output_csv:  Path for the output CSV file.
+        class_name:  Class label to attach to every detection (e.g. 'suppressed').
+    """
+    from kwiver.vital.modules import load_known_modules
+    from kwiver.vital.algo import DetectedObjectSetOutput
+    from kwiver.vital.types import (
+        DetectedObject, DetectedObjectSet, DetectedObjectType, BoundingBoxD,
+    )
+
+    load_known_modules()
+
+    # Build filename -> pycolmap image map
+    images = rec.images
+    cameras = rec.cameras
+    name_to_img = {img.name: img for img in images.values()}
+
+    # Iterate registered images in filename-sorted order
+    sorted_names = sorted(name_to_img.keys())
+
+    # Cache point IDs observed by each image
+    def observed_pids(img):
+        pids = set()
+        for p2d in img.points2D:
+            if p2d.has_point3D():
+                pids.add(p2d.point3D_id)
+        return pids
+
+    writer = DetectedObjectSetOutput.create("viame_csv")
+    writer.open(output_csv)
+
+    prior_pids = set()
+
+    for idx, fname in enumerate(sorted_names):
+        img = name_to_img[fname]
+
+        if idx == 0:
+            # First frame: seed prior set, write empty detection set
+            prior_pids = observed_pids(img)
+            writer.write_set(DetectedObjectSet(), fname)
+            continue
+
+        # Project prior 3D points into this camera
+        cam = cameras[img.camera_id]
+        K = get_camera_matrix(cam)
+        dist = get_dist_coeffs(cam)
+        R, t = image_pose(img)
+        w = cam.width
+        h = cam.height
+
+        # Gather world coordinates for prior point IDs that still exist
+        pts_3d = []
+        for pid in prior_pids:
+            if pid in rec.points3D:
+                pts_3d.append(rec.points3D[pid].xyz)
+
+        if len(pts_3d) < 3:
+            writer.write_set(DetectedObjectSet(), fname)
+            prior_pids |= observed_pids(img)
+            continue
+
+        pts_3d = np.array(pts_3d, dtype=np.float64)
+
+        # Filter to points in front of this camera (positive Z in camera frame)
+        pts_cam = (R @ pts_3d.T + t.reshape(3, 1)).T
+        in_front = pts_cam[:, 2] > 0
+        pts_3d = pts_3d[in_front]
+
+        if len(pts_3d) < 3:
+            writer.write_set(DetectedObjectSet(), fname)
+            prior_pids |= observed_pids(img)
+            continue
+
+        # Project with distortion via cv2.projectPoints
+        rvec, _ = cv2.Rodrigues(R)
+        pts_2d, _ = cv2.projectPoints(pts_3d, rvec, t, K, dist)
+        pts_2d = pts_2d.reshape(-1, 2)
+
+        # Filter to within image bounds
+        margin = 0
+        inside = (
+            (pts_2d[:, 0] >= -margin) & (pts_2d[:, 0] < w + margin) &
+            (pts_2d[:, 1] >= -margin) & (pts_2d[:, 1] < h + margin)
+        )
+        pts_2d = pts_2d[inside]
+
+        if len(pts_2d) < 3:
+            writer.write_set(DetectedObjectSet(), fname)
+            prior_pids |= observed_pids(img)
+            continue
+
+        # Convex hull
+        hull = cv2.convexHull(pts_2d.astype(np.float32))
+        hull_pts = hull.reshape(-1, 2)
+
+        # Clamp hull vertices to image bounds
+        hull_pts[:, 0] = np.clip(hull_pts[:, 0], 0, w - 1)
+        hull_pts[:, 1] = np.clip(hull_pts[:, 1], 0, h - 1)
+
+        # Bounding box from hull
+        x1 = float(hull_pts[:, 0].min())
+        y1 = float(hull_pts[:, 1].min())
+        x2 = float(hull_pts[:, 0].max())
+        y2 = float(hull_pts[:, 1].max())
+
+        det = DetectedObject(
+            BoundingBoxD(x1, y1, x2, y2),
+            1.0,
+            DetectedObjectType(class_name, 1.0),
+        )
+
+        # Flatten hull as [x1,y1, x2,y2, ...]
+        flat_poly = []
+        for px, py in hull_pts:
+            flat_poly.append(float(px))
+            flat_poly.append(float(py))
+        det.set_flattened_polygon(flat_poly)
+
+        det_set = DetectedObjectSet()
+        det_set.add(det)
+        writer.write_set(det_set, fname)
+
+        # Accumulate this frame's point IDs
+        prior_pids |= observed_pids(img)
+
+    writer.complete()
+    print(f"  Prior-coverage CSV ({len(sorted_names)} frames) -> {output_csv}")
 
 
 # ---------------------------------------------------------------------------
@@ -596,7 +738,9 @@ def reconstruction_to_pointcloud(rec):
     return pcd
 
 
-def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3):
+def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
+                    coverage_class=None, coverage_file="prior_coverage.csv",
+                    dense=True):
     """Full pipeline for one image folder."""
     folder_name = os.path.basename(image_folder.rstrip('/'))
     print(f"\n{'#'*70}")
@@ -625,58 +769,74 @@ def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3):
     o3d.io.write_point_cloud(sparse_ply, sparse_pcd)
     print(f"  Saved sparse cloud ({len(sparse_pcd.points)} pts) -> {sparse_ply}")
 
-    # ---- Dense feature matching + triangulation ----
-    dense_pcd = run_dense(rec, image_folder, output_dir, scale=scale,
-                          max_pairs_per_image=max_pairs_per_image)
+    # ---- Prior-coverage polygons (optional) ----
+    coverage_csv = None
+    if coverage_class is not None:
+        coverage_csv = os.path.join(output_dir, coverage_file)
+        generate_prior_coverage(rec, coverage_csv, coverage_class)
 
-    # Merge sparse + dense
-    if dense_pcd is not None and len(dense_pcd.points) > 0:
-        combined = sparse_pcd + dense_pcd
-        # Remove duplicates via voxel downsampling
-        voxel_size = np.linalg.norm(
-            combined.get_axis_aligned_bounding_box().get_max_bound() -
-            combined.get_axis_aligned_bounding_box().get_min_bound()
-        ) / 2000.0
-        if voxel_size > 0:
-            combined = combined.voxel_down_sample(voxel_size)
-        print(f"  Combined cloud after dedup: {len(combined.points)} points")
-    else:
-        print("  Using sparse cloud only for meshing.")
-        combined = sparse_pcd
+    # ---- Dense feature matching + triangulation (steps 4-6, optional) ----
+    dense_ply = None
+    mesh_ply = None
+    mesh_obj = None
 
-    if len(combined.points) < 100:
-        print("ERROR: Too few points for meshing.")
-        return False
+    if dense:
+        dense_pcd = run_dense(rec, image_folder, output_dir, scale=scale,
+                              max_pairs_per_image=max_pairs_per_image)
 
-    dense_ply = os.path.join(output_dir, "dense_cloud.ply")
-    o3d.io.write_point_cloud(dense_ply, combined)
-    print(f"  Saved combined cloud ({len(combined.points)} pts) -> {dense_ply}")
+        # Merge sparse + dense
+        if dense_pcd is not None and len(dense_pcd.points) > 0:
+            combined = sparse_pcd + dense_pcd
+            # Remove duplicates via voxel downsampling
+            voxel_size = np.linalg.norm(
+                combined.get_axis_aligned_bounding_box().get_max_bound() -
+                combined.get_axis_aligned_bounding_box().get_min_bound()
+            ) / 2000.0
+            if voxel_size > 0:
+                combined = combined.voxel_down_sample(voxel_size)
+            print(f"  Combined cloud after dedup: {len(combined.points)} points")
+        else:
+            print("  Using sparse cloud only for meshing.")
+            combined = sparse_pcd
 
-    # ---- Mesh ----
-    mesh_ply = os.path.join(output_dir, "mesh.ply")
-    n_pts = len(combined.points)
-    if n_pts < 5000:
-        depth = 7
-    elif n_pts < 50000:
-        depth = 8
-    elif n_pts < 500000:
-        depth = 9
-    else:
-        depth = 10
+        if len(combined.points) < 100:
+            print("ERROR: Too few points for meshing.")
+            return False
 
-    mesh = build_mesh(combined, mesh_ply, depth=depth)
-    if mesh is None:
-        return False
+        dense_ply = os.path.join(output_dir, "dense_cloud.ply")
+        o3d.io.write_point_cloud(dense_ply, combined)
+        print(f"  Saved combined cloud ({len(combined.points)} pts) -> {dense_ply}")
 
-    mesh_obj = os.path.join(output_dir, "mesh.obj")
-    o3d.io.write_triangle_mesh(mesh_obj, mesh)
-    print(f"  Also saved -> {mesh_obj}")
+        # ---- Mesh ----
+        mesh_ply = os.path.join(output_dir, "mesh.ply")
+        n_pts = len(combined.points)
+        if n_pts < 5000:
+            depth = 7
+        elif n_pts < 50000:
+            depth = 8
+        elif n_pts < 500000:
+            depth = 9
+        else:
+            depth = 10
+
+        mesh = build_mesh(combined, mesh_ply, depth=depth)
+        if mesh is None:
+            return False
+
+        mesh_obj = os.path.join(output_dir, "mesh.obj")
+        o3d.io.write_triangle_mesh(mesh_obj, mesh)
+        print(f"  Also saved -> {mesh_obj}")
 
     print(f"\n  SUCCESS: {folder_name}")
     print(f"    Sparse cloud: {sparse_ply}")
-    print(f"    Dense cloud:  {dense_ply}")
-    print(f"    Mesh (PLY):   {mesh_ply}")
-    print(f"    Mesh (OBJ):   {mesh_obj}")
+    if dense_ply:
+        print(f"    Dense cloud:  {dense_ply}")
+    if mesh_ply:
+        print(f"    Mesh (PLY):   {mesh_ply}")
+    if mesh_obj:
+        print(f"    Mesh (OBJ):   {mesh_obj}")
+    if coverage_csv:
+        print(f"    Coverage CSV: {coverage_csv}")
     return True
 
 
@@ -735,6 +895,15 @@ def main():
                         help="Max dense-stereo pairs per image (default 3)")
     parser.add_argument("--view", "-v", default=None,
                         help="View a PLY/OBJ file instead of running reconstruction")
+    parser.add_argument("--no-dense", action="store_true",
+                        help="Skip dense matching, triangulation, and meshing "
+                             "(steps 4-6); only run SfM and optional coverage")
+    parser.add_argument("--coverage-class", default=None,
+                        help="Generate prior-coverage polygons with this class name "
+                             "(e.g. 'suppressed')")
+    parser.add_argument("--coverage-file", default="prior_coverage.csv",
+                        help="Output filename for prior-coverage CSV "
+                             "(default: prior_coverage.csv)")
     parser.add_argument("--install-deps", action="store_true",
                         help="Check and install missing Python dependencies")
     parser.add_argument("--deps-target", default=None,
@@ -781,7 +950,10 @@ def main():
         name = os.path.basename(folder.rstrip('/'))
         out = args.output or os.path.join(base_dir, "3d_models", name)
         ok = process_folder(folder, out, scale=args.scale,
-                            max_pairs_per_image=args.max_pairs)
+                            max_pairs_per_image=args.max_pairs,
+                            coverage_class=args.coverage_class,
+                            coverage_file=args.coverage_file,
+                            dense=not args.no_dense)
         results[name] = ok
 
     dt = time.time() - t_total
