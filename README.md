@@ -87,8 +87,8 @@ CentOS
 * [VIAME v0.21.1 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/683fbc2bdfcff796fee73cfe/download)
 
 **Linux Full Desktop Binaries:** <br>
-* [VIAME v0.21.1 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/171i23ZjWjCE8-F0bcMZZFAKF7dbAqio5/view?usp=sharing) <br>
-* [VIAME v0.21.1 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/683fc309dfcff796fee73d06/download) <br>
+* [VIAME v0.22.0 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/17eFC6cxYrZmzAC1v8suIEiPyYeE9UcWC/view?usp=sharing) <br>
+* [VIAME v0.22.0 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/6992ae3f92fec64197f41dad/download) <br>
 * [VIAME v0.21.1 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1U2H-AE6IwGkClmNEDw-GAETtJTDfKUuR/view?usp=sharing) <br>
 * [VIAME v0.21.1 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/683fbc82dfcff796fee73d01/download)
 
