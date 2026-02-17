@@ -506,6 +506,18 @@ public:
     kv::vector_2d& right_point_rect,
     const cv::Mat& disparity_map = cv::Mat() ) const;
 
+  /// Find corresponding point by template matching along an arbitrary epipolar line.
+  /// Works on unrectified images with epipolar points from any source.
+  /// Extracts a template from source_image around source_point and searches
+  /// for the best NCC match at each epipolar point in target_image.
+  /// Supports census transform via configured settings.
+  bool find_corresponding_point_epipolar_template_matching(
+    const cv::Mat& source_image,
+    const cv::Mat& target_image,
+    const kv::vector_2d& source_point,
+    const std::vector< kv::vector_2d >& epipolar_points,
+    kv::vector_2d& target_point ) const;
+
   /// Compute SGBM disparity map
   cv::Mat compute_sgbm_disparity(
     const cv::Mat& left_image_rect,
@@ -588,6 +600,27 @@ private:
   // Rectification matrices for unrectifying points
   cv::Mat m_K1, m_K2, m_R1, m_R2, m_P1, m_P2, m_D1, m_D2;
 
+  // Template matching helpers
+  struct prepared_template
+  {
+    cv::Mat ncc_template;
+    cv::Mat census_template;
+    bool valid;
+    prepared_template() : valid( false ) {}
+  };
+
+  /// Prepare a source template for matching (bounds check + extraction + census)
+  /// Returns false if template can't be extracted (point too close to edge)
+  bool prepare_source_template(
+    const cv::Mat& source_image, int x, int y,
+    prepared_template& tmpl ) const;
+
+  /// Score a candidate point against a prepared template
+  /// Returns NCC-like score (higher is better, 0-1 range)
+  /// Returns -1.0 if the candidate point is too close to the image edge
+  double score_template_at_point(
+    const prepared_template& tmpl,
+    const cv::Mat& target_image, int x, int y ) const;
 
   // Cached stereo image data
   stereo_image_data m_cached_stereo_images;

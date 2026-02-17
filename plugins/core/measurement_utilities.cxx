@@ -1775,6 +1775,87 @@ double census_template_match(
 // -----------------------------------------------------------------------------
 bool
 map_keypoints_to_camera
+::prepare_source_template(
+  const cv::Mat& source_image, int x, int y,
+  prepared_template& tmpl ) const
+{
+  tmpl.valid = false;
+  int half_template = m_template_size / 2;
+  int margin = m_use_census_transform ? half_template + 2 : half_template;
+
+  if( x < margin || x >= source_image.cols - margin ||
+      y < margin || y >= source_image.rows - margin )
+  {
+    return false;
+  }
+
+  // Extract NCC template
+  cv::Rect template_rect( x - half_template, y - half_template,
+                          m_template_size, m_template_size );
+  tmpl.ncc_template = source_image( template_rect ).clone();
+
+  if( m_use_census_transform )
+  {
+    int census_margin = 2;
+    cv::Rect template_rect_ext( x - half_template - census_margin,
+                                 y - half_template - census_margin,
+                                 m_template_size + 2 * census_margin,
+                                 m_template_size + 2 * census_margin );
+    cv::Mat template_region = source_image( template_rect_ext );
+    cv::Mat census_full = compute_census_transform( template_region, census_margin );
+    cv::Rect valid_rect( census_margin, census_margin, m_template_size, m_template_size );
+    tmpl.census_template = census_full( valid_rect ).clone();
+  }
+
+  tmpl.valid = true;
+  return true;
+}
+
+// -----------------------------------------------------------------------------
+double
+map_keypoints_to_camera
+::score_template_at_point(
+  const prepared_template& tmpl,
+  const cv::Mat& target_image, int x, int y ) const
+{
+  int half_template = m_template_size / 2;
+  int margin = m_use_census_transform ? half_template + 2 : half_template;
+
+  if( x < margin || x >= target_image.cols - margin ||
+      y < margin || y >= target_image.rows - margin )
+  {
+    return -1.0;
+  }
+
+  if( m_use_census_transform )
+  {
+    int census_margin = 2;
+    cv::Rect target_rect_ext( x - half_template - census_margin,
+                               y - half_template - census_margin,
+                               m_template_size + 2 * census_margin,
+                               m_template_size + 2 * census_margin );
+    cv::Mat target_region = target_image( target_rect_ext );
+    cv::Mat census_target = compute_census_transform( target_region, census_margin );
+
+    return census_template_match( tmpl.census_template, census_target,
+                                   census_margin, census_margin,
+                                   m_template_size, m_template_size );
+  }
+  else
+  {
+    cv::Rect target_rect( x - half_template, y - half_template,
+                          m_template_size, m_template_size );
+    cv::Mat target_patch = target_image( target_rect );
+
+    cv::Mat result;
+    cv::matchTemplate( target_patch, tmpl.ncc_template, result, cv::TM_CCOEFF_NORMED );
+    return static_cast< double >( result.at< float >( 0, 0 ) );
+  }
+}
+
+// -----------------------------------------------------------------------------
+bool
+map_keypoints_to_camera
 ::find_corresponding_point_template_matching(
   const cv::Mat& left_image_rect,
   const cv::Mat& right_image_rect,
@@ -1786,13 +1867,14 @@ map_keypoints_to_camera
   int x_left = static_cast< int >( left_point_rect.x() );
   int y_left = static_cast< int >( left_point_rect.y() );
 
-  // Check if template fits in left image (with extra margin for census transform)
-  int margin = m_use_census_transform ? half_template + 2 : half_template;
-  if( x_left < margin || x_left >= left_image_rect.cols - margin ||
-      y_left < margin || y_left >= left_image_rect.rows - margin )
+  // Prepare source template (handles bounds checking and extraction)
+  prepared_template tmpl;
+  if( !prepare_source_template( left_image_rect, x_left, y_left, tmpl ) )
   {
     return false;
   }
+
+  int margin = m_use_census_transform ? half_template + 2 : half_template;
 
   // Determine expected disparity using priority:
   // 1. Explicitly configured disparity (if > 0)
@@ -1886,19 +1968,8 @@ map_keypoints_to_camera
 
   if( m_use_census_transform )
   {
-    // Census transform based matching
-    // Extract template region with margin for census computation
-    int census_margin = 2;  // Radius for census transform
-    cv::Rect template_rect_ext( x_left - half_template - census_margin,
-                                 y_left - half_template - census_margin,
-                                 m_template_size + 2 * census_margin,
-                                 m_template_size + 2 * census_margin );
-    cv::Mat template_region = left_image_rect( template_rect_ext );
-    cv::Mat census_template = compute_census_transform( template_region, census_margin );
-
-    // Extract the valid central portion of the census template
-    cv::Rect valid_rect( census_margin, census_margin, m_template_size, m_template_size );
-    cv::Mat census_template_valid = census_template( valid_rect );
+    // Census transform based matching (uses prepared census template)
+    int census_margin = 2;
 
     // Compute census transform of search region
     cv::Rect search_rect_ext( search_min_x - half_template - census_margin,
@@ -1925,7 +1996,7 @@ map_keypoints_to_camera
     {
       for( int sx = 0; sx < result_width; ++sx )
       {
-        double score = census_template_match( census_template_valid, census_search,
+        double score = census_template_match( tmpl.census_template, census_search,
                                                sx + census_margin, sy + census_margin,
                                                m_template_size, m_template_size );
         if( score > max_val )
@@ -1944,10 +2015,7 @@ map_keypoints_to_camera
   }
   else
   {
-    // Standard intensity-based template matching
-    cv::Rect template_rect( x_left - half_template, y_left - half_template,
-                            m_template_size, m_template_size );
-    cv::Mat template_img = left_image_rect( template_rect );
+    // Standard intensity-based template matching (uses prepared NCC template)
 
     // Define search region including epipolar band
     int search_height = ( search_max_y - search_min_y ) + m_template_size;
@@ -1970,7 +2038,7 @@ map_keypoints_to_camera
     if( m_use_multires_search && search_rect.width > m_template_size + m_multires_coarse_step * 4 )
     {
       // Multi-resolution search: coarse pass then fine pass
-      cv::matchTemplate( search_region, template_img, result, cv::TM_CCOEFF_NORMED );
+      cv::matchTemplate( search_region, tmpl.ncc_template, result, cv::TM_CCOEFF_NORMED );
 
       // Find best match in coarse grid
       double coarse_max_val = -1.0;
@@ -2017,7 +2085,7 @@ map_keypoints_to_camera
     else
     {
       // Standard single-pass template matching
-      cv::matchTemplate( search_region, template_img, result, cv::TM_CCOEFF_NORMED );
+      cv::matchTemplate( search_region, tmpl.ncc_template, result, cv::TM_CCOEFF_NORMED );
 
       // Find best match
       double min_val;
@@ -2037,6 +2105,55 @@ map_keypoints_to_camera
     return false;
   }
 
+  return true;
+}
+
+// -----------------------------------------------------------------------------
+bool
+map_keypoints_to_camera
+::find_corresponding_point_epipolar_template_matching(
+  const cv::Mat& source_image,
+  const cv::Mat& target_image,
+  const kv::vector_2d& source_point,
+  const std::vector< kv::vector_2d >& epipolar_points,
+  kv::vector_2d& target_point ) const
+{
+  if( epipolar_points.empty() )
+  {
+    return false;
+  }
+
+  int x_src = static_cast< int >( source_point.x() + 0.5 );
+  int y_src = static_cast< int >( source_point.y() + 0.5 );
+
+  prepared_template tmpl;
+  if( !prepare_source_template( source_image, x_src, y_src, tmpl ) )
+  {
+    return false;
+  }
+
+  double best_score = -1.0;
+  kv::vector_2d best_point;
+
+  for( const auto& ep_pt : epipolar_points )
+  {
+    int x_tgt = static_cast< int >( ep_pt.x() + 0.5 );
+    int y_tgt = static_cast< int >( ep_pt.y() + 0.5 );
+
+    double score = score_template_at_point( tmpl, target_image, x_tgt, y_tgt );
+    if( score > best_score )
+    {
+      best_score = score;
+      best_point = ep_pt;
+    }
+  }
+
+  if( best_score < m_template_matching_threshold )
+  {
+    return false;
+  }
+
+  target_point = best_point;
   return true;
 }
 
