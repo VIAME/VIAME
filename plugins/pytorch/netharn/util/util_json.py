@@ -144,9 +144,9 @@ def ensure_json_serializable(dict_, normalize_containers=False, verbose=0):
         >>> data['foo']['a'] = 1
         >>> data['foo']['b'] = (1, np.array([1, 2, 3]), {3: int(3), 4: np.float16(1.0)})
         >>> dict_ = data
-        >>> print(ub.repr2(data, nl=-1))
+        >>> print(ub.urepr(data, nl=-1))
         >>> result = ensure_json_serializable(data, normalize_containers=True)
-        >>> print(ub.repr2(result, nl=-1))
+        >>> print(ub.urepr(result, nl=-1))
         >>> assert type(result) is dict
 
     Example:

@@ -16,7 +16,7 @@ def default_kwargs(cls):
         >>> cls = torch.optim.Adam
         >>> default_kwargs(cls)
         >>> cls = nh.initializers.KaimingNormal
-        >>> print(ub.repr2(default_kwargs(cls), nl=0))
+        >>> print(ub.urepr(default_kwargs(cls), nl=0))
         {'mode': 'fan_in', 'param': 0}
         >>> cls = nh.initializers.NoOp
         >>> default_kwargs(cls)

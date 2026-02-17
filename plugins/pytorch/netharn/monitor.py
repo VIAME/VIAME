@@ -118,7 +118,7 @@ class Monitor(ub.NiceRepr):
 
     def __nice__(self):
         import ubelt as ub
-        return ub.repr2({
+        return ub.urepr({
             'patience': self.patience,
             'max_epoch': self.max_epoch,
             'min_lr': self.min_lr,
@@ -137,7 +137,7 @@ class Monitor(ub.NiceRepr):
         Example:
             >>> config = {'min_lr': 1e-5}
             >>> cls, initkw = Monitor.coerce(config)
-            >>> print('initkw = {}'.format(ub.repr2(initkw, nl=1)))
+            >>> print('initkw = {}'.format(ub.urepr(initkw, nl=1)))
             initkw = {
                 'ignore_first_epochs': 0,
                 'max_epoch': 100,
@@ -448,7 +448,7 @@ class Monitor(ub.NiceRepr):
         Example:
             >>> monitor = demodata_monitor()
             >>> metric_ranks = monitor.best_epochs(5)
-            >>> print(ub.repr2(metric_ranks, with_dtype=False, nl=1))
+            >>> print(ub.urepr(metric_ranks, with_dtype=False, nl=1))
             {
                 'loss': np.array([297, 296, 299, 295, 298]),
                 'miou': np.array([299, 296, 298, 295, 292]),

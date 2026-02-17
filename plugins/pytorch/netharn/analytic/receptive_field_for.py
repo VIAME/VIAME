@@ -82,7 +82,7 @@ class ReceptiveField(OrderedDict, analytic_for.Output):
             >>> cls = ReceptiveField
             >>> data = [(0, ReceptiveFieldFor.input())]
             >>> self = cls.coerce(data)
-            >>> print(ub.repr2(self, with_dtype=False))
+            >>> print(ub.urepr(self, with_dtype=False))
             {
                 0: {
                     'crop': np.array([0., 0.]),
@@ -162,22 +162,22 @@ class _TorchMixin(object):
         Example:
             >>> module = nn.Conv2d(1, 1, kernel_size=5, stride=2, padding=2, dilation=3)
             >>> field = ReceptiveFieldFor._kernelized(module)
-            >>> print(ub.repr2(field, nl=0, with_dtype=False))
+            >>> print(ub.urepr(field, nl=0, with_dtype=False))
             {'crop': np.array([4., 4.]), 'shape': np.array([13., 13.]), 'stride': np.array([2., 2.])}
 
             >>> module = nn.MaxPool2d(kernel_size=3, stride=2, padding=2, dilation=2)
             >>> field = ReceptiveFieldFor._kernelized(module)
-            >>> print(ub.repr2(field, nl=0, with_dtype=False))
+            >>> print(ub.urepr(field, nl=0, with_dtype=False))
             {'crop': np.array([0., 0.]), 'shape': np.array([5., 5.]), 'stride': np.array([2., 2.])}
 
             >>> module = nn.MaxPool2d(kernel_size=3, stride=2, padding=2, dilation=1)
             >>> field = ReceptiveFieldFor._kernelized(module)
-            >>> print(ub.repr2(field, nl=0, with_dtype=False))
+            >>> print(ub.urepr(field, nl=0, with_dtype=False))
             {'crop': np.array([-1., -1.]), 'shape': np.array([3., 3.]), 'stride': np.array([2., 2.])}
 
             >>> module = nn.AvgPool2d(kernel_size=3, stride=2, padding=2)
             >>> field = ReceptiveFieldFor._kernelized(module)
-            >>> print(ub.repr2(field, nl=0, with_dtype=False))
+            >>> print(ub.urepr(field, nl=0, with_dtype=False))
             {'crop': np.array([-1., -1.]), 'shape': np.array([3., 3.]), 'stride': np.array([2., 2.])}
         """
         # impl = ReceptiveFieldFor.impl
@@ -314,7 +314,7 @@ class _TorchMixin(object):
             >>>     ('c2T', nn.ConvTranspose2d(1, 1, kernel_size=3, stride=2)),
             >>>     ('c1T', nn.ConvTranspose2d(1, 1, kernel_size=3, stride=2)),
             >>> ]))
-            >>> print(ub.repr2(ReceptiveFieldFor(module)()))
+            >>> print(ub.urepr(ReceptiveFieldFor(module)()))
             >>> ReceptiveFieldFor(module)()
             >>> OutputShapeFor(module)._check_consistency([1, 1, 32, 32])
 
@@ -327,7 +327,7 @@ class _TorchMixin(object):
             >>>     ('c2T', nn.ConvTranspose2d(1, 1, kernel_size=3, stride=2, dilation=2)),
             >>>     ('c1T', nn.ConvTranspose2d(1, 1, kernel_size=3, stride=2, dilation=2)),
             >>> ]))
-            >>> print(ub.repr2(ReceptiveFieldFor(module)()))
+            >>> print(ub.urepr(ReceptiveFieldFor(module)()))
 
             >>> # This network is pathological
             >>> module = nn.Sequential(ub.odict([
@@ -339,7 +339,7 @@ class _TorchMixin(object):
             >>>     ('c2T', nn.ConvTranspose2d(1, 1, kernel_size=5, stride=7, padding=1)),
             >>>     ('c1T', nn.ConvTranspose2d(1, 1, kernel_size=3, stride=8, dilation=2)),
             >>> ]))
-            >>> print(ub.repr2(ReceptiveFieldFor(module)()))
+            >>> print(ub.urepr(ReceptiveFieldFor(module)()))
             >>> ReceptiveFieldFor(module)()
             >>> OutputShapeFor(module)([1, 1, 900, 900])
             >>> OutputShapeFor(module)([1, 1, 900, 900]).hidden
@@ -573,7 +573,7 @@ class _TorchMixin(object):
             >>>     nn.Conv2d(5, 7, kernel_size=3),
             >>> )
             >>> rfield = nh.ReceptiveFieldFor(self)()
-            >>> print('rfield = {}'.format(ub.repr2(rfield, nl=1, with_dtype=False)))
+            >>> print('rfield = {}'.format(ub.urepr(rfield, nl=1, with_dtype=False)))
             rfield = {
                 'crop': np.array([3., 3.]),
                 'shape': np.array([7., 7.]),
@@ -615,7 +615,7 @@ class _TorchvisionMixin(object):
             >>> import torchvision  # NOQA
             >>> module = torchvision.models.resnet18().layer1[0]
             >>> field = ReceptiveFieldFor(module)()
-            >>> print(ub.repr2(field.hidden, nl=1, with_dtype=False))
+            >>> print(ub.urepr(field.hidden, nl=1, with_dtype=False))
             {
                 'conv1': {'crop': np.array([0., 0.]), 'shape': np.array([3., 3.]), 'stride': np.array([1., 1.])},
                 'bn1': {'crop': np.array([0., 0.]), 'shape': np.array([3., 3.]), 'stride': np.array([1., 1.])},
@@ -658,7 +658,7 @@ class _TorchvisionMixin(object):
             >>> import torchvision  # NOQA
             >>> module = torchvision.models.resnet50().layer1[0]
             >>> field = ReceptiveFieldFor(module)()
-            >>> print(ub.repr2(field.hidden.shallow(1), nl=1, with_dtype=False))
+            >>> print(ub.urepr(field.hidden.shallow(1), nl=1, with_dtype=False))
             {
                 'conv1': {'crop': ...([0., 0.]), 'shape': ...([1., 1.]), 'stride': ...([1., 1.])},
                 'bn1': {'crop': ...([0., 0.]), 'shape': ...([1., 1.]), 'stride': ...([1., 1.])},
@@ -709,7 +709,7 @@ class _TorchvisionMixin(object):
             >>> module = torchvision.models.resnet50()
             >>> input_shape = (1, 3, 224, 224)
             >>> field = ReceptiveFieldFor(module)(input_shape=input_shape)
-            >>> print(ub.repr2(field.hidden.shallow(1), nl=1, with_dtype=False))
+            >>> print(ub.urepr(field.hidden.shallow(1), nl=1, with_dtype=False))
             {
                 'conv1': {'crop': ...([0., 0.]), 'shape': ...([7., 7.]), 'stride': ...([2., 2.])},
                 'bn1': {'crop': ...([0., 0.]), 'shape': ...([7., 7.]), 'stride': ...([2., 2.])},
@@ -793,8 +793,8 @@ class ReceptiveFieldFor(analytic_for.OutputFor, _TorchMixin, _TorchvisionMixin):
         >>>     nn.Conv2d(3, 5, kernel_size=3),
         >>> )
         >>> rfield = ReceptiveFieldFor(self)()
-        >>> print('rfield.hidden = {}'.format(ub.repr2(rfield.hidden, nl=3, with_dtype=False)))
-        >>> print('rfield = {}'.format(ub.repr2(rfield, nl=1, with_dtype=False)))
+        >>> print('rfield.hidden = {}'.format(ub.urepr(rfield.hidden, nl=3, with_dtype=False)))
+        >>> print('rfield = {}'.format(ub.urepr(rfield, nl=1, with_dtype=False)))
         rfield.hidden = {
             '0': {
                 'crop': np.array([1., 1.]),
@@ -817,7 +817,7 @@ class ReceptiveFieldFor(analytic_for.OutputFor, _TorchMixin, _TorchvisionMixin):
         >>> # Case where we haven't registered a func
         >>> self = nn.Conv2d(2, 3, kernel_size=3)
         >>> rfield = ReceptiveFieldFor(self)()
-        >>> print('rfield = {}'.format(ub.repr2(rfield, nl=1, with_dtype=False)))
+        >>> print('rfield = {}'.format(ub.urepr(rfield, nl=1, with_dtype=False)))
         rfield = {
             'crop': np.array([1., 1.]),
             'shape': np.array([3., 3.]),
@@ -829,7 +829,7 @@ class ReceptiveFieldFor(analytic_for.OutputFor, _TorchMixin, _TorchvisionMixin):
         >>> import torchvision  # NOQA
         >>> module = torchvision.models.alexnet().features
         >>> field = ReceptiveFieldFor(module)()
-        >>> print(ub.repr2(field, nl=1, with_dtype=False))
+        >>> print(ub.urepr(field, nl=1, with_dtype=False))
         {
             'crop': np.array([31., 31.]),
             'shape': np.array([195., 195.]),

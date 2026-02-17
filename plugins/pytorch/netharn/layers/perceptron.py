@@ -73,7 +73,7 @@ class MultiLayerPerceptronNd(common.AnalyticModule):
         MultiLayerPerceptronNd...
         >>> shape = self.output_shape_for([1, 128, 7])
         >>> print('shape = {!r}'.format(shape))
-        >>> print('shape.hidden = {}'.format(ub.repr2(shape.hidden, nl=2)))
+        >>> print('shape.hidden = {}'.format(ub.urepr(shape.hidden, nl=2)))
         shape.hidden = {
             'hidden': {
                 'hidden0': {'conv': (1, 96, 7), 'norm': (1, 96, 7), 'noli': (1, 96, 7)},
@@ -94,7 +94,7 @@ class MultiLayerPerceptronNd(common.AnalyticModule):
         >>>                               norm='group', out_channels=2)
         >>> print(self)
         >>> input_shape = (None, 128)
-        >>> print(ub.repr2(self.output_shape_for(input_shape).hidden, nl=-1))
+        >>> print(ub.urepr(self.output_shape_for(input_shape).hidden, nl=-1))
 
     Example:
         >>> from .layers.perceptron import *
@@ -103,7 +103,7 @@ class MultiLayerPerceptronNd(common.AnalyticModule):
         >>>                               norm='group', out_channels=2)
         >>> print(self)
         >>> input_shape = (None, 128)
-        >>> print(ub.repr2(self.output_shape_for(input_shape).hidden, nl=-1))
+        >>> print(ub.urepr(self.output_shape_for(input_shape).hidden, nl=-1))
     """
     def __init__(self, dim, in_channels, hidden_channels, out_channels,
                  bias=True, dropout=None, noli='relu', norm='batch',
@@ -191,12 +191,12 @@ class MultiLayerPerceptronNd(common.AnalyticModule):
             >>> output_shape = self.output_shape_for( (1, 128, 10))
             >>> print('output_shape = {}'.format(output_shape))
             >>> import ubelt as ub
-            >>> print('{}'.format(ub.repr2(output_shape.hidden.shallow(4), nl=-1)))
+            >>> print('{}'.format(ub.urepr(output_shape.hidden.shallow(4), nl=-1)))
 
             >>> receptive_field = self.receptive_field_for()
-            >>> print('receptive_field = {}'.format(ub.repr2(receptive_field, nl=1)))
+            >>> print('receptive_field = {}'.format(ub.urepr(receptive_field, nl=1)))
             >>> import ubelt as ub
-            >>> print('{}'.format(ub.repr2(receptive_field.hidden.shallow(2), nl=3)))
+            >>> print('{}'.format(ub.urepr(receptive_field.hidden.shallow(2), nl=3)))
 
         Ignore:
             >>> from .layers.perceptron import *  # NOQA

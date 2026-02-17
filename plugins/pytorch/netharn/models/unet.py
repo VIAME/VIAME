@@ -222,7 +222,7 @@ class UNetUp(nn.Module):
             >>> input1_shape = [4, 128, 24, 24]
             >>> input2_shape = [4, 256, 8, 8]
             >>> output_shape = self.output_shape_for(input1_shape, input2_shape)
-            >>> print('hidden_shapes = ' + ub.repr2(output_shape.hidden.shallow(100), nl=-1))
+            >>> print('hidden_shapes = ' + ub.urepr(output_shape.hidden.shallow(100), nl=-1))
             ...
             >>> print('output_shape = {!r}'.format(output_shape))
             output_shape = (4, 128, 12, 12)

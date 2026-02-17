@@ -23,7 +23,7 @@ Ignore:
     closer.add_dynamic(mmdet.models.dense_heads.RPNHead, eager=False)
 
     closer._lazy_close()
-    # print(ub.repr2(list(closer.body_defs.keys())))
+    # print(ub.urepr(list(closer.body_defs.keys())))
     # closer._print_logs()
 
     # closer.expand(['mmdet'])

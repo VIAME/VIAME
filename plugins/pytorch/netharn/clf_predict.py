@@ -371,7 +371,7 @@ class Classification(ub.NiceRepr):
 
     def __nice__(self):
         attrs = ub.dict_union(self.data, self.meta)
-        return ub.repr2(attrs, nl=1, precision=2)
+        return ub.urepr(attrs, nl=1, precision=2)
 
     @property
     def prob(self):
@@ -749,7 +749,7 @@ def clf_cli():
     predict_config = ub.dict_isect(config, ClfPredictConfig.default)
     predictor = ClfPredictor(predict_config)
 
-    print('config = {}'.format(ub.repr2(dict(config))))
+    print('config = {}'.format(ub.urepr(dict(config))))
 
     coco_dset = kwcoco.CocoDataset(config['dataset'])
     print('coco_dset = {!r}'.format(coco_dset))

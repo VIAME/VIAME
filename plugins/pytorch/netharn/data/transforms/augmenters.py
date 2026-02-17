@@ -87,7 +87,7 @@ class HSVShift(augmenter_base.ParamatarizedAugmenter):
         >>> kwplot.imshow(img, colorspace='rgb', pnum=pnums[0], title='orig')
         >>> for i in range(1, len(pnums)):
         >>>     aug = self.augment_image(img)
-        >>>     title = 'aug: {}'.format(ub.repr2(self._prev_params, nl=0, precision=3))
+        >>>     title = 'aug: {}'.format(ub.urepr(self._prev_params, nl=0, precision=3))
         >>>     kwplot.imshow(aug, colorspace='rgb', pnum=pnums[i], title=title)
         >>> kwplot.show_if_requested()
 
@@ -114,7 +114,7 @@ class HSVShift(augmenter_base.ParamatarizedAugmenter):
         >>> kwplot.imshow(from_(img), colorspace='rgb', pnum=pnums[0], title='orig')
         >>> for i in range(1, len(pnums)):
         >>>     aug = self(img)
-        >>>     #title = 'aug: {}'.format(ub.repr2(self._prev_params, nl=0, precision=3))
+        >>>     #title = 'aug: {}'.format(ub.urepr(self._prev_params, nl=0, precision=3))
         >>>     title = 'foo'
         >>>     kwplot.imshow(from_(aug), colorspace='rgb', pnum=pnums[i], title=title)
         >>> kwplot.show_if_requested()

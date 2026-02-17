@@ -81,7 +81,7 @@ class ListedLR(_LRScheduler2):
         >>> assert self.current_lrs() == [0.01]
         >>> self = ListedLR(optimizer, points, interpolate=True)
         >>> lrs = [self._get_epoch_lr(epoch) for epoch in range(0, 11)]
-        >>> print(ub.repr2(list(ub.flatten(lrs)), precision=3, nl=0))
+        >>> print(ub.urepr(list(ub.flatten(lrs)), precision=3, nl=0))
         [0.010, 0.015, 0.020, 0.100, 0.083, 0.067, 0.050, 0.042, 0.033, 0.025, 0.025]
 
     Example:

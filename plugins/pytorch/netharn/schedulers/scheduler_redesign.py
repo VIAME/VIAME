@@ -77,7 +77,7 @@ class ListedScheduler(_Scheduler):
         >>> for _ in range(4):
         ...     states.append((self.epoch, copy.deepcopy(self._optim_attrs())))
         ...     self.step()
-        >>> print('states = {}'.format(ub.repr2(states, nl=1)))
+        >>> print('states = {}'.format(ub.urepr(states, nl=1)))
 
         states = [
             (0, {'dampening': [0], 'lr': [1], 'momentum': [2], 'nesterov': [False], 'weight_decay': [0]}),
@@ -93,7 +93,7 @@ class ListedScheduler(_Scheduler):
         >>> for _ in range(4):
         ...     states.append((self.epoch, copy.deepcopy(self._optim_attrs())))
         ...     self.step()
-        >>> print('states = {}'.format(ub.repr2(states, nl=1)))
+        >>> print('states = {}'.format(ub.urepr(states, nl=1)))
 
         states = [
             (0, {'amsgrad': [False], 'betas': [(2, 0.999)], 'eps': [1e-08], 'lr': [1], 'weight_decay': [0]}),

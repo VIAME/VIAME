@@ -139,7 +139,7 @@ class Yolo(nn.Module):
         >>> # Each item in `batch_dets` is a list of Detections objects.
         >>> batch_dets = self.postprocess(network_output)
         >>> boxes = batch_dets[0].numpy()
-        >>> print(ub.repr2(boxes.data, nl=1))  # xdoc: +IGNORE_WANT
+        >>> print(ub.urepr(boxes.data, nl=1))  # xdoc: +IGNORE_WANT
         {
             'boxes': <Boxes(cxywh,
                          array([[0.834205  , 0.49842083, 5.505774  , 3.8463774 ],
@@ -290,7 +290,7 @@ def find_anchors(dset):
         >>> # xdoc: +SKIP
         >>> self = YoloVOCDataset(split='train', years=[2007])
         >>> anchors = self._find_anchors()
-        >>> print('anchors = {}'.format(ub.repr2(anchors, precision=2)))
+        >>> print('anchors = {}'.format(ub.urepr(anchors, precision=2)))
         >>> # xdoctest: +REQUIRES(--show)
         >>> xy = -anchors / 2
         >>> wh = anchors

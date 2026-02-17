@@ -59,7 +59,7 @@ class EstimatorFactory(ub.NiceRepr):
 
     def __nice__(self):
 
-        kw_repr = ub.repr2(self.est_kw, nl=0)
+        kw_repr = ub.urepr(self.est_kw, nl=0)
         if len(kw_repr) > 50:
             kw_repr = ub.hash_data(kw_repr)[0:8]
 

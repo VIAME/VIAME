@@ -30,7 +30,7 @@ class L2Norm(common.Module):
         >>> x = torch.rand(1, in_features, 2, 2)
         >>> y = self(x)
         >>> norm = np.linalg.norm(y.data.cpu().numpy(), axis=1)
-        >>> print(ub.repr2(norm, precision=2))
+        >>> print(ub.urepr(norm, precision=2))
         np.array([[[20., 20.],
                    [20., 20.]]], dtype=np.float32)
 

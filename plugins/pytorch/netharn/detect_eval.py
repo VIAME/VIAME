@@ -155,7 +155,7 @@ def evaluate_models(cmdline=True, **kw):
         multi_config = DetectEvaluateConfig(data=config_fpath, default=defaults, cmdline=cmdline)
     else:
         multi_config = DetectEvaluateConfig(default=kw, cmdline=cmdline)
-    print('MultiConfig: {}'.format(ub.repr2(multi_config.asdict())))
+    print('MultiConfig: {}'.format(ub.urepr(multi_config.asdict())))
 
     # Look for specific items in the base config where multiple values are
     # given. We will evaluate over all permutations of these values.
@@ -195,7 +195,7 @@ def evaluate_models(cmdline=True, **kw):
             config = ub.dict_union(base_config, perm)
             config['deployed'] = model_fpath
 
-            print('config = {}'.format(ub.repr2(config)))
+            print('config = {}'.format(ub.urepr(config)))
             evaluator = DetectEvaluator(config)
 
             # Reuse the dataset / predictor when possible
@@ -339,7 +339,7 @@ class DetectEvaluator(object):
         Example:
             >>> from .detect_eval import *  # NOQA
             >>> config = DetectEvaluator.demo_config()
-            >>> print('config = {}'.format(ub.repr2(config, nl=1)))
+            >>> print('config = {}'.format(ub.urepr(config, nl=1)))
         """
         from viame.pytorch.netharn import detect_fit
         aux = False
@@ -543,7 +543,7 @@ class DetectEvaluator(object):
         evaluator.paths['base'] = base_dpath
         evaluator.paths['metrics'] = ub.ensuredir((evaluator.paths['base'], 'metrics'))
         evaluator.paths['viz'] = ub.ensuredir((evaluator.paths['base'], 'viz'))
-        print('evaluator.paths = {}'.format(ub.repr2(evaluator.paths, nl=1)))
+        print('evaluator.paths = {}'.format(ub.urepr(evaluator.paths, nl=1)))
 
     def _run_predictions(evaluator):
 
@@ -622,7 +622,7 @@ class DetectEvaluator(object):
             # 'expt_title': expt_title,
             # 'draw': False,  # hack while this still exists
         })
-        print('coco_eval_config = {}'.format(ub.repr2(coco_eval_config, nl=1)))
+        print('coco_eval_config = {}'.format(ub.urepr(coco_eval_config, nl=1)))
         coco_eval_config['pred_dataset'] = gid_to_pred
         coco_eval = coco_evaluator.CocoEvaluator(coco_eval_config)
         coco_eval._init()

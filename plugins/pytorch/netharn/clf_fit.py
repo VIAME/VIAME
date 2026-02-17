@@ -551,7 +551,7 @@ def setup_harn(cmdline=True, **kw):
     import ndsampler
     config = ClfConfig(default=kw)
     config.load(cmdline=cmdline)
-    print('config = {}'.format(ub.repr2(config.asdict())))
+    print('config = {}'.format(ub.urepr(config.asdict())))
 
     nh.configure_hacks(config)
 
@@ -560,7 +560,7 @@ def setup_harn(cmdline=True, **kw):
     if 0:
         dset = coco_datasets['train']
 
-    print('coco_datasets = {}'.format(ub.repr2(coco_datasets, nl=1)))
+    print('coco_datasets = {}'.format(ub.urepr(coco_datasets, nl=1)))
     for tag, dset in coco_datasets.items():
         dset._build_hashid(hash_pixels=False)
 
@@ -731,7 +731,7 @@ def setup_harn(cmdline=True, **kw):
         },
         extra={
             'argv': sys.argv,
-            'config': ub.repr2(config.asdict()),
+            'config': ub.urepr(config.asdict()),
         }
     )
     harn = ClfHarn(hyper=hyper)

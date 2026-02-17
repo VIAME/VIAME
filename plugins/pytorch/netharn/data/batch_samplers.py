@@ -186,8 +186,8 @@ class BalancedBatchSampler(
         >>> label_hist = ub.sorted_vals(label_hist, reverse=True)
         >>> index_hist = ub.sorted_vals(index_hist, reverse=True)
         >>> index_hist = ub.dict_subset(index_hist, list(index_hist.keys())[0:5])
-        >>> print('label_hist = {}'.format(ub.repr2(label_hist, nl=1)))
-        >>> print('index_hist = {}'.format(ub.repr2(index_hist, nl=1)))
+        >>> print('label_hist = {}'.format(ub.urepr(label_hist, nl=1)))
+        >>> print('index_hist = {}'.format(ub.urepr(index_hist, nl=1)))
     """
 
     def __init__(self, index_to_label, batch_size=1, num_batches='auto',
@@ -221,7 +221,7 @@ class BalancedBatchSampler(
         self.labels = list(self.label_to_indices.keys())
 
     def __nice__(self):
-        return ub.repr2({
+        return ub.urepr({
             'num_batches': self.num_batches,
             'batch_size': self.batch_size,
         }, nl=0)
@@ -283,8 +283,8 @@ class BalancedBatchSampler(
         label_hist = ub.sorted_vals(label_hist, reverse=True)
         index_hist = ub.sorted_vals(index_hist, reverse=True)
         index_hist = ub.dict_subset(index_hist, list(index_hist.keys())[0:5])
-        print('label_hist = {}'.format(ub.repr2(label_hist, nl=1)))
-        print('index_hist = {}'.format(ub.repr2(index_hist, nl=1)))
+        print('label_hist = {}'.format(ub.urepr(label_hist, nl=1)))
+        print('index_hist = {}'.format(ub.urepr(index_hist, nl=1)))
 
 
 class GroupedBalancedBatchSampler(ub.NiceRepr, torch.utils.data.sampler.BatchSampler):
@@ -315,7 +315,7 @@ class GroupedBalancedBatchSampler(ub.NiceRepr, torch.utils.data.sampler.BatchSam
         >>> # Create a rare class
         >>> index_to_labels[0][0] = 42
         >>> self = GroupedBalancedBatchSampler(index_to_labels, batch_size=4)
-        >>> print('self.label_to_freq = {}'.format(ub.repr2(self.label_to_freq, nl=1)))
+        >>> print('self.label_to_freq = {}'.format(ub.urepr(self.label_to_freq, nl=1)))
         >>> indices = list(self)
         >>> print('indices = {!r}'.format(indices))
         >>> # Print the epoch / item label frequency per epoch
@@ -331,8 +331,8 @@ class GroupedBalancedBatchSampler(ub.NiceRepr, torch.utils.data.sampler.BatchSam
         >>> label_hist = ub.sorted_vals(label_hist, reverse=True)
         >>> index_hist = ub.sorted_vals(index_hist, reverse=True)
         >>> index_hist = ub.dict_subset(index_hist, list(index_hist.keys())[0:5])
-        >>> print('label_hist = {}'.format(ub.repr2(label_hist, nl=1)))
-        >>> print('index_hist = {}'.format(ub.repr2(index_hist, nl=1)))
+        >>> print('label_hist = {}'.format(ub.urepr(label_hist, nl=1)))
+        >>> print('index_hist = {}'.format(ub.urepr(index_hist, nl=1)))
     """
 
     def __init__(self, index_to_labels, batch_size=1, num_batches='auto',
@@ -388,8 +388,8 @@ class GroupedBalancedBatchSampler(ub.NiceRepr, torch.utils.data.sampler.BatchSam
             coi = {x for x, w in label_to_weight.items() if w > 0}
             coi_weighted = ub.dict_subset(label_to_odds, coi)
             coi_unweighted = ub.dict_subset(unweighted_odds, coi)
-            print('coi_weighted = {}'.format(ub.repr2(coi_weighted, nl=1)))
-            print('coi_unweighted = {}'.format(ub.repr2(coi_unweighted, nl=1)))
+            print('coi_weighted = {}'.format(ub.urepr(coi_weighted, nl=1)))
+            print('coi_unweighted = {}'.format(ub.urepr(coi_unweighted, nl=1)))
 
         self.index_to_prob = index_to_prob
         self.indices = np.arange(len(index_to_prob))
@@ -406,7 +406,7 @@ class GroupedBalancedBatchSampler(ub.NiceRepr, torch.utils.data.sampler.BatchSam
         self.rng = kwarray.ensure_rng(rng, api='numpy')
 
     def __nice__(self):
-        return ub.repr2({
+        return ub.urepr({
             'num_batches': self.num_batches,
             'batch_size': self.batch_size,
             'label_to_freq': self.label_to_freq,
@@ -428,8 +428,8 @@ class GroupedBalancedBatchSampler(ub.NiceRepr, torch.utils.data.sampler.BatchSam
         label_hist = ub.sorted_vals(label_hist, reverse=True)
         index_hist = ub.sorted_vals(index_hist, reverse=True)
         index_hist = ub.dict_subset(index_hist, list(index_hist.keys())[0:5])
-        print('label_hist = {}'.format(ub.repr2(label_hist, nl=1)))
-        print('index_hist = {}'.format(ub.repr2(index_hist, nl=1)))
+        print('label_hist = {}'.format(ub.urepr(label_hist, nl=1)))
+        print('index_hist = {}'.format(ub.urepr(index_hist, nl=1)))
 
     def _auto_num_batches(self):
         # The right way to calculate num samples would be using a generalized

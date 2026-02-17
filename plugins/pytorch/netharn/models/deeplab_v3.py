@@ -86,7 +86,7 @@ class _Bottleneck(layers.AnalyticModule):
             >>> globals().update(kwargs)
             >>> inputs = input_shape = (1, 3, 256, 256)
             >>> outputs = self._analytic_forward(inputs, **kwargs)
-            >>> print('outputs = {}'.format(ub.repr2(outputs.hidden.shallow(1), nl=-1)))
+            >>> print('outputs = {}'.format(ub.urepr(outputs.hidden.shallow(1), nl=-1)))
         """
         x = inputs
         hidden = _Hidden()
@@ -394,9 +394,9 @@ class DeepLabV3(layers.Sequential):
         >>> input_shape = (1, 3, 513, 513)
         >>> output_shape = self.output_shape_for(input_shape)
         >>> print('output_shape = {!r}'.format(output_shape))
-        >>> #print(ub.repr2(output_shape.hidden.shallow(3), nl=-1))
-        >>> print(ub.repr2(output_shape.hidden.shallow(2), nl=-1))
-        >>> #print(ub.repr2(output_shape.hidden, nl=-1))
+        >>> #print(ub.urepr(output_shape.hidden.shallow(3), nl=-1))
+        >>> print(ub.urepr(output_shape.hidden.shallow(2), nl=-1))
+        >>> #print(ub.urepr(output_shape.hidden, nl=-1))
         >>> ####
         >>> image = torch.randn(*input_shape).to(ub.peek(self.devices()))
         >>> #print('self = {}'.format(self))

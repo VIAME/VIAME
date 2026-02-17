@@ -210,7 +210,7 @@ def load_partial_state(model, model_state_dict, leftover=None,
         >>> #
         >>> # We can compute a partial mapping between them
         >>> subpaths1, subpaths2 = maximum_common_ordered_subpaths(resnet_keys, model_keys)
-        >>> print(ub.repr2(ub.dzip(subpaths1, subpaths2)))
+        >>> print(ub.urepr(ub.dzip(subpaths1, subpaths2)))
         {
             'layer1.0.conv2.weight':        'backbone.layer1.0.conv2.weight',
             'layer1.0.conv3.weight':        'backbone.layer1.0.conv3.weight',
@@ -440,12 +440,12 @@ def load_partial_state(model, model_state_dict, leftover=None,
                     other_unmapped = sorted(other_keys - set(mapping.keys()))
                     self_unmapped = sorted(self_keys - set(mapping.values()))
                     print('-- embed association (other -> self) --')
-                    print('mapping = {}'.format(ub.repr2(mapping, nl=1)))
-                    print('self_unmapped = {}'.format(ub.repr2(self_unmapped, nl=1)))
-                    print('other_unmapped = {}'.format(ub.repr2(other_unmapped, nl=1)))
-                    print('len(mapping) = {}'.format(ub.repr2(len(mapping), nl=1)))
-                    print('len(self_unmapped) = {}'.format(ub.repr2(len(self_unmapped), nl=1)))
-                    print('len(other_unmapped) = {}'.format(ub.repr2(len(other_unmapped), nl=1)))
+                    print('mapping = {}'.format(ub.urepr(mapping, nl=1)))
+                    print('self_unmapped = {}'.format(ub.urepr(self_unmapped, nl=1)))
+                    print('other_unmapped = {}'.format(ub.urepr(other_unmapped, nl=1)))
+                    print('len(mapping) = {}'.format(ub.urepr(len(mapping), nl=1)))
+                    print('len(self_unmapped) = {}'.format(ub.urepr(len(self_unmapped), nl=1)))
+                    print('len(other_unmapped) = {}'.format(ub.urepr(len(other_unmapped), nl=1)))
                     print('-- end embed association --')
 
                 # HACK: something might be wrong, there was an instance with
@@ -560,14 +560,14 @@ def load_partial_state(model, model_state_dict, leftover=None,
             else:
                 print('Pretrained weights do not fit!')
         if verbose > 1:
-            print('Seen Keys: {}'.format(ub.repr2(seen_keys, nl=2)))
-            print('Self Unset Keys: {}'.format(ub.repr2(self_unset_keys, nl=1)))
-            print('Other Unused keys: {}'.format(ub.repr2(other_unused_keys, nl=1)))
+            print('Seen Keys: {}'.format(ub.urepr(seen_keys, nl=2)))
+            print('Self Unset Keys: {}'.format(ub.urepr(self_unset_keys, nl=1)))
+            print('Other Unused keys: {}'.format(ub.urepr(other_unused_keys, nl=1)))
             print('summary:')
             seen_sum = ub.map_vals(len, seen_keys)
-            print('Seen Num: {}'.format(ub.repr2(seen_sum, nl=2)))
-            print('Self Unset Num: {}'.format(ub.repr2(len(self_unset_keys), nl=1)))
-            print('Other Unused Num: {}'.format(ub.repr2(len(other_unused_keys), nl=1)))
+            print('Seen Num: {}'.format(ub.urepr(seen_sum, nl=2)))
+            print('Self Unset Num: {}'.format(ub.urepr(len(self_unset_keys), nl=1)))
+            print('Other Unused Num: {}'.format(ub.urepr(len(other_unused_keys), nl=1)))
         if leftover:
             if verbose > 0:
                 print('Initializing unused keys using {}'.format(leftover))
@@ -727,10 +727,10 @@ def maximum_common_ordered_subpaths(paths1, paths2, sep='.', mode='embedding'):
         >>> sep = '.'
         >>> subpaths1, subpaths2 = maximum_common_ordered_subpaths(paths1, paths2, sep, mode='embedding')
         >>> mapping = ub.dzip(subpaths1, subpaths2)
-        >>> print('embedding mapping = {}'.format(ub.repr2(mapping, nl=1)))
+        >>> print('embedding mapping = {}'.format(ub.urepr(mapping, nl=1)))
         >>> subpaths1, subpaths2 = maximum_common_ordered_subpaths(paths1, paths2, sep, mode='isomorphism')
         >>> mapping = ub.dzip(subpaths1, subpaths2)
-        >>> print('isomorphism mapping = {}'.format(ub.repr2(mapping, nl=1)))
+        >>> print('isomorphism mapping = {}'.format(ub.urepr(mapping, nl=1)))
 
         if 0:
             import timerit
@@ -757,7 +757,7 @@ def maximum_common_ordered_subpaths(paths1, paths2, sep='.', mode='embedding'):
         >>> paths1 = paths1 + ['a.' + k for k in paths2[0:n // 3]]
         >>> subpaths1, subpaths2 = maximum_common_ordered_subpaths(paths1, paths2)
         >>> mapping = ub.dzip(subpaths1, subpaths2)
-        >>> print('mapping = {}'.format(ub.repr2(mapping, nl=1)))
+        >>> print('mapping = {}'.format(ub.urepr(mapping, nl=1)))
 
     Example:
         >>> from .initializers.functional import *  # NOQA
@@ -788,10 +788,10 @@ def maximum_common_ordered_subpaths(paths1, paths2, sep='.', mode='embedding'):
         >>> sep = '.'
         >>> subpaths1, subpaths2 = maximum_common_ordered_subpaths(paths1, paths2, sep, mode='embedding')
         >>> mapping = ub.dzip(subpaths1, subpaths2)
-        >>> print('embedding mapping = {}'.format(ub.repr2(mapping, nl=1)))
+        >>> print('embedding mapping = {}'.format(ub.urepr(mapping, nl=1)))
         >>> subpaths1, subpaths2 = maximum_common_ordered_subpaths(paths1, paths2, sep, mode='isomorphism')
         >>> mapping = ub.dzip(subpaths1, subpaths2)
-        >>> print('isomorphism mapping = {}'.format(ub.repr2(mapping, nl=1)))
+        >>> print('isomorphism mapping = {}'.format(ub.urepr(mapping, nl=1)))
 
 
     Example:
@@ -800,17 +800,17 @@ def maximum_common_ordered_subpaths(paths1, paths2, sep='.', mode='embedding'):
         >>> paths2 = ['a.b']
         >>> subpaths1, subpaths2 = maximum_common_ordered_subpaths(paths1, paths2, sep)
         >>> mapping = ub.dzip(subpaths1, subpaths2)
-        >>> print('mapping = {}'.format(ub.repr2(mapping, nl=1)))
+        >>> print('mapping = {}'.format(ub.urepr(mapping, nl=1)))
         >>> paths1 = ['c.a.b']
         >>> paths2 = ['a.b']
         >>> subpaths1, subpaths2 = maximum_common_ordered_subpaths(paths1, paths2, sep)
         >>> mapping = ub.dzip(subpaths1, subpaths2)
-        >>> print('mapping = {}'.format(ub.repr2(mapping, nl=1)))
+        >>> print('mapping = {}'.format(ub.urepr(mapping, nl=1)))
         >>> paths1 = ['c.a.b', 'c.a.e', 'c.a.q']
         >>> paths2 = ['a.b', 'c.e', 'c.a', 'a.q']
         >>> subpaths1, subpaths2 = maximum_common_ordered_subpaths(paths1, paths2, sep)
         >>> mapping = ub.dzip(subpaths1, subpaths2)
-        >>> print('mapping = {}'.format(ub.repr2(mapping, nl=1)))
+        >>> print('mapping = {}'.format(ub.urepr(mapping, nl=1)))
     """
     ub.schedule_deprecation(
         'netharn', 'maximum_common_ordered_subpaths', 'function',

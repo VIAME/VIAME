@@ -590,7 +590,7 @@ class PSP_head(layers.AnalyticModule):
             >>> _Hidden = nh.HiddenShapes
             >>> out = self.output_shape_for(inputs)
             >>> hidden = out.hidden
-            >>> print(ub.repr2(hidden.shallow(1), nl=-1))
+            >>> print(ub.urepr(hidden.shallow(1), nl=-1))
 
             >>> # out = self.receptive_field_for(inputs)
         """
@@ -734,7 +734,7 @@ class PSPNet_Resnet50_8s(layers.AnalyticModule):
             >>> globals().update(kwargs)
             >>> inputs = input_shape = (1, 3, 256, 256)
             >>> outputs = self._analytic_forward(inputs, **kwargs)
-            >>> print('outputs = {}'.format(ub.repr2(outputs.hidden.shallow(1), nl=-1)))
+            >>> print('outputs = {}'.format(ub.urepr(outputs.hidden.shallow(1), nl=-1)))
         """
         try:
             input_spatial_dim = inputs.size()[2:]

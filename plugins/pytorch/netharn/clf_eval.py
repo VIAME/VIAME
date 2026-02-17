@@ -79,5 +79,5 @@ def prototype_eval_clf():
     kwplot.autompl()
 
     report = cfsn_vecs.classification_report()
-    print(ub.repr2(report['metrics']))
+    print(ub.urepr(report['metrics']))
     print(report['metrics'].to_string())

@@ -386,7 +386,7 @@ class DetectFitDataset(torch.utils.data.Dataset):
             aux_components = load_sample_auxiliary(
                 sampler, tr, want_aux, pad=pad)
             # if disp_im.max() > 1.0:
-            #     raise AssertionError('gid={} {}'.format(gid, ub.repr2(kwarray.stats_dict(disp_im))))
+            #     raise AssertionError('gid={} {}'.format(gid, ub.urepr(kwarray.stats_dict(disp_im))))
             if not aux_components:
                 # disp_im = np.zeros()
                 raise Exception('no auxiliary disparity')
@@ -402,17 +402,22 @@ class DetectFitDataset(torch.utils.data.Dataset):
 
         # NOTE: using the gdal backend samples HABCAM images in 16ms, and no
         # backend samples clocks in at 72ms. The disparity speedup is about 2x
+        tr['pad'] = pad
+        tr['legacy_annots'] = False
+        tr['legacy_target'] = False
         sample = self.sampler.load_sample(tr, visible_thresh=0.05,
-                                          with_annots=with_annots, pad=pad)
+                                          with_annots=with_annots)
 
         _debug('sample = {!r}'.format(sample))
         imdata = kwimage.atleast_3channels(sample['im'])[..., 0:3]
 
         sample_annots = sample['annots']
+        frame_dets = sample_annots['frame_dets']
+        rel_dets = frame_dets[0] if len(frame_dets) > 0 else kwimage.Detections.concatenate([])
 
-        boxes = sample_annots['rel_boxes'].view(-1, 4)
-        cids = sample_annots['cids']
-        aids = sample_annots['aids']
+        boxes = rel_dets.data['boxes'].view(-1, 4)
+        cids = rel_dets.data['cids']
+        aids = rel_dets.data['aids']
         anns = list(ub.take(self.sampler.dset.anns, aids))
         weights = [ann.get('weight', 1.0) for ann in anns]
 
@@ -443,10 +448,10 @@ class DetectFitDataset(torch.utils.data.Dataset):
             'classes': classes,
         }
 
-        if 'rel_kpts' in sample_annots:
-            detskw['keypoints'] = sample_annots['rel_kpts']
-        if 'rel_ssegs' in sample_annots:
-            detskw['segmentations'] = sample_annots['rel_ssegs']
+        if 'keypoints' in rel_dets.data:
+            detskw['keypoints'] = rel_dets.data['keypoints']
+        if 'segmentations' in rel_dets.data:
+            detskw['segmentations'] = rel_dets.data['segmentations']
 
         dets = kwimage.Detections(**detskw)
         _debug('dets = {!r}'.format(dets))
@@ -639,7 +644,7 @@ class DetectFitDataset(torch.utils.data.Dataset):
         item = {
             'inputs': inputs,
             'label': label,
-            'tr': ItemContainer(sample['tr'], stack=False),
+            'tr': ItemContainer(sample['target'], stack=False),
         }
         _debug('item = {!r}'.format(item))
         return item
@@ -1077,7 +1082,7 @@ class MultiScaleBatchSampler2(torch.utils.data.sampler.BatchSampler):
         num_batches = final_bx + last
         self.num_batches = num_batches
 
-        # print(ub.repr2(self._dynamic_schedule, nl=1))
+        # print(ub.urepr(self._dynamic_schedule, nl=1))
         # print('NEW SCHEDULE')
 
     def __iter__(self):

@@ -10,7 +10,7 @@ def compact_idstr(dict_):
     import ubelt as ub
     short_keys = shortest_unique_prefixes(dict_.keys())
     short_dict = ub.odict(sorted(zip(short_keys, dict_.values())))
-    idstr = ub.repr2(short_dict, nobr=1, itemsep='', si=1, nl=0,
+    idstr = ub.urepr(short_dict, nobr=1, itemsep='', si=1, nl=0,
                      explicit=1)
     return idstr
 
@@ -27,7 +27,7 @@ def make_idstr(d):
         return ''
     if not isinstance(d, ub.odict):
         d = ub.odict(sorted(d.items()))
-    return ub.repr2(d, itemsep='', nobr=True, explicit=True, nl=0, si=True)
+    return ub.urepr(d, itemsep='', nobr=True, explicit=True, nl=0, si=True)
 
 
 def make_short_idstr(params, precision=None):
@@ -72,7 +72,7 @@ def make_short_idstr(params, precision=None):
         # Note: we are not using sort=True, because repr2 sorts sets and dicts
         # by default.
         remove_chars = [' ', '[', ']', '(', ')', '{', '}']
-        idstr = ub.repr2(d, itemsep='', nobr=True, explicit=True, nl=0, si=True,
+        idstr = ub.urepr(d, itemsep='', nobr=True, explicit=True, nl=0, si=True,
                          precision=precision)
         for c in remove_chars:
             idstr = idstr.replace(c, '')

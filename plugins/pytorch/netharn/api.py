@@ -32,10 +32,10 @@ class Datasets(object):
             >>> # xdoctest: +REQUIRES(module:ndsampler)
             >>> from viame.pytorch import netharn as nh
             >>> config = kw = {'datasets': 'special:shapes'}
-            >>> print(ub.repr2(nh.api.Datasets.coerce(config, **kw)))
+            >>> print(ub.urepr(nh.api.Datasets.coerce(config, **kw)))
 
             >>> config = kw = {'datasets': 'special:shapes256'}
-            >>> print(ub.repr2(nh.api.Datasets.coerce(config, **kw)))
+            >>> print(ub.urepr(nh.api.Datasets.coerce(config, **kw)))
         """
         from ndsampler import coerce_data
         config = _update_defaults(config, kw)
@@ -66,7 +66,7 @@ def _coerce_datasets(config):
     import numpy as np
     from torchvision import transforms
     coco_datasets = nh.api.Datasets.coerce(config)
-    print('coco_datasets = {}'.format(ub.repr2(coco_datasets, nl=1)))
+    print('coco_datasets = {}'.format(ub.urepr(coco_datasets, nl=1)))
     for tag, dset in coco_datasets.items():
         dset._build_hashid(hash_pixels=False)
 
@@ -295,7 +295,7 @@ class Initializer(object):
 
         Examples:
             >>> from viame.pytorch import netharn as nh
-            >>> print(ub.repr2(nh.Initializer.coerce({'init': 'noop'})))
+            >>> print(ub.urepr(nh.Initializer.coerce({'init': 'noop'})))
             (
                 <class 'netharn.initializers.core.NoOp'>,
                 {},
@@ -304,12 +304,12 @@ class Initializer(object):
             ...     'init': 'pretrained',
             ...     'pretrained_fpath': '/fit/nice/untitled'
             ... }
-            >>> print(ub.repr2(nh.Initializer.coerce(config)))
+            >>> print(ub.urepr(nh.Initializer.coerce(config)))
             (
                 <class 'netharn.initializers.pretrained.Pretrained'>,
                 {... 'fpath': '/fit/nice/untitled', 'leftover': None, 'mangle': False},
             )
-            >>> print(ub.repr2(nh.Initializer.coerce({'init': 'kaiming_normal'})))
+            >>> print(ub.urepr(nh.Initializer.coerce({'init': 'kaiming_normal'})))
             (
                 <class 'netharn.initializers.core.KaimingNormal'>,
                 {'param': 0},

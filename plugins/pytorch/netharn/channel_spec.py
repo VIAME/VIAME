@@ -20,15 +20,15 @@ from viame.pytorch.netharn.data.channel_spec import ChannelSpec  # NOQA
 #     Example:
 #         >>> from .channel_spec import *  # NOQA
 #         >>> self = ChannelSpec('gray')
-#         >>> print('self.info = {}'.format(ub.repr2(self.info, nl=1)))
+#         >>> print('self.info = {}'.format(ub.urepr(self.info, nl=1)))
 #         >>> self = ChannelSpec('rgb')
-#         >>> print('self.info = {}'.format(ub.repr2(self.info, nl=1)))
+#         >>> print('self.info = {}'.format(ub.urepr(self.info, nl=1)))
 #         >>> self = ChannelSpec('rgb|disparity')
-#         >>> print('self.info = {}'.format(ub.repr2(self.info, nl=1)))
+#         >>> print('self.info = {}'.format(ub.urepr(self.info, nl=1)))
 #         >>> self = ChannelSpec('rgb|disparity,disparity')
-#         >>> print('self.info = {}'.format(ub.repr2(self.info, nl=1)))
+#         >>> print('self.info = {}'.format(ub.urepr(self.info, nl=1)))
 #         >>> self = ChannelSpec('rgb,disparity,flowx|flowy')
-#         >>> print('self.info = {}'.format(ub.repr2(self.info, nl=1)))
+#         >>> print('self.info = {}'.format(ub.urepr(self.info, nl=1)))
 #     """
 
 #     _known = {
@@ -149,12 +149,12 @@ from viame.pytorch.netharn.data.channel_spec import ChannelSpec  # NOQA
 #             >>> self = ChannelSpec('rgb,disparity,rgb|disparity|flowx|flowy,flowx|flowy')
 #             >>> inputs = self.encode(item)
 #             >>> input_shapes = ub.map_vals(lambda x: x.shape, inputs)
-#             >>> print('input_shapes = {}'.format(ub.repr2(input_shapes, nl=1)))
+#             >>> print('input_shapes = {}'.format(ub.urepr(input_shapes, nl=1)))
 #             >>> # Simpler case
 #             >>> self = ChannelSpec('rgb|disparity')
 #             >>> inputs = self.encode(item)
 #             >>> input_shapes = ub.map_vals(lambda x: x.shape, inputs)
-#             >>> print('input_shapes = {}'.format(ub.repr2(input_shapes, nl=1)))
+#             >>> print('input_shapes = {}'.format(ub.urepr(input_shapes, nl=1)))
 #         """
 #         import torch
 #         inputs = dict()

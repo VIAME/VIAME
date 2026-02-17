@@ -390,14 +390,14 @@ class XPU(ub.NiceRepr):
         Example:
             >>> # xdoctest: +REQUIRES(module:psutil)
             >>> from .device import *
-            >>> print(ub.repr2(XPU.coerce(None).memory()))
+            >>> print(ub.urepr(XPU.coerce(None).memory()))
             {
                 'available': ...,
                 'total': ...,
                 'used': ...,
             }
             >>> # xdoctest: +REQUIRES(--cuda)
-            >>> print(ub.repr2(XPU.coerce(0).memory()))
+            >>> print(ub.urepr(XPU.coerce(0).memory()))
             {
                 'available': ...,
                 'total': ...,
@@ -767,7 +767,7 @@ def gpu_info(new_mode=True, respect_visible_devices=True):
         >>> from .device import gpu_info
         >>> gpus = gpu_info()
         >>> # xdoctest: +IGNORE_WANT
-        >>> print('gpus = {}'.format(ub.repr2(gpus, nl=4)))
+        >>> print('gpus = {}'.format(ub.urepr(gpus, nl=4)))
         >>> assert len(gpus) == torch.cuda.device_count()
         gpus = {
             0: {

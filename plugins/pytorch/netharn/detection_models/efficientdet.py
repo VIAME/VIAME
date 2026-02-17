@@ -1826,9 +1826,9 @@ class EfficientDet(nn.Module):
         cls_score, bbox_pred = outs
 
         if 0:
-            print('pyr = ' + ub.repr2([z.shape for z in pyramid_feats]))
-            print('cls = ' + ub.repr2([z.shape for z in cls_score]))
-            print('box = ' + ub.repr2([z.shape for z in bbox_pred]))
+            print('pyr = ' + ub.urepr([z.shape for z in pyramid_feats]))
+            print('cls = ' + ub.urepr([z.shape for z in cls_score]))
+            print('box = ' + ub.urepr([z.shape for z in bbox_pred]))
 
         classifications = torch.cat([out for out in cls_score], dim=1)
         regressions = torch.cat([out for out in bbox_pred], dim=1)
@@ -1892,6 +1892,6 @@ class EfficientDet(nn.Module):
         bb_feats = self.backbone(imgs)
         pyramid_feats = self.neck(bb_feats[-self.n_scales:])
         if 0:
-            print(ub.repr2([z.shape for z in bb_feats]))
-            print(ub.repr2([z.shape for z in pyramid_feats]))
+            print(ub.urepr([z.shape for z in bb_feats]))
+            print(ub.urepr([z.shape for z in pyramid_feats]))
         return pyramid_feats

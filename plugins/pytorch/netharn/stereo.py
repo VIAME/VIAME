@@ -288,7 +288,7 @@ def demo_calibrate():
         err = left_points_unrect - left_points
         med_err = np.median(err)
         import kwarray
-        print('error = ' + ub.repr2(kwarray.stats_dict(err, median=True)))
+        print('error = ' + ub.urepr(kwarray.stats_dict(err, median=True)))
         kwplot.draw_points(left_points_unrect, color='orange', radius=7, ax=ax5)
 
         kwplot.draw_points(left_points, color='red', radius=2, ax=ax7)
@@ -389,7 +389,7 @@ class StereoCamera(ub.NiceRepr, DictProxy):
         return vital_cam
 
     def __nice__(camera):
-        return ub.repr2(camera.proxy, nl=2)
+        return ub.urepr(camera.proxy, nl=2)
 
     def _precache(camera, img_dsize):
         """

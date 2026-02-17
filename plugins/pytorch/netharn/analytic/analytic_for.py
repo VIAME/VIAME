@@ -53,7 +53,7 @@ Example:
     >>> # without directly invoking any tensor operations.
     >>> output_shape = self.output_shape_for((None, 3, 32, 32))
     >>> print('output_shape = {!r}'.format(output_shape))
-    >>> print(ub.repr2(output_shape.hidden, nl=-1))
+    >>> print(ub.urepr(output_shape.hidden, nl=-1))
     output_shape = OutputShapeDict([('class_energy', (None, 2, 7, 7))])
     {
         'backbone': {
@@ -69,8 +69,8 @@ Example:
     >>> # In most cases the receptive field does not need to know about the
     >>> # input shape (adaptive layers are the exception here)
     >>> rf = self.receptive_field_for()
-    >>> print('rf = {}'.format(ub.repr2(rf, nl=2)))
-    >>> print(ub.repr2(rf.hidden, nl=3))
+    >>> print('rf = {}'.format(ub.urepr(rf, nl=2)))
+    >>> print(ub.urepr(rf.hidden, nl=3))
     rf = {
         'class_energy': {
             'crop': np.array([3.5, 3.5], dtype=np.float64),
@@ -144,11 +144,11 @@ class Hidden(OrderedDict, ub.NiceRepr):
         output0 = OutputShape.coerce((1,), hidden=hidden0)
         hidden1['c'] = (1, 2, 3)
         hidden1['d'] = output0
-        print(ub.repr2(hidden1.shallow(2), nl=-1))
+        print(ub.urepr(hidden1.shallow(2), nl=-1))
     """
 
     def __nice__(self):
-        return ub.repr2(self, nl=0)
+        return ub.urepr(self, nl=0)
 
     def __str__(self):
         return ub.NiceRepr.__str__(self)
