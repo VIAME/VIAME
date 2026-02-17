@@ -10,15 +10,6 @@ set( process_sources
   seagis_measurement_process.cxx
 )
 
-find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
-  COMPONENTS
-    chrono
-    filesystem
-    system)
-
-include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
-link_directories( ${Boost_LIBRARY_DIRS} )
-
 # Include SEAGIS headers
 include_directories( SYSTEM ${SEAGIS_INCLUDE_DIR} )
 
@@ -30,10 +21,16 @@ set( SEAGIS_LINK_LIBRARIES
   kwiver::vital_logger
   kwiver::vital_util
   kwiver::sprokit_pipeline
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_FILESYSTEM_LIBRARY}
   ${SEAGIS_LIBRARY}
+  viame_core
 )
+
+# OpenCV for epipolar template matching
+if( VIAME_ENABLE_OPENCV )
+  find_package( OpenCV REQUIRED )
+  include_directories( "${OpenCV_INCLUDE_DIRS}" )
+  list( APPEND SEAGIS_LINK_LIBRARIES ${OpenCV_LIBRARIES} kwiver::kwiver_algo_ocv )
+endif()
 
 kwiver_add_plugin( viame_processes_seagis
   SUBDIR           ${viame_plugin_process_subdir}

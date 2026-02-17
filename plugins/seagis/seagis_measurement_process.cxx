@@ -24,6 +24,11 @@
 
 #include "../core/measurement_utilities.h"
 
+#ifdef VIAME_ENABLE_OPENCV
+  #include <arrows/ocv/image_container.h>
+  #include <opencv2/imgproc/imgproc.hpp>
+#endif
+
 #include <LX_StereoInterface.h>
 
 #include <string>
@@ -59,6 +64,26 @@ create_config_trait( image_measurement_sd, double, 1.0,
 create_config_trait( camera_pair_id, unsigned int, 0,
   "Camera pair ID for SEAGIS library (typically 0)" );
 
+create_config_trait( enable_epipolar_matching, bool, false,
+  "If true, attempt to find corresponding keypoints in the other camera using "
+  "SEAGIS epipolar line projection and template matching when only one camera "
+  "has head/tail keypoints." );
+
+create_config_trait( epipolar_min_range, double, 500.0,
+  "Minimum depth/range (in calibration units) for the SEAGIS epipolar line." );
+
+create_config_trait( epipolar_max_range, double, 20000.0,
+  "Maximum depth/range (in calibration units) for the SEAGIS epipolar line." );
+
+create_config_trait( template_size, int, 31,
+  "Template window size (in pixels) for epipolar template matching. Must be odd." );
+
+create_config_trait( template_matching_threshold, double, 0.7,
+  "Minimum NCC threshold for epipolar template matching (0.0 to 1.0)." );
+
+create_config_trait( use_census_transform, bool, false,
+  "If true, use census transform preprocessing for epipolar template matching." );
+
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
 create_port_trait( object_track_set2, object_track_set,
@@ -83,6 +108,14 @@ public:
   // SEAGIS stereo interface
   std::unique_ptr< CStereoInt > m_stereo;
 
+  // Epipolar matching configuration
+  bool m_enable_epipolar_matching;
+  double m_epipolar_min_range;
+  double m_epipolar_max_range;
+
+  // Measurement utilities for template matching
+  core::map_keypoints_to_camera m_utilities;
+
   // Other variables
   unsigned m_frame_counter;
   std::set< std::string > p_port_list;
@@ -97,6 +130,21 @@ public:
     const kv::vector_2d& right_head,
     const kv::vector_2d& left_tail,
     const kv::vector_2d& right_tail );
+
+  // Get epipolar points from SEAGIS for a 2D point in one camera
+  std::vector< kv::vector_2d > get_epipolar_points(
+    CAMERA_ID cam_id,
+    const kv::vector_2d& pt );
+
+#ifdef VIAME_ENABLE_OPENCV
+  // Find corresponding point in the other camera using epipolar template matching
+  bool find_corresponding_point_epipolar(
+    CAMERA_ID source_cam_id,
+    const cv::Mat& source_image,
+    const cv::Mat& target_image,
+    const kv::vector_2d& source_point,
+    kv::vector_2d& target_point );
+#endif
 };
 
 
@@ -109,6 +157,9 @@ seagis_measurement_process::priv
   , m_licence_key2( "" )
   , m_image_measurement_sd( 1.0 )
   , m_camera_pair_id( 0 )
+  , m_enable_epipolar_matching( false )
+  , m_epipolar_min_range( 500.0 )
+  , m_epipolar_max_range( 20000.0 )
   , m_stereo()
   , m_frame_counter( 0 )
   , parent( ptr )
@@ -181,6 +232,67 @@ seagis_measurement_process::priv
 }
 
 
+// -----------------------------------------------------------------------------
+std::vector< kv::vector_2d >
+seagis_measurement_process::priv
+::get_epipolar_points(
+  CAMERA_ID cam_id,
+  const kv::vector_2d& pt )
+{
+  std::vector< kv::vector_2d > points;
+
+  C2DPt image_pt( pt.x(), pt.y() );
+  int num_points = 0;
+
+  RESULT res = m_stereo->EpipolarLine( m_camera_pair_id, cam_id,
+    image_pt, m_epipolar_min_range, m_epipolar_max_range, num_points );
+
+  if( res != OK || num_points <= 0 )
+  {
+    return points;
+  }
+
+  points.reserve( num_points );
+
+  for( int i = 0; i < num_points; ++i )
+  {
+    C2DPt ep_pt;
+    res = m_stereo->GetEpipolarPoint( m_camera_pair_id, i, ep_pt );
+
+    if( res == OK )
+    {
+      points.push_back( kv::vector_2d( ep_pt.X(), ep_pt.Y() ) );
+    }
+  }
+
+  return points;
+}
+
+
+#ifdef VIAME_ENABLE_OPENCV
+// -----------------------------------------------------------------------------
+bool
+seagis_measurement_process::priv
+::find_corresponding_point_epipolar(
+  CAMERA_ID source_cam_id,
+  const cv::Mat& source_image,
+  const cv::Mat& target_image,
+  const kv::vector_2d& source_point,
+  kv::vector_2d& target_point )
+{
+  auto epipolar_points = get_epipolar_points( source_cam_id, source_point );
+
+  if( epipolar_points.empty() )
+  {
+    return false;
+  }
+
+  return m_utilities.find_corresponding_point_epipolar_template_matching(
+    source_image, target_image, source_point, epipolar_points, target_point );
+}
+#endif
+
+
 // =============================================================================
 seagis_measurement_process
 ::seagis_measurement_process( kv::config_block_sptr const& config )
@@ -231,6 +343,12 @@ seagis_measurement_process
   declare_config_using_trait( licence_key2 );
   declare_config_using_trait( image_measurement_sd );
   declare_config_using_trait( camera_pair_id );
+  declare_config_using_trait( enable_epipolar_matching );
+  declare_config_using_trait( epipolar_min_range );
+  declare_config_using_trait( epipolar_max_range );
+  declare_config_using_trait( template_size );
+  declare_config_using_trait( template_matching_threshold );
+  declare_config_using_trait( use_census_transform );
 }
 
 // -----------------------------------------------------------------------------
@@ -245,6 +363,22 @@ seagis_measurement_process
   d->m_licence_key2 = config_value_using_trait( licence_key2 );
   d->m_image_measurement_sd = config_value_using_trait( image_measurement_sd );
   d->m_camera_pair_id = config_value_using_trait( camera_pair_id );
+  d->m_enable_epipolar_matching = config_value_using_trait( enable_epipolar_matching );
+  d->m_epipolar_min_range = config_value_using_trait( epipolar_min_range );
+  d->m_epipolar_max_range = config_value_using_trait( epipolar_max_range );
+
+  // Configure template matching utilities
+  {
+    int tmpl_size = config_value_using_trait( template_size );
+    double tmpl_threshold = config_value_using_trait( template_matching_threshold );
+    bool census = config_value_using_trait( use_census_transform );
+
+    d->m_utilities.set_template_params(
+      tmpl_size, 0 /* search_range unused */, tmpl_threshold,
+      0.0 /* disparity unused */, false /* sgbm hint */,
+      false /* multires */, 4 /* multires step */,
+      census, 0 /* epipolar band */ );
+  }
 
   if( d->m_left_camera_file.empty() )
   {
@@ -492,6 +626,116 @@ seagis_measurement_process
     core::add_measurement_attributes( det1, measurement );
     core::add_measurement_attributes( det2, measurement );
   }
+
+#ifdef VIAME_ENABLE_OPENCV
+  // Epipolar matching for detections where only one camera has keypoints
+  if( d->m_enable_epipolar_matching && input_images.size() >= 2 )
+  {
+    // Convert input images to grayscale cv::Mat
+    cv::Mat left_gray, right_gray;
+
+    {
+      cv::Mat left_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
+        input_images[0]->get_image(),
+        kwiver::arrows::ocv::image_container::BGR_COLOR );
+      cv::Mat right_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
+        input_images[1]->get_image(),
+        kwiver::arrows::ocv::image_container::BGR_COLOR );
+
+      if( left_cv.channels() == 3 )
+        cv::cvtColor( left_cv, left_gray, cv::COLOR_BGR2GRAY );
+      else if( left_cv.channels() == 4 )
+        cv::cvtColor( left_cv, left_gray, cv::COLOR_BGRA2GRAY );
+      else
+        left_gray = left_cv;
+
+      if( right_cv.channels() == 3 )
+        cv::cvtColor( right_cv, right_gray, cv::COLOR_BGR2GRAY );
+      else if( right_cv.channels() == 4 )
+        cv::cvtColor( right_cv, right_gray, cv::COLOR_BGRA2GRAY );
+      else
+        right_gray = right_cv;
+    }
+
+    for( const kv::track_id_t& id : common_ids )
+    {
+      const auto& det1 = dets[0][id];
+      const auto& det2 = dets[1][id];
+
+      if( !det1 || !det2 )
+      {
+        continue;
+      }
+
+      // Skip if already measured (both cameras had keypoints)
+      if( det1->length() > 0 )
+      {
+        continue;
+      }
+
+      const auto& kp1 = det1->keypoints();
+      const auto& kp2 = det2->keypoints();
+
+      bool left_has_kp = ( kp1.find( "head" ) != kp1.end() &&
+                           kp1.find( "tail" ) != kp1.end() );
+      bool right_has_kp = ( kp2.find( "head" ) != kp2.end() &&
+                            kp2.find( "tail" ) != kp2.end() );
+
+      // Only process if exactly one camera has keypoints
+      if( left_has_kp == right_has_kp )
+      {
+        continue;
+      }
+
+      kv::vector_2d left_head, left_tail, right_head, right_tail;
+      bool head_found = false, tail_found = false;
+
+      if( left_has_kp && !right_has_kp )
+      {
+        // Left has keypoints, find corresponding points in right
+        left_head = kv::vector_2d( kp1.at("head")[0], kp1.at("head")[1] );
+        left_tail = kv::vector_2d( kp1.at("tail")[0], kp1.at("tail")[1] );
+
+        head_found = d->find_corresponding_point_epipolar(
+          LEFT, left_gray, right_gray, left_head, right_head );
+        tail_found = d->find_corresponding_point_epipolar(
+          LEFT, left_gray, right_gray, left_tail, right_tail );
+      }
+      else if( right_has_kp && !left_has_kp )
+      {
+        // Right has keypoints, find corresponding points in left
+        right_head = kv::vector_2d( kp2.at("head")[0], kp2.at("head")[1] );
+        right_tail = kv::vector_2d( kp2.at("tail")[0], kp2.at("tail")[1] );
+
+        head_found = d->find_corresponding_point_epipolar(
+          RIGHT, right_gray, left_gray, right_head, left_head );
+        tail_found = d->find_corresponding_point_epipolar(
+          RIGHT, right_gray, left_gray, right_tail, left_tail );
+      }
+
+      if( head_found && tail_found )
+      {
+        const auto measurement = d->compute_measurement(
+          left_head, right_head, left_tail, right_tail );
+
+        if( measurement.valid )
+        {
+          LOG_INFO( logger(), "Computed Length (SEAGIS epipolar): " << measurement.length );
+          LOG_INFO( logger(), "  Midpoint (x,y,z): (" << measurement.x << ", "
+                    << measurement.y << ", " << measurement.z << ")" );
+          LOG_INFO( logger(), "  Range: " << measurement.range
+                    << ", RMS: " << measurement.rms );
+
+          det1->add_note( ":stereo_method=seagis_epipolar" );
+          det2->add_note( ":stereo_method=seagis_epipolar" );
+
+          core::add_measurement_attributes( det1, measurement );
+          core::add_measurement_attributes( det2, measurement );
+        }
+      }
+    }
+  }
+#endif
 
   // Ensure output track sets exist
   if( !input_tracks[0] )
