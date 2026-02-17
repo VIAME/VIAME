@@ -119,6 +119,14 @@ VIAME_CORE_EXPORT kv::bounding_box_d compute_bbox_from_keypoints(
   double box_scale_factor,
   double min_aspect_ratio = 0.10 );
 
+/// Compute epipolar points by sampling depths along a ray from source camera
+/// and projecting to target camera. Works on unrectified images.
+VIAME_CORE_EXPORT std::vector< kv::vector_2d > compute_epipolar_points(
+  const kv::simple_camera_perspective& source_cam,
+  const kv::simple_camera_perspective& target_cam,
+  const kv::vector_2d& source_point,
+  double min_depth, double max_depth, int num_samples );
+
 /// Compute intersection-over-union (IOU) between two bounding boxes
 VIAME_CORE_EXPORT double compute_iou(
   const kv::bounding_box_d& bbox1,
@@ -232,6 +240,15 @@ public:
   /// The search will cover (2 * epipolar_band_halfwidth + 1) rows.
   int epipolar_band_halfwidth;
 
+  /// Minimum depth for epipolar template matching (in camera units, e.g. meters)
+  double epipolar_min_depth;
+
+  /// Maximum depth for epipolar template matching
+  double epipolar_max_depth;
+
+  /// Number of sample points along the epipolar line
+  int epipolar_num_samples;
+
   /// Whether to use distortion coefficients from calibration
   bool use_distortion;
 
@@ -333,6 +350,9 @@ public:
                             int multires_step = 4,
                             bool use_census = false,
                             int epipolar_band = 0 );
+
+  /// Set epipolar template matching parameters
+  void set_epipolar_params( double min_depth, double max_depth, int num_samples );
 
   /// Set whether to use distortion coefficients
   void set_use_distortion( bool use_distortion );
@@ -560,6 +580,9 @@ private:
   int m_multires_coarse_step;
   bool m_use_census_transform;
   int m_epipolar_band_halfwidth;
+  double m_epipolar_min_depth;
+  double m_epipolar_max_depth;
+  int m_epipolar_num_samples;
   bool m_use_distortion;
   double m_feature_search_radius;
   double m_ransac_inlier_scale;

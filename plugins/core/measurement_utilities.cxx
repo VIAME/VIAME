@@ -47,6 +47,9 @@ map_keypoints_to_camera_settings
   , multires_coarse_step( 4 )
   , use_census_transform( false )
   , epipolar_band_halfwidth( 0 )
+  , epipolar_min_depth( 0.5 )
+  , epipolar_max_depth( 20.0 )
+  , epipolar_num_samples( 100 )
   , use_distortion( true )
   , feature_search_radius( 50.0 )
   , ransac_inlier_scale( 3.0 )
@@ -81,6 +84,7 @@ map_keypoints_to_camera_settings
     "'external_disparity' (uses externally provided disparity map), "
     "'compute_disparity' (uses stereo_disparity algorithm to compute disparity from rectified images), "
     "'template_matching' (rectifies images and searches along epipolar lines), "
+    "'epipolar_template_matching' (template matching along epipolar line on unrectified images), "
     "'feature_descriptor' (uses vital feature detection/descriptor/matching), "
     "'ransac_feature' (feature matching with RANSAC-based fundamental matrix filtering). "
     "Example: 'input_pairs_only,compute_disparity,depth_projection'" );
@@ -134,6 +138,18 @@ map_keypoints_to_camera_settings
     "Set to 1-3 to allow small vertical deviation to handle imperfect rectification. "
     "The search will cover (2 * epipolar_band_halfwidth + 1) rows." );
 
+  config->set_value( "epipolar_min_depth", epipolar_min_depth,
+    "Minimum depth (in camera units, e.g. meters) for epipolar template matching. "
+    "Defines the near end of the depth range sampled along the camera ray." );
+
+  config->set_value( "epipolar_max_depth", epipolar_max_depth,
+    "Maximum depth (in camera units, e.g. meters) for epipolar template matching. "
+    "Defines the far end of the depth range sampled along the camera ray." );
+
+  config->set_value( "epipolar_num_samples", epipolar_num_samples,
+    "Number of sample points along the epipolar line for epipolar template matching. "
+    "More samples give finer search resolution but take longer." );
+
   config->set_value( "use_distortion", use_distortion,
     "Whether to use distortion coefficients from the calibration during rectification. "
     "If true, distortion coefficients from the calibration file are used. "
@@ -174,9 +190,9 @@ map_keypoints_to_camera_settings
   config->set_value( "record_stereo_method", record_stereo_method,
     "If true, record the stereo measurement method used as an attribute on each "
     "output detection object. The attribute will be ':stereo_method=METHOD' "
-    "where METHOD is one of: input_kps_used, template_matching,"
-    "feature_descriptor, ransac_feature, depth_projection, external_disparity, "
-    "or compute_disparity." );
+    "where METHOD is one of: input_kps_used, template_matching, "
+    "epipolar_template_matching, feature_descriptor, ransac_feature, "
+    "depth_projection, external_disparity, or compute_disparity." );
 
   // Add nested algorithm configurations
   kv::algo::detect_features::get_nested_algo_configuration(
@@ -209,6 +225,9 @@ map_keypoints_to_camera_settings
   multires_coarse_step = config->get_value< int >( "multires_coarse_step", multires_coarse_step );
   use_census_transform = config->get_value< bool >( "use_census_transform", use_census_transform );
   epipolar_band_halfwidth = config->get_value< int >( "epipolar_band_halfwidth", epipolar_band_halfwidth );
+  epipolar_min_depth = config->get_value< double >( "epipolar_min_depth", epipolar_min_depth );
+  epipolar_max_depth = config->get_value< double >( "epipolar_max_depth", epipolar_max_depth );
+  epipolar_num_samples = config->get_value< int >( "epipolar_num_samples", epipolar_num_samples );
   use_distortion = config->get_value< bool >( "use_distortion", use_distortion );
   feature_search_radius = config->get_value< double >( "feature_search_radius", feature_search_radius );
   ransac_inlier_scale = config->get_value< double >( "ransac_inlier_scale", ransac_inlier_scale );
@@ -374,6 +393,9 @@ map_keypoints_to_camera
   , m_multires_coarse_step( 4 )
   , m_use_census_transform( false )
   , m_epipolar_band_halfwidth( 0 )
+  , m_epipolar_min_depth( 0.5 )
+  , m_epipolar_max_depth( 20.0 )
+  , m_epipolar_num_samples( 100 )
   , m_use_distortion( true )
   , m_feature_search_radius( 50.0 )
   , m_ransac_inlier_scale( 3.0 )
@@ -448,6 +470,16 @@ map_keypoints_to_camera
 // -----------------------------------------------------------------------------
 void
 map_keypoints_to_camera
+::set_epipolar_params( double min_depth, double max_depth, int num_samples )
+{
+  m_epipolar_min_depth = min_depth;
+  m_epipolar_max_depth = max_depth;
+  m_epipolar_num_samples = num_samples;
+}
+
+// -----------------------------------------------------------------------------
+void
+map_keypoints_to_camera
 ::set_use_distortion( bool use_distortion )
 {
   m_use_distortion = use_distortion;
@@ -505,6 +537,8 @@ map_keypoints_to_camera
                        settings.multires_coarse_step,
                        settings.use_census_transform,
                        settings.epipolar_band_halfwidth );
+  set_epipolar_params( settings.epipolar_min_depth, settings.epipolar_max_depth,
+                       settings.epipolar_num_samples );
   set_use_distortion( settings.use_distortion );
   set_feature_params( settings.feature_search_radius, settings.ransac_inlier_scale,
                       settings.min_ransac_inliers,
@@ -733,6 +767,65 @@ compute_bbox_from_keypoints(
   double new_max_y = center_y + scaled_height / 2.0;
 
   return kv::bounding_box_d( new_min_x, new_min_y, new_max_x, new_max_y );
+}
+
+// -----------------------------------------------------------------------------
+std::vector< kv::vector_2d >
+compute_epipolar_points(
+  const kv::simple_camera_perspective& source_cam,
+  const kv::simple_camera_perspective& target_cam,
+  const kv::vector_2d& source_point,
+  double min_depth, double max_depth, int num_samples )
+{
+  std::vector< kv::vector_2d > points;
+  points.reserve( num_samples );
+
+  // Unproject source point to normalized image coordinates
+  const auto source_intrinsics = source_cam.get_intrinsics();
+  const kv::vector_2d normalized_pt = source_intrinsics->unmap( source_point );
+
+  // Ray direction in source camera coordinates
+  kv::vector_3d ray_direction( normalized_pt.x(), normalized_pt.y(), 1.0 );
+  ray_direction.normalize();
+
+  // Source camera pose
+  const auto& source_rotation = source_cam.rotation();
+  const auto& source_center = source_cam.center();
+
+  // Target camera pose and intrinsics
+  const auto& target_rotation = target_cam.rotation();
+  const auto& target_center = target_cam.center();
+  const auto target_intrinsics = target_cam.get_intrinsics();
+
+  double depth_step = ( num_samples > 1 )
+    ? ( max_depth - min_depth ) / ( num_samples - 1 ) : 0.0;
+
+  for( int i = 0; i < num_samples; ++i )
+  {
+    double depth = min_depth + i * depth_step;
+
+    // 3D point along ray in source camera coordinates
+    kv::vector_3d point_3d_cam = ray_direction * depth;
+
+    // Transform to world coordinates
+    kv::vector_3d point_3d_world = source_rotation.inverse() * point_3d_cam + source_center;
+
+    // Transform to target camera coordinates
+    kv::vector_3d point_3d_target = target_rotation * ( point_3d_world - target_center );
+
+    // Skip points behind target camera
+    if( point_3d_target.z() <= 0.0 )
+    {
+      continue;
+    }
+
+    // Project to target image
+    kv::vector_2d normalized_target( point_3d_target.x() / point_3d_target.z(),
+                                      point_3d_target.y() / point_3d_target.z() );
+    points.push_back( target_intrinsics->map( normalized_target ) );
+  }
+
+  return points;
 }
 
 // =============================================================================
@@ -1042,6 +1135,47 @@ map_keypoints_to_camera
         result.right_head = unrectify_point( right_head_rect, true, right_cam );
         result.right_tail = unrectify_point( right_tail_rect, true, right_cam );
         result.method_used = "template_matching";
+      }
+      else
+      {
+        head_found = false;
+        tail_found = false;
+      }
+    }
+    else if( method == "epipolar_template_matching" && has_images )
+    {
+      // Convert unrectified images to grayscale cv::Mat
+      cv::Mat left_gray = kwiver::arrows::ocv::image_container::vital_to_ocv(
+        left_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+      cv::Mat right_gray = kwiver::arrows::ocv::image_container::vital_to_ocv(
+        right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+
+      if( left_gray.channels() == 3 )
+        cv::cvtColor( left_gray, left_gray, cv::COLOR_BGR2GRAY );
+      else if( left_gray.channels() == 4 )
+        cv::cvtColor( left_gray, left_gray, cv::COLOR_BGRA2GRAY );
+
+      if( right_gray.channels() == 3 )
+        cv::cvtColor( right_gray, right_gray, cv::COLOR_BGR2GRAY );
+      else if( right_gray.channels() == 4 )
+        cv::cvtColor( right_gray, right_gray, cv::COLOR_BGRA2GRAY );
+
+      // Compute epipolar points from camera geometry
+      auto epipolar_head = compute_epipolar_points(
+        left_cam, right_cam, result.left_head,
+        m_epipolar_min_depth, m_epipolar_max_depth, m_epipolar_num_samples );
+      auto epipolar_tail = compute_epipolar_points(
+        left_cam, right_cam, result.left_tail,
+        m_epipolar_min_depth, m_epipolar_max_depth, m_epipolar_num_samples );
+
+      head_found = find_corresponding_point_epipolar_template_matching(
+        left_gray, right_gray, result.left_head, epipolar_head, result.right_head );
+      tail_found = find_corresponding_point_epipolar_template_matching(
+        left_gray, right_gray, result.left_tail, epipolar_tail, result.right_tail );
+
+      if( head_found && tail_found )
+      {
+        result.method_used = "epipolar_template_matching";
       }
       else
       {
@@ -2355,6 +2489,7 @@ bool
 method_requires_images( const std::string& method )
 {
   return ( method == "template_matching" ||
+           method == "epipolar_template_matching" ||
            method == "feature_descriptor" ||
            method == "ransac_feature" ||
            method == "compute_disparity" );
@@ -2370,6 +2505,7 @@ get_valid_methods()
     "external_disparity",
     "compute_disparity",
     "template_matching",
+    "epipolar_template_matching",
     "feature_descriptor",
     "ransac_feature"
   };
