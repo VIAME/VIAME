@@ -800,6 +800,12 @@ compute_epipolar_points(
   double depth_step = ( num_samples > 1 )
     ? ( max_depth - min_depth ) / ( num_samples - 1 ) : 0.0;
 
+  // Track last emitted integer pixel to skip duplicate samples that
+  // project to the same pixel (common when depth sampling is dense
+  // relative to the epipolar line length in the target image).
+  int prev_px = std::numeric_limits< int >::min();
+  int prev_py = std::numeric_limits< int >::min();
+
   for( int i = 0; i < num_samples; ++i )
   {
     double depth = min_depth + i * depth_step;
@@ -822,7 +828,20 @@ compute_epipolar_points(
     // Project to target image
     kv::vector_2d normalized_target( point_3d_target.x() / point_3d_target.z(),
                                       point_3d_target.y() / point_3d_target.z() );
-    points.push_back( target_intrinsics->map( normalized_target ) );
+    kv::vector_2d projected = target_intrinsics->map( normalized_target );
+
+    // Skip if this rounds to the same pixel as the previous point
+    int px = static_cast< int >( projected.x() + 0.5 );
+    int py = static_cast< int >( projected.y() + 0.5 );
+
+    if( px == prev_px && py == prev_py )
+    {
+      continue;
+    }
+
+    prev_px = px;
+    prev_py = py;
+    points.push_back( projected );
   }
 
   return points;
