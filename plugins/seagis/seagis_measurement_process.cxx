@@ -105,11 +105,19 @@ create_config_trait( template_matching_threshold, double, "0.5",
 create_config_trait( use_census_transform, bool, "false",
   "If true, use census transform preprocessing for epipolar template matching." );
 
+create_config_trait( assume_inputs_paired, bool, "true",
+  "If true (default), assume the two input track sets are pre-paired: detections "
+  "with the same track ID across cameras are treated as corresponding stereo pairs. "
+  "If false, ignore track ID correspondence entirely — remap right-camera IDs to "
+  "avoid collisions, then use detection_pairing_method to match left/right "
+  "detections. Use false when feeding tracks from two independent trackers." );
+
 create_config_trait( detection_pairing_method, std::string, "",
   "Method for pairing left/right detections that do not share the same track ID. "
   "Set to empty string (default) to disable. Valid options: "
   "'iou' (match by raw bounding box IOU), "
-  "'keypoint_distance' (match by raw head/tail keypoint pixel distance)." );
+  "'keypoint_distance' (match by raw head/tail keypoint pixel distance). "
+  "When assume_inputs_paired is false, this must be set." );
 
 create_config_trait( detection_pairing_threshold, double, "0.1",
   "Threshold for detection pairing. For 'iou' method, this is the minimum IOU "
@@ -148,6 +156,7 @@ public:
   double m_epipolar_max_disparity;
 
   // Detection pairing configuration
+  bool m_assume_inputs_paired;
   std::string m_detection_pairing_method;
   double m_detection_pairing_threshold;
 
@@ -201,6 +210,7 @@ seagis_measurement_process::priv
   , m_epipolar_max_depth( 0.0 )
   , m_epipolar_min_disparity( 0.0 )
   , m_epipolar_max_disparity( 0.0 )
+  , m_assume_inputs_paired( true )
   , m_detection_pairing_method( "" )
   , m_detection_pairing_threshold( 0.1 )
   , m_frame_counter( 0 )
@@ -393,6 +403,7 @@ seagis_measurement_process
   declare_config_using_trait( template_size );
   declare_config_using_trait( template_matching_threshold );
   declare_config_using_trait( use_census_transform );
+  declare_config_using_trait( assume_inputs_paired );
   declare_config_using_trait( detection_pairing_method );
   declare_config_using_trait( detection_pairing_threshold );
 }
@@ -414,8 +425,15 @@ seagis_measurement_process
   d->m_epipolar_max_depth = config_value_using_trait( epipolar_max_depth );
   d->m_epipolar_min_disparity = config_value_using_trait( epipolar_min_disparity );
   d->m_epipolar_max_disparity = config_value_using_trait( epipolar_max_disparity );
+  d->m_assume_inputs_paired = config_value_using_trait( assume_inputs_paired );
   d->m_detection_pairing_method = config_value_using_trait( detection_pairing_method );
   d->m_detection_pairing_threshold = config_value_using_trait( detection_pairing_threshold );
+
+  if( !d->m_assume_inputs_paired && d->m_detection_pairing_method.empty() )
+  {
+    LOG_WARN( logger(), "assume_inputs_paired is false but detection_pairing_method "
+      "is empty. No detections will be paired across cameras." );
+  }
 
   // Configure template matching utilities
   {
@@ -662,34 +680,66 @@ seagis_measurement_process
   // Identify which detections are matched (same track ID in both cameras)
   std::vector< kv::track_id_t > common_ids;
   std::vector< kv::track_id_t > left_only_ids;
+  std::vector< kv::track_id_t > right_only_ids;
 
-  for( auto itr : dets[0] )
+  if( !d->m_assume_inputs_paired )
   {
-    bool found_match = false;
-
-    for( unsigned i = 1; i < input_tracks.size(); ++i )
+    // Inputs come from independent trackers with potentially overlapping IDs.
+    // Remap right-side IDs to avoid collisions, then treat everything as
+    // unmatched so that detection_pairing_method can find the real matches.
+    kv::track_id_t remap_offset = 1000000;
+    for( const auto& kv : dets[0] )
     {
-      if( dets[i].find( itr.first ) != dets[i].end() )
+      remap_offset = std::max( remap_offset, kv.first + 1000000 );
+    }
+
+    std::map< kv::track_id_t, kv::detected_object_sptr > remapped_right;
+    for( const auto& kv : dets[1] )
+    {
+      remapped_right[ kv.first + remap_offset ] = kv.second;
+    }
+    dets[1] = remapped_right;
+
+    // All left detections are "left-only", all right detections are "right-only"
+    for( const auto& kv : dets[0] )
+    {
+      left_only_ids.push_back( kv.first );
+    }
+    for( const auto& kv : dets[1] )
+    {
+      right_only_ids.push_back( kv.first );
+    }
+  }
+  else
+  {
+    // Standard mode: match by track ID correspondence
+    for( auto itr : dets[0] )
+    {
+      bool found_match = false;
+
+      for( unsigned i = 1; i < input_tracks.size(); ++i )
       {
-        found_match = true;
-        common_ids.push_back( itr.first );
-        break;
+        if( dets[i].find( itr.first ) != dets[i].end() )
+        {
+          found_match = true;
+          common_ids.push_back( itr.first );
+          break;
+        }
+      }
+
+      if( !found_match )
+      {
+        left_only_ids.push_back( itr.first );
       }
     }
 
-    if( !found_match )
+    // Collect right-only IDs
+    for( auto itr : dets[1] )
     {
-      left_only_ids.push_back( itr.first );
-    }
-  }
-
-  // Collect right-only IDs
-  std::vector< kv::track_id_t > right_only_ids;
-  for( auto itr : dets[1] )
-  {
-    if( dets[0].find( itr.first ) == dets[0].end() )
-    {
-      right_only_ids.push_back( itr.first );
+      if( dets[0].find( itr.first ) == dets[0].end() )
+      {
+        right_only_ids.push_back( itr.first );
+      }
     }
   }
 
