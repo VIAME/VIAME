@@ -27,6 +27,7 @@
 
 #include "measure_objects_process.h"
 #include "measurement_utilities.h"
+#include "pair_stereo_detections.h"
 #include "camera_rig_io.h"
 
 namespace kv = kwiver::vital;
@@ -369,6 +370,16 @@ measure_objects_process
     }
   }
 
+  // Collect right-only IDs (in right but not in left)
+  std::vector< kv::track_id_t > right_only_ids;
+  for( auto itr : dets[1] )
+  {
+    if( dets[0].find( itr.first ) == dets[0].end() )
+    {
+      right_only_ids.push_back( itr.first );
+    }
+  }
+
   // Get camera references
   kv::simple_camera_perspective& left_cam(
     dynamic_cast< kwiver::vital::simple_camera_perspective& >(
@@ -376,6 +387,85 @@ measure_objects_process
   kv::simple_camera_perspective& right_cam(
     dynamic_cast< kwiver::vital::simple_camera_perspective& >(
       *(d->m_calibration->right())));
+
+  // Detection pairing: match left-only and right-only detections
+  if( !d->m_settings.detection_pairing_method.empty() &&
+      !left_only_ids.empty() && !right_only_ids.empty() )
+  {
+    // Build detection vectors from left-only and right-only IDs
+    std::vector< kv::detected_object_sptr > left_only_dets;
+    std::vector< kv::detected_object_sptr > right_only_dets;
+
+    for( const auto& id : left_only_ids )
+    {
+      left_only_dets.push_back( dets[0][id] );
+    }
+    for( const auto& id : right_only_ids )
+    {
+      right_only_dets.push_back( dets[1][id] );
+    }
+
+    std::vector< std::pair< int, int > > paired;
+
+    if( d->m_settings.detection_pairing_method == "epipolar_iou" )
+    {
+      epipolar_iou_matching_options opts;
+      opts.iou_threshold = d->m_settings.detection_pairing_threshold;
+      opts.default_depth = d->m_settings.default_depth;
+
+      paired = find_stereo_matches_epipolar_iou(
+        left_only_dets, right_only_dets, left_cam, right_cam, opts, logger() );
+    }
+    else if( d->m_settings.detection_pairing_method == "keypoint_projection" )
+    {
+      keypoint_projection_matching_options opts;
+      opts.max_keypoint_distance = d->m_settings.detection_pairing_threshold;
+      opts.default_depth = d->m_settings.default_depth;
+
+      paired = find_stereo_matches_keypoint_projection(
+        left_only_dets, right_only_dets, left_cam, right_cam, opts, logger() );
+    }
+    else
+    {
+      LOG_WARN( logger(), "Unknown detection_pairing_method: " +
+                d->m_settings.detection_pairing_method );
+    }
+
+    // Merge paired detections: insert right det under left track ID
+    std::set< kv::track_id_t > paired_left_ids;
+    for( const auto& p : paired )
+    {
+      kv::track_id_t left_id = left_only_ids[p.first];
+      kv::track_id_t right_id = right_only_ids[p.second];
+
+      // Insert right detection under the left track ID
+      dets[1][left_id] = dets[1][right_id];
+
+      // Erase old right-only entry if IDs differ
+      if( left_id != right_id )
+      {
+        dets[1].erase( right_id );
+      }
+
+      common_ids.push_back( left_id );
+      paired_left_ids.insert( left_id );
+
+      LOG_INFO( logger(), "Paired left track " + std::to_string( left_id ) +
+                " with right track " + std::to_string( right_id ) +
+                " via " + d->m_settings.detection_pairing_method );
+    }
+
+    // Rebuild left_only_ids without paired entries
+    std::vector< kv::track_id_t > remaining_left;
+    for( const auto& id : left_only_ids )
+    {
+      if( paired_left_ids.find( id ) == paired_left_ids.end() )
+      {
+        remaining_left.push_back( id );
+      }
+    }
+    left_only_ids = remaining_left;
+  }
 
   // Separate matched detections
   std::vector< kv::track_id_t > fully_matched_ids;

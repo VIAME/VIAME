@@ -88,6 +88,38 @@ struct VIAME_CORE_EXPORT feature_matching_options
 };
 
 /**
+ * \brief Options for epipolar IOU-based stereo detection matching
+ *
+ * Projects left bounding box to right image using depth and camera geometry,
+ * then matches based on IOU between projected box and right detection boxes.
+ */
+struct VIAME_CORE_EXPORT epipolar_iou_matching_options
+{
+  double iou_threshold = 0.1;
+  double default_depth = 5.0;
+  bool require_class_match = true;
+  bool use_optimal_assignment = true;
+
+  epipolar_iou_matching_options() = default;
+};
+
+/**
+ * \brief Options for keypoint projection-based stereo detection matching
+ *
+ * Projects left head/tail keypoints to right image using depth and camera geometry,
+ * then matches based on pixel distance to right detection keypoints.
+ */
+struct VIAME_CORE_EXPORT keypoint_projection_matching_options
+{
+  double max_keypoint_distance = 50.0;
+  double default_depth = 5.0;
+  bool require_class_match = true;
+  bool use_optimal_assignment = true;
+
+  keypoint_projection_matching_options() = default;
+};
+
+/**
  * \brief Algorithms required for feature-based matching
  */
 struct VIAME_CORE_EXPORT feature_matching_algorithms
@@ -285,6 +317,52 @@ VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_featu
   const kv::image_container_sptr& image2,
   const feature_matching_algorithms& algorithms,
   const feature_matching_options& options,
+  kv::logger_handle_t logger = nullptr );
+
+/**
+ * \brief Find stereo detection matches using epipolar IOU
+ *
+ * Projects left detection bounding boxes to right image using camera geometry
+ * and a default depth, then matches based on IOU between projected boxes and
+ * actual right detection bounding boxes.
+ *
+ * \param detections1 Detections from first (left) camera
+ * \param detections2 Detections from second (right) camera
+ * \param left_cam Left camera parameters
+ * \param right_cam Right camera parameters
+ * \param options Matching options
+ * \param logger Optional logger for error messages
+ * \return Vector of (index1, index2) pairs of matched detections
+ */
+VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_epipolar_iou(
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const epipolar_iou_matching_options& options,
+  kv::logger_handle_t logger = nullptr );
+
+/**
+ * \brief Find stereo detection matches using keypoint projection
+ *
+ * Projects left head/tail keypoints to right image using camera geometry
+ * and a default depth, then matches based on average pixel distance between
+ * projected and actual right detection keypoints.
+ *
+ * \param detections1 Detections from first (left) camera
+ * \param detections2 Detections from second (right) camera
+ * \param left_cam Left camera parameters
+ * \param right_cam Right camera parameters
+ * \param options Matching options
+ * \param logger Optional logger for error messages
+ * \return Vector of (index1, index2) pairs of matched detections
+ */
+VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_keypoint_projection(
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const keypoint_projection_matching_options& options,
   kv::logger_handle_t logger = nullptr );
 
 } // end namespace core

@@ -277,6 +277,13 @@ public:
   /// Whether to record stereo measurement method as detection attribute
   bool record_stereo_method;
 
+  /// Detection pairing method: "" (disabled), "epipolar_iou", "keypoint_projection"
+  std::string detection_pairing_method;
+
+  /// Threshold for detection pairing: IOU threshold for epipolar_iou (default 0.1),
+  /// pixel distance for keypoint_projection (default 50.0)
+  double detection_pairing_threshold;
+
   // -------------------------------------------------------------------------
   // Algorithm pointers (configured via nested algo configuration)
   // -------------------------------------------------------------------------

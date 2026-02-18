@@ -771,6 +771,244 @@ find_stereo_matches_feature(
   }
 }
 
+// -----------------------------------------------------------------------------
+std::vector< std::pair< int, int > >
+find_stereo_matches_epipolar_iou(
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const epipolar_iou_matching_options& options,
+  kv::logger_handle_t logger )
+{
+  int n1 = static_cast< int >( detections1.size() );
+  int n2 = static_cast< int >( detections2.size() );
+
+  if( n1 == 0 || n2 == 0 )
+  {
+    return std::vector< std::pair< int, int > >();
+  }
+
+  // Build cost matrix (1 - IOU, so lower is better)
+  std::vector< std::vector< double > > cost_matrix( n1, std::vector< double >( n2, 1e10 ) );
+
+  for( int i = 0; i < n1; ++i )
+  {
+    const auto& det1 = detections1[i];
+    std::string class1 = get_detection_class_label( det1 );
+
+    const auto& bbox1 = det1->bounding_box();
+    if( !bbox1.is_valid() )
+    {
+      continue;
+    }
+
+    // Project left bbox center to right image at default depth
+    kv::vector_2d left_center = bbox1.center();
+    kv::vector_2d projected_center = project_left_to_right(
+      left_cam, right_cam, left_center, options.default_depth );
+
+    // Build projected bbox in right image (same width/height as left, centered at projected point)
+    double w = bbox1.width();
+    double h = bbox1.height();
+    kv::bounding_box_d projected_bbox(
+      projected_center.x() - w / 2.0,
+      projected_center.y() - h / 2.0,
+      projected_center.x() + w / 2.0,
+      projected_center.y() + h / 2.0 );
+
+    for( int j = 0; j < n2; ++j )
+    {
+      const auto& det2 = detections2[j];
+
+      // Check class match if required
+      if( options.require_class_match )
+      {
+        std::string class2 = get_detection_class_label( det2 );
+        if( class1 != class2 )
+        {
+          continue;
+        }
+      }
+
+      const auto& bbox2 = det2->bounding_box();
+      if( !bbox2.is_valid() )
+      {
+        continue;
+      }
+
+      // Compute IOU between projected left bbox and actual right bbox
+      double iou = compute_iou( projected_bbox, bbox2 );
+
+      // Check threshold
+      if( iou >= options.iou_threshold )
+      {
+        cost_matrix[i][j] = 1.0 - iou;
+      }
+    }
+  }
+
+  // Find optimal assignment
+  if( options.use_optimal_assignment )
+  {
+    return greedy_assignment( cost_matrix, n1, n2 );
+  }
+  else
+  {
+    // Simple sequential matching
+    std::vector< std::pair< int, int > > matches;
+    std::set< int > used_j;
+
+    for( int i = 0; i < n1; ++i )
+    {
+      int best_j = -1;
+      double best_cost = 1e10;
+
+      for( int j = 0; j < n2; ++j )
+      {
+        if( used_j.find( j ) != used_j.end() )
+        {
+          continue;
+        }
+
+        if( cost_matrix[i][j] < best_cost )
+        {
+          best_cost = cost_matrix[i][j];
+          best_j = j;
+        }
+      }
+
+      if( best_j >= 0 && best_cost < 1e9 )
+      {
+        matches.push_back( std::make_pair( i, best_j ) );
+        used_j.insert( best_j );
+      }
+    }
+
+    return matches;
+  }
+}
+
+// -----------------------------------------------------------------------------
+std::vector< std::pair< int, int > >
+find_stereo_matches_keypoint_projection(
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const keypoint_projection_matching_options& options,
+  kv::logger_handle_t logger )
+{
+  int n1 = static_cast< int >( detections1.size() );
+  int n2 = static_cast< int >( detections2.size() );
+
+  if( n1 == 0 || n2 == 0 )
+  {
+    return std::vector< std::pair< int, int > >();
+  }
+
+  // Build cost matrix using average keypoint distance
+  std::vector< std::vector< double > > cost_matrix( n1, std::vector< double >( n2, 1e10 ) );
+
+  for( int i = 0; i < n1; ++i )
+  {
+    const auto& det1 = detections1[i];
+    std::string class1 = get_detection_class_label( det1 );
+
+    // Check that left detection has head and tail keypoints
+    const auto& kp1 = det1->keypoints();
+    if( kp1.find( "head" ) == kp1.end() || kp1.find( "tail" ) == kp1.end() )
+    {
+      continue;
+    }
+
+    kv::vector_2d left_head( kp1.at( "head" )[0], kp1.at( "head" )[1] );
+    kv::vector_2d left_tail( kp1.at( "tail" )[0], kp1.at( "tail" )[1] );
+
+    // Project left keypoints to right image at default depth
+    kv::vector_2d proj_head = project_left_to_right(
+      left_cam, right_cam, left_head, options.default_depth );
+    kv::vector_2d proj_tail = project_left_to_right(
+      left_cam, right_cam, left_tail, options.default_depth );
+
+    for( int j = 0; j < n2; ++j )
+    {
+      const auto& det2 = detections2[j];
+
+      // Check class match if required
+      if( options.require_class_match )
+      {
+        std::string class2 = get_detection_class_label( det2 );
+        if( class1 != class2 )
+        {
+          continue;
+        }
+      }
+
+      // Check that right detection has head and tail keypoints
+      const auto& kp2 = det2->keypoints();
+      if( kp2.find( "head" ) == kp2.end() || kp2.find( "tail" ) == kp2.end() )
+      {
+        continue;
+      }
+
+      kv::vector_2d right_head( kp2.at( "head" )[0], kp2.at( "head" )[1] );
+      kv::vector_2d right_tail( kp2.at( "tail" )[0], kp2.at( "tail" )[1] );
+
+      // Compute average distance between projected and actual keypoints
+      double head_dist = ( proj_head - right_head ).norm();
+      double tail_dist = ( proj_tail - right_tail ).norm();
+      double avg_dist = ( head_dist + tail_dist ) / 2.0;
+
+      // Check threshold
+      if( avg_dist <= options.max_keypoint_distance )
+      {
+        cost_matrix[i][j] = avg_dist;
+      }
+    }
+  }
+
+  // Find optimal assignment
+  if( options.use_optimal_assignment )
+  {
+    return greedy_assignment( cost_matrix, n1, n2 );
+  }
+  else
+  {
+    // Simple sequential matching
+    std::vector< std::pair< int, int > > matches;
+    std::set< int > used_j;
+
+    for( int i = 0; i < n1; ++i )
+    {
+      int best_j = -1;
+      double best_cost = 1e10;
+
+      for( int j = 0; j < n2; ++j )
+      {
+        if( used_j.find( j ) != used_j.end() )
+        {
+          continue;
+        }
+
+        if( cost_matrix[i][j] < best_cost )
+        {
+          best_cost = cost_matrix[i][j];
+          best_j = j;
+        }
+      }
+
+      if( best_j >= 0 && best_cost < 1e9 )
+      {
+        matches.push_back( std::make_pair( i, best_j ) );
+        used_j.insert( best_j );
+      }
+    }
+
+    return matches;
+  }
+}
+
 } // end namespace core
 
 } // end namespace viame

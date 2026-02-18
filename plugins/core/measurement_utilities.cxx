@@ -59,6 +59,8 @@ map_keypoints_to_camera_settings
   , use_disparity_aware_feature_search( true )
   , feature_search_depth( 5.0 )
   , record_stereo_method( true )
+  , detection_pairing_method( "" )
+  , detection_pairing_threshold( 0.1 )
 {
 }
 
@@ -194,6 +196,17 @@ map_keypoints_to_camera_settings
     "epipolar_template_matching, feature_descriptor, ransac_feature, "
     "depth_projection, external_disparity, or compute_disparity." );
 
+  config->set_value( "detection_pairing_method", detection_pairing_method,
+    "Method for pairing left/right detections that do not share the same track ID. "
+    "Set to empty string (default) to disable detection pairing. "
+    "Valid options: 'epipolar_iou' (project left bbox to right using depth, match by IOU), "
+    "'keypoint_projection' (project left head/tail keypoints to right, match by pixel distance)." );
+
+  config->set_value( "detection_pairing_threshold", detection_pairing_threshold,
+    "Threshold for detection pairing. For 'epipolar_iou' method, this is the minimum IOU "
+    "threshold (default 0.1). For 'keypoint_projection' method, this is the maximum average "
+    "keypoint pixel distance (default 50.0)." );
+
   // Add nested algorithm configurations
   kv::algo::detect_features::get_nested_algo_configuration(
     "feature_detector", config, feature_detector );
@@ -237,6 +250,8 @@ map_keypoints_to_camera_settings
   use_disparity_aware_feature_search = config->get_value< bool >( "use_disparity_aware_feature_search", use_disparity_aware_feature_search );
   feature_search_depth = config->get_value< double >( "feature_search_depth", feature_search_depth );
   record_stereo_method = config->get_value< bool >( "record_stereo_method", record_stereo_method );
+  detection_pairing_method = config->get_value< std::string >( "detection_pairing_method", detection_pairing_method );
+  detection_pairing_threshold = config->get_value< double >( "detection_pairing_threshold", detection_pairing_threshold );
 
   // Configure nested algorithms
   kv::algo::detect_features::set_nested_algo_configuration(
