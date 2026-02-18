@@ -419,25 +419,6 @@ process track_filter_r
 connect from tracker_r.object_track_set
         to   track_filter_r.object_track_set
 
-# ============================ TRACK PAIRING ==================================
-# Pairs left and right camera tracks using per-frame matching. Matched tracks
-# are assigned aligned IDs so SEAGIS can identify corresponding detections.
-# Matching method can be changed to: calibration, feature_matching,
-# epipolar_iou, or keypoint_projection (the latter two require calibration_file).
-
-process pairer
-  :: pair_stereo_detections
-  :matching_method                             iou
-  :iou_threshold                               0.1
-  :output_unmatched                            true
-
-connect from track_filter_l.object_track_set
-        to   pairer.object_track_set1
-connect from track_filter_r.object_track_set
-        to   pairer.object_track_set2
-connect from downsampler.timestamp
-        to   pairer.timestamp
-
 # ============================ SEAGIS MEASUREMENT =============================
 
 process measurer
@@ -446,15 +427,18 @@ process measurer
   #:licence_key2                                [INSERT_HERE]
   relativepath left_camera_file =              models/SC6_camera3_2024.CamCAL
   relativepath right_camera_file =             models/SC6_satelliteA_2024.CamCAL
+  :assume_inputs_paired                        false
+  :detection_pairing_method                    keypoint_distance
+  :detection_pairing_threshold                 50.0
   :enable_epipolar_matching                    true
   :epipolar_min_disparity                      2
   :epipolar_max_disparity                      300
   :template_size                               13
   :template_matching_threshold                 0.5
 
-connect from pairer.object_track_set1
+connect from track_filter_l.object_track_set
         to   measurer.object_track_set1
-connect from pairer.object_track_set2
+connect from track_filter_r.object_track_set
         to   measurer.object_track_set2
 connect from downsampler.output_1
         to   measurer.image1
