@@ -157,7 +157,7 @@ connect from tracker.object_track_set
 # ============================= CORE MEASUREMENT ==============================
 
 process measurer
-  :: core_measurement
+  :: compute_measurements
   relativepath calibration_file =              models/seagis-cal.json
 
 connect from track_filter.object_track_set

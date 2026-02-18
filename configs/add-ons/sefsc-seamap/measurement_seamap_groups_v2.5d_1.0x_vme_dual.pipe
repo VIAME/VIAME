@@ -443,7 +443,7 @@ connect from downsampler.timestamp
 # ============================= CORE MEASUREMENT ==============================
 
 process measurer
-  :: core_measurement
+  :: compute_measurements
   relativepath calibration_file =              models/seagis-cal.json
 
 connect from pairer.object_track_set1
