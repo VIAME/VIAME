@@ -23,7 +23,7 @@ include common_stereo_input_with_tracks.pipe
 process measurer
   :: compute_measurements
   :calibration_file                            ./calibration_matrices.npz
-  :matching_methods                            input_pairs_only
+  :matching_methods                            input_pairs_only,epipolar_template_matching
 
   # ---------------------------------------------------------------------------
   # Depth projection parameters
