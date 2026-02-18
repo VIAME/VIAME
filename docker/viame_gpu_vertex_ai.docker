@@ -7,8 +7,8 @@ RUN pip install --no-cache-dir \
   "google-cloud-storage>=2.10" \
   "google-cloud-aiplatform>=1.38"
 
-# Copy vertex-ai plugin into the VIAME install
-COPY plugins/vertex-ai/*.py /opt/noaa/viame/plugins/vertex-ai/
+# Copy vertex-ai app into the VIAME configs directory
+COPY plugins/vertex-ai/*.py /opt/noaa/viame/configs/
 
 WORKDIR /workspace
 
@@ -21,7 +21,7 @@ EXPOSE 8080
 # Vertex AI requires ENTRYPOINT to run indefinitely
 ENTRYPOINT ["bash", "-c", \
   "source /opt/noaa/viame/setup_viame.sh && \
-   cd /opt/noaa/viame/plugins/vertex-ai && \
+   cd /opt/noaa/viame/configs && \
    gunicorn --bind 0.0.0.0:${AIP_HTTP_PORT} \
             --timeout 600 \
             --workers 1 \
