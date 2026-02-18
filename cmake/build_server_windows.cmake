@@ -35,6 +35,10 @@ add_option("VIAME_BUILD_PLUGINS_DIR" "C:/tmp/vm1")
 add_option("VIAME_BUILD_DIVE_FROM_SOURCE" "ON")
 add_option("VIAME_BUILD_MAX_THREADS" "5")
 
+# SeaGIS plugin enable and dir
+add_option("VIAME_ENABLE_SEAGIS" "ON")
+add_option("SEAGIS_ROOT_DIR" "C:/Program Files/SeaGIS")
+
 # Finalize OPTIONS variable
 finalize_options()
 
