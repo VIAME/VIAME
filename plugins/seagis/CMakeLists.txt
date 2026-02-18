@@ -10,6 +10,12 @@ set( process_sources
   seagis_measurement_process.cxx
 )
 
+# Mock mode: compile the mock implementation instead of linking the real library
+if( VIAME_BUILD_SEAGIS_TEST_LIB )
+  list( APPEND process_sources StereoLibLX_mock.cxx )
+  message( STATUS "SEAGIS: Using mock StereoLibLX (no licence required)" )
+endif()
+
 # Include SEAGIS headers
 include_directories( SYSTEM ${SEAGIS_INCLUDE_DIR} )
 
@@ -21,9 +27,12 @@ set( SEAGIS_LINK_LIBRARIES
   kwiver::vital_logger
   kwiver::vital_util
   kwiver::sprokit_pipeline
-  ${SEAGIS_LIBRARY}
   viame_core
 )
+
+if( NOT VIAME_BUILD_SEAGIS_TEST_LIB )
+  list( APPEND SEAGIS_LINK_LIBRARIES ${SEAGIS_LIBRARY} )
+endif()
 
 # OpenCV for epipolar template matching
 if( VIAME_ENABLE_OPENCV )

@@ -808,6 +808,8 @@ if( VIAME_ENABLE_DIVE AND NOT VIAME_ENABLE_FFMPEG-X264 )
 endif()
 
 if( VIAME_ENABLE_SEAGIS )
+  option( VIAME_BUILD_SEAGIS_TEST_LIB "Use mock lib for testing only" OFF )
+
   set( SEAGIS_ROOT_DIR ""
        CACHE PATH "Path to SEAGIS StereoLibLX library" )
 
@@ -815,14 +817,19 @@ if( VIAME_ENABLE_SEAGIS )
 
   set( SEAGIS_INCLUDE_DIR "${SEAGIS_ROOT_DIR}"
        CACHE INTERNAL "Path to SEAGIS include directory" )
-  set( SEAGIS_LIBRARY "${SEAGIS_ROOT_DIR}/StereoLibLX.lib"
-       CACHE INTERNAL "Path to SEAGIS library file" )
+
+  if( VIAME_BUILD_SEAGIS_TEST_LIB )
+    set( SEAGIS_LIBRARY "" CACHE INTERNAL "Not used in mock mode" )
+  else()
+    set( SEAGIS_LIBRARY "${SEAGIS_ROOT_DIR}/StereoLibLX.lib"
+         CACHE INTERNAL "Path to SEAGIS library file" )
+  endif()
 
   if( NOT EXISTS "${SEAGIS_INCLUDE_DIR}/LX_StereoInterface.h" )
     message( FATAL_ERROR "SEAGIS include directory does not contain LX_StereoInterface.h. "
       "Please set SEAGIS_ROOT_DIR to the correct location." )
   endif()
-  if( NOT EXISTS "${SEAGIS_LIBRARY}" )
+  if( NOT VIAME_BUILD_SEAGIS_TEST_LIB AND NOT EXISTS "${SEAGIS_LIBRARY}" )
     message( FATAL_ERROR "SEAGIS library not found at ${SEAGIS_LIBRARY}. "
       "Please set SEAGIS_LIBRARY to the correct path." )
   endif()
