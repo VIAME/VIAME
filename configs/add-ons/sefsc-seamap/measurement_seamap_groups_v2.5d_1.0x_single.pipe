@@ -1,0 +1,212 @@
+# =============================================================================
+# Title: SeaMap Stereo Measurement (Single Camera Detection)
+#
+# Description: Stereo measurement pipeline that detects/tracks on the LEFT
+# camera only. SAM2 segmentation and head/tail keypoint identification are
+# applied to left-camera detections. The tracked result is fed to both inputs
+# of the SEAGIS measurement process along with both stereo images. SEAGIS
+# uses epipolar template matching to find corresponding right-camera points
+# for each left-camera keypoint, then triangulates to produce 3D measurements.
+#
+# Requires: SEAGIS .CAM calibration files for left and right cameras.
+# =============================================================================
+
+# ============================= GLOBAL PROPERTIES =============================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================= INPUT FRAME LISTS =============================
+
+include common_stereo_input_with_downsampler.pipe
+
+# ================================= DETECTOR ==================================
+
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+connect from downsampler.output_1
+        to   detector_input.image
+
+process detector1
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  :frame_downsample                            2
+  :frame_offset                                0
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      original_and_resized
+    :chip_width                                800
+    :chip_height                               800
+    :chip_width_step                           600
+    :chip_height_step                          400
+    :chip_adaptive_thresh                      1500000
+
+    block detector:netharn
+      relativepath deployed =                  models/seamap_bw_fish_cfrnn_800x800.zip
+    endblock
+  endblock
+
+connect from detector_input.image
+        to   detector1.image
+
+process detector2
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  :frame_downsample                            2
+  :frame_offset                                1
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      original_and_resized
+    :chip_width                                800
+    :chip_height                               800
+    :chip_width_step                           600
+    :chip_height_step                          400
+    :chip_adaptive_thresh                      1500000
+
+    block detector:netharn
+      relativepath deployed =                  models/seamap_bw_fish_cfrnn_800x800.zip
+    endblock
+  endblock
+
+connect from detector_input.image
+        to   detector2.image
+
+process detector_merger
+  :: merge_detection_sets
+
+connect from detector1.detected_object_set
+        to   detector_merger.detected_object_set1
+connect from detector2.detected_object_set
+        to   detector_merger.detected_object_set2
+
+# ================================ CLASSIFIER =================================
+
+include common_seamap_classifier_groups_v2.5.pipe
+
+connect from detector_input.image
+        to   classifier_groups_large.image
+connect from detector_input.image
+        to   classifier_groups_small.image
+connect from detector_merger.detected_object_set
+        to   classifier_groups_large.detected_object_set
+
+# =============================== KP ASSIGNMENT ===============================
+
+process add_segmentations
+  :: refine_detections
+  :refiner:type                                ocv_windowed
+
+  block refiner:ocv_windowed
+    :mode                                      adaptive
+    :chip_adaptive_thresh                      25000000
+    :chip_width                                2000
+    :chip_height                               2000
+    :chip_step_width                           1000
+    :chip_step_height                          1000
+
+    :refiner:type                              sam2
+    :refiner:sam2:cfg                          configs/sam2.1/sam2.1_hiera_b+.yaml
+    :refiner:sam2:overwrite_existing           false
+    relativepath refiner:sam2:checkpoint =     models/sam2_hbp.pt
+  endblock
+
+process add_head_tail
+  :: add_keypoints_from_oriented_bbox
+
+connect from detector_input.image
+        to   add_segmentations.image
+connect from classifier_groups_output.detected_object_set
+        to   add_segmentations.detected_object_set
+connect from add_segmentations.detected_object_set
+        to   add_head_tail.detected_object_set
+
+# =============================== CORE TRACKER ================================
+
+include common_seamap_tracker_v2.5.pipe
+
+connect from downsampler.output_1
+        to   tracker.image
+connect from downsampler.timestamp
+        to   tracker.timestamp
+connect from add_head_tail.detected_object_set
+        to   tracker.detected_object_set
+
+process track_filter
+  :: filter_object_tracks
+  :required_states                             5
+
+connect from tracker.object_track_set
+        to   track_filter.object_track_set
+
+# ============================ SEAGIS MEASUREMENT =============================
+
+process measurer
+  :: seagis_measurement
+  :left_camera_file                            ./left_camera.CAM
+  :right_camera_file                           ./right_camera.CAM
+  :enable_epipolar_matching                    true
+  :epipolar_min_disparity                      2
+  :epipolar_max_disparity                      300
+  :template_size                               13
+  :template_matching_threshold                 0.5
+
+connect from track_filter.object_track_set
+        to   measurer.object_track_set1
+connect from track_filter.object_track_set
+        to   measurer.object_track_set2
+connect from downsampler.output_1
+        to   measurer.image1
+connect from downsampler.output_3
+        to   measurer.image2
+connect from downsampler.timestamp
+        to   measurer.timestamp
+
+# ================================== WRITERS ==================================
+
+process track_writer1
+  :: write_object_track
+  :file_name                                   computed_tracks1.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:write_time_as_uid          true
+  :writer:viame_csv:tot_option                 weighted_scaled_by_conf
+  :writer:viame_csv:tot_ignore_class           UNKNOWNFISH
+
+connect from measurer.object_track_set1
+        to   track_writer1.object_track_set
+connect from downsampler.timestamp
+        to   track_writer1.timestamp
+connect from downsampler.output_2
+        to   track_writer1.image_file_name
+
+process track_writer2
+  :: write_object_track
+  :file_name                                   computed_tracks2.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:write_time_as_uid          true
+  :writer:viame_csv:tot_option                 weighted_scaled_by_conf
+  :writer:viame_csv:tot_ignore_class           UNKNOWNFISH
+
+connect from measurer.object_track_set2
+        to   track_writer2.object_track_set
+connect from downsampler.timestamp
+        to   track_writer2.timestamp
+connect from downsampler.output_4
+        to   track_writer2.image_file_name
+
+# -- end of file --

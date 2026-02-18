@@ -1,0 +1,500 @@
+# =============================================================================
+# Title: SeaMap Stereo Measurement (Dual Camera Detection)
+#
+# Description: Stereo measurement pipeline that runs detection, classification,
+# SAM2 segmentation, head/tail keypoint identification, and tracking on BOTH
+# left and right cameras independently. Tracks are paired across cameras using
+# the pair_stereo_detections process. The SEAGIS measurement process then
+# triangulates matched keypoints for 3D measurements, with epipolar template
+# matching as fallback for tracks where only one camera has keypoints.
+#
+# Requires: SEAGIS .CAM calibration files for left and right cameras.
+# =============================================================================
+
+# ============================= GLOBAL PROPERTIES =============================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================= INPUT FRAME LISTS =============================
+
+include common_stereo_input_with_downsampler.pipe
+
+# ========================= LEFT CAMERA DETECTOR ==============================
+
+process detector_input_l
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+connect from downsampler.output_1
+        to   detector_input_l.image
+
+process detector1_l
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  :frame_downsample                            2
+  :frame_offset                                0
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      original_and_resized
+    :chip_width                                800
+    :chip_height                               800
+    :chip_width_step                           600
+    :chip_height_step                          400
+    :chip_adaptive_thresh                      1500000
+
+    block detector:netharn
+      relativepath deployed =                  models/seamap_bw_fish_cfrnn_800x800.zip
+    endblock
+  endblock
+
+connect from detector_input_l.image
+        to   detector1_l.image
+
+process detector2_l
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  :frame_downsample                            2
+  :frame_offset                                1
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      original_and_resized
+    :chip_width                                800
+    :chip_height                               800
+    :chip_width_step                           600
+    :chip_height_step                          400
+    :chip_adaptive_thresh                      1500000
+
+    block detector:netharn
+      relativepath deployed =                  models/seamap_bw_fish_cfrnn_800x800.zip
+    endblock
+  endblock
+
+connect from detector_input_l.image
+        to   detector2_l.image
+
+process detector_merger_l
+  :: merge_detection_sets
+
+connect from detector1_l.detected_object_set
+        to   detector_merger_l.detected_object_set1
+connect from detector2_l.detected_object_set
+        to   detector_merger_l.detected_object_set2
+
+# ======================== LEFT CAMERA CLASSIFIER =============================
+
+process classifier_groups_large_l
+  :: refine_detections
+  :refiner:type                                netharn
+
+  block refiner:netharn
+    relativepath deployed =                    models/seamap_groups_enet2s_large.zip
+
+    :batch_size                                auto
+    :area_pivot                                7000
+    :chip_method                               native_square
+    :chip_width                                224
+    :chip_expansion                            1.3
+  endblock
+
+process classifier_groups_small_l
+  :: refine_detections
+  :refiner:type                                netharn
+
+  block refiner:netharn
+    relativepath deployed =                    models/seamap_groups_enet2s_small.zip
+
+    :batch_size                                auto
+    :area_pivot                                -7000
+    :area_lower_bound                          100
+    :chip_method                               native_square
+    :chip_width                                224
+    :chip_expansion                            1.3
+  endblock
+
+connect from classifier_groups_large_l.detected_object_set
+        to   classifier_groups_small_l.detected_object_set
+
+process classifier_groups_output_l
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.80
+    :max_scale_difference                      10.0
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from classifier_groups_small_l.detected_object_set
+        to   classifier_groups_output_l.detected_object_set
+
+connect from detector_input_l.image
+        to   classifier_groups_large_l.image
+connect from detector_input_l.image
+        to   classifier_groups_small_l.image
+connect from detector_merger_l.detected_object_set
+        to   classifier_groups_large_l.detected_object_set
+
+# ======================== LEFT CAMERA KP ASSIGNMENT ==========================
+
+process add_segmentations_l
+  :: refine_detections
+  :refiner:type                                ocv_windowed
+
+  block refiner:ocv_windowed
+    :mode                                      adaptive
+    :chip_adaptive_thresh                      25000000
+    :chip_width                                2000
+    :chip_height                               2000
+    :chip_step_width                           1000
+    :chip_step_height                          1000
+
+    :refiner:type                              sam2
+    :refiner:sam2:cfg                          configs/sam2.1/sam2.1_hiera_b+.yaml
+    :refiner:sam2:overwrite_existing           false
+    relativepath refiner:sam2:checkpoint =     models/sam2_hbp.pt
+  endblock
+
+process add_head_tail_l
+  :: add_keypoints_from_oriented_bbox
+
+connect from detector_input_l.image
+        to   add_segmentations_l.image
+connect from classifier_groups_output_l.detected_object_set
+        to   add_segmentations_l.detected_object_set
+connect from add_segmentations_l.detected_object_set
+        to   add_head_tail_l.detected_object_set
+
+# ========================== LEFT CAMERA TRACKER ==============================
+
+process tracker_l
+  :: track_objects
+  :track_objects:type                          srnn
+
+block track_objects:srnn
+  :siamese_model_input_size                    224
+  :detection_select_threshold                  0.001
+  :similarity_threshold                        0.200
+  :terminate_track_threshold                   10
+  :add_features_to_detections                  False
+  :IOU_tracker_flag                            True
+  :IOU_accept_threshold                        0.500
+  :IOU_reject_threshold                        0.100
+  :track_search_threshold                      2
+  :gpu_list                                    0
+
+  relativepath siamese_model_path =            models/seamap_tracker_siamese.pt
+  :siamese_batch_size                          64
+
+  relativepath targetRNN_AIM_model_path =      models/seamap_tracker_rnn_f_aim.pt
+  relativepath targetRNN_AIM_V_model_path =    models/seamap_tracker_rnn_v_aim.pt
+  :targetRNN_normalized_models                 True
+  :targetRNN_batch_size                        128
+endblock
+
+connect from downsampler.output_1
+        to   tracker_l.image
+connect from downsampler.timestamp
+        to   tracker_l.timestamp
+connect from add_head_tail_l.detected_object_set
+        to   tracker_l.detected_object_set
+
+process track_filter_l
+  :: filter_object_tracks
+  :required_states                             5
+
+connect from tracker_l.object_track_set
+        to   track_filter_l.object_track_set
+
+# ========================= RIGHT CAMERA DETECTOR =============================
+
+process detector_input_r
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+connect from downsampler.output_3
+        to   detector_input_r.image
+
+process detector1_r
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  :frame_downsample                            2
+  :frame_offset                                0
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      original_and_resized
+    :chip_width                                800
+    :chip_height                               800
+    :chip_width_step                           600
+    :chip_height_step                          400
+    :chip_adaptive_thresh                      1500000
+
+    block detector:netharn
+      relativepath deployed =                  models/seamap_bw_fish_cfrnn_800x800.zip
+    endblock
+  endblock
+
+connect from detector_input_r.image
+        to   detector1_r.image
+
+process detector2_r
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  :frame_downsample                            2
+  :frame_offset                                1
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      original_and_resized
+    :chip_width                                800
+    :chip_height                               800
+    :chip_width_step                           600
+    :chip_height_step                          400
+    :chip_adaptive_thresh                      1500000
+
+    block detector:netharn
+      relativepath deployed =                  models/seamap_bw_fish_cfrnn_800x800.zip
+    endblock
+  endblock
+
+connect from detector_input_r.image
+        to   detector2_r.image
+
+process detector_merger_r
+  :: merge_detection_sets
+
+connect from detector1_r.detected_object_set
+        to   detector_merger_r.detected_object_set1
+connect from detector2_r.detected_object_set
+        to   detector_merger_r.detected_object_set2
+
+# ======================== RIGHT CAMERA CLASSIFIER ============================
+
+process classifier_groups_large_r
+  :: refine_detections
+  :refiner:type                                netharn
+
+  block refiner:netharn
+    relativepath deployed =                    models/seamap_groups_enet2s_large.zip
+
+    :batch_size                                auto
+    :area_pivot                                7000
+    :chip_method                               native_square
+    :chip_width                                224
+    :chip_expansion                            1.3
+  endblock
+
+process classifier_groups_small_r
+  :: refine_detections
+  :refiner:type                                netharn
+
+  block refiner:netharn
+    relativepath deployed =                    models/seamap_groups_enet2s_small.zip
+
+    :batch_size                                auto
+    :area_pivot                                -7000
+    :area_lower_bound                          100
+    :chip_method                               native_square
+    :chip_width                                224
+    :chip_expansion                            1.3
+  endblock
+
+connect from classifier_groups_large_r.detected_object_set
+        to   classifier_groups_small_r.detected_object_set
+
+process classifier_groups_output_r
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.80
+    :max_scale_difference                      10.0
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from classifier_groups_small_r.detected_object_set
+        to   classifier_groups_output_r.detected_object_set
+
+connect from detector_input_r.image
+        to   classifier_groups_large_r.image
+connect from detector_input_r.image
+        to   classifier_groups_small_r.image
+connect from detector_merger_r.detected_object_set
+        to   classifier_groups_large_r.detected_object_set
+
+# ======================== RIGHT CAMERA KP ASSIGNMENT =========================
+
+process add_segmentations_r
+  :: refine_detections
+  :refiner:type                                ocv_windowed
+
+  block refiner:ocv_windowed
+    :mode                                      adaptive
+    :chip_adaptive_thresh                      25000000
+    :chip_width                                2000
+    :chip_height                               2000
+    :chip_step_width                           1000
+    :chip_step_height                          1000
+
+    :refiner:type                              sam2
+    :refiner:sam2:cfg                          configs/sam2.1/sam2.1_hiera_b+.yaml
+    :refiner:sam2:overwrite_existing           false
+    relativepath refiner:sam2:checkpoint =     models/sam2_hbp.pt
+  endblock
+
+process add_head_tail_r
+  :: add_keypoints_from_oriented_bbox
+
+connect from detector_input_r.image
+        to   add_segmentations_r.image
+connect from classifier_groups_output_r.detected_object_set
+        to   add_segmentations_r.detected_object_set
+connect from add_segmentations_r.detected_object_set
+        to   add_head_tail_r.detected_object_set
+
+# ========================== RIGHT CAMERA TRACKER =============================
+
+process tracker_r
+  :: track_objects
+  :track_objects:type                          srnn
+
+block track_objects:srnn
+  :siamese_model_input_size                    224
+  :detection_select_threshold                  0.001
+  :similarity_threshold                        0.200
+  :terminate_track_threshold                   10
+  :add_features_to_detections                  False
+  :IOU_tracker_flag                            True
+  :IOU_accept_threshold                        0.500
+  :IOU_reject_threshold                        0.100
+  :track_search_threshold                      2
+  :gpu_list                                    0
+
+  relativepath siamese_model_path =            models/seamap_tracker_siamese.pt
+  :siamese_batch_size                          64
+
+  relativepath targetRNN_AIM_model_path =      models/seamap_tracker_rnn_f_aim.pt
+  relativepath targetRNN_AIM_V_model_path =    models/seamap_tracker_rnn_v_aim.pt
+  :targetRNN_normalized_models                 True
+  :targetRNN_batch_size                        128
+endblock
+
+connect from downsampler.output_3
+        to   tracker_r.image
+connect from downsampler.timestamp
+        to   tracker_r.timestamp
+connect from add_head_tail_r.detected_object_set
+        to   tracker_r.detected_object_set
+
+process track_filter_r
+  :: filter_object_tracks
+  :required_states                             5
+
+connect from tracker_r.object_track_set
+        to   track_filter_r.object_track_set
+
+# ============================ TRACK PAIRING ==================================
+# Pairs left and right camera tracks using per-frame matching. Matched tracks
+# are assigned aligned IDs so SEAGIS can identify corresponding detections.
+# Matching method can be changed to: calibration, feature_matching,
+# epipolar_iou, or keypoint_projection (the latter two require calibration_file).
+
+process pairer
+  :: pair_stereo_detections
+  :matching_method                             iou
+  :iou_threshold                               0.1
+  :output_unmatched                            true
+
+connect from track_filter_l.object_track_set
+        to   pairer.object_track_set1
+connect from track_filter_r.object_track_set
+        to   pairer.object_track_set2
+connect from downsampler.output_1
+        to   pairer.image1
+connect from downsampler.output_3
+        to   pairer.image2
+connect from downsampler.timestamp
+        to   pairer.timestamp
+
+# ============================ SEAGIS MEASUREMENT =============================
+
+process measurer
+  :: seagis_measurement
+  :left_camera_file                            ./left_camera.CAM
+  :right_camera_file                           ./right_camera.CAM
+  :enable_epipolar_matching                    true
+  :epipolar_min_disparity                      2
+  :epipolar_max_disparity                      300
+  :template_size                               13
+  :template_matching_threshold                 0.5
+
+connect from pairer.object_track_set1
+        to   measurer.object_track_set1
+connect from pairer.object_track_set2
+        to   measurer.object_track_set2
+connect from downsampler.output_1
+        to   measurer.image1
+connect from downsampler.output_3
+        to   measurer.image2
+connect from downsampler.timestamp
+        to   measurer.timestamp
+
+# ================================== WRITERS ==================================
+
+process track_writer1
+  :: write_object_track
+  :file_name                                   computed_tracks1.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:write_time_as_uid          true
+  :writer:viame_csv:tot_option                 weighted_scaled_by_conf
+  :writer:viame_csv:tot_ignore_class           UNKNOWNFISH
+
+connect from measurer.object_track_set1
+        to   track_writer1.object_track_set
+connect from downsampler.timestamp
+        to   track_writer1.timestamp
+connect from downsampler.output_2
+        to   track_writer1.image_file_name
+
+process track_writer2
+  :: write_object_track
+  :file_name                                   computed_tracks2.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:write_time_as_uid          true
+  :writer:viame_csv:tot_option                 weighted_scaled_by_conf
+  :writer:viame_csv:tot_ignore_class           UNKNOWNFISH
+
+connect from measurer.object_track_set2
+        to   track_writer2.object_track_set
+connect from downsampler.timestamp
+        to   track_writer2.timestamp
+connect from downsampler.output_4
+        to   track_writer2.image_file_name
+
+# -- end of file --
