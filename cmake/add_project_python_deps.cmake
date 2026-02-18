@@ -158,6 +158,13 @@ if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pycocotools" )
 endif()
 
+# For Vertex AI custom container support
+if( VIAME_ENABLE_VERTEX_AI )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "flask>=2.3" "gunicorn>=21.2" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "google-cloud-storage>=2.10" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "google-cloud-aiplatform>=1.38" )
+endif()
+
 if( VIAME_ENABLE_TENSORFLOW )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "humanfriendly" )
   set( TF_ARGS "" )
