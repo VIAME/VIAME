@@ -59,6 +59,189 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
+import cv2
+
+
+class EpipolarTemplateMatcher:
+    """
+    Per-point stereo matching along epipolar curves using template matching.
+
+    Mirrors the epipolar_template_matching method in measurement_utilities.cxx.
+    Uses camera calibration to compute epipolar curves in unrectified images,
+    then matches template patches from the source image along the curve in
+    the target image using Normalized Cross-Correlation (NCC).
+    """
+
+    def __init__(
+        self,
+        template_size=13,
+        template_matching_threshold=0.5,
+        epipolar_min_disparity=2.0,
+        epipolar_max_disparity=300.0,
+        epipolar_num_samples=5000,
+    ):
+        self._template_size = template_size
+        self._threshold = template_matching_threshold
+        self._min_disparity = epipolar_min_disparity
+        self._max_disparity = epipolar_max_disparity
+        self._num_samples = epipolar_num_samples
+        self._K_left = None
+        self._K_left_inv = None
+        self._K_right = None
+        self._R = None
+        self._T = None
+        self._min_depth = 0.0
+        self._max_depth = 0.0
+        self._calibrated = False
+
+    def _log(self, msg):
+        print(f"[EpipolarMatcher] {msg}", file=sys.stderr, flush=True)
+
+    def load_calibration(self, filepath):
+        """
+        Load stereo calibration from a file using KWIVER's StereoCalibration.
+
+        Supports .npz, .json, and .mat formats via StereoCalibration.from_file().
+        """
+        from viame.opencv.stereo_algos import StereoCalibration
+
+        self._log(f"Loading calibration from: {filepath}")
+        cal = StereoCalibration.from_file(filepath)
+
+        # Extract intrinsic matrices (3x3)
+        self._K_left, self._K_right = cal.intrinsic_matrices()
+        self._K_left = np.array(self._K_left, dtype=np.float64)
+        self._K_right = np.array(self._K_right, dtype=np.float64)
+        self._K_left_inv = np.linalg.inv(self._K_left)
+
+        # Extract extrinsic R, T from the right camera
+        om = cal.data['right']['extrinsic']['om']
+        self._R = cv2.Rodrigues(np.array(om, dtype=np.float64))[0]
+        self._T = np.array(
+            cal.data['right']['extrinsic']['T'], dtype=np.float64).flatten()
+
+        # Convert disparity range to depth range: depth = fx * baseline / disparity
+        fx_l = self._K_left[0, 0]
+        baseline = np.linalg.norm(self._T)
+        if (self._min_disparity > 0 and self._max_disparity > 0
+                and fx_l > 0 and baseline > 0):
+            self._min_depth = fx_l * baseline / self._max_disparity
+            self._max_depth = fx_l * baseline / self._min_disparity
+        else:
+            self._min_depth = 1000.0
+            self._max_depth = 100000.0
+
+        self._calibrated = True
+
+        self._log(f"Calibration loaded: fx_l={fx_l:.1f}, "
+                  f"baseline={baseline:.4f}, "
+                  f"depth_range=[{self._min_depth:.1f}, {self._max_depth:.1f}]")
+
+    @property
+    def calibrated(self):
+        return self._calibrated
+
+    def _compute_epipolar_points(self, source_point):
+        """Compute epipolar curve in right image for a left image point."""
+        pt_h = np.array([source_point[0], source_point[1], 1.0])
+        normalized = self._K_left_inv @ pt_h
+        ray_dir = normalized / np.linalg.norm(normalized)
+
+        num = self._num_samples
+        depth_step = (self._max_depth - self._min_depth) / max(num - 1, 1)
+
+        points = []
+        prev_px = prev_py = None
+
+        for i in range(num):
+            depth = self._min_depth + i * depth_step
+            p3d = ray_dir * depth
+            p3d_right = self._R @ p3d + self._T
+
+            if p3d_right[2] <= 0:
+                continue
+
+            inv_z = 1.0 / p3d_right[2]
+            px = self._K_right[0, 0] * p3d_right[0] * inv_z + self._K_right[0, 2]
+            py = self._K_right[1, 1] * p3d_right[1] * inv_z + self._K_right[1, 2]
+
+            ipx, ipy = int(round(px)), int(round(py))
+            if ipx == prev_px and ipy == prev_py:
+                continue
+            prev_px, prev_py = ipx, ipy
+            points.append((px, py))
+
+        return points
+
+    def match_point(self, left_gray, right_gray, source_point):
+        """Find corresponding point in right image via epipolar template matching."""
+        if not self._calibrated:
+            self._log(f"match_point({source_point}): not calibrated")
+            return None
+
+        half = self._template_size // 2
+        x_src = int(round(source_point[0]))
+        y_src = int(round(source_point[1]))
+
+        h_l, w_l = left_gray.shape[:2]
+        if (x_src < half or x_src >= w_l - half
+                or y_src < half or y_src >= h_l - half):
+            self._log(f"match_point({source_point}): source too close to edge "
+                      f"(image {w_l}x{h_l}, margin={half})")
+            return None
+
+        template = left_gray[
+            y_src - half:y_src + half + 1,
+            x_src - half:x_src + half + 1
+        ].astype(np.float32)
+
+        epipolar_pts = self._compute_epipolar_points(source_point)
+        if not epipolar_pts:
+            self._log(f"match_point({source_point}): no epipolar points computed "
+                      f"(depth_range=[{self._min_depth:.1f}, {self._max_depth:.1f}])")
+            return None
+
+        h_r, w_r = right_gray.shape[:2]
+        best_score = -1.0
+        best_point = None
+        n_in_bounds = 0
+
+        for ep_x, ep_y in epipolar_pts:
+            x_tgt = int(round(ep_x))
+            y_tgt = int(round(ep_y))
+
+            if (x_tgt < half or x_tgt >= w_r - half
+                    or y_tgt < half or y_tgt >= h_r - half):
+                continue
+
+            n_in_bounds += 1
+            target_patch = right_gray[
+                y_tgt - half:y_tgt + half + 1,
+                x_tgt - half:x_tgt + half + 1
+            ].astype(np.float32)
+
+            result = cv2.matchTemplate(
+                target_patch, template, cv2.TM_CCOEFF_NORMED)
+            score = float(result[0, 0])
+
+            if score > best_score:
+                best_score = score
+                best_point = (ep_x, ep_y)
+
+        if best_score < self._threshold:
+            # Log first/last epipolar point for debugging
+            ep_first = epipolar_pts[0] if epipolar_pts else None
+            ep_last = epipolar_pts[-1] if epipolar_pts else None
+            self._log(f"match_point({source_point}): best_score={best_score:.3f} "
+                      f"< threshold={self._threshold}, "
+                      f"epipolar_pts={len(epipolar_pts)}, "
+                      f"in_bounds={n_in_bounds}, "
+                      f"right_img={w_r}x{h_r}, "
+                      f"ep_range=[{ep_first} .. {ep_last}]")
+            return None
+
+        return best_point
+
 
 class InteractiveStereoService:
     """
@@ -70,7 +253,8 @@ class InteractiveStereoService:
 
     def __init__(
         self,
-        compute_stereo_depth_map_algo,
+        compute_stereo_depth_map_algo=None,
+        epipolar_matcher: Optional[EpipolarTemplateMatcher] = None,
         scale: float = 1.0,
     ):
         """
@@ -78,9 +262,14 @@ class InteractiveStereoService:
 
         Args:
             compute_stereo_depth_map_algo: Configured ComputeStereoDepthMap algorithm instance
+                (for dense disparity mode). Mutually exclusive with epipolar_matcher.
+            epipolar_matcher: Configured EpipolarTemplateMatcher instance
+                (for per-point epipolar template matching mode).
             scale: Scale factor for input images (<=1.0). Lower = faster but less accurate.
         """
         self._stereo_algo = compute_stereo_depth_map_algo
+        self._epipolar_matcher = epipolar_matcher
+        self._use_epipolar = epipolar_matcher is not None
         self._scale = scale
         self._enabled = False
 
@@ -96,6 +285,10 @@ class InteractiveStereoService:
         self._current_right_path: Optional[str] = None
         self._current_disparity: Optional[np.ndarray] = None
         self._disparity_ready = False
+
+        # Images for epipolar template matching mode
+        self._left_gray: Optional[np.ndarray] = None
+        self._right_gray: Optional[np.ndarray] = None
 
         # Disparity cache - stores last N computed disparities
         # Key: (left_path, right_path), Value: disparity array
@@ -333,7 +526,12 @@ class InteractiveStereoService:
                 "message": "Already enabled",
             }
 
-        # Load calibration if provided
+        # Load calibration from file path (used by epipolar template matching)
+        calibration_file = request.get("calibration_file")
+        if calibration_file and self._epipolar_matcher is not None:
+            self._epipolar_matcher.load_calibration(calibration_file)
+
+        # Load calibration from JSON data (used by dense disparity mode)
         calibration = request.get("calibration")
         if calibration:
             self._load_calibration(calibration)
@@ -418,30 +616,57 @@ class InteractiveStereoService:
                         "disparity_ready": False,
                     }
 
-            # Check if we have this disparity cached
-            cached_disparity = self._get_from_cache(left_path, right_path)
-            if cached_disparity is not None:
-                self._log(f"Using cached disparity for: {left_path}")
+            if self._use_epipolar:
+                # Epipolar mode: update state, will load images below
+                self._cancel_computation()
                 self._current_left_path = left_path
                 self._current_right_path = right_path
-                self._current_disparity = cached_disparity
+            else:
+                # Dense mode: check if we have this disparity cached
+                cached_disparity = self._get_from_cache(left_path, right_path)
+                if cached_disparity is not None:
+                    self._log(f"Using cached disparity for: {left_path}")
+                    self._current_left_path = left_path
+                    self._current_right_path = right_path
+                    self._current_disparity = cached_disparity
+                    self._disparity_ready = True
+                    self._disparity_event.set()
+                    return {
+                        "success": True,
+                        "message": "Disparity loaded from cache",
+                        "disparity_ready": True,
+                    }
+
+                # Cancel current computation and start new one
+                self._cancel_computation()
+                self._current_left_path = left_path
+                self._current_right_path = right_path
+                self._current_disparity = None
+                self._disparity_ready = False
+                self._disparity_event.clear()
+
+        if self._use_epipolar:
+            # Load images for template matching (outside lock - I/O bound)
+            left_gray = cv2.imread(left_path, cv2.IMREAD_GRAYSCALE)
+            right_gray = cv2.imread(right_path, cv2.IMREAD_GRAYSCALE)
+            if left_gray is None or right_gray is None:
+                raise ValueError(
+                    f"Failed to load images: left={left_path}, right={right_path}")
+
+            with self._compute_lock:
+                self._left_gray = left_gray
+                self._right_gray = right_gray
                 self._disparity_ready = True
                 self._disparity_event.set()
-                return {
-                    "success": True,
-                    "message": "Disparity loaded from cache",
-                    "disparity_ready": True,
-                }
 
-            # Cancel current computation and start new one
-            self._cancel_computation()
-            self._current_left_path = left_path
-            self._current_right_path = right_path
-            self._current_disparity = None
-            self._disparity_ready = False
-            self._disparity_event.clear()
+            self._log(f"Images loaded for template matching: {left_path}")
+            return {
+                "success": True,
+                "message": "Images loaded for template matching",
+                "disparity_ready": True,
+            }
 
-        # Queue the new computation
+        # Queue the new dense disparity computation
         self._compute_queue.put((request_id, left_path, right_path))
 
         return {
@@ -479,6 +704,27 @@ class InteractiveStereoService:
 
             p1 = line[0]
             p2 = line[1]
+
+            if self._use_epipolar:
+                right_p1 = self._epipolar_matcher.match_point(
+                    self._left_gray, self._right_gray, p1)
+                right_p2 = self._epipolar_matcher.match_point(
+                    self._left_gray, self._right_gray, p2)
+
+                if right_p1 is None or right_p2 is None:
+                    return {
+                        "success": False,
+                        "error": "Template matching failed for one or both line endpoints",
+                    }
+
+                return {
+                    "success": True,
+                    "transferred_line": [
+                        [float(right_p1[0]), float(right_p1[1])],
+                        [float(right_p2[0]), float(right_p2[1])],
+                    ],
+                    "original_line": line,
+                }
 
             H, W = self._current_disparity.shape[:2]
 
@@ -525,6 +771,28 @@ class InteractiveStereoService:
             points = request.get("points")
             if not points:
                 raise ValueError("points is required")
+
+            if self._use_epipolar:
+                transferred_points = []
+                disparity_values = []
+
+                for p in points:
+                    matched = self._epipolar_matcher.match_point(
+                        self._left_gray, self._right_gray, p)
+                    if matched is not None:
+                        transferred_points.append(
+                            [float(matched[0]), float(matched[1])])
+                        disparity_values.append(float(p[0] - matched[0]))
+                    else:
+                        transferred_points.append([float(p[0]), float(p[1])])
+                        disparity_values.append(0.0)
+
+                return {
+                    "success": True,
+                    "transferred_points": transferred_points,
+                    "original_points": points,
+                    "disparity_values": disparity_values,
+                }
 
             H, W = self._current_disparity.shape[:2]
             transferred_points = []
@@ -584,7 +852,10 @@ class InteractiveStereoService:
         # _do_transfer_line (which acquires its own lock). Using a non-
         # reentrant Lock twice from the same thread would deadlock.
         with self._compute_lock:
-            ready = self._disparity_ready and self._current_disparity is not None
+            if self._use_epipolar:
+                ready = self._disparity_ready and self._left_gray is not None
+            else:
+                ready = self._disparity_ready and self._current_disparity is not None
 
         if ready:
             return self._do_transfer_line(request)
@@ -608,7 +879,10 @@ class InteractiveStereoService:
             raise ValueError("Service not enabled. Call enable first.")
 
         with self._compute_lock:
-            ready = self._disparity_ready and self._current_disparity is not None
+            if self._use_epipolar:
+                ready = self._disparity_ready and self._left_gray is not None
+            else:
+                ready = self._disparity_ready and self._current_disparity is not None
 
         if ready:
             return self._do_transfer_points(request)
@@ -689,16 +963,19 @@ class InteractiveStereoService:
 
 def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None):
     """
-    Load and configure the ComputeStereoDepthMap algorithm from a KWIVER config file.
+    Load and configure stereo algorithms from a KWIVER config file.
+
+    Supports two modes:
+    - Epipolar template matching: when ``matching_method`` key is present
+    - Dense disparity (ComputeStereoDepthMap): when ``compute_stereo_depth_map:type`` is present
 
     Args:
         config_path: Path to the config file
         plugin_paths: Optional list of additional plugin paths to load
 
     Returns:
-        Tuple of (compute_stereo_depth_map_algo, service_config)
+        Tuple of (compute_stereo_depth_map_algo, epipolar_matcher, service_config)
     """
-    from kwiver.vital.algo import ComputeStereoDepthMap
     from kwiver.vital.config import config as vital_config
     from kwiver.vital.modules import modules as vital_modules
 
@@ -714,9 +991,30 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
     config_dir = os.path.dirname(os.path.abspath(config_path))
     cfg = vital_config.read_config_file(config_path, [config_dir])
 
-    # Create compute_stereo_depth_map algorithm
+    # Check for epipolar template matching mode
+    epipolar_matcher = None
+    if cfg.has_value("matching_method"):
+        method = cfg.get_value("matching_method")
+        if method == "epipolar_template_matching":
+            def _cfg_float(key, default):
+                return float(cfg.get_value(key)) if cfg.has_value(key) else default
+            def _cfg_int(key, default):
+                return int(cfg.get_value(key)) if cfg.has_value(key) else default
+
+            epipolar_matcher = EpipolarTemplateMatcher(
+                template_size=_cfg_int("template_size", 13),
+                template_matching_threshold=_cfg_float(
+                    "template_matching_threshold", 0.5),
+                epipolar_min_disparity=_cfg_float("epipolar_min_disparity", 2.0),
+                epipolar_max_disparity=_cfg_float(
+                    "epipolar_max_disparity", 300.0),
+                epipolar_num_samples=_cfg_int("epipolar_num_samples", 5000),
+            )
+
+    # Check for dense disparity algorithm
     stereo_algo = None
     if cfg.has_value("compute_stereo_depth_map:type"):
+        from kwiver.vital.algo import ComputeStereoDepthMap
         impl_name = cfg.get_value("compute_stereo_depth_map:type")
         stereo_algo = ComputeStereoDepthMap.create(impl_name)
         stereo_algo.set_configuration(cfg.subblock("compute_stereo_depth_map:" + impl_name))
@@ -726,7 +1024,7 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
         "scale": float(cfg.get_value("service:scale")) if cfg.has_value("service:scale") else 1.0,
     }
 
-    return stereo_algo, service_config
+    return stereo_algo, epipolar_matcher, service_config
 
 
 def find_viame_config() -> Optional[str]:
@@ -741,7 +1039,7 @@ def find_viame_config() -> Optional[str]:
         return None
 
     pipelines_dir = Path(viame_install) / "configs" / "pipelines"
-    config_path = pipelines_dir / "common_foundation_stereo.conf"
+    config_path = pipelines_dir / "interactive_stereo_default.conf"
     if config_path.exists():
         return str(config_path)
 
@@ -752,27 +1050,25 @@ def create_default_config(output_path: str):
     """
     Create a default config file for the interactive stereo service.
 
-    This generates a config file that uses the foundation_stereo algorithm.
+    This generates a config file that uses epipolar template matching.
 
     Args:
         output_path: Path to write the config file
     """
     config = """# Interactive Stereo Service Configuration
-# This config file sets up the ComputeStereoDepthMap algorithm for interactive stereo.
-#
-# Include the shared foundation stereo config for model paths and defaults.
-# Uncomment the include line if running from VIAME install:
-# include common_foundation_stereo.pipe
+# This config uses epipolar template matching (same approach as
+# measurement_from_annotations_template.pipe). No GPU required.
 
-# Stereo depth/disparity algorithm
-compute_stereo_depth_map:type = foundation_stereo
-compute_stereo_depth_map:foundation_stereo:checkpoint_path =
-compute_stereo_depth_map:foundation_stereo:vit_size = vits
-compute_stereo_depth_map:foundation_stereo:device = cuda
-compute_stereo_depth_map:foundation_stereo:scale = 0.25
-compute_stereo_depth_map:foundation_stereo:use_half_precision = true
-compute_stereo_depth_map:foundation_stereo:num_iters = 32
-compute_stereo_depth_map:foundation_stereo:output_mode = disparity
+matching_method = epipolar_template_matching
+
+# Template matching parameters
+template_size = 13
+template_matching_threshold = 0.5
+
+# Epipolar search range (disparity-based, in pixels)
+epipolar_min_disparity = 2
+epipolar_max_disparity = 300
+epipolar_num_samples = 5000
 
 # Service settings
 service:scale = 1.0
@@ -834,17 +1130,19 @@ Examples:
 
     try:
         # Load algorithm from config
-        stereo_algo, service_config = load_algorithm_from_config(
+        stereo_algo, epipolar_matcher, service_config = load_algorithm_from_config(
             args.config, args.plugin_path
         )
 
-        if stereo_algo is None:
-            print("Error: No compute_stereo_depth_map algorithm configured", file=sys.stderr)
+        if stereo_algo is None and epipolar_matcher is None:
+            print("Error: No stereo algorithm or matching method configured",
+                  file=sys.stderr)
             sys.exit(1)
 
         # Create and run service
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=stereo_algo,
+            epipolar_matcher=epipolar_matcher,
             **service_config
         )
         service.run()
