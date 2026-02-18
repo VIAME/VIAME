@@ -821,7 +821,7 @@ if( VIAME_ENABLE_SEAGIS )
   if( VIAME_BUILD_SEAGIS_TEST_LIB )
     set( SEAGIS_LIBRARY "" CACHE INTERNAL "Not used in mock mode" )
   else()
-    set( SEAGIS_LIBRARY "${SEAGIS_ROOT_DIR}/StereoLibLX.lib"
+    set( SEAGIS_LIBRARY "${SEAGIS_ROOT_DIR}/StereoLibLX_patched.lib"
          CACHE INTERNAL "Path to SEAGIS library file" )
   endif()
 
