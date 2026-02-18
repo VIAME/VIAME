@@ -1,0 +1,74 @@
+# =============================================================================
+# Title: Measurement from annotations pipeline (SEAGIS)
+#
+# Description: Computes stereo measurements from annotated tracks using the
+# SEAGIS StereoLibLX library with .CamCAL calibration files. Reads left and
+# right camera annotations, pairs detections by track ID, and triangulates
+# head/tail keypoints. Epipolar template matching is used as fallback when
+# only one camera has keypoints.
+#
+# Requires: SEAGIS .CamCAL calibration files for left and right cameras.
+# =============================================================================
+
+# ============================= GLOBAL PROPERTIES =============================
+
+config _pipeline:_edge
+  :capacity                                    20
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ================================ DATA INPUTS ================================
+
+include common_stereo_input_with_tracks.pipe
+
+# ============================ MEASUREMENT PROCESS ============================
+
+process measurer
+  :: seagis_measurement
+  #:licence_key1                                [INSERT_HERE]
+  #:licence_key2                                [INSERT_HERE]
+  relativepath left_camera_file =              models/left.CamCAL
+  relativepath right_camera_file =             models/right.CamCAL
+  :enable_epipolar_matching                    true
+  :epipolar_min_disparity                      2
+  :epipolar_max_disparity                      300
+  :template_size                               13
+  :template_matching_threshold                 0.5
+
+connect from track_reader1.object_track_set
+        to   measurer.object_track_set1
+connect from track_reader2.object_track_set
+        to   measurer.object_track_set2
+
+connect from downsampler.output_1
+        to   measurer.image1
+connect from downsampler.output_3
+        to   measurer.image2
+
+connect from downsampler.timestamp
+        to   measurer.timestamp
+
+# ============================== OUTPUT WRITERS ===============================
+
+process track_writer1
+  :: write_object_track
+  :file_name                                   computed_tracks1.csv
+  :writer:type                                 viame_csv
+
+connect from measurer.object_track_set1
+        to   track_writer1.object_track_set
+connect from downsampler.timestamp
+        to   track_writer1.timestamp
+
+process track_writer2
+  :: write_object_track
+  :file_name                                   computed_tracks2.csv
+  :writer:type                                 viame_csv
+
+connect from measurer.object_track_set2
+        to   track_writer2.object_track_set
+connect from downsampler.timestamp
+        to   track_writer2.timestamp
+
+# -- end of file --
