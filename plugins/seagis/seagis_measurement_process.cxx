@@ -70,16 +70,36 @@ create_config_trait( enable_epipolar_matching, bool, false,
   "SEAGIS epipolar line projection and template matching when only one camera "
   "has head/tail keypoints." );
 
-create_config_trait( epipolar_min_range, double, 500.0,
-  "Minimum depth/range (in calibration units) for the SEAGIS epipolar line." );
+create_config_trait( epipolar_min_depth, double, 0.0,
+  "Minimum depth (in calibration units) for epipolar template matching. "
+  "Defines the near end of the depth range sampled along the epipolar line. "
+  "Default is 0 (off). Ignored when epipolar_min_disparity and "
+  "epipolar_max_disparity are both > 0. Either disparity or depth parameters "
+  "must be set for epipolar matching to work." );
 
-create_config_trait( epipolar_max_range, double, 20000.0,
-  "Maximum depth/range (in calibration units) for the SEAGIS epipolar line." );
+create_config_trait( epipolar_max_depth, double, 0.0,
+  "Maximum depth (in calibration units) for epipolar template matching. "
+  "Defines the far end of the depth range sampled along the epipolar line. "
+  "Default is 0 (off). Ignored when epipolar_min_disparity and "
+  "epipolar_max_disparity are both > 0. Either disparity or depth parameters "
+  "must be set for epipolar matching to work." );
 
-create_config_trait( template_size, int, 31,
+create_config_trait( epipolar_min_disparity, double, 0.0,
+  "Minimum expected disparity in pixels for epipolar template matching "
+  "(corresponds to the farthest objects). When both epipolar_min_disparity and "
+  "epipolar_max_disparity are > 0, the range is computed automatically from the "
+  "SEAGIS camera model. This is the recommended way to configure epipolar search "
+  "range since disparity is unit-independent and can be estimated directly from "
+  "the images." );
+
+create_config_trait( epipolar_max_disparity, double, 0.0,
+  "Maximum expected disparity in pixels for epipolar template matching "
+  "(corresponds to the nearest objects). See epipolar_min_disparity for details." );
+
+create_config_trait( template_size, int, 13,
   "Template window size (in pixels) for epipolar template matching. Must be odd." );
 
-create_config_trait( template_matching_threshold, double, 0.7,
+create_config_trait( template_matching_threshold, double, 0.5,
   "Minimum NCC threshold for epipolar template matching (0.0 to 1.0)." );
 
 create_config_trait( use_census_transform, bool, false,
@@ -122,8 +142,10 @@ public:
 
   // Epipolar matching configuration
   bool m_enable_epipolar_matching;
-  double m_epipolar_min_range;
-  double m_epipolar_max_range;
+  double m_epipolar_min_depth;
+  double m_epipolar_max_depth;
+  double m_epipolar_min_disparity;
+  double m_epipolar_max_disparity;
 
   // Detection pairing configuration
   std::string m_detection_pairing_method;
@@ -174,8 +196,10 @@ seagis_measurement_process::priv
   , m_image_measurement_sd( 1.0 )
   , m_camera_pair_id( 0 )
   , m_enable_epipolar_matching( false )
-  , m_epipolar_min_range( 500.0 )
-  , m_epipolar_max_range( 20000.0 )
+  , m_epipolar_min_depth( 0.0 )
+  , m_epipolar_max_depth( 0.0 )
+  , m_epipolar_min_disparity( 0.0 )
+  , m_epipolar_max_disparity( 0.0 )
   , m_detection_pairing_method( "" )
   , m_detection_pairing_threshold( 0.1 )
   , m_stereo()
@@ -263,7 +287,7 @@ seagis_measurement_process::priv
   int num_points = 0;
 
   RESULT res = m_stereo->EpipolarLine( m_camera_pair_id, cam_id,
-    image_pt, m_epipolar_min_range, m_epipolar_max_range, num_points );
+    image_pt, m_epipolar_min_depth, m_epipolar_max_depth, num_points );
 
   if( res != OK || num_points <= 0 )
   {
@@ -362,8 +386,10 @@ seagis_measurement_process
   declare_config_using_trait( image_measurement_sd );
   declare_config_using_trait( camera_pair_id );
   declare_config_using_trait( enable_epipolar_matching );
-  declare_config_using_trait( epipolar_min_range );
-  declare_config_using_trait( epipolar_max_range );
+  declare_config_using_trait( epipolar_min_depth );
+  declare_config_using_trait( epipolar_max_depth );
+  declare_config_using_trait( epipolar_min_disparity );
+  declare_config_using_trait( epipolar_max_disparity );
   declare_config_using_trait( template_size );
   declare_config_using_trait( template_matching_threshold );
   declare_config_using_trait( use_census_transform );
@@ -384,8 +410,10 @@ seagis_measurement_process
   d->m_image_measurement_sd = config_value_using_trait( image_measurement_sd );
   d->m_camera_pair_id = config_value_using_trait( camera_pair_id );
   d->m_enable_epipolar_matching = config_value_using_trait( enable_epipolar_matching );
-  d->m_epipolar_min_range = config_value_using_trait( epipolar_min_range );
-  d->m_epipolar_max_range = config_value_using_trait( epipolar_max_range );
+  d->m_epipolar_min_depth = config_value_using_trait( epipolar_min_depth );
+  d->m_epipolar_max_depth = config_value_using_trait( epipolar_max_depth );
+  d->m_epipolar_min_disparity = config_value_using_trait( epipolar_min_disparity );
+  d->m_epipolar_max_disparity = config_value_using_trait( epipolar_max_disparity );
   d->m_detection_pairing_method = config_value_using_trait( detection_pairing_method );
   d->m_detection_pairing_threshold = config_value_using_trait( detection_pairing_threshold );
 
@@ -467,6 +495,56 @@ seagis_measurement_process
   if( d->m_stereo->GetUnits( d->m_camera_pair_id, units ) == OK )
   {
     LOG_INFO( logger(), "SEAGIS measurement units: " << units );
+  }
+
+  // Convert disparity parameters to range if specified
+  if( d->m_epipolar_min_disparity > 0.0 && d->m_epipolar_max_disparity > 0.0 )
+  {
+    // Estimate focal_length * baseline product from the SEAGIS camera model
+    // by projecting the image center via EpipolarLine at a known test range
+    // and measuring the horizontal disparity
+    int nRows = 0, nCols = 0;
+    d->m_stereo->GetCameraFormat( d->m_camera_pair_id, LEFT, nRows, nCols );
+
+    C2DPt center( nCols / 2.0, nRows / 2.0 );
+    double test_range = 5000.0;
+    int npts = 0;
+
+    RESULT ep_res = d->m_stereo->EpipolarLine( d->m_camera_pair_id, LEFT,
+      center, test_range * 0.99, test_range * 1.01, npts );
+
+    if( ep_res == OK && npts > 0 )
+    {
+      C2DPt ep_pt;
+      d->m_stereo->GetEpipolarPoint( d->m_camera_pair_id, npts / 2, ep_pt );
+
+      double disparity = std::abs( center.X() - ep_pt.X() );
+
+      if( disparity > 0.1 )
+      {
+        double fb = disparity * test_range;
+
+        d->m_epipolar_min_depth = fb / d->m_epipolar_max_disparity;
+        d->m_epipolar_max_depth = fb / d->m_epipolar_min_disparity;
+
+        LOG_INFO( logger(), "Estimated focal*baseline product: " << fb
+          << " (disparity " << disparity << " px at range " << test_range << ")" );
+        LOG_INFO( logger(), "Converted disparity range [" << d->m_epipolar_min_disparity
+          << ", " << d->m_epipolar_max_disparity << "] px to range ["
+          << d->m_epipolar_min_depth << ", " << d->m_epipolar_max_depth << "]" );
+      }
+      else
+      {
+        LOG_WARN( logger(), "Could not estimate focal*baseline product: "
+          "disparity too small (" << disparity << " px at range " << test_range
+          << "). Falling back to epipolar_min_depth/epipolar_max_depth." );
+      }
+    }
+    else
+    {
+      LOG_WARN( logger(), "Could not estimate focal*baseline product: "
+        "EpipolarLine failed. Falling back to epipolar_min_depth/epipolar_max_depth." );
+    }
   }
 }
 
