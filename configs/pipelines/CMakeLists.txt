@@ -130,7 +130,6 @@ set( CORE_PIPELINE_FILES
   common_default_input.pipe
   common_default_input_16bit.pipe
   common_default_input_with_downsampler.pipe
-  common_foundation_stereo.pipe
   common_image_stabilizer.pipe
   common_no_load_input.pipe
   common_no_load_input_with_downsampler.pipe
