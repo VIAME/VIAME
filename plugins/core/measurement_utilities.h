@@ -240,11 +240,26 @@ public:
   /// The search will cover (2 * epipolar_band_halfwidth + 1) rows.
   int epipolar_band_halfwidth;
 
-  /// Minimum depth for epipolar template matching (in camera units, e.g. meters)
+  /// Minimum depth for epipolar template matching (in camera/calibration units).
+  /// Default is 0 (off). Used only when disparity parameters are both 0.
+  /// Either disparity or depth parameters must be set for epipolar matching.
   double epipolar_min_depth;
 
-  /// Maximum depth for epipolar template matching
+  /// Maximum depth for epipolar template matching (in camera/calibration units).
+  /// Default is 0 (off). See epipolar_min_depth.
   double epipolar_max_depth;
+
+  /// Minimum expected disparity in pixels for epipolar template matching.
+  /// When both min and max disparity are > 0, they override the depth-based
+  /// parameters by converting to depth using the camera intrinsics and baseline:
+  ///   depth = focal_length * baseline / disparity
+  /// This is unit-independent and often easier to estimate from the images.
+  /// Note: min disparity corresponds to max depth (far objects) and vice versa.
+  double epipolar_min_disparity;
+
+  /// Maximum expected disparity in pixels for epipolar template matching.
+  /// See epipolar_min_disparity for details.
+  double epipolar_max_disparity;
 
   /// Number of sample points along the epipolar line
   int epipolar_num_samples;
@@ -589,6 +604,8 @@ private:
   int m_epipolar_band_halfwidth;
   double m_epipolar_min_depth;
   double m_epipolar_max_depth;
+  double m_epipolar_min_disparity;
+  double m_epipolar_max_disparity;
   int m_epipolar_num_samples;
   bool m_use_distortion;
   double m_feature_search_radius;

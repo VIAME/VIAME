@@ -47,8 +47,10 @@ map_keypoints_to_camera_settings
   , multires_coarse_step( 4 )
   , use_census_transform( false )
   , epipolar_band_halfwidth( 0 )
-  , epipolar_min_depth( 0.5 )
-  , epipolar_max_depth( 20.0 )
+  , epipolar_min_depth( 0.0 )
+  , epipolar_max_depth( 0.0 )
+  , epipolar_min_disparity( 0.0 )
+  , epipolar_max_disparity( 0.0 )
   , epipolar_num_samples( 100 )
   , use_distortion( true )
   , feature_search_radius( 50.0 )
@@ -141,12 +143,28 @@ map_keypoints_to_camera_settings
     "The search will cover (2 * epipolar_band_halfwidth + 1) rows." );
 
   config->set_value( "epipolar_min_depth", epipolar_min_depth,
-    "Minimum depth (in camera units, e.g. meters) for epipolar template matching. "
-    "Defines the near end of the depth range sampled along the camera ray." );
+    "Minimum depth (in camera/calibration units) for epipolar template matching. "
+    "Defines the near end of the depth range sampled along the camera ray. "
+    "Default is 0 (off). Ignored when epipolar_min_disparity and "
+    "epipolar_max_disparity are both > 0. Either disparity or depth parameters "
+    "must be set for epipolar_template_matching to work." );
 
   config->set_value( "epipolar_max_depth", epipolar_max_depth,
-    "Maximum depth (in camera units, e.g. meters) for epipolar template matching. "
-    "Defines the far end of the depth range sampled along the camera ray." );
+    "Maximum depth (in camera/calibration units) for epipolar template matching. "
+    "Defines the far end of the depth range sampled along the camera ray. "
+    "Default is 0 (off). See epipolar_min_depth for details." );
+
+  config->set_value( "epipolar_min_disparity", epipolar_min_disparity,
+    "Minimum expected disparity in pixels for epipolar template matching "
+    "(corresponds to the farthest objects). When both epipolar_min_disparity "
+    "and epipolar_max_disparity are > 0, the depth range is computed "
+    "automatically using: depth = focal_length * baseline / disparity. "
+    "This is the recommended way to configure epipolar search range since "
+    "disparity is unit-independent and can be estimated directly from the images." );
+
+  config->set_value( "epipolar_max_disparity", epipolar_max_disparity,
+    "Maximum expected disparity in pixels for epipolar template matching "
+    "(corresponds to the nearest objects). See epipolar_min_disparity for details." );
 
   config->set_value( "epipolar_num_samples", epipolar_num_samples,
     "Number of sample points along the epipolar line for epipolar template matching. "
@@ -240,6 +258,8 @@ map_keypoints_to_camera_settings
   epipolar_band_halfwidth = config->get_value< int >( "epipolar_band_halfwidth", epipolar_band_halfwidth );
   epipolar_min_depth = config->get_value< double >( "epipolar_min_depth", epipolar_min_depth );
   epipolar_max_depth = config->get_value< double >( "epipolar_max_depth", epipolar_max_depth );
+  epipolar_min_disparity = config->get_value< double >( "epipolar_min_disparity", epipolar_min_disparity );
+  epipolar_max_disparity = config->get_value< double >( "epipolar_max_disparity", epipolar_max_disparity );
   epipolar_num_samples = config->get_value< int >( "epipolar_num_samples", epipolar_num_samples );
   use_distortion = config->get_value< bool >( "use_distortion", use_distortion );
   feature_search_radius = config->get_value< double >( "feature_search_radius", feature_search_radius );
@@ -408,8 +428,10 @@ map_keypoints_to_camera
   , m_multires_coarse_step( 4 )
   , m_use_census_transform( false )
   , m_epipolar_band_halfwidth( 0 )
-  , m_epipolar_min_depth( 0.5 )
-  , m_epipolar_max_depth( 20.0 )
+  , m_epipolar_min_depth( 0.0 )
+  , m_epipolar_max_depth( 0.0 )
+  , m_epipolar_min_disparity( 0.0 )
+  , m_epipolar_max_disparity( 0.0 )
   , m_epipolar_num_samples( 100 )
   , m_use_distortion( true )
   , m_feature_search_radius( 50.0 )
@@ -554,6 +576,8 @@ map_keypoints_to_camera
                        settings.epipolar_band_halfwidth );
   set_epipolar_params( settings.epipolar_min_depth, settings.epipolar_max_depth,
                        settings.epipolar_num_samples );
+  m_epipolar_min_disparity = settings.epipolar_min_disparity;
+  m_epipolar_max_disparity = settings.epipolar_max_disparity;
   set_use_distortion( settings.use_distortion );
   set_feature_params( settings.feature_search_radius, settings.ransac_inlier_scale,
                       settings.min_ransac_inliers,
@@ -1194,13 +1218,30 @@ map_keypoints_to_camera
       else if( right_gray.channels() == 4 )
         cv::cvtColor( right_gray, right_gray, cv::COLOR_BGRA2GRAY );
 
+      // Determine effective depth range for epipolar search
+      double eff_min_depth = m_epipolar_min_depth;
+      double eff_max_depth = m_epipolar_max_depth;
+
+      if( m_epipolar_min_disparity > 0.0 && m_epipolar_max_disparity > 0.0 )
+      {
+        // Convert disparity range (pixels) to depth range using camera geometry:
+        //   depth = focal_length * baseline / disparity
+        // This is unit-independent since baseline and depth share the same units.
+        double fx = left_cam.get_intrinsics()->focal_length();
+        double baseline = ( left_cam.center() - right_cam.center() ).norm();
+
+        // min disparity (far objects) -> max depth, max disparity (near) -> min depth
+        eff_min_depth = fx * baseline / m_epipolar_max_disparity;
+        eff_max_depth = fx * baseline / m_epipolar_min_disparity;
+      }
+
       // Compute epipolar points from camera geometry
       auto epipolar_head = compute_epipolar_points(
         left_cam, right_cam, result.left_head,
-        m_epipolar_min_depth, m_epipolar_max_depth, m_epipolar_num_samples );
+        eff_min_depth, eff_max_depth, m_epipolar_num_samples );
       auto epipolar_tail = compute_epipolar_points(
         left_cam, right_cam, result.left_tail,
-        m_epipolar_min_depth, m_epipolar_max_depth, m_epipolar_num_samples );
+        eff_min_depth, eff_max_depth, m_epipolar_num_samples );
 
       head_found = find_corresponding_point_epipolar_template_matching(
         left_gray, right_gray, result.left_head, epipolar_head, result.right_head );

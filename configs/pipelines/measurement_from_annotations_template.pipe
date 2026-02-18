@@ -50,10 +50,20 @@ process measurer
   # ---------------------------------------------------------------------------
   # Operates on unrectified images, searches along the computed epipolar curve.
   # Best overall method: ~1.9px mean error with highest match rate (5/5).
-  # The depth range must be in the same units as the calibration T vector.
+  #
+  # The search range can be specified in two ways:
+  #   1. Disparity-based (recommended, unit-independent): Set
+  #      epipolar_min_disparity / epipolar_max_disparity in pixels. Disparity
+  #      is how far a point shifts between the L and R images and can be
+  #      measured directly without knowing calibration units.
+  #   2. Depth-based: Set epipolar_min_depth / epipolar_max_depth in the same
+  #      units as the calibration T vector (e.g. mm if T is in mm). Only used
+  #      when both disparity parameters are 0.
   :template_size                               13
-  :epipolar_min_depth                          2000
-  :epipolar_max_depth                          200000
+  :epipolar_min_disparity                      2
+  :epipolar_max_disparity                      300
+  # :epipolar_min_depth                        2000
+  # :epipolar_max_depth                        200000
   :epipolar_num_samples                        5000
   :use_census_transform                        false
 
