@@ -719,6 +719,45 @@ void
 pair_stereo_detections_process
 ::_step()
 {
+  // Check for end-of-stream on any connected input port
+  {
+    auto ts_peek = peek_at_port_using_trait( timestamp );
+    bool is_complete = ( ts_peek.datum->type() == sprokit::datum::complete );
+
+    if( !is_complete && has_input_port_edge_using_trait( object_track_set1 ) )
+    {
+      auto peek = peek_at_port_using_trait( object_track_set1 );
+      is_complete = ( peek.datum->type() == sprokit::datum::complete );
+    }
+
+    if( !is_complete && has_input_port_edge_using_trait( object_track_set2 ) )
+    {
+      auto peek = peek_at_port_using_trait( object_track_set2 );
+      is_complete = ( peek.datum->type() == sprokit::datum::complete );
+    }
+
+    if( !is_complete && has_input_port_edge_using_trait( detected_object_set1 ) )
+    {
+      auto peek = peek_at_port_using_trait( detected_object_set1 );
+      is_complete = ( peek.datum->type() == sprokit::datum::complete );
+    }
+
+    if( !is_complete && has_input_port_edge_using_trait( detected_object_set2 ) )
+    {
+      auto peek = peek_at_port_using_trait( detected_object_set2 );
+      is_complete = ( peek.datum->type() == sprokit::datum::complete );
+    }
+
+    if( is_complete )
+    {
+      mark_process_as_complete();
+      auto cd = sprokit::datum::complete_datum();
+      push_datum_to_port_using_trait( object_track_set1, cd );
+      push_datum_to_port_using_trait( object_track_set2, cd );
+      return;
+    }
+  }
+
   // Grab timestamp (always required)
   auto timestamp = grab_from_port_using_trait( timestamp );
 
