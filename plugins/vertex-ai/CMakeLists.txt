@@ -25,10 +25,6 @@ kwiver_add_python_module(
   vertex-ai
   process_handler )
 
-install(
-  FILES Dockerfile requirements.txt
-  DESTINATION share/viame/vertex-ai )
-
 ###
 # C++ sprokit processes (Vertex AI REST client)
 ##
