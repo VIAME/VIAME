@@ -1,0 +1,8 @@
+# =============================================================================
+# Title: Measurement from annotations pipeline
+#
+# Description: Default measurement from annotations pipeline.
+# Outputs to computed_tracks.csv.
+# =============================================================================
+
+include measurement_from_annotations_template.pipe
