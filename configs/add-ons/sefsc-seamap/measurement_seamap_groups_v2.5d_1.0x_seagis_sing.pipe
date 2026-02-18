@@ -14,7 +14,7 @@
 # ============================= GLOBAL PROPERTIES =============================
 
 config _pipeline:_edge
-  :capacity                                    5
+  :capacity                                    30
 
 config _scheduler
   :type                                        pythread_per_process

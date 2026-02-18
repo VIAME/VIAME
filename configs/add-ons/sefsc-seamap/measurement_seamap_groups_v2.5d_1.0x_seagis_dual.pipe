@@ -14,7 +14,7 @@
 # ============================= GLOBAL PROPERTIES =============================
 
 config _pipeline:_edge
-  :capacity                                    5
+  :capacity                                    30
 
 config _scheduler
   :type                                        pythread_per_process
@@ -435,10 +435,6 @@ connect from track_filter_l.object_track_set
         to   pairer.object_track_set1
 connect from track_filter_r.object_track_set
         to   pairer.object_track_set2
-connect from downsampler.output_1
-        to   pairer.image1
-connect from downsampler.output_3
-        to   pairer.image2
 connect from downsampler.timestamp
         to   pairer.timestamp
 
