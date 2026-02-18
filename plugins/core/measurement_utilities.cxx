@@ -1153,9 +1153,9 @@ map_keypoints_to_camera
         kv::vector_2d right_head_rect, right_tail_rect;
 
         head_found = find_corresponding_point_external_disparity(
-          m_cached_compute_disparity, left_head_rect, right_head_rect );
+          m_cached_compute_disparity, left_head_rect, right_head_rect, 7 );
         tail_found = find_corresponding_point_external_disparity(
-          m_cached_compute_disparity, left_tail_rect, right_tail_rect );
+          m_cached_compute_disparity, left_tail_rect, right_tail_rect, 7 );
 
         if( head_found && tail_found )
         {
@@ -1494,9 +1494,10 @@ map_keypoints_to_camera
 
   if( found )
   {
-    // Update left_point to the actual feature location
-    left_point = best_left_point;
-    right_point = best_right_point;
+    // Apply local offset: displacement from left feature → left keypoint
+    // approximates displacement from right feature → right keypoint
+    right_point = best_right_point + ( left_point - best_left_point );
+    // Don't modify left_point — preserve the original annotated keypoint
   }
 
   return found;
@@ -1630,9 +1631,10 @@ map_keypoints_to_camera
 
   if( found )
   {
-    // Update left_point to the actual feature location
-    left_point = best_left_point;
-    right_point = best_right_point;
+    // Apply local offset: displacement from left feature → left keypoint
+    // approximates displacement from right feature → right keypoint
+    right_point = best_right_point + ( left_point - best_left_point );
+    // Don't modify left_point — preserve the original annotated keypoint
   }
 
   return found;
@@ -2461,7 +2463,8 @@ map_keypoints_to_camera
 ::find_corresponding_point_external_disparity(
   const kv::image_container_sptr& disparity_image,
   const kv::vector_2d& left_point,
-  kv::vector_2d& right_point ) const
+  kv::vector_2d& right_point,
+  int search_window ) const
 {
   if( !disparity_image )
   {
@@ -2469,65 +2472,98 @@ map_keypoints_to_camera
   }
 
   const auto& img = disparity_image->get_image();
-  int x = static_cast< int >( left_point.x() + 0.5 );
-  int y = static_cast< int >( left_point.y() + 0.5 );
+  int cx = static_cast< int >( left_point.x() + 0.5 );
+  int cy = static_cast< int >( left_point.y() + 0.5 );
+  int w = static_cast< int >( img.width() );
+  int h = static_cast< int >( img.height() );
 
-  // Check bounds
-  if( x < 0 || x >= static_cast< int >( img.width() ) ||
-      y < 0 || y >= static_cast< int >( img.height() ) )
+  // Check center pixel bounds
+  if( cx < 0 || cx >= w || cy < 0 || cy >= h )
   {
     return false;
   }
-
-  // Get disparity value - supports multiple formats:
-  // - uint16 scaled by 256 (as produced by foundation_stereo or ocv with uint16_scaled)
-  // - int16 scaled by 16 (OpenCV raw format from ocv_stereo_disparity_map with raw)
-  // - float32 (raw disparity in pixels)
-  double disparity = 0.0;
 
   // Cast to char* for pointer arithmetic (void* arithmetic is undefined)
   const char* img_data = reinterpret_cast<const char*>( img.first_pixel() );
 
-  if( img.pixel_traits().type == kv::image_pixel_traits::UNSIGNED &&
-      img.pixel_traits().num_bytes == 2 )
+  // Helper lambda: read disparity at (px, py), returns <= 0 if invalid
+  auto read_disparity = [&]( int px, int py ) -> double
   {
-    // uint16 format scaled by 256
-    const uint16_t* ptr = reinterpret_cast<const uint16_t*>(
-      img_data + y * img.h_step() + x * img.w_step() );
-    disparity = static_cast< double >( *ptr ) / 256.0;
-  }
-  else if( img.pixel_traits().type == kv::image_pixel_traits::SIGNED &&
-           img.pixel_traits().num_bytes == 2 )
-  {
-    // int16 format scaled by 16 (OpenCV raw format)
-    const int16_t* ptr = reinterpret_cast<const int16_t*>(
-      img_data + y * img.h_step() + x * img.w_step() );
-    int16_t raw_val = *ptr;
-    if( raw_val < 0 )
+    if( img.pixel_traits().type == kv::image_pixel_traits::UNSIGNED &&
+        img.pixel_traits().num_bytes == 2 )
     {
-      // Invalid disparity in OpenCV raw format
+      const uint16_t* ptr = reinterpret_cast<const uint16_t*>(
+        img_data + py * img.h_step() + px * img.w_step() );
+      return static_cast< double >( *ptr ) / 256.0;
+    }
+    else if( img.pixel_traits().type == kv::image_pixel_traits::SIGNED &&
+             img.pixel_traits().num_bytes == 2 )
+    {
+      const int16_t* ptr = reinterpret_cast<const int16_t*>(
+        img_data + py * img.h_step() + px * img.w_step() );
+      int16_t raw_val = *ptr;
+      if( raw_val < 0 )
+      {
+        return -1.0;
+      }
+      return static_cast< double >( raw_val ) / 16.0;
+    }
+    else if( img.pixel_traits().type == kv::image_pixel_traits::FLOAT &&
+             img.pixel_traits().num_bytes == 4 )
+    {
+      const float* ptr = reinterpret_cast<const float*>(
+        img_data + py * img.h_step() + px * img.w_step() );
+      return static_cast< double >( *ptr );
+    }
+    return -1.0;
+  };
+
+  double disparity = 0.0;
+
+  if( search_window <= 0 )
+  {
+    // Original single-pixel lookup
+    disparity = read_disparity( cx, cy );
+
+    if( disparity <= 0.0 || !std::isfinite( disparity ) )
+    {
       return false;
     }
-    disparity = static_cast< double >( raw_val ) / 16.0;
-  }
-  else if( img.pixel_traits().type == kv::image_pixel_traits::FLOAT &&
-           img.pixel_traits().num_bytes == 4 )
-  {
-    // float32 format (raw disparity in pixels)
-    const float* ptr = reinterpret_cast<const float*>(
-      img_data + y * img.h_step() + x * img.w_step() );
-    disparity = static_cast< double >( *ptr );
   }
   else
   {
-    // Unsupported format
-    return false;
-  }
+    // Neighborhood median lookup over (2w+1) x (2w+1) window
+    int x_min = std::max( 0, cx - search_window );
+    int x_max = std::min( w - 1, cx + search_window );
+    int y_min = std::max( 0, cy - search_window );
+    int y_max = std::min( h - 1, cy + search_window );
 
-  // Check for invalid disparity
-  if( disparity <= 0.0 || !std::isfinite( disparity ) )
-  {
-    return false;
+    std::vector< double > valid_disparities;
+    valid_disparities.reserve(
+      ( x_max - x_min + 1 ) * ( y_max - y_min + 1 ) );
+
+    for( int py = y_min; py <= y_max; ++py )
+    {
+      for( int px = x_min; px <= x_max; ++px )
+      {
+        double d = read_disparity( px, py );
+        if( d > 0.0 && std::isfinite( d ) )
+        {
+          valid_disparities.push_back( d );
+        }
+      }
+    }
+
+    if( valid_disparities.empty() )
+    {
+      return false;
+    }
+
+    size_t mid = valid_disparities.size() / 2;
+    std::nth_element( valid_disparities.begin(),
+                      valid_disparities.begin() + mid,
+                      valid_disparities.end() );
+    disparity = valid_disparities[ mid ];
   }
 
   // Compute right point (standard stereo: right_x = left_x - disparity)

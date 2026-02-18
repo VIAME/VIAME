@@ -588,7 +588,8 @@ public:
   bool find_corresponding_point_external_disparity(
     const kv::image_container_sptr& disparity_image,
     const kv::vector_2d& left_point,
-    kv::vector_2d& right_point ) const;
+    kv::vector_2d& right_point,
+    int search_window = 0 ) const;
 
 private:
   // Configuration
