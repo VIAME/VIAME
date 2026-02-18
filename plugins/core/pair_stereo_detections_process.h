@@ -53,6 +53,19 @@ namespace core
  * - iou: Bounding box IOU (Intersection over Union)
  * - calibration: Stereo geometry and reprojection error
  * - feature_matching: Feature detection and descriptor matching
+ * - epipolar_iou: Projects left bbox to right image using camera geometry,
+ *   then matches by IOU. Requires calibration_file.
+ * - keypoint_projection: Projects left head/tail keypoints to right image,
+ *   then matches by pixel distance. Requires calibration_file.
+ *
+ * Accumulation mode (accumulate_track_pairings=true):
+ * When enabled with track inputs, pairings are accumulated across frames and
+ * resolved at stream end. Resolution methods:
+ * - most_likely: For each left track, picks the right track with the most
+ *   frame co-occurrences.
+ * - split: Creates separate tracks for each consistent pairing segment,
+ *   filtering by detection_split_threshold.
+ * Output tracks can be filtered by min/max track length and avg surface area.
  *
  * Optional features:
  * - compute_head_tail_points: When enabled, computes head/tail keypoints from
