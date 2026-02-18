@@ -53,3 +53,20 @@ target_include_directories( viame_processes_seagis PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../core>
   )
+
+# StereoLibLX is built with /MT (static CRT); VIAME uses /MD (dynamic CRT).
+# We use patched copies of StereoLibLX.lib and libcpmt.lib with the
+# /FAILIFMISMATCH:RuntimeLibrary directives stripped so the linker does not
+# raise LNK2038.  /NODEFAULTLIB suppresses the *original* system libs that
+# StereoLibLX would pull in, and we explicitly add the patched libcpmt so
+# the static-CRT C++ symbols (std::cout, std::locale, etc.) still resolve.
+if( NOT VIAME_BUILD_SEAGIS_TEST_LIB AND MSVC )
+  target_link_options( viame_processes_seagis PRIVATE
+    /NODEFAULTLIB:LIBCMT
+    /NODEFAULTLIB:libcpmt
+    /FORCE:MULTIPLE
+  )
+  target_link_libraries( viame_processes_seagis PRIVATE
+    "${SEAGIS_INCLUDE_DIR}/libcpmt_patched.lib"
+  )
+endif()
