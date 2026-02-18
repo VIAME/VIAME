@@ -12,6 +12,7 @@ Supports conversion between:
   - json: KWIVER camera_rig_io compatible JSON format
   - opencv: OpenCV FileStorage YML format (intrinsics.yml + extrinsics.yml)
   - zed: ZED camera INI-style configuration format
+  - cal: CamCAL/PtsCAL binary calibration format
 """
 
 import argparse
@@ -19,6 +20,7 @@ import configparser
 import json
 import math
 import os
+import struct
 import sys
 from pathlib import Path
 
@@ -99,11 +101,11 @@ class StereoCalibration:
             flags=cv2.CALIB_ZERO_DISPARITY
         )
 
-    def validate(self):
+    def validate(self, require_extrinsics=True):
         """Validate that minimum required data is present."""
         if not self.has_intrinsics():
             raise ValueError("Missing intrinsic parameters")
-        if not self.has_extrinsics():
+        if require_extrinsics and not self.has_extrinsics():
             raise ValueError("Missing extrinsic parameters (R, T)")
 
 
@@ -156,7 +158,7 @@ def read_json(input_path):
 
     # Intrinsics - left
     calib.camera_matrix_left = np.array([
-        [data['fx_left'], 0, data['cx_left']],
+        [data['fx_left'], data.get('skew_left', 0), data['cx_left']],
         [0, data['fy_left'], data['cy_left']],
         [0, 0, 1]
     ], dtype=np.float64)
@@ -171,7 +173,7 @@ def read_json(input_path):
 
     # Intrinsics - right
     calib.camera_matrix_right = np.array([
-        [data['fx_right'], 0, data['cx_right']],
+        [data['fx_right'], data.get('skew_right', 0), data['cx_right']],
         [0, data['fy_right'], data['cy_right']],
         [0, 0, 1]
     ], dtype=np.float64)
@@ -184,9 +186,10 @@ def read_json(input_path):
         data.get('k3_right', 0.0)
     ]], dtype=np.float64)
 
-    # Extrinsics
-    calib.R = np.array(data['R']).reshape(3, 3)
-    calib.T = np.array(data['T']).reshape(3, 1)
+    # Extrinsics (optional for intrinsics-only files)
+    if 'R' in data and 'T' in data:
+        calib.R = np.array(data['R']).reshape(3, 3)
+        calib.T = np.array(data['T']).reshape(3, 1)
 
     return calib
 
@@ -325,6 +328,323 @@ def read_zed(input_path, camera_mode='HD'):
 
 
 # =============================================================================
+# CamCAL / PtsCAL support
+# =============================================================================
+
+def parse_camcal(filepath):
+    """Parse a CamCAL binary file (camera interior orientation).
+
+    Format:
+      - Header: 'CBL\\x00' magic + int32 (negative = UTF-16LE string length)
+      - Description string (UTF-16LE encoded)
+      - Pixel sizes: 2 x float64 (pixel_size_x, pixel_size_y in mm)
+      - Image dimensions: 2 x int32 (width, height)
+      - MAT[0]: 10 x float64 parameters [xp, yp, c, k1, k2, k3, p1, p2, b1, b2]
+      - MAT[1]: 10 x uint8 flags (1=fixed, 0=estimated)
+      - MAT[2]: 20 x float64 (10 std devs + 10 min thresholds) + 1 trailing byte
+
+    Returns:
+        dict with keys: description, pixel_size, image_size, params (dict of
+        named values), flags (dict), uncertainties (dict of std_dev values)
+    """
+    with open(filepath, 'rb') as f:
+        # Magic header
+        magic = f.read(4)
+        if magic != b'CBL\x00':
+            raise ValueError(f"Not a CamCAL file (expected CBL header): {filepath}")
+
+        # Description string
+        str_field = struct.unpack('<i', f.read(4))[0]
+        if str_field < 0:
+            str_len = -str_field
+            desc_bytes = f.read(str_len * 2)  # UTF-16LE: 2 bytes per char
+            description = desc_bytes.decode('utf-16-le').rstrip('\x00')
+        else:
+            description = ""
+
+        # Pixel sizes (mm per pixel)
+        pixel_size_x, pixel_size_y = struct.unpack('<2d', f.read(16))
+
+        # Image dimensions
+        width, height = struct.unpack('<2i', f.read(8))
+
+        # Each MAT section has a 12-byte header: 'MAT\x00' + uint32 rows + uint32 cols
+        def read_mat_header():
+            mat_magic = f.read(4)
+            if mat_magic != b'MAT\x00':
+                raise ValueError(f"Expected MAT header, got {mat_magic!r}")
+            rows, cols = struct.unpack('<2I', f.read(8))
+            return rows, cols
+
+        # MAT[0]: 10 interior orientation parameters
+        param_names = ['xp', 'yp', 'c', 'k1', 'k2', 'k3', 'p1', 'p2', 'b1', 'b2']
+        read_mat_header()
+        raw_params = struct.unpack('<10d', f.read(80))
+        params = dict(zip(param_names, raw_params))
+
+        # MAT[1]: 10 flag bytes (1=fixed, 0=estimated)
+        read_mat_header()
+        raw_flags = struct.unpack('<10B', f.read(10))
+        flags = dict(zip(param_names, raw_flags))
+
+        # MAT[2]: 20 doubles (10 std devs + 10 min thresholds) + 1 trailing byte
+        read_mat_header()
+        raw_uncert = struct.unpack('<20d', f.read(160))
+        std_devs = dict(zip(param_names, raw_uncert[:10]))
+        # raw_uncert[10:20] are minimum thresholds (rarely used)
+        f.read(1)  # trailing byte
+
+    return {
+        'description': description,
+        'pixel_size': (pixel_size_x, pixel_size_y),
+        'image_size': (width, height),
+        'params': params,
+        'flags': flags,
+        'uncertainties': std_devs,
+    }
+
+
+def parse_ptscal(filepath):
+    """Parse a PtsCAL binary file (3D reference points).
+
+    Format:
+      - Header: 'MBL\\x00' magic + uint32 point count
+      - Point entries: 146 bytes each (PBL format)
+        - 'PBL\\x01' magic (4 bytes) + uint32 point ID (4 bytes)
+        - 3 x 41-byte coordinate sub-records (X, Y, Z), each containing:
+          - float64 coordinate value (mm)
+          - float64 standard deviation
+          - 16 bytes reserved (zeros)
+          - 1 flag byte
+          - float64 weight (typically 1.0)
+        - 15-byte trailer (float64 + 7 footer bytes)
+      - Optional BDI section: known inter-point distances
+        - 'BDI\\x00' magic + uint32 count
+        - Each entry: 2 x uint32 point IDs + float64 distance (mm)
+
+    Returns:
+        dict with keys:
+          points: OrderedDict of {label: (x, y, z)} in mm
+          distances: list of (label1, label2, distance_mm) tuples
+    """
+    with open(filepath, 'rb') as f:
+        # Magic header
+        magic = f.read(4)
+        if magic != b'MBL\x00':
+            raise ValueError(f"Not a PtsCAL file (expected MBL header): {filepath}")
+
+        count = struct.unpack('<I', f.read(4))[0]
+
+        points = {}
+        point_ids = {}  # id -> label mapping for BDI lookups
+        for _ in range(count):
+            entry = f.read(146)
+            if len(entry) < 146:
+                break
+
+            # Header: PBL\x01 + uint32 point ID
+            pbl_magic = entry[:4]
+            if pbl_magic != b'PBL\x01':
+                raise ValueError(f"Expected PBL entry header, got {pbl_magic!r}")
+            pt_id = struct.unpack('<I', entry[4:8])[0]
+            label = str(pt_id)
+
+            # 3 coordinate sub-records at offsets 8, 49, 90 (41 bytes each)
+            coords = []
+            for dim in range(3):
+                base = 8 + dim * 41
+                coord = struct.unpack('<d', entry[base:base+8])[0]
+                coords.append(coord)
+
+            points[label] = tuple(coords)
+            point_ids[pt_id] = label
+
+        # BDI section: known inter-point distances
+        # Format: uint32 count, then count x 45-byte entries
+        # Each entry: BDI\x00(4) + id1(4) + id2(4) + distance(8) + uncertainty(8) +
+        #             8 reserved + 8 reserved + 1 trailing byte
+        distances = []
+        bdi_count_raw = f.read(4)
+        if len(bdi_count_raw) == 4:
+            bdi_count = struct.unpack('<I', bdi_count_raw)[0]
+            for _ in range(bdi_count):
+                bdi_entry = f.read(45)
+                if len(bdi_entry) < 45:
+                    break
+                # Skip BDI\x00 magic (4 bytes)
+                id1 = struct.unpack('<I', bdi_entry[4:8])[0]
+                id2 = struct.unpack('<I', bdi_entry[8:12])[0]
+                dist_val = struct.unpack('<d', bdi_entry[12:20])[0]
+                label1 = point_ids.get(id1, str(id1))
+                label2 = point_ids.get(id2, str(id2))
+                distances.append((label1, label2, dist_val))
+
+    return {
+        'points': points,
+        'distances': distances,
+    }
+
+
+def camcal_to_opencv(camcal_data):
+    """Convert CamCAL parameters to OpenCV camera matrix and distortion.
+
+    CamCAL interior orientation model:
+      xp, yp  - principal point offset from image center (mm)
+      c       - focal length (mm)
+      k1..k3  - radial distortion (CamCAL convention)
+      p1, p2  - tangential distortion (CamCAL convention)
+      b1, b2  - affinity/non-orthogonality terms
+
+    Conversion to OpenCV:
+      fx = c*(1+b1) / pixel_size_x     fy = c / pixel_size_y
+      cx = W/2 + xp/pixel_size_x       cy = H/2 + yp/pixel_size_y
+      skew = c*b2 / pixel_size_x
+      k1_cv = k1*c^2   k2_cv = k2*c^4   k3_cv = k3*c^6
+      p1_cv = p1*c      p2_cv = p2*c
+
+    Returns:
+        (camera_matrix, dist_coeffs) as numpy arrays
+        camera_matrix is 3x3 with skew term at [0,1]
+        dist_coeffs is (1,5) array [k1, k2, p1, p2, k3]
+    """
+    p = camcal_data['params']
+    px, py = camcal_data['pixel_size']
+    W, H = camcal_data['image_size']
+
+    c = p['c']
+    fx = c * (1.0 + p['b1']) / px
+    fy = c / py
+    cx = W / 2.0 + p['xp'] / px
+    cy = H / 2.0 + p['yp'] / py
+    skew = c * p['b2'] / px
+
+    camera_matrix = np.array([
+        [fx, skew, cx],
+        [0,  fy,   cy],
+        [0,  0,    1 ]
+    ], dtype=np.float64)
+
+    k1_cv = p['k1'] * c**2
+    k2_cv = p['k2'] * c**4
+    k3_cv = p['k3'] * c**6
+    p1_cv = p['p1'] * c
+    p2_cv = p['p2'] * c
+
+    dist_coeffs = np.array([[k1_cv, k2_cv, p1_cv, p2_cv, k3_cv]], dtype=np.float64)
+
+    return camera_matrix, dist_coeffs
+
+
+def read_cal(left_camcal=None, right_camcal=None, ptscal_path=None,
+             extrinsics_mode='skip'):
+    """Read stereo calibration from CamCAL/PtsCAL files.
+
+    Args:
+        left_camcal: Path to left camera .CamCAL file
+        right_camcal: Path to right camera .CamCAL file
+        ptscal_path: Path to .PtsCAL file (3D reference points)
+        extrinsics_mode: How to handle extrinsics:
+            'skip'    - Output intrinsics only, no R/T
+            'derive'  - Use PtsCAL + both cameras to derive R,T via
+                        cv2.stereoCalibrate with fixed intrinsics
+            'extract' - Placeholder for future CamCAL formats with extrinsics
+
+    Returns:
+        StereoCalibration object (may lack extrinsics if mode='skip')
+    """
+    if left_camcal is None and right_camcal is None:
+        raise ValueError("At least one .CamCAL file is required")
+
+    calib = StereoCalibration()
+
+    # Parse and convert left camera
+    left_data = None
+    if left_camcal is not None:
+        left_data = parse_camcal(left_camcal)
+        calib.camera_matrix_left, calib.dist_coeffs_left = camcal_to_opencv(left_data)
+        calib.image_width, calib.image_height = left_data['image_size']
+
+    # Parse and convert right camera
+    right_data = None
+    if right_camcal is not None:
+        right_data = parse_camcal(right_camcal)
+        calib.camera_matrix_right, calib.dist_coeffs_right = camcal_to_opencv(right_data)
+        if calib.image_width is None:
+            calib.image_width, calib.image_height = right_data['image_size']
+
+    # Parse PtsCAL if provided
+    ptscal_data = None
+    if ptscal_path is not None:
+        ptscal_data = parse_ptscal(ptscal_path)
+
+    # Handle extrinsics
+    if extrinsics_mode == 'derive':
+        if left_data is None or right_data is None:
+            raise ValueError("Both --left-cal and --right-cal files required to derive extrinsics")
+        if ptscal_data is None:
+            raise ValueError("--pts file required to derive extrinsics")
+
+        # Use 3D reference points projected through each camera model to
+        # establish correspondences, then solve for R, T
+        pts_3d = np.array(list(ptscal_data['points'].values()), dtype=np.float64)
+        n_pts = len(pts_3d)
+        if n_pts < 4:
+            raise ValueError(f"Need at least 4 reference points, got {n_pts}")
+
+        # Project 3D points through each camera to get synthetic 2D points
+        # Use identity pose for left camera (world frame = left camera frame)
+        rvec_zero = np.zeros((3, 1), dtype=np.float64)
+        tvec_zero = np.zeros((3, 1), dtype=np.float64)
+
+        pts_2d_left, _ = cv2.projectPoints(
+            pts_3d, rvec_zero, tvec_zero,
+            calib.camera_matrix_left, calib.dist_coeffs_left)
+        pts_2d_right, _ = cv2.projectPoints(
+            pts_3d, rvec_zero, tvec_zero,
+            calib.camera_matrix_right, calib.dist_coeffs_right)
+
+        # Reshape for stereoCalibrate
+        obj_pts = [pts_3d.reshape(-1, 1, 3).astype(np.float32)]
+        img_left = [pts_2d_left.reshape(-1, 1, 2).astype(np.float32)]
+        img_right = [pts_2d_right.reshape(-1, 1, 2).astype(np.float32)]
+
+        img_size = (calib.image_width, calib.image_height)
+
+        _, _, _, _, _, R, T, _, _ = cv2.stereoCalibrate(
+            obj_pts, img_left, img_right,
+            calib.camera_matrix_left, calib.dist_coeffs_left,
+            calib.camera_matrix_right, calib.dist_coeffs_right,
+            img_size, flags=cv2.CALIB_FIX_INTRINSIC)
+
+        calib.R = R
+        calib.T = T
+
+    elif extrinsics_mode == 'extract':
+        raise NotImplementedError(
+            "Extracting extrinsics from .CamCAL is not yet supported. "
+            "Current .CamCAL files contain interior orientation only.")
+
+    # Store CamCAL/PtsCAL metadata
+    calib._cal_metadata = {}
+    if left_data is not None:
+        calib._cal_metadata['left_description'] = left_data['description']
+        calib._cal_metadata['left_params'] = left_data['params']
+    if right_data is not None:
+        calib._cal_metadata['right_description'] = right_data['description']
+        calib._cal_metadata['right_params'] = right_data['params']
+    if ptscal_data is not None:
+        calib._cal_metadata['reference_points'] = {
+            k: list(v) for k, v in ptscal_data['points'].items()
+        }
+        calib._cal_metadata['known_distances'] = [
+            {'from': d[0], 'to': d[1], 'distance_mm': d[2]}
+            for d in ptscal_data['distances']
+        ]
+
+    return calib
+
+
+# =============================================================================
 # Format writers
 # =============================================================================
 
@@ -354,14 +674,11 @@ def write_npz(calib, output_path):
 
 
 def write_json(calib, output_path):
-    """Write calibration to KWIVER-compatible JSON format."""
-    calib.validate()
+    """Write calibration to KWIVER-compatible JSON format.
 
-    # Extract intrinsics
-    M_left = calib.camera_matrix_left
-    D_left = calib.dist_coeffs_left.flatten()
-    M_right = calib.camera_matrix_right
-    D_right = calib.dist_coeffs_right.flatten()
+    Supports intrinsics-only output when extrinsics are not available.
+    """
+    calib.validate(require_extrinsics=calib.has_extrinsics())
 
     data = {}
 
@@ -383,31 +700,46 @@ def write_json(calib, output_path):
     if calib.rms_error_stereo is not None:
         data['rms_error_stereo'] = float(calib.rms_error_stereo)
 
-    # Extrinsics
-    data['T'] = calib.T.flatten().tolist()
-    data['R'] = calib.R.flatten().tolist()
+    # Extrinsics (if available)
+    if calib.has_extrinsics():
+        data['T'] = calib.T.flatten().tolist()
+        data['R'] = calib.R.flatten().tolist()
 
     # Left camera intrinsics
-    data['fx_left'] = float(M_left[0, 0])
-    data['fy_left'] = float(M_left[1, 1])
-    data['cx_left'] = float(M_left[0, 2])
-    data['cy_left'] = float(M_left[1, 2])
-    data['k1_left'] = float(D_left[0])
-    data['k2_left'] = float(D_left[1])
-    data['p1_left'] = float(D_left[2])
-    data['p2_left'] = float(D_left[3])
-    data['k3_left'] = float(D_left[4]) if len(D_left) > 4 else 0.0
+    if calib.camera_matrix_left is not None:
+        M_left = calib.camera_matrix_left
+        D_left = calib.dist_coeffs_left.flatten()
+        data['fx_left'] = float(M_left[0, 0])
+        data['fy_left'] = float(M_left[1, 1])
+        data['cx_left'] = float(M_left[0, 2])
+        data['cy_left'] = float(M_left[1, 2])
+        if M_left[0, 1] != 0:
+            data['skew_left'] = float(M_left[0, 1])
+        data['k1_left'] = float(D_left[0])
+        data['k2_left'] = float(D_left[1])
+        data['p1_left'] = float(D_left[2])
+        data['p2_left'] = float(D_left[3])
+        data['k3_left'] = float(D_left[4]) if len(D_left) > 4 else 0.0
 
     # Right camera intrinsics
-    data['fx_right'] = float(M_right[0, 0])
-    data['fy_right'] = float(M_right[1, 1])
-    data['cx_right'] = float(M_right[0, 2])
-    data['cy_right'] = float(M_right[1, 2])
-    data['k1_right'] = float(D_right[0])
-    data['k2_right'] = float(D_right[1])
-    data['p1_right'] = float(D_right[2])
-    data['p2_right'] = float(D_right[3])
-    data['k3_right'] = float(D_right[4]) if len(D_right) > 4 else 0.0
+    if calib.camera_matrix_right is not None:
+        M_right = calib.camera_matrix_right
+        D_right = calib.dist_coeffs_right.flatten()
+        data['fx_right'] = float(M_right[0, 0])
+        data['fy_right'] = float(M_right[1, 1])
+        data['cx_right'] = float(M_right[0, 2])
+        data['cy_right'] = float(M_right[1, 2])
+        if M_right[0, 1] != 0:
+            data['skew_right'] = float(M_right[0, 1])
+        data['k1_right'] = float(D_right[0])
+        data['k2_right'] = float(D_right[1])
+        data['p1_right'] = float(D_right[2])
+        data['p2_right'] = float(D_right[3])
+        data['k3_right'] = float(D_right[4]) if len(D_right) > 4 else 0.0
+
+    # CamCAL/PtsCAL metadata (reference points, known distances)
+    if hasattr(calib, '_cal_metadata') and calib._cal_metadata:
+        data['cal_metadata'] = calib._cal_metadata
 
     with open(output_path, 'w') as f:
         json.dump(data, f, indent=2)
@@ -513,7 +845,7 @@ def write_zed(calib, output_path, camera_mode='HD'):
 # Format detection
 # =============================================================================
 
-SUPPORTED_FORMATS = ['npz', 'json', 'opencv', 'zed']
+SUPPORTED_FORMATS = ['npz', 'json', 'opencv', 'zed', 'cal']
 
 
 def detect_format(path):
@@ -544,6 +876,8 @@ def detect_format(path):
         if (parent / "intrinsics.yml").exists() and (parent / "extrinsics.yml").exists():
             return 'opencv'
         raise ValueError(f"Single YML file found, but OpenCV format requires both intrinsics.yml and extrinsics.yml")
+    elif suffix.lower() in ['.camcal', '.ptscal']:
+        return 'cal'
     elif suffix in ['.conf', '.ini', '.cfg', '']:
         # Try to detect ZED format by reading first few lines
         try:
@@ -583,22 +917,31 @@ def infer_output_format(output_path):
 # =============================================================================
 
 def convert(input_path, output_path, input_format=None, output_format=None,
-            camera_mode='HD', image_width=None, image_height=None):
+            camera_mode='HD', image_width=None, image_height=None,
+            left_camcal=None, right_camcal=None, ptscal=None,
+            extrinsics_mode='skip'):
     """
     Convert calibration between formats.
 
     Args:
-        input_path: Path to input calibration file or directory
+        input_path: Path to input calibration file or directory (unused for cal format)
         output_path: Path to output calibration file or directory
         input_format: Input format (auto-detected if None)
         output_format: Output format (inferred from output_path if None)
         camera_mode: ZED camera mode (2K, FHD, HD, VGA)
         image_width: Image width for rectification computation
         image_height: Image height for rectification computation
+        left_camcal: Path to left .CamCAL file
+        right_camcal: Path to right .CamCAL file
+        ptscal: Path to .PtsCAL file
+        extrinsics_mode: Extrinsics handling for cal format (skip, derive, extract)
     """
-    # Auto-detect input format
+    # Auto-detect input format from CamCAL args or input_path
     if input_format is None:
-        input_format = detect_format(input_path)
+        if left_camcal is not None or right_camcal is not None:
+            input_format = 'cal'
+        else:
+            input_format = detect_format(input_path)
         print(f"Detected input format: {input_format}")
 
     # Infer output format
@@ -609,17 +952,22 @@ def convert(input_path, output_path, input_format=None, output_format=None,
         print(f"Inferred output format: {output_format}")
 
     # Read calibration
-    readers = {
-        'npz': read_npz,
-        'json': read_json,
-        'opencv': read_opencv,
-        'zed': lambda p: read_zed(p, camera_mode),
-    }
+    if input_format == 'cal':
+        if left_camcal is None and right_camcal is None:
+            raise ValueError("cal format requires --left-cal and/or --right-cal")
+        calib = read_cal(left_camcal, right_camcal, ptscal, extrinsics_mode)
+    else:
+        readers = {
+            'npz': read_npz,
+            'json': read_json,
+            'opencv': read_opencv,
+            'zed': lambda p: read_zed(p, camera_mode),
+        }
 
-    if input_format not in readers:
-        raise ValueError(f"Unsupported input format: {input_format}")
+        if input_format not in readers:
+            raise ValueError(f"Unsupported input format: {input_format}")
 
-    calib = readers[input_format](input_path)
+        calib = readers[input_format](input_path)
 
     # Store image dimensions if provided
     if image_width is not None:
@@ -628,7 +976,7 @@ def convert(input_path, output_path, input_format=None, output_format=None,
         calib.image_height = image_height
 
     # Compute rectification if needed and possible
-    if not calib.has_rectification() and output_format == 'opencv':
+    if not calib.has_rectification() and calib.has_extrinsics() and output_format == 'opencv':
         if calib.image_width is not None and calib.image_height is not None:
             print("Computing rectification parameters...")
             calib.compute_rectification()
@@ -650,7 +998,7 @@ def convert(input_path, output_path, input_format=None, output_format=None,
         raise ValueError(f"Unsupported output format: {output_format}")
 
     writers[output_format](calib, output_path)
-    print(f"Conversion complete: {input_path} -> {output_path}")
+    print(f"Conversion complete: -> {output_path}")
 
 
 # =============================================================================
@@ -666,6 +1014,7 @@ Supported formats:
   json    - KWIVER camera_rig_io compatible JSON format
   opencv  - OpenCV FileStorage format (intrinsics.yml + extrinsics.yml in a directory)
   zed     - ZED camera INI-style configuration format
+  cal     - CamCAL/PtsCAL binary calibration format (input only)
 
 Examples:
   # Convert OpenCV YML to NPZ
@@ -679,6 +1028,13 @@ Examples:
 
   # Convert with explicit formats
   %(prog)s input.conf output.json --input-format zed --output-format json
+
+  # Convert CamCAL intrinsics to JSON (no extrinsics)
+  %(prog)s --left-cal left.CamCAL --right-cal right.CamCAL -o json output.json
+
+  # Convert CamCAL with derived extrinsics from PtsCAL
+  %(prog)s --left-cal left.CamCAL --right-cal right.CamCAL \\
+    --pts points.PtsCAL --extrinsics-mode derive -o json output.json
 """
 
     parser = argparse.ArgumentParser(
@@ -686,8 +1042,9 @@ Examples:
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-    parser.add_argument("input_path",
-                        help="Path to input calibration file or directory")
+    parser.add_argument("input_path", nargs='?', default=None,
+                        help="Path to input calibration file or directory "
+                             "(not required for cal format)")
     parser.add_argument("output_path",
                         help="Path to output calibration file or directory")
 
@@ -703,7 +1060,26 @@ Examples:
     parser.add_argument("--image-height", type=int, default=None,
                         help="Image height in pixels (required for computing rectification)")
 
+    # CamCAL/PtsCAL options
+    cal_group = parser.add_argument_group('CamCAL/PtsCAL options')
+    cal_group.add_argument("--left-cal", default=None, metavar="PATH",
+                           help="Path to left camera .CamCAL file")
+    cal_group.add_argument("--right-cal", default=None, metavar="PATH",
+                           help="Path to right camera .CamCAL file")
+    cal_group.add_argument("--pts", default=None, metavar="PATH",
+                           help="Path to .PtsCAL file (3D reference points)")
+    cal_group.add_argument("--extrinsics-mode", default="skip",
+                           choices=["skip", "derive", "extract"],
+                           help="How to handle extrinsics for cal format: "
+                                "skip (intrinsics only), derive (fit R,T from PtsCAL), "
+                                "extract (future, not yet supported) (default: skip)")
+
     args = parser.parse_args()
+
+    # Validate: need either input_path or cal args
+    is_cal = args.left_cal is not None or args.right_cal is not None
+    if args.input_path is None and not is_cal:
+        parser.error("input_path is required unless using --left-cal/--right-cal")
 
     try:
         convert(
@@ -714,6 +1090,10 @@ Examples:
             camera_mode=args.camera_mode,
             image_width=args.image_width,
             image_height=args.image_height,
+            left_camcal=args.left_cal,
+            right_camcal=args.right_cal,
+            ptscal=args.pts,
+            extrinsics_mode=args.extrinsics_mode,
         )
         return 0
     except Exception as e:

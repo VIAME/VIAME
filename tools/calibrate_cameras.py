@@ -14,10 +14,70 @@ from images of a chessboard calibration target.
 import numpy as np
 import cv2
 import os
+import struct
 import sys
 import glob
 import argparse
 import json
+
+
+def parse_ptscal(filepath):
+    """Parse a PtsCAL binary file (3D reference points).
+
+    Returns:
+        dict with keys:
+          points: dict of {label: (x, y, z)} in mm
+          distances: list of (label1, label2, distance_mm) tuples
+    """
+    with open(filepath, 'rb') as f:
+        magic = f.read(4)
+        if magic != b'MBL\x00':
+            raise ValueError(f"Not a PtsCAL file (expected MBL header): {filepath}")
+
+        count = struct.unpack('<I', f.read(4))[0]
+
+        points = {}
+        point_ids = {}
+        for _ in range(count):
+            entry = f.read(146)
+            if len(entry) < 146:
+                break
+
+            pbl_magic = entry[:4]
+            if pbl_magic != b'PBL\x01':
+                raise ValueError(f"Expected PBL entry header, got {pbl_magic!r}")
+            pt_id = struct.unpack('<I', entry[4:8])[0]
+            label = str(pt_id)
+
+            # 3 coordinate sub-records at offsets 8, 49, 90 (41 bytes each)
+            coords = []
+            for dim in range(3):
+                base = 8 + dim * 41
+                coord = struct.unpack('<d', entry[base:base+8])[0]
+                coords.append(coord)
+
+            points[label] = tuple(coords)
+            point_ids[pt_id] = label
+
+        distances = []
+        bdi_count_raw = f.read(4)
+        if len(bdi_count_raw) == 4:
+            bdi_count = struct.unpack('<I', bdi_count_raw)[0]
+            for _ in range(bdi_count):
+                bdi_entry = f.read(45)
+                if len(bdi_entry) < 45:
+                    break
+                id1 = struct.unpack('<I', bdi_entry[4:8])[0]
+                id2 = struct.unpack('<I', bdi_entry[8:12])[0]
+                dist_val = struct.unpack('<d', bdi_entry[12:20])[0]
+                label1 = point_ids.get(id1, str(id1))
+                label2 = point_ids.get(id2, str(id2))
+                distances.append((label1, label2, dist_val))
+
+    return {
+        'points': points,
+        'distances': distances,
+    }
 
 
 def print_progress(current, total, prefix='Progress', suffix='', bar_length=40):
@@ -672,6 +732,10 @@ Input modes:
                         help="corner file input/output path for caching detections")
     parser.add_argument("-i", "--intr-file", default=None, dest="intr_file",
                         help="input intrinsics file if only recomputing extrinsics")
+    parser.add_argument("--pts", default=None, metavar="PATH",
+                        help="PtsCAL file providing 3D reference point coordinates (mm). "
+                             "When provided, these replace the chessboard grid object points "
+                             "and --square-size is ignored. Grid size must match point arrangement.")
     parser.add_argument("-q", "--square-size", type=float, default=80,
                         help="width of a single calibration square in mm (default: 80)")
     parser.add_argument("-x", "--grid-x", type=int, default=6,
@@ -752,7 +816,18 @@ Input modes:
                          f"Left has {len(left_data)}, right has {len(right_data)} detections.")
 
     print("computing calibration")
-    objp = make_object_points(grid_size) * args.square_size
+    if args.pts:
+        ptscal_data = parse_ptscal(args.pts)
+        pts_3d = np.array(list(ptscal_data['points'].values()), dtype=np.float32)
+        n_pts = grid_size[0] * grid_size[1]
+        if len(pts_3d) != n_pts:
+            raise ValueError(
+                f"PtsCAL has {len(pts_3d)} points but grid size {grid_size[0]}x{grid_size[1]} "
+                f"expects {n_pts} points. Adjust --grid-x/--grid-y to match.")
+        objp = pts_3d
+        print(f"Using {len(pts_3d)} PtsCAL reference points as object points")
+    else:
+        objp = make_object_points(grid_size) * args.square_size
     (left_rms, K_left, dist_left, _, _), _ = calibrate_single_camera(left_data, objp, img_shape, "left")
     (right_rms, K_right, dist_right, _, _), _ = calibrate_single_camera(right_data, objp, img_shape, "right")
 
