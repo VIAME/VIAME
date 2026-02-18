@@ -25,9 +25,61 @@ process measurer
   :calibration_file                            ./calibration_matrices.npz
   :matching_methods                            input_pairs_only
 
-  # Feature detector configuration (for feature-based methods if needed)
+  # ---------------------------------------------------------------------------
+  # Depth projection parameters
+  # ---------------------------------------------------------------------------
+  # Default depth for projection (must be in same units as calibration T vector,
+  # e.g. millimeters if T is in mm). Used by depth_projection and as a fallback
+  # hint for other methods.
+  :default_depth                               4420
+
+  # ---------------------------------------------------------------------------
+  # Template matching parameters (for template_matching method)
+  # ---------------------------------------------------------------------------
+  # Operates on rectified images, searches along the horizontal epipolar line.
+  # Best accuracy (~1.6px) but may miss detections near image edges or in
+  # textureless regions.
+  :search_range                                200
+  :template_matching_threshold                 0.5
+  :epipolar_band_halfwidth                     2
+  :use_multires_search                         false
+  :use_disparity_hint                          false
+
+  # ---------------------------------------------------------------------------
+  # Epipolar template matching parameters (for epipolar_template_matching method)
+  # ---------------------------------------------------------------------------
+  # Operates on unrectified images, searches along the computed epipolar curve.
+  # Best overall method: ~1.9px mean error with highest match rate (5/5).
+  # The depth range must be in the same units as the calibration T vector.
+  :template_size                               13
+  :epipolar_min_depth                          2000
+  :epipolar_max_depth                          200000
+  :epipolar_num_samples                        5000
+  :use_census_transform                        false
+
+  # ---------------------------------------------------------------------------
+  # Feature-based matching parameters (for feature_descriptor / ransac_feature)
+  # ---------------------------------------------------------------------------
+  # Feature matching finds correspondences globally then filters by proximity
+  # to the query keypoint. Accuracy is limited (~16px with SIFT) because matched
+  # features may not coincide with exact keypoint locations.
+  :feature_search_radius                       200
+  :use_disparity_aware_feature_search          true
+  :feature_search_depth                        4420
+  :ransac_inlier_scale                         5.0
+  :min_ransac_inliers                          4
+
+  # ---------------------------------------------------------------------------
+  # Bounding box parameters
+  # ---------------------------------------------------------------------------
+  :box_scale_factor                            1.10
+  :box_min_aspect_ratio                        0.10
+
+  # ---------------------------------------------------------------------------
+  # Feature detector configuration (for feature_descriptor / ransac_feature)
+  # ---------------------------------------------------------------------------
   # Options: ocv_BRISK, ocv_FAST, ocv_GFTT, ocv_ORB, ocv_SIFT, ocv_SURF, etc.
-  feature_detector:type                        = ocv_ORB
+  feature_detector:type                        = ocv_SIFT
 
   block feature_detector:ocv_ORB
     n_features                                 = 2000
@@ -37,7 +89,7 @@ process measurer
 
   # Descriptor extractor configuration
   # Options: ocv_BRISK, ocv_BRIEF, ocv_ORB, ocv_SIFT, ocv_SURF, etc.
-  descriptor_extractor:type                    = ocv_ORB
+  descriptor_extractor:type                    = ocv_SIFT
 
   block descriptor_extractor:ocv_ORB
     n_features                                 = 2000
@@ -47,7 +99,7 @@ process measurer
 
   # Feature matcher configuration
   # Options: ocv_brute_force, ocv_flann_based
-  feature_matcher:type                         = ocv_brute_force
+  feature_matcher:type                         = ocv_flann_based
 
   block feature_matcher:ocv_brute_force
     cross_check                                = true
@@ -56,6 +108,26 @@ process measurer
   # Fundamental matrix estimator configuration (for ransac_feature method)
   # Options: ocv, vxl
   fundamental_matrix_estimator:type            = ocv
+
+  # ---------------------------------------------------------------------------
+  # Stereo disparity configuration (for compute_disparity method)
+  # ---------------------------------------------------------------------------
+  # Note: compute_disparity uses SGBM to produce a dense disparity map, then
+  # looks up disparity at specific keypoint locations. This can be unreliable
+  # when keypoints fall in textureless or occluded regions.
+  stereo_disparity:type                        = ocv_stereo_disparity
+
+  block stereo_disparity:ocv_stereo_disparity
+    algorithm                                  = SGBM
+    num_disparities                            = 256
+    block_size                                 = 5
+    speckle_window_size                        = 100
+    speckle_range                              = 32
+    output_format                              = raw
+    use_wls_filter                             = true
+    wls_lambda                                 = 8000.0
+    wls_sigma                                  = 1.5
+  endblock
 
 connect from track_reader1.object_track_set
         to   measurer.object_track_set1
