@@ -59,32 +59,32 @@ create_config_trait( licence_key1, std::string, "",
 create_config_trait( licence_key2, std::string, "",
   "SEAGIS licence key 2 (optional if using USB licence)" );
 
-create_config_trait( image_measurement_sd, double, 1.0,
+create_config_trait( image_measurement_sd, double, "1.0",
   "Image measurement standard deviation in pixels" );
 
-create_config_trait( camera_pair_id, unsigned int, 0,
+create_config_trait( camera_pair_id, unsigned int, "0",
   "Camera pair ID for SEAGIS library (typically 0)" );
 
-create_config_trait( enable_epipolar_matching, bool, false,
+create_config_trait( enable_epipolar_matching, bool, "false",
   "If true, attempt to find corresponding keypoints in the other camera using "
   "SEAGIS epipolar line projection and template matching when only one camera "
   "has head/tail keypoints." );
 
-create_config_trait( epipolar_min_depth, double, 0.0,
+create_config_trait( epipolar_min_depth, double, "0.0",
   "Minimum depth (in calibration units) for epipolar template matching. "
   "Defines the near end of the depth range sampled along the epipolar line. "
   "Default is 0 (off). Ignored when epipolar_min_disparity and "
   "epipolar_max_disparity are both > 0. Either disparity or depth parameters "
   "must be set for epipolar matching to work." );
 
-create_config_trait( epipolar_max_depth, double, 0.0,
+create_config_trait( epipolar_max_depth, double, "0.0",
   "Maximum depth (in calibration units) for epipolar template matching. "
   "Defines the far end of the depth range sampled along the epipolar line. "
   "Default is 0 (off). Ignored when epipolar_min_disparity and "
   "epipolar_max_disparity are both > 0. Either disparity or depth parameters "
   "must be set for epipolar matching to work." );
 
-create_config_trait( epipolar_min_disparity, double, 0.0,
+create_config_trait( epipolar_min_disparity, double, "0.0",
   "Minimum expected disparity in pixels for epipolar template matching "
   "(corresponds to the farthest objects). When both epipolar_min_disparity and "
   "epipolar_max_disparity are > 0, the range is computed automatically from the "
@@ -92,17 +92,17 @@ create_config_trait( epipolar_min_disparity, double, 0.0,
   "range since disparity is unit-independent and can be estimated directly from "
   "the images." );
 
-create_config_trait( epipolar_max_disparity, double, 0.0,
+create_config_trait( epipolar_max_disparity, double, "0.0",
   "Maximum expected disparity in pixels for epipolar template matching "
   "(corresponds to the nearest objects). See epipolar_min_disparity for details." );
 
-create_config_trait( template_size, int, 13,
+create_config_trait( template_size, int, "13",
   "Template window size (in pixels) for epipolar template matching. Must be odd." );
 
-create_config_trait( template_matching_threshold, double, 0.5,
+create_config_trait( template_matching_threshold, double, "0.5",
   "Minimum NCC threshold for epipolar template matching (0.0 to 1.0)." );
 
-create_config_trait( use_census_transform, bool, false,
+create_config_trait( use_census_transform, bool, "false",
   "If true, use census transform preprocessing for epipolar template matching." );
 
 create_config_trait( detection_pairing_method, std::string, "",
@@ -111,7 +111,7 @@ create_config_trait( detection_pairing_method, std::string, "",
   "'iou' (match by raw bounding box IOU), "
   "'keypoint_distance' (match by raw head/tail keypoint pixel distance)." );
 
-create_config_trait( detection_pairing_threshold, double, 0.1,
+create_config_trait( detection_pairing_threshold, double, "0.1",
   "Threshold for detection pairing. For 'iou' method, this is the minimum IOU "
   "threshold (default 0.1). For 'keypoint_distance' method, this is the maximum "
   "average keypoint pixel distance (default 50.0)." );
@@ -886,7 +886,12 @@ seagis_measurement_process
       }
 
       // Skip if already measured (both cameras had keypoints)
-      if( det1->length() > 0 )
+      auto has_length = []( const kv::detected_object_sptr& d ) {
+        for( const auto& n : d->notes() )
+          if( n.find( ":length=" ) != std::string::npos ) return true;
+        return false;
+      };
+      if( has_length( det1 ) )
       {
         continue;
       }
