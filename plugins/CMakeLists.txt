@@ -54,6 +54,10 @@ if( VIAME_ENABLE_SVM )
   add_subdirectory( svm )
 endif()
 
+if( VIAME_ENABLE_VERTEX_AI AND VIAME_ENABLE_PYTHON )
+  add_subdirectory( vertex-ai )
+endif()
+
 ###
 # Add all code that's a part of the simplified python API here
 ##
