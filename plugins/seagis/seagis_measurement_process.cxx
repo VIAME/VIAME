@@ -195,6 +195,7 @@ seagis_measurement_process::priv
   , m_licence_key2( "" )
   , m_image_measurement_sd( 1.0 )
   , m_camera_pair_id( 0 )
+  , m_stereo()
   , m_enable_epipolar_matching( false )
   , m_epipolar_min_depth( 0.0 )
   , m_epipolar_max_depth( 0.0 )
@@ -202,7 +203,6 @@ seagis_measurement_process::priv
   , m_epipolar_max_disparity( 0.0 )
   , m_detection_pairing_method( "" )
   , m_detection_pairing_threshold( 0.1 )
-  , m_stereo()
   , m_frame_counter( 0 )
   , parent( ptr )
 {
