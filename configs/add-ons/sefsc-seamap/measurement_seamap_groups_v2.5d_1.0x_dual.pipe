@@ -446,8 +446,10 @@ connect from downsampler.timestamp
 
 process measurer
   :: seagis_measurement
-  :left_camera_file                            ./left_camera.CAM
-  :right_camera_file                           ./right_camera.CAM
+  #:licence_key1                                [INSERT_HERE]
+  #:licence_key2                                [INSERT_HERE]
+  relativepath left_camera_file =              models/SC6_camera3_2024.CamCAL
+  relativepath right_camera_file =             models/SC6_satelliteA_2024.CamCAL
   :enable_epipolar_matching                    true
   :epipolar_min_disparity                      2
   :epipolar_max_disparity                      300
