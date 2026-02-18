@@ -1,0 +1,29 @@
+FROM kitware/viame:gpu-algorithms-web
+
+# Vertex AI Flask and GCP dependencies
+RUN pip install --no-cache-dir \
+  "flask>=2.3" \
+  "gunicorn>=21.2" \
+  "google-cloud-storage>=2.10" \
+  "google-cloud-aiplatform>=1.38"
+
+# Copy vertex-ai plugin into the VIAME install
+COPY plugins/vertex-ai/*.py /opt/noaa/viame/plugins/vertex-ai/
+
+WORKDIR /workspace
+
+ENV VIAME_INSTALL_DIR=/opt/noaa/viame
+ENV VIAME_WORK_DIR=/workspace
+ENV AIP_HTTP_PORT=8080
+
+EXPOSE 8080
+
+# Vertex AI requires ENTRYPOINT to run indefinitely
+ENTRYPOINT ["bash", "-c", \
+  "source /opt/noaa/viame/setup_viame.sh && \
+   cd /opt/noaa/viame/plugins/vertex-ai && \
+   gunicorn --bind 0.0.0.0:${AIP_HTTP_PORT} \
+            --timeout 600 \
+            --workers 1 \
+            --threads 4 \
+            app:app"]
