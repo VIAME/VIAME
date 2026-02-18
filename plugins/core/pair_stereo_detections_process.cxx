@@ -254,6 +254,10 @@ public:
   // State
   kv::track_id_t m_next_track_id;
 
+  // Track pass-through state (for per-frame mode with track inputs)
+  std::map< kv::track_id_t, kv::track_id_t > m_right_to_output_id;
+  kv::track_id_t m_next_right_only_id;
+
   // Accumulation state
   std::map< kv::track_id_t, kv::track_sptr > m_accumulated_tracks1;
   std::map< kv::track_id_t, kv::track_sptr > m_accumulated_tracks2;
@@ -329,6 +333,7 @@ pair_stereo_detections_process::priv
   , m_min_avg_surface_area( 0.0 )
   , m_max_avg_surface_area( 0.0 )
   , m_next_track_id( 0 )
+  , m_next_right_only_id( 1000000 )
   , parent( ptr )
 {
 }
@@ -764,6 +769,7 @@ pair_stereo_detections_process
   // Determine input source and grab detections + track IDs
   std::vector< kv::detected_object_sptr > detections1, detections2;
   std::vector< kv::track_id_t > track_ids1, track_ids2;
+  kv::object_track_set_sptr saved_track_set1, saved_track_set2;
 
   bool use_detections1 = has_input_port_edge_using_trait( detected_object_set1 );
   bool use_detections2 = has_input_port_edge_using_trait( detected_object_set2 );
@@ -795,8 +801,8 @@ pair_stereo_detections_process
   }
   else if( use_tracks1 )
   {
-    auto track_set1 = grab_from_port_using_trait( object_track_set1 );
-    for( const auto& track : track_set1->tracks() )
+    saved_track_set1 = grab_from_port_using_trait( object_track_set1 );
+    for( const auto& track : saved_track_set1->tracks() )
     {
       // Get the state for the current frame
       auto it = track->find( timestamp.get_frame() );
@@ -825,8 +831,8 @@ pair_stereo_detections_process
   }
   else if( use_tracks2 )
   {
-    auto track_set2 = grab_from_port_using_trait( object_track_set2 );
-    for( const auto& track : track_set2->tracks() )
+    saved_track_set2 = grab_from_port_using_trait( object_track_set2 );
+    for( const auto& track : saved_track_set2->tracks() )
     {
       // Get the state for the current frame
       auto it = track->find( timestamp.get_frame() );
@@ -1001,9 +1007,72 @@ pair_stereo_detections_process
       push_datum_to_port_using_trait( object_track_set2, empty_dat );
     }
   }
+  else if( saved_track_set1 && saved_track_set2 )
+  {
+    // Per-frame mode with track pass-through: preserve original multi-frame
+    // tracks from upstream trackers, remapping right track IDs so that matched
+    // stereo pairs share the same ID for the downstream measurer.
+
+    // Update persistent right→output ID mapping from this frame's matches
+    for( const auto& match : matches )
+    {
+      kv::track_id_t left_id = track_ids1[match.first];
+      kv::track_id_t right_id = track_ids2[match.second];
+
+      if( d->m_right_to_output_id.find( right_id ) == d->m_right_to_output_id.end() )
+      {
+        d->m_right_to_output_id[right_id] = left_id;
+      }
+    }
+
+    // Pass through left tracks as-is
+    push_to_port_using_trait( object_track_set1, saved_track_set1 );
+
+    // Build right output with remapped IDs (new track objects to avoid
+    // modifying the upstream tracker's track state)
+    std::vector< kv::track_sptr > remapped_right;
+    for( const auto& trk : saved_track_set2->tracks() )
+    {
+      kv::track_id_t output_id;
+      auto map_it = d->m_right_to_output_id.find( trk->id() );
+
+      if( map_it != d->m_right_to_output_id.end() )
+      {
+        output_id = map_it->second;
+      }
+      else if( d->m_output_unmatched )
+      {
+        output_id = d->m_next_right_only_id++;
+        d->m_right_to_output_id[trk->id()] = output_id;
+      }
+      else
+      {
+        continue;  // Skip never-matched right tracks
+      }
+
+      auto new_trk = kv::track::create();
+      new_trk->set_id( output_id );
+
+      for( auto it = trk->begin(); it != trk->end(); ++it )
+      {
+        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
+        if( ots )
+        {
+          auto new_state = std::make_shared< kv::object_track_state >(
+            ots->frame(), ots->time(), ots->detection() );
+          new_trk->append( new_state );
+        }
+      }
+
+      remapped_right.push_back( new_trk );
+    }
+
+    auto output_track_set2 = std::make_shared< kv::object_track_set >( remapped_right );
+    push_to_port_using_trait( object_track_set2, output_track_set2 );
+  }
   else
   {
-    // Per-frame mode: create tracks for matched pairs
+    // Per-frame mode with detection inputs: create single-frame tracks
     std::vector< bool > has_match1( detections1.size(), false );
     std::vector< bool > has_match2( detections2.size(), false );
 
