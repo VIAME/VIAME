@@ -327,4 +327,9 @@ if( VIAME_ENABLE_PYTORCH-VISION )
     ${CMAKE_CURRENT_SOURCE_DIR}/torchvision_augment_process.py
     pytorch
     torchvision_augment_process )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/pair_stereo_tracks.py
+    pytorch
+    pair_stereo_tracks )
 endif()
