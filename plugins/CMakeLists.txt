@@ -54,7 +54,7 @@ if( VIAME_ENABLE_SVM )
   add_subdirectory( svm )
 endif()
 
-if( VIAME_ENABLE_VERTEX_AI AND VIAME_ENABLE_PYTHON )
+if( VIAME_ENABLE_VERTEX_AI )
   add_subdirectory( vertex-ai )
 endif()
 
