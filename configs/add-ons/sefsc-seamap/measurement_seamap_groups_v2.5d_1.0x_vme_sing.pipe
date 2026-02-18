@@ -158,7 +158,7 @@ connect from tracker.object_track_set
 
 process measurer
   :: compute_measurements
-  relativepath calibration_file =              models/seagis-cal.json
+  relativepath calibration_file =              models/seamap-cal.json
 
 connect from track_filter.object_track_set
         to   measurer.object_track_set1

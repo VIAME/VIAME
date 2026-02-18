@@ -425,8 +425,9 @@ connect from tracker_r.object_track_set
 
 process pairer
   :: pair_stereo_detections
-  :matching_method                             iou
-  :iou_threshold                               0.1
+  :matching_method                             keypoint_projection
+  relativepath calibration_file =              models/seamap-cal.json
+  :max_keypoint_distance                       50.0
   :output_unmatched                            true
 
 connect from track_filter_l.object_track_set
@@ -440,7 +441,7 @@ connect from downsampler.timestamp
 
 process measurer
   :: compute_measurements
-  relativepath calibration_file =              models/seagis-cal.json
+  relativepath calibration_file =              models/seamap-cal.json
 
 connect from pairer.object_track_set1
         to   measurer.object_track_set1
