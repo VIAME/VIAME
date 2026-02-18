@@ -629,7 +629,7 @@ class TestConfigFile:
         with open(config_path, 'r') as f:
             content = f.read()
 
-        assert 'compute_stereo_depth_map:type = foundation_stereo' in content
+        assert 'matching_method = epipolar_template_matching' in content
         assert 'service:scale' in content
 
 
