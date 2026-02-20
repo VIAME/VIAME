@@ -94,3 +94,6 @@
 	path = packages/pytorch-libs/sam3
 	url = https://github.com/facebookresearch/sam3.git
 	ignore = dirty
+[submodule "packages/pytorch-libs/dino3"]
+	path = packages/pytorch-libs/dino3
+	url = https://github.com/facebookresearch/dinov3

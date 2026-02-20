@@ -75,6 +75,10 @@ if( VIAME_ENABLE_PYTORCH-LITDET )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} litdet )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-DINO3 )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} dino3 )
+endif()
+
 if( VIAME_ENABLE_TENSORRT )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torch2rt )
 endif()
@@ -282,7 +286,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     string( REPLACE " " ";" PIP_CMD "${PIP_CMD}" )
     set( LIBRARY_PIP_INSTALL_CMD ${Python_EXECUTABLE} -m ${PIP_CMD} )
   elseif( VIAME_PYTHON_SYMLINK )
-    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" )
+    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" OR "${LIB}" STREQUAL "dino3" )
       set( LIBRARY_PIP_BUILD_CMD "" )
       if( VIAME_BUILD_NO_CACHE_DIR )
         set( LIBRARY_PIP_INSTALL_CMD
@@ -303,7 +307,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       endif()
     endif()
   else()
-    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" )
+    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" OR "${LIB}" STREQUAL "dino3" )
       # Use pip wheel for pyproject.toml-based packages
       # This avoids creating build directories in source tree
       # Must use --no-cache-dir to ensure wheel is written to --wheel-dir (not just cached)
