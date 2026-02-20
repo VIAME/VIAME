@@ -266,7 +266,7 @@ public:
 
   /// Descriptor type for epipolar template matching.
   /// 'ncc' (default): Normalized cross-correlation on grayscale patches.
-  /// 'dinov3': DINOv3 vision transformer features (requires Python + DINOv3 package).
+  /// 'dino': Two-stage DINO + NCC matching using vision transformer features (requires Python).
   std::string epipolar_descriptor_type;
 
   /// Whether to use distortion coefficients from calibration
@@ -308,7 +308,7 @@ public:
   /// pixel distance for keypoint_projection (default 50.0)
   double detection_pairing_threshold;
 
-  /// DINO model name when epipolar_descriptor_type is 'dinov3'.
+  /// DINO model name when epipolar_descriptor_type is 'dino'.
   /// Supports DINOv3 (e.g., 'dinov3_vits16') and DINOv2 (e.g., 'dinov2_vitb14').
   /// If DINOv3 weights are unavailable, automatically falls back to DINOv2.
   std::string dino3_model_name;

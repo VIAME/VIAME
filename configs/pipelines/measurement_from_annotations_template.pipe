@@ -67,6 +67,15 @@ process measurer
   :epipolar_num_samples                        5000
   :use_census_transform                        false
 
+  # Descriptor type for epipolar matching:
+  #   'ncc' (default): NCC template matching only.
+  #   'dino': Two-stage DINO + NCC. DINO features select the top-K
+  #     semantically similar candidates, then NCC picks the precise match.
+  #     Reduces false matches on repetitive textures. Requires Python + PyTorch.
+  # :epipolar_descriptor_type                  dino
+  # :dino3_model_name                          dinov2_vitb14
+  # :dino3_top_k                               100
+
   # Debug: set to a directory path to write images with epipolar search curves
   # overlaid. Each keypoint produces a side-by-side image showing the source
   # point (left) and the bounded epipolar curve with match point (right).

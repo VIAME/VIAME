@@ -332,13 +332,6 @@ std::vector< int > dino3_get_top_k_indices(
   return result;
 }
 
-/// Invalidate cached DINO image features (e.g., when frame changes)
-void dino3_invalidate_cache()
-{
-  s_dino3_left_data_ptr = nullptr;
-  s_dino3_right_data_ptr = nullptr;
-}
-
 } // anonymous namespace
 
 #endif // VIAME_ENABLE_PYTHON && VIAME_ENABLE_OPENCV
@@ -494,7 +487,7 @@ map_keypoints_to_camera_settings
   config->set_value( "epipolar_descriptor_type", epipolar_descriptor_type,
     "Descriptor type for epipolar template matching. "
     "'ncc' (default): normalized cross-correlation on grayscale patches. "
-    "'dinov3': Two-stage DINO + NCC matching (requires Python). "
+    "'dino': Two-stage DINO + NCC matching (requires Python). "
     "DINO features select the top-K semantically similar candidates, then NCC "
     "provides precise localization. This avoids NCC failures on repetitive textures "
     "while preserving sub-pixel accuracy. Set dino3_top_k=0 for DINO-only mode." );
@@ -562,7 +555,7 @@ map_keypoints_to_camera_settings
     "keypoint pixel distance (default 50.0)." );
 
   config->set_value( "dino3_model_name", dino3_model_name,
-    "DINO backbone model name (used when epipolar_descriptor_type is 'dinov3'). "
+    "DINO backbone model name (used when epipolar_descriptor_type is 'dino'). "
     "Supports DINOv3 (e.g., 'dinov3_vits16') and DINOv2 (e.g., 'dinov2_vitb14'). "
     "If DINOv3 weights are unavailable, automatically falls back to DINOv2. "
     "DINOv2 options: 'dinov2_vits14' (small/fast), 'dinov2_vitb14' (base, recommended), "
@@ -1633,9 +1626,9 @@ map_keypoints_to_camera
           left_gray, right_gray, result.left_tail, epipolar_tail, result.right_tail );
       }
 #ifdef VIAME_ENABLE_PYTHON
-      else if( m_epipolar_descriptor_type == "dinov3" )
+      else if( m_epipolar_descriptor_type == "dino" )
       {
-        descriptor_label = "dinov3";
+        descriptor_label = "dino";
 
         if( !dino3_ensure_initialized(
               m_dino3_model_name, m_dino3_threshold, m_dino3_weights_path ) )

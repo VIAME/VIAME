@@ -70,6 +70,11 @@ class EpipolarTemplateMatcher:
     Uses camera calibration to compute epipolar curves in unrectified images,
     then matches template patches from the source image along the curve in
     the target image using Normalized Cross-Correlation (NCC).
+
+    When dino_top_k > 0 and the dino3_matcher module is available, uses
+    two-stage matching: DINOv2 selects the top-K semantically similar candidates,
+    then NCC picks the precise match from that filtered set. This reduces false
+    matches on repetitive textures.
     """
 
     def __init__(
@@ -79,6 +84,8 @@ class EpipolarTemplateMatcher:
         epipolar_min_disparity=2.0,
         epipolar_max_disparity=300.0,
         epipolar_num_samples=5000,
+        dino_model_name="dinov2_vitb14",
+        dino_top_k=0,
     ):
         self._template_size = template_size
         self._threshold = template_matching_threshold
@@ -94,8 +101,44 @@ class EpipolarTemplateMatcher:
         self._max_depth = 0.0
         self._calibrated = False
 
+        # DINO top-K + NCC two-stage matching
+        self._dino_model_name = dino_model_name
+        self._dino_top_k = dino_top_k
+        self._dino_matcher = None
+        self._dino_available = False
+        self._dino_images_set = False
+
+        if dino_top_k > 0:
+            self._init_dino()
+
     def _log(self, msg):
         print(f"[EpipolarMatcher] {msg}", file=sys.stderr, flush=True)
+
+    def _init_dino(self):
+        """Try to import and initialize the DINO matcher module."""
+        try:
+            from viame.pytorch import dino3_matcher
+            self._dino_matcher = dino3_matcher
+            dino3_matcher.init_matcher(
+                model_name=self._dino_model_name, device="cuda", threshold=0.0)
+            self._dino_available = True
+            self._log(f"DINO matcher initialized: model={self._dino_model_name}, "
+                      f"top_k={self._dino_top_k}")
+        except Exception as e:
+            self._log(f"DINO matcher not available ({e}), using NCC only")
+            self._dino_available = False
+            self._dino_top_k = 0
+
+    def set_images(self, left_bgr, right_bgr):
+        """Set BGR images for DINO feature extraction (call when frame changes)."""
+        if not self._dino_available:
+            return
+        try:
+            self._dino_matcher.set_images(left_bgr, right_bgr)
+            self._dino_images_set = True
+        except Exception as e:
+            self._log(f"DINO set_images failed: {e}")
+            self._dino_images_set = False
 
     def load_calibration(self, filepath):
         """
@@ -174,7 +217,11 @@ class EpipolarTemplateMatcher:
         return points
 
     def match_point(self, left_gray, right_gray, source_point):
-        """Find corresponding point in right image via epipolar template matching."""
+        """Find corresponding point in right image via epipolar template matching.
+
+        When DINO top-K is enabled and available, first filters epipolar candidates
+        by DINOv2 semantic similarity, then runs NCC on the filtered set.
+        """
         if not self._calibrated:
             self._log(f"match_point({source_point}): not calibrated")
             return None
@@ -200,6 +247,19 @@ class EpipolarTemplateMatcher:
             self._log(f"match_point({source_point}): no epipolar points computed "
                       f"(depth_range=[{self._min_depth:.1f}, {self._max_depth:.1f}])")
             return None
+
+        # DINO top-K filtering: reduce candidate set before NCC
+        if self._dino_available and self._dino_images_set and self._dino_top_k > 0:
+            epi_xs = [p[0] for p in epipolar_pts]
+            epi_ys = [p[1] for p in epipolar_pts]
+            try:
+                topk_indices = self._dino_matcher.get_top_k_indices(
+                    float(source_point[0]), float(source_point[1]),
+                    epi_xs, epi_ys, k=self._dino_top_k)
+                if topk_indices:
+                    epipolar_pts = [epipolar_pts[i] for i in topk_indices]
+            except Exception as e:
+                self._log(f"DINO top-K failed ({e}), using full set")
 
         h_r, w_r = right_gray.shape[:2]
         best_score = -1.0
@@ -229,7 +289,6 @@ class EpipolarTemplateMatcher:
                 best_point = (ep_x, ep_y)
 
         if best_score < self._threshold:
-            # Log first/last epipolar point for debugging
             ep_first = epipolar_pts[0] if epipolar_pts else None
             ep_last = epipolar_pts[-1] if epipolar_pts else None
             self._log(f"match_point({source_point}): best_score={best_score:.3f} "
@@ -653,6 +712,13 @@ class InteractiveStereoService:
                 raise ValueError(
                     f"Failed to load images: left={left_path}, right={right_path}")
 
+            # Load BGR images for DINO feature extraction if enabled
+            if self._epipolar_matcher._dino_available:
+                left_bgr = cv2.imread(left_path, cv2.IMREAD_COLOR)
+                right_bgr = cv2.imread(right_path, cv2.IMREAD_COLOR)
+                if left_bgr is not None and right_bgr is not None:
+                    self._epipolar_matcher.set_images(left_bgr, right_bgr)
+
             with self._compute_lock:
                 self._left_gray = left_gray
                 self._right_gray = right_gray
@@ -1009,6 +1075,9 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
                 epipolar_max_disparity=_cfg_float(
                     "epipolar_max_disparity", 300.0),
                 epipolar_num_samples=_cfg_int("epipolar_num_samples", 5000),
+                dino_model_name=cfg.get_value("dino_model_name")
+                    if cfg.has_value("dino_model_name") else "dinov2_vitb14",
+                dino_top_k=_cfg_int("dino_top_k", 0),
             )
 
     # Check for dense disparity algorithm
@@ -1069,6 +1138,13 @@ template_matching_threshold = 0.5
 epipolar_min_disparity = 2
 epipolar_max_disparity = 300
 epipolar_num_samples = 5000
+
+# DINO + NCC two-stage matching (optional, requires Python + PyTorch + GPU).
+# DINOv2 features select the top-K semantically similar candidates, then NCC
+# picks the precise match. Reduces false matches on repetitive textures.
+# Set dino_top_k to 0 (default) to disable, or 100 for recommended setting.
+# dino_top_k = 100
+# dino_model_name = dinov2_vitb14
 
 # Service settings
 service:scale = 1.0
