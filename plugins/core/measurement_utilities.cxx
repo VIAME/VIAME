@@ -815,7 +815,7 @@ map_keypoints_to_camera
   , m_dino_threshold( 0.0 )
   , m_dino_weights_path( "" )
   , m_dino_top_k( 100 )
-  , m_cached_frame_id( 0 )
+  , m_cached_frame_id( -1 )
 #ifdef VIAME_ENABLE_OPENCV
   , m_rectification_computed( false )
 #endif
