@@ -3,10 +3,10 @@
 #
 # Description: Stereo measurement pipeline that detects/tracks on the LEFT
 # camera only. SAM2 segmentation and head/tail keypoint identification are
-# applied to left-camera detections. The tracked result is fed to both inputs
-# of the core measurement process along with both stereo images. The core
-# measurement process uses calibration data to triangulate matched keypoints
-# for 3D measurements.
+# applied to left-camera detections. The tracked result is fed to the left
+# input of the core measurement process along with both stereo images. The
+# measurement process uses epipolar template matching (DINO+NCC) to find
+# corresponding right-camera keypoints and triangulates for 3D measurements.
 #
 # Requires: Stereo calibration JSON file.
 # =============================================================================
@@ -127,12 +127,20 @@ process add_segmentations
   endblock
 
 process add_head_tail
-  :: add_keypoints_from_oriented_bbox
+  :: refine_detections
+  :refiner:type                                add_keypoints_from_mask
+
+  block refiner:add_keypoints_from_mask
+    :method                                    oriented_bbox
+    :clip_to_mask                              true
+  endblock
 
 connect from detector_input.image
         to   add_segmentations.image
 connect from classifier_groups_output.detected_object_set
         to   add_segmentations.detected_object_set
+connect from detector_input.image
+        to   add_head_tail.image
 connect from add_segmentations.detected_object_set
         to   add_head_tail.detected_object_set
 
@@ -160,15 +168,30 @@ process measurer
   :: compute_measurements
   relativepath calibration_file =              models/seamap-cal.json
   :matching_methods                            input_pairs_only,epipolar_template_matching
+
+  # Epipolar template matching parameters
+  :template_size                               25
+  :epipolar_min_disparity                      7
+  :epipolar_max_disparity                      724
+  :epipolar_num_samples                        5000
+
+  # DINO + NCC two-stage matching
   :epipolar_descriptor_type                    dino
   :dino_model_name                            dinov2_vitb14
   :dino_top_k                                 100
   relativepath dino_weights_path =            models/dinov2_vitb14.pth
 
+  # Template and search parameters
+  :search_range                                200
+  :template_matching_threshold                 0.2
+  :box_scale_factor                            1.10
+  :box_min_aspect_ratio                        0.10
+
+  # Depth consistency check
+  :depth_consistency_max_ratio                 1.5
+
 connect from track_filter.object_track_set
         to   measurer.object_track_set1
-connect from track_filter.object_track_set
-        to   measurer.object_track_set2
 connect from downsampler.output_1
         to   measurer.image1
 connect from downsampler.output_3

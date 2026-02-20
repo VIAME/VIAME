@@ -23,9 +23,12 @@ process detection_reader
 
 process detection_refiner
   :: refine_detections
-  :refiner:type                           convert_head_tail_points
-  :refiner:convert_head_tail_points:head_postfix             _head
-  :refiner:convert_head_tail_points:tail_postfix             _tail
+  :refiner:type                                add_keypoints_from_mask
+
+  block refiner:add_keypoints_from_mask
+    :method                                    oriented_bbox
+    :clip_to_mask                              true
+  endblock
 
 process detector_writer
   :: detected_object_output

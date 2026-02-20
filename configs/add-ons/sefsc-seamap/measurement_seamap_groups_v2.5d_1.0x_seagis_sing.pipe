@@ -127,12 +127,20 @@ process add_segmentations
   endblock
 
 process add_head_tail
-  :: add_keypoints_from_oriented_bbox
+  :: refine_detections
+  :refiner:type                                add_keypoints_from_mask
+
+  block refiner:add_keypoints_from_mask
+    :method                                    oriented_bbox
+    :clip_to_mask                              true
+  endblock
 
 connect from detector_input.image
         to   add_segmentations.image
 connect from classifier_groups_output.detected_object_set
         to   add_segmentations.detected_object_set
+connect from detector_input.image
+        to   add_head_tail.image
 connect from add_segmentations.detected_object_set
         to   add_head_tail.detected_object_set
 

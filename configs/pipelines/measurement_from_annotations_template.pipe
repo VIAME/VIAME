@@ -68,7 +68,9 @@ process measurer
   :use_census_transform                        false
 
   # Descriptor type for epipolar matching:
-  #   'ncc' (default): NCC template matching only.
+  #   'ncc' (default): NCC template matching only (point-by-point).
+  #   'ncc_strip': FFT-accelerated NCC on strip covering epipolar bounding box.
+  #     Faster than point-by-point NCC for large candidate sets. No Python needed.
   #   'dino': Two-stage DINO + NCC. DINO features select the top-K
   #     semantically similar candidates, then NCC picks the precise match.
   #     Reduces false matches on repetitive textures. Requires Python + PyTorch.
@@ -76,6 +78,13 @@ process measurer
   :dino_model_name                            dinov2_vitb14
   :dino_top_k                                 100
   relativepath dino_weights_path =            models/dinov2_vitb14.pth
+
+  # DINO crop optimization: fraction of image area above which cropping is
+  # skipped and DINO runs on the full image. Default 0.5.
+  :dino_crop_max_area_ratio                   0.5
+
+  # Alternative: strip-based NCC (no DINO/Python needed, FFT-based):
+  # :epipolar_descriptor_type                  ncc_strip
 
   # Debug: set to a directory path to write images with epipolar search curves
   # overlaid. Each keypoint produces a side-by-side image showing the source

@@ -137,13 +137,21 @@ process add_segmentations1
   endblock
 
 process add_head_tail1
-  :: add_keypoints_from_oriented_bbox
+  :: refine_detections
+  :refiner:type                                add_keypoints_from_mask
+
+  block refiner:add_keypoints_from_mask
+    :method                                    oriented_bbox
+    :clip_to_mask                              true
+  endblock
 
 connect from detector_input1.image
         to   add_segmentations1.image
 
 connect from nms_refiner1.detected_object_set
         to   add_segmentations1.detected_object_set
+connect from detector_input1.image
+        to   add_head_tail1.image
 connect from add_segmentations1.detected_object_set
         to   add_head_tail1.detected_object_set
 
@@ -166,13 +174,21 @@ process add_segmentations2
   endblock
 
 process add_head_tail2
-  :: add_keypoints_from_oriented_bbox
+  :: refine_detections
+  :refiner:type                                add_keypoints_from_mask
+
+  block refiner:add_keypoints_from_mask
+    :method                                    oriented_bbox
+    :clip_to_mask                              true
+  endblock
 
 connect from detector_input2.image
         to   add_segmentations2.image
 
 connect from nms_refiner2.detected_object_set
         to   add_segmentations2.detected_object_set
+connect from detector_input2.image
+        to   add_head_tail2.image
 connect from add_segmentations2.detected_object_set
         to   add_head_tail2.detected_object_set
 
