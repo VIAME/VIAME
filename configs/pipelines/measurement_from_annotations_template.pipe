@@ -95,6 +95,15 @@ process measurer
   :min_ransac_inliers                          4
 
   # ---------------------------------------------------------------------------
+  # Depth consistency check
+  # ---------------------------------------------------------------------------
+  # When both head and tail keypoints are matched, their triangulated depths
+  # are compared. If the ratio exceeds this threshold, the deeper keypoint is
+  # rejected (converted to partial match, no length measurement).
+  # Set to 0 to disable. Default is 1.5.
+  :depth_consistency_max_ratio                 1.5
+
+  # ---------------------------------------------------------------------------
   # Bounding box parameters
   # ---------------------------------------------------------------------------
   :box_scale_factor                            1.10
