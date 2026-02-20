@@ -292,6 +292,10 @@ public:
   /// Whether to record stereo measurement method as detection attribute
   bool record_stereo_method;
 
+  /// Directory to write debug images showing epipolar search lines.
+  /// Empty string (default) disables debug output.
+  std::string debug_epipolar_directory;
+
   /// Detection pairing method: "" (disabled), "epipolar_iou", "keypoint_projection"
   std::string detection_pairing_method;
 
@@ -616,6 +620,8 @@ private:
   double m_box_min_aspect_ratio;
   bool m_use_disparity_aware_feature_search;
   double m_feature_search_depth;
+  std::string m_debug_epipolar_directory;
+  unsigned m_debug_frame_counter;
 
   // Feature algorithms
   kv::algo::detect_features_sptr m_feature_detector;

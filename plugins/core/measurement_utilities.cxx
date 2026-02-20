@@ -16,6 +16,7 @@
 #ifdef VIAME_ENABLE_OPENCV
   #include <arrows/ocv/image_container.h>
   #include <opencv2/imgproc/imgproc.hpp>
+  #include <opencv2/imgcodecs.hpp>
   #include <opencv2/core/eigen.hpp>
 #endif
 
@@ -61,6 +62,7 @@ map_keypoints_to_camera_settings
   , use_disparity_aware_feature_search( true )
   , feature_search_depth( 5.0 )
   , record_stereo_method( true )
+  , debug_epipolar_directory( "" )
   , detection_pairing_method( "" )
   , detection_pairing_threshold( 0.1 )
 {
@@ -214,6 +216,13 @@ map_keypoints_to_camera_settings
     "epipolar_template_matching, feature_descriptor, ransac_feature, "
     "depth_projection, external_disparity, or compute_disparity." );
 
+  config->set_value( "debug_epipolar_directory", debug_epipolar_directory,
+    "Directory to write debug images showing epipolar search lines overlaid on "
+    "the source and target images. Each keypoint match attempt writes a side-by-side "
+    "image with the source point marked on the left image and the bounded epipolar "
+    "curve drawn on the right image, along with any matched point. "
+    "Set to empty string (default) to disable debug output." );
+
   config->set_value( "detection_pairing_method", detection_pairing_method,
     "Method for pairing left/right detections that do not share the same track ID. "
     "Set to empty string (default) to disable detection pairing. "
@@ -270,6 +279,7 @@ map_keypoints_to_camera_settings
   use_disparity_aware_feature_search = config->get_value< bool >( "use_disparity_aware_feature_search", use_disparity_aware_feature_search );
   feature_search_depth = config->get_value< double >( "feature_search_depth", feature_search_depth );
   record_stereo_method = config->get_value< bool >( "record_stereo_method", record_stereo_method );
+  debug_epipolar_directory = config->get_value< std::string >( "debug_epipolar_directory", debug_epipolar_directory );
   detection_pairing_method = config->get_value< std::string >( "detection_pairing_method", detection_pairing_method );
   detection_pairing_threshold = config->get_value< double >( "detection_pairing_threshold", detection_pairing_threshold );
 
@@ -441,6 +451,8 @@ map_keypoints_to_camera
   , m_box_min_aspect_ratio( 0.10 )
   , m_use_disparity_aware_feature_search( true )
   , m_feature_search_depth( 5.0 )
+  , m_debug_epipolar_directory( "" )
+  , m_debug_frame_counter( 0 )
   , m_cached_frame_id( 0 )
 #ifdef VIAME_ENABLE_OPENCV
   , m_rectification_computed( false )
@@ -587,6 +599,8 @@ map_keypoints_to_camera
   m_box_min_aspect_ratio = settings.box_min_aspect_ratio;
   set_feature_algorithms( settings.feature_detector, settings.descriptor_extractor,
                           settings.feature_matcher, settings.fundamental_matrix_estimator );
+
+  m_debug_epipolar_directory = settings.debug_epipolar_directory;
 
   // Set the stereo depth map algorithm for compute_disparity method
   m_stereo_depth_map_algorithm = settings.stereo_depth_map_algorithm;
@@ -1247,6 +1261,104 @@ map_keypoints_to_camera
         left_gray, right_gray, result.left_head, epipolar_head, result.right_head );
       tail_found = find_corresponding_point_epipolar_template_matching(
         left_gray, right_gray, result.left_tail, epipolar_tail, result.right_tail );
+
+      // Debug: write images with epipolar curves overlaid
+      if( !m_debug_epipolar_directory.empty() )
+      {
+        // Get color versions of the images for drawing
+        cv::Mat left_color = kwiver::arrows::ocv::image_container::vital_to_ocv(
+          left_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+        cv::Mat right_color = kwiver::arrows::ocv::image_container::vital_to_ocv(
+          right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+
+        if( left_color.channels() == 1 )
+          cv::cvtColor( left_color, left_color, cv::COLOR_GRAY2BGR );
+        else if( left_color.channels() == 4 )
+          cv::cvtColor( left_color, left_color, cv::COLOR_BGRA2BGR );
+
+        if( right_color.channels() == 1 )
+          cv::cvtColor( right_color, right_color, cv::COLOR_GRAY2BGR );
+        else if( right_color.channels() == 4 )
+          cv::cvtColor( right_color, right_color, cv::COLOR_BGRA2BGR );
+
+        // Draw for both head and tail keypoints
+        struct debug_kp
+        {
+          const char* label;
+          const kv::vector_2d& src_pt;
+          const std::vector< kv::vector_2d >& epi_pts;
+          bool found;
+          const kv::vector_2d& match_pt;
+        };
+
+        debug_kp keypoints[2] = {
+          { "head", result.left_head, epipolar_head, head_found, result.right_head },
+          { "tail", result.left_tail, epipolar_tail, tail_found, result.right_tail }
+        };
+
+        for( int ki = 0; ki < 2; ++ki )
+        {
+          const auto& kp = keypoints[ki];
+
+          cv::Mat left_draw = left_color.clone();
+          cv::Mat right_draw = right_color.clone();
+
+          // Draw source point on left image (cyan circle with crosshair)
+          cv::Point src_px( static_cast<int>( kp.src_pt.x() + 0.5 ),
+                            static_cast<int>( kp.src_pt.y() + 0.5 ) );
+          cv::circle( left_draw, src_px, 8, cv::Scalar( 255, 255, 0 ), 2 );
+          cv::line( left_draw, src_px - cv::Point( 12, 0 ),
+                    src_px + cv::Point( 12, 0 ), cv::Scalar( 255, 255, 0 ), 1 );
+          cv::line( left_draw, src_px - cv::Point( 0, 12 ),
+                    src_px + cv::Point( 0, 12 ), cv::Scalar( 255, 255, 0 ), 1 );
+
+          // Draw epipolar curve on right image (green polyline)
+          if( kp.epi_pts.size() >= 2 )
+          {
+            std::vector< cv::Point > poly;
+            poly.reserve( kp.epi_pts.size() );
+            for( const auto& ep : kp.epi_pts )
+            {
+              poly.emplace_back( static_cast<int>( ep.x() + 0.5 ),
+                                 static_cast<int>( ep.y() + 0.5 ) );
+            }
+            cv::polylines( right_draw, poly, false, cv::Scalar( 0, 255, 0 ), 2 );
+
+            // Mark start (min depth) and end (max depth) of search range
+            cv::circle( right_draw, poly.front(), 6, cv::Scalar( 0, 200, 255 ), 2 );
+            cv::circle( right_draw, poly.back(), 6, cv::Scalar( 255, 0, 200 ), 2 );
+          }
+
+          // Draw matched point on right image (red if found, nothing if not)
+          if( kp.found )
+          {
+            cv::Point match_px( static_cast<int>( kp.match_pt.x() + 0.5 ),
+                                static_cast<int>( kp.match_pt.y() + 0.5 ) );
+            cv::circle( right_draw, match_px, 8, cv::Scalar( 0, 0, 255 ), 2 );
+            cv::line( right_draw, match_px - cv::Point( 12, 0 ),
+                      match_px + cv::Point( 12, 0 ), cv::Scalar( 0, 0, 255 ), 1 );
+            cv::line( right_draw, match_px - cv::Point( 0, 12 ),
+                      match_px + cv::Point( 0, 12 ), cv::Scalar( 0, 0, 255 ), 1 );
+          }
+
+          // Concatenate left and right side-by-side
+          cv::Mat canvas;
+          cv::hconcat( left_draw, right_draw, canvas );
+
+          // Add text label
+          std::string status = kp.found ? "MATCHED" : "NO MATCH";
+          std::string label = std::string( kp.label ) + " - " + status +
+            " (" + std::to_string( kp.epi_pts.size() ) + " samples)";
+          cv::putText( canvas, label, cv::Point( 10, 30 ),
+                       cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar( 0, 255, 255 ), 2 );
+
+          std::string filename = m_debug_epipolar_directory + "/epipolar_" +
+            std::to_string( m_debug_frame_counter ) + "_" + kp.label + ".jpg";
+          cv::imwrite( filename, canvas );
+        }
+
+        m_debug_frame_counter++;
+      }
 
       if( head_found && tail_found )
       {
