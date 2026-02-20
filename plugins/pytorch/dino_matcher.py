@@ -68,10 +68,14 @@ class DINOMatcher:
 
         self._left_features = None
         self._right_features = None
-        self._feat_h = 0
-        self._feat_w = 0
-        self._img_h = 0
-        self._img_w = 0
+        self._left_feat_h = 0
+        self._left_feat_w = 0
+        self._right_feat_h = 0
+        self._right_feat_w = 0
+        self._left_img_h = 0
+        self._left_img_w = 0
+        self._right_img_h = 0
+        self._right_img_w = 0
 
     def _load_model(self):
         """Load DINO backbone (cached across instances).
@@ -189,10 +193,12 @@ class DINOMatcher:
 
     def set_images(self, left_bgr, right_bgr):
         """Extract and cache features for a stereo image pair."""
-        self._img_h, self._img_w = left_bgr.shape[:2]
+        self._left_img_h, self._left_img_w = left_bgr.shape[:2]
+        self._right_img_h, self._right_img_w = right_bgr.shape[:2]
         self._left_features = self._extract_features(left_bgr)
         self._right_features = self._extract_features(right_bgr)
-        _, _, self._feat_h, self._feat_w = self._left_features.shape
+        _, _, self._left_feat_h, self._left_feat_w = self._left_features.shape
+        _, _, self._right_feat_h, self._right_feat_w = self._right_features.shape
 
     def _build_grid_and_sample(self, source_xy, epipolar_points):
         """Compute cosine similarity scores for all epipolar candidates.
@@ -201,17 +207,19 @@ class DINOMatcher:
         valid candidates and valid_indices maps back to original indices.
         """
         src_feat = self._sample_feature(
-            self._left_features, source_xy[0], source_xy[1])
+            self._left_features, source_xy[0], source_xy[1],
+            self._left_img_w, self._left_img_h,
+            self._left_feat_w, self._left_feat_h)
 
         grid_coords = []
         valid_indices = []
         for i, (ex, ey) in enumerate(epipolar_points):
-            if ex < 0 or ex >= self._img_w or ey < 0 or ey >= self._img_h:
+            if ex < 0 or ex >= self._right_img_w or ey < 0 or ey >= self._right_img_h:
                 continue
             fx = ex / self._patch_size - 0.5
             fy = ey / self._patch_size - 0.5
-            gx = 2.0 * fx / (self._feat_w - 1) - 1.0
-            gy = 2.0 * fy / (self._feat_h - 1) - 1.0
+            gx = 2.0 * fx / (self._right_feat_w - 1) - 1.0
+            gy = 2.0 * fy / (self._right_feat_h - 1) - 1.0
             grid_coords.append([gx, gy])
             valid_indices.append(i)
 
@@ -285,12 +293,12 @@ class DINOMatcher:
             results.append((valid_indices[bi], float(scores_np[bi])))
         return results
 
-    def _sample_feature(self, feat_map, x, y):
+    def _sample_feature(self, feat_map, x, y, img_w, img_h, feat_w, feat_h):
         """Bilinearly sample a feature vector at pixel (x, y)."""
         fx = x / self._patch_size - 0.5
         fy = y / self._patch_size - 0.5
-        gx = 2.0 * fx / (self._feat_w - 1) - 1.0
-        gy = 2.0 * fy / (self._feat_h - 1) - 1.0
+        gx = 2.0 * fx / (feat_w - 1) - 1.0
+        gy = 2.0 * fy / (feat_h - 1) - 1.0
         grid = torch.tensor([[[[gx, gy]]]], dtype=torch.float32,
                              device=feat_map.device)
         sampled = F.grid_sample(feat_map, grid, mode='bilinear', align_corners=True)
