@@ -67,6 +67,11 @@ process measurer
   :epipolar_num_samples                        5000
   :use_census_transform                        false
 
+  # Debug: set to a directory path to write images with epipolar search curves
+  # overlaid. Each keypoint produces a side-by-side image showing the source
+  # point (left) and the bounded epipolar curve with match point (right).
+  # :debug_epipolar_directory                    ./epipolar_debug
+
   # ---------------------------------------------------------------------------
   # Feature-based matching parameters (for feature_descriptor / ransac_feature)
   # ---------------------------------------------------------------------------
