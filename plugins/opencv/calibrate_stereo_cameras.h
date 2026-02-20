@@ -126,6 +126,49 @@ public:
     int max_size = 15 ) const;
 
   // -------------------------------------------------------------------------
+  // Dot Detection
+  // -------------------------------------------------------------------------
+
+  /// Detect white dots on a dark background using blob detection
+  ///
+  /// \param image Grayscale input image
+  /// \param max_dim Maximum dimension for initial detection (larger images downscaled)
+  /// \param min_area Minimum blob area in pixels
+  /// \param max_area Maximum blob area in pixels
+  /// \param min_circularity Minimum circularity threshold (0-1)
+  /// \return Detection result with dot centers if found (>= 3 dots)
+  ChessboardDetectionResult detect_dots(
+    const cv::Mat& image,
+    int max_dim = 5000,
+    float min_area = 30.0f,
+    float max_area = 5000.0f,
+    float min_circularity = 0.65f ) const;
+
+  /// Sub-pixel refinement for dot centers via intensity-weighted centroid
+  ///
+  /// \param gray Full-resolution grayscale image
+  /// \param centers Dot centers to refine (modified in place)
+  /// \param window_radius Half-size of the refinement window
+  static void refine_dot_centers(
+    const cv::Mat& gray,
+    std::vector< cv::Point2f >& centers,
+    int window_radius = 7 );
+
+  /// Filter detected dots to keep only the main target cluster
+  ///
+  /// Removes isolated background dots (labels, reflections, bright spots)
+  /// by requiring each dot to have a minimum number of nearby neighbors
+  /// at the expected pattern density.
+  ///
+  /// \param centers Dot centers to filter (modified in place)
+  /// \param min_neighbors Minimum number of neighbors required
+  /// \param neighbor_factor Radius = factor * median nearest-neighbor distance
+  static void filter_target_cluster(
+    std::vector< cv::Point2f >& centers,
+    int min_neighbors = 3,
+    float neighbor_factor = 3.0f );
+
+  // -------------------------------------------------------------------------
   // Single Camera Calibration
   // -------------------------------------------------------------------------
 
