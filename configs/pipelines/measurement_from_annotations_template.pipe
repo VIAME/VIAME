@@ -72,9 +72,10 @@ process measurer
   #   'dino': Two-stage DINO + NCC. DINO features select the top-K
   #     semantically similar candidates, then NCC picks the precise match.
   #     Reduces false matches on repetitive textures. Requires Python + PyTorch.
-  # :epipolar_descriptor_type                  dino
-  # :dino3_model_name                          dinov2_vitb14
-  # :dino3_top_k                               100
+  :epipolar_descriptor_type                    dino
+  :dino_model_name                            dinov2_vitb14
+  :dino_top_k                                 100
+  relativepath dino_weights_path =            models/dinov2_vitb14.pth
 
   # Debug: set to a directory path to write images with epipolar search curves
   # overlaid. Each keypoint produces a side-by-side image showing the source

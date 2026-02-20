@@ -159,6 +159,11 @@ connect from tracker.object_track_set
 process measurer
   :: compute_measurements
   relativepath calibration_file =              models/seamap-cal.json
+  :matching_methods                            input_pairs_only,epipolar_template_matching
+  :epipolar_descriptor_type                    dino
+  :dino_model_name                            dinov2_vitb14
+  :dino_top_k                                 100
+  relativepath dino_weights_path =            models/dinov2_vitb14.pth
 
 connect from track_filter.object_track_set
         to   measurer.object_track_set1
