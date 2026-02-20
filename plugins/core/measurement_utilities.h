@@ -294,6 +294,14 @@ public:
   /// Depth to use for disparity-aware feature search (if different from default_depth)
   double feature_search_depth;
 
+  /// Maximum allowed depth ratio between head and tail keypoints.
+  /// When both keypoints are matched, their triangulated depths are compared.
+  /// If max(depth_head, depth_tail) / min(depth_head, depth_tail) exceeds
+  /// this ratio, the deeper keypoint is rejected (converted to partial match).
+  /// This catches false matches where one keypoint matched at the wrong depth.
+  /// Set to 0 to disable. Default is 1.5 (50% depth difference allowed).
+  double depth_consistency_max_ratio;
+
   /// Whether to record stereo measurement method as detection attribute
   bool record_stereo_method;
 
@@ -444,7 +452,9 @@ public:
   /// Result structure for stereo correspondence finding
   struct stereo_correspondence_result
   {
-    bool success;
+    bool success;      ///< true if at least one keypoint matched
+    bool head_found;   ///< true if right head keypoint was found
+    bool tail_found;   ///< true if right tail keypoint was found
     kv::vector_2d left_head;
     kv::vector_2d left_tail;
     kv::vector_2d right_head;
@@ -453,7 +463,7 @@ public:
   };
 
   /// Find stereo correspondences using specified methods in order
-  /// Tries each method until one succeeds for both head and tail points
+  /// Tries each method until at least one keypoint is matched
   /// If external_disparity is provided and "external_disparity" method is used,
   /// it will be used to warp points from left to right image.
   stereo_correspondence_result find_stereo_correspondence(

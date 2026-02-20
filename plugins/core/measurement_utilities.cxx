@@ -69,10 +69,10 @@ static PyObject* s_dino_module = nullptr;
 static bool s_dino_init_attempted = false;
 static bool s_dino_init_succeeded = false;
 
-// Track which images are currently loaded to avoid redundant set_images calls.
-// We compare raw data pointers to detect when images change.
-static const void* s_dino_left_data_ptr = nullptr;
-static const void* s_dino_right_data_ptr = nullptr;
+// Track which frame is currently loaded to avoid redundant set_images calls.
+// Note: Cannot use raw data pointers because vital image containers may reuse
+// the same memory buffer across frames, making pointer comparison unreliable.
+static int64_t s_dino_cached_frame_id = -1;
 
 /// Initialize the DINOv3 matcher module and model
 bool dino_ensure_initialized(
@@ -347,7 +347,7 @@ map_keypoints_to_camera_settings
   , default_depth( 5.0 )
   , template_size( 31 )
   , search_range( 128 )
-  , template_matching_threshold( 0.7 )
+  , template_matching_threshold( 0.2 )
   , template_matching_disparity( 0.0 )
   , use_disparity_hint( false )
   , use_multires_search( false )
@@ -368,6 +368,7 @@ map_keypoints_to_camera_settings
   , box_min_aspect_ratio( 0.10 )
   , use_disparity_aware_feature_search( true )
   , feature_search_depth( 5.0 )
+  , depth_consistency_max_ratio( 1.5 )
   , record_stereo_method( true )
   , debug_epipolar_directory( "" )
   , detection_pairing_method( "" )
@@ -529,6 +530,14 @@ map_keypoints_to_camera_settings
     "Prevents very thin boxes when keypoints are nearly collinear. "
     "Set to 0 to disable. Default is 0.10 (10%)." );
 
+  config->set_value( "depth_consistency_max_ratio", depth_consistency_max_ratio,
+    "Maximum allowed depth ratio between head and tail keypoints when both are "
+    "matched. If the deeper keypoint is more than this ratio times the shallower "
+    "keypoint's depth, the deeper match is rejected (converted to a partial match "
+    "with no length measurement). This catches false stereo matches where one "
+    "keypoint incorrectly matched at the wrong depth. Set to 0 to disable. "
+    "Default is 1.5 (50% depth difference allowed)." );
+
   config->set_value( "record_stereo_method", record_stereo_method,
     "If true, record the stereo measurement method used as an attribute on each "
     "output detection object. The attribute will be ':stereo_method=METHOD' "
@@ -621,6 +630,7 @@ map_keypoints_to_camera_settings
   box_min_aspect_ratio = config->get_value< double >( "box_min_aspect_ratio", box_min_aspect_ratio );
   use_disparity_aware_feature_search = config->get_value< bool >( "use_disparity_aware_feature_search", use_disparity_aware_feature_search );
   feature_search_depth = config->get_value< double >( "feature_search_depth", feature_search_depth );
+  depth_consistency_max_ratio = config->get_value< double >( "depth_consistency_max_ratio", depth_consistency_max_ratio );
   record_stereo_method = config->get_value< bool >( "record_stereo_method", record_stereo_method );
   debug_epipolar_directory = config->get_value< std::string >( "debug_epipolar_directory", debug_epipolar_directory );
   detection_pairing_method = config->get_value< std::string >( "detection_pairing_method", detection_pairing_method );
@@ -778,7 +788,7 @@ map_keypoints_to_camera
   : m_default_depth( 5.0 )
   , m_template_size( 31 )
   , m_search_range( 128 )
-  , m_template_matching_threshold( 0.7 )
+  , m_template_matching_threshold( 0.2 )
   , m_template_matching_disparity( 0.0 )
   , m_use_disparity_hint( false )
   , m_use_multires_search( false )
@@ -1433,6 +1443,8 @@ map_keypoints_to_camera
 {
   stereo_correspondence_result result;
   result.success = false;
+  result.head_found = false;
+  result.tail_found = false;
   result.left_head = left_head;
   result.left_tail = left_tail;
 
@@ -1482,7 +1494,7 @@ map_keypoints_to_camera
       tail_found = find_corresponding_point_external_disparity(
         external_disparity, result.left_tail, result.right_tail );
 
-      if( head_found && tail_found )
+      if( head_found || tail_found )
       {
         result.method_used = "external_disparity";
       }
@@ -1529,11 +1541,13 @@ map_keypoints_to_camera
         tail_found = find_corresponding_point_external_disparity(
           m_cached_compute_disparity, left_tail_rect, right_tail_rect, 7 );
 
-        if( head_found && tail_found )
+        if( head_found || tail_found )
         {
           // Unrectify the found right image points
-          result.right_head = unrectify_point( right_head_rect, true, right_cam );
-          result.right_tail = unrectify_point( right_tail_rect, true, right_cam );
+          if( head_found )
+            result.right_head = unrectify_point( right_head_rect, true, right_cam );
+          if( tail_found )
+            result.right_tail = unrectify_point( right_tail_rect, true, right_cam );
           result.method_used = "compute_disparity";
         }
         else
@@ -1560,10 +1574,12 @@ map_keypoints_to_camera
         m_cached_stereo_images.left_rectified, m_cached_stereo_images.right_rectified,
         left_tail_rect, right_tail_rect, disp_hint );
 
-      if( head_found && tail_found )
+      if( head_found || tail_found )
       {
-        result.right_head = unrectify_point( right_head_rect, true, right_cam );
-        result.right_tail = unrectify_point( right_tail_rect, true, right_cam );
+        if( head_found )
+          result.right_head = unrectify_point( right_head_rect, true, right_cam );
+        if( tail_found )
+          result.right_tail = unrectify_point( right_tail_rect, true, right_cam );
         result.method_used = "template_matching";
       }
       else
@@ -1633,7 +1649,9 @@ map_keypoints_to_camera
         if( !dino_ensure_initialized(
               m_dino_model_name, m_dino_threshold, m_dino_weights_path ) )
         {
-          descriptor_available = false;
+          throw std::runtime_error(
+            "DINO matcher failed to initialize. "
+            "Ensure viame.pytorch.dino_matcher is installed and PyTorch is available." );
         }
         else
         {
@@ -1643,23 +1661,21 @@ map_keypoints_to_camera
           cv::Mat right_bgr = kwiver::arrows::ocv::image_container::vital_to_ocv(
             right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
-          // Only call set_images when the image data actually changes (new frame)
-          if( left_bgr.data != s_dino_left_data_ptr ||
-              right_bgr.data != s_dino_right_data_ptr )
+          // Only call set_images when the frame changes
+          int64_t cur_frame = static_cast< int64_t >( m_cached_frame_id );
+          if( cur_frame != s_dino_cached_frame_id )
           {
             if( dino_set_images( left_bgr, right_bgr ) )
             {
-              s_dino_left_data_ptr = left_bgr.data;
-              s_dino_right_data_ptr = right_bgr.data;
+              s_dino_cached_frame_id = cur_frame;
             }
             else
             {
-              s_dino_left_data_ptr = nullptr;
-              s_dino_right_data_ptr = nullptr;
+              s_dino_cached_frame_id = -1;
             }
           }
 
-          if( s_dino_left_data_ptr )
+          if( s_dino_cached_frame_id >= 0 )
           {
             descriptor_available = true;
 
@@ -1834,7 +1850,7 @@ map_keypoints_to_camera
         m_debug_frame_counter++;
       }
 
-      if( descriptor_available && head_found && tail_found )
+      if( descriptor_available && ( head_found || tail_found ) )
       {
         result.method_used = "epipolar_template_matching";
       }
@@ -1857,10 +1873,12 @@ map_keypoints_to_camera
         left_image, right_image, left_tail_copy, result.right_tail,
         &left_cam, &right_cam );
 
-      if( head_found && tail_found )
+      if( head_found || tail_found )
       {
-        result.left_head = left_head_copy;
-        result.left_tail = left_tail_copy;
+        if( head_found )
+          result.left_head = left_head_copy;
+        if( tail_found )
+          result.left_tail = left_tail_copy;
         result.method_used = "feature_descriptor";
       }
       else
@@ -1881,10 +1899,12 @@ map_keypoints_to_camera
         left_image, right_image, left_tail_copy, result.right_tail,
         &left_cam, &right_cam );
 
-      if( head_found && tail_found )
+      if( head_found || tail_found )
       {
-        result.left_head = left_head_copy;
-        result.left_tail = left_tail_copy;
+        if( head_found )
+          result.left_head = left_head_copy;
+        if( tail_found )
+          result.left_tail = left_tail_copy;
         result.method_used = "ransac_feature";
       }
       else
@@ -1895,7 +1915,9 @@ map_keypoints_to_camera
     }
   }
 
-  result.success = ( head_found && tail_found );
+  result.head_found = head_found;
+  result.tail_found = tail_found;
+  result.success = ( head_found || tail_found );
   return result;
 }
 

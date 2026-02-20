@@ -78,6 +78,9 @@ public:
 
   // Measurement utilities
   map_keypoints_to_camera m_utilities;
+
+  // Persistent right tracks created for left-only detections across frames
+  std::map< kv::track_id_t, kv::track_sptr > m_created_right_tracks;
 };
 
 
@@ -611,34 +614,131 @@ measure_objects_process
         continue;
       }
 
-      // Compute full measurement
-      const auto measurement = viame::core::compute_stereo_measurement(
-        left_cam, right_cam,
-        result.left_head, result.right_head,
-        result.left_tail, result.right_tail );
+      // Per-keypoint depth consistency check: if both keypoints matched,
+      // triangulate each separately and reject any whose depth is
+      // inconsistent with the other. Valid stereo matches on the same
+      // object should have similar depths (ratio close to 1.0).
+      double max_depth_ratio = d->m_settings.depth_consistency_max_ratio;
 
-      LOG_INFO( logger(), "Computed Length (" + result.method_used + "): " +
-                          std::to_string( measurement.length ) );
-      LOG_INFO( logger(), "  Midpoint (x,y,z): (" + std::to_string( measurement.x ) + ", "
-                + std::to_string( measurement.y ) + ", " + std::to_string( measurement.z ) + ")" );
-      LOG_INFO( logger(), "  Range: " + std::to_string( measurement.range ) +
-                ", RMS: " + std::to_string( measurement.rms ) );
-
-      if( d->m_settings.record_stereo_method )
+      if( max_depth_ratio > 0 && result.head_found && result.tail_found )
       {
-        det1->add_note( ":stereo_method=" + result.method_used );
+        auto head_3d = viame::core::triangulate_point(
+          left_cam, right_cam, result.left_head, result.right_head );
+        auto tail_3d = viame::core::triangulate_point(
+          left_cam, right_cam, result.left_tail, result.right_tail );
+
+        double depth_head = head_3d.z();
+        double depth_tail = tail_3d.z();
+
+        if( depth_head > 0 && depth_tail > 0 )
+        {
+          double depth_ratio = std::max( depth_head, depth_tail ) /
+                               std::min( depth_head, depth_tail );
+
+          if( depth_ratio > max_depth_ratio )
+          {
+            // Keep the keypoint with smaller depth (closer, higher disparity)
+            // as that is more likely to be the correct match
+            if( depth_head > depth_tail )
+            {
+              result.head_found = false;
+              LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                " depth check: rejecting head (depth " +
+                std::to_string( depth_head ) + " vs tail " +
+                std::to_string( depth_tail ) + ", ratio " +
+                std::to_string( depth_ratio ) + ")" );
+            }
+            else
+            {
+              result.tail_found = false;
+              LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                " depth check: rejecting tail (depth " +
+                std::to_string( depth_tail ) + " vs head " +
+                std::to_string( depth_head ) + ", ratio " +
+                std::to_string( depth_ratio ) + ")" );
+            }
+            result.success = result.head_found || result.tail_found;
+
+            if( !result.success )
+            {
+              LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                " depth check: both keypoints rejected, skipping" );
+              continue;
+            }
+          }
+        }
       }
 
-      add_measurement_attributes( det1, measurement );
+      bool both_found = result.head_found && result.tail_found;
+
+      if( both_found )
+      {
+        // Compute full measurement (requires both keypoints)
+        const auto measurement = viame::core::compute_stereo_measurement(
+          left_cam, right_cam,
+          result.left_head, result.right_head,
+          result.left_tail, result.right_tail );
+
+        LOG_INFO( logger(), "Computed Length (" + result.method_used + "): " +
+                            std::to_string( measurement.length ) );
+        LOG_INFO( logger(), "  Midpoint (x,y,z): (" + std::to_string( measurement.x ) + ", "
+                  + std::to_string( measurement.y ) + ", " + std::to_string( measurement.z ) + ")" );
+        LOG_INFO( logger(), "  Range: " + std::to_string( measurement.range ) +
+                  ", RMS: " + std::to_string( measurement.rms ) );
+
+        if( d->m_settings.record_stereo_method )
+        {
+          det1->add_note( ":stereo_method=" + result.method_used );
+        }
+
+        add_measurement_attributes( det1, measurement );
+      }
+      else
+      {
+        // Partial match: record method but no length measurement
+        std::string matched_kp = result.head_found ? "head" : "tail";
+        LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+                            " partial match (" + result.method_used + "): only " +
+                            matched_kp + " found, no length measurement" );
+
+        if( d->m_settings.record_stereo_method )
+        {
+          det1->add_note( ":stereo_method=" + result.method_used + "_partial" );
+        }
+      }
 
       if( is_left_only )
       {
-        kv::bounding_box_d right_bbox =
-          d->m_utilities.compute_bbox_from_keypoints( result.right_head, result.right_tail );
+        // Create right detection with available keypoints
+        kv::vector_2d bbox_pt1, bbox_pt2;
+
+        if( both_found )
+        {
+          bbox_pt1 = result.right_head;
+          bbox_pt2 = result.right_tail;
+        }
+        else if( result.head_found )
+        {
+          // Single point: create small bbox around matched keypoint
+          bbox_pt1 = kv::vector_2d( result.right_head.x() - 10, result.right_head.y() - 10 );
+          bbox_pt2 = kv::vector_2d( result.right_head.x() + 10, result.right_head.y() + 10 );
+        }
+        else
+        {
+          bbox_pt1 = kv::vector_2d( result.right_tail.x() - 10, result.right_tail.y() - 10 );
+          bbox_pt2 = kv::vector_2d( result.right_tail.x() + 10, result.right_tail.y() + 10 );
+        }
+
+        kv::bounding_box_d right_bbox = both_found
+          ? d->m_utilities.compute_bbox_from_keypoints( bbox_pt1, bbox_pt2 )
+          : kv::bounding_box_d( bbox_pt1.x(), bbox_pt1.y(), bbox_pt2.x(), bbox_pt2.y() );
 
         auto det2 = std::make_shared< kv::detected_object >( right_bbox );
-        det2->add_keypoint( "head", kv::point_2d( result.right_head.x(), result.right_head.y() ) );
-        det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
+
+        if( result.head_found )
+          det2->add_keypoint( "head", kv::point_2d( result.right_head.x(), result.right_head.y() ) );
+        if( result.tail_found )
+          det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
 
         if( det1->type() )
         {
@@ -648,45 +748,65 @@ measure_objects_process
 
         if( d->m_settings.record_stereo_method )
         {
-          det2->add_note( ":stereo_method=" + result.method_used );
+          det2->add_note( ":stereo_method=" + result.method_used +
+                          ( both_found ? "" : "_partial" ) );
         }
 
-        add_measurement_attributes( det2, measurement );
-
-        if( !input_tracks[1] )
+        if( both_found )
         {
-          input_tracks[1] = std::make_shared< kv::object_track_set >();
+          const auto measurement = viame::core::compute_stereo_measurement(
+            left_cam, right_cam,
+            result.left_head, result.right_head,
+            result.left_tail, result.right_tail );
+          add_measurement_attributes( det2, measurement );
         }
 
-        kv::track_sptr right_track = input_tracks[1]->get_track( id );
+        // Look up or create a persistent right track for this left-only ID
+        kv::track_sptr right_track;
+        auto it = d->m_created_right_tracks.find( id );
 
-        if( !right_track )
+        if( it != d->m_created_right_tracks.end() )
+        {
+          right_track = it->second;
+        }
+        else
         {
           right_track = kv::track::create();
           right_track->set_id( id );
-          input_tracks[1]->insert( right_track );
+          d->m_created_right_tracks[id] = right_track;
         }
 
         kv::time_usec_t time_usec = ts.has_valid_time() ? ts.get_time_usec() : 0;
         auto new_state = std::make_shared< kv::object_track_state >(
           cur_frame_id, time_usec, det2 );
-        right_track->append( new_state );
-        input_tracks[1]->notify_new_state( new_state );
+        right_track->append( std::move( new_state ) );
 
-        LOG_INFO( logger(), "Created right detection for track ID " + std::to_string( id ) );
+        LOG_INFO( logger(), "Created right detection for track ID " + std::to_string( id ) +
+                  ( both_found ? "" : " (partial)" ) );
       }
       else
       {
         auto& det2 = dets[1][id];
-        det2->add_keypoint( "head", kv::point_2d( result.right_head.x(), result.right_head.y() ) );
-        det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
+
+        if( result.head_found )
+          det2->add_keypoint( "head", kv::point_2d( result.right_head.x(), result.right_head.y() ) );
+        if( result.tail_found )
+          det2->add_keypoint( "tail", kv::point_2d( result.right_tail.x(), result.right_tail.y() ) );
 
         if( d->m_settings.record_stereo_method )
         {
-          det2->add_note( ":stereo_method=" + result.method_used );
+          det2->add_note( ":stereo_method=" + result.method_used +
+                          ( both_found ? "" : "_partial" ) );
         }
 
-        add_measurement_attributes( det2, measurement );
+        if( both_found )
+        {
+          const auto measurement = viame::core::compute_stereo_measurement(
+            left_cam, right_cam,
+            result.left_head, result.right_head,
+            result.left_tail, result.right_tail );
+          add_measurement_attributes( det2, measurement );
+        }
       }
     }
   }
@@ -699,6 +819,15 @@ measure_objects_process
   if( !input_tracks[1] )
   {
     input_tracks[1] = std::make_shared< kv::object_track_set >();
+  }
+
+  // Merge persistent right tracks (created for left-only detections) into output
+  for( const auto& pair : d->m_created_right_tracks )
+  {
+    if( !input_tracks[1]->get_track( pair.first ) )
+    {
+      input_tracks[1]->insert( pair.second );
+    }
   }
 
   // Push outputs
