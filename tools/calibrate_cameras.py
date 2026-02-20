@@ -1742,6 +1742,540 @@ def calibrate_single_camera(data, object_points, img_shape, camera_name="camera"
     return (result, flags)
 
 
+def estimate_essential_from_stereo_frames(left_path, right_path, input_path,
+                                           K_left, dist_left, K_right, dist_right,
+                                           frame_step=1, max_samples=60):
+    """Estimate Essential matrix from stereo frame pairs using SIFT/ORB features.
+
+    Works with both separate stereo (left_path + right_path) and stitched
+    video (input_path) sources. Returns a list of per-frame estimates with
+    R, T, and quality metrics.
+
+    Args:
+        left_path: Path to left camera images/video (separate mode), or None
+        right_path: Path to right camera images/video (separate mode), or None
+        input_path: Path to stitched video/images, or None
+        K_left, dist_left: Left camera intrinsics and distortion
+        K_right, dist_right: Right camera intrinsics and distortion
+        frame_step: Process every Nth frame
+        max_samples: Maximum number of successful E estimates to collect
+
+    Returns:
+        List of dicts with 'R', 'T', 'n_inliers', 'n_pose' keys
+    """
+    # Try SIFT first, fall back to ORB
+    try:
+        detector = cv2.SIFT_create(nfeatures=3000)
+        matcher = cv2.BFMatcher(cv2.NORM_L2)
+        use_sift = True
+        print("  Using SIFT features")
+    except Exception:
+        detector = cv2.ORB_create(nfeatures=3000)
+        matcher = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+        use_sift = False
+        print("  Using ORB features")
+
+    all_results = []
+
+    def process_pair(left_gray, right_gray, frame_id):
+        """Process a single stereo pair for Essential matrix estimation."""
+        kp1, des1 = detector.detectAndCompute(left_gray, None)
+        kp2, des2 = detector.detectAndCompute(right_gray, None)
+
+        if des1 is None or des2 is None or len(kp1) < 30 or len(kp2) < 30:
+            return None
+
+        if use_sift:
+            raw_matches = matcher.knnMatch(des1, des2, k=2)
+            matches = []
+            for m_pair in raw_matches:
+                if len(m_pair) == 2:
+                    m, n = m_pair
+                    if m.distance < 0.75 * n.distance:
+                        matches.append(m)
+            matches = sorted(matches, key=lambda m: m.distance)
+        else:
+            matches = sorted(matcher.match(des1, des2), key=lambda m: m.distance)
+
+        if len(matches) < 20:
+            return None
+
+        n_match = min(500, len(matches))
+        matches = matches[:n_match]
+
+        pts1 = np.array([kp1[m.queryIdx].pt for m in matches], dtype=np.float64)
+        pts2 = np.array([kp2[m.trainIdx].pt for m in matches], dtype=np.float64)
+
+        # Undistort points
+        pts1_ud = cv2.undistortPoints(pts1.reshape(-1, 1, 2), K_left, dist_left)
+        pts2_ud = cv2.undistortPoints(pts2.reshape(-1, 1, 2), K_right, dist_right)
+
+        E, mask = cv2.findEssentialMat(
+            pts1_ud, pts2_ud, np.eye(3),
+            method=cv2.RANSAC, prob=0.999, threshold=0.001)
+
+        if E is None or mask is None:
+            return None
+
+        n_inliers = int(mask.sum())
+        if n_inliers < 15:
+            return None
+
+        _, R, T, mask_pose = cv2.recoverPose(
+            E, pts1_ud, pts2_ud, np.eye(3), mask=mask)
+        n_pose = int(mask_pose.sum()) if mask_pose is not None else 0
+
+        if n_pose < 10:
+            return None
+
+        return {
+            'frame': frame_id, 'R': R.copy(), 'T': T.copy(),
+            'n_inliers': n_inliers, 'n_pose': n_pose,
+            'n_matches': len(matches)
+        }
+
+    # Iterate over stereo frames
+    if left_path is not None and right_path is not None:
+        # Separate stereo mode
+        try:
+            for left_frame, right_frame, frame_num in stereo_frames_separate(
+                    left_path, right_path, frame_step, show_progress=False):
+                if len(all_results) >= max_samples:
+                    break
+                left_gray = to_grayscale(left_frame)
+                right_gray = to_grayscale(right_frame)
+                result = process_pair(left_gray, right_gray, frame_num)
+                if result is not None:
+                    all_results.append(result)
+                    print_progress(len(all_results), max_samples,
+                                   prefix='  E estimation',
+                                   suffix=f'frame {frame_num}: {result["n_inliers"]} inliers')
+        except (ValueError, StopIteration):
+            pass
+    elif input_path is not None:
+        # Stitched video/image mode
+        try:
+            if os.path.isfile(input_path) and is_video_file(input_path):
+                frame_source = video_frames(input_path, frame_step, show_progress=False)
+            else:
+                frame_source = image_frames(input_path, frame_step, show_progress=False)
+
+            for frame, frame_num in frame_source:
+                if len(all_results) >= max_samples:
+                    break
+                left_img = frame[:, 0:frame.shape[1] // 2]
+                right_img = frame[:, frame.shape[1] // 2:]
+                left_gray = to_grayscale(left_img)
+                right_gray = to_grayscale(right_img)
+                result = process_pair(left_gray, right_gray, frame_num)
+                if result is not None:
+                    all_results.append(result)
+                    print_progress(len(all_results), max_samples,
+                                   prefix='  E estimation',
+                                   suffix=f'frame {frame_num}: {result["n_inliers"]} inliers')
+        except (ValueError, StopIteration):
+            pass
+
+    if all_results:
+        print_progress(max_samples, max_samples,
+                       prefix='  E estimation', suffix='Done')
+    print(f"  Collected {len(all_results)} Essential matrix estimates")
+    return all_results
+
+
+def robust_consensus_RT(all_results):
+    """Compute robust consensus R, T direction from multiple Essential matrix estimates.
+
+    Uses median Rodrigues vectors with outlier filtering on both rotation and
+    translation direction. Returns unit-norm T direction (scale is unknown from E).
+
+    Args:
+        all_results: List of dicts with 'R' and 'T' keys (from estimate_essential)
+
+    Returns:
+        (R, T_dir) where T_dir has unit norm, or (None, None) if insufficient data
+    """
+    if len(all_results) < 3:
+        return None, None
+
+    R_list = [r['R'] for r in all_results]
+    T_list = [r['T'] for r in all_results]
+
+    rvecs = np.array([cv2.Rodrigues(R)[0].flatten() for R in R_list])
+    tvecs = np.array([T.flatten() for T in T_list])
+
+    # Median rotation vector
+    med_rvec = np.median(rvecs, axis=0)
+
+    # Filter rotation outliers (>3x median deviation or >0.02 rad minimum)
+    rvec_dists = np.linalg.norm(rvecs - med_rvec, axis=1)
+    thresh = max(3.0 * np.median(rvec_dists), 0.02)
+    inliers = rvec_dists < thresh
+
+    print(f"  Rotation inliers: {inliers.sum()}/{len(inliers)}")
+
+    # Also filter T direction outliers
+    t_norms = np.linalg.norm(tvecs, axis=1, keepdims=True)
+    t_dirs = tvecs / np.maximum(t_norms, 1e-10)
+    med_tdir = np.median(t_dirs[inliers], axis=0)
+    med_tdir /= np.linalg.norm(med_tdir)
+
+    t_angle_dists = 1.0 - (t_dirs @ med_tdir)  # ~0 for aligned, ~2 for opposite
+    t_thresh = max(3.0 * np.median(t_angle_dists[inliers]), 0.01)
+    combined_inliers = inliers & (t_angle_dists < t_thresh)
+
+    print(f"  Combined inliers: {combined_inliers.sum()}/{len(combined_inliers)}")
+
+    if combined_inliers.sum() < 3:
+        combined_inliers = inliers  # Fall back to rotation-only filtering
+
+    R_consensus, _ = cv2.Rodrigues(np.median(rvecs[combined_inliers], axis=0))
+    T_consensus = np.median(tvecs[combined_inliers], axis=0).reshape(3, 1)
+    T_consensus = T_consensus / np.linalg.norm(T_consensus)
+
+    return R_consensus, T_consensus
+
+
+def cross_label_right_dots(left_matched, K_left, dist_left, K_right, dist_right,
+                            R, T, pts_data, right_raw_dots, img_shape,
+                            max_dist=15.0):
+    """Label right camera dots by projecting world points through left PnP + stereo RT.
+
+    For each frame where left camera dots are matched to world points:
+      1. Solve PnP for left camera pose
+      2. Compute right camera pose from left pose + stereo RT
+      3. Project all world points into right camera
+      4. Match projected positions to detected right camera dots
+
+    This bypasses the unreliable independent dot-to-PtsCAL matching for the
+    right camera, using the stereo geometry to transfer labels instead.
+
+    Args:
+        left_matched: dict {frame: (imgpts, objpts, labels)} from left camera
+        K_left, dist_left: Left camera intrinsics
+        K_right, dist_right: Right camera intrinsics
+        R, T: Stereo rotation and translation (left→right)
+        pts_data: PtsCAL data with 'points' dict
+        right_raw_dots: dict {frame: Nx1x2 detected dots} for right camera
+        img_shape: (width, height)
+        max_dist: Maximum pixel distance for dot-to-projection matching
+
+    Returns:
+        dict {frame: (imgpts Kx1x2, objpts Kx3, labels list)} for right camera
+    """
+    all_3d = np.array([pts_data['points'][lbl]
+                       for lbl in sorted(pts_data['points'].keys())],
+                      dtype=np.float64)
+    all_labels = sorted(pts_data['points'].keys())
+    w, h = img_shape
+
+    right_matched = {}
+    for f in sorted(left_matched.keys()):
+        if f not in right_raw_dots:
+            continue
+        l_img, l_obj, l_labels = left_matched[f]
+        if len(l_labels) < 10:
+            continue
+
+        # Solve PnP for left camera
+        ok, rvec_l, tvec_l, inliers = cv2.solvePnPRansac(
+            l_obj.astype(np.float64),
+            l_img.reshape(-1, 1, 2).astype(np.float64),
+            K_left, dist_left, iterationsCount=300, reprojectionError=6.0)
+        if not ok or inliers is None or len(inliers) < 6:
+            continue
+
+        # Refine with inliers
+        idx = inliers.flatten()
+        ok, rvec_l, tvec_l = cv2.solvePnP(
+            l_obj[idx].astype(np.float64),
+            l_img[idx].reshape(-1, 1, 2).astype(np.float64),
+            K_left, dist_left, rvec=rvec_l, tvec=tvec_l,
+            useExtrinsicGuess=True, flags=cv2.SOLVEPNP_ITERATIVE)
+
+        # Compute right camera pose: R_right = R_stereo @ R_left, T_right = R_stereo @ T_left + T_stereo
+        R_L, _ = cv2.Rodrigues(rvec_l)
+        R_right = R @ R_L
+        T_right = R @ tvec_l + T
+        rvec_right, _ = cv2.Rodrigues(R_right)
+
+        # Project all world points into right camera
+        proj, _ = cv2.projectPoints(all_3d, rvec_right, T_right, K_right, dist_right)
+        proj = proj.reshape(-1, 2)
+
+        # Match projections to detected right camera dots
+        r_pts = right_raw_dots[f].reshape(-1, 2)
+        matched_img, matched_obj, matched_labels = [], [], []
+        used = set()
+        for j in range(len(all_3d)):
+            p = proj[j]
+            if p[0] < 0 or p[0] >= w or p[1] < 0 or p[1] >= h:
+                continue
+            dists = np.sqrt(((r_pts - p) ** 2).sum(axis=1))
+            mi = np.argmin(dists)
+            if dists[mi] < max_dist and mi not in used:
+                matched_img.append(r_pts[mi])
+                matched_obj.append(all_3d[j])
+                matched_labels.append(all_labels[j])
+                used.add(mi)
+
+        if len(matched_labels) >= 8:
+            right_matched[f] = (
+                np.array(matched_img, np.float32).reshape(-1, 1, 2),
+                np.array(matched_obj, np.float32),
+                matched_labels)
+
+    return right_matched
+
+
+def optimize_translation_scale(K_left, dist_left, K_right, dist_right,
+                                R, T_dir, left_matched, right_raw_dots,
+                                pts_data, img_shape):
+    """Find optimal translation scale using PtsCAL known distances.
+
+    Sweeps over candidate baseline magnitudes (coarse then fine), at each
+    scale cross-labeling the right camera dots and triangulating matched
+    points to compute 3D distances. The scale that minimizes median distance
+    error relative to PtsCAL ground truth is selected.
+
+    Args:
+        K_left, dist_left: Left camera intrinsics
+        K_right, dist_right: Right camera intrinsics
+        R: Stereo rotation matrix
+        T_dir: Unit-norm translation direction
+        left_matched: Left camera matched frames
+        right_raw_dots: Right camera raw dot detections
+        pts_data: PtsCAL data with 'points' and 'distances'
+        img_shape: (width, height)
+
+    Returns:
+        (best_scale, median_error_pct, mean_error_pct) or (None, None, None)
+    """
+    from collections import defaultdict
+
+    known_dists = pts_data.get('distances', [])
+    if not known_dists:
+        print("  WARNING: No known distances in PtsCAL data, cannot optimize scale")
+        return None, None, None
+
+    def evaluate_scale(scale):
+        T = T_dir * scale
+        rc = cross_label_right_dots(
+            left_matched, K_left, dist_left, K_right, dist_right,
+            R, T, pts_data, right_raw_dots, img_shape, max_dist=20.0)
+        if len(rc) < 3:
+            return 1000.0, []
+
+        P_L = K_left @ np.hstack([np.eye(3), np.zeros((3, 1))])
+        P_R = K_right @ np.hstack([R, T])
+
+        tri = defaultdict(list)
+        for f in sorted(set(left_matched.keys()) & set(rc.keys())):
+            l_im, l_ob, l_la = left_matched[f]
+            r_im, r_ob, r_la = rc[f]
+            common = set(l_la) & set(r_la)
+            lm = {la: i for i, la in enumerate(l_la)}
+            rm = {la: i for i, la in enumerate(r_la)}
+            for lb in common:
+                lp = cv2.undistortPoints(
+                    l_im[lm[lb]:lm[lb]+1].astype(np.float64),
+                    K_left, dist_left, P=K_left)
+                rp = cv2.undistortPoints(
+                    r_im[rm[lb]:rm[lb]+1].astype(np.float64),
+                    K_right, dist_right, P=K_right)
+                p4 = cv2.triangulatePoints(
+                    P_L, P_R,
+                    lp.reshape(2, 1).astype(np.float64),
+                    rp.reshape(2, 1).astype(np.float64))
+                tri[lb].append((p4[:3] / p4[3]).ravel())
+
+        avg = {lb: np.median(np.array(ps), axis=0) for lb, ps in tri.items()}
+        errors = []
+        for l1, l2, gt in known_dists:
+            if l1 in avg and l2 in avg:
+                m = np.linalg.norm(avg[l2] - avg[l1])
+                errors.append(abs(100.0 * (m - gt) / gt))
+
+        if not errors:
+            return 1000.0, errors
+        return np.median(errors), errors
+
+    # Estimate reasonable scale range from known distances
+    # The baseline is typically 5-50% of the target-to-camera distance
+    # Use a wide range to be safe
+    print("  Coarse scale search...")
+    scales = np.linspace(50, 500, 90)
+    best_scale = None
+    best_err = float('inf')
+
+    for s in scales:
+        err, _ = evaluate_scale(s)
+        if err < best_err:
+            best_err = err
+            best_scale = s
+
+    if best_scale is None:
+        print("  No valid scale found in coarse search")
+        return None, None, None
+
+    print(f"  Coarse: scale={best_scale:.0f}mm, median_err={best_err:.1f}%")
+
+    # Fine search around best coarse scale
+    print("  Fine scale search...")
+    fine_scales = np.linspace(best_scale - 25, best_scale + 25, 100)
+    for s in fine_scales:
+        err, _ = evaluate_scale(s)
+        if err < best_err:
+            best_err = err
+            best_scale = s
+
+    # Get final error details
+    _, errs_pct = evaluate_scale(best_scale)
+    mean_err = np.mean(errs_pct) if errs_pct else 999.0
+    print(f"  Fine: scale={best_scale:.1f}mm, median_err={best_err:.1f}%, "
+          f"mean_err={mean_err:.1f}%")
+
+    return best_scale, best_err, mean_err
+
+
+def feature_based_stereo_calibration(left_path, right_path, input_path,
+                                      K_left, dist_left,
+                                      left_matched, right_raw_dots,
+                                      pts_data, img_shape, frame_step=1):
+    """Alternative stereo calibration using Essential matrix from natural features.
+
+    When standard stereoCalibrate fails (due to inconsistent dot-to-PtsCAL
+    matching between cameras), this approach:
+      1. Estimates R, T direction from SIFT/ORB features across stereo frames
+      2. Optimizes translation scale using PtsCAL known distances
+      3. Cross-labels right camera dots via left PnP + stereo projection
+      4. Optionally re-calibrates right camera with cross-labeled correspondences
+
+    This bypasses the problematic independent label matching for each camera.
+
+    Args:
+        left_path, right_path: Separate stereo paths (or None)
+        input_path: Stitched video path (or None)
+        K_left, dist_left: Calibrated left camera intrinsics
+        left_matched: Left camera {frame: (imgpts, objpts, labels)}
+        right_raw_dots: Right camera {frame: Nx1x2 raw dot detections}
+        pts_data: PtsCAL data
+        img_shape: (width, height)
+        frame_step: Frame step for video processing
+
+    Returns:
+        dict with 'K_right', 'dist_right', 'R', 'T', 'rms_stereo',
+        'mean_dist_err', 'median_dist_err', 'baseline_mm', or None on failure
+    """
+    print("\n" + "-" * 60)
+    print("Feature-based stereo calibration (Essential matrix approach)")
+    print("-" * 60)
+
+    # Use left camera intrinsics as initial right camera estimate
+    K_right = K_left.copy()
+    dist_right = dist_left.copy()
+
+    # Phase 1: Estimate R, T direction from feature matches
+    print("\nPhase 1: Essential matrix estimation from stereo frames")
+    all_estimates = estimate_essential_from_stereo_frames(
+        left_path, right_path, input_path,
+        K_left, dist_left, K_right, dist_right,
+        frame_step=max(frame_step, 5), max_samples=60)
+
+    if len(all_estimates) < 5:
+        print("  Insufficient Essential matrix estimates, aborting")
+        return None
+
+    R, T_dir = robust_consensus_RT(all_estimates)
+    if R is None:
+        print("  Failed to compute consensus R, T")
+        return None
+
+    print(f"  R diagonal: [{R[0,0]:.6f}, {R[1,1]:.6f}, {R[2,2]:.6f}]")
+    print(f"  T direction: [{T_dir[0,0]:.4f}, {T_dir[1,0]:.4f}, {T_dir[2,0]:.4f}]")
+
+    # Phase 2: Optimize translation scale
+    print("\nPhase 2: Translation scale optimization")
+    best_scale, median_err, mean_err = optimize_translation_scale(
+        K_left, dist_left, K_right, dist_right,
+        R, T_dir, left_matched, right_raw_dots, pts_data, img_shape)
+
+    if best_scale is None:
+        print("  Scale optimization failed, aborting")
+        return None
+
+    T = T_dir * best_scale
+    baseline = np.linalg.norm(T)
+    print(f"  T: [{T[0,0]:.2f}, {T[1,0]:.2f}, {T[2,0]:.2f}]")
+    print(f"  Baseline: {baseline:.2f} mm")
+
+    # Phase 3: Cross-label right camera and re-calibrate
+    print("\nPhase 3: Cross-labeling right camera dots")
+    right_cross = cross_label_right_dots(
+        left_matched, K_left, dist_left, K_right, dist_right,
+        R, T, pts_data, right_raw_dots, img_shape)
+
+    if len(right_cross) < 3:
+        print(f"  Only {len(right_cross)} frames cross-labeled, aborting")
+        return None
+
+    avg_matches = np.mean([len(r[2]) for r in right_cross.values()])
+    print(f"  Cross-labeled {len(right_cross)} frames, avg {avg_matches:.0f} matches/frame")
+
+    # Re-calibrate right camera with cross-labeled correspondences
+    print("\nPhase 4: Re-calibrating right camera with cross-labeled points")
+    right_sorted = sorted(right_cross.keys())
+    right_objpoints = [right_cross[f][1] for f in right_sorted]
+    right_imgpoints = [right_cross[f][0] for f in right_sorted]
+
+    try:
+        (right_rms, K_right_new, dist_right_new, _, _), _ = calibrate_single_camera(
+            right_imgpoints, right_objpoints, img_shape, "right (cross-labeled)")
+        print(f"  Right camera RMS: {right_rms:.4f} px")
+
+        # Re-estimate E with updated right intrinsics
+        print("\nPhase 5: Re-estimating E with updated right intrinsics")
+        all_estimates2 = estimate_essential_from_stereo_frames(
+            left_path, right_path, input_path,
+            K_left, dist_left, K_right_new, dist_right_new,
+            frame_step=max(frame_step, 5), max_samples=60)
+
+        if len(all_estimates2) >= 5:
+            R2, T_dir2 = robust_consensus_RT(all_estimates2)
+            if R2 is not None:
+                # Re-optimize scale with updated intrinsics
+                best_scale2, median_err2, mean_err2 = optimize_translation_scale(
+                    K_left, dist_left, K_right_new, dist_right_new,
+                    R2, T_dir2, left_matched, right_raw_dots, pts_data, img_shape)
+
+                if best_scale2 is not None and median_err2 < median_err:
+                    R, T_dir, T = R2, T_dir2, T_dir2 * best_scale2
+                    K_right, dist_right = K_right_new, dist_right_new
+                    median_err, mean_err, best_scale = median_err2, mean_err2, best_scale2
+                    baseline = np.linalg.norm(T)
+                    print(f"  Improved: median_err={median_err:.1f}%, baseline={baseline:.1f}mm")
+                else:
+                    K_right, dist_right = K_right_new, dist_right_new
+                    print(f"  Using updated intrinsics (scale not improved)")
+            else:
+                K_right, dist_right = K_right_new, dist_right_new
+        else:
+            K_right, dist_right = K_right_new, dist_right_new
+    except (ValueError, cv2.error) as e:
+        print(f"  Right re-calibration failed ({e}), using initial estimate")
+
+    return {
+        'K_right': K_right,
+        'dist_right': dist_right,
+        'R': R,
+        'T': T,
+        'rms_stereo': -1.0,  # Not from stereoCalibrate
+        'mean_dist_err': mean_err,
+        'median_dist_err': median_err,
+        'baseline_mm': float(baseline),
+    }
+
+
 def main():
     description = "Estimate stereo calibration from calibration target images."
     epilog = """
@@ -1896,6 +2430,8 @@ Input modes:
                          f"Left has {len(left_data)}, right has {len(right_data)} detections.")
 
     print("computing calibration")
+    use_feature_based = False
+    feat_result = None
     if args.dots and args.pts:
         # Dots + PtsCAL mode: match each frame's dots to 3D world points
         ptscal_data = parse_ptscal(args.pts)
@@ -1984,6 +2520,66 @@ Input modes:
                                   K_left, dist_left, K_right, dist_right, img_shape,
                                   flags=cv2.CALIB_FIX_INTRINSIC)
         frames = stereo_frames  # for summary output
+        standard_rms = ret[0]
+        print(f"\nStandard stereoCalibrate RMS: {standard_rms:.2f} pixels")
+
+        # Also try feature-based Essential matrix approach as alternative.
+        # This is especially useful when dot-to-PtsCAL matching is inconsistent
+        # between cameras (different label assignments for same physical dots).
+        feat_result = None
+        high_rms_threshold = 20.0  # stereoCalibrate RMS indicating poor matching
+        try:
+            feat_result = feature_based_stereo_calibration(
+                left_path=args.left_path, right_path=args.right_path,
+                input_path=args.input,
+                K_left=K_left, dist_left=dist_left,
+                left_matched=left_matched, right_raw_dots=right_data,
+                pts_data=ptscal_data, img_shape=img_shape,
+                frame_step=args.frame_step)
+        except Exception as e:
+            print(f"Feature-based calibration failed: {e}")
+
+        use_feature_based = False
+        if feat_result is not None:
+            fb_median = feat_result['median_dist_err']
+            fb_baseline = feat_result['baseline_mm']
+            print(f"\nComparing calibration approaches:")
+            print(f"  Standard stereoCalibrate: RMS={standard_rms:.2f}px")
+            print(f"  Feature-based:            median_dist_err={fb_median:.1f}%, "
+                  f"baseline={fb_baseline:.1f}mm")
+
+            # Use feature-based if standard RMS is high (bad matching),
+            # or if feature-based produces reasonable distance errors
+            if standard_rms > high_rms_threshold:
+                use_feature_based = True
+                print(f"  -> Using feature-based (standard RMS {standard_rms:.1f} > "
+                      f"{high_rms_threshold} threshold)")
+            elif fb_median < 30.0 and standard_rms > 5.0:
+                use_feature_based = True
+                print(f"  -> Using feature-based (median distance error "
+                      f"{fb_median:.1f}% with lower stereo RMS)")
+            else:
+                print(f"  -> Using standard stereoCalibrate")
+
+        if use_feature_based:
+            K_right = feat_result['K_right']
+            dist_right = feat_result['dist_right']
+            right_rms = -1.0  # Not available from feature-based approach
+            # Override stereoCalibrate result with feature-based R, T
+            ret = list(ret)
+            ret[0] = feat_result['rms_stereo']
+            ret[5] = feat_result['R']
+            ret[6] = feat_result['T']
+            ret = tuple(ret)
+            # Re-write intrinsics.yml with updated right camera intrinsics
+            if not args.intr_file:
+                fs = cv2.FileStorage("intrinsics.yml", cv2.FILE_STORAGE_WRITE)
+                if fs.isOpened():
+                    fs.write("M1", K_left)
+                    fs.write("D1", dist_left)
+                    fs.write("M2", K_right)
+                    fs.write("D2", dist_right)
+                fs.release()
     else:
         # Checkerboard mode (existing path) or pts-only with checkerboard
         if args.pts:
@@ -2066,6 +2662,12 @@ Input modes:
     json_dict['rms_error_right'] = float(right_rms)
     json_dict['rms_error_stereo'] = float(stereo_rms_error)
 
+    # Distance error metrics (from feature-based approach, if used)
+    if args.dots and args.pts and use_feature_based and feat_result is not None:
+        json_dict['mean_distance_error_pct'] = float(feat_result['mean_dist_err'])
+        json_dict['median_distance_error_pct'] = float(feat_result['median_dist_err'])
+        json_dict['baseline_mm'] = float(feat_result['baseline_mm'])
+
     # Extrinsics
     json_dict['T'] = T.flatten().tolist()
     json_dict['R'] = R.flatten().tolist()
@@ -2106,7 +2708,10 @@ Input modes:
     print("=" * 60)
     print(f"Image size:                 {img_shape[0]} x {img_shape[1]}")
     if args.dots and args.pts:
-        print(f"Mode:                       dots + PtsCAL")
+        mode = "dots + PtsCAL"
+        if use_feature_based:
+            mode += " (feature-based stereo)"
+        print(f"Mode:                       {mode}")
         print(f"PtsCAL points:              {len(ptscal_data['points'])}")
     else:
         grid_label = "Grid size (auto-detected):" if args.auto_grid else "Grid size:"
@@ -2121,6 +2726,9 @@ Input modes:
     print(f"Right camera RMS error:     {right_rms:.4f} pixels")
     print(f"Stereo RMS error:           {stereo_rms_error:.4f} pixels")
     print(f"Baseline distance:          {baseline:.2f} mm")
+    if args.dots and args.pts and use_feature_based and feat_result is not None:
+        print(f"Distance error (mean):      {feat_result['mean_dist_err']:.1f}%")
+        print(f"Distance error (median):    {feat_result['median_dist_err']:.1f}%")
     print("-" * 60)
     print("Output files:")
     print(f"  - {args.json_file}")
