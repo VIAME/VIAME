@@ -311,20 +311,20 @@ public:
   /// DINO model name when epipolar_descriptor_type is 'dino'.
   /// Supports DINOv3 (e.g., 'dinov3_vits16') and DINOv2 (e.g., 'dinov2_vitb14').
   /// If DINOv3 weights are unavailable, automatically falls back to DINOv2.
-  std::string dino3_model_name;
+  std::string dino_model_name;
 
   /// Minimum cosine similarity threshold for DINO matching (0.0 to 1.0).
   /// With top-K + NCC mode (default), this is typically left at 0.
-  double dino3_threshold;
+  double dino_threshold;
 
   /// Optional path to local DINO weights file. Empty string uses default URL.
-  std::string dino3_weights_path;
+  std::string dino_weights_path;
 
   /// Number of top DINO candidates to pass to NCC refinement.
   /// The two-stage approach (DINO top-K + NCC) combines DINO's semantic
   /// robustness with NCC's sub-pixel precision. Set to 0 to use DINO-only
   /// matching without NCC refinement.
-  int dino3_top_k;
+  int dino_top_k;
 
   // -------------------------------------------------------------------------
   // Algorithm pointers (configured via nested algo configuration)
@@ -648,10 +648,10 @@ private:
   unsigned m_debug_frame_counter;
 
   // DINO matching settings
-  std::string m_dino3_model_name;
-  double m_dino3_threshold;
-  std::string m_dino3_weights_path;
-  int m_dino3_top_k;
+  std::string m_dino_model_name;
+  double m_dino_threshold;
+  std::string m_dino_weights_path;
+  int m_dino_top_k;
 
   // Feature algorithms
   kv::algo::detect_features_sptr m_feature_detector;

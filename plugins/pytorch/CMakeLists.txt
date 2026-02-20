@@ -276,9 +276,9 @@ endif()
 if( VIAME_ENABLE_PYTORCH-DINO3 )
 
     kwiver_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/dino3_matcher.py
+      ${CMAKE_CURRENT_SOURCE_DIR}/dino_matcher.py
       pytorch
-      dino3_matcher )
+      dino_matcher )
 
 endif()
 

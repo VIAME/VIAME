@@ -71,7 +71,7 @@ class EpipolarTemplateMatcher:
     then matches template patches from the source image along the curve in
     the target image using Normalized Cross-Correlation (NCC).
 
-    When dino_top_k > 0 and the dino3_matcher module is available, uses
+    When dino_top_k > 0 and the dino_matcher module is available, uses
     two-stage matching: DINOv2 selects the top-K semantically similar candidates,
     then NCC picks the precise match from that filtered set. This reduces false
     matches on repetitive textures.
@@ -117,9 +117,9 @@ class EpipolarTemplateMatcher:
     def _init_dino(self):
         """Try to import and initialize the DINO matcher module."""
         try:
-            from viame.pytorch import dino3_matcher
-            self._dino_matcher = dino3_matcher
-            dino3_matcher.init_matcher(
+            from viame.pytorch import dino_matcher
+            self._dino_matcher = dino_matcher
+            dino_matcher.init_matcher(
                 model_name=self._dino_model_name, device="cuda", threshold=0.0)
             self._dino_available = True
             self._log(f"DINO matcher initialized: model={self._dino_model_name}, "

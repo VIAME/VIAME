@@ -65,55 +65,55 @@ struct py_decref_guard
 };
 
 // Cached Python module reference (persists for process lifetime)
-static PyObject* s_dino3_module = nullptr;
-static bool s_dino3_init_attempted = false;
-static bool s_dino3_init_succeeded = false;
+static PyObject* s_dino_module = nullptr;
+static bool s_dino_init_attempted = false;
+static bool s_dino_init_succeeded = false;
 
 // Track which images are currently loaded to avoid redundant set_images calls.
 // We compare raw data pointers to detect when images change.
-static const void* s_dino3_left_data_ptr = nullptr;
-static const void* s_dino3_right_data_ptr = nullptr;
+static const void* s_dino_left_data_ptr = nullptr;
+static const void* s_dino_right_data_ptr = nullptr;
 
 /// Initialize the DINOv3 matcher module and model
-bool dino3_ensure_initialized(
+bool dino_ensure_initialized(
   const std::string& model_name,
   double threshold,
   const std::string& weights_path )
 {
-  if( s_dino3_init_succeeded )
+  if( s_dino_init_succeeded )
   {
     return true;
   }
 
-  if( s_dino3_init_attempted )
+  if( s_dino_init_attempted )
   {
     return false;
   }
 
-  s_dino3_init_attempted = true;
+  s_dino_init_attempted = true;
 
   // Check if Python interpreter is running
   if( !Py_IsInitialized() )
   {
-    LOG_WARN( logger, "DINOv3: Python interpreter not initialized" );
+    LOG_WARN( logger, "DINO: Python interpreter not initialized" );
     return false;
   }
 
   python_gil_guard gil;
 
   // Import the matcher module
-  s_dino3_module = PyImport_ImportModule( "viame.pytorch.dino3_matcher" );
+  s_dino_module = PyImport_ImportModule( "viame.pytorch.dino_matcher" );
 
-  if( !s_dino3_module )
+  if( !s_dino_module )
   {
-    LOG_WARN( logger, "DINOv3: Failed to import viame.pytorch.dino3_matcher" );
+    LOG_WARN( logger, "DINO: Failed to import viame.pytorch.dino_matcher" );
     PyErr_Print();
     return false;
   }
 
   // Call init_matcher(model_name, device, threshold, weights_path)
   PyObject* result = PyObject_CallMethod(
-    s_dino3_module,
+    s_dino_module,
     "init_matcher",
     "ssds",
     model_name.c_str(),
@@ -123,23 +123,23 @@ bool dino3_ensure_initialized(
 
   if( !result )
   {
-    LOG_WARN( logger, "DINOv3: init_matcher() failed" );
+    LOG_WARN( logger, "DINO: init_matcher() failed" );
     PyErr_Print();
     return false;
   }
 
   Py_DECREF( result );
-  s_dino3_init_succeeded = true;
+  s_dino_init_succeeded = true;
 
-  LOG_INFO( logger, "DINOv3: Matcher initialized with model=" << model_name
+  LOG_INFO( logger, "DINO: Matcher initialized with model=" << model_name
     << " threshold=" << threshold );
   return true;
 }
 
 /// Call set_images_from_bytes to load a new stereo image pair
-bool dino3_set_images( const cv::Mat& left, const cv::Mat& right )
+bool dino_set_images( const cv::Mat& left, const cv::Mat& right )
 {
-  if( !s_dino3_module )
+  if( !s_dino_module )
   {
     return false;
   }
@@ -169,7 +169,7 @@ bool dino3_set_images( const cv::Mat& left, const cv::Mat& right )
 
   // Call set_images_from_bytes(left_bytes, h, w, c, right_bytes, h, w, c)
   PyObject* result = PyObject_CallMethod(
-    s_dino3_module,
+    s_dino_module,
     "set_images_from_bytes",
     "OiiiOiii",
     left_bytes, left_cont.rows, left_cont.cols, left_cont.channels(),
@@ -180,7 +180,7 @@ bool dino3_set_images( const cv::Mat& left, const cv::Mat& right )
 
   if( !result )
   {
-    LOG_WARN( logger, "DINOv3: set_images_from_bytes() failed" );
+    LOG_WARN( logger, "DINO: set_images_from_bytes() failed" );
     PyErr_Print();
     return false;
   }
@@ -193,20 +193,20 @@ bool dino3_set_images( const cv::Mat& left, const cv::Mat& right )
 
 /// Match a single point along epipolar candidates
 /// Returns (success, matched_x, matched_y, score)
-struct dino3_match_result
+struct dino_match_result
 {
   bool success;
   double x, y, score;
 };
 
-dino3_match_result dino3_match_point(
+dino_match_result dino_match_point(
   double src_x, double src_y,
   const std::vector< kv::vector_2d >& epipolar_points,
   double threshold )
 {
-  dino3_match_result res = { false, 0.0, 0.0, 0.0 };
+  dino_match_result res = { false, 0.0, 0.0, 0.0 };
 
-  if( !s_dino3_module )
+  if( !s_dino_module )
   {
     return res;
   }
@@ -234,7 +234,7 @@ dino3_match_result dino3_match_point(
 
   // Call match_point(source_x, source_y, epipolar_xs, epipolar_ys, threshold)
   PyObject* result = PyObject_CallMethod(
-    s_dino3_module,
+    s_dino_module,
     "match_point",
     "ddOOd",
     src_x, src_y, xs, ys, threshold );
@@ -263,14 +263,14 @@ dino3_match_result dino3_match_point(
 
 /// Get top-K candidate indices from DINO cosine similarity ranking.
 /// Returns indices into the original epipolar_points vector.
-std::vector< int > dino3_get_top_k_indices(
+std::vector< int > dino_get_top_k_indices(
   double src_x, double src_y,
   const std::vector< kv::vector_2d >& epipolar_points,
   int k )
 {
   std::vector< int > result;
 
-  if( !s_dino3_module || epipolar_points.empty() )
+  if( !s_dino_module || epipolar_points.empty() )
   {
     return result;
   }
@@ -297,7 +297,7 @@ std::vector< int > dino3_get_top_k_indices(
 
   // Call get_top_k_indices(source_x, source_y, epipolar_xs, epipolar_ys, k)
   PyObject* py_result = PyObject_CallMethod(
-    s_dino3_module,
+    s_dino_module,
     "get_top_k_indices",
     "ddOOi",
     src_x, src_y, xs, ys, k );
@@ -372,10 +372,10 @@ map_keypoints_to_camera_settings
   , debug_epipolar_directory( "" )
   , detection_pairing_method( "" )
   , detection_pairing_threshold( 0.1 )
-  , dino3_model_name( "dinov2_vitb14" )
-  , dino3_threshold( 0.0 )
-  , dino3_weights_path( "" )
-  , dino3_top_k( 100 )
+  , dino_model_name( "dinov2_vitb14" )
+  , dino_threshold( 0.0 )
+  , dino_weights_path( "" )
+  , dino_top_k( 100 )
 {
 }
 
@@ -490,7 +490,7 @@ map_keypoints_to_camera_settings
     "'dino': Two-stage DINO + NCC matching (requires Python). "
     "DINO features select the top-K semantically similar candidates, then NCC "
     "provides precise localization. This avoids NCC failures on repetitive textures "
-    "while preserving sub-pixel accuracy. Set dino3_top_k=0 for DINO-only mode." );
+    "while preserving sub-pixel accuracy. Set dino_top_k=0 for DINO-only mode." );
 
   config->set_value( "use_distortion", use_distortion,
     "Whether to use distortion coefficients from the calibration during rectification. "
@@ -554,23 +554,23 @@ map_keypoints_to_camera_settings
     "threshold (default 0.1). For 'keypoint_projection' method, this is the maximum average "
     "keypoint pixel distance (default 50.0)." );
 
-  config->set_value( "dino3_model_name", dino3_model_name,
+  config->set_value( "dino_model_name", dino_model_name,
     "DINO backbone model name (used when epipolar_descriptor_type is 'dino'). "
     "Supports DINOv3 (e.g., 'dinov3_vits16') and DINOv2 (e.g., 'dinov2_vitb14'). "
     "If DINOv3 weights are unavailable, automatically falls back to DINOv2. "
     "DINOv2 options: 'dinov2_vits14' (small/fast), 'dinov2_vitb14' (base, recommended), "
     "'dinov2_vitl14' (large)." );
 
-  config->set_value( "dino3_threshold", dino3_threshold,
+  config->set_value( "dino_threshold", dino_threshold,
     "Minimum cosine similarity threshold for DINO feature matching (0.0 to 1.0). "
-    "With top-K + NCC mode (default, dino3_top_k > 0), this is typically 0 since "
-    "NCC provides the final selection. Only used for DINO-only mode (dino3_top_k=0)." );
+    "With top-K + NCC mode (default, dino_top_k > 0), this is typically 0 since "
+    "NCC provides the final selection. Only used for DINO-only mode (dino_top_k=0)." );
 
-  config->set_value( "dino3_weights_path", dino3_weights_path,
+  config->set_value( "dino_weights_path", dino_weights_path,
     "Optional path to local DINO model weights file. If empty, weights are "
     "downloaded from the default URL on first use." );
 
-  config->set_value( "dino3_top_k", dino3_top_k,
+  config->set_value( "dino_top_k", dino_top_k,
     "Number of top DINO candidates to pass to NCC for precise refinement. "
     "The two-stage approach (DINO top-K + NCC) combines DINO semantic robustness "
     "with NCC sub-pixel precision. Recommended value: 100. "
@@ -625,10 +625,10 @@ map_keypoints_to_camera_settings
   debug_epipolar_directory = config->get_value< std::string >( "debug_epipolar_directory", debug_epipolar_directory );
   detection_pairing_method = config->get_value< std::string >( "detection_pairing_method", detection_pairing_method );
   detection_pairing_threshold = config->get_value< double >( "detection_pairing_threshold", detection_pairing_threshold );
-  dino3_model_name = config->get_value< std::string >( "dino3_model_name", dino3_model_name );
-  dino3_threshold = config->get_value< double >( "dino3_threshold", dino3_threshold );
-  dino3_weights_path = config->get_value< std::string >( "dino3_weights_path", dino3_weights_path );
-  dino3_top_k = config->get_value< int >( "dino3_top_k", dino3_top_k );
+  dino_model_name = config->get_value< std::string >( "dino_model_name", dino_model_name );
+  dino_threshold = config->get_value< double >( "dino_threshold", dino_threshold );
+  dino_weights_path = config->get_value< std::string >( "dino_weights_path", dino_weights_path );
+  dino_top_k = config->get_value< int >( "dino_top_k", dino_top_k );
 
   // Configure nested algorithms
   kv::algo::detect_features::set_nested_algo_configuration(
@@ -801,10 +801,10 @@ map_keypoints_to_camera
   , m_feature_search_depth( 5.0 )
   , m_debug_epipolar_directory( "" )
   , m_debug_frame_counter( 0 )
-  , m_dino3_model_name( "dinov2_vitb14" )
-  , m_dino3_threshold( 0.0 )
-  , m_dino3_weights_path( "" )
-  , m_dino3_top_k( 100 )
+  , m_dino_model_name( "dinov2_vitb14" )
+  , m_dino_threshold( 0.0 )
+  , m_dino_weights_path( "" )
+  , m_dino_top_k( 100 )
   , m_cached_frame_id( 0 )
 #ifdef VIAME_ENABLE_OPENCV
   , m_rectification_computed( false )
@@ -955,10 +955,10 @@ map_keypoints_to_camera
 
   m_debug_epipolar_directory = settings.debug_epipolar_directory;
 
-  m_dino3_model_name = settings.dino3_model_name;
-  m_dino3_threshold = settings.dino3_threshold;
-  m_dino3_weights_path = settings.dino3_weights_path;
-  m_dino3_top_k = settings.dino3_top_k;
+  m_dino_model_name = settings.dino_model_name;
+  m_dino_threshold = settings.dino_threshold;
+  m_dino_weights_path = settings.dino_weights_path;
+  m_dino_top_k = settings.dino_top_k;
 
   // Set the stereo depth map algorithm for compute_disparity method
   m_stereo_depth_map_algorithm = settings.stereo_depth_map_algorithm;
@@ -1630,8 +1630,8 @@ map_keypoints_to_camera
       {
         descriptor_label = "dino";
 
-        if( !dino3_ensure_initialized(
-              m_dino3_model_name, m_dino3_threshold, m_dino3_weights_path ) )
+        if( !dino_ensure_initialized(
+              m_dino_model_name, m_dino_threshold, m_dino_weights_path ) )
         {
           descriptor_available = false;
         }
@@ -1644,26 +1644,26 @@ map_keypoints_to_camera
             right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
           // Only call set_images when the image data actually changes (new frame)
-          if( left_bgr.data != s_dino3_left_data_ptr ||
-              right_bgr.data != s_dino3_right_data_ptr )
+          if( left_bgr.data != s_dino_left_data_ptr ||
+              right_bgr.data != s_dino_right_data_ptr )
           {
-            if( dino3_set_images( left_bgr, right_bgr ) )
+            if( dino_set_images( left_bgr, right_bgr ) )
             {
-              s_dino3_left_data_ptr = left_bgr.data;
-              s_dino3_right_data_ptr = right_bgr.data;
+              s_dino_left_data_ptr = left_bgr.data;
+              s_dino_right_data_ptr = right_bgr.data;
             }
             else
             {
-              s_dino3_left_data_ptr = nullptr;
-              s_dino3_right_data_ptr = nullptr;
+              s_dino_left_data_ptr = nullptr;
+              s_dino_right_data_ptr = nullptr;
             }
           }
 
-          if( s_dino3_left_data_ptr )
+          if( s_dino_left_data_ptr )
           {
             descriptor_available = true;
 
-            if( m_dino3_top_k > 0 )
+            if( m_dino_top_k > 0 )
             {
               // Two-stage: DINO top-K filtering + NCC refinement
               // Prepare grayscale images for NCC
@@ -1683,9 +1683,9 @@ map_keypoints_to_camera
                 right_gray = right_bgr;
 
               // Head: get top-K indices from DINO, then NCC on filtered set
-              auto head_indices = dino3_get_top_k_indices(
+              auto head_indices = dino_get_top_k_indices(
                 result.left_head.x(), result.left_head.y(),
-                epipolar_head, m_dino3_top_k );
+                epipolar_head, m_dino_top_k );
 
               if( !head_indices.empty() )
               {
@@ -1701,9 +1701,9 @@ map_keypoints_to_camera
               }
 
               // Tail: same approach
-              auto tail_indices = dino3_get_top_k_indices(
+              auto tail_indices = dino_get_top_k_indices(
                 result.left_tail.x(), result.left_tail.y(),
-                epipolar_tail, m_dino3_top_k );
+                epipolar_tail, m_dino_top_k );
 
               if( !tail_indices.empty() )
               {
@@ -1721,12 +1721,12 @@ map_keypoints_to_camera
             else
             {
               // DINO-only mode (no NCC refinement)
-              auto head_match = dino3_match_point(
+              auto head_match = dino_match_point(
                 result.left_head.x(), result.left_head.y(),
-                epipolar_head, m_dino3_threshold );
-              auto tail_match = dino3_match_point(
+                epipolar_head, m_dino_threshold );
+              auto tail_match = dino_match_point(
                 result.left_tail.x(), result.left_tail.y(),
-                epipolar_tail, m_dino3_threshold );
+                epipolar_tail, m_dino_threshold );
 
               head_found = head_match.success;
               tail_found = tail_match.success;

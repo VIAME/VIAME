@@ -41,7 +41,7 @@ def _log(msg):
 class DINOMatcher:
     """Stereo point matcher using DINO dense features along epipolar curves.
 
-    Supports DINOv3 (from viame.pytorch.dino3) and DINOv2 (via torch.hub)
+    Supports DINOv3 (from dinov3 package) and DINOv2 (via torch.hub)
     with automatic fallback.
     """
 
