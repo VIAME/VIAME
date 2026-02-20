@@ -40,7 +40,7 @@ process measurer
   # Best accuracy (~1.6px) but may miss detections near image edges or in
   # textureless regions.
   :search_range                                200
-  :template_matching_threshold                 0.5
+  :template_matching_threshold                 0.2
   :epipolar_band_halfwidth                     2
   :use_multires_search                         false
   :use_disparity_hint                          false
@@ -60,8 +60,8 @@ process measurer
   #      units as the calibration T vector (e.g. mm if T is in mm). Only used
   #      when both disparity parameters are 0.
   :template_size                               25
-  :epipolar_min_disparity                      2
-  :epipolar_max_disparity                      300
+  :epipolar_min_disparity                      7
+  :epipolar_max_disparity                      724
   # :epipolar_min_depth                        2000
   # :epipolar_max_depth                        200000
   :epipolar_num_samples                        5000
