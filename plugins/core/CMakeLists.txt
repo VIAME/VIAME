@@ -197,6 +197,15 @@ set( AUX_LINK_LIBRARIES
      ${TinyXML_LIBRARY}
      ${AUX_LINK_LIBRARIES} )
 
+# Python is used for DINOv3 feature matching via Python C API
+if( VIAME_ENABLE_PYTHON )
+  include_directories( SYSTEM ${PYTHON_INCLUDE_DIRS} )
+  set( AUX_LINK_LIBRARIES
+       ${PYTHON_LIBRARIES}
+       ${AUX_LINK_LIBRARIES} )
+  set( AUX_COMPILE_DEFINITIONS VIAME_ENABLE_PYTHON ${AUX_COMPILE_DEFINITIONS} )
+endif()
+
 target_link_libraries( viame_core
   PUBLIC               ${CORE_LINK_LIBRARIES}
                        ${AUX_LINK_LIBRARIES}

@@ -264,6 +264,11 @@ public:
   /// Number of sample points along the epipolar line
   int epipolar_num_samples;
 
+  /// Descriptor type for epipolar template matching.
+  /// 'ncc' (default): Normalized cross-correlation on grayscale patches.
+  /// 'dinov3': DINOv3 vision transformer features (requires Python + DINOv3 package).
+  std::string epipolar_descriptor_type;
+
   /// Whether to use distortion coefficients from calibration
   bool use_distortion;
 
@@ -302,6 +307,24 @@ public:
   /// Threshold for detection pairing: IOU threshold for epipolar_iou (default 0.1),
   /// pixel distance for keypoint_projection (default 50.0)
   double detection_pairing_threshold;
+
+  /// DINO model name when epipolar_descriptor_type is 'dinov3'.
+  /// Supports DINOv3 (e.g., 'dinov3_vits16') and DINOv2 (e.g., 'dinov2_vitb14').
+  /// If DINOv3 weights are unavailable, automatically falls back to DINOv2.
+  std::string dino3_model_name;
+
+  /// Minimum cosine similarity threshold for DINO matching (0.0 to 1.0).
+  /// With top-K + NCC mode (default), this is typically left at 0.
+  double dino3_threshold;
+
+  /// Optional path to local DINO weights file. Empty string uses default URL.
+  std::string dino3_weights_path;
+
+  /// Number of top DINO candidates to pass to NCC refinement.
+  /// The two-stage approach (DINO top-K + NCC) combines DINO's semantic
+  /// robustness with NCC's sub-pixel precision. Set to 0 to use DINO-only
+  /// matching without NCC refinement.
+  int dino3_top_k;
 
   // -------------------------------------------------------------------------
   // Algorithm pointers (configured via nested algo configuration)
@@ -612,6 +635,7 @@ private:
   double m_epipolar_min_disparity;
   double m_epipolar_max_disparity;
   int m_epipolar_num_samples;
+  std::string m_epipolar_descriptor_type;
   bool m_use_distortion;
   double m_feature_search_radius;
   double m_ransac_inlier_scale;
@@ -622,6 +646,12 @@ private:
   double m_feature_search_depth;
   std::string m_debug_epipolar_directory;
   unsigned m_debug_frame_counter;
+
+  // DINO matching settings
+  std::string m_dino3_model_name;
+  double m_dino3_threshold;
+  std::string m_dino3_weights_path;
+  int m_dino3_top_k;
 
   // Feature algorithms
   kv::algo::detect_features_sptr m_feature_detector;

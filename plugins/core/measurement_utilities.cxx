@@ -7,8 +7,14 @@
  * \brief Stereo measurement utility functions implementation
  */
 
+// Python.h must be included before any standard headers per Python C API docs
+#ifdef VIAME_ENABLE_PYTHON
+  #include <Python.h>
+#endif
+
 #include "measurement_utilities.h"
 
+#include <vital/logger/logger.h>
 #include <vital/util/string.h>
 
 #include <arrows/mvg/triangulate.h>
@@ -21,6 +27,7 @@
 #endif
 
 #include <algorithm>
+#include <cstdio>
 #include <limits>
 #include <sstream>
 
@@ -29,6 +36,312 @@ namespace viame
 
 namespace core
 {
+
+// =============================================================================
+// DINOv3 Python C API helpers
+// =============================================================================
+
+#if defined( VIAME_ENABLE_PYTHON ) && defined( VIAME_ENABLE_OPENCV )
+
+namespace
+{
+
+static auto logger = kwiver::vital::get_logger( "viame.core.measurement_utilities" );
+
+/// RAII guard for acquiring and releasing the Python GIL
+struct python_gil_guard
+{
+  PyGILState_STATE state;
+  python_gil_guard() : state( PyGILState_Ensure() ) {}
+  ~python_gil_guard() { PyGILState_Release( state ); }
+};
+
+/// RAII helper to decrement Python reference count on scope exit
+struct py_decref_guard
+{
+  PyObject* obj;
+  explicit py_decref_guard( PyObject* o ) : obj( o ) {}
+  ~py_decref_guard() { Py_XDECREF( obj ); }
+};
+
+// Cached Python module reference (persists for process lifetime)
+static PyObject* s_dino3_module = nullptr;
+static bool s_dino3_init_attempted = false;
+static bool s_dino3_init_succeeded = false;
+
+// Track which images are currently loaded to avoid redundant set_images calls.
+// We compare raw data pointers to detect when images change.
+static const void* s_dino3_left_data_ptr = nullptr;
+static const void* s_dino3_right_data_ptr = nullptr;
+
+/// Initialize the DINOv3 matcher module and model
+bool dino3_ensure_initialized(
+  const std::string& model_name,
+  double threshold,
+  const std::string& weights_path )
+{
+  if( s_dino3_init_succeeded )
+  {
+    return true;
+  }
+
+  if( s_dino3_init_attempted )
+  {
+    return false;
+  }
+
+  s_dino3_init_attempted = true;
+
+  // Check if Python interpreter is running
+  if( !Py_IsInitialized() )
+  {
+    LOG_WARN( logger, "DINOv3: Python interpreter not initialized" );
+    return false;
+  }
+
+  python_gil_guard gil;
+
+  // Import the matcher module
+  s_dino3_module = PyImport_ImportModule( "viame.pytorch.dino3_matcher" );
+
+  if( !s_dino3_module )
+  {
+    LOG_WARN( logger, "DINOv3: Failed to import viame.pytorch.dino3_matcher" );
+    PyErr_Print();
+    return false;
+  }
+
+  // Call init_matcher(model_name, device, threshold, weights_path)
+  PyObject* result = PyObject_CallMethod(
+    s_dino3_module,
+    "init_matcher",
+    "ssds",
+    model_name.c_str(),
+    "cuda",
+    threshold,
+    weights_path.c_str() );
+
+  if( !result )
+  {
+    LOG_WARN( logger, "DINOv3: init_matcher() failed" );
+    PyErr_Print();
+    return false;
+  }
+
+  Py_DECREF( result );
+  s_dino3_init_succeeded = true;
+
+  LOG_INFO( logger, "DINOv3: Matcher initialized with model=" << model_name
+    << " threshold=" << threshold );
+  return true;
+}
+
+/// Call set_images_from_bytes to load a new stereo image pair
+bool dino3_set_images( const cv::Mat& left, const cv::Mat& right )
+{
+  if( !s_dino3_module )
+  {
+    return false;
+  }
+
+  python_gil_guard gil;
+
+  // Ensure images are contiguous
+  cv::Mat left_cont = left.isContinuous() ? left : left.clone();
+  cv::Mat right_cont = right.isContinuous() ? right : right.clone();
+
+  // Create Python bytes objects wrapping the image data
+  PyObject* left_bytes = PyBytes_FromStringAndSize(
+    reinterpret_cast< const char* >( left_cont.data ),
+    static_cast< Py_ssize_t >( left_cont.total() * left_cont.elemSize() ) );
+
+  PyObject* right_bytes = PyBytes_FromStringAndSize(
+    reinterpret_cast< const char* >( right_cont.data ),
+    static_cast< Py_ssize_t >( right_cont.total() * right_cont.elemSize() ) );
+
+  if( !left_bytes || !right_bytes )
+  {
+    Py_XDECREF( left_bytes );
+    Py_XDECREF( right_bytes );
+    PyErr_Print();
+    return false;
+  }
+
+  // Call set_images_from_bytes(left_bytes, h, w, c, right_bytes, h, w, c)
+  PyObject* result = PyObject_CallMethod(
+    s_dino3_module,
+    "set_images_from_bytes",
+    "OiiiOiii",
+    left_bytes, left_cont.rows, left_cont.cols, left_cont.channels(),
+    right_bytes, right_cont.rows, right_cont.cols, right_cont.channels() );
+
+  Py_DECREF( left_bytes );
+  Py_DECREF( right_bytes );
+
+  if( !result )
+  {
+    LOG_WARN( logger, "DINOv3: set_images_from_bytes() failed" );
+    PyErr_Print();
+    return false;
+  }
+
+  bool ok = PyObject_IsTrue( result );
+  Py_DECREF( result );
+
+  return ok;
+}
+
+/// Match a single point along epipolar candidates
+/// Returns (success, matched_x, matched_y, score)
+struct dino3_match_result
+{
+  bool success;
+  double x, y, score;
+};
+
+dino3_match_result dino3_match_point(
+  double src_x, double src_y,
+  const std::vector< kv::vector_2d >& epipolar_points,
+  double threshold )
+{
+  dino3_match_result res = { false, 0.0, 0.0, 0.0 };
+
+  if( !s_dino3_module )
+  {
+    return res;
+  }
+
+  python_gil_guard gil;
+
+  int n = static_cast< int >( epipolar_points.size() );
+
+  // Build Python lists for epipolar x and y coordinates
+  PyObject* xs = PyList_New( n );
+  PyObject* ys = PyList_New( n );
+
+  if( !xs || !ys )
+  {
+    Py_XDECREF( xs );
+    Py_XDECREF( ys );
+    return res;
+  }
+
+  for( int i = 0; i < n; ++i )
+  {
+    PyList_SET_ITEM( xs, i, PyFloat_FromDouble( epipolar_points[i].x() ) );
+    PyList_SET_ITEM( ys, i, PyFloat_FromDouble( epipolar_points[i].y() ) );
+  }
+
+  // Call match_point(source_x, source_y, epipolar_xs, epipolar_ys, threshold)
+  PyObject* result = PyObject_CallMethod(
+    s_dino3_module,
+    "match_point",
+    "ddOOd",
+    src_x, src_y, xs, ys, threshold );
+
+  Py_DECREF( xs );
+  Py_DECREF( ys );
+
+  if( !result )
+  {
+    PyErr_Print();
+    return res;
+  }
+
+  // Parse result tuple: (success_bool, matched_x, matched_y, score)
+  if( PyTuple_Check( result ) && PyTuple_Size( result ) == 4 )
+  {
+    res.success = PyObject_IsTrue( PyTuple_GET_ITEM( result, 0 ) );
+    res.x = PyFloat_AsDouble( PyTuple_GET_ITEM( result, 1 ) );
+    res.y = PyFloat_AsDouble( PyTuple_GET_ITEM( result, 2 ) );
+    res.score = PyFloat_AsDouble( PyTuple_GET_ITEM( result, 3 ) );
+  }
+
+  Py_DECREF( result );
+  return res;
+}
+
+/// Get top-K candidate indices from DINO cosine similarity ranking.
+/// Returns indices into the original epipolar_points vector.
+std::vector< int > dino3_get_top_k_indices(
+  double src_x, double src_y,
+  const std::vector< kv::vector_2d >& epipolar_points,
+  int k )
+{
+  std::vector< int > result;
+
+  if( !s_dino3_module || epipolar_points.empty() )
+  {
+    return result;
+  }
+
+  python_gil_guard gil;
+
+  int n = static_cast< int >( epipolar_points.size() );
+
+  PyObject* xs = PyList_New( n );
+  PyObject* ys = PyList_New( n );
+
+  if( !xs || !ys )
+  {
+    Py_XDECREF( xs );
+    Py_XDECREF( ys );
+    return result;
+  }
+
+  for( int i = 0; i < n; ++i )
+  {
+    PyList_SET_ITEM( xs, i, PyFloat_FromDouble( epipolar_points[i].x() ) );
+    PyList_SET_ITEM( ys, i, PyFloat_FromDouble( epipolar_points[i].y() ) );
+  }
+
+  // Call get_top_k_indices(source_x, source_y, epipolar_xs, epipolar_ys, k)
+  PyObject* py_result = PyObject_CallMethod(
+    s_dino3_module,
+    "get_top_k_indices",
+    "ddOOi",
+    src_x, src_y, xs, ys, k );
+
+  Py_DECREF( xs );
+  Py_DECREF( ys );
+
+  if( !py_result )
+  {
+    PyErr_Print();
+    return result;
+  }
+
+  // Parse returned list of integer indices
+  if( PyList_Check( py_result ) )
+  {
+    Py_ssize_t len = PyList_Size( py_result );
+    result.reserve( static_cast< size_t >( len ) );
+
+    for( Py_ssize_t i = 0; i < len; ++i )
+    {
+      PyObject* item = PyList_GET_ITEM( py_result, i );
+      int idx = static_cast< int >( PyLong_AsLong( item ) );
+      if( idx >= 0 && idx < n )
+      {
+        result.push_back( idx );
+      }
+    }
+  }
+
+  Py_DECREF( py_result );
+  return result;
+}
+
+/// Invalidate cached DINO image features (e.g., when frame changes)
+void dino3_invalidate_cache()
+{
+  s_dino3_left_data_ptr = nullptr;
+  s_dino3_right_data_ptr = nullptr;
+}
+
+} // anonymous namespace
+
+#endif // VIAME_ENABLE_PYTHON && VIAME_ENABLE_OPENCV
 
 // =============================================================================
 // map_keypoints_to_camera_settings implementation
@@ -53,6 +366,7 @@ map_keypoints_to_camera_settings
   , epipolar_min_disparity( 0.0 )
   , epipolar_max_disparity( 0.0 )
   , epipolar_num_samples( 100 )
+  , epipolar_descriptor_type( "ncc" )
   , use_distortion( true )
   , feature_search_radius( 50.0 )
   , ransac_inlier_scale( 3.0 )
@@ -65,6 +379,10 @@ map_keypoints_to_camera_settings
   , debug_epipolar_directory( "" )
   , detection_pairing_method( "" )
   , detection_pairing_threshold( 0.1 )
+  , dino3_model_name( "dinov2_vitb14" )
+  , dino3_threshold( 0.0 )
+  , dino3_weights_path( "" )
+  , dino3_top_k( 100 )
 {
 }
 
@@ -90,7 +408,8 @@ map_keypoints_to_camera_settings
     "'external_disparity' (uses externally provided disparity map), "
     "'compute_disparity' (uses stereo_disparity algorithm to compute disparity from rectified images), "
     "'template_matching' (rectifies images and searches along epipolar lines), "
-    "'epipolar_template_matching' (template matching along epipolar line on unrectified images), "
+    "'epipolar_template_matching' (matching along epipolar line on unrectified images, "
+    "descriptor type controlled by epipolar_descriptor_type), "
     "'feature_descriptor' (uses vital feature detection/descriptor/matching), "
     "'ransac_feature' (feature matching with RANSAC-based fundamental matrix filtering). "
     "Example: 'input_pairs_only,compute_disparity,depth_projection'" );
@@ -172,6 +491,14 @@ map_keypoints_to_camera_settings
     "Number of sample points along the epipolar line for epipolar template matching. "
     "More samples give finer search resolution but take longer." );
 
+  config->set_value( "epipolar_descriptor_type", epipolar_descriptor_type,
+    "Descriptor type for epipolar template matching. "
+    "'ncc' (default): normalized cross-correlation on grayscale patches. "
+    "'dinov3': Two-stage DINO + NCC matching (requires Python). "
+    "DINO features select the top-K semantically similar candidates, then NCC "
+    "provides precise localization. This avoids NCC failures on repetitive textures "
+    "while preserving sub-pixel accuracy. Set dino3_top_k=0 for DINO-only mode." );
+
   config->set_value( "use_distortion", use_distortion,
     "Whether to use distortion coefficients from the calibration during rectification. "
     "If true, distortion coefficients from the calibration file are used. "
@@ -234,6 +561,28 @@ map_keypoints_to_camera_settings
     "threshold (default 0.1). For 'keypoint_projection' method, this is the maximum average "
     "keypoint pixel distance (default 50.0)." );
 
+  config->set_value( "dino3_model_name", dino3_model_name,
+    "DINO backbone model name (used when epipolar_descriptor_type is 'dinov3'). "
+    "Supports DINOv3 (e.g., 'dinov3_vits16') and DINOv2 (e.g., 'dinov2_vitb14'). "
+    "If DINOv3 weights are unavailable, automatically falls back to DINOv2. "
+    "DINOv2 options: 'dinov2_vits14' (small/fast), 'dinov2_vitb14' (base, recommended), "
+    "'dinov2_vitl14' (large)." );
+
+  config->set_value( "dino3_threshold", dino3_threshold,
+    "Minimum cosine similarity threshold for DINO feature matching (0.0 to 1.0). "
+    "With top-K + NCC mode (default, dino3_top_k > 0), this is typically 0 since "
+    "NCC provides the final selection. Only used for DINO-only mode (dino3_top_k=0)." );
+
+  config->set_value( "dino3_weights_path", dino3_weights_path,
+    "Optional path to local DINO model weights file. If empty, weights are "
+    "downloaded from the default URL on first use." );
+
+  config->set_value( "dino3_top_k", dino3_top_k,
+    "Number of top DINO candidates to pass to NCC for precise refinement. "
+    "The two-stage approach (DINO top-K + NCC) combines DINO semantic robustness "
+    "with NCC sub-pixel precision. Recommended value: 100. "
+    "Set to 0 to use DINO-only matching without NCC refinement." );
+
   // Add nested algorithm configurations
   kv::algo::detect_features::get_nested_algo_configuration(
     "feature_detector", config, feature_detector );
@@ -270,6 +619,7 @@ map_keypoints_to_camera_settings
   epipolar_min_disparity = config->get_value< double >( "epipolar_min_disparity", epipolar_min_disparity );
   epipolar_max_disparity = config->get_value< double >( "epipolar_max_disparity", epipolar_max_disparity );
   epipolar_num_samples = config->get_value< int >( "epipolar_num_samples", epipolar_num_samples );
+  epipolar_descriptor_type = config->get_value< std::string >( "epipolar_descriptor_type", epipolar_descriptor_type );
   use_distortion = config->get_value< bool >( "use_distortion", use_distortion );
   feature_search_radius = config->get_value< double >( "feature_search_radius", feature_search_radius );
   ransac_inlier_scale = config->get_value< double >( "ransac_inlier_scale", ransac_inlier_scale );
@@ -282,6 +632,10 @@ map_keypoints_to_camera_settings
   debug_epipolar_directory = config->get_value< std::string >( "debug_epipolar_directory", debug_epipolar_directory );
   detection_pairing_method = config->get_value< std::string >( "detection_pairing_method", detection_pairing_method );
   detection_pairing_threshold = config->get_value< double >( "detection_pairing_threshold", detection_pairing_threshold );
+  dino3_model_name = config->get_value< std::string >( "dino3_model_name", dino3_model_name );
+  dino3_threshold = config->get_value< double >( "dino3_threshold", dino3_threshold );
+  dino3_weights_path = config->get_value< std::string >( "dino3_weights_path", dino3_weights_path );
+  dino3_top_k = config->get_value< int >( "dino3_top_k", dino3_top_k );
 
   // Configure nested algorithms
   kv::algo::detect_features::set_nested_algo_configuration(
@@ -443,6 +797,7 @@ map_keypoints_to_camera
   , m_epipolar_min_disparity( 0.0 )
   , m_epipolar_max_disparity( 0.0 )
   , m_epipolar_num_samples( 100 )
+  , m_epipolar_descriptor_type( "ncc" )
   , m_use_distortion( true )
   , m_feature_search_radius( 50.0 )
   , m_ransac_inlier_scale( 3.0 )
@@ -453,6 +808,10 @@ map_keypoints_to_camera
   , m_feature_search_depth( 5.0 )
   , m_debug_epipolar_directory( "" )
   , m_debug_frame_counter( 0 )
+  , m_dino3_model_name( "dinov2_vitb14" )
+  , m_dino3_threshold( 0.0 )
+  , m_dino3_weights_path( "" )
+  , m_dino3_top_k( 100 )
   , m_cached_frame_id( 0 )
 #ifdef VIAME_ENABLE_OPENCV
   , m_rectification_computed( false )
@@ -590,6 +949,7 @@ map_keypoints_to_camera
                        settings.epipolar_num_samples );
   m_epipolar_min_disparity = settings.epipolar_min_disparity;
   m_epipolar_max_disparity = settings.epipolar_max_disparity;
+  m_epipolar_descriptor_type = settings.epipolar_descriptor_type;
   set_use_distortion( settings.use_distortion );
   set_feature_params( settings.feature_search_radius, settings.ransac_inlier_scale,
                       settings.min_ransac_inliers,
@@ -601,6 +961,11 @@ map_keypoints_to_camera
                           settings.feature_matcher, settings.fundamental_matrix_estimator );
 
   m_debug_epipolar_directory = settings.debug_epipolar_directory;
+
+  m_dino3_model_name = settings.dino3_model_name;
+  m_dino3_threshold = settings.dino3_threshold;
+  m_dino3_weights_path = settings.dino3_weights_path;
+  m_dino3_top_k = settings.dino3_top_k;
 
   // Set the stereo depth map algorithm for compute_disparity method
   m_stereo_depth_map_algorithm = settings.stereo_depth_map_algorithm;
@@ -1216,35 +1581,15 @@ map_keypoints_to_camera
     }
     else if( method == "epipolar_template_matching" && has_images )
     {
-      // Convert unrectified images to grayscale cv::Mat
-      cv::Mat left_gray = kwiver::arrows::ocv::image_container::vital_to_ocv(
-        left_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-      cv::Mat right_gray = kwiver::arrows::ocv::image_container::vital_to_ocv(
-        right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-
-      if( left_gray.channels() == 3 )
-        cv::cvtColor( left_gray, left_gray, cv::COLOR_BGR2GRAY );
-      else if( left_gray.channels() == 4 )
-        cv::cvtColor( left_gray, left_gray, cv::COLOR_BGRA2GRAY );
-
-      if( right_gray.channels() == 3 )
-        cv::cvtColor( right_gray, right_gray, cv::COLOR_BGR2GRAY );
-      else if( right_gray.channels() == 4 )
-        cv::cvtColor( right_gray, right_gray, cv::COLOR_BGRA2GRAY );
-
       // Determine effective depth range for epipolar search
       double eff_min_depth = m_epipolar_min_depth;
       double eff_max_depth = m_epipolar_max_depth;
 
       if( m_epipolar_min_disparity > 0.0 && m_epipolar_max_disparity > 0.0 )
       {
-        // Convert disparity range (pixels) to depth range using camera geometry:
-        //   depth = focal_length * baseline / disparity
-        // This is unit-independent since baseline and depth share the same units.
         double fx = left_cam.get_intrinsics()->focal_length();
         double baseline = ( left_cam.center() - right_cam.center() ).norm();
 
-        // min disparity (far objects) -> max depth, max disparity (near) -> min depth
         eff_min_depth = fx * baseline / m_epipolar_max_disparity;
         eff_max_depth = fx * baseline / m_epipolar_min_disparity;
       }
@@ -1257,15 +1602,159 @@ map_keypoints_to_camera
         left_cam, right_cam, result.left_tail,
         eff_min_depth, eff_max_depth, m_epipolar_num_samples );
 
-      head_found = find_corresponding_point_epipolar_template_matching(
-        left_gray, right_gray, result.left_head, epipolar_head, result.right_head );
-      tail_found = find_corresponding_point_epipolar_template_matching(
-        left_gray, right_gray, result.left_tail, epipolar_tail, result.right_tail );
+      // Branch on descriptor type for the actual matching
+      bool descriptor_available = false;
+      std::string descriptor_label;
+
+      if( m_epipolar_descriptor_type == "ncc" )
+      {
+        descriptor_available = true;
+        descriptor_label = "ncc";
+
+        // Convert unrectified images to grayscale cv::Mat
+        cv::Mat left_gray = kwiver::arrows::ocv::image_container::vital_to_ocv(
+          left_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+        cv::Mat right_gray = kwiver::arrows::ocv::image_container::vital_to_ocv(
+          right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+
+        if( left_gray.channels() == 3 )
+          cv::cvtColor( left_gray, left_gray, cv::COLOR_BGR2GRAY );
+        else if( left_gray.channels() == 4 )
+          cv::cvtColor( left_gray, left_gray, cv::COLOR_BGRA2GRAY );
+
+        if( right_gray.channels() == 3 )
+          cv::cvtColor( right_gray, right_gray, cv::COLOR_BGR2GRAY );
+        else if( right_gray.channels() == 4 )
+          cv::cvtColor( right_gray, right_gray, cv::COLOR_BGRA2GRAY );
+
+        head_found = find_corresponding_point_epipolar_template_matching(
+          left_gray, right_gray, result.left_head, epipolar_head, result.right_head );
+        tail_found = find_corresponding_point_epipolar_template_matching(
+          left_gray, right_gray, result.left_tail, epipolar_tail, result.right_tail );
+      }
+#ifdef VIAME_ENABLE_PYTHON
+      else if( m_epipolar_descriptor_type == "dinov3" )
+      {
+        descriptor_label = "dinov3";
+
+        if( !dino3_ensure_initialized(
+              m_dino3_model_name, m_dino3_threshold, m_dino3_weights_path ) )
+        {
+          descriptor_available = false;
+        }
+        else
+        {
+          // Convert images to BGR cv::Mat for DINO feature extraction
+          cv::Mat left_bgr = kwiver::arrows::ocv::image_container::vital_to_ocv(
+            left_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+          cv::Mat right_bgr = kwiver::arrows::ocv::image_container::vital_to_ocv(
+            right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+
+          // Only call set_images when the image data actually changes (new frame)
+          if( left_bgr.data != s_dino3_left_data_ptr ||
+              right_bgr.data != s_dino3_right_data_ptr )
+          {
+            if( dino3_set_images( left_bgr, right_bgr ) )
+            {
+              s_dino3_left_data_ptr = left_bgr.data;
+              s_dino3_right_data_ptr = right_bgr.data;
+            }
+            else
+            {
+              s_dino3_left_data_ptr = nullptr;
+              s_dino3_right_data_ptr = nullptr;
+            }
+          }
+
+          if( s_dino3_left_data_ptr )
+          {
+            descriptor_available = true;
+
+            if( m_dino3_top_k > 0 )
+            {
+              // Two-stage: DINO top-K filtering + NCC refinement
+              // Prepare grayscale images for NCC
+              cv::Mat left_gray, right_gray;
+              if( left_bgr.channels() == 3 )
+                cv::cvtColor( left_bgr, left_gray, cv::COLOR_BGR2GRAY );
+              else if( left_bgr.channels() == 4 )
+                cv::cvtColor( left_bgr, left_gray, cv::COLOR_BGRA2GRAY );
+              else
+                left_gray = left_bgr;
+
+              if( right_bgr.channels() == 3 )
+                cv::cvtColor( right_bgr, right_gray, cv::COLOR_BGR2GRAY );
+              else if( right_bgr.channels() == 4 )
+                cv::cvtColor( right_bgr, right_gray, cv::COLOR_BGRA2GRAY );
+              else
+                right_gray = right_bgr;
+
+              // Head: get top-K indices from DINO, then NCC on filtered set
+              auto head_indices = dino3_get_top_k_indices(
+                result.left_head.x(), result.left_head.y(),
+                epipolar_head, m_dino3_top_k );
+
+              if( !head_indices.empty() )
+              {
+                std::vector< kv::vector_2d > filtered_head;
+                filtered_head.reserve( head_indices.size() );
+                for( int idx : head_indices )
+                {
+                  filtered_head.push_back( epipolar_head[idx] );
+                }
+                head_found = find_corresponding_point_epipolar_template_matching(
+                  left_gray, right_gray, result.left_head,
+                  filtered_head, result.right_head );
+              }
+
+              // Tail: same approach
+              auto tail_indices = dino3_get_top_k_indices(
+                result.left_tail.x(), result.left_tail.y(),
+                epipolar_tail, m_dino3_top_k );
+
+              if( !tail_indices.empty() )
+              {
+                std::vector< kv::vector_2d > filtered_tail;
+                filtered_tail.reserve( tail_indices.size() );
+                for( int idx : tail_indices )
+                {
+                  filtered_tail.push_back( epipolar_tail[idx] );
+                }
+                tail_found = find_corresponding_point_epipolar_template_matching(
+                  left_gray, right_gray, result.left_tail,
+                  filtered_tail, result.right_tail );
+              }
+            }
+            else
+            {
+              // DINO-only mode (no NCC refinement)
+              auto head_match = dino3_match_point(
+                result.left_head.x(), result.left_head.y(),
+                epipolar_head, m_dino3_threshold );
+              auto tail_match = dino3_match_point(
+                result.left_tail.x(), result.left_tail.y(),
+                epipolar_tail, m_dino3_threshold );
+
+              head_found = head_match.success;
+              tail_found = tail_match.success;
+
+              if( head_found )
+              {
+                result.right_head = kv::vector_2d( head_match.x, head_match.y );
+              }
+              if( tail_found )
+              {
+                result.right_tail = kv::vector_2d( tail_match.x, tail_match.y );
+              }
+            }
+          }
+        }
+      }
+#endif // VIAME_ENABLE_PYTHON
 
       // Debug: write images with epipolar curves overlaid
-      if( !m_debug_epipolar_directory.empty() )
+      if( descriptor_available && !m_debug_epipolar_directory.empty() )
       {
-        // Get color versions of the images for drawing
         cv::Mat left_color = kwiver::arrows::ocv::image_container::vital_to_ocv(
           left_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
         cv::Mat right_color = kwiver::arrows::ocv::image_container::vital_to_ocv(
@@ -1281,7 +1770,6 @@ map_keypoints_to_camera
         else if( right_color.channels() == 4 )
           cv::cvtColor( right_color, right_color, cv::COLOR_BGRA2BGR );
 
-        // Draw for both head and tail keypoints
         struct debug_kp
         {
           const char* label;
@@ -1303,7 +1791,6 @@ map_keypoints_to_camera
           cv::Mat left_draw = left_color.clone();
           cv::Mat right_draw = right_color.clone();
 
-          // Draw source point on left image (cyan circle with crosshair)
           cv::Point src_px( static_cast<int>( kp.src_pt.x() + 0.5 ),
                             static_cast<int>( kp.src_pt.y() + 0.5 ) );
           cv::circle( left_draw, src_px, 8, cv::Scalar( 255, 255, 0 ), 2 );
@@ -1312,7 +1799,6 @@ map_keypoints_to_camera
           cv::line( left_draw, src_px - cv::Point( 0, 12 ),
                     src_px + cv::Point( 0, 12 ), cv::Scalar( 255, 255, 0 ), 1 );
 
-          // Draw epipolar curve on right image (green polyline)
           if( kp.epi_pts.size() >= 2 )
           {
             std::vector< cv::Point > poly;
@@ -1323,13 +1809,10 @@ map_keypoints_to_camera
                                  static_cast<int>( ep.y() + 0.5 ) );
             }
             cv::polylines( right_draw, poly, false, cv::Scalar( 0, 255, 0 ), 2 );
-
-            // Mark start (min depth) and end (max depth) of search range
             cv::circle( right_draw, poly.front(), 6, cv::Scalar( 0, 200, 255 ), 2 );
             cv::circle( right_draw, poly.back(), 6, cv::Scalar( 255, 0, 200 ), 2 );
           }
 
-          // Draw matched point on right image (red if found, nothing if not)
           if( kp.found )
           {
             cv::Point match_px( static_cast<int>( kp.match_pt.x() + 0.5 ),
@@ -1341,13 +1824,11 @@ map_keypoints_to_camera
                       match_px + cv::Point( 0, 12 ), cv::Scalar( 0, 0, 255 ), 1 );
           }
 
-          // Concatenate left and right side-by-side
           cv::Mat canvas;
           cv::hconcat( left_draw, right_draw, canvas );
 
-          // Add text label
           std::string status = kp.found ? "MATCHED" : "NO MATCH";
-          std::string label = std::string( kp.label ) + " - " + status +
+          std::string label = descriptor_label + " " + kp.label + " - " + status +
             " (" + std::to_string( kp.epi_pts.size() ) + " samples)";
           cv::putText( canvas, label, cv::Point( 10, 30 ),
                        cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar( 0, 255, 255 ), 2 );
@@ -1360,7 +1841,7 @@ map_keypoints_to_camera
         m_debug_frame_counter++;
       }
 
-      if( head_found && tail_found )
+      if( descriptor_available && head_found && tail_found )
       {
         result.method_used = "epipolar_template_matching";
       }
