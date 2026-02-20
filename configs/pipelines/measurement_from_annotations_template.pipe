@@ -59,7 +59,7 @@ process measurer
   #   2. Depth-based: Set epipolar_min_depth / epipolar_max_depth in the same
   #      units as the calibration T vector (e.g. mm if T is in mm). Only used
   #      when both disparity parameters are 0.
-  :template_size                               13
+  :template_size                               25
   :epipolar_min_disparity                      2
   :epipolar_max_disparity                      300
   # :epipolar_min_depth                        2000
