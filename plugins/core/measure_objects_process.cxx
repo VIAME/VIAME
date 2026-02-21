@@ -39,9 +39,17 @@ namespace viame
 namespace core
 {
 
-// Only calibration_file is process-specific; rest comes from map_keypoints_to_camera_settings
+// Only calibration_file and min_track_states are process-specific;
+// rest comes from map_keypoints_to_camera_settings
 create_config_trait( calibration_file, std::string, "",
   "Input filename for the calibration file to use" );
+
+create_config_trait( min_track_states, unsigned, "0",
+  "Minimum number of track states (summed across all cameras) required before "
+  "a track is included in the output. A detection in one camera counts as 1, "
+  "in two cameras as 2. Measurement is still performed on every frame; this "
+  "only controls which tracks appear in the output. "
+  "Set to 0 to disable filtering (default)." );
 
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
@@ -64,6 +72,7 @@ public:
 
   // Process-specific config
   std::string m_calibration_file;
+  unsigned m_min_track_states;
 
   // Measurement settings (contains all algo parameters and algorithm pointers)
   map_keypoints_to_camera_settings m_settings;
@@ -97,6 +106,7 @@ public:
 measure_objects_process::priv
 ::priv( measure_objects_process* ptr )
   : m_calibration_file( "" )
+  , m_min_track_states( 0 )
   , m_calibration()
   , m_frame_counter( 0 )
   , parent( ptr )
@@ -159,6 +169,7 @@ measure_objects_process
 {
   // Process-specific config
   declare_config_using_trait( calibration_file );
+  declare_config_using_trait( min_track_states );
 
   // Merge in map_keypoints_to_camera_settings configuration
   kv::config_block_sptr settings_config = d->m_settings.get_configuration();
@@ -188,6 +199,7 @@ measure_objects_process
 {
   // Get process-specific config
   d->m_calibration_file = config_value_using_trait( calibration_file );
+  d->m_min_track_states = config_value_using_trait( min_track_states );
 
   if( d->m_calibration_file.empty() )
   {
@@ -592,28 +604,8 @@ measure_objects_process
     kv::image_container_sptr left_image = input_images.size() >= 1 ? input_images[0] : nullptr;
     kv::image_container_sptr right_image = input_images.size() >= 2 ? input_images[1] : nullptr;
 
-    // Pre-compute DINO crop regions if using DINO descriptor
-    if( d->m_utilities.epipolar_descriptor_type() == "dino" &&
-        left_image && right_image )
-    {
-      std::vector< kv::vector_2d > all_heads, all_tails;
-      for( const kv::track_id_t& id : ids_needing_matching )
-      {
-        const auto& det = dets[0][id];
-        if( !det ) continue;
-        const auto& kp = det->keypoints();
-        if( kp.find( "head" ) != kp.end() && kp.find( "tail" ) != kp.end() )
-        {
-          all_heads.push_back( kv::vector_2d( kp.at("head")[0], kp.at("head")[1] ) );
-          all_tails.push_back( kv::vector_2d( kp.at("tail")[0], kp.at("tail")[1] ) );
-        }
-      }
-      if( !all_heads.empty() )
-      {
-        d->m_utilities.precompute_dino_crops(
-          left_cam, right_cam, all_heads, all_tails, left_image, right_image );
-      }
-    }
+    // Note: DINO crops are now computed per-keypoint inside
+    // find_stereo_correspondence for better matching accuracy.
 
     for( const kv::track_id_t& id : ids_needing_matching )
     {
@@ -869,8 +861,8 @@ measure_objects_process
       }
     }
 
-    // Clear DINO crop state after the detection loop
-    d->m_utilities.clear_dino_crop_info();
+    // Per-keypoint DINO crops are now computed and discarded inline,
+    // no per-frame state to clear.
   }
 
   // Ensure output track sets exist
@@ -956,6 +948,41 @@ measure_objects_process
 
     input_tracks[0] = std::make_shared< kv::object_track_set >( out1 );
     input_tracks[1] = std::make_shared< kv::object_track_set >( out2 );
+  }
+
+  // Filter output tracks by minimum state count across cameras
+  if( d->m_min_track_states > 0 )
+  {
+    // Count states per track ID across both output track sets
+    std::map< kv::track_id_t, unsigned > state_counts;
+    for( unsigned i = 0; i < 2; ++i )
+    {
+      if( !input_tracks[i] )
+        continue;
+      for( const auto& trk : input_tracks[i]->tracks() )
+      {
+        state_counts[trk->id()] +=
+          static_cast< unsigned >( trk->size() );
+      }
+    }
+
+    // Remove tracks that don't meet the threshold
+    for( unsigned i = 0; i < 2; ++i )
+    {
+      if( !input_tracks[i] )
+        continue;
+      std::vector< kv::track_sptr > kept;
+      for( const auto& trk : input_tracks[i]->tracks() )
+      {
+        auto it = state_counts.find( trk->id() );
+        if( it != state_counts.end() &&
+            it->second >= d->m_min_track_states )
+        {
+          kept.push_back( trk );
+        }
+      }
+      input_tracks[i] = std::make_shared< kv::object_track_set >( kept );
+    }
   }
 
   // Push outputs
