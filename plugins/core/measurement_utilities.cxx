@@ -39,6 +39,33 @@ namespace core
 {
 
 // =============================================================================
+// parse_length_from_notes
+// =============================================================================
+
+double
+parse_length_from_notes( const kv::detected_object_sptr& det )
+{
+  if( !det )
+    return -1.0;
+
+  for( const auto& note : det->notes() )
+  {
+    if( note.size() > 8 && note.substr( 0, 8 ) == ":length=" )
+    {
+      try
+      {
+        return std::stod( note.substr( 8 ) );
+      }
+      catch( ... )
+      {
+        return -1.0;
+      }
+    }
+  }
+  return -1.0;
+}
+
+// =============================================================================
 // DINOv3 Python C API helpers
 // =============================================================================
 
@@ -379,6 +406,7 @@ map_keypoints_to_camera_settings
   , use_disparity_aware_feature_search( true )
   , feature_search_depth( 5.0 )
   , depth_consistency_max_ratio( 1.5 )
+  , uniqueness_ratio( 0.85 )
   , record_stereo_method( true )
   , debug_epipolar_directory( "" )
   , detection_pairing_method( "" )
@@ -553,6 +581,15 @@ map_keypoints_to_camera_settings
     "keypoint incorrectly matched at the wrong depth. Set to 0 to disable. "
     "Default is 1.5 (50% depth difference allowed)." );
 
+  config->set_value( "uniqueness_ratio", uniqueness_ratio,
+    "Uniqueness ratio for epipolar NCC template matching (Lowe's ratio test). "
+    "After finding the best match score, compares it to the second-best match. "
+    "If second_best / best > this ratio, the match is considered ambiguous and "
+    "is rejected. This prevents false matches on repetitive textures (e.g. fish "
+    "scales) where multiple locations score similarly. "
+    "Set to 0 to disable. Default is 0.85. "
+    "Lower values are more strict (reject more ambiguous matches)." );
+
   config->set_value( "record_stereo_method", record_stereo_method,
     "If true, record the stereo measurement method used as an attribute on each "
     "output detection object. The attribute will be ':stereo_method=METHOD' "
@@ -663,6 +700,7 @@ map_keypoints_to_camera_settings
   use_disparity_aware_feature_search = config->get_value< bool >( "use_disparity_aware_feature_search", use_disparity_aware_feature_search );
   feature_search_depth = config->get_value< double >( "feature_search_depth", feature_search_depth );
   depth_consistency_max_ratio = config->get_value< double >( "depth_consistency_max_ratio", depth_consistency_max_ratio );
+  uniqueness_ratio = config->get_value< double >( "uniqueness_ratio", uniqueness_ratio );
   record_stereo_method = config->get_value< bool >( "record_stereo_method", record_stereo_method );
   debug_epipolar_directory = config->get_value< std::string >( "debug_epipolar_directory", debug_epipolar_directory );
   detection_pairing_method = config->get_value< std::string >( "detection_pairing_method", detection_pairing_method );
@@ -844,6 +882,7 @@ map_keypoints_to_camera
   , m_box_min_aspect_ratio( 0.10 )
   , m_use_disparity_aware_feature_search( true )
   , m_feature_search_depth( 5.0 )
+  , m_uniqueness_ratio( 0.85 )
   , m_debug_epipolar_directory( "" )
   , m_debug_frame_counter( 0 )
   , m_dino_model_name( "dinov2_vitb14" )
@@ -1000,6 +1039,7 @@ map_keypoints_to_camera
   set_feature_algorithms( settings.feature_detector, settings.descriptor_extractor,
                           settings.feature_matcher, settings.fundamental_matrix_estimator );
 
+  m_uniqueness_ratio = settings.uniqueness_ratio;
   m_debug_epipolar_directory = settings.debug_epipolar_directory;
 
   m_dino_model_name = settings.dino_model_name;
@@ -3280,7 +3320,13 @@ map_keypoints_to_camera
   }
 
   double best_score = -1.0;
+  double second_best_score = -1.0;
   kv::vector_2d best_point;
+
+  // Minimum pixel distance between best and second-best to be considered
+  // distinct candidates (avoids penalizing neighboring epipolar samples
+  // that are essentially the same match)
+  const double min_distinct_dist_sq = m_template_size * m_template_size;
 
   for( const auto& ep_pt : epipolar_points )
   {
@@ -3290,14 +3336,43 @@ map_keypoints_to_camera
     double score = score_template_at_point( tmpl, target_image, x_tgt, y_tgt );
     if( score > best_score )
     {
+      // Check if previous best is far enough to count as second-best
+      if( best_score > 0 )
+      {
+        double dx = ep_pt.x() - best_point.x();
+        double dy = ep_pt.y() - best_point.y();
+        if( dx * dx + dy * dy >= min_distinct_dist_sq )
+        {
+          second_best_score = best_score;
+        }
+      }
       best_score = score;
       best_point = ep_pt;
+    }
+    else if( score > second_best_score )
+    {
+      double dx = ep_pt.x() - best_point.x();
+      double dy = ep_pt.y() - best_point.y();
+      if( dx * dx + dy * dy >= min_distinct_dist_sq )
+      {
+        second_best_score = score;
+      }
     }
   }
 
   if( best_score < m_template_matching_threshold )
   {
     return false;
+  }
+
+  // Uniqueness ratio test: reject if second-best is too close to best
+  if( m_uniqueness_ratio > 0 && second_best_score > 0 && best_score > 0 )
+  {
+    double ratio = second_best_score / best_score;
+    if( ratio > m_uniqueness_ratio )
+    {
+      return false;
+    }
   }
 
   target_point = best_point;
@@ -3380,6 +3455,34 @@ map_keypoints_to_camera
   if( max_val < m_template_matching_threshold )
   {
     return false;
+  }
+
+  // Uniqueness ratio test: find second-best peak at least template_size away
+  if( m_uniqueness_ratio > 0 )
+  {
+    // Suppress the neighborhood around the best match
+    int suppress_radius = m_template_size;
+    int sr_x1 = std::max( 0, max_loc.x - suppress_radius );
+    int sr_y1 = std::max( 0, max_loc.y - suppress_radius );
+    int sr_x2 = std::min( result.cols - 1, max_loc.x + suppress_radius );
+    int sr_y2 = std::min( result.rows - 1, max_loc.y + suppress_radius );
+
+    // Create a copy and zero-out the best region
+    cv::Mat result_copy = result.clone();
+    cv::Rect suppress_rect( sr_x1, sr_y1, sr_x2 - sr_x1 + 1, sr_y2 - sr_y1 + 1 );
+    result_copy( suppress_rect ).setTo( -1.0 );
+
+    double second_max_val;
+    cv::minMaxLoc( result_copy, nullptr, &second_max_val, nullptr, nullptr );
+
+    if( second_max_val > 0 && max_val > 0 )
+    {
+      double ratio = second_max_val / max_val;
+      if( ratio > m_uniqueness_ratio )
+      {
+        return false;
+      }
+    }
   }
 
   // Convert result location to image coordinates

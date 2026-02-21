@@ -49,6 +49,10 @@ namespace kv = kwiver::vital;
 // Free-standing structs and utility functions
 // =============================================================================
 
+/// Parse the first :length=<value> note from a detection. Returns -1 if none found.
+VIAME_CORE_EXPORT double parse_length_from_notes(
+  const kv::detected_object_sptr& det );
+
 /// Result structure for full stereo measurement (length + 3D position + error)
 struct VIAME_CORE_EXPORT stereo_measurement_result
 {
@@ -302,6 +306,15 @@ public:
   /// This catches false matches where one keypoint matched at the wrong depth.
   /// Set to 0 to disable. Default is 1.5 (50% depth difference allowed).
   double depth_consistency_max_ratio;
+
+  /// Uniqueness ratio for NCC template matching (Lowe's ratio test).
+  /// After finding the best match, compares it to the second-best match.
+  /// If best_score / second_best_score > this ratio, the match is considered
+  /// ambiguous and is rejected. This prevents false matches on repetitive
+  /// textures (e.g., fish scales) where multiple locations score similarly.
+  /// Set to 0 to disable. Default is 0.85.
+  /// Lower values are more strict (reject more ambiguous matches).
+  double uniqueness_ratio;
 
   /// Whether to record stereo measurement method as detection attribute
   bool record_stereo_method;
@@ -705,6 +718,7 @@ private:
   double m_box_min_aspect_ratio;
   bool m_use_disparity_aware_feature_search;
   double m_feature_search_depth;
+  double m_uniqueness_ratio;
   std::string m_debug_epipolar_directory;
   unsigned m_debug_frame_counter;
 

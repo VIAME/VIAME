@@ -94,6 +94,12 @@ apply_classification_to_track(
   const kv::track_sptr& trk,
   const kv::detected_object_type_sptr& dot );
 
+VIAME_CORE_EXPORT void
+average_track_lengths(
+  const kv::track_sptr& trk1,
+  const kv::track_sptr& trk2,
+  double iqr_factor );
+
 // =============================================================================
 // Main class: stereo_track_pairer
 // =============================================================================
@@ -150,6 +156,8 @@ private:
   double m_min_avg_surface_area = 0.0;
   double m_max_avg_surface_area = 0.0;
   bool m_average_stereo_classes = false;
+  bool m_average_stereo_lengths = false;
+  double m_length_outlier_iqr_factor = 1.5;
   std::string m_class_averaging_method = "weighted_average";
   std::string m_class_averaging_ignore_class;
   bool m_output_unmatched = true;

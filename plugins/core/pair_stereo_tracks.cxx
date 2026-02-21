@@ -8,6 +8,7 @@
  */
 
 #include "pair_stereo_tracks.h"
+#include "measurement_utilities.h"
 #include "utilities_target_clfr.h"
 
 #include <algorithm>
@@ -109,6 +110,89 @@ apply_classification_to_track(
   }
 }
 
+// -----------------------------------------------------------------------------
+void
+average_track_lengths(
+  const kv::track_sptr& trk1,
+  const kv::track_sptr& trk2,
+  double iqr_factor )
+{
+  // Collect all lengths from both tracks
+  std::vector< double > lengths;
+
+  auto collect_lengths = [&]( const kv::track_sptr& trk )
+  {
+    if( !trk )
+      return;
+    for( auto it = trk->begin(); it != trk->end(); ++it )
+    {
+      auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
+      if( ots && ots->detection() )
+      {
+        double len = parse_length_from_notes( ots->detection() );
+        if( len > 0.0 )
+          lengths.push_back( len );
+      }
+    }
+  };
+
+  collect_lengths( trk1 );
+  collect_lengths( trk2 );
+
+  if( lengths.size() < 2 )
+    return;
+
+  // Sort for quartile computation
+  std::sort( lengths.begin(), lengths.end() );
+
+  size_t n = lengths.size();
+  double q1 = lengths[n / 4];
+  double q3 = lengths[( 3 * n ) / 4];
+  double iqr = q3 - q1;
+  double lower = q1 - iqr_factor * iqr;
+  double upper = q3 + iqr_factor * iqr;
+
+  // Compute mean of inlier lengths
+  double sum = 0.0;
+  int count = 0;
+  for( double v : lengths )
+  {
+    if( v >= lower && v <= upper )
+    {
+      sum += v;
+      count++;
+    }
+  }
+
+  if( count == 0 )
+    return;
+
+  double avg_length = sum / count;
+  std::string avg_note = ":avg_length=" + std::to_string( avg_length );
+
+  // Apply avg_length note to all detections that have a :length= note
+  auto apply_avg = [&]( const kv::track_sptr& trk )
+  {
+    if( !trk )
+      return;
+    for( auto it = trk->begin(); it != trk->end(); ++it )
+    {
+      auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
+      if( ots && ots->detection() )
+      {
+        double len = parse_length_from_notes( ots->detection() );
+        if( len > 0.0 )
+        {
+          ots->detection()->add_note( avg_note );
+        }
+      }
+    }
+  };
+
+  apply_avg( trk1 );
+  apply_avg( trk2 );
+}
+
 // =============================================================================
 // stereo_track_pairer
 // =============================================================================
@@ -189,6 +273,16 @@ stereo_track_pairer
     "If true, output unmatched detections as separate tracks with unique IDs. "
     "If false, only output matched detection pairs." );
 
+  config->set_value( "average_stereo_lengths",
+    std::to_string( m_average_stereo_lengths ),
+    "If true, average :length= notes across matched stereo track pairs using "
+    "IQR-based outlier removal. The averaged value is added as :avg_length= note." );
+
+  config->set_value( "length_outlier_iqr_factor",
+    std::to_string( m_length_outlier_iqr_factor ),
+    "IQR multiplier for outlier removal when averaging lengths. "
+    "Values outside [Q1 - factor*IQR, Q3 + factor*IQR] are excluded." );
+
   return config;
 }
 
@@ -219,6 +313,10 @@ stereo_track_pairer
     config->get_value< std::string >( "class_averaging_ignore_class", m_class_averaging_ignore_class );
   m_output_unmatched =
     config->get_value< bool >( "output_unmatched", m_output_unmatched );
+  m_average_stereo_lengths =
+    config->get_value< bool >( "average_stereo_lengths", m_average_stereo_lengths );
+  m_length_outlier_iqr_factor =
+    config->get_value< double >( "length_outlier_iqr_factor", m_length_outlier_iqr_factor );
 
   // Validate class averaging method
   if( m_average_stereo_classes )
@@ -496,6 +594,26 @@ stereo_track_pairer
         apply_classification_to_track( entry.second, avg_dot );
         apply_classification_to_track( rit->second, avg_dot );
       }
+    }
+  }
+
+  // Apply length averaging across matched stereo pairs if enabled
+  if( m_average_stereo_lengths )
+  {
+    std::map< kv::track_id_t, kv::track_sptr > left_by_id, right_by_id;
+    for( const auto& trk : remapped_left )
+      left_by_id[trk->id()] = trk;
+    for( const auto& trk : remapped_right )
+      right_by_id[trk->id()] = trk;
+
+    for( auto& entry : left_by_id )
+    {
+      auto rit = right_by_id.find( entry.first );
+      if( rit == right_by_id.end() )
+        continue;
+
+      average_track_lengths( entry.second, rit->second,
+                             m_length_outlier_iqr_factor );
     }
   }
 
@@ -983,6 +1101,26 @@ stereo_track_pairer
         apply_classification_to_track( entry.second, avg_dot );
         apply_classification_to_track( rit->second, avg_dot );
       }
+    }
+  }
+
+  // Apply length averaging across matched stereo pairs if enabled
+  if( m_average_stereo_lengths )
+  {
+    std::map< kv::track_id_t, kv::track_sptr > left_by_id, right_by_id;
+    for( const auto& trk : output_trks1 )
+      left_by_id[trk->id()] = trk;
+    for( const auto& trk : output_trks2 )
+      right_by_id[trk->id()] = trk;
+
+    for( auto& entry : left_by_id )
+    {
+      auto rit = right_by_id.find( entry.first );
+      if( rit == right_by_id.end() )
+        continue;
+
+      average_track_lengths( entry.second, rit->second,
+                             m_length_outlier_iqr_factor );
     }
   }
 
