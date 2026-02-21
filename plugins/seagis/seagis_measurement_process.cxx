@@ -24,6 +24,7 @@
 
 #include "../core/measurement_utilities.h"
 #include "../core/pair_stereo_detections.h"
+#include "../core/pair_stereo_tracks.h"
 
 #ifdef VIAME_ENABLE_OPENCV
   #include <arrows/ocv/image_container.h>
@@ -162,6 +163,9 @@ public:
 
   // Measurement utilities for template matching
   core::map_keypoints_to_camera m_utilities;
+
+  // Track-level stereo pairing (union-find, class averaging, filtering)
+  core::stereo_track_pairer m_track_pairer;
 
   // Other variables
   unsigned m_frame_counter;
@@ -406,6 +410,16 @@ seagis_measurement_process
   declare_config_using_trait( assume_inputs_paired );
   declare_config_using_trait( detection_pairing_method );
   declare_config_using_trait( detection_pairing_threshold );
+
+  // Merge in stereo track pairer configuration
+  kv::config_block_sptr tp_config = d->m_track_pairer.get_configuration();
+  for( auto const& key : tp_config->available_values() )
+  {
+    declare_configuration_key(
+      key,
+      tp_config->get_value< std::string >( key ),
+      tp_config->get_description( key ) );
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -428,6 +442,9 @@ seagis_measurement_process
   d->m_assume_inputs_paired = config_value_using_trait( assume_inputs_paired );
   d->m_detection_pairing_method = config_value_using_trait( detection_pairing_method );
   d->m_detection_pairing_threshold = config_value_using_trait( detection_pairing_threshold );
+
+  // Configure track pairer
+  d->m_track_pairer.set_configuration( get_config() );
 
   if( !d->m_assume_inputs_paired && d->m_detection_pairing_method.empty() )
   {
@@ -682,6 +699,10 @@ seagis_measurement_process
   std::vector< kv::track_id_t > left_only_ids;
   std::vector< kv::track_id_t > right_only_ids;
 
+  // For track remapping: record left → original-right ID pairings
+  std::vector< std::pair< kv::track_id_t, kv::track_id_t > > stereo_pairings;
+  std::map< kv::track_id_t, kv::track_id_t > right_id_remap; // remapped → original
+
   if( !d->m_assume_inputs_paired )
   {
     // Inputs come from independent trackers with potentially overlapping IDs.
@@ -696,7 +717,9 @@ seagis_measurement_process
     std::map< kv::track_id_t, kv::detected_object_sptr > remapped_right;
     for( const auto& kv : dets[1] )
     {
-      remapped_right[ kv.first + remap_offset ] = kv.second;
+      kv::track_id_t remapped_id = kv.first + remap_offset;
+      remapped_right[ remapped_id ] = kv.second;
+      right_id_remap[ remapped_id ] = kv.first;
     }
     dets[1] = remapped_right;
 
@@ -723,6 +746,7 @@ seagis_measurement_process
         {
           found_match = true;
           common_ids.push_back( itr.first );
+          stereo_pairings.push_back( { itr.first, itr.first } );
           break;
         }
       }
@@ -836,8 +860,13 @@ seagis_measurement_process
 
       common_ids.push_back( left_id );
 
+      // Record pairing with original (un-remapped) right track ID
+      kv::track_id_t orig_right_id = right_id_remap.count( right_id )
+        ? right_id_remap[right_id] : right_id;
+      stereo_pairings.push_back( { left_id, orig_right_id } );
+
       LOG_INFO( logger(), "Paired left track " << left_id <<
-                " with right track " << right_id <<
+                " with right track " << orig_right_id <<
                 " via " << d->m_detection_pairing_method );
     }
   }
@@ -1018,6 +1047,60 @@ seagis_measurement_process
   if( !input_tracks[1] )
   {
     input_tracks[1] = std::make_shared< kv::object_track_set >();
+  }
+
+  // Apply stereo track remapping (union-find, class averaging)
+  if( input_tracks[0]->size() > 0 || input_tracks[1]->size() > 0 )
+  {
+    std::vector< kv::track_id_t > tids1, tids2;
+    std::vector< std::pair< int, int > > match_pairs;
+
+    for( const auto& trk : input_tracks[0]->tracks() )
+    {
+      auto it = trk->find( cur_frame_id );
+      if( it != trk->end() )
+      {
+        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
+        if( ots && ots->detection() )
+          tids1.push_back( trk->id() );
+      }
+    }
+
+    for( const auto& trk : input_tracks[1]->tracks() )
+    {
+      auto it = trk->find( cur_frame_id );
+      if( it != trk->end() )
+      {
+        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
+        if( ots && ots->detection() )
+          tids2.push_back( trk->id() );
+      }
+    }
+
+    // Build index lookup for right track IDs
+    std::map< kv::track_id_t, int > right_idx;
+    for( int i = 0; i < static_cast< int >( tids2.size() ); ++i )
+      right_idx[tids2[i]] = i;
+
+    // Build match pairs from stereo pairings
+    for( const auto& sp : stereo_pairings )
+    {
+      auto lit = std::find( tids1.begin(), tids1.end(), sp.first );
+      auto rit = right_idx.find( sp.second );
+      if( lit != tids1.end() && rit != right_idx.end() )
+      {
+        match_pairs.push_back(
+          { static_cast< int >( lit - tids1.begin() ), rit->second } );
+      }
+    }
+
+    std::vector< kv::track_sptr > out1, out2;
+    d->m_track_pairer.remap_tracks_per_frame(
+      input_tracks[0], input_tracks[1], match_pairs,
+      tids1, tids2, out1, out2 );
+
+    input_tracks[0] = std::make_shared< kv::object_track_set >( out1 );
+    input_tracks[1] = std::make_shared< kv::object_track_set >( out2 );
   }
 
   // Push outputs

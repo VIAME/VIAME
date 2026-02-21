@@ -3,8 +3,8 @@
 #
 # Description: Stereo measurement pipeline that runs detection, classification,
 # SAM2 segmentation, head/tail keypoint identification, and tracking on BOTH
-# left and right cameras independently. Tracks are paired across cameras using
-# the pair_stereo_detections process. The SEAGIS measurement process then
+# left and right cameras independently. The SEAGIS measurement process handles
+# track pairing (detection matching, ID unification, class averaging) and
 # triangulates matched keypoints for 3D measurements, with epipolar template
 # matching as fallback for tracks where only one camera has keypoints.
 #
@@ -446,6 +446,12 @@ process measurer
   :assume_inputs_paired                        false
   :detection_pairing_method                    keypoint_distance
   :detection_pairing_threshold                 50.0
+
+  # Track remapping (unified IDs, class averaging)
+  :output_unmatched                            true
+  :average_stereo_classes                      true
+  :class_averaging_method                      weighted_average
+
   :enable_epipolar_matching                    true
   :epipolar_min_disparity                      2
   :epipolar_max_disparity                      300
