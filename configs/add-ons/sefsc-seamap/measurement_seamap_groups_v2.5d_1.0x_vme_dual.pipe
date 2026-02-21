@@ -448,11 +448,12 @@ process measurer
   :detection_pairing_threshold                 50.0
   :detection_pairing_require_class_match       false
 
-  # Track remapping (unified IDs, class averaging)
+  # Track remapping (unified IDs, class averaging, length averaging)
   :output_unmatched                            true
   :average_stereo_classes                      true
   :class_averaging_method                      weighted_scaled_by_conf
   :class_averaging_ignore_class                UNKNOWNFISH
+  :average_stereo_lengths                      true
 
 connect from track_filter_l.object_track_set
         to   measurer.object_track_set1

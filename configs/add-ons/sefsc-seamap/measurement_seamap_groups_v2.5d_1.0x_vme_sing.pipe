@@ -5,7 +5,7 @@
 # camera only. SAM2 segmentation and head/tail keypoint identification are
 # applied to left-camera detections. The tracked result is fed to the left
 # input of the core measurement process along with both stereo images. The
-# measurement process uses epipolar template matching (DINO+NCC) to find
+# measurement process uses epipolar NCC template matching to find
 # corresponding right-camera keypoints and triangulates for 3D measurements.
 #
 # Requires: Stereo calibration JSON file.
@@ -175,20 +175,32 @@ process measurer
   :epipolar_max_disparity                      724
   :epipolar_num_samples                        5000
 
-  # DINO + NCC two-stage matching
+  # Two-stage DINO + NCC matching: DINO semantic filtering narrows candidates
+  # to top-K, then NCC refines to pixel precision. Epipolar-region cropping
+  # runs DINO on a small subimage (typically 1-4% of frame) for speed.
+  # Requires Python/PyTorch with CUDA. Set to 'ncc' for NCC-only fallback.
   :epipolar_descriptor_type                    dino
-  :dino_model_name                            dinov2_vitb14
-  :dino_top_k                                 100
-  relativepath dino_weights_path =            models/dinov2_vitb14.pth
+  :dino_top_k                                  25
+  :dino_crop_max_area_ratio                    0.9
 
   # Template and search parameters
   :search_range                                200
-  :template_matching_threshold                 0.2
+  :template_matching_threshold                 0.1
   :box_scale_factor                            1.10
   :box_min_aspect_ratio                        0.10
 
+  # Uniqueness ratio test to reject ambiguous NCC matches on repetitive textures
+  :uniqueness_ratio                            0.85
+
   # Depth consistency check
   :depth_consistency_max_ratio                 1.5
+
+  # Track remapping (unified IDs, class averaging, length averaging)
+  :output_unmatched                            true
+  :average_stereo_classes                      true
+  :class_averaging_method                      weighted_scaled_by_conf
+  :class_averaging_ignore_class                UNKNOWNFISH
+  :average_stereo_lengths                      true
 
 connect from track_filter.object_track_set
         to   measurer.object_track_set1
@@ -206,8 +218,7 @@ process track_writer1
   :file_name                                   computed_tracks1.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:write_time_as_uid          true
-  :writer:viame_csv:tot_option                 weighted_scaled_by_conf
-  :writer:viame_csv:tot_ignore_class           UNKNOWNFISH
+  :writer:viame_csv:tot_option                 detection
 
 connect from measurer.object_track_set1
         to   track_writer1.object_track_set
@@ -221,8 +232,7 @@ process track_writer2
   :file_name                                   computed_tracks2.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:write_time_as_uid          true
-  :writer:viame_csv:tot_option                 weighted_scaled_by_conf
-  :writer:viame_csv:tot_ignore_class           UNKNOWNFISH
+  :writer:viame_csv:tot_option                 detection
 
 connect from measurer.object_track_set2
         to   track_writer2.object_track_set

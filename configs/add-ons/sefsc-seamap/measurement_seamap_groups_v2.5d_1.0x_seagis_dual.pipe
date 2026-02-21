@@ -447,11 +447,12 @@ process measurer
   :detection_pairing_method                    keypoint_distance
   :detection_pairing_threshold                 50.0
 
-  # Track remapping (unified IDs, class averaging)
+  # Track remapping (unified IDs, class averaging, length averaging)
   :output_unmatched                            true
   :average_stereo_classes                      true
   :class_averaging_method                      weighted_scaled_by_conf
   :class_averaging_ignore_class                UNKNOWNFISH
+  :average_stereo_lengths                      true
 
   :enable_epipolar_matching                    true
   :epipolar_min_disparity                      2
