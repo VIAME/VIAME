@@ -125,6 +125,13 @@ create_config_trait( detection_pairing_threshold, double, "0.1",
   "threshold (default 0.1). For 'keypoint_distance' method, this is the maximum "
   "average keypoint pixel distance (default 50.0)." );
 
+create_config_trait( min_track_states, unsigned, "0",
+  "Minimum number of track states (summed across all cameras) required before "
+  "a track is included in the output. A detection in one camera counts as 1, "
+  "in two cameras as 2. Measurement is still performed on every frame; this "
+  "only controls which tracks appear in the output. "
+  "Set to 0 to disable filtering (default)." );
+
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
 create_port_trait( object_track_set2, object_track_set,
@@ -160,6 +167,9 @@ public:
   bool m_assume_inputs_paired;
   std::string m_detection_pairing_method;
   double m_detection_pairing_threshold;
+
+  // Track length filter
+  unsigned m_min_track_states;
 
   // Measurement utilities for template matching
   core::map_keypoints_to_camera m_utilities;
@@ -217,6 +227,7 @@ seagis_measurement_process::priv
   , m_assume_inputs_paired( true )
   , m_detection_pairing_method( "" )
   , m_detection_pairing_threshold( 0.1 )
+  , m_min_track_states( 0 )
   , m_frame_counter( 0 )
   , parent( ptr )
 {
@@ -410,6 +421,7 @@ seagis_measurement_process
   declare_config_using_trait( assume_inputs_paired );
   declare_config_using_trait( detection_pairing_method );
   declare_config_using_trait( detection_pairing_threshold );
+  declare_config_using_trait( min_track_states );
 
   // Merge in stereo track pairer configuration
   kv::config_block_sptr tp_config = d->m_track_pairer.get_configuration();
@@ -442,6 +454,7 @@ seagis_measurement_process
   d->m_assume_inputs_paired = config_value_using_trait( assume_inputs_paired );
   d->m_detection_pairing_method = config_value_using_trait( detection_pairing_method );
   d->m_detection_pairing_threshold = config_value_using_trait( detection_pairing_threshold );
+  d->m_min_track_states = config_value_using_trait( min_track_states );
 
   // Configure track pairer
   d->m_track_pairer.set_configuration( get_config() );
@@ -1101,6 +1114,41 @@ seagis_measurement_process
 
     input_tracks[0] = std::make_shared< kv::object_track_set >( out1 );
     input_tracks[1] = std::make_shared< kv::object_track_set >( out2 );
+  }
+
+  // Filter output tracks by minimum state count across cameras
+  if( d->m_min_track_states > 0 )
+  {
+    // Count states per track ID across both output track sets
+    std::map< kv::track_id_t, unsigned > state_counts;
+    for( unsigned i = 0; i < 2; ++i )
+    {
+      if( !input_tracks[i] )
+        continue;
+      for( const auto& trk : input_tracks[i]->tracks() )
+      {
+        state_counts[trk->id()] +=
+          static_cast< unsigned >( trk->size() );
+      }
+    }
+
+    // Remove tracks that don't meet the threshold
+    for( unsigned i = 0; i < 2; ++i )
+    {
+      if( !input_tracks[i] )
+        continue;
+      std::vector< kv::track_sptr > kept;
+      for( const auto& trk : input_tracks[i]->tracks() )
+      {
+        auto it = state_counts.find( trk->id() );
+        if( it != state_counts.end() &&
+            it->second >= d->m_min_track_states )
+        {
+          kept.push_back( trk );
+        }
+      }
+      input_tracks[i] = std::make_shared< kv::object_track_set >( kept );
+    }
   }
 
   // Push outputs
