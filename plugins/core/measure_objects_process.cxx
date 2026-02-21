@@ -296,9 +296,16 @@ measure_objects_process
 
   d->m_frame_counter++;
 
-  if( input_tracks.size() != 2 )
+  if( input_tracks.size() == 1 )
   {
-    const std::string err = "Currently only 2 camera inputs are supported";
+    // Single track input: create empty 2nd track set so all tracks are
+    // treated as left-only and go through the stereo matching path.
+    input_tracks.push_back( std::make_shared< kv::object_track_set >() );
+  }
+  else if( input_tracks.size() != 2 )
+  {
+    const std::string err = "Expected 1 or 2 track inputs, got "
+                            + std::to_string( input_tracks.size() );
     LOG_ERROR( logger(), err );
     throw std::runtime_error( err );
   }
@@ -556,6 +563,29 @@ measure_objects_process
     kv::image_container_sptr left_image = input_images.size() >= 1 ? input_images[0] : nullptr;
     kv::image_container_sptr right_image = input_images.size() >= 2 ? input_images[1] : nullptr;
 
+    // Pre-compute DINO crop regions if using DINO descriptor
+    if( d->m_utilities.epipolar_descriptor_type() == "dino" &&
+        left_image && right_image )
+    {
+      std::vector< kv::vector_2d > all_heads, all_tails;
+      for( const kv::track_id_t& id : ids_needing_matching )
+      {
+        const auto& det = dets[0][id];
+        if( !det ) continue;
+        const auto& kp = det->keypoints();
+        if( kp.find( "head" ) != kp.end() && kp.find( "tail" ) != kp.end() )
+        {
+          all_heads.push_back( kv::vector_2d( kp.at("head")[0], kp.at("head")[1] ) );
+          all_tails.push_back( kv::vector_2d( kp.at("tail")[0], kp.at("tail")[1] ) );
+        }
+      }
+      if( !all_heads.empty() )
+      {
+        d->m_utilities.precompute_dino_crops(
+          left_cam, right_cam, all_heads, all_tails, left_image, right_image );
+      }
+    }
+
     for( const kv::track_id_t& id : ids_needing_matching )
     {
       const auto& det1 = dets[0][id];
@@ -809,6 +839,9 @@ measure_objects_process
         }
       }
     }
+
+    // Clear DINO crop state after the detection loop
+    d->m_utilities.clear_dino_crop_info();
   }
 
   // Ensure output track sets exist

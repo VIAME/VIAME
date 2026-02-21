@@ -265,7 +265,8 @@ public:
   int epipolar_num_samples;
 
   /// Descriptor type for epipolar template matching.
-  /// 'ncc' (default): Normalized cross-correlation on grayscale patches.
+  /// 'ncc' (default): Normalized cross-correlation on grayscale patches (point-by-point).
+  /// 'ncc_strip': FFT-accelerated NCC on strip covering epipolar bounding box (no Python needed).
   /// 'dino': Two-stage DINO + NCC matching using vision transformer features (requires Python).
   std::string epipolar_descriptor_type;
 
@@ -315,6 +316,12 @@ public:
   /// Threshold for detection pairing: IOU threshold for epipolar_iou (default 0.1),
   /// pixel distance for keypoint_projection (default 50.0)
   double detection_pairing_threshold;
+
+  /// Maximum fraction of full image area that the union of left and right crops
+  /// may occupy before DINO falls back to running on the full images. When the
+  /// epipolar regions are small relative to the image, cropping reduces the ViT
+  /// forward pass cost proportionally. Default 0.5 (50%).
+  double dino_crop_max_area_ratio;
 
   /// DINO model name when epipolar_descriptor_type is 'dino'.
   /// Supports DINOv3 (e.g., 'dinov3_vits16') and DINOv2 (e.g., 'dinov2_vitb14').
@@ -534,6 +541,25 @@ public:
   /// Set the current frame ID for caching
   void set_frame_id( kv::frame_id_t frame_id );
 
+  /// Getter for the configured epipolar descriptor type
+  std::string epipolar_descriptor_type() const;
+
+  /// Pre-compute DINO crop regions from all keypoints that will be matched
+  /// this frame. Call once before the per-detection loop. If the union of
+  /// all epipolar regions is small enough (< dino_crop_max_area_ratio of
+  /// the full image), cropped subimages are prepared and cached so that
+  /// dino_set_images() runs on smaller inputs.
+  void precompute_dino_crops(
+    const kv::simple_camera_perspective& left_cam,
+    const kv::simple_camera_perspective& right_cam,
+    const std::vector< kv::vector_2d >& all_left_heads,
+    const std::vector< kv::vector_2d >& all_left_tails,
+    const kv::image_container_sptr& left_image,
+    const kv::image_container_sptr& right_image );
+
+  /// Clear cached DINO crop info (call after the per-detection loop)
+  void clear_dino_crop_info();
+
   /// Get the cached computed disparity map (if available)
   /// This returns the disparity map from the last compute_disparity method call
   kv::image_container_sptr get_cached_disparity() const;
@@ -591,6 +617,21 @@ public:
   /// for the best NCC match at each epipolar point in target_image.
   /// Supports census transform via configured settings.
   bool find_corresponding_point_epipolar_template_matching(
+    const cv::Mat& source_image,
+    const cv::Mat& target_image,
+    const kv::vector_2d& source_point,
+    const std::vector< kv::vector_2d >& epipolar_points,
+    kv::vector_2d& target_point ) const;
+
+  /// Find corresponding point using strip-based NCC along an epipolar curve.
+  /// Instead of scoring each candidate point individually, this method
+  /// computes the bounding box of all epipolar points, extracts a strip
+  /// subimage from the target, and runs cv::matchTemplate on the entire
+  /// strip at once (FFT-accelerated). The best match is snapped to the
+  /// nearest epipolar point for geometric consistency.
+  /// This is significantly faster than point-by-point NCC for large
+  /// candidate sets and does not require Python/DINO.
+  bool find_corresponding_point_epipolar_strip_ncc(
     const cv::Mat& source_image,
     const cv::Mat& target_image,
     const kv::vector_2d& source_point,
@@ -662,6 +703,7 @@ private:
   double m_dino_threshold;
   std::string m_dino_weights_path;
   int m_dino_top_k;
+  double m_dino_crop_max_area_ratio;
 
   // Feature algorithms
   kv::algo::detect_features_sptr m_feature_detector;
@@ -684,6 +726,13 @@ private:
   kv::frame_id_t m_cached_frame_id;
 
 #ifdef VIAME_ENABLE_OPENCV
+  // DINO crop state (computed per frame by precompute_dino_crops)
+  bool m_dino_crop_active;
+  cv::Rect m_dino_left_crop;
+  cv::Rect m_dino_right_crop;
+  cv::Mat m_dino_left_cropped;
+  cv::Mat m_dino_right_cropped;
+
   // Rectification maps
   bool m_rectification_computed;
   cv::Mat m_rectification_map_left_x;
