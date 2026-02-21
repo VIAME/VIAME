@@ -1061,6 +1061,111 @@ find_stereo_matches_keypoint_projection(
   }
 }
 
+// =============================================================================
+// Unified detection pairing dispatch
+// =============================================================================
+
+std::vector< std::pair< int, int > >
+find_stereo_detection_matches(
+  const detection_pairing_params& params,
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::simple_camera_perspective* left_cam,
+  const kv::simple_camera_perspective* right_cam,
+  const kv::image_container_sptr& image1,
+  const kv::image_container_sptr& image2,
+  const feature_matching_algorithms* feature_algos,
+  const feature_matching_options* feature_opts,
+  kv::logger_handle_t logger )
+{
+  if( params.method == "iou" )
+  {
+    iou_matching_options opts;
+    opts.iou_threshold = params.threshold;
+    opts.require_class_match = params.require_class_match;
+    opts.use_optimal_assignment = params.use_optimal_assignment;
+    return find_stereo_matches_iou( detections1, detections2, opts );
+  }
+  else if( params.method == "calibration" )
+  {
+    if( !left_cam || !right_cam )
+    {
+      if( logger )
+        LOG_ERROR( logger, "Cameras required for 'calibration' pairing method" );
+      return {};
+    }
+    calibration_matching_options opts;
+    opts.max_reprojection_error = params.threshold;
+    opts.default_depth = params.default_depth;
+    opts.require_class_match = params.require_class_match;
+    opts.use_optimal_assignment = params.use_optimal_assignment;
+    return find_stereo_matches_calibration(
+      detections1, detections2, *left_cam, *right_cam, opts, logger );
+  }
+  else if( params.method == "feature_matching" )
+  {
+    if( !image1 || !image2 )
+    {
+      if( logger )
+        LOG_ERROR( logger, "Images required for 'feature_matching' pairing method" );
+      return {};
+    }
+    if( !feature_algos || !feature_algos->is_valid() )
+    {
+      if( logger )
+        LOG_ERROR( logger, "Feature algorithms required for 'feature_matching' pairing method" );
+      return {};
+    }
+    feature_matching_options opts;
+    if( feature_opts )
+    {
+      opts = *feature_opts;
+    }
+    opts.require_class_match = params.require_class_match;
+    opts.use_optimal_assignment = params.use_optimal_assignment;
+    return find_stereo_matches_feature(
+      detections1, detections2, image1, image2, *feature_algos, opts, logger );
+  }
+  else if( params.method == "epipolar_iou" )
+  {
+    if( !left_cam || !right_cam )
+    {
+      if( logger )
+        LOG_ERROR( logger, "Cameras required for 'epipolar_iou' pairing method" );
+      return {};
+    }
+    epipolar_iou_matching_options opts;
+    opts.iou_threshold = params.threshold;
+    opts.default_depth = params.default_depth;
+    opts.require_class_match = params.require_class_match;
+    opts.use_optimal_assignment = params.use_optimal_assignment;
+    return find_stereo_matches_epipolar_iou(
+      detections1, detections2, *left_cam, *right_cam, opts, logger );
+  }
+  else if( params.method == "keypoint_projection" )
+  {
+    if( !left_cam || !right_cam )
+    {
+      if( logger )
+        LOG_ERROR( logger, "Cameras required for 'keypoint_projection' pairing method" );
+      return {};
+    }
+    keypoint_projection_matching_options opts;
+    opts.max_keypoint_distance = params.threshold;
+    opts.default_depth = params.default_depth;
+    opts.require_class_match = params.require_class_match;
+    opts.use_optimal_assignment = params.use_optimal_assignment;
+    return find_stereo_matches_keypoint_projection(
+      detections1, detections2, *left_cam, *right_cam, opts, logger );
+  }
+  else
+  {
+    if( logger )
+      LOG_ERROR( logger, "Unknown detection pairing method: " << params.method );
+    return {};
+  }
+}
+
 } // end namespace core
 
 } // end namespace viame

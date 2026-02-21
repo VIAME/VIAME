@@ -383,6 +383,8 @@ map_keypoints_to_camera_settings
   , debug_epipolar_directory( "" )
   , detection_pairing_method( "" )
   , detection_pairing_threshold( 0.1 )
+  , detection_pairing_require_class_match( true )
+  , detection_pairing_use_optimal_assignment( true )
   , dino_crop_max_area_ratio( 0.5 )
   , dino_model_name( "dinov2_vitb14" )
   , dino_threshold( 0.0 )
@@ -568,13 +570,23 @@ map_keypoints_to_camera_settings
   config->set_value( "detection_pairing_method", detection_pairing_method,
     "Method for pairing left/right detections that do not share the same track ID. "
     "Set to empty string (default) to disable detection pairing. "
-    "Valid options: 'epipolar_iou' (project left bbox to right using depth, match by IOU), "
+    "Valid options: 'iou' (bounding box overlap), "
+    "'calibration' (stereo reprojection error), "
+    "'feature_matching' (visual feature detection and matching within bounding boxes), "
+    "'epipolar_iou' (project left bbox to right using depth, match by IOU), "
     "'keypoint_projection' (project left head/tail keypoints to right, match by pixel distance)." );
 
   config->set_value( "detection_pairing_threshold", detection_pairing_threshold,
-    "Threshold for detection pairing. For 'epipolar_iou' method, this is the minimum IOU "
-    "threshold (default 0.1). For 'keypoint_projection' method, this is the maximum average "
-    "keypoint pixel distance (default 50.0)." );
+    "Threshold for detection pairing. For 'iou'/'epipolar_iou' this is the minimum IOU "
+    "(default 0.1). For 'calibration' this is the max reprojection error in pixels. "
+    "For 'keypoint_projection' this is the max average keypoint pixel distance." );
+
+  config->set_value( "detection_pairing_require_class_match", detection_pairing_require_class_match,
+    "If true, only pair detections whose top class labels match (default true)." );
+
+  config->set_value( "detection_pairing_use_optimal_assignment", detection_pairing_use_optimal_assignment,
+    "If true, use greedy optimal assignment to maximize matching quality. "
+    "If false, use simple sequential matching (default true)." );
 
   config->set_value( "dino_crop_max_area_ratio", dino_crop_max_area_ratio,
     "Maximum fraction of full image area that the union of left and right DINO "
@@ -655,6 +667,8 @@ map_keypoints_to_camera_settings
   debug_epipolar_directory = config->get_value< std::string >( "debug_epipolar_directory", debug_epipolar_directory );
   detection_pairing_method = config->get_value< std::string >( "detection_pairing_method", detection_pairing_method );
   detection_pairing_threshold = config->get_value< double >( "detection_pairing_threshold", detection_pairing_threshold );
+  detection_pairing_require_class_match = config->get_value< bool >( "detection_pairing_require_class_match", detection_pairing_require_class_match );
+  detection_pairing_use_optimal_assignment = config->get_value< bool >( "detection_pairing_use_optimal_assignment", detection_pairing_use_optimal_assignment );
   dino_crop_max_area_ratio = config->get_value< double >( "dino_crop_max_area_ratio", dino_crop_max_area_ratio );
   dino_model_name = config->get_value< std::string >( "dino_model_name", dino_model_name );
   dino_threshold = config->get_value< double >( "dino_threshold", dino_threshold );

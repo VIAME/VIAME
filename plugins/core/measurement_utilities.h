@@ -310,12 +310,22 @@ public:
   /// Empty string (default) disables debug output.
   std::string debug_epipolar_directory;
 
-  /// Detection pairing method: "" (disabled), "epipolar_iou", "keypoint_projection"
+  /// Detection pairing method: "" (disabled), "iou", "calibration",
+  /// "feature_matching", "epipolar_iou", "keypoint_projection"
   std::string detection_pairing_method;
 
-  /// Threshold for detection pairing: IOU threshold for epipolar_iou (default 0.1),
-  /// pixel distance for keypoint_projection (default 50.0)
+  /// Threshold for detection pairing whose meaning depends on the method:
+  ///   iou / epipolar_iou  → minimum IOU (default 0.1)
+  ///   calibration         → max reprojection error in pixels
+  ///   keypoint_projection → max avg keypoint pixel distance
+  ///   feature_matching    → (unused)
   double detection_pairing_threshold;
+
+  /// If true, only pair detections whose top class labels match
+  bool detection_pairing_require_class_match;
+
+  /// If true, use greedy optimal assignment; otherwise simple sequential
+  bool detection_pairing_use_optimal_assignment;
 
   /// Maximum fraction of full image area that the union of left and right crops
   /// may occupy before DINO falls back to running on the full images. When the

@@ -367,6 +367,70 @@ VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_keypo
   const keypoint_projection_matching_options& options,
   kv::logger_handle_t logger = nullptr );
 
+// =============================================================================
+// Unified detection pairing dispatch
+// =============================================================================
+
+/**
+ * \brief Parameters for the shared stereo detection pairing dispatch.
+ *
+ * This struct provides a single, method-agnostic interface for configuring
+ * detection pairing.  Both pair_stereo_detections_process and
+ * measure_objects_process use it so the method dispatch code lives in one place.
+ */
+struct VIAME_CORE_EXPORT detection_pairing_params
+{
+  /// Matching method: "iou", "calibration", "feature_matching",
+  ///                  "epipolar_iou", or "keypoint_projection"
+  std::string method = "iou";
+
+  /// Generic threshold whose meaning depends on the method:
+  ///   iou / epipolar_iou  → minimum IOU (default 0.1)
+  ///   calibration         → max reprojection error in pixels (default 10.0)
+  ///   keypoint_projection → max avg keypoint distance in pixels (default 50.0)
+  ///   feature_matching    → (unused, score is internal)
+  double threshold = 0.1;
+
+  /// Default depth for projection-based methods (calibration, epipolar_iou,
+  /// keypoint_projection).  0 = epipolar-line mode for keypoint_projection.
+  double default_depth = 0.0;
+
+  /// Only allow matches between detections with the same top class label
+  bool require_class_match = true;
+
+  /// Use greedy optimal assignment (true) vs simple sequential matching (false)
+  bool use_optimal_assignment = true;
+
+  detection_pairing_params() = default;
+};
+
+/**
+ * \brief Dispatch stereo detection matching to the appropriate algorithm.
+ *
+ * \param params          Method name, threshold, and common options
+ * \param detections1     Detections from left camera
+ * \param detections2     Detections from right camera
+ * \param left_cam        Left camera (may be nullptr for IOU / feature_matching)
+ * \param right_cam       Right camera (may be nullptr for IOU / feature_matching)
+ * \param image1          Left image  (required only for feature_matching)
+ * \param image2          Right image (required only for feature_matching)
+ * \param feature_algos   Feature algorithms (required only for feature_matching)
+ * \param feature_opts    Feature options     (required only for feature_matching)
+ * \param logger          Optional logger
+ * \return Vector of (left_index, right_index) match pairs
+ */
+VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_detection_matches(
+  const detection_pairing_params& params,
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::simple_camera_perspective* left_cam = nullptr,
+  const kv::simple_camera_perspective* right_cam = nullptr,
+  const kv::image_container_sptr& image1 = nullptr,
+  const kv::image_container_sptr& image2 = nullptr,
+  const feature_matching_algorithms* feature_algos = nullptr,
+  const feature_matching_options* feature_opts = nullptr,
+  kv::logger_handle_t logger = nullptr );
+
 } // end namespace core
 
 } // end namespace viame

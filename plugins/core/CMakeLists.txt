@@ -21,6 +21,7 @@ set( plugin_headers
   merge_detections_suppress_in_regions.h
   normalize_image_percentile.h
   pair_stereo_detections.h
+  pair_stereo_tracks.h
   read_detected_object_set_auto.h
   read_detected_object_set_cvat.h
   read_detected_object_set_dive.h
@@ -68,6 +69,7 @@ set( plugin_sources
   merge_detections_suppress_in_regions.cxx
   normalize_image_percentile.cxx
   pair_stereo_detections.cxx
+  pair_stereo_tracks.cxx
   read_detected_object_set_auto.cxx
   read_detected_object_set_cvat.cxx
   read_detected_object_set_dive.cxx

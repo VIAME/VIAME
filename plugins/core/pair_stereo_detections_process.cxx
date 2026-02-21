@@ -37,6 +37,7 @@
 
 #include "pair_stereo_detections_process.h"
 #include "pair_stereo_detections.h"
+#include "pair_stereo_tracks.h"
 #include "measurement_utilities.h"
 #include "camera_rig_io.h"
 
@@ -78,9 +79,6 @@ create_config_trait( use_optimal_assignment, bool, "true",
   "If true, use optimal (greedy) assignment to maximize matching quality. "
   "If false, use simple greedy matching in order of left detections." );
 
-create_config_trait( output_unmatched, bool, "true",
-  "If true, output unmatched detections as separate tracks with unique IDs. "
-  "If false, only output matched detection pairs." );
 
 // Feature matching config traits
 create_config_trait( min_feature_match_count, int, "5",
@@ -130,43 +128,6 @@ create_config_trait( max_keypoint_distance, double, "50.0",
   "Maximum average pixel distance between projected left keypoints and right "
   "detection keypoints. Used with 'keypoint_projection' method." );
 
-// Track accumulation config traits
-create_config_trait( accumulate_track_pairings, bool, "false",
-  "If true, accumulate track pairings across frames and resolve at stream end. "
-  "Requires track inputs (object_track_set1/2). When false, operates per-frame." );
-
-create_config_trait( pairing_resolution_method, std::string, "most_likely",
-  "How to resolve accumulated track pairings. 'most_likely' picks the right track "
-  "with most frame co-occurrences for each left track. 'split' creates separate "
-  "tracks for each consistent pairing segment." );
-
-create_config_trait( detection_split_threshold, int, "3",
-  "Minimum number of frame pairings required to keep a split segment. "
-  "Used with pairing_resolution_method='split'." );
-
-create_config_trait( min_track_length, int, "0",
-  "Minimum number of detections per output track. Tracks shorter than this "
-  "are filtered out. 0 disables this filter." );
-
-create_config_trait( max_track_length, int, "0",
-  "Maximum number of detections per output track. Tracks longer than this "
-  "are filtered out. 0 disables this filter." );
-
-create_config_trait( min_avg_surface_area, double, "0.0",
-  "Minimum average bounding box area (in pixels) across track detections. "
-  "Tracks with smaller average area are filtered out. 0 disables this filter." );
-
-create_config_trait( max_avg_surface_area, double, "0.0",
-  "Maximum average bounding box area (in pixels) across track detections. "
-  "Tracks with larger average area are filtered out. 0 disables this filter." );
-
-create_config_trait( average_stereo_classes, bool, "false",
-  "If true, average class labels across matched stereo track pairs so both "
-  "cameras report the same species classification." );
-
-create_config_trait( class_averaging_method, std::string, "weighted_average",
-  "Method for averaging class labels: 'weighted_average' (weight by detection "
-  "confidence) or 'simple_average' (equal weight per detection)." );
 
 // Port traits
 create_port_trait( detected_object_set1, detected_object_set,
@@ -181,140 +142,6 @@ create_port_trait( image1, image,
   "Image from camera 1 (left). Required for feature_matching method." );
 create_port_trait( image2, image,
   "Image from camera 2 (right). Required for feature_matching method." );
-
-// =============================================================================
-// Accumulation support structures
-struct IdPair
-{
-  kv::track_id_t left_id;
-  kv::track_id_t right_id;
-};
-
-struct Pairing
-{
-  std::set< kv::frame_id_t > frame_set;
-  IdPair left_right_id_pair;
-};
-
-struct Range
-{
-  kv::track_id_t left_id, right_id, new_track_id;
-  kv::frame_id_t frame_id_first, frame_id_last;
-  int detection_count;
-};
-
-// =============================================================================
-// Union-Find for transitive stereo track association.
-// Left IDs are stored as-is (non-negative).
-// Right IDs are encoded as -(right_id + 1) to avoid collision with left ID 0.
-class TrackUnionFind
-{
-public:
-  kv::track_id_t find( kv::track_id_t x )
-  {
-    if( parent.find( x ) == parent.end() )
-    {
-      parent[x] = x;
-      rnk[x] = 0;
-    }
-    if( parent[x] != x )
-    {
-      parent[x] = find( parent[x] );
-    }
-    return parent[x];
-  }
-
-  void unite( kv::track_id_t a, kv::track_id_t b )
-  {
-    kv::track_id_t ra = find( a );
-    kv::track_id_t rb = find( b );
-    if( ra == rb )
-      return;
-    if( rnk[ra] < rnk[rb] )
-      std::swap( ra, rb );
-    parent[rb] = ra;
-    if( rnk[ra] == rnk[rb] )
-      rnk[ra]++;
-  }
-
-  std::map< kv::track_id_t, std::set< kv::track_id_t > > groups()
-  {
-    std::map< kv::track_id_t, std::set< kv::track_id_t > > result;
-    for( const auto& p : parent )
-    {
-      result[find( p.first )].insert( p.first );
-    }
-    return result;
-  }
-
-private:
-  std::map< kv::track_id_t, kv::track_id_t > parent;
-  std::map< kv::track_id_t, int > rnk;
-};
-
-// =============================================================================
-// Free helper functions for stereo class averaging
-// -----------------------------------------------------------------------------
-kv::detected_object_type_sptr
-compute_stereo_average_classification(
-  const std::vector< kv::detected_object_sptr >& dets_left,
-  const std::vector< kv::detected_object_sptr >& dets_right,
-  bool weighted )
-{
-  std::map< std::string, double > class_sum;
-  double total_weight = 0.0;
-
-  auto accumulate = [&]( const std::vector< kv::detected_object_sptr >& dets )
-  {
-    for( const auto& det : dets )
-    {
-      if( !det || !det->type() )
-        continue;
-
-      double weight = weighted ? det->confidence() : 1.0;
-      for( const auto& name : det->type()->class_names() )
-      {
-        class_sum[name] += det->type()->score( name ) * weight;
-      }
-      total_weight += weight;
-    }
-  };
-
-  accumulate( dets_left );
-  accumulate( dets_right );
-
-  if( total_weight <= 0.0 || class_sum.empty() )
-    return kv::detected_object_type_sptr();
-
-  std::vector< std::string > names;
-  std::vector< double > scores;
-  for( const auto& entry : class_sum )
-  {
-    names.push_back( entry.first );
-    scores.push_back( entry.second / total_weight );
-  }
-
-  return std::make_shared< kv::detected_object_type >( names, scores );
-}
-
-// -----------------------------------------------------------------------------
-void
-apply_classification_to_track(
-  const kv::track_sptr& trk,
-  const kv::detected_object_type_sptr& dot )
-{
-  if( !trk || !dot )
-    return;
-
-  for( auto it = trk->begin(); it != trk->end(); ++it )
-  {
-    auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
-    if( ots && ots->detection() )
-    {
-      ots->detection()->set_type( dot );
-    }
-  }
-}
 
 // =============================================================================
 // Private implementation class
@@ -340,7 +167,6 @@ public:
   double m_default_depth;
   bool m_require_class_match;
   bool m_use_optimal_assignment;
-  bool m_output_unmatched;
 
   // Feature matching configuration
   int m_min_feature_match_count;
@@ -356,19 +182,6 @@ public:
   double m_epipolar_iou_threshold;
   double m_max_keypoint_distance;
 
-  // Track accumulation configuration
-  bool m_accumulate_track_pairings;
-  std::string m_pairing_resolution_method;
-  int m_detection_split_threshold;
-  int m_min_track_length;
-  int m_max_track_length;
-  double m_min_avg_surface_area;
-  double m_max_avg_surface_area;
-
-  // Class averaging configuration
-  bool m_average_stereo_classes;
-  std::string m_class_averaging_method;
-
   // Calibration data
   kv::camera_rig_stereo_sptr m_calibration;
 
@@ -378,56 +191,8 @@ public:
   kv::algo::match_features_sptr m_feature_matcher;
   kv::algo::estimate_homography_sptr m_homography_estimator;
 
-  // State
-  kv::track_id_t m_next_track_id;
-
-  // Track pass-through state (for per-frame mode with track inputs)
-  std::map< kv::track_id_t, kv::track_id_t > m_left_to_output_id;
-  std::map< kv::track_id_t, kv::track_id_t > m_right_to_output_id;
-  TrackUnionFind m_track_union_find;
-
-  // Accumulation state
-  std::map< kv::track_id_t, kv::track_sptr > m_accumulated_tracks1;
-  std::map< kv::track_id_t, kv::track_sptr > m_accumulated_tracks2;
-  std::map< size_t, Pairing > m_left_to_right_pairing;
-
-  // Static helpers
-  static size_t cantor_pairing( size_t i, size_t j )
-  {
-    return ( ( i + j ) * ( i + j + 1u ) ) / 2u + j;
-  }
-
-  // Accumulation methods
-  void accumulate_frame_pairings(
-    const std::vector< std::pair< int, int > >& matches,
-    const std::vector< kv::detected_object_sptr >& detections1,
-    const std::vector< kv::detected_object_sptr >& detections2,
-    const std::vector< kv::track_id_t >& track_ids1,
-    const std::vector< kv::track_id_t >& track_ids2,
-    const kv::timestamp& timestamp );
-
-  void resolve_accumulated_pairings(
-    std::vector< kv::track_sptr >& output_trks1,
-    std::vector< kv::track_sptr >& output_trks2 );
-
-  void select_most_likely_pairing(
-    std::vector< kv::track_sptr >& left_tracks,
-    std::vector< kv::track_sptr >& right_tracks,
-    std::set< kv::track_id_t >& proc_left,
-    std::set< kv::track_id_t >& proc_right );
-
-  void split_paired_tracks(
-    std::vector< kv::track_sptr >& left_tracks,
-    std::vector< kv::track_sptr >& right_tracks,
-    std::set< kv::track_id_t >& proc_left,
-    std::set< kv::track_id_t >& proc_right );
-
-  std::vector< Range > create_split_ranges_from_track_pairs() const;
-
-  std::vector< kv::track_sptr > filter_tracks(
-    std::vector< kv::track_sptr > tracks ) const;
-
-  kv::track_id_t last_accumulated_track_id() const;
+  // Track pairing (shared with measure_objects_process)
+  stereo_track_pairer m_track_pairer;
 
   pair_stereo_detections_process* parent;
 };
@@ -442,7 +207,6 @@ pair_stereo_detections_process::priv
   , m_default_depth( 0.0 )
   , m_require_class_match( true )
   , m_use_optimal_assignment( true )
-  , m_output_unmatched( true )
   , m_min_feature_match_count( 5 )
   , m_min_feature_match_ratio( 0.1 )
   , m_use_homography_filtering( true )
@@ -453,16 +217,6 @@ pair_stereo_detections_process::priv
   , m_min_inliers_for_head_tail( 4 )
   , m_epipolar_iou_threshold( 0.1 )
   , m_max_keypoint_distance( 50.0 )
-  , m_accumulate_track_pairings( false )
-  , m_pairing_resolution_method( "most_likely" )
-  , m_detection_split_threshold( 3 )
-  , m_min_track_length( 0 )
-  , m_max_track_length( 0 )
-  , m_min_avg_surface_area( 0.0 )
-  , m_max_avg_surface_area( 0.0 )
-  , m_average_stereo_classes( false )
-  , m_class_averaging_method( "weighted_average" )
-  , m_next_track_id( 0 )
   , parent( ptr )
 {
 }
@@ -605,7 +359,6 @@ pair_stereo_detections_process
   declare_config_using_trait( default_depth );
   declare_config_using_trait( require_class_match );
   declare_config_using_trait( use_optimal_assignment );
-  declare_config_using_trait( output_unmatched );
 
   // Feature matching configuration
   declare_config_using_trait( min_feature_match_count );
@@ -621,18 +374,16 @@ pair_stereo_detections_process
   declare_config_using_trait( epipolar_iou_threshold );
   declare_config_using_trait( max_keypoint_distance );
 
-  // Track accumulation configuration
-  declare_config_using_trait( accumulate_track_pairings );
-  declare_config_using_trait( pairing_resolution_method );
-  declare_config_using_trait( detection_split_threshold );
-  declare_config_using_trait( min_track_length );
-  declare_config_using_trait( max_track_length );
-  declare_config_using_trait( min_avg_surface_area );
-  declare_config_using_trait( max_avg_surface_area );
-
-  // Class averaging configuration
-  declare_config_using_trait( average_stereo_classes );
-  declare_config_using_trait( class_averaging_method );
+  // Track pairing configuration (shared with measure_objects_process)
+  {
+    kv::config_block_sptr tp_config = d->m_track_pairer.get_configuration();
+    for( auto const& key : tp_config->available_values() )
+    {
+      declare_configuration_key( key,
+        tp_config->get_value< std::string >( key ),
+        tp_config->get_description( key ) );
+    }
+  }
 
   // Algorithm configuration (nested algorithms for feature matching)
   kv::algo::detect_features::get_nested_algo_configuration(
@@ -660,7 +411,6 @@ pair_stereo_detections_process
   d->m_default_depth = config_value_using_trait( default_depth );
   d->m_require_class_match = config_value_using_trait( require_class_match );
   d->m_use_optimal_assignment = config_value_using_trait( use_optimal_assignment );
-  d->m_output_unmatched = config_value_using_trait( output_unmatched );
 
   // Feature matching configuration
   d->m_min_feature_match_count = config_value_using_trait( min_feature_match_count );
@@ -676,18 +426,8 @@ pair_stereo_detections_process
   d->m_epipolar_iou_threshold = config_value_using_trait( epipolar_iou_threshold );
   d->m_max_keypoint_distance = config_value_using_trait( max_keypoint_distance );
 
-  // Track accumulation configuration
-  d->m_accumulate_track_pairings = config_value_using_trait( accumulate_track_pairings );
-  d->m_pairing_resolution_method = config_value_using_trait( pairing_resolution_method );
-  d->m_detection_split_threshold = config_value_using_trait( detection_split_threshold );
-  d->m_min_track_length = config_value_using_trait( min_track_length );
-  d->m_max_track_length = config_value_using_trait( max_track_length );
-  d->m_min_avg_surface_area = config_value_using_trait( min_avg_surface_area );
-  d->m_max_avg_surface_area = config_value_using_trait( max_avg_surface_area );
-
-  // Class averaging configuration
-  d->m_average_stereo_classes = config_value_using_trait( average_stereo_classes );
-  d->m_class_averaging_method = config_value_using_trait( class_averaging_method );
+  // Track pairing configuration
+  d->m_track_pairer.set_configuration( get_config() );
 
   // Validate matching method
   if( d->m_matching_method != "iou" &&
@@ -722,30 +462,6 @@ pair_stereo_detections_process
     }
 
     LOG_INFO( logger(), "Loaded stereo calibration from: " << d->m_calibration_file );
-  }
-
-  // Validate class averaging method
-  if( d->m_average_stereo_classes )
-  {
-    if( d->m_class_averaging_method != "weighted_average" &&
-        d->m_class_averaging_method != "simple_average" )
-    {
-      throw std::runtime_error( "Invalid class_averaging_method: '" +
-                                d->m_class_averaging_method +
-                                "'. Must be 'weighted_average' or 'simple_average'." );
-    }
-  }
-
-  // Validate pairing resolution method when accumulation is enabled
-  if( d->m_accumulate_track_pairings )
-  {
-    if( d->m_pairing_resolution_method != "most_likely" &&
-        d->m_pairing_resolution_method != "split" )
-    {
-      throw std::runtime_error( "Invalid pairing_resolution_method: '" +
-                                d->m_pairing_resolution_method +
-                                "'. Must be 'most_likely' or 'split'." );
-    }
   }
 
   // Configure feature matching algorithms if using feature_matching method or compute_head_tail_points
@@ -850,34 +566,13 @@ pair_stereo_detections_process
   }
   LOG_INFO( logger(), "  Require class match: " << ( d->m_require_class_match ? "true" : "false" ) );
   LOG_INFO( logger(), "  Use optimal assignment: " << ( d->m_use_optimal_assignment ? "true" : "false" ) );
-  LOG_INFO( logger(), "  Output unmatched: " << ( d->m_output_unmatched ? "true" : "false" ) );
+  LOG_INFO( logger(), "  Output unmatched: " << ( d->m_track_pairer.output_unmatched() ? "true" : "false" ) );
   LOG_INFO( logger(), "  Compute head/tail points: " << ( d->m_compute_head_tail_points ? "true" : "false" ) );
   if( d->m_compute_head_tail_points )
   {
     LOG_INFO( logger(), "  Min inliers for head/tail: " << d->m_min_inliers_for_head_tail );
   }
-  LOG_INFO( logger(), "  Accumulate track pairings: " << ( d->m_accumulate_track_pairings ? "true" : "false" ) );
-  if( d->m_accumulate_track_pairings )
-  {
-    LOG_INFO( logger(), "  Pairing resolution method: " << d->m_pairing_resolution_method );
-    if( d->m_pairing_resolution_method == "split" )
-    {
-      LOG_INFO( logger(), "  Detection split threshold: " << d->m_detection_split_threshold );
-    }
-    if( d->m_min_track_length > 0 )
-      LOG_INFO( logger(), "  Min track length: " << d->m_min_track_length );
-    if( d->m_max_track_length > 0 )
-      LOG_INFO( logger(), "  Max track length: " << d->m_max_track_length );
-    if( d->m_min_avg_surface_area > 0.0 )
-      LOG_INFO( logger(), "  Min avg surface area: " << d->m_min_avg_surface_area );
-    if( d->m_max_avg_surface_area > 0.0 )
-      LOG_INFO( logger(), "  Max avg surface area: " << d->m_max_avg_surface_area );
-  }
-  LOG_INFO( logger(), "  Average stereo classes: " << ( d->m_average_stereo_classes ? "true" : "false" ) );
-  if( d->m_average_stereo_classes )
-  {
-    LOG_INFO( logger(), "  Class averaging method: " << d->m_class_averaging_method );
-  }
+  LOG_INFO( logger(), "  Accumulate track pairings: " << ( d->m_track_pairer.accumulation_enabled() ? "true" : "false" ) );
 }
 
 // -----------------------------------------------------------------------------
@@ -1041,49 +736,42 @@ pair_stereo_detections_process
     }
   }
 
-  // Find matches using configured method
-  std::vector< std::pair< int, int > > matches;
-  if( d->m_matching_method == "iou" )
-  {
-    matches = find_stereo_matches_iou( detections1, detections2, d->get_iou_options() );
-  }
-  else if( d->m_matching_method == "calibration" ||
-           d->m_matching_method == "epipolar_iou" ||
-           d->m_matching_method == "keypoint_projection" )
-  {
-    if( !d->m_calibration || !d->m_calibration->left() || !d->m_calibration->right() )
-    {
-      LOG_ERROR( logger(), "Calibration not loaded for " << d->m_matching_method << " matching method" );
-    }
-    else
-    {
-      const kv::simple_camera_perspective& left_cam =
-        dynamic_cast< const kv::simple_camera_perspective& >( *( d->m_calibration->left() ) );
-      const kv::simple_camera_perspective& right_cam =
-        dynamic_cast< const kv::simple_camera_perspective& >( *( d->m_calibration->right() ) );
+  // Find matches using configured method via shared dispatch
+  detection_pairing_params dp;
+  dp.method = d->m_matching_method;
+  dp.require_class_match = d->m_require_class_match;
+  dp.use_optimal_assignment = d->m_use_optimal_assignment;
+  dp.default_depth = d->m_default_depth;
 
-      if( d->m_matching_method == "calibration" )
-      {
-        matches = find_stereo_matches_calibration( detections1, detections2,
-          left_cam, right_cam, d->get_calibration_options(), logger() );
-      }
-      else if( d->m_matching_method == "epipolar_iou" )
-      {
-        matches = find_stereo_matches_epipolar_iou( detections1, detections2,
-          left_cam, right_cam, d->get_epipolar_iou_options(), logger() );
-      }
-      else // keypoint_projection
-      {
-        matches = find_stereo_matches_keypoint_projection( detections1, detections2,
-          left_cam, right_cam, d->get_keypoint_projection_options(), logger() );
-      }
-    }
-  }
-  else // feature_matching
+  // Set threshold based on method
+  if( dp.method == "iou" )
+    dp.threshold = d->m_iou_threshold;
+  else if( dp.method == "epipolar_iou" )
+    dp.threshold = d->m_epipolar_iou_threshold;
+  else if( dp.method == "calibration" )
+    dp.threshold = d->m_max_reprojection_error;
+  else if( dp.method == "keypoint_projection" )
+    dp.threshold = d->m_max_keypoint_distance;
+
+  // Resolve cameras if needed
+  const kv::simple_camera_perspective* left_cam_ptr = nullptr;
+  const kv::simple_camera_perspective* right_cam_ptr = nullptr;
+
+  if( d->m_calibration && d->m_calibration->left() && d->m_calibration->right() )
   {
-    matches = find_stereo_matches_feature( detections1, detections2, image1, image2,
-      d->get_feature_algorithms(), d->get_feature_options(), logger() );
+    left_cam_ptr = dynamic_cast< const kv::simple_camera_perspective* >(
+      d->m_calibration->left().get() );
+    right_cam_ptr = dynamic_cast< const kv::simple_camera_perspective* >(
+      d->m_calibration->right().get() );
   }
+
+  auto feat_algos = d->get_feature_algorithms();
+  auto feat_opts = d->get_feature_options();
+
+  std::vector< std::pair< int, int > > matches = find_stereo_detection_matches(
+    dp, detections1, detections2,
+    left_cam_ptr, right_cam_ptr, image1, image2,
+    &feat_algos, &feat_opts, logger() );
 
   LOG_DEBUG( logger(), "Frame " << timestamp.get_frame()
              << ": Found " << matches.size() << " matches out of "
@@ -1129,11 +817,11 @@ pair_stereo_detections_process
   }
 
   // Branch: accumulation mode vs per-frame mode
-  if( d->m_accumulate_track_pairings )
+  if( d->m_track_pairer.accumulation_enabled() )
   {
     // Accumulate this frame's pairings
-    d->accumulate_frame_pairings( matches, detections1, detections2,
-                                  track_ids1, track_ids2, timestamp );
+    d->m_track_pairer.accumulate_frame_pairings( matches, detections1, detections2,
+                                                 track_ids1, track_ids2, timestamp );
 
     // Check if input stream is complete
     auto port_info = peek_at_port_using_trait( timestamp );
@@ -1143,7 +831,7 @@ pair_stereo_detections_process
     {
       // Resolve accumulated pairings and push final results
       std::vector< kv::track_sptr > output_trks1, output_trks2;
-      d->resolve_accumulated_pairings( output_trks1, output_trks2 );
+      d->m_track_pairer.resolve_accumulated_pairings( output_trks1, output_trks2 );
 
       auto output_track_set1 = std::make_shared< kv::object_track_set >( output_trks1 );
       auto output_track_set2 = std::make_shared< kv::object_track_set >( output_trks2 );
@@ -1170,192 +858,11 @@ pair_stereo_detections_process
   }
   else if( saved_track_set1 && saved_track_set2 )
   {
-    // Per-frame mode with track pass-through: preserve original multi-frame
-    // tracks from upstream trackers.  Uses union-find for transitive association
-    // so that all tracks linked through shared pairings get the same output ID.
-    // Both left and right tracks are renumbered with a unified counter.
-
-    // Register matches in union-find with namespace encoding:
-    //   Left IDs stored as-is; Right IDs as -(right_id + 1)
-    for( const auto& match : matches )
-    {
-      kv::track_id_t left_id = track_ids1[match.first];
-      kv::track_id_t right_id = track_ids2[match.second];
-      d->m_track_union_find.unite( left_id, -( right_id + 1 ) );
-    }
-
-    // Get connected components and assign output IDs
-    auto groups = d->m_track_union_find.groups();
-    for( const auto& group : groups )
-    {
-      // Check if any member already has an output ID
-      kv::track_id_t output_id = -1;
-      for( kv::track_id_t member : group.second )
-      {
-        if( member >= 0 )
-        {
-          auto it = d->m_left_to_output_id.find( member );
-          if( it != d->m_left_to_output_id.end() )
-          {
-            output_id = it->second;
-            break;
-          }
-        }
-        else
-        {
-          kv::track_id_t orig_right = -( member + 1 );
-          auto it = d->m_right_to_output_id.find( orig_right );
-          if( it != d->m_right_to_output_id.end() )
-          {
-            output_id = it->second;
-            break;
-          }
-        }
-      }
-
-      // Allocate new ID if needed
-      if( output_id < 0 )
-      {
-        output_id = d->m_next_track_id++;
-      }
-
-      // Apply output ID to all members in this connected component
-      for( kv::track_id_t member : group.second )
-      {
-        if( member >= 0 )
-        {
-          d->m_left_to_output_id[member] = output_id;
-        }
-        else
-        {
-          kv::track_id_t orig_right = -( member + 1 );
-          d->m_right_to_output_id[orig_right] = output_id;
-        }
-      }
-    }
-
-    // Build remapped left tracks — always output all tracks in pass-through
-    // mode (upstream tracker tracks should never be dropped).  Use a map so
-    // that transitively linked tracks (same output ID) get merged into one
-    // track object instead of creating duplicates that downstream code drops.
-    std::map< kv::track_id_t, kv::track_sptr > left_output_map;
-    for( const auto& trk : saved_track_set1->tracks() )
-    {
-      kv::track_id_t output_id;
-      auto map_it = d->m_left_to_output_id.find( trk->id() );
-
-      if( map_it != d->m_left_to_output_id.end() )
-      {
-        output_id = map_it->second;
-      }
-      else
-      {
-        output_id = d->m_next_track_id++;
-        d->m_left_to_output_id[trk->id()] = output_id;
-      }
-
-      if( left_output_map.find( output_id ) == left_output_map.end() )
-      {
-        auto new_trk = kv::track::create();
-        new_trk->set_id( output_id );
-        left_output_map[output_id] = new_trk;
-      }
-
-      for( auto it = trk->begin(); it != trk->end(); ++it )
-      {
-        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
-        if( ots )
-        {
-          auto new_state = std::make_shared< kv::object_track_state >(
-            ots->frame(), ots->time(), ots->detection() );
-          left_output_map[output_id]->append( new_state );
-        }
-      }
-    }
-
-    std::vector< kv::track_sptr > remapped_left;
-    for( auto& entry : left_output_map )
-      remapped_left.push_back( entry.second );
-
-    // Build remapped right tracks — same merge-by-output-ID approach
-    std::map< kv::track_id_t, kv::track_sptr > right_output_map;
-    for( const auto& trk : saved_track_set2->tracks() )
-    {
-      kv::track_id_t output_id;
-      auto map_it = d->m_right_to_output_id.find( trk->id() );
-
-      if( map_it != d->m_right_to_output_id.end() )
-      {
-        output_id = map_it->second;
-      }
-      else
-      {
-        output_id = d->m_next_track_id++;
-        d->m_right_to_output_id[trk->id()] = output_id;
-      }
-
-      if( right_output_map.find( output_id ) == right_output_map.end() )
-      {
-        auto new_trk = kv::track::create();
-        new_trk->set_id( output_id );
-        right_output_map[output_id] = new_trk;
-      }
-
-      for( auto it = trk->begin(); it != trk->end(); ++it )
-      {
-        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
-        if( ots )
-        {
-          auto new_state = std::make_shared< kv::object_track_state >(
-            ots->frame(), ots->time(), ots->detection() );
-          right_output_map[output_id]->append( new_state );
-        }
-      }
-    }
-
-    std::vector< kv::track_sptr > remapped_right;
-    for( auto& entry : right_output_map )
-      remapped_right.push_back( entry.second );
-
-    // Apply class averaging across matched stereo pairs if enabled
-    if( d->m_average_stereo_classes )
-    {
-      std::map< kv::track_id_t, kv::track_sptr > left_by_id, right_by_id;
-      for( const auto& trk : remapped_left )
-        left_by_id[trk->id()] = trk;
-      for( const auto& trk : remapped_right )
-        right_by_id[trk->id()] = trk;
-
-      bool weighted = ( d->m_class_averaging_method == "weighted_average" );
-      for( auto& entry : left_by_id )
-      {
-        auto rit = right_by_id.find( entry.first );
-        if( rit == right_by_id.end() )
-          continue;
-
-        std::vector< kv::detected_object_sptr > left_dets, right_dets;
-        for( auto it = entry.second->begin(); it != entry.second->end(); ++it )
-        {
-          auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
-          if( ots && ots->detection() )
-            left_dets.push_back( ots->detection() );
-        }
-        for( auto it = rit->second->begin(); it != rit->second->end(); ++it )
-        {
-          auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
-          if( ots && ots->detection() )
-            right_dets.push_back( ots->detection() );
-        }
-
-        auto avg_dot = compute_stereo_average_classification(
-          left_dets, right_dets, weighted );
-        if( avg_dot )
-        {
-          apply_classification_to_track( entry.second, avg_dot );
-          apply_classification_to_track( rit->second, avg_dot );
-        }
-      }
-    }
+    // Per-frame mode with track pass-through: delegate to shared track pairer
+    std::vector< kv::track_sptr > remapped_left, remapped_right;
+    d->m_track_pairer.remap_tracks_per_frame(
+      saved_track_set1, saved_track_set2, matches,
+      track_ids1, track_ids2, remapped_left, remapped_right );
 
     auto output_track_set1 = std::make_shared< kv::object_track_set >( remapped_left );
     auto output_track_set2 = std::make_shared< kv::object_track_set >( remapped_right );
@@ -1380,9 +887,9 @@ pair_stereo_detections_process
       has_match2[i2] = true;
 
       // Average class labels for matched pair if enabled
-      if( d->m_average_stereo_classes )
+      if( d->m_track_pairer.average_stereo_classes() )
       {
-        bool weighted = ( d->m_class_averaging_method == "weighted_average" );
+        bool weighted = d->m_track_pairer.use_weighted_averaging();
         std::vector< kv::detected_object_sptr > left_dets = { detections1[i1] };
         std::vector< kv::detected_object_sptr > right_dets = { detections2[i2] };
         auto avg_dot = compute_stereo_average_classification(
@@ -1398,21 +905,20 @@ pair_stereo_detections_process
       auto state2 = std::make_shared< kv::object_track_state >( timestamp, detections2[i2] );
 
       auto track1 = kv::track::create();
-      track1->set_id( d->m_next_track_id );
+      kv::track_id_t tid = d->m_track_pairer.allocate_track_id();
+      track1->set_id( tid );
       track1->append( state1 );
 
       auto track2 = kv::track::create();
-      track2->set_id( d->m_next_track_id );
+      track2->set_id( tid );
       track2->append( state2 );
 
       output_trks1.push_back( track1 );
       output_trks2.push_back( track2 );
-
-      d->m_next_track_id++;
     }
 
     // Add unmatched detections as separate tracks if configured
-    if( d->m_output_unmatched )
+    if( d->m_track_pairer.output_unmatched() )
     {
       for( size_t i = 0; i < detections1.size(); ++i )
       {
@@ -1420,10 +926,9 @@ pair_stereo_detections_process
         {
           auto state = std::make_shared< kv::object_track_state >( timestamp, detections1[i] );
           auto track = kv::track::create();
-          track->set_id( d->m_next_track_id );
+          track->set_id( d->m_track_pairer.allocate_track_id() );
           track->append( state );
           output_trks1.push_back( track );
-          d->m_next_track_id++;
         }
       }
 
@@ -1433,10 +938,9 @@ pair_stereo_detections_process
         {
           auto state = std::make_shared< kv::object_track_state >( timestamp, detections2[i] );
           auto track = kv::track::create();
-          track->set_id( d->m_next_track_id );
+          track->set_id( d->m_track_pairer.allocate_track_id() );
           track->append( state );
           output_trks2.push_back( track );
-          d->m_next_track_id++;
         }
       }
     }
@@ -1450,485 +954,6 @@ pair_stereo_detections_process
   }
 }
 
-// =============================================================================
-// Accumulation method implementations
-// =============================================================================
-
-// -----------------------------------------------------------------------------
-void
-pair_stereo_detections_process::priv
-::accumulate_frame_pairings(
-  const std::vector< std::pair< int, int > >& matches,
-  const std::vector< kv::detected_object_sptr >& detections1,
-  const std::vector< kv::detected_object_sptr >& detections2,
-  const std::vector< kv::track_id_t >& track_ids1,
-  const std::vector< kv::track_id_t >& track_ids2,
-  const kv::timestamp& timestamp )
-{
-  // Store all detections into accumulated track maps
-  for( size_t i = 0; i < detections1.size(); ++i )
-  {
-    kv::track_id_t tid = track_ids1[i];
-    if( m_accumulated_tracks1.find( tid ) == m_accumulated_tracks1.end() )
-    {
-      m_accumulated_tracks1[tid] = kv::track::create();
-      m_accumulated_tracks1[tid]->set_id( tid );
-    }
-    auto state = std::make_shared< kv::object_track_state >( timestamp, detections1[i] );
-    m_accumulated_tracks1[tid]->append( state );
-  }
-
-  for( size_t i = 0; i < detections2.size(); ++i )
-  {
-    kv::track_id_t tid = track_ids2[i];
-    if( m_accumulated_tracks2.find( tid ) == m_accumulated_tracks2.end() )
-    {
-      m_accumulated_tracks2[tid] = kv::track::create();
-      m_accumulated_tracks2[tid]->set_id( tid );
-    }
-    auto state = std::make_shared< kv::object_track_state >( timestamp, detections2[i] );
-    m_accumulated_tracks2[tid]->append( state );
-  }
-
-  // Record pairings using cantor pairing key
-  for( const auto& match : matches )
-  {
-    kv::track_id_t left_id = track_ids1[match.first];
-    kv::track_id_t right_id = track_ids2[match.second];
-    size_t key = cantor_pairing( static_cast< size_t >( left_id ),
-                                 static_cast< size_t >( right_id ) );
-
-    if( m_left_to_right_pairing.find( key ) == m_left_to_right_pairing.end() )
-    {
-      m_left_to_right_pairing[key] = Pairing{ {}, { left_id, right_id } };
-    }
-
-    m_left_to_right_pairing[key].frame_set.insert( timestamp.get_frame() );
-  }
-}
-
-// -----------------------------------------------------------------------------
-kv::track_id_t
-pair_stereo_detections_process::priv
-::last_accumulated_track_id() const
-{
-  kv::track_id_t max_id = 0;
-
-  for( const auto& pair : m_accumulated_tracks1 )
-  {
-    if( pair.second->id() > max_id )
-      max_id = pair.second->id();
-  }
-  for( const auto& pair : m_accumulated_tracks2 )
-  {
-    if( pair.second->id() > max_id )
-      max_id = pair.second->id();
-  }
-
-  return max_id;
-}
-
-// -----------------------------------------------------------------------------
-void
-pair_stereo_detections_process::priv
-::select_most_likely_pairing(
-  std::vector< kv::track_sptr >& left_tracks,
-  std::vector< kv::track_sptr >& right_tracks,
-  std::set< kv::track_id_t >& proc_left,
-  std::set< kv::track_id_t >& proc_right )
-{
-  // Build union-find from all accumulated pairings for transitive association.
-  // Left IDs stored as-is; Right IDs encoded as -(right_id + 1).
-  TrackUnionFind uf;
-  for( const auto& pair : m_left_to_right_pairing )
-  {
-    kv::track_id_t left_id = pair.second.left_right_id_pair.left_id;
-    kv::track_id_t right_id = pair.second.left_right_id_pair.right_id;
-    uf.unite( left_id, -( right_id + 1 ) );
-  }
-
-  auto groups = uf.groups();
-  kv::track_id_t next_id = last_accumulated_track_id() + 1;
-
-  for( const auto& group : groups )
-  {
-    // Separate left and right members
-    std::set< kv::track_id_t > left_members, right_members;
-    for( kv::track_id_t member : group.second )
-    {
-      if( member >= 0 )
-        left_members.insert( member );
-      else
-        right_members.insert( -( member + 1 ) );
-    }
-
-    // Only process components that have both left and right members
-    if( left_members.empty() || right_members.empty() )
-      continue;
-
-    kv::track_id_t output_id = next_id++;
-
-    // Merge all left member tracks into one output track
-    auto merged_left = kv::track::create();
-    merged_left->set_id( output_id );
-    for( kv::track_id_t lid : left_members )
-    {
-      if( m_accumulated_tracks1.find( lid ) == m_accumulated_tracks1.end() )
-        continue;
-      for( auto it = m_accumulated_tracks1[lid]->begin();
-           it != m_accumulated_tracks1[lid]->end(); ++it )
-      {
-        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
-        if( ots )
-        {
-          auto new_state = std::make_shared< kv::object_track_state >(
-            ots->frame(), ots->time(), ots->detection() );
-          merged_left->append( new_state );
-        }
-      }
-      proc_left.insert( lid );
-    }
-
-    // Merge all right member tracks into one output track
-    auto merged_right = kv::track::create();
-    merged_right->set_id( output_id );
-    for( kv::track_id_t rid : right_members )
-    {
-      if( m_accumulated_tracks2.find( rid ) == m_accumulated_tracks2.end() )
-        continue;
-      for( auto it = m_accumulated_tracks2[rid]->begin();
-           it != m_accumulated_tracks2[rid]->end(); ++it )
-      {
-        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
-        if( ots )
-        {
-          auto new_state = std::make_shared< kv::object_track_state >(
-            ots->frame(), ots->time(), ots->detection() );
-          merged_right->append( new_state );
-        }
-      }
-      proc_right.insert( rid );
-    }
-
-    if( merged_left->size() > 0 )
-      left_tracks.push_back( merged_left );
-    if( merged_right->size() > 0 )
-      right_tracks.push_back( merged_right );
-  }
-}
-
-// -----------------------------------------------------------------------------
-std::vector< Range >
-pair_stereo_detections_process::priv
-::create_split_ranges_from_track_pairs() const
-{
-  // Find last pairing frame id
-  kv::frame_id_t last_frame_id = 0;
-  for( const auto& pairing : m_left_to_right_pairing )
-  {
-    if( !pairing.second.frame_set.empty() )
-    {
-      kv::frame_id_t last = *pairing.second.frame_set.rbegin();
-      if( last > last_frame_id )
-        last_frame_id = last;
-    }
-  }
-
-  kv::track_id_t next_id = last_accumulated_track_id() + 1;
-
-  // Track open and pending ranges
-  std::map< size_t, std::shared_ptr< Range > > open_ranges;
-  std::set< std::shared_ptr< Range > > pending_ranges;
-  std::vector< Range > ranges;
-
-  for( kv::frame_id_t i_frame = 0; i_frame <= last_frame_id; i_frame++ )
-  {
-    for( const auto& pairing : m_left_to_right_pairing )
-    {
-      // Skip if this pairing is not in current frame
-      if( pairing.second.frame_set.find( i_frame ) == pairing.second.frame_set.end() )
-        continue;
-
-      if( open_ranges.find( pairing.first ) != open_ranges.end() )
-      {
-        // Update existing open range
-        auto& range = open_ranges[pairing.first];
-        range->detection_count += 1;
-        range->frame_id_last = i_frame + 1;
-
-        // Remove pending ranges that conflict with this now-confirmed range
-        if( range->detection_count >= m_detection_split_threshold )
-        {
-          std::set< std::shared_ptr< Range > > to_remove;
-          for( const auto& pending : pending_ranges )
-          {
-            if( pending == range )
-              continue;
-            if( pending->left_id == range->left_id || pending->right_id == range->right_id )
-              to_remove.insert( pending );
-          }
-
-          // Remove source from pending if it passed threshold
-          if( pending_ranges.find( range ) != pending_ranges.end() )
-            pending_ranges.erase( range );
-
-          // Move removed ranges to processed if they meet threshold
-          for( const auto& r : to_remove )
-          {
-            pending_ranges.erase( r );
-            if( r->detection_count >= m_detection_split_threshold )
-            {
-              r->frame_id_last = range->frame_id_first - 1;
-              ranges.push_back( *r );
-            }
-          }
-
-          // Remove from open_ranges map
-          for( auto it = open_ranges.begin(); it != open_ranges.end(); )
-          {
-            if( to_remove.find( it->second ) != to_remove.end() )
-              it = open_ranges.erase( it );
-            else
-              ++it;
-          }
-        }
-      }
-      else
-      {
-        // Create new range
-        auto range = std::make_shared< Range >();
-        range->left_id = pairing.second.left_right_id_pair.left_id;
-        range->right_id = pairing.second.left_right_id_pair.right_id;
-        range->new_track_id = next_id++;
-        range->detection_count = 1;
-        range->frame_id_first = i_frame;
-        range->frame_id_last = i_frame + 1;
-
-        open_ranges[pairing.first] = range;
-        pending_ranges.insert( range );
-
-        // Mark overlapping open ranges as pending
-        for( auto& op : open_ranges )
-        {
-          if( op.second == range )
-            continue;
-          if( op.second->left_id == range->left_id || op.second->right_id == range->right_id )
-            pending_ranges.insert( op.second );
-        }
-      }
-    }
-  }
-
-  // Finalize remaining open ranges
-  for( auto& op : open_ranges )
-  {
-    if( op.second->detection_count < m_detection_split_threshold )
-      continue;
-
-    op.second->frame_id_last = std::numeric_limits< int64_t >::max();
-    ranges.push_back( *op.second );
-  }
-
-  return ranges;
-}
-
-// -----------------------------------------------------------------------------
-void
-pair_stereo_detections_process::priv
-::split_paired_tracks(
-  std::vector< kv::track_sptr >& left_tracks,
-  std::vector< kv::track_sptr >& right_tracks,
-  std::set< kv::track_id_t >& proc_left,
-  std::set< kv::track_id_t >& proc_right )
-{
-  auto ranges = create_split_ranges_from_track_pairs();
-
-  for( const auto& range : ranges )
-  {
-    proc_left.insert( range.left_id );
-    proc_right.insert( range.right_id );
-
-    // Create new tracks from frame ranges
-    auto split_track = []( const kv::track_sptr& source, const Range& r )
-    {
-      auto new_track = kv::track::create();
-      new_track->set_id( r.new_track_id );
-
-      for( const auto& state : *source | kv::as_object_track )
-      {
-        if( state->frame() >= r.frame_id_first && state->frame() < r.frame_id_last )
-        {
-          new_track->append( state );
-        }
-      }
-
-      return new_track;
-    };
-
-    left_tracks.push_back( split_track( m_accumulated_tracks1[range.left_id], range ) );
-    right_tracks.push_back( split_track( m_accumulated_tracks2[range.right_id], range ) );
-  }
-}
-
-// -----------------------------------------------------------------------------
-std::vector< kv::track_sptr >
-pair_stereo_detections_process::priv
-::filter_tracks( std::vector< kv::track_sptr > tracks ) const
-{
-  bool has_length_filter = ( m_min_track_length > 0 ) || ( m_max_track_length > 0 );
-  bool has_area_filter = ( m_min_avg_surface_area > 0.0 ) || ( m_max_avg_surface_area > 0.0 );
-
-  if( !has_length_filter && !has_area_filter )
-    return tracks;
-
-  if( has_length_filter )
-  {
-    int min_len = m_min_track_length > 0 ? m_min_track_length : 0;
-    int max_len = m_max_track_length > 0 ? m_max_track_length : std::numeric_limits< int >::max();
-
-    tracks.erase(
-      std::remove_if( tracks.begin(), tracks.end(),
-        [min_len, max_len]( const kv::track_sptr& track )
-        {
-          int sz = static_cast< int >( track->size() );
-          return sz < min_len || sz > max_len;
-        } ),
-      tracks.end() );
-  }
-
-  if( has_area_filter )
-  {
-    double min_area = m_min_avg_surface_area > 0.0 ? m_min_avg_surface_area : 0.0;
-    double max_area = m_max_avg_surface_area > 0.0
-      ? m_max_avg_surface_area : std::numeric_limits< double >::max();
-
-    tracks.erase(
-      std::remove_if( tracks.begin(), tracks.end(),
-        [min_area, max_area]( const kv::track_sptr& track )
-        {
-          double avg_area = 0.0;
-          int count = 0;
-          for( const auto& state : *track | kv::as_object_track )
-          {
-            if( state->detection() )
-            {
-              avg_area += state->detection()->bounding_box().area();
-              count++;
-            }
-          }
-          if( count > 0 )
-            avg_area /= static_cast< double >( count );
-
-          return avg_area < min_area || avg_area > max_area;
-        } ),
-      tracks.end() );
-  }
-
-  return tracks;
-}
-
-// -----------------------------------------------------------------------------
-void
-pair_stereo_detections_process::priv
-::resolve_accumulated_pairings(
-  std::vector< kv::track_sptr >& output_trks1,
-  std::vector< kv::track_sptr >& output_trks2 )
-{
-  std::set< kv::track_id_t > proc_left, proc_right;
-
-  // Call resolution method
-  if( m_pairing_resolution_method == "most_likely" )
-  {
-    select_most_likely_pairing( output_trks1, output_trks2, proc_left, proc_right );
-  }
-  else // "split"
-  {
-    split_paired_tracks( output_trks1, output_trks2, proc_left, proc_right );
-  }
-
-  // Append unmatched tracks with sequential IDs (no gaps)
-  if( m_output_unmatched )
-  {
-    // Find max existing output ID
-    kv::track_id_t max_output_id = 0;
-    for( const auto& trk : output_trks1 )
-    {
-      if( trk->id() > max_output_id )
-        max_output_id = trk->id();
-    }
-    for( const auto& trk : output_trks2 )
-    {
-      if( trk->id() > max_output_id )
-        max_output_id = trk->id();
-    }
-
-    kv::track_id_t next_unmatched_id = max_output_id + 1;
-
-    for( const auto& pair : m_accumulated_tracks1 )
-    {
-      if( proc_left.find( pair.first ) == proc_left.end() )
-      {
-        auto cloned = pair.second->clone();
-        cloned->set_id( next_unmatched_id++ );
-        output_trks1.push_back( cloned );
-      }
-    }
-
-    for( const auto& pair : m_accumulated_tracks2 )
-    {
-      if( proc_right.find( pair.first ) == proc_right.end() )
-      {
-        auto cloned = pair.second->clone();
-        cloned->set_id( next_unmatched_id++ );
-        output_trks2.push_back( cloned );
-      }
-    }
-  }
-
-  // Apply class averaging across matched stereo pairs if enabled
-  if( m_average_stereo_classes )
-  {
-    std::map< kv::track_id_t, kv::track_sptr > left_by_id, right_by_id;
-    for( const auto& trk : output_trks1 )
-      left_by_id[trk->id()] = trk;
-    for( const auto& trk : output_trks2 )
-      right_by_id[trk->id()] = trk;
-
-    bool weighted = ( m_class_averaging_method == "weighted_average" );
-    for( auto& entry : left_by_id )
-    {
-      auto rit = right_by_id.find( entry.first );
-      if( rit == right_by_id.end() )
-        continue;
-
-      std::vector< kv::detected_object_sptr > left_dets, right_dets;
-      for( auto it = entry.second->begin(); it != entry.second->end(); ++it )
-      {
-        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
-        if( ots && ots->detection() )
-          left_dets.push_back( ots->detection() );
-      }
-      for( auto it = rit->second->begin(); it != rit->second->end(); ++it )
-      {
-        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
-        if( ots && ots->detection() )
-          right_dets.push_back( ots->detection() );
-      }
-
-      auto avg_dot = compute_stereo_average_classification(
-        left_dets, right_dets, weighted );
-      if( avg_dot )
-      {
-        apply_classification_to_track( entry.second, avg_dot );
-        apply_classification_to_track( rit->second, avg_dot );
-      }
-    }
-  }
-
-  // Apply track filtering
-  output_trks1 = filter_tracks( output_trks1 );
-  output_trks2 = filter_tracks( output_trks2 );
-}
 
 } // end namespace core
 } // end namespace viame

@@ -28,6 +28,7 @@
 #include "measure_objects_process.h"
 #include "measurement_utilities.h"
 #include "pair_stereo_detections.h"
+#include "pair_stereo_tracks.h"
 #include "camera_rig_io.h"
 
 namespace kv = kwiver::vital;
@@ -78,6 +79,9 @@ public:
 
   // Measurement utilities
   map_keypoints_to_camera m_utilities;
+
+  // Track pairing (shared with pair_stereo_detections_process)
+  stereo_track_pairer m_track_pairer;
 
   // Persistent right tracks created for left-only detections across frames
   std::map< kv::track_id_t, kv::track_sptr > m_created_right_tracks;
@@ -160,6 +164,16 @@ measure_objects_process
       settings_config->get_value< std::string >( key ),
       settings_config->get_description( key ) );
   }
+
+  // Merge in stereo track pairer configuration
+  kv::config_block_sptr tp_config = d->m_track_pairer.get_configuration();
+  for( auto const& key : tp_config->available_values() )
+  {
+    declare_configuration_key(
+      key,
+      tp_config->get_value< std::string >( key ),
+      tp_config->get_description( key ) );
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -186,6 +200,9 @@ measure_objects_process
 
   // Configure settings from config block
   d->m_settings.set_configuration( get_config() );
+
+  // Configure track pairer
+  d->m_track_pairer.set_configuration( get_config() );
 
   // Validate matching methods
   std::string validation_error = d->m_settings.validate_matching_methods();
@@ -415,31 +432,27 @@ measure_objects_process
       right_only_dets.push_back( dets[1][id] );
     }
 
-    std::vector< std::pair< int, int > > paired;
+    // Build shared params and dispatch through unified function
+    detection_pairing_params dp;
+    dp.method = d->m_settings.detection_pairing_method;
+    dp.threshold = d->m_settings.detection_pairing_threshold;
+    dp.default_depth = d->m_settings.default_depth;
+    dp.require_class_match = d->m_settings.detection_pairing_require_class_match;
+    dp.use_optimal_assignment = d->m_settings.detection_pairing_use_optimal_assignment;
 
-    if( d->m_settings.detection_pairing_method == "epipolar_iou" )
-    {
-      epipolar_iou_matching_options opts;
-      opts.iou_threshold = d->m_settings.detection_pairing_threshold;
-      opts.default_depth = d->m_settings.default_depth;
+    // Prepare feature algorithms if method requires them
+    feature_matching_algorithms feat_algos;
+    feat_algos.feature_detector = d->m_settings.feature_detector;
+    feat_algos.descriptor_extractor = d->m_settings.descriptor_extractor;
+    feat_algos.feature_matcher = d->m_settings.feature_matcher;
 
-      paired = find_stereo_matches_epipolar_iou(
-        left_only_dets, right_only_dets, left_cam, right_cam, opts, logger() );
-    }
-    else if( d->m_settings.detection_pairing_method == "keypoint_projection" )
-    {
-      keypoint_projection_matching_options opts;
-      opts.max_keypoint_distance = d->m_settings.detection_pairing_threshold;
-      opts.default_depth = d->m_settings.default_depth;
+    kv::image_container_sptr img1 = input_images.size() >= 1 ? input_images[0] : nullptr;
+    kv::image_container_sptr img2 = input_images.size() >= 2 ? input_images[1] : nullptr;
 
-      paired = find_stereo_matches_keypoint_projection(
-        left_only_dets, right_only_dets, left_cam, right_cam, opts, logger() );
-    }
-    else
-    {
-      LOG_WARN( logger(), "Unknown detection_pairing_method: " +
-                d->m_settings.detection_pairing_method );
-    }
+    auto paired = find_stereo_detection_matches(
+      dp, left_only_dets, right_only_dets,
+      &left_cam, &right_cam, img1, img2,
+      &feat_algos, nullptr, logger() );
 
     // Merge paired detections: insert right det under left track ID
     std::set< kv::track_id_t > paired_left_ids;
@@ -861,6 +874,57 @@ measure_objects_process
     {
       input_tracks[1]->insert( pair.second );
     }
+  }
+
+  // Apply stereo track remapping (union-find, class averaging) when two inputs
+  if( input_tracks[0] && input_tracks[1] &&
+      input_tracks[0]->size() > 0 && input_tracks[1]->size() > 0 )
+  {
+    // Build match list from common IDs (tracks with same ID in both sets)
+    std::vector< kv::track_id_t > tids1, tids2;
+    std::vector< std::pair< int, int > > match_pairs;
+
+    for( const auto& trk : input_tracks[0]->tracks() )
+    {
+      auto it = trk->find( cur_frame_id );
+      if( it != trk->end() )
+      {
+        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
+        if( ots && ots->detection() )
+          tids1.push_back( trk->id() );
+      }
+    }
+
+    for( const auto& trk : input_tracks[1]->tracks() )
+    {
+      auto it = trk->find( cur_frame_id );
+      if( it != trk->end() )
+      {
+        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
+        if( ots && ots->detection() )
+          tids2.push_back( trk->id() );
+      }
+    }
+
+    // Build a quick lookup for right track indices by ID
+    std::map< kv::track_id_t, int > right_idx;
+    for( int i = 0; i < static_cast< int >( tids2.size() ); ++i )
+      right_idx[tids2[i]] = i;
+
+    for( int i = 0; i < static_cast< int >( tids1.size() ); ++i )
+    {
+      auto rit = right_idx.find( tids1[i] );
+      if( rit != right_idx.end() )
+        match_pairs.push_back( { i, rit->second } );
+    }
+
+    std::vector< kv::track_sptr > out1, out2;
+    d->m_track_pairer.remap_tracks_per_frame(
+      input_tracks[0], input_tracks[1], match_pairs,
+      tids1, tids2, out1, out2 );
+
+    input_tracks[0] = std::make_shared< kv::object_track_set >( out1 );
+    input_tracks[1] = std::make_shared< kv::object_track_set >( out2 );
   }
 
   // Push outputs
