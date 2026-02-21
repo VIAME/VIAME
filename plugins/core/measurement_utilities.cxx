@@ -413,7 +413,7 @@ map_keypoints_to_camera_settings
   , detection_pairing_threshold( 0.1 )
   , detection_pairing_require_class_match( true )
   , detection_pairing_use_optimal_assignment( true )
-  , dino_crop_max_area_ratio( 0.5 )
+  , dino_crop_max_area_ratio( 0.05 )
   , dino_model_name( "dinov2_vitb14" )
   , dino_threshold( 0.0 )
   , dino_weights_path( "" )
@@ -630,7 +630,9 @@ map_keypoints_to_camera_settings
     "crops may occupy. When all epipolar regions for a frame fit within this "
     "fraction, DINO runs on cropped subimages instead of the full resolution, "
     "proportionally reducing ViT inference cost. Set to 0 to disable cropping. "
-    "Default 0.5 (50%)." );
+    "Default 0.05 (5%). Empirically, crops above ~5% degrade DINO accuracy "
+    "because medium-sized crops lose global context without sufficiently "
+    "reducing the candidate space. Keep this low for robustness." );
 
   config->set_value( "dino_model_name", dino_model_name,
     "DINO backbone model name (used when epipolar_descriptor_type is 'dino'). "
@@ -889,7 +891,7 @@ map_keypoints_to_camera
   , m_dino_threshold( 0.0 )
   , m_dino_weights_path( "" )
   , m_dino_top_k( 100 )
-  , m_dino_crop_max_area_ratio( 0.5 )
+  , m_dino_crop_max_area_ratio( 0.05 )
   , m_cached_frame_id( -1 )
 #ifdef VIAME_ENABLE_OPENCV
   , m_dino_crop_active( false )

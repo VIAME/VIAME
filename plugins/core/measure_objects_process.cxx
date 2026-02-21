@@ -85,6 +85,11 @@ public:
 
   // Persistent right tracks created for left-only detections across frames
   std::map< kv::track_id_t, kv::track_sptr > m_created_right_tracks;
+
+  // Detection pairing map: synthetic_right_id (= left_id) → actual_right_id
+  // Used to link actual right camera tracks in the union-find so that
+  // transitive linking works when a left track dies and a new one starts.
+  std::map< kv::track_id_t, kv::track_id_t > m_detection_paired_right_ids;
 };
 
 
@@ -432,11 +437,15 @@ measure_objects_process
       right_only_dets.push_back( dets[1][id] );
     }
 
-    // Build shared params and dispatch through unified function
+    // Build shared params and dispatch through unified function.
+    // Use default_depth=0 (epipolar mode) for detection pairing — the
+    // measurement-level default_depth is tuned for depth projection of
+    // individual keypoints, not for cross-camera track matching.  The old
+    // standalone pair_stereo_detections process also defaulted to 0.
     detection_pairing_params dp;
     dp.method = d->m_settings.detection_pairing_method;
     dp.threshold = d->m_settings.detection_pairing_threshold;
-    dp.default_depth = d->m_settings.default_depth;
+    dp.default_depth = 0.0;
     dp.require_class_match = d->m_settings.detection_pairing_require_class_match;
     dp.use_optimal_assignment = d->m_settings.detection_pairing_use_optimal_assignment;
 
@@ -472,6 +481,13 @@ measure_objects_process
 
       common_ids.push_back( left_id );
       paired_left_ids.insert( left_id );
+
+      // Record the mapping so the union-find can link the actual right
+      // camera track, enabling transitive linking across track deaths.
+      if( left_id != right_id )
+      {
+        d->m_detection_paired_right_ids[left_id] = right_id;
+      }
 
       LOG_INFO( logger(), "Paired left track " + std::to_string( left_id ) +
                 " with right track " + std::to_string( right_id ) +
@@ -906,16 +922,31 @@ measure_objects_process
       }
     }
 
-    // Build a quick lookup for right track indices by ID
-    std::map< kv::track_id_t, int > right_idx;
+    // Build quick lookups for track indices by ID
+    std::map< kv::track_id_t, int > left_idx, right_idx;
+    for( int i = 0; i < static_cast< int >( tids1.size() ); ++i )
+      left_idx[tids1[i]] = i;
     for( int i = 0; i < static_cast< int >( tids2.size() ); ++i )
       right_idx[tids2[i]] = i;
 
+    // Match tracks with the same ID (synthetic right tracks share left IDs)
     for( int i = 0; i < static_cast< int >( tids1.size() ); ++i )
     {
       auto rit = right_idx.find( tids1[i] );
       if( rit != right_idx.end() )
         match_pairs.push_back( { i, rit->second } );
+    }
+
+    // Also link actual right camera tracks that were detection-paired with
+    // left tracks.  Without this, the real right track is never connected
+    // in the union-find, so transitive linking across left track deaths
+    // (left1 → right → left2) cannot happen.
+    for( const auto& dp : d->m_detection_paired_right_ids )
+    {
+      auto lit = left_idx.find( dp.first );   // synthetic/left ID
+      auto rit = right_idx.find( dp.second );  // actual right camera ID
+      if( lit != left_idx.end() && rit != right_idx.end() )
+        match_pairs.push_back( { lit->second, rit->second } );
     }
 
     std::vector< kv::track_sptr > out1, out2;
