@@ -451,7 +451,8 @@ process measurer
   # Track remapping (unified IDs, class averaging)
   :output_unmatched                            true
   :average_stereo_classes                      true
-  :class_averaging_method                      weighted_average
+  :class_averaging_method                      weighted_scaled_by_conf
+  :class_averaging_ignore_class                UNKNOWNFISH
 
 connect from track_filter_l.object_track_set
         to   measurer.object_track_set1
@@ -471,8 +472,7 @@ process track_writer1
   :file_name                                   computed_tracks1.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:write_time_as_uid          true
-  :writer:viame_csv:tot_option                 weighted_scaled_by_conf
-  :writer:viame_csv:tot_ignore_class           UNKNOWNFISH
+  :writer:viame_csv:tot_option                 detection
 
 connect from measurer.object_track_set1
         to   track_writer1.object_track_set
@@ -486,8 +486,7 @@ process track_writer2
   :file_name                                   computed_tracks2.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:write_time_as_uid          true
-  :writer:viame_csv:tot_option                 weighted_scaled_by_conf
-  :writer:viame_csv:tot_ignore_class           UNKNOWNFISH
+  :writer:viame_csv:tot_option                 detection
 
 connect from measurer.object_track_set2
         to   track_writer2.object_track_set
