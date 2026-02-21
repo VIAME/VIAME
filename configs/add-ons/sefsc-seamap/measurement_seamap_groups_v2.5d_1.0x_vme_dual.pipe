@@ -221,13 +221,6 @@ connect from downsampler.timestamp
 connect from add_head_tail_l.detected_object_set
         to   tracker_l.detected_object_set
 
-process track_filter_l
-  :: filter_object_tracks
-  :required_states                             5
-
-connect from tracker_l.object_track_set
-        to   track_filter_l.object_track_set
-
 # ========================= RIGHT CAMERA DETECTOR =============================
 
 process detector_input_r
@@ -427,13 +420,6 @@ connect from downsampler.timestamp
 connect from add_head_tail_r.detected_object_set
         to   tracker_r.detected_object_set
 
-process track_filter_r
-  :: filter_object_tracks
-  :required_states                             5
-
-connect from tracker_r.object_track_set
-        to   track_filter_r.object_track_set
-
 # ============================= CORE MEASUREMENT ==============================
 # Measurement process now handles track pairing internally via the shared
 # stereo_track_pairer. Detection pairing uses keypoint_projection to match
@@ -442,6 +428,7 @@ connect from tracker_r.object_track_set
 process measurer
   :: compute_measurements
   relativepath calibration_file =              models/seamap-cal.json
+  :min_track_states                            6
 
   # Detection pairing for unmatched left/right tracks
   :detection_pairing_method                    keypoint_projection
@@ -455,9 +442,9 @@ process measurer
   :class_averaging_ignore_class                UNKNOWNFISH
   :length_aggregation_method                   median
 
-connect from track_filter_l.object_track_set
+connect from tracker_l.object_track_set
         to   measurer.object_track_set1
-connect from track_filter_r.object_track_set
+connect from tracker_r.object_track_set
         to   measurer.object_track_set2
 connect from downsampler.output_1
         to   measurer.image1

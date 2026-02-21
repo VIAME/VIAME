@@ -222,13 +222,6 @@ connect from downsampler.timestamp
 connect from add_head_tail_l.detected_object_set
         to   tracker_l.detected_object_set
 
-process track_filter_l
-  :: filter_object_tracks
-  :required_states                             5
-
-connect from tracker_l.object_track_set
-        to   track_filter_l.object_track_set
-
 # ========================= RIGHT CAMERA DETECTOR =============================
 
 process detector_input_r
@@ -428,13 +421,6 @@ connect from downsampler.timestamp
 connect from add_head_tail_r.detected_object_set
         to   tracker_r.detected_object_set
 
-process track_filter_r
-  :: filter_object_tracks
-  :required_states                             5
-
-connect from tracker_r.object_track_set
-        to   track_filter_r.object_track_set
-
 # ============================ SEAGIS MEASUREMENT =============================
 
 process measurer
@@ -446,6 +432,7 @@ process measurer
   :assume_inputs_paired                        false
   :detection_pairing_method                    keypoint_distance
   :detection_pairing_threshold                 50.0
+  :min_track_states                            6
 
   # Track remapping (unified IDs, class averaging, length averaging)
   :output_unmatched                            true
@@ -460,9 +447,9 @@ process measurer
   :template_size                               25
   :template_matching_threshold                 0.1
 
-connect from track_filter_l.object_track_set
+connect from tracker_l.object_track_set
         to   measurer.object_track_set1
-connect from track_filter_r.object_track_set
+connect from tracker_r.object_track_set
         to   measurer.object_track_set2
 connect from downsampler.output_1
         to   measurer.image1

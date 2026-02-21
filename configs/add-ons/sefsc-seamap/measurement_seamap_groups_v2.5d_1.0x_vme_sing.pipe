@@ -155,18 +155,12 @@ connect from downsampler.timestamp
 connect from add_head_tail.detected_object_set
         to   tracker.detected_object_set
 
-process track_filter
-  :: filter_object_tracks
-  :required_states                             5
-
-connect from tracker.object_track_set
-        to   track_filter.object_track_set
-
 # ============================= CORE MEASUREMENT ==============================
 
 process measurer
   :: compute_measurements
   relativepath calibration_file =              models/seamap-cal.json
+  :min_track_states                            6
   :matching_methods                            input_pairs_only,epipolar_template_matching
 
   # Epipolar template matching parameters
@@ -202,7 +196,7 @@ process measurer
   :class_averaging_method                      weighted_scaled_by_conf
   :class_averaging_ignore_class                UNKNOWNFISH
 
-connect from track_filter.object_track_set
+connect from tracker.object_track_set
         to   measurer.object_track_set1
 connect from downsampler.output_1
         to   measurer.image1

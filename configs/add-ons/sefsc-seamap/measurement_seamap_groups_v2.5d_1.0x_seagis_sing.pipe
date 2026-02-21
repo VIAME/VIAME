@@ -155,13 +155,6 @@ connect from downsampler.timestamp
 connect from add_head_tail.detected_object_set
         to   tracker.detected_object_set
 
-process track_filter
-  :: filter_object_tracks
-  :required_states                             5
-
-connect from tracker.object_track_set
-        to   track_filter.object_track_set
-
 # ============================ SEAGIS MEASUREMENT =============================
 
 process measurer
@@ -170,6 +163,7 @@ process measurer
   #:licence_key2                                [INSERT_HERE]
   relativepath left_camera_file =              models/SC6_camera3_2024.CamCAL
   relativepath right_camera_file =             models/SC6_satelliteA_2024.CamCAL
+  :min_track_states                            6
   :enable_epipolar_matching                    true
   :epipolar_min_depth                          500
   :epipolar_max_depth                          10000
@@ -183,9 +177,9 @@ process measurer
   :class_averaging_ignore_class                UNKNOWNFISH
   :length_aggregation_method                   median
 
-connect from track_filter.object_track_set
+connect from tracker.object_track_set
         to   measurer.object_track_set1
-connect from track_filter.object_track_set
+connect from tracker.object_track_set
         to   measurer.object_track_set2
 connect from downsampler.output_1
         to   measurer.image1
