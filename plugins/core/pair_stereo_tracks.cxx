@@ -8,6 +8,7 @@
  */
 
 #include "pair_stereo_tracks.h"
+#include "utilities_target_clfr.h"
 
 #include <algorithm>
 #include <limits>
@@ -75,42 +76,18 @@ kv::detected_object_type_sptr
 compute_stereo_average_classification(
   const std::vector< kv::detected_object_sptr >& dets_left,
   const std::vector< kv::detected_object_sptr >& dets_right,
-  bool weighted )
+  bool weighted,
+  bool scale_by_conf,
+  const std::string& ignore_class )
 {
-  std::map< std::string, double > class_sum;
-  double total_weight = 0.0;
+  // Concatenate into a single vector and delegate to the shared utility
+  std::vector< kv::detected_object_sptr > all_dets;
+  all_dets.reserve( dets_left.size() + dets_right.size() );
+  all_dets.insert( all_dets.end(), dets_left.begin(), dets_left.end() );
+  all_dets.insert( all_dets.end(), dets_right.begin(), dets_right.end() );
 
-  auto accumulate = [&]( const std::vector< kv::detected_object_sptr >& dets )
-  {
-    for( const auto& det : dets )
-    {
-      if( !det || !det->type() )
-        continue;
-
-      double weight = weighted ? det->confidence() : 1.0;
-      for( const auto& name : det->type()->class_names() )
-      {
-        class_sum[name] += det->type()->score( name ) * weight;
-      }
-      total_weight += weight;
-    }
-  };
-
-  accumulate( dets_left );
-  accumulate( dets_right );
-
-  if( total_weight <= 0.0 || class_sum.empty() )
-    return kv::detected_object_type_sptr();
-
-  std::vector< std::string > names;
-  std::vector< double > scores;
-  for( const auto& entry : class_sum )
-  {
-    names.push_back( entry.first );
-    scores.push_back( entry.second / total_weight );
-  }
-
-  return std::make_shared< kv::detected_object_type >( names, scores );
+  return compute_average_classification( all_dets, weighted,
+                                         scale_by_conf, ignore_class );
 }
 
 // -----------------------------------------------------------------------------
@@ -197,7 +174,15 @@ stereo_track_pairer
   config->set_value( "class_averaging_method",
     m_class_averaging_method,
     "Method for averaging class labels: 'weighted_average' (weight by detection "
-    "confidence) or 'simple_average' (equal weight per detection)." );
+    "confidence), 'simple_average' (equal weight per detection), or "
+    "'weighted_scaled_by_conf' (weighted average scaled by 0.1+0.9*avg_conf)." );
+
+  config->set_value( "class_averaging_ignore_class",
+    m_class_averaging_ignore_class,
+    "Optional class name to exclude from averaging when mixed with real classes. "
+    "Detections whose only label is this class are separated; if non-ignored "
+    "detections are also present the ignored class is excluded from the output. "
+    "Empty string disables this feature." );
 
   config->set_value( "output_unmatched",
     std::to_string( m_output_unmatched ),
@@ -230,6 +215,8 @@ stereo_track_pairer
     config->get_value< bool >( "average_stereo_classes", m_average_stereo_classes );
   m_class_averaging_method =
     config->get_value< std::string >( "class_averaging_method", m_class_averaging_method );
+  m_class_averaging_ignore_class =
+    config->get_value< std::string >( "class_averaging_ignore_class", m_class_averaging_ignore_class );
   m_output_unmatched =
     config->get_value< bool >( "output_unmatched", m_output_unmatched );
 
@@ -237,11 +224,13 @@ stereo_track_pairer
   if( m_average_stereo_classes )
   {
     if( m_class_averaging_method != "weighted_average" &&
-        m_class_averaging_method != "simple_average" )
+        m_class_averaging_method != "simple_average" &&
+        m_class_averaging_method != "weighted_scaled_by_conf" )
     {
       throw std::runtime_error( "Invalid class_averaging_method: '" +
                                 m_class_averaging_method +
-                                "'. Must be 'weighted_average' or 'simple_average'." );
+                                "'. Must be 'weighted_average', 'simple_average', or "
+                                "'weighted_scaled_by_conf'." );
     }
   }
 
@@ -287,7 +276,24 @@ bool
 stereo_track_pairer
 ::use_weighted_averaging() const
 {
-  return m_class_averaging_method == "weighted_average";
+  return m_class_averaging_method == "weighted_average" ||
+         m_class_averaging_method == "weighted_scaled_by_conf";
+}
+
+// -----------------------------------------------------------------------------
+bool
+stereo_track_pairer
+::use_scaled_by_conf() const
+{
+  return m_class_averaging_method == "weighted_scaled_by_conf";
+}
+
+// -----------------------------------------------------------------------------
+std::string
+stereo_track_pairer
+::class_averaging_ignore_class() const
+{
+  return m_class_averaging_ignore_class;
 }
 
 // -----------------------------------------------------------------------------
@@ -461,7 +467,8 @@ stereo_track_pairer
     for( const auto& trk : remapped_right )
       right_by_id[trk->id()] = trk;
 
-    bool weighted = ( m_class_averaging_method == "weighted_average" );
+    bool weighted = use_weighted_averaging();
+    bool sbc = use_scaled_by_conf();
     for( auto& entry : left_by_id )
     {
       auto rit = right_by_id.find( entry.first );
@@ -483,7 +490,7 @@ stereo_track_pairer
       }
 
       auto avg_dot = compute_stereo_average_classification(
-        left_dets, right_dets, weighted );
+        left_dets, right_dets, weighted, sbc, m_class_averaging_ignore_class );
       if( avg_dot )
       {
         apply_classification_to_track( entry.second, avg_dot );
@@ -947,7 +954,8 @@ stereo_track_pairer
     for( const auto& trk : output_trks2 )
       right_by_id[trk->id()] = trk;
 
-    bool weighted = ( m_class_averaging_method == "weighted_average" );
+    bool weighted = use_weighted_averaging();
+    bool sbc = use_scaled_by_conf();
     for( auto& entry : left_by_id )
     {
       auto rit = right_by_id.find( entry.first );
@@ -969,7 +977,7 @@ stereo_track_pairer
       }
 
       auto avg_dot = compute_stereo_average_classification(
-        left_dets, right_dets, weighted );
+        left_dets, right_dets, weighted, sbc, m_class_averaging_ignore_class );
       if( avg_dot )
       {
         apply_classification_to_track( entry.second, avg_dot );

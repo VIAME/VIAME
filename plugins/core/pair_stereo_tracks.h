@@ -85,7 +85,9 @@ VIAME_CORE_EXPORT kv::detected_object_type_sptr
 compute_stereo_average_classification(
   const std::vector< kv::detected_object_sptr >& dets_left,
   const std::vector< kv::detected_object_sptr >& dets_right,
-  bool weighted );
+  bool weighted,
+  bool scale_by_conf = false,
+  const std::string& ignore_class = "" );
 
 VIAME_CORE_EXPORT void
 apply_classification_to_track(
@@ -111,6 +113,8 @@ public:
   bool output_unmatched() const;
   bool average_stereo_classes() const;
   bool use_weighted_averaging() const;
+  bool use_scaled_by_conf() const;
+  std::string class_averaging_ignore_class() const;
   kv::track_id_t allocate_track_id();
 
   // Per-frame track remapping with union-find + class averaging
@@ -147,6 +151,7 @@ private:
   double m_max_avg_surface_area = 0.0;
   bool m_average_stereo_classes = false;
   std::string m_class_averaging_method = "weighted_average";
+  std::string m_class_averaging_ignore_class;
   bool m_output_unmatched = true;
 
   // State

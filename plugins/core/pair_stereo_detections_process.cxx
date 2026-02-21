@@ -890,10 +890,12 @@ pair_stereo_detections_process
       if( d->m_track_pairer.average_stereo_classes() )
       {
         bool weighted = d->m_track_pairer.use_weighted_averaging();
+        bool sbc = d->m_track_pairer.use_scaled_by_conf();
+        std::string ign = d->m_track_pairer.class_averaging_ignore_class();
         std::vector< kv::detected_object_sptr > left_dets = { detections1[i1] };
         std::vector< kv::detected_object_sptr > right_dets = { detections2[i2] };
         auto avg_dot = compute_stereo_average_classification(
-          left_dets, right_dets, weighted );
+          left_dets, right_dets, weighted, sbc, ign );
         if( avg_dot )
         {
           detections1[i1]->set_type( avg_dot );

@@ -8,6 +8,7 @@ set( plugin_headers
   average_track_descriptors.h
   camera_io.h
   camera_rig_io.h
+  utilities_target_clfr.h
   convert_head_tail_points.h
   convert_notes_to_attributes.h
   convert_polygons_to_mask.h
@@ -56,6 +57,7 @@ set( plugin_sources
   average_track_descriptors.cxx
   camera_io.cxx
   camera_rig_io.cxx
+  utilities_target_clfr.cxx
   convert_head_tail_points.cxx
   convert_notes_to_attributes.cxx
   convert_polygons_to_mask.cxx

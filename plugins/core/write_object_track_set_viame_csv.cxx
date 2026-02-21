@@ -9,6 +9,7 @@
 
 #include "write_object_track_set_viame_csv.h"
 
+#include "utilities_target_clfr.h"
 #include "convert_notes_to_attributes.h"
 #include "utilities_segmentation.h"
 
@@ -271,95 +272,19 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr,
     return kwiver::vital::detected_object_type_sptr();
   }
 
-  std::vector< std::string > output_names;
-  std::vector< double > output_scores;
-
-  double weighted_mass = 0.0;
-  double weighted_non_ignore_mass = 0.0;
-  double weighted_ignore_mass = 0.0;
-
-  std::map< std::string, double > class_sum;
-  double ignore_sum = 0.0;
-  double conf_sum = 0.0;
-  unsigned conf_count = 0;
-
+  // Extract detections from track states
+  std::vector< kwiver::vital::detected_object_sptr > detections;
   for( auto ts_ptr : *trk_ptr )
   {
-    kwiver::vital::object_track_state* ts =
-      static_cast< kwiver::vital::object_track_state* >( ts_ptr.get() );
-
-    if( !ts->detection() )
+    auto* ts = static_cast< kwiver::vital::object_track_state* >( ts_ptr.get() );
+    if( ts->detection() )
     {
-      continue;
-    }
-
-    kwiver::vital::detected_object_type_sptr dot = ts->detection()->type();
-
-    if( dot )
-    {
-      double weight = ( weighted ? ts->detection()->confidence() : 1.0 );
-
-      if( scale_by_conf )
-      {
-        conf_sum += ts->detection()->confidence();
-        conf_count += 1;
-      }
-
-      bool ignore = ( dot->class_names().size() == 1 &&
-                      dot->class_names()[0] == ignore_class );
-
-      if( ignore )
-      {
-        ignore_sum += ( dot->score( ignore_class ) * weight );
-        weighted_ignore_mass += weight;
-      }
-      else
-      {
-        for( const auto& name : dot->class_names() )
-        {
-          class_sum[ name ] += ( dot->score( name ) * weight );
-        }
-        weighted_non_ignore_mass += weight;
-      }
-
-      weighted_mass += weight;
+      detections.push_back( ts->detection() );
     }
   }
 
-  double prob_scale_factor = 1.0;
-
-  if( scale_by_conf && conf_count > 0 )
-  {
-    prob_scale_factor = 0.1 + 0.9 * ( conf_sum / conf_count );
-  }
-
-  if( weighted_mass > 0.0 && weighted_ignore_mass == 0.0 )
-  {
-    prob_scale_factor /= weighted_mass;
-  }
-  else if( weighted_ignore_mass > 0.0 && weighted_non_ignore_mass > 0.0 )
-  {
-    prob_scale_factor /= weighted_non_ignore_mass;
-  }
-  else if( weighted_ignore_mass > 0.0 )
-  {
-    class_sum[ ignore_class ] = ignore_sum;
-    prob_scale_factor /= weighted_ignore_mass;
-  }
-
-  for( auto itr : class_sum )
-  {
-    output_names.push_back( itr.first );
-    output_scores.push_back( prob_scale_factor * itr.second );
-  }
-
-  if( output_names.empty() )
-  {
-    return kwiver::vital::detected_object_type_sptr();
-  }
-
-  return std::make_shared< kwiver::vital::detected_object_type >(
-    output_names, output_scores );
+  return core::compute_average_classification(
+    detections, weighted, scale_by_conf, ignore_class );
 }
 
 
