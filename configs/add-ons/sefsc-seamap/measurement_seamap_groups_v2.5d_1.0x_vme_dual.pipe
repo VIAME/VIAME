@@ -3,8 +3,8 @@
 #
 # Description: Stereo measurement pipeline that runs detection, classification,
 # SAM2 segmentation, head/tail keypoint identification, and tracking on BOTH
-# left and right cameras independently. Tracks are paired across cameras using
-# the pair_stereo_detections process. The core measurement process then
+# left and right cameras independently. The core measurement process handles
+# track pairing (detection matching, ID unification, class averaging) and
 # triangulates matched keypoints for 3D measurements using calibration data.
 #
 # Requires: Stereo calibration JSON file.
@@ -434,35 +434,28 @@ process track_filter_r
 connect from tracker_r.object_track_set
         to   track_filter_r.object_track_set
 
-# ============================ TRACK PAIRING ==================================
-# Pairs left and right camera tracks using per-frame matching. Matched tracks
-# are assigned aligned IDs so the measurement process can identify corresponding
-# detections.
-
-process pairer
-  :: pair_stereo_detections
-  :matching_method                             keypoint_projection
-  relativepath calibration_file =              models/seamap-cal.json
-  :max_keypoint_distance                       50.0
-  :require_class_match                         false
-  :output_unmatched                            true
-
-connect from track_filter_l.object_track_set
-        to   pairer.object_track_set1
-connect from track_filter_r.object_track_set
-        to   pairer.object_track_set2
-connect from downsampler.timestamp
-        to   pairer.timestamp
-
 # ============================= CORE MEASUREMENT ==============================
+# Measurement process now handles track pairing internally via the shared
+# stereo_track_pairer. Detection pairing uses keypoint_projection to match
+# unmatched left/right detections before measuring.
 
 process measurer
   :: compute_measurements
   relativepath calibration_file =              models/seamap-cal.json
 
-connect from pairer.object_track_set1
+  # Detection pairing for unmatched left/right tracks
+  :detection_pairing_method                    keypoint_projection
+  :detection_pairing_threshold                 50.0
+  :detection_pairing_require_class_match       false
+
+  # Track remapping (unified IDs, class averaging)
+  :output_unmatched                            true
+  :average_stereo_classes                      true
+  :class_averaging_method                      weighted_average
+
+connect from track_filter_l.object_track_set
         to   measurer.object_track_set1
-connect from pairer.object_track_set2
+connect from track_filter_r.object_track_set
         to   measurer.object_track_set2
 connect from downsampler.output_1
         to   measurer.image1
