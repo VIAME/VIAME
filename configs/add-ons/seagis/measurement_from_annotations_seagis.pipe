@@ -35,6 +35,7 @@ process measurer
   :epipolar_max_disparity                      300
   :template_size                               25
   :template_matching_threshold                 0.5
+  :length_aggregation_method                   median
 
 connect from track_reader1.object_track_set
         to   measurer.object_track_set1

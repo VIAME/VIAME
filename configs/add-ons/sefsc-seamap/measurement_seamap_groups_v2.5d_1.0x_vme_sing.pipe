@@ -131,7 +131,7 @@ process add_head_tail
   :refiner:type                                add_keypoints_from_mask
 
   block refiner:add_keypoints_from_mask
-    :method                                    oriented_bbox
+    :method                                    hull_extremes
     :clip_to_mask                              true
   endblock
 
@@ -181,7 +181,7 @@ process measurer
   # Requires Python/PyTorch with CUDA. Set to 'ncc' for NCC-only fallback.
   :epipolar_descriptor_type                    dino
   :dino_top_k                                  25
-  :dino_crop_max_area_ratio                    0.9
+  :dino_crop_max_area_ratio                    0.05
 
   # Template and search parameters
   :search_range                                200
@@ -198,7 +198,7 @@ process measurer
   # Track remapping (unified IDs, class averaging, length averaging)
   :output_unmatched                            true
   :average_stereo_classes                      true
-  :average_stereo_lengths                      true
+  :length_aggregation_method                   median
   :class_averaging_method                      weighted_scaled_by_conf
   :class_averaging_ignore_class                UNKNOWNFISH
 

@@ -172,6 +172,8 @@ process measurer
     wls_sigma                                  = 1.5
   endblock
 
+  :length_aggregation_method                   median
+
 connect from track_reader1.object_track_set
         to   measurer.object_track_set1
 connect from track_reader2.object_track_set

@@ -175,7 +175,7 @@ process add_head_tail_l
   :refiner:type                                add_keypoints_from_mask
 
   block refiner:add_keypoints_from_mask
-    :method                                    oriented_bbox
+    :method                                    hull_extremes
     :clip_to_mask                              true
   endblock
 
@@ -381,7 +381,7 @@ process add_head_tail_r
   :refiner:type                                add_keypoints_from_mask
 
   block refiner:add_keypoints_from_mask
-    :method                                    oriented_bbox
+    :method                                    hull_extremes
     :clip_to_mask                              true
   endblock
 
@@ -452,13 +452,13 @@ process measurer
   :average_stereo_classes                      true
   :class_averaging_method                      weighted_scaled_by_conf
   :class_averaging_ignore_class                UNKNOWNFISH
-  :average_stereo_lengths                      true
+  :length_aggregation_method                   median
 
   :enable_epipolar_matching                    true
-  :epipolar_min_disparity                      2
-  :epipolar_max_disparity                      300
+  :epipolar_min_depth                          500
+  :epipolar_max_depth                          10000
   :template_size                               25
-  :template_matching_threshold                 0.5
+  :template_matching_threshold                 0.1
 
 connect from track_filter_l.object_track_set
         to   measurer.object_track_set1

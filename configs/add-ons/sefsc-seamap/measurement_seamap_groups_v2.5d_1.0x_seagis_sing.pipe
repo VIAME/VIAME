@@ -131,7 +131,7 @@ process add_head_tail
   :refiner:type                                add_keypoints_from_mask
 
   block refiner:add_keypoints_from_mask
-    :method                                    oriented_bbox
+    :method                                    hull_extremes
     :clip_to_mask                              true
   endblock
 
@@ -171,17 +171,17 @@ process measurer
   relativepath left_camera_file =              models/SC6_camera3_2024.CamCAL
   relativepath right_camera_file =             models/SC6_satelliteA_2024.CamCAL
   :enable_epipolar_matching                    true
-  :epipolar_min_disparity                      2
-  :epipolar_max_disparity                      300
+  :epipolar_min_depth                          500
+  :epipolar_max_depth                          10000
   :template_size                               25
-  :template_matching_threshold                 0.5
+  :template_matching_threshold                 0.1
 
   # Track remapping (unified IDs, class averaging, length averaging)
   :output_unmatched                            true
   :average_stereo_classes                      true
   :class_averaging_method                      weighted_scaled_by_conf
   :class_averaging_ignore_class                UNKNOWNFISH
-  :average_stereo_lengths                      true
+  :length_aggregation_method                   median
 
 connect from track_filter.object_track_set
         to   measurer.object_track_set1
