@@ -198,9 +198,9 @@ process measurer
   # Track remapping (unified IDs, class averaging, length averaging)
   :output_unmatched                            true
   :average_stereo_classes                      true
+  :average_stereo_lengths                      true
   :class_averaging_method                      weighted_scaled_by_conf
   :class_averaging_ignore_class                UNKNOWNFISH
-  :average_stereo_lengths                      true
 
 connect from track_filter.object_track_set
         to   measurer.object_track_set1
