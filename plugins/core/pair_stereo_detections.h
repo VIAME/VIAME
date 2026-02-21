@@ -106,13 +106,15 @@ struct VIAME_CORE_EXPORT epipolar_iou_matching_options
 /**
  * \brief Options for keypoint projection-based stereo detection matching
  *
- * Projects left head/tail keypoints to right image using depth and camera geometry,
- * then matches based on pixel distance to right detection keypoints.
+ * When default_depth > 0: projects left head/tail keypoints to right image at
+ * that depth, then matches based on pixel distance to right detection keypoints.
+ * When default_depth <= 0: uses depth-independent epipolar line distance instead,
+ * measuring how close right keypoints are to the epipolar lines of left keypoints.
  */
 struct VIAME_CORE_EXPORT keypoint_projection_matching_options
 {
   double max_keypoint_distance = 50.0;
-  double default_depth = 5.0;
+  double default_depth = 0.0;
   bool require_class_match = true;
   bool use_optimal_assignment = true;
 

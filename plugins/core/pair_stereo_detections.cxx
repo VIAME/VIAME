@@ -28,6 +28,37 @@ namespace core
 // Utility function implementations
 // =============================================================================
 
+// Compute the distance from a 2D point to the epipolar line of a left image
+// point. The epipolar line is determined by projecting the left point at two
+// widely spaced depths and fitting a line through the resulting right image
+// points. Returns perpendicular distance in pixels.
+static double
+epipolar_line_distance(
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const kv::vector_2d& left_point,
+  const kv::vector_2d& right_point )
+{
+  // Project at two widely separated depths to define the epipolar line.
+  // The specific depth values don't matter (and are unit-independent for
+  // any reasonable calibration) as long as they are far enough apart.
+  kv::vector_2d p1 = project_left_to_right( left_cam, right_cam, left_point, 1.0 );
+  kv::vector_2d p2 = project_left_to_right( left_cam, right_cam, left_point, 1.0e8 );
+
+  // Line coefficients: a*x + b*y + c = 0
+  double a = p1.y() - p2.y();
+  double b = p2.x() - p1.x();
+  double c = p1.x() * p2.y() - p2.x() * p1.y();
+
+  double norm = std::sqrt( a * a + b * b );
+  if( norm < 1e-12 )
+  {
+    return 1e10; // Degenerate epipolar line
+  }
+
+  return std::abs( a * right_point.x() + b * right_point.y() + c ) / norm;
+}
+
 // -----------------------------------------------------------------------------
 double
 compute_stereo_reprojection_error(
@@ -925,11 +956,19 @@ find_stereo_matches_keypoint_projection(
     kv::vector_2d left_head( kp1.at( "head" )[0], kp1.at( "head" )[1] );
     kv::vector_2d left_tail( kp1.at( "tail" )[0], kp1.at( "tail" )[1] );
 
-    // Project left keypoints to right image at default depth
-    kv::vector_2d proj_head = project_left_to_right(
-      left_cam, right_cam, left_head, options.default_depth );
-    kv::vector_2d proj_tail = project_left_to_right(
-      left_cam, right_cam, left_tail, options.default_depth );
+    // When default_depth > 0, project keypoints at that depth and compare
+    // positions directly. When default_depth <= 0, use epipolar line distance
+    // which requires no depth prior (unit-independent).
+    kv::vector_2d proj_head, proj_tail;
+    bool use_epipolar = ( options.default_depth <= 0 );
+
+    if( !use_epipolar )
+    {
+      proj_head = project_left_to_right(
+        left_cam, right_cam, left_head, options.default_depth );
+      proj_tail = project_left_to_right(
+        left_cam, right_cam, left_tail, options.default_depth );
+    }
 
     for( int j = 0; j < n2; ++j )
     {
@@ -955,10 +994,23 @@ find_stereo_matches_keypoint_projection(
       kv::vector_2d right_head( kp2.at( "head" )[0], kp2.at( "head" )[1] );
       kv::vector_2d right_tail( kp2.at( "tail" )[0], kp2.at( "tail" )[1] );
 
-      // Compute average distance between projected and actual keypoints
-      double head_dist = ( proj_head - right_head ).norm();
-      double tail_dist = ( proj_tail - right_tail ).norm();
-      double avg_dist = ( head_dist + tail_dist ) / 2.0;
+      double avg_dist;
+      if( use_epipolar )
+      {
+        // Distance from right keypoints to epipolar lines of left keypoints
+        double head_dist = epipolar_line_distance(
+          left_cam, right_cam, left_head, right_head );
+        double tail_dist = epipolar_line_distance(
+          left_cam, right_cam, left_tail, right_tail );
+        avg_dist = ( head_dist + tail_dist ) / 2.0;
+      }
+      else
+      {
+        // Distance between projected and actual keypoints
+        double head_dist = ( proj_head - right_head ).norm();
+        double tail_dist = ( proj_tail - right_tail ).norm();
+        avg_dist = ( head_dist + tail_dist ) / 2.0;
+      }
 
       // Check threshold
       if( avg_dist <= options.max_keypoint_distance )
