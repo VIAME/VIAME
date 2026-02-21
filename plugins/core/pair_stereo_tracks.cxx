@@ -112,10 +112,11 @@ apply_classification_to_track(
 
 // -----------------------------------------------------------------------------
 void
-average_track_lengths(
+aggregate_track_lengths(
   const kv::track_sptr& trk1,
   const kv::track_sptr& trk2,
-  double iqr_factor )
+  double iqr_factor,
+  const std::string& method )
 {
   // Collect all lengths from both tracks
   std::vector< double > lengths;
@@ -139,39 +140,58 @@ average_track_lengths(
   collect_lengths( trk1 );
   collect_lengths( trk2 );
 
-  if( lengths.size() < 2 )
+  if( lengths.empty() )
     return;
 
-  // Sort for quartile computation
   std::sort( lengths.begin(), lengths.end() );
 
-  size_t n = lengths.size();
-  double q1 = lengths[n / 4];
-  double q3 = lengths[( 3 * n ) / 4];
-  double iqr = q3 - q1;
-  double lower = q1 - iqr_factor * iqr;
-  double upper = q3 + iqr_factor * iqr;
+  double agg_length = 0.0;
 
-  // Compute mean of inlier lengths
-  double sum = 0.0;
-  int count = 0;
-  for( double v : lengths )
+  if( method == "average_iqr" )
   {
-    if( v >= lower && v <= upper )
+    size_t n = lengths.size();
+    double q1 = lengths[n / 4];
+    double q3 = lengths[( 3 * n ) / 4];
+    double iqr = q3 - q1;
+    double lower = q1 - iqr_factor * iqr;
+    double upper = q3 + iqr_factor * iqr;
+
+    double sum = 0.0;
+    int count = 0;
+    for( double v : lengths )
     {
-      sum += v;
-      count++;
+      if( v >= lower && v <= upper )
+      {
+        sum += v;
+        count++;
+      }
     }
+
+    if( count == 0 )
+      return;
+
+    agg_length = sum / count;
+  }
+  else if( method == "average" )
+  {
+    double sum = 0.0;
+    for( double v : lengths )
+      sum += v;
+    agg_length = sum / lengths.size();
+  }
+  else // "median"
+  {
+    size_t m = lengths.size();
+    if( m % 2 == 0 )
+      agg_length = ( lengths[m / 2 - 1] + lengths[m / 2] ) / 2.0;
+    else
+      agg_length = lengths[m / 2];
   }
 
-  if( count == 0 )
-    return;
-
-  double avg_length = sum / count;
-  std::string avg_note = ":avg_length=" + std::to_string( avg_length );
+  std::string agg_note = ":avg_length=" + std::to_string( agg_length );
 
   // Apply avg_length note to all detections that have a :length= note
-  auto apply_avg = [&]( const kv::track_sptr& trk )
+  auto apply_agg = [&]( const kv::track_sptr& trk )
   {
     if( !trk )
       return;
@@ -183,14 +203,14 @@ average_track_lengths(
         double len = parse_length_from_notes( ots->detection() );
         if( len > 0.0 )
         {
-          ots->detection()->add_note( avg_note );
+          ots->detection()->add_note( agg_note );
         }
       }
     }
   };
 
-  apply_avg( trk1 );
-  apply_avg( trk2 );
+  apply_agg( trk1 );
+  apply_agg( trk2 );
 }
 
 // =============================================================================
@@ -273,10 +293,11 @@ stereo_track_pairer
     "If true, output unmatched detections as separate tracks with unique IDs. "
     "If false, only output matched detection pairs." );
 
-  config->set_value( "average_stereo_lengths",
-    std::to_string( m_average_stereo_lengths ),
-    "If true, average :length= notes across matched stereo track pairs using "
-    "IQR-based outlier removal. The averaged value is added as :avg_length= note." );
+  config->set_value( "length_aggregation_method",
+    m_length_aggregation_method,
+    "Method for aggregating :length= notes across matched stereo track pairs: "
+    "'none' (disabled), 'average' (simple mean), 'average_iqr' (mean with IQR "
+    "outlier removal), or 'median' (median). Result is added as :avg_length= note." );
 
   config->set_value( "length_outlier_iqr_factor",
     std::to_string( m_length_outlier_iqr_factor ),
@@ -313,8 +334,8 @@ stereo_track_pairer
     config->get_value< std::string >( "class_averaging_ignore_class", m_class_averaging_ignore_class );
   m_output_unmatched =
     config->get_value< bool >( "output_unmatched", m_output_unmatched );
-  m_average_stereo_lengths =
-    config->get_value< bool >( "average_stereo_lengths", m_average_stereo_lengths );
+  m_length_aggregation_method =
+    config->get_value< std::string >( "length_aggregation_method", m_length_aggregation_method );
   m_length_outlier_iqr_factor =
     config->get_value< double >( "length_outlier_iqr_factor", m_length_outlier_iqr_factor );
 
@@ -330,6 +351,17 @@ stereo_track_pairer
                                 "'. Must be 'weighted_average', 'simple_average', or "
                                 "'weighted_scaled_by_conf'." );
     }
+  }
+
+  // Validate length aggregation method
+  if( m_length_aggregation_method != "none" &&
+      m_length_aggregation_method != "average" &&
+      m_length_aggregation_method != "average_iqr" &&
+      m_length_aggregation_method != "median" )
+  {
+    throw std::runtime_error( "Invalid length_aggregation_method: '" +
+                              m_length_aggregation_method +
+                              "'. Must be 'none', 'average', 'average_iqr', or 'median'." );
   }
 
   // Validate pairing resolution method when accumulation is enabled
@@ -597,8 +629,8 @@ stereo_track_pairer
     }
   }
 
-  // Apply length averaging across matched stereo pairs if enabled
-  if( m_average_stereo_lengths )
+  // Apply length aggregation across matched stereo pairs if enabled
+  if( m_length_aggregation_method != "none" )
   {
     std::map< kv::track_id_t, kv::track_sptr > left_by_id, right_by_id;
     for( const auto& trk : remapped_left )
@@ -612,8 +644,9 @@ stereo_track_pairer
       if( rit == right_by_id.end() )
         continue;
 
-      average_track_lengths( entry.second, rit->second,
-                             m_length_outlier_iqr_factor );
+      aggregate_track_lengths( entry.second, rit->second,
+                               m_length_outlier_iqr_factor,
+                               m_length_aggregation_method );
     }
   }
 
@@ -1104,8 +1137,8 @@ stereo_track_pairer
     }
   }
 
-  // Apply length averaging across matched stereo pairs if enabled
-  if( m_average_stereo_lengths )
+  // Apply length aggregation across matched stereo pairs if enabled
+  if( m_length_aggregation_method != "none" )
   {
     std::map< kv::track_id_t, kv::track_sptr > left_by_id, right_by_id;
     for( const auto& trk : output_trks1 )
@@ -1119,8 +1152,9 @@ stereo_track_pairer
       if( rit == right_by_id.end() )
         continue;
 
-      average_track_lengths( entry.second, rit->second,
-                             m_length_outlier_iqr_factor );
+      aggregate_track_lengths( entry.second, rit->second,
+                               m_length_outlier_iqr_factor,
+                               m_length_aggregation_method );
     }
   }
 
