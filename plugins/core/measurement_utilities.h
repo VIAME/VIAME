@@ -750,6 +750,11 @@ private:
   kv::frame_id_t m_cached_frame_id;
 
 #ifdef VIAME_ENABLE_OPENCV
+  // DINO full-image feature cache: when true, dino_set_images has already been
+  // called for the full (uncropped) images this frame and can be reused across
+  // keypoints and detections. Reset by clear_feature_cache() on each new frame.
+  bool m_dino_full_images_set;
+
   // DINO crop state (computed per frame by precompute_dino_crops)
   bool m_dino_crop_active;
   cv::Rect m_dino_left_crop;

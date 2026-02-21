@@ -106,11 +106,6 @@ static PyObject* s_dino_module = nullptr;
 static bool s_dino_init_attempted = false;
 static bool s_dino_init_succeeded = false;
 
-// Track which frame is currently loaded to avoid redundant set_images calls.
-// Note: Cannot use raw data pointers because vital image containers may reuse
-// the same memory buffer across frames, making pointer comparison unreliable.
-static int64_t s_dino_cached_frame_id = -1;
-
 /// Initialize the DINOv3 matcher module and model
 bool dino_ensure_initialized(
   const std::string& model_name,
@@ -894,6 +889,7 @@ map_keypoints_to_camera
   , m_dino_crop_max_area_ratio( 0.05 )
   , m_cached_frame_id( -1 )
 #ifdef VIAME_ENABLE_OPENCV
+  , m_dino_full_images_set( false )
   , m_dino_crop_active( false )
   , m_rectification_computed( false )
 #endif
@@ -1969,164 +1965,194 @@ map_keypoints_to_camera
           cv::Mat right_bgr = kwiver::arrows::ocv::image_container::vital_to_ocv(
             right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
-          // Use cropped images for DINO if crop is active
-          cv::Mat dino_left = m_dino_crop_active ? m_dino_left_cropped : left_bgr;
-          cv::Mat dino_right = m_dino_crop_active ? m_dino_right_cropped : right_bgr;
+          int dino_img_w = left_bgr.cols;
+          int dino_img_h = left_bgr.rows;
+          int dino_right_img_w = right_bgr.cols;
+          int dino_right_img_h = right_bgr.rows;
 
-          // Only call set_images when the frame changes
-          int64_t cur_frame = static_cast< int64_t >( m_cached_frame_id );
-          if( cur_frame != s_dino_cached_frame_id )
+          // Prepare grayscale images for NCC refinement (when using top-K)
+          cv::Mat left_gray, right_gray;
+          if( m_dino_top_k > 0 )
           {
-            auto t_dino_ext_start = std::chrono::steady_clock::now();
-
-            if( dino_set_images( dino_left, dino_right ) )
-            {
-              s_dino_cached_frame_id = cur_frame;
-            }
+            if( left_bgr.channels() == 3 )
+              cv::cvtColor( left_bgr, left_gray, cv::COLOR_BGR2GRAY );
+            else if( left_bgr.channels() == 4 )
+              cv::cvtColor( left_bgr, left_gray, cv::COLOR_BGRA2GRAY );
             else
-            {
-              s_dino_cached_frame_id = -1;
-            }
+              left_gray = left_bgr;
 
-            auto t_dino_ext_end = std::chrono::steady_clock::now();
-            LOG_INFO( logger, "DINO extraction: "
-              << std::chrono::duration_cast< std::chrono::milliseconds >(
-                   t_dino_ext_end - t_dino_ext_start ).count() << "ms ("
-              << dino_left.cols << "x" << dino_left.rows
-              << ( m_dino_crop_active ? " crop" : " full" ) << ")" );
+            if( right_bgr.channels() == 3 )
+              cv::cvtColor( right_bgr, right_gray, cv::COLOR_BGR2GRAY );
+            else if( right_bgr.channels() == 4 )
+              cv::cvtColor( right_bgr, right_gray, cv::COLOR_BGRA2GRAY );
+            else
+              right_gray = right_bgr;
           }
 
-          if( s_dino_cached_frame_id >= 0 )
-          {
-            descriptor_available = true;
+          // Per-keypoint DINO matching: computes a small crop around each
+          // source keypoint and its epipolar search region, then runs DINO
+          // feature extraction on the cropped images. This gives more
+          // discriminative features than a single per-frame crop because
+          // each keypoint gets a focused, small input image.
+          int crop_pad = m_template_size / 2 + 16;
+          int dino_patch_size = 14;
 
-            // Compute crop offsets for DINO coordinate transformation
-            double left_off_x = m_dino_crop_active ? m_dino_left_crop.x : 0;
-            double left_off_y = m_dino_crop_active ? m_dino_left_crop.y : 0;
-            double right_off_x = m_dino_crop_active ? m_dino_right_crop.x : 0;
-            double right_off_y = m_dino_crop_active ? m_dino_right_crop.y : 0;
+          auto match_kp_dino = [&](
+            const kv::vector_2d& src_pt,
+            const std::vector< kv::vector_2d >& epi_pts,
+            kv::vector_2d& target_pt ) -> bool
+          {
+            if( epi_pts.empty() )
+              return false;
+
+            // Compute per-keypoint crop regions
+            bool kp_crop_active = false;
+            cv::Rect kp_left_crop, kp_right_crop;
+
+            if( m_dino_crop_max_area_ratio > 0.0 )
+            {
+              double full_area = static_cast< double >( dino_img_w ) * dino_img_h;
+
+              // Epipolar bounding box for this keypoint
+              double epi_min_x = epi_pts[0].x(), epi_max_x = epi_pts[0].x();
+              double epi_min_y = epi_pts[0].y(), epi_max_y = epi_pts[0].y();
+              for( const auto& ep : epi_pts )
+              {
+                epi_min_x = std::min( epi_min_x, ep.x() );
+                epi_max_x = std::max( epi_max_x, ep.x() );
+                epi_min_y = std::min( epi_min_y, ep.y() );
+                epi_max_y = std::max( epi_max_y, ep.y() );
+              }
+
+              double epi_area = ( epi_max_x - epi_min_x ) * ( epi_max_y - epi_min_y );
+
+              if( full_area > 0 && epi_area / full_area <= m_dino_crop_max_area_ratio )
+              {
+                // Left crop: small region around the source keypoint
+                int lx0 = std::max( 0, static_cast< int >( src_pt.x() ) - crop_pad );
+                int ly0 = std::max( 0, static_cast< int >( src_pt.y() ) - crop_pad );
+                int lx1 = std::min( dino_img_w, static_cast< int >( src_pt.x() ) + crop_pad );
+                int ly1 = std::min( dino_img_h, static_cast< int >( src_pt.y() ) + crop_pad );
+
+                // Align to DINO patch size
+                int lw = ( ( lx1 - lx0 + dino_patch_size - 1 ) / dino_patch_size ) * dino_patch_size;
+                int lh = ( ( ly1 - ly0 + dino_patch_size - 1 ) / dino_patch_size ) * dino_patch_size;
+                lx1 = std::min( dino_img_w, lx0 + lw );
+                ly1 = std::min( dino_img_h, ly0 + lh );
+
+                // Right crop: epipolar bounding box with padding
+                int rx0 = std::max( 0, static_cast< int >( std::floor( epi_min_x ) ) - crop_pad );
+                int ry0 = std::max( 0, static_cast< int >( std::floor( epi_min_y ) ) - crop_pad );
+                int rx1 = std::min( dino_right_img_w, static_cast< int >( std::ceil( epi_max_x ) ) + crop_pad );
+                int ry1 = std::min( dino_right_img_h, static_cast< int >( std::ceil( epi_max_y ) ) + crop_pad );
+
+                int rw = ( ( rx1 - rx0 + dino_patch_size - 1 ) / dino_patch_size ) * dino_patch_size;
+                int rh = ( ( ry1 - ry0 + dino_patch_size - 1 ) / dino_patch_size ) * dino_patch_size;
+                rx1 = std::min( dino_right_img_w, rx0 + rw );
+                ry1 = std::min( dino_right_img_h, ry0 + rh );
+
+                kp_left_crop = cv::Rect( lx0, ly0, lx1 - lx0, ly1 - ly0 );
+                kp_right_crop = cv::Rect( rx0, ry0, rx1 - rx0, ry1 - ry0 );
+                kp_crop_active = true;
+              }
+            }
+
+            // Skip DINO extraction when using full images that are already cached
+            // for this frame (across keypoints and detections)
+            if( kp_crop_active || !m_dino_full_images_set )
+            {
+              cv::Mat dino_left = kp_crop_active ?
+                left_bgr( kp_left_crop ).clone() : left_bgr;
+              cv::Mat dino_right = kp_crop_active ?
+                right_bgr( kp_right_crop ).clone() : right_bgr;
+
+              auto t_dino_start = std::chrono::steady_clock::now();
+              bool ok = dino_set_images( dino_left, dino_right );
+              auto t_dino_end = std::chrono::steady_clock::now();
+
+              LOG_INFO( logger, "DINO extraction: "
+                << std::chrono::duration_cast< std::chrono::milliseconds >(
+                     t_dino_end - t_dino_start ).count() << "ms ("
+                << dino_left.cols << "x" << dino_left.rows
+                << ( kp_crop_active ? " per-kp crop" : " full" ) << ")" );
+
+              if( !ok )
+                return false;
+
+              if( !kp_crop_active )
+                m_dino_full_images_set = true;
+            }
+
+            double kp_left_off_x = kp_crop_active ? kp_left_crop.x : 0;
+            double kp_left_off_y = kp_crop_active ? kp_left_crop.y : 0;
+            double kp_right_off_x = kp_crop_active ? kp_right_crop.x : 0;
+            double kp_right_off_y = kp_crop_active ? kp_right_crop.y : 0;
 
             if( m_dino_top_k > 0 )
             {
-              // Two-stage: DINO top-K filtering + NCC refinement
-              // Prepare grayscale images for NCC (always full resolution)
-              cv::Mat left_gray, right_gray;
-              if( left_bgr.channels() == 3 )
-                cv::cvtColor( left_bgr, left_gray, cv::COLOR_BGR2GRAY );
-              else if( left_bgr.channels() == 4 )
-                cv::cvtColor( left_bgr, left_gray, cv::COLOR_BGRA2GRAY );
-              else
-                left_gray = left_bgr;
+              // Offset epipolar points for DINO crop coordinates
+              std::vector< kv::vector_2d > dino_epi;
+              dino_epi.reserve( epi_pts.size() );
+              for( const auto& pt : epi_pts )
+                dino_epi.push_back( kv::vector_2d(
+                  pt.x() - kp_right_off_x, pt.y() - kp_right_off_y ) );
 
-              if( right_bgr.channels() == 3 )
-                cv::cvtColor( right_bgr, right_gray, cv::COLOR_BGR2GRAY );
-              else if( right_bgr.channels() == 4 )
-                cv::cvtColor( right_bgr, right_gray, cv::COLOR_BGRA2GRAY );
-              else
-                right_gray = right_bgr;
+              double dino_src_x = src_pt.x() - kp_left_off_x;
+              double dino_src_y = src_pt.y() - kp_left_off_y;
 
-              // Head: offset coords for DINO, get top-K, NCC uses original coords
-              std::vector< kv::vector_2d > dino_epipolar_head;
-              dino_epipolar_head.reserve( epipolar_head.size() );
-              for( const auto& pt : epipolar_head )
-              {
-                dino_epipolar_head.push_back(
-                  kv::vector_2d( pt.x() - right_off_x, pt.y() - right_off_y ) );
-              }
+              auto indices = dino_get_top_k_indices(
+                dino_src_x, dino_src_y, dino_epi, m_dino_top_k );
 
-              auto t_dino_match_start = std::chrono::steady_clock::now();
+              LOG_INFO( logger, "DINO top-K: src=(" << src_pt.x() << "," << src_pt.y()
+                << ") crop_src=(" << dino_src_x << "," << dino_src_y
+                << ") epi_pts=" << dino_epi.size()
+                << " top_k=" << indices.size()
+                << " left_img=" << left_bgr.cols << "x" << left_bgr.rows
+                << " right_img=" << right_bgr.cols << "x" << right_bgr.rows
+                << " cached=" << ( m_dino_full_images_set ? "yes" : "no" ) );
 
-              auto head_indices = dino_get_top_k_indices(
-                result.left_head.x() - left_off_x, result.left_head.y() - left_off_y,
-                dino_epipolar_head, m_dino_top_k );
+              if( indices.empty() )
+                return false;
 
-              // Tail: same approach
-              std::vector< kv::vector_2d > dino_epipolar_tail;
-              dino_epipolar_tail.reserve( epipolar_tail.size() );
-              for( const auto& pt : epipolar_tail )
-              {
-                dino_epipolar_tail.push_back(
-                  kv::vector_2d( pt.x() - right_off_x, pt.y() - right_off_y ) );
-              }
+              std::vector< kv::vector_2d > filtered;
+              filtered.reserve( indices.size() );
+              for( int idx : indices )
+                filtered.push_back( epi_pts[idx] );
 
-              auto tail_indices = dino_get_top_k_indices(
-                result.left_tail.x() - left_off_x, result.left_tail.y() - left_off_y,
-                dino_epipolar_tail, m_dino_top_k );
+              // NCC refinement on full-resolution grayscale images
+              bool ncc_ok = find_corresponding_point_epipolar_template_matching(
+                left_gray, right_gray, src_pt, filtered, target_pt );
 
-              auto t_dino_match_end = std::chrono::steady_clock::now();
-              LOG_INFO( logger, "DINO matching (2 kps): "
-                << std::chrono::duration_cast< std::chrono::milliseconds >(
-                     t_dino_match_end - t_dino_match_start ).count() << "ms" );
+              LOG_INFO( logger, "NCC result: " << ( ncc_ok ? "MATCHED" : "REJECTED" )
+                << " src=(" << src_pt.x() << "," << src_pt.y() << ")"
+                << " gray_type=" << left_gray.type()
+                << " gray_size=" << left_gray.cols << "x" << left_gray.rows );
 
-              auto t_ncc_refine_start = std::chrono::steady_clock::now();
-
-              if( !head_indices.empty() )
-              {
-                // Indices map 1:1 to original epipolar arrays
-                std::vector< kv::vector_2d > filtered_head;
-                filtered_head.reserve( head_indices.size() );
-                for( int idx : head_indices )
-                {
-                  filtered_head.push_back( epipolar_head[idx] );
-                }
-                head_found = find_corresponding_point_epipolar_template_matching(
-                  left_gray, right_gray, result.left_head,
-                  filtered_head, result.right_head );
-              }
-
-              if( !tail_indices.empty() )
-              {
-                std::vector< kv::vector_2d > filtered_tail;
-                filtered_tail.reserve( tail_indices.size() );
-                for( int idx : tail_indices )
-                {
-                  filtered_tail.push_back( epipolar_tail[idx] );
-                }
-                tail_found = find_corresponding_point_epipolar_template_matching(
-                  left_gray, right_gray, result.left_tail,
-                  filtered_tail, result.right_tail );
-              }
-
-              auto t_ncc_refine_end = std::chrono::steady_clock::now();
-              LOG_INFO( logger, "NCC refinement (top-K): "
-                << std::chrono::duration_cast< std::chrono::milliseconds >(
-                     t_ncc_refine_end - t_ncc_refine_start ).count() << "ms" );
+              return ncc_ok;
             }
             else
             {
-              // DINO-only mode (no NCC refinement)
-              // Offset epipolar points for DINO coordinate space
-              std::vector< kv::vector_2d > dino_epi_head, dino_epi_tail;
-              dino_epi_head.reserve( epipolar_head.size() );
-              dino_epi_tail.reserve( epipolar_tail.size() );
-              for( const auto& pt : epipolar_head )
-                dino_epi_head.push_back( kv::vector_2d( pt.x() - right_off_x, pt.y() - right_off_y ) );
-              for( const auto& pt : epipolar_tail )
-                dino_epi_tail.push_back( kv::vector_2d( pt.x() - right_off_x, pt.y() - right_off_y ) );
+              // DINO-only mode
+              std::vector< kv::vector_2d > dino_epi;
+              dino_epi.reserve( epi_pts.size() );
+              for( const auto& pt : epi_pts )
+                dino_epi.push_back( kv::vector_2d(
+                  pt.x() - kp_right_off_x, pt.y() - kp_right_off_y ) );
 
-              auto head_match = dino_match_point(
-                result.left_head.x() - left_off_x, result.left_head.y() - left_off_y,
-                dino_epi_head, m_dino_threshold );
-              auto tail_match = dino_match_point(
-                result.left_tail.x() - left_off_x, result.left_tail.y() - left_off_y,
-                dino_epi_tail, m_dino_threshold );
+              auto match = dino_match_point(
+                src_pt.x() - kp_left_off_x, src_pt.y() - kp_left_off_y,
+                dino_epi, m_dino_threshold );
 
-              head_found = head_match.success;
-              tail_found = tail_match.success;
-
-              // Convert back to full-image coordinates
-              if( head_found )
-              {
-                result.right_head = kv::vector_2d(
-                  head_match.x + right_off_x, head_match.y + right_off_y );
-              }
-              if( tail_found )
-              {
-                result.right_tail = kv::vector_2d(
-                  tail_match.x + right_off_x, tail_match.y + right_off_y );
-              }
+              if( match.success )
+                target_pt = kv::vector_2d(
+                  match.x + kp_right_off_x, match.y + kp_right_off_y );
+              return match.success;
             }
-          }
+          };
+
+          descriptor_available = true;
+          head_found = match_kp_dino( result.left_head, epipolar_head, result.right_head );
+          tail_found = match_kp_dino( result.left_tail, epipolar_tail, result.right_tail );
         }
       }
 #endif // VIAME_ENABLE_PYTHON
@@ -2629,6 +2655,9 @@ map_keypoints_to_camera
   m_cached_right_descriptors.reset();
   m_cached_matches.reset();
   m_cached_compute_disparity.reset();
+#ifdef VIAME_ENABLE_OPENCV
+  m_dino_full_images_set = false;
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -3364,6 +3393,11 @@ map_keypoints_to_camera
 
   if( best_score < m_template_matching_threshold )
   {
+    LOG_INFO( logger, "NCC REJECT: threshold best_score=" << best_score
+      << " < " << m_template_matching_threshold
+      << " second=" << second_best_score
+      << " src=(" << source_point.x() << "," << source_point.y() << ")"
+      << " n_pts=" << epipolar_points.size() );
     return false;
   }
 
@@ -3373,9 +3407,19 @@ map_keypoints_to_camera
     double ratio = second_best_score / best_score;
     if( ratio > m_uniqueness_ratio )
     {
+      LOG_INFO( logger, "NCC REJECT: uniqueness best=" << best_score
+        << " second=" << second_best_score
+        << " ratio=" << ratio << " > " << m_uniqueness_ratio
+        << " src=(" << source_point.x() << "," << source_point.y() << ")"
+        << " best_pt=(" << best_point.x() << "," << best_point.y() << ")" );
       return false;
     }
   }
+
+  LOG_INFO( logger, "NCC ACCEPT: best=" << best_score
+    << " second=" << second_best_score
+    << " src=(" << source_point.x() << "," << source_point.y() << ")"
+    << " match=(" << best_point.x() << "," << best_point.y() << ")" );
 
   target_point = best_point;
   return true;
