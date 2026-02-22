@@ -170,6 +170,12 @@ process measurer
   :template_size                               25
   :template_matching_threshold                 0.1
 
+  # Epipolar matching descriptor type: 'ncc' (default), 'ncc_strip', or 'dino'
+  :epipolar_descriptor_type                    dino
+  :dino_top_k                                  25
+  :dino_crop_max_area_ratio                    0.05
+  :uniqueness_ratio                            0.85
+
   # Track remapping (unified IDs, class averaging, length averaging)
   :output_unmatched                            true
   :average_stereo_classes                      true
