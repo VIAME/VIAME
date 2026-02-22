@@ -76,7 +76,7 @@ process measurer
   #     Reduces false matches on repetitive textures. Requires Python + PyTorch.
   :epipolar_descriptor_type                    dino
   :dino_model_name                            dinov2_vitb14
-  :dino_top_k                                 100
+  :dino_top_k                                 25
   relativepath dino_weights_path =            models/dinov2_vitb14.pth
 
   # DINO crop optimization: fraction of image area above which cropping is
