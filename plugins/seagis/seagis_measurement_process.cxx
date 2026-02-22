@@ -106,6 +106,30 @@ create_config_trait( template_matching_threshold, double, "0.5",
 create_config_trait( use_census_transform, bool, "false",
   "If true, use census transform preprocessing for epipolar template matching." );
 
+create_config_trait( epipolar_descriptor_type, std::string, "ncc",
+  "Descriptor type for epipolar matching: 'ncc' (default), 'ncc_strip', or 'dino'. "
+  "'dino' uses a two-stage DINO + NCC matching approach (requires Python)." );
+
+create_config_trait( uniqueness_ratio, double, "0.85",
+  "Uniqueness ratio for NCC template matching (Lowe's ratio test). "
+  "Set to 0 to disable. Lower values are more strict." );
+
+create_config_trait( dino_model_name, std::string, "dinov2_vitb14",
+  "DINO model name when epipolar_descriptor_type is 'dino'." );
+
+create_config_trait( dino_threshold, double, "0.0",
+  "Minimum cosine similarity threshold for DINO matching (0.0 to 1.0)." );
+
+create_config_trait( dino_weights_path, std::string, "",
+  "Optional path to local DINO weights file. Empty string uses default URL." );
+
+create_config_trait( dino_top_k, int, "25",
+  "Number of top DINO candidates to pass to NCC refinement. "
+  "Set to 0 to use DINO-only matching without NCC refinement." );
+
+create_config_trait( dino_crop_max_area_ratio, double, "0.05",
+  "Maximum fraction of full image area for DINO crop before falling back to full images." );
+
 create_config_trait( assume_inputs_paired, bool, "true",
   "If true (default), assume the two input track sets are pre-paired: detections "
   "with the same track ID across cameras are treated as corresponding stereo pairs. "
@@ -197,15 +221,6 @@ public:
     CAMERA_ID cam_id,
     const kv::vector_2d& pt );
 
-#ifdef VIAME_ENABLE_OPENCV
-  // Find corresponding point in the other camera using epipolar template matching
-  bool find_corresponding_point_epipolar(
-    CAMERA_ID source_cam_id,
-    const cv::Mat& source_image,
-    const cv::Mat& target_image,
-    const kv::vector_2d& source_point,
-    kv::vector_2d& target_point );
-#endif
 };
 
 
@@ -336,30 +351,6 @@ seagis_measurement_process::priv
 }
 
 
-#ifdef VIAME_ENABLE_OPENCV
-// -----------------------------------------------------------------------------
-bool
-seagis_measurement_process::priv
-::find_corresponding_point_epipolar(
-  CAMERA_ID source_cam_id,
-  const cv::Mat& source_image,
-  const cv::Mat& target_image,
-  const kv::vector_2d& source_point,
-  kv::vector_2d& target_point )
-{
-  auto epipolar_points = get_epipolar_points( source_cam_id, source_point );
-
-  if( epipolar_points.empty() )
-  {
-    return false;
-  }
-
-  return m_utilities.find_corresponding_point_epipolar_template_matching(
-    source_image, target_image, source_point, epipolar_points, target_point );
-}
-#endif
-
-
 // =============================================================================
 seagis_measurement_process
 ::seagis_measurement_process( kv::config_block_sptr const& config )
@@ -418,6 +409,13 @@ seagis_measurement_process
   declare_config_using_trait( template_size );
   declare_config_using_trait( template_matching_threshold );
   declare_config_using_trait( use_census_transform );
+  declare_config_using_trait( epipolar_descriptor_type );
+  declare_config_using_trait( uniqueness_ratio );
+  declare_config_using_trait( dino_model_name );
+  declare_config_using_trait( dino_threshold );
+  declare_config_using_trait( dino_weights_path );
+  declare_config_using_trait( dino_top_k );
+  declare_config_using_trait( dino_crop_max_area_ratio );
   declare_config_using_trait( assume_inputs_paired );
   declare_config_using_trait( detection_pairing_method );
   declare_config_using_trait( detection_pairing_threshold );
@@ -476,6 +474,20 @@ seagis_measurement_process
       0.0 /* disparity unused */, false /* sgbm hint */,
       false /* multires */, 4 /* multires step */,
       census, 0 /* epipolar band */ );
+  }
+
+  // Configure epipolar descriptor type and DINO parameters
+  {
+    std::string desc_type = config_value_using_trait( epipolar_descriptor_type );
+    d->m_utilities.set_epipolar_descriptor_type( desc_type );
+    d->m_utilities.set_uniqueness_ratio(
+      config_value_using_trait( uniqueness_ratio ) );
+    d->m_utilities.set_dino_params(
+      config_value_using_trait( dino_model_name ),
+      config_value_using_trait( dino_threshold ),
+      config_value_using_trait( dino_weights_path ),
+      config_value_using_trait( dino_top_k ),
+      config_value_using_trait( dino_crop_max_area_ratio ) );
   }
 
   if( d->m_left_camera_file.empty() )
@@ -941,31 +953,15 @@ seagis_measurement_process
   // Epipolar matching for detections where only one camera has keypoints
   if( d->m_enable_epipolar_matching && input_images.size() >= 2 )
   {
-    // Convert input images to grayscale cv::Mat
-    cv::Mat left_gray, right_gray;
+    // Convert input images to BGR cv::Mat (shared method handles grayscale internally)
+    cv::Mat left_bgr = kwiver::arrows::ocv::image_container::vital_to_ocv(
+      input_images[0]->get_image(),
+      kwiver::arrows::ocv::image_container::BGR_COLOR );
+    cv::Mat right_bgr = kwiver::arrows::ocv::image_container::vital_to_ocv(
+      input_images[1]->get_image(),
+      kwiver::arrows::ocv::image_container::BGR_COLOR );
 
-    {
-      cv::Mat left_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
-        input_images[0]->get_image(),
-        kwiver::arrows::ocv::image_container::BGR_COLOR );
-      cv::Mat right_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
-        input_images[1]->get_image(),
-        kwiver::arrows::ocv::image_container::BGR_COLOR );
-
-      if( left_cv.channels() == 3 )
-        cv::cvtColor( left_cv, left_gray, cv::COLOR_BGR2GRAY );
-      else if( left_cv.channels() == 4 )
-        cv::cvtColor( left_cv, left_gray, cv::COLOR_BGRA2GRAY );
-      else
-        left_gray = left_cv;
-
-      if( right_cv.channels() == 3 )
-        cv::cvtColor( right_cv, right_gray, cv::COLOR_BGR2GRAY );
-      else if( right_cv.channels() == 4 )
-        cv::cvtColor( right_cv, right_gray, cv::COLOR_BGRA2GRAY );
-      else
-        right_gray = right_cv;
-    }
+    d->m_utilities.clear_feature_cache();
 
     for( const kv::track_id_t& id : common_ids )
     {
@@ -1011,10 +1007,13 @@ seagis_measurement_process
         left_head = kv::vector_2d( kp1.at("head")[0], kp1.at("head")[1] );
         left_tail = kv::vector_2d( kp1.at("tail")[0], kp1.at("tail")[1] );
 
-        head_found = d->find_corresponding_point_epipolar(
-          LEFT, left_gray, right_gray, left_head, right_head );
-        tail_found = d->find_corresponding_point_epipolar(
-          LEFT, left_gray, right_gray, left_tail, right_tail );
+        auto epi_head = d->get_epipolar_points( LEFT, left_head );
+        auto epi_tail = d->get_epipolar_points( LEFT, left_tail );
+
+        head_found = d->m_utilities.find_corresponding_point_epipolar(
+          left_bgr, right_bgr, left_head, epi_head, right_head );
+        tail_found = d->m_utilities.find_corresponding_point_epipolar(
+          left_bgr, right_bgr, left_tail, epi_tail, right_tail );
       }
       else if( right_has_kp && !left_has_kp )
       {
@@ -1022,10 +1021,13 @@ seagis_measurement_process
         right_head = kv::vector_2d( kp2.at("head")[0], kp2.at("head")[1] );
         right_tail = kv::vector_2d( kp2.at("tail")[0], kp2.at("tail")[1] );
 
-        head_found = d->find_corresponding_point_epipolar(
-          RIGHT, right_gray, left_gray, right_head, left_head );
-        tail_found = d->find_corresponding_point_epipolar(
-          RIGHT, right_gray, left_gray, right_tail, left_tail );
+        auto epi_head = d->get_epipolar_points( RIGHT, right_head );
+        auto epi_tail = d->get_epipolar_points( RIGHT, right_tail );
+
+        head_found = d->m_utilities.find_corresponding_point_epipolar(
+          right_bgr, left_bgr, right_head, epi_head, left_head );
+        tail_found = d->m_utilities.find_corresponding_point_epipolar(
+          right_bgr, left_bgr, right_tail, epi_tail, left_tail );
       }
 
       if( head_found && tail_found )

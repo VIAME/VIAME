@@ -184,7 +184,22 @@ class DINOMatcher:
         _, _, h_pad, w_pad = tensor.shape
         h_feat = h_pad // self._patch_size
         w_feat = w_pad // self._patch_size
-        features = self._model.forward_features(tensor)
+        # GPU contention with other pipeline processes (classifier, SAM2)
+        # can cause sporadic "No available kernel" errors.  Retry up to
+        # 3 times after clearing the CUDA cache and waiting briefly.
+        max_retries = 3 if tensor.is_cuda else 0
+        for attempt in range(max_retries + 1):
+            try:
+                features = self._model.forward_features(tensor)
+                break
+            except RuntimeError as e:
+                if "No available kernel" in str(e) and attempt < max_retries:
+                    import time
+                    torch.cuda.empty_cache()
+                    torch.cuda.synchronize()
+                    time.sleep(0.05 * (attempt + 1))
+                else:
+                    raise
         patch_tokens = features["x_norm_patchtokens"]
         feat_map = patch_tokens.reshape(1, h_feat, w_feat, -1)
         feat_map = feat_map.permute(0, 3, 1, 2)

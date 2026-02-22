@@ -450,6 +450,17 @@ public:
                            bool use_disparity_aware_search = false,
                            double feature_search_depth = 5.0 );
 
+  /// Set DINO matching parameters
+  void set_dino_params( const std::string& model_name, double threshold,
+                        const std::string& weights_path, int top_k,
+                        double crop_max_area_ratio );
+
+  /// Set the epipolar descriptor type ('ncc', 'ncc_strip', or 'dino')
+  void set_epipolar_descriptor_type( const std::string& descriptor_type );
+
+  /// Set the uniqueness ratio for NCC template matching
+  void set_uniqueness_ratio( double ratio );
+
   /// Set bounding box scale factor for creating detections from keypoints
   void set_box_scale_factor( double scale_factor );
 
@@ -645,6 +656,16 @@ public:
     const kv::vector_2d& source_point,
     const std::vector< kv::vector_2d >& epipolar_points,
     kv::vector_2d& target_point ) const;
+
+  /// Find corresponding point along pre-computed epipolar candidates using
+  /// the configured descriptor type (ncc, ncc_strip, or dino+ncc).
+  /// Takes BGR images; derives grayscale internally when needed for NCC.
+  bool find_corresponding_point_epipolar(
+    const cv::Mat& source_bgr,
+    const cv::Mat& target_bgr,
+    const kv::vector_2d& source_point,
+    const std::vector< kv::vector_2d >& epipolar_points,
+    kv::vector_2d& target_point );
 
   /// Find corresponding point using strip-based NCC along an epipolar curve.
   /// Instead of scoring each candidate point individually, this method
