@@ -191,7 +191,7 @@ def ultralytics_result_to_kwimage(result, classes=None):
     # TODO: make sure the model names map is always in order
     # if not then modify it to be in the correct order
     dets = kwimage.Detections(
-        boxes=kwimage.Boxes(result.boxes.xywh, format='xywh'),
+        boxes=kwimage.Boxes(result.boxes.xyxy, format='xyxy'),
         scores=result.boxes.conf,
         class_idxs=result.boxes.cls.int(),
         classes=classes,
