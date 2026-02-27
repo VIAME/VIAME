@@ -1,14 +1,14 @@
-v0.22.1 - 2/23/2026
+v0.22.1 - 2/28/2026
 ===================
 
 
--Stereo measurement pipeline modifications (add epipolar line search on unrectified)
+-Stereo measurement pipeline modifications (add epipolar line search on unrectified opt)
 
 
 -Fix point-based segmentation on stereo data
 
 
--Add joint segmentation and stereo warping pipelines
+-Add initial joint segmentation and stereo warping pipelines
 
 
 
