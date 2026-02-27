@@ -1,0 +1,209 @@
+# =============================================================================
+# Title: Measurement from annotations pipeline
+#
+# Description: Measurement from annotations pipeline
+#
+# =============================================================================
+
+# ============================= GLOBAL PROPERTIES =============================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    20
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ================================ DATA INPUTS ================================
+
+include common_stereo_input_with_tracks.pipe
+
+# ============================ MEASUREMENT PROCESS ============================
+
+process measurer
+  :: compute_measurements
+  :calibration_file                            ./calibration_matrices.npz
+  :matching_methods                            input_pairs_only,epipolar_template_matching
+
+  # ---------------------------------------------------------------------------
+  # Depth projection parameters
+  # ---------------------------------------------------------------------------
+  # Default depth for projection (must be in same units as calibration T vector,
+  # e.g. millimeters if T is in mm). Used by depth_projection and as a fallback
+  # hint for other methods.
+  :default_depth                               4420
+
+  # ---------------------------------------------------------------------------
+  # Template matching parameters (for template_matching method)
+  # ---------------------------------------------------------------------------
+  # Operates on rectified images, searches along the horizontal epipolar line.
+  # Best accuracy (~1.6px) but may miss detections near image edges or in
+  # textureless regions.
+  :search_range                                200
+  :template_matching_threshold                 0.2
+  :epipolar_band_halfwidth                     2
+  :use_multires_search                         false
+  :use_disparity_hint                          false
+
+  # ---------------------------------------------------------------------------
+  # Epipolar template matching parameters (for epipolar_template_matching method)
+  # ---------------------------------------------------------------------------
+  # Operates on unrectified images, searches along the computed epipolar curve.
+  # Best overall method: ~1.9px mean error with highest match rate (5/5).
+  #
+  # The search range can be specified in two ways:
+  #   1. Disparity-based (recommended, unit-independent): Set
+  #      epipolar_min_disparity / epipolar_max_disparity in pixels. Disparity
+  #      is how far a point shifts between the L and R images and can be
+  #      measured directly without knowing calibration units.
+  #   2. Depth-based: Set epipolar_min_depth / epipolar_max_depth in the same
+  #      units as the calibration T vector (e.g. mm if T is in mm). Only used
+  #      when both disparity parameters are 0.
+  :template_size                               25
+  :epipolar_min_disparity                      7
+  :epipolar_max_disparity                      724
+  # :epipolar_min_depth                        2000
+  # :epipolar_max_depth                        200000
+  :epipolar_num_samples                        5000
+  :use_census_transform                        false
+
+  # Descriptor type for epipolar matching:
+  #   'ncc' (default): NCC template matching only (point-by-point).
+  #   'ncc_strip': FFT-accelerated NCC on strip covering epipolar bounding box.
+  #     Faster than point-by-point NCC for large candidate sets. No Python needed.
+  #   'dino': Two-stage DINO + NCC. DINO features select the top-K
+  #     semantically similar candidates, then NCC picks the precise match.
+  #     Reduces false matches on repetitive textures. Requires Python + PyTorch.
+  :epipolar_descriptor_type                    dino
+  :dino_model_name                            dinov2_vitb14
+  :dino_top_k                                 25
+  relativepath dino_weights_path =            models/dinov2_vitb14.pth
+
+  # DINO crop optimization: fraction of image area above which cropping is
+  # skipped and DINO runs on the full image. Default 0.5.
+  :dino_crop_max_area_ratio                   0.5
+
+  # Alternative: strip-based NCC (no DINO/Python needed, FFT-based):
+  # :epipolar_descriptor_type                  ncc_strip
+
+  # Debug: set to a directory path to write images with epipolar search curves
+  # overlaid. Each keypoint produces a side-by-side image showing the source
+  # point (left) and the bounded epipolar curve with match point (right).
+  # :debug_epipolar_directory                    ./epipolar_debug
+
+  # ---------------------------------------------------------------------------
+  # Feature-based matching parameters (for feature_descriptor / ransac_feature)
+  # ---------------------------------------------------------------------------
+  # Feature matching finds correspondences globally then filters by proximity
+  # to the query keypoint. Accuracy is limited (~16px with SIFT) because matched
+  # features may not coincide with exact keypoint locations.
+  :feature_search_radius                       200
+  :use_disparity_aware_feature_search          true
+  :feature_search_depth                        4420
+  :ransac_inlier_scale                         5.0
+  :min_ransac_inliers                          4
+
+  # ---------------------------------------------------------------------------
+  # Depth consistency check
+  # ---------------------------------------------------------------------------
+  # When both head and tail keypoints are matched, their triangulated depths
+  # are compared. If the ratio exceeds this threshold, the deeper keypoint is
+  # rejected (converted to partial match, no length measurement).
+  # Set to 0 to disable. Default is 1.5.
+  :depth_consistency_max_ratio                 1.5
+
+  # ---------------------------------------------------------------------------
+  # Bounding box parameters
+  # ---------------------------------------------------------------------------
+  :box_scale_factor                            1.10
+  :box_min_aspect_ratio                        0.10
+
+  # ---------------------------------------------------------------------------
+  # Feature detector configuration (for feature_descriptor / ransac_feature)
+  # ---------------------------------------------------------------------------
+  # Options: ocv_BRISK, ocv_FAST, ocv_GFTT, ocv_ORB, ocv_SIFT, ocv_SURF, etc.
+  feature_detector:type                        = ocv_SIFT
+
+  block feature_detector:ocv_ORB
+    n_features                                 = 2000
+    scale_factor                               = 1.2
+    n_levels                                   = 8
+  endblock
+
+  # Descriptor extractor configuration
+  # Options: ocv_BRISK, ocv_BRIEF, ocv_ORB, ocv_SIFT, ocv_SURF, etc.
+  descriptor_extractor:type                    = ocv_SIFT
+
+  block descriptor_extractor:ocv_ORB
+    n_features                                 = 2000
+    scale_factor                               = 1.2
+    n_levels                                   = 8
+  endblock
+
+  # Feature matcher configuration
+  # Options: ocv_brute_force, ocv_flann_based
+  feature_matcher:type                         = ocv_flann_based
+
+  block feature_matcher:ocv_brute_force
+    cross_check                                = true
+  endblock
+
+  # Fundamental matrix estimator configuration (for ransac_feature method)
+  # Options: ocv, vxl
+  fundamental_matrix_estimator:type            = ocv
+
+  # ---------------------------------------------------------------------------
+  # Stereo disparity configuration (for compute_disparity method)
+  # ---------------------------------------------------------------------------
+  # Note: compute_disparity uses SGBM to produce a dense disparity map, then
+  # looks up disparity at specific keypoint locations. This can be unreliable
+  # when keypoints fall in textureless or occluded regions.
+  stereo_disparity:type                        = ocv_stereo_disparity
+
+  block stereo_disparity:ocv_stereo_disparity
+    algorithm                                  = SGBM
+    num_disparities                            = 256
+    block_size                                 = 5
+    speckle_window_size                        = 100
+    speckle_range                              = 32
+    output_format                              = raw
+    use_wls_filter                             = true
+    wls_lambda                                 = 8000.0
+    wls_sigma                                  = 1.5
+  endblock
+
+  :length_aggregation_method                   median
+
+connect from track_reader1.object_track_set
+        to   measurer.object_track_set1
+connect from track_reader2.object_track_set
+        to   measurer.object_track_set2
+
+connect from downsampler.output_1
+        to   measurer.image1
+connect from downsampler.output_3
+        to   measurer.image2
+
+# ============================== OUTPUT WRITERS ===============================
+
+process track_writer1
+  :: write_object_track
+  :file_name                                   computed_tracks1.csv
+  :writer:type                                 viame_csv
+
+connect from measurer.object_track_set1
+        to   track_writer1.object_track_set
+connect from downsampler.timestamp
+        to   track_writer1.timestamp
+
+process track_writer2
+  :: write_object_track
+  :file_name                                   computed_tracks2.csv
+  :writer:type                                 viame_csv
+
+connect from measurer.object_track_set2
+        to   track_writer2.object_track_set
+connect from downsampler.timestamp
+        to   track_writer2.timestamp
+
+# -- end of file --
