@@ -21,7 +21,7 @@ import numpy as np
 from kwiver.vital.algo import RefineTracks, RefineDetections
 from kwiver.vital.types import (
     BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType,
-    ObjectTrackState, Track, ObjectTrackSet, Polygon, ImageContainer
+    ObjectTrackState, Track, ObjectTrackSet, ImageContainer
 )
 from kwiver.vital.util import VitalPIL
 from PIL import Image as PILImage
@@ -69,6 +69,25 @@ class SAM3RefinerConfig(SAM3BaseConfig):
         50,
         help='Maximum number of new objects to add per frame'
     )
+
+
+def _ensure_binary_mask(mask):
+    """Ensure mask is a numpy uint8 binary array suitable for contour finding."""
+    if not isinstance(mask, np.ndarray):
+        import torch
+        if isinstance(mask, torch.Tensor):
+            mask = mask.cpu().numpy()
+        else:
+            mask = np.array(mask)
+    return (mask > 0.5).astype(np.uint8)
+
+
+def _set_polygon_on_detection(det, mask, simplification):
+    """Set a flattened polygon on a detection from a binary mask."""
+    binary_mask = _ensure_binary_mask(mask)
+    poly_pts = mask_to_polygon(binary_mask, simplification)
+    if poly_pts is not None:
+        det.set_flattened_polygon(poly_pts)
 
 
 class SAM3Refiner(RefineTracks):
@@ -165,11 +184,11 @@ class SAM3Refiner(RefineTracks):
         max_track_id = 0
 
         for track in tracks.tracks():
-            track_id = track.id()
+            track_id = track.id
             max_track_id = max(max_track_id, track_id)
 
             for state in track:
-                if state.frame() == frame_id:
+                if state.frame_id == frame_id:
                     detection = state.detection()
                     track_states[track_id] = (track, state, detection)
                     break
@@ -233,7 +252,6 @@ class SAM3Refiner(RefineTracks):
             # Filter by minimum mask area
             if self._filter_by_quality and mask_area < self._min_mask_area:
                 if source[0] == 'existing':
-                    # Keep track but mark as potentially lost - don't include in output
                     tid = source[1]
                     processed_track_ids.add(tid)
                 continue
@@ -250,13 +268,12 @@ class SAM3Refiner(RefineTracks):
                 )
 
                 # Create new track state
-                new_state = ObjectTrackState(ts, new_det.bounding_box,
-                                            new_det.confidence, new_det)
+                new_state = ObjectTrackState(ts, new_det)
 
                 # Rebuild track with new state for this frame
                 new_history = []
                 for state in track:
-                    if state.frame() == frame_id:
+                    if state.frame_id == frame_id:
                         new_history.append(new_state)
                     else:
                         new_history.append(state)
@@ -267,6 +284,14 @@ class SAM3Refiner(RefineTracks):
             else:
                 # Create new track from detection
                 score, class_name = source[1], source[2]
+
+                # Ensure mask is numpy array
+                if not isinstance(mask, np.ndarray):
+                    import torch
+                    if isinstance(mask, torch.Tensor):
+                        mask = mask.cpu().numpy()
+                    else:
+                        mask = np.array(mask)
 
                 # Get box from mask if adjusting, otherwise use detection box
                 if self._adjust_boxes:
@@ -281,18 +306,15 @@ class SAM3Refiner(RefineTracks):
                 dot = DetectedObjectType(class_name, score)
                 det = DetectedObject(bbox, score, dot)
 
-                # Add polygon/points
+                # Add polygon
                 if self._output_type in ('polygon', 'both'):
-                    polygon = mask_to_polygon(mask, self._polygon_simplification)
-                    if polygon is not None:
-                        det.set_polygon(polygon)
+                    _set_polygon_on_detection(det, mask, self._polygon_simplification)
 
                 if self._output_type in ('points', 'both'):
                     points = mask_to_points(mask, self._num_points)
-                    # Store points in detection (implementation-specific)
 
                 # Create track state and track
-                new_state = ObjectTrackState(ts, bbox, score, det)
+                new_state = ObjectTrackState(ts, det)
                 new_track = Track(self._next_track_id, [new_state])
                 self._next_track_id += 1
 
@@ -308,7 +330,7 @@ class SAM3Refiner(RefineTracks):
 
         # Include tracks that have no state for current frame (preserve history)
         for track in tracks.tracks():
-            tid = track.id()
+            tid = track.id
             if tid not in processed_track_ids and tid not in track_states:
                 output_tracks.append(track)
 
@@ -343,14 +365,11 @@ class SAM3Refiner(RefineTracks):
 
         # Add polygon
         if self._output_type in ('polygon', 'both'):
-            polygon = mask_to_polygon(mask, self._polygon_simplification)
-            if polygon is not None:
-                new_det.set_polygon(polygon)
+            _set_polygon_on_detection(new_det, mask, self._polygon_simplification)
 
         # Add points
         if self._output_type in ('points', 'both'):
             points = mask_to_points(mask, self._num_points)
-            # Store points (implementation-specific)
 
         return new_det
 
@@ -464,10 +483,9 @@ class Sam3DetectionRefiner(RefineDetections):
         for det, mask in zip(detections, masks):
             # Add polygon if requested
             if self._output_type in ('polygon', 'both'):
-                if det.polygon is None or self._overwrite_existing:
-                    polygon = mask_to_polygon(mask, self._polygon_simplification)
-                    if polygon is not None:
-                        det.set_polygon(polygon)
+                existing_poly = det.get_flattened_polygon()
+                if len(existing_poly) == 0 or self._overwrite_existing:
+                    _set_polygon_on_detection(det, mask, self._polygon_simplification)
 
             # Add mask (relative to bounding box)
             if det.mask is None or self._overwrite_existing:

@@ -626,21 +626,31 @@ class SAM3ModelManager:
             if use_video_predictor:
                 self._video_predictor = build_sam3_video_model(
                     checkpoint_path=weights_path,
-                    config_path=config_path,
                     device=str(self._device),
-                    eval_mode=True,
+                    load_from_HF=False,
                 )
             else:
                 model = build_sam3_image_model(
                     checkpoint_path=weights_path,
-                    config_path=config_path,
                     device=str(self._device),
                     eval_mode=True,
+                    load_from_HF=False,
+                    enable_segmentation=True,
+                    enable_inst_interactivity=True,
                 )
                 if hasattr(model, 'inst_interactive_predictor'):
                     self._sam_predictor = model.inst_interactive_predictor
+                    # The predictor's internal tracker model may not share
+                    # the backbone with the parent model; fix this reference
+                    if (hasattr(self._sam_predictor, 'model') and
+                            hasattr(self._sam_predictor.model, 'backbone') and
+                            self._sam_predictor.model.backbone is None and
+                            hasattr(model, 'backbone') and
+                            model.backbone is not None):
+                        self._sam_predictor.model.backbone = model.backbone
                 else:
                     self._sam_predictor = model
+                self._sam_model = model
 
             print(f"[SAM3] Successfully loaded SAM3 via native sam3 module")
         except ImportError:

@@ -246,9 +246,10 @@ class SAM3Tracker(TrackObjects):
 
             # Add polygon if requested
             if self._output_type in ('polygon', 'both'):
-                polygon = mask_to_polygon(mask, self._polygon_simplification)
-                if polygon is not None:
-                    det.set_polygon(polygon)
+                binary_mask = (mask > 0.5).astype(np.uint8) if mask.dtype != np.uint8 else mask
+                poly_pts = mask_to_polygon(binary_mask, self._polygon_simplification)
+                if poly_pts is not None:
+                    det.set_flattened_polygon(poly_pts)
 
             # Add points if requested
             if self._output_type in ('points', 'both'):
@@ -257,7 +258,7 @@ class SAM3Tracker(TrackObjects):
                 # For now, we'll add them to detection as extra data
 
             # Create track state
-            track_state = ObjectTrackState(ts, bbox, 1.0, det)
+            track_state = ObjectTrackState(ts, det)
             self._tracks[tid]['history'].append(track_state)
 
         # Remove lost tracks

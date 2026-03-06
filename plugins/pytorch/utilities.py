@@ -153,17 +153,17 @@ def get_autocast_context(device):
 
 def mask_to_polygon(mask, simplification=0.01):
     """
-    Convert a binary mask to a KWIVER Polygon.
+    Convert a binary mask to a flattened polygon list.
 
     Args:
         mask: Binary mask as numpy array
         simplification: Douglas-Peucker simplification epsilon (relative to perimeter)
 
     Returns:
-        kwiver.vital.types.Polygon or None if conversion fails
+        List of floats [x1, y1, x2, y2, ...] or None if conversion fails.
+        Use with DetectedObject.set_flattened_polygon().
     """
     import cv2
-    from kwiver.vital.types import Polygon
 
     contours, _ = cv2.findContours(
         mask.astype(np.uint8),
@@ -188,11 +188,13 @@ def mask_to_polygon(mask, simplification=0.01):
     if len(points.shape) == 1:
         return None
 
-    polygon = Polygon()
+    # Return flattened list [x1, y1, x2, y2, ...]
+    flat = []
     for point in points:
-        polygon.push_back((float(point[0]), float(point[1])))
+        flat.append(float(point[0]))
+        flat.append(float(point[1]))
 
-    return polygon
+    return flat
 
 
 def box_from_mask(mask):

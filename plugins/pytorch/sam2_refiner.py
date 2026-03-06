@@ -367,11 +367,11 @@ class Sam2TrackRefiner(RefineTracks):
         max_track_id = 0
 
         for track in tracks.tracks():
-            track_id = track.id()
+            track_id = track.id
             max_track_id = max(max_track_id, track_id)
 
             for state in track:
-                if state.frame() == frame_id:
+                if state.frame_id == frame_id:
                     detection = state.detection()
                     track_states[track_id] = (track, state, detection)
                     break
@@ -414,13 +414,12 @@ class Sam2TrackRefiner(RefineTracks):
             new_det = self._create_refined_detection(old_det, mask)
 
             # Create new track state
-            new_state = ObjectTrackState(ts, new_det.bounding_box,
-                                        new_det.confidence, new_det)
+            new_state = ObjectTrackState(ts, new_det)
 
             # Rebuild track with new state for this frame
             new_history = []
             for state in track:
-                if state.frame() == frame_id:
+                if state.frame_id == frame_id:
                     new_history.append(new_state)
                 else:
                     new_history.append(state)
@@ -430,7 +429,7 @@ class Sam2TrackRefiner(RefineTracks):
 
         # Include tracks that have no state for current frame (preserve history)
         for track in tracks.tracks():
-            tid = track.id()
+            tid = track.id
             if tid not in processed_track_ids and tid not in track_states:
                 output_tracks.append(track)
 
@@ -497,9 +496,10 @@ class Sam2TrackRefiner(RefineTracks):
 
         # Add polygon
         if self._output_type in ('polygon', 'both'):
-            polygon = mask_to_polygon(mask, self._polygon_simplification)
-            if polygon is not None:
-                new_det.set_polygon(polygon)
+            binary_mask = (mask > 0.5).astype(np.uint8) if mask.dtype != np.uint8 else mask
+            poly_pts = mask_to_polygon(binary_mask, self._polygon_simplification)
+            if poly_pts is not None:
+                new_det.set_flattened_polygon(poly_pts)
 
         # Add mask (relative to bounding box)
         if self.overwrite_existing or old_det.mask is None:
