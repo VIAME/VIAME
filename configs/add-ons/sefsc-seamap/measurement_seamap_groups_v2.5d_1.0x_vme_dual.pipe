@@ -36,12 +36,9 @@ process detector_input_l
 connect from downsampler.output_1
         to   detector_input_l.image
 
-process detector1_l
+process detector_l
   :: image_object_detector
   :detector:type                               ocv_windowed
-
-  :frame_downsample                            2
-  :frame_offset                                0
 
   block detector:ocv_windowed
     :detector:type                             netharn
@@ -59,40 +56,7 @@ process detector1_l
   endblock
 
 connect from detector_input_l.image
-        to   detector1_l.image
-
-process detector2_l
-  :: image_object_detector
-  :detector:type                               ocv_windowed
-
-  :frame_downsample                            2
-  :frame_offset                                1
-
-  block detector:ocv_windowed
-    :detector:type                             netharn
-
-    :mode                                      original_and_resized
-    :chip_width                                800
-    :chip_height                               800
-    :chip_width_step                           600
-    :chip_height_step                          400
-    :chip_adaptive_thresh                      1500000
-
-    block detector:netharn
-      relativepath deployed =                  models/seamap_bw_fish_cfrnn_800x800.zip
-    endblock
-  endblock
-
-connect from detector_input_l.image
-        to   detector2_l.image
-
-process detector_merger_l
-  :: merge_detection_sets
-
-connect from detector1_l.detected_object_set
-        to   detector_merger_l.detected_object_set1
-connect from detector2_l.detected_object_set
-        to   detector_merger_l.detected_object_set2
+        to   detector_l.image
 
 # ======================== LEFT CAMERA CLASSIFIER =============================
 
@@ -146,7 +110,7 @@ connect from detector_input_l.image
         to   classifier_groups_large_l.image
 connect from detector_input_l.image
         to   classifier_groups_small_l.image
-connect from detector_merger_l.detected_object_set
+connect from detector_l.detected_object_set
         to   classifier_groups_large_l.detected_object_set
 
 # ======================== LEFT CAMERA KP ASSIGNMENT ==========================
@@ -235,12 +199,9 @@ process detector_input_r
 connect from downsampler.output_3
         to   detector_input_r.image
 
-process detector1_r
+process detector_r
   :: image_object_detector
   :detector:type                               ocv_windowed
-
-  :frame_downsample                            2
-  :frame_offset                                0
 
   block detector:ocv_windowed
     :detector:type                             netharn
@@ -258,40 +219,7 @@ process detector1_r
   endblock
 
 connect from detector_input_r.image
-        to   detector1_r.image
-
-process detector2_r
-  :: image_object_detector
-  :detector:type                               ocv_windowed
-
-  :frame_downsample                            2
-  :frame_offset                                1
-
-  block detector:ocv_windowed
-    :detector:type                             netharn
-
-    :mode                                      original_and_resized
-    :chip_width                                800
-    :chip_height                               800
-    :chip_width_step                           600
-    :chip_height_step                          400
-    :chip_adaptive_thresh                      1500000
-
-    block detector:netharn
-      relativepath deployed =                  models/seamap_bw_fish_cfrnn_800x800.zip
-    endblock
-  endblock
-
-connect from detector_input_r.image
-        to   detector2_r.image
-
-process detector_merger_r
-  :: merge_detection_sets
-
-connect from detector1_r.detected_object_set
-        to   detector_merger_r.detected_object_set1
-connect from detector2_r.detected_object_set
-        to   detector_merger_r.detected_object_set2
+        to   detector_r.image
 
 # ======================== RIGHT CAMERA CLASSIFIER ============================
 
@@ -345,7 +273,7 @@ connect from detector_input_r.image
         to   classifier_groups_large_r.image
 connect from detector_input_r.image
         to   classifier_groups_small_r.image
-connect from detector_merger_r.detected_object_set
+connect from detector_r.detected_object_set
         to   classifier_groups_large_r.detected_object_set
 
 # ======================== RIGHT CAMERA KP ASSIGNMENT =========================
