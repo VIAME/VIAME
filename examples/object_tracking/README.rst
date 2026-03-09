@@ -32,7 +32,11 @@ Within each category, several algorithm implementations are available:
 - SAM3 -- Segment Anything Model 3 with grounding DINO support (requires add-on)
 
 Tracking can either be run from scripts, such as those contained within this example, or
-from one of the user interfaces within VIAME (e.g. DIVE, VIEW, SEAL).
+from one of the user interfaces within VIAME (e.g. DIVE, VIEW, SEAL). In the **DIVE**
+interface, pipelines are organized by groups based on the first word of the pipeline
+name. For example, ``tracker_generic_proposals.pipe`` appears in the **Tracker** group
+as Tracker -> Generic Proposals, and ``utility_track_selections_default_mask.pipe``
+appears as Utilities -> Track Selections Default Mask.
 
 
 *******************************
@@ -46,10 +50,15 @@ Automatic Multi-Target Trackers
 
 Most multi-target trackers (MTT) link detections (produced by a separate detection
 algorithm) into tracks. Each detection on a given frame is either associated with an
-existing track or used to start a new one. Some MTT algorithms (such as SiamMask in
-multi-target mode) go further and generate their own detections on subsequent frames,
-only requiring detections for track initialization purposes. All MTT trackers expect
-a detection step upstream in the pipeline that produces per-frame detections.
+existing track or used to start a new one. For trackers that link detections, any of
+the detectors available in VIAME can be used upstream -- see the `object detection
+examples`_ for details on the available detectors. Some MTT algorithms (such as
+SiamMask in multi-target mode) go further and generate their own detections on
+subsequent frames, only requiring detections for track initialization purposes. All
+MTT trackers expect a detection step upstream in the pipeline that produces per-frame
+detections.
+
+.. _object detection examples: https://github.com/VIAME/VIAME/blob/master/examples/object_detection
 
 Example CLI scripts in this folder for MTT trackers include:
 
@@ -215,22 +224,31 @@ User-Initialized Trackers
    :scale: 50
    :align: center
 
-User-initialized (single-target) trackers are designed for **annotation-assist**
-workflows. The user draws a bounding box (or places a point) on the first frame of an
-object, and the tracker propagates the annotation across subsequent frames. This is
-useful for rapidly generating track-level annotations without labeling every frame.
+User-initialized trackers are designed for **annotation-assist** workflows. The user
+draws a bounding box (or places a point) on the first frame of an object, and the
+tracker propagates the annotation across subsequent frames. This is useful for rapidly
+generating track-level annotations without labeling every frame.
 
-These pipelines can be run in the utility dropdown in the DIVE interface, in the VIEW
-interface pipelines dropdown, or from the command line using the scripts below:
+Although often called "single-target" trackers, these pipelines can track **multiple
+targets simultaneously** if multiple boxes or points are drawn. The pipelines will
+create new tracks only for single-state detections (i.e., annotations on a single
+frame). Any existing multi-frame tracks in the input are passed through unmodified
+and will not be re-tracked.
 
-* ``run_user_init_tracker`` -- run SiamMask single-target tracker (default)
-* ``run_sam2_tracker`` -- run SAM2 single-target tracker (requires SAM2 add-on)
-* ``run_sam3_tracker`` -- run SAM3 single-target tracker (requires SAM3 add-on)
+In the **DIVE** interface, these pipelines are available under the **Utilities** menu.
+For example:
+
+- Utilities -> Track Selections Default Mask (SiamMask, ``utility_track_selections_default_mask.pipe``)
+- Utilities -> Track Selections SAM2 (``utility_track_selections_sam2.pipe``, requires sam2 add-on)
+- Utilities -> Track Selections SAM3 (``utility_track_selections_sam3.pipe``, requires sam3 add-on)
+
+In the **VIEW** interface, these are available in the pipelines dropdown. They can
+also be run from the command line using the scripts below:
+
+* ``run_user_init_tracker`` -- run SiamMask tracker (default)
+* ``run_sam2_tracker`` -- run SAM2 tracker (requires SAM2 add-on)
+* ``run_sam3_tracker`` -- run SAM3 tracker (requires SAM3 add-on)
 * ``bulk_run_user_init_tracking`` -- batch process multiple sequences
-
-When running on a sequence, detections or tracks of length 1 will trigger user-initialized
-tracking. Tracks of length greater than 1 are passed through unmodified to preserve
-existing annotations.
 
 SiamMask (Single-Target)
 ------------------------
