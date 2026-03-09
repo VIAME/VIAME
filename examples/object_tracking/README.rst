@@ -13,19 +13,19 @@ in either video or image sequences. VIAME contains two broad categories of track
 
 .. _object tracking: https://github.com/VIAME/VIAME/blob/master/examples/object_tracking
 
-#. **Multi-target trackers (MTT)** -- link object detections across frames automatically
-#. **Single-target trackers** -- track a user-initialized object from a drawn box or point
+#. **Automatic multi-target trackers** -- link object detections across frames automatically
+#. **User-initialized trackers** -- track user-selected objects from a drawn box or point
 
 Within each category, several algorithm implementations are available:
 
-**Multi-target trackers:**
+**Automatic multi-target trackers:**
 
 - SRNN (Structured RNN) -- learned appearance + motion model based on LSTMs (typical default)
 - ByteTrack -- IoU-based Kalman filter matching; lightweight, no GPU required
 - Stabilized IOU -- homography-based image registration + IoU matching for moving cameras
 - SiamMask (MTT mode) -- visual-similarity tracker auto-initialized from detections
 
-**Single-target trackers (annotation-assist):**
+**User-initialized trackers (annotation-assist):**
 
 - SiamMask (default) -- fast Siamese network tracker initialized from a bounding box
 - SAM2 -- Segment Anything Model 2, produces segmentation masks (requires add-on)
@@ -229,8 +229,8 @@ draws a bounding box (or places a point) on the first frame of an object, and th
 tracker propagates the annotation across subsequent frames. This is useful for rapidly
 generating track-level annotations without labeling every frame.
 
-Although often called "single-target" trackers, these pipelines can track **multiple
-targets simultaneously** if multiple boxes or points are drawn. The pipelines will
+These pipelines can track **multiple targets simultaneously** if multiple boxes or
+points are drawn. The pipelines will
 create new tracks only for single-state detections (i.e., annotations on a single
 frame). Any existing multi-frame tracks in the input are passed through unmodified
 and will not be re-tracked.
@@ -250,10 +250,10 @@ also be run from the command line using the scripts below:
 * ``run_sam3_tracker`` -- run SAM3 tracker (requires SAM3 add-on)
 * ``bulk_run_user_init_tracking`` -- batch process multiple sequences
 
-SiamMask (Single-Target)
-------------------------
+SiamMask
+--------
 
-SiamMask is the default single-target tracker. It is a variant of the SiamRPN++
+SiamMask is the default user-initialized tracker. It is a variant of the SiamRPN++
 algorithm [SiamRPN]_ combined with mask prediction from [SiamMask]_.
 
 .. [SiamMask] Hu et al. "SiamMask: A framework for fast online object tracking and
@@ -362,8 +362,8 @@ SAM3 trackers can be fine-tuned for specific domains::
 
     viame train -i /path/to/training/data -tt sam3
 
-Comparison of Single-Target Trackers
--------------------------------------
+Comparison of User-Initialized Trackers
+---------------------------------------
 
 +------------------+---------------+------------------+------------------+
 | Feature          | SiamMask      | SAM2             | SAM3             |
@@ -415,34 +415,34 @@ There are a number of pieces of code used in the approach, including:
 Example Scripts
 ***************
 
-Multi-Target Tracking
----------------------
+Automatic Multi-Target Tracking
+--------------------------------
 
 ``run_generic_tracker.sh`` / ``.bat``
-    Runs a generic object proposal detector followed by the default multi-target
-    tracker. Uses the ``tracker_generic_proposals.pipe`` pipeline.
+    Runs a generic object proposal detector followed by the default automatic
+    multi-target tracker. Uses the ``tracker_generic_proposals.pipe`` pipeline.
 
 ``run_bytetrack_tracker.sh``
-    Runs the ByteTrack multi-target tracker with generic proposals.
+    Runs the ByteTrack automatic multi-target tracker with generic proposals.
     Demonstrates how to override tracker parameters from the command line.
 
 ``run_stabilized_iou_tracker.sh``
     Runs the homography-stabilized IOU tracker for moving camera scenarios.
     Uses ``common_stabilized_iou_tracker.pipe`` with feature-based image stabilization.
 
-Single-Target Tracking
------------------------
+User-Initialized Tracking
+--------------------------
 
 ``run_user_init_tracker.sh`` / ``.bat``
-    Runs SiamMask single-target tracker on user-initialized detections.
+    Runs SiamMask user-initialized tracker on user-drawn detections.
     Uses ``utility_track_selections_default_mask.pipe``.
 
 ``run_sam2_tracker.sh``
-    Runs SAM2 single-target tracker on user-initialized detections.
+    Runs SAM2 user-initialized tracker on user-drawn detections.
     Uses ``utility_track_selections_sam2.pipe``. Requires the sam2 add-on.
 
 ``run_sam3_tracker.sh``
-    Runs SAM3 single-target tracker on user-initialized detections.
+    Runs SAM3 user-initialized tracker on user-drawn detections.
     Uses ``utility_track_selections_sam3.pipe``. Requires the sam3 add-on.
 
 Batch Processing
