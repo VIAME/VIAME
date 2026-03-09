@@ -657,15 +657,24 @@ class SAM3ModelManager:
             raise ImportError("sam3 module not available for native loading")
 
     def _init_grounding_dino(self, model_id):
-        """Initialize Grounding DINO for text-based detection."""
+        """Initialize Grounding DINO for text-based detection.
+
+        If model_id is a local directory, loads from there. Otherwise
+        falls back to downloading from HuggingFace.
+        """
+        import os
         try:
             from transformers import AutoProcessor, AutoModelForZeroShotObjectDetection
+
+            if os.path.isdir(str(model_id)):
+                print(f"[SAM3] Loading Grounding DINO from local: {model_id}")
 
             self._grounding_processor = AutoProcessor.from_pretrained(model_id)
             self._grounding_model = AutoModelForZeroShotObjectDetection.from_pretrained(
                 model_id
             ).to(self._device)
             self._grounding_model.eval()
+            print(f"[SAM3] Grounding DINO loaded successfully")
         except Exception as e:
             print(f"[SAM3] Warning: Could not load Grounding DINO: {e}")
             self._grounding_model = None

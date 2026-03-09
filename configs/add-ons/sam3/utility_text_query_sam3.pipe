@@ -44,7 +44,7 @@ process track_refiner
   :refiner:type                                sam3
 
   block refiner:sam3
-    :grounding_model_id                        IDEA-Research/grounding-dino-tiny
+    relativepath grounding_model_id =          models/grounding-dino-tiny
     :device                                    cuda
     :text_query                                object
     :detection_threshold                       0.3
