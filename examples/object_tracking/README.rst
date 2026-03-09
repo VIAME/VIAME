@@ -32,11 +32,16 @@ Within each category, several algorithm implementations are available:
 - SAM3 -- Segment Anything Model 3 with grounding DINO support (requires add-on)
 
 Tracking can either be run from scripts, such as those contained within this example, or
-from one of the user interfaces within VIAME (e.g. DIVE, VIEW, SEAL). In the **DIVE**
-interface, pipelines are organized by groups based on the first word of the pipeline
-name. For example, ``tracker_generic_proposals.pipe`` appears in the **Tracker** group
-as Tracker -> Generic Proposals, and ``utility_track_selections_default_mask.pipe``
-appears as Utilities -> Track Selections Default Mask.
+from one of the user interfaces within VIAME (e.g. DIVE, VIEW, SEAL).
+
+In the **DIVE** interface, pipelines are organized into menu groups based on the first
+word of the pipeline file name. Automatic multi-target trackers appear under the
+**Tracker** menu (e.g. Tracker -> Generic Proposals for
+``tracker_generic_proposals.pipe``). User-initialized trackers appear under the
+**Utilities** menu (e.g. Utilities -> Track Selections Default Mask for
+``utility_track_selections_default_mask.pipe``, Utilities -> Track Selections SAM2 for
+``utility_track_selections_sam2.pipe``, etc.). In the **VIEW** interface, all pipelines
+are available in the pipelines dropdown.
 
 
 *******************************
@@ -229,20 +234,11 @@ tracker propagates the annotation across subsequent frames. This is useful for r
 generating track-level annotations without labeling every frame.
 
 These pipelines can track **multiple targets simultaneously** if multiple boxes or
-points are drawn. The pipelines will
-create new tracks only for single-state detections (i.e., annotations on a single
-frame). Any existing multi-frame tracks in the input are passed through unmodified
-and will not be re-tracked.
+points are drawn. The pipelines will create new tracks only for single-state detections
+(i.e., annotations on a single frame). Any existing multi-frame tracks in the input
+are passed through unmodified and will not be re-tracked.
 
-In the **DIVE** interface, these pipelines are available under the **Utilities** menu.
-For example:
-
-- Utilities -> Track Selections Default Mask (SiamMask, ``utility_track_selections_default_mask.pipe``)
-- Utilities -> Track Selections SAM2 (``utility_track_selections_sam2.pipe``, requires sam2 add-on)
-- Utilities -> Track Selections SAM3 (``utility_track_selections_sam3.pipe``, requires sam3 add-on)
-
-In the **VIEW** interface, these are available in the pipelines dropdown. They can
-also be run from the command line using the scripts below:
+Example CLI scripts in this folder for user-initialized trackers include:
 
 * ``run_user_init_tracker`` -- run SiamMask tracker (default)
 * ``run_sam2_tracker`` -- run SAM2 tracker (requires SAM2 add-on)
