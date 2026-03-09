@@ -32,7 +32,13 @@ Within each category, several algorithm implementations are available:
 - SAM3 -- Segment Anything Model 3 with grounding DINO support (requires add-on)
 
 Tracking can either be run from scripts, such as those contained within this example, or
-from one of the user interfaces within VIAME (e.g. DIVE, VIEW, SEAL).
+from one of the user interfaces within VIAME (e.g. DIVE, VIEW, SEAL). Several of the
+trackers above can be trained or tuned on domain-specific data -- see the
+`object tracker training examples`_ for details. For trackers that link detections, the
+upstream detector can also be trained -- see the `object detector training examples`_.
+
+.. _object tracker training examples: https://github.com/VIAME/VIAME/blob/master/examples/object_tracker_training
+.. _object detector training examples: https://github.com/VIAME/VIAME/blob/master/examples/object_detector_training
 
 In the **DIVE** interface, pipelines are organized into menu groups based on the first
 word of the pipeline file name. Automatic multi-target trackers appear under the

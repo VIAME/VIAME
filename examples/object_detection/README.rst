@@ -3,9 +3,9 @@
 Object Detection Examples
 =========================
 
-******************
-Detection Overview
-******************
+********
+Overview
+********
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/skate_detection.png
    :scale: 30
@@ -13,497 +13,414 @@ Detection Overview
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
 |
 
-This document corresponds to the 'Object Detection'_ folder within a VIAME Desktop
-installation. This folder contains assorted examples of object detection pipelines
-running different detectors such as YOLO, Faster RCNN, ScallopTK, and others.
-Several different models are found in the examples, trained on a variety of
-different sensors. It can be useful to try out different models to see what works
-best for your problem.
+This document corresponds to the `object detection`_ example folder within a VIAME desktop
+installation. Object detection identifies and localizes objects of interest within images
+or video frames, producing bounding box detections with associated class labels and
+confidence scores.
 
-.. _Object Detection: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
+.. _object detection: https://github.com/VIAME/VIAME/blob/master/examples/object_detection
+
+VIAME includes a variety of detection algorithms spanning classical computer vision,
+traditional machine learning, and modern deep learning approaches. Most detectors are
+trainable from user-provided annotations -- see the `object detector training examples`_
+for details on training custom models.
+
+.. _object detector training examples: https://github.com/VIAME/VIAME/blob/master/examples/object_detector_training
+
+Detection pipelines can be run from the command line using the ``viame`` tool, or from
+one of the user interfaces within VIAME (e.g. DIVE, VIEW, SEAL). In the **DIVE**
+interface, pipelines are organized into menu groups based on the first word of the
+pipeline file name. Detection pipelines appear under the **Detector** menu (e.g.
+Detector -> Generic Proposals for ``detector_generic_proposals.pipe``). In the **VIEW**
+interface, all pipelines are available in the pipelines dropdown.
+
+VIAME detectors fall into three broad categories:
+
+#. **Deep learning detectors** -- learned models trained on annotated data (GPU recommended)
+#. **Classical ML detectors** -- SVM classifiers applied over proposal regions or features
+#. **Motion / heuristic detectors** -- detect objects via motion, shape, or other cues (no training)
+
+
+**********************
+Deep Learning Detectors
+**********************
+
+Deep learning detectors are the most common choice for production use. They learn to
+recognize objects from annotated training data and typically require a GPU for both
+training and inference. VIAME supports several deep learning detection frameworks.
+For details on training these detectors, see the `object detector training examples`_.
+
+Netharn Cascade Faster R-CNN (CFRNN)
+-------------------------------------
+
+The Netharn CFRNN detector is the current default deep learning detector in VIAME. It
+uses a Cascade Faster R-CNN architecture with a ResNeXt-101 backbone, providing strong
+accuracy across a wide range of object types and sizes. It is the most commonly used
+detector in production VIAME deployments including fish detection, scallop detection,
+and marine mammal surveys.
+
+Key properties:
+
+- Two-stage detector with cascade refinement for improved localization
+- ResNeXt-101 backbone pretrained on ImageNet
+- Input resolution: 640x640 (configurable)
+- Automatic windowed/tiled inference for high-resolution imagery
+- Supports continuing training from a previously trained checkpoint
+- Handles mixed aspect ratios and high class imbalance well
+- Best with 500+ annotations per class
+- GPU required (PyTorch)
+
+A grid/tiling variant is also available (Netharn CFRNN Grid) that is optimized for
+small objects in dense scenes (20+ objects per frame). The tiled approach processes
+overlapping image chips to better detect small targets.
+
+RF-DETR (Real-Time Foundation DETR)
+------------------------------------
+
+RF-DETR is a transformer-based detector that uses a DETR (DEtection TRansformer)
+architecture with a DINOv2 backbone. Its transformer attention mechanism makes it
+particularly effective in dense scenes with frequent occlusion, where objects overlap
+and partially obscure one another.
+
+Key properties:
+
+- Transformer-based end-to-end detector (no anchors or NMS needed during training)
+- Three model sizes: nano (384px), base (560px), large (728px)
+- EMA (Exponential Moving Average) for training stability
+- Excels in dense scenes with overlapping objects and multi-scale variation
+- Good choice for medium-to-large objects with sufficient training data (400+)
+- GPU required (PyTorch)
+
+MIT-YOLO (v9)
+--------------
+
+MIT-YOLO is a modern YOLO variant based on the YOLOv9-c architecture. It is a
+single-stage detector optimized for speed and accuracy, making it a good choice
+when fast inference is important or training data is moderate.
+
+Key properties:
+
+- Single-stage detector with fast inference
+- YOLOv9-c architecture at 640x640 resolution
+- Handles multi-scale variation well
+- Well suited for real-time or near-real-time detection
+- Moderate data requirements (200+ annotations per class recommended)
+- GPU required (PyTorch)
+
+Darknet YOLO
+-------------
+
+Darknet YOLO is a mature YOLO implementation supporting YOLOv4 and YOLOv7 variants
+at various resolutions. It is widely used and well-tested in production VIAME
+deployments, including arctic seal detection from aerial imagery.
+
+Key properties:
+
+- Multiple architecture variants: YOLOv4-CSP (small/medium), YOLOv7 (small)
+- Configurable input resolution (512--832px)
+- Supports windowed/tiled inference for high-resolution imagery
+- Requires the Darknet YOLO add-on
+- GPU required
+
+MMDetection Cascade R-CNN
+--------------------------
+
+MMDetection provides access to the OpenMMLab detection framework, primarily used for
+Cascade R-CNN with various backbones. It supports distributed training and advanced
+features like EQLv2 loss for handling imbalanced class distributions.
+
+Key properties:
+
+- Cascade R-CNN architecture via OpenMMLab framework
+- Supports multiple backbones including ConvNeXt
+- Input resolution: up to 1333px
+- Distributed training support (multi-GPU, Slurm, MPI)
+- GPU required (PyTorch)
+
+Detectron2 Faster R-CNN
+------------------------
+
+The Detectron2 Faster R-CNN detector uses Facebook's Detectron2 framework with a
+ResNet-50 + FPN backbone.
+
+Key properties:
+
+- Two-stage Faster R-CNN with Feature Pyramid Network
+- ResNet-50 backbone pretrained on COCO
+- Input resolution: 800px (configurable)
+- GPU required (PyTorch)
+
+LitDet (Faster R-CNN, SSD, and Others)
+----------------------------------------
+
+LitDet provides PyTorch Lightning-based implementations of several detection
+architectures with a focus on ease of use and reproducibility. The Faster R-CNN
+variant works well for large objects and tall aspect ratios in sparse scenes.
+
+Key properties:
+
+- **Faster R-CNN**: ResNet-50 + FPN backbone at 640px -- best for large or tall objects
+- **SSD**: VGG-16 backbone at 300px -- lightweight and fast
+- Additional architectures: SSDLite, RetinaNet, FCOS
+- Fine-tuning from COCO pretrained weights
+- TensorBoard logging enabled by default
+- GPU required (PyTorch)
+
+Netharn Mask R-CNN
+-------------------
+
+Mask R-CNN extends Faster R-CNN with an additional branch for predicting segmentation
+masks alongside bounding boxes. Use this when both detection boxes and pixel-level
+masks are needed. Used in marine mammal surveys for precise animal outlines.
+
+Key properties:
+
+- Produces both bounding boxes and instance segmentation masks
+- ResNet-50 backbone at 720px or 1280px
+- Useful for training data that includes polygon annotations
+- GPU required (PyTorch)
+
+
+*****************************
+Zero-Shot / Foundation Models
+*****************************
+
+These detectors use large pretrained vision models and can detect objects without
+any task-specific training data.
+
+HuggingFace Zero-Shot Detector
+-------------------------------
+
+The HuggingFace zero-shot detector uses a pretrained Grounding DINO model to detect
+objects from text descriptions without any task-specific training data.
+
+Key properties:
+
+- **No training required** -- detects objects by text query
+- Based on Grounding DINO (IDEA-Research/grounding-dino-tiny)
+- Multi-scale detection with NMS post-processing
+- Useful for quick exploration or bootstrapping annotations before training
+- GPU recommended
+
+MaskCut (Unsupervised Object Discovery)
+-----------------------------------------
+
+MaskCut uses DINO ViT (Vision Transformer) features to discover and segment objects
+in images without any training or text prompts. It generates object masks through
+an unsupervised spectral clustering approach.
+
+Key properties:
+
+- **No training or prompts required** -- fully unsupervised
+- Uses DINOv2 backbone features (small or base)
+- CRF post-processing for refined mask boundaries
+- Useful for exploring what objects exist in unlabeled data
+- GPU recommended
+
+
+*************************
+Novelty-Aware Detectors
+*************************
+
+These detectors extend standard detection with the ability to flag novel or
+out-of-distribution objects that were not seen during training.
+
+ReMax DINO Detector
+--------------------
+
+Combines a DINO (DEtection with Implicit Orientation) detector with ReMax novelty
+scoring. Detects known object classes while also assigning a novelty probability
+to each detection, flagging objects that may be from unseen categories.
+
+Key properties:
+
+- Open-set detection: identifies both known and unknown object classes
+- DINO backbone with Swin Transformer
+- Useful for survey work where unexpected species may appear
+- Requires the learn add-on
+- GPU required (PyTorch)
+
+ReMax ConvNeXt Detector
+------------------------
+
+Similar to ReMax DINO but uses a ConvNeXt backbone via MMDetection. Also provides
+novelty scoring alongside standard detection.
+
+Key properties:
+
+- Open-set detection with ConvNeXt modern CNN backbone
+- MMDetection Cascade R-CNN architecture
+- Requires the learn add-on
+- GPU required (PyTorch)
+
+
+**************************
+Classical ML Detectors
+**************************
+
+SVM Classifier
+---------------
+
+The SVM (Support Vector Machine) classifier operates over detection proposals or
+features extracted by another detector. It classifies proposal regions into object
+categories using learned SVM models.
+
+Key properties:
+
+- Classical machine learning approach -- fast training and inference
+- Can operate over fish-specific or generic object proposals
+- Low data requirements (50+ annotations per class can be sufficient)
+- No GPU required -- runs entirely on CPU
+- Good as a quick baseline or for rapid prototyping
+- Requires ``.svm`` model files in a ``category_models`` directory
+
+
+**********************************
+Motion / Heuristic Detectors
+**********************************
+
+GMM Motion Detector
+--------------------
+
+The GMM (Gaussian Mixture Model) motion detector identifies moving objects by building
+a statistical background model and detecting foreground regions that deviate from it.
+
+Key properties:
+
+- No training required -- unsupervised background subtraction
+- Best for stationary camera scenarios with moving objects
+- No GPU required
+- Not suitable for static objects or moving cameras
+
+Canny Edge Detector
+---------------------
+
+Detects circular and elliptical objects using Canny edge detection followed by contour
+linking and circle fitting. Configurable edge thresholds and contour size filters.
+
+Key properties:
+
+- Detects circular/elliptical shapes via edge contours
+- Configurable edge thresholds and size filtering
+- No training required, no GPU required
+
+Difference of Gaussians (DoG) Detector
+----------------------------------------
+
+Scale-space blob detector using a Gaussian pyramid with Difference of Gaussians.
+Detects dark and bright blobs within specified size ranges using sub-pixel extrema
+detection.
+
+Key properties:
+
+- Detects blob-like objects across multiple scales
+- Configurable for dark blobs, bright blobs, or both
+- No training required, no GPU required
+
+Simple Hough Detector
+----------------------
+
+The Hough circle detector uses the OpenCV Hough Circle Transform to detect circular
+objects in images. Primarily useful as a simple demonstration or for specialized
+applications with circular targets.
+
+
+***************************
+Choosing a Detection Method
+***************************
+
++----------------------------------+----------------------------------------------------+
+| Scenario                         | Recommended Approach                               |
++==================================+====================================================+
+| No training data available       | HuggingFace zero-shot, MaskCut, or GMM motion      |
++----------------------------------+----------------------------------------------------+
+| Very small dataset (50--200)     | SVM classifier or adaptive trainer                 |
++----------------------------------+----------------------------------------------------+
+| Medium dataset (200--500)        | MIT-YOLO v9 or Darknet YOLO                        |
++----------------------------------+----------------------------------------------------+
+| Large dataset (500+)             | Netharn CFRNN (default) or RF-DETR                 |
++----------------------------------+----------------------------------------------------+
+| Dense scenes with occlusion      | RF-DETR or Netharn CFRNN Grid                      |
++----------------------------------+----------------------------------------------------+
+| Small objects in large images    | Netharn CFRNN Grid (tiling mode)                   |
++----------------------------------+----------------------------------------------------+
+| Large or tall objects            | LitDet Faster R-CNN                                |
++----------------------------------+----------------------------------------------------+
+| Real-time inference needed       | MIT-YOLO v9, LitDet SSD, or Darknet YOLO          |
++----------------------------------+----------------------------------------------------+
+| Instance segmentation needed     | Netharn Mask R-CNN                                 |
++----------------------------------+----------------------------------------------------+
+| Detect unknown/novel species     | ReMax DINO or ReMax ConvNeXt                       |
++----------------------------------+----------------------------------------------------+
+| CPU only (no GPU)                | SVM, GMM motion, or classical CV detectors         |
++----------------------------------+----------------------------------------------------+
+| Moving objects, static camera    | GMM motion detector                                |
++----------------------------------+----------------------------------------------------+
+| Unsure what to use               | Adaptive trainer (auto-selects best)               |
++----------------------------------+----------------------------------------------------+
+
 
 *********************************
 Running the Command Line Examples
 *********************************
 
-Each run script contains 2 calls. A first ('source setup_viame.sh') which
-runs a script configuring all paths required to run VIAME calls, and a second
-to 'viame' running the desired detection pipeline. For more information
-about pipeline configuration, see the pipeline examples. Each example processes
-a list of images and produces detections in various format as output, as configured
-in the pipeline files.
+Each example script sources the VIAME setup script to configure paths, then runs a
+detection pipeline via the ``viame`` tool. Pipelines read images from an input list
+file and write detections to ``computed_detections.csv`` in VIAME CSV format.
 
-Each pipeline contains 2-10 nodes, including a imagery source, in this case an image
-list loader, the actual detector, detection filters, and detection writers. In the
-habcam example an additional split processes is added early in the pipeline, as
-habcam imagery has stereo pairs typically encoded in the same png.
+Example CLI scripts in this folder include:
+
+* ``run_generic_proposals`` -- run the generic object proposal detector
+* ``run_fish_without_motion`` -- run the default fish detector (requires add-on)
+* ``run_gmm_motion`` -- run the GMM motion detector on video
+* ``run_huggingface_zeroshot`` -- run the zero-shot detector (no training needed)
+
+To run an example on Linux::
+
+    ./run_generic_proposals.sh
+
+Or on Windows::
+
+    run_generic_proposals.bat
+
+Detections are written to ``computed_detections.csv`` in the current directory. The
+input images are specified in a text file (one image path per line), which can be
+modified to point to your own imagery.
+
+Detection parameters can be overridden from the command line using the ``-s`` flag::
+
+    viame configs/pipelines/detector_generic_proposals.pipe \
+          -s input:video_filename=my_images.txt
+
 
 ***************************
 Running Examples in the GUI
 ***************************
 
-The annotation GUI can also be used to run object detector or tracking pipelines. To
-accomplish this, load imagery using the `annotation gui`_, then select Tools -> Execute Pipeline
-and select a pipeline to run, see below. Special notes: the 'habcam' pipeline only processes
-the left sides of images, assuming that the image contains side-by-side stereo pairs, and
-the 'svm' pipeline requires '.svm' model files to exist in a 'category_models' directory
-from where the GUI is run. New pipelines can be added to the GUI by adding them to the
-default pipelines folder, with the word 'embedded' in them by default.
+In the **DIVE** interface, detection pipelines are available under the **Detector**
+menu. The menu is organized by the first word of the pipeline file name. For example,
+``detector_generic_proposals.pipe`` appears as Detector -> Generic Proposals. To run
+a detector, load imagery into DIVE, then select the desired pipeline from the Detector
+menu.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/08/vpview_run_det.png
-   :scale: 30
-   :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/08/vpview_run_det.png
+Domain-specific detectors from installed add-ons (e.g. fish detectors, seal detectors)
+also appear in the Detector menu once the corresponding add-on is installed.
 
-.. _annotation gui: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
+In the **VIEW** interface, all detection pipelines are available in the pipelines
+dropdown.
 
-******************
-Build Requirements
-******************
 
-These are the build flags required to run these examples, if building from
-the source. In the pre-built binaries they are all enabled by default.
+***************************
+Domain-Specific Detectors
+***************************
 
-| Minimum:
-|
-| VIAME_ENABLE_OPENCV (default) (for image reading) or alternatively VIAME_ENABLE_VXL if
-| you set :image_reader:type to vxl in each .pipe config.
-|
-| Per-Example:
-|
-| run_fish_without_motion - VIAME_ENABLE_PYTORCH
-| run_generic_proposals - VIAME_ENABLE_PYTORCH
+Several VIAME add-on packages include pretrained detectors for specific domains:
 
+- **default-fish** -- fish detection models for underwater imagery
+- **sea-lion** -- marine mammal detection (YOLO, CFRNN, Mask R-CNN, and fusion)
+- **arctic-seal** -- arctic seal detection from aerial EO and IR imagery
+- **habcam** -- scallop and fish detection from HabCam benthic survey imagery
+- **seamap** -- fish species detection from SEAMAP survey imagery
 
-*******************************
-Running Detectors From C++ Code
-*******************************
-
-We will be using a Hough circle detector as an and example of the
-mechanics of implementing a VIAME detector in cxx code.
-
-In general, detectors accept images and produce detections. The data
-types that we will need to get data in and out of the detector are
-implemented in the Vital portion of KWIVER. For this detector, we will
-be using an `image_container` to hold the input image and a
-`detected_object_set` to hold the detected objects. We will look at how
-these data types behave a little later.
-
-Vital provides an algorithm to load an image. We will use this to get
-the images for the detector. The `image_io` algorithm provides a
-method that accepts a file name and returns an image.
-
-::
-
-  kwiver::vital::image_container_sptr load(std::string const& filename) const;
-
-Now that we have an image, we can pass it to the detector using the following method on
-`hough_circle_detector` and get a list of detections.
-
-::
-
-  virtual vital::detected_object_set_sptr detect( vital::image_container_sptr image_data ) const;
-
-
-The detections, for example, can be drawn on the original image to see
-how well the detector is performing.
-
-The following program implements a simple single object detector.
-
-::
-
-  #include <arrows/ocv/image_container.h>
-  #include <arrows/ocv/image_io.h>
-  #include <arrows/ocv/hough_circle_detector.h>
-
-  #include <string>
-
-  int main( int argc, char* argv[] )
-  {
-    // get file name for input image
-    std::string filename = argv[1];
-
-    // create image reader
-    kwiver::vital::algo::image_io_sptr image_reader( new kwiver::arrows::ocv::image_io() );
-
-    // Read the image
-    kwiver::vital::image_container_sptr the_image = image_reader->load( filename );
-
-    // Create the detector
-    kwiver::vital::algo::image_object_detector_sptr detector( new kwiver::arrows::ocv::hough_circle_detector() );
-
-    // Send image to detector and get detections.
-    kwiver::vital::detected_object_set_sptr detections = detector->detect( the_image );
-
-    // See what was detected
-    std::cout << "There were " << detections->size() << " detections in the image." << std::endl;
-
-    return 0;
-  }
-
-This sample program implements the essential steps of a detector.
-
-Now that we have a simple program running, there are two concepts that
-are supported by vital that are essential for building larger
-applications; logging and configuration support.
-
-*******
-Logging
-*******
-
-Vital provides logging support through macros that are used in the
-code to format and display informational messages. The following piece
-of code implements a logger and generates a message.
-
-::
-
-  // Include the logger interface
-  #include <vital/logger/logger.h>
-
-  // get a logger or logging object
-  kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "test_logger" ));
-
-  float data;
-
-  // log a message
-  LOG_ERROR( logger, "Message " << data );
-
-
-The vital logger is similar to most loggers in that it needs logging
-object to provide context for the log message. Each logger object has
-an associated name that can be used to when configuring what logging
-output should be displayed. The default logger does not provide any
-logger output control, but there are optional logging providers which
-do.
-
-There are logging macros that produce a message with an associated
-severity, error, warning, info, debug, trace. The log text can be
-specified as an output stream expression allowing type specific output
-operators to provide formatting. The output line in the above example
-could have been written as a log message.
-
-::
-
-  kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "detector_test" ));
-  LOG_INFO( logger, "There were " << detections->size() << " detections in the image." );
-
-Note that log messages do not need an end-of-line at the end.
-
-Refer to the separate logger documentation for more details.
-
-******************************
-Detector Configuration Support
-******************************
-
-In our detector example we just used the detector in its default state
-without specifying any configuration options. This works well in this
-example, but there are cases and algorithms where the behaviour needs
-to be modified for best results.
-
-Vital provides a configuration package that implements a key/value
-scheme for specifying configurable parameters. The config parameters
-are used to control an algorithm and in later examples it can be used
-to select the algorithm. The usual approach is to create a config
-structure from the contents of a file, but the values can be
-programatically set also. The key for a config entry has a
-hierarchical format
-
-The full details of the config file structure are available in a
-separate document.
-
-All algorithms support the methods get_confguration() and
-set_configuration(). The get_confguration() method returns a structure
-with the expected configuration items and default parameters. These
-parameters can be changed and sent back to the algorithm with the
-set_configuration() method. The hough_circle_detector, the
-configuration is as follows:
-
-::
-
-  dp = 1
-  
-  Description: Inverse ratio of the accumulator resolution to the
-  image resolution. For example, if dp=1 , the accumulator has the same
-  resolution as the input image. If dp=2 , the accumulator has half as
-  big width and height.
-  
-  max_radius = 0
-  
-  Description: Maximum circle radius.
-  
-  min_dist = 100
-  
-  Description: Minimum distance between the centers of the detected
-  circles. If the parameter is too small, multiple neighbor circles may
-  be falsely detected in addition to a true one. If it is too large,
-  some circles may be missed.
-  
-  min_radius = 0
-  
-  Description: Minimum circle radius.
-  
-  param1 = 200
-  
-  Description: First method-specific parameter. In case of
-  CV_HOUGH_GRADIENT , it is the higher threshold of the two passed to
-  the Canny() edge detector (the lower one is twice smaller).
-  
-  param2 = 100
-  
-  Description: Second method-specific parameter. In case of
-  CV_HOUGH_GRADIENT , it is the accumulator threshold for the circle
-  centers at the detection stage. The smaller it is, the more false
-  circles may be detected. Circles, corresponding to the larger
-  accumulator values, will be returned first.
-
-Lets modify the preceding detector to accept a configuration file.
-
-::
-
-  #include <vital/config/config_block_io.h>
-  #include <arrows/ocv/image_container.h>
-  #include <arrows/ocv/image_io.h>
-  #include <arrows/ocv/hough_circle_detector.h>
-
-  #include <string>
-
-  int main( int argc, char* argv[] )
-  {
-    // (1) get file name for input image
-    std::string filename = argv[1];
-
-    // (2) Look for name of config file as second parameter
-    kwiver::vital::config_block_sptr config;
-    if ( argc > 2 )
-    {
-      config = kwiver::vital::read_config_file( argv[2] );
-    }
-
-    // (3) create image reader
-    kwiver::vital::algo::image_io_sptr image_reader( new kwiver::arrows::ocv::image_io() );
-
-    // (4) Read the image
-    kwiver::vital::image_container_sptr the_image = image_reader->load( filename );
-
-    // (5) Create the detector
-    kwiver::vital::algo::image_object_detector_sptr detector( new kwiver::arrows::ocv::hough_circle_detector() );
-
-    // (6) If there was a config structure, then pass it to the algorithm.
-    if (config)
-    {
-      detector->set_configuration( config );
-    }
-
-    // (7) Send image to detector and get detections.
-    kwiver::vital::detected_object_set_sptr detections = detector->detect( the_image );
-
-    // (8) See what was detected
-    std::cout << "There were " << detections->size() << " detections in the image." << std::endl;
-
-    return 0;
-  }
-
-We have added code to handle the optional second command line
-parameter in section (2). The read_config_file() function converts a
-file to a configuration structure. In section (6), if a config block
-has been created, it is passed to the algorithm.
-
-The configuration file is as follows. Note that parameters that are
-not specified in the file retain their default values.
-
-::
-
-  dp = 2
-  min_dist = 120
-  param1 = 100
-
-
-**************************
-Configurable Detector Type
-**************************
-
-To further expand on our example, the actual detector algorithm can be
-selected at run time based on the contents of our config file.
-
-::
-
-  #include <vital/algorithm_plugin_manager.h>
-  #include <vital/config/config_block_io.h>
-  #include <vital/algo/image_object_detector.h>
-  #include <arrows/ocv/image_container.h>
-  #include <arrows/ocv/image_io.h>
-
-  #include <string>
-
-  int main( int argc, char* argv[] )
-  {
-    // (1) Create logger to use for reporting errors and other diagnostics.
-    kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "detector_test" ));
-
-    // (2) Initialize and load all discoverable plugins
-    kwiver::vital::algorithm_plugin_manager::load_plugins_once();
-
-    // (3) get file name for input image
-    std::string filename = argv[1];
-
-    // (4) Look for name of config file as second parameter
-    kwiver::vital::config_block_sptr config = kwiver::vital::read_config_file( argv[2] );
-
-    // (5) create image reader
-    kwiver::vital::algo::image_io_sptr image_reader( new kwiver::arrows::ocv::image_io() );
-
-    // (6) Read the image
-    kwiver::vital::image_container_sptr the_image = image_reader->load( filename );
-
-    // (7) Create the detector
-    kwiver::vital::algo::image_object_detector_sptr detector;
-    kwiver::vital::algo::image_object_detector::set_nested_algo_configuration( "detector", config, detector );
-
-    if ( ! detector )
-    {
-      LOG_ERROR( logger, "Unable to create detector" );
-      return 1;
-    }
-
-    // (8) Send image to detector and get detections.
-    kwiver::vital::detected_object_set_sptr detections = detector->detect( the_image );
-
-    // (9) See what was detected
-    std::cout << "There were " << detections->size() << " detections in the image." << std::endl;
-
-    return 0;
-  }
-
-
-Since we are going to select the detector algorithm at run time, we no
-longer need to include the hough_circle_detector header file. New code
-in section (2) initializes the plugin manager which will be used to
-instantiate the selected algorithm at run time. The plugin
-architecture will be discussed in a following section.
-
-The following config file will select and configure our favourite
-hough_circle_detector
-
-::
-
-  # select detector type
-  detector:type =   hough_circle_detector
-
-  # specify configuration for selected detector
-  detector:hough_circle_detector:dp =           1
-  detector:hough_circle_detector:min_dist =     100
-  detector:hough_circle_detector:param1 =       200
-  detector:hough_circle_detector:param2 =       100
-  detector:hough_circle_detector:min_radius =   0
-  detector:hough_circle_detector:max_radius =   0
-
-
-First you will notice that the config file entries have a longer key
-specification. The ':' character separates the different levels or
-blocks in the config and enable scoping of the value specifications.
-
-The "detector" string in the config file corresponds with the
-"detector" string in section (7) of the example. The "type" key for
-the "detector" algorithm specifies which detector is to be used. If an
-alternate detector type "foo" were to be specified, the config would
-be as follows.
-
-::
-
-  # select detector type
-  detector:type =             foo
-  detector:foo:param1 =       20
-  detector:foo:param2 =       10
-
-Since the individual detector (or algorithm) parameters are
-effectively in their own namespace, configurations for multiple
-algorithms can be in the same file, which is exactly how more
-complicated applications are configured.
-
-
-***********************************************
-Sequencing One or More Algorithms in a Pipeline
-***********************************************
-
-In a real application, the input images may come from places other
-than a file on the disk and there may be algorithms applied to
-precondition the images prior to object detection. After detection,
-the detections could be overlaid on the input imagery or compared
-against manual annotations.
-
-Ideally this type of application could be structured to flow the data
-from one algorithm to the next, but writing this a one monolithic
-application, changes become difficult and time consuming. This is
-where another component of KWIVER, sprokit, can be used to simplify
-creating a larger application from smaller component algorithms.
-
-Sprokit is the "Stream Processing Toolkit", a library aiming to make
-processing a stream of data with various algorithms easy. It provides
-a data flow model of application building by providing a process and
-interconnect approach. An application made from several processes can be
-easily specified in a pipeline configuration file.
-
-Lets first look at an example application/pipeline that runs our
-hough_circle_detector on a set of images, draws the detections on the
-image and then displays the annotated image.
-
-::
-
-  # ================================================================
-  process input
-    :: frame_list_input
-    :image_list_file    images/image_list_1.txt
-    :frame_time          .3333
-    :image_reader:type   ocv
-
-  # ================================================================
-  process detector
-    :: image_object_detector
-    :detector:type    hough_circle_detector
-    :detector:hough_circle_detector:dp            1
-    :detector:hough_circle_detector:min_dist      100
-    :detector:hough_circle_detector:param1        200
-    :detector:hough_circle_detector:param2        100
-    :detector:hough_circle_detector:min_radius    0
-    :detector:hough_circle_detector:max_radius    0
-
-  # ================================================================
-  process draw
-    :: draw_detected_object_boxes
-    :default_line_thickness 3
-
-  # ================================================================
-  process disp
-    :: image_viewer
-    :annotate_image         true
-    # pause_time in seconds. 0 means wait for keystroke.
-    :pause_time             1.0
-    :title                  NOAA images
-
-  # ================================================================
-  # connections
-  connect from input.image
-          to   detector.image
-
-  connect from detector.detected_object_set
-          to   draw.detected_object_set
-  connect from input.image
-          to draw.image
-
-  connect from input.timestamp
-          to   disp.timestamp
-  connect from draw.image
-          to   disp.image
-
-  # -- end of file --
-
-Our example pipeline configuration file is made up of process
-definitions and connections. The first process handles image input and
-uses a configuration style we saw in the description of selectable
-algorithms, to select an "ocv" reader algorithm. The next process is
-the detector, followed by the process that composites the detections
-and the image. The last process displays the annotated image.
-The connections section specify how the inputs and outputs of these
-processes are connected.
-
-This pipeline can then be run using the 'viame' app
+These add-ons can be installed via the VIAME add-on manager. Once installed, their
+detection pipelines become available both on the command line and in the GUI.
