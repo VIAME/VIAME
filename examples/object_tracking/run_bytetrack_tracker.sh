@@ -8,8 +8,8 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run ByteTrack multi-target tracker with generic proposals
 #
-# The default tracker (common_default_tracker.pipe) uses ByteTrack. This
-# script runs the generic proposal detector followed by ByteTrack tracking.
+# This script runs the generic proposal detector followed by ByteTrack tracking.
+# ByteTrack uses IoU-based Kalman filter matching and runs on CPU.
 #
 # ByteTrack parameters can be overridden from the command line using the
 # -s flag, e.g.:

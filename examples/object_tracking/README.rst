@@ -20,8 +20,8 @@ Within each category, several algorithm implementations are available:
 
 **Multi-target trackers:**
 
-- ByteTrack (default) -- IoU-based Kalman filter matching; lightweight, no GPU required
-- SRNN (Structured RNN) -- learned appearance + motion model based on LSTMs
+- SRNN (Structured RNN) -- learned appearance + motion model based on LSTMs (typical default)
+- ByteTrack -- IoU-based Kalman filter matching; lightweight, no GPU required
 - Stabilized IOU -- homography-based image registration + IoU matching for moving cameras
 - SiamMask (MTT mode) -- visual-similarity tracker auto-initialized from detections
 
@@ -44,58 +44,31 @@ Automatic Multi-Target Trackers
    :align: center
 |
 
-Multi-target trackers (MTT) link detections (produced by a separate detection algorithm)
-into tracks. Each detection on a given frame is either associated with an existing track
-or used to start a new one. All MTT trackers expect a detection step upstream in the
-pipeline that produces per-frame detections.
+Most multi-target trackers (MTT) link detections (produced by a separate detection
+algorithm) into tracks. Each detection on a given frame is either associated with an
+existing track or used to start a new one. Some MTT algorithms (such as SiamMask in
+multi-target mode) go further and generate their own detections on subsequent frames,
+only requiring detections for track initialization purposes. All MTT trackers expect
+a detection step upstream in the pipeline that produces per-frame detections.
 
 Example CLI scripts in this folder for MTT trackers include:
 
-* ``run_generic_tracker`` -- run ByteTrack (default) tracker with generic proposals
-* ``run_bytetrack_tracker`` -- explicitly run the ByteTrack tracker
+* ``run_generic_tracker`` -- run the default multi-target tracker with generic proposals
+* ``run_bytetrack_tracker`` -- run the ByteTrack multi-target tracker
 * ``run_stabilized_iou_tracker`` -- run homography-stabilized IOU tracker
 
-ByteTrack
----------
-
-ByteTrack is the current default multi-target tracker in VIAME. It is a simple and
-effective algorithm that uses a Kalman filter for motion prediction and IoU (Intersection
-over Union) for data association. It uses a two-stage matching strategy: high-confidence
-detections are matched first, then low-confidence detections fill remaining gaps.
-
-Key properties:
-
-- No GPU required -- runs entirely on CPU
-- No appearance model -- relies only on bounding box overlap and motion
-- Well suited for roughly stationary cameras or cameras with mild motion
-- Configurable parameters include detection thresholds, IoU match threshold, and
-  the number of frames to keep lost tracks alive (track buffer)
-
-The ByteTrack tracker is configured in ``common_default_tracker.pipe``::
-
-    process tracker
-      :: track_objects
-      :track_objects:type                          bytetrack
-
-    block track_objects:bytetrack
-      :high_thresh                                 0.6
-      :low_thresh                                  0.1
-      :match_thresh                                0.8
-      :track_buffer                                30
-      :new_track_thresh                            0.6
-    endblock
-
-ByteTrack parameters can be trained (optimized via Kalman filter tuning) from
-groundtruth annotations using::
-
-    viame train -i /path/to/training/data -tt bytetrack
+The default multi-target tracker in a given VIAME release is configured in
+``common_default_tracker.pipe``. This file can be modified to switch between any
+of the available MTT algorithms described below. In most VIAME releases, the default
+tracker is SRNN.
 
 SRNN (Structured RNN)
 ---------------------
 
-The SRNN tracker is a variant of the approach described in the "Tracking the Untrackable"
-paper [TUT17]_, where new detections are tested against existing tracks using a learned
-classifier. The classifier combines several LSTM networks that model:
+The SRNN tracker is the typical default multi-target tracker in VIAME releases. It is
+a variant of the approach described in the "Tracking the Untrackable" paper [TUT17]_,
+where new detections are tested against existing tracks using a learned classifier. The
+classifier combines several LSTM networks that model:
 
 - **A** (Appearance) -- Siamese network features for visual similarity
 - **I** (Interaction) -- spatial relationships between concurrent objects
@@ -116,8 +89,7 @@ Key properties:
   and interacting targets
 - Needs substantial training data (100+ annotated tracks recommended)
 
-The SRNN tracker is configured in the add-on file ``common_default_tracker.pipe``
-(from the ``srnn`` add-on)::
+An example SRNN tracker configuration::
 
     process tracker
       :: track_objects
@@ -140,8 +112,47 @@ SRNN trackers can be trained from groundtruth annotations using::
 
     viame train -i /path/to/training/data -tt srnn
 
+.. note::
+   The ``viame train`` tracker training option (``-tt``) is a new addition and is
+   currently in **beta**. It may change in future releases.
+
 The training process involves multiple stages: data preparation, Siamese model training,
 feature extraction, individual LSTM training, and combined SRNN training.
+
+ByteTrack
+---------
+
+ByteTrack is a simple and effective tracking algorithm that uses a Kalman filter for
+motion prediction and IoU (Intersection over Union) for data association. It uses a
+two-stage matching strategy: high-confidence detections are matched first, then
+low-confidence detections fill remaining gaps.
+
+Key properties:
+
+- No GPU required -- runs entirely on CPU
+- No appearance model -- relies only on bounding box overlap and motion
+- Well suited for roughly stationary cameras or cameras with mild motion
+- Configurable parameters include detection thresholds, IoU match threshold, and
+  the number of frames to keep lost tracks alive (track buffer)
+
+An example ByteTrack configuration::
+
+    process tracker
+      :: track_objects
+      :track_objects:type                          bytetrack
+
+    block track_objects:bytetrack
+      :high_thresh                                 0.6
+      :low_thresh                                  0.1
+      :match_thresh                                0.8
+      :track_buffer                                30
+      :new_track_thresh                            0.6
+    endblock
+
+ByteTrack parameters can be trained (optimized via Kalman filter tuning) from
+groundtruth annotations using::
+
+    viame train -i /path/to/training/data -tt bytetrack
 
 Stabilized IOU Tracker
 ----------------------
@@ -390,11 +401,11 @@ Multi-Target Tracking
 ---------------------
 
 ``run_generic_tracker.sh`` / ``.bat``
-    Runs a generic object proposal detector followed by the default (ByteTrack) multi-target
+    Runs a generic object proposal detector followed by the default multi-target
     tracker. Uses the ``tracker_generic_proposals.pipe`` pipeline.
 
 ``run_bytetrack_tracker.sh``
-    Explicitly runs the ByteTrack multi-target tracker with generic proposals.
+    Runs the ByteTrack multi-target tracker with generic proposals.
     Demonstrates how to override tracker parameters from the command line.
 
 ``run_stabilized_iou_tracker.sh``
