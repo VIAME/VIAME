@@ -69,7 +69,7 @@ Example CLI scripts in this folder for MTT trackers include:
 The default multi-target tracker in a given VIAME release is configured in
 ``common_default_tracker.pipe``. This file can be modified to switch between any
 of the available MTT algorithms described below. In most VIAME releases, the default
-tracker is SRNN.
+tracker is SRNN for the GPU-enabled version, and ByteTrack in the CPU version.
 
 SRNN (Structured RNN)
 ---------------------
@@ -92,7 +92,6 @@ linking decisions.
 Key properties:
 
 - Requires GPU (PyTorch)
-- Requires the SRNN add-on package to be installed
 - Learns appearance and motion models specific to the target domain
 - Best suited for complex scenarios with many concurrent objects, frequent occlusions,
   and interacting targets
