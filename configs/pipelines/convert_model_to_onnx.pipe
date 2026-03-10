@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: ONNX Converter
 #
-# Description: Path to the trained model: .zip if mmdet, .weights if darknet
-# Input batch size Output onnx model path prefix
+# Description: Export a model trained in VIAME to ONNX format.
+# Supports only yolo-mit and darknet backend.
 # =============================================================================
 
 config _pipeline:_edge
@@ -14,12 +14,8 @@ config _scheduler
 process onnx_convert
   :: convert_to_onnx
 
-  # Path to the trained model:
-  # .zip if mmdet, .weights if darknet
+  # Path to the trained model (yolo-mit or darknet backend)
   :model_path                                       /path/to/model
-
-  # Input batch size
-  :batch_size                                                    1
 
   # Output onnx model path prefix
   :onnx_model_prefix                          /path/to/onnx/prefix
