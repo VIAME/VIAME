@@ -52,6 +52,15 @@ kwiver_add_python_module(
   pytorch
   __init__ )
 
+if( VIAME_ENABLE_ONNX)
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_to_onnx_process.py
+    pytorch
+    convert_to_onnx_process )
+
+endif()
+
 if( VIAME_ENABLE_PYTORCH-MMDET )
 
   kwiver_add_python_module(
@@ -99,6 +108,15 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     ${CMAKE_CURRENT_SOURCE_DIR}/netharn_refiner.py
     pytorch
     netharn_refiner )
+  
+    if( VIAME_ENABLE_ONNX)
+
+      kwiver_add_python_module(
+        ${CMAKE_CURRENT_SOURCE_DIR}/onnx-exporters/crcnn_to_onnx.py
+        pytorch
+        crcnn_to_onnx )
+
+    endif()
 
 endif()
 
@@ -123,6 +141,15 @@ if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
     pytorch
     mit_yolo_detector )
 
+  if( VIAME_ENABLE_ONNX)
+
+      kwiver_add_python_module(
+        ${CMAKE_CURRENT_SOURCE_DIR}/onnx-exporters/yolomit_to_onnx.py
+        pytorch
+        yolomit_to_onnx )
+
+    endif()
+
 endif()
 
 if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
@@ -136,20 +163,6 @@ if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
     ${CMAKE_CURRENT_SOURCE_DIR}/ultralytics_trainer.py
     pytorch
     ultralytics_trainer )
-
-endif()
-
-if( VIAME_ENABLE_ONNX AND ( VIAME_ENABLE_DARKNET OR VIAME_ENABLE_PYTORCH-MMDET ) )
-
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/convert_to_onnx_process.py
-    pytorch
-    convert_to_onnx_process )
-
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/onnx/crcnn2onnx.py
-    pytorch
-    crcnn2onnx )
 
 endif()
 
