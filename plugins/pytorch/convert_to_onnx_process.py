@@ -10,6 +10,8 @@ import json
 import ast
 import sys
 
+from torch import load
+
 class OnnxConverter(KwiverProcess):
     """
     This process convert a yolo-darknet/crcnn-mmdet model to onnx in the
@@ -19,8 +21,7 @@ class OnnxConverter(KwiverProcess):
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
 
-        self.declare_configuration_key("model_path", "", "Path to the trained model: .zip if mmdet, .weights if darknet")
-        self.declare_configuration_key("batch_size", "", "batch size")
+        self.declare_configuration_key("model_path", "", "Path to the trained model (yolo-mit or darknet backend)")
         self.declare_configuration_key("onnx_model_prefix", "", "Output onnx model path prefix")
 
     # ----------------------------------------------
@@ -28,10 +29,10 @@ class OnnxConverter(KwiverProcess):
 
         # Get config parameters
         model_path = self.config_value("model_path")
-        batch_size = int(self.config_value("batch_size"))
         onnx_model_prefix = self.config_value("onnx_model_prefix")
+        batch_size = 1
 
-        # Do conversion of the model
+        # Models conversion
         if (model_path.endswith(".weights")):
             from darknet2onnx.export import export_darknet_to_onnx
             from darknet2onnx.darknet2pytorch.model import Darknet
@@ -45,8 +46,27 @@ class OnnxConverter(KwiverProcess):
             export_darknet_to_onnx(model, batch_size, onnx_filepath=onnx_file)
 
             print(f"The generated onnx model was written to: {onnx_file}")
+        elif (model_path.endswith(".ckpt") or model_path.endswith(".pth")):
+            import yaml
+            print("Detected pytorch model!")
+            model_path_ = Path(model_path)
+            config_path = next(model_path_.parent.glob("*.yaml"))
+            if not config_path:
+                raise ValueError("Detected pytorch model without associated configuration!")
+            with open(config_path, 'r') as f:
+                cfg = yaml.safe_load(f)
+            # if cfg.get('litdet_version'):  #TODO
+                # print("Detected LitDet model!")
+            if cfg.get('name') == "viame-mit-yolo-detector":
+                print("Detected yolo-mit lightning model!")
+                model_path = Path(model_path)
+                config_path = model_path.parent / "train_config.yaml"
+                output_onnx = Path(onnx_model_prefix).with_suffix(".onnx")
+                from viame.pytorch import yolomit_to_onnx
+                yolomit_to_onnx(model_path, config_path, output_onnx)
 
         elif (model_path.endswith(".zip")):
+            print("Detected netharn model, export may fail!")
             net_shape = ()
             with zipfile.ZipFile(model_path, 'r') as zip_ref:
                 all_files_in_zip = zip_ref.namelist()
@@ -60,12 +80,12 @@ class OnnxConverter(KwiverProcess):
                     config = ast.literal_eval(json_content["extra"]["config"])
                     net_shape = (config['window_dims'][0], config['window_dims'][1], 3)
 
-            from viame.pytorch.crcnn2onnx import crcnn2onnx
-            crcnn2onnx(model_path, net_shape, batch_size, onnx_model_prefix)
+            from viame.pytorch import crcnn_to_onnx
+            crcnn_to_onnx(model_path, net_shape, batch_size, onnx_model_prefix)
             print(f'The generated onnx model was written to: {onnx_model_prefix}.onnx')
 
         else:
-            print("No model will be generated, for now, we only support yolo-darknet and crcnn-mmdet")
+            raise ValueError(f"The model {model_path} is not curently supported, only darknet and yolo-mit backends are supported!")
 
         self._base_configure()
         self.mark_process_as_complete()
