@@ -22,11 +22,7 @@ def __sprokit_register__():
 
     try:
         from viame.pytorch import convert_to_onnx_process
-        process_factory.add_process(
-            'convert_to_onnx',
-            'Convert a yolo/cfrcnn model to onnx',
-            convert_to_onnx_process.OnnxConverter
-        )
+        convert_to_onnx_process.__sprokit_register__()
     except ImportError:
         pass
 
