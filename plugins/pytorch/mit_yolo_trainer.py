@@ -41,6 +41,7 @@ class MITYoloConfig(KWCocoTrainDetectorConfig):
     tmp_training_file = "training_truth.json"
     tmp_validation_file = "validation_truth.json"
     accelerator = scfg.Value('auto', help='lightning accelerator. Can be cpu, gpu, or auto')
+    model = scfg.Value('v9-c', help='the model archictecture')
 
     out_path = scfg.Value('allow', help=ub.paragraph(
         '''
@@ -195,6 +196,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
         config_dir = ub.Path(yolo.config.__file__).parent
         hydra_overrides = [
             "task=train",
+            f"model={self._config.model}",
             "use_wandb=False",
             "cpu_num=4",
             "dataset=coco",
@@ -217,11 +219,6 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             hydra_overrides += [f"weight={self._seed_model}"]
         with initialize_config_dir(version_base=None, config_dir=str(config_dir)):
             cfg = compose(config_name="config.yaml", overrides=hydra_overrides)
-
-        #TODO is that needed if not using a subproc call ?
-        if threading.current_thread().__class__.__name__ == '_MainThread':
-            signal.signal( signal.SIGINT, lambda signal, frame: self.interupt_handler() )
-            signal.signal( signal.SIGTERM, lambda signal, frame: self.interupt_handler() )
 
         # Launch training
         main(cfg)
@@ -270,6 +267,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
         output = {}
         output["type"] = "mit_yolo"
         output["mit_yolo:weight"] = output_model_name
+        output["mit_yolo:model"] = self._config.model
         output[output_model_name] = str(final_ckpt)
 
         # The detector needs train_config.yaml next to the checkpoint
