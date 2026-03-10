@@ -16,6 +16,7 @@ class MITYoloConfig(scfg.DataConfig):
     weight = scfg.Value(None, help='path to a checkpoint on disk')
     # accelerator = scfg.Value('auto', help='lightning accelerator. Can be cpu, gpu, or auto')
     device = scfg.Value('auto', help='a torch device string or number')
+    model = scfg.Value('v9-c', help='the model archictecture')
 
     def __post_init__(self):
         super().__post_init__()
@@ -168,7 +169,8 @@ class MITYoloDetector(ImageObjectDetector):
         weights_fpath = self._kwiver_config.weight
         print(f'weights_fpath={weights_fpath}')
         config_name = 'config'
-        model = 'v9-c'
+        model = self._kwiver_config.model
+        self._accelerator = 'auto'
 
         train_config['dataset']
 
@@ -193,6 +195,7 @@ class MITYoloDetector(ImageObjectDetector):
                     f"model={model}",
                     f"weight='{weights_fpath}'",
                     f'dataset={dataset_config_name}',
+                    f"accelerator={self._accelerator}",
                     # f"dataset.class_list={class_list}",
                     # f"dataset.class_num={len(class_list)}",
                     "use_wandb=False",
