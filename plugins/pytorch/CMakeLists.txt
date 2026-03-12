@@ -112,7 +112,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     if( VIAME_ENABLE_ONNX)
 
       kwiver_add_python_module(
-        ${CMAKE_CURRENT_SOURCE_DIR}/onnx-exporters/crcnn_to_onnx.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/onnx_exporters/crcnn_to_onnx.py
         pytorch
         crcnn_to_onnx )
 
@@ -144,7 +144,7 @@ if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
   if( VIAME_ENABLE_ONNX)
 
       kwiver_add_python_module(
-        ${CMAKE_CURRENT_SOURCE_DIR}/onnx-exporters/yolomit_to_onnx.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/onnx_exporters/yolomit_to_onnx.py
         pytorch
         yolomit_to_onnx )
 

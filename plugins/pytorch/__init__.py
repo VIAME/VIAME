@@ -26,8 +26,6 @@ def __sprokit_register__():
     except ImportError:
         pass
 
-    process_factory.mark_process_module_as_loaded( module_name )
-
 
 def __vital_algorithm_register__():
     """Register vital algorithm implementations."""

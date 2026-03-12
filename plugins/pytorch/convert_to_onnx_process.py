@@ -63,7 +63,7 @@ class OnnxConverter(KwiverProcess):
                 model_path = Path(model_path)
                 config_path = model_path.parent / "train_config.yaml"
                 output_onnx = Path(onnx_model_prefix).with_suffix(".onnx")
-                from viame.pytorch import yolomit_to_onnx
+                from viame.pytorch.yolomit_to_onnx import yolomit_to_onnx
                 yolomit_to_onnx(model_path, config_path, output_onnx)
 
         elif (model_path.endswith(".zip")):
@@ -81,7 +81,7 @@ class OnnxConverter(KwiverProcess):
                     config = ast.literal_eval(json_content["extra"]["config"])
                     net_shape = (config['window_dims'][0], config['window_dims'][1], 3)
 
-            from viame.pytorch import crcnn_to_onnx
+            from viame.pytorch.crcnn_to_onnx import crcnn_to_onnx
             crcnn_to_onnx(model_path, net_shape, batch_size, onnx_model_prefix)
             print(f'The generated onnx model was written to: {onnx_model_prefix}.onnx')
 
@@ -95,15 +95,16 @@ class OnnxConverter(KwiverProcess):
     def _step(self):
         self._base_step()
 
+
 # ==================================================================
 def __sprokit_register__():
     from kwiver.sprokit.pipeline import process_factory
 
-    module_name = 'python:viame.pytorch.OnnxConverter'
+    module_name = "python:viame.pytorch.convert_to_onnx_process"
 
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    process_factory.add_process('OnnxConverter', 'Convert a VIAME model to onnx', OnnxConverter)
+    process_factory.add_process("convert_to_onnx", "Convert a VIAME model to onnx", OnnxConverter)
 
     process_factory.mark_process_module_as_loaded(module_name)
