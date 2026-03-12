@@ -151,7 +151,7 @@ if( VIAME_ENABLE_PYTORCH-LEARN OR
 endif()
 
 if( VIAME_ENABLE_ONNX )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "onnx<=1.16.1" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "onnx<=1.21" "onnxscript" )  #https://github.com/pytorch/pytorch/issues/166352
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
