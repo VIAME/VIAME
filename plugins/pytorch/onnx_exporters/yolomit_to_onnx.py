@@ -28,6 +28,7 @@ def yolomit_to_onnx(model_path: Path, config_path: Path, output_onnx: Path):
         model,
         dummy_input,
         onnx_file,
+        external_data=False,
         input_names=["input"],
         output_names=["output"],
         dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}},
