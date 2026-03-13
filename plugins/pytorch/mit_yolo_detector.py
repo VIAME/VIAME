@@ -16,6 +16,7 @@ class MITYoloConfig(scfg.DataConfig):
     weight = scfg.Value(None, help='path to a checkpoint on disk')
     # accelerator = scfg.Value('auto', help='lightning accelerator. Can be cpu, gpu, or auto')
     device = scfg.Value('auto', help='a torch device string or number')
+    model = scfg.Value('v9-c', help='the model archictecture')
 
     def __post_init__(self):
         super().__post_init__()
