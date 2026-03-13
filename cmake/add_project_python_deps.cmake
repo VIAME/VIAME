@@ -76,6 +76,10 @@ if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-SAM3 )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "tqdm" "scipy" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-SAM3 )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "decord" )
+endif()
+
 # For PostgreSQL database support (used by native ITQ indexer, etc.)
 if( VIAME_ENABLE_POSTGRESQL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "psycopg2-binary" )
