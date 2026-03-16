@@ -52,8 +52,8 @@ class OnnxConverter(KwiverProcess):
             import yaml
             print("Detected pytorch model!")
             model_path_ = Path(model_path)
-            config_path = next(model_path_.parent.glob("*.yaml"))
-            if not config_path:
+            config_path = Path(model_path_.parent / "train_config.yaml")
+            if not config_path.exists():
                 raise ValueError("Detected pytorch model without associated configuration!")
             with open(config_path, 'r') as f:
                 cfg = yaml.safe_load(f)
