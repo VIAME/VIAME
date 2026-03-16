@@ -204,6 +204,7 @@ set( AUX_LINK_LIBRARIES
 # Python is used for DINOv3 feature matching via Python C API
 if( VIAME_ENABLE_PYTHON )
   include_directories( SYSTEM ${PYTHON_INCLUDE_DIRS} )
+  get_filename_component( PYTHON_LIBRARY_DIR "${PYTHON_LIBRARY}" DIRECTORY )
   set( AUX_LINK_LIBRARIES
        ${PYTHON_LIBRARIES}
        ${AUX_LINK_LIBRARIES} )
@@ -214,6 +215,10 @@ target_link_libraries( viame_core
   PUBLIC               ${CORE_LINK_LIBRARIES}
                        ${AUX_LINK_LIBRARIES}
   )
+
+if( VIAME_ENABLE_PYTHON )
+  target_link_directories( viame_core PUBLIC ${PYTHON_LIBRARY_DIR} )
+endif()
 
 # Propagate compile definitions to dependent targets (important for ABI compatibility)
 if( AUX_COMPILE_DEFINITIONS )
