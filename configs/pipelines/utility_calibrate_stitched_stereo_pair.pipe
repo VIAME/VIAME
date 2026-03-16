@@ -3,6 +3,8 @@
 #
 # Description: Calibrates camera parameters for measurement. Processes stereo
 # camera image pairs.
+#
+# Requirements: { Checkerboard Square Size (real units), global:square_size, double }
 # =============================================================================
 
 config _pipeline:_edge

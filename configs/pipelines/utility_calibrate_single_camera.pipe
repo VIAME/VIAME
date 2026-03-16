@@ -2,6 +2,8 @@
 # Title: Estimate monocular camera calibration from images of a chessboard target
 #
 # Description: Calibrates camera parameters for measurement.
+#
+# Requirements: { Checkerboard Square Size (real units), global:square_size, double }
 # =============================================================================
 
 config _pipeline:_edge
