@@ -4,6 +4,7 @@
 
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from pathlib import Path
+import warnings
 
 import zipfile
 import json
@@ -65,6 +66,8 @@ class OnnxConverter(KwiverProcess):
                 output_onnx = Path(onnx_model_prefix).with_suffix(".onnx")
                 from viame.pytorch.yolomit_to_onnx import yolomit_to_onnx
                 yolomit_to_onnx(model_path, config_path, output_onnx)
+            else:
+                warnings.warn("Detected a pytorch YAML configuration that is not valid.")
 
         elif (model_path.endswith(".zip")):
             print("Detected netharn model, export may fail!")
@@ -73,8 +76,7 @@ class OnnxConverter(KwiverProcess):
                 all_files_in_zip = zip_ref.namelist()
                 train_info_files = [file for file in all_files_in_zip if file.endswith("train_info.json")]
                 if len(train_info_files) > 1:
-                    print("The model zip file must contain one and only one train_info.zip", file=sys.stderr)
-                    sys.exit(1)
+                    raise ValueError(f"There should be only one JSON confugration, detected {len(train_info_files)}")
                 with zip_ref.open(train_info_files[0]) as file:
                     content = file.read()
                     json_content = json.loads(content.decode('utf-8'))
