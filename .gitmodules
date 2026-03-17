@@ -78,8 +78,9 @@
 	url = https://gitlab.kitware.com/keu-computervision/ml/darknet-to-pytorch-onnx.git
 [submodule "packages/pytorch-libs/mit-yolo"]
 	path = packages/pytorch-libs/mit-yolo
-	url = https://github.com/VIAME/YOLO.git
+	url = https://github.com/ltetrel/YOLO.git
 	ignore = dirty
+	branch = viame/main
 [submodule "packages/pytorch-libs/foundation-stereo"]
 	path = packages/pytorch-libs/foundation-stereo
 	url = https://github.com/VIAME/foundation-stereo.git
