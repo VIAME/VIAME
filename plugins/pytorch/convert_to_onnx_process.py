@@ -64,7 +64,7 @@ class OnnxConverter(KwiverProcess):
                 model_path = Path(model_path)
                 config_path = model_path.parent / "train_config.yaml"
                 output_onnx = Path(onnx_model_prefix).with_suffix(".onnx")
-                from viame.pytorch.yolomit_to_onnx import yolomit_to_onnx
+                from viame.pytorch.onnx_exporters.yolomit_to_onnx import yolomit_to_onnx
                 yolomit_to_onnx(model_path, config_path, output_onnx)
             else:
                 warnings.warn("Detected a pytorch YAML configuration that is not valid.")
@@ -83,7 +83,7 @@ class OnnxConverter(KwiverProcess):
                     config = ast.literal_eval(json_content["extra"]["config"])
                     net_shape = (config['window_dims'][0], config['window_dims'][1], 3)
 
-            from viame.pytorch.crcnn_to_onnx import crcnn_to_onnx
+            from viame.pytorch.onnx_exporters.crcnn_to_onnx import crcnn_to_onnx
             crcnn_to_onnx(model_path, net_shape, batch_size, onnx_model_prefix)
             print(f'The generated onnx model was written to: {onnx_model_prefix}.onnx')
 
