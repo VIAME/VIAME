@@ -1,8 +1,9 @@
 # =============================================================================
 # Title: Refine tracks using SAM3 with text query support
 #
-# Description: Utility pipeline for refining tracks using SAM3 with text-based
-#              object detection. Supports adding new objects via text queries.
+# Description: Utility pipeline for creating or refining tracks with text-based
+#              queries. Textual query support uses architectures derived from
+#              Meta's SAM3 project.
 #
 # Requirements: { Text Query, track_refiner:refiner:sam3:text_query, string }
 # =============================================================================
