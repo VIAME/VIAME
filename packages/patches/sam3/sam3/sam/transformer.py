@@ -6,10 +6,20 @@ import math
 from functools import partial
 from typing import Tuple, Type
 
+import platform
 import torch
 import torch.nn.functional as F
 from sam3.sam.rope import apply_rotary_enc, apply_rotary_enc_real, compute_axial_cis
 from torch import nn, Tensor
+
+# On Windows, the cuDNN SDPA backend can silently produce incorrect results.
+_WIN_SDPA_BACKENDS = None
+if platform.system() == "Windows":
+    try:
+        from torch.nn.attention import sdpa_kernel, SDPBackend
+        _WIN_SDPA_BACKENDS = [SDPBackend.FLASH_ATTENTION, SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION]
+    except ImportError:
+        pass
 
 from .common import MLPBlock
 
@@ -256,7 +266,11 @@ class Attention(nn.Module):
             torch.backends.cuda.enable_flash_sdp(True)
             torch.backends.cuda.enable_math_sdp(True)
             torch.backends.cuda.enable_mem_efficient_sdp(True)
-            out = F.scaled_dot_product_attention(q, k, v, dropout_p=dropout_p)
+            if _WIN_SDPA_BACKENDS is not None:
+                with sdpa_kernel(_WIN_SDPA_BACKENDS):
+                    out = F.scaled_dot_product_attention(q, k, v, dropout_p=dropout_p)
+            else:
+                out = F.scaled_dot_product_attention(q, k, v, dropout_p=dropout_p)
 
         out = self._recombine_heads(out)
         out = self.out_proj(out)
@@ -351,7 +365,11 @@ class RoPEAttention(Attention):
             torch.backends.cuda.enable_flash_sdp(True)
             torch.backends.cuda.enable_math_sdp(True)
             torch.backends.cuda.enable_mem_efficient_sdp(True)
-            out = F.scaled_dot_product_attention(q, k, v, dropout_p=dropout_p)
+            if _WIN_SDPA_BACKENDS is not None:
+                with sdpa_kernel(_WIN_SDPA_BACKENDS):
+                    out = F.scaled_dot_product_attention(q, k, v, dropout_p=dropout_p)
+            else:
+                out = F.scaled_dot_product_attention(q, k, v, dropout_p=dropout_p)
 
         out = self._recombine_heads(out)
         out = self.out_proj(out)

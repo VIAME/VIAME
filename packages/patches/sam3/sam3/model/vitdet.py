@@ -16,10 +16,21 @@ import math
 from functools import partial
 from typing import Callable, List, Optional, Tuple, Union
 
+import platform
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
+
+# On Windows, the cuDNN SDPA backend can silently produce incorrect results.
+# Exclude it and use only the known-good backends.
+_SDPA_BACKENDS = None
+if platform.system() == "Windows":
+    try:
+        from torch.nn.attention import sdpa_kernel, SDPBackend
+        _SDPA_BACKENDS = [SDPBackend.FLASH_ATTENTION, SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION]
+    except ImportError:
+        pass
 
 try:
     from timm.layers import DropPath, Mlp, trunc_normal_
@@ -501,7 +512,11 @@ class Attention(nn.Module):
             q = q.reshape(B, self.num_heads, H * W, -1)
             k = k.reshape(B, self.num_heads, H * W, -1)
 
-        x = F.scaled_dot_product_attention(q, k, v)
+        if _SDPA_BACKENDS is not None:
+            with sdpa_kernel(_SDPA_BACKENDS):
+                x = F.scaled_dot_product_attention(q, k, v)
+        else:
+            x = F.scaled_dot_product_attention(q, k, v)
 
         if ndim == 4:
             x = (

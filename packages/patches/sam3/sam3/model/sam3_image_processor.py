@@ -3,12 +3,26 @@
 # pyre-unsafe
 from typing import Dict, List
 
+import platform
 import numpy as np
 import PIL
 import torch
 from sam3.model import box_ops
 from sam3.model.data_misc import FindStage, interpolate
 from torchvision.transforms import v2
+
+
+class _SafeNormalizeV2(object):
+    """Channel-by-channel normalize to avoid PyTorch SIMD/AVX vectorization
+    bug on Windows with large tensors."""
+    def __init__(self, mean, std):
+        self.mean = mean
+        self.std = std
+    def __call__(self, tensor):
+        result = torch.zeros_like(tensor)
+        for i in range(tensor.shape[0]):
+            result[i] = (tensor[i] - self.mean[i]) / self.std[i]
+        return result
 
 
 class Sam3Processor:
@@ -18,12 +32,17 @@ class Sam3Processor:
         self.model = model
         self.resolution = resolution
         self.device = device
+        normalize = (
+            _SafeNormalizeV2(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+            if platform.system() == "Windows"
+            else v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+        )
         self.transform = v2.Compose(
             [
                 v2.ToDtype(torch.uint8, scale=True),
                 v2.Resize(size=(resolution, resolution)),
                 v2.ToDtype(torch.float32, scale=True),
-                v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                normalize,
             ]
         )
         self.confidence_threshold = confidence_threshold

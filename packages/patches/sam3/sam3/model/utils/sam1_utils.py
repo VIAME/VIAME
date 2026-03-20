@@ -8,10 +8,24 @@
 
 import warnings
 
+import platform
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.transforms import Normalize, Resize, ToTensor
+
+
+class _SafeNormalize(object):
+    """Channel-by-channel normalize to avoid PyTorch SIMD/AVX vectorization
+    bug on Windows with large tensors."""
+    def __init__(self, mean, std):
+        self.mean = mean
+        self.std = std
+    def __call__(self, tensor):
+        result = torch.zeros_like(tensor)
+        for i in range(tensor.shape[0]):
+            result[i] = (tensor[i] - self.mean[i]) / self.std[i]
+        return result
 
 
 # Adapted from https://github.com/facebookresearch/sam2/blob/main/sam2/utils/transforms.py
@@ -30,19 +44,36 @@ class SAM2Transforms(nn.Module):
         self.mean = [0.5, 0.5, 0.5]
         self.std = [0.5, 0.5, 0.5]
         self.to_tensor = ToTensor()
-        self.transforms = torch.jit.script(
-            nn.Sequential(
-                Resize((self.resolution, self.resolution)),
-                Normalize(self.mean, self.std),
+        if platform.system() == "Windows":
+            # On Windows, use SafeNormalize to avoid vectorization bug
+            # and skip torch.jit.script which doesn't work with custom classes
+            self._safe_normalize = _SafeNormalize(self.mean, self.std)
+            self._resize = Resize((self.resolution, self.resolution))
+            self.transforms = None
+        else:
+            self._safe_normalize = None
+            self._resize = None
+            self.transforms = torch.jit.script(
+                nn.Sequential(
+                    Resize((self.resolution, self.resolution)),
+                    Normalize(self.mean, self.std),
+                )
             )
-        )
+
+    def _apply_transforms(self, x):
+        if self.transforms is not None:
+            return self.transforms(x)
+        # Windows path: manual resize + safe normalize
+        x = self._resize(x)
+        x = self._safe_normalize(x)
+        return x
 
     def __call__(self, x):
         x = self.to_tensor(x)
-        return self.transforms(x)
+        return self._apply_transforms(x)
 
     def forward_batch(self, img_list):
-        img_batch = [self.transforms(self.to_tensor(img)) for img in img_list]
+        img_batch = [self._apply_transforms(self.to_tensor(img)) for img in img_list]
         img_batch = torch.stack(img_batch, dim=0)
         return img_batch
 
