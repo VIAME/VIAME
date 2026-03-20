@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import logging
+import platform
 from functools import partial
 from typing import List, Tuple, Union
 
@@ -12,6 +13,20 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from iopath.common.file_io import g_pathmgr
+
+# On Windows the cuDNN SDPA backend may produce incorrect results or fail with
+# "No valid execution plans built".  Disable it and fall back to flash/math.
+_SDPA_BACKENDS = None
+if platform.system() == "Windows":
+    try:
+        from torch.nn.attention import sdpa_kernel, SDPBackend
+        _SDPA_BACKENDS = [
+            SDPBackend.FLASH_ATTENTION,
+            SDPBackend.MATH,
+            SDPBackend.EFFICIENT_ATTENTION,
+        ]
+    except ImportError:
+        pass
 
 from sam2.modeling.backbones.utils import (
     PatchEmbed,
@@ -67,11 +82,19 @@ class MultiScaleAttention(nn.Module):
             q = q.reshape(B, H * W, self.num_heads, -1)
 
         # Torch's SDPA expects [B, nheads, H*W, C] so we transpose
-        x = F.scaled_dot_product_attention(
-            q.transpose(1, 2),
-            k.transpose(1, 2),
-            v.transpose(1, 2),
-        )
+        if _SDPA_BACKENDS is not None:
+            with sdpa_kernel(_SDPA_BACKENDS):
+                x = F.scaled_dot_product_attention(
+                    q.transpose(1, 2),
+                    k.transpose(1, 2),
+                    v.transpose(1, 2),
+                )
+        else:
+            x = F.scaled_dot_product_attention(
+                q.transpose(1, 2),
+                k.transpose(1, 2),
+                v.transpose(1, 2),
+            )
         # Transpose back
         x = x.transpose(1, 2)
         x = x.reshape(B, H, W, -1)

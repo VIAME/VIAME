@@ -6,6 +6,7 @@
 
 import contextlib
 import math
+import platform
 import warnings
 from functools import partial
 from typing import Tuple, Type
@@ -24,12 +25,31 @@ OLD_GPU, USE_FLASH_ATTN, MATH_KERNEL_ON = get_sdpa_settings()
 # A fallback setting to allow all available kernels if Flash Attention fails
 ALLOW_ALL_KERNELS = False
 
+# On Windows the cuDNN SDPA backend may produce incorrect results or fail with
+# "No valid execution plans built".  Disable it and fall back to flash/math.
+_WIN_SDPA_BACKENDS = None
+if platform.system() == "Windows":
+    try:
+        from torch.nn.attention import sdpa_kernel, SDPBackend
+        _WIN_SDPA_BACKENDS = [
+            SDPBackend.FLASH_ATTENTION,
+            SDPBackend.MATH,
+            SDPBackend.EFFICIENT_ATTENTION,
+        ]
+    except ImportError:
+        pass
+
 
 def sdp_kernel_context(dropout_p):
     """
     Get the context for the attention scaled dot-product kernel. We use Flash Attention
     by default, but fall back to all available kernels if Flash Attention fails.
     """
+    # On Windows, always exclude the cuDNN backend which can silently produce
+    # incorrect results or crash.
+    if _WIN_SDPA_BACKENDS is not None:
+        return sdpa_kernel(_WIN_SDPA_BACKENDS)
+
     if ALLOW_ALL_KERNELS:
         return contextlib.nullcontext()
 
@@ -278,7 +298,8 @@ class Attention(nn.Module):
             )
             global ALLOW_ALL_KERNELS
             ALLOW_ALL_KERNELS = True
-            out = F.scaled_dot_product_attention(q, k, v, dropout_p=dropout_p)
+            with sdp_kernel_context(dropout_p):
+                out = F.scaled_dot_product_attention(q, k, v, dropout_p=dropout_p)
 
         out = self._recombine_heads(out)
         out = self.out_proj(out)
@@ -352,7 +373,8 @@ class RoPEAttention(Attention):
             )
             global ALLOW_ALL_KERNELS
             ALLOW_ALL_KERNELS = True
-            out = F.scaled_dot_product_attention(q, k, v, dropout_p=dropout_p)
+            with sdp_kernel_context(dropout_p):
+                out = F.scaled_dot_product_attention(q, k, v, dropout_p=dropout_p)
 
         out = self._recombine_heads(out)
         out = self.out_proj(out)
