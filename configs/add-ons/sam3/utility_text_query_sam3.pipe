@@ -60,7 +60,7 @@ process track_refiner
     :adjust_boxes                              true
     :max_new_objects                           50
     :output_type                               polygon
-    :polygon_simplification                    0.01
+    :polygon_simplification                    0.005
     :num_points                                5
     relativepath sam_model_id =                models/sam3_weights.pt
     relativepath model_config =                models/sam3_config.json
