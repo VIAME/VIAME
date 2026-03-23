@@ -509,16 +509,32 @@ function( DownloadAndInstallAddonModels _name _addons_src_dir )
   set( _addon_dir "${_addons_src_dir}/${_addon_dir_name}" )
 
   if( IS_DIRECTORY "${_addon_dir}" )
-    # BOTH scenario: only install models/ and transforms/ from the archive
+    # BOTH scenario: only install models/ and transforms/ from the archive.
+    # The archive may have models/ at the content root (flat layout) or nested
+    # under configs/pipelines/ when the zip mirrors the install tree.
+    set( _models_dir "" )
     if( IS_DIRECTORY "${_content_root}/models" )
-      message( STATUS "Installing models from ${_content_root}/models" )
-      install( DIRECTORY "${_content_root}/models/"
+      set( _models_dir "${_content_root}/models" )
+    elseif( IS_DIRECTORY "${_content_root}/configs/pipelines/models" )
+      set( _models_dir "${_content_root}/configs/pipelines/models" )
+    endif()
+
+    if( NOT "${_models_dir}" STREQUAL "" )
+      message( STATUS "Installing models from ${_models_dir}" )
+      install( DIRECTORY "${_models_dir}/"
                DESTINATION configs/pipelines/models )
     endif()
 
+    set( _transforms_dir "" )
     if( IS_DIRECTORY "${_content_root}/transforms" )
-      message( STATUS "Installing transforms from ${_content_root}/transforms" )
-      install( DIRECTORY "${_content_root}/transforms/"
+      set( _transforms_dir "${_content_root}/transforms" )
+    elseif( IS_DIRECTORY "${_content_root}/configs/pipelines/transforms" )
+      set( _transforms_dir "${_content_root}/configs/pipelines/transforms" )
+    endif()
+
+    if( NOT "${_transforms_dir}" STREQUAL "" )
+      message( STATUS "Installing transforms from ${_transforms_dir}" )
+      install( DIRECTORY "${_transforms_dir}/"
                DESTINATION configs/pipelines/transforms )
     endif()
 
