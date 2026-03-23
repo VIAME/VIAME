@@ -5,6 +5,7 @@
 from kwiver.vital.algo import ImageObjectDetector
 import scriptconfig as scfg
 import ubelt as ub
+import torch
 
 from viame.pytorch.utilities import kwimage_to_kwiver_detections, vital_config_update
 
@@ -19,6 +20,31 @@ class MITYoloConfig(scfg.DataConfig):
 
     def __post_init__(self):
         super().__post_init__()
+
+
+def _patched_postprocess_call(self, predict, rev_tensor=None, image_size=None):
+    """patch for PostProcess call to avoid doing nms.
+    Originally from yolo/utils/model_utils"""
+    if image_size is not None:
+        self.converter.update(image_size)
+    prediction = self.converter(predict["Main"])
+    pred_class, _, pred_bbox = prediction[:3]
+    pred_conf = prediction[3] if len(prediction) == 4 else None
+    if rev_tensor is not None:
+        pred_bbox = (pred_bbox - rev_tensor[:, None, 1:]) / rev_tensor[:, 0:1, None]
+    # adapt raw yolo-mit bbox to [class_id, x1, y1, x2, y2, confidence]
+    cls_dist = pred_class.sigmoid() * (1 if pred_conf is None else pred_conf)
+    max_scores, class_ids = torch.max(cls_dist, dim=-1)
+    predicts_all = []
+    for b in range(cls_dist.size(0)):
+        img_predicts = torch.cat([
+            class_ids[b].unsqueeze(-1).float(),
+            pred_bbox[b],
+            max_scores[b].unsqueeze(-1)
+        ], dim=-1)
+        predicts_all.append(img_predicts)
+
+    return predicts_all
 
 
 class MITYoloDetector(ImageObjectDetector):
@@ -63,7 +89,7 @@ class MITYoloDetector(ImageObjectDetector):
             'model': None,
             'transform': None,
             'converter': None,
-            'post_proccess': None,
+            'post_process': None,
             'classes': None,
         }
 
@@ -108,7 +134,6 @@ class MITYoloDetector(ImageObjectDetector):
     def _build_model(self):
         import torch
         from hydra import compose, initialize_config_dir
-        import yolo
         from yolo import (
             AugmentationComposer,
             create_converter,
@@ -136,20 +161,20 @@ class MITYoloDetector(ImageObjectDetector):
             model = create_model(train_cfg.model, class_num=train_cfg.dataset.class_num, weight_path=weight_fpath).to(device)
             transform = AugmentationComposer([], train_cfg.image_size)
             converter = create_converter(train_cfg.model.name, model, train_cfg.model.anchor, train_cfg.image_size, device)
-        # Initialize post-processing with default nms configuration
-        import yolo.config
-        infer_config_dir = ub.Path(yolo.config.__file__).parent / "task"
-        infer_config_name = "inference.yaml"
-        with initialize_config_dir(version_base=None, config_dir=str(infer_config_dir), job_name="nms_mit_yolo_detector"):
-            infer_cfg = compose(config_name=infer_config_name)
-            post_proccess = PostProcess(converter, infer_cfg.nms)  #TODO match kwiver refiner:nms config here
+        # monkey-patch the PostProcess call to skip NMS from yolo-mit as NMS is already done in kwiver
+        # this prevent running nms from yolo-mit which is not under user control in kwiver (e.g. if returning empty predictions)
+        from yolo.config.config import NMSConfig
+        # create a dummy nms for post process
+        nms_config = NMSConfig(0.0, 0, 0)
+        PostProcess.__call__ = _patched_postprocess_call
+        post_process = PostProcess(converter, nms_config)
 
         # Set the inference pipeline
         self._yolo_objects.update({
             'model': model,
             'transform': transform,
             'converter': converter,
-            'post_proccess': post_proccess,
+            'post_process': post_process,
             'classes': list(train_cfg.dataset.class_list),
         })
 
@@ -182,10 +207,9 @@ class MITYoloDetector(ImageObjectDetector):
         from yolo.utils.kwcoco_utils import tensor_to_kwimage
         full_rgb = image_data.asarray()
         pil_img = Image.fromarray(full_rgb)
-
         model = self._yolo_objects['model']
         transform = self._yolo_objects['transform']
-        post_proccess = self._yolo_objects['post_proccess']
+        post_process = self._yolo_objects['post_process']
         classes = self._yolo_objects['classes']
 
         im_chw, bbox, rev_tensor = transform(pil_img)
@@ -194,7 +218,7 @@ class MITYoloDetector(ImageObjectDetector):
             im_bchw = im_chw.to(device)[None, :, :, :]
             batched_rev_tensor = rev_tensor.to(device)[None]
             predict = model(im_bchw)
-            pred_bbox = post_proccess(predict, batched_rev_tensor)
+            pred_bbox = post_process(predict, batched_rev_tensor)
             yolo_boxes = pred_bbox[0]
             detections = tensor_to_kwimage(yolo_boxes, classes=classes)
 
