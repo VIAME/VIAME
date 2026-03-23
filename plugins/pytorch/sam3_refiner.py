@@ -6,13 +6,17 @@
 SAM3 (Segment Anything Model 3) Track Refiner
 
 This refiner uses SAM 2.1 for refining object tracks with text prompts.
-It operates on a per-frame basis to:
-- Keep existing tracks and extend with new objects from text query that don't overlap
-- Re-segment masks using SAM on existing track bounding boxes
-- Filter and remove low-quality tracks based on SAM mask quality
-- Adjust bounding boxes based on refined masks
-- Add points to detections
-- Remove tracks if they no longer match the query
+It uses SAM3's native video predictor for temporal tracking with memory
+attention, providing high-quality mask propagation across frames.
+
+Features:
+- Re-segments existing track bounding boxes with SAM for better masks
+- Detects new objects using Grounding DINO text queries
+- Propagates seed boxes across frames using SAM3 video predictor
+- Adds non-overlapping new detections as new tracks
+- Filters out tracks with low-quality masks
+- Adjusts bounding boxes to fit refined masks
+- Generates polygon and/or point outputs from masks
 """
 
 import scriptconfig as scfg
@@ -69,21 +73,13 @@ class SAM3RefinerConfig(SAM3BaseConfig):
         50,
         help='Maximum number of new objects to add per frame'
     )
-    # Cross-frame tracking for new objects detected by text query.
-    # When enabled, new objects found on one frame are matched to the same
-    # object on subsequent frames by IoU, producing multi-frame tracks
-    # instead of single-frame detections.
-    track_new_objects = scfg.Value(
+    # Whether to propagate tracked objects across frames using SAM3 video
+    # predictor.  Enable for track-user-selections (seed boxes forwarded
+    # across frames).  Disable for text-query pipelines where grounding
+    # DINO re-detects on every frame independently.
+    propagate_tracked = scfg.Value(
         True,
-        help='Track text-query objects across frames using IoU matching'
-    )
-    track_match_threshold = scfg.Value(
-        0.3,
-        help='IoU threshold for matching a new detection to a tracked object'
-    )
-    lost_track_frames = scfg.Value(
-        10,
-        help='Frames without a detection before a tracked object is dropped'
+        help='Propagate seed boxes across frames using SAM3 video predictor'
     )
 
 
@@ -108,18 +104,15 @@ def _set_polygon_on_detection(det, mask, simplification):
 
 class SAM3Refiner(RefineTracks):
     """
-    SAM3-based track refiner.
+    SAM3-based track refiner with native video tracking.
 
-    This refiner uses SAM 2.1 for per-frame track refinement operations.
-    It can improve mask quality, add new objects, and filter tracks.
+    Uses SAM3's video predictor for temporal mask propagation when
+    ``propagate_tracked`` is enabled.  Seed boxes (single-state input
+    tracks) are added as prompts and propagated across all subsequent
+    frames with SAM3's memory-attention mechanism.
 
-    Key features:
-    - Re-segments existing track bounding boxes with SAM for better masks
-    - Detects new objects using Grounding DINO text queries
-    - Adds non-overlapping new detections as new tracks
-    - Filters out tracks with low-quality masks
-    - Adjusts bounding boxes to fit refined masks
-    - Generates polygon and/or point outputs from masks
+    When ``propagate_tracked`` is disabled (text-query pipelines),
+    each frame is processed independently with the image predictor.
 
     Example:
         >>> from viame.pytorch.sam3_refiner import SAM3Refiner
@@ -132,15 +125,17 @@ class SAM3Refiner(RefineTracks):
         RefineTracks.__init__(self)
         self._config = SAM3RefinerConfig()
         self._model_manager = SAM3ModelManager()
-        self._next_track_id = 1  # For generating new track IDs
+        self._next_track_id = 100000
 
-        # Cross-frame tracking state for text-query objects.
-        # Maps track_id -> { 'last_box': [...], 'class_name': str,
-        #                     'lost': int, 'history': [ObjectTrackState, ...] }
-        self._tracked_objects = {}
-        self._track_new_objects = True
-        self._track_match_threshold = 0.3
-        self._lost_track_frames = 10
+        # Video predictor state (used when propagate_tracked=True)
+        self._video_predictor = None
+        self._pil_frames = []          # accumulated PIL images for init_state
+        self._frame_prompts = {}       # frame_idx -> [(obj_id, box_rel_xywh)]
+        self._obj_id_to_class = {}     # obj_id -> class_name
+        self._propagated_tracks = {}   # obj_id -> [ObjectTrackState, ...]
+        self._timestamps = {}          # frame_idx -> timestamp
+        self._img_width = 0
+        self._img_height = 0
 
     def get_configuration(self):
         """Get the algorithm configuration."""
@@ -173,12 +168,15 @@ class SAM3Refiner(RefineTracks):
         self._num_points = int(self._config.num_points)
         self._output_type = self._config.output_type
         self._text_query_list = self._config.text_query_list
-        self._track_new_objects = parse_bool(self._config.track_new_objects)
-        self._track_match_threshold = float(self._config.track_match_threshold)
-        self._lost_track_frames = int(self._config.lost_track_frames)
+        self._propagate_tracked = parse_bool(self._config.propagate_tracked)
 
-        # Initialize models (image predictor mode, not video)
-        self._model_manager.init_models(self._config, use_video_predictor=False)
+        # When propagation is disabled (text query), load the image predictor
+        # now.  When propagation is enabled (track selections), defer model
+        # loading to the first refine() call — the video predictor is the
+        # only model needed and loading both would exceed GPU memory.
+        self._video_predictor_initialized = False
+        if not self._propagate_tracked:
+            self._model_manager.init_models(self._config, use_video_predictor=False)
 
         return True
 
@@ -186,15 +184,89 @@ class SAM3Refiner(RefineTracks):
         """Check if the configuration is valid."""
         return True
 
+    # ------------------------------------------------------------------
+    # Video predictor helpers
+    # ------------------------------------------------------------------
+
+    def _ensure_video_predictor(self):
+        """Lazily initialize the video predictor on first use."""
+        if not self._video_predictor_initialized and self._propagate_tracked:
+            self._model_manager.init_models(
+                self._config, use_video_predictor=True,
+            )
+            self._video_predictor = self._model_manager._video_predictor
+            self._video_predictor_initialized = True
+
+    def _run_video_propagation(self):
+        """
+        Run SAM3 video predictor on accumulated frames and prompts.
+        Builds the inference state from collected PIL images, adds all
+        box prompts, and propagates.  Returns a dict of
+        (obj_id, frame_idx) -> (binary_mask, box_xyxy).
+        """
+        import torch
+
+        if not self._pil_frames or not self._frame_prompts:
+            return {}
+
+        self._ensure_video_predictor()
+        if self._video_predictor is None:
+            return {}
+
+        torch.cuda.empty_cache()
+
+        # Build inference state from PIL image list
+        state = self._video_predictor.init_state(
+            self._pil_frames, offload_video_to_cpu=True,
+        )
+
+        # Add all collected prompts
+        for frame_idx, prompts in self._frame_prompts.items():
+            for obj_id, box_rel_xywh in prompts:
+                self._video_predictor.add_prompt(
+                    state,
+                    frame_idx=frame_idx,
+                    boxes_xywh=[box_rel_xywh],
+                    box_labels=[1],
+                    obj_id=obj_id,
+                )
+
+        # Propagate and collect results
+        results = {}
+        for frame_idx, frame_results in self._video_predictor.propagate_in_video(state):
+            obj_ids = np.array(frame_results['out_obj_ids'])
+            boxes_xywh = np.array(frame_results['out_boxes_xywh'])
+            masks = np.array(frame_results['out_binary_masks'])
+
+            for i, oid in enumerate(obj_ids):
+                oid = int(oid)
+                bx = boxes_xywh[i]
+                # Convert relative xywh to absolute xyxy
+                ax1 = bx[0] * self._img_width
+                ay1 = bx[1] * self._img_height
+                ax2 = (bx[0] + bx[2]) * self._img_width
+                ay2 = (bx[1] + bx[3]) * self._img_height
+                results[(oid, frame_idx)] = (masks[i], [ax1, ay1, ax2, ay2])
+
+        # Free video state
+        try:
+            self._video_predictor.reset_state(state)
+        except Exception:
+            pass
+
+        return results
+
+    # ------------------------------------------------------------------
+    # Main refine method
+    # ------------------------------------------------------------------
+
     def refine(self, ts, image_data, tracks):
         """
         Refine tracks for the current frame.
 
-        When ``track_new_objects`` is enabled (the default), text-query
-        detections are matched across frames by IoU so that the same
-        physical object keeps a single track ID, producing multi-frame
-        tracks instead of isolated per-frame detections.
-
+        When ``propagate_tracked`` is enabled, seed boxes are tracked
+        across frames using SAM3's native video predictor with memory
+        attention.  When disabled, each frame is processed independently.
         Args:
             ts: Timestamp for the current frame
             image_data: Image container for the current frame
@@ -207,35 +279,173 @@ class SAM3Refiner(RefineTracks):
             raise RuntimeError("Frame timestamps must contain frame IDs")
 
         frame_id = ts.get_frame()
-
-        # Convert image to numpy RGB
         img_np = image_to_rgb_numpy(image_data)
 
-        # Extract current frame's track states from the *input* track set
+        # Extract current frame's track states from input
         track_states = {}  # track_id -> (track, state, detection)
         max_track_id = 0
-
         for track in tracks.tracks():
             track_id = track.id
             max_track_id = max(max_track_id, track_id)
-
             for state in track:
                 if state.frame_id == frame_id:
                     detection = state.detection()
                     track_states[track_id] = (track, state, detection)
                     break
 
-        # Update next track ID to be higher than any existing
         self._next_track_id = max(self._next_track_id, max_track_id + 1)
-        # Also keep it above any tracked-object IDs from previous frames
-        for tid in self._tracked_objects:
-            self._next_track_id = max(self._next_track_id, tid + 1)
 
-        # -----------------------------------------------------------------
-        # Collect boxes for segmentation
-        # -----------------------------------------------------------------
+        if self._propagate_tracked:
+            return self._refine_with_video_predictor(
+                ts, frame_id, img_np, tracks, track_states
+            )
+        else:
+            return self._refine_per_frame(
+                ts, frame_id, img_np, tracks, track_states
+            )
+
+    # ------------------------------------------------------------------
+    # Video-predictor path (propagate_tracked=True)
+    # ------------------------------------------------------------------
+
+    def _refine_with_video_predictor(self, ts, frame_id, img_np,
+                                     tracks, track_states):
+        """
+        Refine using SAM3 video predictor for native temporal tracking.
+
+        Accumulates frames and seed box prompts.  On each call, runs
+        SAM3 video propagation over the full buffer to produce masks
+        for all tracked objects on all frames seen so far.  Only the
+        current frame's results are used for track output; previous
+        frames' results were already emitted.
+        """
+        # Convert to PIL and store
+        pil = PILImage.fromarray(img_np)
+        self._pil_frames.append(pil)
+        if self._img_width == 0:
+            self._img_width, self._img_height = pil.size
+        self._timestamps[frame_id] = ts
+
+        local_frame_idx = len(self._pil_frames) - 1
+
+        # Collect seed box prompts from input tracks on this frame
+        for tid, (track, state, det) in track_states.items():
+            bbox = det.bounding_box
+            x1, y1 = bbox.min_x(), bbox.min_y()
+            x2, y2 = bbox.max_x(), bbox.max_y()
+            w, h = self._img_width, self._img_height
+            box_rel = [x1 / w, y1 / h, (x2 - x1) / w, (y2 - y1) / h]
+            self._frame_prompts.setdefault(local_frame_idx, []).append(
+                (tid, box_rel)
+            )
+            class_name = ''
+            try:
+                class_name = det.type.get_most_likely_class()
+            except Exception:
+                pass
+            self._obj_id_to_class[tid] = class_name
+
+        # Detect new objects with text query
+        if self._add_new_objects:
+            new_detections = self._model_manager.detect_with_text(
+                img_np, self._text_query_list,
+                self._detection_threshold, self._text_threshold,
+            )
+            suppress_boxes = [
+                [det.bounding_box.min_x(), det.bounding_box.min_y(),
+                 det.bounding_box.max_x(), det.bounding_box.max_y()]
+                for _, (_, _, det) in track_states.items()
+            ]
+            added = 0
+            w, h = self._img_width, self._img_height
+            for box, score, class_name in new_detections:
+                if added >= self._max_new_objects:
+                    break
+                overlaps = False
+                for sb in suppress_boxes:
+                    if compute_iou(box, sb) > self._iou_threshold:
+                        overlaps = True
+                        break
+                if not overlaps:
+                    tid = self._next_track_id
+                    self._next_track_id += 1
+                    box_rel = [box[0]/w, box[1]/h, (box[2]-box[0])/w, (box[3]-box[1])/h]
+                    self._frame_prompts.setdefault(local_frame_idx, []).append(
+                        (tid, box_rel)
+                    )
+                    self._obj_id_to_class[tid] = class_name
+                    suppress_boxes.append(box)
+                    added += 1
+
+        # Skip propagation if no prompts yet
+        if not self._frame_prompts:
+            return ObjectTrackSet([])
+
+        # Run full propagation over accumulated buffer
+        all_results = self._run_video_propagation()
+
+        # Build per-object track histories from ALL propagated frames
+        self._propagated_tracks.clear()
+        for (oid, fidx), (mask, box_xyxy) in all_results.items():
+            mask_area = np.sum(mask)
+            if self._filter_by_quality and mask_area < self._min_mask_area:
+                continue
+
+            class_name = self._obj_id_to_class.get(oid, 'unknown')
+            bbox = box_from_mask(mask)
+            if bbox is None:
+                bbox = BoundingBoxD(box_xyxy[0], box_xyxy[1],
+                                    box_xyxy[2], box_xyxy[3])
+
+            # Look up confidence from input track if available
+            confidence = 1.0
+            dot = DetectedObjectType(class_name, confidence)
+            det = DetectedObject(bbox, confidence, dot)
+
+            if self._output_type in ('polygon', 'both'):
+                _set_polygon_on_detection(det, mask, self._polygon_simplification)
+
+            # Map local frame index back to actual timestamp
+            if fidx in self._timestamps:
+                frame_ts = self._timestamps[fidx]
+            else:
+                # Reconstruct: fidx maps to the fidx-th call's timestamp
+                sorted_ts = sorted(self._timestamps.items())
+                if fidx < len(sorted_ts):
+                    frame_ts = sorted_ts[fidx][1]
+                else:
+                    continue
+
+            new_state = ObjectTrackState(frame_ts, det)
+            self._propagated_tracks.setdefault(oid, []).append(new_state)
+
+        # Emit all propagated tracks
+        output_tracks = []
+        for obj_id, history in self._propagated_tracks.items():
+            if len(history) > 0:
+                output_tracks.append(Track(obj_id, list(history)))
+
+        # Pass through input tracks with no state on current frame
+        emitted_ids = set(self._propagated_tracks.keys())
+        for track in tracks.tracks():
+            tid = track.id
+            if tid not in emitted_ids and tid not in track_states:
+                output_tracks.append(track)
+
+        return ObjectTrackSet(output_tracks)
+
+    # ------------------------------------------------------------------
+    # Per-frame path (propagate_tracked=False, for text queries)
+    # ------------------------------------------------------------------
+
+    def _refine_per_frame(self, ts, frame_id, img_np, tracks, track_states):
+        """
+        Refine each frame independently using the image predictor.
+        Used for text-query pipelines where grounding DINO detects on
+        every frame and no cross-frame propagation is needed.
+        """
         boxes_to_segment = []
-        box_sources = []  # ('existing', track_id) or ('new', score, class_name, box)
+        box_sources = []  # ('existing', tid) or ('new', score, class_name)
 
         # Re-segment existing input-track boxes
         if self._resegment_existing:
@@ -245,74 +455,46 @@ class SAM3Refiner(RefineTracks):
                 boxes_to_segment.append(box)
                 box_sources.append(('existing', tid))
 
-        # Also re-segment any tracked objects from previous frames whose
-        # box we are propagating (they are not in the input track_states)
-        tracked_propagated = {}  # index in boxes_to_segment -> tracked tid
-        if self._track_new_objects:
-            for tid, tdata in self._tracked_objects.items():
-                if tid not in track_states:
-                    boxes_to_segment.append(list(tdata['last_box']))
-                    tracked_propagated[len(boxes_to_segment) - 1] = tid
-                    box_sources.append(('propagated', tid))
-
         # Detect new objects with text query
-        new_detections = []
         if self._add_new_objects:
             new_detections = self._model_manager.detect_with_text(
-                img_np,
-                self._text_query_list,
-                self._detection_threshold,
-                self._text_threshold
+                img_np, self._text_query_list,
+                self._detection_threshold, self._text_threshold,
             )
-
-            # Build set of all boxes we should avoid overlapping with
-            # (existing input tracks + propagated tracked objects)
-            existing_boxes = [
+            suppress_boxes = [
                 [det.bounding_box.min_x(), det.bounding_box.min_y(),
                  det.bounding_box.max_x(), det.bounding_box.max_y()]
                 for _, (_, _, det) in track_states.items()
             ]
-            for tdata in self._tracked_objects.values():
-                existing_boxes.append(list(tdata['last_box']))
-
             for box, score, class_name in new_detections:
                 overlaps = False
-                for existing_box in existing_boxes:
-                    if compute_iou(box, existing_box) > self._iou_threshold:
+                for sb in suppress_boxes:
+                    if compute_iou(box, sb) > self._iou_threshold:
                         overlaps = True
                         break
-
-                if not overlaps and len([s for s in box_sources if s[0] == 'new']) < self._max_new_objects:
+                new_count = len([s for s in box_sources if s[0] == 'new'])
+                if not overlaps and new_count < self._max_new_objects:
                     boxes_to_segment.append(box)
-                    box_sources.append(('new', score, class_name, box))
+                    box_sources.append(('new', score, class_name))
 
-        # -----------------------------------------------------------------
-        # Segment all boxes with SAM
-        # -----------------------------------------------------------------
+        # Segment all boxes with SAM image predictor
         if len(boxes_to_segment) > 0:
             masks = self._model_manager.segment_with_sam(img_np, boxes_to_segment)
         else:
             masks = []
 
-        # -----------------------------------------------------------------
-        # Process results and build output tracks
-        # -----------------------------------------------------------------
+        # Build output tracks
         output_tracks = []
         processed_track_ids = set()
-        # Track IDs that received a detection on this frame (for lost counting)
-        seen_tracked_ids = set()
 
         for i, (mask, source) in enumerate(zip(masks, box_sources)):
             mask_area = np.sum(mask)
-
-            # Filter by minimum mask area
             if self._filter_by_quality and mask_area < self._min_mask_area:
                 if source[0] == 'existing':
                     processed_track_ids.add(source[1])
                 continue
 
             if source[0] == 'existing':
-                # Update existing input track
                 tid = source[1]
                 track, old_state, old_det = track_states[tid]
                 processed_track_ids.add(tid)
@@ -329,126 +511,25 @@ class SAM3Refiner(RefineTracks):
                     else:
                         new_history.append(state)
 
-                new_track = Track(tid, new_history)
-                output_tracks.append(new_track)
-
-                # Register/update as tracked object so the box is
-                # propagated to subsequent frames
-                if self._track_new_objects:
-                    bbox = new_det.bounding_box
-                    new_box = [bbox.min_x(), bbox.min_y(),
-                               bbox.max_x(), bbox.max_y()]
-                    class_name = ''
-                    try:
-                        class_name = old_det.type.get_most_likely_class()
-                    except Exception:
-                        pass
-                    if tid in self._tracked_objects:
-                        self._tracked_objects[tid]['last_box'] = new_box
-                        self._tracked_objects[tid]['lost'] = 0
-                        self._tracked_objects[tid]['history'].append(new_state)
-                    else:
-                        self._tracked_objects[tid] = {
-                            'class_name': class_name,
-                            'last_box': new_box,
-                            'lost': 0,
-                            'history': [new_state],
-                        }
-                    seen_tracked_ids.add(tid)
-
-            elif source[0] == 'propagated':
-                # A tracked object from a previous frame re-segmented here
-                tid = source[1]
-                seen_tracked_ids.add(tid)
-
-                det, bbox = self._detection_from_mask(
-                    mask, boxes_to_segment[i],
-                    self._tracked_objects[tid]['class_name'], 1.0
-                )
-                if det is None:
-                    continue
-
-                new_state = ObjectTrackState(ts, det)
-                self._tracked_objects[tid]['history'].append(new_state)
-                self._tracked_objects[tid]['last_box'] = [
-                    bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()
-                ]
-                self._tracked_objects[tid]['lost'] = 0
-
+                output_tracks.append(Track(tid, new_history))
             else:
-                # New text-query detection
                 score, class_name = source[1], source[2]
-                det_box = source[3]
-
-                det, bbox = self._detection_from_mask(
-                    mask, det_box, class_name, score
+                det = self._detection_from_mask(
+                    mask, boxes_to_segment[i], class_name, score
                 )
-                if det is None:
-                    continue
-
-                if self._track_new_objects:
-                    # Try to match against tracked objects by IoU
-                    new_box = [bbox.min_x(), bbox.min_y(),
-                               bbox.max_x(), bbox.max_y()]
-                    matched_tid = self._match_tracked_object(
-                        new_box, class_name, seen_tracked_ids
-                    )
-
-                    if matched_tid is not None:
-                        # Extend existing tracked object
-                        seen_tracked_ids.add(matched_tid)
-                        new_state = ObjectTrackState(ts, det)
-                        self._tracked_objects[matched_tid]['history'].append(new_state)
-                        self._tracked_objects[matched_tid]['last_box'] = new_box
-                        self._tracked_objects[matched_tid]['lost'] = 0
-                    else:
-                        # Start a new tracked object
-                        tid = self._next_track_id
-                        self._next_track_id += 1
-                        new_state = ObjectTrackState(ts, det)
-                        self._tracked_objects[tid] = {
-                            'class_name': class_name,
-                            'last_box': new_box,
-                            'lost': 0,
-                            'history': [new_state],
-                        }
-                        seen_tracked_ids.add(tid)
-                else:
-                    # Original behaviour: one-frame track per detection
+                if det is not None:
                     new_state = ObjectTrackState(ts, det)
-                    new_track = Track(self._next_track_id, [new_state])
+                    tid = self._next_track_id
                     self._next_track_id += 1
-                    output_tracks.append(new_track)
+                    output_tracks.append(Track(tid, [new_state]))
 
-        # -----------------------------------------------------------------
-        # Update lost counts and emit tracked-object tracks
-        # -----------------------------------------------------------------
-        if self._track_new_objects:
-            expired = []
-            for tid, tdata in self._tracked_objects.items():
-                if tid not in seen_tracked_ids:
-                    tdata['lost'] += 1
-                if tdata['lost'] > self._lost_track_frames:
-                    expired.append(tid)
-
-            # Emit tracked objects that weren't already output via the
-            # input-track processing path (avoids duplicate track IDs)
-            for tid, tdata in self._tracked_objects.items():
-                if tid not in processed_track_ids and len(tdata['history']) > 0:
-                    output_tracks.append(Track(tid, list(tdata['history'])))
-
-            # Remove expired tracked objects *after* emitting them
-            for tid in expired:
-                del self._tracked_objects[tid]
-
-        # Include existing input tracks that weren't processed
+        # Pass through unprocessed input tracks
         if not self._resegment_existing:
             for tid, (track, state, det) in track_states.items():
                 if tid not in processed_track_ids:
                     output_tracks.append(track)
                     processed_track_ids.add(tid)
 
-        # Include input tracks that have no state for current frame
         for track in tracks.tracks():
             tid = track.id
             if tid not in processed_track_ids and tid not in track_states:
@@ -456,23 +537,12 @@ class SAM3Refiner(RefineTracks):
 
         return ObjectTrackSet(output_tracks)
 
-    def _match_tracked_object(self, box, class_name, already_seen):
-        """Match a detection box to an existing tracked object by IoU."""
-        best_tid = None
-        best_iou = self._track_match_threshold
-        for tid, tdata in self._tracked_objects.items():
-            if tid in already_seen:
-                continue
-            if tdata['class_name'] != class_name:
-                continue
-            iou = compute_iou(box, tdata['last_box'])
-            if iou > best_iou:
-                best_iou = iou
-                best_tid = tid
-        return best_tid
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
 
     def _detection_from_mask(self, mask, det_box, class_name, score):
-        """Create a DetectedObject from a mask, returning (det, bbox) or (None, None)."""
+        """Create a DetectedObject from a mask, or None if invalid."""
         if not isinstance(mask, np.ndarray):
             import torch
             if isinstance(mask, torch.Tensor):
@@ -483,7 +553,7 @@ class SAM3Refiner(RefineTracks):
         if self._adjust_boxes:
             bbox = box_from_mask(mask)
             if bbox is None:
-                return None, None
+                return None
         else:
             bbox = BoundingBoxD(det_box[0], det_box[1], det_box[2], det_box[3])
 
@@ -493,24 +563,10 @@ class SAM3Refiner(RefineTracks):
         if self._output_type in ('polygon', 'both'):
             _set_polygon_on_detection(det, mask, self._polygon_simplification)
 
-        if self._output_type in ('points', 'both'):
-            mask_to_points(mask, self._num_points)
-
-        return det, bbox
+        return det
 
     def _create_refined_detection(self, old_det, mask, adjust_box):
-        """
-        Create a refined detection from an existing detection and new mask.
-
-        Args:
-            old_det: Original DetectedObject
-            mask: New binary mask from SAM
-            adjust_box: Whether to adjust bounding box to fit mask
-
-        Returns:
-            DetectedObject: Refined detection
-        """
-        # Get bounding box
+        """Create a refined detection from an existing detection and new mask."""
         if adjust_box:
             bbox = box_from_mask(mask)
             if bbox is None:
@@ -518,20 +574,12 @@ class SAM3Refiner(RefineTracks):
         else:
             bbox = old_det.bounding_box
 
-        # Copy classification
         det_type = old_det.type
         confidence = old_det.confidence
-
-        # Create new detection
         new_det = DetectedObject(bbox, confidence, det_type)
 
-        # Add polygon
         if self._output_type in ('polygon', 'both'):
             _set_polygon_on_detection(new_det, mask, self._polygon_simplification)
-
-        # Add points
-        if self._output_type in ('points', 'both'):
-            points = mask_to_points(mask, self._num_points)
 
         return new_det
 

@@ -436,9 +436,9 @@ class SAM3ModelManager:
 
         self._device = resolve_device(config.device)
 
-        # Initialize Grounding DINO (if model ID provided)
+        # Initialize Grounding DINO (if model ID provided and not disabled)
         grounding_model_id = getattr(config, 'grounding_model_id', None)
-        if grounding_model_id:
+        if grounding_model_id and str(grounding_model_id).lower() not in ('', 'none', 'false'):
             self._init_grounding_dino(grounding_model_id)
 
         # Check if using local SAM3 model files
@@ -827,6 +827,56 @@ class SAM3ModelManager:
 
         # No SAM model - return full masks
         return [np.ones((image_np.shape[0], image_np.shape[1]), dtype=bool)] * len(boxes)
+
+    def segment_single_with_mask(self, image_np, box, mask_input=None):
+        """
+        Segment a single object using a box prompt and optional mask prior.
+
+        Passing the low-res mask logits from the previous frame as
+        ``mask_input`` gives SAM temporal context and dramatically improves
+        tracking consistency compared to a bare box prompt.
+
+        Args:
+            image_np: RGB image as numpy array (must call set_image first
+                      or this will call it automatically).
+            box: [x1, y1, x2, y2] bounding box.
+            mask_input: Optional low-resolution mask logits from a previous
+                        prediction (shape ``[1, 256, 256]``).  Returned as
+                        the third element of the SAM predictor's output.
+
+        Returns:
+            (mask, low_res_mask) where *mask* is a binary HxW numpy array and
+            *low_res_mask* is the low-resolution logits suitable for feeding
+            back as ``mask_input`` on the next frame.
+        """
+        import torch
+
+        if self._sam_predictor is None:
+            h, w = image_np.shape[:2]
+            return np.ones((h, w), dtype=bool), None
+
+        self._sam_predictor.set_image(image_np)
+
+        prompts = {
+            'box': np.array(box),
+            'multimask_output': False,
+        }
+        if mask_input is not None:
+            prompts['mask_input'] = mask_input
+
+        with torch.inference_mode():
+            masks, scores, low_res_masks = self._sam_predictor.predict(**prompts)
+
+        # masks shape: [1, H, W] or [H, W]
+        if len(masks.shape) == 3:
+            mask = masks[0]
+        else:
+            mask = masks
+
+        # low_res_masks shape: [1, 256, 256]
+        low_res = low_res_masks if low_res_masks is not None else None
+
+        return mask, low_res
 
 
 def mask_to_points(mask, num_points):
