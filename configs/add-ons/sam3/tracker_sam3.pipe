@@ -1,11 +1,12 @@
 # =============================================================================
-# Title: Refine tracks using SAM3 with text query support
+# Title: SAM3 Open-Vocabulary Tracker
 #
-# Description: Utility pipeline for creating or refining tracks with text-based
-#              queries. Textual query support uses architectures derived from
-#              Meta's SAM3 project.
-#
-# Requirements: { Text Query, track_refiner:refiner:sam3:text_query, string }
+# Description: Detect and track objects across frames using SAM3's native video
+#              predictor with text-prompted detection. Detects objects on the
+#              first frame (and periodically thereafter) then propagates them
+#              using SAM3's memory-attention tracking. Produces multi-frame
+#              tracks with polygon masks.
+#              Set the text_query parameter to describe the objects to find.
 # =============================================================================
 
 config _pipeline:_edge
@@ -20,15 +21,6 @@ include common_default_input_with_downsampler.pipe
 # ============================= SAM3 CONFIGURATION ============================
 include common_sam3_segmenter.conf
 
-process track_reader
-  :: read_object_track
-  :file_name                                   detections.csv
-  :reader:type                                 viame_csv
-  :reader:viame_csv:poly_to_mask               false
-
-connect from downsampler.output_2
-        to   track_reader.image_file_name
-
 process ensure_rgb
   :: image_filter
   :filter:type                                 vxl_convert_image
@@ -41,15 +33,30 @@ process ensure_rgb
 connect from downsampler.output_1
         to   ensure_rgb.image
 
-# =============================== TRACK REFINER ===============================
-process track_refiner
+# ================================= TRACKER ===================================
+
+# Use the SAM3 refiner in video-predictor mode (propagate_tracked=true)
+# with add_new_objects=true to detect via text query and propagate with
+# SAM3's native video tracking.  New objects are detected on the first
+# frame and every reinit_interval frames.
+# An empty track reader provides no seed tracks.
+process track_reader
+  :: read_object_track
+  :file_name                                   detections.csv
+  :reader:type                                 viame_csv
+  :reader:viame_csv:poly_to_mask               false
+
+connect from downsampler.output_2
+        to   track_reader.image_file_name
+
+process tracker
   :: refine_tracks
   :refiner:type                                sam3
 
   block refiner:sam3
     :grounding_model_id                        none
     :device                                    cuda
-    :text_query                                object
+    :text_query                                object, animal, vehicle, person
     :min_mask_area                             10
     :resegment_existing                        true
     :add_new_objects                           true
@@ -67,11 +74,11 @@ process track_refiner
   endblock
 
 connect from ensure_rgb.image
-        to   track_refiner.image
+        to   tracker.image
 connect from downsampler.timestamp
-        to   track_refiner.timestamp
+        to   tracker.timestamp
 connect from track_reader.object_track_set
-        to   track_refiner.object_track_set
+        to   tracker.object_track_set
 
 # =============================== OUTPUT WRITER ===============================
 process track_writer
@@ -84,7 +91,7 @@ connect from downsampler.output_2
         to   track_writer.image_file_name
 connect from downsampler.timestamp
         to   track_writer.timestamp
-connect from track_refiner.object_track_set
+connect from tracker.object_track_set
         to   track_writer.object_track_set
 
 # -- end of file --

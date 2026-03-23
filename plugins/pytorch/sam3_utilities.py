@@ -397,8 +397,11 @@ class SAM3BaseConfig(scfg.DataConfig):
         super().__post_init__()
         if isinstance(self.text_query, str):
             self.text_query_list = [q.strip() for q in self.text_query.split(',')]
+        elif isinstance(self.text_query, (list, tuple)):
+            # scriptconfig may convert comma-separated strings to lists
+            self.text_query_list = [str(q).strip() for q in self.text_query]
         else:
-            self.text_query_list = [self.text_query]
+            self.text_query_list = [str(self.text_query)]
 
 
 class SAM3ModelManager:
@@ -497,20 +500,25 @@ class SAM3ModelManager:
         if not os.path.exists(config_path):
             raise FileNotFoundError(f"SAM3 config not found: {config_path}")
 
-        # Try to load using transformers library first
+        # Try to load using transformers library first, then fall back to
+        # native sam3 module.  Only print errors if ALL methods fail.
+        transformers_err = None
+        native_err = None
+
         try:
             self._init_sam3_transformers(model_dir, weights_path, config_path, use_video_predictor)
             return
         except Exception as e:
-            print(f"[SAM3] Could not load via transformers: {e}")
+            transformers_err = e
 
-        # Fallback: try to load using sam3 module if available
         try:
             self._init_sam3_native(weights_path, config_path, use_video_predictor)
             return
         except Exception as e:
-            print(f"[SAM3] Could not load via native sam3: {e}")
+            native_err = e
 
+        print(f"[SAM3] Could not load via transformers: {transformers_err}")
+        print(f"[SAM3] Could not load via native sam3: {native_err}")
         raise RuntimeError("Failed to load SAM3 model from local files")
 
     def _init_sam3_transformers(self, model_dir, weights_path, config_path, use_video_predictor):
@@ -524,7 +532,6 @@ class SAM3ModelManager:
             config_data = json.load(f)
 
         model_type = config_data.get('model_type', 'sam3_video')
-        print(f"[SAM3] Model type from config: {model_type}")
 
         # Check if model_type is sam3_* which requires custom transformers
         if model_type.startswith('sam3'):
@@ -544,18 +551,13 @@ class SAM3ModelManager:
                 print(f"[SAM3] Successfully loaded SAM3 via transformers AutoModel")
                 self._setup_predictor_interface(use_video_predictor)
                 return
-            except ValueError as e:
-                if "Unrecognized model" in str(e):
-                    print(f"[SAM3] model_type '{model_type}' not registered in transformers")
-                    print(f"[SAM3] This model requires custom transformers with Sam3 support")
-                else:
-                    raise
+            except ValueError:
+                pass  # model_type not registered — try fallbacks below
 
         # Fallback: Try loading as Sam2 model (for sam2_* model types or as fallback)
         try:
             from transformers import Sam2Model, Sam2Processor
 
-            # Check if there's a processor config
             processor_config_path = os.path.join(model_dir, 'sam3_processor_config.json')
             if os.path.exists(processor_config_path):
                 try:
@@ -563,8 +565,8 @@ class SAM3ModelManager:
                         model_dir,
                         local_files_only=True
                     )
-                except Exception as e:
-                    print(f"[SAM3] Could not load processor: {e}")
+                except Exception:
+                    pass
 
             self._sam_model = Sam2Model.from_pretrained(
                 model_dir,
@@ -574,8 +576,8 @@ class SAM3ModelManager:
             print(f"[SAM3] Successfully loaded model via Sam2Model")
             self._setup_predictor_interface(use_video_predictor)
             return
-        except Exception as e:
-            print(f"[SAM3] Sam2Model loading failed: {e}")
+        except Exception:
+            pass
 
         # Try standard SAM2 Video model for video predictor
         if use_video_predictor:
@@ -593,8 +595,8 @@ class SAM3ModelManager:
                 print(f"[SAM3] Successfully loaded model via Sam2VideoModel")
                 self._setup_predictor_interface(use_video_predictor)
                 return
-            except Exception as e:
-                print(f"[SAM3] Sam2VideoModel loading failed: {e}")
+            except Exception:
+                pass
 
         raise RuntimeError(
             f"Could not load SAM3 model via transformers. "
@@ -740,10 +742,12 @@ class SAM3ModelManager:
         from PIL import Image
 
         pil_img = Image.fromarray(image_np)
-        text_labels = [text_query_list]
+        # Grounding DINO expects a single string with labels separated
+        # by periods, e.g. "object. animal. fish."
+        text_str = '. '.join(text_query_list) + '.'
 
         inputs = self._grounding_processor(
-            images=pil_img, text=text_labels, return_tensors="pt"
+            images=pil_img, text=text_str, return_tensors="pt"
         ).to(self._device)
 
         with torch.no_grad():

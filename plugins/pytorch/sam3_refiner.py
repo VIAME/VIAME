@@ -81,6 +81,18 @@ class SAM3RefinerConfig(SAM3BaseConfig):
         True,
         help='Propagate seed boxes across frames using SAM3 video predictor'
     )
+    # How often (in frames) to re-run text detection to find new objects
+    # entering the scene.  Set to 0 to only detect on the first frame.
+    reinit_interval = scfg.Value(
+        10,
+        help='Frames between text re-detection for new objects (0=first only)'
+    )
+    # SAM3 video predictor internal detection confidence threshold.
+    # Lowering this lets SAM3 detect less prominent objects.
+    video_detection_threshold = scfg.Value(
+        0.3,
+        help='SAM3 video predictor detection score threshold (default 0.5 in SAM3)'
+    )
 
 
 def _ensure_binary_mask(mask):
@@ -131,6 +143,7 @@ class SAM3Refiner(RefineTracks):
         self._video_predictor = None
         self._pil_frames = []          # accumulated PIL images for init_state
         self._frame_prompts = {}       # frame_idx -> [(obj_id, box_rel_xywh)]
+        self._text_prompt_frames = {}  # frame_idx -> text_query_string
         self._obj_id_to_class = {}     # obj_id -> class_name
         self._propagated_tracks = {}   # obj_id -> [ObjectTrackState, ...]
         self._timestamps = {}          # frame_idx -> timestamp
@@ -169,11 +182,12 @@ class SAM3Refiner(RefineTracks):
         self._output_type = self._config.output_type
         self._text_query_list = self._config.text_query_list
         self._propagate_tracked = parse_bool(self._config.propagate_tracked)
+        self._reinit_interval = int(self._config.reinit_interval)
 
-        # When propagation is disabled (text query), load the image predictor
-        # now.  When propagation is enabled (track selections), defer model
-        # loading to the first refine() call — the video predictor is the
-        # only model needed and loading both would exceed GPU memory.
+        # When propagation is disabled (per-frame mode), load the image
+        # predictor and grounding DINO now.
+        # When propagation is enabled, defer to the video predictor which
+        # handles text detection natively — no grounding DINO needed.
         self._video_predictor_initialized = False
         if not self._propagate_tracked:
             self._model_manager.init_models(self._config, use_video_predictor=False)
@@ -197,6 +211,11 @@ class SAM3Refiner(RefineTracks):
             self._video_predictor = self._model_manager._video_predictor
             self._video_predictor_initialized = True
 
+            # Apply detection threshold if the predictor supports it
+            thresh = float(self._config.video_detection_threshold)
+            if hasattr(self._video_predictor, 'score_threshold_detection'):
+                self._video_predictor.score_threshold_detection = thresh
+
     def _run_video_propagation(self):
         """
         Run SAM3 video predictor on accumulated frames and prompts.
@@ -206,7 +225,9 @@ class SAM3Refiner(RefineTracks):
         """
         import torch
 
-        if not self._pil_frames or not self._frame_prompts:
+        if not self._pil_frames:
+            return {}
+        if not self._frame_prompts and not self._text_prompt_frames:
             return {}
 
         self._ensure_video_predictor()
@@ -220,7 +241,7 @@ class SAM3Refiner(RefineTracks):
             self._pil_frames, offload_video_to_cpu=True,
         )
 
-        # Add all collected prompts
+        # Add all collected box prompts (from input seed tracks)
         for frame_idx, prompts in self._frame_prompts.items():
             for obj_id, box_rel_xywh in prompts:
                 self._video_predictor.add_prompt(
@@ -231,22 +252,38 @@ class SAM3Refiner(RefineTracks):
                     obj_id=obj_id,
                 )
 
-        # Propagate and collect results
-        results = {}
-        for frame_idx, frame_results in self._video_predictor.propagate_in_video(state):
-            obj_ids = np.array(frame_results['out_obj_ids'])
-            boxes_xywh = np.array(frame_results['out_boxes_xywh'])
-            masks = np.array(frame_results['out_binary_masks'])
+        # Add text prompts for object detection on marked frames
+        for frame_idx, text_query in self._text_prompt_frames.items():
+            self._video_predictor.add_prompt(
+                state,
+                frame_idx=frame_idx,
+                text_str=text_query,
+            )
 
-            for i, oid in enumerate(obj_ids):
-                oid = int(oid)
-                bx = boxes_xywh[i]
-                # Convert relative xywh to absolute xyxy
-                ax1 = bx[0] * self._img_width
-                ay1 = bx[1] * self._img_height
-                ax2 = (bx[0] + bx[2]) * self._img_width
-                ay2 = (bx[1] + bx[3]) * self._img_height
-                results[(oid, frame_idx)] = (masks[i], [ax1, ay1, ax2, ay2])
+        # Suppress tqdm progress bars from SAM3's propagation
+        import tqdm
+        _orig_init = tqdm.tqdm.__init__
+        def _quiet_init(self, *args, **kwargs):
+            kwargs['disable'] = True
+            _orig_init(self, *args, **kwargs)
+        tqdm.tqdm.__init__ = _quiet_init
+
+        try:
+            # Forward propagation
+            results = {}
+            for frame_idx, frame_results in self._video_predictor.propagate_in_video(state):
+                self._collect_frame_results(results, frame_idx, frame_results)
+
+            # Reverse propagation to fill in frames before mid-video detections.
+            # Only go back as far as the reinit interval to limit the buffer.
+            max_reverse = self._reinit_interval if self._reinit_interval > 0 else None
+            for frame_idx, frame_results in self._video_predictor.propagate_in_video(
+                state, reverse=True, max_frame_num_to_track=max_reverse,
+            ):
+                self._collect_frame_results(results, frame_idx, frame_results,
+                                            overwrite=False)
+        finally:
+            tqdm.tqdm.__init__ = _orig_init
 
         # Free video state
         try:
@@ -255,6 +292,25 @@ class SAM3Refiner(RefineTracks):
             pass
 
         return results
+
+    def _collect_frame_results(self, results, frame_idx, frame_results,
+                               overwrite=True):
+        """Extract per-object masks from a propagation frame result."""
+        obj_ids = np.array(frame_results['out_obj_ids'])
+        boxes_xywh = np.array(frame_results['out_boxes_xywh'])
+        masks = np.array(frame_results['out_binary_masks'])
+
+        for i, oid in enumerate(obj_ids):
+            oid = int(oid)
+            key = (oid, frame_idx)
+            if not overwrite and key in results:
+                continue
+            bx = boxes_xywh[i]
+            ax1 = bx[0] * self._img_width
+            ay1 = bx[1] * self._img_height
+            ax2 = (bx[0] + bx[2]) * self._img_width
+            ay2 = (bx[1] + bx[3]) * self._img_height
+            results[key] = (masks[i], [ax1, ay1, ax2, ay2])
 
     # ------------------------------------------------------------------
     # Main refine method
@@ -324,9 +380,9 @@ class SAM3Refiner(RefineTracks):
         self._pil_frames.append(pil)
         if self._img_width == 0:
             self._img_width, self._img_height = pil.size
-        self._timestamps[frame_id] = ts
 
         local_frame_idx = len(self._pil_frames) - 1
+        self._timestamps[local_frame_idx] = ts
 
         # Collect seed box prompts from input tracks on this frame
         for tid, (track, state, det) in track_states.items():
@@ -345,59 +401,83 @@ class SAM3Refiner(RefineTracks):
                 pass
             self._obj_id_to_class[tid] = class_name
 
-        # Detect new objects with text query
-        if self._add_new_objects:
-            new_detections = self._model_manager.detect_with_text(
-                img_np, self._text_query_list,
-                self._detection_threshold, self._text_threshold,
-            )
-            suppress_boxes = [
-                [det.bounding_box.min_x(), det.bounding_box.min_y(),
-                 det.bounding_box.max_x(), det.bounding_box.max_y()]
-                for _, (_, _, det) in track_states.items()
-            ]
-            added = 0
-            w, h = self._img_width, self._img_height
-            for box, score, class_name in new_detections:
-                if added >= self._max_new_objects:
-                    break
-                overlaps = False
-                for sb in suppress_boxes:
-                    if compute_iou(box, sb) > self._iou_threshold:
-                        overlaps = True
-                        break
-                if not overlaps:
-                    tid = self._next_track_id
-                    self._next_track_id += 1
-                    box_rel = [box[0]/w, box[1]/h, (box[2]-box[0])/w, (box[3]-box[1])/h]
-                    self._frame_prompts.setdefault(local_frame_idx, []).append(
-                        (tid, box_rel)
-                    )
-                    self._obj_id_to_class[tid] = class_name
-                    suppress_boxes.append(box)
-                    added += 1
+        # Mark this frame for text-query detection during propagation.
+        # SAM3's video predictor handles text detection natively via
+        # text_str prompts — no grounding DINO needed.  We add text
+        # prompts on the first frame and periodically thereafter to
+        # catch objects entering the scene mid-video.
+        if self._add_new_objects and self._text_query_list:
+            text_query = ', '.join(self._text_query_list)
+            is_first = (local_frame_idx == 0)
+            is_reinit = (self._reinit_interval > 0
+                         and local_frame_idx > 0
+                         and local_frame_idx % self._reinit_interval == 0)
+            if is_first or is_reinit:
+                self._text_prompt_frames.setdefault(
+                    local_frame_idx, text_query)
 
-        # Skip propagation if no prompts yet
-        if not self._frame_prompts:
+        # Accumulate only — propagation runs once in finalize() after
+        # all frames have been collected.
+        return ObjectTrackSet([])
+
+    def finalize(self):
+        """
+        Called by the pipeline after all frames have been processed.
+        Runs SAM3 video propagation over the full accumulated buffer
+        and returns the complete set of tracked objects.
+        """
+        if not self._propagate_tracked:
             return ObjectTrackSet([])
 
-        # Run full propagation over accumulated buffer
+        self._run_finalize_propagation()
+
+        output_tracks = []
+        for obj_id, history in self._propagated_tracks.items():
+            if len(history) > 0:
+                output_tracks.append(Track(obj_id, list(history)))
+
+        return ObjectTrackSet(output_tracks)
+
+    def _run_finalize_propagation(self):
+        """
+        Run SAM3 video propagation on the full accumulated buffer.
+        Called once after all frames have been collected.
+        """
+        if not self._pil_frames:
+            return
+        if not self._frame_prompts and not self._text_prompt_frames:
+            return
+
         all_results = self._run_video_propagation()
 
-        # Build per-object track histories from ALL propagated frames
+        # Collect the set of object IDs we explicitly prompted
+        prompted_ids = set()
+        for prompts in self._frame_prompts.values():
+            for obj_id, _ in prompts:
+                prompted_ids.add(obj_id)
+
         self._propagated_tracks.clear()
         for (oid, fidx), (mask, box_xyxy) in all_results.items():
+            # When add_new_objects is disabled (track selections), only
+            # keep tracks the user explicitly seeded — drop SAM3
+            # auto-discovered objects.
+            if not self._add_new_objects and oid not in prompted_ids:
+                continue
+
             mask_area = np.sum(mask)
             if self._filter_by_quality and mask_area < self._min_mask_area:
                 continue
 
-            class_name = self._obj_id_to_class.get(oid, 'unknown')
+            class_name = self._obj_id_to_class.get(oid, '')
+            if not class_name and self._text_query_list:
+                class_name = self._text_query_list[0]
+            if not class_name:
+                class_name = 'unknown'
             bbox = box_from_mask(mask)
             if bbox is None:
                 bbox = BoundingBoxD(box_xyxy[0], box_xyxy[1],
                                     box_xyxy[2], box_xyxy[3])
 
-            # Look up confidence from input track if available
             confidence = 1.0
             dot = DetectedObjectType(class_name, confidence)
             det = DetectedObject(bbox, confidence, dot)
@@ -405,34 +485,34 @@ class SAM3Refiner(RefineTracks):
             if self._output_type in ('polygon', 'both'):
                 _set_polygon_on_detection(det, mask, self._polygon_simplification)
 
-            # Map local frame index back to actual timestamp
-            if fidx in self._timestamps:
-                frame_ts = self._timestamps[fidx]
-            else:
-                # Reconstruct: fidx maps to the fidx-th call's timestamp
-                sorted_ts = sorted(self._timestamps.items())
-                if fidx < len(sorted_ts):
-                    frame_ts = sorted_ts[fidx][1]
-                else:
-                    continue
+            if fidx not in self._timestamps:
+                continue
+            frame_ts = self._timestamps[fidx]
 
             new_state = ObjectTrackState(frame_ts, det)
             self._propagated_tracks.setdefault(oid, []).append(new_state)
 
-        # Emit all propagated tracks
-        output_tracks = []
-        for obj_id, history in self._propagated_tracks.items():
-            if len(history) > 0:
-                output_tracks.append(Track(obj_id, list(history)))
+        # Include input seed detections that SAM3 may not have yielded
+        for local_idx, prompts in self._frame_prompts.items():
+            if local_idx not in self._timestamps:
+                continue
+            frame_ts = self._timestamps[local_idx]
+            for tid, box_rel in prompts:
+                if (tid, local_idx) not in all_results:
+                    w, h = self._img_width, self._img_height
+                    ax1 = box_rel[0] * w
+                    ay1 = box_rel[1] * h
+                    ax2 = (box_rel[0] + box_rel[2]) * w
+                    ay2 = (box_rel[1] + box_rel[3]) * h
+                    bbox = BoundingBoxD(ax1, ay1, ax2, ay2)
+                    class_name = self._obj_id_to_class.get(tid, 'unknown')
+                    dot = DetectedObjectType(class_name, 1.0)
+                    det = DetectedObject(bbox, 1.0, dot)
+                    state = ObjectTrackState(frame_ts, det)
+                    self._propagated_tracks.setdefault(tid, []).append(state)
 
-        # Pass through input tracks with no state on current frame
-        emitted_ids = set(self._propagated_tracks.keys())
-        for track in tracks.tracks():
-            tid = track.id
-            if tid not in emitted_ids and tid not in track_states:
-                output_tracks.append(track)
-
-        return ObjectTrackSet(output_tracks)
+        for oid in self._propagated_tracks:
+            self._propagated_tracks[oid].sort(key=lambda s: s.frame_id)
 
     # ------------------------------------------------------------------
     # Per-frame path (propagate_tracked=False, for text queries)

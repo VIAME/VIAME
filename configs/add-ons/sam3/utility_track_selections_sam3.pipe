@@ -61,6 +61,7 @@ process track_refiner
 
   block refiner:sam3
     :device                                    cuda
+    :grounding_model_id                        none
     :iou_threshold                             0.5
     :min_mask_area                             10
     :resegment_existing                        true
