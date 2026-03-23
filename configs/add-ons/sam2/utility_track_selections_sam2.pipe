@@ -21,6 +21,7 @@ process detection_reader
   :file_name                                   [INSERT_ME]
   :reader:type                                 viame_csv
   :reader:viame_csv:single_state_only          true
+  :reader:viame_csv:poly_to_mask               false
 
 connect from downsampler.output_2
         to   detection_reader.image_file_name
@@ -48,7 +49,8 @@ process ensure_rgb
 connect from downsampler.output_1
         to   ensure_rgb.image
 
-# SAM2 track refiner - adds segmentation masks to single-state detections
+# SAM2 track refiner — re-segments seed boxes with SAM2 and propagates
+# them across all subsequent frames to produce multi-frame tracks.
 process track_refiner
   :: refine_tracks
   :refiner:type                                sam2
@@ -61,9 +63,11 @@ process track_refiner
     :multipolygon_policy                       largest
     :min_mask_area                             10
     :filter_by_quality                         true
-    :adjust_boxes                              false
+    :adjust_boxes                              true
     :output_type                               polygon
     :polygon_simplification                    0.01
+    :track_new_objects                         true
+    :lost_track_frames                         10
     relativepath checkpoint =                  models/sam2_hbp.pt
   endblock
 

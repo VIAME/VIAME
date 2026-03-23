@@ -332,6 +332,30 @@ class SAM3Refiner(RefineTracks):
                 new_track = Track(tid, new_history)
                 output_tracks.append(new_track)
 
+                # Register/update as tracked object so the box is
+                # propagated to subsequent frames
+                if self._track_new_objects:
+                    bbox = new_det.bounding_box
+                    new_box = [bbox.min_x(), bbox.min_y(),
+                               bbox.max_x(), bbox.max_y()]
+                    class_name = ''
+                    try:
+                        class_name = old_det.type.get_most_likely_class()
+                    except Exception:
+                        pass
+                    if tid in self._tracked_objects:
+                        self._tracked_objects[tid]['last_box'] = new_box
+                        self._tracked_objects[tid]['lost'] = 0
+                        self._tracked_objects[tid]['history'].append(new_state)
+                    else:
+                        self._tracked_objects[tid] = {
+                            'class_name': class_name,
+                            'last_box': new_box,
+                            'lost': 0,
+                            'history': [new_state],
+                        }
+                    seen_tracked_ids.add(tid)
+
             elif source[0] == 'propagated':
                 # A tracked object from a previous frame re-segmented here
                 tid = source[1]
@@ -407,10 +431,10 @@ class SAM3Refiner(RefineTracks):
                 if tdata['lost'] > self._lost_track_frames:
                     expired.append(tid)
 
-            # Emit all active tracked objects as tracks (including expired
-            # ones so their history is written to CSV)
+            # Emit tracked objects that weren't already output via the
+            # input-track processing path (avoids duplicate track IDs)
             for tid, tdata in self._tracked_objects.items():
-                if len(tdata['history']) > 0:
+                if tid not in processed_track_ids and len(tdata['history']) > 0:
                     output_tracks.append(Track(tid, list(tdata['history'])))
 
             # Remove expired tracked objects *after* emitting them

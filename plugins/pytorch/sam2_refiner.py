@@ -284,10 +284,18 @@ class Sam2TrackRefiner(RefineTracks):
             'adjust_boxes': 'True',
             'output_type': 'polygon',
             'polygon_simplification': '0.01',
+            # Cross-frame tracking: propagate seed boxes to subsequent frames
+            'track_new_objects': 'True',
+            'lost_track_frames': '10',
         }
 
         self.predictor = None
         self._next_track_id = 1
+
+        # Cross-frame tracking state for seed detections.
+        # Maps track_id -> { 'last_box': [...], 'class_name': str,
+        #                     'lost': int, 'history': [ObjectTrackState, ...] }
+        self._tracked_objects = {}
 
     def get_configuration(self):
         """Get the algorithm configuration."""
@@ -327,6 +335,8 @@ class Sam2TrackRefiner(RefineTracks):
         self._polygon_simplification = float(self._kwiver_config['polygon_simplification'])
         self._hole_policy = self._kwiver_config['hole_policy']
         self._mpoly_policy = self._kwiver_config['multipolygon_policy']
+        self._track_new_objects = strtobool(self._kwiver_config['track_new_objects'])
+        self._lost_track_frames = int(self._kwiver_config['lost_track_frames'])
 
         return True
 
@@ -343,6 +353,11 @@ class Sam2TrackRefiner(RefineTracks):
     def refine(self, ts, image_data, tracks):
         """
         Refine tracks for the current frame.
+
+        When ``track_new_objects`` is enabled (the default), seed detections
+        (single-state tracks appearing on one frame) are propagated to
+        subsequent frames by re-segmenting their last known box, producing
+        multi-frame tracks with masks.
 
         Args:
             ts: Timestamp for the current frame
@@ -362,7 +377,7 @@ class Sam2TrackRefiner(RefineTracks):
         # Convert image to numpy RGB
         img_np = image_to_rgb_numpy(image_data)
 
-        # Extract current frame's track states
+        # Extract current frame's track states from the input track set
         track_states = {}  # track_id -> (track, state, detection)
         max_track_id = 0
 
@@ -378,56 +393,135 @@ class Sam2TrackRefiner(RefineTracks):
 
         # Update next track ID to be higher than any existing
         self._next_track_id = max(self._next_track_id, max_track_id + 1)
+        for tid in self._tracked_objects:
+            self._next_track_id = max(self._next_track_id, tid + 1)
 
+        # -----------------------------------------------------------------
         # Collect boxes for segmentation
+        # -----------------------------------------------------------------
         boxes_to_segment = []
-        box_sources = []  # track_id
+        # Each source entry: ('input', tid) | ('propagated', tid)
+        box_sources = []
 
+        # 1) Input-track boxes present on this frame
         for tid, (track, state, det) in track_states.items():
             bbox = det.bounding_box
             box = [bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()]
             boxes_to_segment.append(box)
-            box_sources.append(tid)
+            box_sources.append(('input', tid))
 
+        # 2) Tracked objects from previous frames whose box we propagate
+        if self._track_new_objects:
+            for tid, tdata in self._tracked_objects.items():
+                if tid not in track_states:
+                    boxes_to_segment.append(list(tdata['last_box']))
+                    box_sources.append(('propagated', tid))
+
+        # -----------------------------------------------------------------
         # Segment all boxes with SAM2
+        # -----------------------------------------------------------------
         if len(boxes_to_segment) > 0:
             masks = self._segment_with_sam2(img_np, boxes_to_segment)
         else:
             masks = []
 
+        # -----------------------------------------------------------------
         # Process results and build output tracks
+        # -----------------------------------------------------------------
         output_tracks = []
         processed_track_ids = set()
+        seen_tracked_ids = set()
 
-        for i, (mask, tid) in enumerate(zip(masks, box_sources)):
+        for i, (mask, source) in enumerate(zip(masks, box_sources)):
             mask_area = np.sum(mask)
+            source_type, tid = source
 
             # Filter by minimum mask area
             if self._filter_by_quality and mask_area < self._min_mask_area:
-                processed_track_ids.add(tid)
+                if source_type == 'input':
+                    processed_track_ids.add(tid)
                 continue
 
-            track, old_state, old_det = track_states[tid]
-            processed_track_ids.add(tid)
+            if source_type == 'input':
+                # Refine an existing input track detection
+                track, old_state, old_det = track_states[tid]
+                processed_track_ids.add(tid)
 
-            # Create refined detection
-            new_det = self._create_refined_detection(old_det, mask)
+                new_det = self._create_refined_detection(old_det, mask)
+                new_state = ObjectTrackState(ts, new_det)
 
-            # Create new track state
-            new_state = ObjectTrackState(ts, new_det)
+                # Rebuild track with the refined state for this frame
+                new_history = []
+                for state in track:
+                    if state.frame_id == frame_id:
+                        new_history.append(new_state)
+                    else:
+                        new_history.append(state)
 
-            # Rebuild track with new state for this frame
-            new_history = []
-            for state in track:
-                if state.frame_id == frame_id:
-                    new_history.append(new_state)
-                else:
-                    new_history.append(state)
+                new_track = Track(tid, new_history)
+                output_tracks.append(new_track)
 
-            new_track = Track(tid, new_history)
-            output_tracks.append(new_track)
+                # If tracking is enabled, register/update this as a tracked
+                # object so its box is propagated to future frames
+                if self._track_new_objects:
+                    bbox = new_det.bounding_box
+                    new_box = [bbox.min_x(), bbox.min_y(),
+                               bbox.max_x(), bbox.max_y()]
+                    class_name = ''
+                    try:
+                        class_name = old_det.type.get_most_likely_class()
+                    except Exception:
+                        pass
+                    if tid in self._tracked_objects:
+                        self._tracked_objects[tid]['last_box'] = new_box
+                        self._tracked_objects[tid]['lost'] = 0
+                        self._tracked_objects[tid]['history'].append(new_state)
+                    else:
+                        self._tracked_objects[tid] = {
+                            'class_name': class_name,
+                            'last_box': new_box,
+                            'lost': 0,
+                            'history': [new_state],
+                        }
+                    seen_tracked_ids.add(tid)
 
-        # Include tracks that have no state for current frame (preserve history)
+            else:
+                # Propagated tracked object — add a new state on this frame
+                seen_tracked_ids.add(tid)
+                tdata = self._tracked_objects[tid]
+
+                new_det = self._create_propagated_detection(
+                    mask, boxes_to_segment[i], tdata['class_name']
+                )
+                if new_det is None:
+                    continue
+
+                new_state = ObjectTrackState(ts, new_det)
+                tdata['history'].append(new_state)
+                bbox = new_det.bounding_box
+                tdata['last_box'] = [bbox.min_x(), bbox.min_y(),
+                                     bbox.max_x(), bbox.max_y()]
+                tdata['lost'] = 0
+
+        # -----------------------------------------------------------------
+        # Update lost counts and emit tracked-object tracks
+        # -----------------------------------------------------------------
+        if self._track_new_objects:
+            expired = []
+            for tid, tdata in self._tracked_objects.items():
+                if tid not in seen_tracked_ids:
+                    tdata['lost'] += 1
+                if tdata['lost'] > self._lost_track_frames:
+                    expired.append(tid)
+
+            for tid, tdata in self._tracked_objects.items():
+                if tid not in processed_track_ids and len(tdata['history']) > 0:
+                    output_tracks.append(Track(tid, list(tdata['history'])))
+
+            for tid in expired:
+                del self._tracked_objects[tid]
+
+        # Include input tracks with no state on this frame (preserve history)
         for track in tracks.tracks():
             tid = track.id
             if tid not in processed_track_ids and tid not in track_states:
@@ -467,6 +561,48 @@ class Sam2TrackRefiner(RefineTracks):
             masks = masks[None, :, :, :]
 
         return [masks[i, 0] for i in range(len(boxes))]
+
+    def _create_propagated_detection(self, mask, det_box, class_name):
+        """
+        Create a detection from a propagated mask (no prior detection).
+
+        Args:
+            mask: Binary mask from SAM2
+            det_box: [x1, y1, x2, y2] bounding box used for segmentation
+            class_name: Classification label
+
+        Returns:
+            DetectedObject or None if mask is invalid
+        """
+        if self._adjust_boxes:
+            bbox = box_from_mask(mask)
+            if bbox is None:
+                return None
+        else:
+            bbox = BoundingBoxD(det_box[0], det_box[1], det_box[2], det_box[3])
+
+        dot = DetectedObjectType(class_name, 1.0) if class_name else None
+        det = DetectedObject(bbox, 1.0, dot) if dot else DetectedObject(bbox, 1.0)
+
+        if self._output_type in ('polygon', 'both'):
+            binary_mask = (mask > 0.5).astype(np.uint8) if mask.dtype != np.uint8 else mask
+            poly_pts = mask_to_polygon(binary_mask, self._polygon_simplification)
+            if poly_pts is not None:
+                det.set_flattened_polygon(poly_pts)
+
+        if self.overwrite_existing:
+            x1, y1 = int(bbox.min_x()), int(bbox.min_y())
+            x2, y2 = int(bbox.max_x()), int(bbox.max_y())
+            h, w = mask.shape
+            x1 = max(0, min(x1, w - 1))
+            x2 = max(x1 + 1, min(x2, w))
+            y1 = max(0, min(y1, h - 1))
+            y2 = max(y1 + 1, min(y2, h))
+            relative_mask = mask[y1:y2, x1:x2].astype(np.uint8)
+            if relative_mask.size > 0:
+                det.mask = vital_image_container_from_ndarray(relative_mask)
+
+        return det
 
     def _create_refined_detection(self, old_det, mask):
         """
