@@ -214,6 +214,7 @@ class MITYoloDetector(ImageObjectDetector):
 
         im_chw, bbox, rev_tensor = transform(pil_img)
         device = ub.peek(model.parameters()).device
+        model.eval()
         with torch.no_grad():
             im_bchw = im_chw.to(device)[None, :, :, :]
             batched_rev_tensor = rev_tensor.to(device)[None]
