@@ -695,28 +695,60 @@ class SAM3Refiner(RefineTracks):
 
         self._propagated_tracks = new_tracks
 
+    @staticmethod
+    def _track_velocity(states, from_end=True, n_frames=5):
+        """
+        Estimate velocity (vx, vy) in pixels/frame from the last (or
+        first) *n_frames* states of a track using linear regression of
+        the bounding-box centres.
+        """
+        if len(states) < 2:
+            return 0.0, 0.0
+        if from_end:
+            seg = states[-n_frames:]
+        else:
+            seg = states[:n_frames]
+        frames = [s.frame_id for s in seg]
+        cxs = [(s.detection().bounding_box.min_x() +
+                s.detection().bounding_box.max_x()) / 2 for s in seg]
+        cys = [(s.detection().bounding_box.min_y() +
+                s.detection().bounding_box.max_y()) / 2 for s in seg]
+        n = len(frames)
+        if n < 2:
+            return 0.0, 0.0
+        fm = sum(frames) / n
+        xm = sum(cxs) / n
+        ym = sum(cys) / n
+        denom = sum((f - fm) ** 2 for f in frames)
+        if denom < 1e-9:
+            return 0.0, 0.0
+        vx = sum((f - fm) * (x - xm) for f, x in zip(frames, cxs)) / denom
+        vy = sum((f - fm) * (y - ym) for f, y in zip(frames, cys)) / denom
+        return vx, vy
+
     def _stitch_tracks(self, max_frame_gap=5):
         """
         Merge tracks where one ends near where another begins.
 
-        This handles cases where the same physical object gets different
-        IDs across video chunks because the overlap-based ID
-        reconciliation didn't match them.
+        Uses velocity-based position prediction: extrapolate the ending
+        track's motion to estimate where it would be at the starting
+        track's first frame, then compare that predicted position to
+        the actual start.  This allows fast-moving objects to be linked
+        across gaps that would be too large for a raw-distance check.
 
-        Uses greedy matching: for each track end, find the best track
-        start within ``max_frame_gap`` frames whose spatial distance
-        is within a few box diagonals.  Merge iteratively.
+        Also falls back to raw distance for slow/stationary objects.
         """
-        # Build sorted list of (start_frame, end_frame, oid) for each track
         track_info = {}
         for oid, states in self._propagated_tracks.items():
             if not states:
                 continue
             states.sort(key=lambda s: s.frame_id)
-            start_det = states[0].detection()
-            end_det = states[-1].detection()
-            sb = start_det.bounding_box
-            eb = end_det.bounding_box
+            sdet = states[0].detection()
+            edet = states[-1].detection()
+            sb = sdet.bounding_box
+            eb = edet.bounding_box
+            evx, evy = self._track_velocity(states, from_end=True)
+            svx, svy = self._track_velocity(states, from_end=False)
             track_info[oid] = {
                 'start_frame': states[0].frame_id,
                 'end_frame': states[-1].frame_id,
@@ -726,14 +758,13 @@ class SAM3Refiner(RefineTracks):
                 'end_cx': (eb.min_x() + eb.max_x()) / 2,
                 'end_cy': (eb.min_y() + eb.max_y()) / 2,
                 'end_diag': ((eb.max_x()-eb.min_x())**2 + (eb.max_y()-eb.min_y())**2) ** 0.5,
+                'end_vx': evx, 'end_vy': evy,
+                'start_vx': svx, 'start_vy': svy,
             }
 
-        # Find merge pairs: for each track that ends, find the best
-        # track that starts within max_frame_gap with close position
         merged = True
         while merged:
             merged = False
-            # Rebuild info after each merge pass
             candidates = []
             for oid_end, ie in track_info.items():
                 for oid_start, ist in track_info.items():
@@ -742,24 +773,40 @@ class SAM3Refiner(RefineTracks):
                     frame_gap = ist['start_frame'] - ie['end_frame']
                     if frame_gap < 1 or frame_gap > max_frame_gap:
                         continue
-                    dist = ((ie['end_cx'] - ist['start_cx'])**2 +
-                            (ie['end_cy'] - ist['start_cy'])**2) ** 0.5
+
+                    # Raw distance between endpoints
+                    raw_dist = ((ie['end_cx'] - ist['start_cx'])**2 +
+                                (ie['end_cy'] - ist['start_cy'])**2) ** 0.5
+
+                    # Predicted position by extrapolating end velocity
+                    pred_cx = ie['end_cx'] + ie['end_vx'] * frame_gap
+                    pred_cy = ie['end_cy'] + ie['end_vy'] * frame_gap
+                    pred_dist = ((pred_cx - ist['start_cx'])**2 +
+                                 (pred_cy - ist['start_cy'])**2) ** 0.5
+
+                    # Also try back-projecting the start velocity
+                    bpred_cx = ist['start_cx'] - ist['start_vx'] * frame_gap
+                    bpred_cy = ist['start_cy'] - ist['start_vy'] * frame_gap
+                    bpred_dist = ((bpred_cx - ie['end_cx'])**2 +
+                                  (bpred_cy - ie['end_cy'])**2) ** 0.5
+
+                    # Use the best (smallest) of raw, forward-predicted,
+                    # and backward-predicted distances
+                    best_dist = min(raw_dist, pred_dist, bpred_dist)
+
                     max_diag = max(ie['end_diag'], ist['start_diag'], 10)
-                    # Same threshold as the split step: 2.5x diagonal
-                    # with floor 100px and ceiling 200px.
                     threshold = min(max(max_diag * 2.5, 100), 200)
-                    if dist < threshold:
-                        candidates.append((dist, oid_end, oid_start))
+                    if best_dist < threshold:
+                        candidates.append((best_dist, oid_end, oid_start))
 
             if not candidates:
                 break
 
             candidates.sort()
             used = set()
-            for dist, oid_end, oid_start in candidates:
+            for dist_val, oid_end, oid_start in candidates:
                 if oid_end in used or oid_start in used:
                     continue
-                # Merge oid_start into oid_end
                 self._propagated_tracks[oid_end].extend(
                     self._propagated_tracks[oid_start])
                 self._propagated_tracks[oid_end].sort(
@@ -768,13 +815,16 @@ class SAM3Refiner(RefineTracks):
 
                 # Update track_info for merged track
                 states = self._propagated_tracks[oid_end]
-                end_det = states[-1].detection()
-                eb = end_det.bounding_box
+                edet = states[-1].detection()
+                eb = edet.bounding_box
+                evx, evy = self._track_velocity(states, from_end=True)
                 track_info[oid_end]['end_frame'] = states[-1].frame_id
                 track_info[oid_end]['end_cx'] = (eb.min_x() + eb.max_x()) / 2
                 track_info[oid_end]['end_cy'] = (eb.min_y() + eb.max_y()) / 2
                 track_info[oid_end]['end_diag'] = (
                     (eb.max_x()-eb.min_x())**2 + (eb.max_y()-eb.min_y())**2) ** 0.5
+                track_info[oid_end]['end_vx'] = evx
+                track_info[oid_end]['end_vy'] = evy
                 del track_info[oid_start]
 
                 used.add(oid_end)
