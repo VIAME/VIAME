@@ -55,7 +55,7 @@ process detection_refiner
     :chip_step_width                           650
     :chip_step_height                          650
     :process_empty                             true
-    :merge_overlap_thresh                      0.8
+    :mask_overlap_thresh                       0.8
 
     :refiner:type                              sam3
     block refiner:sam3
