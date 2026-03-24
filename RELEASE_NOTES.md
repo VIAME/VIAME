@@ -8,6 +8,9 @@ v0.22.2 - 3/24/2026
 -Improved batch point segmentation annotation features in the DIVE interface
 
 
+-Allow interactive queries to run on videos
+
+
 
 v0.22.1 - 3/09/2026
 ===================
