@@ -8,4 +8,4 @@
 # Requirements: { Text Query, track_refiner:refiner:sam3:text_query, string }
 # =============================================================================
 
-include utility_text_query_sam3.pipe
+include utility_text_query_sam3_tracking.pipe
