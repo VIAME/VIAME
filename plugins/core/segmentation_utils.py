@@ -356,11 +356,11 @@ def apply_polygon_policies(
         return None
 
     # Apply multipolygon policy
-    if shape.type == 'MultiPolygon' and len(shape.geoms) > 1:
+    if shape.geom_type == 'MultiPolygon' and len(shape.geoms) > 1:
         if multipolygon_policy == 'convex_hull':
             shape = shape.convex_hull
         elif multipolygon_policy == 'largest':
-            valid_polys = [g for g in shape.geoms if g.type == 'Polygon' and not g.is_empty]
+            valid_polys = [g for g in shape.geoms if g.geom_type == 'Polygon' and not g.is_empty]
             if valid_polys:
                 shape = max(valid_polys, key=lambda p: p.area)
             else:
@@ -369,9 +369,9 @@ def apply_polygon_policies(
 
     # Apply hole policy
     if hole_policy == 'remove':
-        if shape.type == 'Polygon':
+        if shape.geom_type == 'Polygon':
             shape = Polygon(shape.exterior)
-        elif shape.type == 'MultiPolygon':
+        elif shape.geom_type == 'MultiPolygon':
             shape = MultiPolygon([Polygon(p.exterior) for p in shape.geoms])
 
     if shape.is_empty:
@@ -396,16 +396,16 @@ def extract_single_polygon(geom):
     if geom is None or geom.is_empty:
         return None
 
-    if geom.type == 'Polygon':
+    if geom.geom_type == 'Polygon':
         return geom
-    elif geom.type == 'MultiPolygon':
+    elif geom.geom_type == 'MultiPolygon':
         if geom.geoms:
-            valid_polys = [g for g in geom.geoms if g.type == 'Polygon' and not g.is_empty]
+            valid_polys = [g for g in geom.geoms if g.geom_type == 'Polygon' and not g.is_empty]
             if valid_polys:
                 return max(valid_polys, key=lambda p: p.area)
         return None
-    elif geom.type == 'GeometryCollection':
-        polys = [g for g in geom.geoms if g.type == 'Polygon' and not g.is_empty]
+    elif geom.geom_type == 'GeometryCollection':
+        polys = [g for g in geom.geoms if g.geom_type == 'Polygon' and not g.is_empty]
         if polys:
             return max(polys, key=lambda p: p.area)
         return None
@@ -519,12 +519,12 @@ def mask_to_polygons(
 
     # Collect individual shapely polygons
     shapely_polys: list = []
-    if shape.type == 'Polygon':
+    if shape.geom_type == 'Polygon':
         if not shape.is_empty and shape.exterior is not None:
             shapely_polys.append(shape)
-    elif shape.type == 'MultiPolygon':
+    elif shape.geom_type == 'MultiPolygon':
         for geom in shape.geoms:
-            if geom.type == 'Polygon' and not geom.is_empty and geom.exterior is not None:
+            if geom.geom_type == 'Polygon' and not geom.is_empty and geom.exterior is not None:
                 shapely_polys.append(geom)
 
     if not shapely_polys:

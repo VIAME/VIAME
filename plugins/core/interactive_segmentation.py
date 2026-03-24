@@ -379,8 +379,9 @@ class InteractiveSegmentationService:
 
                     detection = {
                         "bounds": bounds,
+                        "box": bounds,
                         "score": score,
-                        "track_id": track.id(),
+                        "track_id": track.id,
                     }
 
                     if det_obj.type is not None:
@@ -401,6 +402,11 @@ class InteractiveSegmentationService:
                             polygon, _ = mask_to_polygon(
                                 mask, self._hole_policy, self._multipolygon_policy
                             )
+
+                            # Offset polygon by bbox origin (mask is relative to bbox)
+                            if polygon:
+                                ox, oy = bounds[0], bounds[1]
+                                polygon = [[p[0] + ox, p[1] + oy] for p in polygon]
 
                             # Simplify polygon if needed
                             if polygon and len(polygon) > self._max_polygon_points:
@@ -545,7 +551,7 @@ def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None
 
     # Resolve relative paths in config values
     # Keys that contain path-like values that should be resolved relative to config dir
-    path_keys = ['checkpoint', 'model_config', 'cfg', 'weights']
+    path_keys = ['checkpoint', 'model_config', 'grounding_model_id', 'cfg', 'weights']
     for key in cfg.available_values():
         for path_key in path_keys:
             if path_key in key:
