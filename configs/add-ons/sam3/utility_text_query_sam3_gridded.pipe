@@ -1,9 +1,10 @@
 # =============================================================================
-# Title: Text query via SAM3 (gridded for large images)
+# Title: Text query via SAM3 (gridded for large images, no tracking)
 #
 # Description: Textual query support uses architectures derived from Meta's
 #              SAM3 project. This variant uses windowed/gridded processing to
-#              improve detection of small objects in large images.
+#              improve detection of small objects in large images. Each frame
+#              is processed independently with no cross-frame tracking.
 #
 # Requirements: { Text Query, detection_refiner:refiner:ocv_windowed:refiner:sam3:text_query, string }
 # =============================================================================
@@ -41,18 +42,20 @@ process ensure_rgb
 connect from downsampler.output_1
         to   ensure_rgb.image
 
-# ========================= WINDOWED TRACK REFINER ============================
+# =================== WINDOWED DETECTION REFINER (NO TRACKING) ================
 process detection_refiner
   :: refine_detections
   :refiner:type                                ocv_windowed
 
   block refiner:ocv_windowed
     :mode                                      adaptive
-    :chip_adaptive_thresh                      921600
-    :chip_width                                1280
-    :chip_height                               720
-    :chip_step_width                           640
-    :chip_step_height                          360
+    :chip_adaptive_thresh                      2250000
+    :chip_width                                1008
+    :chip_height                               1008
+    :chip_step_width                           650
+    :chip_step_height                          650
+    :process_empty                             true
+    :merge_overlap_thresh                      0.8
 
     :refiner:type                              sam3
     block refiner:sam3
@@ -63,6 +66,8 @@ process detection_refiner
       :text_threshold                          0.25
       :iou_threshold                           0.5
       :min_mask_area                           10
+      :add_new_objects                         true
+      :max_new_objects                         50
       :overwrite_existing                      true
       :output_type                             polygon
       :polygon_simplification                  0.005
@@ -79,15 +84,15 @@ connect from track_reader.object_track_set
         to   detection_refiner.object_track_set
 
 # =============================== OUTPUT WRITER ===============================
-process track_writer
-  :: write_object_track
+process det_writer
+  :: detected_object_output
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
-  :writer:viame_csv:mask_to_poly_points        90
+  :writer:viame_csv:mask_to_poly_points        30
 
 connect from downsampler.output_2
-        to   track_writer.image_file_name
-connect from detection_refiner.object_track_set
-        to   track_writer.object_track_set
+        to   det_writer.image_file_name
+connect from detection_refiner.detected_object_set
+        to   det_writer.detected_object_set
 
 # -- end of file --
