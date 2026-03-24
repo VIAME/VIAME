@@ -618,12 +618,168 @@ class SAM3Refiner(RefineTracks):
             sys.stderr.write(f"[SAM3 Refiner] ERROR in propagation: {e}\n")
             traceback.print_exc(file=sys.stderr)
 
+        # Split tracks that have large spatial jumps (identity switches)
+        self._split_jumping_tracks()
+
+        # Stitch tracks that end near where another begins (same object
+        # that got different IDs across chunk boundaries)
+        self._stitch_tracks()
+
         output_tracks = []
         for obj_id, history in self._propagated_tracks.items():
             if len(history) > 0:
                 output_tracks.append(Track(obj_id, list(history)))
 
         return ObjectTrackSet(output_tracks)
+
+    def _split_jumping_tracks(self):
+        """
+        Post-process propagated tracks to split any that jump
+        unreasonably far between consecutive frames.  A jump is
+        detected when the bounding-box center moves more than the
+        diagonal of the box (i.e. more than its own size).
+        """
+        new_tracks = {}
+        next_id = max(self._propagated_tracks.keys(), default=-1) + 1
+
+        for oid, states in list(self._propagated_tracks.items()):
+            states.sort(key=lambda s: s.frame_id)
+            if len(states) <= 1:
+                new_tracks[oid] = states
+                continue
+
+            segments = [[states[0]]]
+            for i in range(1, len(states)):
+                prev_det = segments[-1][-1].detection()
+                curr_det = states[i].detection()
+                pb = prev_det.bounding_box
+                cb = curr_det.bounding_box
+
+                # Center of previous and current boxes
+                pcx = (pb.min_x() + pb.max_x()) / 2
+                pcy = (pb.min_y() + pb.max_y()) / 2
+                ccx = (cb.min_x() + cb.max_x()) / 2
+                ccy = (cb.min_y() + cb.max_y()) / 2
+
+                dist = ((ccx - pcx) ** 2 + (ccy - pcy) ** 2) ** 0.5
+
+                # Max allowed jump: larger of the two box diagonals
+                pw = pb.max_x() - pb.min_x()
+                ph = pb.max_y() - pb.min_y()
+                cw = cb.max_x() - cb.min_x()
+                ch = cb.max_y() - cb.min_y()
+                max_diag = max((pw**2 + ph**2) ** 0.5,
+                               (cw**2 + ch**2) ** 0.5)
+
+                # Threshold: 2.5x diagonal with a floor of 100px
+                # (small objects need room) and a ceiling of 200px
+                # (large objects shouldn't link across the frame).
+                threshold = min(max(max_diag * 2.5, 100), 200)
+
+                if dist > threshold:
+                    # Start a new segment
+                    segments.append([states[i]])
+                else:
+                    segments[-1].append(states[i])
+
+            # Keep the first (longest existing ID) segment under the
+            # original ID; assign new IDs to split-off segments
+            best_idx = max(range(len(segments)), key=lambda j: len(segments[j]))
+            for j, seg in enumerate(segments):
+                if j == best_idx:
+                    new_tracks[oid] = seg
+                elif len(seg) >= 2:
+                    new_tracks[next_id] = seg
+                    next_id += 1
+                # Drop single-frame split-off fragments
+
+        self._propagated_tracks = new_tracks
+
+    def _stitch_tracks(self, max_frame_gap=5):
+        """
+        Merge tracks where one ends near where another begins.
+
+        This handles cases where the same physical object gets different
+        IDs across video chunks because the overlap-based ID
+        reconciliation didn't match them.
+
+        Uses greedy matching: for each track end, find the best track
+        start within ``max_frame_gap`` frames whose spatial distance
+        is within a few box diagonals.  Merge iteratively.
+        """
+        # Build sorted list of (start_frame, end_frame, oid) for each track
+        track_info = {}
+        for oid, states in self._propagated_tracks.items():
+            if not states:
+                continue
+            states.sort(key=lambda s: s.frame_id)
+            start_det = states[0].detection()
+            end_det = states[-1].detection()
+            sb = start_det.bounding_box
+            eb = end_det.bounding_box
+            track_info[oid] = {
+                'start_frame': states[0].frame_id,
+                'end_frame': states[-1].frame_id,
+                'start_cx': (sb.min_x() + sb.max_x()) / 2,
+                'start_cy': (sb.min_y() + sb.max_y()) / 2,
+                'start_diag': ((sb.max_x()-sb.min_x())**2 + (sb.max_y()-sb.min_y())**2) ** 0.5,
+                'end_cx': (eb.min_x() + eb.max_x()) / 2,
+                'end_cy': (eb.min_y() + eb.max_y()) / 2,
+                'end_diag': ((eb.max_x()-eb.min_x())**2 + (eb.max_y()-eb.min_y())**2) ** 0.5,
+            }
+
+        # Find merge pairs: for each track that ends, find the best
+        # track that starts within max_frame_gap with close position
+        merged = True
+        while merged:
+            merged = False
+            # Rebuild info after each merge pass
+            candidates = []
+            for oid_end, ie in track_info.items():
+                for oid_start, ist in track_info.items():
+                    if oid_end == oid_start:
+                        continue
+                    frame_gap = ist['start_frame'] - ie['end_frame']
+                    if frame_gap < 1 or frame_gap > max_frame_gap:
+                        continue
+                    dist = ((ie['end_cx'] - ist['start_cx'])**2 +
+                            (ie['end_cy'] - ist['start_cy'])**2) ** 0.5
+                    max_diag = max(ie['end_diag'], ist['start_diag'], 10)
+                    # Same threshold as the split step: 2.5x diagonal
+                    # with floor 100px and ceiling 200px.
+                    threshold = min(max(max_diag * 2.5, 100), 200)
+                    if dist < threshold:
+                        candidates.append((dist, oid_end, oid_start))
+
+            if not candidates:
+                break
+
+            candidates.sort()
+            used = set()
+            for dist, oid_end, oid_start in candidates:
+                if oid_end in used or oid_start in used:
+                    continue
+                # Merge oid_start into oid_end
+                self._propagated_tracks[oid_end].extend(
+                    self._propagated_tracks[oid_start])
+                self._propagated_tracks[oid_end].sort(
+                    key=lambda s: s.frame_id)
+                del self._propagated_tracks[oid_start]
+
+                # Update track_info for merged track
+                states = self._propagated_tracks[oid_end]
+                end_det = states[-1].detection()
+                eb = end_det.bounding_box
+                track_info[oid_end]['end_frame'] = states[-1].frame_id
+                track_info[oid_end]['end_cx'] = (eb.min_x() + eb.max_x()) / 2
+                track_info[oid_end]['end_cy'] = (eb.min_y() + eb.max_y()) / 2
+                track_info[oid_end]['end_diag'] = (
+                    (eb.max_x()-eb.min_x())**2 + (eb.max_y()-eb.min_y())**2) ** 0.5
+                del track_info[oid_start]
+
+                used.add(oid_end)
+                used.add(oid_start)
+                merged = True
 
     def _run_finalize_propagation(self):
         """
