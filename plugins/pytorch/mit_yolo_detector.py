@@ -166,8 +166,10 @@ class MITYoloDetector(ImageObjectDetector):
         from yolo.config.config import NMSConfig
         # create a dummy nms for post process
         nms_config = NMSConfig(0.0, 0, 0)
-        PostProcess.__call__ = _patched_postprocess_call
-        post_process = PostProcess(converter, nms_config)
+        # Patches PostProcess to avoid NMS
+        class CustomPostProcess(PostProcess):
+            __call__ = _patched_postprocess_call
+        post_process = CustomPostProcess(converter, nms_config)
 
         # Set the inference pipeline
         self._yolo_objects.update({
