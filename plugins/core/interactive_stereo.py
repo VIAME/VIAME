@@ -432,19 +432,62 @@ class InteractiveStereoService:
         self._log(f"Loaded calibration: focal_length={self._focal_length}, "
                   f"baseline={self._baseline}, principal=({self._principal_x}, {self._principal_y})")
 
-    def _load_image(self, image_path: str):
-        """Load an image and return a vital ImageContainer."""
-        from kwiver.vital.types import ImageContainer, Image
+    _VIDEO_EXTENSIONS = {'.avi', '.mp4', '.mkv', '.mov', '.wmv', '.flv', '.webm', '.mpg', '.mpeg', '.m4v'}
 
+    def _is_video_file(self, path: str) -> bool:
+        ext = os.path.splitext(path)[1].lower()
+        return ext in self._VIDEO_EXTENSIONS
+
+    def _load_image(self, image_path: str, frame_time: float = None):
+        """Load an image (or video frame at given time) and return a vital ImageContainer."""
+        if self._is_video_file(image_path) and frame_time is not None:
+            return self._load_video_frame(image_path, frame_time)
+
+        from kwiver.vital.types import ImageContainer, Image
         from viame.core.segmentation_utils import load_image
 
         imdata = load_image(image_path)
         return ImageContainer(Image(imdata))
 
+    def _load_video_frame(self, video_path: str, frame_time: float):
+        """Extract a single frame from a video at the given time (seconds)."""
+        from kwiver.vital.algo import VideoInput
+        from kwiver.vital.types import Timestamp
+
+        # Cache video readers keyed by path (may have left + right videos)
+        if not hasattr(self, '_video_readers'):
+            self._video_readers = {}
+
+        if video_path not in self._video_readers:
+            vi = VideoInput.create("vidl_ffmpeg")
+            cfg = vi.get_configuration()
+            cfg.set_value("time_source", "start_at_0")
+            vi.set_configuration(cfg)
+            vi.open(video_path)
+            # Read first frame to get FPS
+            ts = Timestamp()
+            vi.next_frame(ts, 0)
+            fps = vi.frame_rate()
+            self._video_readers[video_path] = (vi, fps)
+
+        vi, fps = self._video_readers[video_path]
+        target_frame = round(frame_time * fps) + 1  # 1-based ffmpeg numbering
+        target_frame = max(1, target_frame)
+
+        ts = Timestamp()
+        vi.seek_frame(ts, target_frame, 0)
+        image = vi.frame_image()
+
+        if image is None:
+            raise RuntimeError(f"Could not read frame at t={frame_time:.3f}s from {video_path}")
+
+        return image
+
     def _compute_disparity_sync(
         self,
         left_path: str,
         right_path: str,
+        frame_time: float = None,
     ) -> Optional[np.ndarray]:
         """
         Compute disparity for stereo pair synchronously using the configured algorithm.
@@ -453,9 +496,9 @@ class InteractiveStereoService:
         if self._cancel_event.is_set():
             return None
 
-        # Load images as ImageContainers
-        left_container = self._load_image(left_path)
-        right_container = self._load_image(right_path)
+        # Load images as ImageContainers (with video support)
+        left_container = self._load_image(left_path, frame_time)
+        right_container = self._load_image(right_path, frame_time)
 
         if left_container is None or right_container is None:
             raise RuntimeError(
@@ -514,13 +557,13 @@ class InteractiveStereoService:
             if task is None:
                 break
 
-            request_id, left_path, right_path = task
+            request_id, left_path, right_path, frame_time = task
 
             try:
                 self._cancel_event.clear()
                 self._log(f"Starting disparity computation for {left_path}")
 
-                disparity = self._compute_disparity_sync(left_path, right_path)
+                disparity = self._compute_disparity_sync(left_path, right_path, frame_time)
 
                 if disparity is not None and not self._cancel_event.is_set():
                     with self._compute_lock:
@@ -649,6 +692,7 @@ class InteractiveStereoService:
         left_path = request.get("left_image_path")
         right_path = request.get("right_image_path")
         request_id = request.get("id")
+        self._current_frame_time = request.get("frame_time")
 
         if not left_path or not right_path:
             raise ValueError("left_image_path and right_image_path are required")
@@ -733,7 +777,7 @@ class InteractiveStereoService:
             }
 
         # Queue the new dense disparity computation
-        self._compute_queue.put((request_id, left_path, right_path))
+        self._compute_queue.put((request_id, left_path, right_path, self._current_frame_time))
 
         return {
             "success": True,

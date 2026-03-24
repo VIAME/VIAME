@@ -128,8 +128,18 @@ class InteractiveSegmentationService:
             "error": error,
         })
 
-    def _load_image(self, image_path: str):
-        """Load an image and return a vital ImageContainer."""
+    _VIDEO_EXTENSIONS = {'.avi', '.mp4', '.mkv', '.mov', '.wmv', '.flv', '.webm', '.mpg', '.mpeg', '.m4v'}
+
+    def _is_video_file(self, path: str) -> bool:
+        """Check if a path is a video file based on extension."""
+        ext = os.path.splitext(path)[1].lower()
+        return ext in self._VIDEO_EXTENSIONS
+
+    def _load_image(self, image_path: str, frame_time: float = None):
+        """Load an image (or video frame) and return a vital ImageContainer."""
+        if self._is_video_file(image_path) and frame_time is not None:
+            return self._load_video_frame(image_path, frame_time)
+
         # Use KWIVER ImageIO algorithm if available (preferred - handles memory layout properly)
         if self._image_io_algo is not None:
             return self._image_io_algo.load(image_path)
@@ -142,6 +152,42 @@ class InteractiveSegmentationService:
         pil_img = PILImage.open(image_path).convert("RGB")
         vital_img = VitalPIL.from_pil(pil_img)
         return ImageContainer(vital_img)
+
+    def _load_video_frame(self, video_path: str, frame_time: float):
+        """Extract a single frame from a video at the given time (seconds)."""
+        from kwiver.vital.algo import VideoInput
+        from kwiver.vital.types import Timestamp
+
+        # Cache the video reader for repeated access to the same video
+        if not hasattr(self, '_video_reader') or self._video_reader_path != video_path:
+            self._video_reader = VideoInput.create("vidl_ffmpeg")
+            cfg = self._video_reader.get_configuration()
+            cfg.set_value("time_source", "start_at_0")
+            self._video_reader.set_configuration(cfg)
+            self._video_reader.open(video_path)
+            self._video_reader_path = video_path
+            # Determine video FPS by reading the first frame
+            ts = Timestamp()
+            self._video_reader.next_frame(ts, 0)
+            self._video_fps = self._video_reader.frame_rate()
+
+        # Convert time to frame number using the video's native FPS.
+        # The ffmpeg reader uses 1-based frame numbering (frame 0 is
+        # a pre-first-frame state), so add 1.
+        target_frame = round(frame_time * self._video_fps) + 1
+        target_frame = max(1, target_frame)
+
+        ts = Timestamp()
+        self._video_reader.seek_frame(ts, target_frame, 0)
+        image = self._video_reader.frame_image()
+
+        if image is None:
+            raise RuntimeError(f"Could not read frame at t={frame_time:.3f}s "
+                               f"(frame {target_frame}) from {video_path}")
+
+        self._log(f"Loaded video t={frame_time:.3f}s (frame {target_frame}) "
+                  f"from {os.path.basename(video_path)}")
+        return image
 
     def _detections_to_response(self, detected_objects) -> List[Dict[str, Any]]:
         """Convert DetectedObjectSet to response dictionaries."""
@@ -294,6 +340,7 @@ class InteractiveSegmentationService:
         image_path = request.get("image_path")
         points = request.get("points", [])
         point_labels = request.get("point_labels", [])
+        frame_time = request.get("frame_time")
 
         if not image_path:
             raise ValueError("image_path is required")
@@ -302,11 +349,12 @@ class InteractiveSegmentationService:
         if len(points) != len(point_labels):
             raise ValueError("points and point_labels must have same length")
 
-        # Load image if different from cached
-        if self._current_image_path != image_path:
-            self._log(f"Loading image: {image_path}")
-            self._current_image_container = self._load_image(image_path)
-            self._current_image_path = image_path
+        # Load image if different from cached (include time in cache key for videos)
+        cache_key = f"{image_path}:t={frame_time}" if frame_time is not None else image_path
+        if self._current_image_path != cache_key:
+            self._log(f"Loading image: {image_path}" + (f" t={frame_time:.3f}s" if frame_time is not None else ""))
+            self._current_image_container = self._load_image(image_path, frame_time)
+            self._current_image_path = cache_key
 
         # Convert points to vital Point2d objects using x,y constructor
         vital_points = [Point2d(float(p[0]), float(p[1])) for p in points]
@@ -345,14 +393,15 @@ class InteractiveSegmentationService:
 
         image_path = request.get("image_path")
         text = request.get("text", "")
+        frame_time = request.get("frame_time")
 
         if not image_path:
             raise ValueError("image_path is required")
         if not text:
             raise ValueError("text query is required")
 
-        # Load image
-        image_container = self._load_image(image_path)
+        # Load image (or video frame at the given time)
+        image_container = self._load_image(image_path, frame_time)
 
         # Create timestamp
         timestamp = Timestamp()
@@ -431,12 +480,14 @@ class InteractiveSegmentationService:
     def handle_set_image(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Pre-load an image for multiple predictions."""
         image_path = request.get("image_path")
+        frame_time = request.get("frame_time")
         if not image_path:
             raise ValueError("image_path is required")
 
-        self._log(f"Pre-loading image: {image_path}")
-        self._current_image_container = self._load_image(image_path)
-        self._current_image_path = image_path
+        cache_key = f"{image_path}:t={frame_time}" if frame_time is not None else image_path
+        self._log(f"Pre-loading image: {image_path}" + (f" t={frame_time:.3f}s" if frame_time is not None else ""))
+        self._current_image_container = self._load_image(image_path, frame_time)
+        self._current_image_path = cache_key
 
         return {
             "success": True,
