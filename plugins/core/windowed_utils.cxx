@@ -851,4 +851,180 @@ separate_boundary_detections(
   }
 }
 
+// =============================================================================
+// Tile-boundary detection merge utilities
+// =============================================================================
+
+bool
+tile_overlap_strip(
+  const image_rect& a, const image_rect& b,
+  int& ox, int& oy, int& ow, int& oh )
+{
+  ox = std::max( a.x, b.x );
+  oy = std::max( a.y, b.y );
+  int ox2 = std::min( a.x + a.width, b.x + b.width );
+  int oy2 = std::min( a.y + a.height, b.y + b.height );
+  ow = ox2 - ox;
+  oh = oy2 - oy;
+  return ( ow > 0 && oh > 0 );
+}
+
+
+int
+render_mask_in_strip(
+  kv::detected_object_sptr det,
+  int ox, int oy, int ow, int oh,
+  kv::image& out )
+{
+  // Create single-channel uint8 output filled with zeros
+  out = kv::image( ow, oh, 1, false, kv::image_pixel_traits_of< uint8_t >() );
+  std::memset( out.first_pixel(), 0, ow * oh );
+
+  auto bb = det->bounding_box();
+
+  if( !det->mask() )
+  {
+    // No mask — fill the bounding box intersection with the strip
+    int rx1 = std::max( 0, static_cast< int >( bb.min_x() ) - ox );
+    int ry1 = std::max( 0, static_cast< int >( bb.min_y() ) - oy );
+    int rx2 = std::min( ow, static_cast< int >( bb.max_x() ) - ox );
+    int ry2 = std::min( oh, static_cast< int >( bb.max_y() ) - oy );
+    int count = 0;
+    for( int y = ry1; y < ry2; y++ )
+      for( int x = rx1; x < rx2; x++ )
+      {
+        out.at< uint8_t >( x, y ) = 1;
+        count++;
+      }
+    return count;
+  }
+
+  kv::image mask_img = det->mask()->get_image();
+  int bx = static_cast< int >( bb.min_x() );
+  int by = static_cast< int >( bb.min_y() );
+
+  // Intersection of mask rect and strip rect
+  int sx1 = std::max( bx, ox );
+  int sy1 = std::max( by, oy );
+  int sx2 = std::min( bx + static_cast< int >( mask_img.width() ), ox + ow );
+  int sy2 = std::min( by + static_cast< int >( mask_img.height() ), oy + oh );
+  if( sx2 <= sx1 || sy2 <= sy1 )
+    return 0;
+
+  int count = 0;
+  for( int y = sy1; y < sy2; y++ )
+    for( int x = sx1; x < sx2; x++ )
+    {
+      uint8_t val = mask_img.at< uint8_t >( x - bx, y - by );
+      if( val > 0 )
+      {
+        out.at< uint8_t >( x - ox, y - oy ) = val;
+        count++;
+      }
+    }
+  return count;
+}
+
+
+void
+merge_mask_into(
+  kv::detected_object_sptr det_a,
+  kv::detected_object_sptr det_b,
+  int img_width, int img_height )
+{
+  auto ba = det_a->bounding_box();
+  auto bb = det_b->bounding_box();
+
+  // Union bounding box clamped to image
+  int ux1 = std::max( 0, static_cast< int >( std::min( ba.min_x(), bb.min_x() ) ) );
+  int uy1 = std::max( 0, static_cast< int >( std::min( ba.min_y(), bb.min_y() ) ) );
+  int ux2 = std::min( img_width,  static_cast< int >( std::max( ba.max_x(), bb.max_x() ) ) );
+  int uy2 = std::min( img_height, static_cast< int >( std::max( ba.max_y(), bb.max_y() ) ) );
+  int uw = ux2 - ux1;
+  int uh = uy2 - uy1;
+  if( uw <= 0 || uh <= 0 ) return;
+
+  kv::image mask_a, mask_b;
+  render_mask_in_strip( det_a, ux1, uy1, uw, uh, mask_a );
+  render_mask_in_strip( det_b, ux1, uy1, uw, uh, mask_b );
+
+  // OR the two masks
+  for( int y = 0; y < uh; y++ )
+    for( int x = 0; x < uw; x++ )
+      mask_a.at< uint8_t >( x, y ) |= mask_b.at< uint8_t >( x, y );
+
+  det_a->set_bounding_box( kv::bounding_box_d( ux1, uy1, ux2, uy2 ) );
+  det_a->set_mask( std::make_shared< kv::simple_image_container >( mask_a ) );
+}
+
+
+kv::detected_object_set_sptr
+merge_tile_boundary_detections(
+  std::vector< det_tile_entry >& entries,
+  double threshold,
+  int img_width, int img_height )
+{
+  std::vector< bool > merged( entries.size(), false );
+
+  for( size_t i = 0; i < entries.size(); i++ )
+  {
+    if( merged[i] ) continue;
+
+    for( size_t j = i + 1; j < entries.size(); j++ )
+    {
+      if( merged[j] ) continue;
+
+      // Only compare detections from different tiles
+      auto& ti = entries[i].tile_roi;
+      auto& tj = entries[j].tile_roi;
+      if( ti.x == tj.x && ti.y == tj.y )
+        continue;
+
+      // Compute the tile overlap strip
+      int ox, oy, ow, oh;
+      if( !tile_overlap_strip( ti, tj, ox, oy, ow, oh ) )
+        continue;
+
+      // Render both masks restricted to the overlap strip
+      kv::image mask_i, mask_j;
+      int area_i = render_mask_in_strip( entries[i].det, ox, oy, ow, oh, mask_i );
+      int area_j = render_mask_in_strip( entries[j].det, ox, oy, ow, oh, mask_j );
+
+      if( area_i == 0 || area_j == 0 )
+        continue;
+
+      // Compute intersection in the strip
+      int inter_area = 0;
+      for( int y = 0; y < oh; y++ )
+        for( int x = 0; x < ow; x++ )
+          if( mask_i.at< uint8_t >( x, y ) > 0 &&
+              mask_j.at< uint8_t >( x, y ) > 0 )
+            inter_area++;
+
+      // Bidirectional: both masks must have >= threshold overlap
+      double frac_i = static_cast< double >( inter_area ) / area_i;
+      double frac_j = static_cast< double >( inter_area ) / area_j;
+
+      if( frac_i >= threshold && frac_j >= threshold )
+      {
+        size_t keep = ( entries[i].det->confidence() >= entries[j].det->confidence() ) ? i : j;
+        size_t drop = ( keep == i ) ? j : i;
+
+        merge_mask_into( entries[keep].det, entries[drop].det, img_width, img_height );
+
+        if( entries[drop].det->confidence() > entries[keep].det->confidence() )
+          entries[keep].det->set_confidence( entries[drop].det->confidence() );
+
+        merged[drop] = true;
+      }
+    }
+  }
+
+  auto output = std::make_shared< kv::detected_object_set >();
+  for( size_t i = 0; i < entries.size(); i++ )
+    if( !merged[i] )
+      output->add( entries[i].det );
+  return output;
+}
+
 } // end namespace viame

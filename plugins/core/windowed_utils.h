@@ -230,6 +230,56 @@ crop_image(
   const kv::image& src,
   const image_rect& roi );
 
+// =============================================================================
+// Tile-boundary detection merge utilities
+// =============================================================================
+
+/// Entry pairing a detection with the tile ROI it was produced from.
+struct VIAME_CORE_EXPORT det_tile_entry
+{
+  kv::detected_object_sptr det;
+  image_rect tile_roi;
+};
+
+/// Compute the overlap strip between two tile ROIs.
+/// Returns true if the tiles overlap, writing the strip to ox,oy,ow,oh.
+VIAME_CORE_EXPORT
+bool
+tile_overlap_strip(
+  const image_rect& a, const image_rect& b,
+  int& ox, int& oy, int& ow, int& oh );
+
+/// Render a detection's mask into a binary image covering an arbitrary
+/// strip in full-image coordinates.  Returns the number of nonzero pixels.
+/// If the detection has no mask the full bounding box is used.
+/// \param det  Detection with optional mask (relative to its bbox)
+/// \param ox,oy,ow,oh  Strip region in image coordinates
+/// \param[out] out  Output binary image (ow x oh, single channel)
+VIAME_CORE_EXPORT
+int
+render_mask_in_strip(
+  kv::detected_object_sptr det,
+  int ox, int oy, int ow, int oh,
+  kv::image& out );
+
+/// Merge det_b's mask into det_a producing a union mask and bounding box.
+VIAME_CORE_EXPORT
+void
+merge_mask_into(
+  kv::detected_object_sptr det_a,
+  kv::detected_object_sptr det_b,
+  int img_width, int img_height );
+
+/// Merge detections from overlapping tiles whose masks overlap by at
+/// least ``threshold`` in BOTH directions within the shared tile-overlap
+/// strip.  Returns a new detection set with merged duplicates removed.
+VIAME_CORE_EXPORT
+kv::detected_object_set_sptr
+merge_tile_boundary_detections(
+  std::vector< det_tile_entry >& entries,
+  double threshold,
+  int img_width, int img_height );
+
 } // end namespace viame
 
 #endif /* VIAME_CORE_WINDOWED_UTILS_H */

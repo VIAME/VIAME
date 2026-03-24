@@ -1109,10 +1109,18 @@ class Sam3DetectionRefiner(RefineDetections):
         self._kwiver_config = {
             'sam_model_id': 'facebook/sam2.1-hiera-large',
             'model_config': '',
+            'grounding_model_id': '',
             'device': 'cuda',
             'overwrite_existing': 'True',
             'output_type': 'polygon',
             'polygon_simplification': '0.01',
+            'text_query': '',
+            'detection_threshold': '0.3',
+            'text_threshold': '0.25',
+            'iou_threshold': '0.5',
+            'add_new_objects': 'False',
+            'max_new_objects': '50',
+            'min_mask_area': '10',
         }
 
         self._model_manager = SAM3ModelManager()
@@ -1141,16 +1149,30 @@ class Sam3DetectionRefiner(RefineDetections):
         model_config.model_config = self._kwiver_config.get('model_config', '')
         if model_config.model_config == '':
             model_config.model_config = None
-        model_config.grounding_model_id = None  # Not needed for detection refinement
         model_config.device = self._kwiver_config['device']
 
-        # Initialize SAM model only (no Grounding DINO needed)
+        # Load Grounding DINO if configured (for text-based detection)
+        gid = self._kwiver_config.get('grounding_model_id', '')
+        if gid and gid.lower() not in ('', 'none', 'false'):
+            model_config.grounding_model_id = gid
+        else:
+            model_config.grounding_model_id = None
+
         self._model_manager.init_models(model_config, use_video_predictor=False)
 
         # Parse config values
         self._overwrite_existing = parse_bool(self._kwiver_config['overwrite_existing'])
         self._output_type = self._kwiver_config['output_type']
         self._polygon_simplification = float(self._kwiver_config['polygon_simplification'])
+        self._add_new_objects = parse_bool(self._kwiver_config['add_new_objects'])
+        self._max_new_objects = int(self._kwiver_config['max_new_objects'])
+        self._min_mask_area = int(self._kwiver_config['min_mask_area'])
+        self._detection_threshold = float(self._kwiver_config['detection_threshold'])
+        self._text_threshold = float(self._kwiver_config['text_threshold'])
+        self._iou_threshold = float(self._kwiver_config['iou_threshold'])
+
+        tq = self._kwiver_config.get('text_query', '')
+        self._text_query_list = [q.strip() for q in tq.split(',') if q.strip()] if tq else []
 
         return True
 
@@ -1160,7 +1182,9 @@ class Sam3DetectionRefiner(RefineDetections):
 
     def refine(self, image_data, detections):
         """
-        Refine detections by adding segmentation masks.
+        Refine detections by adding segmentation masks.  When
+        ``add_new_objects`` is enabled and a ``text_query`` is set,
+        also detects new objects via Grounding DINO before segmenting.
 
         Args:
             image_data: Image container
@@ -1171,11 +1195,38 @@ class Sam3DetectionRefiner(RefineDetections):
         """
         import torch
 
+        img_np = image_to_rgb_numpy(image_data)
+
+        # Detect new objects with text query if configured
+        if self._add_new_objects and self._text_query_list:
+            new_dets = self._model_manager.detect_with_text(
+                img_np, self._text_query_list,
+                self._detection_threshold, self._text_threshold,
+            )
+            # Suppress new detections that overlap with existing ones
+            suppress_boxes = []
+            for det in detections:
+                bb = det.bounding_box
+                suppress_boxes.append(
+                    [bb.min_x(), bb.min_y(), bb.max_x(), bb.max_y()])
+
+            new_count = 0
+            for box, score, class_name in new_dets:
+                if new_count >= self._max_new_objects:
+                    break
+                overlaps = any(
+                    compute_iou(box, sb) > self._iou_threshold
+                    for sb in suppress_boxes)
+                if not overlaps:
+                    bbox = BoundingBoxD(box[0], box[1], box[2], box[3])
+                    dot = DetectedObjectType(class_name, score)
+                    new_det = DetectedObject(bbox, score, dot)
+                    detections.add(new_det)
+                    suppress_boxes.append(list(box))
+                    new_count += 1
+
         if len(detections) == 0:
             return DetectedObjectSet()
-
-        # Convert image to numpy RGB
-        img_np = image_to_rgb_numpy(image_data)
 
         # Collect boxes for segmentation
         boxes = []
@@ -1190,30 +1241,12 @@ class Sam3DetectionRefiner(RefineDetections):
         output = DetectedObjectSet()
 
         for det, mask in zip(detections, masks):
-            # Add polygon if requested
-            if self._output_type in ('polygon', 'both'):
-                existing_poly = det.get_flattened_polygon()
-                if len(existing_poly) == 0 or self._overwrite_existing:
-                    _set_polygon_on_detection(det, mask, self._polygon_simplification)
+            mask_area = np.sum(mask)
+            if mask_area < self._min_mask_area:
+                continue
 
-            # Add mask (relative to bounding box)
-            if det.mask is None or self._overwrite_existing:
-                bbox = det.bounding_box
-                x1, y1 = int(bbox.min_x()), int(bbox.min_y())
-                x2, y2 = int(bbox.max_x()), int(bbox.max_y())
-
-                # Ensure bounds are within mask dimensions
-                h, w = mask.shape
-                x1 = max(0, min(x1, w - 1))
-                x2 = max(x1 + 1, min(x2, w))
-                y1 = max(0, min(y1, h - 1))
-                y2 = max(y1 + 1, min(y2, h))
-
-                relative_mask = mask[y1:y2, x1:x2].astype(np.uint8)
-                if relative_mask.size > 0:
-                    pil_img = PILImage.fromarray(relative_mask)
-                    vital_img = ImageContainer(VitalPIL.from_pil(pil_img))
-                    det.mask = vital_img
+            # Set mask on detection for multi-contour polygon output
+            _set_mask_on_detection(det, mask, det.bounding_box)
 
             output.add(det)
 
