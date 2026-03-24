@@ -750,18 +750,33 @@ class InteractiveStereoService:
 
         if self._use_epipolar:
             # Load images for template matching (outside lock - I/O bound)
-            left_gray = cv2.imread(left_path, cv2.IMREAD_GRAYSCALE)
-            right_gray = cv2.imread(right_path, cv2.IMREAD_GRAYSCALE)
-            if left_gray is None or right_gray is None:
-                raise ValueError(
-                    f"Failed to load images: left={left_path}, right={right_path}")
-
-            # Load BGR images for DINO feature extraction if enabled
-            if self._epipolar_matcher._dino_available:
-                left_bgr = cv2.imread(left_path, cv2.IMREAD_COLOR)
-                right_bgr = cv2.imread(right_path, cv2.IMREAD_COLOR)
-                if left_bgr is not None and right_bgr is not None:
+            # Use _load_image for video support, then convert to OpenCV
+            if self._is_video_file(left_path) and self._current_frame_time is not None:
+                left_container = self._load_image(left_path, self._current_frame_time)
+                right_container = self._load_image(right_path, self._current_frame_time)
+                left_arr = np.array(left_container.image().asarray())
+                right_arr = np.array(right_container.image().asarray())
+                # Convert RGB to grayscale
+                left_gray = cv2.cvtColor(left_arr, cv2.COLOR_RGB2GRAY) if left_arr.ndim == 3 else left_arr
+                right_gray = cv2.cvtColor(right_arr, cv2.COLOR_RGB2GRAY) if right_arr.ndim == 3 else right_arr
+                # BGR for DINO
+                if self._epipolar_matcher._dino_available:
+                    left_bgr = cv2.cvtColor(left_arr, cv2.COLOR_RGB2BGR) if left_arr.ndim == 3 else left_arr
+                    right_bgr = cv2.cvtColor(right_arr, cv2.COLOR_RGB2BGR) if right_arr.ndim == 3 else right_arr
                     self._epipolar_matcher.set_images(left_bgr, right_bgr)
+            else:
+                left_gray = cv2.imread(left_path, cv2.IMREAD_GRAYSCALE)
+                right_gray = cv2.imread(right_path, cv2.IMREAD_GRAYSCALE)
+                if left_gray is None or right_gray is None:
+                    raise ValueError(
+                        f"Failed to load images: left={left_path}, right={right_path}")
+
+                # Load BGR images for DINO feature extraction if enabled
+                if self._epipolar_matcher._dino_available:
+                    left_bgr = cv2.imread(left_path, cv2.IMREAD_COLOR)
+                    right_bgr = cv2.imread(right_path, cv2.IMREAD_COLOR)
+                    if left_bgr is not None and right_bgr is not None:
+                        self._epipolar_matcher.set_images(left_bgr, right_bgr)
 
             with self._compute_lock:
                 self._left_gray = left_gray
