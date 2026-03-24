@@ -150,7 +150,7 @@ class MITYoloDetector(ImageObjectDetector):
                 device = torch.device('cpu')
 
         weight_fpath = ub.Path(self._kwiver_config.weight)
-        print(f'weights_fpath={str(weight_fpath)}')
+        print(f'weights_fpath={weight_fpath}')
 
         # Initialize pre-processing and inference with user train configuration
         train_config_dir = weight_fpath.parent
