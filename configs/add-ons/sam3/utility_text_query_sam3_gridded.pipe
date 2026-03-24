@@ -1,0 +1,93 @@
+# =============================================================================
+# Title: Text query via SAM3 (gridded for large images)
+#
+# Description: Textual query support uses architectures derived from Meta's
+#              SAM3 project. This variant uses windowed/gridded processing to
+#              improve detection of small objects in large images.
+#
+# Requirements: { Text Query, detection_refiner:refiner:ocv_windowed:refiner:sam3:text_query, string }
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================= INPUT FRAME LIST ==============================
+include common_default_input_with_downsampler.pipe
+
+# ============================= SAM3 CONFIGURATION ============================
+include common_sam3_segmenter.conf
+
+process track_reader
+  :: read_object_track
+  :file_name                                   detections.csv
+  :reader:type                                 viame_csv
+  :reader:viame_csv:poly_to_mask               false
+
+connect from downsampler.output_2
+        to   track_reader.image_file_name
+
+process ensure_rgb
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+connect from downsampler.output_1
+        to   ensure_rgb.image
+
+# ========================= WINDOWED TRACK REFINER ============================
+process detection_refiner
+  :: refine_detections
+  :refiner:type                                ocv_windowed
+
+  block refiner:ocv_windowed
+    :mode                                      adaptive
+    :chip_adaptive_thresh                      921600
+    :chip_width                                1280
+    :chip_height                               720
+    :chip_step_width                           640
+    :chip_step_height                          360
+
+    :refiner:type                              sam3
+    block refiner:sam3
+      relativepath grounding_model_id =        models/sam3_grnd_dino_tiny
+      :device                                  cuda
+      :text_query                              object
+      :detection_threshold                     0.3
+      :text_threshold                          0.25
+      :iou_threshold                           0.5
+      :min_mask_area                           10
+      :overwrite_existing                      true
+      :output_type                             polygon
+      :polygon_simplification                  0.005
+      relativepath sam_model_id =              models/sam3_weights.pt
+      relativepath model_config =              models/sam3_config.json
+    endblock
+  endblock
+
+connect from ensure_rgb.image
+        to   detection_refiner.image
+connect from downsampler.timestamp
+        to   detection_refiner.timestamp
+connect from track_reader.object_track_set
+        to   detection_refiner.object_track_set
+
+# =============================== OUTPUT WRITER ===============================
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        90
+
+connect from downsampler.output_2
+        to   track_writer.image_file_name
+connect from detection_refiner.object_track_set
+        to   track_writer.object_track_set
+
+# -- end of file --
