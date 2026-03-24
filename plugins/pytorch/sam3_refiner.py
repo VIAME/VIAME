@@ -128,6 +128,17 @@ def _ensure_binary_mask(mask):
     return (mask > 0.5).astype(np.uint8)
 
 
+def _mask_bbox(mask):
+    """Get [x1, y1, x2, y2] bounding box from a binary mask."""
+    rows = np.any(mask, axis=1)
+    cols = np.any(mask, axis=0)
+    if not np.any(rows):
+        return [0, 0, 0, 0]
+    y1, y2 = np.where(rows)[0][[0, -1]]
+    x1, x2 = np.where(cols)[0][[0, -1]]
+    return [float(x1), float(y1), float(x2 + 1), float(y2 + 1)]
+
+
 def _set_polygon_on_detection(det, mask, simplification):
     """Set a flattened polygon on a detection from a binary mask."""
     binary_mask = _ensure_binary_mask(mask)
@@ -276,12 +287,17 @@ class SAM3Refiner(RefineTracks):
                 self._pil_frames, 0, self._frame_prompts,
                 self._text_prompt_frames)
 
-        # Process in overlapping chunks
+        # Process in overlapping chunks with ID reconciliation.
+        # Each chunk assigns its own object IDs independently.  We use
+        # mask IoU in the overlap region to match new-chunk IDs to the
+        # IDs already established in all_results, so that the same
+        # physical object keeps the same track ID across chunks.
         print(f"[SAM3] Processing {total_frames} frames in chunks of {chunk_size}")
         all_results = {}
-        # Use 10% overlap to avoid edge effects
+        next_global_id = 0  # monotonically increasing global ID counter
         overlap = max(10, chunk_size // 10)
         start = 0
+
         while start < total_frames:
             end = min(start + chunk_size, total_frames)
             chunk_frames = self._pil_frames[start:end]
@@ -306,18 +322,104 @@ class SAM3Refiner(RefineTracks):
             chunk_results = self._run_video_propagation_chunk(
                 chunk_frames, start, chunk_box_prompts, chunk_text_prompts)
 
-            # Merge chunk results, remapping local frame indices back
-            # to global.  For overlap region, keep the earlier chunk's
-            # results (they have more temporal context).
-            for (oid, local_fidx), val in chunk_results.items():
-                global_fidx = local_fidx + start
-                key = (oid, global_fidx)
-                if key not in all_results:
+            if not all_results:
+                # First chunk — adopt IDs directly, offset to global range
+                chunk_oids = set(oid for oid, _ in chunk_results.keys())
+                id_map = {}
+                for cid in sorted(chunk_oids):
+                    id_map[cid] = next_global_id
+                    next_global_id += 1
+                for (cid, local_fidx), val in chunk_results.items():
+                    gid = id_map[cid]
+                    all_results[(gid, local_fidx + start)] = val
+            else:
+                # Build ID mapping by matching masks in the overlap region.
+                id_map = self._match_chunk_ids(
+                    all_results, chunk_results, start, overlap,
+                    self._iou_threshold)
+
+                # Assign new global IDs for unmatched chunk objects
+                for cid in set(oid for oid, _ in chunk_results.keys()):
+                    if cid not in id_map:
+                        id_map[cid] = next_global_id
+                        next_global_id += 1
+
+                # Merge, skipping overlap frames that already have data
+                overlap_end = start + overlap
+                for (cid, local_fidx), val in chunk_results.items():
+                    global_fidx = local_fidx + start
+                    gid = id_map[cid]
+                    key = (gid, global_fidx)
+                    # In overlap region, keep prior chunk's results
+                    if global_fidx < overlap_end and key in all_results:
+                        continue
                     all_results[key] = val
 
             start += chunk_size - overlap
 
         return all_results
+
+    @staticmethod
+    def _match_chunk_ids(all_results, chunk_results, chunk_start,
+                         overlap, iou_thresh):
+        """
+        Match object IDs from a new chunk to existing global IDs using
+        mask IoU in the overlap region.
+
+        Returns a dict mapping chunk_obj_id -> global_obj_id for matched
+        objects.  Unmatched chunk objects are not included.
+        """
+        # Collect masks per object in the overlap frames from both sides
+        overlap_end = chunk_start + overlap
+
+        # Existing global results in the overlap region: gid -> list of masks
+        global_masks = {}
+        for (gid, gfidx), (mask, _) in all_results.items():
+            if chunk_start <= gfidx < overlap_end:
+                global_masks.setdefault(gid, {})[gfidx] = mask
+
+        # New chunk results in the overlap region: cid -> list of masks
+        chunk_masks = {}
+        for (cid, local_fidx), (mask, _) in chunk_results.items():
+            gfidx = local_fidx + chunk_start
+            if chunk_start <= gfidx < overlap_end:
+                chunk_masks.setdefault(cid, {})[gfidx] = mask
+
+        if not global_masks or not chunk_masks:
+            return {}
+
+        # Compute average IoU between each (chunk_id, global_id) pair
+        # across shared overlap frames
+        id_map = {}
+        used_gids = set()
+
+        # Score all pairs
+        pairs = []
+        for cid, c_frames in chunk_masks.items():
+            for gid, g_frames in global_masks.items():
+                shared = set(c_frames.keys()) & set(g_frames.keys())
+                if not shared:
+                    continue
+                total_iou = 0.0
+                for fidx in shared:
+                    total_iou += compute_iou(
+                        _mask_bbox(c_frames[fidx]),
+                        _mask_bbox(g_frames[fidx]))
+                avg_iou = total_iou / len(shared)
+                if avg_iou > iou_thresh:
+                    pairs.append((avg_iou, cid, gid))
+
+        # Greedy matching: best IoU first, each ID used at most once
+        pairs.sort(reverse=True)
+        used_cids = set()
+        for iou_val, cid, gid in pairs:
+            if cid in used_cids or gid in used_gids:
+                continue
+            id_map[cid] = gid
+            used_cids.add(cid)
+            used_gids.add(gid)
+
+        return id_map
 
     def _run_video_propagation_chunk(self, pil_frames, global_offset,
                                      frame_prompts, text_prompt_frames):
