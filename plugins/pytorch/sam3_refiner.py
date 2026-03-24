@@ -93,6 +93,28 @@ class SAM3RefinerConfig(SAM3BaseConfig):
         0.3,
         help='SAM3 video predictor detection score threshold (default 0.5 in SAM3)'
     )
+    # Threshold for a detection to be promoted to a new tracked object.
+    # SAM3 default is 0.7 which is very aggressive — lower for recall.
+    video_new_det_threshold = scfg.Value(
+        0.1,
+        help='Min score for a new detection to become a tracked object (default 0.7 in SAM3)'
+    )
+    # Hotstart delay: SAM3 holds outputs this many frames for filtering.
+    # During hotstart, unmatched/duplicate tracks are pruned.  Set to 0
+    # to disable hotstart filtering entirely.
+    video_hotstart_delay = scfg.Value(
+        0,
+        help='Frames to hold outputs for hotstart filtering (default 15 in SAM3, 0=disable)'
+    )
+    # Maximum number of frames to process per video chunk.  SAM3 video
+    # predictor keeps per-frame features in GPU memory; processing very
+    # long or high-resolution videos in one shot can cause OOM.  The
+    # video is split into overlapping chunks of this size and the chunks
+    # are processed sequentially.  Set to 0 for no chunking.
+    video_chunk_size = scfg.Value(
+        100,
+        help='Max frames per video propagation chunk (0=no chunking)'
+    )
 
 
 def _ensure_binary_mask(mask):
@@ -211,19 +233,30 @@ class SAM3Refiner(RefineTracks):
             self._video_predictor = self._model_manager._video_predictor
             self._video_predictor_initialized = True
 
-            # Apply detection threshold if the predictor supports it
-            thresh = float(self._config.video_detection_threshold)
-            if hasattr(self._video_predictor, 'score_threshold_detection'):
-                self._video_predictor.score_threshold_detection = thresh
+            # Override SAM3 video predictor thresholds.
+            # The built-in defaults (score_threshold_detection=0.5,
+            # new_det_thresh=0.7, hotstart_delay=15) are tuned for
+            # general video and are too aggressive for many domains.
+            vp = self._video_predictor
+            det_thresh = float(self._config.video_detection_threshold)
+            new_det_thresh = float(self._config.video_new_det_threshold)
+            hotstart_delay = int(self._config.video_hotstart_delay)
+
+            if hasattr(vp, 'score_threshold_detection'):
+                vp.score_threshold_detection = det_thresh
+            if hasattr(vp, 'new_det_thresh'):
+                vp.new_det_thresh = new_det_thresh
+            if hasattr(vp, 'hotstart_delay'):
+                vp.hotstart_delay = hotstart_delay
 
     def _run_video_propagation(self):
         """
         Run SAM3 video predictor on accumulated frames and prompts.
-        Builds the inference state from collected PIL images, adds all
-        box prompts, and propagates.  Returns a dict of
-        (obj_id, frame_idx) -> (binary_mask, box_xyxy).
+        Splits long videos into chunks to avoid GPU OOM.
+        Returns a dict of (obj_id, frame_idx) -> (binary_mask, box_xyxy).
         """
         import torch
+        import sys
 
         if not self._pil_frames:
             return {}
@@ -234,15 +267,75 @@ class SAM3Refiner(RefineTracks):
         if self._video_predictor is None:
             return {}
 
+        chunk_size = int(self._config.video_chunk_size) if hasattr(self._config, 'video_chunk_size') else 100
+        total_frames = len(self._pil_frames)
+
+        if chunk_size <= 0 or total_frames <= chunk_size:
+            # Process all at once
+            return self._run_video_propagation_chunk(
+                self._pil_frames, 0, self._frame_prompts,
+                self._text_prompt_frames)
+
+        # Process in overlapping chunks
+        print(f"[SAM3] Processing {total_frames} frames in chunks of {chunk_size}")
+        all_results = {}
+        # Use 10% overlap to avoid edge effects
+        overlap = max(10, chunk_size // 10)
+        start = 0
+        while start < total_frames:
+            end = min(start + chunk_size, total_frames)
+            chunk_frames = self._pil_frames[start:end]
+
+            # Remap prompts to chunk-local indices
+            chunk_box_prompts = {}
+            for fidx, prompts in self._frame_prompts.items():
+                if start <= fidx < end:
+                    chunk_box_prompts[fidx - start] = prompts
+
+            chunk_text_prompts = {}
+            for fidx, text in self._text_prompt_frames.items():
+                if start <= fidx < end:
+                    chunk_text_prompts[fidx - start] = text
+
+            # If no text prompt falls in this chunk, add one on the
+            # first frame of the chunk so detection stays active.
+            if not chunk_text_prompts and self._text_prompt_frames:
+                first_text = next(iter(self._text_prompt_frames.values()))
+                chunk_text_prompts[0] = first_text
+
+            chunk_results = self._run_video_propagation_chunk(
+                chunk_frames, start, chunk_box_prompts, chunk_text_prompts)
+
+            # Merge chunk results, remapping local frame indices back
+            # to global.  For overlap region, keep the earlier chunk's
+            # results (they have more temporal context).
+            for (oid, local_fidx), val in chunk_results.items():
+                global_fidx = local_fidx + start
+                key = (oid, global_fidx)
+                if key not in all_results:
+                    all_results[key] = val
+
+            start += chunk_size - overlap
+
+        return all_results
+
+    def _run_video_propagation_chunk(self, pil_frames, global_offset,
+                                     frame_prompts, text_prompt_frames):
+        """
+        Run SAM3 video propagation on a single chunk of frames.
+        frame_prompts and text_prompt_frames use chunk-local indices.
+        Returns results keyed by (obj_id, local_frame_idx).
+        """
+        import torch
+
         torch.cuda.empty_cache()
 
-        # Build inference state from PIL image list
         state = self._video_predictor.init_state(
-            self._pil_frames, offload_video_to_cpu=True,
+            pil_frames, offload_video_to_cpu=True,
         )
 
-        # Add all collected box prompts (from input seed tracks)
-        for frame_idx, prompts in self._frame_prompts.items():
+        # Add box prompts (from input seed tracks)
+        for frame_idx, prompts in frame_prompts.items():
             for obj_id, box_rel_xywh in prompts:
                 self._video_predictor.add_prompt(
                     state,
@@ -252,36 +345,27 @@ class SAM3Refiner(RefineTracks):
                     obj_id=obj_id,
                 )
 
-        # Add text prompts for object detection on marked frames
-        for frame_idx, text_query in self._text_prompt_frames.items():
+        # Add text prompt (only once — it applies globally)
+        for frame_idx, text_query in text_prompt_frames.items():
             self._video_predictor.add_prompt(
                 state,
                 frame_idx=frame_idx,
                 text_str=text_query,
             )
+            break  # only add once since add_prompt resets state
 
         # Suppress tqdm progress bars from SAM3's propagation
         import tqdm
         _orig_init = tqdm.tqdm.__init__
-        def _quiet_init(self, *args, **kwargs):
+        def _quiet_init(self_tqdm, *args, **kwargs):
             kwargs['disable'] = True
-            _orig_init(self, *args, **kwargs)
+            _orig_init(self_tqdm, *args, **kwargs)
         tqdm.tqdm.__init__ = _quiet_init
 
         try:
-            # Forward propagation
             results = {}
             for frame_idx, frame_results in self._video_predictor.propagate_in_video(state):
                 self._collect_frame_results(results, frame_idx, frame_results)
-
-            # Reverse propagation to fill in frames before mid-video detections.
-            # Only go back as far as the reinit interval to limit the buffer.
-            max_reverse = self._reinit_interval if self._reinit_interval > 0 else None
-            for frame_idx, frame_results in self._video_predictor.propagate_in_video(
-                state, reverse=True, max_frame_num_to_track=max_reverse,
-            ):
-                self._collect_frame_results(results, frame_idx, frame_results,
-                                            overwrite=False)
         finally:
             tqdm.tqdm.__init__ = _orig_init
 
@@ -401,20 +485,16 @@ class SAM3Refiner(RefineTracks):
                 pass
             self._obj_id_to_class[tid] = class_name
 
-        # Mark this frame for text-query detection during propagation.
-        # SAM3's video predictor handles text detection natively via
-        # text_str prompts — no grounding DINO needed.  We add text
-        # prompts on the first frame and periodically thereafter to
-        # catch objects entering the scene mid-video.
+        # Store the text query for the video predictor.  SAM3's
+        # add_prompt(text_str=...) applies globally to ALL frames
+        # and resets the inference state each time it is called, so
+        # we must only call it once (on the first frame).  The video
+        # predictor's detector will run on every frame automatically
+        # when a text prompt is set.
         if self._add_new_objects and self._text_query_list:
-            text_query = ', '.join(self._text_query_list)
-            is_first = (local_frame_idx == 0)
-            is_reinit = (self._reinit_interval > 0
-                         and local_frame_idx > 0
-                         and local_frame_idx % self._reinit_interval == 0)
-            if is_first or is_reinit:
-                self._text_prompt_frames.setdefault(
-                    local_frame_idx, text_query)
+            if local_frame_idx == 0:
+                text_query = ', '.join(self._text_query_list)
+                self._text_prompt_frames[0] = text_query
 
         # Accumulate only — propagation runs once in finalize() after
         # all frames have been collected.
@@ -429,7 +509,12 @@ class SAM3Refiner(RefineTracks):
         if not self._propagate_tracked:
             return ObjectTrackSet([])
 
-        self._run_finalize_propagation()
+        try:
+            self._run_finalize_propagation()
+        except Exception as e:
+            import sys, traceback
+            sys.stderr.write(f"[SAM3 Refiner] ERROR in propagation: {e}\n")
+            traceback.print_exc(file=sys.stderr)
 
         output_tracks = []
         for obj_id, history in self._propagated_tracks.items():

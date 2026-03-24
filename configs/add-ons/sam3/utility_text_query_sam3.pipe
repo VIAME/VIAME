@@ -62,6 +62,9 @@ process track_refiner
     :propagate_tracked                         true
     :reinit_interval                           10
     :video_detection_threshold                 0.3
+    :video_new_det_threshold                   0.1
+    :video_hotstart_delay                      0
+    :video_chunk_size                          100
     relativepath sam_model_id =                models/sam3_weights.pt
     relativepath model_config =                models/sam3_config.json
   endblock
