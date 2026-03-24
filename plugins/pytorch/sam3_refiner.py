@@ -139,6 +139,23 @@ def _mask_bbox(mask):
     return [float(x1), float(y1), float(x2 + 1), float(y2 + 1)]
 
 
+def _set_mask_on_detection(det, mask, bbox):
+    """Set a binary mask (cropped to the detection bbox) on a detection."""
+    binary_mask = _ensure_binary_mask(mask)
+    x1 = max(0, int(bbox.min_x()))
+    y1 = max(0, int(bbox.min_y()))
+    x2 = min(binary_mask.shape[1], int(bbox.max_x()))
+    y2 = min(binary_mask.shape[0], int(bbox.max_y()))
+    if x2 <= x1 or y2 <= y1:
+        return
+    cropped = binary_mask[y1:y2, x1:x2]
+    if cropped.size == 0:
+        return
+    pil_img = PILImage.fromarray(cropped)
+    vital_img = ImageContainer(VitalPIL.from_pil(pil_img))
+    det.mask = vital_img
+
+
 def _set_polygon_on_detection(det, mask, simplification):
     """Set a flattened polygon on a detection from a binary mask."""
     binary_mask = _ensure_binary_mask(mask)
@@ -374,16 +391,16 @@ class SAM3Refiner(RefineTracks):
 
         # Existing global results in the overlap region: gid -> list of masks
         global_masks = {}
-        for (gid, gfidx), (mask, _) in all_results.items():
+        for (gid, gfidx), rtup in all_results.items():
             if chunk_start <= gfidx < overlap_end:
-                global_masks.setdefault(gid, {})[gfidx] = mask
+                global_masks.setdefault(gid, {})[gfidx] = rtup[0]
 
         # New chunk results in the overlap region: cid -> list of masks
         chunk_masks = {}
-        for (cid, local_fidx), (mask, _) in chunk_results.items():
+        for (cid, local_fidx), rtup in chunk_results.items():
             gfidx = local_fidx + chunk_start
             if chunk_start <= gfidx < overlap_end:
-                chunk_masks.setdefault(cid, {})[gfidx] = mask
+                chunk_masks.setdefault(cid, {})[gfidx] = rtup[0]
 
         if not global_masks or not chunk_masks:
             return {}
@@ -485,6 +502,7 @@ class SAM3Refiner(RefineTracks):
         obj_ids = np.array(frame_results['out_obj_ids'])
         boxes_xywh = np.array(frame_results['out_boxes_xywh'])
         masks = np.array(frame_results['out_binary_masks'])
+        probs = np.array(frame_results.get('out_probs', []))
 
         for i, oid in enumerate(obj_ids):
             oid = int(oid)
@@ -496,7 +514,8 @@ class SAM3Refiner(RefineTracks):
             ay1 = bx[1] * self._img_height
             ax2 = (bx[0] + bx[2]) * self._img_width
             ay2 = (bx[1] + bx[3]) * self._img_height
-            results[key] = (masks[i], [ax1, ay1, ax2, ay2])
+            score = float(probs[i]) if i < len(probs) else 1.0
+            results[key] = (masks[i], [ax1, ay1, ax2, ay2], score)
 
     # ------------------------------------------------------------------
     # Main refine method
@@ -850,7 +869,10 @@ class SAM3Refiner(RefineTracks):
                 prompted_ids.add(obj_id)
 
         self._propagated_tracks.clear()
-        for (oid, fidx), (mask, box_xyxy) in all_results.items():
+        for (oid, fidx), result_tuple in all_results.items():
+            mask, box_xyxy = result_tuple[0], result_tuple[1]
+            score = result_tuple[2] if len(result_tuple) > 2 else 1.0
+
             # When add_new_objects is disabled (track selections), only
             # keep tracks the user explicitly seeded — drop SAM3
             # auto-discovered objects.
@@ -871,12 +893,16 @@ class SAM3Refiner(RefineTracks):
                 bbox = BoundingBoxD(box_xyxy[0], box_xyxy[1],
                                     box_xyxy[2], box_xyxy[3])
 
-            confidence = 1.0
+            confidence = float(score)
             dot = DetectedObjectType(class_name, confidence)
             det = DetectedObject(bbox, confidence, dot)
 
-            if self._output_type in ('polygon', 'both'):
-                _set_polygon_on_detection(det, mask, self._polygon_simplification)
+            # Set the full binary mask (cropped to bbox) on the
+            # detection.  The CSV writer's mask_to_poly_points path
+            # will convert this to multi-contour polygons with proper
+            # (poly)/(hole) tags, handling disjoint mask regions that
+            # a single flattened polygon cannot represent.
+            _set_mask_on_detection(det, mask, bbox)
 
             if fidx not in self._timestamps:
                 continue
