@@ -1,3 +1,14 @@
+v0.22.2 - 3/24/2026
+===================
+
+
+-Improve SAM3 text queries with tracking enabled on longer video sequences
+
+
+-Improved batch point segmentation annotation features in the DIVE interface
+
+
+
 v0.22.1 - 3/09/2026
 ===================
 
