@@ -22,9 +22,12 @@ from kwiver.vital.algo import PerformTextQuery
 from viame.pytorch.utilities import vital_config_update, register_vital_algorithm
 from viame.pytorch.sam3_utilities import (
     SharedSAM3ModelCache,
+    SAM3ModelManager,
     image_to_rgb_numpy,
     get_autocast_context,
     compute_iou,
+    mask_to_polygon,
+    box_from_mask,
 )
 
 
@@ -33,9 +36,11 @@ class SAM3TextQueryConfig(scfg.DataConfig):
 
     checkpoint = scfg.Value('', help='Path to model checkpoint')
     model_config = scfg.Value('', help='Path to model config JSON')
+    grounding_model_id = scfg.Value('', help='Path to Grounding DINO model for text detection')
     device = scfg.Value('cuda', help='Device to run on (cuda, cpu, auto)')
 
     detection_threshold = scfg.Value(0.3, help='Confidence threshold for text detections')
+    text_threshold = scfg.Value(0.25, help='Text matching threshold for grounding detection')
     max_detections = scfg.Value(10, help='Maximum detections per image')
     iou_threshold = scfg.Value(0.3, help='IoU threshold for track association')
 
@@ -57,6 +62,7 @@ class SAM3TextQuery(PerformTextQuery):
         self._model = None
         self._predictor = None
         self._model_lock = None
+        self._model_manager = None
 
     def get_configuration(self):
         cfg = super(PerformTextQuery, self).get_configuration()
@@ -110,26 +116,58 @@ class SAM3TextQuery(PerformTextQuery):
             device=device,
         )
 
+        # Initialize Grounding DINO for text detection via SAM3ModelManager
+        gid = self._config.grounding_model_id
+        if gid and str(gid).lower() not in ('', 'none', 'false'):
+            self._model_manager = SAM3ModelManager()
+
+            class _MinimalConfig:
+                pass
+
+            mcfg = _MinimalConfig()
+            mcfg.sam_model_id = checkpoint or 'facebook/sam2.1-hiera-large'
+            mcfg.model_config = model_config
+            mcfg.grounding_model_id = gid
+            mcfg.device = device
+
+            self._model_manager.init_models(mcfg, use_video_predictor=False)
+            self._log(f"  Grounding DINO loaded: {gid}")
+
         self._log("model initialized successfully")
 
     def _run_text_query(self, image_np, text, threshold, max_detections):
         """Run text-based detection on an image."""
         import torch
 
-        # Check if model supports text query
-        if hasattr(self._model, 'predict_with_text'):
-            autocast_context = get_autocast_context(self._config.device)
+        # Use Grounding DINO for text detection + SAM for segmentation
+        if self._model_manager is not None and self._model_manager._grounding_model is not None:
+            text_list = [q.strip() for q in text.split(',') if q.strip()]
+            text_thresh = float(self._config.text_threshold)
 
-            with self._model_lock:
-                with torch.inference_mode(), autocast_context:
-                    results = self._model.predict_with_text(
-                        image=image_np,
-                        text=text,
-                        box_threshold=threshold,
-                    )
-                    return self._process_text_results(results, text, max_detections)
+            raw_dets = self._model_manager.detect_with_text(
+                image_np, text_list, threshold, text_thresh)
 
-        # Fallback: use automatic mask generation and return all masks
+            if not raw_dets:
+                return []
+
+            # Segment detected boxes with SAM
+            boxes = [d[0].tolist() if hasattr(d[0], 'tolist') else list(d[0])
+                     for d in raw_dets[:max_detections]]
+            masks = self._model_manager.segment_with_sam(image_np, boxes)
+
+            detections = []
+            for i, (box_raw, score, label) in enumerate(raw_dets[:max_detections]):
+                box = box_raw.tolist() if hasattr(box_raw, 'tolist') else list(box_raw)
+                mask = masks[i] if i < len(masks) else None
+                detections.append({
+                    "box": [float(b) for b in box],
+                    "mask": mask,
+                    "score": float(score),
+                    "label": label if label else text,
+                })
+            return detections
+
+        # Fallback: use automatic mask generation
         self._log("Model does not support text query, using mask generation")
         return self._run_auto_mask_fallback(image_np, text, max_detections)
 
@@ -321,7 +359,7 @@ class SAM3TextQuery(PerformTextQuery):
                 if mask_crop.size > 0:
                     detected_obj.mask = ImageContainer(Image(mask_crop))
 
-            track_state = ObjectTrackState(frame_id, detected_obj)
+            track_state = ObjectTrackState(frame_id, next_track_id, detected_obj)
             track = Track(next_track_id)
             track.append(track_state)
             tracks.append(track)
@@ -398,7 +436,7 @@ class SAM3TextQuery(PerformTextQuery):
                     if mask_crop.size > 0:
                         detected_obj.mask = ImageContainer(Image(mask_crop))
 
-                track_state = ObjectTrackState(frame_id, detected_obj)
+                track_state = ObjectTrackState(frame_id, next_track_id, detected_obj)
                 track.append(track_state)
 
             updated_tracks.append(track)
@@ -425,7 +463,7 @@ class SAM3TextQuery(PerformTextQuery):
                 if mask_crop.size > 0:
                     detected_obj.mask = ImageContainer(Image(mask_crop))
 
-            track_state = ObjectTrackState(frame_id, detected_obj)
+            track_state = ObjectTrackState(frame_id, next_track_id, detected_obj)
             track = Track(next_track_id)
             track.append(track_state)
             updated_tracks.append(track)

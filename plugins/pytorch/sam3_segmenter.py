@@ -131,7 +131,7 @@ class SAM3Segmenter(SegmentViaPoints):
         img_array = image_to_rgb_numpy(image)
 
         # Convert points to numpy arrays
-        point_coords = np.array([[p.value(0), p.value(1)] for p in points], dtype=np.float32)
+        point_coords = np.array([[p.value[0], p.value[1]] for p in points], dtype=np.float32)
         point_labels_arr = np.array(point_labels, dtype=np.int32)
 
         # Get device for autocast

@@ -199,6 +199,14 @@ class SharedSAM3ModelCache:
             predictor = model.inst_interactive_predictor
             if predictor is None:
                 raise RuntimeError("Model does not have instance interactive predictor")
+            # The predictor's internal tracker model may not share
+            # the backbone with the parent model; fix this reference
+            if (hasattr(predictor, 'model') and
+                    hasattr(predictor.model, 'backbone') and
+                    predictor.model.backbone is None and
+                    hasattr(model, 'backbone') and
+                    model.backbone is not None):
+                predictor.model.backbone = model.backbone
             log("  Loaded via sam3 module")
             return model, predictor
         except ImportError as e:
