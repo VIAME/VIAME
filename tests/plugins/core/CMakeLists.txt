@@ -25,6 +25,10 @@ kwiver_discover_gtests( viame_core pair_stereo_detections
   LIBRARIES ${test_libraries}
   PROPERTIES LABELS "UNIT;CORE" )
 
+kwiver_discover_gtests( viame_core windowed_refiner_utils
+  LIBRARIES ${test_libraries}
+  PROPERTIES LABELS "UNIT;CORE" )
+
 # TODO: Enable when tracks_pairing_from_stereo.h is implemented
 # kwiver_discover_gtests( viame_core tracks_pairing_from_stereo LIBRARIES ${test_libraries} )
 # target_compile_features( test-viame_core-tracks_pairing_from_stereo PRIVATE cxx_std_17 )
