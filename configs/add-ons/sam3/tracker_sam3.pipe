@@ -19,7 +19,6 @@ config _scheduler
 include common_default_input_with_downsampler.pipe
 
 # ============================= SAM3 CONFIGURATION ============================
-include common_sam3_segmenter.conf
 
 process ensure_rgb
   :: image_filter
