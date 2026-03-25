@@ -34,20 +34,6 @@ connect from downsampler.output_1
 
 # ================================= TRACKER ===================================
 
-# Use the SAM3 refiner in video-predictor mode (propagate_tracked=true)
-# with add_new_objects=true to detect via text query and propagate with
-# SAM3's native video tracking.  New objects are detected on the first
-# frame and every reinit_interval frames.
-# An empty track reader provides no seed tracks.
-process track_reader
-  :: read_object_track
-  :file_name                                   detections.csv
-  :reader:type                                 viame_csv
-  :reader:viame_csv:poly_to_mask               false
-
-connect from downsampler.output_2
-        to   track_reader.image_file_name
-
 process tracker
   :: refine_tracks
   :refiner:type                                sam3
@@ -76,9 +62,6 @@ connect from ensure_rgb.image
         to   tracker.image
 connect from downsampler.timestamp
         to   tracker.timestamp
-connect from track_reader.object_track_set
-        to   tracker.object_track_set
-
 # =============================== OUTPUT WRITER ===============================
 process track_writer
   :: write_object_track

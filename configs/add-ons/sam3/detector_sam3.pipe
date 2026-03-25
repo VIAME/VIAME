@@ -31,18 +31,6 @@ connect from downsampler.output_1
 
 # ================================= DETECTOR ==================================
 
-# Use the SAM3 refiner in per-frame mode (propagate_tracked=false)
-# with add_new_objects=true to detect on every frame independently.
-# An empty track reader provides no input tracks.
-process track_reader
-  :: read_object_track
-  :file_name                                   detections.csv
-  :reader:type                                 viame_csv
-  :reader:viame_csv:poly_to_mask               false
-
-connect from downsampler.output_2
-        to   track_reader.image_file_name
-
 process detector
   :: refine_tracks
   :refiner:type                                sam3
@@ -71,9 +59,6 @@ connect from ensure_rgb.image
         to   detector.image
 connect from downsampler.timestamp
         to   detector.timestamp
-connect from track_reader.object_track_set
-        to   detector.object_track_set
-
 # =============================== OUTPUT WRITER ===============================
 process track_writer
   :: write_object_track
