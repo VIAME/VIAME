@@ -72,6 +72,12 @@ def __vital_algorithm_register__():
         pass
 
     try:
+        from viame.pytorch import sam3_refiner
+        sam3_refiner.__vital_algorithm_register__()
+    except ImportError:
+        pass
+
+    try:
         from viame.pytorch import mdnet_tracker
         mdnet_tracker.__vital_algorithm_register__()
     except ImportError:
