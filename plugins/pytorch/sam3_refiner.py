@@ -276,6 +276,11 @@ class SAM3Refiner(RefineTracks):
                 vp.new_det_thresh = new_det_thresh
             if hasattr(vp, 'hotstart_delay'):
                 vp.hotstart_delay = hotstart_delay
+            # Enable detection NMS to suppress overlapping detections.
+            # The base class default is 0.0 (disabled) but SAM3's own
+            # model_builder sets 0.1 when constructing the video model.
+            if hasattr(vp, 'det_nms_thresh') and vp.det_nms_thresh <= 0:
+                vp.det_nms_thresh = 0.1
 
     def _run_video_propagation(self):
         """
