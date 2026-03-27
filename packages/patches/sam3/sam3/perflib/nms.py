@@ -79,17 +79,26 @@ def generic_nms_cpu(
     ious: torch.Tensor, scores: torch.Tensor, iou_threshold=0.5
 ) -> torch.Tensor:
     """
-    A generic version of `torchvision.ops.nms` that takes a pairwise IoU matrix. (CPU implementation
-    based on https://github.com/jwyang/faster-rcnn.pytorch/blob/master/lib/model/nms/nms_cpu.py)
+    CPU implementation of greedy NMS matching the Triton path:
+    sort by score (stable), precompute boolean IoU mask, then
+    sequentially suppress overlapping lower-scored detections.
     """
-    ious_np = ious.float().detach().cpu().numpy()
-    scores_np = scores.float().detach().cpu().numpy()
-    order = scores_np.argsort()[::-1]
-    kept_inds = []
-    while order.size > 0:
-        i = order.item(0)
-        kept_inds.append(i)
-        inds = np.where(ious_np[i, order[1:]] <= iou_threshold)[0]
-        order = order[inds + 1]
+    device = scores.device
+    num_boxes = scores.size(0)
 
-    return torch.tensor(kept_inds, dtype=torch.int64, device=scores.device)
+    # Sort by score descending (stable sort to match Triton path)
+    _, sorted_indices = torch.sort(scores, dim=0, stable=True, descending=True)
+
+    # Precompute boolean IoU mask (same as Triton: ious > threshold)
+    iou_mask = ious[sorted_indices][:, sorted_indices] > iou_threshold
+
+    # Move to CPU for the sequential suppression loop
+    iou_mask_np = iou_mask.cpu().numpy()
+    keep_mask = np.ones(num_boxes, dtype=bool)
+
+    for i in range(num_boxes - 1):
+        if keep_mask[i]:
+            # Suppress all later boxes with IoU above threshold
+            keep_mask[i + 1:] &= ~iou_mask_np[i, i + 1:]
+
+    return sorted_indices[torch.from_numpy(keep_mask).to(device)]
