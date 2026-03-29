@@ -293,14 +293,37 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
   endif()
 
   if( WIN32 )
-    # On Windows, yarn install can fail to extract all files from certain
-    # npm packages (e.g. lodash.js, core-js internals). Use npm install
-    # which handles package extraction reliably on NTFS.
-    find_program( NPM_EXECUTABLE NAMES npm.cmd npm )
-    if( NOT NPM_EXECUTABLE )
-      message( FATAL_ERROR "npm not found, required for DIVE build on Windows" )
-    endif()
-    set( DIVE_INSTALL_CMD ${NPM_EXECUTABLE} install --legacy-peer-deps )
+    # On Windows, yarn install can intermittently fail to extract all files
+    # from npm packages (e.g. lodash.js). Write a wrapper script that runs
+    # yarn install and verifies critical files exist, retrying if needed.
+    set( _dive_install_script "${VIAME_BUILD_PREFIX}/src/dive-yarn-install.cmake" )
+    file( WRITE "${_dive_install_script}" "
+set(YARN \"${YARN_EXECUTABLE}\")
+set(CLIENT_DIR \"${DIVE_CLIENT_DIR}\")
+set(MAX_ATTEMPTS 3)
+foreach(attempt RANGE 1 \${MAX_ATTEMPTS})
+  message(STATUS \"DIVE yarn install attempt \${attempt}/\${MAX_ATTEMPTS}\")
+  execute_process(
+    COMMAND \${YARN} install --ignore-engines --network-timeout 600000
+    WORKING_DIRECTORY \${CLIENT_DIR}
+    RESULT_VARIABLE rv)
+  if(NOT rv EQUAL 0)
+    message(STATUS \"yarn install failed with code \${rv}, retrying...\")
+    file(REMOVE_RECURSE \"\${CLIENT_DIR}/node_modules\")
+    continue()
+  endif()
+  # Verify critical files were extracted
+  if(EXISTS \"\${CLIENT_DIR}/node_modules/lodash/lodash.js\"
+     AND EXISTS \"\${CLIENT_DIR}/node_modules/core-js/internals/an-object.js\")
+    message(STATUS \"DIVE yarn install succeeded and verified\")
+    return()
+  endif()
+  message(STATUS \"yarn install incomplete (missing files), retrying...\")
+  file(REMOVE_RECURSE \"\${CLIENT_DIR}/node_modules\")
+endforeach()
+message(FATAL_ERROR \"DIVE yarn install failed after \${MAX_ATTEMPTS} attempts\")
+")
+    set( DIVE_INSTALL_CMD ${CMAKE_COMMAND} -P "${_dive_install_script}" )
   else()
     set( DIVE_INSTALL_CMD ${DIVE_BUILD_ENV} ${YARN_EXECUTABLE} install --ignore-engines )
   endif()
