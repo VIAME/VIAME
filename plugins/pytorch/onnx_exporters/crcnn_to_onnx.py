@@ -35,7 +35,7 @@ def get_dummy_imputs_metas(net_shape):
     return {'img_metas':[[input_metas_]]}
 
 # ----------------------------------------------
-def crcnn2onnx(path_torch_liberator_bioharn_model,
+def crcnn_to_onnx(path_torch_liberator_bioharn_model,
                net_shape,
                batch_size,
                output_prefix):
