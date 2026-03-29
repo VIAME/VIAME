@@ -292,12 +292,25 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
     set( DIVE_BUILD_ENV "" )
   endif()
 
+  if( WIN32 )
+    # On Windows, yarn install can fail to extract all files from certain
+    # npm packages (e.g. lodash.js, core-js internals). Use npm install
+    # which handles package extraction reliably on NTFS.
+    find_program( NPM_EXECUTABLE NAMES npm.cmd npm )
+    if( NOT NPM_EXECUTABLE )
+      message( FATAL_ERROR "npm not found, required for DIVE build on Windows" )
+    endif()
+    set( DIVE_INSTALL_CMD ${NPM_EXECUTABLE} install --legacy-peer-deps )
+  else()
+    set( DIVE_INSTALL_CMD ${DIVE_BUILD_ENV} ${YARN_EXECUTABLE} install --ignore-engines )
+  endif()
+
   ExternalProject_Add( dive
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${DIVE_CLIENT_DIR}
     BUILD_IN_SOURCE 1
     USES_TERMINAL_BUILD 1
-    CONFIGURE_COMMAND ${DIVE_BUILD_ENV} ${YARN_EXECUTABLE} install --ignore-engines
+    CONFIGURE_COMMAND ${DIVE_INSTALL_CMD}
     BUILD_COMMAND ${DIVE_BUILD_ENV} ${YARN_EXECUTABLE} build:electron
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${DIVE_ELECTRON_OUTPUT_DIR}
