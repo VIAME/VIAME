@@ -6,7 +6,7 @@ SET VIAME_INSTALL=.\..\..
 REM Processing options
 SET INPUT=videos
 SET OUTPUT=output
-SET PIPELINE=pipelines\utility_extract_chips.pipe
+SET PIPELINE=pipelines\filter_extract_chips.pipe
 
 REM The default frame rate is only used when the csvs alongside videos
 REM do not contain frame rates, otherwise the CSV frame rate is used.
