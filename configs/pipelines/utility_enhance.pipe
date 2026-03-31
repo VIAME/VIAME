@@ -1,7 +1,0 @@
-# =============================================================================
-# Title: Utility - Enhance
-#
-# Description: Applies image enhancement filters to input imagery.
-# =============================================================================
-
-include filter_enhance.pipe

@@ -158,6 +158,7 @@ set( CORE_PIPELINE_FILES
   filter_default.pipe
   filter_draw_dets.pipe
   filter_enhance.pipe
+  filter_extract_chips.pipe
   filter_normalize_16bit.pipe
   filter_split_and_debayer.pipe
   filter_split_left_side.pipe
@@ -209,14 +210,10 @@ set( CORE_PIPELINE_FILES
   utility_add_head_tail_keypoints_from_dets.pipe
   utility_add_segmentations_watershed.pipe
   utility_add_segmentations_watershed_2x.pipe
-  utility_debayer_and_enhance.pipe
   utility_empty_frame_lbls_1000fr.pipe
   utility_empty_frame_lbls_100fr.pipe
   utility_empty_frame_lbls_10fr.pipe
   utility_empty_frame_lbls_1fr.pipe
-  utility_empty_frame_lbls_auto.pipe
-  utility_enhance.pipe
-  utility_extract_chips.pipe
   utility_link_detections_default.pipe
   utility_max_10_points_per_poly.pipe
   utility_max_25_points_per_poly.pipe

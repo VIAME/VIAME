@@ -1,7 +1,0 @@
-# =============================================================================
-# Title: Utility - Debayer And Enhance
-#
-# Description: Applies image enhancement filters to input imagery.
-# =============================================================================
-
-include filter_debayer_and_enhance.pipe
