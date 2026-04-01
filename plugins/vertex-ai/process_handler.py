@@ -185,6 +185,11 @@ class ProcessHandler:
           else "cam" + str( cid + 1 )
         cmd += self._writer_settings(
           output_dir, cam_name, output_type, output_ext, cid + 1 )
+        # Also set unnumbered writers for the first camera since some
+        # pipelines use detector_writer/track_writer without a suffix
+        if cid == 0:
+          cmd += self._writer_settings(
+            output_dir, cam_name, output_type, output_ext )
 
     # Extra per-request setting overrides
     for key, value in settings.items():
