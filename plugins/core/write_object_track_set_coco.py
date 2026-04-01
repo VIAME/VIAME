@@ -50,6 +50,8 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         self._tracks = {}
         # Map frame_id -> frame_identifier string
         self._frame_ids = {}
+        # Map frame_id -> time in seconds
+        self._frame_times = {}
 
     # ------------------------------------------------------------------
     # Configuration
@@ -105,8 +107,11 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
 
         frame_id = timestamp.get_frame() if timestamp.has_valid_frame() else None
 
-        if frame_identifier and frame_id is not None:
-            self._frame_ids[frame_id] = frame_identifier
+        if frame_id is not None:
+            if frame_identifier:
+                self._frame_ids[frame_id] = frame_identifier
+            if timestamp.has_valid_time():
+                self._frame_times[frame_id] = timestamp.get_time_seconds()
 
         for trk in track_set.tracks():
             self._tracks[trk.id] = trk
@@ -120,8 +125,12 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         if frame_id not in self._frame_to_image_id:
             idx = len(self.images)
             self._frame_to_image_id[frame_id] = idx
-            file_name = self._frame_ids.get(frame_id, "")
-            self.images.append(file_name)
+            entry = dict(
+                file_name=self._frame_ids.get(frame_id, ""),
+            )
+            if frame_id in self._frame_times:
+                entry["time"] = self._frame_times[frame_id]
+            self.images.append(entry)
         return self._frame_to_image_id[frame_id]
 
     def _flush_tracks(self):
@@ -136,7 +145,11 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
                 if det is None:
                     continue
 
-                image_id = self._get_image_id(state.frame_id)
+                fid = state.frame_id
+                if fid not in self._frame_times and state.time_usec > 0:
+                    self._frame_times[fid] = state.time_usec / 1e6
+
+                image_id = self._get_image_id(fid)
 
                 d = detection_to_annotation(
                     det, image_id, cats,

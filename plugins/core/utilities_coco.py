@@ -56,15 +56,25 @@ def detection_to_annotation(det, image_id, categories, category_start_id,
 
 
 def build_image_list(images, aux_image_labels, aux_image_extensions):
-    """Build the 'images' section of the COCO output."""
+    """Build the 'images' section of the COCO output.
+
+    Each element of *images* is either:
+      - a plain filename string  (detection writer), or
+      - a dict with at least 'file_name' and optionally 'frame_index'
+        and 'time' (track writer for video inputs).
+    """
     has_aux = len(aux_image_extensions) > 0 and aux_image_extensions[0]
     result = []
     for i, im in enumerate(images):
-        entry = dict(id=i, file_name=im)
+        if isinstance(im, dict):
+            entry = dict(id=i, **im)
+        else:
+            entry = dict(id=i, file_name=im)
         if has_aux:
+            fn = entry.get("file_name", "")
             aux = []
             for label, ext in zip(aux_image_labels, aux_image_extensions):
-                base, fext = os.path.splitext(im)
+                base, fext = os.path.splitext(fn)
                 aux.append(dict(file_name=base + ext + fext, channels=label))
             entry['auxillary'] = aux
         result.append(entry)
