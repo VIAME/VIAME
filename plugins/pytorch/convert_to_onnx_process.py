@@ -70,7 +70,7 @@ class OnnxConverter(KwiverProcess):
                 with zipfile.ZipFile(model_path, 'r') as zip_ref:
                     all_files_in_zip = zip_ref.namelist()
                     train_info_files = [file for file in all_files_in_zip if file.endswith("train_info.json")]
-                    if len(train_info_files) > 1:
+                    if len(train_info_files) != 1:
                         raise ValueError(f"There should be only one JSON confugration, detected {len(train_info_files)}")
                     with zip_ref.open(train_info_files[0]) as file:
                         content = file.read()
