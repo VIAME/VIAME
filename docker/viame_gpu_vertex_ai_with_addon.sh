@@ -1,13 +1,19 @@
 #!/bin/bash
 
-# Build a VIAME Vertex AI container with a custom add-on and default pipeline.
+# Build a VIAME Vertex AI container with one or more custom add-ons.
 #
 # Usage:
-#   ./vertex_ai_docker_with_add_on.sh <addon.zip> <pipeline> <image-name> [output-type]
+#   ./viame_gpu_vertex_ai_with_addon.sh <addon-zips> <pipeline> <image-name> [output-type]
 #
-# Example:
-#   ./vertex_ai_docker_with_add_on.sh VIAME-DEFAULT-FISH-Models.zip \
+# Examples:
+#   # Single add-on:
+#   ./viame_gpu_vertex_ai_with_addon.sh VIAME-DEFAULT-FISH-Models.zip \
 #     pipelines/detector_default_fish.pipe \
+#     viame-vertex-fish:latest
+#
+#   # Multiple add-ons (comma-separated):
+#   ./viame_gpu_vertex_ai_with_addon.sh VIAME-DEFAULT-FISH-Models.zip,VIAME-GENERIC-Models.zip \
+#     pipelines/tracker_default_fish.pipe \
 #     viame-vertex-fish:latest \
 #     coco
 
@@ -17,10 +23,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VIAME_SRC="$(dirname "$SCRIPT_DIR")"
 
 usage() {
-  echo "Usage: $0 <addon-zip> <pipeline> <image-name> [output-type]"
+  echo "Usage: $0 <addon-zips> <pipeline> <image-name> [output-type]"
   echo ""
   echo "Arguments:"
-  echo "  addon-zip     Path to a VIAME add-on .zip file"
+  echo "  addon-zips    Comma-separated paths to VIAME add-on .zip files"
   echo "  pipeline      Default pipeline to run (e.g. pipelines/detector_default_fish.pipe)"
   echo "  image-name    Name (and optional tag) for the output Docker image"
   echo "  output-type   Output format: coco, viame_csv, kw18 (default: coco)"
@@ -31,26 +37,36 @@ if [ $# -lt 3 ] || [ $# -gt 4 ]; then
   usage
 fi
 
-ADDON_ZIP="$(realpath "$1")"
+ADDON_ZIPS="$1"
 PIPELINE="$2"
 IMAGE_NAME="$3"
 OUTPUT_TYPE="${4:-coco}"
-
-if [ ! -f "$ADDON_ZIP" ]; then
-  echo "Error: Add-on zip not found: $ADDON_ZIP"
-  exit 1
-fi
 
 # Create a temporary build context
 BUILD_DIR="$(mktemp -d)"
 trap 'rm -rf "$BUILD_DIR"' EXIT
 
-# Copy the vertex-ai plugin sources and the add-on zip into the build context
-mkdir -p "$BUILD_DIR/plugins/vertex-ai"
+# Copy the vertex-ai plugin sources into the build context
+mkdir -p "$BUILD_DIR/plugins/vertex-ai" "$BUILD_DIR/addons"
 cp "$VIAME_SRC/plugins/vertex-ai/"*.py "$BUILD_DIR/plugins/vertex-ai/"
-cp "$ADDON_ZIP" "$BUILD_DIR/addon.zip"
 
-# Generate a Dockerfile that layers the add-on on top of the base vertex image
+# Copy and validate each add-on zip
+IFS=',' read -ra ZIP_LIST <<< "$ADDON_ZIPS"
+ADDON_IDX=0
+for zip_path in "${ZIP_LIST[@]}"; do
+  zip_path="$(echo "$zip_path" | xargs)"  # trim whitespace
+  zip_path="$(realpath "$zip_path")"
+  if [ ! -f "$zip_path" ]; then
+    echo "Error: Add-on zip not found: $zip_path"
+    exit 1
+  fi
+  cp "$zip_path" "$BUILD_DIR/addons/addon_${ADDON_IDX}.zip"
+  ADDON_IDX=$((ADDON_IDX + 1))
+done
+
+echo "Installing ${ADDON_IDX} add-on(s)"
+
+# Generate a Dockerfile that layers the add-ons on top of the base vertex image
 cat > "$BUILD_DIR/Dockerfile" <<'DOCKERFILE'
 FROM kitware/viame:gpu-algorithms-web
 
@@ -64,10 +80,11 @@ RUN pip install --no-cache-dir \
 # Copy vertex-ai app into the VIAME configs directory
 COPY plugins/vertex-ai/*.py /opt/noaa/viame/configs/
 
-# Install the add-on (zip extracts configs/pipelines/* into the VIAME install)
-COPY addon.zip /tmp/addon.zip
-RUN python -c "import zipfile; zipfile.ZipFile('/tmp/addon.zip').extractall('/opt/noaa/viame')" \
-    && rm /tmp/addon.zip
+# Install add-on(s) (each zip extracts configs/pipelines/* into the VIAME install)
+COPY addons/ /tmp/addons/
+RUN for z in /tmp/addons/*.zip; do \
+      python -c "import zipfile; zipfile.ZipFile('${z}').extractall('/opt/noaa/viame')"; \
+    done && rm -rf /tmp/addons
 
 WORKDIR /workspace
 
@@ -95,7 +112,7 @@ ENTRYPOINT ["bash", "-c", \
 DOCKERFILE
 
 echo "=== Build context ==="
-ls -lh "$BUILD_DIR"
+ls -lh "$BUILD_DIR" "$BUILD_DIR/addons/"
 echo ""
 echo "=== Dockerfile ==="
 cat "$BUILD_DIR/Dockerfile"
