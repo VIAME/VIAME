@@ -12,11 +12,13 @@ The COCO format is a widely used annotation format that contains:
 - annotations: list of annotations with 'id', 'image_id', 'category_id', 'bbox', 'score', and optionally 'segmentation'
 """
 
-import datetime
-import json
-import os
-
 from kwiver.vital.algo import DetectedObjectSetOutput
+
+from viame.core.utilities_coco import (
+    global_categories,
+    detection_to_annotation,
+    write_coco_json,
+)
 
 
 class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
@@ -32,28 +34,20 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
     The bbox is written in [x, y, width, height] format.
     """
 
-    # ID mappings of categories such that they're shared across all
-    # WriteDetectedObjectSetCoco class instantiations in the running instance
-    categories = {}
+    # Kept for backwards compatibility — now delegates to the shared
+    # global_categories dict in coco_writer_utils.
+    categories = global_categories
 
     def __init__(self):
         DetectedObjectSetOutput.__init__(self)
-        # List of dicts corresponding to elements of the output
-        # "annotations" attribute, minus the "id" attribute
         self.detections = []
-        # List of image paths
         self.images = []
-        # The first ID to be assigned to a category (and then counting
-        # up from there)
         self.category_start_id = 1
-        # Have consistent category ids across multiple coco writers
-        # within the same program
         self.global_categories = True
-        # Optional auxiliary image information to write out to json file
         self.aux_image_labels = ""
         self.aux_image_extensions = ""
-        # The current file object or None
         self.file = None
+        self._local_categories = {}
 
     def get_configuration(self):
         cfg = super(DetectedObjectSetOutput, self).get_configuration()
@@ -78,7 +72,7 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
             print("Auxiliary image labels and extensions must be same size")
             return False
         if not self.global_categories:
-            WriteDetectedObjectSetCoco.categories = {}
+            self._local_categories = {}
 
     def _strtobool(self, val):
         """Convert a string representation of truth to True or False."""
@@ -101,71 +95,21 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
             self.file.close()
 
     def write_set(self, detected_object_set, file_name):
+        cats = self._local_categories
         for det in detected_object_set:
-            bbox = det.bounding_box
-            d = dict(
-                image_id=len(self.images),
-                bbox=[
-                    bbox.min_x(),
-                    bbox.min_y(),
-                    bbox.width(),
-                    bbox.height(),
-                ],
-                score=det.confidence,
-            )
-            polygon = det.get_flattened_polygon()
-            if polygon:
-                # Downstream applications expect ints, not floats
-                d['segmentation'] = [int(round(p)) for p in polygon]
-            if det.type is not None:
-                d['category_id'] = self.get_cat_id(det.type)
+            d = detection_to_annotation(
+                det, len(self.images), cats,
+                self.category_start_id, self.global_categories)
             self.detections.append(d)
         self.images.append(file_name)
 
-    def get_cat_id(self, dot):
-        if self.global_categories:
-            return type(self).categories.setdefault(
-                dot.get_most_likely_class(),
-                len(type(self).categories) + self.category_start_id)
-        else:
-            return self.categories.setdefault(
-                dot.get_most_likely_class(),
-                len(type(self).categories) + self.category_start_id)
-
-    def fill_aux(self, file_name):
-        output = []
-        for label, aug_ext in zip(self.aux_image_labels, self.aux_image_extensions):
-            file_name_base, file_ext = os.path.splitext(file_name)
-            adj_file_name = file_name_base + aug_ext + file_ext
-            output.append(dict(file_name=adj_file_name, channels=label))
-        return output
-
     def complete(self):
-        now = datetime.datetime.now(datetime.timezone.utc).astimezone()
-        if len(self.aux_image_extensions) > 0 and self.aux_image_extensions[0]:
-            image_dict = [dict(id=i, file_name=im, auxillary=self.fill_aux(im))
-                          for i, im in enumerate(self.images)]
-        else:
-            image_dict = [dict(id=i, file_name=im)
-                          for i, im in enumerate(self.images)]
-        if self.global_categories:
-            category_dict = [dict(id=i, name=c)
-                             for c, i in type(self).categories.items()]
-        else:
-            category_dict = [dict(id=i, name=c)
-                             for c, i in self.categories.items()]
-        json.dump(dict(
-            info=dict(
-                year=now.year,
-                description="Created by WriteDetectedObjectSetCoco",
-                date_created=now.replace(microsecond=0).isoformat(' '),
-            ),
-            annotations=[dict(d, id=i)
-                         for i, d in enumerate(self.detections)],
-            categories=category_dict,
-            images=image_dict,
-        ), self.file, indent=2)
-        self.file.flush()
+        cats = self._local_categories
+        write_coco_json(
+            self.file, self.detections, self.images, cats,
+            self.global_categories,
+            self.aux_image_labels, self.aux_image_extensions,
+            description="Created by WriteDetectedObjectSetCoco")
 
 
 def __vital_algorithm_register__():
