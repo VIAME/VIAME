@@ -7,8 +7,13 @@
 # Cascade R-CNN detection.
 # =============================================================================
 
+# Requirements: { Detection Scale (default 1.0), global:scale, double }
+
 config _pipeline:_edge
   :capacity                                    5
+
+config global
+  :scale                                       1.0
 
 # ============================= INPUT FRAME LIST ==============================
 
@@ -24,6 +29,7 @@ process detector
     :detector:type                             netharn
 
     :mode                                      chip
+    :scale                                     $CONFIG{global:scale}
     :chip_width                                640
     :chip_height                               640
     :chip_step_width                           520
