@@ -16,6 +16,7 @@ ENV VIAME_INSTALL_DIR=/opt/noaa/viame
 ENV VIAME_WORK_DIR=/workspace
 ENV VIAME_PIPELINE=pipelines/detector_gmm_motion.pipe
 ENV VIAME_OUTPUT_TYPE=coco
+ENV VIAME_FRAME_RATE=5
 
 ENV AIP_HTTP_PORT=8080
 

@@ -28,7 +28,8 @@ AIP_MODE = os.environ.get( "AIP_MODE", "" )
 VIAME_INSTALL_DIR = os.environ.get( "VIAME_INSTALL_DIR", "/opt/noaa/viame" )
 WORK_DIR = os.environ.get( "VIAME_WORK_DIR", "/workspace" )
 PIPELINE = os.environ.get( "VIAME_PIPELINE", "" )
-OUTPUT_TYPE = os.environ.get( "VIAME_OUTPUT_TYPE", "viame_csv" )
+OUTPUT_TYPE = os.environ.get( "VIAME_OUTPUT_TYPE", "coco" )
+FRAME_RATE = os.environ.get( "VIAME_FRAME_RATE", "5" )
 TRAIN_CONFIG = os.environ.get( "VIAME_TRAIN_CONFIG", "" )
 
 # Initialize handlers
@@ -43,7 +44,8 @@ process_handler = ProcessHandler(
   work_dir=WORK_DIR,
   default_pipeline=PIPELINE,
   model_storage_uri=AIP_STORAGE_URI,
-  output_type=OUTPUT_TYPE
+  output_type=OUTPUT_TYPE,
+  frame_rate=FRAME_RATE
 )
 
 
