@@ -297,9 +297,11 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
     # from npm packages (e.g. lodash.js). Write a wrapper script that runs
     # yarn install and verifies critical files exist, retrying if needed.
     set( _dive_install_script "${VIAME_BUILD_PREFIX}/src/dive-yarn-install.cmake" )
+    string( REPLACE "\\" "/" _yarn_fwd "${YARN_EXECUTABLE}" )
+    string( REPLACE "\\" "/" _client_fwd "${DIVE_CLIENT_DIR}" )
     file( WRITE "${_dive_install_script}" "
-set(YARN \"${YARN_EXECUTABLE}\")
-set(CLIENT_DIR \"${DIVE_CLIENT_DIR}\")
+set(YARN \"${_yarn_fwd}\")
+set(CLIENT_DIR \"${_client_fwd}\")
 set(MAX_ATTEMPTS 3)
 foreach(attempt RANGE 1 \${MAX_ATTEMPTS})
   message(STATUS \"DIVE yarn install attempt \${attempt}/\${MAX_ATTEMPTS}\")
