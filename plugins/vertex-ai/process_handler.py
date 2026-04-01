@@ -5,6 +5,7 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 import os
+import json
 import logging
 import subprocess
 import threading
@@ -12,17 +13,25 @@ import glob
 
 logger = logging.getLogger( "viame.vertex-ai.process" )
 
+# Map VIAME writer type names to the file extension they produce
+WRITER_TYPE_EXTENSIONS = {
+  "viame_csv": ".csv",
+  "coco":      ".json",
+  "kw18":      ".kw18",
+}
+
 
 class ProcessHandler:
 
   def __init__( self, viame_dir, work_dir, default_pipeline="",
-                model_storage_uri="" ):
+                model_storage_uri="", output_type="viame_csv" ):
     self.viame_dir = viame_dir
     self.work_dir = work_dir
     self.default_pipeline = default_pipeline
     self.model_storage_uri = model_storage_uri
+    self.output_type = output_type
     self.setup_script = os.path.join( viame_dir, "setup_viame.sh" )
-    self.process_video = os.path.join( viame_dir, "bin", "process_video.py" )
+    self.process_video = os.path.join( viame_dir, "configs", "process_video.py" )
 
     self._status = "idle"
     self._lock = threading.Lock()
@@ -86,6 +95,9 @@ class ProcessHandler:
     output_dir = os.path.join( self.work_dir, "output" )
     os.makedirs( output_dir, exist_ok=True )
 
+    output_type = self.output_type
+    output_ext = WRITER_TYPE_EXTENSIONS.get( output_type, ".csv" )
+
     # Build process_video.py command
     cmd = "source {} && python {}".format(
       self.setup_script, self.process_video
@@ -94,7 +106,12 @@ class ProcessHandler:
     cmd += " -o {}".format( output_dir )
     cmd += " -p {}".format( pipeline )
     cmd += " -frate {}".format( frame_rate )
+    cmd += " -output-ext {}".format( output_ext )
     cmd += " --no-reset-prompt"
+
+    # Override the writer type in both detector and track writers
+    cmd += " -s detector_writer:writer:type={}".format( output_type )
+    cmd += " -s track_writer:writer:type={}".format( output_type )
 
     for key, value in settings.items():
       cmd += " -s {}={}".format( key, value )
@@ -116,24 +133,26 @@ class ProcessHandler:
         "stderr": proc.stderr[ -500: ]
       }
 
-    # Collect output CSV files as results
-    csv_files = glob.glob(
-      os.path.join( output_dir, "**", "*_detections.csv" ),
-      recursive=True
-    )
-
-    detections = []
-    for csv_file in csv_files:
-      with open( csv_file, "r" ) as f:
-        detections.append( {
-          "file": os.path.basename( csv_file ),
-          "content": f.read()
+    # Collect output detection and track files
+    outputs = []
+    for suffix in ( "_detections", "_tracks" ):
+      pattern = os.path.join(
+        output_dir, "**", "*" + suffix + output_ext
+      )
+      for out_file in glob.glob( pattern, recursive=True ):
+        with open( out_file, "r" ) as f:
+          content = f.read()
+        if output_ext == ".json":
+          content = json.loads( content )
+        outputs.append( {
+          "file": os.path.basename( out_file ),
+          "content": content
         } )
 
     return {
       "status": "completed",
       "input": input_path,
-      "detections": detections
+      "outputs": outputs
     }
 
   def _resolve_gcs_path( self, path ):
