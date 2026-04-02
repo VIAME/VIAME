@@ -32,6 +32,9 @@ process ensure_rgb
 connect from downsampler.output_1
         to   ensure_rgb.image
 
+# ========================= EMPTY DETECTION SOURCE ============================
+include common_empty_tracker.pipe
+
 # ================================= TRACKER ===================================
 
 process tracker
@@ -62,6 +65,8 @@ connect from ensure_rgb.image
         to   tracker.image
 connect from downsampler.timestamp
         to   tracker.timestamp
+connect from empty_tracker.object_track_set
+        to   tracker.object_track_set
 # =============================== OUTPUT WRITER ===============================
 process track_writer
   :: write_object_track

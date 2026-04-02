@@ -126,6 +126,7 @@ endif()
 ##
 set( CORE_PIPELINE_FILES
   common_default_initializer.pipe
+  common_empty_tracker.pipe
   common_train_detector.conf
   common_default_input.pipe
   common_default_input_16bit.pipe
