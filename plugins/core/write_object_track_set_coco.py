@@ -5,9 +5,10 @@
 """
 Write object tracks to COCO-format JSON files.
 
-Produces the standard COCO annotation format with an additional
-``track_id`` field on each annotation so that per-frame detections
-belonging to the same object can be linked across time.
+Produces a COCO annotation format with top-level ``videos`` and
+``tracks`` tables and per-annotation ``track_id`` fields so that
+per-frame detections belonging to the same object can be linked
+across time.
 """
 
 from kwiver.vital.algo import WriteObjectTrackSet
@@ -23,13 +24,19 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
     """
     COCO-formatted output for ObjectTrackSets.
 
+    Produces JSON with top-level ``videos`` and ``tracks`` tables
+    alongside standard COCO ``images``, ``annotations``, and
+    ``categories``.
+
     Each annotation carries:
     - id, image_id, category_id, bbox, score, segmentation (standard COCO)
-    - track_id: the VIAME track identifier that links detections over time
+    - track_id: links the annotation to an entry in the ``tracks`` table
 
-    Images are registered in frame order.  The writer accumulates all
-    track states across ``write_set`` calls and serialises them on
-    ``close()``.
+    Each image carries:
+    - video_id, frame_index, timestamp (video fields)
+
+    The writer accumulates all track states across ``write_set`` calls
+    and serialises them on ``close()``.
     """
 
     categories = global_categories
@@ -42,6 +49,7 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         self.global_categories = True
         self.aux_image_labels = ""
         self.aux_image_extensions = ""
+        self.video_name = ""
         self.file = None
         self._local_categories = {}
         # Map frame_id -> index in self.images
@@ -52,6 +60,8 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         self._frame_ids = {}
         # Map frame_id -> time in seconds
         self._frame_times = {}
+        # Monotonic counter for frame_index assignment
+        self._next_frame_index = 0
 
     # ------------------------------------------------------------------
     # Configuration
@@ -63,6 +73,7 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         cfg.set_value("global_categories", str(self.global_categories))
         cfg.set_value("aux_image_labels", ','.join(self.aux_image_labels))
         cfg.set_value("aux_image_extensions", ','.join(self.aux_image_extensions))
+        cfg.set_value("video_name", self.video_name)
         return cfg
 
     def set_configuration(self, cfg_in):
@@ -72,6 +83,7 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         self.global_categories = _strtobool(cfg.get_value("global_categories"))
         self.aux_image_labels = str(cfg.get_value("aux_image_labels"))
         self.aux_image_extensions = str(cfg.get_value("aux_image_extensions"))
+        self.video_name = str(cfg.get_value("video_name"))
 
         self.aux_image_labels = self.aux_image_labels.rstrip().split(',')
         self.aux_image_extensions = self.aux_image_extensions.rstrip().split(',')
@@ -125,11 +137,15 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         if frame_id not in self._frame_to_image_id:
             idx = len(self.images)
             self._frame_to_image_id[frame_id] = idx
+            frame_index = self._next_frame_index
+            self._next_frame_index += 1
             entry = dict(
                 file_name=self._frame_ids.get(frame_id, ""),
+                video_id=0,
+                frame_index=frame_index,
             )
             if frame_id in self._frame_times:
-                entry["time"] = self._frame_times[frame_id]
+                entry["timestamp"] = self._frame_times[frame_id]
             self.images.append(entry)
         return self._frame_to_image_id[frame_id]
 
@@ -137,8 +153,11 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         """Convert accumulated tracks to COCO annotations and write JSON."""
         cats = self._local_categories
 
+        # Build the tracks table
+        tracks = []
         for trk in self._tracks.values():
             track_id = trk.id
+            tracks.append(dict(id=track_id, name=str(track_id)))
 
             for state in trk:
                 det = state.detection()
@@ -157,11 +176,16 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
                 d['track_id'] = track_id
                 self.annotations.append(d)
 
+        # Build the videos table
+        video_name = self.video_name if self.video_name else "video_0"
+        videos = [dict(id=0, name=video_name)]
+
         write_coco_json(
             self.file, self.annotations, self.images, cats,
             self.global_categories,
             self.aux_image_labels, self.aux_image_extensions,
-            description="Created by WriteObjectTrackSetCoco")
+            description="Created by WriteObjectTrackSetCoco",
+            videos=videos, tracks=tracks)
 
 
 # ------------------------------------------------------------------

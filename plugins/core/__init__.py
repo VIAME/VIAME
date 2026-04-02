@@ -81,6 +81,12 @@ def __vital_algorithm_register__():
         pass
 
     try:
+        from viame.core import read_object_track_set_coco
+        read_object_track_set_coco.__vital_algorithm_register__()
+    except ImportError:
+        pass
+
+    try:
         from viame.core import write_object_track_set_coco
         write_object_track_set_coco.__vital_algorithm_register__()
     except ImportError:

@@ -60,8 +60,8 @@ def build_image_list(images, aux_image_labels, aux_image_extensions):
 
     Each element of *images* is either:
       - a plain filename string  (detection writer), or
-      - a dict with at least 'file_name' and optionally 'frame_index'
-        and 'time' (track writer for video inputs).
+      - a dict with at least 'file_name' and optionally 'frame_index',
+        'timestamp', 'video_id'.
     """
     has_aux = len(aux_image_extensions) > 0 and aux_image_extensions[0]
     result = []
@@ -69,21 +69,22 @@ def build_image_list(images, aux_image_labels, aux_image_extensions):
         if isinstance(im, dict):
             entry = dict(id=i, **im)
         else:
-            entry = dict(id=i, file_name=im)
+            entry = dict(id=i, file_name=im, frame_index=i)
         if has_aux:
             fn = entry.get("file_name", "")
             aux = []
             for label, ext in zip(aux_image_labels, aux_image_extensions):
                 base, fext = os.path.splitext(fn)
                 aux.append(dict(file_name=base + ext + fext, channels=label))
-            entry['auxillary'] = aux
+            entry['auxiliary'] = aux
         result.append(entry)
     return result
 
 
 def write_coco_json(file_obj, annotations, images, categories,
                     use_global, aux_image_labels, aux_image_extensions,
-                    description="Created by VIAME COCO writer"):
+                    description="Created by VIAME COCO writer",
+                    videos=None, tracks=None):
     """Serialize accumulated data to a file in COCO JSON format."""
     now = datetime.datetime.now(datetime.timezone.utc).astimezone()
 
@@ -91,7 +92,7 @@ def write_coco_json(file_obj, annotations, images, categories,
     category_dict = [dict(id=i, name=c) for c, i in mapping.items()]
     image_dict = build_image_list(images, aux_image_labels, aux_image_extensions)
 
-    json.dump(dict(
+    output = dict(
         info=dict(
             year=now.year,
             description=description,
@@ -100,5 +101,10 @@ def write_coco_json(file_obj, annotations, images, categories,
         annotations=[dict(d, id=i) for i, d in enumerate(annotations)],
         categories=category_dict,
         images=image_dict,
-    ), file_obj, indent=2)
+    )
+    if videos is not None:
+        output['videos'] = videos
+    if tracks is not None:
+        output['tracks'] = tracks
+    json.dump(output, file_obj, indent=2)
     file_obj.flush()
