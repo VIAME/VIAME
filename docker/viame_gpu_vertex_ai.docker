@@ -18,6 +18,9 @@ ENV VIAME_PIPELINE=pipelines/detector_gmm_motion.pipe
 ENV VIAME_OUTPUT_TYPE=coco
 ENV VIAME_FRAME_RATE=5
 
+# Ensure CUDA forward-compat libs are found when the host driver is older
+ENV LD_LIBRARY_PATH=/usr/local/cuda/compat:${LD_LIBRARY_PATH}
+
 ENV AIP_HTTP_PORT=8080
 
 EXPOSE 8080

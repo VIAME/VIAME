@@ -90,6 +90,7 @@ WORKDIR /workspace
 
 ENV VIAME_INSTALL_DIR=/opt/noaa/viame
 ENV VIAME_WORK_DIR=/workspace
+ENV LD_LIBRARY_PATH=/usr/local/cuda/compat:${LD_LIBRARY_PATH}
 ENV AIP_HTTP_PORT=8080
 DOCKERFILE
 
