@@ -97,7 +97,7 @@ DOCKERFILE
 # Append the pipeline and output type ENVs using the caller's values
 echo "ENV VIAME_PIPELINE=$PIPELINE" >> "$BUILD_DIR/Dockerfile"
 echo "ENV VIAME_OUTPUT_TYPE=$OUTPUT_TYPE" >> "$BUILD_DIR/Dockerfile"
-echo "ENV VIAME_FRAME_RATE=5" >> "$BUILD_DIR/Dockerfile"
+echo "ENV VIAME_FRAME_RATE=10" >> "$BUILD_DIR/Dockerfile"
 
 cat >> "$BUILD_DIR/Dockerfile" <<'DOCKERFILE'
 
