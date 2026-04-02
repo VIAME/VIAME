@@ -128,7 +128,10 @@ class ProcessHandler:
     output_ext = WRITER_TYPE_EXTENSIONS.get( output_type, ".csv" )
 
     output_dir = os.path.join( self.work_dir, "output" )
-    os.makedirs( output_dir, exist_ok=True )
+    if os.path.exists( output_dir ):
+      import shutil
+      shutil.rmtree( output_dir )
+    os.makedirs( output_dir )
 
     # Resolve input(s) — single or stereo
     input_paths = instance.get( "input_paths", [] )
@@ -195,6 +198,14 @@ class ProcessHandler:
     for key, value in settings.items():
       cmd += [ "-s", "{}={}".format( key, value ) ]
 
+    # Log input file info for debugging
+    for local_input in local_inputs:
+      if os.path.exists( local_input ):
+        sz = os.path.getsize( local_input )
+        logger.info( "Input: %s (%d bytes)", local_input, sz )
+      else:
+        logger.error( "Input NOT FOUND: %s", local_input )
+
     # Run via bash so we can source the VIAME environment first
     shell_cmd = "source {} && {}".format(
       self.setup_script,
@@ -212,10 +223,13 @@ class ProcessHandler:
 
     if proc.returncode != 0:
       logger.error( "viame runner stderr: %s", proc.stderr )
+      logger.error( "viame runner stdout: %s", proc.stdout[ -500: ] )
       return {
         "error": "Processing failed",
         "return_code": proc.returncode,
-        "stderr": proc.stderr[ -500: ]
+        "stderr": proc.stderr[ -1000: ],
+        "stdout": proc.stdout[ -1000: ],
+        "command": shell_cmd
       }
 
     # Collect output detection and track files
@@ -265,19 +279,36 @@ class ProcessHandler:
     if not path.startswith( "gs://" ):
       return path
 
-    basename = os.path.basename( path.rstrip( "/" ) )
+    from google.cloud import storage
+
+    # Parse gs://bucket/key
+    parts = path[ len( "gs://" ): ].split( "/", 1 )
+    bucket_name = parts[0]
+    prefix = parts[1].rstrip( "/" ) if len( parts ) > 1 else ""
+    basename = os.path.basename( prefix ) if prefix else bucket_name
+
     local_path = os.path.join( self.work_dir, "input", basename )
     os.makedirs( os.path.dirname( local_path ), exist_ok=True )
 
-    logger.info( "Downloading %s to %s", path, local_path )
+    client = storage.Client()
+    bucket = client.bucket( bucket_name )
 
+    # Single file (has an extension)
     if "." in basename:
-      subprocess.check_call( [ "gsutil", "cp", path, local_path ] )
+      logger.info( "Downloading %s to %s", path, local_path )
+      bucket.blob( prefix ).download_to_filename( local_path )
     else:
+      # Directory — download all blobs under prefix
       os.makedirs( local_path, exist_ok=True )
-      subprocess.check_call( [
-        "gsutil", "-m", "cp", "-r", path + "/*", local_path
-      ] )
+      blobs = bucket.list_blobs( prefix=prefix + "/" )
+      for blob in blobs:
+        rel = blob.name[ len( prefix ): ].lstrip( "/" )
+        if not rel:
+          continue
+        dest = os.path.join( local_path, rel )
+        os.makedirs( os.path.dirname( dest ), exist_ok=True )
+        logger.info( "Downloading %s to %s", blob.name, dest )
+        blob.download_to_filename( dest )
 
     return local_path
 
