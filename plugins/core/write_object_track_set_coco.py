@@ -140,10 +140,12 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
             frame_index = self._next_frame_index
             self._next_frame_index += 1
             entry = dict(
-                file_name=self._frame_ids.get(frame_id, ""),
                 video_id=0,
                 frame_index=frame_index,
             )
+            file_name = self._frame_ids.get(frame_id, "")
+            if file_name:
+                entry["file_name"] = file_name
             if frame_id in self._frame_times:
                 entry["timestamp"] = self._frame_times[frame_id]
             self.images.append(entry)
