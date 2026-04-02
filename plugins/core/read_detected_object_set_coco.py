@@ -33,16 +33,19 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
 
     def __init__(self):
         DetectedObjectSetInput.__init__(self)
+        self.video_name = ""
         self.loaded = False
         self.file = None
 
     def get_configuration(self):
         cfg = super(DetectedObjectSetInput, self).get_configuration()
+        cfg.set_value("video_name", self.video_name)
         return cfg
 
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
+        self.video_name = str(cfg.get_value("video_name"))
 
     def check_configuration(self, cfg):
         return True
@@ -66,7 +69,9 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
 
     def read_set_by_path(self, image_path):
         self._ensure_loaded()
-        annots = self.frame_info_by_path.get(image_path, ())
+        annots = self.frame_info_by_path.get(image_path, None)
+        if annots is None:
+            annots = self.frame_info_by_video.get(image_path, ())
         return self.__to_detected_object_set(annots)
 
     def __to_detected_object_set(self, annots):
@@ -104,19 +109,50 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
         assert len(categories) == len(data['categories'])
         assert len(categories) == len(set(categories.values()))
 
+        # Build video name -> id lookup and resolve config filter
+        video_name_to_id = {}
+        for vid in data.get('videos', []):
+            video_name_to_id[vid['name']] = vid['id']
+
+        filter_video_id = None
+        if self.video_name:
+            if self.video_name in video_name_to_id:
+                filter_video_id = video_name_to_id[self.video_name]
+
+        video_id_to_img_ids = {}
+        for im in data.get('images', []):
+            vid = im.get('video_id')
+            if vid is not None:
+                video_id_to_img_ids.setdefault(vid, set()).add(im['id'])
+
         # For compatibility with other parts of KWIVER, we treat image
         # IDs as frame numbers
 
         # Map from frame number to a pair of image name and list of
         # detections
-        frame_info = {im['id']: (im['file_name'], [])
-                      for im in data['images']}
-        assert len(frame_info) == len(data['images'])
+        images = data['images']
+        if filter_video_id is not None:
+            images = [im for im in images
+                      if im.get('video_id') == filter_video_id]
+        frame_info = {im['id']: (im.get('file_name', ''), [])
+                      for im in images}
         for ann in data['annotations']:
-            frame_info[ann['image_id']][1].append(ann)
+            if ann['image_id'] in frame_info:
+                frame_info[ann['image_id']][1].append(ann)
         frame_info_by_path = {}
         for fname, annots in frame_info.values():
-            frame_info_by_path.setdefault(fname, []).extend(annots)
+            if fname:
+                frame_info_by_path.setdefault(fname, []).extend(annots)
+
+        # Build video name -> annotations lookup
+        frame_info_by_video = {}
+        for vname, vid in video_name_to_id.items():
+            img_ids = video_id_to_img_ids.get(vid, set())
+            annots = []
+            for img_id in img_ids:
+                if img_id in frame_info:
+                    annots.extend(frame_info[img_id][1])
+            frame_info_by_video[vname] = annots
 
         if frame_info:
             self.frame, self.stop_frame = min(frame_info), max(frame_info) + 1
@@ -125,6 +161,7 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
         self.categories = categories
         self.frame_info = frame_info
         self.frame_info_by_path = frame_info_by_path
+        self.frame_info_by_video = frame_info_by_video
         self.loaded = True
 
 

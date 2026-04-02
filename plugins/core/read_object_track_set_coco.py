@@ -40,6 +40,7 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
     def __init__(self):
         ReadObjectTrackSet.__init__(self)
         self.batch_load = True
+        self.video_name = ""
         self.file = None
         self.loaded = False
 
@@ -50,12 +51,14 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
     def get_configuration(self):
         cfg = super(ReadObjectTrackSet, self).get_configuration()
         cfg.set_value("batch_load", str(self.batch_load))
+        cfg.set_value("video_name", self.video_name)
         return cfg
 
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
         self.batch_load = _strtobool(cfg.get_value("batch_load"))
+        self.video_name = str(cfg.get_value("video_name"))
 
     def check_configuration(self, cfg):
         return True
@@ -114,10 +117,21 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
 
         categories = {cat['id']: cat['name'] for cat in data.get('categories', [])}
 
+        # Resolve video_id filter from video_name config
+        filter_video_id = None
+        if self.video_name:
+            for vid in data.get('videos', []):
+                if vid.get('name') == self.video_name:
+                    filter_video_id = vid['id']
+                    break
+
         # Build image info lookup: image_id -> (frame_index, timestamp)
         # Use frame_index if present, otherwise fall back to image id
         image_info = {}
         for im in data.get('images', []):
+            if filter_video_id is not None:
+                if im.get('video_id') != filter_video_id:
+                    continue
             img_id = im['id']
             frame_index = im.get('frame_index', img_id)
             timestamp = im.get('timestamp', None)
@@ -132,7 +146,9 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
 
         for ann in data.get('annotations', []):
             img_id = ann['image_id']
-            frame_index, timestamp = image_info.get(img_id, (img_id, None))
+            if img_id not in image_info:
+                continue
+            frame_index, timestamp = image_info[img_id]
 
             tid = ann.get('track_id', None)
             if tid is None:
