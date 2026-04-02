@@ -46,7 +46,10 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <utility>
+
+#include <unistd.h>
 
 using applet_factory = kwiver::vital::implementation_factory_by_name< kwiver::tools::kwiver_applet >;
 using applet_context_t = std::shared_ptr< kwiver::tools::applet_context >;
@@ -259,6 +262,289 @@ void help_applet( const command_line_parser& options,
 }
 
 // ============================================================================
+/**
+ * Scan a .pipe file for "pipeline stage N:" markers.
+ *
+ * If markers are found, the file content is split into per-stage pipeline
+ * text and returned as a vector (index 0 = stage 1, etc.).  If no markers
+ * are found, an empty vector is returned, signalling normal single-pipeline
+ * execution.
+ */
+static std::vector< std::string >
+scan_for_stages( const std::string& pipe_file_path )
+{
+  std::ifstream ifs( pipe_file_path );
+
+  if( !ifs.is_open() )
+  {
+    return {};
+  }
+
+  // First pass: collect (stage_number, content) pairs
+  struct stage_entry
+  {
+    int number;
+    std::string content;
+  };
+
+  std::vector< stage_entry > entries;
+  std::string line;
+  int current_stage = -1;
+  std::ostringstream current_content;
+
+  while( std::getline( ifs, line ) )
+  {
+    // Check for stage marker: "pipeline stage N:"
+    // Allow leading whitespace.
+    std::string trimmed = line;
+    size_t start = trimmed.find_first_not_of( " \t" );
+
+    if( start != std::string::npos )
+    {
+      trimmed = trimmed.substr( start );
+    }
+
+    const std::string prefix = "pipeline stage ";
+
+    if( trimmed.compare( 0, prefix.size(), prefix ) == 0 )
+    {
+      std::string rest = trimmed.substr( prefix.size() );
+      size_t colon = rest.find( ':' );
+
+      if( colon != std::string::npos )
+      {
+        std::string num_str = rest.substr( 0, colon );
+
+        // Trim whitespace from number
+        size_t ns = num_str.find_first_not_of( " \t" );
+        size_t ne = num_str.find_last_not_of( " \t" );
+
+        if( ns != std::string::npos )
+        {
+          num_str = num_str.substr( ns, ne - ns + 1 );
+        }
+
+        try
+        {
+          int stage_num = std::stoi( num_str );
+
+          // Save previous stage
+          if( current_stage > 0 )
+          {
+            entries.push_back( { current_stage, current_content.str() } );
+            current_content.str( "" );
+            current_content.clear();
+          }
+
+          current_stage = stage_num;
+          continue;
+        }
+        catch( ... )
+        {
+          // Not a valid stage marker, treat as normal content
+        }
+      }
+    }
+
+    if( current_stage > 0 )
+    {
+      current_content << line << "\n";
+    }
+  }
+
+  // Save last stage
+  if( current_stage > 0 )
+  {
+    entries.push_back( { current_stage, current_content.str() } );
+  }
+
+  if( entries.empty() )
+  {
+    return {};
+  }
+
+  // Sort by stage number and validate sequential numbering from 1
+  std::sort( entries.begin(), entries.end(),
+    []( const stage_entry& a, const stage_entry& b )
+    {
+      return a.number < b.number;
+    } );
+
+  std::vector< std::string > result;
+
+  for( size_t i = 0; i < entries.size(); ++i )
+  {
+    if( entries[i].number != static_cast< int >( i + 1 ) )
+    {
+      std::cerr << "viame: Pipeline stages must be numbered sequentially "
+                << "starting from 1.  Found stage " << entries[i].number
+                << " at position " << ( i + 1 ) << "." << std::endl;
+      return {};
+    }
+
+    result.push_back( entries[i].content );
+  }
+
+  return result;
+}
+
+// ============================================================================
+/**
+ * Run a multi-stage pipeline.  Each stage is a complete pipeline definition
+ * that is built, executed, and torn down before the next stage begins.
+ * All command-line settings (-s), config files (-c), and include paths (-I)
+ * are applied to every stage.
+ *
+ * Implementation: for each stage we write a temporary .pipe file and
+ * dispatch to a fresh pipeline_runner applet instance via the plugin
+ * factory.  This avoids depending on sprokit headers that are not
+ * installed by kwiver.
+ */
+static int
+run_staged_pipeline(
+  const std::vector< std::string >& stages,
+  const std::string& pipe_file_path,
+  const std::vector< std::string >& applet_args )
+{
+  // Collect forwarded options from the command line (-s, -c, -I).
+  // These are appended to the argument list for every stage.
+  std::vector< std::string > forwarded_args;
+
+  for( size_t i = 0; i < applet_args.size(); ++i )
+  {
+    const std::string& arg = applet_args[i];
+
+    if( ( arg == "-s" || arg == "--setting" ||
+          arg == "-c" || arg == "--config"  ||
+          arg == "-I" || arg == "--include" ) && i + 1 < applet_args.size() )
+    {
+      forwarded_args.push_back( arg );
+      forwarded_args.push_back( applet_args[++i] );
+    }
+    else if( arg.compare( 0, 2, "-s" ) == 0 && arg.size() > 2
+             && arg[2] != '-' )
+    {
+      forwarded_args.push_back( arg );
+    }
+  }
+
+  // Resolve the pipe file directory so that temporary stage files live
+  // alongside the original (for correct relativepath resolution).
+  std::string pipe_dir;
+  {
+    size_t slash = pipe_file_path.find_last_of( "/\\" );
+
+    if( slash != std::string::npos )
+    {
+      pipe_dir = pipe_file_path.substr( 0, slash + 1 );
+    }
+  }
+
+  const pid_t pid = getpid();
+
+  std::cout << "Running staged pipeline with "
+            << stages.size() << " stage(s)" << std::endl;
+
+  for( size_t i = 0; i < stages.size(); ++i )
+  {
+    std::cout << std::endl << "=== Pipeline stage " << ( i + 1 )
+              << " of " << stages.size() << " ===" << std::endl;
+
+    // Write stage content to a temporary .pipe file next to the original
+    // so that include/relativepath directives resolve correctly.
+    std::ostringstream tmp_name;
+    tmp_name << pipe_dir << ".viame_stage_" << ( i + 1 )
+             << "_" << pid << ".pipe";
+    const std::string tmp_path = tmp_name.str();
+
+    {
+      std::ofstream ofs( tmp_path );
+
+      if( !ofs.is_open() )
+      {
+        std::cerr << "viame: Unable to write temporary pipe file: "
+                  << tmp_path << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      ofs << stages[i];
+    }
+
+    // Build argument list for this stage
+    std::vector< std::string > stage_args;
+    stage_args.push_back( "viame" );    // program name
+    stage_args.push_back( tmp_path );   // pipe file (positional)
+    stage_args.insert( stage_args.end(),
+                       forwarded_args.begin(), forwarded_args.end() );
+
+    int result = EXIT_FAILURE;
+
+    try
+    {
+      applet_factory app_fact;
+      kwiver::tools::kwiver_applet_sptr applet( app_fact.create( "runner" ) );
+
+      auto stage_context =
+        std::make_shared< kwiver::tools::applet_context >();
+      stage_context->m_applet_name = "runner";
+      stage_context->m_argv = stage_args;
+
+      applet->initialize( stage_context.get() );
+      applet->add_command_options();
+
+      // Convert args to argv style for cxxopts
+      std::vector< char* > argv_vect( stage_args.size() + 1, nullptr );
+
+      for( size_t a = 0; a < stage_args.size(); ++a )
+      {
+        argv_vect[a] = &stage_args[a][0];
+      }
+
+      int local_argc = static_cast< int >( stage_args.size() );
+      char** local_argv = argv_vect.data();
+
+      cxxopts::ParseResult local_result =
+        applet->m_cmd_options->parse( local_argc, local_argv );
+      stage_context->m_result = &local_result;
+
+      result = applet->run();
+    }
+    catch( const std::exception& e )
+    {
+      std::cerr << "viame: Stage " << ( i + 1 )
+                << " failed: " << e.what() << std::endl;
+      std::remove( tmp_path.c_str() );
+      return EXIT_FAILURE;
+    }
+    catch( ... )
+    {
+      std::cerr << "viame: Stage " << ( i + 1 )
+                << " failed with unknown error." << std::endl;
+      std::remove( tmp_path.c_str() );
+      return EXIT_FAILURE;
+    }
+
+    // Clean up temp file
+    std::remove( tmp_path.c_str() );
+
+    if( result != EXIT_SUCCESS )
+    {
+      std::cerr << "viame: Stage " << ( i + 1 )
+                << " exited with error code " << result << std::endl;
+      return result;
+    }
+
+    std::cout << "Stage " << ( i + 1 ) << " completed successfully."
+              << std::endl;
+  }
+
+  std::cout << std::endl << "All " << stages.size()
+            << " pipeline stage(s) completed successfully." << std::endl;
+
+  return EXIT_SUCCESS;
+}
+
+// ============================================================================
 int main(int argc, char *argv[])
 {
   //
@@ -293,6 +579,35 @@ int main(int argc, char *argv[])
     help_applet( options, tool_context, vpm );
     return 0;
   } // end help code
+
+  // ----------------------------------------------------------------------------
+  // Check for staged pipeline before normal applet dispatch.
+  // If the pipe file contains "pipeline stage N:" markers, run stages
+  // sequentially instead of dispatching to the runner applet.
+  if( options.m_applet_name == "runner" )
+  {
+    std::string pipe_file;
+
+    for( const auto& arg : options.m_applet_args )
+    {
+      if( ends_with( arg, ".pipe" ) )
+      {
+        pipe_file = arg;
+        break;
+      }
+    }
+
+    if( !pipe_file.empty() )
+    {
+      auto stages = scan_for_stages( pipe_file );
+
+      if( !stages.empty() )
+      {
+        return run_staged_pipeline( stages, pipe_file,
+                                    options.m_applet_args );
+      }
+    }
+  }
 
   // ----------------------------------------------------------------------------
   try
