@@ -1,9 +1,16 @@
 # =============================================================================
-# Title: SeaMap SAM3 Tracker with Species Classifier
+# Title: SeaMap SAM3 Tracker with Species Classifier (Staged)
 #
-# Description: Detects and tracks fish using SAM3's text-prompted video
-# tracker, then classifies tracked detections using the SeaMap species
-# classifier. Outputs classified tracks to computed_tracks.csv.
+# Description: Two-stage pipeline.  Stage 1 detects and tracks fish using
+# SAM3's text-prompted video tracker, writing raw tracks to a CSV file.
+# Stage 2 reads those tracks back alongside the original images, classifies
+# each detection using the SeaMap species classifier, and writes the final
+# classified tracks to computed_tracks.csv.
+# =============================================================================
+
+pipeline stage 1:
+# =============================================================================
+# SAM3 Video Tracking -> raw track CSV
 # =============================================================================
 
 config _pipeline:_edge
@@ -65,15 +72,45 @@ connect from downsampler.timestamp
 connect from empty_tracker.object_track_set
         to   tracker.object_track_set
 
-# ======================== CONVERT TRACKS TO DETECTIONS =======================
+# ================================ OUTPUT DATA ================================
 
-process track_to_det
-  :: convert_tracks_to_detections
+process track_writer
+  :: write_object_track
+  :file_name                                   sam3_raw_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:write_time_as_uid          true
 
 connect from tracker.object_track_set
-        to   track_to_det.object_track_set
+        to   track_writer.object_track_set
 connect from downsampler.timestamp
-        to   track_to_det.timestamp
+        to   track_writer.timestamp
+
+# -- end of stage 1 --
+
+pipeline stage 2:
+# =============================================================================
+# Classify SAM3 tracks with SeaMap species classifier
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================= INPUT FRAME LIST ==============================
+include common_default_input_with_downsampler.pipe
+
+# ======================== READ SAM3 TRACKS FROM CSV ==========================
+
+process track_reader
+  :: read_object_track
+  :file_name                                   sam3_raw_tracks.csv
+  :reader:type                                 viame_csv
+  :reader:viame_csv:poly_to_mask               false
+
+connect from downsampler.output_2
+        to   track_reader.image_file_name
 
 # ============================== CLASSIFIER ===================================
 
@@ -83,26 +120,20 @@ connect from downsampler.output_1
         to   classifier_species_large.image
 connect from downsampler.output_1
         to   classifier_species_small.image
-connect from track_to_det.detected_object_set
-        to   classifier_species_large.detected_object_set
-
-# ======================== CONVERT DETECTIONS TO TRACKS =======================
-
-process det_to_track
-  :: initialize_object_tracks
-  :track_initializer:type                      threshold
-
-  block track_initializer:threshold:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.001
-    :class_probablity_filter:keep_all_classes  true
-    :class_probablity_filter:keep_classes      unused
-  endblock
-
-connect from classifier_species_output.detected_object_set
-        to   det_to_track.detected_object_set
+connect from track_reader.object_track_set
+        to   classifier_species_large.object_track_set
 connect from downsampler.timestamp
-        to   det_to_track.timestamp
+        to   classifier_species_large.timestamp
+
+connect from classifier_species_large.object_track_set
+        to   classifier_species_small.object_track_set
+connect from downsampler.timestamp
+        to   classifier_species_small.timestamp
+
+connect from classifier_species_small.object_track_set
+        to   classifier_species_output.object_track_set
+connect from downsampler.timestamp
+        to   classifier_species_output.timestamp
 
 # ============================== TRACK FILTER =================================
 
@@ -110,7 +141,7 @@ process track_filter
   :: filter_object_tracks
   :required_states                             5
 
-connect from det_to_track.object_track_set
+connect from classifier_species_output.object_track_set
         to   track_filter.object_track_set
 
 # ================================ OUTPUT DATA ================================
@@ -129,4 +160,4 @@ connect from track_filter.object_track_set
 connect from downsampler.timestamp
         to   track_writer.timestamp
 
-# -- end of file --
+# -- end of stage 2 --
