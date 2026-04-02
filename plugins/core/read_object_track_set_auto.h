@@ -24,11 +24,12 @@ namespace viame {
 /// then delegates to the appropriate specialized reader.
 ///
 /// Supported formats:
-///   - DIVE JSON (.dive.json, or .json with tracks/features)
+///   - DIVE JSON (.dive.json, or .json with tracks/features/confidencePairs)
+///   - COCO JSON (.coco.json, or .json with images/annotations/categories)
 ///   - VIAME CSV (.csv)
 ///
 /// Format detection priority:
-///   1. Explicit extensions: .dive.json -> DIVE
+///   1. Explicit extensions: .dive.json -> DIVE, .coco.json -> COCO
 ///   2. General extensions: .csv -> VIAME CSV, .json -> inspect content
 ///   3. Content inspection for JSON files
 ///
@@ -42,7 +43,8 @@ public:
     "Auto-detecting object track set reader.\n\n"
     "Detects format from file extension and content:\n"
     "  - .dive.json: DIVE JSON format\n"
-    "  - .json: Inspects content (looks for tracks/features)\n"
+    "  - .coco.json: COCO JSON format\n"
+    "  - .json: Inspects content (DIVE vs COCO)\n"
     "  - .csv: VIAME CSV format\n\n"
     "Delegates to appropriate specialized reader.";
 

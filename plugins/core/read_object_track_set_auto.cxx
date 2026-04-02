@@ -49,15 +49,45 @@ std::string read_file_header_track( std::string const& filename, size_t max_byte
   return content;
 }
 
-// Detect if JSON content is DIVE format (has tracks with features)
-bool is_dive_json_format( std::string const& content )
+// Detect JSON format (DIVE vs COCO) by inspecting content
+std::string detect_json_track_format( std::string const& content )
 {
   // DIVE format has "tracks" as a top-level key with track objects containing "features"
   bool has_tracks = content.find( "\"tracks\"" ) != std::string::npos;
   bool has_features = content.find( "\"features\"" ) != std::string::npos;
   bool has_confidence_pairs = content.find( "\"confidencePairs\"" ) != std::string::npos;
 
-  return has_tracks && ( has_features || has_confidence_pairs );
+  // COCO format has "images", "annotations", and "categories" as top-level keys
+  bool has_images = content.find( "\"images\"" ) != std::string::npos;
+  bool has_annotations = content.find( "\"annotations\"" ) != std::string::npos;
+  bool has_categories = content.find( "\"categories\"" ) != std::string::npos;
+
+  // DIVE format detection
+  if( has_tracks && ( has_features || has_confidence_pairs ) )
+  {
+    return "dive";
+  }
+
+  // COCO format detection
+  if( has_images && has_annotations && has_categories )
+  {
+    return "coco";
+  }
+
+  // If we have tracks but not COCO fields, assume DIVE
+  if( has_tracks )
+  {
+    return "dive";
+  }
+
+  // If we have COCO-like fields, assume COCO
+  if( has_annotations || ( has_images && has_categories ) )
+  {
+    return "coco";
+  }
+
+  // Default to COCO as it's more common
+  return "coco";
 }
 
 } // anonymous namespace
@@ -99,6 +129,11 @@ read_object_track_set_auto::priv
     return "dive";
   }
 
+  if( ends_with_ci( filename, ".coco.json" ) )
+  {
+    return "coco";
+  }
+
   // Check general extensions
   std::string ext = to_lower(
     kwiversys::SystemTools::GetFilenameLastExtension( filename ) );
@@ -110,35 +145,26 @@ read_object_track_set_auto::priv
 
   if( ext == ".json" )
   {
-    // Need to inspect content to determine if it's DIVE format
+    // Need to inspect content to determine JSON format
     std::string content = read_file_header_track( filename );
     if( content.empty() )
     {
       LOG_WARN( m_parent->logger(),
                 "Could not read file for format detection: " << filename );
-      return "dive"; // Default to DIVE for JSON
+      return "coco"; // Default to COCO
     }
 
-    if( is_dive_json_format( content ) )
-    {
-      return "dive";
-    }
-
-    // Unknown JSON format - try DIVE anyway
-    return "dive";
+    return detect_json_track_format( content );
   }
 
   // Unknown extension - try to detect by content
   std::string content = read_file_header_track( filename, 1024 );
 
-  // Check for JSON (DIVE)
+  // Check for JSON
   size_t first_nonspace = content.find_first_not_of( " \t\r\n" );
   if( first_nonspace != std::string::npos && content[first_nonspace] == '{' )
   {
-    if( is_dive_json_format( content ) )
-    {
-      return "dive";
-    }
+    return detect_json_track_format( content );
   }
 
   // Check for CSV (has commas and typical VIAME CSV structure)
@@ -251,6 +277,35 @@ read_object_track_set_auto
     }
 
     d->m_reader = dive_reader;
+  }
+  else if( d->m_detected_format == "coco" )
+  {
+    // COCO reader is in Python, use algorithm factory
+    kwiver::vital::algo::read_object_track_set::set_nested_algo_configuration(
+      "reader", d->m_config, d->m_reader );
+
+    if( !d->m_reader )
+    {
+      // Try to create via factory
+      kwiver::vital::algo::read_object_track_set::get_nested_algo_configuration(
+        "reader", d->m_config, d->m_reader );
+
+      if( d->m_config )
+      {
+        d->m_config->set_value( "reader:type", "coco" );
+      }
+
+      kwiver::vital::algo::read_object_track_set::set_nested_algo_configuration(
+        "reader", d->m_config, d->m_reader );
+    }
+
+    // If still no reader, throw error
+    if( !d->m_reader )
+    {
+      VITAL_THROW( kwiver::vital::algorithm_configuration_exception,
+                   "read_object_track_set", "coco",
+                   "COCO track reader not available. Make sure Python support is enabled." );
+    }
   }
   else if( d->m_detected_format == "viame_csv" )
   {
