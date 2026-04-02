@@ -1,0 +1,132 @@
+# =============================================================================
+# Title: SeaMap SAM3 Tracker with Groups Classifier
+#
+# Description: Detects and tracks fish using SAM3's text-prompted video
+# tracker, then classifies tracked detections using the SeaMap groups
+# classifier. Outputs classified tracks to computed_tracks.csv.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================= INPUT FRAME LIST ==============================
+include common_default_input_with_downsampler.pipe
+
+# ============================= SAM3 CONFIGURATION ============================
+
+process ensure_rgb
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+connect from downsampler.output_1
+        to   ensure_rgb.image
+
+# ========================= EMPTY DETECTION SOURCE ============================
+include common_empty_tracker.pipe
+
+# ================================= TRACKER ===================================
+
+process tracker
+  :: refine_tracks
+  :refiner:type                                sam3
+
+  block refiner:sam3
+    :grounding_model_id                        none
+    :device                                    cuda
+    :text_query                                fish
+    :min_mask_area                             10
+    :resegment_existing                        true
+    :add_new_objects                           true
+    :filter_by_quality                         true
+    :adjust_boxes                              true
+    :max_new_objects                           50
+    :output_type                               polygon
+    :polygon_simplification                    0.005
+    :num_points                                5
+    :propagate_tracked                         true
+    :reinit_interval                           10
+    :video_detection_threshold                 0.3
+    relativepath sam_model_id =                models/sam3_weights.pt
+    relativepath model_config =                models/sam3_config.json
+  endblock
+
+connect from ensure_rgb.image
+        to   tracker.image
+connect from downsampler.timestamp
+        to   tracker.timestamp
+connect from empty_tracker.object_track_set
+        to   tracker.object_track_set
+
+# ======================== CONVERT TRACKS TO DETECTIONS =======================
+
+process track_to_det
+  :: convert_tracks_to_detections
+
+connect from tracker.object_track_set
+        to   track_to_det.object_track_set
+connect from downsampler.timestamp
+        to   track_to_det.timestamp
+
+# ============================== CLASSIFIER ===================================
+
+include common_seamap_classifier_groups_v2.5.pipe
+
+connect from downsampler.output_1
+        to   classifier_groups_large.image
+connect from downsampler.output_1
+        to   classifier_groups_small.image
+connect from track_to_det.detected_object_set
+        to   classifier_groups_large.detected_object_set
+
+# ======================== CONVERT DETECTIONS TO TRACKS =======================
+
+process det_to_track
+  :: initialize_object_tracks
+  :track_initializer:type                      threshold
+
+  block track_initializer:threshold:filter
+    :type                                      class_probablity_filter
+    :class_probablity_filter:threshold         0.001
+    :class_probablity_filter:keep_all_classes  true
+    :class_probablity_filter:keep_classes      unused
+  endblock
+
+connect from classifier_groups_output.detected_object_set
+        to   det_to_track.detected_object_set
+connect from downsampler.timestamp
+        to   det_to_track.timestamp
+
+# ============================== TRACK FILTER =================================
+
+process track_filter
+  :: filter_object_tracks
+  :required_states                             5
+
+connect from det_to_track.object_track_set
+        to   track_filter.object_track_set
+
+# ================================ OUTPUT DATA ================================
+
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:write_time_as_uid          true
+  :writer:viame_csv:tot_option                 weighted_scaled_by_conf
+  :writer:viame_csv:tot_ignore_class           UNKNOWNFISH
+
+# Connect inputs to track writer
+connect from track_filter.object_track_set
+        to   track_writer.object_track_set
+connect from downsampler.timestamp
+        to   track_writer.timestamp
+
+# -- end of file --
