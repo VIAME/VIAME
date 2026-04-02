@@ -151,13 +151,26 @@ else()
       execute_process(
         COMMAND ${_pip_cmd}
         RESULT_VARIABLE _result
+        OUTPUT_VARIABLE _pip_stdout
+        ERROR_VARIABLE _pip_stderr
         WORKING_DIRECTORY ${_working_dir}
       )
     else()
       execute_process(
         COMMAND ${_pip_cmd}
         RESULT_VARIABLE _result
+        OUTPUT_VARIABLE _pip_stdout
+        ERROR_VARIABLE _pip_stderr
       )
+    endif()
+
+    # Print output via message() to avoid CTest launchers interpreting
+    # pip dependency warnings (containing "error :") as build errors
+    if( _pip_stdout )
+      message( STATUS "${_pip_stdout}" )
+    endif()
+    if( _pip_stderr )
+      message( STATUS "${_pip_stderr}" )
     endif()
 
     if( _result )

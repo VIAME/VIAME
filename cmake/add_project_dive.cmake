@@ -293,17 +293,61 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
   endif()
 
   if( WIN32 )
-    # On Windows, yarn install consistently fails to extract all files from
-    # npm packages on NTFS. Use npm for both install and build instead.
-    find_program( NPM_EXECUTABLE NAMES npm.cmd npm )
-    if( NOT NPM_EXECUTABLE )
-      message( FATAL_ERROR "npm not found, required for DIVE build on Windows" )
-    endif()
-    set( DIVE_INSTALL_CMD ${NPM_EXECUTABLE} install --legacy-peer-deps )
-    set( DIVE_BUILD_CMD ${NPM_EXECUTABLE} run build:electron )
+    # On Windows, yarn install can fail to extract all files from npm packages.
+    # Use a wrapper that runs yarn cache clean first, then yarn install, then
+    # patches any missing files using npm pack as a fallback.
+    set( _dive_install_script "${VIAME_BUILD_PREFIX}/src/dive-yarn-install.cmake" )
+    string( REPLACE "\\" "/" _yarn_fwd "${YARN_EXECUTABLE}" )
+    string( REPLACE "\\" "/" _client_fwd "${DIVE_CLIENT_DIR}" )
+    file( WRITE "${_dive_install_script}" "
+set(YARN \"${_yarn_fwd}\")
+set(CLIENT_DIR \"${_client_fwd}\")
+# Clean yarn cache to avoid stale/corrupted packages
+execute_process(COMMAND \${YARN} cache clean --all WORKING_DIRECTORY \${CLIENT_DIR} ERROR_QUIET)
+# Run yarn install
+execute_process(
+  COMMAND \${YARN} install --ignore-engines --network-timeout 600000
+  WORKING_DIRECTORY \${CLIENT_DIR}
+  RESULT_VARIABLE rv)
+if(NOT rv EQUAL 0)
+  message(FATAL_ERROR \"yarn install failed with code \${rv}\")
+endif()
+# Check for known missing files and patch with npm pack if needed
+set(MISSING_PKGS)
+if(NOT EXISTS \"\${CLIENT_DIR}/node_modules/lodash/lodash.js\")
+  list(APPEND MISSING_PKGS lodash)
+endif()
+if(NOT EXISTS \"\${CLIENT_DIR}/node_modules/core-js/internals/an-object.js\")
+  list(APPEND MISSING_PKGS core-js)
+endif()
+foreach(pkg \${MISSING_PKGS})
+  message(STATUS \"Patching incomplete package: \${pkg}\")
+  file(READ \"\${CLIENT_DIR}/node_modules/\${pkg}/package.json\" _pkg_json)
+  string(REGEX MATCH \"\\\"version\\\": *\\\"([^\\\"]+)\\\"\" _match \"\${_pkg_json}\")
+  set(_ver \"\${CMAKE_MATCH_1}\")
+  execute_process(
+    COMMAND npm pack \${pkg}@\${_ver} --pack-destination \"\${CLIENT_DIR}\"
+    WORKING_DIRECTORY \${CLIENT_DIR}
+    OUTPUT_QUIET)
+  file(GLOB _tarball \"\${CLIENT_DIR}/\${pkg}-*.tgz\")
+  if(_tarball)
+    execute_process(
+      COMMAND \${CMAKE_COMMAND} -E tar xf \${_tarball}
+      WORKING_DIRECTORY \${CLIENT_DIR})
+    file(GLOB _extracted \"\${CLIENT_DIR}/package/*\")
+    foreach(_f \${_extracted})
+      get_filename_component(_fname \${_f} NAME)
+      file(COPY \${_f} DESTINATION \"\${CLIENT_DIR}/node_modules/\${pkg}\")
+    endforeach()
+    file(REMOVE_RECURSE \"\${CLIENT_DIR}/package\")
+    file(REMOVE \${_tarball})
+  endif()
+endforeach()
+message(STATUS \"DIVE yarn install complete\")
+")
+    set( DIVE_INSTALL_CMD ${CMAKE_COMMAND} -P "${_dive_install_script}" )
   else()
     set( DIVE_INSTALL_CMD ${DIVE_BUILD_ENV} ${YARN_EXECUTABLE} install --ignore-engines )
-    set( DIVE_BUILD_CMD ${DIVE_BUILD_ENV} ${YARN_EXECUTABLE} build:electron )
   endif()
 
   ExternalProject_Add( dive
@@ -312,7 +356,7 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
     BUILD_IN_SOURCE 1
     USES_TERMINAL_BUILD 1
     CONFIGURE_COMMAND ${DIVE_INSTALL_CMD}
-    BUILD_COMMAND ${DIVE_BUILD_CMD}
+    BUILD_COMMAND ${DIVE_BUILD_ENV} ${YARN_EXECUTABLE} build:electron
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${DIVE_ELECTRON_OUTPUT_DIR}
       ${VIAME_DIVE_INSTALL_DIR}
