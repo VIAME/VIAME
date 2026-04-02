@@ -3,7 +3,7 @@ COMMUNITY-FISH, https://viame.kitware.com/api/v1/item/69bd15b5dc8332f478b44beb/d
 EXTRA-FISH, https://data.kitware.com/api/v1/item/6611cf192357cf6b55ca8ad3/download, Additional 1-class fish detection models, 47b7a95f923e8ebb7698db0045d0559f, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 GENERIC, https://viame.kitware.com/api/v1/item/680708cbed26029b31953f11/download, Generic object proposal model (1-class), 3b88efd85fecc446e8036c478c129019, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 HABCAM, https://viame.kitware.com/girder/api/v1/file/685eecb7a2df48d3c1ae8bfb/download, Detect and measure scallops and flatfish and other friends, 4a11c76c2d17dff4a7ecad71b4814d9b, LINUX-ONLY, "PYTORCH, PYTORCH-NETHARN"
-SEFSC-SEAMAP, https://viame.kitware.com/api/v1/item/68118c2394d3f293fb910916/download, 170 species fish detector and trackers for Gulf of Mexico, fae8fbaa5696204f3f4178aab7c2a5f8, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
+SEFSC-SEAMAP, https://viame.kitware.com/api/v1/file/69cea9e2dc8332f478b87605/download, 170 species fish detector and trackers for Gulf of Mexico, 6d8409ec2807777cbf1743147a4b0987, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 SWFSC-PENGHEAD, https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download, Penguin headcam classification, 7c0a2e38c391a1f5d6e42cf62c710e65, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 ARCTIC-SEAL, https://viame.kitware.com/api/v1/file/67a4dd1715780f826149c3ff/download, Arctic seal YOLO models (TF removed), d99596cbc3f19366dc0c4aebc7e5874e, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 MOTION, https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download, Generic moving object detectors, eff47c8693b936514cc98674a2c0c3b7, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
