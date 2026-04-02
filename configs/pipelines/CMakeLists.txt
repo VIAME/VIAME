@@ -126,11 +126,10 @@ endif()
 ##
 set( CORE_PIPELINE_FILES
   common_default_initializer.pipe
-  common_empty_tracker.pipe
-  common_train_detector.conf
   common_default_input.pipe
   common_default_input_16bit.pipe
   common_default_input_with_downsampler.pipe
+  common_empty_tracker.pipe
   common_image_stabilizer.pipe
   common_no_load_input.pipe
   common_no_load_input_with_downsampler.pipe
@@ -138,6 +137,7 @@ set( CORE_PIPELINE_FILES
   common_stereo_input.pipe
   common_stereo_input_with_downsampler.pipe
   common_stereo_input_with_tracks.pipe
+  common_train_detector.conf
   convert_add_filename_to_det_csv.pipe
   convert_add_filename_to_trk_csv.pipe
   convert_coco_json_to_viame_csv.pipe
