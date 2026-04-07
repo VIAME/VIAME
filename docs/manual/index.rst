@@ -76,7 +76,7 @@ Example Capabilities
 
 There are a number of core capapbilities within the software, click on each of the below images to learn more.
 
-
+|
 Object Detection
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/many_scallop_detections_gui.png
