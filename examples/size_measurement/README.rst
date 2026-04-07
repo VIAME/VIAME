@@ -11,10 +11,33 @@ Running the Demo
 ================
 
 This section corresponds to the `size measurement`_ example folder within a VIAME desktop
-installation. This folder contains examples covering fish measurement using stereo. This example is currently a work
-in progress.
+installation. This folder contains examples and pipelines for computing real-world size
+measurements of objects (e.g., fish length) from imagery.
 
 .. _this example online: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
+
+VIAME supports two primary approaches to size measurement:
+
+**Stereo-Based Measurement**
+  Uses a calibrated pair of stereo cameras to triangulate 3D positions and compute
+  real-world distances. This is the most accurate approach and works at varying depths
+  and distances. It requires a stereo calibration file containing camera intrinsic and
+  extrinsic parameters (see the `Calibration Pipelines`_ section). Stereo measurement
+  pipelines detect or accept annotated objects in both left and right camera views,
+  establish correspondences between them, and triangulate keypoints (e.g., head and
+  tail) to compute lengths. The demo data and scripts in this folder use stereo-based
+  measurement.
+
+**Metadata-Based Measurement**
+  Uses camera metadata -- such as altitude above the seafloor, camera intrinsics, and
+  orientation angles (yaw, pitch, roll) -- to compute a ground sample distance (GSD)
+  and convert pixel measurements to real-world units. This approach requires only a
+  single camera but depends on accurate metadata being available for each frame. It is
+  well-suited for downward-looking survey cameras at a known or measured altitude, such
+  as the HabCam benthic survey system. Examples of metadata-based measurement can be
+  found in the HabCam add-on (e.g., ``detector_habcam_measure_scallops_one_class_metadata.pipe``),
+  which reads altitude and orientation from image metadata and applies a GSD calculation
+  using the camera intrinsics matrix.
 
 Run CMake to automatically download the demo data into this example folder.
 Alternatively you can download the demo data `directly`_.
@@ -158,6 +181,142 @@ Note that the KWIVER C++ Sprokit pipline offers a significant speedup (4Hz vs
 2.5Hz), although it currently does not have the ability to output the algorithm
 visualization.
 
+.. _Calibration Pipelines:
+
+Calibration Pipelines
+---------------------
+
+VIAME provides several calibration pipelines for computing camera parameters from
+images or video of a chessboard calibration target. These pipelines detect chessboard
+corners, accumulate them across frames, and solve for the camera intrinsics, distortion
+coefficients, and (for stereo) extrinsic parameters. All calibration pipelines require
+the ``square_size`` parameter to be set to the real-world size of a chessboard square
+in your chosen unit (e.g., millimeters). The output calibration file can then be used
+by the measurement pipelines.
+
+**measurement_calibrate_cameras_default.pipe**
+  Stereo camera calibration from separate left and right camera inputs. Detects
+  chessboard corners in both views, accumulates correspondences across frames, and
+  computes stereo calibration matrices. Outputs ``calibration_matrices.json``. This
+  is the recommended pipeline for most stereo calibration tasks.
+
+**measurement_calibrate_cameras_fast.pipe**
+  A faster variant of the stereo calibration pipeline that uses fewer frames
+  (threshold of 25 vs. the default). Use this when you have a large number of
+  calibration frames and want quicker results at the cost of slightly reduced accuracy.
+
+**utility_calibrate_single_camera.pipe**
+  Monocular (single camera) calibration from images of a chessboard target. Computes
+  intrinsic parameters and distortion coefficients for a single camera. Outputs
+  ``calibration.json``. Useful when you only need to undistort imagery from one camera
+  or as a preliminary step before stereo calibration.
+
+**utility_calibrate_stitched_stereo_pair.pipe**
+  Calibrates a stereo pair from a single video or image input where left and right
+  frames are horizontally concatenated (stitched side-by-side). The pipeline splits
+  each frame, detects chessboard corners in both halves, and computes stereo calibration.
+  Outputs ``calibration_matrices.json``. Useful for cameras that record both views into
+  a single file.
+
+To run a calibration pipeline from the command line, for example::
+
+  source /path/to/VIAME/install/setup_viame.sh
+  kwiver runner configs/pipelines/utility_calibrate_single_camera.pipe \
+    -s downsampler:input_file_name=calibration_images.txt \
+    -s global:square_size=25.0
+
+For stereo calibration with separate camera inputs::
+
+  kwiver runner configs/pipelines/measurement_calibrate_cameras_default.pipe \
+    -s input1:video_filename=cam1_images.txt \
+    -s input2:video_filename=cam2_images.txt \
+    -s global:square_size=25.0
+
+
+Stereo Disparity and Depth Pipelines
+-------------------------------------
+
+VIAME includes several methods for computing stereo disparity and depth maps, which
+are used internally by the measurement pipelines and can also be run standalone for
+visualization or custom processing. Stereo measurement requires a calibration file
+containing the camera intrinsic and extrinsic parameters. This calibration file can
+either be computed within VIAME using one of the calibration pipelines described above,
+or imported from an external source (e.g., OpenCV, MATLAB Camera Calibrator, or other
+third-party calibration tools). Supported calibration file formats include JSON (as
+output by the VIAME calibration pipelines), NPZ (numpy archive), MAT (MATLAB), and
+``.CamCAL`` (SEAGIS) files. See the `Calibration File Format`_ section below for
+details on the expected contents of each format.
+
+**measurement_compute_rectified_disparity.pipe**
+  Computes rectified stereo disparity maps using the SGBM (Semi-Global Block Matching)
+  algorithm with WLS filtering. Requires a pre-computed camera calibration file.
+  Useful for visualizing depth or feeding into custom measurement workflows.
+
+**filter_stereo_depth_map.pipe**
+  Filters and enhances stereo depth maps from horizontally concatenated stereo images.
+  Applies CLAHE contrast enhancement and denoising before computing OCV stereo
+  disparity. Outputs filtered depth map images.
+
+**Foundation Stereo (add-on)**
+  The Foundation Stereo add-on provides a deep learning-based stereo disparity model
+  that produces higher quality depth estimates than traditional SGBM. It is available
+  in three model sizes: ``vits`` (small, faster), ``vitb`` (base), and ``vitl`` (large,
+  more accurate). The small variant is recommended for most use cases. Foundation Stereo
+  is used by the ``measurement_from_annotations_fdn_stereo_s.pipe`` pipeline and can be
+  enabled by installing the Foundation Stereo add-on.
+
+
+Measurement from Annotations Pipelines
+---------------------------------------
+
+These pipelines compute stereo measurements from user-provided annotations (e.g.,
+head/tail keypoints on fish). They read left and right camera track files, match
+detections between cameras, and triangulate 3D positions to compute lengths.
+
+**measurement_from_annotations_default.pipe**
+  The default measurement-from-annotations pipeline. Uses Foundation Stereo (if the
+  add-on is installed) for disparity estimation and ORB feature matching for stereo
+  correspondence. Reads annotation files for both cameras, pairs detections, and
+  outputs measured tracks to ``computed_tracks2.csv``.
+
+**measurement_from_annotations_fdn_stereo_s.pipe (Foundation Stereo add-on)**
+  Uses the Foundation Stereo deep learning model (small variant) for high-quality
+  disparity estimation. Recommended when the Foundation Stereo add-on is installed,
+  as it generally produces more accurate measurements than traditional methods.
+
+**measurement_from_annotations_ncc_dino.pipe (DINO add-on)**
+  Uses DINO visual features for template matching between left and right camera views,
+  with NCC (Normalized Cross-Correlation) as a secondary matching stage. Can produce
+  better correspondence in challenging cases where ORB features are insufficient.
+
+**measurement_from_annotations_seagis.pipe (SEAGIS add-on)**
+  Uses the SEAGIS StereoLibLX library with ``.CamCAL`` calibration files for stereo
+  measurement. Supports epipolar template matching as a fallback when only one camera
+  has annotated keypoints. Use this pipeline if your calibration data is in the SEAGIS
+  format.
+
+
+Fully Automatic Measurement Pipelines
+--------------------------------------
+
+These pipelines perform end-to-end automatic detection and measurement without
+requiring any manual annotations.
+
+**measurement_fully_auto_fish_default.pipe**
+  Fully automatic fish detection and measurement pipeline. Uses a neural network
+  fish detector with windowed processing on both stereo cameras, then performs stereo
+  matching and triangulation to compute fish lengths. Outputs measured tracks to
+  ``computed_tracks2.csv``.
+
+**measurement_fully_auto_gmm_motion.pipe**
+  Automatic measurement pipeline using GMM (Gaussian Mixture Model) background
+  subtraction to detect moving objects. Computes oriented bounding boxes for
+  measurement. Best suited for stationary camera setups where fish swim through
+  the field of view.
+
+
+.. _Calibration File Format:
+
 Calibration File Format
 -----------------------
 
@@ -178,7 +337,7 @@ following keys and values:
 |    distCoeffsL: distortion coefficients for the left camera
 |    distCoeffsR: distortion coefficients for the right camera
 |
- 
+
 For the mat file, format the root structure should be a dict with the key
 `Cal` whose value is a dict with the following items:
 
