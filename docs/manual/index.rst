@@ -80,42 +80,36 @@ Object Detection
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/many_scallop_detections_gui.png
    :width: 35%
-   :align: left
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
 
 User Interfaces for Visualization and Detector Model Training
 
 .. image:: https://raw.githubusercontent.com/Kitware/dive/refs/heads/main/docs/images/Banner.png
    :width: 35%
-   :align: left
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
 Measuring Animal Lengths Using Metadata or Stereo
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/fish_measurement_example.png
    :width: 35%
-   :align: left
    :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
 
 Image and Video Search for Rapid Model Generation
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png
    :width: 35%
-   :align: left
    :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
 Illumination Normalization and Color Correction
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
    :width: 35%
-   :align: left
    :target: https://github.com/VIAME/VIAME/tree/master/examples/image_enhancement
 
 Detector and Tracker Evaluation
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/scoring-2.png
    :width: 35%
-   :align: left
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 
 .. |br| raw:: html
