@@ -414,13 +414,23 @@ dropdown.
 Domain-Specific Detectors
 ***************************
 
-Several VIAME add-on packages include pretrained detectors for specific domains:
+Several VIAME add-on packages include pretrained detectors for specific domains.
+A full list of available add-ons is maintained on the `Model Zoo and Add-Ons`_ wiki page.
 
-- **default-fish** -- fish detection models for underwater imagery
-- **sea-lion** -- marine mammal detection (YOLO, CFRNN, Mask R-CNN, and fusion)
-- **arctic-seal** -- arctic seal detection from aerial EO and IR imagery
-- **habcam** -- scallop and fish detection from HabCam benthic survey imagery
-- **seamap** -- fish species detection from SEAMAP survey imagery
+.. _Model Zoo and Add-Ons: https://github.com/VIAME/VIAME/wiki/Model-Zoo-and-Add-Ons
+
+Example add-ons include:
+
+- **Arctic Seals** -- YOLO models for seal detection in arctic regions
+- **Sea Lion Models** -- aerial detection of sea lions and fur seals
+- **HabCam Models** -- detectors for scallops, skates, and flatfish on the sea floor
+- **EM Tuna Detectors** -- tuna detection from fishing vessel camera monitoring data
+- **Community Fish Detection Models** -- fish detection models trained on aggregated datasets from multiple projects
+- **MOUSS Deep 7 Bottomfish Models** -- Hawaiian deep-water fish detection and classification
+- **SEFSC 100-200 Class Fish Models** -- detection and classification of ~140 fish species
+- **SAM2/SAM3 Segmentation Models** -- automatic and text-based segmentation
+- **ConvNext Low-Shot Models** -- training configurations designed for limited training data
+- **Additional Darknet YOLO Architectures** -- extra YOLO framework options for training
 
 These add-ons can be installed via the VIAME add-on manager. Once installed, their
 detection pipelines become available both on the command line and in the GUI.
