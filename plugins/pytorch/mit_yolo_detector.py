@@ -5,6 +5,7 @@
 from kwiver.vital.algo import ImageObjectDetector
 import scriptconfig as scfg
 import ubelt as ub
+import torch
 
 from viame.pytorch.utilities import kwimage_to_kwiver_detections, vital_config_update
 
@@ -19,6 +20,31 @@ class MITYoloConfig(scfg.DataConfig):
 
     def __post_init__(self):
         super().__post_init__()
+
+
+def _patched_postprocess_call(self, predict, rev_tensor=None, image_size=None):
+    """patch for PostProcess call to avoid doing nms.
+    Originally from yolo/utils/model_utils"""
+    if image_size is not None:
+        self.converter.update(image_size)
+    prediction = self.converter(predict["Main"])
+    pred_class, _, pred_bbox = prediction[:3]
+    pred_conf = prediction[3] if len(prediction) == 4 else None
+    if rev_tensor is not None:
+        pred_bbox = (pred_bbox - rev_tensor[:, None, 1:]) / rev_tensor[:, 0:1, None]
+    # adapt raw yolo-mit bbox to [class_id, x1, y1, x2, y2, confidence]
+    cls_dist = pred_class.sigmoid() * (1 if pred_conf is None else pred_conf)
+    max_scores, class_ids = torch.max(cls_dist, dim=-1)
+    predicts_all = []
+    for b in range(cls_dist.size(0)):
+        img_predicts = torch.cat([
+            class_ids[b].unsqueeze(-1).float(),
+            pred_bbox[b],
+            max_scores[b].unsqueeze(-1)
+        ], dim=-1)
+        predicts_all.append(img_predicts)
+
+    return predicts_all
 
 
 class MITYoloDetector(ImageObjectDetector):
@@ -63,7 +89,7 @@ class MITYoloDetector(ImageObjectDetector):
             'model': None,
             'transform': None,
             'converter': None,
-            'post_proccess': None,
+            'post_process': None,
             'classes': None,
         }
 
@@ -106,56 +132,14 @@ class MITYoloDetector(ImageObjectDetector):
         return cfg
 
     def _build_model(self):
-        import pathlib
-        import os
         import torch
-        from hydra import compose, initialize
-        import yolo
+        from hydra import compose, initialize_config_dir
         from yolo import (
             AugmentationComposer,
-            Config,
             create_converter,
             create_model,
-            # custom_logger,
-            # draw_bboxes,
+            PostProcess
         )
-        from yolo import PostProcess
-        import tempfile
-        import kwutil
-
-        weight_fpath = ub.Path(self._kwiver_config['weight'])
-
-        train_config_fpath = weight_fpath.parent / 'train_config.yaml'
-        if train_config_fpath.exists():
-            train_config = kwutil.Yaml.load(train_config_fpath)
-            # class_list = train_config['dataset']['class_list']
-        else:
-            raise Exception("Cannot introspect model config")
-
-        # Create a dummy path to keep the API happy
-        fake_image_path = tempfile.mktemp()
-
-        # temp_config_dpath = ub.Path(tempfile.mkdtemp()).ensuredir()
-        # inference_config_fpath = temp_config_dpath / 'config.yaml'
-        # train_config_fpath.copy(inference_config_fpath)
-
-        # This is annoying that we cant just specify an absolute path when it is
-        # robustly built. Furthermore, the relative path seems like it isn't even
-        # from the cwd, but the module that is currently being run.
-        # Find the path that we need to be relative to in a somewhat portable
-        # manner (i.e. will work in a Jupyter snippet).
-        try:
-            path_base = pathlib.Path(__file__).parent
-        except NameError:
-            path_base = pathlib.Path.cwd()
-        yolo_path = pathlib.Path(yolo.__file__).parent
-        rel_yolo_path = pathlib.Path(os.path.relpath(yolo_path, path_base))
-        config_path = os.fspath(yolo_path / 'config')
-        rel_config_path = pathlib.Path(os.path.relpath(config_path, path_base))
-        print(f'path_base={path_base}')
-        print(f'yolo_path={yolo_path}')
-        print(f'rel_yolo_path={rel_yolo_path}')
-        print(f'config_path={config_path}')
 
         # TODO: need to be able to read metadata with weights
         device = self._kwiver_config.device
@@ -165,50 +149,35 @@ class MITYoloDetector(ImageObjectDetector):
             else:
                 device = torch.device('cpu')
 
-        weights_fpath = self._kwiver_config.weight
-        print(f'weights_fpath={weights_fpath}')
-        config_name = 'config'
-        model = 'v9-c'
+        weight_fpath = ub.Path(self._kwiver_config.weight)
+        print(f'weights_fpath={weight_fpath}')
 
-        train_config['dataset']
+        # Initialize pre-processing and inference with user train configuration
+        train_config_dir = weight_fpath.parent
+        train_config_name = "train_config.yaml"
+        print(f'train_config_path={train_config_dir / train_config_name}')
+        with initialize_config_dir(version_base=None, config_dir=str(train_config_dir), job_name="mit_yolo_detector"):
+            train_cfg = compose(config_name=train_config_name)
+            model = create_model(train_cfg.model, class_num=train_cfg.dataset.class_num, weight_path=weight_fpath).to(device)
+            transform = AugmentationComposer([], train_cfg.image_size)
+            converter = create_converter(train_cfg.model.name, model, train_cfg.model.anchor, train_cfg.image_size, device)
+        # monkey-patch the PostProcess call to skip NMS from yolo-mit as NMS is already done in kwiver
+        # this prevent running nms from yolo-mit which is not under user control in kwiver (e.g. if returning empty predictions)
+        from yolo.config.config import NMSConfig
+        # create a dummy nms for post process
+        nms_config = NMSConfig(0.0, 0, 0)
+        # Patches PostProcess to avoid NMS
+        class CustomPostProcess(PostProcess):
+            __call__ = _patched_postprocess_call
+        post_process = CustomPostProcess(converter, nms_config)
 
-        # Write into the config dir a file that we can use for inference
-        # TODO: it would be very nice if we could do this outside of the yolo
-        # python module.
-        dataset_config = train_config['dataset']
-        cfgid = ub.hash_data(dataset_config, base='hex')[0:16]
-        dataset_config_name = f'dataset_config_{cfgid}'
-        dataset_config_dpath = ub.Path(config_path) / 'dataset'
-        dataset_config_fpath = dataset_config_dpath / f'{dataset_config_name}.yaml'
-        dataset_config_fpath.write_text(kwutil.Yaml.dumps(dataset_config))
-
-        with initialize(config_path=os.fspath(rel_config_path), version_base=None, job_name="mit_yolo_detector"):
-            # Use the hydra system to populate the expected configuration,
-            # but then use it to construct the model explicitly
-            cfg: Config = compose(
-                config_name=config_name,
-                overrides=[
-                    "task=inference",
-                    f"task.data.source={fake_image_path}",
-                    f"model={model}",
-                    f"weight='{weights_fpath}'",
-                    f'dataset={dataset_config_name}',
-                    # f"dataset.class_list={class_list}",
-                    # f"dataset.class_num={len(class_list)}",
-                    "use_wandb=False",
-                ]
-            )
-            model = create_model(cfg.model, class_num=cfg.dataset.class_num, weight_path=cfg.weight).to(device)
-            transform = AugmentationComposer([], cfg.image_size)
-            converter = create_converter(cfg.model.name, model, cfg.model.anchor, cfg.image_size, device)
-            post_proccess = PostProcess(converter, cfg.task.nms)
-
+        # Set the inference pipeline
         self._yolo_objects.update({
             'model': model,
             'transform': transform,
             'converter': converter,
-            'post_proccess': post_proccess,
-            'classes': list(cfg.dataset.class_list),
+            'post_process': post_process,
+            'classes': list(train_cfg.dataset.class_list),
         })
 
     def set_configuration(self, cfg_in):
@@ -240,19 +209,19 @@ class MITYoloDetector(ImageObjectDetector):
         from yolo.utils.kwcoco_utils import tensor_to_kwimage
         full_rgb = image_data.asarray()
         pil_img = Image.fromarray(full_rgb)
-
         model = self._yolo_objects['model']
         transform = self._yolo_objects['transform']
-        post_proccess = self._yolo_objects['post_proccess']
+        post_process = self._yolo_objects['post_process']
         classes = self._yolo_objects['classes']
 
         im_chw, bbox, rev_tensor = transform(pil_img)
         device = ub.peek(model.parameters()).device
+        model.eval()
         with torch.no_grad():
             im_bchw = im_chw.to(device)[None, :, :, :]
             batched_rev_tensor = rev_tensor.to(device)[None]
             predict = model(im_bchw)
-            pred_bbox = post_proccess(predict, batched_rev_tensor)
+            pred_bbox = post_process(predict, batched_rev_tensor)
             yolo_boxes = pred_bbox[0]
             detections = tensor_to_kwimage(yolo_boxes, classes=classes)
 
