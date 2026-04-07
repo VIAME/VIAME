@@ -86,7 +86,7 @@ Object Detection
 |
 User Interfaces for Visualization and Detector Model Training
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/annotation_example.png
+.. image:: https://raw.githubusercontent.com/Kitware/dive/refs/heads/main/docs/images/Banner.png
    :width: 35%
    :align: left
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
