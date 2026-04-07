@@ -34,6 +34,45 @@ of VIAME, which contains no algorithms or AI-assisted annotation.
 .. _dedicated user manual: https://kitware.github.io/dive/
 .. _tutorial videos: https://www.youtube.com/channel/viame
 
+Interactive Segmentation in DIVE
+================================
+
+DIVE provides interactive segmentation, allowing users to click on objects (foreground
+and background points) to generate segmentation masks in real time. The segmentation
+service is started automatically by DIVE based on the configured segmenter in the DIVE
+settings. Several segmentation backends are available:
+
+**Watershed (default)**
+  Uses OpenCV's watershed algorithm for point-based segmentation. Users provide
+  foreground points (marking the object) and background points (marking areas to
+  exclude). This is the lightest-weight option and does not require a GPU or any
+  add-ons. Works best for objects with clear color boundaries.
+
+**SAM2 (SAM2 add-on)**
+  Uses Meta's SAM2 (Segment Anything Model 2) for point-based segmentation. Provides
+  significantly better segmentation quality than watershed, especially for complex
+  object boundaries. Requires less system resources than SAM3 but lacks the ability
+  to perform text queries. Requires a GPU and the SAM2 add-on.
+
+**SAM3 (SAM3 add-on)**
+  Uses SAM3 for both point-based and text-based segmentation. In addition to
+  click-based segmentation, users can type a text description of the object to segment
+  (e.g., "fish", "scallop"). Requires a GPU and the SAM3 add-on. This is the most
+  capable interactive segmentation option.
+
+Text queries can also be run as batch pipelines to detect, segment, and track objects
+across entire image sets or videos. See the `SAM3 Text-Prompted Detection and Tracking`_
+section in the search and rapid model generation examples for details.
+
+.. _SAM3 Text-Prompted Detection and Tracking: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
+
+To manually start the interactive segmentation service outside of DIVE (e.g., for
+scripting or integration with other tools)::
+
+  source /path/to/VIAME/install/setup_viame.sh
+  python -m viame.core.interactive_segmentation \
+    --config configs/pipelines/interactive_segmenter_watershed.conf
+
 **************
 VIEW Interface
 **************
@@ -163,44 +202,6 @@ the problem).
 For additional information, see the dedicated `example`_ for it.
 
 .. _example: https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png
-
-*************************
-Interactive Segmentation
-*************************
-
-VIAME provides interactive segmentation services that can be used from the DIVE
-annotation interface. These allow users to click on objects (foreground/background
-points) or provide text prompts to generate segmentation masks in real time. The
-interactive segmenter runs as a background service that DIVE communicates with.
-
-Available interactive segmentation configurations:
-
-**interactive_segmenter_watershed.conf**
-  Uses OpenCV's watershed algorithm for point-based interactive segmentation. Users
-  provide foreground points (marking the object) and background points (marking areas
-  to exclude). This is the lightest-weight option and does not require a GPU or any
-  add-ons. Works best for objects with clear color boundaries.
-
-**interactive_segmenter_sam2.conf (SAM2 add-on)**
-  Uses Meta's SAM2 (Segment Anything Model 2) for point-based interactive segmentation.
-  Provides significantly better segmentation quality than watershed, especially for
-  complex object boundaries. Requires a GPU and the SAM2 add-on to be installed.
-
-**interactive_segmenter_sam3.conf (SAM3 add-on)**
-  Uses SAM3 for both point-based and text-based interactive segmentation. In addition
-  to click-based segmentation, users can type a text description of the object to
-  segment (e.g., "fish", "scallop"). Requires a GPU and the SAM3 add-on to be
-  installed. This is the most capable interactive segmentation option.
-
-When using DIVE, the interactive segmentation service is started automatically based
-on the configured segmenter in the DIVE settings, so no manual setup is required.
-The command below is only needed if you want to run the service outside of DIVE
-(e.g., for scripting or integration with other tools)::
-
-  source /path/to/VIAME/install/setup_viame.sh
-  python -m viame.core.interactive_segmentation \
-    --config configs/pipelines/interactive_segmenter_watershed.conf
-
 
 *********
 CLI Tools
