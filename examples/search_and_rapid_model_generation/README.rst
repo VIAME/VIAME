@@ -4,10 +4,19 @@ Video and Image Search Examples
 ===============================
 
 This document corresponds to the `search and rapid model generation`_ folder contained within a VIAME
-desktop installation. This directory contains methods to accomplish two tasks: 
+desktop installation. This directory contains methods to accomplish three tasks, all of which can
+be used to bootstrap annotation for training more accurate models:
 
-| (a) Performing exemplar-based searches on an archive of unannotated imagery or videos 
+| (a) Performing exemplar-based searches on an archive of unannotated imagery or videos
 | (b) Quickly training up detection models for new categories of objects on the same ingest
+| (c) Performing text-based queries to detect, segment, and track high-level object categories
+
+Rapid model generation can be performed either via image or video queries using the
+IQR (Iterative Query Refinement) method described in the sections below, or via textual
+queries using the newer SAM3 add-on. The SAM3 add-on uses open-vocabulary text prompts
+to detect, segment, and track objects without requiring any pre-existing annotations or
+an ingested database. See the `SAM3 Text-Prompted Detection and Tracking`_ section below
+for more details on using SAM3.
 
 .. _search and rapid model generation: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
@@ -24,7 +33,7 @@ the VIVIA toolkit) is provided which allows performing iterative refinement
 of the results, by annotating which were correct or incorrect, in order
 to build up a better model for the input query. This model can be for
 a new object category (or sub-category attribute) and saved to an output file
-to be reused again in future pipelines or query requests. Input regions to 
+to be reused again in future pipelines or query requests. Input regions to
 query against can either be full frame descriptors, around just object detections,
 or, lastly, object tracks.
 
@@ -277,6 +286,111 @@ in the [train].sh script you use for new model training.
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_20_edited_detections.png
 
 .. _detector training example: https://github.com/VIAME/VIAME/tree/master/examples/object_detector_training
+
+Text-Prompted Detection and Tracking
+=====================================
+
+.. _SAM3 Text-Prompted Detection and Tracking:
+
+Text-prompted detection provides an alternative approach to rapid model generation that
+uses open-vocabulary text prompts instead of image or video exemplars. Rather than
+ingesting data into a search database and performing iterative query refinement, you can
+simply describe the objects you are looking for using natural language (e.g., "fish",
+"sea turtle", "bird"). Text queries are currently performed using `Meta's SAM3 model`_,
+which can be installed from the `VIAME Add-Ons wiki`_. The model combines Grounding DINO
+for text-prompted detection with a SAM-based segmentation and tracking architecture,
+producing polygon masks and multi-frame tracks.
+
+.. _Meta's SAM3 model: https://github.com/facebookresearch/sam3
+.. _VIAME Add-Ons wiki: https://github.com/VIAME/VIAME/wiki/Installing-Add-Ons
+
+Running Pipelines from the Command Line
+-----------------------------------------
+
+Text query pipelines can be run from the command line using the VIAME ``kwiver`` runner.
+First source your VIAME installation setup script, then run a pipeline with your desired
+text query. For example, to run the tracker on a list of images::
+
+  source /path/to/VIAME/install/setup_viame.sh
+  kwiver runner configs/add-ons/sam3/tracker_sam3_animals.pipe \
+    -s downsampler:input_file_name=input_list.txt \
+    -s tracker:refiner:sam3:text_query="fish"
+
+For video files, replace the input file list with the video path as appropriate for the
+pipeline being used. The ``text_query`` parameter accepts a comma-separated list of object
+categories to detect (e.g., "fish, crab, starfish").
+
+Running Pipelines from the DIVE Interface
+-------------------------------------------
+
+These pipelines are also accessible from the DIVE web annotation interface. They appear
+in the pipeline runner menu under the SAM3 category once the add-on is installed. Text
+query pipelines will prompt for a text query string when launched. Additionally, the
+interactive segmentation service can be started with the SAM3 configuration to enable
+point-click and text-based segmentation directly within the annotation view.
+
+Available Pipelines
+--------------------
+
+All of the pipelines below require the SAM3 add-on to be installed. They also require
+a CUDA-capable GPU.
+
+**Detection and Tracking Pipelines**
+
+- **detector_sam3_animals.pipe** -- Per-frame open-vocabulary detector. Uses Grounding
+  DINO with SAM3 segmentation to detect objects matching a text query in each frame
+  independently. Produces per-frame detections with polygon masks. Suitable for image
+  sets or videos where frame-to-frame tracking is not needed.
+
+- **tracker_sam3_animals.pipe** -- Open-vocabulary tracker with memory-attention. Detects
+  objects matching a text query on the first frame (and periodically re-detects thereafter),
+  then propagates detections across subsequent frames using memory-attention tracking.
+  Produces multi-frame tracks with polygon masks.
+
+**Text Query Utility Pipelines**
+
+These pipelines are designed to be used as utility steps applied to existing detections
+or launched from within the DIVE annotation interface.
+
+- **utility_text_query_sam3_tracking.pipe** -- Refines or creates tracks using a text
+  query with cross-frame tracking. Applies the memory-attention tracker to propagate
+  detections across frames.
+
+- **utility_text_query_sam3_no_tracking.pipe** -- Per-frame text query detection using
+  Grounding DINO and SAM3 segmentation. Each frame is processed independently with no
+  cross-frame tracking. Suitable for image sets or cases where frame-to-frame
+  correspondence is not needed.
+
+- **utility_text_query_sam3_gridded.pipe** -- Text query detection with windowed/gridded
+  processing for large images. Splits large images into overlapping chips to improve
+  detection of small objects that might be missed at full resolution. Each frame is
+  processed independently with no cross-frame tracking.
+
+**Segmentation Utility Pipelines**
+
+- **utility_add_segmentations_sam3.pipe** -- Adds automatically generated segmentation
+  masks to existing detections. Replaces any existing masks with new masks. Uses
+  windowed processing for large images.
+
+- **utility_add_segmentations_sam3_no_replace.pipe** -- Adds segmentation masks only to
+  detections that do not already have masks. Preserves any existing masks.
+
+- **utility_track_selections_sam3.pipe** -- Tracks user-selected detections forward in
+  time using the video tracker and generates segmentation masks for each tracked frame.
+  Useful for propagating a single annotation forward through a video sequence.
+
+**Interactive Segmentation**
+
+- **interactive_segmenter_sam3.conf** -- Configuration for the interactive segmentation
+  service in DIVE. Enables both point-click and text-based segmentation within the
+  annotation view.
+
+**Training**
+
+- **train_detector_sam3.conf** -- Configuration for fine-tuning on custom data using
+  detection-level annotations with optional polygon masks. Uses adaptive chipping with
+  1024px input resolution.
+
 
 Tuning Algorithms (Advanced)
 ============================
