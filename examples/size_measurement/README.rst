@@ -4,7 +4,7 @@ Size Measurement Examples
 ===========================
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/fish_measurement_example.png
-   :scale: 60
+   :width: 70%
    :align: center
 
 Running the Demo

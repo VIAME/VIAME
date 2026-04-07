@@ -55,7 +55,7 @@ Automatic Multi-Target Trackers
 *******************************
 
 .. image:: https://github.com/Kitware/dive/blob/main/docs/images/Banner.png
-   :scale: 50
+   :width: 60%
    :align: center
 |
 
@@ -231,7 +231,7 @@ User-Initialized Trackers
 *************************
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/computed_track_example.png
-   :scale: 50
+   :width: 60%
    :align: center
 
 User-initialized trackers are designed for **annotation-assist** workflows. The user

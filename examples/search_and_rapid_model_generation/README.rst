@@ -59,7 +59,7 @@ you copied the example files elsewhere. If using windows, all '.sh' scripts in t
 be '.bat' scripts that you should be able to just double-click to run.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_0_new_project.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_0_new_project.png
 
@@ -78,7 +78,7 @@ all of your .mpg, .avi, .etc videos. If you look in the ingest scripts, you can 
 sources if you wish to change them. Next run the ingest script, as below.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_1_ingest.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_1_ingest.png
 
@@ -86,7 +86,7 @@ This should take a little bit if the process is successful, see below. If you al
 database present in your folder it will ask you if you want to remove it.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_2_ingest.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_2_ingest.png
 
@@ -101,7 +101,7 @@ Perform an Image Query
 After performing an ingest 'bash launch_search_interface.sh' should be called to launch the GUI.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_3_launch_gui.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_3_launch_gui.png
 
@@ -116,7 +116,7 @@ take one of two forms, either a large image containing many objects including yo
 object of interest, or a cropped out version of your object.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_4_new_query.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_4_new_query.png
 
@@ -124,14 +124,14 @@ Whatever image you give, the system will generate a full-frame descriptor for yo
 image alongside sub-detections on regions smaller than the full image.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_5_query_result.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_5_query_result.png
 
 Select the box you are most interested in.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_6_select_fish.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_6_select_fish.png
 
@@ -146,7 +146,7 @@ we used the free GIMP painter tool to crop out a chip. Install this  using 'sudo
 install gimp', on Ubuntu, https://www.gimp.org/ on Windows).
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_7_crop_fish.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_7_crop_fish.png
 
@@ -154,21 +154,21 @@ Right click on your image in your file browser, select 'Edit with Gimp', press C
 open the above dialogue, highlight the region of interest, press enter to crop. 
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_8_cropped_fish.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_8_cropped_fish.png
 
 Save out your crop to wherever you want, preferably somewhere near your project folder.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_9_select_fish_again.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_9_select_fish_again.png
 
 Now you can put this chip through the image query system, instead of the full frame one.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_10_initial_results.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_10_initial_results.png
 
@@ -178,7 +178,7 @@ depending on which windows you have turned on, but different display windows can
 or disabled in Settings->Tool Views and dragged around the screen.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_11_initial_results.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_11_initial_results.png
 
@@ -191,7 +191,7 @@ Train a IQR Model
 =================
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_12_adjudacation.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_12_adjudacation.png
 
@@ -201,7 +201,7 @@ Either right click on an individual result and select the appropriate option, or
 an entry and press '+' or '-' on your keyboard for faster annotation.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_13_feedback.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_13_feedback.png
 
@@ -210,19 +210,19 @@ feedback list (bottom left in the above). This can improve the performance of yo
 model significantly. After annotating your entries press 'Refine' on the top left.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_14_next_n_results.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_14_next_n_results.png
 
 There we go, that's a little better isn't it.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_16_next_n_results.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_16_next_n_results.png
 
@@ -233,7 +233,7 @@ a directory called 'category_models' in your project folder for re-use on both n
 datasets.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_17_saved_models.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_17_saved_models.png
 
@@ -250,7 +250,7 @@ for each input model in the category_models directory per detection. Alternative
 this can be run from `within the annotation GUI`_.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_18_produced_detections.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_18_produced_detections.png
 
@@ -260,7 +260,7 @@ for your newly-trained detector, `see here`_. You can use these models on any im
 need to be the same imagery you trained it on.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_19_edited_detections.png
-   :scale: 10
+   :width: 15%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_19_edited_detections.png
 
@@ -281,7 +281,7 @@ ground-up `detector training example`_. Make sure to set whatever threshold you 
 in the [train].sh script you use for new model training.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_20_edited_detections.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_20_edited_detections.png
 

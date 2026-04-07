@@ -8,7 +8,7 @@ Overview
 ********
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/skate_detection.png
-   :scale: 30
+   :width: 40%
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
 |

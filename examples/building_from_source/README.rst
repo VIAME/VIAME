@@ -185,7 +185,7 @@ is below for a system with CUDA, Python, and Matlab enabled, though the versions
 old. Please do not use CUDA <10 or python 2.7 anymore.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2017/03/cmake-options.png
-   :scale: 30 %
+   :width: 40%
    :align: center
 
 .. _mac-label:

@@ -4,7 +4,7 @@ Image Enhancement and Filtering
 ===============================
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
-   :scale: 50
+   :width: 60%
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
 
