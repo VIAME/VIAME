@@ -187,12 +187,16 @@ Calibration Pipelines
 ---------------------
 
 VIAME provides several calibration pipelines for computing camera parameters from
-images or video of a chessboard calibration target. These pipelines detect chessboard
-corners, accumulate them across frames, and solve for the camera intrinsics, distortion
-coefficients, and (for stereo) extrinsic parameters. All calibration pipelines require
-the ``square_size`` parameter to be set to the real-world size of a chessboard square
-in your chosen unit (e.g., millimeters). The output calibration file can then be used
-by the measurement pipelines.
+images or video of a calibration target. The pipelines first attempt to detect a
+checkerboard (chessboard) pattern, and if that fails, fall back to detecting a grid
+of bright dots (circle grid). Detected corners or centers are accumulated across
+frames and used to solve for the camera intrinsics, distortion coefficients, and
+(for stereo) extrinsic parameters. The ``square_size`` parameter must be set to the
+real-world size of a checkerboard square (or dot spacing) in your chosen unit (e.g.,
+millimeters) -- this value determines the scale of all subsequent measurements. When
+running from the DIVE interface, the pipeline will prompt for the checkerboard square
+size in real units before running. The output calibration file can then be used by the
+measurement pipelines.
 
 **measurement_calibrate_cameras_default.pipe**
   Stereo camera calibration from separate left and right camera inputs. Detects
