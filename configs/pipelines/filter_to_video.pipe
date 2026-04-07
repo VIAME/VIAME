@@ -15,14 +15,14 @@ include common_default_input_with_downsampler.pipe
 
 process video_writer
   :: video_output
-  :video_filename                              image_writer.mp4
+  :video_filename                              video_writer.mp4
   :video_writer:type                           ffmpeg
 
 connect from downsampler.output_1
-        to   image_writer.image
+        to   video_writer.image
 connect from downsampler.timestamp
-        to   image_writer.timestamp
+        to   video_writer.timestamp
 connect from downsampler.frame_rate
-        to   image_writer.frame_rate
+        to   video_writer.frame_rate
 
 # -- end of file --
