@@ -164,6 +164,44 @@ For additional information, see the dedicated `example`_ for it.
 
 .. _example: https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_15_next_n_results.png
 
+*************************
+Interactive Segmentation
+*************************
+
+VIAME provides interactive segmentation services that can be used from the DIVE
+annotation interface. These allow users to click on objects (foreground/background
+points) or provide text prompts to generate segmentation masks in real time. The
+interactive segmenter runs as a background service that DIVE communicates with.
+
+Available interactive segmentation configurations:
+
+**interactive_segmenter_watershed.conf**
+  Uses OpenCV's watershed algorithm for point-based interactive segmentation. Users
+  provide foreground points (marking the object) and background points (marking areas
+  to exclude). This is the lightest-weight option and does not require a GPU or any
+  add-ons. Works best for objects with clear color boundaries.
+
+**interactive_segmenter_sam2.conf (SAM2 add-on)**
+  Uses Meta's SAM2 (Segment Anything Model 2) for point-based interactive segmentation.
+  Provides significantly better segmentation quality than watershed, especially for
+  complex object boundaries. Requires a GPU and the SAM2 add-on to be installed.
+
+**interactive_segmenter_sam3.conf (SAM3 add-on)**
+  Uses SAM3 for both point-based and text-based interactive segmentation. In addition
+  to click-based segmentation, users can type a text description of the object to
+  segment (e.g., "fish", "scallop"). Requires a GPU and the SAM3 add-on to be
+  installed. This is the most capable interactive segmentation option.
+
+When using DIVE, the interactive segmentation service is started automatically based
+on the configured segmenter in the DIVE settings, so no manual setup is required.
+The command below is only needed if you want to run the service outside of DIVE
+(e.g., for scripting or integration with other tools)::
+
+  source /path/to/VIAME/install/setup_viame.sh
+  python -m viame.core.interactive_segmentation \
+    --config configs/pipelines/interactive_segmenter_watershed.conf
+
+
 *********
 CLI Tools
 *********
