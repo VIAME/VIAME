@@ -10,11 +10,10 @@ Size Measurement Examples
 Running the Demo
 ================
 
-This section corresponds to the `size measurement`_ example folder within a VIAME desktop
-installation. This folder contains examples and pipelines for computing real-world size
-measurements of objects (e.g., fish length) from imagery.
-
-.. _this example online: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
+This section corresponds to the `size measurement
+<https://github.com/VIAME/VIAME/tree/master/examples/size_measurement>`_ example folder
+within a VIAME desktop installation. This folder contains examples and pipelines for
+computing real-world size measurements of objects (e.g., fish length) from imagery.
 
 VIAME supports two primary approaches to size measurement:
 
