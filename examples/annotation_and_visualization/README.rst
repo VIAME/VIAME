@@ -60,9 +60,34 @@ settings. Several segmentation backends are available:
   (e.g., "fish", "scallop"). Requires a GPU and the SAM3 add-on. This is the most
   capable interactive segmentation option.
 
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Point-Segmentation.png
+   :width: 80%
+   :align: center
+
+*Point-based interactive segmentation in DIVE. The user clicks foreground (green) and
+background (red) points to generate a segmentation mask around the object.*
+
+|
+
 Text queries can also be run as batch pipelines to detect, segment, and track objects
 across entire image sets or videos. See the `SAM3 Text-Prompted Detection and Tracking`_
 section in the search and rapid model generation examples for details.
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Perform-Text-Query.jpg
+   :width: 80%
+   :align: center
+
+*SAM3 text query dialog in DIVE. Users enter a text description of the object to detect
+and track across the video.*
+
+|
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Text-Query-Result1.jpg
+   :width: 80%
+   :align: center
+
+*Results of a SAM3 text query showing automatically detected and tracked fish with
+segmentation outlines.*
 
 .. _SAM3 Text-Prompted Detection and Tracking: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 

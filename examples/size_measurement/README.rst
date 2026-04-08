@@ -198,6 +198,24 @@ running from the DIVE interface, the pipeline will prompt for the checkerboard s
 size in real units before running. The output calibration file can then be used by the
 measurement pipelines.
 
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Calibration-Query-User.jpg
+   :width: 80%
+   :align: center
+
+*The DIVE calibration dialog prompts for the checkerboard square size before running
+the calibration pipeline.*
+
+|
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Calibration-Show-Features-On-Success1.jpg
+   :width: 80%
+   :align: center
+
+*Successful stereo calibration showing detected feature correspondences between left
+and right camera views.*
+
+|
+
 **measurement_calibrate_cameras_default.pipe**
   Stereo camera calibration from separate left and right camera inputs. Detects
   chessboard corners in both views, accumulates correspondences across frames, and
@@ -240,6 +258,15 @@ For stereo calibration with separate camera inputs::
 Stereo Disparity and Depth Pipelines
 -------------------------------------
 
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Stereo-Epipolar-Search1.jpg
+   :width: 80%
+   :align: center
+
+*Stereo epipolar matching: a point selected in the left camera (cyan) is matched to
+its correspondence in the right camera (green/red) using epipolar geometry.*
+
+|
+
 VIAME includes several methods for computing stereo disparity and depth maps, which
 are used internally by the measurement pipelines and can also be run standalone for
 visualization or custom processing. Stereo measurement requires a calibration file
@@ -276,6 +303,39 @@ Measurement from Annotations Pipelines
 These pipelines compute stereo measurements from user-provided annotations (e.g.,
 head/tail keypoints on fish). They read left and right camera track files, match
 detections between cameras, and triangulate 3D positions to compute lengths.
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Interactive-Stereo0.jpg
+   :width: 80%
+   :align: center
+
+*Setting up interactive stereo measurement in DIVE with multi-camera settings.*
+
+|
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Interactive-Stereo1.jpg
+   :width: 80%
+   :align: center
+
+*Creating stereo annotations interactively -- the user draws on one camera view.*
+
+|
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Interactive-Stereo2.jpg
+   :width: 80%
+   :align: center
+
+*Stereo correspondences with epipolar geometry shown across left and right views.*
+
+|
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Stereo-Seamap-Short1.png
+   :width: 80%
+   :align: center
+
+*Stereo measurement results in DIVE showing detected objects with computed lengths
+displayed in the Track Details panel.*
+
+|
 
 **measurement_from_annotations_default.pipe**
   The default measurement-from-annotations pipeline. Uses Foundation Stereo (if the
