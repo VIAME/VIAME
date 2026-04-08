@@ -329,6 +329,24 @@ query pipelines will prompt for a text query string when launched. Additionally,
 interactive segmentation service can be started with the SAM3 configuration to enable
 point-click and text-based segmentation directly within the annotation view.
 
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Perform-Text-Query.jpg
+   :width: 80%
+   :align: center
+
+*The SAM3 text query dialog in DIVE prompts for a text description of objects to detect
+and track.*
+
+|
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Text-Query-Result1.jpg
+   :width: 80%
+   :align: center
+
+*Results of a SAM3 text query showing automatically detected and tracked fish with
+segmentation outlines and tracks.*
+
+|
+
 Available Pipelines
 --------------------
 
