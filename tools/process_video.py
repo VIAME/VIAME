@@ -786,7 +786,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     if len( options.extra_settings ) > 0:
       for extra_option in options.extra_settings:
         command += fset( " ".join( extra_option ) )
-  except:
+  except Exception:
     pass
 
   # Process command, possibly with logging
