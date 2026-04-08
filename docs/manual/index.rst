@@ -105,8 +105,12 @@ Measuring Animal Lengths Using Metadata or Stereo
 
 Image and Video Search for Rapid Model Generation
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png
-   :width: 35%
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Perform-Text-Query.jpg
+   :width: 25%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_11_initial_results.png
+   :width: 25%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
 Illumination Normalization and Color Correction
