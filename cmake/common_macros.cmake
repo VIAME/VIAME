@@ -75,7 +75,17 @@ endfunction()
 
 function( DownloadFile _URL _OutputLoc _MD5 )
   message( STATUS "Downloading data file from ${_URL}" )
-  file( DOWNLOAD ${_URL} ${_OutputLoc} EXPECTED_MD5 ${_MD5} )
+  file( DOWNLOAD ${_URL} ${_OutputLoc}
+    EXPECTED_MD5 ${_MD5}
+    STATUS _download_status )
+  list( GET _download_status 0 _download_code )
+  list( GET _download_status 1 _download_msg )
+  if( NOT _download_code EQUAL 0 )
+    get_filename_component( _filename "${_OutputLoc}" NAME )
+    message( FATAL_ERROR
+      "Failed to download ${_filename} from ${_URL}\n"
+      "  Status: [${_download_code};\"${_download_msg}\"]" )
+  endif()
 endfunction()
 
 function( ExtractFile _FILE_LOC _EXT_LOC )
