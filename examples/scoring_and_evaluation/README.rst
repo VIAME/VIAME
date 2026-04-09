@@ -6,27 +6,6 @@ Scoring Detectors and Trackers
 Summary
 -------
 
-
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
-   :width: 45%
-   :align: center
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
-
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
-   :width: 45%
-   :align: center
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
-
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
-   :width: 45%
-   :align: center
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
-
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
-   :width: 45%
-   :align: center
-   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
-
 This document corresponds to the `scoring and evaluation`_ example folder within a
 VIAME desktop installation. Contained in this folder are a few options for scoring
 either detections, frame-level classifications, or object tracks.
@@ -46,13 +25,33 @@ single category will be generated (for each category).
 PRC and Confusion Matrices (KWCOCO)
 -----------------------------------
 
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
+   :width: 35%
+   :align: center
+   :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
+   :width: 35%
+   :align: center
+   :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
+
 detection_prcs_and_conf_matrix_across_all
 
 detection_prcs_and_conf_matric_per_category
 
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
+   :width: 30%
+   :align: center
+   :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
+
 -----------------------------------------------------------
 Receiver Operating Curves (ROC) and Fixed Detection Metrics
 -----------------------------------------------------------
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
+   :width: 30%
+   :align: center
+   :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
 
 detection_rocs_across_all
 
@@ -87,7 +86,7 @@ metrics such as ROC curves, specificity, sensitivities, etc. The input to
 these tools must be in the Kitware kw18 format. Several scripts are provided to
 convert other formats (such as habcam annotations and Scallop-tk outputs) to
 kw18 format. The format is very simple so additional converters can be easily
-created. 
+created.
 
 An example of running scoring tools can be found `here`_.
 The scoring tool takes two files: the actual detections in the truth

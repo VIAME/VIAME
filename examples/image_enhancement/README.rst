@@ -3,40 +3,11 @@
 Image Enhancement and Filtering
 ===============================
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
-   :width: 60%
-   :align: center
-   :target: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
-
 This document corresponds to the `Image Enhancement`_ example folder within a VIAME
 desktop installation. This directory stores assorted scripts for debayering, color
 correction, illumination normalization, and general image contrast enhancement.
 
 .. _Image Enhancement: https://github.com/VIAME/VIAME/blob/master/examples/image_enhancement
-
-*****************************************
-Running Filters via DIVE Desktop
-*****************************************
-
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Image_Filter_in_DIVE.png
-   :width: 80%
-   :align: center
-   :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Image_Filter_in_DIVE.png
-
-All of the filter and transcode pipelines described in this document can also be run
-through the DIVE Desktop interface (currently desktop only, not the web version). To
-run a filter pipeline from DIVE Desktop:
-
-1. Open your image set or video in DIVE Desktop.
-2. Click the **VIAME Pipelines** button in the upper-right corner.
-3. Select the **FILTERS** or **TRANSCODER** category from the pipeline type list.
-4. Choose the desired pipeline (e.g. ``enhance``, ``debayer and enhance``,
-   ``normalize 16bit``, ``stereo depth map``, ``draw dets``, ``extract chips``, etc.).
-5. The pipeline will run on the loaded data, and the filtered output will be written
-   to the project output directory.
-
-This provides a convenient way to apply enhancement, debayering, format conversion,
-and other filtering operations without needing to use the command line.
 
 ******************
 Build Requirements
@@ -81,6 +52,31 @@ Uses the ``filter_normalize_16bit.pipe`` pipeline. Input images are listed in
 ``input_list_16bit_images.txt``.
 
 
+*****************************************
+Running Filters via DIVE Desktop
+*****************************************
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Image_Filter_in_DIVE.png
+   :width: 40%
+   :align: center
+   :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Image_Filter_in_DIVE.png
+
+All of the filter and transcode pipelines described in this document can also be run
+through the DIVE Desktop interface (currently desktop only, not the web version). To
+run a filter pipeline from DIVE Desktop:
+
+1. Open your image set or video in DIVE Desktop.
+2. Click the **VIAME Pipelines** button in the upper-right corner.
+3. Select the **FILTERS** or **TRANSCODER** category from the pipeline type list.
+4. Choose the desired pipeline (e.g. ``enhance``, ``debayer and enhance``,
+   ``normalize 16bit``, ``stereo depth map``, ``draw dets``, ``extract chips``, etc.).
+5. The pipeline will run on the loaded data, and the filtered output will be written
+   to the project output directory.
+
+This provides a convenient way to apply enhancement, debayering, format conversion,
+and other filtering operations without needing to use the command line.
+
+
 ************************************
 Image Enhancement Algorithms
 ************************************
@@ -91,6 +87,11 @@ interface and are configured via ``:filter:type`` in pipeline files.
 
 ocv_enhancer -- General-Purpose Enhancement
 ============================================
+
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
+   :width: 40%
+   :align: center
+   :target: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
 
 Plugin: ``ocv_enhancer`` (plugins/opencv/enhance_images.cxx)
 
@@ -292,7 +293,7 @@ Pre-Built Filter Pipelines (filter\_\*)
 
 These pipelines read images from a file list, apply filtering operations, and write
 the processed images to disk. They are located in ``configs/pipelines/`` and are run
-via the KWIVER ``pipeline_runner`` tool.
+via the KWIVER ``pipeline_runner`` tool or via the DIVE Desktop FILTERS menu.
 
 filter_default
   Reads images and associated tracks (VIAME CSV), downsamples to 5 fps, and writes
