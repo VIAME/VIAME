@@ -152,12 +152,12 @@ Extract the binaries from step A, for example if using WinRAR select "Extract Al
 default Windows "Extract All" option.
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_windows_extract.png
-   :width: 80%
+   :width: 40%
 
 The contents of the folder should look like the below.
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_windows_install_contents.png
-   :width: 80%
+   :width: 40%
 
 **Linux:**
 
@@ -179,7 +179,7 @@ for example::
 The contents of the folder should look like the below.
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/quickstart_linux_install_contents.png
-   :width: 80%
+   :width: 40%
 
 Depending on your system, you may need to get permission to modify your install directory
 (e.g. /opt/noaa/viame).
