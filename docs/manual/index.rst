@@ -101,7 +101,7 @@ User Interfaces for Annotation, Visualization, and Detector Model Training
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Point-Segmentation.png
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Train_From_DIVE.png
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
@@ -132,13 +132,29 @@ Text, Image, Video Search for Rapid Model Generation
 Illumination Normalization and Color Correction
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
-   :width: 35%
+   :width: 29%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/image_enhancement
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Image_Filter_in_DIVE.png
+   :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/image_enhancement
 
 Detector and Tracker Evaluation
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/scoring-2.png
-   :width: 35%
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
+   :width: 29%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
+   :width: 29%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
+   :width: 29%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
+   :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 
 .. |br| raw:: html
