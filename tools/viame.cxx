@@ -444,7 +444,7 @@ run_staged_pipeline(
     }
   }
 
-  const pid_t pid = getpid();
+  const auto pid = getpid();
 
   std::cout << "Running staged pipeline with "
             << stages.size() << " stage(s)" << std::endl;
