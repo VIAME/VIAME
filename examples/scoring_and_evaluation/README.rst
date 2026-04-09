@@ -36,18 +36,18 @@ Common options accepted by all scripts:
 | ``--ignore-classes`` -- Treat all detections as a single class (classless scoring).
 
 
------------------------------------
-PRC and Confusion Matrices (KWCOCO)
------------------------------------
+---------------------------
+PRC and Confusion Matrices
+---------------------------
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
-   :width: 35%
-   :align: center
+|prc_img| |conf_img|
+
+.. |prc_img| image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
+   :width: 45%
    :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
-   :width: 35%
-   :align: center
+.. |conf_img| image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
+   :width: 45%
    :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
 
 Scripts:
@@ -55,9 +55,8 @@ Scripts:
 | ``detection_prcs_and_conf_mat_across_all`` -- All categories scored jointly.
 | ``detection_prcs_and_conf_mat_per_category`` -- Each category scored independently.
 
-These scripts use the KWCOCO evaluation framework to produce Precision-Recall Curves
-(PRC), confusion matrices, and a summary metrics table. Detections are converted to
-KWCOCO format internally before scoring.
+These scripts produce Precision-Recall Curves (PRC), confusion matrices, and a
+summary metrics table. Input can be in any format VIAME supports (e.g. VIAME CSV).
 
 **Precision-Recall Curve (PRC):**
 Shows the trade-off between precision and recall as the confidence threshold varies.
@@ -90,10 +89,15 @@ misclassifications between categories. The matrix header reports:
   quality that accounts for class imbalance, ranging from -1 (total disagreement) to
   +1 (perfect prediction).
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
-   :width: 30%
-   :align: center
+|map_img| |roc_img|
+
+.. |map_img| image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
+   :width: 45%
    :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
+
+.. |roc_img| image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
+   :width: 45%
+   :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
 
 **Metrics Table:**
 A per-class summary table is also generated (``metrics.csv``) listing:
@@ -110,11 +114,6 @@ Output is written to the folder specified by ``-det-prc-conf``.
 -----------------------------------------------------------
 Receiver Operating Curves (ROC) and Fixed Detection Metrics
 -----------------------------------------------------------
-
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
-   :width: 30%
-   :align: center
-   :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
 
 Scripts:
 
