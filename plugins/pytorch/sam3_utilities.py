@@ -799,15 +799,16 @@ class SAM3ModelManager:
 
         # Use SAM2 image predictor if available
         if self._sam_predictor is not None:
-            self._sam_predictor.set_image(image_np)
+            with get_autocast_context(self._device):
+                self._sam_predictor.set_image(image_np)
 
-            prompts = {
-                'box': np.array(boxes),
-                'multimask_output': False
-            }
+                prompts = {
+                    'box': np.array(boxes),
+                    'multimask_output': False
+                }
 
-            with torch.inference_mode():
-                masks, scores, _ = self._sam_predictor.predict(**prompts)
+                with torch.inference_mode():
+                    masks, scores, _ = self._sam_predictor.predict(**prompts)
 
             # Handle shape - ensure we have [N, 1, H, W] or similar
             if len(masks.shape) == 3:
@@ -867,17 +868,18 @@ class SAM3ModelManager:
             h, w = image_np.shape[:2]
             return np.ones((h, w), dtype=bool), None
 
-        self._sam_predictor.set_image(image_np)
+        with get_autocast_context(self._device):
+            self._sam_predictor.set_image(image_np)
 
-        prompts = {
-            'box': np.array(box),
-            'multimask_output': False,
-        }
-        if mask_input is not None:
-            prompts['mask_input'] = mask_input
+            prompts = {
+                'box': np.array(box),
+                'multimask_output': False,
+            }
+            if mask_input is not None:
+                prompts['mask_input'] = mask_input
 
-        with torch.inference_mode():
-            masks, scores, low_res_masks = self._sam_predictor.predict(**prompts)
+            with torch.inference_mode():
+                masks, scores, low_res_masks = self._sam_predictor.predict(**prompts)
 
         # masks shape: [1, H, W] or [H, W]
         if len(masks.shape) == 3:
