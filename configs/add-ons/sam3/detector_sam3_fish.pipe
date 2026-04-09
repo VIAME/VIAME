@@ -1,12 +1,8 @@
 # =============================================================================
-# Title: SAM3 Open-Vocabulary Tracker
+# Title: SAM3 Fish Detector
 #
-# Description: Detect and track objects across frames using SAM3's native video
-#              predictor with text-prompted detection. Detects objects on the
-#              first frame (and periodically thereafter) then propagates them
-#              using SAM3's memory-attention tracking. Produces multi-frame
-#              tracks with polygon masks.
-#              Set the text_query parameter to describe the objects to find.
+# Description: Detect fish in each frame using SAM3's built-in text-prompted
+#              detection. Produces per-frame detections with polygon masks.
 # =============================================================================
 
 config _pipeline:_edge
@@ -32,21 +28,20 @@ process ensure_rgb
 connect from downsampler.output_1
         to   ensure_rgb.image
 
-# ========================= EMPTY DETECTION SOURCE ============================
-include common_empty_tracker.pipe
+# ================================= DETECTOR ==================================
 
-# ================================= TRACKER ===================================
-
-process tracker
+process detector
   :: refine_tracks
   :refiner:type                                sam3
 
   block refiner:sam3
-    :grounding_model_id                        none
+    relativepath grounding_model_id =          models/sam3_grnd_dino_tiny
     :device                                    cuda
-    :text_query                                mammal, bird, fish, reptile, amphibian, invertebrate
+    :text_query                                fish
+    :detection_threshold                       0.15
+    :text_threshold                            0.15
     :min_mask_area                             10
-    :resegment_existing                        true
+    :resegment_existing                        false
     :add_new_objects                           true
     :filter_by_quality                         true
     :adjust_boxes                              true
@@ -54,23 +49,19 @@ process tracker
     :output_type                               polygon
     :polygon_simplification                    0.005
     :num_points                                5
-    :propagate_tracked                         true
-    :reinit_interval                           10
-    :video_detection_threshold                 0.3
+    :propagate_tracked                         false
     relativepath sam_model_id =                models/sam3_weights.pt
     relativepath model_config =                models/sam3_config.json
   endblock
 
 connect from ensure_rgb.image
-        to   tracker.image
+        to   detector.image
 connect from downsampler.timestamp
-        to   tracker.timestamp
-connect from empty_tracker.object_track_set
-        to   tracker.object_track_set
+        to   detector.timestamp
 # =============================== OUTPUT WRITER ===============================
 process track_writer
   :: write_object_track
-  :file_name                                   computed_tracks.csv
+  :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:mask_to_poly_points        30
 
@@ -78,7 +69,7 @@ connect from downsampler.output_2
         to   track_writer.image_file_name
 connect from downsampler.timestamp
         to   track_writer.timestamp
-connect from tracker.object_track_set
+connect from detector.object_track_set
         to   track_writer.object_track_set
 
 # -- end of file --

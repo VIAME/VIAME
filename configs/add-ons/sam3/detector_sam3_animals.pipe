@@ -38,7 +38,7 @@ process detector
   block refiner:sam3
     relativepath grounding_model_id =          models/sam3_grnd_dino_tiny
     :device                                    cuda
-    :text_query                                object, animal, vehicle, person
+    :text_query                                mammal, bird, fish, reptile, amphibian, invertebrate
     :detection_threshold                       0.15
     :text_threshold                            0.15
     :min_mask_area                             10
