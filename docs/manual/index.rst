@@ -142,19 +142,19 @@ Illumination Normalization and Color Correction
 Detector and Tracker Evaluation
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
-   :width: 29%
+   :width: 20%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
-   :width: 29%
+   :width: 17.5%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
-   :width: 29%
+   :width: 20%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
-   :width: 29%
+   :width: 20%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 
 .. |br| raw:: html
