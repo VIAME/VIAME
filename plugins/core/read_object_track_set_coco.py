@@ -3,12 +3,18 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 """
-Read object tracks from COCO-format JSON files.
+Read object tracks from COCO/kwcoco-format JSON files.
 
 Supports standard COCO annotations with an optional ``track_id`` field
 on each annotation and optional top-level ``videos`` and ``tracks``
 tables.  Annotations without a ``track_id`` are each placed into their
 own single-state track.
+
+Additional kwcoco features supported:
+- Segmentation: single polygon, multi-polygon, exterior/interiors,
+  and RLE masks
+- Keypoints: COCO flat, kwcoco dict-list, kwcoco column formats
+- Arbitrary per-annotation attributes (round-tripped as JSON notes)
 
 Two read modes are supported (configured via ``batch_load``):
 - **batch** (default): the first ``read_set`` call returns every track
@@ -21,6 +27,8 @@ import json
 
 from kwiver.vital.algo import ReadObjectTrackSet
 import kwiver.vital.types as vt
+
+from viame.core.utilities_coco import annotation_to_detection
 
 
 class ReadObjectTrackSetCoco(ReadObjectTrackSet):
@@ -128,6 +136,7 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
         # Build image info lookup: image_id -> (frame_index, timestamp)
         # Use frame_index if present, otherwise fall back to image id
         image_info = {}
+        image_dims = {}
         for im in data.get('images', []):
             if filter_video_id is not None:
                 if im.get('video_id') != filter_video_id:
@@ -136,6 +145,16 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
             frame_index = im.get('frame_index', img_id)
             timestamp = im.get('timestamp', None)
             image_info[img_id] = (frame_index, timestamp)
+            w, h = im.get('width'), im.get('height')
+            if w and h:
+                image_dims[img_id] = (w, h)
+
+        # Keypoint category names for decoding COCO flat-format keypoints
+        kp_cat_names = None
+        kp_cats = data.get('keypoint_categories', [])
+        if kp_cats:
+            kp_cats_sorted = sorted(kp_cats, key=lambda c: c['id'])
+            kp_cat_names = [c['name'] for c in kp_cats_sorted]
 
         # Group annotations by track_id; annotations without track_id
         # get a unique synthetic track id each.
@@ -167,27 +186,10 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
             trk = vt.Track(id=int(tid))
 
             for frame_index, timestamp, ann in states:
-                x, y, w, h = ann['bbox']
-                score = ann.get('score', 1.0)
-
-                dot = None
-                if 'category_id' in ann and ann['category_id'] in categories:
-                    dot = vt.DetectedObjectType(
-                        categories[ann['category_id']], score)
-
-                det = vt.DetectedObject(
-                    bbox=vt.BoundingBoxD(x, y, x + w, y + h),
-                    confidence=score,
-                )
-                if dot is not None:
-                    det.type = dot
-
-                if 'segmentation' in ann:
-                    seg = ann['segmentation']
-                    if isinstance(seg, list) and len(seg) == 1:
-                        seg = seg[0]
-                    if isinstance(seg, list) and len(seg) % 2 == 0:
-                        det.set_flattened_polygon(seg)
+                dims = image_dims.get(ann.get('image_id'))
+                det = annotation_to_detection(
+                    ann, categories, image_dims=dims,
+                    kp_cat_names=kp_cat_names)
 
                 if timestamp is not None:
                     time_usec = int(timestamp * 1e6)

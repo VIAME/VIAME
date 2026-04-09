@@ -3,12 +3,15 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 """
-Write object tracks to COCO-format JSON files.
+Write object tracks to COCO/kwcoco-format JSON files.
 
 Produces a COCO annotation format with top-level ``videos`` and
 ``tracks`` tables and per-annotation ``track_id`` fields so that
 per-frame detections belonging to the same object can be linked
 across time.
+
+Supports segmentation masks (RLE), keypoints, and arbitrary
+per-annotation attributes.
 """
 
 from kwiver.vital.algo import WriteObjectTrackSet

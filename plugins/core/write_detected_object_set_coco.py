@@ -3,13 +3,14 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 """
-Write detections to COCO-format JSON files.
+Write detections to COCO/kwcoco-format JSON files.
 
-The COCO format is a widely used annotation format that contains:
-- info: metadata about the dataset
-- categories: list of category definitions with 'id' and 'name'
-- images: list of image definitions with 'id' and 'file_name'
-- annotations: list of annotations with 'id', 'image_id', 'category_id', 'bbox', 'score', and optionally 'segmentation'
+Supports:
+- Segmentation masks (written as RLE) and single polygons
+- Keypoints (written in kwcoco dict-list format with auto-generated
+  keypoint_categories table)
+- Arbitrary per-annotation attributes (round-tripped from
+  DetectedObject notes via JSON)
 """
 
 from kwiver.vital.algo import DetectedObjectSetOutput
@@ -23,15 +24,13 @@ from viame.core.utilities_coco import (
 
 class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
     """
-    COCO-formatted output for DetectedObjectSets.
+    COCO/kwcoco-formatted output for DetectedObjectSets.
 
-    Writes detections to a JSON file in COCO format with:
-    - info: creation metadata
-    - categories: list of {id, name} category definitions
-    - images: list of {id, file_name} image definitions
-    - annotations: list of {id, image_id, category_id, bbox, score, segmentation?}
-
-    The bbox is written in [x, y, width, height] format.
+    Writes detections to a JSON file with support for:
+    - bbox in [x, y, width, height] format
+    - Segmentation masks (as RLE) or single polygons
+    - Keypoints (kwcoco dict-list format, with keypoint_categories)
+    - Arbitrary annotation attributes (from DetectedObject notes)
     """
 
     # Kept for backwards compatibility — now delegates to the shared
