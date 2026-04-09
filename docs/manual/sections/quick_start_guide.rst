@@ -12,11 +12,13 @@ Important Links
 ***************
 
 - **Main website:** https://www.viametoolkit.org/
+- **Manual:** https://viame.readthedocs.io/en/latest/
 - **GitHub:** https://github.com/VIAME/VIAME
-- **Discussion forum:** https://github.com/VIAME/VIAME/discussions
+- **Bug reporting:** https://github.com/VIAME/VIAME/issues, https://github.com/Kitware/DIVE/issues
+- **Additional Discussion:** https://discourse.kitware.com/c/viame-dive
 - **Tutorial videos:** https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw
-- **Bug reporting:** https://github.com/VIAME/VIAME/issues, https://github.com/VIAME/DIVE/issues
-- **All documentation:** https://viame.readthedocs.io/en/latest/
+- **Additional Help Contact:** viame-web@kitware.com
+
 
 There are 5 types of documentation: this quick-start guide, tutorial videos, user forums,
 example readmes, and the full manual. Installers (pre-built binaries), docker images, and
