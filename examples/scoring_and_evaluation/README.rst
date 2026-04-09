@@ -43,11 +43,11 @@ PRC and Confusion Matrices
 |prc_img| |conf_img|
 
 .. |prc_img| image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
-   :width: 45%
+   :width: 30%
    :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
 
 .. |conf_img| image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
-   :width: 45%
+   :width: 21%
    :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
 
 Scripts:
@@ -92,11 +92,11 @@ misclassifications between categories. The matrix header reports:
 |map_img| |roc_img|
 
 .. |map_img| image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
-   :width: 45%
+   :width: 30%
    :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
 
 .. |roc_img| image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
-   :width: 45%
+   :width: 30%
    :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
 
 **Metrics Table:**
