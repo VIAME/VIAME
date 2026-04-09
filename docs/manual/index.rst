@@ -80,25 +80,25 @@ There are a number of core capapbilities within the software, click on each of t
 Object Detection and Tracking
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/many_scallop_detections_gui.png
-   :width: 25%
+   :width: 30%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2020/09/Capabilities_Object_Detection.png
-   :width: 20%
+   :width: 27.5%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Text-Query-Result1.jpg
-   :width: 25%
+   :width: 27.5%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_tracking
 
 User Interfaces for Visualization and Detector Model Training
 
 .. image:: https://raw.githubusercontent.com/Kitware/dive/refs/heads/main/docs/images/Banner.png
-   :width: 35%
+   :width: 30%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Point-Segmentation.png
-   :width: 35%
+   :width: 30%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
 Measuring Animal Lengths Using Metadata or Stereo
@@ -118,11 +118,11 @@ Measuring Animal Lengths Using Metadata or Stereo
 Text, Image, Video Search for Rapid Model Generation
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Perform-Text-Query.jpg
-   :width: 25%
+   :width: 30%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_11_initial_results.png
-   :width: 25%
+   :width: 30%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
 Illumination Normalization and Color Correction
