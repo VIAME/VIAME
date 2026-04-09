@@ -7,8 +7,23 @@ Summary
 -------
 
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/scoring-2.png
-   :width: 40%
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
+   :width: 45%
+   :align: center
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
+   :width: 45%
+   :align: center
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
+   :width: 45%
+   :align: center
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
+   :width: 45%
    :align: center
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 

@@ -14,6 +14,30 @@ correction, illumination normalization, and general image contrast enhancement.
 
 .. _Image Enhancement: https://github.com/VIAME/VIAME/blob/master/examples/image_enhancement
 
+*****************************************
+Running Filters via DIVE Desktop
+*****************************************
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Image_Filter_in_DIVE.png
+   :width: 80%
+   :align: center
+   :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Image_Filter_in_DIVE.png
+
+All of the filter and transcode pipelines described in this document can also be run
+through the DIVE Desktop interface (currently desktop only, not the web version). To
+run a filter pipeline from DIVE Desktop:
+
+1. Open your image set or video in DIVE Desktop.
+2. Click the **VIAME Pipelines** button in the upper-right corner.
+3. Select the **FILTERS** or **TRANSCODER** category from the pipeline type list.
+4. Choose the desired pipeline (e.g. ``enhance``, ``debayer and enhance``,
+   ``normalize 16bit``, ``stereo depth map``, ``draw dets``, ``extract chips``, etc.).
+5. The pipeline will run on the loaded data, and the filtered output will be written
+   to the project output directory.
+
+This provides a convenient way to apply enhancement, debayering, format conversion,
+and other filtering operations without needing to use the command line.
+
 ******************
 Build Requirements
 ******************
