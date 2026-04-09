@@ -93,6 +93,10 @@ User Interfaces for Visualization and Detector Model Training
    :width: 35%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Point-Segmentation.png
+   :width: 35%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
+
 Measuring Animal Lengths Using Metadata or Stereo
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/fish_measurement_example.png
