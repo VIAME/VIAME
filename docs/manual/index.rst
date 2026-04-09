@@ -77,15 +77,19 @@ Example Capabilities
 
 There are a number of core capapbilities within the software, click on each of the below images to learn more.
 
-Object Detection
+Object Detection and Tracking
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/many_scallop_detections_gui.png
-   :width: 35%
+   :width: 25%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2020/09/Capabilities_Object_Detection.png
-   :width: 35%
+   :width: 25%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Text-Query-Result1.jpg
+   :width: 25%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/object_tracking
 
 User Interfaces for Visualization and Detector Model Training
 
@@ -111,7 +115,7 @@ Measuring Animal Lengths Using Metadata or Stereo
    :width: 25%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
 
-Image and Video Search for Rapid Model Generation
+Text, Image, Video Search for Rapid Model Generation
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Perform-Text-Query.jpg
    :width: 25%
