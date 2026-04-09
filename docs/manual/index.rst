@@ -84,7 +84,7 @@ Object Detection and Tracking
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2020/09/Capabilities_Object_Detection.png
-   :width: 25%
+   :width: 20%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Text-Query-Result1.jpg
