@@ -101,7 +101,7 @@ User Interfaces for Annotation, Visualization, and Detector Model Training
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Train_From_DIVE.png
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Train_From_Dive.png
    :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
