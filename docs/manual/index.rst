@@ -83,6 +83,10 @@ Object Detection
    :width: 35%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
 
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2020/09/Capabilities_Object_Detection.png
+   :width: 35%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
+
 User Interfaces for Visualization and Detector Model Training
 
 .. image:: https://raw.githubusercontent.com/Kitware/dive/refs/heads/main/docs/images/Banner.png
