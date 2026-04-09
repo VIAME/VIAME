@@ -91,38 +91,42 @@ Object Detection and Tracking
    :width: 27.5%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_tracking
 
-User Interfaces for Visualization and Detector Model Training
+User Interfaces for Annotation, Visualization, and Detector Model Training
 
 .. image:: https://raw.githubusercontent.com/Kitware/dive/refs/heads/main/docs/images/Banner.png
-   :width: 30%
+   :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Point-Segmentation.png
-   :width: 30%
+   :width: 29%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Point-Segmentation.png
+   :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
 Measuring Animal Lengths Using Metadata or Stereo
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/fish_measurement_example.png
-   :width: 25%
+   :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Calibration-Show-Features-On-Success1.jpg
-   :width: 25%
+   :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
 
 .. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Stereo-Seamap-Short1.png
-   :width: 25%
+   :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
 
 Text, Image, Video Search for Rapid Model Generation
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Perform-Text-Query.jpg
-   :width: 30%
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_11_initial_results.png
+   :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
-.. image:: https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_11_initial_results.png
-   :width: 30%
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Perform-Text-Query.jpg
+   :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
 Illumination Normalization and Color Correction
