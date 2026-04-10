@@ -64,6 +64,8 @@ def predict():
     "instances": [
       {
         "input_path": "gs://bucket/video.mp4",
+        "input_paths": ["gs://bucket/left/", "gs://bucket/right/"],
+        "input_images": ["gs://bucket/img1.jpg", "gs://bucket/img2.jpg"],
         "pipeline": "detector_yolo.pipe",
         "settings": { "key": "value" }
       }
@@ -73,6 +75,12 @@ def predict():
       "output_format": "viame_csv"
     }
   }
+
+  Input modes (use one per instance):
+    input_path   - single video, image folder, single image, or image list
+    input_paths  - list of paths for stereo (e.g. [left_dir, right_dir])
+    input_images - list of image file paths (single camera), or list of
+                   lists for stereo (e.g. [[left1, left2], [right1, right2]])
   """
   payload = request.get_json( silent=True )
 
