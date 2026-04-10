@@ -41,6 +41,12 @@ def _is_video( path ):
   return ext in VIDEO_EXTENSIONS
 
 
+def _is_image( path ):
+  """Return True if the path looks like a single image file."""
+  ext = os.path.splitext( path )[1].lstrip( "." ).lower()
+  return ext in IMAGE_EXTENSIONS
+
+
 def _make_image_list( folder, list_path ):
   """Create a newline-delimited image list file from a folder of images."""
   images = sorted(
@@ -50,6 +56,14 @@ def _make_image_list( folder, list_path ):
   with open( list_path, "w" ) as fh:
     for img in images:
       fh.write( os.path.join( folder, img ) + "\n" )
+  return list_path
+
+
+def _make_image_list_from_paths( image_paths, list_path ):
+  """Create a newline-delimited image list file from explicit file paths."""
+  with open( list_path, "w" ) as fh:
+    for img in image_paths:
+      fh.write( img + "\n" )
   return list_path
 
 
@@ -88,10 +102,13 @@ class ProcessHandler:
     """Process one or more inputs through a VIAME pipeline.
 
     Each instance can specify:
-      input_path  - local path or GCS URI to a video or image folder
-      input_paths - list of paths for stereo (e.g. [left, right])
-      pipeline    - pipeline .pipe file to use (optional)
-      settings    - dict of pipeline setting overrides (optional)
+      input_path   - local path or GCS URI to a video, image folder,
+                     single image, or image list file
+      input_paths  - list of paths for stereo (e.g. [left, right])
+      input_images - list of image paths for single camera, or a list
+                     of lists for stereo / multi-camera
+      pipeline     - pipeline .pipe file to use (optional)
+      settings     - dict of pipeline setting overrides (optional)
 
     Parameters (global):
       frame_rate  - target processing frame rate
@@ -133,15 +150,36 @@ class ProcessHandler:
       shutil.rmtree( output_dir )
     os.makedirs( output_dir )
 
-    # Resolve input(s) — single or stereo
+    # Resolve input(s) — single path, stereo paths, or explicit image lists
+    input_images = instance.get( "input_images", [] )
     input_paths = instance.get( "input_paths", [] )
-    if not input_paths:
+
+    if input_images:
+      # input_images can be:
+      #   - a flat list of image paths (single camera)
+      #   - a list of lists of image paths (stereo / multi-camera)
+      if input_images and isinstance( input_images[0], list ):
+        image_groups = input_images
+      else:
+        image_groups = [ input_images ]
+
+      local_inputs = []
+      for gidx, group in enumerate( image_groups ):
+        resolved = [ self._resolve_gcs_path( p ) for p in group ]
+        list_path = os.path.join(
+          self.work_dir, "input_list_{}.txt".format( gidx ) )
+        _make_image_list_from_paths( resolved, list_path )
+        local_inputs.append( list_path )
+
+    elif input_paths:
+      local_inputs = [ self._resolve_gcs_path( p ) for p in input_paths ]
+
+    else:
       single = instance.get( "input_path", "" )
       if not single:
-        return { "error": "No input_path or input_paths specified" }
-      input_paths = [ single ]
+        return { "error": "No input_path, input_paths, or input_images specified" }
+      local_inputs = [ self._resolve_gcs_path( single ) ]
 
-    local_inputs = [ self._resolve_gcs_path( p ) for p in input_paths ]
     num_cameras = len( local_inputs )
 
     # Resolve the pipeline file
@@ -164,6 +202,13 @@ class ProcessHandler:
         list_path = os.path.join(
           self.work_dir, "input_list_{}.txt".format( idx ) )
         _make_image_list( local_input, list_path )
+        cmd += [ "-s", prefix + "video_filename=" + list_path ]
+        cmd += [ "-s", prefix + "video_reader:type=image_list" ]
+      elif _is_image( local_input ):
+        # Single image file — wrap in an image list
+        list_path = os.path.join(
+          self.work_dir, "input_list_{}.txt".format( idx ) )
+        _make_image_list_from_paths( [ local_input ], list_path )
         cmd += [ "-s", prefix + "video_filename=" + list_path ]
         cmd += [ "-s", prefix + "video_reader:type=image_list" ]
       else:
@@ -247,9 +292,17 @@ class ProcessHandler:
           "content": content
         } )
 
+    # Summarize what was processed
+    if input_images:
+      input_summary = input_images
+    elif len( local_inputs ) == 1:
+      input_summary = local_inputs[0]
+    else:
+      input_summary = local_inputs
+
     return {
       "status": "completed",
-      "input": input_paths[0] if num_cameras == 1 else input_paths,
+      "input": input_summary,
       "outputs": outputs
     }
 
