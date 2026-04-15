@@ -250,7 +250,7 @@ void
 measure_objects_process
 ::_init()
 {
-  this->set_data_checking_level( check_valid );
+  this->set_data_checking_level( check_none );
 }
 
 // ----------------------------------------------------------------------------
@@ -292,6 +292,23 @@ measure_objects_process
 // -----------------------------------------------------------------------------
 void
 measure_objects_process
+::_finalize()
+{
+  mark_process_as_complete();
+
+  const sprokit::datum_t dat = sprokit::datum::complete_datum();
+
+  push_datum_to_port_using_trait( object_track_set1, dat );
+  push_datum_to_port_using_trait( object_track_set2, dat );
+  push_datum_to_port_using_trait( timestamp, dat );
+  push_datum_to_port_using_trait( disparity_image, dat );
+  push_datum_to_port_using_trait( rectified_left_image, dat );
+  push_datum_to_port_using_trait( rectified_right_image, dat );
+}
+
+// -----------------------------------------------------------------------------
+void
+measure_objects_process
 ::_step()
 {
   std::vector< kv::object_track_set_sptr > input_tracks;
@@ -299,20 +316,48 @@ measure_objects_process
   kv::image_container_sptr external_disparity;
   kv::timestamp ts;
 
+  // Check for completion on any input port
+  for( auto const& port_name : d->p_port_list )
+  {
+    if( has_input_port_edge( port_name ) )
+    {
+      auto port_info = peek_at_port( port_name );
+
+      if( port_info.datum->type() == sprokit::datum::complete )
+      {
+        _finalize();
+        return;
+      }
+    }
+  }
+
+  if( has_input_port_edge_using_trait( timestamp ) )
+  {
+    auto ts_check = peek_at_port_using_trait( timestamp );
+
+    if( ts_check.datum->type() == sprokit::datum::complete )
+    {
+      _finalize();
+      return;
+    }
+  }
+
+  // Grab timestamp if connected (declared in make_ports, not in p_port_list)
+  if( has_input_port_edge_using_trait( timestamp ) )
+  {
+    ts = grab_from_port_using_trait( timestamp );
+  }
+
   // Grab optional disparity image if connected
   if( has_input_port_edge_using_trait( disparity_image ) )
   {
     external_disparity = grab_from_port_using_trait( disparity_image );
   }
 
-  // Read port names
+  // Read dynamic port names (images and track sets)
   for( auto const& port_name : d->p_port_list )
   {
-    if( port_name == "timestamp" )
-    {
-      ts = grab_from_port_using_trait( timestamp );
-    }
-    else if( port_name.find( "image" ) != std::string::npos )
+    if( port_name.find( "image" ) != std::string::npos )
     {
       input_images.push_back(
         grab_from_port_as< kv::image_container_sptr >( port_name ) );

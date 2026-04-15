@@ -41,6 +41,7 @@ protected:
   virtual void _configure();
   virtual void _step();
   virtual void _init();
+  virtual void _finalize();
 
   void input_port_undefined( port_t const& port ) override;
 
