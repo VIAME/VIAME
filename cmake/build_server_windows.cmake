@@ -39,6 +39,12 @@ add_option("VIAME_BUILD_MAX_THREADS" "5")
 add_option("VIAME_ENABLE_SEAGIS" "ON")
 add_option("SEAGIS_ROOT_DIR" "C:/Program Files/SeaGIS")
 
+# Always enable the VIAME test suite so build_server_windows.bat can run
+# the CRITICAL ctest set after build. Test sources are referenced via
+# CMAKE_CURRENT_SOURCE_DIR and are not installed; the only side effect on
+# the packaged zip is ~1.5 MB of pytest + deps under site-packages.
+add_option("VIAME_ENABLE_TESTS:BOOL" "ON")
+
 # Finalize OPTIONS variable
 finalize_options()
 

@@ -168,6 +168,41 @@ IF ERRORLEVEL 1 (
     EXIT /B 1
 )
 
+REM --------------------------------------------------------------------------
+REM Run CRITICAL CTest tests against the build folder. If any CRITICAL test
+REM fails, rename the produced zip to VIAME-BROKEN.zip so downstream
+REM consumers can detect the broken build.
+REM --------------------------------------------------------------------------
+
+ECHO.
+ECHO ========================================
+ECHO Running CRITICAL tests
+ECHO ========================================
+ECHO.
+
+PUSHD "%VIAME_BUILD_DIR%"
+"%INSTALL_DIR_CMAKE%\bin\ctest.exe" -L CRITICAL -C Release --output-on-failure
+SET "VIAME_CRITICAL_TEST_RESULT=!ERRORLEVEL!"
+POPD
+
+IF NOT "!VIAME_CRITICAL_TEST_RESULT!"=="0" (
+    ECHO.
+    ECHO ============================================================
+    ECHO CRITICAL tests FAILED ^(ctest exit code !VIAME_CRITICAL_TEST_RESULT!^)
+    ECHO Renaming zip to VIAME-BROKEN.zip
+    ECHO ============================================================
+    IF EXIST "%VIAME_BUILD_DIR%\VIAME-BROKEN.zip" DEL /Q "%VIAME_BUILD_DIR%\VIAME-BROKEN.zip"
+    IF EXIST "%VIAME_BUILD_DIR%\%OUTPUT_FILE%" (
+        MOVE /Y "%VIAME_BUILD_DIR%\%OUTPUT_FILE%" "%VIAME_BUILD_DIR%\VIAME-BROKEN.zip"
+        SET "OUTPUT_FILE=VIAME-BROKEN.zip"
+    )
+) ELSE (
+    ECHO.
+    ECHO ============================================================
+    ECHO All CRITICAL tests PASSED
+    ECHO ============================================================
+)
+
 ECHO.
 ECHO ========================================
 ECHO Build Completed Successfully
