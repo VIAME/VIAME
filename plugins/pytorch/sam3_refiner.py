@@ -451,53 +451,75 @@ class SAM3Refiner(RefineTracks):
         Returns results keyed by (obj_id, local_frame_idx).
         """
         import torch
+        import contextlib
 
         torch.cuda.empty_cache()
 
-        state = self._video_predictor.init_state(
-            pil_frames, offload_video_to_cpu=True,
-        )
+        # Build inference context: inference_mode + fp16 autocast + SDPA
+        # fallback for pre-Ampere GPUs (e.g. Turing RTX 5000).  The SAM 3.1
+        # adapter already wraps calls this way, but the raw SAM 3.0 video
+        # predictor does not.  Running in fp32 without this causes OOM on
+        # 16 GB GPUs even with small frame counts.
+        cm = contextlib.ExitStack()
+        cm.enter_context(torch.inference_mode())
+        try:
+            cm.enter_context(get_autocast_context(
+                str(self._model_manager.device)))
+        except Exception:
+            pass
+        try:
+            from torch.nn.attention import sdpa_kernel, SDPBackend
+            cm.enter_context(sdpa_kernel(
+                [SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION]
+            ))
+        except Exception:
+            pass
 
-        # Add box prompts (from input seed tracks)
-        for frame_idx, prompts in frame_prompts.items():
-            for obj_id, box_rel_xywh in prompts:
+        with cm:
+            state = self._video_predictor.init_state(
+                pil_frames, offload_video_to_cpu=True,
+            )
+
+            # Add box prompts (from input seed tracks)
+            for frame_idx, prompts in frame_prompts.items():
+                for obj_id, box_rel_xywh in prompts:
+                    self._video_predictor.add_prompt(
+                        state,
+                        frame_idx=frame_idx,
+                        boxes_xywh=[box_rel_xywh],
+                        box_labels=[1],
+                        obj_id=obj_id,
+                    )
+
+            # Add text prompt (only once — it applies globally)
+            for frame_idx, text_query in text_prompt_frames.items():
                 self._video_predictor.add_prompt(
                     state,
                     frame_idx=frame_idx,
-                    boxes_xywh=[box_rel_xywh],
-                    box_labels=[1],
-                    obj_id=obj_id,
+                    text_str=text_query,
                 )
+                break  # only add once since add_prompt resets state
 
-        # Add text prompt (only once — it applies globally)
-        for frame_idx, text_query in text_prompt_frames.items():
-            self._video_predictor.add_prompt(
-                state,
-                frame_idx=frame_idx,
-                text_str=text_query,
-            )
-            break  # only add once since add_prompt resets state
+            # Suppress tqdm progress bars from SAM3's propagation
+            import tqdm
+            _orig_init = tqdm.tqdm.__init__
+            def _quiet_init(self_tqdm, *args, **kwargs):
+                kwargs['disable'] = True
+                _orig_init(self_tqdm, *args, **kwargs)
+            tqdm.tqdm.__init__ = _quiet_init
 
-        # Suppress tqdm progress bars from SAM3's propagation
-        import tqdm
-        _orig_init = tqdm.tqdm.__init__
-        def _quiet_init(self_tqdm, *args, **kwargs):
-            kwargs['disable'] = True
-            _orig_init(self_tqdm, *args, **kwargs)
-        tqdm.tqdm.__init__ = _quiet_init
+            try:
+                results = {}
+                for frame_idx, frame_results in self._video_predictor.propagate_in_video(state):
+                    self._collect_frame_results(results, frame_idx, frame_results)
+            finally:
+                tqdm.tqdm.__init__ = _orig_init
 
-        try:
-            results = {}
-            for frame_idx, frame_results in self._video_predictor.propagate_in_video(state):
-                self._collect_frame_results(results, frame_idx, frame_results)
-        finally:
-            tqdm.tqdm.__init__ = _orig_init
-
-        # Free video state
-        try:
-            self._video_predictor.reset_state(state)
-        except Exception:
-            pass
+            # Free video state
+            try:
+                self._video_predictor.reset_state(state)
+            except Exception:
+                pass
 
         return results
 

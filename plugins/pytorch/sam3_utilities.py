@@ -134,7 +134,17 @@ def detect_sam3_version(checkpoint_path: Optional[str] = None,
                 has_detector_prefix = any(k.startswith('detector.') for k in ckpt)
                 has_tracker_prefix = any(k.startswith('tracker.') for k in ckpt)
                 if has_detector_prefix and has_tracker_prefix:
-                    return 'sam3.1'
+                    # Both 3.0 and 3.1 have detector./tracker. prefixes.
+                    # 3.1 multiplex wraps the tracker in a PredictorWrapper,
+                    # adding a .model. level: tracker.model.backbone.* etc.
+                    # 3.0 has tracker.backbone.* directly (no .model. level).
+                    has_wrapper = any(
+                        k.startswith('tracker.model.') for k in ckpt
+                    )
+                    if has_wrapper:
+                        return 'sam3.1'
+                    else:
+                        return 'sam3'
         except Exception:
             pass
 

@@ -120,7 +120,9 @@ def get_autocast_context(device):
     """
     Get the appropriate autocast context for the given device.
 
-    For CUDA devices, returns a torch.autocast context with bfloat16 dtype.
+    For CUDA devices, returns a torch.autocast context with float16 or
+    bfloat16 depending on GPU capability.  Ampere+ (compute cap 8.0+)
+    uses bfloat16; older GPUs (Turing, etc.) use float16.
     For other devices (CPU, etc.), returns a null context.
 
     Args:
@@ -142,7 +144,13 @@ def get_autocast_context(device):
         device_type = str(device).split(':')[0]
 
     if device_type == 'cuda':
-        return torch.autocast(device_type, dtype=torch.bfloat16)
+        # Use bfloat16 on Ampere+ GPUs, float16 on older GPUs (Turing etc.)
+        try:
+            cap = torch.cuda.get_device_capability(0)
+            dtype = torch.bfloat16 if cap[0] >= 8 else torch.float16
+        except Exception:
+            dtype = torch.float16
+        return torch.autocast(device_type, dtype=dtype)
     else:
         return contextlib.nullcontext()
 
