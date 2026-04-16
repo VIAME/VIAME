@@ -1,0 +1,41 @@
+FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu22.04 AS builder
+
+ENV CUDNN_VERSION=9.10.2.21
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
+RUN apt-get update && apt-get install -y --no-install-recommends --allow-change-held-packages \
+    libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
+    libcudnn9-headers-cuda-12=${CUDNN_VERSION}-1 \
+    libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
+    libcudnn9-static-cuda-12=${CUDNN_VERSION}-1 \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /viame
+
+COPY . .
+
+RUN cd cmake && \
+    chmod +x build_server_docker_web_no_build_torch.sh && \
+    set -e && \
+    ./build_server_docker_web_no_build_torch.sh
+
+FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu22.04
+
+ARG CUDNN_VERSION=9.10.2.21
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    --allow-change-held-packages \
+    wget tar openssl curl bzip2 gfortran libharfbuzz0b \
+    python3-pip python-is-python3 \
+    libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && python -m pip install numpy==2.0.2
+
+COPY --from=builder /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcupti.so* /usr/local/cuda/lib64/
+COPY --from=builder /opt/noaa/viame /opt/noaa/viame
+
+RUN ldconfig
+ENV PATH=/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
