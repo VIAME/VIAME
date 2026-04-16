@@ -870,6 +870,54 @@ restore_linux_desktop_install() {
   echo "Development folders restored"
 }
 
+# Run CRITICAL CTest tests against the build folder.
+# Returns 0 if all pass, non-zero otherwise.
+# Arguments:
+#   $1 = build directory (default: current directory)
+#   $2 = install directory (default: build_dir/install)
+run_critical_tests() {
+  local build_dir="${1:-.}"
+  local install_dir="${2:-$build_dir/install}"
+
+  echo ""
+  echo "========================================"
+  echo "Running CRITICAL tests"
+  echo "========================================"
+  echo ""
+
+  export LD_LIBRARY_PATH="$install_dir/lib:${LD_LIBRARY_PATH:-}"
+
+  local test_result=0
+  ctest --test-dir "$build_dir" -L CRITICAL -C Release --output-on-failure || test_result=$?
+
+  if [ "$test_result" -ne 0 ]; then
+    echo ""
+    echo "============================================================"
+    echo "CRITICAL tests FAILED (ctest exit code $test_result)"
+    echo "============================================================"
+  else
+    echo ""
+    echo "============================================================"
+    echo "All CRITICAL tests PASSED"
+    echo "============================================================"
+  fi
+
+  return $test_result
+}
+
+# Rename a tarball to VIAME-BROKEN on critical test failure.
+# Arguments:
+#   $1 = original tarball path
+rename_tarball_broken() {
+  local tarball="$1"
+  local broken_tarball
+  broken_tarball="$(dirname "$tarball")/VIAME-BROKEN.tar.gz"
+
+  echo "Renaming tarball to VIAME-BROKEN.tar.gz"
+  rm -f "$broken_tarball" 2>/dev/null || true
+  mv "$tarball" "$broken_tarball"
+}
+
 # Create tarball of install directory
 # Arguments:
 #   $1 = version string

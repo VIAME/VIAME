@@ -180,6 +180,12 @@ ECHO Running CRITICAL tests
 ECHO ========================================
 ECHO.
 
+REM Add VIAME install bin and the plugins build dir to PATH so the C++
+REM gtest_discover_tests probe scripts can load viame_core.dll, kwiver
+REM vital DLLs, etc. Without this, ctest's discovery step fails with
+REM 0xc0000135 (STATUS_DLL_NOT_FOUND) before any test actually runs.
+SET "PATH=%VIAME_INSTALL_DIR%\bin;C:\tmp\vm1\bin\Release;%PATH%"
+
 PUSHD "%VIAME_BUILD_DIR%"
 "%INSTALL_DIR_CMAKE%\bin\ctest.exe" -L CRITICAL -C Release --output-on-failure
 SET "VIAME_CRITICAL_TEST_RESULT=!ERRORLEVEL!"
