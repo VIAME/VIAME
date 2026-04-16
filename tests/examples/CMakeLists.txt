@@ -263,8 +263,6 @@ if( VIAME_ENABLE_PYTHON )
     TestTrainNetharnCfrnnFromViameCsv
     object_detector_training
   )
-  set_tests_properties( viame_examples:train_netharn_cfrnn_from_viame_csv
-    PROPERTIES TIMEOUT 900 )
   add_example_script_test(
     viame_examples:train_netharn_rf_detr_16bit
     test_16bit_normalization.py
