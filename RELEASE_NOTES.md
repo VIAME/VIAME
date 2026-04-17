@@ -1,3 +1,14 @@
+v0.22.3 - 4/20/2026
+===================
+
+
+-Add support for SAM3.1
+
+
+-MIT-YOLO training and inference improvements
+
+
+
 v0.22.2 - 3/24/2026
 ===================
 
