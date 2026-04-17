@@ -73,6 +73,10 @@ REM --------------------------------------------------------------------------
 REM Perform Actual Build
 REM --------------------------------------------------------------------------
 
+ECHO.
+ECHO [%DATE% %TIME%] Starting VIAME build...
+ECHO.
+
 REM This build proceedure currently requires making TMP
 REM directories at C:\tmp to get around paths which
 REM sometimes become too long for windows.
@@ -88,14 +92,19 @@ IF "%1"=="true" (
   IF EXIST C:\tmp\vm1 rmdir /s /q C:\tmp\vm1
 )
 
+ECHO [%DATE% %TIME%] Updating submodules...
 git config --global core.longpaths true
 git submodule update --init --recursive
+ECHO [%DATE% %TIME%] Submodules updated
 
 REM Generate CTest dashboard file
 CALL %~dp0build_common_functions.bat ^
     :GenerateCTestDashboard ^
     build_server_windows.cmake ^
     ctest_build_steps.cmake %VIAME_SOURCE_DIR%
+
+ECHO [%DATE% %TIME%] Starting CMake configure and build via CTest...
+ECHO.
 
 "%INSTALL_DIR_CMAKE%\bin\ctest.exe" ^
     -S %VIAME_SOURCE_DIR%\cmake\ctest_build_steps.cmake -VV
@@ -109,6 +118,8 @@ IF %ERRORLEVEL% NEQ 0 (
     ECHO.
 )
 
+ECHO [%DATE% %TIME%] CMake build phase complete
+
 REM Check if build actually completed
 IF NOT EXIST "%VIAME_INSTALL_DIR%\setup_viame.bat" (
     ECHO.
@@ -121,7 +132,7 @@ IF NOT EXIST "%VIAME_INSTALL_DIR%\setup_viame.bat" (
 
 ECHO.
 ECHO ==========================================================
-ECHO Build completed, proceeding with final install steps...
+ECHO [%DATE% %TIME%] Build completed, proceeding with final install steps...
 ECHO ==========================================================
 ECHO.
 
@@ -176,7 +187,7 @@ REM --------------------------------------------------------------------------
 
 ECHO.
 ECHO ========================================
-ECHO Running CRITICAL tests
+ECHO Running CRITICAL tests [%DATE% %TIME%]
 ECHO ========================================
 ECHO.
 
@@ -186,17 +197,34 @@ REM vital DLLs, etc. Without this, ctest's discovery step fails with
 REM 0xc0000135 (STATUS_DLL_NOT_FOUND) before any test actually runs.
 SET "PATH=%VIAME_INSTALL_DIR%\bin;C:\tmp\vm1\bin\Release;%PATH%"
 
+REM First list which tests will run
 PUSHD "%VIAME_BUILD_DIR%"
+ECHO CRITICAL tests to run:
+"%INSTALL_DIR_CMAKE%\bin\ctest.exe" -N -L CRITICAL -C Release 2>NUL | FINDSTR /C:"Test #"
+ECHO.
+
+REM Run the tests with verbose output
 "%INSTALL_DIR_CMAKE%\bin\ctest.exe" -L CRITICAL -C Release --output-on-failure
 SET "VIAME_CRITICAL_TEST_RESULT=!ERRORLEVEL!"
 POPD
 
+ECHO.
+ECHO ============================================================
+ECHO CRITICAL Test Summary [%DATE% %TIME%]
+ECHO ============================================================
+
 IF NOT "!VIAME_CRITICAL_TEST_RESULT!"=="0" (
     ECHO.
-    ECHO ============================================================
-    ECHO CRITICAL tests FAILED ^(ctest exit code !VIAME_CRITICAL_TEST_RESULT!^)
+    ECHO ************************************************************
+    ECHO * CRITICAL TESTS FAILED ^(ctest exit code !VIAME_CRITICAL_TEST_RESULT!^)
+    ECHO ************************************************************
+    ECHO.
+    ECHO Failed tests:
+    IF EXIST "%VIAME_BUILD_DIR%\Testing\Temporary\LastTest.log" (
+        FINDSTR /C:"FAILED" "%VIAME_BUILD_DIR%\Testing\Temporary\LastTest.log" 2>NUL
+    )
+    ECHO.
     ECHO Renaming zip to VIAME-BROKEN.zip
-    ECHO ============================================================
     IF EXIST "%VIAME_BUILD_DIR%\VIAME-BROKEN.zip" DEL /Q "%VIAME_BUILD_DIR%\VIAME-BROKEN.zip"
     IF EXIST "%VIAME_BUILD_DIR%\%OUTPUT_FILE%" (
         MOVE /Y "%VIAME_BUILD_DIR%\%OUTPUT_FILE%" "%VIAME_BUILD_DIR%\VIAME-BROKEN.zip"
@@ -204,14 +232,12 @@ IF NOT "!VIAME_CRITICAL_TEST_RESULT!"=="0" (
     )
 ) ELSE (
     ECHO.
-    ECHO ============================================================
     ECHO All CRITICAL tests PASSED
-    ECHO ============================================================
 )
 
 ECHO.
 ECHO ========================================
-ECHO Build Completed Successfully
+ECHO Build Completed [%DATE% %TIME%]
 ECHO ========================================
 ECHO Output: %VIAME_BUILD_DIR%\%OUTPUT_FILE%
 ECHO.
