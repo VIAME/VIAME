@@ -2,6 +2,8 @@
 # Title: Generate empty per-frame labels for the entire frame
 #
 # Description: Utility pipeline for data processing operations.
+# Input: IMAGE
+# Output: FULL-SIZE-BBOX
 # =============================================================================
 
 config _pipeline:_edge
@@ -23,7 +25,7 @@ connect from downsampler.output_1
 
 process full_frame_tracker
   :: detect_shot_breaks
-  :fixed_frame_count                           10
+  :fixed_frame_count                           10  # DIVE_PARAM["Frame count", strictly_positive_int]
 
 connect from downsampler.timestamp
         to   full_frame_tracker.timestamp

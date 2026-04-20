@@ -3,6 +3,8 @@
 #
 # Description: Adds segmentation masks to existing detections using SAM3.
 #              This pipeline replaces existing masks with SAM3-generated masks.
+# Input: BBOX
+# Output: MASK
 # =============================================================================
 
 config _pipeline:_edge
@@ -50,7 +52,7 @@ process detection_refiner
     :chip_step_height                          1000
 
     :refiner:type                              sam3
-    :refiner:sam3:overwrite_existing           true
+    :refiner:sam3:overwrite_existing           true  # DIVE_PARAM["Replace", bool]
     :refiner:sam3:output_type                  polygon
     :refiner:sam3:polygon_simplification       0.01
     relativepath refiner:sam3:sam_model_id =   models/sam3_weights.pt

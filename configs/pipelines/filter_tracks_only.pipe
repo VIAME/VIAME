@@ -2,6 +2,8 @@
 # Title: Reads image from an arbitrary input source then dumps them out again
 #
 # Description: Applies filtering operations to input data.
+# Input: IMAGE
+# Output: IMAGE
 # =============================================================================
 
 config _pipeline:_edge
@@ -80,7 +82,7 @@ connect from track_reader.object_track_set
 
 process image_writer
   :: image_writer
-  :file_name_template                          frame%06d.jpg
+  :file_name_template                          frame%06d.jpg  # DIVE_PARAM["Filename template", string]
   :image_writer:type                           vxl
 
 connect from downsampler2.original_timestamp

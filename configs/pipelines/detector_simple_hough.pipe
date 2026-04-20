@@ -3,6 +3,8 @@
 #
 # Description: Simple hough transform example detector Outputs to
 # computed_detections.csv.
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================
@@ -32,12 +34,12 @@ connect from downsampler.output_1
 process detector
   :: image_object_detector
   :detector:type                               hough_circle
-  :detector:hough_circle:dp                    1
-  :detector:hough_circle:min_dist              10
-  :detector:hough_circle:param1                200
-  :detector:hough_circle:param2                20
-  :detector:hough_circle:min_radius            0
-  :detector:hough_circle:max_radius            0
+  :detector:hough_circle:dp                    1               # DIVE_PARAM["DP", strictly_positive_float]
+  :detector:hough_circle:min_dist              10              # DIVE_PARAM["Min dist", positive_float]
+  :detector:hough_circle:param1                200             # DIVE_PARAM["Param1", positive_float]
+  :detector:hough_circle:param2                20              # DIVE_PARAM["Param2", positive_float]
+  :detector:hough_circle:min_radius            0               # DIVE_PARAM["Min radius", positive_float]
+  :detector:hough_circle:max_radius            0               # DIVE_PARAM["Max radius", positive_float]
 
 connect from detector_input.image
         to   detector.image
