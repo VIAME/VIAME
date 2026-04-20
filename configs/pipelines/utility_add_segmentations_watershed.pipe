@@ -2,6 +2,8 @@
 # Title: Add automatically generated segmentations via non-DL methods
 #
 # Description: Adds segmentation masks to existing detections.
+# Input: BBOX
+# Output: MASK
 # =============================================================================
 
 config _pipeline:_edge
@@ -31,7 +33,7 @@ connect from downsampler.output_1
 process detection_refiner
   :: refine_detections
   :refiner:type                                      ocv_watershed
-  :refiner:ocv_watershed:seed_scale_factor                     0.2
+  :refiner:ocv_watershed:seed_scale_factor                     0.2  # DIVE_PARAM["Seed scale factor", strictly_positive_float]
 
 connect from ensure_rgb.image
         to   detection_refiner.image

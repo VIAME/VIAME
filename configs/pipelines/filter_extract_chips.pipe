@@ -2,6 +2,8 @@
 # Title: Runs an object detector and dumps chips around detections out of it, for later
 #
 # Description: Extracts image chips around detected objects.
+# Input: IMAGE
+# Output: IMAGE
 # =============================================================================
 
 config _pipeline:_edge
@@ -27,7 +29,7 @@ connect from downsampler.output_2
 process chipper
   :: refine_detections
   :refiner:type                                ocv_write
-  :refiner:ocv_write:pattern                   output/%s-%s+%d_%d_%dx%d.png
+  :refiner:ocv_write:pattern                   output/%s-%s+%d_%d_%dx%d.png  # DIVE_PARAM["Filename template", string]
 
 connect from detection_reader.detected_object_set
         to   chipper.detected_object_set
