@@ -8,6 +8,9 @@ v0.22.3 - 4/20/2026
 -MIT-YOLO training and inference improvements
 
 
+-Fix issue with a portion of newer stereo measurement pipelines on long videos
+
+
 
 v0.22.2 - 3/24/2026
 ===================
