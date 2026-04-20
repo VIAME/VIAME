@@ -12,6 +12,7 @@ These tests verify that example scripts:
 """
 
 import os
+import signal
 import shutil
 import subprocess
 import sys
@@ -206,26 +207,49 @@ def run_example_script(script_path, working_dir=None, timeout=300, env=None,
     if env:
         run_env.update(env)
 
+    # On Windows with shell=True, subprocess.run timeout doesn't reliably
+    # kill the entire process tree. Use Popen with CREATE_NEW_PROCESS_GROUP
+    # and explicit taskkill so that timeout_is_success tests don't hang
+    # until CTest's own timeout fires.
+    creationflags = 0
+    if sys.platform == "win32":
+        creationflags = subprocess.CREATE_NEW_PROCESS_GROUP
+
+    proc = subprocess.Popen(
+        cmd,
+        shell=shell,
+        cwd=working_dir,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        executable=executable,
+        env=run_env,
+        creationflags=creationflags,
+    )
+
     try:
-        result = subprocess.run(
-            cmd,
-            shell=shell,
-            cwd=working_dir,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            executable=executable,
-            env=run_env
+        stdout, stderr = proc.communicate(timeout=timeout)
+        result = subprocess.CompletedProcess(
+            args=cmd, returncode=proc.returncode,
+            stdout=stdout, stderr=stderr,
         )
         return result
-    except subprocess.TimeoutExpired as e:
+    except subprocess.TimeoutExpired:
+        # Kill the entire process tree on Windows; SIGTERM on Linux
+        if sys.platform == "win32":
+            subprocess.call(
+                ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+        else:
+            proc.kill()
+        proc.wait()
+
         if timeout_is_success:
-            # Script ran until timeout - this is considered success
             raise TimeoutSuccess(
                 f"Script {script_path.name} ran for {timeout}s until timeout (success)"
             )
         else:
-            # Re-raise as a regular timeout failure
             raise
 
 

@@ -11,8 +11,9 @@ from test_utilities import get_script_path, assert_script_runs_successfully
 
 CATEGORY = "object_detector_training"
 
-# Timeout for training scripts that we just want to verify start correctly
-TRAINING_TIMEOUT = 15  # seconds
+# Timeout for training scripts that we just want to verify start correctly.
+# Must be long enough for CUDA init + model loading (~60-90s on Windows).
+TRAINING_TIMEOUT = 120  # seconds
 
 
 class TestContinueTrainingCfrnn:
