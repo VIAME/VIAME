@@ -321,7 +321,6 @@ endif()
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_mmdet_cfrnn.conf
-    train_detector_mmdet_cfrnn.habcam.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
@@ -351,7 +350,6 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     train_detector_netharn_cfrnn.grid_only.20ep.conf
     train_detector_netharn_cfrnn.grid_only.40ep.conf
     train_detector_netharn_cfrnn.grid_only.conf
-    train_detector_netharn_cfrnn.habcam.conf
     train_detector_netharn_cfrnn_motion.conf
     train_detector_netharn_cfrnn_special.conf
     train_detector_netharn_cfrnn_wtf.conf
@@ -450,7 +448,6 @@ if( VIAME_ENABLE_WEB_EXCLUDES )
     frame_classifier_svm.pipe
     tracker_project_folder.pipe
     train_detector_netharn_cfrnn.continue.conf
-    train_detector_netharn_cfrnn.habcam.conf
     train_detector_netharn_cfrnn_special.conf
     train_detector_netharn_cfrnn_wtf.conf
     train_frame_classifier_netharn_efficientnet.continue.conf
