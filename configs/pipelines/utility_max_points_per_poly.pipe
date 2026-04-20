@@ -1,7 +1,9 @@
 # =============================================================================
-# Title: Set Input Detections to Contain at Most 25 Output Polygon Points Per Mask
+# Title: Set input Detections to contain at most N output polygon points per mask
 #
 # Description: Utility pipeline for data processing operations.
+# Input: MASK
+# Output: MASK
 # =============================================================================
 
 config _pipeline:_edge
@@ -72,7 +74,7 @@ process detector_writer
   # Type of file to output
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
-  :writer:viame_csv:mask_to_poly_points        10
+  :writer:viame_csv:mask_to_poly_points        10  # DIVE_PARAM["Max points", range_int, 3, 100]
 
 connect from downsampler.output_2
         to   detector_writer.image_file_name

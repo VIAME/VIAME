@@ -2,6 +2,8 @@
 # Title: Pipe file to write out images with annotations drawn on them
 #
 # Description: Applies filtering operations to input data.
+# Input: IMAGE
+# Output: IMAGE
 # =============================================================================
 
 config _pipeline:_edge
@@ -32,7 +34,7 @@ connect from detection_reader.detected_object_set
 
 process image_writer
   :: image_writer
-  :file_name_template                          frame%06d.jpg
+  :file_name_template                          frame%06d.jpg  # DIVE_PARAM["Filename template", string]
   :image_writer:type                           ocv
 
 connect from draw_box.image
