@@ -46,31 +46,53 @@ from viame.pytorch.utilities import (
 _SAM3_SDPA_PATCHED = False
 
 
+def _flash_sdpa_runnable():
+    """Probe whether torch's FLASH_ATTENTION SDPA backend is actually usable.
+
+    Returns True only if a tiny SDPA call runs to completion under an
+    explicit ``sdpa_kernel([FLASH_ATTENTION])`` context.  Returns False for
+    pre-Ampere GPUs, CPU-only builds, and Windows PyTorch wheels that ship
+    without a Flash kernel (where the forced context raises "No available
+    kernel").
+    """
+    try:
+        import torch
+        if not torch.cuda.is_available():
+            return False
+        cap = torch.cuda.get_device_capability(0)
+        if cap[0] < 8:
+            return False
+        from torch.nn.attention import sdpa_kernel, SDPBackend
+        q = torch.randn(1, 2, 8, 16, device='cuda', dtype=torch.float16)
+        with sdpa_kernel([SDPBackend.FLASH_ATTENTION]):
+            torch.nn.functional.scaled_dot_product_attention(q, q, q)
+        return True
+    except Exception:
+        return False
+
+
 def _patch_sam3_sdpa_for_pre_ampere():
     """
     Work around a hard-coded ``sdpa_kernel(SDPBackend.FLASH_ATTENTION)`` in
     ``sam3/model/decoder.py::functional_attention``.
 
-    Flash Attention requires Ampere (compute capability 8.0+).  On older
-    GPUs (e.g. Turing RTX 5000) the forced kernel selection raises
-    ``RuntimeError: No available kernel`` even when callers have set up a
-    fallback via their own ``sdpa_kernel`` context.
+    Flash Attention requires Ampere (compute capability 8.0+) and a torch
+    build that actually includes the Flash kernel.  Pre-Ampere GPUs (e.g.
+    Turing RTX 5000) and Windows PyTorch wheels (which frequently omit
+    Flash) both raise ``RuntimeError: No available kernel`` when the
+    decoder forces Flash, even when callers have set up a fallback via
+    their own ``sdpa_kernel`` context.
 
     This shim replaces ``sam3.model.decoder.sdpa_kernel`` with a no-op
-    context manager on pre-Ampere GPUs, so the decoder falls back to
-    whichever backend the caller (or PyTorch's autoselect) chooses.
-    Ampere+ GPUs keep the original behavior.
+    context manager whenever Flash isn't runnable, so the decoder falls
+    back to whichever backend the caller (or PyTorch's autoselect) chooses.
+    Systems where Flash works keep the original behavior.
     """
     global _SAM3_SDPA_PATCHED
     if _SAM3_SDPA_PATCHED:
         return
     try:
-        import torch
-        if not torch.cuda.is_available():
-            _SAM3_SDPA_PATCHED = True
-            return
-        cap = torch.cuda.get_device_capability(0)
-        if cap[0] >= 8:
+        if _flash_sdpa_runnable():
             _SAM3_SDPA_PATCHED = True
             return
         import contextlib
