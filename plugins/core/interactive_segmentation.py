@@ -572,12 +572,20 @@ class InteractiveSegmentationService:
         self._log("Service shutting down")
 
 
-def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None, device: str = None):
+def load_algorithms_from_config(config_path, plugin_paths: List[str] = None, device: str = None):
     """
-    Load and configure algorithms from a KWIVER config file.
+    Load and configure algorithms from one or more KWIVER config files.
+
+    The segmenter and text query configurations are independent files; pass
+    them both to get both algorithms. If a single config path is given and
+    it does not define ``perform_text_query:type``, a sibling
+    ``interactive_text_query_default.conf`` in the same directory is auto-
+    loaded when present. Later configs in the list override keys from
+    earlier ones.
 
     Args:
-        config_path: Path to the config file
+        config_path: Path to a config file, or a list of paths. Later
+            entries merge on top of earlier ones.
         plugin_paths: Optional list of additional plugin paths to load
         device: Optional device override (cuda, cpu, auto)
 
@@ -596,22 +604,45 @@ def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None
             if os.path.isdir(path):
                 vital_modules.load_module(path)
 
-    # Use KWIVER's native config file reader
-    config_dir = Path(config_path).parent
-    cfg = vital_config.read_config_file(str(config_path))
+    if isinstance(config_path, (str, os.PathLike)):
+        config_paths = [str(config_path)]
+    else:
+        config_paths = [str(p) for p in config_path]
 
-    # Resolve relative paths in config values
-    # Keys that contain path-like values that should be resolved relative to config dir
+    # Auto-discover a sibling interactive_text_query_default.conf when the
+    # caller supplied only one config and that config has no text-query
+    # backend. This keeps the segmenter and text-query config files
+    # mutually independent (neither ``include``s the other) while still
+    # letting "point the service at the segmenter default" bring up both
+    # features when both backends are available.
+    if len(config_paths) == 1:
+        probe = vital_config.read_config_file(config_paths[0])
+        if not probe.has_value("perform_text_query:type"):
+            sibling = Path(config_paths[0]).parent / "interactive_text_query_default.conf"
+            if sibling.exists():
+                config_paths.append(str(sibling))
+
+    cfg = vital_config.read_config_file(config_paths[0])
+    for extra in config_paths[1:]:
+        cfg.merge_config(vital_config.read_config_file(extra))
+
+    # Resolve relative paths in config values. Each key's directory is the
+    # *first* config whose file set that key — we approximate by resolving
+    # against each config dir in order and keeping the first match. This
+    # matters when the segmenter and text query configs live in different
+    # directories (e.g. user supplies one from an add-on and one from core).
+    config_dirs = [Path(p).parent for p in config_paths]
     path_keys = ['checkpoint', 'model_config', 'grounding_model_id', 'cfg', 'weights']
     for key in cfg.available_values():
         for path_key in path_keys:
             if path_key in key:
                 value = cfg.get_value(key)
-                # If it's a relative path, resolve it relative to config directory
                 if value and not os.path.isabs(value) and not value.startswith('$'):
-                    resolved = config_dir / value
-                    if resolved.exists():
-                        cfg.set_value(key, str(resolved))
+                    for d in config_dirs:
+                        resolved = d / value
+                        if resolved.exists():
+                            cfg.set_value(key, str(resolved))
+                            break
 
     # Override device setting if provided
     if device:
@@ -779,8 +810,14 @@ Examples:
     )
     parser.add_argument(
         "--config",
+        action="append",
         default=None,
-        help="Path to KWIVER config file",
+        help="Path to a KWIVER config file. May be specified more than once "
+             "to compose independent files (e.g. segmenter + text query); "
+             "keys in later files override earlier ones. If a single file "
+             "without a perform_text_query section is given, a sibling "
+             "interactive_text_query_default.conf is auto-loaded when "
+             "present.",
     )
     parser.add_argument(
         "--generate-config",
@@ -823,17 +860,19 @@ Examples:
 
     # Auto-detect config if not provided
     if not args.config:
-        args.config = find_viame_config(args.model)
-        if args.config:
-            print(f"[SegmentationService] Using auto-detected config: {args.config}", file=sys.stderr)
+        auto = find_viame_config(args.model)
+        if auto:
+            args.config = [auto]
+            print(f"[SegmentationService] Using auto-detected config: {auto}", file=sys.stderr)
 
     # Require config file
     if not args.config:
         parser.error("--config is required (or use --generate-config to create one)")
 
-    if not Path(args.config).exists():
-        print(f"Error: Config file not found: {args.config}", file=sys.stderr)
-        sys.exit(1)
+    for c in args.config:
+        if not Path(c).exists():
+            print(f"Error: Config file not found: {c}", file=sys.stderr)
+            sys.exit(1)
 
     try:
         # Suppress stdout during initialization to prevent library warnings

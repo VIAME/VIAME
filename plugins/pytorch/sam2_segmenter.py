@@ -59,8 +59,16 @@ class SAM2Segmenter(SegmentViaPoints):
         for key, value in self._config.items():
             setattr(self, "_" + key, value)
 
-        self._init_model()
+        # Model load is deferred to first segment() call. This lets the
+        # interactive service boot without paying for a backend that may
+        # never be invoked (e.g. when the caller only uses text query),
+        # and lets segmentation + text-query plugins be configured with
+        # different checkpoints without loading both up front.
         return True
+
+    def _ensure_model(self):
+        if self._predictor is None:
+            self._init_model()
 
     def check_configuration(self, cfg):
         return True
@@ -112,6 +120,8 @@ class SAM2Segmenter(SegmentViaPoints):
         except ImportError:
             from kwiver.vital.types import BoundingBox as BoundingBoxD
         from kwiver.vital.types.types import ImageContainer, Image
+
+        self._ensure_model()
 
         # Convert image to numpy array
         img_array = image.image().asarray()

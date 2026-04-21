@@ -178,6 +178,7 @@ set( CORE_PIPELINE_FILES
   index_frame.svm.annot_only.pipe
   interactive_segmenter_default.conf
   interactive_segmenter_watershed.conf
+  interactive_text_query_default.conf
   interactive_stereo_default.conf
   interactive_stereo_template.conf
   measurement_from_annotations_default.pipe

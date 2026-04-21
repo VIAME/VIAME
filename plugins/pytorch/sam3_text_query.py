@@ -82,8 +82,17 @@ class SAM3TextQuery(PerformTextQuery):
         for key, value in self._config.items():
             setattr(self, "_" + key, value)
 
-        self._init_model()
+        # Model load is deferred to first perform_query() call. When the
+        # segmentation and text-query plugins share a checkpoint the
+        # SharedSAM3ModelCache still returns a single shared instance —
+        # whichever algorithm is invoked first pays the load cost and the
+        # other picks it up from cache. Deferring also lets the service
+        # start up quickly when text query is configured but unused.
         return True
+
+    def _ensure_model(self):
+        if self._predictor is None:
+            self._init_model()
 
     def check_configuration(self, cfg):
         return True
@@ -285,6 +294,8 @@ class SAM3TextQuery(PerformTextQuery):
         except ImportError:
             from kwiver.vital.types import BoundingBox as BoundingBoxD
         from kwiver.vital.types.types import ImageContainer, Image
+
+        self._ensure_model()
 
         num_images = len(image_containers)
         if timestamps and len(timestamps) != num_images:

@@ -275,125 +275,302 @@ class _Sam3p1ImagePredictorAdapter:
             })
         self._session_id = resp["session_id"]
 
+        # Multiplex's ``_build_sam2_output`` short-circuits to an empty dict
+        # for any frame that has no entry in ``cached_frame_outputs`` — which
+        # is every frame on a fresh image session, since we haven't run any
+        # text-driven detection pass. Without this, the point-based
+        # interactive path (``add_sam2_new_points``) ends up returning an
+        # empty ``obj_id_to_mask`` even after the interactive decoder has
+        # produced a valid mask. Pre-seeding the cache with an empty entry
+        # for frame 0 lets the refinement merge-in path emit the mask.
+        try:
+            state = self._p._all_inference_states[self._session_id]["state"]
+            state.setdefault("cached_frame_outputs", {})
+            state["cached_frame_outputs"].setdefault(0, {})
+        except (AttributeError, KeyError):
+            pass
+
     def predict(self, point_coords=None, point_labels=None, box=None,
                 mask_input=None, multimask_output=False):
+        """
+        SAM2-style interactive prediction on the currently-set image.
+
+        Semantics match the SAM 3.0 / SAM 2.1 image predictor:
+
+        * ``point_coords=[P,2]`` + ``point_labels=[P]`` — all P points belong
+          to a *single* object. Routed through the multiplex's SAM2-style
+          interactive decoder (``add_sam2_new_points`` →
+          ``interactive_sam_mask_decoder``). Returns ``(masks[1,H,W], scores[1])``
+          or ``(masks[3,H,W], scores[3])`` when ``multimask_output=True``
+          (the three slots are the same mask repeated, since the 3.1 multiplex
+          interactive decoder emits a single mask per call).
+
+        * ``box=[4]`` — single box, returns ``(masks[1,H,W], scores[1])``.
+        * ``box=[N,4]`` — N boxes, returns ``(masks[N,1,H,W], scores[N])``.
+          Box prompts go through the multiplex's text-driven visual-prompt path
+          (``_get_visual_prompt``). Output masks are matched back to input
+          boxes by IoU on the returned boxes (the multiplex auto-assigns
+          obj_ids that don't correspond to input order).
+        """
         if self._session_id is None:
             raise RuntimeError(
                 "_Sam3p1ImagePredictorAdapter.predict called before set_image"
             )
         if mask_input is not None:
-            # 3.1 multiplex add_prompt has no low-res-mask prior hook.  This
-            # loses a bit of tracking consistency for the refiner, but the
-            # box prompt still gives a usable mask.
+            # 3.1 multiplex add_prompt has no low-res-mask prior hook, so the
+            # per-frame refiner loses a bit of temporal smoothing — but the
+            # box/point prompts still produce a usable mask.
             pass
 
         H, W = self._orig_hw
-        boxes = None
-        if box is not None:
-            b = np.asarray(box, dtype=np.float32)
-            if b.ndim == 1:
-                b = b[None, :]
-            elif b.ndim == 3:
-                b = b.reshape(-1, 4)
-            # 3.0 predictor accepts absolute xyxy; multiplex expects
-            # *relative* xywh in add_prompt (boxes_xywh).
-            x1 = b[:, 0] / float(W)
-            y1 = b[:, 1] / float(H)
-            x2 = b[:, 2] / float(W)
-            y2 = b[:, 3] / float(H)
-            boxes = np.stack([x1, y1, x2 - x1, y2 - y1], axis=-1).tolist()
 
-        points = None
-        plabels = None
-        if point_coords is not None:
-            p = np.asarray(point_coords, dtype=np.float32)
-            if p.ndim == 1:
-                p = p[None, :]
-            elif p.ndim == 3:
-                p = p.reshape(-1, 2)
-            px = p[:, 0] / float(W)
-            py = p[:, 1] / float(H)
-            points = np.stack([px, py], axis=-1).tolist()
-            if point_labels is None:
-                plabels = [1] * len(points)
-            else:
-                plabels = np.asarray(point_labels, dtype=np.int32).flatten().tolist()
+        has_box = box is not None
+        has_points = point_coords is not None
 
-        # Preserve 3.0 shape convention: a 1-D ``box`` argument yields a 3-D
-        # ``[1, H, W]`` mask (consumers expect ``masks[0]``), while a 2-D
-        # ``box`` / multi-box argument yields a 4-D ``[N, 1, H, W]`` tensor
-        # (consumers iterate ``masks[i, 0]``).
-        single_shot = (
-            box is not None
-            and np.asarray(box).ndim == 1
-            and (point_coords is None or np.asarray(point_coords).ndim == 1)
+        if has_points and not has_box:
+            return self._predict_points(point_coords, point_labels,
+                                        multimask_output)
+        if has_box:
+            return self._predict_boxes(box, multimask_output)
+
+        raise RuntimeError(
+            "_Sam3p1ImagePredictorAdapter.predict requires either "
+            "point_coords or box"
         )
 
-        n_prompts = max(
-            len(boxes) if boxes is not None else 0,
-            len(points) if points is not None else 0,
-            1,
-        )
+    def _predict_points(self, point_coords, point_labels, multimask_output):
+        """
+        Multi-point interactive segmentation: all P points describe a single
+        object, so they go into a single ``add_prompt`` call with one
+        ``obj_id``. The multiplex routes points-with-obj_id to
+        ``add_sam2_new_points``, which drives ``interactive_sam_mask_decoder``
+        with ``sam_point_coords=[1,P,2]`` / ``sam_point_labels=[1,P]``.
+        """
+        H, W = self._orig_hw
+        p = np.asarray(point_coords, dtype=np.float32)
+        if p.ndim == 1:
+            p = p[None, :]
+        elif p.ndim == 3:
+            p = p.reshape(-1, 2)
 
-        all_masks = []
-        for i in range(n_prompts):
-            req = {
-                "type": "add_prompt",
-                "session_id": self._session_id,
-                "frame_index": 0,
-                "obj_id": i + 1,
-                "clear_old_points": True,
-                "clear_old_boxes": True,
-            }
-            if boxes is not None:
-                req["bounding_boxes"] = [boxes[i]]
-                req["bounding_box_labels"] = [1]
-            if points is not None:
-                # One point per object in this simple adapter.
-                req["points"] = [points[i]]
-                req["point_labels"] = [plabels[i]]
-            with self._inference_ctx():
-                resp = self._p.handle_request(req)
-            outputs = resp.get("outputs", {}) if isinstance(resp, dict) else {}
-
-            masks_out = outputs.get("out_binary_masks", None)
-            if masks_out is None:
-                masks_out = np.zeros((1, H, W), dtype=bool)
-            else:
-                if hasattr(masks_out, "cpu"):
-                    masks_out = masks_out.cpu().numpy()
-                masks_out = np.asarray(masks_out).astype(bool)
-                if masks_out.ndim == 2:
-                    masks_out = masks_out[None]
-                # pick the mask corresponding to this obj_id if multiple returned
-                obj_ids = outputs.get("out_obj_ids", None)
-                if obj_ids is not None:
-                    if hasattr(obj_ids, "cpu"):
-                        obj_ids = obj_ids.cpu().numpy()
-                    obj_ids = np.asarray(obj_ids).astype(np.int64).tolist()
-                    target = i + 1
-                    if target in obj_ids:
-                        idx = obj_ids.index(target)
-                        masks_out = masks_out[idx:idx + 1]
-                    else:
-                        masks_out = np.zeros((1, H, W), dtype=bool)
-                else:
-                    masks_out = masks_out[:1]
-
-            all_masks.append(masks_out[0])
-
-        if single_shot:
-            if all_masks:
-                masks = np.stack(all_masks, axis=0)  # [1, H, W]
-            else:
-                masks = np.zeros((1, H, W), dtype=bool)
+        if point_labels is None:
+            labels = [1] * len(p)
         else:
-            if all_masks:
-                masks = np.stack(all_masks, axis=0)[:, None, :, :]  # [N, 1, H, W]
-            else:
-                masks = np.zeros((0, 1, H, W), dtype=bool)
-        scores = np.ones(len(masks), dtype=np.float32)
+            labels = np.asarray(point_labels, dtype=np.int32).flatten().tolist()
+
+        rel_points = np.stack(
+            [p[:, 0] / float(W), p[:, 1] / float(H)], axis=-1
+        ).tolist()
+
+        req = {
+            "type": "add_prompt",
+            "session_id": self._session_id,
+            "frame_index": 0,
+            "obj_id": 1,
+            "points": rel_points,
+            "point_labels": labels,
+            "clear_old_points": True,
+            "clear_old_boxes": True,
+        }
+        with self._inference_ctx():
+            resp = self._p.handle_request(req)
+        outputs = resp.get("outputs", {}) if isinstance(resp, dict) else {}
+
+        mask, score = self._pick_mask_for_obj_id(outputs, target_obj_id=1)
+        if mask is None:
+            mask = np.zeros((H, W), dtype=bool)
+            score = 0.0
+
+        if multimask_output:
+            # The 3.1 multiplex interactive decoder only surfaces a single
+            # best mask per call. Expose it 3x so downstream code that does
+            # ``argmax(scores)`` on a multimask array still selects it.
+            masks = np.stack([mask, mask, mask], axis=0)
+            scores = np.array([score, score, score], dtype=np.float32)
+        else:
+            masks = mask[None]
+            scores = np.array([score], dtype=np.float32)
         return masks, scores, None
+
+    def _predict_boxes(self, box, multimask_output):
+        """
+        Box-prompted segmentation.
+
+        The 3.1 multiplex only routes box prompts through its detector /
+        visual-prompt path (``interactive_sam_prompt_encoder`` hardcodes
+        ``boxes=None``), which means the output ``obj_id``s are detector-
+        assigned and unrelated to input box order. We recover input→output
+        correspondence by IoU-matching the returned ``out_boxes_xywh`` to
+        each input box (greedy highest-IoU match).
+        """
+        H, W = self._orig_hw
+
+        b = np.asarray(box, dtype=np.float32)
+        single_box = b.ndim == 1
+        if single_box:
+            b = b[None, :]
+        elif b.ndim == 3:
+            b = b.reshape(-1, 4)
+        N = int(b.shape[0])
+
+        x1 = b[:, 0] / float(W)
+        y1 = b[:, 1] / float(H)
+        x2 = b[:, 2] / float(W)
+        y2 = b[:, 3] / float(H)
+        rel_boxes_xywh = np.stack([x1, y1, x2 - x1, y2 - y1], axis=-1)
+
+        req = {
+            "type": "add_prompt",
+            "session_id": self._session_id,
+            "frame_index": 0,
+            "bounding_boxes": rel_boxes_xywh.tolist(),
+            "bounding_box_labels": [1] * N,
+            "clear_old_points": True,
+            "clear_old_boxes": True,
+        }
+        with self._inference_ctx():
+            resp = self._p.handle_request(req)
+        outputs = resp.get("outputs", {}) if isinstance(resp, dict) else {}
+
+        out_masks = self._to_numpy(outputs.get("out_binary_masks"))
+        out_boxes_xywh = self._to_numpy(outputs.get("out_boxes_xywh"))
+        out_probs = self._to_numpy(outputs.get("out_probs"))
+
+        if out_masks is None or out_masks.size == 0:
+            out_masks = np.zeros((0, H, W), dtype=bool)
+        else:
+            out_masks = np.asarray(out_masks).astype(bool)
+            if out_masks.ndim == 2:
+                out_masks = out_masks[None]
+
+        M = out_masks.shape[0]
+        match_idx = self._match_boxes_to_inputs(
+            rel_boxes_xywh, out_boxes_xywh, M
+        )
+
+        per_input_masks = []
+        per_input_scores = []
+        for i in range(N):
+            j = match_idx[i]
+            if j < 0 or j >= M:
+                per_input_masks.append(np.zeros((H, W), dtype=bool))
+                per_input_scores.append(0.0)
+            else:
+                per_input_masks.append(out_masks[j])
+                if out_probs is not None and j < len(out_probs):
+                    per_input_scores.append(float(out_probs[j]))
+                else:
+                    per_input_scores.append(1.0)
+
+        stacked = np.stack(per_input_masks, axis=0) if per_input_masks \
+            else np.zeros((0, H, W), dtype=bool)
+
+        if single_box:
+            # SAM 2.x single-box convention: [1, H, W]
+            if multimask_output:
+                masks = np.stack([stacked[0]] * 3, axis=0)
+                scores = np.array([per_input_scores[0]] * 3, dtype=np.float32)
+            else:
+                masks = stacked  # [1, H, W]
+                scores = np.array(per_input_scores, dtype=np.float32)
+        else:
+            # Multi-box SAM 2.x convention: [N, 1, H, W]
+            masks = stacked[:, None, :, :]
+            scores = np.array(per_input_scores, dtype=np.float32)
+
+        return masks, scores, None
+
+    @staticmethod
+    def _to_numpy(x):
+        if x is None:
+            return None
+        if hasattr(x, "cpu"):
+            x = x.cpu().numpy()
+        return np.asarray(x)
+
+    def _pick_mask_for_obj_id(self, outputs, target_obj_id):
+        """Return (mask[H,W], score) for the given obj_id, or (None, None)."""
+        H, W = self._orig_hw
+        masks_out = self._to_numpy(outputs.get("out_binary_masks"))
+        obj_ids = self._to_numpy(outputs.get("out_obj_ids"))
+        probs = self._to_numpy(outputs.get("out_probs"))
+
+        if masks_out is None or masks_out.size == 0:
+            return None, None
+        masks_out = masks_out.astype(bool)
+        if masks_out.ndim == 2:
+            masks_out = masks_out[None]
+
+        if obj_ids is not None:
+            ids = obj_ids.astype(np.int64).tolist()
+            if target_obj_id in ids:
+                idx = ids.index(target_obj_id)
+            else:
+                idx = 0
+        else:
+            idx = 0
+        if idx >= masks_out.shape[0]:
+            return None, None
+        mask = masks_out[idx]
+        if probs is not None and idx < len(probs):
+            score = float(probs[idx])
+        else:
+            score = 1.0
+        return mask, score
+
+    @staticmethod
+    def _match_boxes_to_inputs(input_rel_xywh, output_rel_xywh, out_mask_count):
+        """
+        Greedy IoU matching of output detection boxes to input prompt boxes.
+
+        Returns a list of length ``len(input_rel_xywh)`` where entry ``i`` is
+        the index of the matched output mask, or ``-1`` if no output box
+        overlaps the input.
+        """
+        N = int(input_rel_xywh.shape[0])
+        result = [-1] * N
+
+        if out_mask_count == 0 or output_rel_xywh is None \
+                or output_rel_xywh.size == 0:
+            return result
+
+        out_xywh = np.asarray(output_rel_xywh, dtype=np.float32)
+        if out_xywh.ndim == 1:
+            out_xywh = out_xywh[None, :]
+        M = int(out_xywh.shape[0])
+        # Clip to available masks in case the backend returned more boxes
+        # than masks (shouldn't happen, but be defensive).
+        M = min(M, out_mask_count)
+
+        def _iou_xywh(a, b):
+            ax1, ay1, aw, ah = a
+            bx1, by1, bw, bh = b
+            ax2, ay2 = ax1 + aw, ay1 + ah
+            bx2, by2 = bx1 + bw, by1 + bh
+            ix1, iy1 = max(ax1, bx1), max(ay1, by1)
+            ix2, iy2 = min(ax2, bx2), min(ay2, by2)
+            iw = max(0.0, ix2 - ix1)
+            ih = max(0.0, iy2 - iy1)
+            inter = iw * ih
+            union = aw * ah + bw * bh - inter
+            return inter / union if union > 0.0 else 0.0
+
+        pairs = []
+        for i in range(N):
+            for j in range(M):
+                iou = _iou_xywh(input_rel_xywh[i], out_xywh[j])
+                if iou > 0.0:
+                    pairs.append((iou, i, j))
+        pairs.sort(reverse=True)
+        used_i = set()
+        used_j = set()
+        for iou, i, j in pairs:
+            if i in used_i or j in used_j:
+                continue
+            result[i] = j
+            used_i.add(i)
+            used_j.add(j)
+        return result
 
     def close(self):
         self._close_session()

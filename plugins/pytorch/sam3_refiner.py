@@ -480,25 +480,72 @@ class SAM3Refiner(RefineTracks):
                 pil_frames, offload_video_to_cpu=True,
             )
 
-            # Add box prompts (from input seed tracks)
-            for frame_idx, prompts in frame_prompts.items():
-                for obj_id, box_rel_xywh in prompts:
+            from viame.pytorch.sam3_utilities import _Sam3p1VideoPredictorAdapter
+            is_sam31 = isinstance(self._video_predictor,
+                                  _Sam3p1VideoPredictorAdapter)
+
+            if is_sam31:
+                # SAM 3.1 multiplex ``add_prompt`` unconditionally calls
+                # ``reset_state`` on every invocation (see
+                # ``sam3_multiplex_tracking.py``), so any earlier box/text
+                # prompt is wiped by the next call. Collapse everything into
+                # a single add_prompt on one seed frame: text_str + all
+                # accumulated seed boxes (across all seed frames) fused onto
+                # the earliest seeded frame. The tracker's text-driven
+                # detector continues running on later frames during
+                # propagation, so we don't lose the per-frame detection
+                # signal.
+                text_query = None
+                for _, tq in text_prompt_frames.items():
+                    text_query = tq
+                    break
+
+                if frame_prompts:
+                    seed_frame = min(frame_prompts.keys())
+                    seed_boxes = []
+                    for fidx in sorted(frame_prompts.keys()):
+                        for _obj_id, box_rel_xywh in frame_prompts[fidx]:
+                            seed_boxes.append(box_rel_xywh)
+                    add_kwargs = dict(
+                        frame_idx=seed_frame,
+                        boxes_xywh=seed_boxes,
+                        box_labels=[1] * len(seed_boxes),
+                    )
+                    if text_query is not None:
+                        add_kwargs['text_str'] = text_query
+                    self._video_predictor.add_prompt(state, **add_kwargs)
+                elif text_query is not None:
+                    # Text-only seed
+                    seed_frame = 0
+                    for fidx in text_prompt_frames.keys():
+                        seed_frame = fidx
+                        break
+                    self._video_predictor.add_prompt(
+                        state,
+                        frame_idx=seed_frame,
+                        text_str=text_query,
+                    )
+            else:
+                # SAM 3.0 video predictor: add_prompt does not reset state,
+                # so we can accumulate per-frame seed boxes and add the
+                # global text prompt once at the end.
+                for frame_idx, prompts in frame_prompts.items():
+                    for obj_id, box_rel_xywh in prompts:
+                        self._video_predictor.add_prompt(
+                            state,
+                            frame_idx=frame_idx,
+                            boxes_xywh=[box_rel_xywh],
+                            box_labels=[1],
+                            obj_id=obj_id,
+                        )
+
+                for frame_idx, text_query in text_prompt_frames.items():
                     self._video_predictor.add_prompt(
                         state,
                         frame_idx=frame_idx,
-                        boxes_xywh=[box_rel_xywh],
-                        box_labels=[1],
-                        obj_id=obj_id,
+                        text_str=text_query,
                     )
-
-            # Add text prompt (only once — it applies globally)
-            for frame_idx, text_query in text_prompt_frames.items():
-                self._video_predictor.add_prompt(
-                    state,
-                    frame_idx=frame_idx,
-                    text_str=text_query,
-                )
-                break  # only add once since add_prompt resets state
+                    break
 
             # Suppress tqdm progress bars from SAM3's propagation
             import tqdm
