@@ -893,6 +893,29 @@ Examples:
             image_io_algo=image_io_algo,
             **service_config
         )
+
+        # Eagerly warm up the underlying models. Both SAM3Segmenter and
+        # SAM3TextQuery defer model loading to their first call, which makes
+        # the first user-initiated segmentation or text query slow. Doing it
+        # here shifts that latency to service startup so subsequent requests
+        # are fast. Shared model cache means loading one also benefits the
+        # other. Text-query warmup is wrapped separately because it also
+        # loads Grounding DINO (extra weight) — if that fails, we still want
+        # segmentation available.
+        with suppress_stdout():
+            if hasattr(segment_algo, "_ensure_model"):
+                try:
+                    segment_algo._ensure_model()
+                except Exception as e:
+                    print(f"[SegmentationService] Warning: segmenter warmup failed: {e}",
+                          file=sys.stderr)
+            if text_query_algo is not None and hasattr(text_query_algo, "_ensure_model"):
+                try:
+                    text_query_algo._ensure_model()
+                except Exception as e:
+                    print(f"[SegmentationService] Warning: text query warmup failed: {e}",
+                          file=sys.stderr)
+
         service.run()
 
     except KeyboardInterrupt:
