@@ -125,6 +125,22 @@ class SAM3RefinerConfig(SAM3BaseConfig):
         1,
         help='Starting ID for refiner-created tracks (default 1)'
     )
+    # When enabled, the per-frame path (``propagate_tracked=False``)
+    # maintains a simple tracker: seed detections are re-segmented on each
+    # subsequent frame by feeding their last-known box back to the image
+    # predictor. This is the SAM2 strategy ported to SAM3 and is the right
+    # choice for "track user selections" style pipelines where there is no
+    # text query to drive the multiplex tracker.
+    track_new_objects = scfg.Value(
+        False,
+        help='Propagate seed boxes forward by re-segmenting them on each '
+             'subsequent frame (per-frame mode only)'
+    )
+    lost_track_frames = scfg.Value(
+        10,
+        help='Number of frames to keep a tracked object alive after it stops '
+             'being seen in the input (per-frame tracker only)'
+    )
 
 
 def _ensure_binary_mask(mask):
@@ -208,6 +224,11 @@ class SAM3Refiner(RefineTracks):
         self._assigned_ids = set()
         self._known_input_ids = set()
         self._input_id_remap = {}
+        # Per-frame tracker state (used when propagate_tracked=False and
+        # track_new_objects=True). Maps track_id → {
+        #   'last_box': [x1,y1,x2,y2], 'class_name': str, 'lost': int,
+        #   'history': [ObjectTrackState, ...] }
+        self._tracked_objects = {}
 
         # Video predictor state (used when propagate_tracked=True)
         self._video_predictor = None
@@ -257,6 +278,9 @@ class SAM3Refiner(RefineTracks):
         self._assigned_ids.clear()
         self._known_input_ids.clear()
         self._input_id_remap.clear()
+        self._track_new_objects = parse_bool(self._config.track_new_objects)
+        self._lost_track_frames = int(self._config.lost_track_frames)
+        self._tracked_objects.clear()
 
         # When propagation is disabled (per-frame mode), load the image
         # predictor and grounding DINO now.
@@ -1074,11 +1098,23 @@ class SAM3Refiner(RefineTracks):
     def _refine_per_frame(self, ts, frame_id, img_np, tracks, track_states):
         """
         Refine each frame independently using the image predictor.
-        Used for text-query pipelines where grounding DINO detects on
-        every frame and no cross-frame propagation is needed.
+
+        Two modes live here:
+
+        * Text-query refinement (``add_new_objects=True``) — Grounding DINO
+          detects new objects on every frame, independent of neighbors.
+        * Box-propagation tracking (``track_new_objects=True``) — seed
+          detections present on earlier frames are carried forward by
+          re-segmenting their last-known box on each subsequent frame
+          (SAM2-style). This is the right mode for user-selection tracking
+          pipelines where there is no text query to drive a detector.
         """
         boxes_to_segment = []
-        box_sources = []  # ('existing', tid) or ('new', score, class_name)
+        # Source tags:
+        #   ('existing',   tid)                — input track state on this frame
+        #   ('propagated', tid)                — prior-frame tracked object
+        #   ('new',        score, class_name)  — text-detected new object
+        box_sources = []
 
         # Re-segment existing input-track boxes
         if self._resegment_existing:
@@ -1087,6 +1123,14 @@ class SAM3Refiner(RefineTracks):
                 box = [bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()]
                 boxes_to_segment.append(box)
                 box_sources.append(('existing', tid))
+
+        # Propagate previously-tracked objects that have no input state on
+        # this frame — re-segment their last known box.
+        if self._track_new_objects:
+            for tid, tdata in self._tracked_objects.items():
+                if tid not in track_states:
+                    boxes_to_segment.append(list(tdata['last_box']))
+                    box_sources.append(('propagated', tid))
 
         # Detect new objects with text query
         if self._add_new_objects:
@@ -1099,6 +1143,9 @@ class SAM3Refiner(RefineTracks):
                  det.bounding_box.max_x(), det.bounding_box.max_y()]
                 for _, (_, _, det) in track_states.items()
             ]
+            if self._track_new_objects:
+                for tdata in self._tracked_objects.values():
+                    suppress_boxes.append(list(tdata['last_box']))
             for box, score, class_name in new_detections:
                 overlaps = False
                 for sb in suppress_boxes:
@@ -1119,12 +1166,17 @@ class SAM3Refiner(RefineTracks):
         # Build output tracks
         output_tracks = []
         processed_track_ids = set()
+        seen_tracked_ids = set()
 
         for i, (mask, source) in enumerate(zip(masks, box_sources)):
             mask_area = np.sum(mask)
             if self._filter_by_quality and mask_area < self._min_mask_area:
                 if source[0] == 'existing':
                     processed_track_ids.add(source[1])
+                elif source[0] == 'propagated':
+                    # Mask failed quality check — don't update the tracker;
+                    # it will accumulate a 'lost' count below.
+                    pass
                 continue
 
             if source[0] == 'existing':
@@ -1145,6 +1197,48 @@ class SAM3Refiner(RefineTracks):
                         new_history.append(state)
 
                 output_tracks.append(Track(tid, new_history))
+
+                # Register/refresh this track in the propagation tracker so
+                # its box carries forward on subsequent frames.
+                if self._track_new_objects:
+                    bbox = new_det.bounding_box
+                    new_box = [bbox.min_x(), bbox.min_y(),
+                               bbox.max_x(), bbox.max_y()]
+                    class_name = ''
+                    try:
+                        class_name = old_det.type.get_most_likely_class()
+                    except Exception:
+                        pass
+                    entry = self._tracked_objects.get(tid)
+                    if entry is None:
+                        self._tracked_objects[tid] = {
+                            'class_name': class_name,
+                            'last_box': new_box,
+                            'lost': 0,
+                            'history': [new_state],
+                        }
+                    else:
+                        entry['last_box'] = new_box
+                        entry['lost'] = 0
+                        entry['history'].append(new_state)
+                    seen_tracked_ids.add(tid)
+
+            elif source[0] == 'propagated':
+                tid = source[1]
+                tdata = self._tracked_objects[tid]
+                new_det = self._detection_from_mask(
+                    mask, boxes_to_segment[i], tdata['class_name'], 1.0
+                )
+                if new_det is None:
+                    continue
+                new_state = ObjectTrackState(ts, new_det)
+                tdata['history'].append(new_state)
+                bbox = new_det.bounding_box
+                tdata['last_box'] = [bbox.min_x(), bbox.min_y(),
+                                     bbox.max_x(), bbox.max_y()]
+                tdata['lost'] = 0
+                seen_tracked_ids.add(tid)
+
             else:
                 score, class_name = source[1], source[2]
                 det = self._detection_from_mask(
@@ -1154,6 +1248,35 @@ class SAM3Refiner(RefineTracks):
                     new_state = ObjectTrackState(ts, det)
                     tid = self._allocate_next_id()
                     output_tracks.append(Track(tid, [new_state]))
+                    if self._track_new_objects:
+                        bbox = det.bounding_box
+                        self._tracked_objects[tid] = {
+                            'class_name': class_name,
+                            'last_box': [bbox.min_x(), bbox.min_y(),
+                                         bbox.max_x(), bbox.max_y()],
+                            'lost': 0,
+                            'history': [new_state],
+                        }
+                        seen_tracked_ids.add(tid)
+
+        # Age out tracked objects that weren't refreshed this frame. Emit
+        # the full track history for anything still alive so downstream
+        # writers see the accumulated states.
+        if self._track_new_objects:
+            expired = []
+            for tid, tdata in self._tracked_objects.items():
+                if tid not in seen_tracked_ids:
+                    tdata['lost'] += 1
+                if tdata['lost'] > self._lost_track_frames:
+                    expired.append(tid)
+
+            for tid, tdata in self._tracked_objects.items():
+                if tid not in processed_track_ids and len(tdata['history']) > 0:
+                    output_tracks.append(Track(tid, list(tdata['history'])))
+                    processed_track_ids.add(tid)
+
+            for tid in expired:
+                del self._tracked_objects[tid]
 
         # Pass through unprocessed input tracks. Rebuild the Track with
         # the resolved ID when the input's original ID got remapped.

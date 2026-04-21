@@ -70,8 +70,8 @@ process track_refiner
     :output_type                               polygon
     :polygon_simplification                    0.01
     :num_points                                5
+    :propagate_tracked                         false
     :track_new_objects                         true
-    :track_match_threshold                     0.3
     :lost_track_frames                         10
     relativepath sam_model_id =                models/sam3_weights.pt
     relativepath model_config =                models/sam3_config.json
