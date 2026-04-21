@@ -182,7 +182,6 @@ set( CORE_PIPELINE_FILES
   interactive_stereo_template.conf
   measurement_from_annotations_default.pipe
   measurement_from_annotations_template.pipe
-  measurement_fully_auto_fish_default.pipe
   measurement_fully_auto_gmm_motion.pipe
   query_from_track.pipe
   query_retrieval_and_iqr.pipe
