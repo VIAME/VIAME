@@ -24,7 +24,8 @@ INSTALL_DIR = os.environ.get(
 CONFIGS_DIR = os.path.join(INSTALL_DIR, "configs", "pipelines")
 EXAMPLES_DIR = os.path.join(INSTALL_DIR, "examples", "example_imagery", "small_example_image_set1")
 TEST_IMAGE = os.path.join(EXAMPLES_DIR, "03142_D20160630-T162918.657_00-0C-DF-06-40-BF.png")
-SAM3_CONF = os.path.join(CONFIGS_DIR, "interactive_segmenter_sam3.conf")
+SAM3_SEGMENTER_CONF = os.path.join(CONFIGS_DIR, "interactive_segmenter_sam3.conf")
+SAM3_TEXT_QUERY_CONF = os.path.join(CONFIGS_DIR, "interactive_text_query_sam3.conf")
 SAM3_WEIGHTS = os.path.join(CONFIGS_DIR, "models", "sam3_weights.pt")
 
 
@@ -77,11 +78,11 @@ class TestSAM3Segmenter:
         from kwiver.vital.types import Point2d
         from kwiver.vital.config import config as vital_config
 
-        cfg = vital_config.read_config_file(SAM3_CONF)
+        cfg = vital_config.read_config_file(SAM3_SEGMENTER_CONF)
 
         # Resolve relative model paths
         from pathlib import Path
-        config_dir = Path(SAM3_CONF).parent
+        config_dir = Path(SAM3_SEGMENTER_CONF).parent
         for key in cfg.available_values():
             for pk in ['checkpoint', 'model_config']:
                 if pk in key:
@@ -127,10 +128,10 @@ class TestSAM3TextQuery:
         from kwiver.vital.algo import PerformTextQuery
         from kwiver.vital.config import config as vital_config
 
-        cfg = vital_config.read_config_file(SAM3_CONF)
+        cfg = vital_config.read_config_file(SAM3_TEXT_QUERY_CONF)
 
         from pathlib import Path
-        config_dir = Path(SAM3_CONF).parent
+        config_dir = Path(SAM3_TEXT_QUERY_CONF).parent
         for key in cfg.available_values():
             for pk in ['checkpoint', 'model_config', 'grounding_model_id']:
                 if pk in key:
