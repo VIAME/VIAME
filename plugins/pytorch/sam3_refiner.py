@@ -115,6 +115,16 @@ class SAM3RefinerConfig(SAM3BaseConfig):
         100,
         help='Max frames per video propagation chunk (0=no chunking)'
     )
+    # Starting value for IDs of tracks the refiner creates (for detections
+    # that don't match any input seed track when add_new_objects=True).
+    # The refiner skips any IDs already used by input tracks, and remaps
+    # later input tracks whose IDs would collide with already-assigned
+    # refiner IDs, so the final output is always collision-free regardless
+    # of this starting value.
+    new_track_id_start = scfg.Value(
+        1,
+        help='Starting ID for refiner-created tracks (default 1)'
+    )
 
 
 def _ensure_binary_mask(mask):
@@ -187,7 +197,17 @@ class SAM3Refiner(RefineTracks):
         RefineTracks.__init__(self)
         self._config = SAM3RefinerConfig()
         self._model_manager = SAM3ModelManager()
-        self._next_track_id = 100000
+        # Track-ID allocation state. ``_next_track_id`` is the next
+        # candidate for a refiner-created track; ``_allocate_next_id``
+        # skips over IDs that have already been used by either another
+        # refiner-created track or an input seed track, so the output is
+        # always collision-free. Input IDs that collide with IDs already
+        # handed out to refiner-created tracks are remapped once via
+        # ``_input_id_remap`` and reused on subsequent frames.
+        self._next_track_id = 1
+        self._assigned_ids = set()
+        self._known_input_ids = set()
+        self._input_id_remap = {}
 
         # Video predictor state (used when propagate_tracked=True)
         self._video_predictor = None
@@ -233,6 +253,10 @@ class SAM3Refiner(RefineTracks):
         self._text_query_list = self._config.text_query_list
         self._propagate_tracked = parse_bool(self._config.propagate_tracked)
         self._reinit_interval = int(self._config.reinit_interval)
+        self._next_track_id = int(self._config.new_track_id_start)
+        self._assigned_ids.clear()
+        self._known_input_ids.clear()
+        self._input_id_remap.clear()
 
         # When propagation is disabled (per-frame mode), load the image
         # predictor and grounding DINO now.
@@ -616,19 +640,23 @@ class SAM3Refiner(RefineTracks):
         frame_id = ts.get_frame()
         img_np = image_to_rgb_numpy(image_data)
 
-        # Extract current frame's track states from input
-        track_states = {}  # track_id -> (track, state, detection)
-        max_track_id = 0
+        # Resolve each input track's ID to the ID we'll actually use. New
+        # input IDs get registered; any that collide with an ID already
+        # handed out to a refiner-created track get remapped to the next
+        # unused ID. Subsequent frames reuse the mapping.
         for track in tracks.tracks():
-            track_id = track.id
-            max_track_id = max(max_track_id, track_id)
+            self._get_or_remap_input_id(track.id)
+
+        # Extract current frame's track states, keyed by the (possibly
+        # remapped) resolved ID so downstream output uses that ID too.
+        track_states = {}  # resolved_id -> (track, state, detection)
+        for track in tracks.tracks():
+            resolved_id = self._input_id_remap[track.id]
             for state in track:
                 if state.frame_id == frame_id:
                     detection = state.detection()
-                    track_states[track_id] = (track, state, detection)
+                    track_states[resolved_id] = (track, state, detection)
                     break
-
-        self._next_track_id = max(self._next_track_id, max_track_id + 1)
 
         if self._propagate_tracked:
             return self._refine_with_video_predictor(
@@ -638,6 +666,38 @@ class SAM3Refiner(RefineTracks):
             return self._refine_per_frame(
                 ts, frame_id, img_np, tracks, track_states
             )
+
+    # ------------------------------------------------------------------
+    # Track-ID allocation helpers
+    # ------------------------------------------------------------------
+
+    def _allocate_next_id(self):
+        """Return the next unused track ID and mark it as assigned."""
+        while (self._next_track_id in self._assigned_ids
+               or self._next_track_id in self._known_input_ids):
+            self._next_track_id += 1
+        result = self._next_track_id
+        self._assigned_ids.add(result)
+        self._next_track_id += 1
+        return result
+
+    def _get_or_remap_input_id(self, original_id):
+        """
+        Return the ID to use for an input track. If the input's original
+        ID collides with an ID already handed out to a refiner-created
+        track, remap it to a fresh unused ID. The remap is cached so the
+        same input track keeps the same resolved ID across frames.
+        """
+        if original_id in self._input_id_remap:
+            return self._input_id_remap[original_id]
+        if original_id in self._assigned_ids:
+            new_id = self._allocate_next_id()
+            self._input_id_remap[original_id] = new_id
+            self._known_input_ids.add(new_id)
+            return new_id
+        self._input_id_remap[original_id] = original_id
+        self._known_input_ids.add(original_id)
+        return original_id
 
     # ------------------------------------------------------------------
     # Video-predictor path (propagate_tracked=True)
@@ -1092,21 +1152,25 @@ class SAM3Refiner(RefineTracks):
                 )
                 if det is not None:
                     new_state = ObjectTrackState(ts, det)
-                    tid = self._next_track_id
-                    self._next_track_id += 1
+                    tid = self._allocate_next_id()
                     output_tracks.append(Track(tid, [new_state]))
 
-        # Pass through unprocessed input tracks
+        # Pass through unprocessed input tracks. Rebuild the Track with
+        # the resolved ID when the input's original ID got remapped.
         if not self._resegment_existing:
             for tid, (track, state, det) in track_states.items():
                 if tid not in processed_track_ids:
-                    output_tracks.append(track)
+                    output_tracks.append(
+                        track if track.id == tid else Track(tid, list(track))
+                    )
                     processed_track_ids.add(tid)
 
         for track in tracks.tracks():
-            tid = track.id
+            tid = self._input_id_remap.get(track.id, track.id)
             if tid not in processed_track_ids and tid not in track_states:
-                output_tracks.append(track)
+                output_tracks.append(
+                    track if track.id == tid else Track(tid, list(track))
+                )
 
         return ObjectTrackSet(output_tracks)
 
