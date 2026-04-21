@@ -320,7 +320,7 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_mmdet_cfrnn.conf
+    train_detector_mmdet_cfrnn.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
