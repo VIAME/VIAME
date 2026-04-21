@@ -75,31 +75,77 @@ endfunction()
 
 function( DownloadFile _URL _OutputLoc _MD5 )
   get_filename_component( _filename "${_OutputLoc}" NAME )
-  message( STATUS "Downloading ${_filename} from ${_URL}" )
-  file( DOWNLOAD ${_URL} ${_OutputLoc}
-    STATUS _download_status )
-  list( GET _download_status 0 _download_code )
-  list( GET _download_status 1 _download_msg )
-  if( NOT _download_code EQUAL 0 )
-    message( FATAL_ERROR
-      "Failed to download ${_filename} from ${_URL}\n"
-      "  Status: [${_download_code};\"${_download_msg}\"]" )
+  if( EXISTS "${_OutputLoc}" )
+    file( MD5 "${_OutputLoc}" _existing_md5 )
+    if( "${_existing_md5}" STREQUAL "${_MD5}" )
+      message( STATUS "Skipping download of ${_filename} (already present, MD5 matches)" )
+      return()
+    endif()
+    message( STATUS "Re-downloading ${_filename} (existing MD5 ${_existing_md5} does not match expected ${_MD5})" )
   endif()
-  file( MD5 ${_OutputLoc} _actual_md5 )
-  if( NOT "${_actual_md5}" STREQUAL "${_MD5}" )
-    message( FATAL_ERROR
-      "MD5 mismatch for ${_filename}\n"
-      "  Expected: ${_MD5}\n"
-      "  Actual:   ${_actual_md5}" )
-  endif()
+
+  set( _max_attempts 3 )
+  set( _attempt 1 )
+  set( _last_error "" )
+  while( _attempt LESS_EQUAL ${_max_attempts} )
+    if( _attempt EQUAL 1 )
+      message( STATUS "Downloading ${_filename} from ${_URL}" )
+    else()
+      message( STATUS "Retrying download of ${_filename} (attempt ${_attempt}/${_max_attempts})" )
+      file( REMOVE "${_OutputLoc}" )
+    endif()
+
+    file( DOWNLOAD ${_URL} ${_OutputLoc}
+      STATUS _download_status )
+    list( GET _download_status 0 _download_code )
+    list( GET _download_status 1 _download_msg )
+
+    if( NOT _download_code EQUAL 0 )
+      set( _last_error "transfer failed [${_download_code};\"${_download_msg}\"]" )
+    else()
+      file( MD5 ${_OutputLoc} _actual_md5 )
+      if( "${_actual_md5}" STREQUAL "${_MD5}" )
+        return()
+      endif()
+      set( _last_error "MD5 mismatch (expected ${_MD5}, got ${_actual_md5})" )
+    endif()
+
+    message( STATUS "Download attempt ${_attempt} for ${_filename} failed: ${_last_error}" )
+    math( EXPR _attempt "${_attempt} + 1" )
+  endwhile()
+
+  message( FATAL_ERROR
+    "Failed to download ${_filename} from ${_URL} after ${_max_attempts} attempts\n"
+    "  Last error: ${_last_error}" )
 endfunction()
 
 function( ExtractFile _FILE_LOC _EXT_LOC )
+  get_filename_component( _filename "${_FILE_LOC}" NAME )
+  file( MD5 "${_FILE_LOC}" _archive_md5 )
+  string( MD5 _loc_hash "${_FILE_LOC}|${_EXT_LOC}" )
+  # Always land stamps inside the viame-build subproject dir, regardless of
+  # whether we're being called from the superbuild or the inner viame project.
+  if( DEFINED VIAME_BUILD_PLUGINS_DIR )
+    set( _stamp_dir "${VIAME_BUILD_PLUGINS_DIR}/extract-stamps" )
+  else()
+    set( _stamp_dir "${CMAKE_BINARY_DIR}/extract-stamps" )
+  endif()
+  set( _stamp_file "${_stamp_dir}/${_filename}-${_loc_hash}.stamp" )
+  if( EXISTS "${_stamp_file}" )
+    file( READ "${_stamp_file}" _stamp_md5 )
+    string( STRIP "${_stamp_md5}" _stamp_md5 )
+    if( "${_stamp_md5}" STREQUAL "${_archive_md5}" )
+      message( STATUS "Skipping extraction of ${_filename} (already extracted, MD5 matches)" )
+      return()
+    endif()
+  endif()
   message( STATUS "Extracting data from ${_FILE_LOC}" )
   file( MAKE_DIRECTORY ${_EXT_LOC} )
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar xzf ${_FILE_LOC}
     WORKING_DIRECTORY ${_EXT_LOC} )
+  file( MAKE_DIRECTORY "${_stamp_dir}" )
+  file( WRITE "${_stamp_file}" "${_archive_md5}\n" )
 endfunction()
 
 function( DownloadAndExtract _URL _MD5 _DL_LOC _EXT_LOC )
