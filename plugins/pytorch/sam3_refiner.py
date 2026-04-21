@@ -532,68 +532,27 @@ class SAM3Refiner(RefineTracks):
             is_sam31 = isinstance(self._video_predictor,
                                   _Sam3p1VideoPredictorAdapter)
 
-            if is_sam31:
-                # SAM 3.1 multiplex ``add_prompt`` unconditionally calls
-                # ``reset_state`` on every invocation (see
-                # ``sam3_multiplex_tracking.py``), so any earlier box/text
-                # prompt is wiped by the next call. Collapse everything into
-                # a single add_prompt on one seed frame: text_str + all
-                # accumulated seed boxes (across all seed frames) fused onto
-                # the earliest seeded frame. The tracker's text-driven
-                # detector continues running on later frames during
-                # propagation, so we don't lose the per-frame detection
-                # signal.
-                text_query = None
-                for _, tq in text_prompt_frames.items():
-                    text_query = tq
-                    break
+            # Extract the (single) text query for this chunk, if any.
+            text_query = None
+            text_seed_frame = 0
+            for fidx, tq in text_prompt_frames.items():
+                text_query = tq
+                text_seed_frame = fidx
+                break
 
-                if frame_prompts:
-                    seed_frame = min(frame_prompts.keys())
-                    seed_boxes = []
-                    for fidx in sorted(frame_prompts.keys()):
-                        for _obj_id, box_rel_xywh in frame_prompts[fidx]:
-                            seed_boxes.append(box_rel_xywh)
-                    add_kwargs = dict(
-                        frame_idx=seed_frame,
-                        boxes_xywh=seed_boxes,
-                        box_labels=[1] * len(seed_boxes),
-                    )
-                    if text_query is not None:
-                        add_kwargs['text_str'] = text_query
-                    self._video_predictor.add_prompt(state, **add_kwargs)
-                elif text_query is not None:
-                    # Text-only seed
-                    seed_frame = 0
-                    for fidx in text_prompt_frames.keys():
-                        seed_frame = fidx
-                        break
-                    self._video_predictor.add_prompt(
-                        state,
-                        frame_idx=seed_frame,
-                        text_str=text_query,
-                    )
-            else:
-                # SAM 3.0 video predictor: add_prompt does not reset state,
-                # so we can accumulate per-frame seed boxes and add the
-                # global text prompt once at the end.
-                for frame_idx, prompts in frame_prompts.items():
-                    for obj_id, box_rel_xywh in prompts:
-                        self._video_predictor.add_prompt(
-                            state,
-                            frame_idx=frame_idx,
-                            boxes_xywh=[box_rel_xywh],
-                            box_labels=[1],
-                            obj_id=obj_id,
-                        )
-
-                for frame_idx, text_query in text_prompt_frames.items():
-                    self._video_predictor.add_prompt(
-                        state,
-                        frame_idx=frame_idx,
-                        text_str=text_query,
-                    )
-                    break
+            # A comma-separated text query is an open-vocabulary list of
+            # class names; SAM3's add_prompt treats it as one opaque string,
+            # so detections come back with no way to tell which term they
+            # matched. When the caller supplied >1 class and no seed boxes
+            # (pure text-driven detection), run a separate propagation pass
+            # per class, assign each pass its own obj_id namespace, and tag
+            # each obj_id with its class term so downstream output carries
+            # the correct label.
+            class_terms = []
+            if text_query:
+                class_terms = [t.strip() for t in text_query.split(',')
+                               if t.strip()]
+            multi_class = len(class_terms) > 1 and not frame_prompts
 
             # Suppress tqdm progress bars from SAM3's propagation
             import tqdm
@@ -603,10 +562,22 @@ class SAM3Refiner(RefineTracks):
                 _orig_init(self_tqdm, *args, **kwargs)
             tqdm.tqdm.__init__ = _quiet_init
 
+            results = {}
             try:
-                results = {}
-                for frame_idx, frame_results in self._video_predictor.propagate_in_video(state):
-                    self._collect_frame_results(results, frame_idx, frame_results)
+                if multi_class:
+                    results = self._propagate_per_class(
+                        state, class_terms, text_seed_frame,
+                    )
+                else:
+                    self._seed_prompts_single_pass(
+                        state, is_sam31, text_query, text_seed_frame,
+                        frame_prompts,
+                    )
+                    for frame_idx, frame_results in \
+                            self._video_predictor.propagate_in_video(state):
+                        self._collect_frame_results(
+                            results, frame_idx, frame_results,
+                        )
             finally:
                 tqdm.tqdm.__init__ = _orig_init
 
@@ -617,6 +588,160 @@ class SAM3Refiner(RefineTracks):
                 pass
 
         return results
+
+    def _seed_prompts_single_pass(self, state, is_sam31, text_query,
+                                  text_seed_frame, frame_prompts):
+        """
+        Add seed box / text prompts to a fresh video predictor state for a
+        single-class (or single-pass) propagation. The SAM 3.1 multiplex
+        resets state on each ``add_prompt`` call, so this path collapses
+        everything into one call. SAM 3.0 accumulates state across calls
+        and can accept per-frame seed boxes plus a single text prompt.
+        """
+        if is_sam31:
+            if frame_prompts:
+                seed_frame = min(frame_prompts.keys())
+                seed_boxes = []
+                for fidx in sorted(frame_prompts.keys()):
+                    for _obj_id, box_rel_xywh in frame_prompts[fidx]:
+                        seed_boxes.append(box_rel_xywh)
+                add_kwargs = dict(
+                    frame_idx=seed_frame,
+                    boxes_xywh=seed_boxes,
+                    box_labels=[1] * len(seed_boxes),
+                )
+                if text_query is not None:
+                    add_kwargs['text_str'] = text_query
+                self._video_predictor.add_prompt(state, **add_kwargs)
+            elif text_query is not None:
+                self._video_predictor.add_prompt(
+                    state,
+                    frame_idx=text_seed_frame,
+                    text_str=text_query,
+                )
+        else:
+            for frame_idx, prompts in frame_prompts.items():
+                for obj_id, box_rel_xywh in prompts:
+                    self._video_predictor.add_prompt(
+                        state,
+                        frame_idx=frame_idx,
+                        boxes_xywh=[box_rel_xywh],
+                        box_labels=[1],
+                        obj_id=obj_id,
+                    )
+            if text_query is not None:
+                self._video_predictor.add_prompt(
+                    state,
+                    frame_idx=text_seed_frame,
+                    text_str=text_query,
+                )
+
+    def _propagate_per_class(self, state, class_terms, text_seed_frame):
+        """
+        Run one full propagation pass per class term. Each pass gets an
+        obj_id offset so IDs are unique across classes; each returned
+        obj_id is tagged with its class term in ``_obj_id_to_class`` so
+        ``_build_propagated_tracks`` emits the right label.
+        """
+        results = {}
+        id_offset = 0
+        for class_term in class_terms:
+            # Clear any prior prompts on this state. SAM 3.1 resets
+            # on add_prompt; SAM 3.0 needs an explicit reset.
+            try:
+                self._video_predictor.reset_state(state)
+            except Exception:
+                pass
+
+            self._video_predictor.add_prompt(
+                state,
+                frame_idx=text_seed_frame,
+                text_str=class_term,
+            )
+
+            max_out_id = -1
+            for frame_idx, frame_results in \
+                    self._video_predictor.propagate_in_video(state):
+                obj_ids = np.asarray(frame_results['out_obj_ids']).astype(
+                    np.int64)
+                if len(obj_ids) == 0:
+                    continue
+                remapped_ids = obj_ids + id_offset
+                if len(remapped_ids):
+                    max_out_id = max(max_out_id, int(remapped_ids.max()))
+                for oid in remapped_ids:
+                    self._obj_id_to_class[int(oid)] = class_term
+                remapped_fr = {
+                    'out_obj_ids': remapped_ids,
+                    'out_boxes_xywh': frame_results['out_boxes_xywh'],
+                    'out_binary_masks': frame_results['out_binary_masks'],
+                    'out_probs': frame_results.get('out_probs', []),
+                }
+                self._collect_frame_results(results, frame_idx, remapped_fr)
+
+            if max_out_id >= 0:
+                id_offset = max_out_id + 1
+
+        # SAM 3.1's internal NMS only runs within a single class pass, so the
+        # same physical object can get picked up independently by multiple
+        # class queries and emerge as overlapping tracks. Drop duplicates
+        # across class passes by track-level IoU — keep the track with the
+        # higher mean detection score.
+        return self._dedupe_tracks_by_iou(results, self._iou_threshold)
+
+    def _dedupe_tracks_by_iou(self, results, iou_threshold):
+        """
+        Track-level NMS across per-class propagation passes, using
+        SAM3's own ``apply_track_nms`` (vectorized, Numba-JIT'd). It
+        aggregates total intersection / total union across every shared
+        frame pair and suppresses lower-scored tracks whose track-IoU
+        against a higher-scored track exceeds ``iou_threshold``. Returns
+        a filtered results dict with losing tracks removed entirely.
+        """
+        if not results:
+            return results
+
+        from sam3.train.nms_helper import apply_track_nms
+
+        # Collect per-track frame sequences
+        per_track = {}
+        for (oid, frame), (_mask, box, score) in results.items():
+            per_track.setdefault(oid, []).append((frame, box, score))
+
+        oids = list(per_track.keys())
+        frame_indices = sorted({
+            f for entries in per_track.values() for f, _, _ in entries
+        })
+        frame_to_col = {f: i for i, f in enumerate(frame_indices)}
+        num_frames = len(frame_indices)
+
+        # Build the dense [num_tracks, num_frames, 4] array SAM3 expects,
+        # with NaN-padding for frames where each track has no detection.
+        track_detections = []
+        scores = np.zeros(len(oids), dtype=np.float32)
+        for t_idx, oid in enumerate(oids):
+            bboxes = np.full((num_frames, 4), np.nan, dtype=np.float32)
+            entries = per_track[oid]
+            track_score_sum = 0.0
+            for frame, box, score in entries:
+                bboxes[frame_to_col[frame]] = box
+                track_score_sum += score
+            track_detections.append({
+                "track_idx": t_idx,
+                "bboxes": bboxes,
+                "score": track_score_sum / max(1, len(entries)),
+            })
+            scores[t_idx] = track_score_sum / max(1, len(entries))
+
+        keep_idx = set(apply_track_nms(
+            track_detections, scores, float(iou_threshold),
+        ))
+        kept_oids = {oids[i] for i in keep_idx}
+
+        return {
+            (oid, f): entry for (oid, f), entry in results.items()
+            if oid in kept_oids
+        }
 
     def _collect_frame_results(self, results, frame_idx, frame_results,
                                overwrite=True):
