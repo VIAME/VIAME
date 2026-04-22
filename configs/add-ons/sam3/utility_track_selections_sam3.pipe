@@ -73,8 +73,8 @@ process track_refiner
     :propagate_tracked                         false
     :track_new_objects                         true
     :lost_track_frames                         10
-    relativepath sam_model_id =                models/sam3_weights.pt
-    relativepath model_config =                models/sam3_config.json
+    relativepath sam_model_id =                models/sam3.1_weights.pt
+    relativepath model_config =                models/sam3.1_config.json
   endblock
 
 connect from ensure_rgb.image

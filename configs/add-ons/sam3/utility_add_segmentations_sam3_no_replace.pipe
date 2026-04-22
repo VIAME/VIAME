@@ -53,8 +53,8 @@ process detection_refiner
     :refiner:sam3:overwrite_existing           false
     :refiner:sam3:output_type                  polygon
     :refiner:sam3:polygon_simplification       0.01
-    relativepath refiner:sam3:sam_model_id =   models/sam3_weights.pt
-    relativepath refiner:sam3:model_config =   models/sam3_config.json
+    relativepath refiner:sam3:sam_model_id =   models/sam3.1_weights.pt
+    relativepath refiner:sam3:model_config =   models/sam3.1_config.json
   endblock
 
 connect from ensure_rgb.image

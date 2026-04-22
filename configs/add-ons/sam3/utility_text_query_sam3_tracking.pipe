@@ -64,8 +64,8 @@ process track_refiner
     :video_new_det_threshold                   0.1
     :video_hotstart_delay                      0
     :video_chunk_size                          100
-    relativepath sam_model_id =                models/sam3_weights.pt
-    relativepath model_config =                models/sam3_config.json
+    relativepath sam_model_id =                models/sam3.1_weights.pt
+    relativepath model_config =                models/sam3.1_config.json
   endblock
 
 connect from ensure_rgb.image

@@ -56,8 +56,8 @@ process tracker
     :propagate_tracked                         true
     :reinit_interval                           10
     :video_detection_threshold                 0.3
-    relativepath sam_model_id =                models/sam3_weights.pt
-    relativepath model_config =                models/sam3_config.json
+    relativepath sam_model_id =                models/sam3.1_weights.pt
+    relativepath model_config =                models/sam3.1_config.json
   endblock
 
 connect from ensure_rgb.image
