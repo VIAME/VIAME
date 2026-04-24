@@ -53,6 +53,10 @@ namespace kv = kwiver::vital;
 VIAME_CORE_EXPORT double parse_length_from_notes(
   const kv::detected_object_sptr& det );
 
+/// Parse the first :stereo_rms=<value> note from a detection. Returns -1 if none found.
+VIAME_CORE_EXPORT double parse_stereo_rms_from_notes(
+  const kv::detected_object_sptr& det );
+
 /// Result structure for full stereo measurement (length + 3D position + error)
 struct VIAME_CORE_EXPORT stereo_measurement_result
 {

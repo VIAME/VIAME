@@ -7,6 +7,7 @@
  * \brief Stereo measurement process implementation
  */
 
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <map>
@@ -51,6 +52,14 @@ create_config_trait( min_track_states, unsigned, "0",
   "only controls which tracks appear in the output. "
   "Set to 0 to disable filtering (default)." );
 
+create_config_trait( max_stereo_rms, double, "-1.0",
+  "Maximum acceptable stereo-triangulation RMS reprojection error (pixels) "
+  "for a per-frame left/right track pairing to be recorded in the pairing "
+  "accumulator. Pairs whose measurement rms exceeds this are dropped from "
+  "the union-find at resolve time — this rejects false same-tracker-ID "
+  "and keypoint-projection matches whose triangulation did not converge. "
+  "Set to <= 0 to disable filtering. Typical value: 20.0." );
+
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
 create_port_trait( object_track_set2, object_track_set,
@@ -73,6 +82,7 @@ public:
   // Process-specific config
   std::string m_calibration_file;
   unsigned m_min_track_states;
+  double m_max_stereo_rms;
 
   // Measurement settings (contains all algo parameters and algorithm pointers)
   map_keypoints_to_camera_settings m_settings;
@@ -107,6 +117,7 @@ measure_objects_process::priv
 ::priv( measure_objects_process* ptr )
   : m_calibration_file( "" )
   , m_min_track_states( 0 )
+  , m_max_stereo_rms( -1.0 )
   , m_calibration()
   , m_frame_counter( 0 )
   , parent( ptr )
@@ -170,6 +181,7 @@ measure_objects_process
   // Process-specific config
   declare_config_using_trait( calibration_file );
   declare_config_using_trait( min_track_states );
+  declare_config_using_trait( max_stereo_rms );
 
   // Merge in map_keypoints_to_camera_settings configuration
   kv::config_block_sptr settings_config = d->m_settings.get_configuration();
@@ -200,6 +212,7 @@ measure_objects_process
   // Get process-specific config
   d->m_calibration_file = config_value_using_trait( calibration_file );
   d->m_min_track_states = config_value_using_trait( min_track_states );
+  d->m_max_stereo_rms = config_value_using_trait( max_stereo_rms );
 
   if( d->m_calibration_file.empty() )
   {
@@ -294,6 +307,45 @@ void
 measure_objects_process
 ::_finalize()
 {
+  // Emit the resolved unified track sets before pushing complete datums,
+  // so downstream writers see the final data prior to end-of-stream.
+  if( d->m_track_pairer.accumulation_enabled() )
+  {
+    std::vector< kv::track_sptr > output_trks1, output_trks2;
+    d->m_track_pairer.resolve_accumulated_pairings( output_trks1, output_trks2 );
+
+    if( d->m_min_track_states > 0 )
+    {
+      std::map< kv::track_id_t, unsigned > state_counts;
+      for( const auto& trk : output_trks1 )
+        state_counts[ trk->id() ] += static_cast< unsigned >( trk->size() );
+      for( const auto& trk : output_trks2 )
+        state_counts[ trk->id() ] += static_cast< unsigned >( trk->size() );
+
+      auto meets = [&]( const kv::track_sptr& t )
+      {
+        auto it = state_counts.find( t->id() );
+        return it != state_counts.end() && it->second >= d->m_min_track_states;
+      };
+      output_trks1.erase(
+        std::remove_if( output_trks1.begin(), output_trks1.end(),
+                        [&]( const kv::track_sptr& t ){ return !meets( t ); } ),
+        output_trks1.end() );
+      output_trks2.erase(
+        std::remove_if( output_trks2.begin(), output_trks2.end(),
+                        [&]( const kv::track_sptr& t ){ return !meets( t ); } ),
+        output_trks2.end() );
+    }
+
+    LOG_INFO( logger(), "Resolved " << output_trks1.size() << " left and "
+              << output_trks2.size() << " right accumulated tracks" );
+
+    push_to_port_using_trait(
+      object_track_set1, std::make_shared< kv::object_track_set >( output_trks1 ) );
+    push_to_port_using_trait(
+      object_track_set2, std::make_shared< kv::object_track_set >( output_trks2 ) );
+  }
+
   mark_process_as_complete();
 
   const sprokit::datum_t dat = sprokit::datum::complete_datum();
@@ -929,110 +981,181 @@ measure_objects_process
     }
   }
 
-  // Apply stereo track remapping (union-find, class averaging) when two inputs
-  if( input_tracks[0] && input_tracks[1] &&
-      input_tracks[0]->size() > 0 && input_tracks[1]->size() > 0 )
+  if( d->m_track_pairer.accumulation_enabled() )
   {
-    // Build match list from common IDs (tracks with same ID in both sets)
+    // Accumulation mode: feed current-frame detections + pairings into the
+    // shared accumulator. Final unified tracks are emitted in _finalize()
+    // once the whole stream has been seen — this avoids the per-frame
+    // output-ID reassignment that causes downstream writers to accumulate
+    // stale duplicate track entries.
+    std::vector< kv::detected_object_sptr > dets1_vec, dets2_vec;
     std::vector< kv::track_id_t > tids1, tids2;
-    std::vector< std::pair< int, int > > match_pairs;
+    std::map< kv::track_id_t, int > tid1_to_idx, tid2_to_idx;
 
     for( const auto& trk : input_tracks[0]->tracks() )
     {
       auto it = trk->find( cur_frame_id );
-      if( it != trk->end() )
-      {
-        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
-        if( ots && ots->detection() )
-          tids1.push_back( trk->id() );
-      }
+      if( it == trk->end() ) continue;
+      auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
+      if( !ots || !ots->detection() ) continue;
+      tid1_to_idx[ trk->id() ] = static_cast< int >( dets1_vec.size() );
+      tids1.push_back( trk->id() );
+      dets1_vec.push_back( ots->detection() );
     }
-
     for( const auto& trk : input_tracks[1]->tracks() )
     {
       auto it = trk->find( cur_frame_id );
-      if( it != trk->end() )
-      {
-        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
-        if( ots && ots->detection() )
-          tids2.push_back( trk->id() );
-      }
+      if( it == trk->end() ) continue;
+      auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
+      if( !ots || !ots->detection() ) continue;
+      tid2_to_idx[ trk->id() ] = static_cast< int >( dets2_vec.size() );
+      tids2.push_back( trk->id() );
+      dets2_vec.push_back( ots->detection() );
     }
 
-    // Build quick lookups for track indices by ID
-    std::map< kv::track_id_t, int > left_idx, right_idx;
-    for( int i = 0; i < static_cast< int >( tids1.size() ); ++i )
-      left_idx[tids1[i]] = i;
-    for( int i = 0; i < static_cast< int >( tids2.size() ); ++i )
-      right_idx[tids2[i]] = i;
-
-    // Match tracks with the same ID (synthetic right tracks share left IDs)
-    for( int i = 0; i < static_cast< int >( tids1.size() ); ++i )
+    // Reject per-frame pairings whose triangulation didn't converge, using the
+    // rms reprojection error already computed and stored on the left detection
+    // by add_measurement_attributes. This catches coincidental same-tracker-ID
+    // matches and keypoint_projection false positives whose 3D geometry is
+    // incoherent, before they can pollute the pairing accumulator.
+    auto rms_ok = [&]( int left_idx ) -> bool
     {
-      auto rit = right_idx.find( tids1[i] );
-      if( rit != right_idx.end() )
-        match_pairs.push_back( { i, rit->second } );
-    }
+      if( d->m_max_stereo_rms <= 0.0 )
+        return true;
+      double rms = parse_stereo_rms_from_notes( dets1_vec[ left_idx ] );
+      if( rms < 0.0 )
+        return true;  // no measurement ran — not a rejected pair
+      return rms <= d->m_max_stereo_rms;
+    };
 
-    // Also link actual right camera tracks that were detection-paired with
-    // left tracks.  Without this, the real right track is never connected
-    // in the union-find, so transitive linking across left track deaths
-    // (left1 → right → left2) cannot happen.
+    std::vector< std::pair< int, int > > match_pairs;
+    for( const auto& entry : tid1_to_idx )
+    {
+      auto it2 = tid2_to_idx.find( entry.first );
+      if( it2 != tid2_to_idx.end() && rms_ok( entry.second ) )
+        match_pairs.push_back( { entry.second, it2->second } );
+    }
     for( const auto& dp : d->m_detection_paired_right_ids )
     {
-      auto lit = left_idx.find( dp.first );   // synthetic/left ID
-      auto rit = right_idx.find( dp.second );  // actual right camera ID
-      if( lit != left_idx.end() && rit != right_idx.end() )
-        match_pairs.push_back( { lit->second, rit->second } );
+      auto it1 = tid1_to_idx.find( dp.first );
+      auto it2 = tid2_to_idx.find( dp.second );
+      if( it1 != tid1_to_idx.end() && it2 != tid2_to_idx.end() &&
+          rms_ok( it1->second ) )
+        match_pairs.push_back( { it1->second, it2->second } );
     }
 
-    std::vector< kv::track_sptr > out1, out2;
-    d->m_track_pairer.remap_tracks_per_frame(
-      input_tracks[0], input_tracks[1], match_pairs,
-      tids1, tids2, out1, out2 );
+    d->m_track_pairer.accumulate_frame_pairings(
+      match_pairs, dets1_vec, dets2_vec, tids1, tids2, ts );
 
-    input_tracks[0] = std::make_shared< kv::object_track_set >( out1 );
-    input_tracks[1] = std::make_shared< kv::object_track_set >( out2 );
+    // Push empty track sets per frame — real object_track_set values so
+    // downstream writers can cast them (empty_datum() would trip their
+    // type-cast). The resolved unified track sets are emitted in
+    // _finalize() once the whole stream has been accumulated.
+    auto empty_set = std::make_shared< kv::object_track_set >();
+    push_to_port_using_trait( object_track_set1, empty_set );
+    push_to_port_using_trait( object_track_set2, empty_set );
   }
-
-  // Filter output tracks by minimum state count across cameras
-  if( d->m_min_track_states > 0 )
+  else
   {
-    // Count states per track ID across both output track sets
-    std::map< kv::track_id_t, unsigned > state_counts;
-    for( unsigned i = 0; i < 2; ++i )
+    // Per-frame mode: union-find remap + class averaging each frame.
+    // Warning: output track IDs can shift when a late pairing arrives,
+    // which can cause downstream writers that key by track ID to retain
+    // stale copies. Prefer accumulation mode for batch CSV outputs.
+    if( input_tracks[0] && input_tracks[1] &&
+        input_tracks[0]->size() > 0 && input_tracks[1]->size() > 0 )
     {
-      if( !input_tracks[i] )
-        continue;
-      for( const auto& trk : input_tracks[i]->tracks() )
-      {
-        state_counts[trk->id()] +=
-          static_cast< unsigned >( trk->size() );
-      }
-    }
+      // Build match list from common IDs (tracks with same ID in both sets)
+      std::vector< kv::track_id_t > tids1, tids2;
+      std::vector< std::pair< int, int > > match_pairs;
 
-    // Remove tracks that don't meet the threshold
-    for( unsigned i = 0; i < 2; ++i )
-    {
-      if( !input_tracks[i] )
-        continue;
-      std::vector< kv::track_sptr > kept;
-      for( const auto& trk : input_tracks[i]->tracks() )
+      for( const auto& trk : input_tracks[0]->tracks() )
       {
-        auto it = state_counts.find( trk->id() );
-        if( it != state_counts.end() &&
-            it->second >= d->m_min_track_states )
+        auto it = trk->find( cur_frame_id );
+        if( it != trk->end() )
         {
-          kept.push_back( trk );
+          auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
+          if( ots && ots->detection() )
+            tids1.push_back( trk->id() );
         }
       }
-      input_tracks[i] = std::make_shared< kv::object_track_set >( kept );
+
+      for( const auto& trk : input_tracks[1]->tracks() )
+      {
+        auto it = trk->find( cur_frame_id );
+        if( it != trk->end() )
+        {
+          auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
+          if( ots && ots->detection() )
+            tids2.push_back( trk->id() );
+        }
+      }
+
+      std::map< kv::track_id_t, int > left_idx, right_idx;
+      for( int i = 0; i < static_cast< int >( tids1.size() ); ++i )
+        left_idx[tids1[i]] = i;
+      for( int i = 0; i < static_cast< int >( tids2.size() ); ++i )
+        right_idx[tids2[i]] = i;
+
+      for( int i = 0; i < static_cast< int >( tids1.size() ); ++i )
+      {
+        auto rit = right_idx.find( tids1[i] );
+        if( rit != right_idx.end() )
+          match_pairs.push_back( { i, rit->second } );
+      }
+
+      for( const auto& dp : d->m_detection_paired_right_ids )
+      {
+        auto lit = left_idx.find( dp.first );
+        auto rit = right_idx.find( dp.second );
+        if( lit != left_idx.end() && rit != right_idx.end() )
+          match_pairs.push_back( { lit->second, rit->second } );
+      }
+
+      std::vector< kv::track_sptr > out1, out2;
+      d->m_track_pairer.remap_tracks_per_frame(
+        input_tracks[0], input_tracks[1], match_pairs,
+        tids1, tids2, out1, out2 );
+
+      input_tracks[0] = std::make_shared< kv::object_track_set >( out1 );
+      input_tracks[1] = std::make_shared< kv::object_track_set >( out2 );
     }
+
+    if( d->m_min_track_states > 0 )
+    {
+      std::map< kv::track_id_t, unsigned > state_counts;
+      for( unsigned i = 0; i < 2; ++i )
+      {
+        if( !input_tracks[i] )
+          continue;
+        for( const auto& trk : input_tracks[i]->tracks() )
+        {
+          state_counts[trk->id()] +=
+            static_cast< unsigned >( trk->size() );
+        }
+      }
+
+      for( unsigned i = 0; i < 2; ++i )
+      {
+        if( !input_tracks[i] )
+          continue;
+        std::vector< kv::track_sptr > kept;
+        for( const auto& trk : input_tracks[i]->tracks() )
+        {
+          auto it = state_counts.find( trk->id() );
+          if( it != state_counts.end() &&
+              it->second >= d->m_min_track_states )
+          {
+            kept.push_back( trk );
+          }
+        }
+        input_tracks[i] = std::make_shared< kv::object_track_set >( kept );
+      }
+    }
+
+    push_to_port_using_trait( object_track_set1, input_tracks[0] );
+    push_to_port_using_trait( object_track_set2, input_tracks[1] );
   }
 
-  // Push outputs
-  push_to_port_using_trait( object_track_set1, input_tracks[0] );
-  push_to_port_using_trait( object_track_set2, input_tracks[1] );
   push_to_port_using_trait( timestamp, ts );
 
   // Push disparity image if computed

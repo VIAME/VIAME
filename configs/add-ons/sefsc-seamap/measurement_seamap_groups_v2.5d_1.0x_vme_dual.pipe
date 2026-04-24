@@ -360,10 +360,20 @@ process measurer
 
   # Detection pairing for unmatched left/right tracks
   :detection_pairing_method                    keypoint_projection
-  :detection_pairing_threshold                 50.0
+  :detection_pairing_threshold                 20.0
   :detection_pairing_require_class_match       false
 
+  # Reject pairings whose per-frame triangulation produced an absurd rms
+  # reprojection error — these are geometrically inconsistent false matches
+  # (e.g. coincidental same-tracker-ID pairs between different fish).
+  :max_stereo_rms                              20.0
+
   # Track remapping (unified IDs, class averaging, length averaging)
+  # Accumulate pairings across the full stream and resolve once at finalize,
+  # so output track IDs never shift mid-run (per-frame remap is unstable and
+  # causes ID-keyed writers to accumulate stale duplicate entries).
+  :accumulate_track_pairings                   true
+  :pairing_resolution_method                   most_likely
   :output_unmatched                            true
   :average_stereo_classes                      true
   :class_averaging_method                      weighted_scaled_by_conf

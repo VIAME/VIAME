@@ -66,6 +66,35 @@ parse_length_from_notes( const kv::detected_object_sptr& det )
 }
 
 // =============================================================================
+// parse_stereo_rms_from_notes
+// =============================================================================
+
+double
+parse_stereo_rms_from_notes( const kv::detected_object_sptr& det )
+{
+  if( !det )
+    return -1.0;
+
+  static const std::string prefix = ":stereo_rms=";
+  for( const auto& note : det->notes() )
+  {
+    if( note.size() > prefix.size() &&
+        note.compare( 0, prefix.size(), prefix ) == 0 )
+    {
+      try
+      {
+        return std::stod( note.substr( prefix.size() ) );
+      }
+      catch( ... )
+      {
+        return -1.0;
+      }
+    }
+  }
+  return -1.0;
+}
+
+// =============================================================================
 // DINOv3 Python C API helpers
 // =============================================================================
 

@@ -247,8 +247,12 @@ stereo_track_pairer
 
   config->set_value( "detection_split_threshold",
     std::to_string( m_detection_split_threshold ),
-    "Minimum number of frame pairings required to keep a split segment. "
-    "Used with pairing_resolution_method='split'." );
+    "Minimum number of co-occurring frame pairings required to accept a "
+    "left/right track pairing. With pairing_resolution_method='split' this "
+    "is the minimum segment length; with 'most_likely' it is the minimum "
+    "frame count before a pairing is considered when picking the best "
+    "mutual match. Raise this to suppress spurious keypoint_projection "
+    "matches in crowded scenes." );
 
   config->set_value( "min_track_length",
     std::to_string( m_min_track_length ),
@@ -748,14 +752,48 @@ stereo_track_pairer
   std::set< kv::track_id_t >& proc_left,
   std::set< kv::track_id_t >& proc_right )
 {
-  // Build union-find from all accumulated pairings for transitive association.
-  // Left IDs stored as-is; Right IDs encoded as -(right_id + 1).
-  track_union_find uf;
-  for( const auto& pair : m_left_to_right_pairing )
+  // "Most likely" = mutual-best matching with a frame-count floor:
+  //   1. Drop pairings with fewer than detection_split_threshold co-occurring
+  //      frames (weak pairings are likely keypoint_projection false positives).
+  //   2. For each surviving left, find the right it co-occurs with most often;
+  //      same in reverse for each right.
+  //   3. Only unite (L, R) when L's top right is R and R's top left is L.
+  // This prevents transitive closure from fusing different fish into one
+  // output track when a few stray frames briefly linked them.
+  const int min_frames = std::max( 1, m_detection_split_threshold );
+
+  std::map< kv::track_id_t,
+            std::pair< kv::track_id_t, size_t > > best_right_for_left;
+  std::map< kv::track_id_t,
+            std::pair< kv::track_id_t, size_t > > best_left_for_right;
+
+  for( const auto& entry : m_left_to_right_pairing )
   {
-    kv::track_id_t left_id = pair.second.left_right_id_pair.left_id;
-    kv::track_id_t right_id = pair.second.left_right_id_pair.right_id;
-    uf.unite( left_id, -( right_id + 1 ) );
+    const kv::track_id_t left_id = entry.second.left_right_id_pair.left_id;
+    const kv::track_id_t right_id = entry.second.left_right_id_pair.right_id;
+    const size_t count = entry.second.frame_set.size();
+
+    if( static_cast< int >( count ) < min_frames )
+      continue;
+
+    auto lit = best_right_for_left.find( left_id );
+    if( lit == best_right_for_left.end() || lit->second.second < count )
+      best_right_for_left[ left_id ] = { right_id, count };
+
+    auto rit = best_left_for_right.find( right_id );
+    if( rit == best_left_for_right.end() || rit->second.second < count )
+      best_left_for_right[ right_id ] = { left_id, count };
+  }
+
+  track_union_find uf;
+  for( const auto& entry : best_right_for_left )
+  {
+    const kv::track_id_t left_id = entry.first;
+    const kv::track_id_t top_right = entry.second.first;
+
+    auto rit = best_left_for_right.find( top_right );
+    if( rit != best_left_for_right.end() && rit->second.first == left_id )
+      uf.unite( left_id, -( top_right + 1 ) );
   }
 
   auto groups = uf.groups();
