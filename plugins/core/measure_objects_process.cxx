@@ -60,6 +60,23 @@ create_config_trait( max_stereo_rms, double, "-1.0",
   "and keypoint-projection matches whose triangulation did not converge. "
   "Set to <= 0 to disable filtering. Typical value: 20.0." );
 
+create_config_trait( max_bbox_y_center_offset, double, "-1.0",
+  "Maximum |y_center_left - y_center_right| (pixels) for a per-frame left/"
+  "right track pairing to be recorded in the pairing accumulator. For a "
+  "near-parallel stereo rig the y-center offset equals the epipolar "
+  "residual, so this rejects pairs of unrelated fish at different image "
+  "heights even when their triangulation rms happens to be small. Kept as "
+  "absolute pixels because detection/keypoint noise is roughly constant "
+  "per-pixel — it does not scale with bbox size, so normalizing by height "
+  "over-rejects small targets. Set to <= 0 to disable. Typical value: 30." );
+
+create_config_trait( max_bbox_area_ratio, double, "-1.0",
+  "Maximum ratio max(L_area, R_area)/min(L_area, R_area) for a per-frame "
+  "pairing. Rejects pairs whose bounding boxes differ too much in area "
+  "(typical cause: coincidental same-tracker-ID matches between a small "
+  "fish in one camera and a large fish or school in the other). Set to "
+  "<= 0 to disable. Typical value: 3.0." );
+
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
 create_port_trait( object_track_set2, object_track_set,
@@ -83,6 +100,8 @@ public:
   std::string m_calibration_file;
   unsigned m_min_track_states;
   double m_max_stereo_rms;
+  double m_max_bbox_y_center_offset;
+  double m_max_bbox_area_ratio;
 
   // Measurement settings (contains all algo parameters and algorithm pointers)
   map_keypoints_to_camera_settings m_settings;
@@ -118,6 +137,8 @@ measure_objects_process::priv
   : m_calibration_file( "" )
   , m_min_track_states( 0 )
   , m_max_stereo_rms( -1.0 )
+  , m_max_bbox_y_center_offset( -1.0 )
+  , m_max_bbox_area_ratio( -1.0 )
   , m_calibration()
   , m_frame_counter( 0 )
   , parent( ptr )
@@ -182,6 +203,8 @@ measure_objects_process
   declare_config_using_trait( calibration_file );
   declare_config_using_trait( min_track_states );
   declare_config_using_trait( max_stereo_rms );
+  declare_config_using_trait( max_bbox_y_center_offset );
+  declare_config_using_trait( max_bbox_area_ratio );
 
   // Merge in map_keypoints_to_camera_settings configuration
   kv::config_block_sptr settings_config = d->m_settings.get_configuration();
@@ -213,6 +236,8 @@ measure_objects_process
   d->m_calibration_file = config_value_using_trait( calibration_file );
   d->m_min_track_states = config_value_using_trait( min_track_states );
   d->m_max_stereo_rms = config_value_using_trait( max_stereo_rms );
+  d->m_max_bbox_y_center_offset = config_value_using_trait( max_bbox_y_center_offset );
+  d->m_max_bbox_area_ratio = config_value_using_trait( max_bbox_area_ratio );
 
   if( d->m_calibration_file.empty() )
   {
@@ -487,39 +512,27 @@ measure_objects_process
     }
   }
 
-  // Identify which detections are matched
+  // Identify which detections are matched.
+  //
+  // Tracker IDs on the left and right are assigned independently, so two
+  // unrelated fish can end up sharing an ID purely by coincidence. Auto-
+  // matching by ID-equality captures those coincidental pairs before
+  // detection_pairing (keypoint_projection) ever runs, and — because it
+  // also prevents the legitimate cross-camera fish from ever being
+  // considered — leads to permanent misassociation and orphaned true pairs.
+  // So: feed every left track into detection_pairing as left-only, every
+  // right track as right-only, and let calibrated keypoint projection be
+  // the sole authority for per-frame cross-camera matching. Synthetic right
+  // tracks (which deliberately reuse left IDs) are created later in _step
+  // and aren't in dets[1] yet at this point, so they are unaffected.
   std::vector< kv::track_id_t > common_ids;
   std::vector< kv::track_id_t > left_only_ids;
+  for( const auto& itr : dets[0] )
+    left_only_ids.push_back( itr.first );
 
-  for( auto itr : dets[0] )
-  {
-    bool found_match = false;
-
-    for( unsigned i = 1; i < input_tracks.size(); ++i )
-    {
-      if( dets[i].find( itr.first ) != dets[i].end() )
-      {
-        found_match = true;
-        common_ids.push_back( itr.first );
-        break;
-      }
-    }
-
-    if( !found_match )
-    {
-      left_only_ids.push_back( itr.first );
-    }
-  }
-
-  // Collect right-only IDs (in right but not in left)
   std::vector< kv::track_id_t > right_only_ids;
-  for( auto itr : dets[1] )
-  {
-    if( dets[0].find( itr.first ) == dets[0].end() )
-    {
-      right_only_ids.push_back( itr.first );
-    }
-  }
+  for( const auto& itr : dets[1] )
+    right_only_ids.push_back( itr.first );
 
   // Get camera references
   kv::simple_camera_perspective& left_cam(
@@ -1013,26 +1026,55 @@ measure_objects_process
       dets2_vec.push_back( ots->detection() );
     }
 
-    // Reject per-frame pairings whose triangulation didn't converge, using the
-    // rms reprojection error already computed and stored on the left detection
-    // by add_measurement_attributes. This catches coincidental same-tracker-ID
-    // matches and keypoint_projection false positives whose 3D geometry is
-    // incoherent, before they can pollute the pairing accumulator.
-    auto rms_ok = [&]( int left_idx ) -> bool
+    // Reject per-frame pairings whose geometry is inconsistent, before they
+    // enter the union-find. Three independent calibration-informed filters:
+    //   - max_stereo_rms: triangulation reprojection error
+    //   - max_bbox_y_center_offset: epipolar residual proxy for near-rectified
+    //     rigs — catches pairs at different image heights (unrelated fish)
+    //     even when rms happens to be low
+    //   - max_bbox_area_ratio: catches same-tracker-ID false matches between
+    //     targets of very different image size (small fish vs school, etc.)
+    auto pair_ok = [&]( int left_idx, int right_idx ) -> bool
     {
-      if( d->m_max_stereo_rms <= 0.0 )
-        return true;
-      double rms = parse_stereo_rms_from_notes( dets1_vec[ left_idx ] );
-      if( rms < 0.0 )
-        return true;  // no measurement ran — not a rejected pair
-      return rms <= d->m_max_stereo_rms;
+      const auto& ldet = dets1_vec[ left_idx ];
+      const auto& rdet = dets2_vec[ right_idx ];
+
+      if( d->m_max_stereo_rms > 0.0 )
+      {
+        double rms = parse_stereo_rms_from_notes( ldet );
+        if( rms >= 0.0 && rms > d->m_max_stereo_rms )
+          return false;
+      }
+
+      if( d->m_max_bbox_y_center_offset > 0.0 && ldet && rdet )
+      {
+        const auto& lbb = ldet->bounding_box();
+        const auto& rbb = rdet->bounding_box();
+        double lcy = 0.5 * ( lbb.min_y() + lbb.max_y() );
+        double rcy = 0.5 * ( rbb.min_y() + rbb.max_y() );
+        if( std::abs( lcy - rcy ) > d->m_max_bbox_y_center_offset )
+          return false;
+      }
+
+      if( d->m_max_bbox_area_ratio > 0.0 && ldet && rdet )
+      {
+        const auto& lbb = ldet->bounding_box();
+        const auto& rbb = rdet->bounding_box();
+        double la = std::max( 1.0, lbb.width() * lbb.height() );
+        double ra = std::max( 1.0, rbb.width() * rbb.height() );
+        double ratio = ( la > ra ) ? ( la / ra ) : ( ra / la );
+        if( ratio > d->m_max_bbox_area_ratio )
+          return false;
+      }
+
+      return true;
     };
 
     std::vector< std::pair< int, int > > match_pairs;
     for( const auto& entry : tid1_to_idx )
     {
       auto it2 = tid2_to_idx.find( entry.first );
-      if( it2 != tid2_to_idx.end() && rms_ok( entry.second ) )
+      if( it2 != tid2_to_idx.end() && pair_ok( entry.second, it2->second ) )
         match_pairs.push_back( { entry.second, it2->second } );
     }
     for( const auto& dp : d->m_detection_paired_right_ids )
@@ -1040,7 +1082,7 @@ measure_objects_process
       auto it1 = tid1_to_idx.find( dp.first );
       auto it2 = tid2_to_idx.find( dp.second );
       if( it1 != tid1_to_idx.end() && it2 != tid2_to_idx.end() &&
-          rms_ok( it1->second ) )
+          pair_ok( it1->second, it2->second ) )
         match_pairs.push_back( { it1->second, it2->second } );
     }
 
