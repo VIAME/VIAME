@@ -20,6 +20,8 @@ docker cp viame-src-clone viame_installer_zip:/viame/
 # run the build script in the fresh docker environment
 docker exec -i viame_installer_zip ./viame/cmake/build_server_rocky.sh
 
-# copy out final installer and build log
-docker cp viame_installer_zip:/viame/build/VIAME-${VIAME_VERSION}-Linux-64Bit.tar.gz .
+# copy out final installer and build log — fall back to BROKEN tarball
+# when critical tests failed so we still get the artifact out
+docker cp viame_installer_zip:/viame/build/VIAME-${VIAME_VERSION}-Linux-64Bit.tar.gz . \
+  || docker cp viame_installer_zip:/viame/build/VIAME-BROKEN.tar.gz .
 docker cp viame_installer_zip:/viame/build/build_log.txt .
