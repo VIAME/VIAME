@@ -957,12 +957,18 @@ find_stereo_matches_keypoint_projection(
     kv::vector_2d left_tail( kp1.at( "tail" )[0], kp1.at( "tail" )[1] );
 
     // When default_depth > 0, project keypoints at that depth and compare
-    // positions directly. When default_depth <= 0, use epipolar line distance
-    // which requires no depth prior (unit-independent).
+    // positions directly. When default_depth <= 0 (the default), use
+    // triangulation + reprojection-error: triangulation finds the depth
+    // that minimizes the L/R reprojection residual automatically, so
+    // there is no fixed-depth assumption and no ambiguity along the
+    // epipolar line (which can erroneously match a corner-fish keypoint
+    // to a stationary object whose KP happens to fall on the epipolar
+    // line). The cost is the average RMS reprojection error across the
+    // head and tail keypoints.
     kv::vector_2d proj_head, proj_tail;
-    bool use_epipolar = ( options.default_depth <= 0 );
+    const bool use_triangulation = ( options.default_depth <= 0 );
 
-    if( !use_epipolar )
+    if( !use_triangulation )
     {
       proj_head = project_left_to_right(
         left_cam, right_cam, left_head, options.default_depth );
@@ -995,14 +1001,22 @@ find_stereo_matches_keypoint_projection(
       kv::vector_2d right_tail( kp2.at( "tail" )[0], kp2.at( "tail" )[1] );
 
       double avg_dist;
-      if( use_epipolar )
+      if( use_triangulation )
       {
-        // Distance from right keypoints to epipolar lines of left keypoints
-        double head_dist = epipolar_line_distance(
+        // Triangulate each keypoint pair; the reprojection error is the
+        // residual the triangulation could not absorb. compute_stereo_
+        // reprojection_error returns +infinity when the triangulated
+        // point is behind either camera, so impossible matches are
+        // rejected automatically.
+        double head_rms = compute_stereo_reprojection_error(
           left_cam, right_cam, left_head, right_head );
-        double tail_dist = epipolar_line_distance(
+        double tail_rms = compute_stereo_reprojection_error(
           left_cam, right_cam, left_tail, right_tail );
-        avg_dist = ( head_dist + tail_dist ) / 2.0;
+        if( !std::isfinite( head_rms ) || !std::isfinite( tail_rms ) )
+        {
+          continue;
+        }
+        avg_dist = ( head_rms + tail_rms ) / 2.0;
       }
       else
       {

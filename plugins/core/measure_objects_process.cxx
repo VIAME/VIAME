@@ -542,36 +542,38 @@ measure_objects_process
     dynamic_cast< kwiver::vital::simple_camera_perspective& >(
       *(d->m_calibration->right())));
 
-  // Detection pairing: match left-only and right-only detections
+  // Detection pairing: match left-only and right-only detections.
+  //
+  // detection_pairing_method may be a comma-separated list (e.g.
+  // "disparity_projection,keypoint_projection") for hybrid mode: each
+  // method is tried in order on whatever's still unpaired after the
+  // previous method ran, so the more selective methods can claim their
+  // high-confidence matches first and the broader-recall methods clean
+  // up the remainder.
   if( !d->m_settings.detection_pairing_method.empty() &&
       !left_only_ids.empty() && !right_only_ids.empty() )
   {
-    // Build detection vectors from left-only and right-only IDs
-    std::vector< kv::detected_object_sptr > left_only_dets;
-    std::vector< kv::detected_object_sptr > right_only_dets;
-
-    for( const auto& id : left_only_ids )
+    auto split_methods = []( const std::string& s )
     {
-      left_only_dets.push_back( dets[0][id] );
-    }
-    for( const auto& id : right_only_ids )
-    {
-      right_only_dets.push_back( dets[1][id] );
-    }
+      std::vector< std::string > out;
+      std::string cur;
+      for( char c : s )
+      {
+        if( c == ',' )
+        {
+          if( !cur.empty() ) out.push_back( cur );
+          cur.clear();
+        }
+        else if( c != ' ' && c != '\t' )
+        {
+          cur.push_back( c );
+        }
+      }
+      if( !cur.empty() ) out.push_back( cur );
+      return out;
+    };
+    const auto methods = split_methods( d->m_settings.detection_pairing_method );
 
-    // Build shared params and dispatch through unified function.
-    // Use default_depth=0 (epipolar mode) for detection pairing — the
-    // measurement-level default_depth is tuned for depth projection of
-    // individual keypoints, not for cross-camera track matching.  The old
-    // standalone pair_stereo_detections process also defaulted to 0.
-    detection_pairing_params dp;
-    dp.method = d->m_settings.detection_pairing_method;
-    dp.threshold = d->m_settings.detection_pairing_threshold;
-    dp.default_depth = 0.0;
-    dp.require_class_match = d->m_settings.detection_pairing_require_class_match;
-    dp.use_optimal_assignment = d->m_settings.detection_pairing_use_optimal_assignment;
-
-    // Prepare feature algorithms if method requires them
     feature_matching_algorithms feat_algos;
     feat_algos.feature_detector = d->m_settings.feature_detector;
     feat_algos.descriptor_extractor = d->m_settings.descriptor_extractor;
@@ -580,92 +582,102 @@ measure_objects_process
     kv::image_container_sptr img1 = input_images.size() >= 1 ? input_images[0] : nullptr;
     kv::image_container_sptr img2 = input_images.size() >= 2 ? input_images[1] : nullptr;
 
-    std::vector< std::pair< int, int > > paired;
-    if( d->m_settings.detection_pairing_method == "disparity_projection" )
+    for( const auto& method : methods )
     {
-      // Match by sampling the disparity model. Compute disparity once
-      // (cached) so subsequent matching_methods stages can reuse it.
-      auto disparity = d->m_utilities.compute_disparity_for_frame(
-        left_cam, right_cam, img1, img2 );
+      if( left_only_ids.empty() || right_only_ids.empty() )
+        break;
 
-      if( !disparity )
+      std::vector< kv::detected_object_sptr > left_only_dets, right_only_dets;
+      for( const auto& id : left_only_ids )
+        left_only_dets.push_back( dets[0][id] );
+      for( const auto& id : right_only_ids )
+        right_only_dets.push_back( dets[1][id] );
+
+      detection_pairing_params dp;
+      dp.method = method;
+      dp.threshold = d->m_settings.detection_pairing_threshold;
+      dp.default_depth = 0.0;
+      dp.require_class_match = d->m_settings.detection_pairing_require_class_match;
+      dp.use_optimal_assignment = d->m_settings.detection_pairing_use_optimal_assignment;
+
+      std::vector< std::pair< int, int > > paired;
+      if( method == "disparity_projection" )
       {
-        LOG_WARN( logger(),
-          "disparity_projection: no disparity available this frame "
-          "(stereo_disparity algorithm not configured or rectification "
-          "failed); skipping detection pairing." );
+        auto disparity = d->m_utilities.compute_disparity_for_frame(
+          left_cam, right_cam, img1, img2 );
+
+        if( !disparity )
+        {
+          LOG_WARN( logger(),
+            "disparity_projection: no disparity this frame; skipping" );
+        }
+        else
+        {
+          auto rectify_left =
+            [ & ]( const kv::vector_2d& p ) -> kv::vector_2d
+            { return d->m_utilities.rectify_point( p, false ); };
+          auto unrectify_right =
+            [ & ]( const kv::vector_2d& p ) -> kv::vector_2d
+            { return d->m_utilities.unrectify_point( p, true, right_cam ); };
+
+          disparity_projection_matching_options opts;
+          opts.max_centroid_distance = dp.threshold;
+          opts.require_class_match = dp.require_class_match;
+          opts.use_optimal_assignment = dp.use_optimal_assignment;
+
+          paired = find_stereo_matches_disparity_projection(
+            left_only_dets, right_only_dets,
+            disparity, rectify_left, unrectify_right,
+            opts, logger() );
+        }
       }
       else
       {
-        // Wrap the utility's rectify/unrectify so the matching function
-        // doesn't need to know about the camera or cached maps.
-        auto rectify_left =
-          [ & ]( const kv::vector_2d& p ) -> kv::vector_2d
-          { return d->m_utilities.rectify_point( p, false ); };
-        auto unrectify_right =
-          [ & ]( const kv::vector_2d& p ) -> kv::vector_2d
-          { return d->m_utilities.unrectify_point( p, true, right_cam ); };
-
-        disparity_projection_matching_options opts;
-        opts.max_centroid_distance = dp.threshold;
-        opts.require_class_match = dp.require_class_match;
-        opts.use_optimal_assignment = dp.use_optimal_assignment;
-
-        paired = find_stereo_matches_disparity_projection(
-          left_only_dets, right_only_dets,
-          disparity, rectify_left, unrectify_right,
-          opts, logger() );
+        paired = find_stereo_detection_matches(
+          dp, left_only_dets, right_only_dets,
+          &left_cam, &right_cam, img1, img2,
+          &feat_algos, nullptr, logger() );
       }
-    }
-    else
-    {
-      paired = find_stereo_detection_matches(
-        dp, left_only_dets, right_only_dets,
-        &left_cam, &right_cam, img1, img2,
-        &feat_algos, nullptr, logger() );
-    }
 
-    // Merge paired detections: insert right det under left track ID
-    std::set< kv::track_id_t > paired_left_ids;
-    for( const auto& p : paired )
-    {
-      kv::track_id_t left_id = left_only_ids[p.first];
-      kv::track_id_t right_id = right_only_ids[p.second];
-
-      // Insert right detection under the left track ID
-      dets[1][left_id] = dets[1][right_id];
-
-      // Erase old right-only entry if IDs differ
-      if( left_id != right_id )
+      // Merge paired detections from this method's run into common_ids,
+      // then prune left_only_ids / right_only_ids so the next method
+      // only sees the leftovers.
+      std::set< kv::track_id_t > paired_left_ids;
+      std::set< kv::track_id_t > paired_right_ids;
+      for( const auto& p : paired )
       {
-        dets[1].erase( right_id );
+        kv::track_id_t left_id = left_only_ids[ p.first ];
+        kv::track_id_t right_id = right_only_ids[ p.second ];
+
+        dets[1][ left_id ] = dets[1][ right_id ];
+        if( left_id != right_id )
+          dets[1].erase( right_id );
+
+        common_ids.push_back( left_id );
+        paired_left_ids.insert( left_id );
+        paired_right_ids.insert( right_id );
+
+        if( left_id != right_id )
+          d->m_detection_paired_right_ids[ left_id ] = right_id;
+
+        LOG_INFO( logger(),
+          "Paired left track " + std::to_string( left_id ) +
+          " with right track " + std::to_string( right_id ) +
+          " via " + method );
       }
 
-      common_ids.push_back( left_id );
-      paired_left_ids.insert( left_id );
+      std::vector< kv::track_id_t > remaining_left;
+      for( const auto& id : left_only_ids )
+        if( paired_left_ids.find( id ) == paired_left_ids.end() )
+          remaining_left.push_back( id );
+      left_only_ids = std::move( remaining_left );
 
-      // Record the mapping so the union-find can link the actual right
-      // camera track, enabling transitive linking across track deaths.
-      if( left_id != right_id )
-      {
-        d->m_detection_paired_right_ids[left_id] = right_id;
-      }
-
-      LOG_INFO( logger(), "Paired left track " + std::to_string( left_id ) +
-                " with right track " + std::to_string( right_id ) +
-                " via " + d->m_settings.detection_pairing_method );
+      std::vector< kv::track_id_t > remaining_right;
+      for( const auto& id : right_only_ids )
+        if( paired_right_ids.find( id ) == paired_right_ids.end() )
+          remaining_right.push_back( id );
+      right_only_ids = std::move( remaining_right );
     }
-
-    // Rebuild left_only_ids without paired entries
-    std::vector< kv::track_id_t > remaining_left;
-    for( const auto& id : left_only_ids )
-    {
-      if( paired_left_ids.find( id ) == paired_left_ids.end() )
-      {
-        remaining_left.push_back( id );
-      }
-    }
-    left_only_ids = remaining_left;
   }
 
   // Separate matched detections
