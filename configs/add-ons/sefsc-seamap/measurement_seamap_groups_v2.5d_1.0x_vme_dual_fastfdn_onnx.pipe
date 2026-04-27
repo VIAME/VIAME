@@ -372,21 +372,29 @@ process measurer
   # method. Point checkpoint_path at a Fast-Foundation-Stereo release
   # weight (the parent directory must contain cfg.yaml).
   :stereo_disparity:type                       fast_foundation_stereo_onnx
-  # Smallest ONNX variant (20_30_48, 320x736, 4 iters) so the model fits
-  # alongside the rest of the pipeline on a 16 GB GPU; the 576x960 / 8-iter
-  # variants OOM with ~14 GB already used by detector + classifier + SAM2 +
-  # srnn + the head/tail KP refiner. Larger-VRAM users can swap to:
-  #   23_36_37/576x960/23_36_37_iters_8_res_576x960.onnx (best accuracy)
-  # The matching sidecar .yaml lives next to the .onnx and is auto-discovered.
-  :stereo_disparity:fast_foundation_stereo_onnx:model_path  /home/local/KHQ/matt.dawkins/Desktop/fast-fdn-stereo-weights/onnx/20_30_48/320x736/20_30_48_iters_4_res_320x736.onnx
+  # Smallest ONNX variant (20_30_48, 320x736) so the model fits alongside
+  # the rest of the pipeline on a 16 GB GPU; 576x960 OOMs (5.9 GB
+  # allocation in /ReduceSum). Using iters_8 (vs iters_4) for sharper
+  # refinement at the same memory footprint — disparity precision is
+  # what gates detection_pairing accuracy here.
+  :stereo_disparity:fast_foundation_stereo_onnx:model_path  /home/local/KHQ/matt.dawkins/Desktop/fast-fdn-stereo-weights/onnx/20_30_48/320x736/20_30_48_iters_8_res_320x736.onnx
   :stereo_disparity:fast_foundation_stereo_onnx:backend     auto
   :stereo_disparity:fast_foundation_stereo_onnx:device      auto
   :stereo_disparity:fast_foundation_stereo_onnx:output_mode disparity
   :stereo_disparity:fast_foundation_stereo_onnx:remove_invisible true
 
-  # Detection pairing for unmatched left/right tracks
-  :detection_pairing_method                    keypoint_projection
-  :detection_pairing_threshold                 50.0
+  # Hybrid pairing: try disparity_projection first (uses measured depth
+  # from fast_foundation_stereo_onnx, very accurate when valid) and fall
+  # back to keypoint_projection on whatever's left over. The fallback's
+  # default mode (default_depth<=0) now uses triangulation + reprojection
+  # error instead of epipolar-line distance, so it rejects pairs where
+  # the keypoint geometry only looks valid because R's keypoint happens
+  # to land on L's epipolar line at a wildly inconsistent depth.
+  :detection_pairing_method                    disparity_projection,keypoint_projection
+  # Threshold serves both methods: max centroid distance in unrectified
+  # pixels for disparity_projection, max average reprojection error in
+  # pixels for keypoint_projection.
+  :detection_pairing_threshold                 100.0
   :detection_pairing_require_class_match       false
 
   # Per-frame pair-quality filters applied at the accumulator. The stereo
