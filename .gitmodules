@@ -97,3 +97,6 @@
 [submodule "packages/pytorch-libs/dino3"]
 	path = packages/pytorch-libs/dino3
 	url = https://github.com/facebookresearch/dinov3
+[submodule "packages/pytorch-libs/fast-foundation-stereo"]
+	path = packages/pytorch-libs/fast-foundation-stereo
+	url = https://github.com/NVlabs/Fast-FoundationStereo.git
