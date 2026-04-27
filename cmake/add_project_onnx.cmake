@@ -1,6 +1,10 @@
-# Install onnx python
-set( ONNXRUNTIME_PYTHON onnxruntime )
-set( ONNXRUNTIME_VERSION 1.12.1 )
+# Install onnx python. onnxruntime-gpu (vs vanilla onnxruntime) gives the
+# CUDAExecutionProvider that fast_foundation_stereo_onnx and similar GPU
+# inference wrappers need; it imports as the same `onnxruntime` package
+# so existing CPU-path consumers keep working. Version 1.23.x is the
+# current line that supports CUDA 12 (matches our torch wheel).
+set( ONNXRUNTIME_PYTHON onnxruntime-gpu )
+set( ONNXRUNTIME_VERSION 1.23.2 )
 set( ONNXRUNTIME_DOWNLOAD_DIR ${VIAME_PACKAGES_DIR}/downloads )
 
 # Convert env vars to ----separated string for pip_install_with_lock.cmake
@@ -15,7 +19,7 @@ set( ONNXRUNTIME_PIP_INSTALL_CMD
     -P ${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake )
 
 set( ONNXRUNTIME_PYTHON_DOWNLOAD ${Python_EXECUTABLE} -m pip download
-  --no-deps onnxruntime==${ONNXRUNTIME_VERSION} -d "${ONNXRUNTIME_DOWNLOAD_DIR}" )
+  --no-deps ${ONNXRUNTIME_PYTHON}==${ONNXRUNTIME_VERSION} -d "${ONNXRUNTIME_DOWNLOAD_DIR}" )
 
 # Convert install command to ----separated string for the wrapper script
 string( REPLACE ";" "----" ONNX_INSTALL_CMD_STR "${ONNXRUNTIME_PIP_INSTALL_CMD}" )

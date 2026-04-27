@@ -289,6 +289,11 @@ if( VIAME_ENABLE_PYTORCH-STEREO )
       pytorch
       fast_foundation_stereo )
 
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/fast_foundation_stereo_onnx.py
+      pytorch
+      fast_foundation_stereo_onnx )
+
 endif()
 
 if( VIAME_ENABLE_PYTORCH-DINO3 )
