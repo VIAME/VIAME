@@ -39,6 +39,11 @@ class FastFoundationStereoConfig(scfg.DataConfig):
     checkpoint_path = scfg.Value(
         '', help='Path to the serialized model checkpoint (.pth file). The '
                  'parent directory must contain cfg.yaml from the release.')
+    package_dir = scfg.Value(
+        '', help='Directory containing the fast-foundation-stereo source '
+                 '(must contain core/ and Utils.py). When empty, the wrapper '
+                 'searches via VIAME_SOURCE_DIR env var, the install tree '
+                 'sibling layout, and src-tree relative paths.')
     device = scfg.Value(
         'auto', help="Device to run inference on: 'auto' (use GPU if available), 'cpu', or specific GPU (e.g., 'cuda:0')")
     num_iters = scfg.Value(
@@ -136,11 +141,17 @@ class FastFoundationStereo(ComputeStereoDepthMap):
             if self._focal_length <= 0 or self._baseline <= 0:
                 raise RuntimeError("calibration_file with valid focal length and baseline required for depth output")
 
-        # Add fast-foundation-stereo to path
-        ffs_dir = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-            'packages', 'pytorch-libs', 'fast-foundation-stereo'
-        )
+        # Resolve the fast-foundation-stereo source directory. Same lookup
+        # used to support both running from a build install (where __file__
+        # lives under site-packages and bears no relation to the src tree)
+        # and running directly out of the source checkout.
+        ffs_dir = self._resolve_package_dir()
+        if ffs_dir is None:
+            raise RuntimeError(
+                "Could not locate the fast-foundation-stereo source. Set "
+                ":stereo_disparity:fast_foundation_stereo:package_dir in "
+                "your pipe, or export VIAME_SOURCE_DIR pointing at your "
+                "viame source checkout.")
         if ffs_dir not in sys.path:
             sys.path.insert(0, ffs_dir)
 
@@ -205,6 +216,39 @@ class FastFoundationStereo(ComputeStereoDepthMap):
             return False
 
         return True
+
+    def _resolve_package_dir(self):
+        """Find a directory that contains core/ and Utils.py from the
+        fast-foundation-stereo release. Returns the path or None."""
+        candidates = []
+
+        explicit = self._config.get('package_dir', '')
+        if explicit:
+            candidates.append(explicit)
+
+        env = os.environ.get('VIAME_SOURCE_DIR', '')
+        if env:
+            candidates.append(os.path.join(
+                env, 'packages', 'pytorch-libs', 'fast-foundation-stereo'))
+
+        # Walk up from this file looking for a sibling 'packages/pytorch-libs/
+        # fast-foundation-stereo' tree. Works whether __file__ is the src
+        # checkout (.../src/plugins/pytorch/fast_foundation_stereo.py) or
+        # the installed copy (.../site-packages/viame/pytorch/...) — though
+        # only the src layout actually has the package dir alongside.
+        here = os.path.dirname(os.path.abspath(__file__))
+        for _ in range(6):
+            candidates.append(os.path.join(
+                here, 'packages', 'pytorch-libs', 'fast-foundation-stereo'))
+            here = os.path.dirname(here)
+
+        for d in candidates:
+            if not d:
+                continue
+            if os.path.isfile(os.path.join(d, 'Utils.py')) and \
+               os.path.isdir(os.path.join(d, 'core')):
+                return d
+        return None
 
     def _load_calibration(self, cal_fpath):
         """Load stereo calibration from a KWIVER stereo rig JSON.
