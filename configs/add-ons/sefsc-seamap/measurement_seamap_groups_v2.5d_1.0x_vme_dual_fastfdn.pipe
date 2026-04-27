@@ -374,10 +374,17 @@ process measurer
   # weight (the parent directory must contain cfg.yaml).
   :stereo_disparity:type                       fast_foundation_stereo
   :stereo_disparity:fast_foundation_stereo:checkpoint_path  /home/local/KHQ/matt.dawkins/Desktop/fast-fdn-stereo-weights/23-36-37/model_best_bp2_serialize.pth
+  :stereo_disparity:fast_foundation_stereo:package_dir      /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/pytorch-libs/fast-foundation-stereo
   :stereo_disparity:fast_foundation_stereo:device           auto
+  # Scale and half-precision are aggressive because the surrounding
+  # SeaMap pipeline (detector, classifier, SAM2, srnn) leaves only ~400 MB
+  # of headroom on a 16 GB GPU; running fast-foundation-stereo at 1920x1200
+  # full precision OOMs. scale=0.5 + use_half_precision keeps it in budget;
+  # ramp them back up if the rest of the pipeline is offloaded.
   :stereo_disparity:fast_foundation_stereo:mixed_precision  true
-  :stereo_disparity:fast_foundation_stereo:use_half_precision false
-  :stereo_disparity:fast_foundation_stereo:scale            1.0
+  :stereo_disparity:fast_foundation_stereo:use_half_precision true
+  :stereo_disparity:fast_foundation_stereo:scale            0.5
+  :stereo_disparity:fast_foundation_stereo:use_hierarchical false
   :stereo_disparity:fast_foundation_stereo:output_mode      disparity
   :stereo_disparity:fast_foundation_stereo:remove_invisible true
 
