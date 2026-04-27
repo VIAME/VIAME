@@ -363,14 +363,17 @@ process measurer
   :detection_pairing_threshold                 50.0
   :detection_pairing_require_class_match       false
 
-  # Per-frame pair-quality filters applied at the accumulator. Together these
-  # reject coincidental same-tracker-ID matches and borderline keypoint-
-  # projection matches whose geometry is inconsistent, without needing a
-  # tight detection_pairing_threshold that would also reject legitimate
-  # borderline pairs.
+  # Per-frame pair-quality filters applied at the accumulator. The stereo
+  # rig has a non-trivial vertical baseline (cal T_y ~ -177 mm), so close-
+  # range targets exhibit large vertical bbox-center disparities (~130 px
+  # at ~1.4 m depth). The y-offset filter and area-ratio filter are kept
+  # loose enough not to reject legitimate close-range / edge-truncated
+  # pairs; stereo_rms is the primary geometry gate, and the multi-fragment
+  # disjoint-set logic in select_most_likely_pairing is what guards
+  # against transitive over-merging across distinct fish.
   :max_stereo_rms                              20.0
-  :max_bbox_y_center_offset                    30.0
-  :max_bbox_area_ratio                         1.5
+  :max_bbox_y_center_offset                    200.0
+  :max_bbox_area_ratio                         3.0
 
   # Track remapping (unified IDs, class averaging, length averaging)
   # Accumulate pairings across the full stream and resolve once at finalize,

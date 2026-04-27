@@ -752,16 +752,40 @@ stereo_track_pairer
   std::set< kv::track_id_t >& proc_left,
   std::set< kv::track_id_t >& proc_right )
 {
-  // "Most likely" = mutual-best matching with a frame-count floor:
+  // Multi-fragment-aware "most likely" matching. Each candidate (L, R)
+  // pairing carries a count and the [first, last] frame range over which
+  // those two tracks were paired in the accumulator.
+  //
   //   1. Drop pairings with fewer than detection_split_threshold co-occurring
   //      frames (weak pairings are likely keypoint_projection false positives).
-  //   2. For each surviving left, find the right it co-occurs with most often;
-  //      same in reverse for each right.
-  //   3. Only unite (L, R) when L's top right is R and R's top left is L.
-  // This prevents transitive closure from fusing different fish into one
-  // output track when a few stray frames briefly linked them.
+  //   2. For each L, identify its primary R (highest count); same for each R.
+  //   3. A candidate (L, R) is eligible to unite if EITHER L's primary is R
+  //      OR R's primary is L. This permits a single fish whose left side
+  //      fragmented into several tracker segments to coalesce under one
+  //      output ID — every fragment lists R as its primary even though R's
+  //      single primary is just one of them — and symmetrically for a
+  //      fragmented right side.
+  //   4. When several Ls compete for the same R, accept them in count-desc
+  //      order, skipping any whose paired-frame *set* intersects an already-
+  //      accepted L's set. The set check (not just [first,last] ranges)
+  //      matters when one L paired with multiple Rs in interleaved frames:
+  //      the per-R sets are disjoint, but their first/last ranges overlap.
+  //      Two fragments of one fish never pair with R in the same frame;
+  //      two distinct fish that briefly both paired with R do, and the
+  //      lower-count one is rejected. Symmetric logic applies on the L side.
+  // This keeps the anti-transitive guarantee of strict mutual-best while
+  // recovering legitimate multi-fragment associations.
   const int min_frames = std::max( 1, m_detection_split_threshold );
 
+  struct candidate
+  {
+    kv::track_id_t left_id;
+    kv::track_id_t right_id;
+    size_t count;
+    const std::set< kv::frame_id_t >* frames;
+  };
+
+  std::vector< candidate > candidates;
   std::map< kv::track_id_t,
             std::pair< kv::track_id_t, size_t > > best_right_for_left;
   std::map< kv::track_id_t,
@@ -771,10 +795,13 @@ stereo_track_pairer
   {
     const kv::track_id_t left_id = entry.second.left_right_id_pair.left_id;
     const kv::track_id_t right_id = entry.second.left_right_id_pair.right_id;
-    const size_t count = entry.second.frame_set.size();
+    const auto& frames = entry.second.frame_set;
+    const size_t count = frames.size();
 
-    if( static_cast< int >( count ) < min_frames )
+    if( static_cast< int >( count ) < min_frames || frames.empty() )
       continue;
+
+    candidates.push_back( { left_id, right_id, count, &frames } );
 
     auto lit = best_right_for_left.find( left_id );
     if( lit == best_right_for_left.end() || lit->second.second < count )
@@ -785,15 +812,164 @@ stereo_track_pairer
       best_left_for_right[ right_id ] = { left_id, count };
   }
 
-  track_union_find uf;
-  for( const auto& entry : best_right_for_left )
+  // Bucket candidates by whichever side considers them primary. A pairing
+  // that is only its left's primary contributes via by_right; one that is
+  // only its right's primary contributes via by_left; one that is mutually
+  // primary appears in both (the union-find dedupes the unite() call).
+  std::map< kv::track_id_t, std::vector< candidate > > by_right;
+  std::map< kv::track_id_t, std::vector< candidate > > by_left;
+  for( const auto& c : candidates )
   {
-    const kv::track_id_t left_id = entry.first;
-    const kv::track_id_t top_right = entry.second.first;
+    bool l_primary = false;
+    auto lit = best_right_for_left.find( c.left_id );
+    if( lit != best_right_for_left.end() && lit->second.first == c.right_id )
+      l_primary = true;
 
-    auto rit = best_left_for_right.find( top_right );
-    if( rit != best_left_for_right.end() && rit->second.first == left_id )
-      uf.unite( left_id, -( top_right + 1 ) );
+    bool r_primary = false;
+    auto rit = best_left_for_right.find( c.right_id );
+    if( rit != best_left_for_right.end() && rit->second.first == c.left_id )
+      r_primary = true;
+
+    if( l_primary )
+      by_right[ c.right_id ].push_back( c );
+    if( r_primary )
+      by_left[ c.left_id ].push_back( c );
+  }
+
+  // Set intersection with early exit. Both sets are sorted (std::set), so
+  // a parallel walk costs O(min(|a|, |b|)) and stops at the first match.
+  auto sets_intersect = [](
+    const std::set< kv::frame_id_t >& a,
+    const std::set< kv::frame_id_t >& b ) -> bool
+  {
+    auto ia = a.begin(); auto ib = b.begin();
+    while( ia != a.end() && ib != b.end() )
+    {
+      if( *ia < *ib ) ++ia;
+      else if( *ib < *ia ) ++ib;
+      else return true;
+    }
+    return false;
+  };
+
+  track_union_find uf;
+
+  // Track the union of accepted pairing-frame sets per group root, so the
+  // bridging pass below can check whether a cross-group candidate's frames
+  // are disjoint from each side's already-claimed frames.
+  auto record_accepted = [&](
+    std::map< kv::track_id_t, std::set< kv::frame_id_t > >& frames_by_root,
+    const candidate& c )
+  {
+    kv::track_id_t root = uf.find( c.left_id );
+    auto& dst = frames_by_root[ root ];
+    dst.insert( c.frames->begin(), c.frames->end() );
+  };
+  std::map< kv::track_id_t, std::set< kv::frame_id_t > > group_frames;
+
+  // Right-side fragment merging: for each R, accept multiple Ls only when
+  // their pairing-frame sets with R are pairwise disjoint.
+  for( auto& entry : by_right )
+  {
+    auto& cs = entry.second;
+    std::sort( cs.begin(), cs.end(),
+               []( const candidate& a, const candidate& b )
+               { return a.count > b.count; } );
+
+    std::vector< const std::set< kv::frame_id_t >* > accepted;
+    for( const auto& c : cs )
+    {
+      bool overlap = false;
+      for( const auto* fs : accepted )
+      {
+        if( sets_intersect( *c.frames, *fs ) )
+        {
+          overlap = true;
+          break;
+        }
+      }
+      if( overlap )
+        continue;
+      accepted.push_back( c.frames );
+      uf.unite( c.left_id, -( c.right_id + 1 ) );
+      record_accepted( group_frames, c );
+    }
+  }
+
+  // Left-side fragment merging: symmetric, for fragmented right tracks.
+  for( auto& entry : by_left )
+  {
+    auto& cs = entry.second;
+    std::sort( cs.begin(), cs.end(),
+               []( const candidate& a, const candidate& b )
+               { return a.count > b.count; } );
+
+    std::vector< const std::set< kv::frame_id_t >* > accepted;
+    for( const auto& c : cs )
+    {
+      bool overlap = false;
+      for( const auto* fs : accepted )
+      {
+        if( sets_intersect( *c.frames, *fs ) )
+        {
+          overlap = true;
+          break;
+        }
+      }
+      if( overlap )
+        continue;
+      accepted.push_back( c.frames );
+      uf.unite( c.left_id, -( c.right_id + 1 ) );
+      record_accepted( group_frames, c );
+    }
+  }
+
+  // Cross-group bridging: a candidate that the primary passes dropped may
+  // still be the only evidence linking two existing groups when the same
+  // fish was fragmented on BOTH cameras simultaneously. Example: L tracker
+  // breaks at frame 100, R tracker breaks at frame 130 — the (L_late,
+  // R_early) candidate spanning frames 100-130 isn't either side's primary
+  // (each has a longer pair elsewhere) so it's dropped, leaving the fish
+  // split into {L_early, R_early} and {L_late, R_late}. Bridge it iff (a)
+  // it crosses into a different uf root, and (b) its frame set is disjoint
+  // from BOTH existing groups' accumulated accepted frames (so transient
+  // mismatches that happen to coincide with a real pair's frames are still
+  // rejected).
+  std::vector< const candidate* > sorted_candidates;
+  sorted_candidates.reserve( candidates.size() );
+  for( const auto& c : candidates )
+    sorted_candidates.push_back( &c );
+  std::sort( sorted_candidates.begin(), sorted_candidates.end(),
+             []( const candidate* a, const candidate* b )
+             { return a->count > b->count; } );
+
+  for( const candidate* cp : sorted_candidates )
+  {
+    const candidate& c = *cp;
+    kv::track_id_t l_root = uf.find( c.left_id );
+    kv::track_id_t r_root = uf.find( -( c.right_id + 1 ) );
+    if( l_root == r_root )
+      continue;  // already in same group
+
+    const auto* lf = group_frames.count( l_root ) ? &group_frames[ l_root ] : nullptr;
+    const auto* rf = group_frames.count( r_root ) ? &group_frames[ r_root ] : nullptr;
+    if( lf && sets_intersect( *c.frames, *lf ) )
+      continue;
+    if( rf && sets_intersect( *c.frames, *rf ) )
+      continue;
+
+    // Both groups are time-disjoint at this candidate's frames — the bridge
+    // is consistent with one fish trajectory split across simultaneous L+R
+    // tracker breaks. Merge.
+    uf.unite( c.left_id, -( c.right_id + 1 ) );
+    kv::track_id_t merged_root = uf.find( c.left_id );
+    std::set< kv::frame_id_t > merged;
+    if( lf ) merged.insert( lf->begin(), lf->end() );
+    if( rf ) merged.insert( rf->begin(), rf->end() );
+    merged.insert( c.frames->begin(), c.frames->end() );
+    group_frames.erase( l_root );
+    group_frames.erase( r_root );
+    group_frames[ merged_root ] = std::move( merged );
   }
 
   auto groups = uf.groups();
