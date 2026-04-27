@@ -1062,6 +1062,316 @@ find_stereo_matches_keypoint_projection(
 }
 
 // =============================================================================
+// Disparity-projection detection pairing
+// =============================================================================
+
+namespace
+{
+
+// Read disparity at (px, py) in rectified-image space. Returns -1.0 for
+// invalid (out-of-bounds, zero, or non-finite). Mirrors the pixel-format
+// handling used by find_corresponding_point_external_disparity.
+double
+read_rectified_disparity(
+  const kv::image& img,
+  const char* base,
+  int px, int py )
+{
+  int w = static_cast< int >( img.width() );
+  int h = static_cast< int >( img.height() );
+  if( px < 0 || px >= w || py < 0 || py >= h )
+  {
+    return -1.0;
+  }
+  if( img.pixel_traits().type == kv::image_pixel_traits::UNSIGNED &&
+      img.pixel_traits().num_bytes == 2 )
+  {
+    auto ptr = reinterpret_cast< const uint16_t* >(
+      base + py * img.h_step() + px * img.w_step() );
+    double v = static_cast< double >( *ptr ) / 256.0;
+    return ( v > 0.0 && std::isfinite( v ) ) ? v : -1.0;
+  }
+  if( img.pixel_traits().type == kv::image_pixel_traits::SIGNED &&
+      img.pixel_traits().num_bytes == 2 )
+  {
+    auto ptr = reinterpret_cast< const int16_t* >(
+      base + py * img.h_step() + px * img.w_step() );
+    int16_t raw = *ptr;
+    if( raw <= 0 ) return -1.0;
+    return static_cast< double >( raw ) / 16.0;
+  }
+  if( img.pixel_traits().type == kv::image_pixel_traits::FLOAT &&
+      img.pixel_traits().num_bytes == 4 )
+  {
+    auto ptr = reinterpret_cast< const float* >(
+      base + py * img.h_step() + px * img.w_step() );
+    double v = static_cast< double >( *ptr );
+    return ( v > 0.0 && std::isfinite( v ) ) ? v : -1.0;
+  }
+  return -1.0;
+}
+
+// Median over the in-bounds disparities sampled inside a square window.
+// Returns -1.0 if no valid samples were found.
+double
+median_disparity_in_window(
+  const kv::image& img,
+  const char* base,
+  int cx, int cy,
+  int half )
+{
+  std::vector< double > values;
+  values.reserve( ( 2 * half + 1 ) * ( 2 * half + 1 ) );
+  for( int dy = -half; dy <= half; ++dy )
+  {
+    for( int dx = -half; dx <= half; ++dx )
+    {
+      double v = read_rectified_disparity( img, base, cx + dx, cy + dy );
+      if( v > 0.0 ) values.push_back( v );
+    }
+  }
+  if( values.empty() )
+  {
+    return -1.0;
+  }
+  size_t mid = values.size() / 2;
+  std::nth_element( values.begin(), values.begin() + mid, values.end() );
+  return values[ mid ];
+}
+
+// Median disparity sampled across the rectified versions of every
+// polygon vertex. Falls back to a small window around the polygon
+// centroid if individual vertex samples are sparse / invalid. The
+// polygon is in left-image (unrectified) coordinates.
+double
+median_disparity_over_polygon(
+  const kv::image& img,
+  const char* base,
+  const std::vector< kv::vector_2d >& poly_unrect,
+  const std::function< kv::vector_2d( const kv::vector_2d& ) >& rectify_left_pt,
+  int fallback_half )
+{
+  if( poly_unrect.empty() )
+  {
+    return -1.0;
+  }
+
+  std::vector< double > values;
+  values.reserve( poly_unrect.size() );
+
+  kv::vector_2d centroid_unrect( 0.0, 0.0 );
+  for( const auto& p : poly_unrect )
+  {
+    centroid_unrect += p;
+    kv::vector_2d r = rectify_left_pt( p );
+    int rx = static_cast< int >( r.x() + 0.5 );
+    int ry = static_cast< int >( r.y() + 0.5 );
+    double v = read_rectified_disparity( img, base, rx, ry );
+    if( v > 0.0 ) values.push_back( v );
+  }
+  centroid_unrect /= static_cast< double >( poly_unrect.size() );
+
+  // Always include a small window around the polygon centroid in
+  // rectified space — silhouette pixels often sit on disparity
+  // discontinuities, so a few interior samples stabilise the median.
+  kv::vector_2d c_rect = rectify_left_pt( centroid_unrect );
+  int ccx = static_cast< int >( c_rect.x() + 0.5 );
+  int ccy = static_cast< int >( c_rect.y() + 0.5 );
+  for( int dy = -fallback_half; dy <= fallback_half; ++dy )
+  {
+    for( int dx = -fallback_half; dx <= fallback_half; ++dx )
+    {
+      double v = read_rectified_disparity( img, base, ccx + dx, ccy + dy );
+      if( v > 0.0 ) values.push_back( v );
+    }
+  }
+
+  if( values.empty() )
+  {
+    return -1.0;
+  }
+  size_t mid = values.size() / 2;
+  std::nth_element( values.begin(), values.begin() + mid, values.end() );
+  return values[ mid ];
+}
+
+// Pull the polygon (in left-image / right-image pixel coords) out of a
+// detection's mask if one is present. Returns empty vector if the
+// detection has no mask. Each vector_2d is one polygon vertex.
+std::vector< kv::vector_2d >
+extract_polygon_points( const kv::detected_object_sptr& det )
+{
+  std::vector< kv::vector_2d > out;
+  if( !det )
+  {
+    return out;
+  }
+  auto mask = det->mask();
+  if( !mask )
+  {
+    return out;
+  }
+  // Mask is an image; polygons in this pipeline are stored as
+  // detection-state notes, not on the mask object itself. Fall through
+  // to a uniform sampling of the bbox interior so the per-pixel
+  // disparity median can still benefit from area averaging.
+  const auto& bbox = det->bounding_box();
+  const int N = 5;  // 5x5 grid of sample points inside the bbox
+  for( int j = 0; j < N; ++j )
+  {
+    double t_y = ( j + 0.5 ) / N;
+    double y = bbox.min_y() + t_y * ( bbox.max_y() - bbox.min_y() );
+    for( int i = 0; i < N; ++i )
+    {
+      double t_x = ( i + 0.5 ) / N;
+      double x = bbox.min_x() + t_x * ( bbox.max_x() - bbox.min_x() );
+      out.emplace_back( x, y );
+    }
+  }
+  return out;
+}
+
+}  // anonymous namespace
+
+std::vector< std::pair< int, int > >
+find_stereo_matches_disparity_projection(
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::image_container_sptr& disparity_rectified,
+  const std::function< kv::vector_2d( const kv::vector_2d& ) >& rectify_left_pt,
+  const std::function< kv::vector_2d( const kv::vector_2d& ) >& unrectify_right_pt,
+  const disparity_projection_matching_options& options,
+  kv::logger_handle_t logger )
+{
+  int n1 = static_cast< int >( detections1.size() );
+  int n2 = static_cast< int >( detections2.size() );
+
+  if( n1 == 0 || n2 == 0 )
+  {
+    return {};
+  }
+  if( !disparity_rectified )
+  {
+    if( logger )
+    {
+      LOG_ERROR( logger,
+        "disparity_projection requires a non-null disparity image" );
+    }
+    return {};
+  }
+
+  const auto& img = disparity_rectified->get_image();
+  const char* base = reinterpret_cast< const char* >( img.first_pixel() );
+  const int half = std::max( 0, options.sample_window );
+
+  // Precompute right-detection centroids in unrectified right-image space.
+  std::vector< kv::vector_2d > right_centroids( n2 );
+  std::vector< std::string > right_classes( n2 );
+  for( int j = 0; j < n2; ++j )
+  {
+    const auto& d = detections2[ j ];
+    const auto& bb = d->bounding_box();
+    right_centroids[ j ] = kv::vector_2d(
+      0.5 * ( bb.min_x() + bb.max_x() ),
+      0.5 * ( bb.min_y() + bb.max_y() ) );
+    right_classes[ j ] = get_detection_class_label( d );
+  }
+
+  std::vector< std::vector< double > > cost(
+    n1, std::vector< double >( n2, 1e10 ) );
+
+  for( int i = 0; i < n1; ++i )
+  {
+    const auto& d1 = detections1[ i ];
+    if( !d1 ) continue;
+
+    const auto& bb = d1->bounding_box();
+    kv::vector_2d centroid_unrect(
+      0.5 * ( bb.min_x() + bb.max_x() ),
+      0.5 * ( bb.min_y() + bb.max_y() ) );
+
+    // Sample disparity. Polygon-based sampling pulls multiple disparity
+    // readings from across the detection so a single bad pixel near a
+    // silhouette edge doesn't dominate; bbox-centroid sampling is the
+    // simpler fallback when no polygon data is exposed.
+    double disp = -1.0;
+    if( options.use_polygon )
+    {
+      auto poly = extract_polygon_points( d1 );
+      if( !poly.empty() )
+      {
+        disp = median_disparity_over_polygon(
+          img, base, poly, rectify_left_pt, half );
+      }
+    }
+    if( disp <= 0.0 )
+    {
+      kv::vector_2d c_rect = rectify_left_pt( centroid_unrect );
+      int cx = static_cast< int >( c_rect.x() + 0.5 );
+      int cy = static_cast< int >( c_rect.y() + 0.5 );
+      disp = ( half > 0 )
+        ? median_disparity_in_window( img, base, cx, cy, half )
+        : read_rectified_disparity( img, base, cx, cy );
+    }
+    if( disp <= 0.0 )
+    {
+      continue;  // no usable disparity for this left detection
+    }
+
+    // Predict the right-image centroid: shift the rectified left
+    // centroid by the measured disparity along x, then unrectify.
+    kv::vector_2d centroid_rect = rectify_left_pt( centroid_unrect );
+    kv::vector_2d predicted_right_rect(
+      centroid_rect.x() - disp, centroid_rect.y() );
+    kv::vector_2d predicted_right_unrect =
+      unrectify_right_pt( predicted_right_rect );
+
+    std::string class1 = get_detection_class_label( d1 );
+
+    for( int j = 0; j < n2; ++j )
+    {
+      if( options.require_class_match && class1 != right_classes[ j ] )
+      {
+        continue;
+      }
+      double dist = ( predicted_right_unrect - right_centroids[ j ] ).norm();
+      if( dist <= options.max_centroid_distance )
+      {
+        cost[ i ][ j ] = dist;
+      }
+    }
+  }
+
+  if( options.use_optimal_assignment )
+  {
+    return greedy_assignment( cost, n1, n2 );
+  }
+
+  std::vector< std::pair< int, int > > matches;
+  std::set< int > used_j;
+  for( int i = 0; i < n1; ++i )
+  {
+    int best_j = -1;
+    double best_cost = 1e10;
+    for( int j = 0; j < n2; ++j )
+    {
+      if( used_j.count( j ) ) continue;
+      if( cost[ i ][ j ] < best_cost )
+      {
+        best_cost = cost[ i ][ j ];
+        best_j = j;
+      }
+    }
+    if( best_j >= 0 && best_cost < 1e9 )
+    {
+      matches.push_back( { i, best_j } );
+      used_j.insert( best_j );
+    }
+  }
+  return matches;
+}
+
+// =============================================================================
 // Unified detection pairing dispatch
 // =============================================================================
 

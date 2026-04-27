@@ -602,6 +602,18 @@ public:
   /// This returns the disparity map from the last compute_disparity method call
   kv::image_container_sptr get_cached_disparity() const;
 
+  /// Compute (and cache) a rectified-space disparity map for the current
+  /// frame using the configured stereo_disparity algorithm. Idempotent
+  /// while m_cached_compute_disparity is already populated; intended for
+  /// callers (e.g. detection_pairing methods) that need the disparity
+  /// before find_stereo_correspondence runs. Returns nullptr if no
+  /// stereo_disparity algorithm is configured or rectification fails.
+  kv::image_container_sptr compute_disparity_for_frame(
+    const kv::simple_camera_perspective& left_cam,
+    const kv::simple_camera_perspective& right_cam,
+    const kv::image_container_sptr& left_image,
+    const kv::image_container_sptr& right_image );
+
   /// Get the cached rectified left image (if available)
   /// This returns the rectified left image from the last stereo processing call
   kv::image_container_sptr get_cached_rectified_left() const;

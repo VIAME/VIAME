@@ -22,6 +22,8 @@
 #include <vital/types/match_set.h>
 #include <vital/logger/logger.h>
 
+#include <functional>
+
 #include <vital/algo/detect_features.h>
 #include <vital/algo/extract_descriptors.h>
 #include <vital/algo/match_features.h>
@@ -119,6 +121,39 @@ struct VIAME_CORE_EXPORT keypoint_projection_matching_options
   bool use_optimal_assignment = true;
 
   keypoint_projection_matching_options() = default;
+};
+
+/**
+ * \brief Options for disparity_projection matching.
+ *
+ * Use a precomputed disparity map (rectified space) to predict each left
+ * detection's right-camera position, then match against right detection
+ * centroids by Euclidean pixel distance. Disparity is sampled either at
+ * the bbox centroid or by aggregating across the polygon mask if
+ * `use_polygon` is true.
+ */
+struct VIAME_CORE_EXPORT disparity_projection_matching_options
+{
+  /// Maximum pixel distance between disparity-predicted right centroid
+  /// and an actual right-detection centroid for the pair to be a
+  /// candidate (in unrectified right-image coords).
+  double max_centroid_distance = 50.0;
+
+  /// Half-width of the square sampling window (in rectified pixels)
+  /// used to compute a robust median disparity around the chosen
+  /// sample point. 0 = single-pixel lookup.
+  int sample_window = 7;
+
+  /// When true, aggregate disparity over the detection's polygon mask
+  /// (median across in-mask pixels) instead of just sampling at the
+  /// bbox centroid. Falls back to bbox centroid sampling if the
+  /// detection has no mask.
+  bool use_polygon = true;
+
+  bool require_class_match = true;
+  bool use_optimal_assignment = true;
+
+  disparity_projection_matching_options() = default;
 };
 
 /**
@@ -365,6 +400,41 @@ VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_keypo
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
   const keypoint_projection_matching_options& options,
+  kv::logger_handle_t logger = nullptr );
+
+/**
+ * \brief Match left and right detections by sampling a precomputed
+ * disparity map.
+ *
+ * For each left detection, samples disparity at the bbox centroid (or
+ * across the polygon mask if available) of the rectified left image,
+ * projects the centroid to the right camera using that measured
+ * disparity, and pairs against right detections by Euclidean distance
+ * between predicted and actual right-image centroids. Unlike
+ * keypoint_projection, this uses *measured* depth from the disparity
+ * model rather than an assumed scalar depth or epipolar-line proximity.
+ *
+ * The disparity image is expected in rectified space, with the same
+ * encoding used elsewhere in the pipeline (uint16 scaled by 256, int16
+ * /16, or float).
+ *
+ * \param detections1            Left-camera detections
+ * \param detections2            Right-camera detections
+ * \param disparity_rectified    Rectified-space disparity map
+ * \param rectify_left_pt        Functor: left unrectified point
+ *                                -> left rectified point
+ * \param unrectify_right_pt     Functor: right rectified point
+ *                                -> right unrectified point
+ * \param options                Matching options
+ * \param logger                 Optional logger
+ */
+VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_disparity_projection(
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::image_container_sptr& disparity_rectified,
+  const std::function< kv::vector_2d( const kv::vector_2d& ) >& rectify_left_pt,
+  const std::function< kv::vector_2d( const kv::vector_2d& ) >& unrectify_right_pt,
+  const disparity_projection_matching_options& options,
   kv::logger_handle_t logger = nullptr );
 
 // =============================================================================

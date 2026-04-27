@@ -580,10 +580,50 @@ measure_objects_process
     kv::image_container_sptr img1 = input_images.size() >= 1 ? input_images[0] : nullptr;
     kv::image_container_sptr img2 = input_images.size() >= 2 ? input_images[1] : nullptr;
 
-    auto paired = find_stereo_detection_matches(
-      dp, left_only_dets, right_only_dets,
-      &left_cam, &right_cam, img1, img2,
-      &feat_algos, nullptr, logger() );
+    std::vector< std::pair< int, int > > paired;
+    if( d->m_settings.detection_pairing_method == "disparity_projection" )
+    {
+      // Match by sampling the disparity model. Compute disparity once
+      // (cached) so subsequent matching_methods stages can reuse it.
+      auto disparity = d->m_utilities.compute_disparity_for_frame(
+        left_cam, right_cam, img1, img2 );
+
+      if( !disparity )
+      {
+        LOG_WARN( logger(),
+          "disparity_projection: no disparity available this frame "
+          "(stereo_disparity algorithm not configured or rectification "
+          "failed); skipping detection pairing." );
+      }
+      else
+      {
+        // Wrap the utility's rectify/unrectify so the matching function
+        // doesn't need to know about the camera or cached maps.
+        auto rectify_left =
+          [ & ]( const kv::vector_2d& p ) -> kv::vector_2d
+          { return d->m_utilities.rectify_point( p, false ); };
+        auto unrectify_right =
+          [ & ]( const kv::vector_2d& p ) -> kv::vector_2d
+          { return d->m_utilities.unrectify_point( p, true, right_cam ); };
+
+        disparity_projection_matching_options opts;
+        opts.max_centroid_distance = dp.threshold;
+        opts.require_class_match = dp.require_class_match;
+        opts.use_optimal_assignment = dp.use_optimal_assignment;
+
+        paired = find_stereo_matches_disparity_projection(
+          left_only_dets, right_only_dets,
+          disparity, rectify_left, unrectify_right,
+          opts, logger() );
+      }
+    }
+    else
+    {
+      paired = find_stereo_detection_matches(
+        dp, left_only_dets, right_only_dets,
+        &left_cam, &right_cam, img1, img2,
+        &feat_algos, nullptr, logger() );
+    }
 
     // Merge paired detections: insert right det under left track ID
     std::set< kv::track_id_t > paired_left_ids;

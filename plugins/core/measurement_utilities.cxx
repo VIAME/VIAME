@@ -2743,6 +2743,55 @@ map_keypoints_to_camera
 // -----------------------------------------------------------------------------
 kv::image_container_sptr
 map_keypoints_to_camera
+::compute_disparity_for_frame(
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const kv::image_container_sptr& left_image,
+  const kv::image_container_sptr& right_image )
+{
+  if( m_cached_compute_disparity )
+  {
+    return m_cached_compute_disparity;
+  }
+#ifdef VIAME_ENABLE_OPENCV
+  if( !m_stereo_depth_map_algorithm || !left_image || !right_image )
+  {
+    return nullptr;
+  }
+
+  // prepare_stereo_images already sets up rectification when given a
+  // method list that requests it; "compute_disparity" is the canonical
+  // trigger, mirroring how find_stereo_correspondence prepares the data.
+  m_cached_stereo_images = prepare_stereo_images(
+    { "compute_disparity" }, left_cam, right_cam, left_image, right_image );
+
+  if( !m_cached_stereo_images.rectified_available )
+  {
+    return nullptr;
+  }
+
+  kv::image_container_sptr left_rect_container =
+    std::make_shared< kwiver::arrows::ocv::image_container >(
+      m_cached_stereo_images.left_rectified,
+      kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
+  kv::image_container_sptr right_rect_container =
+    std::make_shared< kwiver::arrows::ocv::image_container >(
+      m_cached_stereo_images.right_rectified,
+      kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
+
+  m_cached_compute_disparity = m_stereo_depth_map_algorithm->compute(
+    left_rect_container, right_rect_container );
+
+  return m_cached_compute_disparity;
+#else
+  (void)left_cam; (void)right_cam; (void)left_image; (void)right_image;
+  return nullptr;
+#endif
+}
+
+// -----------------------------------------------------------------------------
+kv::image_container_sptr
+map_keypoints_to_camera
 ::get_cached_rectified_left() const
 {
 #ifdef VIAME_ENABLE_OPENCV
