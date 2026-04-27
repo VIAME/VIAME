@@ -1,3 +1,11 @@
+v0.22.4 - 4/28/2026
+===================
+
+
+-Tweak additional stereo matching filters plus bug fix
+
+
+
 v0.22.3 - 4/20/2026
 ===================
 
