@@ -360,59 +360,43 @@ process measurer
   relativepath calibration_file =              models/seamap-cal.json
   :min_track_states                            6
 
-  # Matching methods, run in order until one succeeds. compute_disparity
-  # invokes the stereo_disparity algorithm configured below (Fast-
-  # Foundation-Stereo) to fill in right-camera correspondences when a
-  # left track has no paired right keypoint. Falling back to
-  # template_matching covers cases where the disparity model fails or
-  # returns invalid disparity at the queried point.
   :matching_methods                            input_pairs_only,compute_disparity,template_matching
 
-  # Stereo disparity algorithm used by the compute_disparity matching
-  # method. Point checkpoint_path at a Fast-Foundation-Stereo release
-  # weight (the parent directory must contain cfg.yaml).
+  # Fast-Foundation-Stereo ONNX backend. Expects model.onnx + sidecar
+  # model.yaml (image_size) at models/fast-fdn-stereo.{onnx,yaml}.
   :stereo_disparity:type                       fast_foundation_stereo_onnx
-  # Smallest ONNX variant (20_30_48, 320x736) so the model fits alongside
-  # the rest of the pipeline on a 16 GB GPU; 576x960 OOMs (5.9 GB
-  # allocation in /ReduceSum). Using iters_8 (vs iters_4) for sharper
-  # refinement at the same memory footprint — disparity precision is
-  # what gates detection_pairing accuracy here.
-  :stereo_disparity:fast_foundation_stereo_onnx:model_path  /home/local/KHQ/matt.dawkins/Desktop/fast-fdn-stereo-weights/onnx/20_30_48/320x736/20_30_48_iters_8_res_320x736.onnx
-  :stereo_disparity:fast_foundation_stereo_onnx:backend     auto
-  :stereo_disparity:fast_foundation_stereo_onnx:device      auto
-  :stereo_disparity:fast_foundation_stereo_onnx:output_mode disparity
-  :stereo_disparity:fast_foundation_stereo_onnx:remove_invisible true
 
-  # Hybrid pairing: try disparity_projection first (uses measured depth
-  # from fast_foundation_stereo_onnx, very accurate when valid) and fall
-  # back to keypoint_projection on whatever's left over. The fallback's
-  # default mode (default_depth<=0) now uses triangulation + reprojection
-  # error instead of epipolar-line distance, so it rejects pairs where
-  # the keypoint geometry only looks valid because R's keypoint happens
-  # to land on L's epipolar line at a wildly inconsistent depth.
+  block stereo_disparity:fast_foundation_stereo_onnx
+    relativepath model_path =                  models/fast-fdn-stereo.onnx
+    :backend                                   auto
+    :device                                    auto
+    :output_mode                               disparity
+    :remove_invisible                          true
+  endblock
+
+  # Snap right keypoints to disparity-implied matches of their left
+  # counterparts; falls back to the tracker keypoint where disparity is
+  # invalid.
+  :refine_keypoints_with_disparity             true
+  :refine_keypoints_disparity_window           7
+
+  # Hybrid pairing: disparity_projection first (uses measured depth),
+  # keypoint_projection as fallback. Threshold serves both: max centroid
+  # distance in px for disparity_projection, max reprojection error in
+  # px for keypoint_projection.
   :detection_pairing_method                    disparity_projection,keypoint_projection
-  # Threshold serves both methods: max centroid distance in unrectified
-  # pixels for disparity_projection, max average reprojection error in
-  # pixels for keypoint_projection.
   :detection_pairing_threshold                 100.0
   :detection_pairing_require_class_match       false
 
-  # Per-frame pair-quality filters applied at the accumulator. The stereo
-  # rig has a non-trivial vertical baseline (cal T_y ~ -177 mm), so close-
-  # range targets exhibit large vertical bbox-center disparities (~130 px
-  # at ~1.4 m depth). The y-offset filter and area-ratio filter are kept
-  # loose enough not to reject legitimate close-range / edge-truncated
-  # pairs; stereo_rms is the primary geometry gate, and the multi-fragment
-  # disjoint-set logic in select_most_likely_pairing is what guards
-  # against transitive over-merging across distinct fish.
+  # Per-frame pair-quality filters. The rig has a non-trivial vertical
+  # baseline (cal T_y ~ -177 mm), so y-offset and area-ratio are kept
+  # loose; stereo_rms is the primary geometry gate.
   :max_stereo_rms                              20.0
   :max_bbox_y_center_offset                    200.0
   :max_bbox_area_ratio                         3.0
 
-  # Track remapping (unified IDs, class averaging, length averaging)
-  # Accumulate pairings across the full stream and resolve once at finalize,
-  # so output track IDs never shift mid-run (per-frame remap is unstable and
-  # causes ID-keyed writers to accumulate stale duplicate entries).
+  # Accumulate pairings across the stream and resolve once at finalize so
+  # output track IDs don't shift mid-run.
   :accumulate_track_pairings                   true
   :pairing_resolution_method                   most_likely
   :output_unmatched                            true
