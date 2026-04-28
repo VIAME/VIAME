@@ -51,11 +51,11 @@ if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
            run_arctic_seal_eo_yolo.bat
            run_arctic_seal_ir_yolo.bat )
     else()
-      set( EXAMPLE_INSTALL_FILES
-           ${EXAMPLE_INSTALL_FILES}
-           run_arctic_seal_fusion_yolo.sh
-           run_arctic_seal_eo_yolo.sh
-           run_arctic_seal_ir_yolo.sh )
+#      set( EXAMPLE_INSTALL_FILES
+#           ${EXAMPLE_INSTALL_FILES}
+#           run_arctic_seal_fusion_yolo.sh
+#           run_arctic_seal_eo_yolo.sh
+#           run_arctic_seal_ir_yolo.sh )
     endif()
   endif()
 endif()

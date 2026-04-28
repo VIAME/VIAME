@@ -1041,6 +1041,7 @@ else()
     # Build system hacks which should eventually be fixed better
     include( windows-ksys-hack )
     include( linux-remove-duplicate-cvs )
+    message("")
   endif()
 
   ###
