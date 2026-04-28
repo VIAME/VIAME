@@ -17,11 +17,11 @@ def run_utility_viame_pipeline(runner, env_dir, pipe, params):
 
 
 class TestAddHeadTailKeypointsFromDets:
-    def test_add_head_tail_keypoints_from_dets(self, runner, env_fish_with_polygons):
+    def test_add_head_tail_keypoints_from_dets(self, runner, env_fish_with_polygons, env_dir):
         run_utility_viame_pipeline(
             runner,
-            env_fish_with_polygons,
+            env_dir,
             "pipelines/utility_add_head_tail_keypoints_from_dets.pipe",
             {},
         )
-        check_csv(env_fish_with_polygons, all_types='head-tail')
+        check_csv(env_dir, all_types='head-tail')
