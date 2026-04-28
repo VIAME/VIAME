@@ -66,8 +66,8 @@ process track_refiner
     :adjust_boxes                              true
     :output_type                               polygon
     :polygon_simplification                    0.01
-    :track_new_objects                         true
-    :lost_track_frames                         10
+    :track_new_objects                         true                     # DIVE_PARAM["Track new objects", bool]
+    :lost_track_frames                         10                       # DIVE_PARAM["Lost track frames", strictly_positive_int]
     relativepath checkpoint =                  models/sam2_hbp.pt
   endblock
 

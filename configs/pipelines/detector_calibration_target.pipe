@@ -3,6 +3,8 @@
 #
 # Description: Runs automated ocv target detection on image Outputs to
 # computed_detections.csv.
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

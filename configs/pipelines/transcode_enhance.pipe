@@ -16,16 +16,16 @@ include common_default_input_with_downsampler.pipe
 process filter
   :: image_filter
   :filter:type                                 ocv_enhancer
-  :filter:ocv_enhancer:apply_smoothing         false
-  :filter:ocv_enhancer:smooth_kernel           3
-  :filter:ocv_enhancer:apply_denoising         false
-  :filter:ocv_enhancer:denoise_kernel          3
-  :filter:ocv_enhancer:denoise_coeff           2
-  :filter:ocv_enhancer:auto_balance            true
+  :filter:ocv_enhancer:apply_smoothing         false        # DIVE_PARAM["Smooth", bool]
+  :filter:ocv_enhancer:smooth_kernel           3            # DIVE_PARAM["Smooth kernel", strictly_positive_int]
+  :filter:ocv_enhancer:apply_denoising         false        # DIVE_PARAM["Denoising", bool]
+  :filter:ocv_enhancer:denoise_kernel          3            # DIVE_PARAM["Denoise kernel", strictly_positive_int]
+  :filter:ocv_enhancer:denoise_coeff           2            # DIVE_PARAM["Denoise coef", float]
+  :filter:ocv_enhancer:auto_balance            true         # DIVE_PARAM["Auto balance", bool]
   :filter:ocv_enhancer:force_8bit              true
   :filter:ocv_enhancer:apply_clahe             true
   :filter:ocv_enhancer:clip_limit              3
-  :filter:ocv_enhancer:saturation              1.20
+  :filter:ocv_enhancer:saturation              1.20         # DIVE_PARAM["Saturation", range_float, 0, 3, 0.1]
 
 connect from downsampler.output_1
         to   filter.image

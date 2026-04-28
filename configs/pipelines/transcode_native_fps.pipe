@@ -18,8 +18,8 @@ include common_default_input.pipe
 process track_resampler
   :: resample_object_tracks
   :track_file                                  [INSERT_ME]
-  :input_rate                                  5
-  :output_rate                                 1
+  :input_rate                                  5            # DIVE_PARAM["Input rate", strictly_positive_int]
+  :output_rate                                 1            # DIVE_PARAM["Output rate", strictly_positive_int]
   :reader:type                                 viame_csv
 
 connect from input.timestamp
