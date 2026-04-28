@@ -3,6 +3,8 @@
 #
 # Description: Runs the cfd_yolov12x_v1.0 ultralytics model for fish detection
 # with ByteTrack multi-object tracking. Outputs to computed_tracks.csv.
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
 
 config _pipeline:_edge
@@ -86,8 +88,8 @@ process detector1
 
     block detector:ultralytics
       relativepath weight =                    models/cfd_yolov12x_v1.0.pt
-      :thresh                                  0.1
-      :iou_thresh                              0.45
+      :thresh                                  0.1      # DIVE_PARAM["Threshold", range_float, 0, 1, 0.01]
+      :iou_thresh                              0.45     # DIVE_PARAM["IoU threshold", range_float, 0, 1, 0.01]
     endblock
   endblock
 
