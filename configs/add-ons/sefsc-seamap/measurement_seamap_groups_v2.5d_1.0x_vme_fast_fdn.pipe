@@ -379,6 +379,12 @@ process measurer
   # invalid.
   :refine_keypoints_with_disparity             true
   :refine_keypoints_disparity_window           7
+  # Reject the track when the tracker's right keypoint and the disparity-
+  # implied position disagree by more than this fraction of the L bbox
+  # max(width, height); guards against bad SAM2 / head-tail extractions
+  # that would corrupt the length measurement.
+  :refine_keypoints_reject_inconsistent        true
+  :refine_keypoints_max_distance               0.25
 
   # Hybrid pairing: disparity_projection first (uses measured depth),
   # keypoint_projection as fallback. Threshold serves both: max centroid
