@@ -13,8 +13,8 @@ def run_detector_viame_pipeline(runner, env_dir, pipe, params):
     assert res.returncode == 0
 
 
-class TestSimpleHough:
-    def test_simple_hough_no_circles(self, runner, env_single_empty, env_dir):
+class TestDetectorSimpleHough:
+    def test_detector_simple_hough_no_circles(self, runner, env_single_empty, env_dir):
         run_detector_viame_pipeline(
             runner,
             env_dir,
@@ -23,7 +23,7 @@ class TestSimpleHough:
         )
         check_csv(env_dir, expected_detections=0)
 
-    def test_simple_hough_3_circles(self, runner, env_circles, env_dir):
+    def test_detector_simple_hough_3_circles(self, runner, env_circles, env_dir):
         run_detector_viame_pipeline(
             runner,
             env_dir,
@@ -33,8 +33,8 @@ class TestSimpleHough:
         check_csv(env_dir, expected_detections=3)
 
 
-class TestCalibrationTarget:
-    def test_calibration_target_9_6(self, runner, env_checkerboard, env_dir):
+class TestDetectorCalibrationTarget:
+    def test_detector_calibration_target_9_6(self, runner, env_checkerboard, env_dir):
         run_detector_viame_pipeline(
             runner,
             env_dir,
@@ -47,7 +47,7 @@ class TestCalibrationTarget:
         check_csv(env_dir, expected_detections=54)
 
     @pytest.mark.parametrize("env_checkerboard", [(4, 4)], indirect=True)
-    def test_calibration_target_square(self, runner, env_checkerboard, env_dir):
+    def test_detector_calibration_target_square(self, runner, env_checkerboard, env_dir):
         run_detector_viame_pipeline(
             runner,
             env_dir,
@@ -60,8 +60,8 @@ class TestCalibrationTarget:
         check_csv(env_dir, expected_detections=16)
 
 
-class TestDefaultFish:
-    def test_default_fish(self, runner, env_fish, env_dir):
+class TestDetectorDefaultFish:
+    def test_detector_default_fish(self, runner, env_fish, env_dir):
         run_detector_viame_pipeline(
             runner,
             env_dir,

@@ -16,8 +16,8 @@ def run_utility_viame_pipeline(runner, env_dir, pipe, params):
     assert res.returncode == 0
 
 
-class TestAddHeadTailKeypointsFromDets:
-    def test_add_head_tail_keypoints_from_dets(self, runner, env_fish_with_polygons, env_dir):
+class TestUtilityAddHeadTailKeypointsFromDets:
+    def test_utility_add_head_tail_keypoints_from_dets(self, runner, env_fish_with_polygons, env_dir):
         run_utility_viame_pipeline(
             runner,
             env_dir,

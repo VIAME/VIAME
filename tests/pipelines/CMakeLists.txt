@@ -16,67 +16,60 @@ if (VIAME_ENABLE_PYTHON)
     find_package(Python3 COMPONENTS Interpreter REQUIRED)
   endif ()
 
+  set(VIAME_INSTALL_DIR "${VIAME_BUILD_INSTALL_PREFIX}")
+  set(VIAME_PY_PATH "${VIAME_INSTALL_DIR}/python")
+  set(VIAME_SITE_PACKAGES "${VIAME_INSTALL_DIR}/lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages")
+
+  if (WIN32)
+    set(SEP "\;")
+  else ()
+    set(SEP ":")
+  endif ()
+
+  set(INTERNAL_PYTHONPATH "${VIAME_PY_PATH}${SEP}${VIAME_SITE_PACKAGES}${SEP}${CMAKE_CURRENT_SOURCE_DIR}")
+
   # Common test properties
   set(PIPELINE_TEST_TIMEOUT 600)
-
-  # Labels for test categories
   set(PIPELINES_TEST_LABELS "PIPELINES")
-
-  # Set up Python path for tests - use the actual install prefix
-  set(VIAME_INSTALL_DIR "${VIAME_BUILD_INSTALL_PREFIX}")
-  set(VIAME_PYTHON_PATH "${VIAME_INSTALL_DIR}/python")
-  set(VIAME_PYTHON_SITE_PACKAGES "${VIAME_INSTALL_DIR}/lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages")
-
-  # PYTHONPATH separator: ":" on Linux, escaped "\;" on Windows (literal ";")
-  if (WIN32)
-    set(PYPATH_SEP "\;")
-  else ()
-    set(PYPATH_SEP ":")
-  endif ()
 
   # Helper function to add a standard pipeline script test
   function(add_pipeline_script_test TEST_NAME TEST_FILE TEST_CLASS)
     add_test(
-      NAME ${TEST_NAME}
-      COMMAND ${Python3_EXECUTABLE} -m pytest
-      "${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}"
-      -v
-      --tb=short
-      -k "${TEST_CLASS}"
+      NAME "viame_pipelines:${TEST_NAME}"
+      COMMAND ${Python3_EXECUTABLE} -m pytest "${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}" -v --tb=short -k "${TEST_CLASS}"
     )
-    set_tests_properties(${TEST_NAME}
-      PROPERTIES
+    set_tests_properties("viame_pipelines:${TEST_NAME}" PROPERTIES
       LABELS "${PIPELINES_TEST_LABELS}"
       TIMEOUT ${PIPELINE_TEST_TIMEOUT}
-      ENVIRONMENT "PYTHONPATH=${VIAME_PYTHON_PATH}${PYPATH_SEP}${VIAME_PYTHON_SITE_PACKAGES}${PYPATH_SEP}${CMAKE_CURRENT_SOURCE_DIR}${PYPATH_SEP}$ENV{PYTHONPATH};VIAME_INSTALL=${VIAME_INSTALL_DIR}"
+      ENVIRONMENT "PYTHONPATH=${INTERNAL_PYTHONPATH}${SEP}$ENV{PYTHONPATH};VIAME_INSTALL=${VIAME_INSTALL_DIR}"
     )
   endfunction()
 
   # ============ Utility Pipelines ============ #
 
   add_pipeline_script_test(
-    viame_pipelines:test_utility_add_head_tail_keypoints_from_dets
+    test_utility_add_head_tail_keypoints_from_dets
     test_utility.py
-    TestAddHeadTailKeypointsFromDets
+    TestUtilityAddHeadTailKeypointsFromDets
   )
 
   # ============ Detector Pipelines ============ #
 
   add_pipeline_script_test(
-    viame_pipelines:test_detector_simple_hough
+    test_detector_simple_hough
     test_detector.py
-    TestSimpleHough
+    TestDetectorSimpleHough
   )
 
   add_pipeline_script_test(
-    viame_pipelines:test_detector_calibration_target
+    test_detector_calibration_target
     test_detector.py
-    TestCalibrationTarget
+    TestDetectorCalibrationTarget
   )
 
   add_pipeline_script_test(
-    viame_pipelines:test_default_fish
+    test_detector_default_fish
     test_detector.py
-    TestDefaultFish
+    TestDetectorDefaultFish
   )
 endif ()
