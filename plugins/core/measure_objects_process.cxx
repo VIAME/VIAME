@@ -755,26 +755,82 @@ measure_objects_process
     kv::vector_2d right_tail( kp2.at("tail")[0], kp2.at("tail")[1] );
 
     bool head_refined = false, tail_refined = false;
+    kv::vector_2d refined_head = right_head;
+    kv::vector_2d refined_tail = right_tail;
     if( refine_disparity )
     {
       const int win = d->m_settings.refine_keypoints_disparity_window;
-      right_head = d->m_utilities.refine_right_point_with_disparity(
+      refined_head = d->m_utilities.refine_right_point_with_disparity(
         refine_disparity, left_head, right_head, right_cam, win,
         &head_refined );
-      right_tail = d->m_utilities.refine_right_point_with_disparity(
+      refined_tail = d->m_utilities.refine_right_point_with_disparity(
         refine_disparity, left_tail, right_tail, right_cam, win,
         &tail_refined );
+    }
 
-      if( head_refined )
+    // Optional sanity check: reject the track when the tracker-supplied
+    // right keypoint disagrees with the disparity-implied position by
+    // more than refine_keypoints_max_distance, normalized by the L bbox
+    // size. Only keypoints with a valid disparity reading contribute.
+    bool inconsistent = false;
+    double inconsistent_dist_norm = 0.0;
+    if( ( head_refined || tail_refined ) &&
+        d->m_settings.refine_keypoints_reject_inconsistent &&
+        d->m_settings.refine_keypoints_max_distance > 0.0 )
+    {
+      const auto& bbox1 = det1->bounding_box();
+      double bbox_size = 0.0;
+      if( bbox1.is_valid() )
       {
-        det2->add_keypoint( "head",
-          kv::point_2d( right_head.x(), right_head.y() ) );
+        bbox_size = std::max( bbox1.width(), bbox1.height() );
       }
-      if( tail_refined )
+
+      if( bbox_size > 0.0 )
       {
-        det2->add_keypoint( "tail",
-          kv::point_2d( right_tail.x(), right_tail.y() ) );
+        const double thresh = d->m_settings.refine_keypoints_max_distance;
+        if( head_refined )
+        {
+          double d_head = ( refined_head - right_head ).norm() / bbox_size;
+          if( d_head > thresh ) { inconsistent = true; }
+          inconsistent_dist_norm = std::max( inconsistent_dist_norm, d_head );
+        }
+        if( tail_refined )
+        {
+          double d_tail = ( refined_tail - right_tail ).norm() / bbox_size;
+          if( d_tail > thresh ) { inconsistent = true; }
+          inconsistent_dist_norm = std::max( inconsistent_dist_norm, d_tail );
+        }
       }
+    }
+
+    if( inconsistent )
+    {
+      LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+        " disparity inconsistency (max norm dist " +
+        std::to_string( inconsistent_dist_norm ) +
+        " > threshold " +
+        std::to_string( d->m_settings.refine_keypoints_max_distance ) +
+        "), skipping measurement" );
+
+      if( d->m_settings.record_stereo_method )
+      {
+        det1->add_note( ":stereo_method=disparity_inconsistent_rejected" );
+        det2->add_note( ":stereo_method=disparity_inconsistent_rejected" );
+      }
+      continue;
+    }
+
+    if( head_refined )
+    {
+      right_head = refined_head;
+      det2->add_keypoint( "head",
+        kv::point_2d( right_head.x(), right_head.y() ) );
+    }
+    if( tail_refined )
+    {
+      right_tail = refined_tail;
+      det2->add_keypoint( "tail",
+        kv::point_2d( right_tail.x(), right_tail.y() ) );
     }
 
     const auto measurement = viame::core::compute_stereo_measurement(

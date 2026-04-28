@@ -434,6 +434,8 @@ map_keypoints_to_camera_settings
   , record_stereo_method( true )
   , refine_keypoints_with_disparity( false )
   , refine_keypoints_disparity_window( 7 )
+  , refine_keypoints_reject_inconsistent( false )
+  , refine_keypoints_max_distance( 0.25 )
   , debug_epipolar_directory( "" )
   , detection_pairing_method( "" )
   , detection_pairing_threshold( 0.1 )
@@ -620,9 +622,10 @@ map_keypoints_to_camera_settings
     "If true, record the stereo measurement method used as an attribute on each "
     "output detection object. The attribute will be ':stereo_method=METHOD' "
     "where METHOD is one of: input_kps_used, input_kps_disparity_refined, "
-    "input_kps_partial_disparity_refined, template_matching, "
-    "epipolar_template_matching, feature_descriptor, ransac_feature, "
-    "depth_projection, external_disparity, or compute_disparity." );
+    "input_kps_partial_disparity_refined, disparity_inconsistent_rejected, "
+    "template_matching, epipolar_template_matching, feature_descriptor, "
+    "ransac_feature, depth_projection, external_disparity, or "
+    "compute_disparity." );
 
   config->set_value( "refine_keypoints_with_disparity", refine_keypoints_with_disparity,
     "If true and a stereo_disparity algorithm is configured, snap right "
@@ -636,6 +639,19 @@ map_keypoints_to_camera_settings
     "disparity map for keypoint refinement (median over (2w+1)^2). Set to "
     "0 for single-pixel lookup. Only applies when "
     "refine_keypoints_with_disparity is true." );
+
+  config->set_value( "refine_keypoints_reject_inconsistent", refine_keypoints_reject_inconsistent,
+    "If true, compare each tracker-provided right keypoint to its "
+    "disparity-implied position; if the distance exceeds "
+    "refine_keypoints_max_distance (normalized by L bbox size), reject the "
+    "track's measurement instead of refining. Only applies when "
+    "refine_keypoints_with_disparity is true." );
+
+  config->set_value( "refine_keypoints_max_distance", refine_keypoints_max_distance,
+    "Maximum allowed distance between tracker and disparity-implied right "
+    "keypoint, as a fraction of the left bbox max(width,height). Above this "
+    "threshold the track is rejected when "
+    "refine_keypoints_reject_inconsistent is true. Set to 0 to disable." );
 
   config->set_value( "debug_epipolar_directory", debug_epipolar_directory,
     "Directory to write debug images showing epipolar search lines overlaid on "
@@ -746,6 +762,8 @@ map_keypoints_to_camera_settings
   record_stereo_method = config->get_value< bool >( "record_stereo_method", record_stereo_method );
   refine_keypoints_with_disparity = config->get_value< bool >( "refine_keypoints_with_disparity", refine_keypoints_with_disparity );
   refine_keypoints_disparity_window = config->get_value< int >( "refine_keypoints_disparity_window", refine_keypoints_disparity_window );
+  refine_keypoints_reject_inconsistent = config->get_value< bool >( "refine_keypoints_reject_inconsistent", refine_keypoints_reject_inconsistent );
+  refine_keypoints_max_distance = config->get_value< double >( "refine_keypoints_max_distance", refine_keypoints_max_distance );
   debug_epipolar_directory = config->get_value< std::string >( "debug_epipolar_directory", debug_epipolar_directory );
   detection_pairing_method = config->get_value< std::string >( "detection_pairing_method", detection_pairing_method );
   detection_pairing_threshold = config->get_value< double >( "detection_pairing_threshold", detection_pairing_threshold );

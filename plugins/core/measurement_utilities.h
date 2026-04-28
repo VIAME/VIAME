@@ -341,6 +341,22 @@ public:
   /// single-pixel lookup.
   int refine_keypoints_disparity_window;
 
+  /// If true, instead of unconditionally replacing right keypoints with
+  /// the disparity-implied positions, compare the tracker-provided right
+  /// keypoint to the disparity-implied one and reject the entire track's
+  /// measurement when they disagree by more than refine_keypoints_max_distance
+  /// (normalized to the left bounding box). Only applies when
+  /// refine_keypoints_with_disparity is true.
+  bool refine_keypoints_reject_inconsistent;
+
+  /// Maximum allowed distance between the tracker-provided right keypoint
+  /// and the disparity-implied right keypoint, expressed as a fraction of
+  /// the left detection's max bounding-box dimension (max of width and
+  /// height). When the distance exceeds this fraction, the track is
+  /// rejected (no measurement) if refine_keypoints_reject_inconsistent
+  /// is true. Set to 0 to disable the check (always refine).
+  double refine_keypoints_max_distance;
+
   /// Directory to write debug images showing epipolar search lines.
   /// Empty string (default) disables debug output.
   std::string debug_epipolar_directory;
