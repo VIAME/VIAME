@@ -18,8 +18,8 @@ install_system_deps apt
 # Install CMAKE
 install_cmake
 
-# Install Node.js and yarn for DIVE desktop build
-install_nodejs_and_yarn 18
+# Install Node.js for DIVE desktop build (npm ships bundled with Node)
+install_nodejs 22
 
 # Update VIAME sub git deps
 update_git_submodules /viame

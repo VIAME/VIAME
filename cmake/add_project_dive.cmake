@@ -13,7 +13,10 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
   set( NODE_EXECUTABLE "" )
   set( NODE_BIN_DIR "" )
 
-  # First check if system node is >= 18
+  # DIVE requires Node.js >= 22 (see packages/dive/client/.nvmrc)
+  set( DIVE_MIN_NODE_VERSION 22 )
+
+  # First check if system node is >= DIVE_MIN_NODE_VERSION
   find_program( SYSTEM_NODE_EXECUTABLE node )
   if( SYSTEM_NODE_EXECUTABLE )
     execute_process(
@@ -25,17 +28,17 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
     if( NODE_VERSION_RESULT EQUAL 0 )
       string( REGEX MATCH "v([0-9]+)" NODE_VERSION_MATCH "${NODE_VERSION_OUTPUT}" )
       set( SYSTEM_NODE_VERSION_MAJOR "${CMAKE_MATCH_1}" )
-      if( SYSTEM_NODE_VERSION_MAJOR GREATER_EQUAL 18 )
+      if( SYSTEM_NODE_VERSION_MAJOR GREATER_EQUAL ${DIVE_MIN_NODE_VERSION} )
         set( NODE_EXECUTABLE ${SYSTEM_NODE_EXECUTABLE} )
         get_filename_component( NODE_BIN_DIR ${NODE_EXECUTABLE} DIRECTORY )
         message( STATUS "Found system Node.js ${NODE_VERSION_OUTPUT}" )
       else()
-        message( STATUS "System Node.js ${NODE_VERSION_OUTPUT} is < 18, searching for nvm installation..." )
+        message( STATUS "System Node.js ${NODE_VERSION_OUTPUT} is < ${DIVE_MIN_NODE_VERSION}, searching for nvm installation..." )
       endif()
     endif()
   endif()
 
-  # If system node is not suitable, look for nvm-installed Node >= 18
+  # If system node is not suitable, look for nvm-installed Node >= DIVE_MIN_NODE_VERSION
   if( NOT NODE_EXECUTABLE AND NOT WIN32 )
     file( GLOB NVM_NODE_DIRS "$ENV{HOME}/.nvm/versions/node/v*" )
     set( BEST_NODE_VERSION 0 )
@@ -46,7 +49,7 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
       string( REGEX MATCH "v([0-9]+)" VERSION_MATCH "${VERSION_DIR_NAME}" )
       set( NVM_NODE_MAJOR "${CMAKE_MATCH_1}" )
 
-      if( NVM_NODE_MAJOR GREATER_EQUAL 18 )
+      if( NVM_NODE_MAJOR GREATER_EQUAL ${DIVE_MIN_NODE_VERSION} )
         if( EXISTS "${NVM_NODE_DIR}/bin/node" )
           if( NVM_NODE_MAJOR GREATER BEST_NODE_VERSION )
             set( BEST_NODE_VERSION ${NVM_NODE_MAJOR} )
@@ -70,131 +73,45 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
   endif()
 
   if( NOT NODE_EXECUTABLE )
-    message( FATAL_ERROR "VIAME_BUILD_DIVE_FROM_SOURCE requires Node.js >= 18 but none was found. "
-      "Please install Node.js >= 18 or use nvm to install it." )
+    message( FATAL_ERROR "VIAME_BUILD_DIVE_FROM_SOURCE requires Node.js >= ${DIVE_MIN_NODE_VERSION} but none was found. "
+      "Please install Node.js >= ${DIVE_MIN_NODE_VERSION} or use nvm to install it." )
   endif()
 
-  # Check for yarn - first in the same bin dir as node, then system-wide
+  # DIVE switched from yarn to npm in v1.10+. Locate the npm CLI that ships
+  # with the chosen Node.js installation.
   if( WIN32 )
-    # On Windows, construct paths to npm global directory
-    # Try APPDATA first, fall back to USERPROFILE if not set
-    set( NPM_GLOBAL_DIR "" )
-    if( DEFINED ENV{APPDATA} AND NOT "$ENV{APPDATA}" STREQUAL "" )
-      set( NPM_GLOBAL_DIR "$ENV{APPDATA}/npm" )
-    elseif( DEFINED ENV{USERPROFILE} AND NOT "$ENV{USERPROFILE}" STREQUAL "" )
-      set( NPM_GLOBAL_DIR "$ENV{USERPROFILE}/AppData/Roaming/npm" )
-    endif()
+    set( NPM_NAMES npm.cmd npm.ps1 npm )
+  else()
+    set( NPM_NAMES npm )
+  endif()
 
-    # Try to get the npm prefix directory (where npm installs global packages)
-    set( NPM_PREFIX_DIR "" )
-    execute_process(
-      COMMAND ${NODE_EXECUTABLE} -e "console.log(require('child_process').execSync('npm config get prefix').toString().trim())"
-      OUTPUT_VARIABLE NPM_PREFIX_DIR
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      ERROR_QUIET
-      RESULT_VARIABLE NPM_PREFIX_RESULT
-    )
-
-    # Build list of search paths for yarn
-    set( YARN_SEARCH_PATHS )
-    if( NODE_BIN_DIR )
-      list( APPEND YARN_SEARCH_PATHS "${NODE_BIN_DIR}" )
-    endif()
-    if( NPM_PREFIX_DIR AND NPM_PREFIX_RESULT EQUAL 0 )
-      list( APPEND YARN_SEARCH_PATHS "${NPM_PREFIX_DIR}" )
-    endif()
-    if( NPM_GLOBAL_DIR AND NOT "${NPM_GLOBAL_DIR}" STREQUAL "" )
-      list( APPEND YARN_SEARCH_PATHS "${NPM_GLOBAL_DIR}" )
-    endif()
-    if( DEFINED ENV{LOCALAPPDATA} AND NOT "$ENV{LOCALAPPDATA}" STREQUAL "" )
-      list( APPEND YARN_SEARCH_PATHS "$ENV{LOCALAPPDATA}/npm" )
-      list( APPEND YARN_SEARCH_PATHS "$ENV{LOCALAPPDATA}/Yarn/bin" )
-    endif()
-    # Also check Program Files and chocolatey locations
-    list( APPEND YARN_SEARCH_PATHS "C:/Program Files/nodejs" )
-    list( APPEND YARN_SEARCH_PATHS "C:/Program Files (x86)/Yarn/bin" )
-    list( APPEND YARN_SEARCH_PATHS "C:/Program Files/Yarn/bin" )
-    list( APPEND YARN_SEARCH_PATHS "C:/ProgramData/chocolatey/bin" )
-    # Check hostedtoolcache for GitHub Actions
-    if( DEFINED ENV{RUNNER_TOOL_CACHE} AND NOT "$ENV{RUNNER_TOOL_CACHE}" STREQUAL "" )
-      file( GLOB RUNNER_NODE_DIRS "$ENV{RUNNER_TOOL_CACHE}/node/*/x64" )
-      foreach( RUNNER_NODE_DIR ${RUNNER_NODE_DIRS} )
-        list( APPEND YARN_SEARCH_PATHS "${RUNNER_NODE_DIR}" )
-      endforeach()
-    endif()
-
-    # Check explicit paths first - look for yarn.cmd, yarn.ps1, and yarn.js
-    foreach( SEARCH_PATH ${YARN_SEARCH_PATHS} )
-      if( EXISTS "${SEARCH_PATH}/yarn.cmd" )
-        set( YARN_EXECUTABLE "${SEARCH_PATH}/yarn.cmd" )
-        break()
-      elseif( EXISTS "${SEARCH_PATH}/yarn.ps1" )
-        set( YARN_EXECUTABLE "${SEARCH_PATH}/yarn.ps1" )
+  set( NPM_EXECUTABLE "" )
+  if( NODE_BIN_DIR )
+    foreach( _name ${NPM_NAMES} )
+      if( EXISTS "${NODE_BIN_DIR}/${_name}" )
+        set( NPM_EXECUTABLE "${NODE_BIN_DIR}/${_name}" )
         break()
       endif()
     endforeach()
-
-    # Fall back to find_program if not found
-    if( NOT YARN_EXECUTABLE )
-      find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn.ps1 yarn
-        PATHS ${YARN_SEARCH_PATHS}
-        NO_DEFAULT_PATH
-      )
-    endif()
-    if( NOT YARN_EXECUTABLE )
-      find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn.ps1 yarn )
-    endif()
-
-    # If still not found, try enabling corepack (Node 16.10+) and using yarn from there
-    if( NOT YARN_EXECUTABLE )
-      message( STATUS "Yarn not found in standard paths, attempting to enable corepack..." )
-      execute_process(
-        COMMAND corepack enable
-        RESULT_VARIABLE COREPACK_ENABLE_RESULT
-        ERROR_QUIET
-      )
-      if( COREPACK_ENABLE_RESULT EQUAL 0 )
-        # After enabling corepack, search for yarn again
-        find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn.ps1 yarn
-          PATHS ${YARN_SEARCH_PATHS}
-          NO_DEFAULT_PATH
-        )
-        if( NOT YARN_EXECUTABLE )
-          find_program( YARN_EXECUTABLE NAMES yarn.cmd yarn.ps1 yarn )
-        endif()
-      endif()
-    endif()
-  else()
-    if( NODE_BIN_DIR AND EXISTS "${NODE_BIN_DIR}/yarn" )
-      set( YARN_EXECUTABLE "${NODE_BIN_DIR}/yarn" )
-    else()
-      find_program( YARN_EXECUTABLE yarn )
-    endif()
+  endif()
+  if( NOT NPM_EXECUTABLE )
+    find_program( NPM_EXECUTABLE NAMES ${NPM_NAMES} )
   endif()
 
-  if( NOT YARN_EXECUTABLE )
-    if( WIN32 )
-      message( FATAL_ERROR "VIAME_BUILD_DIVE_FROM_SOURCE requires yarn but it was not found.\n"
-        "Searched paths: ${YARN_SEARCH_PATHS}\n"
-        "NPM prefix: ${NPM_PREFIX_DIR}\n"
-        "APPDATA=$ENV{APPDATA}, USERPROFILE=$ENV{USERPROFILE}\n"
-        "RUNNER_TOOL_CACHE=$ENV{RUNNER_TOOL_CACHE}\n"
-        "Please install yarn (npm install -g yarn) or enable corepack (corepack enable)." )
-    else()
-      message( FATAL_ERROR "VIAME_BUILD_DIVE_FROM_SOURCE requires yarn but it was not found. "
-        "Please install yarn (npm install -g yarn)." )
-    endif()
+  if( NOT NPM_EXECUTABLE )
+    message( FATAL_ERROR "VIAME_BUILD_DIVE_FROM_SOURCE requires npm but it was not found. "
+      "npm ships with Node.js — verify your Node.js install is complete." )
   endif()
 
   execute_process(
-    COMMAND ${YARN_EXECUTABLE} --version
-    OUTPUT_VARIABLE YARN_VERSION_OUTPUT
+    COMMAND ${NPM_EXECUTABLE} --version
+    OUTPUT_VARIABLE NPM_VERSION_OUTPUT
     OUTPUT_STRIP_TRAILING_WHITESPACE
-    RESULT_VARIABLE YARN_VERSION_RESULT
+    RESULT_VARIABLE NPM_VERSION_RESULT
   )
 
-  if( YARN_VERSION_RESULT EQUAL 0 )
-    message( STATUS "Found yarn ${YARN_VERSION_OUTPUT} at ${YARN_EXECUTABLE}" )
+  if( NPM_VERSION_RESULT EQUAL 0 )
+    message( STATUS "Found npm ${NPM_VERSION_OUTPUT} at ${NPM_EXECUTABLE}" )
   endif()
 
   set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} dive )
@@ -283,7 +200,7 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
     set( DIVE_ELECTRON_OUTPUT_DIR ${DIVE_CLIENT_DIR}/dist_electron/linux-unpacked )
   endif()
 
-  # Prepend the node bin dir to PATH for the build commands so yarn uses the correct node
+  # Prepend the node bin dir to PATH for the build commands so npm uses the correct node
   # On Windows, skip PATH modification as CMake interprets semicolons as list separators
   # and Node.js is typically already in the system PATH
   if( NODE_BIN_DIR AND NOT WIN32 )
@@ -292,62 +209,12 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
     set( DIVE_BUILD_ENV "" )
   endif()
 
-  if( WIN32 )
-    # On Windows, yarn install can fail to extract all files from npm packages.
-    # Use a wrapper that runs yarn cache clean first, then yarn install, then
-    # patches any missing files using npm pack as a fallback.
-    set( _dive_install_script "${VIAME_BUILD_PREFIX}/src/dive-yarn-install.cmake" )
-    string( REPLACE "\\" "/" _yarn_fwd "${YARN_EXECUTABLE}" )
-    string( REPLACE "\\" "/" _client_fwd "${DIVE_CLIENT_DIR}" )
-    file( WRITE "${_dive_install_script}" "
-set(YARN \"${_yarn_fwd}\")
-set(CLIENT_DIR \"${_client_fwd}\")
-# Clean yarn cache to avoid stale/corrupted packages
-execute_process(COMMAND \${YARN} cache clean --all WORKING_DIRECTORY \${CLIENT_DIR} ERROR_QUIET)
-# Run yarn install
-execute_process(
-  COMMAND \${YARN} install --ignore-engines --network-timeout 600000
-  WORKING_DIRECTORY \${CLIENT_DIR}
-  RESULT_VARIABLE rv)
-if(NOT rv EQUAL 0)
-  message(FATAL_ERROR \"yarn install failed with code \${rv}\")
-endif()
-# Check for known missing files and patch with npm pack if needed
-set(MISSING_PKGS)
-if(NOT EXISTS \"\${CLIENT_DIR}/node_modules/lodash/lodash.js\")
-  list(APPEND MISSING_PKGS lodash)
-endif()
-if(NOT EXISTS \"\${CLIENT_DIR}/node_modules/core-js/internals/an-object.js\")
-  list(APPEND MISSING_PKGS core-js)
-endif()
-foreach(pkg \${MISSING_PKGS})
-  message(STATUS \"Patching incomplete package: \${pkg}\")
-  file(READ \"\${CLIENT_DIR}/node_modules/\${pkg}/package.json\" _pkg_json)
-  string(REGEX MATCH \"\\\"version\\\": *\\\"([^\\\"]+)\\\"\" _match \"\${_pkg_json}\")
-  set(_ver \"\${CMAKE_MATCH_1}\")
-  execute_process(
-    COMMAND npm pack \${pkg}@\${_ver} --pack-destination \"\${CLIENT_DIR}\"
-    WORKING_DIRECTORY \${CLIENT_DIR}
-    OUTPUT_QUIET)
-  file(GLOB _tarball \"\${CLIENT_DIR}/\${pkg}-*.tgz\")
-  if(_tarball)
-    execute_process(
-      COMMAND \${CMAKE_COMMAND} -E tar xf \${_tarball}
-      WORKING_DIRECTORY \${CLIENT_DIR})
-    file(GLOB _extracted \"\${CLIENT_DIR}/package/*\")
-    foreach(_f \${_extracted})
-      get_filename_component(_fname \${_f} NAME)
-      file(COPY \${_f} DESTINATION \"\${CLIENT_DIR}/node_modules/\${pkg}\")
-    endforeach()
-    file(REMOVE_RECURSE \"\${CLIENT_DIR}/package\")
-    file(REMOVE \${_tarball})
-  endif()
-endforeach()
-message(STATUS \"DIVE yarn install complete\")
-")
-    set( DIVE_INSTALL_CMD ${CMAKE_COMMAND} -P "${_dive_install_script}" )
+  # `npm ci` is faster and stricter than `npm install` (uses package-lock.json
+  # exactly), but falls back to `npm install` if package-lock.json is missing.
+  if( EXISTS "${DIVE_CLIENT_DIR}/package-lock.json" )
+    set( DIVE_INSTALL_CMD ${DIVE_BUILD_ENV} ${NPM_EXECUTABLE} ci )
   else()
-    set( DIVE_INSTALL_CMD ${DIVE_BUILD_ENV} ${YARN_EXECUTABLE} install --ignore-engines )
+    set( DIVE_INSTALL_CMD ${DIVE_BUILD_ENV} ${NPM_EXECUTABLE} install )
   endif()
 
   ExternalProject_Add( dive
@@ -356,7 +223,7 @@ message(STATUS \"DIVE yarn install complete\")
     BUILD_IN_SOURCE 1
     USES_TERMINAL_BUILD 1
     CONFIGURE_COMMAND ${DIVE_INSTALL_CMD}
-    BUILD_COMMAND ${DIVE_BUILD_ENV} ${YARN_EXECUTABLE} build:electron
+    BUILD_COMMAND ${DIVE_BUILD_ENV} ${NPM_EXECUTABLE} run build:electron
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${DIVE_ELECTRON_OUTPUT_DIR}
       ${VIAME_DIVE_INSTALL_DIR}

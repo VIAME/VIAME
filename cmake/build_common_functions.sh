@@ -338,35 +338,28 @@ upgrade_pip_setuptools() {
 }
 
 # ==============================================================================
-# NODE.JS AND YARN INSTALLATION (for DIVE desktop builds)
+# NODE.JS INSTALLATION (for DIVE desktop builds)
 # ==============================================================================
 
-# Install Node.js 18+ and yarn for building DIVE from source
+# Install Node.js (npm ships bundled) for building DIVE from source.
+# DIVE switched from yarn to npm in 1.10+; the install path is npm-only now.
 # Arguments:
-#   $1 = Node.js major version (default: 18)
-install_nodejs_and_yarn() {
-  local node_version="${1:-18}"
+#   $1 = Node.js major version (default: 22)
+install_nodejs() {
+  local node_version="${1:-22}"
 
-  echo "Installing Node.js ${node_version}.x and yarn..."
+  echo "Installing Node.js ${node_version}.x..."
 
   local pkg_manager=$(detect_package_manager)
 
   case "$pkg_manager" in
     apt)
-      # Install Node.js via NodeSource repository
       curl -fsSL "https://deb.nodesource.com/setup_${node_version}.x" | bash -
       apt-get install -y nodejs
-
-      # Install yarn via npm
-      npm install -g yarn
       ;;
     yum)
-      # Install Node.js via NodeSource repository
       curl -fsSL "https://rpm.nodesource.com/setup_${node_version}.x" | bash -
       yum install -y nodejs
-
-      # Install yarn via npm
-      npm install -g yarn
       ;;
     *)
       echo "Error: Unsupported package manager for Node.js installation: $pkg_manager"
@@ -374,11 +367,15 @@ install_nodejs_and_yarn() {
       ;;
   esac
 
-  # Verify installation
   echo "Node.js version: $(node --version)"
-  echo "yarn version: $(yarn --version)"
+  echo "npm version: $(npm --version)"
 
-  echo "Node.js and yarn installation complete"
+  echo "Node.js installation complete"
+}
+
+# Backwards-compatible alias for callers that still reference the old name.
+install_nodejs_and_yarn() {
+  install_nodejs "$@"
 }
 
 # ==============================================================================
