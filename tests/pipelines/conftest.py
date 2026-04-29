@@ -33,65 +33,40 @@ def env_dir(tmp_path):
     return tmp_path
 
 @pytest.fixture
-def env_circles(env_dir):
-    img = np.full((100, 100, 3), (20, 20, 20), dtype=np.uint8)
-    circles = [(22, 10, 10), (56, 65, 20), (82, 20, 16)]
-    for x, y, r in circles:
-        cv2.circle(img, (x, y), r, (255, 255, 255), -1)
-    cv2.imwrite(str(env_dir / "images" / "circles.jpg"), img)
+def env_single_empty(env_dir, data_path):
+    shutil.copy(data_path / "images" / "empty_100_100.jpg", env_dir / "images")
     return _finalize_env(env_dir)
 
 @pytest.fixture
-def env_checkerboard(env_dir, request):
-    grid_size = getattr(request, "param", (9, 6))
-    width, height = grid_size
-
-    square_size = 20
-    img_size = ((width + 1) * square_size, (height + 1) * square_size)
-
-    bg = np.zeros((height + 1, width + 1), dtype=np.uint8)
-    bg[1::2, ::2] = 255
-    bg[::2, 1::2] = 255
-
-    img = cv2.resize(bg, img_size, interpolation=cv2.INTER_NEAREST)
-    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-
-    cv2.imwrite(str(env_dir / "images" / "checkerboard.jpg"), img)
-
+def env_checkerboard_9_6(env_dir, data_path):
+    shutil.copy(data_path / "images" / "checkerboard_9_6.jpg", env_dir / "images")
     return _finalize_env(env_dir)
 
 @pytest.fixture
-def env_single_empty(env_dir, request):
-    img_path = env_dir / "images" / "test.jpg"
-    cv2.imwrite(str(img_path), np.zeros((100, 100, 3), dtype=np.uint8))
+def env_checkerboard_4_4(env_dir, data_path):
+    shutil.copy(data_path / "images" / "checkerboard_4_4.jpg", env_dir / "images")
     return _finalize_env(env_dir)
 
 @pytest.fixture
-def env_empty(env_dir, request):
-    count = getattr(request, "param", 10)
-
-    images_dir = env_dir / "images"
-    for i in range(count):
-        img_path = images_dir / f"test{i:03}.jpg"
-        cv2.imwrite(str(img_path), np.zeros((100, 100, 3), dtype=np.uint8))
-
+def env_circles_3(env_dir, data_path):
+    shutil.copy(data_path / "images" / "circles_3.jpg", env_dir / "images")
     return _finalize_env(env_dir)
 
 @pytest.fixture
 def env_fish(env_dir, data_path):
-    shutil.copy(data_path / "images" / "fish-1.jpg", env_dir / "images" / "fish-1.jpg")
+    shutil.copy(data_path / "images" / "fish_1.jpg", env_dir / "images")
     return _finalize_env(env_dir)
 
 @pytest.fixture
 def env_fish_with_detections(env_dir, data_path):
-    shutil.copy(data_path / "images" / "fish-1.jpg", env_dir / "images" / "fish-1.jpg")
-    shutil.copy(data_path / "labels" / "fish-1-detections.csv", env_dir / "groundtruth.csv")
+    shutil.copy(data_path / "images" / "fish_1_jpg", env_dir / "images")
+    shutil.copy(data_path / "labels" / "fish_1_detections.csv", env_dir / "groundtruth.csv")
     return _finalize_env(env_dir)
 
 @pytest.fixture
 def env_fish_with_polygons(env_dir, data_path):
-    shutil.copy(data_path / "images" / "fish-1.jpg", env_dir / "images" / "fish-1.jpg")
-    shutil.copy(data_path / "labels" / "fish-1-polygons.csv", env_dir / "groundtruth.csv")
+    shutil.copy(data_path / "images" / "fish_1.jpg", env_dir / "images")
+    shutil.copy(data_path / "labels" / "fish_1_polygons.csv", env_dir / "groundtruth.csv")
     return _finalize_env(env_dir)
 
 

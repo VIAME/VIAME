@@ -12,7 +12,6 @@ def run_detector_viame_pipeline(runner, env_dir, pipe, params):
     res = runner.run(pipe, env_dir, overrides=params)
     assert res.returncode == 0
 
-
 class TestDetectorSimpleHough:
     def test_detector_simple_hough_no_circles(self, runner, env_single_empty, env_dir):
         run_detector_viame_pipeline(
@@ -23,7 +22,7 @@ class TestDetectorSimpleHough:
         )
         check_csv(env_dir, expected_detections=0)
 
-    def test_detector_simple_hough_3_circles(self, runner, env_circles, env_dir):
+    def test_detector_simple_hough_3_circles(self, runner, env_circles_3, env_dir):
         run_detector_viame_pipeline(
             runner,
             env_dir,
@@ -34,7 +33,7 @@ class TestDetectorSimpleHough:
 
 
 class TestDetectorCalibrationTarget:
-    def test_detector_calibration_target_9_6(self, runner, env_checkerboard, env_dir):
+    def test_detector_calibration_target_9_6(self, runner, env_checkerboard_9_6, env_dir):
         run_detector_viame_pipeline(
             runner,
             env_dir,
@@ -46,8 +45,8 @@ class TestDetectorCalibrationTarget:
         )
         check_csv(env_dir, expected_detections=54)
 
-    @pytest.mark.parametrize("env_checkerboard", [(4, 4)], indirect=True)
-    def test_detector_calibration_target_square(self, runner, env_checkerboard, env_dir):
+
+    def test_detector_calibration_target_square(self, runner, env_checkerboard_4_4, env_dir):
         run_detector_viame_pipeline(
             runner,
             env_dir,
