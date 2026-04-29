@@ -3,7 +3,9 @@ import pytest
 from .validators import check_csv
 
 
-def run_utility_viame_pipeline(runner, env_dir, pipe, params):
+def run_utility_viame_pipeline(runner, env_dir, pipe, params: dict = None):
+    if params is None:
+        params = {}
     params["input:video_filename"] = 'image-manifest.txt'
     params["input:video_reader:type"] = 'image_list'
     params["input:video_reader:image_list:image_reader:type"] = 'vxl'
@@ -18,10 +20,7 @@ def run_utility_viame_pipeline(runner, env_dir, pipe, params):
 
 class TestUtilityAddHeadTailKeypointsFromDets:
     def test_utility_add_head_tail_keypoints_from_dets(self, runner, env_fish_with_polygons, env_dir):
-        run_utility_viame_pipeline(
-            runner,
-            env_dir,
+        run_utility_viame_pipeline(runner, env_dir,
             "pipelines/utility_add_head_tail_keypoints_from_dets.pipe",
-            {},
         )
         check_csv(env_dir, all_types='head-tail')

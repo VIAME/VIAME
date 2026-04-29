@@ -5,6 +5,12 @@ import shutil
 
 from .viame_runner import ViameRunner
 
+def pytest_sessionfinish(session, exitstatus):
+    reporter = session.config.pluginmanager.get_plugin("terminalreporter")
+    skipped = len(reporter.stats.get('skipped', []))
+    if skipped > 0:
+        session.exitstatus = 5
+
 @pytest.fixture
 def runner(tmp_path):
     return ViameRunner(tmp_path)
@@ -67,6 +73,11 @@ def env_fish_with_detections(env_dir, data_path):
 def env_fish_with_polygons(env_dir, data_path):
     shutil.copy(data_path / "images" / "fish_1.jpg", env_dir / "images")
     shutil.copy(data_path / "labels" / "fish_1_polygons.csv", env_dir / "groundtruth.csv")
+    return _finalize_env(env_dir)
+
+@pytest.fixture
+def env_seal(env_dir, data_path):
+    shutil.copy(data_path / "images" / "seal_1.jpg", env_dir / "images")
     return _finalize_env(env_dir)
 
 

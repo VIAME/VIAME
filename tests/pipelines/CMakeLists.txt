@@ -41,8 +41,19 @@ if (VIAME_ENABLE_PYTHON)
     set_tests_properties("viame_pipelines:${TEST_NAME}" PROPERTIES
       LABELS "${PIPELINES_TEST_LABELS}"
       TIMEOUT ${PIPELINE_TEST_TIMEOUT}
+      SKIP_RETURN_CODE 5
       ENVIRONMENT "PYTHONPATH=${INTERNAL_PYTHONPATH}${SEP}$ENV{PYTHONPATH};VIAME_INSTALL=${VIAME_INSTALL_DIR}"
     )
+    set(options "")
+    set(oneValueArgs REQ_ADDON)
+    set(multiValueArgs "")
+    cmake_parse_arguments(TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    if(TEST_REQ_ADDON)
+      if(NOT ${${TEST_REQ_ADDON}})
+        set_tests_properties("viame_pipelines:${TEST_NAME}" PROPERTIES DISABLED TRUE)
+      endif()
+    endif()
   endfunction()
 
   # ============ Utility Pipelines ============ #
@@ -56,20 +67,55 @@ if (VIAME_ENABLE_PYTHON)
   # ============ Detector Pipelines ============ #
 
   add_pipeline_script_test(
-    test_detector_simple_hough
-    test_detector.py
-    TestDetectorSimpleHough
-  )
-
-  add_pipeline_script_test(
     test_detector_calibration_target
     test_detector.py
     TestDetectorCalibrationTarget
   )
 
   add_pipeline_script_test(
+    test_detector_generic_proposals
+    test_detector.py
+    TestDetectorGenericProposals
+    REQ_ADDON VIAME_DOWNLOAD_MODELS-GENERIC
+  )
+
+  add_pipeline_script_test(
+    test_detector_huggingface_zeroshot
+    test_detector.py
+    TestDetectorHuggingfaceZeroshot
+  )
+
+  add_pipeline_script_test(
+    test_detector_simple_hough
+    test_detector.py
+    TestDetectorSimpleHough
+  )
+
+  add_pipeline_script_test(
+    test_detector_arctic_seal_eo_yolo
+    test_detector.py
+    TestDetectorArcticSealEOYolo
+    REQ_ADDON VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL
+  )
+
+  add_pipeline_script_test(
+    test_detector_arctic_seal_ir_yolo
+    test_detector.py
+    TestDetectorArcticSealIRYolo
+    REQ_ADDON VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL
+  )
+
+  add_pipeline_script_test(
+    test_detector_community_fish
+    test_detector.py
+    TestDetectorCommunityFish
+    REQ_ADDON VIAME_DOWNLOAD_MODELS-COMMUNITY-FISH
+  )
+
+  add_pipeline_script_test(
     test_detector_default_fish
     test_detector.py
     TestDetectorDefaultFish
+    REQ_ADDON VIAME_DOWNLOAD_MODELS-DEFAULT-FISH
   )
 endif ()
