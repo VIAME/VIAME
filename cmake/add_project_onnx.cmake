@@ -1,44 +1,15 @@
-# Install onnx python
-set( ONNXRUNTIME_PYTHON onnxruntime )
-set( ONNXRUNTIME_VERSION 1.12.1 )
-set( ONNXRUNTIME_DOWNLOAD_DIR ${VIAME_PACKAGES_DIR}/downloads )
-
-# Convert env vars to ----separated string for pip_install_with_lock.cmake
-string( REPLACE ";" "----" ONNX_ENV_STR "${PYTHON_DEP_ENV_VARS}" )
-
-set( ONNXRUNTIME_PIP_INSTALL_CMD
-  ${CMAKE_COMMAND}
-    -DPYTHON_EXECUTABLE=${Python_EXECUTABLE}
-    -DPython_EXECUTABLE=${Python_EXECUTABLE}
-    -DWHEEL_DIR=${ONNXRUNTIME_DOWNLOAD_DIR}
-    -DENV_VARS:STRING=${ONNX_ENV_STR}
-    -P ${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake )
-
-set( ONNXRUNTIME_PYTHON_DOWNLOAD ${Python_EXECUTABLE} -m pip download
-  --no-deps onnxruntime==${ONNXRUNTIME_VERSION} -d "${ONNXRUNTIME_DOWNLOAD_DIR}" )
-
-# Convert install command to ----separated string for the wrapper script
-string( REPLACE ";" "----" ONNX_INSTALL_CMD_STR "${ONNXRUNTIME_PIP_INSTALL_CMD}" )
-
-set( ONNXRUNTIME_PYTHON_INSTALL
-  ${CMAKE_COMMAND}
-    -DCOMMAND_TO_RUN:STRING=${ONNX_INSTALL_CMD_STR}
-    -DENV_VARS:STRING=${ONNX_ENV_STR}
-    -P ${VIAME_CMAKE_DIR}/run_python_command.cmake )
-
-ExternalProject_Add( ${ONNXRUNTIME_PYTHON}
-  DEPENDS fletch python-deps
-  PREFIX ${VIAME_BUILD_PREFIX}
-  DOWNLOAD_COMMAND ${ONNXRUNTIME_PYTHON_DOWNLOAD}
-  SOURCE_DIR ""
-  BUILD_IN_SOURCE 1
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
-  INSTALL_COMMAND ${ONNXRUNTIME_PYTHON_INSTALL}
-  LIST_SEPARATOR "----"
-  )
-
-# Install onnx libs
+# Install the onnxruntime C++ runtime libs. The matching Python package
+# (onnxruntime / onnxruntime-gpu, version 1.23.2) is installed alongside
+# the rest of the pinned wheels by add_project_python_deps; that pip
+# install is what `python-deps` ultimately provides, so we depend on it
+# here to ordering: the libs are unpacked into the same site-packages
+# subtree (${VIAME_PYTHON_PACKAGES}/onnxruntime/onnxruntimelibs) and
+# would race with the wheel install if run earlier.
+#
+# Note the version mismatch is intentional: the prebuilt C++ libs come
+# from upstream's 1.12.1 release archive (a stable headers/.so set used
+# by mmdetection's ONNX export tooling), while the Python wheel tracks
+# the newer 1.23.x line for CUDA 12 inference.
 set( ONNXRUNTIME_LIB_URL "" )
 set( ONNXRUNTIME_LIB_DOWNLOAD_DIR ${VIAME_BUILD_PREFIX}/src/onnxruntimelibs )
 set( ONNXRUNTIME_LIB_INSTALL_DIR ${VIAME_PYTHON_PACKAGES}/onnxruntime )
@@ -52,7 +23,7 @@ else()
 endif()
 
 
-set( ONNXRUNTIME_LIB_DEPS ${ONNXRUNTIME_PYTHON} )
+set( ONNXRUNTIME_LIB_DEPS python-deps )
 set( ONNXRUNTIME_LIB_INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
   ${ONNXRUNTIME_LIB_DOWNLOAD_DIR} ${ONNXRUNTIME_LIB_INSTALL_DIR}/onnxruntimelibs )
 

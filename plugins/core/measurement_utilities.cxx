@@ -432,6 +432,10 @@ map_keypoints_to_camera_settings
   , depth_consistency_max_ratio( 1.5 )
   , uniqueness_ratio( 0.85 )
   , record_stereo_method( true )
+  , refine_keypoints_with_disparity( false )
+  , refine_keypoints_disparity_window( 7 )
+  , refine_keypoints_reject_inconsistent( false )
+  , refine_keypoints_max_distance( 0.25 )
   , debug_epipolar_directory( "" )
   , detection_pairing_method( "" )
   , detection_pairing_threshold( 0.1 )
@@ -617,9 +621,37 @@ map_keypoints_to_camera_settings
   config->set_value( "record_stereo_method", record_stereo_method,
     "If true, record the stereo measurement method used as an attribute on each "
     "output detection object. The attribute will be ':stereo_method=METHOD' "
-    "where METHOD is one of: input_kps_used, template_matching, "
-    "epipolar_template_matching, feature_descriptor, ransac_feature, "
-    "depth_projection, external_disparity, or compute_disparity." );
+    "where METHOD is one of: input_kps_used, input_kps_disparity_refined, "
+    "input_kps_partial_disparity_refined, disparity_inconsistent_rejected, "
+    "template_matching, epipolar_template_matching, feature_descriptor, "
+    "ransac_feature, depth_projection, external_disparity, or "
+    "compute_disparity." );
+
+  config->set_value( "refine_keypoints_with_disparity", refine_keypoints_with_disparity,
+    "If true and a stereo_disparity algorithm is configured, snap right "
+    "keypoints of already-paired tracks to the disparity-implied match of "
+    "their left counterparts. Falls back to the original right keypoint "
+    "when disparity is invalid at the query location. Tracks that lacked "
+    "a right keypoint are unaffected." );
+
+  config->set_value( "refine_keypoints_disparity_window", refine_keypoints_disparity_window,
+    "Half-width (in pixels) of the neighborhood sampled when reading the "
+    "disparity map for keypoint refinement (median over (2w+1)^2). Set to "
+    "0 for single-pixel lookup. Only applies when "
+    "refine_keypoints_with_disparity is true." );
+
+  config->set_value( "refine_keypoints_reject_inconsistent", refine_keypoints_reject_inconsistent,
+    "If true, compare each tracker-provided right keypoint to its "
+    "disparity-implied position; if the distance exceeds "
+    "refine_keypoints_max_distance (normalized by L bbox size), reject the "
+    "track's measurement instead of refining. Only applies when "
+    "refine_keypoints_with_disparity is true." );
+
+  config->set_value( "refine_keypoints_max_distance", refine_keypoints_max_distance,
+    "Maximum allowed distance between tracker and disparity-implied right "
+    "keypoint, as a fraction of the left bbox max(width,height). Above this "
+    "threshold the track is rejected when "
+    "refine_keypoints_reject_inconsistent is true. Set to 0 to disable." );
 
   config->set_value( "debug_epipolar_directory", debug_epipolar_directory,
     "Directory to write debug images showing epipolar search lines overlaid on "
@@ -728,6 +760,10 @@ map_keypoints_to_camera_settings
   depth_consistency_max_ratio = config->get_value< double >( "depth_consistency_max_ratio", depth_consistency_max_ratio );
   uniqueness_ratio = config->get_value< double >( "uniqueness_ratio", uniqueness_ratio );
   record_stereo_method = config->get_value< bool >( "record_stereo_method", record_stereo_method );
+  refine_keypoints_with_disparity = config->get_value< bool >( "refine_keypoints_with_disparity", refine_keypoints_with_disparity );
+  refine_keypoints_disparity_window = config->get_value< int >( "refine_keypoints_disparity_window", refine_keypoints_disparity_window );
+  refine_keypoints_reject_inconsistent = config->get_value< bool >( "refine_keypoints_reject_inconsistent", refine_keypoints_reject_inconsistent );
+  refine_keypoints_max_distance = config->get_value< double >( "refine_keypoints_max_distance", refine_keypoints_max_distance );
   debug_epipolar_directory = config->get_value< std::string >( "debug_epipolar_directory", debug_epipolar_directory );
   detection_pairing_method = config->get_value< std::string >( "detection_pairing_method", detection_pairing_method );
   detection_pairing_threshold = config->get_value< double >( "detection_pairing_threshold", detection_pairing_threshold );
@@ -2786,6 +2822,52 @@ map_keypoints_to_camera
 #else
   (void)left_cam; (void)right_cam; (void)left_image; (void)right_image;
   return nullptr;
+#endif
+}
+
+// -----------------------------------------------------------------------------
+kv::vector_2d
+map_keypoints_to_camera
+::refine_right_point_with_disparity(
+  const kv::image_container_sptr& disparity_map,
+  const kv::vector_2d& left_point,
+  const kv::vector_2d& original_right_point,
+  const kv::simple_camera_perspective& right_cam,
+  int search_window,
+  bool* refined ) const
+{
+  if( refined ) { *refined = false; }
+
+  if( !disparity_map )
+  {
+    return original_right_point;
+  }
+
+#ifdef VIAME_ENABLE_OPENCV
+  if( !m_rectification_computed )
+  {
+    return original_right_point;
+  }
+
+  const kv::vector_2d left_rect = rectify_point( left_point, false );
+
+  kv::vector_2d right_rect;
+  const bool ok = find_corresponding_point_external_disparity(
+    disparity_map, left_rect, right_rect, search_window );
+
+  if( !ok )
+  {
+    return original_right_point;
+  }
+
+  const kv::vector_2d right_unrect =
+    unrectify_point( right_rect, true, right_cam );
+
+  if( refined ) { *refined = true; }
+  return right_unrect;
+#else
+  (void)right_cam; (void)search_window;
+  return original_right_point;
 #endif
 }
 

@@ -323,6 +323,40 @@ public:
   /// Whether to record stereo measurement method as detection attribute
   bool record_stereo_method;
 
+  /// Whether to refine right keypoints of already-paired tracks using a
+  /// full-image disparity map. When enabled and a stereo_disparity
+  /// algorithm is configured, the disparity is computed once per frame
+  /// and sampled at each rectified left keypoint location; the right
+  /// keypoint is replaced with the disparity-implied match (in original
+  /// right image coordinates). Falls back to the original right keypoint
+  /// when disparity is unavailable or invalid at the queried location.
+  /// Tracks that lacked a right keypoint and went through the secondary
+  /// matching methods are not affected (those already use disparity when
+  /// compute_disparity is in matching_methods).
+  bool refine_keypoints_with_disparity;
+
+  /// Half-width (in pixels) of the neighborhood used when sampling the
+  /// disparity map for keypoint refinement. The median of valid disparity
+  /// values in a (2*w+1)x(2*w+1) window is used. Set to 0 for a
+  /// single-pixel lookup.
+  int refine_keypoints_disparity_window;
+
+  /// If true, instead of unconditionally replacing right keypoints with
+  /// the disparity-implied positions, compare the tracker-provided right
+  /// keypoint to the disparity-implied one and reject the entire track's
+  /// measurement when they disagree by more than refine_keypoints_max_distance
+  /// (normalized to the left bounding box). Only applies when
+  /// refine_keypoints_with_disparity is true.
+  bool refine_keypoints_reject_inconsistent;
+
+  /// Maximum allowed distance between the tracker-provided right keypoint
+  /// and the disparity-implied right keypoint, expressed as a fraction of
+  /// the left detection's max bounding-box dimension (max of width and
+  /// height). When the distance exceeds this fraction, the track is
+  /// rejected (no measurement) if refine_keypoints_reject_inconsistent
+  /// is true. Set to 0 to disable the check (always refine).
+  double refine_keypoints_max_distance;
+
   /// Directory to write debug images showing epipolar search lines.
   /// Empty string (default) disables debug output.
   std::string debug_epipolar_directory;
@@ -613,6 +647,22 @@ public:
     const kv::simple_camera_perspective& right_cam,
     const kv::image_container_sptr& left_image,
     const kv::image_container_sptr& right_image );
+
+  /// Refine a right-image keypoint using a rectified-space disparity map.
+  /// Rectifies the left point, samples the disparity (median over a
+  /// (2*search_window+1)^2 neighborhood), computes the corresponding right
+  /// point in rectified space (right_x = left_x - disparity), then
+  /// unrectifies back to original right image coordinates. If the
+  /// disparity is invalid at the queried location, returns
+  /// original_right_point unchanged. Requires rectification maps to be
+  /// computed (e.g. via a prior compute_disparity_for_frame call).
+  kv::vector_2d refine_right_point_with_disparity(
+    const kv::image_container_sptr& disparity_map,
+    const kv::vector_2d& left_point,
+    const kv::vector_2d& original_right_point,
+    const kv::simple_camera_perspective& right_cam,
+    int search_window = 7,
+    bool* refined = nullptr ) const;
 
   /// Get the cached rectified left image (if available)
   /// This returns the rectified left image from the last stereo processing call
