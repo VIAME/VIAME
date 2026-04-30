@@ -4,6 +4,8 @@
 # Description: Applies percentile-based normalization to convert non-8-bit
 # imagery (16-bit, float, etc.) to standard 8-bit format for visualization
 # or use with models that expect 8-bit input.
+# Input: IMAGE
+# Output: IMAGE
 # =============================================================================
 
 config _pipeline:_edge
@@ -20,8 +22,8 @@ process filter
   :filter:type                                 percentile_norm
 
   block filter:percentile_norm
-    :lower_percentile                          1.0
-    :upper_percentile                          99.0
+    :lower_percentile                          1.0  # DIVE_PARAM["Lower percentile", range_float, 0, 100, 0.1]
+    :upper_percentile                          99.0  # DIVE_PARAM["Upper percentile", range_float, 0, 100, 0.1]
     :output_format                             8-bit
   endblock
 
@@ -32,7 +34,7 @@ connect from input.image
 
 process image_writer
   :: image_writer
-  :file_name_template                          frame%06d.png
+  :file_name_template                          frame%06d.png  # DIVE_PARAM["Filename template", string]
   :image_writer:type                           vxl
 
 connect from filter.image
