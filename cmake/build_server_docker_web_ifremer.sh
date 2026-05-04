@@ -29,10 +29,12 @@ cmake ../ \
   -C ../cmake/build_cmake_web.cmake \
   -DVIAME_BUILD_PYTORCH_FROM_SOURCE=OFF \
   -DVIAME_BUILD_TORCHVISION_FROM_SOURCE=ON \
-  -DCUDA_ARCHITECTURES:STRING="7.0 7.5 8.0 8.6 8.9 9.0 10.0 12.0"
+  -DCUDA_ARCHITECTURES:STRING="7.5"
 
 # Download OCV aux files from local server copy
 download_opencv_extras
+
+export MAX_JOBS=4
 
 # Perform multi-threaded build
 run_build build_log.txt true
