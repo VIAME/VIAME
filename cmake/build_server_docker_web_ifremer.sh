@@ -27,8 +27,6 @@ cmake ../ \
   -C ../cmake/build_cmake_base.cmake \
   -C ../cmake/build_cmake_docker.cmake \
   -C ../cmake/build_cmake_web.cmake \
-  -DVIAME_BUILD_PYTORCH_FROM_SOURCE=OFF \
-  -DVIAME_BUILD_TORCHVISION_FROM_SOURCE=ON \
   -DCUDA_ARCHITECTURES:STRING="7.5"
 
 # Download OCV aux files from local server copy
