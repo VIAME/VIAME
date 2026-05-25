@@ -3,6 +3,8 @@
 #
 # Description: Runs automated ocv target detection on image then generate
 # corners tracks Outputs to computed_tracks.csv.
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================
@@ -35,8 +37,8 @@ process detector1
   :detector:type                               ocv_detect_calibration_targets
 
   block detector:ocv_detect_calibration_targets
-    :target_width                              9
-    :target_height                             6
+    :target_width                              9            # DIVE_PARAM["Target width", strictly_positive_int]
+    :target_height                             6            # DIVE_PARAM["Target height", strictly_positive_int]
     :square_size                               1.
     :object_type                               "corner"
   endblock

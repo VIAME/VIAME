@@ -2,6 +2,8 @@
 # Title: Link or re-link detections into tracks using the default tracker
 #
 # Description: Utility pipeline for data processing operations.
+# Input: BBOX
+# Output: TRACK
 # =============================================================================
 
 config _pipeline:_edge

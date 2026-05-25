@@ -210,14 +210,9 @@ set( CORE_PIPELINE_FILES
   transcode_tracks_only.pipe
   utility_add_head_tail_keypoints_from_dets.pipe
   utility_add_segmentations_watershed.pipe
-  utility_add_segmentations_watershed_2x.pipe
-  utility_empty_frame_lbls_1000fr.pipe
-  utility_empty_frame_lbls_100fr.pipe
-  utility_empty_frame_lbls_10fr.pipe
-  utility_empty_frame_lbls_1fr.pipe
+        utility_empty_frame_lbls.pipe
   utility_link_detections_default.pipe
-  utility_max_10_points_per_poly.pipe
-  utility_max_25_points_per_poly.pipe
+        utility_max_points_per_poly.pipe
   utility_remove_dets_in_ignore_regions.pipe
   utility_register_frames.pipe
   utility_register_frames_2-cam.pipe

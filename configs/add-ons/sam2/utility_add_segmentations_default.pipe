@@ -2,6 +2,8 @@
 # Title: Utility - Add Segmentations Default
 #
 # Description: Adds segmentation masks to existing detections.
+# Input: BBOX
+# Output: MASK
 # =============================================================================
 
 include utility_add_segmentations_sam2.pipe

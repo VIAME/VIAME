@@ -2,6 +2,8 @@
 # Title: Filters input images via spltting them, debayering them and lastly enhancement
 #
 # Description: Applies filtering operations to input data.
+# Input: IMAGE
+# Output: IMAGE
 # =============================================================================
 
 config _pipeline:_edge
@@ -32,7 +34,7 @@ connect from input.image
 process debayer
   :: image_filter
   :filter:type                                 ocv_debayer
-  :filter:ocv_debayer:pattern                  BG
+  :filter:ocv_debayer:pattern                  BG  # DIVE_PARAM["Debayer pattern", string]
   :filter:ocv_debayer:force_8bit               true
 
 connect from split.left_image
@@ -43,16 +45,16 @@ connect from split.left_image
 process filter
   :: image_filter
   :filter:type                                 ocv_enhancer
-  :filter:ocv_enhancer:apply_smoothing         false
-  :filter:ocv_enhancer:smooth_kernel           3
-  :filter:ocv_enhancer:apply_denoising         false
-  :filter:ocv_enhancer:denoise_kernel          3
-  :filter:ocv_enhancer:denoise_coeff           2
-  :filter:ocv_enhancer:auto_balance            true
+  :filter:ocv_enhancer:apply_smoothing         false         # DIVE_PARAM["Smooth", bool]
+  :filter:ocv_enhancer:smooth_kernel           3             # DIVE_PARAM["Smooth kernel", strictly_positive_int]
+  :filter:ocv_enhancer:apply_denoising         false         # DIVE_PARAM["Denoising", bool]
+  :filter:ocv_enhancer:denoise_kernel          3             # DIVE_PARAM["Denoise kernel", strictly_positive_int]
+  :filter:ocv_enhancer:denoise_coeff           2             # DIVE_PARAM["Denoise coef", float]
+  :filter:ocv_enhancer:auto_balance            true          # DIVE_PARAM["Auto balance", bool]
   :filter:ocv_enhancer:force_8bit              false
   :filter:ocv_enhancer:apply_clahe             true
   :filter:ocv_enhancer:clip_limit              3
-  :filter:ocv_enhancer:saturation              1.20
+  :filter:ocv_enhancer:saturation              1.20          # DIVE_PARAM["Saturation", range_float, 0, 3]
 
 connect from debayer.image
         to   filter.image
@@ -61,7 +63,7 @@ connect from debayer.image
 
 process image_writer
   :: image_writer
-  :file_name_template                          .png
+  :file_name_template                          .png  # DIVE_PARAM["Filename template", string]
   :image_writer:type                           vxl
 
 connect from filter.image

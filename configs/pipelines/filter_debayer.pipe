@@ -2,6 +2,8 @@
 # Title: Filters input images via debayering them and running basic image filtering
 #
 # Description: Applies filtering operations to input data.
+# Input: IMAGE
+# Output: IMAGE
 # =============================================================================
 
 config _pipeline:_edge
@@ -23,7 +25,7 @@ process input
 process debayer
   :: image_filter
   :filter:type                                 ocv_debayer
-  :filter:ocv_debayer:pattern                  BG
+  :filter:ocv_debayer:pattern                  BG  # DIVE_PARAM["Debayer pattern", string]
   :filter:ocv_debayer:force_8bit               true
 
 connect from input.image
@@ -33,7 +35,7 @@ connect from input.image
 
 process image_writer
   :: image_writer
-  :file_name_template                          .png
+  :file_name_template                          .png  # DIVE_PARAM["Filename template", string]
   :image_writer:type                           vxl
 
 connect from debayer.image
