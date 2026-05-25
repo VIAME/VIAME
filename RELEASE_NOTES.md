@@ -1,3 +1,14 @@
+v0.22.5 - 5/26/2026
+===================
+
+
+-Re-compute lengths when head/tail points are modified in interactive stereo mode
+
+
+-Fix issue with video outputs from transcode pipelines
+
+
+
 v0.22.4 - 4/28/2026
 ===================
 
