@@ -202,35 +202,30 @@ class FoundationStereo(ComputeStereoDepthMap):
         return True
 
     def _load_calibration(self, cal_fpath):
-        """Load stereo calibration from a JSON file.
+        """Load stereo calibration via the consolidated viame::core::read_stereo_rig
+        loader (the viame.core._measurement bindings), the same loader used by the
+        measurement pipeline and interactive stereo. Supports .json, .yml/.yaml,
+        .npz, .mat and OpenCV calibration directories.
 
-        Supports KWIVER stereo rig JSON format with keys:
-            - fx_left, fy_left, cx_left, cy_left: left camera intrinsics
-            - T: translation vector between cameras (baseline)
+        Only the left focal length, principal point and baseline are used here
+        (FoundationStereo produces a rectified disparity map).
 
         Args:
-            cal_fpath: Path to calibration JSON file
+            cal_fpath: Path to the calibration file
         """
-        with open(cal_fpath, 'r') as f:
-            data = json.load(f)
+        from viame.core import _measurement
 
-        # Extract focal length from left camera (use fx_left as primary)
-        self._focal_length = float(data.get('fx_left', 0.0))
+        cal = _measurement.load_stereo_calibration(cal_fpath)
+        k_left = cal['k_left']  # flat row-major 3x3
+        self._focal_length = float(k_left[0])
+        self._principal_x = float(k_left[2])
+        self._principal_y = float(k_left[5])
 
-        # Extract principal point from left camera
-        self._principal_x = float(data.get('cx_left', 0.0))
-        self._principal_y = float(data.get('cy_left', 0.0))
-
-        # Compute baseline from translation vector
-        T = data.get('T', [0.0, 0.0, 0.0])
-        if isinstance(T, list) and len(T) >= 3:
-            # Baseline is typically the absolute X component for horizontal stereo
-            self._baseline = abs(T[0])
-            # If X is near zero, use full magnitude
-            if self._baseline < 1e-6:
-                self._baseline = np.sqrt(T[0]**2 + T[1]**2 + T[2]**2)
-        else:
-            self._baseline = 0.0
+        # Baseline: absolute X component for horizontal stereo, else full magnitude
+        T = cal['translation']
+        self._baseline = abs(float(T[0]))
+        if self._baseline < 1e-6:
+            self._baseline = float(np.sqrt(T[0] ** 2 + T[1] ** 2 + T[2] ** 2))
 
         print(f"Loaded calibration: focal_length={self._focal_length}, "
               f"baseline={self._baseline}, principal=({self._principal_x}, {self._principal_y})")

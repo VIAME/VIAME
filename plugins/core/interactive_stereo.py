@@ -147,26 +147,22 @@ class EpipolarTemplateMatcher:
 
     def load_calibration(self, filepath):
         """
-        Load stereo calibration from a file using KWIVER's StereoCalibration.
+        Load stereo calibration (K_left, K_right, R, T) from a file.
 
-        Supports .npz, .json, and .mat formats via StereoCalibration.from_file().
+        Normalized on viame::core::read_stereo_rig (via the viame.core._measurement
+        bindings) -- the same loader the measurement pipeline processes use --
+        which supports .json, .yml/.yaml, .npz, .mat and OpenCV calibration
+        directories.
         """
-        from viame.opencv.stereo_algos import StereoCalibration
-
         self._log(f"Loading calibration from: {filepath}")
-        cal = StereoCalibration.from_file(filepath)
 
-        # Extract intrinsic matrices (3x3)
-        self._K_left, self._K_right = cal.intrinsic_matrices()
-        self._K_left = np.array(self._K_left, dtype=np.float64)
-        self._K_right = np.array(self._K_right, dtype=np.float64)
+        cal = _cpp_measurement.load_stereo_calibration(filepath)
+        self._K_left = np.array(cal['k_left'], dtype=np.float64).reshape(3, 3)
+        self._K_right = np.array(cal['k_right'], dtype=np.float64).reshape(3, 3)
+        self._R = np.array(cal['rotation'], dtype=np.float64).reshape(3, 3)
+        self._T = np.array(cal['translation'], dtype=np.float64).flatten()
+
         self._K_left_inv = np.linalg.inv(self._K_left)
-
-        # Extract extrinsic R, T from the right camera
-        om = cal.data['right']['extrinsic']['om']
-        self._R = cv2.Rodrigues(np.array(om, dtype=np.float64))[0]
-        self._T = np.array(
-            cal.data['right']['extrinsic']['T'], dtype=np.float64).flatten()
 
         # Convert disparity range to depth range: depth = fx * baseline / disparity
         fx_l = self._K_left[0, 0]

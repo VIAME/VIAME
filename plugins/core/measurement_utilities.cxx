@@ -4013,6 +4013,9 @@ get_valid_methods()
 // =============================================================================
 #ifdef VIAME_MEASUREMENT_PYTHON_BINDINGS
 
+#include "camera_rig_io.h"
+
+#include <vital/types/camera_perspective.h>
 #include <vital/types/rotation.h>
 
 #include <pybind11/pybind11.h>
@@ -4131,6 +4134,66 @@ compute_stereo_measurement_from_calibration(
   return result;
 }
 
+// ----------------------------------------------------------------------------
+// Flatten a 3x3 matrix to a row-major std::vector<double> of length 9.
+std::vector< double >
+flatten_3x3( kv::matrix_3x3d const& mat )
+{
+  std::vector< double > out( 9 );
+  for( int i = 0; i < 3; ++i )
+  {
+    for( int j = 0; j < 3; ++j )
+    {
+      out[ i * 3 + j ] = mat( i, j );
+    }
+  }
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+/// Load a stereo calibration file using viame::core::read_stereo_rig (the same
+/// loader the measurement pipeline processes use) and return the intrinsics and
+/// the right-relative-to-left extrinsics as flat lists. Supports every format
+/// read_stereo_rig handles: .json, .yml/.yaml, .npz and OpenCV directories.
+py::dict
+load_stereo_calibration( std::string const& path )
+{
+  auto const rig = viame::read_stereo_rig( path );
+  if( !rig )
+  {
+    throw std::runtime_error( "Could not read stereo calibration from: " + path );
+  }
+
+  auto const left =
+    std::dynamic_pointer_cast< kv::camera_perspective >( rig->left() );
+  auto const right =
+    std::dynamic_pointer_cast< kv::camera_perspective >( rig->right() );
+  if( !left || !right )
+  {
+    throw std::runtime_error(
+      "Stereo calibration does not contain perspective cameras: " + path );
+  }
+
+  kv::matrix_3x3d const r_left = left->rotation().matrix();
+  kv::matrix_3x3d const r_right = right->rotation().matrix();
+  kv::vector_3d const c_left = left->center();
+  kv::vector_3d const c_right = right->center();
+
+  // Right camera relative to the left (which is the measurement reference):
+  // X_right = R * X_left + T. Computed from absolute poses so it is correct
+  // even if the left camera is not at the identity pose.
+  kv::matrix_3x3d const rotation = r_right * r_left.transpose();
+  kv::vector_3d const translation = r_right * ( c_left - c_right );
+
+  py::dict result;
+  result[ "k_left" ] = flatten_3x3( left->intrinsics()->as_matrix() );
+  result[ "k_right" ] = flatten_3x3( right->intrinsics()->as_matrix() );
+  result[ "rotation" ] = flatten_3x3( rotation );
+  result[ "translation" ] = std::vector< double >{
+    translation[ 0 ], translation[ 1 ], translation[ 2 ] };
+  return result;
+}
+
 } // namespace <anonymous>
 
 // ----------------------------------------------------------------------------
@@ -4162,6 +4225,16 @@ PYBIND11_MODULE( _measurement, m )
     "method: 'average' (mean, default), 'average_iqr' (IQR-trimmed mean) or "
     "'median'. Returns the aggregated length, or -1 if there are none. Shares "
     "the implementation used by the pair_stereo_tracks pipeline process." );
+
+  m.def(
+    "load_stereo_calibration",
+    &load_stereo_calibration,
+    py::arg( "path" ),
+    "Load a stereo calibration file via viame::core::read_stereo_rig (the same "
+    "loader the measurement pipeline processes use; supports .json, .yml/.yaml, "
+    ".npz and OpenCV calibration directories). Returns a dict with flat "
+    "row-major k_left, k_right, rotation (right relative to left) and "
+    "translation." );
 }
 
 #endif // VIAME_MEASUREMENT_PYTHON_BINDINGS

@@ -814,6 +814,50 @@ class TestStereoMeasurement:
             [0, 0], [0, 0], [1, 1], [1, 1]) is None
 
 
+class TestMatCalibration:
+    """The C++ read_stereo_rig .mat reader (exposed via viame.core._measurement)
+    loads Bouguet-style MATLAB calibration files: flat (Level 5), zlib-compressed
+    (v7), and wrapped in a 'Cal' struct."""
+
+    @pytest.mark.parametrize('compress,as_struct', [
+        (False, False),   # uncompressed Level-5, top-level variables
+        (True, False),    # v7 zlib-compressed elements
+        (False, True),    # variables wrapped in a 'Cal' struct
+    ])
+    def test_load_mat_calibration(self, compress, as_struct):
+        scipy_io = pytest.importorskip('scipy.io')
+        cv2 = pytest.importorskip('cv2')
+        from viame.core import _measurement
+
+        om = np.array([0.01, 0.02, -0.005])
+        T = np.array([-210.0, 4.0, 4.5])
+        fc_left, cc_left = np.array([1107.0, 1101.0]), np.array([822.0, 615.0])
+        fc_right, cc_right = np.array([1109.0, 1103.0]), np.array([820.0, 617.0])
+        fields = dict(
+            om=om, T=T,
+            fc_left=fc_left, cc_left=cc_left,
+            fc_right=fc_right, cc_right=cc_right,
+            kc_left=np.zeros(5), kc_right=np.zeros(5),
+            alpha_c_left=np.array([0.0]), alpha_c_right=np.array([0.0]),
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            fpath = os.path.join(tmp, 'cal.mat')
+            scipy_io.savemat(
+                fpath, {'Cal': fields} if as_struct else fields,
+                do_compression=compress)
+            cal = _measurement.load_stereo_calibration(fpath)
+
+        k_left = np.array(cal['k_left']).reshape(3, 3)
+        assert np.isclose(k_left[0, 0], fc_left[0])
+        assert np.isclose(k_left[1, 1], fc_left[1])
+        assert np.isclose(k_left[0, 2], cc_left[0])
+        assert np.isclose(k_left[1, 2], cc_left[1])
+        assert np.allclose(np.array(cal['rotation']).reshape(3, 3),
+                           cv2.Rodrigues(om)[0])
+        assert np.allclose(np.array(cal['translation']), T)
+
+
 # =============================================================================
 # Main Entry Point
 # =============================================================================

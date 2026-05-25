@@ -78,6 +78,16 @@ VIAME_CORE_EXPORT read_stereo_rig_yaml( kwiver::vital::path_t const& FN );
 kwiver::vital::camera_rig_stereo_sptr
 VIAME_CORE_EXPORT read_stereo_rig_from_ocv_dir( kwiver::vital::path_t const& dir_path );
 
+/// Load a stereo rig from a MATLAB .mat calibration file (Bouguet toolbox
+/// format with fields om, T, fc_left/right, cc_left/right, kc_left/right,
+/// either at the top level or inside a "Cal" struct). Supports MAT Level 5 and
+/// v7 (zlib-compressed) files; v7.3/HDF5 is not supported.
+///
+/// \param FN path to the .mat file
+/// \return a new stereo rig
+kwiver::vital::camera_rig_stereo_sptr
+VIAME_CORE_EXPORT read_stereo_rig_mat( kwiver::vital::path_t const& FN );
+
 #ifdef VIAME_ENABLE_ZLIB
 /// Load a stereo rig from a NumPy NPZ file.
 ///
