@@ -439,5 +439,19 @@ if( VIAME_ENABLE_PYTHON )
     core
     interactive_stereo )
 
+  # Compiled bindings exposing the C++ stereo measurement (compute_stereo_measurement,
+  # aggregate_lengths) to Python so the interactive stereo service reuses them rather
+  # than duplicating the math. The bindings live at the bottom of measurement_utilities.cxx
+  # guarded by VIAME_MEASUREMENT_PYTHON_BINDINGS; defining it here makes this build of the
+  # file emit only the module (linking viame_core for the implementations).
+  find_package( pybind11 REQUIRED )
+  kwiver_add_python_library( _measurement
+    core
+    measurement_utilities.cxx )
+  target_compile_definitions( python-core-_measurement
+    PRIVATE VIAME_MEASUREMENT_PYTHON_BINDINGS )
+  target_link_libraries( python-core-_measurement
+    PRIVATE ${PYTHON_LIBRARIES} pybind11::pybind11 viame_core )
+
 endif()
 

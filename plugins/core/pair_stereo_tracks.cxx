@@ -140,53 +140,11 @@ aggregate_track_lengths(
   collect_lengths( trk1 );
   collect_lengths( trk2 );
 
-  if( lengths.empty() )
+  // Aggregate via the shared helper (also exposed to Python for interactive use)
+  double agg_length = aggregate_lengths( lengths, method, iqr_factor );
+
+  if( agg_length <= 0.0 )
     return;
-
-  std::sort( lengths.begin(), lengths.end() );
-
-  double agg_length = 0.0;
-
-  if( method == "average_iqr" )
-  {
-    size_t n = lengths.size();
-    double q1 = lengths[n / 4];
-    double q3 = lengths[( 3 * n ) / 4];
-    double iqr = q3 - q1;
-    double lower = q1 - iqr_factor * iqr;
-    double upper = q3 + iqr_factor * iqr;
-
-    double sum = 0.0;
-    int count = 0;
-    for( double v : lengths )
-    {
-      if( v >= lower && v <= upper )
-      {
-        sum += v;
-        count++;
-      }
-    }
-
-    if( count == 0 )
-      return;
-
-    agg_length = sum / count;
-  }
-  else if( method == "average" )
-  {
-    double sum = 0.0;
-    for( double v : lengths )
-      sum += v;
-    agg_length = sum / lengths.size();
-  }
-  else // "median"
-  {
-    size_t m = lengths.size();
-    if( m % 2 == 0 )
-      agg_length = ( lengths[m / 2 - 1] + lengths[m / 2] ) / 2.0;
-    else
-      agg_length = lengths[m / 2];
-  }
 
   std::string agg_note = ":avg_length=" + std::to_string( agg_length );
 

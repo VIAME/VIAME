@@ -730,6 +730,90 @@ class TestIntegration:
             })
 
 
+class TestStereoMeasurement:
+    """Stereo length/measurement via EpipolarTemplateMatcher.compute_measurement,
+    which delegates to the C++ viame::core::compute_stereo_measurement bindings
+    (viame.core._measurement)."""
+
+    @staticmethod
+    def _synthetic_rig():
+        """A rectified stereo rig and a known 3D segment.
+
+        Returns (matcher, left_line, right_line, expected) where ``expected``
+        holds the analytic length / midpoint / range for the segment, computed
+        independently of the code under test.
+        """
+        from viame.core.interactive_stereo import EpipolarTemplateMatcher
+
+        fx = 800.0
+        cx, cy = 640.0, 360.0
+        baseline = 120.0
+        k = np.array([[fx, 0.0, cx], [0.0, fx, cy], [0.0, 0.0, 1.0]])
+        rotation = np.eye(3)
+        translation = np.array([-baseline, 0.0, 0.0])
+
+        def project(rot, trans, point_3d):
+            p = k @ (rot @ point_3d + trans)
+            return [p[0] / p[2], p[1] / p[2]]
+
+        p1 = np.array([-50.0, 30.0, 1500.0])
+        p2 = np.array([40.0, -20.0, 1800.0])
+
+        left_line = [project(np.eye(3), np.zeros(3), p1),
+                     project(np.eye(3), np.zeros(3), p2)]
+        right_line = [project(rotation, translation, p1),
+                      project(rotation, translation, p2)]
+
+        matcher = EpipolarTemplateMatcher()
+        matcher._K_left = k
+        matcher._K_right = k
+        matcher._R = rotation
+        matcher._T = translation
+        matcher._calibrated = True
+
+        midpoint = (p1 + p2) / 2.0
+        expected = {
+            "length": float(np.linalg.norm(p1 - p2)),
+            "midpoint_x": float(midpoint[0]),
+            "midpoint_y": float(midpoint[1]),
+            "midpoint_z": float(midpoint[2]),
+            "midpoint_range": float(np.linalg.norm(midpoint)),
+        }
+        return matcher, left_line, right_line, expected
+
+    def test_compute_measurement_matches_ground_truth(self):
+        """compute_measurement returns the analytic length, 3D midpoint and range."""
+        matcher, left_line, right_line, expected = self._synthetic_rig()
+
+        result = matcher.compute_measurement(
+            left_line[0], right_line[0], left_line[1], right_line[1])
+
+        assert result is not None
+        for key, value in expected.items():
+            assert result[key] == pytest.approx(value, abs=1e-2), key
+        # Exact correspondences -> near-zero reprojection error
+        assert result["stereo_rms"] == pytest.approx(0.0, abs=1e-2)
+
+    def test_compute_measurement_rms_flags_bad_match(self):
+        """A vertical (epipolar-violating) mismatch raises the RMS reprojection error."""
+        matcher, left_line, right_line, _ = self._synthetic_rig()
+
+        bad_right_head = [right_line[0][0], right_line[0][1] + 2.0]
+        result = matcher.compute_measurement(
+            left_line[0], bad_right_head, left_line[1], right_line[1])
+
+        assert result is not None
+        assert result["stereo_rms"] > 0.1
+
+    def test_compute_measurement_requires_calibration(self):
+        """Without calibration, compute_measurement returns None."""
+        from viame.core.interactive_stereo import EpipolarTemplateMatcher
+
+        matcher = EpipolarTemplateMatcher()
+        assert matcher.compute_measurement(
+            [0, 0], [0, 0], [1, 1], [1, 1]) is None
+
+
 # =============================================================================
 # Main Entry Point
 # =============================================================================

@@ -118,6 +118,15 @@ VIAME_CORE_EXPORT stereo_measurement_result compute_stereo_measurement(
   const kv::vector_2d& left_tail,
   const kv::vector_2d& right_tail );
 
+/// Aggregate a set of per-detection lengths into a single representative value.
+/// method: "average" (mean, default), "average_iqr" (mean after IQR outlier
+/// removal controlled by iqr_factor), or "median". Non-positive lengths are
+/// ignored. Returns the aggregated length, or -1 if there are no valid lengths.
+VIAME_CORE_EXPORT double aggregate_lengths(
+  const std::vector< double >& lengths,
+  const std::string& method = "average",
+  double iqr_factor = 1.5 );
+
 /// Compute a bounding box from keypoints with scale factor
 /// If min_aspect_ratio > 0, ensures the smaller dimension is at least
 /// min_aspect_ratio times the larger dimension (prevents very thin boxes)

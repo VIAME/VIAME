@@ -32,6 +32,12 @@
 #include <limits>
 #include <sstream>
 
+// The Python bindings for these utilities live at the bottom of this file under
+// VIAME_MEASUREMENT_PYTHON_BINDINGS (defined only for the _measurement module
+// build). The implementation below is skipped in that build so the module just
+// wraps the symbols exported by the viame_core library it links against.
+#ifndef VIAME_MEASUREMENT_PYTHON_BINDINGS
+
 namespace viame
 {
 
@@ -1726,6 +1732,77 @@ compute_stereo_measurement(
 
   result.valid = true;
   return result;
+}
+
+// -----------------------------------------------------------------------------
+double
+aggregate_lengths(
+  const std::vector< double >& input_lengths,
+  const std::string& method,
+  double iqr_factor )
+{
+  // Keep only valid (positive) lengths
+  std::vector< double > lengths;
+  lengths.reserve( input_lengths.size() );
+  for( double v : input_lengths )
+  {
+    if( v > 0.0 )
+    {
+      lengths.push_back( v );
+    }
+  }
+
+  if( lengths.empty() )
+  {
+    return -1.0;
+  }
+
+  std::sort( lengths.begin(), lengths.end() );
+
+  if( method == "average_iqr" )
+  {
+    size_t n = lengths.size();
+    double q1 = lengths[ n / 4 ];
+    double q3 = lengths[ ( 3 * n ) / 4 ];
+    double iqr = q3 - q1;
+    double lower = q1 - iqr_factor * iqr;
+    double upper = q3 + iqr_factor * iqr;
+
+    double sum = 0.0;
+    int count = 0;
+    for( double v : lengths )
+    {
+      if( v >= lower && v <= upper )
+      {
+        sum += v;
+        ++count;
+      }
+    }
+
+    if( count == 0 )
+    {
+      return -1.0;
+    }
+
+    return sum / count;
+  }
+  else if( method == "median" )
+  {
+    size_t m = lengths.size();
+    if( m % 2 == 0 )
+    {
+      return ( lengths[ m / 2 - 1 ] + lengths[ m / 2 ] ) / 2.0;
+    }
+    return lengths[ m / 2 ];
+  }
+
+  // "average" (default): plain mean
+  double sum = 0.0;
+  for( double v : lengths )
+  {
+    sum += v;
+  }
+  return sum / lengths.size();
 }
 
 // -----------------------------------------------------------------------------
@@ -3922,3 +3999,169 @@ get_valid_methods()
 } // end namespace core
 
 } // end namespace viame
+
+#endif // !VIAME_MEASUREMENT_PYTHON_BINDINGS
+
+// =============================================================================
+// Python bindings
+//
+// Compiled only into the viame.core._measurement Python module (the module
+// target is built with VIAME_MEASUREMENT_PYTHON_BINDINGS defined), never into
+// the viame_core library even though both targets compile this file. The module
+// links viame_core for the actual implementations and only wraps them here, so
+// the stereo measurement / aggregation math is not duplicated.
+// =============================================================================
+#ifdef VIAME_MEASUREMENT_PYTHON_BINDINGS
+
+#include <vital/types/rotation.h>
+
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+#include <stdexcept>
+
+namespace py = pybind11;
+namespace kv = kwiver::vital;
+
+namespace {
+
+// ----------------------------------------------------------------------------
+// Inputs are passed as flat std::vector<double> rather than Eigen/numpy types:
+// pybind11's Eigen<->numpy caster is incompatible with numpy 2.0 (it crashes in
+// the numpy C-API), whereas the STL caster uses only the CPython sequence API.
+kv::matrix_3x3d
+to_matrix_3x3( std::vector< double > const& v, char const* name )
+{
+  if( v.size() != 9 )
+  {
+    throw std::invalid_argument(
+      std::string( name ) + " must have 9 elements (row-major 3x3)" );
+  }
+  kv::matrix_3x3d m;
+  for( int i = 0; i < 3; ++i )
+  {
+    for( int j = 0; j < 3; ++j )
+    {
+      m( i, j ) = v[ i * 3 + j ];
+    }
+  }
+  return m;
+}
+
+kv::vector_3d
+to_vector_3d( std::vector< double > const& v, char const* name )
+{
+  if( v.size() != 3 )
+  {
+    throw std::invalid_argument(
+      std::string( name ) + " must have 3 elements" );
+  }
+  return kv::vector_3d( v[ 0 ], v[ 1 ], v[ 2 ] );
+}
+
+kv::vector_2d
+to_vector_2d( std::vector< double > const& v, char const* name )
+{
+  if( v.size() != 2 )
+  {
+    throw std::invalid_argument(
+      std::string( name ) + " must have 2 elements" );
+  }
+  return kv::vector_2d( v[ 0 ], v[ 1 ] );
+}
+
+// ----------------------------------------------------------------------------
+/// Build left/right cameras from a stereo calibration and run the C++ stereo
+/// measurement on a line's two endpoints.
+///
+/// The left camera is the calibration origin (identity pose); the right camera
+/// is positioned by the calibration extrinsics, where a left-frame point X maps
+/// to the right frame as X_right = rotation * X + translation. KWIVER's camera
+/// projects as x = K * R * (X - center), so center = -R^T * translation.
+py::dict
+compute_stereo_measurement_from_calibration(
+  std::vector< double > const& k_left,
+  std::vector< double > const& k_right,
+  std::vector< double > const& rotation,
+  std::vector< double > const& translation,
+  std::vector< double > const& left_head,
+  std::vector< double > const& right_head,
+  std::vector< double > const& left_tail,
+  std::vector< double > const& right_tail )
+{
+  kv::matrix_3x3d const mat_k_left = to_matrix_3x3( k_left, "k_left" );
+  kv::matrix_3x3d const mat_k_right = to_matrix_3x3( k_right, "k_right" );
+  kv::matrix_3x3d const mat_rotation = to_matrix_3x3( rotation, "rotation" );
+  kv::vector_3d const vec_translation = to_vector_3d( translation, "translation" );
+
+  auto const intrinsics_left =
+    std::make_shared< kv::simple_camera_intrinsics >( mat_k_left );
+  auto const intrinsics_right =
+    std::make_shared< kv::simple_camera_intrinsics >( mat_k_right );
+
+  // Concrete matrix/vector temporaries to avoid ambiguous Eigen-expression
+  // overloads of the rotation_d / vector_3d constructors.
+  kv::matrix_3x3d const identity_rotation = kv::matrix_3x3d::Identity();
+  kv::vector_3d const center_right = -mat_rotation.transpose() * vec_translation;
+
+  kv::simple_camera_perspective const left_cam(
+    kv::vector_3d( 0.0, 0.0, 0.0 ),
+    kv::rotation_d( identity_rotation ),
+    intrinsics_left );
+
+  kv::simple_camera_perspective const right_cam(
+    center_right,
+    kv::rotation_d( mat_rotation ),
+    intrinsics_right );
+
+  auto const m = viame::core::compute_stereo_measurement(
+    left_cam, right_cam,
+    to_vector_2d( left_head, "left_head" ),
+    to_vector_2d( right_head, "right_head" ),
+    to_vector_2d( left_tail, "left_tail" ),
+    to_vector_2d( right_tail, "right_tail" ) );
+
+  py::dict result;
+  result[ "length" ] = m.length;
+  result[ "midpoint_x" ] = m.x;
+  result[ "midpoint_y" ] = m.y;
+  result[ "midpoint_z" ] = m.z;
+  result[ "midpoint_range" ] = m.range;
+  result[ "stereo_rms" ] = m.rms;
+  return result;
+}
+
+} // namespace <anonymous>
+
+// ----------------------------------------------------------------------------
+PYBIND11_MODULE( _measurement, m )
+{
+  m.doc() =
+    "VIAME stereo measurement bindings "
+    "(wraps viame::core::compute_stereo_measurement).";
+
+  m.def(
+    "compute_stereo_measurement_from_calibration",
+    &compute_stereo_measurement_from_calibration,
+    py::arg( "k_left" ), py::arg( "k_right" ),
+    py::arg( "rotation" ), py::arg( "translation" ),
+    py::arg( "left_head" ), py::arg( "right_head" ),
+    py::arg( "left_tail" ), py::arg( "right_tail" ),
+    "Compute the full stereo measurement (length, 3D midpoint, range, RMS) "
+    "for a line's two endpoints given the stereo calibration. Returns a dict "
+    "with keys: length, midpoint_x, midpoint_y, midpoint_z, midpoint_range, "
+    "stereo_rms. Values are in calibration units." );
+
+  m.def(
+    "aggregate_lengths",
+    &viame::core::aggregate_lengths,
+    py::arg( "lengths" ),
+    py::arg( "method" ) = "average",
+    py::arg( "iqr_factor" ) = 1.5,
+    "Aggregate per-detection lengths along a track into a single value. "
+    "method: 'average' (mean, default), 'average_iqr' (IQR-trimmed mean) or "
+    "'median'. Returns the aggregated length, or -1 if there are none. Shares "
+    "the implementation used by the pair_stereo_tracks pipeline process." );
+}
+
+#endif // VIAME_MEASUREMENT_PYTHON_BINDINGS

@@ -61,6 +61,11 @@ import numpy as np
 
 import cv2
 
+# Compiled C++ stereo measurement bindings. The stereo length/measurement math
+# lives solely in viame::core::compute_stereo_measurement (no Python duplicate),
+# so this module is a hard dependency.
+from viame.core import _measurement as _cpp_measurement
+
 
 class EpipolarTemplateMatcher:
     """
@@ -301,6 +306,32 @@ class EpipolarTemplateMatcher:
 
         return best_point
 
+    def compute_measurement(self, left_p1, right_p1, left_p2, right_p2):
+        """Full stereo measurement for a line: length, 3D midpoint (x, y, z),
+        range (midpoint distance to the left camera) and RMS reprojection error.
+
+        Computed by viame::core::compute_stereo_measurement via the
+        viame.core._measurement bindings (single source of truth shared with
+        the C++ measurement pipeline). Returns a dict in calibration units, or
+        None if the matcher is not calibrated.
+        """
+        if not self._calibrated:
+            return None
+
+        # Pass plain Python lists (not numpy arrays): the C++ bindings take
+        # flat std::vector<double> to avoid pybind11's numpy<->Eigen caster,
+        # which is incompatible with numpy 2.0.
+        return dict(
+            _cpp_measurement.compute_stereo_measurement_from_calibration(
+                np.asarray(self._K_left, dtype=np.float64).ravel().tolist(),
+                np.asarray(self._K_right, dtype=np.float64).ravel().tolist(),
+                np.asarray(self._R, dtype=np.float64).ravel().tolist(),
+                np.asarray(self._T, dtype=np.float64).ravel().tolist(),
+                [float(left_p1[0]), float(left_p1[1])],
+                [float(right_p1[0]), float(right_p1[1])],
+                [float(left_p2[0]), float(left_p2[1])],
+                [float(right_p2[0]), float(right_p2[1])]))
+
 
 class InteractiveStereoService:
     """
@@ -431,6 +462,35 @@ class InteractiveStereoService:
 
         self._log(f"Loaded calibration: focal_length={self._focal_length}, "
                   f"baseline={self._baseline}, principal=({self._principal_x}, {self._principal_y})")
+
+    def _dense_measurement(self, p1, disp1, p2, disp2):
+        """Full stereo measurement (dense mode) via the C++ implementation.
+
+        Dense mode only has scalar calibration (focal length, baseline,
+        principal point), so an idealized rectified calibration is constructed
+        (fy == fx, R == I, T == [-baseline, 0, 0]) and the right endpoints are
+        corresponded by disparity. The measurement is then computed by the same
+        viame::core::compute_stereo_measurement used in epipolar mode.
+        """
+        if (disp1 <= 0 or disp2 <= 0
+                or self._focal_length <= 0 or self._baseline <= 0):
+            return None
+
+        fx = float(self._focal_length)
+        cx = float(self._principal_x)
+        cy = float(self._principal_y)
+        # Flat row-major lists (see compute_measurement for why lists, not numpy)
+        k = [fx, 0.0, cx, 0.0, fx, cy, 0.0, 0.0, 1.0]
+        rotation = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+        translation = [-float(self._baseline), 0.0, 0.0]
+
+        return dict(
+            _cpp_measurement.compute_stereo_measurement_from_calibration(
+                k, k, rotation, translation,
+                [float(p1[0]), float(p1[1])],
+                [float(p1[0] - disp1), float(p1[1])],
+                [float(p2[0]), float(p2[1])],
+                [float(p2[0] - disp2), float(p2[1])]))
 
     _VIDEO_EXTENSIONS = {'.avi', '.mp4', '.mkv', '.mov', '.wmv', '.flv', '.webm', '.mpg', '.mpeg', '.m4v'}
 
@@ -842,7 +902,7 @@ class InteractiveStereoService:
                         "error": "Template matching failed for one or both line endpoints",
                     }
 
-                return {
+                result = {
                     "success": True,
                     "transferred_line": [
                         [float(right_p1[0]), float(right_p1[1])],
@@ -850,6 +910,16 @@ class InteractiveStereoService:
                     ],
                     "original_line": line,
                 }
+
+                # Triangulate the endpoints for the full stereo measurement
+                # (length, 3D midpoint, range, RMS).
+                measurement = self._epipolar_matcher.compute_measurement(
+                    p1, right_p1, p2, right_p2)
+                if measurement is not None:
+                    result["length"] = measurement["length"]
+                    result["measurement"] = measurement
+
+                return result
 
             H, W = self._current_disparity.shape[:2]
 
@@ -873,6 +943,7 @@ class InteractiveStereoService:
             ]
 
             depth_info = None
+            measurement = None
             if self._focal_length > 0 and self._baseline > 0:
                 depth1 = (self._focal_length * self._baseline) / max(disp1, 1e-6) if disp1 > 0 else None
                 depth2 = (self._focal_length * self._baseline) / max(disp2, 1e-6) if disp2 > 0 else None
@@ -882,13 +953,20 @@ class InteractiveStereoService:
                     "disparity_point1": disp1,
                     "disparity_point2": disp2,
                 }
+                # Triangulate via the rectified pinhole model for the full
+                # stereo measurement (length, 3D midpoint, range).
+                measurement = self._dense_measurement(p1, disp1, p2, disp2)
 
-            return {
+            result = {
                 "success": True,
                 "transferred_line": transferred_line,
                 "original_line": line,
                 "depth_info": depth_info,
             }
+            if measurement is not None:
+                result["length"] = measurement["length"]
+                result["measurement"] = measurement
+            return result
 
     def _do_transfer_points(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Execute points transfer with lock already held or disparity known ready."""
@@ -1021,6 +1099,76 @@ class InteractiveStereoService:
         ).start()
         return None
 
+    def handle_measure_line(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Compute the 3D length of a line given its endpoints on BOTH images.
+
+        Unlike transfer_line, this performs no matching: the caller supplies the
+        already-corresponded left and right line endpoints (e.g. when a stereo
+        annotation that exists on both cameras is edited). The endpoints are
+        triangulated and the Euclidean distance is returned in calibration units.
+
+        Request: { "left_line": [[x,y],[x,y]], "right_line": [[x,y],[x,y]] }
+        """
+        if not self._enabled:
+            raise ValueError("Service not enabled. Call enable first.")
+
+        left_line = request.get("left_line")
+        right_line = request.get("right_line")
+        if (not left_line or len(left_line) != 2
+                or not right_line or len(right_line) != 2):
+            raise ValueError(
+                "left_line and right_line must each be two [x, y] points")
+
+        lp1, lp2 = left_line[0], left_line[1]
+        rp1, rp2 = right_line[0], right_line[1]
+
+        if self._use_epipolar:
+            if not self._epipolar_matcher.calibrated:
+                return {"success": False, "error": "Calibration not loaded"}
+            measurement = self._epipolar_matcher.compute_measurement(
+                lp1, rp1, lp2, rp2)
+        else:
+            # Dense mode: derive disparity from the supplied correspondences
+            measurement = self._dense_measurement(
+                lp1, lp1[0] - rp1[0], lp2, lp2[0] - rp2[0])
+
+        if measurement is None:
+            return {
+                "success": False,
+                "error": "Could not compute length "
+                         "(missing calibration or invalid points)",
+            }
+
+        return {
+            "success": True,
+            "length": measurement["length"],
+            "measurement": measurement,
+        }
+
+    def handle_aggregate_lengths(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Aggregate per-detection lengths along a track into a single value.
+
+        Delegates to viame::core::aggregate_lengths (the same C++ helper used by
+        the pair_stereo_tracks pipeline process). Needs only the list of lengths.
+
+        Request: { "lengths": [..], "method": "average"|"average_iqr"|"median",
+                   "iqr_factor": 1.5 }
+        """
+        lengths = request.get("lengths")
+        if not lengths:
+            return {"success": False, "error": "lengths is required"}
+
+        method = request.get("method", "average")
+        iqr_factor = float(request.get("iqr_factor", 1.5))
+
+        avg = _cpp_measurement.aggregate_lengths(
+            [float(x) for x in lengths], method, iqr_factor)
+
+        if avg is None or avg < 0:
+            return {"success": False, "error": "No valid lengths to aggregate"}
+
+        return {"success": True, "avg_length": float(avg)}
+
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Route request to appropriate handler."""
         command = request.get("command")
@@ -1034,6 +1182,8 @@ class InteractiveStereoService:
             "get_status": self.handle_get_status,
             "transfer_line": self.handle_transfer_line,
             "transfer_points": self.handle_transfer_points,
+            "measure_line": self.handle_measure_line,
+            "aggregate_lengths": self.handle_aggregate_lengths,
         }
 
         handler = handlers.get(command)
