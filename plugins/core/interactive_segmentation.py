@@ -89,6 +89,8 @@ class InteractiveSegmentationService:
         multipolygon_policy: str = "allow",
         max_polygon_points: int = 25,
         adaptive_simplify: bool = False,
+        plugin_paths: Optional[List[str]] = None,
+        device: Optional[str] = None,
     ):
         """
         Initialize the service with configured algorithms.
@@ -101,6 +103,9 @@ class InteractiveSegmentationService:
             multipolygon_policy: How to handle multiple polygons ('allow', 'convex_hull', 'largest')
             max_polygon_points: Maximum number of points in output polygons
             adaptive_simplify: Use adaptive polygon simplification
+            plugin_paths: Extra plugin paths, forwarded to the embedded stereo
+                warper used by stereo_segment.
+            device: Device override, forwarded to the embedded stereo warper.
         """
         self._segment_algo = segment_via_points_algo
         self._text_query_algo = perform_text_query_algo
@@ -111,6 +116,12 @@ class InteractiveSegmentationService:
         self._adaptive_simplify = adaptive_simplify
         self._current_image_path: Optional[str] = None
         self._current_image_container = None
+        # Embedded interactive-stereo warper for stereo_segment (lazy). Reuses
+        # the configured stereo backend (epipolar or dense disparity); does NOT
+        # load SAM, so the segmentation model is never loaded twice.
+        self._plugin_paths = plugin_paths or []
+        self._device = device
+        self._stereo_warper = None
 
     def _log(self, message: str) -> None:
         """Log to stderr (stdout is reserved for JSON responses)."""
@@ -503,6 +514,143 @@ class InteractiveSegmentationService:
             "message": "Image cache cleared",
         }
 
+    def set_stereo_warper(self, warper) -> None:
+        """Inject a shared, already-built InteractiveStereoService.
+
+        Used by the unified interactive service so stereo_segment reuses the
+        same stereo backend instance that interactive-stereo mode loaded,
+        instead of constructing a second one (the stereo model is never loaded
+        twice). When unset, _get_stereo_warper() builds its own on first use.
+        """
+        self._stereo_warper = warper
+
+    def _get_stereo_warper(self, calibration_file: Optional[str] = None):
+        """Lazily build an embedded interactive-stereo warper.
+
+        Reuses interactive_stereo's configured backend -- epipolar template
+        matching (model-free) or dense disparity (ComputeStereoDepthMap, e.g.
+        Foundation-Stereo) -- so stereo_segment supports every warping type via
+        the same vital base classes, not just the model-free path. SAM is never
+        instantiated here, so the (large) segmentation model is not loaded twice.
+        """
+        if self._stereo_warper is None:
+            from viame.core.interactive_stereo import (
+                InteractiveStereoService,
+                load_algorithm_from_config,
+                find_viame_config,
+            )
+            stereo_config = find_viame_config()
+            if not stereo_config:
+                raise ValueError(
+                    "Could not locate the interactive stereo config "
+                    "(interactive_stereo_default.conf); is VIAME_INSTALL set?")
+            stereo_algo, matcher, svc_cfg = load_algorithm_from_config(
+                stereo_config, self._plugin_paths)
+            self._stereo_warper = InteractiveStereoService(
+                compute_stereo_depth_map_algo=stereo_algo,
+                epipolar_matcher=matcher,
+                **svc_cfg,
+            )
+            self._log(
+                "Embedded stereo warper created "
+                f"({'epipolar' if matcher is not None else 'dense'} mode)")
+        if not self._stereo_warper._enabled:
+            self._stereo_warper.handle_enable({"calibration_file": calibration_file})
+        return self._stereo_warper
+
+    def handle_stereo_segment(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Stereo point-segmentation orchestration.
+
+        Given a click and the already-segmented polygon on the source camera,
+        this:
+          1. warps a segmentation seed to the other camera using the configured
+             stereo backend (epipolar or dense); when point sampling is enabled
+             the seed is the coordinate-wise median of N points sampled inside
+             the source polygon and warped across (noise reduction for bad
+             point mappings);
+          2. runs SAM on the other camera with that seed to get its polygon;
+          3. optionally derives a head/tail line for each polygon and the
+             stereo length measurement.
+
+        The source camera is treated as 'left' and the other as 'right' for the
+        warper, matching the existing point/line transfer convention.
+
+        Request: {
+            points, point_labels,            # the source-camera click
+            polygon,                         # source-camera polygon
+            source_image_path, other_image_path,
+            calibration_file, frame_time
+        }
+        """
+        points = request.get("points") or []
+        point_labels = request.get("point_labels") or [1] * len(points)
+        source_polygon = request.get("polygon")
+        source_image = request.get("source_image_path")
+        other_image = request.get("other_image_path")
+        frame_time = request.get("frame_time")
+
+        if not other_image:
+            raise ValueError("other_image_path is required")
+
+        warper = self._get_stereo_warper(request.get("calibration_file"))
+
+        # Make the current stereo pair active (source=left, other=right).
+        set_resp = warper.handle_set_frame({
+            "left_image_path": source_image,
+            "right_image_path": other_image,
+            "frame_time": frame_time,
+        })
+        if not set_resp.get("disparity_ready", False):
+            # Dense mode computes disparity asynchronously; wait for it.
+            warper._disparity_event.wait(timeout=120.0)
+
+        # 1. Warp a segmentation seed to the other camera.
+        warp = warper.handle_transfer_segmentation_point({
+            "points": points,
+            "labels": point_labels,
+            "polygon": source_polygon,
+        })
+        seed_points = warp.get("transferred_points") or []
+        seed_labels = warp.get("point_labels") or [1] * len(seed_points)
+        if not seed_points:
+            return {
+                "success": False,
+                "error": "Failed to warp segmentation seed to the other camera",
+            }
+
+        # 2. Segment the other camera with SAM using the warped seed.
+        seg = self.handle_predict({
+            "image_path": other_image,
+            "points": seed_points,
+            "point_labels": seed_labels,
+            "frame_time": frame_time,
+        })
+        other_polygon = seg.get("polygon")
+
+        result = {
+            "success": True,
+            "polygon": other_polygon,
+            "bounds": seg.get("bounds"),
+            "score": seg.get("score"),
+            "seed_points": seed_points,
+            "seed_labels": seed_labels,
+        }
+
+        # 3. Optional head/tail lines + stereo measurement.
+        if source_polygon and other_polygon:
+            measure = warper.handle_measure_from_polygons({
+                "polygon_left": source_polygon,
+                "polygon_right": other_polygon,
+            })
+            if measure.get("generate_line"):
+                result["generate_line"] = True
+                result["line_source"] = measure.get("line_left")
+                result["line_other"] = measure.get("line_right")
+                if "measurement" in measure:
+                    result["measurement"] = measure["measurement"]
+
+        return result
+
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Route request to appropriate handler."""
         command = request.get("command")
@@ -511,6 +659,7 @@ class InteractiveSegmentationService:
             "predict": self.handle_predict,
             "set_image": self.handle_set_image,
             "clear_image": self.handle_clear_image,
+            "stereo_segment": self.handle_stereo_segment,
         }
 
         # Add text_query handler if algorithm is configured
@@ -891,6 +1040,8 @@ Examples:
             segment_via_points_algo=segment_algo,
             perform_text_query_algo=text_query_algo,
             image_io_algo=image_io_algo,
+            plugin_paths=args.plugin_path,
+            device=args.device,
             **service_config
         )
 

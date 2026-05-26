@@ -342,6 +342,10 @@ class InteractiveStereoService:
         compute_stereo_depth_map_algo=None,
         epipolar_matcher: Optional[EpipolarTemplateMatcher] = None,
         scale: float = 1.0,
+        segmentation_generate_line: bool = False,
+        segmentation_point_sampling: bool = False,
+        segmentation_point_samples: int = 5,
+        send_response=None,
     ):
         """
         Initialize the service with configured algorithms.
@@ -352,11 +356,31 @@ class InteractiveStereoService:
             epipolar_matcher: Configured EpipolarTemplateMatcher instance
                 (for per-point epipolar template matching mode).
             scale: Scale factor for input images (<=1.0). Lower = faster but less accurate.
+            segmentation_generate_line: When True, the stereo point segmentation
+                flow derives a head/tail line from the polygon on each camera and
+                generates the length measurement.
+            segmentation_point_sampling: When True, the other camera's segmentation
+                seed is the median of segmentation_point_samples warped points
+                sampled inside the source polygon (noise reduction).
+            segmentation_point_samples: number of points to sample when
+                segmentation_point_sampling is enabled.
         """
         self._stereo_algo = compute_stereo_depth_map_algo
         self._epipolar_matcher = epipolar_matcher
         self._use_epipolar = epipolar_matcher is not None
         self._scale = scale
+        # Optional writer for outgoing JSON (sync responses, deferred transfers,
+        # and async disparity events). When hosted by the unified interactive
+        # service this routes through its single lock-guarded stdout writer;
+        # otherwise it falls back to printing directly (standalone use).
+        self._send_response_cb = send_response
+
+        self._seg_generate_line = bool(segmentation_generate_line)
+        self._seg_point_sampling = bool(segmentation_point_sampling)
+        self._seg_point_samples = max(1, int(segmentation_point_samples))
+        # Lazily-created add_keypoints_from_mask vital algorithm (polygon -> head/tail)
+        self._keypoint_algo = None
+
         self._enabled = False
 
         # Calibration parameters
@@ -394,8 +418,11 @@ class InteractiveStereoService:
         print(f"[InteractiveStereo] {message}", file=sys.stderr, flush=True)
 
     def _send_response(self, response: Dict[str, Any]) -> None:
-        """Send JSON response to stdout."""
-        print(json.dumps(response), flush=True)
+        """Send JSON response to stdout (or via the injected writer)."""
+        if self._send_response_cb is not None:
+            self._send_response_cb(response)
+        else:
+            print(json.dumps(response), flush=True)
 
     def _send_error(self, request_id: Optional[str], error: str) -> None:
         """Send error response."""
@@ -1165,6 +1192,171 @@ class InteractiveStereoService:
 
         return {"success": True, "avg_length": float(avg)}
 
+    def _get_keypoint_algo(self):
+        """Lazily create the add_keypoints_from_mask vital algorithm. This is the
+        same algorithm (oriented bounding box, default config) the measurement
+        pipelines use to turn polygons/masks into head/tail keypoints."""
+        if self._keypoint_algo is None:
+            from kwiver.vital.algo import RefineDetections
+            self._keypoint_algo = RefineDetections.create("add_keypoints_from_mask")
+        return self._keypoint_algo
+
+    def _polygon_to_keypoints(self, polygon):
+        """Derive head/tail keypoints for a polygon via add_keypoints_from_mask.
+
+        Rasterizes the polygon to a mask, runs the vital algorithm, and returns
+        (head_xy, tail_xy) in image coordinates, or None on failure.
+        """
+        from kwiver.vital.types import (
+            DetectedObject, DetectedObjectSet, BoundingBoxD, ImageContainer, Image)
+
+        pts = np.asarray(polygon, dtype=np.float64)
+        if pts.ndim != 2 or pts.shape[0] < 3:
+            return None
+        x0, y0 = np.floor(pts.min(axis=0)).astype(int)
+        x1, y1 = np.ceil(pts.max(axis=0)).astype(int)
+        w, h = int(x1 - x0), int(y1 - y0)
+        if w <= 0 or h <= 0:
+            return None
+
+        mask = np.zeros((h, w), dtype=np.uint8)
+        cv2.fillPoly(mask, [(pts - [x0, y0]).astype(np.int32)], 255)
+        det = DetectedObject(
+            BoundingBoxD(float(x0), float(y0), float(x1), float(y1)),
+            1.0, None, ImageContainer(Image(mask)))
+        dummy = ImageContainer(Image(np.zeros((h, w, 3), dtype=np.uint8)))
+
+        refined = self._get_keypoint_algo().refine(dummy, DetectedObjectSet([det]))
+        dets = list(refined)
+        if not dets:
+            return None
+        kps = dets[0].keypoints
+        if 'head' not in kps or 'tail' not in kps:
+            return None
+        head = kps['head'].value
+        tail = kps['tail'].value
+        return ([float(head[0]), float(head[1])], [float(tail[0]), float(tail[1])])
+
+    def _warp_one_point(self, p):
+        """Warp a single point from the source to the other camera using whichever
+        stereo backend is configured -- epipolar template matching (model-free) or
+        the dense disparity algorithm (e.g. Foundation-Stereo). Returns [x, y] or
+        None."""
+        if self._use_epipolar:
+            if self._left_gray is None or self._right_gray is None:
+                return None
+            matched = self._epipolar_matcher.match_point(
+                self._left_gray, self._right_gray, p)
+            return [float(matched[0]), float(matched[1])] if matched is not None else None
+        if self._current_disparity is not None:
+            h, w = self._current_disparity.shape[:2]
+            x = max(0, min(w - 1, int(round(p[0]))))
+            y = max(0, min(h - 1, int(round(p[1]))))
+            disp = float(self._current_disparity[y, x])
+            return [float(p[0]) - disp, float(p[1])]
+        return None
+
+    @staticmethod
+    def _sample_points_in_polygon(polygon, n):
+        """Sample up to n random points uniformly inside a polygon (rejection sampling)."""
+        pts = np.asarray(polygon, dtype=np.float64)
+        if pts.ndim != 2 or pts.shape[0] < 3:
+            return []
+        contour = pts.astype(np.float32).reshape(-1, 1, 2)
+        (x0, y0), (x1, y1) = pts.min(axis=0), pts.max(axis=0)
+        samples = []
+        attempts = 0
+        while len(samples) < n and attempts < n * 200:
+            attempts += 1
+            x = float(np.random.uniform(x0, x1))
+            y = float(np.random.uniform(y0, y1))
+            if cv2.pointPolygonTest(contour, (x, y), False) >= 0:
+                samples.append([x, y])
+        return samples
+
+    def handle_transfer_segmentation_point(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Warp segmentation seed point(s) from the source camera to the other.
+
+        When point sampling is enabled, samples N random points
+        inside the source polygon, warps each via the configured stereo backend
+        (epipolar template matching or dense disparity) and returns the
+        coordinate-wise MEDIAN as a single positive seed point (noise reduction for
+        bad point mappings). Otherwise warps the provided click points directly.
+
+        Request: { "points": [[x,y]..], "labels": [..], "polygon": [[x,y]..] }
+        """
+        if not self._enabled:
+            raise ValueError("Service not enabled. Call enable first.")
+
+        points = request.get("points") or []
+        labels = request.get("labels") or [1] * len(points)
+        polygon = request.get("polygon")
+
+        if self._seg_point_sampling and polygon:
+            with self._compute_lock:
+                warped = []
+                for p in self._sample_points_in_polygon(polygon, self._seg_point_samples):
+                    matched = self._warp_one_point(p)
+                    if matched is not None:
+                        warped.append(matched)
+            if warped:
+                median = np.median(np.asarray(warped), axis=0)
+                self._log(f"Segmentation point: median of {len(warped)} warped samples")
+                return {
+                    "success": True,
+                    "transferred_points": [[float(median[0]), float(median[1])]],
+                    "point_labels": [1],
+                    "sampled": len(warped),
+                }
+            self._log("Point sampling found no matches; falling back to direct warp")
+
+        # Direct warp of the supplied click points
+        response = self._do_transfer_points({"points": points})
+        response["point_labels"] = labels
+        return response
+
+    def handle_measure_from_polygons(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate a head/tail line from each camera's segmentation polygon and the
+        corresponding stereo measurement, when segmentation_generate_line is enabled.
+        The lines use the add_keypoints_from_mask oriented-bbox
+        algorithm (the measurement pipeline default); the measurement reuses
+        compute_stereo_measurement. When disabled, reports generate_line=False so the
+        caller does nothing extra.
+
+        Request: { "polygon_left": [[x,y]..], "polygon_right": [[x,y]..] }
+        """
+        if not self._enabled:
+            raise ValueError("Service not enabled. Call enable first.")
+        if not self._seg_generate_line:
+            return {"success": True, "generate_line": False}
+
+        poly_left = request.get("polygon_left")
+        poly_right = request.get("polygon_right")
+        if not poly_left or not poly_right:
+            return {"success": True, "generate_line": False}
+
+        kl = self._polygon_to_keypoints(poly_left)
+        kr = self._polygon_to_keypoints(poly_right)
+        if kl is None or kr is None:
+            return {"success": True, "generate_line": False}
+
+        (left_head, left_tail) = kl
+        (right_head, right_tail) = kr
+        result = {
+            "success": True,
+            "generate_line": True,
+            "line_left": [left_head, left_tail],
+            "line_right": [right_head, right_tail],
+        }
+
+        if self._use_epipolar and self._epipolar_matcher.calibrated:
+            measurement = self._epipolar_matcher.compute_measurement(
+                left_head, right_head, left_tail, right_tail)
+            if measurement is not None:
+                result["measurement"] = measurement
+
+        return result
+
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Route request to appropriate handler."""
         command = request.get("command")
@@ -1293,9 +1485,18 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
         stereo_algo = ComputeStereoDepthMap.create(impl_name)
         stereo_algo.set_configuration(cfg.subblock("compute_stereo_depth_map:" + impl_name))
 
+    def _cfg_bool(key, default):
+        if not cfg.has_value(key):
+            return default
+        return str(cfg.get_value(key)).strip().lower() in ("true", "1", "yes", "on")
+
     # Extract service configuration
     service_config = {
         "scale": float(cfg.get_value("service:scale")) if cfg.has_value("service:scale") else 1.0,
+        "segmentation_generate_line": _cfg_bool("segmentation_generate_line", False),
+        "segmentation_point_sampling": _cfg_bool("segmentation_point_sampling", False),
+        "segmentation_point_samples": int(cfg.get_value("segmentation_point_samples"))
+            if cfg.has_value("segmentation_point_samples") else 5,
     }
 
     return stereo_algo, epipolar_matcher, service_config
