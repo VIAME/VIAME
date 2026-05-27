@@ -61,6 +61,15 @@ STEREO_COMMANDS = {
     "aggregate_lengths",
 }
 
+# Stereo status/lifecycle commands that must NOT construct (load) the stereo
+# backend on their own -- e.g. polling status on single-camera data, or
+# disabling something that was never enabled, must stay cheap no-ops.
+STEREO_IDLE_COMMANDS = {"get_status", "cancel", "disable"}
+
+# Segmentation cache-management commands that must NOT construct (load) the
+# segmentation backend / model before the user's first prediction.
+SEG_IDLE_COMMANDS = {"set_image", "clear_image"}
+
 
 class InteractiveService:
     """Single stdin/stdout loop that lazily hosts both backends."""
@@ -171,7 +180,25 @@ class InteractiveService:
         command = request.get("command")
 
         if command in STEREO_COMMANDS:
+            # Don't spin up the stereo backend just to answer a status/lifecycle
+            # query (keeps single-camera sessions from ever loading stereo).
+            if self._stereo_service is None and command in STEREO_IDLE_COMMANDS:
+                return self._stereo_idle_response(command)
             return self._ensure_stereo().handle_request(request)
+
+        # Build + warm up the segmentation models. Sent when the user enters
+        # point-segmentation mode, so SAM loads on mode entry (not on the first
+        # click). This is the ONLY segmentation command that loads the model
+        # ahead of an actual prediction.
+        if command == "init_segmentation":
+            with suppress_stdout():
+                self._ensure_segmentation().warmup()
+            return {"success": True}
+
+        # Segmentation side. Image cache management must not construct the
+        # segmentation backend / load the model before the first prediction.
+        if self._seg_service is None and command in SEG_IDLE_COMMANDS:
+            return {"success": True}
 
         seg = self._ensure_segmentation()
         if command == "stereo_segment":
@@ -179,17 +206,24 @@ class InteractiveService:
             seg.set_stereo_warper(self._ensure_stereo())
         return seg.handle_request(request)
 
+    @staticmethod
+    def _stereo_idle_response(command: str) -> Dict[str, Any]:
+        if command == "get_status":
+            return {
+                "success": True,
+                "enabled": False,
+                "disparity_ready": False,
+                "has_calibration": False,
+            }
+        return {"success": True}
+
     # -------------------------------------------------------------- loop
     def run(self) -> None:
-        # Load plugin modules once up front -- the slow, feature-agnostic step.
-        # Individual models still load lazily on first relevant request.
-        with suppress_stdout():
-            from kwiver.vital.modules import modules as vital_modules
-            vital_modules.load_known_modules()
-            for path in self._plugin_paths:
-                if os.path.isdir(path):
-                    vital_modules.load_module(path)
-
+        # Nothing heavy at startup: plugin modules and per-feature models are
+        # loaded lazily by the first relevant request (each backend's
+        # load_*_from_config loads the plugins + plugin_paths it needs). This
+        # keeps the process light until a feature is actually used, and lets the
+        # stereo and segmentation methods initialize independently.
         self._log("Service started, waiting for requests...")
 
         for line in sys.stdin:

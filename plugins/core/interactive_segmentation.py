@@ -169,18 +169,23 @@ class InteractiveSegmentationService:
         from kwiver.vital.algo import VideoInput
         from kwiver.vital.types import Timestamp
 
-        # Cache the video reader for repeated access to the same video
-        if not hasattr(self, '_video_reader') or self._video_reader_path != video_path:
-            self._video_reader = VideoInput.create("vidl_ffmpeg")
-            cfg = self._video_reader.get_configuration()
+        # Cache the video reader for repeated access to the same video. Build
+        # the reader locally and only commit it to self AFTER a successful
+        # open(), so a failed open (e.g. a missing/moved file) does not leave a
+        # half-initialized reader that breaks every subsequent load.
+        if (getattr(self, '_video_reader', None) is None
+                or getattr(self, '_video_reader_path', None) != video_path):
+            reader = VideoInput.create("vidl_ffmpeg")
+            cfg = reader.get_configuration()
             cfg.set_value("time_source", "start_at_0")
-            self._video_reader.set_configuration(cfg)
-            self._video_reader.open(video_path)
-            self._video_reader_path = video_path
+            reader.set_configuration(cfg)
+            reader.open(video_path)
             # Determine video FPS by reading the first frame
             ts = Timestamp()
-            self._video_reader.next_frame(ts, 0)
-            self._video_fps = self._video_reader.frame_rate()
+            reader.next_frame(ts, 0)
+            self._video_reader = reader
+            self._video_reader_path = video_path
+            self._video_fps = reader.frame_rate()
 
         # Convert time to frame number using the video's native FPS.
         # The ffmpeg reader uses 1-based frame numbering (frame 0 is
@@ -513,6 +518,21 @@ class InteractiveSegmentationService:
             "success": True,
             "message": "Image cache cleared",
         }
+
+    def warmup(self) -> None:
+        """Eagerly load the underlying models so the first prediction is fast.
+
+        Called when the user enters point-segmentation mode (mode entry), so SAM
+        (and the optional text-query model) load then rather than on the first
+        click. Each model otherwise defers loading to its first use. The caller
+        should suppress stdout, since model init may print. Failures are
+        non-fatal (segmentation can still fall back / load on first use)."""
+        for algo in (self._segment_algo, self._text_query_algo):
+            if algo is not None and hasattr(algo, "_ensure_model"):
+                try:
+                    algo._ensure_model()
+                except Exception as e:
+                    self._log(f"Warning: model warmup failed: {e}")
 
     def set_stereo_warper(self, warper) -> None:
         """Inject a shared, already-built InteractiveStereoService.
