@@ -62,6 +62,30 @@ if( VIAME_BUILD_FORCE_REBUILD )
   RemoveProjectCMakeStamp( vivia )
 endif()
 
+# vivia's find_package(geographiclib) loads geographiclib-targets.cmake, which
+# declares imported targets referencing install/bin/<tool>.exe (CartConvert,
+# ConicProj, GeodSolve, etc.). Fletch builds these, but on clean Windows
+# builds only some end up in install/bin (cause not yet pinned down). Ensure
+# all 11 tool executables are present immediately before vivia configures.
+if( WIN32 )
+  set( _GEO_TOOLS CartConvert ConicProj GeodesicProj GeoConvert GeodSolve
+                  GeoidEval Gravity MagneticField Planimeter RhumbSolve
+                  TransverseMercatorProj )
+  set( _GEO_COPY_CMDS )
+  foreach( _tool ${_GEO_TOOLS} )
+    list( APPEND _GEO_COPY_CMDS
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${VIAME_BUILD_FLETCH_DIR}/build/src/GeographicLib-build/bin/Release/${_tool}.exe"
+        "${VIAME_BUILD_INSTALL_PREFIX}/bin/${_tool}.exe" )
+  endforeach()
+  ExternalProject_Add_Step( vivia ensure_geographiclib_tools
+    ${_GEO_COPY_CMDS}
+    DEPENDEES patch
+    DEPENDERS configure
+    COMMENT "VIAME: ensuring GeographicLib tool executables are in install/bin"
+  )
+endif()
+
 set(VIAME_ARGS_vivia
   -Dvivia_DIR:PATH=${VIAME_BUILD_PREFIX}/src/vivia-build
   )
