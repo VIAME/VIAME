@@ -202,11 +202,17 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
 
   # Prepend the node bin dir to PATH for the build commands so npm uses the correct node
   # On Windows, skip PATH modification as CMake interprets semicolons as list separators
-  # and Node.js is typically already in the system PATH
+  # and Node.js is typically already in the system PATH.
+  # NPM_CONFIG_LEGACY_PEER_DEPS makes npm tolerate missing peer dependencies (npm 9+
+  # otherwise exits non-zero with ELSPROBLEMS, which propagates out of electron-builder's
+  # internal node module collector and fails dive's MSBuild target).
   if( NODE_BIN_DIR AND NOT WIN32 )
-    set( DIVE_BUILD_ENV ${CMAKE_COMMAND} -E env "PATH=${NODE_BIN_DIR}:$ENV{PATH}" )
+    set( DIVE_BUILD_ENV ${CMAKE_COMMAND} -E env
+      "PATH=${NODE_BIN_DIR}:$ENV{PATH}"
+      "NPM_CONFIG_LEGACY_PEER_DEPS=true" )
   else()
-    set( DIVE_BUILD_ENV "" )
+    set( DIVE_BUILD_ENV ${CMAKE_COMMAND} -E env
+      "NPM_CONFIG_LEGACY_PEER_DEPS=true" )
   endif()
 
   # `npm ci` is faster and stricter than `npm install` (uses package-lock.json
