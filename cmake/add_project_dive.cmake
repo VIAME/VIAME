@@ -223,13 +223,32 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
     set( DIVE_INSTALL_CMD ${DIVE_BUILD_ENV} ${NPM_EXECUTABLE} install )
   endif()
 
+  # The desktop build artifact whose presence indicates a successful build.
+  if( WIN32 )
+    set( DIVE_BUILD_ARTIFACT "${DIVE_ELECTRON_OUTPUT_DIR}/DIVE-Desktop.exe" )
+  else()
+    set( DIVE_BUILD_ARTIFACT "${DIVE_ELECTRON_OUTPUT_DIR}/DIVE-Desktop" )
+  endif()
+
+  # Wrap `npm run build:electron` so a non-zero exit is ignored when the desktop
+  # artifact is actually produced. electron-builder's internal node module
+  # collector runs `npm ls`, which on npm 9+ exits non-zero (ELSPROBLEMS) for
+  # missing peer dependencies (vtk.js/worker-loader peers) even though the
+  # build itself succeeds and signs/zips the desktop installer. Without this
+  # wrapper, dive's MSBuild target exits -1 and viame is skipped.
+  set( DIVE_BUILD_INNER_CMD ${DIVE_BUILD_ENV} ${NPM_EXECUTABLE} run build:electron )
+  string( REPLACE ";" "----" DIVE_BUILD_INNER_CMD_STR "${DIVE_BUILD_INNER_CMD}" )
+
   ExternalProject_Add( dive
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${DIVE_CLIENT_DIR}
     BUILD_IN_SOURCE 1
     USES_TERMINAL_BUILD 1
     CONFIGURE_COMMAND ${DIVE_INSTALL_CMD}
-    BUILD_COMMAND ${DIVE_BUILD_ENV} ${NPM_EXECUTABLE} run build:electron
+    BUILD_COMMAND ${CMAKE_COMMAND}
+      -DDIVE_BUILD_CMD:STRING=${DIVE_BUILD_INNER_CMD_STR}
+      -DDIVE_ARTIFACT:PATH=${DIVE_BUILD_ARTIFACT}
+      -P ${CMAKE_CURRENT_LIST_DIR}/dive_build_wrapper.cmake
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${DIVE_ELECTRON_OUTPUT_DIR}
       ${VIAME_DIVE_INSTALL_DIR}
