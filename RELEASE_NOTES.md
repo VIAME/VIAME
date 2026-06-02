@@ -1,4 +1,4 @@
-v0.22.5 - 5/26/2026
+v0.22.5 - 6/05/2026
 ===================
 
 
@@ -6,6 +6,9 @@ v0.22.5 - 5/26/2026
 
 
 -Fix issue with video outputs from transcode pipelines
+
+
+-Fix issue in multi-cam aerial suppression/tracking pipelines due to numpy upgrade
 
 
 
