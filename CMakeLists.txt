@@ -167,7 +167,7 @@ endif()
 # Additional libraries built on pytorch and versioning
 ##
 if( VIAME_ENABLE_PYTORCH )
-  set( VIAME_PYTORCH_VERSION 2.10.0 CACHE STRING "PyTorch version to use" )
+  set( VIAME_PYTORCH_VERSION 2.12.0 CACHE STRING "PyTorch version to use" )
   set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.13.1" "2.12.0" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
@@ -757,13 +757,13 @@ if( VIAME_ENABLE_PYTORCH )
     endif()
   endif()
   if( VIAME_ENABLE_CUDA )
-    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.10.0" AND
+    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.12.0" AND
         NOT VIAME_BUILD_PYTORCH_FROM_SOURCE AND
         NOT ( CUDA_VERSION VERSION_EQUAL "12.6" OR
-              CUDA_VERSION VERSION_EQUAL "12.8" OR
-              CUDA_VERSION VERSION_EQUAL "13.0" ) )
+              CUDA_VERSION VERSION_EQUAL "13.0" OR
+              CUDA_VERSION VERSION_EQUAL "13.2" ) )
       message( FATAL_ERROR "CUDA 12.6, 12.8 or 13.0 is required for VIAME_ENABLE_PYTORCH "
-        "with VIAME_BUILD_PYTORCH_FROM_SOURCE off and using PyTorch 2.10.0. Either modify "
+        "with VIAME_BUILD_PYTORCH_FROM_SOURCE off and using PyTorch 2.12.0. Either modify "
         "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
     elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.13.1" AND
         NOT VIAME_BUILD_PYTORCH_FROM_SOURCE AND
