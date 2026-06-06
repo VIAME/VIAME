@@ -1,4 +1,4 @@
-# dive_build_wrapper.cmake
+# custom_build_dive.cmake
 #
 # Runs DIVE's electron-builder build command and treats it as successful if the
 # expected output artifact is produced, regardless of the npm exit code.
@@ -15,7 +15,7 @@
 cmake_minimum_required( VERSION 3.16 )
 
 if( NOT DIVE_BUILD_CMD OR NOT DIVE_ARTIFACT )
-  message( FATAL_ERROR "dive_build_wrapper.cmake requires DIVE_BUILD_CMD and DIVE_ARTIFACT" )
+  message( FATAL_ERROR "custom_build_dive.cmake requires DIVE_BUILD_CMD and DIVE_ARTIFACT" )
 endif()
 
 string( REPLACE "----" ";" _CMD "${DIVE_BUILD_CMD}" )
