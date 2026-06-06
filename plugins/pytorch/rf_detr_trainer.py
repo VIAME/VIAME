@@ -326,7 +326,6 @@ class RFDETRTrainer(TrainDetector):
 
         # Parse timeout (in seconds, or "default" for no limit)
         import time
-        from collections import defaultdict
         timeout_str = str(self._timeout).lower()
         if timeout_str == "default" or timeout_str == "none" or timeout_str == "":
             timeout_seconds = None
@@ -335,16 +334,6 @@ class RFDETRTrainer(TrainDetector):
 
         output_dir = ub.Path(self._train_directory) / "rf_detr_output"
         output_dir.ensuredir()
-
-        # Add timeout callback to model's callbacks if timeout is specified
-        if timeout_seconds is not None:
-            train_start_time = time.time()
-            def timeout_callback(log_stats):
-                elapsed = time.time() - train_start_time
-                if elapsed >= timeout_seconds:
-                    print(f"[RFDETRTrainer] Timeout reached ({elapsed:.0f}s >= {timeout_seconds:.0f}s)")
-                    model.model.request_early_stop()
-            model.callbacks["on_fit_epoch_end"].append(timeout_callback)
 
         # On Windows, DataLoader worker subprocesses fail because
         # multiprocessing spawn tries to re-invoke viame.exe as Python.
@@ -371,13 +360,56 @@ class RFDETRTrainer(TrainDetector):
         if sys.platform == "win32":
             train_kwargs["num_workers"] = 0
 
-        # Signal handler for graceful interruption
-        with TrainingInterruptHandler("RFDETRTrainer", on_interrupt=model.model.request_early_stop) as handler:
+        # RF-DETR (>=1.7.0) trains via PyTorch Lightning; graceful stop now goes
+        # through Trainer.should_stop. Inject a callback that flips it on timeout
+        # or interrupt, wrapping build_trainer since train() exposes no other seam.
+        import pytorch_lightning as pl
+        import rfdetr.training as rfdetr_training
+
+        class _StopControlCallback(pl.Callback):
+            def __init__(self, timeout_seconds=None):
+                self._timeout_seconds = timeout_seconds
+                self._start_time = None
+                self._stop_requested = False
+
+            def request_stop(self):
+                self._stop_requested = True
+
+            def on_train_start(self, trainer, *args, **kwargs):
+                self._start_time = time.monotonic()
+
+            def _maybe_stop(self, trainer):
+                if self._stop_requested:
+                    trainer.should_stop = True
+                    return
+                if (self._timeout_seconds is not None and self._start_time is not None
+                        and time.monotonic() - self._start_time >= self._timeout_seconds):
+                    print(f"[RFDETRTrainer] Timeout reached ({self._timeout_seconds:.0f}s); stopping")
+                    trainer.should_stop = True
+
+            def on_train_batch_end(self, trainer, *args, **kwargs):
+                self._maybe_stop(trainer)
+
+            def on_train_epoch_end(self, trainer, *args, **kwargs):
+                self._maybe_stop(trainer)
+
+        stop_control = _StopControlCallback(timeout_seconds)
+        original_build_trainer = rfdetr_training.build_trainer
+
+        def _build_trainer_with_stop_control(*args, **kwargs):
+            trainer = original_build_trainer(*args, **kwargs)
+            trainer.callbacks.append(stop_control)
+            return trainer
+
+        rfdetr_training.build_trainer = _build_trainer_with_stop_control
+
+        with TrainingInterruptHandler("RFDETRTrainer", on_interrupt=stop_control.request_stop) as handler:
             try:
-                # Train the model
                 model.train(**train_kwargs)
             except KeyboardInterrupt:
                 print("[RFDETRTrainer] Training interrupted by user")
+            finally:
+                rfdetr_training.build_trainer = original_build_trainer
 
             self._interrupted = handler.interrupted
 

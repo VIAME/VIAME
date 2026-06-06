@@ -136,7 +136,7 @@ class RFDETRDetector(ImageObjectDetector):
 
         # Set up class names
         if self._classes is None:
-            self._classes = list(self._model.class_names.values())
+            self._classes = list(self._model.class_names)
 
         # Optimize for inference if requested
         if optimize:
