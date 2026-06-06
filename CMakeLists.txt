@@ -168,10 +168,10 @@ endif()
 ##
 if( VIAME_ENABLE_PYTORCH )
   set( VIAME_PYTORCH_VERSION 2.10.0 CACHE STRING "PyTorch version to use" )
-  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.13.1" "2.10.0" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.13.1" "2.12.0" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
-  set( PYTORCH_INTERNAL_VERSION 2.10.0 CACHE INTERNAL "Internal pytorch version" )
+  set( PYTORCH_INTERNAL_VERSION 2.12.0 CACHE INTERNAL "Internal pytorch version" )
   set( PYTORCH_MIN_GCC          9.3   CACHE INTERNAL "Minimum GCC version for torch" )
   set( PYTORCH_MIN_PYTHON_WHL   3.10  CACHE INTERNAL "Minimum python for torch whl" )
   set( PYTORCH_MIN_PYTHON_BLD   3.10  CACHE INTERNAL "Minimum python for torch build" )
