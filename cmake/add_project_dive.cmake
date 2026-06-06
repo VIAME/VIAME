@@ -227,7 +227,7 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
   if( WIN32 )
     set( DIVE_BUILD_ARTIFACT "${DIVE_ELECTRON_OUTPUT_DIR}/DIVE-Desktop.exe" )
   else()
-    set( DIVE_BUILD_ARTIFACT "${DIVE_ELECTRON_OUTPUT_DIR}/DIVE-Desktop" )
+    set( DIVE_BUILD_ARTIFACT "${DIVE_ELECTRON_OUTPUT_DIR}/dive-desktop" )
   endif()
 
   # Wrap `npm run build:electron` so a non-zero exit is ignored when the desktop
