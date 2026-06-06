@@ -537,13 +537,28 @@ if( VIAME_ENABLE_CUDNN )
     set( DEFAULT_SYS_CUDNN_DIR /usr )
   endif()
 
+  # The active CUDA toolkit (CUDA_TOOLKIT_ROOT_DIR) may not be the one shipping
+  # cudnn (e.g. /usr/local/cuda -> cuda-12.9 with no cudnn, while cudnn lives in
+  # cuda-12.6). Glob the sibling versioned CUDA install dirs so cudnn is still
+  # auto-detected in that case.
+  set( CUDNN_VERSIONED_HINTS )
+  if( NOT WIN32 )
+    get_filename_component( CUDA_PARENT_DIR "${CUDA_TOOLKIT_ROOT_DIR}" DIRECTORY )
+    file( GLOB CUDNN_VERSIONED_HINTS
+      "${CUDA_PARENT_DIR}/cuda-*/targets/x86_64-linux"
+      "${CUDA_PARENT_DIR}/cuda-*/targets/aarch64-linux" )
+  endif()
+
   find_library( CUDNN_LIBRARY REQUIRED
     NAMES cudnn cudnn64 libcudnn.so libcudnn.so.9 libcudnn.so.8
     HINTS ${CUDNN_ROOT_DIR}
+          ${CUDNN_ROOT_DIR}/..
           ${CUDNN_ROOT_DIR}/lib/x64
           ${CUDA_TOOLKIT_ROOT_DIR}
           ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
+          ${CUDA_TOOLKIT_ROOT_DIR}/targets/x86_64-linux
           ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux
+          ${CUDNN_VERSIONED_HINTS}
           ${DEFAULT_SYS_CUDNN_DIR}
           ${DEFAULT_SYS_CUDNN_DIR}/lib/x86_64-linux-gnu
     PATH_SUFFIXES lib lib64 )
