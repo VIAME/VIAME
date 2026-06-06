@@ -53,6 +53,10 @@ class RFDETRTrainerConfig(scfg.DataConfig):
 
     # Data augmentation
     multi_scale = scfg.Value(True, help='Use multi-scale training')
+    augmentation = scfg.Value('default', help=(
+        'Augmentation preset: "default" (RF-DETR built-in), "geometric" '
+        '(flips only, no photometric ops — safe for motion-infused channels), '
+        '"none", or a named preset (conservative, aggressive, aerial, industrial)'))
 
     # Checkpointing
     checkpoint_interval = scfg.Value(10, help='Save checkpoint every N epochs')
@@ -129,6 +133,34 @@ class RFDETRTrainer(TrainDetector):
         self._train_detections = list(train_dets)
         self._test_image_files = list(test_files)
         self._test_detections = list(test_dets)
+
+    def _resolve_aug_config(self, augmentation):
+        """
+        Map the 'augmentation' config value to an RF-DETR aug_config dict.
+
+        Returns None to defer to RF-DETR's built-in default preset. "geometric"
+        is restricted to flips so no photometric/color augmentation runs, which
+        would otherwise corrupt motion-infused channels.
+        """
+        key = str(augmentation).strip().lower()
+        if key in ('', 'default'):
+            return None
+        if key == 'none':
+            return {}
+        if key == 'geometric':
+            return {"HorizontalFlip": {"p": 0.5}, "VerticalFlip": {"p": 0.5}}
+
+        presets = {
+            'conservative': 'AUG_CONSERVATIVE',
+            'aggressive': 'AUG_AGGRESSIVE',
+            'aerial': 'AUG_AERIAL',
+            'industrial': 'AUG_INDUSTRIAL',
+        }
+        if key in presets:
+            from rfdetr.datasets import aug_config as rfdetr_aug
+            return dict(getattr(rfdetr_aug, presets[key]))
+
+        raise ValueError(f"Unknown augmentation preset: {augmentation}")
 
     def _prepare_roboflow_dataset(self):
         """
@@ -323,6 +355,7 @@ class RFDETRTrainer(TrainDetector):
         multi_scale = parse_bool(self._multi_scale)
         checkpoint_interval = int(self._checkpoint_interval)
         use_tensorboard = parse_bool(self._use_tensorboard)
+        aug_config = self._resolve_aug_config(self._augmentation)
 
         # Parse timeout (in seconds, or "default" for no limit)
         import time
@@ -357,6 +390,9 @@ class RFDETRTrainer(TrainDetector):
             tensorboard=use_tensorboard,
             wandb=False,
         )
+        # Omit aug_config when None so RF-DETR applies its own default preset.
+        if aug_config is not None:
+            train_kwargs["aug_config"] = aug_config
         if sys.platform == "win32":
             train_kwargs["num_workers"] = 0
 
