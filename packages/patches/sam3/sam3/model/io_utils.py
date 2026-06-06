@@ -59,9 +59,9 @@ def load_resource_as_video_frames(
             img = torch.from_numpy(img_np).permute(2, 0, 1)
             # float16 precision should be sufficient for image tensor storage
             img = img.to(dtype=torch.float16)
-            # normalize by mean and std
-            img -= img_mean
-            img /= img_std
+            # normalize by mean and std (avoid in-place ops which
+            # are broken on large tensors in some PyTorch builds)
+            img = (img - img_mean) / img_std
             images.append(img)
         images = torch.stack(images)
         if not offload_video_to_cpu:
@@ -109,9 +109,9 @@ def load_image_as_single_frame_video(
         images = images.cuda()
         img_mean = img_mean.cuda()
         img_std = img_std.cuda()
-    # normalize by mean and std
-    images -= img_mean
-    images /= img_std
+    # normalize by mean and std (avoid in-place ops which
+    # are broken on large tensors in some PyTorch builds)
+    images = (images - img_mean) / img_std
     return images, image_height, image_width
 
 
@@ -229,9 +229,9 @@ def load_video_frames_from_image_folder(
         images = images.cuda()
         img_mean = img_mean.cuda()
         img_std = img_std.cuda()
-    # normalize by mean and std
-    images -= img_mean
-    images /= img_std
+    # normalize by mean and std (avoid in-place ops which
+    # are broken on large tensors in some PyTorch builds)
+    images = (images - img_mean) / img_std
     return images, video_height, video_width
 
 
@@ -341,9 +341,9 @@ def load_video_frames_from_video_file_using_cv2(
         video_tensor = video_tensor.cuda()
         img_mean = img_mean.cuda()
         img_std = img_std.cuda()
-    # normalize by mean and std
-    video_tensor -= img_mean
-    video_tensor /= img_std
+    # normalize by mean and std (avoid in-place ops which
+    # are broken on large tensors in some PyTorch builds)
+    video_tensor = (video_tensor - img_mean) / img_std
     return video_tensor, original_height, original_width
 
 
@@ -424,9 +424,9 @@ class AsyncImageFrameLoader:
         self.video_width = video_width
         # float16 precision should be sufficient for image tensor storage
         img = img.to(dtype=torch.float16)
-        # normalize by mean and std
-        img -= self.img_mean
-        img /= self.img_std
+        # normalize by mean and std (avoid in-place ops which
+        # are broken on large tensors in some PyTorch builds)
+        img = (img - self.img_mean) / self.img_std
         if not self.offload_video_to_cpu:
             img = img.cuda()
         self.images[index] = img
@@ -701,9 +701,9 @@ class AsyncVideoFileLoaderWithTorchCodec:
         )[0]
         # float16 precision should be sufficient for image tensor storage
         frame_resized = frame_resized.half()  # uint8 -> float16
-        frame_resized /= 255
-        frame_resized -= self.img_mean
-        frame_resized /= self.img_std
+        # normalize (avoid in-place ops which are broken on large
+        # tensors in some PyTorch builds)
+        frame_resized = (frame_resized / 255 - self.img_mean) / self.img_std
         if self.offload_video_to_cpu:
             frame_resized = frame_resized.cpu()
         elif frame_resized.device != self.out_device:
