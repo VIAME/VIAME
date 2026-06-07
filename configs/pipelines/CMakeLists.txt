@@ -193,6 +193,7 @@ set( CORE_PIPELINE_FILES
   train_aug_add_double_motion.pipe
   train_aug_add_motion.pipe
   train_aug_add_motion_and_color_freq.pipe
+  train_aug_add_optical_flow.pipe
   train_aug_enhance_and_add_motion.pipe
   train_aug_hue_shifting_only.pipe
   train_aug_intensity_color_freq_motion.pipe
@@ -328,7 +329,8 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
     train_detector_rf_detr_n_384.conf
     train_detector_rf_detr_b_560.conf
     train_detector_rf_detr_l_728.conf
-    train_detector_rf_detr_l_728_mot_mim.conf )
+    train_detector_rf_detr_l_728_mot_mim.conf
+    train_detector_rf_detr_l_728_mot_opt.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-LITDET )

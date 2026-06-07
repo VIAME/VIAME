@@ -370,6 +370,11 @@ if( VIAME_ENABLE_PYTHON )
     normalize_image_percentile )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/optical_flow.py
+    core
+    optical_flow )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_tracker.py
     core
     ocsort_tracker )

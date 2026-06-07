@@ -23,6 +23,9 @@ class RFDETRDetectorConfig(scfg.DataConfig):
     """
     weight = scfg.Value(None, help='Path to a trained RF-DETR checkpoint (.pt file)')
     model_size = scfg.Value('base', help='Model size: nano, small, medium, base, or large')
+    num_channels = scfg.Value(3, help=(
+        'Number of input channels. 3 = RGB; 4 = RGB + a motion/flow channel. '
+        'Recovered from the checkpoint when present, otherwise this value.'))
     device = scfg.Value('auto', help='Device to run on: auto, cpu, cuda, or cuda:N')
     threshold = scfg.Value(0.5, help='Detection confidence threshold')
     optimize_inference = scfg.Value(True, help='Whether to optimize model for inference')
@@ -44,6 +47,7 @@ class RFDETRDetector(ImageObjectDetector):
         self._kwiver_config = RFDETRDetectorConfig()
         self._model = None
         self._classes = None
+        self._num_channels = 3
 
     def get_configuration(self):
         cfg = super(ImageObjectDetector, self).get_configuration()
@@ -68,6 +72,7 @@ class RFDETRDetector(ImageObjectDetector):
         model_size = self._kwiver_config['model_size'].lower()
         device = resolve_device_str(self._kwiver_config['device'])
         optimize = parse_bool(self._kwiver_config['optimize_inference'])
+        num_channels = int(self._kwiver_config['num_channels'])
 
         ensure_rfdetr_compatibility()
 
@@ -112,9 +117,14 @@ class RFDETRDetector(ImageObjectDetector):
             if 'args' in checkpoint and 'class_names' in checkpoint['args']:
                 self._classes = checkpoint['args']['class_names']
 
+            # Prefer the channel count embedded at training time.
+            if 'args' in checkpoint and 'num_channels' in checkpoint['args']:
+                num_channels = int(checkpoint['args']['num_channels'])
+
             self._model = RFDETRModel(
                 pretrain_weights=None,
                 num_classes=ckpt_num_classes,
+                num_channels=num_channels,
                 device=device
             )
 
@@ -132,7 +142,9 @@ class RFDETRDetector(ImageObjectDetector):
                 self._model.model.class_names = self._classes
         else:
             # Use pretrained weights
-            self._model = RFDETRModel(device=device)
+            self._model = RFDETRModel(num_channels=num_channels, device=device)
+
+        self._num_channels = num_channels
 
         # Set up class names
         if self._classes is None:
@@ -157,12 +169,17 @@ class RFDETRDetector(ImageObjectDetector):
         # Convert kwiver image to numpy array
         full_rgb = image_data.asarray()
 
-        # Convert to PIL Image (RF-DETR expects PIL or numpy)
-        pil_img = Image.fromarray(full_rgb)
+        # PIL cannot represent >4 channels (and only RGB/RGBA at all), so pass
+        # multi-channel imagery (e.g. RGB + flow) to predict as a numpy array;
+        # predict() converts it to a (C, H, W) tensor itself.
+        if self._num_channels > 3 or full_rgb.ndim != 3 or full_rgb.shape[2] != 3:
+            model_input = full_rgb
+        else:
+            model_input = Image.fromarray(full_rgb)
 
         # Run inference
         with torch.no_grad():
-            detections = self._model.predict(pil_img, threshold=threshold)
+            detections = self._model.predict(model_input, threshold=threshold)
 
         # Convert supervision Detections to kwiver format
         output = supervision_to_kwiver_detections(detections, self._classes)

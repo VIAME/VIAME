@@ -32,6 +32,9 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     # RF-DETR model configuration
     model_size = scfg.Value('base', help='Model size: nano, small, medium, base, or large')
     device = scfg.Value('auto', help='Device to train on: auto, cpu, cuda, or cuda:N')
+    num_channels = scfg.Value(3, help=(
+        'Number of input channels. 3 = RGB; 4 = RGB + a motion/flow channel '
+        '(RGBA). RF-DETR adapts the pretrained input conv to match.'))
 
     # Training hyperparameters
     max_epochs = scfg.Value(100, help='Maximum number of epochs to train for')
@@ -317,7 +320,10 @@ class RFDETRTrainer(TrainDetector):
         else:
             raise ValueError(f"Unknown model size: {model_size}")
 
-        print(f"[RFDETRTrainer] Using RF-DETR {model_size} model on {device}")
+        num_channels = int(self._num_channels)
+
+        print(f"[RFDETRTrainer] Using RF-DETR {model_size} model on {device} "
+              f"with {num_channels} input channels")
 
         # Create model
         if len(self._seed_model) > 0 and ub.Path(self._seed_model).exists():
@@ -331,13 +337,14 @@ class RFDETRTrainer(TrainDetector):
             model = RFDETRModel(
                 pretrain_weights=None,
                 num_classes=num_classes,
+                num_channels=num_channels,
                 device=device
             )
             if 'model' in checkpoint:
                 model.model.model.load_state_dict(checkpoint['model'])
         else:
             # Use pretrained weights
-            model = RFDETRModel(device=device)
+            model = RFDETRModel(num_channels=num_channels, device=device)
 
         # Parse training parameters
         epochs = int(self._max_epochs)
@@ -502,6 +509,7 @@ class RFDETRTrainer(TrainDetector):
                 args['num_classes'] = len(self._class_names)
             args['class_names'] = self._class_names
             args['model_size'] = self._model_size
+            args['num_channels'] = int(self._num_channels)
             checkpoint['args'] = args
             torch.save(checkpoint, final_ckpt)
             print(f"[RFDETRTrainer] Embedded {len(self._class_names)} class names into checkpoint")
