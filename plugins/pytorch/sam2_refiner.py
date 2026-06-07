@@ -95,6 +95,11 @@ class Sam2Refiner(RefineDetections):
             'overwrite_existing': 'True',
             'hole_policy': 'allow',  # can be allow or discard
             'multipolygon_policy': 'allow',  # can be allow, convex_hull, or largest
+            # On a box-prompt mask that is empty/degenerate, retry that
+            # detection with a foreground point prompt at the box center.
+            'second_pass_on_failure': 'True',
+            'second_pass_min_pixels': '10',
+            'second_pass_window': '1024',
         }
 
         # netharn variables
@@ -130,6 +135,12 @@ class Sam2Refiner(RefineDetections):
         )
         self.predictor = SAM2ImagePredictor(model)
         self.overwrite_existing = strtobool(self._kwiver_config['overwrite_existing'])
+        self.second_pass_on_failure = strtobool(
+            self._kwiver_config['second_pass_on_failure'])
+        self.second_pass_min_pixels = int(
+            self._kwiver_config['second_pass_min_pixels'])
+        self.second_pass_window = int(
+            self._kwiver_config['second_pass_window'])
         return True
 
     def check_configuration(self, cfg):
@@ -173,20 +184,75 @@ class Sam2Refiner(RefineDetections):
         kw_dets: kwimage.Detections = vital_detections_to_kwimage(detections)
 
         # TODO: can use more than boxes as prompts
-        prompts = {}
-        prompts['box'] = kw_dets.boxes.toformat('xyxy').data
-        prompts['multimask_output'] = False
+        det_list = list(detections)
+        boxes_xyxy = np.asarray(kw_dets.boxes.toformat('xyxy').data)
 
         with torch.inference_mode(), autocast_context:
             predictor.set_image(imdata)
-            masks, scores, lowres_masks = predictor.predict(**prompts)
+            masks, scores, lowres_masks = predictor.predict(
+                box=boxes_xyxy, multimask_output=False)
             masks = masks.astype(np.uint8)
 
-        FIX_SQUEEZE_ISSUE = True
-        if FIX_SQUEEZE_ISSUE:
-            # Dont squeeze singleton dimensions, it breaks loop logic :'(
-            if len(masks.shape) == 3:
-                masks = masks[None, :, :, :]
+        # Dont squeeze singleton dimensions, it breaks loop logic
+        if len(masks.shape) == 3:
+            masks = masks[None, :, :, :]
+
+        # Fallback (optional, configurable): SAM2 sometimes returns an empty or
+        # degenerate (a few pixels) mask for a box prompt. For those detections
+        # only, retry with a foreground point prompt at the box center (combined
+        # with the box) to recover a usable mask.
+        import cv2
+
+        def _box_mask_failed(binmask, vital_det):
+            # A box-prompt result "failed" if its mask within the box is empty,
+            # too small, or so thin it cannot form a (>=3 point) polygon.
+            box = vital_to_kwimage_box(vital_det.bounding_box)
+            sl = box.quantize().to_slice()
+            sub = delayed_image.DelayedIdentity(binmask).crop(
+                sl, clip=False, wrap=False).finalize()
+            sub = np.ascontiguousarray(
+                (np.asarray(sub).reshape(sub.shape[:2]) > 0).astype(np.uint8))
+            if int(sub.sum()) < self.second_pass_min_pixels:
+                return True
+            cnts, _ = cv2.findContours(
+                sub, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            if not cnts:
+                return True
+            return len(max(cnts, key=cv2.contourArea)) < 3
+
+        retry = []
+        if self.second_pass_on_failure:
+            retry = [i for i, vd in enumerate(det_list)
+                     if _box_mask_failed(masks[i, 0], vd)]
+        if retry:
+            # Re-segment each failed box on a smaller, full-resolution window
+            # centered on it (a small object is under-resolved in a large chip).
+            # Use a center point prompt + box, take the largest multimask output.
+            ih, iw = imdata.shape[:2]
+            win = self.second_pass_window
+            for i in retry:
+                x0, y0, x1, y1 = boxes_xyxy[i]
+                cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+                wx0 = int(max(0, min(iw - 1, cx - win / 2)))
+                wy0 = int(max(0, min(ih - 1, cy - win / 2)))
+                wx1 = int(min(iw, wx0 + win))
+                wy1 = int(min(ih, wy0 + win))
+                sub = np.ascontiguousarray(imdata[wy0:wy1, wx0:wx1])
+                lb = np.array([[x0 - wx0, y0 - wy0, x1 - wx0, y1 - wy0]],
+                              dtype=np.float32)
+                pc = np.array([[[cx - wx0, cy - wy0]]], dtype=np.float32)
+                pl = np.ones((1, 1), dtype=np.int32)
+                with torch.inference_mode(), autocast_context:
+                    predictor.set_image(sub)
+                    mm, _, _ = predictor.predict(
+                        point_coords=pc, point_labels=pl, box=lb,
+                        multimask_output=True)
+                mm = mm.astype(np.uint8)
+                mm = mm.reshape(-1, sub.shape[0], sub.shape[1])
+                best = mm[int(np.argmax([m.sum() for m in mm]))]
+                full = np.zeros(masks.shape[2:], dtype=np.uint8)
+                full[wy0:wy1, wx0:wx1] = best
+                masks[i, 0] = full
 
         hole_policy = self._kwiver_config['hole_policy']
         mpoly_policy = self._kwiver_config['multipolygon_policy']
@@ -203,12 +269,9 @@ class Sam2Refiner(RefineDetections):
             (hole_policy == 'allow') and
             (mpoly_policy == 'allow')
         )
-        print(f'hole_policy={hole_policy}')
-        print(f'mpoly_policy={mpoly_policy}')
-
         # Insert modified detections into a new DetectedObjectSet
         output = DetectedObjectSet()
-        for vital_det, binmask in zip(detections, masks[:, 0, :, :]):
+        for vital_det, binmask in zip(det_list, masks[:, 0, :, :]):
 
             # Extract the new mask info relative to the vital box
             box = vital_to_kwimage_box(vital_det.bounding_box)
