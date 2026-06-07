@@ -876,6 +876,11 @@ windowed_trainer::priv
 
   filtered_detections = std::make_shared< kv::detected_object_set >();
 
+  // Track whether any annotation (including ignored hard negatives) lands on
+  // this chip, so chips_w_gt_only can keep curated negative chips while still
+  // dropping chips with no annotations at all.
+  bool had_overlap = false;
+
   for( auto detection = all_detections->cbegin(); detection != ie; ++detection )
   {
     kv::bounding_box_d det_box = (*detection)->bounding_box();
@@ -892,6 +897,8 @@ windowed_trainer::priv
         overlap.max_y() > overlap.min_y() &&
         overlap.area() / det_box.area() >= m_overlap_required )
     {
+      had_overlap = true;
+
       std::string category;
 
       if( !(*detection)->type() )
@@ -965,8 +972,9 @@ windowed_trainer::priv
     }
   }
 
-  // Skip chips containing no training objects when only positive chips wanted
-  if( m_chips_w_gt_only && filtered_detections->empty() )
+  // Skip chips with no annotations at all when only annotated chips are wanted.
+  // Chips that held only hard negatives (had_overlap) are kept as background.
+  if( m_chips_w_gt_only && filtered_detections->empty() && !had_overlap )
   {
     return false;
   }
