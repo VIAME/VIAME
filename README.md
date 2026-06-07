@@ -125,8 +125,8 @@ build instructions can be found [here](examples/building_from_source), but the s
 can be built either as a super-build, which builds most of its dependencies alongside itself, or
 standalone. To build VIAME requires, at a minimum, [Git](https://git-scm.com/),
 [CMake](https://cmake.org/), and a [C++ compiler](http://www.cplusplus.com/doc/tutorial/introduction/).
-Installing Python and CUDA is also recommended. If using CUDA, version 12.8 with CUDNN 9 is most
-tested, though other versions of 11 through 13 also likely work. For python distributions, at a
+Installing Python and CUDA is also recommended. If using CUDA, version 12.6 with CUDNN 9 is
+preferred, though other versions of 11 through 13 also likely work. For python distributions, at a
 minimum Python 3.10 or above is necessary, alongside having pip installed.
 
 To build on the command line in Linux, use the following commands, only replacing [source-directory]
