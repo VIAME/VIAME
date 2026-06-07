@@ -5,6 +5,8 @@
 import json
 import os
 import sys
+import shutil
+import subprocess
 
 from kwiver.vital.algo import TrainDetector
 
@@ -32,6 +34,12 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     # RF-DETR model configuration
     model_size = scfg.Value('base', help='Model size: nano, small, medium, base, or large')
     device = scfg.Value('auto', help='Device to train on: auto, cpu, cuda, or cuda:N')
+    devices = scfg.Value('auto', help=(
+        'GPU count for training. "auto" uses all visible GPUs, training with '
+        'DDP when more than one is present. Pinning device=cuda:N forces 1.'))
+    strategy = scfg.Value('auto', help=(
+        'Multi-GPU strategy. "auto" uses ddp_find_unused_parameters_true when '
+        'training on more than one GPU.'))
     num_channels = scfg.Value(3, help=(
         'Number of input channels. 3 = RGB; 4 = RGB + a motion/flow channel '
         '(RGBA). RF-DETR adapts the pretrained input conv to match.'))
@@ -322,6 +330,15 @@ class RFDETRTrainer(TrainDetector):
 
         ensure_rfdetr_compatibility()
 
+        # Use all available GPUs by default. DDP cannot launch from this embedded
+        # interpreter, so multi-GPU training runs in a subprocess (see
+        # rf_detr_train_impl.py); single-GPU stays in-process below.
+        n_gpus = self._resolve_gpu_count(device)
+        if n_gpus > 1:
+            print(f"[RFDETRTrainer] {n_gpus} GPUs visible; training with DDP "
+                  "across all of them")
+            return self._train_multi_gpu(dataset_dir, n_gpus)
+
         # Select model class based on size
         model_size = self._model_size.lower()
         if model_size == 'nano':
@@ -498,6 +515,98 @@ class RFDETRTrainer(TrainDetector):
 
         print("\n[RFDETRTrainer] Model training complete!")
 
+        return output
+
+    def _resolve_gpu_count(self, device):
+        """Number of GPUs to train on. 'auto' uses all visible GPUs; a pinned
+        cuda:N device or a CPU device forces a single-process run."""
+        requested = str(self._devices).strip().lower()
+        if requested not in ('auto', ''):
+            try:
+                return max(0, int(requested))
+            except ValueError:
+                pass
+        if str(device).startswith('cpu'):
+            return 0
+        if ':' in str(device):
+            return 1
+        try:
+            import torch
+            return torch.cuda.device_count()
+        except Exception:
+            return 1
+
+    def _resolve_strategy(self, n_gpus):
+        strat = str(self._strategy).strip().lower()
+        if strat not in ('auto', ''):
+            return self._strategy
+        return 'ddp_find_unused_parameters_true'
+
+    def _train_multi_gpu(self, dataset_dir, n_gpus):
+        """Launch DDP training in a subprocess across all GPUs. PTL re-execs the
+        entrypoint once per rank; this process waits, then packages the result."""
+        output_dir = ub.Path(self._train_directory) / "rf_detr_output"
+        output_dir.ensuredir()
+
+        if str(self._batch_size).strip().lower() == 'auto':
+            batch_size = 'auto'
+        else:
+            batch_size = int(self._batch_size)
+
+        train_kwargs = dict(
+            dataset_dir=str(dataset_dir),
+            output_dir=str(output_dir),
+            epochs=int(self._max_epochs),
+            batch_size=batch_size,
+            lr=float(self._learning_rate),
+            lr_encoder=float(self._learning_rate_encoder),
+            grad_accum_steps=int(self._grad_accum_steps),
+            weight_decay=float(self._weight_decay),
+            warmup_epochs=float(self._warmup_epochs),
+            lr_drop=int(self._lr_drop),
+            use_ema=parse_bool(self._use_ema),
+            ema_decay=float(self._ema_decay),
+            early_stopping=parse_bool(self._early_stopping),
+            early_stopping_patience=int(self._early_stopping_patience),
+            multi_scale=parse_bool(self._multi_scale),
+            checkpoint_interval=int(self._checkpoint_interval),
+            tensorboard=parse_bool(self._use_tensorboard),
+            wandb=False,
+            class_names=list(self._class_names),
+            devices=n_gpus,
+            strategy=self._resolve_strategy(n_gpus),
+        )
+        if batch_size == 'auto':
+            train_kwargs["auto_batch_target_effective"] = \
+                int(self._auto_batch_target_effective)
+        aug_config = self._resolve_aug_config(self._augmentation)
+        if aug_config is not None:
+            train_kwargs["aug_config"] = aug_config
+
+        params = dict(
+            model_size=self._model_size.lower(),
+            num_channels=int(self._num_channels),
+            resolution=int(self._resolution),
+            gradient_checkpointing=parse_bool(self._gradient_checkpointing),
+            seed_model=self._seed_model,
+            class_names=list(self._class_names),
+            train_kwargs=train_kwargs,
+        )
+
+        params_path = os.path.join(self._train_directory,
+                                   "rf_detr_mgpu_params.json")
+        with open(params_path, 'w') as f:
+            json.dump(params, f)
+
+        python = shutil.which("python") or sys.executable
+        impl = os.path.join(os.path.dirname(__file__), "rf_detr_train_impl.py")
+
+        print(f"[RFDETRTrainer] Launching {n_gpus}-GPU DDP training: "
+              f"{python} {impl}", flush=True)
+        subprocess.run([python, impl, params_path], check=True)
+
+        output = self._get_output_map(output_dir)
+        print("\n[RFDETRTrainer] Model training complete!")
         return output
 
     def _get_output_map(self, output_dir):
