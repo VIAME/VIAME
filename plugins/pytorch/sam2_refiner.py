@@ -100,6 +100,8 @@ class Sam2Refiner(RefineDetections):
             'second_pass_on_failure': 'True',
             'second_pass_min_pixels': '10',
             'second_pass_window': '1024',
+            # Max boxes per SAM2 predict call (bounds GPU memory on dense chips).
+            'predict_batch': '48',
         }
 
         # netharn variables
@@ -141,6 +143,7 @@ class Sam2Refiner(RefineDetections):
             self._kwiver_config['second_pass_min_pixels'])
         self.second_pass_window = int(
             self._kwiver_config['second_pass_window'])
+        self.predict_batch = int(self._kwiver_config['predict_batch'])
         return True
 
     def check_configuration(self, cfg):
@@ -187,15 +190,24 @@ class Sam2Refiner(RefineDetections):
         det_list = list(detections)
         boxes_xyxy = np.asarray(kw_dets.boxes.toformat('xyxy').data)
 
+        # Predict in box batches. Dense chips can contain hundreds of boxes; a
+        # single predict over all of them allocates per-box full-resolution
+        # masks and can exhaust GPU memory (segfault) after a few frames. Batch
+        # to keep peak GPU memory bounded regardless of detection density.
+        batch = self.predict_batch
+        mask_batches = []
         with torch.inference_mode(), autocast_context:
             predictor.set_image(imdata)
-            masks, scores, lowres_masks = predictor.predict(
-                box=boxes_xyxy, multimask_output=False)
-            masks = masks.astype(np.uint8)
-
-        # Dont squeeze singleton dimensions, it breaks loop logic
-        if len(masks.shape) == 3:
-            masks = masks[None, :, :, :]
+            for b0 in range(0, len(boxes_xyxy), batch):
+                bxs = boxes_xyxy[b0:b0 + batch]
+                m, _scores, _lr = predictor.predict(
+                    box=bxs, multimask_output=False)
+                m = m.astype(np.uint8)
+                if len(m.shape) == 3:
+                    m = m[None, :, :, :]
+                mask_batches.append(m)
+        masks = np.concatenate(mask_batches, axis=0) if mask_batches \
+            else np.zeros((0, 1) + imdata.shape[:2], dtype=np.uint8)
 
         # Fallback (optional, configurable): SAM2 sometimes returns an empty or
         # degenerate (a few pixels) mask for a box prompt. For those detections
@@ -307,6 +319,20 @@ class Sam2Refiner(RefineDetections):
             if vital_det.mask is None or self.overwrite_existing:
                 vital_det.mask = vital_image_container_from_ndarray(relative_submask)
             output.add(vital_det)
+
+        # Release per-frame GPU/CPU state so it does not accumulate across a long
+        # image sequence (SAM2 stores image features on the predictor).
+        try:
+            predictor.reset_predictor()
+        except Exception:
+            pass
+        try:
+            import gc
+            del masks
+            gc.collect()
+            torch.cuda.empty_cache()
+        except Exception:
+            pass
 
         return output
 
