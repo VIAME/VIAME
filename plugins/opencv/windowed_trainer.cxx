@@ -146,6 +146,9 @@ public:
     const std::vector< std::string >& names,
     const std::vector< kv::detected_object_set_sptr >& truth );
 
+  kv::category_hierarchy_sptr labels_without_ignored(
+    kv::category_hierarchy_sptr in );
+
   std::mutex m_category_mutex;
   bool m_synthetic_labels;
   bool m_detect_small;
@@ -381,7 +384,7 @@ windowed_trainer
   else
   {
     d->m_trainer->add_data_from_disk(
-      object_labels,
+      d->labels_without_ignored( object_labels ),
       filtered_train_names, filtered_train_truth,
       filtered_test_names, filtered_test_truth );
   }
@@ -445,7 +448,7 @@ windowed_trainer
   }
 
   d->m_trainer->add_data_from_disk(
-    object_labels,
+    d->labels_without_ignored( object_labels ),
     filtered_train_names, filtered_train_truth,
     filtered_test_names, filtered_test_truth );
 }
@@ -1118,6 +1121,31 @@ windowed_trainer::priv
   }
 
   return true;
+}
+
+
+kv::category_hierarchy_sptr
+windowed_trainer::priv
+::labels_without_ignored( kv::category_hierarchy_sptr in )
+{
+  if( !in || m_ignore_category.empty() || !in->has_class_name( m_ignore_category ) )
+  {
+    return in;
+  }
+
+  // The ignored (hard-negative) class reaches this trainer so its chips are
+  // tiled, but it must not become an output class of the trained model.
+  auto out = std::make_shared< kv::category_hierarchy >();
+
+  for( const auto& name : in->all_class_names() )
+  {
+    if( name != m_ignore_category )
+    {
+      out->add_class( name );
+    }
+  }
+
+  return out;
 }
 
 
