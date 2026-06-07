@@ -35,10 +35,27 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     num_channels = scfg.Value(3, help=(
         'Number of input channels. 3 = RGB; 4 = RGB + a motion/flow channel '
         '(RGBA). RF-DETR adapts the pretrained input conv to match.'))
+    resolution = scfg.Value(0, help=(
+        'Square input resolution fed to the network. 0 = use the model-size '
+        'default (large=704). Larger values let the network resolve smaller '
+        'objects on high-res imagery without gridding; the pretrained '
+        'positional embeddings are bicubic-interpolated to the new grid. '
+        'Must be divisible by patch_size*num_windows (32 for large, 56 for '
+        'base, 32 for nano/small/medium).'))
+    gradient_checkpointing = scfg.Value(False, help=(
+        'Trade compute for memory by recomputing backbone activations in the '
+        'backward pass (~30%% slower, roughly halves activation memory). '
+        'Enable to fit higher resolutions or larger batches on limited VRAM.'))
 
     # Training hyperparameters
     max_epochs = scfg.Value(100, help='Maximum number of epochs to train for')
-    batch_size = scfg.Value(4, help='Number of images per batch')
+    batch_size = scfg.Value(4, help=(
+        'Images per micro-batch, or "auto" to let RF-DETR probe for the '
+        'largest micro-batch that fits in VRAM and derive grad_accum_steps to '
+        'reach auto_batch_target_effective.'))
+    auto_batch_target_effective = scfg.Value(16, help=(
+        'Per-device effective batch size (micro-batch * grad_accum) targeted '
+        'when batch_size="auto". Ignored for a fixed batch_size.'))
     learning_rate = scfg.Value(1e-4, help='Learning rate')
     learning_rate_encoder = scfg.Value(1.5e-4, help='Learning rate for encoder')
     grad_accum_steps = scfg.Value(4, help='Gradient accumulation steps')
@@ -321,9 +338,23 @@ class RFDETRTrainer(TrainDetector):
             raise ValueError(f"Unknown model size: {model_size}")
 
         num_channels = int(self._num_channels)
+        self._resolution = int(self._resolution)
+        gradient_checkpointing = parse_bool(self._gradient_checkpointing)
+
+        # Shared construction kwargs. resolution is a ModelConfig field: passing
+        # it builds the network at that grid and triggers bicubic interpolation
+        # of the pretrained positional embeddings to match (see
+        # rfdetr.models.weights.interpolate_position_embeddings).
+        model_kwargs = dict(num_channels=num_channels, device=device)
+        if self._resolution > 0:
+            model_kwargs['resolution'] = self._resolution
+        if gradient_checkpointing:
+            model_kwargs['gradient_checkpointing'] = True
 
         print(f"[RFDETRTrainer] Using RF-DETR {model_size} model on {device} "
-              f"with {num_channels} input channels")
+              f"with {num_channels} input channels"
+              + (f" at {self._resolution}px" if self._resolution > 0 else "")
+              + (" (gradient checkpointing)" if gradient_checkpointing else ""))
 
         # Create model
         if len(self._seed_model) > 0 and ub.Path(self._seed_model).exists():
@@ -337,18 +368,21 @@ class RFDETRTrainer(TrainDetector):
             model = RFDETRModel(
                 pretrain_weights=None,
                 num_classes=num_classes,
-                num_channels=num_channels,
-                device=device
+                **model_kwargs
             )
             if 'model' in checkpoint:
                 model.model.model.load_state_dict(checkpoint['model'])
         else:
             # Use pretrained weights
-            model = RFDETRModel(num_channels=num_channels, device=device)
+            model = RFDETRModel(**model_kwargs)
 
         # Parse training parameters
         epochs = int(self._max_epochs)
-        batch_size = int(self._batch_size)
+        # "auto" lets RF-DETR probe for the largest micro-batch that fits VRAM.
+        if str(self._batch_size).strip().lower() == 'auto':
+            batch_size = 'auto'
+        else:
+            batch_size = int(self._batch_size)
         lr = float(self._learning_rate)
         lr_encoder = float(self._learning_rate_encoder)
         grad_accum_steps = int(self._grad_accum_steps)
@@ -400,6 +434,10 @@ class RFDETRTrainer(TrainDetector):
         # Omit aug_config when None so RF-DETR applies its own default preset.
         if aug_config is not None:
             train_kwargs["aug_config"] = aug_config
+        # When probing for the batch size, target this per-device effective batch
+        # (micro-batch * grad_accum); RF-DETR derives grad_accum_steps itself.
+        if batch_size == 'auto':
+            train_kwargs["auto_batch_target_effective"] = int(self._auto_batch_target_effective)
         if sys.platform == "win32":
             train_kwargs["num_workers"] = 0
 
@@ -510,6 +548,8 @@ class RFDETRTrainer(TrainDetector):
             args['class_names'] = self._class_names
             args['model_size'] = self._model_size
             args['num_channels'] = int(self._num_channels)
+            if int(self._resolution) > 0:
+                args['resolution'] = int(self._resolution)
             checkpoint['args'] = args
             torch.save(checkpoint, final_ckpt)
             print(f"[RFDETRTrainer] Embedded {len(self._class_names)} class names into checkpoint")

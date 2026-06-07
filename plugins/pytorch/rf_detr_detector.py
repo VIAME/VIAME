@@ -26,6 +26,11 @@ class RFDETRDetectorConfig(scfg.DataConfig):
     num_channels = scfg.Value(3, help=(
         'Number of input channels. 3 = RGB; 4 = RGB + a motion/flow channel. '
         'Recovered from the checkpoint when present, otherwise this value.'))
+    resolution = scfg.Value(0, help=(
+        'Square input resolution. 0 = use the model-size default. Must match '
+        'the resolution the checkpoint was trained at so the positional '
+        'embeddings load correctly; recovered from the checkpoint when present, '
+        'otherwise this value.'))
     device = scfg.Value('auto', help='Device to run on: auto, cpu, cuda, or cuda:N')
     threshold = scfg.Value(0.5, help='Detection confidence threshold')
     optimize_inference = scfg.Value(True, help='Whether to optimize model for inference')
@@ -73,6 +78,7 @@ class RFDETRDetector(ImageObjectDetector):
         device = resolve_device_str(self._kwiver_config['device'])
         optimize = parse_bool(self._kwiver_config['optimize_inference'])
         num_channels = int(self._kwiver_config['num_channels'])
+        resolution = int(self._kwiver_config['resolution'])
 
         ensure_rfdetr_compatibility()
 
@@ -121,12 +127,23 @@ class RFDETRDetector(ImageObjectDetector):
             if 'args' in checkpoint and 'num_channels' in checkpoint['args']:
                 num_channels = int(checkpoint['args']['num_channels'])
 
-            self._model = RFDETRModel(
+            # The network must be built at the resolution it was trained at, or
+            # the checkpoint's positional-embedding tensors won't match the
+            # model's grid and load_state_dict will fail. Prefer the embedded
+            # value over the config default.
+            if 'args' in checkpoint and 'resolution' in checkpoint['args']:
+                resolution = int(checkpoint['args']['resolution'])
+
+            model_kwargs = dict(
                 pretrain_weights=None,
                 num_classes=ckpt_num_classes,
                 num_channels=num_channels,
                 device=device
             )
+            if resolution > 0:
+                model_kwargs['resolution'] = resolution
+
+            self._model = RFDETRModel(**model_kwargs)
 
             # The constructor adds +1 for background, so resize the
             # detection head to match the checkpoint's actual dimensions.
@@ -142,7 +159,10 @@ class RFDETRDetector(ImageObjectDetector):
                 self._model.model.class_names = self._classes
         else:
             # Use pretrained weights
-            self._model = RFDETRModel(num_channels=num_channels, device=device)
+            pre_kwargs = dict(num_channels=num_channels, device=device)
+            if resolution > 0:
+                pre_kwargs['resolution'] = resolution
+            self._model = RFDETRModel(**pre_kwargs)
 
         self._num_channels = num_channels
 
