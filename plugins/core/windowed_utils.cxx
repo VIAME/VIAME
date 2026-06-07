@@ -787,11 +787,14 @@ scale_detections_to_region_with_mapping(
       continue;
     }
 
-    // Check if detection overlaps with this region
+    // Skip detections that do not overlap this region. Test extents directly:
+    // a diagonally separated box yields negative width AND height, so area()
+    // would be positive and pass an area() <= 0 check.
     kv::bounding_box_d det_box = det->bounding_box();
     kv::bounding_box_d overlap = kv::intersection( roi_box, det_box );
 
-    if( overlap.area() <= 0 )
+    if( overlap.max_x() <= overlap.min_x() ||
+        overlap.max_y() <= overlap.min_y() )
     {
       continue;
     }
