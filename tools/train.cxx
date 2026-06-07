@@ -117,6 +117,9 @@ static kv::config_block_sptr default_config()
     "category frames before using the next secondary frame." );
   config->set_value( "secondary_downsample", "0",
     "Downsample factor for frames containing only secondary classes." );
+  config->set_value( "hard_negative_categories", "",
+    "Comma-separated hard-negative categories: kept through label adjustment and "
+    "propagated to the windowed ignore_category, but excluded from output labels." );
   config->set_value( "check_override", "false",
     "Over-ride and ignore data safety checks." );
   config->set_value( "convert_to_full_frame", "false",
@@ -897,6 +900,20 @@ train_applet
     }
   }
 
+  // Propagate hard negatives to the windowed trainer's ignore_category
+  {
+    std::string hard_neg_cats =
+      config->get_value< std::string >( "hard_negative_categories" );
+    std::string dt_type =
+      config->get_value< std::string >( "detector_trainer:type", "" );
+
+    if( !hard_neg_cats.empty() && !dt_type.empty() )
+    {
+      config->set_value( "detector_trainer:" + dt_type + ":ignore_category",
+                         hard_neg_cats );
+    }
+  }
+
   kv::algo::train_detector::set_nested_algo_configuration
     ( "detector_trainer", config, detector_trainer );
   kv::algo::train_detector::get_nested_algo_configuration
@@ -980,6 +997,8 @@ train_applet
     config->get_value< std::string >( "targetted_downsample_string" );
   std::string secondary_frame_labels_str =
     config->get_value< std::string >( "secondary_frame_labels" );
+  std::string hard_negative_categories_str =
+    config->get_value< std::string >( "hard_negative_categories" );
   unsigned ignore_secondary_burst_count =
     config->get_value< unsigned >( "ignore_secondary_burst_count" );
   unsigned secondary_downsample =
@@ -1083,6 +1102,7 @@ train_applet
 
   std::vector< std::string > image_exts, video_exts, groundtruth_exts;
   std::unordered_set< std::string > secondary_frame_labels;
+  std::unordered_set< std::string > hard_negative_categories;
   bool one_file_per_image;
 
   if( groundtruth_style == "one_per_file" )
@@ -1110,6 +1130,7 @@ train_applet
   string_to_vector( groundtruth_exts_str, groundtruth_exts, "\n\t\v,; " );
 
   string_to_set( secondary_frame_labels_str, secondary_frame_labels, "\n\t\v,;" );
+  string_to_set( hard_negative_categories_str, hard_negative_categories, "\n\t\v,;" );
 
   // Load labels.txt file
   std::string label_fn;
@@ -2101,12 +2122,13 @@ train_applet
   if( use_labels )
   {
     std::vector< bool > fg_mask = adjust_labels( train_gt,
-      model_labels, secondary_frame_labels );
+      model_labels, secondary_frame_labels, hard_negative_categories );
 
     adjust_labels( train_image_fn, train_gt, fg_mask,
       secondary_downsample, ignore_secondary_burst_count );
 
-    adjust_labels( validation_gt, model_labels, secondary_frame_labels );
+    adjust_labels( validation_gt, model_labels, secondary_frame_labels,
+      hard_negative_categories );
   }
 
   // Run training algorithm(s) - loop through all configs/detectors for multi-model training

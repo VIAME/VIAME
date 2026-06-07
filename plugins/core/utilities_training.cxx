@@ -154,7 +154,8 @@ adjust_to_full_frame( const kv::detected_object_set_sptr dos,
 
 bool adjust_labels( kv::detected_object_set_sptr input,
                     kv::category_hierarchy_sptr cats_to_use,
-                    const std::unordered_set< std::string >& background )
+                    const std::unordered_set< std::string >& background,
+                    const std::unordered_set< std::string >& also_keep )
 {
   if( !input )
   {
@@ -166,7 +167,7 @@ bool adjust_labels( kv::detected_object_set_sptr input,
     std::unordered_set< std::string > frame_cats;
 
     // Remove detections not present in labels and use synonym table to update labels
-    input->filter( [&frame_cats, cats_to_use]( kv::detected_object_sptr& det )
+    input->filter( [&frame_cats, cats_to_use, &also_keep]( kv::detected_object_sptr& det )
     {
       if( !det || !det->type() )
       {
@@ -180,6 +181,12 @@ bool adjust_labels( kv::detected_object_set_sptr input,
 
       if( !cats_to_use->has_class_name( cat ) )
       {
+        // Keep hard negatives unmodified
+        if( also_keep.count( cat ) )
+        {
+          frame_cats.insert( cat );
+          return false;
+        }
         return true;
       }
 
@@ -242,13 +249,14 @@ bool adjust_labels( kv::detected_object_set_sptr input,
 std::vector< bool >
 adjust_labels( std::vector< kv::detected_object_set_sptr >& input,
                kv::category_hierarchy_sptr cats_to_use,
-               const std::unordered_set< std::string >& background )
+               const std::unordered_set< std::string >& background,
+               const std::unordered_set< std::string >& also_keep )
 {
   std::vector< bool > fg_mask;
 
   for( auto set : input )
   {
-    fg_mask.push_back( adjust_labels( set, cats_to_use, background ) );
+    fg_mask.push_back( adjust_labels( set, cats_to_use, background, also_keep ) );
   }
 
   return fg_mask;

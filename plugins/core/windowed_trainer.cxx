@@ -26,6 +26,8 @@
 #include <thread>
 #include <mutex>
 #include <random>
+#include <algorithm>
+#include <vector>
 
 namespace viame {
 
@@ -60,6 +62,7 @@ public:
     , m_small_action( "" )
     , m_chip_threads( 0 )
     , m_reuse_cache( false )
+    , m_background_chip_ratio( 0.0 )
     , m_synthetic_labels( true )
     , m_detect_small( false )
   {
@@ -95,6 +98,9 @@ public:
   int m_chip_threads;
   bool m_reuse_cache;
 
+  // Random background chips kept, as a fraction of annotated chips per frame
+  double m_background_chip_ratio;
+
   // Helper functions
   void format_images_from_disk(
     std::vector< std::string > image_names,
@@ -122,7 +128,8 @@ public:
   bool filter_detections_in_roi(
     kv::detected_object_set_sptr all_detections,
     kv::bounding_box_d region,
-    kv::detected_object_set_sptr& filt_detections );
+    kv::detected_object_set_sptr& filt_detections,
+    bool* overlapped = nullptr );
 
   std::string generate_filename( const std::string& frame_tag, int chip_idx );
 
@@ -226,12 +233,13 @@ windowed_trainer
     "either be none, remove, or any other string which will over-ride the "
     "detection type to be that string." );
   config->set_value( "chip_threads", d->m_chip_threads,
-    "Number of worker threads used for chip generation. 0 uses the number of "
-    "hardware threads available, 1 forces serial processing." );
+    "Worker threads for chip generation (0 = auto, 1 = serial)." );
   config->set_value( "reuse_cache", d->m_reuse_cache,
-    "Reuse chips and per-frame manifests already present in train_directory "
-    "instead of regenerating them. The training directory is not deleted at "
-    "startup and any frame with a valid manifest is loaded from disk." );
+    "Reuse existing chips/manifests in train_directory instead of regenerating "
+    "(train_directory is not wiped at startup)." );
+  config->set_value( "background_chip_ratio", d->m_background_chip_ratio,
+    "With chips_w_gt_only, also keep this fraction of random background chips "
+    "per frame, relative to annotated chips (0 = none)." );
 
   kv::algo::image_io::get_nested_algo_configuration( "image_reader",
     config, d->m_image_io );
@@ -276,6 +284,7 @@ windowed_trainer
   d->m_small_action = config->get_value< std::string >( "small_action" );
   d->m_chip_threads = config->get_value< int >( "chip_threads" );
   d->m_reuse_cache = config->get_value< bool >( "reuse_cache" );
+  d->m_background_chip_ratio = config->get_value< double >( "background_chip_ratio" );
 
   if( !d->m_skip_format )
   {
@@ -534,8 +543,7 @@ windowed_trainer::priv
 
   const unsigned n = static_cast< unsigned >( image_names.size() );
 
-  // Per-frame output buffers, merged in order after processing so the result
-  // is identical regardless of how many threads run.
+  // Per-frame buffers, merged in frame order for thread independence
   std::vector< std::vector< std::string > > frame_names( n );
   std::vector< std::vector< kv::detected_object_set_sptr > > frame_truth( n );
 
@@ -602,14 +610,13 @@ windowed_trainer::priv
   const std::string image_fn = image_names[fid];
   const std::string frame_tag = frame_tag_for( fid, image_fn );
 
-  // Reuse a previously generated frame if its manifest (and chips) are present.
+  // Reuse cached frame if its manifest is present
   if( m_reuse_cache && load_manifest( frame_tag, names, truth ) )
   {
     return;
   }
 
-  // Deterministic per-frame RNG so downsampling decisions are reproducible
-  // across runs (which keeps the chip cache valid) and thread-safe.
+  // Deterministic per-frame RNG: reproducible across runs, thread-safe
   std::mt19937 rng( static_cast< uint64_t >( fid ) * 2654435761ull + 11ull );
   std::uniform_real_distribution< double > unif( 0.0, 1.0 );
 
@@ -771,6 +778,9 @@ windowed_trainer::priv
   }
   else
   {
+    int annotated_chips = 0;
+    std::vector< image_rect > background_rois;
+
     // Chip up and process scaled image
     for( int i = 0;
          i < resized_width - m_settings.chip_width + m_settings.chip_step_width;
@@ -816,6 +826,49 @@ windowed_trainer::priv
         }
 
         image_rect roi( i, j, cw, ch );
+
+        kv::bounding_box_d roi_box( i, j, i + m_settings.chip_width,
+          j + m_settings.chip_height );
+
+        bool overlapped = false;
+
+        if( filter_detections_in_roi( scaled_groundtruth, roi_box,
+              filtered_truth, &overlapped ) )
+        {
+          kv::image cropped_image = crop_image( resized_image, roi );
+
+          double scaled_crop_scale;
+          kv::image resized_crop = scale_image_maintaining_ar(
+            cropped_image, m_settings.chip_width, m_settings.chip_height,
+            m_settings.black_pad, scaled_crop_scale );
+
+          std::string img_file = generate_filename( frame_tag, chip_idx++ );
+          write_chip_to_disk( img_file, resized_crop );
+
+          formatted_names.push_back( img_file );
+          formatted_truth.push_back( filtered_truth );
+          ++annotated_chips;
+        }
+        else if( m_background_chip_ratio > 0.0 && !overlapped )
+        {
+          background_rois.push_back( roi );
+        }
+      }
+    }
+
+    // Sample background chips proportional to annotated chips
+    if( m_background_chip_ratio > 0.0 &&
+        annotated_chips > 0 && !background_rois.empty() )
+    {
+      int target = static_cast< int >(
+        m_background_chip_ratio * annotated_chips + 0.5 );
+      target = std::min( target, static_cast< int >( background_rois.size() ) );
+
+      std::shuffle( background_rois.begin(), background_rois.end(), rng );
+
+      for( int n = 0; n < target; ++n )
+      {
+        const image_rect& roi = background_rois[n];
         kv::image cropped_image = crop_image( resized_image, roi );
 
         double scaled_crop_scale;
@@ -823,17 +876,11 @@ windowed_trainer::priv
           cropped_image, m_settings.chip_width, m_settings.chip_height,
           m_settings.black_pad, scaled_crop_scale );
 
-        kv::bounding_box_d roi_box( i, j, i + m_settings.chip_width,
-          j + m_settings.chip_height );
+        std::string img_file = generate_filename( frame_tag, chip_idx++ );
+        write_chip_to_disk( img_file, resized_crop );
 
-        if( filter_detections_in_roi( scaled_groundtruth, roi_box, filtered_truth ) )
-        {
-          std::string img_file = generate_filename( frame_tag, chip_idx++ );
-          write_chip_to_disk( img_file, resized_crop );
-
-          formatted_names.push_back( img_file );
-          formatted_truth.push_back( filtered_truth );
-        }
+        formatted_names.push_back( img_file );
+        formatted_truth.push_back( std::make_shared< kv::detected_object_set >() );
       }
     }
 
@@ -868,16 +915,20 @@ windowed_trainer::priv
 ::filter_detections_in_roi(
   kv::detected_object_set_sptr all_detections,
   kv::bounding_box_d region,
-  kv::detected_object_set_sptr& filtered_detections )
+  kv::detected_object_set_sptr& filtered_detections,
+  bool* overlapped )
 {
   auto ie = all_detections->cend();
 
   filtered_detections = std::make_shared< kv::detected_object_set >();
 
-  // Track whether any annotation (including ignored hard negatives) lands on
-  // this chip, so chips_w_gt_only can keep curated negative chips while still
-  // dropping chips with no annotations at all.
+  // Did any annotation (incl. hard negatives) land on this chip
   bool had_overlap = false;
+
+  if( overlapped )
+  {
+    *overlapped = false;
+  }
 
   for( auto detection = all_detections->cbegin(); detection != ie; ++detection )
   {
@@ -896,6 +947,11 @@ windowed_trainer::priv
         overlap.area() / det_box.area() >= m_overlap_required )
     {
       had_overlap = true;
+
+      if( overlapped )
+      {
+        *overlapped = true;
+      }
 
       std::string category;
 
@@ -970,8 +1026,7 @@ windowed_trainer::priv
     }
   }
 
-  // Skip chips with no annotations at all when only annotated chips are wanted.
-  // Chips that held only hard negatives (had_overlap) are kept as background.
+  // Drop only chips with no annotation at all (hard-negative chips kept)
   if( m_chips_w_gt_only && filtered_detections->empty() && !had_overlap )
   {
     return false;
@@ -1071,7 +1126,7 @@ windowed_trainer::priv
       int ndet = 0;
       ls >> fn >> ndet;
 
-      // Cache is only valid if the referenced chip/image still exists.
+      // Invalidate cache if a referenced file is gone
       if( !kwiversys::SystemTools::FileExists( fn ) )
       {
         return false;
@@ -1088,7 +1143,7 @@ windowed_trainer::priv
       std::string cat;
       ls >> cat >> minx >> miny >> maxx >> maxy >> score;
 
-      // Spaces in category names are stored as '\x01'; restore them.
+      // Restore spaces encoded as '\x01'
       for( auto& c : cat )
       {
         if( c == '\x01' )
@@ -1128,8 +1183,7 @@ windowed_trainer::priv
     return in;
   }
 
-  // The ignored (hard-negative) class reaches this trainer so its chips are
-  // tiled, but it must not become an output class of the trained model.
+  // Drop the hard-negative class from the model's output labels
   auto out = std::make_shared< kv::category_hierarchy >();
 
   for( const auto& name : in->all_class_names() )
@@ -1181,7 +1235,7 @@ windowed_trainer::priv
         (*det)->type()->get_most_likely( cat );
       }
 
-      // Tokenized read-back uses whitespace, so protect spaces in names.
+      // Encode spaces as '\x01' for whitespace-tokenized read-back
       for( auto& c : cat )
       {
         if( std::isspace( static_cast< unsigned char >( c ) ) )

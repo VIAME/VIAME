@@ -75,23 +75,29 @@ adjust_to_full_frame( const kv::detected_object_set_sptr dos,
 /// \param input Detection set to adjust (modified in place)
 /// \param cats_to_use Category hierarchy for filtering/mapping
 /// \param background Set of background class names to suppress
+/// \param also_keep Classes kept even if absent from cats_to_use (e.g. hard negatives)
 /// \returns true if any foreground (non-background) detections remain
 VIAME_CORE_EXPORT
 bool adjust_labels( kv::detected_object_set_sptr input,
                     kv::category_hierarchy_sptr cats_to_use,
-                    const std::unordered_set< std::string >& background );
+                    const std::unordered_set< std::string >& background,
+                    const std::unordered_set< std::string >& also_keep =
+                      std::unordered_set< std::string >() );
 
 /// Adjust labels for a vector of detection sets
 ///
 /// \param input Vector of detection sets to adjust (modified in place)
 /// \param cats_to_use Category hierarchy for filtering/mapping
 /// \param background Set of background class names to suppress
+/// \param also_keep Class names retained even if absent from cats_to_use
 /// \returns Vector of bools indicating if each frame has foreground detections
 VIAME_CORE_EXPORT
 std::vector< bool >
 adjust_labels( std::vector< kv::detected_object_set_sptr >& input,
                kv::category_hierarchy_sptr cats_to_use,
-               const std::unordered_set< std::string >& background );
+               const std::unordered_set< std::string >& background,
+               const std::unordered_set< std::string >& also_keep =
+                 std::unordered_set< std::string >() );
 
 /// Adjust file and detection lists based on foreground mask
 ///
