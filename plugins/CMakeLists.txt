@@ -38,6 +38,10 @@ if( VIAME_ENABLE_PYTORCH )
   add_subdirectory( pytorch )
 endif()
 
+if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_PYTHON )
+  add_subdirectory( onnx )
+endif()
+
 if( VIAME_ENABLE_DARKNET )
   add_subdirectory( darknet )
 endif()
