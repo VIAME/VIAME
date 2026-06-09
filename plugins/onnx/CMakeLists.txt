@@ -12,6 +12,7 @@ kwiver_create_python_init( onnx_stereo )
 set( onnx_stereo_modules
   __init__
   epipolar_matcher
+  epipolar_dino_matcher
   triangulate
   calibration_io
   geometry_numpy

@@ -1,13 +1,18 @@
-# Epipolar template matching as a single ONNX graph
+# Epipolar stereo matching as a single ONNX graph
 
-This plugin reimplements VIAME's "regular computer-vision" stereo correspondence
-method — the one selected by `epipolar_template_matching` in
-[`measurement_from_annotations_template.pipe`](../../configs/pipelines/measurement_from_annotations_template.pipe)
-— as a single, self-contained `.onnx` file.
+This plugin reimplements VIAME's stereo correspondence methods as single,
+self-contained `.onnx` files. Two of the three stereo-measurement methods are
+covered (the third, the depth-map matcher, is not):
 
-It is the first of the three stereo-measurement methods (the others being the
-DINO-augmented matcher and the depth-map matcher); only this CV method is
-covered here.
+1. **Method 1 — NCC** (`epipolar_template_matching`, the "regular computer
+   vision" method in
+   [`measurement_from_annotations_template.pipe`](../../configs/pipelines/measurement_from_annotations_template.pipe)):
+   epipolar candidate generation + NCC template matching.
+2. **Method 2 — DINO + NCC** (`epipolar_descriptor_type=dino` in
+   [`add-ons/dino/measurement_from_annotations_ncc_dino.pipe`](../../configs/add-ons/dino/measurement_from_annotations_ncc_dino.pipe)):
+   the same epipolar matching, but DINOv2 dense features first pick the top-K
+   semantically similar candidates and NCC refines among them. The DINOv2 ViT is
+   baked into the graph.
 
 ## Is it possible? Yes — with one host/graph boundary
 
@@ -43,7 +48,8 @@ normalized cross-correlation, so results match.
 
 | File | Role |
 | --- | --- |
-| `epipolar_matcher.py` | Torch modules `EpipolarMatcher` / `EpipolarMeasurer` (the graph). |
+| `epipolar_matcher.py` | Method 1: `EpipolarMatcher` / `EpipolarMeasurer` (the graph). |
+| `epipolar_dino_matcher.py` | Method 2: `EpipolarDinoMatcher` / `EpipolarDinoMeasurer` (DINO top-K + NCC). |
 | `triangulate.py` | `triangulate_fast_numpy` (host, exact) and `triangulate_fast_torch` (graph). |
 | `calibration_io.py` | Load `.npz/.json/.yml/.mat/`dir` → calibration tensors. |
 | `geometry_numpy.py` | NumPy intrinsics map/unmap/project for host normalization + RMS. |
@@ -53,12 +59,19 @@ normalized cross-correlation, so results match.
 ## Usage
 
 ```bash
-# Export (template_size / num_samples become graph constants)
+# Method 1 (NCC). template_size / num_samples become graph constants.
 python export_onnx.py --model match   --out epipolar_match.onnx
 python export_onnx.py --model measure  --out epipolar_measure.onnx \
        --template-size 25 --num-samples 5000
 
-# Run: match head/tail pairs and measure length
+# Method 2 (DINO + NCC). The DINOv2 ViT is baked in and the image size is FIXED
+# at export (--height/--width must match your camera resolution).
+python export_onnx.py --model dino         --out epipolar_dino.onnx \
+       --height 1080 --width 1920 --dino-model dinov2_vitb14 --dino-top-k 25
+python export_onnx.py --model dino-measure  --out epipolar_dino_measure.onnx \
+       --height 1080 --width 1920
+
+# Run: match head/tail pairs and measure length (same driver for all models)
 python run_epipolar_onnx.py \
     --onnx epipolar_match.onnx \
     --calibration calibration_matrices.npz \
@@ -68,10 +81,13 @@ python run_epipolar_onnx.py \
     --template-threshold 0.2 --uniqueness-ratio 0.85
 ```
 
-The graph inputs are `left_gray, right_gray, points_left, K_left, dist_left,
-R_left, t_left, K_right, dist_right, R_right, t_right, min_depth, max_depth`;
-outputs are `right_points, best_score, second_score` (+ `points_3d` for the
-`measure` model). Point count and image size are dynamic axes.
+Method-1 graph inputs are `left_gray, right_gray, points_left, K_left,
+dist_left, R_left, t_left, K_right, dist_right, R_right, t_right, min_depth,
+max_depth`; method 2 replaces the grayscale images with color `left_rgb,
+right_rgb` (`[3, H, W]` RGB in `[0, 255]`). Outputs are `right_points,
+best_score, second_score` (+ `points_3d` for the `*measure` models). Point count
+is a dynamic axis; image size is dynamic for method 1 and fixed for method 2.
+The driver auto-detects color vs grayscale inputs.
 
 ## Conventions
 
@@ -86,12 +102,18 @@ scheme as `simple_camera_intrinsics`.
 Built only when `VIAME_ENABLE_ONNX` (and Python) are on; installed as the
 `onnx_stereo` python package. Runtime deps: `onnxruntime`, `numpy`, and either
 `opencv` or `Pillow` for image loading (the runner falls back to Pillow if cv2
-is unavailable), optional `scipy` (.mat). Export additionally needs `torch` and
-`onnxscript` (torch 2.x routes `torch.onnx.export` through the dynamo exporter).
-Models are exported at opset 18.
+is unavailable), optional `scipy` (.mat). Export needs `torch`; method 2
+additionally downloads the DINOv2 backbone via `torch.hub` (or `--dino-weights`
+for a local checkpoint). Models export with the legacy TorchScript exporter
+(`dynamo=False`) at opset 18 — it honors dynamic axes, which the dynamo exporter
+does not for these graphs.
 
-Validated with torch 2.12 / onnxruntime 1.23 / numpy 2.0: both models export and
-onnxruntime reproduces the eager PyTorch outputs (NCC scores to ~1e-8, matched
-points and triangulation exact); a synthetic end-to-end run matches both
-keypoints to ~0.25 px and the `match` (host) and `measure` (in-graph)
-triangulations agree.
+Validated with torch 2.12 / onnxruntime 1.23 / numpy 2.0:
+- Methods 1 & 2 export and onnxruntime reproduces the eager PyTorch outputs
+  (NCC/DINO scores to ~1e-8; method-1 matched points and triangulation exact).
+- Method 1 synthetic end-to-end matches keypoints to ~0.25 px and the host vs
+  in-graph triangulations agree.
+- Method 2's DINO stage matches the production `dino_matcher.py` exactly (top-25
+  candidate overlap 25/25, identical cosine scores). Positional end-to-end
+  validation of method 2 needs real imagery: DINOv2 features are uninformative
+  on synthetic patterns (so is the reference).

@@ -99,6 +99,21 @@ def _load_gray(path):
         return np.asarray(Image.open(path).convert("L"), dtype=np.float32)
 
 
+def _load_rgb(path, exp_h, exp_w):
+    """Load an image as float32 RGB [3, H, W] in [0, 255] for the DINO models.
+    The DINO graph has a fixed input resolution; the image must match it."""
+    from PIL import Image
+    img = Image.open(path).convert("RGB")
+    arr = np.asarray(img, dtype=np.float32)            # [H, W, 3] RGB
+    h, w = arr.shape[:2]
+    if (exp_h and h != exp_h) or (exp_w and w != exp_w):
+        raise SystemExit(
+            "DINO model expects %sx%s images but %s is %dx%d. Re-export with "
+            "--height %d --width %d, or resize the inputs."
+            % (exp_h, exp_w, os.path.basename(path), h, w, h, w))
+    return np.transpose(arr, (2, 0, 1)).copy()         # [3, H, W]
+
+
 def main():
     ap = argparse.ArgumentParser(
         description=__doc__,
@@ -128,14 +143,27 @@ def main():
     import onnxruntime as ort
 
     calib = load_calibration(args.calibration)
-    left = _load_gray(args.left_image)
-    right = _load_gray(args.right_image)
     points = _parse_points(args)
     min_depth, max_depth = _depth_range(args, calib)
 
+    sess = ort.InferenceSession(args.onnx, providers=["CPUExecutionProvider"])
+    in_names = [i.name for i in sess.get_inputs()]
+
+    # DINO models take color [3, H, W] RGB inputs (named left_rgb/right_rgb) at a
+    # fixed export resolution; NCC-only models take grayscale [H, W].
+    if "left_rgb" in in_names:
+        shape = next(i.shape for i in sess.get_inputs() if i.name == "left_rgb")
+        exp_h = shape[1] if isinstance(shape[1], int) else None
+        exp_w = shape[2] if isinstance(shape[2], int) else None
+        left = _load_rgb(args.left_image, exp_h, exp_w)
+        right = _load_rgb(args.right_image, exp_h, exp_w)
+        img_keys = {"left_rgb": left, "right_rgb": right}
+    else:
+        img_keys = {"left_gray": _load_gray(args.left_image),
+                    "right_gray": _load_gray(args.right_image)}
+
     feed = {
-        "left_gray": left,
-        "right_gray": right,
+        **img_keys,
         "points_left": points,
         "K_left": calib["K_left"].astype(np.float32),
         "dist_left": calib["dist_left"].astype(np.float32),
@@ -149,7 +177,6 @@ def main():
         "max_depth": np.asarray(max_depth, dtype=np.float32),
     }
 
-    sess = ort.InferenceSession(args.onnx, providers=["CPUExecutionProvider"])
     out_names = [o.name for o in sess.get_outputs()]
     outs = dict(zip(out_names, sess.run(out_names, feed)))
 
