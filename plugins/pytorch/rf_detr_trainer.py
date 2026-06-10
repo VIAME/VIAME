@@ -332,7 +332,7 @@ class RFDETRTrainer(TrainDetector):
 
         # Use all available GPUs by default. DDP cannot launch from this embedded
         # interpreter, so multi-GPU training runs in a subprocess (see
-        # rf_detr_train_impl.py); single-GPU stays in-process below.
+        # rf_detr_launcher.py); single-GPU stays in-process below.
         n_gpus = self._resolve_gpu_count(device)
         if n_gpus > 1:
             print(f"[RFDETRTrainer] {n_gpus} GPUs visible; training with DDP "
@@ -599,7 +599,7 @@ class RFDETRTrainer(TrainDetector):
             json.dump(params, f)
 
         python = shutil.which("python") or sys.executable
-        impl = os.path.join(os.path.dirname(__file__), "rf_detr_train_impl.py")
+        impl = os.path.join(os.path.dirname(__file__), "rf_detr_launcher.py")
 
         print(f"[RFDETRTrainer] Launching {n_gpus}-GPU DDP training: "
               f"{python} {impl}", flush=True)

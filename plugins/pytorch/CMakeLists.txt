@@ -308,9 +308,9 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
       rf_detr_trainer )
 
     kwiver_add_python_module(
-      ${CMAKE_CURRENT_SOURCE_DIR}/rf_detr_train_impl.py
+      ${CMAKE_CURRENT_SOURCE_DIR}/rf_detr_launcher.py
       pytorch
-      rf_detr_train_impl )
+      rf_detr_launcher )
 
 endif()
 
