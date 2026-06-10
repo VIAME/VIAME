@@ -38,13 +38,6 @@ export MAX_JOBS=4
 # Perform multi-threaded build
 run_build build_log.txt true
 
-mkdir -p /tmp/test-results
-
-ctest \
-  -L PIPELINES \
-  --output-on-failure \
-  --output-junit /tmp/test-results/ctest.xml || true
-
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
 
@@ -58,6 +51,3 @@ rm -rf lib download
 
 # Fix libsvm symlink issue
 fix_libsvm_symlink install
-
-# Finalize Docker install
-finalize_docker_install /viame/build

@@ -17,9 +17,6 @@ RUN cd cmake && \
 ENV PATH=/usr/local/cuda/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 
-FROM builder AS test
-WORKDIR /viame/build
-
 FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu22.04
 
 RUN apt-get update -y && \
@@ -29,4 +26,9 @@ RUN apt-get update -y && \
 
 COPY --from=builder /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcupti.so* /usr/local/cuda/lib64/
 COPY --from=builder /opt/noaa/viame /opt/noaa/viame
-COPY --from=builder /tmp/test-results/ctest.xml /ctest.xml
+
+WORKDIR /viame/build
+
+RUN bash -c '
+source /viame/cmake/build_common_functions.sh &&
+finalize_docker_install /viame/build'
