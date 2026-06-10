@@ -29,6 +29,4 @@ COPY --from=builder /opt/noaa/viame /opt/noaa/viame
 
 WORKDIR /viame/build
 
-RUN bash -c '
-source /viame/cmake/build_common_functions.sh &&
-finalize_docker_install /viame/build'
+RUN bash -c 'source /viame/cmake/build_common_functions.sh && finalize_docker_install /viame/build'
