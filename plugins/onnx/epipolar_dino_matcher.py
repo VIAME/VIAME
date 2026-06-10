@@ -26,7 +26,7 @@ in method 1. Unlike method 1, the image size is FIXED at export time: ViT
 positional-embedding interpolation makes dynamic-resolution ONNX export fragile,
 and a stereo rig's resolution is constant. Export at your camera resolution.
 
-Two graphs (see export_onnx.py): EpipolarDinoMatcher (-> matched points +
+Two graphs (see export_stereo_mapping.py): EpipolarDinoMatcher (-> matched points +
 scores) and EpipolarDinoMeasurer (+ in-graph triangulation).
 
 Image inputs are color, float32 [3, H, W], RGB, range [0, 255]. Grayscale for

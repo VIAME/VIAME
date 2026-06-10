@@ -16,7 +16,7 @@ set( onnx_stereo_modules
   triangulate
   calibration_io
   geometry_numpy
-  export_onnx
+  export_stereo_mapping
   run_epipolar_onnx )
 
 foreach( module ${onnx_stereo_modules} )

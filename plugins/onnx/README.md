@@ -53,22 +53,22 @@ normalized cross-correlation, so results match.
 | `triangulate.py` | `triangulate_fast_numpy` (host, exact) and `triangulate_fast_torch` (graph). |
 | `calibration_io.py` | Load `.npz/.json/.yml/.mat/`dir` → calibration tensors. |
 | `geometry_numpy.py` | NumPy intrinsics map/unmap/project for host normalization + RMS. |
-| `export_onnx.py` | Export either model to one `.onnx` (+ onnxruntime verification). |
+| `export_stereo_mapping.py` | Export either model to one `.onnx` (+ onnxruntime verification). |
 | `run_epipolar_onnx.py` | End-to-end driver: calib + images + keypoints → matches + measurements. |
 
 ## Usage
 
 ```bash
 # Method 1 (NCC). template_size / num_samples become graph constants.
-python export_onnx.py --model match   --out epipolar_match.onnx
-python export_onnx.py --model measure  --out epipolar_measure.onnx \
+python export_stereo_mapping.py --model match   --out epipolar_match.onnx
+python export_stereo_mapping.py --model measure  --out epipolar_measure.onnx \
        --template-size 25 --num-samples 5000
 
 # Method 2 (DINO + NCC). The DINOv2 ViT is baked in and the image size is FIXED
 # at export (--height/--width must match your camera resolution).
-python export_onnx.py --model dino         --out epipolar_dino.onnx \
+python export_stereo_mapping.py --model dino         --out epipolar_dino.onnx \
        --height 1080 --width 1920 --dino-model dinov2_vitb14 --dino-top-k 25
-python export_onnx.py --model dino-measure  --out epipolar_dino_measure.onnx \
+python export_stereo_mapping.py --model dino-measure  --out epipolar_dino_measure.onnx \
        --height 1080 --width 1920
 
 # Run: match head/tail pairs and measure length (same driver for all models)

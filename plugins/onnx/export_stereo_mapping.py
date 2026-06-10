@@ -21,9 +21,9 @@ resolution is constant. Image inputs are color float32 [3, H, W] RGB in [0,255].
 Calibration is always a runtime tensor input.
 
 Examples:
-  python export_onnx.py --model match   --out epipolar_match.onnx
-  python export_onnx.py --model measure  --out epipolar_measure.onnx
-  python export_onnx.py --model dino     --out epipolar_dino.onnx \
+  python export_stereo_mapping.py --model match   --out epipolar_match.onnx
+  python export_stereo_mapping.py --model measure  --out epipolar_measure.onnx
+  python export_stereo_mapping.py --model dino     --out epipolar_dino.onnx \
          --height 1080 --width 1920 --dino-model dinov2_vitb14 --dino-top-k 25
 """
 

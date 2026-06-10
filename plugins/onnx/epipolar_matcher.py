@@ -26,7 +26,7 @@ Calibration is supplied as runtime tensor inputs (K / dist / R / t for each
 camera), so a single exported model works for any rig and any calibration
 format; see ``calibration_io.py`` for the host-side loaders.
 
-Two graphs are exported (see ``export_onnx.py``):
+Two graphs are exported (see ``export_stereo_mapping.py``):
 
   * ``EpipolarMatcher``  -- outputs matched right-image points + NCC scores.
     Triangulation is left to the host (``triangulate.py`` provides a bit-exact
