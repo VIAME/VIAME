@@ -27,7 +27,7 @@ cmake ../ \
   -C ../cmake/build_cmake_base.cmake \
   -C ../cmake/build_cmake_docker.cmake \
   -C ../cmake/build_cmake_web.cmake \
-  -DCUDA_ARCHITECTURES:STRING="7.5"
+  -DCUDA_ARCHITECTURES:STRING="7.5" \
   -DVIAME_ENABLE_TESTS:BOOL=ON
 
 # Download OCV aux files from local server copy
