@@ -28,6 +28,7 @@ cmake ../ \
   -C ../cmake/build_cmake_docker.cmake \
   -C ../cmake/build_cmake_web.cmake \
   -DCUDA_ARCHITECTURES:STRING="7.5"
+  -DVIAME_ENABLE_TESTS:BOOL=ON
 
 # Download OCV aux files from local server copy
 download_opencv_extras
@@ -36,6 +37,13 @@ export MAX_JOBS=4
 
 # Perform multi-threaded build
 run_build build_log.txt true
+
+mkdir -p /tmp/test-results
+
+ctest \
+  -L PIPELINES \
+  --output-on-failure \
+  --output-junit /tmp/test-results/ctest.xml || true
 
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
