@@ -23,6 +23,42 @@ from viame.pytorch.utilities import (
 )
 
 
+# Detection (box-only) and segmentation (mask) RF-DETR variants, by size.
+_DET_MODELS = {
+    'nano': 'RFDETRNano', 'small': 'RFDETRSmall', 'medium': 'RFDETRMedium',
+    'base': 'RFDETRBase', 'large': 'RFDETRLarge',
+}
+_SEG_MODELS = {
+    'nano': 'RFDETRSegNano', 'small': 'RFDETRSegSmall',
+    'medium': 'RFDETRSegMedium', 'large': 'RFDETRSegLarge',
+}
+
+
+def select_model_class(model_size, segmentation):
+    """Return the RF-DETR model class for a size + detection/segmentation mode."""
+    table = _SEG_MODELS if segmentation else _DET_MODELS
+    key = str(model_size).lower()
+    if key not in table:
+        kind = 'segmentation' if segmentation else 'detection'
+        raise ValueError(f"Unknown {kind} model size: {model_size}")
+    import rfdetr
+    return getattr(rfdetr, table[key])
+
+
+def polygon_area(flat_poly):
+    """Shoelace area of a flattened [x1,y1,x2,y2,...] polygon (>=3 points)."""
+    n = len(flat_poly) // 2
+    if n < 3:
+        return 0.0
+    area = 0.0
+    for i in range(n):
+        x1, y1 = flat_poly[2 * i], flat_poly[2 * i + 1]
+        j = (i + 1) % n
+        x2, y2 = flat_poly[2 * j], flat_poly[2 * j + 1]
+        area += x1 * y2 - x2 * y1
+    return abs(area) / 2.0
+
+
 class RFDETRTrainerConfig(scfg.DataConfig):
     """
     The configuration for :class:`RFDETRTrainer`.
@@ -54,6 +90,12 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         'Trade compute for memory by recomputing backbone activations in the '
         'backward pass (~30%% slower, roughly halves activation memory). '
         'Enable to fit higher resolutions or larger batches on limited VRAM.'))
+    segmentation = scfg.Value(False, help=(
+        'Train a segmentation (mask) model (RFDETRSeg*) instead of the '
+        'detection-only model. Requires polygon annotations in the training '
+        'data; the chip polygons are written to the COCO segmentation field. '
+        'Note: seg model sizes (e.g. large) constrain the input resolution '
+        '(divisible by patch_size*num_windows = 24 for seg-large).'))
 
     # Training hyperparameters
     max_epochs = scfg.Value(100, help='Maximum number of epochs to train for')
@@ -69,7 +111,12 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     grad_accum_steps = scfg.Value(4, help='Gradient accumulation steps')
     weight_decay = scfg.Value(1e-4, help='Weight decay for optimizer')
     warmup_epochs = scfg.Value(0.0, help='Number of warmup epochs')
-    lr_drop = scfg.Value(100, help='Epoch to drop learning rate')
+    lr_drop = scfg.Value(100, help='Epoch to drop learning rate (step schedule)')
+    lr_scheduler = scfg.Value('step', help=(
+        'Learning-rate schedule: "step" (hold LR, then a single 10x drop at '
+        'lr_drop) or "cosine" (smoothly anneal LR toward 0 across all epochs). '
+        'Cosine + early stopping avoids the constant-LR overfitting seen with '
+        'a step drop scheduled beyond the run length.'))
 
     # EMA settings
     use_ema = scfg.Value(True, help='Use exponential moving average')
@@ -223,6 +270,8 @@ class RFDETRTrainer(TrainDetector):
             for idx, name in enumerate(class_names)
         ]
 
+        seg_enabled = parse_bool(self._segmentation)
+
         def build_coco_json(image_files, detection_sets):
             images_json = []
             annotations_json = []
@@ -269,14 +318,27 @@ class RFDETRTrainer(TrainDetector):
                     if class_name not in cat_name_to_id:
                         continue
 
-                    annotations_json.append({
+                    ann = {
                         "id": ann_id,
                         "image_id": img_id,
                         "category_id": cat_name_to_id[class_name],
                         "bbox": [x1, y1, w, h],
                         "area": w * h,
                         "iscrowd": 0,
-                    })
+                    }
+
+                    # For a segmentation run, attach the chip-space polygon
+                    # (carried through by the windowed trainer) as the COCO
+                    # segmentation; RF-DETR's loader rasterizes it to a mask.
+                    if seg_enabled:
+                        poly = list(det.get_flattened_polygon())
+                        if len(poly) >= 6:
+                            ann["segmentation"] = [poly]
+                            area = polygon_area(poly)
+                            if area > 0:
+                                ann["area"] = area
+
+                    annotations_json.append(ann)
                     ann_id += 1
 
             return {
@@ -339,20 +401,13 @@ class RFDETRTrainer(TrainDetector):
                   "across all of them")
             return self._train_multi_gpu(dataset_dir, n_gpus)
 
-        # Select model class based on size
+        # Select model class based on size and detection/segmentation mode
         model_size = self._model_size.lower()
-        if model_size == 'nano':
-            from rfdetr import RFDETRNano as RFDETRModel
-        elif model_size == 'small':
-            from rfdetr import RFDETRSmall as RFDETRModel
-        elif model_size == 'medium':
-            from rfdetr import RFDETRMedium as RFDETRModel
-        elif model_size == 'base':
-            from rfdetr import RFDETRBase as RFDETRModel
-        elif model_size == 'large':
-            from rfdetr import RFDETRLarge as RFDETRModel
-        else:
-            raise ValueError(f"Unknown model size: {model_size}")
+        segmentation = parse_bool(self._segmentation)
+        RFDETRModel = select_model_class(model_size, segmentation)
+        if segmentation:
+            print(f"[RFDETRTrainer] Segmentation (mask) model enabled: "
+                  f"RFDETRSeg{model_size}")
 
         num_channels = int(self._num_channels)
         self._resolution = int(self._resolution)
@@ -406,6 +461,7 @@ class RFDETRTrainer(TrainDetector):
         weight_decay = float(self._weight_decay)
         warmup_epochs = float(self._warmup_epochs)
         lr_drop = int(self._lr_drop)
+        lr_scheduler = str(self._lr_scheduler).strip().lower()
         use_ema = parse_bool(self._use_ema)
         ema_decay = float(self._ema_decay)
         early_stopping = parse_bool(self._early_stopping)
@@ -439,6 +495,7 @@ class RFDETRTrainer(TrainDetector):
             weight_decay=weight_decay,
             warmup_epochs=warmup_epochs,
             lr_drop=lr_drop,
+            lr_scheduler=lr_scheduler,
             use_ema=use_ema,
             ema_decay=ema_decay,
             early_stopping=early_stopping,
@@ -564,6 +621,7 @@ class RFDETRTrainer(TrainDetector):
             weight_decay=float(self._weight_decay),
             warmup_epochs=float(self._warmup_epochs),
             lr_drop=int(self._lr_drop),
+            lr_scheduler=str(self._lr_scheduler).strip().lower(),
             use_ema=parse_bool(self._use_ema),
             ema_decay=float(self._ema_decay),
             early_stopping=parse_bool(self._early_stopping),
@@ -585,6 +643,7 @@ class RFDETRTrainer(TrainDetector):
 
         params = dict(
             model_size=self._model_size.lower(),
+            segmentation=parse_bool(self._segmentation),
             num_channels=int(self._num_channels),
             resolution=int(self._resolution),
             gradient_checkpointing=parse_bool(self._gradient_checkpointing),
@@ -598,12 +657,49 @@ class RFDETRTrainer(TrainDetector):
         with open(params_path, 'w') as f:
             json.dump(params, f)
 
-        python = shutil.which("python") or sys.executable
+        # Pick an interpreter matching this one's version so VIAME's
+        # version-specific extension modules (torch/torchvision/rfdetr) import
+        # in the subprocess. A bare "python" on PATH can resolve to an unrelated
+        # interpreter (e.g. a base conda env) that lacks the VIAME packages.
+        py_ver = f"python{sys.version_info.major}.{sys.version_info.minor}"
+        python = (shutil.which(py_ver)
+                  or (sys.executable
+                      if os.path.basename(sys.executable or "").startswith("python")
+                      else None)
+                  or shutil.which("python3")
+                  or shutil.which("python"))
         impl = os.path.join(os.path.dirname(__file__), "rf_detr_launcher.py")
+
+        # The embedded VIAME interpreter resolves its packages via sys.path
+        # entries that are not all present in the inherited PYTHONPATH env var,
+        # so a plain subprocess can find a partial/!=torchvision. Propagate this
+        # process's sys.path AND the site dirs of the packages it actually
+        # imported (torch/torchvision/rfdetr) so the DDP subprocess (and PTL's
+        # per-rank re-execs) import exactly what this process does.
+        env = dict(os.environ)
+        extra_paths = list(sys.path)
+        for mod_name in ("torch", "torchvision", "rfdetr", "viame"):
+            try:
+                mod = __import__(mod_name)
+                extra_paths.append(
+                    os.path.dirname(os.path.dirname(os.path.abspath(mod.__file__))))
+            except Exception:
+                pass
+        existing_pp = env.get("PYTHONPATH", "")
+        if existing_pp:
+            extra_paths.append(existing_pp)
+        # De-dup while preserving order.
+        seen = set()
+        ordered = []
+        for p in extra_paths:
+            if p and p not in seen:
+                seen.add(p)
+                ordered.append(p)
+        env["PYTHONPATH"] = os.pathsep.join(ordered)
 
         print(f"[RFDETRTrainer] Launching {n_gpus}-GPU DDP training: "
               f"{python} {impl}", flush=True)
-        subprocess.run([python, impl, params_path], check=True)
+        subprocess.run([python, impl, params_path], check=True, env=env)
 
         output = self._get_output_map(output_dir)
         print("\n[RFDETRTrainer] Model training complete!")
@@ -652,10 +748,13 @@ class RFDETRTrainer(TrainDetector):
             args = checkpoint.get('args', {})
             if not isinstance(args, dict):
                 args = vars(args)
-            if 'num_classes' not in args:
+            # rfdetr may pre-seed args['num_classes']=None, so check the value,
+            # not just key presence, or the deployed model gets num_classes=None.
+            if not args.get('num_classes'):
                 args['num_classes'] = len(self._class_names)
             args['class_names'] = self._class_names
             args['model_size'] = self._model_size
+            args['segmentation'] = parse_bool(self._segmentation)
             args['num_channels'] = int(self._num_channels)
             if int(self._resolution) > 0:
                 args['resolution'] = int(self._resolution)

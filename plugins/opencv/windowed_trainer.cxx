@@ -1010,6 +1010,24 @@ windowed_trainer::priv
       auto odet = (*detection)->clone();
       odet->set_bounding_box( bbox );
 
+      // Carry the segmentation polygon onto the chip: translate it into chip
+      // coordinates (matching the bbox) and clamp to the chip bounds so the
+      // rasterized mask stays inside the tile. clone() already copied the
+      // (already-scaled) polygon, so we only translate + clamp here.
+      auto poly = (*detection)->get_flattened_polygon();
+
+      if( !poly.empty() )
+      {
+        for( size_t pi = 0; pi + 1 < poly.size(); pi += 2 )
+        {
+          double px = poly[pi] - region.min_x();
+          double py = poly[pi + 1] - region.min_y();
+          poly[pi] = std::max( 0.0, std::min( px, region.width() ) );
+          poly[pi + 1] = std::max( 0.0, std::min( py, region.height() ) );
+        }
+        odet->set_flattened_polygon( poly );
+      }
+
       if( m_detect_small && det_box.area() < m_small_box_area )
       {
         if( m_small_action == "remove" )
@@ -1160,6 +1178,32 @@ windowed_trainer::priv
       auto dot = std::make_shared< kv::detected_object_type >( cat, score );
       auto dobj = std::make_shared< kv::detected_object >(
         kv::bounding_box_d( minx, miny, maxx, maxy ), score, dot );
+
+      // Optional trailing polygon: P <npts> x1 y1 x2 y2 ...
+      std::string ptag;
+      if( ls >> ptag && ptag == "P" )
+      {
+        int npts = 0;
+        ls >> npts;
+
+        std::vector< double > poly;
+        poly.reserve( npts * 2 );
+
+        for( int pk = 0; pk < npts * 2; ++pk )
+        {
+          double v;
+          if( ls >> v )
+          {
+            poly.push_back( v );
+          }
+        }
+
+        if( !poly.empty() )
+        {
+          dobj->set_flattened_polygon( poly );
+        }
+      }
+
       cur->add( dobj );
       --remaining;
     }
@@ -1254,10 +1298,22 @@ windowed_trainer::priv
         cat = "_";
       }
 
+      // Append the segmentation polygon as: P <npts> x1 y1 x2 y2 ...
+      // (kept on the same line; backward compatible with P-less manifests).
+      auto poly = (*det)->get_flattened_polygon();
+
       ofs << "D " << cat << " "
           << bb.min_x() << " " << bb.min_y() << " "
           << bb.max_x() << " " << bb.max_y() << " "
-          << score << "\n";
+          << score
+          << " P " << ( poly.size() / 2 );
+
+      for( double v : poly )
+      {
+        ofs << " " << v;
+      }
+
+      ofs << "\n";
     }
   }
 }

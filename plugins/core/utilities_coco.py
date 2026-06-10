@@ -284,45 +284,44 @@ def annotation_to_detection(ann, categories, image_dims=None,
 
 
 def _apply_segmentation(det, seg, image_dims=None):
-    """Apply segmentation data to a DetectedObject."""
-    import kwiver.vital.types as vt
+    """Attach a segmentation outline to a DetectedObject as a polygon.
 
+    The polygon is stored via set_flattened_polygon so it can be carried
+    through the training chip pipeline (windowed_trainer) and written to the
+    COCO segmentation field. We deliberately do NOT rasterize a per-annotation
+    full-image mask here: it is unused downstream (the chipper consumes the
+    polygon, not a raster mask) and a full-image mask per annotation is
+    prohibitively large on imagery with hundreds of objects per frame.
+
+    Handles: flat polygon [x1,y1,...]; list of polygon contours
+    [[x1,y1,...], ...]; and kwcoco exterior/interior dicts. The first valid
+    exterior contour (>=3 points) is used. RLE masks are skipped (no polygon).
+    """
+    # Flat list of numbers -> a single polygon
+    if isinstance(seg, list) and seg and isinstance(seg[0], (int, float)):
+        if len(seg) % 2 == 0 and len(seg) >= 6:
+            det.set_flattened_polygon([float(v) for v in seg])
+        return
+
+    # RLE dict masks carry no polygon outline; skip rather than crash.
     if isinstance(seg, dict):
-        # RLE mask
-        mask_arr = rle_to_mask(seg)
-        det.mask = vt.ImageContainer(mask_arr)
         return
 
     if not isinstance(seg, list) or not seg:
         return
 
-    # Flat list of numbers -> single polygon (non-standard but common)
-    if isinstance(seg[0], (int, float)):
-        if len(seg) % 2 == 0:
-            det.set_flattened_polygon([float(v) for v in seg])
-        return
-
-    # List of items: polygon lists or exterior/interior dicts
-    has_dict = any(isinstance(p, dict) for p in seg)
-    is_multi = len(seg) > 1 or has_dict
-
-    if is_multi:
-        # Multi-polygon or polygon-with-holes: rasterize to mask
-        if image_dims and _HAS_CV2:
-            iw, ih = image_dims
-            mask_arr = polygons_to_mask(seg, ih, iw)
-            if mask_arr is not None:
-                det.mask = vt.ImageContainer(mask_arr)
-        # Also set first plain polygon as flattened polygon
-        for p in seg:
-            if isinstance(p, list) and len(p) % 2 == 0:
-                det.set_flattened_polygon([float(v) for v in p])
-                break
-    elif len(seg) == 1 and isinstance(seg[0], list):
-        # Single polygon: [[x1,y1,...]]
-        poly = seg[0]
-        if len(poly) % 2 == 0:
-            det.set_flattened_polygon([float(v) for v in poly])
+    # List of polygon contours and/or kwcoco {exterior, interiors} dicts.
+    # Use the first valid exterior contour.
+    for p in seg:
+        if isinstance(p, dict):
+            ext = p.get('exterior')
+            if isinstance(ext, list) and len(ext) >= 3:
+                flat = [float(v) for pt in ext for v in pt]
+                det.set_flattened_polygon(flat)
+                return
+        elif isinstance(p, list) and len(p) % 2 == 0 and len(p) >= 6:
+            det.set_flattened_polygon([float(v) for v in p])
+            return
 
 
 def _apply_keypoints(det, kps, kp_cat_names=None):

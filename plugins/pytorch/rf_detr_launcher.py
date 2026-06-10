@@ -14,12 +14,16 @@ import json
 
 def build_and_train(params):
     import torch
-    from rfdetr import (RFDETRNano, RFDETRSmall, RFDETRMedium,
-                        RFDETRBase, RFDETRLarge)
+    import rfdetr
 
-    sizes = {"nano": RFDETRNano, "small": RFDETRSmall, "medium": RFDETRMedium,
-             "base": RFDETRBase, "large": RFDETRLarge}
-    model_cls = sizes[params["model_size"]]
+    if params.get("segmentation"):
+        sizes = {"nano": "RFDETRSegNano", "small": "RFDETRSegSmall",
+                 "medium": "RFDETRSegMedium", "large": "RFDETRSegLarge"}
+    else:
+        sizes = {"nano": "RFDETRNano", "small": "RFDETRSmall",
+                 "medium": "RFDETRMedium", "base": "RFDETRBase",
+                 "large": "RFDETRLarge"}
+    model_cls = getattr(rfdetr, sizes[params["model_size"]])
 
     model_kwargs = dict(num_channels=params["num_channels"], device="cuda")
     if params.get("resolution", 0) > 0:
@@ -45,4 +49,12 @@ def build_and_train(params):
 
 
 if __name__ == "__main__":
+    # This script lives in viame/pytorch/, which contains helper packages named
+    # torchvision, netharn and srnn. Python puts the script's own directory at
+    # sys.path[0], so those would SHADOW the real PyPI packages (the local
+    # torchvision has no .transforms) and break "import rfdetr". Drop the script
+    # directory so torch/torchvision/rfdetr resolve to the installed packages.
+    # This also runs on PyTorch-Lightning's per-rank re-execs of this script.
+    _here = os.path.dirname(os.path.abspath(__file__))
+    sys.path[:] = [p for p in sys.path if p and os.path.abspath(p) != _here]
     build_and_train(json.load(open(sys.argv[1])))
