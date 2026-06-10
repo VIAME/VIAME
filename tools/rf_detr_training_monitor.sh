@@ -13,7 +13,7 @@
 #   TM_LOG            training stdout/stderr log file                (required)
 #   TM_EMAIL          recipient address                              (required)
 #   TM_STATUS_LOG     status trail file        (default OUTPUT_DIR/monitor_status.log)
-#   TM_EPOCH_INTERVAL email validation stats every N epochs          (default 10)
+#   TM_EPOCH_INTERVAL email validation stats every N epochs          (default 5)
 #   TM_POLL_SECONDS   poll period                                    (default 1200)
 #   TM_DONE_PATTERN   log substring meaning "finished normally"  (default "TRAIN DONE (exit 0)")
 #   TM_SENDMAIL       sendmail binary                                (default /usr/sbin/sendmail)
@@ -27,7 +27,7 @@ OUTPUT_DIR="${TM_OUTPUT_DIR:?set TM_OUTPUT_DIR}"
 LOG="${TM_LOG:?set TM_LOG}"
 EMAIL="${TM_EMAIL:?set TM_EMAIL}"
 STATUS_LOG="${TM_STATUS_LOG:-$OUTPUT_DIR/monitor_status.log}"
-EPOCH_INTERVAL="${TM_EPOCH_INTERVAL:-10}"
+EPOCH_INTERVAL="${TM_EPOCH_INTERVAL:-5}"
 POLL="${TM_POLL_SECONDS:-1200}"
 DONE_PATTERN="${TM_DONE_PATTERN:-TRAIN DONE (exit 0)}"
 SENDMAIL="${TM_SENDMAIL:-/usr/sbin/sendmail}"
