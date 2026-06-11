@@ -13,13 +13,14 @@ export PATH=$PATH:$VIAME_DIR/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$VIAME_DIR/lib
 
 # Add Python Paths
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$VIAME_DIR/lib/python3.10
-export C_INCLUDE_PATH=$C_INCLUDE_PATH:$VIAME_DIR/include/python3.10
-export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$VIAME_DIR/include/python3.10
+PY_VERSION="3.10"
+if [ -d "$VIAME_DIR/include/python3.10d" ]; then
+  PY_VERSION="3.10d"
+fi
 
-
-
-
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$VIAME_DIR/lib/python${PY_VERSION}
+export C_INCLUDE_PATH=$C_INCLUDE_PATH:$VIAME_DIR/include/python${PY_VERSION}
+export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$VIAME_DIR/include/python${PY_VERSION}
 
 
 

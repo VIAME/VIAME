@@ -10,10 +10,20 @@ set( Python_SOABI ""   CACHE INTERNAL "Forced" FORCE )
 
 set( Python_INCLUDE_DIR ${VIAME_INSTALL_PREFIX}/include CACHE PATH "Forced" FORCE )
 
+set( PYTHON_DEBUG_SUFFIX "" )
+if( NOT WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug" )
+  set( PYTHON_DEBUG_SUFFIX "d" )
+endif()
+
 if( WIN32 )
   set( Python_EXECUTABLE ${VIAME_INSTALL_PREFIX}/bin/python.exe CACHE PATH "Forced" FORCE )
   set( Python_LIBRARY ${VIAME_INSTALL_PREFIX}/lib/python3.lib CACHE PATH "Forced" FORCE )
 else()
-  set( Python_EXECUTABLE ${VIAME_INSTALL_PREFIX}/bin/python CACHE PATH "Forced" FORCE )
-  set( Python_LIBRARY ${VIAME_INSTALL_PREFIX}/lib/libpython3.so CACHE PATH "Forced" FORCE )
+  set( Python_EXECUTABLE ${VIAME_INSTALL_PREFIX}/bin/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}${PYTHON_DEBUG_SUFFIX} CACHE PATH "Forced" FORCE )
+
+  if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+    set( Python_LIBRARY ${VIAME_INSTALL_PREFIX}/lib/libpython${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}d.so CACHE PATH "Forced" FORCE )
+  else()
+    set( Python_LIBRARY ${VIAME_INSTALL_PREFIX}/lib/libpython3.so CACHE PATH "Forced" FORCE )
+  endif()
 endif()

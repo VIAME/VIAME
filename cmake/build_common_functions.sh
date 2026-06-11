@@ -102,9 +102,14 @@ setup_build_environment() {
 
   # Python-specific paths
   if [ -n "$python_version" ]; then
+    local py_inc_dir="$install_dir/include/python${python_version}"
+    if [ -d "${py_inc_dir}d" ]; then
+        py_inc_dir="${py_inc_dir}d"
+    fi
+
     export LD_LIBRARY_PATH="$install_dir/lib/python${python_version}:$LD_LIBRARY_PATH"
-    export C_INCLUDE_PATH="$install_dir/include/python${python_version}:$C_INCLUDE_PATH"
-    export CPLUS_INCLUDE_PATH="$install_dir/include/python${python_version}:$CPLUS_INCLUDE_PATH"
+    export C_INCLUDE_PATH="${py_inc_dir}:$C_INCLUDE_PATH"
+    export CPLUS_INCLUDE_PATH="${py_inc_dir}:$CPLUS_INCLUDE_PATH"
   fi
 
   # CUDA paths (if directory exists)
