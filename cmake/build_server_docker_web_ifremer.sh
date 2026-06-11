@@ -54,3 +54,4 @@ fix_libsvm_symlink install
 
 # Finalize Docker install
 finalize_docker_install /viame/build false
+ln -s /opt/noaa/viame /viame/build/install
