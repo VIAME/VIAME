@@ -157,6 +157,11 @@ endif()
 if( VIAME_ENABLE_ONNX )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "onnx<=1.18")  #keep old compatibility for TensorRT<10 https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html#requirements
   list( APPEND VIAME_PYTHON_BASIC_DEPS "onnxscript" )  #https://github.com/pytorch/pytorch/issues/166352
+  if( VIAME_ENABLE_CUDA )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "onnxruntime-gpu==1.23.2" )
+  else()
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "onnxruntime==1.23.2" )
+  endif()
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
