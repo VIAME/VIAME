@@ -26,7 +26,3 @@ RUN apt-get update -y && \
 
 COPY --from=builder /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcupti.so* /usr/local/cuda/lib64/
 COPY --from=builder /opt/noaa/viame /opt/noaa/viame
-
-WORKDIR /viame/build
-
-RUN bash -c 'source /viame/cmake/build_common_functions.sh && finalize_docker_install /viame/build'

@@ -51,3 +51,6 @@ rm -rf lib download
 
 # Fix libsvm symlink issue
 fix_libsvm_symlink install
+
+# Finalize Docker install
+finalize_docker_install /viame/build false
