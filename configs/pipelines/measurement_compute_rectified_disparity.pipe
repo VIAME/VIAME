@@ -31,6 +31,7 @@ block computer:ocv_stereo_disparity
   :speckle_range				                0
   :calibration_file                             $CONFIG{global:input_cameras_directory}
   :use_wls_filter                               true
+  :output_format                                uint16_scaled
 endblock
 
 connect from downsampler.output_1
