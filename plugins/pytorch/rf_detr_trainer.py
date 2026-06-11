@@ -136,6 +136,22 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     # Checkpointing
     checkpoint_interval = scfg.Value(10, help='Save checkpoint every N epochs')
 
+    # DataLoader performance (accuracy-neutral). Seg models augment on the CPU,
+    # so the default of 2 workers/GPU can starve the GPUs; set num_workers near
+    # the CPUs-per-GPU available. These change throughput only, not the model.
+    num_workers = scfg.Value(2, help='DataLoader worker processes per GPU (0 = main process)')
+    pin_memory = scfg.Value(True, help='Pin host memory for faster host->GPU copies')
+    persistent_workers = scfg.Value(True, help='Keep DataLoader workers alive across epochs')
+    prefetch_factor = scfg.Value(4, help='Batches each worker prefetches (only used when num_workers>0)')
+
+    # Validation cost (accuracy-neutral for model selection; do a full eval on
+    # the final best checkpoint if the headline number must use every detection).
+    eval_interval = scfg.Value(1, help='Run validation every N epochs')
+    eval_max_dets = scfg.Value(500, help=(
+        'Max detections per image scored during validation. The model emits '
+        '~num_queries predictions; values below that drop the lowest-scoring '
+        'ones from scoring and shrink the (slow) IoU matrices.'))
+
     # Logging
     use_tensorboard = scfg.Value(True, help='Enable TensorBoard logging')
 
@@ -502,6 +518,8 @@ class RFDETRTrainer(TrainDetector):
             early_stopping_patience=early_stopping_patience,
             multi_scale=multi_scale,
             checkpoint_interval=checkpoint_interval,
+            eval_interval=int(self._eval_interval),
+            eval_max_dets=int(self._eval_max_dets),
             tensorboard=use_tensorboard,
             wandb=False,
         )
@@ -512,8 +530,7 @@ class RFDETRTrainer(TrainDetector):
         # (micro-batch * grad_accum); RF-DETR derives grad_accum_steps itself.
         if batch_size == 'auto':
             train_kwargs["auto_batch_target_effective"] = int(self._auto_batch_target_effective)
-        if sys.platform == "win32":
-            train_kwargs["num_workers"] = 0
+        train_kwargs.update(self._dataloader_kwargs())
 
         # RF-DETR (>=1.7.0) trains via PyTorch Lightning; graceful stop now goes
         # through Trainer.should_stop. Inject a callback that flips it on timeout
@@ -599,6 +616,18 @@ class RFDETRTrainer(TrainDetector):
             return self._strategy
         return 'ddp_find_unused_parameters_true'
 
+    def _dataloader_kwargs(self):
+        """Accuracy-neutral DataLoader tuning passed to model.train(). On
+        Windows, worker subprocesses fail (spawn re-invokes viame.exe), so force
+        0 workers there. persistent_workers/prefetch_factor only apply when
+        num_workers > 0."""
+        num_workers = 0 if sys.platform == "win32" else int(self._num_workers)
+        kw = dict(num_workers=num_workers, pin_memory=parse_bool(self._pin_memory))
+        if num_workers > 0:
+            kw["persistent_workers"] = parse_bool(self._persistent_workers)
+            kw["prefetch_factor"] = int(self._prefetch_factor)
+        return kw
+
     def _train_multi_gpu(self, dataset_dir, n_gpus):
         """Launch DDP training in a subprocess across all GPUs. PTL re-execs the
         entrypoint once per rank; this process waits, then packages the result."""
@@ -628,6 +657,8 @@ class RFDETRTrainer(TrainDetector):
             early_stopping_patience=int(self._early_stopping_patience),
             multi_scale=parse_bool(self._multi_scale),
             checkpoint_interval=int(self._checkpoint_interval),
+            eval_interval=int(self._eval_interval),
+            eval_max_dets=int(self._eval_max_dets),
             tensorboard=parse_bool(self._use_tensorboard),
             wandb=False,
             class_names=list(self._class_names),
@@ -640,6 +671,7 @@ class RFDETRTrainer(TrainDetector):
         aug_config = self._resolve_aug_config(self._augmentation)
         if aug_config is not None:
             train_kwargs["aug_config"] = aug_config
+        train_kwargs.update(self._dataloader_kwargs())
 
         params = dict(
             model_size=self._model_size.lower(),
