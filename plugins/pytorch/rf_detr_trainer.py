@@ -151,6 +151,12 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         'Max detections per image scored during validation. The model emits '
         '~num_queries predictions; values below that drop the lowest-scoring '
         'ones from scoring and shrink the (slow) IoU matrices.'))
+    val_subsample = scfg.Value(0, help=(
+        'If > 0, validate on at most this many chips (deterministically '
+        'sampled). Seg validation forward-passes every vali chip at batch 1 '
+        '(batch>1 is unusable), so this dominates epoch time on large vali '
+        'sets. A subsample gives a fast, stable selection signal; run a full '
+        'eval on the final best checkpoint for the headline number.'))
 
     # Logging
     use_tensorboard = scfg.Value(True, help='Enable TensorBoard logging')
@@ -372,10 +378,24 @@ class RFDETRTrainer(TrainDetector):
         print(f"[RFDETRTrainer] Train: {len(train_coco['images'])} images, "
               f"{len(train_coco['annotations'])} annotations")
 
-        # Build valid split (from test data)
-        valid_coco = build_coco_json(
-            self._test_image_files, self._test_detections
-        )
+        # Build valid split (from test data). Optionally subsample the vali
+        # chips: seg validation forward-passes every chip at batch 1, which
+        # dominates epoch time on large vali sets. The subsample is
+        # deterministic so the selection signal is stable across epochs/runs.
+        val_files = self._test_image_files
+        val_dets = self._test_detections
+        n_sub = int(self._val_subsample)
+        if n_sub > 0 and len(val_files) > n_sub:
+            import random
+            idx = list(range(len(val_files)))
+            random.Random(1234).shuffle(idx)
+            idx = sorted(idx[:n_sub])
+            val_files = [val_files[i] for i in idx]
+            val_dets = [val_dets[i] for i in idx]
+            print(f"[RFDETRTrainer] Validation subsampled to {len(val_files)} "
+                  f"of {len(self._test_image_files)} chips (deterministic)")
+
+        valid_coco = build_coco_json(val_files, val_dets)
         with open(valid_dir / "_annotations.coco.json", "w") as f:
             json.dump(valid_coco, f)
         print(f"[RFDETRTrainer] Valid: {len(valid_coco['images'])} images, "
