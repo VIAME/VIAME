@@ -157,6 +157,13 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         '(batch>1 is unusable), so this dominates epoch time on large vali '
         'sets. A subsample gives a fast, stable selection signal; run a full '
         'eval on the final best checkpoint for the headline number.'))
+    max_mask_instances = scfg.Value(0, help=(
+        'Cap matched instances per chip used by the segmentation mask loss '
+        '(0 = off). The RF-DETR mask loss allocates per-matched-instance '
+        'tensors and OOMs on densely-annotated chips (100s of objects); this '
+        'bounds it (box/class losses still use all objects). Exported as '
+        'RFDETR_MAX_MASK_INSTANCES so the rfdetr criterion (incl. the DDP '
+        'subprocess) reads it.'))
 
     # Logging
     use_tensorboard = scfg.Value(True, help='Enable TensorBoard logging')
@@ -427,6 +434,12 @@ class RFDETRTrainer(TrainDetector):
         device = resolve_device_str(self._device)
 
         ensure_rfdetr_compatibility()
+
+        # Make the mask-loss instance cap reproducible from the config: export it
+        # to the env the rfdetr criterion reads. The DDP subprocess copies
+        # os.environ, so this is inherited there too.
+        if int(self._max_mask_instances) > 0:
+            os.environ['RFDETR_MAX_MASK_INSTANCES'] = str(int(self._max_mask_instances))
 
         # Use all available GPUs by default. DDP cannot launch from this embedded
         # interpreter, so multi-GPU training runs in a subprocess (see
