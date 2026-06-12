@@ -27,6 +27,7 @@ public:
     : m_process_boundary_dets( false )
     , m_overlapping_proc_once( true )
     , m_process_empty( false )
+    , m_prefer_containing_tile( true )
     , m_mask_overlap_thresh( 0.0 )
   {}
 
@@ -38,6 +39,7 @@ public:
   bool m_process_boundary_dets;
   bool m_overlapping_proc_once;
   bool m_process_empty;
+  bool m_prefer_containing_tile;
   double m_mask_overlap_thresh;
 
   kv::algo::refine_detections_sptr m_refiner;
@@ -80,6 +82,12 @@ windowed_refiner
   config->set_value( "process_empty", d->m_process_empty,
     "Run the inner refiner on tiles even when there are no input detections. "
     "Enable when the inner refiner can detect new objects (e.g. text-query)." );
+  config->set_value( "prefer_containing_tile", d->m_prefer_containing_tile,
+    "When overlapping_proc_once is enabled, refine each detection in the tile "
+    "that fully contains its bounding box (tightest containing chip, most "
+    "centered) instead of the first tile it overlaps.  Prevents the refined "
+    "mask from being truncated at a tile boundary for boxes straddling the "
+    "edge of their first overlapping tile.  Has no effect on detection counts." );
   config->set_value( "mask_overlap_thresh", d->m_mask_overlap_thresh,
     "Merge detections from overlapping tiles whose masks overlap by at "
     "least this fraction within the shared tile-overlap region.  "
@@ -109,6 +117,8 @@ windowed_refiner
   d->m_process_boundary_dets = config->get_value< bool >( "process_boundary_dets" );
   d->m_overlapping_proc_once = config->get_value< bool >( "overlapping_proc_once" );
   d->m_process_empty = config->get_value< bool >( "process_empty" );
+  d->m_prefer_containing_tile =
+    config->get_value< bool >( "prefer_containing_tile" );
   d->m_mask_overlap_thresh = config->get_value< double >( "mask_overlap_thresh" );
 
   kv::algo::refine_detections::set_nested_algo_configuration(
@@ -164,6 +174,15 @@ windowed_refiner
   // Track which original detections have been processed (if option enabled)
   std::set< kv::detected_object_sptr > processed_detections;
 
+  // Pick the tile that fully contains each detection so its refined mask is
+  // not truncated at a tile boundary (only when refining each detection once).
+  std::map< kv::detected_object_sptr, size_t > preferred_region;
+  if( d->m_prefer_containing_tile && d->m_overlapping_proc_once )
+  {
+    preferred_region =
+      compute_preferred_regions( detections, region_properties );
+  }
+
   // Process all regions
   for( unsigned i = 0; i < regions_to_process.size(); i++ )
   {
@@ -218,6 +237,16 @@ windowed_refiner
       {
         // Skip - already processed in a previous region
         continue;
+      }
+
+      // If this detection has a preferred (fully-containing) tile, only refine
+      // it there; defer in every other overlapping tile.
+      {
+        auto pref = preferred_region.find( original_det );
+        if( pref != preferred_region.end() && pref->second != i )
+        {
+          continue;
+        }
       }
 
       // Check if detection touches boundary (if option enabled)

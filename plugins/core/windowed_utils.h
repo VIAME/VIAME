@@ -7,6 +7,8 @@
 
 #include "viame_core_export.h"
 
+#include <map>
+
 #include <vital/types/image_container.h>
 #include <vital/algo/image_object_detector.h>
 #include <vital/util/enum_converter.h>
@@ -199,6 +201,22 @@ scale_detections_to_region_with_mapping(
   const windowed_region_prop& region_info,
   std::vector< kv::detected_object_sptr >& original_detections,
   std::vector< kv::detected_object_sptr >& scaled_detections );
+
+/// Choose, for each detection, the index of the region it should be refined
+/// in so its bounding box is FULLY CONTAINED (avoiding tile-boundary clipping
+/// of the resulting mask).  Among regions (in `region_properties`) whose
+/// original_roi fully contains the box, the smallest-area one is preferred,
+/// tie-broken by the most-centered (largest minimum margin to the roi edges);
+/// this favors the tightest containing chip over the full-image region.  When
+/// no region fully contains the box, the region with the largest overlap area
+/// is used as a fallback (current first-overlap behavior is thereby improved
+/// without ever dropping a detection).  Detections map to exactly one region,
+/// so per-detection refinement counts are preserved.
+VIAME_CORE_EXPORT
+std::map< kv::detected_object_sptr, size_t >
+compute_preferred_regions(
+  const kv::detected_object_set_sptr detections,
+  const std::vector< windowed_region_prop >& region_properties );
 
 /// Separate detections that touch image boundaries from interior detections
 VIAME_CORE_EXPORT

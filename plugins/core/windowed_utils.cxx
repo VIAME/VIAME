@@ -810,6 +810,99 @@ scale_detections_to_region_with_mapping(
 }
 
 // -----------------------------------------------------------------------------
+std::map< kv::detected_object_sptr, size_t >
+compute_preferred_regions(
+  const kv::detected_object_set_sptr detections,
+  const std::vector< windowed_region_prop >& region_properties )
+{
+  std::map< kv::detected_object_sptr, size_t > preferred;
+
+  if( !detections || detections->empty() || region_properties.empty() )
+  {
+    return preferred;
+  }
+
+  for( auto det : *detections )
+  {
+    if( !det )
+    {
+      continue;
+    }
+
+    const kv::bounding_box_d box = det->bounding_box();
+
+    bool   have_contain = false;
+    long   best_area = 0;        // smallest containing roi area
+    double best_margin = -1.0;   // largest min-margin (most centered)
+    double best_overlap = 0.0;   // fallback: largest overlap area
+    size_t best_idx = 0;
+    size_t best_overlap_idx = 0;
+    bool   have_overlap = false;
+
+    for( size_t i = 0; i < region_properties.size(); i++ )
+    {
+      const image_rect& r = region_properties[i].original_roi;
+      const double rx0 = r.x,           ry0 = r.y;
+      const double rx1 = r.x + r.width, ry1 = r.y + r.height;
+
+      // Does this region fully contain the box?
+      const bool contains =
+        ( box.min_x() >= rx0 ) && ( box.min_y() >= ry0 ) &&
+        ( box.max_x() <= rx1 ) && ( box.max_y() <= ry1 );
+
+      if( contains )
+      {
+        const long area = static_cast< long >( r.width ) *
+                          static_cast< long >( r.height );
+        const double margin = std::min(
+          std::min( box.min_x() - rx0, rx1 - box.max_x() ),
+          std::min( box.min_y() - ry0, ry1 - box.max_y() ) );
+
+        // Prefer the smallest containing region (tightest chip over the
+        // full-image region); tie-break by the most-centered placement.
+        if( !have_contain || area < best_area ||
+            ( area == best_area && margin > best_margin ) )
+        {
+          have_contain = true;
+          best_area = area;
+          best_margin = margin;
+          best_idx = i;
+        }
+      }
+
+      // Track max-overlap region as a fallback when nothing fully contains.
+      const double ox0 = std::max( box.min_x(), rx0 );
+      const double oy0 = std::max( box.min_y(), ry0 );
+      const double ox1 = std::min( box.max_x(), rx1 );
+      const double oy1 = std::min( box.max_y(), ry1 );
+      if( ox1 > ox0 && oy1 > oy0 )
+      {
+        const double oa = ( ox1 - ox0 ) * ( oy1 - oy0 );
+        if( !have_overlap || oa > best_overlap )
+        {
+          have_overlap = true;
+          best_overlap = oa;
+          best_overlap_idx = i;
+        }
+      }
+    }
+
+    if( have_contain )
+    {
+      preferred[ det ] = best_idx;
+    }
+    else if( have_overlap )
+    {
+      preferred[ det ] = best_overlap_idx;
+    }
+    // If neither (no region overlaps at all) leave det unmapped; the refiner
+    // falls back to its default per-region overlap handling.
+  }
+
+  return preferred;
+}
+
+// -----------------------------------------------------------------------------
 void
 separate_boundary_detections(
   const kv::detected_object_set_sptr detections,
