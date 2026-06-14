@@ -38,6 +38,8 @@ def str2bool(v):
     """
     if isinstance(v, bool):
         return v
+    if not isinstance(v, str):
+        raise TypeError(f'Boolean value expected, got {type(v).__name__}')
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
