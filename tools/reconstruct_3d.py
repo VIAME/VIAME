@@ -23,6 +23,7 @@ Usage:
 import os
 import sys
 import json
+import math
 import argparse
 import time
 import subprocess
@@ -486,8 +487,175 @@ def generate_prior_coverage(rec, output_csv, class_name):
 
 
 # ---------------------------------------------------------------------------
-# Planar (homography-based) coverage - for benthic/overhead survey imagery
+# Flight-log / image metadata loading (GPS geo-anchoring)
 # ---------------------------------------------------------------------------
+#
+# Two metadata formats are supported, both associated with images by CAPTURE
+# ORDER (filenames are often renamed after capture, so order is the robust key):
+#
+#   A) FMCLOG CSV (e.g. 2024 SSL-FMCLOG_*.csv): one row per camera trigger with
+#      NMEA lat/lon, yaw, AGL elevation_m, site_name + frame_count. Pass via
+#      --flight-log <csv>; rows are filtered to the folder's site_name.
+#   B) imagelog.json (e.g. 2025 UAS): {"ImageLog": [ {lat, lon, alt_rel, yaw,
+#      pitch, roll, trigger_index, ...}, ... ]} co-located with the images.
+#      Auto-detected in the image folder. Decimal lat/lon.
+#   C) EXIF GPS embedded in the images (fallback when neither file is present;
+#      gives lat/lon/alt but no heading).
+#
+# All are normalised to a per-frame pose dict: {lat, lon (decimal deg),
+# alt_agl (m, may be None), yaw (deg, may be None)}.
+
+
+def _nmea_to_dec(value, ref):
+    """NMEA DDDMM.MMMM (FMCLOG) -> signed decimal degrees."""
+    v = float(value)
+    deg = int(v // 100)
+    dec = deg + (v - 100 * deg) / 60.0
+    return -dec if str(ref).strip().upper() in ('S', 'W') else dec
+
+
+def _dms_to_dec(dms, ref):
+    """EXIF GPS (deg, min, sec) -> signed decimal degrees."""
+    d, m, s = [float(x) for x in dms]
+    dec = d + m / 60.0 + s / 3600.0
+    return -dec if str(ref).strip().upper() in ('S', 'W') else dec
+
+
+def _load_imagelog_json(folder):
+    """Format B: imagelog.json in `folder`. Returns ordered list of pose dicts
+    (by trigger_index) or None."""
+    import json
+    path = os.path.join(folder, 'imagelog.json')
+    if not os.path.isfile(path):
+        return None
+    try:
+        recs = json.load(open(path)).get('ImageLog', [])
+    except Exception:
+        return None
+    if not recs:
+        return None
+    recs = sorted(recs, key=lambda r: r.get('trigger_index', 0))
+    out = []
+    for r in recs:
+        if r.get('lat') is None or r.get('lon') is None:
+            continue
+        # alt_rel is height above launch (can be ~0/negative); prefer it only
+        # when it is a plausible imaging height, else fall back to absolute alt.
+        alt_rel = r.get('alt_rel')
+        alt_abs = r.get('alt')
+        alt = (float(alt_rel) if alt_rel is not None and float(alt_rel) > 5.0
+               else (float(alt_abs) if alt_abs is not None else None))
+        out.append({'lat': float(r['lat']), 'lon': float(r['lon']),
+                    'alt_agl': alt,
+                    'yaw': (float(r['yaw']) if r.get('yaw') is not None else None),
+                    'filename': r.get('filename')})
+    return out or None
+
+
+def _load_fmclog_csv(csv_path, site_name):
+    """Format A: FMCLOG CSV filtered to site_name. Returns ordered list of pose
+    dicts (by utc_time, frame_count) or None."""
+    import csv as _csv
+    if not csv_path or not os.path.isfile(csv_path):
+        return None
+    def _norm(s):
+        return re.sub(r'[^a-z0-9]', '', (s or '').lower())
+    import re
+    want = _norm(site_name)
+    try:
+        rows = []
+        for r in _csv.DictReader(open(csv_path)):
+            ls = _norm(r.get('site_name', ''))
+            if ls and want and (ls == want or ls.startswith(want) or want.startswith(ls)):
+                rows.append(r)
+    except Exception:
+        return None
+    if not rows:
+        return None
+    def _key(r):
+        try:
+            return (r.get('utc_time', ''), int(r.get('frame_count', '0') or 0))
+        except ValueError:
+            return (r.get('utc_time', ''), 0)
+    rows.sort(key=_key)
+    out = []
+    for r in rows:
+        try:
+            lat = _nmea_to_dec(r['lat'], r.get('lat_ns', 'N'))
+            lon = _nmea_to_dec(r['lon'], r.get('lon_ew', 'E'))
+        except (ValueError, KeyError):
+            continue
+        alt = None
+        try:
+            alt = float(r.get('elevation_m', '')) if r.get('elevation_m') else None
+        except ValueError:
+            alt = None
+        yaw = None
+        try:
+            yaw = float(r.get('yaw', '')) if r.get('yaw') not in (None, '') else None
+        except ValueError:
+            yaw = None
+        out.append({'lat': lat, 'lon': lon, 'alt_agl': alt, 'yaw': yaw})
+    return out or None
+
+
+def _load_exif_gps(folder, image_list):
+    """Format C: EXIF GPS embedded per image. Returns dict rel_path -> pose or None."""
+    try:
+        from PIL import Image as _PILImage
+        from PIL.ExifTags import TAGS, GPSTAGS
+    except Exception:
+        return None
+    out = {}
+    for rel in image_list:
+        try:
+            ex = _PILImage.open(os.path.join(folder, rel))._getexif() or {}
+            tags = {TAGS.get(k, k): v for k, v in ex.items()}
+            gps = tags.get('GPSInfo')
+            if not gps:
+                continue
+            g = {GPSTAGS.get(k, k): v for k, v in gps.items()}
+            lat = _dms_to_dec(g['GPSLatitude'], g.get('GPSLatitudeRef', 'N'))
+            lon = _dms_to_dec(g['GPSLongitude'], g.get('GPSLongitudeRef', 'E'))
+            alt = float(g['GPSAltitude']) if g.get('GPSAltitude') is not None else None
+            out[rel] = {'lat': lat, 'lon': lon, 'alt_agl': alt, 'yaw': None}
+        except Exception:
+            continue
+    return out or None
+
+
+def load_pose_metadata(image_folder, image_list, flight_log=None, site_name=None):
+    """Unified per-frame pose loader supporting both metadata formats.
+
+    `image_list` is the caller's ordered list of relative image paths. Returns a
+    dict {rel_path: {lat, lon, alt_agl, yaw}} or None if no metadata is found.
+    Priority: imagelog.json (B) -> FMCLOG csv (A) -> EXIF GPS (C). Formats A/B
+    associate by capture order (index); C associates per-image.
+    """
+    # The image folder for a single camera list may be a subfolder; resolve the
+    # directory that actually holds the images (and an imagelog.json).
+    first_dir = os.path.dirname(os.path.join(image_folder, image_list[0])) if image_list else image_folder
+
+    ordered = _load_imagelog_json(first_dir) or _load_imagelog_json(image_folder)
+    source = 'imagelog.json'
+    if ordered is None and flight_log and site_name:
+        ordered = _load_fmclog_csv(flight_log, site_name)
+        source = 'flight-log'
+    if ordered is not None:
+        # Associate by order; warn if counts differ (still pair the overlap).
+        n = min(len(ordered), len(image_list))
+        poses = {image_list[i]: ordered[i] for i in range(n)}
+        if n:
+            print(f"    Metadata: {source} matched {n}/{len(image_list)} frames"
+                  + ("" if n == len(image_list) else " (count mismatch — paired by order)"))
+        return poses or None
+
+    exif = _load_exif_gps(first_dir if not os.path.dirname(image_list[0]) else image_folder, image_list)
+    if exif:
+        print(f"    Metadata: EXIF GPS matched {len(exif)}/{len(image_list)} frames")
+        return exif
+    return None
+
 
 def compute_homography_pair(img1_path, img2_path, scale=0.5, nfeatures=8192,
                              use_clahe=True, match_ratio=0.75,
@@ -845,7 +1013,8 @@ def _compute_camera_chain(image_folder, cam_images, label="",
                            homography_method='ransac', always_clahe=False,
                            root_sift=False, use_affine=False,
                            sift_contrast=0.04, clahe_clip=4.0,
-                           loop_closure=False, loop_closure_max=24):
+                           loop_closure=False, loop_closure_max=24,
+                           anchor_central=False):
     """Compute sequential homography chain for a single camera's image list.
 
     Returns (H_chain, pairwise_H) where H_chain maps index -> H_to_anchor (3x3)
@@ -884,6 +1053,18 @@ def _compute_camera_chain(image_folder, cam_images, label="",
     # Sort by score descending to find best anchor
     anchor_scores.sort(key=lambda x: -x[0])
     anchor_idx = anchor_scores[0][1]
+
+    # Central anchoring: chain drift accumulates with distance from the anchor,
+    # so a highest-feature anchor sitting near a sequence end (e.g. frame 59/63)
+    # forces ~60 frames of one-directional drift. Among the strong-feature land
+    # frames, prefer the one nearest the sequence centre to halve worst-case drift.
+    if anchor_central and anchor_scores:
+        max_score = anchor_scores[0][0]
+        if max_score > 0:
+            center = (n - 1) / 2.0
+            strong = [(s, i) for s, i in anchor_scores if s >= 0.4 * max_score]
+            if strong:
+                anchor_idx = min(strong, key=lambda si: abs(si[1] - center))[1]
 
     H_chain = {anchor_idx: np.eye(3, dtype=np.float64)}
     pairwise_H = {}      # (i, j) -> raw H from frame i to frame j
@@ -1150,6 +1331,120 @@ def _compute_camera_chain(image_folder, cam_images, label="",
     return H_chain, pairwise_H
 
 
+def _poses_to_enu(poses, cam_images):
+    """Convert per-frame lat/lon poses to a local East/North metre array indexed
+    by frame. Returns (enu[n,2] with nan where missing, yaw[n] with nan)."""
+    n = len(cam_images)
+    enu = np.full((n, 2), np.nan)
+    yaw = np.full(n, np.nan)
+    ref = None
+    for i, fname in enumerate(cam_images):
+        p = poses.get(fname)
+        if not p:
+            continue
+        if ref is None:
+            ref = (p['lat'], p['lon'])
+        dN = (p['lat'] - ref[0]) * 111320.0
+        dE = (p['lon'] - ref[1]) * 111320.0 * math.cos(math.radians(ref[0]))
+        enu[i] = (dE, dN)
+        if p.get('yaw') is not None:
+            yaw[i] = p['yaw']
+    return enu, yaw
+
+
+def _fit_similarity(src, dst):
+    """Least-squares similarity (rotation+uniform scale+reflection+translation)
+    mapping src[N,2] -> dst[N,2]. Returns a function p->mapped and the RMS residual."""
+    src = np.asarray(src, float); dst = np.asarray(dst, float)
+    mu_s, mu_d = src.mean(0), dst.mean(0)
+    S, D = src - mu_s, dst - mu_d
+    U, _, Vt = np.linalg.svd(S.T @ D)
+    R = (Vt.T @ U.T)
+    denom = float(np.sum(S * S))
+    scale = float(np.sum(D * (S @ R.T)) / denom) if denom > 1e-9 else 1.0
+    def fn(p):
+        return (np.asarray(p, float) - mu_s) @ R.T * scale + mu_d
+    rms = float(np.sqrt(np.mean(np.sum((fn(src) - dst) ** 2, 1)))) if len(src) else 0.0
+    return fn, rms
+
+
+def _geo_anchor_chain(chain, cam_images, poses, water_info, label="", pairwise_H=None):
+    """Use GPS poses to fill UNregistered frames with drift-free positions.
+
+    The feature CHAIN accumulates rotation/scale drift, so chain-position
+    differences are unreliable. We instead calibrate from the RAW pairwise
+    feature translations (`pairwise_H`, direct local measurements that never
+    accumulate), fitting a constant 2x2 map A: GPS metres -> pixels via
+        feature_translation(i->j) = A @ (enu[i] - enu[j]).
+    Robust (one outlier-rejection pass). Then fill each unregistered frame by
+    LOCAL dead-reckoning from its nearest registered frame (single GPS hop, no
+    drift accumulation), rotation copied from that frame. Returns
+    (n_filled, step_residual_px)."""
+    enu, _yaw = _poses_to_enu(poses, cam_images)
+    reg = sorted(i for i in chain.keys() if not np.isnan(enu[i, 0]))
+    if len(reg) < 3:
+        return 0, None
+
+    # 1) Calibrate A from raw pairwise feature translations (clean, drift-free).
+    G, F = [], []
+    for (i, j), H in (pairwise_H or {}).items():
+        if abs(i - j) > 3 or np.isnan(enu[i, 0]) or np.isnan(enu[j, 0]):
+            continue
+        g = enu[i] - enu[j]
+        if np.linalg.norm(g) < 1.0:
+            continue
+        G.append(g); F.append([H[0, 2], H[1, 2]])
+    if len(G) < 3:
+        return 0, None
+    G = np.array(G); F = np.array(F)
+
+    def _fit_similarity_disp(G, F):
+        """Fit M (2x2 rotation+scale, both chiralities) with F = M @ G. Robust to
+        near-collinear G (single-direction flight) unlike a free 2x2."""
+        gx, gy = G[:, 0], G[:, 1]
+        fx, fy = F[:, 0], F[:, 1]
+        best = None
+        for chir in (+1, -1):
+            # M = [[a, -chir*b],[b, chir*a]]; stack the two linear eqns per pair.
+            rows = np.vstack([
+                np.column_stack([gx, -chir * gy]),   # fx = a*gx - chir*b*gy
+                np.column_stack([gy,  chir * gx]),    # fy = b*gx + chir*a*gy
+            ])
+            rhs = np.concatenate([fx, fy])
+            (a, b), *_ = np.linalg.lstsq(rows, rhs, rcond=None)
+            M = np.array([[a, -chir * b], [b, chir * a]])
+            r = float(np.median(np.linalg.norm(G @ M.T - F, axis=1)))
+            if best is None or r < best[1]:
+                best = (M, r)
+        return best
+    A, _r = _fit_similarity_disp(G, F)
+    res = np.linalg.norm(G @ A.T - F, axis=1)
+    med = np.median(res)
+    keep = res <= max(3 * med, 50)         # reject gross outliers, refit
+    if keep.sum() >= 3:
+        A, _r = _fit_similarity_disp(G[keep], F[keep])
+        res = np.linalg.norm(G[keep] @ A.T - F[keep], axis=1)
+    step_resid = float(np.median(res))
+
+    # 2) Fill unregistered frames by local dead-reckoning from nearest registered.
+    filled = 0
+    for k in range(len(cam_images)):
+        if k in chain or np.isnan(enu[k, 0]):
+            continue
+        j = min(reg, key=lambda m: abs(m - k))
+        H = chain[j].copy()
+        pos = np.array([chain[j][0, 2], chain[j][1, 2]]) + A @ (enu[k] - enu[j])
+        H[0, 2], H[1, 2] = float(pos[0]), float(pos[1])
+        chain[k] = H
+        filled += 1
+    if label:
+        scale = float(np.sqrt(abs(np.linalg.det(A))))
+        extra = f", filled {filled} via GPS dead-reckoning" if filled else ""
+        print(f"    {label}: geo-anchor calibrated ({int(keep.sum())} pairwise steps, "
+              f"{scale:.0f}px/m, step-residual {step_resid:.0f}px){extra}")
+    return filled, step_resid
+
+
 def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.csv",
                          class_name="suppressed", visualize=False, multicam=False,
                          match_ratio=0.75, min_inliers=10, min_inlier_ratio=0.10,
@@ -1163,7 +1458,8 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
                          sift_contrast=0.04, clahe_clip=4.0,
                          loop_closure=False, loop_closure_max=24,
                          xcam_robust=False, xcam_cluster_tol=300.0,
-                         xcam_low_drift=False):
+                         xcam_low_drift=False, anchor_central=False,
+                         flight_log=None, geo_anchor=False):
     """Compute coverage/suppression regions using homographies (planar scene).
 
     For multicam: computes homographies within each camera separately (temporal
@@ -1250,9 +1546,25 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
                 always_clahe=always_clahe, root_sift=root_sift,
                 use_affine=use_affine, sift_contrast=sift_contrast,
                 clahe_clip=clahe_clip, loop_closure=loop_closure,
-                loop_closure_max=loop_closure_max)
+                loop_closure_max=loop_closure_max, anchor_central=anchor_central)
             cam_chains[cam_key] = chain
             cam_pairwise[cam_key] = pw_H
+
+        # Step 1b: GPS geo-anchoring (optional). Use flight-log / imagelog / EXIF
+        # poses to fill unregistered (water) frames with drift-free positions and
+        # report feature-chain drift vs GPS.
+        if geo_anchor:
+            site_name = re.sub(r'^\d{8}_', '', os.path.basename(image_folder.rstrip('/'))).replace('_', ' ')
+            for cam_key, cam_imgs in cameras.items():
+                cam_dir = os.path.join(image_folder, os.path.dirname(cam_imgs[0])) if cam_imgs else image_folder
+                poses = load_pose_metadata(image_folder, cam_imgs,
+                                           flight_log=flight_log, site_name=site_name)
+                if poses:
+                    _geo_anchor_chain(cam_chains[cam_key], cam_imgs, poses,
+                                      water_info, label=cam_key,
+                                      pairwise_H=cam_pairwise.get(cam_key))
+                elif cam_key == 'CENTER':
+                    print("    (geo-anchor: no metadata found for this folder)")
 
         # Step 2: Compute cross-camera homographies (PORT->CENTER, STAR->CENTER).
         # For a fixed camera rig the cross-camera H is nearly constant, so we
@@ -1454,7 +1766,18 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
             always_clahe=always_clahe, root_sift=root_sift,
             use_affine=use_affine, sift_contrast=sift_contrast,
             clahe_clip=clahe_clip, loop_closure=loop_closure,
-            loop_closure_max=loop_closure_max)
+            loop_closure_max=loop_closure_max, anchor_central=anchor_central)
+
+        # GPS geo-anchoring (optional) — single camera (e.g. 2025 UAS imagelog).
+        if geo_anchor:
+            site_name = re.sub(r'^\d{8}_', '', os.path.basename(image_folder.rstrip('/'))).replace('_', ' ')
+            poses = load_pose_metadata(image_folder, image_names,
+                                       flight_log=flight_log, site_name=site_name)
+            if poses:
+                _geo_anchor_chain(chain, image_names, poses, None, label="frames",
+                                  pairwise_H=_pw)
+            else:
+                print("    (geo-anchor: no metadata found for this folder)")
 
         all_images = []
         for i, fname in enumerate(image_names):
@@ -3133,6 +3456,17 @@ def main():
                          help="Select cross-camera pairs at frames nearest BOTH "
                               "chain anchors (least accumulated drift) so the "
                               "estimates agree — pairs well with --xcam-robust")
+    quality.add_argument("--anchor-central", action="store_true",
+                         help="Anchor each camera's chain near the sequence "
+                              "centre (strong-feature frame closest to the "
+                              "middle) to halve worst-case accumulated drift")
+    quality.add_argument("--geo-anchor", action="store_true",
+                         help="Use flight-log / imagelog.json / EXIF GPS metadata "
+                              "to fill unregistered (water) frames with drift-free "
+                              "positions and report feature-chain drift vs GPS")
+    quality.add_argument("--flight-log", default=None,
+                         help="Path to an FMCLOG CSV (2024 format) for --geo-anchor. "
+                              "Not needed when an imagelog.json or EXIF GPS is present.")
 
     parser.add_argument("--install-deps", action="store_true",
                         help="Check and install missing Python dependencies")
@@ -3219,6 +3553,9 @@ def main():
         xcam_robust=args.xcam_robust,
         xcam_cluster_tol=args.xcam_cluster_tol,
         xcam_low_drift=args.xcam_low_drift,
+        anchor_central=args.anchor_central,
+        flight_log=args.flight_log,
+        geo_anchor=args.geo_anchor,
     )
     for folder in folders:
         name = os.path.basename(folder.rstrip('/'))
