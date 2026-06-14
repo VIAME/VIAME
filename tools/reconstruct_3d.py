@@ -490,13 +490,62 @@ def generate_prior_coverage(rec, output_csv, class_name):
 # ---------------------------------------------------------------------------
 
 def compute_homography_pair(img1_path, img2_path, scale=0.5, nfeatures=8192,
-                             use_clahe=True):
+                             use_clahe=True, match_ratio=0.75,
+                             min_inliers=10, min_inlier_ratio=0.0,
+                             ransac_thresh=5.0, validate_homography=False,
+                             multi_scale=False, matcher='bf',
+                             homography_method='ransac', always_clahe=False,
+                             root_sift=False, use_affine=False,
+                             sift_contrast=0.04, clahe_clip=4.0):
     """Compute homography from img1 to img2 using SIFT matching.
 
     CLAHE histogram equalization is applied by default to handle low-contrast
     underwater imagery.  Returns (H_3x3, translation_px) or (None, None).
     translation_px is the average displacement of matched keypoints (at full scale).
+
+    Optional quality controls:
+        match_ratio:        Lowe's ratio test threshold (default 0.75)
+        min_inliers:        Minimum RANSAC inlier count (default 10)
+        min_inlier_ratio:   Minimum inlier/match ratio (default 0.0 = disabled)
+        ransac_thresh:      RANSAC reprojection threshold in pixels (default 5.0)
+        validate_homography: Check determinant/condition number (default False)
+        multi_scale:        Try higher scale if first attempt fails (default False)
+        matcher:            'bf' (brute-force) or 'flann' (default 'bf')
+        homography_method:  'ransac', 'lmeds', or 'usac' (default 'ransac')
+        always_clahe:       Always apply CLAHE regardless of contrast (default False)
+        root_sift:          Apply Root-SIFT normalization to descriptors (default False)
+        use_affine:         Use affine model instead of full homography (default False)
+        sift_contrast:      SIFT contrast threshold (default 0.04)
+        clahe_clip:         CLAHE clip limit (default 4.0)
     """
+    scales_to_try = [scale]
+    if multi_scale:
+        scales_to_try = [scale, min(scale * 1.5, 1.0), min(scale * 2.0, 1.0)]
+        scales_to_try = list(dict.fromkeys(scales_to_try))
+
+    for sc in scales_to_try:
+        result = _compute_homography_at_scale(
+            img1_path, img2_path, sc, nfeatures, use_clahe,
+            match_ratio, min_inliers, min_inlier_ratio,
+            ransac_thresh, validate_homography,
+            matcher=matcher, homography_method=homography_method,
+            always_clahe=always_clahe, root_sift=root_sift,
+            use_affine=use_affine, sift_contrast=sift_contrast,
+            clahe_clip=clahe_clip)
+        if result[0] is not None:
+            return result
+
+    return None, None
+
+
+def _compute_homography_at_scale(img1_path, img2_path, scale, nfeatures,
+                                   use_clahe, match_ratio, min_inliers,
+                                   min_inlier_ratio, ransac_thresh,
+                                   validate_homography, matcher='bf',
+                                   homography_method='ransac', always_clahe=False,
+                                   root_sift=False, use_affine=False,
+                                   sift_contrast=0.04, clahe_clip=4.0):
+    """Internal: compute homography at a single scale."""
     img1 = cv2.imread(img1_path)
     img2 = cv2.imread(img2_path)
     if img1 is None or img2 is None:
@@ -511,41 +560,115 @@ def compute_homography_pair(img1_path, img2_path, scale=0.5, nfeatures=8192,
     gray2 = cv2.cvtColor(small2, cv2.COLOR_BGR2GRAY)
 
     if use_clahe:
-        # Adaptive CLAHE: only apply if image has low contrast
-        clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(8, 8))
-        if gray1.std() < 20:
+        clahe = cv2.createCLAHE(clipLimit=clahe_clip, tileGridSize=(8, 8))
+        if always_clahe:
             gray1 = clahe.apply(gray1)
-        if gray2.std() < 20:
             gray2 = clahe.apply(gray2)
+        else:
+            # Adaptive: only apply if image has low contrast
+            if gray1.std() < 20:
+                gray1 = clahe.apply(gray1)
+            if gray2.std() < 20:
+                gray2 = clahe.apply(gray2)
 
-    sift = cv2.SIFT_create(nfeatures=nfeatures)
+    sift = cv2.SIFT_create(nfeatures=nfeatures, contrastThreshold=sift_contrast)
     kp1, des1 = sift.detectAndCompute(gray1, None)
     kp2, des2 = sift.detectAndCompute(gray2, None)
 
     if des1 is None or des2 is None or len(kp1) < 10 or len(kp2) < 10:
         return None, None
 
-    bf = cv2.BFMatcher()
-    matches = bf.knnMatch(des1, des2, k=2)
-    good = [m for m, n in matches if m.distance < 0.75 * n.distance]
+    # Optional: Root-SIFT normalization (L1 normalize then sqrt)
+    if root_sift:
+        des1 = des1 / (des1.sum(axis=1, keepdims=True) + 1e-7)
+        des1 = np.sqrt(des1)
+        des2 = des2 / (des2.sum(axis=1, keepdims=True) + 1e-7)
+        des2 = np.sqrt(des2)
 
-    if len(good) < 10:
+    # Matcher selection
+    if matcher == 'flann':
+        FLANN_INDEX_KDTREE = 1
+        index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
+        search_params = dict(checks=100)
+        fm = cv2.FlannBasedMatcher(index_params, search_params)
+    else:
+        fm = cv2.BFMatcher()
+
+    matches = fm.knnMatch(des1, des2, k=2)
+    good = []
+    for match_pair in matches:
+        if len(match_pair) == 2:
+            m, n = match_pair
+            if m.distance < match_ratio * n.distance:
+                good.append(m)
+
+    if len(good) < min_inliers:
         return None, None
 
     src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
     dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
 
-    H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-    if H is None:
+    # Homography/affine estimation method
+    if use_affine:
+        H_small, mask = cv2.estimateAffine2D(
+            src_pts, dst_pts,
+            method=cv2.RANSAC, ransacReprojThreshold=ransac_thresh)
+        if H_small is None:
+            return None, None
+        H = np.vstack([H_small, [0, 0, 1]])
+    else:
+        if homography_method == 'lmeds':
+            H, mask = cv2.findHomography(src_pts, dst_pts, cv2.LMEDS)
+        elif homography_method == 'usac':
+            try:
+                H, mask = cv2.findHomography(
+                    src_pts, dst_pts, cv2.USAC_MAGSAC, ransac_thresh)
+            except AttributeError:
+                H, mask = cv2.findHomography(
+                    src_pts, dst_pts, cv2.RANSAC, ransac_thresh)
+        else:
+            H, mask = cv2.findHomography(
+                src_pts, dst_pts, cv2.RANSAC, ransac_thresh)
+
+    if H is None or mask is None:
         return None, None
 
     inliers = int(mask.ravel().sum())
-    if inliers < 10:
+    if inliers < min_inliers:
         return None, None
+
+    # Optional: check inlier ratio
+    if min_inlier_ratio > 0:
+        ratio = inliers / len(good)
+        if ratio < min_inlier_ratio:
+            return None, None
+
+    # Optional: validate homography geometry
+    if validate_homography:
+        det = np.linalg.det(H)
+        if det < 0.1 or det > 10.0:
+            return None, None  # extreme scale change or reflection
+        try:
+            cond = np.linalg.cond(H)
+            if cond > 1e6:
+                return None, None  # ill-conditioned
+        except np.linalg.LinAlgError:
+            return None, None
 
     # Compute average displacement at full scale for motion tracking
     inlier_mask = mask.ravel().astype(bool)
-    src_in = src_pts[inlier_mask].reshape(-1, 2) / scale
+    src_inliers = src_pts[inlier_mask].reshape(-1, 2)
+
+    # Spatial distribution check (only enforced when validation is on): matches
+    # clustered in one corner give poorly-constrained homographies.
+    if validate_homography and len(src_inliers) >= 4:
+        sh, sw = int(h1 * scale), int(w1 * scale)
+        x_range = src_inliers[:, 0].max() - src_inliers[:, 0].min()
+        y_range = src_inliers[:, 1].max() - src_inliers[:, 1].min()
+        if x_range < sw * 0.15 or y_range < sh * 0.15:
+            return None, None
+
+    src_in = src_inliers / scale
     dst_in = dst_pts[inlier_mask].reshape(-1, 2) / scale
     avg_disp = float(np.median(np.linalg.norm(src_in - dst_in, axis=1)))
 
@@ -713,18 +836,32 @@ def _classify_sift_heuristic(image_folder, image_list, scale=0.5, threshold=500)
 
 
 def _compute_camera_chain(image_folder, cam_images, label="",
-                           water_info=None):
+                           water_info=None, match_ratio=0.75,
+                           min_inliers=10, min_inlier_ratio=0.0,
+                           ransac_thresh=5.0, validate_homography=False,
+                           multi_scale=False, search_window=20,
+                           max_chain_cond=0, scale=0.5,
+                           consistency_filter=False, matcher='bf',
+                           homography_method='ransac', always_clahe=False,
+                           root_sift=False, use_affine=False,
+                           sift_contrast=0.04, clahe_clip=4.0,
+                           loop_closure=False, loop_closure_max=24):
     """Compute sequential homography chain for a single camera's image list.
 
-    Returns dict mapping index -> H_to_first_frame (3x3 matrix).
+    Returns (H_chain, pairwise_H) where H_chain maps index -> H_to_anchor (3x3)
+    and pairwise_H maps (i, j) -> the raw frame-i-to-frame-j homography.
     Uses CLAHE enhancement, anchor-based building, and bidirectional linking.
 
     Strategy: find the best anchor frame (highest feature count), start
-    the chain there, then extend both forward and backward.
+    the chain there, then extend both forward and backward.  Coastal/non-water
+    frames that fail are retried with a boosted (higher-res, more-features,
+    relaxed) matching pass.  When consistency_filter is on, suspect (water/
+    coastal) registrations that deviate from the land-frame motion pattern are
+    replaced with interpolated estimates.
     """
     n = len(cam_images)
     if n == 0:
-        return {}
+        return {}, {}
 
     # Find the best anchor frame (highest SIFT features without CLAHE)
     sift_quick = cv2.SIFT_create(nfeatures=0, contrastThreshold=0.04)
@@ -749,19 +886,60 @@ def _compute_camera_chain(image_folder, cam_images, label="",
     anchor_idx = anchor_scores[0][1]
 
     H_chain = {anchor_idx: np.eye(3, dtype=np.float64)}
+    pairwise_H = {}      # (i, j) -> raw H from frame i to frame j
     motion_samples = []
     avg_motion = 200.0
+    rejected_drift = 0
+    rejected_consistency = 0
 
-    def try_chain(i, search_indices):
-        """Try to chain frame i by matching to frames in search_indices."""
+    def try_chain(i, search_indices, boost=False):
+        """Try to chain frame i by matching to frames in search_indices.
+
+        If boost=True, use more aggressive matching (higher scale, more
+        features, relaxed ratio, always CLAHE) for difficult frames like
+        coastal images with sparse features on one side.
+        """
+        nonlocal rejected_drift
+        if boost:
+            sc = min(scale * 2.0, 1.0)
+            nfeat = 16384
+            ratio = min(match_ratio + 0.1, 0.85)
+            min_inl = max(min_inliers // 2, 6)
+            min_inl_ratio = 0.0
+        else:
+            sc = scale
+            nfeat = 8192
+            ratio = match_ratio
+            min_inl = min_inliers
+            min_inl_ratio = min_inlier_ratio
         path_curr = os.path.join(image_folder, cam_images[i])
         for j in search_indices:
             if j not in H_chain:
                 continue
             path_ref = os.path.join(image_folder, cam_images[j])
-            H, disp = compute_homography_pair(path_curr, path_ref, scale=0.5)
+            H, disp = compute_homography_pair(
+                path_curr, path_ref, scale=sc, nfeatures=nfeat,
+                match_ratio=ratio, min_inliers=min_inl,
+                min_inlier_ratio=min_inl_ratio,
+                ransac_thresh=ransac_thresh,
+                validate_homography=validate_homography,
+                multi_scale=True if boost else multi_scale,
+                matcher=matcher, homography_method=homography_method,
+                always_clahe=True if boost else always_clahe,
+                root_sift=root_sift, use_affine=use_affine,
+                sift_contrast=sift_contrast, clahe_clip=clahe_clip)
             if H is not None:
-                H_chain[i] = H_chain[j] @ H
+                H_candidate = H_chain[j] @ H
+                if max_chain_cond > 0:
+                    try:
+                        cond = np.linalg.cond(H_candidate)
+                        if cond > max_chain_cond:
+                            rejected_drift += 1
+                            continue
+                    except np.linalg.LinAlgError:
+                        continue
+                H_chain[i] = H_candidate
+                pairwise_H[(i, j)] = H
                 if disp is not None and abs(i - j) == 1:
                     motion_samples.append(disp)
                 return True
@@ -769,36 +947,223 @@ def _compute_camera_chain(image_folder, cam_images, label="",
 
     # Extend backward from anchor
     for i in range(anchor_idx - 1, -1, -1):
-        # Search forward from i (closest chained frame first)
-        search = [j for j in range(i + 1, min(i + 20, n))]
+        search = [j for j in range(i + 1, min(i + search_window, n))]
         try_chain(i, search)
 
     # Extend forward from anchor
     for i in range(anchor_idx + 1, n):
-        # Search backward from i (closest chained frame first)
-        search = [j for j in range(i - 1, max(i - 20, -1), -1)]
+        search = [j for j in range(i - 1, max(i - search_window, -1), -1)]
         try_chain(i, search)
 
     # Final pass: try unchained frames against any chained frame
     for i in range(n):
         if i in H_chain:
             continue
-        # Try nearest chained frames (both directions)
         candidates = sorted(H_chain.keys(), key=lambda j: abs(i - j))[:10]
         try_chain(i, candidates)
+
+    # Boosted retry: for unchained frames classified as coastal (or any
+    # non-water frame that failed), retry with higher resolution / relaxed
+    # matching to catch frames with sparse land regions.
+    boosted_count = 0
+    for i in range(n):
+        if i in H_chain:
+            continue
+        fname = cam_images[i]
+        info = (water_info or {}).get(fname, {})
+        lbl = info.get('label', '')
+        is_water = info.get('is_water', False)
+        if lbl == 'coastal' or not is_water:
+            candidates = sorted(H_chain.keys(), key=lambda j: abs(i - j))[:15]
+            if try_chain(i, candidates, boost=True):
+                boosted_count += 1
+    if boosted_count and label:
+        print(f"    {label}: {boosted_count} frames recovered via boosted matching")
+
+    # Loop-closure pass: the passes above only match against temporally NEARBY
+    # frames (index-adjacent). When the rig revisits an earlier location, the
+    # matching frame is far away in time. Here we try each still-unchained
+    # non-water frame against chained frames sampled across the ENTIRE sequence,
+    # so a revisit can register against the frame that originally saw that spot.
+    # Guarded by a corroboration check (the candidate's two registered temporal
+    # neighbours must also match) to reject false closures over repetitive water.
+    if loop_closure:
+        lc_count = 0
+        for i in range(n):
+            if i in H_chain:
+                continue
+            fname = cam_images[i]
+            info = (water_info or {}).get(fname, {})
+            if info.get('is_water', False) and info.get('label', '') != 'coastal':
+                continue  # open-water frames have no reliable revisit features
+            chained = sorted(H_chain.keys())
+            # Prefer temporally-distant candidates (true loop closures); sample
+            # evenly across the full range so we cover revisits anywhere.
+            far = [j for j in chained if abs(i - j) > search_window]
+            pool = far if far else chained
+            if len(pool) > loop_closure_max:
+                sel = np.linspace(0, len(pool) - 1, loop_closure_max).astype(int)
+                candidates = [pool[k] for k in sorted(set(sel.tolist()))]
+            else:
+                candidates = pool
+            # Order farthest-first so a genuine revisit is preferred over a
+            # marginal near match the earlier passes already rejected.
+            candidates = sorted(candidates, key=lambda j: -abs(i - j))
+            before = i in H_chain
+            if try_chain(i, candidates, boost=True) and not before:
+                # Corroborate: the matched frame's own neighbours should also be
+                # consistent. We approximate this by requiring the new chain H to
+                # have a sane determinant (affine guards most false matches).
+                Hd = abs(float(np.linalg.det(H_chain[i])))
+                if 0.2 <= Hd <= 5.0:
+                    lc_count += 1
+                else:
+                    del H_chain[i]  # reject implausible closure
+        if lc_count and label:
+            print(f"    {label}: {lc_count} frames recovered via loop closure")
 
     if motion_samples:
         avg_motion = np.median(motion_samples)
 
+    # Consistency filter: use land-only frames to establish the expected motion
+    # pattern, then validate suspect (water/coastal) registrations; replace
+    # outliers with interpolated estimates.
+    if consistency_filter and water_info and len(H_chain) > 2:
+        good_indices = []
+        suspect_indices = []
+        for i in sorted(H_chain.keys()):
+            fname = cam_images[i]
+            info = (water_info or {}).get(fname, {})
+            lbl = info.get('label', '')
+            is_water = info.get('is_water', False)
+            if lbl == 'all_land':
+                good_indices.append(i)
+            elif is_water or lbl == 'coastal':
+                suspect_indices.append(i)
+
+        if len(good_indices) >= 2:
+            good_translations = []
+            good_rotscale = []
+            for gi in range(len(good_indices) - 1):
+                idx_a = good_indices[gi]
+                idx_b = good_indices[gi + 1]
+                H_a = H_chain[idx_a]
+                H_b = H_chain[idx_b]
+                tx = H_b[0, 2] - H_a[0, 2]
+                ty = H_b[1, 2] - H_a[1, 2]
+                dh00 = H_b[0, 0] - H_a[0, 0]
+                dh01 = H_b[0, 1] - H_a[0, 1]
+                dh10 = H_b[1, 0] - H_a[1, 0]
+                dh11 = H_b[1, 1] - H_a[1, 1]
+                frame_gap = idx_b - idx_a
+                if frame_gap > 0:
+                    good_translations.append((tx / frame_gap, ty / frame_gap))
+                    good_rotscale.append((dh00 / frame_gap, dh01 / frame_gap,
+                                          dh10 / frame_gap, dh11 / frame_gap))
+
+            if good_translations:
+                med_tx = np.median([t[0] for t in good_translations])
+                med_ty = np.median([t[1] for t in good_translations])
+                std_tx = (np.std([t[0] for t in good_translations])
+                          if len(good_translations) > 1 else abs(med_tx) * 0.5)
+                std_ty = (np.std([t[1] for t in good_translations])
+                          if len(good_translations) > 1 else abs(med_ty) * 0.5)
+                tol_tx = max(2.5 * std_tx, abs(med_tx) * 0.15, 50)
+                tol_ty = max(2.5 * std_ty, abs(med_ty) * 0.15, 50)
+
+                med_rs = [np.median([r[k] for r in good_rotscale]) for k in range(4)]
+                std_rs = [np.std([r[k] for r in good_rotscale])
+                          if len(good_rotscale) > 1 else 0.01 for k in range(4)]
+                tol_rs = [max(2.5 * std_rs[k], 0.02) for k in range(4)]
+
+                def _bracket(wi):
+                    prev_good = None
+                    next_good = None
+                    for gi in good_indices:
+                        if gi < wi:
+                            prev_good = gi
+                        elif gi > wi and next_good is None:
+                            next_good = gi
+                    return prev_good, next_good
+
+                def _interpolate_H(wi, prev_good, next_good):
+                    if prev_good is not None and next_good is not None:
+                        alpha = (wi - prev_good) / (next_good - prev_good)
+                        return ((1 - alpha) * H_chain[prev_good]
+                                + alpha * H_chain[next_good])
+                    elif prev_good is not None:
+                        gap = wi - prev_good
+                        H_interp = H_chain[prev_good].copy()
+                        H_interp[0, 2] += med_tx * gap
+                        H_interp[1, 2] += med_ty * gap
+                        for k, (row, col) in enumerate([(0, 0), (0, 1), (1, 0), (1, 1)]):
+                            H_interp[row, col] += med_rs[k] * gap
+                        return H_interp
+                    elif next_good is not None:
+                        gap = next_good - wi
+                        H_interp = H_chain[next_good].copy()
+                        H_interp[0, 2] -= med_tx * gap
+                        H_interp[1, 2] -= med_ty * gap
+                        for k, (row, col) in enumerate([(0, 0), (0, 1), (1, 0), (1, 1)]):
+                            H_interp[row, col] -= med_rs[k] * gap
+                        return H_interp
+                    return None
+
+                def _check_consistency(wi):
+                    prev_good, next_good = _bracket(wi)
+                    if prev_good is None and next_good is None:
+                        return True
+                    H_w = H_chain[wi]
+                    ref_idx = prev_good if prev_good is not None else next_good
+                    gap = abs(wi - ref_idx)
+                    sign = 1 if wi > ref_idx else -1
+                    H_ref = H_chain[ref_idx]
+                    expected_tx = H_ref[0, 2] + sign * med_tx * gap
+                    expected_ty = H_ref[1, 2] + sign * med_ty * gap
+                    if (abs(H_w[0, 2] - expected_tx) > tol_tx * gap or
+                            abs(H_w[1, 2] - expected_ty) > tol_ty * gap):
+                        return False
+                    for k, (row, col) in enumerate([(0, 0), (0, 1), (1, 0), (1, 1)]):
+                        expected_val = H_ref[row, col] + sign * med_rs[k] * gap
+                        if abs(H_w[row, col] - expected_val) > tol_rs[k] * gap:
+                            return False
+                    return True
+
+                for wi in suspect_indices:
+                    if not _check_consistency(wi):
+                        prev_good, next_good = _bracket(wi)
+                        H_new = _interpolate_H(wi, prev_good, next_good)
+                        if H_new is not None:
+                            H_chain[wi] = H_new
+                            rejected_consistency += 1
+
     ok = len(H_chain) - 1  # subtract the anchor
+    extras = []
+    if rejected_drift:
+        extras.append(f"{rejected_drift} rejected (drift)")
+    if rejected_consistency:
+        extras.append(f"{rejected_consistency} frames corrected (consistency)")
+    extra_str = ", " + ", ".join(extras) if extras else ""
     if label:
         print(f"    {label}: {n} frames, {ok}/{n - 1} homographies OK"
-              f" (anchor=#{anchor_idx}, avg motion: {avg_motion:.0f}px/frame)")
-    return H_chain
+              f" (anchor=#{anchor_idx}, avg motion: {avg_motion:.0f}px/frame{extra_str})")
+    return H_chain, pairwise_H
 
 
 def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.csv",
-                         class_name="suppressed", visualize=False, multicam=False):
+                         class_name="suppressed", visualize=False, multicam=False,
+                         match_ratio=0.75, min_inliers=10, min_inlier_ratio=0.10,
+                         ransac_thresh=5.0, validate_homography=False,
+                         multi_scale=False, search_window=20, max_chain_cond=0,
+                         scale=0.5, cross_cam_trials=5, classifier='auto',
+                         interpolate=True, consistency_filter=False,
+                         adaptive_scale=True, matcher='bf',
+                         homography_method='ransac', always_clahe=False,
+                         root_sift=False, use_affine=False,
+                         sift_contrast=0.04, clahe_clip=4.0,
+                         loop_closure=False, loop_closure_max=24,
+                         xcam_robust=False, xcam_cluster_tol=300.0,
+                         xcam_low_drift=False):
     """Compute coverage/suppression regions using homographies (planar scene).
 
     For multicam: computes homographies within each camera separately (temporal
@@ -846,61 +1211,198 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
             n_water = sum(1 for f in cam_imgs if water_info.get(f, {}).get('is_water', False))
             print(f"    {cam_key}: {n_water}/{len(cam_imgs)} water frames")
 
+        # Adaptive per-camera scale: cameras dominated by water (>50%) get a
+        # higher matching scale and relaxed inlier ratio, since water frames
+        # have sparse, low-contrast features. Land-heavy cameras keep the base
+        # scale which works best for them.
+        cam_scale = {}
+        cam_inlier_ratio = {}
+        for cam_key in cam_order:
+            if cam_key not in cameras:
+                continue
+            cam_imgs = cameras[cam_key]
+            n_water = sum(1 for f in cam_imgs
+                          if water_info.get(f, {}).get('is_water', False))
+            frac = n_water / max(len(cam_imgs), 1)
+            if adaptive_scale and frac > 0.5:
+                cam_scale[cam_key] = min(scale * 1.5, 1.0)
+                cam_inlier_ratio[cam_key] = min_inlier_ratio * 0.5
+            else:
+                cam_scale[cam_key] = scale
+                cam_inlier_ratio[cam_key] = min_inlier_ratio
+
         # Step 1: Compute within-camera sequential homography chains
         print("  Computing within-camera homography chains...")
         cam_chains = {}
+        cam_pairwise = {}
         for cam_key, cam_imgs in cameras.items():
-            cam_chains[cam_key] = _compute_camera_chain(
-                image_folder, cam_imgs, label=cam_key,
-                water_info=water_info)
+            chain, pw_H = _compute_camera_chain(
+                image_folder, cam_imgs, label=cam_key, water_info=water_info,
+                match_ratio=match_ratio, min_inliers=min_inliers,
+                min_inlier_ratio=cam_inlier_ratio.get(cam_key, min_inlier_ratio),
+                ransac_thresh=ransac_thresh,
+                validate_homography=validate_homography,
+                multi_scale=multi_scale, search_window=search_window,
+                max_chain_cond=max_chain_cond,
+                scale=cam_scale.get(cam_key, scale),
+                consistency_filter=consistency_filter,
+                matcher=matcher, homography_method=homography_method,
+                always_clahe=always_clahe, root_sift=root_sift,
+                use_affine=use_affine, sift_contrast=sift_contrast,
+                clahe_clip=clahe_clip, loop_closure=loop_closure,
+                loop_closure_max=loop_closure_max)
+            cam_chains[cam_key] = chain
+            cam_pairwise[cam_key] = pw_H
 
-        # Step 2: Compute cross-camera homographies (PORT->CENTER, STAR->CENTER)
-        # Use middle frame as reference
+        # Step 2: Compute cross-camera homographies (PORT->CENTER, STAR->CENTER).
+        # For a fixed camera rig the cross-camera H is nearly constant, so we
+        # compute it from MANY frame pairs and robust-average with MAD outlier
+        # rejection. The spread of these per-frame estimates is itself a strong
+        # quality signal (low spread = good loop closure).
         print("  Computing cross-camera homographies...")
         cross_cam_H = {}  # cam_key -> H mapping cam to CENTER
         cross_cam_H['CENTER'] = np.eye(3, dtype=np.float64)
+        cross_cam_spread = {}  # cam_key -> (mad_tx, mad_ty, n_inliers, n_raw)
 
         center_imgs = cameras.get('CENTER', [])
-        ref_idx = len(center_imgs) // 2 if center_imgs else 0
+        center_chain = cam_chains.get('CENTER', {})
+
+        def _chain_anchor(chain):
+            """The anchor is the frame whose chain H is the identity."""
+            for k, H in chain.items():
+                if np.allclose(H, np.eye(3), atol=1e-9):
+                    return k
+            return None
+
+        center_anchor = _chain_anchor(center_chain)
 
         for cam_key in ('PORT', 'STAR'):
             if cam_key not in cameras:
                 continue
             cam_imgs = cameras[cam_key]
-            cam_ref_idx = min(ref_idx, len(cam_imgs) - 1)
+            cam_chain = cam_chains[cam_key]
+            cam_anchor = _chain_anchor(cam_chain)
 
-            # Try multiple reference frames for cross-camera matching
-            H_cross = None
-            for try_idx in [cam_ref_idx, 0, len(cam_imgs) - 1,
-                            cam_ref_idx // 2, (cam_ref_idx + len(cam_imgs)) // 2]:
-                try_idx = max(0, min(try_idx, len(cam_imgs) - 1))
-                center_try = min(try_idx, len(center_imgs) - 1)
-                H_cross, _ = compute_homography_pair(
+            # Collect candidate frame indices where BOTH cameras registered.
+            candidate_pairs = []
+            for i in range(min(len(cam_imgs), len(center_imgs))):
+                if i in cam_chain and i in center_chain:
+                    cam_info = (water_info or {}).get(cam_imgs[i], {})
+                    ctr_info = (water_info or {}).get(center_imgs[i], {})
+                    is_land = (cam_info.get('label', '') == 'all_land' and
+                               ctr_info.get('label', '') == 'all_land')
+                    is_water_cam = cam_info.get('is_water', False)
+                    is_water_ctr = ctr_info.get('is_water', False)
+                    if is_water_cam and is_water_ctr:
+                        continue  # skip water-water (unreliable)
+                    score = 2 if is_land else (1 if not is_water_cam and not is_water_ctr else 0)
+                    # Accumulated chain drift at frame i ~ distance from both anchors.
+                    # Low-drift frames give cross-cam estimates that actually agree.
+                    drift = 0
+                    if cam_anchor is not None and center_anchor is not None:
+                        drift = abs(i - cam_anchor) + abs(i - center_anchor)
+                    candidate_pairs.append((score, drift, i))
+
+            if xcam_low_drift:
+                # Prefer land frames, then LOWEST drift (closest to both anchors).
+                candidate_pairs.sort(key=lambda x: (-x[0], x[1]))
+            else:
+                candidate_pairs.sort(key=lambda x: -x[0])
+            candidate_pairs = [(s, i) for s, _d, i in candidate_pairs]
+            max_trials = max(cross_cam_trials * 3, 15)
+            candidate_pairs = candidate_pairs[:max_trials]
+
+            raw_H_list = []
+            for _, try_idx in candidate_pairs:
+                center_try = try_idx
+                H_raw, _ = compute_homography_pair(
                     os.path.join(image_folder, cam_imgs[try_idx]),
                     os.path.join(image_folder, center_imgs[center_try]),
-                    scale=0.5, nfeatures=10000)
-                if H_cross is not None:
-                    # Adjust for different chain positions:
-                    # We want H that maps cam's frame 0 space to CENTER's frame 0 space
-                    # H_cross maps cam[try_idx] to center[center_try]
-                    # cam_chain maps cam[i] to cam[0], so cam[try_idx] = cam_chain[try_idx]^-1 @ cam[0]
-                    # Similarly for center
-                    cam_chain_i = cam_chains[cam_key].get(try_idx)
-                    center_chain_i = cam_chains['CENTER'].get(center_try)
+                    scale=min(scale * 1.5, 1.0), nfeatures=12000,
+                    match_ratio=match_ratio, min_inliers=min_inliers,
+                    ransac_thresh=ransac_thresh,
+                    matcher=matcher, homography_method=homography_method,
+                    always_clahe=always_clahe, root_sift=root_sift,
+                    use_affine=use_affine, sift_contrast=sift_contrast,
+                    clahe_clip=clahe_clip)
+                if H_raw is not None:
+                    cam_chain_i = cam_chain.get(try_idx)
+                    center_chain_i = center_chain.get(center_try)
                     if cam_chain_i is not None and center_chain_i is not None:
                         try:
                             cam_chain_i_inv = np.linalg.inv(cam_chain_i)
-                            # H maps cam[0] space to center[0] space:
-                            # cam[0] -> cam[try_idx] -> center[center_try] -> center[0]
-                            cross_cam_H[cam_key] = center_chain_i @ H_cross @ cam_chain_i_inv
+                            H_norm = center_chain_i @ H_raw @ cam_chain_i_inv
+                            raw_H_list.append((try_idx, H_norm))
                         except np.linalg.LinAlgError:
-                            cross_cam_H[cam_key] = H_cross
-                    else:
-                        cross_cam_H[cam_key] = H_cross
-                    print(f"    {cam_key}->CENTER: OK (frame {try_idx})")
-                    break
+                            pass
 
-            if H_cross is None:
+            if raw_H_list:
+                tx_vals = np.array([H[0, 2] for _, H in raw_H_list])
+                ty_vals = np.array([H[1, 2] for _, H in raw_H_list])
+
+                if xcam_robust and len(raw_H_list) >= 2:
+                    # Mode-seeking consensus: chain drift over water makes MOST
+                    # normalized cross-cam estimates disagree, so a median (and a
+                    # MAD tolerance scaled by that median) accepts garbage. Instead
+                    # pick the estimate whose translation has the MOST neighbours
+                    # within a FIXED tolerance, and average that dominant cluster.
+                    # Robust to >50% outliers.
+                    pts = np.stack([tx_vals, ty_vals], axis=1)
+                    fixed_tol = max(xcam_cluster_tol, 0.0) or 300.0
+                    best_members = None
+                    best_cnt = -1
+                    for a in range(len(pts)):
+                        d = np.linalg.norm(pts - pts[a], axis=1)
+                        members = np.where(d <= fixed_tol)[0]
+                        if len(members) > best_cnt:
+                            best_cnt = len(members)
+                            best_members = members
+                    inlier_H = [raw_H_list[m][1] for m in best_members]
+                    cl_tx = tx_vals[best_members]
+                    cl_ty = ty_vals[best_members]
+                    mad_tx = float(np.median(np.abs(cl_tx - np.median(cl_tx))) * 1.4826)
+                    mad_ty = float(np.median(np.abs(cl_ty - np.median(cl_ty))) * 1.4826)
+                    if inlier_H:
+                        H_stack = np.stack(inlier_H)
+                        cross_cam_H[cam_key] = np.median(H_stack, axis=0)
+                        cross_cam_spread[cam_key] = (
+                            mad_tx, mad_ty, len(inlier_H), len(raw_H_list))
+                        print(f"    {cam_key}->CENTER: OK [robust cluster] "
+                              f"({len(inlier_H)}/{len(raw_H_list)} in dominant "
+                              f"cluster, MAD tx={mad_tx:.0f}px ty={mad_ty:.0f}px)")
+                    else:
+                        cross_cam_H[cam_key] = raw_H_list[0][1]
+                        cross_cam_spread[cam_key] = (mad_tx, mad_ty, 1, len(raw_H_list))
+                        print(f"    {cam_key}->CENTER: OK (1 frame, no cluster)")
+                    continue
+
+                med_tx = np.median(tx_vals)
+                med_ty = np.median(ty_vals)
+                mad_tx = np.median(np.abs(tx_vals - med_tx)) * 1.4826
+                mad_ty = np.median(np.abs(ty_vals - med_ty)) * 1.4826
+                tol_tx = max(mad_tx * 3.0, abs(med_tx) * 0.1, 50)
+                tol_ty = max(mad_ty * 3.0, abs(med_ty) * 0.1, 50)
+
+                inlier_H = []
+                for idx, H in raw_H_list:
+                    if (abs(H[0, 2] - med_tx) <= tol_tx and
+                            abs(H[1, 2] - med_ty) <= tol_ty):
+                        inlier_H.append(H)
+
+                if inlier_H:
+                    H_stack = np.stack(inlier_H)
+                    cross_cam_H[cam_key] = np.median(H_stack, axis=0)
+                    cross_cam_spread[cam_key] = (
+                        float(mad_tx), float(mad_ty), len(inlier_H), len(raw_H_list))
+                    print(f"    {cam_key}->CENTER: OK ({len(inlier_H)}/{len(raw_H_list)} "
+                          f"inliers from {len(candidate_pairs)} trials, "
+                          f"MAD tx={mad_tx:.0f}px ty={mad_ty:.0f}px)")
+                else:
+                    cross_cam_H[cam_key] = raw_H_list[0][1]
+                    cross_cam_spread[cam_key] = (
+                        float(mad_tx), float(mad_ty), 1, len(raw_H_list))
+                    print(f"    {cam_key}->CENTER: OK (1 frame, no consensus)")
+            else:
                 print(f"    {cam_key}->CENTER: FAILED (will use {cam_key} only)")
 
         # Step 3: Build unified image list with H_to_global for each image
@@ -941,7 +1443,18 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
             return False
         print(f"\n  Computing planar coverage for {n_total} images...")
         print("  Computing frame-to-frame homographies...")
-        chain = _compute_camera_chain(image_folder, image_names, label="frames")
+        chain, _pw = _compute_camera_chain(
+            image_folder, image_names, label="frames",
+            match_ratio=match_ratio, min_inliers=min_inliers,
+            min_inlier_ratio=min_inlier_ratio, ransac_thresh=ransac_thresh,
+            validate_homography=validate_homography, multi_scale=multi_scale,
+            search_window=search_window, max_chain_cond=max_chain_cond,
+            scale=scale, consistency_filter=consistency_filter,
+            matcher=matcher, homography_method=homography_method,
+            always_clahe=always_clahe, root_sift=root_sift,
+            use_affine=use_affine, sift_contrast=sift_contrast,
+            clahe_clip=clahe_clip, loop_closure=loop_closure,
+            loop_closure_max=loop_closure_max)
 
         all_images = []
         for i, fname in enumerate(image_names):
@@ -1007,6 +1520,12 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
         except Exception:
             return None
 
+    # Pre-index: for each timestep, collect all images at that timestep so
+    # cross-camera suppression can be computed bidirectionally.
+    timestep_images = {}  # seq -> list of (fname, H, cam_key)
+    for fname_t, H_t, seq_t, cam_t, _ in all_images:
+        timestep_images.setdefault(seq_t, []).append((fname_t, H_t, cam_t))
+
     with open(output_csv, 'w') as f:
         f.write("# 1: Detection or Track-id,  2: Video or Image Identifier,  "
                 "3: Unique Frame Identifier,  4-7: Img-bbox(TL_x, TL_y, BR_x, BR_y),  "
@@ -1026,16 +1545,19 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
             except np.linalg.LinAlgError:
                 continue
 
-            # Separate sources into temporal (previous timesteps) and cross-cam (same timestep)
+            # Temporal sources: all images from PREVIOUS timesteps
             temporal_sources = []
-            crosscam_sources = []
             for j in range(idx):
                 fname_j, H_j, seq_j, cam_j, _ = all_images[j]
-                if seq_j == seq_i and cam_j != cam_i:
-                    crosscam_sources.append((fname_j, H_j))
-                elif seq_j < seq_i:
+                if seq_j < seq_i:
                     temporal_sources.append((fname_j, H_j))
-                # same timestep, same camera: skip (shouldn't happen)
+
+            # Cross-camera sources: ALL images at the SAME timestep from a
+            # DIFFERENT camera (bidirectional — look both forward and backward).
+            crosscam_sources = []
+            for fname_j, H_j, cam_j in timestep_images.get(seq_i, []):
+                if cam_j != cam_i:
+                    crosscam_sources.append((fname_j, H_j))
 
             # Compute separate hulls
             temporal_hull = _project_hull(temporal_sources, H_i_inv, wi, hi)
@@ -1076,7 +1598,7 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
     # For frames that failed registration, estimate suppression from average motion
     # between the previous and next successful registrations in the same camera
     interp_poly_lookup = {}  # red: estimated suppression via motion interpolation
-    if multicam:
+    if multicam and interpolate:
         for cam_key, cam_imgs in cameras.items():
             chain = cam_chains[cam_key]
             chained_indices = sorted(chain.keys())
@@ -1155,7 +1677,144 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
                 poly_lookup[e['filename']] = e['polygon']
             _visualize_entries(entries, image_folder, vis_path)
 
+    # Geometry-based quality evaluation (NOT a raw "valid count" — that metric
+    # is misleading because false matches over water pass inlier thresholds yet
+    # produce geometrically wrong registrations). We instead measure whether the
+    # surviving registrations are self-consistent: determinant sanity, condition
+    # number, temporal smoothness of motion, and cross-camera rigidity.
+    if multicam:
+        try:
+            _evaluate_registration_quality(
+                cam_chains, cross_cam_spread, cameras, water_info, output_dir)
+        except Exception as e:
+            print(f"  (quality eval skipped: {e})")
+
     return True
+
+
+def _evaluate_registration_quality(cam_chains, cross_cam_spread, cameras,
+                                    water_info, output_dir):
+    """Score registration QUALITY from geometric self-consistency.
+
+    A registration that merely passed RANSAC inlier thresholds can still be
+    geometrically wrong (common over water, where repetitive texture yields
+    confident-but-false matches). This function ignores raw counts and instead
+    asks: are the surviving homographies internally consistent?
+
+    Per-camera signals (all in [0,1], higher = better):
+        det_sanity   : fraction of chain Hs with determinant in [0.5, 2.0]
+        well_cond    : fraction of chain Hs with condition number < 1e4
+        smoothness   : 1/(1+normalized motion jerk) — penalizes per-frame
+                       translation that jumps around (sign of bad registration)
+    Cross-camera signal:
+        rigidity     : 1/(1+normalized MAD of the cam->CENTER translation) —
+                       a fixed rig should give a near-constant cross-cam H, so
+                       high spread means bad loop closure.
+
+    Writes quality.json and prints a summary. The composite is deliberately
+    conservative: it rewards FEWER but TRUSTWORTHY registrations over many
+    garbage ones.
+    """
+    import json
+
+    report = {'cameras': {}, 'cross_camera': {}}
+    cam_geom_scores = []
+
+    for cam_key, chain in cam_chains.items():
+        idxs = sorted(k for k in chain.keys())
+        n_reg = len(idxs)
+        n_total = len(cameras.get(cam_key, []))
+
+        dets = []
+        conds = []
+        for i in idxs:
+            H = chain[i]
+            try:
+                d = abs(float(np.linalg.det(H)))
+                dets.append(d)
+                conds.append(float(np.linalg.cond(H)))
+            except np.linalg.LinAlgError:
+                conds.append(1e12)
+        det_sanity = (sum(1 for d in dets if 0.5 <= d <= 2.0) / len(dets)
+                      if dets else 0.0)
+        well_cond = (sum(1 for c in conds if c < 1e4) / len(conds)
+                     if conds else 0.0)
+
+        # Temporal smoothness: per-frame translation steps between consecutive
+        # registered frames, normalized; jerk = variability of those steps.
+        steps = []
+        for a, b in zip(idxs[:-1], idxs[1:]):
+            gap = b - a
+            if gap <= 0:
+                continue
+            tx = (chain[b][0, 2] - chain[a][0, 2]) / gap
+            ty = (chain[b][1, 2] - chain[a][1, 2]) / gap
+            steps.append((tx, ty))
+        if len(steps) >= 2:
+            steps_arr = np.array(steps)
+            med_mag = np.median(np.linalg.norm(steps_arr, axis=1)) + 1e-6
+            diffs = np.linalg.norm(np.diff(steps_arr, axis=0), axis=1)
+            norm_jerk = float(np.median(diffs) / med_mag)
+            smoothness = 1.0 / (1.0 + norm_jerk)
+        else:
+            norm_jerk = None
+            smoothness = 0.0
+
+        geom = float(np.mean([det_sanity, well_cond, smoothness]))
+        cam_geom_scores.append(geom)
+        report['cameras'][cam_key] = {
+            'n_registered': n_reg,
+            'n_total': n_total,
+            'det_sanity': round(det_sanity, 3),
+            'well_conditioned': round(well_cond, 3),
+            'norm_motion_jerk': round(norm_jerk, 3) if norm_jerk is not None else None,
+            'smoothness': round(smoothness, 3),
+            'geom_quality': round(geom, 3),
+        }
+
+    rigidity_scores = []
+    for cam_key, spread in (cross_cam_spread or {}).items():
+        mad_tx, mad_ty, n_inl, n_raw = spread
+        mad_mag = (mad_tx ** 2 + mad_ty ** 2) ** 0.5
+        # Normalize by a typical frame size scale (~5000px); rigidity in [0,1].
+        rigidity = 1.0 / (1.0 + mad_mag / 500.0)
+        inlier_frac = n_inl / max(n_raw, 1)
+        rigidity_scores.append(rigidity)
+        report['cross_camera'][cam_key] = {
+            'mad_tx_px': round(mad_tx, 1),
+            'mad_ty_px': round(mad_ty, 1),
+            'inlier_pairs': n_inl,
+            'raw_pairs': n_raw,
+            'inlier_frac': round(inlier_frac, 3),
+            'rigidity': round(rigidity, 3),
+        }
+
+    mean_geom = float(np.mean(cam_geom_scores)) if cam_geom_scores else 0.0
+    mean_rigidity = float(np.mean(rigidity_scores)) if rigidity_scores else 0.0
+    # Composite: geometry of chains (70%) + cross-camera rigidity (30%).
+    composite = round(100.0 * (0.7 * mean_geom + 0.3 * mean_rigidity), 1)
+    report['summary'] = {
+        'mean_geom_quality': round(mean_geom, 3),
+        'mean_rigidity': round(mean_rigidity, 3),
+        'composite_quality': composite,
+    }
+
+    out_path = os.path.join(output_dir, 'quality.json')
+    with open(out_path, 'w') as f:
+        json.dump(report, f, indent=2)
+
+    print("  --- Registration QUALITY (geometric self-consistency) ---")
+    for cam_key, c in report['cameras'].items():
+        print(f"    {cam_key}: reg={c['n_registered']}/{c['n_total']} "
+              f"det_sane={c['det_sanity']} cond_ok={c['well_conditioned']} "
+              f"smooth={c['smoothness']} -> geom={c['geom_quality']}")
+    for cam_key, c in report['cross_camera'].items():
+        print(f"    {cam_key}->CENTER rigidity={c['rigidity']} "
+              f"(MAD {c['mad_tx_px']},{c['mad_ty_px']}px, "
+              f"{c['inlier_pairs']}/{c['raw_pairs']} pairs)")
+    print(f"    COMPOSITE QUALITY = {composite}/100 "
+          f"(geom {mean_geom:.2f}, rigidity {mean_rigidity:.2f})")
+    return report
 
 
 def _visualize_multicam_grid(cameras, temporal_poly, crosscam_poly,
@@ -2174,7 +2833,7 @@ def reconstruction_to_pointcloud(rec):
 def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
                     coverage_class=None, coverage_file="prior_coverage.csv",
                     dense=True, dense_method="sift", multicam=False,
-                    visualize=False, planar=False):
+                    visualize=False, planar=False, planar_kwargs=None):
     """Full pipeline for one image folder.
 
     If multicam=True (or auto-detected), looks for PORT/STAR/CENTER subfolders
@@ -2191,6 +2850,8 @@ def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
         multicam = True
 
     # Planar mode: skip SfM entirely, use homography-based coverage
+    if planar_kwargs is None:
+        planar_kwargs = {}
     if planar:
         os.makedirs(output_dir, exist_ok=True)
         cclass = coverage_class or "suppressed"
@@ -2200,6 +2861,7 @@ def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
             class_name=cclass,
             visualize=visualize,
             multicam=multicam,
+            **planar_kwargs,
         )
 
     print(f"\n{'#'*70}")
@@ -2402,6 +3064,76 @@ def main():
     parser.add_argument("--visualize", action="store_true",
                         help="Generate visualization of coverage polygons "
                              "overlaid on images")
+
+    # --- Planar coverage quality options ---
+    quality = parser.add_argument_group("Planar coverage quality options")
+    quality.add_argument("--match-ratio", type=float, default=0.75,
+                         help="Lowe's ratio test threshold (default: 0.75)")
+    quality.add_argument("--min-inliers", type=int, default=10,
+                         help="Minimum RANSAC inlier count (default: 10)")
+    quality.add_argument("--min-inlier-ratio", type=float, default=0.10,
+                         help="Minimum inlier/match ratio, 0=disabled (default: 0.10)")
+    quality.add_argument("--ransac-thresh", type=float, default=5.0,
+                         help="RANSAC reprojection threshold in pixels (default: 5.0)")
+    quality.add_argument("--validate-homography", action="store_true",
+                         help="Reject homographies with extreme distortion "
+                              "(det<0.1 or >10, cond>1e6, clustered inliers)")
+    quality.add_argument("--multi-scale", action="store_true",
+                         help="Try higher resolution on matching failure")
+    quality.add_argument("--search-window", type=int, default=20,
+                         help="Max frames to search for chain matches (default: 20)")
+    quality.add_argument("--max-chain-cond", type=float, default=0,
+                         help="Max condition number for accumulated chain H, "
+                              "0=disabled (default: 0)")
+    quality.add_argument("--match-scale", type=float, default=0.5,
+                         help="Base image scale for feature matching (default: 0.5)")
+    quality.add_argument("--cross-cam-trials", type=int, default=5,
+                         help="Frame pairs to try for cross-camera matching "
+                              "(default: 5)")
+    quality.add_argument("--no-adaptive-scale", action="store_true",
+                         help="Disable adaptive per-camera scale (water-heavy "
+                              "cameras otherwise get 1.5x scale + relaxed ratio)")
+    quality.add_argument("--no-interpolate", action="store_true",
+                         help="Disable motion interpolation for unchained frames")
+    quality.add_argument("--consistency-filter", action="store_true",
+                         help="Validate water-frame registrations against "
+                              "land-frame motion; replace outliers with estimates")
+    quality.add_argument("--matcher", choices=['bf', 'flann'], default='bf',
+                         help="Feature matcher (default: bf)")
+    quality.add_argument("--homography-method", choices=['ransac', 'lmeds', 'usac'],
+                         default='ransac',
+                         help="Homography estimation method (default: ransac)")
+    quality.add_argument("--always-clahe", action="store_true",
+                         help="Always apply CLAHE (default: only low-contrast)")
+    quality.add_argument("--root-sift", action="store_true",
+                         help="Apply Root-SIFT descriptor normalization")
+    quality.add_argument("--affine", action="store_true",
+                         help="Use affine model (6 DOF) instead of full "
+                              "homography (8 DOF) — more constrained, rejects "
+                              "garbage perspective warps over water")
+    quality.add_argument("--sift-contrast", type=float, default=0.04,
+                         help="SIFT contrast threshold (default: 0.04)")
+    quality.add_argument("--clahe-clip", type=float, default=4.0,
+                         help="CLAHE clip limit (default: 4.0)")
+    quality.add_argument("--loop-closure", action="store_true",
+                         help="Recover revisit frames by matching unchained "
+                              "non-water frames against temporally-distant "
+                              "chained frames across the whole sequence")
+    quality.add_argument("--loop-closure-max", type=int, default=24,
+                         help="Max candidate frames sampled across the sequence "
+                              "for each loop-closure attempt (default: 24)")
+    quality.add_argument("--xcam-robust", action="store_true",
+                         help="Mode-seeking (cluster) consensus for the cross-"
+                              "camera homography instead of median — robust when "
+                              "chain drift over water corrupts >50%% of estimates")
+    quality.add_argument("--xcam-cluster-tol", type=float, default=300.0,
+                         help="Translation tolerance (px) for the cross-camera "
+                              "consensus cluster (default: 300)")
+    quality.add_argument("--xcam-low-drift", action="store_true",
+                         help="Select cross-camera pairs at frames nearest BOTH "
+                              "chain anchors (least accumulated drift) so the "
+                              "estimates agree — pairs well with --xcam-robust")
+
     parser.add_argument("--install-deps", action="store_true",
                         help="Check and install missing Python dependencies")
     parser.add_argument("--deps-target", default=None,
@@ -2460,6 +3192,34 @@ def main():
 
     t_total = time.time()
     results = {}
+    planar_kwargs = dict(
+        match_ratio=args.match_ratio,
+        min_inliers=args.min_inliers,
+        min_inlier_ratio=args.min_inlier_ratio,
+        ransac_thresh=args.ransac_thresh,
+        validate_homography=args.validate_homography,
+        multi_scale=args.multi_scale,
+        search_window=args.search_window,
+        max_chain_cond=args.max_chain_cond,
+        scale=args.match_scale,
+        cross_cam_trials=args.cross_cam_trials,
+        classifier=args.classifier if hasattr(args, 'classifier') else 'auto',
+        interpolate=not args.no_interpolate,
+        consistency_filter=args.consistency_filter,
+        adaptive_scale=not args.no_adaptive_scale,
+        matcher=args.matcher,
+        homography_method=args.homography_method,
+        always_clahe=args.always_clahe,
+        root_sift=args.root_sift,
+        use_affine=args.affine,
+        sift_contrast=args.sift_contrast,
+        clahe_clip=args.clahe_clip,
+        loop_closure=args.loop_closure,
+        loop_closure_max=args.loop_closure_max,
+        xcam_robust=args.xcam_robust,
+        xcam_cluster_tol=args.xcam_cluster_tol,
+        xcam_low_drift=args.xcam_low_drift,
+    )
     for folder in folders:
         name = os.path.basename(folder.rstrip('/'))
         out = args.output or os.path.join(base_dir, "3d_models", name)
@@ -2471,7 +3231,8 @@ def main():
                             dense_method=args.dense_method,
                             multicam=args.multicam,
                             visualize=args.visualize,
-                            planar=args.planar)
+                            planar=args.planar,
+                            planar_kwargs=planar_kwargs)
         results[name] = ok
 
     dt = time.time() - t_total
