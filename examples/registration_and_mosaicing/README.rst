@@ -108,6 +108,54 @@ images 0, 2, and 4 from the first sequence as well as images 0, 2, and
 (sequence 1) 0, (sequence 2) 0, (sequence 1) 2, (sequence 2) 2,
 (sequence 1) 4, (sequence 2) 4.
 
+**********************************
+Sequential Mappings / Registration
+**********************************
+
+For overhead / benthic surveys (single camera or a PORT/STAR/CENTER multi-camera
+rig), ``reconstruct_3d.py --planar`` chains frame-to-frame homographies from an
+anchor frame to compute per-frame coverage and a registration visualization,
+without running full structure-from-motion. This is a SEQUENTIAL mapping: there is
+no global bundle adjustment, so within-camera drift accumulates along the chain
+(the cross-camera transform is a robust per-rig consensus, and the metadata variant
+below adds a global GPS fit to counter drift). The ``generate_mappings_sequential``
+script invokes it with the recommended settings, tuned to work for BOTH land-heavy
+and water-heavy scenes::
+
+  reconstruct_3d.py <folder> --output out --planar --coverage-class suppressed \
+    --visualize --affine --consistency-filter --xcam-robust --xcam-low-drift
+
+``--affine`` uses a constrained 6-DOF model that rejects the false perspective warps
+repetitive water texture otherwise produces; ``--xcam-robust`` and ``--xcam-low-drift``
+make the cross-camera (loop-closure) estimate a corroborated cluster consensus rather
+than a drift-corrupted median.
+
+If per-frame GPS metadata is available, ``generate_mappings_gps_anchored`` adds
+``--geo-anchor``, which fits a global GPS-to-pixel transform to place featureless
+water frames by dead-reckoning and to report how far the sequential feature chain
+has drifted from the GPS truth. Metadata is read from an FMCLOG ``--flight-log`` CSV,
+an ``imagelog.json`` co-located with the images, or embedded EXIF GPS.
+
+(COLMAP-based structure-from-motion and dense reconstruction are also available in
+``reconstruct_3d.py`` but require building with ``VIAME_ENABLE_COLMAP`` set to ON; the
+planar registration above does not need COLMAP.)
+
+**********************
+Site Revisit Detection
+**********************
+
+``detect_site_revisits.py`` (run via ``detect_site_revisits``) identifies loop-closure
+events — where the platform leaves a location and later returns to image the same
+ground. Two methods are provided and can be combined with ``--method both``:
+
+| ``--method metadata``      from GPS positions only (fast): frames close on the
+                             ground but far apart in time, with travel away in between.
+| ``--method registration``  from imagery: footprint overlap of the registered chain,
+                             confirmed by a direct feature match between far-apart frames.
+
+It writes a ``site_revisits.csv`` listing each revisit pair (frame indices, temporal
+gap, ground distance / footprint overlap, and whether a match confirmed it).
+
 ******************
 Build Requirements
 ******************
