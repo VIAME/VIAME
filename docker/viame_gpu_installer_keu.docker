@@ -10,7 +10,7 @@ COPY . .
 
 WORKDIR /viame/cmake
 
-RUN yum update -y \
+RUN yum update -y --nobest \
   && yum install -y git \
   && chmod +x build_server_rocky.sh \
   && ./build_server_rocky.sh
