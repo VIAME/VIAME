@@ -1388,12 +1388,43 @@ def _fit_similarity_disp(G, F):
     return best
 
 
+def _rot2(deg):
+    """2x2 rotation matrix for an angle in degrees (NaN -> identity)."""
+    if deg is None or np.isnan(deg):
+        return np.eye(2)
+    t = math.radians(deg)
+    c, s = math.cos(t), math.sin(t)
+    return np.array([[c, -s], [s, c]])
+
+
+def _track_headings(enu):
+    """Per-frame flight heading (deg) from the GPS TRACK direction (central
+    difference over nearest valid neighbours). The aircraft heading — not the
+    logged camera yaw — is what rotates the image relative to the ground, and it
+    flips ~180deg between out-and-back survey passes; using it makes the camera-
+    mounting map constant across passes. NaN where undeterminable."""
+    n = len(enu)
+    head = np.full(n, np.nan)
+    valid = [i for i in range(n) if not np.isnan(enu[i, 0])]
+    for idx, i in enumerate(valid):
+        a = valid[idx - 1] if idx > 0 else i
+        b = valid[idx + 1] if idx < len(valid) - 1 else i
+        d = enu[b] - enu[a]
+        if np.linalg.norm(d) > 1.0:
+            head[i] = math.degrees(math.atan2(d[0], d[1]))  # atan2(E, N)
+    return head
+
+
 def _geo_calibrate(chain, cam_images, poses, pairwise_H):
-    """Calibrate the GPS-metres -> pixel similarity A from RAW pairwise feature
-    translations (drift-free local measurements). Returns (A, n_steps, residual,
-    enu) or (None, 0, None, enu). A water-heavy camera may yield few/noisy steps;
-    the caller can override A's scale with the rig-shared value."""
+    """Calibrate the constant camera-mounting map M (heading-frame metres ->
+    pixels) from RAW pairwise feature translations. The ground GPS displacement
+    is first DE-ROTATED by each frame's yaw, so M stays constant even when the
+    aircraft reverses heading between survey passes (the multi-pass / revisit
+    case) — a single un-rotated fit would otherwise be corrupted by the ~180°
+    flip. Returns (M, n_steps, residual, enu, yaw). If yaw is absent (EXIF-only),
+    de-rotation is identity and M degenerates to the single-heading transform."""
     enu, _yaw = _poses_to_enu(poses, cam_images)
+    yaw = _track_headings(enu)    # GPS-track heading (flips between passes)
     G, F = [], []
     for (i, j), H in (pairwise_H or {}).items():
         if abs(i - j) > 3 or np.isnan(enu[i, 0]) or np.isnan(enu[j, 0]):
@@ -1401,24 +1432,26 @@ def _geo_calibrate(chain, cam_images, poses, pairwise_H):
         g = enu[i] - enu[j]
         if np.linalg.norm(g) < 1.0:
             continue
-        G.append(g); F.append([H[0, 2], H[1, 2]])
+        g_cam = _rot2(-yaw[j]) @ g     # ground disp -> aircraft heading frame
+        G.append(g_cam); F.append([H[0, 2], H[1, 2]])
     if len(G) < 3:
-        return None, 0, None, enu
+        return None, 0, None, enu, yaw
     G = np.array(G); F = np.array(F)
-    A, _r = _fit_similarity_disp(G, F)
-    res = np.linalg.norm(G @ A.T - F, axis=1)
+    M, _r = _fit_similarity_disp(G, F)
+    res = np.linalg.norm(G @ M.T - F, axis=1)
     keep = res <= max(3 * np.median(res), 50)   # reject gross outliers, refit
     if keep.sum() >= 3:
-        A, _r = _fit_similarity_disp(G[keep], F[keep])
-        res = np.linalg.norm(G[keep] @ A.T - F[keep], axis=1)
-    return A, int(keep.sum()), float(np.median(res)), enu
+        M, _r = _fit_similarity_disp(G[keep], F[keep])
+        res = np.linalg.norm(G[keep] @ M.T - F[keep], axis=1)
+    return M, int(keep.sum()), float(np.median(res)), enu, yaw
 
 
-def _geo_fill(chain, cam_images, enu, A, label="", n_steps=0, residual=None):
+def _geo_fill(chain, cam_images, enu, yaw, M, label="", n_steps=0, residual=None):
     """Fill UNregistered frames by LOCAL dead-reckoning from the nearest
-    registered frame (single GPS hop, no drift accumulation; rotation copied)."""
+    registered frame: pos_k = pos_j + M @ R(-yaw_j) @ (enu_k - enu_j). The yaw
+    de-rotation makes this correct across heading changes between passes."""
     reg = sorted(i for i in chain.keys() if not np.isnan(enu[i, 0]))
-    if len(reg) < 2 or A is None:
+    if len(reg) < 2 or M is None:
         return 0
     filled = 0
     for k in range(len(cam_images)):
@@ -1426,12 +1459,13 @@ def _geo_fill(chain, cam_images, enu, A, label="", n_steps=0, residual=None):
             continue
         j = min(reg, key=lambda m: abs(m - k))
         H = chain[j].copy()
-        pos = np.array([chain[j][0, 2], chain[j][1, 2]]) + A @ (enu[k] - enu[j])
+        g_cam = _rot2(-yaw[j]) @ (enu[k] - enu[j])
+        pos = np.array([chain[j][0, 2], chain[j][1, 2]]) + M @ g_cam
         H[0, 2], H[1, 2] = float(pos[0]), float(pos[1])
         chain[k] = H
         filled += 1
     if label:
-        scale = float(np.sqrt(abs(np.linalg.det(A))))
+        scale = float(np.sqrt(abs(np.linalg.det(M))))
         rtxt = f"{residual:.0f}px" if residual is not None else "n/a"
         extra = f", filled {filled} via GPS dead-reckoning" if filled else ""
         print(f"    {label}: geo-anchor {n_steps} pairwise steps, {scale:.0f}px/m, "
@@ -1444,30 +1478,31 @@ def _geo_anchor_cameras(cam_chains, cameras, poses_by_cam, pairwise_by_cam):
     cameras image at the same altitude/focal, so the scale (px/m) is identical;
     a water-heavy camera with few clean steps borrows the rig-median scale
     (keeping its own rotation) instead of self-calibrating from noise."""
-    cal = {}   # cam -> [A, n_steps, residual, enu]
+    cal = {}   # cam -> [M, n_steps, residual, enu, yaw]
     for cam_key in cameras:
         if poses_by_cam.get(cam_key) is None:
             continue
-        A, n, r, enu = _geo_calibrate(cam_chains[cam_key], cameras[cam_key],
-                                      poses_by_cam[cam_key], pairwise_by_cam.get(cam_key))
-        cal[cam_key] = [A, n, r, enu]
+        M, n, r, enu, yaw = _geo_calibrate(
+            cam_chains[cam_key], cameras[cam_key],
+            poses_by_cam[cam_key], pairwise_by_cam.get(cam_key))
+        cal[cam_key] = [M, n, r, enu, yaw]
     # Rig-shared scale = median scale of well-calibrated cameras.
     good = [np.sqrt(abs(np.linalg.det(c[0]))) for c in cal.values()
             if c[0] is not None and c[1] >= 8 and c[2] is not None and c[2] < 150]
     shared = float(np.median(good)) if good else None
     for cam_key, c in cal.items():
-        A, n, r, enu = c
-        if A is None:
+        M, n, r, enu, yaw = c
+        if M is None:
             continue
-        own = np.sqrt(abs(np.linalg.det(A)))
+        own = np.sqrt(abs(np.linalg.det(M)))
         # Override scale when this camera's own fit is unreliable (few steps or
         # high residual) and a trustworthy rig scale exists.
         if shared and (n < 8 or (r is not None and r > 150)) and own > 1e-6:
-            A = A * (shared / own)
+            M = M * (shared / own)
             note = f"{cam_key}*"   # * marks scale borrowed from the rig
         else:
             note = cam_key
-        _geo_fill(cam_chains[cam_key], cameras[cam_key], enu, A,
+        _geo_fill(cam_chains[cam_key], cameras[cam_key], enu, yaw, M,
                   label=note, n_steps=n, residual=r)
 
 
@@ -1798,8 +1833,8 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
             poses = load_pose_metadata(image_folder, image_names,
                                        flight_log=flight_log, site_name=site_name)
             if poses:
-                A, n, r, enu = _geo_calibrate(chain, image_names, poses, _pw)
-                _geo_fill(chain, image_names, enu, A, label="frames",
+                M, n, r, enu, yaw = _geo_calibrate(chain, image_names, poses, _pw)
+                _geo_fill(chain, image_names, enu, yaw, M, label="frames",
                           n_steps=n, residual=r)
             else:
                 print("    (geo-anchor: no metadata found for this folder)")
