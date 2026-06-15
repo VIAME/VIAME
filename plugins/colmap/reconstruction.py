@@ -168,11 +168,22 @@ def select_dense_pairs(rec, max_pairs_per_image=3):
 
     return selected
 
-def run_sfm(image_folder, output_dir, image_names, multicam=False):
+def run_sfm(image_folder, output_dir, image_names, multicam=False,
+            matching='auto', pose_priors=None):
     """Run incremental SfM.  Returns a pycolmap.Reconstruction or None.
 
     If multicam=True, image_names should be relative paths including subfolder
     (e.g. 'CENTER/img.jpg') and PER_FOLDER camera mode is used.
+
+    matching: 'auto' (exhaustive for small/multicam sets, else sequential),
+    'exhaustive' (all pairs — required to find temporally-distant LOOP-CLOSURE
+    matches when the platform revisits a location), or 'sequential'.
+
+    pose_priors: optional dict {image_name: (E, N, U)} of GPS-derived positions
+    in a local Cartesian (ENU, metres) frame. When given, they are written as
+    COLMAP pose priors and position-prior-constrained bundle adjustment is
+    enabled (use_prior_position) — this georeferences the reconstruction and
+    helps close loops / limit drift using the metadata.
     """
     db_path = os.path.join(output_dir, "database.db")
     sparse_dir = os.path.join(output_dir, "sparse")
@@ -206,14 +217,41 @@ def run_sfm(image_folder, output_dir, image_names, multicam=False):
             extraction_options=ext_opts,
         )
 
+    # --- GPS pose priors (optional) ---
+    if pose_priors:
+        with timeit(f"Writing {len(pose_priors)} GPS pose priors"):
+            db = pycolmap.Database.open(db_path)
+            written = 0
+            for name, pos in pose_priors.items():
+                try:
+                    img = db.read_image_with_name(name)
+                except Exception:
+                    img = None
+                if img is None:
+                    continue
+                pp = pycolmap.PosePrior(
+                    np.array([float(pos[0]), float(pos[1]), float(pos[2])]),
+                    pycolmap.PosePriorCoordinateSystem.CARTESIAN)
+                db.write_pose_prior(img.image_id, pp)
+                written += 1
+            db.close()
+            print(f"  wrote {written}/{len(pose_priors)} pose priors")
+
     # --- matching ---
     # For multicam, force exhaustive matching so cross-camera pairs are found
     with timeit("Matching features"):
-        if n <= 50 or (multicam and n <= 200):
+        if matching == 'exhaustive':
+            use_exhaustive = True
+        elif matching == 'sequential':
+            use_exhaustive = False
+        else:  # auto
+            use_exhaustive = (n <= 50 or (multicam and n <= 200))
+        if use_exhaustive:
             print(f"  (exhaustive matching, {n} images)")
             pycolmap.match_exhaustive(database_path=db_path)
         else:
-            print("  (sequential matching, overlap=15)")
+            print("  (sequential matching, overlap=15 — note: misses distant "
+                  "loop-closure pairs; use matching='exhaustive' for revisits)")
             seq = pycolmap.SequentialPairingOptions()
             seq.overlap = 15
             pycolmap.match_sequential(database_path=db_path, pairing_options=seq)
@@ -222,6 +260,10 @@ def run_sfm(image_folder, output_dir, image_names, multicam=False):
     with timeit("Incremental SfM"):
         mapper_opts = pycolmap.IncrementalPipelineOptions()
         mapper_opts.min_num_matches = 15
+        if pose_priors:
+            mapper_opts.use_prior_position = True
+            mapper_opts.use_robust_loss_on_prior_position = True
+            print("  (GPS position-prior-constrained bundle adjustment enabled)")
         maps = pycolmap.incremental_mapping(
             database_path=db_path,
             image_path=image_folder,
