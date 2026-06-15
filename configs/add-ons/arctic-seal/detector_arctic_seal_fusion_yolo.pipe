@@ -3,6 +3,8 @@
 #
 # Description: Run detectors on unsynchronous co-collected optical and thermal
 # imagery Outputs to output_result%06d.jpg.
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

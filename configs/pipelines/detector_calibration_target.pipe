@@ -26,7 +26,7 @@ process detector1
   block detector:ocv_detect_calibration_targets
     :target_width                              9  # DIVE_PARAM["Target width", strictly_positive_int]
     :target_height                             6  # DIVE_PARAM["Target height", strictly_positive_int]
-    :square_size                               1
+    :square_size                               1  # DIVE_PARAM["Square size", strictly_positive_float]
     :object_type                               "corner"
   endblock
 

@@ -4,6 +4,8 @@
 # Description: Runs object detection pipeline on input imagery. Uses default
 # input with downsampler configuration. Outputs results to
 # computed_detections.csv. Configured for sea lion survey imagery.
+# Input: IMAGE
+# Output: FULL-SIZE-BBOX
 # =============================================================================
 
 config _pipeline:_edge

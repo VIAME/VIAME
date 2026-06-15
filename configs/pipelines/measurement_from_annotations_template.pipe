@@ -152,8 +152,8 @@ process measurer
 
   block stereo_disparity:ocv_stereo_disparity
     algorithm                                  = SGBM
-    num_disparities                            = 256
-    block_size                                 = 5
+    num_disparities                            = 256        # DIVE_PARAM["Num Disparities", strictly_positive_int]
+    block_size                                 = 5          # DIVE_PARAM["Block Size", strictly_positive_int]
     speckle_window_size                        = 100
     speckle_range                              = 32
     output_format                              = raw

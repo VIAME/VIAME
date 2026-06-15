@@ -5,6 +5,8 @@
 # input with downsampler configuration. Outputs results to
 # sea_lion_detections.csv. Configured for sea lion survey imagery. Uses
 # Cascade R-CNN detection.
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
 
 # Requirements: { Detection Scale (default 1.0), global:scale, double }
