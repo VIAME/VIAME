@@ -85,6 +85,12 @@ if( VIAME_ENABLE_POSTGRESQL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "psycopg2-binary" )
 endif()
 
+# For COLMAP structure-from-motion / 3D reconstruction (reconstruct_3d.py).
+# pycolmap provides SfM + (CUDA) MVS; open3d is used for point-cloud output.
+if( VIAME_ENABLE_COLMAP )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "pycolmap" "open3d" )
+endif()
+
 # For LEARN models
 if( VIAME_ENABLE_PYTORCH-LEARN )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb<=0.25.0" "fsspec" "filelock" )
