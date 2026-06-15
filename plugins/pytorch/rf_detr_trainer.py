@@ -477,22 +477,13 @@ class RFDETRTrainer(TrainDetector):
               + (f" at {self._resolution}px" if self._resolution > 0 else "")
               + (" (gradient checkpointing)" if gradient_checkpointing else ""))
 
-        # Create model
+        # Create model. Seed via pretrain_weights so the weights survive into
+        # RFDETRModelModule, which rebuilds the network from model_config inside
+        # train() and loads only model_config.pretrain_weights (a load_state_dict on
+        # the wrapper here would be discarded). load_pretrain_weights aligns
+        # num_classes from the checkpoint/dataset.
         if len(self._seed_model) > 0 and ub.Path(self._seed_model).exists():
-            # Load from checkpoint
-            checkpoint = torch.load(self._seed_model, map_location=device, weights_only=False)
-            if 'args' in checkpoint and 'num_classes' in checkpoint['args']:
-                num_classes = checkpoint['args']['num_classes']
-            else:
-                num_classes = len(self._categories) if self._categories else 90
-
-            model = RFDETRModel(
-                pretrain_weights=None,
-                num_classes=num_classes,
-                **model_kwargs
-            )
-            if 'model' in checkpoint:
-                model.model.model.load_state_dict(checkpoint['model'])
+            model = RFDETRModel(pretrain_weights=self._seed_model, **model_kwargs)
         else:
             # Use pretrained weights
             model = RFDETRModel(**model_kwargs)

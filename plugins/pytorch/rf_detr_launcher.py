@@ -31,17 +31,14 @@ def build_and_train(params):
     if params.get("gradient_checkpointing"):
         model_kwargs["gradient_checkpointing"] = True
 
+    # Seed from a prior checkpoint by routing it through pretrain_weights. train()
+    # rebuilds the network inside RFDETRModelModule from model_config and loads
+    # only model_config.pretrain_weights, so a post-construction load_state_dict on
+    # the wrapper would be silently discarded. load_pretrain_weights aligns
+    # num_classes from the checkpoint/dataset.
     seed = params.get("seed_model") or ""
     if seed and os.path.exists(seed):
-        ckpt = torch.load(seed, map_location="cpu", weights_only=False)
-        args = ckpt.get("args", {}) if isinstance(ckpt, dict) else {}
-        args = args if isinstance(args, dict) else vars(args)
-        num_classes = args.get("num_classes",
-                               len(params.get("class_names") or []) or 90)
-        model = model_cls(pretrain_weights=None, num_classes=num_classes,
-                          **model_kwargs)
-        if isinstance(ckpt, dict) and "model" in ckpt:
-            model.model.model.load_state_dict(ckpt["model"])
+        model = model_cls(pretrain_weights=seed, **model_kwargs)
     else:
         model = model_cls(**model_kwargs)
 
