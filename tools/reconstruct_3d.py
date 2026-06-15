@@ -30,29 +30,58 @@ import subprocess
 import importlib
 from pathlib import Path
 
+# Shared registration engine (sequential homography chain, GPS metadata,
+# geo-anchoring) lives in the OpenCV plugin so other tools can reuse it.
+from viame.opencv import registration_utils as _sr
+from viame.opencv.registration_utils import (
+    get_image_files, detect_multicam, load_pose_metadata,
+    compute_homography_pair, _compute_homography_at_scale, _compute_camera_chain,
+    _poses_to_enu, _track_headings, _rot2, _fit_similarity_disp,
+    _geo_calibrate, _geo_fill, _geo_anchor_cameras,
+    _nmea_to_dec, _dms_to_dec, _load_imagelog_json, _load_fmclog_csv, _load_exif_gps,
+)
+
 
 # ---------------------------------------------------------------------------
 # Dependency management
 # ---------------------------------------------------------------------------
 
-# Map of import name -> pip package name
+# Map of import name -> pip package name. numpy/cv2 are needed for everything;
+# pycolmap/open3d are only needed for the COLMAP structure-from-motion and dense
+# (MVS) modes, so they are OPTIONAL — the default planar-coverage / registration
+# path runs without them (and without VIAME_ENABLE_COLMAP).
 REQUIRED_PACKAGES = {
     'numpy': 'numpy',
     'cv2': 'opencv-python',
+}
+OPTIONAL_PACKAGES = {
     'pycolmap': 'pycolmap',
     'open3d': 'open3d',
 }
 
 
-def check_dependencies():
-    """Check which required packages are missing. Returns list of (import_name, pip_name)."""
+def check_dependencies(packages=None):
+    """Check which packages are missing. Returns list of (import_name, pip_name)."""
+    packages = packages if packages is not None else REQUIRED_PACKAGES
     missing = []
-    for import_name, pip_name in REQUIRED_PACKAGES.items():
+    for import_name, pip_name in packages.items():
         try:
             importlib.import_module(import_name)
         except ImportError:
             missing.append((import_name, pip_name))
     return missing
+
+
+def require_colmap():
+    """Raise a clear error if pycolmap/open3d (COLMAP mode) are unavailable."""
+    missing = check_dependencies(OPTIONAL_PACKAGES)
+    if missing:
+        print("ERROR: COLMAP 3D-reconstruction mode requires:")
+        for import_name, pip_name in missing:
+            print(f"  {pip_name} (import {import_name})")
+        print("\nInstall them (or build VIAME with -DVIAME_ENABLE_COLMAP=ON), or "
+              "use the default --planar mode which does not need COLMAP.")
+        sys.exit(1)
 
 
 def install_dependencies(missing, target_dir=None):
@@ -75,8 +104,10 @@ def install_dependencies(missing, target_dir=None):
 
 
 def ensure_dependencies(install=False, target_dir=None):
-    """Check deps and optionally install. Returns True if all present."""
-    missing = check_dependencies()
+    """Check deps and optionally install (full set incl. COLMAP). Returns True
+    if all present."""
+    all_packages = dict(REQUIRED_PACKAGES, **OPTIONAL_PACKAGES)
+    missing = check_dependencies(all_packages)
     if not missing:
         print("All dependencies are installed.")
         return True
@@ -120,26 +151,31 @@ def _get_viame_site_packages():
 
 
 def import_dependencies():
-    """Import required packages, with a clear error message if missing."""
+    """Import packages. numpy/cv2 are hard requirements; pycolmap/open3d are
+    optional (COLMAP mode only) and left as None if unavailable."""
     global np, cv2, pycolmap, o3d
+    missing = check_dependencies()
+    if missing:
+        print("ERROR: Missing required dependencies:")
+        for import_name, pip_name in missing:
+            print(f"  {pip_name} (import {import_name})")
+        print(f"\nRun: python {sys.argv[0]} --install-deps")
+        sys.exit(1)
+    import numpy as np_
+    import cv2 as cv2_
+    np = np_
+    cv2 = cv2_
+    _sr.import_dependencies()  # set engine globals
     try:
-        import numpy as np_
-        import cv2 as cv2_
         import pycolmap as pycolmap_
-        import open3d as o3d_
-        np = np_
-        cv2 = cv2_
         pycolmap = pycolmap_
+    except ImportError:
+        pycolmap = None
+    try:
+        import open3d as o3d_
         o3d = o3d_
     except ImportError:
-        missing = check_dependencies()
-        if missing:
-            print("ERROR: Missing required dependencies:")
-            for import_name, pip_name in missing:
-                print(f"  {pip_name} (import {import_name})")
-            print(f"\nRun: python {sys.argv[0]} --install-deps")
-            sys.exit(1)
-        raise
+        o3d = None
 
 
 # ---------------------------------------------------------------------------
@@ -149,26 +185,12 @@ def import_dependencies():
 IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.tif', '.tiff', '.bmp'}
 
 
-def get_image_files(folder):
-    """Return sorted list of image filenames in *folder*."""
-    return sorted(
-        f for f in os.listdir(folder)
-        if os.path.splitext(f)[1].lower() in IMAGE_EXTS
-        and os.path.isfile(os.path.join(folder, f))
-    )
 
 
 # ---------------------------------------------------------------------------
 # Multi-camera support
 # ---------------------------------------------------------------------------
 
-def detect_multicam(folder):
-    """Check if folder contains PORT/STAR/CENTER camera subfolders."""
-    subs = set()
-    for d in os.listdir(folder):
-        if os.path.isdir(os.path.join(folder, d)):
-            subs.add(d.upper())
-    return {'CENTER', 'PORT', 'STAR'}.issubset(subs)
 
 
 def get_multicam_image_files(folder):
@@ -205,285 +227,28 @@ def get_multicam_image_files(folder):
     return images
 
 
-def timeit(msg):
-    """Simple context-manager timer."""
-    class _Timer:
-        def __enter__(self):
-            self.t0 = time.time()
-            print(f"\n{'='*60}")
-            print(f"  {msg}")
-            print(f"{'='*60}", flush=True)
-            return self
-        def __exit__(self, *_):
-            dt = time.time() - self.t0
-            print(f"  -> done in {dt:.1f}s", flush=True)
-    return _Timer()
 
 
 # ---------------------------------------------------------------------------
 # Stage 1-3: Structure from Motion via pycolmap
 # ---------------------------------------------------------------------------
 
-def run_sfm(image_folder, output_dir, image_names, multicam=False):
-    """Run incremental SfM.  Returns a pycolmap.Reconstruction or None.
-
-    If multicam=True, image_names should be relative paths including subfolder
-    (e.g. 'CENTER/img.jpg') and PER_FOLDER camera mode is used.
-    """
-    db_path = os.path.join(output_dir, "database.db")
-    sparse_dir = os.path.join(output_dir, "sparse")
-    os.makedirs(sparse_dir, exist_ok=True)
-
-    if os.path.exists(db_path):
-        os.remove(db_path)
-
-    n = len(image_names)
-
-    # Use SINGLE camera mode even for multicam - the cameras in a rig are
-    # typically the same model, and sharing intrinsics helps SfM register
-    # more images across cameras.
-    cam_mode = pycolmap.CameraMode.SINGLE
-
-    # --- feature extraction ---
-    with timeit(f"Extracting SIFT features from {n} images"
-                f" ({'multicam PER_FOLDER' if multicam else 'single camera'})"):
-        ext_opts = pycolmap.FeatureExtractionOptions()
-        ext_opts.max_image_size = 3200
-        sift = pycolmap.SiftExtractionOptions()
-        sift.max_num_features = 8192
-        ext_opts.sift = sift
-
-        pycolmap.extract_features(
-            database_path=db_path,
-            image_path=image_folder,
-            image_names=image_names,
-            camera_mode=cam_mode,
-            camera_model="OPENCV",
-            extraction_options=ext_opts,
-        )
-
-    # --- matching ---
-    # For multicam, force exhaustive matching so cross-camera pairs are found
-    with timeit("Matching features"):
-        if n <= 50 or (multicam and n <= 200):
-            print(f"  (exhaustive matching, {n} images)")
-            pycolmap.match_exhaustive(database_path=db_path)
-        else:
-            print("  (sequential matching, overlap=15)")
-            seq = pycolmap.SequentialPairingOptions()
-            seq.overlap = 15
-            pycolmap.match_sequential(database_path=db_path, pairing_options=seq)
-
-    # --- incremental mapping ---
-    with timeit("Incremental SfM"):
-        mapper_opts = pycolmap.IncrementalPipelineOptions()
-        mapper_opts.min_num_matches = 15
-        maps = pycolmap.incremental_mapping(
-            database_path=db_path,
-            image_path=image_folder,
-            output_path=sparse_dir,
-            options=mapper_opts,
-        )
-
-    if not maps:
-        print("ERROR: SfM produced no reconstruction.")
-        return None
-
-    best_idx = max(maps.keys(), key=lambda k: maps[k].num_points3D())
-    rec = maps[best_idx]
-    print(f"  Reconstructions: {len(maps)}")
-    print(f"  Best map: {rec.num_reg_images()}/{n} images registered, "
-          f"{rec.num_points3D()} sparse 3D points")
-
-    rec.write(sparse_dir)
-    return rec
 
 
 # ---------------------------------------------------------------------------
 # Camera utilities
 # ---------------------------------------------------------------------------
 
-def get_camera_matrix(cam):
-    """Extract 3x3 intrinsic matrix K from a pycolmap Camera."""
-    params = cam.params
-    model = cam.model.name
-    if model == "OPENCV":
-        fx, fy, cx, cy = params[0], params[1], params[2], params[3]
-    elif model in ("SIMPLE_RADIAL", "RADIAL"):
-        fx = fy = params[0]
-        cx, cy = params[1], params[2]
-    elif model == "PINHOLE":
-        fx, fy, cx, cy = params[0], params[1], params[2], params[3]
-    elif model == "SIMPLE_PINHOLE":
-        fx = fy = params[0]
-        cx, cy = params[1], params[2]
-    else:
-        fx = fy = params[0]
-        cx, cy = params[1] if len(params) > 1 else 0, params[2] if len(params) > 2 else 0
-    return np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float64)
 
 
-def get_dist_coeffs(cam):
-    """Extract distortion coefficients from a pycolmap Camera."""
-    params = cam.params
-    model = cam.model.name
-    if model == "OPENCV":
-        return np.array([params[4], params[5], params[6], params[7]], dtype=np.float64)
-    elif model in ("SIMPLE_RADIAL", "RADIAL"):
-        k1 = params[3] if len(params) > 3 else 0
-        k2 = params[4] if len(params) > 4 else 0
-        return np.array([k1, k2, 0, 0], dtype=np.float64)
-    return np.zeros(4, dtype=np.float64)
 
 
-def image_pose(image):
-    """Return (R, t) world-to-camera from a pycolmap Image.
-    R is 3x3, t is (3,). Camera centre = -R^T @ t."""
-    cfw = image.cam_from_world()
-    R = np.array(cfw.rotation.matrix())
-    t = np.array(cfw.translation)
-    return R, t
 
 
 # ---------------------------------------------------------------------------
 # Prior Coverage
 # ---------------------------------------------------------------------------
 
-def generate_prior_coverage(rec, output_csv, class_name):
-    """Write a VIAME-CSV file with one polygon per frame marking the prior-coverage region.
-
-    For each registered image (filename-sorted), the 3D points observed by all
-    *previous* frames are projected into the current camera.  The convex hull of
-    those projections is stored as a flattened polygon on a DetectedObject.
-
-    Args:
-        rec:         pycolmap.Reconstruction after SfM.
-        output_csv:  Path for the output CSV file.
-        class_name:  Class label to attach to every detection (e.g. 'suppressed').
-    """
-    from kwiver.vital.modules import load_known_modules
-    from kwiver.vital.algo import DetectedObjectSetOutput
-    from kwiver.vital.types import (
-        DetectedObject, DetectedObjectSet, DetectedObjectType, BoundingBoxD,
-    )
-
-    load_known_modules()
-
-    # Build filename -> pycolmap image map
-    images = rec.images
-    cameras = rec.cameras
-    name_to_img = {img.name: img for img in images.values()}
-
-    # Iterate registered images in filename-sorted order
-    sorted_names = sorted(name_to_img.keys())
-
-    # Cache point IDs observed by each image
-    def observed_pids(img):
-        pids = set()
-        for p2d in img.points2D:
-            if p2d.has_point3D():
-                pids.add(p2d.point3D_id)
-        return pids
-
-    writer = DetectedObjectSetOutput.create("viame_csv")
-    writer.open(output_csv)
-
-    prior_pids = set()
-
-    for idx, fname in enumerate(sorted_names):
-        img = name_to_img[fname]
-
-        if idx == 0:
-            # First frame: seed prior set, write empty detection set
-            prior_pids = observed_pids(img)
-            writer.write_set(DetectedObjectSet(), fname)
-            continue
-
-        # Project prior 3D points into this camera
-        cam = cameras[img.camera_id]
-        K = get_camera_matrix(cam)
-        dist = get_dist_coeffs(cam)
-        R, t = image_pose(img)
-        w = cam.width
-        h = cam.height
-
-        # Gather world coordinates for prior point IDs that still exist
-        pts_3d = []
-        for pid in prior_pids:
-            if pid in rec.points3D:
-                pts_3d.append(rec.points3D[pid].xyz)
-
-        if len(pts_3d) < 3:
-            writer.write_set(DetectedObjectSet(), fname)
-            prior_pids |= observed_pids(img)
-            continue
-
-        pts_3d = np.array(pts_3d, dtype=np.float64)
-
-        # Filter to points in front of this camera (positive Z in camera frame)
-        pts_cam = (R @ pts_3d.T + t.reshape(3, 1)).T
-        in_front = pts_cam[:, 2] > 0
-        pts_3d = pts_3d[in_front]
-
-        if len(pts_3d) < 3:
-            writer.write_set(DetectedObjectSet(), fname)
-            prior_pids |= observed_pids(img)
-            continue
-
-        # Project with distortion via cv2.projectPoints
-        rvec, _ = cv2.Rodrigues(R)
-        pts_2d, _ = cv2.projectPoints(pts_3d, rvec, t, K, dist)
-        pts_2d = pts_2d.reshape(-1, 2)
-
-        # Filter to within image bounds
-        margin = 0
-        inside = (
-            (pts_2d[:, 0] >= -margin) & (pts_2d[:, 0] < w + margin) &
-            (pts_2d[:, 1] >= -margin) & (pts_2d[:, 1] < h + margin)
-        )
-        pts_2d = pts_2d[inside]
-
-        if len(pts_2d) < 3:
-            writer.write_set(DetectedObjectSet(), fname)
-            prior_pids |= observed_pids(img)
-            continue
-
-        # Convex hull
-        hull = cv2.convexHull(pts_2d.astype(np.float32))
-        hull_pts = hull.reshape(-1, 2)
-
-        # Clamp hull vertices to image bounds
-        hull_pts[:, 0] = np.clip(hull_pts[:, 0], 0, w - 1)
-        hull_pts[:, 1] = np.clip(hull_pts[:, 1], 0, h - 1)
-
-        # Bounding box from hull
-        x1 = float(hull_pts[:, 0].min())
-        y1 = float(hull_pts[:, 1].min())
-        x2 = float(hull_pts[:, 0].max())
-        y2 = float(hull_pts[:, 1].max())
-
-        det = DetectedObject(
-            BoundingBoxD(x1, y1, x2, y2),
-            1.0,
-            DetectedObjectType(class_name, 1.0),
-        )
-
-        # Flatten hull as [x1,y1, x2,y2, ...]
-        flat_poly = []
-        for px, py in hull_pts:
-            flat_poly.append(float(px))
-            flat_poly.append(float(py))
-        det.set_flattened_polygon(flat_poly)
-
-        det_set = DetectedObjectSet()
-        det_set.add(det)
-        writer.write_set(det_set, fname)
-
-        # Accumulate this frame's point IDs
-        prior_pids |= observed_pids(img)
-
-    writer.complete()
-    print(f"  Prior-coverage CSV ({len(sorted_names)} frames) -> {output_csv}")
 
 
 # ---------------------------------------------------------------------------
@@ -506,345 +271,20 @@ def generate_prior_coverage(rec, output_csv, class_name):
 # alt_agl (m, may be None), yaw (deg, may be None)}.
 
 
-def _nmea_to_dec(value, ref):
-    """NMEA DDDMM.MMMM (FMCLOG) -> signed decimal degrees."""
-    v = float(value)
-    deg = int(v // 100)
-    dec = deg + (v - 100 * deg) / 60.0
-    return -dec if str(ref).strip().upper() in ('S', 'W') else dec
 
 
-def _dms_to_dec(dms, ref):
-    """EXIF GPS (deg, min, sec) -> signed decimal degrees."""
-    d, m, s = [float(x) for x in dms]
-    dec = d + m / 60.0 + s / 3600.0
-    return -dec if str(ref).strip().upper() in ('S', 'W') else dec
 
 
-def _load_imagelog_json(folder):
-    """Format B: imagelog.json in `folder`. Returns ordered list of pose dicts
-    (by trigger_index) or None."""
-    import json
-    path = os.path.join(folder, 'imagelog.json')
-    if not os.path.isfile(path):
-        return None
-    try:
-        recs = json.load(open(path)).get('ImageLog', [])
-    except Exception:
-        return None
-    if not recs:
-        return None
-    recs = sorted(recs, key=lambda r: r.get('trigger_index', 0))
-    out = []
-    for r in recs:
-        if r.get('lat') is None or r.get('lon') is None:
-            continue
-        # alt_rel is height above launch (can be ~0/negative); prefer it only
-        # when it is a plausible imaging height, else fall back to absolute alt.
-        alt_rel = r.get('alt_rel')
-        alt_abs = r.get('alt')
-        alt = (float(alt_rel) if alt_rel is not None and float(alt_rel) > 5.0
-               else (float(alt_abs) if alt_abs is not None else None))
-        out.append({'lat': float(r['lat']), 'lon': float(r['lon']),
-                    'alt_agl': alt,
-                    'yaw': (float(r['yaw']) if r.get('yaw') is not None else None),
-                    'filename': r.get('filename')})
-    return out or None
 
 
-def _load_fmclog_csv(csv_path, site_name):
-    """Format A: FMCLOG CSV filtered to site_name. Returns ordered list of pose
-    dicts (by utc_time, frame_count) or None."""
-    import csv as _csv
-    if not csv_path or not os.path.isfile(csv_path):
-        return None
-    def _norm(s):
-        return re.sub(r'[^a-z0-9]', '', (s or '').lower())
-    import re
-    want = _norm(site_name)
-    try:
-        rows = []
-        for r in _csv.DictReader(open(csv_path)):
-            ls = _norm(r.get('site_name', ''))
-            if ls and want and (ls == want or ls.startswith(want) or want.startswith(ls)):
-                rows.append(r)
-    except Exception:
-        return None
-    if not rows:
-        return None
-    def _key(r):
-        try:
-            return (r.get('utc_time', ''), int(r.get('frame_count', '0') or 0))
-        except ValueError:
-            return (r.get('utc_time', ''), 0)
-    rows.sort(key=_key)
-    out = []
-    for r in rows:
-        try:
-            lat = _nmea_to_dec(r['lat'], r.get('lat_ns', 'N'))
-            lon = _nmea_to_dec(r['lon'], r.get('lon_ew', 'E'))
-        except (ValueError, KeyError):
-            continue
-        alt = None
-        try:
-            alt = float(r.get('elevation_m', '')) if r.get('elevation_m') else None
-        except ValueError:
-            alt = None
-        yaw = None
-        try:
-            yaw = float(r.get('yaw', '')) if r.get('yaw') not in (None, '') else None
-        except ValueError:
-            yaw = None
-        out.append({'lat': lat, 'lon': lon, 'alt_agl': alt, 'yaw': yaw})
-    return out or None
 
 
-def _load_exif_gps(folder, image_list):
-    """Format C: EXIF GPS embedded per image. Returns dict rel_path -> pose or None."""
-    try:
-        from PIL import Image as _PILImage
-        from PIL.ExifTags import TAGS, GPSTAGS
-    except Exception:
-        return None
-    out = {}
-    for rel in image_list:
-        try:
-            ex = _PILImage.open(os.path.join(folder, rel))._getexif() or {}
-            tags = {TAGS.get(k, k): v for k, v in ex.items()}
-            gps = tags.get('GPSInfo')
-            if not gps:
-                continue
-            g = {GPSTAGS.get(k, k): v for k, v in gps.items()}
-            lat = _dms_to_dec(g['GPSLatitude'], g.get('GPSLatitudeRef', 'N'))
-            lon = _dms_to_dec(g['GPSLongitude'], g.get('GPSLongitudeRef', 'E'))
-            alt = float(g['GPSAltitude']) if g.get('GPSAltitude') is not None else None
-            out[rel] = {'lat': lat, 'lon': lon, 'alt_agl': alt, 'yaw': None}
-        except Exception:
-            continue
-    return out or None
 
 
-def load_pose_metadata(image_folder, image_list, flight_log=None, site_name=None):
-    """Unified per-frame pose loader supporting both metadata formats.
-
-    `image_list` is the caller's ordered list of relative image paths. Returns a
-    dict {rel_path: {lat, lon, alt_agl, yaw}} or None if no metadata is found.
-    Priority: imagelog.json (B) -> FMCLOG csv (A) -> EXIF GPS (C). Formats A/B
-    associate by capture order (index); C associates per-image.
-    """
-    # The image folder for a single camera list may be a subfolder; resolve the
-    # directory that actually holds the images (and an imagelog.json).
-    first_dir = os.path.dirname(os.path.join(image_folder, image_list[0])) if image_list else image_folder
-
-    ordered = _load_imagelog_json(first_dir) or _load_imagelog_json(image_folder)
-    source = 'imagelog.json'
-    if ordered is None and flight_log and site_name:
-        ordered = _load_fmclog_csv(flight_log, site_name)
-        source = 'flight-log'
-    if ordered is not None:
-        # Associate by order; warn if counts differ (still pair the overlap).
-        n = min(len(ordered), len(image_list))
-        poses = {image_list[i]: ordered[i] for i in range(n)}
-        if n:
-            print(f"    Metadata: {source} matched {n}/{len(image_list)} frames"
-                  + ("" if n == len(image_list) else " (count mismatch — paired by order)"))
-        return poses or None
-
-    exif = _load_exif_gps(first_dir if not os.path.dirname(image_list[0]) else image_folder, image_list)
-    if exif:
-        print(f"    Metadata: EXIF GPS matched {len(exif)}/{len(image_list)} frames")
-        return exif
-    return None
 
 
-def compute_homography_pair(img1_path, img2_path, scale=0.5, nfeatures=8192,
-                             use_clahe=True, match_ratio=0.75,
-                             min_inliers=10, min_inlier_ratio=0.0,
-                             ransac_thresh=5.0, validate_homography=False,
-                             multi_scale=False, matcher='bf',
-                             homography_method='ransac', always_clahe=False,
-                             root_sift=False, use_affine=False,
-                             sift_contrast=0.04, clahe_clip=4.0):
-    """Compute homography from img1 to img2 using SIFT matching.
-
-    CLAHE histogram equalization is applied by default to handle low-contrast
-    underwater imagery.  Returns (H_3x3, translation_px) or (None, None).
-    translation_px is the average displacement of matched keypoints (at full scale).
-
-    Optional quality controls:
-        match_ratio:        Lowe's ratio test threshold (default 0.75)
-        min_inliers:        Minimum RANSAC inlier count (default 10)
-        min_inlier_ratio:   Minimum inlier/match ratio (default 0.0 = disabled)
-        ransac_thresh:      RANSAC reprojection threshold in pixels (default 5.0)
-        validate_homography: Check determinant/condition number (default False)
-        multi_scale:        Try higher scale if first attempt fails (default False)
-        matcher:            'bf' (brute-force) or 'flann' (default 'bf')
-        homography_method:  'ransac', 'lmeds', or 'usac' (default 'ransac')
-        always_clahe:       Always apply CLAHE regardless of contrast (default False)
-        root_sift:          Apply Root-SIFT normalization to descriptors (default False)
-        use_affine:         Use affine model instead of full homography (default False)
-        sift_contrast:      SIFT contrast threshold (default 0.04)
-        clahe_clip:         CLAHE clip limit (default 4.0)
-    """
-    scales_to_try = [scale]
-    if multi_scale:
-        scales_to_try = [scale, min(scale * 1.5, 1.0), min(scale * 2.0, 1.0)]
-        scales_to_try = list(dict.fromkeys(scales_to_try))
-
-    for sc in scales_to_try:
-        result = _compute_homography_at_scale(
-            img1_path, img2_path, sc, nfeatures, use_clahe,
-            match_ratio, min_inliers, min_inlier_ratio,
-            ransac_thresh, validate_homography,
-            matcher=matcher, homography_method=homography_method,
-            always_clahe=always_clahe, root_sift=root_sift,
-            use_affine=use_affine, sift_contrast=sift_contrast,
-            clahe_clip=clahe_clip)
-        if result[0] is not None:
-            return result
-
-    return None, None
 
 
-def _compute_homography_at_scale(img1_path, img2_path, scale, nfeatures,
-                                   use_clahe, match_ratio, min_inliers,
-                                   min_inlier_ratio, ransac_thresh,
-                                   validate_homography, matcher='bf',
-                                   homography_method='ransac', always_clahe=False,
-                                   root_sift=False, use_affine=False,
-                                   sift_contrast=0.04, clahe_clip=4.0):
-    """Internal: compute homography at a single scale."""
-    img1 = cv2.imread(img1_path)
-    img2 = cv2.imread(img2_path)
-    if img1 is None or img2 is None:
-        return None, None
-
-    h1, w1 = img1.shape[:2]
-    h2, w2 = img2.shape[:2]
-    small1 = cv2.resize(img1, (int(w1 * scale), int(h1 * scale)))
-    small2 = cv2.resize(img2, (int(w2 * scale), int(h2 * scale)))
-
-    gray1 = cv2.cvtColor(small1, cv2.COLOR_BGR2GRAY)
-    gray2 = cv2.cvtColor(small2, cv2.COLOR_BGR2GRAY)
-
-    if use_clahe:
-        clahe = cv2.createCLAHE(clipLimit=clahe_clip, tileGridSize=(8, 8))
-        if always_clahe:
-            gray1 = clahe.apply(gray1)
-            gray2 = clahe.apply(gray2)
-        else:
-            # Adaptive: only apply if image has low contrast
-            if gray1.std() < 20:
-                gray1 = clahe.apply(gray1)
-            if gray2.std() < 20:
-                gray2 = clahe.apply(gray2)
-
-    sift = cv2.SIFT_create(nfeatures=nfeatures, contrastThreshold=sift_contrast)
-    kp1, des1 = sift.detectAndCompute(gray1, None)
-    kp2, des2 = sift.detectAndCompute(gray2, None)
-
-    if des1 is None or des2 is None or len(kp1) < 10 or len(kp2) < 10:
-        return None, None
-
-    # Optional: Root-SIFT normalization (L1 normalize then sqrt)
-    if root_sift:
-        des1 = des1 / (des1.sum(axis=1, keepdims=True) + 1e-7)
-        des1 = np.sqrt(des1)
-        des2 = des2 / (des2.sum(axis=1, keepdims=True) + 1e-7)
-        des2 = np.sqrt(des2)
-
-    # Matcher selection
-    if matcher == 'flann':
-        FLANN_INDEX_KDTREE = 1
-        index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
-        search_params = dict(checks=100)
-        fm = cv2.FlannBasedMatcher(index_params, search_params)
-    else:
-        fm = cv2.BFMatcher()
-
-    matches = fm.knnMatch(des1, des2, k=2)
-    good = []
-    for match_pair in matches:
-        if len(match_pair) == 2:
-            m, n = match_pair
-            if m.distance < match_ratio * n.distance:
-                good.append(m)
-
-    if len(good) < min_inliers:
-        return None, None
-
-    src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
-    dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
-
-    # Homography/affine estimation method
-    if use_affine:
-        H_small, mask = cv2.estimateAffine2D(
-            src_pts, dst_pts,
-            method=cv2.RANSAC, ransacReprojThreshold=ransac_thresh)
-        if H_small is None:
-            return None, None
-        H = np.vstack([H_small, [0, 0, 1]])
-    else:
-        if homography_method == 'lmeds':
-            H, mask = cv2.findHomography(src_pts, dst_pts, cv2.LMEDS)
-        elif homography_method == 'usac':
-            try:
-                H, mask = cv2.findHomography(
-                    src_pts, dst_pts, cv2.USAC_MAGSAC, ransac_thresh)
-            except AttributeError:
-                H, mask = cv2.findHomography(
-                    src_pts, dst_pts, cv2.RANSAC, ransac_thresh)
-        else:
-            H, mask = cv2.findHomography(
-                src_pts, dst_pts, cv2.RANSAC, ransac_thresh)
-
-    if H is None or mask is None:
-        return None, None
-
-    inliers = int(mask.ravel().sum())
-    if inliers < min_inliers:
-        return None, None
-
-    # Optional: check inlier ratio
-    if min_inlier_ratio > 0:
-        ratio = inliers / len(good)
-        if ratio < min_inlier_ratio:
-            return None, None
-
-    # Optional: validate homography geometry
-    if validate_homography:
-        det = np.linalg.det(H)
-        if det < 0.1 or det > 10.0:
-            return None, None  # extreme scale change or reflection
-        try:
-            cond = np.linalg.cond(H)
-            if cond > 1e6:
-                return None, None  # ill-conditioned
-        except np.linalg.LinAlgError:
-            return None, None
-
-    # Compute average displacement at full scale for motion tracking
-    inlier_mask = mask.ravel().astype(bool)
-    src_inliers = src_pts[inlier_mask].reshape(-1, 2)
-
-    # Spatial distribution check (only enforced when validation is on): matches
-    # clustered in one corner give poorly-constrained homographies.
-    if validate_homography and len(src_inliers) >= 4:
-        sh, sw = int(h1 * scale), int(w1 * scale)
-        x_range = src_inliers[:, 0].max() - src_inliers[:, 0].min()
-        y_range = src_inliers[:, 1].max() - src_inliers[:, 1].min()
-        if x_range < sw * 0.15 or y_range < sh * 0.15:
-            return None, None
-
-    src_in = src_inliers / scale
-    dst_in = dst_pts[inlier_mask].reshape(-1, 2) / scale
-    avg_disp = float(np.median(np.linalg.norm(src_in - dst_in, axis=1)))
-
-    # Scale homography to full resolution
-    S = np.diag([1.0 / scale, 1.0 / scale, 1.0])
-    S_inv = np.diag([scale, scale, 1.0])
-    H_full = S @ H @ S_inv
-    return H_full, avg_disp
 
 
 def classify_images_fast(image_folder, image_list, scale=0.5, threshold=500):
@@ -1003,353 +443,8 @@ def _classify_sift_heuristic(image_folder, image_list, scale=0.5, threshold=500)
     return results
 
 
-def _compute_camera_chain(image_folder, cam_images, label="",
-                           water_info=None, match_ratio=0.75,
-                           min_inliers=10, min_inlier_ratio=0.0,
-                           ransac_thresh=5.0, validate_homography=False,
-                           multi_scale=False, search_window=20,
-                           max_chain_cond=0, scale=0.5,
-                           consistency_filter=False, matcher='bf',
-                           homography_method='ransac', always_clahe=False,
-                           root_sift=False, use_affine=False,
-                           sift_contrast=0.04, clahe_clip=4.0,
-                           loop_closure=False, loop_closure_max=24,
-                           anchor_central=False):
-    """Compute sequential homography chain for a single camera's image list.
-
-    Returns (H_chain, pairwise_H) where H_chain maps index -> H_to_anchor (3x3)
-    and pairwise_H maps (i, j) -> the raw frame-i-to-frame-j homography.
-    Uses CLAHE enhancement, anchor-based building, and bidirectional linking.
-
-    Strategy: find the best anchor frame (highest feature count), start
-    the chain there, then extend both forward and backward.  Coastal/non-water
-    frames that fail are retried with a boosted (higher-res, more-features,
-    relaxed) matching pass.  When consistency_filter is on, suspect (water/
-    coastal) registrations that deviate from the land-frame motion pattern are
-    replaced with interpolated estimates.
-    """
-    n = len(cam_images)
-    if n == 0:
-        return {}, {}
-
-    # Find the best anchor frame (highest SIFT features without CLAHE)
-    sift_quick = cv2.SIFT_create(nfeatures=0, contrastThreshold=0.04)
-    anchor_scores = []
-    for i, fname in enumerate(cam_images):
-        is_water = (water_info or {}).get(fname, {}).get('is_water', False)
-        if is_water:
-            anchor_scores.append((0, i))
-            continue
-        img = cv2.imread(os.path.join(image_folder, fname))
-        if img is None:
-            anchor_scores.append((0, i))
-            continue
-        h, w = img.shape[:2]
-        small = cv2.resize(img, (int(w * 0.25), int(h * 0.25)))
-        gray = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
-        kp = sift_quick.detect(gray, None)
-        anchor_scores.append((len(kp) if kp else 0, i))
-
-    # Sort by score descending to find best anchor
-    anchor_scores.sort(key=lambda x: -x[0])
-    anchor_idx = anchor_scores[0][1]
-
-    # Central anchoring: chain drift accumulates with distance from the anchor,
-    # so a highest-feature anchor sitting near a sequence end (e.g. frame 59/63)
-    # forces ~60 frames of one-directional drift. Among the strong-feature land
-    # frames, prefer the one nearest the sequence centre to halve worst-case drift.
-    if anchor_central and anchor_scores:
-        max_score = anchor_scores[0][0]
-        if max_score > 0:
-            center = (n - 1) / 2.0
-            strong = [(s, i) for s, i in anchor_scores if s >= 0.4 * max_score]
-            if strong:
-                anchor_idx = min(strong, key=lambda si: abs(si[1] - center))[1]
-
-    H_chain = {anchor_idx: np.eye(3, dtype=np.float64)}
-    pairwise_H = {}      # (i, j) -> raw H from frame i to frame j
-    motion_samples = []
-    avg_motion = 200.0
-    rejected_drift = 0
-    rejected_consistency = 0
-
-    def try_chain(i, search_indices, boost=False):
-        """Try to chain frame i by matching to frames in search_indices.
-
-        If boost=True, use more aggressive matching (higher scale, more
-        features, relaxed ratio, always CLAHE) for difficult frames like
-        coastal images with sparse features on one side.
-        """
-        nonlocal rejected_drift
-        if boost:
-            sc = min(scale * 2.0, 1.0)
-            nfeat = 16384
-            ratio = min(match_ratio + 0.1, 0.85)
-            min_inl = max(min_inliers // 2, 6)
-            min_inl_ratio = 0.0
-        else:
-            sc = scale
-            nfeat = 8192
-            ratio = match_ratio
-            min_inl = min_inliers
-            min_inl_ratio = min_inlier_ratio
-        path_curr = os.path.join(image_folder, cam_images[i])
-        for j in search_indices:
-            if j not in H_chain:
-                continue
-            path_ref = os.path.join(image_folder, cam_images[j])
-            H, disp = compute_homography_pair(
-                path_curr, path_ref, scale=sc, nfeatures=nfeat,
-                match_ratio=ratio, min_inliers=min_inl,
-                min_inlier_ratio=min_inl_ratio,
-                ransac_thresh=ransac_thresh,
-                validate_homography=validate_homography,
-                multi_scale=True if boost else multi_scale,
-                matcher=matcher, homography_method=homography_method,
-                always_clahe=True if boost else always_clahe,
-                root_sift=root_sift, use_affine=use_affine,
-                sift_contrast=sift_contrast, clahe_clip=clahe_clip)
-            if H is not None:
-                H_candidate = H_chain[j] @ H
-                if max_chain_cond > 0:
-                    try:
-                        cond = np.linalg.cond(H_candidate)
-                        if cond > max_chain_cond:
-                            rejected_drift += 1
-                            continue
-                    except np.linalg.LinAlgError:
-                        continue
-                H_chain[i] = H_candidate
-                pairwise_H[(i, j)] = H
-                if disp is not None and abs(i - j) == 1:
-                    motion_samples.append(disp)
-                return True
-        return False
-
-    # Extend backward from anchor
-    for i in range(anchor_idx - 1, -1, -1):
-        search = [j for j in range(i + 1, min(i + search_window, n))]
-        try_chain(i, search)
-
-    # Extend forward from anchor
-    for i in range(anchor_idx + 1, n):
-        search = [j for j in range(i - 1, max(i - search_window, -1), -1)]
-        try_chain(i, search)
-
-    # Final pass: try unchained frames against any chained frame
-    for i in range(n):
-        if i in H_chain:
-            continue
-        candidates = sorted(H_chain.keys(), key=lambda j: abs(i - j))[:10]
-        try_chain(i, candidates)
-
-    # Boosted retry: for unchained frames classified as coastal (or any
-    # non-water frame that failed), retry with higher resolution / relaxed
-    # matching to catch frames with sparse land regions.
-    boosted_count = 0
-    for i in range(n):
-        if i in H_chain:
-            continue
-        fname = cam_images[i]
-        info = (water_info or {}).get(fname, {})
-        lbl = info.get('label', '')
-        is_water = info.get('is_water', False)
-        if lbl == 'coastal' or not is_water:
-            candidates = sorted(H_chain.keys(), key=lambda j: abs(i - j))[:15]
-            if try_chain(i, candidates, boost=True):
-                boosted_count += 1
-    if boosted_count and label:
-        print(f"    {label}: {boosted_count} frames recovered via boosted matching")
-
-    # Loop-closure pass: the passes above only match against temporally NEARBY
-    # frames (index-adjacent). When the rig revisits an earlier location, the
-    # matching frame is far away in time. Here we try each still-unchained
-    # non-water frame against chained frames sampled across the ENTIRE sequence,
-    # so a revisit can register against the frame that originally saw that spot.
-    # Guarded by a corroboration check (the candidate's two registered temporal
-    # neighbours must also match) to reject false closures over repetitive water.
-    if loop_closure:
-        lc_count = 0
-        for i in range(n):
-            if i in H_chain:
-                continue
-            fname = cam_images[i]
-            info = (water_info or {}).get(fname, {})
-            if info.get('is_water', False) and info.get('label', '') != 'coastal':
-                continue  # open-water frames have no reliable revisit features
-            chained = sorted(H_chain.keys())
-            # Prefer temporally-distant candidates (true loop closures); sample
-            # evenly across the full range so we cover revisits anywhere.
-            far = [j for j in chained if abs(i - j) > search_window]
-            pool = far if far else chained
-            if len(pool) > loop_closure_max:
-                sel = np.linspace(0, len(pool) - 1, loop_closure_max).astype(int)
-                candidates = [pool[k] for k in sorted(set(sel.tolist()))]
-            else:
-                candidates = pool
-            # Order farthest-first so a genuine revisit is preferred over a
-            # marginal near match the earlier passes already rejected.
-            candidates = sorted(candidates, key=lambda j: -abs(i - j))
-            before = i in H_chain
-            if try_chain(i, candidates, boost=True) and not before:
-                # Corroborate: the matched frame's own neighbours should also be
-                # consistent. We approximate this by requiring the new chain H to
-                # have a sane determinant (affine guards most false matches).
-                Hd = abs(float(np.linalg.det(H_chain[i])))
-                if 0.2 <= Hd <= 5.0:
-                    lc_count += 1
-                else:
-                    del H_chain[i]  # reject implausible closure
-        if lc_count and label:
-            print(f"    {label}: {lc_count} frames recovered via loop closure")
-
-    if motion_samples:
-        avg_motion = np.median(motion_samples)
-
-    # Consistency filter: use land-only frames to establish the expected motion
-    # pattern, then validate suspect (water/coastal) registrations; replace
-    # outliers with interpolated estimates.
-    if consistency_filter and water_info and len(H_chain) > 2:
-        good_indices = []
-        suspect_indices = []
-        for i in sorted(H_chain.keys()):
-            fname = cam_images[i]
-            info = (water_info or {}).get(fname, {})
-            lbl = info.get('label', '')
-            is_water = info.get('is_water', False)
-            if lbl == 'all_land':
-                good_indices.append(i)
-            elif is_water or lbl == 'coastal':
-                suspect_indices.append(i)
-
-        if len(good_indices) >= 2:
-            good_translations = []
-            good_rotscale = []
-            for gi in range(len(good_indices) - 1):
-                idx_a = good_indices[gi]
-                idx_b = good_indices[gi + 1]
-                H_a = H_chain[idx_a]
-                H_b = H_chain[idx_b]
-                tx = H_b[0, 2] - H_a[0, 2]
-                ty = H_b[1, 2] - H_a[1, 2]
-                dh00 = H_b[0, 0] - H_a[0, 0]
-                dh01 = H_b[0, 1] - H_a[0, 1]
-                dh10 = H_b[1, 0] - H_a[1, 0]
-                dh11 = H_b[1, 1] - H_a[1, 1]
-                frame_gap = idx_b - idx_a
-                if frame_gap > 0:
-                    good_translations.append((tx / frame_gap, ty / frame_gap))
-                    good_rotscale.append((dh00 / frame_gap, dh01 / frame_gap,
-                                          dh10 / frame_gap, dh11 / frame_gap))
-
-            if good_translations:
-                med_tx = np.median([t[0] for t in good_translations])
-                med_ty = np.median([t[1] for t in good_translations])
-                std_tx = (np.std([t[0] for t in good_translations])
-                          if len(good_translations) > 1 else abs(med_tx) * 0.5)
-                std_ty = (np.std([t[1] for t in good_translations])
-                          if len(good_translations) > 1 else abs(med_ty) * 0.5)
-                tol_tx = max(2.5 * std_tx, abs(med_tx) * 0.15, 50)
-                tol_ty = max(2.5 * std_ty, abs(med_ty) * 0.15, 50)
-
-                med_rs = [np.median([r[k] for r in good_rotscale]) for k in range(4)]
-                std_rs = [np.std([r[k] for r in good_rotscale])
-                          if len(good_rotscale) > 1 else 0.01 for k in range(4)]
-                tol_rs = [max(2.5 * std_rs[k], 0.02) for k in range(4)]
-
-                def _bracket(wi):
-                    prev_good = None
-                    next_good = None
-                    for gi in good_indices:
-                        if gi < wi:
-                            prev_good = gi
-                        elif gi > wi and next_good is None:
-                            next_good = gi
-                    return prev_good, next_good
-
-                def _interpolate_H(wi, prev_good, next_good):
-                    if prev_good is not None and next_good is not None:
-                        alpha = (wi - prev_good) / (next_good - prev_good)
-                        return ((1 - alpha) * H_chain[prev_good]
-                                + alpha * H_chain[next_good])
-                    elif prev_good is not None:
-                        gap = wi - prev_good
-                        H_interp = H_chain[prev_good].copy()
-                        H_interp[0, 2] += med_tx * gap
-                        H_interp[1, 2] += med_ty * gap
-                        for k, (row, col) in enumerate([(0, 0), (0, 1), (1, 0), (1, 1)]):
-                            H_interp[row, col] += med_rs[k] * gap
-                        return H_interp
-                    elif next_good is not None:
-                        gap = next_good - wi
-                        H_interp = H_chain[next_good].copy()
-                        H_interp[0, 2] -= med_tx * gap
-                        H_interp[1, 2] -= med_ty * gap
-                        for k, (row, col) in enumerate([(0, 0), (0, 1), (1, 0), (1, 1)]):
-                            H_interp[row, col] -= med_rs[k] * gap
-                        return H_interp
-                    return None
-
-                def _check_consistency(wi):
-                    prev_good, next_good = _bracket(wi)
-                    if prev_good is None and next_good is None:
-                        return True
-                    H_w = H_chain[wi]
-                    ref_idx = prev_good if prev_good is not None else next_good
-                    gap = abs(wi - ref_idx)
-                    sign = 1 if wi > ref_idx else -1
-                    H_ref = H_chain[ref_idx]
-                    expected_tx = H_ref[0, 2] + sign * med_tx * gap
-                    expected_ty = H_ref[1, 2] + sign * med_ty * gap
-                    if (abs(H_w[0, 2] - expected_tx) > tol_tx * gap or
-                            abs(H_w[1, 2] - expected_ty) > tol_ty * gap):
-                        return False
-                    for k, (row, col) in enumerate([(0, 0), (0, 1), (1, 0), (1, 1)]):
-                        expected_val = H_ref[row, col] + sign * med_rs[k] * gap
-                        if abs(H_w[row, col] - expected_val) > tol_rs[k] * gap:
-                            return False
-                    return True
-
-                for wi in suspect_indices:
-                    if not _check_consistency(wi):
-                        prev_good, next_good = _bracket(wi)
-                        H_new = _interpolate_H(wi, prev_good, next_good)
-                        if H_new is not None:
-                            H_chain[wi] = H_new
-                            rejected_consistency += 1
-
-    ok = len(H_chain) - 1  # subtract the anchor
-    extras = []
-    if rejected_drift:
-        extras.append(f"{rejected_drift} rejected (drift)")
-    if rejected_consistency:
-        extras.append(f"{rejected_consistency} frames corrected (consistency)")
-    extra_str = ", " + ", ".join(extras) if extras else ""
-    if label:
-        print(f"    {label}: {n} frames, {ok}/{n - 1} homographies OK"
-              f" (anchor=#{anchor_idx}, avg motion: {avg_motion:.0f}px/frame{extra_str})")
-    return H_chain, pairwise_H
 
 
-def _poses_to_enu(poses, cam_images):
-    """Convert per-frame lat/lon poses to a local East/North metre array indexed
-    by frame. Returns (enu[n,2] with nan where missing, yaw[n] with nan)."""
-    n = len(cam_images)
-    enu = np.full((n, 2), np.nan)
-    yaw = np.full(n, np.nan)
-    ref = None
-    for i, fname in enumerate(cam_images):
-        p = poses.get(fname)
-        if not p:
-            continue
-        if ref is None:
-            ref = (p['lat'], p['lon'])
-        dN = (p['lat'] - ref[0]) * 111320.0
-        dE = (p['lon'] - ref[1]) * 111320.0 * math.cos(math.radians(ref[0]))
-        enu[i] = (dE, dN)
-        if p.get('yaw') is not None:
-            yaw[i] = p['yaw']
-    return enu, yaw
 
 
 def _fit_similarity(src, dst):
@@ -1368,142 +463,16 @@ def _fit_similarity(src, dst):
     return fn, rms
 
 
-def _fit_similarity_disp(G, F):
-    """Fit M (2x2 rotation+scale, both chiralities) with F = M @ G. Robust to
-    near-collinear G (single-direction flight) unlike a free 2x2."""
-    gx, gy = G[:, 0], G[:, 1]
-    fx, fy = F[:, 0], F[:, 1]
-    best = None
-    for chir in (+1, -1):
-        rows = np.vstack([
-            np.column_stack([gx, -chir * gy]),   # fx = a*gx - chir*b*gy
-            np.column_stack([gy,  chir * gx]),    # fy = b*gx + chir*a*gy
-        ])
-        rhs = np.concatenate([fx, fy])
-        (a, b), *_ = np.linalg.lstsq(rows, rhs, rcond=None)
-        M = np.array([[a, -chir * b], [b, chir * a]])
-        r = float(np.median(np.linalg.norm(G @ M.T - F, axis=1)))
-        if best is None or r < best[1]:
-            best = (M, r)
-    return best
 
 
-def _rot2(deg):
-    """2x2 rotation matrix for an angle in degrees (NaN -> identity)."""
-    if deg is None or np.isnan(deg):
-        return np.eye(2)
-    t = math.radians(deg)
-    c, s = math.cos(t), math.sin(t)
-    return np.array([[c, -s], [s, c]])
 
 
-def _track_headings(enu):
-    """Per-frame flight heading (deg) from the GPS TRACK direction (central
-    difference over nearest valid neighbours). The aircraft heading — not the
-    logged camera yaw — is what rotates the image relative to the ground, and it
-    flips ~180deg between out-and-back survey passes; using it makes the camera-
-    mounting map constant across passes. NaN where undeterminable."""
-    n = len(enu)
-    head = np.full(n, np.nan)
-    valid = [i for i in range(n) if not np.isnan(enu[i, 0])]
-    for idx, i in enumerate(valid):
-        a = valid[idx - 1] if idx > 0 else i
-        b = valid[idx + 1] if idx < len(valid) - 1 else i
-        d = enu[b] - enu[a]
-        if np.linalg.norm(d) > 1.0:
-            head[i] = math.degrees(math.atan2(d[0], d[1]))  # atan2(E, N)
-    return head
 
 
-def _geo_calibrate(chain, cam_images, poses, pairwise_H):
-    """Calibrate the constant camera-mounting map M (heading-frame metres ->
-    pixels) from RAW pairwise feature translations. The ground GPS displacement
-    is first DE-ROTATED by each frame's yaw, so M stays constant even when the
-    aircraft reverses heading between survey passes (the multi-pass / revisit
-    case) — a single un-rotated fit would otherwise be corrupted by the ~180°
-    flip. Returns (M, n_steps, residual, enu, yaw). If yaw is absent (EXIF-only),
-    de-rotation is identity and M degenerates to the single-heading transform."""
-    enu, _yaw = _poses_to_enu(poses, cam_images)
-    yaw = _track_headings(enu)    # GPS-track heading (flips between passes)
-    G, F = [], []
-    for (i, j), H in (pairwise_H or {}).items():
-        if abs(i - j) > 3 or np.isnan(enu[i, 0]) or np.isnan(enu[j, 0]):
-            continue
-        g = enu[i] - enu[j]
-        if np.linalg.norm(g) < 1.0:
-            continue
-        g_cam = _rot2(-yaw[j]) @ g     # ground disp -> aircraft heading frame
-        G.append(g_cam); F.append([H[0, 2], H[1, 2]])
-    if len(G) < 3:
-        return None, 0, None, enu, yaw
-    G = np.array(G); F = np.array(F)
-    M, _r = _fit_similarity_disp(G, F)
-    res = np.linalg.norm(G @ M.T - F, axis=1)
-    keep = res <= max(3 * np.median(res), 50)   # reject gross outliers, refit
-    if keep.sum() >= 3:
-        M, _r = _fit_similarity_disp(G[keep], F[keep])
-        res = np.linalg.norm(G[keep] @ M.T - F[keep], axis=1)
-    return M, int(keep.sum()), float(np.median(res)), enu, yaw
 
 
-def _geo_fill(chain, cam_images, enu, yaw, M, label="", n_steps=0, residual=None):
-    """Fill UNregistered frames by LOCAL dead-reckoning from the nearest
-    registered frame: pos_k = pos_j + M @ R(-yaw_j) @ (enu_k - enu_j). The yaw
-    de-rotation makes this correct across heading changes between passes."""
-    reg = sorted(i for i in chain.keys() if not np.isnan(enu[i, 0]))
-    if len(reg) < 2 or M is None:
-        return 0
-    filled = 0
-    for k in range(len(cam_images)):
-        if k in chain or np.isnan(enu[k, 0]):
-            continue
-        j = min(reg, key=lambda m: abs(m - k))
-        H = chain[j].copy()
-        g_cam = _rot2(-yaw[j]) @ (enu[k] - enu[j])
-        pos = np.array([chain[j][0, 2], chain[j][1, 2]]) + M @ g_cam
-        H[0, 2], H[1, 2] = float(pos[0]), float(pos[1])
-        chain[k] = H
-        filled += 1
-    if label:
-        scale = float(np.sqrt(abs(np.linalg.det(M))))
-        rtxt = f"{residual:.0f}px" if residual is not None else "n/a"
-        extra = f", filled {filled} via GPS dead-reckoning" if filled else ""
-        print(f"    {label}: geo-anchor {n_steps} pairwise steps, {scale:.0f}px/m, "
-              f"step-residual {rtxt}{extra}")
-    return filled
 
 
-def _geo_anchor_cameras(cam_chains, cameras, poses_by_cam, pairwise_by_cam):
-    """Calibrate + fill all rig cameras, SHARING the GPS->pixel scale. The rig
-    cameras image at the same altitude/focal, so the scale (px/m) is identical;
-    a water-heavy camera with few clean steps borrows the rig-median scale
-    (keeping its own rotation) instead of self-calibrating from noise."""
-    cal = {}   # cam -> [M, n_steps, residual, enu, yaw]
-    for cam_key in cameras:
-        if poses_by_cam.get(cam_key) is None:
-            continue
-        M, n, r, enu, yaw = _geo_calibrate(
-            cam_chains[cam_key], cameras[cam_key],
-            poses_by_cam[cam_key], pairwise_by_cam.get(cam_key))
-        cal[cam_key] = [M, n, r, enu, yaw]
-    # Rig-shared scale = median scale of well-calibrated cameras.
-    good = [np.sqrt(abs(np.linalg.det(c[0]))) for c in cal.values()
-            if c[0] is not None and c[1] >= 8 and c[2] is not None and c[2] < 150]
-    shared = float(np.median(good)) if good else None
-    for cam_key, c in cal.items():
-        M, n, r, enu, yaw = c
-        if M is None:
-            continue
-        own = np.sqrt(abs(np.linalg.det(M)))
-        # Override scale when this camera's own fit is unreliable (few steps or
-        # high residual) and a trustworthy rig scale exists.
-        if shared and (n < 8 or (r is not None and r > 150)) and own > 1e-6:
-            M = M * (shared / own)
-            note = f"{cam_key}*"   # * marks scale borrowed from the rig
-        else:
-            note = cam_key
-        _geo_fill(cam_chains[cam_key], cameras[cam_key], enu, yaw, M,
-                  label=note, n_steps=n, residual=r)
 
 
 def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.csv",
@@ -2583,100 +1552,6 @@ def _visualize_entries(entries, image_base_dir, output_path,
     print(f"  Visualization saved -> {output_path}")
 
 
-def generate_prior_coverage_standalone(rec, output_csv, class_name="suppressed"):
-    """Write a CSV file with suppression polygons - no kwiver dependency.
-
-    Output format (VIAME-CSV compatible):
-      det_id, filename, frame_num, x1, y1, x2, y2, confidence, length, class conf, (poly) ...
-
-    For each registered image (filename-sorted), projects 3D points observed
-    by all previous frames into the current camera and writes the convex hull.
-    """
-    images = rec.images
-    cameras = rec.cameras
-    name_to_img = {img.name: img for img in images.values()}
-    sorted_names = sorted(name_to_img.keys())
-
-    def observed_pids(img):
-        pids = set()
-        for p2d in img.points2D:
-            if p2d.has_point3D():
-                pids.add(p2d.point3D_id)
-        return pids
-
-    prior_pids = set()
-    det_id = 0
-
-    with open(output_csv, 'w') as f:
-        f.write("# 1: Detection or Track-id,  2: Video or Image Identifier,  "
-                "3: Unique Frame Identifier,  4-7: Img-bbox(TL_x, TL_y, BR_x, BR_y),  "
-                "8: Detection or Length Confidence,  9: Target Length,  "
-                "10-11+: Repeated Species, Confidence Pairs or Attributes\n")
-
-        for idx, fname in enumerate(sorted_names):
-            img = name_to_img[fname]
-
-            if idx == 0:
-                prior_pids = observed_pids(img)
-                continue
-
-            cam = cameras[img.camera_id]
-            K = get_camera_matrix(cam)
-            dist = get_dist_coeffs(cam)
-            R, t = image_pose(img)
-            w = cam.width
-            h = cam.height
-
-            pts_3d = []
-            for pid in prior_pids:
-                if pid in rec.points3D:
-                    pts_3d.append(rec.points3D[pid].xyz)
-
-            if len(pts_3d) < 3:
-                prior_pids |= observed_pids(img)
-                continue
-
-            pts_3d = np.array(pts_3d, dtype=np.float64)
-            pts_cam = (R @ pts_3d.T + t.reshape(3, 1)).T
-            in_front = pts_cam[:, 2] > 0
-            pts_3d = pts_3d[in_front]
-
-            if len(pts_3d) < 3:
-                prior_pids |= observed_pids(img)
-                continue
-
-            rvec, _ = cv2.Rodrigues(R)
-            pts_2d, _ = cv2.projectPoints(pts_3d, rvec, t, K, dist)
-            pts_2d = pts_2d.reshape(-1, 2)
-
-            inside = (
-                (pts_2d[:, 0] >= 0) & (pts_2d[:, 0] < w) &
-                (pts_2d[:, 1] >= 0) & (pts_2d[:, 1] < h)
-            )
-            pts_2d = pts_2d[inside]
-
-            if len(pts_2d) < 3:
-                prior_pids |= observed_pids(img)
-                continue
-
-            hull = cv2.convexHull(pts_2d.astype(np.float32))
-            hull_pts = hull.reshape(-1, 2)
-            hull_pts[:, 0] = np.clip(hull_pts[:, 0], 0, w - 1)
-            hull_pts[:, 1] = np.clip(hull_pts[:, 1], 0, h - 1)
-
-            x1 = float(hull_pts[:, 0].min())
-            y1 = float(hull_pts[:, 1].min())
-            x2 = float(hull_pts[:, 0].max())
-            y2 = float(hull_pts[:, 1].max())
-
-            poly_str = " ".join(f"{px:.1f} {py:.1f}" for px, py in hull_pts)
-            f.write(f"{det_id},{fname},{idx},"
-                    f"{x1:.1f},{y1:.1f},{x2:.1f},{y2:.1f},"
-                    f"1.0,-1,{class_name},1.0,(poly) {poly_str}\n")
-            det_id += 1
-            prior_pids |= observed_pids(img)
-
-    print(f"  Prior-coverage CSV ({len(sorted_names)} frames, {det_id} detections) -> {output_csv}")
 
 
 def visualize_coverage(coverage_csv, image_base_dir, output_path,
@@ -2808,81 +1683,8 @@ def visualize_coverage(coverage_csv, image_base_dir, output_path,
 # Stage 4-5: Dense feature-based reconstruction
 # ---------------------------------------------------------------------------
 
-def select_dense_pairs(rec, max_pairs_per_image=3):
-    """Select image pairs for dense matching based on shared 3D point count."""
-    images = rec.images
-    image_ids = sorted(images.keys())
-
-    point_to_images = {}
-    for img_id in image_ids:
-        img = images[img_id]
-        for p2d in img.points2D:
-            if p2d.has_point3D():
-                pid = p2d.point3D_id
-                point_to_images.setdefault(pid, set()).add(img_id)
-
-    pair_scores = {}
-    for pid, img_set in point_to_images.items():
-        ids = sorted(img_set)
-        for i in range(len(ids)):
-            for j in range(i + 1, len(ids)):
-                pair = (ids[i], ids[j])
-                pair_scores[pair] = pair_scores.get(pair, 0) + 1
-
-    img_pair_count = {iid: 0 for iid in image_ids}
-    selected = []
-    for pair, score in sorted(pair_scores.items(), key=lambda x: -x[1]):
-        a, b = pair
-        if img_pair_count[a] < max_pairs_per_image and img_pair_count[b] < max_pairs_per_image:
-            if score >= 20:
-                selected.append((a, b, score))
-                img_pair_count[a] += 1
-                img_pair_count[b] += 1
-
-    return selected
 
 
-def triangulate_matches(kp1, kp2, matches, K, R1, t1, R2, t2):
-    """Triangulate matched keypoints into 3D points.
-    Returns (points3d_Nx3, valid_mask_N)."""
-    pts1 = np.float64([kp1[m.queryIdx].pt for m in matches])
-    pts2 = np.float64([kp2[m.trainIdx].pt for m in matches])
-
-    # Projection matrices: P = K @ [R | t]
-    P1 = K @ np.hstack([R1, t1.reshape(3, 1)])
-    P2 = K @ np.hstack([R2, t2.reshape(3, 1)])
-
-    # Triangulate
-    pts4d = cv2.triangulatePoints(P1, P2, pts1.T, pts2.T)
-    pts3d = (pts4d[:3] / pts4d[3]).T  # Nx3
-
-    # Filter: points must be in front of both cameras
-    pts_cam1 = (R1 @ pts3d.T + t1.reshape(3, 1)).T
-    pts_cam2 = (R2 @ pts3d.T + t2.reshape(3, 1)).T
-    valid = (pts_cam1[:, 2] > 0) & (pts_cam2[:, 2] > 0)
-
-    # Filter: reprojection error
-    proj1 = (P1 @ np.hstack([pts3d, np.ones((len(pts3d), 1))]).T).T
-    proj1 = proj1[:, :2] / proj1[:, 2:3]
-    err1 = np.linalg.norm(proj1 - pts1, axis=1)
-
-    proj2 = (P2 @ np.hstack([pts3d, np.ones((len(pts3d), 1))]).T).T
-    proj2 = proj2[:, :2] / proj2[:, 2:3]
-    err2 = np.linalg.norm(proj2 - pts2, axis=1)
-
-    valid &= (err1 < 5.0) & (err2 < 5.0)
-
-    # Filter: triangulation angle (reject near-degenerate)
-    c1 = -R1.T @ t1
-    c2 = -R2.T @ t2
-    rays1 = pts3d - c1
-    rays2 = pts3d - c2
-    cos_angle = np.sum(rays1 * rays2, axis=1) / (
-        np.linalg.norm(rays1, axis=1) * np.linalg.norm(rays2, axis=1) + 1e-10
-    )
-    valid &= (cos_angle < 0.9998)  # at least ~1 degree
-
-    return pts3d, valid
 
 
 def get_pixel_colors(image_bgr, keypoints, match_indices, scale_from_full):
@@ -2902,148 +1704,6 @@ def get_pixel_colors(image_bgr, keypoints, match_indices, scale_from_full):
     return np.array(colors)
 
 
-def run_dense(rec, image_folder, output_dir, scale=0.25, max_pairs_per_image=3):
-    """Dense reconstruction via feature matching + triangulation."""
-    with timeit("Dense feature matching + triangulation"):
-        pairs = select_dense_pairs(rec, max_pairs_per_image=max_pairs_per_image)
-        if not pairs:
-            print("  No suitable image pairs found for dense matching.")
-            return None
-
-        print(f"  Selected {len(pairs)} image pairs")
-
-        all_pts = []
-        all_cols = []
-        images = rec.images
-        cameras = rec.cameras
-
-        # Create SIFT detector for dense matching (more features than SfM)
-        sift = cv2.SIFT_create(nfeatures=0, contrastThreshold=0.02, edgeThreshold=15)
-        bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
-
-        for idx, (id_a, id_b, score) in enumerate(pairs):
-            img_a = images[id_a]
-            img_b = images[id_b]
-            cam = cameras[img_a.camera_id]
-
-            K_full = get_camera_matrix(cam)
-            Ra, ta = image_pose(img_a)
-            Rb, tb = image_pose(img_b)
-
-            path_a = os.path.join(image_folder, img_a.name)
-            path_b = os.path.join(image_folder, img_b.name)
-            if not os.path.exists(path_a) or not os.path.exists(path_b):
-                continue
-
-            bgr_a = cv2.imread(path_a)
-            bgr_b = cv2.imread(path_b)
-            if bgr_a is None or bgr_b is None:
-                continue
-
-            # Downscale for feature extraction
-            h0, w0 = bgr_a.shape[:2]
-            h, w = int(h0 * scale), int(w0 * scale)
-            small_a = cv2.resize(bgr_a, (w, h), interpolation=cv2.INTER_AREA)
-            small_b = cv2.resize(bgr_b, (w, h), interpolation=cv2.INTER_AREA)
-
-            gray_a = cv2.cvtColor(small_a, cv2.COLOR_BGR2GRAY)
-            gray_b = cv2.cvtColor(small_b, cv2.COLOR_BGR2GRAY)
-
-            # Extract features
-            kp_a, des_a = sift.detectAndCompute(gray_a, None)
-            kp_b, des_b = sift.detectAndCompute(gray_b, None)
-
-            if des_a is None or des_b is None or len(kp_a) < 100 or len(kp_b) < 100:
-                continue
-
-            # Match with ratio test
-            raw_matches = bf.knnMatch(des_a, des_b, k=2)
-            good_matches = []
-            for m_pair in raw_matches:
-                if len(m_pair) == 2:
-                    m, n = m_pair
-                    if m.distance < 0.75 * n.distance:
-                        good_matches.append(m)
-
-            if len(good_matches) < 50:
-                print(f"    Pair {idx+1}/{len(pairs)}: {img_a.name} <-> {img_b.name} "
-                      f"- too few matches ({len(good_matches)})")
-                continue
-
-            # Scale intrinsics to match downscaled images
-            K = K_full.copy()
-            K[0, :] *= (w / w0)
-            K[1, :] *= (h / h0)
-
-            # Fundamental matrix filtering
-            pts1 = np.float64([kp_a[m.queryIdx].pt for m in good_matches])
-            pts2 = np.float64([kp_b[m.trainIdx].pt for m in good_matches])
-            F, inlier_mask = cv2.findFundamentalMat(pts1, pts2, cv2.FM_RANSAC,
-                                                     ransacReprojThreshold=2.0)
-            if inlier_mask is None:
-                continue
-            inlier_matches = [m for m, keep in zip(good_matches, inlier_mask.ravel()) if keep]
-
-            if len(inlier_matches) < 30:
-                continue
-
-            # Triangulate
-            pts3d, valid = triangulate_matches(kp_a, kp_b, inlier_matches, K, Ra, ta, Rb, tb)
-            valid_pts = pts3d[valid]
-
-            if len(valid_pts) < 10:
-                print(f"    Pair {idx+1}/{len(pairs)}: {img_a.name} <-> {img_b.name} "
-                      f"- {len(inlier_matches)} inliers -> {len(valid_pts)} triangulated")
-                continue
-
-            # Outlier removal by distance from median
-            median_pt = np.median(valid_pts, axis=0)
-            dists = np.linalg.norm(valid_pts - median_pt, axis=1)
-            dist_thresh = np.percentile(dists, 95) * 2.0
-            keep = dists < dist_thresh
-            valid_pts = valid_pts[keep]
-
-            # Get colors from image A
-            valid_match_indices = [inlier_matches[i].queryIdx
-                                   for i, v in enumerate(valid) if v]
-            valid_match_indices = [vi for vi, k in zip(valid_match_indices, keep) if k]
-            # Sample colors at downscaled resolution
-            cols = []
-            for mi in valid_match_indices:
-                x, y = kp_a[mi].pt
-                xi, yi = int(round(x)), int(round(y))
-                xi = max(0, min(xi, w - 1))
-                yi = max(0, min(yi, h - 1))
-                bgr_val = small_a[yi, xi]
-                cols.append([bgr_val[2] / 255.0, bgr_val[1] / 255.0, bgr_val[0] / 255.0])
-            cols = np.array(cols) if cols else np.zeros((0, 3))
-
-            print(f"    Pair {idx+1}/{len(pairs)}: {img_a.name} <-> {img_b.name} "
-                  f"({score} shared) -> {len(inlier_matches)} inliers -> "
-                  f"{len(valid_pts)} dense points")
-
-            if len(valid_pts) > 0 and len(cols) == len(valid_pts):
-                all_pts.append(valid_pts)
-                all_cols.append(cols)
-
-        if not all_pts:
-            print("  No dense points generated.")
-            return None
-
-        all_pts = np.vstack(all_pts)
-        all_cols = np.vstack(all_cols)
-        print(f"  Total dense points: {len(all_pts)}")
-
-        pcd = o3d.geometry.PointCloud()
-        pcd.points = o3d.utility.Vector3dVector(all_pts)
-        pcd.colors = o3d.utility.Vector3dVector(all_cols)
-
-        # Statistical outlier removal
-        if len(pcd.points) > 100:
-            pcd, _ = pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
-            print(f"  After outlier removal: {len(pcd.points)} points")
-
-        return pcd
 
 
 # ---------------------------------------------------------------------------
@@ -3070,147 +1730,18 @@ def check_colmap_cuda():
     return True, False, f"{colmap_bin} (CUDA support unknown)"
 
 
-def run_dense_mvs(rec, image_folder, output_dir):
-    """Dense reconstruction via COLMAP PatchMatch MVS + stereo fusion.
-
-    Requires the colmap CLI binary compiled with CUDA support.
-    Uses the sparse reconstruction already written to output_dir/sparse/.
-
-    Returns an Open3D PointCloud or None.
-    """
-    sparse_dir = os.path.join(output_dir, "sparse")
-    mvs_dir = os.path.join(output_dir, "dense_mvs")
-    fused_ply = os.path.join(mvs_dir, "fused.ply")
-
-    # Step 1: Undistort images
-    with timeit("COLMAP image undistortion"):
-        ret = subprocess.run([
-            "colmap", "image_undistorter",
-            "--image_path", image_folder,
-            "--input_path", sparse_dir,
-            "--output_path", mvs_dir,
-            "--output_type", "COLMAP",
-        ], capture_output=True, text=True)
-        if ret.returncode != 0:
-            print(f"  ERROR: image_undistorter failed (exit {ret.returncode})")
-            print(ret.stderr[-500:] if ret.stderr else "(no stderr)")
-            return None
-        print(ret.stdout[-300:] if ret.stdout else "  (no stdout)")
-
-    # Step 2: PatchMatch stereo (GPU)
-    with timeit("COLMAP PatchMatch stereo (GPU)"):
-        ret = subprocess.run([
-            "colmap", "patch_match_stereo",
-            "--workspace_path", mvs_dir,
-            "--PatchMatchStereo.geom_consistency", "true",
-        ], capture_output=True, text=True, timeout=3600)
-        if ret.returncode != 0:
-            print(f"  ERROR: patch_match_stereo failed (exit {ret.returncode})")
-            print(ret.stderr[-500:] if ret.stderr else "(no stderr)")
-            return None
-        print(ret.stdout[-300:] if ret.stdout else "  (no stdout)")
-
-    # Step 3: Stereo fusion
-    with timeit("COLMAP stereo fusion"):
-        ret = subprocess.run([
-            "colmap", "stereo_fusion",
-            "--workspace_path", mvs_dir,
-            "--output_path", fused_ply,
-        ], capture_output=True, text=True, timeout=600)
-        if ret.returncode != 0:
-            print(f"  ERROR: stereo_fusion failed (exit {ret.returncode})")
-            print(ret.stderr[-500:] if ret.stderr else "(no stderr)")
-            return None
-        print(ret.stdout[-300:] if ret.stdout else "  (no stdout)")
-
-    if not os.path.exists(fused_ply):
-        print("  ERROR: fused.ply was not created.")
-        return None
-
-    pcd = o3d.io.read_point_cloud(fused_ply)
-    n = len(pcd.points)
-    print(f"  MVS fused cloud: {n} points")
-
-    if n == 0:
-        return None
-
-    # Statistical outlier removal
-    if n > 100:
-        pcd, _ = pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
-        print(f"  After outlier removal: {len(pcd.points)} points")
-
-    return pcd
 
 
 # ---------------------------------------------------------------------------
 # Stage 6: Surface reconstruction
 # ---------------------------------------------------------------------------
 
-def build_mesh(pcd, output_mesh_path, depth=9):
-    """Poisson surface reconstruction from a point cloud."""
-    with timeit("Poisson surface reconstruction"):
-        n_pts = len(pcd.points)
-        print(f"  Input: {n_pts} points")
-
-        # Estimate normals - radius based on point cloud extent
-        bbox = pcd.get_axis_aligned_bounding_box()
-        extent = np.linalg.norm(bbox.get_max_bound() - bbox.get_min_bound())
-        nn_radius = extent / 50.0
-        print(f"  Scene extent: {extent:.2f}, normal search radius: {nn_radius:.4f}")
-
-        pcd.estimate_normals(
-            search_param=o3d.geometry.KDTreeSearchParamHybrid(
-                radius=nn_radius, max_nn=30
-            )
-        )
-        pcd.orient_normals_consistent_tangent_plane(k=15)
-
-        print(f"  Running Poisson reconstruction (depth={depth})...")
-        mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(
-            pcd, depth=depth, width=0, scale=1.1, linear_fit=False,
-        )
-
-        # Trim low-density regions
-        densities = np.asarray(densities)
-        if len(densities) > 0:
-            thresh = np.quantile(densities, 0.02)
-            vertices_to_remove = densities < thresh
-            mesh.remove_vertices_by_mask(vertices_to_remove)
-
-        # Clean up
-        mesh.remove_degenerate_triangles()
-        mesh.remove_duplicated_triangles()
-        mesh.remove_duplicated_vertices()
-        mesh.remove_non_manifold_edges()
-
-        nv = len(mesh.vertices)
-        nf = len(mesh.triangles)
-        print(f"  Mesh: {nv} vertices, {nf} triangles")
-
-        if nv == 0 or nf == 0:
-            print("  WARNING: empty mesh produced.")
-            return None
-
-        o3d.io.write_triangle_mesh(output_mesh_path, mesh)
-        print(f"  Saved -> {output_mesh_path}")
-        return mesh
 
 
 # ---------------------------------------------------------------------------
 # Main pipeline
 # ---------------------------------------------------------------------------
 
-def reconstruction_to_pointcloud(rec):
-    """Convert pycolmap Reconstruction sparse points to Open3D PointCloud."""
-    pts, cols = [], []
-    for pid, p3d in rec.points3D.items():
-        pts.append(p3d.xyz)
-        cols.append(p3d.color / 255.0)
-    pcd = o3d.geometry.PointCloud()
-    if pts:
-        pcd.points = o3d.utility.Vector3dVector(np.array(pts))
-        pcd.colors = o3d.utility.Vector3dVector(np.array(cols))
-    return pcd
 
 
 def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
@@ -3247,6 +1778,12 @@ def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
             **planar_kwargs,
         )
 
+    # SfM / dense (MVS) modes need COLMAP; planar mode above does not. The SfM
+    # implementation lives in the (optional) viame.colmap plugin.
+    require_colmap()
+    from viame.colmap import reconstruction as _cr
+    _cr.import_dependencies()
+
     print(f"\n{'#'*70}")
     print(f"  Processing: {folder_name} {'[MULTICAM]' if multicam else ''}")
     print(f"  Input:  {image_folder}")
@@ -3275,12 +1812,12 @@ def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
         print(f"Found {len(image_names)} images")
 
     # ---- SfM ----
-    rec = run_sfm(image_folder, output_dir, image_names, multicam=multicam)
+    rec = _cr.run_sfm(image_folder, output_dir, image_names, multicam=multicam)
     if rec is None:
         return False
 
     # Save sparse point cloud
-    sparse_pcd = reconstruction_to_pointcloud(rec)
+    sparse_pcd = _cr.reconstruction_to_pointcloud(rec)
     sparse_ply = os.path.join(output_dir, "sparse_cloud.ply")
     o3d.io.write_point_cloud(sparse_ply, sparse_pcd)
     print(f"  Saved sparse cloud ({len(sparse_pcd.points)} pts) -> {sparse_ply}")
@@ -3290,10 +1827,10 @@ def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
     if coverage_class is not None:
         coverage_csv = os.path.join(output_dir, coverage_file)
         try:
-            generate_prior_coverage(rec, coverage_csv, coverage_class)
+            _cr.generate_prior_coverage(rec, coverage_csv, coverage_class)
         except (ImportError, Exception) as e:
             print(f"  kwiver not available ({e}), using standalone CSV writer")
-            generate_prior_coverage_standalone(rec, coverage_csv, coverage_class)
+            _cr.generate_prior_coverage_standalone(rec, coverage_csv, coverage_class)
 
         # ---- Visualization (optional) ----
         if visualize:
@@ -3308,9 +1845,9 @@ def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
 
     if dense:
         if dense_method == "mvs":
-            dense_pcd = run_dense_mvs(rec, image_folder, output_dir)
+            dense_pcd = _cr.run_dense_mvs(rec, image_folder, output_dir)
         else:
-            dense_pcd = run_dense(rec, image_folder, output_dir, scale=scale,
+            dense_pcd = _cr.run_dense(rec, image_folder, output_dir, scale=scale,
                                   max_pairs_per_image=max_pairs_per_image)
 
         # Merge sparse + dense
@@ -3348,7 +1885,7 @@ def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
         else:
             depth = 10
 
-        mesh = build_mesh(combined, mesh_ply, depth=depth)
+        mesh = _cr.build_mesh(combined, mesh_ply, depth=depth)
         if mesh is None:
             return False
 
@@ -3373,39 +1910,6 @@ def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
 # CLI
 # ---------------------------------------------------------------------------
 
-def view_file(filepath):
-    """Open a PLY/OBJ file in the Open3D interactive viewer."""
-    ext = os.path.splitext(filepath)[1].lower()
-    name = os.path.basename(filepath)
-
-    # Try loading as mesh first, fall back to point cloud
-    if ext in ('.obj', '.stl', '.off', '.gltf', '.glb'):
-        load_as = 'mesh'
-    elif ext == '.ply':
-        # PLY can be either mesh or point cloud - try mesh first
-        mesh = o3d.io.read_triangle_mesh(filepath)
-        if len(mesh.triangles) > 0:
-            load_as = 'mesh'
-        else:
-            load_as = 'pointcloud'
-    else:
-        load_as = 'pointcloud'
-
-    if load_as == 'mesh':
-        geo = o3d.io.read_triangle_mesh(filepath)
-        geo.compute_vertex_normals()
-        label = (f"{name}  |  {len(geo.vertices)} vertices, "
-                 f"{len(geo.triangles)} triangles")
-    else:
-        geo = o3d.io.read_point_cloud(filepath)
-        label = f"{name}  |  {len(geo.points)} points"
-
-    print(f"Viewing: {filepath}")
-    print(f"  {label}")
-    print("  Controls: left-drag=rotate, scroll=zoom, middle-drag=pan, "
-          "R=reset, Q=close")
-    o3d.visualization.draw_geometries([geo], window_name=label,
-                                       width=1280, height=720)
 
 
 def main():
@@ -3544,9 +2048,12 @@ def main():
     # --- Import dependencies (after --install-deps check) ---
     import_dependencies()
 
-    # --- View mode ---
+    # --- View mode (point-cloud viewer; needs COLMAP plugin / open3d) ---
     if args.view:
-        view_file(os.path.abspath(args.view))
+        require_colmap()
+        from viame.colmap import reconstruction as _cr
+        _cr.import_dependencies()
+        _cr.view_file(os.path.abspath(args.view))
         return
 
     folders = []
