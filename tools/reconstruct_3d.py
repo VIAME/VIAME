@@ -489,7 +489,8 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
                          loop_closure=False, loop_closure_max=24,
                          xcam_robust=False, xcam_cluster_tol=300.0,
                          xcam_low_drift=False, anchor_central=False,
-                         flight_log=None, geo_anchor=False):
+                         flight_log=None, geo_anchor=False,
+                         loop_closure_correct=False):
     """Compute coverage/suppression regions using homographies (planar scene).
 
     For multicam: computes homographies within each camera separately (temporal
@@ -579,6 +580,31 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
                 loop_closure_max=loop_closure_max, anchor_central=anchor_central)
             cam_chains[cam_key] = chain
             cam_pairwise[cam_key] = pw_H
+
+        # Step 1a: Loop-closure correction (optional). Detect land revisits and
+        # run a 2D pose-graph to redistribute accumulated chain drift so the
+        # revisited land lines up across passes.
+        if loop_closure_correct:
+            print("  Loop-closure correction (pose graph)...")
+            for cam_key, cam_imgs in cameras.items():
+                chain = cam_chains[cam_key]
+                if len(chain) < 4:
+                    continue
+                loops = _sr.detect_loop_edges(chain, image_folder, cam_imgs)
+                if not loops:
+                    print(f"    {cam_key}: no land loop closures found")
+                    continue
+                seq = [(i, j, H) for (i, j), H in cam_pairwise[cam_key].items()
+                       if i in chain and j in chain]
+                def _resid(poses):
+                    es = [np.linalg.norm((poses[j] @ H)[:2, 2] - poses[i][:2, 2])
+                          for (i, j, H) in loops]
+                    return float(np.mean(es)) if es else 0.0
+                before = _resid(chain)
+                cam_chains[cam_key] = _sr.optimize_pose_graph(chain, seq + loops)
+                after = _resid(cam_chains[cam_key])
+                print(f"    {cam_key}: {len(loops)} loop edges, "
+                      f"residual {before:.0f}px -> {after:.0f}px")
 
         # Step 1b: GPS geo-anchoring (optional). Use flight-log / imagelog / EXIF
         # poses to fill unregistered (water) frames with drift-free positions and
@@ -795,6 +821,23 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
             use_affine=use_affine, sift_contrast=sift_contrast,
             clahe_clip=clahe_clip, loop_closure=loop_closure,
             loop_closure_max=loop_closure_max, anchor_central=anchor_central)
+
+        # Loop-closure correction (optional, single camera).
+        if loop_closure_correct and len(chain) >= 4:
+            loops = _sr.detect_loop_edges(chain, image_folder, image_names)
+            if loops:
+                seq = [(i, j, H) for (i, j), H in _pw.items()
+                       if i in chain and j in chain]
+                def _resid(poses):
+                    es = [np.linalg.norm((poses[j] @ H)[:2, 2] - poses[i][:2, 2])
+                          for (i, j, H) in loops]
+                    return float(np.mean(es)) if es else 0.0
+                before = _resid(chain)
+                chain = _sr.optimize_pose_graph(chain, seq + loops)
+                print(f"  Loop-closure: {len(loops)} edges, residual "
+                      f"{before:.0f}px -> {_resid(chain):.0f}px")
+            else:
+                print("  Loop-closure: no land revisits found")
 
         # GPS geo-anchoring (optional) — single camera (e.g. 2025 UAS imagelog).
         if geo_anchor:
@@ -1747,7 +1790,8 @@ def check_colmap_cuda():
 def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
                     coverage_class=None, coverage_file="prior_coverage.csv",
                     dense=True, dense_method="sift", multicam=False,
-                    visualize=False, planar=False, planar_kwargs=None):
+                    visualize=False, planar=False, planar_kwargs=None,
+                    sfm_matching='auto'):
     """Full pipeline for one image folder.
 
     If multicam=True (or auto-detected), looks for PORT/STAR/CENTER subfolders
@@ -1812,7 +1856,8 @@ def process_folder(image_folder, output_dir, scale=0.25, max_pairs_per_image=3,
         print(f"Found {len(image_names)} images")
 
     # ---- SfM ----
-    rec = _cr.run_sfm(image_folder, output_dir, image_names, multicam=multicam)
+    rec = _cr.run_sfm(image_folder, output_dir, image_names, multicam=multicam,
+                      matching=sfm_matching)
     if rec is None:
         return False
 
@@ -1948,6 +1993,12 @@ def main():
                         help="Use homography-based coverage computation for "
                              "planar scenes (benthic/overhead surveys). Skips "
                              "SfM and uses frame-to-frame homographies instead.")
+    parser.add_argument("--sfm-matching", choices=['auto', 'exhaustive', 'sequential'],
+                        default='auto',
+                        help="SfM feature-matching strategy (non-planar mode). "
+                             "'exhaustive' finds temporally-distant loop-closure "
+                             "pairs (revisits); 'auto' uses it for small/multicam "
+                             "sets only.")
     parser.add_argument("--visualize", action="store_true",
                         help="Generate visualization of coverage polygons "
                              "overlaid on images")
@@ -2031,6 +2082,10 @@ def main():
     quality.add_argument("--flight-log", default=None,
                          help="Path to an FMCLOG CSV (2024 format) for --geo-anchor. "
                               "Not needed when an imagelog.json or EXIF GPS is present.")
+    quality.add_argument("--loop-closure-correct", action="store_true",
+                         help="Detect land revisits and run a 2D pose-graph to "
+                              "redistribute chain drift so revisited land lines up "
+                              "across passes (the loop-closure correction).")
 
     parser.add_argument("--install-deps", action="store_true",
                         help="Check and install missing Python dependencies")
@@ -2123,6 +2178,7 @@ def main():
         anchor_central=args.anchor_central,
         flight_log=args.flight_log,
         geo_anchor=args.geo_anchor,
+        loop_closure_correct=args.loop_closure_correct,
     )
     for folder in folders:
         name = os.path.basename(folder.rstrip('/'))
@@ -2136,7 +2192,8 @@ def main():
                             multicam=args.multicam,
                             visualize=args.visualize,
                             planar=args.planar,
-                            planar_kwargs=planar_kwargs)
+                            planar_kwargs=planar_kwargs,
+                            sfm_matching=args.sfm_matching)
         results[name] = ok
 
     dt = time.time() - t_total
