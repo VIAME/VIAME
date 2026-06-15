@@ -911,3 +911,135 @@ def _geo_anchor_cameras(cam_chains, cameras, poses_by_cam, pairwise_by_cam):
             note = cam_key
         _geo_fill(cam_chains[cam_key], cameras[cam_key], enu, yaw, M,
                   label=note, n_steps=n, residual=r)
+
+
+# ---------------------------------------------------------------------------
+# 2D pose-graph loop-closure correction
+# ---------------------------------------------------------------------------
+
+def detect_loop_edges(chain, image_folder, cam_images, min_gap=15,
+                      overlap_thresh=0.25, match_scale=0.75, min_inliers=20,
+                      use_affine=True):
+    """Detect LAND loop-closure edges in a registered chain.
+
+    Finds temporally-distant registered frames (>= min_gap apart) whose ground
+    footprints overlap, and confirms each by a direct feature match. Returns a
+    list of (i, j, H) where H maps frame i's pixels into frame j's pixels
+    (the same convention the chain uses), suitable as loop edges for
+    :func:`optimize_pose_graph`.
+    """
+    reg = sorted(chain.keys())
+    if len(reg) < 3:
+        return []
+    img0 = cv2.imread(os.path.join(image_folder, cam_images[reg[0]]))
+    if img0 is None:
+        return []
+    h0, w0 = img0.shape[:2]
+
+    def corners(H):
+        pts = np.float32([[0, 0], [w0, 0], [w0, h0], [0, h0]]).reshape(-1, 1, 2)
+        return cv2.perspectiveTransform(pts, H).reshape(-1, 2)
+
+    fp = {i: corners(chain[i]) for i in reg}
+
+    def overlap(a, b):
+        inter, _ = cv2.intersectConvexConvex(a.astype(np.float32), b.astype(np.float32))
+        if not inter or inter <= 0:
+            return 0.0
+        return inter / min(cv2.contourArea(a.astype(np.float32)),
+                           cv2.contourArea(b.astype(np.float32)))
+
+    edges = []
+    for ai in range(len(reg)):
+        i = reg[ai]
+        for bi in range(ai + 1, len(reg)):
+            j = reg[bi]
+            if j - i < min_gap or overlap(fp[i], fp[j]) < overlap_thresh:
+                continue
+            H, _ = compute_homography_pair(
+                os.path.join(image_folder, cam_images[i]),
+                os.path.join(image_folder, cam_images[j]),
+                scale=match_scale, nfeatures=12000,
+                use_affine=use_affine, min_inliers=min_inliers)
+            if H is not None:
+                edges.append((i, j, H))
+    return edges
+
+
+def optimize_pose_graph(node_poses, edges, anchor=None, anchor_weight=1e3):
+    """2D pose-graph optimization for planar (homography) registration.
+
+    node_poses: {i: H_i (3x3)} initial GLOBAL poses from the sequential chain.
+    edges: list of (i, j, H_meas) where H_meas maps frame i's pixels into frame
+        j's pixels; the constraint is H_i = H_j @ H_meas (the same relation the
+        chain builds). Sequential (chain) and loop-closure (revisit) edges are
+        treated identically; the loop edges redistribute accumulated drift so
+        revisited places line up. anchor: node held fixed (gauge).
+    Returns {i: H_i_corrected}. Three decoupled linear solves: rotation (complex
+    averaging — wraparound-free), log-scale, then translation.
+    """
+    nodes = sorted(node_poses.keys())
+    idx = {n: k for k, n in enumerate(nodes)}
+    N = len(nodes)
+    if N < 2:
+        return dict(node_poses)
+    if anchor is None or anchor not in idx:
+        anchor = min(nodes, key=lambda n: np.linalg.norm(node_poses[n] - np.eye(3)))
+    a = idx[anchor]
+
+    E = []
+    for (i, j, H) in edges:
+        if i not in idx or j not in idx:
+            continue
+        B = np.asarray(H[:2, :2], float)
+        e = np.asarray(H[:2, 2], float)
+        det = np.linalg.det(B)
+        s = float(np.sqrt(abs(det))) if abs(det) > 1e-12 else 1.0
+        th = float(np.arctan2(B[1, 0] - B[0, 1], B[0, 0] + B[1, 1]))
+        E.append((idx[i], idx[j], th, np.log(s), e))
+    if not E:
+        return dict(node_poses)
+
+    Ba = node_poses[anchor][:2, :2]
+    # Stage 1: rotation averaging via complex linear least squares.
+    A = np.zeros((len(E) + 1, N), dtype=complex)
+    b = np.zeros(len(E) + 1, dtype=complex)
+    for r, (ii, jj, th, ls, e) in enumerate(E):
+        A[r, ii] += 1.0
+        A[r, jj] += -np.exp(1j * th)
+    z_anchor = np.exp(1j * np.arctan2(Ba[1, 0] - Ba[0, 1], Ba[0, 0] + Ba[1, 1]))
+    A[len(E), a] = anchor_weight
+    b[len(E)] = anchor_weight * z_anchor
+    z = np.linalg.lstsq(A, b, rcond=None)[0]
+    theta = np.angle(z / np.maximum(np.abs(z), 1e-9))
+
+    # Stage 2: log-scale linear least squares.
+    As = np.zeros((len(E) + 1, N)); bs = np.zeros(len(E) + 1)
+    for r, (ii, jj, th, ls, e) in enumerate(E):
+        As[r, ii] += 1.0; As[r, jj] += -1.0; bs[r] = ls
+    As[len(E), a] = anchor_weight
+    bs[len(E)] = anchor_weight * np.log(max(float(np.sqrt(abs(np.linalg.det(Ba)))), 1e-9))
+    logs = np.linalg.lstsq(As, bs, rcond=None)[0]
+    scale = np.exp(logs)
+
+    def Lof(k):
+        c, s = np.cos(theta[k]), np.sin(theta[k])
+        return scale[k] * np.array([[c, -s], [s, c]])
+
+    # Stage 3: translation linear least squares (t_i = t_j + L_j @ e).
+    At = np.zeros((2 * (len(E) + 1), 2 * N)); bt = np.zeros(2 * (len(E) + 1))
+    for r, (ii, jj, th, ls, e) in enumerate(E):
+        rhs = Lof(jj) @ e
+        At[2 * r, 2 * ii] = 1.0; At[2 * r, 2 * jj] = -1.0; bt[2 * r] = rhs[0]
+        At[2 * r + 1, 2 * ii + 1] = 1.0; At[2 * r + 1, 2 * jj + 1] = -1.0; bt[2 * r + 1] = rhs[1]
+    ta = node_poses[anchor][:2, 2]
+    At[2 * len(E), 2 * a] = anchor_weight; bt[2 * len(E)] = anchor_weight * ta[0]
+    At[2 * len(E) + 1, 2 * a + 1] = anchor_weight; bt[2 * len(E) + 1] = anchor_weight * ta[1]
+    t = np.linalg.lstsq(At, bt, rcond=None)[0]
+
+    out = {}
+    for n in nodes:
+        k = idx[n]
+        H = np.eye(3); H[:2, :2] = Lof(k); H[:2, 2] = [t[2 * k], t[2 * k + 1]]
+        out[n] = H
+    return out
