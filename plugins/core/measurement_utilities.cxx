@@ -4185,9 +4185,29 @@ load_stereo_calibration( std::string const& path )
   kv::matrix_3x3d const rotation = r_right * r_left.transpose();
   kv::vector_3d const translation = r_right * ( c_left - c_right );
 
+  // Distortion coefficients (radial-tangential [k1,k2,p1,p2,k3,...]), exactly
+  // as read_stereo_rig parsed them into the camera intrinsics.
+  auto const dist_to_vec =
+    []( kv::camera_intrinsics_sptr const& ci ) -> std::vector< double >
+    {
+      std::vector< double > out;
+      if( ci )
+      {
+        auto const& d = ci->dist_coeffs();
+        out.reserve( d.size() );
+        for( size_t i = 0; i < d.size(); ++i )
+        {
+          out.push_back( d[ i ] );
+        }
+      }
+      return out;
+    };
+
   py::dict result;
   result[ "k_left" ] = flatten_3x3( left->intrinsics()->as_matrix() );
   result[ "k_right" ] = flatten_3x3( right->intrinsics()->as_matrix() );
+  result[ "dist_left" ] = dist_to_vec( left->intrinsics() );
+  result[ "dist_right" ] = dist_to_vec( right->intrinsics() );
   result[ "rotation" ] = flatten_3x3( rotation );
   result[ "translation" ] = std::vector< double >{
     translation[ 0 ], translation[ 1 ], translation[ 2 ] };
@@ -4232,9 +4252,10 @@ PYBIND11_MODULE( _measurement, m )
     py::arg( "path" ),
     "Load a stereo calibration file via viame::core::read_stereo_rig (the same "
     "loader the measurement pipeline processes use; supports .json, .yml/.yaml, "
-    ".npz and OpenCV calibration directories). Returns a dict with flat "
-    "row-major k_left, k_right, rotation (right relative to left) and "
-    "translation." );
+    ".mat, .npz and OpenCV calibration directories). Returns a dict with flat "
+    "row-major k_left, k_right, the radial-tangential dist_left/dist_right "
+    "coefficients ([k1,k2,p1,p2,k3,...]), rotation (right relative to left) "
+    "and translation." );
 }
 
 #endif // VIAME_MEASUREMENT_PYTHON_BINDINGS

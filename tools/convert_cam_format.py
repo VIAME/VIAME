@@ -11,8 +11,19 @@ Supports conversion between:
   - npz: NumPy archive format
   - json: KWIVER camera_rig_io compatible JSON format
   - opencv: OpenCV FileStorage YML format (intrinsics.yml + extrinsics.yml)
+  - yml: single OpenCV FileStorage file (M1, D1, M2, D2, R, T)
+  - mat: MATLAB Bouguet-toolbox stereo calibration
   - zed: ZED camera INI-style configuration format
   - cal: CamCAL/PtsCAL binary calibration format
+
+Reading the formats that plugins/core/camera_rig_io owns (npz, json, opencv
+directories, single yml and mat) is delegated to the C++ viame::read_stereo_rig
+loader via the viame.core._measurement binding, so this tool and the
+measurement pipeline share a single source of truth and cannot drift apart.
+The ZED and CamCAL/PtsCAL readers (which camera_rig_io has no equivalent for)
+and all writers remain pure Python. When the compiled binding is unavailable
+(e.g. running this script outside a built VIAME), the npz/json/opencv readers
+fall back to the standalone Python implementations below.
 """
 
 import argparse
@@ -27,6 +38,17 @@ from pathlib import Path
 import cv2
 import numpy as np
 from scipy.spatial.transform import Rotation
+
+# Shared C++ loader (viame::read_stereo_rig). Optional: the tool still works as
+# a standalone script (with the Python readers below) when it is not importable.
+try:
+    from viame.core import _measurement as _cpp_camera_rig_io
+except Exception:
+    _cpp_camera_rig_io = None
+
+# Formats handled by viame::read_stereo_rig (and thus read via the binding when
+# available). ZED and CamCAL/PtsCAL are not among them and stay pure Python.
+CAMERA_RIG_IO_FORMATS = ('npz', 'json', 'opencv', 'yml', 'mat')
 
 
 # =============================================================================
@@ -112,6 +134,38 @@ class StereoCalibration:
 # =============================================================================
 # Format readers
 # =============================================================================
+
+def read_via_camera_rig_io(input_path):
+    """Read calibration through the C++ viame::read_stereo_rig loader.
+
+    This is the single source of truth shared with plugins/core/camera_rig_io
+    and the measurement pipeline. It covers .json, single .yml/.yaml, .npz, .mat
+    and OpenCV calibration directories. The world frame is the left camera, so
+    the returned R, T are the right camera relative to the left.
+
+    Note: camera_rig_io models a stereo rig as K/dist/R/T only -- optional file
+    metadata (image dimensions, grid size, RMS errors) is not carried through.
+    Pass --image-width/--image-height when converting to a format that needs it
+    (e.g. computing OpenCV rectification).
+    """
+    if _cpp_camera_rig_io is None:
+        raise RuntimeError("viame.core._measurement binding is not available")
+
+    c = _cpp_camera_rig_io.load_stereo_calibration(str(input_path))
+
+    calib = StereoCalibration()
+    calib.camera_matrix_left = np.array(c['k_left'], dtype=np.float64).reshape(3, 3)
+    calib.camera_matrix_right = np.array(c['k_right'], dtype=np.float64).reshape(3, 3)
+    # read_stereo_rig always yields the 5-term [k1,k2,p1,p2,k3] model; keep the
+    # (1, N) shape the writers expect and guarantee at least 5 coefficients.
+    dl = np.array(c['dist_left'], dtype=np.float64).reshape(-1)
+    dr = np.array(c['dist_right'], dtype=np.float64).reshape(-1)
+    calib.dist_coeffs_left = np.pad(dl, (0, max(0, 5 - dl.size)))[None, :]
+    calib.dist_coeffs_right = np.pad(dr, (0, max(0, 5 - dr.size)))[None, :]
+    calib.R = np.array(c['rotation'], dtype=np.float64).reshape(3, 3)
+    calib.T = np.array(c['translation'], dtype=np.float64).reshape(3, 1)
+    return calib
+
 
 def read_npz(input_path):
     """Read calibration from NumPy NPZ format."""
@@ -845,7 +899,7 @@ def write_zed(calib, output_path, camera_mode='HD'):
 # Format detection
 # =============================================================================
 
-SUPPORTED_FORMATS = ['npz', 'json', 'opencv', 'zed', 'cal']
+SUPPORTED_FORMATS = ['npz', 'json', 'opencv', 'yml', 'mat', 'zed', 'cal']
 
 
 def detect_format(path):
@@ -871,11 +925,13 @@ def detect_format(path):
     elif suffix == '.json':
         return 'json'
     elif suffix in ['.yml', '.yaml']:
-        # Could be OpenCV format - check if parent has both files
-        parent = path.parent
-        if (parent / "intrinsics.yml").exists() and (parent / "extrinsics.yml").exists():
-            return 'opencv'
-        raise ValueError(f"Single YML file found, but OpenCV format requires both intrinsics.yml and extrinsics.yml")
+        # A lone .yml is a single combined OpenCV FileStorage file (M1, D1, M2,
+        # D2, R, T), which read_stereo_rig handles directly. For a split
+        # intrinsics.yml/extrinsics.yml pair, point the tool at the directory
+        # (handled by the is_dir() branch above as the 'opencv' format).
+        return 'yml'
+    elif suffix == '.mat':
+        return 'mat'
     elif suffix.lower() in ['.camcal', '.ptscal']:
         return 'cal'
     elif suffix in ['.conf', '.ini', '.cfg', '']:
@@ -956,18 +1012,28 @@ def convert(input_path, output_path, input_format=None, output_format=None,
         if left_camcal is None and right_camcal is None:
             raise ValueError("cal format requires --left-cal and/or --right-cal")
         calib = read_cal(left_camcal, right_camcal, ptscal, extrinsics_mode)
+    elif input_format == 'zed':
+        calib = read_zed(input_path, camera_mode)
+    elif input_format in CAMERA_RIG_IO_FORMATS:
+        # Delegate to the shared C++ viame::read_stereo_rig loader so this tool
+        # and the measurement pipeline agree by construction. Fall back to the
+        # standalone Python readers if the compiled binding is unavailable.
+        if _cpp_camera_rig_io is not None:
+            print("Reading via viame::read_stereo_rig (shared C++ loader)")
+            calib = read_via_camera_rig_io(input_path)
+        else:
+            fallback = {'npz': read_npz, 'json': read_json, 'opencv': read_opencv}
+            if input_format not in fallback:
+                raise ValueError(
+                    f"Reading '{input_format}' requires the compiled "
+                    f"viame.core._measurement binding (viame::read_stereo_rig), "
+                    f"which is not importable. Build VIAME with the core plugin "
+                    f"to enable it.")
+            print(f"viame.core binding unavailable; using standalone Python "
+                  f"reader for '{input_format}'")
+            calib = fallback[input_format](input_path)
     else:
-        readers = {
-            'npz': read_npz,
-            'json': read_json,
-            'opencv': read_opencv,
-            'zed': lambda p: read_zed(p, camera_mode),
-        }
-
-        if input_format not in readers:
-            raise ValueError(f"Unsupported input format: {input_format}")
-
-        calib = readers[input_format](input_path)
+        raise ValueError(f"Unsupported input format: {input_format}")
 
     # Store image dimensions if provided
     if image_width is not None:
@@ -995,6 +1061,10 @@ def convert(input_path, output_path, input_format=None, output_format=None,
     }
 
     if output_format not in writers:
+        if output_format in ('yml', 'mat'):
+            raise ValueError(
+                f"'{output_format}' is a read-only format (no writer). Supported "
+                f"output formats: {', '.join(writers)}.")
         raise ValueError(f"Unsupported output format: {output_format}")
 
     writers[output_format](calib, output_path)
@@ -1013,8 +1083,14 @@ Supported formats:
   npz     - NumPy archive format (calibration.npz)
   json    - KWIVER camera_rig_io compatible JSON format
   opencv  - OpenCV FileStorage format (intrinsics.yml + extrinsics.yml in a directory)
+  yml     - single combined OpenCV FileStorage file (input only)
+  mat     - MATLAB Bouguet-toolbox stereo calibration (input only)
   zed     - ZED camera INI-style configuration format
   cal     - CamCAL/PtsCAL binary calibration format (input only)
+
+npz/json/opencv/yml/mat are read through the shared C++ viame::read_stereo_rig
+loader (the same one the measurement pipeline uses) when the viame.core binding
+is importable, with a standalone-Python fallback for npz/json/opencv.
 
 Examples:
   # Convert OpenCV YML to NPZ

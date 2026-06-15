@@ -142,7 +142,7 @@ def test_json_roundtrip(a_test_data_folder, tmpdir):
 
 def test_auto_format_detection(a_test_data_folder, a_test_zed_conf, tmpdir):
     """Test automatic format detection."""
-    from ..convert_cam_format import detect_format
+    from convert_cam_format import detect_format
 
     assert detect_format(a_test_data_folder) == 'opencv'
     assert detect_format(a_test_zed_conf) == 'zed'
