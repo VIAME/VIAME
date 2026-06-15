@@ -2,8 +2,8 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef _VIAME_DETECT_IN_SUBREGIONS_PROCESS_H
-#define _VIAME_DETECT_IN_SUBREGIONS_PROCESS_H
+#ifndef VIAME_OPENCV_DETECT_IN_SUBREGIONS_PROCESS_H
+#define VIAME_OPENCV_DETECT_IN_SUBREGIONS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -57,4 +57,4 @@ private:
 
 } // end namespace
 
-#endif /* _VIAME_DETECT_IN_SUBREGIONS_PROCESS_H */
+#endif /* VIAME_OPENCV_DETECT_IN_SUBREGIONS_PROCESS_H */
