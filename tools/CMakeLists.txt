@@ -26,7 +26,9 @@ if( VIAME_ENABLE_OPENCV )
     compute_depth.py
     compute_disparity.py
     create_mosaic.py
+    detect_site_revisits.py
     ply_utilities.py
+    reconstruct_3d.py
     stereo_rectify.py
   )
 endif()
