@@ -959,7 +959,8 @@ finalize_docker_install() {
     chown -R 1099:1099 /opt/noaa/viame
     echo "Finalized install to /opt/noaa/viame"
   else
-    echo "Warning: setup_viame.sh not found, skipping finalization"
+    echo "Error: setup_viame.sh not found in $build_dir/install; the VIAME build did not complete successfully (see build_log.txt). Aborting so the Docker build fails instead of producing a broken image." >&2
+    exit 1
   fi
 }
 
