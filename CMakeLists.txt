@@ -174,7 +174,7 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
   set( PYTORCH_INTERNAL_VERSION 2.12.0 CACHE INTERNAL "Internal pytorch version" )
-  set( PYTORCH_MIN_GCC          9.3   CACHE INTERNAL "Minimum GCC version for torch" )
+  set( PYTORCH_MIN_GCC          11.3  CACHE INTERNAL "Minimum GCC version for torch" )
   set( PYTORCH_MIN_PYTHON_WHL   3.10  CACHE INTERNAL "Minimum python for torch whl" )
   set( PYTORCH_MIN_PYTHON_BLD   3.10  CACHE INTERNAL "Minimum python for torch build" )
   set( PYTORCH_MIN_CUDA_BLD     11.0  CACHE INTERNAL "Minimum cuda for torch build" )
@@ -731,6 +731,13 @@ if( VIAME_ENABLE_PYTHON )
   list( APPEND PYTHON_DEP_ENV_VARS "PYTHONPATH=${VIAME_PYTHON_PATH}" )
   list( APPEND PYTHON_DEP_ENV_VARS "PYTHONUSERBASE=${VIAME_PYTHON_USERBASE}" )
   list( APPEND PYTHON_DEP_ENV_VARS "PKG_CONFIG_PATH=${VIAME_INSTALL_PREFIX}/lib/pkgconfig" )
+
+  # CMake 4.0+ removed compatibility with cmake_minimum_required( VERSION < 3.5 ).
+  # PyTorch (and other python deps) bundle ancient third-party projects (NNPACK,
+  # psimd, FP16, protobuf, etc.) that still declare such low minimums and would
+  # otherwise abort configuration. This env var is honored by every (including
+  # nested) cmake invocation and raises the policy floor to 3.5 for them.
+  list( APPEND PYTHON_DEP_ENV_VARS "CMAKE_POLICY_VERSION_MINIMUM=3.5" )
 
   if( VIAME_BUILD_MAX_THREADS )
     list( APPEND PYTHON_DEP_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
