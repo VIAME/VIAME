@@ -286,22 +286,43 @@ install_system_deps() {
 setup_gcc_toolset() {
   local toolset_version="${1:-11}"
 
-  # Only applicable for RHEL-based systems
-  if [ ! -f /etc/redhat-release ]; then
-    echo "Not a RHEL-based system, skipping gcc-toolset setup"
+  # RHEL-based systems: use Software Collections gcc-toolset
+  if [ -f /etc/redhat-release ]; then
+    if grep -q "release 8" /etc/redhat-release 2>/dev/null; then
+      echo "Rocky/CentOS 8 detected, installing gcc-toolset-${toolset_version}..."
+      yum install -y "gcc-toolset-${toolset_version}"
+      source "/opt/rh/gcc-toolset-${toolset_version}/enable"
+      echo "GCC toolset ${toolset_version} enabled"
+      gcc --version
+    else
+      echo "Rocky/CentOS 9+ detected, using default GCC..."
+      gcc --version
+    fi
     return 0
   fi
 
-  if grep -q "release 8" /etc/redhat-release 2>/dev/null; then
-    echo "Rocky/CentOS 8 detected, installing gcc-toolset-${toolset_version}..."
-    yum install -y "gcc-toolset-${toolset_version}"
-    source "/opt/rh/gcc-toolset-${toolset_version}/enable"
-    echo "GCC toolset ${toolset_version} enabled"
+  # Debian/Ubuntu: stock GCC (e.g. 9.x on 20.04) is too old for the PyTorch
+  # source build (needs >= 11.3). Pull gcc-${toolset_version} from the
+  # ubuntu-toolchain-r/test PPA and make it the default via update-alternatives
+  # so CMake's default compiler detection picks it up.
+  if [ -f /etc/debian_version ]; then
+    echo "Debian/Ubuntu detected, installing gcc-${toolset_version}/g++-${toolset_version}..."
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y software-properties-common
+    add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    apt-get update
+    apt-get install -y "gcc-${toolset_version}" "g++-${toolset_version}"
+    update-alternatives --install /usr/bin/gcc gcc "/usr/bin/gcc-${toolset_version}" 110 \
+      --slave /usr/bin/g++ g++ "/usr/bin/g++-${toolset_version}"
+    update-alternatives --set gcc "/usr/bin/gcc-${toolset_version}"
+    echo "GCC ${toolset_version} enabled"
     gcc --version
-  else
-    echo "Rocky/CentOS 9+ detected, using default GCC..."
-    gcc --version
+    return 0
   fi
+
+  echo "Unknown distribution, skipping gcc-toolset setup; using default GCC"
+  gcc --version
 }
 
 # ==============================================================================
