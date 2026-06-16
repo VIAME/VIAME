@@ -20,7 +20,7 @@ def runner(tmp_path):
 
 @pytest.fixture
 def data_path(request) -> Path:
-    return request.path.parent / "data"
+    return request.path.parent / "pipelines_test_data"
 
 @pytest.fixture
 def output_path(tmp_path):

@@ -35,7 +35,7 @@ class TestUtilityAddHeadTailKeypointsSAM2:
 
 
 class TestUtilityAddSegmentationSAM2:
-    def test_utility_add_head_tail_keypoints_sam2(self, runner, env_fish_with_detections, env_dir):
+    def test_utility_add_segmentation_sam2(self, runner, env_fish_with_detections, env_dir):
         run_utility_viame_pipeline(runner, env_dir,
                                    "pipelines/utility_add_segmentations_sam2.pipe",
                                    )
@@ -43,7 +43,7 @@ class TestUtilityAddSegmentationSAM2:
 
 
 class TestUtilityAddSegmentationSAM3:
-    def test_utility_add_head_tail_keypoints_sam3(self, runner, env_fish_with_detections, env_dir):
+    def test_utility_add_segmentation_sam3(self, runner, env_fish_with_detections, env_dir):
         run_utility_viame_pipeline(runner, env_dir,
                                    "pipelines/utility_add_segmentations_sam3.pipe",
                                    )
