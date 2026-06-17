@@ -64,4 +64,5 @@ endif()
 # Install pipelines to example directory
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
-         DESTINATION examples/object_detection )
+         DESTINATION examples/object_detection
+         OPTIONAL )
