@@ -306,18 +306,23 @@ setup_gcc_toolset() {
   # ubuntu-toolchain-r/test PPA and make it the default via update-alternatives
   # so CMake's default compiler detection picks it up.
   if [ -f /etc/debian_version ]; then
-    echo "Debian/Ubuntu detected, installing gcc-${toolset_version}/g++-${toolset_version}..."
+    echo "Debian/Ubuntu detected, installing gcc/g++/gfortran-${toolset_version}..."
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
     apt-get install -y software-properties-common
     add-apt-repository -y ppa:ubuntu-toolchain-r/test
     apt-get update
-    apt-get install -y "gcc-${toolset_version}" "g++-${toolset_version}"
+    # gfortran must match gcc: OpenBLAS (and other Fortran deps) link with the gcc
+    # driver, which only finds libgfortran in the toolchain it ships with. Mixing
+    # gcc-13 with the stock gfortran-9 breaks linking with "cannot find -lgfortran".
+    apt-get install -y "gcc-${toolset_version}" "g++-${toolset_version}" "gfortran-${toolset_version}"
     update-alternatives --install /usr/bin/gcc gcc "/usr/bin/gcc-${toolset_version}" 110 \
-      --slave /usr/bin/g++ g++ "/usr/bin/g++-${toolset_version}"
+      --slave /usr/bin/g++ g++ "/usr/bin/g++-${toolset_version}" \
+      --slave /usr/bin/gfortran gfortran "/usr/bin/gfortran-${toolset_version}"
     update-alternatives --set gcc "/usr/bin/gcc-${toolset_version}"
-    echo "GCC ${toolset_version} enabled"
+    echo "GCC ${toolset_version} (with gfortran) enabled"
     gcc --version
+    gfortran --version
     return 0
   fi
 
