@@ -1015,11 +1015,14 @@ run_build() {
   local log_file="${1:-build_log.txt}"
   local continue_on_error="${2:-false}"
 
-  echo "Beginning build, routing output to $log_file"
+  echo "Beginning build, logging to $log_file (also echoed to stdout)"
+  # Tee to stdout as well as the log file so build errors are visible in the
+  # Docker/CI driver output; otherwise a failed make is invisible outside the
+  # (discarded) image, which previously let broken builds pass silently.
   if [ "$continue_on_error" = "true" ]; then
-    make -j$(nproc) > "$log_file" 2>&1 || true
+    make -j$(nproc) 2>&1 | tee "$log_file" || true
   else
-    make -j$(nproc) > "$log_file" 2>&1
+    ( set -o pipefail; make -j$(nproc) 2>&1 | tee "$log_file" )
   fi
 }
 
