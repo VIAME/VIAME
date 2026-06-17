@@ -597,14 +597,20 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
                 seq = [(i, j, H) for (i, j), H in cam_pairwise[cam_key].items()
                        if i in chain and j in chain]
                 def _resid(poses):
+                    # MEDIAN, not mean: the robust optimizer intentionally leaves
+                    # rejected outlier edges violated, which would dominate a mean.
                     es = [np.linalg.norm((poses[j] @ H)[:2, 2] - poses[i][:2, 2])
                           for (i, j, H) in loops]
-                    return float(np.mean(es)) if es else 0.0
+                    return float(np.median(es)) if es else 0.0
                 before = _resid(chain)
-                cam_chains[cam_key] = _sr.optimize_pose_graph(chain, seq + loops)
-                after = _resid(cam_chains[cam_key])
-                print(f"    {cam_key}: {len(loops)} loop edges, "
-                      f"residual {before:.0f}px -> {after:.0f}px")
+                cam_chains[cam_key] = _sr.optimize_pose_graph(chain, seq, loops)
+                after_poses = cam_chains[cam_key]
+                after = _resid(after_poses)
+                n_inl = sum(1 for (i, j, H) in loops
+                            if np.linalg.norm((after_poses[j] @ H)[:2, 2]
+                                              - after_poses[i][:2, 2]) <= 40)
+                print(f"    {cam_key}: {len(loops)} loop edges ({n_inl} inliers), "
+                      f"median residual {before:.0f}px -> {after:.0f}px")
 
         # Step 1b: GPS geo-anchoring (optional). Use flight-log / imagelog / EXIF
         # poses to fill unregistered (water) frames with drift-free positions and
@@ -831,10 +837,10 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
                 def _resid(poses):
                     es = [np.linalg.norm((poses[j] @ H)[:2, 2] - poses[i][:2, 2])
                           for (i, j, H) in loops]
-                    return float(np.mean(es)) if es else 0.0
+                    return float(np.median(es)) if es else 0.0   # median (robust)
                 before = _resid(chain)
-                chain = _sr.optimize_pose_graph(chain, seq + loops)
-                print(f"  Loop-closure: {len(loops)} edges, residual "
+                chain = _sr.optimize_pose_graph(chain, seq, loops)
+                print(f"  Loop-closure: {len(loops)} edges, median residual "
                       f"{before:.0f}px -> {_resid(chain):.0f}px")
             else:
                 print("  Loop-closure: no land revisits found")
@@ -869,8 +875,14 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
     entries = []
 
     # Separate lookups for visualization
-    temporal_poly_lookup = {}   # purple: suppression from previous timesteps
-    crosscam_poly_lookup = {}   # blue: suppression from same timestep, different camera
+    temporal_poly_lookup = {}   # purple: short-term overlap from recent prior timesteps
+    loop_poly_lookup = {}       # gold:   loop-closure overlap from DISTANT prior frames (revisits)
+    crosscam_poly_lookup = {}   # blue:   suppression from same timestep, different camera
+
+    # A prior frame counts as a loop-closure revisit (not short-term drift) when
+    # it is more than this many timesteps back yet its footprint still overlaps.
+    # Matches detect_loop_edges' min_gap so the colour tracks the actual closures.
+    LOOP_GAP = 15
 
     # Cache image dimensions
     dim_cache = {}
@@ -915,6 +927,43 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
         except Exception:
             return None
 
+    def _project_loop_hull(sources, H_i_inv, wi, hi, min_frac=0.02):
+        """Like _project_hull, but for DISTANT (loop-closure) sources: only keep
+        those whose projected footprint genuinely overlaps frame i, so far-away
+        frames that merely project near the border don't paint spurious overlap."""
+        frame_rect = np.float32([[0, 0], [wi, 0], [wi, hi], [0, hi]])
+        frame_area = float(wi * hi)
+        kept = []
+        for fname_j, H_j in sources:
+            dims = _get_dims(fname_j)
+            if dims is None:
+                continue
+            hj, wj = dims
+            corners_j = np.float32(
+                [[0, 0], [wj, 0], [wj, hj], [0, hj]]).reshape(-1, 1, 2)
+            H_j_to_i = H_i_inv @ H_j
+            try:
+                proj = cv2.perspectiveTransform(corners_j, H_j_to_i).reshape(-1, 2)
+                inter, _ = cv2.intersectConvexConvex(
+                    proj.astype(np.float32), frame_rect)
+            except Exception:
+                continue
+            if inter and inter > min_frac * frame_area:
+                p = proj.copy()
+                p[:, 0] = np.clip(p[:, 0], 0, wi - 1)
+                p[:, 1] = np.clip(p[:, 1], 0, hi - 1)
+                kept.append(p)
+        if not kept:
+            return None
+        combined = np.vstack(kept)
+        if len(combined) < 3:
+            return None
+        try:
+            hull = cv2.convexHull(combined.astype(np.float32)).reshape(-1, 2)
+            return hull if len(hull) >= 3 else None
+        except Exception:
+            return None
+
     # Pre-index: for each timestep, collect all images at that timestep so
     # cross-camera suppression can be computed bidirectionally.
     timestep_images = {}  # seq -> list of (fname, H, cam_key)
@@ -940,12 +989,17 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
             except np.linalg.LinAlgError:
                 continue
 
-            # Temporal sources: all images from PREVIOUS timesteps
-            temporal_sources = []
+            # Temporal sources from PREVIOUS timesteps, split by how far back:
+            #   short-term (recent drift overlap)  vs  loop-closure (distant revisit)
+            shortterm_sources = []
+            loop_sources = []
             for j in range(idx):
                 fname_j, H_j, seq_j, cam_j, _ = all_images[j]
                 if seq_j < seq_i:
-                    temporal_sources.append((fname_j, H_j))
+                    if seq_i - seq_j <= LOOP_GAP:
+                        shortterm_sources.append((fname_j, H_j))
+                    else:
+                        loop_sources.append((fname_j, H_j))
 
             # Cross-camera sources: ALL images at the SAME timestep from a
             # DIFFERENT camera (bidirectional — look both forward and backward).
@@ -955,15 +1009,18 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
                     crosscam_sources.append((fname_j, H_j))
 
             # Compute separate hulls
-            temporal_hull = _project_hull(temporal_sources, H_i_inv, wi, hi)
+            temporal_hull = _project_hull(shortterm_sources, H_i_inv, wi, hi)
+            loop_hull = _project_loop_hull(loop_sources, H_i_inv, wi, hi)
             crosscam_hull = _project_hull(crosscam_sources, H_i_inv, wi, hi)
 
-            # Combined hull for the CSV (all suppression)
-            all_sources = temporal_sources + crosscam_sources
+            # Combined hull for the CSV (all suppression) — unchanged content
+            all_sources = shortterm_sources + loop_sources + crosscam_sources
             combined_hull = _project_hull(all_sources, H_i_inv, wi, hi)
 
             if temporal_hull is not None:
                 temporal_poly_lookup[fname_i] = [(px, py) for px, py in temporal_hull]
+            if loop_hull is not None:
+                loop_poly_lookup[fname_i] = [(px, py) for px, py in loop_hull]
             if crosscam_hull is not None:
                 crosscam_poly_lookup[fname_i] = [(px, py) for px, py in crosscam_hull]
 
@@ -1060,17 +1117,39 @@ def run_planar_coverage(image_folder, output_dir, coverage_file="prior_coverage.
         vis_path = os.path.join(output_dir,
                                  os.path.splitext(coverage_file)[0] + "_vis.png")
 
+        # Cache everything the grid render needs BEFORE rendering, so a transient
+        # matplotlib/PIL failure (seen under concurrent load) doesn't throw away
+        # the hours of chain computation — render_grid.py can rebuild the figure
+        # from this pickle without recomputing.
         if multicam:
-            _visualize_multicam_grid(
-                cameras, temporal_poly_lookup, crosscam_poly_lookup,
-                interp_poly_lookup, image_base_dir=image_folder,
-                output_path=vis_path, all_images=all_images,
-                water_info=water_info)
-        elif entries:
-            poly_lookup = {}
-            for e in entries:
-                poly_lookup[e['filename']] = e['polygon']
-            _visualize_entries(entries, image_folder, vis_path)
+            try:
+                import pickle as _pkl
+                with open(os.path.join(output_dir, 'grid_data.pkl'), 'wb') as _gf:
+                    _pkl.dump(dict(cameras=cameras,
+                                   temporal_poly=temporal_poly_lookup,
+                                   crosscam_poly=crosscam_poly_lookup,
+                                   interp_poly=interp_poly_lookup,
+                                   loop_poly=loop_poly_lookup,
+                                   all_images=all_images, water_info=water_info,
+                                   image_folder=image_folder, vis_path=vis_path), _gf)
+            except Exception as _e:
+                print(f"  (grid_data cache skipped: {_e})")
+
+        try:
+            if multicam:
+                _visualize_multicam_grid(
+                    cameras, temporal_poly_lookup, crosscam_poly_lookup,
+                    interp_poly_lookup, image_base_dir=image_folder,
+                    output_path=vis_path, all_images=all_images,
+                    water_info=water_info, loop_poly=loop_poly_lookup)
+            elif entries:
+                poly_lookup = {}
+                for e in entries:
+                    poly_lookup[e['filename']] = e['polygon']
+                _visualize_entries(entries, image_folder, vis_path)
+        except Exception as _e:
+            print(f"  WARNING: grid render failed ({_e}); computation preserved. "
+                  f"Re-render with render_grid.py on grid_data.pkl")
 
     # Geometry-based quality evaluation (NOT a raw "valid count" — that metric
     # is misleading because false matches over water pass inlier thresholds yet
@@ -1214,13 +1293,14 @@ def _evaluate_registration_quality(cam_chains, cross_cam_spread, cameras,
 
 def _visualize_multicam_grid(cameras, temporal_poly, crosscam_poly,
                               interp_poly, image_base_dir, output_path,
-                              all_images, water_info=None):
+                              all_images, water_info=None, loop_poly=None):
     """Create a grid visualization: columns = STAR|CENTER|PORT, rows = timesteps.
 
-    Color coding:
-        Purple: suppression from previous timesteps (temporal)
-        Blue:   suppression from same-timestep neighboring cameras (cross-cam)
-        Red:    estimated suppression via motion interpolation (unchained frames)
+    Color coding (the final per-frame transformations, by overlap source):
+        Purple: short-term temporal overlap from recent prior frames (last slice)
+        Gold:   loop-closure overlap from DISTANT prior frames (a revisit / closed loop)
+        Blue:   spatial overlap from same-timestep neighboring cameras (cross-cam)
+        Red:    estimated overlap via motion interpolation (unchained frames)
 
     Classification label shown on EVERY image (water/benthic badge).
 
@@ -1255,6 +1335,23 @@ def _visualize_multicam_grid(cameras, temporal_poly, crosscam_poly,
             timesteps.setdefault(seq, {})[cam_key] = fname
 
     sorted_seqs = sorted(timesteps.keys())
+
+    # Cap displayed rows so dense surveys (hundreds of frames) stay legible and
+    # render quickly. Prioritise timesteps that actually carry loop-closure
+    # overlap (the revisits this view is meant to show), then fill in evenly.
+    MAX_ROWS = 70
+    if len(sorted_seqs) > MAX_ROWS:
+        lp = loop_poly or {}
+        loop_seqs = [s for s in sorted_seqs
+                     if any(f in lp for f in timesteps[s].values())]
+        keep = set(loop_seqs[:MAX_ROWS // 2])
+        remaining = [s for s in sorted_seqs if s not in keep]
+        if remaining and len(keep) < MAX_ROWS:
+            step = max(1, len(remaining) // (MAX_ROWS - len(keep)))
+            keep |= set(remaining[::step])
+        sorted_seqs = sorted(keep)[:MAX_ROWS]
+        print(f"    (grid: showing {len(sorted_seqs)} representative timesteps "
+              f"of {len(timesteps)}; {len(loop_seqs)} have loop-closure overlap)")
     nrows = len(sorted_seqs)
     ncols = len(cam_order)
 
@@ -1332,7 +1429,7 @@ def _visualize_multicam_grid(cameras, temporal_poly, crosscam_poly,
             # Overlay suppression polygons by source type
             total_supp_area = 0
 
-            # 1. Temporal suppression (purple)
+            # 1. Short-term temporal overlap (purple)
             t_poly_raw = temporal_poly.get(fname)
             if t_poly_raw:
                 t_pts = [(px * scale, py * scale) for px, py in t_poly_raw]
@@ -1343,7 +1440,16 @@ def _visualize_multicam_grid(cameras, temporal_poly, crosscam_poly,
                 total_supp_area += cv2.contourArea(
                     np.array(t_poly_raw, dtype=np.float32).reshape(-1, 1, 2))
 
-            # 2. Cross-camera suppression (blue)
+            # 1b. Loop-closure overlap from distant revisited frames (gold)
+            l_poly_raw = (loop_poly or {}).get(fname)
+            if l_poly_raw:
+                l_pts = [(px * scale, py * scale) for px, py in l_poly_raw]
+                poly = MplPolygon(l_pts, closed=True, alpha=0.32,
+                                  facecolor='#FFC400', edgecolor='#FF6F00',
+                                  linewidth=2.0)
+                ax.add_patch(poly)
+
+            # 2. Cross-camera spatial overlap (blue)
             c_poly_raw = crosscam_poly.get(fname)
             if c_poly_raw:
                 c_pts = [(px * scale, py * scale) for px, py in c_poly_raw]
@@ -1441,7 +1547,9 @@ def _visualize_multicam_grid(cameras, temporal_poly, crosscam_poly,
     from matplotlib.lines import Line2D
     legend_elements = [
         Line2D([0], [0], marker='s', color='w', markerfacecolor='#7B1FA2',
-               markersize=12, alpha=0.5, label='Temporal (past frames)'),
+               markersize=12, alpha=0.5, label='Temporal — short-term (recent frames)'),
+        Line2D([0], [0], marker='s', color='w', markerfacecolor='#FFC400',
+               markersize=12, alpha=0.6, label='Loop-closure (distant revisit)'),
         Line2D([0], [0], marker='s', color='w', markerfacecolor='#1565C0',
                markersize=12, alpha=0.5, label='Cross-camera (same timestep)'),
         Line2D([0], [0], marker='s', color='w', markerfacecolor='#E53935',
