@@ -78,30 +78,42 @@ class TestFilterSplitRightSide:
 class TestFilterStereoDepthMap:
     def test_filter_stereo_depth_map(self, runner, env_fish, env_dir):
         run_filter_viame_pipeline(runner, env_dir, "pipelines/filter_stereo_depth_map.pipe")
-        check_generated_frames(env_dir)
+        check_generated_frames(env_dir, match_names=False)
 
 
 class TestFilterToKWA:
     def test_filter_to_kwa(self, runner, env_fish, env_dir):
-        run_filter_viame_pipeline(runner, env_dir, "pipelines/filter_to_kwa.pipe")
-        # TODO:  Check for kwa generated file
-        check_generated_frames(env_dir)
+        run_filter_viame_pipeline(runner, env_dir, "pipelines/filter_to_kwa.pipe", {
+            'kwa_writer:base_filename': 'kwa'
+        })
+        data_file = env_dir / "output" / "kwa.data"
+        index_file = env_dir / "output" / "kwa.index"
+        meta_file = env_dir / "output" / "kwa.meta"
+
+        assert data_file.is_file()
+        assert index_file.is_file()
+        assert meta_file.is_file()
+
+        assert data_file.stat().st_size >= 20_000
+        assert index_file.stat().st_size >= 25
+        assert meta_file.stat().st_size >= 70
 
 
 class TestFilterToVideo:
     def test_filter_to_video(self, runner, env_fish, env_dir):
-        run_filter_viame_pipeline(runner, env_dir, "pipelines/filter_to_video.pipe")
-        # TODO: Check for mp4 file presence
-        check_generated_frames(env_dir)
+        run_filter_viame_pipeline(runner, env_dir, "pipelines/filter_to_video.pipe", {
+            'video_writer:video_filename': 'output/video.mp4'
+        })
+        video_file = env_dir / "output" / "video.mp4"
+        assert video_file.is_file()
+        assert video_file.stat().st_size >= 10000
 
 class TestFilterTracksOnly:
-    def test_filter_tracks_only(self, runner, env_fish_sequence, env_dir):
+    def test_filter_tracks_only(self, runner, env_fish_sequence_with_detections, env_dir):
         run_filter_viame_pipeline(runner, env_dir, "pipelines/filter_tracks_only.pipe")
-        check_generated_frames(env_dir)
-        # TODO: Count number of images in env_fish_sequence - 2
+        check_generated_frames(env_dir, match_names=False, delta=-2)
 
 class TestFilterTracksOnlyAdjustCsv:
-    def test_filter_tracks_only_adjust_csv(self, runner, env_fish_sequence, env_dir):
+    def test_filter_tracks_only_adjust_csv(self, runner, env_fish_sequence_with_detections, env_dir):
         run_filter_viame_pipeline(runner, env_dir, "pipelines/filter_tracks_only_adjust_csv.pipe")
-        check_generated_frames(env_dir)
-        # TODO: Count number of images in env_fish_sequence - 2 + consistent with csv
+        check_generated_frames(env_dir, match_names=False, delta=-2)

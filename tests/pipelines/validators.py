@@ -75,8 +75,17 @@ def check_csv(
         _check_csv(right_path, env_dir, expected_detections, comparison_detection, all_types)
 
 
-def check_generated_frames(env_dir: Path):
-    pass
+def check_generated_frames(env_dir: Path, match_names: bool = True, delta: int = 0):
+    input_folder = env_dir / "images"
+    output_folder = env_dir / "output"
+
+    input_image_names = set(p.stem for p in input_folder.glob("*"))
+    output_image_names = set(p.stem for p in output_folder.glob("*"))
+
+    if match_names:
+        diff_set = input_image_names - output_image_names
+        assert len(diff_set) == abs(delta)
+    assert len(input_image_names) + delta == len(output_image_names)
 
 
 def check_generated_video(env_dir: Path, file_name: str = 'output.mp4', min_size: int = 0):

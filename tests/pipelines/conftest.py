@@ -92,39 +92,14 @@ def env_fish_sequence(env_dir, data_path):
     return _finalize_env(env_dir)
 
 @pytest.fixture
-def env_fish_with_detections(env_dir, data_path):
+def env_fish_sequence_with_detections(env_dir, data_path):
     for i in range(1, 10):
         shutil.copy(data_path / "images" / "fish" / f"fish_1_seq_{i:02}.jpg", env_dir / "images")
     shutil.copy(data_path / "labels" / "fish" / "fish_1_seq_detections.csv", env_dir / "groundtruth.csv")
     return _finalize_env(env_dir)
 
 @pytest.fixture
-def env_fish_with_polygons(env_dir, data_path):
-    for i in range(1, 10):
-        shutil.copy(data_path / "images" / "fish" / f"fish_1_seq_{i:02}.jpg", env_dir / "images")
-    shutil.copy(data_path / "labels" / "fish" / "fish_1_seq_polygons.csv", env_dir / "groundtruth.csv")
-    return _finalize_env(env_dir)
-
-@pytest.fixture
-def env_seal(env_dir, data_path):
-    shutil.copy(data_path / "images" / "seal_1.jpg", env_dir / "images")
-    return _finalize_env(env_dir)
-
-@pytest.fixture
-def env_fish_sequence(env_dir, data_path):
-    for i in range(1, 10):
-        shutil.copy(data_path / "images" / "fish" / f"fish_1_seq_{i:02}.jpg", env_dir / "images")
-    return _finalize_env(env_dir)
-
-@pytest.fixture
-def env_fish_with_detections(env_dir, data_path):
-    for i in range(1, 10):
-        shutil.copy(data_path / "images" / "fish" / f"fish_1_seq_{i:02}.jpg", env_dir / "images")
-    shutil.copy(data_path / "labels" / "fish" / "fish_1_seq_detections.csv", env_dir / "groundtruth.csv")
-    return _finalize_env(env_dir)
-
-@pytest.fixture
-def env_fish_with_polygons(env_dir, data_path):
+def env_fish_sequence_with_polygons(env_dir, data_path):
     for i in range(1, 10):
         shutil.copy(data_path / "images" / "fish" / f"fish_1_seq_{i:02}.jpg", env_dir / "images")
     shutil.copy(data_path / "labels" / "fish" / "fish_1_seq_polygons.csv", env_dir / "groundtruth.csv")
