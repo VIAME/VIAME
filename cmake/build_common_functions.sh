@@ -323,6 +323,24 @@ setup_gcc_toolset() {
     echo "GCC ${toolset_version} (with gfortran) enabled"
     gcc --version
     gfortran --version
+
+    # Modern GCC emits newer ISA (e.g. AVX512-FP16 in PyTorch/XNNPACK) that the
+    # system assembler must understand. Unlike Rocky's gcc-toolset (which bundles
+    # a matching binutils), the PPA gcc uses the distro assembler -- Ubuntu 20.04's
+    # binutils 2.34 rejects these ("no such instruction: vfmadd231ph"). Build a
+    # modern binutils if the current assembler is too old.
+    if ! echo "vfmadd231ph %zmm0,%zmm4,%zmm1" | as -o /dev/null - >/dev/null 2>&1; then
+      local binutils_version="2.42"
+      echo "System assembler too old for modern GCC ISA; building binutils ${binutils_version}..."
+      ( cd /tmp \
+        && wget -q "https://ftp.gnu.org/gnu/binutils/binutils-${binutils_version}.tar.xz" \
+        && tar xf "binutils-${binutils_version}.tar.xz" \
+        && cd "binutils-${binutils_version}" \
+        && ./configure --prefix=/usr --disable-nls --disable-werror --enable-gold --enable-ld=default \
+        && make -j"$(nproc)" \
+        && make install )
+      as --version | head -1
+    fi
     return 0
   fi
 
