@@ -114,6 +114,12 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../core>
     )
+
+  # ITK 5.x's itkOpenCVImageBridge (CVMatToITKImage, used by WarpImageProcess)
+  # converts cv::Mat -> IplImage via the implicit IplImage(cv::Mat) constructor,
+  # which OpenCV 4 only exposes when CV__ENABLE_C_API_CTORS is defined. Without
+  # it the build fails with "conversion from cv::Mat to non-scalar type IplImage".
+  target_compile_definitions( viame_processes_itk PRIVATE CV__ENABLE_C_API_CTORS )
 endif()
 
 # Add auxiliary standalone tools
