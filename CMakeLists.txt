@@ -499,8 +499,8 @@ if( VIAME_ENABLE_CUDA )
   endif()
 
   if( VIAME_BUILD_CHECKS AND CMAKE_COMPILER_IS_GNUCC AND
-      CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 12.0 )
-    message( FATAL_ERROR "GCC 12.0+ support is experimental and may not work. "
+      CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 14.0 )
+    message( FATAL_ERROR "GCC 14.0+ support is experimental and may not work. "
       "To disable this warning, set VIAME_BUILD_CHECKS to FALSE." )
   endif()
 
