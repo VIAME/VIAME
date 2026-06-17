@@ -113,6 +113,9 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../core>
+    # The core plugin's binary dir holds the generated viame_processes_core_export.h,
+    # needed because this target compiles ../core/align_multimodal_imagery_process.cxx.
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../core>
     )
 
   # ITK 5.x's itkOpenCVImageBridge (CVMatToITKImage, used by WarpImageProcess)
