@@ -93,7 +93,7 @@ endif()
 
 # For LEARN models
 if( VIAME_ENABLE_PYTORCH-LEARN )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb<=0.25.0" "fsspec" "filelock" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "fsspec" "filelock" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "submitit" "scikit-learn" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "scipy" "termcolor" "addict" "yapf" )
 endif()
@@ -103,6 +103,7 @@ if( VIAME_ENABLE_KEYPOINT )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb<=0.25.0" )
   if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-image>=0.24.0" )
   else()
