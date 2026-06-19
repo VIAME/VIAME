@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# VIAME Rocky Linux Build Script
+
+# Debugging, logging, and options
+set -x
+
+# Source utility scripts
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/build_common_functions.sh"
+
+export VIAME_SOURCE_DIR=/viame
+
+# Extract version from RELEASE_NOTES.md
+extract_viame_version $VIAME_SOURCE_DIR
+export VIAME_BUILD_DIR=$VIAME_SOURCE_DIR/build
+export VIAME_INSTALL_DIR=$VIAME_BUILD_DIR/install
+
+export CUDA_DIRECTORY=/usr/local/cuda-viame
+export CUDNN_DIRECTORY=/usr
+
+# Install system dependencies and use more recent compiler
+install_system_deps yum
+
+# Install more modern CMAKE and OpenSSL from source
+install_openssl
+install_cmake
+
+# Install Node.js for DIVE desktop build (npm ships bundled with Node)
+install_nodejs 22
+
+# Patch CUDNN when required
+patch_cudnn_headers
+
+# Use GCC13 for build. PyTorch 2.12 requires GCC >= 11.3 and Rocky 8's
+# gcc-toolset-11 tops out at 11.2.1. gcc-toolset-12 satisfies the minimum but
+# hits a known gcc-12 false-positive -Wmaybe-uninitialized in AVX512 intrinsics
+# that breaks fbgemm's -Werror build; gcc-13 compiles it cleanly with no patch.
+# nvcc runs with -allow-unsupported-compiler so CUDA 13.2 accepts gcc-13.
+setup_gcc_toolset 13
+
+# Hack for storing paths to CUDA libs for some libraries
+rm /usr/local/cuda
+rm /usr/local/cuda-13
+mv /usr/local/cuda-13.2 $CUDA_DIRECTORY
+
+# Update VIAME sub git sources
+update_git_submodules $VIAME_SOURCE_DIR
+setup_build_directory $VIAME_SOURCE_DIR
+
+# Configure Paths [should be removed when no longer necessary by fletch]
+setup_build_environment $VIAME_INSTALL_DIR "" "3.10"
+
+# Configure VIAME using cache presets
+echo "Beginning VIAME CMake configuration"
+
+cmake ../ \
+  -C ../cmake/build_cmake_base.cmake \
+  -C ../cmake/build_cmake_desktop.cmake \
+  -C ../cmake/build_cmake_linux.cmake \
+  -DCUDA_TOOLKIT_ROOT_DIR:PATH=$CUDA_DIRECTORY \
+  -DCUDA_NVCC_EXECUTABLE:PATH=$CUDA_DIRECTORY/bin/nvcc \
+  -DCUDA_ARCHITECTURES:STRING="7.0 7.5 8.0 8.6 8.9 9.0 10.0 12.0"
+
+# Build VIAME and setup libraries, pipe output to file
+echo "Beginning core build, routing build info to build_log.txt"
+
+run_build_and_setup_libraries "$CUDA_DIRECTORY" > build_log.txt 2>&1
+
+# Verify build success and create tarball
+if verify_build_success build_log.txt; then
+  TARBALL_NAME="VIAME-${VIAME_VERSION}-Linux-64Bit.tar.gz"
+
+  # Run CRITICAL tests before packaging
+  if ! run_critical_tests "$VIAME_BUILD_DIR" "$VIAME_INSTALL_DIR"; then
+    TESTS_PASSED=false
+  else
+    TESTS_PASSED=true
+  fi
+
+  prepare_linux_desktop_install install "$VIAME_SOURCE_DIR"
+  create_install_tarball "$VIAME_VERSION" "Linux-64Bit"
+  restore_linux_desktop_install install
+
+  if [ "$TESTS_PASSED" = "false" ]; then
+    rename_tarball_broken "$TARBALL_NAME"
+  fi
+else
+  exit 1
+fi
