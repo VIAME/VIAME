@@ -2,6 +2,8 @@
 # Title: Filters input images via debayering them and running basic image filtering
 #
 # Description: Applies filtering operations to input data.
+# Input: IMAGE
+# Output: IMAGE
 # =============================================================================
 
 config _pipeline:_edge
@@ -16,16 +18,16 @@ include common_default_input.pipe
 process filter
   :: image_filter
   :filter:type                                 ocv_enhancer
-  :filter:ocv_enhancer:apply_smoothing         false
-  :filter:ocv_enhancer:smooth_kernel           3
-  :filter:ocv_enhancer:apply_denoising         false
-  :filter:ocv_enhancer:denoise_kernel          3
-  :filter:ocv_enhancer:denoise_coeff           2
-  :filter:ocv_enhancer:auto_balance            true
+  :filter:ocv_enhancer:apply_smoothing         false         # DIVE_PARAM["Smooth", bool]
+  :filter:ocv_enhancer:smooth_kernel           3             # DIVE_PARAM["Smooth kernel", strictly_positive_int]
+  :filter:ocv_enhancer:apply_denoising         false         # DIVE_PARAM["Denoising", bool]
+  :filter:ocv_enhancer:denoise_kernel          3             # DIVE_PARAM["Denoise kernel", strictly_positive_int]
+  :filter:ocv_enhancer:denoise_coeff           2             # DIVE_PARAM["Denoise coef", float]
+  :filter:ocv_enhancer:auto_balance            true          # DIVE_PARAM["Auto balance", bool]
   :filter:ocv_enhancer:force_8bit              false
   :filter:ocv_enhancer:apply_clahe             true
   :filter:ocv_enhancer:clip_limit              3
-  :filter:ocv_enhancer:saturation              1.20
+  :filter:ocv_enhancer:saturation              1.20          # DIVE_PARAM["Saturation", range_float, 0, 3]
 
 connect from input.image
         to   filter.image
@@ -34,7 +36,7 @@ connect from input.image
 
 process image_writer
   :: image_writer
-  :file_name_template                          frame%06d.png
+  :file_name_template                          frame%06d.png  # DIVE_PARAM["Filename template", string]
   :image_writer:type                           vxl
 
 connect from filter.image

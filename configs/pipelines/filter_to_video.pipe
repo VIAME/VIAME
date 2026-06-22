@@ -2,6 +2,8 @@
 # Title: Reads image from an arbitrary input source then dumps them out again
 #
 # Description: Applies filtering operations to input data.
+# Input: IMAGE
+# Output: VIDEO
 # =============================================================================
 
 config _pipeline:_edge
@@ -15,7 +17,7 @@ include common_default_input_with_downsampler.pipe
 
 process video_writer
   :: video_output
-  :video_filename                              video_writer.mp4
+  :video_filename                              output.mp4  # DIVE_PARAM["Filename", file]
   :video_writer:type                           ffmpeg
 
 connect from downsampler.output_1

@@ -3,6 +3,8 @@
 #
 # Description: Runs pre-trained object detector aimed at generating generic
 # object proposals Outputs to computed_detections.csv.
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

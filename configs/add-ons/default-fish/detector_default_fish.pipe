@@ -3,6 +3,8 @@
 #
 # Description: Runs pre-trained default object detector targeting vertebrate
 # and invertebrates Outputs to computed_detections.csv.
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

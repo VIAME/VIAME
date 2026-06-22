@@ -2,6 +2,8 @@
 # Title: Add automatically generated segmentations via SAM2
 #
 # Description: Adds segmentation masks to existing detections.
+# Input: BBOX
+# Output: MASK
 # =============================================================================
 
 config _pipeline:_edge
@@ -48,7 +50,7 @@ process detection_refiner
 
     :refiner:type                                             sam2
     :refiner:sam2:cfg          configs/sam2.1/sam2.1_hiera_b+.yaml
-    :refiner:sam2:overwrite_existing                          true
+    :refiner:sam2:overwrite_existing                          true   # DIVE_PARAM["Replace", bool]
     relativepath refiner:sam2:checkpoint =      models/sam2_hbp.pt
   endblock
 

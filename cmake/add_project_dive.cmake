@@ -278,14 +278,14 @@ else()
 
   if( WIN32 )
     DownloadAndExtract(
-      https://github.com/Kitware/dive/releases/download/v1.9.10/DIVE-Desktop-1.9.10.zip
-      9177cce0cb8fe0f5dbb66f3bb850bc73
+      https://github.com/Kitware/dive/releases/download/v1.9.11/DIVE-Desktop-1.9.11.zip
+      9f0ba4a65a43baed9ce6742771014d80
       ${VIAME_DOWNLOAD_DIR}/dive_interface_binaries.zip
       ${VIAME_DIVE_BUILD_DIR} )
   elseif( UNIX )
     DownloadAndExtract(
-      https://github.com/Kitware/dive/releases/download/v1.9.10/DIVE-Desktop-1.9.10.tar.gz
-      a1b0ed424682e7cb3ed6d8e4037a1ba4
+      https://github.com/Kitware/dive/releases/download/v1.9.11/DIVE-Desktop-1.9.11.tar.gz
+      109eeff20fc77bcf47a48ee083293f8c
       ${VIAME_DOWNLOAD_DIR}/dive_interface_binaries.tar.gz
       ${VIAME_DIVE_BUILD_DIR} )
   endif()

@@ -2,6 +2,8 @@
 # Title: Optical seal detector file
 #
 # Description: Optical seal detector file
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
 
 process optical_detector
@@ -10,6 +12,6 @@ process optical_detector
 
   block detector:tensorflow
     relativepath model_file =                  models/arctic_seal_eo.pb
-    :confidence_thresh                         0.10
+    :confidence_thresh                         0.10         # DIVE_PARAM["Confidence Threshold", range_float, 0, 1, 0.01]
     :category_name                             seal
   endblock

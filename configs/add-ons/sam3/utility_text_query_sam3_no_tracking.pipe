@@ -8,6 +8,8 @@
 #              frame-to-frame correspondence is not needed.
 #
 # Requirements: { Text Query, track_refiner:refiner:sam3:text_query, string }
+# Input: TEXT
+# Output: MASK
 # =============================================================================
 
 config _pipeline:_edge
@@ -54,12 +56,12 @@ process track_refiner
     :detection_threshold                       0.3
     :text_threshold                            0.25
     :iou_threshold                             0.5
-    :min_mask_area                             10
+    :min_mask_area                             10  # DIVE_PARAM["Min mask area", positive_int]
     :resegment_existing                        true
     :add_new_objects                           true
     :filter_by_quality                         true
     :adjust_boxes                              true
-    :max_new_objects                           50
+    :max_new_objects                           50  # DIVE_PARAM["Max new objects", strictly_positive_int]
     :output_type                               polygon
     :polygon_simplification                    0.005
     :num_points                                5
