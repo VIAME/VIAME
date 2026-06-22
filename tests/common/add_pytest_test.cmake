@@ -73,23 +73,30 @@ function( viame_add_pytest_test )
     )
   endif()
 
-  set( props LABELS "${PT_LABELS}" )
-  if( NOT PT_SOURCE_SETUP )
-    list( APPEND props ENVIRONMENT
-      "PYTHONPATH=${pythonpath}${VIAME_TEST_PYPATH_SEP}$ENV{PYTHONPATH};VIAME_INSTALL=${install_dir}" )
-  endif()
-  if( PT_TIMEOUT )
-    list( APPEND props TIMEOUT "${PT_TIMEOUT}" )
-  endif()
-  if( PT_WORKING_DIRECTORY )
-    list( APPEND props WORKING_DIRECTORY "${PT_WORKING_DIRECTORY}" )
-  endif()
-  if( NOT "${PT_SKIP_RETURN_CODE}" STREQUAL "" )
-    list( APPEND props SKIP_RETURN_CODE "${PT_SKIP_RETURN_CODE}" )
-  endif()
-  if( PT_DISABLED )
-    list( APPEND props DISABLED TRUE )
+  if( PT_LABELS )
+    set_property( TEST "${PT_NAME}" PROPERTY LABELS ${PT_LABELS} )
   endif()
 
-  set_tests_properties( "${PT_NAME}" PROPERTIES ${props} )
+  if( NOT PT_SOURCE_SETUP )
+    set_property( TEST "${PT_NAME}" PROPERTY ENVIRONMENT
+            "PYTHONPATH=${pythonpath}${VIAME_TEST_PYPATH_SEP}$ENV{PYTHONPATH}"
+            "VIAME_INSTALL=${install_dir}"
+    )
+  endif()
+
+  if( PT_TIMEOUT )
+    set_property( TEST "${PT_NAME}" PROPERTY TIMEOUT "${PT_TIMEOUT}" )
+  endif()
+
+  if( PT_WORKING_DIRECTORY )
+    set_property( TEST "${PT_NAME}" PROPERTY WORKING_DIRECTORY "${PT_WORKING_DIRECTORY}" )
+  endif()
+
+  if( NOT "${PT_SKIP_RETURN_CODE}" STREQUAL "" )
+    set_property( TEST "${PT_NAME}" PROPERTY SKIP_RETURN_CODE "${PT_SKIP_RETURN_CODE}" )
+  endif()
+
+  if( PT_DISABLED )
+    set_property( TEST "${PT_NAME}" PROPERTY DISABLED TRUE )
+  endif()
 endfunction()
