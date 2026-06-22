@@ -140,21 +140,21 @@ class TestDetectorFishWithMotion:
 
 
 class TestDetectorFishWithoutMotion:
-    def test_detector_fish_with_motion_640(self, runner, env_fish_sequence, env_dir):
+    def test_detector_fish_without_motion_640(self, runner, env_fish_sequence, env_dir):
         run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_fish_with_motion_640.pipe",
+                                    "pipelines/detector_fish_without_motion_640.pipe",
                                     )
         check_csv(env_dir, expected_detections=1, comparison_detection='min')
 
-    def test_detector_fish_with_motion_800(self, runner, env_fish_sequence, env_dir):
+    def test_detector_fish_without_motion_800(self, runner, env_fish_sequence, env_dir):
         run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_fish_with_motion_800.pipe",
+                                    "pipelines/detector_fish_without_motion_800.pipe",
                                     )
         check_csv(env_dir, expected_detections=1, comparison_detection='min')
 
-    def test_detector_fish_with_motion_1920(self, runner, env_fish_sequence, env_dir):
+    def test_detector_fish_without_motion_1920(self, runner, env_fish_sequence, env_dir):
         run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_fish_with_motion_1920.pipe",
+                                    "pipelines/detector_fish_without_motion_1920.pipe",
                                     )
         check_csv(env_dir, expected_detections=1, comparison_detection='min')
 

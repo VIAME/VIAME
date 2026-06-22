@@ -11,44 +11,34 @@
 #   ctest -L PIPELINES
 
 if (VIAME_ENABLE_PYTHON)
-  set(VIAME_INSTALL_DIR "${VIAME_BUILD_INSTALL_PREFIX}")
-  set(VIAME_PY_PATH "${VIAME_INSTALL_DIR}/python")
-  set(VIAME_SITE_PACKAGES "${VIAME_INSTALL_DIR}/lib/python3.10/site-packages")
-
-  if (WIN32)
-    set(SEP "\;")
-  else ()
-    set(SEP ":")
-  endif ()
-
-  set(INTERNAL_PYTHONPATH "${VIAME_PY_PATH}${SEP}${VIAME_SITE_PACKAGES}${SEP}${CMAKE_CURRENT_SOURCE_DIR}")
-
   # Common test properties
   set(PIPELINE_TEST_TIMEOUT 600)
   set(PIPELINES_TEST_LABELS "PIPELINES")
 
-  # Helper function to add a standard pipeline script test
+  # Thin wrapper over the shared viame_add_pytest_test() helper
+  # (tests/common/add_pytest_test.cmake). REQ_ADDON gates the test on a
+  # model add-on being enabled.
   function(add_pipeline_script_test TEST_NAME TEST_FILE TEST_CLASS)
-    add_test(
-      NAME "viame_pipelines:${TEST_NAME}"
-      COMMAND ${PYTHON_EXECUTABLE} -m pytest "${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}::${TEST_CLASS}" -v --tb=short
-    )
-    set_tests_properties("viame_pipelines:${TEST_NAME}" PROPERTIES
-      LABELS "${PIPELINES_TEST_LABELS}"
-      TIMEOUT ${PIPELINE_TEST_TIMEOUT}
-      SKIP_RETURN_CODE 5
-      ENVIRONMENT "PYTHONPATH=${INTERNAL_PYTHONPATH}${SEP}$ENV{PYTHONPATH};VIAME_INSTALL=${VIAME_INSTALL_DIR}"
-    )
     set(options "")
     set(oneValueArgs REQ_ADDON)
     set(multiValueArgs "")
     cmake_parse_arguments(TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    if(TEST_REQ_ADDON)
-      if(NOT ${${TEST_REQ_ADDON}})
-        set_tests_properties("viame_pipelines:${TEST_NAME}" PROPERTIES DISABLED TRUE)
-      endif()
+    set(disabled_arg "")
+    if(TEST_REQ_ADDON AND NOT ${${TEST_REQ_ADDON}})
+      set(disabled_arg DISABLED)
     endif()
+
+    viame_add_pytest_test(
+      NAME "viame_pipelines:${TEST_NAME}"
+      TARGET "${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}::${TEST_CLASS}"
+      LABELS "${PIPELINES_TEST_LABELS}"
+      TIMEOUT "${PIPELINE_TEST_TIMEOUT}"
+      SKIP_RETURN_CODE 5
+      PYTHONPATH_DIRS "${CMAKE_CURRENT_SOURCE_DIR}"
+      SOURCE_SETUP ON
+      ${disabled_arg}
+    )
   endfunction()
 
   DownloadAndExtract(

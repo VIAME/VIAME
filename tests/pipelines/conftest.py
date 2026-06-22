@@ -75,7 +75,7 @@ def env_fish(env_dir, data_path):
 
 @pytest.fixture
 def env_fish_with_detections(env_dir, data_path):
-    shutil.copy(data_path / "images" / "fish" / "fish_1_jpg", env_dir / "images")
+    shutil.copy(data_path / "images" / "fish" / "fish_1.jpg", env_dir / "images")
     shutil.copy(data_path / "labels" / "fish" / "fish_1_detections.csv", env_dir / "groundtruth.csv")
     return _finalize_env(env_dir)
 
