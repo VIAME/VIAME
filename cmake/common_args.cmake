@@ -1,6 +1,12 @@
 # Common CMake args to send to all external projects
 string( REPLACE ";" "$<SEMICOLON>" CMAKE_SS_CONF_TYPES "${CMAKE_CONFIGURATION_TYPES}" )
 
+# VIAME_BUILD_SHARED is referenced below but never defined elsewhere;
+# default to ON so kwiver-cache doesn't get an empty BUILD_SHARED_LIBS.
+if(NOT DEFINED VIAME_BUILD_SHARED)
+  set(VIAME_BUILD_SHARED ON)
+endif()
+
 set( VIAME_ARGS_COMMON_CMAKE
   # CMAKE options
   -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
