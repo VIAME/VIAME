@@ -70,7 +70,9 @@ def check_csv(
         if track_csv_path.is_file():
             csv_path = track_csv_path
         left_path = csv_path
-        right_path = csv_path.with_name(csv_path.name.replace("1", "2"))
+        # Left CSVs are named <base>1.csv; swap only the trailing camera index.
+        assert csv_path.stem.endswith("1"), f"Unexpected stereo CSV name: {csv_path.name}"
+        right_path = csv_path.with_name(csv_path.stem[:-1] + "2" + csv_path.suffix)
         _check_csv(left_path, env_dir, expected_detections, comparison_detection, all_types)
         _check_csv(right_path, env_dir, expected_detections, comparison_detection, all_types)
 
