@@ -17,7 +17,8 @@ set( onnx_stereo_modules
   calibration_io
   geometry_numpy
   export_stereo_mapping
-  run_epipolar_onnx )
+  run_epipolar_onnx
+  fast_foundation_stereo )
 
 foreach( module ${onnx_stereo_modules} )
   kwiver_add_python_module(

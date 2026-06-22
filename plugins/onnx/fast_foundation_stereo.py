@@ -32,7 +32,18 @@ from kwiver.vital.types import Image, ImageContainer
 
 from viame.core.utils import str2bool
 
-from viame.pytorch.utilities import vital_config_update
+
+def vital_config_update(cfg, cfg_in):
+    """Update a vital Config from a dict or another Config."""
+    if isinstance(cfg_in, dict):
+        for key, value in cfg_in.items():
+            if cfg.has_value(key):
+                cfg.set_value(key, str(value))
+            else:
+                raise KeyError(f"cfg has no key={key}")
+    else:
+        cfg.merge_config(cfg_in)
+    return cfg
 
 
 _IMAGENET_MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
