@@ -36,6 +36,7 @@ if (VIAME_ENABLE_PYTHON)
       TIMEOUT "${PIPELINE_TEST_TIMEOUT}"
       SKIP_RETURN_CODE 5
       PYTHONPATH_DIRS "${CMAKE_CURRENT_SOURCE_DIR}"
+      SOURCE_SETUP ON
       ${disabled_arg}
     )
   endfunction()
