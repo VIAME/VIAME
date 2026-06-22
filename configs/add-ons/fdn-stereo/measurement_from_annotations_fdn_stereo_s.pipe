@@ -41,6 +41,12 @@ process measurer
     use_half_precision                         = true
   endblock
 
+  # Snap right keypoints to disparity-implied matches of their left
+  # counterparts; falls back to the tracker keypoint where disparity is
+  # invalid.
+  :refine_keypoints_with_disparity             true
+  :refine_keypoints_disparity_window           7
+
   # Feature detector configuration (for feature-based methods if needed)
   # Options: ocv_BRISK, ocv_FAST, ocv_GFTT, ocv_ORB, ocv_SIFT, ocv_SURF, etc.
   feature_detector:type                        = ocv_ORB

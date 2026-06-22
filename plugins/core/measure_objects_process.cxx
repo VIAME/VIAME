@@ -452,6 +452,11 @@ measure_objects_process
 
   d->m_frame_counter++;
 
+  // Invalidate per-frame caches (rectified images, computed disparity,
+  // feature matches) so any disparity map computed below is fresh for this
+  // frame rather than the previous one.
+  d->m_utilities.set_frame_id( cur_frame_id );
+
   if( input_tracks.size() == 1 )
   {
     // Single track input: create empty 2nd track set so all tracks are
@@ -712,6 +717,29 @@ measure_objects_process
     }
   }
 
+  // Optional: refine right keypoints of already-paired tracks using a
+  // full-image disparity map. The per-camera trackers can place head/tail
+  // at slightly different anatomical points; when a stereo_disparity
+  // algorithm is configured we can snap each right keypoint to the
+  // disparity-implied match of its left counterpart for L/R consistency.
+  kv::image_container_sptr refine_disparity;
+  if( d->m_settings.refine_keypoints_with_disparity &&
+      d->m_settings.stereo_depth_map_algorithm &&
+      !fully_matched_ids.empty() &&
+      input_images.size() >= 2 &&
+      input_images[0] && input_images[1] )
+  {
+    refine_disparity = d->m_utilities.compute_disparity_for_frame(
+      left_cam, right_cam, input_images[0], input_images[1] );
+
+    if( !refine_disparity )
+    {
+      LOG_WARN( logger(),
+        "refine_keypoints_with_disparity: disparity unavailable this "
+        "frame; keeping original right keypoints" );
+    }
+  }
+
   // Run measurement on fully matched detections
   for( const kv::track_id_t& id : fully_matched_ids )
   {
@@ -726,10 +754,95 @@ measure_objects_process
     kv::vector_2d left_tail( kp1.at("tail")[0], kp1.at("tail")[1] );
     kv::vector_2d right_tail( kp2.at("tail")[0], kp2.at("tail")[1] );
 
+    bool head_refined = false, tail_refined = false;
+    kv::vector_2d refined_head = right_head;
+    kv::vector_2d refined_tail = right_tail;
+    if( refine_disparity )
+    {
+      const int win = d->m_settings.refine_keypoints_disparity_window;
+      refined_head = d->m_utilities.refine_right_point_with_disparity(
+        refine_disparity, left_head, right_head, right_cam, win,
+        &head_refined );
+      refined_tail = d->m_utilities.refine_right_point_with_disparity(
+        refine_disparity, left_tail, right_tail, right_cam, win,
+        &tail_refined );
+    }
+
+    // Optional sanity check: reject the track when the tracker-supplied
+    // right keypoint disagrees with the disparity-implied position by
+    // more than refine_keypoints_max_distance, normalized by the L bbox
+    // size. Only keypoints with a valid disparity reading contribute.
+    bool inconsistent = false;
+    double inconsistent_dist_norm = 0.0;
+    if( ( head_refined || tail_refined ) &&
+        d->m_settings.refine_keypoints_reject_inconsistent &&
+        d->m_settings.refine_keypoints_max_distance > 0.0 )
+    {
+      const auto& bbox1 = det1->bounding_box();
+      double bbox_size = 0.0;
+      if( bbox1.is_valid() )
+      {
+        bbox_size = std::max( bbox1.width(), bbox1.height() );
+      }
+
+      if( bbox_size > 0.0 )
+      {
+        const double thresh = d->m_settings.refine_keypoints_max_distance;
+        if( head_refined )
+        {
+          double d_head = ( refined_head - right_head ).norm() / bbox_size;
+          if( d_head > thresh ) { inconsistent = true; }
+          inconsistent_dist_norm = std::max( inconsistent_dist_norm, d_head );
+        }
+        if( tail_refined )
+        {
+          double d_tail = ( refined_tail - right_tail ).norm() / bbox_size;
+          if( d_tail > thresh ) { inconsistent = true; }
+          inconsistent_dist_norm = std::max( inconsistent_dist_norm, d_tail );
+        }
+      }
+    }
+
+    if( inconsistent )
+    {
+      LOG_INFO( logger(), "Track ID " + std::to_string( id ) +
+        " disparity inconsistency (max norm dist " +
+        std::to_string( inconsistent_dist_norm ) +
+        " > threshold " +
+        std::to_string( d->m_settings.refine_keypoints_max_distance ) +
+        "), skipping measurement" );
+
+      if( d->m_settings.record_stereo_method )
+      {
+        det1->add_note( ":stereo_method=disparity_inconsistent_rejected" );
+        det2->add_note( ":stereo_method=disparity_inconsistent_rejected" );
+      }
+      continue;
+    }
+
+    if( head_refined )
+    {
+      right_head = refined_head;
+      det2->add_keypoint( "head",
+        kv::point_2d( right_head.x(), right_head.y() ) );
+    }
+    if( tail_refined )
+    {
+      right_tail = refined_tail;
+      det2->add_keypoint( "tail",
+        kv::point_2d( right_tail.x(), right_tail.y() ) );
+    }
+
     const auto measurement = viame::core::compute_stereo_measurement(
       left_cam, right_cam, left_head, right_head, left_tail, right_tail );
 
-    LOG_INFO( logger(), "Computed Length (input_kps_used): " + std::to_string( measurement.length ) );
+    const std::string method_tag =
+      ( head_refined && tail_refined ) ? "input_kps_disparity_refined" :
+      ( head_refined || tail_refined ) ? "input_kps_partial_disparity_refined"
+                                       : "input_kps_used";
+
+    LOG_INFO( logger(), "Computed Length (" + method_tag + "): " +
+              std::to_string( measurement.length ) );
     LOG_INFO( logger(), "  Midpoint (x,y,z): (" + std::to_string( measurement.x ) + ", "
               + std::to_string( measurement.y ) + ", " + std::to_string( measurement.z ) + ")" );
     LOG_INFO( logger(), "  Range: " + std::to_string( measurement.range ) +
@@ -737,8 +850,8 @@ measure_objects_process
 
     if( d->m_settings.record_stereo_method )
     {
-      det1->add_note( ":stereo_method=input_kps_used" );
-      det2->add_note( ":stereo_method=input_kps_used" );
+      det1->add_note( ":stereo_method=" + method_tag );
+      det2->add_note( ":stereo_method=" + method_tag );
     }
 
     add_measurement_attributes( det1, measurement );
