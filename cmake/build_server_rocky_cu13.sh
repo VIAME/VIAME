@@ -60,7 +60,7 @@ cmake ../ \
   -C ../cmake/build_cmake_linux.cmake \
   -DCUDA_TOOLKIT_ROOT_DIR:PATH=$CUDA_DIRECTORY \
   -DCUDA_NVCC_EXECUTABLE:PATH=$CUDA_DIRECTORY/bin/nvcc \
-  -DCUDA_ARCHITECTURES:STRING="7.0 7.5 8.0 8.6 8.9 9.0 10.0 12.0"
+  -DCUDA_ARCHITECTURES:STRING="7.5 8.0 8.6 8.9 9.0 10.0 12.0"
 
 # Build VIAME and setup libraries, pipe output to file
 echo "Beginning core build, routing build info to build_log.txt"
