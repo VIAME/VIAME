@@ -3,6 +3,8 @@
 #
 # Description: Fully automatic fish measurement pipeline Uses model:
 # sam2_hbp.pt. Outputs to computed_tracks2.csv.
+#
+# Requires Calibration: True
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

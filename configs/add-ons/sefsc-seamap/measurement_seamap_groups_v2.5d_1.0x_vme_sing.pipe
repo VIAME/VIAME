@@ -8,7 +8,7 @@
 # measurement process uses epipolar NCC template matching to find
 # corresponding right-camera keypoints and triangulates for 3D measurements.
 #
-# Requires: Stereo calibration JSON file.
+# Requires Calibration: True
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

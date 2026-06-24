@@ -3,6 +3,7 @@
 #
 # Description: Measurement from annotations pipeline
 #
+# Requires Calibration: True
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

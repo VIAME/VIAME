@@ -7,7 +7,7 @@
 # track pairing (detection matching, ID unification, class averaging) and
 # triangulates matched keypoints for 3D measurements using calibration data.
 #
-# Requires: Stereo calibration JSON file.
+# Requires Calibration: True
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

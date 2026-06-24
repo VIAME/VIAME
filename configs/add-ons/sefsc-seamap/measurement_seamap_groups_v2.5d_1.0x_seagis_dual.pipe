@@ -9,6 +9,8 @@
 # matching as fallback for tracks where only one camera has keypoints.
 #
 # Requires: SEAGIS .CAM calibration files for left and right cameras.
+#
+# Requires Calibration: True
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

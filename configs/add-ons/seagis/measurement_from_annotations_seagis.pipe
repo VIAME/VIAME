@@ -8,6 +8,8 @@
 # only one camera has keypoints.
 #
 # Requires: SEAGIS .CamCAL calibration files for left and right cameras.
+#
+# Requires Calibration: True
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

@@ -3,6 +3,8 @@
 #
 # Description: Measurement from annotations pipeline Uses model: foundation_stereo_s.pth.
 # Outputs to computed_tracks2.csv.
+#
+# Requires Calibration: True
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================
