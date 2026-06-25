@@ -33,19 +33,32 @@ Usage:
 
 import argparse
 import json
+import logging
 import os
 import sys
 import threading
+import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from viame.core.interactive_segmentation import (
+# Quiet known-harmless third-party startup noise so the service's stderr (shown
+# in DIVE as "[Interactive] ...") stays readable. These come from numpy's
+# subnormal probe, torch on a GPU-less host, and scriptconfig deprecation notices
+# emitted while importing the kwcoco/netharn-backed detectors. They fire during
+# the heavy imports below (and again on lazy model load), so filter them before.
+warnings.filterwarnings("ignore", message="The value of the smallest subnormal")
+warnings.filterwarnings("ignore", message="Can't initialize NVML")
+warnings.filterwarnings(
+    "ignore", message=r'The "\w+" class attribute of .* was deprecated in scriptconfig')
+logging.getLogger("torch.utils.cpp_extension").setLevel(logging.ERROR)
+
+from viame.core.interactive_segmentation import (  # noqa: E402
     InteractiveSegmentationService,
     load_algorithms_from_config,
     find_viame_config as find_segmentation_config,
     suppress_stdout,
 )
-from viame.core.interactive_stereo import (
+from viame.core.interactive_stereo import (  # noqa: E402
     InteractiveStereoService,
     load_algorithm_from_config,
     find_viame_config as find_stereo_config,
