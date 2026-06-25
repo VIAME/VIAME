@@ -11,6 +11,11 @@ kwiver_add_python_module(
   pytorch
   kwcoco_train_detector )
 
+kwiver_add_python_module(
+  ${CMAKE_CURRENT_SOURCE_DIR}/kwcoco_detector_kit_detector.py
+  pytorch
+  kwcoco_detector_kit_detector )
+
 if( VIAME_ENABLE_PYTORCH-LEARN )
   add_subdirectory( learn )
 endif()
