@@ -230,13 +230,18 @@ if( VIAME_BUILD_DIVE_FROM_SOURCE )
     set( DIVE_BUILD_ARTIFACT "${DIVE_ELECTRON_OUTPUT_DIR}/dive-desktop" )
   endif()
 
-  # Wrap `npm run build:electron` so a non-zero exit is ignored when the desktop
-  # artifact is actually produced. electron-builder's internal node module
-  # collector runs `npm ls`, which on npm 9+ exits non-zero (ELSPROBLEMS) for
-  # missing peer dependencies (vtk.js/worker-loader peers) even though the
-  # build itself succeeds and signs/zips the desktop installer. Without this
-  # wrapper, dive's MSBuild target exits -1 and viame is skipped.
-  set( DIVE_BUILD_INNER_CMD ${DIVE_BUILD_ENV} ${NPM_EXECUTABLE} run build:electron )
+  # Use `build:electron:dir` (electron-builder --dir): VIAME only installs the
+  # unpacked tree (see INSTALL_COMMAND below), so building the AppImage/tar.gz
+  # installers is wasted work. --dir produces just the unpacked dir and skips
+  # the slow max-compression packaging.
+  #
+  # Wrap the command so a non-zero exit is ignored when the desktop artifact is
+  # actually produced. electron-builder's internal node module collector runs
+  # `npm ls`, which on npm 9+ exits non-zero (ELSPROBLEMS) for missing peer
+  # dependencies (vtk.js/worker-loader peers) even though the build itself
+  # succeeds. Without this wrapper, dive's MSBuild target exits -1 and viame is
+  # skipped.
+  set( DIVE_BUILD_INNER_CMD ${DIVE_BUILD_ENV} ${NPM_EXECUTABLE} run build:electron:dir )
   string( REPLACE ";" "----" DIVE_BUILD_INNER_CMD_STR "${DIVE_BUILD_INNER_CMD}" )
 
   ExternalProject_Add( dive
