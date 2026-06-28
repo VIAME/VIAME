@@ -41,8 +41,8 @@ setup_gcc_toolset 13
 
 # Hack for storing paths to CUDA libs for some libraries
 rm /usr/local/cuda
-rm /usr/local/cuda-12
-mv /usr/local/cuda-12.6 $CUDA_DIRECTORY
+rm /usr/local/cuda-13
+mv /usr/local/cuda-13.3 $CUDA_DIRECTORY
 
 # Update VIAME sub git sources
 update_git_submodules $VIAME_SOURCE_DIR
