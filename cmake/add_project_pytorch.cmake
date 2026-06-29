@@ -542,6 +542,20 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
     LIST_SEPARATOR "----" )
 
+  # CUDA 13's nvcc (cudafe++) mishandles a static_cast in the installed torch
+  # ATen/core/List_inl.h header, breaking downstream CUDA extension builds such
+  # as mmcv. Patch the header in place after install (idempotent).
+  if( "${LIB}" STREQUAL "pytorch" AND VIAME_ENABLE_CUDA AND
+      NOT CUDA_VERSION VERSION_LESS "13.0" )
+    ExternalProject_Add_Step(${LIB}
+      patch_list_inl_cuda13
+      COMMAND ${CMAKE_COMMAND}
+        -DTORCH_INCLUDE_DIR=${VIAME_PYTHON_PACKAGES}/torch/include
+        -P ${VIAME_CMAKE_DIR}/patch_torch_list_inl.cmake
+      DEPENDEES install
+      COMMENT "Patching torch List_inl.h for CUDA 13 nvcc compatibility" )
+  endif()
+
   # On Windows, enable git long paths for PyTorch submodules to handle
   # composable_kernel files that exceed the 260-char MAX_PATH limit
   if( WIN32 AND "${LIB}" STREQUAL "pytorch" )
