@@ -10,6 +10,8 @@
 # Requires: Stereo calibration JSON, the .onnx (or .engine) file plus its
 # sidecar .yaml describing image_size, and either the onnxruntime-gpu
 # Python package (default) or tensorrt (when pointing at a .engine).
+#
+# Requires Calibration: True
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

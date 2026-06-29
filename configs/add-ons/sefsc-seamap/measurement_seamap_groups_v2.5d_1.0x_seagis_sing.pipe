@@ -9,6 +9,8 @@
 # for each left-camera keypoint, then triangulates to produce 3D measurements.
 #
 # Requires: SEAGIS .CAM calibration files for left and right cameras.
+#
+# Requires Calibration: True
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

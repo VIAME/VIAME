@@ -3,6 +3,8 @@
 #
 # Description: Default measurement from annotations pipeline.
 # Outputs to computed_tracks.csv.
+#
+# Requires Calibration: True
 # =============================================================================
 
 include measurement_from_annotations_template.pipe

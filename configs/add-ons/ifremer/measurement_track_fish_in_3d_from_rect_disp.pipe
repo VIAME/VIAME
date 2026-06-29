@@ -2,6 +2,8 @@
 # Title: track fish 3d from detections and stereo rectified disparity
 #
 # Description: Pipeline for measuring object dimensions in imagery.
+#
+# Requires Calibration: True
 # =============================================================================
 
 config _pipeline:_edge
