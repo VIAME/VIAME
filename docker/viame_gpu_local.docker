@@ -71,7 +71,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_PYTORCH-LEARN:BOOL=OFF \
 -DVIAME_ENABLE_MATLAB:BOOL=OFF \
 -DVIAME_ENABLE_OPENCV:BOOL=ON \
--DVIAME_OPENCV_VERSION:STRING=3.4.0 \
+-DVIAME_OPENCV_VERSION:STRING=4.9.0 \
 -DVIAME_ENABLE_PYTHON:BOOL=ON \
 -DVIAME_BUILD_PYTHON_FROM_SOURCE:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH:BOOL=ON \
@@ -98,8 +98,20 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_DOWNLOAD_MODELS-HABCAM:BOOL=OFF \
 -DVIAME_DOWNLOAD_MODELS-MOUSS:BOOL=OFF
 
-# Perform multi-threaded build
+# Perform multi-threaded build. Keep || true so the image is still produced
+# for warm-start dev iteration even if the (long) compile is incomplete -- but
+# loudly flag an incomplete build so a broken image is not mistaken for a good
+# one (a silent `make` failure here previously shipped an image with no VIAME).
 make -j$(nproc) || true
+if [ ! -e /viame/build/install/setup_viame.sh ]; then
+  echo "########################################################################"
+  echo "# WARNING: /viame/build/install/setup_viame.sh is missing."
+  echo "# The VIAME build did NOT complete. Scroll up to the FIRST 'Error'"
+  echo "# (CMake Error / make *** Error) -- that is the real failure to fix."
+  echo "# The image was still produced for warm-start iteration, but VIAME"
+  echo "# will not run until the build is repaired and 'make' is re-run inside."
+  echo "########################################################################"
+fi
 EOF
 
 RUN <<EOF
