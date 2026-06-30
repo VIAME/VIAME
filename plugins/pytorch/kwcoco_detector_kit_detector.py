@@ -103,7 +103,11 @@ class KwcocoDetectorKitDetector(ImageObjectDetector):
     # ------------------------------------------------------------------
 
     def _build_model(self):
-        from kwcoco_detector_kit.predictors.onnx import OnnxPredictor
+        # Vendored predictor — VIAME inference does NOT depend on
+        # kwcoco_detector_kit being installed. See the provenance header in
+        # kwcoco_detector_kit_onnx_predictor.py; resync with the kit's
+        # dev/vendor_onnx_to_viame.py.
+        from viame.pytorch.kwcoco_detector_kit_onnx_predictor import OnnxPredictor
         self._predictor = OnnxPredictor(
             self._config.package,
             device=self._config.device or 'cpu',
