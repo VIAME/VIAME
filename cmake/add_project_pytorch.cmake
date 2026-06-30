@@ -551,7 +551,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       patch_list_inl_cuda13
       COMMAND ${CMAKE_COMMAND}
         -DTORCH_INCLUDE_DIR=${VIAME_PYTHON_PACKAGES}/torch/include
-        -P ${VIAME_CMAKE_DIR}/patch_torch_list_inl.cmake
+        -P ${VIAME_CMAKE_DIR}/custom_install_pytorch.cmake
       DEPENDEES install
       COMMENT "Patching torch List_inl.h for CUDA 13 nvcc compatibility" )
   endif()

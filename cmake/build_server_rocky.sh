@@ -36,13 +36,13 @@ patch_cudnn_headers
 # gcc-toolset-11 tops out at 11.2.1. gcc-toolset-12 satisfies the minimum but
 # hits a known gcc-12 false-positive -Wmaybe-uninitialized in AVX512 intrinsics
 # that breaks fbgemm's -Werror build; gcc-13 compiles it cleanly with no patch.
-# nvcc runs with -allow-unsupported-compiler so CUDA 12.6 accepts gcc-13.
+# nvcc runs with -allow-unsupported-compiler so CUDA 12.8 accepts gcc-13.
 setup_gcc_toolset 13
 
 # Hack for storing paths to CUDA libs for some libraries
 rm /usr/local/cuda
-rm /usr/local/cuda-13
-mv /usr/local/cuda-13.3 $CUDA_DIRECTORY
+rm /usr/local/cuda-12
+mv /usr/local/cuda-12.8 $CUDA_DIRECTORY
 
 # Update VIAME sub git sources
 update_git_submodules $VIAME_SOURCE_DIR
