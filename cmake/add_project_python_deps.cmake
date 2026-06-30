@@ -116,7 +116,7 @@ if( VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-NETHARN )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "scriptconfig" "parse" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "scriptconfig" "kwconf" "parse" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "kwarray" "kwimage" "kwplot" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "astunparse" "pygtrie" "pyflakes" )
 endif()
