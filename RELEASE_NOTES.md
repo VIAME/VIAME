@@ -14,6 +14,8 @@ v0.22.5 - 7/02/2026
 -Fix issue in multi-cam aerial suppression/tracking pipelines due to numpy upgrade
 
 
+-Update linux bins to use cuda 12.8 from 12.6 for blackwell support (winodws already at)
+
 
 v0.22.4 - 4/28/2026
 ===================
