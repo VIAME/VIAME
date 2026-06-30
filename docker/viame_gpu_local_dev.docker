@@ -153,9 +153,9 @@ cd /viame/build
 make -j"$(nproc)" || true
 if [ ! -e /viame/build/build/src/viame-stamp/viame-install ]; then
   echo "########################################################################"
-  echo "# WARNING: /viame/build/install/setup_viame.sh is missing."
-  echo "# The VIAME build did NOT complete. Scroll up to the FIRST 'Error'"
-  echo "# (CMake Error / make *** Error) -- that is the real failure to fix."
+  echo "# WARNING: the viame-install stamp is missing -- the VIAME package layer"
+  echo "# did NOT finish. Scroll up to the FIRST 'Error' (CMake Error /"
+  echo "# make *** Error) -- that is the real failure to fix."
   echo "# Re-running 'docker build' resumes from the cached deps/fletch/kwiver"
   echo "# layers, so you do not pay for those again."
   echo "########################################################################"
@@ -204,6 +204,24 @@ GPU compute capability so PyTorch is not compiled for 8 architectures:
 If a build is interrupted (or a layer fails), just run the SAME command again:
 BuildKit reuses the cached deps / fletch / kwiver layers and resumes from the
 first incomplete layer. You do not re-pay for what already finished.
+
+Resume / finish a partial build from inside the container
+---------------------------------------------------------
+This image bakes the build env (PATH, LD_LIBRARY_PATH, C_INCLUDE_PATH for the
+from-source <Python.h>), so an in-container `make` Just Works -- unlike the
+older viame_gpu_local.docker, where a fresh shell must re-export those by hand
+or the C++ plugins fail with "Python.h: No such file or directory". To finish
+or repair a build without rebuilding the image:
+
+.. code:: bash
+
+    cd /viame/build
+    cmake ../                       # re-validate config; add -D... to change flags
+    make -j"$(nproc)"               # fletch / pytorch / kwiver already built are reused
+    ls build/src/viame-stamp/viame-install && echo "VIAME PACKAGE BUILT"
+
+    # persist the finished build (run from the host, in another terminal):
+    #   docker commit <container> viame:viame-gpu-local-dev
 
 Run (mount the host checkout for iteration)
 -------------------------------------------

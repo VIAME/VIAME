@@ -105,7 +105,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 make -j$(nproc) || true
 if [ ! -e /viame/build/build/src/viame-stamp/viame-install ]; then
   echo "########################################################################"
-  echo "# WARNING: /viame/build/install/setup_viame.sh is missing."
+  echo "# WARNING: the viame-install stamp is missing -- VIAME packages unbuilt."
   echo "# The VIAME build did NOT complete. Scroll up to the FIRST 'Error'"
   echo "# (CMake Error / make *** Error) -- that is the real failure to fix."
   echo "# The image was still produced for warm-start iteration, but VIAME"
@@ -134,8 +134,14 @@ chown -R 1099:1099 /opt/noaa/viame
 
 EOF
 
-ENV PATH=/usr/local/cuda/bin:$PATH
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+ENV PATH=/viame/build/install/bin:/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH=/viame/build/install/lib:/viame/build/install/lib/python3.10:/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+# Persist the build include paths (Python.h etc.) so an in-container rebuild
+# works in a fresh shell. The build RUN above sets these locally, but they were
+# not persisted, so `make` in a `docker run ... bash` shell could not find
+# <Python.h> when (re)compiling the C++ plugins.
+ENV C_INCLUDE_PATH=/viame/build/install/include/python3.10
+ENV CPLUS_INCLUDE_PATH=/viame/build/install/include/python3.10
 
 RUN <<EOF
 # https://www.docker.com/blog/introduction-to-heredocs-in-dockerfiles/
