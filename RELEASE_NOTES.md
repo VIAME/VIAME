@@ -1,8 +1,11 @@
-v0.22.5 - 6/05/2026
+v0.22.5 - 7/02/2026
 ===================
 
 
--Re-compute lengths when head/tail points are modified in interactive stereo mode
+-Re-compute lengths when head/tail points are modified option in DIVE
+
+
+-Many other DIVE changes from the last 3 months (revised top bar options)
 
 
 -Fix issue with video outputs from transcode pipelines
