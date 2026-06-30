@@ -454,13 +454,10 @@ if( VIAME_ENABLE_CUDA )
   option( VIAME_FORCE_CUDA_CSTD98 "Build all cuda code with C++ standard 98" FALSE )
   mark_as_advanced( VIAME_FORCE_CUDA_CSTD98 )
 
-  set( DEF_CUDA_ARCHS "6.0 6.1 7.0 7.5" )
-
-  # CUDA 13.0 removed support for Maxwell, Pascal, and Volta (sm_50 through
-  # sm_70). Turing (sm_75) is the oldest architecture nvcc still accepts, so
-  # drop the older bases that would otherwise make nvcc fail with
-  # "Unsupported gpu architecture 'compute_60'".
-  if( NOT CUDA_VERSION VERSION_LESS "13.0" )
+  # CUDA 13.0 removed support for Maxwell, Pascal, and Volta archs
+  if( CUDA_VERSION VERSION_LESS "13.0" )
+    set( DEF_CUDA_ARCHS "6.0 6.1 7.0 7.5" )
+  else()
     set( DEF_CUDA_ARCHS "7.5" )
   endif()
 
