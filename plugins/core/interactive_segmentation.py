@@ -525,14 +525,20 @@ class InteractiveSegmentationService:
         Called when the user enters point-segmentation mode (mode entry), so SAM
         (and the optional text-query model) load then rather than on the first
         click. Each model otherwise defers loading to its first use. The caller
-        should suppress stdout, since model init may print. Failures are
-        non-fatal (segmentation can still fall back / load on first use)."""
-        for algo in (self._segment_algo, self._text_query_algo):
+        should suppress stdout, since model init may print.
+
+        Point segmentation can fall back to loading on first use, so its warmup
+        failure is a non-fatal warning. Text query has no such fallback path, so
+        a model-load failure there (e.g. no CUDA device) is logged as an error."""
+        for label, algo, level in (
+            ("segmenter", self._segment_algo, "Warning"),
+            ("text query", self._text_query_algo, "Error"),
+        ):
             if algo is not None and hasattr(algo, "_ensure_model"):
                 try:
                     algo._ensure_model()
                 except Exception as e:
-                    self._log(f"Warning: model warmup failed: {e}")
+                    self._log(f"{level}: {label} model warmup failed: {e}")
 
     def set_stereo_warper(self, warper) -> None:
         """Inject a shared, already-built InteractiveStereoService.
