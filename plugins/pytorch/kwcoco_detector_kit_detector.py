@@ -26,7 +26,7 @@ Example:
 """
 from __future__ import annotations
 
-import scriptconfig as scfg
+import kwconf
 
 from kwiver.vital.algo import ImageObjectDetector
 from viame.pytorch.utilities import (
@@ -37,18 +37,18 @@ from viame.pytorch.utilities import (
 )
 
 
-class KwcocoDetectorKitConfig(scfg.DataConfig):
+class KwcocoDetectorKitConfig(kwconf.Config):
     """Configuration for KwcocoDetectorKitDetector."""
 
-    package = scfg.Value(None, help=(
+    package = kwconf.Value(None, help=(
         'Path to the exported ONNX package directory or .zip archive. '
         'Must contain a .onnx file and (optionally) a .modelspec.json sidecar.'
     ))
-    device = scfg.Value('cpu', help='onnxruntime device: "cpu", "cuda", "cuda:0"')
-    score_thresh = scfg.Value(None, type=float, help=(
+    device = kwconf.Value('cpu', help='onnxruntime device: "cpu", "cuda", "cuda:0"')
+    score_thresh = kwconf.Value(None, parser=float, help=(
         'Detection score threshold. Defaults to the modelspec value when None.'
     ))
-    nms_thresh = scfg.Value(None, type=float, help=(
+    nms_thresh = kwconf.Value(None, parser=float, help=(
         'NMS IoU threshold. Advisory only — NMS is baked into the ONNX graph.'
     ))
 
