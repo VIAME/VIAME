@@ -121,7 +121,7 @@ cmake ../ $EXTRA -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_WEB_EXCLUDES:BOOL=ON \
 -DVIAME_DOWNLOAD_MODELS:BOOL=ON \
 -DVIAME_DOWNLOAD_MODELS-PYTORCH:BOOL=OFF \
--DVIAME_DOWNLOAD_MODELS-GENERIC:BOOL=ON \
+-DVIAME_DOWNLOAD_MODELS-GENERIC:BOOL=OFF \
 -DVIAME_DOWNLOAD_MODELS-FISH:BOOL=ON \
 -DVIAME_DOWNLOAD_MODELS-ARCTIC-SEAL:BOOL=OFF \
 -DVIAME_DOWNLOAD_MODELS-HABCAM:BOOL=OFF \
@@ -151,7 +151,7 @@ RUN <<EOF
 #!/usr/bin/env bash
 cd /viame/build
 make -j"$(nproc)" || true
-if [ ! -e /viame/build/install/setup_viame.sh ]; then
+if [ ! -e /viame/build/build/src/viame-stamp/viame-install ]; then
   echo "########################################################################"
   echo "# WARNING: /viame/build/install/setup_viame.sh is missing."
   echo "# The VIAME build did NOT complete. Scroll up to the FIRST 'Error'"
