@@ -1001,6 +1001,7 @@ class InteractiveStereoService:
             if self._use_epipolar:
                 transferred_points = []
                 disparity_values = []
+                num_matched = 0
 
                 for p in points:
                     matched = self._epipolar_matcher.match_point(
@@ -1009,7 +1010,12 @@ class InteractiveStereoService:
                         transferred_points.append(
                             [float(matched[0]), float(matched[1])])
                         disparity_values.append(float(p[0] - matched[0]))
+                        num_matched += 1
                     else:
+                        # No epipolar match: fall back to the source coordinate
+                        # so plain point transfer still returns something, but
+                        # record that this point did not actually match so
+                        # callers (e.g. stereo segmentation) can fail loudly.
                         transferred_points.append([float(p[0]), float(p[1])])
                         disparity_values.append(0.0)
 
@@ -1018,6 +1024,7 @@ class InteractiveStereoService:
                     "transferred_points": transferred_points,
                     "original_points": points,
                     "disparity_values": disparity_values,
+                    "num_matched": num_matched,
                 }
 
             H, W = self._current_disparity.shape[:2]
@@ -1307,12 +1314,16 @@ class InteractiveStereoService:
                     "transferred_points": [[float(median[0]), float(median[1])]],
                     "point_labels": [1],
                     "sampled": len(warped),
+                    "num_matched": len(warped),
                 }
             self._log("Point sampling found no matches; falling back to direct warp")
 
         # Direct warp of the supplied click points
         response = self._do_transfer_points({"points": points})
         response["point_labels"] = labels
+        # Dense mode always produces a disparity per point; treat each
+        # returned point as a match unless the epipolar path reported otherwise.
+        response.setdefault("num_matched", len(response.get("transferred_points") or []))
         return response
 
     def handle_measure_from_polygons(self, request: Dict[str, Any]) -> Dict[str, Any]:

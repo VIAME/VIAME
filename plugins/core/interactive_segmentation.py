@@ -632,10 +632,17 @@ class InteractiveSegmentationService:
         })
         seed_points = warp.get("transferred_points") or []
         seed_labels = warp.get("point_labels") or [1] * len(seed_points)
-        if not seed_points:
+        # num_matched defaults to the seed count for backends that don't report
+        # it; epipolar matching reports 0 when no point actually matched (it
+        # substitutes the source coordinate as a fallback), which must not be
+        # treated as a successful transfer.
+        num_matched = warp.get("num_matched", len(seed_points))
+        if not seed_points or num_matched == 0:
             return {
                 "success": False,
-                "error": "Failed to warp segmentation seed to the other camera",
+                "error": "No stereo match found on the other camera "
+                         "(epipolar matching failed); the object may be "
+                         "occluded, out of frame, or the calibration is off",
             }
 
         # 2. Segment the other camera with SAM using the warped seed.
@@ -646,6 +653,14 @@ class InteractiveSegmentationService:
             "frame_time": frame_time,
         })
         other_polygon = seg.get("polygon")
+        if not other_polygon:
+            return {
+                "success": False,
+                "error": "Segmentation produced no region on the other camera "
+                         "for the matched stereo point",
+                "seed_points": seed_points,
+                "seed_labels": seed_labels,
+            }
 
         result = {
             "success": True,
