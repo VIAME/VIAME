@@ -713,9 +713,9 @@ class InteractiveSegmentationService:
             if command == "text_query":
                 raise ValueError(
                     "text_query command requires a perform_text_query algorithm to be "
-                    "configured. SAM2 does not support text queries - use the SAM3 "
-                    "configuration (interactive_sam3_segmenter.conf) for text-based "
-                    "detection and segmentation."
+                    "configured. SAM2 does not support text queries - install the SAM3 "
+                    "add-on so interactive_text_query_default.conf pulls in "
+                    "interactive_text_query_sam3.conf for text-based detection."
                 )
             raise ValueError(f"Unknown command: {command}")
 
@@ -896,8 +896,8 @@ def find_viame_config(model_type: str = "sam3") -> Optional[str]:
 
     # Map model type to interactive config file
     config_files = {
-        "sam2": "interactive_sam2_segmenter.conf",
-        "sam3": "interactive_sam3_segmenter.conf",
+        "sam2": "interactive_segmenter_sam2.conf",
+        "sam3": "interactive_segmenter_sam3.conf",
     }
 
     config_name = config_files.get(model_type)
