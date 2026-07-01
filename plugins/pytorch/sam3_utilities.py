@@ -194,6 +194,38 @@ def detect_sam3_version(checkpoint_path: Optional[str] = None,
 # 3.0 signatures closely enough to pass through).
 
 
+def _make_init_state_kwarg_tolerant(predictor):
+    """Wrap a SAM3 model's ``init_state`` so surplus keyword arguments are
+    dropped instead of raising ``TypeError``.
+
+    The vendored ``sam3.model.sam3_base_predictor.start_session`` (reached via
+    ``handle_request({"type": "start_session"})``) always forwards
+    ``offload_state_to_cpu`` -- and, when present, ``video_loader_type`` -- to
+    ``model.init_state``, but ``Sam3MultiplexTrackingWithInteractivity.init_state``
+    accepts neither. This adapts around that signature skew here in VIAME code
+    rather than patching the upstream ``sam3`` submodule. No-op when the model's
+    ``init_state`` already accepts ``**kwargs`` or has already been wrapped.
+    """
+    import inspect
+
+    model = getattr(predictor, "model", None)
+    init_state = getattr(model, "init_state", None)
+    if init_state is None or getattr(init_state, "_viame_kwarg_tolerant", False):
+        return
+    sig = inspect.signature(init_state)
+    if any(p.kind == inspect.Parameter.VAR_KEYWORD
+           for p in sig.parameters.values()):
+        return
+    accepted = set(sig.parameters)
+
+    def _filtered_init_state(*args, __orig=init_state, __ok=accepted, **kwargs):
+        kwargs = {k: v for k, v in kwargs.items() if k in __ok}
+        return __orig(*args, **kwargs)
+
+    _filtered_init_state._viame_kwarg_tolerant = True
+    model.init_state = _filtered_init_state
+
+
 class _Sam3p1ImagePredictorAdapter:
     """
     Thin adapter that makes a ``Sam3MultiplexVideoPredictor`` look like the
@@ -221,6 +253,9 @@ class _Sam3p1ImagePredictorAdapter:
         self._session_id = None
         self._tmp_dir = None
         self._orig_hw = None
+        # set_image() below starts a session via handle_request(), whose
+        # start_session forwards kwargs this model's init_state rejects.
+        _make_init_state_kwarg_tolerant(multiplex_predictor)
 
     def _inference_ctx(self):
         """Context stack with autocast + SDPA fallback kernel selection.
