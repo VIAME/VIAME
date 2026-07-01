@@ -469,7 +469,13 @@ def emit_dive_error(message):
     single greppable line.
     """
     flat = " ".join(str(message).split())
-    print("ERROR: " + flat, file=sys.stderr, flush=True)
+    # Use sys.stderr.write (not print(file=sys.stderr)) so the line is reliably
+    # captured when running under KWIVER's embedded Python interpreter.
+    try:
+        sys.stderr.write("ERROR: " + flat + "\n")
+        sys.stderr.flush()
+    except Exception:
+        print("ERROR: " + flat, flush=True)
 
 
 def is_cuda_oom(exc):

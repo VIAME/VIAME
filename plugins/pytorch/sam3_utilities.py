@@ -115,7 +115,13 @@ def emit_dive_error(message):
     message stays one greppable line.
     """
     flat = " ".join(str(message).split())
-    print(f"ERROR: {flat}", file=sys.stderr, flush=True)
+    # Use sys.stderr.write (not print(file=sys.stderr)) so the line is reliably
+    # captured when running under KWIVER's embedded Python interpreter.
+    try:
+        sys.stderr.write(f"ERROR: {flat}\n")
+        sys.stderr.flush()
+    except Exception:
+        print(f"ERROR: {flat}", flush=True)
 
 
 def describe_sam3_load_failure(err):

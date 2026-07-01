@@ -936,6 +936,10 @@ class SAM3Refiner(RefineTracks):
             import sys, traceback
             sys.stderr.write(f"[SAM3 Refiner] ERROR in propagation: {e}\n")
             traceback.print_exc(file=sys.stderr)
+            # Propagate so the job fails visibly (non-zero exit) instead of
+            # silently exiting 0 with no tracks. The report_cuda_errors
+            # decorator turns this into a DIVE-surfaced ERROR: line.
+            raise
 
         # Split tracks that have large spatial jumps (identity switches)
         self._split_jumping_tracks()
