@@ -73,7 +73,31 @@ function( CopyVarsToAllCaps _str )
   endforeach()
 endfunction()
 
+# Rewrite Google Drive share/view links into direct-download URLs. A link like
+#   https://drive.google.com/file/d/<ID>/view?usp=sharing
+# (or the uc?id=/open?id= variants) is an HTML page, not the file - file(DOWNLOAD)
+# would save that page and fail the MD5 check. For large files Google also serves
+# a "can't scan for viruses" confirmation page; confirm=t bypasses it. Non-Drive
+# URLs are returned unchanged.
+function( NormalizeDownloadUrl _URL _varResult )
+  set( _id "" )
+  if( "${_URL}" MATCHES "drive\\.google\\.com/file/d/([A-Za-z0-9_-]+)" )
+    set( _id "${CMAKE_MATCH_1}" )
+  elseif( "${_URL}" MATCHES "drive\\.google\\.com/(uc|open)\\?.*id=([A-Za-z0-9_-]+)" )
+    set( _id "${CMAKE_MATCH_2}" )
+  endif()
+
+  if( NOT "${_id}" STREQUAL "" )
+    set( ${_varResult}
+      "https://drive.usercontent.google.com/download?id=${_id}&export=download&confirm=t"
+      PARENT_SCOPE )
+  else()
+    set( ${_varResult} "${_URL}" PARENT_SCOPE )
+  endif()
+endfunction()
+
 function( DownloadFile _URL _OutputLoc _MD5 )
+  NormalizeDownloadUrl( "${_URL}" _URL )
   get_filename_component( _filename "${_OutputLoc}" NAME )
   if( EXISTS "${_OutputLoc}" )
     file( MD5 "${_OutputLoc}" _existing_md5 )
