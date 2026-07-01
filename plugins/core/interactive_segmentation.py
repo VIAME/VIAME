@@ -520,25 +520,29 @@ class InteractiveSegmentationService:
         }
 
     def warmup(self) -> None:
-        """Eagerly load the underlying models so the first prediction is fast.
+        """Eagerly load the point-segmentation model so the first click is fast.
 
-        Called when the user enters point-segmentation mode (mode entry), so SAM
-        (and the optional text-query model) load then rather than on the first
-        click. Each model otherwise defers loading to its first use. The caller
+        Called when the user enters point-segmentation mode (mode entry), so the
+        segmentation model loads then rather than on the first click. The caller
         should suppress stdout, since model init may print.
 
-        Point segmentation can fall back to loading on first use, so its warmup
-        failure is a non-fatal warning. Text query has no such fallback path, so
-        a model-load failure there (e.g. no CUDA device) is logged as an error."""
-        for label, algo, level in (
-            ("segmenter", self._segment_algo, "Warning"),
-            ("text query", self._text_query_algo, "Error"),
-        ):
-            if algo is not None and hasattr(algo, "_ensure_model"):
-                try:
-                    algo._ensure_model()
-                except Exception as e:
-                    self._log(f"{level}: {label} model warmup failed: {e}")
+        The text-query model is deliberately NOT loaded here: it is large and
+        commonly a different (heavier) backend than the segmenter, and may go
+        unused for a whole segmentation session. We only verify it is configured
+        and defer its load to the first text_query request (perform_query lazily
+        calls ``_ensure_model``). Point-segmentation warmup failure is non-fatal
+        (it falls back to loading on first use)."""
+        seg = self._segment_algo
+        if seg is not None and hasattr(seg, "_ensure_model"):
+            try:
+                seg._ensure_model()
+            except Exception as e:
+                self._log(f"Warning: segmenter model warmup failed: {e}")
+
+        # Text query: presence check only -- do not load the model here.
+        if self._text_query_algo is not None:
+            self._log("Text query configured; its model loads on the first "
+                      "text query.")
 
     def set_stereo_warper(self, warper) -> None:
         """Inject a shared, already-built InteractiveStereoService.
@@ -1087,26 +1091,16 @@ Examples:
             **service_config
         )
 
-        # Eagerly warm up the underlying models. Both SAM3Segmenter and
-        # SAM3TextQuery defer model loading to their first call, which makes
-        # the first user-initiated segmentation or text query slow. Doing it
-        # here shifts that latency to service startup so subsequent requests
-        # are fast. Shared model cache means loading one also benefits the
-        # other. Text-query warmup is wrapped separately because it also
-        # loads Grounding DINO (extra weight) — if that fails, we still want
-        # segmentation available.
+        # Eagerly warm up only the segmentation model so the first click is
+        # fast. The text-query model is intentionally left to load lazily on
+        # the first text_query request -- it is large, often a different/heavier
+        # backend, and may be unused for the whole session.
         with suppress_stdout():
             if hasattr(segment_algo, "_ensure_model"):
                 try:
                     segment_algo._ensure_model()
                 except Exception as e:
                     print(f"[SegmentationService] Warning: segmenter warmup failed: {e}",
-                          file=sys.stderr)
-            if text_query_algo is not None and hasattr(text_query_algo, "_ensure_model"):
-                try:
-                    text_query_algo._ensure_model()
-                except Exception as e:
-                    print(f"[SegmentationService] Warning: text query warmup failed: {e}",
                           file=sys.stderr)
 
         service.run()
