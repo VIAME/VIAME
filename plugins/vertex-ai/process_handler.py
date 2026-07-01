@@ -225,19 +225,23 @@ class ProcessHandler:
 
     if num_cameras == 1:
       cmd += self._writer_settings(
-        output_dir, basename, output_type, output_ext )
+        output_dir, basename, output_type, output_ext,
+        frame_rate=frame_rate, video_input=_is_video( local_inputs[0] ) )
     else:
       camera_names = [ "left", "right", "center" ]
       for cid in range( num_cameras ):
         cam_name = camera_names[cid] if cid < len( camera_names ) \
           else "cam" + str( cid + 1 )
+        is_vid = _is_video( local_inputs[cid] )
         cmd += self._writer_settings(
-          output_dir, cam_name, output_type, output_ext, cid + 1 )
+          output_dir, cam_name, output_type, output_ext, cid + 1,
+          frame_rate=frame_rate, video_input=is_vid )
         # Also set unnumbered writers for the first camera since some
         # pipelines use detector_writer/track_writer without a suffix
         if cid == 0:
           cmd += self._writer_settings(
-            output_dir, cam_name, output_type, output_ext )
+            output_dir, cam_name, output_type, output_ext,
+            frame_rate=frame_rate, video_input=is_vid )
 
     # Extra per-request setting overrides
     for key, value in settings.items():
@@ -312,7 +316,7 @@ class ProcessHandler:
 
   @staticmethod
   def _writer_settings( output_dir, basename, output_type, output_ext,
-                        cid=None ):
+                        cid=None, frame_rate=None, video_input=False ):
     """Return -s flags for detection and track writers."""
     det_file = os.path.join( output_dir, basename + "_detections" + output_ext )
     trk_file = os.path.join( output_dir, basename + "_tracks" + output_ext )
@@ -325,6 +329,20 @@ class ProcessHandler:
     out += [ "-s", det_prefix + "writer:type=" + output_type ]
     out += [ "-s", trk_prefix + "file_name=" + trk_file ]
     out += [ "-s", trk_prefix + "writer:type=" + output_type ]
+
+    # viame_csv-specific header/column metadata. Without frame_rate the CSV has
+    # no "# metadata, fps: ..." header; without write_time_as_uid a video's
+    # second column is blank instead of per-frame timestamps.
+    if output_type == "viame_csv":
+      if frame_rate is not None:
+        out += [ "-s", det_prefix + "writer:viame_csv:frame_rate="
+                 + str( frame_rate ) ]
+        out += [ "-s", trk_prefix + "writer:viame_csv:frame_rate="
+                 + str( frame_rate ) ]
+      if video_input:
+        out += [ "-s", det_prefix + "writer:viame_csv:write_time_as_uid=true" ]
+        out += [ "-s", trk_prefix + "writer:viame_csv:write_time_as_uid=true" ]
+
     return out
 
   def _resolve_gcs_path( self, path ):
