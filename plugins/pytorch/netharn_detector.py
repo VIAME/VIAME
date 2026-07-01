@@ -9,6 +9,7 @@ from kwiver.vital.algo import ImageObjectDetector
 logger = logging.getLogger(__name__)
 
 from viame.pytorch.utilities import (
+    report_cuda_errors,
     vital_config_update,
     kwimage_to_kwiver_detections,
     register_vital_algorithm,
@@ -91,6 +92,7 @@ class NetharnDetector(ImageObjectDetector):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("NetharnDetector initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
 
@@ -150,6 +152,7 @@ class NetharnDetector(ImageObjectDetector):
             return False
         return True
 
+    @report_cuda_errors("NetharnDetector detection")
     def detect(self, image_data):
         full_rgb = image_data.asarray().astype('uint8')
 

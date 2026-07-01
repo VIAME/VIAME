@@ -14,6 +14,7 @@ import scriptconfig as scfg
 import ubelt as ub
 
 from viame.pytorch.utilities import (
+    report_cuda_errors,
     vital_config_update,
     resolve_device_str,
     parse_bool,
@@ -197,6 +198,7 @@ class RFDETRTrainer(TrainDetector):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("RFDETRTrainer initialization")
     def set_configuration(self, cfg_in):
         print('[RFDETRTrainer] set_configuration')
         cfg = self.get_configuration()
@@ -414,6 +416,7 @@ class RFDETRTrainer(TrainDetector):
 
         return dataset_dir, class_names
 
+    @report_cuda_errors("RFDETRTrainer training")
     def update_model(self):
         import torch
 

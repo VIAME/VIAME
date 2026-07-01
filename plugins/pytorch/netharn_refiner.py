@@ -14,7 +14,7 @@ import numpy as np
 import math
 import cv2
 
-from viame.pytorch.utilities import safe_crop, vital_config_update
+from viame.pytorch.utilities import safe_crop, vital_config_update, report_cuda_errors
 
 
 class NetharnRefiner(RefineDetections):
@@ -68,6 +68,7 @@ class NetharnRefiner(RefineDetections):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("NetharnRefiner initialization")
     def set_configuration(self, cfg_in):
         import torch
         from viame.pytorch.netharn import clf_predict
@@ -166,6 +167,7 @@ class NetharnRefiner(RefineDetections):
         print("Computed image dim scale factor: " + str( output ))
         return output
 
+    @report_cuda_errors("NetharnRefiner refinement")
     def refine(self, image_data, detections):
 
         if len(detections) == 0:

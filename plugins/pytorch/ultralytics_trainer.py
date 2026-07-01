@@ -11,6 +11,7 @@ import ubelt as ub
 import yaml
 
 from viame.pytorch.utilities import (
+    report_cuda_errors,
     vital_config_update,
     resolve_device,
     parse_bool,
@@ -185,6 +186,7 @@ class UltralyticsTrainer(TrainDetector):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("UltralyticsTrainer initialization")
     def set_configuration(self, cfg_in):
         print('[UltralyticsTrainer] set_configuration')
         cfg = self.get_configuration()
@@ -400,6 +402,7 @@ class UltralyticsTrainer(TrainDetector):
 
         return yaml_path
 
+    @report_cuda_errors("UltralyticsTrainer training")
     def update_model(self):
         """Train the Ultralytics YOLO model.
 

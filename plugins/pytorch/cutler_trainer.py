@@ -36,6 +36,7 @@ import torch
 import torch.nn.functional as F
 from mmdet.models.builder import LOSSES
 from functools import partial
+from viame.pytorch.utilities import report_cuda_errors
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse', 'help'])
 
@@ -178,6 +179,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
             cfg.set_value(opt.config, str(getattr(self, opt.attr)))
         return cfg
 
+    @report_cuda_errors("ConvNextCascadeRCNNTrainer initialization")
     def set_configuration( self, cfg_in ):
         cfg = self.get_configuration()
         cfg.merge_config( cfg_in )
@@ -368,6 +370,7 @@ class ConvNextCascadeRCNNTrainer( TrainDetector ):
             return False
 
 
+    @report_cuda_errors("ConvNextCascadeRCNNTrainer training")
     def update_model( self ):
         print('set mmdet config')
         self.set_mmdet_config()

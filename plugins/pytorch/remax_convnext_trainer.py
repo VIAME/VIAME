@@ -20,6 +20,7 @@ from kwiver.vital.algo import TrainDetector
 from viame.pytorch.remax.util.coco import CocoDetection
 
 from viame.pytorch.remax.ReMax import ReMax
+from viame.pytorch.utilities import report_cuda_errors
 
 try:
     import viame.pytorch.learn.mmdet.register_modules
@@ -196,6 +197,7 @@ class ReMaxConvNextTrainer( TrainDetector ):
                 return pos_w, neg_w
 
 
+    @report_cuda_errors("ReMaxConvNextTrainer initialization")
     def set_configuration(self, cfg_in):
         self.register_new_losses()
         cfg = self.get_configuration()
@@ -386,6 +388,7 @@ class ReMaxConvNextTrainer( TrainDetector ):
             train_data = torch.save(train_data, self._feature_cache)
         return train_data
     
+    @report_cuda_errors("ReMaxConvNextTrainer training")
     def update_model( self ):
         dataset_train = self.build_dataset()
         self._debug_mode = False

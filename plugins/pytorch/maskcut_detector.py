@@ -31,6 +31,7 @@ from viame.pytorch.learn.cutler.maskcut import maskcut_forward, create_annotatio
 # modfied by Xudong Wang based on third_party/TokenCut
 from viame.pytorch.learn.tokencut.unsupervised_saliency_detection import utils, metric
 from viame.pytorch.learn.tokencut.unsupervised_saliency_detection.object_discovery import detect_box
+from viame.pytorch.utilities import report_cuda_errors
 
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse', 'help'])
@@ -69,6 +70,7 @@ class MaskCutDetector( ImageObjectDetector ):
             
         return cfg
 
+    @report_cuda_errors("MaskCutDetector initialization")
     def set_configuration( self, cfg_in ):
         cfg = self.get_configuration()
         cfg.merge_config( cfg_in )
@@ -113,6 +115,7 @@ class MaskCutDetector( ImageObjectDetector ):
         
         return True
 
+    @report_cuda_errors("MaskCutDetector detection")
     def detect( self, image_data ):
         self.idx += 1
         print(f'detect image {self.idx}')

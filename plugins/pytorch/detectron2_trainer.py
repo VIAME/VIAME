@@ -47,6 +47,7 @@ from .kwcoco_train_detector import KWCocoTrainDetector
 from .kwcoco_train_detector import KWCocoTrainDetectorConfig
 
 from viame.pytorch.utilities import (
+    report_cuda_errors,
     vital_config_update,
     resolve_device_str,
     parse_bool,
@@ -236,6 +237,7 @@ class Detectron2Trainer(KWCocoTrainDetector):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("Detectron2Trainer initialization")
     def set_configuration(self, cfg_in):
         """Set the algorithm configuration."""
         print('[Detectron2Trainer] set_configuration')
@@ -503,6 +505,7 @@ class Detectron2Trainer(KWCocoTrainDetector):
 
         return cfg
 
+    @report_cuda_errors("Detectron2Trainer training")
     def update_model(self):
         """
         Perform model training using Detectron2.

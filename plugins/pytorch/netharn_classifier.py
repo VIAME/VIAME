@@ -12,7 +12,7 @@ from kwiver.vital.types import DetectedObjectType
 import numpy as np  # NOQA
 import ubelt as ub
 
-from viame.pytorch.utilities import vital_config_update
+from viame.pytorch.utilities import vital_config_update, report_cuda_errors
 
 
 class NetharnClassifier(ImageObjectDetector):
@@ -106,6 +106,7 @@ class NetharnClassifier(ImageObjectDetector):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("NetharnClassifier initialization")
     def set_configuration(self, cfg_in):
         import torch
         from viame.pytorch.netharn import clf_predict
@@ -166,6 +167,7 @@ class NetharnClassifier(ImageObjectDetector):
             return False
         return True
 
+    @report_cuda_errors("NetharnClassifier detection")
     def detect(self, image_data):
         full_rgb = image_data.asarray().astype('uint8')
         path_or_image = full_rgb

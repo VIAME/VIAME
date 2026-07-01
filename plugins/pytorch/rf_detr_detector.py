@@ -8,6 +8,7 @@ import scriptconfig as scfg
 import ubelt as ub
 
 from viame.pytorch.utilities import (
+    report_cuda_errors,
     resolve_device_str,
     vital_config_update,
     supervision_to_kwiver_detections,
@@ -60,6 +61,7 @@ class RFDETRDetector(ImageObjectDetector):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("RFDETRDetector initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)
@@ -180,6 +182,7 @@ class RFDETRDetector(ImageObjectDetector):
     def check_configuration(self, cfg):
         return True
 
+    @report_cuda_errors("RFDETRDetector detection")
     def detect(self, image_data):
         import torch
         from PIL import Image

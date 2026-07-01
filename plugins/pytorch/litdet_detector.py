@@ -8,6 +8,7 @@ import scriptconfig as scfg
 import ubelt as ub
 
 from viame.pytorch.utilities import (
+    report_cuda_errors,
     resolve_device_str,
     vital_config_update,
     register_vital_algorithm,
@@ -54,6 +55,7 @@ class LitDetDetector(ImageObjectDetector):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("LitDetDetector initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)
@@ -144,6 +146,7 @@ class LitDetDetector(ImageObjectDetector):
             return False
         return True
 
+    @report_cuda_errors("LitDetDetector detection")
     def detect(self, image_data):
         import torch
         import numpy as np

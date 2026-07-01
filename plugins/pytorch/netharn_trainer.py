@@ -31,7 +31,7 @@ import time
 import random
 import math
 
-from viame.pytorch.utilities import safe_crop, recurse_copy
+from viame.pytorch.utilities import safe_crop, recurse_copy, report_cuda_errors
 
 
 class NetHarnTrainer( TrainDetector ):
@@ -136,6 +136,7 @@ class NetHarnTrainer( TrainDetector ):
 
         return cfg
 
+    @report_cuda_errors("NetHarnTrainer initialization")
     def set_configuration( self, cfg_in ):
         cfg = self.get_configuration()
         cfg.merge_config( cfg_in )
@@ -664,6 +665,7 @@ class NetHarnTrainer( TrainDetector ):
                 if use_frame:
                     self._validation_writer.write_set( groundtruth, os.path.abspath( filename ) )
 
+    @report_cuda_errors("NetHarnTrainer training")
     def update_model( self ):
         if not self._no_format:
             self._training_writer.complete()

@@ -21,7 +21,7 @@ from kwiver.vital.types import Image, ImageContainer
 
 from viame.core.utils import str2bool
 
-from viame.pytorch.utilities import vital_config_update
+from viame.pytorch.utilities import vital_config_update, report_cuda_errors
 
 
 class FoundationStereoConfig(scfg.DataConfig):
@@ -93,6 +93,7 @@ class FoundationStereo(ComputeStereoDepthMap):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("FoundationStereo initialization")
     def set_configuration(self, cfg_in):
         import torch
 
@@ -249,6 +250,7 @@ class FoundationStereo(ComputeStereoDepthMap):
 
         return img_npy
 
+    @report_cuda_errors("FoundationStereo computation")
     def compute(self, left_image, right_image):
         """Compute stereo depth/disparity map from left and right images.
 

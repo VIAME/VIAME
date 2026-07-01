@@ -7,7 +7,7 @@ import scriptconfig as scfg
 import ubelt as ub
 import torch
 
-from viame.pytorch.utilities import kwimage_to_kwiver_detections, vital_config_update
+from viame.pytorch.utilities import kwimage_to_kwiver_detections, vital_config_update, report_cuda_errors
 
 
 class MITYoloConfig(scfg.DataConfig):
@@ -180,6 +180,7 @@ class MITYoloDetector(ImageObjectDetector):
             'classes': list(train_cfg.dataset.class_list),
         })
 
+    @report_cuda_errors("MITYoloDetector initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
 
@@ -203,6 +204,7 @@ class MITYoloDetector(ImageObjectDetector):
         #     return False
         return True
 
+    @report_cuda_errors("MITYoloDetector detection")
     def detect(self, image_data):
         import torch
         from PIL import Image

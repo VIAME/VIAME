@@ -13,6 +13,7 @@ from kwiver.vital.types import (
 )
 
 import viame.pytorch.mdnet.tracker as mdnet
+from viame.pytorch.utilities import report_cuda_errors
 
 
 class MDNetTrackerConfig(scfg.DataConfig):
@@ -68,6 +69,7 @@ class MDNetTracker(TrackObjects):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("MDNetTracker initialization")
     def set_configuration(self, cfg_in):
         from viame.pytorch.utilities import vital_config_update
         cfg = self.get_configuration()
@@ -100,6 +102,7 @@ class MDNetTracker(TrackObjects):
             return img_npy
         return image
 
+    @report_cuda_errors("MDNetTracker tracking")
     def track(self, timestamp, image_data, detected_object_set, initializations=None,
               recommendations=None, evaluation_requests=None):
         """

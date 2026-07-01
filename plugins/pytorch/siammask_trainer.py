@@ -20,6 +20,7 @@ import subprocess
 import signal
 import time
 import threading
+from viame.pytorch.utilities import report_cuda_errors
 
 
 class SiamMaskTrainer( TrainTracker ):
@@ -70,6 +71,7 @@ class SiamMaskTrainer( TrainTracker ):
 
         return cfg
 
+    @report_cuda_errors("SiamMaskTrainer initialization")
     def set_configuration( self, cfg_in ):
         cfg = self.get_configuration()
         cfg.merge_config( cfg_in )
@@ -222,6 +224,7 @@ class SiamMaskTrainer( TrainTracker ):
 
         return dataset_file
 
+    @report_cuda_errors("SiamMaskTrainer training")
     def update_model( self ):
         """
         Run the SiamMask training process.

@@ -32,6 +32,7 @@ from viame.pytorch.siammask.models.model_builder import ModelBuilder
 from viame.pytorch.siammask.tracker.tracker_builder import build_tracker
 from viame.pytorch.siammask.utils.bbox import get_axis_aligned_bbox
 from viame.pytorch.siammask.utils.model_load import load_pretrain
+from viame.pytorch.utilities import report_cuda_errors
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +104,7 @@ class SiamMaskTracker(TrackObjects):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("SiamMaskTracker initialization")
     def set_configuration(self, cfg_in):
         from viame.pytorch.utilities import vital_config_update
         config = self.get_configuration()
@@ -132,6 +134,7 @@ class SiamMaskTracker(TrackObjects):
     def check_configuration(self, cfg):
         return True
 
+    @report_cuda_errors("SiamMaskTracker tracking")
     def track(self, ts, image, detections):
         """
         Track objects in the current frame.
@@ -264,6 +267,7 @@ class SiamMaskTracker(TrackObjects):
 
         return output_tracks
 
+    @report_cuda_errors("SiamMaskTracker tracking")
     def initialize(self, ts, image, seed_detections):
         """Initialize tracking with seed detections."""
         self.reset()
@@ -304,6 +308,7 @@ class SiamMaskTracker(TrackObjects):
 
         return ObjectTrackSet([])
 
+    @report_cuda_errors("SiamMaskTracker finalization")
     def finalize(self):
         """
         Finalize tracking and return all tracks.

@@ -17,6 +17,7 @@ import scriptconfig as scfg
 import ubelt as ub
 
 from viame.pytorch.utilities import (
+    report_cuda_errors,
     vital_config_update,
     resolve_device_str,
     parse_bool,
@@ -91,6 +92,7 @@ class LitDetTrainer(KWCocoTrainDetector):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("LitDetTrainer initialization")
     def set_configuration(self, cfg_in):
         print('[LitDetTrainer] set_configuration')
         cfg = self.get_configuration()
@@ -604,6 +606,7 @@ class LitDetTrainer(KWCocoTrainDetector):
         cfg = OmegaConf.create(cfg_dict)
         return cfg
 
+    @report_cuda_errors("LitDetTrainer training")
     def update_model(self):
         import torch
         from hydra import compose, initialize_config_dir

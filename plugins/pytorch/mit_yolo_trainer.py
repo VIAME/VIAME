@@ -22,7 +22,7 @@ import time
 
 from .kwcoco_train_detector import KWCocoTrainDetector
 from .kwcoco_train_detector import KWCocoTrainDetectorConfig
-from viame.pytorch.utilities import vital_config_update
+from viame.pytorch.utilities import vital_config_update, report_cuda_errors
 
 import scriptconfig as scfg
 import ubelt as ub
@@ -75,6 +75,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("MITYoloTrainer initialization")
     def set_configuration(self, cfg_in):
         print('[MITYoloTrainer] set_configuration')
         cfg = self.get_configuration()
@@ -179,6 +180,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             return False
         return True
 
+    @report_cuda_errors("MITYoloTrainer training")
     def update_model( self ):
         self._ensure_format_writers()
         self._accelerator = 'auto'

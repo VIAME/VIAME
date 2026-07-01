@@ -19,6 +19,7 @@ from kwiver.vital.algo import ImageObjectDetector
 from kwiver.vital.types import (
     BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType
 )
+from viame.pytorch.utilities import report_cuda_errors
 
 try:
     import viame.pytorch.learn.mmdet.register_modules
@@ -173,6 +174,7 @@ class MMDetDetector(ImageObjectDetector):
                 return pos_w, neg_w
 
 
+    @report_cuda_errors("MMDetDetector initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
@@ -229,6 +231,7 @@ class MMDetDetector(ImageObjectDetector):
             return False
         return True
 
+    @report_cuda_errors("MMDetDetector detection")
     def detect(self, image_data):
         input_image = image_data.asarray().astype('uint8')
         if self._rgb_to_bgr:

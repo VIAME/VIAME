@@ -20,6 +20,7 @@ import torch
 import sys
 
 from collections import namedtuple
+from viame.pytorch.utilities import report_cuda_errors
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse'])
 
@@ -77,6 +78,7 @@ class ReMaxMMDetDetector(ImageObjectDetector):
             cfg.set_value(opt.config, str(getattr(self, opt.attr)))
         return cfg
 
+    @report_cuda_errors("ReMaxMMDetDetector initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
@@ -124,6 +126,7 @@ class ReMaxMMDetDetector(ImageObjectDetector):
     def check_configuration(self, cfg):
         return True
 
+    @report_cuda_errors("ReMaxMMDetDetector detection")
     def detect(self, image_data):
         input_image = image_data.asarray().astype('uint8')
         if self._rgb_to_bgr:

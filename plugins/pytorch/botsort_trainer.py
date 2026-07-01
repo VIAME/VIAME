@@ -30,6 +30,7 @@ import sys
 import shutil
 import json
 import numpy as np
+from viame.pytorch.utilities import report_cuda_errors
 
 
 class BoTSORTTrainer(TrainTracker):
@@ -82,6 +83,7 @@ class BoTSORTTrainer(TrainTracker):
 
         return cfg
 
+    @report_cuda_errors("BoTSORTTrainer initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
@@ -366,6 +368,7 @@ class BoTSORTTrainer(TrainTracker):
 
         return total_crops
 
+    @report_cuda_errors("BoTSORTTrainer training")
     def update_model(self):
         """Train Re-ID model and estimate parameters."""
         print("Starting BoT-SORT training...")

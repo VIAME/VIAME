@@ -33,6 +33,7 @@ import subprocess
 import signal
 import time
 import threading
+from viame.pytorch.utilities import report_cuda_errors
 
 
 class SRNNTrainer( TrainTracker ):
@@ -80,6 +81,7 @@ class SRNNTrainer( TrainTracker ):
 
         return cfg
 
+    @report_cuda_errors("SRNNTrainer initialization")
     def set_configuration( self, cfg_in ):
         cfg = self.get_configuration()
         cfg.merge_config( cfg_in )
@@ -256,6 +258,7 @@ class SRNNTrainer( TrainTracker ):
             print( f"    {seq_name}: {len(frame_annotations)} frames, "
                    f"{len(set(t for anns in frame_annotations.values() for t,_,_,_,_ in anns))} tracks" )
 
+    @report_cuda_errors("SRNNTrainer training")
     def update_model( self ):
         """
         Run the SRNN training pipeline.

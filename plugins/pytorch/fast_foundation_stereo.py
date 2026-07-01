@@ -29,7 +29,7 @@ from kwiver.vital.types import Image, ImageContainer
 
 from viame.core.utils import str2bool
 
-from viame.pytorch.utilities import vital_config_update
+from viame.pytorch.utilities import vital_config_update, report_cuda_errors
 
 
 class FastFoundationStereoConfig(scfg.DataConfig):
@@ -104,6 +104,7 @@ class FastFoundationStereo(ComputeStereoDepthMap):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("FastFoundationStereo initialization")
     def set_configuration(self, cfg_in):
         import torch
         import yaml
@@ -286,6 +287,7 @@ class FastFoundationStereo(ComputeStereoDepthMap):
 
         return img_npy
 
+    @report_cuda_errors("FastFoundationStereo computation")
     def compute(self, left_image, right_image):
         """Run fast-foundation-stereo on a left/right pair.
 

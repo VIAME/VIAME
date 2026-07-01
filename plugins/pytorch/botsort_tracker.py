@@ -29,6 +29,7 @@ import scriptconfig as scfg
 
 from kwiver.vital.algo import TrackObjects
 from kwiver.vital.types import ObjectTrackSet, ObjectTrackState, Track
+from viame.pytorch.utilities import report_cuda_errors
 
 logger = logging.getLogger(__name__)
 
@@ -684,6 +685,7 @@ class BoTSORTTracker(TrackObjects):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("BoTSORTTracker initialization")
     def set_configuration(self, cfg_in):
         from viame.pytorch.utilities import vital_config_update
         cfg = self.get_configuration()
@@ -723,6 +725,7 @@ class BoTSORTTracker(TrackObjects):
     def check_configuration(self, cfg):
         return True
 
+    @report_cuda_errors("BoTSORTTracker tracking")
     def track(self, ts, image, detections):
         """
         Track objects in the current frame.
@@ -872,6 +875,7 @@ class BoTSORTTracker(TrackObjects):
         output_tracks = [t for t in self._tracked_stracks if t.is_activated and len(t.history) > 0]
         return to_ObjectTrackSet(output_tracks)
 
+    @report_cuda_errors("BoTSORTTracker tracking")
     def initialize(self, ts, image, seed_detections):
         """Initialize tracking with optional seed detections."""
         self.reset()
@@ -881,6 +885,7 @@ class BoTSORTTracker(TrackObjects):
 
         return ObjectTrackSet([])
 
+    @report_cuda_errors("BoTSORTTracker finalization")
     def finalize(self):
         """
         Finalize tracking and return all tracks.
