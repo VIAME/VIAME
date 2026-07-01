@@ -1511,7 +1511,7 @@ class Sam3DetectionRefiner(RefineDetections):
             'model_config': '',
             'grounding_model_id': '',
             'device': 'cuda',
-            'overwrite_existing': 'True',
+            'replace_existing': 'False',
             'output_type': 'polygon',
             'polygon_simplification': '0.01',
             'text_query': '',
@@ -1561,7 +1561,7 @@ class Sam3DetectionRefiner(RefineDetections):
         self._model_manager.init_models(model_config, use_video_predictor=False)
 
         # Parse config values
-        self._overwrite_existing = parse_bool(self._kwiver_config['overwrite_existing'])
+        self._replace_existing = parse_bool(self._kwiver_config['replace_existing'])
         self._output_type = self._kwiver_config['output_type']
         self._polygon_simplification = float(self._kwiver_config['polygon_simplification'])
         self._add_new_objects = parse_bool(self._kwiver_config['add_new_objects'])
@@ -1596,6 +1596,13 @@ class Sam3DetectionRefiner(RefineDetections):
         import torch
 
         img_np = image_to_rgb_numpy(image_data)
+
+        # "Replace" mode: drop all pre-existing input detections so only the
+        # newly text-detected objects are emitted (mirrors SAM3Refiner). With
+        # the input empty, the overlap-suppression below has nothing to
+        # suppress against, so every new detection is kept.
+        if self._replace_existing:
+            detections = DetectedObjectSet()
 
         # Detect new objects with text query if configured
         if self._add_new_objects and self._text_query_list:
