@@ -15,8 +15,10 @@ This module provides:
 """
 
 import contextlib
+import functools
 import os
 import shutil
+import sys
 import warnings
 
 # Suppress common third-party warnings
@@ -453,6 +455,65 @@ def parse_bool(value):
     if isinstance(value, str):
         return value.lower() in ('true', '1', 'yes', 'on')
     return bool(value)
+
+
+# =============================================================================
+# Error Reporting (DIVE integration)
+# =============================================================================
+
+def emit_dive_error(message):
+    """Print a single-line ``ERROR:`` message.
+
+    DIVE surfaces log lines beginning with ``ERROR:`` to the user when a
+    pipeline job exits non-zero. Newlines are collapsed so the message stays a
+    single greppable line.
+    """
+    flat = " ".join(str(message).split())
+    print("ERROR: " + flat, file=sys.stderr, flush=True)
+
+
+def is_cuda_oom(exc):
+    """Return True if ``exc`` is (or reads as) a CUDA out-of-memory error."""
+    try:
+        import torch
+        if isinstance(exc, torch.cuda.OutOfMemoryError):
+            return True
+    except Exception:
+        pass
+    return "out of memory" in str(exc).lower()
+
+
+def report_cuda_errors(context):
+    """Decorator that reports failures of the wrapped method to DIVE.
+
+    On any exception it prints a DIVE ``ERROR:`` line -- with a clear,
+    actionable message when the cause is a CUDA out-of-memory error -- and then
+    re-raises so the job still fails. ``context`` is a short human label such as
+    ``"SAM3 track refinement"``. The exception is tagged after reporting so a
+    wrapped method that calls another wrapped method does not emit twice.
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as exc:
+                if not getattr(exc, "_dive_reported", False):
+                    if is_cuda_oom(exc):
+                        emit_dive_error(
+                            context + " ran out of GPU memory. Free GPU memory "
+                            "(e.g. close an interactive session or other GPU "
+                            "jobs) and retry, or use a smaller model or "
+                            "lower-resolution input.")
+                    else:
+                        emit_dive_error(context + " failed: " + str(exc))
+                    try:
+                        exc._dive_reported = True
+                    except Exception:
+                        pass
+                raise
+        return wrapper
+    return decorator
 
 
 # =============================================================================

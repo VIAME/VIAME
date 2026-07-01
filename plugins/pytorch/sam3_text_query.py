@@ -19,7 +19,7 @@ import scriptconfig as scfg
 
 from kwiver.vital.algo import PerformTextQuery
 
-from viame.pytorch.utilities import vital_config_update, register_vital_algorithm
+from viame.pytorch.utilities import vital_config_update, register_vital_algorithm, report_cuda_errors
 from viame.pytorch.sam3_utilities import (
     SharedSAM3ModelCache,
     SAM3ModelManager,
@@ -70,6 +70,7 @@ class SAM3TextQuery(PerformTextQuery):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("SAM3 text query initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)
@@ -272,6 +273,7 @@ class SAM3TextQuery(PerformTextQuery):
 
         return detections
 
+    @report_cuda_errors("SAM3 text query")
     def perform_query(self, text_query, image_containers, timestamps=None, input_track_sets=None):
         """
         Perform text-based detection/segmentation using SAM3.

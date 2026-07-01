@@ -1277,7 +1277,9 @@ class SAM3ModelManager:
         # fails on native-format sam3.1 checkpoints). Surface it as a single
         # ERROR: line so DIVE can display it when the job exits non-zero.
         emit_dive_error(describe_sam3_load_failure(native_err))
-        raise RuntimeError("Failed to load SAM3 model from local files")
+        _load_err = RuntimeError("Failed to load SAM3 model from local files")
+        _load_err._dive_reported = True  # already surfaced; avoid double-report
+        raise _load_err
 
     def _init_sam3_transformers(self, model_dir, weights_path, config_path, use_video_predictor):
         """Load SAM3 using HuggingFace transformers library."""

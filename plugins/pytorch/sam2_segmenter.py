@@ -17,7 +17,7 @@ import scriptconfig as scfg
 
 from kwiver.vital.algo import SegmentViaPoints
 
-from viame.pytorch.utilities import vital_config_update, register_vital_algorithm
+from viame.pytorch.utilities import vital_config_update, register_vital_algorithm, report_cuda_errors
 
 
 class SAM2SegmenterConfig(scfg.DataConfig):
@@ -47,6 +47,7 @@ class SAM2Segmenter(SegmentViaPoints):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("SAM2 segmenter initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)
@@ -100,6 +101,7 @@ class SAM2Segmenter(SegmentViaPoints):
         self._predictor = SAM2ImagePredictor(self._model)
         self._log("model initialized successfully")
 
+    @report_cuda_errors("SAM2 segmentation")
     def segment(self, image, points, point_labels):
         """
         Perform point-based segmentation on an image.

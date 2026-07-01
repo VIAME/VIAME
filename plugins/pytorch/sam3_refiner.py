@@ -35,7 +35,7 @@ from viame.pytorch.sam3_utilities import (
     mask_to_polygon, mask_to_points, box_from_mask, compute_iou,
     image_to_rgb_numpy, get_autocast_context, parse_bool
 )
-from viame.pytorch.utilities import vital_config_update
+from viame.pytorch.utilities import vital_config_update, report_cuda_errors
 
 
 class SAM3RefinerConfig(SAM3BaseConfig):
@@ -254,6 +254,7 @@ class SAM3Refiner(RefineTracks):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("SAM3 refiner initialization")
     def set_configuration(self, cfg_in):
         """Set the algorithm configuration and initialize models."""
         cfg = self.get_configuration()
@@ -775,6 +776,7 @@ class SAM3Refiner(RefineTracks):
     # Main refine method
     # ------------------------------------------------------------------
 
+    @report_cuda_errors("SAM3 track refinement")
     def refine(self, ts, image_data, tracks):
         """
         Refine tracks for the current frame.
@@ -918,6 +920,7 @@ class SAM3Refiner(RefineTracks):
         # all frames have been collected.
         return ObjectTrackSet([])
 
+    @report_cuda_errors("SAM3 track refinement")
     def finalize(self):
         """
         Called by the pipeline after all frames have been processed.
@@ -1532,6 +1535,7 @@ class Sam3DetectionRefiner(RefineDetections):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("SAM3 detection refiner initialization")
     def set_configuration(self, cfg_in):
         """Set the algorithm configuration and initialize models."""
         cfg = self.get_configuration()
@@ -1580,6 +1584,7 @@ class Sam3DetectionRefiner(RefineDetections):
         """Check if the configuration is valid."""
         return True
 
+    @report_cuda_errors("SAM3 detection refinement")
     def refine(self, image_data, detections):
         """
         Refine detections by adding segmentation masks.  When

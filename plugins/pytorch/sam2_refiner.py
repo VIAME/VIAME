@@ -16,6 +16,7 @@ import numpy as np
 import math
 import delayed_image
 from viame.pytorch.utilities import (
+    report_cuda_errors,
     vital_config_update, vital_to_kwimage_box,
     mask_to_polygon, box_from_mask, image_to_rgb_numpy, get_autocast_context
 )
@@ -115,6 +116,7 @@ class Sam2Refiner(RefineDetections):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("SAM2 detection refiner initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)
@@ -154,6 +156,7 @@ class Sam2Refiner(RefineDetections):
             return False
         return True
 
+    @report_cuda_errors("SAM2 detection refinement")
     def refine(self, image_data, detections) -> DetectedObjectSet:
         """
         Args:
@@ -393,6 +396,7 @@ class Sam2TrackRefiner(RefineTracks):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("SAM2 track refiner initialization")
     def set_configuration(self, cfg_in):
         """Set the algorithm configuration and initialize models."""
         cfg = self.get_configuration()
@@ -439,6 +443,7 @@ class Sam2TrackRefiner(RefineTracks):
             return False
         return True
 
+    @report_cuda_errors("SAM2 track refinement")
     def refine(self, ts, image_data, tracks):
         """
         Refine tracks for the current frame.

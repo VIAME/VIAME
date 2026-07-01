@@ -29,7 +29,7 @@ from viame.pytorch.sam3_utilities import (
     mask_to_polygon, mask_to_points, box_from_mask, compute_iou,
     image_to_rgb_numpy
 )
-from viame.pytorch.utilities import vital_config_update
+from viame.pytorch.utilities import vital_config_update, report_cuda_errors
 
 
 class SAM3TrackerConfig(SAM3BaseConfig):
@@ -102,6 +102,7 @@ class SAM3Tracker(TrackObjects):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("SAM3 tracker initialization")
     def set_configuration(self, cfg_in):
         """Set the algorithm configuration and initialize models."""
         cfg = self.get_configuration()
@@ -133,6 +134,7 @@ class SAM3Tracker(TrackObjects):
         """Check if the configuration is valid."""
         return True
 
+    @report_cuda_errors("SAM3 tracking")
     def track(self, ts, image, detections):
         """
         Track objects in a new frame.
@@ -282,6 +284,7 @@ class SAM3Tracker(TrackObjects):
 
         return ObjectTrackSet(output_tracks)
 
+    @report_cuda_errors("SAM3 tracking")
     def initialize(self, ts, image, seed_detections):
         """
         Initialize the tracker for a new sequence.
@@ -302,6 +305,7 @@ class SAM3Tracker(TrackObjects):
 
         return ObjectTrackSet([])
 
+    @report_cuda_errors("SAM3 tracking")
     def finalize(self):
         """
         Finalize tracking and return all tracks.
