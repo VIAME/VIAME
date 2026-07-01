@@ -804,7 +804,8 @@ def load_algorithms_from_config(config_path, plugin_paths: List[str] = None, dev
     # backend. This keeps the segmenter and text-query config files
     # mutually independent (neither ``include``s the other) while still
     # letting "point the service at the segmenter default" bring up both
-    # features when both backends are available.
+    # features when both backends are available. Add-ons override that
+    # default sibling to point at their backend (e.g. the SAM3 add-on).
     if len(config_paths) == 1:
         probe = vital_config.read_config_file(config_paths[0])
         if not probe.has_value("perform_text_query:type"):

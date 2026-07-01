@@ -5,16 +5,37 @@ ValidateAddonDependencies()
 # Process downloads and install models/transforms for all enabled addons
 ProcessAllAddonModels( "${CMAKE_CURRENT_SOURCE_DIR}" )
 
-# Install pipeline files from addon subdirectories if they exist
-# For each enabled VIAME_DOWNLOAD_MODELS-NAME, check if configs/add-ons/name exists
-# (where name is lowercase with dashes preserved) and install its contents
+# Install pipeline files from addon subdirectories if they exist.
+# For each enabled VIAME_DOWNLOAD_MODELS-NAME, check if configs/add-ons/name
+# exists (where name is lowercase with dashes preserved) and install its
+# contents into configs/pipelines.
+#
+# Precedence is by install order: a later add-on's files override an earlier
+# add-on's and the core defaults. This is how, for example, installing SAM3
+# then SAM2 leaves segmentation defaulting to SAM2 while text query defaults
+# to SAM3 (SAM2 ships no text-query default, so SAM3's survives).
+#
+# We can't use install(DIRECTORY) for this: it (and file(COPY)) skip a file
+# whenever the destination is not older than the source, compared at 1-second
+# resolution. Since every one of these files carries the same git-checkout
+# timestamp, the "override" copy is silently dropped and precedence becomes an
+# accident of checkout order. Force each copy instead -- remove the
+# destination first, then copy -- so install order alone decides the winner.
 foreach( _addon_name IN LISTS VIAME_ADDON_NAMES )
   if( VIAME_DOWNLOAD_MODELS-${_addon_name} )
     string( TOLOWER "${_addon_name}" _addon_dir_name )
     set( _addon_dir "${CMAKE_CURRENT_SOURCE_DIR}/${_addon_dir_name}" )
     if( IS_DIRECTORY "${_addon_dir}" )
-      install( DIRECTORY "${_addon_dir}/"
-               DESTINATION configs/pipelines )
+      install( CODE "
+        file( GLOB _addon_files \"${_addon_dir}/*\" )
+        foreach( _addon_file IN LISTS _addon_files )
+          get_filename_component( _addon_file_name \"\${_addon_file}\" NAME )
+          file( REMOVE_RECURSE
+                \"\${CMAKE_INSTALL_PREFIX}/configs/pipelines/\${_addon_file_name}\" )
+          file( COPY \"\${_addon_file}\"
+                DESTINATION \"\${CMAKE_INSTALL_PREFIX}/configs/pipelines\" )
+        endforeach()
+      " )
     endif()
   endif()
 endforeach()
