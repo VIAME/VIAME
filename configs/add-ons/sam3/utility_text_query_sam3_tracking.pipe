@@ -54,6 +54,7 @@ process track_refiner
     :min_mask_area                             10  # DIVE_PARAM["Min mask area", positive_int]
     :resegment_existing                        true
     :add_new_objects                           true
+    :replace_existing                          false  # DIVE_PARAM["Replace existing annotations", bool]
     :filter_by_quality                         true
     :adjust_boxes                              true
     :max_new_objects                           50  # DIVE_PARAM["Max new objects", strictly_positive_int]

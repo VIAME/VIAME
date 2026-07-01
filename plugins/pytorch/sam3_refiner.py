@@ -61,6 +61,12 @@ class SAM3RefinerConfig(SAM3BaseConfig):
         True,
         help='Whether to add new objects detected by text query that do not overlap'
     )
+    replace_existing = scfg.Value(
+        False,
+        help='If True, discard all pre-existing input annotations and output '
+             'only newly detected objects. Default False keeps existing '
+             'annotations and adds new detections alongside them.'
+    )
     filter_by_quality = scfg.Value(
         True,
         help='If True, remove tracks with poor mask quality'
@@ -263,6 +269,7 @@ class SAM3Refiner(RefineTracks):
         self._min_mask_area = int(self._config.min_mask_area)
         self._resegment_existing = parse_bool(self._config.resegment_existing)
         self._add_new_objects = parse_bool(self._config.add_new_objects)
+        self._replace_existing = parse_bool(self._config.replace_existing)
         self._filter_by_quality = parse_bool(self._config.filter_by_quality)
         self._adjust_boxes = parse_bool(self._config.adjust_boxes)
         self._max_new_objects = int(self._config.max_new_objects)
@@ -788,6 +795,13 @@ class SAM3Refiner(RefineTracks):
 
         frame_id = ts.get_frame()
         img_np = image_to_rgb_numpy(image_data)
+
+        # "Replace" mode: drop all pre-existing input annotations so only
+        # newly text-detected objects are emitted. Applies to both the
+        # per-frame and video-propagation paths (both derive their existing
+        # seeds from ``tracks``).
+        if self._replace_existing:
+            tracks = ObjectTrackSet([])
 
         # Resolve each input track's ID to the ID we'll actually use. New
         # input IDs get registered; any that collide with an ID already
