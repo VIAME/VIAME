@@ -107,6 +107,34 @@ def _patch_sam3_sdpa_for_pre_ampere():
         pass
 
 
+def emit_dive_error(message):
+    """Print a single-line, DIVE-parseable error message.
+
+    DIVE surfaces lines beginning with ``ERROR:`` to the user when a pipeline
+    job process exits with a non-zero code. Newlines are collapsed so the
+    message stays one greppable line.
+    """
+    flat = " ".join(str(message).split())
+    print(f"ERROR: {flat}", file=sys.stderr, flush=True)
+
+
+def describe_sam3_load_failure(err):
+    """Turn a SAM3 model-load exception into a concise, user-facing reason."""
+    text = str(err)
+    is_oom = "out of memory" in text.lower()
+    if not is_oom:
+        try:
+            import torch
+            is_oom = isinstance(err, torch.cuda.OutOfMemoryError)
+        except Exception:
+            pass
+    if is_oom:
+        return ("Failed to load the SAM3 model: the GPU ran out of memory. "
+                "Free GPU memory (e.g. close an interactive segmentation "
+                "session) and rerun; SAM3 needs roughly 3.5 GB of free VRAM.")
+    return f"Failed to load the SAM3 model from local files: {text}"
+
+
 def detect_sam3_version(checkpoint_path: Optional[str] = None,
                         model_config_path: Optional[str] = None,
                         explicit: Optional[str] = None) -> str:
@@ -1245,6 +1273,10 @@ class SAM3ModelManager:
 
         print(f"[SAM3] Could not load via transformers: {transformers_err}")
         print(f"[SAM3] Could not load via native sam3: {native_err}")
+        # The native error is the real cause (the transformers attempt always
+        # fails on native-format sam3.1 checkpoints). Surface it as a single
+        # ERROR: line so DIVE can display it when the job exits non-zero.
+        emit_dive_error(describe_sam3_load_failure(native_err))
         raise RuntimeError("Failed to load SAM3 model from local files")
 
     def _init_sam3_transformers(self, model_dir, weights_path, config_path, use_video_predictor):
