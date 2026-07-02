@@ -111,7 +111,7 @@ of time and are using GPU-enabled binaries.
 
 Drivers can be found at: https://www.nvidia.com/Download/index.aspx?lang=en-us
 
-Version 451.82 or above is required for installation.
+Version 570.65 or above is required for installation.
 
 Or alternatively get CUDA (installing CUDA is no longer required, even though it used to be,
 only the drivers are, but they are included in CUDA providing another path to get the drivers).
@@ -130,7 +130,7 @@ Drivers can be found at:
 - https://linuxhint.com/ubuntu_nvidia_ppa/ (Ubuntu)
 - https://www.nvidia.com/Download/index.aspx?lang=en-us (Other)
 
-Version 450.51 or above is required for installation.
+Version 570.65 or above is required for installation.
 
 Or alternatively get CUDA (no longer required, only the drivers are, but they are included
 in CUDA): https://developer.nvidia.com/cuda-toolkit-archive

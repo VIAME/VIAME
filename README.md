@@ -53,7 +53,7 @@ are available via smaller installers (see DIVE standalone, below). Lastly, docke
 are available for both VIAME Desktop and Web (below). For full desktop installs, extract
 the binaries and place them in a directory of your choosing, for example /opt/noaa/viame
 on Linux or C:\Program Files\VIAME on Windows. If using packages built with GPU support,
-make sure to have sufficient video drivers installed, version 570.11 or higher. The best
+make sure to have sufficient video drivers installed, version 570.65 or higher. The best
 way to install drivers depends on your operating system. This isn't required if just
 using manual annotators (or frame classifiers only). The binaries are quite large,
 in terms of disk space, due to the inclusion of multiple default model files and
@@ -67,7 +67,7 @@ apps) they are much smaller.
   * MacOS is currently only supported running standalone annotation tools, see below.
 
 **Installation Recommendations:** <br>
-* NVIDIA Drivers (Version 570.11 or above,
+* NVIDIA Drivers (Version 570.65 or above,
 Windows 
 [\[1\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)
 [\[2\]](https://developer.nvidia.com/cuda-downloads)
