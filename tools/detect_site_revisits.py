@@ -284,6 +284,8 @@ def main():
     ap.add_argument("--affine", action="store_true", default=True,
                     help="Use the affine model for registration matching "
                          "(default: on — matches the recommended config)")
+    ap.add_argument("--no-affine", dest="affine", action="store_false",
+                    help="Use the full homography model instead of affine")
     ap.add_argument("--match-scale", type=float, default=0.5,
                     help="Image scale for registration matching (default: 0.5)")
     ap.add_argument("--min-inliers", type=int, default=15,
