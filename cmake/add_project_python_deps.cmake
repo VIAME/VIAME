@@ -87,8 +87,16 @@ endif()
 
 # For COLMAP structure-from-motion / 3D reconstruction (reconstruct_3d.py).
 # pycolmap provides SfM + (CUDA) MVS; open3d is used for point-cloud output.
+# On CUDA builds we swap the CPU-only pycolmap wheel for pycolmap-cuda12, which
+# ships GPU-accelerated feature extraction / matching / MVS. That wheel is
+# installed individually (see the advanced deps below) with --no-deps so it uses
+# the system CUDA 12.x runtime VIAME already builds against, rather than pulling
+# its own packaged cuda-toolkit[cudart,curand] wheels.
 if( VIAME_ENABLE_COLMAP )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "pycolmap" "open3d" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "open3d" )
+  if( NOT VIAME_ENABLE_CUDA )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "pycolmap" )
+  endif()
 endif()
 
 # For LEARN models
@@ -243,6 +251,16 @@ endif()
 
 list( APPEND VIAME_PYTHON_ADV_DEPS python-deps )
 set( VIAME_PYTHON_ADV_DEP_CMDS "custom-install" )
+
+# CUDA-enabled COLMAP python bindings (GPU SfM / SIFT / MVS). Installed
+# individually with --no-deps so it links the system CUDA 12.x runtime
+# (libcudart.so.12 / libcurand.so.10) that VIAME already builds against, instead
+# of pulling packaged cuda-toolkit[cudart,curand] wheels. numpy is provided by
+# the basic deps above (this project depends on python-deps).
+if( VIAME_ENABLE_COLMAP AND VIAME_ENABLE_CUDA )
+  list( APPEND VIAME_PYTHON_ADV_DEPS pycolmap-cuda12 )
+  list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "pycolmap-cuda12 --no-deps" )
+endif()
 
 if( VIAME_ENABLE_KEYPOINT )
   list( APPEND VIAME_PYTHON_ADV_DEPS wxPython )
