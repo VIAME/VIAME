@@ -72,6 +72,10 @@ from viame.opencv.registration_utils import (
 
 CAM_ORDER = {'CENTER': 0, 'PORT': 1, 'STAR': 2, None: 0}
 
+# Column order for the thumbnail-grid visualization: physical rig layout
+# as seen from behind the aircraft (STAR | CENTER | PORT).
+VIS_ORDER = {'STAR': 0, 'CENTER': 1, 'PORT': 2, None: 1}
+
 VIAME_CSV_HEADER = (
     '# 1: Detection or Track-id,  2: Video or Image Identifier,  '
     '3: Unique Frame Identifier,  4-7: Img-bbox(TL_x, TL_y, BR_x, BR_y),  '
@@ -730,7 +734,7 @@ def render_thumbnail_grid(path, site_folder, observations, rows, water_info,
     by_image = {}
     for rel, suffix, poly in rows:
         by_image.setdefault(rel, []).append((suffix, poly))
-    cams = sorted({o.cam for o in observations}, key=lambda c: CAM_ORDER[c])
+    cams = sorted({o.cam for o in observations}, key=lambda c: VIS_ORDER[c])
     triggers = sorted({o.timestep for o in observations})
     if len(triggers) > max_rows:
         step = len(triggers) / max_rows
@@ -879,6 +883,21 @@ def process_site(site_folder, site_id, grid, order_start, args, to_enu,
         off = to_enu(ref_rec['lat'], ref_rec['lon'])
         cam_geo[cam] = {'enu': enu_local, 'heads': heads, 'off': off}
 
+    # No metadata anywhere: fall back to PSEUDO-georeferencing so within-
+    # site coverage (incl. grid-based loop closures) still works. The
+    # CENTER registration chain defines the site frame; PORT/STAR compose
+    # through the measured rig transform; a nominal GSD converts pixels to
+    # "metres" and a large per-site offset keeps unrelated sites from
+    # colliding in the shared grid (cross-site revisits need real GPS).
+    NOMINAL_PX_PER_M = 48.0
+    pseudo = (args.method == 'hybrid' and to_enu is None and chains)
+    if pseudo:
+        print('  No GPS metadata: pseudo-georeferencing from registration '
+              'chains (within-site coverage only)')
+        S_pseudo = np.diag([1.0 / NOMINAL_PX_PER_M,
+                            1.0 / NOMINAL_PX_PER_M, 1.0])
+        S_pseudo[0, 2] = S_pseudo[1, 2] = site_id * 1e5
+
     observations = []
     order = order_start
     triggers = sorted({f for fr in frames_by_cam.values() for f in fr})
@@ -912,6 +931,15 @@ def process_site(site_folder, site_id, grid, order_start, args, to_enu,
                 # aircraft; the measured rig transform places them exactly:
                 # cam px -> CENTER px (same trigger) -> ENU.
                 T = center_T[t] @ xcam[cam]
+            if T is None and pseudo:
+                ref_cam = 'CENTER' if 'CENTER' in cams else \
+                    sorted(cams, key=lambda c: CAM_ORDER[c])[0]
+                ref_chain = chains.get(ref_cam, {})
+                ci = idx_by_cam.get(ref_cam, {}).get(t)
+                if cam == ref_cam and i in ref_chain:
+                    T = S_pseudo @ ref_chain[i]
+                elif cam in xcam and ci is not None and ci in ref_chain:
+                    T = S_pseudo @ ref_chain[ci] @ xcam[cam]
             if T is None and geo is not None \
                     and not np.isnan(geo['enu'][i, 0]):
                 # Metadata-only footprint (also the hybrid fallback for
@@ -951,12 +979,13 @@ def process_site(site_folder, site_id, grid, order_start, args, to_enu,
     if args.output and len(args.sites) > 1:
         out_dir = os.path.join(args.output, site_tag)
     os.makedirs(out_dir, exist_ok=True)
-    write_viame_csv(os.path.join(out_dir, 'prior_coverage.csv'), rows,
-                    args.coverage_class)
+    if not args.revisits_only:
+        write_viame_csv(os.path.join(out_dir, 'prior_coverage.csv'), rows,
+                        args.coverage_class)
     write_revisits_csv(os.path.join(out_dir, 'revisits.csv'), revisit_events)
     render_coverage_map(os.path.join(out_dir, 'coverage_map.png'),
                         observations, site_tag)
-    if not args.no_thumbnails:
+    if not args.no_thumbnails and not args.revisits_only:
         render_thumbnail_grid(
             os.path.join(out_dir, 'prior_coverage_vis.png'),
             site_folder, observations, rows, water_info)
@@ -1014,6 +1043,10 @@ def main():
     ap.add_argument('--no-verify-revisits', dest='verify_revisits',
                     action='store_false')
     ap.add_argument('--no-thumbnails', action='store_true')
+    ap.add_argument('--revisits-only', action='store_true',
+                    help='Only detect/report revisit events (revisits.csv '
+                         '+ coverage map); skip per-frame coverage CSV and '
+                         'thumbnails. Supersedes detect_site_revisits.py.')
     # Registration options (defaults follow the validated experiment config).
     ap.add_argument('--match-ratio', type=float, default=0.80)
     ap.add_argument('--match-scale', type=float, default=0.5)
@@ -1035,8 +1068,15 @@ def main():
     args.sites = sites
 
     if args.method == 'sfm-rig':
-        print('sfm-rig method: delegating to prior_coverage_sfm')
-        import prior_coverage_sfm
+        print('sfm-rig method: delegating to viame.colmap.prior_coverage_sfm')
+        try:
+            from viame.colmap import prior_coverage_sfm
+        except ImportError:
+            # Source-tree layout (plugin not installed as a package).
+            sys.path.insert(0, os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                '..', 'plugins', 'colmap'))
+            import prior_coverage_sfm
         return prior_coverage_sfm.run(args)
 
     grid = CoverageGrid(cell_m=args.grid_cell)
