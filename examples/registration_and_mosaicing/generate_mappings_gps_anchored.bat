@@ -7,19 +7,24 @@ REM Core processing options
 SET INPUT=insert_foldername_here
 SET OUTPUT=output
 
-REM Optional GPS metadata. Leave FLIGHT_LOG empty to auto-detect an imagelog.json
-REM in the image folder or embedded EXIF GPS; otherwise set it to an FMCLOG CSV.
-SET FLIGHT_LOG=
+REM Optional GPS metadata: a daily FMCLOG CSV or a directory of them. Leave
+REM empty to auto-detect an imagelog.json in the image folder or embedded
+REM EXIF GPS.
+SET FLIGHT_LOGS=
 
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
-REM Recommended sequential-registration settings plus --geo-anchor, which fits a
-REM GLOBAL GPS-to-pixel transform: it places featureless water frames by dead-
-REM reckoning and reports how far the sequential feature chain has drifted.
-SET FLIGHT_LOG_ARG=
-IF NOT "%FLIGHT_LOG%"=="" SET FLIGHT_LOG_ARG=--flight-log %FLIGHT_LOG%
+REM Sequential registration + prior coverage WITH GPS anchoring.
+REM detect_prior_coverage.py calibrates a metres-to-pixels map from the raw
+REM pairwise registrations (bounded by the altitude/focal-length expectation),
+REM places featureless open-water frames by GPS dead-reckoning, and tracks
+REM all observed ground in a geo-referenced occupancy grid so revisits are
+REM detected and confirmed by direct registration. Writes prior_coverage.csv,
+REM revisits.csv, coverage_map.png and a thumbnail visualization into %OUTPUT%.
+SET FLIGHT_LOGS_ARG=
+IF NOT "%FLIGHT_LOGS%"=="" SET FLIGHT_LOGS_ARG=--flight-logs %FLIGHT_LOGS%
 
-python.exe "%VIAME_INSTALL%\configs\reconstruct_3d.py" "%INPUT%" --output "%OUTPUT%" --planar --coverage-class suppressed --visualize --affine --consistency-filter --xcam-robust --xcam-low-drift --geo-anchor %FLIGHT_LOG_ARG%
+python.exe "%VIAME_INSTALL%\configs\detect_prior_coverage.py" "%INPUT%" --method hybrid --output "%OUTPUT%" %FLIGHT_LOGS_ARG%
 
 pause

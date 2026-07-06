@@ -1079,3 +1079,177 @@ def optimize_pose_graph(node_poses, seq_edges, loop_edges=(), anchor=None,
         H = np.eye(3); H[:2, :2] = Lof(k); H[:2, 2] = [t[2 * k], t[2 * k + 1]]
         out[n] = H
     return out
+
+
+# ---------------------------------------------------------------------------
+# Water / background classification
+# ---------------------------------------------------------------------------
+
+def _find_viame_install():
+    """Locate the VIAME install root (for classifier model files)."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.environ.get('VIAME_INSTALL'),
+        # installed layout: <install>/lib/pythonX.Y/site-packages/viame/opencv
+        os.path.abspath(os.path.join(here, '..', '..', '..', '..', '..')),
+        # source layout: <src>/plugins/opencv with a sibling build/install
+        os.path.abspath(os.path.join(here, '..', '..', '..', 'build',
+                                     'install')),
+    ]
+    for c in candidates:
+        if c and os.path.isdir(os.path.join(c, 'configs', 'pipelines')):
+            return c
+    return None
+
+
+def classify_images_fast(image_folder, image_list, scale=0.5, threshold=500):
+    """Classify images as water vs land using the VIAME sea-lion background
+    classifier (EfficientNet V2 S features -> per-label SVMs over
+    all_land / coastal / cloudy / open_water / seaweed_water), falling back
+    to a SIFT keypoint-count heuristic when the models are unavailable.
+
+    Returns dict of filename -> {'is_water': bool, 'label': str,
+                                 'scores': dict, 'keypoints': int}.
+    """
+    viame_install = _find_viame_install()
+    if viame_install:
+        model_path = os.path.join(viame_install, 'configs', 'pipelines',
+                                  'models', 'pytorch_efficientnet_v2_s.pth')
+        svm_dir = os.path.join(viame_install, 'configs', 'pipelines',
+                               'models', 'sea_lion_v3_bg_classifiers')
+        site_packages = os.path.join(
+            viame_install, 'lib',
+            f'python{sys.version_info.major}.{sys.version_info.minor}',
+            'site-packages')
+        if os.path.exists(model_path) and os.path.exists(svm_dir):
+            try:
+                return _classify_with_bg_classifier(
+                    image_folder, image_list, model_path, svm_dir,
+                    site_packages)
+            except Exception as e:
+                print(f"    Warning: background classifier failed ({e}), "
+                      f"falling back to SIFT heuristic")
+
+    return _classify_sift_heuristic(image_folder, image_list, scale,
+                                    threshold)
+def _classify_with_bg_classifier(image_folder, image_list, model_path, svm_dir,
+                                   site_packages):
+    """Classify images using EfficientNet + SVM background classifiers."""
+    import torch
+    from torchvision import models, transforms
+    from PIL import Image as pilImage
+    from ctypes import c_double
+
+    # Add site-packages for libsvm
+    if site_packages not in sys.path:
+        sys.path.insert(0, site_packages)
+    from svm import libsvm, toPyModel, gen_svm_nodearray
+
+    # Load EfficientNet V2 S
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = models.efficientnet_v2_s()
+    weights = torch.load(model_path, weights_only=False, map_location=device)
+    model.load_state_dict(weights)
+    model.eval()
+    model.to(device)
+
+    # Hook to get avgpool features
+    features_out = {}
+    def hook_fn(module, inp, out):
+        features_out['feats'] = out.detach()
+    model.avgpool.register_forward_hook(hook_fn)
+
+    transform = transforms.Compose([
+        transforms.Resize(224),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    ])
+
+    # Load SVM models using low-level API (avoids bytes/str issues)
+    svm_models = {}
+    for f in sorted(os.listdir(svm_dir)):
+        if f.endswith('.svm'):
+            label = f.replace('.svm', '')
+            fpath = os.path.join(svm_dir, f).encode()
+            m = libsvm.svm_load_model(fpath)
+            if m:
+                svm_models[label] = toPyModel(m)
+
+    svm_labels = sorted(svm_models.keys())
+    print(f"    Loaded {len(svm_labels)} SVM classifiers: {', '.join(svm_labels)}")
+
+    water_labels = {'open_water', 'seaweed_water', 'cloudy'}
+
+    results = {}
+    with torch.no_grad():
+        for i, fname in enumerate(image_list):
+            img_path = os.path.join(image_folder, fname)
+            try:
+                pil_img = pilImage.open(img_path).convert('RGB')
+            except Exception:
+                results[fname] = {'is_water': True, 'label': 'unknown',
+                                   'scores': {}, 'keypoints': 0}
+                continue
+
+            # Extract features (full frame)
+            tensor = transform(pil_img).unsqueeze(0).to(device)
+            model(tensor)
+            feat = features_out['feats'].cpu().squeeze().flatten().tolist()
+
+            # Build sparse feature dict for libsvm
+            feat_dict = {idx: val for idx, val in enumerate(feat)}
+            xi, max_idx = gen_svm_nodearray(feat_dict)
+
+            # Run each SVM with probability prediction
+            scores = {}
+            for label in svm_labels:
+                svm_model = svm_models[label]
+                prob_est = (c_double * 2)()
+                libsvm.svm_predict_probability(svm_model, xi, prob_est)
+                # Get probability for the positive class (+1)
+                model_labels = svm_model.get_labels()
+                pos_idx = 0 if model_labels[0] == 1 else 1
+                scores[label] = float(prob_est[pos_idx])
+
+            # Best label = highest score
+            best_label = max(scores, key=scores.get) if scores else 'unknown'
+            is_water = best_label in water_labels
+
+            results[fname] = {
+                'is_water': is_water,
+                'label': best_label,
+                'scores': scores,
+                'keypoints': -1,
+            }
+
+            if (i + 1) % 20 == 0 or (i + 1) == len(image_list):
+                print(f"    Classified {i + 1}/{len(image_list)} images...")
+
+    return results
+
+
+def _classify_sift_heuristic(image_folder, image_list, scale=0.5, threshold=500):
+    """Fallback: classify using SIFT keypoint count."""
+    sift = cv2.SIFT_create(nfeatures=0, contrastThreshold=0.04)
+    results = {}
+    for fname in image_list:
+        img_path = os.path.join(image_folder, fname)
+        img = cv2.imread(img_path)
+        if img is None:
+            results[fname] = {'is_water': True, 'label': 'unknown',
+                               'scores': {}, 'keypoints': 0}
+            continue
+        h, w = img.shape[:2]
+        small = cv2.resize(img, (int(w * scale), int(h * scale)))
+        gray = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
+        kp = sift.detect(gray, None)
+        n_kp = len(kp) if kp else 0
+        is_water = n_kp < threshold
+        results[fname] = {
+            'is_water': is_water,
+            'label': 'open_water' if is_water else 'all_land',
+            'scores': {},
+            'keypoints': n_kp,
+        }
+    return results

@@ -11,18 +11,14 @@ export OUTPUT=output
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
-# Sequential homography registration + coverage with the recommended settings.
-# Frame-to-frame homographies are chained from an anchor frame (no global bundle
-# adjustment); the cross-camera transform is a robust per-rig consensus. These
-# settings work for BOTH land-heavy and water-heavy scenes:
-#   --affine          constrained 6-DOF model; rejects the false perspective
-#                     warps that repetitive water texture otherwise produces
-#   --xcam-robust     mode-seeking (cluster) cross-camera consensus instead of a
-#                     median, which is corrupted by chain drift over water
-#   --xcam-low-drift  picks cross-camera pairs nearest both chain anchors so the
-#                     consensus is corroborated, not a single unverified pair
-#   --consistency-filter  validate water-frame registrations against land motion
-python ${VIAME_INSTALL}/configs/reconstruct_3d.py "${INPUT}" \
-  --output "${OUTPUT}" \
-  --planar --coverage-class suppressed --visualize \
-  --affine --consistency-filter --xcam-robust --xcam-low-drift
+# Sequential registration + prior coverage WITHOUT any GPS metadata.
+# detect_prior_coverage.py chains affine frame-to-frame registrations from an
+# anchor frame, estimates the rig-constant cross-camera transform by robust
+# cluster consensus, carries a moving average of the chained motion across
+# featureless open-water gaps, and pseudo-georeferences the site from the
+# chains so within-site revisits are still detected. Writes
+# prior_coverage.csv (polygon classes prior_coverage_sequential /
+# _cross_camera / _revisit), revisits.csv, coverage_map.png and a thumbnail
+# visualization into ${OUTPUT}.
+python ${VIAME_INSTALL}/configs/detect_prior_coverage.py "${INPUT}" \
+  --method hybrid --output "${OUTPUT}"

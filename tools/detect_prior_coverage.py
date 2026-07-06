@@ -826,11 +826,9 @@ def process_site(site_folder, site_id, grid, order_start, args, to_enu,
     water_info = {}
     if args.method == 'hybrid':
         try:
-            import reconstruct_3d as _r3d
-            _r3d.import_dependencies()
-            water_info = _r3d.classify_images_fast(site_folder, all_rels)
+            water_info = _sr.classify_images_fast(site_folder, all_rels)
         except Exception as e:
-            print(f'    Water classifier unavailable ({e}); SIFT heuristic')
+            print(f'    Water classifier unavailable ({e}); no water info')
             water_info = {}
         reg_kwargs = dict(
             water_info=water_info, match_ratio=args.match_ratio,

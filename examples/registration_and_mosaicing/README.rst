@@ -113,48 +113,55 @@ Sequential Mappings / Registration
 **********************************
 
 For overhead / benthic surveys (single camera or a PORT/STAR/CENTER multi-camera
-rig), ``reconstruct_3d.py --planar`` chains frame-to-frame homographies from an
-anchor frame to compute per-frame coverage and a registration visualization,
-without running full structure-from-motion. This is a SEQUENTIAL mapping: there is
-no global bundle adjustment, so within-camera drift accumulates along the chain
-(the cross-camera transform is a robust per-rig consensus, and the metadata variant
-below adds a global GPS fit to counter drift). The ``generate_mappings_sequential``
-script invokes it with the recommended settings, tuned to work for BOTH land-heavy
-and water-heavy scenes::
+rig), ``detect_prior_coverage.py`` chains frame-to-frame affine registrations from
+an anchor frame to compute, for every frame, the region already observed in
+previous imagery — split into ``prior_coverage_sequential`` (same camera),
+``prior_coverage_cross_camera`` (adjacent rig camera, via a robust rig-constant
+consensus transform) and ``prior_coverage_revisit`` (earlier passes, loop
+closures, or earlier sites/days in multi-folder runs) polygon classes, plus a
+``revisits.csv`` event summary, a footprint map and a thumbnail visualization.
+The ``generate_mappings_sequential`` script invokes it without metadata::
 
-  reconstruct_3d.py <folder> --output out --planar --coverage-class suppressed \
-    --visualize --affine --consistency-filter --xcam-robust --xcam-low-drift
+  detect_prior_coverage.py <folder> --method hybrid --output out
 
-``--affine`` uses a constrained 6-DOF model that rejects the false perspective warps
-repetitive water texture otherwise produces; ``--xcam-robust`` and ``--xcam-low-drift``
-make the cross-camera (loop-closure) estimate a corroborated cluster consensus rather
-than a drift-corrupted median.
+Without GPS the site is pseudo-georeferenced from the registration chains
+(within-site coverage and revisits only), and open-water gaps are bridged by a
+moving average of the chained motion.
 
 If per-frame GPS metadata is available, ``generate_mappings_gps_anchored`` adds
-``--geo-anchor``, which fits a global GPS-to-pixel transform to place featureless
-water frames by dead-reckoning and to report how far the sequential feature chain
-has drifted from the GPS truth. Metadata is read from an FMCLOG ``--flight-log`` CSV,
-an ``imagelog.json`` co-located with the images, or embedded EXIF GPS.
+``--flight-logs``, which calibrates a metres-to-pixels map from the raw pairwise
+registrations (bounded by the altitude/focal-length expectation), places
+featureless water frames by GPS dead-reckoning, and tracks all observed ground
+in a geo-referenced occupancy grid shared across every folder in the run.
+Metadata is read from FMCLOG CSVs (``--flight-logs`` file or directory), an
+``imagelog.json`` co-located with the images, or embedded EXIF GPS.
 
-(COLMAP-based structure-from-motion and dense reconstruction are also available in
-``reconstruct_3d.py`` but require building with ``VIAME_ENABLE_COLMAP`` set to ON; the
-planar registration above does not need COLMAP.)
+Alternative engines: ``--method metadata`` computes coverage from GPS footprints
+alone (no image registration; seconds per site), and ``--method sfm-rig`` uses
+COLMAP rig-constrained structure-from-motion (requires pycolmap; GPU-accelerated
+when available) as an independent cross-check.
+
+(Full 3D structure-from-motion, dense reconstruction and meshing live in
+``reconstruct_3d.py`` and require building with ``VIAME_ENABLE_COLMAP`` set to
+ON; the coverage/registration tooling above does not need COLMAP except for
+``--method sfm-rig``.)
 
 **********************
 Site Revisit Detection
 **********************
 
-``detect_site_revisits.py`` (run via ``detect_site_revisits``) identifies loop-closure
-events — where the platform leaves a location and later returns to image the same
-ground. Two methods are provided and can be combined with ``--method both``:
+Revisit / loop-closure events — where the platform leaves a location and later
+returns to image the same ground — are detected by ``detect_prior_coverage.py``
+through its ground-occupancy grid; the ``detect_site_revisits`` script runs it
+in ``--revisits-only`` mode, which skips the per-frame coverage CSV and
+thumbnails::
 
-| ``--method metadata``      from GPS positions only (fast): frames close on the
-                             ground but far apart in time, with travel away in between.
-| ``--method registration``  from imagery: footprint overlap of the registered chain,
-                             confirmed by a direct feature match between far-apart frames.
+  detect_prior_coverage.py <folder> --method hybrid --revisits-only --output out
 
-It writes a ``site_revisits.csv`` listing each revisit pair (frame indices, temporal
-gap, ground distance / footprint overlap, and whether a match confirmed it).
+It writes a ``revisits.csv`` listing, for each frame that re-covers previously
+seen ground, the source image / pass / day, the overlapping fraction, and
+whether a direct land-to-land feature match confirmed the event. Use
+``--method metadata`` for a fast GPS-only pass.
 
 ******************
 Build Requirements
