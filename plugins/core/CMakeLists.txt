@@ -360,6 +360,11 @@ if( VIAME_ENABLE_PYTHON )
     merge_detections_nms_fusion )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/merge_tracks_tube_iou.py
+    core
+    merge_tracks_tube_iou )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_det_suppressor.py
     core
     multicam_homog_det_suppressor )
