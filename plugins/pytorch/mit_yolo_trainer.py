@@ -1,6 +1,7 @@
 # This file is part of VIAME, and is distributed under an OSI-approved #
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+from __future__ import annotations
 
 from kwiver.vital.algo import (
     DetectedObjectSetOutput,
@@ -15,9 +16,8 @@ from kwiver.vital.algo import (
 import os
 import signal
 import sys
-import subprocess
-import threading
 import time
+import types
 # import math
 
 from .kwcoco_train_detector import KWCocoTrainDetector
@@ -28,6 +28,10 @@ import scriptconfig as scfg
 import ubelt as ub
 from hydra import compose, initialize_config_dir
 from yolo.lazy import main
+
+
+if types.TYPE_CHECKING:
+    import kwcoco
 
 
 class MITYoloConfig(KWCocoTrainDetectorConfig):
@@ -164,25 +168,28 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             self._training_writer.complete()
             self._validation_writer.complete()
 
-            # conforming kwcoco train and val datasets and set categories to the input KWCOCO instead of kwiver `CategoryHierarchy`
+            class_list = list(self._categories)
+            if not class_list:
+                raise ValueError("MIT-YOLO categories must be initialized before writing kwcoco files")
+
             import kwcoco
             train_fpath = ub.Path(self._training_file)
             if train_fpath.exists():
+                print("[MITYoloTrainer] Conforming training dataset")
                 train_dset = kwcoco.CocoDataset(train_fpath)
                 train_dset.conform()
+                _align_kwcoco_categories(train_dset, class_list)
+                train_dset.fpath = train_fpath
                 train_dset.dump()
-                print(f"[MITYoloTrainer] Conforming training dataset")
-
-                kwcoco_cats = train_dset.dataset.get('categories', [])
-                self._categories = [cat['name'] for cat in kwcoco_cats]
-                print(f"[MITYoloTrainer] Aligned categories from conformed KWCOCO: {self._categories}")
 
                 val_fpath = ub.Path(self._validation_file)
                 if val_fpath.exists():
+                    print("[MITYoloTrainer] Conforming validation dataset")
                     val_dset = kwcoco.CocoDataset(val_fpath)
                     val_dset.conform()
+                    _align_kwcoco_categories(val_dset, class_list)
+                    val_dset.fpath = val_fpath
                     val_dset.dump()
-                    print("[MITYoloTrainer] Conforming validation dataset")
 
     def check_configuration( self, cfg ):
         if not cfg.has_value( "identifier" ) or len( cfg.get_value( "identifier") ) == 0:
@@ -289,6 +296,64 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             output["train_config.yaml"] = str(train_config_fpath)
 
         return output
+
+
+def _align_kwcoco_categories(
+        dset: kwcoco.CocoDataset,
+        class_list: list[str]
+     ) -> kwcoco.CocoDataset:
+    """
+    Modify (inplace) the CocoDataset so categories are in a specified order,
+    and handle the case of unexpected categories.
+
+    Example:
+        >>> import pytest
+        >>> dset = kwcoco.CocoDataset.demo('vidshapes1')
+        >>> class_list = ['superstar', 'star', 'eff']
+        >>> _align_kwcoco_categories(dset.copy(), class_list)
+        >>> #
+        >>> # Case: dset has category we can't align with, should error
+        >>> with pytest.raises(ValueError):
+        >>>     class_list = ['star', 'eff']
+        >>>     _align_kwcoco_categories(dset.copy(), class_list)
+        >>> #
+        >>> # Case: extra category, should be fine
+        >>> class_list = ['superstar', 'star', 'eff', 'longcat']
+        >>> _align_kwcoco_categories(dset.copy(), class_list)
+    """
+    existing_names = set(dset.categories().lookup('name'))
+    expected_names = set(class_list)
+
+    if len(class_list) != len(expected_names):
+        raise ValueError('class list should not contain duplicates')
+
+    unexpected_names = existing_names - expected_names
+    if unexpected_names:
+        used_cat_ids = set(dset.annots().lookup('category_id', None))
+        used_catnames = {
+            None if cid is None else dset.index.cats[cid].get('name')
+            for cid in used_cat_ids
+        }
+        used_unexpected = used_catnames & unexpected_names
+        if used_unexpected:
+            raise ValueError(
+                f"{dset} contains annotations outside the configured "
+                f"training categories: {sorted(used_unexpected)}"
+            )
+        # Normalize to category ids in case CocoDataset API changes
+        unexpected_cids = [dset.index.name_to_cat[name]['id']
+                           for name in unexpected_names]
+        # Note: keep annots is irrelevant because we error if there are any
+        # annots to remove. However, if we relax that to a warning removing the
+        # annots (or modifying their categories) is the right thing to do, but
+        # that should be handled before it ever gets to this point.
+        dset.remove_categories(unexpected_cids, keep_annots=False)
+
+    for name in class_list:
+        dset.ensure_category(name)
+
+    dset.normalize_category_ids(start_id=1, order=class_list)
+    return dset
 
 
 def __vital_algorithm_register__():
