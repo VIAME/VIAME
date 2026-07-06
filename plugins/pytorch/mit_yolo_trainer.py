@@ -179,8 +179,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
                 train_dset = kwcoco.CocoDataset(train_fpath)
                 train_dset.conform()
                 _align_kwcoco_categories(train_dset, class_list)
-                train_dset.fpath = train_fpath
-                train_dset.dump()
+                train_dset.dump()  # write back to the same place we read
 
                 val_fpath = ub.Path(self._validation_file)
                 if val_fpath.exists():
@@ -188,8 +187,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
                     val_dset = kwcoco.CocoDataset(val_fpath)
                     val_dset.conform()
                     _align_kwcoco_categories(val_dset, class_list)
-                    val_dset.fpath = val_fpath
-                    val_dset.dump()
+                    val_dset.dump()  # write back to the same place we read
 
     def check_configuration( self, cfg ):
         if not cfg.has_value( "identifier" ) or len( cfg.get_value( "identifier") ) == 0:
