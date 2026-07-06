@@ -350,6 +350,11 @@ if( VIAME_ENABLE_PYTHON )
     bytetrack_trainer )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/detection_fusion_core.py
+    core
+    detection_fusion_core )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_nms_fusion.py
     core
     merge_detections_nms_fusion )

@@ -16,6 +16,7 @@ set( PYTHON_SCRIPTS
   plot_eval_results.py
   process_video.py
   score_results.py
+  train_detection_fusion.py
   viame_csv_tool.py
 )
 
