@@ -165,13 +165,13 @@ class BoTSORTTrainer(TrainTracker):
                 prev_cx, prev_cy = None, None
 
                 for state in states:
-                    frame_id = state.frame()
+                    frame_id = state.frame_id
                     det = state.detection()
 
                     if det is None:
                         continue
 
-                    bbox = det.bounding_box()
+                    bbox = det.bounding_box
                     x1 = bbox.min_x()
                     y1 = bbox.min_y()
                     x2 = bbox.max_x()
@@ -305,17 +305,17 @@ class BoTSORTTrainer(TrainTracker):
             frame_to_detections = {}
 
             for track in track_set.tracks():
-                track_id = track.id()
+                track_id = track.id
                 unique_track_id = f"seq{seq_idx:04d}_track{track_id:06d}"
 
                 for state in track:
-                    frame_id = state.frame()
+                    frame_id = state.frame_id
                     det = state.detection()
 
                     if det is None:
                         continue
 
-                    bbox = det.bounding_box()
+                    bbox = det.bounding_box
                     x1 = int(bbox.min_x())
                     y1 = int(bbox.min_y())
                     x2 = int(bbox.max_x())
