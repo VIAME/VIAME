@@ -20,6 +20,7 @@ if( VIAME_ENABLE_OPENCV )
       generate_mosaics_xcamera_only.bat
       generate_mappings_sequential.bat
       generate_mappings_gps_anchored.bat
+      detect_prior_coverage.bat
       detect_site_revisits.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
@@ -29,6 +30,7 @@ if( VIAME_ENABLE_OPENCV )
       generate_mosaics_xcamera_only.sh
       generate_mappings_sequential.sh
       generate_mappings_gps_anchored.sh
+      detect_prior_coverage.sh
       detect_site_revisits.sh )
   endif()
 endif()

@@ -146,6 +146,35 @@ when available) as an independent cross-check.
 ON; the coverage/registration tooling above does not need COLMAP except for
 ``--method sfm-rig``.)
 
+*****************************************
+Prior-Coverage Detection: Quick Run Guide
+*****************************************
+
+To produce a VIAME detection CSV of previously-observed regions for all
+cameras of a survey folder with the recommended settings, use the
+``detect_prior_coverage`` script (``.sh`` on Linux, ``.bat`` on Windows):
+
+1. Edit the script and set ``INPUT`` to the site folder — either a single
+   folder of images, or a rig folder containing ``PORT``/``STAR``/``CENTER``
+   subfolders (all three cameras are processed together).
+2. Optionally set ``FLIGHT_LOGS`` to a daily FMCLOG CSV or a directory of
+   them. Leave it empty to auto-detect an ``imagelog.json`` or embedded EXIF
+   GPS; with no metadata at all, coverage is still computed within-site from
+   the image registration alone.
+3. Run the script. Expect roughly 1 hour per 200-image site (most of it
+   SIFT registration); add ``--method metadata`` to the python command for a
+   GPS-only preview in a few seconds.
+4. Outputs land in ``OUTPUT``:
+
+   - ``prior_coverage.csv`` — VIAME detection CSV; one ``(poly)`` row per
+     previously-seen region per camera frame, with class names
+     ``prior_coverage_sequential`` / ``_cross_camera`` / ``_revisit``
+   - ``revisits.csv`` — per-frame revisit events (source image/pass/day,
+     overlap fraction, registration confirmation)
+   - ``coverage_map.png`` and ``prior_coverage_vis.png`` — footprint map and
+     a thumbnail grid (STAR | CENTER | PORT) with the regions overlaid for
+     spot-checking
+
 **********************
 Site Revisit Detection
 **********************
