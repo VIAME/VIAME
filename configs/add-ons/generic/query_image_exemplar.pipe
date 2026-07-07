@@ -32,24 +32,6 @@ process reader
 connect from in_adapt.filename
         to   reader.image_file_name
 
-process kwa_writer
- :: kw_archive_writer
-
-  :output_directory                            $CONFIG{global:query_folder}
-  :mission_id                                  0
-
-connect from reader.image
-        to   kwa_writer.image
-connect from reader.timestamp
-        to   kwa_writer.timestamp
-connect from in_adapt.stream_id
-        to   kwa_writer.filename
-connect from in_adapt.stream_id
-        to   kwa_writer.stream_id
-
-connect from kwa_writer.complete_flag
-        to   out_adapt.complete_flag
-
 # =============================================================================
 # Filter the image for detector: when boxes are provided in the request,
 # suppress the image so detector is skipped (invert=true means suppress when

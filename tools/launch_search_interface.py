@@ -77,8 +77,10 @@ def _is_valid_database(options):
               "was your create_index call successful?\n")
         return False
     if len(glob.glob(os.path.join(options.input_dir, "*.index"))) == 0:
-        print(f"\nERROR: \"{options.input_dir}\" is empty, "
-              "was your create_index call successful?\n")
+        print(f"\nERROR: \"{options.input_dir}\" contains no KWA archives "
+              "(*.index). Index pipelines no longer write KWA video archives; "
+              "the VIQUI search interface is deprecated in favor of the DIVE "
+              "video search panel, which uses the index directly.\n")
         return False
     return True
 

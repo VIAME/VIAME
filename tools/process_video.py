@@ -445,9 +445,6 @@ def search_output_settings_list( output_dir, basename ):
     fset( 'track_writer_kw18:file_name=' + output_dir + div + basename + '.kw18' ),
     fset( 'descriptor_writer_db:writer:db:video_name=' + basename ),
     fset( 'track_descriptor:uid_basename=' + basename ),
-    fset( 'kwa_writer:output_directory=' + output_dir ),
-    fset( 'kwa_writer:base_filename=' + basename ),
-    fset( 'kwa_writer:stream_id=' + basename ),
   ))
 
 def plot_settings_list( output_dir, basename ):
