@@ -217,16 +217,27 @@ refine_detections_svm
 
   for( auto det : *detections )
   {
+    if( !det->descriptor() )
+    {
+      continue;
+    }
+
     std::vector<double> descriptor_vector = det->descriptor()->as_double();
 
+    // libsvm node arrays are 1-indexed and MUST be terminated with an
+    // index of -1; without the sentinel svm_predict reads past the end of
+    // the array. Indexing must also match the 1-based convention used at
+    // training time (iqr_session_svm, train_svm_models).
     size_t descriptor_size = descriptor_vector.size();
-    svm_node *svm_nodes = new svm_node[descriptor_size];
+    svm_node *svm_nodes = new svm_node[descriptor_size + 1];
 
     for( size_t i = 0; i < descriptor_size; ++i )
     {
-      svm_nodes[i].index = i;
+      svm_nodes[i].index = static_cast< int >( i + 1 );
       svm_nodes[i].value = descriptor_vector.at(i);
     }
+    svm_nodes[descriptor_size].index = -1;
+    svm_nodes[descriptor_size].value = 0;
 
     typedef std::map<std::string, double> result_map;
     result_map res = d_->apply_svms( svm_nodes );
