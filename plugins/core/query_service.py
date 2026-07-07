@@ -236,8 +236,6 @@ process database_query_handler
 
 connect from in_adapt.database_query
         to   database_query_handler.database_query
-connect from in_adapt.track_descriptor_set
-        to   database_query_handler.track_descriptor_set
 connect from in_adapt.iqr_feedback
         to   database_query_handler.iqr_feedback
 connect from in_adapt.iqr_model
