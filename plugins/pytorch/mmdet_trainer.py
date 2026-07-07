@@ -238,10 +238,10 @@ class MMDetTrainer( TrainDetector ):
                 if categories is not None and not categories.has_class_name( class_lbl ):
                     continue
 
-                obj_box = [ [ item.bounding_box().min_x(),
-                              item.bounding_box().min_y(),
-                              item.bounding_box().max_x(),
-                              item.bounding_box().max_y() ] ]
+                obj_box = [ [ item.bounding_box.min_x(),
+                              item.bounding_box.min_y(),
+                              item.bounding_box.max_x(),
+                              item.bounding_box.max_y() ] ]
 
                 if categories is not None:
                     class_id = categories.get_class_id( class_lbl ) + 1

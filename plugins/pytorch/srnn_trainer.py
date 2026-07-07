@@ -207,10 +207,10 @@ class SRNNTrainer( TrainTracker ):
             all_frame_ids = set()
 
             for track in track_set.tracks():
-                track_id = track.id()
+                track_id = track.id
 
                 for state in track:
-                    frame_id = state.frame()
+                    frame_id = state.frame_id
                     det = state.detection()
 
                     if det is None:
@@ -218,7 +218,7 @@ class SRNNTrainer( TrainTracker ):
 
                     all_frame_ids.add( frame_id )
 
-                    bbox = det.bounding_box()
+                    bbox = det.bounding_box
                     x1 = int( bbox.min_x() )
                     y1 = int( bbox.min_y() )
                     x2 = int( bbox.max_x() )

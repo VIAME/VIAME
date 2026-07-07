@@ -514,8 +514,8 @@ class NetHarnTrainer( TrainDetector ):
                 if self._area_upper_bound > 0 and bbox_area > self._area_upper_bound:
                     continue
 
-                if self._reduce_category and gt.type() and \
-                  gt.type().get_most_likely_class() == self._reduce_category and \
+                if self._reduce_category and gt.type and \
+                  gt.type.get_most_likely_class() == self._reduce_category and \
                   random.uniform( 0, 1 ) < 0.90:
                     continue
 

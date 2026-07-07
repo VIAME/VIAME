@@ -308,7 +308,7 @@ class SAM3Trainer(TrainDetector):
                     continue
 
                 # Get category
-                det_type = det.type()
+                det_type = det.type
                 if det_type is not None:
                     class_name = det_type.get_most_likely_class()
                     if class_name in category_map:

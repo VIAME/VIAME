@@ -35,7 +35,7 @@ class NetharnClassifier(ImageObjectDetector):
         >>> )
         >>> self.set_configuration(cfg_in)
         >>> detected_objects = self.classify(image_data)
-        >>> object_type = detected_objects[0].type()
+        >>> object_type = detected_objects[0].type
         >>> class_names = object_type.all_class_names()
         >>> cname_to_prob = {cname: object_type.score(cname) for cname in class_names}
         >>> print('cname_to_prob = {}'.format(ub.repr2(cname_to_prob, nl=1, precision=4)))

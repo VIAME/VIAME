@@ -403,7 +403,7 @@ class SAM3TextQuery(PerformTextQuery):
                 last_state = state
             if last_state:
                 det_obj = last_state.detection()
-                bb = det_obj.bounding_box()
+                bb = det_obj.bounding_box
                 track_boxes.append([bb.min_x(), bb.min_y(), bb.max_x(), bb.max_y()])
             else:
                 track_boxes.append(None)

@@ -34,7 +34,7 @@ class NetharnRefiner(RefineDetections):
         >>> )
         >>> self.set_configuration(cfg_in)
         >>> detected_objects = self.classify(image_data)
-        >>> object_type = detected_objects[0].type()
+        >>> object_type = detected_objects[0].type
         >>> class_names = object_type.all_class_names()
     """
 

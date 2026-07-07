@@ -147,7 +147,7 @@ class MDNetTracker(TrackObjects):
                (trk.id not in self._track_init_frames or
                 self._track_init_frames[trk.id] < self._last_frame_id):
                 tid = trk.id
-                cbox = trk[trk.last_frame].detection().bounding_box()
+                cbox = trk[trk.last_frame].detection().bounding_box
                 bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
                 last_frame_npy = self._format_image(self._last_frame)
                 self._trackers[tid] = mdnet.MDNetTracker(last_frame_npy, bbox)
@@ -156,7 +156,7 @@ class MDNetTracker(TrackObjects):
             # This track has an initialization signal for the current frame
             elif trk[trk.last_frame].frame_id == frame_id:
                 tid = trk.id
-                cbox = trk[trk.last_frame].detection().bounding_box()
+                cbox = trk[trk.last_frame].detection().bounding_box
                 bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
                 self._trackers[tid] = mdnet.MDNetTracker(img_npy, bbox)
                 self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
@@ -171,7 +171,7 @@ class MDNetTracker(TrackObjects):
             recc_bbox = []
             for trk in recc_track_pool:
                 if trk.id == tid and trk[trk.last_frame].frame_id == frame_id:
-                    cbox = trk[trk.last_frame].detection().bounding_box()
+                    cbox = trk[trk.last_frame].detection().bounding_box
                     recc_bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
                     break
             bbox, score = self._trackers[tid].update(img_npy, likely_bbox=recc_bbox)
