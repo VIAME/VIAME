@@ -48,18 +48,6 @@ def __vital_algorithm_register__():
         pass
 
     try:
-        from viame.pytorch import ocsort_tracker
-        ocsort_tracker.__vital_algorithm_register__()
-    except ImportError:
-        pass
-
-    try:
-        from viame.pytorch import ocsort_trainer
-        ocsort_trainer.__vital_algorithm_register__()
-    except ImportError:
-        pass
-
-    try:
         from viame.pytorch import motr_tracker
         motr_tracker.__vital_algorithm_register__()
     except ImportError:

@@ -48,16 +48,6 @@ kwiver_add_python_module(
   botsort_trainer )
 
 kwiver_add_python_module(
-  ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_tracker.py
-  pytorch
-  ocsort_tracker )
-
-kwiver_add_python_module(
-  ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_trainer.py
-  pytorch
-  ocsort_trainer )
-
-kwiver_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/motr_tracker.py
   pytorch
   motr_tracker )
