@@ -102,6 +102,15 @@ public:
       svm_free_and_destroy_model( &m_svm_model );
       m_svm_model = nullptr;
     }
+
+    // Free retained training vectors only after the model is gone: when the
+    // model came from svm_train (free_sv == 0), model->SV points directly
+    // into these arrays rather than owning copies.
+    for( svm_node* nodes : m_owned_nodes )
+    {
+      delete[] nodes;
+    }
+    m_owned_nodes.clear();
   }
 
   double predict_score( const std::vector< double >& vec ) const override
@@ -294,11 +303,12 @@ protected:
     std::srand( 0 );
     m_svm_model = svm_train( &prob, &param );
 
-    // Clean up training data
-    for( size_t i = 0; i < n_total; ++i )
-    {
-      delete[] prob.x[i];
-    }
+    // Clean up training data. The node arrays (prob.x[i]) must OUTLIVE the
+    // model: svm_train does not copy support vectors (model->free_sv == 0,
+    // model->SV aliases these arrays), so freeing them here leaves the model
+    // dangling and later svm_predict/svm_save_model calls read freed memory.
+    // Retain them until free_model(); the outer arrays are safe to release.
+    m_owned_nodes.insert( m_owned_nodes.end(), prob.x, prob.x + n_total );
     delete[] prob.x;
     delete[] prob.y;
 
@@ -425,6 +435,10 @@ private:
   bool m_use_platt_scaling = false;
 
   svm_model* m_svm_model;
+
+  // Training vectors the current model's SV pointers alias (svm_train does
+  // not copy support vectors); freed together with the model in free_model().
+  std::vector< svm_node* > m_owned_nodes;
 };
 
 } // end namespace iqr
