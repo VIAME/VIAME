@@ -444,6 +444,7 @@ def search_output_settings_list( output_dir, basename ):
     fset( 'track_writer_db:writer:db:video_name=' + basename ),
     fset( 'track_writer_kw18:file_name=' + output_dir + div + basename + '.kw18' ),
     fset( 'descriptor_writer_db:writer:db:video_name=' + basename ),
+    fset( 'descriptor_indexer:video_name=' + basename ),
     fset( 'track_descriptor:uid_basename=' + basename ),
   ))
 

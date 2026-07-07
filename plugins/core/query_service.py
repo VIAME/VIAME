@@ -8,9 +8,9 @@ Video Query / IQR Service
 
 Hosts VIAME's video search and iterative query refinement (IQR) engine as a
 persistent service for GUI frontends (DIVE desktop). Wraps the
-``query_retrieval_and_iqr.pipe`` KWIVER pipeline in an embedded pipeline and
-manages the per-index embedded PostgreSQL instance, mirroring the protocol the
-VIQUI (vivia) KIP query session speaks:
+``query_retrieval_and_iqr.pipe`` KWIVER pipeline in embedded pipelines and
+manages the per-index embedded PostgreSQL instances, mirroring the protocol
+the VIQUI (vivia) KIP query session speaks:
 
   input adapter ports : descriptor_request, database_query, iqr_feedback,
                         iqr_model  (exactly one populated per step; the rest
@@ -20,33 +20,39 @@ VIQUI (vivia) KIP query session speaks:
 
 An "index" is a directory containing the ``database/`` folder produced by
 ``process_video.py --build-index`` (embedded PostgreSQL data at
-``database/SQL``, ITQ/LSH files at ``database/ITQ``). The pipeline's config
-paths are CWD-relative, so this service chdirs into the index directory when
-opening it; one index may be open at a time.
+``database/SQL``, ITQ/LSH files at ``database/ITQ``).
+
+FEDERATED SEARCH: multiple indexes may be opened at once. The first becomes
+the primary session (default postgres port, full pipeline including the
+exemplar descriptor path); the rest are secondary sessions running a reduced
+query-only pipeline against their own postgres instance on an incremented
+port. A query formulates exemplar descriptors once on the primary and fans
+the similarity query out to every session; results are merged by relevancy.
+Refinement feedback routes to the session that owns each result; sessions
+without any accumulated feedback are re-scored with the canonical model (the
+model from the most-adjudicated session), keeping scores comparable.
 
 Protocol: newline-delimited JSON requests on stdin, JSON responses on stdout,
 each response echoing the request ``id``. Commands:
 
-  open_index      {index_dir, pipeline_file?}
+  open_index      {index_dir} | {index_dirs: [dir, ...]}
   close_index     {}
+  remove_streams  {index_dir, streams: [video_name, ...]}
+      Deletes every database row belonging to the given streams (e.g. when
+      a video is removed from the index). Stale ITQ/LSH hash entries are
+      tolerated by the query engine and disappear on the next index build.
   status          {}
   formulate_query {image_path, boxes?: [[x1,y1,x2,y2],...]}
-      Computes exemplar descriptors from an image chip. When boxes are given
-      the pipeline also auto-runs an initial similarity query in the same
-      step, so the response may already carry ``results``.
   process_query   {threshold?, iqr_model_b64?}
-      Runs (or re-runs) the similarity query from the last formulation's
-      descriptors, optionally warm-started from a saved IQR model.
-  refine          {positive_ids: [int], negative_ids: [int]}
-      One IQR iteration: feedback + previous model in, re-ranked results and
-      an updated model out.
+  refine          {positive_ids: [ref], negative_ids: [ref]}
+      refs are "<session>:<instance_id>" strings (bare ints refer to
+      session 0 for single-index compatibility)
   export_model    {output_path?}
-      Returns the current model as base64; also writes it if a path is given.
   shutdown        {}
 
 Result entries are serialized as
-  {instance_id, stream_id, relevancy_score, start_frame, end_frame,
-   tracks: [{id, states: [{frame, bbox: [x1,y1,x2,y2]}]}]}
+  {ref, session, index_dir, instance_id, stream_id, relevancy_score,
+   start_frame, end_frame, tracks: [{id, states: [{frame, bbox}]}]}
 
 Usage:
     python -m viame.core.query_service [--pipeline-file <query pipe>]
@@ -60,10 +66,13 @@ import os
 import subprocess
 import sys
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 # Native pipeline code runs in-process; make hard crashes debuggable.
 faulthandler.enable(file=sys.stderr)
+
+BASE_DB_PORT = 5432
+MERGED_RESULT_LIMIT = 200
 
 
 def _log(message: str) -> None:
@@ -84,74 +93,232 @@ def _exe(cmd: str) -> str:
 #
 # Intentionally NOT reusing database_tool.stop(), which pkill -9's every
 # postgres process on the machine; a desktop service must only touch the
-# instance belonging to its own data directory.
+# instances belonging to its own index directories.
 # --------------------------------------------------------------------------
-class PostgresInstance:
-    SQL_DIR = os.path.join("database", "SQL")
-    LOG_FILE = os.path.join("database", "SQL_Log_File")
-    PORT = 5432
+def _port_is_free(port: int) -> bool:
+    import socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        sock.bind(("127.0.0.1", port))
+        return True
+    except OSError:
+        return False
+    finally:
+        sock.close()
 
-    @classmethod
-    def _pg_ctl(cls, args: List[str]) -> subprocess.CompletedProcess:
+
+class PostgresInstance:
+    def __init__(self, index_dir: str):
+        self.index_dir = index_dir
+        self.port: Optional[int] = None
+        # True when an already-running server was adopted rather than started
+        self.adopted = False
+        self.sql_dir = os.path.join(index_dir, "database", "SQL")
+        self.log_file = os.path.join(index_dir, "database", "SQL_Log_File")
+
+    def _pg_ctl(self, args: List[str]) -> subprocess.CompletedProcess:
         return subprocess.run(
-            [_exe("pg_ctl"), "-D", cls.SQL_DIR] + args,
+            [_exe("pg_ctl"), "-D", self.sql_dir] + args,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
-    @classmethod
-    def is_running(cls) -> bool:
-        return cls._pg_ctl(["status"]).returncode == 0
+    def is_running(self) -> bool:
+        return self._pg_ctl(["status"]).returncode == 0
 
-    @classmethod
-    def start(cls) -> None:
-        if cls.is_running():
-            return
+    def _running_port(self) -> Optional[int]:
+        """Port of the live server for this data directory, if any (line 4
+        of postmaster.pid)."""
+        if not self.is_running():
+            return None
+        pid_file = os.path.join(self.sql_dir, "postmaster.pid")
+        try:
+            with open(pid_file) as f:
+                lines = f.read().splitlines()
+            return int(lines[3])
+        except Exception:
+            return None
+
+    def ensure_started(self, avoid_ports: List[int]) -> int:
+        """Start (or adopt) the postgres instance for this index and return
+        the port it listens on. An instance left running by a previous index
+        build or session is adopted at whatever port it already uses;
+        otherwise the first free port not in ``avoid_ports`` is chosen."""
+        running = self._running_port()
+        if running is not None:
+            _log(f"Adopting running postgres for {self.index_dir} "
+                 f"on port {running}")
+            self.port = running
+            self.adopted = True
+            return running
+
+        port = BASE_DB_PORT
+        while port in avoid_ports or not _port_is_free(port):
+            port += 1
+        self.port = port
+
+        start_args = ["-w", "-t", "20", "-l", self.log_file,
+                      "-o", f"-p {port}", "start"]
         # Recover from a previous unclean shutdown (stale postmaster.pid with
         # no live server behind it); pg_ctl start handles most cases itself,
         # but a pid file pointing at a recycled pid can block startup.
-        pid_file = os.path.join(cls.SQL_DIR, "postmaster.pid")
-        result = cls._pg_ctl(
-            ["-w", "-t", "20", "-l", cls.LOG_FILE, "start"])
+        pid_file = os.path.join(self.sql_dir, "postmaster.pid")
+        result = self._pg_ctl(start_args)
         if result.returncode != 0 and os.path.exists(pid_file):
             _log("postgres start failed; removing stale postmaster.pid "
                  "and retrying")
             os.remove(pid_file)
-            result = cls._pg_ctl(
-                ["-w", "-t", "20", "-l", cls.LOG_FILE, "start"])
+            result = self._pg_ctl(start_args)
         if result.returncode != 0:
             raise RuntimeError(
-                f"Unable to start postgres for index: {result.stdout}")
+                f"Unable to start postgres for {self.index_dir}: "
+                f"{result.stdout}")
+        return port
 
-    @classmethod
-    def stop(cls) -> None:
-        cls._pg_ctl(["-m", "fast", "stop"])
-        cls._wait_for_port_available()
+    def stop(self) -> None:
+        self._pg_ctl(["-m", "fast", "stop"])
+        self._wait_for_port_available()
 
-    @classmethod
-    def _wait_for_port_available(cls, timeout: float = 10.0) -> bool:
-        import socket
+    def _wait_for_port_available(self, timeout: float = 10.0) -> bool:
         deadline = time.time() + timeout
         while time.time() < deadline:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            try:
-                sock.bind(("127.0.0.1", cls.PORT))
-                sock.close()
+            if self.port is None or _port_is_free(self.port):
                 return True
-            except OSError:
-                sock.close()
-                time.sleep(0.5)
+            time.sleep(0.5)
         return False
+
+
+# Removes every row belonging to one stream (video/sequence identifier).
+# Child tables (keyed by UID only) go first. The descriptor vectors and
+# track geometry all key on VIDEO_NAME.
+REMOVE_STREAM_SQL = (
+    "DELETE FROM TRACK_DESCRIPTOR_TRACK WHERE UID IN "
+    "(SELECT UID FROM TRACK_DESCRIPTOR WHERE VIDEO_NAME = {stream});\n"
+    "DELETE FROM TRACK_DESCRIPTOR_HISTORY WHERE UID IN "
+    "(SELECT UID FROM TRACK_DESCRIPTOR WHERE VIDEO_NAME = {stream});\n"
+    "DELETE FROM TRACK_DESCRIPTOR WHERE VIDEO_NAME = {stream};\n"
+    "DELETE FROM DESCRIPTOR WHERE VIDEO_NAME = {stream};\n"
+    "DELETE FROM OBJECT_TRACK WHERE VIDEO_NAME = {stream};"
+)
+
+
+def _sql_literal(value: str) -> str:
+    return "'" + value.replace("'", "''") + "'"
+
+
+# --------------------------------------------------------------------------
+# Pipe templating for secondary sessions
+# --------------------------------------------------------------------------
+DEFAULT_CONN_STR = "postgresql:host=localhost;user=postgres"
+
+SECONDARY_OUTER_PIPE = """# Generated by viame.core.query_service -- do not edit.
+# Reduced query pipeline for a secondary (federated) index session: no
+# exemplar descriptor path (formulation happens on the primary session).
+
+config _pipeline:_edge
+  :capacity                                    10
+
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+process database_query_handler
+  :: perform_query
+  :external_handler                             true
+  :external_pipeline_file                       {inner_pipe}
+  :database_folder                              {database_folder}
+  :max_result_count                             200
+  :use_tracks_for_history                       true
+  :merge_duplicate_results                      true
+  :unused_descriptors_as_negative               false
+  :descriptor_query:type                        db
+  :descriptor_query:db:conn_str                 {conn_str}
+
+connect from in_adapt.database_query
+        to   database_query_handler.database_query
+connect from in_adapt.track_descriptor_set
+        to   database_query_handler.track_descriptor_set
+connect from in_adapt.iqr_feedback
+        to   database_query_handler.iqr_feedback
+connect from in_adapt.iqr_model
+        to   database_query_handler.iqr_model
+
+connect from database_query_handler.query_result
+        to   out_adapt.query_result
+connect from database_query_handler.feedback_request
+        to   out_adapt.feedback_request
+connect from database_query_handler.iqr_model
+        to   out_adapt.iqr_model
+"""
+
+
+def _write_session_pipes(index_dir: str, port: int,
+                         installed_pipe: str, primary: bool) -> str:
+    """Generate CWD-independent pipeline files for a session: an outer pipe
+    plus a copy of the inner query_and_iqr.pipe, all with absolute index
+    paths and the session's postgres port. The primary session gets the full
+    installed pipeline (including the exemplar descriptor path); secondaries
+    get a reduced query-only pipeline so heavy formulation models load once.
+    Returns the outer pipe path."""
+    session_dir = os.path.join(index_dir, ".session")
+    os.makedirs(session_dir, exist_ok=True)
+
+    installed_dir = os.path.dirname(installed_pipe)
+    database_folder = os.path.join(index_dir, "database")
+    conn_str = f"{DEFAULT_CONN_STR};port={port}"
+
+    # Inner pipe: absolute database folder + session port
+    inner_src = os.path.join(installed_dir, "query_and_iqr.pipe")
+    with open(inner_src) as f:
+        inner = f.read()
+    inner = inner.replace(DEFAULT_CONN_STR, conn_str)
+    inner = inner.replace(
+        ":database_folder                             database",
+        f":database_folder                             {database_folder}")
+    inner_path = os.path.join(session_dir, "query_and_iqr.pipe")
+    with open(inner_path, "w") as f:
+        f.write(inner)
+
+    outer_path = os.path.join(session_dir, "query_retrieval.pipe")
+    if primary:
+        # Full installed pipeline, rewritten to be CWD/port independent
+        with open(installed_pipe) as f:
+            outer = f.read()
+        outer = outer.replace(DEFAULT_CONN_STR, conn_str)
+        outer = outer.replace(
+            ":database_folder                             database",
+            f":database_folder                             {database_folder}")
+        outer = outer.replace(
+            ":query_folder                                database/Queries",
+            f":query_folder                                {database_folder}/Queries")
+        outer = outer.replace(
+            "relativepath image_pipeline_file =           "
+            "query_image_exemplar.pipe",
+            ":image_pipeline_file                         "
+            f"{os.path.join(installed_dir, 'query_image_exemplar.pipe')}")
+        outer = outer.replace(
+            "relativepath external_pipeline_file =         query_and_iqr.pipe",
+            f":external_pipeline_file                       {inner_path}")
+        with open(outer_path, "w") as f:
+            f.write(outer)
+    else:
+        with open(outer_path, "w") as f:
+            f.write(SECONDARY_OUTER_PIPE.format(
+                inner_pipe=inner_path,
+                database_folder=database_folder,
+                conn_str=conn_str,
+            ))
+    return outer_path
 
 
 # --------------------------------------------------------------------------
 # Query session: one open index + embedded pipeline + evolving IQR model
 # --------------------------------------------------------------------------
 class QuerySession:
-    """Wraps the embedded query pipeline for one open index directory."""
+    """Wraps one index directory's embedded query pipeline."""
 
-    INPUT_PORTS = ("descriptor_request", "database_query",
-                   "iqr_feedback", "iqr_model")
-
-    def __init__(self, index_dir: str, pipeline_file: str):
+    def __init__(self, index_dir: str, primary: bool,
+                 pipeline_file: str, avoid_ports: List[int]):
         # Import lazily so --help etc. work without a full VIAME environment.
         from kwiver.sprokit.adapters import adapter_data_set, embedded_pipeline
         from kwiver.vital import types as kvt
@@ -160,14 +327,12 @@ class QuerySession:
         self._kvt = kvt
 
         self.index_dir = os.path.abspath(index_dir)
-        self.pipeline_file = pipeline_file
-
-        # State carried across the IQR loop (mirrors vvKipQuerySession)
-        self._descriptors: List[Any] = []      # last formulated exemplars
-        self._query_id: str = ""
-        self._query_model: Optional[Any] = None     # warm-start VectorUChar
-        self._computed_model: Optional[Any] = None  # backend-owned model
-        self._formulation_count = 0
+        self.primary = primary
+        self.computed_model: Optional[Any] = None  # backend-owned VectorUChar
+        self.query_id: str = ""
+        # Cumulative feedback (refs resolved to plain instance ids)
+        self.cumulative_positive: List[int] = []
+        self.cumulative_negative: List[int] = []
 
         if not os.path.isdir(
                 os.path.join(self.index_dir, "database", "ITQ")):
@@ -175,31 +340,34 @@ class QuerySession:
                 f"{index_dir} does not contain a built search index "
                 "(missing database/ITQ)")
 
-        # The pipeline resolves database_folder etc. against the CWD.
-        os.chdir(self.index_dir)
-        PostgresInstance.start()
+        self._postgres = PostgresInstance(self.index_dir)
+        self.port = self._postgres.ensure_started(avoid_ports)
 
-        _log(f"Building query pipeline from {pipeline_file}")
+        pipe_path = _write_session_pipes(
+            self.index_dir, self.port, pipeline_file, primary)
+        pipe_dir = os.path.dirname(pipe_path)
+
+        _log(f"Building query pipeline for {self.index_dir} "
+             f"(port {self.port}, {'primary' if primary else 'secondary'})")
         self._pipeline = embedded_pipeline.EmbeddedPipeline()
         # def_dir anchors `relativepath` config entries (e.g. the inner
         # query_and_iqr.pipe) to the pipe file rather than the CWD.
-        self._pipeline.build_pipeline(
-            pipeline_file, os.path.dirname(pipeline_file))
+        self._pipeline.build_pipeline(pipe_path, pipe_dir)
         self._pipeline.start()
+        self._input_ports = set(self._pipeline.input_port_names())
         _log(f"Index opened: {self.index_dir}")
 
     # -------------------------------------------------------------- helpers
     def _send(self, **populated: Any) -> None:
-        """Send one adapter data set with the given ports populated and
-        typed nulls everywhere else (the pipeline consumes all four input
-        ports every step)."""
+        """Send one adapter data set populating the given ports and typed
+        nulls on every other input port the pipeline exposes."""
         ids = self._ads.AdapterDataSet.create()
-        for port in self.INPUT_PORTS:
+        for port in self._input_ports:
             if port in populated and populated[port] is not None:
                 ids[port] = populated[port]
             else:
                 type_name = ("uchar_vector" if port == "iqr_model" else port)
-                ids.add_nullptr(port, type_name)
+                ids.add_nullptr(port, type_name)  # port names match type names
         self._pipeline.send(ids)
 
     def _receive(self) -> Dict[str, Any]:
@@ -215,184 +383,80 @@ class QuerySession:
                 _log(f"Ignoring unconvertible output port: {port}")
         return out
 
-    def _capture_outputs(self, out: Dict[str, Any]) -> Dict[str, Any]:
-        """Store the computed model and serialize result sets from one
-        pipeline response."""
+    def capture_outputs(self, out: Dict[str, Any]) -> Dict[str, Any]:
+        """Store the computed model and return raw result lists."""
         response: Dict[str, Any] = {}
         if out.get("iqr_model") is not None and len(out["iqr_model"]):
-            self._computed_model = out["iqr_model"]
+            self.computed_model = out["iqr_model"]
             response["model_available"] = True
-        results = out.get("query_result")
-        if results is not None:
-            serialized = [self._serialize_result(r) for r in results]
-            serialized.sort(key=lambda r: -r["relevancy_score"])
-            response["results"] = serialized
-            if serialized and not self._query_id:
+        if out.get("query_result") is not None:
+            response["results"] = list(out["query_result"])
+            if response["results"] and not self.query_id:
                 # Auto-query fast path: adopt the backend-assigned query id
-                self._query_id = serialized[0]["query_id"]
-        feedback = out.get("feedback_request")
-        if feedback:
-            response["feedback_requests"] = [
-                self._serialize_result(r) for r in feedback]
+                self.query_id = _uid_str(response["results"][0].query_id)
+        if out.get("feedback_request"):
+            response["feedback_requests"] = list(out["feedback_request"])
         return response
 
-    def _serialize_result(self, qr: Any) -> Dict[str, Any]:
-        result: Dict[str, Any] = {
-            "instance_id": qr.instance_id,
-            "query_id": self._uid_str(qr.query_id),
-            "stream_id": qr.stream_id,
-            "relevancy_score": qr.relevancy_score,
-            "start_frame": None,
-            "end_frame": None,
-            "tracks": [],
-        }
-        for key, ts in (("start_frame", qr.start_time()),
-                        ("end_frame", qr.end_time())):
-            try:
-                if ts is not None and ts.has_valid_frame():
-                    result[key] = ts.get_frame()
-            except Exception:
-                pass
-        track_set = qr.tracks
-        if track_set is not None:
-            for track in track_set.tracks():
-                states = []
-                for state in track:
-                    entry = {"frame": state.frame_id}
-                    detection = getattr(state, "detection", None)
-                    detection = detection() if callable(detection) else None
-                    if detection is not None:
-                        box = detection.bounding_box
-                        entry["bbox"] = [box.min_x(), box.min_y(),
-                                         box.max_x(), box.max_y()]
-                    states.append(entry)
-                result["tracks"].append({"id": track.id, "states": states})
-        return result
-
-    @staticmethod
-    def _uid_str(uid: Any) -> str:
-        try:
-            return uid.value()
-        except Exception:
-            return str(uid)
-
-    def _model_to_b64(self, model: Any) -> str:
-        return base64.b64encode(bytes(bytearray(model))).decode("ascii")
-
-    def _model_from_b64(self, model_b64: str) -> Any:
-        return self._ads.VectorUChar(
-            list(base64.b64decode(model_b64.encode("ascii"))))
+    def make_query(self, descriptors: List[Any], threshold: float) -> Any:
+        kvt = self._kvt
+        if not self.query_id:
+            self.query_id = f"DIVE-QUERY-{os.path.basename(self.index_dir)}"
+        query = kvt.DatabaseQuery()
+        query.id = kvt.UID(self.query_id)
+        query.type = kvt.query_type.SIMILARITY
+        query.threshold = threshold
+        query.descriptors = descriptors
+        return query
 
     # ------------------------------------------------------------- commands
-    def formulate_query(self, image_path: str,
-                        boxes: Optional[List[List[float]]] = None
-                        ) -> Dict[str, Any]:
-        if not os.path.exists(image_path):
-            raise ValueError(f"Exemplar image not found: {image_path}")
-
+    def formulate(self, image_path: str,
+                  boxes: Optional[List[List[float]]]) -> Dict[str, Any]:
+        """Primary-session only: compute exemplar descriptors (and, when
+        boxes are given, the pipeline auto-runs the first query)."""
         kvt = self._kvt
-        self._formulation_count += 1
         request = kvt.DescriptorRequest()
-        request.id = kvt.UID(f"DIVE-QF-{self._formulation_count}")
+        request.id = kvt.UID("DIVE-QF")
         request.data_location = os.path.abspath(image_path)
         if boxes:
             request.spatial_regions = [
                 kvt.BoundingBoxI(int(b[0]), int(b[1]), int(b[2]), int(b[3]))
                 for b in boxes]
-
-        # A new formulation starts a fresh query
-        self._descriptors = []
-        self._query_id = ""
-        self._computed_model = None
-
         self._send(descriptor_request=request)
         out = self._receive()
-
-        descriptors = out.get("track_descriptor_set") or []
-        self._descriptors = list(descriptors)
-
-        response = {"success": True,
-                    "descriptor_count": len(self._descriptors)}
-        # When boxes were provided the pipeline already ran the query
-        # (auto-query fast path); pass those results straight through.
-        response.update(self._capture_outputs(out))
+        response = self.capture_outputs(out)
+        response["descriptors"] = list(out.get("track_descriptor_set") or [])
         return response
 
-    def process_query(self, threshold: float = 0.0,
-                      iqr_model_b64: Optional[str] = None) -> Dict[str, Any]:
-        if not self._descriptors:
-            raise ValueError(
-                "No query descriptors available; run formulate_query first")
-
-        kvt = self._kvt
-        if not self._query_id:
-            self._formulation_count += 1
-            self._query_id = f"DIVE-QUERY-{self._formulation_count}"
-
-        query = kvt.DatabaseQuery()
-        query.id = kvt.UID(self._query_id)
-        query.type = kvt.query_type.SIMILARITY
-        query.threshold = threshold
-        query.descriptors = self._descriptors
-
-        if iqr_model_b64:
-            self._query_model = self._model_from_b64(iqr_model_b64)
-
-        self._send(database_query=query, iqr_model=self._query_model)
-        out = self._receive()
-
-        response = {"success": True}
-        response.update(self._capture_outputs(out))
-        return response
+    def process_query(self, descriptors: List[Any], threshold: float,
+                      model: Optional[Any]) -> Dict[str, Any]:
+        query = self.make_query(descriptors, threshold)
+        self._send(database_query=query, iqr_model=model)
+        return self.capture_outputs(self._receive())
 
     def refine(self, positive_ids: List[int],
                negative_ids: List[int]) -> Dict[str, Any]:
-        if not positive_ids and not negative_ids:
-            raise ValueError("No feedback provided")
-        if self._computed_model is None and not self._query_id:
-            raise ValueError("No active query to refine")
-
         kvt = self._kvt
         feedback = kvt.IQRFeedback()
-        feedback.query_id = kvt.UID(self._query_id)
+        feedback.query_id = kvt.UID(self.query_id)
         feedback.positive_ids = [int(i) for i in positive_ids]
         feedback.negative_ids = [int(i) for i in negative_ids]
+        self._send(iqr_feedback=feedback, iqr_model=self.computed_model)
+        return self.capture_outputs(self._receive())
 
-        self._send(iqr_feedback=feedback, iqr_model=self._computed_model)
-        out = self._receive()
+    @property
+    def feedback_count(self) -> int:
+        return len(self.cumulative_positive) + len(self.cumulative_negative)
 
-        response = {"success": True}
-        response.update(self._capture_outputs(out))
-        return response
-
-    def export_model(self, output_path: Optional[str] = None
-                     ) -> Dict[str, Any]:
-        if self._computed_model is None or not len(self._computed_model):
-            raise ValueError(
-                "No trained IQR model available; refine a query first")
-        model_bytes = bytes(bytearray(self._computed_model))
-        if output_path:
-            with open(output_path, "wb") as f:
-                f.write(model_bytes)
-            _log(f"Exported IQR model to {output_path}")
-        return {"success": True,
-                "model_b64": base64.b64encode(model_bytes).decode("ascii"),
-                "output_path": output_path}
-
-    def status(self) -> Dict[str, Any]:
-        return {
-            "success": True,
-            "index_open": True,
-            "index_dir": self.index_dir,
-            "descriptor_count": len(self._descriptors),
-            "query_id": self._query_id,
-            "model_available": self._computed_model is not None,
-        }
+    def reset_query_state(self) -> None:
+        self.computed_model = None
+        self.query_id = ""
+        self.cumulative_positive = []
+        self.cumulative_negative = []
 
     def close(self) -> None:
         try:
             self._pipeline.send_end_of_input()
-            # Drain remaining outputs so the pipeline can wind down
             while not self._pipeline.at_end():
                 ods = self._pipeline.receive()
                 if ods.is_end_of_data():
@@ -403,8 +467,63 @@ class QuerySession:
             self._pipeline.stop()
         except Exception:
             pass
-        PostgresInstance.stop()
+        self._postgres.stop()
         _log(f"Index closed: {self.index_dir}")
+
+
+def _uid_str(uid: Any) -> str:
+    try:
+        return uid.value()
+    except Exception:
+        return str(uid)
+
+
+def _serialize_result(qr: Any, session: int, index_dir: str,
+                      relevancy: Optional[float] = None) -> Dict[str, Any]:
+    result: Dict[str, Any] = {
+        "ref": f"{session}:{qr.instance_id}",
+        "session": session,
+        "index_dir": index_dir,
+        "instance_id": qr.instance_id,
+        "query_id": _uid_str(qr.query_id),
+        "stream_id": qr.stream_id,
+        "relevancy_score": (relevancy if relevancy is not None
+                            else qr.relevancy_score),
+        "start_frame": None,
+        "end_frame": None,
+        "tracks": [],
+    }
+    for key, ts in (("start_frame", qr.start_time()),
+                    ("end_frame", qr.end_time())):
+        try:
+            if ts is not None and ts.has_valid_frame():
+                result[key] = ts.get_frame()
+        except Exception:
+            pass
+    track_set = qr.tracks
+    if track_set is not None:
+        for track in track_set.tracks():
+            states = []
+            for state in track:
+                entry = {"frame": state.frame_id}
+                detection = getattr(state, "detection", None)
+                detection = detection() if callable(detection) else None
+                if detection is not None:
+                    box = detection.bounding_box
+                    entry["bbox"] = [box.min_x(), box.min_y(),
+                                     box.max_x(), box.max_y()]
+                states.append(entry)
+            result["tracks"].append({"id": track.id, "states": states})
+    return result
+
+
+def _parse_ref(ref: Any) -> Tuple[int, int]:
+    """Parse a result reference: "<session>:<instance_id>" or a bare
+    instance id (session 0, single-index compatibility)."""
+    if isinstance(ref, str) and ":" in ref:
+        session, instance = ref.split(":", 1)
+        return int(session), int(instance)
+    return 0, int(ref)
 
 
 # --------------------------------------------------------------------------
@@ -414,7 +533,8 @@ class QueryService:
     def __init__(self, pipeline_file: Optional[str],
                  protocol_out: Optional[Any] = None):
         self._pipeline_file = pipeline_file
-        self._session: Optional[QuerySession] = None
+        self._sessions: List[QuerySession] = []
+        self._descriptors: List[Any] = []
         self._protocol_out = protocol_out if protocol_out is not None else sys.stdout
 
     def _resolve_pipeline_file(self, override: Optional[str]) -> str:
@@ -431,45 +551,263 @@ class QueryService:
             "Unable to locate query_retrieval_and_iqr.pipe; pass "
             "--pipeline-file or set VIAME_INSTALL")
 
+    # ----------------------------------------------------------- federation
+    def _close_all(self) -> None:
+        for session in reversed(self._sessions):
+            try:
+                session.close()
+            except Exception as e:
+                _log(f"Error closing {session.index_dir}: {e}")
+        self._sessions = []
+        self._descriptors = []
+
+    def _open(self, index_dirs: List[str],
+              pipeline_override: Optional[str]) -> Dict[str, Any]:
+        self._close_all()
+        pipeline_file = self._resolve_pipeline_file(pipeline_override)
+        opened: List[str] = []
+        try:
+            for i, index_dir in enumerate(index_dirs):
+                avoid_ports = [s.port for s in self._sessions]
+                self._sessions.append(QuerySession(
+                    index_dir, primary=(i == 0),
+                    pipeline_file=pipeline_file, avoid_ports=avoid_ports))
+                opened.append(os.path.abspath(index_dir))
+        except Exception:
+            self._close_all()
+            raise
+        return {"success": True, "index_dirs": opened}
+
+    def _merge(self, per_session: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Merge per-session raw outputs into one ranked response."""
+        results: List[Dict[str, Any]] = []
+        feedback: List[Dict[str, Any]] = []
+        model_available = False
+        for i, response in enumerate(per_session):
+            if response is None:
+                continue
+            index_dir = self._sessions[i].index_dir
+            for qr in response.get("results", []):
+                results.append(_serialize_result(qr, i, index_dir))
+            for qr in response.get("feedback_requests", []):
+                feedback.append(_serialize_result(qr, i, index_dir))
+            if response.get("model_available"):
+                model_available = True
+        results.sort(key=lambda r: -r["relevancy_score"])
+        merged: Dict[str, Any] = {
+            "success": True,
+            "results": results[:MERGED_RESULT_LIMIT],
+        }
+        if feedback:
+            merged["feedback_requests"] = feedback
+        if model_available:
+            merged["model_available"] = True
+        return merged
+
+    def _canonical_session(self) -> Optional[QuerySession]:
+        """The session whose model is broadcast to feedback-less sessions:
+        the one with the most accumulated adjudications and a model."""
+        best = None
+        for session in self._sessions:
+            if session.computed_model is None:
+                continue
+            if best is None or session.feedback_count > best.feedback_count:
+                best = session
+        return best
+
+    # ------------------------------------------------------------- commands
+    def _formulate_query(self, image_path: str,
+                         boxes: Optional[List[List[float]]]) -> Dict[str, Any]:
+        if not os.path.exists(image_path):
+            raise ValueError(f"Exemplar image not found: {image_path}")
+
+        for session in self._sessions:
+            session.reset_query_state()
+
+        primary = self._sessions[0]
+        primary_out = primary.formulate(image_path, boxes)
+        self._descriptors = primary_out.pop("descriptors")
+
+        per_session: List[Optional[Dict[str, Any]]] = [primary_out]
+        # The primary auto-ran the query when boxes were provided; if not,
+        # every session (primary included) runs it explicitly below.
+        if "results" not in primary_out:
+            per_session[0] = primary.process_query(self._descriptors, 0.0, None)
+        for session in self._sessions[1:]:
+            per_session.append(
+                session.process_query(self._descriptors, 0.0, None))
+
+        merged = self._merge(per_session)
+        merged["descriptor_count"] = len(self._descriptors)
+        return merged
+
+    def _process_query(self, threshold: float,
+                       iqr_model_b64: Optional[str]) -> Dict[str, Any]:
+        if not self._descriptors:
+            raise ValueError(
+                "No query descriptors available; run formulate_query first")
+        model = None
+        if iqr_model_b64:
+            model = self._model_from_b64(iqr_model_b64)
+        per_session = [
+            session.process_query(self._descriptors, threshold, model)
+            for session in self._sessions]
+        return self._merge(per_session)
+
+    def _refine(self, positive_refs: List[Any],
+                negative_refs: List[Any]) -> Dict[str, Any]:
+        if not positive_refs and not negative_refs:
+            raise ValueError("No feedback provided")
+
+        positives: Dict[int, List[int]] = {}
+        negatives: Dict[int, List[int]] = {}
+        for ref in positive_refs:
+            session, instance = _parse_ref(ref)
+            positives.setdefault(session, []).append(instance)
+        for ref in negative_refs:
+            session, instance = _parse_ref(ref)
+            negatives.setdefault(session, []).append(instance)
+
+        for idx in list(positives) + list(negatives):
+            if idx < 0 or idx >= len(self._sessions):
+                raise ValueError(f"Unknown session in feedback ref: {idx}")
+
+        per_session: List[Optional[Dict[str, Any]]] = [None] * len(self._sessions)
+
+        # Sessions receiving feedback (new this round, or resent cumulative
+        # so re-ranking stays consistent) refine with their own model.
+        for i, session in enumerate(self._sessions):
+            new_pos = positives.get(i, [])
+            new_neg = negatives.get(i, [])
+            session.cumulative_positive.extend(
+                p for p in new_pos if p not in session.cumulative_positive)
+            session.cumulative_negative.extend(
+                n for n in new_neg if n not in session.cumulative_negative)
+            if session.feedback_count > 0:
+                per_session[i] = session.refine(
+                    session.cumulative_positive, session.cumulative_negative)
+
+        # Sessions with no feedback at all are re-scored with the canonical
+        # model so their results stay comparable with adjudicated sessions.
+        canonical = self._canonical_session()
+        for i, session in enumerate(self._sessions):
+            if per_session[i] is None:
+                model = canonical.computed_model if canonical else None
+                per_session[i] = session.process_query(
+                    self._descriptors, 0.0, model)
+
+        return self._merge(per_session)
+
+    def _export_model(self, output_path: Optional[str]) -> Dict[str, Any]:
+        canonical = self._canonical_session()
+        if canonical is None or canonical.computed_model is None:
+            raise ValueError(
+                "No trained IQR model available; refine a query first")
+        model_bytes = bytes(bytearray(canonical.computed_model))
+        if output_path:
+            with open(output_path, "wb") as f:
+                f.write(model_bytes)
+            _log(f"Exported IQR model to {output_path}")
+        return {"success": True,
+                "model_b64": base64.b64encode(model_bytes).decode("ascii"),
+                "output_path": output_path}
+
+    def _model_from_b64(self, model_b64: str) -> Any:
+        from kwiver.sprokit.adapters import adapter_data_set
+        return adapter_data_set.VectorUChar(
+            list(base64.b64decode(model_b64.encode("ascii"))))
+
+    def _remove_streams(self, index_dir: str,
+                        streams: List[str]) -> Dict[str, Any]:
+        """Delete all database rows for the given stream identifiers. Runs
+        against the open session's postgres when the index is open (the
+        session set is then closed, since in-memory descriptor indexes still
+        hold the removed vectors); otherwise a temporary postgres instance
+        is started (or adopted) and stopped again."""
+        index_dir = os.path.abspath(index_dir)
+        if not streams:
+            return {"success": True, "closed_session": False}
+
+        open_session = next(
+            (s for s in self._sessions if s.index_dir == index_dir), None)
+        temp_pg: Optional[PostgresInstance] = None
+        if open_session is not None:
+            port = open_session.port
+        else:
+            temp_pg = PostgresInstance(index_dir)
+            port = temp_pg.ensure_started(
+                [s.port for s in self._sessions])
+
+        sql = "\n".join(
+            REMOVE_STREAM_SQL.format(stream=_sql_literal(s)) for s in streams)
+        try:
+            result = subprocess.run(
+                [_exe("psql"), "-h", "localhost", "-p", str(port),
+                 "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-c", sql],
+                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            if result.returncode != 0:
+                raise RuntimeError(
+                    f"Stream removal failed: {result.stdout}")
+        finally:
+            # Only stop a server this call started itself
+            if temp_pg is not None and not temp_pg.adopted:
+                temp_pg.stop()
+
+        closed = False
+        if open_session is not None:
+            # The open sessions cached descriptors in memory; close so the
+            # next query reopens against the pruned database.
+            self._close_all()
+            closed = True
+        _log(f"Removed streams {streams} from {index_dir}")
+        return {"success": True, "closed_session": closed}
+
+    def _status(self) -> Dict[str, Any]:
+        return {
+            "success": True,
+            "index_open": bool(self._sessions),
+            "index_dirs": [s.index_dir for s in self._sessions],
+            "descriptor_count": len(self._descriptors),
+            "model_available": any(
+                s.computed_model is not None for s in self._sessions),
+        }
+
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         command = request.get("command")
 
         if command == "open_index":
-            if self._session is not None:
-                self._session.close()
-                self._session = None
-            self._session = QuerySession(
-                request["index_dir"],
-                self._resolve_pipeline_file(request.get("pipeline_file")))
-            return {"success": True, "index_dir": self._session.index_dir}
+            dirs = request.get("index_dirs")
+            if not dirs:
+                dirs = [request["index_dir"]]
+            return self._open(dirs, request.get("pipeline_file"))
 
         if command == "close_index":
-            if self._session is not None:
-                self._session.close()
-                self._session = None
+            self._close_all()
             return {"success": True}
 
-        if command == "status":
-            if self._session is None:
-                return {"success": True, "index_open": False}
-            return self._session.status()
+        if command == "remove_streams":
+            return self._remove_streams(
+                request["index_dir"], request["streams"])
 
-        if self._session is None:
+        if command == "status":
+            return self._status()
+
+        if not self._sessions:
             raise ValueError(f"No index open (required for '{command}')")
 
         if command == "formulate_query":
-            return self._session.formulate_query(
+            return self._formulate_query(
                 request["image_path"], request.get("boxes"))
         if command == "process_query":
-            return self._session.process_query(
+            return self._process_query(
                 threshold=request.get("threshold", 0.0),
                 iqr_model_b64=request.get("iqr_model_b64"))
         if command == "refine":
-            return self._session.refine(
+            return self._refine(
                 request.get("positive_ids", []),
                 request.get("negative_ids", []))
         if command == "export_model":
-            return self._session.export_model(request.get("output_path"))
+            return self._export_model(request.get("output_path"))
 
         raise ValueError(f"Unknown command: {command}")
 
@@ -488,9 +826,7 @@ class QueryService:
 
                 if request.get("command") == "shutdown":
                     _log("Shutdown requested")
-                    if self._session is not None:
-                        self._session.close()
-                        self._session = None
+                    self._close_all()
                     self._respond({"id": request_id, "success": True,
                                    "message": "Shutting down"})
                     break
@@ -509,14 +845,12 @@ class QueryService:
                 self._respond({"id": request_id, "success": False,
                                "error": str(e)})
 
-        # Always release the pipeline + postgres on exit (including stdin EOF
-        # when the parent process dies without sending shutdown).
-        if self._session is not None:
-            try:
-                self._session.close()
-            except Exception:
-                pass
-            self._session = None
+        # Always release the pipelines + postgres on exit (including stdin
+        # EOF when the parent process dies without sending shutdown).
+        try:
+            self._close_all()
+        except Exception:
+            pass
         _log("Service shutting down")
 
     def _respond(self, response: Dict[str, Any]) -> None:
