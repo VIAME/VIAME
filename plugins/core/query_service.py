@@ -54,12 +54,16 @@ Usage:
 
 import argparse
 import base64
+import faulthandler
 import json
 import os
 import subprocess
 import sys
 import time
 from typing import Any, Dict, List, Optional
+
+# Native pipeline code runs in-process; make hard crashes debuggable.
+faulthandler.enable(file=sys.stderr)
 
 
 def _log(message: str) -> None:
@@ -177,7 +181,10 @@ class QuerySession:
 
         _log(f"Building query pipeline from {pipeline_file}")
         self._pipeline = embedded_pipeline.EmbeddedPipeline()
-        self._pipeline.build_pipeline(pipeline_file)
+        # def_dir anchors `relativepath` config entries (e.g. the inner
+        # query_and_iqr.pipe) to the pipe file rather than the CWD.
+        self._pipeline.build_pipeline(
+            pipeline_file, os.path.dirname(pipeline_file))
         self._pipeline.start()
         _log(f"Index opened: {self.index_dir}")
 
@@ -404,9 +411,11 @@ class QuerySession:
 # Service loop
 # --------------------------------------------------------------------------
 class QueryService:
-    def __init__(self, pipeline_file: Optional[str]):
+    def __init__(self, pipeline_file: Optional[str],
+                 protocol_out: Optional[Any] = None):
         self._pipeline_file = pipeline_file
         self._session: Optional[QuerySession] = None
+        self._protocol_out = protocol_out if protocol_out is not None else sys.stdout
 
     def _resolve_pipeline_file(self, override: Optional[str]) -> str:
         candidates = [override, self._pipeline_file]
@@ -510,9 +519,9 @@ class QueryService:
             self._session = None
         _log("Service shutting down")
 
-    @staticmethod
-    def _respond(response: Dict[str, Any]) -> None:
-        print(json.dumps(response), flush=True)
+    def _respond(self, response: Dict[str, Any]) -> None:
+        self._protocol_out.write(json.dumps(response) + "\n")
+        self._protocol_out.flush()
 
 
 def main():
@@ -536,7 +545,15 @@ def main():
     if args.viame_path:
         os.environ["VIAME_INSTALL"] = args.viame_path
 
-    service = QueryService(args.pipeline_file)
+    # Reserve the real stdout for the NDJSON protocol and route every other
+    # stdout writer -- including C/C++ pipeline code and plugin loaders that
+    # print below the Python layer -- to stderr, so stray output can never
+    # corrupt the protocol stream.
+    protocol_out = os.fdopen(os.dup(sys.stdout.fileno()), "w")
+    os.dup2(sys.stderr.fileno(), sys.stdout.fileno())
+    sys.stdout = sys.stderr
+
+    service = QueryService(args.pipeline_file, protocol_out)
     try:
         service.run()
     except KeyboardInterrupt:
