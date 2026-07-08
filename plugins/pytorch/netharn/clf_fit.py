@@ -631,10 +631,7 @@ def setup_harn(cmdline=True, **kw):
             _dset.input_id
         ]
 
-        try:
-            cacher = ub.Cacher('dset_mean', cfgstr=ub.hash_data(depends) + 'v4')
-        except Exception:
-            cacher = ub.Cacher('dset_mean', depends=depends + 'v4')
+        cacher = ub.Cacher('dset_mean', depends=[*depends, 'v4'])
         input_stats = cacher.tryload()
 
         if input_stats is None:
