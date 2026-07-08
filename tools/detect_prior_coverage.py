@@ -1062,6 +1062,14 @@ def main():
                          "'sift' = keypoint-count heuristic (no models, but "
                          "textured water reads as land); 'auto' = SVM when "
                          "available else SIFT (default)")
+    ap.add_argument('--sfm-matching', choices=['auto', 'sequential',
+                                               'exhaustive'], default='auto',
+                    help="Feature-matching strategy for --method sfm-rig. "
+                         "'auto' = sequential + GPS-spatial pairing (falls "
+                         "back to exhaustive only without GPS on small sites); "
+                         "'exhaustive' = all-pairs (finds loop closures with "
+                         "no GPS, but O(n^2) and riskier over water); "
+                         "'sequential' = neighbours only")
     ap.add_argument('--coverage-class', default='prior_coverage',
                     help='Class-name prefix for CSV rows')
     ap.add_argument('--window', type=int, default=8,

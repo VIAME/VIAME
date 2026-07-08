@@ -201,25 +201,40 @@ def run(args):
         if n_priors:
             print(f'  Wrote {n_priors} GPS pose priors')
 
-        print('  Matching (sequential)...')
-        pairing = pycolmap.SequentialPairingOptions()
-        pairing.overlap = 10
-        pairing.quadratic_overlap = True
-        pairing.expand_rig_images = True
-        pycolmap.match_sequential(db_path, pairing_options=pairing)
-        if n_priors >= 4:
-            # Spatial matching pairs images by GPS proximity - the ONLY
-            # matcher that connects revisits/crossing passes hundreds of
-            # triggers apart (sequential pairing never sees them).
-            print('  Matching (spatial, GPS-prior based)...')
-            try:
-                spatial = pycolmap.SpatialPairingOptions()
-                spatial.max_distance = 150.0   # ~footprint radius (m)
-                spatial.max_num_neighbors = 24
-                spatial.ignore_z = True
-                pycolmap.match_spatial(db_path, pairing_options=spatial)
-            except (RuntimeError, ValueError) as e:
-                print(f'    spatial matching unavailable ({e})')
+        # Matching strategy. With GPS, sequential + spatial (GPS-proximity)
+        # pairing already finds every loop-closure / crossing-pass pair that
+        # exhaustive would, at O(n*k) instead of O(n^2) cost and without the
+        # far-apart water pairs that risk false matches. Exhaustive is worth
+        # it only WITHOUT GPS (no spatial pairing to catch revisits) and on
+        # small sites.
+        n_imgs = len(name_map)
+        matching = getattr(args, 'sfm_matching', 'auto')
+        use_exhaustive = (matching == 'exhaustive'
+                          or (matching == 'auto' and n_priors < 4
+                              and n_imgs <= 300))
+        if use_exhaustive:
+            print(f'  Matching (exhaustive, {n_imgs} images)...')
+            pycolmap.match_exhaustive(db_path)
+        else:
+            print('  Matching (sequential)...')
+            pairing = pycolmap.SequentialPairingOptions()
+            pairing.overlap = 10
+            pairing.quadratic_overlap = True
+            pairing.expand_rig_images = True
+            pycolmap.match_sequential(db_path, pairing_options=pairing)
+            if n_priors >= 4 and matching != 'sequential':
+                # Spatial matching pairs images by GPS proximity - the ONLY
+                # matcher that connects revisits/crossing passes hundreds of
+                # triggers apart (sequential pairing never sees them).
+                print('  Matching (spatial, GPS-prior based)...')
+                try:
+                    spatial = pycolmap.SpatialPairingOptions()
+                    spatial.max_distance = 150.0   # ~footprint radius (m)
+                    spatial.max_num_neighbors = 24
+                    spatial.ignore_z = True
+                    pycolmap.match_spatial(db_path, pairing_options=spatial)
+                except (RuntimeError, ValueError) as e:
+                    print(f'    spatial matching unavailable ({e})')
 
         sparse_dir = os.path.join(work, 'sparse')
         os.makedirs(sparse_dir, exist_ok=True)
