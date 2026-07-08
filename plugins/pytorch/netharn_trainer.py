@@ -173,6 +173,7 @@ class NetHarnTrainer( TrainDetector ):
         self._chip_expansion = float( cfg.get_value( "chip_expansion" ) )
         self._max_epochs = str( cfg.get_value( "max_epochs" ) )
         self._batch_size = str( cfg.get_value( "batch_size" ) )
+        self._learning_rate = str( cfg.get_value( "learning_rate" ) )
         self._bstep = str( cfg.get_value( "bstep" ) )
         self._scheduler = str( cfg.get_value( "scheduler" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
