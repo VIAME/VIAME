@@ -115,6 +115,20 @@ class RFDETRDetector(ImageObjectDetector):
             # Load trained weights
             checkpoint = torch.load(weight_fpath, map_location=device, weights_only=False)
 
+            # Recover the raw model state dict. Deployed checkpoints store it
+            # under 'model', but a native PyTorch Lightning checkpoint (last.ckpt
+            # or an interval checkpoint_epoch=N.ckpt) instead nests the weights
+            # under 'state_dict' with a 'model.' prefix; unwrap that so those
+            # files load too instead of failing on the extra bookkeeping keys.
+            if 'model' in checkpoint:
+                state_dict = checkpoint['model']
+            elif 'state_dict' in checkpoint:
+                state_dict = {k[len('model.'):]: v
+                              for k, v in checkpoint['state_dict'].items()
+                              if k.startswith('model.')}
+            else:
+                state_dict = checkpoint
+
             # Determine the actual class_embed dimension from weights.
             # RF-DETR's build_model adds +1 to num_classes for a background
             # class, but reinitialize_detection_head and the training loop
@@ -122,7 +136,6 @@ class RFDETRDetector(ImageObjectDetector):
             # read the true dimension from the checkpoint weights and call
             # reinitialize_detection_head to make the model match before
             # loading the state dict (mirroring RF-DETR's own loading path).
-            state_dict = checkpoint.get('model', checkpoint)
             if 'class_embed.weight' in state_dict:
                 ckpt_num_classes = state_dict['class_embed.weight'].shape[0]
             elif 'args' in checkpoint and 'num_classes' in checkpoint['args']:
@@ -161,10 +174,7 @@ class RFDETRDetector(ImageObjectDetector):
             self._model.model.reinitialize_detection_head(ckpt_num_classes)
 
             # Load the state dict
-            if 'model' in checkpoint:
-                self._model.model.model.load_state_dict(checkpoint['model'])
-            else:
-                self._model.model.model.load_state_dict(checkpoint)
+            self._model.model.model.load_state_dict(state_dict)
 
             if self._classes:
                 self._model.model.class_names = self._classes
