@@ -15,6 +15,8 @@ if( VIAME_ENABLE_PYTORCH-LEARN )
   add_subdirectory( learn )
 endif()
 
+add_subdirectory( minima_loftr )
+
 add_subdirectory( srnn )
 
 kwiver_add_python_module(
