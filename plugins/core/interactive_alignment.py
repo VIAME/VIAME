@@ -240,6 +240,34 @@ class InteractiveAlignmentService:
         self._log(f"Alignment model ready in {time.time() - start:.1f}s")
         return self._model
 
+    def unload(self) -> Dict[str, Any]:
+        """Drop the matcher model and release its device memory.
+
+        The host service calls this when a competing feature (segmentation or
+        stereo) is about to use its own model, so the ~44 MB matcher (plus
+        whatever CUDA/MPS cache it held) yields its device memory rather than
+        sitting resident alongside them. The model reloads lazily on the next
+        ``auto_align``. A no-op when nothing is loaded."""
+        was_loaded = self._model is not None
+        self._model = None
+        if was_loaded:
+            import gc
+            gc.collect()
+            # Return the freed allocations to the driver so other backends
+            # (segmentation/stereo) can actually reuse the VRAM, not just this
+            # process's caching allocator.
+            try:
+                import torch
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                mps = getattr(torch.backends, "mps", None)
+                if mps is not None and mps.is_available():
+                    torch.mps.empty_cache()
+            except Exception:
+                pass
+            self._log("Alignment model unloaded")
+        return {"success": True, "unloaded": was_loaded}
+
     # ------------------------------------------------------------- matching
     @staticmethod
     def _to_match_tensor(gray: np.ndarray, device: str):
