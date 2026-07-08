@@ -620,8 +620,12 @@ class XPU(ub.NiceRepr):
             >>> assert all(data == loaded)
         """
         # print('Loading data onto {} from {}'.format(xpu, fpath))
+        # weights_only=False: netharn snapshots embed non-tensor objects (numpy
+        # scalars in the monitor metrics, etc.) that torch>=2.6's weights_only=True
+        # default rejects. These are our own trusted checkpoints.
         try:
-            return torch.load(fpath, map_location=xpu._map_location)
+            return torch.load(fpath, map_location=xpu._map_location,
+                              weights_only=False)
         except Exception:
             print('XPU={} Failed to load fpath={}'.format(xpu, fpath))
             raise
