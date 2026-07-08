@@ -67,6 +67,7 @@ class NetHarnTrainer( TrainDetector ):
         self._scheduler = "auto"
         self._timeout = "1209600"
         self._epoch_ignore_count = "2"
+        self._train_workers = "4"
         self._backbone = ""
         self._pipeline_template = ""
         self._categories = []
@@ -122,6 +123,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "scheduler", self._scheduler )
         cfg.set_value( "timeout", self._timeout )
         cfg.set_value( "epoch_ignore_count", self._epoch_ignore_count )
+        cfg.set_value( "train_workers", self._train_workers )
         cfg.set_value( "backbone", self._backbone )
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "max_scale_wrt_chip", str( self._max_scale_wrt_chip ) )
@@ -175,6 +177,7 @@ class NetHarnTrainer( TrainDetector ):
         self._scheduler = str( cfg.get_value( "scheduler" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
         self._epoch_ignore_count = str( cfg.get_value( "epoch_ignore_count" ) )
+        self._train_workers = str( cfg.get_value( "train_workers" ) )
         self._backbone = str( cfg.get_value( "backbone" ) )
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._max_scale_wrt_chip = float( cfg.get_value( "max_scale_wrt_chip" ) )
@@ -809,7 +812,7 @@ class NetHarnTrainer( TrainDetector ):
                  "--xpu=" + gpu_string,
                  "--schedule=" + self._scheduler,
                  "--ignore_first_epochs=" + self._epoch_ignore_count,
-                 "--workers=4",
+                 "--workers=" + self._train_workers,
                  "--normalize_inputs=True",
                  "--init=noop",
                  "--optim=sgd",
