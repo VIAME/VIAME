@@ -164,15 +164,25 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             self._training_writer.complete()
             self._validation_writer.complete()
 
-            # hack, need to fixup the writers
+            # conforming kwcoco train and val datasets and set categories to the input KWCOCO instead of kwiver `CategoryHierarchy`
             import kwcoco
-            paths_to_fix = [self._training_file, self._validation_file]
-            for fpath in paths_to_fix:
-                fpath = ub.Path(fpath)
-                if fpath.exists():
-                    dset = kwcoco.CocoDataset(fpath)
-                    dset.conform()
-                    dset.dump()
+            train_fpath = ub.Path(self._training_file)
+            if train_fpath.exists():
+                train_dset = kwcoco.CocoDataset(train_fpath)
+                train_dset.conform()
+                train_dset.dump()
+                print(f"[MITYoloTrainer] Conforming training dataset")
+
+                kwcoco_cats = train_dset.dataset.get('categories', [])
+                self._categories = [cat['name'] for cat in kwcoco_cats]
+                print(f"[MITYoloTrainer] Aligned categories from conformed KWCOCO: {self._categories}")
+
+                val_fpath = ub.Path(self._validation_file)
+                if val_fpath.exists():
+                    val_dset = kwcoco.CocoDataset(val_fpath)
+                    val_dset.conform()
+                    val_dset.dump()
+                    print("[MITYoloTrainer] Conforming validation dataset")
 
     def check_configuration( self, cfg ):
         if not cfg.has_value( "identifier" ) or len( cfg.get_value( "identifier") ) == 0:
