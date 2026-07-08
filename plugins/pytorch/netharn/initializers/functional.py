@@ -812,10 +812,17 @@ def maximum_common_ordered_subpaths(paths1, paths2, sep='.', mode='embedding'):
         >>> mapping = ub.dzip(subpaths1, subpaths2)
         >>> print('mapping = {}'.format(ub.urepr(mapping, nl=1)))
     """
-    ub.schedule_deprecation(
-        'netharn', 'maximum_common_ordered_subpaths', 'function',
-        migration='use torch_liberator.initializer.maximum_common_ordered_subpaths instead',
-        deprecate='now',
-    )
+    # The deprecation warning below crashes under ubelt >=1.3 (it looks up the
+    # 'netharn' module for a version, but netharn is vendored here as
+    # viame.pytorch.netharn and is not importable by that name). Guard it; the
+    # real work is delegated to torch_liberator regardless.
+    try:
+        ub.schedule_deprecation(
+            'netharn', 'maximum_common_ordered_subpaths', 'function',
+            migration='use torch_liberator.initializer.maximum_common_ordered_subpaths instead',
+            deprecate='now',
+        )
+    except Exception:
+        pass
     from torch_liberator.initializer import maximum_common_ordered_subpaths
     return maximum_common_ordered_subpaths(paths1, paths2, sep)
