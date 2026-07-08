@@ -79,6 +79,10 @@ class NetHarnTrainer( TrainDetector ):
         self._area_upper_bound = 0
         self._border_exclude = -1
         self._detector_model = ""
+        self._detector_type = "netharn"
+        self._detector_config = ""
+        self._detector_config_file = ""
+        self._detector = None
         self._min_overlap_for_association = 0.90
         self._max_overlap_for_negative = 0.05
         self._max_neg_per_frame = 5
@@ -127,6 +131,9 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "area_upper_bound", str( self._area_upper_bound ) )
         cfg.set_value( "border_exclude", str( self._border_exclude ) )
         cfg.set_value( "detector_model", str( self._detector_model ) )
+        cfg.set_value( "detector_type", self._detector_type )
+        cfg.set_value( "detector_config", self._detector_config )
+        cfg.set_value( "detector_config_file", self._detector_config_file )
         cfg.set_value( "max_neg_per_frame", str( self._max_neg_per_frame ) )
         cfg.set_value( "negative_category", self._negative_category )
         cfg.set_value( "reduce_category", self._reduce_category )
@@ -176,6 +183,9 @@ class NetHarnTrainer( TrainDetector ):
         self._area_upper_bound = float( cfg.get_value( "area_upper_bound" ) )
         self._border_exclude = float( cfg.get_value( "border_exclude" ) )
         self._detector_model = str( cfg.get_value( "detector_model" ) )
+        self._detector_type = str( cfg.get_value( "detector_type" ) )
+        self._detector_config = str( cfg.get_value( "detector_config" ) )
+        self._detector_config_file = str( cfg.get_value( "detector_config_file" ) )
         self._max_neg_per_frame = float( cfg.get_value( "max_neg_per_frame" ) )
         self._negative_category = str( cfg.get_value( "negative_category" ) )
         self._reduce_category = str( cfg.get_value( "reduce_category" ) )
@@ -281,11 +291,38 @@ class NetHarnTrainer( TrainDetector ):
         if self._mode == "detection_refiner" and not os.path.exists( self._chip_directory ):
             os.mkdir( self._chip_directory )
 
-        # Load object detector if enabled
-        if self._detector_model:
-            self._detector = ImageObjectDetector.create( "netharn" )
+        # Load object detector if enabled. Two ways to specify it:
+        #   * detector_config_file = a standalone .conf with a full "detector:*"
+        #     nested-algorithm block (any detector type, e.g. a windowed RF-DETR);
+        #   * detector_model (+ detector_type / detector_config) for the simple
+        #     single-detector case (detector_type defaults to "netharn").
+        if self._detector_config_file:
+            from kwiver.vital.config import read_config_file
+            det_cfg = read_config_file( self._detector_config_file )
+            self._detector = ImageObjectDetector.set_nested_algo_configuration(
+                "detector", det_cfg )
+            if self._detector is None:
+                print( "Unable to configure detector from " +
+                       self._detector_config_file )
+                return False
+        elif self._detector_model:
+            self._detector = ImageObjectDetector.create( self._detector_type )
             detector_config = self._detector.get_configuration()
-            detector_config.set_value( "deployed", self._detector_model )
+            # Point the detector at the model file using whichever key the
+            # selected implementation exposes (netharn: "deployed",
+            # rf_detr: "weight").
+            for model_key in ( "deployed", "weight", "net_config", "model_file" ):
+                if detector_config.has_value( model_key ):
+                    detector_config.set_value( model_key, self._detector_model )
+                    break
+            # Apply any extra "key=value;key=value" detector settings (e.g. the
+            # rf_detr model_size / resolution / segmentation / threshold).
+            if self._detector_config:
+                for pair in self._detector_config.split( ";" ):
+                    pair = pair.strip()
+                    if "=" in pair:
+                        key, value = pair.split( "=", 1 )
+                        detector_config.set_value( key.strip(), value.strip() )
             if not self._detector.set_configuration( detector_config ):
                 print( "Unable to configure detector" )
                 return False
@@ -415,7 +452,7 @@ class NetHarnTrainer( TrainDetector ):
                     img = cv2.resize( img, ( img_max_x, img_max_y ) )
 
                 # Run optional background detector on data
-                if self._detector_model:
+                if self._detector is not None:
                     kw_image = Image( img )
                     kw_image_container = ImageContainer( kw_image )
                     detections = self._detector.detect( kw_image_container )
@@ -647,7 +684,7 @@ class NetHarnTrainer( TrainDetector ):
             print( "Error: train file and groundtruth count mismatch" )
             return
         if categories is not None:
-            if self._detector_model and not categories.has_class_name( self._negative_category ):
+            if self._detector is not None and not categories.has_class_name( self._negative_category ):
                 categories.add_class( self._negative_category, "", -1 )
             self._categories = categories.all_class_names()
         if self._mode == "detection_refiner":
