@@ -539,7 +539,38 @@ def ensure_rfdetr_compatibility():
     Safe to call multiple times; the patch is only applied once.
     """
     import torch
+    import transformers
     import transformers.pytorch_utils as _pt_utils
+
+    # RF-DETR (built for transformers 5.x) imports BackboneConfigMixin /
+    # BackboneMixin from the top-level ``transformers`` namespace. Under
+    # transformers 4.x these live in ``transformers.utils.backbone_utils``;
+    # re-export them so ``import rfdetr`` succeeds. Idempotent.
+    if not hasattr(transformers, 'BackboneConfigMixin') or \
+       not hasattr(transformers, 'BackboneMixin'):
+        try:
+            from transformers.utils.backbone_utils import (
+                BackboneConfigMixin, BackboneMixin)
+            transformers.BackboneConfigMixin = BackboneConfigMixin
+            transformers.BackboneMixin = BackboneMixin
+        except Exception:
+            pass
+
+    # transformers 5.x calls BackboneMixin._init_transformers_backbone(self)
+    # and reads self.config; the 4.x version requires config as an argument,
+    # while RF-DETR calls it with none. Wrap it to default to self.config.
+    try:
+        from transformers.utils.backbone_utils import BackboneMixin as _BBMixin
+        _init_bb = _BBMixin._init_transformers_backbone
+        if not getattr(_init_bb, '_viame_optional_config', False):
+            def _init_transformers_backbone(self, config=None, _orig=_init_bb):
+                if config is None:
+                    config = self.config
+                return _orig(self, config)
+            _init_transformers_backbone._viame_optional_config = True
+            _BBMixin._init_transformers_backbone = _init_transformers_backbone
+    except Exception:
+        pass
 
     if hasattr(_pt_utils, 'find_pruneable_heads_and_indices'):
         return

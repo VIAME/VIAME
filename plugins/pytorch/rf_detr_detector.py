@@ -35,6 +35,10 @@ class RFDETRDetectorConfig(scfg.DataConfig):
     device = scfg.Value('auto', help='Device to run on: auto, cpu, cuda, or cuda:N')
     threshold = scfg.Value(0.5, help='Detection confidence threshold')
     optimize_inference = scfg.Value(True, help='Whether to optimize model for inference')
+    segmentation = scfg.Value(False, help=(
+        'Load a segmentation (mask) RF-DETR variant (RFDETRSeg*) instead of the '
+        'box-only variant. Must match how the checkpoint was trained, otherwise '
+        'the segmentation-head weights will not load.'))
 
     def __post_init__(self):
         super().__post_init__()
@@ -81,23 +85,28 @@ class RFDETRDetector(ImageObjectDetector):
         optimize = parse_bool(self._kwiver_config['optimize_inference'])
         num_channels = int(self._kwiver_config['num_channels'])
         resolution = int(self._kwiver_config['resolution'])
+        segmentation = parse_bool(self._kwiver_config['segmentation'])
 
         ensure_rfdetr_compatibility()
 
-        # Import the appropriate RF-DETR model class based on size
-        if model_size == 'nano':
-            from rfdetr import RFDETRNano as RFDETRModel
-        elif model_size == 'small':
-            from rfdetr import RFDETRSmall as RFDETRModel
-        elif model_size == 'medium':
-            from rfdetr import RFDETRMedium as RFDETRModel
-        elif model_size == 'base':
-            from rfdetr import RFDETRBase as RFDETRModel
-        elif model_size == 'large':
-            from rfdetr import RFDETRLarge as RFDETRModel
-        else:
-            raise ValueError(f"Unknown model size: {model_size}. "
-                           f"Expected: nano, small, medium, base, or large")
+        # Import the appropriate RF-DETR model class based on size and whether a
+        # segmentation (mask) head is present. Seg checkpoints carry extra
+        # segmentation_head.* weights that only load into the RFDETRSeg* classes.
+        import rfdetr
+        det_models = {
+            'nano': 'RFDETRNano', 'small': 'RFDETRSmall', 'medium': 'RFDETRMedium',
+            'base': 'RFDETRBase', 'large': 'RFDETRLarge',
+        }
+        seg_models = {
+            'nano': 'RFDETRSegNano', 'small': 'RFDETRSegSmall',
+            'medium': 'RFDETRSegMedium', 'large': 'RFDETRSegLarge',
+        }
+        table = seg_models if segmentation else det_models
+        if model_size not in table:
+            kind = 'segmentation' if segmentation else 'detection'
+            raise ValueError(f"Unknown {kind} model size: {model_size}. "
+                           f"Expected one of: {', '.join(table)}")
+        RFDETRModel = getattr(rfdetr, table[model_size])
 
         # Load model
         print(f"[RFDETRDetector] Loading {model_size} model on {device}")
