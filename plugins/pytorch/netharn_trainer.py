@@ -82,7 +82,9 @@ class NetHarnTrainer( TrainDetector ):
         self._detector_type = "netharn"
         self._detector_config = ""
         self._detector_config_file = ""
+        self._detector_gpu_count = 1
         self._detector = None
+        self._detectors = []
         self._min_overlap_for_association = 0.90
         self._max_overlap_for_negative = 0.05
         self._max_neg_per_frame = 5
@@ -134,6 +136,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "detector_type", self._detector_type )
         cfg.set_value( "detector_config", self._detector_config )
         cfg.set_value( "detector_config_file", self._detector_config_file )
+        cfg.set_value( "detector_gpu_count", str( self._detector_gpu_count ) )
         cfg.set_value( "max_neg_per_frame", str( self._max_neg_per_frame ) )
         cfg.set_value( "negative_category", self._negative_category )
         cfg.set_value( "reduce_category", self._reduce_category )
@@ -186,6 +189,7 @@ class NetHarnTrainer( TrainDetector ):
         self._detector_type = str( cfg.get_value( "detector_type" ) )
         self._detector_config = str( cfg.get_value( "detector_config" ) )
         self._detector_config_file = str( cfg.get_value( "detector_config_file" ) )
+        self._detector_gpu_count = int( float( cfg.get_value( "detector_gpu_count" ) ) )
         self._max_neg_per_frame = float( cfg.get_value( "max_neg_per_frame" ) )
         self._negative_category = str( cfg.get_value( "negative_category" ) )
         self._reduce_category = str( cfg.get_value( "reduce_category" ) )
@@ -291,41 +295,31 @@ class NetHarnTrainer( TrainDetector ):
         if self._mode == "detection_refiner" and not os.path.exists( self._chip_directory ):
             os.mkdir( self._chip_directory )
 
-        # Load object detector if enabled. Two ways to specify it:
+        # Load object detector(s) if enabled. Two ways to specify one:
         #   * detector_config_file = a standalone .conf with a full "detector:*"
         #     nested-algorithm block (any detector type, e.g. a windowed RF-DETR);
         #   * detector_model (+ detector_type / detector_config) for the simple
         #     single-detector case (detector_type defaults to "netharn").
-        if self._detector_config_file:
-            from kwiver.vital.config import read_config_file
-            det_cfg = read_config_file( self._detector_config_file )
-            self._detector = ImageObjectDetector.set_nested_algo_configuration(
-                "detector", det_cfg )
-            if self._detector is None:
-                print( "Unable to configure detector from " +
-                       self._detector_config_file )
-                return False
-        elif self._detector_model:
-            self._detector = ImageObjectDetector.create( self._detector_type )
-            detector_config = self._detector.get_configuration()
-            # Point the detector at the model file using whichever key the
-            # selected implementation exposes (netharn: "deployed",
-            # rf_detr: "weight").
-            for model_key in ( "deployed", "weight", "net_config", "model_file" ):
-                if detector_config.has_value( model_key ):
-                    detector_config.set_value( model_key, self._detector_model )
-                    break
-            # Apply any extra "key=value;key=value" detector settings (e.g. the
-            # rf_detr model_size / resolution / segmentation / threshold).
-            if self._detector_config:
-                for pair in self._detector_config.split( ";" ):
-                    pair = pair.strip()
-                    if "=" in pair:
-                        key, value = pair.split( "=", 1 )
-                        detector_config.set_value( key.strip(), value.strip() )
-            if not self._detector.set_configuration( detector_config ):
-                print( "Unable to configure detector" )
-                return False
+        # detector_gpu_count > 1 (or -1 = all visible GPUs) builds one detector
+        # instance per GPU so background mining runs in parallel across them.
+        self._detectors = []
+        if self._detector_config_file or self._detector_model:
+            n_det = self._detector_gpu_count
+            if n_det is None or n_det < 0:
+                try:
+                    n_det = max( 1, torch.cuda.device_count() )
+                except Exception:
+                    n_det = 1
+            n_det = max( 1, int( n_det ) )
+            for gpu_index in range( n_det ):
+                # For a single detector keep the config's own device (auto);
+                # for many, pin each to a distinct GPU.
+                det = self._build_one_detector( gpu_index if n_det > 1 else None )
+                if det is None:
+                    print( "Unable to configure detector" )
+                    return False
+                self._detectors.append( det )
+            self._detector = self._detectors[0]
 
         # Load scale based on type file if enabled
         self._target_type_scales = dict()
@@ -395,6 +389,46 @@ class NetHarnTrainer( TrainDetector ):
 
         return filtered_truth, use_frame
 
+    def _build_one_detector( self, gpu_index ):
+        # Build a single background detector, optionally pinned to a GPU. When
+        # gpu_index is not None, every "*device" config key is set to that GPU.
+        device = None if gpu_index is None else ( "cuda:%d" % gpu_index )
+        if self._detector_config_file:
+            from kwiver.vital.config import read_config_file
+            det_cfg = read_config_file( self._detector_config_file )
+            if device is not None:
+                for key in det_cfg.available_values():
+                    if key.endswith( "device" ):
+                        det_cfg.set_value( key, device )
+            return ImageObjectDetector.set_nested_algo_configuration(
+                "detector", det_cfg )
+        elif self._detector_model:
+            detector = ImageObjectDetector.create( self._detector_type )
+            det_cfg = detector.get_configuration()
+            # Point the detector at the model file using whichever key the
+            # selected implementation exposes (netharn: "deployed",
+            # rf_detr: "weight").
+            for model_key in ( "deployed", "weight", "net_config", "model_file" ):
+                if det_cfg.has_value( model_key ):
+                    det_cfg.set_value( model_key, self._detector_model )
+                    break
+            # Apply any extra "key=value;key=value" detector settings (e.g. the
+            # rf_detr model_size / resolution / segmentation / threshold).
+            if self._detector_config:
+                for pair in self._detector_config.split( ";" ):
+                    pair = pair.strip()
+                    if "=" in pair:
+                        key, value = pair.split( "=", 1 )
+                        det_cfg.set_value( key.strip(), value.strip() )
+            if device is not None:
+                for key in det_cfg.available_values():
+                    if key.endswith( "device" ):
+                        det_cfg.set_value( key, device )
+            if not detector.set_configuration( det_cfg ):
+                return None
+            return detector
+        return None
+
     def compute_scale_factor( self, detections, min_scale = 0.10, max_scale = 10.0 ):
         cumulative = 0.0
         count = 0
@@ -423,15 +457,43 @@ class NetHarnTrainer( TrainDetector ):
         return output
 
     def extract_chips_for_dets( self, image_files, truth_sets ):
+        # Dispatch chip extraction serially, or across multiple GPU detectors.
+        n_det = len( self._detectors )
+        if n_det <= 1:
+            detector = self._detectors[0] if self._detectors else None
+            return self._extract_chips_range(
+                image_files, truth_sets, range( len( image_files ) ), detector )
+
+        # One detector per GPU: partition frames round-robin, one worker thread
+        # per detector. The heavy work (RF-DETR forward) releases the GIL, so
+        # the GPUs run concurrently.
+        from concurrent.futures import ThreadPoolExecutor
+        all_indices = list( range( len( image_files ) ) )
+        chunks = [ all_indices[k::n_det] for k in range( n_det ) ]
+
+        def run_chunk( k ):
+            return self._extract_chips_range(
+                image_files, truth_sets, chunks[k], self._detectors[k] )
+
+        output_files = []
+        output_dets = []
+        with ThreadPoolExecutor( max_workers=n_det ) as executor:
+            for files, dets in executor.map( run_chunk, range( n_det ) ):
+                output_files += files
+                output_dets += dets
+        return [ output_files, output_dets ]
+
+    def _extract_chips_range( self, image_files, truth_sets, indices, detector ):
         import cv2
         output_files = []
         output_dets = []
 
-        for i in range( len( image_files ) ):
+        for i in indices:
             filename = image_files[ i ]
             groundtruth = truth_sets[ i ]
             detections = []
             scale = 1.0
+            chip_index = 0
 
             if self._target_type_scales:
                 scale = self.compute_scale_factor( groundtruth )
@@ -442,20 +504,27 @@ class NetHarnTrainer( TrainDetector ):
                 if len( np.shape( img ) ) < 2:
                     continue
 
+                # Run the background detector on the NATIVE-resolution image
+                # (matches the scale it was trained at), then map its boxes into
+                # the scaled chip coordinate space used for cropping below.
+                if detector is not None:
+                    kw_image_container = ImageContainer( Image( img ) )
+                    detections = detector.detect( kw_image_container )
+                    if scale != 1.0:
+                        for det in detections:
+                            b = det.bounding_box
+                            det.bounding_box = BoundingBoxD(
+                                b.min_x() * scale, b.min_y() * scale,
+                                b.max_x() * scale, b.max_y() * scale )
+
                 img_max_x = np.shape( img )[1]
                 img_max_y = np.shape( img )[0]
 
-                # Optionally scale image
+                # Scale the image for chip extraction (GSD normalization).
                 if scale != 1.0:
                     img_max_x = int( scale * img_max_x )
                     img_max_y = int( scale * img_max_y )
                     img = cv2.resize( img, ( img_max_x, img_max_y ) )
-
-                # Run optional background detector on data
-                if self._detector is not None:
-                    kw_image = Image( img )
-                    kw_image_container = ImageContainer( kw_image )
-                    detections = self._detector.detect( kw_image_container )
 
             if len( groundtruth ) == 0 and len( detections ) == 0:
                 continue
@@ -470,7 +539,7 @@ class NetHarnTrainer( TrainDetector ):
                                     int( bbox.width() ),
                                     int( bbox.height() ) ) )
 
-            for i, gt in enumerate( groundtruth ):
+            for gi, gt in enumerate( groundtruth ):
                 # Extract chip for this detection
                 bbox = gt.bounding_box
 
@@ -504,7 +573,7 @@ class NetHarnTrainer( TrainDetector ):
                     gt_area = float( bbox_width * bbox_height )
                     int_area = float( ( overlap_x1 - overlap_x0 ) * ( overlap_y1 - overlap_y0 ) )
                     overlap = min( int_area / det_area, int_area / gt_area )
-                    overlaps[ j, i ] = overlap
+                    overlaps[ j, gi ] = overlap
 
                     if overlap >= self._min_overlap_for_association and overlap > max_overlap:
                         max_overlap = overlap
@@ -571,8 +640,8 @@ class NetHarnTrainer( TrainDetector ):
                 if crop.shape[0] < 4 or crop.shape[1] < 4:
                     continue
 
-                self._sample_count = self._sample_count + 1
-                crop_str = ( '%09d' %  self._sample_count ) + self._chip_extension
+                crop_str = ( '%07d_%05d' % ( i, chip_index ) ) + self._chip_extension
+                chip_index = chip_index + 1
                 new_file = os.path.join( self._chip_directory, crop_str )
                 cv2.imwrite( new_file, crop )
 
@@ -654,8 +723,8 @@ class NetHarnTrainer( TrainDetector ):
                 if crop.shape[0] < 4 or crop.shape[1] < 4:
                     continue
 
-                self._sample_count = self._sample_count + 1
-                crop_str = ( '%09d' %  self._sample_count ) + self._chip_extension
+                crop_str = ( '%07d_%05d' % ( i, chip_index ) ) + self._chip_extension
+                chip_index = chip_index + 1
                 new_file = os.path.join( self._chip_directory, crop_str )
                 cv2.imwrite( new_file, crop )
 
