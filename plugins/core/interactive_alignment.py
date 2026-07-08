@@ -78,14 +78,17 @@ def find_alignment_weights() -> Optional[str]:
 def _resolve_device(device: Optional[str]) -> str:
     import torch
 
+    if device is not None and device.startswith("cuda") \
+            and not torch.cuda.is_available():
+        # The host service defaults to cuda; degrade to the best available
+        # backend rather than silently landing on CPU.
+        device = "auto"
     if device in (None, "", "auto"):
         if torch.cuda.is_available():
             return "cuda"
         if getattr(torch.backends, "mps", None) is not None \
                 and torch.backends.mps.is_available():
             return "mps"
-        return "cpu"
-    if device.startswith("cuda") and not torch.cuda.is_available():
         return "cpu"
     return device
 

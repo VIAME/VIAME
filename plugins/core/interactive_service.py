@@ -52,20 +52,25 @@ warnings.filterwarnings(
     "ignore", message=r'The "\w+" class attribute of .* was deprecated in scriptconfig')
 logging.getLogger("torch.utils.cpp_extension").setLevel(logging.ERROR)
 
-from viame.core.interactive_segmentation import (  # noqa: E402
-    InteractiveSegmentationService,
-    load_algorithms_from_config,
-    find_viame_config as find_segmentation_config,
-    suppress_stdout,
-)
-from viame.core.interactive_stereo import (  # noqa: E402
-    InteractiveStereoService,
-    load_algorithm_from_config,
-    find_viame_config as find_stereo_config,
-)
+# The segmentation and stereo backends are imported lazily inside their
+# _ensure_* builders: both pull in kwiver / compiled bindings at import time
+# (interactive_stereo hard-imports viame.core._measurement), and a problem
+# there must fail that feature's first request with a JSON error rather than
+# kill the whole service -- the alignment backend below is pure Python
+# (torch/cv2) and stays usable regardless.
 from viame.core.interactive_alignment import (  # noqa: E402
     InteractiveAlignmentService,
 )
+
+
+def _suppress_stdout():
+    """Segmentation's stdout guard, or a no-op before that module loads."""
+    try:
+        from viame.core.interactive_segmentation import suppress_stdout
+        return suppress_stdout()
+    except ImportError:
+        import contextlib
+        return contextlib.nullcontext()
 
 
 # Commands routed to the interactive-stereo backend. Everything else
@@ -110,8 +115,8 @@ class InteractiveService:
         self._alignment_weights = alignment_weights
 
         # Lazily constructed sub-services (their models load lazily in turn).
-        self._seg_service: Optional[InteractiveSegmentationService] = None
-        self._stereo_service: Optional[InteractiveStereoService] = None
+        self._seg_service: Optional["InteractiveSegmentationService"] = None  # noqa: F821
+        self._stereo_service: Optional["InteractiveStereoService"] = None  # noqa: F821
         self._alignment_service: Optional[InteractiveAlignmentService] = None
 
         self._build_lock = threading.Lock()  # guards lazy construction
@@ -133,11 +138,17 @@ class InteractiveService:
         self._send({"id": request_id, "success": False, "error": error})
 
     # ------------------------------------------------- lazy construction
-    def _ensure_segmentation(self) -> InteractiveSegmentationService:
+    def _ensure_segmentation(self) -> "InteractiveSegmentationService":  # noqa: F821
         if self._seg_service is not None:
             return self._seg_service
         with self._build_lock:
             if self._seg_service is None:
+                from viame.core.interactive_segmentation import (
+                    InteractiveSegmentationService,
+                    load_algorithms_from_config,
+                    find_viame_config as find_segmentation_config,
+                    suppress_stdout,
+                )
                 configs = self._segmentation_configs
                 if not configs:
                     auto = find_segmentation_config()
@@ -164,18 +175,23 @@ class InteractiveService:
                 self._log("Segmentation backend ready")
         return self._seg_service
 
-    def _ensure_stereo(self) -> InteractiveStereoService:
+    def _ensure_stereo(self) -> "InteractiveStereoService":  # noqa: F821
         if self._stereo_service is not None:
             return self._stereo_service
         with self._build_lock:
             if self._stereo_service is None:
+                from viame.core.interactive_stereo import (
+                    InteractiveStereoService,
+                    load_algorithm_from_config,
+                    find_viame_config as find_stereo_config,
+                )
                 config = self._stereo_config or find_stereo_config()
                 if not config:
                     raise ValueError(
                         "No stereo config available "
                         "(interactive_stereo_default.conf); is VIAME_INSTALL set?")
                 self._log("Loading stereo backend...")
-                with suppress_stdout():
+                with _suppress_stdout():
                     stereo_algo, matcher, svc_cfg = load_algorithm_from_config(
                         config, self._plugin_paths)
                 if stereo_algo is None and matcher is None:
@@ -231,7 +247,7 @@ class InteractiveService:
         # click). This is the ONLY segmentation command that loads the model
         # ahead of an actual prediction.
         if command == "init_segmentation":
-            with suppress_stdout():
+            with _suppress_stdout():
                 self._ensure_segmentation().warmup()
             return {"success": True}
 
