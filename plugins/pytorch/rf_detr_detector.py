@@ -76,6 +76,98 @@ class RFDETRDetector(ImageObjectDetector):
         self._build_model()
         return True
 
+    # RF-DETR size taxonomy as (patch_size, dec_layers) -> default resolution,
+    # mirroring src/rfdetr/config.py. Used to recover the architecture from a
+    # checkpoint's weight shapes when it carries no training args (e.g. a native
+    # PyTorch Lightning checkpoint). Sizes sharing a (patch_size, dec_layers) key
+    # differ only by resolution, so ties break on the nearest default.
+    _DET_SIZES = {
+        'nano': (16, 2, 384), 'small': (16, 3, 512), 'base': (14, 3, 560),
+        'medium': (16, 4, 576), 'large': (16, 4, 704),
+    }
+    _SEG_SIZES = {
+        'nano': (12, 4, 312), 'small': (12, 4, 384),
+        'medium': (12, 5, 432), 'large': (12, 5, 504),
+    }
+
+    @staticmethod
+    def _extract_state_dict(checkpoint):
+        # Deployed checkpoints store the model weights under 'model'; a native
+        # PyTorch Lightning checkpoint (last.ckpt / checkpoint_epoch=N.ckpt)
+        # nests them under 'state_dict' with a 'model.' prefix.
+        if not isinstance(checkpoint, dict):
+            return checkpoint
+        if 'model' in checkpoint:
+            return checkpoint['model']
+        if 'state_dict' in checkpoint:
+            return {k[len('model.'):]: v
+                    for k, v in checkpoint['state_dict'].items()
+                    if k.startswith('model.')}
+        return checkpoint
+
+    @staticmethod
+    def _checkpoint_args(checkpoint):
+        args = checkpoint.get('args') if isinstance(checkpoint, dict) else None
+        if isinstance(args, dict):
+            return args
+        try:
+            return vars(args)
+        except TypeError:
+            return {}
+
+    @classmethod
+    def _infer_architecture(cls, state_dict):
+        # Recover model_size, resolution, channel count and the segmentation
+        # flag straight from the weight shapes so a checkpoint loads even when it
+        # carries no training args. Leaves a field None when undeterminable.
+        import math
+        arch = {'model_size': None, 'resolution': None,
+                'num_channels': None, 'segmentation': None}
+        if not isinstance(state_dict, dict):
+            return arch
+
+        proj = state_dict.get(
+            'backbone.0.encoder.encoder.embeddings.patch_embeddings.projection.weight')
+        proj_shape = getattr(proj, 'shape', None)
+        if proj_shape is None or len(proj_shape) != 4:
+            return arch  # unknown backbone; leave the config values in place
+        patch_size = int(proj_shape[2])
+        arch['num_channels'] = int(proj_shape[1])
+
+        arch['segmentation'] = any(
+            k.startswith('segmentation_head') for k in state_dict)
+
+        prefix = 'transformer.decoder.layers.'
+        layer_ids = [int(k[len(prefix):].split('.', 1)[0])
+                     for k in state_dict if k.startswith(prefix)]
+        dec_layers = max(layer_ids) + 1 if layer_ids else None
+
+        # Resolution from the DINOv2 positional-embedding grid, allowing for a
+        # cls token (and optional register tokens).
+        pos = state_dict.get(
+            'backbone.0.encoder.encoder.embeddings.position_embeddings')
+        pos_shape = getattr(pos, 'shape', None)
+        if pos_shape is not None and len(pos_shape) == 3:
+            n_tokens = int(pos_shape[1])
+            for n_special in (1, 5, 0):
+                grid_sq = n_tokens - n_special
+                grid = math.isqrt(grid_sq) if grid_sq > 0 else 0
+                if grid and grid * grid == grid_sq:
+                    arch['resolution'] = grid * patch_size
+                    break
+
+        table = cls._SEG_SIZES if arch['segmentation'] else cls._DET_SIZES
+        if dec_layers is not None:
+            candidates = [name for name, (ps, dl, _) in table.items()
+                          if ps == patch_size and dl == dec_layers]
+            if len(candidates) == 1:
+                arch['model_size'] = candidates[0]
+            elif candidates:
+                target = arch['resolution'] or 0
+                arch['model_size'] = min(
+                    candidates, key=lambda n: abs(table[n][2] - target))
+        return arch
+
     def _build_model(self):
         import torch
 
@@ -88,6 +180,42 @@ class RFDETRDetector(ImageObjectDetector):
         segmentation = parse_bool(self._kwiver_config['segmentation'])
 
         ensure_rfdetr_compatibility()
+
+        # Load the checkpoint before building the network so its architecture can
+        # be recovered from the weights. A deployed checkpoint embeds the training
+        # args, but a native PyTorch Lightning checkpoint (last.ckpt /
+        # checkpoint_epoch=N.ckpt) does not, so infer model_size, resolution,
+        # channel count and the segmentation flag from the weight shapes and let
+        # the embedded args, then the pipeline config, act as fallbacks. The
+        # architecture must match the weights or load_state_dict fails.
+        checkpoint = None
+        state_dict = None
+        ckpt_args = {}
+        if weight_fpath and ub.Path(weight_fpath).exists():
+            checkpoint = torch.load(weight_fpath, map_location=device, weights_only=False)
+            state_dict = self._extract_state_dict(checkpoint)
+            ckpt_args = self._checkpoint_args(checkpoint)
+            arch = self._infer_architecture(state_dict)
+
+            if arch['model_size'] is not None:
+                model_size = arch['model_size']
+            elif ckpt_args.get('model_size'):
+                model_size = str(ckpt_args['model_size']).lower()
+
+            if arch['segmentation'] is not None:
+                segmentation = arch['segmentation']
+            elif 'segmentation' in ckpt_args:
+                segmentation = parse_bool(ckpt_args['segmentation'])
+
+            if arch['num_channels'] is not None:
+                num_channels = arch['num_channels']
+            elif 'num_channels' in ckpt_args:
+                num_channels = int(ckpt_args['num_channels'])
+
+            if arch['resolution'] is not None:
+                resolution = arch['resolution']
+            elif 'resolution' in ckpt_args:
+                resolution = int(ckpt_args['resolution'])
 
         # Import the appropriate RF-DETR model class based on size and whether a
         # segmentation (mask) head is present. Seg checkpoints carry extra
@@ -108,27 +236,9 @@ class RFDETRDetector(ImageObjectDetector):
                            f"Expected one of: {', '.join(table)}")
         RFDETRModel = getattr(rfdetr, table[model_size])
 
-        # Load model
         print(f"[RFDETRDetector] Loading {model_size} model on {device}")
 
-        if weight_fpath and ub.Path(weight_fpath).exists():
-            # Load trained weights
-            checkpoint = torch.load(weight_fpath, map_location=device, weights_only=False)
-
-            # Recover the raw model state dict. Deployed checkpoints store it
-            # under 'model', but a native PyTorch Lightning checkpoint (last.ckpt
-            # or an interval checkpoint_epoch=N.ckpt) instead nests the weights
-            # under 'state_dict' with a 'model.' prefix; unwrap that so those
-            # files load too instead of failing on the extra bookkeeping keys.
-            if 'model' in checkpoint:
-                state_dict = checkpoint['model']
-            elif 'state_dict' in checkpoint:
-                state_dict = {k[len('model.'):]: v
-                              for k, v in checkpoint['state_dict'].items()
-                              if k.startswith('model.')}
-            else:
-                state_dict = checkpoint
-
+        if checkpoint is not None:
             # Determine the actual class_embed dimension from weights.
             # RF-DETR's build_model adds +1 to num_classes for a background
             # class, but reinitialize_detection_head and the training loop
@@ -138,25 +248,14 @@ class RFDETRDetector(ImageObjectDetector):
             # loading the state dict (mirroring RF-DETR's own loading path).
             if 'class_embed.weight' in state_dict:
                 ckpt_num_classes = state_dict['class_embed.weight'].shape[0]
-            elif 'args' in checkpoint and 'num_classes' in checkpoint['args']:
-                ckpt_num_classes = checkpoint['args']['num_classes']
+            elif ckpt_args.get('num_classes'):
+                ckpt_num_classes = int(ckpt_args['num_classes'])
             else:
                 ckpt_num_classes = 90  # default COCO classes
 
             # Get class names if available
-            if 'args' in checkpoint and 'class_names' in checkpoint['args']:
-                self._classes = checkpoint['args']['class_names']
-
-            # Prefer the channel count embedded at training time.
-            if 'args' in checkpoint and 'num_channels' in checkpoint['args']:
-                num_channels = int(checkpoint['args']['num_channels'])
-
-            # The network must be built at the resolution it was trained at, or
-            # the checkpoint's positional-embedding tensors won't match the
-            # model's grid and load_state_dict will fail. Prefer the embedded
-            # value over the config default.
-            if 'args' in checkpoint and 'resolution' in checkpoint['args']:
-                resolution = int(checkpoint['args']['resolution'])
+            if ckpt_args.get('class_names'):
+                self._classes = ckpt_args['class_names']
 
             model_kwargs = dict(
                 pretrain_weights=None,
