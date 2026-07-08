@@ -13,6 +13,7 @@ import random
 from PIL import Image
 import scriptconfig as scfg
 from distutils.util import strtobool
+import types
 
 # from kwiver.vital.types import Image
 from kwiver.vital.types import ImageContainer
@@ -22,6 +23,10 @@ from kwiver.vital.types import BoundingBoxD
 
 from kwiver.vital.algo import TrainDetector
 from viame.pytorch.utilities import safe_crop
+
+
+if types.TYPE_CHECKING:
+    import kwcoco
 
 
 class KWCocoTrainDetectorConfig(scfg.DataConfig):
@@ -419,3 +424,63 @@ class KWCocoTrainDetector(TrainDetector):
                 groundtruth, use_frame = self.filter_truth( test_dets[ i - len( train_files ) ], categories )
                 if use_frame:
                     self._validation_writer.write_set( groundtruth, os.path.abspath( filename ) )
+
+
+def _align_kwcoco_categories(
+        dset: kwcoco.CocoDataset,
+        class_list: list[str]
+     ) -> kwcoco.CocoDataset:
+    """
+    Modify (inplace) the CocoDataset so categories are in a specified order,
+    and handle the case of unexpected categories.
+
+    NOTE: In the future, this logic will be moved into kwcoco itself.
+
+    Example:
+        >>> import pytest
+        >>> dset = kwcoco.CocoDataset.demo('vidshapes1')
+        >>> class_list = ['superstar', 'star', 'eff']
+        >>> _align_kwcoco_categories(dset.copy(), class_list)
+        >>> #
+        >>> # Case: dset has category we can't align with, should error
+        >>> with pytest.raises(ValueError):
+        >>>     class_list = ['star', 'eff']
+        >>>     _align_kwcoco_categories(dset.copy(), class_list)
+        >>> #
+        >>> # Case: extra category, should be fine
+        >>> class_list = ['superstar', 'star', 'eff', 'longcat']
+        >>> _align_kwcoco_categories(dset.copy(), class_list)
+    """
+    existing_names = set(dset.categories().lookup('name'))
+    expected_names = set(class_list)
+
+    if len(class_list) != len(expected_names):
+        raise ValueError('class list should not contain duplicates')
+
+    unexpected_names = existing_names - expected_names
+    if unexpected_names:
+        used_cat_ids = set(dset.annots().lookup('category_id', None))
+        used_catnames = {
+            None if cid is None else dset.index.cats[cid].get('name')
+            for cid in used_cat_ids
+        }
+        used_unexpected = used_catnames & unexpected_names
+        if used_unexpected:
+            raise ValueError(
+                f"{dset} contains annotations outside the configured "
+                f"training categories: {sorted(used_unexpected)}"
+            )
+        # Normalize to category ids in case CocoDataset API changes
+        unexpected_cids = [dset.index.name_to_cat[name]['id']
+                           for name in unexpected_names]
+        # Note: keep annots is irrelevant because we error if there are any
+        # annots to remove. However, if we relax that to a warning removing the
+        # annots (or modifying their categories) is the right thing to do, but
+        # that should be handled before it ever gets to this point.
+        dset.remove_categories(unexpected_cids, keep_annots=False)
+
+    for name in class_list:
+        dset.ensure_category(name)
+
+    dset.normalize_category_ids(start_id=1, order=class_list)
+    return dset
