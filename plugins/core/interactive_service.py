@@ -96,6 +96,17 @@ ALIGNMENT_COMMANDS = {"auto_align", "get_alignment_status"}
 # segmentation backend / model before the user's first prediction.
 SEG_IDLE_COMMANDS = {"set_image", "clear_image"}
 
+# Commands that make a competing feature (segmentation or stereo) actually use
+# its model. The auto-align matcher, if resident, is released just before these
+# run so its device memory yields to the feature that needs it -- rather than
+# on alignment-panel close, which would thrash the model on every open/close.
+# Cheap idle/lifecycle commands (status polls, disable, image-cache management)
+# are intentionally excluded: they neither load nor run a model.
+SEG_MODEL_COMMANDS = {
+    "init_segmentation", "predict", "text_query", "refine", "stereo_segment",
+}
+STEREO_MODEL_COMMANDS = STEREO_COMMANDS - STEREO_IDLE_COMMANDS
+
 
 class InteractiveService:
     """Single stdin/stdout loop that lazily hosts both backends."""
@@ -240,6 +251,10 @@ class InteractiveService:
             # query (keeps single-camera sessions from ever loading stereo).
             if self._stereo_service is None and command in STEREO_IDLE_COMMANDS:
                 return self._stereo_idle_response(command)
+            # Stereo is about to use its model: free the auto-align matcher so
+            # its memory yields to stereo (no-op if nothing was aligned).
+            if command in STEREO_MODEL_COMMANDS:
+                self._release_alignment_memory("stereo")
             return self._ensure_stereo().handle_request(request)
 
         # Build + warm up the segmentation models. Sent when the user enters
@@ -247,6 +262,7 @@ class InteractiveService:
         # click). This is the ONLY segmentation command that loads the model
         # ahead of an actual prediction.
         if command == "init_segmentation":
+            self._release_alignment_memory("segmentation")
             with _suppress_stdout():
                 self._ensure_segmentation().warmup()
             return {"success": True}
@@ -256,11 +272,37 @@ class InteractiveService:
         if self._seg_service is None and command in SEG_IDLE_COMMANDS:
             return {"success": True}
 
+        # A real segmentation request will use (and, first time, load) the SAM
+        # model: free the auto-align matcher so its memory yields to it.
+        if command in SEG_MODEL_COMMANDS:
+            self._release_alignment_memory("segmentation")
+
         seg = self._ensure_segmentation()
         if command == "stereo_segment":
             # Reuse the one stereo backend (no second stereo model load).
             seg.set_stereo_warper(self._ensure_stereo())
         return seg.handle_request(request)
+
+    def _release_alignment_memory(self, feature: str) -> None:
+        """Free the resident auto-align matcher so ``feature`` (segmentation or
+        stereo) can use its device memory.
+
+        A no-op when auto-align never loaded a model (the backend may not even
+        be constructed), so it is cheap to call on the hot path of every
+        model-using segmentation/stereo request. The matcher reloads lazily on
+        the next auto_align, so the only cost is a re-load if the user returns
+        to auto-align after using the other feature -- which is exactly the
+        case where the two genuinely contend for memory."""
+        svc = self._alignment_service
+        if svc is None:
+            return
+        try:
+            result = svc.unload()
+        except Exception as e:  # releasing memory must never break the request
+            self._log(f"Alignment memory release failed (ignored): {e}")
+            return
+        if result.get("unloaded"):
+            self._log(f"Released auto-align model so {feature} can use its memory")
 
     @staticmethod
     def _stereo_idle_response(command: str) -> Dict[str, Any]:
