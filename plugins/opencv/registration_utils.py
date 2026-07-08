@@ -1102,36 +1102,85 @@ def _find_viame_install():
     return None
 
 
-def classify_images_fast(image_folder, image_list, scale=0.5, threshold=500):
-    """Classify images as water vs land using the VIAME sea-lion background
-    classifier (EfficientNet V2 S features -> per-label SVMs over
-    all_land / coastal / cloudy / open_water / seaweed_water), falling back
-    to a SIFT keypoint-count heuristic when the models are unavailable.
+def _bg_classifier_paths():
+    """Locate the sea-lion background-classifier model files. Returns a
+    (model_path, svm_dir, site_packages) tuple, or None with a reason string
+    if unavailable: (None, reason)."""
+    viame_install = _find_viame_install()
+    if not viame_install:
+        return None, "VIAME install root not found (set $VIAME_INSTALL)"
+    model_path = os.path.join(viame_install, 'configs', 'pipelines',
+                              'models', 'pytorch_efficientnet_v2_s.pth')
+    svm_dir = os.path.join(viame_install, 'configs', 'pipelines',
+                           'models', 'sea_lion_v3_bg_classifiers')
+    site_packages = os.path.join(
+        viame_install, 'lib',
+        f'python{sys.version_info.major}.{sys.version_info.minor}',
+        'site-packages')
+    if not os.path.exists(model_path):
+        return None, f"model file missing: {model_path}"
+    if not os.path.exists(svm_dir):
+        return None, f"SVM directory missing: {svm_dir}"
+    return (model_path, svm_dir, site_packages), None
+
+
+WATER_METHODS = ('auto', 'svm', 'sift')
+
+
+def classify_images_fast(image_folder, image_list, method='auto', scale=0.5,
+                         threshold=500):
+    """Classify images as water vs land.
+
+    method:
+      'svm'  - VIAME sea-lion background classifier (EfficientNet V2 S
+               features -> per-label SVMs over all_land / coastal / cloudy /
+               open_water / seaweed_water). Errors out if the models or their
+               dependencies are unavailable.
+      'sift' - SIFT keypoint-count heuristic (a frame with < `threshold`
+               keypoints is water). Fast, no models, but fooled by textured
+               water (ripples / glint / seaweed read as land).
+      'auto' - use 'svm' when the models are available, else fall back to
+               'sift' with a printed note. This is the default; the SVM
+               classifier is markedly more accurate on textured water.
 
     Returns dict of filename -> {'is_water': bool, 'label': str,
-                                 'scores': dict, 'keypoints': int}.
+                                 'scores': dict, 'keypoints': int,
+                                 'method': 'svm'|'sift'}.
     """
-    viame_install = _find_viame_install()
-    if viame_install:
-        model_path = os.path.join(viame_install, 'configs', 'pipelines',
-                                  'models', 'pytorch_efficientnet_v2_s.pth')
-        svm_dir = os.path.join(viame_install, 'configs', 'pipelines',
-                               'models', 'sea_lion_v3_bg_classifiers')
-        site_packages = os.path.join(
-            viame_install, 'lib',
-            f'python{sys.version_info.major}.{sys.version_info.minor}',
-            'site-packages')
-        if os.path.exists(model_path) and os.path.exists(svm_dir):
-            try:
-                return _classify_with_bg_classifier(
-                    image_folder, image_list, model_path, svm_dir,
-                    site_packages)
-            except Exception as e:
-                print(f"    Warning: background classifier failed ({e}), "
-                      f"falling back to SIFT heuristic")
+    if method not in WATER_METHODS:
+        raise ValueError(f"water method must be one of {WATER_METHODS}, "
+                         f"got {method!r}")
 
-    return _classify_sift_heuristic(image_folder, image_list, scale,
-                                    threshold)
+    if method == 'sift':
+        return _classify_sift_heuristic(image_folder, image_list, scale,
+                                        threshold)
+
+    # 'svm' or 'auto'
+    paths, reason = _bg_classifier_paths()
+    if paths is None:
+        if method == 'svm':
+            raise RuntimeError(
+                f"--water-method svm requested but the sea-lion background "
+                f"classifier is unavailable: {reason}. Install the "
+                f"VIAME-SEA-LION model pack, or use --water-method sift.")
+        print(f"    SVM background classifier unavailable ({reason}); "
+              f"using SIFT heuristic")
+        return _classify_sift_heuristic(image_folder, image_list, scale,
+                                        threshold)
+
+    try:
+        return _classify_with_bg_classifier(image_folder, image_list, *paths)
+    except Exception as e:
+        if method == 'svm':
+            raise RuntimeError(
+                f"--water-method svm requested but the sea-lion background "
+                f"classifier failed to run: {e}. Its dependencies (torch, "
+                f"torchvision, libsvm) may be missing; use --water-method "
+                f"sift to skip it.") from e
+        print(f"    Warning: SVM background classifier failed ({e}); "
+              f"using SIFT heuristic")
+        return _classify_sift_heuristic(image_folder, image_list, scale,
+                                        threshold)
 def _classify_with_bg_classifier(image_folder, image_list, model_path, svm_dir,
                                    site_packages):
     """Classify images using EfficientNet + SVM background classifiers."""
@@ -1189,7 +1238,8 @@ def _classify_with_bg_classifier(image_folder, image_list, model_path, svm_dir,
                 pil_img = pilImage.open(img_path).convert('RGB')
             except Exception:
                 results[fname] = {'is_water': True, 'label': 'unknown',
-                                   'scores': {}, 'keypoints': 0}
+                                   'scores': {}, 'keypoints': 0,
+                                   'method': 'svm'}
                 continue
 
             # Extract features (full frame)
@@ -1221,6 +1271,7 @@ def _classify_with_bg_classifier(image_folder, image_list, model_path, svm_dir,
                 'label': best_label,
                 'scores': scores,
                 'keypoints': -1,
+                'method': 'svm',
             }
 
             if (i + 1) % 20 == 0 or (i + 1) == len(image_list):
@@ -1238,7 +1289,8 @@ def _classify_sift_heuristic(image_folder, image_list, scale=0.5, threshold=500)
         img = cv2.imread(img_path)
         if img is None:
             results[fname] = {'is_water': True, 'label': 'unknown',
-                               'scores': {}, 'keypoints': 0}
+                               'scores': {}, 'keypoints': 0,
+                               'method': 'sift'}
             continue
         h, w = img.shape[:2]
         small = cv2.resize(img, (int(w * scale), int(h * scale)))
@@ -1251,5 +1303,6 @@ def _classify_sift_heuristic(image_folder, image_list, scale=0.5, threshold=500)
             'label': 'open_water' if is_water else 'all_land',
             'scores': {},
             'keypoints': n_kp,
+            'method': 'sift',
         }
     return results

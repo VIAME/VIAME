@@ -729,11 +729,16 @@ def render_coverage_map(path, observations, site_tag):
 def render_thumbnail_grid(path, site_folder, observations, rows, water_info,
                           max_rows=24, thumb_w=420):
     """Thumbnail grid (rows = triggers, cols = cameras) with coverage
-    polygons overlaid: sequential=orange, cross_camera=cyan, revisit=magenta."""
+    polygons overlaid: sequential=orange, cross_camera=cyan, revisit=magenta.
+    Each tile also shows the water/land classifier verdict (the class label,
+    tinted cyan for water and green for land)."""
     import cv2
     by_image = {}
     for rel, suffix, poly in rows:
         by_image.setdefault(rel, []).append((suffix, poly))
+    # Classifier method used (uniform across the site) for the header banner.
+    water_method = next((v.get('method') for v in water_info.values()
+                         if v and v.get('method')), None)
     cams = sorted({o.cam for o in observations}, key=lambda c: VIS_ORDER[c])
     triggers = sorted({o.timestep for o in observations})
     if len(triggers) > max_rows:
@@ -767,12 +772,20 @@ def render_thumbnail_grid(path, site_folder, observations, rows, water_info,
                 p = np.round(poly * s).astype(np.int32)
                 cv2.polylines(thumb, [p], True, colors[suffix], 2)
             label = f'{cam or "CAM"} #{o.frame}'
-            if o.is_water:
-                label += ' [water]'
             cv2.putText(thumb, label, (6, 22), cv2.FONT_HERSHEY_SIMPLEX,
                         0.6, (0, 0, 0), 3)
             cv2.putText(thumb, label, (6, 22), cv2.FONT_HERSHEY_SIMPLEX,
                         0.6, (255, 255, 255), 1)
+            # Water/land classifier verdict: class label tinted cyan for
+            # water, green for land (BGR).
+            cinfo = water_info.get(o.rel, {})
+            clabel = cinfo.get('label')
+            if clabel:
+                ccol = (255, 255, 0) if cinfo.get('is_water') else (0, 220, 0)
+                cv2.putText(thumb, clabel, (6, 46), cv2.FONT_HERSHEY_SIMPLEX,
+                            0.55, (0, 0, 0), 3)
+                cv2.putText(thumb, clabel, (6, 46), cv2.FONT_HERSHEY_SIMPLEX,
+                            0.55, ccol, 1)
             row_tiles.append(thumb)
         tiles.append(row_tiles)
     if th is None:
@@ -781,6 +794,19 @@ def render_thumbnail_grid(path, site_folder, observations, rows, water_info,
     grid_img = np.vstack([
         np.hstack([t if t is not None else blank for t in row])
         for row in tiles])
+
+    # Header banner: legend for the overlay colors + which water classifier
+    # produced the per-tile class labels.
+    banner_h = 40
+    banner = np.full((banner_h, grid_img.shape[1], 3), 24, dtype=np.uint8)
+    wm = {'svm': 'SVM background classifier',
+          'sift': 'SIFT keypoint heuristic'}.get(water_method,
+                                                 water_method or 'n/a')
+    legend = ('overlay: sequential=orange cross_camera=cyan revisit=magenta'
+              '   |   water class (cyan=water green=land) via ' + wm)
+    cv2.putText(banner, legend, (8, 26), cv2.FONT_HERSHEY_SIMPLEX, 0.55,
+                (255, 255, 255), 1)
+    grid_img = np.vstack([banner, grid_img])
     cv2.imwrite(path, grid_img)
 
 
@@ -825,11 +851,16 @@ def process_site(site_folder, site_id, grid, order_start, args, to_enu,
     chains, xcam, cal = {}, {}, {}
     water_info = {}
     if args.method == 'hybrid':
-        try:
-            water_info = _sr.classify_images_fast(site_folder, all_rels)
-        except Exception as e:
-            print(f'    Water classifier unavailable ({e}); no water info')
-            water_info = {}
+        # A 'svm' request that cannot be honored raises; let it propagate so
+        # the run fails loudly rather than silently degrading. 'auto'/'sift'
+        # never raise for availability.
+        print(f'  Classifying water/land ({args.water_method})...')
+        water_info = _sr.classify_images_fast(
+            site_folder, all_rels, method=args.water_method)
+        used = next((v.get('method') for v in water_info.values() if v), None)
+        n_water = sum(1 for v in water_info.values() if v.get('is_water'))
+        print(f'    {used or args.water_method} classifier: {n_water}/'
+              f'{len(all_rels)} water frames')
         reg_kwargs = dict(
             water_info=water_info, match_ratio=args.match_ratio,
             min_inliers=args.min_inliers, scale=args.match_scale,
@@ -1023,6 +1054,14 @@ def main():
                     help='Output directory (default <site>_coverage)')
     ap.add_argument('--method', choices=['hybrid', 'metadata', 'sfm-rig'],
                     default='hybrid')
+    ap.add_argument('--water-method', choices=['auto', 'svm', 'sift'],
+                    default='auto',
+                    help="Water/land classifier (hybrid method only). 'svm' "
+                         "= VIAME sea-lion background classifier (more "
+                         "accurate; errors out if its models are missing); "
+                         "'sift' = keypoint-count heuristic (no models, but "
+                         "textured water reads as land); 'auto' = SVM when "
+                         "available else SIFT (default)")
     ap.add_argument('--coverage-class', default='prior_coverage',
                     help='Class-name prefix for CSV rows')
     ap.add_argument('--window', type=int, default=8,

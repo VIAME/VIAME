@@ -16,6 +16,14 @@ export OUTPUT=output
 # the registration chains alone.
 export FLIGHT_LOGS=
 
+# Water/land classifier used to guide registration over featureless water:
+#   svm  = VIAME sea-lion background classifier (most accurate; requires the
+#          VIAME-SEA-LION model pack, errors out if it is missing)
+#   sift = SIFT keypoint-count heuristic (no models, but textured water can
+#          read as land)
+#   auto = SVM when available, else SIFT (default)
+export WATER_METHOD=auto
+
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
@@ -27,9 +35,11 @@ source ${VIAME_INSTALL}/setup_viame.sh
 # ${OUTPUT}/prior_coverage.csv - a standard VIAME detection CSV with one
 # polygon row per previously-seen region for EVERY camera frame, class
 # names prior_coverage_sequential / _cross_camera / _revisit. Also writes
-# revisits.csv, coverage_map.png and prior_coverage_vis.png.
+# revisits.csv, coverage_map.png and prior_coverage_vis.png (thumbnail grid
+# STAR | CENTER | PORT with the water class labels overlaid).
 FLIGHT_LOGS_ARG=""
 if [ -n "${FLIGHT_LOGS}" ]; then FLIGHT_LOGS_ARG="--flight-logs ${FLIGHT_LOGS}"; fi
 
 python ${VIAME_INSTALL}/configs/detect_prior_coverage.py "${INPUT}" \
-  --method hybrid --output "${OUTPUT}" ${FLIGHT_LOGS_ARG}
+  --method hybrid --water-method ${WATER_METHOD} \
+  --output "${OUTPUT}" ${FLIGHT_LOGS_ARG}
