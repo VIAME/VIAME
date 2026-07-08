@@ -242,7 +242,7 @@ if( VIAME_ENABLE_PYTORCH-LEARN OR
 endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
-  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "supervision" "defusedxml>=0.7.1" "pyDeprecate"
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "supervision" "defusedxml>=0.7.1" "pyDeprecate>=0.9,<0.10"
     "faster-coco-eval>=1.6.0" )
 endif()
 

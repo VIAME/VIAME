@@ -828,6 +828,16 @@ class RFDETRTrainer(TrainDetector):
         # Config key matching rf_detr detector inference config
         output[algo + ":weight"] = output_model_name
 
+        # Record the architecture in the generated pipeline so inference builds
+        # the right model directly, without having to recover it from the
+        # checkpoint weights. model_size and segmentation select the model class;
+        # num_channels and resolution size the inputs and positional embeddings.
+        output[algo + ":model_size"] = str(self._model_size)
+        output[algo + ":num_channels"] = str(int(self._num_channels))
+        output[algo + ":segmentation"] = str(parse_bool(self._segmentation))
+        if int(self._resolution) > 0:
+            output[algo + ":resolution"] = str(int(self._resolution))
+
         # File copy entry (key=destination filename, value=source path)
         output[output_model_name] = str(final_ckpt)
 
