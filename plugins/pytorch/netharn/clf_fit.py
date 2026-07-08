@@ -355,11 +355,16 @@ class ClfHarn(nh.FitHarn):
         harn._hack_do_draw |= ((harn._draw_timer.toc() > 60 * harn.script_config['draw_interval']) and
                                (harn.script_config['draw_interval'] > 0))
         if harn._hack_do_draw:
-            stacked = harn._draw_batch(batch, outputs)
-            dpath = ub.ensuredir((harn.train_dpath, 'monitor', harn.current_tag))
-            fpath = join(dpath, 'batch_{}_epoch_{}.jpg'.format(bx, harn.epoch))
-            import kwimage
-            kwimage.imwrite(fpath, stacked)
+            # Batch visualization is cosmetic (tensorboard); never let it crash
+            # training.
+            try:
+                stacked = harn._draw_batch(batch, outputs)
+                dpath = ub.ensuredir((harn.train_dpath, 'monitor', harn.current_tag))
+                fpath = join(dpath, 'batch_{}_epoch_{}.jpg'.format(bx, harn.epoch))
+                import kwimage
+                kwimage.imwrite(fpath, stacked)
+            except Exception as draw_ex:
+                harn.warn('batch drawing failed (non-fatal): {}'.format(draw_ex))
 
         y_pred = kwarray.ArrayAPI.numpy(outputs['pred_cxs'])
         y_true = outputs['true_cxs'].data.cpu().numpy()
@@ -415,8 +420,9 @@ class ClfHarn(nh.FitHarn):
             probs = class_probs[idx]
             im_ = im.transpose(1, 2, 0)
 
-            # Renormalize and resize image for drawing
-            im_ = kwimage.normalize(im_)
+            # Renormalize and resize image for drawing (kwimage.normalize was
+            # removed in kwimage 0.11; kwarray.normalize is the replacement).
+            im_ = kwarray.normalize(im_)
             im_ = kwimage.ensure_uint255(im_)
             im_ = np.ascontiguousarray(im_)
             im_ = kwimage.imresize(im_, dsize=(200, 200),
