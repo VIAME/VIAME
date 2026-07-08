@@ -63,6 +63,9 @@ from viame.core.interactive_stereo import (  # noqa: E402
     load_algorithm_from_config,
     find_viame_config as find_stereo_config,
 )
+from viame.core.interactive_alignment import (  # noqa: E402
+    InteractiveAlignmentService,
+)
 
 
 # Commands routed to the interactive-stereo backend. Everything else
@@ -79,6 +82,11 @@ STEREO_COMMANDS = {
 # disabling something that was never enabled, must stay cheap no-ops.
 STEREO_IDLE_COMMANDS = {"get_status", "cancel", "disable"}
 
+# Commands routed to the interactive-alignment (auto-align) backend. The
+# backend object itself is cheap to construct (its model loads lazily on the
+# first auto_align), so no idle-command special casing is needed.
+ALIGNMENT_COMMANDS = {"auto_align", "get_alignment_status"}
+
 # Segmentation cache-management commands that must NOT construct (load) the
 # segmentation backend / model before the user's first prediction.
 SEG_IDLE_COMMANDS = {"set_image", "clear_image"}
@@ -93,15 +101,18 @@ class InteractiveService:
         stereo_config: Optional[str],
         plugin_paths: Optional[List[str]] = None,
         device: Optional[str] = None,
+        alignment_weights: Optional[str] = None,
     ):
         self._segmentation_configs = segmentation_configs
         self._stereo_config = stereo_config
         self._plugin_paths = plugin_paths or []
         self._device = device
+        self._alignment_weights = alignment_weights
 
         # Lazily constructed sub-services (their models load lazily in turn).
         self._seg_service: Optional[InteractiveSegmentationService] = None
         self._stereo_service: Optional[InteractiveStereoService] = None
+        self._alignment_service: Optional[InteractiveAlignmentService] = None
 
         self._build_lock = threading.Lock()  # guards lazy construction
         self._send_lock = threading.Lock()   # serializes stdout writes
@@ -183,6 +194,19 @@ class InteractiveService:
                     f"({'epipolar' if matcher is not None else 'dense'} mode)")
         return self._stereo_service
 
+    def _ensure_alignment(self) -> InteractiveAlignmentService:
+        if self._alignment_service is not None:
+            return self._alignment_service
+        with self._build_lock:
+            if self._alignment_service is None:
+                # Cheap to construct; the matcher model loads lazily on the
+                # first auto_align request and stays resident afterwards.
+                self._alignment_service = InteractiveAlignmentService(
+                    weights_path=self._alignment_weights,
+                    device=self._device,
+                )
+        return self._alignment_service
+
     # ----------------------------------------------------------- routing
     def handle_request(self, request: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Route a request to the appropriate backend, building it on first use.
@@ -191,6 +215,9 @@ class InteractiveService:
         commands that defer their response to a background thread (which sends
         it later via the shared writer)."""
         command = request.get("command")
+
+        if command in ALIGNMENT_COMMANDS:
+            return self._ensure_alignment().handle_request(request)
 
         if command in STEREO_COMMANDS:
             # Don't spin up the stereo backend just to answer a status/lifecycle
@@ -320,6 +347,13 @@ def main():
         default="cuda",
         help="Device to run on (cuda, cpu, auto)",
     )
+    parser.add_argument(
+        "--alignment-weights",
+        default=None,
+        help="Path to the auto-align matcher weights (minima_loftr.ckpt). "
+             "If omitted, $VIAME_ALIGNMENT_WEIGHTS or "
+             "$VIAME_INSTALL/configs/pipelines/models is searched.",
+    )
     args = parser.parse_args()
 
     if args.viame_path:
@@ -339,6 +373,7 @@ def main():
         stereo_config=args.stereo_config,
         plugin_paths=args.plugin_path,
         device=args.device,
+        alignment_weights=args.alignment_weights,
     )
 
     try:
