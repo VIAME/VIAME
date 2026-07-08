@@ -189,6 +189,14 @@ class ClfModel(nh.layers.Module):
             from torchvision.models import efficientnet
             model = efficientnet.efficientnet_v2_m(num_classes=num_classes)
             self.backbone_url = "https://download.pytorch.org/models/efficientnet_v2_m-dc08266a.pth"
+        elif arch == 'convnextsmall':
+            from torchvision.models import convnext_small
+            model = convnext_small(num_classes=num_classes)
+            self.backbone_url = "https://download.pytorch.org/models/convnext_small-0c510722.pth"
+        elif arch == 'swinv2tiny':
+            from torchvision.models import swin_v2_t
+            model = swin_v2_t(num_classes=num_classes)
+            self.backbone_url = "https://download.pytorch.org/models/swin_v2_t-b137f0e2.pth"
         else:
             raise KeyError(arch)
 
