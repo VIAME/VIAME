@@ -374,14 +374,17 @@ read_habcam_metadata_process
 
     if( image_id_ind + 6 <= static_cast<int>( tokens.size() ) )
     {
+      constexpr double deg_to_rad = 3.14159265358979323846 / 180.0;
+
       output_md->add< kwiver::vital::VITAL_META_DENSITY_ALTITUDE >(
         std::stod( tokens[ image_id_ind + 2 ] ) );
-      output_md->add< kwiver::vital::VITAL_META_SENSOR_YAW_ANGLE >(
-        std::stod( tokens[ image_id_ind + 3 ] ) );
-      output_md->add< kwiver::vital::VITAL_META_SENSOR_PITCH_ANGLE >(
-        std::stod( tokens[ image_id_ind + 4 ] ) );
-      output_md->add< kwiver::vital::VITAL_META_SENSOR_ROLL_ANGLE >(
-        std::stod( tokens[ image_id_ind + 5 ] ) );
+
+      // Yaw, pitch and roll are stored in degrees; rotation_d takes radians.
+      output_md->add< kwiver::vital::VITAL_META_SENSOR_ORIENTATION >(
+        kwiver::vital::rotation_d(
+          std::stod( tokens[ image_id_ind + 3 ] ) * deg_to_rad,
+          std::stod( tokens[ image_id_ind + 4 ] ) * deg_to_rad,
+          std::stod( tokens[ image_id_ind + 5 ] ) * deg_to_rad ) );
     }
     else
     {
