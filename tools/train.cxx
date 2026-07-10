@@ -69,7 +69,9 @@ static kv::config_block_sptr default_config()
   config->set_value( "groundtruth_style", "one_per_folder",
     "Can be either: \"one_per_file\" or \"one_per_folder\"" );
   config->set_value( "augmentation_pipeline", "",
-    "Optional embedded pipeline for performing assorted augmentations" );
+    "Optional augmentation pipeline. Legacy input_adapter pipelines run per "
+    "extracted frame; common_default_input pipelines run once over the whole "
+    "input (video or image sequence) in a single pass." );
   config->set_value( "augmentation_cache", "augmented_images",
     "Directory to store augmented samples, a temp directiry is used if not specified." );
   config->set_value( "regenerate_cache", "true",
@@ -1418,8 +1420,20 @@ train_applet
     }
   }
 
-  // Load shared augmentation pipeline for single-image data items
-  pipeline_t shared_augmentation_pipe = load_embedded_pipeline( pipeline_file );
+  // Legacy pipelines wrap an input_adapter and run per frame; common_default_input
+  // pipelines are run once over the whole input via kwiver runner instead.
+  const bool unified_augmentation =
+    !pipeline_file.empty() && !file_contains_string( pipeline_file, "input_adapter" );
+
+  if( unified_augmentation )
+  {
+    std::cout << "Using single-pass source-driven augmentation pipeline: "
+              << pipeline_file << std::endl;
+  }
+
+  // Legacy adapter pipelines only; unified ones are run via kwiver runner.
+  pipeline_t shared_augmentation_pipe =
+    unified_augmentation ? pipeline_t() : load_embedded_pipeline( pipeline_file );
 
   for( unsigned i = 0; i < all_data.size(); i++ )
   {
@@ -1520,6 +1534,12 @@ train_applet
       }
     }
 
+    // Frames already augmented in a single pass. preaug_frames, when set, holds
+    // the augmented image per image_files entry (image_files stays the originals
+    // so groundtruth still resolves by name).
+    bool frames_preaugmented = false;
+    std::vector< std::string > preaug_frames;
+
     if( is_video )
     {
       double file_frame_rate = get_file_frame_rate( gt_files[0] );
@@ -1530,9 +1550,23 @@ train_applet
         return EXIT_FAILURE;
       }
 
-      image_files = extract_video_frames( data_item, video_extractor,
+      // Unified pipeline: decode the video once, writing augmented frames
+      // directly. Otherwise use the plain frame extractor.
+      const std::string& extraction_pipeline =
+        unified_augmentation ? pipeline_file : video_extractor;
+
+      if( unified_augmentation )
+      {
+        std::cout << "Extracting and augmenting video frames in a single pass "
+                  << "using " << extraction_pipeline << std::endl;
+      }
+
+      image_files = extract_video_frames( data_item, extraction_pipeline,
         ( file_frame_rate > 0 ? file_frame_rate : frame_rate ),
-        augmented_cache, !regenerate_cache, max_frame_count );
+        augmented_cache, !regenerate_cache, max_frame_count,
+        "vidl_ffmpeg" );
+
+      frames_preaugmented = unified_augmentation;
 
       if( max_frame_count > 0 )
       {
@@ -1541,6 +1575,27 @@ train_applet
     }
 
     std::sort( image_files.begin(), image_files.end() );
+
+    // Image sequences: run the same pipeline once over the frames (image_list
+    // reader), one augmented frame per input.
+    if( unified_augmentation && !is_video && !image_files.empty() )
+    {
+      std::string item_subdir =
+        get_filename_no_path( data_item );
+
+      preaug_frames = augment_image_sequence( image_files, pipeline_file,
+        augmented_cache, item_subdir, !regenerate_cache );
+
+      if( preaug_frames.size() != image_files.size() )
+      {
+        std::cout << "Error: unified augmentation of " << data_item
+                  << " produced " << preaug_frames.size() << " frames for "
+                  << image_files.size() << " inputs" << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      frames_preaugmented = true;
+    }
 
     // Check bit depth of a few sample images to detect non-8-bit imagery
     if( !bit_depth_checked && !image_files.empty() )
@@ -1604,9 +1659,9 @@ train_applet
     // Perform any augmentation for this entry, if enabled
     pipeline_t augmentation_pipe;
 
-    if( !is_image )
+    if( !is_image && !frames_preaugmented )
     {
-      // Directories/videos get a fresh pipeline per data item
+      // Legacy adapter pipelines only; preaugmented frames skip this.
       augmentation_pipe = load_embedded_pipeline( pipeline_file );
     }
 
@@ -1671,7 +1726,13 @@ train_applet
       bool use_image = true;
       std::string filtered_image_file;
 
-      if( active_pipe )
+      if( !preaug_frames.empty() )
+      {
+        // Frame already augmented in the single unified pass above.
+        filtered_image_file = preaug_frames[j];
+        use_image = filesystem::exists( filtered_image_file );
+      }
+      else if( active_pipe )
       {
         filtered_image_file = get_augmented_filename( image_file, last_subdir,
           augmented_cache, augmented_ext_override );
