@@ -445,7 +445,7 @@ if( VIAME_ENABLE_PYTHON )
   find_package( pybind11 REQUIRED )
   kwiver_add_python_library( _measurement
     core
-    measurement_utilities.cxx )
+    SOURCES measurement_utilities.cxx )
   target_compile_definitions( python-core-_measurement
     PRIVATE VIAME_MEASUREMENT_PYTHON_BINDINGS )
   target_link_libraries( python-core-_measurement
