@@ -81,6 +81,10 @@ static kv::config_block_sptr default_config()
     "Number of data items to augment concurrently for single-pass (source-driven) "
     "pipelines. Each item is an independent subprocess, so this speeds up "
     "preparation on large multi-video/-folder datasets. Capped at the item count." );
+  config->set_value( "original_bit_depth", "false",
+    "Keep the source bit depth when running single-pass augmentation, so "
+    "bit-depth-sensitive pipelines (e.g. percentile normalization of 16-bit "
+    "imagery) see the raw data. Implied by --normalize-16bit." );
   config->set_value( "regenerate_cache", "true",
     "If an augmentation cache already exists, should we regenerate it or use it as-is?" );
   config->set_value( "augmented_ext_override", ".png",
@@ -980,6 +984,9 @@ train_applet
     config->get_value< std::string >( "augmentation_cache" );
   unsigned augmentation_threads =
     config->get_value< unsigned >( "augmentation_threads" );
+  bool preserve_bit_depth =
+    config->get_value< bool >( "original_bit_depth" ) ||
+    opt_normalize_16bit;
   bool regenerate_cache =
     config->get_value< bool >( "regenerate_cache" );
   std::string augmented_ext_override =
@@ -1470,7 +1477,7 @@ train_applet
 
       ctx.image_files = extract_video_frames( ctx.data_item, extraction_pipeline,
         ctx.frame_rate, augmented_cache, !regenerate_cache, max_frame_count,
-        "vidl_ffmpeg" );
+        "vidl_ffmpeg", "", preserve_bit_depth );
 
       ctx.frames_preaugmented = unified_augmentation;
     }
@@ -1480,7 +1487,8 @@ train_applet
     if( unified_augmentation && !ctx.is_video && !ctx.image_files.empty() )
     {
       ctx.preaug_frames = augment_image_sequence( ctx.image_files, pipeline_file,
-        augmented_cache, get_filename_no_path( ctx.data_item ), !regenerate_cache );
+        augmented_cache, get_filename_no_path( ctx.data_item ), !regenerate_cache,
+        preserve_bit_depth );
 
       if( ctx.preaug_frames.size() != ctx.image_files.size() )
       {

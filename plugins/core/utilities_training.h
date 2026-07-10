@@ -222,6 +222,9 @@ std::string get_augmented_filename( const std::string& name,
 /// \param reader_type video_input reader type to use
 /// \param output_subdir Cache subdirectory for the frames (empty = derive from
 ///        the input filename)
+/// \param preserve_bit_depth Keep the source bit depth (do not force 8-bit) so
+///        bit-depth-sensitive augmentations (e.g. percentile normalization) see
+///        the raw 16-bit/float data
 /// \returns Vector of extracted frame file paths
 VIAME_CORE_EXPORT
 std::vector< std::string >
@@ -232,7 +235,8 @@ extract_video_frames( const std::string& video_filename,
                       bool skip_extract_if_exists = false,
                       unsigned max_frame_count = 0,
                       const std::string& reader_type = "vidl_ffmpeg",
-                      const std::string& output_subdir = "" );
+                      const std::string& output_subdir = "",
+                      bool preserve_bit_depth = false );
 
 /// Augment an ordered image sequence in a single pass via the image_list reader,
 /// producing one augmented frame per input, ordered to match image_files.
@@ -242,7 +246,8 @@ augment_image_sequence( const std::vector< std::string >& image_files,
                         const std::string& pipeline_filename,
                         const std::string& output_directory,
                         const std::string& output_subdir,
-                        bool skip_if_exists = false );
+                        bool skip_if_exists = false,
+                        bool preserve_bit_depth = false );
 
 } // end namespace viame
 

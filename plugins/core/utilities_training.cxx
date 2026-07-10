@@ -479,7 +479,8 @@ extract_video_frames( const std::string& video_filename,
                       bool skip_extract_if_exists,
                       unsigned max_frame_count,
                       const std::string& reader_type,
-                      const std::string& output_subdir )
+                      const std::string& output_subdir,
+                      bool preserve_bit_depth )
 {
   std::cout << "Extracting frames from " << video_filename
             << " at rate " << frame_rate << std::endl;
@@ -525,6 +526,17 @@ extract_video_frames( const std::string& video_filename,
               + std::to_string( max_frame_count );
   }
 
+  // Preserve the source bit depth: disable the image_list reader's force-to-byte
+  // so percentile-normalization and other bit-depth-sensitive augmentations see
+  // the raw 16-bit/float data.
+  if( preserve_bit_depth )
+  {
+    cmd = cmd + "-s input:video_reader:image_list:image_reader:vxl:"
+                "force_byte=false ";
+    cmd = cmd + "-s input:video_reader:image_list:image_reader:"
+                "add_timestamp_from_filename:image_reader:vxl:force_byte=false ";
+  }
+
   if( !skip_extract_if_exists ||
       ( !does_folder_exist( output_dir ) && create_folder( output_dir ) ) ||
       folder_contains_less_than_n_files( output_dir, 3 ) )
@@ -541,7 +553,8 @@ augment_image_sequence( const std::vector< std::string >& image_files,
                         const std::string& pipeline_filename,
                         const std::string& output_directory,
                         const std::string& output_subdir,
-                        bool skip_if_exists )
+                        bool skip_if_exists,
+                        bool preserve_bit_depth )
 {
   std::vector< std::string > output;
 
@@ -583,7 +596,7 @@ augment_image_sequence( const std::vector< std::string >& image_files,
   const double keep_all_rate = 1e9;
 
   output = extract_video_frames( list_file, pipeline_filename, keep_all_rate,
-    output_directory, false, 0, "image_list", output_subdir );
+    output_directory, false, 0, "image_list", output_subdir, preserve_bit_depth );
 
   filesystem::remove( list_file );
 
