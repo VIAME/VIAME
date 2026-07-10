@@ -190,11 +190,10 @@ set( CORE_PIPELINE_FILES
   sql_init_table.sql
   tracker_project_folder.pipe
   train_aug_add_color_freq.pipe
-  train_aug_add_double_motion_seq.pipe
+  train_aug_add_double_motion.pipe
   train_aug_add_motion.pipe
   train_aug_add_motion_and_color_freq.pipe
   train_aug_add_optical_flow.pipe
-  train_aug_add_optical_flow_seq.pipe
   train_aug_enhance_and_add_motion.pipe
   train_aug_hue_shifting_only.pipe
   train_aug_intensity_color_freq_motion.pipe

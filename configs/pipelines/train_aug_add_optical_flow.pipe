@@ -1,15 +1,25 @@
 # =============================================================================
 # Title: Training - Aug Add Optical Flow
 #
-# Description: Training augmentation that appends a dense optical-flow motion
-# magnitude channel to RGB, producing a 4-channel (RGBA) image. The flow is
-# background-compensated so only motion relative to the scene survives. Pair
-# with a 4-channel RF-DETR detector (num_channels=4). Requires temporally
-# ordered input frames.
+# Description: Source-driven augmentation that reads directly from the
+# common_default_input source. Because that source is a video_input, the same pipeline handles both
+# videos (video_reader:type = vidl_ffmpeg) and image sequences
+# (video_reader:type = image_list) -- the viame train tool selects the reader
+# per input. The frames are downsampled, augmented with a background-compensated
+# optical-flow magnitude channel appended to RGB (producing a 4-channel RGBA
+# image), and written out in a single pass, so a video is decoded only once and
+# only the augmented frames are written (no intermediate raw-frame dump).
+# Requires temporally ordered input frames.
+#
+# The train tool drives this via 'kwiver runner' with -s overrides for
+# input:video_filename, input:video_reader:type, downsampler:target_frame_rate
+# and image_writer:file_name_template. The writer names frames purely from the
+# template counter (frame%06d.png) so numbering is identical for video and image
+# inputs and groundtruth association is unchanged.
 # =============================================================================
 
 config _pipeline:_edge
-  :capacity                                    10
+  :capacity                                    5
 
 config _scheduler
   :type                                        pythread_per_process
@@ -20,7 +30,7 @@ config _scheduler
 
 include common_default_input_with_downsampler.pipe
 
-# =============================================================================
+# ========================== OPTICAL-FLOW AUGMENTATION ========================
 
 process ensure_color
   :: image_filter
@@ -58,7 +68,10 @@ connect from ensure_color.image
 connect from motion_filter.image
         to   image_merger.image2
 
-# =============================================================================
+# ================================== OUTPUT ===================================
+# Frame names come solely from the template counter (set by the train tool), so
+# numbering is identical whether the source is a video or an image list, and the
+# original images are never overwritten.
 
 process image_writer
  :: image_writer

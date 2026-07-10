@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Training - Aug Add Double Motion (Single-Pass, Source-Driven)
+# Title: Training - Aug Add Double Motion
 #
-# Description: Single-pass variant of train_aug_add_double_motion.pipe that
-# reads directly from the common_default_input source instead of a per-frame
-# input adapter. Because that source is a video_input, the same pipeline handles
+# Description: Source-driven augmentation that reads directly from the
+# common_default_input source. Because that source is a video_input, the same pipeline handles
 # both videos (video_reader:type = vidl_ffmpeg) and image sequences
 # (video_reader:type = image_list) -- the viame train tool selects the reader
 # per input. The frames are downsampled, augmented with two temporal-variance
