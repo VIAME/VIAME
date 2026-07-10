@@ -97,7 +97,7 @@ public:
 
   PLUGGABLE_VARIABLES( VIAME_CORE_ADT_PARAMS )
   PLUGGABLE_CONSTRUCTOR( adaptive_detector_trainer, VIAME_CORE_ADT_PARAMS )
-  PLUGGABLE_IMPL_BASIC( adaptive_detector_trainer, "Analyzes training data and runs appropriate training pipelines" )
+  PLUGGABLE_IMPL_BASIC_NAMED( adaptive_detector_trainer, "adaptive", "Analyzes training data and runs appropriate training pipelines" )
   PLUGGABLE_STATIC_FROM_CONFIG( adaptive_detector_trainer, VIAME_CORE_ADT_PARAMS )
   PLUGGABLE_STATIC_GET_DEFAULT( VIAME_CORE_ADT_PARAMS )
   PLUGGABLE_SET_CONFIGURATION( adaptive_detector_trainer, VIAME_CORE_ADT_PARAMS )

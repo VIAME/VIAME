@@ -20,12 +20,12 @@ namespace viame {
  *
  * This process should be moved to core from ocv when able
  */
-class VIAME_OPENCV_EXPORT windowed_detector
+class VIAME_OPENCV_EXPORT ocv_windowed_detector
   : public kwiver::vital::algo::image_object_detector
 {
 public:
-  PLUGGABLE_IMPL(
-    windowed_detector,
+  PLUGGABLE_IMPL_NAMED(
+    ocv_windowed_detector, "ocv_windowed",
     "Window some other arbitrary detector across the image",
     PARAM_DEFAULT(
       mode, std::string,
@@ -85,7 +85,7 @@ public:
       "Algorithm pointer to nested detector" )
   )
 
-  virtual ~windowed_detector() = default;
+  virtual ~ocv_windowed_detector() = default;
 
   virtual kwiver::vital::detected_object_set_sptr detect(
     kwiver::vital::image_container_sptr image_data ) const;

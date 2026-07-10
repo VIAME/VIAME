@@ -26,12 +26,12 @@ namespace viame {
 /**
  * @brief Run training on arbitrary other trainers in a windowed fashion
  */
-class VIAME_OPENCV_EXPORT windowed_trainer
+class VIAME_OPENCV_EXPORT ocv_windowed_trainer
   : public kwiver::vital::algo::train_detector
 {
 public:
-  PLUGGABLE_IMPL(
-    windowed_trainer,
+  PLUGGABLE_IMPL_NAMED(
+    ocv_windowed_trainer, "ocv_windowed",
     "Window some other arbitrary detector trainer across the image",
     PARAM_DEFAULT(
       mode, std::string,
@@ -179,7 +179,7 @@ public:
       "Algorithm pointer to nested trainer" )
   )
 
-  virtual ~windowed_trainer() = default;
+  virtual ~ocv_windowed_trainer() = default;
 
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 

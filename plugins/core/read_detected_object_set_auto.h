@@ -23,8 +23,8 @@ class VIAME_CORE_EXPORT read_detected_object_set_auto
   : public kwiver::vital::algo::detected_object_set_input
 {
 public:
-  PLUGGABLE_IMPL(
-    read_detected_object_set_auto,
+  PLUGGABLE_IMPL_NAMED(
+    read_detected_object_set_auto, "auto",
     "Automatic format detection for detected object set reading.\n\n"
     "Detects format based on file extension and content:\n"
     "  - .dive.json -> DIVE JSON\n"

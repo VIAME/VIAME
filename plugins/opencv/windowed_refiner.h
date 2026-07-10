@@ -21,12 +21,12 @@ namespace viame {
  * This process applies a detection refinement algorithm across multiple
  * windowed regions of an image, scaling input detections to each region.
  */
-class VIAME_OPENCV_EXPORT windowed_refiner
+class VIAME_OPENCV_EXPORT ocv_windowed_refiner
   : public kwiver::vital::algo::refine_detections
 {
 public:
-  PLUGGABLE_IMPL(
-    windowed_refiner,
+  PLUGGABLE_IMPL_NAMED(
+    ocv_windowed_refiner, "ocv_windowed",
     "Window some other arbitrary refiner across the image",
     PARAM_DEFAULT(
       mode, std::string,
@@ -113,7 +113,7 @@ public:
       "Algorithm pointer to nested refiner" )
   )
 
-  virtual ~windowed_refiner();
+  virtual ~ocv_windowed_refiner();
 
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 

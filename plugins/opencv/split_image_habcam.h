@@ -20,8 +20,8 @@ class VIAME_OPENCV_EXPORT split_image_habcam
   : public kwiver::vital::algo::split_image
 {
 public:
-  PLUGGABLE_IMPL(
-    split_image_habcam,
+  PLUGGABLE_IMPL_NAMED(
+    split_image_habcam, "habcam",
     "Split an image into multiple smaller images",
     PARAM_DEFAULT( require_stereo, bool,
       "Fail if the input is not a conjoined stereo image pair", false ),

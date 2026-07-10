@@ -99,7 +99,7 @@ public:
 
   PLUGGABLE_VARIABLES( VIAME_CORE_ATT_PARAMS )
   PLUGGABLE_CONSTRUCTOR( adaptive_tracker_trainer, VIAME_CORE_ATT_PARAMS )
-  PLUGGABLE_IMPL_BASIC( adaptive_tracker_trainer, "Analyzes tracking data and runs appropriate training pipelines" )
+  PLUGGABLE_IMPL_BASIC_NAMED( adaptive_tracker_trainer, "adaptive", "Analyzes tracking data and runs appropriate training pipelines" )
   PLUGGABLE_STATIC_FROM_CONFIG( adaptive_tracker_trainer, VIAME_CORE_ATT_PARAMS )
   PLUGGABLE_STATIC_GET_DEFAULT( VIAME_CORE_ATT_PARAMS )
   PLUGGABLE_SET_CONFIGURATION( adaptive_tracker_trainer, VIAME_CORE_ATT_PARAMS )

@@ -24,8 +24,8 @@ class VIAME_CORE_EXPORT read_detected_object_set_fishnet
 {
 public:
   // NOTE: Keep description in sync with write_detected_object_set_fishnet
-  PLUGGABLE_IMPL(
-    read_detected_object_set_fishnet,
+  PLUGGABLE_IMPL_NAMED(
+    read_detected_object_set_fishnet, "fishnet",
     "Detected object set reader using fishnet csv format.\n\n"
     "  - Column(s) 1: Frame ID no image extension ID\n"
     "  - Column(s) 2: Box ID unique to frame\n"

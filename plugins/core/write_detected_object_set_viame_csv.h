@@ -23,8 +23,8 @@ class VIAME_CORE_EXPORT write_detected_object_set_viame_csv
 {
 public:
   // NOTE: Keep description in sync with read_detected_object_set_viame_csv
-  PLUGGABLE_IMPL(
-    write_detected_object_set_viame_csv,
+  PLUGGABLE_IMPL_NAMED(
+    write_detected_object_set_viame_csv, "viame_csv",
     "Detected object set writer using viame_csv format.\n\n"
     "  - Column(s) 1: Detection or Track ID\n"
     "  - Column(s) 2: Video or Image Identifier\n"

@@ -16,7 +16,8 @@ class VIAME_OPENCV_EXPORT detect_calibration_targets
   : public kwiver::vital::algo::image_object_detector
 {
 public:
-  PLUGGABLE_IMPL( detect_calibration_targets,
+  PLUGGABLE_IMPL_NAMED(
+    detect_calibration_targets, "ocv_detect_calibration_targets",
                   "Detects checkerboard corners in input images for camera calibration processes.",
     PARAM_DEFAULT( config_file, std::string,
                    "Name of OCV Target Detector configuration file.", "" ),

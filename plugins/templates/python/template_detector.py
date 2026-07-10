@@ -93,16 +93,7 @@ class @template@Detector( ImageObjectDetector ):
         return output
 
 def __vital_algorithm_register__():
-    from vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    # Register Algorithm
-    implementation_name = "@template@"
-
-    if algorithm_factory.has_algorithm_impl_name(
-      @template@Detector.static_type_name(), implementation_name ):
-        return
-
-    algorithm_factory.add_algorithm( implementation_name,
-      "@template@ dection inference routine", @template@Detector )
-
-    algorithm_factory.mark_algorithm_as_loaded( implementation_name )
+    register_vital_algorithm(
+        @template@Detector, "@template@", "@template@ detector" )

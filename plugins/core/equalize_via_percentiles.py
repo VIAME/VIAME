@@ -9,111 +9,109 @@ from kwiver.vital.types import ImageContainer
 
 import numpy as np
 
-class EqualizeViaPercentiles( ImageFilter ):
-  """
-  Percentile-based image normalization filter (NumPy implementation).
 
-  This filter normalizes image intensity values using percentile-based
-  min/max calculation. It supports arbitrary input types and can output
-  either 8-bit or native format (same as input with full range stretch).
+class EqualizeViaPercentiles(ImageFilter):
+    """
+    Percentile-based image normalization filter (NumPy implementation).
 
-  Configuration:
-    - lower_percentile: Lower percentile for min value (default: 1.0)
-    - upper_percentile: Upper percentile for max value (default: 100.0)
-    - output_format: "8-bit" for 8-bit output, "native" for same as input (default: "8-bit")
-  """
-  def __init__( self ):
-    ImageFilter.__init__( self )
-    self.lower_percentile = 1.0
-    self.upper_percentile = 100.0
-    self.output_format = "8-bit"
+    This filter normalizes image intensity values using percentile-based
+    min/max calculation. It supports arbitrary input types and can output
+    either 8-bit or native format (same as input with full range stretch).
 
-  def get_configuration( self ):
-    cfg = super( ImageFilter, self ).get_configuration()
-    cfg.set_value( "lower_percentile", str( self.lower_percentile ) )
-    cfg.set_value( "upper_percentile", str( self.upper_percentile ) )
-    cfg.set_value( "output_format", self.output_format )
-    return cfg
+    Configuration:
+      - lower_percentile: Lower percentile for min value (default: 1.0)
+      - upper_percentile: Upper percentile for max value (default: 100.0)
+      - output_format: "8-bit" for 8-bit output, "native" for same as input (default: "8-bit")
+    """
 
-  def set_configuration( self, cfg_in ):
-    self.lower_percentile = float( cfg_in.get_value( "lower_percentile" ) )
-    self.upper_percentile = float( cfg_in.get_value( "upper_percentile" ) )
-    self.output_format = cfg_in.get_value( "output_format" )
+    def __init__(self):
+        ImageFilter.__init__(self)
+        self.lower_percentile = 1.0
+        self.upper_percentile = 100.0
+        self.output_format = "8-bit"
 
-  def check_configuration( self, cfg ):
-    lower = float( cfg.get_value( "lower_percentile" ) )
-    upper = float( cfg.get_value( "upper_percentile" ) )
-    output_fmt = cfg.get_value( "output_format" )
+    def get_configuration(self):
+        cfg = super(ImageFilter, self).get_configuration()
+        cfg.set_value("lower_percentile", str(self.lower_percentile))
+        cfg.set_value("upper_percentile", str(self.upper_percentile))
+        cfg.set_value("output_format", self.output_format)
+        return cfg
 
-    if lower < 0.0 or lower > 100.0:
-      print( "Error: lower_percentile must be between 0.0 and 100.0" )
-      return False
+    def set_configuration(self, cfg_in):
+        self.lower_percentile = float(cfg_in.get_value("lower_percentile"))
+        self.upper_percentile = float(cfg_in.get_value("upper_percentile"))
+        self.output_format = cfg_in.get_value("output_format")
 
-    if upper < 0.0 or upper > 100.0:
-      print( "Error: upper_percentile must be between 0.0 and 100.0" )
-      return False
+    def check_configuration(self, cfg):
+        lower = float(cfg.get_value("lower_percentile"))
+        upper = float(cfg.get_value("upper_percentile"))
+        output_fmt = cfg.get_value("output_format")
 
-    if lower >= upper:
-      print( "Error: lower_percentile must be less than upper_percentile" )
-      return False
+        if lower < 0.0 or lower > 100.0:
+            print("Error: lower_percentile must be between 0.0 and 100.0")
+            return False
 
-    if output_fmt not in [ "8-bit", "native" ]:
-      print( "Error: output_format must be '8-bit' or 'native'" )
-      return False
+        if upper < 0.0 or upper > 100.0:
+            print("Error: upper_percentile must be between 0.0 and 100.0")
+            return False
 
-    return True
+        if lower >= upper:
+            print("Error: lower_percentile must be less than upper_percentile")
+            return False
 
-  def filter( self, in_img ):
-    img = in_img.image().asarray()
-    input_dtype = img.dtype
+        if output_fmt not in ["8-bit", "native"]:
+            print("Error: output_format must be '8-bit' or 'native'")
+            return False
 
-    # Convert to float64 for calculations
-    img_float = img.astype( np.float64 )
+        return True
 
-    # Calculate percentiles
-    p_low = np.percentile( img_float, self.lower_percentile )
-    p_high = np.percentile( img_float, self.upper_percentile )
+    def filter(self, in_img):
+        img = in_img.image().asarray()
+        input_dtype = img.dtype
 
-    # Avoid division by zero
-    range_val = p_high - p_low
-    if range_val <= 0:
-      range_val = 1.0
+        # Convert to float64 for calculations
+        img_float = img.astype(np.float64)
 
-    # Normalize to [0, 1]
-    normalized = ( img_float - p_low ) / range_val
-    normalized = np.clip( normalized, 0.0, 1.0 )
+        # Calculate percentiles
+        p_low = np.percentile(img_float, self.lower_percentile)
+        p_high = np.percentile(img_float, self.upper_percentile)
 
-    # Determine output format and scale accordingly
-    if self.output_format == "8-bit":
-      output = ( normalized * 255.0 ).astype( np.uint8 )
-    else:
-      # Native format - stretch to full range of input type
-      if input_dtype == np.uint8:
-        output = ( normalized * 255.0 ).astype( np.uint8 )
-      elif input_dtype == np.uint16:
-        output = ( normalized * 65535.0 ).astype( np.uint16 )
-      elif input_dtype == np.int16:
-        output = ( normalized * 65535.0 - 32768.0 ).astype( np.int16 )
-      elif input_dtype == np.float32:
-        output = normalized.astype( np.float32 )
-      elif input_dtype == np.float64:
-        output = normalized
-      else:
-        # Fallback: try to preserve dtype, scale to 8-bit range
-        output = ( normalized * 255.0 ).astype( input_dtype )
+        # Avoid division by zero
+        range_val = p_high - p_low
+        if range_val <= 0:
+            range_val = 1.0
 
-    return ImageContainer( Image( output ) )
+        # Normalize to [0, 1]
+        normalized = (img_float - p_low) / range_val
+        normalized = np.clip(normalized, 0.0, 1.0)
+
+        # Determine output format and scale accordingly
+        if self.output_format == "8-bit":
+            output = (normalized * 255.0).astype(np.uint8)
+        else:
+            # Native format - stretch to full range of input type
+            if input_dtype == np.uint8:
+                output = (normalized * 255.0).astype(np.uint8)
+            elif input_dtype == np.uint16:
+                output = (normalized * 65535.0).astype(np.uint16)
+            elif input_dtype == np.int16:
+                output = (normalized * 65535.0 - 32768.0).astype(np.int16)
+            elif input_dtype == np.float32:
+                output = normalized.astype(np.float32)
+            elif input_dtype == np.float64:
+                output = normalized
+            else:
+                # Fallback: try to preserve dtype, scale to 8-bit range
+                output = (normalized * 255.0).astype(input_dtype)
+
+        return ImageContainer(Image(output))
+
 
 def __vital_algorithm_register__():
-  from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-  # Register Algorithm
-  implementation_name  = "equalize_via_percentiles_npy"
-  if algorithm_factory.has_algorithm_impl_name(
-      EqualizeViaPercentiles.static_type_name(), implementation_name ):
-    return
-
-  algorithm_factory.add_algorithm( implementation_name,
-    "Numpy percentile normalization with configurable output format", EqualizeViaPercentiles )
-
-  algorithm_factory.mark_algorithm_as_loaded( implementation_name )
+    register_vital_algorithm(
+        EqualizeViaPercentiles,
+        "equalize_via_percentiles_npy",
+        "Numpy percentile normalization with configurable output format",
+    )

@@ -25,8 +25,8 @@ class VIAME_CORE_EXPORT write_object_track_set_viame_csv
   : public kwiver::vital::algo::write_object_track_set
 {
 public:
-  PLUGGABLE_IMPL(
-    write_object_track_set_viame_csv,
+  PLUGGABLE_IMPL_NAMED(
+    write_object_track_set_viame_csv, "viame_csv",
     "Object track set viame_csv writer.\n\n"
     "  - Column(s) 1: Detection or Track ID\n"
     "  - Column(s) 2: Video or Image Identifier\n"

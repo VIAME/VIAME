@@ -29,8 +29,8 @@ class VIAME_CORE_EXPORT refine_detections_add_fixed
 {
 
 public:
-  PLUGGABLE_IMPL(
-    refine_detections_add_fixed,
+  PLUGGABLE_IMPL_NAMED(
+    refine_detections_add_fixed, "add_fixed",
     "Adds a fixed detection into the current set.\n\n"
     "The fixed detection can be either a config defined box or "
     "based on the input image size.",

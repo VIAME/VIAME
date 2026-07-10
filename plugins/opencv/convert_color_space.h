@@ -19,7 +19,8 @@ class VIAME_OPENCV_EXPORT convert_color_space
   : public kwiver::vital::algo::image_filter
 {
 public:
-  PLUGGABLE_IMPL( convert_color_space,
+  PLUGGABLE_IMPL_NAMED(
+    convert_color_space, "ocv_convert_color",
                   "Convert image between color spaces",
     PARAM_DEFAULT( input_color_space, std::string,
                    "Input color space.", "RGB" ),

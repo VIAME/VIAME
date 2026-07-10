@@ -423,6 +423,11 @@ if( VIAME_ENABLE_PYTHON )
     utils )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/vital_registration.py
+    core
+    vital_registration )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_segmentation.py
     core
     interactive_segmentation )

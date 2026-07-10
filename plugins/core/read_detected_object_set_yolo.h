@@ -24,8 +24,8 @@ class VIAME_CORE_EXPORT read_detected_object_set_yolo
   : public kwiver::vital::algo::detected_object_set_input
 {
 public:
-  PLUGGABLE_IMPL(
-    read_detected_object_set_yolo,
+  PLUGGABLE_IMPL_NAMED(
+    read_detected_object_set_yolo, "yolo",
     "Detected object set reader using YOLO format.\n\n"
     "YOLO format stores one .txt file per image with detections:\n"
     "  class_id x_center y_center width height [confidence]\n\n"

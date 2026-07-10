@@ -23,8 +23,10 @@ from kwiver.vital.algo import TrainTracker
 
 from kwiver.vital.types import (
     CategoryHierarchy,
-    ObjectTrackSet, ObjectTrackState,
-    BoundingBoxD, DetectedObjectType
+    ObjectTrackSet,
+    ObjectTrackState,
+    BoundingBoxD,
+    DetectedObjectType,
 )
 
 from distutils.util import strtobool
@@ -36,7 +38,7 @@ import json
 import numpy as np
 
 
-class ByteTrackTrainer( TrainTracker ):
+class ByteTrackTrainer(TrainTracker):
     """
     Implementation of TrainTracker class for ByteTrack parameter estimation.
 
@@ -44,8 +46,9 @@ class ByteTrackTrainer( TrainTracker ):
     input track groundtruth to estimate optimal Kalman filter parameters
     and detection thresholds.
     """
-    def __init__( self ):
-        TrainTracker.__init__( self )
+
+    def __init__(self):
+        TrainTracker.__init__(self)
 
         self._identifier = "viame-bytetrack-tracker"
         self._train_directory = "deep_training"
@@ -66,77 +69,77 @@ class ByteTrackTrainer( TrainTracker ):
         self._test_image_files = []
         self._test_tracks = []
 
-    def get_configuration( self ):
-        cfg = super( TrainTracker, self ).get_configuration()
+    def get_configuration(self):
+        cfg = super(TrainTracker, self).get_configuration()
 
-        cfg.set_value( "identifier", self._identifier )
-        cfg.set_value( "train_directory", self._train_directory )
-        cfg.set_value( "output_directory", self._output_directory )
-        cfg.set_value( "output_prefix", self._output_prefix )
-        cfg.set_value( "pipeline_template", self._pipeline_template )
-        cfg.set_value( "threshold", self._threshold )
-        cfg.set_value( "min_std_weight_position", str( self._min_std_weight_position ) )
-        cfg.set_value( "max_std_weight_position", str( self._max_std_weight_position ) )
-        cfg.set_value( "min_std_weight_velocity", str( self._min_std_weight_velocity ) )
-        cfg.set_value( "max_std_weight_velocity", str( self._max_std_weight_velocity ) )
+        cfg.set_value("identifier", self._identifier)
+        cfg.set_value("train_directory", self._train_directory)
+        cfg.set_value("output_directory", self._output_directory)
+        cfg.set_value("output_prefix", self._output_prefix)
+        cfg.set_value("pipeline_template", self._pipeline_template)
+        cfg.set_value("threshold", self._threshold)
+        cfg.set_value("min_std_weight_position", str(self._min_std_weight_position))
+        cfg.set_value("max_std_weight_position", str(self._max_std_weight_position))
+        cfg.set_value("min_std_weight_velocity", str(self._min_std_weight_velocity))
+        cfg.set_value("max_std_weight_velocity", str(self._max_std_weight_velocity))
 
         return cfg
 
-    def set_configuration( self, cfg_in ):
+    def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
-        cfg.merge_config( cfg_in )
+        cfg.merge_config(cfg_in)
 
-        self._identifier = str( cfg.get_value( "identifier" ) )
-        self._train_directory = str( cfg.get_value( "train_directory" ) )
-        self._output_directory = str( cfg.get_value( "output_directory" ) )
-        self._output_prefix = str( cfg.get_value( "output_prefix" ) )
-        self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
-        self._threshold = str( cfg.get_value( "threshold" ) )
-        self._min_std_weight_position = float( cfg.get_value( "min_std_weight_position" ) )
-        self._max_std_weight_position = float( cfg.get_value( "max_std_weight_position" ) )
-        self._min_std_weight_velocity = float( cfg.get_value( "min_std_weight_velocity" ) )
-        self._max_std_weight_velocity = float( cfg.get_value( "max_std_weight_velocity" ) )
+        self._identifier = str(cfg.get_value("identifier"))
+        self._train_directory = str(cfg.get_value("train_directory"))
+        self._output_directory = str(cfg.get_value("output_directory"))
+        self._output_prefix = str(cfg.get_value("output_prefix"))
+        self._pipeline_template = str(cfg.get_value("pipeline_template"))
+        self._threshold = str(cfg.get_value("threshold"))
+        self._min_std_weight_position = float(cfg.get_value("min_std_weight_position"))
+        self._max_std_weight_position = float(cfg.get_value("max_std_weight_position"))
+        self._min_std_weight_velocity = float(cfg.get_value("min_std_weight_velocity"))
+        self._max_std_weight_velocity = float(cfg.get_value("max_std_weight_velocity"))
 
         # Create directories
         if self._train_directory:
-            if not os.path.exists( self._train_directory ):
-                os.makedirs( self._train_directory )
+            if not os.path.exists(self._train_directory):
+                os.makedirs(self._train_directory)
 
         if self._output_directory:
-            if not os.path.exists( self._output_directory ):
-                os.makedirs( self._output_directory )
+            if not os.path.exists(self._output_directory):
+                os.makedirs(self._output_directory)
 
         return True
 
-    def check_configuration( self, cfg ):
-        if not cfg.has_value( "identifier" ) or \
-          len( cfg.get_value( "identifier") ) == 0:
-            print( "A model identifier must be specified!" )
+    def check_configuration(self, cfg):
+        if not cfg.has_value("identifier") or len(cfg.get_value("identifier")) == 0:
+            print("A model identifier must be specified!")
             return False
         return True
 
-    def add_data_from_disk( self, categories, train_files, train_tracks,
-                            test_files, test_tracks ):
+    def add_data_from_disk(
+        self, categories, train_files, train_tracks, test_files, test_tracks
+    ):
         """
         Store track data for parameter estimation.
         """
-        print( "Adding training data from disk..." )
-        print( "  Training files: ", len( train_files ) )
-        print( "  Training tracks: ", len( train_tracks ) )
-        print( "  Test files: ", len( test_files ) )
-        print( "  Test tracks: ", len( test_tracks ) )
+        print("Adding training data from disk...")
+        print("  Training files: ", len(train_files))
+        print("  Training tracks: ", len(train_tracks))
+        print("  Test files: ", len(test_files))
+        print("  Test tracks: ", len(test_tracks))
 
         if categories is not None:
             self._categories = categories.all_class_names()
         else:
             self._categories = []
 
-        self._train_image_files = list( train_files )
-        self._train_tracks = list( train_tracks )
-        self._test_image_files = list( test_files )
-        self._test_tracks = list( test_tracks )
+        self._train_image_files = list(train_files)
+        self._train_tracks = list(train_tracks)
+        self._test_image_files = list(test_files)
+        self._test_tracks = list(test_tracks)
 
-    def _extract_track_statistics( self ):
+    def _extract_track_statistics(self):
         """
         Extract statistics from track groundtruth for parameter estimation.
 
@@ -160,8 +163,8 @@ class ByteTrackTrainer( TrainTracker ):
                 continue
 
             for track in track_set.tracks():
-                states = list( track )
-                track_lengths.append( len( states ) )
+                states = list(track)
+                track_lengths.append(len(states))
 
                 prev_frame = None
                 prev_cx, prev_cy = None, None
@@ -183,35 +186,35 @@ class ByteTrackTrainer( TrainTracker ):
                     cx = x1 + w / 2
                     cy = y1 + h / 2
 
-                    positions.append( ( cx, cy, w, h ) )
+                    positions.append((cx, cy, w, h))
 
                     if det.confidence is not None:
-                        confidences.append( det.confidence )
+                        confidences.append(det.confidence)
 
                     # Compute velocity if we have previous position
                     if prev_frame is not None and prev_cx is not None:
                         dt = frame_id - prev_frame
                         if dt > 0:
-                            vx = ( cx - prev_cx ) / dt
-                            vy = ( cy - prev_cy ) / dt
-                            velocities.append( ( vx, vy, h, dt ) )
+                            vx = (cx - prev_cx) / dt
+                            vy = (cy - prev_cy) / dt
+                            velocities.append((vx, vy, h, dt))
 
                             # Track gaps (missing frames)
                             if dt > 1:
-                                gap_lengths.append( dt - 1 )
+                                gap_lengths.append(dt - 1)
 
                     prev_frame = frame_id
                     prev_cx, prev_cy = cx, cy
 
         return {
-            'positions': positions,
-            'velocities': velocities,
-            'confidences': confidences,
-            'track_lengths': track_lengths,
-            'gap_lengths': gap_lengths
+            "positions": positions,
+            "velocities": velocities,
+            "confidences": confidences,
+            "track_lengths": track_lengths,
+            "gap_lengths": gap_lengths,
         }
 
-    def _estimate_kalman_parameters( self, stats ):
+    def _estimate_kalman_parameters(self, stats):
         """
         Estimate Kalman filter parameters from track statistics.
 
@@ -222,11 +225,11 @@ class ByteTrackTrainer( TrainTracker ):
         These are estimated by analyzing the variance of position/velocity
         relative to bbox height in the training data.
         """
-        positions = stats['positions']
-        velocities = stats['velocities']
+        positions = stats["positions"]
+        velocities = stats["velocities"]
 
-        if len( positions ) < 10:
-            print( "Warning: Not enough position data, using defaults" )
+        if len(positions) < 10:
+            print("Warning: Not enough position data, using defaults")
             return 1.0 / 20, 1.0 / 160
 
         # Estimate position variance relative to height
@@ -236,17 +239,17 @@ class ByteTrackTrainer( TrainTracker ):
         for vx, vy, h, dt in velocities:
             # Normalized position change per frame
             if h > 0 and dt == 1:  # Only use consecutive frames
-                pos_var = np.sqrt( vx**2 + vy**2 ) / h
-                pos_variances.append( pos_var )
+                pos_var = np.sqrt(vx**2 + vy**2) / h
+                pos_variances.append(pos_var)
 
-        if len( pos_variances ) > 0:
+        if len(pos_variances) > 0:
             # Use median to be robust to outliers
-            median_pos_var = np.median( pos_variances )
+            median_pos_var = np.median(pos_variances)
             # The std_weight_position is roughly the expected position std / height
             std_weight_position = np.clip(
                 median_pos_var * 2,  # Factor of 2 for safety margin
                 self._min_std_weight_position,
-                self._max_std_weight_position
+                self._max_std_weight_position,
             )
         else:
             std_weight_position = 1.0 / 20
@@ -260,23 +263,23 @@ class ByteTrackTrainer( TrainTracker ):
                 # Acceleration (change in velocity)
                 ax = vx - prev_vx
                 ay = vy - prev_vy
-                vel_var = np.sqrt( ax**2 + ay**2 ) / h
-                vel_variances.append( vel_var )
+                vel_var = np.sqrt(ax**2 + ay**2) / h
+                vel_variances.append(vel_var)
             prev_vx, prev_vy, prev_h = vx, vy, h
 
-        if len( vel_variances ) > 0:
-            median_vel_var = np.median( vel_variances )
+        if len(vel_variances) > 0:
+            median_vel_var = np.median(vel_variances)
             std_weight_velocity = np.clip(
                 median_vel_var * 2,
                 self._min_std_weight_velocity,
-                self._max_std_weight_velocity
+                self._max_std_weight_velocity,
             )
         else:
             std_weight_velocity = 1.0 / 160
 
         return std_weight_position, std_weight_velocity
 
-    def _estimate_thresholds( self, stats ):
+    def _estimate_thresholds(self, stats):
         """
         Estimate detection confidence thresholds from training data.
 
@@ -285,111 +288,113 @@ class ByteTrackTrainer( TrainTracker ):
         - low_thresh: Threshold for low-confidence detections
         - new_track_thresh: Minimum confidence to create new track
         """
-        confidences = stats['confidences']
+        confidences = stats["confidences"]
 
-        if len( confidences ) < 10:
-            print( "Warning: Not enough confidence data, using defaults" )
+        if len(confidences) < 10:
+            print("Warning: Not enough confidence data, using defaults")
             return 0.6, 0.1, 0.6
 
-        confidences = np.array( confidences )
+        confidences = np.array(confidences)
 
         # high_thresh: Use 70th percentile (want to capture most good detections)
-        high_thresh = np.percentile( confidences, 30 )
+        high_thresh = np.percentile(confidences, 30)
 
         # low_thresh: Use 10th percentile (want to capture almost all detections)
-        low_thresh = np.percentile( confidences, 10 )
+        low_thresh = np.percentile(confidences, 10)
 
         # new_track_thresh: Same as high_thresh for creating new tracks
         new_track_thresh = high_thresh
 
         # Clamp to reasonable ranges
-        high_thresh = np.clip( high_thresh, 0.3, 0.9 )
-        low_thresh = np.clip( low_thresh, 0.05, high_thresh - 0.1 )
-        new_track_thresh = np.clip( new_track_thresh, 0.3, 0.9 )
+        high_thresh = np.clip(high_thresh, 0.3, 0.9)
+        low_thresh = np.clip(low_thresh, 0.05, high_thresh - 0.1)
+        new_track_thresh = np.clip(new_track_thresh, 0.3, 0.9)
 
-        return float( high_thresh ), float( low_thresh ), float( new_track_thresh )
+        return float(high_thresh), float(low_thresh), float(new_track_thresh)
 
-    def _estimate_track_buffer( self, stats ):
+    def _estimate_track_buffer(self, stats):
         """
         Estimate track_buffer (frames to keep lost tracks) from gap statistics.
         """
-        gap_lengths = stats['gap_lengths']
+        gap_lengths = stats["gap_lengths"]
 
-        if len( gap_lengths ) < 5:
+        if len(gap_lengths) < 5:
             return 30  # Default
 
         # Use 90th percentile of gaps + some margin
-        gap_90 = np.percentile( gap_lengths, 90 )
-        track_buffer = int( gap_90 * 1.5 ) + 5
+        gap_90 = np.percentile(gap_lengths, 90)
+        track_buffer = int(gap_90 * 1.5) + 5
 
         # Clamp to reasonable range
-        track_buffer = max( 10, min( 100, track_buffer ) )
+        track_buffer = max(10, min(100, track_buffer))
 
         return track_buffer
 
-    def update_model( self ):
+    def update_model(self):
         """
         Analyze track groundtruth and estimate ByteTrack parameters.
 
         Returns:
             dict: Map of template replacements and file copies
         """
-        print( "Starting ByteTrack parameter estimation..." )
+        print("Starting ByteTrack parameter estimation...")
 
         # Extract statistics from tracks
-        print( "Extracting track statistics..." )
+        print("Extracting track statistics...")
         stats = self._extract_track_statistics()
 
-        print( f"  Found {len(stats['positions'])} detections" )
-        print( f"  Found {len(stats['velocities'])} velocity measurements" )
-        print( f"  Found {len(stats['track_lengths'])} tracks" )
-        print( f"  Found {len(stats['gap_lengths'])} gaps" )
+        print(f"  Found {len(stats['positions'])} detections")
+        print(f"  Found {len(stats['velocities'])} velocity measurements")
+        print(f"  Found {len(stats['track_lengths'])} tracks")
+        print(f"  Found {len(stats['gap_lengths'])} gaps")
 
         # Estimate Kalman filter parameters
-        print( "Estimating Kalman filter parameters..." )
-        std_weight_position, std_weight_velocity = self._estimate_kalman_parameters( stats )
-        print( f"  std_weight_position: {std_weight_position:.6f}" )
-        print( f"  std_weight_velocity: {std_weight_velocity:.6f}" )
+        print("Estimating Kalman filter parameters...")
+        std_weight_position, std_weight_velocity = self._estimate_kalman_parameters(
+            stats
+        )
+        print(f"  std_weight_position: {std_weight_position:.6f}")
+        print(f"  std_weight_velocity: {std_weight_velocity:.6f}")
 
         # Estimate thresholds
-        print( "Estimating detection thresholds..." )
-        high_thresh, low_thresh, new_track_thresh = self._estimate_thresholds( stats )
-        print( f"  high_thresh: {high_thresh:.3f}" )
-        print( f"  low_thresh: {low_thresh:.3f}" )
-        print( f"  new_track_thresh: {new_track_thresh:.3f}" )
+        print("Estimating detection thresholds...")
+        high_thresh, low_thresh, new_track_thresh = self._estimate_thresholds(stats)
+        print(f"  high_thresh: {high_thresh:.3f}")
+        print(f"  low_thresh: {low_thresh:.3f}")
+        print(f"  new_track_thresh: {new_track_thresh:.3f}")
 
         # Estimate track buffer
-        print( "Estimating track buffer..." )
-        track_buffer = self._estimate_track_buffer( stats )
-        print( f"  track_buffer: {track_buffer}" )
+        print("Estimating track buffer...")
+        track_buffer = self._estimate_track_buffer(stats)
+        print(f"  track_buffer: {track_buffer}")
 
         # IOU match threshold (use default, hard to estimate from GT)
         match_thresh = 0.8
 
         # Save parameters to JSON file in train directory (will be copied by caller)
         params = {
-            'std_weight_position': std_weight_position,
-            'std_weight_velocity': std_weight_velocity,
-            'high_thresh': high_thresh,
-            'low_thresh': low_thresh,
-            'match_thresh': match_thresh,
-            'new_track_thresh': new_track_thresh,
-            'track_buffer': track_buffer
+            "std_weight_position": std_weight_position,
+            "std_weight_velocity": std_weight_velocity,
+            "high_thresh": high_thresh,
+            "low_thresh": low_thresh,
+            "match_thresh": match_thresh,
+            "new_track_thresh": new_track_thresh,
+            "track_buffer": track_buffer,
         }
 
-        params_file = os.path.join( self._train_directory, "bytetrack_params.json" )
-        with open( params_file, 'w' ) as f:
-            json.dump( params, f, indent=2 )
-        print( f"Saved parameters to {params_file}" )
+        params_file = os.path.join(self._train_directory, "bytetrack_params.json")
+        with open(params_file, "w") as f:
+            json.dump(params, f, indent=2)
+        print(f"Saved parameters to {params_file}")
 
         # Build output map
-        output = self._get_output_map( params, params_file )
+        output = self._get_output_map(params, params_file)
 
-        print( "\nByteTrack parameter estimation complete!\n" )
+        print("\nByteTrack parameter estimation complete!\n")
 
         return output
 
-    def _get_output_map( self, params, params_file ):
+    def _get_output_map(self, params, params_file):
         """
         Build output map with template replacements and file copies.
 
@@ -405,7 +410,7 @@ class ByteTrackTrainer( TrainTracker ):
         output[algo + ":high_thresh"] = f"{params['high_thresh']:.3f}"
         output[algo + ":low_thresh"] = f"{params['low_thresh']:.3f}"
         output[algo + ":match_thresh"] = f"{params['match_thresh']:.3f}"
-        output[algo + ":track_buffer"] = str( params['track_buffer'] )
+        output[algo + ":track_buffer"] = str(params["track_buffer"])
         output[algo + ":new_track_thresh"] = f"{params['new_track_thresh']:.3f}"
 
         # File copies
@@ -415,18 +420,10 @@ class ByteTrackTrainer( TrainTracker ):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "bytetrack"
-
-    if algorithm_factory.has_algorithm_impl_name(
-        ByteTrackTrainer.static_type_name(), implementation_name ):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
+    register_vital_algorithm(
+        ByteTrackTrainer,
+        "bytetrack",
         "ByteTrack parameter estimation from track groundtruth",
-        ByteTrackTrainer
     )
-
-    algorithm_factory.mark_algorithm_as_loaded( implementation_name )

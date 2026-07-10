@@ -18,8 +18,8 @@ class VIAME_CORE_EXPORT empty_detector :
   public kwiver::vital::algo::image_object_detector
 {
 public:
-  PLUGGABLE_IMPL(
-    empty_detector,
+  PLUGGABLE_IMPL_NAMED(
+    empty_detector, "empty",
     "Produce empty detector output" )
 
   virtual ~empty_detector() = default;

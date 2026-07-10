@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 # Camera Motion Compensation (CMC)
 # =============================================================================
 
+
 class CameraMotionCompensation:
     """
     Estimates camera motion between frames using sparse optical flow.
@@ -45,13 +46,14 @@ class CameraMotionCompensation:
     Computes homography transformation to compensate for camera movement.
     """
 
-    def __init__(self, method='sparse_flow'):
+    def __init__(self, method="sparse_flow"):
         self.method = method
         self.prev_frame = None
         self.prev_keypoints = None
 
         try:
             import cv2
+
             self.cv2 = cv2
             self._available = True
         except ImportError:
@@ -67,7 +69,11 @@ class CameraMotionCompensation:
         if not self._available:
             return np.eye(3)
 
-        gray = self.cv2.cvtColor(frame, self.cv2.COLOR_BGR2GRAY) if len(frame.shape) == 3 else frame
+        gray = (
+            self.cv2.cvtColor(frame, self.cv2.COLOR_BGR2GRAY)
+            if len(frame.shape) == 3
+            else frame
+        )
 
         if self.prev_frame is None:
             self.prev_frame = gray
@@ -82,9 +88,17 @@ class CameraMotionCompensation:
 
         try:
             next_pts, status, _ = self.cv2.calcOpticalFlowPyrLK(
-                self.prev_frame, gray, self.prev_keypoints, None,
-                winSize=(21, 21), maxLevel=3,
-                criteria=(self.cv2.TERM_CRITERIA_EPS | self.cv2.TERM_CRITERIA_COUNT, 30, 0.01)
+                self.prev_frame,
+                gray,
+                self.prev_keypoints,
+                None,
+                winSize=(21, 21),
+                maxLevel=3,
+                criteria=(
+                    self.cv2.TERM_CRITERIA_EPS | self.cv2.TERM_CRITERIA_COUNT,
+                    30,
+                    0.01,
+                ),
             )
 
             # Filter good matches
@@ -97,7 +111,9 @@ class CameraMotionCompensation:
                 return np.eye(3)
 
             # Estimate homography with RANSAC
-            H, mask = self.cv2.findHomography(good_prev, good_next, self.cv2.RANSAC, 5.0)
+            H, mask = self.cv2.findHomography(
+                good_prev, good_next, self.cv2.RANSAC, 5.0
+            )
 
             if H is None:
                 H = np.eye(3)
@@ -150,10 +166,11 @@ class CameraMotionCompensation:
 # Kalman Filter
 # =============================================================================
 
+
 class KalmanFilter:
     """Standard Kalman filter for bounding box tracking."""
 
-    def __init__(self, std_weight_position=1.0/20, std_weight_velocity=1.0/160):
+    def __init__(self, std_weight_position=1.0 / 20, std_weight_velocity=1.0 / 160):
         ndim = 4
         dt = 1.0
 
@@ -199,9 +216,10 @@ class KalmanFilter:
         motion_cov = np.diag(np.square(np.r_[std_pos, std_vel]))
 
         mean = np.dot(self._motion_mat, mean)
-        covariance = np.linalg.multi_dot([
-            self._motion_mat, covariance, self._motion_mat.T
-        ]) + motion_cov
+        covariance = (
+            np.linalg.multi_dot([self._motion_mat, covariance, self._motion_mat.T])
+            + motion_cov
+        )
 
         return mean, covariance
 
@@ -214,14 +232,14 @@ class KalmanFilter:
         kalman_gain = scipy.linalg.cho_solve(
             (chol_factor, lower),
             np.dot(covariance, self._update_mat.T).T,
-            check_finite=False
+            check_finite=False,
         ).T
         innovation = measurement - projected_mean
 
         new_mean = mean + np.dot(innovation, kalman_gain.T)
-        new_covariance = covariance - np.linalg.multi_dot([
-            kalman_gain, projected_cov, kalman_gain.T
-        ])
+        new_covariance = covariance - np.linalg.multi_dot(
+            [kalman_gain, projected_cov, kalman_gain.T]
+        )
         return new_mean, new_covariance
 
     def _project(self, mean, covariance):
@@ -233,9 +251,9 @@ class KalmanFilter:
         ]
         innovation_cov = np.diag(np.square(std))
         mean = np.dot(self._update_mat, mean)
-        covariance = np.linalg.multi_dot([
-            self._update_mat, covariance, self._update_mat.T
-        ])
+        covariance = np.linalg.multi_dot(
+            [self._update_mat, covariance, self._update_mat.T]
+        )
         return mean, covariance + innovation_cov
 
 
@@ -243,10 +261,11 @@ class KalmanFilter:
 # Re-ID Feature Extractor with EMA
 # =============================================================================
 
+
 class FeatureExtractor:
     """Deep appearance feature extractor for Re-ID."""
 
-    def __init__(self, model_path=None, device='cuda'):
+    def __init__(self, model_path=None, device="cuda"):
         self.model = None
         self.device = device
         self.model_path = model_path
@@ -263,8 +282,8 @@ class FeatureExtractor:
 
             self.torch = torch
 
-            if self.device == 'cuda' and not torch.cuda.is_available():
-                self.device = 'cpu'
+            if self.device == "cuda" and not torch.cuda.is_available():
+                self.device = "cpu"
 
             if self.model_path and self.model_path.strip():
                 self.model = torch.load(self.model_path, map_location=self.device)
@@ -277,24 +296,27 @@ class FeatureExtractor:
 
             class SafeNormalize(object):
                 """Per-channel normalize avoiding PyTorch vectorization bug."""
+
                 def __init__(self, mean, std):
                     self.mean = mean
                     self.std = std
+
                 def __call__(self, tensor):
                     result = torch.zeros_like(tensor)
                     for i in range(tensor.shape[0]):
                         result[i] = (tensor[i] - self.mean[i]) / self.std[i]
                     return result
 
-            self.transform = transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.Resize((128, 64)),
-                transforms.ToTensor(),
-                SafeNormalize(
-                    mean=[0.485, 0.456, 0.406],
-                    std=[0.229, 0.224, 0.225]
-                )
-            ])
+            self.transform = transforms.Compose(
+                [
+                    transforms.ToPILImage(),
+                    transforms.Resize((128, 64)),
+                    transforms.ToTensor(),
+                    SafeNormalize(
+                        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                    ),
+                ]
+            )
 
             self._initialized = True
 
@@ -342,6 +364,7 @@ class FeatureExtractor:
 # Track state
 # =============================================================================
 
+
 class TrackState:
     NEW = 0
     TRACKED = 1
@@ -353,8 +376,10 @@ class TrackState:
 # Single track with EMA appearance features
 # =============================================================================
 
+
 class STrack:
     """Single tracked object with EMA appearance feature update."""
+
     shared_kalman = KalmanFilter()
     _count = 0
 
@@ -409,8 +434,7 @@ class STrack:
 
     def re_activate(self, new_track, frame_id, timestamp, new_id=False):
         self.mean, self.covariance = self.kalman_filter.update(
-            self.mean, self.covariance,
-            self.tlwh_to_xyah(new_track.tlwh)
+            self.mean, self.covariance, self.tlwh_to_xyah(new_track.tlwh)
         )
         self._update_features(new_track.curr_feat)
 
@@ -433,8 +457,7 @@ class STrack:
         self.tracklet_len += 1
 
         self.mean, self.covariance = self.kalman_filter.update(
-            self.mean, self.covariance,
-            self.tlwh_to_xyah(new_track._tlwh)
+            self.mean, self.covariance, self.tlwh_to_xyah(new_track._tlwh)
         )
 
         self._update_features(new_track.curr_feat)
@@ -514,6 +537,7 @@ class STrack:
 # =============================================================================
 # Distance metrics with IoU-ReID fusion
 # =============================================================================
+
 
 def iou_batch(bboxes1, bboxes2):
     bboxes1 = np.atleast_2d(bboxes1)
@@ -599,6 +623,7 @@ def linear_assignment(cost_matrix, thresh):
 # Converters
 # =============================================================================
 
+
 def to_DetectedObject_list(dos):
     return list(dos)
 
@@ -639,23 +664,32 @@ def to_ObjectTrackSet(tracks):
 # Configuration
 # =============================================================================
 
+
 class BoTSORTTrackerConfig(scfg.DataConfig):
     """Configuration for BoT-SORT tracker algorithm."""
-    high_thresh = scfg.Value(0.6, help='Detection confidence threshold for first-stage matching')
-    low_thresh = scfg.Value(0.1, help='Detection confidence threshold for second-stage matching')
-    match_thresh = scfg.Value(0.8, help='Distance threshold for matching')
-    track_buffer = scfg.Value(30, help='Number of frames to keep lost tracks')
-    new_track_thresh = scfg.Value(0.6, help='Minimum confidence to create new track')
-    use_cmc = scfg.Value(True, help='Enable camera motion compensation')
-    use_reid = scfg.Value(True, help='Enable Re-ID features for matching')
-    iou_weight = scfg.Value(0.5, help='Weight for IOU in IoU-ReID fusion (0=only ReID, 1=only IOU)')
-    model_path = scfg.Value('', help='Path to Re-ID model weights')
-    feat_ema_alpha = scfg.Value(0.9, help='EMA momentum for feature smoothing')
+
+    high_thresh = scfg.Value(
+        0.6, help="Detection confidence threshold for first-stage matching"
+    )
+    low_thresh = scfg.Value(
+        0.1, help="Detection confidence threshold for second-stage matching"
+    )
+    match_thresh = scfg.Value(0.8, help="Distance threshold for matching")
+    track_buffer = scfg.Value(30, help="Number of frames to keep lost tracks")
+    new_track_thresh = scfg.Value(0.6, help="Minimum confidence to create new track")
+    use_cmc = scfg.Value(True, help="Enable camera motion compensation")
+    use_reid = scfg.Value(True, help="Enable Re-ID features for matching")
+    iou_weight = scfg.Value(
+        0.5, help="Weight for IOU in IoU-ReID fusion (0=only ReID, 1=only IOU)"
+    )
+    model_path = scfg.Value("", help="Path to Re-ID model weights")
+    feat_ema_alpha = scfg.Value(0.9, help="EMA momentum for feature smoothing")
 
 
 # =============================================================================
 # BoT-SORT TrackObjects Algorithm
 # =============================================================================
+
 
 class BoTSORTTracker(TrackObjects):
     """
@@ -688,24 +722,25 @@ class BoTSORTTracker(TrackObjects):
     @report_cuda_errors("BoTSORTTracker initialization")
     def set_configuration(self, cfg_in):
         from viame.pytorch.utilities import vital_config_update
+
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)
 
-        self._config.high_thresh = float(cfg.get_value('high_thresh'))
-        self._config.low_thresh = float(cfg.get_value('low_thresh'))
-        self._config.match_thresh = float(cfg.get_value('match_thresh'))
-        self._config.track_buffer = int(cfg.get_value('track_buffer'))
-        self._config.new_track_thresh = float(cfg.get_value('new_track_thresh'))
+        self._config.high_thresh = float(cfg.get_value("high_thresh"))
+        self._config.low_thresh = float(cfg.get_value("low_thresh"))
+        self._config.match_thresh = float(cfg.get_value("match_thresh"))
+        self._config.track_buffer = int(cfg.get_value("track_buffer"))
+        self._config.new_track_thresh = float(cfg.get_value("new_track_thresh"))
 
-        use_cmc_str = cfg.get_value('use_cmc').lower()
-        self._config.use_cmc = use_cmc_str in ('true', '1', 'yes')
+        use_cmc_str = cfg.get_value("use_cmc").lower()
+        self._config.use_cmc = use_cmc_str in ("true", "1", "yes")
 
-        use_reid_str = cfg.get_value('use_reid').lower()
-        self._config.use_reid = use_reid_str in ('true', '1', 'yes')
+        use_reid_str = cfg.get_value("use_reid").lower()
+        self._config.use_reid = use_reid_str in ("true", "1", "yes")
 
-        self._config.iou_weight = float(cfg.get_value('iou_weight'))
-        self._config.model_path = cfg.get_value('model_path')
-        self._config.feat_ema_alpha = float(cfg.get_value('feat_ema_alpha'))
+        self._config.iou_weight = float(cfg.get_value("iou_weight"))
+        self._config.model_path = cfg.get_value("model_path")
+        self._config.feat_ema_alpha = float(cfg.get_value("feat_ema_alpha"))
 
         # Initialize components
         self._kalman_filter = KalmanFilter()
@@ -716,7 +751,9 @@ class BoTSORTTracker(TrackObjects):
             self._cmc = None
 
         if self._config.use_reid:
-            self._feature_extractor = FeatureExtractor(model_path=self._config.model_path)
+            self._feature_extractor = FeatureExtractor(
+                model_path=self._config.model_path
+            )
         else:
             self._feature_extractor = None
 
@@ -772,14 +809,22 @@ class BoTSORTTracker(TrackObjects):
             boxes.append(get_DetectedObject_bbox_tlbr(do))
 
         # Extract appearance features
-        if (self._config.use_reid and self._feature_extractor is not None
-                and np_image is not None and len(boxes) > 0):
+        if (
+            self._config.use_reid
+            and self._feature_extractor is not None
+            and np_image is not None
+            and len(boxes) > 0
+        ):
             features = self._feature_extractor.extract(np_image, boxes)
             for det, feat in zip(det_tracks, features):
                 det.curr_feat = feat
 
         high_dets = [d for d in det_tracks if d.score >= self._config.high_thresh]
-        low_dets = [d for d in det_tracks if self._config.low_thresh <= d.score < self._config.high_thresh]
+        low_dets = [
+            d
+            for d in det_tracks
+            if self._config.low_thresh <= d.score < self._config.high_thresh
+        ]
 
         activated_stracks = []
         refind_stracks = []
@@ -808,7 +853,9 @@ class BoTSORTTracker(TrackObjects):
         else:
             dists = iou_cost
 
-        matches, u_track, u_detection = linear_assignment(dists, thresh=self._config.match_thresh)
+        matches, u_track, u_detection = linear_assignment(
+            dists, thresh=self._config.match_thresh
+        )
 
         for itracked, idet in matches:
             track = strack_pool[itracked]
@@ -821,8 +868,11 @@ class BoTSORTTracker(TrackObjects):
                 refind_stracks.append(track)
 
         # === SECOND STAGE: Low-confidence matching (IOU only) ===
-        r_tracked_stracks = [strack_pool[i] for i in u_track
-                            if strack_pool[i].state == TrackState.TRACKED]
+        r_tracked_stracks = [
+            strack_pool[i]
+            for i in u_track
+            if strack_pool[i].state == TrackState.TRACKED
+        ]
         dists = iou_distance(r_tracked_stracks, low_dets)
         matches, u_track_second, _ = linear_assignment(dists, thresh=0.5)
 
@@ -843,7 +893,9 @@ class BoTSORTTracker(TrackObjects):
         matches, u_unconfirmed, u_detection_final = linear_assignment(dists, thresh=0.7)
 
         for itracked, idet in matches:
-            unconfirmed[itracked].update(high_dets[u_detection[idet]], self._frame_id, ts)
+            unconfirmed[itracked].update(
+                high_dets[u_detection[idet]], self._frame_id, ts
+            )
             activated_stracks.append(unconfirmed[itracked])
 
         for it in u_unconfirmed:
@@ -865,14 +917,22 @@ class BoTSORTTracker(TrackObjects):
                 self._removed_stracks.append(track)
 
         # === Merge track lists ===
-        self._tracked_stracks = [t for t in self._tracked_stracks if t.state == TrackState.TRACKED]
+        self._tracked_stracks = [
+            t for t in self._tracked_stracks if t.state == TrackState.TRACKED
+        ]
         self._tracked_stracks = list(set(self._tracked_stracks + activated_stracks))
         self._tracked_stracks = list(set(self._tracked_stracks + refind_stracks))
 
-        self._lost_stracks = [t for t in self._lost_stracks if t.state == TrackState.LOST]
-        self._lost_stracks = [t for t in self._lost_stracks if t not in self._tracked_stracks]
+        self._lost_stracks = [
+            t for t in self._lost_stracks if t.state == TrackState.LOST
+        ]
+        self._lost_stracks = [
+            t for t in self._lost_stracks if t not in self._tracked_stracks
+        ]
 
-        output_tracks = [t for t in self._tracked_stracks if t.is_activated and len(t.history) > 0]
+        output_tracks = [
+            t for t in self._tracked_stracks if t.is_activated and len(t.history) > 0
+        ]
         return to_ObjectTrackSet(output_tracks)
 
     @report_cuda_errors("BoTSORTTracker tracking")
@@ -912,18 +972,10 @@ class BoTSORTTracker(TrackObjects):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "botsort"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            BoTSORTTracker.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
+    register_vital_algorithm(
+        BoTSORTTracker,
+        "botsort",
         "BoT-SORT multi-object tracker with CMC and IoU-ReID fusion",
-        BoTSORTTracker
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

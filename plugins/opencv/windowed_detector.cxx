@@ -34,7 +34,7 @@ namespace ocv = kwiver::arrows::ocv;
 
 // -----------------------------------------------------------------------------
 bool
-windowed_detector
+ocv_windowed_detector
 ::check_configuration( kv::config_block_sptr config ) const
 {
   return kv::check_nested_algo_configuration<kv::algo::image_object_detector>(
@@ -44,7 +44,7 @@ windowed_detector
 
 // -----------------------------------------------------------------------------
 kv::detected_object_set_sptr
-windowed_detector
+ocv_windowed_detector
 ::detect( kv::image_container_sptr image_data ) const
 {
   kv::scoped_wall_timer t( "Time to Detect Objects" );
@@ -126,6 +126,6 @@ windowed_detector
   });
 
   return detections;
-} // windowed_detector::detect
+} // ocv_windowed_detector::detect
 
 } // end namespace viame

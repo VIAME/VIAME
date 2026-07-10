@@ -23,8 +23,8 @@ class VIAME_CORE_EXPORT read_object_track_set_dive
   : public kwiver::vital::algo::read_object_track_set
 {
 public:
-  PLUGGABLE_IMPL(
-    read_object_track_set_dive,
+  PLUGGABLE_IMPL_NAMED(
+    read_object_track_set_dive, "dive",
     "Object track set reader using DIVE JSON format.\n\n"
     "DIVE JSON natively stores tracks with temporal features.\n"
     "Format contains:\n"

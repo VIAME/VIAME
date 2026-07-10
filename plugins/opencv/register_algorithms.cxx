@@ -109,16 +109,16 @@ register_factories( kv::plugin_loader& vpm )
     split_image_horizontally::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
-  fact = vpm.add_factory< kv::algo::image_object_detector, windowed_detector >(
-    windowed_detector::plugin_name() );
+  fact = vpm.add_factory< kv::algo::image_object_detector, ocv_windowed_detector >(
+    ocv_windowed_detector::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
-  fact = vpm.add_factory< kv::algo::refine_detections, windowed_refiner >(
-    windowed_refiner::plugin_name() );
+  fact = vpm.add_factory< kv::algo::refine_detections, ocv_windowed_refiner >(
+    ocv_windowed_refiner::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
-  fact = vpm.add_factory< kv::algo::train_detector, windowed_trainer >(
-    windowed_trainer::plugin_name() );
+  fact = vpm.add_factory< kv::algo::train_detector, ocv_windowed_trainer >(
+    ocv_windowed_trainer::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   vpm.mark_module_as_loaded( module_name );

@@ -407,8 +407,8 @@ class VIAME_OPENCV_EXPORT classify_fish_hierarchical_svm
   : public kwiver::vital::algo::refine_detections
 {
 public:
-  PLUGGABLE_IMPL(
-    classify_fish_hierarchical_svm,
+  PLUGGABLE_IMPL_NAMED(
+    classify_fish_hierarchical_svm, "hierarchical_svm",
     "Hierarchical SVM fish species classifier",
     PARAM_DEFAULT( model_file, std::string,
       "Name of hierarchical SVM model file.", "" )

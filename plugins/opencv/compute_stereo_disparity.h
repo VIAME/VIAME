@@ -34,7 +34,8 @@ class VIAME_OPENCV_EXPORT compute_stereo_disparity
   : public kwiver::vital::algo::compute_stereo_depth_map
 {
 public:
-  PLUGGABLE_IMPL( compute_stereo_disparity,
+  PLUGGABLE_IMPL_NAMED(
+    compute_stereo_disparity, "ocv_stereo_disparity",
                   "OpenCV stereo disparity map computation using BM or SGBM",
     PARAM_DEFAULT( algorithm, std::string,
                    "Stereo matching algorithm: 'BM' (Block Matching) or 'SGBM' (Semi-Global Block Matching). "

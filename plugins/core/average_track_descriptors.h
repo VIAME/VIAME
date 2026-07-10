@@ -20,8 +20,8 @@ class VIAME_CORE_EXPORT average_track_descriptors
   : public kwiver::vital::algo::compute_track_descriptors
 {
 public:
-  PLUGGABLE_IMPL(
-    average_track_descriptors,
+  PLUGGABLE_IMPL_NAMED(
+    average_track_descriptors, "average",
     "Track descriptor consolidation using simple averaging",
     PARAM_DEFAULT(
       rolling, bool,

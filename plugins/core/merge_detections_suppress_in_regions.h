@@ -23,8 +23,8 @@ class VIAME_CORE_EXPORT merge_detections_suppress_in_regions
 {
 
 public:
-  PLUGGABLE_IMPL(
-    merge_detections_suppress_in_regions,
+  PLUGGABLE_IMPL_NAMED(
+    merge_detections_suppress_in_regions, "suppress_in_regions",
     "Suppresses detections within regions indicated by a certain fixed category "
     "of detections. Can either remove the detections or reduce their probability.",
     PARAM_DEFAULT(

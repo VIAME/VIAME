@@ -127,7 +127,7 @@ public:
 
   PLUGGABLE_VARIABLES( VIAME_CORE_WT_PARAMS )
   PLUGGABLE_CONSTRUCTOR( windowed_trainer, VIAME_CORE_WT_PARAMS )
-  PLUGGABLE_IMPL_BASIC( windowed_trainer, "Window some other arbitrary detector trainer across the image (no OpenCV)" )
+  PLUGGABLE_IMPL_BASIC_NAMED( windowed_trainer, "windowed", "Window some other arbitrary detector trainer across the image (no OpenCV)" )
   PLUGGABLE_STATIC_FROM_CONFIG( windowed_trainer, VIAME_CORE_WT_PARAMS )
   PLUGGABLE_STATIC_GET_DEFAULT( VIAME_CORE_WT_PARAMS )
   PLUGGABLE_SET_CONFIGURATION( windowed_trainer, VIAME_CORE_WT_PARAMS )

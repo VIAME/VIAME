@@ -24,7 +24,9 @@ import warnings
 # Suppress common third-party warnings
 warnings.filterwarnings("ignore", message="The value of the smallest subnormal")
 warnings.filterwarnings("ignore", module="scriptconfig.smartcast")
-warnings.filterwarnings("ignore", message="Importing from timm.models.layers is deprecated")
+warnings.filterwarnings(
+    "ignore", message="Importing from timm.models.layers is deprecated"
+)
 warnings.filterwarnings("ignore", message="Distutils was imported before Setuptools")
 warnings.filterwarnings("ignore", message="Setuptools is replacing distutils")
 warnings.filterwarnings("ignore", message="TripleDES has been moved")
@@ -38,6 +40,7 @@ import numpy as np
 # =============================================================================
 # Image Processing Utilities
 # =============================================================================
+
 
 def pad_img_to_fit_bbox(img, x1, y1, x2, y2):
     """
@@ -101,7 +104,7 @@ def image_to_rgb_numpy(image_container):
     Returns:
         numpy array in RGB format, uint8
     """
-    img_np = image_container.image().asarray().astype('uint8')
+    img_np = image_container.image().asarray().astype("uint8")
 
     # Handle grayscale
     if len(img_np.shape) == 2:
@@ -140,12 +143,12 @@ def get_autocast_context(device):
     import torch
 
     # Handle both string and torch.device inputs
-    if hasattr(device, 'type'):
+    if hasattr(device, "type"):
         device_type = device.type
     else:
-        device_type = str(device).split(':')[0]
+        device_type = str(device).split(":")[0]
 
-    if device_type == 'cuda':
+    if device_type == "cuda":
         # Use bfloat16 on Ampere+ GPUs, float16 on older GPUs (Turing etc.)
         try:
             cap = torch.cuda.get_device_capability(0)
@@ -160,6 +163,7 @@ def get_autocast_context(device):
 # =============================================================================
 # Mask Utilities
 # =============================================================================
+
 
 def mask_to_polygon(mask, simplification=0.01):
     """
@@ -176,9 +180,7 @@ def mask_to_polygon(mask, simplification=0.01):
     import cv2
 
     contours, _ = cv2.findContours(
-        mask.astype(np.uint8),
-        cv2.RETR_EXTERNAL,
-        cv2.CHAIN_APPROX_SIMPLE
+        mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
     )
 
     if len(contours) == 0:
@@ -235,6 +237,7 @@ def box_from_mask(mask):
 # File Utilities
 # =============================================================================
 
+
 def recurse_copy(src, dst, max_depth=10, ignore=".json"):
     """
     Recursively copy files from source to destination.
@@ -261,6 +264,7 @@ def recurse_copy(src, dst, max_depth=10, ignore=".json"):
 # Device Utilities
 # =============================================================================
 
+
 def init_cudnn(device=None):
     """
     Initialize cuDNN by running a dummy convolution operation.
@@ -285,7 +289,7 @@ def init_cudnn(device=None):
 
     try:
         if device is None:
-            device = torch.device('cuda:0')
+            device = torch.device("cuda:0")
         elif isinstance(device, str):
             device = torch.device(device)
 
@@ -320,27 +324,27 @@ def resolve_device(device_spec):
     """
     import torch
 
-    if device_spec == 'auto':
+    if device_spec == "auto":
         if torch.cuda.is_available():
-            return torch.device('cuda:0')
-        return torch.device('cpu')
+            return torch.device("cuda:0")
+        return torch.device("cpu")
 
     if isinstance(device_spec, int):
         if torch.cuda.is_available():
-            return torch.device(f'cuda:{device_spec}')
-        return torch.device('cpu')
+            return torch.device(f"cuda:{device_spec}")
+        return torch.device("cpu")
 
     if isinstance(device_spec, str):
-        if device_spec in ('cpu', 'cuda'):
+        if device_spec in ("cpu", "cuda"):
             return torch.device(device_spec)
-        if device_spec.startswith('cuda:'):
+        if device_spec.startswith("cuda:"):
             return torch.device(device_spec)
         # Try to parse as integer
         try:
             idx = int(device_spec)
             if torch.cuda.is_available():
-                return torch.device(f'cuda:{idx}')
-            return torch.device('cpu')
+                return torch.device(f"cuda:{idx}")
+            return torch.device("cpu")
         except ValueError:
             pass
 
@@ -363,29 +367,29 @@ def resolve_device_str(device_spec):
     """
     import torch
 
-    if device_spec == 'auto':
+    if device_spec == "auto":
         if torch.cuda.is_available():
-            return 'cuda'
-        return 'cpu'
+            return "cuda"
+        return "cpu"
 
     if isinstance(device_spec, int):
         if torch.cuda.is_available():
-            return f'cuda:{device_spec}'
-        return 'cpu'
+            return f"cuda:{device_spec}"
+        return "cpu"
 
     if isinstance(device_spec, torch.device):
         return str(device_spec)
 
     if isinstance(device_spec, str):
-        if device_spec in ('cpu', 'cuda'):
+        if device_spec in ("cpu", "cuda"):
             return device_spec
-        if device_spec.startswith('cuda:'):
+        if device_spec.startswith("cuda:"):
             return device_spec
         try:
             idx = int(device_spec)
             if torch.cuda.is_available():
-                return f'cuda:{idx}'
-            return 'cpu'
+                return f"cuda:{idx}"
+            return "cpu"
         except ValueError:
             pass
 
@@ -395,18 +399,21 @@ def resolve_device_str(device_spec):
 def get_cuda_device_count():
     """Get the number of available CUDA devices."""
     import torch
+
     return torch.cuda.device_count() if torch.cuda.is_available() else 0
 
 
 def is_cuda_available():
     """Check if CUDA is available."""
     import torch
+
     return torch.cuda.is_available()
 
 
 # =============================================================================
 # Configuration Utilities
 # =============================================================================
+
 
 def vital_config_update(cfg, cfg_in):
     """
@@ -453,13 +460,14 @@ def parse_bool(value):
     if isinstance(value, (int, float)):
         return bool(value)
     if isinstance(value, str):
-        return value.lower() in ('true', '1', 'yes', 'on')
+        return value.lower() in ("true", "1", "yes", "on")
     return bool(value)
 
 
 # =============================================================================
 # Error Reporting (DIVE integration)
 # =============================================================================
+
 
 def emit_dive_error(message):
     """Print a single-line ``ERROR:`` message.
@@ -482,6 +490,7 @@ def is_cuda_oom(exc):
     """Return True if ``exc`` is (or reads as) a CUDA out-of-memory error."""
     try:
         import torch
+
         if isinstance(exc, torch.cuda.OutOfMemoryError):
             return True
     except Exception:
@@ -498,6 +507,7 @@ def report_cuda_errors(context):
     ``"SAM3 track refinement"``. The exception is tagged after reporting so a
     wrapped method that calls another wrapped method does not emit twice.
     """
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -510,7 +520,8 @@ def report_cuda_errors(context):
                             context + " ran out of GPU memory. Free GPU memory "
                             "(e.g. close an interactive session or other GPU "
                             "jobs) and retry, or use a smaller model or "
-                            "lower-resolution input.")
+                            "lower-resolution input."
+                        )
                     else:
                         emit_dive_error(context + " failed: " + str(exc))
                     try:
@@ -518,13 +529,16 @@ def report_cuda_errors(context):
                     except Exception:
                         pass
                 raise
+
         return wrapper
+
     return decorator
 
 
 # =============================================================================
 # Compatibility Shims
 # =============================================================================
+
 
 def ensure_rfdetr_compatibility():
     """
@@ -546,11 +560,15 @@ def ensure_rfdetr_compatibility():
     # BackboneMixin from the top-level ``transformers`` namespace. Under
     # transformers 4.x these live in ``transformers.utils.backbone_utils``;
     # re-export them so ``import rfdetr`` succeeds. Idempotent.
-    if not hasattr(transformers, 'BackboneConfigMixin') or \
-       not hasattr(transformers, 'BackboneMixin'):
+    if not hasattr(transformers, "BackboneConfigMixin") or not hasattr(
+        transformers, "BackboneMixin"
+    ):
         try:
             from transformers.utils.backbone_utils import (
-                BackboneConfigMixin, BackboneMixin)
+                BackboneConfigMixin,
+                BackboneMixin,
+            )
+
             transformers.BackboneConfigMixin = BackboneConfigMixin
             transformers.BackboneMixin = BackboneMixin
         except Exception:
@@ -561,39 +579,43 @@ def ensure_rfdetr_compatibility():
     # while RF-DETR calls it with none. Wrap it to default to self.config.
     try:
         from transformers.utils.backbone_utils import BackboneMixin as _BBMixin
+
         _init_bb = _BBMixin._init_transformers_backbone
-        if not getattr(_init_bb, '_viame_optional_config', False):
+        if not getattr(_init_bb, "_viame_optional_config", False):
+
             def _init_transformers_backbone(self, config=None, _orig=_init_bb):
                 if config is None:
                     config = self.config
                 return _orig(self, config)
+
             _init_transformers_backbone._viame_optional_config = True
             _BBMixin._init_transformers_backbone = _init_transformers_backbone
     except Exception:
         pass
 
-    if hasattr(_pt_utils, 'find_pruneable_heads_and_indices'):
+    if hasattr(_pt_utils, "find_pruneable_heads_and_indices"):
         return
 
-    def _find_pruneable_heads_and_indices(heads, n_heads, head_size,
-                                          already_pruned_heads):
+    def _find_pruneable_heads_and_indices(
+        heads, n_heads, head_size, already_pruned_heads
+    ):
         mask = torch.ones(n_heads, head_size)
         heads = set(heads) - already_pruned_heads
         for head in heads:
-            head -= sum(1 if h < head else 0
-                        for h in already_pruned_heads)
+            head -= sum(1 if h < head else 0 for h in already_pruned_heads)
             mask[head] = 0
         index = torch.arange(len(mask.view(-1)))[
-            mask.view(-1).contiguous().eq(1)].long()
+            mask.view(-1).contiguous().eq(1)
+        ].long()
         return heads, index
 
-    _pt_utils.find_pruneable_heads_and_indices = \
-        _find_pruneable_heads_and_indices
+    _pt_utils.find_pruneable_heads_and_indices = _find_pruneable_heads_and_indices
 
 
 # =============================================================================
 # Detection Conversion Utilities
 # =============================================================================
+
 
 def kwimage_to_kwiver_detections(detections):
     """
@@ -618,8 +640,8 @@ def kwimage_to_kwiver_detections(detections):
     from kwiver.vital.types.types import ImageContainer, Image
 
     segmentations = None
-    if 'segmentations' in detections.data:
-        segmentations = detections.data['segmentations']
+    if "segmentations" in detections.data:
+        segmentations = detections.data["segmentations"]
 
     try:
         boxes = detections.boxes.to_ltrb()
@@ -638,12 +660,10 @@ def kwimage_to_kwiver_detections(detections):
         class_name = detections.classes[cidx]
 
         bbox_int = np.round(tlbr).astype(np.int32)
-        bounding_box = BoundingBoxD(
-            bbox_int[0], bbox_int[1], bbox_int[2], bbox_int[3])
+        bounding_box = BoundingBoxD(bbox_int[0], bbox_int[1], bbox_int[2], bbox_int[3])
 
         detected_object_type = DetectedObjectType(class_name, score)
-        detected_object = DetectedObject(
-            bounding_box, score, detected_object_type)
+        detected_object = DetectedObject(bounding_box, score, detected_object_type)
 
         if seg:
             mask = seg.to_relative_mask().numpy().data
@@ -687,7 +707,7 @@ def kwiver_to_kwimage_detections(detected_objects):
         class_idxs.append(cidx)
 
     dets = kwimage.Detections(
-        boxes=kwimage.Boxes(np.array(boxes), 'ltrb'),
+        boxes=kwimage.Boxes(np.array(boxes), "ltrb"),
         scores=np.array(scores),
         class_idxs=np.array(class_idxs),
         classes=classes,
@@ -727,10 +747,7 @@ def supervision_to_kwiver_detections(detections, class_names):
         else:
             class_name = str(class_id)
 
-        bbox = BoundingBoxD(
-            float(box[0]), float(box[1]),
-            float(box[2]), float(box[3])
-        )
+        bbox = BoundingBoxD(float(box[0]), float(box[1]), float(box[2]), float(box[3]))
 
         detected_object_type = DetectedObjectType(class_name, float(score))
         detected_object = DetectedObject(bbox, float(score), detected_object_type)
@@ -751,14 +768,20 @@ def vital_to_kwimage_box(vital_bbox):
         kwimage.Box: Converted bounding box
     """
     import kwimage
-    xyxy = [vital_bbox.min_x(), vital_bbox.min_y(),
-            vital_bbox.max_x(), vital_bbox.max_y()]
-    return kwimage.Box.coerce(xyxy, format='ltrb')
+
+    xyxy = [
+        vital_bbox.min_x(),
+        vital_bbox.min_y(),
+        vital_bbox.max_x(),
+        vital_bbox.max_y(),
+    ]
+    return kwimage.Box.coerce(xyxy, format="ltrb")
 
 
 # =============================================================================
 # Base Classes for Detectors
 # =============================================================================
+
 
 class BaseImageObjectDetector:
     """
@@ -800,6 +823,7 @@ class BaseImageObjectDetector:
             kwiver.vital.config.config.Config: Configuration object
         """
         from kwiver.vital.algo import ImageObjectDetector
+
         cfg = super(ImageObjectDetector, self).get_configuration()
         for key, value in self._config.items():
             cfg.set_value(key, str(value))
@@ -898,6 +922,7 @@ class BaseTrainDetector:
             kwiver.vital.config.config.Config: Configuration object
         """
         from kwiver.vital.algo import TrainDetector
+
         cfg = super(TrainDetector, self).get_configuration()
         for key, value in self._config.items():
             cfg.set_value(key, str(value))
@@ -956,6 +981,7 @@ class BaseTrainDetector:
 # Training Signal Handler
 # =============================================================================
 
+
 class TrainingInterruptHandler:
     """
     Context manager for handling training interruption signals gracefully.
@@ -1006,16 +1032,18 @@ class TrainingInterruptHandler:
             if self._on_interrupt is not None:
                 self._on_interrupt()
 
-        if self._threading.current_thread().__class__.__name__ == '_MainThread':
+        if self._threading.current_thread().__class__.__name__ == "_MainThread":
             self._original_sigint = self._signal.signal(
-                self._signal.SIGINT, signal_handler)
+                self._signal.SIGINT, signal_handler
+            )
             self._original_sigterm = self._signal.signal(
-                self._signal.SIGTERM, signal_handler)
+                self._signal.SIGTERM, signal_handler
+            )
 
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self._threading.current_thread().__class__.__name__ == '_MainThread':
+        if self._threading.current_thread().__class__.__name__ == "_MainThread":
             if self._original_sigint is not None:
                 self._signal.signal(self._signal.SIGINT, self._original_sigint)
             if self._original_sigterm is not None:
@@ -1027,37 +1055,25 @@ class TrainingInterruptHandler:
 # Algorithm Registration Helper
 # =============================================================================
 
+
 def register_vital_algorithm(algorithm_class, implementation_name, description):
     """
     Register a KWIVER vital algorithm.
 
-    This is a helper to reduce boilerplate in __vital_algorithm_register__ functions.
-
-    Args:
-        algorithm_class: The algorithm class to register
-        implementation_name: Unique name for this implementation
-        description: Human-readable description of the algorithm
-
-    Example:
-        def __vital_algorithm_register__():
-            register_vital_algorithm(
-                MyDetector, "my_detector", "My custom detector implementation")
+    Thin re-export of viame.core.vital_registration.register_vital_algorithm,
+    kept here because most pytorch plugins already import it from this module.
     """
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import (
+        register_vital_algorithm as _register,
+    )
 
-    if algorithm_factory.has_algorithm_impl_name(
-            algorithm_class.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name, description, algorithm_class)
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+    return _register(algorithm_class, implementation_name, description)
 
 
 # =============================================================================
 # GPU List Utilities
 # =============================================================================
+
 
 def gpu_list_desc(use_for=None):
     """
@@ -1072,8 +1088,9 @@ def gpu_list_desc(use_for=None):
     Returns:
         str: Description string for the GPU list config trait
     """
-    return ('define which GPUs to use{}: "all", "None", or a comma-separated list, e.g. "1,2"'
-            .format('' if use_for is None else ' for ' + use_for))
+    return 'define which GPUs to use{}: "all", "None", or a comma-separated list, e.g. "1,2"'.format(
+        "" if use_for is None else " for " + use_for
+    )
 
 
 def parse_gpu_list(gpu_list_str):
@@ -1093,9 +1110,11 @@ def parse_gpu_list(gpu_list_str):
         list or None: List of GPU indices, empty list for CPU, or None for all GPUs
     """
     gpu_list_str = str(gpu_list_str)
-    return ([] if gpu_list_str == 'None' else
-            None if gpu_list_str == 'all' else
-            list(map(int, gpu_list_str.split(','))))
+    return (
+        []
+        if gpu_list_str == "None"
+        else None if gpu_list_str == "all" else list(map(int, gpu_list_str.split(",")))
+    )
 
 
 def get_gpu_device(gpu_list=None):
@@ -1121,12 +1140,14 @@ def get_gpu_device(gpu_list=None):
     if gpu_list is None:
         gpu_list = list(range(torch.cuda.device_count()))
     elif not gpu_list:
-        return torch.device('cpu'), False
-    return torch.device('cuda:{}'.format(gpu_list[0])), True
+        return torch.device("cpu"), False
+    return torch.device("cuda:{}".format(gpu_list[0])), True
+
 
 # =============================================================================
 # Grid Feature Utilities
 # =============================================================================
+
 
 class Grid(object):
     """
@@ -1229,15 +1250,18 @@ class Grid(object):
             neighborhood_grid_top = row_idx - self._half_cell_w
             neighborhood_grid_left = col_idx - self._half_cell_w
 
-            neighborhood_grid = torch.FloatTensor(self._target_neighborhood_w,
-                                            self._target_neighborhood_w).zero_()
+            neighborhood_grid = torch.FloatTensor(
+                self._target_neighborhood_w, self._target_neighborhood_w
+            ).zero_()
 
             for r in range(self._target_neighborhood_w):
                 for c in range(self._target_neighborhood_w):
-                    if (0 <= neighborhood_grid_top + r < grid.size(0)
-                        and 0 <= neighborhood_grid_left + c < grid.size(1)):
-                        neighborhood_grid[r, c] = grid[neighborhood_grid_top + r,
-                                                    neighborhood_grid_left + c]
+                    if 0 <= neighborhood_grid_top + r < grid.size(
+                        0
+                    ) and 0 <= neighborhood_grid_left + c < grid.size(1):
+                        neighborhood_grid[r, c] = grid[
+                            neighborhood_grid_top + r, neighborhood_grid_left + c
+                        ]
 
             grid_feature_list.append(neighborhood_grid.view(neighborhood_grid.numel()))
 

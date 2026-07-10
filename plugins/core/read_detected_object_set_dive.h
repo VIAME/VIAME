@@ -106,8 +106,8 @@ class VIAME_CORE_EXPORT read_detected_object_set_dive
   : public kwiver::vital::algo::detected_object_set_input
 {
 public:
-  PLUGGABLE_IMPL(
-    read_detected_object_set_dive,
+  PLUGGABLE_IMPL_NAMED(
+    read_detected_object_set_dive, "dive",
     "Detected object set reader using DIVE JSON format.\n\n"
     "DIVE JSON format contains:\n"
     "  - tracks: object with track data indexed by ID\n"

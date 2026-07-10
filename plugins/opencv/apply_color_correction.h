@@ -18,8 +18,8 @@ class VIAME_OPENCV_EXPORT apply_color_correction
   : public kwiver::vital::algo::image_filter
 {
 public:
-  PLUGGABLE_IMPL(
-    apply_color_correction,
+  PLUGGABLE_IMPL_NAMED(
+    apply_color_correction, "ocv_color_correction",
     "Color correction algorithms: gamma, underwater compensation, gray world white balance",
     PARAM_DEFAULT( apply_gamma, bool,
       "Enable gamma correction", false ),

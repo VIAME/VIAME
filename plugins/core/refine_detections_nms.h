@@ -29,8 +29,8 @@ class VIAME_CORE_EXPORT refine_detections_nms
 {
 
 public:
-  PLUGGABLE_IMPL(
-    refine_detections_nms,
+  PLUGGABLE_IMPL_NAMED(
+    refine_detections_nms, "nms",
     "Refines detections based on overlap.\n\n"
     "This algorithm sorts through detections, pruning detections "
     "that heavily overlap with higher confidence detections.",

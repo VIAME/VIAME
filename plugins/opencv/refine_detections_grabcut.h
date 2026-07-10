@@ -20,8 +20,8 @@ class VIAME_OPENCV_EXPORT refine_detections_grabcut
   : public kwiver::vital::algo::refine_detections
 {
 public:
-  PLUGGABLE_IMPL(
-    refine_detections_grabcut,
+  PLUGGABLE_IMPL_NAMED(
+    refine_detections_grabcut, "ocv_grabcut",
     "Estimate a segmentation using GrabCut",
     PARAM_DEFAULT( iter_count, int,
       "Number of iterations GrabCut should perform for each detection", 2 ),

@@ -27,8 +27,8 @@ class VIAME_CORE_EXPORT windowed_refiner
   : public kwiver::vital::algo::refine_detections
 {
 public:
-  PLUGGABLE_IMPL(
-    windowed_refiner,
+  PLUGGABLE_IMPL_NAMED(
+    windowed_refiner, "windowed",
     "Window some other arbitrary refiner across the image (no OpenCV)",
     PARAM_DEFAULT(
       process_boundary_dets, bool,

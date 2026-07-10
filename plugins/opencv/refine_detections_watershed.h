@@ -20,7 +20,8 @@ class VIAME_OPENCV_EXPORT refine_detections_watershed
   : public kwiver::vital::algo::refine_detections
 {
 public:
-  PLUGGABLE_IMPL( refine_detections_watershed,
+  PLUGGABLE_IMPL_NAMED(
+    refine_detections_watershed, "ocv_watershed",
                   "Estimate a segmentation using watershed",
     PARAM_DEFAULT( seed_with_existing_masks, bool,
                    "If true, use existing masks as seed regions",

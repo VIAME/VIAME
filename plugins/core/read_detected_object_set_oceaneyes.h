@@ -24,8 +24,8 @@ class VIAME_CORE_EXPORT read_detected_object_set_oceaneyes
 {
 public:
   // NOTE: Keep description in sync with write_detected_object_set_oceaneyes
-  PLUGGABLE_IMPL(
-    read_detected_object_set_oceaneyes,
+  PLUGGABLE_IMPL_NAMED(
+    read_detected_object_set_oceaneyes, "oceaneyes",
     "Detected object set reader using oceaneyes csv format.\n\n"
     "  - filename, drop id, subject id, n, species identification,\n"
     "  - no fish confidence metric, yes fish confidence metric,\n"

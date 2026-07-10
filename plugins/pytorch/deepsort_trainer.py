@@ -19,8 +19,10 @@ from kwiver.vital.algo import TrainTracker
 
 from kwiver.vital.types import (
     CategoryHierarchy,
-    ObjectTrackSet, ObjectTrackState,
-    BoundingBoxD, DetectedObjectType
+    ObjectTrackSet,
+    ObjectTrackState,
+    BoundingBoxD,
+    DetectedObjectType,
 )
 
 from distutils.util import strtobool
@@ -45,6 +47,7 @@ class DeepSORTTrainer(TrainTracker):
 
     Trains a CNN to extract appearance features for re-identification.
     """
+
     def __init__(self):
         TrainTracker.__init__(self)
 
@@ -112,6 +115,7 @@ class DeepSORTTrainer(TrainTracker):
         # Check GPU availability
         try:
             import torch
+
             if torch.cuda.is_available():
                 if self._gpu_count < 0:
                     self._gpu_count = torch.cuda.device_count()
@@ -131,14 +135,14 @@ class DeepSORTTrainer(TrainTracker):
         return True
 
     def check_configuration(self, cfg):
-        if not cfg.has_value("identifier") or \
-          len(cfg.get_value("identifier")) == 0:
+        if not cfg.has_value("identifier") or len(cfg.get_value("identifier")) == 0:
             print("A model identifier must be specified!")
             return False
         return True
 
-    def add_data_from_disk(self, categories, train_files, train_tracks,
-                           test_files, test_tracks):
+    def add_data_from_disk(
+        self, categories, train_files, train_tracks, test_files, test_tracks
+    ):
         print("Adding training data from disk...")
         print("  Training files: ", len(train_files))
         print("  Training tracks: ", len(train_tracks))
@@ -168,7 +172,7 @@ class DeepSORTTrainer(TrainTracker):
         import cv2
         import numpy as np
 
-        crop_h, crop_w = map(int, self._crop_size.split('x'))
+        crop_h, crop_w = map(int, self._crop_size.split("x"))
 
         reid_dir = Path(self._train_directory) / "reid_data"
         if reid_dir.exists():
@@ -205,7 +209,9 @@ class DeepSORTTrainer(TrainTracker):
 
         return reid_dir
 
-    def _process_split_data(self, track_sets, image_map, output_dir, crop_h, crop_w, split_name):
+    def _process_split_data(
+        self, track_sets, image_map, output_dir, crop_h, crop_w, split_name
+    ):
         """Process tracks for one split (train/test)."""
         import cv2
         import numpy as np
@@ -240,11 +246,13 @@ class DeepSORTTrainer(TrainTracker):
                     if frame_id not in frame_to_detections:
                         frame_to_detections[frame_id] = []
 
-                    frame_to_detections[frame_id].append({
-                        'track_id': unique_track_id,
-                        'bbox': (x1, y1, x2, y2),
-                        'frame_id': frame_id
-                    })
+                    frame_to_detections[frame_id].append(
+                        {
+                            "track_id": unique_track_id,
+                            "bbox": (x1, y1, x2, y2),
+                            "frame_id": frame_id,
+                        }
+                    )
 
             # Process each frame
             for frame_id, detections in frame_to_detections.items():
@@ -262,8 +270,8 @@ class DeepSORTTrainer(TrainTracker):
                 img_h, img_w = img.shape[:2]
 
                 for det in detections:
-                    x1, y1, x2, y2 = det['bbox']
-                    track_id = det['track_id']
+                    x1, y1, x2, y2 = det["bbox"]
+                    track_id = det["track_id"]
 
                     # Clamp to image bounds
                     x1 = max(0, min(x1, img_w - 1))
@@ -318,27 +326,32 @@ class DeepSORTTrainer(TrainTracker):
             import torch.optim as optim
             from torch.utils.data import Dataset, DataLoader
             import torchvision.transforms as transforms
-            from torchvision.models import resnet18, resnet50, ResNet18_Weights, ResNet50_Weights
+            from torchvision.models import (
+                resnet18,
+                resnet50,
+                ResNet18_Weights,
+                ResNet50_Weights,
+            )
             import cv2
             from PIL import Image
         except ImportError as e:
             print(f"PyTorch not available: {e}")
             return
 
-        crop_h, crop_w = map(int, self._crop_size.split('x'))
+        crop_h, crop_w = map(int, self._crop_size.split("x"))
         embedding_dim = int(self._embedding_dim)
         batch_size = int(self._batch_size)
         max_epochs = int(self._max_epochs)
         lr = float(self._learning_rate)
 
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"Using device: {device}")
 
         # Create Re-ID model
         class ReIDModel(nn.Module):
             def __init__(self, backbone_name, embedding_dim):
                 super().__init__()
-                if backbone_name == 'resnet50':
+                if backbone_name == "resnet50":
                     backbone = resnet50(weights=ResNet50_Weights.DEFAULT)
                     backbone_dim = 2048
                 else:
@@ -380,7 +393,7 @@ class DeepSORTTrainer(TrainTracker):
                 return len(self.samples)
 
             def __getitem__(self, idx):
-                img = Image.open(self.samples[idx]).convert('RGB')
+                img = Image.open(self.samples[idx]).convert("RGB")
                 if self.transform:
                     img = self.transform(img)
                 return img, self.labels[idx]
@@ -396,7 +409,11 @@ class DeepSORTTrainer(TrainTracker):
                 dist_mat = torch.cdist(embeddings, embeddings, p=2)
 
                 # For each anchor, find hardest positive and negative
-                labels = torch.tensor(labels) if not isinstance(labels, torch.Tensor) else labels
+                labels = (
+                    torch.tensor(labels)
+                    if not isinstance(labels, torch.Tensor)
+                    else labels
+                )
                 labels = labels.to(embeddings.device)
 
                 n = embeddings.size(0)
@@ -418,26 +435,36 @@ class DeepSORTTrainer(TrainTracker):
                     hardest_pos = pos_dists.max()
                     hardest_neg = neg_dists.min()
 
-                    triplet_loss = torch.clamp(hardest_pos - hardest_neg + self.margin, min=0)
+                    triplet_loss = torch.clamp(
+                        hardest_pos - hardest_neg + self.margin, min=0
+                    )
                     loss += triplet_loss
                     count += 1
 
                 return loss / max(count, 1)
 
         # Data transforms
-        transform = transforms.Compose([
-            transforms.Resize((crop_h, crop_w)),
-            transforms.RandomHorizontalFlip(),
-            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
+        transform = transforms.Compose(
+            [
+                transforms.Resize((crop_h, crop_w)),
+                transforms.RandomHorizontalFlip(),
+                transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )
 
-        transform_test = transforms.Compose([
-            transforms.Resize((crop_h, crop_w)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
+        transform_test = transforms.Compose(
+            [
+                transforms.Resize((crop_h, crop_w)),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )
 
         # Create datasets and loaders
         train_dataset = ReIDDataset(reid_dir / "train", transform)
@@ -451,8 +478,12 @@ class DeepSORTTrainer(TrainTracker):
         print(f"Test samples: {len(test_dataset)}")
         print(f"Number of identities (train): {len(train_dataset.label_to_idx)}")
 
-        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
-        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+        train_loader = DataLoader(
+            train_dataset, batch_size=batch_size, shuffle=True, num_workers=4
+        )
+        test_loader = DataLoader(
+            test_dataset, batch_size=batch_size, shuffle=False, num_workers=4
+        )
 
         # Create model and optimizer
         model = ReIDModel(self._backbone, embedding_dim).to(device)
@@ -461,7 +492,7 @@ class DeepSORTTrainer(TrainTracker):
         criterion = TripletLoss(margin=0.3)
 
         # Training loop
-        best_loss = float('inf')
+        best_loss = float("inf")
         snapshot_dir = Path(self._train_directory) / "snapshot"
         snapshot_dir.mkdir(exist_ok=True)
 
@@ -503,17 +534,22 @@ class DeepSORTTrainer(TrainTracker):
 
             avg_val_loss = val_loss / max(num_val_batches, 1)
 
-            print(f"Epoch {epoch+1}/{max_epochs}: train_loss={avg_train_loss:.4f}, val_loss={avg_val_loss:.4f}")
+            print(
+                f"Epoch {epoch+1}/{max_epochs}: train_loss={avg_train_loss:.4f}, val_loss={avg_val_loss:.4f}"
+            )
 
             # Save checkpoint
             checkpoint_path = snapshot_dir / f"checkpoint_e{epoch+1}.pth"
-            torch.save({
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'train_loss': avg_train_loss,
-                'val_loss': avg_val_loss,
-            }, checkpoint_path)
+            torch.save(
+                {
+                    "epoch": epoch,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "train_loss": avg_train_loss,
+                    "val_loss": avg_val_loss,
+                },
+                checkpoint_path,
+            )
 
             if avg_val_loss < best_loss:
                 best_loss = avg_val_loss
@@ -553,18 +589,8 @@ class DeepSORTTrainer(TrainTracker):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "deepsort"
-
-    if algorithm_factory.has_algorithm_impl_name(
-        DeepSORTTrainer.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
-        "PyTorch DeepSORT Re-ID model training",
-        DeepSORTTrainer
+    register_vital_algorithm(
+        DeepSORTTrainer, "deepsort", "PyTorch DeepSORT Re-ID model training"
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

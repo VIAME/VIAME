@@ -51,14 +51,14 @@ namespace ocv = kwiver::arrows::ocv;
 
 
 
-const std::string windowed_trainer::m_chip_subdirectory = "cached_chips";
+const std::string ocv_windowed_trainer::m_chip_subdirectory = "cached_chips";
 
 // -----------------------------------------------------------------------------
 void
-windowed_trainer
+ocv_windowed_trainer
 ::initialize()
 {
-  m_logger = kv::get_logger( "viame.opencv.windowed_trainer" );
+  m_logger = kv::get_logger( "viame.opencv.ocv_windowed_trainer" );
 
   // Set trainer-specific defaults (different from detector/refiner)
   m_settings.original_to_chip_size = true;
@@ -70,7 +70,7 @@ windowed_trainer
 
 // -----------------------------------------------------------------------------
 void
-windowed_trainer
+ocv_windowed_trainer
 ::set_configuration_internal( kv::config_block_sptr config_in )
 {
   kv::config_block_sptr config = this->get_configuration();
@@ -127,7 +127,7 @@ windowed_trainer
 
 // -----------------------------------------------------------------------------
 bool
-windowed_trainer
+ocv_windowed_trainer
 ::check_configuration( kv::config_block_sptr config ) const
 {
   return kv::check_nested_algo_configuration<kv::algo::image_io>(
@@ -139,7 +139,7 @@ windowed_trainer
 
 // -----------------------------------------------------------------------------
 void
-windowed_trainer
+ocv_windowed_trainer
 ::add_data_from_disk(
   kv::category_hierarchy_sptr object_labels,
   std::vector< std::string > train_image_names,
@@ -194,7 +194,7 @@ windowed_trainer
 }
 
 void
-windowed_trainer
+ocv_windowed_trainer
 ::add_data_from_memory(
   kv::category_hierarchy_sptr object_labels,
   std::vector< kv::image_container_sptr > train_images,
@@ -257,7 +257,7 @@ windowed_trainer
 }
 
 std::map<std::string, std::string>
-windowed_trainer
+ocv_windowed_trainer
 ::update_model()
 {
   std::map<std::string, std::string> nested_output = c_trainer->update_model();
@@ -307,7 +307,7 @@ windowed_trainer
 
 // -----------------------------------------------------------------------------
 void
-windowed_trainer
+ocv_windowed_trainer
 ::format_images_from_disk(
   std::vector< std::string > image_names,
   std::vector< kv::detected_object_set_sptr > groundtruth,
@@ -400,7 +400,7 @@ windowed_trainer
 }
 
 void
-windowed_trainer
+ocv_windowed_trainer
 ::process_one_frame(
   unsigned fid,
   const std::vector< std::string >& image_names,
@@ -530,7 +530,7 @@ windowed_trainer
 }
 
 void
-windowed_trainer
+ocv_windowed_trainer
 ::format_image_from_memory(
   const cv::Mat& image,
   kv::detected_object_set_sptr groundtruth,
@@ -710,7 +710,7 @@ windowed_trainer
 
 
 bool
-windowed_trainer
+ocv_windowed_trainer
 ::filter_detections_in_roi(
   kv::detected_object_set_sptr all_detections,
   kv::bounding_box_d region,
@@ -854,7 +854,7 @@ windowed_trainer
 
 
 std::string
-windowed_trainer
+ocv_windowed_trainer
 ::generate_filename( const std::string& frame_tag, int chip_idx )
 {
   std::ostringstream ss;
@@ -868,7 +868,7 @@ windowed_trainer
 
 
 std::string
-windowed_trainer
+ocv_windowed_trainer
 ::frame_tag_for( unsigned fid, const std::string& image_fn )
 {
   std::string base = kwiversys::SystemTools::GetFilenameName( image_fn );
@@ -889,7 +889,7 @@ windowed_trainer
 
 
 std::string
-windowed_trainer
+ocv_windowed_trainer
 ::manifest_path( const std::string& frame_tag )
 {
   return c_train_directory + div +
@@ -899,7 +899,7 @@ windowed_trainer
 
 
 bool
-windowed_trainer
+ocv_windowed_trainer
 ::load_manifest(
   const std::string& frame_tag,
   std::vector< std::string >& names,
@@ -1018,7 +1018,7 @@ windowed_trainer
 
 
 kv::category_hierarchy_sptr
-windowed_trainer
+ocv_windowed_trainer
 ::labels_without_ignored( kv::category_hierarchy_sptr in )
 {
   if( !in || c_ignore_category.empty() || !in->has_class_name( c_ignore_category ) )
@@ -1042,7 +1042,7 @@ windowed_trainer
 
 
 void
-windowed_trainer
+ocv_windowed_trainer
 ::write_manifest(
   const std::string& frame_tag,
   const std::vector< std::string >& names,
@@ -1114,7 +1114,7 @@ windowed_trainer
 
 
 void
-windowed_trainer
+ocv_windowed_trainer
 ::write_chip_to_disk( const std::string& filename, const cv::Mat& image )
 {
   c_image_reader->save( filename,

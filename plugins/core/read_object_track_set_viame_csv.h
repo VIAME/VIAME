@@ -23,8 +23,8 @@ class VIAME_CORE_EXPORT read_object_track_set_viame_csv
   : public kwiver::vital::algo::read_object_track_set
 {
 public:
-  PLUGGABLE_IMPL(
-    read_object_track_set_viame_csv,
+  PLUGGABLE_IMPL_NAMED(
+    read_object_track_set_viame_csv, "viame_csv",
     "Object track set viame_csv reader.\n\n"
     "  - Column(s) 1: Detection or Track ID\n"
     "  - Column(s) 2: Video or Image Identifier\n"

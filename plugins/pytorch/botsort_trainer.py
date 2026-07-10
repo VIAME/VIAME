@@ -18,8 +18,10 @@ from kwiver.vital.algo import TrainTracker
 
 from kwiver.vital.types import (
     CategoryHierarchy,
-    ObjectTrackSet, ObjectTrackState,
-    BoundingBoxD, DetectedObjectType
+    ObjectTrackSet,
+    ObjectTrackState,
+    BoundingBoxD,
+    DetectedObjectType,
 )
 
 from distutils.util import strtobool
@@ -39,6 +41,7 @@ class BoTSORTTrainer(TrainTracker):
 
     Trains Re-ID model and estimates tracking parameters.
     """
+
     def __init__(self):
         TrainTracker.__init__(self)
 
@@ -105,6 +108,7 @@ class BoTSORTTrainer(TrainTracker):
 
         try:
             import torch
+
             if torch.cuda.is_available():
                 if self._gpu_count < 0:
                     self._gpu_count = torch.cuda.device_count()
@@ -119,14 +123,14 @@ class BoTSORTTrainer(TrainTracker):
         return True
 
     def check_configuration(self, cfg):
-        if not cfg.has_value("identifier") or \
-          len(cfg.get_value("identifier")) == 0:
+        if not cfg.has_value("identifier") or len(cfg.get_value("identifier")) == 0:
             print("A model identifier must be specified!")
             return False
         return True
 
-    def add_data_from_disk(self, categories, train_files, train_tracks,
-                           test_files, test_tracks):
+    def add_data_from_disk(
+        self, categories, train_files, train_tracks, test_files, test_tracks
+    ):
         print("Adding training data from disk...")
         print("  Training files: ", len(train_files))
         print("  Training tracks: ", len(train_tracks))
@@ -200,11 +204,11 @@ class BoTSORTTrainer(TrainTracker):
                     prev_cx, prev_cy = cx, cy
 
         return {
-            'positions': positions,
-            'velocities': velocities,
-            'confidences': confidences,
-            'track_lengths': track_lengths,
-            'gap_lengths': gap_lengths
+            "positions": positions,
+            "velocities": velocities,
+            "confidences": confidences,
+            "track_lengths": track_lengths,
+            "gap_lengths": gap_lengths,
         }
 
     def _estimate_parameters(self, stats):
@@ -212,7 +216,7 @@ class BoTSORTTrainer(TrainTracker):
         params = {}
 
         # Kalman filter parameters
-        velocities = stats['velocities']
+        velocities = stats["velocities"]
         if len(velocities) >= 10:
             pos_variances = []
             for vx, vy, h, dt in velocities:
@@ -221,36 +225,46 @@ class BoTSORTTrainer(TrainTracker):
                     pos_variances.append(pos_var)
 
             if len(pos_variances) > 0:
-                params['std_weight_position'] = float(np.clip(np.median(pos_variances) * 2, 0.01, 0.5))
+                params["std_weight_position"] = float(
+                    np.clip(np.median(pos_variances) * 2, 0.01, 0.5)
+                )
             else:
-                params['std_weight_position'] = 1.0 / 20
+                params["std_weight_position"] = 1.0 / 20
         else:
-            params['std_weight_position'] = 1.0 / 20
+            params["std_weight_position"] = 1.0 / 20
 
-        params['std_weight_velocity'] = params['std_weight_position'] / 8
+        params["std_weight_velocity"] = params["std_weight_position"] / 8
 
         # Confidence thresholds
-        confidences = stats['confidences']
+        confidences = stats["confidences"]
         if len(confidences) >= 10:
             confidences = np.array(confidences)
-            params['high_thresh'] = float(np.clip(np.percentile(confidences, 30), 0.3, 0.9))
-            params['low_thresh'] = float(np.clip(np.percentile(confidences, 10), 0.05, params['high_thresh'] - 0.1))
-            params['new_track_thresh'] = params['high_thresh']
+            params["high_thresh"] = float(
+                np.clip(np.percentile(confidences, 30), 0.3, 0.9)
+            )
+            params["low_thresh"] = float(
+                np.clip(
+                    np.percentile(confidences, 10), 0.05, params["high_thresh"] - 0.1
+                )
+            )
+            params["new_track_thresh"] = params["high_thresh"]
         else:
-            params['high_thresh'] = 0.6
-            params['low_thresh'] = 0.1
-            params['new_track_thresh'] = 0.6
+            params["high_thresh"] = 0.6
+            params["low_thresh"] = 0.1
+            params["new_track_thresh"] = 0.6
 
         # Track buffer
-        gap_lengths = stats['gap_lengths']
+        gap_lengths = stats["gap_lengths"]
         if len(gap_lengths) >= 5:
-            params['track_buffer'] = int(np.clip(np.percentile(gap_lengths, 90) * 1.5 + 5, 10, 100))
+            params["track_buffer"] = int(
+                np.clip(np.percentile(gap_lengths, 90) * 1.5 + 5, 10, 100)
+            )
         else:
-            params['track_buffer'] = 30
+            params["track_buffer"] = 30
 
-        params['match_thresh'] = 0.8
-        params['iou_weight'] = 0.5  # Balance between IOU and ReID
-        params['feat_ema_alpha'] = float(self._feat_ema_alpha)
+        params["match_thresh"] = 0.8
+        params["iou_weight"] = 0.5  # Balance between IOU and ReID
+        params["feat_ema_alpha"] = float(self._feat_ema_alpha)
 
         return params
 
@@ -258,7 +272,7 @@ class BoTSORTTrainer(TrainTracker):
         """Prepare Re-ID training data (same as DeepSORT)."""
         import cv2
 
-        crop_h, crop_w = map(int, self._crop_size.split('x'))
+        crop_h, crop_w = map(int, self._crop_size.split("x"))
 
         reid_dir = Path(self._train_directory) / "reid_data"
         if reid_dir.exists():
@@ -324,11 +338,13 @@ class BoTSORTTrainer(TrainTracker):
                     if frame_id not in frame_to_detections:
                         frame_to_detections[frame_id] = []
 
-                    frame_to_detections[frame_id].append({
-                        'track_id': unique_track_id,
-                        'bbox': (x1, y1, x2, y2),
-                        'frame_id': frame_id
-                    })
+                    frame_to_detections[frame_id].append(
+                        {
+                            "track_id": unique_track_id,
+                            "bbox": (x1, y1, x2, y2),
+                            "frame_id": frame_id,
+                        }
+                    )
 
             for frame_id, detections in frame_to_detections.items():
                 if frame_id not in image_map:
@@ -345,8 +361,8 @@ class BoTSORTTrainer(TrainTracker):
                 img_h, img_w = img.shape[:2]
 
                 for det in detections:
-                    x1, y1, x2, y2 = det['bbox']
-                    track_id = det['track_id']
+                    x1, y1, x2, y2 = det["bbox"]
+                    track_id = det["track_id"]
 
                     x1 = max(0, min(x1, img_w - 1))
                     y1 = max(0, min(y1, img_h - 1))
@@ -393,10 +409,10 @@ class BoTSORTTrainer(TrainTracker):
             self._train_reid_model(reid_dir)
 
         # Save parameters and config
-        params['use_cmc'] = bool(self._use_cmc)
-        params['use_reid'] = bool(self._use_reid)
+        params["use_cmc"] = bool(self._use_cmc)
+        params["use_reid"] = bool(self._use_reid)
 
-        output = self._get_output_map( params )
+        output = self._get_output_map(params)
 
         print("\nBoT-SORT training complete!")
 
@@ -410,25 +426,30 @@ class BoTSORTTrainer(TrainTracker):
             import torch.optim as optim
             from torch.utils.data import Dataset, DataLoader
             import torchvision.transforms as transforms
-            from torchvision.models import resnet18, resnet50, ResNet18_Weights, ResNet50_Weights
+            from torchvision.models import (
+                resnet18,
+                resnet50,
+                ResNet18_Weights,
+                ResNet50_Weights,
+            )
             from PIL import Image
         except ImportError as e:
             print(f"PyTorch not available: {e}")
             return
 
-        crop_h, crop_w = map(int, self._crop_size.split('x'))
+        crop_h, crop_w = map(int, self._crop_size.split("x"))
         embedding_dim = int(self._embedding_dim)
         batch_size = int(self._batch_size)
         max_epochs = int(self._max_epochs)
         lr = float(self._learning_rate)
 
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"Training Re-ID model on {device}...")
 
         class ReIDModel(nn.Module):
             def __init__(self, backbone_name, embedding_dim):
                 super().__init__()
-                if backbone_name == 'resnet50':
+                if backbone_name == "resnet50":
                     backbone = resnet50(weights=ResNet50_Weights.DEFAULT)
                     backbone_dim = 2048
                 else:
@@ -467,7 +488,7 @@ class BoTSORTTrainer(TrainTracker):
                 return len(self.samples)
 
             def __getitem__(self, idx):
-                img = Image.open(self.samples[idx]).convert('RGB')
+                img = Image.open(self.samples[idx]).convert("RGB")
                 if self.transform:
                     img = self.transform(img)
                 return img, self.labels[idx]
@@ -479,7 +500,11 @@ class BoTSORTTrainer(TrainTracker):
 
             def forward(self, embeddings, labels):
                 dist_mat = torch.cdist(embeddings, embeddings, p=2)
-                labels = torch.tensor(labels) if not isinstance(labels, torch.Tensor) else labels
+                labels = (
+                    torch.tensor(labels)
+                    if not isinstance(labels, torch.Tensor)
+                    else labels
+                )
                 labels = labels.to(embeddings.device)
 
                 n = embeddings.size(0)
@@ -499,25 +524,35 @@ class BoTSORTTrainer(TrainTracker):
                     hardest_pos = pos_dists.max()
                     hardest_neg = neg_dists.min()
 
-                    triplet_loss = torch.clamp(hardest_pos - hardest_neg + self.margin, min=0)
+                    triplet_loss = torch.clamp(
+                        hardest_pos - hardest_neg + self.margin, min=0
+                    )
                     loss += triplet_loss
                     count += 1
 
                 return loss / max(count, 1)
 
-        transform = transforms.Compose([
-            transforms.Resize((crop_h, crop_w)),
-            transforms.RandomHorizontalFlip(),
-            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
+        transform = transforms.Compose(
+            [
+                transforms.Resize((crop_h, crop_w)),
+                transforms.RandomHorizontalFlip(),
+                transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )
 
-        transform_test = transforms.Compose([
-            transforms.Resize((crop_h, crop_w)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
+        transform_test = transforms.Compose(
+            [
+                transforms.Resize((crop_h, crop_w)),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )
 
         train_dataset = ReIDDataset(reid_dir / "train", transform)
         test_dataset = ReIDDataset(reid_dir / "test", transform_test)
@@ -529,15 +564,19 @@ class BoTSORTTrainer(TrainTracker):
         print(f"Training samples: {len(train_dataset)}")
         print(f"Test samples: {len(test_dataset)}")
 
-        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
-        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+        train_loader = DataLoader(
+            train_dataset, batch_size=batch_size, shuffle=True, num_workers=4
+        )
+        test_loader = DataLoader(
+            test_dataset, batch_size=batch_size, shuffle=False, num_workers=4
+        )
 
         model = ReIDModel(self._backbone, embedding_dim).to(device)
         optimizer = optim.Adam(model.parameters(), lr=lr)
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
         criterion = TripletLoss(margin=0.3)
 
-        best_loss = float('inf')
+        best_loss = float("inf")
         snapshot_dir = Path(self._train_directory) / "snapshot"
         snapshot_dir.mkdir(exist_ok=True)
 
@@ -576,7 +615,9 @@ class BoTSORTTrainer(TrainTracker):
 
             avg_val_loss = val_loss / max(num_val_batches, 1)
 
-            print(f"Epoch {epoch+1}/{max_epochs}: train_loss={avg_train_loss:.4f}, val_loss={avg_val_loss:.4f}")
+            print(
+                f"Epoch {epoch+1}/{max_epochs}: train_loss={avg_train_loss:.4f}, val_loss={avg_val_loss:.4f}"
+            )
 
             if avg_val_loss < best_loss:
                 best_loss = avg_val_loss
@@ -584,7 +625,7 @@ class BoTSORTTrainer(TrainTracker):
 
         print("Re-ID model training complete.")
 
-    def _get_output_map( self, params ):
+    def _get_output_map(self, params):
         """Build output map for process_trainer_output."""
         output = {}
 
@@ -593,40 +634,34 @@ class BoTSORTTrainer(TrainTracker):
 
         # Save params JSON to train directory
         params_name = "botsort_params.json"
-        params_file = os.path.join( self._train_directory, params_name )
-        with open( params_file, 'w' ) as f:
-            json.dump( params, f, indent=2 )
+        params_file = os.path.join(self._train_directory, params_name)
+        with open(params_file, "w") as f:
+            json.dump(params, f, indent=2)
 
         output[algo + ":params_file"] = params_name
         output[params_name] = params_file
 
         # Include Re-ID model if it exists
         if self._use_reid:
-            snapshot_dir = Path( self._train_directory ) / "snapshot"
+            snapshot_dir = Path(self._train_directory) / "snapshot"
             reid_model = snapshot_dir / "best_model.pth"
             if reid_model.exists():
                 output[algo + ":model_path"] = "botsort_reid.pth"
-                output["botsort_reid.pth"] = str( reid_model )
+                output["botsort_reid.pth"] = str(reid_model)
 
-        print( f"\nThe {self._train_directory} directory can now be deleted, "
-               "unless you want to review training metrics first." )
+        print(
+            f"\nThe {self._train_directory} directory can now be deleted, "
+            "unless you want to review training metrics first."
+        )
 
         return output
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "botsort"
-
-    if algorithm_factory.has_algorithm_impl_name(
-        BoTSORTTrainer.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
+    register_vital_algorithm(
+        BoTSORTTrainer,
+        "botsort",
         "PyTorch BoT-SORT Re-ID model training and parameter estimation",
-        BoTSORTTrainer
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

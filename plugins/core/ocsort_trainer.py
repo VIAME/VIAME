@@ -35,6 +35,7 @@ class OCSORTTrainer(TrainTracker):
     Implementation of TrainTracker class for OC-SORT parameter estimation
     and optional Deep OC-SORT Re-ID model training.
     """
+
     def __init__(self):
         TrainTracker.__init__(self)
 
@@ -115,17 +116,17 @@ class OCSORTTrainer(TrainTracker):
         return True
 
     def check_configuration(self, cfg):
-        if not cfg.has_value("identifier") or \
-          len(cfg.get_value("identifier")) == 0:
+        if not cfg.has_value("identifier") or len(cfg.get_value("identifier")) == 0:
             print("A model identifier must be specified!")
             return False
         return True
 
     def _reid_enabled(self):
-        return str(self._use_reid).lower() in ('true', '1', 'yes')
+        return str(self._use_reid).lower() in ("true", "1", "yes")
 
-    def add_data_from_disk(self, categories, train_files, train_tracks,
-                           test_files, test_tracks):
+    def add_data_from_disk(
+        self, categories, train_files, train_tracks, test_files, test_tracks
+    ):
         print("Adding training data from disk...")
         print("  Training files: ", len(train_files))
         print("  Training tracks: ", len(train_tracks))
@@ -218,17 +219,17 @@ class OCSORTTrainer(TrainTracker):
                     prev_cx, prev_cy = cx, cy
 
         return {
-            'positions': positions,
-            'velocities': velocities,
-            'confidences': confidences,
-            'track_lengths': track_lengths,
-            'gap_lengths': gap_lengths,
-            'direction_changes': direction_changes
+            "positions": positions,
+            "velocities": velocities,
+            "confidences": confidences,
+            "track_lengths": track_lengths,
+            "gap_lengths": gap_lengths,
+            "direction_changes": direction_changes,
         }
 
     def _estimate_kalman_parameters(self, stats):
         """Estimate Kalman filter parameters (same as ByteTrack)."""
-        velocities = stats['velocities']
+        velocities = stats["velocities"]
 
         if len(velocities) < 10:
             return 1.0 / 20, 1.0 / 160
@@ -265,7 +266,7 @@ class OCSORTTrainer(TrainTracker):
 
     def _estimate_thresholds(self, stats):
         """Estimate detection confidence thresholds."""
-        confidences = stats['confidences']
+        confidences = stats["confidences"]
 
         if len(confidences) < 10:
             return 0.6, 0.1, 0.6
@@ -284,7 +285,7 @@ class OCSORTTrainer(TrainTracker):
 
     def _estimate_track_buffer(self, stats):
         """Estimate track buffer from gap statistics."""
-        gap_lengths = stats['gap_lengths']
+        gap_lengths = stats["gap_lengths"]
 
         if len(gap_lengths) < 5:
             return 30
@@ -302,7 +303,7 @@ class OCSORTTrainer(TrainTracker):
         A window spanning the typical annotation gap keeps velocity
         estimated from a real prior observation across short misses.
         """
-        gap_lengths = stats['gap_lengths']
+        gap_lengths = stats["gap_lengths"]
         if len(gap_lengths) < 5:
             return int(self._delta_t)
         return int(np.clip(np.percentile(gap_lengths, 75) + 1, 1, 5))
@@ -315,7 +316,7 @@ class OCSORTTrainer(TrainTracker):
         direction reversal is strong evidence against an association);
         lower when motion is erratic.
         """
-        direction_changes = stats['direction_changes']
+        direction_changes = stats["direction_changes"]
 
         if len(direction_changes) < 10:
             return 0.2  # Default
@@ -347,8 +348,10 @@ class OCSORTTrainer(TrainTracker):
         try:
             from viame.pytorch.botsort_trainer import BoTSORTTrainer
         except ImportError as e:
-            print(f"[OCSORT] Re-ID training unavailable (pytorch plugin "
-                  f"not importable): {e}")
+            print(
+                f"[OCSORT] Re-ID training unavailable (pytorch plugin "
+                f"not importable): {e}"
+            )
             return None
 
         print("Training Deep OC-SORT appearance Re-ID model...")
@@ -370,8 +373,7 @@ class OCSORTTrainer(TrainTracker):
         reid_dir = helper._prepare_reid_data()
         helper._train_reid_model(reid_dir)
 
-        model_path = os.path.join(self._train_directory, "snapshot",
-                                  "best_model.pth")
+        model_path = os.path.join(self._train_directory, "snapshot", "best_model.pth")
         if os.path.exists(model_path):
             return model_path
 
@@ -397,7 +399,9 @@ class OCSORTTrainer(TrainTracker):
         print(f"  Found {len(stats['direction_changes'])} direction changes")
 
         print("Estimating Kalman filter parameters...")
-        std_weight_position, std_weight_velocity = self._estimate_kalman_parameters(stats)
+        std_weight_position, std_weight_velocity = self._estimate_kalman_parameters(
+            stats
+        )
         print(f"  std_weight_position: {std_weight_position:.6f}")
         print(f"  std_weight_velocity: {std_weight_velocity:.6f}")
 
@@ -421,26 +425,26 @@ class OCSORTTrainer(TrainTracker):
         use_reid = self._reid_enabled()
 
         params = {
-            'std_weight_position': std_weight_position,
-            'std_weight_velocity': std_weight_velocity,
-            'high_thresh': high_thresh,
-            'low_thresh': low_thresh,
-            'match_thresh': 0.8,
-            'new_track_thresh': new_track_thresh,
-            'track_buffer': track_buffer,
-            'delta_t': delta_t,
-            'vdc_weight': vdc_weight,
-            'ocr_iou_thresh': 0.3,
-            'use_vdc': True,
-            'use_oru': True,
-            'use_byte': True,
-            'use_ocr': True,
-            'use_reid': use_reid,
+            "std_weight_position": std_weight_position,
+            "std_weight_velocity": std_weight_velocity,
+            "high_thresh": high_thresh,
+            "low_thresh": low_thresh,
+            "match_thresh": 0.8,
+            "new_track_thresh": new_track_thresh,
+            "track_buffer": track_buffer,
+            "delta_t": delta_t,
+            "vdc_weight": vdc_weight,
+            "ocr_iou_thresh": 0.3,
+            "use_vdc": True,
+            "use_oru": True,
+            "use_byte": True,
+            "use_ocr": True,
+            "use_reid": use_reid,
         }
 
         # Save parameter JSON to train directory (copied out by the caller)
         params_file = os.path.join(self._train_directory, "ocsort_params.json")
-        with open(params_file, 'w') as f:
+        with open(params_file, "w") as f:
             json.dump(params, f, indent=2)
         print(f"Saved parameters to {params_file}")
 
@@ -486,18 +490,10 @@ class OCSORTTrainer(TrainTracker):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "ocsort"
-
-    if algorithm_factory.has_algorithm_impl_name(
-        OCSORTTrainer.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
+    register_vital_algorithm(
+        OCSORTTrainer,
+        "ocsort",
         "OC-SORT parameter estimation and optional Deep OC-SORT Re-ID training",
-        OCSORTTrainer
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

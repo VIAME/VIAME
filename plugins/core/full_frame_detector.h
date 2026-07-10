@@ -16,8 +16,8 @@ class VIAME_CORE_EXPORT full_frame_detector
   : public kwiver::vital::algo::image_object_detector
 {
 public:
-  PLUGGABLE_IMPL(
-    full_frame_detector,
+  PLUGGABLE_IMPL_NAMED(
+    full_frame_detector, "full_frame",
     "Outputs a single fixed full-frame detection the same size as "
     "the input image size.",
     PARAM_DEFAULT(

@@ -20,7 +20,8 @@ class VIAME_CORE_EXPORT auto_detect_transform_io
   : public kwiver::vital::algo::transform_2d_io
 {
 public:
-  PLUGGABLE_IMPL( auto_detect_transform_io,
+  PLUGGABLE_IMPL_NAMED(
+    auto_detect_transform_io, "auto",
     "Automatically detect a transform type stored in either an ITK (.h5) "
     "or simple homography (.txt) format." )
   virtual ~auto_detect_transform_io() = default;

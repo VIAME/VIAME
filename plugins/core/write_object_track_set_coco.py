@@ -74,8 +74,8 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         cfg = super(WriteObjectTrackSet, self).get_configuration()
         cfg.set_value("category_start_id", str(self.category_start_id))
         cfg.set_value("global_categories", str(self.global_categories))
-        cfg.set_value("aux_image_labels", ','.join(self.aux_image_labels))
-        cfg.set_value("aux_image_extensions", ','.join(self.aux_image_extensions))
+        cfg.set_value("aux_image_labels", ",".join(self.aux_image_labels))
+        cfg.set_value("aux_image_extensions", ",".join(self.aux_image_extensions))
         cfg.set_value("video_name", self.video_name)
         return cfg
 
@@ -88,8 +88,8 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         self.aux_image_extensions = str(cfg.get_value("aux_image_extensions"))
         self.video_name = str(cfg.get_value("video_name"))
 
-        self.aux_image_labels = self.aux_image_labels.rstrip().split(',')
-        self.aux_image_extensions = self.aux_image_extensions.rstrip().split(',')
+        self.aux_image_labels = self.aux_image_labels.rstrip().split(",")
+        self.aux_image_extensions = self.aux_image_extensions.rstrip().split(",")
 
         if len(self.aux_image_labels) != len(self.aux_image_extensions):
             print("Auxiliary image labels and extensions must be same size")
@@ -105,7 +105,7 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
     # ------------------------------------------------------------------
 
     def open(self, file_name):
-        self.file = open(file_name, 'w')
+        self.file = open(file_name, "w")
 
     def close(self):
         self._flush_tracks()
@@ -176,9 +176,9 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
                 image_id = self._get_image_id(fid)
 
                 d = detection_to_annotation(
-                    det, image_id, cats,
-                    self.category_start_id, self.global_categories)
-                d['track_id'] = track_id
+                    det, image_id, cats, self.category_start_id, self.global_categories
+                )
+                d["track_id"] = track_id
                 self.annotations.append(d)
 
         # Build the videos table
@@ -186,23 +186,30 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         videos = [dict(id=0, name=video_name)]
 
         write_coco_json(
-            self.file, self.annotations, self.images, cats,
+            self.file,
+            self.annotations,
+            self.images,
+            cats,
             self.global_categories,
-            self.aux_image_labels, self.aux_image_extensions,
+            self.aux_image_labels,
+            self.aux_image_extensions,
             description="Created by WriteObjectTrackSetCoco",
-            videos=videos, tracks=tracks)
+            videos=videos,
+            tracks=tracks,
+        )
 
 
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
 
+
 def _strtobool(val):
     """Convert a string representation of truth to True or False."""
     val = val.lower()
-    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+    if val in ("y", "yes", "t", "true", "on", "1"):
         return True
-    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+    elif val in ("n", "no", "f", "false", "off", "0"):
         return False
     else:
         raise ValueError("Invalid truth value %r" % (val,))
@@ -212,21 +219,12 @@ def _strtobool(val):
 # Plugin registration
 # ------------------------------------------------------------------
 
+
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "coco"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            WriteObjectTrackSetCoco.static_type_name(),
-            implementation_name,
-    ):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
-        "Write object tracks to COCO-style JSON format with track_id field",
+    register_vital_algorithm(
         WriteObjectTrackSetCoco,
+        "coco",
+        "Write object tracks to COCO-style JSON format with track_id field",
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

@@ -26,8 +26,8 @@ class VIAME_CORE_EXPORT windowed_detector
   : public kwiver::vital::algo::image_object_detector
 {
 public:
-  PLUGGABLE_IMPL(
-    windowed_detector,
+  PLUGGABLE_IMPL_NAMED(
+    windowed_detector, "windowed",
     "Window some other arbitrary detector across the image (no OpenCV)",
     PARAM_DEFAULT(
       mode, std::string,

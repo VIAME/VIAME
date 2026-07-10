@@ -16,7 +16,8 @@ class VIAME_OPENCV_EXPORT enhance_images
   : public kwiver::vital::algo::image_filter
 {
 public:
-  PLUGGABLE_IMPL( enhance_images,
+  PLUGGABLE_IMPL_NAMED(
+    enhance_images, "ocv_enhancer",
                   "Simple illumination normalization using Lab space and CLAHE",
     PARAM_DEFAULT( apply_smoothing, bool, "Apply smoothing to the input", false ),
     PARAM_DEFAULT( smoothing_kernel, unsigned, "Smoothing kernel size", 3 ),

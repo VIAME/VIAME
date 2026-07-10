@@ -38,8 +38,8 @@ class VIAME_CORE_EXPORT read_object_track_set_auto
   : public kwiver::vital::algo::read_object_track_set
 {
 public:
-  PLUGGABLE_IMPL(
-    read_object_track_set_auto,
+  PLUGGABLE_IMPL_NAMED(
+    read_object_track_set_auto, "auto",
     "Auto-detecting object track set reader.\n\n"
     "Detects format from file extension and content:\n"
     "  - .dive.json: DIVE JSON format\n"

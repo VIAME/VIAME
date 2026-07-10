@@ -23,8 +23,8 @@ class VIAME_CORE_EXPORT read_detected_object_set_cvat
   : public kwiver::vital::algo::detected_object_set_input
 {
 public:
-  PLUGGABLE_IMPL(
-    read_detected_object_set_cvat,
+  PLUGGABLE_IMPL_NAMED(
+    read_detected_object_set_cvat, "cvat",
     "Detected object set reader using CVAT XML format.\n\n"
     "CVAT XML format contains:\n"
     "  - <annotations> root element\n"

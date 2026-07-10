@@ -24,8 +24,8 @@ class VIAME_CORE_EXPORT read_detected_object_set_habcam
 {
 public:
   // NOTE: Keep description in sync with write_detected_object_set_viame_csv
-  PLUGGABLE_IMPL(
-    read_detected_object_set_habcam,
+  PLUGGABLE_IMPL_NAMED(
+    read_detected_object_set_habcam, "habcam",
     "Reads habcam-style detection/ground truth files.",
     PARAM_DEFAULT(
       delimiter, std::string,

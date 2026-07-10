@@ -16,8 +16,8 @@ class VIAME_OPENCV_EXPORT debayer_filter
   : public kwiver::vital::algo::image_filter
 {
 public:
-  PLUGGABLE_IMPL(
-    debayer_filter,
+  PLUGGABLE_IMPL_NAMED(
+    debayer_filter, "ocv_debayer",
     "OpenCV debayer filter for converting to RGB or grayscale",
     PARAM_DEFAULT( pattern, std::string,
       "Bayer pattern, can either be: BG, GB, RG, or GR. The two letters indicate the particular pattern type.", "BG" ),

@@ -31,11 +31,11 @@ namespace kv = kwiver::vital;
 namespace ocv = kwiver::arrows::ocv;
 
 // =============================================================================
-windowed_refiner::~windowed_refiner() = default;
+ocv_windowed_refiner::~ocv_windowed_refiner() = default;
 
 // -----------------------------------------------------------------------------
 bool
-windowed_refiner
+ocv_windowed_refiner
 ::check_configuration( kv::config_block_sptr config ) const
 {
   return kv::check_nested_algo_configuration<kv::algo::refine_detections>(
@@ -45,7 +45,7 @@ windowed_refiner
 
 // -----------------------------------------------------------------------------
 kv::detected_object_set_sptr
-windowed_refiner
+ocv_windowed_refiner
 ::refine( kv::image_container_sptr image_data,
           kv::detected_object_set_sptr detections ) const
 {
@@ -260,7 +260,7 @@ windowed_refiner
   });
 
   return refined_detections;
-} // windowed_refiner::refine
+} // ocv_windowed_refiner::refine
 
 
 } // end namespace viame

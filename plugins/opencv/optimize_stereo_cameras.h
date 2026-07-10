@@ -27,7 +27,8 @@ class VIAME_OPENCV_EXPORT optimize_stereo_cameras
   : public kwiver::vital::algo::optimize_cameras
 {
 public:
-  PLUGGABLE_IMPL( optimize_stereo_cameras,
+  PLUGGABLE_IMPL_NAMED(
+    optimize_stereo_cameras, "ocv_optimize_stereo_cameras",
                   "Camera optimizer for stereo configurations.",
     PARAM_DEFAULT( image_width, unsigned, "sensor image width (0 to derive from data)", 0 ),
     PARAM_DEFAULT( image_height, unsigned, "sensor image height (0 to derive from data)", 0 ),
