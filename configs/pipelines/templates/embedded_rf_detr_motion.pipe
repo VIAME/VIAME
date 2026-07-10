@@ -3,7 +3,7 @@
 #
 # Description: Runs an RF-DETR detector on motion-infused imagery. The input
 # is converted to grayscale and merged with two temporal-variance motion
-# channels, matching the channel layout produced by train_aug_add_double_motion
+# channels, matching the channel layout produced by train_aug_add_double_motion_seq
 # during training ([ motion@window8, grayscale, motion@window16 ]).
 # =============================================================================
 

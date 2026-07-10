@@ -190,7 +190,6 @@ set( CORE_PIPELINE_FILES
   sql_init_table.sql
   tracker_project_folder.pipe
   train_aug_add_color_freq.pipe
-  train_aug_add_double_motion.pipe
   train_aug_add_double_motion_seq.pipe
   train_aug_add_motion.pipe
   train_aug_add_motion_and_color_freq.pipe
@@ -350,7 +349,6 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     train_detector_netharn_cfrnn.grid_only.20ep.conf
     train_detector_netharn_cfrnn.grid_only.40ep.conf
     train_detector_netharn_cfrnn.grid_only.conf
-    train_detector_netharn_cfrnn_motion.conf
     train_detector_netharn_cfrnn_special.conf
     train_detector_netharn_cfrnn_wtf.conf
     train_detector_netharn_mask_rcnn_1280.conf
