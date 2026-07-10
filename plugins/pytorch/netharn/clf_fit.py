@@ -189,6 +189,14 @@ class ClfModel(nh.layers.Module):
             from torchvision.models import efficientnet
             model = efficientnet.efficientnet_v2_m(num_classes=num_classes)
             self.backbone_url = "https://download.pytorch.org/models/efficientnet_v2_m-dc08266a.pth"
+        elif arch == 'convnextsmall':
+            from torchvision.models import convnext_small
+            model = convnext_small(num_classes=num_classes)
+            self.backbone_url = "https://download.pytorch.org/models/convnext_small-0c510722.pth"
+        elif arch == 'swinv2tiny':
+            from torchvision.models import swin_v2_t
+            model = swin_v2_t(num_classes=num_classes)
+            self.backbone_url = "https://download.pytorch.org/models/swin_v2_t-b137f0e2.pth"
         else:
             raise KeyError(arch)
 
@@ -347,11 +355,16 @@ class ClfHarn(nh.FitHarn):
         harn._hack_do_draw |= ((harn._draw_timer.toc() > 60 * harn.script_config['draw_interval']) and
                                (harn.script_config['draw_interval'] > 0))
         if harn._hack_do_draw:
-            stacked = harn._draw_batch(batch, outputs)
-            dpath = ub.ensuredir((harn.train_dpath, 'monitor', harn.current_tag))
-            fpath = join(dpath, 'batch_{}_epoch_{}.jpg'.format(bx, harn.epoch))
-            import kwimage
-            kwimage.imwrite(fpath, stacked)
+            # Batch visualization is cosmetic (tensorboard); never let it crash
+            # training.
+            try:
+                stacked = harn._draw_batch(batch, outputs)
+                dpath = ub.ensuredir((harn.train_dpath, 'monitor', harn.current_tag))
+                fpath = join(dpath, 'batch_{}_epoch_{}.jpg'.format(bx, harn.epoch))
+                import kwimage
+                kwimage.imwrite(fpath, stacked)
+            except Exception as draw_ex:
+                harn.warn('batch drawing failed (non-fatal): {}'.format(draw_ex))
 
         y_pred = kwarray.ArrayAPI.numpy(outputs['pred_cxs'])
         y_true = outputs['true_cxs'].data.cpu().numpy()
@@ -407,8 +420,9 @@ class ClfHarn(nh.FitHarn):
             probs = class_probs[idx]
             im_ = im.transpose(1, 2, 0)
 
-            # Renormalize and resize image for drawing
-            im_ = kwimage.normalize(im_)
+            # Renormalize and resize image for drawing (kwimage.normalize was
+            # removed in kwimage 0.11; kwarray.normalize is the replacement).
+            im_ = kwarray.normalize(im_)
             im_ = kwimage.ensure_uint255(im_)
             im_ = np.ascontiguousarray(im_)
             im_ = kwimage.imresize(im_, dsize=(200, 200),
@@ -551,7 +565,7 @@ def setup_harn(cmdline=True, **kw):
     import ndsampler
     config = ClfConfig(default=kw)
     config.load(cmdline=cmdline)
-    print('config = {}'.format(ub.repr2(config.asdict())))
+    print('config = {}'.format(ub.urepr(config.asdict())))
 
     nh.configure_hacks(config)
 
@@ -560,7 +574,7 @@ def setup_harn(cmdline=True, **kw):
     if 0:
         dset = coco_datasets['train']
 
-    print('coco_datasets = {}'.format(ub.repr2(coco_datasets, nl=1)))
+    print('coco_datasets = {}'.format(ub.urepr(coco_datasets, nl=1)))
     for tag, dset in coco_datasets.items():
         dset._build_hashid(hash_pixels=False)
 
@@ -623,10 +637,7 @@ def setup_harn(cmdline=True, **kw):
             _dset.input_id
         ]
 
-        try:
-            cacher = ub.Cacher('dset_mean', cfgstr=ub.hash_data(depends) + 'v4')
-        except Exception:
-            cacher = ub.Cacher('dset_mean', depends=depends + 'v4')
+        cacher = ub.Cacher('dset_mean', depends=[*depends, 'v4'])
         input_stats = cacher.tryload()
 
         if input_stats is None:
@@ -731,7 +742,7 @@ def setup_harn(cmdline=True, **kw):
         },
         extra={
             'argv': sys.argv,
-            'config': ub.repr2(config.asdict()),
+            'config': ub.urepr(config.asdict()),
         }
     )
     harn = ClfHarn(hyper=hyper)

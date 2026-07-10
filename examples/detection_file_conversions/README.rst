@@ -85,13 +85,46 @@ COCO JSON
 
 COCO (Common Objects in Context) jsons are a json schema popularized by the
 COCO academic computer vision competitions, but are now also used in other
-applications more widely, for example in the cvat annotation tool. It is
-defined at https://cocodataset.org
+applications more widely, for example in the cvat annotation tool. The base
+format is defined at https://cocodataset.org
 
 Compared to the CSV format they are typically larger but much more extensible,
 structured, and have more capacities for optional fields.
 
 The COCO JSON reader/writer can be specified in config files using 'coco'.
+
+VIAME's COCO writers produce output compatible with kwcoco_, an extended COCO
+format from Kitware that adds support for video sequences, object tracks, and
+richer image metadata. The full informal specification for these extensions is
+available at:
+
+https://github.com/Kitware/kwcoco/blob/main/kwcoco/coco_schema_informal.rst
+
+.. _kwcoco: https://github.com/Kitware/kwcoco
+
+The following kwcoco extensions are used by VIAME beyond the base COCO format:
+
+- Top-level ``videos`` table — groups images into video sequences. Each video
+  entry has an ``id`` and ``name``. The track writer emits a single video entry
+  per output file. This table is not present in base COCO.
+- Top-level ``tracks`` table — defines named track identities that annotations
+  reference. Each track entry has an ``id`` and ``name``. In base COCO there is
+  no concept of tracks; annotations are independent per-image.
+- Per-annotation ``track_id`` field — links an annotation to an entry in the
+  ``tracks`` table, associating detections of the same object across frames.
+- Per-image ``video_id`` field — links an image to its parent video entry in
+  the ``videos`` table.
+- Per-image ``frame_index`` field — integer giving the temporal ordering of the
+  image within its video. Used for sequential playback and streaming reads.
+- Per-image ``timestamp`` field — numeric timestamp (seconds) for the frame.
+  The base COCO format has no per-image timing information.
+- ``auxiliary`` on images — list of auxiliary image assets with ``file_name``
+  and ``channels`` fields, used for multi-spectral or multi-file image
+  composition.
+
+Files produced by the detection writer (without tracks) include ``frame_index``
+on each image but omit the ``videos`` and ``tracks`` tables, remaining
+compatible with standard COCO readers that ignore unknown fields.
 
 **************
 HABCAM CSV/SSV
@@ -116,13 +149,54 @@ which is more or less the same as the prior, just formatted differently.
 
 The habcam reader/writer can be specified in config files using 'habcam'.
 
-*******************
-DIVE JSON - Limited
-*******************
+*********
+DIVE JSON
+*********
 
-An alternative JSON schema export from the DIVE interface. Unlike COCO, this
-is currently only supported by the DIVE tool, not by other scripts and CLIs
-within VIAME.
+DIVE JSON is the native annotation format used by the DIVE annotation
+interface. It stores tracks as top-level objects keyed by track ID, with each
+track containing temporal features (one per frame), confidence pairs for class
+labels, and optional per-detection attributes, keypoints, and GeoJSON polygon
+geometry.
+
+The full format specification is available at:
+
+https://kitware.github.io/dive/DataFormats/
+
+The DIVE JSON reader can be specified in config files using 'dive'.
+
+Currently only readers are provided (no writers). To export DIVE JSON, use
+the DIVE interface directly or convert from another supported format.
+
+****************************
+Auto - Format Auto-Detection
+****************************
+
+The 'auto' reader inspects the file extension and content to automatically
+select the correct format reader, removing the need to specify it manually.
+
+The auto reader can be specified in config files using 'auto'.
+
+For detection reading (detected_object_set_input), it selects between:
+
+- DIVE JSON — files ending in ``.dive.json``, or ``.json`` files whose content
+  contains DIVE-specific keys (``tracks``, ``features``, ``confidencePairs``)
+- COCO JSON — files ending in ``.coco.json``, or ``.json`` files whose content
+  contains COCO-specific keys (``images``, ``annotations``, ``categories``)
+- VIAME CSV — ``.csv`` files
+- YOLO — ``.txt`` files (image lists with per-image label files)
+- CVAT XML — ``.xml`` files
+
+For track reading (read_object_track_set), it selects between:
+
+- DIVE JSON — files ending in ``.dive.json``, or ``.json`` files whose content
+  contains DIVE-specific keys (``tracks``, ``features``, ``confidencePairs``)
+- COCO JSON — files ending in ``.coco.json``, or ``.json`` files whose content
+  contains COCO-specific keys (``images``, ``annotations``, ``categories``)
+- VIAME CSV — ``.csv`` files
+
+When a ``.json`` file does not match either DIVE or COCO patterns, both
+the detection and track readers default to COCO.
 
 *****************
 KW18 - Deprecated

@@ -12,6 +12,12 @@ source "$SCRIPT_DIR/build_common_functions.sh"
 # Fletch, VIAME, CMAKE system deps
 install_system_deps apt
 
+# Use GCC 13 for the build. Ubuntu 20.04 ships GCC 9.x, but the PyTorch 2.12
+# source build requires GCC >= 11.3; gcc-13 also avoids a gcc-12 false-positive
+# -Wmaybe-uninitialized in AVX512 intrinsics that breaks fbgemm's -Werror build
+# and is accepted by CUDA 12.6's nvcc.
+setup_gcc_toolset 13
+
 # Install CMAKE
 install_cmake
 
@@ -26,6 +32,7 @@ setup_basic_build_environment /viame/build/install /usr/local/cuda
 cmake ../ \
   -C ../cmake/build_cmake_base.cmake \
   -C ../cmake/build_cmake_docker.cmake \
+  -DVIAME_BUILD_PYTHON_FROM_SOURCE:BOOL=ON \
   -DVIAME_ENABLE_ITK:BOOL=ON \
   -DVIAME_ENABLE_WEB_EXCLUDES:BOOL=ON \
   -DVIAME_ENABLE_PYTORCH-LEARN:BOOL=OFF \

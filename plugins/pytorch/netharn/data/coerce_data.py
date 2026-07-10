@@ -157,7 +157,7 @@ def _split_train_vali_test(coco_dset, factor=3):
         >>> import kwcoco
         >>> coco_dset = kwcoco.CocoDataset.demo('shapes8')
         >>> split_gids = _split_train_vali_test(coco_dset)
-        >>> print('split_gids = {}'.format(ub.repr2(split_gids, nl=1)))
+        >>> print('split_gids = {}'.format(ub.urepr(split_gids, nl=1)))
     """
     import kwarray
     images = coco_dset.images()

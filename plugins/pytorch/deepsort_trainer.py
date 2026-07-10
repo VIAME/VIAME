@@ -36,6 +36,7 @@ import time
 import threading
 import json
 import random
+from viame.pytorch.utilities import report_cuda_errors
 
 
 class DeepSORTTrainer(TrainTracker):
@@ -88,6 +89,7 @@ class DeepSORTTrainer(TrainTracker):
 
         return cfg
 
+    @report_cuda_errors("DeepSORTTrainer initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
@@ -219,17 +221,17 @@ class DeepSORTTrainer(TrainTracker):
             frame_to_detections = {}
 
             for track in track_set.tracks():
-                track_id = track.id()
+                track_id = track.id
                 unique_track_id = f"seq{seq_idx:04d}_track{track_id:06d}"
 
                 for state in track:
-                    frame_id = state.frame()
+                    frame_id = state.frame_id
                     det = state.detection()
 
                     if det is None:
                         continue
 
-                    bbox = det.bounding_box()
+                    bbox = det.bounding_box
                     x1 = int(bbox.min_x())
                     y1 = int(bbox.min_y())
                     x2 = int(bbox.max_x())
@@ -286,6 +288,7 @@ class DeepSORTTrainer(TrainTracker):
 
         return total_crops
 
+    @report_cuda_errors("DeepSORTTrainer training")
     def update_model(self):
         """
         Train the Re-ID model using triplet loss.

@@ -34,7 +34,7 @@ class Sequential(nn.Sequential, util.ModuleMixin):
         >>> )
         >>> shape = self.output_shape_for([1, 1, 7, 11])
         >>> print('shape = {}'.format(shape))
-        >>> print('shape.hidden = {}'.format(ub.repr2(shape.hidden, nl=1)))
+        >>> print('shape.hidden = {}'.format(ub.urepr(shape.hidden, nl=1)))
         shape = (1, 7, 1, 5)
         shape.hidden = {
             '0': (1, 3, 5, 9),

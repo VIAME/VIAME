@@ -4,7 +4,7 @@
 
 #include "viame_processes_vxl_export.h"
 #include <sprokit/pipeline/process_factory.h>
-#include <vital/plugin_loader/plugin_loader.h>
+#include <vital/plugin_management/plugin_loader.h>
 
 #include "format_images_srm_process.h"
 

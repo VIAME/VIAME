@@ -4,7 +4,7 @@
 
 #include "viame_processes_core_export.h"
 #include <sprokit/pipeline/process_factory.h>
-#include <vital/plugin_loader/plugin_loader.h>
+#include <vital/plugin_management/plugin_loader.h>
 
 #include "accumulate_image_statistics_process.h"
 #include "align_multimodal_imagery_process.h"

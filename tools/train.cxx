@@ -6,8 +6,8 @@
 
 #include <kwiversys/SystemTools.hxx>
 
-#include <vital/plugin_loader/plugin_manager.h>
-#include <vital/plugin_loader/plugin_factory.h>
+#include <vital/plugin_management/plugin_manager.h>
+#include <vital/plugin_management/plugin_factory.h>
 #include <vital/config/config_block.h>
 #include <vital/config/config_block_io.h>
 #include <vital/util/demangle.h>
@@ -42,6 +42,9 @@
 #include <memory>
 #include <cctype>
 #include <regex>
+#include <thread>
+#include <atomic>
+#include <algorithm>
 
 #if WIN32 || ( __cplusplus >= 201703L && __has_include(<filesystem>) )
   #include <filesystem>
@@ -69,9 +72,19 @@ static kv::config_block_sptr default_config()
   config->set_value( "groundtruth_style", "one_per_folder",
     "Can be either: \"one_per_file\" or \"one_per_folder\"" );
   config->set_value( "augmentation_pipeline", "",
-    "Optional embedded pipeline for performing assorted augmentations" );
+    "Optional augmentation pipeline. Legacy input_adapter pipelines run per "
+    "extracted frame; common_default_input pipelines run once over the whole "
+    "input (video or image sequence) in a single pass." );
   config->set_value( "augmentation_cache", "augmented_images",
     "Directory to store augmented samples, a temp directiry is used if not specified." );
+  config->set_value( "augmentation_threads", "4",
+    "Number of data items to augment concurrently for single-pass (source-driven) "
+    "pipelines. Each item is an independent subprocess, so this speeds up "
+    "preparation on large multi-video/-folder datasets. Capped at the item count." );
+  config->set_value( "original_bit_depth", "false",
+    "Keep the source bit depth when running single-pass augmentation, so "
+    "bit-depth-sensitive pipelines (e.g. percentile normalization of 16-bit "
+    "imagery) see the raw data. Implied by --normalize-16bit." );
   config->set_value( "regenerate_cache", "true",
     "If an augmentation cache already exists, should we regenerate it or use it as-is?" );
   config->set_value( "augmented_ext_override", ".png",
@@ -117,6 +130,9 @@ static kv::config_block_sptr default_config()
     "category frames before using the next secondary frame." );
   config->set_value( "secondary_downsample", "0",
     "Downsample factor for frames containing only secondary classes." );
+  config->set_value( "hard_negative_categories", "",
+    "Comma-separated hard-negative categories: kept through label adjustment and "
+    "propagated to the windowed ignore_category, but excluded from output labels." );
   config->set_value( "check_override", "false",
     "Over-ride and ignore data safety checks." );
   config->set_value( "convert_to_full_frame", "false",
@@ -898,6 +914,20 @@ train_applet
     }
   }
 
+  // Propagate hard negatives to the windowed trainer's ignore_category
+  {
+    std::string hard_neg_cats =
+      config->get_value< std::string >( "hard_negative_categories" );
+    std::string dt_type =
+      config->get_value< std::string >( "detector_trainer:type", "" );
+
+    if( !hard_neg_cats.empty() && !dt_type.empty() )
+    {
+      config->set_value( "detector_trainer:" + dt_type + ":ignore_category",
+                         hard_neg_cats );
+    }
+  }
+
   kv::set_nested_algo_configuration< kv::algo::train_detector >
     ( "detector_trainer", config, detector_trainer );
   kv::get_nested_algo_configuration< kv::algo::train_detector >
@@ -951,6 +981,11 @@ train_applet
     config->get_value< std::string >( "augmentation_pipeline" );
   std::string augmented_cache =
     config->get_value< std::string >( "augmentation_cache" );
+  unsigned augmentation_threads =
+    config->get_value< unsigned >( "augmentation_threads" );
+  bool preserve_bit_depth =
+    config->get_value< bool >( "original_bit_depth" ) ||
+    opt_normalize_16bit;
   bool regenerate_cache =
     config->get_value< bool >( "regenerate_cache" );
   std::string augmented_ext_override =
@@ -979,6 +1014,8 @@ train_applet
     config->get_value< std::string >( "targetted_downsample_string" );
   std::string secondary_frame_labels_str =
     config->get_value< std::string >( "secondary_frame_labels" );
+  std::string hard_negative_categories_str =
+    config->get_value< std::string >( "hard_negative_categories" );
   unsigned ignore_secondary_burst_count =
     config->get_value< unsigned >( "ignore_secondary_burst_count" );
   unsigned secondary_downsample =
@@ -1081,6 +1118,7 @@ train_applet
 
   std::vector< std::string > image_exts, video_exts, groundtruth_exts;
   std::unordered_set< std::string > secondary_frame_labels;
+  std::unordered_set< std::string > hard_negative_categories;
   bool one_file_per_image;
 
   if( groundtruth_style == "one_per_file" )
@@ -1108,6 +1146,7 @@ train_applet
   string_to_vector( groundtruth_exts_str, groundtruth_exts, "\n\t\v,; " );
 
   string_to_set( secondary_frame_labels_str, secondary_frame_labels, "\n\t\v,;" );
+  string_to_set( hard_negative_categories_str, hard_negative_categories, "\n\t\v,;" );
 
   // Load labels.txt file
   std::string label_fn;
@@ -1395,13 +1434,239 @@ train_applet
     }
   }
 
-  // Load shared augmentation pipeline for single-image data items
-  pipeline_t shared_augmentation_pipe = load_embedded_pipeline( pipeline_file );
+  // Legacy pipelines wrap an input_adapter and run per frame; common_default_input
+  // pipelines are run once over the whole input via kwiver runner instead.
+  const bool unified_augmentation =
+    !pipeline_file.empty() && !file_contains_string( pipeline_file, "input_adapter" );
+
+  if( unified_augmentation )
+  {
+    std::cout << "Using single-pass source-driven augmentation pipeline: "
+              << pipeline_file << std::endl;
+  }
+
+  // Legacy adapter pipelines only; unified ones are run via kwiver runner.
+  pipeline_t shared_augmentation_pipe =
+    unified_augmentation ? pipeline_t() : load_embedded_pipeline( pipeline_file );
+
+  // Per-item context, computed up front so the expensive augmentation step can
+  // be parallelized across items while the stateful consumption stays serial.
+  struct item_context
+  {
+    std::string data_item;
+    bool is_video = false;
+    bool is_image = false;
+    double frame_rate = 0.0;
+    std::vector< std::string > gt_files;
+    std::vector< std::string > image_files;   // video: augmented frames; image seq: originals
+    std::vector< std::string > preaug_frames; // image seq: augmented frames, aligned to image_files
+    bool frames_preaugmented = false;
+    bool augmented = false;
+  };
+
+  // Run the single-pass augmentation for one item. Thread-safe: each item writes
+  // to its own cache subdirectory. Returns false on a fatal frame-count mismatch.
+  auto augment_item = [&]( item_context& ctx ) -> bool
+  {
+    if( ctx.is_video )
+    {
+      const std::string& extraction_pipeline =
+        unified_augmentation ? pipeline_file : video_extractor;
+
+      ctx.image_files = extract_video_frames( ctx.data_item, extraction_pipeline,
+        ctx.frame_rate, augmented_cache, !regenerate_cache, max_frame_count,
+        "vidl_ffmpeg", "", preserve_bit_depth );
+
+      ctx.frames_preaugmented = unified_augmentation;
+    }
+
+    std::sort( ctx.image_files.begin(), ctx.image_files.end() );
+
+    if( unified_augmentation && !ctx.is_video && !ctx.image_files.empty() )
+    {
+      ctx.preaug_frames = augment_image_sequence( ctx.image_files, pipeline_file,
+        augmented_cache, get_filename_no_path( ctx.data_item ), !regenerate_cache,
+        preserve_bit_depth );
+
+      if( ctx.preaug_frames.size() != ctx.image_files.size() )
+      {
+        std::cout << "Error: unified augmentation of " << ctx.data_item
+                  << " produced " << ctx.preaug_frames.size() << " frames for "
+                  << ctx.image_files.size() << " inputs" << std::endl;
+        return false;
+      }
+
+      ctx.frames_preaugmented = true;
+    }
+
+    ctx.augmented = true;
+    return true;
+  };
+
+  // ---- Phase 1: classify every data item (serial; cheap file I/O) ----
+  std::vector< item_context > contexts( all_data.size() );
 
   for( unsigned i = 0; i < all_data.size(); i++ )
   {
+    item_context& ctx = contexts[i];
+    ctx.data_item = all_data[i];
+
+    std::vector< std::string > video_files;
+
+    // Identify all truth files for this entry
+    ctx.is_video = ends_with_extension( ctx.data_item, video_exts );
+
+    if( ctx.is_video && auto_detect_truth )
+    {
+      std::string video_truth = find_associated_file( ctx.data_item, groundtruth_exts[0] );
+
+      if( video_truth.empty() )
+      {
+        std::cout << "Error: cannot find groundtruth for " << ctx.data_item << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      ctx.gt_files.resize( 1, video_truth );
+    }
+    else if( !ctx.is_video && auto_detect_truth )
+    {
+      ctx.gt_files = find_files_in_folder_or_alongside( ctx.data_item, groundtruth_exts );
+
+      // Handle multiple groundtruth files: allow if different extensions, select by priority
+      if( !one_file_per_image && ctx.gt_files.size() > 1 )
+      {
+        std::vector< std::string > priority_exts = { ".csv", ".json", ".xml", ".kw18" };
+        std::string selected, error_msg;
+
+        if( !select_file_by_extension_priority(
+              ctx.gt_files, priority_exts, groundtruth_exts, selected, error_msg ) )
+        {
+          std::cout << "Error: item " << ctx.data_item
+                    << " contains " << error_msg << std::endl;
+          return EXIT_FAILURE;
+        }
+
+        std::cout << "Multiple groundtruth files found, selected: "
+                  << get_filename_no_path( selected ) << std::endl;
+
+        ctx.gt_files.clear();
+        ctx.gt_files.push_back( selected );
+      }
+
+      if( one_file_per_image && ( ctx.image_files.size() != ctx.gt_files.size() ) )
+      {
+        std::cout << "Error: item " << ctx.data_item << " contains unequal truth and "
+                  << "image file counts" << std::endl << " - Consider turning on "
+                  << "the one_per_folder groundtruth style" << std::endl;
+        return EXIT_FAILURE;
+      }
+      else if( ctx.gt_files.empty() )
+      {
+        std::cout << "Error reading item " << ctx.data_item << ", no groundtruth." << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+    else
+    {
+      ctx.gt_files.resize( 1, all_truth[i] );
+    }
+
+    // Either the input is a video file directly, a single image file, or a directory
+    // containing images or video. In case of the latter, autodetect presence of images or video.
+    ctx.is_image = ends_with_extension( ctx.data_item, image_exts );
+
+    if( ctx.is_image )
+    {
+      // Single image file provided directly
+      ctx.image_files.push_back( ctx.data_item );
+    }
+    else
+    {
+      list_files_in_folder( ctx.data_item, video_files, true, video_exts );
+
+      if( !ctx.is_video )
+      {
+        list_files_in_folder( ctx.data_item, ctx.image_files, true, image_exts );
+
+        if( video_files.size() == 1 && ctx.image_files.size() < 2 )
+        {
+          ctx.image_files.clear();
+          ctx.is_video = true;
+          ctx.data_item = video_files[0];
+        }
+      }
+    }
+
+    if( ctx.is_video )
+    {
+      if( video_extractor.find( "_only" ) != std::string::npos )
+      {
+        std::cout << "Detection and track only frame extractors not yet supported" << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      double file_frame_rate = get_file_frame_rate( ctx.gt_files[0] );
+      ctx.frame_rate = ( file_frame_rate > 0 ? file_frame_rate : frame_rate );
+    }
+  }
+
+  // ---- Phase 2: augment items concurrently (single-pass pipelines only) ----
+  // Each item's augmentation is an independent kwiver-runner subprocess writing
+  // to its own cache subdir, so they run in parallel. Skipped for the
+  // max_frame_count debug path, which stops after the first video.
+  if( unified_augmentation && max_frame_count == 0 && !contexts.empty() )
+  {
+    unsigned n_workers = std::min< unsigned >(
+      std::max< unsigned >( augmentation_threads, 1u ),
+      static_cast< unsigned >( contexts.size() ) );
+
+    std::cout << "Augmenting " << contexts.size() << " data item(s) using "
+              << n_workers << " worker thread(s)" << std::endl;
+
+    std::atomic< unsigned > next_index( 0 );
+    std::atomic< bool > augment_ok( true );
+
+    auto worker = [&]()
+    {
+      unsigned idx;
+      while( ( idx = next_index.fetch_add( 1 ) ) < contexts.size() )
+      {
+        if( !augment_item( contexts[idx] ) )
+        {
+          augment_ok = false;
+        }
+      }
+    };
+
+    std::vector< std::thread > pool;
+    for( unsigned w = 0; w < n_workers; ++w )
+    {
+      pool.emplace_back( worker );
+    }
+    for( auto& t : pool )
+    {
+      t.join();
+    }
+
+    if( !augment_ok )
+    {
+      return EXIT_FAILURE;
+    }
+  }
+
+  // ---- Phase 3: consume each item's frames and groundtruth (serial) ----
+  for( unsigned i = 0; i < all_data.size(); i++ )
+  {
+    item_context& ctx = contexts[i];
+
+    std::string& data_item = ctx.data_item;
+    bool is_video = ctx.is_video;
+    bool is_image = ctx.is_image;
+    std::vector< std::string >& gt_files = ctx.gt_files;
+    std::vector< std::string >& image_files = ctx.image_files;
+    std::vector< std::string >& preaug_frames = ctx.preaug_frames;
+
     // Get next data entry to process
-    std::string data_item = all_data[i];
     std::cout << "Processing " << data_item << std::endl;
 
     // If train/validation partition divide already set, updated from
@@ -1411,113 +1676,22 @@ train_applet
       validation_pivot = train_image_fn.size();
     }
 
-    // Identify all truth files for this entry
-    std::vector< std::string > image_files, video_files, gt_files;
-
-    bool is_video = ends_with_extension( data_item, video_exts );
-
-    if( is_video && auto_detect_truth )
+    // Augment serially if the parallel phase did not (legacy pipelines, the
+    // max_frame_count debug path, or an empty pipeline).
+    if( !ctx.augmented )
     {
-      std::string video_truth = find_associated_file( data_item, groundtruth_exts[0] );
-
-      if( video_truth.empty() )
+      if( !augment_item( ctx ) )
       {
-        std::cout << "Error: cannot find groundtruth for " << data_item << std::endl;
         return EXIT_FAILURE;
       }
 
-      gt_files.resize( 1, video_truth );
-    }
-    else if( !is_video && auto_detect_truth )
-    {
-      gt_files = find_files_in_folder_or_alongside( data_item, groundtruth_exts );
-
-      // Handle multiple groundtruth files: allow if different extensions, select by priority
-      if( !one_file_per_image && gt_files.size() > 1 )
-      {
-        std::vector< std::string > priority_exts = { ".csv", ".json", ".xml", ".kw18" };
-        std::string selected, error_msg;
-
-        if( !select_file_by_extension_priority(
-              gt_files, priority_exts, groundtruth_exts, selected, error_msg ) )
-        {
-          std::cout << "Error: item " << data_item
-                    << " contains " << error_msg << std::endl;
-          return EXIT_FAILURE;
-        }
-
-        std::cout << "Multiple groundtruth files found, selected: "
-                  << get_filename_no_path( selected ) << std::endl;
-
-        gt_files.clear();
-        gt_files.push_back( selected );
-      }
-
-      if( one_file_per_image && ( image_files.size() != gt_files.size() ) )
-      {
-        std::cout << "Error: item " << data_item << " contains unequal truth and "
-                  << "image file counts" << std::endl << " - Consider turning on "
-                  << "the one_per_folder groundtruth style" << std::endl;
-        return EXIT_FAILURE;
-      }
-      else if( gt_files.empty() )
-      {
-        std::cout << "Error reading item " << data_item << ", no groundtruth." << std::endl;
-        return EXIT_FAILURE;
-      }
-    }
-    else
-    {
-      gt_files.resize( 1, all_truth[i] );
-    }
-
-    // Either the input is a video file directly, a single image file, or a directory
-    // containing images or video. In case of the latter, autodetect presence of images or video.
-    bool is_image = ends_with_extension( data_item, image_exts );
-
-    if( is_image )
-    {
-      // Single image file provided directly
-      image_files.push_back( data_item );
-    }
-    else
-    {
-      list_files_in_folder( data_item, video_files, true, video_exts );
-
-      if( !is_video )
-      {
-        list_files_in_folder( data_item, image_files, true, image_exts );
-
-        if( video_files.size() == 1 && image_files.size() < 2 )
-        {
-          image_files.clear();
-          is_video = true;
-          data_item = video_files[0];
-        }
-      }
-    }
-
-    if( is_video )
-    {
-      double file_frame_rate = get_file_frame_rate( gt_files[0] );
-
-      if( video_extractor.find( "_only" ) != std::string::npos )
-      {
-        std::cout << "Detection and track only frame extractors not yet supported" << std::endl;
-        return EXIT_FAILURE;
-      }
-
-      image_files = extract_video_frames( data_item, video_extractor,
-        ( file_frame_rate > 0 ? file_frame_rate : frame_rate ),
-        augmented_cache, !regenerate_cache, max_frame_count );
-
-      if( max_frame_count > 0 )
+      if( is_video && max_frame_count > 0 )
       {
         break;
       }
     }
 
-    std::sort( image_files.begin(), image_files.end() );
+    bool frames_preaugmented = ctx.frames_preaugmented;
 
     // Check bit depth of a few sample images to detect non-8-bit imagery
     if( !bit_depth_checked && !image_files.empty() )
@@ -1581,9 +1755,9 @@ train_applet
     // Perform any augmentation for this entry, if enabled
     pipeline_t augmentation_pipe;
 
-    if( !is_image )
+    if( !is_image && !frames_preaugmented )
     {
-      // Directories/videos get a fresh pipeline per data item
+      // Legacy adapter pipelines only; preaugmented frames skip this.
       augmentation_pipe = load_embedded_pipeline( pipeline_file );
     }
 
@@ -1648,7 +1822,13 @@ train_applet
       bool use_image = true;
       std::string filtered_image_file;
 
-      if( active_pipe )
+      if( !preaug_frames.empty() )
+      {
+        // Frame already augmented in the single unified pass above.
+        filtered_image_file = preaug_frames[j];
+        use_image = filesystem::exists( filtered_image_file );
+      }
+      else if( active_pipe )
       {
         filtered_image_file = get_augmented_filename( image_file, last_subdir,
           augmented_cache, augmented_ext_override );
@@ -2099,12 +2279,13 @@ train_applet
   if( use_labels )
   {
     std::vector< bool > fg_mask = adjust_labels( train_gt,
-      model_labels, secondary_frame_labels );
+      model_labels, secondary_frame_labels, hard_negative_categories );
 
     adjust_labels( train_image_fn, train_gt, fg_mask,
       secondary_downsample, ignore_secondary_burst_count );
 
-    adjust_labels( validation_gt, model_labels, secondary_frame_labels );
+    adjust_labels( validation_gt, model_labels, secondary_frame_labels,
+      hard_negative_categories );
   }
 
   // Run training algorithm(s) - loop through all configs/detectors for multi-model training

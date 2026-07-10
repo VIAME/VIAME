@@ -29,7 +29,24 @@ public:
     PARAM_DEFAULT( object_type, std::string,
                    "The detected object type", "unknown" ),
     PARAM_DEFAULT( auto_detect_grid, bool,
-                   "Automatically detect grid size from the first image", false )
+                   "Automatically detect grid size from the first image", false ),
+    PARAM_DEFAULT( target_type, std::string,
+                   "Target type to detect: 'checkerboard', 'dots', or 'auto' "
+                   "(auto tries checkerboard first, then dots)", "auto" ),
+    PARAM_DEFAULT( dot_min_area, float,
+                   "Minimum blob area in pixels for dot detection", 30.0f ),
+    PARAM_DEFAULT( dot_max_area, float,
+                   "Maximum blob area in pixels for dot detection", 5000.0f ),
+    PARAM_DEFAULT( dot_min_circularity, float,
+                   "Minimum circularity threshold for dot detection (0-1)", 0.65f ),
+    PARAM_DEFAULT( roi_x1, int,
+                   "Detection ROI left x coordinate (-1 to disable)", -1 ),
+    PARAM_DEFAULT( roi_y1, int,
+                   "Detection ROI top y coordinate (-1 to disable)", -1 ),
+    PARAM_DEFAULT( roi_x2, int,
+                   "Detection ROI right x coordinate (-1 to disable)", -1 ),
+    PARAM_DEFAULT( roi_y2, int,
+                   "Detection ROI bottom y coordinate (-1 to disable)", -1 )
   )
 
   virtual ~detect_calibration_targets() = default;
@@ -44,6 +61,8 @@ public:
     kwiver::vital::image_container_sptr image_data ) const;
 
 private:
+  void initialize() override;
+
   // Runtime state for auto-detection
   mutable bool m_grid_detected = false;
   mutable cv::Size m_detected_grid_size;

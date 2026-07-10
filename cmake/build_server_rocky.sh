@@ -26,19 +26,23 @@ install_system_deps yum
 install_openssl
 install_cmake
 
-# Install Node.js and yarn for DIVE desktop build
-install_nodejs_and_yarn 18
+# Install Node.js for DIVE desktop build (npm ships bundled with Node)
+install_nodejs 22
 
 # Patch CUDNN when required
 patch_cudnn_headers
 
-# Use GCC11 for build (Rocky 9 has GCC 11 by default, Rocky 8 needs toolset)
-setup_gcc_toolset 11
+# Use GCC13 for build. PyTorch 2.12 requires GCC >= 11.3 and Rocky 8's
+# gcc-toolset-11 tops out at 11.2.1. gcc-toolset-12 satisfies the minimum but
+# hits a known gcc-12 false-positive -Wmaybe-uninitialized in AVX512 intrinsics
+# that breaks fbgemm's -Werror build; gcc-13 compiles it cleanly with no patch.
+# nvcc runs with -allow-unsupported-compiler so CUDA 12.8 accepts gcc-13.
+setup_gcc_toolset 13
 
 # Hack for storing paths to CUDA libs for some libraries
 rm /usr/local/cuda
 rm /usr/local/cuda-12
-mv /usr/local/cuda-12.6 $CUDA_DIRECTORY
+mv /usr/local/cuda-12.8 $CUDA_DIRECTORY
 
 # Update VIAME sub git sources
 update_git_submodules $VIAME_SOURCE_DIR
@@ -64,9 +68,22 @@ run_build_and_setup_libraries "$CUDA_DIRECTORY" > build_log.txt 2>&1
 
 # Verify build success and create tarball
 if verify_build_success build_log.txt; then
+  TARBALL_NAME="VIAME-${VIAME_VERSION}-Linux-64Bit.tar.gz"
+
+  # Run CRITICAL tests before packaging
+  if ! run_critical_tests "$VIAME_BUILD_DIR" "$VIAME_INSTALL_DIR"; then
+    TESTS_PASSED=false
+  else
+    TESTS_PASSED=true
+  fi
+
   prepare_linux_desktop_install install "$VIAME_SOURCE_DIR"
   create_install_tarball "$VIAME_VERSION" "Linux-64Bit"
   restore_linux_desktop_install install
+
+  if [ "$TESTS_PASSED" = "false" ]; then
+    rename_tarball_broken "$TARBALL_NAME"
+  fi
 else
   exit 1
 fi

@@ -2,6 +2,8 @@
 # Title: Thermal seal detector file
 #
 # Description: Thermal seal detector file
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
 
 process thermal_detector
@@ -12,6 +14,6 @@ process thermal_detector
     relativepath model_file =                  models/arctic_seal_ir.pb
     :norm_image_type                           adaptive_min_fixed_range
     :fixed_range                               7000
-    :confidence_thresh                         0.10
+    :confidence_thresh                         0.10        # DIVE_PARAM["Confidence Threshold", range_float, 0, 1, 0.01]
     :category_name                             hotspot
   endblock

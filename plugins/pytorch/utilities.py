@@ -15,8 +15,10 @@ This module provides:
 """
 
 import contextlib
+import functools
 import os
 import shutil
+import sys
 import warnings
 
 # Suppress common third-party warnings
@@ -120,7 +122,9 @@ def get_autocast_context(device):
     """
     Get the appropriate autocast context for the given device.
 
-    For CUDA devices, returns a torch.autocast context with bfloat16 dtype.
+    For CUDA devices, returns a torch.autocast context with float16 or
+    bfloat16 depending on GPU capability.  Ampere+ (compute cap 8.0+)
+    uses bfloat16; older GPUs (Turing, etc.) use float16.
     For other devices (CPU, etc.), returns a null context.
 
     Args:
@@ -142,7 +146,13 @@ def get_autocast_context(device):
         device_type = str(device).split(':')[0]
 
     if device_type == 'cuda':
-        return torch.autocast(device_type, dtype=torch.bfloat16)
+        # Use bfloat16 on Ampere+ GPUs, float16 on older GPUs (Turing etc.)
+        try:
+            cap = torch.cuda.get_device_capability(0)
+            dtype = torch.bfloat16 if cap[0] >= 8 else torch.float16
+        except Exception:
+            dtype = torch.float16
+        return torch.autocast(device_type, dtype=dtype)
     else:
         return contextlib.nullcontext()
 
@@ -153,17 +163,17 @@ def get_autocast_context(device):
 
 def mask_to_polygon(mask, simplification=0.01):
     """
-    Convert a binary mask to a KWIVER Polygon.
+    Convert a binary mask to a flattened polygon list.
 
     Args:
         mask: Binary mask as numpy array
         simplification: Douglas-Peucker simplification epsilon (relative to perimeter)
 
     Returns:
-        kwiver.vital.types.Polygon or None if conversion fails
+        List of floats [x1, y1, x2, y2, ...] or None if conversion fails.
+        Use with DetectedObject.set_flattened_polygon().
     """
     import cv2
-    from kwiver.vital.types import Polygon
 
     contours, _ = cv2.findContours(
         mask.astype(np.uint8),
@@ -188,11 +198,13 @@ def mask_to_polygon(mask, simplification=0.01):
     if len(points.shape) == 1:
         return None
 
-    polygon = Polygon()
+    # Return flattened list [x1, y1, x2, y2, ...]
+    flat = []
     for point in points:
-        polygon.push_back((float(point[0]), float(point[1])))
+        flat.append(float(point[0]))
+        flat.append(float(point[1]))
 
-    return polygon
+    return flat
 
 
 def box_from_mask(mask):
@@ -446,6 +458,71 @@ def parse_bool(value):
 
 
 # =============================================================================
+# Error Reporting (DIVE integration)
+# =============================================================================
+
+def emit_dive_error(message):
+    """Print a single-line ``ERROR:`` message.
+
+    DIVE surfaces log lines beginning with ``ERROR:`` to the user when a
+    pipeline job exits non-zero. Newlines are collapsed so the message stays a
+    single greppable line.
+    """
+    flat = " ".join(str(message).split())
+    # Use sys.stderr.write (not print(file=sys.stderr)) so the line is reliably
+    # captured when running under KWIVER's embedded Python interpreter.
+    try:
+        sys.stderr.write("ERROR: " + flat + "\n")
+        sys.stderr.flush()
+    except Exception:
+        print("ERROR: " + flat, flush=True)
+
+
+def is_cuda_oom(exc):
+    """Return True if ``exc`` is (or reads as) a CUDA out-of-memory error."""
+    try:
+        import torch
+        if isinstance(exc, torch.cuda.OutOfMemoryError):
+            return True
+    except Exception:
+        pass
+    return "out of memory" in str(exc).lower()
+
+
+def report_cuda_errors(context):
+    """Decorator that reports failures of the wrapped method to DIVE.
+
+    On any exception it prints a DIVE ``ERROR:`` line -- with a clear,
+    actionable message when the cause is a CUDA out-of-memory error -- and then
+    re-raises so the job still fails. ``context`` is a short human label such as
+    ``"SAM3 track refinement"``. The exception is tagged after reporting so a
+    wrapped method that calls another wrapped method does not emit twice.
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as exc:
+                if not getattr(exc, "_dive_reported", False):
+                    if is_cuda_oom(exc):
+                        emit_dive_error(
+                            context + " ran out of GPU memory. Free GPU memory "
+                            "(e.g. close an interactive session or other GPU "
+                            "jobs) and retry, or use a smaller model or "
+                            "lower-resolution input.")
+                    else:
+                        emit_dive_error(context + " failed: " + str(exc))
+                    try:
+                        exc._dive_reported = True
+                    except Exception:
+                        pass
+                raise
+        return wrapper
+    return decorator
+
+
+# =============================================================================
 # Compatibility Shims
 # =============================================================================
 
@@ -462,7 +539,38 @@ def ensure_rfdetr_compatibility():
     Safe to call multiple times; the patch is only applied once.
     """
     import torch
+    import transformers
     import transformers.pytorch_utils as _pt_utils
+
+    # RF-DETR (built for transformers 5.x) imports BackboneConfigMixin /
+    # BackboneMixin from the top-level ``transformers`` namespace. Under
+    # transformers 4.x these live in ``transformers.utils.backbone_utils``;
+    # re-export them so ``import rfdetr`` succeeds. Idempotent.
+    if not hasattr(transformers, 'BackboneConfigMixin') or \
+       not hasattr(transformers, 'BackboneMixin'):
+        try:
+            from transformers.utils.backbone_utils import (
+                BackboneConfigMixin, BackboneMixin)
+            transformers.BackboneConfigMixin = BackboneConfigMixin
+            transformers.BackboneMixin = BackboneMixin
+        except Exception:
+            pass
+
+    # transformers 5.x calls BackboneMixin._init_transformers_backbone(self)
+    # and reads self.config; the 4.x version requires config as an argument,
+    # while RF-DETR calls it with none. Wrap it to default to self.config.
+    try:
+        from transformers.utils.backbone_utils import BackboneMixin as _BBMixin
+        _init_bb = _BBMixin._init_transformers_backbone
+        if not getattr(_init_bb, '_viame_optional_config', False):
+            def _init_transformers_backbone(self, config=None, _orig=_init_bb):
+                if config is None:
+                    config = self.config
+                return _orig(self, config)
+            _init_transformers_backbone._viame_optional_config = True
+            _BBMixin._init_transformers_backbone = _init_transformers_backbone
+    except Exception:
+        pass
 
     if hasattr(_pt_utils, 'find_pruneable_heads_and_indices'):
         return
@@ -566,16 +674,13 @@ def kwiver_to_kwimage_detections(detected_objects):
 
     if len(detected_objects) > 0:
         obj = ub.peek(detected_objects)
-        try:
-            classes = obj.type.all_class_names()
-        except AttributeError:
-            classes = obj.type().all_class_names()
+        classes = obj.type.all_class_names()
 
     for obj in detected_objects:
-        box = obj.bounding_box()
+        box = obj.bounding_box
         tlbr = [box.min_x(), box.min_y(), box.max_x(), box.max_y()]
-        score = obj.confidence()
-        cname = obj.type().get_most_likely_class()
+        score = obj.confidence
+        cname = obj.type.get_most_likely_class()
         cidx = classes.index(cname)
         boxes.append(tlbr)
         scores.append(score)

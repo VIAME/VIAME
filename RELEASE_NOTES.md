@@ -1,3 +1,76 @@
+v0.22.5 - 7/02/2026
+===================
+
+
+-Re-compute lengths when head/tail points are modified option in DIVE
+
+
+-Many other DIVE changes from the last 3 months (revised top bar options)
+
+
+-Fix issue with video outputs from transcode pipelines
+
+
+-Fix issue in multi-cam aerial suppression/tracking pipelines due to numpy upgrade
+
+
+-Update linux bins to use cuda 12.8 from 12.6 for blackwell support (Windows already at)
+
+
+-Fix issue in newer RF-DETR training routine
+
+
+
+v0.22.4 - 4/28/2026
+===================
+
+
+-Tweak additional stereo matching filters plus bug fix
+
+
+
+v0.22.3 - 4/20/2026
+===================
+
+
+-Add support for SAM3.1
+
+
+-MIT-YOLO training and inference improvements
+
+
+-Fix issue with a portion of newer stereo measurement pipelines on long videos
+
+
+
+v0.22.2 - 3/24/2026
+===================
+
+
+-Improve SAM3 text queries with tracking enabled on longer video sequences
+
+
+-Improved batch point segmentation annotation features in the DIVE interface
+
+
+-Allow interactive queries to run on videos
+
+
+
+v0.22.1 - 3/09/2026
+===================
+
+
+-Stereo measurement pipeline modifications (add epipolar line search on unrectified opt)
+
+
+-Fix point-based segmentation on stereo data
+
+
+-Add initial joint segmentation and stereo warping pipelines
+
+
+
 v0.22.0 - 1/29/2026
 ===================
 

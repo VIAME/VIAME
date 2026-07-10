@@ -15,7 +15,6 @@ config _scheduler
 include common_default_input_with_downsampler.pipe
 
 # ============================= SAM3 CONFIGURATION ============================
-include common_sam3_segmenter.conf
 
 # =============================== CORE REFINER ================================
 
@@ -25,6 +24,7 @@ process detection_reader
   :file_name                                   [INSERT_ME]
   :reader:type                                 viame_csv
   :reader:viame_csv:single_state_only          true
+  :reader:viame_csv:poly_to_mask               false
 
 connect from downsampler.output_2
         to   detection_reader.image_file_name
@@ -52,29 +52,29 @@ process ensure_rgb
 connect from downsampler.output_1
         to   ensure_rgb.image
 
-# SAM3 track refiner - adds segmentation masks to single-state detections
+# SAM3 track refiner — re-segments seed boxes with SAM3 and propagates
+# them across all subsequent frames to produce multi-frame tracks.
 process track_refiner
   :: refine_tracks
   :refiner:type                                sam3
 
   block refiner:sam3
-    :grounding_model_id                        IDEA-Research/grounding-dino-tiny
     :device                                    cuda
-    :text_query                                object
-    :detection_threshold                       0.3
-    :text_threshold                            0.25
-    :iou_threshold                             0.5
+    :grounding_model_id                        none
+    :iou_threshold                             0.5                          # DIVE_PARAM["IoU Threshold", range_float, 0, 1, 0.01]
     :min_mask_area                             10
     :resegment_existing                        true
     :add_new_objects                           false
     :filter_by_quality                         true
-    :adjust_boxes                              false
-    :max_new_objects                           50
+    :adjust_boxes                              true
     :output_type                               polygon
     :polygon_simplification                    0.01
     :num_points                                5
-    relativepath sam_model_id =                models/sam3_weights.pt
-    relativepath model_config =                models/sam3_config.json
+    :propagate_tracked                         false
+    :track_new_objects                         true                         # DIVE_PARAM["Track new objects", bool]
+    :lost_track_frames                         10                           # DIVE_PARAM["Lost track frames", strictly_positive_int]
+    relativepath sam_model_id =                models/sam3.1_weights.pt
+    relativepath model_config =                models/sam3.1_config.json
   endblock
 
 connect from ensure_rgb.image

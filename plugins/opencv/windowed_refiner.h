@@ -89,6 +89,25 @@ public:
       overlapping_proc_once, bool,
       "Only refine each detection once if it appears in multiple tiles",
       true ),
+    PARAM_DEFAULT(
+      process_empty, bool,
+      "Run the inner refiner on tiles even when there are no input detections. "
+      "Enable when the inner refiner can detect new objects (e.g. text-query).",
+      false ),
+    PARAM_DEFAULT(
+      prefer_containing_tile, bool,
+      "When overlapping_proc_once is enabled, refine each detection in the tile "
+      "that fully contains its bounding box (tightest containing chip, most "
+      "centered) instead of the first tile it overlaps.  Prevents the refined "
+      "mask from being truncated at a tile boundary for boxes straddling the "
+      "edge of their first overlapping tile.  Has no effect on detection counts.",
+      true ),
+    PARAM_DEFAULT(
+      mask_overlap_thresh, double,
+      "Merge detections from overlapping tiles whose masks overlap by at "
+      "least this fraction within the shared tile-overlap region.  "
+      "0 disables merging.",
+      0.0 ),
     PARAM(
       refiner, kwiver::vital::algo::refine_detections_sptr,
       "Algorithm pointer to nested refiner" )

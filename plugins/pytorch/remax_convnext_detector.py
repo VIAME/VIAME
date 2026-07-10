@@ -19,6 +19,7 @@ import torch
 import sys
 
 from collections import namedtuple
+from viame.pytorch.utilities import report_cuda_errors
 
 try:
     import viame.pytorch.learn.mmdet.register_modules
@@ -188,6 +189,7 @@ class ReMaxConvNextDetector(ImageObjectDetector):
                 return pos_w, neg_w
 
 
+    @report_cuda_errors("ReMaxConvNextDetector initialization")
     def set_configuration(self, cfg_in):
         self.register_new_losses()
         cfg = self.get_configuration()
@@ -236,6 +238,7 @@ class ReMaxConvNextDetector(ImageObjectDetector):
     def check_configuration(self, cfg):
         return True
 
+    @report_cuda_errors("ReMaxConvNextDetector detection")
     def detect(self, image_data):
         input_image = image_data.asarray().astype('uint8')
         if self._rgb_to_bgr:

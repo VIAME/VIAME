@@ -7,6 +7,8 @@
 
 #include "viame_core_export.h"
 
+#include <map>
+
 #include <vital/types/image_container.h>
 #include <vital/algo/image_object_detector.h>
 #include <vital/util/enum_converter.h>
@@ -200,6 +202,22 @@ scale_detections_to_region_with_mapping(
   std::vector< kv::detected_object_sptr >& original_detections,
   std::vector< kv::detected_object_sptr >& scaled_detections );
 
+/// Choose, for each detection, the index of the region it should be refined
+/// in so its bounding box is FULLY CONTAINED (avoiding tile-boundary clipping
+/// of the resulting mask).  Among regions (in `region_properties`) whose
+/// original_roi fully contains the box, the smallest-area one is preferred,
+/// tie-broken by the most-centered (largest minimum margin to the roi edges);
+/// this favors the tightest containing chip over the full-image region.  When
+/// no region fully contains the box, the region with the largest overlap area
+/// is used as a fallback (current first-overlap behavior is thereby improved
+/// without ever dropping a detection).  Detections map to exactly one region,
+/// so per-detection refinement counts are preserved.
+VIAME_CORE_EXPORT
+std::map< kv::detected_object_sptr, size_t >
+compute_preferred_regions(
+  const kv::detected_object_set_sptr detections,
+  const std::vector< windowed_region_prop >& region_properties );
+
 /// Separate detections that touch image boundaries from interior detections
 VIAME_CORE_EXPORT
 void
@@ -229,6 +247,56 @@ kv::image
 crop_image(
   const kv::image& src,
   const image_rect& roi );
+
+// =============================================================================
+// Tile-boundary detection merge utilities
+// =============================================================================
+
+/// Entry pairing a detection with the tile ROI it was produced from.
+struct VIAME_CORE_EXPORT det_tile_entry
+{
+  kv::detected_object_sptr det;
+  image_rect tile_roi;
+};
+
+/// Compute the overlap strip between two tile ROIs.
+/// Returns true if the tiles overlap, writing the strip to ox,oy,ow,oh.
+VIAME_CORE_EXPORT
+bool
+tile_overlap_strip(
+  const image_rect& a, const image_rect& b,
+  int& ox, int& oy, int& ow, int& oh );
+
+/// Render a detection's mask into a binary image covering an arbitrary
+/// strip in full-image coordinates.  Returns the number of nonzero pixels.
+/// If the detection has no mask the full bounding box is used.
+/// \param det  Detection with optional mask (relative to its bbox)
+/// \param ox,oy,ow,oh  Strip region in image coordinates
+/// \param[out] out  Output binary image (ow x oh, single channel)
+VIAME_CORE_EXPORT
+int
+render_mask_in_strip(
+  kv::detected_object_sptr det,
+  int ox, int oy, int ow, int oh,
+  kv::image& out );
+
+/// Merge det_b's mask into det_a producing a union mask and bounding box.
+VIAME_CORE_EXPORT
+void
+merge_mask_into(
+  kv::detected_object_sptr det_a,
+  kv::detected_object_sptr det_b,
+  int img_width, int img_height );
+
+/// Merge detections from overlapping tiles whose masks overlap by at
+/// least ``threshold`` in BOTH directions within the shared tile-overlap
+/// strip.  Returns a new detection set with merged duplicates removed.
+VIAME_CORE_EXPORT
+kv::detected_object_set_sptr
+merge_tile_boundary_detections(
+  std::vector< det_tile_entry >& entries,
+  double threshold,
+  int img_width, int img_height );
 
 } // end namespace viame
 

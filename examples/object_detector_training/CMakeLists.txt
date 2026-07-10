@@ -47,7 +47,6 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          train_netharn_cfrnn.bat
          train_netharn_cfrnn_habcam.bat
          train_netharn_mask_rcnn.bat
-         train_netharn_motion_cfrnn.bat
          input_list_arctic_seal_16bit.txt
          groundtruth_arctic_seal_16bit.csv
          labels_arctic_seal_16bit.txt )
@@ -58,7 +57,6 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
          train_netharn_cfrnn.sh
          train_netharn_cfrnn_habcam.sh
          train_netharn_mask_rcnn.sh
-         train_netharn_motion_cfrnn.sh
          input_list_arctic_seal_16bit.txt
          groundtruth_arctic_seal_16bit.csv
          labels_arctic_seal_16bit.txt )

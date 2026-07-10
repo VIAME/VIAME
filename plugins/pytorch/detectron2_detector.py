@@ -33,6 +33,7 @@ import ubelt as ub
 from kwiver.vital.algo import ImageObjectDetector
 
 from viame.pytorch.utilities import (
+    report_cuda_errors,
     vital_config_update,
     kwimage_to_kwiver_detections,
     resolve_device_str,
@@ -161,6 +162,7 @@ class Detectron2Detector(ImageObjectDetector):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("Detectron2Detector initialization")
     def set_configuration(self, cfg_in):
         """
         Set the algorithm configuration.
@@ -348,6 +350,7 @@ class Detectron2Detector(ImageObjectDetector):
 
         return True
 
+    @report_cuda_errors("Detectron2Detector detection")
     def detect(self, image_data):
         """
         Perform object detection on an image.

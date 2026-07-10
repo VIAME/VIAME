@@ -103,7 +103,7 @@ class ParamatarizedAugmenter(_Augmenter):
             >>> augment = iaa.Sequential(augmentors)
             >>> info = _PA._json_id(augment)
             >>> import ubelt as ub
-            >>> print(ub.repr2(info, nl=2, precision=2))
+            >>> print(ub.urepr(info, nl=2, precision=2))
         """
         _PA = ParamatarizedAugmenter
         if isinstance(aug, tuple):
@@ -142,7 +142,7 @@ def imgaug_json_id(aug):
         >>> augment = imgaug.augmenters.Affine()
         >>> info = nh.data.transforms.imgaug_json_id(augment)
         >>> import ubelt as ub
-        >>> print(ub.repr2(info, nl=2, precision=2))
+        >>> print(ub.urepr(info, nl=2, precision=2))
     """
     import imgaug
     if isinstance(aug, tuple):

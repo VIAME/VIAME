@@ -7,6 +7,7 @@ from kwiver.vital.algo import ImageObjectDetector
 import scriptconfig as scfg
 
 from viame.pytorch.utilities import (
+    report_cuda_errors,
     resolve_device,
     vital_config_update,
     kwimage_to_kwiver_detections,
@@ -139,6 +140,7 @@ class UltralyticsDetector(ImageObjectDetector):
         self._wrapped['classes'] = classes
         self._wrapped['device'] = device
 
+    @report_cuda_errors("UltralyticsDetector initialization")
     def set_configuration(self, cfg_in):
         import os
         cfg = self.get_configuration()
@@ -159,6 +161,7 @@ class UltralyticsDetector(ImageObjectDetector):
         #     return False
         return True
 
+    @report_cuda_errors("UltralyticsDetector detection")
     def detect(self, image_data):
         full_rgb = image_data.asarray()
 
@@ -191,7 +194,7 @@ def ultralytics_result_to_kwimage(result, classes=None):
     # TODO: make sure the model names map is always in order
     # if not then modify it to be in the correct order
     dets = kwimage.Detections(
-        boxes=kwimage.Boxes(result.boxes.xywh, format='xywh'),
+        boxes=kwimage.Boxes(result.boxes.xyxy, format='xyxy'),
         scores=result.boxes.conf,
         class_idxs=result.boxes.cls.int(),
         classes=classes,

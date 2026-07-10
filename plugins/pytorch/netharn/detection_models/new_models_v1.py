@@ -353,7 +353,7 @@ class MM_Detector_V3(nh.layers.Module):
                 association='embedding',
                 leftover='kaiming_normal',
             )
-            # print('info = {}'.format(ub.repr2(info, nl=True)))
+            # print('info = {}'.format(ub.urepr(info, nl=True)))
             return info
 
 
@@ -534,7 +534,7 @@ class LateFusionPyramidBackbone(nn.Module):
                 prefused_outputs[level][chan_key] = lvl_out
 
         # prefused_shapes = ub.map_vals(lambda x: ub.map_vals( lambda y: y.shape,  x), prefused_outputs)
-        # print('prefused_shapes = {}'.format(ub.repr2(prefused_shapes, nl=1)))
+        # print('prefused_shapes = {}'.format(ub.urepr(prefused_shapes, nl=1)))
 
         fused_outputs = []
         for level, prefused in prefused_outputs.items():

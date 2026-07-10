@@ -5,16 +5,27 @@ ValidateAddonDependencies()
 # Process downloads and install models/transforms for all enabled addons
 ProcessAllAddonModels( "${CMAKE_CURRENT_SOURCE_DIR}" )
 
-# Install pipeline files from addon subdirectories if they exist
-# For each enabled VIAME_DOWNLOAD_MODELS-NAME, check if configs/add-ons/name exists
-# (where name is lowercase with dashes preserved) and install its contents
+# Install each enabled add-on's pipeline files into configs/pipelines, with
+# later add-ons overriding earlier ones and the core defaults by install order.
+# We can't use install(DIRECTORY)/file(COPY): they skip a copy when the
+# destination isn't older than the source, and these files share a git-checkout
+# timestamp, so overrides get dropped. Force each copy (remove then copy) so
+# install order alone decides the winner.
 foreach( _addon_name IN LISTS VIAME_ADDON_NAMES )
   if( VIAME_DOWNLOAD_MODELS-${_addon_name} )
     string( TOLOWER "${_addon_name}" _addon_dir_name )
     set( _addon_dir "${CMAKE_CURRENT_SOURCE_DIR}/${_addon_dir_name}" )
     if( IS_DIRECTORY "${_addon_dir}" )
-      install( DIRECTORY "${_addon_dir}/"
-               DESTINATION configs/pipelines )
+      install( CODE "
+        file( GLOB _addon_files \"${_addon_dir}/*\" )
+        foreach( _addon_file IN LISTS _addon_files )
+          get_filename_component( _addon_file_name \"\${_addon_file}\" NAME )
+          file( REMOVE_RECURSE
+                \"\${CMAKE_INSTALL_PREFIX}/configs/pipelines/\${_addon_file_name}\" )
+          file( COPY \"\${_addon_file}\"
+                DESTINATION \"\${CMAKE_INSTALL_PREFIX}/configs/pipelines\" )
+        endforeach()
+      " )
     endif()
   endif()
 endforeach()

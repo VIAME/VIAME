@@ -49,8 +49,8 @@ though you can also try using native python, e.g. install python3, python3-dev, 
 
    sudo apt-get install python3 python3-dev python3-numpy python3-pip
 
-If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 11.0 or above
-is required, 12.6 being the most tested version). Other versions may work depending
+If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 12.6 is
+preferred; version 11.0 or above is required). Other versions may work depending
 on your build settings but are not officially supported yet. Link to NVIDIA's site:
 
 .. code-block:: bash
@@ -183,7 +183,7 @@ is below for a system with CUDA, Python, and Matlab enabled, though the versions
 old. Please do not use CUDA <10 or python 2.7 anymore.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2017/03/cmake-options.png
-   :scale: 30 %
+   :width: 40%
    :align: center
 
 .. _mac-label:
@@ -219,10 +219,10 @@ right click on the folder you checked out the source into, move to the TortoiseG
 menu section, and select ``Submodule Update``.
 
 Next, install any required dependencies for items you want to build. If using CUDA,
-version 11.0 or above is desired, along with Python 3.6+. Other versions have yet to
-be tested extensively, though may work. On Windows it can also be beneficial to use
-Anaconda to get multiple python packages. Boost Python (turned on by default when
-Python is enabled) requires Numpy and a few other dependencies.
+version 12.6 is preferred (version 11.0 or above is required), along with Python 3.6+.
+Other versions have yet to be tested extensively, though may work. On Windows it can
+also be beneficial to use Anaconda to get multiple python packages. Boost Python
+(turned on by default when Python is enabled) requires Numpy and a few other dependencies.
 
 Finally, create a build folder and run the CMake GUI (``https://cmake.org/runningcmake/``).
 Point it to your source and build directories, select your compiler of choice, and

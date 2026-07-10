@@ -8,6 +8,7 @@ set(CTEST_BUILD_NAME "Windows_GPU_Main")
 set(CTEST_SOURCE_DIRECTORY "C:/VIAME-Builds/GPU")
 set(CTEST_BINARY_DIRECTORY "C:/VIAME-Builds/GPU/build/")
 set(CTEST_CMAKE_GENERATOR "Visual Studio 18 2026")
+set(CTEST_CMAKE_GENERATOR_INSTANCE "C:/Program Files/Microsoft Visual Studio/18/Community")
 set(CTEST_BUILD_CONFIGURATION Release)
 set(CTEST_PROJECT_NAME VIAME)
 set(CTEST_BUILD_MODEL "Nightly")
@@ -34,6 +35,16 @@ add_option("VIAME_BUILD_PLUGINS_DIR" "C:/tmp/vm1")
 # Windows-specific overrides
 add_option("VIAME_BUILD_DIVE_FROM_SOURCE" "ON")
 add_option("VIAME_BUILD_MAX_THREADS" "5")
+
+# SeaGIS plugin enable and dir
+add_option("VIAME_ENABLE_SEAGIS" "ON")
+add_option("SEAGIS_ROOT_DIR" "C:/Program Files/SeaGIS")
+
+# Always enable the VIAME test suite so build_server_windows.bat can run
+# the CRITICAL ctest set after build. Test sources are referenced via
+# CMAKE_CURRENT_SOURCE_DIR and are not installed; the only side effect on
+# the packaged zip is ~1.5 MB of pytest + deps under site-packages.
+add_option("VIAME_ENABLE_TESTS:BOOL" "ON")
 
 # Finalize OPTIONS variable
 finalize_options()

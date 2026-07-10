@@ -3,11 +3,13 @@
 #
 # Description: Shared detector configuration that can be included by other
 # pipelines. Uses model: arctic_seal_ir.weights. Uses YOLO-based detection.
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
 
 process thermal_detector_input
   :: image_filter
-  :filter:type                                 npy_percentile_norm
+  :filter:type                                 percentile_norm_npy
 
 process thermal_detector1
   :: image_object_detector

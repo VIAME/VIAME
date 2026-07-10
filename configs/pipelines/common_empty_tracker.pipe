@@ -1,0 +1,35 @@
+# =============================================================================
+# Title: Common - Empty Tracker
+#
+# Description: Produces an empty object_track_set for each frame. Useful when
+# a downstream process (e.g. refine_tracks) requires an object_track_set input
+# but no upstream detector is present.
+#
+# Inputs:  downsampler.output_1, downsampler.timestamp
+# Outputs: empty_tracker.object_track_set
+# =============================================================================
+
+process empty_detector
+  :: image_object_detector
+  :detector:type                               empty
+
+connect from downsampler.output_1
+        to   empty_detector.image
+
+process empty_tracker
+  :: initialize_object_tracks
+  :track_initializer:type                      threshold
+
+  block track_initializer:threshold:filter
+    :type                                      class_probablity_filter
+    :class_probablity_filter:threshold         0.0
+    :class_probablity_filter:keep_all_classes  true
+    :class_probablity_filter:keep_classes      unused
+  endblock
+
+connect from downsampler.timestamp
+        to   empty_tracker.timestamp
+connect from empty_detector.detected_object_set
+        to   empty_tracker.detected_object_set
+
+# -- end of file --

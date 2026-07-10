@@ -116,7 +116,7 @@ def explicit_output_shape_for(model, inputs):
     print(nx.forest_str(modgraph))
     # parent = '.'.join(node.split('.')[:-1])
 
-    print('output_shape.hidden = {}'.format(ub.repr2(output_shape.hidden.shallow(4), nl=-1)))
-    print('output_shape.hidden = {}'.format(ub.repr2(output_shape.hidden.shallow(2), nl=-1)))
+    print('output_shape.hidden = {}'.format(ub.urepr(output_shape.hidden.shallow(4), nl=-1)))
+    print('output_shape.hidden = {}'.format(ub.urepr(output_shape.hidden.shallow(2), nl=-1)))
 
     output_shape.hidden['detector'].shallow(100)

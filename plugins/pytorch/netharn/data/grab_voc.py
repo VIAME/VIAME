@@ -267,7 +267,7 @@ def ensure_voc_coco(dpath=None):
 
 def main():
     paths = ensure_voc_coco()
-    print('paths = {}'.format(ub.repr2(paths, nl=1)))
+    print('paths = {}'.format(ub.urepr(paths, nl=1)))
 
 
 if __name__ == '__main__':

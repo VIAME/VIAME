@@ -14,7 +14,6 @@ config _pipeline:_edge
 
 config global
    :output_directory                           ./
-   :square_size                                80
 
 # ============================= INPUT FRAME LIST ==============================
 
@@ -28,7 +27,7 @@ process detector1
 
   block detector:ocv_detect_calibration_targets
     :auto_detect_grid                          true
-    :square_size                               $CONFIG{global:square_size}
+    :square_size                               1            # DIVE_PARAM["Square Size (Left)", strictly_positive_float]
     :object_type                               "corner"
   endblock
 
@@ -38,7 +37,7 @@ process detector2
 
   block detector:ocv_detect_calibration_targets
     :auto_detect_grid                          true
-    :square_size                               $CONFIG{global:square_size}
+    :square_size                               1            # DIVE_PARAM["Square Size (Right)", strictly_positive_float]
     :object_type                               "corner"
   endblock
 

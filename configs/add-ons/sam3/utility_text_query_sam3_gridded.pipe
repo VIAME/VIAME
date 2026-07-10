@@ -1,0 +1,99 @@
+# =============================================================================
+# Title: Text query via SAM3 (gridded for large images, no tracking)
+#
+# Description: Textual query support uses architectures derived from Meta's
+#              SAM3 project. This variant uses windowed/gridded processing to
+#              improve detection of small objects in large images. Each frame
+#              is processed independently with no cross-frame tracking.
+#
+# Requirements: { Text Query, detection_refiner:refiner:ocv_windowed:refiner:sam3:text_query, string }
+# Input: TEXT
+# Output: MASK
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================= INPUT FRAME LIST ==============================
+include common_default_input_with_downsampler.pipe
+
+# ============================= SAM3 CONFIGURATION ============================
+
+process track_reader
+  :: read_object_track
+  :file_name                                   detections.csv
+  :reader:type                                 viame_csv
+  :reader:viame_csv:poly_to_mask               false
+
+connect from downsampler.output_2
+        to   track_reader.image_file_name
+
+process ensure_rgb
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+connect from downsampler.output_1
+        to   ensure_rgb.image
+
+# =================== WINDOWED DETECTION REFINER (NO TRACKING) ================
+process detection_refiner
+  :: refine_detections
+  :refiner:type                                ocv_windowed
+
+  block refiner:ocv_windowed
+    :mode                                      adaptive
+    :chip_adaptive_thresh                      2250000
+    :chip_width                                1008
+    :chip_height                               1008
+    :chip_step_width                           650
+    :chip_step_height                          650
+    :process_empty                             true
+    :mask_overlap_thresh                       0.8
+
+    :refiner:type                              sam3
+    block refiner:sam3
+      relativepath grounding_model_id =        models/sam3_grnd_dino_tiny
+      :device                                  cuda
+      :text_query                              fish                         # DIVE_PARAM["Text query", string]
+      :detection_threshold                     0.3                          # DIVE_PARAM["Detection threshold", range_float, 0, 1, 0.01]
+      :text_threshold                          0.25                         # DIVE_PARAM["Text threshold", range_float, 0, 1, 0.01]
+      :iou_threshold                           0.5                          # DIVE_PARAM["IoU threshold", range_float, 0, 1, 0.01]
+      :min_mask_area                           10
+      :add_new_objects                         true
+      :max_new_objects                         50                           # DIVE_PARAM["Max new objects", strictly_positive_int]
+      :overwrite_existing                      true
+      :output_type                             polygon
+      :polygon_simplification                  0.005
+      relativepath sam_model_id =              models/sam3.1_weights.pt
+      relativepath model_config =              models/sam3.1_config.json
+    endblock
+  endblock
+
+connect from ensure_rgb.image
+        to   detection_refiner.image
+connect from downsampler.timestamp
+        to   detection_refiner.timestamp
+connect from track_reader.object_track_set
+        to   detection_refiner.object_track_set
+
+# =============================== OUTPUT WRITER ===============================
+process det_writer
+  :: detected_object_output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        30
+
+connect from downsampler.output_2
+        to   det_writer.image_file_name
+connect from detection_refiner.detected_object_set
+        to   det_writer.detected_object_set
+
+# -- end of file --

@@ -33,11 +33,11 @@ def find_files(dpath, glob_pat='*', recursive=True, ignorecase=True,
         >>> dpath = dirname(kwimage.__file__)
         >>> glob_pat = '*.So'
         >>> fpaths = list(find_files(dpath, glob_pat))
-        >>> print('fpaths = {}'.format(ub.repr2(fpaths, nl=1)))
+        >>> print('fpaths = {}'.format(ub.urepr(fpaths, nl=1)))
 
         >>> glob_pat = ['*.So', '*py']
         >>> fpaths = list(find_files(dpath, glob_pat))
-        >>> print('fpaths = {}'.format(ub.repr2(fpaths, nl=1)))
+        >>> print('fpaths = {}'.format(ub.urepr(fpaths, nl=1)))
     """
     flags = 0
     if ignorecase:

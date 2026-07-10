@@ -4,8 +4,13 @@
 # Description: Configured for sea lion survey imagery.
 # =============================================================================
 
+# Requirements: { Detection Scale (default 1.0), global:scale, double }
+
 config _pipeline:_edge
    :capacity                                   10
+
+config global
+  :scale                                       1.0
 
 # =============================================================================
 

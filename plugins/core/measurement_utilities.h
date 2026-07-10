@@ -49,6 +49,14 @@ namespace kv = kwiver::vital;
 // Free-standing structs and utility functions
 // =============================================================================
 
+/// Parse the first :length=<value> note from a detection. Returns -1 if none found.
+VIAME_CORE_EXPORT double parse_length_from_notes(
+  const kv::detected_object_sptr& det );
+
+/// Parse the first :stereo_rms=<value> note from a detection. Returns -1 if none found.
+VIAME_CORE_EXPORT double parse_stereo_rms_from_notes(
+  const kv::detected_object_sptr& det );
+
 /// Result structure for full stereo measurement (length + 3D position + error)
 struct VIAME_CORE_EXPORT stereo_measurement_result
 {
@@ -110,6 +118,15 @@ VIAME_CORE_EXPORT stereo_measurement_result compute_stereo_measurement(
   const kv::vector_2d& left_tail,
   const kv::vector_2d& right_tail );
 
+/// Aggregate a set of per-detection lengths into a single representative value.
+/// method: "average" (mean, default), "average_iqr" (mean after IQR outlier
+/// removal controlled by iqr_factor), or "median". Non-positive lengths are
+/// ignored. Returns the aggregated length, or -1 if there are no valid lengths.
+VIAME_CORE_EXPORT double aggregate_lengths(
+  const std::vector< double >& lengths,
+  const std::string& method = "average",
+  double iqr_factor = 1.5 );
+
 /// Compute a bounding box from keypoints with scale factor
 /// If min_aspect_ratio > 0, ensures the smaller dimension is at least
 /// min_aspect_ratio times the larger dimension (prevents very thin boxes)
@@ -118,6 +135,14 @@ VIAME_CORE_EXPORT kv::bounding_box_d compute_bbox_from_keypoints(
   const kv::vector_2d& tail_point,
   double box_scale_factor,
   double min_aspect_ratio = 0.10 );
+
+/// Compute epipolar points by sampling depths along a ray from source camera
+/// and projecting to target camera. Works on unrectified images.
+VIAME_CORE_EXPORT std::vector< kv::vector_2d > compute_epipolar_points(
+  const kv::simple_camera_perspective& source_cam,
+  const kv::simple_camera_perspective& target_cam,
+  const kv::vector_2d& source_point,
+  double min_depth, double max_depth, int num_samples );
 
 /// Compute intersection-over-union (IOU) between two bounding boxes
 VIAME_CORE_EXPORT double compute_iou(
@@ -232,6 +257,36 @@ public:
   /// The search will cover (2 * epipolar_band_halfwidth + 1) rows.
   int epipolar_band_halfwidth;
 
+  /// Minimum depth for epipolar template matching (in camera/calibration units).
+  /// Default is 0 (off). Used only when disparity parameters are both 0.
+  /// Either disparity or depth parameters must be set for epipolar matching.
+  double epipolar_min_depth;
+
+  /// Maximum depth for epipolar template matching (in camera/calibration units).
+  /// Default is 0 (off). See epipolar_min_depth.
+  double epipolar_max_depth;
+
+  /// Minimum expected disparity in pixels for epipolar template matching.
+  /// When both min and max disparity are > 0, they override the depth-based
+  /// parameters by converting to depth using the camera intrinsics and baseline:
+  ///   depth = focal_length * baseline / disparity
+  /// This is unit-independent and often easier to estimate from the images.
+  /// Note: min disparity corresponds to max depth (far objects) and vice versa.
+  double epipolar_min_disparity;
+
+  /// Maximum expected disparity in pixels for epipolar template matching.
+  /// See epipolar_min_disparity for details.
+  double epipolar_max_disparity;
+
+  /// Number of sample points along the epipolar line
+  int epipolar_num_samples;
+
+  /// Descriptor type for epipolar template matching.
+  /// 'ncc' (default): Normalized cross-correlation on grayscale patches (point-by-point).
+  /// 'ncc_strip': FFT-accelerated NCC on strip covering epipolar bounding box (no Python needed).
+  /// 'dino': Two-stage DINO + NCC matching using vision transformer features (requires Python).
+  std::string epipolar_descriptor_type;
+
   /// Whether to use distortion coefficients from calibration
   bool use_distortion;
 
@@ -257,8 +312,104 @@ public:
   /// Depth to use for disparity-aware feature search (if different from default_depth)
   double feature_search_depth;
 
+  /// Maximum allowed depth ratio between head and tail keypoints.
+  /// When both keypoints are matched, their triangulated depths are compared.
+  /// If max(depth_head, depth_tail) / min(depth_head, depth_tail) exceeds
+  /// this ratio, the deeper keypoint is rejected (converted to partial match).
+  /// This catches false matches where one keypoint matched at the wrong depth.
+  /// Set to 0 to disable. Default is 1.5 (50% depth difference allowed).
+  double depth_consistency_max_ratio;
+
+  /// Uniqueness ratio for NCC template matching (Lowe's ratio test).
+  /// After finding the best match, compares it to the second-best match.
+  /// If best_score / second_best_score > this ratio, the match is considered
+  /// ambiguous and is rejected. This prevents false matches on repetitive
+  /// textures (e.g., fish scales) where multiple locations score similarly.
+  /// Set to 0 to disable. Default is 0.85.
+  /// Lower values are more strict (reject more ambiguous matches).
+  double uniqueness_ratio;
+
   /// Whether to record stereo measurement method as detection attribute
   bool record_stereo_method;
+
+  /// Whether to refine right keypoints of already-paired tracks using a
+  /// full-image disparity map. When enabled and a stereo_disparity
+  /// algorithm is configured, the disparity is computed once per frame
+  /// and sampled at each rectified left keypoint location; the right
+  /// keypoint is replaced with the disparity-implied match (in original
+  /// right image coordinates). Falls back to the original right keypoint
+  /// when disparity is unavailable or invalid at the queried location.
+  /// Tracks that lacked a right keypoint and went through the secondary
+  /// matching methods are not affected (those already use disparity when
+  /// compute_disparity is in matching_methods).
+  bool refine_keypoints_with_disparity;
+
+  /// Half-width (in pixels) of the neighborhood used when sampling the
+  /// disparity map for keypoint refinement. The median of valid disparity
+  /// values in a (2*w+1)x(2*w+1) window is used. Set to 0 for a
+  /// single-pixel lookup.
+  int refine_keypoints_disparity_window;
+
+  /// If true, instead of unconditionally replacing right keypoints with
+  /// the disparity-implied positions, compare the tracker-provided right
+  /// keypoint to the disparity-implied one and reject the entire track's
+  /// measurement when they disagree by more than refine_keypoints_max_distance
+  /// (normalized to the left bounding box). Only applies when
+  /// refine_keypoints_with_disparity is true.
+  bool refine_keypoints_reject_inconsistent;
+
+  /// Maximum allowed distance between the tracker-provided right keypoint
+  /// and the disparity-implied right keypoint, expressed as a fraction of
+  /// the left detection's max bounding-box dimension (max of width and
+  /// height). When the distance exceeds this fraction, the track is
+  /// rejected (no measurement) if refine_keypoints_reject_inconsistent
+  /// is true. Set to 0 to disable the check (always refine).
+  double refine_keypoints_max_distance;
+
+  /// Directory to write debug images showing epipolar search lines.
+  /// Empty string (default) disables debug output.
+  std::string debug_epipolar_directory;
+
+  /// Detection pairing method: "" (disabled), "iou", "calibration",
+  /// "feature_matching", "epipolar_iou", "keypoint_projection"
+  std::string detection_pairing_method;
+
+  /// Threshold for detection pairing whose meaning depends on the method:
+  ///   iou / epipolar_iou  → minimum IOU (default 0.1)
+  ///   calibration         → max reprojection error in pixels
+  ///   keypoint_projection → max avg keypoint pixel distance
+  ///   feature_matching    → (unused)
+  double detection_pairing_threshold;
+
+  /// If true, only pair detections whose top class labels match
+  bool detection_pairing_require_class_match;
+
+  /// If true, use greedy optimal assignment; otherwise simple sequential
+  bool detection_pairing_use_optimal_assignment;
+
+  /// Maximum fraction of full image area that the union of left and right crops
+  /// may occupy before DINO falls back to running on the full images. When the
+  /// epipolar regions are small relative to the image, cropping reduces the ViT
+  /// forward pass cost proportionally. Default 0.5 (50%).
+  double dino_crop_max_area_ratio;
+
+  /// DINO model name when epipolar_descriptor_type is 'dino'.
+  /// Supports DINOv3 (e.g., 'dinov3_vits16') and DINOv2 (e.g., 'dinov2_vitb14').
+  /// If DINOv3 weights are unavailable, automatically falls back to DINOv2.
+  std::string dino_model_name;
+
+  /// Minimum cosine similarity threshold for DINO matching (0.0 to 1.0).
+  /// With top-K + NCC mode (default), this is typically left at 0.
+  double dino_threshold;
+
+  /// Optional path to local DINO weights file. Empty string uses default URL.
+  std::string dino_weights_path;
+
+  /// Number of top DINO candidates to pass to NCC refinement.
+  /// The two-stage approach (DINO top-K + NCC) combines DINO's semantic
+  /// robustness with NCC's sub-pixel precision. Set to 0 to use DINO-only
+  /// matching without NCC refinement.
+  int dino_top_k;
 
   // -------------------------------------------------------------------------
   // Algorithm pointers (configured via nested algo configuration)
@@ -334,6 +485,9 @@ public:
                             bool use_census = false,
                             int epipolar_band = 0 );
 
+  /// Set epipolar template matching parameters
+  void set_epipolar_params( double min_depth, double max_depth, int num_samples );
+
   /// Set whether to use distortion coefficients
   void set_use_distortion( bool use_distortion );
 
@@ -342,6 +496,17 @@ public:
                            int min_ransac_inliers,
                            bool use_disparity_aware_search = false,
                            double feature_search_depth = 5.0 );
+
+  /// Set DINO matching parameters
+  void set_dino_params( const std::string& model_name, double threshold,
+                        const std::string& weights_path, int top_k,
+                        double crop_max_area_ratio );
+
+  /// Set the epipolar descriptor type ('ncc', 'ncc_strip', or 'dino')
+  void set_epipolar_descriptor_type( const std::string& descriptor_type );
+
+  /// Set the uniqueness ratio for NCC template matching
+  void set_uniqueness_ratio( double ratio );
 
   /// Set bounding box scale factor for creating detections from keypoints
   void set_box_scale_factor( double scale_factor );
@@ -375,7 +540,9 @@ public:
   /// Result structure for stereo correspondence finding
   struct stereo_correspondence_result
   {
-    bool success;
+    bool success;      ///< true if at least one keypoint matched
+    bool head_found;   ///< true if right head keypoint was found
+    bool tail_found;   ///< true if right tail keypoint was found
     kv::vector_2d left_head;
     kv::vector_2d left_tail;
     kv::vector_2d right_head;
@@ -384,7 +551,7 @@ public:
   };
 
   /// Find stereo correspondences using specified methods in order
-  /// Tries each method until one succeeds for both head and tail points
+  /// Tries each method until at least one keypoint is matched
   /// If external_disparity is provided and "external_disparity" method is used,
   /// it will be used to warp points from left to right image.
   stereo_correspondence_result find_stereo_correspondence(
@@ -455,9 +622,56 @@ public:
   /// Set the current frame ID for caching
   void set_frame_id( kv::frame_id_t frame_id );
 
+  /// Getter for the configured epipolar descriptor type
+  std::string epipolar_descriptor_type() const;
+
+  /// Pre-compute DINO crop regions from all keypoints that will be matched
+  /// this frame. Call once before the per-detection loop. If the union of
+  /// all epipolar regions is small enough (< dino_crop_max_area_ratio of
+  /// the full image), cropped subimages are prepared and cached so that
+  /// dino_set_images() runs on smaller inputs.
+  void precompute_dino_crops(
+    const kv::simple_camera_perspective& left_cam,
+    const kv::simple_camera_perspective& right_cam,
+    const std::vector< kv::vector_2d >& all_left_heads,
+    const std::vector< kv::vector_2d >& all_left_tails,
+    const kv::image_container_sptr& left_image,
+    const kv::image_container_sptr& right_image );
+
+  /// Clear cached DINO crop info (call after the per-detection loop)
+  void clear_dino_crop_info();
+
   /// Get the cached computed disparity map (if available)
   /// This returns the disparity map from the last compute_disparity method call
   kv::image_container_sptr get_cached_disparity() const;
+
+  /// Compute (and cache) a rectified-space disparity map for the current
+  /// frame using the configured stereo_disparity algorithm. Idempotent
+  /// while m_cached_compute_disparity is already populated; intended for
+  /// callers (e.g. detection_pairing methods) that need the disparity
+  /// before find_stereo_correspondence runs. Returns nullptr if no
+  /// stereo_disparity algorithm is configured or rectification fails.
+  kv::image_container_sptr compute_disparity_for_frame(
+    const kv::simple_camera_perspective& left_cam,
+    const kv::simple_camera_perspective& right_cam,
+    const kv::image_container_sptr& left_image,
+    const kv::image_container_sptr& right_image );
+
+  /// Refine a right-image keypoint using a rectified-space disparity map.
+  /// Rectifies the left point, samples the disparity (median over a
+  /// (2*search_window+1)^2 neighborhood), computes the corresponding right
+  /// point in rectified space (right_x = left_x - disparity), then
+  /// unrectifies back to original right image coordinates. If the
+  /// disparity is invalid at the queried location, returns
+  /// original_right_point unchanged. Requires rectification maps to be
+  /// computed (e.g. via a prior compute_disparity_for_frame call).
+  kv::vector_2d refine_right_point_with_disparity(
+    const kv::image_container_sptr& disparity_map,
+    const kv::vector_2d& left_point,
+    const kv::vector_2d& original_right_point,
+    const kv::simple_camera_perspective& right_cam,
+    int search_window = 7,
+    bool* refined = nullptr ) const;
 
   /// Get the cached rectified left image (if available)
   /// This returns the rectified left image from the last stereo processing call
@@ -506,6 +720,43 @@ public:
     kv::vector_2d& right_point_rect,
     const cv::Mat& disparity_map = cv::Mat() ) const;
 
+  /// Find corresponding point by template matching along an arbitrary epipolar line.
+  /// Works on unrectified images with epipolar points from any source.
+  /// Extracts a template from source_image around source_point and searches
+  /// for the best NCC match at each epipolar point in target_image.
+  /// Supports census transform via configured settings.
+  bool find_corresponding_point_epipolar_template_matching(
+    const cv::Mat& source_image,
+    const cv::Mat& target_image,
+    const kv::vector_2d& source_point,
+    const std::vector< kv::vector_2d >& epipolar_points,
+    kv::vector_2d& target_point ) const;
+
+  /// Find corresponding point along pre-computed epipolar candidates using
+  /// the configured descriptor type (ncc, ncc_strip, or dino+ncc).
+  /// Takes BGR images; derives grayscale internally when needed for NCC.
+  bool find_corresponding_point_epipolar(
+    const cv::Mat& source_bgr,
+    const cv::Mat& target_bgr,
+    const kv::vector_2d& source_point,
+    const std::vector< kv::vector_2d >& epipolar_points,
+    kv::vector_2d& target_point );
+
+  /// Find corresponding point using strip-based NCC along an epipolar curve.
+  /// Instead of scoring each candidate point individually, this method
+  /// computes the bounding box of all epipolar points, extracts a strip
+  /// subimage from the target, and runs cv::matchTemplate on the entire
+  /// strip at once (FFT-accelerated). The best match is snapped to the
+  /// nearest epipolar point for geometric consistency.
+  /// This is significantly faster than point-by-point NCC for large
+  /// candidate sets and does not require Python/DINO.
+  bool find_corresponding_point_epipolar_strip_ncc(
+    const cv::Mat& source_image,
+    const cv::Mat& target_image,
+    const kv::vector_2d& source_point,
+    const std::vector< kv::vector_2d >& epipolar_points,
+    kv::vector_2d& target_point ) const;
+
   /// Compute SGBM disparity map
   cv::Mat compute_sgbm_disparity(
     const cv::Mat& left_image_rect,
@@ -534,7 +785,8 @@ public:
   bool find_corresponding_point_external_disparity(
     const kv::image_container_sptr& disparity_image,
     const kv::vector_2d& left_point,
-    kv::vector_2d& right_point ) const;
+    kv::vector_2d& right_point,
+    int search_window = 0 ) const;
 
 private:
   // Configuration
@@ -548,6 +800,12 @@ private:
   int m_multires_coarse_step;
   bool m_use_census_transform;
   int m_epipolar_band_halfwidth;
+  double m_epipolar_min_depth;
+  double m_epipolar_max_depth;
+  double m_epipolar_min_disparity;
+  double m_epipolar_max_disparity;
+  int m_epipolar_num_samples;
+  std::string m_epipolar_descriptor_type;
   bool m_use_distortion;
   double m_feature_search_radius;
   double m_ransac_inlier_scale;
@@ -556,6 +814,16 @@ private:
   double m_box_min_aspect_ratio;
   bool m_use_disparity_aware_feature_search;
   double m_feature_search_depth;
+  double m_uniqueness_ratio;
+  std::string m_debug_epipolar_directory;
+  unsigned m_debug_frame_counter;
+
+  // DINO matching settings
+  std::string m_dino_model_name;
+  double m_dino_threshold;
+  std::string m_dino_weights_path;
+  int m_dino_top_k;
+  double m_dino_crop_max_area_ratio;
 
   // Feature algorithms
   kv::algo::detect_features_sptr m_feature_detector;
@@ -578,6 +846,18 @@ private:
   kv::frame_id_t m_cached_frame_id;
 
 #ifdef VIAME_ENABLE_OPENCV
+  // DINO full-image feature cache: when true, dino_set_images has already been
+  // called for the full (uncropped) images this frame and can be reused across
+  // keypoints and detections. Reset by clear_feature_cache() on each new frame.
+  bool m_dino_full_images_set;
+
+  // DINO crop state (computed per frame by precompute_dino_crops)
+  bool m_dino_crop_active;
+  cv::Rect m_dino_left_crop;
+  cv::Rect m_dino_right_crop;
+  cv::Mat m_dino_left_cropped;
+  cv::Mat m_dino_right_cropped;
+
   // Rectification maps
   bool m_rectification_computed;
   cv::Mat m_rectification_map_left_x;
@@ -588,6 +868,27 @@ private:
   // Rectification matrices for unrectifying points
   cv::Mat m_K1, m_K2, m_R1, m_R2, m_P1, m_P2, m_D1, m_D2;
 
+  // Template matching helpers
+  struct prepared_template
+  {
+    cv::Mat ncc_template;
+    cv::Mat census_template;
+    bool valid;
+    prepared_template() : valid( false ) {}
+  };
+
+  /// Prepare a source template for matching (bounds check + extraction + census)
+  /// Returns false if template can't be extracted (point too close to edge)
+  bool prepare_source_template(
+    const cv::Mat& source_image, int x, int y,
+    prepared_template& tmpl ) const;
+
+  /// Score a candidate point against a prepared template
+  /// Returns NCC-like score (higher is better, 0-1 range)
+  /// Returns -1.0 if the candidate point is too close to the image edge
+  double score_template_at_point(
+    const prepared_template& tmpl,
+    const cv::Mat& target_image, int x, int y ) const;
 
   // Cached stereo image data
   stereo_image_data m_cached_stereo_images;

@@ -16,7 +16,7 @@ def argsubmax(ydata, xdata=None):
         >>> xdata = [00, 10, 20,  30, 40]
         >>> result1 = argsubmax(ydata, xdata=None)
         >>> result2 = argsubmax(ydata, xdata=xdata)
-        >>> result = ub.repr2([result1, result2], precision=4, nl=1, nobr=1)
+        >>> result = ub.urepr([result1, result2], precision=4, nl=1, nobr=1)
         >>> print(result)
         (2.1667, 2.0208),
         (21.6667, 2.0208),
@@ -146,7 +146,7 @@ def _interpolate_submaxima(argmaxima, hist_, centers=None):
         >>> coeff_list = [np.polyfit(x123_, y123_, deg=2)
         >>>               for (x123_, y123_) in zip(x123.T, y123.T)]
         >>> res = (submaxima_x, submaxima_y)
-        >>> result = ub.repr2(res, nl=1, nobr=1, precision=2, with_dtype=True)
+        >>> result = ub.urepr(res, nl=1, nobr=1, precision=2, with_dtype=True)
         >>> print(result)
         >>> # xdoc: +REQUIRES(--show)
         >>> import kwplot

@@ -68,8 +68,22 @@ if( EXISTS ${OUTPUT_PYTHON_DIR}/torch_liberator )
   ReplaceStringInFile( ${OUTPUT_PYTHON_DIR}/torch_liberator/xpu_device.py
     "torch.load(fpath, map_location=xpu._map_location)"
     "torch.load(fpath, map_location=xpu._map_location, weights_only=False)" )
+  ReplaceStringInFile( ${OUTPUT_PYTHON_DIR}/torch_liberator/exporter.py
+    "ub.ensure_unicode(" "str(" )
 else()
   message( WARNING "Not patching ${OUTPUT_PYTHON_DIR}/torch_liberator" )
+endif()
+
+if( EXISTS ${OUTPUT_PYTHON_DIR}/liberator )
+  ReplaceStringInFile( ${OUTPUT_PYTHON_DIR}/liberator/core.py
+    "ub.ensure_unicode(" "str(" )
+endif()
+
+if( EXISTS ${OUTPUT_PYTHON_DIR}/kwplot )
+  ReplaceStringInFile( ${OUTPUT_PYTHON_DIR}/kwplot/mpl_core.py
+    "ub.ensure_unicode(" "str(" )
+  ReplaceStringInFile( ${OUTPUT_PYTHON_DIR}/kwplot/mpl_multiplot.py
+    "ub.ensure_unicode(" "str(" )
 endif()
 
 # Move any misinstalled darknet executables

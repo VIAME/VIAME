@@ -5,10 +5,17 @@
 # input with downsampler configuration. Outputs results to
 # sea_lion_detections.csv. Configured for sea lion survey imagery. Uses
 # YOLO-based detection.
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
+
+# Requirements: { Detection Scale (default 1.0), global:scale, double }
 
 config _pipeline:_edge
   :capacity                                    5
+
+config global
+  :scale                                       1.0
 
 # ============================= INPUT FRAME LIST ==============================
 
@@ -24,6 +31,7 @@ process detector
     :detector:type                             darknet
 
     :mode                                      chip
+    :scale                                     $CONFIG{global:scale}
     :chip_width                                640
     :chip_height                               640
     :chip_step_width                           520

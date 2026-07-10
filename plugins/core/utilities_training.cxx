@@ -10,6 +10,7 @@
 #include <sprokit/pipeline/process_exception.h>
 #include <sprokit/processes/adapters/adapter_types.h>
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -154,7 +155,8 @@ adjust_to_full_frame( const kv::detected_object_set_sptr dos,
 
 bool adjust_labels( kv::detected_object_set_sptr input,
                     kv::category_hierarchy_sptr cats_to_use,
-                    const std::unordered_set< std::string >& background )
+                    const std::unordered_set< std::string >& background,
+                    const std::unordered_set< std::string >& also_keep )
 {
   if( !input )
   {
@@ -166,7 +168,7 @@ bool adjust_labels( kv::detected_object_set_sptr input,
     std::unordered_set< std::string > frame_cats;
 
     // Remove detections not present in labels and use synonym table to update labels
-    input->filter( [&frame_cats, cats_to_use]( kv::detected_object_sptr& det )
+    input->filter( [&frame_cats, cats_to_use, &also_keep]( kv::detected_object_sptr& det )
     {
       if( !det || !det->type() )
       {
@@ -180,6 +182,12 @@ bool adjust_labels( kv::detected_object_set_sptr input,
 
       if( !cats_to_use->has_class_name( cat ) )
       {
+        // Keep hard negatives unmodified
+        if( also_keep.count( cat ) )
+        {
+          frame_cats.insert( cat );
+          return false;
+        }
         return true;
       }
 
@@ -242,13 +250,14 @@ bool adjust_labels( kv::detected_object_set_sptr input,
 std::vector< bool >
 adjust_labels( std::vector< kv::detected_object_set_sptr >& input,
                kv::category_hierarchy_sptr cats_to_use,
-               const std::unordered_set< std::string >& background )
+               const std::unordered_set< std::string >& background,
+               const std::unordered_set< std::string >& also_keep )
 {
   std::vector< bool > fg_mask;
 
   for( auto set : input )
   {
-    fg_mask.push_back( adjust_labels( set, cats_to_use, background ) );
+    fg_mask.push_back( adjust_labels( set, cats_to_use, background, also_keep ) );
   }
 
   return fg_mask;
@@ -468,15 +477,20 @@ extract_video_frames( const std::string& video_filename,
                       double frame_rate,
                       const std::string& output_directory,
                       bool skip_extract_if_exists,
-                      unsigned max_frame_count )
+                      unsigned max_frame_count,
+                      const std::string& reader_type,
+                      const std::string& output_subdir,
+                      bool preserve_bit_depth )
 {
   std::cout << "Extracting frames from " << video_filename
             << " at rate " << frame_rate << std::endl;
 
   std::vector< std::string > output;
 
-  std::string video_no_path = get_filename_no_path( video_filename );
-  std::string output_dir = append_path( output_directory, video_no_path );
+  std::string subdir =
+    ( output_subdir.empty() ? get_filename_no_path( video_filename )
+                            : output_subdir );
+  std::string output_dir = append_path( output_directory, subdir );
   std::string output_path = append_path( output_dir, "frame%06d.png" );
   std::string frame_rate_str = std::to_string( frame_rate );
 
@@ -502,14 +516,25 @@ extract_video_frames( const std::string& video_filename,
 
   cmd = cmd + " runner " + add_quotes( pipeline_filename ) + " ";
   cmd = cmd + "-s input:video_filename=" + add_quotes( video_filename ) + " ";
-  cmd = cmd + "-s input:video_reader:type=vidl_ffmpeg ";
+  cmd = cmd + "-s input:video_reader:type=" + reader_type + " ";
   cmd = cmd + "-s downsampler:target_frame_rate=" + frame_rate_str + " ";
   cmd = cmd + "-s image_writer:file_name_template=" + add_quotes( output_path ) + " ";
 
-  if( max_frame_count > 0 )
+  if( max_frame_count > 0 && reader_type == "vidl_ffmpeg" )
   {
     cmd = cmd + "-s input:video_reader:vidl_ffmpeg:stop_after_frame="
               + std::to_string( max_frame_count );
+  }
+
+  // Preserve the source bit depth: disable the image_list reader's force-to-byte
+  // so percentile-normalization and other bit-depth-sensitive augmentations see
+  // the raw 16-bit/float data.
+  if( preserve_bit_depth )
+  {
+    cmd = cmd + "-s input:video_reader:image_list:image_reader:vxl:"
+                "force_byte=false ";
+    cmd = cmd + "-s input:video_reader:image_list:image_reader:"
+                "add_timestamp_from_filename:image_reader:vxl:force_byte=false ";
   }
 
   if( !skip_extract_if_exists ||
@@ -520,6 +545,62 @@ extract_video_frames( const std::string& video_filename,
   }
 
   list_files_in_folder( output_dir, output );
+  return output;
+}
+
+std::vector< std::string >
+augment_image_sequence( const std::vector< std::string >& image_files,
+                        const std::string& pipeline_filename,
+                        const std::string& output_directory,
+                        const std::string& output_subdir,
+                        bool skip_if_exists,
+                        bool preserve_bit_depth )
+{
+  std::vector< std::string > output;
+
+  if( image_files.empty() )
+  {
+    return output;
+  }
+
+  std::string output_dir = append_path( output_directory, output_subdir );
+
+  if( skip_if_exists && does_folder_exist( output_dir ) &&
+      !folder_contains_less_than_n_files( output_dir, 3 ) )
+  {
+    list_files_in_folder( output_dir, output );
+    std::sort( output.begin(), output.end() );
+    return output;
+  }
+
+  // Keep the list file outside output_dir, which extract_video_frames wipes.
+  std::string list_file =
+    append_path( output_directory, output_subdir + "_input_list.txt" );
+
+  {
+    std::ofstream list_stream( list_file.c_str() );
+
+    if( !list_stream )
+    {
+      std::cout << "Error: Unable to write image list: " << list_file << std::endl;
+      return output;
+    }
+
+    for( unsigned i = 0; i < image_files.size(); ++i )
+    {
+      list_stream << image_files[i] << std::endl;
+    }
+  }
+
+  // No downsampling: one augmented frame per input, in order.
+  const double keep_all_rate = 1e9;
+
+  output = extract_video_frames( list_file, pipeline_filename, keep_all_rate,
+    output_directory, false, 0, "image_list", output_subdir, preserve_bit_depth );
+
+  filesystem::remove( list_file );
+
+  std::sort( output.begin(), output.end() );
   return output;
 }
 

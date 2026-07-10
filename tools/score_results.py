@@ -91,7 +91,7 @@ def float_to_str_safe( value ):
   except ValueError:
     print( "ValueError converting float value: " + value )
     return str( value )
-  except:
+  except Exception:
     print( "Unknown exception converting float value: " + value )
     return str( value )
 
@@ -102,7 +102,7 @@ def load_hierarchy( filename ):
     hierarchy = CategoryHierarchy()
     try:
       hierarchy.load_from_file( filename )
-    except:
+    except Exception:
       print_and_exit( "Unable to parse classes file: " + filename )
     return True
   else:
@@ -126,7 +126,7 @@ def safe_val( input_str ):
     if math.isnan( out ):
       return min_conf
     return out
-  except:
+  except Exception:
     return min_conf
 
 def neg_safe_val( input_str ):

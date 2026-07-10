@@ -24,7 +24,7 @@ import torch
 
 # Initialize cuDNN early at module import time to prevent
 # CUDNN_STATUS_SUBLIBRARY_LOADING_FAILED when running with other CUDA processes
-from viame.pytorch.utilities import init_cudnn
+from viame.pytorch.utilities import init_cudnn, report_cuda_errors
 init_cudnn()
 
 from timeit import default_timer as timer
@@ -228,6 +228,7 @@ class SRNNTracker(TrackObjects):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("SRNNTracker initialization")
     def set_configuration(self, cfg_in):
         from viame.pytorch.utilities import vital_config_update
         cfg = self.get_configuration()
@@ -324,6 +325,7 @@ class SRNNTracker(TrackObjects):
     def check_configuration(self, cfg):
         return True
 
+    @report_cuda_errors("SRNNTracker tracking")
     def track(self, ts, image, detections):
         """
         Track objects in the current frame.
@@ -507,6 +509,7 @@ class SRNNTracker(TrackObjects):
 
         logger.debug('total tracks %d', len(self._track_set))
 
+    @report_cuda_errors("SRNNTracker tracking")
     def initialize(self, ts, image, seed_detections):
         """Initialize tracking with optional seed detections."""
         self.reset()
@@ -516,6 +519,7 @@ class SRNNTracker(TrackObjects):
 
         return ObjectTrackSet([])
 
+    @report_cuda_errors("SRNNTracker finalization")
     def finalize(self):
         """
         Finalize tracking and return all tracks.

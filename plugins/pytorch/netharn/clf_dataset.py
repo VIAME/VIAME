@@ -26,7 +26,7 @@ class ClfDataset(torch_data.Dataset):
         >>> loader = self.make_loader(batch_size=8, shuffle=True, num_workers=0, num_batches=10)
         >>> for batch in ub.ProgIter(iter(loader), total=len(loader)):
         >>>     break
-        >>> print('batch = {}'.format(ub.repr2(batch, nl=1)))
+        >>> print('batch = {}'.format(ub.urepr(batch, nl=1)))
         >>> # xdoctest: +REQUIRES(--show)
         >>> import kwplot
         >>> kwplot.autompl()
@@ -83,10 +83,11 @@ class ClfDataset(torch_data.Dataset):
                 dim += int((rng.rand() * 0.2) * dim)
 
         tr['width'] = tr['height'] = dim
+        tr['legacy_target'] = False
         sample = self.sampler.load_sample(tr, with_annots=False)
 
         image = kwimage.atleast_3channels(sample['im'])[:, :, 0:3]
-        target = sample['tr']
+        target = sample['target']
 
         image = kwimage.ensure_uint255(image)
         if self.augmenter is not None and not self.disable_augmenter:

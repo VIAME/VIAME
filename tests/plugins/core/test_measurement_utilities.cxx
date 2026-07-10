@@ -689,3 +689,95 @@ TEST( measurement_utilities_furthest, find_furthest_apart_points_diagonal )
   EXPECT_NEAR( left_tail.x(), 100.0, 0.001 );
   EXPECT_NEAR( left_tail.y(), 100.0, 0.001 );
 }
+
+// =============================================================================
+// Full Stereo Measurement Tests
+//
+// compute_stereo_measurement backs the interactive stereo length feature
+// (it is exposed to Python via the viame.core._measurement bindings used by
+// the interactive_stereo service). These verify length, 3D midpoint, range,
+// and the RMS reprojection error.
+// =============================================================================
+
+TEST_F( measurement_utilities_test, compute_stereo_measurement_full )
+{
+  // Same geometry as compute_stereo_length_horizontal:
+  //   head = (0, 0, 1), tail = (0.1, 0, 1), 0.1m apart at 1m depth.
+  kv::vector_2d left_head( 640, 360 );
+  kv::vector_2d right_head( 540, 360 );
+  kv::vector_2d left_tail( 740, 360 );
+  kv::vector_2d right_tail( 640, 360 );
+
+  auto const m = viame::core::compute_stereo_measurement(
+    *left_cam, *right_cam, left_head, right_head, left_tail, right_tail );
+
+  EXPECT_TRUE( m.valid );
+  EXPECT_NEAR( m.length, 0.1, 0.01 );
+
+  // Midpoint at (0.05, 0, 1) in left-camera/world coordinates
+  EXPECT_NEAR( m.x, 0.05, 0.01 );
+  EXPECT_NEAR( m.y, 0.0, 0.01 );
+  EXPECT_NEAR( m.z, 1.0, 0.01 );
+
+  // Range = distance from the midpoint to the left camera center (origin)
+  EXPECT_NEAR( m.range, std::sqrt( 0.05 * 0.05 + 1.0 ), 0.01 );
+
+  // Exact correspondences => near-zero reprojection error
+  EXPECT_LT( m.rms, 0.5 );
+}
+
+TEST_F( measurement_utilities_test, compute_stereo_measurement_rms_flags_bad_match )
+{
+  // Shift one right point off the epipolar line (vertical error) so the rays
+  // no longer intersect; the RMS reprojection error should grow noticeably.
+  kv::vector_2d left_head( 640, 360 );
+  kv::vector_2d right_head( 540, 380 );  // +20px vertical mismatch
+  kv::vector_2d left_tail( 740, 360 );
+  kv::vector_2d right_tail( 640, 360 );
+
+  auto const m = viame::core::compute_stereo_measurement(
+    *left_cam, *right_cam, left_head, right_head, left_tail, right_tail );
+
+  EXPECT_TRUE( m.valid );
+  EXPECT_GT( m.rms, 1.0 );
+}
+
+// =============================================================================
+// Length Aggregation Tests
+//
+// aggregate_lengths is the shared helper used both by the pair_stereo_tracks
+// pipeline process and (via the _measurement bindings) by DIVE to recompute a
+// track's average length from its per-frame lengths.
+// =============================================================================
+
+TEST( measurement_utilities_static, aggregate_lengths_average )
+{
+  std::vector< double > lengths{ 1.0, 2.0, 3.0, 4.0, 5.0 };
+  EXPECT_NEAR( aggregate_lengths( lengths, "average" ), 3.0, 1e-9 );
+  // "average" is the default method
+  EXPECT_NEAR( aggregate_lengths( lengths ), 3.0, 1e-9 );
+}
+
+TEST( measurement_utilities_static, aggregate_lengths_median )
+{
+  EXPECT_NEAR(
+    aggregate_lengths( { 1.0, 2.0, 3.0, 4.0, 5.0 }, "median" ), 3.0, 1e-9 );
+  EXPECT_NEAR(
+    aggregate_lengths( { 1.0, 2.0, 3.0, 4.0 }, "median" ), 2.5, 1e-9 );
+}
+
+TEST( measurement_utilities_static, aggregate_lengths_average_iqr_trims_outlier )
+{
+  // 100 is an outlier and should be excluded from the IQR-trimmed mean
+  EXPECT_NEAR(
+    aggregate_lengths( { 1.0, 2.0, 3.0, 4.0, 100.0 }, "average_iqr" ), 2.5, 1e-9 );
+}
+
+TEST( measurement_utilities_static, aggregate_lengths_ignores_invalid_and_empty )
+{
+  // Non-positive lengths are ignored
+  EXPECT_NEAR( aggregate_lengths( { -1.0, 0.0, 4.0 }, "average" ), 4.0, 1e-9 );
+  // No valid lengths -> -1
+  EXPECT_LT( aggregate_lengths( {}, "average" ), 0.0 );
+  EXPECT_LT( aggregate_lengths( { -1.0, 0.0 }, "average" ), 0.0 );
+}

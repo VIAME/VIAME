@@ -60,7 +60,7 @@ class Conv2dDynamicSamePadding(nn.Conv2d, layers.AnalyticModule):
             >>> self = Conv2dDynamicSamePadding(2, 3, 5)
             >>> outputs = self.output_shape_for(inputs)
             >>> import ubelt as ub
-            >>> print(nh.util.align(ub.repr2(outputs.hidden, nl=-1), ':'))
+            >>> print(nh.util.align(ub.urepr(outputs.hidden, nl=-1), ':'))
         """
         hidden = _Hidden()
         x = inputs
@@ -130,7 +130,7 @@ class Conv2dStaticSamePadding(nn.Conv2d, layers.AnalyticModule):
             >>> self = Conv2dStaticSamePadding(2, 3, 5, image_size=[512, 512])
             >>> outputs = self.output_shape_for(inputs)
             >>> import ubelt as ub
-            >>> print(nh.util.align(ub.repr2(outputs.hidden, nl=-1), ':'))
+            >>> print(nh.util.align(ub.urepr(outputs.hidden, nl=-1), ':'))
         """
         hidden = _Hidden()
         x = inputs
@@ -251,7 +251,7 @@ class MBConvBlock(layers.AnalyticModule):
             >>> input_shape = inputs = (1, 32, 224, 224)
             >>> outputs = self.output_shape_for(input_shape)
             >>> import ubelt as ub
-            >>> print(nh.util.align(ub.repr2(outputs.hidden, nl=-1), ':'))
+            >>> print(nh.util.align(ub.urepr(outputs.hidden, nl=-1), ':'))
         """
         hidden = _Hidden()
 
@@ -355,8 +355,8 @@ class EfficientNet(layers.AnalyticModule):
         self.image_size = self._global_params._asdict()['image_size']
 
         # import ubelt as ub
-        # print(ub.repr2(self._global_params._asdict(), nl=-4))
-        # print(ub.repr2(self._global_params._asdict()))
+        # print(ub.urepr(self._global_params._asdict(), nl=-4))
+        # print(ub.urepr(self._global_params._asdict()))
 
         self._initkw = {
             'blocks_args': self._blocks_args,
@@ -475,14 +475,14 @@ class EfficientNet(layers.AnalyticModule):
             >>> inputs = (1, 3, 32, 32)
             >>> outputs = self.output_shape_for(inputs)
             >>> import ubelt as ub
-            >>> print(nh.util.align(ub.repr2(outputs.hidden.shallow(1), nl=-1), ':'))
+            >>> print(nh.util.align(ub.urepr(outputs.hidden.shallow(1), nl=-1), ':'))
 
-            >>> print(nh.util.align(ub.repr2(outputs.hidden['block_0'].shallow(2), nl=-1), ':'))
-            >>> print(nh.util.align(ub.repr2(outputs.hidden['block_1'].shallow(2), nl=-1), ':'))
-            >>> print(nh.util.align(ub.repr2(outputs.hidden['block_2'].shallow(2), nl=-1), ':'))
-            >>> print(nh.util.align(ub.repr2(outputs.hidden['block_3'].shallow(2), nl=-1), ':'))
-            >>> print(nh.util.align(ub.repr2(outputs.hidden['block_14'].shallow(2), nl=-1), ':'))
-            >>> print(nh.util.align(ub.repr2(outputs.hidden['block_15'].shallow(2), nl=-1), ':'))
+            >>> print(nh.util.align(ub.urepr(outputs.hidden['block_0'].shallow(2), nl=-1), ':'))
+            >>> print(nh.util.align(ub.urepr(outputs.hidden['block_1'].shallow(2), nl=-1), ':'))
+            >>> print(nh.util.align(ub.urepr(outputs.hidden['block_2'].shallow(2), nl=-1), ':'))
+            >>> print(nh.util.align(ub.urepr(outputs.hidden['block_3'].shallow(2), nl=-1), ':'))
+            >>> print(nh.util.align(ub.urepr(outputs.hidden['block_14'].shallow(2), nl=-1), ':'))
+            >>> print(nh.util.align(ub.urepr(outputs.hidden['block_15'].shallow(2), nl=-1), ':'))
 
             >>> self = EfficientNet.from_name('efficientnet-b7')
             >>> print('self.image_size = {!r}'.format(self.image_size))
@@ -501,7 +501,7 @@ class EfficientNet(layers.AnalyticModule):
             >>> self = EfficientNet.from_name('efficientnet-b7')
             >>> print('self.image_size = {!r}'.format(self.image_size))
             >>> outputs = self.output_shape_for(inputs)
-            >>> print(nh.util.align(ub.repr2(outputs.hidden.shallow(1), nl=-1), ':'))
+            >>> print(nh.util.align(ub.urepr(outputs.hidden.shallow(1), nl=-1), ':'))
 
             for name, layer in nh.util.trainable_layers(self, names=1):
                 if hasattr(layer, 'image_size'):
@@ -512,7 +512,7 @@ class EfficientNet(layers.AnalyticModule):
             >>> inputs = (1, 3, 224, 224)
             >>> self = EfficientNet.from_name('efficientnet-b0')
             >>> outputs = self.output_shape_for(inputs)
-            >>> print(nh.util.align(ub.repr2(outputs.hidden.shallow(1), nl=-1), ':'))
+            >>> print(nh.util.align(ub.urepr(outputs.hidden.shallow(1), nl=-1), ':'))
 
             for name, layer in nh.util.trainable_layers(self, names=1):
                 if hasattr(layer, 'image_size'):

@@ -2,7 +2,7 @@ import scriptconfig as scfg
 import numpy as np
 
 from kwiver.vital.algo import ImageObjectDetector
-from viame.pytorch.utilities import kwimage_to_kwiver_detections, vital_config_update
+from viame.pytorch.utilities import kwimage_to_kwiver_detections, vital_config_update, report_cuda_errors
 
 
 class HuggingFaceZeroShotDetectorConfig(scfg.DataConfig):
@@ -71,6 +71,7 @@ class HuggingFaceZeroShotDetector(ImageObjectDetector):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("HuggingFaceZeroShotDetector initialization")
     def set_configuration(self, cfg_in):
         from transformers import AutoProcessor, AutoModelForZeroShotObjectDetection
         cfg = self.get_configuration()
@@ -88,6 +89,7 @@ class HuggingFaceZeroShotDetector(ImageObjectDetector):
     def check_configuration(self, cfg):
         return True
 
+    @report_cuda_errors("HuggingFaceZeroShotDetector detection")
     def detect(self, image_data):
         from PIL import Image
         import torch

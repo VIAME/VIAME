@@ -58,7 +58,9 @@ def stabilize_many_images(
             for h, fd in zip(spatial_homogs, fds)
             if h is not None
         ], [[m[i] for i in valid] for m in spatial_matches])
-        temporal_homog = eh.step(val_features, val_descs)
+        val_image = next((img for img, h in zip(images, spatial_homogs)
+                          if h is not None), None)
+        temporal_homog = eh.step(val_features, val_descs, val_image)
         # Default unknown cameras to be the same as their neighbors
         output = list(fill_nones(h and compose_homographies(temporal_homog, h)
                                  for h in spatial_homogs))
@@ -167,7 +169,7 @@ def estimate_homography(
     frame_id = track_id = 0
     fts = kvt.FeatureTrackSet()
 
-    def step_fts(features, descriptors):
+    def step_fts(features, descriptors, image=None):
         """Update fts with the provided features and corresponding
         descriptors
 
@@ -194,23 +196,22 @@ def estimate_homography(
                 t.append(ts)
                 fts.insert(t)
         if close_loops is not None:
-            # CloseLoops.stitch technically requires the image data
-            # for its third argument, but none of the currently
-            # available implementations actually use it, so we don't
-            # bother trying to pass it here.  Also, the fourth
-            # argument, a mask, is supposed to be optional but the
-            # wrapping is imperfect.
+            # Some CloseLoops implementations (e.g.
+            # vxl_homography_guided) use the image argument.  Pass it
+            # through when available; if None, implementations should
+            # handle it gracefully.  The fourth argument, a mask, is
+            # supposed to be optional but the wrapping is imperfect.
             #
             # Also, at least some implementations mutate the
             # FeatureTrackSet, though fortunately this is irrelevant
             # to us since fts doesn't escape and is used linearly.
-            fts = close_loops(frame_id, fts, None, None)
+            fts = close_loops(frame_id, fts, image, None)
 
     output = None
     while True:
         print(frame_id)
-        features, descriptors = yield output
-        step_fts(features, descriptors)
+        features, descriptors, image = yield output
+        step_fts(features, descriptors, image)
         output = compute_ref_homography(frame_id, fts)
         frame_id += 1
 

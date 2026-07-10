@@ -1105,6 +1105,16 @@ class StereoCalibration(object):
         with open(cal_fpath, 'r') as f:
             data = json.load(f)
 
+        if 'R' not in data or 'T' not in data:
+            raise ValueError(
+                "Calibration file '{}' is missing extrinsic parameters "
+                "(R and/or T). Stereo matching requires both intrinsic and "
+                "extrinsic calibration. If this file was converted from "
+                "CamCAL format, re-run convert_cam_format.py with "
+                "'--extrinsics-mode derive' and provide a PtsCAL file, or "
+                "use calibrate_cameras.py with stereo images to compute "
+                "a full stereo calibration.".format(cal_fpath))
+
         # Convert rotation matrix to Rodrigues vector
         R = np.array(data['R']).reshape(3, 3)
         om = cv2.Rodrigues(R)[0].ravel()
@@ -1116,7 +1126,7 @@ class StereoCalibration(object):
         # Left camera intrinsics
         flat_dict['fc_left'] = np.array([data['fx_left'], data['fy_left']])
         flat_dict['cc_left'] = np.array([data['cx_left'], data['cy_left']])
-        flat_dict['alpha_c_left'] = np.array([0.0])  # JSON format doesn't include skew
+        flat_dict['alpha_c_left'] = np.array([data.get('skew_left', 0.0)])
         flat_dict['kc_left'] = np.array([
             data['k1_left'],
             data['k2_left'],
@@ -1128,7 +1138,7 @@ class StereoCalibration(object):
         # Right camera intrinsics
         flat_dict['fc_right'] = np.array([data['fx_right'], data['fy_right']])
         flat_dict['cc_right'] = np.array([data['cx_right'], data['cy_right']])
-        flat_dict['alpha_c_right'] = np.array([0.0])  # JSON format doesn't include skew
+        flat_dict['alpha_c_right'] = np.array([data.get('skew_right', 0.0)])
         flat_dict['kc_right'] = np.array([
             data['k1_right'],
             data['k2_right'],

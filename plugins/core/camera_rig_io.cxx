@@ -10,6 +10,9 @@
 #include <stdexcept>
 #include <vector>
 #include <regex>
+#include <cstdint>
+#include <cstring>
+#include <map>
 
 #include <vital/exceptions.h>
 #include <vital/internal/cereal/archives/json.hpp>
@@ -1078,6 +1081,329 @@ read_stereo_rig_npz( path_t const& FN )
 }
 #endif // VIAME_ENABLE_ZLIB
 
+// ============================================================================
+// MATLAB .mat (Level 5 / v7) reader
+//
+// Parses numeric variables from a MAT-file into name -> doubles, descending one
+// level into a struct (e.g. the Bouguet toolbox "Cal" struct). Handles the
+// uncompressed Level-5 layout and, when built with zlib, v7 miCOMPRESSED
+// elements. MAT v7.3 (HDF5) is not supported -- matching scipy.io.loadmat's
+// default behavior. Implemented by hand (like the .npz reader above) since
+// VIAME does not bundle libmatio.
+// ============================================================================
+namespace {
+
+enum mat_data_type {
+  MAT_miINT8 = 1, MAT_miUINT8 = 2, MAT_miINT16 = 3, MAT_miUINT16 = 4,
+  MAT_miINT32 = 5, MAT_miUINT32 = 6, MAT_miSINGLE = 7, MAT_miDOUBLE = 9,
+  MAT_miMATRIX = 14, MAT_miCOMPRESSED = 15
+};
+enum mat_array_class { MAT_mxSTRUCT_CLASS = 2, MAT_mxDOUBLE_CLASS = 6 };
+
+struct mat_reader
+{
+  unsigned char const* end;
+  bool swap;
+
+  uint16_t u16( unsigned char const* q ) const
+  {
+    uint16_t v; std::memcpy( &v, q, 2 );
+    return swap ? static_cast< uint16_t >( ( v >> 8 ) | ( v << 8 ) ) : v;
+  }
+  uint32_t u32( unsigned char const* q ) const
+  {
+    uint32_t v; std::memcpy( &v, q, 4 );
+    if( swap )
+    {
+      v = ( ( v >> 24 ) & 0xFF ) | ( ( v >> 8 ) & 0xFF00 ) |
+          ( ( v << 8 ) & 0xFF0000 ) | ( ( v << 24 ) & 0xFF000000 );
+    }
+    return v;
+  }
+  double f64( unsigned char const* q ) const
+  {
+    uint64_t v; std::memcpy( &v, q, 8 );
+    if( swap )
+    {
+      v = ( ( v & 0xFFULL ) << 56 ) | ( ( v & 0xFF00ULL ) << 40 ) |
+          ( ( v & 0xFF0000ULL ) << 24 ) | ( ( v & 0xFF000000ULL ) << 8 ) |
+          ( ( v >> 8 ) & 0xFF000000ULL ) | ( ( v >> 24 ) & 0xFF0000ULL ) |
+          ( ( v >> 40 ) & 0xFF00ULL ) | ( ( v >> 56 ) & 0xFFULL );
+    }
+    double d; std::memcpy( &d, &v, 8 ); return d;
+  }
+};
+
+struct mat_tag
+{
+  uint32_t type;
+  uint32_t nbytes;
+  unsigned char const* data;   // payload start
+  unsigned char const* next;   // next element (8-byte aligned)
+};
+
+bool read_mat_tag( mat_reader const& r, unsigned char const* pos, mat_tag& out )
+{
+  if( pos + 4 > r.end ) return false;
+  uint32_t const w = r.u32( pos );
+  uint32_t const hi = w >> 16;
+  if( hi != 0 )
+  {
+    // Small element format: type (low 16) | nbytes (high 16), data in next 4 B
+    out.type = w & 0xFFFF;
+    out.nbytes = hi;
+    out.data = pos + 4;
+    out.next = pos + 8;
+  }
+  else
+  {
+    if( pos + 8 > r.end ) return false;
+    out.type = w;
+    out.nbytes = r.u32( pos + 4 );
+    out.data = pos + 8;
+    out.next = pos + 8 + ( ( out.nbytes + 7u ) & ~7u );  // pad to 8 bytes
+  }
+  return out.data <= r.end;
+}
+
+std::vector< double >
+mat_extract_doubles( mat_reader const& r, mat_tag const& t )
+{
+  std::vector< double > out;
+  size_t n = 0;
+  switch( t.type )
+  {
+    case MAT_miDOUBLE:
+      n = t.nbytes / 8; out.resize( n );
+      for( size_t i = 0; i < n; ++i ) out[ i ] = r.f64( t.data + 8 * i );
+      break;
+    case MAT_miSINGLE:
+      n = t.nbytes / 4; out.resize( n );
+      for( size_t i = 0; i < n; ++i )
+      { uint32_t b = r.u32( t.data + 4 * i ); float f; std::memcpy( &f, &b, 4 ); out[ i ] = f; }
+      break;
+    case MAT_miINT32:
+      n = t.nbytes / 4; out.resize( n );
+      for( size_t i = 0; i < n; ++i ) out[ i ] = static_cast< int32_t >( r.u32( t.data + 4 * i ) );
+      break;
+    case MAT_miUINT32:
+      n = t.nbytes / 4; out.resize( n );
+      for( size_t i = 0; i < n; ++i ) out[ i ] = r.u32( t.data + 4 * i );
+      break;
+    case MAT_miINT16:
+      n = t.nbytes / 2; out.resize( n );
+      for( size_t i = 0; i < n; ++i ) out[ i ] = static_cast< int16_t >( r.u16( t.data + 2 * i ) );
+      break;
+    case MAT_miUINT16:
+      n = t.nbytes / 2; out.resize( n );
+      for( size_t i = 0; i < n; ++i ) out[ i ] = r.u16( t.data + 2 * i );
+      break;
+    case MAT_miUINT8:
+    case MAT_miINT8:
+      n = t.nbytes; out.resize( n );
+      for( size_t i = 0; i < n; ++i ) out[ i ] = t.data[ i ];
+      break;
+    default: break;
+  }
+  return out;
+}
+
+// Parse a miMATRIX element into result. For a struct, descends into its fields
+// (using the field names as keys). override_name keys a struct field's value.
+void
+mat_collect( mat_reader const& r, mat_tag const& mt,
+             std::map< std::string, std::vector< double > >& result,
+             std::string const& override_name )
+{
+  unsigned char const* p = mt.data;
+  unsigned char const* const matend = mt.data + mt.nbytes;
+
+  mat_tag flags; if( !read_mat_tag( r, p, flags ) ) return; p = flags.next;
+  uint32_t const cls = r.u32( flags.data ) & 0xFFu;
+
+  mat_tag dims; if( !read_mat_tag( r, p, dims ) ) return; p = dims.next;
+
+  mat_tag nm; if( !read_mat_tag( r, p, nm ) ) return; p = nm.next;
+  std::string const name = override_name.empty()
+    ? std::string( reinterpret_cast< char const* >( nm.data ), nm.nbytes )
+    : override_name;
+
+  if( cls == MAT_mxSTRUCT_CLASS )
+  {
+    mat_tag fnl; if( !read_mat_tag( r, p, fnl ) ) return; p = fnl.next;
+    int const maxlen = static_cast< int32_t >( r.u32( fnl.data ) );
+    mat_tag fns; if( !read_mat_tag( r, p, fns ) ) return; p = fns.next;
+    int const nfields = maxlen > 0
+      ? static_cast< int >( fns.nbytes / static_cast< uint32_t >( maxlen ) ) : 0;
+    std::vector< std::string > fnames;
+    for( int i = 0; i < nfields; ++i )
+    {
+      char const* s = reinterpret_cast< char const* >( fns.data ) + static_cast< size_t >( i ) * maxlen;
+      size_t len = 0;
+      while( len < static_cast< size_t >( maxlen ) && s[ len ] != '\0' ) ++len;
+      fnames.emplace_back( s, len );
+    }
+    for( int i = 0; i < nfields && p + 4 <= matend; ++i )
+    {
+      mat_tag ft; if( !read_mat_tag( r, p, ft ) ) break;
+      if( ft.type == MAT_miMATRIX ) mat_collect( r, ft, result, fnames[ i ] );
+      p = ft.next;
+    }
+  }
+  else  // numeric: real part is the next element
+  {
+    mat_tag pr; if( !read_mat_tag( r, p, pr ) ) return;
+    result[ name ] = mat_extract_doubles( r, pr );
+  }
+}
+
+#ifdef VIAME_ENABLE_ZLIB
+// Inflate a standard (zlib-header) stream of unknown output size.
+std::vector< unsigned char >
+inflate_zlib_stream( unsigned char const* data, size_t n )
+{
+  std::vector< unsigned char > out;
+  z_stream strm; std::memset( &strm, 0, sizeof( strm ) );
+  if( inflateInit( &strm ) != Z_OK ) return out;
+  strm.next_in = const_cast< Bytef* >( data );
+  strm.avail_in = static_cast< uInt >( n );
+  std::vector< unsigned char > chunk( 65536 );
+  int ret = Z_OK;
+  do
+  {
+    strm.next_out = chunk.data();
+    strm.avail_out = static_cast< uInt >( chunk.size() );
+    ret = inflate( &strm, Z_NO_FLUSH );
+    if( ret == Z_STREAM_ERROR || ret == Z_DATA_ERROR || ret == Z_MEM_ERROR )
+    {
+      inflateEnd( &strm ); return {};
+    }
+    out.insert( out.end(), chunk.data(), chunk.data() + ( chunk.size() - strm.avail_out ) );
+  }
+  while( ret != Z_STREAM_END && strm.avail_in > 0 );
+  inflateEnd( &strm );
+  return out;
+}
+#endif
+
+std::map< std::string, std::vector< double > >
+read_mat_doubles( path_t const& FN )
+{
+  std::map< std::string, std::vector< double > > result;
+  std::ifstream is( FN, std::ios::binary );
+  if( !is ) return result;
+  std::vector< unsigned char > buf(
+    ( std::istreambuf_iterator< char >( is ) ),
+    std::istreambuf_iterator< char >() );
+  if( buf.size() < 128 ) return result;
+
+  mat_reader r;
+  r.end = buf.data() + buf.size();
+  // Endian indicator at bytes 126-127: 'IM' => little-endian (no swap on x86).
+  r.swap = ( buf[ 126 ] == 'M' && buf[ 127 ] == 'I' );
+
+  unsigned char const* p = buf.data() + 128;
+  while( p + 8 <= r.end )
+  {
+    mat_tag t; if( !read_mat_tag( r, p, t ) ) break;
+    if( t.type == MAT_miMATRIX )
+    {
+      mat_collect( r, t, result, std::string() );
+      p = t.next;
+    }
+    else if( t.type == MAT_miCOMPRESSED )
+    {
+#ifdef VIAME_ENABLE_ZLIB
+      std::vector< unsigned char > dec = inflate_zlib_stream( t.data, t.nbytes );
+      if( dec.size() >= 8 )
+      {
+        mat_reader r2; r2.end = dec.data() + dec.size(); r2.swap = r.swap;
+        mat_tag t2;
+        if( read_mat_tag( r2, dec.data(), t2 ) && t2.type == MAT_miMATRIX )
+        {
+          mat_collect( r2, t2, result, std::string() );
+        }
+      }
+#endif
+      // Compressed elements are written without the 8-byte padding that other
+      // data elements use, so advance by the exact byte count.
+      p = t.data + t.nbytes;
+    }
+    else
+    {
+      p = t.next;
+    }
+  }
+  return result;
+}
+
+} // anonymous namespace
+
+camera_rig_stereo_sptr
+read_stereo_rig_mat( path_t const& FN )
+{
+  auto vars = read_mat_doubles( FN );
+  auto present = [&]( char const* k ) {
+    auto it = vars.find( k );
+    return it != vars.end() && !it->second.empty();
+  };
+
+  // Bouguet stereo calibration fields (flat, or flattened from a "Cal" struct)
+  if( !present( "om" ) || !present( "T" ) ||
+      !present( "fc_left" ) || !present( "cc_left" ) ||
+      !present( "fc_right" ) || !present( "cc_right" ) )
+  {
+    LOG_ERROR( logger,
+      "unable to read stereo rig from .mat (missing Bouguet fields "
+      "om/T/fc_*/cc_*): " + FN );
+    return camera_rig_stereo_sptr();
+  }
+
+  auto build_intrinsics =
+    [&]( char const* fc_key, char const* cc_key, char const* kc_key )
+    {
+      std::vector< double > const& fc = vars[ fc_key ];
+      std::vector< double > const& cc = vars[ cc_key ];
+      double const fx = fc[ 0 ];
+      double const fy = fc.size() > 1 ? fc[ 1 ] : fc[ 0 ];
+      double const cx = cc[ 0 ];
+      double const cy = cc.size() > 1 ? cc[ 1 ] : 0.0;
+      Eigen::VectorXd dist( 5 ); dist.setZero();
+      auto it = vars.find( kc_key );
+      if( it != vars.end() )
+      {
+        for( size_t i = 0; i < it->second.size() && i < 5; ++i )
+        {
+          dist[ static_cast< int >( i ) ] = it->second[ i ];
+        }
+      }
+      return intrinsics_builder( fx, fy, cx, cy, dist );
+    };
+
+  intrinsics_builder const il = build_intrinsics( "fc_left", "cc_left", "kc_left" );
+  intrinsics_builder const ir = build_intrinsics( "fc_right", "cc_right", "kc_right" );
+
+  vector_3d const center = { 0, 0, 0 };
+  camera_collection cams;
+  std::string const LEFT( "left" ), RIGHT( "right" );
+
+  cams[ LEFT ] = std::make_shared< simple_camera_perspective >(
+    center, rotation_d(), il.make_intrinsics() );
+
+  std::vector< double > const& om = vars[ "om" ];
+  std::vector< double > const& T = vars[ "T" ];
+  vector_3d const om_vec( om[ 0 ], om[ 1 ], om[ 2 ] );
+  rotation_d const rotation( om_vec );  // Rodrigues rotation-vector constructor
+  vector_3d const tv( T[ 0 ], T[ 1 ], T[ 2 ] );
+
+  auto camp = std::make_shared< simple_camera_perspective >(
+    center, rotation, ir.make_intrinsics() );
+  camp->set_translation( tv );
+  cams[ RIGHT ] = camp;
+
+  return std::make_shared< camera_rig_stereo >( cams[ LEFT ], cams[ RIGHT ] );
+}
+
 camera_rig_stereo_sptr
 read_stereo_rig( path_t const& FN )
 {
@@ -1095,6 +1421,10 @@ read_stereo_rig( path_t const& FN )
   else if ( ext == ".yml" || ext == ".yaml")
   {
     return read_stereo_rig_yaml(FN);
+  }
+  else if ( ext == ".mat" )
+  {
+    return read_stereo_rig_mat(FN);
   }
 #ifdef VIAME_ENABLE_ZLIB
   else if ( ext == ".npz" )

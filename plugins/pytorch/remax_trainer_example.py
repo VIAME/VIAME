@@ -20,6 +20,7 @@ from kwiver.vital.algo import TrainDetector
 from viame.pytorch.remax.util.coco import CocoDetection
 
 from viame.pytorch.remax.ReMax import ReMax
+from viame.pytorch.utilities import report_cuda_errors
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse'])
 
@@ -92,6 +93,7 @@ class ReMaxMMDetTrainer( TrainDetector ):
             cfg.set_value(opt.config, str(getattr(self, opt.attr)))
         return cfg
 
+    @report_cuda_errors("ReMaxMMDetTrainer initialization")
     def set_configuration(self, cfg_in):
         """
         Loads in MMDet model config and initialized mmdet model.
@@ -289,6 +291,7 @@ class ReMaxMMDetTrainer( TrainDetector ):
             train_data = torch.save(train_data, self._feature_cache)
         return train_data
     
+    @report_cuda_errors("ReMaxMMDetTrainer training")
     def update_model( self ):
         dataset_train = self.build_dataset()
         self._debug_mode = False

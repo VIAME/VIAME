@@ -16,6 +16,7 @@ import numpy as np
 import math
 import delayed_image
 from viame.pytorch.utilities import (
+    report_cuda_errors,
     vital_config_update, vital_to_kwimage_box,
     mask_to_polygon, box_from_mask, image_to_rgb_numpy, get_autocast_context
 )
@@ -95,6 +96,13 @@ class Sam2Refiner(RefineDetections):
             'overwrite_existing': 'True',
             'hole_policy': 'allow',  # can be allow or discard
             'multipolygon_policy': 'allow',  # can be allow, convex_hull, or largest
+            # On a box-prompt mask that is empty/degenerate, retry that
+            # detection with a foreground point prompt at the box center.
+            'second_pass_on_failure': 'True',
+            'second_pass_min_pixels': '10',
+            'second_pass_window': '1024',
+            # Max boxes per SAM2 predict call (bounds GPU memory on dense chips).
+            'predict_batch': '48',
         }
 
         # netharn variables
@@ -108,6 +116,7 @@ class Sam2Refiner(RefineDetections):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("SAM2 detection refiner initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)
@@ -130,6 +139,13 @@ class Sam2Refiner(RefineDetections):
         )
         self.predictor = SAM2ImagePredictor(model)
         self.overwrite_existing = strtobool(self._kwiver_config['overwrite_existing'])
+        self.second_pass_on_failure = strtobool(
+            self._kwiver_config['second_pass_on_failure'])
+        self.second_pass_min_pixels = int(
+            self._kwiver_config['second_pass_min_pixels'])
+        self.second_pass_window = int(
+            self._kwiver_config['second_pass_window'])
+        self.predict_batch = int(self._kwiver_config['predict_batch'])
         return True
 
     def check_configuration(self, cfg):
@@ -140,6 +156,7 @@ class Sam2Refiner(RefineDetections):
             return False
         return True
 
+    @report_cuda_errors("SAM2 detection refinement")
     def refine(self, image_data, detections) -> DetectedObjectSet:
         """
         Args:
@@ -173,20 +190,84 @@ class Sam2Refiner(RefineDetections):
         kw_dets: kwimage.Detections = vital_detections_to_kwimage(detections)
 
         # TODO: can use more than boxes as prompts
-        prompts = {}
-        prompts['box'] = kw_dets.boxes.toformat('xyxy').data
-        prompts['multimask_output'] = False
+        det_list = list(detections)
+        boxes_xyxy = np.asarray(kw_dets.boxes.toformat('xyxy').data)
 
+        # Predict in box batches. Dense chips can contain hundreds of boxes; a
+        # single predict over all of them allocates per-box full-resolution
+        # masks and can exhaust GPU memory (segfault) after a few frames. Batch
+        # to keep peak GPU memory bounded regardless of detection density.
+        batch = self.predict_batch
+        mask_batches = []
         with torch.inference_mode(), autocast_context:
             predictor.set_image(imdata)
-            masks, scores, lowres_masks = predictor.predict(**prompts)
-            masks = masks.astype(np.uint8)
+            for b0 in range(0, len(boxes_xyxy), batch):
+                bxs = boxes_xyxy[b0:b0 + batch]
+                m, _scores, _lr = predictor.predict(
+                    box=bxs, multimask_output=False)
+                m = m.astype(np.uint8)
+                if len(m.shape) == 3:
+                    m = m[None, :, :, :]
+                mask_batches.append(m)
+        masks = np.concatenate(mask_batches, axis=0) if mask_batches \
+            else np.zeros((0, 1) + imdata.shape[:2], dtype=np.uint8)
 
-        FIX_SQUEEZE_ISSUE = True
-        if FIX_SQUEEZE_ISSUE:
-            # Dont squeeze singleton dimensions, it breaks loop logic :'(
-            if len(masks.shape) == 3:
-                masks = masks[None, :, :, :]
+        # Fallback (optional, configurable): SAM2 sometimes returns an empty or
+        # degenerate (a few pixels) mask for a box prompt. For those detections
+        # only, retry with a foreground point prompt at the box center (combined
+        # with the box) to recover a usable mask.
+        import cv2
+
+        def _box_mask_failed(binmask, vital_det):
+            # A box-prompt result "failed" if its mask within the box is empty,
+            # too small, or so thin it cannot form a (>=3 point) polygon.
+            box = vital_to_kwimage_box(vital_det.bounding_box)
+            sl = box.quantize().to_slice()
+            sub = delayed_image.DelayedIdentity(binmask).crop(
+                sl, clip=False, wrap=False).finalize()
+            sub = np.ascontiguousarray(
+                (np.asarray(sub).reshape(sub.shape[:2]) > 0).astype(np.uint8))
+            if int(sub.sum()) < self.second_pass_min_pixels:
+                return True
+            cnts, _ = cv2.findContours(
+                sub, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            if not cnts:
+                return True
+            return len(max(cnts, key=cv2.contourArea)) < 3
+
+        retry = []
+        if self.second_pass_on_failure:
+            retry = [i for i, vd in enumerate(det_list)
+                     if _box_mask_failed(masks[i, 0], vd)]
+        if retry:
+            # Re-segment each failed box on a smaller, full-resolution window
+            # centered on it (a small object is under-resolved in a large chip).
+            # Use a center point prompt + box, take the largest multimask output.
+            ih, iw = imdata.shape[:2]
+            win = self.second_pass_window
+            for i in retry:
+                x0, y0, x1, y1 = boxes_xyxy[i]
+                cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+                wx0 = int(max(0, min(iw - 1, cx - win / 2)))
+                wy0 = int(max(0, min(ih - 1, cy - win / 2)))
+                wx1 = int(min(iw, wx0 + win))
+                wy1 = int(min(ih, wy0 + win))
+                sub = np.ascontiguousarray(imdata[wy0:wy1, wx0:wx1])
+                lb = np.array([[x0 - wx0, y0 - wy0, x1 - wx0, y1 - wy0]],
+                              dtype=np.float32)
+                pc = np.array([[[cx - wx0, cy - wy0]]], dtype=np.float32)
+                pl = np.ones((1, 1), dtype=np.int32)
+                with torch.inference_mode(), autocast_context:
+                    predictor.set_image(sub)
+                    mm, _, _ = predictor.predict(
+                        point_coords=pc, point_labels=pl, box=lb,
+                        multimask_output=True)
+                mm = mm.astype(np.uint8)
+                mm = mm.reshape(-1, sub.shape[0], sub.shape[1])
+                best = mm[int(np.argmax([m.sum() for m in mm]))]
+                full = np.zeros(masks.shape[2:], dtype=np.uint8)
+                full[wy0:wy1, wx0:wx1] = best
+                masks[i, 0] = full
 
         hole_policy = self._kwiver_config['hole_policy']
         mpoly_policy = self._kwiver_config['multipolygon_policy']
@@ -203,12 +284,9 @@ class Sam2Refiner(RefineDetections):
             (hole_policy == 'allow') and
             (mpoly_policy == 'allow')
         )
-        print(f'hole_policy={hole_policy}')
-        print(f'mpoly_policy={mpoly_policy}')
-
         # Insert modified detections into a new DetectedObjectSet
         output = DetectedObjectSet()
-        for vital_det, binmask in zip(detections, masks[:, 0, :, :]):
+        for vital_det, binmask in zip(det_list, masks[:, 0, :, :]):
 
             # Extract the new mask info relative to the vital box
             box = vital_to_kwimage_box(vital_det.bounding_box)
@@ -244,6 +322,20 @@ class Sam2Refiner(RefineDetections):
             if vital_det.mask is None or self.overwrite_existing:
                 vital_det.mask = vital_image_container_from_ndarray(relative_submask)
             output.add(vital_det)
+
+        # Release per-frame GPU/CPU state so it does not accumulate across a long
+        # image sequence (SAM2 stores image features on the predictor).
+        try:
+            predictor.reset_predictor()
+        except Exception:
+            pass
+        try:
+            import gc
+            del masks
+            gc.collect()
+            torch.cuda.empty_cache()
+        except Exception:
+            pass
 
         return output
 
@@ -284,10 +376,18 @@ class Sam2TrackRefiner(RefineTracks):
             'adjust_boxes': 'True',
             'output_type': 'polygon',
             'polygon_simplification': '0.01',
+            # Cross-frame tracking: propagate seed boxes to subsequent frames
+            'track_new_objects': 'True',
+            'lost_track_frames': '10',
         }
 
         self.predictor = None
         self._next_track_id = 1
+
+        # Cross-frame tracking state for seed detections.
+        # Maps track_id -> { 'last_box': [...], 'class_name': str,
+        #                     'lost': int, 'history': [ObjectTrackState, ...] }
+        self._tracked_objects = {}
 
     def get_configuration(self):
         """Get the algorithm configuration."""
@@ -296,6 +396,7 @@ class Sam2TrackRefiner(RefineTracks):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("SAM2 track refiner initialization")
     def set_configuration(self, cfg_in):
         """Set the algorithm configuration and initialize models."""
         cfg = self.get_configuration()
@@ -327,6 +428,8 @@ class Sam2TrackRefiner(RefineTracks):
         self._polygon_simplification = float(self._kwiver_config['polygon_simplification'])
         self._hole_policy = self._kwiver_config['hole_policy']
         self._mpoly_policy = self._kwiver_config['multipolygon_policy']
+        self._track_new_objects = strtobool(self._kwiver_config['track_new_objects'])
+        self._lost_track_frames = int(self._kwiver_config['lost_track_frames'])
 
         return True
 
@@ -340,9 +443,15 @@ class Sam2TrackRefiner(RefineTracks):
             return False
         return True
 
+    @report_cuda_errors("SAM2 track refinement")
     def refine(self, ts, image_data, tracks):
         """
         Refine tracks for the current frame.
+
+        When ``track_new_objects`` is enabled (the default), seed detections
+        (single-state tracks appearing on one frame) are propagated to
+        subsequent frames by re-segmenting their last known box, producing
+        multi-frame tracks with masks.
 
         Args:
             ts: Timestamp for the current frame
@@ -362,75 +471,153 @@ class Sam2TrackRefiner(RefineTracks):
         # Convert image to numpy RGB
         img_np = image_to_rgb_numpy(image_data)
 
-        # Extract current frame's track states
+        # Extract current frame's track states from the input track set
         track_states = {}  # track_id -> (track, state, detection)
         max_track_id = 0
 
         for track in tracks.tracks():
-            track_id = track.id()
+            track_id = track.id
             max_track_id = max(max_track_id, track_id)
 
             for state in track:
-                if state.frame() == frame_id:
+                if state.frame_id == frame_id:
                     detection = state.detection()
                     track_states[track_id] = (track, state, detection)
                     break
 
         # Update next track ID to be higher than any existing
         self._next_track_id = max(self._next_track_id, max_track_id + 1)
+        for tid in self._tracked_objects:
+            self._next_track_id = max(self._next_track_id, tid + 1)
 
+        # -----------------------------------------------------------------
         # Collect boxes for segmentation
+        # -----------------------------------------------------------------
         boxes_to_segment = []
-        box_sources = []  # track_id
+        # Each source entry: ('input', tid) | ('propagated', tid)
+        box_sources = []
 
+        # 1) Input-track boxes present on this frame
         for tid, (track, state, det) in track_states.items():
             bbox = det.bounding_box
             box = [bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()]
             boxes_to_segment.append(box)
-            box_sources.append(tid)
+            box_sources.append(('input', tid))
 
+        # 2) Tracked objects from previous frames whose box we propagate
+        if self._track_new_objects:
+            for tid, tdata in self._tracked_objects.items():
+                if tid not in track_states:
+                    boxes_to_segment.append(list(tdata['last_box']))
+                    box_sources.append(('propagated', tid))
+
+        # -----------------------------------------------------------------
         # Segment all boxes with SAM2
+        # -----------------------------------------------------------------
         if len(boxes_to_segment) > 0:
             masks = self._segment_with_sam2(img_np, boxes_to_segment)
         else:
             masks = []
 
+        # -----------------------------------------------------------------
         # Process results and build output tracks
+        # -----------------------------------------------------------------
         output_tracks = []
         processed_track_ids = set()
+        seen_tracked_ids = set()
 
-        for i, (mask, tid) in enumerate(zip(masks, box_sources)):
+        for i, (mask, source) in enumerate(zip(masks, box_sources)):
             mask_area = np.sum(mask)
+            source_type, tid = source
 
             # Filter by minimum mask area
             if self._filter_by_quality and mask_area < self._min_mask_area:
-                processed_track_ids.add(tid)
+                if source_type == 'input':
+                    processed_track_ids.add(tid)
                 continue
 
-            track, old_state, old_det = track_states[tid]
-            processed_track_ids.add(tid)
+            if source_type == 'input':
+                # Refine an existing input track detection
+                track, old_state, old_det = track_states[tid]
+                processed_track_ids.add(tid)
 
-            # Create refined detection
-            new_det = self._create_refined_detection(old_det, mask)
+                new_det = self._create_refined_detection(old_det, mask)
+                new_state = ObjectTrackState(ts, new_det)
 
-            # Create new track state
-            new_state = ObjectTrackState(ts, new_det.bounding_box,
-                                        new_det.confidence, new_det)
+                # Rebuild track with the refined state for this frame
+                new_history = []
+                for state in track:
+                    if state.frame_id == frame_id:
+                        new_history.append(new_state)
+                    else:
+                        new_history.append(state)
 
-            # Rebuild track with new state for this frame
-            new_history = []
-            for state in track:
-                if state.frame() == frame_id:
-                    new_history.append(new_state)
-                else:
-                    new_history.append(state)
+                new_track = Track(tid, new_history)
+                output_tracks.append(new_track)
 
-            new_track = Track(tid, new_history)
-            output_tracks.append(new_track)
+                # If tracking is enabled, register/update this as a tracked
+                # object so its box is propagated to future frames
+                if self._track_new_objects:
+                    bbox = new_det.bounding_box
+                    new_box = [bbox.min_x(), bbox.min_y(),
+                               bbox.max_x(), bbox.max_y()]
+                    class_name = ''
+                    try:
+                        class_name = old_det.type.get_most_likely_class()
+                    except Exception:
+                        pass
+                    if tid in self._tracked_objects:
+                        self._tracked_objects[tid]['last_box'] = new_box
+                        self._tracked_objects[tid]['lost'] = 0
+                        self._tracked_objects[tid]['history'].append(new_state)
+                    else:
+                        self._tracked_objects[tid] = {
+                            'class_name': class_name,
+                            'last_box': new_box,
+                            'lost': 0,
+                            'history': [new_state],
+                        }
+                    seen_tracked_ids.add(tid)
 
-        # Include tracks that have no state for current frame (preserve history)
+            else:
+                # Propagated tracked object — add a new state on this frame
+                seen_tracked_ids.add(tid)
+                tdata = self._tracked_objects[tid]
+
+                new_det = self._create_propagated_detection(
+                    mask, boxes_to_segment[i], tdata['class_name']
+                )
+                if new_det is None:
+                    continue
+
+                new_state = ObjectTrackState(ts, new_det)
+                tdata['history'].append(new_state)
+                bbox = new_det.bounding_box
+                tdata['last_box'] = [bbox.min_x(), bbox.min_y(),
+                                     bbox.max_x(), bbox.max_y()]
+                tdata['lost'] = 0
+
+        # -----------------------------------------------------------------
+        # Update lost counts and emit tracked-object tracks
+        # -----------------------------------------------------------------
+        if self._track_new_objects:
+            expired = []
+            for tid, tdata in self._tracked_objects.items():
+                if tid not in seen_tracked_ids:
+                    tdata['lost'] += 1
+                if tdata['lost'] > self._lost_track_frames:
+                    expired.append(tid)
+
+            for tid, tdata in self._tracked_objects.items():
+                if tid not in processed_track_ids and len(tdata['history']) > 0:
+                    output_tracks.append(Track(tid, list(tdata['history'])))
+
+            for tid in expired:
+                del self._tracked_objects[tid]
+
+        # Include input tracks with no state on this frame (preserve history)
         for track in tracks.tracks():
-            tid = track.id()
+            tid = track.id
             if tid not in processed_track_ids and tid not in track_states:
                 output_tracks.append(track)
 
@@ -469,6 +656,48 @@ class Sam2TrackRefiner(RefineTracks):
 
         return [masks[i, 0] for i in range(len(boxes))]
 
+    def _create_propagated_detection(self, mask, det_box, class_name):
+        """
+        Create a detection from a propagated mask (no prior detection).
+
+        Args:
+            mask: Binary mask from SAM2
+            det_box: [x1, y1, x2, y2] bounding box used for segmentation
+            class_name: Classification label
+
+        Returns:
+            DetectedObject or None if mask is invalid
+        """
+        if self._adjust_boxes:
+            bbox = box_from_mask(mask)
+            if bbox is None:
+                return None
+        else:
+            bbox = BoundingBoxD(det_box[0], det_box[1], det_box[2], det_box[3])
+
+        dot = DetectedObjectType(class_name, 1.0) if class_name else None
+        det = DetectedObject(bbox, 1.0, dot) if dot else DetectedObject(bbox, 1.0)
+
+        if self._output_type in ('polygon', 'both'):
+            binary_mask = (mask > 0.5).astype(np.uint8) if mask.dtype != np.uint8 else mask
+            poly_pts = mask_to_polygon(binary_mask, self._polygon_simplification)
+            if poly_pts is not None:
+                det.set_flattened_polygon(poly_pts)
+
+        if self.overwrite_existing:
+            x1, y1 = int(bbox.min_x()), int(bbox.min_y())
+            x2, y2 = int(bbox.max_x()), int(bbox.max_y())
+            h, w = mask.shape
+            x1 = max(0, min(x1, w - 1))
+            x2 = max(x1 + 1, min(x2, w))
+            y1 = max(0, min(y1, h - 1))
+            y2 = max(y1 + 1, min(y2, h))
+            relative_mask = mask[y1:y2, x1:x2].astype(np.uint8)
+            if relative_mask.size > 0:
+                det.mask = vital_image_container_from_ndarray(relative_mask)
+
+        return det
+
     def _create_refined_detection(self, old_det, mask):
         """
         Create a refined detection from an existing detection and new mask.
@@ -497,9 +726,10 @@ class Sam2TrackRefiner(RefineTracks):
 
         # Add polygon
         if self._output_type in ('polygon', 'both'):
-            polygon = mask_to_polygon(mask, self._polygon_simplification)
-            if polygon is not None:
-                new_det.set_polygon(polygon)
+            binary_mask = (mask > 0.5).astype(np.uint8) if mask.dtype != np.uint8 else mask
+            poly_pts = mask_to_polygon(binary_mask, self._polygon_simplification)
+            if poly_pts is not None:
+                new_det.set_flattened_polygon(poly_pts)
 
         # Add mask (relative to bounding box)
         if self.overwrite_existing or old_det.mask is None:

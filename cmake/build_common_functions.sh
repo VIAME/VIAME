@@ -286,22 +286,66 @@ install_system_deps() {
 setup_gcc_toolset() {
   local toolset_version="${1:-11}"
 
-  # Only applicable for RHEL-based systems
-  if [ ! -f /etc/redhat-release ]; then
-    echo "Not a RHEL-based system, skipping gcc-toolset setup"
+  # RHEL-based systems: use Software Collections gcc-toolset
+  if [ -f /etc/redhat-release ]; then
+    if grep -q "release 8" /etc/redhat-release 2>/dev/null; then
+      echo "Rocky/CentOS 8 detected, installing gcc-toolset-${toolset_version}..."
+      yum install -y "gcc-toolset-${toolset_version}"
+      source "/opt/rh/gcc-toolset-${toolset_version}/enable"
+      echo "GCC toolset ${toolset_version} enabled"
+      gcc --version
+    else
+      echo "Rocky/CentOS 9+ detected, using default GCC..."
+      gcc --version
+    fi
     return 0
   fi
 
-  if grep -q "release 8" /etc/redhat-release 2>/dev/null; then
-    echo "Rocky/CentOS 8 detected, installing gcc-toolset-${toolset_version}..."
-    yum install -y "gcc-toolset-${toolset_version}"
-    source "/opt/rh/gcc-toolset-${toolset_version}/enable"
-    echo "GCC toolset ${toolset_version} enabled"
+  # Debian/Ubuntu: stock GCC (e.g. 9.x on 20.04) is too old for the PyTorch
+  # source build (needs >= 11.3). Pull gcc-${toolset_version} from the
+  # ubuntu-toolchain-r/test PPA and make it the default via update-alternatives
+  # so CMake's default compiler detection picks it up.
+  if [ -f /etc/debian_version ]; then
+    echo "Debian/Ubuntu detected, installing gcc/g++/gfortran-${toolset_version}..."
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y software-properties-common
+    add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    apt-get update
+    # gfortran must match gcc: OpenBLAS (and other Fortran deps) link with the gcc
+    # driver, which only finds libgfortran in the toolchain it ships with. Mixing
+    # gcc-13 with the stock gfortran-9 breaks linking with "cannot find -lgfortran".
+    apt-get install -y "gcc-${toolset_version}" "g++-${toolset_version}" "gfortran-${toolset_version}"
+    update-alternatives --install /usr/bin/gcc gcc "/usr/bin/gcc-${toolset_version}" 110 \
+      --slave /usr/bin/g++ g++ "/usr/bin/g++-${toolset_version}" \
+      --slave /usr/bin/gfortran gfortran "/usr/bin/gfortran-${toolset_version}"
+    update-alternatives --set gcc "/usr/bin/gcc-${toolset_version}"
+    echo "GCC ${toolset_version} (with gfortran) enabled"
     gcc --version
-  else
-    echo "Rocky/CentOS 9+ detected, using default GCC..."
-    gcc --version
+    gfortran --version
+
+    # Modern GCC emits newer ISA (e.g. AVX512-FP16 in PyTorch/XNNPACK) that the
+    # system assembler must understand. Unlike Rocky's gcc-toolset (which bundles
+    # a matching binutils), the PPA gcc uses the distro assembler -- Ubuntu 20.04's
+    # binutils 2.34 rejects these ("no such instruction: vfmadd231ph"). Build a
+    # modern binutils if the current assembler is too old.
+    if ! echo "vfmadd231ph %zmm0,%zmm4,%zmm1" | as -o /dev/null - >/dev/null 2>&1; then
+      local binutils_version="2.42"
+      echo "System assembler too old for modern GCC ISA; building binutils ${binutils_version}..."
+      ( cd /tmp \
+        && wget -q "https://ftp.gnu.org/gnu/binutils/binutils-${binutils_version}.tar.xz" \
+        && tar xf "binutils-${binutils_version}.tar.xz" \
+        && cd "binutils-${binutils_version}" \
+        && ./configure --prefix=/usr --disable-nls --disable-werror --enable-gold --enable-ld=default \
+        && make -j"$(nproc)" \
+        && make install )
+      as --version | head -1
+    fi
+    return 0
   fi
+
+  echo "Unknown distribution, skipping gcc-toolset setup; using default GCC"
+  gcc --version
 }
 
 # ==============================================================================
@@ -321,54 +365,45 @@ upgrade_pip_setuptools() {
 
   if [ -n "$pip_target" ]; then
     # Install to target directory (pip itself can't be upgraded to a target, skip it)
-    # Upgrade setuptools to a version compatible with Python 3.12+
-    # setuptools >= 67.0.0 removed pkg_resources.ImpImporter usage
-    # wheel >= 0.45.0 requires setuptools >= 70.1 for bdist_wheel compatibility
-    "$python_exec" -m pip install --target "$pip_target" --upgrade "setuptools>=75.3.0" "wheel>=0.45.0" 2>/dev/null || true
+    # Cap at <76 because 76.0 removed pkg_resources.get_distribution/DistributionNotFound
+    # which breaks builds of imgaug, mmcv, and other third-party packages
+    "$python_exec" -m pip install --target "$pip_target" --upgrade "setuptools<76" "wheel" 2>/dev/null || true
   else
     # System-wide upgrade (for Docker/container builds)
     # Upgrade pip first
     "$python_exec" -m pip install --upgrade pip 2>/dev/null || true
 
-    # Upgrade setuptools to a version compatible with Python 3.12+
-    # setuptools >= 67.0.0 removed pkg_resources.ImpImporter usage
-    # wheel >= 0.45.0 requires setuptools >= 70.1 for bdist_wheel compatibility
-    "$python_exec" -m pip install --upgrade "setuptools>=75.3.0" "wheel>=0.45.0" 2>/dev/null || true
+    # Cap at <76 because 76.0 removed pkg_resources.get_distribution/DistributionNotFound
+    # which breaks builds of imgaug, mmcv, and other third-party packages
+    "$python_exec" -m pip install --upgrade "setuptools<76" "wheel" 2>/dev/null || true
   fi
 
   echo "pip and setuptools upgrade complete"
 }
 
 # ==============================================================================
-# NODE.JS AND YARN INSTALLATION (for DIVE desktop builds)
+# NODE.JS INSTALLATION (for DIVE desktop builds)
 # ==============================================================================
 
-# Install Node.js 18+ and yarn for building DIVE from source
+# Install Node.js (npm ships bundled) for building DIVE from source.
+# DIVE switched from yarn to npm in 1.10+; the install path is npm-only now.
 # Arguments:
-#   $1 = Node.js major version (default: 18)
-install_nodejs_and_yarn() {
-  local node_version="${1:-18}"
+#   $1 = Node.js major version (default: 22)
+install_nodejs() {
+  local node_version="${1:-22}"
 
-  echo "Installing Node.js ${node_version}.x and yarn..."
+  echo "Installing Node.js ${node_version}.x..."
 
   local pkg_manager=$(detect_package_manager)
 
   case "$pkg_manager" in
     apt)
-      # Install Node.js via NodeSource repository
       curl -fsSL "https://deb.nodesource.com/setup_${node_version}.x" | bash -
       apt-get install -y nodejs
-
-      # Install yarn via npm
-      npm install -g yarn
       ;;
     yum)
-      # Install Node.js via NodeSource repository
       curl -fsSL "https://rpm.nodesource.com/setup_${node_version}.x" | bash -
       yum install -y nodejs
-
-      # Install yarn via npm
-      npm install -g yarn
       ;;
     *)
       echo "Error: Unsupported package manager for Node.js installation: $pkg_manager"
@@ -376,11 +411,15 @@ install_nodejs_and_yarn() {
       ;;
   esac
 
-  # Verify installation
   echo "Node.js version: $(node --version)"
-  echo "yarn version: $(yarn --version)"
+  echo "npm version: $(npm --version)"
 
-  echo "Node.js and yarn installation complete"
+  echo "Node.js installation complete"
+}
+
+# Backwards-compatible alias for callers that still reference the old name.
+install_nodejs_and_yarn() {
+  install_nodejs "$@"
 }
 
 # ==============================================================================
@@ -872,6 +911,54 @@ restore_linux_desktop_install() {
   echo "Development folders restored"
 }
 
+# Run CRITICAL CTest tests against the build folder.
+# Returns 0 if all pass, non-zero otherwise.
+# Arguments:
+#   $1 = build directory (default: current directory)
+#   $2 = install directory (default: build_dir/install)
+run_critical_tests() {
+  local build_dir="${1:-.}"
+  local install_dir="${2:-$build_dir/install}"
+
+  echo ""
+  echo "========================================"
+  echo "Running CRITICAL tests"
+  echo "========================================"
+  echo ""
+
+  export LD_LIBRARY_PATH="$install_dir/lib:${LD_LIBRARY_PATH:-}"
+
+  local test_result=0
+  ctest --test-dir "$build_dir" -L CRITICAL -C Release --output-on-failure || test_result=$?
+
+  if [ "$test_result" -ne 0 ]; then
+    echo ""
+    echo "============================================================"
+    echo "CRITICAL tests FAILED (ctest exit code $test_result)"
+    echo "============================================================"
+  else
+    echo ""
+    echo "============================================================"
+    echo "All CRITICAL tests PASSED"
+    echo "============================================================"
+  fi
+
+  return $test_result
+}
+
+# Rename a tarball to VIAME-BROKEN on critical test failure.
+# Arguments:
+#   $1 = original tarball path
+rename_tarball_broken() {
+  local tarball="$1"
+  local broken_tarball
+  broken_tarball="$(dirname "$tarball")/VIAME-BROKEN.tar.gz"
+
+  echo "Renaming tarball to VIAME-BROKEN.tar.gz"
+  rm -f "$broken_tarball" 2>/dev/null || true
+  mv "$tarball" "$broken_tarball"
+}
+
 # Create tarball of install directory
 # Arguments:
 #   $1 = version string
@@ -916,7 +1003,8 @@ finalize_docker_install() {
     chown -R 1099:1099 /opt/noaa/viame
     echo "Finalized install to /opt/noaa/viame"
   else
-    echo "Warning: setup_viame.sh not found, skipping finalization"
+    echo "Error: setup_viame.sh not found in $build_dir/install; the VIAME build did not complete successfully (see build_log.txt). Aborting so the Docker build fails instead of producing a broken image." >&2
+    exit 1
   fi
 }
 
@@ -950,11 +1038,14 @@ run_build() {
   local log_file="${1:-build_log.txt}"
   local continue_on_error="${2:-false}"
 
-  echo "Beginning build, routing output to $log_file"
+  echo "Beginning build, logging to $log_file (also echoed to stdout)"
+  # Tee to stdout as well as the log file so build errors are visible in the
+  # Docker/CI driver output; otherwise a failed make is invisible outside the
+  # (discarded) image, which previously let broken builds pass silently.
   if [ "$continue_on_error" = "true" ]; then
-    make -j$(nproc) > "$log_file" 2>&1 || true
+    make -j$(nproc) 2>&1 | tee "$log_file" || true
   else
-    make -j$(nproc) > "$log_file" 2>&1
+    ( set -o pipefail; make -j$(nproc) 2>&1 | tee "$log_file" )
   fi
 }
 

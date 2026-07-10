@@ -11,8 +11,9 @@ from test_utilities import get_script_path, assert_script_runs_successfully
 
 CATEGORY = "object_detector_training"
 
-# Timeout for training scripts that we just want to verify start correctly
-TRAINING_TIMEOUT = 15  # seconds
+# Timeout for training scripts that we just want to verify start correctly.
+# Must be long enough for CUDA init + model loading (~60-90s on Windows).
+TRAINING_TIMEOUT = 120  # seconds
 
 
 class TestContinueTrainingCfrnn:
@@ -46,9 +47,13 @@ class TestTrainNetharnCfrnnFromViameCsv:
     """Tests for train_netharn_cfrnn script."""
 
     def test_train_netharn_cfrnn_from_viame_csv(self):
-        """Test that train_netharn_cfrnn runs without error and produces output."""
+        """Test that train_netharn_cfrnn starts successfully.
+
+        Training scripts are long-running, so we use a short timeout and consider
+        reaching the timeout as success (the script started and is running).
+        """
         script = get_script_path(CATEGORY, "train_netharn_cfrnn.sh")
-        assert_script_runs_successfully(script)
+        assert_script_runs_successfully(script, timeout=TRAINING_TIMEOUT, timeout_is_success=True)
 
 
 class TestTrainMaskRcnnFromViameCsv:

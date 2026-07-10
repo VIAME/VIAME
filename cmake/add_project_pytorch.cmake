@@ -75,6 +75,10 @@ if( VIAME_ENABLE_PYTORCH-LITDET )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} litdet )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-DINO3 )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} dino3 )
+endif()
+
 if( VIAME_ENABLE_TENSORRT )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torch2rt )
 endif()
@@ -282,7 +286,9 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     string( REPLACE " " ";" PIP_CMD "${PIP_CMD}" )
     set( LIBRARY_PIP_INSTALL_CMD ${Python_EXECUTABLE} -m ${PIP_CMD} )
   elseif( VIAME_PYTHON_SYMLINK )
-    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" )
+    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR
+        "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" OR
+        "${LIB}" STREQUAL "dino3" )
       set( LIBRARY_PIP_BUILD_CMD "" )
       if( VIAME_BUILD_NO_CACHE_DIR )
         set( LIBRARY_PIP_INSTALL_CMD
@@ -303,7 +309,9 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       endif()
     endif()
   else()
-    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" )
+    if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR
+        "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" OR
+        "${LIB}" STREQUAL "dino3" )
       # Use pip wheel for pyproject.toml-based packages
       # This avoids creating build directories in source tree
       # Must use --no-cache-dir to ensure wheel is written to --wheel-dir (not just cached)
@@ -315,7 +323,8 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
           --wheel-dir ${LIBRARY_PIP_BUILD_DIR}
           ${LIBRARY_LOCATION}
       )
-    elseif( "${LIB}" STREQUAL "pytorch" OR "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
+    elseif( "${LIB}" STREQUAL "pytorch" OR "${LIB}" STREQUAL "mmcv" OR
+            "${LIB}" STREQUAL "torchvision" )
       # Use pip wheel instead of setup.py bdist_wheel to avoid Windows cleanup
       # errors ("no such file or directory" when removing bdist temp directory)
       # Must use --no-cache-dir to ensure wheel is written to --wheel-dir (not just cached)
@@ -402,6 +411,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       ${VIAME_PACKAGES_DIR}/python-utils/pyav )
   elseif( "${LIB}" STREQUAL "torchvideo" )
     set( PROJECT_DEPS ${PROJECT_DEPS} pyav )
+  elseif( "${LIB}" STREQUAL "torchvision" )
   elseif( "${LIB}" STREQUAL "mmcv" )
   elseif( "${LIB}" STREQUAL "sam2" )
     if( WIN32 )
@@ -412,6 +422,9 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   elseif( "${LIB}" STREQUAL "mmdetection" )
     set( PROJECT_DEPS ${PROJECT_DEPS} mmcv )
   elseif( "${LIB}" STREQUAL "mmdeploy" )
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/mmdeploy
+      ${VIAME_PACKAGES_DIR}/pytorch-libs/mmdeploy )
     set( PROJECT_DEPS ${PROJECT_DEPS} mmdetection onnxruntimelibs )
   elseif( "${LIB}" STREQUAL "detectron2" )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
@@ -531,6 +544,20 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     BUILD_COMMAND ${CONDITIONAL_BUILD_CMD}
     INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
     LIST_SEPARATOR "----" )
+
+  # CUDA 13's nvcc (cudafe++) mishandles a static_cast in the installed torch
+  # ATen/core/List_inl.h header, breaking downstream CUDA extension builds such
+  # as mmcv. Patch the header in place after install (idempotent).
+  if( "${LIB}" STREQUAL "pytorch" AND VIAME_ENABLE_CUDA AND
+      NOT CUDA_VERSION VERSION_LESS "13.0" )
+    ExternalProject_Add_Step(${LIB}
+      patch_list_inl_cuda13
+      COMMAND ${CMAKE_COMMAND}
+        -DTORCH_INCLUDE_DIR=${VIAME_PYTHON_PACKAGES}/torch/include
+        -P ${VIAME_CMAKE_DIR}/custom_install_pytorch.cmake
+      DEPENDEES install
+      COMMENT "Patching torch List_inl.h for CUDA 13 nvcc compatibility" )
+  endif()
 
   # On Windows, enable git long paths for PyTorch submodules to handle
   # composable_kernel files that exceed the 260-char MAX_PATH limit

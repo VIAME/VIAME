@@ -14,7 +14,7 @@ from timeit import default_timer as timer
 
 from kwiver.vital.util.VitalPIL import get_pil_image
 
-from viame.pytorch.utilities import Grid, gpu_list_desc, parse_gpu_list
+from viame.pytorch.utilities import Grid, gpu_list_desc, parse_gpu_list, report_cuda_errors
 
 class ResNetDescriptors(KwiverProcess):
 
@@ -102,6 +102,7 @@ class ResNetDescriptors(KwiverProcess):
         self._base_configure()
 
     # --------------------------------------------------------------------------
+    @report_cuda_errors("ResNetDescriptors descriptors")
     def _step(self):
         try:
             # Grab image container from port using traits

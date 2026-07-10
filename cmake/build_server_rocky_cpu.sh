@@ -23,8 +23,8 @@ install_system_deps yum
 install_openssl
 install_cmake
 
-# Install Node.js and yarn for DIVE desktop build
-install_nodejs_and_yarn 18
+# Install Node.js for DIVE desktop build (npm ships bundled with Node)
+install_nodejs 22
 
 # Use GCC11 for build (Rocky 9 has GCC 11 by default, Rocky 8 needs toolset)
 setup_gcc_toolset 11

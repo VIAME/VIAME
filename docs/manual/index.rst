@@ -36,7 +36,7 @@ types of documentation:
 3) The `VIAME Web and DIVE Desktop docs`_ and in-GUI help menu
 4) Our `YouTube video channel`_ (work in progress)
 
-.. _quick-start guide: https://data.kitware.com/api/v1/item/5fdaf1dd2fa25629b99843f8/download
+.. _quick-start guide: https://viame.readthedocs.io/en/latest/sections/quick_start_guide.html
 .. _overview presentation: https://www.viametoolkit.org/wp-content/uploads/2020/09/VIAME-AI-Workshop-Aug2020.pdf
 .. _VIAME Web and DIVE Desktop docs: https://kitware.github.io/dive
 .. _YouTube video channel: https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw
@@ -48,6 +48,7 @@ Contents
    :maxdepth: 1
 
    Documentation Overview <https://viame.readthedocs.io/en/latest/index.html>
+   sections/quick_start_guide
    sections/installing_from_binaries
    sections/building_from_source
    sections/annotation_and_visualization
@@ -75,48 +76,85 @@ Example Capabilities
 ====================
 
 There are a number of core capapbilities within the software, click on each of the below images to learn more.
-|
-Object Detection
+
+Object Detection and Tracking
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/many_scallop_detections_gui.png
-   :scale: 25
-   :align: center
+   :width: 30%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
-|
-User Interfaces for Visualization and Detector Model Training
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/annotation_example.png
-   :scale: 25
-   :align: center
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2020/09/Capabilities_Object_Detection.png
+   :width: 27.5%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Text-Query-Result1.jpg
+   :width: 27.5%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/object_tracking
+
+User Interfaces for Annotation, Visualization, and Detector Model Training
+
+.. image:: https://raw.githubusercontent.com/Kitware/dive/refs/heads/main/docs/images/Banner.png
+   :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
-|
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Point-Segmentation.png
+   :width: 29%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Train_From_Dive.png
+   :width: 29%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
+
 Measuring Animal Lengths Using Metadata or Stereo
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/fish_measurement_example.png
-   :scale: 25
-   :align: center
+   :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
-|
-Image and Video Search for Rapid Model Generation
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png
-   :scale: 25
-   :align: center
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Calibration-Show-Features-On-Success1.jpg
+   :width: 29%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Stereo-Seamap-Short1.png
+   :width: 29%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/size_measurement
+
+Text, Image, Video Search for Rapid Model Generation
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_11_initial_results.png
+   :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
-|
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Perform-Text-Query.jpg
+   :width: 29%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
 Illumination Normalization and Color Correction
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
-   :scale: 25
-   :align: center
+   :width: 29%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/image_enhancement
-|
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Image_Filter_in_DIVE.png
+   :width: 29%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/image_enhancement
+
 Detector and Tracker Evaluation
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/scoring-2.png
-   :scale: 25
-   :align: center
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_PRC.png
+   :width: 20%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_Confusion_Matrix.jpg
+   :width: 17.5%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
+   :width: 20%
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
+
+.. image:: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_MAP_Table.png
+   :width: 20%
    :target: https://github.com/VIAME/VIAME/tree/master/examples/scoring_and_evaluation
 
 .. |br| raw:: html

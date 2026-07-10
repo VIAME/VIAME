@@ -110,7 +110,7 @@ class BatchContainer(ub.NiceRepr):
 
     def __nice__(self):
         try:
-            shape_repr = ub.repr2(self.nestshape, nl=-2)
+            shape_repr = ub.urepr(self.nestshape, nl=-2)
             return 'nestshape(data)={}'.format(shape_repr)
         except Exception:
             return object.__repr__(self)
@@ -226,7 +226,7 @@ class ItemContainer(ub.NiceRepr):
 
     def __nice__(self):
         try:
-            shape_repr = ub.repr2(self.nestshape, nl=-2)
+            shape_repr = ub.urepr(self.nestshape, nl=-2)
             return 'nestshape(data)={}'.format(shape_repr)
         except Exception:
             return object.__repr__(self)
@@ -321,23 +321,23 @@ class ItemContainer(ub.NiceRepr):
         Example:
             >>> print('Collate Image ItemContainer')
             >>> inbatch = [ItemContainer.demo('img') for _ in range(5)]
-            >>> print('inbatch = {}'.format(ub.repr2(inbatch)))
+            >>> print('inbatch = {}'.format(ub.urepr(inbatch)))
             >>> result = ItemContainer._collate(inbatch, num_devices=2)
-            >>> print('result1 = {}'.format(ub.repr2(result, nl=1)))
+            >>> print('result1 = {}'.format(ub.urepr(result, nl=1)))
             >>> result = ItemContainer._collate(inbatch, num_devices=1)
-            >>> print('result2 = {}'.format(ub.repr2(result, nl=1)))
+            >>> print('result2 = {}'.format(ub.urepr(result, nl=1)))
             >>> result = ItemContainer._collate(inbatch, num_devices=None)
-            >>> print('resultN = {}'.format(ub.repr2(result, nl=1)))
+            >>> print('resultN = {}'.format(ub.urepr(result, nl=1)))
 
             >>> print('Collate Label ItemContainer')
             >>> inbatch = [ItemContainer.demo('labels') for _ in range(5)]
-            >>> print('inbatch = {}'.format(ub.repr2(inbatch, nl=1)))
+            >>> print('inbatch = {}'.format(ub.urepr(inbatch, nl=1)))
             >>> result = ItemContainer._collate(inbatch, 1)
-            >>> print('result1 = {}'.format(ub.repr2(result, nl=1)))
+            >>> print('result1 = {}'.format(ub.urepr(result, nl=1)))
             >>> result = ItemContainer._collate(inbatch, 2)
-            >>> print('result2 = {}'.format(ub.repr2(result, nl=1)))
+            >>> print('result2 = {}'.format(ub.urepr(result, nl=1)))
             >>> result = ItemContainer._collate(inbatch, None)
-            >>> print('resultN = {}'.format(ub.repr2(result, nl=1)))
+            >>> print('resultN = {}'.format(ub.urepr(result, nl=1)))
         """
         item0 = inbatch[0]
         bsize = len(inbatch)
@@ -471,8 +471,8 @@ def container_collate(inbatch, num_devices=None):
         >>> }
         >>> batch = batch_items = [item1, item2, item3]
         >>> raw_batch = container_collate(batch_items)
-        >>> print('batch_items = {}'.format(ub.repr2(batch_items, nl=2)))
-        >>> print('raw_batch = {}'.format(ub.repr2(raw_batch, nl=2)))
+        >>> print('batch_items = {}'.format(ub.urepr(batch_items, nl=2)))
+        >>> print('raw_batch = {}'.format(ub.urepr(raw_batch, nl=2)))
 
         >>> batch = batch_items = [
         >>>     {'im': ItemContainer.demo('img'), 'label': ItemContainer.demo('labels')},
@@ -480,14 +480,14 @@ def container_collate(inbatch, num_devices=None):
         >>>     {'im': ItemContainer.demo('img'), 'label': ItemContainer.demo('labels')},
         >>> ]
         >>> raw_batch = container_collate(batch, num_devices=2)
-        >>> print('batch_items = {}'.format(ub.repr2(batch_items, nl=2)))
-        >>> print('raw_batch = {}'.format(ub.repr2(raw_batch, nl=2)))
+        >>> print('batch_items = {}'.format(ub.urepr(batch_items, nl=2)))
+        >>> print('raw_batch = {}'.format(ub.urepr(raw_batch, nl=2)))
 
         >>> raw_batch = container_collate(batch, num_devices=6)
         >>> raw_batch = container_collate(batch, num_devices=3)
         >>> raw_batch = container_collate(batch, num_devices=4)
         >>> raw_batch = container_collate(batch, num_devices=1)
-        >>> print('batch = {}'.format(ub.repr2(batch, nl=1)))
+        >>> print('batch = {}'.format(ub.urepr(batch, nl=1)))
     """
 
     if not isinstance(inbatch, container_abcs.Sequence):
@@ -962,7 +962,7 @@ def nestshape(data):
         >>> nestshape(polys)
 
         >>> dc = BatchContainer([polys], stack=False)
-        >>> print('dc = {}'.format(ub.repr2(dc, nl=1)))
+        >>> print('dc = {}'.format(ub.urepr(dc, nl=1)))
 
         >>> num_masks, H, W = 3, 32, 32
         >>> rng = np.random.RandomState(0)
@@ -971,7 +971,7 @@ def nestshape(data):
         >>> nestshape(bitmasks)
 
         >>> dc = BatchContainer([bitmasks], stack=False)
-        >>> print('dc = {}'.format(ub.repr2(dc, nl=1)))
+        >>> print('dc = {}'.format(ub.urepr(dc, nl=1)))
 
     """
     import ubelt as ub
@@ -991,7 +991,7 @@ def nestshape(data):
                 # ('datatype', d.datatype),
                 ('cpu_only', d.cpu_only),
             ]))
-            meta = ub.repr2(meta, nl=0)
+            meta = ub.urepr(meta, nl=0)
             return {type(d).__name__ + meta: _recurse(d.data)}
         elif isinstance(d, list):
             return [_recurse(v) for v in d]
@@ -1030,7 +1030,7 @@ def nestshape(data):
 
 def _report_data_shape(data):
     d = nestshape(data)
-    print('d = {}'.format(ub.repr2(d, nl=-2)))
+    print('d = {}'.format(ub.urepr(d, nl=-2)))
 
 
 def _debug_inbatch_shapes(inbatch):
@@ -1040,9 +1040,9 @@ def _debug_inbatch_shapes(inbatch):
 
     @extensions.register((torch.Tensor, np.ndarray))
     def format_shape(data, **kwargs):
-        return ub.repr2(dict(type=str(type(data)), shape=data.shape), nl=1, sv=1)
+        return ub.urepr(dict(type=str(type(data)), shape=data.shape), nl=1, sv=1)
 
-    print('inbatch = ' + ub.repr2(inbatch, extensions=extensions, nl=True))
+    print('inbatch = ' + ub.urepr(inbatch, extensions=extensions, nl=True))
 
 
 if __name__ == '__main__':

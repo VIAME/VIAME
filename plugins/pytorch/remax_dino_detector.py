@@ -21,6 +21,7 @@ from collections import namedtuple
 
 from viame.pytorch.remax.util.slconfig import SLConfig
 from viame.pytorch.remax.model.dino import build_dino
+from viame.pytorch.utilities import report_cuda_errors
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse'])
 
@@ -73,6 +74,7 @@ class ReMaxDINODetector(ImageObjectDetector):
             cfg.set_value(opt.config, str(getattr(self, opt.attr)))
         return cfg
 
+    @report_cuda_errors("ReMaxDINODetector initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config( cfg_in )
@@ -107,6 +109,7 @@ class ReMaxDINODetector(ImageObjectDetector):
             return False
         return True
 
+    @report_cuda_errors("ReMaxDINODetector detection")
     def detect(self, image_data):
         input_image = image_data.asarray().astype('uint8')
         if self._rgb_to_bgr:

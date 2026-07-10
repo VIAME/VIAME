@@ -75,23 +75,29 @@ adjust_to_full_frame( const kv::detected_object_set_sptr dos,
 /// \param input Detection set to adjust (modified in place)
 /// \param cats_to_use Category hierarchy for filtering/mapping
 /// \param background Set of background class names to suppress
+/// \param also_keep Classes kept even if absent from cats_to_use (e.g. hard negatives)
 /// \returns true if any foreground (non-background) detections remain
 VIAME_CORE_EXPORT
 bool adjust_labels( kv::detected_object_set_sptr input,
                     kv::category_hierarchy_sptr cats_to_use,
-                    const std::unordered_set< std::string >& background );
+                    const std::unordered_set< std::string >& background,
+                    const std::unordered_set< std::string >& also_keep =
+                      std::unordered_set< std::string >() );
 
 /// Adjust labels for a vector of detection sets
 ///
 /// \param input Vector of detection sets to adjust (modified in place)
 /// \param cats_to_use Category hierarchy for filtering/mapping
 /// \param background Set of background class names to suppress
+/// \param also_keep Class names retained even if absent from cats_to_use
 /// \returns Vector of bools indicating if each frame has foreground detections
 VIAME_CORE_EXPORT
 std::vector< bool >
 adjust_labels( std::vector< kv::detected_object_set_sptr >& input,
                kv::category_hierarchy_sptr cats_to_use,
-               const std::unordered_set< std::string >& background );
+               const std::unordered_set< std::string >& background,
+               const std::unordered_set< std::string >& also_keep =
+                 std::unordered_set< std::string >() );
 
 /// Adjust file and detection lists based on foreground mask
 ///
@@ -202,14 +208,23 @@ std::string get_augmented_filename( const std::string& name,
 
 /// Extract frames from a video file
 ///
-/// Uses viame with a pipeline to extract frames at the specified rate.
+/// Uses viame with a pipeline to extract frames at the specified rate. The
+/// pipeline is run by 'kwiver runner' over a video_input source; reader_type
+/// selects the underlying reader ("vidl_ffmpeg" for videos, "image_list" for
+/// an image-list file passed as video_filename).
 ///
-/// \param video_filename Path to video file
+/// \param video_filename Path to video file (or image-list file)
 /// \param pipeline_filename Path to extraction pipeline
 /// \param frame_rate Target frame rate
 /// \param output_directory Directory to store extracted frames
 /// \param skip_extract_if_exists Skip extraction if output directory exists
 /// \param max_frame_count Maximum frames to extract (0 = unlimited)
+/// \param reader_type video_input reader type to use
+/// \param output_subdir Cache subdirectory for the frames (empty = derive from
+///        the input filename)
+/// \param preserve_bit_depth Keep the source bit depth (do not force 8-bit) so
+///        bit-depth-sensitive augmentations (e.g. percentile normalization) see
+///        the raw 16-bit/float data
 /// \returns Vector of extracted frame file paths
 VIAME_CORE_EXPORT
 std::vector< std::string >
@@ -218,7 +233,21 @@ extract_video_frames( const std::string& video_filename,
                       double frame_rate,
                       const std::string& output_directory,
                       bool skip_extract_if_exists = false,
-                      unsigned max_frame_count = 0 );
+                      unsigned max_frame_count = 0,
+                      const std::string& reader_type = "vidl_ffmpeg",
+                      const std::string& output_subdir = "",
+                      bool preserve_bit_depth = false );
+
+/// Augment an ordered image sequence in a single pass via the image_list reader,
+/// producing one augmented frame per input, ordered to match image_files.
+VIAME_CORE_EXPORT
+std::vector< std::string >
+augment_image_sequence( const std::vector< std::string >& image_files,
+                        const std::string& pipeline_filename,
+                        const std::string& output_directory,
+                        const std::string& output_subdir,
+                        bool skip_if_exists = false,
+                        bool preserve_bit_depth = false );
 
 } // end namespace viame
 

@@ -4,7 +4,7 @@
 
 #include "viame_processes_svm_export.h"
 #include <sprokit/pipeline/process_factory.h>
-#include <vital/plugin_loader/plugin_loader.h>
+#include <vital/plugin_management/plugin_loader.h>
 
 #include "process_query_process.h"
 #include "train_svm_models_process.h"

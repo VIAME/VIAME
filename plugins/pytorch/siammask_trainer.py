@@ -20,6 +20,7 @@ import subprocess
 import signal
 import time
 import threading
+from viame.pytorch.utilities import report_cuda_errors
 
 
 class SiamMaskTrainer( TrainTracker ):
@@ -70,6 +71,7 @@ class SiamMaskTrainer( TrainTracker ):
 
         return cfg
 
+    @report_cuda_errors("SiamMaskTrainer initialization")
     def set_configuration( self, cfg_in ):
         cfg = self.get_configuration()
         cfg.merge_config( cfg_in )
@@ -180,7 +182,7 @@ class SiamMaskTrainer( TrainTracker ):
             print( f"  Sequence {seq_idx}: {len(tracks)} tracks" )
 
             for track in tracks:
-                track_id = track.id()
+                track_id = track.id
                 track_key = f"{track_id:06d}"
 
                 if track_key not in video_data:
@@ -188,13 +190,13 @@ class SiamMaskTrainer( TrainTracker ):
 
                 # Iterate through all states (frames) in this track
                 for state in track:
-                    frame_id = state.frame()
+                    frame_id = state.frame_id
                     det = state.detection()
 
                     if det is None:
                         continue
 
-                    bbox = det.bounding_box()
+                    bbox = det.bounding_box
                     x1 = int( bbox.min_x() )
                     y1 = int( bbox.min_y() )
                     x2 = int( bbox.max_x() )
@@ -222,6 +224,7 @@ class SiamMaskTrainer( TrainTracker ):
 
         return dataset_file
 
+    @report_cuda_errors("SiamMaskTrainer training")
     def update_model( self ):
         """
         Run the SiamMask training process.

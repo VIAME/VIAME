@@ -19,7 +19,7 @@ import scriptconfig as scfg
 
 from kwiver.vital.algo import SegmentViaPoints
 
-from viame.pytorch.utilities import vital_config_update, register_vital_algorithm
+from viame.pytorch.utilities import vital_config_update, register_vital_algorithm, report_cuda_errors
 from viame.pytorch.sam3_utilities import (
     SharedSAM3ModelCache,
     image_to_rgb_numpy,
@@ -57,6 +57,7 @@ class SAM3Segmenter(SegmentViaPoints):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("SAM3 segmenter initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)
@@ -69,8 +70,17 @@ class SAM3Segmenter(SegmentViaPoints):
         for key, value in self._config.items():
             setattr(self, "_" + key, value)
 
-        self._init_model()
+        # Model load is deferred to first segment() call — if this
+        # algorithm is configured alongside a different text-query backend
+        # that's never exercised, we avoid loading the SAM3 checkpoint at
+        # startup. The SharedSAM3ModelCache keyed on (checkpoint, config,
+        # device) still ensures a single shared model instance when the
+        # same checkpoint is used for both segmentation and text query.
         return True
+
+    def _ensure_model(self):
+        if self._predictor is None:
+            self._init_model()
 
     def check_configuration(self, cfg):
         return True
@@ -106,6 +116,7 @@ class SAM3Segmenter(SegmentViaPoints):
 
         self._log("model initialized successfully")
 
+    @report_cuda_errors("SAM3 segmentation")
     def segment(self, image, points, point_labels):
         """
         Perform point-based segmentation on an image.
@@ -127,11 +138,13 @@ class SAM3Segmenter(SegmentViaPoints):
             from kwiver.vital.types import BoundingBox as BoundingBoxD
         from kwiver.vital.types.types import ImageContainer, Image
 
+        self._ensure_model()
+
         # Convert image to RGB numpy array
         img_array = image_to_rgb_numpy(image)
 
         # Convert points to numpy arrays
-        point_coords = np.array([[p.value(0), p.value(1)] for p in points], dtype=np.float32)
+        point_coords = np.array([[p.value[0], p.value[1]] for p in points], dtype=np.float32)
         point_labels_arr = np.array(point_labels, dtype=np.int32)
 
         # Get device for autocast

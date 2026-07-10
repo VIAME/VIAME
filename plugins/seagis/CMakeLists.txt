@@ -10,6 +10,12 @@ set( process_sources
   seagis_measurement_process.cxx
 )
 
+# Mock mode: compile the mock implementation instead of linking the real library
+if( VIAME_BUILD_SEAGIS_TEST_LIB )
+  list( APPEND process_sources StereoLibLX_mock.cxx )
+  message( STATUS "SEAGIS: Using mock StereoLibLX (no licence required)" )
+endif()
+
 # Include SEAGIS headers
 include_directories( SYSTEM ${SEAGIS_INCLUDE_DIR} )
 
@@ -21,8 +27,19 @@ set( SEAGIS_LINK_LIBRARIES
   kwiver::vital_logger
   kwiver::vital_util
   kwiver::sprokit_pipeline
-  ${SEAGIS_LIBRARY}
+  viame_core
 )
+
+if( NOT VIAME_BUILD_SEAGIS_TEST_LIB )
+  list( APPEND SEAGIS_LINK_LIBRARIES ${SEAGIS_LIBRARY} )
+endif()
+
+# OpenCV for epipolar template matching
+if( VIAME_ENABLE_OPENCV )
+  find_package( OpenCV REQUIRED )
+  include_directories( "${OpenCV_INCLUDE_DIRS}" )
+  list( APPEND SEAGIS_LINK_LIBRARIES ${OpenCV_LIBRARIES} kwiver::kwiver_algo_ocv )
+endif()
 
 kwiver_add_plugin( viame_processes_seagis
   SUBDIR           ${viame_plugin_process_subdir}
@@ -36,3 +53,20 @@ target_include_directories( viame_processes_seagis PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../core>
   )
+
+# StereoLibLX is built with /MT (static CRT); VIAME uses /MD (dynamic CRT).
+# We use patched copies of StereoLibLX.lib and libcpmt.lib with the
+# /FAILIFMISMATCH:RuntimeLibrary directives stripped so the linker does not
+# raise LNK2038.  /NODEFAULTLIB suppresses the *original* system libs that
+# StereoLibLX would pull in, and we explicitly add the patched libcpmt so
+# the static-CRT C++ symbols (std::cout, std::locale, etc.) still resolve.
+if( NOT VIAME_BUILD_SEAGIS_TEST_LIB AND MSVC )
+  target_link_options( viame_processes_seagis PRIVATE
+    /NODEFAULTLIB:LIBCMT
+    /NODEFAULTLIB:libcpmt
+    /FORCE:MULTIPLE
+  )
+  target_link_libraries( viame_processes_seagis PRIVATE
+    "${SEAGIS_INCLUDE_DIR}/libcpmt_patched.lib"
+  )
+endif()

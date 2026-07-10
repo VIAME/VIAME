@@ -545,6 +545,87 @@ compute_keypoints_skeleton( kv::detected_object_sptr det )
 }
 
 // -----------------------------------------------------------------------------
+cv::Point2d
+clip_point_to_mask_boundary( const cv::Point2d& target,
+                             kv::detected_object_sptr det )
+{
+  if( !det || !det->mask() )
+  {
+    return target;
+  }
+
+  kv::bounding_box_d bbox = det->bounding_box();
+  auto mask_container = det->mask();
+
+  cv::Mat mask = kwiver::arrows::ocv::image_container::vital_to_ocv(
+    mask_container->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+
+  cv::Mat binary;
+  if( mask.channels() > 1 )
+  {
+    cv::cvtColor( mask, binary, cv::COLOR_BGR2GRAY );
+  }
+  else
+  {
+    binary = mask.clone();
+  }
+  cv::threshold( binary, binary, 0, 255, cv::THRESH_BINARY );
+
+  std::vector< std::vector< cv::Point > > contours;
+  cv::findContours( binary, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE );
+
+  if( contours.empty() )
+  {
+    return target;
+  }
+
+  // Work in mask-local coordinates
+  cv::Point2d local_target( target.x - bbox.min_x(), target.y - bbox.min_y() );
+
+  double min_dist_sq = std::numeric_limits< double >::max();
+  cv::Point2d best_local = local_target;
+
+  for( const auto& contour : contours )
+  {
+    int n = static_cast< int >( contour.size() );
+    if( n == 0 ) continue;
+
+    for( int i = 0; i < n; ++i )
+    {
+      cv::Point2d a( contour[i].x, contour[i].y );
+      cv::Point2d b( contour[( i + 1 ) % n].x, contour[( i + 1 ) % n].y );
+
+      cv::Point2d ab = b - a;
+      double ab_sq = ab.x * ab.x + ab.y * ab.y;
+
+      cv::Point2d closest;
+      if( ab_sq < 1e-12 )
+      {
+        closest = a;
+      }
+      else
+      {
+        cv::Point2d ap = local_target - a;
+        double t = ( ap.x * ab.x + ap.y * ab.y ) / ab_sq;
+        t = std::max( 0.0, std::min( 1.0, t ) );
+        closest = a + t * ab;
+      }
+
+      cv::Point2d diff = local_target - closest;
+      double dist_sq = diff.x * diff.x + diff.y * diff.y;
+
+      if( dist_sq < min_dist_sq )
+      {
+        min_dist_sq = dist_sq;
+        best_local = closest;
+      }
+    }
+  }
+
+  return cv::Point2d( best_local.x + bbox.min_x(), best_local.y + bbox.min_y() );
+}
+
+// -----------------------------------------------------------------------------
 std::pair< cv::Point2d, cv::Point2d >
 compute_keypoints( kv::detected_object_sptr det, const std::string& method )
 {
@@ -626,6 +707,12 @@ add_keypoints_from_mask
     if( det->mask() )
     {
       auto keypoints = compute_keypoints( det, c_method );
+
+      if( c_clip_to_mask )
+      {
+        keypoints.first = clip_point_to_mask_boundary( keypoints.first, det );
+        keypoints.second = clip_point_to_mask_boundary( keypoints.second, det );
+      }
 
       det->add_keypoint( "head", kv::point_2d( keypoints.first.x, keypoints.first.y ) );
       det->add_keypoint( "tail", kv::point_2d( keypoints.second.x, keypoints.second.y ) );

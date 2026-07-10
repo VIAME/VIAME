@@ -14,11 +14,13 @@
 
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/features2d.hpp>
 #include <opencv2/core/eigen.hpp>
 
 #include <fstream>
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 namespace kv = kwiver::vital;
 
@@ -196,6 +198,263 @@ calibrate_stereo_cameras::detect_chessboard_auto(
   ChessboardDetectionResult result;
   LOG_WARN( d->m_logger, "Could not auto-detect chessboard grid size" );
   return result;
+}
+
+// -----------------------------------------------------------------------------
+ChessboardDetectionResult
+calibrate_stereo_cameras::detect_dots(
+  const cv::Mat& image,
+  int max_dim,
+  float min_area,
+  float max_area,
+  float min_circularity ) const
+{
+  ChessboardDetectionResult result;
+
+  if( image.empty() )
+  {
+    return result;
+  }
+
+  // Compute scale factor for large images (same halving pattern as detect_chessboard)
+  int min_len = std::min( image.rows, image.cols );
+  double scale = 1.0;
+  while( scale * min_len > max_dim )
+  {
+    scale /= 2.0;
+  }
+
+  cv::Mat work;
+  if( scale < 1.0 )
+  {
+    cv::resize( image, work, cv::Size(), scale, scale );
+  }
+  else
+  {
+    work = image;
+  }
+
+  // Invert image: white dots on dark background become dark blobs on light background
+  cv::Mat inverted;
+  cv::bitwise_not( work, inverted );
+
+  // Scale area thresholds by scale^2
+  float scale2 = static_cast< float >( scale * scale );
+  float scaled_min_area = min_area * scale2;
+  float scaled_max_area = max_area * scale2;
+
+  // Configure SimpleBlobDetector
+  cv::SimpleBlobDetector::Params params;
+
+  // Threshold sweep
+  params.minThreshold = 40;
+  params.maxThreshold = 220;
+  params.thresholdStep = 10;
+  params.minRepeatability = 2;
+
+  // Area filter
+  params.filterByArea = true;
+  params.minArea = scaled_min_area;
+  params.maxArea = scaled_max_area;
+
+  // Circularity filter
+  params.filterByCircularity = true;
+  params.minCircularity = min_circularity;
+
+  // Convexity filter
+  params.filterByConvexity = true;
+  params.minConvexity = 0.70f;
+
+  // Inertia filter
+  params.filterByInertia = true;
+  params.minInertiaRatio = 0.40f;
+
+  // Color filter off (we already inverted)
+  params.filterByColor = false;
+
+  auto detector = cv::SimpleBlobDetector::create( params );
+
+  std::vector< cv::KeyPoint > keypoints;
+  detector->detect( inverted, keypoints );
+
+  if( keypoints.size() < 3 )
+  {
+    LOG_DEBUG( d->m_logger, "Dot detection: found only "
+               << keypoints.size() << " blobs (need >= 3)" );
+    return result;
+  }
+
+  // Extract centers and scale back to full resolution
+  result.corners.reserve( keypoints.size() );
+  for( const auto& kp : keypoints )
+  {
+    result.corners.emplace_back(
+      static_cast< float >( kp.pt.x / scale ),
+      static_cast< float >( kp.pt.y / scale ) );
+  }
+
+  // Sub-pixel refinement at full resolution
+  refine_dot_centers( image, result.corners );
+
+  result.found = true;
+  result.grid_size = cv::Size( static_cast< int >( result.corners.size() ), 1 );
+
+  LOG_DEBUG( d->m_logger, "Dot detection: found " << result.corners.size() << " dots" );
+
+  return result;
+}
+
+// -----------------------------------------------------------------------------
+void
+calibrate_stereo_cameras::refine_dot_centers(
+  const cv::Mat& gray,
+  std::vector< cv::Point2f >& centers,
+  int window_radius )
+{
+  for( auto& center : centers )
+  {
+    int cx = static_cast< int >( std::round( center.x ) );
+    int cy = static_cast< int >( std::round( center.y ) );
+
+    // Clamp window to image bounds
+    int x0 = std::max( 0, cx - window_radius );
+    int y0 = std::max( 0, cy - window_radius );
+    int x1 = std::min( gray.cols, cx + window_radius + 1 );
+    int y1 = std::min( gray.rows, cy + window_radius + 1 );
+
+    if( x1 <= x0 || y1 <= y0 )
+    {
+      continue;
+    }
+
+    cv::Mat roi = gray( cv::Rect( x0, y0, x1 - x0, y1 - y0 ) );
+
+    // Find intensity range in ROI
+    double lo, hi;
+    cv::minMaxLoc( roi, &lo, &hi );
+
+    if( hi - lo < 10 )
+    {
+      continue;  // Not enough contrast
+    }
+
+    // Threshold: keep bright pixels above midpoint (dots are white)
+    double threshold = lo + 0.5 * ( hi - lo );
+
+    // Compute intensity-weighted centroid
+    double sum_w = 0.0;
+    double sum_wx = 0.0;
+    double sum_wy = 0.0;
+
+    for( int r = 0; r < roi.rows; ++r )
+    {
+      const uchar* row_ptr = roi.ptr< uchar >( r );
+      for( int c = 0; c < roi.cols; ++c )
+      {
+        double val = static_cast< double >( row_ptr[c] );
+        if( val >= threshold )
+        {
+          double w = val - lo;
+          sum_w += w;
+          sum_wx += w * ( x0 + c );
+          sum_wy += w * ( y0 + r );
+        }
+      }
+    }
+
+    if( sum_w > 0.0 )
+    {
+      center.x = static_cast< float >( sum_wx / sum_w );
+      center.y = static_cast< float >( sum_wy / sum_w );
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+void
+calibrate_stereo_cameras::filter_target_cluster(
+  std::vector< cv::Point2f >& centers,
+  int min_neighbors,
+  float neighbor_factor )
+{
+  const int n = static_cast< int >( centers.size() );
+
+  if( n < 10 )
+  {
+    return;
+  }
+
+  // Compute nearest-neighbor distance for each dot
+  std::vector< float > nn_dists( n, std::numeric_limits< float >::max() );
+
+  for( int i = 0; i < n; ++i )
+  {
+    for( int j = i + 1; j < n; ++j )
+    {
+      float dx = centers[i].x - centers[j].x;
+      float dy = centers[i].y - centers[j].y;
+      float d = std::sqrt( dx * dx + dy * dy );
+      nn_dists[i] = std::min( nn_dists[i], d );
+      nn_dists[j] = std::min( nn_dists[j], d );
+    }
+  }
+
+  // Find median nearest-neighbor distance
+  std::vector< float > sorted_nn = nn_dists;
+  std::sort( sorted_nn.begin(), sorted_nn.end() );
+  float median_nn = sorted_nn[n / 2];
+  float radius = neighbor_factor * median_nn;
+  float radius_sq = radius * radius;
+
+  // Count neighbors within radius for each dot
+  std::vector< bool > keep( n, false );
+  int kept = 0;
+
+  for( int i = 0; i < n; ++i )
+  {
+    int count = 0;
+
+    for( int j = 0; j < n; ++j )
+    {
+      if( i == j )
+      {
+        continue;
+      }
+
+      float dx = centers[i].x - centers[j].x;
+      float dy = centers[i].y - centers[j].y;
+
+      if( dx * dx + dy * dy <= radius_sq )
+      {
+        ++count;
+      }
+    }
+
+    if( count >= min_neighbors )
+    {
+      keep[i] = true;
+      ++kept;
+    }
+  }
+
+  if( kept < 10 )
+  {
+    return;  // Don't filter if too few would remain
+  }
+
+  // Apply filter in place
+  std::vector< cv::Point2f > filtered;
+  filtered.reserve( kept );
+
+  for( int i = 0; i < n; ++i )
+  {
+    if( keep[i] )
+    {
+      filtered.push_back( centers[i] );
+    }
+  }
+
+  centers = std::move( filtered );
 }
 
 // -----------------------------------------------------------------------------

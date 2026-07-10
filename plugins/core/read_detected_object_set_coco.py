@@ -3,12 +3,13 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 """
-Read detections from COCO-format JSON files.
+Read detections from COCO/kwcoco-format JSON files.
 
-The COCO format is a widely used annotation format that contains:
-- categories: list of category definitions with 'id' and 'name'
-- images: list of image definitions with 'id' and 'file_name'
-- annotations: list of annotations with 'image_id', 'category_id', 'bbox', and optionally 'score' and 'segmentation'
+Supports:
+- Segmentation: single polygons, multi-polygons, polygons with holes,
+  and RLE masks
+- Keypoints: COCO flat format, kwcoco dict-list, kwcoco column format
+- Arbitrary per-annotation attributes (stored as DetectedObject notes)
 """
 
 from __future__ import print_function
@@ -18,31 +19,36 @@ import json
 from kwiver.vital.algo import DetectedObjectSetInput
 import kwiver.vital.types as vt
 
+from viame.core.utilities_coco import annotation_to_detection
+
 
 class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
     """
-    Detected object set reader for COCO-format JSON files.
+    Detected object set reader for COCO/kwcoco-format JSON files.
 
-    COCO format contains:
-    - categories: list of {id, name} category definitions
-    - images: list of {id, file_name} image definitions
-    - annotations: list of {image_id, category_id, bbox, score?, segmentation?}
-
-    The bbox is in [x, y, width, height] format.
+    Reads annotations with support for:
+    - bbox in [x, y, width, height] format
+    - Segmentation: single polygon, multi-polygon, exterior/interiors,
+      and RLE masks
+    - Keypoints: COCO flat, kwcoco dict-list, kwcoco column formats
+    - Arbitrary annotation attributes (round-tripped as JSON notes)
     """
 
     def __init__(self):
         DetectedObjectSetInput.__init__(self)
+        self.video_name = ""
         self.loaded = False
         self.file = None
 
     def get_configuration(self):
         cfg = super(DetectedObjectSetInput, self).get_configuration()
+        cfg.set_value("video_name", self.video_name)
         return cfg
 
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
+        self.video_name = str(cfg.get_value("video_name"))
 
     def check_configuration(self, cfg):
         return True
@@ -66,33 +72,20 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
 
     def read_set_by_path(self, image_path):
         self._ensure_loaded()
-        annots = self.frame_info_by_path.get(image_path, ())
+        annots = self.frame_info_by_path.get(image_path, None)
+        if annots is None:
+            annots = self.frame_info_by_video.get(image_path, ())
         return self.__to_detected_object_set(annots)
 
     def __to_detected_object_set(self, annots):
         """Convert list of annotations to a DetectedObjectSet."""
         det_objs = []
         for ann in annots:
-            x, y, w, h = ann['bbox']
-            score = ann.get('score', 1.)
-            do = vt.DetectedObject(
-                bbox=vt.BoundingBoxD(x, y, x + w, y + h),
-                confidence=score,
-                classifications=vt.DetectedObjectType(
-                    self.categories[ann['category_id']],
-                    score,
-                ),
-            )
-            if 'segmentation' in ann:
-                seg = ann['segmentation']
-                # Support [x1, y1, ..., xn, yn] and [[x1, y1, ..., xn, yn]]
-                if len(seg) == 1:
-                    seg = seg[0]
-                if len(seg) % 2 != 0:
-                    msg = "Polygon must have an even number of coordinates"
-                    raise NotImplementedError(msg)
-                do.set_flattened_polygon(seg)
-            det_objs.append(do)
+            dims = self._image_dims.get(ann.get('image_id'))
+            det = annotation_to_detection(
+                ann, self.categories, image_dims=dims,
+                kp_cat_names=self._kp_cat_names)
+            det_objs.append(det)
         return vt.DetectedObjectSet(det_objs)
 
     def _ensure_loaded(self):
@@ -104,19 +97,64 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
         assert len(categories) == len(data['categories'])
         assert len(categories) == len(set(categories.values()))
 
+        # Build video name -> id lookup and resolve config filter
+        video_name_to_id = {}
+        for vid in data.get('videos', []):
+            video_name_to_id[vid['name']] = vid['id']
+
+        filter_video_id = None
+        if self.video_name:
+            if self.video_name in video_name_to_id:
+                filter_video_id = video_name_to_id[self.video_name]
+
+        video_id_to_img_ids = {}
+        for im in data.get('images', []):
+            vid = im.get('video_id')
+            if vid is not None:
+                video_id_to_img_ids.setdefault(vid, set()).add(im['id'])
+
         # For compatibility with other parts of KWIVER, we treat image
         # IDs as frame numbers
 
         # Map from frame number to a pair of image name and list of
         # detections
-        frame_info = {im['id']: (im['file_name'], [])
-                      for im in data['images']}
-        assert len(frame_info) == len(data['images'])
+        images = data['images']
+        if filter_video_id is not None:
+            images = [im for im in images
+                      if im.get('video_id') == filter_video_id]
+        frame_info = {im['id']: (im.get('file_name', ''), [])
+                      for im in images}
         for ann in data['annotations']:
-            frame_info[ann['image_id']][1].append(ann)
+            if ann['image_id'] in frame_info:
+                frame_info[ann['image_id']][1].append(ann)
         frame_info_by_path = {}
         for fname, annots in frame_info.values():
-            frame_info_by_path.setdefault(fname, []).extend(annots)
+            if fname:
+                frame_info_by_path.setdefault(fname, []).extend(annots)
+
+        # Build video name -> annotations lookup
+        frame_info_by_video = {}
+        for vname, vid in video_name_to_id.items():
+            img_ids = video_id_to_img_ids.get(vid, set())
+            annots = []
+            for img_id in img_ids:
+                if img_id in frame_info:
+                    annots.extend(frame_info[img_id][1])
+            frame_info_by_video[vname] = annots
+
+        # Image dimensions for rasterizing multi-polygon masks
+        image_dims = {}
+        for im in data.get('images', []):
+            w, h = im.get('width'), im.get('height')
+            if w and h:
+                image_dims[im['id']] = (w, h)
+
+        # Keypoint category names for decoding COCO flat-format keypoints
+        kp_cat_names = None
+        kp_cats = data.get('keypoint_categories', [])
+        if kp_cats:
+            kp_cats_sorted = sorted(kp_cats, key=lambda c: c['id'])
+            kp_cat_names = [c['name'] for c in kp_cats_sorted]
 
         if frame_info:
             self.frame, self.stop_frame = min(frame_info), max(frame_info) + 1
@@ -125,6 +163,9 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
         self.categories = categories
         self.frame_info = frame_info
         self.frame_info_by_path = frame_info_by_path
+        self.frame_info_by_video = frame_info_by_video
+        self._image_dims = image_dims
+        self._kp_cat_names = kp_cat_names
         self.loaded = True
 
 

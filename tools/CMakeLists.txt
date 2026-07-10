@@ -16,6 +16,7 @@ set( PYTHON_SCRIPTS
   plot_eval_results.py
   process_video.py
   score_results.py
+  train_detection_fusion.py
   viame_csv_tool.py
 )
 
@@ -26,8 +27,11 @@ if( VIAME_ENABLE_OPENCV )
     compute_depth.py
     compute_disparity.py
     create_mosaic.py
+    detect_prior_coverage.py
     ply_utilities.py
+    reconstruct_3d.py
     stereo_rectify.py
+    survey_metadata.py
   )
 endif()
 

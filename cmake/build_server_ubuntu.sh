@@ -18,8 +18,8 @@ install_system_deps apt
 # Install CMAKE
 install_cmake
 
-# Install Node.js and yarn for DIVE desktop build
-install_nodejs_and_yarn 18
+# Install Node.js for DIVE desktop build (npm ships bundled with Node)
+install_nodejs 22
 
 # Update VIAME sub git deps
 update_git_submodules /viame
@@ -41,9 +41,22 @@ run_build build_log.txt
 
 # Verify build success
 if verify_build_success build_log.txt; then
+  TARBALL_NAME="VIAME-${VIAME_VERSION}-Ubuntu-64Bit.tar.gz"
+
+  # Run CRITICAL tests before packaging
+  if ! run_critical_tests "$(pwd)" "$(pwd)/install"; then
+    TESTS_PASSED=false
+  else
+    TESTS_PASSED=true
+  fi
+
   prepare_linux_desktop_install install /viame
   create_install_tarball "$VIAME_VERSION" "Ubuntu-64Bit"
   restore_linux_desktop_install install
+
+  if [ "$TESTS_PASSED" = "false" ]; then
+    rename_tarball_broken "$TARBALL_NAME"
+  fi
 else
   exit 1
 fi

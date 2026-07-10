@@ -14,6 +14,8 @@
 #include "windowed_utils.h"
 
 #include <map>
+#include <mutex>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -107,7 +109,21 @@ public:
       "Action to take in the event that a detection is considered small. Can " \
       "either be none, remove, or any other string which will over-ride the " \
       "detection type to be that string.", \
-      "" )
+      "" ), \
+    PARAM_DEFAULT( \
+      chip_threads, int, \
+      "Worker threads for chip generation (0 = auto, 1 = serial).", \
+      0 ), \
+    PARAM_DEFAULT( \
+      reuse_cache, bool, \
+      "Reuse existing chips/manifests in train_directory instead of " \
+      "regenerating (train_directory is not wiped at startup).", \
+      false ), \
+    PARAM_DEFAULT( \
+      background_chip_ratio, double, \
+      "With chips_w_gt_only, also keep this fraction of random background " \
+      "chips per frame, relative to annotated chips (0 = none).", \
+      0.0 )
 
   PLUGGABLE_VARIABLES( VIAME_CORE_WT_PARAMS )
   PLUGGABLE_CONSTRUCTOR( windowed_trainer, VIAME_CORE_WT_PARAMS )
@@ -148,22 +164,48 @@ private:
     std::vector< std::string >& formatted_names,
     std::vector< kwiver::vital::detected_object_set_sptr >& formatted_truth );
 
+  void process_one_frame(
+    unsigned fid,
+    const std::vector< std::string >& image_names,
+    const std::vector< kwiver::vital::detected_object_set_sptr >& groundtruth,
+    double negative_ds_factor,
+    std::vector< std::string >& names,
+    std::vector< kwiver::vital::detected_object_set_sptr >& truth );
+
   void format_image_from_memory(
     const kwiver::vital::image& image,
     kwiver::vital::detected_object_set_sptr groundtruth,
     const rescale_option format_method,
     std::vector< std::string >& formatted_names,
-    std::vector< kwiver::vital::detected_object_set_sptr >& formatted_truth );
+    std::vector< kwiver::vital::detected_object_set_sptr >& formatted_truth,
+    const std::string& frame_tag,
+    std::mt19937& rng );
 
   bool filter_detections_in_roi(
     kwiver::vital::detected_object_set_sptr all_detections,
     kwiver::vital::bounding_box_d region,
-    kwiver::vital::detected_object_set_sptr& filt_detections );
+    kwiver::vital::detected_object_set_sptr& filt_detections,
+    bool* overlapped = nullptr );
 
-  std::string generate_filename( const int len = 10 );
+  std::string generate_filename( const std::string& frame_tag, int chip_idx );
 
   void write_chip_to_disk( const std::string& filename,
     const kwiver::vital::image& image );
+
+  // Chip-cache (manifest) helpers
+  std::string frame_tag_for( unsigned fid, const std::string& image_fn );
+  std::string manifest_path( const std::string& frame_tag );
+  bool load_manifest(
+    const std::string& frame_tag,
+    std::vector< std::string >& names,
+    std::vector< kwiver::vital::detected_object_set_sptr >& truth );
+  void write_manifest(
+    const std::string& frame_tag,
+    const std::vector< std::string >& names,
+    const std::vector< kwiver::vital::detected_object_set_sptr >& truth );
+
+  kwiver::vital::category_hierarchy_sptr labels_without_ignored(
+    kwiver::vital::category_hierarchy_sptr in );
 
   // Common chip settings (shared with detector/refiner)
   window_settings m_settings;
@@ -173,6 +215,7 @@ private:
   bool m_detect_small;
 
   // Runtime state
+  std::mutex m_category_mutex;
   kwiver::vital::category_hierarchy_sptr m_labels;
   std::map< std::string, int > m_category_map;
   kwiver::vital::algo::image_io_sptr m_image_io;

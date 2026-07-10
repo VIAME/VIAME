@@ -67,7 +67,7 @@ class LayerRotation(ub.NiceRepr):
         self.stats = None
 
     def __nice__(self):
-        return ub.repr2(self.stats)
+        return ub.urepr(self.stats)
 
     def measure(self):
         import kwarray

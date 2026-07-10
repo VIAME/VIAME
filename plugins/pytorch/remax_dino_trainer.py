@@ -25,6 +25,7 @@ from viame.pytorch.remax.util.coco import build as build_dataset
 from viame.pytorch.remax.util.box_ops import box_xyxy_to_cxcywh
 
 from viame.pytorch.remax.ReMax import ReMax
+from viame.pytorch.utilities import report_cuda_errors
 
 _Option = namedtuple('_Option', ['attr', 'config', 'default', 'parse', 'help'])
 
@@ -77,6 +78,7 @@ class ReMaxDINOTrainer( TrainDetector ):
             cfg.set_value(opt.config, str(getattr(self, opt.attr)))
         return cfg
     
+    @report_cuda_errors("ReMaxDINOTrainer initialization")
     def set_configuration( self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config( cfg_in )
@@ -203,6 +205,7 @@ class ReMaxDINOTrainer( TrainDetector ):
         self.model.load_state_dict(checkpoint['model'])
         self.model.eval()
 
+    @report_cuda_errors("ReMaxDINOTrainer training")
     def update_model( self ):
         self.dino_config.coco_path = str(os.path.join(self._work_dir, 'train_data_coco.json')) # the path of coco
         self.dino_config.fix_size = False

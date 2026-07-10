@@ -262,8 +262,8 @@ def _debug_inbatch_shapes(inbatch):
     extensions = ub.util_format.FormatterExtensions()
     @extensions.register((torch.Tensor, np.ndarray))
     def format_shape(data, **kwargs):
-        return ub.repr2(dict(type=str(type(data)), shape=data.shape), nl=1, sv=1)
-    print('inbatch = ' + ub.repr2(inbatch, extensions=extensions, nl=True))
+        return ub.urepr(dict(type=str(type(data)), shape=data.shape), nl=1, sv=1)
+    print('inbatch = ' + ub.urepr(inbatch, extensions=extensions, nl=True))
 
 
 if __name__ == '__main__':

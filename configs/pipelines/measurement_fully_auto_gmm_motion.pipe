@@ -3,6 +3,8 @@
 #
 # Description: Run simple head-length fish measurement using stereo cameras
 # Outputs to computed_tracks2.csv.
+#
+# Requires Calibration: True
 # =============================================================================
 
 config _pipeline:_edge

@@ -982,8 +982,8 @@ class MM_RetinaNet(MM_Detector):
         state_dict = checkpoint['state_dict']
         ours = self.detector.state_dict()
 
-        print(ub.repr2(list(state_dict.keys()),nl=1))
-        print(ub.repr2(list(ours.keys()),nl=1))
+        print(ub.urepr(list(state_dict.keys()),nl=1))
+        print(ub.urepr(list(ours.keys()),nl=1))
     """
 
     def __init__(self, classes, channels='rgb', input_stats=None):

@@ -167,13 +167,13 @@ class ByteTrackTrainer( TrainTracker ):
                 prev_cx, prev_cy = None, None
 
                 for state in states:
-                    frame_id = state.frame()
+                    frame_id = state.frame_id
                     det = state.detection()
 
                     if det is None:
                         continue
 
-                    bbox = det.bounding_box()
+                    bbox = det.bounding_box
                     x1 = bbox.min_x()
                     y1 = bbox.min_y()
                     x2 = bbox.max_x()

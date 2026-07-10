@@ -17,9 +17,8 @@ of the web platform available at [viame.kitware.com](https://viame.kitware.com).
 Documentation
 -------------
 
-The [User's Quick-Start Guide](https://data.kitware.com/api/v1/item/5fdaf1dd2fa25629b99843f8/download),
-[Tutorial Videos](https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw), 
-and [Developer's Manual](http://viame.readthedocs.io/en/latest/) are more comprehensive,
+The [User's Quick-Start Guide](https://viame.readthedocs.io/en/latest/sections/quick_start_guide.html)
+and [Full Manual](http://viame.readthedocs.io/en/latest/) are more comprehensive,
 but select entries are also listed below broken down by individual functionality:
 
 
@@ -54,7 +53,7 @@ are available via smaller installers (see DIVE standalone, below). Lastly, docke
 are available for both VIAME Desktop and Web (below). For full desktop installs, extract
 the binaries and place them in a directory of your choosing, for example /opt/noaa/viame
 on Linux or C:\Program Files\VIAME on Windows. If using packages built with GPU support,
-make sure to have sufficient video drivers installed, version 570.11 or higher. The best
+make sure to have sufficient video drivers installed, version 570.65 or higher. The best
 way to install drivers depends on your operating system. This isn't required if just
 using manual annotators (or frame classifiers only). The binaries are quite large,
 in terms of disk space, due to the inclusion of multiple default model files and
@@ -68,7 +67,7 @@ apps) they are much smaller.
   * MacOS is currently only supported running standalone annotation tools, see below.
 
 **Installation Recommendations:** <br>
-* NVIDIA Drivers (Version 570.11 or above,
+* NVIDIA Drivers (Version 570.65 or above,
 Windows 
 [\[1\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)
 [\[2\]](https://developer.nvidia.com/cuda-downloads)
@@ -81,14 +80,14 @@ CentOS
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
-* [VIAME v0.22.0 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1XfNRw8wxrGYTnGq4bXTVskQmbjj7bhJS/view?usp=sharing) <br>
-* [VIAME v0.22.0 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/698ca49c5389b41db2e728b5/download) <br>
+* [VIAME v0.22.5 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1c6gJUJsQJ2As9oOGwXVlW61DOCPTmSW7/view?usp=sharing) <br>
+* [VIAME v0.22.5 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/6a46c4eda527414919775e6c/download) <br>
 * [VIAME v0.21.1 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1WkFHOdMPkxYrow7Utcyx_RTPdG4EbOan/view?usp=sharing) <br>
 * [VIAME v0.21.1 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/683fbc2bdfcff796fee73cfe/download)
 
 **Linux Full Desktop Binaries:** <br>
-* [VIAME v0.21.1 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/171i23ZjWjCE8-F0bcMZZFAKF7dbAqio5/view?usp=sharing) <br>
-* [VIAME v0.21.1 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/683fc309dfcff796fee73d06/download) <br>
+* [VIAME v0.22.5 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1n_kTA-WsX6tydrTBchNWXLLNw8uU9RpV/view?usp=sharing) <br>
+* [VIAME v0.22.5 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/6a46c7f7a527414919775e70/download) <br>
 * [VIAME v0.21.1 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1U2H-AE6IwGkClmNEDw-GAETtJTDfKUuR/view?usp=sharing) <br>
 * [VIAME v0.21.1 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/683fbc82dfcff796fee73d01/download)
 
@@ -126,8 +125,8 @@ build instructions can be found [here](examples/building_from_source), but the s
 can be built either as a super-build, which builds most of its dependencies alongside itself, or
 standalone. To build VIAME requires, at a minimum, [Git](https://git-scm.com/),
 [CMake](https://cmake.org/), and a [C++ compiler](http://www.cplusplus.com/doc/tutorial/introduction/).
-Installing Python and CUDA is also recommended. If using CUDA, version 12.8 with CUDNN 9 is most
-tested, though other versions of 11 through 13 also likely work. For python distributions, at a
+Installing Python and CUDA is also recommended. If using CUDA, version 12.6 with CUDNN 9 is
+preferred, though other versions of 11 through 13 also likely work. For python distributions, at a
 minimum Python 3.10 or above is necessary, alongside having pip installed.
 
 To build on the command line in Linux, use the following commands, only replacing [source-directory]

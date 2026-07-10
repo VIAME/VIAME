@@ -1,7 +1,9 @@
 # =============================================================================
 # Title: Stereo Camera Calibration
 #
-# Description: Estimate calibration matrices from left and right stereo cameras 
+# Description: Estimate calibration matrices from left and right stereo cameras
+#
+# Requirements: { Checkerboard Square Size (real units), global:square_size, double }
 # =============================================================================
 
 config _pipeline:_edge

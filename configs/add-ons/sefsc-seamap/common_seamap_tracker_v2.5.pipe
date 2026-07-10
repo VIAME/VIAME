@@ -6,7 +6,10 @@
 # =============================================================================
 
 process tracker
-  :: srnn_tracker
+  :: track_objects
+  :track_objects:type                          srnn
+
+block track_objects:srnn
   :siamese_model_input_size                    224
   :detection_select_threshold                  0.001
   :similarity_threshold                        0.200
@@ -25,3 +28,4 @@ process tracker
   relativepath targetRNN_AIM_V_model_path =    models/seamap_tracker_rnn_v_aim.pt
   :targetRNN_normalized_models                 True
   :targetRNN_batch_size                        128
+endblock

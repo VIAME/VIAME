@@ -4,7 +4,7 @@
 
 #include "viame_processes_opencv_export.h"
 #include <sprokit/pipeline/process_factory.h>
-#include <vital/plugin_loader/plugin_loader.h>
+#include <vital/plugin_management/plugin_loader.h>
 
 #include "measure_objects_process.h"
 #include "calibrate_single_camera_process.h"

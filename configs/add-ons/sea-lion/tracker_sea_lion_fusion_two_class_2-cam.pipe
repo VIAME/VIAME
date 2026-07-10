@@ -5,11 +5,16 @@
 # Configured for sea lion survey imagery.
 # =============================================================================
 
+# Requirements: { Detection Scale (default 1.0), global:scale, double }
+
 config _scheduler
   type = pythread_per_process
 
 config _pipeline:_edge
   capacity = 5
+
+config global
+  :scale                                       1.0
 
 include common_two_camera_input_with_downsamplers.pipe
 

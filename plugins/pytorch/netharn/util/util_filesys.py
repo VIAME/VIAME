@@ -25,7 +25,7 @@ def get_file_info(fpath, raw=False):
         >>> import ubelt as ub
         >>> fpath = ub.__file__
         >>> info = get_file_info(fpath)
-        >>> print(ub.repr2(info, nl=1))  # xdoc: +IGNORE_WANT
+        >>> print(ub.urepr(info, nl=1))  # xdoc: +IGNORE_WANT
         {
             'created': datetime.datetime(2018, 10, 25, 12, 30, 36, 806656),
             'filesize': 5868,

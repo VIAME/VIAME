@@ -455,7 +455,7 @@ class DetectHarn(nh.FitHarn):
             for bx in xdev.InteractiveIter(list(range(niters))):
 
                 outputs, loss_parts = harn.run_batch(batch)
-                print(ub.repr2(loss_parts, nl=1))
+                print(ub.urepr(loss_parts, nl=1))
 
                 for k, v in loss_parts.items():
                     curves[k].append(float(v.item()))
@@ -465,7 +465,7 @@ class DetectHarn(nh.FitHarn):
                 dets0 = batch_dets[0].numpy().sort()
                 print('dets0.classes = {!r}'.format(dets0.classes))
                 try:
-                    print('dets0.probs =\n{}'.format(ub.repr2(dets0.probs, precision=2)))
+                    print('dets0.probs =\n{}'.format(ub.urepr(dets0.probs, precision=2)))
                 except Exception:
                     pass
                 print('dets0.scores = {!r}'.format(dets0.scores[0:3]))
@@ -793,7 +793,7 @@ def setup_harn(cmdline=True, **kw):
     import ndsampler
     from ndsampler import coerce_data
     config = DetectFitConfig(default=kw, cmdline=cmdline)
-    print('config = {}'.format(ub.repr2(dict(config), nl=1)))
+    print('config = {}'.format(ub.urepr(dict(config), nl=1)))
 
     nh.configure_hacks(config)  # fix opencv bugs
     ub.ensuredir(config['workdir'])
@@ -814,7 +814,7 @@ def setup_harn(cmdline=True, **kw):
     subsets = coerce_data.coerce_datasets(config)
     coco_datasets = subsets
 
-    print('coco_datasets = {}'.format(ub.repr2(coco_datasets, nl=1)))
+    print('coco_datasets = {}'.format(ub.urepr(coco_datasets, nl=1)))
     for tag, dset in coco_datasets.items():
         dset._build_hashid(hash_pixels=False)
 
@@ -901,7 +901,7 @@ def setup_harn(cmdline=True, **kw):
         cat_mapping = catid_compat_mapping(classes1, classes2)
         compat_mappings[tag] = cat_mapping
 
-    print('compat_mappings = {}'.format(ub.repr2(compat_mappings, nl=1)))
+    print('compat_mappings = {}'.format(ub.urepr(compat_mappings, nl=1)))
 
     classes = subsets['train'].object_categories()
     print('classes = {!r}'.format(classes))
@@ -1258,7 +1258,7 @@ def setup_harn(cmdline=True, **kw):
             'ovthresh': config['ovthresh'],  # used in mAP computation
         },
         'extra': {
-            'config': ub.repr2(config.asdict()),
+            'config': ub.urepr(config.asdict()),
             'argv': sys.argv,
         }
     })

@@ -139,6 +139,23 @@ VIAME_OPENCV_EXPORT
 std::pair< cv::Point2d, cv::Point2d >
 compute_keypoints( kwiver::vital::detected_object_sptr det, const std::string& method );
 
+/// Clip a point to the nearest point on a detection's mask boundary.
+///
+/// Given a target point and a detection with a mask, finds the nearest
+/// point on the mask contour (polygon boundary). The search considers all
+/// points along contour edges, not just contour vertices.
+///
+/// If the detection has no mask or the mask has no valid contour, the
+/// original point is returned unchanged.
+///
+/// \param target The point to clip (in image coordinates)
+/// \param det The detection containing the mask
+/// \return The nearest point on the mask boundary (in image coordinates)
+VIAME_OPENCV_EXPORT
+cv::Point2d
+clip_point_to_mask_boundary( const cv::Point2d& target,
+                             kwiver::vital::detected_object_sptr det );
+
 /// Check if a keypoint method string is valid.
 ///
 /// \param method Method name to validate
@@ -177,7 +194,11 @@ public:
     PARAM_DEFAULT( method, std::string,
                    "Method for computing keypoints from polygon/mask. Options: "
                    "oriented_bbox (default), pca, farthest, hull_extremes, skeleton",
-                   "oriented_bbox" )
+                   "oriented_bbox" ),
+    PARAM_DEFAULT( clip_to_mask, bool,
+                   "If true, after computing keypoints, snap each keypoint to "
+                   "the nearest point on the mask/polygon boundary contour.",
+                   false )
   )
 
   virtual ~add_keypoints_from_mask() = default;

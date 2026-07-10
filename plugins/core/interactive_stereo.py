@@ -59,6 +59,275 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
+import cv2
+
+# Compiled C++ stereo measurement bindings. The stereo length/measurement math
+# lives solely in viame::core::compute_stereo_measurement (no Python duplicate),
+# so this module is a hard dependency.
+from viame.core import _measurement as _cpp_measurement
+
+
+class EpipolarTemplateMatcher:
+    """
+    Per-point stereo matching along epipolar curves using template matching.
+
+    Mirrors the epipolar_template_matching method in measurement_utilities.cxx.
+    Uses camera calibration to compute epipolar curves in unrectified images,
+    then matches template patches from the source image along the curve in
+    the target image using Normalized Cross-Correlation (NCC).
+
+    When dino_top_k > 0 and the dino_matcher module is available, uses
+    two-stage matching: DINOv2 selects the top-K semantically similar candidates,
+    then NCC picks the precise match from that filtered set. This reduces false
+    matches on repetitive textures.
+    """
+
+    def __init__(
+        self,
+        template_size=13,
+        template_matching_threshold=0.5,
+        epipolar_min_disparity=2.0,
+        epipolar_max_disparity=300.0,
+        epipolar_num_samples=5000,
+        dino_model_name="dinov2_vitb14",
+        dino_top_k=0,
+    ):
+        self._template_size = template_size
+        self._threshold = template_matching_threshold
+        self._min_disparity = epipolar_min_disparity
+        self._max_disparity = epipolar_max_disparity
+        self._num_samples = epipolar_num_samples
+        self._K_left = None
+        self._K_left_inv = None
+        self._K_right = None
+        self._R = None
+        self._T = None
+        self._min_depth = 0.0
+        self._max_depth = 0.0
+        self._calibrated = False
+
+        # DINO top-K + NCC two-stage matching
+        self._dino_model_name = dino_model_name
+        self._dino_top_k = dino_top_k
+        self._dino_matcher = None
+        self._dino_available = False
+        self._dino_images_set = False
+
+        if dino_top_k > 0:
+            self._init_dino()
+
+    def _log(self, msg):
+        print(f"[EpipolarMatcher] {msg}", file=sys.stderr, flush=True)
+
+    def _init_dino(self):
+        """Try to import and initialize the DINO matcher module."""
+        try:
+            from viame.pytorch import dino_matcher
+            self._dino_matcher = dino_matcher
+            dino_matcher.init_matcher(
+                model_name=self._dino_model_name, device="cuda", threshold=0.0)
+            self._dino_available = True
+            self._log(f"DINO matcher initialized: model={self._dino_model_name}, "
+                      f"top_k={self._dino_top_k}")
+        except Exception as e:
+            self._log(f"DINO matcher not available ({e}), using NCC only")
+            self._dino_available = False
+            self._dino_top_k = 0
+
+    def set_images(self, left_bgr, right_bgr):
+        """Set BGR images for DINO feature extraction (call when frame changes)."""
+        if not self._dino_available:
+            return
+        try:
+            self._dino_matcher.set_images(left_bgr, right_bgr)
+            self._dino_images_set = True
+        except Exception as e:
+            self._log(f"DINO set_images failed: {e}")
+            self._dino_images_set = False
+
+    def load_calibration(self, filepath):
+        """
+        Load stereo calibration (K_left, K_right, R, T) from a file.
+
+        Normalized on viame::core::read_stereo_rig (via the viame.core._measurement
+        bindings) -- the same loader the measurement pipeline processes use --
+        which supports .json, .yml/.yaml, .npz, .mat and OpenCV calibration
+        directories.
+        """
+        self._log(f"Loading calibration from: {filepath}")
+
+        cal = _cpp_measurement.load_stereo_calibration(filepath)
+        self._K_left = np.array(cal['k_left'], dtype=np.float64).reshape(3, 3)
+        self._K_right = np.array(cal['k_right'], dtype=np.float64).reshape(3, 3)
+        self._R = np.array(cal['rotation'], dtype=np.float64).reshape(3, 3)
+        self._T = np.array(cal['translation'], dtype=np.float64).flatten()
+
+        self._K_left_inv = np.linalg.inv(self._K_left)
+
+        # Convert disparity range to depth range: depth = fx * baseline / disparity
+        fx_l = self._K_left[0, 0]
+        baseline = np.linalg.norm(self._T)
+        if (self._min_disparity > 0 and self._max_disparity > 0
+                and fx_l > 0 and baseline > 0):
+            self._min_depth = fx_l * baseline / self._max_disparity
+            self._max_depth = fx_l * baseline / self._min_disparity
+        else:
+            self._min_depth = 1000.0
+            self._max_depth = 100000.0
+
+        self._calibrated = True
+
+        self._log(f"Calibration loaded: fx_l={fx_l:.1f}, "
+                  f"baseline={baseline:.4f}, "
+                  f"depth_range=[{self._min_depth:.1f}, {self._max_depth:.1f}]")
+
+    @property
+    def calibrated(self):
+        return self._calibrated
+
+    def _compute_epipolar_points(self, source_point):
+        """Compute epipolar curve in right image for a left image point."""
+        pt_h = np.array([source_point[0], source_point[1], 1.0])
+        normalized = self._K_left_inv @ pt_h
+        ray_dir = normalized / np.linalg.norm(normalized)
+
+        num = self._num_samples
+        depth_step = (self._max_depth - self._min_depth) / max(num - 1, 1)
+
+        points = []
+        prev_px = prev_py = None
+
+        for i in range(num):
+            depth = self._min_depth + i * depth_step
+            p3d = ray_dir * depth
+            p3d_right = self._R @ p3d + self._T
+
+            if p3d_right[2] <= 0:
+                continue
+
+            inv_z = 1.0 / p3d_right[2]
+            px = self._K_right[0, 0] * p3d_right[0] * inv_z + self._K_right[0, 2]
+            py = self._K_right[1, 1] * p3d_right[1] * inv_z + self._K_right[1, 2]
+
+            ipx, ipy = int(round(px)), int(round(py))
+            if ipx == prev_px and ipy == prev_py:
+                continue
+            prev_px, prev_py = ipx, ipy
+            points.append((px, py))
+
+        return points
+
+    def match_point(self, left_gray, right_gray, source_point):
+        """Find corresponding point in right image via epipolar template matching.
+
+        When DINO top-K is enabled and available, first filters epipolar candidates
+        by DINOv2 semantic similarity, then runs NCC on the filtered set.
+        """
+        if not self._calibrated:
+            self._log(f"match_point({source_point}): not calibrated")
+            return None
+
+        half = self._template_size // 2
+        x_src = int(round(source_point[0]))
+        y_src = int(round(source_point[1]))
+
+        h_l, w_l = left_gray.shape[:2]
+        if (x_src < half or x_src >= w_l - half
+                or y_src < half or y_src >= h_l - half):
+            self._log(f"match_point({source_point}): source too close to edge "
+                      f"(image {w_l}x{h_l}, margin={half})")
+            return None
+
+        template = left_gray[
+            y_src - half:y_src + half + 1,
+            x_src - half:x_src + half + 1
+        ].astype(np.float32)
+
+        epipolar_pts = self._compute_epipolar_points(source_point)
+        if not epipolar_pts:
+            self._log(f"match_point({source_point}): no epipolar points computed "
+                      f"(depth_range=[{self._min_depth:.1f}, {self._max_depth:.1f}])")
+            return None
+
+        # DINO top-K filtering: reduce candidate set before NCC
+        if self._dino_available and self._dino_images_set and self._dino_top_k > 0:
+            epi_xs = [p[0] for p in epipolar_pts]
+            epi_ys = [p[1] for p in epipolar_pts]
+            try:
+                topk_indices = self._dino_matcher.get_top_k_indices(
+                    float(source_point[0]), float(source_point[1]),
+                    epi_xs, epi_ys, k=self._dino_top_k)
+                if topk_indices:
+                    epipolar_pts = [epipolar_pts[i] for i in topk_indices]
+            except Exception as e:
+                self._log(f"DINO top-K failed ({e}), using full set")
+
+        h_r, w_r = right_gray.shape[:2]
+        best_score = -1.0
+        best_point = None
+        n_in_bounds = 0
+
+        for ep_x, ep_y in epipolar_pts:
+            x_tgt = int(round(ep_x))
+            y_tgt = int(round(ep_y))
+
+            if (x_tgt < half or x_tgt >= w_r - half
+                    or y_tgt < half or y_tgt >= h_r - half):
+                continue
+
+            n_in_bounds += 1
+            target_patch = right_gray[
+                y_tgt - half:y_tgt + half + 1,
+                x_tgt - half:x_tgt + half + 1
+            ].astype(np.float32)
+
+            result = cv2.matchTemplate(
+                target_patch, template, cv2.TM_CCOEFF_NORMED)
+            score = float(result[0, 0])
+
+            if score > best_score:
+                best_score = score
+                best_point = (ep_x, ep_y)
+
+        if best_score < self._threshold:
+            ep_first = epipolar_pts[0] if epipolar_pts else None
+            ep_last = epipolar_pts[-1] if epipolar_pts else None
+            self._log(f"match_point({source_point}): best_score={best_score:.3f} "
+                      f"< threshold={self._threshold}, "
+                      f"epipolar_pts={len(epipolar_pts)}, "
+                      f"in_bounds={n_in_bounds}, "
+                      f"right_img={w_r}x{h_r}, "
+                      f"ep_range=[{ep_first} .. {ep_last}]")
+            return None
+
+        return best_point
+
+    def compute_measurement(self, left_p1, right_p1, left_p2, right_p2):
+        """Full stereo measurement for a line: length, 3D midpoint (x, y, z),
+        range (midpoint distance to the left camera) and RMS reprojection error.
+
+        Computed by viame::core::compute_stereo_measurement via the
+        viame.core._measurement bindings (single source of truth shared with
+        the C++ measurement pipeline). Returns a dict in calibration units, or
+        None if the matcher is not calibrated.
+        """
+        if not self._calibrated:
+            return None
+
+        # Pass plain Python lists (not numpy arrays): the C++ bindings take
+        # flat std::vector<double> to avoid pybind11's numpy<->Eigen caster,
+        # which is incompatible with numpy 2.0.
+        return dict(
+            _cpp_measurement.compute_stereo_measurement_from_calibration(
+                np.asarray(self._K_left, dtype=np.float64).ravel().tolist(),
+                np.asarray(self._K_right, dtype=np.float64).ravel().tolist(),
+                np.asarray(self._R, dtype=np.float64).ravel().tolist(),
+                np.asarray(self._T, dtype=np.float64).ravel().tolist(),
+                [float(left_p1[0]), float(left_p1[1])],
+                [float(right_p1[0]), float(right_p1[1])],
+                [float(left_p2[0]), float(left_p2[1])],
+                [float(right_p2[0]), float(right_p2[1])]))
+
 
 class InteractiveStereoService:
     """
@@ -70,18 +339,48 @@ class InteractiveStereoService:
 
     def __init__(
         self,
-        compute_stereo_depth_map_algo,
+        compute_stereo_depth_map_algo=None,
+        epipolar_matcher: Optional[EpipolarTemplateMatcher] = None,
         scale: float = 1.0,
+        segmentation_generate_line: bool = False,
+        segmentation_point_sampling: bool = False,
+        segmentation_point_samples: int = 5,
+        send_response=None,
     ):
         """
         Initialize the service with configured algorithms.
 
         Args:
             compute_stereo_depth_map_algo: Configured ComputeStereoDepthMap algorithm instance
+                (for dense disparity mode). Mutually exclusive with epipolar_matcher.
+            epipolar_matcher: Configured EpipolarTemplateMatcher instance
+                (for per-point epipolar template matching mode).
             scale: Scale factor for input images (<=1.0). Lower = faster but less accurate.
+            segmentation_generate_line: When True, the stereo point segmentation
+                flow derives a head/tail line from the polygon on each camera and
+                generates the length measurement.
+            segmentation_point_sampling: When True, the other camera's segmentation
+                seed is the median of segmentation_point_samples warped points
+                sampled inside the source polygon (noise reduction).
+            segmentation_point_samples: number of points to sample when
+                segmentation_point_sampling is enabled.
         """
         self._stereo_algo = compute_stereo_depth_map_algo
+        self._epipolar_matcher = epipolar_matcher
+        self._use_epipolar = epipolar_matcher is not None
         self._scale = scale
+        # Optional writer for outgoing JSON (sync responses, deferred transfers,
+        # and async disparity events). When hosted by the unified interactive
+        # service this routes through its single lock-guarded stdout writer;
+        # otherwise it falls back to printing directly (standalone use).
+        self._send_response_cb = send_response
+
+        self._seg_generate_line = bool(segmentation_generate_line)
+        self._seg_point_sampling = bool(segmentation_point_sampling)
+        self._seg_point_samples = max(1, int(segmentation_point_samples))
+        # Lazily-created add_keypoints_from_mask vital algorithm (polygon -> head/tail)
+        self._keypoint_algo = None
+
         self._enabled = False
 
         # Calibration parameters
@@ -96,6 +395,10 @@ class InteractiveStereoService:
         self._current_right_path: Optional[str] = None
         self._current_disparity: Optional[np.ndarray] = None
         self._disparity_ready = False
+
+        # Images for epipolar template matching mode
+        self._left_gray: Optional[np.ndarray] = None
+        self._right_gray: Optional[np.ndarray] = None
 
         # Disparity cache - stores last N computed disparities
         # Key: (left_path, right_path), Value: disparity array
@@ -115,8 +418,11 @@ class InteractiveStereoService:
         print(f"[InteractiveStereo] {message}", file=sys.stderr, flush=True)
 
     def _send_response(self, response: Dict[str, Any]) -> None:
-        """Send JSON response to stdout."""
-        print(json.dumps(response), flush=True)
+        """Send JSON response to stdout (or via the injected writer)."""
+        if self._send_response_cb is not None:
+            self._send_response_cb(response)
+        else:
+            print(json.dumps(response), flush=True)
 
     def _send_error(self, request_id: Optional[str], error: str) -> None:
         """Send error response."""
@@ -180,19 +486,91 @@ class InteractiveStereoService:
         self._log(f"Loaded calibration: focal_length={self._focal_length}, "
                   f"baseline={self._baseline}, principal=({self._principal_x}, {self._principal_y})")
 
-    def _load_image(self, image_path: str):
-        """Load an image and return a vital ImageContainer."""
-        from kwiver.vital.types import ImageContainer, Image
+    def _dense_measurement(self, p1, disp1, p2, disp2):
+        """Full stereo measurement (dense mode) via the C++ implementation.
 
+        Dense mode only has scalar calibration (focal length, baseline,
+        principal point), so an idealized rectified calibration is constructed
+        (fy == fx, R == I, T == [-baseline, 0, 0]) and the right endpoints are
+        corresponded by disparity. The measurement is then computed by the same
+        viame::core::compute_stereo_measurement used in epipolar mode.
+        """
+        if (disp1 <= 0 or disp2 <= 0
+                or self._focal_length <= 0 or self._baseline <= 0):
+            return None
+
+        fx = float(self._focal_length)
+        cx = float(self._principal_x)
+        cy = float(self._principal_y)
+        # Flat row-major lists (see compute_measurement for why lists, not numpy)
+        k = [fx, 0.0, cx, 0.0, fx, cy, 0.0, 0.0, 1.0]
+        rotation = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+        translation = [-float(self._baseline), 0.0, 0.0]
+
+        return dict(
+            _cpp_measurement.compute_stereo_measurement_from_calibration(
+                k, k, rotation, translation,
+                [float(p1[0]), float(p1[1])],
+                [float(p1[0] - disp1), float(p1[1])],
+                [float(p2[0]), float(p2[1])],
+                [float(p2[0] - disp2), float(p2[1])]))
+
+    _VIDEO_EXTENSIONS = {'.avi', '.mp4', '.mkv', '.mov', '.wmv', '.flv', '.webm', '.mpg', '.mpeg', '.m4v'}
+
+    def _is_video_file(self, path: str) -> bool:
+        ext = os.path.splitext(path)[1].lower()
+        return ext in self._VIDEO_EXTENSIONS
+
+    def _load_image(self, image_path: str, frame_time: float = None):
+        """Load an image (or video frame at given time) and return a vital ImageContainer."""
+        if self._is_video_file(image_path) and frame_time is not None:
+            return self._load_video_frame(image_path, frame_time)
+
+        from kwiver.vital.types import ImageContainer, Image
         from viame.core.segmentation_utils import load_image
 
         imdata = load_image(image_path)
         return ImageContainer(Image(imdata))
 
+    def _load_video_frame(self, video_path: str, frame_time: float):
+        """Extract a single frame from a video at the given time (seconds)."""
+        from kwiver.vital.algo import VideoInput
+        from kwiver.vital.types import Timestamp
+
+        # Cache video readers keyed by path (may have left + right videos)
+        if not hasattr(self, '_video_readers'):
+            self._video_readers = {}
+
+        if video_path not in self._video_readers:
+            vi = VideoInput.create("vidl_ffmpeg")
+            cfg = vi.get_configuration()
+            cfg.set_value("time_source", "start_at_0")
+            vi.set_configuration(cfg)
+            vi.open(video_path)
+            # Read first frame to get FPS
+            ts = Timestamp()
+            vi.next_frame(ts, 0)
+            fps = vi.frame_rate()
+            self._video_readers[video_path] = (vi, fps)
+
+        vi, fps = self._video_readers[video_path]
+        target_frame = round(frame_time * fps) + 1  # 1-based ffmpeg numbering
+        target_frame = max(1, target_frame)
+
+        ts = Timestamp()
+        vi.seek_frame(ts, target_frame, 0)
+        image = vi.frame_image()
+
+        if image is None:
+            raise RuntimeError(f"Could not read frame at t={frame_time:.3f}s from {video_path}")
+
+        return image
+
     def _compute_disparity_sync(
         self,
         left_path: str,
         right_path: str,
+        frame_time: float = None,
     ) -> Optional[np.ndarray]:
         """
         Compute disparity for stereo pair synchronously using the configured algorithm.
@@ -201,9 +579,9 @@ class InteractiveStereoService:
         if self._cancel_event.is_set():
             return None
 
-        # Load images as ImageContainers
-        left_container = self._load_image(left_path)
-        right_container = self._load_image(right_path)
+        # Load images as ImageContainers (with video support)
+        left_container = self._load_image(left_path, frame_time)
+        right_container = self._load_image(right_path, frame_time)
 
         if left_container is None or right_container is None:
             raise RuntimeError(
@@ -262,13 +640,13 @@ class InteractiveStereoService:
             if task is None:
                 break
 
-            request_id, left_path, right_path = task
+            request_id, left_path, right_path, frame_time = task
 
             try:
                 self._cancel_event.clear()
                 self._log(f"Starting disparity computation for {left_path}")
 
-                disparity = self._compute_disparity_sync(left_path, right_path)
+                disparity = self._compute_disparity_sync(left_path, right_path, frame_time)
 
                 if disparity is not None and not self._cancel_event.is_set():
                     with self._compute_lock:
@@ -333,7 +711,12 @@ class InteractiveStereoService:
                 "message": "Already enabled",
             }
 
-        # Load calibration if provided
+        # Load calibration from file path (used by epipolar template matching)
+        calibration_file = request.get("calibration_file")
+        if calibration_file and self._epipolar_matcher is not None:
+            self._epipolar_matcher.load_calibration(calibration_file)
+
+        # Load calibration from JSON data (used by dense disparity mode)
         calibration = request.get("calibration")
         if calibration:
             self._load_calibration(calibration)
@@ -392,6 +775,7 @@ class InteractiveStereoService:
         left_path = request.get("left_image_path")
         right_path = request.get("right_image_path")
         request_id = request.get("id")
+        self._current_frame_time = request.get("frame_time")
 
         if not left_path or not right_path:
             raise ValueError("left_image_path and right_image_path are required")
@@ -418,31 +802,80 @@ class InteractiveStereoService:
                         "disparity_ready": False,
                     }
 
-            # Check if we have this disparity cached
-            cached_disparity = self._get_from_cache(left_path, right_path)
-            if cached_disparity is not None:
-                self._log(f"Using cached disparity for: {left_path}")
+            if self._use_epipolar:
+                # Epipolar mode: update state, will load images below
+                self._cancel_computation()
                 self._current_left_path = left_path
                 self._current_right_path = right_path
-                self._current_disparity = cached_disparity
+            else:
+                # Dense mode: check if we have this disparity cached
+                cached_disparity = self._get_from_cache(left_path, right_path)
+                if cached_disparity is not None:
+                    self._log(f"Using cached disparity for: {left_path}")
+                    self._current_left_path = left_path
+                    self._current_right_path = right_path
+                    self._current_disparity = cached_disparity
+                    self._disparity_ready = True
+                    self._disparity_event.set()
+                    return {
+                        "success": True,
+                        "message": "Disparity loaded from cache",
+                        "disparity_ready": True,
+                    }
+
+                # Cancel current computation and start new one
+                self._cancel_computation()
+                self._current_left_path = left_path
+                self._current_right_path = right_path
+                self._current_disparity = None
+                self._disparity_ready = False
+                self._disparity_event.clear()
+
+        if self._use_epipolar:
+            # Load images for template matching (outside lock - I/O bound)
+            # Use _load_image for video support, then convert to OpenCV
+            if self._is_video_file(left_path) and self._current_frame_time is not None:
+                left_container = self._load_image(left_path, self._current_frame_time)
+                right_container = self._load_image(right_path, self._current_frame_time)
+                left_arr = np.array(left_container.image().asarray())
+                right_arr = np.array(right_container.image().asarray())
+                # Convert RGB to grayscale
+                left_gray = cv2.cvtColor(left_arr, cv2.COLOR_RGB2GRAY) if left_arr.ndim == 3 else left_arr
+                right_gray = cv2.cvtColor(right_arr, cv2.COLOR_RGB2GRAY) if right_arr.ndim == 3 else right_arr
+                # BGR for DINO
+                if self._epipolar_matcher._dino_available:
+                    left_bgr = cv2.cvtColor(left_arr, cv2.COLOR_RGB2BGR) if left_arr.ndim == 3 else left_arr
+                    right_bgr = cv2.cvtColor(right_arr, cv2.COLOR_RGB2BGR) if right_arr.ndim == 3 else right_arr
+                    self._epipolar_matcher.set_images(left_bgr, right_bgr)
+            else:
+                left_gray = cv2.imread(left_path, cv2.IMREAD_GRAYSCALE)
+                right_gray = cv2.imread(right_path, cv2.IMREAD_GRAYSCALE)
+                if left_gray is None or right_gray is None:
+                    raise ValueError(
+                        f"Failed to load images: left={left_path}, right={right_path}")
+
+                # Load BGR images for DINO feature extraction if enabled
+                if self._epipolar_matcher._dino_available:
+                    left_bgr = cv2.imread(left_path, cv2.IMREAD_COLOR)
+                    right_bgr = cv2.imread(right_path, cv2.IMREAD_COLOR)
+                    if left_bgr is not None and right_bgr is not None:
+                        self._epipolar_matcher.set_images(left_bgr, right_bgr)
+
+            with self._compute_lock:
+                self._left_gray = left_gray
+                self._right_gray = right_gray
                 self._disparity_ready = True
                 self._disparity_event.set()
-                return {
-                    "success": True,
-                    "message": "Disparity loaded from cache",
-                    "disparity_ready": True,
-                }
 
-            # Cancel current computation and start new one
-            self._cancel_computation()
-            self._current_left_path = left_path
-            self._current_right_path = right_path
-            self._current_disparity = None
-            self._disparity_ready = False
-            self._disparity_event.clear()
+            self._log(f"Images loaded for template matching: {left_path}")
+            return {
+                "success": True,
+                "message": "Images loaded for template matching",
+                "disparity_ready": True,
+            }
 
-        # Queue the new computation
-        self._compute_queue.put((request_id, left_path, right_path))
+        # Queue the new dense disparity computation
+        self._compute_queue.put((request_id, left_path, right_path, self._current_frame_time))
 
         return {
             "success": True,
@@ -480,6 +913,37 @@ class InteractiveStereoService:
             p1 = line[0]
             p2 = line[1]
 
+            if self._use_epipolar:
+                right_p1 = self._epipolar_matcher.match_point(
+                    self._left_gray, self._right_gray, p1)
+                right_p2 = self._epipolar_matcher.match_point(
+                    self._left_gray, self._right_gray, p2)
+
+                if right_p1 is None or right_p2 is None:
+                    return {
+                        "success": False,
+                        "error": "Template matching failed for one or both line endpoints",
+                    }
+
+                result = {
+                    "success": True,
+                    "transferred_line": [
+                        [float(right_p1[0]), float(right_p1[1])],
+                        [float(right_p2[0]), float(right_p2[1])],
+                    ],
+                    "original_line": line,
+                }
+
+                # Triangulate the endpoints for the full stereo measurement
+                # (length, 3D midpoint, range, RMS).
+                measurement = self._epipolar_matcher.compute_measurement(
+                    p1, right_p1, p2, right_p2)
+                if measurement is not None:
+                    result["length"] = measurement["length"]
+                    result["measurement"] = measurement
+
+                return result
+
             H, W = self._current_disparity.shape[:2]
 
             def clamp_point(p):
@@ -502,6 +966,7 @@ class InteractiveStereoService:
             ]
 
             depth_info = None
+            measurement = None
             if self._focal_length > 0 and self._baseline > 0:
                 depth1 = (self._focal_length * self._baseline) / max(disp1, 1e-6) if disp1 > 0 else None
                 depth2 = (self._focal_length * self._baseline) / max(disp2, 1e-6) if disp2 > 0 else None
@@ -511,13 +976,20 @@ class InteractiveStereoService:
                     "disparity_point1": disp1,
                     "disparity_point2": disp2,
                 }
+                # Triangulate via the rectified pinhole model for the full
+                # stereo measurement (length, 3D midpoint, range).
+                measurement = self._dense_measurement(p1, disp1, p2, disp2)
 
-            return {
+            result = {
                 "success": True,
                 "transferred_line": transferred_line,
                 "original_line": line,
                 "depth_info": depth_info,
             }
+            if measurement is not None:
+                result["length"] = measurement["length"]
+                result["measurement"] = measurement
+            return result
 
     def _do_transfer_points(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Execute points transfer with lock already held or disparity known ready."""
@@ -525,6 +997,35 @@ class InteractiveStereoService:
             points = request.get("points")
             if not points:
                 raise ValueError("points is required")
+
+            if self._use_epipolar:
+                transferred_points = []
+                disparity_values = []
+                num_matched = 0
+
+                for p in points:
+                    matched = self._epipolar_matcher.match_point(
+                        self._left_gray, self._right_gray, p)
+                    if matched is not None:
+                        transferred_points.append(
+                            [float(matched[0]), float(matched[1])])
+                        disparity_values.append(float(p[0] - matched[0]))
+                        num_matched += 1
+                    else:
+                        # No epipolar match: fall back to the source coordinate
+                        # so plain point transfer still returns something, but
+                        # record that this point did not actually match so
+                        # callers (e.g. stereo segmentation) can fail loudly.
+                        transferred_points.append([float(p[0]), float(p[1])])
+                        disparity_values.append(0.0)
+
+                return {
+                    "success": True,
+                    "transferred_points": transferred_points,
+                    "original_points": points,
+                    "disparity_values": disparity_values,
+                    "num_matched": num_matched,
+                }
 
             H, W = self._current_disparity.shape[:2]
             transferred_points = []
@@ -584,7 +1085,10 @@ class InteractiveStereoService:
         # _do_transfer_line (which acquires its own lock). Using a non-
         # reentrant Lock twice from the same thread would deadlock.
         with self._compute_lock:
-            ready = self._disparity_ready and self._current_disparity is not None
+            if self._use_epipolar:
+                ready = self._disparity_ready and self._left_gray is not None
+            else:
+                ready = self._disparity_ready and self._current_disparity is not None
 
         if ready:
             return self._do_transfer_line(request)
@@ -608,7 +1112,10 @@ class InteractiveStereoService:
             raise ValueError("Service not enabled. Call enable first.")
 
         with self._compute_lock:
-            ready = self._disparity_ready and self._current_disparity is not None
+            if self._use_epipolar:
+                ready = self._disparity_ready and self._left_gray is not None
+            else:
+                ready = self._disparity_ready and self._current_disparity is not None
 
         if ready:
             return self._do_transfer_points(request)
@@ -621,6 +1128,245 @@ class InteractiveStereoService:
             daemon=True,
         ).start()
         return None
+
+    def handle_measure_line(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Compute the 3D length of a line given its endpoints on BOTH images.
+
+        Unlike transfer_line, this performs no matching: the caller supplies the
+        already-corresponded left and right line endpoints (e.g. when a stereo
+        annotation that exists on both cameras is edited). The endpoints are
+        triangulated and the Euclidean distance is returned in calibration units.
+
+        Request: { "left_line": [[x,y],[x,y]], "right_line": [[x,y],[x,y]] }
+        """
+        if not self._enabled:
+            raise ValueError("Service not enabled. Call enable first.")
+
+        left_line = request.get("left_line")
+        right_line = request.get("right_line")
+        if (not left_line or len(left_line) != 2
+                or not right_line or len(right_line) != 2):
+            raise ValueError(
+                "left_line and right_line must each be two [x, y] points")
+
+        lp1, lp2 = left_line[0], left_line[1]
+        rp1, rp2 = right_line[0], right_line[1]
+
+        if self._use_epipolar:
+            if not self._epipolar_matcher.calibrated:
+                return {"success": False, "error": "Calibration not loaded"}
+            measurement = self._epipolar_matcher.compute_measurement(
+                lp1, rp1, lp2, rp2)
+        else:
+            # Dense mode: derive disparity from the supplied correspondences
+            measurement = self._dense_measurement(
+                lp1, lp1[0] - rp1[0], lp2, lp2[0] - rp2[0])
+
+        if measurement is None:
+            return {
+                "success": False,
+                "error": "Could not compute length "
+                         "(missing calibration or invalid points)",
+            }
+
+        return {
+            "success": True,
+            "length": measurement["length"],
+            "measurement": measurement,
+        }
+
+    def handle_aggregate_lengths(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Aggregate per-detection lengths along a track into a single value.
+
+        Delegates to viame::core::aggregate_lengths (the same C++ helper used by
+        the pair_stereo_tracks pipeline process). Needs only the list of lengths.
+
+        Request: { "lengths": [..], "method": "average"|"average_iqr"|"median",
+                   "iqr_factor": 1.5 }
+        """
+        lengths = request.get("lengths")
+        if not lengths:
+            return {"success": False, "error": "lengths is required"}
+
+        method = request.get("method", "average")
+        iqr_factor = float(request.get("iqr_factor", 1.5))
+
+        avg = _cpp_measurement.aggregate_lengths(
+            [float(x) for x in lengths], method, iqr_factor)
+
+        if avg is None or avg < 0:
+            return {"success": False, "error": "No valid lengths to aggregate"}
+
+        return {"success": True, "avg_length": float(avg)}
+
+    def _get_keypoint_algo(self):
+        """Lazily create the add_keypoints_from_mask vital algorithm. This is the
+        same algorithm (oriented bounding box, default config) the measurement
+        pipelines use to turn polygons/masks into head/tail keypoints."""
+        if self._keypoint_algo is None:
+            from kwiver.vital.algo import RefineDetections
+            self._keypoint_algo = RefineDetections.create("add_keypoints_from_mask")
+        return self._keypoint_algo
+
+    def _polygon_to_keypoints(self, polygon):
+        """Derive head/tail keypoints for a polygon via add_keypoints_from_mask.
+
+        Rasterizes the polygon to a mask, runs the vital algorithm, and returns
+        (head_xy, tail_xy) in image coordinates, or None on failure.
+        """
+        from kwiver.vital.types import (
+            DetectedObject, DetectedObjectSet, BoundingBoxD, ImageContainer, Image)
+
+        pts = np.asarray(polygon, dtype=np.float64)
+        if pts.ndim != 2 or pts.shape[0] < 3:
+            return None
+        x0, y0 = np.floor(pts.min(axis=0)).astype(int)
+        x1, y1 = np.ceil(pts.max(axis=0)).astype(int)
+        w, h = int(x1 - x0), int(y1 - y0)
+        if w <= 0 or h <= 0:
+            return None
+
+        mask = np.zeros((h, w), dtype=np.uint8)
+        cv2.fillPoly(mask, [(pts - [x0, y0]).astype(np.int32)], 255)
+        det = DetectedObject(
+            BoundingBoxD(float(x0), float(y0), float(x1), float(y1)),
+            1.0, None, ImageContainer(Image(mask)))
+        dummy = ImageContainer(Image(np.zeros((h, w, 3), dtype=np.uint8)))
+
+        refined = self._get_keypoint_algo().refine(dummy, DetectedObjectSet([det]))
+        dets = list(refined)
+        if not dets:
+            return None
+        kps = dets[0].keypoints
+        if 'head' not in kps or 'tail' not in kps:
+            return None
+        head = kps['head'].value
+        tail = kps['tail'].value
+        return ([float(head[0]), float(head[1])], [float(tail[0]), float(tail[1])])
+
+    def _warp_one_point(self, p):
+        """Warp a single point from the source to the other camera using whichever
+        stereo backend is configured -- epipolar template matching (model-free) or
+        the dense disparity algorithm (e.g. Foundation-Stereo). Returns [x, y] or
+        None."""
+        if self._use_epipolar:
+            if self._left_gray is None or self._right_gray is None:
+                return None
+            matched = self._epipolar_matcher.match_point(
+                self._left_gray, self._right_gray, p)
+            return [float(matched[0]), float(matched[1])] if matched is not None else None
+        if self._current_disparity is not None:
+            h, w = self._current_disparity.shape[:2]
+            x = max(0, min(w - 1, int(round(p[0]))))
+            y = max(0, min(h - 1, int(round(p[1]))))
+            disp = float(self._current_disparity[y, x])
+            return [float(p[0]) - disp, float(p[1])]
+        return None
+
+    @staticmethod
+    def _sample_points_in_polygon(polygon, n):
+        """Sample up to n random points uniformly inside a polygon (rejection sampling)."""
+        pts = np.asarray(polygon, dtype=np.float64)
+        if pts.ndim != 2 or pts.shape[0] < 3:
+            return []
+        contour = pts.astype(np.float32).reshape(-1, 1, 2)
+        (x0, y0), (x1, y1) = pts.min(axis=0), pts.max(axis=0)
+        samples = []
+        attempts = 0
+        while len(samples) < n and attempts < n * 200:
+            attempts += 1
+            x = float(np.random.uniform(x0, x1))
+            y = float(np.random.uniform(y0, y1))
+            if cv2.pointPolygonTest(contour, (x, y), False) >= 0:
+                samples.append([x, y])
+        return samples
+
+    def handle_transfer_segmentation_point(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Warp segmentation seed point(s) from the source camera to the other.
+
+        When point sampling is enabled, samples N random points
+        inside the source polygon, warps each via the configured stereo backend
+        (epipolar template matching or dense disparity) and returns the
+        coordinate-wise MEDIAN as a single positive seed point (noise reduction for
+        bad point mappings). Otherwise warps the provided click points directly.
+
+        Request: { "points": [[x,y]..], "labels": [..], "polygon": [[x,y]..] }
+        """
+        if not self._enabled:
+            raise ValueError("Service not enabled. Call enable first.")
+
+        points = request.get("points") or []
+        labels = request.get("labels") or [1] * len(points)
+        polygon = request.get("polygon")
+
+        if self._seg_point_sampling and polygon:
+            with self._compute_lock:
+                warped = []
+                for p in self._sample_points_in_polygon(polygon, self._seg_point_samples):
+                    matched = self._warp_one_point(p)
+                    if matched is not None:
+                        warped.append(matched)
+            if warped:
+                median = np.median(np.asarray(warped), axis=0)
+                self._log(f"Segmentation point: median of {len(warped)} warped samples")
+                return {
+                    "success": True,
+                    "transferred_points": [[float(median[0]), float(median[1])]],
+                    "point_labels": [1],
+                    "sampled": len(warped),
+                    "num_matched": len(warped),
+                }
+            self._log("Point sampling found no matches; falling back to direct warp")
+
+        # Direct warp of the supplied click points
+        response = self._do_transfer_points({"points": points})
+        response["point_labels"] = labels
+        # Dense mode always produces a disparity per point; treat each
+        # returned point as a match unless the epipolar path reported otherwise.
+        response.setdefault("num_matched", len(response.get("transferred_points") or []))
+        return response
+
+    def handle_measure_from_polygons(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate a head/tail line from each camera's segmentation polygon and the
+        corresponding stereo measurement, when segmentation_generate_line is enabled.
+        The lines use the add_keypoints_from_mask oriented-bbox
+        algorithm (the measurement pipeline default); the measurement reuses
+        compute_stereo_measurement. When disabled, reports generate_line=False so the
+        caller does nothing extra.
+
+        Request: { "polygon_left": [[x,y]..], "polygon_right": [[x,y]..] }
+        """
+        if not self._enabled:
+            raise ValueError("Service not enabled. Call enable first.")
+        if not self._seg_generate_line:
+            return {"success": True, "generate_line": False}
+
+        poly_left = request.get("polygon_left")
+        poly_right = request.get("polygon_right")
+        if not poly_left or not poly_right:
+            return {"success": True, "generate_line": False}
+
+        kl = self._polygon_to_keypoints(poly_left)
+        kr = self._polygon_to_keypoints(poly_right)
+        if kl is None or kr is None:
+            return {"success": True, "generate_line": False}
+
+        (left_head, left_tail) = kl
+        (right_head, right_tail) = kr
+        result = {
+            "success": True,
+            "generate_line": True,
+            "line_left": [left_head, left_tail],
+            "line_right": [right_head, right_tail],
+        }
+
+        if self._use_epipolar and self._epipolar_matcher.calibrated:
+            measurement = self._epipolar_matcher.compute_measurement(
+                left_head, right_head, left_tail, right_tail)
+            if measurement is not None:
+                result["measurement"] = measurement
+
+        return result
 
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Route request to appropriate handler."""
@@ -635,6 +1381,8 @@ class InteractiveStereoService:
             "get_status": self.handle_get_status,
             "transfer_line": self.handle_transfer_line,
             "transfer_points": self.handle_transfer_points,
+            "measure_line": self.handle_measure_line,
+            "aggregate_lengths": self.handle_aggregate_lengths,
         }
 
         handler = handlers.get(command)
@@ -689,16 +1437,19 @@ class InteractiveStereoService:
 
 def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None):
     """
-    Load and configure the ComputeStereoDepthMap algorithm from a KWIVER config file.
+    Load and configure stereo algorithms from a KWIVER config file.
+
+    Supports two modes:
+    - Epipolar template matching: when ``matching_method`` key is present
+    - Dense disparity (ComputeStereoDepthMap): when ``compute_stereo_depth_map:type`` is present
 
     Args:
         config_path: Path to the config file
         plugin_paths: Optional list of additional plugin paths to load
 
     Returns:
-        Tuple of (compute_stereo_depth_map_algo, service_config)
+        Tuple of (compute_stereo_depth_map_algo, epipolar_matcher, service_config)
     """
-    from kwiver.vital.algo import ComputeStereoDepthMap
     from kwiver.vital.config import config as vital_config
     from kwiver.vital.modules import modules as vital_modules
 
@@ -714,19 +1465,52 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
     config_dir = os.path.dirname(os.path.abspath(config_path))
     cfg = vital_config.read_config_file(config_path, [config_dir])
 
-    # Create compute_stereo_depth_map algorithm
+    # Check for epipolar template matching mode
+    epipolar_matcher = None
+    if cfg.has_value("matching_method"):
+        method = cfg.get_value("matching_method")
+        if method == "epipolar_template_matching":
+            def _cfg_float(key, default):
+                return float(cfg.get_value(key)) if cfg.has_value(key) else default
+            def _cfg_int(key, default):
+                return int(cfg.get_value(key)) if cfg.has_value(key) else default
+
+            epipolar_matcher = EpipolarTemplateMatcher(
+                template_size=_cfg_int("template_size", 13),
+                template_matching_threshold=_cfg_float(
+                    "template_matching_threshold", 0.5),
+                epipolar_min_disparity=_cfg_float("epipolar_min_disparity", 2.0),
+                epipolar_max_disparity=_cfg_float(
+                    "epipolar_max_disparity", 300.0),
+                epipolar_num_samples=_cfg_int("epipolar_num_samples", 5000),
+                dino_model_name=cfg.get_value("dino_model_name")
+                    if cfg.has_value("dino_model_name") else "dinov2_vitb14",
+                dino_top_k=_cfg_int("dino_top_k", 0),
+            )
+
+    # Check for dense disparity algorithm
     stereo_algo = None
     if cfg.has_value("compute_stereo_depth_map:type"):
+        from kwiver.vital.algo import ComputeStereoDepthMap
         impl_name = cfg.get_value("compute_stereo_depth_map:type")
         stereo_algo = ComputeStereoDepthMap.create(impl_name)
         stereo_algo.set_configuration(cfg.subblock("compute_stereo_depth_map:" + impl_name))
 
+    def _cfg_bool(key, default):
+        if not cfg.has_value(key):
+            return default
+        return str(cfg.get_value(key)).strip().lower() in ("true", "1", "yes", "on")
+
     # Extract service configuration
     service_config = {
         "scale": float(cfg.get_value("service:scale")) if cfg.has_value("service:scale") else 1.0,
+        "segmentation_generate_line": _cfg_bool("segmentation_generate_line", False),
+        "segmentation_point_sampling": _cfg_bool("segmentation_point_sampling", False),
+        "segmentation_point_samples": int(cfg.get_value("segmentation_point_samples"))
+            if cfg.has_value("segmentation_point_samples") else 5,
     }
 
-    return stereo_algo, service_config
+    return stereo_algo, epipolar_matcher, service_config
 
 
 def find_viame_config() -> Optional[str]:
@@ -741,7 +1525,7 @@ def find_viame_config() -> Optional[str]:
         return None
 
     pipelines_dir = Path(viame_install) / "configs" / "pipelines"
-    config_path = pipelines_dir / "common_foundation_stereo.conf"
+    config_path = pipelines_dir / "interactive_stereo_default.conf"
     if config_path.exists():
         return str(config_path)
 
@@ -752,27 +1536,32 @@ def create_default_config(output_path: str):
     """
     Create a default config file for the interactive stereo service.
 
-    This generates a config file that uses the foundation_stereo algorithm.
+    This generates a config file that uses epipolar template matching.
 
     Args:
         output_path: Path to write the config file
     """
     config = """# Interactive Stereo Service Configuration
-# This config file sets up the ComputeStereoDepthMap algorithm for interactive stereo.
-#
-# Include the shared foundation stereo config for model paths and defaults.
-# Uncomment the include line if running from VIAME install:
-# include common_foundation_stereo.pipe
+# This config uses epipolar template matching (same approach as
+# measurement_from_annotations_template.pipe). No GPU required.
 
-# Stereo depth/disparity algorithm
-compute_stereo_depth_map:type = foundation_stereo
-compute_stereo_depth_map:foundation_stereo:checkpoint_path =
-compute_stereo_depth_map:foundation_stereo:vit_size = vits
-compute_stereo_depth_map:foundation_stereo:device = cuda
-compute_stereo_depth_map:foundation_stereo:scale = 0.25
-compute_stereo_depth_map:foundation_stereo:use_half_precision = true
-compute_stereo_depth_map:foundation_stereo:num_iters = 32
-compute_stereo_depth_map:foundation_stereo:output_mode = disparity
+matching_method = epipolar_template_matching
+
+# Template matching parameters
+template_size = 13
+template_matching_threshold = 0.5
+
+# Epipolar search range (disparity-based, in pixels)
+epipolar_min_disparity = 2
+epipolar_max_disparity = 300
+epipolar_num_samples = 5000
+
+# DINO + NCC two-stage matching (optional, requires Python + PyTorch + GPU).
+# DINOv2 features select the top-K semantically similar candidates, then NCC
+# picks the precise match. Reduces false matches on repetitive textures.
+# Set dino_top_k to 0 (default) to disable, or 100 for recommended setting.
+# dino_top_k = 100
+# dino_model_name = dinov2_vitb14
 
 # Service settings
 service:scale = 1.0
@@ -834,17 +1623,19 @@ Examples:
 
     try:
         # Load algorithm from config
-        stereo_algo, service_config = load_algorithm_from_config(
+        stereo_algo, epipolar_matcher, service_config = load_algorithm_from_config(
             args.config, args.plugin_path
         )
 
-        if stereo_algo is None:
-            print("Error: No compute_stereo_depth_map algorithm configured", file=sys.stderr)
+        if stereo_algo is None and epipolar_matcher is None:
+            print("Error: No stereo algorithm or matching method configured",
+                  file=sys.stderr)
             sys.exit(1)
 
         # Create and run service
         service = InteractiveStereoService(
             compute_stereo_depth_map_algo=stereo_algo,
+            epipolar_matcher=epipolar_matcher,
             **service_config
         )
         service.run()

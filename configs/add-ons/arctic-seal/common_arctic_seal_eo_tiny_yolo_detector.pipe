@@ -4,6 +4,8 @@
 # Description: Shared detector configuration that can be included by other
 # pipelines. Uses model: arctic_seal_eo_tiny.weights. Uses YOLO-based
 # detection.
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
 
 process optical_detector_input

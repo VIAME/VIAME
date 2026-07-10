@@ -4,10 +4,17 @@
 # Description: Runs object detection pipeline on input imagery. Uses default
 # input with downsampler configuration. Outputs results to
 # sea_lion_detections.csv. Configured for sea lion survey imagery.
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
+
+# Requirements: { Detection Scale (default 1.0), global:scale, double }
 
 config _pipeline:_edge
   :capacity                                    5
+
+config global
+  :scale                                       1.0
 
 # ============================= INPUT FRAME LIST ==============================
 

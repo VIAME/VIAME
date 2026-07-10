@@ -108,6 +108,90 @@ images 0, 2, and 4 from the first sequence as well as images 0, 2, and
 (sequence 1) 0, (sequence 2) 0, (sequence 1) 2, (sequence 2) 2,
 (sequence 1) 4, (sequence 2) 4.
 
+**********************************
+Sequential Mappings / Registration
+**********************************
+
+For overhead / benthic surveys (single camera or a PORT/STAR/CENTER multi-camera
+rig), ``detect_prior_coverage.py`` chains frame-to-frame affine registrations from
+an anchor frame to compute, for every frame, the region already observed in
+previous imagery — split into ``prior_coverage_sequential`` (same camera),
+``prior_coverage_cross_camera`` (adjacent rig camera, via a robust rig-constant
+consensus transform) and ``prior_coverage_revisit`` (earlier passes, loop
+closures, or earlier sites/days in multi-folder runs) polygon classes, plus a
+``revisits.csv`` event summary, a footprint map and a thumbnail visualization.
+The ``generate_mappings_sequential`` script invokes it without metadata::
+
+  detect_prior_coverage.py <folder> --method hybrid --output out
+
+Without GPS the site is pseudo-georeferenced from the registration chains
+(within-site coverage and revisits only), and open-water gaps are bridged by a
+moving average of the chained motion.
+
+If per-frame GPS metadata is available, ``generate_mappings_gps_anchored`` adds
+``--flight-logs``, which calibrates a metres-to-pixels map from the raw pairwise
+registrations (bounded by the altitude/focal-length expectation), places
+featureless water frames by GPS dead-reckoning, and tracks all observed ground
+in a geo-referenced occupancy grid shared across every folder in the run.
+Metadata is read from FMCLOG CSVs (``--flight-logs`` file or directory), an
+``imagelog.json`` co-located with the images, or embedded EXIF GPS.
+
+Alternative engines: ``--method metadata`` computes coverage from GPS footprints
+alone (no image registration; seconds per site), and ``--method sfm-rig`` uses
+COLMAP rig-constrained structure-from-motion (requires pycolmap; GPU-accelerated
+when available) as an independent cross-check.
+
+(Full 3D structure-from-motion, dense reconstruction and meshing live in
+``reconstruct_3d.py`` and require building with ``VIAME_ENABLE_COLMAP`` set to
+ON; the coverage/registration tooling above does not need COLMAP except for
+``--method sfm-rig``.)
+
+*****************************************
+Prior-Coverage Detection: Quick Run Guide
+*****************************************
+
+To produce a VIAME detection CSV of previously-observed regions for all
+cameras of a survey folder with the recommended settings, use the
+``detect_prior_coverage`` script (``.sh`` on Linux, ``.bat`` on Windows):
+
+1. Edit the script and set ``INPUT`` to the site folder — either a single
+   folder of images, or a rig folder containing ``PORT``/``STAR``/``CENTER``
+   subfolders (all three cameras are processed together).
+2. Optionally set ``FLIGHT_LOGS`` to a daily FMCLOG CSV or a directory of
+   them. Leave it empty to auto-detect an ``imagelog.json`` or embedded EXIF
+   GPS; with no metadata at all, coverage is still computed within-site from
+   the image registration alone.
+3. Run the script. Expect roughly 1 hour per 200-image site (most of it
+   SIFT registration); add ``--method metadata`` to the python command for a
+   GPS-only preview in a few seconds.
+4. Outputs land in ``OUTPUT``:
+
+   - ``prior_coverage.csv`` — VIAME detection CSV; one ``(poly)`` row per
+     previously-seen region per camera frame, with class names
+     ``prior_coverage_sequential`` / ``_cross_camera`` / ``_revisit``
+   - ``revisits.csv`` — per-frame revisit events (source image/pass/day,
+     overlap fraction, registration confirmation)
+   - ``coverage_map.png`` and ``prior_coverage_vis.png`` — footprint map and
+     a thumbnail grid (STAR | CENTER | PORT) with the regions overlaid for
+     spot-checking
+
+**********************
+Site Revisit Detection
+**********************
+
+Revisit / loop-closure events — where the platform leaves a location and later
+returns to image the same ground — are detected by ``detect_prior_coverage.py``
+through its ground-occupancy grid; the ``detect_site_revisits`` script runs it
+in ``--revisits-only`` mode, which skips the per-frame coverage CSV and
+thumbnails::
+
+  detect_prior_coverage.py <folder> --method hybrid --revisits-only --output out
+
+It writes a ``revisits.csv`` listing, for each frame that re-covers previously
+seen ground, the source image / pass / day, the overlapping fraction, and
+whether a direct land-to-land feature match confirmed the event. Use
+``--method metadata`` for a fast GPS-only pass.
+
 ******************
 Build Requirements
 ******************

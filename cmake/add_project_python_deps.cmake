@@ -19,8 +19,12 @@ if( WIN32 AND VIAME_ENABLE_PYTORCH-NETHARN AND VIAME_ENABLE_GDAL )
   # Legacy constraint for GDAL compatibility - use older wheel that works with old setuptools
   list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools==57.5.0" "wheel<0.45.0" )
 else()
-  # Modern versions - wheel 0.45+ works with setuptools 70.1+
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools>=75.3.0" "wheel>=0.45.0" )
+  # Require >=75.3.0 so setuptools has builtin bdist_wheel (added in 70.1.0);
+  # without a lower bound, old pip may consider the system setuptools (e.g. 59.x)
+  # as already satisfying the constraint and skip the upgrade.
+  # Cap at <76 because 76.0 removed pkg_resources.get_distribution/DistributionNotFound
+  # which breaks builds of imgaug, mmcv, and other third-party packages.
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "setuptools>=75.3.0,<76" "wheel>=0.45.0" )
 endif()
 
 # Numpy versioning
@@ -77,14 +81,32 @@ if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-SAM3 )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "tqdm" "scipy" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-SAM3 )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "decord" )
+endif()
+
 # For PostgreSQL database support (used by native ITQ indexer, etc.)
 if( VIAME_ENABLE_POSTGRESQL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "psycopg2-binary" )
 endif()
 
+# For COLMAP structure-from-motion / 3D reconstruction (reconstruct_3d.py).
+# pycolmap provides SfM + (CUDA) MVS; open3d is used for point-cloud output.
+# On CUDA builds we swap the CPU-only pycolmap wheel for pycolmap-cuda12, which
+# ships GPU-accelerated feature extraction / matching / MVS. That wheel is
+# installed individually (see the advanced deps below) with --no-deps so it uses
+# the system CUDA 12.x runtime VIAME already builds against, rather than pulling
+# its own packaged cuda-toolkit[cudart,curand] wheels.
+if( VIAME_ENABLE_COLMAP )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "open3d" )
+  if( NOT VIAME_ENABLE_CUDA )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "pycolmap" )
+  endif()
+endif()
+
 # For LEARN models
 if( VIAME_ENABLE_PYTORCH-LEARN )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb" "fsspec" "filelock" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "fsspec" "filelock" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "submitit" "scikit-learn" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "scipy" "termcolor" "addict" "yapf" )
 endif()
@@ -94,6 +116,7 @@ if( VIAME_ENABLE_KEYPOINT )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb<=0.25.0" )
   if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-image>=0.24.0" )
   else()
@@ -152,11 +175,24 @@ if( VIAME_ENABLE_PYTORCH-LEARN OR
 endif()
 
 if( VIAME_ENABLE_ONNX )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "onnx<=1.16.1" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "onnx<=1.18")  #keep old compatibility for TensorRT<10 https://onnxruntime.ai/docs/execution-providers/TensorRT-ExecutionProvider.html#requirements
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "onnxscript" )  #https://github.com/pytorch/pytorch/issues/166352
+  if( VIAME_ENABLE_CUDA )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "onnxruntime-gpu==1.23.2" )
+  else()
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "onnxruntime==1.23.2" )
+  endif()
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pycocotools" )
+endif()
+
+# For Vertex AI custom container support
+if( VIAME_ENABLE_VERTEX_AI )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "flask>=2.3" "gunicorn>=21.2" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "google-cloud-storage>=2.10" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "google-cloud-aiplatform>=1.38" )
 endif()
 
 if( VIAME_ENABLE_TENSORFLOW )
@@ -190,8 +226,8 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
-  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "ultralytics<=8.3.71" )
-  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "ultralytics_thop==2.0.14" )
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "ultralytics<=8.4.17" )
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "ultralytics_thop==2.0.18" )
 endif()
 
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
@@ -211,7 +247,8 @@ if( VIAME_ENABLE_PYTORCH-LEARN OR
 endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
-  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "supervision" "defusedxml>=0.7.1" "pyDeprecate" )
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "supervision" "defusedxml>=0.7.1" "pyDeprecate>=0.9,<0.10"
+    "faster-coco-eval>=1.6.0" )
 endif()
 
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------
@@ -219,6 +256,16 @@ endif()
 
 list( APPEND VIAME_PYTHON_ADV_DEPS python-deps )
 set( VIAME_PYTHON_ADV_DEP_CMDS "custom-install" )
+
+# CUDA-enabled COLMAP python bindings (GPU SfM / SIFT / MVS). Installed
+# individually with --no-deps so it links the system CUDA 12.x runtime
+# (libcudart.so.12 / libcurand.so.10) that VIAME already builds against, instead
+# of pulling packaged cuda-toolkit[cudart,curand] wheels. numpy is provided by
+# the basic deps above (this project depends on python-deps).
+if( VIAME_ENABLE_COLMAP AND VIAME_ENABLE_CUDA )
+  list( APPEND VIAME_PYTHON_ADV_DEPS pycolmap-cuda12 )
+  list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "pycolmap-cuda12 --no-deps" )
+endif()
 
 if( VIAME_ENABLE_KEYPOINT )
   list( APPEND VIAME_PYTHON_ADV_DEPS wxPython )
@@ -256,8 +303,8 @@ if( VIAME_ENABLE_PYTORCH AND
   endif()
 
   if( VIAME_ENABLE_PYTORCH-VISION AND NOT VIAME_BUILD_TORCHVISION_FROM_SOURCE )
-    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.10.0" )
-      set( TORCHVISION_CMD "torchvision==0.25.0" )
+    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.12.0" )
+      set( TORCHVISION_CMD "torchvision==0.27.0" )
     elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.13.1" )
       set( TORCHVISION_CMD "torchvision==0.13.0" )
     else()

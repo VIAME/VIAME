@@ -1,27 +1,35 @@
 # =============================================================================
 # Title: Training - Aug Add Double Motion
 #
-# Description: Training pipeline for model optimization.
+# Description: Source-driven augmentation that reads directly from the
+# common_default_input source. Because that source is a video_input, the same pipeline handles
+# both videos (video_reader:type = vidl_ffmpeg) and image sequences
+# (video_reader:type = image_list) -- the viame train tool selects the reader
+# per input. The frames are downsampled, augmented with two temporal-variance
+# motion channels, and written out in a single pass, so a video is decoded only
+# once and only the augmented frames are written (no intermediate raw-frame
+# dump). Requires temporally ordered input frames.
+#
+# The train tool drives this via 'kwiver runner' with -s overrides for
+# input:video_filename, input:video_reader:type, downsampler:target_frame_rate
+# and image_writer:file_name_template. The writer names frames purely from the
+# template counter (frame%06d.png) so numbering is identical for video and image
+# inputs and groundtruth association is unchanged.
 # =============================================================================
 
 config _pipeline:_edge
-  :capacity                                    10
+  :capacity                                    5
 
-# =============================================================================
-process in_adapt
- :: input_adapter
+config _scheduler
+  :type                                        pythread_per_process
 
-process out_adapt
- :: output_adapter
+# ============================= FRAME SOURCE =================================
+# video_input; reader switches between vidl_ffmpeg (video) and image_list
+# (image sequence) via -s input:video_reader:type at run time.
 
-process image_reader
- :: image_file_reader
- :image_reader:type                            vxl
+include common_default_input_with_downsampler.pipe
 
-connect from in_adapt.input_file_name
-        to   image_reader.image_file_name
-
-# =============================================================================
+# ============================ MOTION AUGMENTATION ============================
 
 process rgb_to_grey
   :: image_filter
@@ -32,7 +40,7 @@ process rgb_to_grey
     :single_channel                            true
   endblock
 
-connect from image_reader.image
+connect from downsampler.output_1
         to   rgb_to_grey.image
 
 process motion_filter1
@@ -107,19 +115,18 @@ connect from image_merger1.image
 connect from float_to_byte2.image
         to   image_merger2.image2
 
-# =============================================================================
+# ================================== OUTPUT ===================================
+# Frame names come solely from the template counter (set by the train tool), so
+# numbering is identical whether the source is a video or an image list, and the
+# original images are never overwritten.
 
 process image_writer
  :: image_writer
+ :file_name_template                            frame%06d.png
  :image_writer:type                             vxl
  :image_writer:vxl:split_channels               false
 
-connect from in_adapt.output_file_name
-        to   image_writer.image_file_name
 connect from image_merger2.image
         to   image_writer.image
-
-connect from image_writer.success_flag
-        to   out_adapt.success_flag
 
 # -- end of file --

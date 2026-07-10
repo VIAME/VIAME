@@ -131,7 +131,7 @@ class HiddenShapes(analytic_for.Hidden):
 #         <HiddenShapes({'a': 1, 'b': 2, 'c': 'foo'})>
 #     """
 #     def __nice__(self):
-#         return ub.repr2(self, nl=0)
+#         return ub.urepr(self, nl=0)
 
 #     def __str__(self):
 #         return ub.NiceRepr.__str__(self)
@@ -393,8 +393,8 @@ class OutputShapeFor(analytic_for.OutputFor):
         computed_output_shape = output_shape_of(outputs)
 
         if computed_output_shape != expected_output_shape:
-            print('expected_output_shape = {}'.format(ub.repr2(expected_output_shape, nl=0)))
-            print('computed_output_shape = {}'.format(ub.repr2(computed_output_shape, nl=0)))
+            print('expected_output_shape = {}'.format(ub.urepr(expected_output_shape, nl=0)))
+            print('computed_output_shape = {}'.format(ub.urepr(computed_output_shape, nl=0)))
             raise AssertionError(
                 'computed shape {!r} != expected shape {!r}'.format(
                     computed_output_shape,
@@ -875,8 +875,8 @@ class OutputShapeFor(analytic_for.OutputFor):
             >>>     nn.Conv2d(5, 7, kernel_size=3),
             >>> )
             >>> shape = OutputShapeFor(self)([1, 1, 7, 11])
-            >>> print('shape = {}'.format(ub.repr2(shape, nl=0)))
-            >>> print('shape.hidden = {}'.format(ub.repr2(shape.hidden, nl=1)))
+            >>> print('shape = {}'.format(ub.urepr(shape, nl=0)))
+            >>> print('shape.hidden = {}'.format(ub.urepr(shape.hidden, nl=1)))
             shape = (1, 7, 1, 5)
             shape.hidden = {
                 '0': (1, 3, 5, 9),
@@ -960,7 +960,7 @@ class OutputShapeFor(analytic_for.OutputFor):
             >>> module = torchvision.models.resnet50()
             >>> input_shape = (1, 3, 224, 224)
             >>> shape = OutputShapeFor(module)(input_shape=input_shape)
-            >>> print(ub.repr2(shape.hidden, nl=-1))
+            >>> print(ub.urepr(shape.hidden, nl=-1))
         """
         shape = input_shape
 

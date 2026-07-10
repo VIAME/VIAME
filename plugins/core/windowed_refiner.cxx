@@ -3,6 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "windowed_refiner.h"
+#include "windowed_utils.h"
 
 #include <vital/algo/algorithm.txx>
 
@@ -19,7 +20,6 @@
 namespace viame {
 
 namespace kv = kwiver::vital;
-
 
 // -----------------------------------------------------------------------------
 void
@@ -92,8 +92,20 @@ windowed_refiner
   kv::detected_object_set_sptr refined_detections =
     std::make_shared< kv::detected_object_set >();
 
+  // Track tile origin for each output detection (for mask-overlap merge)
+  std::vector< det_tile_entry > det_tile_list;
+
   // Track which original detections have been processed (if option enabled)
   std::set< kv::detected_object_sptr > processed_detections;
+
+  // Pick the tile that fully contains each detection so its refined mask is
+  // not truncated at a tile boundary (only when refining each detection once).
+  std::map< kv::detected_object_sptr, size_t > preferred_region;
+  if( c_prefer_containing_tile && c_overlapping_proc_once )
+  {
+    preferred_region =
+      compute_preferred_regions( detections, region_properties );
+  }
 
   // Process all regions
   for( unsigned i = 0; i < regions_to_process.size(); i++ )
@@ -105,9 +117,26 @@ windowed_refiner
     scale_detections_to_region_with_mapping( detections,
       region_properties[i], original_dets, scaled_dets );
 
-    // Skip empty regions if there are no detections
     if( original_dets.empty() )
     {
+      if( c_process_empty )
+      {
+        kv::image_container_sptr region_image(
+          new kv::simple_image_container( regions_to_process[i] ) );
+
+        kv::detected_object_set_sptr region_refined =
+          m_refiner->refine( region_image,
+            std::make_shared< kv::detected_object_set >() );
+
+        if( region_refined && !region_refined->empty() )
+        {
+          auto rescaled = rescale_detections( region_refined,
+            region_properties[i], m_settings.chip_edge_max_prob );
+          refined_detections->add( rescaled );
+          for( auto det : *rescaled )
+            det_tile_list.push_back( { det, region_properties[i].original_roi } );
+        }
+      }
       continue;
     }
 
@@ -132,6 +161,16 @@ windowed_refiner
       {
         // Skip - already processed in a previous region
         continue;
+      }
+
+      // If this detection has a preferred (fully-containing) tile, only refine
+      // it there; defer in every other overlapping tile.
+      {
+        auto pref = preferred_region.find( original_det );
+        if( pref != preferred_region.end() && pref->second != i )
+        {
+          continue;
+        }
       }
 
       // Check if detection touches boundary (if option enabled)
@@ -163,8 +202,11 @@ windowed_refiner
     // Scale and add pass-through detections to output
     if( !detections_to_pass_through->empty() )
     {
-      refined_detections->add( rescale_detections( detections_to_pass_through,
-        region_properties[i], m_settings.chip_edge_max_prob ) );
+      auto rescaled = rescale_detections( detections_to_pass_through,
+        region_properties[i], m_settings.chip_edge_max_prob );
+      refined_detections->add( rescaled );
+      for( auto det : *rescaled )
+        det_tile_list.push_back( { det, region_properties[i].original_roi } );
     }
 
     // Refine the remaining detections
@@ -181,8 +223,11 @@ windowed_refiner
       // Scale refined detections back to original image space
       if( region_refined && !region_refined->empty() )
       {
-        refined_detections->add( rescale_detections( region_refined,
-          region_properties[i], m_settings.chip_edge_max_prob ) );
+        auto rescaled = rescale_detections( region_refined,
+          region_properties[i], m_settings.chip_edge_max_prob );
+        refined_detections->add( rescaled );
+        for( auto det : *rescaled )
+          det_tile_list.push_back( { det, region_properties[i].original_roi } );
       }
 
       // Mark these detections as processed
@@ -194,6 +239,14 @@ windowed_refiner
         }
       }
     }
+  }
+
+  if( c_mask_overlap_thresh > 0.0 && det_tile_list.size() > 1 )
+  {
+    refined_detections = merge_tile_boundary_detections(
+      det_tile_list, c_mask_overlap_thresh,
+      static_cast< int >( input_image.width() ),
+      static_cast< int >( input_image.height() ) );
   }
 
   const int min_dim = m_settings.min_detection_dim;

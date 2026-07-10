@@ -390,14 +390,14 @@ class XPU(ub.NiceRepr):
         Example:
             >>> # xdoctest: +REQUIRES(module:psutil)
             >>> from .device import *
-            >>> print(ub.repr2(XPU.coerce(None).memory()))
+            >>> print(ub.urepr(XPU.coerce(None).memory()))
             {
                 'available': ...,
                 'total': ...,
                 'used': ...,
             }
             >>> # xdoctest: +REQUIRES(--cuda)
-            >>> print(ub.repr2(XPU.coerce(0).memory()))
+            >>> print(ub.urepr(XPU.coerce(0).memory()))
             {
                 'available': ...,
                 'total': ...,
@@ -620,8 +620,12 @@ class XPU(ub.NiceRepr):
             >>> assert all(data == loaded)
         """
         # print('Loading data onto {} from {}'.format(xpu, fpath))
+        # weights_only=False: netharn snapshots embed non-tensor objects (numpy
+        # scalars in the monitor metrics, etc.) that torch>=2.6's weights_only=True
+        # default rejects. These are our own trusted checkpoints.
         try:
-            return torch.load(fpath, map_location=xpu._map_location)
+            return torch.load(fpath, map_location=xpu._map_location,
+                              weights_only=False)
         except Exception:
             print('XPU={} Failed to load fpath={}'.format(xpu, fpath))
             raise
@@ -767,7 +771,7 @@ def gpu_info(new_mode=True, respect_visible_devices=True):
         >>> from .device import gpu_info
         >>> gpus = gpu_info()
         >>> # xdoctest: +IGNORE_WANT
-        >>> print('gpus = {}'.format(ub.repr2(gpus, nl=4)))
+        >>> print('gpus = {}'.format(ub.urepr(gpus, nl=4)))
         >>> assert len(gpus) == torch.cuda.device_count()
         gpus = {
             0: {

@@ -22,15 +22,9 @@ def __sprokit_register__():
 
     try:
         from viame.pytorch import convert_to_onnx_process
-        process_factory.add_process(
-            'convert_to_onnx',
-            'Convert a yolo/cfrcnn model to onnx',
-            convert_to_onnx_process.OnnxConverter
-        )
+        convert_to_onnx_process.__sprokit_register__()
     except ImportError:
         pass
-
-    process_factory.mark_process_module_as_loaded( module_name )
 
 
 def __vital_algorithm_register__():
@@ -54,6 +48,18 @@ def __vital_algorithm_register__():
         pass
 
     try:
+        from viame.pytorch import motr_tracker
+        motr_tracker.__vital_algorithm_register__()
+    except ImportError:
+        pass
+
+    try:
+        from viame.pytorch import motr_trainer
+        motr_trainer.__vital_algorithm_register__()
+    except ImportError:
+        pass
+
+    try:
         from viame.pytorch import siammask_tracker
         siammask_tracker.__vital_algorithm_register__()
     except ImportError:
@@ -68,6 +74,12 @@ def __vital_algorithm_register__():
     try:
         from viame.pytorch import sam3_trainer
         sam3_trainer.__vital_algorithm_register__()
+    except ImportError:
+        pass
+
+    try:
+        from viame.pytorch import sam3_refiner
+        sam3_refiner.__vital_algorithm_register__()
     except ImportError:
         pass
 

@@ -26,6 +26,7 @@ process detector_cam1_1
     :detector:type                             netharn
 
     :mode                                      chip
+    :scale                                     $CONFIG{global:scale}
     :chip_width                                640
     :chip_height                               640
     :chip_step_width                           520

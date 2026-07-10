@@ -6,7 +6,7 @@ export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 # Input and output folders
 export INPUT=videos
 export OUTPUT=frames
-export PIPELINE=pipelines/utility_extract_chips.pipe
+export PIPELINE=pipelines/filter_extract_chips.pipe
 
 # The default frame rate is only used when the csvs alongside videos
 # do not contain frame rates, otherwise the CSV frame rate is used.

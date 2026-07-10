@@ -8,6 +8,7 @@ set( plugin_headers
   average_track_descriptors.h
   camera_io.h
   camera_rig_io.h
+  utilities_target_clfr.h
   convert_head_tail_points.h
   convert_notes_to_attributes.h
   convert_polygons_to_mask.h
@@ -21,6 +22,7 @@ set( plugin_headers
   merge_detections_suppress_in_regions.h
   equalize_via_percentiles.h
   pair_stereo_detections.h
+  pair_stereo_tracks.h
   read_detected_object_set_auto.h
   read_detected_object_set_cvat.h
   read_detected_object_set_dive.h
@@ -55,6 +57,7 @@ set( plugin_sources
   average_track_descriptors.cxx
   camera_io.cxx
   camera_rig_io.cxx
+  utilities_target_clfr.cxx
   convert_head_tail_points.cxx
   convert_notes_to_attributes.cxx
   convert_polygons_to_mask.cxx
@@ -68,6 +71,7 @@ set( plugin_sources
   merge_detections_suppress_in_regions.cxx
   equalize_via_percentiles.cxx
   pair_stereo_detections.cxx
+  pair_stereo_tracks.cxx
   read_detected_object_set_auto.cxx
   read_detected_object_set_cvat.cxx
   read_detected_object_set_dive.cxx
@@ -186,10 +190,24 @@ set( AUX_LINK_LIBRARIES
      ${TinyXML_LIBRARY}
      ${AUX_LINK_LIBRARIES} )
 
+# Python is used for DINOv3 feature matching via Python C API
+if( VIAME_ENABLE_PYTHON )
+  include_directories( SYSTEM ${PYTHON_INCLUDE_DIRS} )
+  get_filename_component( PYTHON_LIBRARY_DIR "${PYTHON_LIBRARY}" DIRECTORY )
+  set( AUX_LINK_LIBRARIES
+       ${PYTHON_LIBRARIES}
+       ${AUX_LINK_LIBRARIES} )
+  set( AUX_COMPILE_DEFINITIONS VIAME_ENABLE_PYTHON ${AUX_COMPILE_DEFINITIONS} )
+endif()
+
 target_link_libraries( viame_core
   PUBLIC               ${CORE_LINK_LIBRARIES}
                        ${AUX_LINK_LIBRARIES}
   )
+
+if( VIAME_ENABLE_PYTHON )
+  target_link_directories( viame_core PUBLIC ${PYTHON_LIBRARY_DIR} )
+endif()
 
 # Propagate compile definitions to dependent targets (important for ABI compatibility)
 if( AUX_COMPILE_DEFINITIONS )
@@ -310,9 +328,19 @@ if( VIAME_ENABLE_PYTHON )
     bytetrack_trainer )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/detection_fusion_core.py
+    core
+    detection_fusion_core )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_nms_fusion.py
     core
     merge_detections_nms_fusion )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/merge_tracks_tube_iou.py
+    core
+    merge_tracks_tube_iou )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_det_suppressor.py
@@ -330,6 +358,11 @@ if( VIAME_ENABLE_PYTHON )
     equalize_via_percentiles )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/optical_flow.py
+    core
+    optical_flow )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_tracker.py
     core
     ocsort_tracker )
@@ -345,9 +378,24 @@ if( VIAME_ENABLE_PYTHON )
     read_detected_object_set_coco )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/read_object_track_set_coco.py
+    core
+    read_object_track_set_coco )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities_coco.py
+    core
+    utilities_coco )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/write_detected_object_set_coco.py
     core
     write_detected_object_set_coco )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/write_object_track_set_coco.py
+    core
+    write_object_track_set_coco )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/segmentation_utils.py
@@ -383,6 +431,25 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_stereo.py
     core
     interactive_stereo )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/interactive_service.py
+    core
+    interactive_service )
+
+  # Compiled bindings exposing the C++ stereo measurement (compute_stereo_measurement,
+  # aggregate_lengths) to Python so the interactive stereo service reuses them rather
+  # than duplicating the math. The bindings live at the bottom of measurement_utilities.cxx
+  # guarded by VIAME_MEASUREMENT_PYTHON_BINDINGS; defining it here makes this build of the
+  # file emit only the module (linking viame_core for the implementations).
+  find_package( pybind11 REQUIRED )
+  kwiver_add_python_library( _measurement
+    core
+    measurement_utilities.cxx )
+  target_compile_definitions( python-core-_measurement
+    PRIVATE VIAME_MEASUREMENT_PYTHON_BINDINGS )
+  target_link_libraries( python-core-_measurement
+    PRIVATE ${PYTHON_LIBRARIES} pybind11::pybind11 viame_core )
 
 endif()
 

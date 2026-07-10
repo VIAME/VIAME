@@ -134,6 +134,9 @@ def setup_module_aliases():
         'bioharn.detect_predict': nh.detect_predict,
         'bioharn.detect_fit': nh.detect_fit,
         'bioharn.detect_dataset': nh.detect_dataset,
+        'bioharn.clf_predict': nh.clf_predict,
+        'bioharn.clf_fit': nh.clf_fit,
+        'bioharn.clf_dataset': nh.clf_dataset,
     }
 
     for old_name, new_module in alias_mappings.items():
@@ -495,7 +498,7 @@ class DetectPredictor(object):
         predictor._ensure_mounted_model()
 
         native = predictor._infer_native(predictor.config)
-        predictor.info('native = {}'.format(ub.repr2(native, nl=1)))
+        predictor.info('native = {}'.format(ub.urepr(native, nl=1)))
         input_dims = native['input_dims']
         window_dims = native['window_dims']
         channels = native['channels']
@@ -658,7 +661,7 @@ class DetectPredictor(object):
         full_dims = tuple(ub.peek(full_inputs.values()).shape[0:2])
 
         native = predictor._infer_native(predictor.config)
-        predictor.info('native = {}'.format(ub.repr2(native, nl=1)))
+        predictor.info('native = {}'.format(ub.urepr(native, nl=1)))
 
         # Break large images into chunks to fit on the GPU
         slider = nh.util.SlidingWindow(full_dims, window=window_dims,
@@ -1404,7 +1407,7 @@ def detect_cli(config={}):
         >>> config['out_dpath'] = 'out'
     """
     config = DetectPredictCLIConfig(config, cmdline=True)
-    print('config = {}'.format(ub.repr2(config.asdict())))
+    print('config = {}'.format(ub.urepr(config.asdict())))
 
     out_dpath = ub.expandpath(config.get('out_dpath'))
     det_outdir = ub.ensuredir((out_dpath, 'pred'))

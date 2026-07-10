@@ -10,12 +10,16 @@ if( WIN32 )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        run_fish_without_motion.bat
-       run_generic_proposals.bat )
+       run_generic_proposals.bat
+       run_gmm_motion.bat
+       run_huggingface_zeroshot.bat )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        run_fish_without_motion.sh
-       run_generic_proposals.sh )
+       run_generic_proposals.sh
+       run_gmm_motion.sh
+       run_huggingface_zeroshot.sh )
 endif()
 
 if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
@@ -60,4 +64,5 @@ endif()
 # Install pipelines to example directory
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
-         DESTINATION examples/object_detection )
+         DESTINATION examples/object_detection
+         OPTIONAL )

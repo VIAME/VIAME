@@ -124,10 +124,12 @@ option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
+option( VIAME_ENABLE_COLMAP         "Enable COLMAP 3D reconstruction (pycolmap)" OFF )
 
 mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_SEAGIS )
+mark_as_advanced( VIAME_ENABLE_COLMAP )
 
 ###
 # Add core utilities enable flags
@@ -166,12 +168,12 @@ endif()
 # Additional libraries built on pytorch and versioning
 ##
 if( VIAME_ENABLE_PYTORCH )
-  set( VIAME_PYTORCH_VERSION 2.10.0 CACHE STRING "PyTorch version to use" )
-  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.13.1" "2.10.0" )
+  set( VIAME_PYTORCH_VERSION 2.12.0 CACHE STRING "PyTorch version to use" )
+  set_property( CACHE VIAME_PYTORCH_VERSION PROPERTY STRINGS "1.13.1" "2.12.0" )
   mark_as_advanced( VIAME_PYTORCH_VERSION )
 
-  set( PYTORCH_INTERNAL_VERSION 2.10.0 CACHE INTERNAL "Internal pytorch version" )
-  set( PYTORCH_MIN_GCC          9.3   CACHE INTERNAL "Minimum GCC version for torch" )
+  set( PYTORCH_INTERNAL_VERSION 2.12.0 CACHE INTERNAL "Internal pytorch version" )
+  set( PYTORCH_MIN_GCC          11.3  CACHE INTERNAL "Minimum GCC version for torch" )
   set( PYTORCH_MIN_PYTHON_WHL   3.10  CACHE INTERNAL "Minimum python for torch whl" )
   set( PYTORCH_MIN_PYTHON_BLD   3.10  CACHE INTERNAL "Minimum python for torch build" )
   set( PYTORCH_MIN_CUDA_BLD     11.0  CACHE INTERNAL "Minimum cuda for torch build" )
@@ -193,6 +195,7 @@ if( VIAME_ENABLE_PYTORCH )
   option( VIAME_ENABLE_PYTORCH-STEREO      "Enable stereo algorithms"       OFF )
   option( VIAME_ENABLE_PYTORCH-ULTRALYTICS "Enable ultralytics algorithms"  OFF )
   option( VIAME_ENABLE_PYTORCH-LITDET      "Enable LitDet algorithms"       OFF )
+  option( VIAME_ENABLE_PYTORCH-DINO3       "Enable DINOv3 algorithms"       OFF )
 
   mark_as_advanced( VIAME_ENABLE_PYTORCH-VISION )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-MMDET )
@@ -210,6 +213,7 @@ if( VIAME_ENABLE_PYTORCH )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-RF-DETR )
   mark_as_advanced( VIAME_ENABLE_PYTORCH-LITDET )
+  mark_as_advanced( VIAME_ENABLE_PYTORCH-DINO3 )
 
   option( VIAME_BUILD_PYTORCH_FROM_SOURCE      "Build PyTorch from source"     OFF )
   option( VIAME_BUILD_TORCHVISION_FROM_SOURCE  "Build TorchVision from source" ON )
@@ -449,7 +453,12 @@ if( VIAME_ENABLE_CUDA )
   option( VIAME_FORCE_CUDA_CSTD98 "Build all cuda code with C++ standard 98" FALSE )
   mark_as_advanced( VIAME_FORCE_CUDA_CSTD98 )
 
-  set( DEF_CUDA_ARCHS "6.0 6.1 7.0 7.5" )
+  # CUDA 13.0 removed support for Maxwell, Pascal, and Volta archs
+  if( CUDA_VERSION VERSION_LESS "13.0" )
+    set( DEF_CUDA_ARCHS "6.0 6.1 7.0 7.5" )
+  else()
+    set( DEF_CUDA_ARCHS "7.5" )
+  endif()
 
   if( CUDA_VERSION VERSION_LESS "12.0" )
     set( DEF_CUDA_ARCHS "3.5 ${DEF_CUDA_ARCHS}" )
@@ -494,8 +503,8 @@ if( VIAME_ENABLE_CUDA )
   endif()
 
   if( VIAME_BUILD_CHECKS AND CMAKE_COMPILER_IS_GNUCC AND
-      CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 12.0 )
-    message( FATAL_ERROR "GCC 12.0+ support is experimental and may not work. "
+      CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 14.0 )
+    message( FATAL_ERROR "GCC 14.0+ support is experimental and may not work. "
       "To disable this warning, set VIAME_BUILD_CHECKS to FALSE." )
   endif()
 
@@ -534,13 +543,28 @@ if( VIAME_ENABLE_CUDNN )
     set( DEFAULT_SYS_CUDNN_DIR /usr )
   endif()
 
+  # The active CUDA toolkit (CUDA_TOOLKIT_ROOT_DIR) may not be the one shipping
+  # cudnn (e.g. /usr/local/cuda -> cuda-12.9 with no cudnn, while cudnn lives in
+  # cuda-12.6). Glob the sibling versioned CUDA install dirs so cudnn is still
+  # auto-detected in that case.
+  set( CUDNN_VERSIONED_HINTS )
+  if( NOT WIN32 )
+    get_filename_component( CUDA_PARENT_DIR "${CUDA_TOOLKIT_ROOT_DIR}" DIRECTORY )
+    file( GLOB CUDNN_VERSIONED_HINTS
+      "${CUDA_PARENT_DIR}/cuda-*/targets/x86_64-linux"
+      "${CUDA_PARENT_DIR}/cuda-*/targets/aarch64-linux" )
+  endif()
+
   find_library( CUDNN_LIBRARY REQUIRED
     NAMES cudnn cudnn64 libcudnn.so libcudnn.so.9 libcudnn.so.8
     HINTS ${CUDNN_ROOT_DIR}
+          ${CUDNN_ROOT_DIR}/..
           ${CUDNN_ROOT_DIR}/lib/x64
           ${CUDA_TOOLKIT_ROOT_DIR}
           ${CUDA_TOOLKIT_ROOT_DIR}/lib/x64
+          ${CUDA_TOOLKIT_ROOT_DIR}/targets/x86_64-linux
           ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux
+          ${CUDNN_VERSIONED_HINTS}
           ${DEFAULT_SYS_CUDNN_DIR}
           ${DEFAULT_SYS_CUDNN_DIR}/lib/x86_64-linux-gnu
     PATH_SUFFIXES lib lib64 )
@@ -712,6 +736,13 @@ if( VIAME_ENABLE_PYTHON )
   list( APPEND PYTHON_DEP_ENV_VARS "PYTHONUSERBASE=${VIAME_PYTHON_USERBASE}" )
   list( APPEND PYTHON_DEP_ENV_VARS "PKG_CONFIG_PATH=${VIAME_INSTALL_PREFIX}/lib/pkgconfig" )
 
+  # CMake 4.0+ removed compatibility with cmake_minimum_required( VERSION < 3.5 ).
+  # PyTorch (and other python deps) bundle ancient third-party projects (NNPACK,
+  # psimd, FP16, protobuf, etc.) that still declare such low minimums and would
+  # otherwise abort configuration. This env var is honored by every (including
+  # nested) cmake invocation and raises the policy floor to 3.5 for them.
+  list( APPEND PYTHON_DEP_ENV_VARS "CMAKE_POLICY_VERSION_MINIMUM=3.5" )
+
   if( VIAME_BUILD_MAX_THREADS )
     list( APPEND PYTHON_DEP_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
   endif()
@@ -754,13 +785,13 @@ if( VIAME_ENABLE_PYTORCH )
     endif()
   endif()
   if( VIAME_ENABLE_CUDA )
-    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.10.0" AND
+    if( VIAME_PYTORCH_VERSION VERSION_EQUAL "2.12.0" AND
         NOT VIAME_BUILD_PYTORCH_FROM_SOURCE AND
         NOT ( CUDA_VERSION VERSION_EQUAL "12.6" OR
-              CUDA_VERSION VERSION_EQUAL "12.8" OR
-              CUDA_VERSION VERSION_EQUAL "13.0" ) )
-      message( FATAL_ERROR "CUDA 12.6, 12.8 or 13.0 is required for VIAME_ENABLE_PYTORCH "
-        "with VIAME_BUILD_PYTORCH_FROM_SOURCE off and using PyTorch 2.10.0. Either modify "
+              CUDA_VERSION VERSION_EQUAL "13.0" OR
+              CUDA_VERSION VERSION_EQUAL "13.2" ) )
+      message( FATAL_ERROR "CUDA 12.6, 13.0 or 13.2 is required for VIAME_ENABLE_PYTORCH "
+        "with VIAME_BUILD_PYTORCH_FROM_SOURCE off and using PyTorch 2.12.0. Either modify "
         "VIAME_PYTORCH_VERSION, modify CUDA version, or enable internal pytorch build." )
     elseif( VIAME_PYTORCH_VERSION VERSION_EQUAL "1.13.1" AND
         NOT VIAME_BUILD_PYTORCH_FROM_SOURCE AND
@@ -807,6 +838,8 @@ if( VIAME_ENABLE_DIVE AND NOT VIAME_ENABLE_FFMPEG-X264 )
 endif()
 
 if( VIAME_ENABLE_SEAGIS )
+  option( VIAME_BUILD_SEAGIS_TEST_LIB "Use mock lib for testing only" OFF )
+
   set( SEAGIS_ROOT_DIR ""
        CACHE PATH "Path to SEAGIS StereoLibLX library" )
 
@@ -814,14 +847,19 @@ if( VIAME_ENABLE_SEAGIS )
 
   set( SEAGIS_INCLUDE_DIR "${SEAGIS_ROOT_DIR}"
        CACHE INTERNAL "Path to SEAGIS include directory" )
-  set( SEAGIS_LIBRARY "${SEAGIS_ROOT_DIR}/StereoLibLX.lib"
-       CACHE INTERNAL "Path to SEAGIS library file" )
+
+  if( VIAME_BUILD_SEAGIS_TEST_LIB )
+    set( SEAGIS_LIBRARY "" CACHE INTERNAL "Not used in mock mode" )
+  else()
+    set( SEAGIS_LIBRARY "${SEAGIS_ROOT_DIR}/StereoLibLX_patched.lib"
+         CACHE INTERNAL "Path to SEAGIS library file" )
+  endif()
 
   if( NOT EXISTS "${SEAGIS_INCLUDE_DIR}/LX_StereoInterface.h" )
     message( FATAL_ERROR "SEAGIS include directory does not contain LX_StereoInterface.h. "
       "Please set SEAGIS_ROOT_DIR to the correct location." )
   endif()
-  if( NOT EXISTS "${SEAGIS_LIBRARY}" )
+  if( NOT VIAME_BUILD_SEAGIS_TEST_LIB AND NOT EXISTS "${SEAGIS_LIBRARY}" )
     message( FATAL_ERROR "SEAGIS library not found at ${SEAGIS_LIBRARY}. "
       "Please set SEAGIS_LIBRARY to the correct path." )
   endif()

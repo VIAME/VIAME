@@ -1,0 +1,391 @@
+#!/usr/bin/env python
+
+# This file is part of VIAME, and is distributed under an OSI-approved #
+# BSD 3-Clause License. See either the root top-level LICENSE file or  #
+# https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
+
+import os
+import json
+import logging
+import subprocess
+import threading
+import glob
+import tempfile
+
+logger = logging.getLogger( "viame.vertex-ai.process" )
+
+# Map VIAME writer type names to the file extension they produce
+WRITER_TYPE_EXTENSIONS = {
+  "viame_csv": ".csv",
+  "coco":      ".json",
+  "kw18":      ".kw18",
+}
+
+VIDEO_EXTENSIONS = set( (
+  "3qp", "3g2", "amv", "asf", "avi", "drc", "gif", "gifv",
+  "f4v", "f4p", "f4a", "f4b", "flv", "m4v", "mkv", "mp4",
+  "m4p", "mpg", "mpg2", "mp2", "mpeg", "mpe", "mpv", "mng",
+  "mts", "m2ts", "mov", "mxf", "nsv", "ogg", "ogv", "qt",
+  "roq", "rm", "rmvb", "svi", "webm", "wmv", "vob", "yuv",
+) )
+
+IMAGE_EXTENSIONS = set( (
+  "bmp", "dds", "gif", "heic", "jpg", "jpeg", "png", "psd",
+  "psp", "pspimage", "tga", "thm", "tif", "tiff", "yuv",
+) )
+
+
+def _is_video( path ):
+  """Return True if the path looks like a video file."""
+  ext = os.path.splitext( path )[1].lstrip( "." ).lower()
+  return ext in VIDEO_EXTENSIONS
+
+
+def _is_image( path ):
+  """Return True if the path looks like a single image file."""
+  ext = os.path.splitext( path )[1].lstrip( "." ).lower()
+  return ext in IMAGE_EXTENSIONS
+
+
+def _make_image_list( folder, list_path ):
+  """Create a newline-delimited image list file from a folder of images."""
+  images = sorted(
+    f for f in os.listdir( folder )
+    if os.path.splitext( f )[1].lstrip( "." ).lower() in IMAGE_EXTENSIONS
+  )
+  with open( list_path, "w" ) as fh:
+    for img in images:
+      fh.write( os.path.join( folder, img ) + "\n" )
+  return list_path
+
+
+def _make_image_list_from_paths( image_paths, list_path ):
+  """Create a newline-delimited image list file from explicit file paths."""
+  with open( list_path, "w" ) as fh:
+    for img in image_paths:
+      fh.write( img + "\n" )
+  return list_path
+
+
+class ProcessHandler:
+
+  def __init__( self, viame_dir, work_dir, default_pipeline="",
+                model_storage_uri="", output_type="coco",
+                frame_rate="5" ):
+    self.viame_dir = viame_dir
+    self.work_dir = work_dir
+    self.default_pipeline = default_pipeline
+    self.model_storage_uri = model_storage_uri
+    self.output_type = output_type
+    self.frame_rate = frame_rate
+    self.setup_script = os.path.join( viame_dir, "setup_viame.sh" )
+    self.pipeline_dir = os.path.join( viame_dir, "configs" )
+
+    self._status = "idle"
+    self._lock = threading.Lock()
+
+  def get_status( self ):
+    with self._lock:
+      return { "state": self._status }
+
+  def download_model_artifacts( self, storage_uri ):
+    """Download model artifacts from AIP_STORAGE_URI at container startup."""
+    model_dir = os.path.join( self.work_dir, "category_models" )
+    os.makedirs( model_dir, exist_ok=True )
+
+    logger.info( "Downloading model artifacts from %s", storage_uri )
+    subprocess.check_call( [
+      "gsutil", "-m", "cp", "-r", storage_uri + "/*", model_dir
+    ] )
+
+  def run( self, instances, parameters ):
+    """Process one or more inputs through a VIAME pipeline.
+
+    Each instance can specify:
+      input_path   - local path or GCS URI to a video, image folder,
+                     single image, or image list file
+      input_paths  - list of paths for stereo (e.g. [left, right])
+      input_images - list of image paths for single camera, or a list
+                     of lists for stereo / multi-camera
+      pipeline     - pipeline .pipe file to use (optional)
+      settings     - dict of pipeline setting overrides (optional)
+
+    Parameters (global):
+      frame_rate  - target processing frame rate
+    """
+    with self._lock:
+      self._status = "running"
+
+    results = []
+
+    for instance in instances:
+      try:
+        result = self._process_single( instance, parameters )
+        results.append( result )
+      except Exception as e:
+        logger.error( "Failed to process instance: %s", str( e ) )
+        results.append( { "error": str( e ) } )
+
+    with self._lock:
+      self._status = "idle"
+
+    return results
+
+  # -------------------------------------------------------------------
+  # Core runner
+  # -------------------------------------------------------------------
+
+  def _process_single( self, instance, parameters ):
+    """Build and execute a viame_runner command for a single request."""
+
+    pipeline = instance.get( "pipeline", self.default_pipeline )
+    settings = instance.get( "settings", {} )
+    frame_rate = parameters.get( "frame_rate", self.frame_rate )
+    output_type = self.output_type
+    output_ext = WRITER_TYPE_EXTENSIONS.get( output_type, ".csv" )
+
+    output_dir = os.path.join( self.work_dir, "output" )
+    if os.path.exists( output_dir ):
+      import shutil
+      shutil.rmtree( output_dir )
+    os.makedirs( output_dir )
+
+    # Resolve input(s) — single path, stereo paths, or explicit image lists
+    input_images = instance.get( "input_images", [] )
+    input_paths = instance.get( "input_paths", [] )
+
+    if input_images:
+      # input_images can be:
+      #   - a flat list of image paths (single camera)
+      #   - a list of lists of image paths (stereo / multi-camera)
+      if input_images and isinstance( input_images[0], list ):
+        image_groups = input_images
+      else:
+        image_groups = [ input_images ]
+
+      local_inputs = []
+      for gidx, group in enumerate( image_groups ):
+        resolved = [ self._resolve_gcs_path( p ) for p in group ]
+        list_path = os.path.join(
+          self.work_dir, "input_list_{}.txt".format( gidx ) )
+        _make_image_list_from_paths( resolved, list_path )
+        local_inputs.append( list_path )
+
+    elif input_paths:
+      local_inputs = [ self._resolve_gcs_path( p ) for p in input_paths ]
+
+    else:
+      single = instance.get( "input_path", "" )
+      if not single:
+        return { "error": "No input_path, input_paths, or input_images specified" }
+      local_inputs = [ self._resolve_gcs_path( single ) ]
+
+    num_cameras = len( local_inputs )
+
+    # Resolve the pipeline file
+    pipeline_file = pipeline
+    if not os.path.isabs( pipeline_file ):
+      pipeline_file = os.path.join( self.pipeline_dir, pipeline )
+
+    # Start building the kwiver runner command
+    cmd = [ "viame", "runner", pipeline_file ]
+
+    # Wire each input stream
+    for idx, local_input in enumerate( local_inputs ):
+      prefix = "input" + ( str( idx + 1 ) if num_cameras > 1 else "" ) + ":"
+      is_vid = _is_video( local_input )
+
+      if is_vid:
+        cmd += [ "-s", prefix + "video_filename=" + local_input ]
+        cmd += [ "-s", prefix + "video_reader:type=vidl_ffmpeg" ]
+      elif os.path.isdir( local_input ):
+        list_path = os.path.join(
+          self.work_dir, "input_list_{}.txt".format( idx ) )
+        _make_image_list( local_input, list_path )
+        cmd += [ "-s", prefix + "video_filename=" + list_path ]
+        cmd += [ "-s", prefix + "video_reader:type=image_list" ]
+      elif _is_image( local_input ):
+        # Single image file — wrap in an image list
+        list_path = os.path.join(
+          self.work_dir, "input_list_{}.txt".format( idx ) )
+        _make_image_list_from_paths( [ local_input ], list_path )
+        cmd += [ "-s", prefix + "video_filename=" + list_path ]
+        cmd += [ "-s", prefix + "video_reader:type=image_list" ]
+      else:
+        # Assume it is already an image list file
+        cmd += [ "-s", prefix + "video_filename=" + local_input ]
+        cmd += [ "-s", prefix + "video_reader:type=image_list" ]
+
+    # Frame rate / downsampler
+    cmd += [ "-s", "downsampler:target_frame_rate=" + str( frame_rate ) ]
+
+    # Output writers — one set per camera
+    basename = os.path.splitext(
+      os.path.basename( local_inputs[0] ) )[0]
+
+    if num_cameras == 1:
+      cmd += self._writer_settings(
+        output_dir, basename, output_type, output_ext,
+        frame_rate=frame_rate, video_input=_is_video( local_inputs[0] ) )
+    else:
+      camera_names = [ "left", "right", "center" ]
+      for cid in range( num_cameras ):
+        cam_name = camera_names[cid] if cid < len( camera_names ) \
+          else "cam" + str( cid + 1 )
+        is_vid = _is_video( local_inputs[cid] )
+        cmd += self._writer_settings(
+          output_dir, cam_name, output_type, output_ext, cid + 1,
+          frame_rate=frame_rate, video_input=is_vid )
+        # Also set unnumbered writers for the first camera since some
+        # pipelines use detector_writer/track_writer without a suffix
+        if cid == 0:
+          cmd += self._writer_settings(
+            output_dir, cam_name, output_type, output_ext,
+            frame_rate=frame_rate, video_input=is_vid )
+
+    # Extra per-request setting overrides
+    for key, value in settings.items():
+      cmd += [ "-s", "{}={}".format( key, value ) ]
+
+    # Log input file info for debugging
+    for local_input in local_inputs:
+      if os.path.exists( local_input ):
+        sz = os.path.getsize( local_input )
+        logger.info( "Input: %s (%d bytes)", local_input, sz )
+      else:
+        logger.error( "Input NOT FOUND: %s", local_input )
+
+    # Run via bash so we can source the VIAME environment first
+    shell_cmd = "source {} && {}".format(
+      self.setup_script,
+      " ".join( _quote( t ) for t in cmd )
+    )
+
+    logger.info( "Running: %s", shell_cmd )
+
+    proc = subprocess.run(
+      [ "bash", "-c", shell_cmd ],
+      capture_output=True,
+      text=True,
+      cwd=self.pipeline_dir
+    )
+
+    if proc.returncode != 0:
+      logger.error( "viame runner stderr: %s", proc.stderr )
+      logger.error( "viame runner stdout: %s", proc.stdout[ -500: ] )
+      return {
+        "error": "Processing failed",
+        "return_code": proc.returncode,
+        "stderr": proc.stderr[ -1000: ],
+        "stdout": proc.stdout[ -1000: ],
+        "command": shell_cmd
+      }
+
+    # Collect output detection and track files
+    outputs = []
+    for suffix in ( "_detections", "_tracks" ):
+      pattern = os.path.join(
+        output_dir, "**", "*" + suffix + output_ext )
+      for out_file in glob.glob( pattern, recursive=True ):
+        with open( out_file, "r" ) as f:
+          content = f.read()
+        if output_ext == ".json":
+          content = json.loads( content )
+        outputs.append( {
+          "file": os.path.basename( out_file ),
+          "content": content
+        } )
+
+    # Summarize what was processed
+    if input_images:
+      input_summary = input_images
+    elif len( local_inputs ) == 1:
+      input_summary = local_inputs[0]
+    else:
+      input_summary = local_inputs
+
+    return {
+      "status": "completed",
+      "input": input_summary,
+      "outputs": outputs
+    }
+
+  # -------------------------------------------------------------------
+  # Helpers
+  # -------------------------------------------------------------------
+
+  @staticmethod
+  def _writer_settings( output_dir, basename, output_type, output_ext,
+                        cid=None, frame_rate=None, video_input=False ):
+    """Return -s flags for detection and track writers."""
+    det_file = os.path.join( output_dir, basename + "_detections" + output_ext )
+    trk_file = os.path.join( output_dir, basename + "_tracks" + output_ext )
+
+    det_prefix = "detector_writer" + ( str( cid ) if cid else "" ) + ":"
+    trk_prefix = "track_writer" + ( str( cid ) if cid else "" ) + ":"
+
+    out = []
+    out += [ "-s", det_prefix + "file_name=" + det_file ]
+    out += [ "-s", det_prefix + "writer:type=" + output_type ]
+    out += [ "-s", trk_prefix + "file_name=" + trk_file ]
+    out += [ "-s", trk_prefix + "writer:type=" + output_type ]
+
+    # viame_csv-specific header/column metadata. Without frame_rate the CSV has
+    # no "# metadata, fps: ..." header; without write_time_as_uid a video's
+    # second column is blank instead of per-frame timestamps.
+    if output_type == "viame_csv":
+      if frame_rate is not None:
+        out += [ "-s", det_prefix + "writer:viame_csv:frame_rate="
+                 + str( frame_rate ) ]
+        out += [ "-s", trk_prefix + "writer:viame_csv:frame_rate="
+                 + str( frame_rate ) ]
+      if video_input:
+        out += [ "-s", det_prefix + "writer:viame_csv:write_time_as_uid=true" ]
+        out += [ "-s", trk_prefix + "writer:viame_csv:write_time_as_uid=true" ]
+
+    return out
+
+  def _resolve_gcs_path( self, path ):
+    """Download from GCS if needed, return local path."""
+    if not path.startswith( "gs://" ):
+      return path
+
+    from google.cloud import storage
+
+    # Parse gs://bucket/key
+    parts = path[ len( "gs://" ): ].split( "/", 1 )
+    bucket_name = parts[0]
+    prefix = parts[1].rstrip( "/" ) if len( parts ) > 1 else ""
+    basename = os.path.basename( prefix ) if prefix else bucket_name
+
+    local_path = os.path.join( self.work_dir, "input", basename )
+    os.makedirs( os.path.dirname( local_path ), exist_ok=True )
+
+    client = storage.Client()
+    bucket = client.bucket( bucket_name )
+
+    # Single file (has an extension)
+    if "." in basename:
+      logger.info( "Downloading %s to %s", path, local_path )
+      bucket.blob( prefix ).download_to_filename( local_path )
+    else:
+      # Directory — download all blobs under prefix
+      os.makedirs( local_path, exist_ok=True )
+      blobs = bucket.list_blobs( prefix=prefix + "/" )
+      for blob in blobs:
+        rel = blob.name[ len( prefix ): ].lstrip( "/" )
+        if not rel:
+          continue
+        dest = os.path.join( local_path, rel )
+        os.makedirs( os.path.dirname( dest ), exist_ok=True )
+        logger.info( "Downloading %s to %s", blob.name, dest )
+        blob.download_to_filename( dest )
+
+    return local_path
+
+
+def _quote( s ):
+  """Shell-quote a string if it contains spaces or special characters."""
+  if any( c in s for c in " \t'\"\\$" ):
+    return "'" + s.replace( "'", "'\\''" ) + "'"
+  return s

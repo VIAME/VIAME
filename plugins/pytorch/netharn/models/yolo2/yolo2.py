@@ -164,7 +164,7 @@ class Yolo2(layers.AnalyticModule):
         >>> # Each item in `batch_dets` is a list of Detections objects.
         >>> batch_dets = self.coder.decode_batch(network_output)
         >>> boxes = batch_dets[0].numpy().take([0, 1])
-        >>> print(ub.repr2(boxes.data, nl=1))  # xdoc: +IGNORE_WANT
+        >>> print(ub.urepr(boxes.data, nl=1))  # xdoc: +IGNORE_WANT
     """
 
     def __init__(self, classes, conf_thresh=.25, nms_thresh=.4,
@@ -299,7 +299,7 @@ class Yolo2(layers.AnalyticModule):
             >>> inputs = [2, 3, 288, 288]
             >>> self = Yolo2.demo()
             >>> out = self._analytic_forward(inputs, _OutputFor, _Output, _Hidden)
-            >>> print(ub.repr2(out.hidden.shallow(2), nl=-1))
+            >>> print(ub.urepr(out.hidden.shallow(2), nl=-1))
         """
         hidden = _Hidden()
         normed = hidden['input_norm'] = _OutputFor(self.input_norm)(inputs)
@@ -670,11 +670,11 @@ class YoloLoss(layers.common.Loss):
             >>> self = YoloLoss(model.coder)
             >>> target = self.demo_truth()
             >>> output = model.coder.demo_output(bsize=target['cxywh'].shape[0])
-            >>> print('target = ' + ub.repr2(ub.map_vals(lambda x: x.shape, target), nl=1))
-            >>> print('output = ' + ub.repr2(ub.map_vals(lambda x: x.shape, output), nl=1))
+            >>> print('target = ' + ub.urepr(ub.map_vals(lambda x: x.shape, target), nl=1))
+            >>> print('output = ' + ub.urepr(ub.map_vals(lambda x: x.shape, output), nl=1))
             >>> seen = None
             >>> loss_parts = self(output, target)
-            >>> print('loss_parts = ' + ub.repr2(loss_parts))
+            >>> print('loss_parts = ' + ub.urepr(loss_parts))
 
         Example:
             >>> # xdoc: +REQUIRES(--download, module:ndsampler)
@@ -1061,7 +1061,7 @@ def find_anchors(dset):
         >>> # xdoc: +REQUIRES(--download, module:ndsampler)
         >>> self = YoloVOCDataset(split='train', years=[2007])
         >>> anchors = self._find_anchors()
-        >>> print('anchors = {}'.format(ub.repr2(anchors, precision=2)))
+        >>> print('anchors = {}'.format(ub.urepr(anchors, precision=2)))
         >>> # xdoctest: +REQUIRES(--show)
         >>> xy = -anchors / 2
         >>> wh = anchors

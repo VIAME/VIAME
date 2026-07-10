@@ -1,0 +1,37 @@
+# =============================================================================
+# Title: Runs an object detector and dumps chips around detections out of it, for later
+#
+# Description: Extracts image chips around detected objects.
+# Input: IMAGE
+# Output: IMAGE
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+# ================================ INPUT VIDEO ================================
+
+include common_default_input_with_downsampler.pipe
+
+# ================================= DETECTOR ==================================
+
+process detection_reader
+  :: detected_object_input
+  :file_name                                   [INSERT_ME]
+  :reader:type                                 viame_csv
+  :reader:viame_csv:poly_to_mask               false
+
+connect from downsampler.output_2
+        to   detection_reader.image_file_name
+
+# =============================== IMAGE CHIPPER ===============================
+
+process chipper
+  :: refine_detections
+  :refiner:type                                ocv_write
+  :refiner:ocv_write:pattern                   output/%s-%s+%d_%d_%dx%d.png  # DIVE_PARAM["Filename template", string]
+
+connect from detection_reader.detected_object_set
+        to   chipper.detected_object_set
+connect from downsampler.output_1
+        to   chipper.image

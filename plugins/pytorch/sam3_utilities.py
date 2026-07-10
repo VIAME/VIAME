@@ -19,6 +19,9 @@ sam3_refiner, sam3_segmenter, and sam3_text_query, including:
 
 import os
 import sys
+import json
+import shutil
+import tempfile
 import threading
 from typing import Optional, Tuple, Any
 
@@ -34,6 +37,720 @@ from viame.pytorch.utilities import (
     get_autocast_context,
     parse_bool,
 )
+
+
+# =============================================================================
+# SAM3 version detection (sam3 / sam3.1)
+# =============================================================================
+
+_SAM3_SDPA_PATCHED = False
+
+
+def _flash_sdpa_runnable():
+    """Probe whether torch's FLASH_ATTENTION SDPA backend is actually usable.
+
+    Returns True only if a tiny SDPA call runs to completion under an
+    explicit ``sdpa_kernel([FLASH_ATTENTION])`` context.  Returns False for
+    pre-Ampere GPUs, CPU-only builds, and Windows PyTorch wheels that ship
+    without a Flash kernel (where the forced context raises "No available
+    kernel").
+    """
+    try:
+        import torch
+        if not torch.cuda.is_available():
+            return False
+        cap = torch.cuda.get_device_capability(0)
+        if cap[0] < 8:
+            return False
+        from torch.nn.attention import sdpa_kernel, SDPBackend
+        q = torch.randn(1, 2, 8, 16, device='cuda', dtype=torch.float16)
+        with sdpa_kernel([SDPBackend.FLASH_ATTENTION]):
+            torch.nn.functional.scaled_dot_product_attention(q, q, q)
+        return True
+    except Exception:
+        return False
+
+
+def _patch_sam3_sdpa_for_pre_ampere():
+    """
+    Work around a hard-coded ``sdpa_kernel(SDPBackend.FLASH_ATTENTION)`` in
+    ``sam3/model/decoder.py::functional_attention``.
+
+    Flash Attention requires Ampere (compute capability 8.0+) and a torch
+    build that actually includes the Flash kernel.  Pre-Ampere GPUs (e.g.
+    Turing RTX 5000) and Windows PyTorch wheels (which frequently omit
+    Flash) both raise ``RuntimeError: No available kernel`` when the
+    decoder forces Flash, even when callers have set up a fallback via
+    their own ``sdpa_kernel`` context.
+
+    This shim replaces ``sam3.model.decoder.sdpa_kernel`` with a no-op
+    context manager whenever Flash isn't runnable, so the decoder falls
+    back to whichever backend the caller (or PyTorch's autoselect) chooses.
+    Systems where Flash works keep the original behavior.
+    """
+    global _SAM3_SDPA_PATCHED
+    if _SAM3_SDPA_PATCHED:
+        return
+    try:
+        if _flash_sdpa_runnable():
+            _SAM3_SDPA_PATCHED = True
+            return
+        import contextlib
+        from sam3.model import decoder as _sam3_decoder
+
+        @contextlib.contextmanager
+        def _noop_sdpa_kernel(*args, **kwargs):
+            yield
+        _sam3_decoder.sdpa_kernel = _noop_sdpa_kernel
+        _SAM3_SDPA_PATCHED = True
+    except Exception:
+        pass
+
+
+def emit_dive_error(message):
+    """Print a single-line, DIVE-parseable error message.
+
+    DIVE surfaces lines beginning with ``ERROR:`` to the user when a pipeline
+    job process exits with a non-zero code. Newlines are collapsed so the
+    message stays one greppable line.
+    """
+    flat = " ".join(str(message).split())
+    # Use sys.stderr.write (not print(file=sys.stderr)) so the line is reliably
+    # captured when running under KWIVER's embedded Python interpreter.
+    try:
+        sys.stderr.write(f"ERROR: {flat}\n")
+        sys.stderr.flush()
+    except Exception:
+        print(f"ERROR: {flat}", flush=True)
+
+
+def describe_sam3_load_failure(err):
+    """Turn a SAM3 model-load exception into a concise, user-facing reason."""
+    text = str(err)
+    is_oom = "out of memory" in text.lower()
+    if not is_oom:
+        try:
+            import torch
+            is_oom = isinstance(err, torch.cuda.OutOfMemoryError)
+        except Exception:
+            pass
+    if is_oom:
+        return ("Failed to load the SAM3 model: the GPU ran out of memory. "
+                "Free GPU memory (e.g. close an interactive segmentation "
+                "session) and rerun; SAM3 needs roughly 3.5 GB of free VRAM.")
+    return f"Failed to load the SAM3 model from local files: {text}"
+
+
+def detect_sam3_version(checkpoint_path: Optional[str] = None,
+                        model_config_path: Optional[str] = None,
+                        explicit: Optional[str] = None) -> str:
+    """
+    Decide whether a set of model artifacts are SAM 3.0 or SAM 3.1.
+
+    SAM 3.1 introduces Object Multiplex (``sam3.1_multiplex.pt``) and uses a
+    checkpoint layout that is *not* drop-in compatible with the 3.0 loaders in
+    ``build_sam3_image_model`` / ``build_sam3_video_model``.  This helper picks
+    the version so upstream code can dispatch to the right builder.
+
+    Resolution order:
+    1. ``explicit`` argument if it is ``'sam3'`` or ``'sam3.1'``.
+    2. Hints in the checkpoint filename (``3.1``, ``3p1``, ``multiplex``).
+    3. Hints in the sidecar ``config.json`` (``sam3.1`` substring).
+    4. Peek at the checkpoint state-dict: 3.0 has top-level ``backbone.``
+       keys, 3.1 wraps them under ``detector.`` / ``tracker.``.
+    5. Default to ``'sam3'``.
+    """
+    if explicit and str(explicit).lower() not in ('', 'auto', 'none'):
+        v = str(explicit).lower().replace('_', '.').replace('-', '.')
+        if v in ('sam3', '3', '3.0', 'sam3.0'):
+            return 'sam3'
+        if v in ('sam3.1', '3.1', 'sam31'):
+            return 'sam3.1'
+
+    name = os.path.basename(str(checkpoint_path or '')).lower()
+    if '3.1' in name or '3p1' in name or 'multiplex' in name:
+        return 'sam3.1'
+
+    if model_config_path and os.path.exists(str(model_config_path)):
+        try:
+            with open(model_config_path, 'r') as f:
+                txt = f.read()
+            if 'sam3.1' in txt.lower() or 'multiplex' in txt.lower():
+                return 'sam3.1'
+        except Exception:
+            pass
+
+    if checkpoint_path and os.path.exists(str(checkpoint_path)):
+        try:
+            import torch
+            ckpt = torch.load(checkpoint_path, map_location='cpu', weights_only=True)
+            if isinstance(ckpt, dict) and 'model' in ckpt and isinstance(ckpt['model'], dict):
+                ckpt = ckpt['model']
+            if isinstance(ckpt, dict):
+                has_detector_prefix = any(k.startswith('detector.') for k in ckpt)
+                has_tracker_prefix = any(k.startswith('tracker.') for k in ckpt)
+                if has_detector_prefix and has_tracker_prefix:
+                    # Both 3.0 and 3.1 have detector./tracker. prefixes.
+                    # 3.1 multiplex wraps the tracker in a PredictorWrapper,
+                    # adding a .model. level: tracker.model.backbone.* etc.
+                    # 3.0 has tracker.backbone.* directly (no .model. level).
+                    has_wrapper = any(
+                        k.startswith('tracker.model.') for k in ckpt
+                    )
+                    if has_wrapper:
+                        return 'sam3.1'
+                    else:
+                        return 'sam3'
+        except Exception:
+            pass
+
+    return 'sam3'
+
+
+# =============================================================================
+# SAM 3.1 compatibility adapters
+# =============================================================================
+#
+# The SAM 3.1 release replaced the SAM2-style interactive image predictor with
+# the "Object Multiplex" video predictor (``Sam3MultiplexVideoPredictor``).  It
+# only exposes a session-based ``handle_request`` API that expects a directory
+# of frames on disk.  The existing VIAME plugins were written against the 3.0
+# APIs (``predictor.set_image`` / ``predictor.predict`` for per-image
+# segmentation, and the classic ``init_state`` / ``add_prompt`` /
+# ``propagate_in_video`` / ``reset_state`` chain for video refinement).
+#
+# Rather than rewriting every plugin, we wrap the 3.1 model in two adapters
+# that expose the 3.0 API shape.  The image adapter drives a fresh 1-frame
+# session per ``set_image`` call via a scratch directory; the video adapter
+# materializes a list of PIL frames to a scratch directory and routes the
+# prompt/propagate calls through the underlying multiplex demo model (whose
+# ``add_prompt`` / ``propagate_in_video`` / ``reset_state`` methods match the
+# 3.0 signatures closely enough to pass through).
+
+
+def _make_init_state_kwarg_tolerant(predictor):
+    """Wrap a SAM3 model's ``init_state`` so surplus keyword arguments are
+    dropped instead of raising ``TypeError``.
+
+    The vendored ``sam3.model.sam3_base_predictor.start_session`` (reached via
+    ``handle_request({"type": "start_session"})``) always forwards
+    ``offload_state_to_cpu`` -- and, when present, ``video_loader_type`` -- to
+    ``model.init_state``, but ``Sam3MultiplexTrackingWithInteractivity.init_state``
+    accepts neither. This adapts around that signature skew here in VIAME code
+    rather than patching the upstream ``sam3`` submodule. No-op when the model's
+    ``init_state`` already accepts ``**kwargs`` or has already been wrapped.
+    """
+    import inspect
+
+    model = getattr(predictor, "model", None)
+    init_state = getattr(model, "init_state", None)
+    if init_state is None or getattr(init_state, "_viame_kwarg_tolerant", False):
+        return
+    sig = inspect.signature(init_state)
+    if any(p.kind == inspect.Parameter.VAR_KEYWORD
+           for p in sig.parameters.values()):
+        return
+    accepted = set(sig.parameters)
+
+    def _filtered_init_state(*args, __orig=init_state, __ok=accepted, **kwargs):
+        kwargs = {k: v for k, v in kwargs.items() if k in __ok}
+        return __orig(*args, **kwargs)
+
+    _filtered_init_state._viame_kwarg_tolerant = True
+    model.init_state = _filtered_init_state
+
+
+class _Sam3p1ImagePredictorAdapter:
+    """
+    Thin adapter that makes a ``Sam3MultiplexVideoPredictor`` look like the
+    SAM2-style interactive image predictor the 3.0 plugins were written for.
+
+    Contract preserved from the 3.0 predictor:
+
+    * ``set_image(np_image)`` — load an image; subsequent ``predict`` calls
+      apply to that image.
+    * ``predict(box=..., point_coords=..., point_labels=..., mask_input=...,
+      multimask_output=...)`` returns ``(masks, scores, low_res_masks)`` where
+      ``masks`` is ``[N, H, W]`` boolean, ``scores`` is ``[N]`` float, and
+      ``low_res_masks`` is ``None`` (the multiplex predictor does not expose
+      the low-res logits, so multi-frame mask priming is unavailable in 3.1).
+
+    Each ``set_image`` starts a fresh session on a temp directory holding the
+    single frame.  Sessions are closed on the next ``set_image``, on
+    ``close``, or on garbage collection.
+    """
+
+    def __init__(self, multiplex_predictor, device):
+        self._p = multiplex_predictor
+        self.device = device
+        self.model = multiplex_predictor  # so code that does .model.parameters() works
+        self._session_id = None
+        self._tmp_dir = None
+        self._orig_hw = None
+        # set_image() below starts a session via handle_request(), whose
+        # start_session forwards kwargs this model's init_state rejects.
+        _make_init_state_kwarg_tolerant(multiplex_predictor)
+
+    def _inference_ctx(self):
+        """Context stack with autocast + SDPA fallback kernel selection.
+
+        Mirrors ``_Sam3p1VideoPredictorAdapter._autocast``; see its docstring
+        for the rationale.
+        """
+        import contextlib
+        cm = contextlib.ExitStack()
+        try:
+            cm.enter_context(get_autocast_context(str(self.device)))
+        except Exception:
+            pass
+        try:
+            from torch.nn.attention import sdpa_kernel, SDPBackend
+            cm.enter_context(sdpa_kernel(
+                [SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION]
+            ))
+        except Exception:
+            pass
+        return cm
+
+    def _close_session(self):
+        if self._session_id is not None:
+            try:
+                self._p.handle_request({
+                    "type": "close_session",
+                    "session_id": self._session_id,
+                })
+            except Exception:
+                pass
+            self._session_id = None
+        if self._tmp_dir is not None:
+            shutil.rmtree(self._tmp_dir, ignore_errors=True)
+            self._tmp_dir = None
+
+    def set_image(self, image_np):
+        from PIL import Image
+        self._close_session()
+        self._tmp_dir = tempfile.mkdtemp(prefix="sam3p1_img_")
+        # SAM 3.1's image-folder loader expects zero-padded JPEG filenames
+        # starting from 00000.jpg.
+        Image.fromarray(image_np).save(
+            os.path.join(self._tmp_dir, "00000.jpg"), quality=95
+        )
+        self._orig_hw = image_np.shape[:2]
+        with self._inference_ctx():
+            resp = self._p.handle_request({
+                "type": "start_session",
+                "resource_path": self._tmp_dir,
+                "offload_video_to_cpu": False,
+            })
+        self._session_id = resp["session_id"]
+
+        # Multiplex's ``_build_sam2_output`` short-circuits to an empty dict
+        # for any frame that has no entry in ``cached_frame_outputs`` — which
+        # is every frame on a fresh image session, since we haven't run any
+        # text-driven detection pass. Without this, the point-based
+        # interactive path (``add_sam2_new_points``) ends up returning an
+        # empty ``obj_id_to_mask`` even after the interactive decoder has
+        # produced a valid mask. Pre-seeding the cache with an empty entry
+        # for frame 0 lets the refinement merge-in path emit the mask.
+        try:
+            state = self._p._all_inference_states[self._session_id]["state"]
+            state.setdefault("cached_frame_outputs", {})
+            state["cached_frame_outputs"].setdefault(0, {})
+        except (AttributeError, KeyError):
+            pass
+
+    def predict(self, point_coords=None, point_labels=None, box=None,
+                mask_input=None, multimask_output=False):
+        """
+        SAM2-style interactive prediction on the currently-set image.
+
+        Semantics match the SAM 3.0 / SAM 2.1 image predictor:
+
+        * ``point_coords=[P,2]`` + ``point_labels=[P]`` — all P points belong
+          to a *single* object. Routed through the multiplex's SAM2-style
+          interactive decoder (``add_sam2_new_points`` →
+          ``interactive_sam_mask_decoder``). Returns ``(masks[1,H,W], scores[1])``
+          or ``(masks[3,H,W], scores[3])`` when ``multimask_output=True``
+          (the three slots are the same mask repeated, since the 3.1 multiplex
+          interactive decoder emits a single mask per call).
+
+        * ``box=[4]`` — single box, returns ``(masks[1,H,W], scores[1])``.
+        * ``box=[N,4]`` — N boxes, returns ``(masks[N,1,H,W], scores[N])``.
+          Box prompts go through the multiplex's text-driven visual-prompt path
+          (``_get_visual_prompt``). Output masks are matched back to input
+          boxes by IoU on the returned boxes (the multiplex auto-assigns
+          obj_ids that don't correspond to input order).
+        """
+        if self._session_id is None:
+            raise RuntimeError(
+                "_Sam3p1ImagePredictorAdapter.predict called before set_image"
+            )
+        if mask_input is not None:
+            # 3.1 multiplex add_prompt has no low-res-mask prior hook, so the
+            # per-frame refiner loses a bit of temporal smoothing — but the
+            # box/point prompts still produce a usable mask.
+            pass
+
+        H, W = self._orig_hw
+
+        has_box = box is not None
+        has_points = point_coords is not None
+
+        if has_points and not has_box:
+            return self._predict_points(point_coords, point_labels,
+                                        multimask_output)
+        if has_box:
+            return self._predict_boxes(box, multimask_output)
+
+        raise RuntimeError(
+            "_Sam3p1ImagePredictorAdapter.predict requires either "
+            "point_coords or box"
+        )
+
+    def _predict_points(self, point_coords, point_labels, multimask_output):
+        """
+        Multi-point interactive segmentation: all P points describe a single
+        object, so they go into a single ``add_prompt`` call with one
+        ``obj_id``. The multiplex routes points-with-obj_id to
+        ``add_sam2_new_points``, which drives ``interactive_sam_mask_decoder``
+        with ``sam_point_coords=[1,P,2]`` / ``sam_point_labels=[1,P]``.
+        """
+        H, W = self._orig_hw
+        p = np.asarray(point_coords, dtype=np.float32)
+        if p.ndim == 1:
+            p = p[None, :]
+        elif p.ndim == 3:
+            p = p.reshape(-1, 2)
+
+        if point_labels is None:
+            labels = [1] * len(p)
+        else:
+            labels = np.asarray(point_labels, dtype=np.int32).flatten().tolist()
+
+        rel_points = np.stack(
+            [p[:, 0] / float(W), p[:, 1] / float(H)], axis=-1
+        ).tolist()
+
+        req = {
+            "type": "add_prompt",
+            "session_id": self._session_id,
+            "frame_index": 0,
+            "obj_id": 1,
+            "points": rel_points,
+            "point_labels": labels,
+            "clear_old_points": True,
+            "clear_old_boxes": True,
+        }
+        with self._inference_ctx():
+            resp = self._p.handle_request(req)
+        outputs = resp.get("outputs", {}) if isinstance(resp, dict) else {}
+
+        mask, score = self._pick_mask_for_obj_id(outputs, target_obj_id=1)
+        if mask is None:
+            mask = np.zeros((H, W), dtype=bool)
+            score = 0.0
+
+        if multimask_output:
+            # The 3.1 multiplex interactive decoder only surfaces a single
+            # best mask per call. Expose it 3x so downstream code that does
+            # ``argmax(scores)`` on a multimask array still selects it.
+            masks = np.stack([mask, mask, mask], axis=0)
+            scores = np.array([score, score, score], dtype=np.float32)
+        else:
+            masks = mask[None]
+            scores = np.array([score], dtype=np.float32)
+        return masks, scores, None
+
+    def _predict_boxes(self, box, multimask_output):
+        """
+        Box-prompted segmentation.
+
+        The 3.1 multiplex only routes box prompts through its detector /
+        visual-prompt path (``interactive_sam_prompt_encoder`` hardcodes
+        ``boxes=None``), which means the output ``obj_id``s are detector-
+        assigned and unrelated to input box order. We recover input→output
+        correspondence by IoU-matching the returned ``out_boxes_xywh`` to
+        each input box (greedy highest-IoU match).
+        """
+        H, W = self._orig_hw
+
+        b = np.asarray(box, dtype=np.float32)
+        single_box = b.ndim == 1
+        if single_box:
+            b = b[None, :]
+        elif b.ndim == 3:
+            b = b.reshape(-1, 4)
+        N = int(b.shape[0])
+
+        x1 = b[:, 0] / float(W)
+        y1 = b[:, 1] / float(H)
+        x2 = b[:, 2] / float(W)
+        y2 = b[:, 3] / float(H)
+        rel_boxes_xywh = np.stack([x1, y1, x2 - x1, y2 - y1], axis=-1)
+
+        req = {
+            "type": "add_prompt",
+            "session_id": self._session_id,
+            "frame_index": 0,
+            "bounding_boxes": rel_boxes_xywh.tolist(),
+            "bounding_box_labels": [1] * N,
+            "clear_old_points": True,
+            "clear_old_boxes": True,
+        }
+        with self._inference_ctx():
+            resp = self._p.handle_request(req)
+        outputs = resp.get("outputs", {}) if isinstance(resp, dict) else {}
+
+        out_masks = self._to_numpy(outputs.get("out_binary_masks"))
+        out_boxes_xywh = self._to_numpy(outputs.get("out_boxes_xywh"))
+        out_probs = self._to_numpy(outputs.get("out_probs"))
+
+        if out_masks is None or out_masks.size == 0:
+            out_masks = np.zeros((0, H, W), dtype=bool)
+        else:
+            out_masks = np.asarray(out_masks).astype(bool)
+            if out_masks.ndim == 2:
+                out_masks = out_masks[None]
+
+        M = out_masks.shape[0]
+        match_idx = self._match_boxes_to_inputs(
+            rel_boxes_xywh, out_boxes_xywh, M
+        )
+
+        per_input_masks = []
+        per_input_scores = []
+        for i in range(N):
+            j = match_idx[i]
+            if j < 0 or j >= M:
+                per_input_masks.append(np.zeros((H, W), dtype=bool))
+                per_input_scores.append(0.0)
+            else:
+                per_input_masks.append(out_masks[j])
+                if out_probs is not None and j < len(out_probs):
+                    per_input_scores.append(float(out_probs[j]))
+                else:
+                    per_input_scores.append(1.0)
+
+        stacked = np.stack(per_input_masks, axis=0) if per_input_masks \
+            else np.zeros((0, H, W), dtype=bool)
+
+        if single_box:
+            # SAM 2.x single-box convention: [1, H, W]
+            if multimask_output:
+                masks = np.stack([stacked[0]] * 3, axis=0)
+                scores = np.array([per_input_scores[0]] * 3, dtype=np.float32)
+            else:
+                masks = stacked  # [1, H, W]
+                scores = np.array(per_input_scores, dtype=np.float32)
+        else:
+            # Multi-box SAM 2.x convention: [N, 1, H, W]
+            masks = stacked[:, None, :, :]
+            scores = np.array(per_input_scores, dtype=np.float32)
+
+        return masks, scores, None
+
+    @staticmethod
+    def _to_numpy(x):
+        if x is None:
+            return None
+        if hasattr(x, "cpu"):
+            x = x.cpu().numpy()
+        return np.asarray(x)
+
+    def _pick_mask_for_obj_id(self, outputs, target_obj_id):
+        """Return (mask[H,W], score) for the given obj_id, or (None, None)."""
+        H, W = self._orig_hw
+        masks_out = self._to_numpy(outputs.get("out_binary_masks"))
+        obj_ids = self._to_numpy(outputs.get("out_obj_ids"))
+        probs = self._to_numpy(outputs.get("out_probs"))
+
+        if masks_out is None or masks_out.size == 0:
+            return None, None
+        masks_out = masks_out.astype(bool)
+        if masks_out.ndim == 2:
+            masks_out = masks_out[None]
+
+        if obj_ids is not None:
+            ids = obj_ids.astype(np.int64).tolist()
+            if target_obj_id in ids:
+                idx = ids.index(target_obj_id)
+            else:
+                idx = 0
+        else:
+            idx = 0
+        if idx >= masks_out.shape[0]:
+            return None, None
+        mask = masks_out[idx]
+        if probs is not None and idx < len(probs):
+            score = float(probs[idx])
+        else:
+            score = 1.0
+        return mask, score
+
+    @staticmethod
+    def _match_boxes_to_inputs(input_rel_xywh, output_rel_xywh, out_mask_count):
+        """
+        Greedy IoU matching of output detection boxes to input prompt boxes.
+
+        Returns a list of length ``len(input_rel_xywh)`` where entry ``i`` is
+        the index of the matched output mask, or ``-1`` if no output box
+        overlaps the input.
+        """
+        N = int(input_rel_xywh.shape[0])
+        result = [-1] * N
+
+        if out_mask_count == 0 or output_rel_xywh is None \
+                or output_rel_xywh.size == 0:
+            return result
+
+        out_xywh = np.asarray(output_rel_xywh, dtype=np.float32)
+        if out_xywh.ndim == 1:
+            out_xywh = out_xywh[None, :]
+        M = int(out_xywh.shape[0])
+        # Clip to available masks in case the backend returned more boxes
+        # than masks (shouldn't happen, but be defensive).
+        M = min(M, out_mask_count)
+
+        def _iou_xywh(a, b):
+            ax1, ay1, aw, ah = a
+            bx1, by1, bw, bh = b
+            ax2, ay2 = ax1 + aw, ay1 + ah
+            bx2, by2 = bx1 + bw, by1 + bh
+            ix1, iy1 = max(ax1, bx1), max(ay1, by1)
+            ix2, iy2 = min(ax2, bx2), min(ay2, by2)
+            iw = max(0.0, ix2 - ix1)
+            ih = max(0.0, iy2 - iy1)
+            inter = iw * ih
+            union = aw * ah + bw * bh - inter
+            return inter / union if union > 0.0 else 0.0
+
+        pairs = []
+        for i in range(N):
+            for j in range(M):
+                iou = _iou_xywh(input_rel_xywh[i], out_xywh[j])
+                if iou > 0.0:
+                    pairs.append((iou, i, j))
+        pairs.sort(reverse=True)
+        used_i = set()
+        used_j = set()
+        for iou, i, j in pairs:
+            if i in used_i or j in used_j:
+                continue
+            result[i] = j
+            used_i.add(i)
+            used_j.add(j)
+        return result
+
+    def close(self):
+        self._close_session()
+
+    def __del__(self):
+        try:
+            self._close_session()
+        except Exception:
+            pass
+
+
+class _Sam3p1VideoPredictorAdapter:
+    """
+    Exposes a 3.0-style ``init_state`` / ``add_prompt`` / ``propagate_in_video``
+    / ``reset_state`` interface on top of the SAM 3.1 multiplex demo model.
+
+    The 3.0 refiner code passes a list of PIL frames to ``init_state`` and
+    then drives the predictor with per-frame prompts.  The 3.1 demo model
+    only knows how to load frames from a directory, so this adapter writes
+    the frames to a scratch directory during ``init_state`` and cleans it up
+    on ``reset_state`` / GC.
+
+    ``add_prompt`` and ``propagate_in_video`` are thin pass-throughs — the
+    3.1 demo model accepts the same kwargs (``frame_idx``, ``text_str``,
+    ``boxes_xywh``, ``box_labels``, ``obj_id``, ...) and yields outputs with
+    the same ``out_obj_ids`` / ``out_boxes_xywh`` / ``out_binary_masks``
+    keys the 3.0 caller already consumes.
+    """
+
+    def __init__(self, multiplex_predictor, device):
+        self._p = multiplex_predictor
+        self._model = multiplex_predictor.model  # Sam3MultiplexTrackingWithInteractivity
+        self.device = device
+
+    def _autocast(self):
+        """
+        Context manager stack that wraps an inference call with the shims
+        SAM 3.1 needs on non-Ampere GPUs:
+
+        1. ``torch.inference_mode`` — the multiplex model does in-place ops
+           that assume inference mode.
+        2. Autocast fp16 — matches the image predictor path and keeps
+           intermediate tensors small.
+        3. ``sdpa_kernel([MATH, EFFICIENT_ATTENTION])`` — forces a
+           fallback SDPA backend.  On pre-Ampere GPUs the 3.1 decoder's
+           ``scaled_dot_product_attention`` call fails with "No available
+           kernel" when flash/cuDNN paths are attempted first; explicitly
+           picking math / mem-efficient resolves it.
+        """
+        import contextlib, torch
+        cm = contextlib.ExitStack()
+        cm.enter_context(torch.inference_mode())
+        try:
+            cm.enter_context(get_autocast_context(str(self.device)))
+        except Exception:
+            pass
+        try:
+            from torch.nn.attention import sdpa_kernel, SDPBackend
+            cm.enter_context(sdpa_kernel(
+                [SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION]
+            ))
+        except Exception:
+            pass
+        return cm
+
+    def init_state(self, resource, offload_video_to_cpu=False, **kwargs):
+        """
+        Initialize an inference state.  ``resource`` can be a directory path,
+        a single image path, or a list of PIL Images.  The underlying
+        ``Sam3MultiplexTrackingWithInteractivity.init_state`` accepts all of
+        these via ``resource_path`` (its loader dispatches on the type), so
+        this is a thin pass-through.
+        """
+        import inspect
+        init_kwargs = dict(
+            resource_path=resource,
+            offload_video_to_cpu=offload_video_to_cpu,
+        )
+        sig = inspect.signature(self._model.init_state)
+        for k, v in list(kwargs.items()):
+            if k in sig.parameters:
+                init_kwargs[k] = v
+        with self._autocast():
+            return self._model.init_state(**init_kwargs)
+
+    def add_prompt(self, inference_state, frame_idx, **kwargs):
+        import inspect
+        sig = inspect.signature(self._model.add_prompt)
+        filtered = {k: v for k, v in kwargs.items() if k in sig.parameters}
+        with self._autocast():
+            return self._model.add_prompt(
+                inference_state=inference_state,
+                frame_idx=frame_idx,
+                **filtered,
+            )
+
+    def propagate_in_video(self, inference_state, **kwargs):
+        import inspect
+        sig = inspect.signature(self._model.propagate_in_video)
+        filtered = {k: v for k, v in kwargs.items() if k in sig.parameters}
+        with self._autocast():
+            for item in self._model.propagate_in_video(
+                inference_state=inference_state,
+                **filtered,
+            ):
+                yield item
+
+    def reset_state(self, inference_state):
+        import torch
+        with torch.inference_mode():
+            self._model.reset_state(inference_state)
 
 
 # =============================================================================
@@ -182,8 +899,38 @@ class SharedSAM3ModelCache:
 
         log(f"  Loading from local: {model_dir or checkpoint}")
 
-        # Load using SAM3 module
+        version = detect_sam3_version(checkpoint, model_config)
+        log(f"  Detected SAM3 version: {version}")
+
         try:
+            if version == 'sam3.1':
+                from sam3.model_builder import build_sam3_predictor
+                _patch_sam3_sdpa_for_pre_ampere()
+
+                # For SAM 3.1 the multiplex video predictor is the only model
+                # we need: it powers interactive segmentation (via the image
+                # adapter) and video refinement (via the video adapter).  We
+                # deliberately do NOT also build the 3.0-style image model
+                # here — the two would occupy roughly 2x the GPU memory and
+                # the image model's interactive predictor weights are not
+                # present in the 3.1 checkpoint anyway.
+                multiplex = build_sam3_predictor(
+                    checkpoint_path=checkpoint,
+                    version='sam3.1',
+                    compile=False,
+                    use_fa3=False,
+                    use_rope_real=False,
+                )
+                predictor = _Sam3p1ImagePredictorAdapter(multiplex, device)
+                # The first tuple slot is historically the Sam3Image model,
+                # consumed by callers for ``.parameters()`` / optional
+                # ``mask_generator`` hooks.  Return the multiplex predictor
+                # in its place — it exposes ``.model`` whose ``.parameters``
+                # satisfies the device-probing code in the plugins.
+                log("  Loaded via sam3 module (sam3.1 multiplex)")
+                return multiplex, predictor
+
+            # Default: SAM 3.0
             from sam3.model_builder import build_sam3_image_model
 
             model = build_sam3_image_model(
@@ -199,7 +946,15 @@ class SharedSAM3ModelCache:
             predictor = model.inst_interactive_predictor
             if predictor is None:
                 raise RuntimeError("Model does not have instance interactive predictor")
-            log("  Loaded via sam3 module")
+            # The predictor's internal tracker model may not share
+            # the backbone with the parent model; fix this reference
+            if (hasattr(predictor, 'model') and
+                    hasattr(predictor.model, 'backbone') and
+                    predictor.model.backbone is None and
+                    hasattr(model, 'backbone') and
+                    model.backbone is not None):
+                predictor.model.backbone = model.backbone
+            log("  Loaded via sam3 module (sam3.0)")
             return model, predictor
         except ImportError as e:
             raise RuntimeError(f"sam3 module not available: {e}. Install sam3 package and its dependencies (including decord).")
@@ -355,6 +1110,11 @@ class SAM3BaseConfig(scfg.DataConfig):
         None,
         help='Path to SAM3 config JSON file (for local model loading)'
     )
+    sam3_version = scfg.Value(
+        'auto',
+        help='SAM3 model version: "auto" (detect from checkpoint/config), '
+             '"sam3" (3.0), or "sam3.1" (Object Multiplex)'
+    )
     grounding_model_id = scfg.Value(
         "IDEA-Research/grounding-dino-tiny",
         help='Grounding DINO model ID for text-based detection'
@@ -397,8 +1157,11 @@ class SAM3BaseConfig(scfg.DataConfig):
         super().__post_init__()
         if isinstance(self.text_query, str):
             self.text_query_list = [q.strip() for q in self.text_query.split(',')]
+        elif isinstance(self.text_query, (list, tuple)):
+            # scriptconfig may convert comma-separated strings to lists
+            self.text_query_list = [str(q).strip() for q in self.text_query]
         else:
-            self.text_query_list = [self.text_query]
+            self.text_query_list = [str(self.text_query)]
 
 
 class SAM3ModelManager:
@@ -436,9 +1199,9 @@ class SAM3ModelManager:
 
         self._device = resolve_device(config.device)
 
-        # Initialize Grounding DINO (if model ID provided)
+        # Initialize Grounding DINO (if model ID provided and not disabled)
         grounding_model_id = getattr(config, 'grounding_model_id', None)
-        if grounding_model_id:
+        if grounding_model_id and str(grounding_model_id).lower() not in ('', 'none', 'false'):
             self._init_grounding_dino(grounding_model_id)
 
         # Check if using local SAM3 model files
@@ -497,21 +1260,32 @@ class SAM3ModelManager:
         if not os.path.exists(config_path):
             raise FileNotFoundError(f"SAM3 config not found: {config_path}")
 
-        # Try to load using transformers library first
+        # Try to load using transformers library first, then fall back to
+        # native sam3 module.  Only print errors if ALL methods fail.
+        transformers_err = None
+        native_err = None
+
         try:
             self._init_sam3_transformers(model_dir, weights_path, config_path, use_video_predictor)
             return
         except Exception as e:
-            print(f"[SAM3] Could not load via transformers: {e}")
+            transformers_err = e
 
-        # Fallback: try to load using sam3 module if available
         try:
             self._init_sam3_native(weights_path, config_path, use_video_predictor)
             return
         except Exception as e:
-            print(f"[SAM3] Could not load via native sam3: {e}")
+            native_err = e
 
-        raise RuntimeError("Failed to load SAM3 model from local files")
+        print(f"[SAM3] Could not load via transformers: {transformers_err}")
+        print(f"[SAM3] Could not load via native sam3: {native_err}")
+        # The native error is the real cause (the transformers attempt always
+        # fails on native-format sam3.1 checkpoints). Surface it as a single
+        # ERROR: line so DIVE can display it when the job exits non-zero.
+        emit_dive_error(describe_sam3_load_failure(native_err))
+        _load_err = RuntimeError("Failed to load SAM3 model from local files")
+        _load_err._dive_reported = True  # already surfaced; avoid double-report
+        raise _load_err
 
     def _init_sam3_transformers(self, model_dir, weights_path, config_path, use_video_predictor):
         """Load SAM3 using HuggingFace transformers library."""
@@ -524,7 +1298,6 @@ class SAM3ModelManager:
             config_data = json.load(f)
 
         model_type = config_data.get('model_type', 'sam3_video')
-        print(f"[SAM3] Model type from config: {model_type}")
 
         # Check if model_type is sam3_* which requires custom transformers
         if model_type.startswith('sam3'):
@@ -544,18 +1317,13 @@ class SAM3ModelManager:
                 print(f"[SAM3] Successfully loaded SAM3 via transformers AutoModel")
                 self._setup_predictor_interface(use_video_predictor)
                 return
-            except ValueError as e:
-                if "Unrecognized model" in str(e):
-                    print(f"[SAM3] model_type '{model_type}' not registered in transformers")
-                    print(f"[SAM3] This model requires custom transformers with Sam3 support")
-                else:
-                    raise
+            except ValueError:
+                pass  # model_type not registered — try fallbacks below
 
         # Fallback: Try loading as Sam2 model (for sam2_* model types or as fallback)
         try:
             from transformers import Sam2Model, Sam2Processor
 
-            # Check if there's a processor config
             processor_config_path = os.path.join(model_dir, 'sam3_processor_config.json')
             if os.path.exists(processor_config_path):
                 try:
@@ -563,8 +1331,8 @@ class SAM3ModelManager:
                         model_dir,
                         local_files_only=True
                     )
-                except Exception as e:
-                    print(f"[SAM3] Could not load processor: {e}")
+                except Exception:
+                    pass
 
             self._sam_model = Sam2Model.from_pretrained(
                 model_dir,
@@ -574,8 +1342,8 @@ class SAM3ModelManager:
             print(f"[SAM3] Successfully loaded model via Sam2Model")
             self._setup_predictor_interface(use_video_predictor)
             return
-        except Exception as e:
-            print(f"[SAM3] Sam2Model loading failed: {e}")
+        except Exception:
+            pass
 
         # Try standard SAM2 Video model for video predictor
         if use_video_predictor:
@@ -593,8 +1361,8 @@ class SAM3ModelManager:
                 print(f"[SAM3] Successfully loaded model via Sam2VideoModel")
                 self._setup_predictor_interface(use_video_predictor)
                 return
-            except Exception as e:
-                print(f"[SAM3] Sam2VideoModel loading failed: {e}")
+            except Exception:
+                pass
 
         raise RuntimeError(
             f"Could not load SAM3 model via transformers. "
@@ -621,41 +1389,95 @@ class SAM3ModelManager:
     def _init_sam3_native(self, weights_path, config_path, use_video_predictor):
         """Load SAM3 using native sam3 module if available."""
         try:
+            version = detect_sam3_version(weights_path, config_path)
+            print(f"[SAM3] Detected version: {version}")
+
+            if version == 'sam3.1':
+                from sam3.model_builder import build_sam3_predictor
+                _patch_sam3_sdpa_for_pre_ampere()
+
+                # Build the multiplex predictor once and expose it through
+                # both adapters.  We deliberately skip the separate 3.0-style
+                # image model build to keep GPU memory manageable — one 3.1
+                # model is enough.
+                multiplex = build_sam3_predictor(
+                    checkpoint_path=weights_path,
+                    version='sam3.1',
+                    compile=False,
+                    use_fa3=False,
+                    use_rope_real=False,
+                )
+
+                if use_video_predictor:
+                    self._video_predictor = _Sam3p1VideoPredictorAdapter(
+                        multiplex, self._device,
+                    )
+
+                # Always produce an image predictor too — the existing tracker
+                # plugin calls init_models(use_video_predictor=True) but then
+                # segment_with_sam uses self._sam_predictor.  Keep both wired.
+                self._sam_model = multiplex
+                self._sam_predictor = _Sam3p1ImagePredictorAdapter(
+                    multiplex, self._device,
+                )
+                print(f"[SAM3] Successfully loaded SAM3.1 multiplex via native sam3 module")
+                return
+
+            # SAM 3.0 path (unchanged)
             from sam3.model_builder import build_sam3_video_model, build_sam3_image_model
 
             if use_video_predictor:
                 self._video_predictor = build_sam3_video_model(
                     checkpoint_path=weights_path,
-                    config_path=config_path,
                     device=str(self._device),
-                    eval_mode=True,
+                    load_from_HF=False,
                 )
             else:
                 model = build_sam3_image_model(
                     checkpoint_path=weights_path,
-                    config_path=config_path,
                     device=str(self._device),
                     eval_mode=True,
+                    load_from_HF=False,
+                    enable_segmentation=True,
+                    enable_inst_interactivity=True,
                 )
                 if hasattr(model, 'inst_interactive_predictor'):
                     self._sam_predictor = model.inst_interactive_predictor
+                    # The predictor's internal tracker model may not share
+                    # the backbone with the parent model; fix this reference
+                    if (hasattr(self._sam_predictor, 'model') and
+                            hasattr(self._sam_predictor.model, 'backbone') and
+                            self._sam_predictor.model.backbone is None and
+                            hasattr(model, 'backbone') and
+                            model.backbone is not None):
+                        self._sam_predictor.model.backbone = model.backbone
                 else:
                     self._sam_predictor = model
+                self._sam_model = model
 
             print(f"[SAM3] Successfully loaded SAM3 via native sam3 module")
         except ImportError:
             raise ImportError("sam3 module not available for native loading")
 
     def _init_grounding_dino(self, model_id):
-        """Initialize Grounding DINO for text-based detection."""
+        """Initialize Grounding DINO for text-based detection.
+
+        If model_id is a local directory, loads from there. Otherwise
+        falls back to downloading from HuggingFace.
+        """
+        import os
         try:
             from transformers import AutoProcessor, AutoModelForZeroShotObjectDetection
+
+            if os.path.isdir(str(model_id)):
+                print(f"[SAM3] Loading Grounding DINO from local: {model_id}")
 
             self._grounding_processor = AutoProcessor.from_pretrained(model_id)
             self._grounding_model = AutoModelForZeroShotObjectDetection.from_pretrained(
                 model_id
             ).to(self._device)
             self._grounding_model.eval()
+            print(f"[SAM3] Grounding DINO loaded successfully")
         except Exception as e:
             print(f"[SAM3] Warning: Could not load Grounding DINO: {e}")
             self._grounding_model = None
@@ -721,10 +1543,12 @@ class SAM3ModelManager:
         from PIL import Image
 
         pil_img = Image.fromarray(image_np)
-        text_labels = [text_query_list]
+        # Grounding DINO expects a single string with labels separated
+        # by periods, e.g. "object. animal. fish."
+        text_str = '. '.join(text_query_list) + '.'
 
         inputs = self._grounding_processor(
-            images=pil_img, text=text_labels, return_tensors="pt"
+            images=pil_img, text=text_str, return_tensors="pt"
         ).to(self._device)
 
         with torch.no_grad():
@@ -768,15 +1592,16 @@ class SAM3ModelManager:
 
         # Use SAM2 image predictor if available
         if self._sam_predictor is not None:
-            self._sam_predictor.set_image(image_np)
+            with get_autocast_context(self._device):
+                self._sam_predictor.set_image(image_np)
 
-            prompts = {
-                'box': np.array(boxes),
-                'multimask_output': False
-            }
+                prompts = {
+                    'box': np.array(boxes),
+                    'multimask_output': False
+                }
 
-            with torch.inference_mode():
-                masks, scores, _ = self._sam_predictor.predict(**prompts)
+                with torch.inference_mode():
+                    masks, scores, _ = self._sam_predictor.predict(**prompts)
 
             # Handle shape - ensure we have [N, 1, H, W] or similar
             if len(masks.shape) == 3:
@@ -808,6 +1633,57 @@ class SAM3ModelManager:
 
         # No SAM model - return full masks
         return [np.ones((image_np.shape[0], image_np.shape[1]), dtype=bool)] * len(boxes)
+
+    def segment_single_with_mask(self, image_np, box, mask_input=None):
+        """
+        Segment a single object using a box prompt and optional mask prior.
+
+        Passing the low-res mask logits from the previous frame as
+        ``mask_input`` gives SAM temporal context and dramatically improves
+        tracking consistency compared to a bare box prompt.
+
+        Args:
+            image_np: RGB image as numpy array (must call set_image first
+                      or this will call it automatically).
+            box: [x1, y1, x2, y2] bounding box.
+            mask_input: Optional low-resolution mask logits from a previous
+                        prediction (shape ``[1, 256, 256]``).  Returned as
+                        the third element of the SAM predictor's output.
+
+        Returns:
+            (mask, low_res_mask) where *mask* is a binary HxW numpy array and
+            *low_res_mask* is the low-resolution logits suitable for feeding
+            back as ``mask_input`` on the next frame.
+        """
+        import torch
+
+        if self._sam_predictor is None:
+            h, w = image_np.shape[:2]
+            return np.ones((h, w), dtype=bool), None
+
+        with get_autocast_context(self._device):
+            self._sam_predictor.set_image(image_np)
+
+            prompts = {
+                'box': np.array(box),
+                'multimask_output': False,
+            }
+            if mask_input is not None:
+                prompts['mask_input'] = mask_input
+
+            with torch.inference_mode():
+                masks, scores, low_res_masks = self._sam_predictor.predict(**prompts)
+
+        # masks shape: [1, H, W] or [H, W]
+        if len(masks.shape) == 3:
+            mask = masks[0]
+        else:
+            mask = masks
+
+        # low_res_masks shape: [1, 256, 256]
+        low_res = low_res_masks if low_res_masks is not None else None
+
+        return mask, low_res
 
 
 def mask_to_points(mask, num_points):

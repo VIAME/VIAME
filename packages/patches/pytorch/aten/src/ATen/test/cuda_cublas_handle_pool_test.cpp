@@ -39,7 +39,7 @@ TEST(CUDABlasHandlePoolTest, ConcurrentGetAndClearWorkspaces) {
             error_count++;
           }
         }
-      } catch (const std::exception& e) {
+      } catch (const std::exception&) {
         error_count++;
       }
     });
@@ -47,13 +47,16 @@ TEST(CUDABlasHandlePoolTest, ConcurrentGetAndClearWorkspaces) {
 
   // Launch threads that clear workspaces
   for (int i = 0; i < num_clear_threads; ++i) {
+    // VIAME patch: capture iterations_per_thread explicitly. MSVC fails to
+    // compile this lambda otherwise (it does not implicitly capture the
+    // constexpr loop bound), breaking the Windows build.
     threads.emplace_back([&error_count, iterations_per_thread]() {
       try {
         for (int j = 0; j < iterations_per_thread; ++j) {
           at::cuda::clearCublasWorkspaces();
           std::this_thread::yield();
         }
-      } catch (const std::exception& e) {
+      } catch (const std::exception&) {
         error_count++;
       }
     });

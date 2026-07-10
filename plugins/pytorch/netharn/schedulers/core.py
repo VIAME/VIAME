@@ -180,7 +180,7 @@ class YOLOScheduler(NetharnScheduler):
         >>>     for batch in range(self.dset_size // self.batch_size):
         >>>         lr = self.get_lr()
         >>>         self.step_batch()
-        >>> #print('ydata = {}'.format(ub.repr2(ydata, precision=5, nl=0)))
+        >>> #print('ydata = {}'.format(ub.urepr(ydata, precision=5, nl=0)))
         >>> # xdoc: +REQUIRES(--show)
         >>> import kwplot
         >>> kwplot.autompl()

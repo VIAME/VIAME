@@ -11,19 +11,25 @@ if( WIN32 )
        ${EXAMPLE_INSTALL_FILES}
        run_fish_tracker.bat
        run_generic_tracker.bat
-       run_simple_tracker.bat )
+       run_simple_tracker.bat
+       run_bytetrack_tracker.bat
+       run_stabilized_iou_tracker.bat )
 elseif( APPLE )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        run_fish_tracker.sh
        run_generic_tracker.sh
-       run_simple_tracker.sh )
+       run_simple_tracker.sh
+       run_bytetrack_tracker.sh
+       run_stabilized_iou_tracker.sh )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        run_fish_tracker.sh
        run_generic_tracker.sh
-       run_simple_tracker.sh )
+       run_simple_tracker.sh
+       run_bytetrack_tracker.sh
+       run_stabilized_iou_tracker.sh )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-SIAMMASK )
@@ -38,6 +44,19 @@ if( VIAME_ENABLE_PYTORCH-SIAMMASK )
          bulk_run_user_init_tracking.sh
          run_user_init_tracker.sh )
   endif()
+endif()
+
+# SAM2/SAM3 tracker scripts (always install, they check for add-on at runtime)
+if( WIN32 )
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       run_sam2_tracker.bat
+       run_sam3_tracker.bat )
+else()
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       run_sam2_tracker.sh
+       run_sam3_tracker.sh )
 endif()
 
 ###

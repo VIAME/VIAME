@@ -22,6 +22,8 @@
 #include <vital/types/match_set.h>
 #include <vital/logger/logger.h>
 
+#include <functional>
+
 #include <vital/algo/detect_features.h>
 #include <vital/algo/extract_descriptors.h>
 #include <vital/algo/match_features.h>
@@ -85,6 +87,73 @@ struct VIAME_CORE_EXPORT feature_matching_options
   bool use_optimal_assignment = true;
 
   feature_matching_options() = default;
+};
+
+/**
+ * \brief Options for epipolar IOU-based stereo detection matching
+ *
+ * Projects left bounding box to right image using depth and camera geometry,
+ * then matches based on IOU between projected box and right detection boxes.
+ */
+struct VIAME_CORE_EXPORT epipolar_iou_matching_options
+{
+  double iou_threshold = 0.1;
+  double default_depth = 5.0;
+  bool require_class_match = true;
+  bool use_optimal_assignment = true;
+
+  epipolar_iou_matching_options() = default;
+};
+
+/**
+ * \brief Options for keypoint projection-based stereo detection matching
+ *
+ * When default_depth > 0: projects left head/tail keypoints to right image at
+ * that depth, then matches based on pixel distance to right detection keypoints.
+ * When default_depth <= 0: uses depth-independent epipolar line distance instead,
+ * measuring how close right keypoints are to the epipolar lines of left keypoints.
+ */
+struct VIAME_CORE_EXPORT keypoint_projection_matching_options
+{
+  double max_keypoint_distance = 50.0;
+  double default_depth = 0.0;
+  bool require_class_match = true;
+  bool use_optimal_assignment = true;
+
+  keypoint_projection_matching_options() = default;
+};
+
+/**
+ * \brief Options for disparity_projection matching.
+ *
+ * Use a precomputed disparity map (rectified space) to predict each left
+ * detection's right-camera position, then match against right detection
+ * centroids by Euclidean pixel distance. Disparity is sampled either at
+ * the bbox centroid or by aggregating across the polygon mask if
+ * `use_polygon` is true.
+ */
+struct VIAME_CORE_EXPORT disparity_projection_matching_options
+{
+  /// Maximum pixel distance between disparity-predicted right centroid
+  /// and an actual right-detection centroid for the pair to be a
+  /// candidate (in unrectified right-image coords).
+  double max_centroid_distance = 50.0;
+
+  /// Half-width of the square sampling window (in rectified pixels)
+  /// used to compute a robust median disparity around the chosen
+  /// sample point. 0 = single-pixel lookup.
+  int sample_window = 7;
+
+  /// When true, aggregate disparity over the detection's polygon mask
+  /// (median across in-mask pixels) instead of just sampling at the
+  /// bbox centroid. Falls back to bbox centroid sampling if the
+  /// detection has no mask.
+  bool use_polygon = true;
+
+  bool require_class_match = true;
+  bool use_optimal_assignment = true;
+
+  disparity_projection_matching_options() = default;
 };
 
 /**
@@ -285,6 +354,151 @@ VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_featu
   const kv::image_container_sptr& image2,
   const feature_matching_algorithms& algorithms,
   const feature_matching_options& options,
+  kv::logger_handle_t logger = nullptr );
+
+/**
+ * \brief Find stereo detection matches using epipolar IOU
+ *
+ * Projects left detection bounding boxes to right image using camera geometry
+ * and a default depth, then matches based on IOU between projected boxes and
+ * actual right detection bounding boxes.
+ *
+ * \param detections1 Detections from first (left) camera
+ * \param detections2 Detections from second (right) camera
+ * \param left_cam Left camera parameters
+ * \param right_cam Right camera parameters
+ * \param options Matching options
+ * \param logger Optional logger for error messages
+ * \return Vector of (index1, index2) pairs of matched detections
+ */
+VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_epipolar_iou(
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const epipolar_iou_matching_options& options,
+  kv::logger_handle_t logger = nullptr );
+
+/**
+ * \brief Find stereo detection matches using keypoint projection
+ *
+ * Projects left head/tail keypoints to right image using camera geometry
+ * and a default depth, then matches based on average pixel distance between
+ * projected and actual right detection keypoints.
+ *
+ * \param detections1 Detections from first (left) camera
+ * \param detections2 Detections from second (right) camera
+ * \param left_cam Left camera parameters
+ * \param right_cam Right camera parameters
+ * \param options Matching options
+ * \param logger Optional logger for error messages
+ * \return Vector of (index1, index2) pairs of matched detections
+ */
+VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_keypoint_projection(
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const keypoint_projection_matching_options& options,
+  kv::logger_handle_t logger = nullptr );
+
+/**
+ * \brief Match left and right detections by sampling a precomputed
+ * disparity map.
+ *
+ * For each left detection, samples disparity at the bbox centroid (or
+ * across the polygon mask if available) of the rectified left image,
+ * projects the centroid to the right camera using that measured
+ * disparity, and pairs against right detections by Euclidean distance
+ * between predicted and actual right-image centroids. Unlike
+ * keypoint_projection, this uses *measured* depth from the disparity
+ * model rather than an assumed scalar depth or epipolar-line proximity.
+ *
+ * The disparity image is expected in rectified space, with the same
+ * encoding used elsewhere in the pipeline (uint16 scaled by 256, int16
+ * /16, or float).
+ *
+ * \param detections1            Left-camera detections
+ * \param detections2            Right-camera detections
+ * \param disparity_rectified    Rectified-space disparity map
+ * \param rectify_left_pt        Functor: left unrectified point
+ *                                -> left rectified point
+ * \param unrectify_right_pt     Functor: right rectified point
+ *                                -> right unrectified point
+ * \param options                Matching options
+ * \param logger                 Optional logger
+ */
+VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_matches_disparity_projection(
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::image_container_sptr& disparity_rectified,
+  const std::function< kv::vector_2d( const kv::vector_2d& ) >& rectify_left_pt,
+  const std::function< kv::vector_2d( const kv::vector_2d& ) >& unrectify_right_pt,
+  const disparity_projection_matching_options& options,
+  kv::logger_handle_t logger = nullptr );
+
+// =============================================================================
+// Unified detection pairing dispatch
+// =============================================================================
+
+/**
+ * \brief Parameters for the shared stereo detection pairing dispatch.
+ *
+ * This struct provides a single, method-agnostic interface for configuring
+ * detection pairing.  Both pair_stereo_detections_process and
+ * measure_objects_process use it so the method dispatch code lives in one place.
+ */
+struct VIAME_CORE_EXPORT detection_pairing_params
+{
+  /// Matching method: "iou", "calibration", "feature_matching",
+  ///                  "epipolar_iou", or "keypoint_projection"
+  std::string method = "iou";
+
+  /// Generic threshold whose meaning depends on the method:
+  ///   iou / epipolar_iou  → minimum IOU (default 0.1)
+  ///   calibration         → max reprojection error in pixels (default 10.0)
+  ///   keypoint_projection → max avg keypoint distance in pixels (default 50.0)
+  ///   feature_matching    → (unused, score is internal)
+  double threshold = 0.1;
+
+  /// Default depth for projection-based methods (calibration, epipolar_iou,
+  /// keypoint_projection).  0 = epipolar-line mode for keypoint_projection.
+  double default_depth = 0.0;
+
+  /// Only allow matches between detections with the same top class label
+  bool require_class_match = true;
+
+  /// Use greedy optimal assignment (true) vs simple sequential matching (false)
+  bool use_optimal_assignment = true;
+
+  detection_pairing_params() = default;
+};
+
+/**
+ * \brief Dispatch stereo detection matching to the appropriate algorithm.
+ *
+ * \param params          Method name, threshold, and common options
+ * \param detections1     Detections from left camera
+ * \param detections2     Detections from right camera
+ * \param left_cam        Left camera (may be nullptr for IOU / feature_matching)
+ * \param right_cam       Right camera (may be nullptr for IOU / feature_matching)
+ * \param image1          Left image  (required only for feature_matching)
+ * \param image2          Right image (required only for feature_matching)
+ * \param feature_algos   Feature algorithms (required only for feature_matching)
+ * \param feature_opts    Feature options     (required only for feature_matching)
+ * \param logger          Optional logger
+ * \return Vector of (left_index, right_index) match pairs
+ */
+VIAME_CORE_EXPORT std::vector< std::pair< int, int > > find_stereo_detection_matches(
+  const detection_pairing_params& params,
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::simple_camera_perspective* left_cam = nullptr,
+  const kv::simple_camera_perspective* right_cam = nullptr,
+  const kv::image_container_sptr& image1 = nullptr,
+  const kv::image_container_sptr& image2 = nullptr,
+  const feature_matching_algorithms* feature_algos = nullptr,
+  const feature_matching_options* feature_opts = nullptr,
   kv::logger_handle_t logger = nullptr );
 
 } // end namespace core

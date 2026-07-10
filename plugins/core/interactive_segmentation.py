@@ -89,6 +89,8 @@ class InteractiveSegmentationService:
         multipolygon_policy: str = "allow",
         max_polygon_points: int = 25,
         adaptive_simplify: bool = False,
+        plugin_paths: Optional[List[str]] = None,
+        device: Optional[str] = None,
     ):
         """
         Initialize the service with configured algorithms.
@@ -101,6 +103,9 @@ class InteractiveSegmentationService:
             multipolygon_policy: How to handle multiple polygons ('allow', 'convex_hull', 'largest')
             max_polygon_points: Maximum number of points in output polygons
             adaptive_simplify: Use adaptive polygon simplification
+            plugin_paths: Extra plugin paths, forwarded to the embedded stereo
+                warper used by stereo_segment.
+            device: Device override, forwarded to the embedded stereo warper.
         """
         self._segment_algo = segment_via_points_algo
         self._text_query_algo = perform_text_query_algo
@@ -111,6 +116,12 @@ class InteractiveSegmentationService:
         self._adaptive_simplify = adaptive_simplify
         self._current_image_path: Optional[str] = None
         self._current_image_container = None
+        # Embedded interactive-stereo warper for stereo_segment (lazy). Reuses
+        # the configured stereo backend (epipolar or dense disparity); does NOT
+        # load SAM, so the segmentation model is never loaded twice.
+        self._plugin_paths = plugin_paths or []
+        self._device = device
+        self._stereo_warper = None
 
     def _log(self, message: str) -> None:
         """Log to stderr (stdout is reserved for JSON responses)."""
@@ -128,8 +139,18 @@ class InteractiveSegmentationService:
             "error": error,
         })
 
-    def _load_image(self, image_path: str):
-        """Load an image and return a vital ImageContainer."""
+    _VIDEO_EXTENSIONS = {'.avi', '.mp4', '.mkv', '.mov', '.wmv', '.flv', '.webm', '.mpg', '.mpeg', '.m4v'}
+
+    def _is_video_file(self, path: str) -> bool:
+        """Check if a path is a video file based on extension."""
+        ext = os.path.splitext(path)[1].lower()
+        return ext in self._VIDEO_EXTENSIONS
+
+    def _load_image(self, image_path: str, frame_time: float = None):
+        """Load an image (or video frame) and return a vital ImageContainer."""
+        if self._is_video_file(image_path) and frame_time is not None:
+            return self._load_video_frame(image_path, frame_time)
+
         # Use KWIVER ImageIO algorithm if available (preferred - handles memory layout properly)
         if self._image_io_algo is not None:
             return self._image_io_algo.load(image_path)
@@ -142,6 +163,47 @@ class InteractiveSegmentationService:
         pil_img = PILImage.open(image_path).convert("RGB")
         vital_img = VitalPIL.from_pil(pil_img)
         return ImageContainer(vital_img)
+
+    def _load_video_frame(self, video_path: str, frame_time: float):
+        """Extract a single frame from a video at the given time (seconds)."""
+        from kwiver.vital.algo import VideoInput
+        from kwiver.vital.types import Timestamp
+
+        # Cache the video reader for repeated access to the same video. Build
+        # the reader locally and only commit it to self AFTER a successful
+        # open(), so a failed open (e.g. a missing/moved file) does not leave a
+        # half-initialized reader that breaks every subsequent load.
+        if (getattr(self, '_video_reader', None) is None
+                or getattr(self, '_video_reader_path', None) != video_path):
+            reader = VideoInput.create("vidl_ffmpeg")
+            cfg = reader.get_configuration()
+            cfg.set_value("time_source", "start_at_0")
+            reader.set_configuration(cfg)
+            reader.open(video_path)
+            # Determine video FPS by reading the first frame
+            ts = Timestamp()
+            reader.next_frame(ts, 0)
+            self._video_reader = reader
+            self._video_reader_path = video_path
+            self._video_fps = reader.frame_rate()
+
+        # Convert time to frame number using the video's native FPS.
+        # The ffmpeg reader uses 1-based frame numbering (frame 0 is
+        # a pre-first-frame state), so add 1.
+        target_frame = round(frame_time * self._video_fps) + 1
+        target_frame = max(1, target_frame)
+
+        ts = Timestamp()
+        self._video_reader.seek_frame(ts, target_frame, 0)
+        image = self._video_reader.frame_image()
+
+        if image is None:
+            raise RuntimeError(f"Could not read frame at t={frame_time:.3f}s "
+                               f"(frame {target_frame}) from {video_path}")
+
+        self._log(f"Loaded video t={frame_time:.3f}s (frame {target_frame}) "
+                  f"from {os.path.basename(video_path)}")
+        return image
 
     def _detections_to_response(self, detected_objects) -> List[Dict[str, Any]]:
         """Convert DetectedObjectSet to response dictionaries."""
@@ -294,6 +356,7 @@ class InteractiveSegmentationService:
         image_path = request.get("image_path")
         points = request.get("points", [])
         point_labels = request.get("point_labels", [])
+        frame_time = request.get("frame_time")
 
         if not image_path:
             raise ValueError("image_path is required")
@@ -302,11 +365,12 @@ class InteractiveSegmentationService:
         if len(points) != len(point_labels):
             raise ValueError("points and point_labels must have same length")
 
-        # Load image if different from cached
-        if self._current_image_path != image_path:
-            self._log(f"Loading image: {image_path}")
-            self._current_image_container = self._load_image(image_path)
-            self._current_image_path = image_path
+        # Load image if different from cached (include time in cache key for videos)
+        cache_key = f"{image_path}:t={frame_time}" if frame_time is not None else image_path
+        if self._current_image_path != cache_key:
+            self._log(f"Loading image: {image_path}" + (f" t={frame_time:.3f}s" if frame_time is not None else ""))
+            self._current_image_container = self._load_image(image_path, frame_time)
+            self._current_image_path = cache_key
 
         # Convert points to vital Point2d objects using x,y constructor
         vital_points = [Point2d(float(p[0]), float(p[1])) for p in points]
@@ -345,14 +409,15 @@ class InteractiveSegmentationService:
 
         image_path = request.get("image_path")
         text = request.get("text", "")
+        frame_time = request.get("frame_time")
 
         if not image_path:
             raise ValueError("image_path is required")
         if not text:
             raise ValueError("text query is required")
 
-        # Load image
-        image_container = self._load_image(image_path)
+        # Load image (or video frame at the given time)
+        image_container = self._load_image(image_path, frame_time)
 
         # Create timestamp
         timestamp = Timestamp()
@@ -379,8 +444,9 @@ class InteractiveSegmentationService:
 
                     detection = {
                         "bounds": bounds,
+                        "box": bounds,
                         "score": score,
-                        "track_id": track.id(),
+                        "track_id": track.id,
                     }
 
                     if det_obj.type is not None:
@@ -401,6 +467,11 @@ class InteractiveSegmentationService:
                             polygon, _ = mask_to_polygon(
                                 mask, self._hole_policy, self._multipolygon_policy
                             )
+
+                            # Offset polygon by bbox origin (mask is relative to bbox)
+                            if polygon:
+                                ox, oy = bounds[0], bounds[1]
+                                polygon = [[p[0] + ox, p[1] + oy] for p in polygon]
 
                             # Simplify polygon if needed
                             if polygon and len(polygon) > self._max_polygon_points:
@@ -425,12 +496,14 @@ class InteractiveSegmentationService:
     def handle_set_image(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Pre-load an image for multiple predictions."""
         image_path = request.get("image_path")
+        frame_time = request.get("frame_time")
         if not image_path:
             raise ValueError("image_path is required")
 
-        self._log(f"Pre-loading image: {image_path}")
-        self._current_image_container = self._load_image(image_path)
-        self._current_image_path = image_path
+        cache_key = f"{image_path}:t={frame_time}" if frame_time is not None else image_path
+        self._log(f"Pre-loading image: {image_path}" + (f" t={frame_time:.3f}s" if frame_time is not None else ""))
+        self._current_image_container = self._load_image(image_path, frame_time)
+        self._current_image_path = cache_key
 
         return {
             "success": True,
@@ -446,6 +519,183 @@ class InteractiveSegmentationService:
             "message": "Image cache cleared",
         }
 
+    def warmup(self) -> None:
+        """Eagerly load the point-segmentation model so the first click is fast.
+
+        Called when the user enters point-segmentation mode (mode entry), so the
+        segmentation model loads then rather than on the first click. The caller
+        should suppress stdout, since model init may print.
+
+        The text-query model is deliberately NOT loaded here: it is large and
+        commonly a different (heavier) backend than the segmenter, and may go
+        unused for a whole segmentation session. We only verify it is configured
+        and defer its load to the first text_query request (perform_query lazily
+        calls ``_ensure_model``). Point-segmentation warmup failure is non-fatal
+        (it falls back to loading on first use)."""
+        seg = self._segment_algo
+        if seg is not None and hasattr(seg, "_ensure_model"):
+            try:
+                seg._ensure_model()
+            except Exception as e:
+                self._log(f"Warning: segmenter model warmup failed: {e}")
+
+        # Text query: presence check only -- do not load the model here.
+        if self._text_query_algo is not None:
+            self._log("Text query configured; its model loads on the first "
+                      "text query.")
+
+    def set_stereo_warper(self, warper) -> None:
+        """Inject a shared, already-built InteractiveStereoService.
+
+        Used by the unified interactive service so stereo_segment reuses the
+        same stereo backend instance that interactive-stereo mode loaded,
+        instead of constructing a second one (the stereo model is never loaded
+        twice). When unset, _get_stereo_warper() builds its own on first use.
+        """
+        self._stereo_warper = warper
+
+    def _get_stereo_warper(self, calibration_file: Optional[str] = None):
+        """Lazily build an embedded interactive-stereo warper.
+
+        Reuses interactive_stereo's configured backend -- epipolar template
+        matching (model-free) or dense disparity (ComputeStereoDepthMap, e.g.
+        Foundation-Stereo) -- so stereo_segment supports every warping type via
+        the same vital base classes, not just the model-free path. SAM is never
+        instantiated here, so the (large) segmentation model is not loaded twice.
+        """
+        if self._stereo_warper is None:
+            from viame.core.interactive_stereo import (
+                InteractiveStereoService,
+                load_algorithm_from_config,
+                find_viame_config,
+            )
+            stereo_config = find_viame_config()
+            if not stereo_config:
+                raise ValueError(
+                    "Could not locate the interactive stereo config "
+                    "(interactive_stereo_default.conf); is VIAME_INSTALL set?")
+            stereo_algo, matcher, svc_cfg = load_algorithm_from_config(
+                stereo_config, self._plugin_paths)
+            self._stereo_warper = InteractiveStereoService(
+                compute_stereo_depth_map_algo=stereo_algo,
+                epipolar_matcher=matcher,
+                **svc_cfg,
+            )
+            self._log(
+                "Embedded stereo warper created "
+                f"({'epipolar' if matcher is not None else 'dense'} mode)")
+        if not self._stereo_warper._enabled:
+            self._stereo_warper.handle_enable({"calibration_file": calibration_file})
+        return self._stereo_warper
+
+    def handle_stereo_segment(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Stereo point-segmentation orchestration.
+
+        Given a click and the already-segmented polygon on the source camera,
+        this:
+          1. warps a segmentation seed to the other camera using the configured
+             stereo backend (epipolar or dense); when point sampling is enabled
+             the seed is the coordinate-wise median of N points sampled inside
+             the source polygon and warped across (noise reduction for bad
+             point mappings);
+          2. runs SAM on the other camera with that seed to get its polygon;
+          3. optionally derives a head/tail line for each polygon and the
+             stereo length measurement.
+
+        The source camera is treated as 'left' and the other as 'right' for the
+        warper, matching the existing point/line transfer convention.
+
+        Request: {
+            points, point_labels,            # the source-camera click
+            polygon,                         # source-camera polygon
+            source_image_path, other_image_path,
+            calibration_file, frame_time
+        }
+        """
+        points = request.get("points") or []
+        point_labels = request.get("point_labels") or [1] * len(points)
+        source_polygon = request.get("polygon")
+        source_image = request.get("source_image_path")
+        other_image = request.get("other_image_path")
+        frame_time = request.get("frame_time")
+
+        if not other_image:
+            raise ValueError("other_image_path is required")
+
+        warper = self._get_stereo_warper(request.get("calibration_file"))
+
+        # Make the current stereo pair active (source=left, other=right).
+        set_resp = warper.handle_set_frame({
+            "left_image_path": source_image,
+            "right_image_path": other_image,
+            "frame_time": frame_time,
+        })
+        if not set_resp.get("disparity_ready", False):
+            # Dense mode computes disparity asynchronously; wait for it.
+            warper._disparity_event.wait(timeout=120.0)
+
+        # 1. Warp a segmentation seed to the other camera.
+        warp = warper.handle_transfer_segmentation_point({
+            "points": points,
+            "labels": point_labels,
+            "polygon": source_polygon,
+        })
+        seed_points = warp.get("transferred_points") or []
+        seed_labels = warp.get("point_labels") or [1] * len(seed_points)
+        # num_matched defaults to the seed count for backends that don't report
+        # it; epipolar matching reports 0 when no point actually matched (it
+        # substitutes the source coordinate as a fallback), which must not be
+        # treated as a successful transfer.
+        num_matched = warp.get("num_matched", len(seed_points))
+        if not seed_points or num_matched == 0:
+            return {
+                "success": False,
+                "error": "No stereo match found on the other camera "
+                         "(epipolar matching failed); the object may be "
+                         "occluded, out of frame, or the calibration is off",
+            }
+
+        # 2. Segment the other camera with SAM using the warped seed.
+        seg = self.handle_predict({
+            "image_path": other_image,
+            "points": seed_points,
+            "point_labels": seed_labels,
+            "frame_time": frame_time,
+        })
+        other_polygon = seg.get("polygon")
+        if not other_polygon:
+            return {
+                "success": False,
+                "error": "Segmentation produced no region on the other camera "
+                         "for the matched stereo point",
+                "seed_points": seed_points,
+                "seed_labels": seed_labels,
+            }
+
+        result = {
+            "success": True,
+            "polygon": other_polygon,
+            "bounds": seg.get("bounds"),
+            "score": seg.get("score"),
+            "seed_points": seed_points,
+            "seed_labels": seed_labels,
+        }
+
+        # 3. Optional head/tail lines + stereo measurement.
+        if source_polygon and other_polygon:
+            measure = warper.handle_measure_from_polygons({
+                "polygon_left": source_polygon,
+                "polygon_right": other_polygon,
+            })
+            if measure.get("generate_line"):
+                result["generate_line"] = True
+                result["line_source"] = measure.get("line_left")
+                result["line_other"] = measure.get("line_right")
+                if "measurement" in measure:
+                    result["measurement"] = measure["measurement"]
+
+        return result
+
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Route request to appropriate handler."""
         command = request.get("command")
@@ -454,6 +704,7 @@ class InteractiveSegmentationService:
             "predict": self.handle_predict,
             "set_image": self.handle_set_image,
             "clear_image": self.handle_clear_image,
+            "stereo_segment": self.handle_stereo_segment,
         }
 
         # Add text_query handler if algorithm is configured
@@ -466,9 +717,9 @@ class InteractiveSegmentationService:
             if command == "text_query":
                 raise ValueError(
                     "text_query command requires a perform_text_query algorithm to be "
-                    "configured. SAM2 does not support text queries - use the SAM3 "
-                    "configuration (interactive_sam3_segmenter.conf) for text-based "
-                    "detection and segmentation."
+                    "configured. SAM2 does not support text queries - install the SAM3 "
+                    "add-on so interactive_text_query_default.conf pulls in "
+                    "interactive_text_query_sam3.conf for text-based detection."
                 )
             raise ValueError(f"Unknown command: {command}")
 
@@ -515,12 +766,20 @@ class InteractiveSegmentationService:
         self._log("Service shutting down")
 
 
-def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None, device: str = None):
+def load_algorithms_from_config(config_path, plugin_paths: List[str] = None, device: str = None):
     """
-    Load and configure algorithms from a KWIVER config file.
+    Load and configure algorithms from one or more KWIVER config files.
+
+    The segmenter and text query configurations are independent files; pass
+    them both to get both algorithms. If a single config path is given and
+    it does not define ``perform_text_query:type``, a sibling
+    ``interactive_text_query_default.conf`` in the same directory is auto-
+    loaded when present. Later configs in the list override keys from
+    earlier ones.
 
     Args:
-        config_path: Path to the config file
+        config_path: Path to a config file, or a list of paths. Later
+            entries merge on top of earlier ones.
         plugin_paths: Optional list of additional plugin paths to load
         device: Optional device override (cuda, cpu, auto)
 
@@ -539,22 +798,46 @@ def load_algorithms_from_config(config_path: str, plugin_paths: List[str] = None
             if os.path.isdir(path):
                 vital_modules.load_module(path)
 
-    # Use KWIVER's native config file reader
-    config_dir = Path(config_path).parent
-    cfg = vital_config.read_config_file(str(config_path))
+    if isinstance(config_path, (str, os.PathLike)):
+        config_paths = [str(config_path)]
+    else:
+        config_paths = [str(p) for p in config_path]
 
-    # Resolve relative paths in config values
-    # Keys that contain path-like values that should be resolved relative to config dir
-    path_keys = ['checkpoint', 'model_config', 'cfg', 'weights']
+    # Auto-discover a sibling interactive_text_query_default.conf when the
+    # caller supplied only one config and that config has no text-query
+    # backend. This keeps the segmenter and text-query config files
+    # mutually independent (neither ``include``s the other) while still
+    # letting "point the service at the segmenter default" bring up both
+    # features when both backends are available. Add-ons override that
+    # default sibling to point at their backend (e.g. the SAM3 add-on).
+    if len(config_paths) == 1:
+        probe = vital_config.read_config_file(config_paths[0])
+        if not probe.has_value("perform_text_query:type"):
+            sibling = Path(config_paths[0]).parent / "interactive_text_query_default.conf"
+            if sibling.exists():
+                config_paths.append(str(sibling))
+
+    cfg = vital_config.read_config_file(config_paths[0])
+    for extra in config_paths[1:]:
+        cfg.merge_config(vital_config.read_config_file(extra))
+
+    # Resolve relative paths in config values. Each key's directory is the
+    # *first* config whose file set that key — we approximate by resolving
+    # against each config dir in order and keeping the first match. This
+    # matters when the segmenter and text query configs live in different
+    # directories (e.g. user supplies one from an add-on and one from core).
+    config_dirs = [Path(p).parent for p in config_paths]
+    path_keys = ['checkpoint', 'model_config', 'grounding_model_id', 'cfg', 'weights']
     for key in cfg.available_values():
         for path_key in path_keys:
             if path_key in key:
                 value = cfg.get_value(key)
-                # If it's a relative path, resolve it relative to config directory
                 if value and not os.path.isabs(value) and not value.startswith('$'):
-                    resolved = config_dir / value
-                    if resolved.exists():
-                        cfg.set_value(key, str(resolved))
+                    for d in config_dirs:
+                        resolved = d / value
+                        if resolved.exists():
+                            cfg.set_value(key, str(resolved))
+                            break
 
     # Override device setting if provided
     if device:
@@ -618,8 +901,8 @@ def find_viame_config(model_type: str = "sam3") -> Optional[str]:
 
     # Map model type to interactive config file
     config_files = {
-        "sam2": "interactive_sam2_segmenter.conf",
-        "sam3": "interactive_sam3_segmenter.conf",
+        "sam2": "interactive_segmenter_sam2.conf",
+        "sam3": "interactive_segmenter_sam3.conf",
     }
 
     config_name = config_files.get(model_type)
@@ -722,8 +1005,14 @@ Examples:
     )
     parser.add_argument(
         "--config",
+        action="append",
         default=None,
-        help="Path to KWIVER config file",
+        help="Path to a KWIVER config file. May be specified more than once "
+             "to compose independent files (e.g. segmenter + text query); "
+             "keys in later files override earlier ones. If a single file "
+             "without a perform_text_query section is given, a sibling "
+             "interactive_text_query_default.conf is auto-loaded when "
+             "present.",
     )
     parser.add_argument(
         "--generate-config",
@@ -766,17 +1055,19 @@ Examples:
 
     # Auto-detect config if not provided
     if not args.config:
-        args.config = find_viame_config(args.model)
-        if args.config:
-            print(f"[SegmentationService] Using auto-detected config: {args.config}", file=sys.stderr)
+        auto = find_viame_config(args.model)
+        if auto:
+            args.config = [auto]
+            print(f"[SegmentationService] Using auto-detected config: {auto}", file=sys.stderr)
 
     # Require config file
     if not args.config:
         parser.error("--config is required (or use --generate-config to create one)")
 
-    if not Path(args.config).exists():
-        print(f"Error: Config file not found: {args.config}", file=sys.stderr)
-        sys.exit(1)
+    for c in args.config:
+        if not Path(c).exists():
+            print(f"Error: Config file not found: {c}", file=sys.stderr)
+            sys.exit(1)
 
     try:
         # Suppress stdout during initialization to prevent library warnings
@@ -795,8 +1086,23 @@ Examples:
             segment_via_points_algo=segment_algo,
             perform_text_query_algo=text_query_algo,
             image_io_algo=image_io_algo,
+            plugin_paths=args.plugin_path,
+            device=args.device,
             **service_config
         )
+
+        # Eagerly warm up only the segmentation model so the first click is
+        # fast. The text-query model is intentionally left to load lazily on
+        # the first text_query request -- it is large, often a different/heavier
+        # backend, and may be unused for the whole session.
+        with suppress_stdout():
+            if hasattr(segment_algo, "_ensure_model"):
+                try:
+                    segment_algo._ensure_model()
+                except Exception as e:
+                    print(f"[SegmentationService] Warning: segmenter warmup failed: {e}",
+                          file=sys.stderr)
+
         service.run()
 
     except KeyboardInterrupt:

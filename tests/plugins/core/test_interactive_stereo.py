@@ -629,7 +629,7 @@ class TestConfigFile:
         with open(config_path, 'r') as f:
             content = f.read()
 
-        assert 'compute_stereo_depth_map:type = foundation_stereo' in content
+        assert 'matching_method = epipolar_template_matching' in content
         assert 'service:scale' in content
 
 
@@ -728,6 +728,134 @@ class TestIntegration:
                 'left_image_path': '/nonexistent/left.png',
                 'right_image_path': '/nonexistent/right.png',
             })
+
+
+class TestStereoMeasurement:
+    """Stereo length/measurement via EpipolarTemplateMatcher.compute_measurement,
+    which delegates to the C++ viame::core::compute_stereo_measurement bindings
+    (viame.core._measurement)."""
+
+    @staticmethod
+    def _synthetic_rig():
+        """A rectified stereo rig and a known 3D segment.
+
+        Returns (matcher, left_line, right_line, expected) where ``expected``
+        holds the analytic length / midpoint / range for the segment, computed
+        independently of the code under test.
+        """
+        from viame.core.interactive_stereo import EpipolarTemplateMatcher
+
+        fx = 800.0
+        cx, cy = 640.0, 360.0
+        baseline = 120.0
+        k = np.array([[fx, 0.0, cx], [0.0, fx, cy], [0.0, 0.0, 1.0]])
+        rotation = np.eye(3)
+        translation = np.array([-baseline, 0.0, 0.0])
+
+        def project(rot, trans, point_3d):
+            p = k @ (rot @ point_3d + trans)
+            return [p[0] / p[2], p[1] / p[2]]
+
+        p1 = np.array([-50.0, 30.0, 1500.0])
+        p2 = np.array([40.0, -20.0, 1800.0])
+
+        left_line = [project(np.eye(3), np.zeros(3), p1),
+                     project(np.eye(3), np.zeros(3), p2)]
+        right_line = [project(rotation, translation, p1),
+                      project(rotation, translation, p2)]
+
+        matcher = EpipolarTemplateMatcher()
+        matcher._K_left = k
+        matcher._K_right = k
+        matcher._R = rotation
+        matcher._T = translation
+        matcher._calibrated = True
+
+        midpoint = (p1 + p2) / 2.0
+        expected = {
+            "length": float(np.linalg.norm(p1 - p2)),
+            "midpoint_x": float(midpoint[0]),
+            "midpoint_y": float(midpoint[1]),
+            "midpoint_z": float(midpoint[2]),
+            "midpoint_range": float(np.linalg.norm(midpoint)),
+        }
+        return matcher, left_line, right_line, expected
+
+    def test_compute_measurement_matches_ground_truth(self):
+        """compute_measurement returns the analytic length, 3D midpoint and range."""
+        matcher, left_line, right_line, expected = self._synthetic_rig()
+
+        result = matcher.compute_measurement(
+            left_line[0], right_line[0], left_line[1], right_line[1])
+
+        assert result is not None
+        for key, value in expected.items():
+            assert result[key] == pytest.approx(value, abs=1e-2), key
+        # Exact correspondences -> near-zero reprojection error
+        assert result["stereo_rms"] == pytest.approx(0.0, abs=1e-2)
+
+    def test_compute_measurement_rms_flags_bad_match(self):
+        """A vertical (epipolar-violating) mismatch raises the RMS reprojection error."""
+        matcher, left_line, right_line, _ = self._synthetic_rig()
+
+        bad_right_head = [right_line[0][0], right_line[0][1] + 2.0]
+        result = matcher.compute_measurement(
+            left_line[0], bad_right_head, left_line[1], right_line[1])
+
+        assert result is not None
+        assert result["stereo_rms"] > 0.1
+
+    def test_compute_measurement_requires_calibration(self):
+        """Without calibration, compute_measurement returns None."""
+        from viame.core.interactive_stereo import EpipolarTemplateMatcher
+
+        matcher = EpipolarTemplateMatcher()
+        assert matcher.compute_measurement(
+            [0, 0], [0, 0], [1, 1], [1, 1]) is None
+
+
+class TestMatCalibration:
+    """The C++ read_stereo_rig .mat reader (exposed via viame.core._measurement)
+    loads Bouguet-style MATLAB calibration files: flat (Level 5), zlib-compressed
+    (v7), and wrapped in a 'Cal' struct."""
+
+    @pytest.mark.parametrize('compress,as_struct', [
+        (False, False),   # uncompressed Level-5, top-level variables
+        (True, False),    # v7 zlib-compressed elements
+        (False, True),    # variables wrapped in a 'Cal' struct
+    ])
+    def test_load_mat_calibration(self, compress, as_struct):
+        scipy_io = pytest.importorskip('scipy.io')
+        cv2 = pytest.importorskip('cv2')
+        from viame.core import _measurement
+
+        om = np.array([0.01, 0.02, -0.005])
+        T = np.array([-210.0, 4.0, 4.5])
+        fc_left, cc_left = np.array([1107.0, 1101.0]), np.array([822.0, 615.0])
+        fc_right, cc_right = np.array([1109.0, 1103.0]), np.array([820.0, 617.0])
+        fields = dict(
+            om=om, T=T,
+            fc_left=fc_left, cc_left=cc_left,
+            fc_right=fc_right, cc_right=cc_right,
+            kc_left=np.zeros(5), kc_right=np.zeros(5),
+            alpha_c_left=np.array([0.0]), alpha_c_right=np.array([0.0]),
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            fpath = os.path.join(tmp, 'cal.mat')
+            scipy_io.savemat(
+                fpath, {'Cal': fields} if as_struct else fields,
+                do_compression=compress)
+            cal = _measurement.load_stereo_calibration(fpath)
+
+        k_left = np.array(cal['k_left']).reshape(3, 3)
+        assert np.isclose(k_left[0, 0], fc_left[0])
+        assert np.isclose(k_left[1, 1], fc_left[1])
+        assert np.isclose(k_left[0, 2], cc_left[0])
+        assert np.isclose(k_left[1, 2], cc_left[1])
+        assert np.allclose(np.array(cal['rotation']).reshape(3, 3),
+                           cv2.Rodrigues(om)[0])
+        assert np.allclose(np.array(cal['translation']), T)
 
 
 # =============================================================================

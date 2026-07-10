@@ -126,11 +126,10 @@ endif()
 ##
 set( CORE_PIPELINE_FILES
   common_default_initializer.pipe
-  common_train_detector.conf
   common_default_input.pipe
   common_default_input_16bit.pipe
   common_default_input_with_downsampler.pipe
-  common_foundation_stereo.pipe
+  common_empty_tracker.pipe
   common_image_stabilizer.pipe
   common_no_load_input.pipe
   common_no_load_input_with_downsampler.pipe
@@ -138,6 +137,7 @@ set( CORE_PIPELINE_FILES
   common_stereo_input.pipe
   common_stereo_input_with_downsampler.pipe
   common_stereo_input_with_tracks.pipe
+  common_train_detector.conf
   convert_add_filename_to_det_csv.pipe
   convert_add_filename_to_trk_csv.pipe
   convert_coco_json_to_viame_csv.pipe
@@ -159,6 +159,7 @@ set( CORE_PIPELINE_FILES
   filter_default.pipe
   filter_draw_dets.pipe
   filter_enhance.pipe
+  filter_extract_chips.pipe
   filter_normalize_16bit.pipe
   filter_split_and_debayer.pipe
   filter_split_left_side.pipe
@@ -177,9 +178,11 @@ set( CORE_PIPELINE_FILES
   index_frame.svm.annot_only.pipe
   interactive_segmenter_default.conf
   interactive_segmenter_watershed.conf
+  interactive_text_query_default.conf
   interactive_stereo_default.conf
   interactive_stereo_template.conf
-  measurement_fully_auto_fish_default.pipe
+  measurement_from_annotations_default.pipe
+  measurement_from_annotations_template.pipe
   measurement_fully_auto_gmm_motion.pipe
   query_from_track.pipe
   query_retrieval_and_iqr.pipe
@@ -190,6 +193,7 @@ set( CORE_PIPELINE_FILES
   train_aug_add_double_motion.pipe
   train_aug_add_motion.pipe
   train_aug_add_motion_and_color_freq.pipe
+  train_aug_add_optical_flow.pipe
   train_aug_enhance_and_add_motion.pipe
   train_aug_hue_shifting_only.pipe
   train_aug_intensity_color_freq_motion.pipe
@@ -207,18 +211,9 @@ set( CORE_PIPELINE_FILES
   transcode_tracks_only.pipe
   utility_add_head_tail_keypoints_from_dets.pipe
   utility_add_segmentations_watershed.pipe
-  utility_add_segmentations_watershed_2x.pipe
-  utility_debayer_and_enhance.pipe
-  utility_empty_frame_lbls_1000fr.pipe
-  utility_empty_frame_lbls_100fr.pipe
-  utility_empty_frame_lbls_10fr.pipe
-  utility_empty_frame_lbls_1fr.pipe
-  utility_empty_frame_lbls_auto.pipe
-  utility_enhance.pipe
-  utility_extract_chips.pipe
+        utility_empty_frame_lbls.pipe
   utility_link_detections_default.pipe
-  utility_max_10_points_per_poly.pipe
-  utility_max_25_points_per_poly.pipe
+        utility_max_points_per_poly.pipe
   utility_remove_dets_in_ignore_regions.pipe
   utility_register_frames.pipe
   utility_register_frames_2-cam.pipe
@@ -321,15 +316,16 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_mmdet_cfrnn.conf
-    train_detector_mmdet_cfrnn.habcam.conf )
+    train_detector_mmdet_cfrnn.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_rf_detr_n_384.conf
     train_detector_rf_detr_b_560.conf
-    train_detector_rf_detr_l_728.conf )
+    train_detector_rf_detr_l_728.conf
+    train_detector_rf_detr_l_1024_mot_mim.conf
+    train_detector_rf_detr_l_1024_mot_opt.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-LITDET )
@@ -352,8 +348,6 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     train_detector_netharn_cfrnn.grid_only.20ep.conf
     train_detector_netharn_cfrnn.grid_only.40ep.conf
     train_detector_netharn_cfrnn.grid_only.conf
-    train_detector_netharn_cfrnn.habcam.conf
-    train_detector_netharn_cfrnn_motion.conf
     train_detector_netharn_cfrnn_special.conf
     train_detector_netharn_cfrnn_wtf.conf
     train_detector_netharn_mask_rcnn_1280.conf
@@ -451,7 +445,6 @@ if( VIAME_ENABLE_WEB_EXCLUDES )
     frame_classifier_svm.pipe
     tracker_project_folder.pipe
     train_detector_netharn_cfrnn.continue.conf
-    train_detector_netharn_cfrnn.habcam.conf
     train_detector_netharn_cfrnn_special.conf
     train_detector_netharn_cfrnn_wtf.conf
     train_frame_classifier_netharn_efficientnet.continue.conf

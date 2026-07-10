@@ -41,9 +41,9 @@ class MovingAve(ub.NiceRepr):
 
     def __nice__(self):
         try:
-            return str(ub.repr2(self.normal(), nl=0, si=True, nobr=1, explicit=1))
+            return str(ub.urepr(self.normal(), nl=0, si=True, nobr=1, explicit=1))
         except NotImplementedError:
-            return str(ub.repr2(self.average(), nl=0))
+            return str(ub.urepr(self.average(), nl=0))
 
     def __getstate__(self):
         return self.__dict__
@@ -349,11 +349,11 @@ class RunningStats(ub.NiceRepr):
         >>> run.update(np.dstack([ch1 + 1, ch2]))
         >>> run.update(np.dstack([ch1 + 2, ch2]))
         >>> # Scalar averages
-        >>> print(ub.repr2(run.simple(), nobr=1, si=True))
+        >>> print(ub.urepr(run.simple(), nobr=1, si=True))
         >>> # Per channel averages
-        >>> print(ub.repr2(ub.map_vals(lambda x: np.array(x).tolist(), run.simple()), nobr=1, si=True, nl=1))
+        >>> print(ub.urepr(ub.map_vals(lambda x: np.array(x).tolist(), run.simple()), nobr=1, si=True, nl=1))
         >>> # Per-pixel averages
-        >>> print(ub.repr2(ub.map_vals(lambda x: np.array(x).tolist(), run.detail()), nobr=1, si=True, nl=1))
+        >>> print(ub.urepr(ub.map_vals(lambda x: np.array(x).tolist(), run.detail()), nobr=1, si=True, nl=1))
         """
 
     def __init__(run):
@@ -497,7 +497,7 @@ class InternalRunningStats():
         >>> irun.update(np.dstack([ch1 + 1, ch2]))
         >>> irun.update(np.dstack([ch1 + 2, ch2]))
         >>> # Scalar averages
-        >>> print(ub.repr2(irun.info(), nobr=1, si=True))
+        >>> print(ub.urepr(irun.info(), nobr=1, si=True))
     """
 
     def __init__(irun, axis=None):

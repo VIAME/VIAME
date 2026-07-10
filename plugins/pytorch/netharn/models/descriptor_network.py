@@ -31,7 +31,7 @@ class DescriptorNetwork(layers.Module):
         >>> self = DescriptorNetwork(input_shape=input_shape)
         >>> print(self)
         >>> shape = self.output_shape_for(input_shape)
-        >>> print(ub.repr2(shape.hidden.shallow(2), nl=-1))
+        >>> print(ub.urepr(shape.hidden.shallow(2), nl=-1))
 
     Example:
         >>> # xdoctest: +REQUIRES(--gpu)
@@ -40,7 +40,7 @@ class DescriptorNetwork(layers.Module):
         >>> self = DescriptorNetwork(input_shape=input_shape).to(0)
         >>> print(self)
         >>> shape = self.output_shape_for(input_shape)
-        >>> print(ub.repr2(shape.hidden.shallow(2), nl=-1))
+        >>> print(ub.urepr(shape.hidden.shallow(2), nl=-1))
         {
             'dvecs': {
                 'conv1': (4, 64, 16, 16),
@@ -162,9 +162,9 @@ class DescriptorNetwork(layers.Module):
         """
         from viame.pytorch import netharn as nh
         shape = nh.OutputShapeFor(self.branch)(input_shape=input_shape)
-        print(ub.repr2(shape.hidden.shallow(n), nl=-1, dtype=False, si=True))
+        print(ub.urepr(shape.hidden.shallow(n), nl=-1, dtype=False, si=True))
         field = nh.ReceptiveFieldFor(self.branch)(input_shape=input_shape)
-        print(ub.repr2(field.hidden.shallow(n), nl=-1, dtype=False, si=True))
+        print(ub.urepr(field.hidden.shallow(n), nl=-1, dtype=False, si=True))
 
     def forward(self, inputs):
         """

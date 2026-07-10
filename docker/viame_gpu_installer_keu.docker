@@ -1,0 +1,23 @@
+FROM nvidia/cuda:13.2.1-cudnn-devel-rockylinux9
+
+ARG TORCH_MAX_JOBS=4
+ENV MAX_JOBS=$TORCH_MAX_JOBS
+ENV TORCH_CUDA_ARCH_LIST="7.5;8.0;8.6;8.9;9.0;10.0;12.0"
+ENV CMAKE_CUDA_ARCHITECTURES="all-major"
+
+USER root
+
+WORKDIR /viame
+COPY . .
+
+WORKDIR /viame/cmake
+
+RUN yum update -y --nobest \
+  && yum install -y git \
+  && chmod +x build_server_rocky_cu13.sh \
+  && ./build_server_rocky_cu13.sh
+
+WORKDIR /home
+
+ENV PATH=/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH

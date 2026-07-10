@@ -40,8 +40,8 @@ Example:
     >>>         'max_epoch': 10
     >>>     }),
     >>> })
-    >>> print(ub.repr2(hyper.get_initkw()))
-    >>> print(ub.repr2(hyper.hyper_id()))
+    >>> print(ub.urepr(hyper.get_initkw()))
+    >>> print(ub.urepr(hyper.hyper_id()))
 
 
 """
@@ -693,7 +693,7 @@ class HyperParams(object):
             >>>     optimizer='Adam',
             >>>     loaders={'batch_size': 64},
             >>> )
-            >>> print(ub.repr2(hyper.get_initkw()))
+            >>> print(ub.urepr(hyper.get_initkw()))
         """
         initkw = OrderedDict()
         def _append_part(key, cls, params, initkw):
@@ -879,7 +879,7 @@ class HyperParams(object):
             >>>     }),
             >>> })
             >>> info = hyper.train_info()
-            >>> print(ub.repr2(info))
+            >>> print(ub.urepr(info))
         """
         given_explicit_train_dpath = train_dpath is not None
         # TODO: needs MASSIVE cleanup and organization

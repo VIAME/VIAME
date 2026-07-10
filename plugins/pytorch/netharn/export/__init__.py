@@ -113,8 +113,8 @@ Example:
     >>> import time
     >>> deployer = torch_liberator.DeployedModel(harn.train_dpath)
     >>> train_path = ub.Path(harn.train_dpath)
-    >>> print(ub.repr2(list(train_path.walk())))
-    >>> print('deployer.info = {}'.format(ub.repr2(deployer.info, nl=1)))
+    >>> print(ub.urepr(list(train_path.walk())))
+    >>> print('deployer.info = {}'.format(ub.urepr(deployer.info, nl=1)))
     >>> # Use the DeployedModel to package the imporant info in train_dpath
     >>> # into a standalone zipfile.
     >>> zip_fpath = deployer.package()

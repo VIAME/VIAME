@@ -133,6 +133,11 @@ class ClfPredictor(object):
     def _ensure_model(predictor):
         # Just make sure the model is in memory (it might not be on the XPU yet)
         if predictor.model is None:
+            # Set up module aliases for backwards compatibility with old models
+            # that use 'import netharn' or 'import bioharn' instead of 'viame.pytorch.netharn'
+            from viame.pytorch.netharn.detect_predict import setup_module_aliases
+            setup_module_aliases()
+
             xpu = nh.XPU.coerce(predictor.config['xpu'])
             deployed = torch_liberator.DeployedModel.coerce(predictor.config['deployed'])
             model = deployed.load_model()
@@ -366,7 +371,7 @@ class Classification(ub.NiceRepr):
 
     def __nice__(self):
         attrs = ub.dict_union(self.data, self.meta)
-        return ub.repr2(attrs, nl=1, precision=2)
+        return ub.urepr(attrs, nl=1, precision=2)
 
     @property
     def prob(self):
@@ -744,7 +749,7 @@ def clf_cli():
     predict_config = ub.dict_isect(config, ClfPredictConfig.default)
     predictor = ClfPredictor(predict_config)
 
-    print('config = {}'.format(ub.repr2(dict(config))))
+    print('config = {}'.format(ub.urepr(dict(config))))
 
     coco_dset = kwcoco.CocoDataset(config['dataset'])
     print('coco_dset = {!r}'.format(coco_dset))

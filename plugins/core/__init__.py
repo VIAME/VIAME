@@ -51,6 +51,12 @@ def __sprokit_register__():
     except ImportError:
         pass
 
+    try:
+        from viame.core import merge_tracks_tube_iou
+        merge_tracks_tube_iou.__sprokit_register__()
+    except ImportError:
+        pass
+
     process_factory.mark_process_module_as_loaded( module_name )
 
 
@@ -77,5 +83,17 @@ def __vital_algorithm_register__():
     try:
         from viame.core import write_detected_object_set_coco
         write_detected_object_set_coco.__vital_algorithm_register__()
+    except ImportError:
+        pass
+
+    try:
+        from viame.core import read_object_track_set_coco
+        read_object_track_set_coco.__vital_algorithm_register__()
+    except ImportError:
+        pass
+
+    try:
+        from viame.core import write_object_track_set_coco
+        write_object_track_set_coco.__vital_algorithm_register__()
     except ImportError:
         pass

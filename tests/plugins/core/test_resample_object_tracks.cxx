@@ -11,11 +11,12 @@
 #include <vital/types/timestamp.h>
 #include <vital/util/tokenize.h>
 
-#include <unistd.h>
-
+#include <atomic>
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <map>
 #include <string>
@@ -204,12 +205,14 @@ class TempCSVFile
 public:
   TempCSVFile( const std::string& content )
   {
-    char tmpl[] = "/tmp/viame_test_XXXXXX.csv";
-    int fd = mkstemps( tmpl, 4 );
-    EXPECT_NE( fd, -1 ) << "Failed to create temp file";
-    m_path = tmpl;
-    close( fd );
+    static std::atomic< unsigned > counter{ 0 };
+    auto ts = std::chrono::steady_clock::now().time_since_epoch().count();
+    auto p = std::filesystem::temp_directory_path() /
+      ( "viame_test_" + std::to_string( ts ) + "_" +
+        std::to_string( counter++ ) + ".csv" );
+    m_path = p.string();
     std::ofstream out( m_path );
+    EXPECT_TRUE( out.is_open() ) << "Failed to create temp file";
     out << content;
     out.close();
   }

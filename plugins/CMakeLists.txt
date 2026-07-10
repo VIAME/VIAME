@@ -18,6 +18,10 @@ if( VIAME_ENABLE_OPENCV )
   add_subdirectory( opencv )
 endif()
 
+if( VIAME_ENABLE_COLMAP )
+  add_subdirectory( colmap )
+endif()
+
 if( VIAME_ENABLE_ITK )
   add_subdirectory( itk )
 endif()
@@ -38,6 +42,10 @@ if( VIAME_ENABLE_PYTORCH )
   add_subdirectory( pytorch )
 endif()
 
+if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_PYTHON )
+  add_subdirectory( onnx )
+endif()
+
 if( VIAME_ENABLE_DARKNET )
   add_subdirectory( darknet )
 endif()
@@ -52,6 +60,10 @@ endif()
 
 if( VIAME_ENABLE_SVM )
   add_subdirectory( svm )
+endif()
+
+if( VIAME_ENABLE_VERTEX_AI )
+  add_subdirectory( vertex-ai )
 endif()
 
 ###

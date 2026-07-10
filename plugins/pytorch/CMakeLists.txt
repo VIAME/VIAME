@@ -48,9 +48,28 @@ kwiver_add_python_module(
   botsort_trainer )
 
 kwiver_add_python_module(
+  ${CMAKE_CURRENT_SOURCE_DIR}/motr_tracker.py
+  pytorch
+  motr_tracker )
+
+kwiver_add_python_module(
+  ${CMAKE_CURRENT_SOURCE_DIR}/motr_trainer.py
+  pytorch
+  motr_trainer )
+
+kwiver_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
   pytorch
   __init__ )
+
+if( VIAME_ENABLE_ONNX)
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/convert_to_onnx_process.py
+    pytorch
+    convert_to_onnx_process )
+
+endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
 
@@ -99,6 +118,15 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     ${CMAKE_CURRENT_SOURCE_DIR}/netharn_refiner.py
     pytorch
     netharn_refiner )
+  
+    if( VIAME_ENABLE_ONNX)
+
+      kwiver_add_python_module(
+        ${CMAKE_CURRENT_SOURCE_DIR}/onnx_exporters/crcnn_to_onnx.py
+        pytorch
+        crcnn_to_onnx )
+
+    endif()
 
 endif()
 
@@ -123,6 +151,15 @@ if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
     pytorch
     mit_yolo_detector )
 
+  if( VIAME_ENABLE_ONNX)
+
+      kwiver_add_python_module(
+        ${CMAKE_CURRENT_SOURCE_DIR}/onnx_exporters/yolomit_to_onnx.py
+        pytorch
+        yolomit_to_onnx )
+
+    endif()
+
 endif()
 
 if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
@@ -136,20 +173,6 @@ if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
     ${CMAKE_CURRENT_SOURCE_DIR}/ultralytics_trainer.py
     pytorch
     ultralytics_trainer )
-
-endif()
-
-if( VIAME_ENABLE_ONNX AND ( VIAME_ENABLE_DARKNET OR VIAME_ENABLE_PYTORCH-MMDET ) )
-
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/convert_to_onnx_process.py
-    pytorch
-    convert_to_onnx_process )
-
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/onnx/crcnn2onnx.py
-    pytorch
-    crcnn2onnx )
 
 endif()
 
@@ -271,6 +294,20 @@ if( VIAME_ENABLE_PYTORCH-STEREO )
       pytorch
       foundation_stereo )
 
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/fast_foundation_stereo.py
+      pytorch
+      fast_foundation_stereo )
+
+endif()
+
+if( VIAME_ENABLE_PYTORCH-DINO3 )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/dino_matcher.py
+      pytorch
+      dino_matcher )
+
 endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
@@ -284,6 +321,11 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
       ${CMAKE_CURRENT_SOURCE_DIR}/rf_detr_trainer.py
       pytorch
       rf_detr_trainer )
+
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/rf_detr_launcher.py
+      pytorch
+      rf_detr_launcher )
 
 endif()
 
@@ -327,4 +369,9 @@ if( VIAME_ENABLE_PYTORCH-VISION )
     ${CMAKE_CURRENT_SOURCE_DIR}/torchvision_augment_process.py
     pytorch
     torchvision_augment_process )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/pair_stereo_tracks.py
+    pytorch
+    pair_stereo_tracks )
 endif()

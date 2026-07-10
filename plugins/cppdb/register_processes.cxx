@@ -4,7 +4,7 @@
 
 #include "viame_processes_cppdb_export.h"
 #include <sprokit/pipeline/process_factory.h>
-#include <vital/plugin_loader/plugin_loader.h>
+#include <vital/plugin_management/plugin_loader.h>
 
 #include "ingest_descriptors_db_process.h"
 #include "fetch_descriptors_db_process.h"

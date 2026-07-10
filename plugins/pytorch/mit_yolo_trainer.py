@@ -22,7 +22,7 @@ import time
 
 from .kwcoco_train_detector import KWCocoTrainDetector
 from .kwcoco_train_detector import KWCocoTrainDetectorConfig
-from viame.pytorch.utilities import vital_config_update
+from viame.pytorch.utilities import vital_config_update, report_cuda_errors
 
 import scriptconfig as scfg
 import ubelt as ub
@@ -41,6 +41,7 @@ class MITYoloConfig(KWCocoTrainDetectorConfig):
     tmp_training_file = "training_truth.json"
     tmp_validation_file = "validation_truth.json"
     accelerator = scfg.Value('auto', help='lightning accelerator. Can be cpu, gpu, or auto')
+    model = scfg.Value('v9-c', help='the model archictecture')
 
     out_path = scfg.Value('allow', help=ub.paragraph(
         '''
@@ -74,6 +75,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("MITYoloTrainer initialization")
     def set_configuration(self, cfg_in):
         print('[MITYoloTrainer] set_configuration')
         cfg = self.get_configuration()
@@ -162,15 +164,25 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             self._training_writer.complete()
             self._validation_writer.complete()
 
-            # hack, need to fixup the writers
+            # conforming kwcoco train and val datasets and set categories to the input KWCOCO instead of kwiver `CategoryHierarchy`
             import kwcoco
-            paths_to_fix = [self._training_file, self._validation_file]
-            for fpath in paths_to_fix:
-                fpath = ub.Path(fpath)
-                if fpath.exists():
-                    dset = kwcoco.CocoDataset(fpath)
-                    dset.conform()
-                    dset.dump()
+            train_fpath = ub.Path(self._training_file)
+            if train_fpath.exists():
+                train_dset = kwcoco.CocoDataset(train_fpath)
+                train_dset.conform()
+                train_dset.dump()
+                print(f"[MITYoloTrainer] Conforming training dataset")
+
+                kwcoco_cats = train_dset.dataset.get('categories', [])
+                self._categories = [cat['name'] for cat in kwcoco_cats]
+                print(f"[MITYoloTrainer] Aligned categories from conformed KWCOCO: {self._categories}")
+
+                val_fpath = ub.Path(self._validation_file)
+                if val_fpath.exists():
+                    val_dset = kwcoco.CocoDataset(val_fpath)
+                    val_dset.conform()
+                    val_dset.dump()
+                    print("[MITYoloTrainer] Conforming validation dataset")
 
     def check_configuration( self, cfg ):
         if not cfg.has_value( "identifier" ) or len( cfg.get_value( "identifier") ) == 0:
@@ -178,6 +190,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             return False
         return True
 
+    @report_cuda_errors("MITYoloTrainer training")
     def update_model( self ):
         self._ensure_format_writers()
         self._accelerator = 'auto'
@@ -195,6 +208,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
         config_dir = ub.Path(yolo.config.__file__).parent
         hydra_overrides = [
             "task=train",
+            f"model={self._config.model}",
             "use_wandb=False",
             "cpu_num=4",
             "dataset=coco",
@@ -217,11 +231,6 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             hydra_overrides += [f"weight={self._seed_model}"]
         with initialize_config_dir(version_base=None, config_dir=str(config_dir)):
             cfg = compose(config_name="config.yaml", overrides=hydra_overrides)
-
-        #TODO is that needed if not using a subproc call ?
-        if threading.current_thread().__class__.__name__ == '_MainThread':
-            signal.signal( signal.SIGINT, lambda signal, frame: self.interupt_handler() )
-            signal.signal( signal.SIGTERM, lambda signal, frame: self.interupt_handler() )
 
         # Launch training
         main(cfg)
@@ -270,6 +279,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
         output = {}
         output["type"] = "mit_yolo"
         output["mit_yolo:weight"] = output_model_name
+        output["mit_yolo:model"] = self._config.model
         output[output_model_name] = str(final_ckpt)
 
         # The detector needs train_config.yaml next to the checkpoint

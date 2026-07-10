@@ -17,7 +17,7 @@ import scriptconfig as scfg
 
 from kwiver.vital.algo import SegmentViaPoints
 
-from viame.pytorch.utilities import vital_config_update, register_vital_algorithm
+from viame.pytorch.utilities import vital_config_update, register_vital_algorithm, report_cuda_errors
 
 
 class SAM2SegmenterConfig(scfg.DataConfig):
@@ -47,6 +47,7 @@ class SAM2Segmenter(SegmentViaPoints):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("SAM2 segmenter initialization")
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)
@@ -59,8 +60,16 @@ class SAM2Segmenter(SegmentViaPoints):
         for key, value in self._config.items():
             setattr(self, "_" + key, value)
 
-        self._init_model()
+        # Model load is deferred to first segment() call. This lets the
+        # interactive service boot without paying for a backend that may
+        # never be invoked (e.g. when the caller only uses text query),
+        # and lets segmentation + text-query plugins be configured with
+        # different checkpoints without loading both up front.
         return True
+
+    def _ensure_model(self):
+        if self._predictor is None:
+            self._init_model()
 
     def check_configuration(self, cfg):
         return True
@@ -92,6 +101,7 @@ class SAM2Segmenter(SegmentViaPoints):
         self._predictor = SAM2ImagePredictor(self._model)
         self._log("model initialized successfully")
 
+    @report_cuda_errors("SAM2 segmentation")
     def segment(self, image, points, point_labels):
         """
         Perform point-based segmentation on an image.
@@ -112,6 +122,8 @@ class SAM2Segmenter(SegmentViaPoints):
         except ImportError:
             from kwiver.vital.types import BoundingBox as BoundingBoxD
         from kwiver.vital.types.types import ImageContainer, Image
+
+        self._ensure_model()
 
         # Convert image to numpy array
         img_array = image.image().asarray()

@@ -23,6 +23,13 @@
 #include <sprokit/processes/kwiver_type_traits.h>
 
 #include "../core/measurement_utilities.h"
+#include "../core/pair_stereo_detections.h"
+#include "../core/pair_stereo_tracks.h"
+
+#ifdef VIAME_ENABLE_OPENCV
+  #include <arrows/ocv/image_container.h>
+  #include <opencv2/imgproc/imgproc.hpp>
+#endif
 
 #include <LX_StereoInterface.h>
 
@@ -53,11 +60,101 @@ create_config_trait( licence_key1, std::string, "",
 create_config_trait( licence_key2, std::string, "",
   "SEAGIS licence key 2 (optional if using USB licence)" );
 
-create_config_trait( image_measurement_sd, double, 1.0,
+create_config_trait( image_measurement_sd, double, "1.0",
   "Image measurement standard deviation in pixels" );
 
-create_config_trait( camera_pair_id, unsigned int, 0,
+create_config_trait( camera_pair_id, unsigned int, "0",
   "Camera pair ID for SEAGIS library (typically 0)" );
+
+create_config_trait( enable_epipolar_matching, bool, "false",
+  "If true, attempt to find corresponding keypoints in the other camera using "
+  "SEAGIS epipolar line projection and template matching when only one camera "
+  "has head/tail keypoints." );
+
+create_config_trait( epipolar_min_depth, double, "0.0",
+  "Minimum depth (in calibration units) for epipolar template matching. "
+  "Defines the near end of the depth range sampled along the epipolar line. "
+  "Default is 0 (off). Ignored when epipolar_min_disparity and "
+  "epipolar_max_disparity are both > 0. Either disparity or depth parameters "
+  "must be set for epipolar matching to work." );
+
+create_config_trait( epipolar_max_depth, double, "0.0",
+  "Maximum depth (in calibration units) for epipolar template matching. "
+  "Defines the far end of the depth range sampled along the epipolar line. "
+  "Default is 0 (off). Ignored when epipolar_min_disparity and "
+  "epipolar_max_disparity are both > 0. Either disparity or depth parameters "
+  "must be set for epipolar matching to work." );
+
+create_config_trait( epipolar_min_disparity, double, "0.0",
+  "Minimum expected disparity in pixels for epipolar template matching "
+  "(corresponds to the farthest objects). When both epipolar_min_disparity and "
+  "epipolar_max_disparity are > 0, the range is computed automatically from the "
+  "SEAGIS camera model. This is the recommended way to configure epipolar search "
+  "range since disparity is unit-independent and can be estimated directly from "
+  "the images." );
+
+create_config_trait( epipolar_max_disparity, double, "0.0",
+  "Maximum expected disparity in pixels for epipolar template matching "
+  "(corresponds to the nearest objects). See epipolar_min_disparity for details." );
+
+create_config_trait( template_size, int, "13",
+  "Template window size (in pixels) for epipolar template matching. Must be odd." );
+
+create_config_trait( template_matching_threshold, double, "0.5",
+  "Minimum NCC threshold for epipolar template matching (0.0 to 1.0)." );
+
+create_config_trait( use_census_transform, bool, "false",
+  "If true, use census transform preprocessing for epipolar template matching." );
+
+create_config_trait( epipolar_descriptor_type, std::string, "ncc",
+  "Descriptor type for epipolar matching: 'ncc' (default), 'ncc_strip', or 'dino'. "
+  "'dino' uses a two-stage DINO + NCC matching approach (requires Python)." );
+
+create_config_trait( uniqueness_ratio, double, "0.85",
+  "Uniqueness ratio for NCC template matching (Lowe's ratio test). "
+  "Set to 0 to disable. Lower values are more strict." );
+
+create_config_trait( dino_model_name, std::string, "dinov2_vitb14",
+  "DINO model name when epipolar_descriptor_type is 'dino'." );
+
+create_config_trait( dino_threshold, double, "0.0",
+  "Minimum cosine similarity threshold for DINO matching (0.0 to 1.0)." );
+
+create_config_trait( dino_weights_path, std::string, "",
+  "Optional path to local DINO weights file. Empty string uses default URL." );
+
+create_config_trait( dino_top_k, int, "25",
+  "Number of top DINO candidates to pass to NCC refinement. "
+  "Set to 0 to use DINO-only matching without NCC refinement." );
+
+create_config_trait( dino_crop_max_area_ratio, double, "0.05",
+  "Maximum fraction of full image area for DINO crop before falling back to full images." );
+
+create_config_trait( assume_inputs_paired, bool, "true",
+  "If true (default), assume the two input track sets are pre-paired: detections "
+  "with the same track ID across cameras are treated as corresponding stereo pairs. "
+  "If false, ignore track ID correspondence entirely — remap right-camera IDs to "
+  "avoid collisions, then use detection_pairing_method to match left/right "
+  "detections. Use false when feeding tracks from two independent trackers." );
+
+create_config_trait( detection_pairing_method, std::string, "",
+  "Method for pairing left/right detections that do not share the same track ID. "
+  "Set to empty string (default) to disable. Valid options: "
+  "'iou' (match by raw bounding box IOU), "
+  "'keypoint_distance' (match by raw head/tail keypoint pixel distance). "
+  "When assume_inputs_paired is false, this must be set." );
+
+create_config_trait( detection_pairing_threshold, double, "0.1",
+  "Threshold for detection pairing. For 'iou' method, this is the minimum IOU "
+  "threshold (default 0.1). For 'keypoint_distance' method, this is the maximum "
+  "average keypoint pixel distance (default 50.0)." );
+
+create_config_trait( min_track_states, unsigned, "0",
+  "Minimum number of track states (summed across all cameras) required before "
+  "a track is included in the output. A detection in one camera counts as 1, "
+  "in two cameras as 2. Measurement is still performed on every frame; this "
+  "only controls which tracks appear in the output. "
+  "Set to 0 to disable filtering (default)." );
 
 create_port_trait( object_track_set1, object_track_set,
   "The stereo filtered object tracks1.")
@@ -83,6 +180,27 @@ public:
   // SEAGIS stereo interface
   std::unique_ptr< CStereoInt > m_stereo;
 
+  // Epipolar matching configuration
+  bool m_enable_epipolar_matching;
+  double m_epipolar_min_depth;
+  double m_epipolar_max_depth;
+  double m_epipolar_min_disparity;
+  double m_epipolar_max_disparity;
+
+  // Detection pairing configuration
+  bool m_assume_inputs_paired;
+  std::string m_detection_pairing_method;
+  double m_detection_pairing_threshold;
+
+  // Track length filter
+  unsigned m_min_track_states;
+
+  // Measurement utilities for template matching
+  core::map_keypoints_to_camera m_utilities;
+
+  // Track-level stereo pairing (union-find, class averaging, filtering)
+  core::stereo_track_pairer m_track_pairer;
+
   // Other variables
   unsigned m_frame_counter;
   std::set< std::string > p_port_list;
@@ -97,6 +215,12 @@ public:
     const kv::vector_2d& right_head,
     const kv::vector_2d& left_tail,
     const kv::vector_2d& right_tail );
+
+  // Get epipolar points from SEAGIS for a 2D point in one camera
+  std::vector< kv::vector_2d > get_epipolar_points(
+    CAMERA_ID cam_id,
+    const kv::vector_2d& pt );
+
 };
 
 
@@ -110,6 +234,15 @@ seagis_measurement_process::priv
   , m_image_measurement_sd( 1.0 )
   , m_camera_pair_id( 0 )
   , m_stereo()
+  , m_enable_epipolar_matching( false )
+  , m_epipolar_min_depth( 0.0 )
+  , m_epipolar_max_depth( 0.0 )
+  , m_epipolar_min_disparity( 0.0 )
+  , m_epipolar_max_disparity( 0.0 )
+  , m_assume_inputs_paired( true )
+  , m_detection_pairing_method( "" )
+  , m_detection_pairing_threshold( 0.1 )
+  , m_min_track_states( 0 )
   , m_frame_counter( 0 )
   , parent( ptr )
 {
@@ -181,6 +314,43 @@ seagis_measurement_process::priv
 }
 
 
+// -----------------------------------------------------------------------------
+std::vector< kv::vector_2d >
+seagis_measurement_process::priv
+::get_epipolar_points(
+  CAMERA_ID cam_id,
+  const kv::vector_2d& pt )
+{
+  std::vector< kv::vector_2d > points;
+
+  C2DPt image_pt( pt.x(), pt.y() );
+  int num_points = 0;
+
+  RESULT res = m_stereo->EpipolarLine( m_camera_pair_id, cam_id,
+    image_pt, m_epipolar_min_depth, m_epipolar_max_depth, num_points );
+
+  if( res != OK || num_points <= 0 )
+  {
+    return points;
+  }
+
+  points.reserve( num_points );
+
+  for( int i = 0; i < num_points; ++i )
+  {
+    C2DPt ep_pt;
+    res = m_stereo->GetEpipolarPoint( m_camera_pair_id, i, ep_pt );
+
+    if( res == OK )
+    {
+      points.push_back( kv::vector_2d( ep_pt.X(), ep_pt.Y() ) );
+    }
+  }
+
+  return points;
+}
+
+
 // =============================================================================
 seagis_measurement_process
 ::seagis_measurement_process( kv::config_block_sptr const& config )
@@ -231,6 +401,35 @@ seagis_measurement_process
   declare_config_using_trait( licence_key2 );
   declare_config_using_trait( image_measurement_sd );
   declare_config_using_trait( camera_pair_id );
+  declare_config_using_trait( enable_epipolar_matching );
+  declare_config_using_trait( epipolar_min_depth );
+  declare_config_using_trait( epipolar_max_depth );
+  declare_config_using_trait( epipolar_min_disparity );
+  declare_config_using_trait( epipolar_max_disparity );
+  declare_config_using_trait( template_size );
+  declare_config_using_trait( template_matching_threshold );
+  declare_config_using_trait( use_census_transform );
+  declare_config_using_trait( epipolar_descriptor_type );
+  declare_config_using_trait( uniqueness_ratio );
+  declare_config_using_trait( dino_model_name );
+  declare_config_using_trait( dino_threshold );
+  declare_config_using_trait( dino_weights_path );
+  declare_config_using_trait( dino_top_k );
+  declare_config_using_trait( dino_crop_max_area_ratio );
+  declare_config_using_trait( assume_inputs_paired );
+  declare_config_using_trait( detection_pairing_method );
+  declare_config_using_trait( detection_pairing_threshold );
+  declare_config_using_trait( min_track_states );
+
+  // Merge in stereo track pairer configuration
+  kv::config_block_sptr tp_config = d->m_track_pairer.get_configuration();
+  for( auto const& key : tp_config->available_values() )
+  {
+    declare_configuration_key(
+      key,
+      tp_config->get_value< std::string >( key ),
+      tp_config->get_description( key ) );
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -245,6 +444,51 @@ seagis_measurement_process
   d->m_licence_key2 = config_value_using_trait( licence_key2 );
   d->m_image_measurement_sd = config_value_using_trait( image_measurement_sd );
   d->m_camera_pair_id = config_value_using_trait( camera_pair_id );
+  d->m_enable_epipolar_matching = config_value_using_trait( enable_epipolar_matching );
+  d->m_epipolar_min_depth = config_value_using_trait( epipolar_min_depth );
+  d->m_epipolar_max_depth = config_value_using_trait( epipolar_max_depth );
+  d->m_epipolar_min_disparity = config_value_using_trait( epipolar_min_disparity );
+  d->m_epipolar_max_disparity = config_value_using_trait( epipolar_max_disparity );
+  d->m_assume_inputs_paired = config_value_using_trait( assume_inputs_paired );
+  d->m_detection_pairing_method = config_value_using_trait( detection_pairing_method );
+  d->m_detection_pairing_threshold = config_value_using_trait( detection_pairing_threshold );
+  d->m_min_track_states = config_value_using_trait( min_track_states );
+
+  // Configure track pairer
+  d->m_track_pairer.set_configuration( get_config() );
+
+  if( !d->m_assume_inputs_paired && d->m_detection_pairing_method.empty() )
+  {
+    LOG_WARN( logger(), "assume_inputs_paired is false but detection_pairing_method "
+      "is empty. No detections will be paired across cameras." );
+  }
+
+  // Configure template matching utilities
+  {
+    int tmpl_size = config_value_using_trait( template_size );
+    double tmpl_threshold = config_value_using_trait( template_matching_threshold );
+    bool census = config_value_using_trait( use_census_transform );
+
+    d->m_utilities.set_template_params(
+      tmpl_size, 0 /* search_range unused */, tmpl_threshold,
+      0.0 /* disparity unused */, false /* sgbm hint */,
+      false /* multires */, 4 /* multires step */,
+      census, 0 /* epipolar band */ );
+  }
+
+  // Configure epipolar descriptor type and DINO parameters
+  {
+    std::string desc_type = config_value_using_trait( epipolar_descriptor_type );
+    d->m_utilities.set_epipolar_descriptor_type( desc_type );
+    d->m_utilities.set_uniqueness_ratio(
+      config_value_using_trait( uniqueness_ratio ) );
+    d->m_utilities.set_dino_params(
+      config_value_using_trait( dino_model_name ),
+      config_value_using_trait( dino_threshold ),
+      config_value_using_trait( dino_weights_path ),
+      config_value_using_trait( dino_top_k ),
+      config_value_using_trait( dino_crop_max_area_ratio ) );
+  }
 
   if( d->m_left_camera_file.empty() )
   {
@@ -311,6 +555,56 @@ seagis_measurement_process
   if( d->m_stereo->GetUnits( d->m_camera_pair_id, units ) == OK )
   {
     LOG_INFO( logger(), "SEAGIS measurement units: " << units );
+  }
+
+  // Convert disparity parameters to range if specified
+  if( d->m_epipolar_min_disparity > 0.0 && d->m_epipolar_max_disparity > 0.0 )
+  {
+    // Estimate focal_length * baseline product from the SEAGIS camera model
+    // by projecting the image center via EpipolarLine at a known test range
+    // and measuring the horizontal disparity
+    int nRows = 0, nCols = 0;
+    d->m_stereo->GetCameraFormat( d->m_camera_pair_id, LEFT, nRows, nCols );
+
+    C2DPt center( nCols / 2.0, nRows / 2.0 );
+    double test_range = 5000.0;
+    int npts = 0;
+
+    RESULT ep_res = d->m_stereo->EpipolarLine( d->m_camera_pair_id, LEFT,
+      center, test_range * 0.99, test_range * 1.01, npts );
+
+    if( ep_res == OK && npts > 0 )
+    {
+      C2DPt ep_pt;
+      d->m_stereo->GetEpipolarPoint( d->m_camera_pair_id, npts / 2, ep_pt );
+
+      double disparity = std::abs( center.X() - ep_pt.X() );
+
+      if( disparity > 0.1 )
+      {
+        double fb = disparity * test_range;
+
+        d->m_epipolar_min_depth = fb / d->m_epipolar_max_disparity;
+        d->m_epipolar_max_depth = fb / d->m_epipolar_min_disparity;
+
+        LOG_INFO( logger(), "Estimated focal*baseline product: " << fb
+          << " (disparity " << disparity << " px at range " << test_range << ")" );
+        LOG_INFO( logger(), "Converted disparity range [" << d->m_epipolar_min_disparity
+          << ", " << d->m_epipolar_max_disparity << "] px to range ["
+          << d->m_epipolar_min_depth << ", " << d->m_epipolar_max_depth << "]" );
+      }
+      else
+      {
+        LOG_WARN( logger(), "Could not estimate focal*baseline product: "
+          "disparity too small (" << disparity << " px at range " << test_range
+          << "). Falling back to epipolar_min_depth/epipolar_max_depth." );
+      }
+    }
+    else
+    {
+      LOG_WARN( logger(), "Could not estimate focal*baseline product: "
+        "EpipolarLine failed. Falling back to epipolar_min_depth/epipolar_max_depth." );
+    }
   }
 }
 
@@ -427,16 +721,178 @@ seagis_measurement_process
 
   // Identify which detections are matched (same track ID in both cameras)
   std::vector< kv::track_id_t > common_ids;
+  std::vector< kv::track_id_t > left_only_ids;
+  std::vector< kv::track_id_t > right_only_ids;
 
-  for( auto itr : dets[0] )
+  // For track remapping: record left → original-right ID pairings
+  std::vector< std::pair< kv::track_id_t, kv::track_id_t > > stereo_pairings;
+  std::map< kv::track_id_t, kv::track_id_t > right_id_remap; // remapped → original
+
+  if( !d->m_assume_inputs_paired )
   {
-    for( unsigned i = 1; i < input_tracks.size(); ++i )
+    // Inputs come from independent trackers with potentially overlapping IDs.
+    // Remap right-side IDs to avoid collisions, then treat everything as
+    // unmatched so that detection_pairing_method can find the real matches.
+    kv::track_id_t remap_offset = 1000000;
+    for( const auto& kv : dets[0] )
     {
-      if( dets[i].find( itr.first ) != dets[i].end() )
+      remap_offset = std::max( remap_offset, kv.first + 1000000 );
+    }
+
+    std::map< kv::track_id_t, kv::detected_object_sptr > remapped_right;
+    for( const auto& kv : dets[1] )
+    {
+      kv::track_id_t remapped_id = kv.first + remap_offset;
+      remapped_right[ remapped_id ] = kv.second;
+      right_id_remap[ remapped_id ] = kv.first;
+    }
+    dets[1] = remapped_right;
+
+    // All left detections are "left-only", all right detections are "right-only"
+    for( const auto& kv : dets[0] )
+    {
+      left_only_ids.push_back( kv.first );
+    }
+    for( const auto& kv : dets[1] )
+    {
+      right_only_ids.push_back( kv.first );
+    }
+  }
+  else
+  {
+    // Standard mode: match by track ID correspondence
+    for( auto itr : dets[0] )
+    {
+      bool found_match = false;
+
+      for( unsigned i = 1; i < input_tracks.size(); ++i )
       {
-        common_ids.push_back( itr.first );
-        break;
+        if( dets[i].find( itr.first ) != dets[i].end() )
+        {
+          found_match = true;
+          common_ids.push_back( itr.first );
+          stereo_pairings.push_back( { itr.first, itr.first } );
+          break;
+        }
       }
+
+      if( !found_match )
+      {
+        left_only_ids.push_back( itr.first );
+      }
+    }
+
+    // Collect right-only IDs
+    for( auto itr : dets[1] )
+    {
+      if( dets[0].find( itr.first ) == dets[0].end() )
+      {
+        right_only_ids.push_back( itr.first );
+      }
+    }
+  }
+
+  // Detection pairing: match left-only and right-only detections
+  // Note: SeaGIS uses CStereoInt (not kwiver cameras), so projection-based methods
+  // are not directly available. Instead we use raw bbox IOU or raw keypoint distance.
+  if( !d->m_detection_pairing_method.empty() &&
+      !left_only_ids.empty() && !right_only_ids.empty() )
+  {
+    // Build detection vectors from left-only and right-only IDs
+    std::vector< kv::detected_object_sptr > left_only_dets;
+    std::vector< kv::detected_object_sptr > right_only_dets;
+
+    for( const auto& id : left_only_ids )
+    {
+      left_only_dets.push_back( dets[0][id] );
+    }
+    for( const auto& id : right_only_ids )
+    {
+      right_only_dets.push_back( dets[1][id] );
+    }
+
+    std::vector< std::pair< int, int > > paired;
+
+    if( d->m_detection_pairing_method == "iou" )
+    {
+      // Use raw bbox IOU (no projection available in SeaGIS context)
+      core::iou_matching_options opts;
+      opts.iou_threshold = d->m_detection_pairing_threshold;
+
+      paired = core::find_stereo_matches_iou( left_only_dets, right_only_dets, opts );
+    }
+    else if( d->m_detection_pairing_method == "keypoint_distance" )
+    {
+      // Use raw keypoint pixel distance (no projection)
+      // Build cost matrix manually using the same pattern
+      int n1 = static_cast< int >( left_only_dets.size() );
+      int n2 = static_cast< int >( right_only_dets.size() );
+
+      std::vector< std::vector< double > > cost_matrix(
+        n1, std::vector< double >( n2, 1e10 ) );
+
+      for( int i = 0; i < n1; ++i )
+      {
+        const auto& det1 = left_only_dets[i];
+        const auto& kp1 = det1->keypoints();
+
+        if( kp1.find( "head" ) == kp1.end() || kp1.find( "tail" ) == kp1.end() )
+          continue;
+
+        kv::vector_2d lh( kp1.at("head")[0], kp1.at("head")[1] );
+        kv::vector_2d lt( kp1.at("tail")[0], kp1.at("tail")[1] );
+
+        for( int j = 0; j < n2; ++j )
+        {
+          const auto& det2 = right_only_dets[j];
+          const auto& kp2 = det2->keypoints();
+
+          if( kp2.find( "head" ) == kp2.end() || kp2.find( "tail" ) == kp2.end() )
+            continue;
+
+          kv::vector_2d rh( kp2.at("head")[0], kp2.at("head")[1] );
+          kv::vector_2d rt( kp2.at("tail")[0], kp2.at("tail")[1] );
+
+          double avg_dist = ( ( lh - rh ).norm() + ( lt - rt ).norm() ) / 2.0;
+          if( avg_dist <= d->m_detection_pairing_threshold )
+          {
+            cost_matrix[i][j] = avg_dist;
+          }
+        }
+      }
+
+      paired = core::greedy_assignment( cost_matrix, n1, n2 );
+    }
+    else
+    {
+      LOG_WARN( logger(), "Unknown detection_pairing_method: " +
+                d->m_detection_pairing_method );
+    }
+
+    // Merge paired detections
+    for( const auto& p : paired )
+    {
+      kv::track_id_t left_id = left_only_ids[p.first];
+      kv::track_id_t right_id = right_only_ids[p.second];
+
+      // Insert right detection under the left track ID
+      dets[1][left_id] = dets[1][right_id];
+
+      if( left_id != right_id )
+      {
+        dets[1].erase( right_id );
+      }
+
+      common_ids.push_back( left_id );
+
+      // Record pairing with original (un-remapped) right track ID
+      kv::track_id_t orig_right_id = right_id_remap.count( right_id )
+        ? right_id_remap[right_id] : right_id;
+      stereo_pairings.push_back( { left_id, orig_right_id } );
+
+      LOG_INFO( logger(), "Paired left track " << left_id <<
+                " with right track " << orig_right_id <<
+                " via " << d->m_detection_pairing_method );
     }
   }
 
@@ -493,6 +949,111 @@ seagis_measurement_process
     core::add_measurement_attributes( det2, measurement );
   }
 
+#ifdef VIAME_ENABLE_OPENCV
+  // Epipolar matching for detections where only one camera has keypoints
+  if( d->m_enable_epipolar_matching && input_images.size() >= 2 )
+  {
+    // Convert input images to BGR cv::Mat (shared method handles grayscale internally)
+    cv::Mat left_bgr = kwiver::arrows::ocv::image_container::vital_to_ocv(
+      input_images[0]->get_image(),
+      kwiver::arrows::ocv::image_container::BGR_COLOR );
+    cv::Mat right_bgr = kwiver::arrows::ocv::image_container::vital_to_ocv(
+      input_images[1]->get_image(),
+      kwiver::arrows::ocv::image_container::BGR_COLOR );
+
+    d->m_utilities.clear_feature_cache();
+
+    for( const kv::track_id_t& id : common_ids )
+    {
+      const auto& det1 = dets[0][id];
+      const auto& det2 = dets[1][id];
+
+      if( !det1 || !det2 )
+      {
+        continue;
+      }
+
+      // Skip if already measured (both cameras had keypoints)
+      auto has_length = []( const kv::detected_object_sptr& d ) {
+        for( const auto& n : d->notes() )
+          if( n.find( ":length=" ) != std::string::npos ) return true;
+        return false;
+      };
+      if( has_length( det1 ) )
+      {
+        continue;
+      }
+
+      const auto& kp1 = det1->keypoints();
+      const auto& kp2 = det2->keypoints();
+
+      bool left_has_kp = ( kp1.find( "head" ) != kp1.end() &&
+                           kp1.find( "tail" ) != kp1.end() );
+      bool right_has_kp = ( kp2.find( "head" ) != kp2.end() &&
+                            kp2.find( "tail" ) != kp2.end() );
+
+      // Only process if exactly one camera has keypoints
+      if( left_has_kp == right_has_kp )
+      {
+        continue;
+      }
+
+      kv::vector_2d left_head, left_tail, right_head, right_tail;
+      bool head_found = false, tail_found = false;
+
+      if( left_has_kp && !right_has_kp )
+      {
+        // Left has keypoints, find corresponding points in right
+        left_head = kv::vector_2d( kp1.at("head")[0], kp1.at("head")[1] );
+        left_tail = kv::vector_2d( kp1.at("tail")[0], kp1.at("tail")[1] );
+
+        auto epi_head = d->get_epipolar_points( LEFT, left_head );
+        auto epi_tail = d->get_epipolar_points( LEFT, left_tail );
+
+        head_found = d->m_utilities.find_corresponding_point_epipolar(
+          left_bgr, right_bgr, left_head, epi_head, right_head );
+        tail_found = d->m_utilities.find_corresponding_point_epipolar(
+          left_bgr, right_bgr, left_tail, epi_tail, right_tail );
+      }
+      else if( right_has_kp && !left_has_kp )
+      {
+        // Right has keypoints, find corresponding points in left
+        right_head = kv::vector_2d( kp2.at("head")[0], kp2.at("head")[1] );
+        right_tail = kv::vector_2d( kp2.at("tail")[0], kp2.at("tail")[1] );
+
+        auto epi_head = d->get_epipolar_points( RIGHT, right_head );
+        auto epi_tail = d->get_epipolar_points( RIGHT, right_tail );
+
+        head_found = d->m_utilities.find_corresponding_point_epipolar(
+          right_bgr, left_bgr, right_head, epi_head, left_head );
+        tail_found = d->m_utilities.find_corresponding_point_epipolar(
+          right_bgr, left_bgr, right_tail, epi_tail, left_tail );
+      }
+
+      if( head_found && tail_found )
+      {
+        const auto measurement = d->compute_measurement(
+          left_head, right_head, left_tail, right_tail );
+
+        if( measurement.valid )
+        {
+          LOG_INFO( logger(), "Computed Length (SEAGIS epipolar): " << measurement.length );
+          LOG_INFO( logger(), "  Midpoint (x,y,z): (" << measurement.x << ", "
+                    << measurement.y << ", " << measurement.z << ")" );
+          LOG_INFO( logger(), "  Range: " << measurement.range
+                    << ", RMS: " << measurement.rms );
+
+          det1->add_note( ":stereo_method=seagis_epipolar" );
+          det2->add_note( ":stereo_method=seagis_epipolar" );
+
+          core::add_measurement_attributes( det1, measurement );
+          core::add_measurement_attributes( det2, measurement );
+        }
+      }
+    }
+  }
+#endif
+
   // Ensure output track sets exist
   if( !input_tracks[0] )
   {
@@ -501,6 +1062,95 @@ seagis_measurement_process
   if( !input_tracks[1] )
   {
     input_tracks[1] = std::make_shared< kv::object_track_set >();
+  }
+
+  // Apply stereo track remapping (union-find, class averaging)
+  if( input_tracks[0]->size() > 0 || input_tracks[1]->size() > 0 )
+  {
+    std::vector< kv::track_id_t > tids1, tids2;
+    std::vector< std::pair< int, int > > match_pairs;
+
+    for( const auto& trk : input_tracks[0]->tracks() )
+    {
+      auto it = trk->find( cur_frame_id );
+      if( it != trk->end() )
+      {
+        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
+        if( ots && ots->detection() )
+          tids1.push_back( trk->id() );
+      }
+    }
+
+    for( const auto& trk : input_tracks[1]->tracks() )
+    {
+      auto it = trk->find( cur_frame_id );
+      if( it != trk->end() )
+      {
+        auto ots = std::dynamic_pointer_cast< kv::object_track_state >( *it );
+        if( ots && ots->detection() )
+          tids2.push_back( trk->id() );
+      }
+    }
+
+    // Build index lookup for right track IDs
+    std::map< kv::track_id_t, int > right_idx;
+    for( int i = 0; i < static_cast< int >( tids2.size() ); ++i )
+      right_idx[tids2[i]] = i;
+
+    // Build match pairs from stereo pairings
+    for( const auto& sp : stereo_pairings )
+    {
+      auto lit = std::find( tids1.begin(), tids1.end(), sp.first );
+      auto rit = right_idx.find( sp.second );
+      if( lit != tids1.end() && rit != right_idx.end() )
+      {
+        match_pairs.push_back(
+          { static_cast< int >( lit - tids1.begin() ), rit->second } );
+      }
+    }
+
+    std::vector< kv::track_sptr > out1, out2;
+    d->m_track_pairer.remap_tracks_per_frame(
+      input_tracks[0], input_tracks[1], match_pairs,
+      tids1, tids2, out1, out2 );
+
+    input_tracks[0] = std::make_shared< kv::object_track_set >( out1 );
+    input_tracks[1] = std::make_shared< kv::object_track_set >( out2 );
+  }
+
+  // Filter output tracks by minimum state count across cameras
+  if( d->m_min_track_states > 0 )
+  {
+    // Count states per track ID across both output track sets
+    std::map< kv::track_id_t, unsigned > state_counts;
+    for( unsigned i = 0; i < 2; ++i )
+    {
+      if( !input_tracks[i] )
+        continue;
+      for( const auto& trk : input_tracks[i]->tracks() )
+      {
+        state_counts[trk->id()] +=
+          static_cast< unsigned >( trk->size() );
+      }
+    }
+
+    // Remove tracks that don't meet the threshold
+    for( unsigned i = 0; i < 2; ++i )
+    {
+      if( !input_tracks[i] )
+        continue;
+      std::vector< kv::track_sptr > kept;
+      for( const auto& trk : input_tracks[i]->tracks() )
+      {
+        auto it = state_counts.find( trk->id() );
+        if( it != state_counts.end() &&
+            it->second >= d->m_min_track_states )
+        {
+          kept.push_back( trk );
+        }
+      }
+      input_tracks[i] = std::make_shared< kv::object_track_set >( kept );
+    }
   }
 
   // Push outputs

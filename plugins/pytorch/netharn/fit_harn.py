@@ -615,7 +615,7 @@ class InitializeMixin(object):
             raise ValueError(
                 'Hyperparameters not specified, must setup modules yourself')
 
-        harn.debug('harn.train_info[hyper] = {}'.format(ub.repr2(harn.train_info['hyper'], nl=3)))
+        harn.debug('harn.train_info[hyper] = {}'.format(ub.urepr(harn.train_info['hyper'], nl=3)))
         harn.debug('harn.hyper = {!r}'.format(harn.hyper))
 
         harn.debug('make XPU')
@@ -1976,7 +1976,7 @@ class CoreMixin(object):
         _timer = harn._timer
 
         if harn.preferences['log_resources']:
-            harn.debug(ub.repr2(util.resource_usage(), nl=1))
+            harn.debug(ub.urepr(util.resource_usage(), nl=1))
 
         if isinstance(prog, ub.ProgIter):
             prog.begin()
@@ -2097,7 +2097,7 @@ class CoreMixin(object):
                                 if 'ram_percent' in usage:
                                     value = usage['ram_percent']
                                     harn.log_value(tag + ' iter ' + key, value, iter_idx)
-                                harn.debug(ub.repr2(usage, nl=1))
+                                harn.debug(ub.urepr(usage, nl=1))
 
                             if harn._tlog is not None:
                                 if (harn.preferences['dump_tensorboard'] and harn.preferences['eager_dump_tensorboard']):
@@ -2158,7 +2158,7 @@ class CoreMixin(object):
             if 'ram_percent' in usage:
                 value = usage['ram_percent']
                 harn.log_value(tag + ' epoch ' + key, value, harn.epoch)
-            harn.debug(ub.repr2(usage, nl=1))
+            harn.debug(ub.urepr(usage, nl=1))
 
         prog.refresh()
         if not use_tqdm:
@@ -2296,7 +2296,7 @@ class ChecksMixin(object):
                 ub.compress(sums.keys(), flags),
                 ub.compress(sums.values(), flags)
             ))
-            harn.error('NON-FINITE WEIGHTS: {}'.format(ub.repr2(bad_layers, nl=1)))
+            harn.error('NON-FINITE WEIGHTS: {}'.format(ub.urepr(bad_layers, nl=1)))
             raise TrainingDiverged(
                 'NON-FINITE WEIGHTS weights.sum() = {!r}'.format(weight_sum))
 

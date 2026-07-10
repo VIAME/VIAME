@@ -736,11 +736,12 @@ scale_detections_to_region(
       continue;
     }
 
-    // Check if detection overlaps with this region
+    // Test extents, not area(): a diagonal box gives +area but no overlap
     kv::bounding_box_d det_box = det->bounding_box();
     kv::bounding_box_d overlap = kv::intersection( roi_box, det_box );
 
-    if( overlap.area() <= 0 )
+    if( overlap.max_x() <= overlap.min_x() ||
+        overlap.max_y() <= overlap.min_y() )
     {
       continue;
     }
@@ -787,11 +788,12 @@ scale_detections_to_region_with_mapping(
       continue;
     }
 
-    // Check if detection overlaps with this region
+    // Test extents, not area(): a diagonal box gives +area but no overlap
     kv::bounding_box_d det_box = det->bounding_box();
     kv::bounding_box_d overlap = kv::intersection( roi_box, det_box );
 
-    if( overlap.area() <= 0 )
+    if( overlap.max_x() <= overlap.min_x() ||
+        overlap.max_y() <= overlap.min_y() )
     {
       continue;
     }
@@ -805,6 +807,99 @@ scale_detections_to_region_with_mapping(
     std::make_shared< kv::detected_object_set >( scaled_detections );
 
   scale_detections( scaled_set, region_info );
+}
+
+// -----------------------------------------------------------------------------
+std::map< kv::detected_object_sptr, size_t >
+compute_preferred_regions(
+  const kv::detected_object_set_sptr detections,
+  const std::vector< windowed_region_prop >& region_properties )
+{
+  std::map< kv::detected_object_sptr, size_t > preferred;
+
+  if( !detections || detections->empty() || region_properties.empty() )
+  {
+    return preferred;
+  }
+
+  for( auto det : *detections )
+  {
+    if( !det )
+    {
+      continue;
+    }
+
+    const kv::bounding_box_d box = det->bounding_box();
+
+    bool   have_contain = false;
+    long   best_area = 0;        // smallest containing roi area
+    double best_margin = -1.0;   // largest min-margin (most centered)
+    double best_overlap = 0.0;   // fallback: largest overlap area
+    size_t best_idx = 0;
+    size_t best_overlap_idx = 0;
+    bool   have_overlap = false;
+
+    for( size_t i = 0; i < region_properties.size(); i++ )
+    {
+      const image_rect& r = region_properties[i].original_roi;
+      const double rx0 = r.x,           ry0 = r.y;
+      const double rx1 = r.x + r.width, ry1 = r.y + r.height;
+
+      // Does this region fully contain the box?
+      const bool contains =
+        ( box.min_x() >= rx0 ) && ( box.min_y() >= ry0 ) &&
+        ( box.max_x() <= rx1 ) && ( box.max_y() <= ry1 );
+
+      if( contains )
+      {
+        const long area = static_cast< long >( r.width ) *
+                          static_cast< long >( r.height );
+        const double margin = std::min(
+          std::min( box.min_x() - rx0, rx1 - box.max_x() ),
+          std::min( box.min_y() - ry0, ry1 - box.max_y() ) );
+
+        // Prefer the smallest containing region (tightest chip over the
+        // full-image region); tie-break by the most-centered placement.
+        if( !have_contain || area < best_area ||
+            ( area == best_area && margin > best_margin ) )
+        {
+          have_contain = true;
+          best_area = area;
+          best_margin = margin;
+          best_idx = i;
+        }
+      }
+
+      // Track max-overlap region as a fallback when nothing fully contains.
+      const double ox0 = std::max( box.min_x(), rx0 );
+      const double oy0 = std::max( box.min_y(), ry0 );
+      const double ox1 = std::min( box.max_x(), rx1 );
+      const double oy1 = std::min( box.max_y(), ry1 );
+      if( ox1 > ox0 && oy1 > oy0 )
+      {
+        const double oa = ( ox1 - ox0 ) * ( oy1 - oy0 );
+        if( !have_overlap || oa > best_overlap )
+        {
+          have_overlap = true;
+          best_overlap = oa;
+          best_overlap_idx = i;
+        }
+      }
+    }
+
+    if( have_contain )
+    {
+      preferred[ det ] = best_idx;
+    }
+    else if( have_overlap )
+    {
+      preferred[ det ] = best_overlap_idx;
+    }
+    // If neither (no region overlaps at all) leave det unmapped; the refiner
+    // falls back to its default per-region overlap handling.
+  }
+
+  return preferred;
 }
 
 // -----------------------------------------------------------------------------
@@ -849,6 +944,182 @@ separate_boundary_detections(
       interior_detections->add( det );
     }
   }
+}
+
+// =============================================================================
+// Tile-boundary detection merge utilities
+// =============================================================================
+
+bool
+tile_overlap_strip(
+  const image_rect& a, const image_rect& b,
+  int& ox, int& oy, int& ow, int& oh )
+{
+  ox = std::max( a.x, b.x );
+  oy = std::max( a.y, b.y );
+  int ox2 = std::min( a.x + a.width, b.x + b.width );
+  int oy2 = std::min( a.y + a.height, b.y + b.height );
+  ow = ox2 - ox;
+  oh = oy2 - oy;
+  return ( ow > 0 && oh > 0 );
+}
+
+
+int
+render_mask_in_strip(
+  kv::detected_object_sptr det,
+  int ox, int oy, int ow, int oh,
+  kv::image& out )
+{
+  // Create single-channel uint8 output filled with zeros
+  out = kv::image( ow, oh, 1, false, kv::image_pixel_traits_of< uint8_t >() );
+  std::memset( out.first_pixel(), 0, ow * oh );
+
+  auto bb = det->bounding_box();
+
+  if( !det->mask() )
+  {
+    // No mask — fill the bounding box intersection with the strip
+    int rx1 = std::max( 0, static_cast< int >( bb.min_x() ) - ox );
+    int ry1 = std::max( 0, static_cast< int >( bb.min_y() ) - oy );
+    int rx2 = std::min( ow, static_cast< int >( bb.max_x() ) - ox );
+    int ry2 = std::min( oh, static_cast< int >( bb.max_y() ) - oy );
+    int count = 0;
+    for( int y = ry1; y < ry2; y++ )
+      for( int x = rx1; x < rx2; x++ )
+      {
+        out.at< uint8_t >( x, y ) = 1;
+        count++;
+      }
+    return count;
+  }
+
+  kv::image mask_img = det->mask()->get_image();
+  int bx = static_cast< int >( bb.min_x() );
+  int by = static_cast< int >( bb.min_y() );
+
+  // Intersection of mask rect and strip rect
+  int sx1 = std::max( bx, ox );
+  int sy1 = std::max( by, oy );
+  int sx2 = std::min( bx + static_cast< int >( mask_img.width() ), ox + ow );
+  int sy2 = std::min( by + static_cast< int >( mask_img.height() ), oy + oh );
+  if( sx2 <= sx1 || sy2 <= sy1 )
+    return 0;
+
+  int count = 0;
+  for( int y = sy1; y < sy2; y++ )
+    for( int x = sx1; x < sx2; x++ )
+    {
+      uint8_t val = mask_img.at< uint8_t >( x - bx, y - by );
+      if( val > 0 )
+      {
+        out.at< uint8_t >( x - ox, y - oy ) = val;
+        count++;
+      }
+    }
+  return count;
+}
+
+
+void
+merge_mask_into(
+  kv::detected_object_sptr det_a,
+  kv::detected_object_sptr det_b,
+  int img_width, int img_height )
+{
+  auto ba = det_a->bounding_box();
+  auto bb = det_b->bounding_box();
+
+  // Union bounding box clamped to image
+  int ux1 = std::max( 0, static_cast< int >( std::min( ba.min_x(), bb.min_x() ) ) );
+  int uy1 = std::max( 0, static_cast< int >( std::min( ba.min_y(), bb.min_y() ) ) );
+  int ux2 = std::min( img_width,  static_cast< int >( std::max( ba.max_x(), bb.max_x() ) ) );
+  int uy2 = std::min( img_height, static_cast< int >( std::max( ba.max_y(), bb.max_y() ) ) );
+  int uw = ux2 - ux1;
+  int uh = uy2 - uy1;
+  if( uw <= 0 || uh <= 0 ) return;
+
+  kv::image mask_a, mask_b;
+  render_mask_in_strip( det_a, ux1, uy1, uw, uh, mask_a );
+  render_mask_in_strip( det_b, ux1, uy1, uw, uh, mask_b );
+
+  // OR the two masks
+  for( int y = 0; y < uh; y++ )
+    for( int x = 0; x < uw; x++ )
+      mask_a.at< uint8_t >( x, y ) |= mask_b.at< uint8_t >( x, y );
+
+  det_a->set_bounding_box( kv::bounding_box_d( ux1, uy1, ux2, uy2 ) );
+  det_a->set_mask( std::make_shared< kv::simple_image_container >( mask_a ) );
+}
+
+
+kv::detected_object_set_sptr
+merge_tile_boundary_detections(
+  std::vector< det_tile_entry >& entries,
+  double threshold,
+  int img_width, int img_height )
+{
+  std::vector< bool > merged( entries.size(), false );
+
+  for( size_t i = 0; i < entries.size(); i++ )
+  {
+    if( merged[i] ) continue;
+
+    for( size_t j = i + 1; j < entries.size(); j++ )
+    {
+      if( merged[j] ) continue;
+
+      // Only compare detections from different tiles
+      auto& ti = entries[i].tile_roi;
+      auto& tj = entries[j].tile_roi;
+      if( ti.x == tj.x && ti.y == tj.y )
+        continue;
+
+      // Compute the tile overlap strip
+      int ox, oy, ow, oh;
+      if( !tile_overlap_strip( ti, tj, ox, oy, ow, oh ) )
+        continue;
+
+      // Render both masks restricted to the overlap strip
+      kv::image mask_i, mask_j;
+      int area_i = render_mask_in_strip( entries[i].det, ox, oy, ow, oh, mask_i );
+      int area_j = render_mask_in_strip( entries[j].det, ox, oy, ow, oh, mask_j );
+
+      if( area_i == 0 || area_j == 0 )
+        continue;
+
+      // Compute intersection in the strip
+      int inter_area = 0;
+      for( int y = 0; y < oh; y++ )
+        for( int x = 0; x < ow; x++ )
+          if( mask_i.at< uint8_t >( x, y ) > 0 &&
+              mask_j.at< uint8_t >( x, y ) > 0 )
+            inter_area++;
+
+      // Bidirectional: both masks must have >= threshold overlap
+      double frac_i = static_cast< double >( inter_area ) / area_i;
+      double frac_j = static_cast< double >( inter_area ) / area_j;
+
+      if( frac_i >= threshold && frac_j >= threshold )
+      {
+        size_t keep = ( entries[i].det->confidence() >= entries[j].det->confidence() ) ? i : j;
+        size_t drop = ( keep == i ) ? j : i;
+
+        merge_mask_into( entries[keep].det, entries[drop].det, img_width, img_height );
+
+        if( entries[drop].det->confidence() > entries[keep].det->confidence() )
+          entries[keep].det->set_confidence( entries[drop].det->confidence() );
+
+        merged[drop] = true;
+      }
+    }
+  }
+
+  auto output = std::make_shared< kv::detected_object_set >();
+  for( size_t i = 0; i < entries.size(); i++ )
+    if( !merged[i] )
+      output->add( entries[i].det );
+  return output;
 }
 
 } // end namespace viame

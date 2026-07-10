@@ -28,6 +28,37 @@ namespace core
 // Utility function implementations
 // =============================================================================
 
+// Compute the distance from a 2D point to the epipolar line of a left image
+// point. The epipolar line is determined by projecting the left point at two
+// widely spaced depths and fitting a line through the resulting right image
+// points. Returns perpendicular distance in pixels.
+static double
+epipolar_line_distance(
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const kv::vector_2d& left_point,
+  const kv::vector_2d& right_point )
+{
+  // Project at two widely separated depths to define the epipolar line.
+  // The specific depth values don't matter (and are unit-independent for
+  // any reasonable calibration) as long as they are far enough apart.
+  kv::vector_2d p1 = project_left_to_right( left_cam, right_cam, left_point, 1.0 );
+  kv::vector_2d p2 = project_left_to_right( left_cam, right_cam, left_point, 1.0e8 );
+
+  // Line coefficients: a*x + b*y + c = 0
+  double a = p1.y() - p2.y();
+  double b = p2.x() - p1.x();
+  double c = p1.x() * p2.y() - p2.x() * p1.y();
+
+  double norm = std::sqrt( a * a + b * b );
+  if( norm < 1e-12 )
+  {
+    return 1e10; // Degenerate epipolar line
+  }
+
+  return std::abs( a * right_point.x() + b * right_point.y() + c ) / norm;
+}
+
 // -----------------------------------------------------------------------------
 double
 compute_stereo_reprojection_error(
@@ -768,6 +799,694 @@ find_stereo_matches_feature(
     }
 
     return matches;
+  }
+}
+
+// -----------------------------------------------------------------------------
+std::vector< std::pair< int, int > >
+find_stereo_matches_epipolar_iou(
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const epipolar_iou_matching_options& options,
+  kv::logger_handle_t logger )
+{
+  int n1 = static_cast< int >( detections1.size() );
+  int n2 = static_cast< int >( detections2.size() );
+
+  if( n1 == 0 || n2 == 0 )
+  {
+    return std::vector< std::pair< int, int > >();
+  }
+
+  // Build cost matrix (1 - IOU, so lower is better)
+  std::vector< std::vector< double > > cost_matrix( n1, std::vector< double >( n2, 1e10 ) );
+
+  for( int i = 0; i < n1; ++i )
+  {
+    const auto& det1 = detections1[i];
+    std::string class1 = get_detection_class_label( det1 );
+
+    const auto& bbox1 = det1->bounding_box();
+    if( !bbox1.is_valid() )
+    {
+      continue;
+    }
+
+    // Project left bbox center to right image at default depth
+    kv::vector_2d left_center = bbox1.center();
+    kv::vector_2d projected_center = project_left_to_right(
+      left_cam, right_cam, left_center, options.default_depth );
+
+    // Build projected bbox in right image (same width/height as left, centered at projected point)
+    double w = bbox1.width();
+    double h = bbox1.height();
+    kv::bounding_box_d projected_bbox(
+      projected_center.x() - w / 2.0,
+      projected_center.y() - h / 2.0,
+      projected_center.x() + w / 2.0,
+      projected_center.y() + h / 2.0 );
+
+    for( int j = 0; j < n2; ++j )
+    {
+      const auto& det2 = detections2[j];
+
+      // Check class match if required
+      if( options.require_class_match )
+      {
+        std::string class2 = get_detection_class_label( det2 );
+        if( class1 != class2 )
+        {
+          continue;
+        }
+      }
+
+      const auto& bbox2 = det2->bounding_box();
+      if( !bbox2.is_valid() )
+      {
+        continue;
+      }
+
+      // Compute IOU between projected left bbox and actual right bbox
+      double iou = compute_iou( projected_bbox, bbox2 );
+
+      // Check threshold
+      if( iou >= options.iou_threshold )
+      {
+        cost_matrix[i][j] = 1.0 - iou;
+      }
+    }
+  }
+
+  // Find optimal assignment
+  if( options.use_optimal_assignment )
+  {
+    return greedy_assignment( cost_matrix, n1, n2 );
+  }
+  else
+  {
+    // Simple sequential matching
+    std::vector< std::pair< int, int > > matches;
+    std::set< int > used_j;
+
+    for( int i = 0; i < n1; ++i )
+    {
+      int best_j = -1;
+      double best_cost = 1e10;
+
+      for( int j = 0; j < n2; ++j )
+      {
+        if( used_j.find( j ) != used_j.end() )
+        {
+          continue;
+        }
+
+        if( cost_matrix[i][j] < best_cost )
+        {
+          best_cost = cost_matrix[i][j];
+          best_j = j;
+        }
+      }
+
+      if( best_j >= 0 && best_cost < 1e9 )
+      {
+        matches.push_back( std::make_pair( i, best_j ) );
+        used_j.insert( best_j );
+      }
+    }
+
+    return matches;
+  }
+}
+
+// -----------------------------------------------------------------------------
+std::vector< std::pair< int, int > >
+find_stereo_matches_keypoint_projection(
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::simple_camera_perspective& left_cam,
+  const kv::simple_camera_perspective& right_cam,
+  const keypoint_projection_matching_options& options,
+  kv::logger_handle_t logger )
+{
+  int n1 = static_cast< int >( detections1.size() );
+  int n2 = static_cast< int >( detections2.size() );
+
+  if( n1 == 0 || n2 == 0 )
+  {
+    return std::vector< std::pair< int, int > >();
+  }
+
+  // Build cost matrix using average keypoint distance
+  std::vector< std::vector< double > > cost_matrix( n1, std::vector< double >( n2, 1e10 ) );
+
+  for( int i = 0; i < n1; ++i )
+  {
+    const auto& det1 = detections1[i];
+    std::string class1 = get_detection_class_label( det1 );
+
+    // Check that left detection has head and tail keypoints
+    const auto& kp1 = det1->keypoints();
+    if( kp1.find( "head" ) == kp1.end() || kp1.find( "tail" ) == kp1.end() )
+    {
+      continue;
+    }
+
+    kv::vector_2d left_head( kp1.at( "head" )[0], kp1.at( "head" )[1] );
+    kv::vector_2d left_tail( kp1.at( "tail" )[0], kp1.at( "tail" )[1] );
+
+    // When default_depth > 0, project keypoints at that depth and compare
+    // positions directly. When default_depth <= 0 (the default), use
+    // triangulation + reprojection-error: triangulation finds the depth
+    // that minimizes the L/R reprojection residual automatically, so
+    // there is no fixed-depth assumption and no ambiguity along the
+    // epipolar line (which can erroneously match a corner-fish keypoint
+    // to a stationary object whose KP happens to fall on the epipolar
+    // line). The cost is the average RMS reprojection error across the
+    // head and tail keypoints.
+    kv::vector_2d proj_head, proj_tail;
+    const bool use_triangulation = ( options.default_depth <= 0 );
+
+    if( !use_triangulation )
+    {
+      proj_head = project_left_to_right(
+        left_cam, right_cam, left_head, options.default_depth );
+      proj_tail = project_left_to_right(
+        left_cam, right_cam, left_tail, options.default_depth );
+    }
+
+    for( int j = 0; j < n2; ++j )
+    {
+      const auto& det2 = detections2[j];
+
+      // Check class match if required
+      if( options.require_class_match )
+      {
+        std::string class2 = get_detection_class_label( det2 );
+        if( class1 != class2 )
+        {
+          continue;
+        }
+      }
+
+      // Check that right detection has head and tail keypoints
+      const auto& kp2 = det2->keypoints();
+      if( kp2.find( "head" ) == kp2.end() || kp2.find( "tail" ) == kp2.end() )
+      {
+        continue;
+      }
+
+      kv::vector_2d right_head( kp2.at( "head" )[0], kp2.at( "head" )[1] );
+      kv::vector_2d right_tail( kp2.at( "tail" )[0], kp2.at( "tail" )[1] );
+
+      double avg_dist;
+      if( use_triangulation )
+      {
+        // Triangulate each keypoint pair; the reprojection error is the
+        // residual the triangulation could not absorb. compute_stereo_
+        // reprojection_error returns +infinity when the triangulated
+        // point is behind either camera, so impossible matches are
+        // rejected automatically.
+        double head_rms = compute_stereo_reprojection_error(
+          left_cam, right_cam, left_head, right_head );
+        double tail_rms = compute_stereo_reprojection_error(
+          left_cam, right_cam, left_tail, right_tail );
+        if( !std::isfinite( head_rms ) || !std::isfinite( tail_rms ) )
+        {
+          continue;
+        }
+        avg_dist = ( head_rms + tail_rms ) / 2.0;
+      }
+      else
+      {
+        // Distance between projected and actual keypoints
+        double head_dist = ( proj_head - right_head ).norm();
+        double tail_dist = ( proj_tail - right_tail ).norm();
+        avg_dist = ( head_dist + tail_dist ) / 2.0;
+      }
+
+      // Check threshold
+      if( avg_dist <= options.max_keypoint_distance )
+      {
+        cost_matrix[i][j] = avg_dist;
+      }
+    }
+  }
+
+  // Find optimal assignment
+  if( options.use_optimal_assignment )
+  {
+    return greedy_assignment( cost_matrix, n1, n2 );
+  }
+  else
+  {
+    // Simple sequential matching
+    std::vector< std::pair< int, int > > matches;
+    std::set< int > used_j;
+
+    for( int i = 0; i < n1; ++i )
+    {
+      int best_j = -1;
+      double best_cost = 1e10;
+
+      for( int j = 0; j < n2; ++j )
+      {
+        if( used_j.find( j ) != used_j.end() )
+        {
+          continue;
+        }
+
+        if( cost_matrix[i][j] < best_cost )
+        {
+          best_cost = cost_matrix[i][j];
+          best_j = j;
+        }
+      }
+
+      if( best_j >= 0 && best_cost < 1e9 )
+      {
+        matches.push_back( std::make_pair( i, best_j ) );
+        used_j.insert( best_j );
+      }
+    }
+
+    return matches;
+  }
+}
+
+// =============================================================================
+// Disparity-projection detection pairing
+// =============================================================================
+
+namespace
+{
+
+// Read disparity at (px, py) in rectified-image space. Returns -1.0 for
+// invalid (out-of-bounds, zero, or non-finite). Mirrors the pixel-format
+// handling used by find_corresponding_point_external_disparity.
+double
+read_rectified_disparity(
+  const kv::image& img,
+  const char* base,
+  int px, int py )
+{
+  int w = static_cast< int >( img.width() );
+  int h = static_cast< int >( img.height() );
+  if( px < 0 || px >= w || py < 0 || py >= h )
+  {
+    return -1.0;
+  }
+  if( img.pixel_traits().type == kv::image_pixel_traits::UNSIGNED &&
+      img.pixel_traits().num_bytes == 2 )
+  {
+    auto ptr = reinterpret_cast< const uint16_t* >(
+      base + py * img.h_step() + px * img.w_step() );
+    double v = static_cast< double >( *ptr ) / 256.0;
+    return ( v > 0.0 && std::isfinite( v ) ) ? v : -1.0;
+  }
+  if( img.pixel_traits().type == kv::image_pixel_traits::SIGNED &&
+      img.pixel_traits().num_bytes == 2 )
+  {
+    auto ptr = reinterpret_cast< const int16_t* >(
+      base + py * img.h_step() + px * img.w_step() );
+    int16_t raw = *ptr;
+    if( raw <= 0 ) return -1.0;
+    return static_cast< double >( raw ) / 16.0;
+  }
+  if( img.pixel_traits().type == kv::image_pixel_traits::FLOAT &&
+      img.pixel_traits().num_bytes == 4 )
+  {
+    auto ptr = reinterpret_cast< const float* >(
+      base + py * img.h_step() + px * img.w_step() );
+    double v = static_cast< double >( *ptr );
+    return ( v > 0.0 && std::isfinite( v ) ) ? v : -1.0;
+  }
+  return -1.0;
+}
+
+// Median over the in-bounds disparities sampled inside a square window.
+// Returns -1.0 if no valid samples were found.
+double
+median_disparity_in_window(
+  const kv::image& img,
+  const char* base,
+  int cx, int cy,
+  int half )
+{
+  std::vector< double > values;
+  values.reserve( ( 2 * half + 1 ) * ( 2 * half + 1 ) );
+  for( int dy = -half; dy <= half; ++dy )
+  {
+    for( int dx = -half; dx <= half; ++dx )
+    {
+      double v = read_rectified_disparity( img, base, cx + dx, cy + dy );
+      if( v > 0.0 ) values.push_back( v );
+    }
+  }
+  if( values.empty() )
+  {
+    return -1.0;
+  }
+  size_t mid = values.size() / 2;
+  std::nth_element( values.begin(), values.begin() + mid, values.end() );
+  return values[ mid ];
+}
+
+// Median disparity sampled across the rectified versions of every
+// polygon vertex. Falls back to a small window around the polygon
+// centroid if individual vertex samples are sparse / invalid. The
+// polygon is in left-image (unrectified) coordinates.
+double
+median_disparity_over_polygon(
+  const kv::image& img,
+  const char* base,
+  const std::vector< kv::vector_2d >& poly_unrect,
+  const std::function< kv::vector_2d( const kv::vector_2d& ) >& rectify_left_pt,
+  int fallback_half )
+{
+  if( poly_unrect.empty() )
+  {
+    return -1.0;
+  }
+
+  std::vector< double > values;
+  values.reserve( poly_unrect.size() );
+
+  kv::vector_2d centroid_unrect( 0.0, 0.0 );
+  for( const auto& p : poly_unrect )
+  {
+    centroid_unrect += p;
+    kv::vector_2d r = rectify_left_pt( p );
+    int rx = static_cast< int >( r.x() + 0.5 );
+    int ry = static_cast< int >( r.y() + 0.5 );
+    double v = read_rectified_disparity( img, base, rx, ry );
+    if( v > 0.0 ) values.push_back( v );
+  }
+  centroid_unrect /= static_cast< double >( poly_unrect.size() );
+
+  // Always include a small window around the polygon centroid in
+  // rectified space — silhouette pixels often sit on disparity
+  // discontinuities, so a few interior samples stabilise the median.
+  kv::vector_2d c_rect = rectify_left_pt( centroid_unrect );
+  int ccx = static_cast< int >( c_rect.x() + 0.5 );
+  int ccy = static_cast< int >( c_rect.y() + 0.5 );
+  for( int dy = -fallback_half; dy <= fallback_half; ++dy )
+  {
+    for( int dx = -fallback_half; dx <= fallback_half; ++dx )
+    {
+      double v = read_rectified_disparity( img, base, ccx + dx, ccy + dy );
+      if( v > 0.0 ) values.push_back( v );
+    }
+  }
+
+  if( values.empty() )
+  {
+    return -1.0;
+  }
+  size_t mid = values.size() / 2;
+  std::nth_element( values.begin(), values.begin() + mid, values.end() );
+  return values[ mid ];
+}
+
+// Pull the polygon (in left-image / right-image pixel coords) out of a
+// detection's mask if one is present. Returns empty vector if the
+// detection has no mask. Each vector_2d is one polygon vertex.
+std::vector< kv::vector_2d >
+extract_polygon_points( const kv::detected_object_sptr& det )
+{
+  std::vector< kv::vector_2d > out;
+  if( !det )
+  {
+    return out;
+  }
+  auto mask = det->mask();
+  if( !mask )
+  {
+    return out;
+  }
+  // Mask is an image; polygons in this pipeline are stored as
+  // detection-state notes, not on the mask object itself. Fall through
+  // to a uniform sampling of the bbox interior so the per-pixel
+  // disparity median can still benefit from area averaging.
+  const auto& bbox = det->bounding_box();
+  const int N = 5;  // 5x5 grid of sample points inside the bbox
+  for( int j = 0; j < N; ++j )
+  {
+    double t_y = ( j + 0.5 ) / N;
+    double y = bbox.min_y() + t_y * ( bbox.max_y() - bbox.min_y() );
+    for( int i = 0; i < N; ++i )
+    {
+      double t_x = ( i + 0.5 ) / N;
+      double x = bbox.min_x() + t_x * ( bbox.max_x() - bbox.min_x() );
+      out.emplace_back( x, y );
+    }
+  }
+  return out;
+}
+
+}  // anonymous namespace
+
+std::vector< std::pair< int, int > >
+find_stereo_matches_disparity_projection(
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::image_container_sptr& disparity_rectified,
+  const std::function< kv::vector_2d( const kv::vector_2d& ) >& rectify_left_pt,
+  const std::function< kv::vector_2d( const kv::vector_2d& ) >& unrectify_right_pt,
+  const disparity_projection_matching_options& options,
+  kv::logger_handle_t logger )
+{
+  int n1 = static_cast< int >( detections1.size() );
+  int n2 = static_cast< int >( detections2.size() );
+
+  if( n1 == 0 || n2 == 0 )
+  {
+    return {};
+  }
+  if( !disparity_rectified )
+  {
+    if( logger )
+    {
+      LOG_ERROR( logger,
+        "disparity_projection requires a non-null disparity image" );
+    }
+    return {};
+  }
+
+  const auto& img = disparity_rectified->get_image();
+  const char* base = reinterpret_cast< const char* >( img.first_pixel() );
+  const int half = std::max( 0, options.sample_window );
+
+  // Precompute right-detection centroids in unrectified right-image space.
+  std::vector< kv::vector_2d > right_centroids( n2 );
+  std::vector< std::string > right_classes( n2 );
+  for( int j = 0; j < n2; ++j )
+  {
+    const auto& d = detections2[ j ];
+    const auto& bb = d->bounding_box();
+    right_centroids[ j ] = kv::vector_2d(
+      0.5 * ( bb.min_x() + bb.max_x() ),
+      0.5 * ( bb.min_y() + bb.max_y() ) );
+    right_classes[ j ] = get_detection_class_label( d );
+  }
+
+  std::vector< std::vector< double > > cost(
+    n1, std::vector< double >( n2, 1e10 ) );
+
+  for( int i = 0; i < n1; ++i )
+  {
+    const auto& d1 = detections1[ i ];
+    if( !d1 ) continue;
+
+    const auto& bb = d1->bounding_box();
+    kv::vector_2d centroid_unrect(
+      0.5 * ( bb.min_x() + bb.max_x() ),
+      0.5 * ( bb.min_y() + bb.max_y() ) );
+
+    // Sample disparity. Polygon-based sampling pulls multiple disparity
+    // readings from across the detection so a single bad pixel near a
+    // silhouette edge doesn't dominate; bbox-centroid sampling is the
+    // simpler fallback when no polygon data is exposed.
+    double disp = -1.0;
+    if( options.use_polygon )
+    {
+      auto poly = extract_polygon_points( d1 );
+      if( !poly.empty() )
+      {
+        disp = median_disparity_over_polygon(
+          img, base, poly, rectify_left_pt, half );
+      }
+    }
+    if( disp <= 0.0 )
+    {
+      kv::vector_2d c_rect = rectify_left_pt( centroid_unrect );
+      int cx = static_cast< int >( c_rect.x() + 0.5 );
+      int cy = static_cast< int >( c_rect.y() + 0.5 );
+      disp = ( half > 0 )
+        ? median_disparity_in_window( img, base, cx, cy, half )
+        : read_rectified_disparity( img, base, cx, cy );
+    }
+    if( disp <= 0.0 )
+    {
+      continue;  // no usable disparity for this left detection
+    }
+
+    // Predict the right-image centroid: shift the rectified left
+    // centroid by the measured disparity along x, then unrectify.
+    kv::vector_2d centroid_rect = rectify_left_pt( centroid_unrect );
+    kv::vector_2d predicted_right_rect(
+      centroid_rect.x() - disp, centroid_rect.y() );
+    kv::vector_2d predicted_right_unrect =
+      unrectify_right_pt( predicted_right_rect );
+
+    std::string class1 = get_detection_class_label( d1 );
+
+    for( int j = 0; j < n2; ++j )
+    {
+      if( options.require_class_match && class1 != right_classes[ j ] )
+      {
+        continue;
+      }
+      double dist = ( predicted_right_unrect - right_centroids[ j ] ).norm();
+      if( dist <= options.max_centroid_distance )
+      {
+        cost[ i ][ j ] = dist;
+      }
+    }
+  }
+
+  if( options.use_optimal_assignment )
+  {
+    return greedy_assignment( cost, n1, n2 );
+  }
+
+  std::vector< std::pair< int, int > > matches;
+  std::set< int > used_j;
+  for( int i = 0; i < n1; ++i )
+  {
+    int best_j = -1;
+    double best_cost = 1e10;
+    for( int j = 0; j < n2; ++j )
+    {
+      if( used_j.count( j ) ) continue;
+      if( cost[ i ][ j ] < best_cost )
+      {
+        best_cost = cost[ i ][ j ];
+        best_j = j;
+      }
+    }
+    if( best_j >= 0 && best_cost < 1e9 )
+    {
+      matches.push_back( { i, best_j } );
+      used_j.insert( best_j );
+    }
+  }
+  return matches;
+}
+
+// =============================================================================
+// Unified detection pairing dispatch
+// =============================================================================
+
+std::vector< std::pair< int, int > >
+find_stereo_detection_matches(
+  const detection_pairing_params& params,
+  const std::vector< kv::detected_object_sptr >& detections1,
+  const std::vector< kv::detected_object_sptr >& detections2,
+  const kv::simple_camera_perspective* left_cam,
+  const kv::simple_camera_perspective* right_cam,
+  const kv::image_container_sptr& image1,
+  const kv::image_container_sptr& image2,
+  const feature_matching_algorithms* feature_algos,
+  const feature_matching_options* feature_opts,
+  kv::logger_handle_t logger )
+{
+  if( params.method == "iou" )
+  {
+    iou_matching_options opts;
+    opts.iou_threshold = params.threshold;
+    opts.require_class_match = params.require_class_match;
+    opts.use_optimal_assignment = params.use_optimal_assignment;
+    return find_stereo_matches_iou( detections1, detections2, opts );
+  }
+  else if( params.method == "calibration" )
+  {
+    if( !left_cam || !right_cam )
+    {
+      if( logger )
+        LOG_ERROR( logger, "Cameras required for 'calibration' pairing method" );
+      return {};
+    }
+    calibration_matching_options opts;
+    opts.max_reprojection_error = params.threshold;
+    opts.default_depth = params.default_depth;
+    opts.require_class_match = params.require_class_match;
+    opts.use_optimal_assignment = params.use_optimal_assignment;
+    return find_stereo_matches_calibration(
+      detections1, detections2, *left_cam, *right_cam, opts, logger );
+  }
+  else if( params.method == "feature_matching" )
+  {
+    if( !image1 || !image2 )
+    {
+      if( logger )
+        LOG_ERROR( logger, "Images required for 'feature_matching' pairing method" );
+      return {};
+    }
+    if( !feature_algos || !feature_algos->is_valid() )
+    {
+      if( logger )
+        LOG_ERROR( logger, "Feature algorithms required for 'feature_matching' pairing method" );
+      return {};
+    }
+    feature_matching_options opts;
+    if( feature_opts )
+    {
+      opts = *feature_opts;
+    }
+    opts.require_class_match = params.require_class_match;
+    opts.use_optimal_assignment = params.use_optimal_assignment;
+    return find_stereo_matches_feature(
+      detections1, detections2, image1, image2, *feature_algos, opts, logger );
+  }
+  else if( params.method == "epipolar_iou" )
+  {
+    if( !left_cam || !right_cam )
+    {
+      if( logger )
+        LOG_ERROR( logger, "Cameras required for 'epipolar_iou' pairing method" );
+      return {};
+    }
+    epipolar_iou_matching_options opts;
+    opts.iou_threshold = params.threshold;
+    opts.default_depth = params.default_depth;
+    opts.require_class_match = params.require_class_match;
+    opts.use_optimal_assignment = params.use_optimal_assignment;
+    return find_stereo_matches_epipolar_iou(
+      detections1, detections2, *left_cam, *right_cam, opts, logger );
+  }
+  else if( params.method == "keypoint_projection" )
+  {
+    if( !left_cam || !right_cam )
+    {
+      if( logger )
+        LOG_ERROR( logger, "Cameras required for 'keypoint_projection' pairing method" );
+      return {};
+    }
+    keypoint_projection_matching_options opts;
+    opts.max_keypoint_distance = params.threshold;
+    opts.default_depth = params.default_depth;
+    opts.require_class_match = params.require_class_match;
+    opts.use_optimal_assignment = params.use_optimal_assignment;
+    return find_stereo_matches_keypoint_projection(
+      detections1, detections2, *left_cam, *right_cam, opts, logger );
+  }
+  else
+  {
+    if( logger )
+      LOG_ERROR( logger, "Unknown detection pairing method: " << params.method );
+    return {};
   }
 }
 

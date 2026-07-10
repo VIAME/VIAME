@@ -28,6 +28,7 @@ import scriptconfig as scfg
 
 from kwiver.vital.algo import TrackObjects
 from kwiver.vital.types import ObjectTrackSet, ObjectTrackState, Track
+from viame.pytorch.utilities import report_cuda_errors
 
 logger = logging.getLogger(__name__)
 
@@ -602,6 +603,7 @@ class DeepSORTTracker(TrackObjects):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("DeepSORTTracker initialization")
     def set_configuration(self, cfg_in):
         """Set the algorithm configuration."""
         from viame.pytorch.utilities import vital_config_update
@@ -637,6 +639,7 @@ class DeepSORTTracker(TrackObjects):
         """Check if the configuration is valid."""
         return True
 
+    @report_cuda_errors("DeepSORTTracker tracking")
     def track(self, ts, image, detections):
         """
         Track objects in a new frame.
@@ -756,6 +759,7 @@ class DeepSORTTracker(TrackObjects):
         output_tracks = [t for t in self._tracks if t.is_confirmed() and len(t.history) > 0]
         return to_ObjectTrackSet(output_tracks)
 
+    @report_cuda_errors("DeepSORTTracker tracking")
     def initialize(self, ts, image, seed_detections):
         """Initialize the tracker for a new sequence."""
         self.reset()
@@ -763,6 +767,7 @@ class DeepSORTTracker(TrackObjects):
             return self.track(ts, image, seed_detections)
         return ObjectTrackSet([])
 
+    @report_cuda_errors("DeepSORTTracker finalization")
     def finalize(self):
         """Finalize tracking and return all tracks."""
         output_tracks = [t for t in self._tracks if len(t.history) > 0]

@@ -4,6 +4,8 @@
 # Description: Runs object detection pipeline on input imagery. Uses arctic
 # seal ir tf detector configuration. Outputs results to
 # ir_out_images/frame%06d.jpg.
+# Input: IMAGE
+# Output: BBOX
 # =============================================================================
 
 config _pipeline:_edge

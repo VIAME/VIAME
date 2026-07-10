@@ -12,7 +12,7 @@ from kwiver.vital.types import DetectedObjectType
 import numpy as np  # NOQA
 import ubelt as ub
 
-from viame.pytorch.utilities import vital_config_update
+from viame.pytorch.utilities import vital_config_update, report_cuda_errors
 
 
 class NetharnClassifier(ImageObjectDetector):
@@ -35,7 +35,7 @@ class NetharnClassifier(ImageObjectDetector):
         >>> )
         >>> self.set_configuration(cfg_in)
         >>> detected_objects = self.classify(image_data)
-        >>> object_type = detected_objects[0].type()
+        >>> object_type = detected_objects[0].type
         >>> class_names = object_type.all_class_names()
         >>> cname_to_prob = {cname: object_type.score(cname) for cname in class_names}
         >>> print('cname_to_prob = {}'.format(ub.repr2(cname_to_prob, nl=1, precision=4)))
@@ -63,7 +63,7 @@ class NetharnClassifier(ImageObjectDetector):
         Returns:
             str: file path to a scallop classifier
         """
-        from bioharn import clf_fit
+        from viame.pytorch.netharn import clf_fit
         harn = clf_fit.setup_harn(cmdline=False, dataset='special:shapes128',
                                   max_epoch=1, timeout=60)
         harn.initialize()
@@ -106,9 +106,10 @@ class NetharnClassifier(ImageObjectDetector):
             cfg.set_value(key, str(value))
         return cfg
 
+    @report_cuda_errors("NetharnClassifier initialization")
     def set_configuration(self, cfg_in):
         import torch
-        from bioharn import clf_predict
+        from viame.pytorch.netharn import clf_predict
         cfg = self.get_configuration()
 
         # HACK: merge config doesn't support dictionary input
@@ -166,6 +167,7 @@ class NetharnClassifier(ImageObjectDetector):
             return False
         return True
 
+    @report_cuda_errors("NetharnClassifier detection")
     def detect(self, image_data):
         full_rgb = image_data.asarray().astype('uint8')
         path_or_image = full_rgb
@@ -192,7 +194,7 @@ class NetharnClassifier(ImageObjectDetector):
         Convert kwarray classifications to kwiver deteted object sets
 
         Args:
-            classification (bioharn.clf_predict.Classification)
+            classification (viame.pytorch.netharn.clf_predict.Classification)
             w (int): width of image
             h (int): height of image
 

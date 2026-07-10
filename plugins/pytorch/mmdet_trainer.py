@@ -20,6 +20,7 @@ import pickle
 import os
 import signal
 import sys
+from viame.pytorch.utilities import report_cuda_errors
 
 class MMDetTrainer( TrainDetector ):
     """
@@ -59,6 +60,7 @@ class MMDetTrainer( TrainDetector ):
 
         return cfg
 
+    @report_cuda_errors("MMDetTrainer initialization")
     def set_configuration( self, cfg_in ):
         cfg = self.get_configuration()
         cfg.merge_config( cfg_in )
@@ -145,6 +147,7 @@ class MMDetTrainer( TrainDetector ):
     def __setstate__( self, dict ):
         self.__dict__ = dict
 
+    @report_cuda_errors("MMDetTrainer model load")
     def load_network( self ):
         from mmcv import Config
         self._cfg = Config.fromfile( self._train_config )
@@ -235,10 +238,10 @@ class MMDetTrainer( TrainDetector ):
                 if categories is not None and not categories.has_class_name( class_lbl ):
                     continue
 
-                obj_box = [ [ item.bounding_box().min_x(),
-                              item.bounding_box().min_y(),
-                              item.bounding_box().max_x(),
-                              item.bounding_box().max_y() ] ]
+                obj_box = [ [ item.bounding_box.min_x(),
+                              item.bounding_box.min_y(),
+                              item.bounding_box.max_x(),
+                              item.bounding_box.max_y() ] ]
 
                 if categories is not None:
                     class_id = categories.get_class_id( class_lbl ) + 1
@@ -271,6 +274,7 @@ class MMDetTrainer( TrainDetector ):
             else:
                 self._validation_data.append( entry )
 
+    @report_cuda_errors("MMDetTrainer training")
     def update_model( self ):
 
         with open( self._training_store, 'wb' ) as fp:

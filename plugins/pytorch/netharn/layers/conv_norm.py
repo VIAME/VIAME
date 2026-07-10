@@ -101,13 +101,13 @@ class ConvNormNd(common.Sequential):
           (noli): ReLU(...)
         )
         >>> input_shape = (None, 16)
-        >>> print(ub.repr2(self.output_shape_for(input_shape).hidden, nl=1))
+        >>> print(ub.urepr(self.output_shape_for(input_shape).hidden, nl=1))
         {
             'conv': (None, 64),
             'norm': (None, 64),
             'noli': (None, 64),
         }
-        >>> print(ub.repr2(self.receptive_field_for()))
+        >>> print(ub.urepr(self.receptive_field_for()))
         {
             'crop': np.array([0., 0.], dtype=np.float64),
             'shape': np.array([1., 1.], dtype=np.float64),

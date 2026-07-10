@@ -6,10 +6,15 @@
 #include "windowed_utils.h"
 #include "utilities_file.h"
 
-#include <vital/util/cpu_timer.h>
 #include <vital/algo/algorithm.txx>
+
+#include <vital/util/cpu_timer.h>
 #include <vital/algo/image_io.h>
 #include <vital/types/image_container.h>
+#include <vital/types/detected_object.h>
+#include <vital/types/detected_object_set.h>
+#include <vital/types/detected_object_type.h>
+#include <vital/types/bounding_box.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -18,6 +23,13 @@
 #include <fstream>
 #include <iomanip>
 #include <cstdlib>
+#include <cstdint>
+#include <cctype>
+#include <thread>
+#include <mutex>
+#include <random>
+#include <algorithm>
+#include <vector>
 
 namespace viame {
 
@@ -28,6 +40,10 @@ namespace kv = kwiver::vital;
 #else
   const std::string div = "/";
 #endif
+
+
+
+
 
 const std::string windowed_trainer::m_chip_subdirectory = "cached_chips";
 
@@ -71,7 +87,9 @@ windowed_trainer
   if( !c_skip_format )
   {
     // Delete and reset folder contents
-    if( kwiversys::SystemTools::FileExists( c_train_directory ) &&
+    // Delete and reset folder contents, unless reusing a prior chip cache
+    if( !c_reuse_cache &&
+        kwiversys::SystemTools::FileExists( c_train_directory ) &&
         kwiversys::SystemTools::FileIsDirectory( c_train_directory ) )
     {
       kwiversys::SystemTools::RemoveADirectory( c_train_directory );
@@ -184,7 +202,7 @@ windowed_trainer
   else
   {
     m_trainer->add_data_from_disk(
-      object_labels,
+      labels_without_ignored( object_labels ),
       filtered_train_names, filtered_train_truth,
       filtered_test_names, filtered_test_truth );
   }
@@ -215,33 +233,38 @@ windowed_trainer
     for( unsigned i = 0; i < train_images.size(); ++i )
     {
       kv::image image = train_images[i]->get_image();
+      std::mt19937 rng( static_cast< uint64_t >( i ) * 2654435761ull + 1ull );
 
       if( c_random_validation > 0.0 &&
           static_cast< double >( rand() ) / RAND_MAX <= c_random_validation )
       {
         format_image_from_memory(
           image, train_groundtruth[i], m_settings.mode,
-          filtered_test_names, filtered_test_truth );
+          filtered_test_names, filtered_test_truth,
+          "mem_test_" + std::to_string( i ), rng );
       }
       else
       {
         format_image_from_memory(
           image, train_groundtruth[i], m_settings.mode,
-          filtered_train_names, filtered_train_truth );
+          filtered_train_names, filtered_train_truth,
+          "mem_train_" + std::to_string( i ), rng );
       }
     }
     for( unsigned i = 0; i < test_images.size(); ++i )
     {
       kv::image image = test_images[i]->get_image();
+      std::mt19937 rng( static_cast< uint64_t >( i ) * 2654435761ull + 7ull );
 
       format_image_from_memory(
         image, test_groundtruth[i], m_settings.mode,
-        filtered_test_names, filtered_test_truth );
+        filtered_test_names, filtered_test_truth,
+        "mem_test2_" + std::to_string( i ), rng );
     }
   }
 
   m_trainer->add_data_from_disk(
-    object_labels,
+    labels_without_ignored( object_labels ),
     filtered_train_names, filtered_train_truth,
     filtered_test_names, filtered_test_truth );
 }
@@ -333,111 +356,190 @@ windowed_trainer
     }
   }
 
-  for( unsigned fid = 0; fid < image_names.size(); ++fid )
+  const unsigned n = static_cast< unsigned >( image_names.size() );
+
+  // Per-frame buffers, merged in frame order for thread independence
+  std::vector< std::vector< std::string > > frame_names( n );
+  std::vector< std::vector< kv::detected_object_set_sptr > > frame_truth( n );
+
+  unsigned num_threads = ( c_chip_threads > 0 )
+    ? static_cast< unsigned >( c_chip_threads )
+    : std::thread::hardware_concurrency();
+
+  if( num_threads == 0 )
   {
-    if( negative_ds_factor > 0.0 &&
-        ( !groundtruth[fid] || groundtruth[fid]->empty() ) &&
-        static_cast< double >( rand() ) / RAND_MAX > negative_ds_factor )
+    num_threads = 1;
+  }
+  if( num_threads > n )
+  {
+    num_threads = ( n > 0 ? n : 1 );
+  }
+
+  auto worker = [&]( unsigned tid )
+  {
+    for( unsigned fid = tid; fid < n; fid += num_threads )
     {
-      continue;
+      process_one_frame( fid, image_names, groundtruth, negative_ds_factor,
+        frame_names[fid], frame_truth[fid] );
     }
+  };
 
-    const std::string image_fn = image_names[fid];
-
-    if( m_settings.mode == DISABLED && !c_always_write_image && !c_ensure_standard )
+  if( num_threads <= 1 )
+  {
+    worker( 0 );
+  }
+  else
+  {
+    std::vector< std::thread > pool;
+    pool.reserve( num_threads );
+    for( unsigned t = 0; t < num_threads; ++t )
     {
-      formatted_names.push_back( image_fn );
-      formatted_truth.push_back( groundtruth[fid] );
-      continue;
+      pool.emplace_back( worker, t );
     }
-
-    // Scale and break up image according to settings
-    kv::image_container_sptr vital_image;
-    kv::bounding_box_d image_dims;
-    kv::image original_image;
-    kv::detected_object_set_sptr filtered_truth;
-
-    rescale_option format_mode = m_settings.mode;
-    std::string ext = image_fn.substr( image_fn.find_last_of( "." ) + 1 );
-
-    try
+    for( auto& th : pool )
     {
-      LOG_INFO( m_logger, "Loading image: " << image_fn );
-
-      vital_image = m_image_io->load( image_fn );
-      original_image = vital_image->get_image();
-
-      image_dims = kv::bounding_box_d( 0, 0,
-        original_image.width(), original_image.height() );
+      th.join();
     }
-    catch( const kv::vital_exception& e )
+  }
+
+  for( unsigned fid = 0; fid < n; ++fid )
+  {
+    for( unsigned k = 0; k < frame_names[fid].size(); ++k )
     {
-      LOG_ERROR( m_logger, "Caught exception reading image: " << e.what() );
-      return;
+      formatted_names.push_back( frame_names[fid][k] );
+      formatted_truth.push_back( frame_truth[fid][k] );
     }
+  }
+}
 
-    const int img_width = static_cast< int >( original_image.width() );
-    const int img_height = static_cast< int >( original_image.height() );
+void
+windowed_trainer
+::process_one_frame(
+  unsigned fid,
+  const std::vector< std::string >& image_names,
+  const std::vector< kv::detected_object_set_sptr >& groundtruth,
+  double negative_ds_factor,
+  std::vector< std::string >& names,
+  std::vector< kv::detected_object_set_sptr >& truth )
+{
+  const std::string image_fn = image_names[fid];
+  const std::string frame_tag = frame_tag_for( fid, image_fn );
 
-    // Early exit don't need to read all images every iteration
-    if( format_mode == ADAPTIVE )
+  // Reuse cached frame if its manifest is present
+  if( c_reuse_cache && load_manifest( frame_tag, names, truth ) )
+  {
+    return;
+  }
+
+  // Deterministic per-frame RNG: reproducible across runs, thread-safe
+  std::mt19937 rng( static_cast< uint64_t >( fid ) * 2654435761ull + 11ull );
+  std::uniform_real_distribution< double > unif( 0.0, 1.0 );
+
+  if( negative_ds_factor > 0.0 &&
+      ( !groundtruth[fid] || groundtruth[fid]->empty() ) &&
+      unif( rng ) > negative_ds_factor )
+  {
+    return;
+  }
+
+  if( m_settings.mode == DISABLED && !c_always_write_image && !c_ensure_standard )
+  {
+    names.push_back( image_fn );
+    truth.push_back( groundtruth[fid] );
+    write_manifest( frame_tag, names, truth );
+    return;
+  }
+
+  // Scale and break up image according to settings
+  kv::image_container_sptr vital_image;
+  kv::bounding_box_d image_dims;
+  kv::image original_image;
+  kv::detected_object_set_sptr filtered_truth;
+
+  rescale_option format_mode = m_settings.mode;
+  std::string ext = image_fn.substr( image_fn.find_last_of( "." ) + 1 );
+
+  try
+  {
+    LOG_INFO( m_logger, "Loading image: " << image_fn );
+
+    vital_image = m_image_io->load( image_fn );
+    original_image = vital_image->get_image();
+
+    image_dims = kv::bounding_box_d( 0, 0,
+      original_image.width(), original_image.height() );
+  }
+  catch( const kv::vital_exception& e )
+  {
+    LOG_ERROR( m_logger, "Caught exception reading image: " << e.what() );
+    return;
+  }
+
+  const int img_width = static_cast< int >( original_image.width() );
+  const int img_height = static_cast< int >( original_image.height() );
+
+  // Early exit don't need to read all images every iteration
+  if( format_mode == ADAPTIVE )
+  {
+    if( ( img_height * img_width ) < m_settings.chip_adaptive_thresh )
     {
-      if( ( img_height * img_width ) < m_settings.chip_adaptive_thresh )
+      if( c_always_write_image ||
+          ( m_settings.original_to_chip_size &&
+            ( img_width > m_settings.chip_width ||
+              img_height > m_settings.chip_height ) ) ||
+          ( c_ensure_standard &&
+            ( original_image.depth() != 3 ||
+             !( ext == "jpg" || ext == "png" || ext == "jpeg" ) ) ) )
       {
-        if( c_always_write_image ||
-            ( m_settings.original_to_chip_size &&
-              ( img_width > m_settings.chip_width ||
-                img_height > m_settings.chip_height ) ) ||
-            ( c_ensure_standard &&
-              ( original_image.depth() != 3 ||
-               !( ext == "jpg" || ext == "png" || ext == "jpeg" ) ) ) )
-        {
-          format_mode = MAINTAIN_AR;
-        }
-        else
-        {
-          if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
-          {
-            formatted_names.push_back( image_fn );
-            formatted_truth.push_back( filtered_truth );
-          }
-          continue;
-        }
+        format_mode = MAINTAIN_AR;
       }
       else
       {
-        format_mode = CHIP_AND_ORIGINAL;
+        if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
+        {
+          names.push_back( image_fn );
+          truth.push_back( filtered_truth );
+        }
+        write_manifest( frame_tag, names, truth );
+        return;
       }
     }
-    else if( format_mode == ORIGINAL_AND_RESIZED )
+    else
     {
-      if( img_height <= m_settings.chip_height && img_width <= m_settings.chip_width )
+      format_mode = CHIP_AND_ORIGINAL;
+    }
+  }
+  else if( format_mode == ORIGINAL_AND_RESIZED )
+  {
+    if( img_height <= m_settings.chip_height && img_width <= m_settings.chip_width )
+    {
+      if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
       {
-        if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
-        {
-          formatted_names.push_back( image_fn );
-          formatted_truth.push_back( filtered_truth );
-        }
-        continue;
+        names.push_back( image_fn );
+        truth.push_back( filtered_truth );
       }
-
-      format_mode = MAINTAIN_AR;
-
-      if( ( img_height * img_width ) >= m_settings.chip_adaptive_thresh )
-      {
-        if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
-        {
-          formatted_names.push_back( image_fn );
-          formatted_truth.push_back( filtered_truth );
-        }
-      }
+      write_manifest( frame_tag, names, truth );
+      return;
     }
 
-    // Format image and write new ones to disk
-    format_image_from_memory(
-      original_image, groundtruth[fid], format_mode,
-      formatted_names, formatted_truth );
+    format_mode = MAINTAIN_AR;
+
+    if( ( img_height * img_width ) >= m_settings.chip_adaptive_thresh )
+    {
+      if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
+      {
+        names.push_back( image_fn );
+        truth.push_back( filtered_truth );
+      }
+    }
   }
+
+  // Format image and write new ones to disk
+  format_image_from_memory(
+    original_image, groundtruth[fid], format_mode,
+    names, truth, frame_tag, rng );
+
+  write_manifest( frame_tag, names, truth );
 }
 
 void
@@ -447,8 +549,12 @@ windowed_trainer
   kv::detected_object_set_sptr groundtruth,
   const rescale_option format_method,
   std::vector< std::string >& formatted_names,
-  std::vector< kv::detected_object_set_sptr >& formatted_truth )
+  std::vector< kv::detected_object_set_sptr >& formatted_truth,
+  const std::string& frame_tag,
+  std::mt19937& rng )
 {
+  int chip_idx = 0;
+  std::uniform_real_distribution< double > unif( 0.0, 1.0 );
   kv::image resized_image;
   kv::detected_object_set_sptr scaled_groundtruth = groundtruth->clone();
   kv::detected_object_set_sptr filtered_truth;
@@ -478,7 +584,7 @@ windowed_trainer
 
     if( filter_detections_in_roi( scaled_groundtruth, roi_box, filtered_truth ) )
     {
-      std::string img_file = generate_filename();
+      std::string img_file = generate_filename( frame_tag, chip_idx++ );
       write_chip_to_disk( img_file, resized_image );
 
       formatted_names.push_back( img_file );
@@ -487,6 +593,9 @@ windowed_trainer
   }
   else
   {
+    int annotated_chips = 0;
+    std::vector< image_rect > background_rois;
+
     // Chip up and process scaled image
     for( int i = 0;
          i < resized_width - m_settings.chip_width + m_settings.chip_step_width;
@@ -509,8 +618,7 @@ windowed_trainer
       {
         // random downsampling
         if( c_chip_random_factor > 0.0 &&
-              static_cast< double >( rand() ) / static_cast<double>( RAND_MAX )
-                > c_chip_random_factor )
+              unif( rng ) > c_chip_random_factor )
         {
           continue;
         }
@@ -533,6 +641,49 @@ windowed_trainer
         }
 
         image_rect roi( i, j, cw, ch );
+
+        kv::bounding_box_d roi_box( i, j, i + m_settings.chip_width,
+          j + m_settings.chip_height );
+
+        bool overlapped = false;
+
+        if( filter_detections_in_roi( scaled_groundtruth, roi_box,
+              filtered_truth, &overlapped ) )
+        {
+          kv::image cropped_image = crop_image( resized_image, roi );
+
+          double scaled_crop_scale;
+          kv::image resized_crop = scale_image_maintaining_ar(
+            cropped_image, m_settings.chip_width, m_settings.chip_height,
+            m_settings.black_pad, scaled_crop_scale );
+
+          std::string img_file = generate_filename( frame_tag, chip_idx++ );
+          write_chip_to_disk( img_file, resized_crop );
+
+          formatted_names.push_back( img_file );
+          formatted_truth.push_back( filtered_truth );
+          ++annotated_chips;
+        }
+        else if( c_background_chip_ratio > 0.0 && !overlapped )
+        {
+          background_rois.push_back( roi );
+        }
+      }
+    }
+
+    // Sample background chips proportional to annotated chips
+    if( c_background_chip_ratio > 0.0 &&
+        annotated_chips > 0 && !background_rois.empty() )
+    {
+      int target = static_cast< int >(
+        c_background_chip_ratio * annotated_chips + 0.5 );
+      target = std::min( target, static_cast< int >( background_rois.size() ) );
+
+      std::shuffle( background_rois.begin(), background_rois.end(), rng );
+
+      for( int n = 0; n < target; ++n )
+      {
+        const image_rect& roi = background_rois[n];
         kv::image cropped_image = crop_image( resized_image, roi );
 
         double scaled_crop_scale;
@@ -540,17 +691,11 @@ windowed_trainer
           cropped_image, m_settings.chip_width, m_settings.chip_height,
           m_settings.black_pad, scaled_crop_scale );
 
-        kv::bounding_box_d roi_box( i, j, i + m_settings.chip_width,
-          j + m_settings.chip_height );
+        std::string img_file = generate_filename( frame_tag, chip_idx++ );
+        write_chip_to_disk( img_file, resized_crop );
 
-        if( filter_detections_in_roi( scaled_groundtruth, roi_box, filtered_truth ) )
-        {
-          std::string img_file = generate_filename();
-          write_chip_to_disk( img_file, resized_crop );
-
-          formatted_names.push_back( img_file );
-          formatted_truth.push_back( filtered_truth );
-        }
+        formatted_names.push_back( img_file );
+        formatted_truth.push_back( std::make_shared< kv::detected_object_set >() );
       }
     }
 
@@ -569,7 +714,7 @@ windowed_trainer
 
       if( filter_detections_in_roi( scaled_original_dets_ptr, roi_box, filtered_truth ) )
       {
-        std::string img_file = generate_filename();
+        std::string img_file = generate_filename( frame_tag, chip_idx++ );
         write_chip_to_disk( img_file, scaled_original );
 
         formatted_names.push_back( img_file );
@@ -585,11 +730,20 @@ windowed_trainer
 ::filter_detections_in_roi(
   kv::detected_object_set_sptr all_detections,
   kv::bounding_box_d region,
-  kv::detected_object_set_sptr& filtered_detections )
+  kv::detected_object_set_sptr& filtered_detections,
+  bool* overlapped )
 {
   auto ie = all_detections->cend();
 
   filtered_detections = std::make_shared< kv::detected_object_set >();
+
+  // Did any annotation (incl. hard negatives) land on this chip
+  bool had_overlap = false;
+
+  if( overlapped )
+  {
+    *overlapped = false;
+  }
 
   for( auto detection = all_detections->cbegin(); detection != ie; ++detection )
   {
@@ -607,6 +761,13 @@ windowed_trainer
         overlap.max_y() > overlap.min_y() &&
         overlap.area() / det_box.area() >= c_overlap_required )
     {
+      had_overlap = true;
+
+      if( overlapped )
+      {
+        *overlapped = true;
+      }
+
       std::string category;
 
       if( !(*detection)->type() )
@@ -623,6 +784,7 @@ windowed_trainer
       }
       else if( m_synthetic_labels )
       {
+        std::lock_guard< std::mutex > lock( m_category_mutex );
         if( m_category_map.find( category ) == m_category_map.end() )
         {
           m_category_map[ category ] = m_category_map.size() - 1;
@@ -658,6 +820,24 @@ windowed_trainer
       auto odet = (*detection)->clone();
       odet->set_bounding_box( bbox );
 
+      // Carry the segmentation polygon onto the chip: translate it into chip
+      // coordinates (matching the bbox) and clamp to the chip bounds so the
+      // rasterized mask stays inside the tile. clone() already copied the
+      // (already-scaled) polygon, so we only translate + clamp here.
+      auto poly = (*detection)->get_flattened_polygon();
+
+      if( !poly.empty() )
+      {
+        for( size_t pi = 0; pi + 1 < poly.size(); pi += 2 )
+        {
+          double px = poly[pi] - region.min_x();
+          double py = poly[pi + 1] - region.min_y();
+          poly[pi] = std::max( 0.0, std::min( px, region.width() ) );
+          poly[pi + 1] = std::max( 0.0, std::min( py, region.height() ) );
+        }
+        odet->set_flattened_polygon( poly );
+      }
+
       if( m_detect_small && det_box.area() < c_small_box_area )
       {
         if( c_small_action == "remove" )
@@ -679,24 +859,273 @@ windowed_trainer
     }
   }
 
+  // Drop only chips with no annotation at all (hard-negative chips kept)
+  if( c_chips_w_gt_only && filtered_detections->empty() && !had_overlap )
+  {
+    return false;
+  }
+
   return true;
 }
 
 
 std::string
 windowed_trainer
-::generate_filename( const int len )
+::generate_filename( const std::string& frame_tag, int chip_idx )
 {
-  static int sample_counter = 0;
-  sample_counter++;
-
   std::ostringstream ss;
-  ss << std::setw( len ) << std::setfill( '0' ) << sample_counter;
-  std::string s = ss.str();
+  ss << frame_tag << "_"
+     << std::setw( 5 ) << std::setfill( '0' ) << chip_idx;
 
   return c_train_directory + div +
          m_chip_subdirectory + div +
-         s + "." + c_chip_format;
+         ss.str() + "." + c_chip_format;
+}
+
+
+std::string
+windowed_trainer
+::frame_tag_for( unsigned fid, const std::string& image_fn )
+{
+  std::string base = kwiversys::SystemTools::GetFilenameName( image_fn );
+
+  for( auto& c : base )
+  {
+    if( !std::isalnum( static_cast< unsigned char >( c ) ) &&
+        c != '-' && c != '_' )
+    {
+      c = '_';
+    }
+  }
+
+  std::ostringstream ss;
+  ss << std::setw( 6 ) << std::setfill( '0' ) << fid << "_" << base;
+  return ss.str();
+}
+
+
+std::string
+windowed_trainer
+::manifest_path( const std::string& frame_tag )
+{
+  return c_train_directory + div +
+         m_chip_subdirectory + div +
+         frame_tag + ".manifest";
+}
+
+
+bool
+windowed_trainer
+::load_manifest(
+  const std::string& frame_tag,
+  std::vector< std::string >& names,
+  std::vector< kv::detected_object_set_sptr >& truth )
+{
+  const std::string mpath = manifest_path( frame_tag );
+
+  if( !kwiversys::SystemTools::FileExists( mpath ) )
+  {
+    return false;
+  }
+
+  std::ifstream ifs( mpath );
+
+  if( !ifs.good() )
+  {
+    return false;
+  }
+
+  std::vector< std::string > tmp_names;
+  std::vector< kv::detected_object_set_sptr > tmp_truth;
+
+  std::string line;
+  kv::detected_object_set_sptr cur;
+  int remaining = 0;
+
+  while( std::getline( ifs, line ) )
+  {
+    if( line.empty() )
+    {
+      continue;
+    }
+
+    std::istringstream ls( line );
+    std::string tag;
+    ls >> tag;
+
+    if( tag == "F" )
+    {
+      std::string fn;
+      int ndet = 0;
+      ls >> fn >> ndet;
+
+      // Invalidate cache if a referenced file is gone
+      if( !kwiversys::SystemTools::FileExists( fn ) )
+      {
+        return false;
+      }
+
+      cur = std::make_shared< kv::detected_object_set >();
+      tmp_names.push_back( fn );
+      tmp_truth.push_back( cur );
+      remaining = ndet;
+    }
+    else if( tag == "D" && cur && remaining > 0 )
+    {
+      double minx, miny, maxx, maxy, score;
+      std::string cat;
+      ls >> cat >> minx >> miny >> maxx >> maxy >> score;
+
+      // Restore spaces encoded as '\x01'
+      for( auto& c : cat )
+      {
+        if( c == '\x01' )
+        {
+          c = ' ';
+        }
+      }
+
+      auto dot = std::make_shared< kv::detected_object_type >( cat, score );
+      auto dobj = std::make_shared< kv::detected_object >(
+        kv::bounding_box_d( minx, miny, maxx, maxy ), score, dot );
+
+      // Optional trailing polygon: P <npts> x1 y1 x2 y2 ...
+      std::string ptag;
+      if( ls >> ptag && ptag == "P" )
+      {
+        int npts = 0;
+        ls >> npts;
+
+        std::vector< double > poly;
+        poly.reserve( npts * 2 );
+
+        for( int pk = 0; pk < npts * 2; ++pk )
+        {
+          double v;
+          if( ls >> v )
+          {
+            poly.push_back( v );
+          }
+        }
+
+        if( !poly.empty() )
+        {
+          dobj->set_flattened_polygon( poly );
+        }
+      }
+
+      cur->add( dobj );
+      --remaining;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  for( size_t i = 0; i < tmp_names.size(); ++i )
+  {
+    names.push_back( tmp_names[i] );
+    truth.push_back( tmp_truth[i] );
+  }
+
+  return true;
+}
+
+
+kv::category_hierarchy_sptr
+windowed_trainer
+::labels_without_ignored( kv::category_hierarchy_sptr in )
+{
+  if( !in || c_ignore_category.empty() || !in->has_class_name( c_ignore_category ) )
+  {
+    return in;
+  }
+
+  // Drop the hard-negative class from the model's output labels
+  auto out = std::make_shared< kv::category_hierarchy >();
+
+  for( const auto& name : in->all_class_names() )
+  {
+    if( name != c_ignore_category )
+    {
+      out->add_class( name );
+    }
+  }
+
+  return out;
+}
+
+
+void
+windowed_trainer
+::write_manifest(
+  const std::string& frame_tag,
+  const std::vector< std::string >& names,
+  const std::vector< kv::detected_object_set_sptr >& truth )
+{
+  std::ofstream ofs( manifest_path( frame_tag ) );
+
+  if( !ofs.good() )
+  {
+    return;
+  }
+
+  for( size_t i = 0; i < names.size(); ++i )
+  {
+    kv::detected_object_set_sptr dos = truth[i];
+    const size_t ndet = ( dos ? dos->size() : 0 );
+
+    ofs << "F " << names[i] << " " << ndet << "\n";
+
+    if( !dos )
+    {
+      continue;
+    }
+
+    for( auto det = dos->cbegin(); det != dos->cend(); ++det )
+    {
+      kv::bounding_box_d bb = (*det)->bounding_box();
+      double score = (*det)->confidence();
+      std::string cat;
+
+      if( (*det)->type() )
+      {
+        (*det)->type()->get_most_likely( cat );
+      }
+
+      // Encode spaces as '\x01' for whitespace-tokenized read-back
+      for( auto& c : cat )
+      {
+        if( std::isspace( static_cast< unsigned char >( c ) ) )
+        {
+          c = '\x01';
+        }
+      }
+
+      if( cat.empty() )
+      {
+        cat = "_";
+      }
+
+      // Append the segmentation polygon as: P <npts> x1 y1 x2 y2 ...
+      // (kept on the same line; backward compatible with P-less manifests).
+      auto poly = (*det)->get_flattened_polygon();
+
+      ofs << "D " << cat << " "
+          << bb.min_x() << " " << bb.min_y() << " "
+          << bb.max_x() << " " << bb.max_y() << " "
+          << score
+          << " P " << ( poly.size() / 2 );
+
+      for( double v : poly )
+      {
+        ofs << " " << v;
+      }
+
+      ofs << "\n";
+    }
+  }
 }
 
 
