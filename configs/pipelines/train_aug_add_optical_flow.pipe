@@ -11,19 +11,14 @@
 config _pipeline:_edge
   :capacity                                    10
 
-# =============================================================================
-process in_adapt
- :: input_adapter
+config _scheduler
+  :type                                        pythread_per_process
 
-process out_adapt
- :: output_adapter
+# ============================= FRAME SOURCE =================================
+# video_input; reader switches between vidl_ffmpeg (video) and image_list
+# (image sequence) via -s input:video_reader:type at run time.
 
-process image_reader
- :: image_file_reader
- :image_reader:type                            vxl
-
-connect from in_adapt.input_file_name
-        to   image_reader.image_file_name
+include common_default_input_with_downsampler.pipe
 
 # =============================================================================
 
@@ -36,7 +31,7 @@ process ensure_color
     :force_three_channel                       true
   endblock
 
-connect from image_reader.image
+connect from downsampler.output_1
         to   ensure_color.image
 
 process motion_filter
@@ -67,15 +62,11 @@ connect from motion_filter.image
 
 process image_writer
  :: image_writer
+ :file_name_template                            frame%06d.png
  :image_writer:type                             vxl
  :image_writer:vxl:split_channels               false
 
-connect from in_adapt.output_file_name
-        to   image_writer.image_file_name
 connect from image_merger.image
         to   image_writer.image
-
-connect from image_writer.success_flag
-        to   out_adapt.success_flag
 
 # -- end of file --
