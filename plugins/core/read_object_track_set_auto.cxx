@@ -9,6 +9,8 @@
 
 #include "read_object_track_set_auto.h"
 
+#include <vital/algo/algorithm.txx>
+
 #include "read_object_track_set_dive.h"
 #include "read_object_track_set_viame_csv.h"
 #include "utilities_file.h"
@@ -112,6 +114,7 @@ public:
 
   // The underlying reader we delegate to
   kwiver::vital::algo::read_object_track_set_sptr m_reader;
+  kwiver::vital::config_block_sptr m_config;
 };
 
 
@@ -203,6 +206,15 @@ read_object_track_set_auto
 
 
 // -----------------------------------------------------------------------------------
+void
+read_object_track_set_auto
+::set_configuration_internal( kwiver::vital::config_block_sptr config )
+{
+  d->m_config = config;
+}
+
+
+// -----------------------------------------------------------------------------------
 bool
 read_object_track_set_auto
 ::check_configuration( kwiver::vital::config_block_sptr config ) const
@@ -227,18 +239,34 @@ read_object_track_set_auto
   // Create the appropriate reader
   if( d->m_detected_format == "dive" )
   {
-    d->m_reader = std::make_shared< read_object_track_set_dive >();
+    auto dive_reader = std::make_shared< read_object_track_set_dive >();
+
+    // Configure DIVE reader if we have config
+    if( d->m_config )
+    {
+      auto dive_config = dive_reader->get_configuration();
+
+      if( d->m_config->has_value( "dive:batch_load" ) )
+      {
+        dive_config->set_value( "batch_load",
+          d->m_config->get_value< std::string >( "dive:batch_load" ) );
+      }
+
+      dive_reader->set_configuration( dive_config );
+    }
+
+    d->m_reader = dive_reader;
   }
   else if( d->m_detected_format == "coco" )
   {
     // COCO reader is in Python, use algorithm factory
-    kwiver::vital::algo::read_object_track_set::set_nested_algo_configuration(
+    kwiver::vital::set_nested_algo_configuration< kwiver::vital::algo::read_object_track_set >(
       "reader", d->m_config, d->m_reader );
 
     if( !d->m_reader )
     {
       // Try to create via factory
-      kwiver::vital::algo::read_object_track_set::get_nested_algo_configuration(
+      kwiver::vital::get_nested_algo_configuration< kwiver::vital::algo::read_object_track_set >(
         "reader", d->m_config, d->m_reader );
 
       if( d->m_config )
@@ -246,7 +274,7 @@ read_object_track_set_auto
         d->m_config->set_value( "reader:type", "coco" );
       }
 
-      kwiver::vital::algo::read_object_track_set::set_nested_algo_configuration(
+      kwiver::vital::set_nested_algo_configuration< kwiver::vital::algo::read_object_track_set >(
         "reader", d->m_config, d->m_reader );
     }
 

@@ -59,6 +59,8 @@ public:
 
 private:
   void initialize() override;
+  void set_configuration_internal(
+    kwiver::vital::config_block_sptr config ) override;
 
   class priv;
   KWIVER_UNIQUE_PTR( priv, d );

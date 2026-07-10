@@ -487,7 +487,8 @@ run_staged_pipeline(
     try
     {
       applet_factory app_fact;
-      kwiver::tools::kwiver_applet_sptr applet( app_fact.create( "runner" ) );
+      kwiver::tools::kwiver_applet_sptr applet(
+        app_fact.create( "runner", kwiver::vital::config_block::empty_config() ) );
 
       auto stage_context =
         std::make_shared< kwiver::tools::applet_context >();
