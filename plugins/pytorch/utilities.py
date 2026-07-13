@@ -699,13 +699,20 @@ def supervision_to_kwiver_detections(detections, class_names):
     """
     Convert supervision.Detections to kwiver DetectedObjectSet.
 
+    Instance masks, when the model is a segmentation variant and supervision
+    populates detections.mask, are attached to each detection cropped to its
+    bounding box, which is the convention kwiver expects.
+
     Args:
         detections: supervision.Detections object with xyxy, confidence, class_id
+            and, for segmentation models, an (N, H, W) boolean mask array
         class_names: List of class names indexed by class_id
 
     Returns:
         kwiver.vital.types.DetectedObjectSet: Converted detection set
     """
+    import numpy as np
+
     try:
         from kwiver.vital.types import BoundingBoxD
     except ImportError:
@@ -714,8 +721,12 @@ def supervision_to_kwiver_detections(detections, class_names):
     from kwiver.vital.types import DetectedObjectSet
     from kwiver.vital.types import DetectedObject
     from kwiver.vital.types import DetectedObjectType
+    from kwiver.vital.types import Image
+    from kwiver.vital.types import ImageContainer
 
     output = DetectedObjectSet()
+
+    masks = getattr(detections, 'mask', None)
 
     for i in range(len(detections.xyxy)):
         box = detections.xyxy[i]
@@ -734,6 +745,23 @@ def supervision_to_kwiver_detections(detections, class_names):
 
         detected_object_type = DetectedObjectType(class_name, float(score))
         detected_object = DetectedObject(bbox, float(score), detected_object_type)
+
+        if masks is not None and i < len(masks):
+            mask = np.asarray(masks[i])
+
+            # Clamp the box to the mask so the crop is in-bounds, and keep it
+            # non-empty: a degenerate crop would leave the detection maskless.
+            height, width = mask.shape[:2]
+            x1 = min(max(int(np.floor(box[0])), 0), max(width - 1, 0))
+            y1 = min(max(int(np.floor(box[1])), 0), max(height - 1, 0))
+            x2 = min(max(int(np.ceil(box[2])) + 1, x1 + 1), width)
+            y2 = min(max(int(np.ceil(box[3])) + 1, y1 + 1), height)
+
+            mask_crop = np.ascontiguousarray(
+                mask[y1:y2, x1:x2].astype(np.uint8))
+
+            if mask_crop.size:
+                detected_object.mask = ImageContainer(Image(mask_crop))
 
         output.add(detected_object)
 
