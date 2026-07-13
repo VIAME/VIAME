@@ -1,0 +1,7 @@
+Wheel-Version: 1.0
+Generator: fletch
+Root-Is-Purelib: false
+Tag: cp38-cp38-linux_x86_64
+Tag: cp39-cp39-linux_x86_64
+Tag: cp310-cp310-linux_x86_64
+Tag: cp311-cp311-linux_x86_64

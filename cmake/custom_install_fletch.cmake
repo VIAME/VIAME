@@ -63,9 +63,15 @@ if( PYTHON_VERSION_STRING )
   # This prevents transitive dependencies (e.g. mmengine pulled in by mmdeploy) from
   # installing a pip opencv-python package that overwrites fletch's cv2 Python wrapper
   # with a version that doesn't match the fletch-built cv2 binary.
+  #
+  # opencv-python-headless is a distinct distribution name, so satisfying opencv-python
+  # alone does not stop pip from fetching it: albumentations and albucore (RF-DETR) both
+  # require the headless build specifically. Register fletch's cv2 under that name too,
+  # otherwise those pull a second, conflicting OpenCV into the same site-packages.
   if( VIAME_ENABLE_OPENCV )
     set( PATCH_DIR ${VIAME_CMAKE_DIR}/../packages/patches/fletch )
     file( COPY ${PATCH_DIR}/opencv_python-4.9.0.80.dist-info DESTINATION ${OUTPUT_PYTHON_DIR} )
+    file( COPY ${PATCH_DIR}/opencv_python_headless-4.9.0.80.dist-info DESTINATION ${OUTPUT_PYTHON_DIR} )
   endif()
 
   # Patch cv2/__init__.py to catch AttributeError in addition to ImportError when
