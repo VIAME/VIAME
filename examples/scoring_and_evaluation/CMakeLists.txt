@@ -6,6 +6,22 @@ set( example_files
   detections.csv
   groundtruth.csv )
 
+# The viame_score_results tool, which computes detection, MOT, HOTA and
+# KWANT-style metrics in one pass, is built alongside the OpenCV plugins
+if( VIAME_ENABLE_OPENCV )
+  if( WIN32 )
+    set( example_files
+         ${example_files}
+         detection_and_track_metrics_across_all.bat
+         detection_and_track_metrics_per_category.bat )
+  else()
+    set( example_files
+         ${example_files}
+         detection_and_track_metrics_across_all.sh
+         detection_and_track_metrics_per_category.sh )
+  endif()
+endif()
+
 if( VIAME_ENABLE_PYTHON )
   if( WIN32 )
     set( example_files

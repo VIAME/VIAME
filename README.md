@@ -226,7 +226,6 @@ Source Code Layout
    ├── packages            # External projects used by the system
    │   ├── kwiver          # Processing backend infastructure
    │   ├── fletch          # Dependency builder for things which don't change often
-   │   ├── kwant           # Scoring and detector evaluation tools
    │   ├── vivia           # Baseline desktop GUIs (v1.0)
    │   └── ...             # Assorted other packages (typically for algorithms)
    ├── plugins             # Integrated algorithms or wrappers around external projects

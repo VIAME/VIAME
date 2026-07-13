@@ -420,27 +420,15 @@ if( VIAME_ENABLE_PYTHON )
     scoring_and_evaluation
   )
   add_example_script_test(
-    viame_examples:detection_rocs_across_all
+    viame_examples:detection_and_track_metrics_across_all
     test_scoring_and_evaluation.py
-    TestDetectionRocsAcrossAll
+    TestDetectionAndTrackMetricsAcrossAll
     scoring_and_evaluation
   )
   add_example_script_test(
-    viame_examples:detection_rocs_per_category
+    viame_examples:detection_and_track_metrics_per_category
     test_scoring_and_evaluation.py
-    TestDetectionRocsPerCategory
-    scoring_and_evaluation
-  )
-  add_example_script_test(
-    viame_examples:track_kwant_stats_across_all
-    test_scoring_and_evaluation.py
-    TestTrackKwantStatsAcrossAll
-    scoring_and_evaluation
-  )
-  add_example_script_test(
-    viame_examples:track_kwant_stats_per_category
-    test_scoring_and_evaluation.py
-    TestTrackKwantStatsPerCategory
+    TestDetectionAndTrackMetricsPerCategory
     scoring_and_evaluation
   )
   add_example_script_test(
