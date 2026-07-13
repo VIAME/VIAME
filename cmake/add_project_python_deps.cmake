@@ -242,8 +242,11 @@ if( VIAME_ENABLE_PYTORCH-LEARN OR
 endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
+  # albumentations builds RF-DETR's resize to the configured training resolution, not just its
+  # augmentations; without it the transform pipeline silently yields zero transforms and the model
+  # trains on natively-sized chips that inference never reproduces.
   list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "supervision" "defusedxml>=0.7.1" "pyDeprecate>=0.9,<0.10"
-    "faster-coco-eval>=1.6.0" )
+    "faster-coco-eval>=1.6.0" "albumentations>=1.4.24,<3.0.0" )
 endif()
 
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------
