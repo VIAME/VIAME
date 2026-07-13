@@ -18,9 +18,6 @@ import tempfile
 import subprocess
 import shutil
 import logging
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 from glob import glob
 from pathlib import Path
@@ -39,9 +36,6 @@ from kwiver.vital.types import (
 
 temp_dir = tempfile.mkdtemp( prefix='viame-score-tmp' )
 atexit.register( lambda: shutil.rmtree( temp_dir ) )
-
-linestyles = ['-', '--', '-.', ':']
-linecolors = ['#25233d', '#161891', '#316f6a', '#662e43']
 
 hierarchy=None
 default_label="fish"
@@ -416,24 +410,52 @@ def filter_detections( args, dets,
   return filter_kwiver_detections( dets,
     target_class, ignore_classes, top_class, threshold )
 
-def convert_and_filter_to_csv( args, input_file, output_file ):
+def read_sets_by_image( csv_file ):
+  """Map each image name in a VIAME CSV to its DetectedObjectSet.
 
-  input_reader =  DetectedObjectSetInput.create( args.input_format )
-  reader_conf = input_reader.get_configuration()
-  input_reader.set_configuration( reader_conf )
-  input_reader.open( input_file )
+  The kwiver python bindings do not expose a read-by-path call, and read_set()
+  reports no image name: it simply yields one set per frame index, in order,
+  including empty sets for frame indices that carry no annotations. So read the
+  sets in order and pair them with the frame index to image name mapping taken
+  from the file itself.
+  """
+  frame_to_image = dict()
 
-  csv_reader =  DetectedObjectSetOutput.create( "viame_csv" )
-  writer_conf = csv_reader.get_configuration()
-  csv_reader.set_configuration( writer_conf )
-  csv_reader.open( handle )
+  with open( csv_file, 'r' ) as fin:
+    for row in csv.reader( fin ):
+      if not row or row[0].startswith( '#' ) or len( row ) < 3:
+        continue
+      try:
+        frame_to_image.setdefault( int( row[2] ), row[1] )
+      except ValueError:
+        continue
 
-  for img in image_list:
-    dets = input_reader.read_set_by_path( img )
-    dets = filter_detections( args, dets )
-    csv_reader.write_set( dets, img )
+  reader = DetectedObjectSetInput.create( "viame_csv" )
+  reader.set_configuration( reader.get_configuration() )
+  reader.open( csv_file )
 
-  csv_reader.complete()
+  sets = dict()
+  frame_id = 0
+
+  while True:
+    output = reader.read_set()
+    if output is None or output[0] is None:
+      break
+
+    image = frame_to_image.get( frame_id )
+    if image is not None:
+      sets[ image ] = output[0]
+
+    frame_id = frame_id + 1
+
+  return sets
+
+def get_set_for_image( sets, image ):
+  """Look up an image's detections, defaulting to an empty set."""
+  dets = sets.get( image )
+  if dets is None:
+    dets = DetectedObjectSet()
+  return dets
 
 # ---------------- KWCOCO-SPECIFIC UTILITY FUNCTIONS -------------------
 
@@ -446,10 +468,7 @@ def convert_to_kwcoco( args, csv_file, image_list,
                                    text=True,
                                    dir=temp_dir )
 
-  csv_reader =  DetectedObjectSetInput.create( "viame_csv" )
-  reader_conf = csv_reader.get_configuration()
-  csv_reader.set_configuration( reader_conf )
-  csv_reader.open( csv_file )
+  input_sets = read_sets_by_image( csv_file )
 
   coco_writer =  DetectedObjectSetOutput.create( "coco" )
   writer_conf = coco_writer.get_configuration()
@@ -458,19 +477,41 @@ def convert_to_kwcoco( args, csv_file, image_list,
   coco_writer.open( handle )
 
   for img in image_list:
-    dets = csv_reader.read_set_by_path( img )
+    dets = get_set_for_image( input_sets, img )
     dets = filter_detections( args, dets, target_class, top_class=top_class )
     coco_writer.write_set( dets, img )
   coco_writer.complete()
   return fd, handle
 
-def generate_metrics_csv_kwcoco( input_file, output_file ):
+def find_kwcoco_metrics_json( output_dir ):
+  """Locate the metrics.json kwcoco eval wrote.
+
+  Newer kwcoco versions nest their outputs in a subdirectory named after the
+  evaluation settings instead of writing metrics.json at the top of the output
+  directory, so search for it rather than assuming a fixed location.
+  """
+  direct = os.path.join( output_dir, 'metrics.json' )
+  if os.path.exists( direct ):
+    return direct
+
+  matches = sorted( glob( os.path.join( output_dir, '**', 'metrics.json' ),
+                          recursive=True ) )
+  return matches[0] if matches else None
+
+def generate_metrics_csv_kwcoco( output_dir, output_file ):
+  input_file = find_kwcoco_metrics_json( output_dir )
+
+  if not input_file:
+    print( os.linesep + "Warning: kwcoco eval wrote no metrics.json under "
+           + output_dir + ", skipping " + output_file )
+    return None
+
   print( os.linesep + "write " + output_file  )
 
   fin = open( input_file )
 
   if not fin:
-    return
+    return None
 
   output = []
   metrics = json.load( fin )
@@ -539,19 +580,19 @@ def generate_det_prc_conf_directory( args, target_class=None ):
   print( "Processing identified truth/computed matches" )
 
   for computed, truth in aligned_files.items():
-    truth_reader =  DetectedObjectSetInput.create( "viame_csv" )
-    reader_conf = truth_reader.get_configuration()
-    truth_reader.set_configuration( reader_conf )
-    truth_reader.open( truth )
-
-    computed_reader =  DetectedObjectSetInput.create( "viame_csv" )
-    reader_conf = computed_reader.get_configuration()
-    computed_reader.set_configuration( reader_conf )
-    computed_reader.open( computed )
-
     joint_images, mismatch, fc = get_file_list_from_viame_csvs( computed, truth )
 
     if mismatch:
+      # Image names do not line up between the two files, so fall back to
+      # pairing them positionally under a synthetic name
+      truth_reader =  DetectedObjectSetInput.create( "viame_csv" )
+      truth_reader.set_configuration( truth_reader.get_configuration() )
+      truth_reader.open( truth )
+
+      computed_reader =  DetectedObjectSetInput.create( "viame_csv" )
+      computed_reader.set_configuration( computed_reader.get_configuration() )
+      computed_reader.open( computed )
+
       syn_base_name = os.path.splitext( os.path.basename( computed ) )[0]
       for i in range( 0, fc+1 ):
         syn_file_name = syn_base_name + "-" + str( i ).zfill( 6 )
@@ -568,12 +609,14 @@ def generate_det_prc_conf_directory( args, target_class=None ):
         truth_writer.write_set( truth_dets, syn_file_name )
         computed_writer.write_set( computed_dets, syn_file_name )
     else:
+      truth_sets = read_sets_by_image( truth )
+      computed_sets = read_sets_by_image( computed )
+
       for i in joint_images:
-        truth_dets = truth_reader.read_set_by_path( i )
-        computed_dets = computed_reader.read_set_by_path( i )
-        truth_dets = filter_detections( args, truth_dets,
-          target_class=target_class )
-        computed_dets = filter_detections( args, computed_dets,
+        truth_dets = filter_detections( args,
+          get_set_for_image( truth_sets, i ), target_class=target_class )
+        computed_dets = filter_detections( args,
+          get_set_for_image( computed_sets, i ),
           target_class=target_class, top_class=True )
         truth_writer.write_set( truth_dets, i )
         computed_writer.write_set( computed_dets, i )
@@ -597,9 +640,8 @@ def generate_det_prc_conf_directory( args, target_class=None ):
 
   subprocess.call( cmd )
 
-  input_metrics_json = os.path.join( output_dir, 'metrics.json' )
   output_csv_file = os.path.join( output_dir, "metrics.csv" )
-  return generate_metrics_csv_kwcoco( input_metrics_json, output_csv_file )
+  return generate_metrics_csv_kwcoco( output_dir, output_csv_file )
 
 def generate_det_prc_conf_single( args, target_class=None ):
 
@@ -626,9 +668,8 @@ def generate_det_prc_conf_single( args, target_class=None ):
   cmd = cmd + [  '--out_dpath', output_dir ]
   subprocess.call( cmd )
 
-  input_metrics_json = os.path.join( output_dir, 'metrics.json' )
   output_csv_file = os.path.join( output_dir, "metrics.csv" )
-  return generate_metrics_csv_kwcoco( input_metrics_json, output_csv_file )
+  return generate_metrics_csv_kwcoco( output_dir, output_csv_file )
 
 def generate_det_prc_conf( args, classes ):
 
@@ -641,195 +682,23 @@ def generate_det_prc_conf( args, classes ):
 
   for target_class in classes:
     if is_dir_input:
-      scores[ target_class ] = generate_det_prc_conf_directory( args, target_class )
+      score = generate_det_prc_conf_directory( args, target_class )
     else:
-      scores[ target_class ] = generate_det_prc_conf_single( args, target_class )
+      score = generate_det_prc_conf_single( args, target_class )
+
+    # Absent when kwcoco eval writes no metrics.json for the class
+    if score is not None:
+      scores[ target_class ] = score
 
   print( os.linesep + "Conf matrix and PRC plot generation is complete" + os.linesep )
 
-  if len( classes ) > 1:
+  if len( classes ) > 1 and scores:
     net_score_file = os.path.join( args.det_prc_conf, "class_metrics.csv" )
     create_net_csv( net_score_file, scores,
       "# class,ap,auc,samples" )
 
   if os.name == "nt":
     print( "On windows, ignore the following temp file error" + os.linesep )
-
-# --------------------- KWANT TRACK STATISTICS -------------------------
-
-def get_kwant_cmd():
-  if os.name == 'nt':
-    return ['score_tracks.exe','--hadwav']
-  else:
-    return ['score_tracks','--hadwav']
-
-def generate_trk_kwant_stats( args, classes ):
-
-  # Error checking
-  if os.path.isdir( args.computed ) or os.path.isdir( args.truth ):
-    print_and_exit( "KWANT tracking stats currently supports only input files, not folders" )
-
-  # Generate roc files
-  base, ext = os.path.splitext( args.trk_kwant_stats )
-  input_format = args.input_format if args.input_format != "viame_csv" else "noaa-csv"
-
-  base_cmd = get_kwant_cmd()
-  base_cmd += [ '--computed-format', input_format, '--truth-format', input_format ]
-  base_cmd += [ '--fn2ts' ]
-
-  for cls in classes:
-    stat_file = base + "." + format_class_fn( cls ) + ext
-    _, filtered_computed = filter_viame_csv_tmp( args.computed, cls, args.threshold )
-    _, filtered_truth = filter_viame_csv_tmp( args.truth, cls, args.threshold )
-    cmd = base_cmd + [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
-    with open( stat_file, 'w' ) as fout:
-      if not args.use_cache:
-        subprocess.call( cmd, stdout=fout, stderr=fout )
-
-  if len( classes ) != 1:
-    cmd = base_cmd + [ '--computed-tracks', args.computed, '--truth-tracks', args.truth ]
-    with open( args.trk_kwant_stats, 'w' ) as fout:
-      if not args.use_cache:
-        subprocess.call( cmd, stdout=fout, stderr=fout )
-
-# -------------------------- DETECTION ROCS ----------------------------
-
-def get_roc_cmd():
-  if os.name == 'nt':
-    return ['score_events.exe']
-  else:
-    return ['score_events']
-
-def generate_det_rocs( args, classes ):
-
-  # Generate roc files
-  base, ext = os.path.splitext( args.det_roc )
-
-  roc_files = []
-
-  input_format = args.input_format if args.input_format != "viame_csv" else "noaa-csv"
-
-  base_cmd = get_roc_cmd()
-  base_cmd += [ '--computed-format', input_format, '--truth-format', input_format ]
-  base_cmd += [ '--fn2ts', '--gt-prefiltered', '--ct-prefiltered' ]
-
-  if os.path.isdir( args.computed ):
-    input_files = list_files_in_dir_w_exts( args.computed, args.input_ext )
-  elif ',' in args.computed:
-    input_files = [ i.lstrip() for i in args.computed.split(',') ]
-  else:
-    input_files = [ args.computed ]
-
-  for filename in input_files:
-    for cls in classes:
-      roc_file = base + "." + format_class_fn( cls ) + ".txt"
-      if len( input_files ) > 1:
-        roc_file = filename + '.' + roc_file
-      if not args.use_cache:
-        _, filtered_computed = filter_viame_csv_tmp( filename, cls )
-        _, filtered_truth = filter_viame_csv_tmp( args.truth, cls )
-        cmd = base_cmd + [ '--roc-dump', roc_file ]
-        cmd += [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
-        subprocess.call( cmd )
-      roc_files.append( roc_file )
-
-    if len( classes ) != 1:
-      net_roc_file = base + ".txt"
-      if len( input_files ) > 1:
-        net_roc_file = filename + '.' + net_roc_file
-      if not args.use_cache:
-        cmd = base_cmd + [ '--roc-dump', net_roc_file ]
-        cmd += [ '--computed-tracks', filename, '--truth-tracks', args.truth ]
-        subprocess.call( cmd )
-      roc_files.append( net_roc_file )
-
-  # Generate plot
-  fig = plt.figure()
-
-  xscale_arg = 'log' if args.logx else 'linear'
-
-  rocplot = plt.subplot( 1, 1, 1, xscale=xscale_arg )
-  rocplot.set_title( args.title ) if args.title else None
-
-  plt.xlabel( args.xlabel )
-  plt.ylabel( args.ylabel )
-
-  plt.xticks()
-  plt.yticks()
-
-  def load_kwant_roc( fn ):
-    x_fa = np.array( [] )
-    y_pd = np.array( [] )
-
-    with open( fn ) as f:
-      while( 1 ):
-        raw_line = f.readline()
-        if not raw_line:
-          break
-        fields = raw_line.split()
-        x_fa = np.append( x_fa, float( fields[47] ) )
-        y_pd = np.append( y_pd, float( fields[7] ) )
-    return ( x_fa, y_pd )
-
-  user_titles = args.key.split(',') if args.key else None
-  i = 0
-  for i, fn in enumerate( roc_files ):
-    (x,y) = load_kwant_roc( fn )
-    display_label = ""
-    if user_titles and i < len( user_titles ):
-      display_label = user_titles[i]
-    else:
-      display_label = fn.replace( ".txt", "" )
-      display_label = display_label.replace( ".csv", "" )
-      display_label = display_label.replace( base + ".", "" )
-      display_label = display_label.replace( base, "" )
-      if len( display_label ) == 0:
-        display_label = "aggregate"
-      if display_label.endswith( "." ):
-        display_label = display_label[:-1]
-    sys.stderr.write( "Info: %d: loading %s as '%s'...\n" % ( i, fn, display_label ) )
-    stl = linestyles[ i % len(linestyles) ]
-    if i < len( linecolors ):
-      cl = linecolors[ i ]
-    else:
-      cl = np.random.rand( 3 )
-    if len( display_label ) > 0:
-      rocplot.plot( x, y, linestyle=stl, color=cl, linewidth=args.lw, label=display_label )
-    else:
-      rocplot.plot( x, y, linestyle=stl, color=cl, linewidth=args.lw )
-    rocplot.set_xlim( xmin=0 )
-    i += 1
-
-  if args.autoscale:
-    rocplot.autoscale()
-  else:
-    tmp = args.rangey.split( ':' )
-    if len( tmp ) != 2: 
-      print_and_exit( 'Error: rangey option must be two floats ' +
-                      'separated by a colon, e.g. 0.2:0.7' + os.linesep )
-    ( ymin, ymax ) = ( float( tmp[0] ), float( tmp[1]) )
-    rocplot.set_ylim( ymin, ymax )
-
-    if args.rangex:
-      tmp = args.rangex.split( ':' )
-      if len( tmp ) != 2:
-        print_and_exit( 'Error: rangex option must be two floats ' +
-                        'separated by a colon, e.g. 0.2:0.7' + os.linesep )
-      ( xmin, xmax ) = ( float(tmp[0]), float(tmp[1]) )
-      rocplot.set_xlim( xmin,xmax )
-
-  if not args.nokey:
-    legend_loc = args.keyloc
-    if legend_loc == "auto":
-      if len( classes ) < 15:
-        plt.legend( loc="best" )
-      else:
-        colcount = int( 1 + len( classes ) / 15 )
-        plt.legend( loc='center right', bbox_to_anchor = ( 1.75, 0.6 ), ncol = colcount )
-    else:
-      plt.legend( loc=args.keyloc )
-
-  plt.savefig( args.det_roc, bbox_inches='tight' )
 
 # ---------------------- MOT TRACK STATISTICS --------------------------
 
@@ -1037,26 +906,6 @@ def generate_trk_mot_stats( args, classes ):
       filter_file = os.path.join( args.trk_mot_stats, "dive.config.json" )
       create_mot_filter_json( filter_file, top_scores, args.filter_estimator )
 
-# ---------------------- HOTA TRACK STATISTICS -------------------------
-
-def generate_trk_hota_stats( args, classes ):
-
-  print_and_exit( "Implementation for HOTA not yet finished" )
-
-  for threshold in thresholds:
-    mh = mm.metrics.create()
-
-    hota = float( summary.loc["OVERALL"].at['idf1'] )
-
-    if hota > max_hota:
-      max_hota = hota
-      max_hota_thresh = threshold
-
-  if len( thresholds ) > 1:
-    logging.info( '' )
-    logging.info( 'Top HOTA value: ' + str( max_hota ) +
-                  ' at threshold ' + str( max_hota_thresh ) )
-
 # -------------------------- MAIN FUNCTION -----------------------------
 
 if __name__ == "__main__":
@@ -1081,14 +930,8 @@ if __name__ == "__main__":
   # Core output type options
   parser.add_argument( '-det-prc-conf', dest="det_prc_conf", default=None,
     help='Folder for PRC curves, conf matrix, and related stats.' )
-  parser.add_argument( '-det-roc', dest="det_roc", default=None,
-    help='Filename for output ROC curves.' )
-  parser.add_argument( '-trk-kwant-stats', dest="trk_kwant_stats", default=None,
-    help='Filename for output KWANT track statistics.' )
   parser.add_argument( '-trk-mot-stats', dest="trk_mot_stats", default=None,
     help='File or folder name for output MOT statistics (IDF1, MOTA, etc...).' )
-  parser.add_argument( '-trk-hota-stats', dest="trk_hota_stats", default=None,
-    help='File or folder name for output HOTA track statistics.' )
 
   # Scoring settings
   parser.add_argument( "-iou-thresh", dest="iou_thresh", type=float, default=0.5,
@@ -1113,43 +956,18 @@ if __name__ == "__main__":
     help="Method to use for generating output confidence filter estimate for use "
     "within the DIVE interface. Can be: none, min, avg, avg_minus_1p, idf1, mota." )
 
-  # Plot settings
-  parser.add_argument( '-rangey', metavar='rangey', nargs='?', default='0:1',
-    help='ymin:ymax (quote w/ spc for negative, i.e. " -0.1:5")' )
-  parser.add_argument( '-rangex', metavar='rangex', nargs='?',
-    help='xmin:xmax (quote w/ spc for negative, i.e. " -0.1:5")' )
-  parser.add_argument( '-autoscale', action='store_true',
-    help='Ignore -rangex -rangey and autoscale both axes of the plot.' )
-  parser.add_argument( '-logx', action='store_true',
-    help='Use logscale for x' )
-  parser.add_argument( '-xlabel', nargs='?', default='Detection FA count',
-    help='title for x axis' )
-  parser.add_argument( '-ylabel', nargs='?', default='Detection PD',
-    help='title for y axis' )
   parser.add_argument( '-defaultlabel', dest="default_label", default='',
     help='if ignoring labels an optional class to display' )
-  parser.add_argument( '-title', nargs='?',
-    help='title for plot' )
-  parser.add_argument( '-lw', nargs='?', type=float, default=2,
-    help='line width' )
-  parser.add_argument( '-key', nargs='?', default=None,
-    help='comma-separated set of strings labeling each line in order read' )
-  parser.add_argument( '-keyloc', nargs='?', default='auto',
-    help='Key location ("upper left", "lower right", etc; help for list)' )
-  parser.add_argument( '--nokey', action='store_true',
-    help='Set to suppress plot legend' )
-  parser.add_argument( '--use-cache', dest="use_cache", action='store_true',
-    help='Do not recompute roc or conf intermediate files' )
 
   args = parser.parse_args()
 
   if not args.computed or not args.truth:
     print_and_exit( "Error: both computed and truth files must be specified" )
 
-  if not args.det_roc and not args.det_prc_conf and \
-     not args.trk_kwant_stats and not args.trk_mot_stats:
-    print_and_exit( "Error: either 'trk-kwant-stats', 'trk-mot-stats', " \
-                    "'det-roc', or 'det-prc-conf' must be specified" )
+  if not args.det_prc_conf and not args.trk_mot_stats:
+    print_and_exit( "Error: either 'trk-mot-stats' or 'det-prc-conf' must be "
+                    "specified. For ROC curves, KWANT-style track statistics, "
+                    "or HOTA, use the viame_score_results tool." )
 
   from kwiver.vital.modules import load_known_modules
   load_known_modules()
@@ -1176,17 +994,8 @@ if __name__ == "__main__":
       print_and_exit( "--per-class option enabled but no classes present" )
 
   # Generate specified outputs
-  if args.det_roc:
-    generate_det_rocs( args, classes )
-
   if args.det_prc_conf:
     generate_det_prc_conf( args, classes )
 
-  if args.trk_kwant_stats:
-    generate_trk_kwant_stats( args, classes )
-
   if args.trk_mot_stats:
     generate_trk_mot_stats( args, classes )
-
-  if args.trk_hota_stats:
-    generate_trk_hota_stats( args, classes )
