@@ -16,6 +16,8 @@ def build_and_train(params):
     import torch
     import rfdetr
 
+    from viame.pytorch.utilities import parse_resolution, resolution_is_set
+
     if params.get("segmentation"):
         sizes = {"nano": "RFDETRSegNano", "small": "RFDETRSegSmall",
                  "medium": "RFDETRSegMedium", "large": "RFDETRSegLarge"}
@@ -26,8 +28,10 @@ def build_and_train(params):
     model_cls = getattr(rfdetr, sizes[params["model_size"]])
 
     model_kwargs = dict(num_channels=params["num_channels"], device="cuda")
-    if params.get("resolution", 0) > 0:
-        model_kwargs["resolution"] = params["resolution"]
+    # Arrives as a string ("1280" or "960x1728") so a non-square pair survives JSON.
+    resolution = parse_resolution(params.get("resolution", 0))
+    if resolution_is_set(resolution):
+        model_kwargs["resolution"] = resolution
     if params.get("gradient_checkpointing"):
         model_kwargs["gradient_checkpointing"] = True
 

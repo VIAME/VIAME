@@ -457,6 +457,85 @@ def parse_bool(value):
     return bool(value)
 
 
+def parse_resolution(value):
+    """
+    Parse a network input resolution, square or non-square.
+
+    Accepts a square side length ("1280", 1280) or an explicit height x width
+    ("960x1728", also accepting "960,1728" or a (960, 1728) sequence). The
+    non-square form lets an aspect-preserving input be fed to the network
+    instead of squashing wide imagery into a square.
+
+    Args:
+        value: Resolution as an int, an "HxW" / "H,W" string, or a 2-sequence.
+
+    Returns:
+        int: The side length, for a square resolution (including 0 = "use the
+            model default"), so square configs and checkpoints round-trip
+            byte-identically.
+        tuple: ``(height, width)`` for a non-square resolution.
+
+    Raises:
+        ValueError: If the value cannot be parsed, or any component is negative.
+    """
+    if isinstance(value, (list, tuple)):
+        if len(value) != 2:
+            raise ValueError(
+                f"resolution sequence must have 2 entries (height, width), got {value!r}")
+        height, width = int(value[0]), int(value[1])
+    elif isinstance(value, str):
+        text = value.strip().lower().replace(',', 'x')
+        if 'x' in text:
+            parts = [p for p in text.split('x') if p != '']
+            if len(parts) != 2:
+                raise ValueError(
+                    f"resolution {value!r} must be 'HEIGHTxWIDTH' (e.g. '960x1728') "
+                    f"or a single number")
+            height, width = int(parts[0]), int(parts[1])
+        else:
+            height = width = int(text or 0)
+    else:
+        height = width = int(value)
+
+    if height < 0 or width < 0:
+        raise ValueError(f"resolution must be non-negative, got {value!r}")
+
+    return height if height == width else (height, width)
+
+
+def format_resolution(value):
+    """
+    Serialize a resolution back to the string form understood by parse_resolution.
+
+    Args:
+        value: An int side length or a ``(height, width)`` pair.
+
+    Returns:
+        str: "1280" for square, "960x1728" for non-square.
+    """
+    if isinstance(value, (list, tuple)):
+        height, width = int(value[0]), int(value[1])
+        if height != width:
+            return f"{height}x{width}"
+        return str(height)
+    return str(int(value))
+
+
+def resolution_is_set(value):
+    """
+    Whether a parsed resolution requests an explicit size (rather than 0 = model default).
+
+    Args:
+        value: Output of :func:`parse_resolution`.
+
+    Returns:
+        bool: True when a concrete resolution was requested.
+    """
+    if isinstance(value, (list, tuple)):
+        return min(int(value[0]), int(value[1])) > 0
+    return int(value) > 0
+
+
 # =============================================================================
 # Error Reporting (DIVE integration)
 # =============================================================================

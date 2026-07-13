@@ -18,6 +18,9 @@ from viame.pytorch.utilities import (
     vital_config_update,
     resolve_device_str,
     parse_bool,
+    parse_resolution,
+    format_resolution,
+    resolution_is_set,
     register_vital_algorithm,
     TrainingInterruptHandler,
     ensure_rfdetr_compatibility,
@@ -81,12 +84,15 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         'Number of input channels. 3 = RGB; 4 = RGB + a motion/flow channel '
         '(RGBA). RF-DETR adapts the pretrained input conv to match.'))
     resolution = scfg.Value(0, help=(
-        'Square input resolution fed to the network. 0 = use the model-size '
-        'default (large=704). Larger values let the network resolve smaller '
-        'objects on high-res imagery without gridding; the pretrained '
-        'positional embeddings are bicubic-interpolated to the new grid. '
-        'Must be divisible by patch_size*num_windows (32 for large, 56 for '
-        'base, 32 for nano/small/medium).'))
+        'Input resolution fed to the network. 0 = use the model-size default '
+        '(large=704). Either a square side length ("1280") or an explicit '
+        'height x width ("960x1728") to feed the network aspect-preserving '
+        'imagery instead of squashing wide frames into a square. Larger values '
+        'let the network resolve smaller objects on high-res imagery without '
+        'gridding; the pretrained positional embeddings are bicubic-'
+        'interpolated to the new grid. Every dim must be divisible by '
+        'patch_size*num_windows (32 for large, 56 for base, 32 for '
+        'nano/small/medium).'))
     gradient_checkpointing = scfg.Value(False, help=(
         'Trade compute for memory by recomputing backbone activations in the '
         'backward pass (~30%% slower, roughly halves activation memory). '
@@ -462,7 +468,7 @@ class RFDETRTrainer(TrainDetector):
                   f"RFDETRSeg{model_size}")
 
         num_channels = int(self._num_channels)
-        self._resolution = int(self._resolution)
+        self._resolution = parse_resolution(self._resolution)
         gradient_checkpointing = parse_bool(self._gradient_checkpointing)
 
         # Shared construction kwargs. resolution is a ModelConfig field: passing
@@ -470,14 +476,15 @@ class RFDETRTrainer(TrainDetector):
         # of the pretrained positional embeddings to match (see
         # rfdetr.models.weights.interpolate_position_embeddings).
         model_kwargs = dict(num_channels=num_channels, device=device)
-        if self._resolution > 0:
+        if resolution_is_set(self._resolution):
             model_kwargs['resolution'] = self._resolution
         if gradient_checkpointing:
             model_kwargs['gradient_checkpointing'] = True
 
         print(f"[RFDETRTrainer] Using RF-DETR {model_size} model on {device} "
               f"with {num_channels} input channels"
-              + (f" at {self._resolution}px" if self._resolution > 0 else "")
+              + (f" at {format_resolution(self._resolution)}px"
+                 if resolution_is_set(self._resolution) else "")
               + (" (gradient checkpointing)" if gradient_checkpointing else ""))
 
         # Create model. Seed via pretrain_weights so the weights survive into
@@ -704,7 +711,7 @@ class RFDETRTrainer(TrainDetector):
             model_size=self._model_size.lower(),
             segmentation=parse_bool(self._segmentation),
             num_channels=int(self._num_channels),
-            resolution=int(self._resolution),
+            resolution=format_resolution(self._resolution),
             gradient_checkpointing=parse_bool(self._gradient_checkpointing),
             seed_model=self._seed_model,
             class_names=list(self._class_names),
@@ -835,8 +842,8 @@ class RFDETRTrainer(TrainDetector):
             args['model_size'] = self._model_size
             args['segmentation'] = parse_bool(self._segmentation)
             args['num_channels'] = int(self._num_channels)
-            if int(self._resolution) > 0:
-                args['resolution'] = int(self._resolution)
+            if resolution_is_set(self._resolution):
+                args['resolution'] = self._resolution
             checkpoint['args'] = args
             torch.save(checkpoint, final_ckpt)
             print(f"[RFDETRTrainer] Embedded {len(self._class_names)} class names into checkpoint")
@@ -855,8 +862,8 @@ class RFDETRTrainer(TrainDetector):
         output[algo + ":model_size"] = str(self._model_size)
         output[algo + ":num_channels"] = str(int(self._num_channels))
         output[algo + ":segmentation"] = str(parse_bool(self._segmentation))
-        if int(self._resolution) > 0:
-            output[algo + ":resolution"] = str(int(self._resolution))
+        if resolution_is_set(self._resolution):
+            output[algo + ":resolution"] = format_resolution(self._resolution)
 
         # File copy entry (key=destination filename, value=source path)
         output[output_model_name] = str(final_ckpt)

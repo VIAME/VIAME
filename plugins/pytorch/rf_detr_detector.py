@@ -14,6 +14,8 @@ from viame.pytorch.utilities import (
     supervision_to_kwiver_detections,
     register_vital_algorithm,
     parse_bool,
+    parse_resolution,
+    resolution_is_set,
     ensure_rfdetr_compatibility,
 )
 
@@ -28,10 +30,11 @@ class RFDETRDetectorConfig(scfg.DataConfig):
         'Number of input channels. 3 = RGB; 4 = RGB + a motion/flow channel. '
         'Recovered from the checkpoint when present, otherwise this value.'))
     resolution = scfg.Value(0, help=(
-        'Square input resolution. 0 = use the model-size default. Must match '
-        'the resolution the checkpoint was trained at so the positional '
-        'embeddings load correctly; recovered from the checkpoint when present, '
-        'otherwise this value.'))
+        'Input resolution: a square side length ("1280") or an explicit height '
+        'x width ("960x1728"). 0 = use the model-size default. Must match the '
+        'resolution the checkpoint was trained at so the positional embeddings '
+        'load correctly; recovered from the checkpoint when present, otherwise '
+        'this value.'))
     device = scfg.Value('auto', help='Device to run on: auto, cpu, cuda, or cuda:N')
     threshold = scfg.Value(0.5, help='Detection confidence threshold')
     optimize_inference = scfg.Value(True, help='Whether to optimize model for inference')
@@ -116,10 +119,16 @@ class RFDETRDetector(ImageObjectDetector):
             return {}
 
     @classmethod
-    def _infer_architecture(cls, state_dict):
+    def _infer_architecture(cls, state_dict, ckpt_resolution=None):
         # Recover model_size, resolution, channel count and the segmentation
         # flag straight from the weight shapes so a checkpoint loads even when it
         # carries no training args. Leaves a field None when undeterminable.
+        #
+        # ckpt_resolution, when supplied, is the resolution recorded in the
+        # checkpoint's training args. It is needed for non-square models: the
+        # positional-embedding token count alone cannot tell a 60x108 grid from
+        # any other factorization, so a candidate (h, w) is verified against the
+        # token count rather than guessed.
         import math
         arch = {'model_size': None, 'resolution': None,
                 'num_channels': None, 'segmentation': None}
@@ -149,12 +158,25 @@ class RFDETRDetector(ImageObjectDetector):
         pos_shape = getattr(pos, 'shape', None)
         if pos_shape is not None and len(pos_shape) == 3:
             n_tokens = int(pos_shape[1])
-            for n_special in (1, 5, 0):
-                grid_sq = n_tokens - n_special
-                grid = math.isqrt(grid_sq) if grid_sq > 0 else 0
-                if grid and grid * grid == grid_sq:
-                    arch['resolution'] = grid * patch_size
-                    break
+
+            # A non-square checkpoint's grid is not recoverable from the token
+            # count, so check the recorded resolution against it first. Only
+            # accept it when the implied grid actually matches the weights --
+            # otherwise the model would be built at a size the weights do not fit.
+            candidate = parse_resolution(ckpt_resolution) if ckpt_resolution else 0
+            if resolution_is_set(candidate) and not isinstance(candidate, int):
+                cand_h, cand_w = candidate
+                cand_tokens = (cand_h // patch_size) * (cand_w // patch_size)
+                if any(cand_tokens == n_tokens - n_special for n_special in (1, 5, 0)):
+                    arch['resolution'] = candidate
+
+            if arch['resolution'] is None:
+                for n_special in (1, 5, 0):
+                    grid_sq = n_tokens - n_special
+                    grid = math.isqrt(grid_sq) if grid_sq > 0 else 0
+                    if grid and grid * grid == grid_sq:
+                        arch['resolution'] = grid * patch_size
+                        break
 
         table = cls._SEG_SIZES if arch['segmentation'] else cls._DET_SIZES
         if dec_layers is not None:
@@ -163,7 +185,11 @@ class RFDETRDetector(ImageObjectDetector):
             if len(candidates) == 1:
                 arch['model_size'] = candidates[0]
             elif candidates:
-                target = arch['resolution'] or 0
+                # Compare on the short side so a non-square resolution still picks
+                # a sensible size rather than collapsing to 0 and selecting the
+                # smallest candidate.
+                res = arch['resolution']
+                target = min(res) if isinstance(res, tuple) else (res or 0)
                 arch['model_size'] = min(
                     candidates, key=lambda n: abs(table[n][2] - target))
         return arch
@@ -176,7 +202,7 @@ class RFDETRDetector(ImageObjectDetector):
         device = resolve_device_str(self._kwiver_config['device'])
         optimize = parse_bool(self._kwiver_config['optimize_inference'])
         num_channels = int(self._kwiver_config['num_channels'])
-        resolution = int(self._kwiver_config['resolution'])
+        resolution = parse_resolution(self._kwiver_config['resolution'])
         segmentation = parse_bool(self._kwiver_config['segmentation'])
 
         ensure_rfdetr_compatibility()
@@ -195,7 +221,8 @@ class RFDETRDetector(ImageObjectDetector):
             checkpoint = torch.load(weight_fpath, map_location=device, weights_only=False)
             state_dict = self._extract_state_dict(checkpoint)
             ckpt_args = self._checkpoint_args(checkpoint)
-            arch = self._infer_architecture(state_dict)
+            arch = self._infer_architecture(
+                state_dict, ckpt_resolution=ckpt_args.get('resolution'))
 
             if arch['model_size'] is not None:
                 model_size = arch['model_size']
@@ -215,7 +242,7 @@ class RFDETRDetector(ImageObjectDetector):
             if arch['resolution'] is not None:
                 resolution = arch['resolution']
             elif 'resolution' in ckpt_args:
-                resolution = int(ckpt_args['resolution'])
+                resolution = parse_resolution(ckpt_args['resolution'])
 
         # Import the appropriate RF-DETR model class based on size and whether a
         # segmentation (mask) head is present. Seg checkpoints carry extra
@@ -263,7 +290,7 @@ class RFDETRDetector(ImageObjectDetector):
                 num_channels=num_channels,
                 device=device
             )
-            if resolution > 0:
+            if resolution_is_set(resolution):
                 model_kwargs['resolution'] = resolution
 
             self._model = RFDETRModel(**model_kwargs)
@@ -280,7 +307,7 @@ class RFDETRDetector(ImageObjectDetector):
         else:
             # Use pretrained weights
             pre_kwargs = dict(num_channels=num_channels, device=device)
-            if resolution > 0:
+            if resolution_is_set(resolution):
                 pre_kwargs['resolution'] = resolution
             self._model = RFDETRModel(**pre_kwargs)
 
