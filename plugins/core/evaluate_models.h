@@ -33,9 +33,6 @@ struct VIAME_CORE_EXPORT evaluation_config
 
   /// Whether to compute per-class metrics in addition to overall metrics
   bool compute_per_class_metrics = false;
-
-  /// Frame tolerance for temporal matching (in frames, 0 = exact match)
-  unsigned frame_tolerance = 0;
 };
 
 // ----------------------------------------------------------------------------
@@ -62,9 +59,11 @@ struct VIAME_CORE_EXPORT evaluation_results
   double recall = 0.0;
   /// F1 score = 2 * precision * recall / (precision + recall)
   double f1_score = 0.0;
-  /// Matthews Correlation Coefficient
+  /// Matthews Correlation Coefficient (approximated from precision/recall,
+  /// since true negatives are undefined for detection)
   double mcc = 0.0;
-  /// Average Precision (area under PR curve)
+  /// Average Precision (all-point interpolated area under the PR curve, using
+  /// confidence-ordered matching at the configured IoU threshold)
   double average_precision = 0.0;
   /// AP at IoU threshold 0.5
   double ap50 = 0.0;
@@ -92,7 +91,9 @@ struct VIAME_CORE_EXPORT evaluation_results
 
   /// Multiple Object Tracking Accuracy
   double mota = 0.0;
-  /// Multiple Object Tracking Precision (avg IoU on matches)
+  /// Multiple Object Tracking Precision. NOTE: expressed here as the mean IoU
+  /// of matches (higher is better). MOTChallenge/py-motmetrics instead report
+  /// the mean 1-IoU distance, so their MOTP is (1 - this value).
   double motp = 0.0;
   /// ID F1 score (global ID association quality)
   double idf1 = 0.0;
@@ -169,7 +170,8 @@ struct VIAME_CORE_EXPORT evaluation_results
 
   /// Classification accuracy among true positives
   double classification_accuracy = 0.0;
-  /// Mean AP across all classes
+  /// Mean AP across all classes with ground truth (true mAP; requires
+  /// compute_per_class_metrics)
   double mean_ap = 0.0;
 
   // -- Additional statistics --
@@ -240,21 +242,31 @@ struct VIAME_CORE_EXPORT confusion_matrix_data
 };
 
 // ----------------------------------------------------------------------------
-/// \brief ROC curve point (for detection operating characteristic)
+/// \brief DET curve point (detection error tradeoff / detection ROC)
+///
+/// \note True negatives are undefined for object detection, so the x axis is
+///       false alarms per frame (unbounded) rather than a false positive rate.
 struct VIAME_CORE_EXPORT roc_curve_point
 {
-  double false_positive_rate = 0.0;  ///< FP / (FP + TN) or FP per image
-  double true_positive_rate = 0.0;   ///< TP / (TP + FN) = recall
+  double false_alarms_per_frame = 0.0;  ///< FP / number of frames
+  double true_positive_rate = 0.0;      ///< TP / (TP + FN) = recall = Pd
   double confidence = 0.0;
 };
 
 // ----------------------------------------------------------------------------
-/// \brief ROC curve data
+/// \brief DET curve data
 struct VIAME_CORE_EXPORT roc_curve_data
 {
   std::string class_name;
   std::vector< roc_curve_point > points;
-  double auc = 0.0;  ///< Area under the ROC curve
+
+  /// Mean probability of detection over the observed false alarm range: the
+  /// area under the curve normalized by the maximum false alarm rate, so it is
+  /// bounded in [0, 1]. This is NOT a classification AUC.
+  double mean_pd = 0.0;
+
+  /// Highest false alarms per frame reached by the curve (its x extent)
+  double max_false_alarms_per_frame = 0.0;
 };
 
 // ----------------------------------------------------------------------------
@@ -387,24 +399,24 @@ public:
   evaluation_plot_data generate_plot_data();
 
   /// \brief Generate precision-recall curve for overall detections
-  /// \param num_points Number of points on the curve (default 101 for 0-100%)
-  /// \returns PR curve data with points sorted by recall
-  pr_curve_data generate_pr_curve( int num_points = 101 );
+  ///
+  /// One point is emitted per distinct confidence value, in descending
+  /// confidence order.
+  ///
+  /// \returns PR curve data with points sorted by increasing recall
+  pr_curve_data generate_pr_curve();
 
   /// \brief Generate per-class precision-recall curves
-  /// \param num_points Number of points per curve
   /// \returns Map of class name to PR curve data
-  std::map< std::string, pr_curve_data > generate_per_class_pr_curves(
-    int num_points = 101 );
+  std::map< std::string, pr_curve_data > generate_per_class_pr_curves();
 
   /// \brief Generate confusion matrix from matched detections
   /// \returns Confusion matrix with class labels and counts
   confusion_matrix_data generate_confusion_matrix();
 
-  /// \brief Generate ROC curve (detection operating characteristic)
-  /// \param num_points Number of points on the curve
-  /// \returns ROC curve data
-  roc_curve_data generate_roc_curve( int num_points = 101 );
+  /// \brief Generate the detection ROC / DET curve (Pd vs false alarms/frame)
+  /// \returns DET curve data
+  roc_curve_data generate_roc_curve();
 
   // -------------------------------------------------------------------------
   // Plot data export functions
