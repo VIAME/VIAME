@@ -42,10 +42,14 @@ grid, enabling cross-site / cross-day revisit detection:
   python detect_prior_coverage.py --all <root> --flight-logs <dir>
 
 Outputs per site (in --output, default <site>_coverage):
-  prior_coverage.csv       VIAME CSV; polygon rows per class as above
+  prior_coverage.csv       VIAME CSV; one polygon row per PRIOR FRAME whose
+                           ground this image re-observes, class as above, with
+                           the source frame in a trailing "(note) src=CAM#NNNN"
   revisits.csv             summary of detected revisit events
   coverage_map.png         ENU map of footprints coloured by pass/order
-  prior_coverage_vis.png   thumbnail grid with coverage polygons overlaid
+  prior_coverage_vis.png   thumbnail grid (rows = a contiguous run of triggers,
+                           columns = STAR|CENTER|PORT) with each prior frame's
+                           region outlined and labelled separately
 """
 
 import argparse
@@ -223,6 +227,14 @@ def _poly_area(poly):
 
 def _fmt_poly(poly):
     return '(poly) ' + ' '.join(f'{v:.1f}' for p in poly for v in p)
+
+
+def parse_frame_range(spec):
+    """'240-270' -> (240, 270); None -> None."""
+    if not spec:
+        return None
+    a, b = spec.split('-')
+    return int(a), int(b)
 
 
 # ---------------------------------------------------------------------------
@@ -471,7 +483,8 @@ def compute_coverage(observations, grid, args, chains, xcam, frames_by_cam,
     tier for revisits), then stamp its own footprint into the grid.
 
     Returns (rows, revisit_events, frac_prior) where rows are
-    (rel, class, polygon) tuples in order.
+    (rel, class, polygon, source_order) tuples in order; source_order is the
+    global order index of the earlier image that observed the region.
     """
     import cv2
     rows = []
@@ -559,10 +572,11 @@ def compute_coverage(observations, grid, args, chains, xcam, frames_by_cam,
             enu_pts = _apply_h(o.T_enu, pts)
             owner = grid.lookup(enu_pts).reshape(gy.shape)
             seen_any = owner >= 0
-            cat_masks = {'sequential': np.zeros(owner.shape, np.uint8),
-                         'cross_camera': np.zeros(owner.shape, np.uint8),
-                         'revisit': np.zeros(owner.shape, np.uint8)}
             rev_owner_counts = {}
+            # One contour set PER SOURCE FRAME (not per class): the region a
+            # given earlier image contributed keeps its own boundary, so
+            # overlapping prior frames stay distinguishable downstream instead
+            # of merging into a single blob per class.
             for oo in np.unique(owner[seen_any]) if seen_any.any() else []:
                 src = obs_by_order.get(int(oo))
                 if src is None or int(oo) in tier1_orders:
@@ -577,11 +591,7 @@ def compute_coverage(observations, grid, args, chains, xcam, frames_by_cam,
                 else:
                     sfx = 'revisit'
                     rev_owner_counts[int(oo)] = int((owner == oo).sum())
-                cat_masks[sfx][owner == oo] = 1
-
-            for sfx, mask in cat_masks.items():
-                if not mask.any():
-                    continue
+                mask = (owner == oo).astype(np.uint8)
                 contours, _ = cv2.findContours(
                     mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                 for cnt in contours:
@@ -595,7 +605,7 @@ def compute_coverage(observations, grid, args, chains, xcam, frames_by_cam,
                     poly[:, 1] = np.clip(poly[:, 1], 0, h - 1)
                     if _poly_area(poly) < args.min_area_px:
                         continue
-                    polys.append((sfx, poly, None))
+                    polys.append((sfx, poly, int(oo)))
 
             if rev_owner_counts:
                 n_rev = sum(rev_owner_counts.values())
@@ -642,8 +652,8 @@ def compute_coverage(observations, grid, args, chains, xcam, frames_by_cam,
                 covered = max(covered, _poly_area(poly))
             frac_prior[o.rel] = covered / (w * h)
 
-        for suffix, poly, _src in polys:
-            rows.append((o.rel, suffix, poly))
+        for suffix, poly, src in polys:
+            rows.append((o.rel, suffix, poly, src))
 
         # ---- Stamp own footprint ----
         if o.T_enu is not None:
@@ -657,23 +667,34 @@ def compute_coverage(observations, grid, args, chains, xcam, frames_by_cam,
 # Outputs
 # ---------------------------------------------------------------------------
 
-def write_viame_csv(path, rows, coverage_class):
+def _source_tag(obs):
+    """Compact, space-free identifier of a source image for CSV notes."""
+    if obs is None:
+        return None
+    return f'{obs.cam or "CAM"}#{obs.frame}'
+
+
+def write_viame_csv(path, rows, coverage_class, obs_registry=None):
     order = []
     seen = set()
-    for rel, _sfx, _poly in rows:
+    for rel, _sfx, _poly, _src in rows:
         if rel not in seen:
             seen.add(rel)
             order.append(rel)
     frame_ids = {rel: i + 1 for i, rel in enumerate(order)}
     with open(path, 'w') as f:
         f.write(VIAME_CSV_HEADER + '\n')
-        for tid, (rel, suffix, poly) in enumerate(rows):
+        for tid, (rel, suffix, poly, src) in enumerate(rows):
             x0, y0 = poly.min(axis=0)
             x1, y1 = poly.max(axis=0)
             cls = f'{coverage_class}_{suffix}'
+            # Each row is ONE source frame's region, so name it: consumers (and
+            # the thumbnail grid) can tell overlapping prior frames apart.
+            tag = _source_tag((obs_registry or {}).get(src))
+            note = f',(note) src={tag}' if tag else ''
             f.write(f'{tid},{rel},{frame_ids[rel]},'
                     f'{x0:.1f},{y0:.1f},{x1:.1f},{y1:.1f},1.0,-1,'
-                    f'{cls},1.0,{_fmt_poly(poly)}\n')
+                    f'{cls},1.0,{_fmt_poly(poly)}{note}\n')
 
 
 def write_revisits_csv(path, events):
@@ -726,66 +747,141 @@ def render_coverage_map(path, observations, site_tag):
     plt.close(fig)
 
 
+CLASS_COLOR = {'sequential': (0, 165, 255),     # orange
+               'cross_camera': (255, 255, 0),   # cyan
+               'revisit': (255, 0, 255)}        # magenta
+CLASS_TAG = {'sequential': 'S', 'cross_camera': 'X', 'revisit': 'R'}
+CLASS_DRAW_ORDER = ['sequential', 'cross_camera', 'revisit']
+
+
+def _shade(color, i, n):
+    """Per-polygon stroke shade: oldest prior frame dark, newest bright."""
+    f = 1.0 if n <= 1 else 0.45 + 0.55 * (i / (n - 1.0))
+    return tuple(int(round(c * f)) for c in color)
+
+
+def _put_text(img, text, org, scale=0.55, color=(255, 255, 255)):
+    import cv2
+    cv2.putText(img, text, org, cv2.FONT_HERSHEY_SIMPLEX, scale, (0, 0, 0), 3,
+                cv2.LINE_AA)
+    cv2.putText(img, text, org, cv2.FONT_HERSHEY_SIMPLEX, scale, color, 1,
+                cv2.LINE_AA)
+
+
+def _vis_window(triggers, obs_map, by_image, max_rows):
+    """Pick a CONTIGUOUS run of triggers (never subsample): the window with the
+    most revisit regions, so the loop closures are the part shown in full."""
+    if max_rows <= 0 or len(triggers) <= max_rows:
+        return triggers
+    cams = {o.cam for o in obs_map.values()}
+    score = []
+    for t in triggers:
+        s = 0
+        for cam in cams:
+            o = obs_map.get((cam, t))
+            if o is not None:
+                s += sum(1 for sfx, _p, _s in by_image.get(o.rel, [])
+                         if sfx == 'revisit')
+        score.append(s)
+    best_i = max(range(len(triggers) - max_rows + 1),
+                 key=lambda i: sum(score[i:i + max_rows]))
+    return triggers[best_i:best_i + max_rows]
+
+
 def render_thumbnail_grid(path, site_folder, observations, rows, water_info,
-                          max_rows=24, thumb_w=420):
-    """Thumbnail grid (rows = triggers, cols = cameras) with coverage
-    polygons overlaid: sequential=orange, cross_camera=cyan, revisit=magenta.
+                          obs_registry=None, max_rows=40, thumb_w=420,
+                          frames=None, title=None):
+    """Thumbnail grid (rows = triggers, cols = STAR|CENTER|PORT) with the
+    previously-observed regions overlaid: sequential=orange, cross_camera=cyan,
+    revisit=magenta.
+
+    Every region keeps its OWN boundary - each row of `rows` is one prior frame
+    warped into this image, so it is stroked separately, tagged S1..Sn/X1../R1..
+    and shaded dark (older) to bright (newer). Regions are only lightly filled,
+    so overlapping prior frames stay individually visible rather than merging
+    into one flat blob of colour.
+
+    Rows are a contiguous run of triggers (`frames` = explicit (first, last), or
+    the `max_rows` window with the most revisits; max_rows <= 0 = whole site).
     Each tile also shows the water/land classifier verdict (the class label,
-    tinted cyan for water and green for land)."""
+    tinted cyan for water and green for land).
+    """
     import cv2
     by_image = {}
-    for rel, suffix, poly in rows:
-        by_image.setdefault(rel, []).append((suffix, poly))
+    for rel, suffix, poly, src in rows:
+        by_image.setdefault(rel, []).append((suffix, poly, src))
+    src_obs = dict(obs_registry or {})
     # Classifier method used (uniform across the site) for the header banner.
     water_method = next((v.get('method') for v in water_info.values()
                          if v and v.get('method')), None)
     cams = sorted({o.cam for o in observations}, key=lambda c: VIS_ORDER[c])
-    triggers = sorted({o.timestep for o in observations})
-    if len(triggers) > max_rows:
-        step = len(triggers) / max_rows
-        triggers = [triggers[int(i * step)] for i in range(max_rows)]
     obs_map = {(o.cam, o.timestep): o for o in observations}
-    colors = {'sequential': (0, 165, 255), 'cross_camera': (255, 255, 0),
-              'revisit': (255, 0, 255)}
+    triggers = sorted({o.timestep for o in observations})
+    if frames:
+        triggers = [t for t in triggers if frames[0] <= t <= frames[1]]
+    else:
+        triggers = _vis_window(triggers, obs_map, by_image, max_rows)
+    if not triggers:
+        return
+
     tiles = []
     th = None
     for t in triggers:
         row_tiles = []
         for cam in cams:
             o = obs_map.get((cam, t))
-            if o is None:
-                row_tiles.append(None)
-                continue
-            img = cv2.imread(os.path.join(site_folder, o.rel))
+            img = (cv2.imread(os.path.join(site_folder, o.rel))
+                   if o is not None else None)
             if img is None:
                 row_tiles.append(None)
                 continue
             s = thumb_w / img.shape[1]
             th = int(img.shape[0] * s)
             thumb = cv2.resize(img, (thumb_w, th))
-            overlay = thumb.copy()
-            for suffix, poly in by_image.get(o.rel, []):
-                p = np.round(poly * s).astype(np.int32)
-                cv2.fillPoly(overlay, [p], colors[suffix])
-            thumb = cv2.addWeighted(overlay, 0.35, thumb, 0.65, 0)
-            for suffix, poly in by_image.get(o.rel, []):
-                p = np.round(poly * s).astype(np.int32)
-                cv2.polylines(thumb, [p], True, colors[suffix], 2)
-            label = f'{cam or "CAM"} #{o.frame}'
-            cv2.putText(thumb, label, (6, 22), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.6, (0, 0, 0), 3)
-            cv2.putText(thumb, label, (6, 22), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.6, (255, 255, 255), 1)
+            grouped = {c: [(p, sr) for sfx, p, sr in by_image.get(o.rel, [])
+                           if sfx == c] for c in CLASS_DRAW_ORDER}
+
+            # Light fill, one polygon at a time: overlaps accumulate (and get
+            # darker) instead of flattening into a single uniform region.
+            for cls in CLASS_DRAW_ORDER:
+                for i, (poly, _sr) in enumerate(grouped[cls]):
+                    p = np.round(poly * s).astype(np.int32)
+                    lay = thumb.copy()
+                    cv2.fillPoly(lay, [p], _shade(CLASS_COLOR[cls], i,
+                                                  len(grouped[cls])))
+                    thumb = cv2.addWeighted(lay, 0.10, thumb, 0.90, 0)
+            # Boundaries on top: one stroke + tag per prior frame.
+            for cls in CLASS_DRAW_ORDER:
+                n = len(grouped[cls])
+                for i, (poly, sr) in enumerate(grouped[cls]):
+                    p = np.round(poly * s).astype(np.int32)
+                    col = _shade(CLASS_COLOR[cls], i, n)
+                    cv2.polylines(thumb, [p], True, (0, 0, 0), 4, cv2.LINE_AA)
+                    cv2.polylines(thumb, [p], True, col, 2, cv2.LINE_AA)
+                    tag = f'{CLASS_TAG[cls]}{i + 1}'
+                    stag = _source_tag(src_obs.get(sr))
+                    if stag:
+                        tag += f' {stag}'
+                    # Anchor at the region centroid: with many overlapping
+                    # regions, corner-anchored labels pile up on each other.
+                    c = p.mean(axis=0)
+                    org = (int(np.clip(c[0] - 55, 2, thumb_w - 120)),
+                           int(np.clip(c[1], 80, th - 6)))
+                    _put_text(thumb, tag, org, 0.45, col)
+
+            _put_text(thumb, f'{cam or "CAM"} #{o.frame}', (8, 24), 0.62)
+            counts = ' '.join(f'{CLASS_TAG[c]}x{len(grouped[c])}'
+                              for c in CLASS_DRAW_ORDER if grouped[c])
+            if counts:
+                _put_text(thumb, counts, (8, 46), 0.5, (200, 200, 200))
             # Water/land classifier verdict: class label tinted cyan for
             # water, green for land (BGR).
             cinfo = water_info.get(o.rel, {})
             clabel = cinfo.get('label')
             if clabel:
                 ccol = (255, 255, 0) if cinfo.get('is_water') else (0, 220, 0)
-                cv2.putText(thumb, clabel, (6, 46), cv2.FONT_HERSHEY_SIMPLEX,
-                            0.55, (0, 0, 0), 3)
-                cv2.putText(thumb, clabel, (6, 46), cv2.FONT_HERSHEY_SIMPLEX,
-                            0.55, ccol, 1)
+                _put_text(thumb, clabel, (8, 68), 0.5, ccol)
+            cv2.rectangle(thumb, (0, 0), (thumb_w - 1, th - 1), (60, 60, 60), 1)
             row_tiles.append(thumb)
         tiles.append(row_tiles)
     if th is None:
@@ -795,17 +891,28 @@ def render_thumbnail_grid(path, site_folder, observations, rows, water_info,
         np.hstack([t if t is not None else blank for t in row])
         for row in tiles])
 
-    # Header banner: legend for the overlay colors + which water classifier
-    # produced the per-tile class labels.
-    banner_h = 40
-    banner = np.full((banner_h, grid_img.shape[1], 3), 24, dtype=np.uint8)
+    # Header banner: column order, frame range, and the overlay legend.
+    banner = np.full((76, grid_img.shape[1], 3), 24, dtype=np.uint8)
     wm = {'svm': 'SVM background classifier',
           'sift': 'SIFT keypoint heuristic'}.get(water_method,
                                                  water_method or 'n/a')
-    legend = ('overlay: sequential=orange cross_camera=cyan revisit=magenta'
-              '   |   water class (cyan=water green=land) via ' + wm)
-    cv2.putText(banner, legend, (8, 26), cv2.FONT_HERSHEY_SIMPLEX, 0.55,
-                (255, 255, 255), 1)
+    site_tag = title or os.path.basename(os.path.normpath(site_folder))
+    _put_text(banner, f'{site_tag}   columns: {" | ".join(str(c) for c in cams)}'
+                      f'   frames {triggers[0]}-{triggers[-1]} '
+                      f'({len(triggers)} consecutive triggers, none skipped)',
+              (10, 26), 0.6)
+    _put_text(banner, 'previously-observed regions, one outline per prior frame'
+                      ' (shade: dark = older, bright = newer)   |   water class'
+                      f' (cyan=water green=land) via {wm}',
+              (10, 50), 0.5, (200, 200, 200))
+    x = 10
+    for cls, txt in (('sequential', 'S = sequential (same camera)'),
+                     ('cross_camera', 'X = cross-camera (rig)'),
+                     ('revisit', 'R = revisit / loop closure')):
+        cv2.rectangle(banner, (x, 60), (x + 18, 70), CLASS_COLOR[cls], -1)
+        _put_text(banner, txt, (x + 24, 70), 0.5, CLASS_COLOR[cls])
+        (tw, _), _ = cv2.getTextSize(txt, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+        x += 24 + tw + 40
     grid_img = np.vstack([banner, grid_img])
     cv2.imwrite(path, grid_img)
 
@@ -1010,14 +1117,17 @@ def process_site(site_folder, site_id, grid, order_start, args, to_enu,
     os.makedirs(out_dir, exist_ok=True)
     if not args.revisits_only:
         write_viame_csv(os.path.join(out_dir, 'prior_coverage.csv'), rows,
-                        args.coverage_class)
+                        args.coverage_class, obs_registry)
     write_revisits_csv(os.path.join(out_dir, 'revisits.csv'), revisit_events)
     render_coverage_map(os.path.join(out_dir, 'coverage_map.png'),
                         observations, site_tag)
     if not args.no_thumbnails and not args.revisits_only:
         render_thumbnail_grid(
             os.path.join(out_dir, 'prior_coverage_vis.png'),
-            site_folder, observations, rows, water_info)
+            site_folder, observations, rows, water_info,
+            obs_registry=obs_registry, max_rows=args.vis_rows,
+            thumb_w=args.vis_thumb_width,
+            frames=parse_frame_range(args.vis_frames))
 
     by_cam = {}
     for o in observations:
@@ -1088,6 +1198,15 @@ def main():
     ap.add_argument('--no-verify-revisits', dest='verify_revisits',
                     action='store_false')
     ap.add_argument('--no-thumbnails', action='store_true')
+    ap.add_argument('--vis-rows', type=int, default=40,
+                    help='Triggers in the thumbnail grid. Rows are always a '
+                         'CONTIGUOUS run (the window with the most revisits); '
+                         'no frames are skipped. 0 = the whole site')
+    ap.add_argument('--vis-frames', default=None,
+                    help='Explicit contiguous trigger range for the thumbnail '
+                         'grid, e.g. 240-270 (overrides --vis-rows)')
+    ap.add_argument('--vis-thumb-width', type=int, default=420,
+                    help='Thumbnail width (px) in the grid')
     ap.add_argument('--revisits-only', action='store_true',
                     help='Only detect/report revisit events (revisits.csv '
                          '+ coverage map); skip per-frame coverage CSV and '
