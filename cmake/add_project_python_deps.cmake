@@ -245,8 +245,16 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
   # albumentations builds RF-DETR's resize to the configured training resolution, not just its
   # augmentations; without it the transform pipeline silently yields zero transforms and the model
   # trains on natively-sized chips that inference never reproduces.
+  #
+  # This list is pip-installed with --no-deps (see add_project_pytorch.cmake), so transitive
+  # dependencies must be named here. albumentations pins albucore exactly, and albucore in turn
+  # needs simsimd/stringzilla; pip cannot enforce that pin under --no-deps, so both versions are
+  # pinned together and must be bumped together. opencv-python-headless is deliberately omitted:
+  # cv2 comes from the fletch OpenCV build, which registers itself under that distribution name
+  # (see custom_install_fletch.cmake).
   list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "supervision" "defusedxml>=0.7.1" "pyDeprecate>=0.9,<0.10"
-    "faster-coco-eval>=1.6.0" "albumentations>=1.4.24,<3.0.0" )
+    "faster-coco-eval>=1.6.0" "albumentations==2.0.8" "albucore==0.0.24" "simsimd>=5.9.2"
+    "stringzilla>=3.10.4" )
 endif()
 
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------
