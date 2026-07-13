@@ -230,12 +230,15 @@ if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
   list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "ultralytics_thop==2.0.18" )
 endif()
 
+# kwcoco is a basic dependency, not a torch one: score_results.py shells out to
+# its eval command, and adding it to the torch-only list left it uninstalled in
+# any build with PyTorch disabled
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
     VIAME_ENABLE_PYTORCH-MIT-YOLO OR VIAME_ENABLE_PYTORCH-ULTRALYTICS )
   if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
-    list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "kwcoco>=0.8.5" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "kwcoco>=0.8.5" )
   else()
-    list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "kwcoco>=0.8.0" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "kwcoco>=0.8.0" )
   endif()
 endif()
 
