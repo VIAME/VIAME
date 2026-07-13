@@ -6,6 +6,7 @@
 # Python standalone tools
 ##
 set( PYTHON_SCRIPTS
+  add_segmentations.py
   convert_cam_format.py
   database_tool.py
   extract_video_frames.py
