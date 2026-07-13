@@ -758,7 +758,27 @@ class RFDETRTrainer(TrainDetector):
 
         print(f"[RFDETRTrainer] Launching {n_gpus}-GPU DDP training: "
               f"{python} {impl}", flush=True)
-        subprocess.run([python, impl, params_path], check=True, env=env)
+        try:
+            subprocess.run([python, impl, params_path], check=True, env=env)
+        except subprocess.CalledProcessError as exc:
+            # A rank killed by SIGKILL is the kernel/cgroup OOM killer reclaiming
+            # host RAM -- it raises no Python exception and no CUDA OOM, so the
+            # bare CalledProcessError gives no hint of the actual cause. Every
+            # rank forks num_workers DataLoader workers, so host memory scales as
+            # n_gpus * num_workers * prefetch_factor * batch_size.
+            if exc.returncode == -9:
+                n_workers = int(self._num_workers)
+                raise RuntimeError(
+                    f"A DDP rank was killed with SIGKILL, which means the host "
+                    f"(not the GPU) ran out of memory. This run had {n_gpus} "
+                    f"ranks x {n_workers} DataLoader workers = "
+                    f"{n_gpus * n_workers} worker processes, each prefetching "
+                    f"{int(self._prefetch_factor)} x {self._batch_size} images. "
+                    f"Ask the scheduler for more memory (Slurm: --mem and "
+                    f"--cpus-per-task), or lower num_workers / prefetch_factor / "
+                    f"val_subsample."
+                ) from exc
+            raise
 
         output = self._get_output_map(output_dir)
         print("\n[RFDETRTrainer] Model training complete!")
