@@ -1,0 +1,155 @@
+# =============================================================================
+# Title: RF-DETR Detector Template with All-Motion Input (no RGB)
+#
+# Description: Runs an RF-DETR detector on a 3-channel motion stack that carries
+# no appearance information at all, matching the channel layout produced by
+# train_aug_all_motion during training:
+#
+#     [ flow_magnitude, frame_difference, temporal_variance ]
+#
+# The three operators and their settings must stay identical to the training
+# augmentation -- a mismatch in channel order, flow scale or frame_separation
+# silently feeds the network a different input distribution than it was trained
+# on. Requires temporally ordered input frames.
+# =============================================================================
+
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+process detector_input_grey
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :single_channel                            true
+  endblock
+
+connect from detector_input.image
+        to   detector_input_grey.image
+
+# ======================= CHANNEL 1: FLOW MAGNITUDE ==========================
+
+process flow_filter
+  :: image_filter
+  :filter:type                                 ocv_optical_flow
+
+  block filter:ocv_optical_flow
+    :output                                    magnitude
+    :scale                                     8.0
+    :compensate_background                     true
+  endblock
+
+connect from detector_input.image
+        to   flow_filter.image
+
+# ====================== CHANNEL 2: FRAME DIFFERENCE =========================
+
+process frame_diff
+  :: detect_motion
+  :algo:type                                   ocv_3frame_differencing
+
+  block algo:ocv_3frame_differencing
+    :frame_separation                          3
+    :jitter_radius                             1
+    :max_foreground_fract                      1
+  endblock
+
+connect from detector_input.image
+        to   frame_diff.image
+
+process diff_to_byte
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :single_channel                            true
+    :scale_factor                              4.0
+  endblock
+
+connect from frame_diff.motion_heat_map
+        to   diff_to_byte.image
+
+# ===================== CHANNEL 3: TEMPORAL VARIANCE =========================
+
+process variance_filter
+  :: image_filter
+  :filter:type                                 vxl_average
+
+  block filter:vxl_average
+    :type                                      window
+    :round                                     false
+    :output_variance                           true
+  endblock
+
+connect from detector_input_grey.image
+        to   variance_filter.image
+
+process variance_to_byte
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :scale_factor                              0.50
+  endblock
+
+connect from variance_filter.image
+        to   variance_to_byte.image
+
+# ================================ MERGE =====================================
+
+process image_merger1
+  :: merge_images
+  :merge_images:type                           ocv
+
+connect from flow_filter.image
+        to   image_merger1.image1
+connect from diff_to_byte.image
+        to   image_merger1.image2
+
+process image_merger2
+  :: merge_images
+  :merge_images:type                           ocv
+
+connect from image_merger1.image
+        to   image_merger2.image1
+connect from variance_to_byte.image
+        to   image_merger2.image2
+
+# =============================================================================
+
+process detector1
+  :: image_object_detector
+  [-DETECTOR-IMPL-]
+
+connect from image_merger2.image
+        to   detector1.image
+
+# =============================================================================
+
+process detector_merger
+  :: merge_detection_sets
+
+connect from detector1.detected_object_set
+        to   detector_merger.detected_object_set1
+
+process detector_output
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from detector_merger.detected_object_set
+        to   detector_output.detected_object_set

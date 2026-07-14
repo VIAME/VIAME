@@ -1,0 +1,200 @@
+# =============================================================================
+# Title: Training - Aug All Motion (three motion channels, no RGB)
+#
+# Description: Source-driven augmentation that replaces the RGB image entirely
+# with a 3-channel stack of motion representations. Because it reads from the
+# common_default_input source, the same pipeline handles both videos and image
+# sequences in a single pass. Requires temporally ordered input frames.
+#
+# The output channel layout is
+#
+#     [ flow_magnitude, frame_difference, temporal_variance ]
+#
+# Three different operators at three different temporal baselines, rather than
+# one operator at three settings:
+#
+#   1. flow_magnitude    -- dense Farneback optical flow, background-compensated
+#                           (the per-frame median flow vector is subtracted, so
+#                           camera/platform drift cancels). Compares against the
+#                           immediately preceding frame: the shortest baseline,
+#                           and the only channel that measures true displacement
+#                           rather than intensity change.
+#   2. frame_difference  -- symmetric 3-frame differencing at frame_separation 3.
+#                           A wider baseline than flow, and cheap to compute; the
+#                           symmetric form suppresses the ghosting trail that a
+#                           plain 2-frame difference leaves behind a moving
+#                           object.
+#   3. temporal_variance -- squared deviation from a running 20-frame mean. The
+#                           longest baseline: accumulates slow, low-contrast
+#                           motion that a 1- or 3-frame comparison cannot
+#                           separate from sensor noise.
+#
+# Every channel is undirected, so horizontal and vertical flips remain valid
+# augmentations. This is why optical flow is taken as 'magnitude' and not
+# 'vector' (dx,dy): a flip would have to negate dx, which the augmentation layer
+# does not do, and the channel would be silently corrupted.
+#
+# Note the 20-frame variance window is not configurable: vxl_average ignores
+# window_size in window mode and hardcodes 20 (see arrows/vxl/average_frames.cxx,
+# AVERAGER_window constructs windowed_frame_averager with no arguments).
+#
+# The train tool drives this via 'kwiver runner' with -s overrides for
+# input:video_filename, input:video_reader:type, downsampler:target_frame_rate
+# and image_writer:file_name_template.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================= FRAME SOURCE =================================
+# video_input; reader switches between vidl_ffmpeg (video) and image_list
+# (image sequence) via -s input:video_reader:type at run time.
+
+include common_default_input_with_downsampler.pipe
+
+process ensure_color
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+connect from downsampler.output_1
+        to   ensure_color.image
+
+process rgb_to_grey
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :single_channel                            true
+  endblock
+
+connect from downsampler.output_1
+        to   rgb_to_grey.image
+
+# ======================= CHANNEL 1: FLOW MAGNITUDE ==========================
+
+process flow_filter
+  :: image_filter
+  :filter:type                                 ocv_optical_flow
+
+  block filter:ocv_optical_flow
+    :output                                    magnitude
+    :scale                                     8.0
+    :compensate_background                     true
+  endblock
+
+connect from ensure_color.image
+        to   flow_filter.image
+
+# ====================== CHANNEL 2: FRAME DIFFERENCE =========================
+# frame_separation widens the temporal baseline past optical flow's single-frame
+# gap, so slower fish still register. The queue holds 2x this many frames before
+# the first difference is produced.
+
+process frame_diff
+  :: detect_motion
+  :algo:type                                   ocv_3frame_differencing
+
+  block algo:ocv_3frame_differencing
+    :frame_separation                          3
+    :jitter_radius                             1
+    :max_foreground_fract                      1
+  endblock
+
+connect from ensure_color.image
+        to   frame_diff.image
+
+# The heat map is already CV_8UC1, but it is tagged BGR_COLOR; normalize it to a
+# plain single-channel byte image before merging so the channel count is certain.
+#
+# scale_factor is a gain, not a contrast change -- it scales target and background
+# alike. It is here because the channel is written to disk as a byte: on faint,
+# low-contrast targets the raw difference occupies only the bottom ~10% of the
+# range, and everything below one grey level is quantized away for good. 4.0 buys
+# back most of that precision while leaving headroom before strong motion clips.
+# Retune it if the difference channel saturates on real footage.
+
+process diff_to_byte
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :single_channel                            true
+    :scale_factor                              4.0
+  endblock
+
+connect from frame_diff.motion_heat_map
+        to   diff_to_byte.image
+
+# ===================== CHANNEL 3: TEMPORAL VARIANCE =========================
+# vxl_average emits a double-precision variance image, so it needs the byte cast.
+
+process variance_filter
+  :: image_filter
+  :filter:type                                 vxl_average
+
+  block filter:vxl_average
+    :type                                      window
+    :round                                     false
+    :output_variance                           true
+  endblock
+
+connect from rgb_to_grey.image
+        to   variance_filter.image
+
+process variance_to_byte
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :scale_factor                              0.50
+  endblock
+
+connect from variance_filter.image
+        to   variance_to_byte.image
+
+# ================================ MERGE =====================================
+# merge_images takes two inputs, so the 3-channel stack is built in two steps.
+# The resulting channel order must stay in lockstep with the inference template
+# (templates/embedded_rf_detr_all_motion.pipe).
+
+process image_merger1
+  :: merge_images
+  :merge_images:type                           ocv
+
+connect from flow_filter.image
+        to   image_merger1.image1
+connect from diff_to_byte.image
+        to   image_merger1.image2
+
+process image_merger2
+  :: merge_images
+  :merge_images:type                           ocv
+
+connect from image_merger1.image
+        to   image_merger2.image1
+connect from variance_to_byte.image
+        to   image_merger2.image2
+
+# ================================ OUTPUT ====================================
+
+process image_writer
+ :: image_writer
+ :file_name_template                            frame%06d.png
+ :image_writer:type                             vxl
+ :image_writer:vxl:split_channels               false
+
+connect from image_merger2.image
+        to   image_writer.image
+
+# -- end of file --
