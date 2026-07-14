@@ -89,8 +89,8 @@ STEREO_IDLE_COMMANDS = {"get_status", "cancel", "disable"}
 
 # Commands routed to the interactive-alignment (auto-align) backend. The
 # backend object itself is cheap to construct (its model loads lazily on the
-# first auto_align), so no idle-command special casing is needed.
-ALIGNMENT_COMMANDS = {"auto_align", "get_alignment_status"}
+# first register_images), so no idle-command special casing is needed.
+ALIGNMENT_COMMANDS = {"register_images", "get_alignment_status"}
 
 # Segmentation cache-management commands that must NOT construct (load) the
 # segmentation backend / model before the user's first prediction.
@@ -227,7 +227,7 @@ class InteractiveService:
         with self._build_lock:
             if self._alignment_service is None:
                 # Cheap to construct; the matcher model loads lazily on the
-                # first auto_align request and stays resident afterwards.
+                # first register_images request and stays resident afterwards.
                 self._alignment_service = InteractiveAlignmentService(
                     weights_path=self._alignment_weights,
                     device=self._device,
@@ -290,8 +290,9 @@ class InteractiveService:
         A no-op when auto-align never loaded a model (the backend may not even
         be constructed), so it is cheap to call on the hot path of every
         model-using segmentation/stereo request. The matcher reloads lazily on
-        the next auto_align, so the only cost is a re-load if the user returns
-        to auto-align after using the other feature -- which is exactly the
+        the next register_images, so the only cost is a re-load if the user
+        returns to auto-align after using the other feature -- which is
+        exactly the
         case where the two genuinely contend for memory."""
         svc = self._alignment_service
         if svc is None:
