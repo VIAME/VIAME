@@ -883,8 +883,8 @@ train_applet
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "llm-assist", "Run training under claude supervision, which suggests config "
       "improvements up front then monitors and restarts the run as needed. Either "
-      "\"auto\" (use claude if installed, otherwise train normally), \"on\" "
-      "(require claude), or \"off\"",
+      "\"auto\" (if claude is installed, offer it at start up; otherwise train "
+      "normally), \"on\" (require claude, no prompt), or \"off\"",
       ::cxxopts::value< std::string >()->default_value( "auto" ), "mode" )
     ( "llm-poll", "Seconds between LLM training checkups",
       ::cxxopts::value< std::string >()->default_value( "600" ), "seconds" )
@@ -1038,6 +1038,55 @@ train_applet
   {
     std::cout << "Multi-model training enabled: " << model_count
               << " models will be trained sequentially" << std::endl;
+  }
+
+  // Look for claude up front, so that in the default auto mode the offer to
+  // supervise this run is made at start up rather than after the user has
+  // already waited through setup. "on" and "off" are taken at face value.
+  std::string claude_cmd;
+  bool llm_supervised = false;
+
+  if( opt_llm_assist != "off" && opt_out_config.empty() &&
+      !std::getenv( claude::child_env_marker ) )
+  {
+    claude_cmd = claude::find_claude_binary( opt_llm_cmd );
+
+    if( claude_cmd.empty() )
+    {
+      if( opt_llm_assist == "on" )
+      {
+        std::cerr << "Unable to find claude executable \"" << opt_llm_cmd
+                  << "\" required by --llm-assist on" << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      // Auto mode: claude is not installed, train normally without comment
+    }
+    else if( opt_llm_assist == "on" )
+    {
+      llm_supervised = true;
+    }
+    else if( !opt_no_query )
+    {
+      std::cout << std::endl
+                << "Claude was detected on this machine (" << claude_cmd << ")."
+                << std::endl << std::endl
+                << "Would you like to use it to assist with this training run? "
+                << "It will suggest" << std::endl
+                << "configuration improvements before training starts, then "
+                << "monitor the run and" << std::endl
+                << "restart it with new settings if it fails. (y/n) ";
+
+      std::string response;
+      std::cin >> response;
+
+      llm_supervised = ( response == "y" || response == "Y" ||
+                         response == "yes" || response == "Yes" );
+
+      std::cout << std::endl;
+    }
+    // Auto mode with --no-query cannot ask, so it stays off. Use
+    // "--llm-assist on" to enable supervision without being prompted.
   }
 
   // Load KWIVER plugins
@@ -1493,126 +1542,109 @@ train_applet
     }
   }
 
-  // Optionally hand the run over to the LLM supervisor, which relaunches this
-  // tool as a monitored child. Placed after config validation and the labels
-  // query so cheap setup and any user prompts happen once, in this process,
-  // but before any data loading, which is left to the child.
-  if( opt_llm_assist != "off" && !std::getenv( claude::child_env_marker ) )
+  // Hand the run over to the LLM supervisor, which relaunches this tool as a
+  // monitored child. Placed after config validation and the labels query so
+  // cheap setup happens once, in this process, but before any data loading,
+  // which is left to the child.
+  if( llm_supervised )
   {
-    const bool llm_required = ( opt_llm_assist == "on" );
-    const std::string claude_cmd = claude::find_claude_binary( opt_llm_cmd );
+    claude::llm_train_options llm;
 
-    if( claude_cmd.empty() )
+    llm.claude_cmd = claude_cmd;
+    llm.model = opt_llm_model;
+    llm.no_query = opt_no_query;
+    llm.required = ( opt_llm_assist == "on" );
+
+    try
     {
-      if( llm_required )
-      {
-        std::cerr << "Unable to find claude executable \"" << opt_llm_cmd
-                  << "\" required by --llm-assist on" << std::endl;
-        return EXIT_FAILURE;
-      }
-
-      // Auto mode: claude is not installed, train normally without comment
+      llm.poll_seconds = std::stoi( opt_llm_poll );
+      llm.max_restarts = std::stoi( opt_llm_max_restarts );
     }
-    else
+    catch( const std::exception& )
     {
-      claude::llm_train_options llm;
-
-      llm.claude_cmd = claude_cmd;
-      llm.model = opt_llm_model;
-      llm.no_query = opt_no_query;
-      llm.required = llm_required;
-
-      try
-      {
-        llm.poll_seconds = std::stoi( opt_llm_poll );
-        llm.max_restarts = std::stoi( opt_llm_max_restarts );
-      }
-      catch( const std::exception& )
-      {
-        std::cerr << "--llm-poll and --llm-max-restarts must be integers" << std::endl;
-        return EXIT_FAILURE;
-      }
-
-      llm.state_dir = output_directory.empty() ?
-        std::string( "llm_supervisor" ) :
-        append_path( output_directory, "llm_supervisor" );
-
-      llm.config_text = gather_config_text( config );
-      llm.trainable_types = gather_trainable_types();
-      llm.available_configs = gather_available_train_configs();
-
-      llm.original_config = opt_config;
-      llm.original_detector = opt_detector;
-      llm.user_settings_file = opt_settings_file;
-
-      std::ostringstream cmdline;
-      cmdline << "viame " << applet_name();
-
-      for( std::size_t i = 1; i < applet_args().size(); ++i )
-      {
-        cmdline << " " << applet_args()[i];
-      }
-
-      llm.original_cmdline = cmdline.str();
-      llm.child_args_base = build_child_train_args( applet_name(), applet_args() );
-
-      std::ostringstream dataset;
-
-      if( model_labels )
-      {
-        dataset << "Training categories (" << model_labels->size() << "): ";
-
-        for( const auto& name : model_labels->all_class_names() )
-        {
-          dataset << name << " ";
-        }
-
-        dataset << std::endl;
-      }
-
-      if( !opt_input_dir.empty() )
-      {
-        std::vector< std::string > subfolders, videos;
-
-        list_all_subfolders( opt_input_dir, subfolders );
-        list_files_in_folder( opt_input_dir, videos, false, video_exts );
-
-        dataset << "Input directory: " << opt_input_dir << std::endl
-                << "  image sequence sub-folders: " << subfolders.size() << std::endl
-                << "  videos: " << videos.size() << std::endl;
-
-        const unsigned max_listed = 20;
-
-        for( unsigned i = 0; i < subfolders.size() && i < max_listed; ++i )
-        {
-          dataset << "    " << get_filename_no_path( subfolders[i] ) << std::endl;
-        }
-        for( unsigned i = 0; i < videos.size() && i < max_listed; ++i )
-        {
-          dataset << "    " << get_filename_no_path( videos[i] ) << std::endl;
-        }
-      }
-
-      if( !opt_input_list.empty() )
-      {
-        dataset << "Input list: " << opt_input_list << std::endl;
-      }
-      if( !opt_validation_dir.empty() )
-      {
-        dataset << "Validation directory: " << opt_validation_dir << std::endl;
-      }
-
-      llm.dataset_summary = dataset.str();
-
-      int llm_return_code = claude::run_llm_supervised_training( llm );
-
-      if( llm_return_code >= 0 )
-      {
-        return llm_return_code;
-      }
-
-      // Claude turned out to be unusable in auto mode, train normally
+      std::cerr << "--llm-poll and --llm-max-restarts must be integers" << std::endl;
+      return EXIT_FAILURE;
     }
+
+    llm.state_dir = output_directory.empty() ?
+      std::string( "llm_supervisor" ) :
+      append_path( output_directory, "llm_supervisor" );
+
+    llm.config_text = gather_config_text( config );
+    llm.trainable_types = gather_trainable_types();
+    llm.available_configs = gather_available_train_configs();
+
+    llm.original_config = opt_config;
+    llm.original_detector = opt_detector;
+    llm.user_settings_file = opt_settings_file;
+
+    std::ostringstream cmdline;
+    cmdline << "viame " << applet_name();
+
+    for( std::size_t i = 1; i < applet_args().size(); ++i )
+    {
+      cmdline << " " << applet_args()[i];
+    }
+
+    llm.original_cmdline = cmdline.str();
+    llm.child_args_base = build_child_train_args( applet_name(), applet_args() );
+
+    std::ostringstream dataset;
+
+    if( model_labels )
+    {
+      dataset << "Training categories (" << model_labels->size() << "): ";
+
+      for( const auto& name : model_labels->all_class_names() )
+      {
+        dataset << name << " ";
+      }
+
+      dataset << std::endl;
+    }
+
+    if( !opt_input_dir.empty() )
+    {
+      std::vector< std::string > subfolders, videos;
+
+      list_all_subfolders( opt_input_dir, subfolders );
+      list_files_in_folder( opt_input_dir, videos, false, video_exts );
+
+      dataset << "Input directory: " << opt_input_dir << std::endl
+              << "  image sequence sub-folders: " << subfolders.size() << std::endl
+              << "  videos: " << videos.size() << std::endl;
+
+      const unsigned max_listed = 20;
+
+      for( unsigned i = 0; i < subfolders.size() && i < max_listed; ++i )
+      {
+        dataset << "    " << get_filename_no_path( subfolders[i] ) << std::endl;
+      }
+      for( unsigned i = 0; i < videos.size() && i < max_listed; ++i )
+      {
+        dataset << "    " << get_filename_no_path( videos[i] ) << std::endl;
+      }
+    }
+
+    if( !opt_input_list.empty() )
+    {
+      dataset << "Input list: " << opt_input_list << std::endl;
+    }
+    if( !opt_validation_dir.empty() )
+    {
+      dataset << "Validation directory: " << opt_validation_dir << std::endl;
+    }
+
+    llm.dataset_summary = dataset.str();
+
+    int llm_return_code = claude::run_llm_supervised_training( llm );
+
+    if( llm_return_code >= 0 )
+    {
+      return llm_return_code;
+    }
+
+    // Claude turned out to be unusable in auto mode, train normally
   }
 
   // Image reader used for convert_to_full_frame and bit depth checking
