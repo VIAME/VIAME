@@ -138,7 +138,11 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     augmentation = scfg.Value('default', help=(
         'Augmentation preset: "default" (RF-DETR built-in), "geometric" '
         '(flips only, no photometric ops — safe for motion-infused channels), '
-        '"none", or a named preset (conservative, aggressive, aerial, industrial)'))
+        '"none", or a named preset (conservative, aggressive, aerial, industrial, '
+        'motion_rgb, motion_grey, motion_only). The motion_* presets drop the '
+        'vertical flip and restrict brightness/contrast/colour ops to the '
+        'appearance channels, leaving motion channels untouched; their channel '
+        'indices assume the layout the matching train_aug_* pipeline writes.'))
 
     # Checkpointing
     checkpoint_interval = scfg.Value(10, help='Save checkpoint every N epochs')
@@ -267,6 +271,12 @@ class RFDETRTrainer(TrainDetector):
             'aggressive': 'AUG_AGGRESSIVE',
             'aerial': 'AUG_AERIAL',
             'industrial': 'AUG_INDUSTRIAL',
+            # Motion-infused inputs. Photometric ops are confined to the
+            # appearance channels; the channel indices are baked into the preset
+            # and must match what the augmentation pipeline writes.
+            'motion_rgb': 'AUG_MOTION_RGB',
+            'motion_grey': 'AUG_MOTION_GREY',
+            'motion_only': 'AUG_MOTION_ONLY',
         }
         if key in presets:
             from rfdetr.datasets import aug_config as rfdetr_aug
