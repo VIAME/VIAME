@@ -2290,6 +2290,13 @@ train_applet
       hard_negative_categories );
   }
 
+  // A training that threw is a failed training, even though we keep going to
+  // report every model. Remember it so the process exit code says so: returning
+  // EXIT_SUCCESS here makes a crashed run indistinguishable from a good one to
+  // any caller (shell "set -e", slurm job state, CI), which silently hides
+  // failures that took hours of GPU time to produce.
+  bool training_failed = false;
+
   // Run training algorithm(s) - loop through all configs/detectors for multi-model training
   for( unsigned model_idx = 0; model_idx < model_count; ++model_idx )
   {
@@ -2356,6 +2363,7 @@ train_applet
             check_nested_algo_configuration( "detector_trainer", current_config ) )
       {
         std::cout << "Configuration not valid for model " << ( model_idx + 1 ) << std::endl;
+        training_failed = true;
         continue;
       }
     }
@@ -2403,6 +2411,7 @@ train_applet
       {
         std::cout << "Received exception: " << error << std::endl;
         std::cout << std::endl;
+        training_failed = true;
         if( multi_model_training )
         {
           std::cout << "Continuing to next model..." << std::endl << std::endl;
@@ -2594,6 +2603,7 @@ train_applet
         {
           std::cout << "Received exception: " << error << std::endl;
           std::cout << std::endl;
+          training_failed = true;
         }
       }
       else
@@ -2607,7 +2617,7 @@ train_applet
     std::cout << "========================================" << std::endl;
   }
 
-  return EXIT_SUCCESS;
+  return training_failed ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
 } // namespace tools

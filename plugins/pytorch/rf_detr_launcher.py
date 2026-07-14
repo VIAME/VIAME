@@ -14,9 +14,18 @@ import json
 
 def build_and_train(params):
     import torch
-    import rfdetr
 
-    from viame.pytorch.utilities import parse_resolution, resolution_is_set
+    from viame.pytorch.utilities import (
+        ensure_rfdetr_compatibility, parse_resolution, resolution_is_set)
+
+    # rf_detr_trainer.py applies this shim before importing rfdetr, but that is a
+    # monkey-patch on the transformers module in ITS process. We are a fresh
+    # subprocess (and PTL re-execs us again per rank), so the patch is not
+    # inherited and "import rfdetr" would die on BackboneConfigMixin. Must run
+    # before rfdetr is first imported here.
+    ensure_rfdetr_compatibility()
+
+    import rfdetr
 
     if params.get("segmentation"):
         sizes = {"nano": "RFDETRSegNano", "small": "RFDETRSegSmall",
