@@ -19,7 +19,7 @@ process motion_filter1
 
   block filter:vxl_average
     :type                                      window
-    :window_size                               8
+    :window_size                               20
     :round                                     false
     :output_variance                           true
   endblock
@@ -45,7 +45,7 @@ process motion_filter2
 
   block filter:vxl_average
     :type                                      window
-    :window_size                               16
+    :window_size                               20
     :round                                     false
     :output_variance                           true
   endblock

@@ -22,7 +22,7 @@ process motion_filter1
 
   block filter:vxl_average
     :type                                      window
-    :window_size                               8
+    :window_size                               5
     :round                                     false
     :output_variance                           true
   endblock
@@ -36,7 +36,7 @@ process float_to_byte1
 
   block filter:vxl_convert_image
     :format                                    byte
-    :scale_factor                              0.25
+    :scale_factor                              0.50
   endblock
 
 connect from motion_filter1.image
@@ -48,7 +48,7 @@ process motion_filter2
 
   block filter:vxl_average
     :type                                      window
-    :window_size                               16
+    :window_size                               30
     :round                                     false
     :output_variance                           true
   endblock
@@ -62,7 +62,7 @@ process float_to_byte2
 
   block filter:vxl_convert_image
     :format                                    byte
-    :scale_factor                              0.75
+    :scale_factor                              0.50
   endblock
 
 connect from motion_filter2.image

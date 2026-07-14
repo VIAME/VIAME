@@ -114,7 +114,7 @@ process motion_filter
 
   block filter:vxl_average
     :type                                      window
-    :window_size                               10
+    :window_size                               20
     :round                                     false
     :output_variance                           true
   endblock
