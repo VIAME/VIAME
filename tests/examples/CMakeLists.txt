@@ -18,65 +18,37 @@
 #   ctest -L CRITICAL --output-on-failure
 
 if( VIAME_ENABLE_PYTHON )
-  # Use Python interpreter with -m pytest for reliable execution
-  if( NOT Python3_EXECUTABLE )
-    find_package( Python3 COMPONENTS Interpreter REQUIRED )
-  endif()
-
   # Common test properties
   set( EXAMPLE_TEST_TIMEOUT 600 )
 
   # Labels for test categories
-  set( CRITICAL_TEST_LABELS "CRITICAL;EXAMPLES" )
+  set( CRITICAL_TEST_LABELS "CRITICAL" "EXAMPLES" )
   set( EXAMPLE_TEST_LABELS "EXAMPLES" )
 
-  # Set up Python path for tests - use the actual install prefix
   set( VIAME_INSTALL_DIR "${VIAME_BUILD_INSTALL_PREFIX}" )
-  set( VIAME_PYTHON_PATH "${VIAME_INSTALL_DIR}/python" )
-  set( VIAME_PYTHON_SITE_PACKAGES "${VIAME_INSTALL_DIR}/lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
 
-  # PYTHONPATH separator: ":" on Linux, escaped "\;" on Windows (literal ";")
-  if( WIN32 )
-    set( PYPATH_SEP "\;" )
-  else()
-    set( PYPATH_SEP ":" )
-  endif()
-
-  # Helper function to add a standard example script test
+  # Thin wrappers over the shared viame_add_pytest_test() helper
+  # (tests/common/add_pytest_test.cmake), keeping the per-test call sites
+  # below unchanged.
   function( add_example_script_test TEST_NAME TEST_FILE TEST_CLASS WORKING_DIR )
-    add_test(
-      NAME ${TEST_NAME}
-      COMMAND ${Python3_EXECUTABLE} -m pytest
-        "${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}"
-        -v
-        --tb=short
-        -k "${TEST_CLASS}"
+    viame_add_pytest_test(
+      NAME "${TEST_NAME}"
+      TARGET "${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}" -k "${TEST_CLASS}"
+      LABELS "${EXAMPLE_TEST_LABELS}"
+      TIMEOUT "${EXAMPLE_TEST_TIMEOUT}"
       WORKING_DIRECTORY "${VIAME_INSTALL_DIR}/examples/${WORKING_DIR}"
-    )
-    set_tests_properties( ${TEST_NAME}
-      PROPERTIES
-        LABELS "${EXAMPLE_TEST_LABELS}"
-        TIMEOUT ${EXAMPLE_TEST_TIMEOUT}
-        ENVIRONMENT "PYTHONPATH=${VIAME_PYTHON_PATH}${PYPATH_SEP}${VIAME_PYTHON_SITE_PACKAGES}${PYPATH_SEP}${CMAKE_CURRENT_SOURCE_DIR}${PYPATH_SEP}$ENV{PYTHONPATH};VIAME_INSTALL=${VIAME_INSTALL_DIR}"
+      PYTHONPATH_DIRS "${CMAKE_CURRENT_SOURCE_DIR}"
     )
   endfunction()
 
-  # Helper function to add a CRITICAL example script test
   function( add_critical_example_test TEST_NAME TEST_FILE TEST_CLASS WORKING_DIR )
-    add_test(
-      NAME ${TEST_NAME}
-      COMMAND ${Python3_EXECUTABLE} -m pytest
-        "${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}"
-        -v
-        --tb=short
-        -k "${TEST_CLASS}"
+    viame_add_pytest_test(
+      NAME "${TEST_NAME}"
+      TARGET "${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}" -k "${TEST_CLASS}"
+      LABELS "${CRITICAL_TEST_LABELS}"
+      TIMEOUT "${EXAMPLE_TEST_TIMEOUT}"
       WORKING_DIRECTORY "${VIAME_INSTALL_DIR}/examples/${WORKING_DIR}"
-    )
-    set_tests_properties( ${TEST_NAME}
-      PROPERTIES
-        LABELS "${CRITICAL_TEST_LABELS}"
-        TIMEOUT ${EXAMPLE_TEST_TIMEOUT}
-        ENVIRONMENT "PYTHONPATH=${VIAME_PYTHON_PATH}${PYPATH_SEP}${VIAME_PYTHON_SITE_PACKAGES}${PYPATH_SEP}${CMAKE_CURRENT_SOURCE_DIR}${PYPATH_SEP}$ENV{PYTHONPATH};VIAME_INSTALL=${VIAME_INSTALL_DIR}"
+      PYTHONPATH_DIRS "${CMAKE_CURRENT_SOURCE_DIR}"
     )
   endfunction()
 
