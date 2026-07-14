@@ -252,11 +252,16 @@ class RFDETRTrainer(TrainDetector):
 
     def _resolve_aug_config(self, augmentation):
         """
-        Map the 'augmentation' config value to an RF-DETR aug_config dict.
+        Map the 'augmentation' config value to an RF-DETR aug_config.
 
         Returns None to defer to RF-DETR's built-in default preset. "geometric"
         is restricted to flips so no photometric/color augmentation runs, which
         would otherwise corrupt motion-infused channels.
+
+        A preset is either a dict keyed by transform name or a list of single-key
+        dicts; the list form is what lets a preset repeat a transform, which the
+        motion presets need in order to treat appearance and motion channels
+        differently. Both forms are passed through as-is.
         """
         key = str(augmentation).strip().lower()
         if key in ('', 'default'):
@@ -280,7 +285,8 @@ class RFDETRTrainer(TrainDetector):
         }
         if key in presets:
             from rfdetr.datasets import aug_config as rfdetr_aug
-            return dict(getattr(rfdetr_aug, presets[key]))
+            preset = getattr(rfdetr_aug, presets[key])
+            return list(preset) if isinstance(preset, list) else dict(preset)
 
         raise ValueError(f"Unknown augmentation preset: {augmentation}")
 
