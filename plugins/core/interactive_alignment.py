@@ -13,10 +13,10 @@ that is robust to cross-spectral appearance changes.
 
 Hosted by viame.core.interactive_service; same newline-delimited JSON
 protocol. The model (11.5M params, ~44 MB weights) loads lazily on the first
-``auto_align`` request and stays resident for the process lifetime.
+``register_images`` request and stays resident for the process lifetime.
 
 Commands:
-  auto_align            {image_path_a, image_path_b, options?}
+  register_images       {image_path_a, image_path_b, options?}
                         -> {homography (3x3, A native px -> B native px),
                             inliers [[ax, ay, bx, by], ...] (spatially spread,
                             native px), num_matches, num_inliers,
@@ -247,7 +247,7 @@ class InteractiveAlignmentService:
         stereo) is about to use its own model, so the ~44 MB matcher (plus
         whatever CUDA/MPS cache it held) yields its device memory rather than
         sitting resident alongside them. The model reloads lazily on the next
-        ``auto_align``. A no-op when nothing is loaded."""
+        ``register_images``. A no-op when nothing is loaded."""
         was_loaded = self._model is not None
         self._model = None
         if was_loaded:
@@ -398,10 +398,10 @@ class InteractiveAlignmentService:
     # -------------------------------------------------------------- routing
     def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         command = request.get("command")
-        if command == "auto_align":
+        if command == "register_images":
             for key in ("image_path_a", "image_path_b"):
                 if not request.get(key):
-                    raise ValueError(f"auto_align requires '{key}'")
+                    raise ValueError(f"register_images requires '{key}'")
                 if not Path(request[key]).exists():
                     raise ValueError(f"Image not found: {request[key]}")
             return self.auto_align(
