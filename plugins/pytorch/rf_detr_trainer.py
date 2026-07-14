@@ -274,6 +274,39 @@ class RFDETRTrainer(TrainDetector):
 
         raise ValueError(f"Unknown augmentation preset: {augmentation}")
 
+    def _warn_if_augmentation_unavailable(self):
+        """
+        RF-DETR builds every augmentation through albumentations and silently
+        drops the whole pipeline when the import fails, so a run configured for
+        flips can train with no augmentation at all and only say so in a line of
+        library log spam. Make that loud instead.
+        """
+        if self._resolve_aug_config(self._augmentation) in (None, {}):
+            return
+        try:
+            import albumentations  # noqa: F401
+        except ImportError:
+            print(f"[RFDETRTrainer] WARNING: augmentation = "
+                  f"'{self._augmentation}' was requested, but albumentations is "
+                  f"not importable. RF-DETR will silently skip ALL augmentation "
+                  f"and train on unaugmented imagery. Install albumentations.")
+
+    def _report_effective_batch(self, n_gpus):
+        """
+        batch_size and grad_accum_steps are per-device and the learning rate is
+        never scaled by world size, so the global batch a given LR is actually
+        seeing is easy to get wrong by a factor of the GPU count.
+        """
+        if self._batch_size == 'auto':
+            return
+        devices = max(int(n_gpus), 1)
+        micro = int(self._batch_size)
+        effective = micro * int(self._grad_accum_steps) * devices
+        print(f"[RFDETRTrainer] Effective batch = {micro} x "
+              f"{int(self._grad_accum_steps)} grad_accum x {devices} device(s) "
+              f"= {effective} (lr = {self._learning_rate}, "
+              f"lr_encoder = {self._learning_rate_encoder})")
+
     def _prepare_roboflow_dataset(self):
         """
         Convert stored kwiver data directly to Roboflow directory format
@@ -450,6 +483,14 @@ class RFDETRTrainer(TrainDetector):
         if int(self._max_mask_instances) > 0:
             os.environ['RFDETR_MAX_MASK_INSTANCES'] = str(int(self._max_mask_instances))
 
+        # Normalize the resolution before dispatching: the multi-GPU path
+        # re-serializes it with format_resolution(), which only accepts the
+        # parsed form. Parsing after the dispatch would hand it the raw config
+        # string and blow up on any non-square value ("960x1728").
+        self._resolution = parse_resolution(self._resolution)
+
+        self._warn_if_augmentation_unavailable()
+
         # Use all available GPUs by default. DDP cannot launch from this embedded
         # interpreter, so multi-GPU training runs in a subprocess (see
         # rf_detr_launcher.py); single-GPU stays in-process below.
@@ -457,7 +498,10 @@ class RFDETRTrainer(TrainDetector):
         if n_gpus > 1:
             print(f"[RFDETRTrainer] {n_gpus} GPUs visible; training with DDP "
                   "across all of them")
+            self._report_effective_batch(n_gpus)
             return self._train_multi_gpu(dataset_dir, n_gpus)
+
+        self._report_effective_batch(n_gpus)
 
         # Select model class based on size and detection/segmentation mode
         model_size = self._model_size.lower()
@@ -468,7 +512,6 @@ class RFDETRTrainer(TrainDetector):
                   f"RFDETRSeg{model_size}")
 
         num_channels = int(self._num_channels)
-        self._resolution = parse_resolution(self._resolution)
         gradient_checkpointing = parse_bool(self._gradient_checkpointing)
 
         # Shared construction kwargs. resolution is a ModelConfig field: passing
