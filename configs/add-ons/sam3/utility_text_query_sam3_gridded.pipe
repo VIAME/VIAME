@@ -93,6 +93,8 @@ process det_writer
 
 connect from downsampler.output_2
         to   det_writer.image_file_name
+connect from downsampler.timestamp
+        to   det_writer.timestamp
 connect from detection_refiner.detected_object_set
         to   det_writer.detected_object_set
 

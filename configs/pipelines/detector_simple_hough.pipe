@@ -55,6 +55,8 @@ process detector_writer
 
 connect from downsampler.output_2
         to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp
 connect from detector.detected_object_set
         to   detector_writer.detected_object_set
 

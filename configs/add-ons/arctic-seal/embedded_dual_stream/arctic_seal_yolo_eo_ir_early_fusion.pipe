@@ -182,6 +182,8 @@ connect from fusion_detector_output.detected_object_set
         to   fusion_writer_csv.detected_object_set
 connect from downsampler.output_2
         to   fusion_writer_csv.image_file_name
+connect from downsampler.timestamp
+        to   fusion_writer_csv.timestamp
 
 # =============================================================================
 

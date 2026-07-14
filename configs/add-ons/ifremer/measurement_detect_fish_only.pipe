@@ -99,7 +99,11 @@ connect from stereo_pairing.detected_object_set_out2
 # Connect image names to detector writer
 connect from downsampler.output_2
         to   detector_writer1.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer1.timestamp
 connect from downsampler.output_4
         to   detector_writer2.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer2.timestamp
 
 # -- end of file --
