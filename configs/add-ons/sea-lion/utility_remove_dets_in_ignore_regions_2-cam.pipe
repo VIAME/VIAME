@@ -111,3 +111,5 @@ connect from detector_fuser2.detected_object_set
         to   detector_writer2.detected_object_set
 connect from downsampler2.output_2
         to   detector_writer2.image_file_name
+connect from downsampler2.timestamp
+        to   detector_writer2.timestamp

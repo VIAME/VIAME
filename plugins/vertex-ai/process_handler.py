@@ -331,10 +331,10 @@ class ProcessHandler:
     out += [ "-s", trk_prefix + "writer:type=" + output_type ]
 
     # viame_csv-specific header/column metadata. Without frame_rate the CSV has
-    # no "# metadata, fps: ..." header; without write_time_as_uid a video's
-    # second column is blank instead of per-frame timestamps. The detection
-    # writer has no per-frame time of its own, so the flag lives on the
-    # enclosing process, which reads it off the timestamp port.
+    # no "# metadata, fps: ..." header. The detection writer needs no flag to
+    # emit timestamps for video, since the pipelines fall back to the frame
+    # time whenever there is no image file name, but the track writer still
+    # has to be told.
     if output_type == "viame_csv":
       if frame_rate is not None:
         out += [ "-s", det_prefix + "writer:viame_csv:frame_rate="
@@ -342,7 +342,6 @@ class ProcessHandler:
         out += [ "-s", trk_prefix + "writer:viame_csv:frame_rate="
                  + str( frame_rate ) ]
       if video_input:
-        out += [ "-s", det_prefix + "write_time_as_uid=true" ]
         out += [ "-s", trk_prefix + "writer:viame_csv:write_time_as_uid=true" ]
 
     return out

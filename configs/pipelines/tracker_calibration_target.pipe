@@ -54,6 +54,8 @@ connect from filter_frame_index.image
         to   detector1.image
 connect from filter_frame_index.image_file_name
         to   detector_writer.image_file_name
+connect from filter_frame_index.timestamp
+        to   detector_writer.timestamp
 connect from detector1.detected_object_set
         to   detector_writer.detected_object_set
 

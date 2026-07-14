@@ -44,6 +44,8 @@ connect from detector.detected_object_set
         to   detection_writer_csv.detected_object_set
 connect from in_adapt.file_name
         to   detection_writer_csv.image_file_name
+connect from in_adapt.timestamp
+        to   detection_writer_csv.timestamp
 
 # =============================================================================
 

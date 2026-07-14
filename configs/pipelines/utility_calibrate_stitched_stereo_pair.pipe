@@ -137,3 +137,12 @@ connect from image_statistics.image_height
         to   cameras_calibration.image_height
 
 # -- end of file --
+
+connect from downsampler.output_2
+        to   detector_writer1.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer1.timestamp
+connect from downsampler.output_2
+        to   detector_writer2.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer2.timestamp

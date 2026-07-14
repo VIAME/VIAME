@@ -67,3 +67,8 @@ connect from append_detections.object_track_set
         to   camera_calibration.tracks
 
 # -- end of file --
+
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp
