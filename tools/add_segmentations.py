@@ -823,17 +823,52 @@ def find_process_video():
     sys.exit('Cannot find process_video.py next to this tool or on PATH')
 
 
-def resolve_pipeline(pipeline):
-    """process_video wants a path that exists, not a pipeline name."""
-    if os.path.exists(pipeline):
-        return os.path.abspath(pipeline)
-    install = os.environ.get('VIAME_INSTALL', '')
+def pipeline_candidates(pipeline, install=None):
+    """Everywhere a pipeline name might resolve to, in preference order.
+
+    Only ever an *installed* pipeline. The copies in the source tree look tempting
+    but are not runnable: they locate the SAM2 weights with `relativepath`, which
+    resolves against the pipe's own directory, and the models only sit beside the
+    installed one.
+    """
+    install = install or os.environ.get('VIAME_INSTALL', '')
+    here = os.path.dirname(os.path.abspath(__file__))
+    places = [pipeline]
     if install:
-        candidate = os.path.join(install, 'configs', 'pipelines', pipeline)
+        places.append(os.path.join(install, 'configs', 'pipelines', pipeline))
+    # The installed tool sits in $VIAME_INSTALL/configs/, next to pipelines/.
+    places.append(os.path.join(here, 'pipelines', pipeline))
+    return places
+
+
+def resolve_pipeline(pipeline, install=None):
+    """process_video wants a path that exists, not a pipeline name."""
+    tried = pipeline_candidates(pipeline, install)
+    for candidate in tried:
         if os.path.exists(candidate):
-            return candidate
-    sys.exit('Cannot find pipeline %s. Source setup_viame.sh first, or pass a '
-             'full path with -p.' % pipeline)
+            return os.path.abspath(candidate)
+
+    install = install or os.environ.get('VIAME_INSTALL', '')
+    message = ['Cannot find pipeline: ' + pipeline, '', 'Looked in:']
+    message += ['    ' + os.path.normpath(t) for t in tried]
+    message.append('')
+    if not install:
+        message.append('VIAME_INSTALL is not set -- source setup_viame.sh first.')
+    else:
+        message.append('VIAME_INSTALL = ' + install)
+        pipe_dir = os.path.join(install, 'configs', 'pipelines')
+        sam2 = sorted(glob.glob(os.path.join(pipe_dir, '*sam2*')))
+        if sam2:
+            message.append('That install does have other sam2 pipelines:')
+            message += ['    ' + os.path.basename(p) for p in sam2]
+            message.append('Pass one of those with -p, or a full path.')
+        else:
+            message.append(
+                'That install has NO sam2 pipelines at all, so it was almost '
+                'certainly built without the SAM2 add-on (VIAME_ENABLE_PYTORCH '
+                'plus the sam2 add-on). SAM2 has to be enabled in the build for '
+                'this tool to have anything to run.')
+    sys.exit('\n'.join(message))
 
 
 def unit_by_name(manifest, name):
@@ -1318,7 +1353,9 @@ WORKER = """#!/usr/bin/env bash
 # Usage: run_unit.sh <unit-name>
 set -eo pipefail
 
-VIAME_INSTALL="{viame}"
+# Exported, not just assigned: setup_viame.sh normally exports this itself, but
+# the tool needs it in the environment to find models and pipelines either way.
+export VIAME_INSTALL="{viame}"
 RUN_DIR="{run_dir}"
 
 # Prefer the installed copy of the tool; fall back to the source tree it was
@@ -1329,6 +1366,7 @@ TOOL="$VIAME_INSTALL/configs/add_segmentations.py"
 set +u
 source "$VIAME_INSTALL/setup_viame.sh"
 set -u
+export VIAME_INSTALL="{viame}"
 
 # setup_viame.sh exports PYTHONPATH but does not necessarily put a matching
 # interpreter on PATH, so a stray system python3 would pick up VIAME's packages
@@ -1501,6 +1539,11 @@ def cmd_gen_scripts(args):
         sys.exit('No setup_viame.sh under %s -- that is not a VIAME install.' % viame)
     tool = os.path.abspath(__file__)
 
+    # Resolve the pipeline now, against the install these scripts will use, and
+    # bake the full path in. Finding out it is missing here costs a second;
+    # finding out inside the array costs every task in it.
+    pipeline = resolve_pipeline(args.pipeline, install=viame)
+
     def emit(name, text, mode=0o755):
         path = os.path.join(run_dir, name)
         with open(path, 'w') as fout:
@@ -1509,7 +1552,7 @@ def cmd_gen_scripts(args):
         return path
 
     emit('run_unit.sh', WORKER.format(viame=viame, run_dir=run_dir, tool=tool,
-                                      pipeline=args.pipeline,
+                                      pipeline=pipeline,
                                       python=sys.executable))
 
     written = ['units.txt        %d units, largest first' % len(runnable),
