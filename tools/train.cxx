@@ -293,6 +293,14 @@ static void apply_command_line_setting( kv::config_block_sptr config,
 }
 
 // =======================================================================================
+// True if a token is the value of the option preceding it rather than the next
+// option. Used for flags that may be given without a value.
+static bool is_option_value( const std::string& token )
+{
+  return ( !token.empty() && token[0] != '-' );
+}
+
+// =======================================================================================
 // Context gathering for LLM-assisted training
 
 // Newline-separated list of all trainable detector types in this install
@@ -423,7 +431,13 @@ static std::vector< std::string > build_child_train_args(
 
       if( dropped_long_options.count( name ) )
       {
-        if( !value_attached )
+        // --llm-assist is the only one of these that may appear with no value;
+        // the rest always take the following token as theirs
+        const bool takes_next_token =
+          ( name != "llm-assist" ) ||
+          ( i + 1 < applet_args.size() && is_option_value( applet_args[i + 1] ) );
+
+        if( !value_attached && takes_next_token )
         {
           ++i; // skip the separate value token
         }
@@ -884,8 +898,10 @@ train_applet
     ( "llm-assist", "Run training under claude supervision, which suggests config "
       "improvements up front then monitors and restarts the run as needed. Either "
       "\"auto\" (if claude is installed, offer it at start up; otherwise train "
-      "normally), \"on\" (require claude, no prompt), or \"off\"",
-      ::cxxopts::value< std::string >()->default_value( "auto" ), "mode" )
+      "normally), \"on\" (require claude, no prompt), or \"off\". Given with no "
+      "value, means \"on\"",
+      ::cxxopts::value< std::string >()->default_value( "auto" )
+                                       ->implicit_value( "on" ), "mode" )
     ( "llm-poll", "Seconds between LLM training checkups",
       ::cxxopts::value< std::string >()->default_value( "600" ), "seconds" )
     ( "llm-max-restarts", "Maximum LLM-initiated restarts of the training process",
@@ -945,6 +961,24 @@ train_applet
   bool opt_normalize_16bit = cmd_args[ "normalize-16bit" ].as< bool >();
 
   std::string opt_llm_assist = cmd_args[ "llm-assist" ].as< std::string >();
+
+  // --llm-assist may be given with no value, meaning "on". cxxopts hands an
+  // option with an implicit value that value and never consumes the token after
+  // it, so "--llm-assist off" would otherwise come back as "on" with a stray
+  // "off". Recover the intended mode from the raw arguments: a following token
+  // that is not itself a flag is the mode, valid or not, so that a mistyped one
+  // is reported below rather than silently turning supervision on.
+  {
+    const std::vector< std::string >& raw_args = applet_args();
+
+    for( std::size_t i = 1; i + 1 < raw_args.size(); ++i )
+    {
+      if( raw_args[i] == "--llm-assist" && is_option_value( raw_args[i + 1] ) )
+      {
+        opt_llm_assist = raw_args[i + 1];
+      }
+    }
+  }
   std::string opt_llm_poll = cmd_args[ "llm-poll" ].as< std::string >();
   std::string opt_llm_max_restarts = cmd_args[ "llm-max-restarts" ].as< std::string >();
   std::string opt_llm_model = cmd_args[ "llm-model" ].as< std::string >();
