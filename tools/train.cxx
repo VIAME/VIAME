@@ -22,6 +22,7 @@
 #include <vital/types/image_container.h>
 #include <vital/types/object_track_set.h>
 #include <vital/logger/logger.h>
+#include <vital/util/get_paths.h>
 
 #include <sprokit/pipeline/process_exception.h>
 
@@ -29,11 +30,13 @@
 #include <plugins/core/utilities_image.h>
 #include <plugins/core/utilities_training.h>
 #include <plugins/core/manipulate_pipelines.h>
+#include <plugins/claude/train_supervisor.h>
 
 #include <vector>
 #include <unordered_set>
 #include <string>
 #include <map>
+#include <set>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -163,6 +166,296 @@ static kv::config_block_sptr default_config()
     ( "track_reader", config, kv::algo::read_object_track_set_sptr() );
 
   return config;
+}
+
+// =======================================================================================
+// Setting over-ride helpers, shared by the --setting flag and --settings-file
+typedef std::pair< kv::config_block_key_t, kv::config_block_value_t > config_setting_t;
+
+// Split a "block:key=value" string into its key and value halves. Returns false
+// with a populated error message if the string is not a valid setting.
+//
+// require_block_key enforces the keypath being at least "a:b", which guards
+// against typos on the command line. Settings files may also address top level
+// tool keys such as "downsample", so they do not require it.
+static bool parse_config_setting( const std::string& setting,
+                                  config_setting_t& parsed,
+                                  std::string& error,
+                                  bool require_block_key = true )
+{
+  size_t const split_pos = setting.find( "=" );
+
+  if( split_pos == std::string::npos )
+  {
+    error = "Error: The setting \'" + setting + "\' does not contain the \'=\' "
+      "string which separates the key from the value";
+    return false;
+  }
+
+  kv::config_block_key_t setting_key = setting.substr( 0, split_pos );
+  kv::config_block_value_t setting_value = setting.substr( split_pos + 1 );
+
+  kv::config_block_keys_t keys;
+
+  kv::tokenize( setting_key, keys,
+    kv::config_block::block_sep(),
+    kv::TokenizeTrimEmpty );
+
+  if( keys.empty() )
+  {
+    error = "Error: The setting \'" + setting + "\' has an empty key";
+    return false;
+  }
+
+  if( require_block_key && keys.size() < 2 )
+  {
+    error = "Error: The key portion of setting \'" + setting + "\' does not "
+      "contain at least two keys in its keypath which is invalid. "
+      "(e.g. must be at least a:b)";
+    return false;
+  }
+
+  parsed = config_setting_t( setting_key, setting_value );
+  return true;
+}
+
+// Load key=value lines from a settings file. Blank lines and # comments are
+// skipped; malformed lines are reported and ignored.
+static bool load_settings_file( const std::string& filename,
+                                std::vector< config_setting_t >& settings )
+{
+  std::ifstream input( filename.c_str() );
+
+  if( !input )
+  {
+    std::cerr << "Unable to open settings file: " << filename << std::endl;
+    return false;
+  }
+
+  std::string line;
+
+  while( std::getline( input, line ) )
+  {
+    std::size_t start = line.find_first_not_of( " \t\r\n" );
+
+    if( start == std::string::npos || line[ start ] == '#' )
+    {
+      continue;
+    }
+
+    std::size_t end = line.find_last_not_of( " \t\r\n" );
+    std::string setting = line.substr( start, end - start + 1 );
+
+    config_setting_t parsed;
+    std::string error;
+
+    if( parse_config_setting( setting, parsed, error, false ) )
+    {
+      settings.push_back( parsed );
+    }
+    else
+    {
+      std::cerr << "Warning: ignoring line in " << filename
+                << ": " << error << std::endl;
+    }
+  }
+
+  return true;
+}
+
+static void apply_settings( kv::config_block_sptr config,
+                            const std::vector< config_setting_t >& settings )
+{
+  for( const auto& setting : settings )
+  {
+    config->set_value( setting.first, setting.second );
+  }
+}
+
+// Apply the single --setting command line over-ride, if provided
+static void apply_command_line_setting( kv::config_block_sptr config,
+                                        const std::string& opt_settings )
+{
+  if( opt_settings.empty() )
+  {
+    return;
+  }
+
+  config_setting_t parsed;
+  std::string error;
+
+  if( !parse_config_setting( opt_settings, parsed, error ) )
+  {
+    throw std::runtime_error( error );
+  }
+
+  config->set_value( parsed.first, parsed.second );
+}
+
+// =======================================================================================
+// Context gathering for LLM-assisted training
+
+// Newline-separated list of all trainable detector types in this install
+static std::string gather_trainable_types()
+{
+  std::string output;
+
+  auto fact_list =
+    kv::plugin_manager::instance().get_factories( "train_detector" );
+
+  for( auto fact : fact_list )
+  {
+    std::string name;
+
+    if( fact->get_attribute( kv::plugin_factory::PLUGIN_NAME, name ) )
+    {
+      output += name + "\n";
+    }
+  }
+
+  return output;
+}
+
+// Newline-separated list of packaged train_*.conf files, as full paths so any
+// suggestion made against this list can be used directly
+static std::string gather_available_train_configs()
+{
+  std::vector< std::string > search_dirs;
+
+  const char* viame_install = std::getenv( "VIAME_INSTALL" );
+
+  if( viame_install )
+  {
+    search_dirs.push_back(
+      append_path( std::string( viame_install ), "configs/pipelines" ) );
+  }
+
+  search_dirs.push_back(
+    append_path( kv::get_executable_path(), "../configs/pipelines" ) );
+
+  for( const auto& dir : search_dirs )
+  {
+    if( !does_folder_exist( dir ) )
+    {
+      continue;
+    }
+
+    std::vector< std::string > files;
+    list_files_in_folder( dir, files, false, { ".conf" } );
+    std::sort( files.begin(), files.end() );
+
+    std::string output;
+
+    for( const auto& file : files )
+    {
+      if( get_filename_no_path( file ).rfind( "train_", 0 ) == 0 )
+      {
+        output += file + "\n";
+      }
+    }
+
+    if( !output.empty() )
+    {
+      return output;
+    }
+  }
+
+  return "";
+}
+
+// Dump the effective configuration as key=value lines, which are the exact keys
+// the model is allowed to suggest over-rides for
+static std::string gather_config_text( kv::config_block_sptr config )
+{
+  const std::size_t max_length = 48000;
+
+  std::ostringstream output;
+
+  for( const auto& key : config->available_values() )
+  {
+    output << key << "="
+           << config->get_value< std::string >( key, "" ) << std::endl;
+  }
+
+  std::string result = output.str();
+
+  if( result.size() > max_length )
+  {
+    result.resize( max_length );
+    result += "\n... (configuration truncated)\n";
+  }
+
+  return result;
+}
+
+// Rebuild the argument list used to relaunch this tool as a monitored training
+// child. All model selection, settings file and LLM options are stripped, since
+// the supervisor supplies its own; queries are disabled so the child never
+// blocks on stdin during an unattended restart.
+static std::vector< std::string > build_child_train_args(
+    const std::string& applet_name,
+    const std::vector< std::string >& applet_args )
+{
+  static const std::set< std::string > dropped_long_options =
+    { "config", "detector", "settings-file", "llm-assist", "llm-poll",
+      "llm-max-restarts", "llm-model", "llm-cmd" };
+
+  std::vector< std::string > output;
+  output.push_back( applet_name );
+
+  bool has_no_query = false;
+
+  // Index 0 is the program name placeholder inserted by the tool runner
+  for( std::size_t i = 1; i < applet_args.size(); ++i )
+  {
+    const std::string& arg = applet_args[i];
+
+    if( arg.rfind( "--", 0 ) == 0 )
+    {
+      std::string name = arg.substr( 2 );
+      std::size_t equals = name.find( '=' );
+      bool value_attached = ( equals != std::string::npos );
+
+      if( value_attached )
+      {
+        name = name.substr( 0, equals );
+      }
+
+      if( dropped_long_options.count( name ) )
+      {
+        if( !value_attached )
+        {
+          ++i; // skip the separate value token
+        }
+        continue;
+      }
+
+      if( name == "no-query" )
+      {
+        has_no_query = true;
+      }
+    }
+    else if( arg.size() >= 2 && arg[0] == '-' )
+    {
+      if( arg[1] == 'c' || arg[1] == 'd' )
+      {
+        if( arg.size() == 2 )
+        {
+          ++i; // skip the separate value token
+        }
+        continue;
+      }
+    }
+
+    output.push_back( arg );
+  }
+
+  if( !has_no_query )
+  {
+    output.push_back( "--no-query" );
+  }
+
+  return output;
 }
 
 // =======================================================================================
@@ -570,6 +863,8 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "s,setting", "Over-ride some setting in the config",
       ::cxxopts::value< std::string >()->default_value( "" ), "key=value" )
+    ( "settings-file", "File of key=value config over-rides, one per line",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "t,threshold", "Threshold override to apply over input",
       ::cxxopts::value< std::string >()->default_value( "" ), "value" )
     ( "p,pipeline", "Pipeline file",
@@ -586,6 +881,19 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "normalize-16bit", "Enable percentile normalization for 16-bit/float imagery",
       ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "llm-assist", "Run training under claude supervision, which suggests config "
+      "improvements up front then monitors and restarts the run as needed. Either "
+      "\"auto\" (use claude if installed, otherwise train normally), \"on\" "
+      "(require claude), or \"off\"",
+      ::cxxopts::value< std::string >()->default_value( "auto" ), "mode" )
+    ( "llm-poll", "Seconds between LLM training checkups",
+      ::cxxopts::value< std::string >()->default_value( "600" ), "seconds" )
+    ( "llm-max-restarts", "Maximum LLM-initiated restarts of the training process",
+      ::cxxopts::value< std::string >()->default_value( "2" ), "count" )
+    ( "llm-model", "Optional claude model over-ride used by --llm-assist",
+      ::cxxopts::value< std::string >()->default_value( "" ), "name" )
+    ( "llm-cmd", "Claude executable used by --llm-assist",
+      ::cxxopts::value< std::string >()->default_value( "claude" ), "path" )
     ;
 }
 
@@ -633,7 +941,31 @@ train_applet
   std::string opt_timeout = cmd_args[ "timeout" ].as< std::string >();
   std::string opt_init_weights = cmd_args[ "init-weights" ].as< std::string >();
   std::string opt_output_file = cmd_args[ "output-file" ].as< std::string >();
+  std::string opt_settings_file = cmd_args[ "settings-file" ].as< std::string >();
   bool opt_normalize_16bit = cmd_args[ "normalize-16bit" ].as< bool >();
+
+  std::string opt_llm_assist = cmd_args[ "llm-assist" ].as< std::string >();
+  std::string opt_llm_poll = cmd_args[ "llm-poll" ].as< std::string >();
+  std::string opt_llm_max_restarts = cmd_args[ "llm-max-restarts" ].as< std::string >();
+  std::string opt_llm_model = cmd_args[ "llm-model" ].as< std::string >();
+  std::string opt_llm_cmd = cmd_args[ "llm-cmd" ].as< std::string >();
+
+  if( opt_llm_assist != "auto" && opt_llm_assist != "on" && opt_llm_assist != "off" )
+  {
+    std::cerr << "Invalid --llm-assist mode \"" << opt_llm_assist
+              << "\", must be one of: auto, on, off" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  // Settings applied ahead of any --setting, so an explicit command line
+  // over-ride always wins over one loaded from a file
+  std::vector< config_setting_t > file_settings;
+
+  if( !opt_settings_file.empty() &&
+      !load_settings_file( opt_settings_file, file_settings ) )
+  {
+    return EXIT_FAILURE;
+  }
 
   // List option
   if( opt_list )
@@ -741,42 +1073,8 @@ train_applet
     config->set_value( "detector_trainer:type", first_detector );
   }
 
-  if( !opt_settings.empty() )
-  {
-    const std::string& setting = opt_settings;
-    size_t const split_pos = setting.find( "=" );
-
-    if( split_pos == std::string::npos )
-    {
-      std::string const reason = "Error: The setting on the command line \'"
-        + setting + "\' does not contain the \'=\' string which separates "
-        "the key from the value";
-
-      throw std::runtime_error( reason );
-    }
-
-    kv::config_block_key_t setting_key =
-      setting.substr( 0, split_pos );
-    kv::config_block_value_t setting_value =
-      setting.substr( split_pos + 1 );
-
-    kv::config_block_keys_t keys;
-
-    kv::tokenize( setting_key, keys,
-      kv::config_block::block_sep(),
-      kv::TokenizeTrimEmpty );
-
-    if( keys.size() < 2 )
-    {
-      std::string const reason = "Error: The key portion of setting "
-        "\'" + setting + "\' does not contain at least two keys in its "
-        "keypath which is invalid. (e.g. must be at least a:b)";
-
-      throw std::runtime_error( reason );
-    }
-
-    config->set_value( setting_key, setting_value );
-  }
+  apply_settings( config, file_settings );
+  apply_command_line_setting( config, opt_settings );
 
   if( opt_no_adv_print )
   {
@@ -1192,6 +1490,128 @@ train_applet
     {
       std::cerr << "Error reading labels.txt: " << e.what() << std::endl;
       return EXIT_FAILURE;
+    }
+  }
+
+  // Optionally hand the run over to the LLM supervisor, which relaunches this
+  // tool as a monitored child. Placed after config validation and the labels
+  // query so cheap setup and any user prompts happen once, in this process,
+  // but before any data loading, which is left to the child.
+  if( opt_llm_assist != "off" && !std::getenv( claude::child_env_marker ) )
+  {
+    const bool llm_required = ( opt_llm_assist == "on" );
+    const std::string claude_cmd = claude::find_claude_binary( opt_llm_cmd );
+
+    if( claude_cmd.empty() )
+    {
+      if( llm_required )
+      {
+        std::cerr << "Unable to find claude executable \"" << opt_llm_cmd
+                  << "\" required by --llm-assist on" << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      // Auto mode: claude is not installed, train normally without comment
+    }
+    else
+    {
+      claude::llm_train_options llm;
+
+      llm.claude_cmd = claude_cmd;
+      llm.model = opt_llm_model;
+      llm.no_query = opt_no_query;
+      llm.required = llm_required;
+
+      try
+      {
+        llm.poll_seconds = std::stoi( opt_llm_poll );
+        llm.max_restarts = std::stoi( opt_llm_max_restarts );
+      }
+      catch( const std::exception& )
+      {
+        std::cerr << "--llm-poll and --llm-max-restarts must be integers" << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      llm.state_dir = output_directory.empty() ?
+        std::string( "llm_supervisor" ) :
+        append_path( output_directory, "llm_supervisor" );
+
+      llm.config_text = gather_config_text( config );
+      llm.trainable_types = gather_trainable_types();
+      llm.available_configs = gather_available_train_configs();
+
+      llm.original_config = opt_config;
+      llm.original_detector = opt_detector;
+      llm.user_settings_file = opt_settings_file;
+
+      std::ostringstream cmdline;
+      cmdline << "viame " << applet_name();
+
+      for( std::size_t i = 1; i < applet_args().size(); ++i )
+      {
+        cmdline << " " << applet_args()[i];
+      }
+
+      llm.original_cmdline = cmdline.str();
+      llm.child_args_base = build_child_train_args( applet_name(), applet_args() );
+
+      std::ostringstream dataset;
+
+      if( model_labels )
+      {
+        dataset << "Training categories (" << model_labels->size() << "): ";
+
+        for( const auto& name : model_labels->all_class_names() )
+        {
+          dataset << name << " ";
+        }
+
+        dataset << std::endl;
+      }
+
+      if( !opt_input_dir.empty() )
+      {
+        std::vector< std::string > subfolders, videos;
+
+        list_all_subfolders( opt_input_dir, subfolders );
+        list_files_in_folder( opt_input_dir, videos, false, video_exts );
+
+        dataset << "Input directory: " << opt_input_dir << std::endl
+                << "  image sequence sub-folders: " << subfolders.size() << std::endl
+                << "  videos: " << videos.size() << std::endl;
+
+        const unsigned max_listed = 20;
+
+        for( unsigned i = 0; i < subfolders.size() && i < max_listed; ++i )
+        {
+          dataset << "    " << get_filename_no_path( subfolders[i] ) << std::endl;
+        }
+        for( unsigned i = 0; i < videos.size() && i < max_listed; ++i )
+        {
+          dataset << "    " << get_filename_no_path( videos[i] ) << std::endl;
+        }
+      }
+
+      if( !opt_input_list.empty() )
+      {
+        dataset << "Input list: " << opt_input_list << std::endl;
+      }
+      if( !opt_validation_dir.empty() )
+      {
+        dataset << "Validation directory: " << opt_validation_dir << std::endl;
+      }
+
+      llm.dataset_summary = dataset.str();
+
+      int llm_return_code = claude::run_llm_supervised_training( llm );
+
+      if( llm_return_code >= 0 )
+      {
+        return llm_return_code;
+      }
+
+      // Claude turned out to be unusable in auto mode, train normally
     }
   }
 
@@ -2294,7 +2714,8 @@ train_applet
   // report every model. Remember it so the process exit code says so: returning
   // EXIT_SUCCESS here makes a crashed run indistinguishable from a good one to
   // any caller (shell "set -e", slurm job state, CI), which silently hides
-  // failures that took hours of GPU time to produce.
+  // failures that took hours of GPU time to produce. The LLM supervisor relies
+  // on this too, to know when to restart a run.
   bool training_failed = false;
 
   // Run training algorithm(s) - loop through all configs/detectors for multi-model training
@@ -2337,20 +2758,8 @@ train_applet
       }
 
       // Apply command line settings override
-      if( !opt_settings.empty() )
-      {
-        const std::string& setting = opt_settings;
-        size_t const split_pos = setting.find( "=" );
-
-        if( split_pos != std::string::npos )
-        {
-          kv::config_block_key_t setting_key =
-            setting.substr( 0, split_pos );
-          kv::config_block_value_t setting_value =
-            setting.substr( split_pos + 1 );
-          current_config->set_value( setting_key, setting_value );
-        }
-      }
+      apply_settings( current_config, file_settings );
+      apply_command_line_setting( current_config, opt_settings );
 
       // Reinitialize detector trainer for this model
       detector_trainer.reset();
@@ -2538,20 +2947,8 @@ train_applet
       tracker_config->set_value( "tracker_trainer:type", current_tracker );
 
       // Apply command line settings override
-      if( !opt_settings.empty() )
-      {
-        const std::string& setting = opt_settings;
-        size_t const split_pos = setting.find( "=" );
-
-        if( split_pos != std::string::npos )
-        {
-          kv::config_block_key_t setting_key =
-            setting.substr( 0, split_pos );
-          kv::config_block_value_t setting_value =
-            setting.substr( split_pos + 1 );
-          tracker_config->set_value( setting_key, setting_value );
-        }
-      }
+      apply_settings( tracker_config, file_settings );
+      apply_command_line_setting( tracker_config, opt_settings );
 
       kv::algo::train_tracker::set_nested_algo_configuration
         ( "tracker_trainer", tracker_config, tracker_trainer );

@@ -7,6 +7,7 @@ set( viame_plugin_subdir           viame )
 set( viame_plugin_process_subdir   ${viame_plugin_subdir}/processes )
 
 add_subdirectory( core )
+add_subdirectory( claude )
 add_subdirectory( examples )
 
 if( VIAME_ENABLE_PYTHON )
