@@ -357,7 +357,7 @@ def find_ffmpeg():
     Deliberately does not fall back to the static ffmpeg bundled under dive/ --
     that one ships with the GUI and is not the build's video stack.
     """
-    install = os.environ.get('VIAME_INSTALL', '')
+    install = find_viame_install()
     if install:
         candidate = os.path.join(install, 'bin', 'ffmpeg')
         if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
@@ -815,12 +815,50 @@ def cmd_validate(args):
 # -----------------------------------------------------------------------------
 
 def find_process_video():
+    """process_video.py: beside this tool (source or install), else the install."""
     here = os.path.dirname(os.path.abspath(__file__))
-    for cand in (os.path.join(here, 'process_video.py'),
-                 shutil.which('process_video.py') or ''):
-        if cand and os.path.exists(cand):
-            return cand
-    sys.exit('Cannot find process_video.py next to this tool or on PATH')
+    install = find_viame_install()
+    for candidate in (os.path.join(here, 'process_video.py'),
+                      os.path.join(install, 'configs', 'process_video.py')
+                      if install else '',
+                      shutil.which('process_video.py') or ''):
+        if candidate and os.path.exists(candidate):
+            return candidate
+    sys.exit('Cannot find process_video.py beside this tool, in the VIAME '
+             'install, or on PATH.')
+
+
+def find_viame_install(explicit=None):
+    """The VIAME install tree, wherever this tool itself is being run from.
+
+    Pipelines, SAM2 weights and ffmpeg all live in the install, so the install has
+    to be located; but the tool may be run from a source checkout or a build tree,
+    so it is never assumed to be the directory we happen to sit in. Order:
+    --viame-install, then $VIAME_INSTALL, then an ancestor of this file that is
+    itself an install (which is what makes the installed copy work with no env).
+
+    Deliberately does NOT go hunting for nearby directories called 'install'. A
+    checkout commonly has several -- an old one, a beta, the current build -- and
+    picking the wrong one silently gives you a build with no SAM2 in it.
+    """
+    if explicit:
+        return os.path.abspath(explicit)
+    env = os.environ.get('VIAME_INSTALL', '')
+    if env:
+        return os.path.abspath(env)
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    while True:
+        if is_viame_install(here):
+            return here
+        parent = os.path.dirname(here)
+        if parent == here:
+            return ''
+        here = parent
+
+
+def is_viame_install(path):
+    return bool(path) and os.path.exists(os.path.join(path, 'setup_viame.sh'))
 
 
 def pipeline_candidates(pipeline, install=None):
@@ -831,7 +869,7 @@ def pipeline_candidates(pipeline, install=None):
     resolves against the pipe's own directory, and the models only sit beside the
     installed one.
     """
-    install = install or os.environ.get('VIAME_INSTALL', '')
+    install = find_viame_install(install)
     here = os.path.dirname(os.path.abspath(__file__))
     places = [pipeline]
     if install:
@@ -848,12 +886,13 @@ def resolve_pipeline(pipeline, install=None):
         if os.path.exists(candidate):
             return os.path.abspath(candidate)
 
-    install = install or os.environ.get('VIAME_INSTALL', '')
+    install = find_viame_install(install)
     message = ['Cannot find pipeline: ' + pipeline, '', 'Looked in:']
     message += ['    ' + os.path.normpath(t) for t in tried]
     message.append('')
     if not install:
-        message.append('VIAME_INSTALL is not set -- source setup_viame.sh first.')
+        message.append('No VIAME install found. Source setup_viame.sh, set '
+                       'VIAME_INSTALL, or pass --viame-install.')
     else:
         message.append('VIAME_INSTALL = ' + install)
         pipe_dir = os.path.join(install, 'configs', 'pipelines')
@@ -1264,10 +1303,10 @@ def cmd_reseg(args):
     # a plain file we have to point at ourselves.
     checkpoint = args.sam2_checkpoint
     if not os.path.exists(checkpoint):
-        checkpoint = os.path.join(os.environ.get('VIAME_INSTALL', ''), checkpoint)
+        checkpoint = os.path.join(find_viame_install(), checkpoint)
     if not os.path.exists(checkpoint):
-        sys.exit('Cannot find the SAM2 checkpoint (%s). Source setup_viame.sh, or '
-                 'pass --sam2-checkpoint.' % args.sam2_checkpoint)
+        sys.exit('Cannot find the SAM2 checkpoint (%s). Source setup_viame.sh, set '
+                 'VIAME_INSTALL, or pass --sam2-checkpoint.' % args.sam2_checkpoint)
 
     model = build_sam2(config_file=args.sam2_config, ckpt_path=checkpoint,
                        device='cuda', mode='eval', apply_postprocessing=True)
@@ -1531,11 +1570,11 @@ def cmd_gen_scripts(args):
     with open(os.path.join(run_dir, 'units.txt'), 'w') as fout:
         fout.write('\n'.join(r['name'] for r in runnable) + '\n')
 
-    if not args.viame_install:
-        sys.exit('Pass --viame-install, or source setup_viame.sh so that '
-                 'VIAME_INSTALL is set.')
-    viame = os.path.abspath(args.viame_install)
-    if not os.path.exists(os.path.join(viame, 'setup_viame.sh')):
+    viame = find_viame_install(args.viame_install)
+    if not viame:
+        sys.exit('No VIAME install found. Source setup_viame.sh, set VIAME_INSTALL, '
+                 'or pass --viame-install.')
+    if not is_viame_install(viame):
         sys.exit('No setup_viame.sh under %s -- that is not a VIAME install.' % viame)
     tool = os.path.abspath(__file__)
 
@@ -1621,8 +1660,10 @@ def main():
 
     p = subs.add_parser('gen-scripts', help='emit run scripts for a manifest')
     add_run_dir(p)
-    p.add_argument('--viame-install', default=os.environ.get('VIAME_INSTALL', ''),
-                   help='VIAME install directory (the one with setup_viame.sh)')
+    p.add_argument('--viame-install', default='',
+                   help='VIAME install directory (the one with setup_viame.sh). '
+                        'Defaults to $VIAME_INSTALL, else an install found near '
+                        'this tool.')
     p.add_argument('-p', '--pipeline', default=DEFAULT_PIPELINE)
     p.add_argument('--scheduler', choices=('slurm', 'bash', 'both'), default='both')
     p.add_argument('--concurrent', type=int, default=3,
