@@ -37,10 +37,11 @@ logger = logging.getLogger(__name__)
 # Kalman Filter for motion prediction
 # =============================================================================
 
+
 class KalmanFilter:
     """Kalman filter for tracking bounding boxes in image space."""
 
-    def __init__(self, std_weight_position=1.0/20, std_weight_velocity=1.0/160):
+    def __init__(self, std_weight_position=1.0 / 20, std_weight_velocity=1.0 / 160):
         ndim = 4
         dt = 1.0
 
@@ -86,9 +87,10 @@ class KalmanFilter:
         motion_cov = np.diag(np.square(np.r_[std_pos, std_vel]))
 
         mean = np.dot(self._motion_mat, mean)
-        covariance = np.linalg.multi_dot([
-            self._motion_mat, covariance, self._motion_mat.T
-        ]) + motion_cov
+        covariance = (
+            np.linalg.multi_dot([self._motion_mat, covariance, self._motion_mat.T])
+            + motion_cov
+        )
 
         return mean, covariance
 
@@ -102,9 +104,9 @@ class KalmanFilter:
         innovation_cov = np.diag(np.square(std))
 
         mean = np.dot(self._update_mat, mean)
-        covariance = np.linalg.multi_dot([
-            self._update_mat, covariance, self._update_mat.T
-        ])
+        covariance = np.linalg.multi_dot(
+            [self._update_mat, covariance, self._update_mat.T]
+        )
         return mean, covariance + innovation_cov
 
     def update(self, mean, covariance, measurement):
@@ -116,14 +118,14 @@ class KalmanFilter:
         kalman_gain = scipy.linalg.cho_solve(
             (chol_factor, lower),
             np.dot(covariance, self._update_mat.T).T,
-            check_finite=False
+            check_finite=False,
         ).T
         innovation = measurement - projected_mean
 
         new_mean = mean + np.dot(innovation, kalman_gain.T)
-        new_covariance = covariance - np.linalg.multi_dot([
-            kalman_gain, projected_cov, kalman_gain.T
-        ])
+        new_covariance = covariance - np.linalg.multi_dot(
+            [kalman_gain, projected_cov, kalman_gain.T]
+        )
         return new_mean, new_covariance
 
     def gating_distance(self, mean, covariance, measurements, only_position=False):
@@ -147,6 +149,7 @@ class KalmanFilter:
 # Track state enumeration
 # =============================================================================
 
+
 class TrackState:
     TENTATIVE = 1
     CONFIRMED = 2
@@ -157,10 +160,11 @@ class TrackState:
 # Re-ID Feature Extractor
 # =============================================================================
 
+
 class FeatureExtractor:
     """Deep appearance feature extractor for Re-ID."""
 
-    def __init__(self, model_path=None, device='cuda'):
+    def __init__(self, model_path=None, device="cuda"):
         self.model = None
         self.device = device
         self.model_path = model_path
@@ -177,8 +181,8 @@ class FeatureExtractor:
 
             self.torch = torch
 
-            if self.device == 'cuda' and not torch.cuda.is_available():
-                self.device = 'cpu'
+            if self.device == "cuda" and not torch.cuda.is_available():
+                self.device = "cpu"
 
             if self.model_path and self.model_path.strip():
                 self.model = torch.load(self.model_path, map_location=self.device)
@@ -191,24 +195,27 @@ class FeatureExtractor:
 
             class SafeNormalize(object):
                 """Per-channel normalize avoiding PyTorch vectorization bug."""
+
                 def __init__(self, mean, std):
                     self.mean = mean
                     self.std = std
+
                 def __call__(self, tensor):
                     result = torch.zeros_like(tensor)
                     for i in range(tensor.shape[0]):
                         result[i] = (tensor[i] - self.mean[i]) / self.std[i]
                     return result
 
-            self.transform = transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.Resize((128, 64)),
-                transforms.ToTensor(),
-                SafeNormalize(
-                    mean=[0.485, 0.456, 0.406],
-                    std=[0.229, 0.224, 0.225]
-                )
-            ])
+            self.transform = transforms.Compose(
+                [
+                    transforms.ToPILImage(),
+                    transforms.Resize((128, 64)),
+                    transforms.ToTensor(),
+                    SafeNormalize(
+                        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                    ),
+                ]
+            )
 
             self._initialized = True
 
@@ -256,8 +263,10 @@ class FeatureExtractor:
 # Single track representation
 # =============================================================================
 
+
 class STrack:
     """Represents a single tracked object with Kalman filter state and appearance."""
+
     _count = 0
 
     def __init__(self, tlwh, score, feature=None, detected_object=None):
@@ -312,8 +321,7 @@ class STrack:
 
     def update(self, detection, frame_id, timestamp):
         self.mean, self.covariance = self.kalman_filter.update(
-            self.mean, self.covariance,
-            self.tlwh_to_xyah(detection._tlwh)
+            self.mean, self.covariance, self.tlwh_to_xyah(detection._tlwh)
         )
         self._tlwh = detection._tlwh
         self.score = detection.score
@@ -381,6 +389,7 @@ class STrack:
 # =============================================================================
 # Distance metrics
 # =============================================================================
+
 
 def cosine_distance(a, b, data_is_normalized=True):
     """Compute cosine distance between feature vectors."""
@@ -474,8 +483,15 @@ def linear_assignment(cost_matrix, thresh):
     return matches, unmatched_a, unmatched_b
 
 
-def matching_cascade(distance_metric, max_distance, cascade_depth, tracks,
-                     detections, track_indices=None, detection_indices=None):
+def matching_cascade(
+    distance_metric,
+    max_distance,
+    cascade_depth,
+    tracks,
+    detections,
+    track_indices=None,
+    detection_indices=None,
+):
     """Run matching cascade: match by age (recently seen first)."""
     if track_indices is None:
         track_indices = list(range(len(tracks)))
@@ -490,8 +506,7 @@ def matching_cascade(distance_metric, max_distance, cascade_depth, tracks,
             break
 
         track_indices_l = [
-            k for k in track_indices
-            if tracks[k].time_since_update == 1 + level
+            k for k in track_indices if tracks[k].time_since_update == 1 + level
         ]
 
         if len(track_indices_l) == 0:
@@ -499,7 +514,7 @@ def matching_cascade(distance_metric, max_distance, cascade_depth, tracks,
 
         cost_matrix = distance_metric(
             [tracks[i] for i in track_indices_l],
-            [detections[i] for i in unmatched_detections]
+            [detections[i] for i in unmatched_detections],
         )
 
         matches_l, _, unmatched_detections_l = linear_assignment(
@@ -519,6 +534,7 @@ def matching_cascade(distance_metric, max_distance, cascade_depth, tracks,
 # =============================================================================
 # Converters to/from Kwiver types
 # =============================================================================
+
 
 def to_DetectedObject_list(dos):
     return list(dos)
@@ -551,7 +567,9 @@ def to_ObjectTrackSet(tracks):
         for ts, do in track.history:
             ots = ObjectTrackState(ts.get_frame(), ts.get_time_usec(), do)
             if not t.append(ots):
-                logger.warning("Unsorted input in to_ObjectTrackSet for track %d", track.track_id)
+                logger.warning(
+                    "Unsorted input in to_ObjectTrackSet for track %d", track.track_id
+                )
         result.append(t)
     return ObjectTrackSet(result)
 
@@ -560,20 +578,25 @@ def to_ObjectTrackSet(tracks):
 # DeepSORT Configuration
 # =============================================================================
 
+
 class DeepSORTTrackerConfig(scfg.DataConfig):
     """Configuration for DeepSORT tracker."""
-    max_dist = scfg.Value(0.2, help='Maximum cosine distance for appearance matching')
-    min_confidence = scfg.Value(0.3, help='Minimum detection confidence threshold')
-    max_iou_distance = scfg.Value(0.7, help='Maximum IOU distance for fallback matching')
-    max_age = scfg.Value(30, help='Maximum frames to keep lost tracks')
-    n_init = scfg.Value(3, help='Consecutive detections before track is confirmed')
-    model_path = scfg.Value('', help='Path to Re-ID model weights (optional)')
-    device = scfg.Value('cuda', help='Device for feature extraction (cuda or cpu)')
+
+    max_dist = scfg.Value(0.2, help="Maximum cosine distance for appearance matching")
+    min_confidence = scfg.Value(0.3, help="Minimum detection confidence threshold")
+    max_iou_distance = scfg.Value(
+        0.7, help="Maximum IOU distance for fallback matching"
+    )
+    max_age = scfg.Value(30, help="Maximum frames to keep lost tracks")
+    n_init = scfg.Value(3, help="Consecutive detections before track is confirmed")
+    model_path = scfg.Value("", help="Path to Re-ID model weights (optional)")
+    device = scfg.Value("cuda", help="Device for feature extraction (cuda or cpu)")
 
 
 # =============================================================================
 # DeepSORT Algorithm (TrackObjects implementation)
 # =============================================================================
+
 
 class DeepSORTTracker(TrackObjects):
     """
@@ -627,7 +650,7 @@ class DeepSORTTracker(TrackObjects):
         self._kalman_filter = KalmanFilter()
         self._feature_extractor = FeatureExtractor(
             model_path=self._model_path if self._model_path else None,
-            device=self._device
+            device=self._device,
         )
         self._tracks = []
         self._frame_id = 0
@@ -664,7 +687,7 @@ class DeepSORTTracker(TrackObjects):
         img_np = None
         if image is not None:
             try:
-                img_np = image.image().asarray().astype('uint8')
+                img_np = image.image().asarray().astype("uint8")
             except:
                 img_np = None
 
@@ -698,27 +721,29 @@ class DeepSORTTracker(TrackObjects):
 
         # === Cascade matching for confirmed tracks ===
         matches_a, unmatched_tracks_a, unmatched_detections = matching_cascade(
-            nn_cosine_distance, self._max_dist, self._max_age,
-            confirmed_tracks, all_detections
+            nn_cosine_distance,
+            self._max_dist,
+            self._max_age,
+            confirmed_tracks,
+            all_detections,
         )
 
         # === IOU matching for remaining ===
         iou_track_candidates = [
-            confirmed_tracks[i] for i in unmatched_tracks_a
+            confirmed_tracks[i]
+            for i in unmatched_tracks_a
             if confirmed_tracks[i].time_since_update == 1
         ]
         iou_track_candidates += unconfirmed_tracks
 
         unmatched_tracks_a = [
-            i for i in unmatched_tracks_a
-            if confirmed_tracks[i].time_since_update != 1
+            i for i in unmatched_tracks_a if confirmed_tracks[i].time_since_update != 1
         ]
 
         matches_b = []
         if len(iou_track_candidates) > 0 and len(unmatched_detections) > 0:
             cost_matrix = iou_distance(
-                iou_track_candidates,
-                [all_detections[i] for i in unmatched_detections]
+                iou_track_candidates, [all_detections[i] for i in unmatched_detections]
             )
             matches_b, unmatched_tracks_b, unmatched_detections_b = linear_assignment(
                 cost_matrix, self._max_iou_distance
@@ -729,11 +754,15 @@ class DeepSORTTracker(TrackObjects):
                 det = all_detections[unmatched_detections[col]]
                 track.update(det, self._frame_id, ts)
 
-            unmatched_detections = [unmatched_detections[i] for i in unmatched_detections_b]
+            unmatched_detections = [
+                unmatched_detections[i] for i in unmatched_detections_b
+            ]
 
         # Update matched tracks from cascade
         for track_idx, det_idx in matches_a:
-            confirmed_tracks[track_idx].update(all_detections[det_idx], self._frame_id, ts)
+            confirmed_tracks[track_idx].update(
+                all_detections[det_idx], self._frame_id, ts
+            )
 
         # Mark missed tracks
         for i in unmatched_tracks_a:
@@ -756,7 +785,9 @@ class DeepSORTTracker(TrackObjects):
         self._tracks = [t for t in self._tracks if not t.is_deleted()]
 
         # Output confirmed tracks
-        output_tracks = [t for t in self._tracks if t.is_confirmed() and len(t.history) > 0]
+        output_tracks = [
+            t for t in self._tracks if t.is_confirmed() and len(t.history) > 0
+        ]
         return to_ObjectTrackSet(output_tracks)
 
     @report_cuda_errors("DeepSORTTracker tracking")
@@ -785,20 +816,12 @@ class DeepSORTTracker(TrackObjects):
 # Algorithm Registration
 # =============================================================================
 
+
 def __vital_algorithm_register__():
-    """Register the DeepSORT algorithm with KWIVER."""
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "deepsort"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            DeepSORTTracker.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
+    register_vital_algorithm(
+        DeepSORTTracker,
+        "deepsort",
         "DeepSORT multi-object tracker with deep appearance features",
-        DeepSORTTracker
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

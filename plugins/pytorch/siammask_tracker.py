@@ -39,37 +39,57 @@ logger = logging.getLogger(__name__)
 
 def gpu_list_desc(use_for=None):
     """Generate a description for a GPU list config trait."""
-    return ('define which GPUs to use{}: "all", "None", or a comma-separated list, e.g. "1,2"'
-            .format('' if use_for is None else ' for ' + use_for))
+    return 'define which GPUs to use{}: "all", "None", or a comma-separated list, e.g. "1,2"'.format(
+        "" if use_for is None else " for " + use_for
+    )
 
 
 def parse_gpu_list(gpu_list_str):
     """Parse a string representing a list of GPU indices to a list of numeric GPU indices."""
-    return ([] if gpu_list_str == 'None' else
-            None if gpu_list_str == 'all' else
-            list(map(int, gpu_list_str.split(','))))
+    return (
+        []
+        if gpu_list_str == "None"
+        else None if gpu_list_str == "all" else list(map(int, gpu_list_str.split(",")))
+    )
 
 
 # =============================================================================
 # Configuration
 # =============================================================================
 
+
 class SiamMaskTrackerConfig(scfg.DataConfig):
     """Configuration for SiamMask tracker algorithm."""
-    gpu_list = scfg.Value('all', help=gpu_list_desc(use_for='Siamese short-term trackers'))
-    config_file = scfg.Value('models/siammask_config.yaml', help='Path to configuration file.')
-    model_file = scfg.Value('models/siammask_model.pth', help='Path to trained model file.')
-    seed_bbox = scfg.Value('[100, 100, 100, 100]', help='Start bounding box for debug mode only')
-    threshold = scfg.Value(0.0, help='Minimum confidence to keep track.')
-    init_threshold = scfg.Value(0.10, help='Minimum detection confidence to initialize tracks.')
-    init_intersect = scfg.Value(0.10,
-                                help='Do not initialize on detections with this percent overlap with existing tracks')
-    terminate_after_n = scfg.Value(50, help='Terminate trackers after no hits for N frames')
+
+    gpu_list = scfg.Value(
+        "all", help=gpu_list_desc(use_for="Siamese short-term trackers")
+    )
+    config_file = scfg.Value(
+        "models/siammask_config.yaml", help="Path to configuration file."
+    )
+    model_file = scfg.Value(
+        "models/siammask_model.pth", help="Path to trained model file."
+    )
+    seed_bbox = scfg.Value(
+        "[100, 100, 100, 100]", help="Start bounding box for debug mode only"
+    )
+    threshold = scfg.Value(0.0, help="Minimum confidence to keep track.")
+    init_threshold = scfg.Value(
+        0.10, help="Minimum detection confidence to initialize tracks."
+    )
+    init_intersect = scfg.Value(
+        0.10,
+        help="Do not initialize on detections with this percent overlap with existing tracks",
+    )
+    terminate_after_n = scfg.Value(
+        50, help="Terminate trackers after no hits for N frames"
+    )
 
 
 # =============================================================================
 # SiamMask TrackObjects Algorithm
 # =============================================================================
+
 
 class SiamMaskTracker(TrackObjects):
     """
@@ -107,17 +127,18 @@ class SiamMaskTracker(TrackObjects):
     @report_cuda_errors("SiamMaskTracker initialization")
     def set_configuration(self, cfg_in):
         from viame.pytorch.utilities import vital_config_update
+
         config = self.get_configuration()
         vital_config_update(config, cfg_in)
 
-        self._config.gpu_list = config.get_value('gpu_list')
-        self._config.config_file = config.get_value('config_file')
-        self._config.model_file = config.get_value('model_file')
-        self._config.seed_bbox = config.get_value('seed_bbox')
-        self._config.threshold = float(config.get_value('threshold'))
-        self._config.init_threshold = float(config.get_value('init_threshold'))
-        self._config.init_intersect = float(config.get_value('init_intersect'))
-        self._config.terminate_after_n = int(config.get_value('terminate_after_n'))
+        self._config.gpu_list = config.get_value("gpu_list")
+        self._config.config_file = config.get_value("config_file")
+        self._config.model_file = config.get_value("model_file")
+        self._config.seed_bbox = config.get_value("seed_bbox")
+        self._config.threshold = float(config.get_value("threshold"))
+        self._config.init_threshold = float(config.get_value("init_threshold"))
+        self._config.init_intersect = float(config.get_value("init_intersect"))
+        self._config.terminate_after_n = int(config.get_value("terminate_after_n"))
 
         # Parse GPU list
         self._gpu_list = parse_gpu_list(self._config.gpu_list)
@@ -156,10 +177,10 @@ class SiamMaskTracker(TrackObjects):
         if not ts.has_valid_frame():
             raise RuntimeError("Frame timestamps must contain frame IDs")
 
-        logger.debug('SiamMask tracker stepping, timestamp = %r', ts)
+        logger.debug("SiamMask tracker stepping, timestamp = %r", ts)
 
         frame_id = ts.get_frame()
-        img = image.image().asarray().astype('uint8')
+        img = image.image().asarray().astype("uint8")
 
         # Handle image format
         if len(np.shape(img)) > 2 and np.shape(img)[2] == 1:
@@ -193,18 +214,19 @@ class SiamMaskTracker(TrackObjects):
             if tid in init_track_ids:
                 continue  # Already processed (initialized) on frame
             tracker_output = self._trackers[tid].track(img)
-            bbox = tracker_output['bbox']
-            score = tracker_output['best_score']
+            bbox = tracker_output["bbox"]
+            score = tracker_output["best_score"]
             if score > self._config.threshold:
                 cbox = BoundingBoxD(
-                    bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3])
+                    bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]
+                )
 
                 # Create DetectedObject with mask if available
-                if 'mask' in tracker_output and tracker_output['mask'] is not None:
+                if "mask" in tracker_output and tracker_output["mask"] is not None:
                     det = DetectedObject(cbox, score)
 
                     # Crop mask to bounding box region (mask is relative to bbox)
-                    full_mask = tracker_output['mask']
+                    full_mask = tracker_output["mask"]
                     x1 = max(0, int(bbox[0]))
                     y1 = max(0, int(bbox[1]))
                     x2 = min(full_mask.shape[1], int(bbox[0] + bbox[2]))
@@ -212,7 +234,9 @@ class SiamMaskTracker(TrackObjects):
 
                     if x2 > x1 and y2 > y1:
                         # Extract and convert mask to uint8 (threshold at 0.5)
-                        relative_mask = (full_mask[y1:y2, x1:x2] > 0.5).astype(np.uint8) * 255
+                        relative_mask = (full_mask[y1:y2, x1:x2] > 0.5).astype(
+                            np.uint8
+                        ) * 255
                         det.mask = ImageContainer(Image(relative_mask))
 
                     new_state = ObjectTrackState(ts, cbox, score, det)
@@ -259,7 +283,8 @@ class SiamMaskTracker(TrackObjects):
 
         # Output tracks
         output_tracks = ObjectTrackSet(
-            [Track(tid, trk) for tid, trk in self._tracks.items()])
+            [Track(tid, trk) for tid, trk in self._tracks.items()]
+        )
 
         self._last_ts = ts
         self._last_img = img
@@ -280,7 +305,7 @@ class SiamMaskTracker(TrackObjects):
             if not ts.has_valid_frame():
                 raise RuntimeError("Frame timestamps must contain frame IDs")
 
-            img = image.image().asarray().astype('uint8')
+            img = image.image().asarray().astype("uint8")
             if len(np.shape(img)) > 2 and np.shape(img)[2] == 1:
                 img = img[:, :, 0]
             if len(np.shape(img)) == 2:
@@ -288,9 +313,12 @@ class SiamMaskTracker(TrackObjects):
             else:
                 img = img[:, :, ::-1].copy()
 
-            cbox = BoundingBoxD(seed_bbox[0], seed_bbox[1],
-                                seed_bbox[0] + seed_bbox[2],
-                                seed_bbox[1] + seed_bbox[3])
+            cbox = BoundingBoxD(
+                seed_bbox[0],
+                seed_bbox[1],
+                seed_bbox[0] + seed_bbox[2],
+                seed_bbox[1] + seed_bbox[3],
+            )
             cx, cy, w, h = get_axis_aligned_bbox(np.array(seed_bbox))
             start_box = [cx - (w - 1) / 2, cy - (h - 1) / 2, w, h]
 
@@ -318,8 +346,7 @@ class SiamMaskTracker(TrackObjects):
         vital.types.ObjectTrackSet
             Final set of all tracks
         """
-        return ObjectTrackSet(
-            [Track(tid, trk) for tid, trk in self._tracks.items()])
+        return ObjectTrackSet([Track(tid, trk) for tid, trk in self._tracks.items()])
 
     def reset(self):
         """Reset tracker state for new sequence."""
@@ -334,18 +361,8 @@ class SiamMaskTracker(TrackObjects):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "siammask"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            SiamMaskTracker.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
-        "SiamMask visual object tracker",
-        SiamMaskTracker
+    register_vital_algorithm(
+        SiamMaskTracker, "siammask", "SiamMask visual object tracker"
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

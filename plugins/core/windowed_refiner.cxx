@@ -5,6 +5,8 @@
 #include "windowed_refiner.h"
 #include "windowed_utils.h"
 
+#include <vital/algo/algorithm.txx>
+
 #include <vital/util/wall_timer.h>
 #include <vital/types/image_container.h>
 
@@ -19,110 +21,32 @@ namespace viame {
 
 namespace kv = kwiver::vital;
 
-// =============================================================================
-class windowed_refiner::priv
-{
-public:
-  priv()
-    : m_process_boundary_dets( false )
-    , m_overlapping_proc_once( true )
-    , m_process_empty( false )
-    , m_prefer_containing_tile( true )
-    , m_mask_overlap_thresh( 0.0 )
-  {}
-
-  ~priv() {}
-
-  // Settings from the config
-  window_settings m_settings;
-
-  bool m_process_boundary_dets;
-  bool m_overlapping_proc_once;
-  bool m_process_empty;
-  bool m_prefer_containing_tile;
-  double m_mask_overlap_thresh;
-
-  kv::algo::refine_detections_sptr m_refiner;
-  kv::logger_handle_t m_logger;
-};
-
-
-// =============================================================================
+// -----------------------------------------------------------------------------
+void
 windowed_refiner
-::windowed_refiner()
-  : d( new priv() )
+::initialize()
 {
   attach_logger( "viame.core.windowed_refiner" );
-
-  d->m_logger = logger();
-}
-
-
-windowed_refiner
-::~windowed_refiner()
-{}
-
-
-// -----------------------------------------------------------------------------
-kv::config_block_sptr
-windowed_refiner
-::get_configuration() const
-{
-  // Get base config from base class
-  kv::config_block_sptr config = kv::algorithm::get_configuration();
-
-  // Merge window settings configuration
-  config->merge_config( d->m_settings.config() );
-
-  // Other refiner-specific settings
-  config->set_value( "process_boundary_dets", d->m_process_boundary_dets,
-    "Pass through detections touching tile boundaries unmodified in refiner" );
-  config->set_value( "overlapping_proc_once", d->m_overlapping_proc_once,
-    "Only refine each detection once if it appears in multiple tiles" );
-  config->set_value( "process_empty", d->m_process_empty,
-    "Run the inner refiner on tiles even when there are no input detections. "
-    "Enable when the inner refiner can detect new objects (e.g. text-query)." );
-  config->set_value( "prefer_containing_tile", d->m_prefer_containing_tile,
-    "When overlapping_proc_once is enabled, refine each detection in the tile "
-    "that fully contains its bounding box (tightest containing chip, most "
-    "centered) instead of the first tile it overlaps.  Prevents the refined "
-    "mask from being truncated at a tile boundary for boxes straddling the "
-    "edge of their first overlapping tile.  Has no effect on detection counts." );
-  config->set_value( "mask_overlap_thresh", d->m_mask_overlap_thresh,
-    "Merge detections from overlapping tiles whose masks overlap by at "
-    "least this fraction within the shared tile-overlap region.  "
-    "0 disables merging." );
-
-  kv::algo::refine_detections::get_nested_algo_configuration(
-    "refiner", config, d->m_refiner );
-
-  return config;
+  m_logger = logger();
 }
 
 
 // -----------------------------------------------------------------------------
 void
 windowed_refiner
-::set_configuration( kv::config_block_sptr config_in )
+::set_configuration_internal( kv::config_block_sptr config_in )
 {
-  // Starting with our generated config_block to ensure that assumed values
-  // are present. An alternative is to check for key presence before performing
-  // a get_value() call.
   kv::config_block_sptr config = this->get_configuration();
-
+  config->merge_config( m_settings.config() );
   config->merge_config( config_in );
 
-  d->m_settings.set_config( config );
+  m_settings.set_config( config );
 
-  d->m_process_boundary_dets = config->get_value< bool >( "process_boundary_dets" );
-  d->m_overlapping_proc_once = config->get_value< bool >( "overlapping_proc_once" );
-  d->m_process_empty = config->get_value< bool >( "process_empty" );
-  d->m_prefer_containing_tile =
-    config->get_value< bool >( "prefer_containing_tile" );
-  d->m_mask_overlap_thresh = config->get_value< double >( "mask_overlap_thresh" );
+  kv::get_nested_algo_configuration<kv::algo::refine_detections>(
+    "refiner", config, m_refiner );
 
-  kv::algo::refine_detections::set_nested_algo_configuration(
-    "refiner", config, d->m_refiner );
+  kv::set_nested_algo_configuration<kv::algo::refine_detections>(
+    "refiner", config, m_refiner );
 }
 
 
@@ -131,7 +55,7 @@ bool
 windowed_refiner
 ::check_configuration( kv::config_block_sptr config ) const
 {
-  return kv::algo::refine_detections::check_nested_algo_configuration(
+  return kv::check_nested_algo_configuration<kv::algo::refine_detections>(
     "refiner", config );
 }
 
@@ -146,7 +70,7 @@ windowed_refiner
 
   if( !image_data )
   {
-    LOG_WARN( d->m_logger, "Input image is empty." );
+    LOG_WARN( m_logger, "Input image is empty." );
     return std::make_shared< kv::detected_object_set >();
   }
 
@@ -154,7 +78,7 @@ windowed_refiner
 
   if( input_image.height() == 0 || input_image.width() == 0 )
   {
-    LOG_WARN( d->m_logger, "Input image is empty." );
+    LOG_WARN( m_logger, "Input image is empty." );
     return std::make_shared< kv::detected_object_set >();
   }
 
@@ -162,7 +86,7 @@ windowed_refiner
   std::vector< kv::image > regions_to_process;
   std::vector< windowed_region_prop > region_properties;
 
-  prepare_image_regions( input_image, d->m_settings,
+  prepare_image_regions( input_image, m_settings,
     regions_to_process, region_properties );
 
   kv::detected_object_set_sptr refined_detections =
@@ -177,7 +101,7 @@ windowed_refiner
   // Pick the tile that fully contains each detection so its refined mask is
   // not truncated at a tile boundary (only when refining each detection once).
   std::map< kv::detected_object_sptr, size_t > preferred_region;
-  if( d->m_prefer_containing_tile && d->m_overlapping_proc_once )
+  if( c_prefer_containing_tile && c_overlapping_proc_once )
   {
     preferred_region =
       compute_preferred_regions( detections, region_properties );
@@ -195,19 +119,19 @@ windowed_refiner
 
     if( original_dets.empty() )
     {
-      if( d->m_process_empty )
+      if( c_process_empty )
       {
         kv::image_container_sptr region_image(
           new kv::simple_image_container( regions_to_process[i] ) );
 
         kv::detected_object_set_sptr region_refined =
-          d->m_refiner->refine( region_image,
+          m_refiner->refine( region_image,
             std::make_shared< kv::detected_object_set >() );
 
         if( region_refined && !region_refined->empty() )
         {
           auto rescaled = rescale_detections( region_refined,
-            region_properties[i], d->m_settings.chip_edge_max_prob );
+            region_properties[i], m_settings.chip_edge_max_prob );
           refined_detections->add( rescaled );
           for( auto det : *rescaled )
             det_tile_list.push_back( { det, region_properties[i].original_roi } );
@@ -232,7 +156,7 @@ windowed_refiner
       auto scaled_det = scaled_dets[j];
 
       // Check if already processed (if option enabled)
-      if( d->m_overlapping_proc_once &&
+      if( c_overlapping_proc_once &&
           processed_detections.find( original_det ) != processed_detections.end() )
       {
         // Skip - already processed in a previous region
@@ -251,7 +175,7 @@ windowed_refiner
 
       // Check if detection touches boundary (if option enabled)
       bool touches_boundary = false;
-      if( d->m_process_boundary_dets )
+      if( c_process_boundary_dets )
       {
         kv::bounding_box_d bbox = scaled_det->bounding_box();
         touches_boundary =
@@ -279,7 +203,7 @@ windowed_refiner
     if( !detections_to_pass_through->empty() )
     {
       auto rescaled = rescale_detections( detections_to_pass_through,
-        region_properties[i], d->m_settings.chip_edge_max_prob );
+        region_properties[i], m_settings.chip_edge_max_prob );
       refined_detections->add( rescaled );
       for( auto det : *rescaled )
         det_tile_list.push_back( { det, region_properties[i].original_roi } );
@@ -294,20 +218,20 @@ windowed_refiner
 
       // Refine detections in this region
       kv::detected_object_set_sptr region_refined =
-        d->m_refiner->refine( region_image, detections_to_refine );
+        m_refiner->refine( region_image, detections_to_refine );
 
       // Scale refined detections back to original image space
       if( region_refined && !region_refined->empty() )
       {
         auto rescaled = rescale_detections( region_refined,
-          region_properties[i], d->m_settings.chip_edge_max_prob );
+          region_properties[i], m_settings.chip_edge_max_prob );
         refined_detections->add( rescaled );
         for( auto det : *rescaled )
           det_tile_list.push_back( { det, region_properties[i].original_roi } );
       }
 
       // Mark these detections as processed
-      if( d->m_overlapping_proc_once )
+      if( c_overlapping_proc_once )
       {
         for( auto original_det : original_to_refine )
         {
@@ -317,15 +241,15 @@ windowed_refiner
     }
   }
 
-  if( d->m_mask_overlap_thresh > 0.0 && det_tile_list.size() > 1 )
+  if( c_mask_overlap_thresh > 0.0 && det_tile_list.size() > 1 )
   {
     refined_detections = merge_tile_boundary_detections(
-      det_tile_list, d->m_mask_overlap_thresh,
+      det_tile_list, c_mask_overlap_thresh,
       static_cast< int >( input_image.width() ),
       static_cast< int >( input_image.height() ) );
   }
 
-  const int min_dim = d->m_settings.min_detection_dim;
+  const int min_dim = m_settings.min_detection_dim;
 
   refined_detections->filter([&min_dim](kv::detected_object_sptr dos)
   {

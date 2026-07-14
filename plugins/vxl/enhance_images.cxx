@@ -244,18 +244,8 @@ class enhance_images::priv
 {
 public:
 
-  priv()
-   : m_disabled( false ),
-     m_smoothing_enabled( false ),
-     m_std_dev( 0.6 ),
-     m_half_width( 2 ),
-     m_inversion_enabled( false ),
-     m_awb_enabled( true ),
-     m_normalize_brightness( true ),
-     m_sampling_rate( 2 ),
-     m_brightness_history_length( 10 ),
-     m_min_percent_brightness( 0.10 ),
-     m_max_percent_brightness( 0.90 )
+  priv( enhance_images& )
+   : m_awb_settings()
   {
   }
 
@@ -263,35 +253,17 @@ public:
   {
   }
 
-  // Settings
-  bool m_disabled;
-
-  // Smoothing
-  bool m_smoothing_enabled;
-  double m_std_dev;
-  unsigned m_half_width;
-
-  // Inversion
-  bool m_inversion_enabled;
-
-  // White balancing
-  bool m_awb_enabled;
+  // White balancing runtime state
   std::unique_ptr< auto_white_balancer_base > m_balancer;
   auto_white_balancer_settings m_awb_settings;
-
-  // Illumination normalization
-  bool m_normalize_brightness;
-  unsigned m_sampling_rate;
-  unsigned m_brightness_history_length;
-  double m_min_percent_brightness;
-  double m_max_percent_brightness;
 };
 
 // --------------------------------------------------------------------------------------
+void
 enhance_images
-::enhance_images()
-: d( new priv() )
+::initialize()
 {
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
   attach_logger( "viame.vxl.enhance_images" );
 }
 
@@ -300,80 +272,14 @@ enhance_images
 {
 }
 
-kv::config_block_sptr
-enhance_images
-::get_configuration() const
-{
-  kv::config_block_sptr config = kv::algorithm::get_configuration();
-
-  config->set_value( "disabled", d->m_disabled,
-    "Completely disable this process and pass the input image" );
-
-  config->set_value( "smoothing_enabled", d->m_smoothing_enabled,
-    "Perform extra internal smoothing on the input" );
-  config->set_value( "smoothing_std_dev", d->m_std_dev,
-    "Std dev for internal gaussian smoothing" );
-  config->set_value( "smoothing_half_width", d->m_half_width,
-    "Half width for internal gaussian smoothing" );
-
-  config->set_value( "inversion_enabled", d->m_inversion_enabled,
-    "Should we invert the input image?" );
-
-  config->set_value( "auto_white_balance", d->m_awb_enabled,
-    "Whether or not auto-white balancing is enabled" );
-  config->set_value( "white_scale_factor", d->m_awb_settings.white_traverse_factor,
-    "A measure of how much to over or under correct white reference points." );
-  config->set_value( "black_scale_factor", d->m_awb_settings.black_traverse_factor,
-    "A measure of how much to over or under correct black reference points." );
-  config->set_value( "exp_history_factor", d->m_awb_settings.exp_averaging_factor,
-    "The exponential averaging factor for correction matrices" );
-  config->set_value( "matrix_resolution", d->m_awb_settings.correction_matrix_res,
-    "The resolution of the correction matrix" );
-
-  config->set_value( "normalize_brightness", d->m_normalize_brightness,
-    "If enabled, will attempt to stabilize video illumination" );
-  config->set_value( "sampling_rate", d->m_sampling_rate,
-    "The sampling rate used when approximating the mean scene illumination." );
-  config->set_value( "brightness_history_length", d->m_brightness_history_length,
-    "Attempt to stabilize the brightness using data from the last x frames." );
-  config->set_value( "min_percent_brightness", d->m_min_percent_brightness,
-    "The minimum allowed average brightness for an image." );
-  config->set_value( "max_percent_brightness", d->m_max_percent_brightness,
-    "The maximum allowed average brightness for an image." );
-
-  return config;
-}
-
 void
 enhance_images
-::set_configuration( kv::config_block_sptr in_config )
+::set_configuration_internal( kv::config_block_sptr )
 {
-  kv::config_block_sptr config = this->get_configuration();
-  config->merge_config( in_config );
-
-  d->m_disabled = config->get_value< bool >( "disabled" );
-
-  d->m_smoothing_enabled = config->get_value< bool >( "smoothing_enabled" );
-  d->m_std_dev = config->get_value< double >( "smoothing_std_dev" );
-  d->m_half_width = config->get_value< unsigned >( "smoothing_half_width" );
-
-  d->m_inversion_enabled = config->get_value< bool >( "inversion_enabled" );
-
-  d->m_awb_enabled = config->get_value< bool >( "auto_white_balance" );
-  d->m_awb_settings.white_traverse_factor =
-    config->get_value< double >( "white_scale_factor" );
-  d->m_awb_settings.black_traverse_factor =
-    config->get_value< double >( "black_scale_factor" );
-  d->m_awb_settings.exp_averaging_factor  =
-    config->get_value< double >( "exp_history_factor" );
-  d->m_awb_settings.correction_matrix_res =
-    config->get_value< unsigned> ( "matrix_resolution"  );
-
-  d->m_normalize_brightness = config->get_value< bool >( "normalize_brightness" );
-  d->m_sampling_rate = config->get_value< unsigned >( "sampling_rate" );
-  d->m_brightness_history_length = config->get_value< unsigned >( "brightness_history_length" );
-  d->m_min_percent_brightness = config->get_value< double >( "min_percent_brightness" );
-  d->m_max_percent_brightness = config->get_value< double >( "max_percent_brightness" );
+  d->m_awb_settings.white_traverse_factor = get_white_scale_factor();
+  d->m_awb_settings.black_traverse_factor = get_black_scale_factor();
+  d->m_awb_settings.exp_averaging_factor = get_exp_history_factor();
+  d->m_awb_settings.correction_matrix_res = get_matrix_resolution();
 
   // Validate parameters
   if( d->m_awb_settings.exp_averaging_factor > 1.0 )
@@ -424,7 +330,7 @@ enhance_images
     return image_data;
   }
 
-  if( d->m_disabled )
+  if( get_disabled() )
   {
     return image_data;
   }
@@ -444,19 +350,19 @@ enhance_images
       vil_copy_deep( input, output );                                           \
                                                                                 \
       /* Apply inversion if enabled */                                          \
-      if( d->m_inversion_enabled )                                              \
+      if( get_inversion_enabled() )                                             \
       {                                                                         \
         invert_image( output );                                                 \
       }                                                                         \
                                                                                 \
       /* Apply smoothing if enabled */                                          \
-      if( d->m_smoothing_enabled )                                              \
+      if( get_smoothing_enabled() )                                             \
       {                                                                         \
-        vil_gauss_filter_2d( output, output, d->m_std_dev, d->m_half_width );   \
+        vil_gauss_filter_2d( output, output, get_smoothing_std_dev(), get_smoothing_half_width() ); \
       }                                                                         \
                                                                                 \
       /* Apply auto white balancing if enabled and 3-channel */                 \
-      if( d->m_awb_enabled && output.nplanes() == 3 )                           \
+      if( get_auto_white_balance() && output.nplanes() == 3 )                   \
       {                                                                         \
         auto_white_balancer< pix_t >* balancer =                                \
           dynamic_cast< auto_white_balancer< pix_t >* >( d->m_balancer.get() ); \
@@ -472,13 +378,13 @@ enhance_images
       }                                                                         \
                                                                                 \
       /* Apply illumination normalization if enabled */                         \
-      if( d->m_normalize_brightness )                                           \
+      if( get_normalize_brightness() )                                          \
       {                                                                         \
         static mean_illumination_normalization< pix_t > normalizer(             \
-          d->m_brightness_history_length,                                       \
-          d->m_sampling_rate,                                                   \
-          d->m_min_percent_brightness,                                          \
-          d->m_max_percent_brightness );                                        \
+          get_brightness_history_length(),                                      \
+          get_sampling_rate(),                                                  \
+          get_min_percent_brightness(),                                         \
+          get_max_percent_brightness() );                                       \
         output = normalizer( output, false );                                   \
       }                                                                         \
                                                                                 \

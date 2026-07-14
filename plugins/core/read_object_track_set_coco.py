@@ -123,38 +123,38 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
 
         data = json.load(self.file)
 
-        categories = {cat['id']: cat['name'] for cat in data.get('categories', [])}
+        categories = {cat["id"]: cat["name"] for cat in data.get("categories", [])}
 
         # Resolve video_id filter from video_name config
         filter_video_id = None
         if self.video_name:
-            for vid in data.get('videos', []):
-                if vid.get('name') == self.video_name:
-                    filter_video_id = vid['id']
+            for vid in data.get("videos", []):
+                if vid.get("name") == self.video_name:
+                    filter_video_id = vid["id"]
                     break
 
         # Build image info lookup: image_id -> (frame_index, timestamp)
         # Use frame_index if present, otherwise fall back to image id
         image_info = {}
         image_dims = {}
-        for im in data.get('images', []):
+        for im in data.get("images", []):
             if filter_video_id is not None:
-                if im.get('video_id') != filter_video_id:
+                if im.get("video_id") != filter_video_id:
                     continue
-            img_id = im['id']
-            frame_index = im.get('frame_index', img_id)
-            timestamp = im.get('timestamp', None)
+            img_id = im["id"]
+            frame_index = im.get("frame_index", img_id)
+            timestamp = im.get("timestamp", None)
             image_info[img_id] = (frame_index, timestamp)
-            w, h = im.get('width'), im.get('height')
+            w, h = im.get("width"), im.get("height")
             if w and h:
                 image_dims[img_id] = (w, h)
 
         # Keypoint category names for decoding COCO flat-format keypoints
         kp_cat_names = None
-        kp_cats = data.get('keypoint_categories', [])
+        kp_cats = data.get("keypoint_categories", [])
         if kp_cats:
-            kp_cats_sorted = sorted(kp_cats, key=lambda c: c['id'])
-            kp_cat_names = [c['name'] for c in kp_cats_sorted]
+            kp_cats_sorted = sorted(kp_cats, key=lambda c: c["id"])
+            kp_cat_names = [c["name"] for c in kp_cats_sorted]
 
         # Group annotations by track_id; annotations without track_id
         # get a unique synthetic track id each.
@@ -163,19 +163,18 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
         # track_id -> list of (frame_index, timestamp, annotation)
         track_states = {}
 
-        for ann in data.get('annotations', []):
-            img_id = ann['image_id']
+        for ann in data.get("annotations", []):
+            img_id = ann["image_id"]
             if img_id not in image_info:
                 continue
             frame_index, timestamp = image_info[img_id]
 
-            tid = ann.get('track_id', None)
+            tid = ann.get("track_id", None)
             if tid is None:
                 tid = next_synth_id
                 next_synth_id -= 1
 
-            track_states.setdefault(tid, []).append(
-                (frame_index, timestamp, ann))
+            track_states.setdefault(tid, []).append((frame_index, timestamp, ann))
 
         # Build Track objects
         all_tracks = {}
@@ -186,10 +185,10 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
             trk = vt.Track(id=int(tid))
 
             for frame_index, timestamp, ann in states:
-                dims = image_dims.get(ann.get('image_id'))
+                dims = image_dims.get(ann.get("image_id"))
                 det = annotation_to_detection(
-                    ann, categories, image_dims=dims,
-                    kp_cat_names=kp_cat_names)
+                    ann, categories, image_dims=dims, kp_cat_names=kp_cat_names
+                )
 
                 if timestamp is not None:
                     time_usec = int(timestamp * 1e6)
@@ -218,12 +217,13 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
 # Helpers
 # ------------------------------------------------------------------
 
+
 def _strtobool(val):
     """Convert a string representation of truth to True or False."""
     val = val.lower()
-    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+    if val in ("y", "yes", "t", "true", "on", "1"):
         return True
-    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+    elif val in ("n", "no", "f", "false", "off", "0"):
         return False
     else:
         raise ValueError("Invalid truth value %r" % (val,))
@@ -233,21 +233,10 @@ def _strtobool(val):
 # Plugin registration
 # ------------------------------------------------------------------
 
+
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "coco"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            ReadObjectTrackSetCoco.static_type_name(),
-            implementation_name,
-    ):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
-        "Read object tracks from COCO-style JSON format",
-        ReadObjectTrackSetCoco,
+    register_vital_algorithm(
+        ReadObjectTrackSetCoco, "coco", "Read object tracks from COCO-style JSON format"
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

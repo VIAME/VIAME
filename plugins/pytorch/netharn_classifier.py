@@ -46,10 +46,10 @@ class NetharnClassifier(ImageObjectDetector):
 
         # kwiver configuration variables
         self._kwiver_config = {
-            'deployed': "",
-            'xpu': "0",
-            'batch_size': "auto",
-            'negative_class': ""
+            "deployed": "",
+            "xpu": "0",
+            "batch_size": "auto",
+            "negative_class": "",
         }
 
         # netharn variables
@@ -64,8 +64,10 @@ class NetharnClassifier(ImageObjectDetector):
             str: file path to a scallop classifier
         """
         from viame.pytorch.netharn import clf_fit
-        harn = clf_fit.setup_harn(cmdline=False, dataset='special:shapes128',
-                                  max_epoch=1, timeout=60)
+
+        harn = clf_fit.setup_harn(
+            cmdline=False, dataset="special:shapes128", max_epoch=1, timeout=60
+        )
         harn.initialize()
         if not harn.prev_snapshots():
             # generate a model if needed
@@ -91,10 +93,15 @@ class NetharnClassifier(ImageObjectDetector):
         from PIL import Image as PILImage
         from kwiver.vital.util import VitalPIL
         from kwiver.vital.types import ImageContainer
-        url = 'https://data.kitware.com/api/v1/file/5dcf0d1faf2e2eed35fad5d1/download'
+
+        url = "https://data.kitware.com/api/v1/file/5dcf0d1faf2e2eed35fad5d1/download"
         image_fpath = ub.grabdata(
-            url, fname='scallop.jpg', appname='viame',
-            hash_prefix='3bd290526c76453bec7', hasher='sha512')
+            url,
+            fname="scallop.jpg",
+            appname="viame",
+            hash_prefix="3bd290526c76453bec7",
+            hasher="sha512",
+        )
         pil_img = PILImage.open(image_fpath)
         image_data = ImageContainer(VitalPIL.from_pil(pil_img))
         return image_data
@@ -110,6 +117,7 @@ class NetharnClassifier(ImageObjectDetector):
     def set_configuration(self, cfg_in):
         import torch
         from viame.pytorch.netharn import clf_predict
+
         cfg = self.get_configuration()
 
         # HACK: merge config doesn't support dictionary input
@@ -118,45 +126,50 @@ class NetharnClassifier(ImageObjectDetector):
         for key in self._kwiver_config.keys():
             self._kwiver_config[key] = str(cfg.get_value(key))
 
-        if self._kwiver_config['batch_size'] == "auto":
-            self._kwiver_config['batch_size'] = 2
+        if self._kwiver_config["batch_size"] == "auto":
+            self._kwiver_config["batch_size"] = 2
             if torch.cuda.is_available():
                 gpu_mem = 0
-                if len(self._kwiver_config['xpu']) == 1 and \
-                  self._kwiver_config['xpu'] != 0:
-                    gpu_id = int(self._kwiver_config['xpu'])
+                if (
+                    len(self._kwiver_config["xpu"]) == 1
+                    and self._kwiver_config["xpu"] != 0
+                ):
+                    gpu_id = int(self._kwiver_config["xpu"])
                     gpu_mem = torch.cuda.get_device_properties(gpu_id).total_memory
                 else:
                     self._gpu_count = torch.cuda.device_count()
-                    for i in range( self._gpu_count ):
-                        single_gpu_mem = torch.cuda.get_device_properties(i).total_memory
+                    for i in range(self._gpu_count):
+                        single_gpu_mem = torch.cuda.get_device_properties(
+                            i
+                        ).total_memory
                     if gpu_mem == 0:
                         gpu_mem = single_gpu_mem
                     else:
-                        gpu_mem = min( gpu_mem, single_gpu_mem )
+                        gpu_mem = min(gpu_mem, single_gpu_mem)
                 if gpu_mem > 9e9:
-                    self._kwiver_config['batch_size'] = 4
+                    self._kwiver_config["batch_size"] = 4
                 elif gpu_mem >= 7e9:
-                    self._kwiver_config['batch_size'] = 3
+                    self._kwiver_config["batch_size"] = 3
         else:
-          self._kwiver_config['batch_size'] = int( self._kwiver_config['batch_size'] )
+            self._kwiver_config["batch_size"] = int(self._kwiver_config["batch_size"])
 
         pred_config = clf_predict.ClfPredictConfig()
-        pred_config['batch_size'] = self._kwiver_config['batch_size']
-        pred_config['deployed'] = self._kwiver_config['deployed']
+        pred_config["batch_size"] = self._kwiver_config["batch_size"]
+        pred_config["deployed"] = self._kwiver_config["deployed"]
         if torch.cuda.is_available():
-            pred_config['xpu'] = self._kwiver_config['xpu']
+            pred_config["xpu"] = self._kwiver_config["xpu"]
         else:
-            pred_config['xpu'] = "cpu"
-        pred_config['input_dims'] = 'native'
+            pred_config["xpu"] = "cpu"
+        pred_config["input_dims"] = "native"
         self.predictor = clf_predict.ClfPredictor(pred_config)
 
         self.predictor._ensure_model()
 
-        if self._kwiver_config['negative_class']:
+        if self._kwiver_config["negative_class"]:
             import os
-            basename = os.path.basename( self._kwiver_config['deployed'] )
-            basename = os.path.splitext( basename )[0]
+
+            basename = os.path.basename(self._kwiver_config["deployed"])
+            basename = os.path.splitext(basename)[0]
             self._negative_name = "no_" + basename
 
         return True
@@ -169,7 +182,7 @@ class NetharnClassifier(ImageObjectDetector):
 
     @report_cuda_errors("NetharnClassifier detection")
     def detect(self, image_data):
-        full_rgb = image_data.asarray().astype('uint8')
+        full_rgb = image_data.asarray().astype("uint8")
         path_or_image = full_rgb
         predictor = self.predictor
 
@@ -180,11 +193,13 @@ class NetharnClassifier(ImageObjectDetector):
         return output
 
     def rename_classes(self, classnames):
-        return [ self.rename_class(i) for i in classnames ]
+        return [self.rename_class(i) for i in classnames]
 
     def rename_class(self, classname):
-        if self._kwiver_config['negative_class'] and \
-           classname == self._kwiver_config['negative_class']:
+        if (
+            self._kwiver_config["negative_class"]
+            and classname == self._kwiver_config["negative_class"]
+        ):
             return self._negative_name
         else:
             return classname
@@ -203,7 +218,7 @@ class NetharnClassifier(ImageObjectDetector):
         """
         detected_objects = DetectedObjectSet()
 
-        if classification.data.get('prob', None) is not None:
+        if classification.data.get("prob", None) is not None:
             # If we have a probability for each class, uses that
             class_names = self.rename_classes(list(classification.classes))
             class_prob = classification.prob
@@ -216,21 +231,17 @@ class NetharnClassifier(ImageObjectDetector):
 
         bounding_box = BoundingBoxD(0, 0, w, h)
         detected_object = DetectedObject(
-            bounding_box, classification.conf, detected_object_type)
+            bounding_box, classification.conf, detected_object_type
+        )
         detected_objects.add(detected_object)
         return detected_objects
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    # Register Algorithm
-    implementation_name = "netharn_classifier"
-
-    if not algorithm_factory.has_algorithm_impl_name(
-            NetharnClassifier.static_type_name(), implementation_name):
-        algorithm_factory.add_algorithm(
-            implementation_name, "PyTorch Netharn classification routine",
-            NetharnClassifier)
-
-        algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+    register_vital_algorithm(
+        NetharnClassifier,
+        "netharn_classifier",
+        "PyTorch Netharn classification routine",
+    )

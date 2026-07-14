@@ -7,16 +7,21 @@ import scriptconfig as scfg
 import ubelt as ub
 import torch
 
-from viame.pytorch.utilities import kwimage_to_kwiver_detections, vital_config_update, report_cuda_errors
+from viame.pytorch.utilities import (
+    kwimage_to_kwiver_detections,
+    vital_config_update,
+    report_cuda_errors,
+)
 
 
 class MITYoloConfig(scfg.DataConfig):
     """
     The configuration for :class:`MITYoloDetector`.
     """
-    weight = scfg.Value(None, help='path to a checkpoint on disk')
+
+    weight = scfg.Value(None, help="path to a checkpoint on disk")
     # accelerator = scfg.Value('auto', help='lightning accelerator. Can be cpu, gpu, or auto')
-    device = scfg.Value('auto', help='a torch device string or number')
+    device = scfg.Value("auto", help="a torch device string or number")
 
     def __post_init__(self):
         super().__post_init__()
@@ -37,11 +42,14 @@ def _patched_postprocess_call(self, predict, rev_tensor=None, image_size=None):
     max_scores, class_ids = torch.max(cls_dist, dim=-1)
     predicts_all = []
     for b in range(cls_dist.size(0)):
-        img_predicts = torch.cat([
-            class_ids[b].unsqueeze(-1).float(),
-            pred_bbox[b],
-            max_scores[b].unsqueeze(-1)
-        ], dim=-1)
+        img_predicts = torch.cat(
+            [
+                class_ids[b].unsqueeze(-1).float(),
+                pred_bbox[b],
+                max_scores[b].unsqueeze(-1),
+            ],
+            dim=-1,
+        )
         predicts_all.append(img_predicts)
 
     return predicts_all
@@ -86,11 +94,11 @@ class MITYoloDetector(ImageObjectDetector):
         # kwiver configuration variables
         self._kwiver_config = MITYoloConfig()
         self._yolo_objects = {
-            'model': None,
-            'transform': None,
-            'converter': None,
-            'post_process': None,
-            'classes': None,
+            "model": None,
+            "transform": None,
+            "converter": None,
+            "post_process": None,
+            "classes": None,
         }
 
         # setharn variables
@@ -119,6 +127,7 @@ class MITYoloDetector(ImageObjectDetector):
         from kwiver.vital.util import VitalPIL
         from kwiver.vital.types import ImageContainer
         import kwimage
+
         image_fpath = kwimage.grab_test_image_fpath()
         pil_img = PILImage.open(image_fpath)
         image_data = ImageContainer(VitalPIL.from_pil(pil_img))
@@ -138,47 +147,66 @@ class MITYoloDetector(ImageObjectDetector):
             AugmentationComposer,
             create_converter,
             create_model,
-            PostProcess
+            PostProcess,
         )
 
         # TODO: need to be able to read metadata with weights
         device = self._kwiver_config.device
-        if device == 'auto':
+        if device == "auto":
             if torch.cuda.is_available():
-                device = torch.device('cuda:0')
+                device = torch.device("cuda:0")
             else:
-                device = torch.device('cpu')
+                device = torch.device("cpu")
 
         weight_fpath = ub.Path(self._kwiver_config.weight)
-        print(f'weights_fpath={weight_fpath}')
+        print(f"weights_fpath={weight_fpath}")
 
         # Initialize pre-processing and inference with user train configuration
         train_config_dir = weight_fpath.parent
         train_config_name = "train_config.yaml"
-        print(f'train_config_path={train_config_dir / train_config_name}')
-        with initialize_config_dir(version_base=None, config_dir=str(train_config_dir), job_name="mit_yolo_detector"):
+        print(f"train_config_path={train_config_dir / train_config_name}")
+        with initialize_config_dir(
+            version_base=None,
+            config_dir=str(train_config_dir),
+            job_name="mit_yolo_detector",
+        ):
             train_cfg = compose(config_name=train_config_name)
-            model = create_model(train_cfg.model, class_num=train_cfg.dataset.class_num, weight_path=weight_fpath).to(device)
+            model = create_model(
+                train_cfg.model,
+                class_num=train_cfg.dataset.class_num,
+                weight_path=weight_fpath,
+            ).to(device)
             transform = AugmentationComposer([], train_cfg.image_size)
-            converter = create_converter(train_cfg.model.name, model, train_cfg.model.anchor, train_cfg.image_size, device)
+            converter = create_converter(
+                train_cfg.model.name,
+                model,
+                train_cfg.model.anchor,
+                train_cfg.image_size,
+                device,
+            )
         # monkey-patch the PostProcess call to skip NMS from yolo-mit as NMS is already done in kwiver
         # this prevent running nms from yolo-mit which is not under user control in kwiver (e.g. if returning empty predictions)
         from yolo.config.config import NMSConfig
+
         # create a dummy nms for post process
         nms_config = NMSConfig(0.0, 0, 0)
+
         # Patches PostProcess to avoid NMS
         class CustomPostProcess(PostProcess):
             __call__ = _patched_postprocess_call
+
         post_process = CustomPostProcess(converter, nms_config)
 
         # Set the inference pipeline
-        self._yolo_objects.update({
-            'model': model,
-            'transform': transform,
-            'converter': converter,
-            'post_process': post_process,
-            'classes': list(train_cfg.dataset.class_list),
-        })
+        self._yolo_objects.update(
+            {
+                "model": model,
+                "transform": transform,
+                "converter": converter,
+                "post_process": post_process,
+                "classes": list(train_cfg.dataset.class_list),
+            }
+        )
 
     @report_cuda_errors("MITYoloDetector initialization")
     def set_configuration(self, cfg_in):
@@ -186,13 +214,14 @@ class MITYoloDetector(ImageObjectDetector):
 
         # Imports used across this func
         import os
+
         # HACK: merge config doesn't support dictionary input
         vital_config_update(cfg, cfg_in)
 
         for key in self._kwiver_config.keys():
             self._kwiver_config[key] = str(cfg.get_value(key))
 
-        if os.name == 'nt':
+        if os.name == "nt":
             os.environ["KWIMAGE_DISABLE_TORCHVISION_NMS"] = "1"
 
         self._build_model()
@@ -209,12 +238,13 @@ class MITYoloDetector(ImageObjectDetector):
         import torch
         from PIL import Image
         from yolo.utils.kwcoco_utils import tensor_to_kwimage
+
         full_rgb = image_data.asarray()
         pil_img = Image.fromarray(full_rgb)
-        model = self._yolo_objects['model']
-        transform = self._yolo_objects['transform']
-        post_process = self._yolo_objects['post_process']
-        classes = self._yolo_objects['classes']
+        model = self._yolo_objects["model"]
+        transform = self._yolo_objects["transform"]
+        post_process = self._yolo_objects["post_process"]
+        classes = self._yolo_objects["classes"]
 
         im_chw, bbox, rev_tensor = transform(pil_img)
         device = ub.peek(model.parameters()).device
@@ -237,17 +267,8 @@ class MITYoloDetector(ImageObjectDetector):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    # Register Algorithm
-    implementation_name = "mit_yolo"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            MITYoloDetector.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name, "PyTorch MIT YOLO detection routine",
-        MITYoloDetector)
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+    register_vital_algorithm(
+        MITYoloDetector, "mit_yolo", "PyTorch MIT YOLO detection routine"
+    )

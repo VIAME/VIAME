@@ -8,6 +8,9 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/refine_detections.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
+
+#include "windowed_utils.h"
 
 namespace viame {
 
@@ -21,30 +24,57 @@ namespace viame {
  * This is a pure vital::image implementation with no OpenCV dependency.
  */
 class VIAME_CORE_EXPORT windowed_refiner
-  : public kwiver::vital::algorithm_impl< windowed_refiner,
-      kwiver::vital::algo::refine_detections >
+  : public kwiver::vital::algo::refine_detections
 {
 public:
+  PLUGGABLE_IMPL_NAMED(
+    windowed_refiner, "windowed",
+    "Window some other arbitrary refiner across the image (no OpenCV)",
+    PARAM_DEFAULT(
+      process_boundary_dets, bool,
+      "Pass through detections touching tile boundaries unmodified in refiner",
+      false ),
+    PARAM_DEFAULT(
+      overlapping_proc_once, bool,
+      "Only refine each detection once if it appears in multiple tiles",
+      true ),
+    PARAM_DEFAULT(
+      process_empty, bool,
+      "Run the inner refiner on tiles even when there are no input detections. "
+      "Enable when the inner refiner can detect new objects (e.g. text-query).",
+      false ),
+    PARAM_DEFAULT(
+      prefer_containing_tile, bool,
+      "When overlapping_proc_once is enabled, refine each detection in the tile "
+      "that fully contains its bounding box (tightest containing chip, most "
+      "centered) instead of the first tile it overlaps.  Prevents the refined "
+      "mask from being truncated at a tile boundary for boxes straddling the "
+      "edge of their first overlapping tile.  Has no effect on detection counts.",
+      true ),
+    PARAM_DEFAULT(
+      mask_overlap_thresh, double,
+      "Merge detections from overlapping tiles whose masks overlap by at "
+      "least this fraction within the shared tile-overlap region.  "
+      "0 disables merging.",
+      0.0 )
+  )
 
-  PLUGIN_INFO( "windowed",
-               "Window some other arbitrary refiner across the image (no OpenCV)" )
+  virtual ~windowed_refiner() = default;
 
-  windowed_refiner();
-  virtual ~windowed_refiner();
-
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   virtual kwiver::vital::detected_object_set_sptr refine(
     kwiver::vital::image_container_sptr image_data,
     kwiver::vital::detected_object_set_sptr detections ) const;
 
-private:
+protected:
+  void initialize() override;
+  void set_configuration_internal( kwiver::vital::config_block_sptr config ) override;
 
-  class priv;
-  const std::unique_ptr< priv > d;
+private:
+  window_settings m_settings;
+  kwiver::vital::algo::refine_detections_sptr m_refiner;
+  kwiver::vital::logger_handle_t m_logger;
 };
 
 } // end namespace viame

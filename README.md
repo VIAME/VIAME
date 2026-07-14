@@ -205,7 +205,6 @@ And lastly, a number of flags which build algorithms or interfaces with more spe
 | VIAME_ENABLE_TENSORRT        | Builds TensorRT object detector plugin                                         |
 | VIAME_ENABLE_DARKNET         | Builds Darknet (YOLO) object detector plugin                                   |
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                         |
-| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                    |
 | VIAME_ENABLE_SEAL            | Builds Seal multi-modality GUI                                                 |
 | VIAME_ENABLE_ITK             | Builds ITK cross-modality image registration                                   |
 
@@ -227,7 +226,6 @@ Source Code Layout
    ├── packages            # External projects used by the system
    │   ├── kwiver          # Processing backend infastructure
    │   ├── fletch          # Dependency builder for things which don't change often
-   │   ├── kwant           # Scoring and detector evaluation tools
    │   ├── vivia           # Baseline desktop GUIs (v1.0)
    │   └── ...             # Assorted other packages (typically for algorithms)
    ├── plugins             # Integrated algorithms or wrappers around external projects

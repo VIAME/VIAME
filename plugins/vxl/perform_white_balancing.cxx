@@ -23,7 +23,7 @@ class perform_white_balancing::priv
 {
 public:
 
-  priv() : m_settings()
+  priv( perform_white_balancing& ) : m_settings()
   {
   }
 
@@ -37,10 +37,11 @@ public:
 };
 
 // --------------------------------------------------------------------------------------
+void
 perform_white_balancing
-::perform_white_balancing()
-: d( new priv() )
+::initialize()
 {
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
   attach_logger( "viame.vxl.perform_white_balancing" );
 }
 
@@ -49,52 +50,14 @@ perform_white_balancing
 {
 }
 
-kv::config_block_sptr
-perform_white_balancing
-::get_configuration() const
-{
-  // get base config from base class
-  kv::config_block_sptr config = kv::algorithm::get_configuration();
-
-  config->set_value( "white_scale_factor",
-    d->m_settings.white_traverse_factor,
-    "A measure of how much to over or under correct white "
-    "reference points. A value near 1.0 will attempt to make "
-    "the whitest thing in the image very close to pure white." );
-  config->set_value( "black_scale_factor",
-    d->m_settings.black_traverse_factor,
-    "A measure of how much to over or under correct black "
-    "reference points. A value near 1.0 will attempt to make "
-    "the blackest thing in the image very close to pure black." );
-  config->set_value( "exp_history_factor",
-    d->m_settings.exp_averaging_factor,
-    "The exponential averaging factor for correction matrices" );
-  config->set_value( "matrix_resolution",
-    d->m_settings.correction_matrix_res,
-    "The resolution of the correction matrix" );
-
-  return config;
-}
-
 void
 perform_white_balancing
-::set_configuration( kv::config_block_sptr in_config )
+::set_configuration_internal( kv::config_block_sptr )
 {
-  // Starting with our generated vital::config_block to ensure that assumed values
-  // are present. An alternative is to check for key presence before performing a
-  // get_value() call.
-  kv::config_block_sptr config = this->get_configuration();
-  config->merge_config( in_config );
-
-  // Settings for averaging
-  d->m_settings.white_traverse_factor =
-    config->get_value< double >( "white_scale_factor" );
-  d->m_settings.black_traverse_factor =
-    config->get_value< double >( "black_scale_factor" );
-  d->m_settings.exp_averaging_factor  =
-    config->get_value< double >( "exp_history_factor" );
-  d->m_settings.correction_matrix_res =
-    config->get_value< unsigned> ( "matrix_resolution"  );
+  d->m_settings.white_traverse_factor = get_white_scale_factor();
+  d->m_settings.black_traverse_factor = get_black_scale_factor();
+  d->m_settings.exp_averaging_factor = get_exp_history_factor();
+  d->m_settings.correction_matrix_res = get_matrix_resolution();
 
   // Validate parameters
   if( d->m_settings.exp_averaging_factor > 1.0 )

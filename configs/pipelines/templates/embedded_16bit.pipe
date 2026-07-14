@@ -8,9 +8,9 @@
 
 process detector_input
   :: image_filter
-  :filter:type                                 percentile_norm
+  :filter:type                                 equalize_via_percentiles
 
-  block filter:percentile_norm
+  block filter:equalize_via_percentiles
     :lower_percentile                          1.0
     :upper_percentile                          99.0
     :output_format                             8-bit

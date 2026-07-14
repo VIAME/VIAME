@@ -10,9 +10,6 @@
 [submodule "packages/vivia"]
 	path = packages/vivia
 	url = https://github.com/Kitware/vivia.git
-[submodule "packages/kwant"]
-	path = packages/kwant
-	url = https://github.com/Kitware/kwant.git
 [submodule "packages/darknet"]
 	path = packages/darknet
 	url = https://github.com/VIAME/darknet.git

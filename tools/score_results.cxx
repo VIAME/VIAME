@@ -12,7 +12,7 @@
 #include <kwiversys/CommandLineArguments.hxx>
 #include <kwiversys/Directory.hxx>
 
-#include <vital/plugin_loader/plugin_manager.h>
+#include <vital/plugin_management/plugin_manager.h>
 #include <vital/logger/logger.h>
 
 #include <vector>
@@ -24,6 +24,7 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
+#include <cmath>
 
 // =============================================================================
 // Global variables and parameter class
@@ -48,7 +49,6 @@ public:
   double opt_confidence_threshold = 0.0;
   bool opt_per_class = false;
   bool opt_compute_tracking = true;
-  int opt_frame_tolerance = 0;
 
   // Output options
   std::string opt_output_metrics;    // Output metrics to JSON file
@@ -140,6 +140,8 @@ pair_files( const std::vector< std::string >& computed,
   }
 
   // Match computed files to truth files
+  std::set< std::string > paired_truth;
+
   for( const auto& c : computed )
   {
     std::string base = kwiversys::SystemTools::GetFilenameWithoutLastExtension( c );
@@ -148,10 +150,23 @@ pair_files( const std::vector< std::string >& computed,
     if( it != truth_map.end() )
     {
       pairs.push_back( { c, it->second } );
+      paired_truth.insert( it->second );
     }
     else
     {
       LOG_WARN( g_logger, "No matching ground truth for: " << c );
+    }
+  }
+
+  // Ground truth with no computed counterpart is excluded from scoring
+  // entirely, which removes its objects from the false negative count and so
+  // makes recall look better than it is. Say so rather than dropping silently.
+  for( const auto& t : truth )
+  {
+    if( !paired_truth.count( t ) )
+    {
+      LOG_WARN( g_logger, "No computed results for ground truth: " << t
+                << " (its annotations are excluded from all metrics)" );
     }
   }
 
@@ -278,15 +293,29 @@ void print_per_class_metrics( const viame::evaluation_results& results )
       return ( it != metrics.end() ) ? it->second : 0.0;
     };
 
+    // Print a metric the evaluator did not produce as "n/a": defaulting it to
+    // zero would be indistinguishable from a genuine score of zero
+    auto format_metric = [&]( const std::string& name ) -> std::string
+    {
+      auto it = metrics.find( name );
+      if( it == metrics.end() )
+      {
+        return "n/a";
+      }
+
+      std::ostringstream oss;
+      oss << std::fixed << std::setprecision( 4 ) << it->second;
+      return oss.str();
+    };
+
     std::cout << std::left << std::setw( 25 ) << class_name
               << std::right << std::setw( 10 ) << static_cast< int >( get_metric( "true_positives" ) )
               << std::setw( 10 ) << static_cast< int >( get_metric( "false_positives" ) )
               << std::setw( 10 ) << static_cast< int >( get_metric( "false_negatives" ) )
-              << std::fixed << std::setprecision( 4 )
-              << std::setw( 12 ) << get_metric( "precision" )
-              << std::setw( 12 ) << get_metric( "recall" )
-              << std::setw( 12 ) << get_metric( "f1_score" )
-              << std::setw( 12 ) << get_metric( "average_precision" )
+              << std::setw( 12 ) << format_metric( "precision" )
+              << std::setw( 12 ) << format_metric( "recall" )
+              << std::setw( 12 ) << format_metric( "f1_score" )
+              << std::setw( 12 ) << format_metric( "average_precision" )
               << "\n";
   }
   std::cout << "\n";
@@ -305,11 +334,25 @@ bool write_metrics_json( const viame::evaluation_results& results,
   out << std::fixed << std::setprecision( 6 );
   out << "{\n";
 
+  // A non-finite value would be streamed as a bare nan or inf token, which is
+  // not valid JSON; emit null instead
+  auto json_value = []( double value ) -> std::string
+  {
+    if( !std::isfinite( value ) )
+    {
+      return "null";
+    }
+
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision( 6 ) << value;
+    return oss.str();
+  };
+
   bool first = true;
   for( const auto& kv : results.all_metrics )
   {
     if( !first ) out << ",\n";
-    out << "  \"" << escape_json( kv.first ) << "\": " << kv.second;
+    out << "  \"" << escape_json( kv.first ) << "\": " << json_value( kv.second );
     first = false;
   }
 
@@ -328,7 +371,8 @@ bool write_metrics_json( const viame::evaluation_results& results,
       for( const auto& metric_kv : class_kv.second )
       {
         if( !first_metric ) out << ", ";
-        out << "\"" << escape_json( metric_kv.first ) << "\": " << metric_kv.second;
+        out << "\"" << escape_json( metric_kv.first ) << "\": "
+            << json_value( metric_kv.second );
         first_metric = false;
       }
 
@@ -420,8 +464,6 @@ int main( int argc, char* argv[] )
     &g_params.opt_per_class, "Compute per-class metrics" );
   g_params.m_args.AddArgument( "--no-tracking", argT::NO_ARGUMENT,
     &g_params.opt_compute_tracking, "Disable tracking metrics computation" );
-  g_params.m_args.AddArgument( "--frame-tolerance", argT::SPACE_ARGUMENT,
-    &g_params.opt_frame_tolerance, "Frame tolerance for temporal matching (default: 0)" );
 
   // Output options
   g_params.m_args.AddArgument( "--output-metrics", argT::SPACE_ARGUMENT,
@@ -578,7 +620,6 @@ int main( int argc, char* argv[] )
   config.confidence_threshold = g_params.opt_confidence_threshold;
   config.compute_tracking_metrics = g_params.opt_compute_tracking;
   config.compute_per_class_metrics = g_params.opt_per_class;
-  config.frame_tolerance = g_params.opt_frame_tolerance;
 
   // Create evaluator and run evaluation
   viame::model_evaluator evaluator;
@@ -626,95 +667,118 @@ int main( int argc, char* argv[] )
 
   if( need_plots )
   {
-    LOG_INFO( g_logger, "Generating plot data..." );
-
-    // Export full plot data to directory
-    if( !g_params.opt_output_plots.empty() )
+    try
     {
-      // Create output directory if needed
-      if( !kwiversys::SystemTools::FileIsDirectory( g_params.opt_output_plots ) )
-      {
-        kwiversys::SystemTools::MakeDirectory( g_params.opt_output_plots );
-      }
+      LOG_INFO( g_logger, "Generating plot data..." );
 
-      auto plot_data = evaluator.generate_plot_data();
+      // Curves, confusion matrix and histograms are all derived from one pass
+      // over the evaluation, whichever outputs were requested
+      const auto plot_data = evaluator.generate_plot_data();
 
-      // Export CSV data files
-      if( viame::model_evaluator::export_plot_data( plot_data, g_params.opt_output_plots ) )
+      // Export full plot data to directory
+      if( !g_params.opt_output_plots.empty() )
       {
-        LOG_INFO( g_logger, "Plot CSV data written to: " << g_params.opt_output_plots );
-      }
-      else
-      {
-        LOG_ERROR( g_logger, "Failed to export plot CSV data" );
-        success = false;
-      }
-
-      // Render plot images using OpenCV
-      LOG_INFO( g_logger, "Rendering plot images..." );
-      viame::metrics_plotter plotter;
-      if( plotter.render_all_plots( plot_data, g_params.opt_output_plots ) )
-      {
-        LOG_INFO( g_logger, "Plot images rendered to: " << g_params.opt_output_plots );
-      }
-      else
-      {
-        LOG_WARN( g_logger, "Some plot images could not be rendered" );
-      }
-    }
-
-    // Export individual plots
-    if( !g_params.opt_output_pr_csv.empty() )
-    {
-      auto pr_curve = evaluator.generate_pr_curve();
-      if( viame::model_evaluator::export_pr_curve_csv( pr_curve, g_params.opt_output_pr_csv ) )
-      {
-        LOG_INFO( g_logger, "PR curve written to: " << g_params.opt_output_pr_csv );
-      }
-      else
-      {
-        LOG_ERROR( g_logger, "Failed to export PR curve" );
-        success = false;
-      }
-    }
-
-    if( !g_params.opt_output_conf_csv.empty() )
-    {
-      auto conf_matrix = evaluator.generate_confusion_matrix();
-      if( viame::model_evaluator::export_confusion_matrix_csv( conf_matrix, g_params.opt_output_conf_csv ) )
-      {
-        LOG_INFO( g_logger, "Confusion matrix written to: " << g_params.opt_output_conf_csv );
-      }
-      else
-      {
-        LOG_ERROR( g_logger, "Failed to export confusion matrix" );
-        success = false;
-      }
-    }
-
-    if( !g_params.opt_output_roc_csv.empty() )
-    {
-      auto plot_data = evaluator.generate_plot_data();
-
-      // Write ROC curve manually since there's no dedicated export function
-      std::ofstream out( g_params.opt_output_roc_csv );
-      if( out.is_open() )
-      {
-        out << "false_positive_rate,true_positive_rate,confidence\n";
-        for( const auto& pt : plot_data.overall_roc_curve.points )
+        // Create output directory if needed
+        if( !kwiversys::SystemTools::FileIsDirectory( g_params.opt_output_plots ) &&
+            !kwiversys::SystemTools::MakeDirectory( g_params.opt_output_plots ) )
         {
-          out << pt.false_positive_rate << ","
-              << pt.true_positive_rate << ","
-              << pt.confidence << "\n";
+          LOG_ERROR( g_logger, "Could not create plot output directory: "
+                     << g_params.opt_output_plots );
+          return EXIT_FAILURE;
         }
-        out.close();
-        LOG_INFO( g_logger, "ROC curve written to: " << g_params.opt_output_roc_csv );
+
+        // Export CSV data files
+        if( viame::model_evaluator::export_plot_data( plot_data, g_params.opt_output_plots ) )
+        {
+          LOG_INFO( g_logger, "Plot CSV data written to: " << g_params.opt_output_plots );
+        }
+        else
+        {
+          LOG_ERROR( g_logger, "Failed to export plot CSV data" );
+          success = false;
+        }
+
+        // Render plot images using OpenCV
+        LOG_INFO( g_logger, "Rendering plot images..." );
+        viame::metrics_plotter plotter;
+        if( plotter.render_all_plots( plot_data, g_params.opt_output_plots ) )
+        {
+          LOG_INFO( g_logger, "Plot images rendered to: " << g_params.opt_output_plots );
+        }
+        else
+        {
+          LOG_WARN( g_logger, "Some plot images could not be rendered" );
+        }
       }
-      else
+
+      // Export individual plots
+      if( !g_params.opt_output_pr_csv.empty() )
       {
-        LOG_ERROR( g_logger, "Failed to open ROC output file" );
-        success = false;
+        if( viame::model_evaluator::export_pr_curve_csv(
+              plot_data.overall_pr_curve, g_params.opt_output_pr_csv ) )
+        {
+          LOG_INFO( g_logger, "PR curve written to: " << g_params.opt_output_pr_csv );
+        }
+        else
+        {
+          LOG_ERROR( g_logger, "Failed to export PR curve" );
+          success = false;
+        }
       }
+
+      if( !g_params.opt_output_conf_csv.empty() )
+      {
+        if( viame::model_evaluator::export_confusion_matrix_csv(
+              plot_data.confusion_matrix, g_params.opt_output_conf_csv ) )
+        {
+          LOG_INFO( g_logger, "Confusion matrix written to: " << g_params.opt_output_conf_csv );
+        }
+        else
+        {
+          LOG_ERROR( g_logger, "Failed to export confusion matrix" );
+          success = false;
+        }
+      }
+
+      if( !g_params.opt_output_roc_csv.empty() )
+      {
+        // Same schema as roc_curve_overall.csv in the plot directory
+        std::ofstream out( g_params.opt_output_roc_csv );
+        if( out.is_open() )
+        {
+          out << "confidence,false_alarms_per_frame,true_positive_rate\n";
+          out << std::fixed << std::setprecision( 6 );
+
+          for( const auto& pt : plot_data.overall_roc_curve.points )
+          {
+            // The leading anchor point sits above every detection's confidence
+            if( std::isfinite( pt.confidence ) )
+            {
+              out << pt.confidence;
+            }
+            else
+            {
+              out << "inf";
+            }
+
+            out << "," << pt.false_alarms_per_frame
+                << "," << pt.true_positive_rate << "\n";
+          }
+
+          out.close();
+          LOG_INFO( g_logger, "ROC curve written to: " << g_params.opt_output_roc_csv );
+        }
+        else
+        {
+          LOG_ERROR( g_logger, "Failed to open ROC output file" );
+          success = false;
+        }
+      }
+    }
+    catch( const std::exception& e )
+    {
+      LOG_ERROR( g_logger, "Plot generation failed: " << e.what() );
+      return EXIT_FAILURE;
     }
   }
 

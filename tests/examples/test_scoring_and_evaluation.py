@@ -30,39 +30,21 @@ class TestDetectionPrcsAndConfMatPerCategory:
         assert_script_runs_successfully(script)
 
 
-class TestDetectionRocsAcrossAll:
-    """Tests for detection_rocs_across_all script."""
+class TestDetectionAndTrackMetricsAcrossAll:
+    """Tests for detection_and_track_metrics_across_all script."""
 
-    def test_detection_rocs_across_all(self):
-        """Test that detection_rocs_across_all runs without error and produces output."""
-        script = get_script_path(CATEGORY, "detection_rocs_across_all.sh")
+    def test_detection_and_track_metrics_across_all(self):
+        """Test that detection_and_track_metrics_across_all runs and produces output."""
+        script = get_script_path(CATEGORY, "detection_and_track_metrics_across_all.sh")
         assert_script_runs_successfully(script)
 
 
-class TestDetectionRocsPerCategory:
-    """Tests for detection_rocs_per_category script."""
+class TestDetectionAndTrackMetricsPerCategory:
+    """Tests for detection_and_track_metrics_per_category script."""
 
-    def test_detection_rocs_per_category(self):
-        """Test that detection_rocs_per_category runs without error and produces output."""
-        script = get_script_path(CATEGORY, "detection_rocs_per_category.sh")
-        assert_script_runs_successfully(script)
-
-
-class TestTrackKwantStatsAcrossAll:
-    """Tests for track_kwant_stats_across_all script."""
-
-    def test_track_kwant_stats_across_all(self):
-        """Test that track_kwant_stats_across_all runs without error and produces output."""
-        script = get_script_path(CATEGORY, "track_kwant_stats_across_all.sh")
-        assert_script_runs_successfully(script)
-
-
-class TestTrackKwantStatsPerCategory:
-    """Tests for track_kwant_stats_per_category script."""
-
-    def test_track_kwant_stats_per_category(self):
-        """Test that track_kwant_stats_per_category runs without error and produces output."""
-        script = get_script_path(CATEGORY, "track_kwant_stats_per_category.sh")
+    def test_detection_and_track_metrics_per_category(self):
+        """Test that detection_and_track_metrics_per_category runs and produces output."""
+        script = get_script_path(CATEGORY, "detection_and_track_metrics_per_category.sh")
         assert_script_runs_successfully(script)
 
 

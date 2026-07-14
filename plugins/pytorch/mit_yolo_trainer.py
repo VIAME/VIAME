@@ -5,7 +5,7 @@
 from kwiver.vital.algo import (
     DetectedObjectSetOutput,
     ImageObjectDetector,
-    TrainDetector
+    TrainDetector,
 )
 
 # from distutils.util import strtobool
@@ -18,6 +18,7 @@ import sys
 import subprocess
 import threading
 import time
+
 # import math
 
 from .kwcoco_train_detector import KWCocoTrainDetector
@@ -34,42 +35,52 @@ class MITYoloConfig(KWCocoTrainDetectorConfig):
     """
     The configuration for :class:`MITYoloTrainer`.
     """
+
     identifier = "viame-mit-yolo-detector"
     train_directory = "deep_training"
     seed_model = ""
 
     tmp_training_file = "training_truth.json"
     tmp_validation_file = "validation_truth.json"
-    accelerator = scfg.Value('auto', help='lightning accelerator. Can be cpu, gpu, or auto')
-    model = scfg.Value('v9-c', help='the model archictecture')
+    accelerator = scfg.Value(
+        "auto", help="lightning accelerator. Can be cpu, gpu, or auto"
+    )
+    model = scfg.Value("v9-c", help="the model archictecture")
 
-    out_path = scfg.Value('allow', help=ub.paragraph(
-        '''
+    out_path = scfg.Value(
+        "allow",
+        help=ub.paragraph(
+            """
         Where to save results
-        '''))
+        """
+        ),
+    )
 
     categories = []
 
-    max_epochs = scfg.Value(500, help='Maximum number of epochs to train for')
-    batch_size = scfg.Value(4, help='Number of chips per batch.')
-    learning_rate = scfg.Value(3e-4, help='Learning rate for gradient update steps.')
-    timeout = scfg.Value('1209600', help='Max training time in seconds (default=1209600, two weeks)')
+    max_epochs = scfg.Value(500, help="Maximum number of epochs to train for")
+    batch_size = scfg.Value(4, help="Number of chips per batch.")
+    learning_rate = scfg.Value(3e-4, help="Learning rate for gradient update steps.")
+    timeout = scfg.Value(
+        "1209600", help="Max training time in seconds (default=1209600, two weeks)"
+    )
 
     def __post_init__(self):
         super().__post_init__()
 
 
-class MITYoloTrainer( KWCocoTrainDetector ):
+class MITYoloTrainer(KWCocoTrainDetector):
     """
     Implementation of TrainDetector class
     """
-    def __init__( self ):
-        TrainDetector.__init__( self )
+
+    def __init__(self):
+        TrainDetector.__init__(self)
         self._config = MITYoloConfig()
 
     def get_configuration(self):
         # Inherit from the base class
-        print('[MITYoloTrainer] get_configuration')
+        print("[MITYoloTrainer] get_configuration")
         cfg = super().get_configuration()
         for key, value in self._config.items():
             cfg.set_value(key, str(value))
@@ -77,7 +88,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
 
     @report_cuda_errors("MITYoloTrainer initialization")
     def set_configuration(self, cfg_in):
-        print('[MITYoloTrainer] set_configuration')
+        print("[MITYoloTrainer] set_configuration")
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)
         for key in self._config.keys():
@@ -94,64 +105,68 @@ class MITYoloTrainer( KWCocoTrainDetector ):
         return True
 
     def _post_config_set(self):
-        print('[MITYoloTrainer] _post_config_set')
-        assert self._config['mode'] == "detector"
+        print("[MITYoloTrainer] _post_config_set")
+        assert self._config["mode"] == "detector"
 
         # Make required directories and file streams
         if self._train_directory is not None:
-            if not os.path.exists( self._train_directory ):
-                os.mkdir( self._train_directory )
+            if not os.path.exists(self._train_directory):
+                os.mkdir(self._train_directory)
             self._training_file = os.path.join(
-                self._train_directory, self._tmp_training_file )
+                self._train_directory, self._tmp_training_file
+            )
             self._validation_file = os.path.join(
-                self._train_directory, self._tmp_validation_file )
-            self._chip_directory = os.path.join(
-                self._train_directory, "image_chips" )
+                self._train_directory, self._tmp_validation_file
+            )
+            self._chip_directory = os.path.join(self._train_directory, "image_chips")
         else:
             self._training_file = self._tmp_training_file
             self._validation_file = self._tmp_validation_file
 
         from kwiver.vital.modules import load_known_modules
+
         load_known_modules()
 
         if not self._no_format:
-            self._training_writer = DetectedObjectSetOutput.create( "coco" )
-            self._validation_writer = DetectedObjectSetOutput.create( "coco" )
+            self._training_writer = DetectedObjectSetOutput.create("coco")
+            self._validation_writer = DetectedObjectSetOutput.create("coco")
 
             writer_conf = self._training_writer.get_configuration()
             # writer_conf.set_value( "aux_image_labels", self._aux_image_labels )
             # writer_conf.set_value( "aux_image_extensions", self._aux_image_extensions )
-            self._training_writer.set_configuration( writer_conf )
+            self._training_writer.set_configuration(writer_conf)
 
             writer_conf = self._validation_writer.get_configuration()
             # writer_conf.set_value( "aux_image_labels", self._aux_image_labels )
             # writer_conf.set_value( "aux_image_extensions", self._aux_image_extensions )
-            self._validation_writer.set_configuration( writer_conf )
+            self._validation_writer.set_configuration(writer_conf)
 
-            self._training_writer.open( self._training_file )
-            self._validation_writer.open( self._validation_file )
+            self._training_writer.open(self._training_file)
+            self._validation_writer.open(self._validation_file)
 
-        if self._mode == "detection_refiner" and not os.path.exists( self._chip_directory ):
-            os.mkdir( self._chip_directory )
+        if self._mode == "detection_refiner" and not os.path.exists(
+            self._chip_directory
+        ):
+            os.mkdir(self._chip_directory)
 
         # Load object detector if enabled
         if self._detector_model:
-            self._detector = ImageObjectDetector.create( "yolo" )
+            self._detector = ImageObjectDetector.create("yolo")
             detector_config = self._detector.get_configuration()
-            detector_config.set_value( "deployed", self._detector_model )
-            if not self._detector.set_configuration( detector_config ):
-                print( "Unable to configure detector" )
+            detector_config.set_value("deployed", self._detector_model)
+            if not self._detector.set_configuration(detector_config):
+                print("Unable to configure detector")
                 return False
 
         # QUESTION: Do we need to handle "scale type file"?
 
         # Other misc setting adjustments
-        if self._chip_extension and self._chip_extension[0] != '.':
-            self._chip_extension = '.' + self._chip_extension
+        if self._chip_extension and self._chip_extension[0] != ".":
+            self._chip_extension = "." + self._chip_extension
 
-        if int( self._chip_height ) <= 0:
+        if int(self._chip_height) <= 0:
             self._chip_height = self._chip_width
-        if int( self._chip_width ) <= 0:
+        if int(self._chip_width) <= 0:
             self._chip_width = self._chip_height
 
         # Initialize persistent variables
@@ -166,6 +181,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
 
             # conforming kwcoco train and val datasets and set categories to the input KWCOCO instead of kwiver `CategoryHierarchy`
             import kwcoco
+
             train_fpath = ub.Path(self._training_file)
             if train_fpath.exists():
                 train_dset = kwcoco.CocoDataset(train_fpath)
@@ -173,9 +189,11 @@ class MITYoloTrainer( KWCocoTrainDetector ):
                 train_dset.dump()
                 print(f"[MITYoloTrainer] Conforming training dataset")
 
-                kwcoco_cats = train_dset.dataset.get('categories', [])
-                self._categories = [cat['name'] for cat in kwcoco_cats]
-                print(f"[MITYoloTrainer] Aligned categories from conformed KWCOCO: {self._categories}")
+                kwcoco_cats = train_dset.dataset.get("categories", [])
+                self._categories = [cat["name"] for cat in kwcoco_cats]
+                print(
+                    f"[MITYoloTrainer] Aligned categories from conformed KWCOCO: {self._categories}"
+                )
 
                 val_fpath = ub.Path(self._validation_file)
                 if val_fpath.exists():
@@ -184,27 +202,28 @@ class MITYoloTrainer( KWCocoTrainDetector ):
                     val_dset.dump()
                     print("[MITYoloTrainer] Conforming validation dataset")
 
-    def check_configuration( self, cfg ):
-        if not cfg.has_value( "identifier" ) or len( cfg.get_value( "identifier") ) == 0:
-            print( "A model identifier must be specified!" )
+    def check_configuration(self, cfg):
+        if not cfg.has_value("identifier") or len(cfg.get_value("identifier")) == 0:
+            print("A model identifier must be specified!")
             return False
         return True
 
     @report_cuda_errors("MITYoloTrainer training")
-    def update_model( self ):
+    def update_model(self):
         self._ensure_format_writers()
-        self._accelerator = 'auto'
+        self._accelerator = "auto"
 
         # On Windows, reconfigure stdout/stderr to use UTF-8 encoding.
         # Third-party libraries (rich, lightning, yolo) use emoji characters
         # that cannot be encoded in the default cp1252 Windows codepage.
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
             for stream in (sys.stdout, sys.stderr):
-                if hasattr(stream, 'reconfigure'):
-                    stream.reconfigure(encoding='utf-8', errors='replace')
+                if hasattr(stream, "reconfigure"):
+                    stream.reconfigure(encoding="utf-8", errors="replace")
 
         # Initialize hydra config
         import yolo.config
+
         config_dir = ub.Path(yolo.config.__file__).parent
         hydra_overrides = [
             "task=train",
@@ -225,7 +244,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
             f"task.optimizer.args.lr={self._learning_rate}",
             f"task.epoch={self._max_epochs}",
             f"+timeout={self._timeout}",
-            "++save_best=True"
+            "++save_best=True",
         ]
         if len(self._seed_model) > 0:
             hydra_overrides += [f"weight={self._seed_model}"]
@@ -237,44 +256,46 @@ class MITYoloTrainer( KWCocoTrainDetector ):
 
         output = self._get_output_map()
 
-        print( "\nModel training complete!\n" )
+        print("\nModel training complete!\n")
 
         return output
 
-    def interupt_handler( self ):
-        self.proc.send_signal( signal.SIGINT )
+    def interupt_handler(self):
+        self.proc.send_signal(signal.SIGINT)
         timeout = 0
         while self.proc.poll() is None:
-            time.sleep( 0.1 )
+            time.sleep(0.1)
             timeout += 0.1
             if timeout > 5:
                 self.proc.kill()
                 break
-        sys.exit( 0 )
+        sys.exit(0)
 
-    def _get_output_map( self ):
+    def _get_output_map(self):
         output_model_name = "trained_mit_yolo_checkpoint.ckpt"
 
         train_dpath = ub.Path(self._train_directory)
-        yolo_train_dpath = train_dpath / 'train' / self._identifier
-        checkpoint_dpath = yolo_train_dpath / 'checkpoints'
-        candiate_checkpoints = sorted(checkpoint_dpath.glob('*'))
+        yolo_train_dpath = train_dpath / "train" / self._identifier
+        checkpoint_dpath = yolo_train_dpath / "checkpoints"
+        candiate_checkpoints = sorted(checkpoint_dpath.glob("*"))
         if len(candiate_checkpoints) == 0:
-            print( "\nNo checkpoints found, model may have failed to train" )
+            print("\nNo checkpoints found, model may have failed to train")
             return {"type": "mit_yolo"}
 
         # Prefer best checkpoint, fall back to last checkpoint
-        best_checkpoints = sorted(checkpoint_dpath.glob('best-*.ckpt'))
+        best_checkpoints = sorted(checkpoint_dpath.glob("best-*.ckpt"))
         if best_checkpoints:
             final_ckpt = best_checkpoints[-1]
-            print( "\nBest model found at " + str(final_ckpt) )
+            print("\nBest model found at " + str(final_ckpt))
         else:
             final_ckpt = candiate_checkpoints[-1]
-            print( "\nModel found at " + str(final_ckpt) )
+            print("\nModel found at " + str(final_ckpt))
 
-        print( "\nThe " + self._train_directory + " directory can now be deleted, "
-               "unless you want to review training metrics or generated plots in "
-               "there first." )
+        print(
+            "\nThe " + self._train_directory + " directory can now be deleted, "
+            "unless you want to review training metrics or generated plots in "
+            "there first."
+        )
 
         output = {}
         output["type"] = "mit_yolo"
@@ -284,7 +305,7 @@ class MITYoloTrainer( KWCocoTrainDetector ):
 
         # The detector needs train_config.yaml next to the checkpoint
         # to introspect model architecture and class list.
-        train_config_fpath = yolo_train_dpath / 'train_config.yaml'
+        train_config_fpath = yolo_train_dpath / "train_config.yaml"
         if train_config_fpath.exists():
             output["train_config.yaml"] = str(train_config_fpath)
 
@@ -292,14 +313,8 @@ class MITYoloTrainer( KWCocoTrainDetector ):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    # Register Algorithm
-    implementation_name = "mit_yolo"
-
-    if algorithm_factory.has_algorithm_impl_name( MITYoloTrainer.static_type_name(), implementation_name ):
-        return
-
-    algorithm_factory.add_algorithm( implementation_name, "PyTorch MIT YOLO detection training routine", MITYoloTrainer )
-
-    algorithm_factory.mark_algorithm_as_loaded( implementation_name )
+    register_vital_algorithm(
+        MITYoloTrainer, "mit_yolo", "PyTorch MIT YOLO detection training routine"
+    )

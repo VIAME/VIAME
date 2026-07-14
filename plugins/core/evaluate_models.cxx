@@ -120,8 +120,21 @@ public:
   // -------------------------------------------------------------------------
   // File parsing
 
+  /// Parse a VIAME CSV. Ground truth is never confidence filtered; the
+  /// configured confidence threshold only applies to computed detections.
+  ///
+  /// Frame and track IDs are remapped into a global namespace so that IDs from
+  /// different sequences never collide (see remap_frame_id / remap_track_id).
   bool parse_viame_csv( const std::string& filepath,
-                        std::vector< detection >& detections );
+                        std::vector< detection >& detections,
+                        bool is_ground_truth,
+                        int sequence_id );
+
+  /// Map a per-sequence frame ID onto a globally unique frame key
+  int remap_frame_id( int sequence_id, int frame_id );
+
+  /// Map a per-sequence track ID onto a globally unique track key
+  int remap_track_id( int sequence_id, int track_id, bool is_ground_truth );
 
   // -------------------------------------------------------------------------
   // Matching and caching
@@ -156,14 +169,85 @@ public:
   void compute_multi_threshold_ap( evaluation_results& results );
   void compute_classification_metrics( evaluation_results& results );
   void compute_per_class_metrics( evaluation_results& results );
+
+  // -------------------------------------------------------------------------
+  // Average precision helpers
+  //
+  // All AP values use confidence-ordered matching (a higher confidence
+  // detection always gets first claim on a ground truth box) followed by
+  // all-point interpolation of the PR curve. This is the COCO convention.
+
+  /// Compute AP from a list of (confidence, is_true_positive) pairs
+  static double ap_from_scored( std::vector< std::pair< double, bool > >& dets,
+                                double total_gt );
+
+  /// Compute AP over all loaded data at the given IoU threshold, reusing the
+  /// cached per-frame IoU matrices
+  double compute_ap_cached( double iou_thresh ) const;
+
+  /// Compute AP over an arbitrary subset (used for per-class AP), computing
+  /// IoU on the fly
+  double compute_ap_subset( const std::vector< detection >& computed,
+                            const std::vector< detection >& groundtruth,
+                            double iou_thresh ) const;
+
+  // -------------------------------------------------------------------------
+  // Per-track KWANT statistics, retained for histogram generation
+
+  std::vector< double > m_comp_track_purities;
+  std::vector< double > m_comp_track_continuities;
+
+  // Frame/track ID remapping tables, keyed by (sequence_id, original id)
+  std::map< std::pair< int, int >, int > m_frame_id_map;
+  std::map< std::pair< int, int >, int > m_gt_track_id_map;
+  std::map< std::pair< int, int >, int > m_comp_track_id_map;
+  int m_next_frame_key = 0;
+  int m_next_track_key = 0;
 };
 
 // =============================================================================
 // CSV parsing
 
+int
+model_evaluator::priv::remap_frame_id( int sequence_id, int frame_id )
+{
+  auto key = std::make_pair( sequence_id, frame_id );
+  auto it = m_frame_id_map.find( key );
+  if( it != m_frame_id_map.end() )
+  {
+    return it->second;
+  }
+  int mapped = m_next_frame_key++;
+  m_frame_id_map[key] = mapped;
+  return mapped;
+}
+
+int
+model_evaluator::priv::remap_track_id( int sequence_id, int track_id,
+                                       bool is_ground_truth )
+{
+  if( track_id < 0 )
+  {
+    return -1;
+  }
+
+  auto& table = is_ground_truth ? m_gt_track_id_map : m_comp_track_id_map;
+  auto key = std::make_pair( sequence_id, track_id );
+  auto it = table.find( key );
+  if( it != table.end() )
+  {
+    return it->second;
+  }
+  int mapped = m_next_track_key++;
+  table[key] = mapped;
+  return mapped;
+}
+
 bool
 model_evaluator::priv::parse_viame_csv( const std::string& filepath,
-                                         std::vector< detection >& detections )
+                                        std::vector< detection >& detections,
+                                        bool is_ground_truth,
+                                        int sequence_id )
 {
   std::ifstream file( filepath );
   if( !file.is_open() )
@@ -174,6 +258,7 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
 
   std::string line;
   int line_num = 0;
+  size_t initial_count = detections.size();
 
   while( std::getline( file, line ) )
   {
@@ -216,13 +301,17 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
 
       // Column 0: Detection or Track ID
       det.id = std::stoi( tokens[0] );
-      det.track_id = det.id;  // In VIAME CSV, ID is typically track ID
+
+      // In VIAME CSV, the ID column is the track ID. Remap it so that IDs
+      // reused across sequences do not collide.
+      det.track_id = remap_track_id( sequence_id, det.id, is_ground_truth );
 
       // Column 1: Video or Image Identifier
       det.frame_name = tokens[1];
 
-      // Column 2: Frame number
-      det.frame_id = std::stoi( tokens[2] );
+      // Column 2: Frame number, remapped into the global frame namespace so
+      // frame 0 of one sequence is never matched against frame 0 of another
+      det.frame_id = remap_frame_id( sequence_id, std::stoi( tokens[2] ) );
 
       // Columns 3-6: Bounding box (x1, y1, x2, y2)
       det.x1 = std::stod( tokens[3] );
@@ -233,27 +322,63 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
       // Column 7: Detection confidence
       det.confidence = std::stod( tokens[7] );
 
-      // Column 8: Target length (skip for now)
-
-      // Columns 9+: Class/confidence pairs
-      if( tokens.size() >= 11 )
+      if( !std::isfinite( det.x1 ) || !std::isfinite( det.y1 ) ||
+          !std::isfinite( det.x2 ) || !std::isfinite( det.y2 ) ||
+          !std::isfinite( det.confidence ) )
       {
-        det.class_name = tokens[9];
-        det.class_confidence = std::stod( tokens[10] );
-      }
-      else if( tokens.size() >= 10 )
-      {
-        det.class_name = tokens[9];
-        det.class_confidence = det.confidence;
-      }
-      else
-      {
-        det.class_name = "unknown";
-        det.class_confidence = det.confidence;
+        LOG_WARN( m_logger, "Skipping line " << line_num << " in " << filepath
+                  << ": non-finite box or confidence value" );
+        continue;
       }
 
-      // Apply confidence threshold
-      if( det.confidence >= m_config.confidence_threshold )
+      // Column 8: Target length (unused)
+
+      // Columns 9+: (class, score) pairs. Take the highest scoring pair as the
+      // primary class rather than assuming the first pair is the best.
+      det.class_name = "unknown";
+      det.class_confidence = det.confidence;
+
+      if( tokens.size() >= 10 && !tokens[9].empty() )
+      {
+        det.class_name = tokens[9];
+        double best_score = -std::numeric_limits< double >::max();
+        bool have_score = false;
+
+        for( size_t t = 9; t + 1 < tokens.size(); t += 2 )
+        {
+          if( tokens[t].empty() )
+          {
+            break;
+          }
+
+          double score = 0.0;
+          try
+          {
+            score = std::stod( tokens[t + 1] );
+          }
+          catch( const std::exception& )
+          {
+            break;  // Not a (class, score) pair, stop scanning
+          }
+
+          if( std::isfinite( score ) && score > best_score )
+          {
+            best_score = score;
+            det.class_name = tokens[t];
+            have_score = true;
+          }
+        }
+
+        if( have_score )
+        {
+          det.class_confidence = best_score;
+        }
+      }
+
+      // Ground truth is never confidence filtered: GT rows routinely carry a
+      // confidence of 0, -1, or a placeholder, and dropping them would delete
+      // false negatives and inflate recall.
+      if( is_ground_truth || det.confidence >= m_config.confidence_threshold )
       {
         detections.push_back( det );
       }
@@ -265,7 +390,7 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
     }
   }
 
-  LOG_INFO( m_logger, "Loaded " << detections.size()
+  LOG_INFO( m_logger, "Loaded " << ( detections.size() - initial_count )
             << " detections from " << filepath );
 
   return true;
@@ -676,30 +801,20 @@ model_evaluator::priv::compute_detection_metrics( evaluation_results& results )
     results.miss_rate = fn / ( fn + tp );
   }
 
-  // Matthews Correlation Coefficient
-  // MCC = (TP*TN - FP*FN) / sqrt((TP+FP)(TP+FN)(TN+FP)(TN+FN))
-  // For detection, TN is typically undefined or very large
-  // We use a simplified version: MCC = sqrt(precision * recall) - sqrt((1-precision)*(1-recall))
-  // Or the more standard: using total negatives estimation
-  double tn = 0;  // True negatives not typically computed for detection
-  double mcc_denom = std::sqrt( ( tp + fp ) * ( tp + fn ) * ( tn + fp ) * ( tn + fn ) );
-  if( mcc_denom > 0 )
+  // Matthews Correlation Coefficient.
+  //
+  // The textbook form needs true negatives, which are undefined for object
+  // detection (there is no enumerable set of negative boxes). Substituting
+  // TN = 0 into it yields -sqrt(FP*FN / ((TP+FP)(TP+FN))), which is negative
+  // for any detector with both a false positive and a miss, so instead use the
+  // standard TN-free approximation expressed in precision and recall.
+  if( tp + fp > 0 && tp + fn > 0 )
   {
-    results.mcc = ( tp * tn - fp * fn ) / mcc_denom;
-  }
-  else
-  {
-    // Alternative MCC computation without TN
-    // Based on precision and recall
-    if( results.precision > 0 && results.recall > 0 )
-    {
-      // Phi coefficient approximation
-      double ppv = results.precision;
-      double tpr = results.recall;
-      // FDR = 1 - precision, FNR = 1 - recall
-      results.mcc = std::sqrt( ppv * tpr ) -
-                    std::sqrt( ( 1.0 - ppv ) * ( 1.0 - tpr ) );
-    }
+    const double ppv = results.precision;
+    const double tpr = results.recall;
+
+    results.mcc = std::sqrt( ppv * tpr ) -
+                  std::sqrt( ( 1.0 - ppv ) * ( 1.0 - tpr ) );
   }
 
   // MOTP (average IoU on matches)
@@ -1214,11 +1329,19 @@ model_evaluator::priv::compute_hota_metrics( evaluation_results& results )
   //   AssA = (1/|TP|) * sum over TPs of |TPA| / (|TPA| + |FNA| + |FPA|)
   //   HOTA = sqrt(DetA * AssA)
   // Final HOTA = average over all thresholds
+  //
+  // NOTE: per-frame matching below is greedy by IoU rather than an optimal
+  // (Hungarian) assignment maximizing the association score, so these values
+  // are a close approximation of, and not bit-identical to, TrackEval's HOTA.
 
+  // Index by integer step: a floating point loop condition (t <= 0.95) drops
+  // the final threshold to accumulated rounding error.
+  const int num_hota_thresholds = 19;
   std::vector< double > iou_thresholds;
-  for( double t = 0.05; t <= 0.95; t += 0.05 )
+  iou_thresholds.reserve( num_hota_thresholds );
+  for( int i = 0; i < num_hota_thresholds; i++ )
   {
-    iou_thresholds.push_back( t );
+    iou_thresholds.push_back( 0.05 + 0.05 * i );
   }
 
   // Use cached track appearances (already computed in build_caches)
@@ -1345,45 +1468,23 @@ model_evaluator::priv::compute_hota_metrics( evaluation_results& results )
     }
 
     // Compute AssA
-    // For each TP, compute its association score:
-    // A(c) = |TPA(c)| / (|TPA(c)| + |FNA(c)| + |FPA(c)|)
-    // where TPA(c) = TPs where c's GT matches, FNA = GT appearances not matched by c,
-    // FPA = c's appearances not matched to its GT
-
-    // First, find optimal GT assignment for each computed track (most matches)
-    std::map< int, int > comp_to_gt_assignment;
-    std::map< int, int > comp_to_gt_tps;
-
-    for( const auto& p : track_pair_tps )
-    {
-      int gt_track = p.first.first;
-      int comp_track = p.first.second;
-      int count = p.second;
-
-      auto it = comp_to_gt_tps.find( comp_track );
-      if( it == comp_to_gt_tps.end() || count > it->second )
-      {
-        comp_to_gt_assignment[comp_track] = gt_track;
-        comp_to_gt_tps[comp_track] = count;
-      }
-    }
-
+    //
+    // AssA is the TP-weighted mean association score over EVERY true positive:
+    //   A(c) = |TPA(c)| / (|TPA(c)| + |FNA(c)| + |FPA(c)|)
+    // where, for the (gt, comp) pair a TP belongs to, TPA is the number of
+    // frames the pair matched, FNA the GT frames that pair did not match, and
+    // FPA the computed frames that pair did not match. Every (gt, comp) pair
+    // that produced at least one TP contributes; restricting this to each
+    // computed track's single dominant GT would discard the FNA/FPA mass of
+    // the other associations and inflate AssA.
     double sum_assa_alpha = 0.0;
     int assa_count = 0;
 
-    // For each TP, compute association score
     for( const auto& p : track_pair_tps )
     {
       int gt_track = p.first.first;
       int comp_track = p.first.second;
       int tpa = p.second;  // TPs where this pair matched
-
-      // Check if this is the assigned GT for this computed track
-      auto assign_it = comp_to_gt_assignment.find( comp_track );
-      if( assign_it == comp_to_gt_assignment.end() || assign_it->second != gt_track )
-      {
-        continue;  // Not the primary association
-      }
 
       // FNA = GT appearances - TPA (GT frames not matched by this comp track)
       int gt_total = gt_track_appearances.at(gt_track);
@@ -1583,12 +1684,15 @@ model_evaluator::priv::compute_kwant_metrics( evaluation_results& results )
 
   double total_track_continuity = 0;
   int num_comp_tracks = 0;
+  m_comp_track_continuities.clear();
   for( const auto& p : comp_track_matched_per_frame )
   {
     int segments = count_segments( p.second );
     if( segments > 0 )
     {
-      total_track_continuity += 1.0 / segments;
+      double continuity = 1.0 / segments;
+      total_track_continuity += continuity;
+      m_comp_track_continuities.push_back( continuity );
       num_comp_tracks++;
     }
   }
@@ -1664,6 +1768,7 @@ model_evaluator::priv::compute_kwant_metrics( evaluation_results& results )
   // Compute track purity (computed tracks)
   double total_track_purity = 0;
   int purity_track_count = 0;
+  m_comp_track_purities.clear();
   for( const auto& p : comp_to_gt_matches )
   {
     int total = comp_track_total_matches[p.first];
@@ -1674,7 +1779,9 @@ model_evaluator::priv::compute_kwant_metrics( evaluation_results& results )
       {
         max_matches = std::max( max_matches, gt_count.second );
       }
-      total_track_purity += static_cast< double >( max_matches ) / total;
+      double purity = static_cast< double >( max_matches ) / total;
+      total_track_purity += purity;
+      m_comp_track_purities.push_back( purity );
       purity_track_count++;
     }
   }
@@ -1992,83 +2099,41 @@ model_evaluator::priv::compute_track_quality_metrics( evaluation_results& result
 }
 
 // =============================================================================
-// Average Precision computation
+// Average Precision helpers
+//
+// Every AP in this file goes through these two routines, so AP, AP@50, AP@75,
+// AP@[.5:.95], per-class AP and the plotted PR curves all share one
+// convention: detections are matched in descending confidence order (highest
+// confidence claims a ground truth box first), and the resulting PR curve is
+// integrated with all-point interpolation.
 
-void
-model_evaluator::priv::compute_average_precision( evaluation_results& results )
+double
+model_evaluator::priv::ap_from_scored(
+  std::vector< std::pair< double, bool > >& dets,
+  double total_gt )
 {
-  // Collect all detections with their match status
-  struct scored_detection
+  if( total_gt <= 0 || dets.empty() )
   {
-    double confidence;
-    bool is_tp;
-  };
-
-  std::vector< scored_detection > all_detections;
-
-  // Use cached frame groupings
-  const auto& computed_by_frame = m_computed_by_frame;
-
-  for( const auto& fm_pair : m_frame_matches )
-  {
-    int frame_id = fm_pair.first;
-    const auto& fm = fm_pair.second;
-
-    auto comp_it = computed_by_frame.find( frame_id );
-    if( comp_it == computed_by_frame.end() )
-    {
-      continue;
-    }
-
-    std::vector< detection > frame_computed;
-    for( size_t idx : comp_it->second )
-    {
-      frame_computed.push_back( m_computed[idx] );
-    }
-
-    // Mark which detections are TPs
-    std::set< int > tp_indices;
-    for( const auto& m : fm.matches )
-    {
-      tp_indices.insert( m.computed_idx );
-    }
-
-    // Add all detections
-    for( size_t i = 0; i < frame_computed.size(); i++ )
-    {
-      scored_detection sd;
-      sd.confidence = frame_computed[i].confidence;
-      sd.is_tp = tp_indices.count( static_cast< int >( i ) ) > 0;
-      all_detections.push_back( sd );
-    }
+    return 0.0;
   }
 
-  if( all_detections.empty() )
-  {
-    return;
-  }
-
-  // Sort by confidence descending
-  std::sort( all_detections.begin(), all_detections.end(),
-    []( const scored_detection& a, const scored_detection& b )
+  // Stable sort so that detections tied on confidence keep a deterministic
+  // order; an unstable sort makes AP depend on input ordering when many
+  // detections share a score.
+  std::stable_sort( dets.begin(), dets.end(),
+    []( const std::pair< double, bool >& a, const std::pair< double, bool >& b )
     {
-      return a.confidence > b.confidence;
+      return a.first > b.first;
     } );
 
-  // Compute precision-recall curve
-  double total_positives = results.true_positives + results.false_negatives;
-  if( total_positives <= 0 )
-  {
-    return;
-  }
-
-  std::vector< double > precisions;
-  std::vector< double > recalls;
+  std::vector< double > precisions, recalls;
+  precisions.reserve( dets.size() );
+  recalls.reserve( dets.size() );
 
   double tp = 0, fp = 0;
-  for( const auto& sd : all_detections )
+  for( const auto& sd : dets )
   {
-    if( sd.is_tp )
+    if( sd.second )
     {
       tp++;
     }
@@ -2076,35 +2141,170 @@ model_evaluator::priv::compute_average_precision( evaluation_results& results )
     {
       fp++;
     }
-
-    double precision = tp / ( tp + fp );
-    double recall = tp / total_positives;
-
-    precisions.push_back( precision );
-    recalls.push_back( recall );
+    precisions.push_back( tp / ( tp + fp ) );
+    recalls.push_back( tp / total_gt );
   }
 
-  // Compute AP using 11-point interpolation or all-point interpolation
-  // Using all-point interpolation (area under PR curve)
-
-  // Make precision monotonically decreasing (from right to left)
-  std::vector< double > interp_precisions = precisions;
-  for( int i = static_cast< int >( interp_precisions.size() ) - 2; i >= 0; i-- )
+  // Make precision monotonically decreasing (right to left)
+  for( int i = static_cast< int >( precisions.size() ) - 2; i >= 0; i-- )
   {
-    interp_precisions[i] = std::max( interp_precisions[i], interp_precisions[i + 1] );
+    precisions[i] = std::max( precisions[i], precisions[i + 1] );
   }
 
-  // Compute area under curve
   double ap = 0;
   double prev_recall = 0;
   for( size_t i = 0; i < recalls.size(); i++ )
   {
-    double recall_diff = recalls[i] - prev_recall;
-    ap += interp_precisions[i] * recall_diff;
+    ap += precisions[i] * ( recalls[i] - prev_recall );
     prev_recall = recalls[i];
   }
 
-  results.average_precision = ap;
+  return ap;
+}
+
+double
+model_evaluator::priv::compute_ap_cached( double iou_thresh ) const
+{
+  std::vector< std::pair< double, bool > > all_dets;
+  all_dets.reserve( m_computed.size() );
+
+  const double total_gt = static_cast< double >( m_groundtruth.size() );
+
+  for( int frame_id : m_frame_list )
+  {
+    auto comp_it = m_computed_by_frame.find( frame_id );
+    if( comp_it == m_computed_by_frame.end() )
+    {
+      continue;
+    }
+
+    auto gt_it = m_gt_by_frame.find( frame_id );
+    auto iou_it = m_iou_matrices.find( frame_id );
+
+    const auto& comp_indices = comp_it->second;
+    size_t num_gt = ( gt_it != m_gt_by_frame.end() ) ? gt_it->second.size() : 0;
+
+    // Claim ground truth in descending confidence order within the frame
+    std::vector< size_t > sorted_local( comp_indices.size() );
+    std::iota( sorted_local.begin(), sorted_local.end(), 0 );
+    std::stable_sort( sorted_local.begin(), sorted_local.end(),
+      [this, &comp_indices]( size_t a, size_t b )
+      {
+        return m_computed[comp_indices[a]].confidence >
+               m_computed[comp_indices[b]].confidence;
+      } );
+
+    std::vector< bool > gt_matched( num_gt, false );
+
+    for( size_t ci : sorted_local )
+    {
+      double best_iou = 0;
+      int best_gt = -1;
+
+      if( iou_it != m_iou_matrices.end() && num_gt > 0 )
+      {
+        const auto& iou_matrix = iou_it->second;
+        for( size_t gi = 0; gi < num_gt; gi++ )
+        {
+          if( !gt_matched[gi] && iou_matrix[ci][gi] > best_iou )
+          {
+            best_iou = iou_matrix[ci][gi];
+            best_gt = static_cast< int >( gi );
+          }
+        }
+      }
+
+      bool is_tp = ( best_gt >= 0 && best_iou >= iou_thresh );
+      if( is_tp )
+      {
+        gt_matched[best_gt] = true;
+      }
+
+      all_dets.emplace_back( m_computed[comp_indices[ci]].confidence, is_tp );
+    }
+  }
+
+  return ap_from_scored( all_dets, total_gt );
+}
+
+double
+model_evaluator::priv::compute_ap_subset(
+  const std::vector< detection >& computed,
+  const std::vector< detection >& groundtruth,
+  double iou_thresh ) const
+{
+  const double total_gt = static_cast< double >( groundtruth.size() );
+
+  if( total_gt <= 0 || computed.empty() )
+  {
+    return 0.0;
+  }
+
+  // Group the subset's ground truth by frame
+  std::map< int, std::vector< size_t > > gt_by_frame;
+  for( size_t i = 0; i < groundtruth.size(); i++ )
+  {
+    gt_by_frame[groundtruth[i].frame_id].push_back( i );
+  }
+
+  // Process the subset's detections in descending confidence order
+  std::vector< size_t > order( computed.size() );
+  std::iota( order.begin(), order.end(), 0 );
+  std::stable_sort( order.begin(), order.end(),
+    [&computed]( size_t a, size_t b )
+    {
+      return computed[a].confidence > computed[b].confidence;
+    } );
+
+  std::vector< bool > gt_matched( groundtruth.size(), false );
+  std::vector< std::pair< double, bool > > all_dets;
+  all_dets.reserve( computed.size() );
+
+  for( size_t idx : order )
+  {
+    const auto& det = computed[idx];
+
+    double best_iou = 0.0;
+    int best_gt = -1;
+
+    auto frame_it = gt_by_frame.find( det.frame_id );
+    if( frame_it != gt_by_frame.end() )
+    {
+      for( size_t gi : frame_it->second )
+      {
+        if( gt_matched[gi] )
+        {
+          continue;
+        }
+
+        double iou = compute_iou( det, groundtruth[gi] );
+        if( iou > best_iou )
+        {
+          best_iou = iou;
+          best_gt = static_cast< int >( gi );
+        }
+      }
+    }
+
+    bool is_tp = ( best_gt >= 0 && best_iou >= iou_thresh );
+    if( is_tp )
+    {
+      gt_matched[best_gt] = true;
+    }
+
+    all_dets.emplace_back( det.confidence, is_tp );
+  }
+
+  return ap_from_scored( all_dets, total_gt );
+}
+
+// =============================================================================
+// Average Precision computation
+
+void
+model_evaluator::priv::compute_average_precision( evaluation_results& results )
+{
+  results.average_precision = compute_ap_cached( m_config.iou_threshold );
 }
 
 // =============================================================================
@@ -2113,159 +2313,25 @@ model_evaluator::priv::compute_average_precision( evaluation_results& results )
 void
 model_evaluator::priv::compute_multi_threshold_ap( evaluation_results& results )
 {
-  // Compute AP at specific IoU thresholds using cached IoU matrices
+  results.ap50 = compute_ap_cached( 0.5 );
+  results.ap75 = compute_ap_cached( 0.75 );
 
-  auto compute_ap_at_threshold = [this]( double iou_thresh ) -> double
-  {
-    // Collect all detections with TP/FP status at this threshold
-    struct scored_det
-    {
-      double conf;
-      bool is_tp;
-    };
-    std::vector< scored_det > all_dets;
-    all_dets.reserve( m_computed.size() );
-    double total_gt = m_groundtruth.size();
-
-    for( int frame_id : m_frame_list )
-    {
-      auto comp_it = m_computed_by_frame.find( frame_id );
-      auto gt_it = m_gt_by_frame.find( frame_id );
-      auto iou_it = m_iou_matrices.find( frame_id );
-
-      if( comp_it == m_computed_by_frame.end() )
-      {
-        continue;
-      }
-
-      const auto& comp_indices = comp_it->second;
-      size_t num_gt = ( gt_it != m_gt_by_frame.end() ) ? gt_it->second.size() : 0;
-
-      // Sort computed by confidence descending
-      std::vector< size_t > sorted_local( comp_indices.size() );
-      std::iota( sorted_local.begin(), sorted_local.end(), 0 );
-      std::sort( sorted_local.begin(), sorted_local.end(),
-        [this, &comp_indices]( size_t a, size_t b )
-        {
-          return m_computed[comp_indices[a]].confidence >
-                 m_computed[comp_indices[b]].confidence;
-        } );
-
-      std::vector< bool > gt_matched( num_gt, false );
-
-      for( size_t ci : sorted_local )
-      {
-        double best_iou = 0;
-        int best_gt = -1;
-
-        if( iou_it != m_iou_matrices.end() && num_gt > 0 )
-        {
-          const auto& iou_matrix = iou_it->second;
-          for( size_t gi = 0; gi < num_gt; gi++ )
-          {
-            if( !gt_matched[gi] && iou_matrix[ci][gi] > best_iou )
-            {
-              best_iou = iou_matrix[ci][gi];
-              best_gt = static_cast< int >( gi );
-            }
-          }
-        }
-
-        scored_det sd;
-        sd.conf = m_computed[comp_indices[ci]].confidence;
-
-        if( best_gt >= 0 && best_iou >= iou_thresh )
-        {
-          sd.is_tp = true;
-          gt_matched[best_gt] = true;
-        }
-        else
-        {
-          sd.is_tp = false;
-        }
-
-        all_dets.push_back( sd );
-      }
-    }
-
-    if( total_gt <= 0 || all_dets.empty() )
-    {
-      return 0.0;
-    }
-
-    // Sort all detections by confidence
-    std::sort( all_dets.begin(), all_dets.end(),
-      []( const scored_det& a, const scored_det& b )
-      {
-        return a.conf > b.conf;
-      } );
-
-    // Compute PR curve
-    std::vector< double > precisions, recalls;
-    precisions.reserve( all_dets.size() );
-    recalls.reserve( all_dets.size() );
-    double tp = 0, fp = 0;
-
-    for( const auto& sd : all_dets )
-    {
-      if( sd.is_tp )
-      {
-        tp++;
-      }
-      else
-      {
-        fp++;
-      }
-      precisions.push_back( tp / ( tp + fp ) );
-      recalls.push_back( tp / total_gt );
-    }
-
-    // Make precision monotonically decreasing
-    for( int i = static_cast< int >( precisions.size() ) - 2; i >= 0; i-- )
-    {
-      precisions[i] = std::max( precisions[i], precisions[i + 1] );
-    }
-
-    // Compute AP
-    double ap = 0;
-    double prev_recall = 0;
-    for( size_t i = 0; i < recalls.size(); i++ )
-    {
-      ap += precisions[i] * ( recalls[i] - prev_recall );
-      prev_recall = recalls[i];
-    }
-
-    return ap;
-  };
-
-  // AP@0.5
-  results.ap50 = compute_ap_at_threshold( 0.5 );
-
-  // AP@0.75
-  results.ap75 = compute_ap_at_threshold( 0.75 );
-
-  // AP@0.5:0.95 (average over 10 thresholds)
-  // Use parallel computation for multiple thresholds
-  std::vector< double > thresholds;
-  for( double thresh = 0.5; thresh <= 0.95; thresh += 0.05 )
-  {
-    thresholds.push_back( thresh );
-  }
+  // AP@[0.5:0.95]. Index by integer step: a floating point loop condition
+  // (thresh <= 0.95) drops the final, strictest threshold to accumulated
+  // rounding error, which silently inflates the average.
+  const int num_thresholds = 10;
 
   double sum_ap = 0;
 
   #ifdef _OPENMP
   #pragma omp parallel for reduction(+:sum_ap)
   #endif
-  for( int i = 0; i < static_cast<int>( thresholds.size() ); i++ )
+  for( int i = 0; i < num_thresholds; i++ )
   {
-    sum_ap += compute_ap_at_threshold( thresholds[i] );
+    sum_ap += compute_ap_cached( 0.50 + 0.05 * i );
   }
 
-  if( !thresholds.empty() )
-  {
-    results.ap50_95 = sum_ap / thresholds.size();
-  }
+  results.ap50_95 = sum_ap / num_thresholds;
 }
 
 // =============================================================================
@@ -2337,7 +2403,9 @@ model_evaluator::priv::compute_classification_metrics( evaluation_results& resul
       static_cast< double >( correct_class ) / total_matches;
   }
 
-  // Mean AP: computed from per-class metrics if enabled
+  // Mean AP: the unweighted mean of per-class AP over every class that has
+  // ground truth. Classes the detector missed entirely contribute their AP of
+  // zero: dropping them would let a total failure on one class raise the mAP.
   if( m_config.compute_per_class_metrics && !results.per_class_metrics.empty() )
   {
     double sum_ap = 0;
@@ -2345,11 +2413,16 @@ model_evaluator::priv::compute_classification_metrics( evaluation_results& resul
 
     for( const auto& class_metrics : results.per_class_metrics )
     {
-      // Use F1 as proxy for AP if not computing full AP per class
-      auto f1_it = class_metrics.second.find( "f1_score" );
-      if( f1_it != class_metrics.second.end() && f1_it->second > 0 )
+      auto gt_it = class_metrics.second.find( "total_gt" );
+      if( gt_it == class_metrics.second.end() || gt_it->second <= 0 )
       {
-        sum_ap += f1_it->second;
+        continue;  // No ground truth for this class, AP is undefined
+      }
+
+      auto ap_it = class_metrics.second.find( "average_precision" );
+      if( ap_it != class_metrics.second.end() )
+      {
+        sum_ap += ap_it->second;
         num_classes++;
       }
     }
@@ -2401,13 +2474,6 @@ model_evaluator::priv::compute_per_class_metrics( evaluation_results& results )
   {
     const auto& class_gt = gt_by_class[class_name];
     const auto& class_comp = comp_by_class[class_name];
-
-    // Create temporary evaluator for this class
-    model_evaluator class_eval;
-    evaluation_config class_config = m_config;
-    class_config.compute_per_class_metrics = false;
-    class_config.compute_tracking_metrics = false;
-    class_eval.set_config( class_config );
 
     // We need to do per-frame matching for this class only
     // Group by frame
@@ -2484,6 +2550,11 @@ model_evaluator::priv::compute_per_class_metrics( evaluation_results& results )
 
     class_metrics["total_gt"] = class_gt.size();
     class_metrics["total_computed"] = class_comp.size();
+
+    // Per-class AP, using the same confidence-ordered, all-point convention as
+    // the overall AP
+    class_metrics["average_precision"] =
+      compute_ap_subset( class_comp, class_gt, m_config.iou_threshold );
 
     results.per_class_metrics[class_name] = class_metrics;
   }
@@ -2617,15 +2688,26 @@ model_evaluator::evaluate(
   // Clear previous data
   d->m_computed.clear();
   d->m_groundtruth.clear();
+  d->m_frame_id_map.clear();
+  d->m_gt_track_id_map.clear();
+  d->m_comp_track_id_map.clear();
+  d->m_next_frame_key = 0;
+  d->m_next_track_key = 0;
 
-  // Load all files
+  // Load all files. Each computed/truth pair is one sequence: frame and track
+  // IDs are remapped per sequence so that identically numbered frames or
+  // tracks in different sequences are never matched against each other.
   for( size_t i = 0; i < computed_files.size(); i++ )
   {
-    if( !d->parse_viame_csv( computed_files[i], d->m_computed ) )
+    const int sequence_id = static_cast< int >( i );
+
+    if( !d->parse_viame_csv( computed_files[i], d->m_computed,
+                             false, sequence_id ) )
     {
       LOG_WARN( d->m_logger, "Failed to parse computed file: " << computed_files[i] );
     }
-    if( !d->parse_viame_csv( groundtruth_files[i], d->m_groundtruth ) )
+    if( !d->parse_viame_csv( groundtruth_files[i], d->m_groundtruth,
+                             true, sequence_id ) )
     {
       LOG_WARN( d->m_logger, "Failed to parse groundtruth file: " << groundtruth_files[i] );
     }
@@ -2694,8 +2776,86 @@ evaluate_models(
 // Plotting data generation
 // =============================================================================
 
+namespace {
+
+/// Build a PR curve point from running counts
+pr_curve_point
+make_pr_point( double confidence, int tp, int fp, int total_gt )
+{
+  pr_curve_point prp;
+  prp.confidence = confidence;
+  prp.tp = tp;
+  prp.fp = fp;
+  prp.fn = total_gt - tp;
+
+  if( tp + fp > 0 )
+  {
+    prp.precision = static_cast< double >( tp ) / ( tp + fp );
+  }
+  if( total_gt > 0 )
+  {
+    prp.recall = static_cast< double >( tp ) / total_gt;
+  }
+  if( prp.precision + prp.recall > 0 )
+  {
+    prp.f1 = 2.0 * prp.precision * prp.recall / ( prp.precision + prp.recall );
+  }
+
+  return prp;
+}
+
+/// Finish a PR curve: max F1, best threshold, and all-point interpolated AP.
+///
+/// Uses the same all-point interpolation as model_evaluator::priv, so the AP
+/// annotated on a plot agrees with the AP in the metric summary. (The 11-point
+/// PASCAL VOC 2007 interpolation this previously used disagreed with it.)
+void
+finalize_pr_curve( pr_curve_data& curve )
+{
+  double max_f1 = 0.0;
+  double best_threshold = 0.0;
+
+  for( const auto& pt : curve.points )
+  {
+    if( pt.f1 > max_f1 )
+    {
+      max_f1 = pt.f1;
+      best_threshold = pt.confidence;
+    }
+  }
+
+  curve.max_f1 = max_f1;
+  curve.best_threshold = best_threshold;
+
+  // Points are in descending confidence order, i.e. ascending recall.
+  // Interpolate precision to be monotonically decreasing, then integrate.
+  std::vector< double > precisions;
+  precisions.reserve( curve.points.size() );
+  for( const auto& pt : curve.points )
+  {
+    precisions.push_back( pt.precision );
+  }
+
+  for( int i = static_cast< int >( precisions.size() ) - 2; i >= 0; i-- )
+  {
+    precisions[i] = std::max( precisions[i], precisions[i + 1] );
+  }
+
+  double ap = 0.0;
+  double prev_recall = 0.0;
+  for( size_t i = 0; i < curve.points.size(); i++ )
+  {
+    ap += precisions[i] * ( curve.points[i].recall - prev_recall );
+    prev_recall = curve.points[i].recall;
+  }
+
+  curve.average_precision = ap;
+}
+
+} // anonymous namespace
+
 pr_curve_data
-model_evaluator::generate_pr_curve( int num_points )
+model_evaluator::generate_pr_curve()
 {
   pr_curve_data result;
 
@@ -2707,7 +2867,7 @@ model_evaluator::generate_pr_curve( int num_points )
   // Sort computed detections by confidence descending
   std::vector< size_t > sorted_indices( d->m_computed.size() );
   std::iota( sorted_indices.begin(), sorted_indices.end(), 0 );
-  std::sort( sorted_indices.begin(), sorted_indices.end(),
+  std::stable_sort( sorted_indices.begin(), sorted_indices.end(),
     [this]( size_t a, size_t b )
     {
       return d->m_computed[a].confidence > d->m_computed[b].confidence;
@@ -2726,16 +2886,22 @@ model_evaluator::generate_pr_curve( int num_points )
     gt_by_frame[d->m_groundtruth[i].frame_id].push_back( i );
   }
 
-  // Process detections in confidence order
-  std::vector< std::tuple< double, int, int > > curve_points;  // (conf, tp, fp)
-  double prev_conf = std::numeric_limits< double >::max();
+  // Process detections in confidence order. A curve point is emitted only once
+  // an entire group of detections tied on the same confidence has been
+  // consumed, so each point corresponds to a threshold that is actually
+  // realizable: emitting mid-group would split ties arbitrarily.
+  bool have_prev = false;
+  double prev_conf = 0.0;
 
   for( size_t idx : sorted_indices )
   {
     const auto& det = d->m_computed[idx];
-    double conf = det.confidence;
 
-    // Check if this detection matches any unmatched GT
+    if( have_prev && det.confidence != prev_conf )
+    {
+      result.points.push_back( make_pr_point( prev_conf, tp, fp, total_gt ) );
+    }
+
     bool matched = false;
     auto frame_it = gt_by_frame.find( det.frame_id );
     if( frame_it != gt_by_frame.end() )
@@ -2760,89 +2926,34 @@ model_evaluator::generate_pr_curve( int num_points )
       if( matched )
       {
         gt_matched[best_gt] = true;
-        tp++;
       }
-      else
-      {
-        fp++;
-      }
+    }
+
+    if( matched )
+    {
+      tp++;
     }
     else
     {
       fp++;
     }
 
-    // Record point when confidence changes
-    if( conf != prev_conf )
-    {
-      curve_points.push_back( { conf, tp, fp } );
-      prev_conf = conf;
-    }
+    prev_conf = det.confidence;
+    have_prev = true;
   }
 
-  // Add final point
-  curve_points.push_back( { 0.0, tp, fp } );
-
-  // Convert to PR curve points
-  result.points.reserve( curve_points.size() );
-  double max_f1 = 0.0;
-  double best_threshold = 0.0;
-
-  for( const auto& pt : curve_points )
+  if( have_prev )
   {
-    pr_curve_point prp;
-    prp.confidence = std::get<0>( pt );
-    prp.tp = std::get<1>( pt );
-    prp.fp = std::get<2>( pt );
-    prp.fn = total_gt - prp.tp;
-
-    if( prp.tp + prp.fp > 0 )
-    {
-      prp.precision = static_cast< double >( prp.tp ) / ( prp.tp + prp.fp );
-    }
-    if( total_gt > 0 )
-    {
-      prp.recall = static_cast< double >( prp.tp ) / total_gt;
-    }
-    if( prp.precision + prp.recall > 0 )
-    {
-      prp.f1 = 2.0 * prp.precision * prp.recall / ( prp.precision + prp.recall );
-    }
-
-    if( prp.f1 > max_f1 )
-    {
-      max_f1 = prp.f1;
-      best_threshold = prp.confidence;
-    }
-
-    result.points.push_back( prp );
+    result.points.push_back( make_pr_point( prev_conf, tp, fp, total_gt ) );
   }
 
-  result.max_f1 = max_f1;
-  result.best_threshold = best_threshold;
-
-  // Compute Average Precision using 11-point interpolation
-  // (PASCAL VOC style)
-  double ap = 0.0;
-  for( double r = 0.0; r <= 1.0; r += 0.1 )
-  {
-    double max_prec = 0.0;
-    for( const auto& pt : result.points )
-    {
-      if( pt.recall >= r )
-      {
-        max_prec = std::max( max_prec, pt.precision );
-      }
-    }
-    ap += max_prec;
-  }
-  result.average_precision = ap / 11.0;
+  finalize_pr_curve( result );
 
   return result;
 }
 
 std::map< std::string, pr_curve_data >
-model_evaluator::generate_per_class_pr_curves( int num_points )
+model_evaluator::generate_per_class_pr_curves()
 {
   std::map< std::string, pr_curve_data > result;
 
@@ -2888,8 +2999,8 @@ model_evaluator::generate_per_class_pr_curves( int num_points )
     if( class_gt.empty() )
       continue;
 
-    // Sort by confidence
-    std::sort( class_computed.begin(), class_computed.end(),
+    // Sort by confidence descending
+    std::stable_sort( class_computed.begin(), class_computed.end(),
       []( const detection& a, const detection& b )
       {
         return a.confidence > b.confidence;
@@ -2910,10 +3021,17 @@ model_evaluator::generate_per_class_pr_curves( int num_points )
       gt_by_frame[class_gt[i].frame_id].push_back( i );
     }
 
-    double prev_conf = std::numeric_limits< double >::max();
+    // Emit one point per distinct confidence, after the whole tied group
+    bool have_prev = false;
+    double prev_conf = 0.0;
 
     for( const auto& det : class_computed )
     {
+      if( have_prev && det.confidence != prev_conf )
+      {
+        curve.points.push_back( make_pr_point( prev_conf, tp, fp, total_gt ) );
+      }
+
       bool matched = false;
       auto frame_it = gt_by_frame.find( det.frame_id );
       if( frame_it != gt_by_frame.end() )
@@ -2938,92 +3056,28 @@ model_evaluator::generate_per_class_pr_curves( int num_points )
         if( matched )
         {
           gt_matched[best_gt] = true;
-          tp++;
         }
-        else
-        {
-          fp++;
-        }
+      }
+
+      if( matched )
+      {
+        tp++;
       }
       else
       {
         fp++;
       }
 
-      if( det.confidence != prev_conf )
-      {
-        pr_curve_point prp;
-        prp.confidence = det.confidence;
-        prp.tp = tp;
-        prp.fp = fp;
-        prp.fn = total_gt - tp;
-
-        if( tp + fp > 0 )
-        {
-          prp.precision = static_cast< double >( tp ) / ( tp + fp );
-        }
-        if( total_gt > 0 )
-        {
-          prp.recall = static_cast< double >( tp ) / total_gt;
-        }
-        if( prp.precision + prp.recall > 0 )
-        {
-          prp.f1 = 2.0 * prp.precision * prp.recall / ( prp.precision + prp.recall );
-        }
-
-        curve.points.push_back( prp );
-        prev_conf = det.confidence;
-      }
+      prev_conf = det.confidence;
+      have_prev = true;
     }
 
-    // Final point
-    pr_curve_point final_pt;
-    final_pt.confidence = 0.0;
-    final_pt.tp = tp;
-    final_pt.fp = fp;
-    final_pt.fn = total_gt - tp;
-    if( tp + fp > 0 )
+    if( have_prev )
     {
-      final_pt.precision = static_cast< double >( tp ) / ( tp + fp );
+      curve.points.push_back( make_pr_point( prev_conf, tp, fp, total_gt ) );
     }
-    if( total_gt > 0 )
-    {
-      final_pt.recall = static_cast< double >( tp ) / total_gt;
-    }
-    if( final_pt.precision + final_pt.recall > 0 )
-    {
-      final_pt.f1 = 2.0 * final_pt.precision * final_pt.recall /
-                    ( final_pt.precision + final_pt.recall );
-    }
-    curve.points.push_back( final_pt );
 
-    // Compute max F1 and AP
-    double max_f1 = 0.0;
-    for( const auto& pt : curve.points )
-    {
-      if( pt.f1 > max_f1 )
-      {
-        max_f1 = pt.f1;
-        curve.best_threshold = pt.confidence;
-      }
-    }
-    curve.max_f1 = max_f1;
-
-    // 11-point AP
-    double ap = 0.0;
-    for( double r = 0.0; r <= 1.0; r += 0.1 )
-    {
-      double max_prec = 0.0;
-      for( const auto& pt : curve.points )
-      {
-        if( pt.recall >= r )
-        {
-          max_prec = std::max( max_prec, pt.precision );
-        }
-      }
-      ap += max_prec;
-    }
-    curve.average_precision = ap / 11.0;
+    finalize_pr_curve( curve );
 
     result[class_name] = curve;
   }
@@ -3076,8 +3130,12 @@ model_evaluator::generate_confusion_matrix()
     const frame_matches& fm = frame_match_pair.second;
     int frame_id = frame_match_pair.first;
 
-    // Get indices for this frame
-    const auto& comp_indices = d->m_computed_by_frame.at( frame_id );
+    // Get indices for this frame. A frame with ground truth but no detections
+    // at all is present in m_frame_matches yet absent from m_computed_by_frame,
+    // so both lookups have to tolerate a missing frame.
+    const auto& comp_indices = d->m_computed_by_frame.count( frame_id ) ?
+                               d->m_computed_by_frame.at( frame_id ) :
+                               std::vector< size_t >();
     const auto& gt_indices = d->m_gt_by_frame.count( frame_id ) ?
                              d->m_gt_by_frame.at( frame_id ) :
                              std::vector< size_t >();
@@ -3165,7 +3223,7 @@ model_evaluator::generate_confusion_matrix()
 }
 
 roc_curve_data
-model_evaluator::generate_roc_curve( int num_points )
+model_evaluator::generate_roc_curve()
 {
   roc_curve_data result;
 
@@ -3176,7 +3234,7 @@ model_evaluator::generate_roc_curve( int num_points )
 
   // Sort computed detections by confidence descending
   std::vector< detection > sorted_computed = d->m_computed;
-  std::sort( sorted_computed.begin(), sorted_computed.end(),
+  std::stable_sort( sorted_computed.begin(), sorted_computed.end(),
     []( const detection& a, const detection& b )
     {
       return a.confidence > b.confidence;
@@ -3188,10 +3246,37 @@ model_evaluator::generate_roc_curve( int num_points )
   std::vector< bool > gt_matched( d->m_groundtruth.size(), false );
 
   int tp = 0, fp = 0;
-  double prev_conf = std::numeric_limits< double >::max();
+
+  auto make_point = [&]( double confidence )
+  {
+    roc_curve_point rp;
+    rp.confidence = confidence;
+    rp.true_positive_rate = total_gt > 0 ?
+      static_cast< double >( tp ) / total_gt : 0.0;
+    rp.false_alarms_per_frame = total_frames > 0 ?
+      static_cast< double >( fp ) / total_frames : 0.0;
+    return rp;
+  };
+
+  // Anchor the curve at the origin: at a confidence above every detection,
+  // nothing fires, so there are no detections and no false alarms. Without it
+  // the area of the first segment is silently dropped.
+  roc_curve_point origin;
+  origin.confidence = std::numeric_limits< double >::infinity();
+  result.points.push_back( origin );
+
+  // As with the PR curve, only emit a point once a whole group of detections
+  // tied on one confidence has been consumed.
+  bool have_prev = false;
+  double prev_conf = 0.0;
 
   for( const auto& det : sorted_computed )
   {
+    if( have_prev && det.confidence != prev_conf )
+    {
+      result.points.push_back( make_point( prev_conf ) );
+    }
+
     bool matched = false;
     auto frame_it = d->m_gt_by_frame.find( det.frame_id );
     if( frame_it != d->m_gt_by_frame.end() )
@@ -3216,53 +3301,48 @@ model_evaluator::generate_roc_curve( int num_points )
       if( matched )
       {
         gt_matched[best_gt] = true;
-        tp++;
       }
-      else
-      {
-        fp++;
-      }
+    }
+
+    if( matched )
+    {
+      tp++;
     }
     else
     {
       fp++;
     }
 
-    if( det.confidence != prev_conf )
-    {
-      roc_curve_point rp;
-      rp.confidence = det.confidence;
-      rp.true_positive_rate = total_gt > 0 ?
-        static_cast< double >( tp ) / total_gt : 0.0;
-      // For object detection, FPR is often expressed as FP per image
-      rp.false_positive_rate = total_frames > 0 ?
-        static_cast< double >( fp ) / total_frames : 0.0;
-
-      result.points.push_back( rp );
-      prev_conf = det.confidence;
-    }
+    prev_conf = det.confidence;
+    have_prev = true;
   }
 
-  // Add final point
-  roc_curve_point final_pt;
-  final_pt.confidence = 0.0;
-  final_pt.true_positive_rate = total_gt > 0 ?
-    static_cast< double >( tp ) / total_gt : 0.0;
-  final_pt.false_positive_rate = total_frames > 0 ?
-    static_cast< double >( fp ) / total_frames : 0.0;
-  result.points.push_back( final_pt );
+  if( have_prev )
+  {
+    result.points.push_back( make_point( prev_conf ) );
+  }
 
-  // Compute AUC using trapezoidal rule
-  double auc = 0.0;
+  result.max_false_alarms_per_frame = result.points.back().false_alarms_per_frame;
+
+  // Integrate Pd over the false alarm axis and normalize by the observed false
+  // alarm range. The x axis is false alarms per frame, which is unbounded, so
+  // the raw integral is not a classification AUC and is not bounded by one:
+  // normalizing yields the mean probability of detection over the range the
+  // detector actually operates in.
+  double area = 0.0;
   for( size_t i = 1; i < result.points.size(); i++ )
   {
-    double dx = result.points[i].false_positive_rate -
-                result.points[i-1].false_positive_rate;
+    double dx = result.points[i].false_alarms_per_frame -
+                result.points[i-1].false_alarms_per_frame;
     double avg_y = ( result.points[i].true_positive_rate +
                      result.points[i-1].true_positive_rate ) / 2.0;
-    auc += dx * avg_y;
+    area += dx * avg_y;
   }
-  result.auc = auc;
+
+  if( result.max_false_alarms_per_frame > 0.0 )
+  {
+    result.mean_pd = area / result.max_false_alarms_per_frame;
+  }
 
   return result;
 }
@@ -3295,11 +3375,23 @@ model_evaluator::generate_plot_data()
     }
   }
 
-  // Track purity histogram (10 bins from 0% to 100%)
-  result.track_purity_histogram.resize( 10, 0 );
+  // Track purity and continuity histograms (10 bins from 0% to 100%), filled
+  // from the per-track values retained by the KWANT metric pass
+  auto bin_fractions = []( const std::vector< double >& values,
+                           std::vector< int >& histogram )
+  {
+    histogram.assign( 10, 0 );
+    for( double value : values )
+    {
+      int bin = static_cast< int >( value * 10 );
+      bin = std::max( 0, std::min( 9, bin ) );
+      histogram[bin]++;
+    }
+  };
 
-  // Track continuity histogram
-  result.track_continuity_histogram.resize( 10, 0 );
+  bin_fractions( d->m_comp_track_purities, result.track_purity_histogram );
+  bin_fractions( d->m_comp_track_continuities,
+                 result.track_continuity_histogram );
 
   // Track length histogram
   for( const auto& pair : d->m_comp_track_lengths )
@@ -3424,13 +3516,23 @@ model_evaluator::export_plot_data(
     std::ofstream file( ( dir / "roc_curve_overall.csv" ).string() );
     if( file.is_open() )
     {
-      file << "confidence,fpr,tpr\n";
+      file << "confidence,false_alarms_per_frame,true_positive_rate\n";
       for( const auto& pt : plot_data.overall_roc_curve.points )
       {
-        file << std::fixed << std::setprecision( 6 )
-             << pt.confidence << ","
-             << pt.false_positive_rate << ","
-             << pt.true_positive_rate << "\n";
+        file << std::fixed << std::setprecision( 6 );
+
+        // The leading anchor point sits above every detection's confidence
+        if( std::isfinite( pt.confidence ) )
+        {
+          file << pt.confidence;
+        }
+        else
+        {
+          file << "inf";
+        }
+
+        file << "," << pt.false_alarms_per_frame
+             << "," << pt.true_positive_rate << "\n";
       }
       file.close();
     }
@@ -3474,6 +3576,60 @@ model_evaluator::export_plot_data(
   return success;
 }
 
+namespace {
+
+/// Escape a string for embedding in a JSON document
+std::string
+json_escape( const std::string& value )
+{
+  std::string out;
+  out.reserve( value.size() + 8 );
+
+  for( char c : value )
+  {
+    switch( c )
+    {
+      case '"':  out += "\\\""; break;
+      case '\\': out += "\\\\"; break;
+      case '\n': out += "\\n";  break;
+      case '\r': out += "\\r";  break;
+      case '\t': out += "\\t";  break;
+      default:
+        if( static_cast< unsigned char >( c ) < 0x20 )
+        {
+          std::ostringstream oss;
+          oss << "\\u" << std::hex << std::setw( 4 ) << std::setfill( '0' )
+              << static_cast< int >( c );
+          out += oss.str();
+        }
+        else
+        {
+          out += c;
+        }
+        break;
+    }
+  }
+
+  return out;
+}
+
+/// Render a double as a JSON number, or null when it is not finite (bare nan
+/// and inf tokens are not valid JSON)
+std::string
+json_number( double value )
+{
+  if( !std::isfinite( value ) )
+  {
+    return "null";
+  }
+
+  std::ostringstream oss;
+  oss << value;
+  return oss.str();
+}
+
+} // anonymous namespace
+
 bool
 model_evaluator::export_plot_data_json(
   const evaluation_plot_data& plot_data,
@@ -3489,7 +3645,7 @@ model_evaluator::export_plot_data_json(
 
   // Overall PR curve
   file << "  \"overall_pr_curve\": {\n";
-  file << "    \"class_name\": \"" << plot_data.overall_pr_curve.class_name << "\",\n";
+  file << "    \"class_name\": \"" << json_escape( plot_data.overall_pr_curve.class_name ) << "\",\n";
   file << "    \"average_precision\": " << plot_data.overall_pr_curve.average_precision << ",\n";
   file << "    \"max_f1\": " << plot_data.overall_pr_curve.max_f1 << ",\n";
   file << "    \"best_threshold\": " << plot_data.overall_pr_curve.best_threshold << ",\n";
@@ -3513,7 +3669,7 @@ model_evaluator::export_plot_data_json(
   size_t class_idx = 0;
   for( const auto& pair : plot_data.per_class_pr_curves )
   {
-    file << "    \"" << pair.first << "\": {\n";
+    file << "    \"" << json_escape( pair.first ) << "\": {\n";
     file << "      \"average_precision\": " << pair.second.average_precision << ",\n";
     file << "      \"max_f1\": " << pair.second.max_f1 << ",\n";
     file << "      \"points\": [\n";
@@ -3540,7 +3696,7 @@ model_evaluator::export_plot_data_json(
   file << "    \"class_names\": [";
   for( size_t i = 0; i < plot_data.confusion_matrix.class_names.size(); i++ )
   {
-    file << "\"" << plot_data.confusion_matrix.class_names[i] << "\"";
+    file << "\"" << json_escape( plot_data.confusion_matrix.class_names[i] ) << "\"";
     if( i < plot_data.confusion_matrix.class_names.size() - 1 )
       file << ", ";
   }
@@ -3564,16 +3720,21 @@ model_evaluator::export_plot_data_json(
   file << "    \"overall_accuracy\": " << plot_data.confusion_matrix.overall_accuracy << "\n";
   file << "  },\n";
 
-  // ROC curve
+  // Detection ROC / DET curve
   file << "  \"overall_roc_curve\": {\n";
-  file << "    \"auc\": " << plot_data.overall_roc_curve.auc << ",\n";
+  file << "    \"mean_pd\": "
+       << json_number( plot_data.overall_roc_curve.mean_pd ) << ",\n";
+  file << "    \"max_false_alarms_per_frame\": "
+       << json_number( plot_data.overall_roc_curve.max_false_alarms_per_frame )
+       << ",\n";
   file << "    \"points\": [\n";
   for( size_t i = 0; i < plot_data.overall_roc_curve.points.size(); i++ )
   {
     const auto& pt = plot_data.overall_roc_curve.points[i];
-    file << "      {\"fpr\": " << pt.false_positive_rate
-         << ", \"tpr\": " << pt.true_positive_rate
-         << ", \"confidence\": " << pt.confidence << "}";
+    file << "      {\"false_alarms_per_frame\": "
+         << json_number( pt.false_alarms_per_frame )
+         << ", \"tpr\": " << json_number( pt.true_positive_rate )
+         << ", \"confidence\": " << json_number( pt.confidence ) << "}";
     if( i < plot_data.overall_roc_curve.points.size() - 1 )
       file << ",";
     file << "\n";

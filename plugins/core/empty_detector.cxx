@@ -7,46 +7,6 @@
 namespace viame
 {
 
-// =============================================================================
-
-empty_detector
-::empty_detector()
-{
-}
-
-
-empty_detector
-::~empty_detector()
-{
-}
-
-
-// -----------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
-empty_detector
-::get_configuration() const
-{
-  return kwiver::vital::algo::image_object_detector::get_configuration();
-}
-
-
-// -----------------------------------------------------------------------------
-void
-empty_detector
-::set_configuration( kwiver::vital::config_block_sptr /*config*/ )
-{
-}
-
-
-// -----------------------------------------------------------------------------
-bool
-empty_detector
-::check_configuration( kwiver::vital::config_block_sptr /*config*/ ) const
-{
-  return true;
-}
-
-
 // -----------------------------------------------------------------------------
 kwiver::vital::detected_object_set_sptr
 empty_detector
@@ -54,6 +14,5 @@ empty_detector
 {
   return std::make_shared< kwiver::vital::detected_object_set >();
 }
-
 
 } // end namespace

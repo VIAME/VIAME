@@ -4,29 +4,40 @@
 
 #include "viame_darknet_plugin_export.h"
 
-#include <vital/algo/algorithm_factory.h>
+#include <vital/plugin_management/plugin_loader.h>
+
+#include <vital/algo/image_object_detector.h>
+#include <vital/algo/train_detector.h>
 
 #include "darknet_detector.h"
 #include "darknet_trainer.h"
 
 namespace viame {
 
+namespace kv = kwiver::vital;
+
 extern "C"
 VIAME_DARKNET_PLUGIN_EXPORT
 void
-register_factories( kwiver::vital::plugin_loader& vpm )
+register_factories( kv::plugin_loader& vpm )
 {
-  kwiver::vital::algorithm_registrar reg( vpm, "viame.darknet" );
+  using kvpf = kv::plugin_factory;
+  const std::string module_name = "viame.darknet";
 
-  if( reg.is_module_loaded() )
+  if( vpm.is_module_loaded( module_name ) )
   {
     return;
   }
 
-  reg.register_algorithm< darknet_detector >();
-  reg.register_algorithm< darknet_trainer >();
+  auto fact = vpm.add_factory< kv::algo::image_object_detector, darknet_detector >(
+    darknet_detector::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
-  reg.mark_module_as_loaded();
+  fact = vpm.add_factory< kv::algo::train_detector, darknet_trainer >(
+    darknet_trainer::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+
+  vpm.mark_module_as_loaded( module_name );
 }
 
 } // end namespace

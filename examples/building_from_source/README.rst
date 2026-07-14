@@ -139,8 +139,6 @@ And a number of flags which control which system utilities and optimizations are
 +------------------------------+---------------------------------------------------------------------------------------------+
 | VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs (tools for making annotations and viewing detections)                     |
 +------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                                 |
-+------------------------------+---------------------------------------------------------------------------------------------+
 | VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (puts in install share tree)          |
 +------------------------------+---------------------------------------------------------------------------------------------+
 | VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default behavior)                  |

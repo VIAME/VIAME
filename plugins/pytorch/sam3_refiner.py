@@ -24,16 +24,28 @@ import numpy as np
 
 from kwiver.vital.algo import RefineTracks, RefineDetections
 from kwiver.vital.types import (
-    BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType,
-    ObjectTrackState, Track, ObjectTrackSet, ImageContainer
+    BoundingBoxD,
+    DetectedObject,
+    DetectedObjectSet,
+    DetectedObjectType,
+    ObjectTrackState,
+    Track,
+    ObjectTrackSet,
+    ImageContainer,
 )
 from kwiver.vital.util import VitalPIL
 from PIL import Image as PILImage
 
 from viame.pytorch.sam3_utilities import (
-    SAM3BaseConfig, SAM3ModelManager,
-    mask_to_polygon, mask_to_points, box_from_mask, compute_iou,
-    image_to_rgb_numpy, get_autocast_context, parse_bool
+    SAM3BaseConfig,
+    SAM3ModelManager,
+    mask_to_polygon,
+    mask_to_points,
+    box_from_mask,
+    compute_iou,
+    image_to_rgb_numpy,
+    get_autocast_context,
+    parse_bool,
 )
 from viame.pytorch.utilities import vital_config_update, report_cuda_errors
 
@@ -44,73 +56,65 @@ class SAM3RefinerConfig(SAM3BaseConfig):
 
     Extends SAM3BaseConfig with track refinement specific options.
     """
+
     # Track refinement parameters
     iou_threshold = scfg.Value(
-        0.5,
-        help='IoU threshold for matching new detections to existing tracks'
+        0.5, help="IoU threshold for matching new detections to existing tracks"
     )
     min_mask_area = scfg.Value(
-        10,
-        help='Minimum mask area in pixels; tracks with smaller masks are removed'
+        10, help="Minimum mask area in pixels; tracks with smaller masks are removed"
     )
     resegment_existing = scfg.Value(
-        True,
-        help='Whether to re-segment existing track bounding boxes with SAM'
+        True, help="Whether to re-segment existing track bounding boxes with SAM"
     )
     add_new_objects = scfg.Value(
         True,
-        help='Whether to add new objects detected by text query that do not overlap'
+        help="Whether to add new objects detected by text query that do not overlap",
     )
     replace_existing = scfg.Value(
         False,
-        help='If True, discard all pre-existing input annotations and output '
-             'only newly detected objects. Default False keeps existing '
-             'annotations and adds new detections alongside them.'
+        help="If True, discard all pre-existing input annotations and output "
+        "only newly detected objects. Default False keeps existing "
+        "annotations and adds new detections alongside them.",
     )
     filter_by_quality = scfg.Value(
-        True,
-        help='If True, remove tracks with poor mask quality'
+        True, help="If True, remove tracks with poor mask quality"
     )
     adjust_boxes = scfg.Value(
-        True,
-        help='Whether to adjust bounding boxes based on refined masks'
+        True, help="Whether to adjust bounding boxes based on refined masks"
     )
     max_new_objects = scfg.Value(
-        50,
-        help='Maximum number of new objects to add per frame'
+        50, help="Maximum number of new objects to add per frame"
     )
     # Whether to propagate tracked objects across frames using SAM3 video
     # predictor.  Enable for track-user-selections (seed boxes forwarded
     # across frames).  Disable for text-query pipelines where grounding
     # DINO re-detects on every frame independently.
     propagate_tracked = scfg.Value(
-        True,
-        help='Propagate seed boxes across frames using SAM3 video predictor'
+        True, help="Propagate seed boxes across frames using SAM3 video predictor"
     )
     # How often (in frames) to re-run text detection to find new objects
     # entering the scene.  Set to 0 to only detect on the first frame.
     reinit_interval = scfg.Value(
-        10,
-        help='Frames between text re-detection for new objects (0=first only)'
+        10, help="Frames between text re-detection for new objects (0=first only)"
     )
     # SAM3 video predictor internal detection confidence threshold.
     # Lowering this lets SAM3 detect less prominent objects.
     video_detection_threshold = scfg.Value(
-        0.3,
-        help='SAM3 video predictor detection score threshold (default 0.5 in SAM3)'
+        0.3, help="SAM3 video predictor detection score threshold (default 0.5 in SAM3)"
     )
     # Threshold for a detection to be promoted to a new tracked object.
     # SAM3 default is 0.7 which is very aggressive — lower for recall.
     video_new_det_threshold = scfg.Value(
         0.1,
-        help='Min score for a new detection to become a tracked object (default 0.7 in SAM3)'
+        help="Min score for a new detection to become a tracked object (default 0.7 in SAM3)",
     )
     # Hotstart delay: SAM3 holds outputs this many frames for filtering.
     # During hotstart, unmatched/duplicate tracks are pruned.  Set to 0
     # to disable hotstart filtering entirely.
     video_hotstart_delay = scfg.Value(
         0,
-        help='Frames to hold outputs for hotstart filtering (default 15 in SAM3, 0=disable)'
+        help="Frames to hold outputs for hotstart filtering (default 15 in SAM3, 0=disable)",
     )
     # Maximum number of frames to process per video chunk.  SAM3 video
     # predictor keeps per-frame features in GPU memory; processing very
@@ -118,8 +122,7 @@ class SAM3RefinerConfig(SAM3BaseConfig):
     # video is split into overlapping chunks of this size and the chunks
     # are processed sequentially.  Set to 0 for no chunking.
     video_chunk_size = scfg.Value(
-        100,
-        help='Max frames per video propagation chunk (0=no chunking)'
+        100, help="Max frames per video propagation chunk (0=no chunking)"
     )
     # Starting value for IDs of tracks the refiner creates (for detections
     # that don't match any input seed track when add_new_objects=True).
@@ -128,8 +131,7 @@ class SAM3RefinerConfig(SAM3BaseConfig):
     # refiner IDs, so the final output is always collision-free regardless
     # of this starting value.
     new_track_id_start = scfg.Value(
-        1,
-        help='Starting ID for refiner-created tracks (default 1)'
+        1, help="Starting ID for refiner-created tracks (default 1)"
     )
     # When enabled, the per-frame path (``propagate_tracked=False``)
     # maintains a simple tracker: seed detections are re-segmented on each
@@ -139,13 +141,13 @@ class SAM3RefinerConfig(SAM3BaseConfig):
     # text query to drive the multiplex tracker.
     track_new_objects = scfg.Value(
         False,
-        help='Propagate seed boxes forward by re-segmenting them on each '
-             'subsequent frame (per-frame mode only)'
+        help="Propagate seed boxes forward by re-segmenting them on each "
+        "subsequent frame (per-frame mode only)",
     )
     lost_track_frames = scfg.Value(
         10,
-        help='Number of frames to keep a tracked object alive after it stops '
-             'being seen in the input (per-frame tracker only)'
+        help="Number of frames to keep a tracked object alive after it stops "
+        "being seen in the input (per-frame tracker only)",
     )
 
 
@@ -153,6 +155,7 @@ def _ensure_binary_mask(mask):
     """Ensure mask is a numpy uint8 binary array suitable for contour finding."""
     if not isinstance(mask, np.ndarray):
         import torch
+
         if isinstance(mask, torch.Tensor):
             mask = mask.cpu().numpy()
         else:
@@ -238,12 +241,12 @@ class SAM3Refiner(RefineTracks):
 
         # Video predictor state (used when propagate_tracked=True)
         self._video_predictor = None
-        self._pil_frames = []          # accumulated PIL images for init_state
-        self._frame_prompts = {}       # frame_idx -> [(obj_id, box_rel_xywh)]
+        self._pil_frames = []  # accumulated PIL images for init_state
+        self._frame_prompts = {}  # frame_idx -> [(obj_id, box_rel_xywh)]
         self._text_prompt_frames = {}  # frame_idx -> text_query_string
-        self._obj_id_to_class = {}     # obj_id -> class_name
-        self._propagated_tracks = {}   # obj_id -> [ObjectTrackState, ...]
-        self._timestamps = {}          # frame_idx -> timestamp
+        self._obj_id_to_class = {}  # obj_id -> class_name
+        self._propagated_tracks = {}  # obj_id -> [ObjectTrackState, ...]
+        self._timestamps = {}  # frame_idx -> timestamp
         self._img_width = 0
         self._img_height = 0
 
@@ -312,7 +315,8 @@ class SAM3Refiner(RefineTracks):
         """Lazily initialize the video predictor on first use."""
         if not self._video_predictor_initialized and self._propagate_tracked:
             self._model_manager.init_models(
-                self._config, use_video_predictor=True,
+                self._config,
+                use_video_predictor=True,
             )
             self._video_predictor = self._model_manager._video_predictor
             self._video_predictor_initialized = True
@@ -326,16 +330,16 @@ class SAM3Refiner(RefineTracks):
             new_det_thresh = float(self._config.video_new_det_threshold)
             hotstart_delay = int(self._config.video_hotstart_delay)
 
-            if hasattr(vp, 'score_threshold_detection'):
+            if hasattr(vp, "score_threshold_detection"):
                 vp.score_threshold_detection = det_thresh
-            if hasattr(vp, 'new_det_thresh'):
+            if hasattr(vp, "new_det_thresh"):
                 vp.new_det_thresh = new_det_thresh
-            if hasattr(vp, 'hotstart_delay'):
+            if hasattr(vp, "hotstart_delay"):
                 vp.hotstart_delay = hotstart_delay
             # Enable detection NMS to suppress overlapping detections.
             # The base class default is 0.0 (disabled) but SAM3's own
             # model_builder sets 0.1 when constructing the video model.
-            if hasattr(vp, 'det_nms_thresh') and vp.det_nms_thresh <= 0:
+            if hasattr(vp, "det_nms_thresh") and vp.det_nms_thresh <= 0:
                 vp.det_nms_thresh = 0.1
 
     def _run_video_propagation(self):
@@ -356,14 +360,18 @@ class SAM3Refiner(RefineTracks):
         if self._video_predictor is None:
             return {}
 
-        chunk_size = int(self._config.video_chunk_size) if hasattr(self._config, 'video_chunk_size') else 100
+        chunk_size = (
+            int(self._config.video_chunk_size)
+            if hasattr(self._config, "video_chunk_size")
+            else 100
+        )
         total_frames = len(self._pil_frames)
 
         if chunk_size <= 0 or total_frames <= chunk_size:
             # Process all at once
             return self._run_video_propagation_chunk(
-                self._pil_frames, 0, self._frame_prompts,
-                self._text_prompt_frames)
+                self._pil_frames, 0, self._frame_prompts, self._text_prompt_frames
+            )
 
         # Process in overlapping chunks with ID reconciliation.
         # Each chunk assigns its own object IDs independently.  We use
@@ -398,7 +406,8 @@ class SAM3Refiner(RefineTracks):
                 chunk_text_prompts[0] = first_text
 
             chunk_results = self._run_video_propagation_chunk(
-                chunk_frames, start, chunk_box_prompts, chunk_text_prompts)
+                chunk_frames, start, chunk_box_prompts, chunk_text_prompts
+            )
 
             if not all_results:
                 # First chunk — adopt IDs directly, offset to global range
@@ -413,8 +422,8 @@ class SAM3Refiner(RefineTracks):
             else:
                 # Build ID mapping by matching masks in the overlap region.
                 id_map = self._match_chunk_ids(
-                    all_results, chunk_results, start, overlap,
-                    self._iou_threshold)
+                    all_results, chunk_results, start, overlap, self._iou_threshold
+                )
 
                 # Assign new global IDs for unmatched chunk objects
                 for cid in set(oid for oid, _ in chunk_results.keys()):
@@ -438,8 +447,7 @@ class SAM3Refiner(RefineTracks):
         return all_results
 
     @staticmethod
-    def _match_chunk_ids(all_results, chunk_results, chunk_start,
-                         overlap, iou_thresh):
+    def _match_chunk_ids(all_results, chunk_results, chunk_start, overlap, iou_thresh):
         """
         Match object IDs from a new chunk to existing global IDs using
         mask IoU in the overlap region.
@@ -481,8 +489,8 @@ class SAM3Refiner(RefineTracks):
                 total_iou = 0.0
                 for fidx in shared:
                     total_iou += compute_iou(
-                        _mask_bbox(c_frames[fidx]),
-                        _mask_bbox(g_frames[fidx]))
+                        _mask_bbox(c_frames[fidx]), _mask_bbox(g_frames[fidx])
+                    )
                 avg_iou = total_iou / len(shared)
                 if avg_iou > iou_thresh:
                     pairs.append((avg_iou, cid, gid))
@@ -499,8 +507,9 @@ class SAM3Refiner(RefineTracks):
 
         return id_map
 
-    def _run_video_propagation_chunk(self, pil_frames, global_offset,
-                                     frame_prompts, text_prompt_frames):
+    def _run_video_propagation_chunk(
+        self, pil_frames, global_offset, frame_prompts, text_prompt_frames
+    ):
         """
         Run SAM3 video propagation on a single chunk of frames.
         frame_prompts and text_prompt_frames use chunk-local indices.
@@ -519,26 +528,27 @@ class SAM3Refiner(RefineTracks):
         cm = contextlib.ExitStack()
         cm.enter_context(torch.inference_mode())
         try:
-            cm.enter_context(get_autocast_context(
-                str(self._model_manager.device)))
+            cm.enter_context(get_autocast_context(str(self._model_manager.device)))
         except Exception:
             pass
         try:
             from torch.nn.attention import sdpa_kernel, SDPBackend
-            cm.enter_context(sdpa_kernel(
-                [SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION]
-            ))
+
+            cm.enter_context(
+                sdpa_kernel([SDPBackend.MATH, SDPBackend.EFFICIENT_ATTENTION])
+            )
         except Exception:
             pass
 
         with cm:
             state = self._video_predictor.init_state(
-                pil_frames, offload_video_to_cpu=True,
+                pil_frames,
+                offload_video_to_cpu=True,
             )
 
             from viame.pytorch.sam3_utilities import _Sam3p1VideoPredictorAdapter
-            is_sam31 = isinstance(self._video_predictor,
-                                  _Sam3p1VideoPredictorAdapter)
+
+            is_sam31 = isinstance(self._video_predictor, _Sam3p1VideoPredictorAdapter)
 
             # Extract the (single) text query for this chunk, if any.
             text_query = None
@@ -558,33 +568,44 @@ class SAM3Refiner(RefineTracks):
             # the correct label.
             class_terms = []
             if text_query:
-                class_terms = [t.strip() for t in text_query.split(',')
-                               if t.strip()]
+                class_terms = [t.strip() for t in text_query.split(",") if t.strip()]
             multi_class = len(class_terms) > 1 and not frame_prompts
 
             # Suppress tqdm progress bars from SAM3's propagation
             import tqdm
+
             _orig_init = tqdm.tqdm.__init__
+
             def _quiet_init(self_tqdm, *args, **kwargs):
-                kwargs['disable'] = True
+                kwargs["disable"] = True
                 _orig_init(self_tqdm, *args, **kwargs)
+
             tqdm.tqdm.__init__ = _quiet_init
 
             results = {}
             try:
                 if multi_class:
                     results = self._propagate_per_class(
-                        state, class_terms, text_seed_frame,
+                        state,
+                        class_terms,
+                        text_seed_frame,
                     )
                 else:
                     self._seed_prompts_single_pass(
-                        state, is_sam31, text_query, text_seed_frame,
+                        state,
+                        is_sam31,
+                        text_query,
+                        text_seed_frame,
                         frame_prompts,
                     )
-                    for frame_idx, frame_results in \
-                            self._video_predictor.propagate_in_video(state):
+                    for (
+                        frame_idx,
+                        frame_results,
+                    ) in self._video_predictor.propagate_in_video(state):
                         self._collect_frame_results(
-                            results, frame_idx, frame_results,
+                            results,
+                            frame_idx,
+                            frame_results,
                         )
             finally:
                 tqdm.tqdm.__init__ = _orig_init
@@ -597,8 +618,9 @@ class SAM3Refiner(RefineTracks):
 
         return results
 
-    def _seed_prompts_single_pass(self, state, is_sam31, text_query,
-                                  text_seed_frame, frame_prompts):
+    def _seed_prompts_single_pass(
+        self, state, is_sam31, text_query, text_seed_frame, frame_prompts
+    ):
         """
         Add seed box / text prompts to a fresh video predictor state for a
         single-class (or single-pass) propagation. The SAM 3.1 multiplex
@@ -619,7 +641,7 @@ class SAM3Refiner(RefineTracks):
                     box_labels=[1] * len(seed_boxes),
                 )
                 if text_query is not None:
-                    add_kwargs['text_str'] = text_query
+                    add_kwargs["text_str"] = text_query
                 self._video_predictor.add_prompt(state, **add_kwargs)
             elif text_query is not None:
                 self._video_predictor.add_prompt(
@@ -668,10 +690,10 @@ class SAM3Refiner(RefineTracks):
             )
 
             max_out_id = -1
-            for frame_idx, frame_results in \
-                    self._video_predictor.propagate_in_video(state):
-                obj_ids = np.asarray(frame_results['out_obj_ids']).astype(
-                    np.int64)
+            for frame_idx, frame_results in self._video_predictor.propagate_in_video(
+                state
+            ):
+                obj_ids = np.asarray(frame_results["out_obj_ids"]).astype(np.int64)
                 if len(obj_ids) == 0:
                     continue
                 remapped_ids = obj_ids + id_offset
@@ -680,10 +702,10 @@ class SAM3Refiner(RefineTracks):
                 for oid in remapped_ids:
                     self._obj_id_to_class[int(oid)] = class_term
                 remapped_fr = {
-                    'out_obj_ids': remapped_ids,
-                    'out_boxes_xywh': frame_results['out_boxes_xywh'],
-                    'out_binary_masks': frame_results['out_binary_masks'],
-                    'out_probs': frame_results.get('out_probs', []),
+                    "out_obj_ids": remapped_ids,
+                    "out_boxes_xywh": frame_results["out_boxes_xywh"],
+                    "out_binary_masks": frame_results["out_binary_masks"],
+                    "out_probs": frame_results.get("out_probs", []),
                 }
                 self._collect_frame_results(results, frame_idx, remapped_fr)
 
@@ -717,9 +739,9 @@ class SAM3Refiner(RefineTracks):
             per_track.setdefault(oid, []).append((frame, box, score))
 
         oids = list(per_track.keys())
-        frame_indices = sorted({
-            f for entries in per_track.values() for f, _, _ in entries
-        })
+        frame_indices = sorted(
+            {f for entries in per_track.values() for f, _, _ in entries}
+        )
         frame_to_col = {f: i for i, f in enumerate(frame_indices)}
         num_frames = len(frame_indices)
 
@@ -734,30 +756,34 @@ class SAM3Refiner(RefineTracks):
             for frame, box, score in entries:
                 bboxes[frame_to_col[frame]] = box
                 track_score_sum += score
-            track_detections.append({
-                "track_idx": t_idx,
-                "bboxes": bboxes,
-                "score": track_score_sum / max(1, len(entries)),
-            })
+            track_detections.append(
+                {
+                    "track_idx": t_idx,
+                    "bboxes": bboxes,
+                    "score": track_score_sum / max(1, len(entries)),
+                }
+            )
             scores[t_idx] = track_score_sum / max(1, len(entries))
 
-        keep_idx = set(apply_track_nms(
-            track_detections, scores, float(iou_threshold),
-        ))
+        keep_idx = set(
+            apply_track_nms(
+                track_detections,
+                scores,
+                float(iou_threshold),
+            )
+        )
         kept_oids = {oids[i] for i in keep_idx}
 
         return {
-            (oid, f): entry for (oid, f), entry in results.items()
-            if oid in kept_oids
+            (oid, f): entry for (oid, f), entry in results.items() if oid in kept_oids
         }
 
-    def _collect_frame_results(self, results, frame_idx, frame_results,
-                               overwrite=True):
+    def _collect_frame_results(self, results, frame_idx, frame_results, overwrite=True):
         """Extract per-object masks from a propagation frame result."""
-        obj_ids = np.array(frame_results['out_obj_ids'])
-        boxes_xywh = np.array(frame_results['out_boxes_xywh'])
-        masks = np.array(frame_results['out_binary_masks'])
-        probs = np.array(frame_results.get('out_probs', []))
+        obj_ids = np.array(frame_results["out_obj_ids"])
+        boxes_xywh = np.array(frame_results["out_boxes_xywh"])
+        masks = np.array(frame_results["out_binary_masks"])
+        probs = np.array(frame_results.get("out_probs", []))
 
         for i, oid in enumerate(obj_ids):
             oid = int(oid)
@@ -828,9 +854,7 @@ class SAM3Refiner(RefineTracks):
                 ts, frame_id, img_np, tracks, track_states
             )
         else:
-            return self._refine_per_frame(
-                ts, frame_id, img_np, tracks, track_states
-            )
+            return self._refine_per_frame(ts, frame_id, img_np, tracks, track_states)
 
     # ------------------------------------------------------------------
     # Track-ID allocation helpers
@@ -838,8 +862,10 @@ class SAM3Refiner(RefineTracks):
 
     def _allocate_next_id(self):
         """Return the next unused track ID and mark it as assigned."""
-        while (self._next_track_id in self._assigned_ids
-               or self._next_track_id in self._known_input_ids):
+        while (
+            self._next_track_id in self._assigned_ids
+            or self._next_track_id in self._known_input_ids
+        ):
             self._next_track_id += 1
         result = self._next_track_id
         self._assigned_ids.add(result)
@@ -868,8 +894,7 @@ class SAM3Refiner(RefineTracks):
     # Video-predictor path (propagate_tracked=True)
     # ------------------------------------------------------------------
 
-    def _refine_with_video_predictor(self, ts, frame_id, img_np,
-                                     tracks, track_states):
+    def _refine_with_video_predictor(self, ts, frame_id, img_np, tracks, track_states):
         """
         Refine using SAM3 video predictor for native temporal tracking.
 
@@ -895,10 +920,8 @@ class SAM3Refiner(RefineTracks):
             x2, y2 = bbox.max_x(), bbox.max_y()
             w, h = self._img_width, self._img_height
             box_rel = [x1 / w, y1 / h, (x2 - x1) / w, (y2 - y1) / h]
-            self._frame_prompts.setdefault(local_frame_idx, []).append(
-                (tid, box_rel)
-            )
-            class_name = ''
+            self._frame_prompts.setdefault(local_frame_idx, []).append((tid, box_rel))
+            class_name = ""
             try:
                 class_name = det.type.get_most_likely_class()
             except Exception:
@@ -913,7 +936,7 @@ class SAM3Refiner(RefineTracks):
         # when a text prompt is set.
         if self._add_new_objects and self._text_query_list:
             if local_frame_idx == 0:
-                text_query = ', '.join(self._text_query_list)
+                text_query = ", ".join(self._text_query_list)
                 self._text_prompt_frames[0] = text_query
 
         # Accumulate only — propagation runs once in finalize() after
@@ -934,6 +957,7 @@ class SAM3Refiner(RefineTracks):
             self._run_finalize_propagation()
         except Exception as e:
             import sys, traceback
+
             sys.stderr.write(f"[SAM3 Refiner] ERROR in propagation: {e}\n")
             traceback.print_exc(file=sys.stderr)
             # Propagate so the job fails visibly (non-zero exit) instead of
@@ -991,8 +1015,7 @@ class SAM3Refiner(RefineTracks):
                 ph = pb.max_y() - pb.min_y()
                 cw = cb.max_x() - cb.min_x()
                 ch = cb.max_y() - cb.min_y()
-                max_diag = max((pw**2 + ph**2) ** 0.5,
-                               (cw**2 + ch**2) ** 0.5)
+                max_diag = max((pw**2 + ph**2) ** 0.5, (cw**2 + ch**2) ** 0.5)
 
                 # Threshold: 2.5x diagonal with a floor of 100px
                 # (small objects need room) and a ceiling of 200px
@@ -1032,10 +1055,16 @@ class SAM3Refiner(RefineTracks):
         else:
             seg = states[:n_frames]
         frames = [s.frame_id for s in seg]
-        cxs = [(s.detection().bounding_box.min_x() +
-                s.detection().bounding_box.max_x()) / 2 for s in seg]
-        cys = [(s.detection().bounding_box.min_y() +
-                s.detection().bounding_box.max_y()) / 2 for s in seg]
+        cxs = [
+            (s.detection().bounding_box.min_x() + s.detection().bounding_box.max_x())
+            / 2
+            for s in seg
+        ]
+        cys = [
+            (s.detection().bounding_box.min_y() + s.detection().bounding_box.max_y())
+            / 2
+            for s in seg
+        ]
         n = len(frames)
         if n < 2:
             return 0.0, 0.0
@@ -1073,16 +1102,24 @@ class SAM3Refiner(RefineTracks):
             evx, evy = self._track_velocity(states, from_end=True)
             svx, svy = self._track_velocity(states, from_end=False)
             track_info[oid] = {
-                'start_frame': states[0].frame_id,
-                'end_frame': states[-1].frame_id,
-                'start_cx': (sb.min_x() + sb.max_x()) / 2,
-                'start_cy': (sb.min_y() + sb.max_y()) / 2,
-                'start_diag': ((sb.max_x()-sb.min_x())**2 + (sb.max_y()-sb.min_y())**2) ** 0.5,
-                'end_cx': (eb.min_x() + eb.max_x()) / 2,
-                'end_cy': (eb.min_y() + eb.max_y()) / 2,
-                'end_diag': ((eb.max_x()-eb.min_x())**2 + (eb.max_y()-eb.min_y())**2) ** 0.5,
-                'end_vx': evx, 'end_vy': evy,
-                'start_vx': svx, 'start_vy': svy,
+                "start_frame": states[0].frame_id,
+                "end_frame": states[-1].frame_id,
+                "start_cx": (sb.min_x() + sb.max_x()) / 2,
+                "start_cy": (sb.min_y() + sb.max_y()) / 2,
+                "start_diag": (
+                    (sb.max_x() - sb.min_x()) ** 2 + (sb.max_y() - sb.min_y()) ** 2
+                )
+                ** 0.5,
+                "end_cx": (eb.min_x() + eb.max_x()) / 2,
+                "end_cy": (eb.min_y() + eb.max_y()) / 2,
+                "end_diag": (
+                    (eb.max_x() - eb.min_x()) ** 2 + (eb.max_y() - eb.min_y()) ** 2
+                )
+                ** 0.5,
+                "end_vx": evx,
+                "end_vy": evy,
+                "start_vx": svx,
+                "start_vy": svy,
             }
 
         merged = True
@@ -1093,31 +1130,36 @@ class SAM3Refiner(RefineTracks):
                 for oid_start, ist in track_info.items():
                     if oid_end == oid_start:
                         continue
-                    frame_gap = ist['start_frame'] - ie['end_frame']
+                    frame_gap = ist["start_frame"] - ie["end_frame"]
                     if frame_gap < 1 or frame_gap > max_frame_gap:
                         continue
 
                     # Raw distance between endpoints
-                    raw_dist = ((ie['end_cx'] - ist['start_cx'])**2 +
-                                (ie['end_cy'] - ist['start_cy'])**2) ** 0.5
+                    raw_dist = (
+                        (ie["end_cx"] - ist["start_cx"]) ** 2
+                        + (ie["end_cy"] - ist["start_cy"]) ** 2
+                    ) ** 0.5
 
                     # Predicted position by extrapolating end velocity
-                    pred_cx = ie['end_cx'] + ie['end_vx'] * frame_gap
-                    pred_cy = ie['end_cy'] + ie['end_vy'] * frame_gap
-                    pred_dist = ((pred_cx - ist['start_cx'])**2 +
-                                 (pred_cy - ist['start_cy'])**2) ** 0.5
+                    pred_cx = ie["end_cx"] + ie["end_vx"] * frame_gap
+                    pred_cy = ie["end_cy"] + ie["end_vy"] * frame_gap
+                    pred_dist = (
+                        (pred_cx - ist["start_cx"]) ** 2
+                        + (pred_cy - ist["start_cy"]) ** 2
+                    ) ** 0.5
 
                     # Also try back-projecting the start velocity
-                    bpred_cx = ist['start_cx'] - ist['start_vx'] * frame_gap
-                    bpred_cy = ist['start_cy'] - ist['start_vy'] * frame_gap
-                    bpred_dist = ((bpred_cx - ie['end_cx'])**2 +
-                                  (bpred_cy - ie['end_cy'])**2) ** 0.5
+                    bpred_cx = ist["start_cx"] - ist["start_vx"] * frame_gap
+                    bpred_cy = ist["start_cy"] - ist["start_vy"] * frame_gap
+                    bpred_dist = (
+                        (bpred_cx - ie["end_cx"]) ** 2 + (bpred_cy - ie["end_cy"]) ** 2
+                    ) ** 0.5
 
                     # Use the best (smallest) of raw, forward-predicted,
                     # and backward-predicted distances
                     best_dist = min(raw_dist, pred_dist, bpred_dist)
 
-                    max_diag = max(ie['end_diag'], ist['start_diag'], 10)
+                    max_diag = max(ie["end_diag"], ist["start_diag"], 10)
                     threshold = min(max(max_diag * 2.5, 100), 200)
                     if best_dist < threshold:
                         candidates.append((best_dist, oid_end, oid_start))
@@ -1131,9 +1173,9 @@ class SAM3Refiner(RefineTracks):
                 if oid_end in used or oid_start in used:
                     continue
                 self._propagated_tracks[oid_end].extend(
-                    self._propagated_tracks[oid_start])
-                self._propagated_tracks[oid_end].sort(
-                    key=lambda s: s.frame_id)
+                    self._propagated_tracks[oid_start]
+                )
+                self._propagated_tracks[oid_end].sort(key=lambda s: s.frame_id)
                 del self._propagated_tracks[oid_start]
 
                 # Update track_info for merged track
@@ -1141,13 +1183,14 @@ class SAM3Refiner(RefineTracks):
                 edet = states[-1].detection()
                 eb = edet.bounding_box
                 evx, evy = self._track_velocity(states, from_end=True)
-                track_info[oid_end]['end_frame'] = states[-1].frame_id
-                track_info[oid_end]['end_cx'] = (eb.min_x() + eb.max_x()) / 2
-                track_info[oid_end]['end_cy'] = (eb.min_y() + eb.max_y()) / 2
-                track_info[oid_end]['end_diag'] = (
-                    (eb.max_x()-eb.min_x())**2 + (eb.max_y()-eb.min_y())**2) ** 0.5
-                track_info[oid_end]['end_vx'] = evx
-                track_info[oid_end]['end_vy'] = evy
+                track_info[oid_end]["end_frame"] = states[-1].frame_id
+                track_info[oid_end]["end_cx"] = (eb.min_x() + eb.max_x()) / 2
+                track_info[oid_end]["end_cy"] = (eb.min_y() + eb.max_y()) / 2
+                track_info[oid_end]["end_diag"] = (
+                    (eb.max_x() - eb.min_x()) ** 2 + (eb.max_y() - eb.min_y()) ** 2
+                ) ** 0.5
+                track_info[oid_end]["end_vx"] = evx
+                track_info[oid_end]["end_vy"] = evy
                 del track_info[oid_start]
 
                 used.add(oid_end)
@@ -1187,15 +1230,14 @@ class SAM3Refiner(RefineTracks):
             if self._filter_by_quality and mask_area < self._min_mask_area:
                 continue
 
-            class_name = self._obj_id_to_class.get(oid, '')
+            class_name = self._obj_id_to_class.get(oid, "")
             if not class_name and self._text_query_list:
                 class_name = self._text_query_list[0]
             if not class_name:
-                class_name = 'unknown'
+                class_name = "unknown"
             bbox = box_from_mask(mask)
             if bbox is None:
-                bbox = BoundingBoxD(box_xyxy[0], box_xyxy[1],
-                                    box_xyxy[2], box_xyxy[3])
+                bbox = BoundingBoxD(box_xyxy[0], box_xyxy[1], box_xyxy[2], box_xyxy[3])
 
             confidence = float(score)
             dot = DetectedObjectType(class_name, confidence)
@@ -1228,7 +1270,7 @@ class SAM3Refiner(RefineTracks):
                     ax2 = (box_rel[0] + box_rel[2]) * w
                     ay2 = (box_rel[1] + box_rel[3]) * h
                     bbox = BoundingBoxD(ax1, ay1, ax2, ay2)
-                    class_name = self._obj_id_to_class.get(tid, 'unknown')
+                    class_name = self._obj_id_to_class.get(tid, "unknown")
                     dot = DetectedObjectType(class_name, 1.0)
                     det = DetectedObject(bbox, 1.0, dot)
                     state = ObjectTrackState(frame_ts, det)
@@ -1268,40 +1310,46 @@ class SAM3Refiner(RefineTracks):
                 bbox = det.bounding_box
                 box = [bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()]
                 boxes_to_segment.append(box)
-                box_sources.append(('existing', tid))
+                box_sources.append(("existing", tid))
 
         # Propagate previously-tracked objects that have no input state on
         # this frame — re-segment their last known box.
         if self._track_new_objects:
             for tid, tdata in self._tracked_objects.items():
                 if tid not in track_states:
-                    boxes_to_segment.append(list(tdata['last_box']))
-                    box_sources.append(('propagated', tid))
+                    boxes_to_segment.append(list(tdata["last_box"]))
+                    box_sources.append(("propagated", tid))
 
         # Detect new objects with text query
         if self._add_new_objects:
             new_detections = self._model_manager.detect_with_text(
-                img_np, self._text_query_list,
-                self._detection_threshold, self._text_threshold,
+                img_np,
+                self._text_query_list,
+                self._detection_threshold,
+                self._text_threshold,
             )
             suppress_boxes = [
-                [det.bounding_box.min_x(), det.bounding_box.min_y(),
-                 det.bounding_box.max_x(), det.bounding_box.max_y()]
+                [
+                    det.bounding_box.min_x(),
+                    det.bounding_box.min_y(),
+                    det.bounding_box.max_x(),
+                    det.bounding_box.max_y(),
+                ]
                 for _, (_, _, det) in track_states.items()
             ]
             if self._track_new_objects:
                 for tdata in self._tracked_objects.values():
-                    suppress_boxes.append(list(tdata['last_box']))
+                    suppress_boxes.append(list(tdata["last_box"]))
             for box, score, class_name in new_detections:
                 overlaps = False
                 for sb in suppress_boxes:
                     if compute_iou(box, sb) > self._iou_threshold:
                         overlaps = True
                         break
-                new_count = len([s for s in box_sources if s[0] == 'new'])
+                new_count = len([s for s in box_sources if s[0] == "new"])
                 if not overlaps and new_count < self._max_new_objects:
                     boxes_to_segment.append(box)
-                    box_sources.append(('new', score, class_name))
+                    box_sources.append(("new", score, class_name))
 
         # Segment all boxes with SAM image predictor
         if len(boxes_to_segment) > 0:
@@ -1317,15 +1365,15 @@ class SAM3Refiner(RefineTracks):
         for i, (mask, source) in enumerate(zip(masks, box_sources)):
             mask_area = np.sum(mask)
             if self._filter_by_quality and mask_area < self._min_mask_area:
-                if source[0] == 'existing':
+                if source[0] == "existing":
                     processed_track_ids.add(source[1])
-                elif source[0] == 'propagated':
+                elif source[0] == "propagated":
                     # Mask failed quality check — don't update the tracker;
                     # it will accumulate a 'lost' count below.
                     pass
                 continue
 
-            if source[0] == 'existing':
+            if source[0] == "existing":
                 tid = source[1]
                 track, old_state, old_det = track_states[tid]
                 processed_track_ids.add(tid)
@@ -1348,9 +1396,8 @@ class SAM3Refiner(RefineTracks):
                 # its box carries forward on subsequent frames.
                 if self._track_new_objects:
                     bbox = new_det.bounding_box
-                    new_box = [bbox.min_x(), bbox.min_y(),
-                               bbox.max_x(), bbox.max_y()]
-                    class_name = ''
+                    new_box = [bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()]
+                    class_name = ""
                     try:
                         class_name = old_det.type.get_most_likely_class()
                     except Exception:
@@ -1358,31 +1405,35 @@ class SAM3Refiner(RefineTracks):
                     entry = self._tracked_objects.get(tid)
                     if entry is None:
                         self._tracked_objects[tid] = {
-                            'class_name': class_name,
-                            'last_box': new_box,
-                            'lost': 0,
-                            'history': [new_state],
+                            "class_name": class_name,
+                            "last_box": new_box,
+                            "lost": 0,
+                            "history": [new_state],
                         }
                     else:
-                        entry['last_box'] = new_box
-                        entry['lost'] = 0
-                        entry['history'].append(new_state)
+                        entry["last_box"] = new_box
+                        entry["lost"] = 0
+                        entry["history"].append(new_state)
                     seen_tracked_ids.add(tid)
 
-            elif source[0] == 'propagated':
+            elif source[0] == "propagated":
                 tid = source[1]
                 tdata = self._tracked_objects[tid]
                 new_det = self._detection_from_mask(
-                    mask, boxes_to_segment[i], tdata['class_name'], 1.0
+                    mask, boxes_to_segment[i], tdata["class_name"], 1.0
                 )
                 if new_det is None:
                     continue
                 new_state = ObjectTrackState(ts, new_det)
-                tdata['history'].append(new_state)
+                tdata["history"].append(new_state)
                 bbox = new_det.bounding_box
-                tdata['last_box'] = [bbox.min_x(), bbox.min_y(),
-                                     bbox.max_x(), bbox.max_y()]
-                tdata['lost'] = 0
+                tdata["last_box"] = [
+                    bbox.min_x(),
+                    bbox.min_y(),
+                    bbox.max_x(),
+                    bbox.max_y(),
+                ]
+                tdata["lost"] = 0
                 seen_tracked_ids.add(tid)
 
             else:
@@ -1397,11 +1448,15 @@ class SAM3Refiner(RefineTracks):
                     if self._track_new_objects:
                         bbox = det.bounding_box
                         self._tracked_objects[tid] = {
-                            'class_name': class_name,
-                            'last_box': [bbox.min_x(), bbox.min_y(),
-                                         bbox.max_x(), bbox.max_y()],
-                            'lost': 0,
-                            'history': [new_state],
+                            "class_name": class_name,
+                            "last_box": [
+                                bbox.min_x(),
+                                bbox.min_y(),
+                                bbox.max_x(),
+                                bbox.max_y(),
+                            ],
+                            "lost": 0,
+                            "history": [new_state],
                         }
                         seen_tracked_ids.add(tid)
 
@@ -1412,13 +1467,13 @@ class SAM3Refiner(RefineTracks):
             expired = []
             for tid, tdata in self._tracked_objects.items():
                 if tid not in seen_tracked_ids:
-                    tdata['lost'] += 1
-                if tdata['lost'] > self._lost_track_frames:
+                    tdata["lost"] += 1
+                if tdata["lost"] > self._lost_track_frames:
                     expired.append(tid)
 
             for tid, tdata in self._tracked_objects.items():
-                if tid not in processed_track_ids and len(tdata['history']) > 0:
-                    output_tracks.append(Track(tid, list(tdata['history'])))
+                if tid not in processed_track_ids and len(tdata["history"]) > 0:
+                    output_tracks.append(Track(tid, list(tdata["history"])))
                     processed_track_ids.add(tid)
 
             for tid in expired:
@@ -1451,6 +1506,7 @@ class SAM3Refiner(RefineTracks):
         """Create a DetectedObject from a mask, or None if invalid."""
         if not isinstance(mask, np.ndarray):
             import torch
+
             if isinstance(mask, torch.Tensor):
                 mask = mask.cpu().numpy()
             else:
@@ -1466,7 +1522,7 @@ class SAM3Refiner(RefineTracks):
         dot = DetectedObjectType(class_name, score)
         det = DetectedObject(bbox, score, dot)
 
-        if self._output_type in ('polygon', 'both'):
+        if self._output_type in ("polygon", "both"):
             _set_polygon_on_detection(det, mask, self._polygon_simplification)
 
         return det
@@ -1484,7 +1540,7 @@ class SAM3Refiner(RefineTracks):
         confidence = old_det.confidence
         new_det = DetectedObject(bbox, confidence, det_type)
 
-        if self._output_type in ('polygon', 'both'):
+        if self._output_type in ("polygon", "both"):
             _set_polygon_on_detection(new_det, mask, self._polygon_simplification)
 
         return new_det
@@ -1514,20 +1570,20 @@ class Sam3DetectionRefiner(RefineDetections):
         RefineDetections.__init__(self)
 
         self._kwiver_config = {
-            'sam_model_id': 'facebook/sam2.1-hiera-large',
-            'model_config': '',
-            'grounding_model_id': '',
-            'device': 'cuda',
-            'replace_existing': 'False',
-            'output_type': 'polygon',
-            'polygon_simplification': '0.01',
-            'text_query': '',
-            'detection_threshold': '0.3',
-            'text_threshold': '0.25',
-            'iou_threshold': '0.5',
-            'add_new_objects': 'False',
-            'max_new_objects': '50',
-            'min_mask_area': '10',
+            "sam_model_id": "facebook/sam2.1-hiera-large",
+            "model_config": "",
+            "grounding_model_id": "",
+            "device": "cuda",
+            "replace_existing": "False",
+            "output_type": "polygon",
+            "polygon_simplification": "0.01",
+            "text_query": "",
+            "detection_threshold": "0.3",
+            "text_threshold": "0.25",
+            "iou_threshold": "0.5",
+            "add_new_objects": "False",
+            "max_new_objects": "50",
+            "min_mask_area": "10",
         }
 
         self._model_manager = SAM3ModelManager()
@@ -1553,15 +1609,15 @@ class Sam3DetectionRefiner(RefineDetections):
             pass
 
         model_config = MinimalConfig()
-        model_config.sam_model_id = self._kwiver_config['sam_model_id']
-        model_config.model_config = self._kwiver_config.get('model_config', '')
-        if model_config.model_config == '':
+        model_config.sam_model_id = self._kwiver_config["sam_model_id"]
+        model_config.model_config = self._kwiver_config.get("model_config", "")
+        if model_config.model_config == "":
             model_config.model_config = None
-        model_config.device = self._kwiver_config['device']
+        model_config.device = self._kwiver_config["device"]
 
         # Load Grounding DINO if configured (for text-based detection)
-        gid = self._kwiver_config.get('grounding_model_id', '')
-        if gid and gid.lower() not in ('', 'none', 'false'):
+        gid = self._kwiver_config.get("grounding_model_id", "")
+        if gid and gid.lower() not in ("", "none", "false"):
             model_config.grounding_model_id = gid
         else:
             model_config.grounding_model_id = None
@@ -1569,18 +1625,22 @@ class Sam3DetectionRefiner(RefineDetections):
         self._model_manager.init_models(model_config, use_video_predictor=False)
 
         # Parse config values
-        self._replace_existing = parse_bool(self._kwiver_config['replace_existing'])
-        self._output_type = self._kwiver_config['output_type']
-        self._polygon_simplification = float(self._kwiver_config['polygon_simplification'])
-        self._add_new_objects = parse_bool(self._kwiver_config['add_new_objects'])
-        self._max_new_objects = int(self._kwiver_config['max_new_objects'])
-        self._min_mask_area = int(self._kwiver_config['min_mask_area'])
-        self._detection_threshold = float(self._kwiver_config['detection_threshold'])
-        self._text_threshold = float(self._kwiver_config['text_threshold'])
-        self._iou_threshold = float(self._kwiver_config['iou_threshold'])
+        self._replace_existing = parse_bool(self._kwiver_config["replace_existing"])
+        self._output_type = self._kwiver_config["output_type"]
+        self._polygon_simplification = float(
+            self._kwiver_config["polygon_simplification"]
+        )
+        self._add_new_objects = parse_bool(self._kwiver_config["add_new_objects"])
+        self._max_new_objects = int(self._kwiver_config["max_new_objects"])
+        self._min_mask_area = int(self._kwiver_config["min_mask_area"])
+        self._detection_threshold = float(self._kwiver_config["detection_threshold"])
+        self._text_threshold = float(self._kwiver_config["text_threshold"])
+        self._iou_threshold = float(self._kwiver_config["iou_threshold"])
 
-        tq = self._kwiver_config.get('text_query', '')
-        self._text_query_list = [q.strip() for q in tq.split(',') if q.strip()] if tq else []
+        tq = self._kwiver_config.get("text_query", "")
+        self._text_query_list = (
+            [q.strip() for q in tq.split(",") if q.strip()] if tq else []
+        )
 
         return True
 
@@ -1616,23 +1676,24 @@ class Sam3DetectionRefiner(RefineDetections):
         # Detect new objects with text query if configured
         if self._add_new_objects and self._text_query_list:
             new_dets = self._model_manager.detect_with_text(
-                img_np, self._text_query_list,
-                self._detection_threshold, self._text_threshold,
+                img_np,
+                self._text_query_list,
+                self._detection_threshold,
+                self._text_threshold,
             )
             # Suppress new detections that overlap with existing ones
             suppress_boxes = []
             for det in detections:
                 bb = det.bounding_box
-                suppress_boxes.append(
-                    [bb.min_x(), bb.min_y(), bb.max_x(), bb.max_y()])
+                suppress_boxes.append([bb.min_x(), bb.min_y(), bb.max_x(), bb.max_y()])
 
             new_count = 0
             for box, score, class_name in new_dets:
                 if new_count >= self._max_new_objects:
                     break
                 overlaps = any(
-                    compute_iou(box, sb) > self._iou_threshold
-                    for sb in suppress_boxes)
+                    compute_iou(box, sb) > self._iou_threshold for sb in suppress_boxes
+                )
                 if not overlaps:
                     bbox = BoundingBoxD(box[0], box[1], box[2], box[3])
                     dot = DetectedObjectType(class_name, score)
@@ -1670,29 +1731,15 @@ class Sam3DetectionRefiner(RefineDetections):
 
 
 def __vital_algorithm_register__():
-    """Register SAM3 refiner algorithms with KWIVER."""
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    # Register SAM3Refiner (RefineTracks)
-    track_impl_name = "sam3"
-
-    if not algorithm_factory.has_algorithm_impl_name(
-            SAM3Refiner.static_type_name(), track_impl_name):
-        algorithm_factory.add_algorithm(
-            track_impl_name,
-            "SAM3 (Segment Anything Model 3) based track refiner with text queries",
-            SAM3Refiner
-        )
-        algorithm_factory.mark_algorithm_as_loaded(track_impl_name)
-
-    # Register Sam3DetectionRefiner (RefineDetections)
-    det_impl_name = "sam3"
-
-    if not algorithm_factory.has_algorithm_impl_name(
-            Sam3DetectionRefiner.static_type_name(), det_impl_name):
-        algorithm_factory.add_algorithm(
-            det_impl_name,
-            "SAM3 (SAM 2.1) based detection refiner for adding segmentation masks",
-            Sam3DetectionRefiner
-        )
-        algorithm_factory.mark_algorithm_as_loaded(det_impl_name)
+    register_vital_algorithm(
+        SAM3Refiner,
+        "sam3",
+        "SAM3 (Segment Anything Model 3) based track refiner with text queries",
+    )
+    register_vital_algorithm(
+        Sam3DetectionRefiner,
+        "sam3",
+        "SAM3 (SAM 2.1) based detection refiner for adding segmentation masks",
+    )

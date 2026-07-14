@@ -20,7 +20,7 @@ set( plugin_headers
   manipulate_pipelines.h
   measurement_utilities.h
   merge_detections_suppress_in_regions.h
-  normalize_image_percentile.h
+  equalize_via_percentiles.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
   read_detected_object_set_auto.h
@@ -69,7 +69,7 @@ set( plugin_sources
   manipulate_pipelines.cxx
   measurement_utilities.cxx
   merge_detections_suppress_in_regions.cxx
-  normalize_image_percentile.cxx
+  equalize_via_percentiles.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
   read_detected_object_set_auto.cxx
@@ -126,15 +126,6 @@ target_include_directories( viame_core PRIVATE
   ${KWIVER_SOURCE_DIR}/vital/internal
   )
 
-find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
-  COMPONENTS
-  chrono
-  filesystem
-  system)
-
-include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
-link_directories( ${Boost_LIBRARY_DIRS} )
-
 set( CORE_LINK_LIBRARIES
   kwiver::vital
   kwiver::vital_algo
@@ -146,8 +137,6 @@ set( CORE_LINK_LIBRARIES
   kwiver::kwiver_algo_mvg
   kwiver::sprokit_pipeline
   kwiver::kwiver_adapter
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_FILESYSTEM_LIBRARY}
   )
 
 # Eigen is used by metadata parsers
@@ -237,15 +226,6 @@ target_link_libraries( viame_core_plugin
   PUBLIC               kwiver::vital_vpm
   )
 
-find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
-    COMPONENTS
-      chrono
-      filesystem
-      system)
-
-include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
-link_directories( ${Boost_LIBRARY_DIRS} )
-
 # Add process library
 set( process_headers
   accumulate_image_statistics_process.h
@@ -319,8 +299,6 @@ kwiver_add_plugin( viame_processes_core
                    Eigen3::Eigen
                    kwiver::kwiver_algo_mvg
                    kwiver::kwiver_algo_ocv
-                   ${Boost_SYSTEM_LIBRARY}
-                   ${Boost_FILESYSTEM_LIBRARY}
                    viame_core
                    viame_opencv
  )
@@ -375,9 +353,9 @@ if( VIAME_ENABLE_PYTHON )
     multicam_homog_tracker )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/normalize_image_percentile.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/equalize_via_percentiles.py
     core
-    normalize_image_percentile )
+    equalize_via_percentiles )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/optical_flow.py
@@ -445,6 +423,11 @@ if( VIAME_ENABLE_PYTHON )
     utils )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/vital_registration.py
+    core
+    vital_registration )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_segmentation.py
     core
     interactive_segmentation )
@@ -467,7 +450,7 @@ if( VIAME_ENABLE_PYTHON )
   find_package( pybind11 REQUIRED )
   kwiver_add_python_library( _measurement
     core
-    measurement_utilities.cxx )
+    SOURCES measurement_utilities.cxx )
   target_compile_definitions( python-core-_measurement
     PRIVATE VIAME_MEASUREMENT_PYTHON_BINDINGS )
   target_link_libraries( python-core-_measurement

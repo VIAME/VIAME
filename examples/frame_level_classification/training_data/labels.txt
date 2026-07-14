@@ -1,0 +1,2 @@
+has_fish
+no_fish

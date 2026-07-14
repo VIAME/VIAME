@@ -678,62 +678,6 @@ keypoint_method_description()
 // Algorithm class implementation
 // =============================================================================
 
-// Private implementation class
-class add_keypoints_from_mask::priv
-{
-public:
-  priv()
-    : method( "oriented_bbox" )
-    , clip_to_mask( false )
-  {
-  }
-
-  ~priv()
-  {
-  }
-
-  // Configuration
-  std::string method;
-  bool clip_to_mask;
-};
-
-// =============================================================================
-add_keypoints_from_mask
-::add_keypoints_from_mask()
-  : d( new priv() )
-{
-}
-
-add_keypoints_from_mask
-::~add_keypoints_from_mask()
-{
-}
-
-// -----------------------------------------------------------------------------
-kv::config_block_sptr
-add_keypoints_from_mask
-::get_configuration() const
-{
-  kv::config_block_sptr config = kv::algo::refine_detections::get_configuration();
-
-  config->set_value( "method", d->method, keypoint_method_description() );
-
-  config->set_value( "clip_to_mask", d->clip_to_mask,
-    "If true, after computing keypoints, snap each keypoint to the nearest "
-    "point on the mask/polygon boundary contour." );
-
-  return config;
-}
-
-// -----------------------------------------------------------------------------
-void
-add_keypoints_from_mask
-::set_configuration( kv::config_block_sptr config )
-{
-  d->method = config->get_value< std::string >( "method", d->method );
-  d->clip_to_mask = config->get_value< bool >( "clip_to_mask", d->clip_to_mask );
-}
-
 // -----------------------------------------------------------------------------
 bool
 add_keypoints_from_mask
@@ -762,9 +706,9 @@ add_keypoints_from_mask
   {
     if( det->mask() )
     {
-      auto keypoints = compute_keypoints( det, d->method );
+      auto keypoints = compute_keypoints( det, c_method );
 
-      if( d->clip_to_mask )
+      if( c_clip_to_mask )
       {
         keypoints.first = clip_point_to_mask_boundary( keypoints.first, det );
         keypoints.second = clip_point_to_mask_boundary( keypoints.second, det );

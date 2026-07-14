@@ -23,9 +23,6 @@
 namespace kv = kwiver::vital;
 
 
-create_type_trait( landmark_map, "kwiver:landmark_map", kwiver::vital::landmark_map_sptr );
-create_port_trait( landmark_map, landmark_map, "Landmarks.");
-
 namespace viame
 {
 
