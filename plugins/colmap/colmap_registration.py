@@ -13,13 +13,20 @@ flight-log metadata file when one is available and falls back to pure
 image registration when it is not.
 
 Because that registration is a whole-survey batch operation (it needs every
-frame to build the chains and the shared reference), the node registers the
-full site folder once on the first step - derived from the incoming image
-path - caches the per-frame homographies to disk, and then simply emits the
-precomputed source-to-reference homography for whichever frame is flowing
-through on each step. Frames dropped by an upstream downsampler are handled
-naturally: the emitted homography is looked up by image filename, not by
-counting steps.
+frame to build the chains and the shared reference), the node registers once on
+the first step, caches the per-frame homographies to disk, and then simply
+emits the precomputed source-to-reference homography for whichever frame is
+flowing through on each step. Frames dropped by an upstream downsampler are
+handled naturally: the emitted homography is looked up by image filename, not
+by counting steps.
+
+What gets registered is controlled by register_scope: "folder" (default)
+registers the whole survey folder - best when the streamed frames are a
+contiguous slice of one coherent survey; "list" registers only an explicit set
+of frames (frame_list, defaulting to the pipeline input lists) - for a subset
+drawn from a larger or mixed folder. The survey folder itself is resolved from
+site_folder or the image_list (the streamed file_name port carries only
+basenames, so the folder cannot be recovered from it).
 
 The reference frame is local ENU metres (shared across the rig cameras, so
 their relative mapping is exact) when GPS/flight-log metadata is available,
@@ -96,8 +103,9 @@ class ColmapRegistration(KwiverProcess):
         _add_declare_config(
             self, 'cache', '',
             'Path to a homography cache file. Empty = '
-            '<site>/.sea_lion_reg_cache.npz. Recomputed when the image set, '
-            'method or flight log changes.')
+            '<site>/.sea_lion_reg_cache_<key>.npz (the key covers the image '
+            'set, scope, method and flight log, so distinct runs cache '
+            'independently and are recomputed only when their inputs change).')
         _add_declare_config(
             self, 'site_folder', '',
             'Survey folder containing the per-camera image subdirectories. '
@@ -109,6 +117,19 @@ class ColmapRegistration(KwiverProcess):
             'Image-list file used only to locate the survey folder when '
             'site_folder is empty; its first entry must be a full image path. '
             'Defaults to the pipeline input list.')
+        _add_declare_config(
+            self, 'register_scope', 'folder',
+            'What to register: "folder" (default) registers the whole survey '
+            'folder - best when the streamed frames are a contiguous slice of '
+            'one coherent survey. "list" registers only an explicit set of '
+            'frames (see frame_list) - use when the frames are a subset drawn '
+            'from a larger or mixed folder. Chains still need a reasonably '
+            'contiguous per-camera run to register well.')
+        _add_declare_config(
+            self, 'frame_list', '',
+            'For register_scope=list: comma-separated image-list file(s) whose '
+            'lines are the frames to register. Empty = the pipeline input '
+            'lists input_list_1.txt..input_list_<n_input>.txt.')
 
         self._n_input = int(self.config_value('n_input'))
         optional = process.PortFlags()
@@ -133,6 +154,8 @@ class ColmapRegistration(KwiverProcess):
         self._cache = self.config_value('cache') or None
         self._site_folder = self.config_value('site_folder') or None
         self._image_list = self.config_value('image_list') or None
+        self._scope = (self.config_value('register_scope') or 'folder').lower()
+        self._frame_list = self.config_value('frame_list') or None
         self._by_name = None                 # basename -> 3x3 or None
         self._frame = 0
         self._last = [None] * self._n_input  # last good homog matrix per cam
@@ -155,23 +178,51 @@ class ColmapRegistration(KwiverProcess):
                             os.path.abspath(p)))
         return None
 
+    def _resolve_images(self):
+        """Explicit image paths to register (register_scope=list), or None for
+        whole-folder registration. Reads frame_list files, or the pipeline
+        input lists input_list_1.txt..input_list_<n_input>.txt by default."""
+        if self._scope != 'list':
+            return None
+        if self._frame_list:
+            files = [p.strip() for p in self._frame_list.split(',')
+                     if p.strip()]
+        else:
+            files = ['input_list_%d.txt' % i
+                     for i in range(1, self._n_input + 1)]
+        images = []
+        for lf in files:
+            if not os.path.exists(lf):
+                _log('frame_list file not found: %s' % lf)
+                continue
+            with open(lf) as f:
+                images += [ln.strip() for ln in f if ln.strip()]
+        return images or None
+
     # ---- one-time batch registration -------------------------------------
 
-    def _cache_key(self, site_folder):
-        names = []
-        for cam in sorted(os.listdir(site_folder)):
-            d = os.path.join(site_folder, cam)
-            if os.path.isdir(d):
-                names += sorted(os.listdir(d))
+    def _cache_key(self, site_folder, images):
+        if images is not None:
+            names = sorted(os.path.basename(p) for p in images)
+            scope = 'list'
+        else:
+            names = []
+            for cam in sorted(os.listdir(site_folder)):
+                d = os.path.join(site_folder, cam)
+                if os.path.isdir(d):
+                    names += sorted(os.listdir(d))
+            scope = 'folder'
         fl = self._flight_log or ''
         have_fl = fl and os.path.exists(fl)
         fl_stamp = str(os.path.getmtime(fl)) if have_fl else ''
-        blob = '\n'.join(names) + f'|{self._method}|{fl}|{fl_stamp}'
+        blob = '\n'.join(names) + f'|{scope}|{self._method}|{fl}|{fl_stamp}'
         return hashlib.sha1(blob.encode('utf-8', 'replace')).hexdigest()
 
-    def _cache_path(self, site_folder):
-        return self._cache or os.path.join(site_folder,
-                                           '.sea_lion_reg_cache.npz')
+    def _cache_path(self, site_folder, key):
+        # Key the filename so folder-mode and each distinct frame subset cache
+        # independently (no thrash when alternating scopes/subsets).
+        return self._cache or os.path.join(
+            site_folder, '.sea_lion_reg_cache_%s.npz' % key[:12])
 
     def _load_cache(self, path, key):
         try:
@@ -195,20 +246,22 @@ class ColmapRegistration(KwiverProcess):
         except OSError as e:
             _log('could not write cache %s: %s' % (path, e))
 
-    def _register(self, site_folder):
+    def _register(self, site_folder, images):
         from viame.opencv import prior_coverage_core as pcc
-        key = self._cache_key(site_folder)
-        path = self._cache_path(site_folder)
+        key = self._cache_key(site_folder, images)
+        path = self._cache_path(site_folder, key)
         cached = self._load_cache(path, key)
         if cached is not None:
             _log('loaded %d cached homographies from %s' % (len(cached), path))
             return cached
-        _log('registering %s (method=%s, flight_log=%s) - one-time, blocks '
-             'the first frame and may be slow...'
-             % (site_folder, self._method, self._flight_log or 'none'))
+        scope = ('%d listed frames' % len(images) if images is not None
+                 else 'whole folder')
+        _log('registering %s [%s] (method=%s, flight_log=%s) - one-time, '
+             'blocks the first frame and may be slow...'
+             % (site_folder, scope, self._method, self._flight_log or 'none'))
         homogs = pcc.compute_frame_homographies(
             site_folder, flight_logs=self._flight_log, method=self._method,
-            water_method=self._water_method)
+            water_method=self._water_method, images=images)
         by_name = {}
         n_geo = 0
         for rel, info in homogs.items():
@@ -260,7 +313,7 @@ class ColmapRegistration(KwiverProcess):
                      % (self._site_folder, self._image_list))
                 self._by_name = {}
             else:
-                self._by_name = self._register(site)
+                self._by_name = self._register(site, self._resolve_images())
         for i in range(self._n_input):
             H = self._homog_for(i, names[i])
             self.push_to_port_using_trait(

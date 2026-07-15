@@ -254,18 +254,38 @@ def load_exif_meta(path):
 # Linking
 # ---------------------------------------------------------------------------
 
-def list_site_images(site_folder):
+def list_site_images(site_folder, image_list=None):
     """List images of a site as {camera: [relative paths]}.
 
     Detects the rig layout (CENTER/PORT/STAR subfolders); single-camera
     collections come back under the key None. Paths are relative to
     `site_folder` and sorted by frame number.
+
+    If `image_list` is given (an iterable of image paths, absolute or relative
+    to `site_folder`), only those images are grouped - registration then covers
+    exactly that subset instead of scanning the whole folder. Each image's
+    camera is taken from its CENTER/PORT/STAR subfolder (or None if there is
+    no rig subfolder).
     """
     def _frame_key(p):
         info = parse_image_filename(p)
         return (info['frame'] if info['frame'] is not None else 0, p)
 
     cams = {}
+    if image_list is not None:
+        for p in image_list:
+            rel = os.path.relpath(os.path.abspath(p), site_folder) \
+                if os.path.isabs(p) else p
+            parts = rel.replace('\\', '/').split('/')
+            if len(parts) >= 2 and parts[0].upper() in ('CENTER', 'PORT',
+                                                        'STAR'):
+                cam = parts[0].upper()
+                relp = os.path.join(parts[0], parts[-1])
+            else:
+                cam, relp = None, parts[-1]
+            cams.setdefault(cam, []).append(relp)
+        return {c: sorted(v, key=_frame_key) for c, v in cams.items()}
+
     subs = {d.upper(): d for d in os.listdir(site_folder)
             if os.path.isdir(os.path.join(site_folder, d))}
     rig = [c for c in ('CENTER', 'PORT', 'STAR') if c in subs]
@@ -284,11 +304,13 @@ def list_site_images(site_folder):
 
 
 def build_image_records(site_folder, flight_logs=None, read_exif=True,
-                        verbose=True):
+                        image_list=None, verbose=True):
     """Build unified metadata records for every image of a site.
 
     Returns ({rel_path: record}, {camera: [rel_paths]}). Records may be {}
-    for images with no metadata from any source. Linking strategy:
+    for images with no metadata from any source. When `image_list` is given,
+    only those images are recorded (registration on a subset of a larger
+    folder); otherwise the whole site folder is scanned. Linking strategy:
 
       * flight log row matched by the image's frame number (global per-day
         trigger counter) - the primary source for the 2024 rig data;
@@ -297,7 +319,7 @@ def build_image_records(site_folder, flight_logs=None, read_exif=True,
         time offset is reported since it indicates a mis-link.
     """
     date = folder_date(site_folder)
-    cams = list_site_images(site_folder)
+    cams = list_site_images(site_folder, image_list=image_list)
     log_path = find_flight_log(flight_logs, date)
     log = load_flight_log(log_path) if log_path else {}
     if verbose and flight_logs and not log:

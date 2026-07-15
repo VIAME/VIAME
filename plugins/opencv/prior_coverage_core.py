@@ -355,18 +355,23 @@ class SiteRegistration:
 
 
 def _register_site(site_folder, site_id, order_start, args, to_enu,
-                   origin_ref):
+                   origin_ref, images=None):
     """Register one site: build image records, run the hybrid registration
     (within-camera affine chains + rig cross-camera consensus + GPS geo-
     anchoring, or pseudo-georeferencing without GPS), and turn every image
     into an Observation whose T_enu maps its pixels into the shared reference
     frame (local ENU metres, or pseudo-ENU when there is no GPS). Returns a
     SiteRegistration. This is the shared core used both by the coverage tool
-    (process_site) and by the in-pipeline registration node."""
+    (process_site) and by the in-pipeline registration node.
+
+    `images` (optional) restricts registration to an explicit subset of the
+    folder's images instead of scanning the whole folder; the chains still need
+    a reasonably contiguous per-camera run to register well."""
     site_tag = os.path.basename(os.path.normpath(site_folder))
 
     records, cams = smd.build_image_records(
-        site_folder, flight_logs=args.flight_logs, read_exif=True)
+        site_folder, flight_logs=args.flight_logs, read_exif=True,
+        image_list=images)
     frames_by_cam = {}
     idx_by_cam = {}
     for cam, rels in cams.items():
@@ -542,10 +547,15 @@ def _register_site(site_folder, site_id, order_start, args, to_enu,
 
 
 def compute_frame_homographies(site_folder, flight_logs=None, method='hybrid',
-                               water_method='auto', reg_overrides=None):
+                               water_method='auto', reg_overrides=None,
+                               images=None):
     """Register one site and return per-image pixel->reference homographies,
     for callers (e.g. the VIAME registration node) that want the geometry
     without the coverage CSV/visualization.
+
+    `images` (optional) restricts registration to an explicit subset of the
+    folder's images (paths absolute or relative to site_folder) rather than
+    scanning the whole folder.
 
     Returns a dict rel -> info, where info has:
       'H'         3x3 float64 pixel->reference transform, or None if the frame
@@ -571,7 +581,8 @@ def compute_frame_homographies(site_folder, flight_logs=None, method='hybrid',
     for k, v in (reg_overrides or {}).items():
         setattr(args, k, v)
     reg = _register_site(site_folder, 0, 0, args, None,
-                         {'lat': None, 'lon': None, 'to_enu': None})
+                         {'lat': None, 'lon': None, 'to_enu': None},
+                         images=images)
     out = {}
     for o in reg.observations:
         out[o.rel] = {
