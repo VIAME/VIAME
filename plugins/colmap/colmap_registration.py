@@ -20,13 +20,13 @@ flowing through on each step. Frames dropped by an upstream downsampler are
 handled naturally: the emitted homography is looked up by image filename, not
 by counting steps.
 
-What gets registered is controlled by register_scope: "folder" (default)
-registers the whole survey folder - best when the streamed frames are a
-contiguous slice of one coherent survey; "list" registers only an explicit set
-of frames (frame_list, defaulting to the pipeline input lists) - for a subset
-drawn from a larger or mixed folder. The survey folder itself is resolved from
-site_folder or the image_list (the streamed file_name port carries only
-basenames, so the folder cannot be recovered from it).
+What gets registered is controlled by register_scope: "list" (default)
+registers only the frames the pipeline is given (frame_list, defaulting to the
+pipeline input lists), so a subset drawn from a larger or mixed folder is
+registered on its own; "folder" registers the whole survey folder for the
+full-survey geometry. The survey folder itself is resolved from site_folder or
+the image_list (the streamed file_name port carries only basenames, so the
+folder cannot be recovered from it).
 
 The reference frame is local ENU metres (shared across the rig cameras, so
 their relative mapping is exact) when GPS/flight-log metadata is available,
@@ -118,13 +118,13 @@ class ColmapRegistration(KwiverProcess):
             'site_folder is empty; its first entry must be a full image path. '
             'Defaults to the pipeline input list.')
         _add_declare_config(
-            self, 'register_scope', 'folder',
-            'What to register: "folder" (default) registers the whole survey '
-            'folder - best when the streamed frames are a contiguous slice of '
-            'one coherent survey. "list" registers only an explicit set of '
-            'frames (see frame_list) - use when the frames are a subset drawn '
-            'from a larger or mixed folder. Chains still need a reasonably '
-            'contiguous per-camera run to register well.')
+            self, 'register_scope', 'list',
+            'What to register: "list" (default) registers only the frames the '
+            'pipeline is given (frame_list) - so a subset drawn from a larger '
+            'or mixed folder is registered on its own. "folder" registers the '
+            'whole survey folder - best when you want the full-survey geometry '
+            '(more frames, all cross-camera/loop overlap). Chains still need a '
+            'reasonably contiguous per-camera run to register well.')
         _add_declare_config(
             self, 'frame_list', '',
             'For register_scope=list: comma-separated image-list file(s) whose '

@@ -26,8 +26,8 @@
 #   site_folder  survey folder; empty = derived from the input image list
 #   image_list   list file used to locate the survey folder when site_folder
 #                is empty (default input_list_1.txt, the pipeline input list)
-#   register_scope folder (default) | list -- register the whole survey folder
-#                vs. only an explicit subset of frames
+#   register_scope list (default) | folder -- register only the given frames
+#                (frame_list) vs. the whole survey folder
 #   frame_list   for register_scope=list: comma-separated image-list file(s);
 #                empty = the pipeline input lists input_list_1..<n_input>.txt
 #   cache        homography cache file; empty = <site>/.sea_lion_reg_cache.npz
