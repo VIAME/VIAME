@@ -43,6 +43,9 @@ def build_and_train(params):
         model_kwargs["resolution"] = resolution
     if params.get("gradient_checkpointing"):
         model_kwargs["gradient_checkpointing"] = True
+    if params.get("keypoints") and params.get("keypoint_names"):
+        model_kwargs["keypoint_head"] = True
+        model_kwargs["num_keypoints"] = len(params["keypoint_names"])
 
     # Seed from a prior checkpoint by routing it through pretrain_weights. train()
     # rebuilds the network inside RFDETRModelModule from model_config and loads

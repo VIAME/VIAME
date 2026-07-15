@@ -49,6 +49,39 @@ def select_model_class(model_size, segmentation):
     return getattr(rfdetr, table[key])
 
 
+def detection_keypoints(det, kp_names):
+    """Flatten a detection's named keypoints into COCO ``[x, y, v, ...]`` order.
+
+    kwiver detections carry keypoints as a ``{name: Point2d}`` map (VIAME sets
+    e.g. 'head'/'tail'). Names are matched case-insensitively against
+    ``kp_names``; a present keypoint becomes a visible slot (v=2) and a missing
+    one an absent slot (0, 0, 0). Returns ``(flat_list, num_visible)``.
+    """
+    present = {}
+    try:
+        kps = det.keypoints
+    except Exception:
+        kps = None
+    if kps:
+        for name, pt in dict(kps).items():
+            try:
+                value = pt.value
+                present[str(name).lower()] = (float(value[0]), float(value[1]))
+            except Exception:
+                continue
+    flat = []
+    num_visible = 0
+    for name in kp_names:
+        key = str(name).lower()
+        if key in present:
+            x, y = present[key]
+            flat.extend([x, y, 2])
+            num_visible += 1
+        else:
+            flat.extend([0.0, 0.0, 0])
+    return flat, num_visible
+
+
 def polygon_area(flat_poly):
     """Shoelace area of a flattened [x1,y1,x2,y2,...] polygon (>=3 points)."""
     n = len(flat_poly) // 2
@@ -103,6 +136,19 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         'data; the chip polygons are written to the COCO segmentation field. '
         'Note: seg model sizes (e.g. large) constrain the input resolution '
         '(divisible by patch_size*num_windows = 24 for seg-large).'))
+    keypoints = scfg.Value(False, help=(
+        'Train a keypoint head alongside boxes. Named keypoints on the input '
+        'detections (e.g. head/tail) are written to the COCO keypoints field '
+        'and the model learns to regress them. A detection missing a given '
+        'named keypoint contributes an absent (visibility 0) slot, so objects '
+        'with 0, 1, or 2 points train together. Combinable with segmentation. '
+        'Uses the CPU augmentation backend (keypoints are not transformed on '
+        'the GPU pipeline).'))
+    keypoint_names = scfg.Value('head,tail', help=(
+        'Comma-separated, ordered keypoint slot names to train when '
+        'keypoints=True. Defines the fixed COCO keypoint order; '
+        'num_keypoints = number of names. Names are matched case-insensitively '
+        'against each detection\'s keypoints.'))
 
     # Training hyperparameters
     max_epochs = scfg.Value(100, help='Maximum number of epochs to train for')
@@ -250,6 +296,10 @@ class RFDETRTrainer(TrainDetector):
         self._test_image_files = list(test_files)
         self._test_detections = list(test_dets)
 
+    def _keypoint_names_list(self):
+        """Ordered keypoint slot names parsed from the keypoint_names config."""
+        return [n.strip() for n in str(self._keypoint_names).split(',') if n.strip()]
+
     def _resolve_aug_config(self, augmentation):
         """
         Map the 'augmentation' config value to an RF-DETR aug_config.
@@ -357,6 +407,12 @@ class RFDETRTrainer(TrainDetector):
         ]
 
         seg_enabled = parse_bool(self._segmentation)
+        kp_enabled = parse_bool(self._keypoints)
+        kp_names = self._keypoint_names_list() if kp_enabled else []
+        if kp_enabled:
+            # COCO keypoint category metadata: fixed, ordered slot names.
+            for category in categories_json:
+                category["keypoints"] = list(kp_names)
 
         def build_coco_json(image_files, detection_sets):
             images_json = []
@@ -423,6 +479,14 @@ class RFDETRTrainer(TrainDetector):
                             area = polygon_area(poly)
                             if area > 0:
                                 ann["area"] = area
+
+                    # For a keypoint run, write the detection's named keypoints
+                    # (head/tail, ...) to the COCO keypoints field in the fixed
+                    # slot order; RF-DETR's loader reads them as (x, y, vis).
+                    if kp_enabled:
+                        flat_kps, num_vis = detection_keypoints(det, kp_names)
+                        ann["keypoints"] = flat_kps
+                        ann["num_keypoints"] = num_vis
 
                     annotations_json.append(ann)
                     ann_id += 1
@@ -539,6 +603,14 @@ class RFDETRTrainer(TrainDetector):
             model_kwargs['resolution'] = self._resolution
         if gradient_checkpointing:
             model_kwargs['gradient_checkpointing'] = True
+        keypoints_enabled = parse_bool(self._keypoints)
+        if keypoints_enabled:
+            kp_names = self._keypoint_names_list()
+            if not kp_names:
+                raise ValueError("keypoints=True requires at least one name in keypoint_names")
+            model_kwargs['keypoint_head'] = True
+            model_kwargs['num_keypoints'] = len(kp_names)
+            print(f"[RFDETRTrainer] Keypoint head enabled: {kp_names}")
 
         print(f"[RFDETRTrainer] Using RF-DETR {model_size} model on {device} "
               f"with {num_channels} input channels"
@@ -769,6 +841,8 @@ class RFDETRTrainer(TrainDetector):
         params = dict(
             model_size=self._model_size.lower(),
             segmentation=parse_bool(self._segmentation),
+            keypoints=parse_bool(self._keypoints),
+            keypoint_names=self._keypoint_names_list(),
             num_channels=int(self._num_channels),
             resolution=format_resolution(self._resolution),
             gradient_checkpointing=parse_bool(self._gradient_checkpointing),
@@ -900,6 +974,10 @@ class RFDETRTrainer(TrainDetector):
             args['class_names'] = self._class_names
             args['model_size'] = self._model_size
             args['segmentation'] = parse_bool(self._segmentation)
+            if parse_bool(self._keypoints):
+                args['keypoints'] = True
+                args['keypoint_names'] = self._keypoint_names_list()
+                args['num_keypoints'] = len(self._keypoint_names_list())
             args['num_channels'] = int(self._num_channels)
             if resolution_is_set(self._resolution):
                 args['resolution'] = self._resolution
