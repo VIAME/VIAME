@@ -55,8 +55,12 @@ connect from detector_output_cam2.detected_object_set
 
 connect from downsampler1.output_1
         to suppressor.image1
+connect from downsampler1.output_2
+        to suppressor.file_name1
 connect from downsampler2.output_1
         to suppressor.image2
+connect from downsampler2.output_2
+        to suppressor.file_name2
 
 process detector_writer1 :: detected_object_output
   file_name = detections1.csv

@@ -3,6 +3,7 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 import logging
+import os
 
 import numpy as np
 
@@ -23,17 +24,21 @@ from .stabilize_many_images import (
 
 logger = logging.getLogger(__name__)
 
-zero_homog_and_size = (np.empty((0, 3, 3)), np.empty((0, 2), dtype=int))
+# (homogs, sizes, names): the source frames that suppress a camera. `names`
+# runs parallel to `sizes` (one source-image filename per suppressing frame) so
+# each suppression-region polygon can be traced back to the frame it came from.
+zero_homog_and_size = (np.empty((0, 3, 3)), np.empty((0, 2), dtype=int),
+                       np.empty(0, dtype=object))
 
-def get_self_suppression_homogs_and_sizes(multihomog, sizes):
-    """Get suppression homographies and sizes within a single timestep
+def get_self_suppression_homogs_and_sizes(multihomog, sizes, names):
+    """Get suppression homographies, sizes and source names within a timestep
 
     Returns a value suitable for supplying as arg_suppress_boxes's
     suppression_homogs_and_sizes argument.
 
     """
     return [
-        zero_homog_and_size if cam == hc else (to_curr[s], sizes[s])
+        zero_homog_and_size if cam == hc else (to_curr[s], sizes[s], names[s])
         for cam, to_curr in enumerate(diff_homogs(
                 multihomog.homogs, multihomog.homogs,
         ))
@@ -56,8 +61,9 @@ def concat_suppression_homogs_and_sizes(*args):
         raise ValueError("Arguments must have a consistent number of cameras")
     result = []
     for args_single_cam in zip(*args):
-        homogs, sizes = zip(*args_single_cam)
-        result.append((np.concatenate(homogs), np.concatenate(sizes)))
+        homogs, sizes, names = zip(*args_single_cam)
+        result.append((np.concatenate(homogs), np.concatenate(sizes),
+                       np.concatenate(names)))
     return result
 
 def arg_suppress_boxes(box_lists, suppression_homogs_and_sizes):
@@ -81,7 +87,7 @@ def arg_suppress_boxes(box_lists, suppression_homogs_and_sizes):
     center should have been in a previous frame.
 
     """
-    def center_in_bounds(box, homogs, sizes):
+    def center_in_bounds(box, homogs, sizes, _names=None):
         transform = Homography.matrix_transform
         tc = np.squeeze(transform(homogs, box.center[:, np.newaxis]), -1)
         return ((0 <= tc) & (tc < sizes)).all(-1).any(-1)
@@ -136,20 +142,28 @@ def transform_poly_to_polys(poly, homog, clip_size):
     return [poly[:, :2] / poly[:, 2:] for poly in cpolys if len(poly) > 2]
 
 def suppression_polys(suppression_homogs_and_sizes, sizes):
+    """Per camera, the suppression-region polygons paired with the filename of
+    the source frame each came from: list[list[(poly, source_name)]]."""
     def size_to_poly(size):
         w, h = size
         return [[0, 0], [0, h], [w, h], [w, 0]]
     return [[
-        r for h, s in zip(homogs, sizes) for r
-        in transform_poly_to_polys(size_to_poly(s), np.linalg.inv(h), size)
-    ] for (homogs, sizes), size in zip(suppression_homogs_and_sizes, sizes)]
+        (r, name)
+        for h, s, name in zip(homogs, src_sizes, names)
+        for r in transform_poly_to_polys(size_to_poly(s), np.linalg.inv(h), size)
+    ] for (homogs, src_sizes, names), size
+        in zip(suppression_homogs_and_sizes, sizes)]
 
-def wrap_poly(poly, class_):
+def wrap_poly(poly, class_, source_name=None):
     result = DetectedObject(
         bbox=BoundingBoxD(*poly.min(0), *poly.max(0)),
         classifications=DetectedObjectType(class_, 1),
     )
     result.set_flattened_polygon(poly.reshape(-1))
+    if source_name:
+        # Record which source frame's field of view produced this region, so
+        # downstream (e.g. DIVE) can trace a suppression region to its image.
+        result.add_note(':source_image=' + os.path.basename(str(source_name)))
     return result
 
 @Transformer.decorate
@@ -164,41 +178,43 @@ def find_prev_suppression_homogs_and_sizes():
     arg_suppress_boxes's suppression_homogs_and_sizes argument.
 
     """
-    prev_multihomog = prev_sizes = None
+    prev_multihomog = prev_sizes = prev_names = None
     output = None
     while True:
-        multihomog, sizes = yield output
+        multihomog, sizes, names = yield output
         if prev_multihomog is None or multihomog.to_id != prev_multihomog.to_id:
             output = len(multihomog) * [zero_homog_and_size]
         else:
             output = [
-                (to_prev[s], prev_sizes[s])
+                (to_prev[s], prev_sizes[s], prev_names[s])
                 for cam, to_prev in enumerate(diff_homogs(
                         multihomog.homogs, prev_multihomog.homogs,
                 ))
                 for s in [np.s_[max(0, cam - 1)
                                 : min(cam + 2, len(prev_multihomog))]]
             ]
-        prev_multihomog, prev_sizes = multihomog, sizes
+        prev_multihomog, prev_sizes, prev_names = multihomog, sizes, names
 
 @Transformer.decorate
 def find_all_suppression_homogs_and_sizes():
     frames_by_ref = {}
     output = None
     while True:
-        multihomog, sizes = yield output
+        multihomog, sizes, names = yield output
         try:
-            prev_homogs, prev_sizes = frames_by_ref[multihomog.to_id]
+            prev_homogs, prev_sizes, prev_names = frames_by_ref[multihomog.to_id]
         except KeyError:
-            prev_homogs, prev_sizes = [], zero_homog_and_size[1]
+            prev_homogs = []
+            prev_sizes, prev_names = zero_homog_and_size[1], zero_homog_and_size[2]
             output = len(multihomog) * [zero_homog_and_size]
         else:
             output = [(
-                to_prev, prev_sizes,
+                to_prev, prev_sizes, prev_names,
             ) for to_prev in diff_homogs(multihomog.homogs, prev_homogs)]
         prev_homogs.extend(multihomog.homogs)
         prev_sizes = np.concatenate([prev_sizes, sizes])
-        frames_by_ref[multihomog.to_id] = prev_homogs, prev_sizes
+        prev_names = np.concatenate([prev_names, names])
+        frames_by_ref[multihomog.to_id] = prev_homogs, prev_sizes, prev_names
 
 @Transformer.decorate
 def suppress(suppression_poly_class=None, *, past_frames):
@@ -211,13 +227,14 @@ def suppress(suppression_poly_class=None, *, past_frames):
     output = None
     while True:
         dhss, = yield output
-        do_sets, homogs, sizes = zip(*dhss)
+        do_sets, homogs, sizes, names = zip(*dhss)
         sizes = np.array(sizes)
+        names = np.array(names, dtype=object)
         multihomog = MultiHomographyF2F.from_homographyf2fs(map(wrap_F2FHomography, homogs))
         do_lists = list(map(to_DetectedObject_list, do_sets))
         boxes = (map(get_DetectedObject_bbox, dos) for dos in do_lists)
-        prev_shs = fshs.step(multihomog, sizes)
-        curr_shs = get_self_suppression_homogs_and_sizes(multihomog, sizes)
+        prev_shs = fshs.step(multihomog, sizes, names)
+        curr_shs = get_self_suppression_homogs_and_sizes(multihomog, sizes, names)
         shs = concat_suppression_homogs_and_sizes(prev_shs, curr_shs)
         keep_its = arg_suppress_boxes(boxes, shs)
         if suppression_poly_class is None:
@@ -228,8 +245,10 @@ def suppress(suppression_poly_class=None, *, past_frames):
                 # (https://github.com/Kitware/dive/issues/993)
                 assert (p >= 0).all()
                 return np.where(p, p, 0)  # Replace -0 with 0
-            poly_dets = ((wrap_poly(n(p), suppression_poly_class) for p in ps)
-                         for ps in suppression_polys(shs, sizes))
+            poly_dets = (
+                (wrap_poly(n(p), suppression_poly_class, name) for p, name in ps)
+                for ps in suppression_polys(shs, sizes)
+            )
         output = [
             DetectedObjectSet([*(do for k, do in zip(keep, dos) if k), *pd])
             for keep, dos, pd in zip(keep_its, do_lists, poly_dets)
@@ -263,6 +282,9 @@ class MulticamHomogDetSuppressor(KwiverProcess):
                                    required, 'Input homography (source-to-ref) #' + str(i))
             add_declare_input_port(self, 'image' + str(i), 'image', required,
                                    'Input image #' + str(i))
+            add_declare_input_port(self, 'file_name' + str(i), 'file_name',
+                                   optional, 'Input image path #' + str(i)
+                                   + ' (source_image attribute on regions)')
             add_declare_output_port(self, 'det_objs_' + str(i), 'detected_object_set',
                                     optional, 'Output detected object set #' + str(i))
 
@@ -272,17 +294,29 @@ class MulticamHomogDetSuppressor(KwiverProcess):
         spc = self.config_value('suppression_poly_class') or None
         pf = self.config_value('past_frames')
         self._suppressor = suppress(spc, past_frames=pf)
+        # Determined on the first step (edges are present by then): which
+        # optional file_name ports are wired, for the source_image attribute.
+        self._fn_connected = None
         self._base_configure()
 
     def _step(self):
         def get_image_size(im):
             return im.width(), im.height()
-        dos_list = self._suppressor.step([
-            (self.grab_input_using_trait('det_objs_' + str(i)),
-             self.grab_input_using_trait('homog' + str(i)),
-             get_image_size(self.grab_input_using_trait('image' + str(i))))
-            for i in range(1, self._n_input + 1)
-        ])
+        if self._fn_connected is None:
+            self._fn_connected = [
+                self.has_input_port_edge_using_trait('file_name' + str(i))
+                for i in range(1, self._n_input + 1)]
+        entries = []
+        for i in range(1, self._n_input + 1):
+            name = (self.grab_input_using_trait('file_name' + str(i))
+                    if self._fn_connected[i - 1] else '')
+            entries.append((
+                self.grab_input_using_trait('det_objs_' + str(i)),
+                self.grab_input_using_trait('homog' + str(i)),
+                get_image_size(self.grab_input_using_trait('image' + str(i))),
+                name,
+            ))
+        dos_list = self._suppressor.step(entries)
         for i, dos in enumerate(dos_list, 1):
             self.push_to_port_using_trait('det_objs_' + str(i), dos)
         self._base_step()
