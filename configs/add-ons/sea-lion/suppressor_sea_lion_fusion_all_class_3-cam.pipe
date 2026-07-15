@@ -18,7 +18,7 @@ config global
 
 include common_three_camera_input_with_downsamplers.pipe
 
-include common_sea_lion_stabilizer_3cam.pipe
+include common_sea_lion_registration_3cam.pipe
 
 connect from downsampler1.output_1
         to stabilizer.image1
@@ -26,6 +26,12 @@ connect from downsampler2.output_1
         to stabilizer.image2
 connect from downsampler3.output_1
         to stabilizer.image3
+connect from downsampler1.output_2
+        to stabilizer.file_name1
+connect from downsampler2.output_2
+        to stabilizer.file_name2
+connect from downsampler3.output_2
+        to stabilizer.file_name3
 
 include common_sea_lion_fusion_all_class_cam1.pipe
 

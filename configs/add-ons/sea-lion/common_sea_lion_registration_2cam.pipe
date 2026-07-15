@@ -1,0 +1,38 @@
+# =============================================================================
+# Title: Common - Sea Lion Registration 2cam
+#
+# Description: Shared registration module, drop-in replacement for
+# common_sea_lion_stabilizer_2cam.pipe. Instead of frame-to-frame SURF/VXL
+# stabilization (many_image_stabilizer), the homographies come from the newer
+# whole-survey registration (viame.colmap.colmap_registration:
+# affine chains + rig cross-camera consensus + optional GPS/flight-log
+# geo-anchoring). Exposes the same process name (stabilizer) and output ports
+# (homog1/homog2/homog3), so the multicam suppressor / tracker / homography
+# writer downstream are unchanged.
+#
+# The process also needs the per-camera image PATHS to key its precomputed
+# homographies, so consumers must additionally connect
+# downsamplerN.output_2 -> stabilizer.file_nameN (see the 3-cam suppressor /
+# tracker / utility pipes).
+#
+# Only n_input is fixed here (structural). Everything else is left at the
+# process defaults so it can be set per run WITHOUT editing this file, via
+#   kwiver runner ... -s stabilizer:<key>=<value>
+# (a value set here would otherwise shadow the command line). Overridable keys:
+#   method       hybrid (default) | metadata
+#   flight_log   FMCLOG CSV or directory of daily logs; empty = image-only
+#                registration (metadata-optional: hybrid works either way)
+#   water_method auto (default) | svm | sift
+#   site_folder  survey folder; empty = derived from the input image list
+#   image_list   list file used to locate the survey folder when site_folder
+#                is empty (default input_list_1.txt, the pipeline input list)
+#   cache        homography cache file; empty = <site>/.sea_lion_reg_cache.npz
+#
+# The first frame blocks while the whole survey is registered once; the result
+# is cached to disk, so re-runs (and running detector/suppressor/tracker after
+# a utility_register_frames pass) load it instantly.
+# =============================================================================
+
+process stabilizer
+  :: colmap_registration
+  n_input = 2

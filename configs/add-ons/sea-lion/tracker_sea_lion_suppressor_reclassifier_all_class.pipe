@@ -13,10 +13,12 @@ config _pipeline:_edge
 
 include common_default_input_with_downsampler.pipe
 
-include common_sea_lion_stabilizer_1cam.pipe
+include common_sea_lion_registration_1cam.pipe
 
 connect from downsampler.output_1
         to stabilizer.image1
+connect from downsampler.output_2
+        to stabilizer.file_name1
 
 include common_sea_lion_reclassifier_all_class_cam1.pipe
 
