@@ -102,10 +102,10 @@ class ColmapRegistration(KwiverProcess):
             'Water/land classifier for the hybrid method (auto|svm|sift).')
         _add_declare_config(
             self, 'cache', '',
-            'Path to a homography cache file. Empty = '
-            '<site>/.sea_lion_reg_cache_<key>.npz (the key covers the image '
-            'set, scope, method and flight log, so distinct runs cache '
-            'independently and are recomputed only when their inputs change).')
+            'Explicit path to the full-folder registration cache file. Empty = '
+            '<site>/VIAME/registration_<method>.npz (see use_cache). The cache '
+            'stores an algorithm signature (method, flight log, full folder '
+            'listing) and is reused only while that still matches.')
         _add_declare_config(
             self, 'site_folder', '',
             'Survey folder containing the per-camera image subdirectories. '
@@ -130,6 +130,14 @@ class ColmapRegistration(KwiverProcess):
             'For register_scope=list: comma-separated image-list file(s) whose '
             'lines are the frames to register. Empty = the pipeline input '
             'lists input_list_1.txt..input_list_<n_input>.txt.')
+        _add_declare_config(
+            self, 'use_cache', 'true',
+            'Persist/reuse a full-folder registration in <site>/VIAME/ '
+            '(alongside the camera folders) when the data folder is writable. '
+            'A whole-folder run writes registration_<method>.npz there; any '
+            'run - including a list-scope one - reuses it when its stored '
+            'algorithm signature still matches, since the full-survey geometry '
+            'covers a subset at higher quality. Set false to skip the cache.')
 
         self._n_input = int(self.config_value('n_input'))
         optional = process.PortFlags()
@@ -154,8 +162,10 @@ class ColmapRegistration(KwiverProcess):
         self._cache = self.config_value('cache') or None
         self._site_folder = self.config_value('site_folder') or None
         self._image_list = self.config_value('image_list') or None
-        self._scope = (self.config_value('register_scope') or 'folder').lower()
+        self._scope = (self.config_value('register_scope') or 'list').lower()
         self._frame_list = self.config_value('frame_list') or None
+        self._use_cache = (self.config_value('use_cache') or 'true').lower() \
+            not in ('false', '0', 'no', 'off')
         self._by_name = None                 # basename -> 3x3 or None
         self._frame = 0
         self._last = [None] * self._n_input  # last good homog matrix per cam
@@ -207,34 +217,52 @@ class ColmapRegistration(KwiverProcess):
     # ---- one-time batch registration -------------------------------------
 
     def _cache_key(self, site_folder, images):
-        if images is not None:
-            names = sorted(os.path.basename(p) for p in images)
-            scope = 'list'
-        else:
-            names = []
-            for cam in sorted(os.listdir(site_folder)):
-                d = os.path.join(site_folder, cam)
-                if os.path.isdir(d):
-                    names += sorted(os.listdir(d))
-            scope = 'folder'
+        # Key on the canonical camera image listing (via list_site_images,
+        # which sees only the CENTER/PORT/STAR frames or root images) - never
+        # the whole site tree, so the VIAME cache dir does not perturb its own
+        # key. The folder cache is always keyed on the FULL folder (images=None)
+        # so a list-scope run validates against it too.
+        from viame.opencv import survey_metadata as smd
+        cams = smd.list_site_images(site_folder, image_list=images)
+        names = sorted(os.path.basename(r)
+                       for rels in cams.values() for r in rels)
         fl = self._flight_log or ''
         have_fl = fl and os.path.exists(fl)
         fl_stamp = str(os.path.getmtime(fl)) if have_fl else ''
-        blob = '\n'.join(names) + f'|{scope}|{self._method}|{fl}|{fl_stamp}'
+        blob = '\n'.join(names) + f'|{self._method}|{fl}|{fl_stamp}'
         return hashlib.sha1(blob.encode('utf-8', 'replace')).hexdigest()
 
-    def _cache_path(self, site_folder, key):
-        # Key the filename so folder-mode and each distinct frame subset cache
-        # independently (no thrash when alternating scopes/subsets).
-        return self._cache or os.path.join(
-            site_folder, '.sea_lion_reg_cache_%s.npz' % key[:12])
+    @staticmethod
+    def _writable(path):
+        return os.path.isdir(path) and os.access(path, os.W_OK)
+
+    def _folder_cache_path(self, site_folder, for_write=False):
+        """Full-folder registration cache, kept next to the imagery in
+        <site>/VIAME/registration_<method>.npz so it is easy to find and
+        share. An explicit `cache` config overrides the location. Returns None
+        if nothing suitable is writable (for_write) / present (read)."""
+        if self._cache:
+            return self._cache
+        viame = os.path.join(site_folder, 'VIAME')
+        if os.path.isdir(viame) or (for_write and self._writable(site_folder)):
+            if for_write and not os.path.isdir(viame):
+                try:
+                    os.makedirs(viame, exist_ok=True)
+                except OSError:
+                    return None
+            if not for_write or self._writable(viame):
+                return os.path.join(viame,
+                                    'registration_%s.npz' % self._method)
+        return None
 
     def _load_cache(self, path, key):
+        if not path or not os.path.exists(path):
+            return None
         try:
             z = np.load(path, allow_pickle=True)
         except (OSError, ValueError):
             return None
-        if str(z['key']) != key:
+        if str(z['key']) != key:       # algorithm signature changed -> stale
             return None
         mats = z['mats']
         return {str(n): (None if bool(m) else mats[i])
@@ -248,17 +276,22 @@ class ColmapRegistration(KwiverProcess):
         try:
             np.savez(path, key=key, names=np.array(names),
                      is_none=np.array(is_none), mats=mats)
+            _log('cached full-folder registration to %s' % path)
         except OSError as e:
             _log('could not write cache %s: %s' % (path, e))
 
     def _register(self, site_folder, images):
         from viame.opencv import prior_coverage_core as pcc
-        key = self._cache_key(site_folder, images)
-        path = self._cache_path(site_folder, key)
-        cached = self._load_cache(path, key)
-        if cached is not None:
-            _log('loaded %d cached homographies from %s' % (len(cached), path))
-            return cached
+        # The full-folder cache is keyed and validated on the WHOLE folder
+        # (images=None), so a list-scope run reuses it too when present.
+        folder_key = self._cache_key(site_folder, None)
+        if self._use_cache:
+            cached = self._load_cache(
+                self._folder_cache_path(site_folder), folder_key)
+            if cached is not None:
+                _log('reusing full-folder registration from %s (%d frames)'
+                     % (self._folder_cache_path(site_folder), len(cached)))
+                return cached
         scope = ('%d listed frames' % len(images) if images is not None
                  else 'whole folder')
         _log('registering %s [%s] (method=%s, flight_log=%s) - one-time, '
@@ -275,7 +308,12 @@ class ColmapRegistration(KwiverProcess):
                 np.asarray(H, dtype=np.float64)
             n_geo += H is not None
         _log('%d images, %d geo-referenced' % (len(by_name), n_geo))
-        self._save_cache(path, key, by_name)
+        # Persist only whole-folder results (the reusable, higher-quality
+        # geometry), and only where the data folder is writable.
+        if self._use_cache and images is None:
+            wpath = self._folder_cache_path(site_folder, for_write=True)
+            if wpath:
+                self._save_cache(wpath, folder_key, by_name)
         return by_name
 
     # ---- streaming --------------------------------------------------------
