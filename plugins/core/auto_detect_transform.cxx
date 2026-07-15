@@ -55,16 +55,17 @@ auto_detect_transform_io
     extension = filename.substr( idx + 1 );
   }
 
-  if( extension == "h5" )
+  if( extension == "h5" || extension == "json" )
   {
     auto config = kwiver::vital::config_block::empty_config();
-    config->set_value( "transform_reader:type", "itk" );
+    config->set_value( "transform_reader:type",
+                       extension == "h5" ? "itk" : "dive" );
 
     kwiver::vital::algo::transform_2d_io_sptr ti;
 
     kwiver::vital::algo::transform_2d_io::set_nested_algo_configuration(
       "transform_reader", config, ti );
-  
+
     if( ti )
     {
       output = ti->load( filename );
