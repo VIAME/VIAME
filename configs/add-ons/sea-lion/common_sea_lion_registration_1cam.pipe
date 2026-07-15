@@ -40,3 +40,5 @@
 process stabilizer
   :: colmap_registration
   n_input = 1
+  image_list = input_list.txt
+  frame_list = input_list.txt
