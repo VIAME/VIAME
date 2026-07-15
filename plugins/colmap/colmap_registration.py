@@ -162,10 +162,12 @@ class ColmapRegistration(KwiverProcess):
         self._warned_missing = 0
         self._base_configure()
 
-    def _resolve_site(self):
-        """Survey folder: explicit site_folder, else derived from the first
-        full image path in the image_list (the streamed file_name port only
-        carries basenames)."""
+    def _resolve_site(self, hint_name=None):
+        """Survey folder, in precedence order: explicit site_folder config;
+        the first full image path in the image_list file; or the streamed
+        file_name itself when it is a full path (set the input reader's
+        no_path_in_name=false to feed full paths over the port, so the folder
+        need not be named again for the node)."""
         if self._site_folder:
             return self._site_folder
         lst = self._image_list
@@ -176,6 +178,9 @@ class ColmapRegistration(KwiverProcess):
                     if p:
                         return os.path.dirname(os.path.dirname(
                             os.path.abspath(p)))
+        if hint_name and os.path.dirname(str(hint_name)):
+            return os.path.dirname(os.path.dirname(
+                os.path.abspath(str(hint_name))))
         return None
 
     def _resolve_images(self):
@@ -306,7 +311,7 @@ class ColmapRegistration(KwiverProcess):
         names = [self.grab_input_using_trait('file_name' + str(i))
                  for i in range(1, self._n_input + 1)]
         if self._by_name is None:
-            site = self._resolve_site()
+            site = self._resolve_site(names[0] if names else None)
             if site is None or not os.path.isdir(site):
                 _log('could not resolve survey folder (site_folder=%r '
                      'image_list=%r); emitting identity homographies'
