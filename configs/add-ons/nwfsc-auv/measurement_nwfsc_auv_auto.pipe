@@ -53,7 +53,6 @@ process detector_l
   block detector:ocv_windowed
     :detector:type                             netharn
 
-    # Model was trained with --window_dims=640,640 --window_overlap=0.20
     :mode                                      original_and_resized
     :chip_width                                640
     :chip_height                               640
@@ -338,7 +337,6 @@ connect from merge_dets_r.detected_object_set
 process measurer
   :: compute_measurements
   relativepath calibration_file =              models/nwfsc-cal.json
-  # Single-state tracks (no temporal tracker), so no state-count gate
   :min_track_states                            0
 
   # Detection pairing for unmatched left/right tracks
