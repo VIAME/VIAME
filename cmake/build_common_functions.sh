@@ -521,12 +521,19 @@ patch_cudnn_headers() {
 # Arguments: $1 = VIAME source directory (default: /viame)
 #
 # The NCCL bundled with PyTorch (2.29.7) exposes a symmetric-memory device API
-# whose headers do not compile under CUDA 12.8: OpSum<half> instantiation leaves
-# operator+ unresolved in NCCL's reduce_copy__types.h, which fails torch_cuda and
-# so the entire build. The four macros below are the only entry points to that
-# API and every use of them is #ifdef-guarded, so undefining them compiles the
-# affected translation units to empty bodies. Standard NCCL collectives and DDP
-# are unaffected. Revisit when NCCL or CUDA is bumped.
+# that does not compile under CUDA 12.8: nccl_device.h instantiates OpSum<half>
+# during its host pass, where half has no operator+, so nvcc fails in NCCL's
+# reduce_copy__types.h. That breaks NCCLSymmetricMemory.cu, nccl_extension.cu and
+# ops/nccl_reduce_scatter_offset.cu -> torch_cuda -> the entire build.
+#
+# Both the #include and the four capability macros must go. The macros gate every
+# use of the device API (all #ifdef NCCL_HAS_SYMMEM_*), but the #include sits in a
+# version check rather than a capability check, so dropping the macros alone still
+# pulls in the uncompilable header. With both removed the affected translation
+# units compile to empty bodies. ncclWindow_t and friends come from nccl.h and are
+# unaffected, as are standard NCCL collectives and DDP.
+#
+# Revisit when NCCL or CUDA is bumped.
 patch_pytorch_nccl_symmem() {
   local source_dir="${1:-/viame}"
   local header="$source_dir/packages/pytorch/torch/csrc/distributed/c10d/symm_mem/nccl_dev_cap.hpp"
@@ -543,13 +550,18 @@ patch_pytorch_nccl_symmem() {
     return 0
   fi
 
-  sed -i -E 's@^#define (NCCL_HAS_SYMMEM_SUPPORT|NCCL_HAS_SYMMEM_DEVICE_SUPPORT|NCCL_HAS_ONE_SIDED_API|NCCL_DEVICE_HAS_REDUCE_COPY)$@// VIAME_DISABLE_NCCL_SYMMEM (does not compile under CUDA 12.8): #define \1@' "$header"
+  local tag='// VIAME_DISABLE_NCCL_SYMMEM (does not compile under CUDA 12.8):'
+
+  sed -i -E \
+    -e "s@^#define (NCCL_HAS_SYMMEM_SUPPORT|NCCL_HAS_SYMMEM_DEVICE_SUPPORT|NCCL_HAS_ONE_SIDED_API|NCCL_DEVICE_HAS_REDUCE_COPY)\$@$tag #define \1@" \
+    -e "s@^#include <nccl_device.h>\$@$tag #include <nccl_device.h>@" \
+    "$header"
 
   local patched
   patched=$( grep -c 'VIAME_DISABLE_NCCL_SYMMEM' "$header" )
 
-  if [ "$patched" -ne 4 ]; then
-    echo "ERROR: expected to disable 4 NCCL symmem macros, disabled $patched"
+  if [ "$patched" -ne 5 ]; then
+    echo "ERROR: expected to disable 4 NCCL symmem macros + 1 include, got $patched"
     echo "       $header has likely changed upstream; the patch needs review"
     return 1
   fi
