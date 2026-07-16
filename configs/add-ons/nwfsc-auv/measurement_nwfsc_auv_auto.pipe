@@ -59,7 +59,7 @@ process detector_l
     :chip_adaptive_thresh                      1600000
 
     block detector:netharn
-      relativepath deployed =                  models/trained_detector.zip
+      relativepath deployed =                  models/nwfsc_auv_detector.zip
     endblock
   endblock
 
@@ -211,7 +211,7 @@ process detector_r
     :chip_adaptive_thresh                      1600000
 
     block detector:netharn
-      relativepath deployed =                  models/trained_detector.zip
+      relativepath deployed =                  models/nwfsc_auv_detector.zip
     endblock
   endblock
 
