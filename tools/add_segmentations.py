@@ -1388,18 +1388,22 @@ def cmd_reseg(args):
 # keypoints -- derive head/tail keypoints from existing polygons
 #
 # Adds head/tail keypoints to a CSV that already carries segmentation polygons,
-# in the same manner the interactive segmentation service adds them by default:
-# each detection's polygon is rasterized to a mask and handed to the vital
-# add_keypoints_from_mask algorithm (default 'oriented_bbox' method -- fit a
-# min-area rectangle to the mask and take the midpoints of its short edges),
-# and the result is written back as (kp) head / (kp) tail tokens. This mirrors
-# interactive_stereo._polygon_to_keypoints so the keypoints match a click-drawn
-# one exactly. Needs the VIAME environment sourced (kwiver.vital), as reseg does.
+# in the same manner the interactive segmentation service adds them: each
+# detection's polygon is rasterized to a mask and handed to the vital
+# add_keypoints_from_mask algorithm, configured as the measurement / keypoint
+# pipelines and the interactive service are -- 'hull_extremes' method (fit a
+# min-area rectangle to the mask's convex hull and take the midpoints of its
+# short edges) with clip_to_mask -- and the result is written back as (kp) head
+# / (kp) tail tokens. This mirrors interactive_stereo._polygon_to_keypoints so
+# the keypoints match a click-drawn one exactly. Needs the VIAME environment
+# sourced (kwiver.vital), as reseg does.
 # -----------------------------------------------------------------------------
 
-def make_keypoint_algo(method=''):
-    """The add_keypoints_from_mask vital algorithm, default config unless
-    a method is given. Same algorithm the interactive service uses."""
+def make_keypoint_algo(method='hull_extremes', clip_to_mask=True):
+    """The add_keypoints_from_mask vital algorithm, configured to match the
+    measurement / keypoint pipelines and the interactive segmentation service
+    (hull_extremes method, clip_to_mask) rather than the algorithm's bare
+    default."""
     try:
         from kwiver.vital.algo import RefineDetections
         from kwiver.vital.modules import modules
@@ -1413,10 +1417,10 @@ def make_keypoint_algo(method=''):
     if algo is None:
         sys.exit('add_keypoints_from_mask algorithm is not registered in this '
                  'VIAME install (it ships with the OpenCV plugins).')
-    if method:
-        cfg = algo.get_configuration()
-        cfg.set_value('method', method)
-        algo.set_configuration(cfg)
+    cfg = algo.get_configuration()
+    cfg.set_value('method', method)
+    cfg.set_value('clip_to_mask', 'true' if clip_to_mask else 'false')
+    algo.set_configuration(cfg)
     return algo
 
 
@@ -1484,9 +1488,10 @@ def replace_keypoint_tokens(fields, head, tail):
     return columns + kept
 
 
-def add_keypoints(input_csv, output_csv, method=''):
+def add_keypoints(input_csv, output_csv, method='hull_extremes',
+                  clip_to_mask=True):
     """Write input_csv with head/tail keypoints added to every polygon row."""
-    algo = make_keypoint_algo(method)
+    algo = make_keypoint_algo(method, clip_to_mask)
 
     n_rows = n_added = n_no_polygon = n_failed = 0
     lines = list(csv_header(input_csv))
@@ -1514,7 +1519,8 @@ def add_keypoints(input_csv, output_csv, method=''):
 
 
 def cmd_keypoints(args):
-    stats = add_keypoints(args.input, args.output, method=args.method)
+    stats = add_keypoints(args.input, args.output, method=args.method,
+                          clip_to_mask=args.clip_to_mask)
     print('rows=%(rows)d keypoints_added=%(keypoints_added)d '
           'no_polygon=%(no_polygon)d failed=%(failed)d' % stats)
     print('Wrote ' + args.output)
@@ -1840,11 +1846,14 @@ def main():
                         help='add head/tail keypoints to a polygon CSV')
     p.add_argument('input', help='CSV that already carries segmentation polygons')
     p.add_argument('output', help='CSV to write, with (kp) head/tail added')
-    p.add_argument('--method', default='',
-                   help='add_keypoints_from_mask method (default: the algorithm '
-                        'default, oriented_bbox -- as the interactive service '
-                        'uses); e.g. pca, hull_extremes, skeleton')
-    p.set_defaults(func=cmd_keypoints)
+    p.add_argument('--method', default='hull_extremes',
+                   help='add_keypoints_from_mask method (default: hull_extremes, '
+                        'as the measurement pipelines and interactive service '
+                        'use); e.g. oriented_bbox, pca, skeleton')
+    p.add_argument('--no-clip-to-mask', dest='clip_to_mask',
+                   action='store_false',
+                   help='do not clip keypoints to the mask (default: clip)')
+    p.set_defaults(func=cmd_keypoints, clip_to_mask=True)
 
     p = subs.add_parser('validate', help='check one output against its input')
     p.add_argument('original')

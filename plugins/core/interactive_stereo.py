@@ -1200,12 +1200,18 @@ class InteractiveStereoService:
         return {"success": True, "avg_length": float(avg)}
 
     def _get_keypoint_algo(self):
-        """Lazily create the add_keypoints_from_mask vital algorithm. This is the
-        same algorithm (oriented bounding box, default config) the measurement
-        pipelines use to turn polygons/masks into head/tail keypoints."""
+        """Lazily create the add_keypoints_from_mask vital algorithm, configured
+        to match the measurement / keypoint pipelines (hull_extremes method,
+        clip_to_mask) rather than the algorithm's bare default, so that
+        interactively-placed head/tail keypoints agree with the batch ones."""
         if self._keypoint_algo is None:
             from kwiver.vital.algo import RefineDetections
-            self._keypoint_algo = RefineDetections.create("add_keypoints_from_mask")
+            algo = RefineDetections.create("add_keypoints_from_mask")
+            cfg = algo.get_configuration()
+            cfg.set_value("method", "hull_extremes")
+            cfg.set_value("clip_to_mask", "true")
+            algo.set_configuration(cfg)
+            self._keypoint_algo = algo
         return self._keypoint_algo
 
     def _polygon_to_keypoints(self, polygon):
