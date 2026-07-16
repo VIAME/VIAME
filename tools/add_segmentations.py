@@ -18,6 +18,7 @@ Sub-commands (run `add_segmentations.py <cmd> --help` for the details):
   gen-scripts  emit slurm / bash run scripts for the manifest
   run-unit     process ONE unit end to end (what the slurm tasks call)
   merge        merge computed polygons into an original CSV (standalone)
+  keypoints    add head/tail keypoints to a polygon CSV (standalone)
   validate     check one unit's output against its input
   audit        validate every unit, print a summary table
   finalize     copy validated outputs over the source CSVs (backing them up)
@@ -1384,6 +1385,143 @@ def cmd_reseg(args):
 
 
 # -----------------------------------------------------------------------------
+# keypoints -- derive head/tail keypoints from existing polygons
+#
+# Adds head/tail keypoints to a CSV that already carries segmentation polygons,
+# in the same manner the interactive segmentation service adds them by default:
+# each detection's polygon is rasterized to a mask and handed to the vital
+# add_keypoints_from_mask algorithm (default 'oriented_bbox' method -- fit a
+# min-area rectangle to the mask and take the midpoints of its short edges),
+# and the result is written back as (kp) head / (kp) tail tokens. This mirrors
+# interactive_stereo._polygon_to_keypoints so the keypoints match a click-drawn
+# one exactly. Needs the VIAME environment sourced (kwiver.vital), as reseg does.
+# -----------------------------------------------------------------------------
+
+def make_keypoint_algo(method=''):
+    """The add_keypoints_from_mask vital algorithm, default config unless
+    a method is given. Same algorithm the interactive service uses."""
+    try:
+        from kwiver.vital.algo import RefineDetections
+        from kwiver.vital.modules import modules
+    except ImportError:
+        sys.exit('Cannot import kwiver.vital; source setup_viame.sh so the '
+                 'VIAME plugins are on the path, then re-run.')
+    # A bare Python process has not scanned the plugin path the way a running
+    # pipeline has, so the algorithm factories are not registered yet.
+    modules.load_known_modules()
+    algo = RefineDetections.create('add_keypoints_from_mask')
+    if algo is None:
+        sys.exit('add_keypoints_from_mask algorithm is not registered in this '
+                 'VIAME install (it ships with the OpenCV plugins).')
+    if method:
+        cfg = algo.get_configuration()
+        cfg.set_value('method', method)
+        algo.set_configuration(cfg)
+    return algo
+
+
+def polygons_to_head_tail(polys, algo):
+    """(head_xy, tail_xy) for a detection's polygon(s), or None.
+
+    Rasterizes every (poly) on the detection into one mask spanning their
+    combined extent and runs the vital algorithm, exactly as the interactive
+    service does for a single click-drawn polygon.
+    """
+    import cv2
+    import numpy as np
+    from kwiver.vital.types import (
+        DetectedObject, DetectedObjectSet, BoundingBoxD, ImageContainer, Image)
+
+    contours = []
+    for poly in polys:
+        pts = np.asarray(poly, dtype=np.float64).reshape(-1, 2)
+        if pts.shape[0] >= 3:
+            contours.append(pts)
+    if not contours:
+        return None
+
+    allpts = np.concatenate(contours, axis=0)
+    x0, y0 = np.floor(allpts.min(axis=0)).astype(int)
+    x1, y1 = np.ceil(allpts.max(axis=0)).astype(int)
+    w, h = int(x1 - x0), int(y1 - y0)
+    if w <= 0 or h <= 0:
+        return None
+
+    mask = np.zeros((h, w), dtype=np.uint8)
+    cv2.fillPoly(mask, [(c - [x0, y0]).astype(np.int32) for c in contours], 255)
+    det = DetectedObject(
+        BoundingBoxD(float(x0), float(y0), float(x1), float(y1)),
+        1.0, None, ImageContainer(Image(mask)))
+    dummy = ImageContainer(Image(np.zeros((h, w, 3), dtype=np.uint8)))
+
+    refined = algo.refine(dummy, DetectedObjectSet([det]))
+    dets = list(refined)
+    if not dets:
+        return None
+    kps = dets[0].keypoints
+    if 'head' not in kps or 'tail' not in kps:
+        return None
+    head = kps['head'].value
+    tail = kps['tail'].value
+    return ([float(head[0]), float(head[1])], [float(tail[0]), float(tail[1])])
+
+
+def replace_keypoint_tokens(fields, head, tail):
+    """Row with head/tail (kp) tokens set; polygons and other tokens preserved.
+
+    Any pre-existing head/tail keypoint is dropped first so the command is
+    idempotent; other keypoints, notes and attributes carry through untouched.
+    """
+    columns, tokens = split_tokens(fields)
+    kept = []
+    for token in tokens:
+        parts = token.strip().split()
+        if len(parts) >= 2 and parts[0] == '(kp)' and parts[1] in ('head', 'tail'):
+            continue
+        kept.append(token)
+    kept.append('(kp) head %d %d' % (round(head[0]), round(head[1])))
+    kept.append('(kp) tail %d %d' % (round(tail[0]), round(tail[1])))
+    return columns + kept
+
+
+def add_keypoints(input_csv, output_csv, method=''):
+    """Write input_csv with head/tail keypoints added to every polygon row."""
+    algo = make_keypoint_algo(method)
+
+    n_rows = n_added = n_no_polygon = n_failed = 0
+    lines = list(csv_header(input_csv))
+    for _, line, fields in csv_rows(input_csv):
+        n_rows += 1
+        polys = row_polys(line)
+        if not polys:
+            n_no_polygon += 1
+            lines.append(line)
+            continue
+        head_tail = polygons_to_head_tail(polys, algo)
+        if head_tail is None:
+            n_failed += 1
+            lines.append(line)
+            continue
+        head, tail = head_tail
+        lines.append(','.join(replace_keypoint_tokens(fields, head, tail)) + '\n')
+        n_added += 1
+
+    with open(output_csv, 'w') as fout:
+        fout.writelines(lines)
+
+    return {'rows': n_rows, 'keypoints_added': n_added,
+            'no_polygon': n_no_polygon, 'failed': n_failed}
+
+
+def cmd_keypoints(args):
+    stats = add_keypoints(args.input, args.output, method=args.method)
+    print('rows=%(rows)d keypoints_added=%(keypoints_added)d '
+          'no_polygon=%(no_polygon)d failed=%(failed)d' % stats)
+    print('Wrote ' + args.output)
+    return 0
+
+
+# -----------------------------------------------------------------------------
 # gen-scripts
 # -----------------------------------------------------------------------------
 
@@ -1697,6 +1835,16 @@ def main():
     p.add_argument('--no-box-fallback', action='store_true')
     p.add_argument('--keep-specks', action='store_true')
     p.set_defaults(func=cmd_merge)
+
+    p = subs.add_parser('keypoints',
+                        help='add head/tail keypoints to a polygon CSV')
+    p.add_argument('input', help='CSV that already carries segmentation polygons')
+    p.add_argument('output', help='CSV to write, with (kp) head/tail added')
+    p.add_argument('--method', default='',
+                   help='add_keypoints_from_mask method (default: the algorithm '
+                        'default, oriented_bbox -- as the interactive service '
+                        'uses); e.g. pca, hull_extremes, skeleton')
+    p.set_defaults(func=cmd_keypoints)
 
     p = subs.add_parser('validate', help='check one output against its input')
     p.add_argument('original')
