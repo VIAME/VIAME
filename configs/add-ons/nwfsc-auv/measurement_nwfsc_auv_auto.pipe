@@ -2,19 +2,20 @@
 # Title: NWFSC AUV Stereo Measurement (Dual Camera Detection, Core)
 #
 # Description: Stereo measurement pipeline that runs detection, SAM2
-# segmentation, head/tail keypoint identification, and tracking on BOTH left
-# and right cameras independently. The core measurement process handles track
-# pairing (detection matching, ID unification, class averaging) and
-# triangulates matched keypoints for 3D measurements using calibration data.
+# segmentation, and head/tail keypoint identification on BOTH left and right
+# cameras independently. No temporal tracker is run -- each detection becomes
+# its own single-state track. The core measurement process handles pairing
+# (detection matching, ID unification, class averaging) and triangulates
+# matched keypoints for 3D measurements using calibration data.
 #
 # Detector classes: sponges, rockfish, corals, roundfish, flatfish
 #
 # Segmentation runs over every detection, but head/tail keypoints are only
 # assigned to the fish classes (rockfish, roundfish, flatfish). Because
-# compute_measurements only measures tracks carrying both a "head" and a
+# compute_measurements only measures detections carrying both a "head" and a
 # "tail" keypoint on both cameras, restricting the keypoint stage is what
 # restricts measurement -- corals and sponges still flow through to the
-# output as segmented tracks, just without a length.
+# output as segmented detections, just without a length.
 #
 # Requires Calibration: True
 # =============================================================================
@@ -164,35 +165,21 @@ connect from add_head_tail_l.detected_object_set
 connect from nonfish_filter_l.detected_object_set
         to   merge_dets_l.detected_object_set2
 
-# ========================== LEFT CAMERA TRACKER ==============================
+# ======================== LEFT CAMERA TRACK INIT =============================
+# No temporal tracker: compute_measurements only accepts object_track_set
+# inputs, so each detection is wrapped in its own single-state track.
 
 process tracker_l
-  :: track_objects
-  :track_objects:type                          srnn
+  :: initialize_object_tracks
+  :track_initializer:type                      threshold
 
-block track_objects:srnn
-  :siamese_model_input_size                    224
-  :detection_select_threshold                  0.001
-  :similarity_threshold                        0.200
-  :terminate_track_threshold                   10
-  :add_features_to_detections                  False
-  :IOU_tracker_flag                            True
-  :IOU_accept_threshold                        0.500
-  :IOU_reject_threshold                        0.100
-  :track_search_threshold                      2
-  :gpu_list                                    0
+  block track_initializer:threshold:filter
+    :type                                      class_probablity_filter
+    :class_probablity_filter:threshold         0.001
+    :class_probablity_filter:keep_all_classes  true
+    :class_probablity_filter:keep_classes      unused
+  endblock
 
-  relativepath siamese_model_path =            models/seamap_tracker_siamese.pt
-  :siamese_batch_size                          64
-
-  relativepath targetRNN_AIM_model_path =      models/seamap_tracker_rnn_f_aim.pt
-  relativepath targetRNN_AIM_V_model_path =    models/seamap_tracker_rnn_v_aim.pt
-  :targetRNN_normalized_models                 True
-  :targetRNN_batch_size                        128
-endblock
-
-connect from downsampler.output_1
-        to   tracker_l.image
 connect from downsampler.timestamp
         to   tracker_l.timestamp
 connect from merge_dets_l.detected_object_set
@@ -321,35 +308,19 @@ connect from add_head_tail_r.detected_object_set
 connect from nonfish_filter_r.detected_object_set
         to   merge_dets_r.detected_object_set2
 
-# ========================== RIGHT CAMERA TRACKER =============================
+# ======================= RIGHT CAMERA TRACK INIT =============================
 
 process tracker_r
-  :: track_objects
-  :track_objects:type                          srnn
+  :: initialize_object_tracks
+  :track_initializer:type                      threshold
 
-block track_objects:srnn
-  :siamese_model_input_size                    224
-  :detection_select_threshold                  0.001
-  :similarity_threshold                        0.200
-  :terminate_track_threshold                   10
-  :add_features_to_detections                  False
-  :IOU_tracker_flag                            True
-  :IOU_accept_threshold                        0.500
-  :IOU_reject_threshold                        0.100
-  :track_search_threshold                      2
-  :gpu_list                                    0
+  block track_initializer:threshold:filter
+    :type                                      class_probablity_filter
+    :class_probablity_filter:threshold         0.001
+    :class_probablity_filter:keep_all_classes  true
+    :class_probablity_filter:keep_classes      unused
+  endblock
 
-  relativepath siamese_model_path =            models/seamap_tracker_siamese.pt
-  :siamese_batch_size                          64
-
-  relativepath targetRNN_AIM_model_path =      models/seamap_tracker_rnn_f_aim.pt
-  relativepath targetRNN_AIM_V_model_path =    models/seamap_tracker_rnn_v_aim.pt
-  :targetRNN_normalized_models                 True
-  :targetRNN_batch_size                        128
-endblock
-
-connect from downsampler.output_3
-        to   tracker_r.image
 connect from downsampler.timestamp
         to   tracker_r.timestamp
 connect from merge_dets_r.detected_object_set
@@ -367,7 +338,8 @@ connect from merge_dets_r.detected_object_set
 process measurer
   :: compute_measurements
   relativepath calibration_file =              models/nwfsc-cal.json
-  :min_track_states                            6
+  # Single-state tracks (no temporal tracker), so no state-count gate
+  :min_track_states                            0
 
   # Detection pairing for unmatched left/right tracks
   :detection_pairing_method                    keypoint_projection
