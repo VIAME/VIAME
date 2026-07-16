@@ -81,6 +81,7 @@ struct VIAME_CORE_EXPORT window_settings
   int chip_adaptive_thresh;
   int batch_size;
   int min_detection_dim;
+  int min_refine_dimension;
   bool original_to_chip_size;
   bool black_pad;
 };

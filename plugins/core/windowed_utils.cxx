@@ -28,6 +28,7 @@ window_settings
   , chip_adaptive_thresh( 2000000 )
   , batch_size( 1 )
   , min_detection_dim( 1 )
+  , min_refine_dimension( 1 )
   , original_to_chip_size( false )
   , black_pad( false )
 {}
@@ -63,6 +64,11 @@ window_settings
     "Optional processing batch size to send to the detector." );
   config->set_value( "min_detection_dim", min_detection_dim,
     "Minimum detection dimension in original image space." );
+  config->set_value( "min_refine_dimension", min_refine_dimension,
+    "Detections whose bounding box has a width or height below this value "
+    "(in original image space) are passed through unmodified instead of being "
+    "sent to the inner refiner. Guards against degenerate boxes that the "
+    "windowing logic cannot process; set to 0 to refine every detection." );
   config->set_value( "original_to_chip_size", original_to_chip_size,
     "Optionally enforce the input image is the specified chip size" );
   config->set_value( "black_pad", black_pad,
@@ -88,6 +94,7 @@ window_settings
   chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
   batch_size = config->get_value< int >( "batch_size" );
   min_detection_dim = config->get_value< int >( "min_detection_dim" );
+  min_refine_dimension = config->get_value< int >( "min_refine_dimension", 1 );
   original_to_chip_size = config->get_value< bool >( "original_to_chip_size" );
   black_pad = config->get_value< bool >( "black_pad" );
 }

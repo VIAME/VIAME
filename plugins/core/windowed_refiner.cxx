@@ -137,9 +137,87 @@ windowed_refiner
 
 
 // -----------------------------------------------------------------------------
+// Public entry point.
+//
+// A refiner must return exactly one detection per input, in input order: some
+// callers re-associate the refined detections back onto their source
+// positionally (e.g. sprokit's refine_detections_process maps them onto track
+// states by iteration order), and a size or order mismatch there is a crash,
+// not a soft error. Detections whose box is too small to refine -- notably
+// degenerate boxes with zero width or height, which the region-intersection
+// logic would otherwise silently drop -- are passed through unmodified in
+// their original position. Everything else is refined by refine_core(). The
+// returned set is guaranteed 1:1 with, and in the same order as, the input.
 kv::detected_object_set_sptr
 windowed_refiner
 ::refine( kv::image_container_sptr image_data,
+         kv::detected_object_set_sptr detections ) const
+{
+  if( !detections )
+  {
+    return std::make_shared< kv::detected_object_set >();
+  }
+
+  // Detections smaller than this in either dimension are passed through
+  // unmodified rather than refined (see min_refine_dimension in the config).
+  const int min_dim = d->m_settings.min_refine_dimension;
+
+  // Snapshot the input in order and flag the detections too small to refine.
+  std::vector< kv::detected_object_sptr > input_dets;
+  std::vector< bool > too_small;
+  auto to_refine = std::make_shared< kv::detected_object_set >();
+
+  for( auto det : *detections )
+  {
+    input_dets.push_back( det );
+    const bool small = !det ||
+      det->bounding_box().width() < min_dim ||
+      det->bounding_box().height() < min_dim;
+    too_small.push_back( small );
+    if( !small )
+    {
+      to_refine->add( det );
+    }
+  }
+
+  // Refine the normally-sized detections through the windowing logic.
+  kv::detected_object_set_sptr refined = refine_core( image_data, to_refine );
+
+  std::vector< kv::detected_object_sptr > refined_dets;
+  if( refined )
+  {
+    for( auto det : *refined )
+    {
+      refined_dets.push_back( det );
+    }
+  }
+
+  // Rebuild the output in input order: pass the too-small detections through
+  // unmodified, and slot the refined results into the remaining positions.
+  // The bounds check keeps the mapping safe even if refine_core returned fewer
+  // detections than it was handed.
+  auto output = std::make_shared< kv::detected_object_set >();
+  size_t r = 0;
+  for( size_t i = 0; i < input_dets.size(); i++ )
+  {
+    if( !too_small[i] && r < refined_dets.size() )
+    {
+      output->add( refined_dets[ r++ ] );
+    }
+    else
+    {
+      output->add( input_dets[ i ] );
+    }
+  }
+
+  return output;
+}
+
+
+// -----------------------------------------------------------------------------
+kv::detected_object_set_sptr
+windowed_refiner
+::refine_core( kv::image_container_sptr image_data,
           kv::detected_object_set_sptr detections ) const
 {
   kv::scoped_wall_timer t( "Time to Refine Objects" );

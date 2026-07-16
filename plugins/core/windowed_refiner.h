@@ -43,6 +43,14 @@ public:
 
 private:
 
+  // Core windowing refinement. Refines every input detection that overlaps a
+  // processing region; detections too small/degenerate to refine are handled
+  // by the public refine() wrapper (passed through unmodified) so that the
+  // returned set stays 1:1 with the input.
+  kwiver::vital::detected_object_set_sptr refine_core(
+    kwiver::vital::image_container_sptr image_data,
+    kwiver::vital::detected_object_set_sptr detections ) const;
+
   class priv;
   const std::unique_ptr< priv > d;
 };
