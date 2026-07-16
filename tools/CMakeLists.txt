@@ -17,6 +17,7 @@ set( PYTHON_SCRIPTS
   plot_eval_results.py
   process_video.py
   score_results.py
+  survey_metadata.py
   train_detection_fusion.py
   viame_csv_tool.py
 )
@@ -32,7 +33,6 @@ if( VIAME_ENABLE_OPENCV )
     ply_utilities.py
     reconstruct_3d.py
     stereo_rectify.py
-    survey_metadata.py
   )
 endif()
 

@@ -114,7 +114,7 @@ def run(args):
     """
     import pycolmap
     import detect_prior_coverage as dpc
-    from viame.opencv import survey_metadata as smd
+    from viame.core import survey_metadata as smd
 
     grid = dpc.CoverageGrid(cell_m=args.grid_cell)
     origin_ref = {'lat': None, 'lon': None, 'to_enu': None}

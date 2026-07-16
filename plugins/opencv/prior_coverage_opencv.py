@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""prior_coverage_core.py - shared registration core for previously-observed
+"""prior_coverage_opencv.py - shared registration core for previously-observed
 region detection.
 
 Registers a (multi-camera) aerial survey and produces, for every image, a
@@ -20,7 +20,7 @@ import os
 
 import numpy as np
 
-from viame.opencv import survey_metadata as smd
+from viame.core import survey_metadata as smd
 from viame.opencv import registration_utils as _sr
 # registration_utils keeps numpy/cv2 as lazily-populated module globals; make
 # sure they are bound before any of its functions run (the tool does the same).

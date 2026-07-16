@@ -65,11 +65,11 @@ import numpy as np
 # registration node (viame.colmap.colmap_registration) share one
 # implementation. This tool keeps only the coverage grid, CSV/visualization
 # outputs and the CLI.
-from viame.opencv import survey_metadata as smd
+from viame.core import survey_metadata as smd
 from viame.opencv import registration_utils as _sr
 _sr.import_dependencies()
 from viame.opencv.registration_utils import compute_homography_pair
-from viame.opencv.prior_coverage_core import (
+from viame.opencv.prior_coverage_opencv import (
     CAM_ORDER, Observation, SiteRegistration, _register_site,
     compute_frame_homographies, _metadata_transform,
     _apply_h, _image_rect, _clip_poly_to_rect, _sane_relative, _poly_area,

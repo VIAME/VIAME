@@ -8,7 +8,7 @@ surveys: identical ports (``image1..N`` in, ``homog1..N`` out, plus a
 ``file_name1..N`` key), so the multicam suppressor / tracker / homography
 writer downstream are unchanged. The homographies are computed by the newer
 affine-chain + rig cross-camera + GPS geo-anchoring registration
-(viame.opencv.prior_coverage_core), which optionally uses an external
+(viame.opencv.prior_coverage_opencv), which optionally uses an external
 flight-log metadata file when one is available and falls back to pure
 image registration when it is not.
 
@@ -76,7 +76,7 @@ def _f2f(matrix, from_id, to_id):
 
 
 class ColmapRegistration(KwiverProcess):
-    """Multi-camera registration node backed by prior_coverage_core."""
+    """Multi-camera registration node backed by prior_coverage_opencv."""
 
     # to_id of every emitted homography: a single shared reference frame, so
     # all cameras (and all timesteps) live in one coordinate system and the
@@ -222,7 +222,7 @@ class ColmapRegistration(KwiverProcess):
         # the whole site tree, so the VIAME cache dir does not perturb its own
         # key. The folder cache is always keyed on the FULL folder (images=None)
         # so a list-scope run validates against it too.
-        from viame.opencv import survey_metadata as smd
+        from viame.core import survey_metadata as smd
         cams = smd.list_site_images(site_folder, image_list=images)
         names = sorted(os.path.basename(r)
                        for rels in cams.values() for r in rels)
@@ -281,7 +281,7 @@ class ColmapRegistration(KwiverProcess):
             _log('could not write cache %s: %s' % (path, e))
 
     def _register(self, site_folder, images):
-        from viame.opencv import prior_coverage_core as pcc
+        from viame.opencv import prior_coverage_opencv as pcc
         # The full-folder cache is keyed and validated on the WHOLE folder
         # (images=None), so a list-scope run reuses it too when present.
         folder_key = self._cache_key(site_folder, None)
