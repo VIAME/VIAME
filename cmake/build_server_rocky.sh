@@ -46,6 +46,10 @@ mv /usr/local/cuda-12.8 $CUDA_DIRECTORY
 
 # Update VIAME sub git sources
 update_git_submodules $VIAME_SOURCE_DIR
+
+# Patch PyTorch when required
+patch_pytorch_nccl_symmem $VIAME_SOURCE_DIR || exit 1
+
 setup_build_directory $VIAME_SOURCE_DIR
 
 # Configure Paths [should be removed when no longer necessary by fletch]

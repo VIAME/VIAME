@@ -514,6 +514,50 @@ patch_cudnn_headers() {
 }
 
 # ==============================================================================
+# PYTORCH PATCHING
+# ==============================================================================
+
+# Disable PyTorch's NCCL symmetric-memory support
+# Arguments: $1 = VIAME source directory (default: /viame)
+#
+# The NCCL bundled with PyTorch (2.29.7) exposes a symmetric-memory device API
+# whose headers do not compile under CUDA 12.8: OpSum<half> instantiation leaves
+# operator+ unresolved in NCCL's reduce_copy__types.h, which fails torch_cuda and
+# so the entire build. The four macros below are the only entry points to that
+# API and every use of them is #ifdef-guarded, so undefining them compiles the
+# affected translation units to empty bodies. Standard NCCL collectives and DDP
+# are unaffected. Revisit when NCCL or CUDA is bumped.
+patch_pytorch_nccl_symmem() {
+  local source_dir="${1:-/viame}"
+  local header="$source_dir/packages/pytorch/torch/csrc/distributed/c10d/symm_mem/nccl_dev_cap.hpp"
+
+  echo "Checking PyTorch NCCL symmetric-memory support..."
+
+  if [ ! -f "$header" ]; then
+    echo "PyTorch NCCL symmem header not found, skipping patch"
+    return 0
+  fi
+
+  if grep -q 'VIAME_DISABLE_NCCL_SYMMEM' "$header"; then
+    echo "PyTorch NCCL symmem already disabled (no patching needed)"
+    return 0
+  fi
+
+  sed -i -E 's@^#define (NCCL_HAS_SYMMEM_SUPPORT|NCCL_HAS_SYMMEM_DEVICE_SUPPORT|NCCL_HAS_ONE_SIDED_API|NCCL_DEVICE_HAS_REDUCE_COPY)$@// VIAME_DISABLE_NCCL_SYMMEM (does not compile under CUDA 12.8): #define \1@' "$header"
+
+  local patched
+  patched=$( grep -c 'VIAME_DISABLE_NCCL_SYMMEM' "$header" )
+
+  if [ "$patched" -ne 4 ]; then
+    echo "ERROR: expected to disable 4 NCCL symmem macros, disabled $patched"
+    echo "       $header has likely changed upstream; the patch needs review"
+    return 1
+  fi
+
+  echo "PyTorch NCCL symmem patching complete"
+}
+
+# ==============================================================================
 # CUDA/CUDNN LIBRARY COPYING
 # ==============================================================================
 
