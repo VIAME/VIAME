@@ -33,8 +33,10 @@ Can be run standalone to dump a per-image metadata table:
 """
 
 import argparse
+import collections
 import csv
 import glob
+import json
 import math
 import os
 import re
@@ -244,10 +246,126 @@ def load_exif_meta(path):
             if g.get('GPSAltitude') is not None:
                 out['alt'] = float(g['GPSAltitude'])
             if g.get('GPSImgDirection') is not None:
-                out['heading'] = float(g['GPSImgDirection'])
+                hdg = float(g['GPSImgDirection'])
+                # 0xFFFFFFFF (~4.29e9) is the EXIF "no data" sentinel some UAS
+                # cameras write for direction; reject it rather than inject a
+                # garbage heading.
+                if 0.0 <= hdg <= 360.0:
+                    out['heading'] = hdg
         except (KeyError, ValueError, TypeError):
             pass
     return out
+
+
+# ---------------------------------------------------------------------------
+# 2025 UAS imagelog.json ingest
+# ---------------------------------------------------------------------------
+
+def load_imagelog(site_folder):
+    """Load the 2025 single-camera UAS ``imagelog.json`` pose log(s) of a site.
+
+    A site folder holds one or more ``imagelog*.json`` files (a flight split
+    across battery swaps produces e.g. ``imagelog.json`` + ``imagelog (2).json``).
+    Each holds an ``ImageLog`` list of per-trigger records with decimal lat/lon,
+    absolute altitude ``alt`` (the imaging height AGL for these low UAS flights;
+    ``alt_rel`` is unreliable here), and attitude ``yaw``/``pitch``/``roll`` in
+    RADIANS (unlike the 2024 FMCLOG, which is degrees).
+
+    Returns a list of pose dicts sorted by capture order (``trigger_index``),
+    with yaw/pitch/roll converted to degrees, or ``[]`` if no log is present.
+    The records are NOT yet linked to image files -- the on-disk images are
+    renamed and fewer in number than the triggers, so :func:`link_imagelog`
+    matches them by GPS position.
+    """
+    logs = sorted(glob.glob(os.path.join(site_folder, 'imagelog*.json')))
+    recs = []
+    for path in logs:
+        try:
+            data = json.load(open(path))
+        except (ValueError, OSError):
+            continue
+        rows = data.get('ImageLog', []) if isinstance(data, dict) else data
+        for r in rows:
+            if r.get('lat') is None or r.get('lon') is None:
+                continue
+            alt = r.get('alt')
+            recs.append({
+                'lat': float(r['lat']), 'lon': float(r['lon']),
+                'alt_agl': float(alt) if alt is not None else None,
+                'yaw': (math.degrees(float(r['yaw'])) % 360.0
+                        if r.get('yaw') is not None else None),
+                'pitch': (math.degrees(float(r['pitch']))
+                          if r.get('pitch') is not None else None),
+                'roll': (math.degrees(float(r['roll']))
+                         if r.get('roll') is not None else None),
+                'trigger_index': r.get('trigger_index'),
+                'time_utc': r.get('time_utc'),
+            })
+    recs.sort(key=lambda r: (r.get('trigger_index') is None,
+                             r.get('trigger_index')))
+    return recs
+
+
+def link_imagelog(site_folder, image_list, log_recs, read_exif=True,
+                  match_window=60, max_match_m=25.0):
+    """Associate each image with its imagelog pose record.
+
+    The on-disk files are renamed (``<date>_<SITE>_<seq>.jpg``) and there are
+    fewer of them than log triggers, so a positional filename/index match is not
+    possible. Instead each image's own EXIF GPS (same GPS unit as the log, so
+    the true pair matches to sub-metre) is matched to the nearest log record,
+    scanning FORWARD from the last match (monotonic capture order) so a revisit
+    of the same ground pairs with the right pass rather than an earlier one.
+
+    Falls back to plain order-pairing for images that lack EXIF GPS. Returns
+    ``({rel_path: record}, stats)``.
+    """
+    if not log_recs:
+        return {}, {'matched': 0, 'by_position': 0, 'by_order': 0}
+    out = {}
+    n = len(log_recs)
+    j = 0                     # forward pointer into log_recs
+    by_pos = by_order = 0
+    resid = []
+    for rel in image_list:
+        exif = (load_exif_meta(os.path.join(site_folder, rel))
+                if read_exif else {})
+        rec = None
+        if exif.get('lat') is not None and j < n:
+            hi = min(n, j + match_window)
+            best_k, best_d = None, None
+            for k in range(j, hi):
+                lr = log_recs[k]
+                d = math.hypot((exif['lat'] - lr['lat']) * 111320.0,
+                               (exif['lon'] - lr['lon']) * 111320.0
+                               * math.cos(math.radians(exif['lat'])))
+                if best_d is None or d < best_d:
+                    best_k, best_d = k, d
+            if best_k is not None and best_d <= max_match_m:
+                rec = dict(log_recs[best_k])
+                j = best_k + 1
+                by_pos += 1
+                resid.append(best_d)
+        if rec is None:              # order fallback (no/failed EXIF match)
+            if j < n:
+                rec = dict(log_recs[j])
+                j += 1
+                by_order += 1
+            else:
+                rec = {}
+        # Position is authoritative from the image's own EXIF GPS (exact); the
+        # imagelog supplies the attitude (yaw) EXIF lacks. Only when the image
+        # has no EXIF GPS do we fall back to the log record's position.
+        if exif.get('lat') is not None:
+            rec['lat'], rec['lon'] = exif['lat'], exif['lon']
+            if exif.get('alt') is not None:
+                rec['alt_agl'] = exif['alt']
+        if not rec.get('lat'):
+            continue
+        out[rel] = rec
+    stats = {'matched': len(out), 'by_position': by_pos, 'by_order': by_order,
+             'median_resid_m': (sorted(resid)[len(resid) // 2] if resid else None)}
+    return out, stats
 
 
 # ---------------------------------------------------------------------------
@@ -325,14 +443,41 @@ def build_image_records(site_folder, flight_logs=None, read_exif=True,
     if verbose and flight_logs and not log:
         print(f'    No flight log found for date {date}')
 
+    # 2025 single-camera UAS: a co-located imagelog.json is the pose source.
+    # Auto-detected (no --flight-logs needed); linked to the renamed image
+    # files by GPS position. Only meaningful for a single-camera collection.
+    imagelog = {}
+    if len(cams) == 1 and None in cams and not log:
+        il_recs = load_imagelog(site_folder)
+        if il_recs:
+            imagelog, il_stats = link_imagelog(
+                site_folder, cams[None], il_recs, read_exif=read_exif)
+            if verbose:
+                mr = il_stats.get('median_resid_m')
+                mrtxt = f', {mr:.1f} m median EXIF match' if mr is not None else ''
+                print(f'    imagelog.json: linked {il_stats["matched"]}/'
+                      f'{len(cams[None])} images '
+                      f'({il_stats["by_position"]} by GPS, '
+                      f'{il_stats["by_order"]} by order{mrtxt})')
+
     records = {}
-    n_log = n_exif_gps = 0
+    n_log = n_exif_gps = n_imagelog = 0
     time_deltas = []
     for cam, rel_paths in cams.items():
         for rel in rel_paths:
             info = parse_image_filename(rel)
             rec = {}
-            row = log.get(info['frame']) if info['frame'] is not None else None
+            il = imagelog.get(rel)
+            if il is not None:
+                rec = {'lat': il['lat'], 'lon': il['lon'],
+                       'alt_agl': il.get('alt_agl'), 'yaw': il.get('yaw'),
+                       'pitch': il.get('pitch'), 'roll': il.get('roll'),
+                       'site': info['site'], 'pass': 1, 'frame': info['frame'],
+                       'source': 'imagelog'}
+                n_imagelog += 1
+            row = (log.get(info['frame'])
+                   if info['frame'] is not None and rec.get('lat') is None
+                   else None)
             if row is not None:
                 rec = dict(row)
                 n_log += 1
@@ -364,6 +509,8 @@ def build_image_records(site_folder, flight_logs=None, read_exif=True,
     if verbose:
         total = sum(len(v) for v in cams.values())
         srcs = []
+        if n_imagelog:
+            srcs.append(f'{n_imagelog} imagelog')
         if n_log:
             srcs.append(f'{n_log} flight-log')
         if n_exif_gps:
@@ -448,6 +595,107 @@ def footprint_quad_enu(x, y, alt_agl, heading_deg, focal35_mm=85.0,
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+
+# Across-track cant of the rig cameras, as a fraction of the ground footprint
+# width, matching ``detect_prior_coverage.py --xcam-offset-frac`` (default 0.9).
+# The PORT/STAR optical axes point away from nadir, so their ground footprints
+# sit ~0.9 footprint-widths either side of the aircraft track. Using the raw
+# aircraft position for these cameras misplaces their footprint by ~95 m, which
+# silently corrupts any footprint-overlap test.
+#
+# SIGN (verified empirically, 2024 survey): the camera in the PORT folder LOOKS
+# to STARBOARD (+across-track) and the STAR camera looks to PORT. Measured by
+# registering PORT/STAR frames against CENTER at the same trigger and mapping
+# the offset to ground via the GPS-calibrated CENTER pixel scale: PORT boresight
+# median +90 m (right of track), STAR -97 m, on CASTLE ROCK + PINNACLE ROCK
+# (4 probes; see sea_lion_work/verify_rig_orientation.py). Folder names likely
+# reflect the mounting side of a cross-aimed rig, not the look side.
+CAM_LATERAL_FRAC = {'PORT': 0.9, 'CENTER': 0.0, 'STAR': -0.9}
+
+
+def gps_degenerate(records, cams, min_unique_frac=0.5, max_single_share=0.5):
+    """Detect a frozen / duplicated GPS track. Returns (bool, reason).
+
+    An FMC log can report a valid fix (``gps_active_void='A'``, ``fix_type=3``)
+    while the position itself is stale, so nothing downstream flags it. Seen in
+    the 2024 survey: the GLACIER block of the (hand-edited) 2024-06-23 log holds
+    242 trigger records spanning 6 seconds, 231 of them stamped with one
+    identical lat/lon.
+
+    Such a track is WORSE than no GPS: every frame dead-reckons onto the same
+    spot, so footprints stack, every frame looks "already seen", and a
+    footprint-overlap loop-closure score reads a meaningless 100%. Callers
+    should drop the metadata and fall back to registration-only geo-referencing.
+    """
+    for cam, rels in cams.items():
+        pts = [(round(r['lat'], 6), round(r['lon'], 6))
+               for rel in rels
+               if (r := records.get(rel)) and r.get('lat') is not None]
+        n = len(pts)
+        if n < 8:
+            continue
+        uniq = len(set(pts))
+        top = max(collections.Counter(pts).values())
+        if uniq / n < min_unique_frac or top / n > max_single_share:
+            return True, (f'{cam}: {uniq} unique GPS positions for {n} frames '
+                          f'({100.0 * uniq / n:.0f}% unique; one position covers '
+                          f'{100.0 * top / n:.0f}% of frames) - track is frozen '
+                          f'or duplicated')
+    return False, ''
+
+
+def build_footprints(site_folder, flight_logs=None, xcam_offset_frac=0.9,
+                     read_exif=False, verbose=False):
+    """Ground footprint of every image of a site, in one shared ENU frame.
+
+    Returns {rel_path: {'quad': [(x,y) x4], 'center': (x,y), 'frame': n,
+    'cam': c, 'pass': p}}. Headings come from each camera's own GPS track (the
+    aircraft heading flips between out-and-back passes, and it - not the logged
+    yaw - is what orients the footprint). The PORT/STAR across-track cant is
+    applied, so footprints land where the camera actually looked rather than at
+    the aircraft position.
+    """
+    records, cams = build_image_records(site_folder, flight_logs=flight_logs,
+                                        read_exif=read_exif, verbose=verbose)
+    # A frozen GPS track yields footprints that all stack on one spot, which
+    # silently turns into "every frame overlaps every other" downstream. Refuse
+    # it rather than emit meaningless geometry.
+    bad, why = gps_degenerate(records, cams)
+    if bad:
+        print(f'    ** GPS track rejected: {why}')
+        print('       -> no usable GPS for this site (use registration-only)')
+        return {}, cams
+    first = next((records[r] for rels in cams.values() for r in rels
+                  if records.get(r, {}).get('lat') is not None), None)
+    if first is None:
+        return {}, cams
+    to_enu = make_enu(first['lat'], first['lon'])
+
+    out = {}
+    for cam, rels in cams.items():
+        fixed = [r for r in rels if records.get(r, {}).get('lat') is not None]
+        if not fixed:
+            continue
+        # Order by frame so the track heading is computed along the flight path.
+        fixed.sort(key=lambda r: (records[r].get('frame') is None,
+                                  records[r].get('frame')))
+        enu = [to_enu(records[r]['lat'], records[r]['lon']) for r in fixed]
+        lat_frac = CAM_LATERAL_FRAC.get(str(cam).upper(), 0.0)
+        if lat_frac:
+            lat_frac = math.copysign(xcam_offset_frac, lat_frac)
+        for i, r in enumerate(fixed):
+            rec = records[r]
+            heading = track_heading_deg(enu, i)
+            quad = footprint_quad_enu(
+                enu[i][0], enu[i][1], rec.get('alt_agl'), heading,
+                rec.get('focal35_mm') or 85.0, lat_frac)
+            cx = sum(p[0] for p in quad) / 4.0
+            cy = sum(p[1] for p in quad) / 4.0
+            out[r] = {'quad': quad, 'center': (cx, cy), 'enu': enu[i],
+                      'frame': rec.get('frame'), 'cam': cam,
+                      'pass': rec.get('pass'), 'heading': heading}
+    return out, cams
 
 def main():
     ap = argparse.ArgumentParser(

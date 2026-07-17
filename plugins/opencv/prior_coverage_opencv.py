@@ -267,6 +267,32 @@ def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
             if c['M'] is not None and c['n'] >= 8
             and c['res'] is not None and c['res'] < 150]
     shared = float(np.median(good)) if good else None
+
+    # Rig-shared CHIRALITY: the cameras are one rigid body so the ground->pixel
+    # handedness is identical; a per-camera fit over ambiguous terrain can lock
+    # onto the mirrored solution. Vote the consensus handedness (quality-weighted
+    # by steps/residual) and refit any dissenter with it (safety net; matches
+    # registration_utils._geo_anchor_cameras).
+    def _chir(M):
+        return 1 if np.linalg.det(M) >= 0 else -1
+    votes = {}
+    for c in cal.values():
+        if c['M'] is None or c['n'] < 3:
+            continue
+        votes[_chir(c['M'])] = votes.get(_chir(c['M']), 0.0) + c['n'] / (1.0 + (c['res'] or 1e3))
+    if len(votes) > 1:
+        consensus = max(votes, key=votes.get)
+        for cam, c in cal.items():
+            if c['M'] is None or _chir(c['M']) == consensus:
+                continue
+            M2, n2, r2, enu2, yaw2 = _geo_calibrate(
+                cam_chains.get(cam, {}), cams[cam], poses_by_cam[cam],
+                pairwise_by_cam.get(cam), force_chir=consensus)
+            if M2 is not None:
+                c.update({'M': M2, 'n': n2, 'res': r2, 'enu': enu2, 'yaw': yaw2})
+                if verbose:
+                    print(f"    {cam}: chirality was mirrored vs the rig; "
+                          f"refit to consensus handedness")
     for cam, c in cal.items():
         target = None       # rig-consensus scale first, metadata GSD second
         reliable = (c['M'] is not None and c['n'] >= 8
@@ -275,9 +301,12 @@ def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
             ref = shared or c['expect']
             if ref is not None and not np.all(np.isnan(c['yaw'])):
                 # No usable pairwise steps at all (e.g. all-water camera):
-                # synthesize M assuming the standard mounting (image up =
-                # flight direction).
-                c['M'] = np.array([[ref, 0.0], [0.0, -ref]])
+                # synthesize M from the known mounting. CENTER/PORT image-up =
+                # flight direction; STAR is mounted ~180 deg rotated (measured
+                # on the 2024 rig: sequential pixel dy is +1300 px for
+                # CENTER/PORT vs -1380 px for STAR), so its M is negated.
+                sgn = -1.0 if str(cam).upper() == 'STAR' else 1.0
+                c['M'] = sgn * np.array([[ref, 0.0], [0.0, -ref]])
                 c['borrowed'] = True
             else:
                 continue
@@ -316,7 +345,13 @@ def _pixel_to_enu_transform(enu_xy, yaw_deg, M, width, height, origin_off):
     except np.linalg.LinAlgError:
         return None
     yaw = 0.0 if yaw_deg is None or np.isnan(yaw_deg) else yaw_deg
-    A = _rot2(yaw) @ Minv
+    # body->ENU = _rot2(-yaw), the inverse of the ENU->body _rot2(+yaw) used
+    # when fitting M in registration_utils._geo_calibrate/_geo_fill. The prior
+    # _rot2(+yaw) was self-consistent only for single-heading / out-and-back
+    # fitted M; with a SYNTHESIZED M (camera with <3 usable pairwise steps, e.g.
+    # VALDEZ ARM) it mis-rotated every footprint by -2*heading -- the bogus
+    # 'crabbing' coverage map.
+    A = _rot2(-yaw) @ Minv
     c = np.array([width / 2.0, height / 2.0])
     t = np.asarray(enu_xy) + np.asarray(origin_off) - A @ c
     T = np.eye(3)
@@ -372,6 +407,17 @@ def _register_site(site_folder, site_id, order_start, args, to_enu,
     records, cams = smd.build_image_records(
         site_folder, flight_logs=args.flight_logs, read_exif=True,
         image_list=images)
+    # A frozen/duplicated GPS track (valid-looking fix flags, stale position) is
+    # worse than no GPS: dead-reckoning stacks every frame on one spot, so all
+    # coverage reads as "already seen" and revisits become meaningless. Drop the
+    # metadata and let the registration chains pseudo-georeference the site.
+    _bad_gps, _why = smd.gps_degenerate(records, cams)
+    if _bad_gps:
+        print(f'  ** Ignoring flight-log GPS: {_why}')
+        print('     falling back to registration-only geo-referencing')
+        for _rel, _rec in records.items():
+            if _rec:
+                _rec['lat'] = _rec['lon'] = None
     frames_by_cam = {}
     idx_by_cam = {}
     for cam, rels in cams.items():
@@ -524,8 +570,11 @@ def _register_site(site_folder, site_id, order_start, args, to_enu,
                 heading = geo['heads'][i]
                 if np.isnan(heading) and rec.get('yaw') is not None:
                     heading = rec['yaw']
-                lat_frac = {'PORT': -args.xcam_offset_frac, 'CENTER': 0.0,
-                            'STAR': args.xcam_offset_frac}.get(cam, 0.0)
+                # Sign verified against imagery (2024 survey): the PORT-folder
+                # camera LOOKS starboard (+across) and STAR looks port -- the
+                # rig is cross-aimed. See survey_metadata.CAM_LATERAL_FRAC.
+                lat_frac = {'PORT': args.xcam_offset_frac, 'CENTER': 0.0,
+                            'STAR': -args.xcam_offset_frac}.get(cam, 0.0)
                 T = _metadata_transform(
                     rec, 0.0 if np.isnan(heading) else heading, w, h,
                     to_enu, lat_frac)
