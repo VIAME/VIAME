@@ -21,12 +21,12 @@ handled naturally: the emitted homography is looked up by image filename, not
 by counting steps.
 
 What gets registered is controlled by register_scope: "list" (default)
-registers only the frames the pipeline is given (frame_list, defaulting to the
-pipeline input lists), so a subset drawn from a larger or mixed folder is
-registered on its own; "folder" registers the whole survey folder for the
-full-survey geometry. The survey folder itself is resolved from site_folder or
-the image_list (the streamed file_name port carries only basenames, so the
-folder cannot be recovered from it).
+registers only the frames the pipeline is given (the union of the per-camera
+image_list<i> files, each defaulting to the pipeline input list), so a subset
+drawn from a larger or mixed folder is registered on its own; "folder" registers
+the whole survey folder for the full-survey geometry. The survey folder itself
+is resolved from site_folder or image_list1 (the streamed file_name port carries
+only basenames, so the folder cannot be recovered from it).
 
 The reference frame is local ENU metres (shared across the rig cameras, so
 their relative mapping is exact) when GPS/flight-log metadata is available,
@@ -109,27 +109,18 @@ class ColmapRegistration(KwiverProcess):
         _add_declare_config(
             self, 'site_folder', '',
             'Survey folder containing the per-camera image subdirectories. '
-            'Empty = derive it from the first entry of "image_list" (the '
+            'Empty = derive it from the first entry of "image_list1" (the '
             'streamed file_name port only carries basenames, so the folder '
             'cannot be recovered from it).')
         _add_declare_config(
-            self, 'image_list', 'input_list_1.txt',
-            'Image-list file used only to locate the survey folder when '
-            'site_folder is empty; its first entry must be a full image path. '
-            'Defaults to the pipeline input list.')
-        _add_declare_config(
             self, 'register_scope', 'list',
             'What to register: "list" (default) registers only the frames the '
-            'pipeline is given (frame_list) - so a subset drawn from a larger '
-            'or mixed folder is registered on its own. "folder" registers the '
-            'whole survey folder - best when you want the full-survey geometry '
-            '(more frames, all cross-camera/loop overlap). Chains still need a '
-            'reasonably contiguous per-camera run to register well.')
-        _add_declare_config(
-            self, 'frame_list', '',
-            'For register_scope=list: comma-separated image-list file(s) whose '
-            'lines are the frames to register. Empty = the pipeline input '
-            'lists input_list_1.txt..input_list_<n_input>.txt.')
+            'pipeline is given (the image_list<i> files) - so a subset drawn '
+            'from a larger or mixed folder is registered on its own. "folder" '
+            'registers the whole survey folder - best when you want the '
+            'full-survey geometry (more frames, all cross-camera/loop overlap). '
+            'Chains still need a reasonably contiguous per-camera run to '
+            'register well.')
         _add_declare_config(
             self, 'use_cache', 'true',
             'Persist/reuse a full-folder registration in <site>/VIAME/ '
@@ -140,6 +131,17 @@ class ColmapRegistration(KwiverProcess):
             'covers a subset at higher quality. Set false to skip the cache.')
 
         self._n_input = int(self.config_value('n_input'))
+        # One image list per camera: each a single file of line-separated image
+        # paths (never a comma-separated list). Camera 1's list also locates the
+        # survey folder when site_folder is empty. Defaults keep the pipeline
+        # input lists working with no override.
+        for i in range(1, self._n_input + 1):
+            _add_declare_config(
+                self, 'image_list' + str(i), 'input_list_' + str(i) + '.txt',
+                'Image-list file for camera ' + str(i) + ': a single file of '
+                'line-separated image paths (not comma-separated).'
+                + (' Its first entry also locates the survey folder when '
+                   'site_folder is empty.' if i == 1 else ''))
         optional = process.PortFlags()
         required = process.PortFlags()
         required.add(self.flag_required)
@@ -161,9 +163,12 @@ class ColmapRegistration(KwiverProcess):
         self._water_method = self.config_value('water_method') or 'auto'
         self._cache = self.config_value('cache') or None
         self._site_folder = self.config_value('site_folder') or None
-        self._image_list = self.config_value('image_list') or None
+        # One image-list file per camera (single file each, line-separated).
+        self._image_lists = [
+            self.config_value('image_list' + str(i)) or None
+            for i in range(1, self._n_input + 1)
+        ]
         self._scope = (self.config_value('register_scope') or 'list').lower()
-        self._frame_list = self.config_value('frame_list') or None
         self._use_cache = (self.config_value('use_cache') or 'true').lower() \
             not in ('false', '0', 'no', 'off')
         self._by_name = None                 # basename -> 3x3 or None
@@ -180,7 +185,9 @@ class ColmapRegistration(KwiverProcess):
         need not be named again for the node)."""
         if self._site_folder:
             return self._site_folder
-        lst = self._image_list
+        # Camera 1's image list locates the survey folder: its first full image
+        # path is <survey>/<camera>/<image>, so the folder is two dirs up.
+        lst = self._image_lists[0] if self._image_lists else None
         if lst and os.path.exists(lst):
             with open(lst) as f:
                 for line in f:
@@ -195,20 +202,16 @@ class ColmapRegistration(KwiverProcess):
 
     def _resolve_images(self):
         """Explicit image paths to register (register_scope=list), or None for
-        whole-folder registration. Reads frame_list files, or the pipeline
-        input lists input_list_1.txt..input_list_<n_input>.txt by default."""
+        whole-folder registration. Frames are the union of the per-camera
+        image_list<i> files (one single-file, line-separated list per camera)."""
         if self._scope != 'list':
             return None
-        if self._frame_list:
-            files = [p.strip() for p in self._frame_list.split(',')
-                     if p.strip()]
-        else:
-            files = ['input_list_%d.txt' % i
-                     for i in range(1, self._n_input + 1)]
         images = []
-        for lf in files:
+        for lf in self._image_lists:
+            if not lf:
+                continue
             if not os.path.exists(lf):
-                _log('frame_list file not found: %s' % lf)
+                _log('image list file not found: %s' % lf)
                 continue
             with open(lf) as f:
                 images += [ln.strip() for ln in f if ln.strip()]
@@ -352,8 +355,9 @@ class ColmapRegistration(KwiverProcess):
             site = self._resolve_site(names[0] if names else None)
             if site is None or not os.path.isdir(site):
                 _log('could not resolve survey folder (site_folder=%r '
-                     'image_list=%r); emitting identity homographies'
-                     % (self._site_folder, self._image_list))
+                     'image_list1=%r); emitting identity homographies'
+                     % (self._site_folder,
+                        self._image_lists[0] if self._image_lists else None))
                 self._by_name = {}
             else:
                 self._by_name = self._register(site, self._resolve_images())
