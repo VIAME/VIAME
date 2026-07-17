@@ -2,6 +2,10 @@
 # Title: Utility - Register Frames
 #
 # Description: Registers frames between multiple camera views.
+#
+# Metadata File: stabilizer:flight_log
+#   DIVE binds an optional per-dataset metadata file (e.g. an FMCLOG
+#   flight-log CSV) to the registration stabilizer's flight_log input.
 # =============================================================================
 
 config _scheduler

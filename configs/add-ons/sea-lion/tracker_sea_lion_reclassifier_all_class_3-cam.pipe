@@ -3,6 +3,10 @@
 #
 # Description: Runs object tracking on detected objects across video frames.
 # Configured for sea lion survey imagery.
+#
+# Metadata File: stabilizer:flight_log
+#   DIVE binds an optional per-dataset metadata file (e.g. an FMCLOG
+#   flight-log CSV) to the registration stabilizer's flight_log input.
 # =============================================================================
 
 # Requirements: { Detection Scale (default 1.0), global:scale, double }
