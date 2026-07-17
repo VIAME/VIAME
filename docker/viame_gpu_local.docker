@@ -14,29 +14,32 @@ USER root
 WORKDIR /home
 
 RUN --mount=type=bind,target=/host-viame <<EOF
+#!/usr/bin/env bash
+set -e
 export DEBIAN_FRONTEND=noninteractive
-export TZ=Etc/UTC 
-apt-get update 
-apt-get install -y git 
+export TZ=Etc/UTC
+apt-get update
+apt-get install -y git wget
 
 # Clone from the host machine to the new docker repo.
-git clone --single-branch --dissociate /host-viame /viame 
+git clone --single-branch --dissociate /host-viame /viame
 
+# The old per-step helper scripts (build_server_deps_apt.sh /
+# build_server_linux_cmake.sh) were consolidated into
+# build_common_functions.sh (VIAME commit b7461a56e). Source it and call the
+# functions instead. This RUN executes under bash (note the shebang above)
+# because those helpers use bash features.
+cd /viame/cmake
+source /viame/cmake/build_common_functions.sh
 
-cd /viame/cmake 
+# Fletch / VIAME / CMake system deps, then CMake and Node (for the DIVE build)
+install_system_deps apt
+install_cmake
+install_nodejs 22
 
-# Fletch, VIAME, CMAKE system deps
-/viame/cmake/build_server_deps_apt.sh
-
-# Install CMAKE
-/viame/cmake/build_server_linux_cmake.sh
-
-# Update VIAME sub git deps
-cd /viame/
-git submodule update --init --recursive
-
-mkdir -p /viame/build
-cd /viame/build
+# Update VIAME sub git deps, then create + enter the build directory
+update_git_submodules /viame
+setup_build_directory /viame
 
 # Add VIAME and CUDA paths to build
 export PATH=$PATH:/usr/local/cuda/bin:/viame/build/install/bin
@@ -68,7 +71,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_PYTORCH-LEARN:BOOL=OFF \
 -DVIAME_ENABLE_MATLAB:BOOL=OFF \
 -DVIAME_ENABLE_OPENCV:BOOL=ON \
--DVIAME_OPENCV_VERSION:STRING=3.4.0 \
+-DVIAME_OPENCV_VERSION:STRING=4.9.0 \
 -DVIAME_ENABLE_PYTHON:BOOL=ON \
 -DVIAME_BUILD_PYTHON_FROM_SOURCE:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH:BOOL=ON \
@@ -89,14 +92,26 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_WEB_EXCLUDES:BOOL=ON \
 -DVIAME_DOWNLOAD_MODELS:BOOL=ON \
 -DVIAME_DOWNLOAD_MODELS-PYTORCH:BOOL=OFF \
--DVIAME_DOWNLOAD_MODELS-GENERIC:BOOL=ON \
+-DVIAME_DOWNLOAD_MODELS-GENERIC:BOOL=OFF \
 -DVIAME_DOWNLOAD_MODELS-FISH:BOOL=ON \
 -DVIAME_DOWNLOAD_MODELS-ARCTIC-SEAL:BOOL=OFF \
 -DVIAME_DOWNLOAD_MODELS-HABCAM:BOOL=OFF \
 -DVIAME_DOWNLOAD_MODELS-MOUSS:BOOL=OFF
 
-# Perform multi-threaded build
+# Perform multi-threaded build. Keep || true so the image is still produced
+# for warm-start dev iteration even if the (long) compile is incomplete -- but
+# loudly flag an incomplete build so a broken image is not mistaken for a good
+# one (a silent `make` failure here previously shipped an image with no VIAME).
 make -j$(nproc) || true
+if [ ! -e /viame/build/build/src/viame-stamp/viame-install ]; then
+  echo "########################################################################"
+  echo "# WARNING: the viame-install stamp is missing -- VIAME packages unbuilt."
+  echo "# The VIAME build did NOT complete. Scroll up to the FIRST 'Error'"
+  echo "# (CMake Error / make *** Error) -- that is the real failure to fix."
+  echo "# The image was still produced for warm-start iteration, but VIAME"
+  echo "# will not run until the build is repaired and 'make' is re-run inside."
+  echo "########################################################################"
+fi
 EOF
 
 RUN <<EOF
@@ -119,12 +134,22 @@ chown -R 1099:1099 /opt/noaa/viame
 
 EOF
 
-ENV PATH=/usr/local/cuda/bin:$PATH
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+ENV PATH=/viame/build/install/bin:/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH=/viame/build/install/lib:/viame/build/install/lib/python3.10:/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+# Persist the build include paths (Python.h etc.) so an in-container rebuild
+# works in a fresh shell. The build RUN above sets these locally, but they were
+# not persisted, so `make` in a `docker run ... bash` shell could not find
+# <Python.h> when (re)compiling the C++ plugins.
+ENV C_INCLUDE_PATH=/viame/build/install/include/python3.10
+ENV CPLUS_INCLUDE_PATH=/viame/build/install/include/python3.10
 
 RUN <<EOF
 # https://www.docker.com/blog/introduction-to-heredocs-in-dockerfiles/
-__doc__='
+# Notes kept in the image (visible via `docker history`). Wrapped in a
+# quoted-delimiter heredoc fed to ':' (a no-op) so apostrophes and the
+# embedded sed/python single quotes below stay literal and never break the
+# build the way a single-quoted __doc__='...' string would.
+: <<'__doc__'
 
 This is a variant of ``viame_gpu_sam.docker`` that builds using the local checkout
 
@@ -313,5 +338,5 @@ first
 
 Now, run through the commands in the dockerfile manually.
 
-'
+__doc__
 EOF
