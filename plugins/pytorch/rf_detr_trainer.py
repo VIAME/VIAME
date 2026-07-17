@@ -14,6 +14,7 @@ import scriptconfig as scfg
 import ubelt as ub
 
 from viame.pytorch.utilities import (
+    ensure_fork_start_method,
     report_cuda_errors,
     vital_config_update,
     resolve_device_str,
@@ -556,6 +557,13 @@ class RFDETRTrainer(TrainDetector):
         device = resolve_device_str(self._device)
 
         ensure_rfdetr_compatibility()
+
+        # Python 3.14 defaults Linux to the forkserver start method, which cannot
+        # pickle rfdetr's ChannelSubset transform and kills every DataLoader
+        # worker. Applied here for the in-process single-GPU path below; the
+        # multi-GPU subprocess does not inherit this and re-applies it itself
+        # (see rf_detr_launcher.py). No-op on Python <= 3.13 and off Linux.
+        ensure_fork_start_method()
 
         # Make the mask-loss instance cap reproducible from the config: export it
         # to the env the rfdetr criterion reads. The DDP subprocess copies

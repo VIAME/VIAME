@@ -670,6 +670,44 @@ def ensure_rfdetr_compatibility():
         _find_pruneable_heads_and_indices
 
 
+def ensure_fork_start_method():
+    """
+    Force the ``fork`` multiprocessing start method on Linux.
+
+    Python 3.14 changed the default Linux start method from ``fork`` to
+    ``forkserver``, which pickles the worker process object. rfdetr builds its
+    augmentation pipeline around ChannelSubset, a class defined inside
+    ``rfdetr.datasets.transforms._channel_subset_cls``, so it is a local class
+    that pickle cannot reference by name. It reaches the workers embedded in the
+    dataset's albumentations Compose, so any DataLoader with num_workers > 0
+    dies at worker launch under 3.14 with:
+
+        _pickle.PicklingError: Can't pickle local object
+          <class '..._channel_subset_cls.<locals>.ChannelSubset'>
+
+    ``fork`` never pickles, which is why this worked on 3.13 and earlier. The
+    DataLoader workers do not touch CUDA, so the thread-safety concerns behind
+    the 3.14 default change do not apply here.
+
+    No-op off Linux (macOS defaults to spawn, where forcing fork is unsafe;
+    Windows has no fork and already runs num_workers=0) and a no-op on Python
+    <= 3.13, where fork is already the default. Call before any DataLoader is
+    constructed; under DDP that means before PTL re-execs each rank.
+    """
+    import multiprocessing
+
+    if not sys.platform.startswith('linux'):
+        return
+    if 'fork' not in multiprocessing.get_all_start_methods():
+        return
+    if multiprocessing.get_start_method(allow_none=True) == 'fork':
+        return
+    try:
+        multiprocessing.set_start_method('fork', force=True)
+    except (RuntimeError, ValueError):
+        pass
+
+
 # =============================================================================
 # Detection Conversion Utilities
 # =============================================================================

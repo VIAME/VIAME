@@ -16,7 +16,14 @@ def build_and_train(params):
     import torch
 
     from viame.pytorch.utilities import (
-        ensure_rfdetr_compatibility, parse_resolution, resolution_is_set)
+        ensure_fork_start_method, ensure_rfdetr_compatibility, parse_resolution,
+        resolution_is_set)
+
+    # Python 3.14 defaults Linux to the forkserver start method, which cannot
+    # pickle rfdetr's ChannelSubset transform and kills every DataLoader worker.
+    # PTL re-execs this script per rank, so each rank runs this before building
+    # its own dataloaders. No-op on Python <= 3.13 and off Linux.
+    ensure_fork_start_method()
 
     # rf_detr_trainer.py applies this shim before importing rfdetr, but that is a
     # monkey-patch on the transformers module in ITS process. We are a fresh
