@@ -183,6 +183,10 @@ if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pycocotools" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-RF-DETR )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorboard>=2.13.0" )
+endif()
+
 # For Vertex AI custom container support
 if( VIAME_ENABLE_VERTEX_AI )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "flask>=2.3" "gunicorn>=21.2" )
@@ -253,8 +257,10 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
   # cv2 comes from the fletch OpenCV build, which registers itself under that distribution name
   # (see custom_install_fletch.cmake).
   list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "supervision" "defusedxml>=0.7.1" "pyDeprecate>=0.9,<0.10"
-    "faster-coco-eval>=1.6.0" "albumentations==2.0.8" "albucore==0.0.24" "simsimd>=5.9.2"
-    "stringzilla>=3.10.4" )
+    "faster-coco-eval>=1.7.2" "albumentations==2.0.8" "albucore==0.0.24" "simsimd>=5.9.2"
+    "stringzilla>=3.10.4" "pytorch_lightning>=2.6,<3,!=2.6.2,!=2.6.3"
+    "lightning-utilities>=0.10.0" "torchmetrics>=1.2" "pycocotools" "scipy" "fsspec" "pyyaml"
+    "packaging" "typing-extensions" "tqdm" )
 endif()
 
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------
