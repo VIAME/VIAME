@@ -37,6 +37,7 @@ import argparse
 import collections
 import glob
 import json
+import math
 import os
 import re
 import shutil
@@ -1394,9 +1395,12 @@ def cmd_reseg(args):
 # pipelines and the interactive service are -- 'hull_extremes' method (fit a
 # min-area rectangle to the mask's convex hull and take the midpoints of its
 # short edges) with clip_to_mask -- and the result is written back as (kp) head
-# / (kp) tail tokens. This mirrors interactive_stereo._polygon_to_keypoints so
-# the keypoints match a click-drawn one exactly. Needs the VIAME environment
-# sourced (kwiver.vital), as reseg does.
+# / (kp) tail tokens. The rasterize+algorithm step mirrors
+# interactive_stereo._polygon_to_keypoints so the endpoints match a click-drawn
+# one exactly. The algorithm itself only labels head/tail geometrically (larger
+# x = head), so on top of it we orient head/tail per track by direction of
+# travel: the head is the endpoint on the leading side of the box's motion.
+# Needs the VIAME environment sourced (kwiver.vital), as reseg does.
 # -----------------------------------------------------------------------------
 
 def make_keypoint_algo(method='hull_extremes', clip_to_mask=True):
@@ -1488,40 +1492,105 @@ def replace_keypoint_tokens(fields, head, tail):
     return columns + kept
 
 
-def add_keypoints(input_csv, output_csv, method='hull_extremes',
-                  clip_to_mask=True):
-    """Write input_csv with head/tail keypoints added to every polygon row."""
-    algo = make_keypoint_algo(method, clip_to_mask)
+def _row_center(fields):
+    """Bounding-box center (cx, cy) from a VIAME CSV row's fields."""
+    x0, y0, x1, y1 = (float(fields[3]), float(fields[4]),
+                      float(fields[5]), float(fields[6]))
+    return (0.5 * (x0 + x1), 0.5 * (y0 + y1))
 
-    n_rows = n_added = n_no_polygon = n_failed = 0
-    lines = list(csv_header(input_csv))
+
+def add_keypoints(input_csv, output_csv, method='hull_extremes',
+                  clip_to_mask=True, orient_by_motion=True,
+                  motion_window=3, min_speed=2.0, algo=None):
+    """Write input_csv with head/tail keypoints added to every polygon row.
+
+    add_keypoints_from_mask gives the two endpoints of each detection; which one
+    is the head is then decided per track by direction of travel -- the head is
+    the endpoint on the leading side of the box's motion (a box moving right
+    gets the right-hand point as its head). Direction is estimated from the box
+    center over a window of +/- motion_window track states. Tracks too short or
+    too still to give a reliable direction fall back to the algorithm's
+    geometric labelling (head = the endpoint with the larger x).
+
+    Pass a pre-built algo to reuse it across many files (avoids reloading the
+    kwiver plugins per call).
+    """
+    if algo is None:
+        algo = make_keypoint_algo(method, clip_to_mask)
+
+    # Pass 1: endpoints per row, plus the track/frame/center used for motion.
+    header = list(csv_header(input_csv))
+    entries = []
+    n_rows = n_no_polygon = n_failed = 0
     for _, line, fields in csv_rows(input_csv):
         n_rows += 1
         polys = row_polys(line)
         if not polys:
             n_no_polygon += 1
-            lines.append(line)
+            entries.append({'line': line})
             continue
-        head_tail = polygons_to_head_tail(polys, algo)
-        if head_tail is None:
+        ends = polygons_to_head_tail(polys, algo)
+        if ends is None:
             n_failed += 1
-            lines.append(line)
+            entries.append({'line': line})
             continue
-        head, tail = head_tail
-        lines.append(','.join(replace_keypoint_tokens(fields, head, tail)) + '\n')
+        entry = {'fields': fields, 'ends': ends}
+        try:
+            entry['track'] = fields[0]
+            entry['frame'] = int(float(fields[2]))
+            entry['center'] = _row_center(fields)
+        except (ValueError, IndexError):
+            pass  # no usable motion info; falls back to geometric labelling
+        entries.append(entry)
+
+    # Per-track direction of travel: windowed displacement of the box center.
+    if orient_by_motion:
+        by_track = collections.defaultdict(list)
+        for i, entry in enumerate(entries):
+            if 'center' in entry:
+                by_track[entry['track']].append(i)
+        for idxs in by_track.values():
+            idxs.sort(key=lambda i: entries[i]['frame'])
+            centers = [entries[i]['center'] for i in idxs]
+            n = len(centers)
+            for j, i in enumerate(idxs):
+                lo = centers[max(0, j - motion_window)]
+                hi = centers[min(n - 1, j + motion_window)]
+                entries[i]['vel'] = (hi[0] - lo[0], hi[1] - lo[1])
+
+    # Pass 2: assign head/tail (motion when reliable, else geometric) and write.
+    n_added = n_by_motion = 0
+    out = list(header)
+    for entry in entries:
+        if 'ends' not in entry:
+            out.append(entry['line'])
+            continue
+        head, tail = entry['ends']  # geometric default: head = larger-x endpoint
+        vel = entry.get('vel')
+        if orient_by_motion and vel is not None \
+                and math.hypot(vel[0], vel[1]) >= min_speed:
+            # Head is the endpoint on the leading (direction-of-travel) side.
+            if (head[0] - tail[0]) * vel[0] + (head[1] - tail[1]) * vel[1] < 0:
+                head, tail = tail, head
+            n_by_motion += 1
+        out.append(','.join(replace_keypoint_tokens(entry['fields'], head, tail)) + '\n')
         n_added += 1
 
     with open(output_csv, 'w') as fout:
-        fout.writelines(lines)
+        fout.writelines(out)
 
     return {'rows': n_rows, 'keypoints_added': n_added,
+            'oriented_by_motion': n_by_motion,
             'no_polygon': n_no_polygon, 'failed': n_failed}
 
 
 def cmd_keypoints(args):
     stats = add_keypoints(args.input, args.output, method=args.method,
-                          clip_to_mask=args.clip_to_mask)
+                          clip_to_mask=args.clip_to_mask,
+                          orient_by_motion=args.orient_by_motion,
+                          motion_window=args.motion_window)
     print('rows=%(rows)d keypoints_added=%(keypoints_added)d '
+          'oriented_by_motion=%(oriented_by_motion)d '
           'no_polygon=%(no_polygon)d failed=%(failed)d' % stats)
     print('Wrote ' + args.output)
     return 0
@@ -1853,7 +1922,14 @@ def main():
     p.add_argument('--no-clip-to-mask', dest='clip_to_mask',
                    action='store_false',
                    help='do not clip keypoints to the mask (default: clip)')
-    p.set_defaults(func=cmd_keypoints, clip_to_mask=True)
+    p.add_argument('--no-orient-by-motion', dest='orient_by_motion',
+                   action='store_false',
+                   help='do not use per-track direction of travel to pick the '
+                        'head; keep the geometric default (head = larger-x end)')
+    p.add_argument('--motion-window', type=int, default=3,
+                   help='track states each side used to estimate direction of '
+                        'travel (default 3)')
+    p.set_defaults(func=cmd_keypoints, clip_to_mask=True, orient_by_motion=True)
 
     p = subs.add_parser('validate', help='check one output against its input')
     p.add_argument('original')
