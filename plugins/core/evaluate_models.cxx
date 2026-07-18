@@ -2556,6 +2556,23 @@ model_evaluator::priv::compute_per_class_metrics( evaluation_results& results )
     class_metrics["average_precision"] =
       compute_ap_subset( class_comp, class_gt, m_config.iou_threshold );
 
+    // Per-class AP at the fixed COCO thresholds and the 0.5:0.95 mean, mirroring
+    // the overall ap50 / ap75 / ap50_95 but restricted to this class's boxes so
+    // per-class mAP is available (not just AP at the single configured IoU).
+    class_metrics["ap50"] = compute_ap_subset( class_comp, class_gt, 0.5 );
+    class_metrics["ap75"] = compute_ap_subset( class_comp, class_gt, 0.75 );
+    {
+      // Integer-stepped to avoid the floating-point loop-condition drift noted
+      // for the overall ap50_95.
+      const int num_thresholds = 10;
+      double sum_ap = 0.0;
+      for( int i = 0; i < num_thresholds; i++ )
+      {
+        sum_ap += compute_ap_subset( class_comp, class_gt, 0.50 + 0.05 * i );
+      }
+      class_metrics["ap50_95"] = sum_ap / num_thresholds;
+    }
+
     results.per_class_metrics[class_name] = class_metrics;
   }
 }

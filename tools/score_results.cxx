@@ -278,9 +278,11 @@ void print_per_class_metrics( const viame::evaluation_results& results )
             << std::setw( 12 ) << "Precision"
             << std::setw( 12 ) << "Recall"
             << std::setw( 12 ) << "F1"
-            << std::setw( 12 ) << "AP"
+            << std::setw( 12 ) << "AP50"
+            << std::setw( 12 ) << "AP75"
+            << std::setw( 12 ) << "AP[.5:.95]"
             << "\n";
-  std::cout << std::string( 103, '-' ) << "\n";
+  std::cout << std::string( 127, '-' ) << "\n";
 
   for( const auto& kv : results.per_class_metrics )
   {
@@ -315,7 +317,9 @@ void print_per_class_metrics( const viame::evaluation_results& results )
               << std::setw( 12 ) << format_metric( "precision" )
               << std::setw( 12 ) << format_metric( "recall" )
               << std::setw( 12 ) << format_metric( "f1_score" )
-              << std::setw( 12 ) << format_metric( "average_precision" )
+              << std::setw( 12 ) << format_metric( "ap50" )
+              << std::setw( 12 ) << format_metric( "ap75" )
+              << std::setw( 12 ) << format_metric( "ap50_95" )
               << "\n";
   }
   std::cout << "\n";
