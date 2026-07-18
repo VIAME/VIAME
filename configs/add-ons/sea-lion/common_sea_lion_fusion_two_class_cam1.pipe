@@ -2,7 +2,19 @@
 # Title: Common - Sea Lion Fusion Two Class Cam1
 #
 # Description: Shared configuration module that can be included by other
-# pipelines. Configured for sea lion survey imagery.
+# pipelines. Configured for sea lion survey imagery. Fuses three detectors --
+# RF-DETR 2-class @1008, RF-DETR 2-class @1344, and DEIMv2 pup-vs-nonpup
+# @1280 (ONNX) -- with weighted box fusion. Parameters were learned with
+# tools/train_detection_fusion.py on 2019/2021/2014 survey sequences and
+# validated on held-out 2009/2024/2022 imagery, where this configuration
+# improved every COCO metric over the best single detector:
+#   mAP@50    0.902 -> 0.932
+#   mAP@75    0.771 -> 0.813
+#   mAP@50:95 0.652 -> 0.688
+#
+# The DEIMv2 model emits the class name 'nonpup_sealion'; the fuser's
+# label_dic aliases it onto the same id as 'adult' (first name registered
+# wins), so the fused output uses the adult / pup vocabulary.
 # =============================================================================
 
 # ============================== INPUT FORMATTER ==============================
@@ -23,18 +35,23 @@ process detector_cam1_1
   :detector:type                               ocv_windowed
 
   block detector:ocv_windowed
-    :detector:type                             netharn
+    :detector:type                             rf_detr
 
     :mode                                      chip
     :scale                                     $CONFIG{global:scale}
-    :chip_width                                640
-    :chip_height                               640
-    :chip_step_width                           520
-    :chip_step_height                          520
+    :chip_width                                1008
+    :chip_height                               1008
+    :chip_step_width                           665
+    :chip_step_height                          665
     :chip_edge_filter                          5
+    :black_pad                                 false
+    :original_to_chip_size                     true
+    :chip_adaptive_thresh                      2800000
 
-    block detector:netharn
-      relativepath deployed =                  models/sea_lion_v3_cfrnn_all_class.zip
+    block detector:rf_detr
+      relativepath weight =                    models/sealion_detector_2cls_rf_detr_l_1008.pth
+      :threshold                               0.10
+      :device                                  auto
     endblock
   endblock
 
@@ -46,11 +63,9 @@ process nms_refiner_cam1_1
   :refiner:type                                nms
 
   block refiner:nms
-    :max_overlap                               0.80
+    :max_overlap                               0.50
     :nms_scale_factor                          1.0
     :output_scale_factor                       1.0
-    :max_scale_difference                      2.0
-    :min_scale_difference                      0.5
   endblock
 
 connect from detector_cam1_1.detected_object_set
@@ -63,18 +78,23 @@ process detector_cam1_2
   :detector:type                               ocv_windowed
 
   block detector:ocv_windowed
-    :detector:type                             netharn
+    :detector:type                             rf_detr
 
     :mode                                      chip
     :scale                                     $CONFIG{global:scale}
-    :chip_width                                640
-    :chip_height                               640
-    :chip_step_width                           520
-    :chip_step_height                          520
+    :chip_width                                1344
+    :chip_height                               1344
+    :chip_step_width                           887
+    :chip_step_height                          887
     :chip_edge_filter                          5
+    :black_pad                                 false
+    :original_to_chip_size                     true
+    :chip_adaptive_thresh                      2800000
 
-    block detector:netharn
-      relativepath deployed =                  models/sea_lion_v3_cfrnn_two_class.zip
+    block detector:rf_detr
+      relativepath weight =                    models/sealion_detector_2cls_rf_detr_l_1344.pth
+      :threshold                               0.10
+      :device                                  auto
     endblock
   endblock
 
@@ -86,11 +106,9 @@ process nms_refiner_cam1_2
   :refiner:type                                nms
 
   block refiner:nms
-    :max_overlap                               0.80
+    :max_overlap                               0.50
     :nms_scale_factor                          1.0
     :output_scale_factor                       1.0
-    :max_scale_difference                      2.0
-    :min_scale_difference                      0.5
   endblock
 
 connect from detector_cam1_2.detected_object_set
@@ -98,42 +116,67 @@ connect from detector_cam1_2.detected_object_set
 
 # ================================= DETECTOR3 =================================
 
-process reclassifier_cam1
-  :: refine_detections
-  :refiner:type                                netharn
+process detector_cam1_3
+  :: image_object_detector
+  :detector:type                               ocv_windowed
 
-  block refiner:netharn
-    relativepath deployed =                    models/sea_lion_v3_resnet_five_class.zip
-    relativepath scale_type_file =             models/sea_lion_v3_target_scales.txt
+  block detector:ocv_windowed
+    :detector:type                             kwcoco_detector_kit
 
-    :batch_size                                auto
-    :area_pivot                                0
-    :border_exclude                            0
-    :chip_method                               fixed_width
-    :chip_width                                224
-    :average_prior                             False
+    :mode                                      chip
+    :scale                                     $CONFIG{global:scale}
+    :chip_width                                1280
+    :chip_height                               1280
+    :chip_step_width                           845
+    :chip_step_height                          845
+    :chip_edge_filter                          5
+    :black_pad                                 false
+    :original_to_chip_size                     true
+    :chip_adaptive_thresh                      4000000
+
+    block detector:kwcoco_detector_kit
+      relativepath package =                   models/pup_vs_nonpup_1280px
+      :device                                  cuda
+      :score_thresh                            0.10
+      :nms_thresh                              0.50
+    endblock
   endblock
 
 connect from detector_input_cam1.image
-        to   reclassifier_cam1.image
-connect from nms_refiner_cam1_1.detected_object_set
-        to   reclassifier_cam1.detected_object_set
+        to   detector_cam1_3.image
+
+process nms_refiner_cam1_3
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from detector_cam1_3.detected_object_set
+        to   nms_refiner_cam1_3.detected_object_set
 
 # ============================== DETECTOR FUSER ===============================
+# Learned by train_detection_fusion.py (WBF). Weight order matches the
+# detector port order below.
 
 process detector_fuser_cam1
   :: merge_detection_sets
 
   :merger:type                                 nms_fusion
-  :merger:nms_fusion:fusion_weights            [ 1.0, 1.0, 0.5 ]
+  :merger:nms_fusion:fusion_type               wbf
+  :merger:nms_fusion:fusion_weights            [ 1.1, 1.21, 0.825 ]
   :merger:nms_fusion:iou_thr                   0.75
-  :merger:nms_fusion:label_dic                 { 'Background':0, 'Adult':1, 'Pup':2, 'Bull':1, 'Fem':1, 'Juv':1, 'DeadPup':2, 'SAM':1, 'Furseal':3 }
+  :merger:nms_fusion:skip_box_thr              0.0001
+  :merger:nms_fusion:label_dic                 { 'background': 0, 'adult': 1, 'pup': 2, 'nonpup_sealion': 1 }
 
 connect from nms_refiner_cam1_1.detected_object_set
         to   detector_fuser_cam1.detected_object_set1
 connect from nms_refiner_cam1_2.detected_object_set
         to   detector_fuser_cam1.detected_object_set2
-connect from reclassifier_cam1.detected_object_set
+connect from nms_refiner_cam1_3.detected_object_set
         to   detector_fuser_cam1.detected_object_set3
 
 process detector_output_cam1
@@ -144,8 +187,6 @@ process detector_output_cam1
     :max_overlap                               0.80
     :nms_scale_factor                          1.0
     :output_scale_factor                       1.0
-    :max_scale_difference                      2.0
-    :min_scale_difference                      0.5
   endblock
 
 connect from detector_fuser_cam1.detected_object_set
