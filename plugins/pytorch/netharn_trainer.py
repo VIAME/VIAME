@@ -53,6 +53,7 @@ class NetHarnTrainer( TrainDetector ):
         self._tmp_training_file = "training_truth.json"
         self._tmp_validation_file = "validation_truth.json"
         self._augmentation = "complex"
+        self._scale_jitter = "0.2"
         self._gt_frames_only = False
         self._chip_width = "640"
         self._chip_height = "-1"
@@ -110,6 +111,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
         cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
         cfg.set_value( "augmentation", str( self._augmentation ) )
+        cfg.set_value( "scale_jitter", str( self._scale_jitter ) )
         cfg.set_value( "chip_width", str( self._chip_width ) )
         cfg.set_value( "chip_height", str( self._chip_height ) )
         cfg.set_value( "chip_overlap", str( self._chip_overlap ) )
@@ -165,6 +167,7 @@ class NetHarnTrainer( TrainDetector ):
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
         self._gt_frames_only = strtobool( cfg.get_value( "gt_frames_only" ) )
         self._augmentation = str( cfg.get_value( "augmentation" ) )
+        self._scale_jitter = str( cfg.get_value( "scale_jitter" ) )
         self._chip_width = str( cfg.get_value( "chip_width" ) )
         self._chip_height = str( cfg.get_value( "chip_height" ) )
         self._chip_overlap = str( cfg.get_value( "chip_overlap" ) )
@@ -790,6 +793,7 @@ class NetHarnTrainer( TrainDetector ):
                      "--name=" + self._identifier,
                      "--arch=" + self._arch,
                      "--input_dims=" + self._chip_height + "," + self._chip_width,
+                     "--scale_jitter=" + self._scale_jitter,
                      "--multiclass=" + "True" if self._multi_output else "False" ]
             if "ReduceLR" in self._scheduler:
                 cmd.append( "--patience=16" )
