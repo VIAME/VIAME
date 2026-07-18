@@ -2,7 +2,26 @@
 # Title: Common - Sea Lion Fusion All Class Cam3
 #
 # Description: Shared configuration module that can be included by other
-# pipelines. Configured for sea lion survey imagery.
+# pipelines. Configured for sea lion survey imagery. Fuses the DEIMv2 6-class
+# lifestage detector (ONNX, 640px) with the RF-DETR 8-class detector (1008px)
+# using weighted box fusion plus box anchoring: the fused score and label come
+# from the weighted ensemble, but each fused box's geometry snaps to the
+# best-overlapping DEIMv2 box when one exists (box_anchor_model 1). This
+# decouples evidence weighting from localization -- RF-DETR overlaps boost
+# confidence and add missed detections, while box quality stays anchored to
+# the tighter DEIMv2 boxes. Parameters were selected by a joint mAP@50 +
+# mAP@75 sweep on 2019/2021/2014 survey sequences (a config only qualified if
+# it improved BOTH metrics) and validated on held-out 2009/2024/2022 imagery,
+# where this configuration improved every COCO metric over the DEIMv2 model
+# alone:
+#   mAP@50    0.698 -> 0.749
+#   mAP@75    0.621 -> 0.652
+#   mAP@50:95 0.532 -> 0.561
+#
+# Output classes: bull, subadult_male, female, juvenile, pup,
+# northern_fur_seal. The RF-DETR model's extra classes are folded via the
+# fuser's label_dic: 'dead_pup' aliases onto the pup id, and 'dead_nonpup' is
+# omitted from the dic so those detections are dropped.
 # =============================================================================
 
 # ============================== INPUT FORMATTER ==============================
@@ -23,18 +42,24 @@ process detector_cam3_1
   :detector:type                               ocv_windowed
 
   block detector:ocv_windowed
-    :detector:type                             netharn
+    :detector:type                             kwcoco_detector_kit
 
     :mode                                      chip
     :scale                                     $CONFIG{global:scale}
     :chip_width                                640
     :chip_height                               640
-    :chip_step_width                           520
-    :chip_step_height                          520
+    :chip_step_width                           422
+    :chip_step_height                          422
     :chip_edge_filter                          5
+    :black_pad                                 false
+    :original_to_chip_size                     true
+    :chip_adaptive_thresh                      1000000
 
-    block detector:netharn
-      relativepath deployed =                  models/sea_lion_v3_cfrnn_all_class.zip
+    block detector:kwcoco_detector_kit
+      relativepath package =                   models/lifestage_6cls_640px
+      :device                                  cuda
+      :score_thresh                            0.10
+      :nms_thresh                              0.50
     endblock
   endblock
 
@@ -46,11 +71,9 @@ process nms_refiner_cam3_1
   :refiner:type                                nms
 
   block refiner:nms
-    :max_overlap                               0.80
+    :max_overlap                               0.50
     :nms_scale_factor                          1.0
     :output_scale_factor                       1.0
-    :max_scale_difference                      2.0
-    :min_scale_difference                      0.5
   endblock
 
 connect from detector_cam3_1.detected_object_set
@@ -63,18 +86,23 @@ process detector_cam3_2
   :detector:type                               ocv_windowed
 
   block detector:ocv_windowed
-    :detector:type                             netharn
+    :detector:type                             rf_detr
 
     :mode                                      chip
     :scale                                     $CONFIG{global:scale}
-    :chip_width                                640
-    :chip_height                               640
-    :chip_step_width                           520
-    :chip_step_height                          520
+    :chip_width                                1008
+    :chip_height                               1008
+    :chip_step_width                           665
+    :chip_step_height                          665
     :chip_edge_filter                          5
+    :black_pad                                 false
+    :original_to_chip_size                     true
+    :chip_adaptive_thresh                      2800000
 
-    block detector:netharn
-      relativepath deployed =                  models/sea_lion_v3_cfrnn_two_class.zip
+    block detector:rf_detr
+      relativepath weight =                    models/sealion_detector_8cls_rf_detr_l_1008.pth
+      :threshold                               0.10
+      :device                                  auto
     endblock
   endblock
 
@@ -86,57 +114,36 @@ process nms_refiner_cam3_2
   :refiner:type                                nms
 
   block refiner:nms
-    :max_overlap                               0.80
+    :max_overlap                               0.50
     :nms_scale_factor                          1.0
     :output_scale_factor                       1.0
-    :max_scale_difference                      2.0
-    :min_scale_difference                      0.5
   endblock
 
 connect from detector_cam3_2.detected_object_set
         to   nms_refiner_cam3_2.detected_object_set
 
-# ================================= DETECTOR3 =================================
-
-process reclassifier_cam3
-  :: refine_detections
-  :refiner:type                                netharn
-
-  block refiner:netharn
-    relativepath deployed =                    models/sea_lion_v3_resnet_five_class.zip
-    relativepath scale_type_file =             models/sea_lion_v3_target_scales.txt
-
-    :batch_size                                auto
-    :area_pivot                                0
-    :border_exclude                            0
-    :chip_method                               fixed_width
-    :chip_width                                224
-    :average_prior                             False
-  endblock
-
-connect from detector_input_cam3.image
-        to   reclassifier_cam3.image
-connect from nms_refiner_cam3_1.detected_object_set
-        to   reclassifier_cam3.detected_object_set
-
 # ============================== DETECTOR FUSER ===============================
+# Selected by a joint mAP@50 + mAP@75 sweep. Weighted box fusion for scores
+# and labels; box_anchor_model snaps fused geometry to detector 1's (DEIMv2's)
+# best same-label overlapping box. Weight order matches the detector port
+# order below.
 
 process detector_fuser_cam3
   :: merge_detection_sets
 
   :merger:type                                 nms_fusion
-  :merger:nms_fusion:fusion_weights            [ 1.0, 1.0, 1.5 ]
-  :merger:nms_fusion:iou_thr                   0.75
-  :merger:nms_fusion:label_dic                 { 'Background':0, 'Bull':1, 'Fem':2, 'Juv':3, 'Pup':4, 'SAM':5, 'Furseal':6, 'Pup':7, 'Adult':8 }
-  :merger:nms_fusion:pseudo_dic                { 8: [ 1, 2, 3, 5 ] }
-  :merger:nms_fusion:pseudo_ind                { 1: [ 2, 0 ] }
+  :merger:nms_fusion:fusion_type               wbf
+  :merger:nms_fusion:fusion_weights            [ 1.0, 0.75 ]
+  :merger:nms_fusion:iou_thr                   0.5
+  :merger:nms_fusion:skip_box_thr              0.0001
+  :merger:nms_fusion:box_anchor_model          1
+  :merger:nms_fusion:box_anchor_iou            0.65
+  :merger:nms_fusion:label_dic                 { 'background': 0, 'bull': 1, 'subadult_male': 2, 'female': 3, 'juvenile': 4, 'pup': 5, 'northern_fur_seal': 6, 'dead_pup': 5 }
 
 connect from nms_refiner_cam3_1.detected_object_set
         to   detector_fuser_cam3.detected_object_set1
 connect from nms_refiner_cam3_2.detected_object_set
         to   detector_fuser_cam3.detected_object_set2
-connect from reclassifier_cam3.detected_object_set
-        to   detector_fuser_cam3.detected_object_set3
 
 process detector_output_cam3
   :: refine_detections
@@ -146,8 +153,6 @@ process detector_output_cam3
     :max_overlap                               0.80
     :nms_scale_factor                          1.0
     :output_scale_factor                       1.0
-    :max_scale_difference                      2.0
-    :min_scale_difference                      0.5
   endblock
 
 connect from detector_fuser_cam3.detected_object_set
