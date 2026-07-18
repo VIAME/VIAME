@@ -319,6 +319,26 @@ windowed_trainer
   kv::algo::image_io::set_nested_algo_configuration( "image_reader", config, io );
   d->m_image_io = io;
 
+  // Nested trainers keep their own train_directory, defaulting to
+  // "deep_training" independently of ours. Left alone they silently write
+  // their datasets and checkpoints under that default while we chip into the
+  // configured directory, so overriding train_directory here would scatter one
+  // run across two folders and clobber whatever lives in "deep_training".
+  // Hand our value down unless the config names one explicitly.
+  const std::string trainer_type =
+    config->get_value< std::string >( "trainer:type", "" );
+
+  if( !trainer_type.empty() )
+  {
+    const std::string trainer_dir_key =
+      "trainer:" + trainer_type + ":train_directory";
+
+    if( !config->has_value( trainer_dir_key ) )
+    {
+      config->set_value( trainer_dir_key, d->m_train_directory );
+    }
+  }
+
   kv::algo::train_detector_sptr trainer;
   kv::algo::train_detector::set_nested_algo_configuration( "trainer", config, trainer );
   d->m_trainer = trainer;
