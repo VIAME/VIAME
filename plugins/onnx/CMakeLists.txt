@@ -1,16 +1,20 @@
 
-# ONNX stereo plugins: epipolar template-matching stereo correspondence
-# exported to a single self-contained .onnx graph.
+# VIAME ONNX plugins, installed as the "viame.onnx" kwiver python package.
 #
-# These are pure-Python utilities (export + run + calibration/geometry helpers)
-# installed as the "onnx_stereo" kwiver python package. They depend on torch
-# (export only), onnxruntime (run), numpy, opencv, and optionally scipy (.mat
-# calibration).
+# Two groups of pure-Python, onnxruntime-based tools (no torch at inference):
+#   * Generic object detector: onnx_predictor + onnx_detector (kwiver vital
+#     algorithm "onnx"), runnable on any detection ONNX graph described by a
+#     .modelspec.json sidecar.
+#   * ONNX stereo utilities: epipolar template-matching / foundation-stereo
+#     correspondence exported to self-contained .onnx graphs (torch for export
+#     only; numpy, opencv, and optionally scipy for .mat calibration).
 
-kwiver_create_python_init( onnx_stereo )
+kwiver_create_python_init( onnx )
 
-set( onnx_stereo_modules
+set( onnx_modules
   __init__
+  onnx_predictor
+  onnx_detector
   epipolar_matcher
   epipolar_dino_matcher
   triangulate
@@ -20,9 +24,9 @@ set( onnx_stereo_modules
   run_epipolar_onnx
   fast_foundation_stereo )
 
-foreach( module ${onnx_stereo_modules} )
+foreach( module ${onnx_modules} )
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/${module}.py
-    onnx_stereo
+    onnx
     ${module} )
 endforeach()
