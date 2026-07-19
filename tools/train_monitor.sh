@@ -187,7 +187,12 @@ while true; do
   ts=$(date '+%F %T')
   if ! squeue -j "$JOBID" 2>/dev/null | grep -q "$JOBID"; then
     STAGE=$(nh_stage)
-    if grep -q "$DONE_PATTERN" "$LOG" 2>/dev/null; then
+    # A swallowed error (e.g. CUDA OOM) can still print the DONE_PATTERN line, so
+    # an error in the log takes precedence over a "finished normally" verdict.
+    end_err=$(grep -iE 'watchdog|collective.*timeout|DistBackendError|Aborted \(core|CUDA out of memory|Traceback \(most recent' "$LOG" 2>/dev/null | tail -1)
+    if [ -n "$end_err" ]; then
+      subj="[train-monitor:${JOB_NAME}] job $JOBID ENDED with ERROR"; reason="ENDED_WITH_ERROR: $end_err"
+    elif grep -q "$DONE_PATTERN" "$LOG" 2>/dev/null; then
       subj="[train-monitor:${JOB_NAME}] job $JOBID FINISHED normally"; reason="COMPLETED_OK"
     else
       subj="[train-monitor:${JOB_NAME}] job $JOBID ENDED unexpectedly"; reason="ENDED_UNEXPECTEDLY"
