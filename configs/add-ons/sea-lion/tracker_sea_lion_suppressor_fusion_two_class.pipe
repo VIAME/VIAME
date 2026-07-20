@@ -40,7 +40,7 @@ process suppressor :: multicam_homog_det_suppressor
 connect from stabilizer.homog1
         to suppressor.homog1
 
-connect from detector_output_cam1.detected_object_set
+connect from detector_fuser_cam1.detected_object_set
         to suppressor.det_objs_1
 
 connect from downsampler.output_1

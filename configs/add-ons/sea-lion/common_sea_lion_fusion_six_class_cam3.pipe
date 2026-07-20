@@ -140,15 +140,6 @@ connect from nms_refiner_cam3_1.detected_object_set
 connect from nms_refiner_cam3_2.detected_object_set
         to   detector_fuser_cam3.detected_object_set2
 
-process detector_output_cam3
-  :: refine_detections
-  :refiner:type                                nms
-
-  block refiner:nms
-    :max_overlap                               0.80
-    :nms_scale_factor                          1.0
-    :output_scale_factor                       1.0
-  endblock
-
-connect from detector_fuser_cam3.detected_object_set
-        to   detector_output_cam3.detected_object_set
+# Output is taken directly from detector_fuser_cam3 (the WBF merger): the
+# post-fusion containment NMS was removed -- it deleted legitimate similar-scale
+# nested boxes and cost ~0.02 mAP@50; WBF already dedups within-class overlaps.

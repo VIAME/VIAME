@@ -67,11 +67,11 @@ connect from stabilizer.homog2
 connect from stabilizer.homog3
         to suppressor.homog3
 
-connect from detector_output_cam1.detected_object_set
+connect from detector_fuser_cam1.detected_object_set
         to suppressor.det_objs_1
-connect from detector_output_cam2.detected_object_set
+connect from detector_fuser_cam2.detected_object_set
         to suppressor.det_objs_2
-connect from detector_output_cam3.detected_object_set
+connect from detector_fuser_cam3.detected_object_set
         to suppressor.det_objs_3
 
 connect from downsampler1.output_1

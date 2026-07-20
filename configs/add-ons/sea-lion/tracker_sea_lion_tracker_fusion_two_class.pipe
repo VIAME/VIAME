@@ -39,7 +39,7 @@ process tracker :: multicam_homog_tracker
 connect from stabilizer.homog1
         to tracker.homog1
 
-connect from detector_output_cam1.detected_object_set
+connect from detector_fuser_cam1.detected_object_set
         to tracker.det_objs_1
 
 connect from downsampler.timestamp
