@@ -86,14 +86,20 @@ if( VIAME_ENABLE_POSTGRESQL )
 endif()
 
 # For COLMAP structure-from-motion / 3D reconstruction (reconstruct_3d.py).
-# pycolmap provides SfM + (CUDA) MVS; open3d is used for point-cloud output.
-# On CUDA builds we swap the CPU-only pycolmap wheel for pycolmap-cuda12, which
-# ships GPU-accelerated feature extraction / matching / MVS. That wheel is
-# installed individually (see the advanced deps below) with --no-deps so it uses
-# the system CUDA 12.x runtime VIAME already builds against, rather than pulling
-# its own packaged cuda-toolkit[cudart,curand] wheels.
+# pycolmap provides SfM + (CUDA) MVS. On CUDA builds we swap the CPU-only
+# pycolmap wheel for pycolmap-cuda12, which ships GPU-accelerated feature
+# extraction / matching / MVS. That wheel is installed individually (see the
+# advanced deps below) with --no-deps so it uses the system CUDA 12.x runtime
+# VIAME already builds against, rather than pulling its own packaged
+# cuda-toolkit[cudart,curand] wheels.
+#
+# open3d is deliberately NOT shipped: it is only used for the final
+# point-cloud / Poisson-mesh output of reconstruct_3d.py, and its Linux wheel
+# is ~427 MB compressed (1.1 GB installed, bundling both CPU and CUDA builds
+# of the library). The tool prints a clear pip-install hint when it is
+# missing; "pip install open3d-cpu" (Linux) or "open3d" (other platforms)
+# enables mesh output on demand.
 if( VIAME_ENABLE_COLMAP )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "open3d" )
   # pycolmap-cuda12 (below) publishes Linux-only wheels, so every other
   # platform gets the CPU wheel even on CUDA builds.
   if( NOT ( VIAME_ENABLE_CUDA AND UNIX ) )
