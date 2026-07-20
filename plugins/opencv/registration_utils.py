@@ -805,13 +805,22 @@ def _rot2(deg):
     c, s = math.cos(t), math.sin(t)
     return np.array([[c, -s], [s, c]])
 
-def _fit_similarity_disp(G, F):
+def _fit_similarity_disp(G, F, force_chir=None):
     """Fit M (2x2 rotation+scale, both chiralities) with F = M @ G. Robust to
-    near-collinear G (single-direction flight) unlike a free 2x2."""
+    near-collinear G (single-direction flight) unlike a free 2x2.
+
+    ``force_chir`` (+1/-1) restricts the fit to one handedness. The rig cameras
+    are one rigid body imaging the ground with a single physical handedness, so
+    letting each camera pick its own chirality by residual lets a camera over
+    ambiguous terrain (e.g. repetitive tussock grass) lock onto the MIRRORED
+    solution -- its footprints then draw flipped along-track relative to the
+    other cameras. :func:`_geo_anchor_cameras` votes a rig-consensus chirality
+    and refits dissenters with it via this argument."""
     gx, gy = G[:, 0], G[:, 1]
     fx, fy = F[:, 0], F[:, 1]
     best = None
-    for chir in (+1, -1):
+    chiralities = (force_chir,) if force_chir in (+1, -1) else (+1, -1)
+    for chir in chiralities:
         rows = np.vstack([
             np.column_stack([gx, -chir * gy]),   # fx = a*gx - chir*b*gy
             np.column_stack([gy,  chir * gx]),    # fy = b*gx + chir*a*gy
@@ -824,14 +833,16 @@ def _fit_similarity_disp(G, F):
             best = (M, r)
     return best
 
-def _geo_calibrate(chain, cam_images, poses, pairwise_H):
+def _geo_calibrate(chain, cam_images, poses, pairwise_H, force_chir=None):
     """Calibrate the constant camera-mounting map M (heading-frame metres ->
     pixels) from RAW pairwise feature translations. The ground GPS displacement
     is first DE-ROTATED by each frame's yaw, so M stays constant even when the
     aircraft reverses heading between survey passes (the multi-pass / revisit
     case) — a single un-rotated fit would otherwise be corrupted by the ~180°
     flip. Returns (M, n_steps, residual, enu, yaw). If yaw is absent (EXIF-only),
-    de-rotation is identity and M degenerates to the single-heading transform."""
+    de-rotation is identity and M degenerates to the single-heading transform.
+    ``force_chir`` pins the handedness to the rig consensus (see
+    :func:`_fit_similarity_disp`)."""
     enu, _yaw = _poses_to_enu(poses, cam_images)
     yaw = _track_headings(enu)    # GPS-track heading (flips between passes)
     G, F = [], []
@@ -841,16 +852,23 @@ def _geo_calibrate(chain, cam_images, poses, pairwise_H):
         g = enu[i] - enu[j]
         if np.linalg.norm(g) < 1.0:
             continue
-        g_cam = _rot2(-yaw[j]) @ g     # ground disp -> aircraft heading frame
+        # Ground disp -> aircraft body frame (u=right-of-travel, v=forward).
+        # ENU->body for heading psi is _rot2(+psi) in this rotation convention;
+        # the previous _rot2(-psi) only defined a heading-CONSISTENT frame for
+        # single-heading or 180-degree out-and-back flights (R(2psi) invariant),
+        # silently mis-fitting M's rotation on multi-heading sites and breaking
+        # the synthesized-M case (see _pixel_to_enu_transform in
+        # detect_prior_coverage.py, which inverts with _rot2(-psi)).
+        g_cam = _rot2(yaw[j]) @ g
         G.append(g_cam); F.append([H[0, 2], H[1, 2]])
     if len(G) < 3:
         return None, 0, None, enu, yaw
     G = np.array(G); F = np.array(F)
-    M, _r = _fit_similarity_disp(G, F)
+    M, _r = _fit_similarity_disp(G, F, force_chir)
     res = np.linalg.norm(G @ M.T - F, axis=1)
     keep = res <= max(3 * np.median(res), 50)   # reject gross outliers, refit
     if keep.sum() >= 3:
-        M, _r = _fit_similarity_disp(G[keep], F[keep])
+        M, _r = _fit_similarity_disp(G[keep], F[keep], force_chir)
         res = np.linalg.norm(G[keep] @ M.T - F[keep], axis=1)
     return M, int(keep.sum()), float(np.median(res)), enu, yaw
 
@@ -867,7 +885,8 @@ def _geo_fill(chain, cam_images, enu, yaw, M, label="", n_steps=0, residual=None
             continue
         j = min(reg, key=lambda m: abs(m - k))
         H = chain[j].copy()
-        g_cam = _rot2(-yaw[j]) @ (enu[k] - enu[j])
+        # ENU->body = _rot2(+yaw), matching _geo_calibrate's fit convention.
+        g_cam = _rot2(yaw[j]) @ (enu[k] - enu[j])
         pos = np.array([chain[j][0, 2], chain[j][1, 2]]) + M @ g_cam
         H[0, 2], H[1, 2] = float(pos[0]), float(pos[1])
         chain[k] = H
@@ -893,6 +912,33 @@ def _geo_anchor_cameras(cam_chains, cameras, poses_by_cam, pairwise_by_cam):
             cam_chains[cam_key], cameras[cam_key],
             poses_by_cam[cam_key], pairwise_by_cam.get(cam_key))
         cal[cam_key] = [M, n, r, enu, yaw]
+
+    # Rig-shared CHIRALITY. The cameras are one rigid body, so the ground->pixel
+    # handedness is identical for all of them; a per-camera fit over ambiguous
+    # terrain can pick the mirrored solution (observed: a grass-imaging STAR
+    # camera flipped along-track vs CENTER). Vote the consensus handedness,
+    # quality-weighted (steps / residual), and refit any dissenter with it.
+    def _chir(M):
+        return 1 if np.linalg.det(M) >= 0 else -1
+    votes = {}
+    for c in cal.values():
+        M, n, r = c[0], c[1], c[2]
+        if M is None or n < 3:
+            continue
+        votes[_chir(M)] = votes.get(_chir(M), 0.0) + n / (1.0 + (r or 1e3))
+    if len(votes) > 1:
+        consensus = max(votes, key=votes.get)
+        for cam_key, c in cal.items():
+            if c[0] is None or _chir(c[0]) == consensus:
+                continue
+            M2, n2, r2, enu2, yaw2 = _geo_calibrate(
+                cam_chains[cam_key], cameras[cam_key], poses_by_cam[cam_key],
+                pairwise_by_cam.get(cam_key), force_chir=consensus)
+            if M2 is not None:
+                cal[cam_key] = [M2, n2, r2, enu2, yaw2]
+                print(f"    {cam_key}: chirality was mirrored vs the rig; "
+                      f"refit to consensus handedness")
+
     # Rig-shared scale = median scale of well-calibrated cameras.
     good = [np.sqrt(abs(np.linalg.det(c[0]))) for c in cal.values()
             if c[0] is not None and c[1] >= 8 and c[2] is not None and c[2] < 150]

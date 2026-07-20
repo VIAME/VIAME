@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: Common - Sea Lion Reclassifier All Class Cam2
+# Title: Common - Sea Lion Reclassifier Five Class Cam3
 #
 # Description: Shared configuration module that can be included by other
 # pipelines. Configured for sea lion survey imagery.
@@ -7,7 +7,7 @@
 
 # ============================== INPUT FORMATTER ==============================
 
-process detector_input_cam2
+process detector_input_cam3
   :: image_filter
   :filter:type                                 vxl_convert_image
 
@@ -18,7 +18,7 @@ process detector_input_cam2
 
 # ================================= DETECTOR1 =================================
 
-process detector_cam2_1
+process detector_cam3_1
   :: image_object_detector
   :detector:type                               ocv_windowed
 
@@ -38,10 +38,10 @@ process detector_cam2_1
     endblock
   endblock
 
-connect from detector_input_cam2.image
-        to   detector_cam2_1.image
+connect from detector_input_cam3.image
+        to   detector_cam3_1.image
 
-process nms_refiner_cam2_1
+process nms_refiner_cam3_1
   :: refine_detections
   :refiner:type                                nms
 
@@ -53,12 +53,12 @@ process nms_refiner_cam2_1
     :min_scale_difference                      0.5
   endblock
 
-connect from detector_cam2_1.detected_object_set
-        to   nms_refiner_cam2_1.detected_object_set
+connect from detector_cam3_1.detected_object_set
+        to   nms_refiner_cam3_1.detected_object_set
 
 # =============================== RECLASSIFIER ================================
 
-process reclassifier_cam2
+process reclassifier_cam3
   :: refine_detections
   :refiner:type                                netharn
 
@@ -74,12 +74,12 @@ process reclassifier_cam2
     :average_prior                             False
   endblock
 
-connect from detector_input_cam2.image
-        to   reclassifier_cam2.image
-connect from nms_refiner_cam2_1.detected_object_set
-        to   reclassifier_cam2.detected_object_set
+connect from detector_input_cam3.image
+        to   reclassifier_cam3.image
+connect from nms_refiner_cam3_1.detected_object_set
+        to   reclassifier_cam3.detected_object_set
 
-process detector_output_cam2
+process detector_output_cam3
   :: refine_detections
   :refiner:type                                nms
 
@@ -91,5 +91,5 @@ process detector_output_cam2
     :min_scale_difference                      0.5
   endblock
 
-connect from reclassifier_cam2.detected_object_set
-        to   detector_output_cam2.detected_object_set
+connect from reclassifier_cam3.detected_object_set
+        to   detector_output_cam3.detected_object_set

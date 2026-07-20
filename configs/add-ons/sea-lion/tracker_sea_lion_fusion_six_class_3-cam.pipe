@@ -1,8 +1,16 @@
 # =============================================================================
-# Title: Tracker - Sea Lion Fusion All Class 3-cam
+# Title: Tracker - Sea Lion Fusion Six Class 3-cam
 #
 # Description: Runs object tracking on detected objects across video frames.
 # Configured for sea lion survey imagery.
+#
+# Metadata File: stabilizer:flight_log
+#   DIVE binds an optional per-dataset metadata file (e.g. an FMCLOG
+#   flight-log CSV) to the registration stabilizer's flight_log input.
+# Image List Keys: stabilizer:image_list{cam}
+#   DIVE binds each camera's input image list (one line-separated file per
+#   camera) to the stabilizer's per-camera image_list<i> input
+#   (image_list1, image_list2, ...). Camera 1's list also locates the survey folder.
 # =============================================================================
 
 # Requirements: { Detection Scale (default 1.0), global:scale, double }
@@ -33,17 +41,17 @@ connect from downsampler2.output_2
 connect from downsampler3.output_2
         to stabilizer.file_name3
 
-include common_sea_lion_fusion_all_class_cam1.pipe
+include common_sea_lion_fusion_six_class_cam1.pipe
 
 connect from downsampler1.output_1
         to   detector_input_cam1.image
 
-include common_sea_lion_fusion_all_class_cam2.pipe
+include common_sea_lion_fusion_six_class_cam2.pipe
 
 connect from downsampler2.output_1
         to   detector_input_cam2.image
 
-include common_sea_lion_fusion_all_class_cam3.pipe
+include common_sea_lion_fusion_six_class_cam3.pipe
 
 connect from downsampler3.output_1
         to   detector_input_cam3.image

@@ -80,6 +80,19 @@ class MergeDetectionsNMSFusion( MergeDetections ):
         self._calibration_file = ''
         self._rescore_model_file = ''
         self._fuse_masks = False
+        # How overlapping instance masks combine when fuse_masks is on:
+        # 'union' (best-scoring on the sea lion seg models), 'vote', or
+        # 'max_conf'. See detection_fusion_core.fuse_mask_arrays.
+        self._mask_fusion_type = 'union'
+
+        # Optional box anchoring: when > 0 (1-based model index), each fused
+        # box keeps its fused score and label but its geometry is replaced by
+        # the best-IoU same-label box from the designated model, when that IoU
+        # exceeds box_anchor_iou. This decouples evidence weighting from
+        # geometry so a well-localized model can anchor boxes while weaker
+        # localizers still contribute detections and confidence.
+        self._box_anchor_model = 0
+        self._box_anchor_iou = 0.65
 
         # These parameters should be deprecated longer-term
         self._height = 1
@@ -107,6 +120,9 @@ class MergeDetectionsNMSFusion( MergeDetections ):
         cfg.set_value( "calibration_file", self._calibration_file )
         cfg.set_value( "rescore_model_file", self._rescore_model_file )
         cfg.set_value( "fuse_masks", str( self._fuse_masks ) )
+        cfg.set_value( "mask_fusion_type", str( self._mask_fusion_type ) )
+        cfg.set_value( "box_anchor_model", str( self._box_anchor_model ) )
+        cfg.set_value( "box_anchor_iou", str( self._box_anchor_iou ) )
 
         cfg.set_value( "height", str( self._height ) )
         cfg.set_value( "width", str( self._width ) )
@@ -130,8 +146,11 @@ class MergeDetectionsNMSFusion( MergeDetections ):
 
         self._calibration_file = str( cfg.get_value( "calibration_file" ) )
         self._rescore_model_file = str( cfg.get_value( "rescore_model_file" ) )
+        self._mask_fusion_type = str( cfg.get_value( "mask_fusion_type" ) )
         self._fuse_masks = str( cfg.get_value( "fuse_masks" ) ).lower() in \
           ( 'true', '1', 'yes', 'on' )
+        self._box_anchor_model = int( cfg.get_value( "box_anchor_model" ) )
+        self._box_anchor_iou = float( cfg.get_value( "box_anchor_iou" ) )
 
         self._height = float( cfg.get_value( "height" ) )
         self._width = float( cfg.get_value( "width" ) )
@@ -244,17 +263,25 @@ class MergeDetectionsNMSFusion( MergeDetections ):
                                   x[2], x[3] / norm_height ]
                                 for x in box_list ]
 
-        # Utilize pseudonym lists when upsampling categories
+        # Utilize pseudonym lists when upsampling categories. Build one spatial
+        # index per referenced detector so each box match is a local cell
+        # lookup instead of a full scan (dense frames carry thousands of boxes).
+        pseudo_index = {}
+        for chk_list_ind in self._pseudo_ind:
+            for other_list_ind in self._pseudo_ind[ chk_list_ind ]:
+                if other_list_ind not in pseudo_index:
+                    pseudo_index[ other_list_ind ] = \
+                        dfc.BoxSpatialIndex( boxes_list[ other_list_ind ] )
         for chk_list_ind in self._pseudo_ind:
             for chk_ind in range( len( boxes_list[ chk_list_ind ] ) ):
                 orig_label = labels_list[ chk_list_ind ][ chk_ind ]
                 if not orig_label in self._pseudo_dic:
                     continue
                 for other_list_ind in self._pseudo_ind[ chk_list_ind ]:
-                    best_idx, best_iou = find_matching_box(
-                        boxes_list[ other_list_ind ],
-                        boxes_list[ chk_list_ind ][ chk_ind ],
-                        self._match_iou )
+                    best_idx, best_iou = \
+                        pseudo_index[ other_list_ind ].find_matching_box(
+                            boxes_list[ chk_list_ind ][ chk_ind ],
+                            self._match_iou )
                     if best_idx >= 0:
                         new_label = labels_list[ other_list_ind ][ best_idx ]
                         if new_label in self._pseudo_dic[ orig_label ]:
@@ -291,6 +318,28 @@ class MergeDetectionsNMSFusion( MergeDetections ):
                   contributors[i], scores_list, n_models )
                 out_scores[i] = dfc.logistic_predict(
                   features, self._rescore_model )
+
+        # Optional box anchoring: keep the fused score/label but take the
+        # geometry from the anchor model's best same-label overlapping box.
+        # Fused boxes the anchor model did not detect keep their geometry.
+        if self._box_anchor_model > 0 and \
+           self._box_anchor_model <= len( boxes_list ):
+            anchor_boxes = boxes_list[ self._box_anchor_model - 1 ]
+            anchor_labels = labels_list[ self._box_anchor_model - 1 ]
+            out_boxes = np.array( out_boxes, dtype=float ).reshape( -1, 4 )
+            for i in range( len( out_boxes ) ):
+                best_j = -1
+                best_iou = self._box_anchor_iou
+                for j in range( len( anchor_boxes ) ):
+                    if int( anchor_labels[j] ) != int( out_labels[i] ):
+                        continue
+                    iou = dfc.bb_intersection_over_union(
+                      anchor_boxes[j], out_boxes[i] )
+                    if iou > best_iou:
+                        best_j = j
+                        best_iou = iou
+                if best_j >= 0:
+                    out_boxes[i] = anchor_boxes[ best_j ]
 
         # Compile output detections
         output = DetectedObjectSet()
@@ -340,7 +389,8 @@ class MergeDetectionsNMSFusion( MergeDetections ):
                 fused_mask = dfc.fuse_mask_arrays(
                   [ box[0] * norm_width, box[1] * norm_height,
                     box[2] * norm_width, box[3] * norm_height ],
-                  contrib_boxes, contrib_masks, contrib_weights )
+                  contrib_boxes, contrib_masks, contrib_weights,
+                  method=self._mask_fusion_type )
                 if fused_mask is not None:
                     det.mask = ImageContainer( Image( fused_mask ) )
 

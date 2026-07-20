@@ -1,0 +1,278 @@
+# syntax=docker/dockerfile:1.5.0
+##############################################################################
+# Layered, resumable dev build of VIAME from the local checkout.
+#
+# This is a more efficient sibling of viame_gpu_local.docker. Same build, but:
+#
+#   * The one giant build RUN is split into separately-cached layers
+#       deps -> clone -> configure -> fletch -> kwiver -> pytorch+packages
+#     so a killed/failed build RESUMES from the last completed layer instead of
+#     starting over (the expensive fletch + kwiver layers stay cached).
+#   * CUDA_ARCHITECTURES is a build-arg: by default VIAME compiles PyTorch for
+#     ~8 GPU archs (6.0 6.1 7.0 7.5 8.0 8.6 8.9 9.0 ...). Limit it to YOUR GPU
+#     to cut the PyTorch-from-source compile (the long pole) several-fold.
+#   * The warm /viame + /viame/build tree is baked in, so day-to-day you mount
+#     your host checkout and run an INCREMENTAL `make` inside the container
+#     (see the dev-loop notes at the bottom of this file).
+##############################################################################
+FROM nvidia/cuda:12.6.3-cudnn-devel-ubuntu22.04
+
+USER root
+WORKDIR /home
+
+# Tunables (override with --build-arg). CUDA_ARCHITECTURES empty => VIAME's
+# (broad, slow) default; set it to your GPU's compute capability for a much
+# faster PyTorch build, e.g. --build-arg CUDA_ARCHITECTURES="8.9".
+ARG CUDA_ARCHITECTURES=
+ARG VIAME_OPENCV_VERSION=4.9.0
+ARG VIAME_PYTORCH_VERSION=2.12.0
+ARG VIAME_BUILD_LIMIT_NINJA=ON
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+# Build/runtime paths, set once so every build layer below inherits them.
+ENV PATH=/usr/local/cuda/bin:/viame/build/install/bin:$PATH
+ENV LD_LIBRARY_PATH=/viame/build/install/lib:/viame/build/install/lib/python3.10:/usr/local/cuda/lib64
+ENV C_INCLUDE_PATH=/viame/build/install/include/python3.10
+ENV CPLUS_INCLUDE_PATH=/viame/build/install/include/python3.10
+
+# ---------------------------------------------------------------------------
+# Layer 1: system deps + CMake + Node. Depends only on cmake/ (not the whole
+# repo) so it stays cached across source changes. Uses the consolidated
+# build_common_functions.sh helpers (the old per-step scripts were removed).
+# ---------------------------------------------------------------------------
+RUN --mount=type=bind,source=cmake,target=/host-cmake <<EOF
+#!/usr/bin/env bash
+set -e
+apt-get update
+apt-get install -y git wget rsync
+source /host-cmake/build_common_functions.sh
+install_system_deps apt
+install_cmake
+install_nodejs 22
+EOF
+
+# ---------------------------------------------------------------------------
+# Layer 2: clone the host checkout + submodules into the image. Bind-mount
+# cache semantics freeze this at first build; day-to-day you re-sync the host
+# into /viame from inside the running container (see notes at the bottom).
+# ---------------------------------------------------------------------------
+RUN --mount=type=bind,target=/host-viame <<EOF
+#!/usr/bin/env bash
+set -e
+git clone --single-branch --dissociate /host-viame /viame
+cd /viame
+git submodule update --init --recursive
+mkdir -p /viame/build
+EOF
+
+# ---------------------------------------------------------------------------
+# Layer 3: configure (cheap; its own layer so re-configuring doesn't rebuild
+# the deps). OpenCV 4.9.0 is required for CMake 4.x (3.4.0 hard-errors).
+# ---------------------------------------------------------------------------
+RUN <<EOF
+#!/usr/bin/env bash
+set -e
+cd /viame/build
+EXTRA=""
+if [ -n "${CUDA_ARCHITECTURES}" ]; then
+  EXTRA="-DCUDA_ARCHITECTURES=${CUDA_ARCHITECTURES}"
+  echo "[configure] limiting CUDA archs to: ${CUDA_ARCHITECTURES}"
+else
+  echo "[configure] CUDA_ARCHITECTURES unset -> VIAME default (broad/slow). Pass --build-arg CUDA_ARCHITECTURES=<cap> to speed up PyTorch."
+fi
+cmake ../ $EXTRA -DCMAKE_BUILD_TYPE:STRING=Release \
+-DVIAME_BUILD_DEPENDENCIES:BOOL=ON \
+-DVIAME_FIXUP_BUNDLE:BOOL=OFF \
+-DVIAME_VERSION_RELEASE:BOOL=ON \
+-DVIAME_ENABLE_CUDA:BOOL=ON \
+-DVIAME_ENABLE_CUDNN:BOOL=ON \
+-DVIAME_ENABLE_DARKNET:BOOL=ON \
+-DVIAME_ENABLE_DIVE:BOOL=OFF \
+-DVIAME_ENABLE_DOCS:BOOL=OFF \
+-DVIAME_ENABLE_FFMPEG:BOOL=ON \
+-DVIAME_ENABLE_FFMPEG-X264:BOOL=ON \
+-DVIAME_ENABLE_GDAL:BOOL=OFF \
+-DVIAME_ENABLE_FLASK:BOOL=OFF \
+-DVIAME_ENABLE_ITK:BOOL=OFF \
+-DVIAME_ENABLE_KWANT:BOOL=ON \
+-DVIAME_ENABLE_KWIVER:BOOL=ON \
+-DVIAME_ENABLE_PYTORCH-LEARN:BOOL=OFF \
+-DVIAME_ENABLE_MATLAB:BOOL=OFF \
+-DVIAME_ENABLE_OPENCV:BOOL=ON \
+-DVIAME_OPENCV_VERSION:STRING=${VIAME_OPENCV_VERSION} \
+-DVIAME_ENABLE_PYTHON:BOOL=ON \
+-DVIAME_BUILD_PYTHON_FROM_SOURCE:BOOL=ON \
+-DVIAME_ENABLE_PYTORCH:BOOL=ON \
+-DVIAME_BUILD_PYTORCH_FROM_SOURCE:BOOL=ON \
+-DVIAME_PYTORCH_VERSION:STRING=${VIAME_PYTORCH_VERSION} \
+-DVIAME_BUILD_LIMIT_NINJA=${VIAME_BUILD_LIMIT_NINJA} \
+-DVIAME_BUILD_TORCHVISION_FROM_SOURCE=ON \
+-DVIAME_ENABLE_PYTORCH-VISION:BOOL=ON \
+-DVIAME_ENABLE_PYTORCH-MMDET:BOOL=OFF \
+-DVIAME_ENABLE_PYTORCH-NETHARN:BOOL=OFF \
+-DVIAME_ENABLE_PYTORCH-MIT-YOLO:BOOL=ON \
+-DVIAME_ENABLE_PYTORCH-SIAMMASK:BOOL=OFF \
+-DVIAME_ENABLE_PYTORCH-SAM2:BOOL=ON \
+-DVIAME_ENABLE_SEAL:BOOL=OFF \
+-DVIAME_ENABLE_TENSORFLOW:BOOL=OFF \
+-DVIAME_ENABLE_VIVIA:BOOL=OFF \
+-DVIAME_ENABLE_VXL:BOOL=ON \
+-DVIAME_ENABLE_WEB_EXCLUDES:BOOL=ON \
+-DVIAME_DOWNLOAD_MODELS:BOOL=ON \
+-DVIAME_DOWNLOAD_MODELS-PYTORCH:BOOL=OFF \
+-DVIAME_DOWNLOAD_MODELS-GENERIC:BOOL=OFF \
+-DVIAME_DOWNLOAD_MODELS-FISH:BOOL=ON \
+-DVIAME_DOWNLOAD_MODELS-ARCTIC-SEAL:BOOL=OFF \
+-DVIAME_DOWNLOAD_MODELS-HABCAM:BOOL=OFF \
+-DVIAME_DOWNLOAD_MODELS-MOUSS:BOOL=OFF
+EOF
+
+# ---------------------------------------------------------------------------
+# Layer 4: fletch (OpenCV / VXL / FFmpeg / ... the C++ third-party stack).
+# Its own layer because it is expensive and was the previous failure point;
+# once cached, later failures never rebuild it. No `|| true`: a fletch failure
+# SHOULD stop the build.
+# ---------------------------------------------------------------------------
+RUN cd /viame/build && make -j"$(nproc)" fletch
+
+# ---------------------------------------------------------------------------
+# Layer 5: kwiver (+ the from-source Python it depends on). Cached checkpoint.
+# ---------------------------------------------------------------------------
+RUN cd /viame/build && make -j"$(nproc)" kwiver
+
+# ---------------------------------------------------------------------------
+# Layer 6: everything else -- PyTorch + torchvision from source (the long
+# pole) and the VIAME packages/plugins. `|| true` keeps the warm image even if
+# the long compile is incomplete, but we flag an incomplete build loudly so a
+# broken image is never mistaken for a good one.
+# ---------------------------------------------------------------------------
+RUN <<EOF
+#!/usr/bin/env bash
+cd /viame/build
+make -j"$(nproc)" || true
+if [ ! -e /viame/build/build/src/viame-stamp/viame-install ]; then
+  echo "########################################################################"
+  echo "# WARNING: the viame-install stamp is missing -- the VIAME package layer"
+  echo "# did NOT finish. Scroll up to the FIRST 'Error' (CMake Error /"
+  echo "# make *** Error) -- that is the real failure to fix."
+  echo "# Re-running 'docker build' resumes from the cached deps/fletch/kwiver"
+  echo "# layers, so you do not pay for those again."
+  echo "########################################################################"
+fi
+EOF
+
+# ---------------------------------------------------------------------------
+# Post-build: libsvm symlink fixup + expose the install under /opt/noaa/viame.
+# ---------------------------------------------------------------------------
+RUN <<EOF
+#!/usr/bin/env bash
+cd /viame/build
+# HACK: ensure the invalid libsvm symlink is not created (remove when fixed).
+rm -f install/lib/libsvm.so
+cp install/lib/libsvm.so.2 install/lib/libsvm.so 2>/dev/null || true
+mkdir -p /opt/noaa
+ln -sf /viame/build/install /opt/noaa/viame
+chown -R 1099:1099 /opt/noaa/viame 2>/dev/null || true
+EOF
+
+ENV PATH=/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+RUN <<EOF
+# Notes kept in the image (visible via `docker history`). Wrapped in a
+# quoted-delimiter heredoc fed to ':' (a no-op) so apostrophes and embedded
+# shell/python quotes stay literal and never break the build.
+: <<'__doc__'
+
+Layered, resumable, mountable dev build of VIAME (variant of viame_gpu_local).
+
+Build
+-----
+From the VIAME repo root on the host. The recommended form auto-fills your
+GPU compute capability so PyTorch is not compiled for 8 architectures:
+
+.. code:: bash
+
+    cd $HOME/code/VIAME
+
+    DOCKER_BUILDKIT=1 docker build --progress=plain \
+        --build-arg CUDA_ARCHITECTURES="$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | sort -u | paste -sd' ')" \
+        -t "viame:viame-gpu-local-dev" \
+        -f docker/viame_gpu_local_dev.docker .
+
+If a build is interrupted (or a layer fails), just run the SAME command again:
+BuildKit reuses the cached deps / fletch / kwiver layers and resumes from the
+first incomplete layer. You do not re-pay for what already finished.
+
+Resume / finish a partial build from inside the container
+---------------------------------------------------------
+This image bakes the build env (PATH, LD_LIBRARY_PATH, C_INCLUDE_PATH for the
+from-source <Python.h>), so an in-container `make` Just Works -- unlike the
+older viame_gpu_local.docker, where a fresh shell must re-export those by hand
+or the C++ plugins fail with "Python.h: No such file or directory". To finish
+or repair a build without rebuilding the image:
+
+.. code:: bash
+
+    cd /viame/build
+    cmake ../                       # re-validate config; add -D... to change flags
+    make -j"$(nproc)"               # fletch / pytorch / kwiver already built are reused
+    ls build/src/viame-stamp/viame-install && echo "VIAME PACKAGE BUILT"
+
+    # persist the finished build (run from the host, in another terminal):
+    #   docker commit <container> viame:viame-gpu-local-dev
+
+Run (mount the host checkout for iteration)
+-------------------------------------------
+.. code:: bash
+
+    docker run --gpus=all \
+        --shm-size=8g \
+        --volume "$HOME/code/VIAME:/host-viame" \
+        -it viame:viame-gpu-local-dev \
+        bash
+
+Rapid iteration loop (inside the container)
+-------------------------------------------
+The image already has a warm /viame/build tree. To pick up host edits and
+rebuild only what changed:
+
+.. code:: bash
+
+    git config --global --add safe.directory /host-viame
+    git config --global --add safe.directory /host-viame/.git
+
+    # Pull host edits (committed or not) into the container source tree.
+    rsync -a --delete --exclude build /host-viame/ /viame/
+
+    # Incremental build -- only changed targets recompile.
+    cd /viame/build
+    make -j"$(nproc)"
+
+Fastest path for PURE-PYTHON plugin edits (no compile needed) -- e.g. the
+kwcoco_detector_kit detector. Symlink the host file straight into the install
+so edits are live with zero rebuild:
+
+.. code:: bash
+
+    SP=/opt/noaa/viame/lib/python3.10/site-packages/viame/arrows/pytorch
+    ln -sf /host-viame/plugins/pytorch/kwcoco_detector_kit_detector.py "$SP/kwcoco_detector_kit_detector.py"
+
+Use VIAME
+---------
+.. code:: bash
+
+    source /opt/noaa/viame/setup_viame.sh
+    cd /opt/noaa/viame/examples/object_detection
+    viame ...   # run a pipeline
+
+Speed knobs
+-----------
+  --build-arg CUDA_ARCHITECTURES="8.9"   # your GPU only (biggest win)
+  --build-arg VIAME_BUILD_LIMIT_NINJA=OFF  # faster PyTorch on big-RAM hosts
+                                           # (namek has 177G; OOM-safe). Leave
+                                           # ON for <64G machines.
+
+__doc__
+EOF

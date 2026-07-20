@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: Common - Sea Lion Fusion All Class Cam2
+# Title: Common - Sea Lion Reclassifier Five Class Cam2
 #
 # Description: Shared configuration module that can be included by other
 # pipelines. Configured for sea lion survey imagery.
@@ -56,47 +56,7 @@ process nms_refiner_cam2_1
 connect from detector_cam2_1.detected_object_set
         to   nms_refiner_cam2_1.detected_object_set
 
-# ================================= DETECTOR2 =================================
-
-process detector_cam2_2
-  :: image_object_detector
-  :detector:type                               ocv_windowed
-
-  block detector:ocv_windowed
-    :detector:type                             netharn
-
-    :mode                                      chip
-    :scale                                     $CONFIG{global:scale}
-    :chip_width                                640
-    :chip_height                               640
-    :chip_step_width                           520
-    :chip_step_height                          520
-    :chip_edge_filter                          5
-
-    block detector:netharn
-      relativepath deployed =                  models/sea_lion_v3_cfrnn_two_class.zip
-    endblock
-  endblock
-
-connect from detector_input_cam2.image
-        to   detector_cam2_2.image
-
-process nms_refiner_cam2_2
-  :: refine_detections
-  :refiner:type                                nms
-
-  block refiner:nms
-    :max_overlap                               0.80
-    :nms_scale_factor                          1.0
-    :output_scale_factor                       1.0
-    :max_scale_difference                      2.0
-    :min_scale_difference                      0.5
-  endblock
-
-connect from detector_cam2_2.detected_object_set
-        to   nms_refiner_cam2_2.detected_object_set
-
-# ================================= DETECTOR3 =================================
+# =============================== RECLASSIFIER ================================
 
 process reclassifier_cam2
   :: refine_detections
@@ -119,25 +79,6 @@ connect from detector_input_cam2.image
 connect from nms_refiner_cam2_1.detected_object_set
         to   reclassifier_cam2.detected_object_set
 
-# ============================== DETECTOR FUSER ===============================
-
-process detector_fuser_cam2
-  :: merge_detection_sets
-
-  :merger:type                                 nms_fusion
-  :merger:nms_fusion:fusion_weights            [ 1.0, 1.0, 1.5 ]
-  :merger:nms_fusion:iou_thr                   0.75
-  :merger:nms_fusion:label_dic                 { 'Background':0, 'Bull':1, 'Fem':2, 'Juv':3, 'Pup':4, 'SAM':5, 'Furseal':6, 'Pup':7, 'Adult':8 }
-  :merger:nms_fusion:pseudo_dic                { 8: [ 1, 2, 3, 5 ] }
-  :merger:nms_fusion:pseudo_ind                { 1: [ 2, 0 ] }
-
-connect from nms_refiner_cam2_1.detected_object_set
-        to   detector_fuser_cam2.detected_object_set1
-connect from nms_refiner_cam2_2.detected_object_set
-        to   detector_fuser_cam2.detected_object_set2
-connect from reclassifier_cam2.detected_object_set
-        to   detector_fuser_cam2.detected_object_set3
-
 process detector_output_cam2
   :: refine_detections
   :refiner:type                                nms
@@ -150,5 +91,5 @@ process detector_output_cam2
     :min_scale_difference                      0.5
   endblock
 
-connect from detector_fuser_cam2.detected_object_set
+connect from reclassifier_cam2.detected_object_set
         to   detector_output_cam2.detected_object_set

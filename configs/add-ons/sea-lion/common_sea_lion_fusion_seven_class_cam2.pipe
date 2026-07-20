@@ -1,20 +1,35 @@
 # =============================================================================
-# Title: Common - Sea Lion Fusion Two Class Cam2
+# Title: Common - Sea Lion Fusion Seven Class Cam2
 #
 # Description: Shared configuration module that can be included by other
-# pipelines. Configured for sea lion survey imagery. Fuses three detectors --
-# RF-DETR 2-class @1008, DEIMv2 pup-vs-nonpup @1280 (ONNX), and RF-DETR
-# 8-class @1008 (its fine classes folded to adult/pup) -- with weighted box
-# fusion. This 3-detector combination was the best of those swept with
-# tools/train_detection_fusion.py on 2019/2021/2014 survey sequences and
-# validated on held-out 2009/2024/2022 imagery:
-#   mAP@50 0.933, mAP@75 0.810, mAP@50:95 0.686 (best single detector: 0.902 /
-#   0.771 / 0.652).
+# pipelines. Configured for sea lion survey imagery. Same detector pair as the
+# six-class fusion -- the DEIMv2 6-class lifestage detector (ONNX, 640px) fused
+# with the RF-DETR 8-class detector (1008px) by weighted box fusion -- but the
+# output keeps 'dead_pup' as its own seventh class instead of folding it into
+# 'pup'. On the held-out test split this reached mAP@50 0.738, mAP@75 0.656
+# (RF-DETR 8-class alone: 0.703 / 0.619), with dead_pup at AP@50 0.621,
+# AP@75 0.490.
 #
-# Label folding is done in the fuser's label_dic: 'nonpup_sealion' and the
-# 8-class adult categories (bull/female/juvenile/subadult_male/dead_nonpup)
-# alias onto the 'adult' id; 'dead_pup' onto 'pup'; 'northern_fur_seal' is
-# omitted so those detections are dropped from the 2-class output.
+# The DEIMv2 model has no dead_pup category (its 'pup' covers live and dead
+# pups together), so the dead_pup label comes entirely from the RF-DETR 8-class
+# model; DEIMv2's role here is added box recall for the other six classes.
+#
+# NOTE on reinforcement: the fuser's pseudonym mechanism can relabel a DEIMv2
+# 'pup' box to 'dead_pup' when it overlaps an RF-DETR dead_pup (pseudo_dic
+# 5 -> [5,7], pseudo_ind 0 -> [1]). That was tested and is deliberately NOT
+# enabled here: because DEIMv2 cannot itself distinguish live from dead pups,
+# relabeling off a single 8-class box lowered dead_pup AP@50 (0.621 -> 0.583).
+# Reinforcement only pays off when a genuine second dead_pup opinion is added:
+# with the EfficientNetV2s reclassifier's relabeled 8-class detections as a
+# third fusion input (weight ~0.5, and pseudo on) the config became best on
+# every metric -- mAP@50 0.747, mAP@75 0.669, dead_pup AP@75 0.490 -> 0.528.
+# That variant is the recommended upgrade once the reclassifier is finalized;
+# add the reclassified detections as detector-set 3 and re-enable pseudo_dic
+# { 5: [ 5, 7 ] } / pseudo_ind { 0: [ 1 ] }.
+#
+# Output classes: bull, subadult_male, female, juvenile, pup,
+# northern_fur_seal, dead_pup. 'dead_nonpup' is omitted from the label_dic so
+# those detections are dropped.
 # =============================================================================
 
 # ============================== INPUT FORMATTER ==============================
@@ -28,30 +43,31 @@ process detector_input_cam2
     :force_three_channel                       true
   endblock
 
-# ============================ DETECTOR1: RF-DETR 2cls @1008 ===================
+# ================================= DETECTOR1 =================================
 
 process detector_cam2_1
   :: image_object_detector
   :detector:type                               ocv_windowed
 
   block detector:ocv_windowed
-    :detector:type                             rf_detr
+    :detector:type                             kwcoco_detector_kit
 
     :mode                                      chip
     :scale                                     $CONFIG{global:scale}
-    :chip_width                                1008
-    :chip_height                               1008
-    :chip_step_width                           665
-    :chip_step_height                          665
+    :chip_width                                640
+    :chip_height                               640
+    :chip_step_width                           422
+    :chip_step_height                          422
     :chip_edge_filter                          5
     :black_pad                                 false
     :original_to_chip_size                     true
-    :chip_adaptive_thresh                      2800000
+    :chip_adaptive_thresh                      1000000
 
-    block detector:rf_detr
-      relativepath weight =                    models/sealion_detector_2cls_rf_detr_l_1008.pth
-      :threshold                               0.10
-      :device                                  auto
+    block detector:kwcoco_detector_kit
+      relativepath package =                   models/lifestage_6cls_640px
+      :device                                  cuda
+      :score_thresh                            0.10
+      :nms_thresh                              0.50
     endblock
   endblock
 
@@ -71,53 +87,9 @@ process nms_refiner_cam2_1
 connect from detector_cam2_1.detected_object_set
         to   nms_refiner_cam2_1.detected_object_set
 
-# ============================ DETECTOR2: DEIMv2 1280 =========================
+# ================================= DETECTOR2 =================================
 
 process detector_cam2_2
-  :: image_object_detector
-  :detector:type                               ocv_windowed
-
-  block detector:ocv_windowed
-    :detector:type                             kwcoco_detector_kit
-
-    :mode                                      chip
-    :scale                                     $CONFIG{global:scale}
-    :chip_width                                1280
-    :chip_height                               1280
-    :chip_step_width                           845
-    :chip_step_height                          845
-    :chip_edge_filter                          5
-    :black_pad                                 false
-    :original_to_chip_size                     true
-    :chip_adaptive_thresh                      4000000
-
-    block detector:kwcoco_detector_kit
-      relativepath package =                   models/pup_vs_nonpup_1280px
-      :device                                  cuda
-      :score_thresh                            0.10
-      :nms_thresh                              0.50
-    endblock
-  endblock
-
-connect from detector_input_cam2.image
-        to   detector_cam2_2.image
-
-process nms_refiner_cam2_2
-  :: refine_detections
-  :refiner:type                                nms
-
-  block refiner:nms
-    :max_overlap                               0.50
-    :nms_scale_factor                          1.0
-    :output_scale_factor                       1.0
-  endblock
-
-connect from detector_cam2_2.detected_object_set
-        to   nms_refiner_cam2_2.detected_object_set
-
-# ============================ DETECTOR3: RF-DETR 8cls @1008 ==================
-
-process detector_cam2_3
   :: image_object_detector
   :detector:type                               ocv_windowed
 
@@ -143,9 +115,9 @@ process detector_cam2_3
   endblock
 
 connect from detector_input_cam2.image
-        to   detector_cam2_3.image
+        to   detector_cam2_2.image
 
-process nms_refiner_cam2_3
+process nms_refiner_cam2_2
   :: refine_detections
   :refiner:type                                nms
 
@@ -155,31 +127,32 @@ process nms_refiner_cam2_3
     :output_scale_factor                       1.0
   endblock
 
-connect from detector_cam2_3.detected_object_set
-        to   nms_refiner_cam2_3.detected_object_set
+connect from detector_cam2_2.detected_object_set
+        to   nms_refiner_cam2_2.detected_object_set
 
 # ============================== DETECTOR FUSER ===============================
-# Learned by train_detection_fusion.py (WBF). Weight order matches the
-# detector port order below.
+# Weighted box fusion, weight order matching the detector port order below.
+# 'dead_pup' is its own id (7); it is carried only by the RF-DETR 8-class model
+# (DEIMv2 has no such class). Union mask fusion emits the RF-DETR polygon. The
+# pseudonym relabel of DEIMv2 pups to dead_pup is intentionally omitted -- see
+# the header note (it lowers dead_pup AP without a second dead_pup source).
 
 process detector_fuser_cam2
   :: merge_detection_sets
 
   :merger:type                                 nms_fusion
   :merger:nms_fusion:fusion_type               wbf
-  :merger:nms_fusion:fusion_weights            [ 1.0, 1.44, 1.0 ]
-  :merger:nms_fusion:iou_thr                   0.7
+  :merger:nms_fusion:fusion_weights            [ 1.0, 1.5 ]
+  :merger:nms_fusion:iou_thr                   0.6
   :merger:nms_fusion:skip_box_thr              0.0001
   :merger:nms_fusion:fuse_masks                true
   :merger:nms_fusion:mask_fusion_type          union
-  :merger:nms_fusion:label_dic                 { 'background': 0, 'adult': 1, 'pup': 2, 'nonpup_sealion': 1, 'bull': 1, 'female': 1, 'juvenile': 1, 'subadult_male': 1, 'dead_nonpup': 1, 'dead_pup': 2 }
+  :merger:nms_fusion:label_dic                 { 'background': 0, 'bull': 1, 'subadult_male': 2, 'female': 3, 'juvenile': 4, 'pup': 5, 'northern_fur_seal': 6, 'dead_pup': 7 }
 
 connect from nms_refiner_cam2_1.detected_object_set
         to   detector_fuser_cam2.detected_object_set1
 connect from nms_refiner_cam2_2.detected_object_set
         to   detector_fuser_cam2.detected_object_set2
-connect from nms_refiner_cam2_3.detected_object_set
-        to   detector_fuser_cam2.detected_object_set3
 
 process detector_output_cam2
   :: refine_detections
