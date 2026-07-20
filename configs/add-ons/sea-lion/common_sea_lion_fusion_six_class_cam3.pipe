@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: Common - Sea Lion Fusion All Class Cam3
+# Title: Common - Sea Lion Fusion Six Class Cam3
 #
 # Description: Shared configuration module that can be included by other
 # pipelines. Configured for sea lion survey imagery. Fuses the DEIMv2 6-class

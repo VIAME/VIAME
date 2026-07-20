@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: Common - Sea Lion Fusion All Class Cam1
+# Title: Common - Sea Lion Fusion Six Class Cam2
 #
 # Description: Shared configuration module that can be included by other
 # pipelines. Configured for sea lion survey imagery. Fuses the DEIMv2 6-class
@@ -21,7 +21,7 @@
 
 # ============================== INPUT FORMATTER ==============================
 
-process detector_input_cam1
+process detector_input_cam2
   :: image_filter
   :filter:type                                 vxl_convert_image
 
@@ -32,7 +32,7 @@ process detector_input_cam1
 
 # ================================= DETECTOR1 =================================
 
-process detector_cam1_1
+process detector_cam2_1
   :: image_object_detector
   :detector:type                               ocv_windowed
 
@@ -58,10 +58,10 @@ process detector_cam1_1
     endblock
   endblock
 
-connect from detector_input_cam1.image
-        to   detector_cam1_1.image
+connect from detector_input_cam2.image
+        to   detector_cam2_1.image
 
-process nms_refiner_cam1_1
+process nms_refiner_cam2_1
   :: refine_detections
   :refiner:type                                nms
 
@@ -71,12 +71,12 @@ process nms_refiner_cam1_1
     :output_scale_factor                       1.0
   endblock
 
-connect from detector_cam1_1.detected_object_set
-        to   nms_refiner_cam1_1.detected_object_set
+connect from detector_cam2_1.detected_object_set
+        to   nms_refiner_cam2_1.detected_object_set
 
 # ================================= DETECTOR2 =================================
 
-process detector_cam1_2
+process detector_cam2_2
   :: image_object_detector
   :detector:type                               ocv_windowed
 
@@ -101,10 +101,10 @@ process detector_cam1_2
     endblock
   endblock
 
-connect from detector_input_cam1.image
-        to   detector_cam1_2.image
+connect from detector_input_cam2.image
+        to   detector_cam2_2.image
 
-process nms_refiner_cam1_2
+process nms_refiner_cam2_2
   :: refine_detections
   :refiner:type                                nms
 
@@ -114,8 +114,8 @@ process nms_refiner_cam1_2
     :output_scale_factor                       1.0
   endblock
 
-connect from detector_cam1_2.detected_object_set
-        to   nms_refiner_cam1_2.detected_object_set
+connect from detector_cam2_2.detected_object_set
+        to   nms_refiner_cam2_2.detected_object_set
 
 # ============================== DETECTOR FUSER ===============================
 # Weighted box fusion, weight order matching the detector port order below.
@@ -123,7 +123,7 @@ connect from detector_cam1_2.detected_object_set
 # average localizes better than snapping to DEIMv2 (a joint mAP@50 + mAP@75
 # sweep picked this configuration over the anchored one on both metrics).
 
-process detector_fuser_cam1
+process detector_fuser_cam2
   :: merge_detection_sets
 
   :merger:type                                 nms_fusion
@@ -135,12 +135,12 @@ process detector_fuser_cam1
   :merger:nms_fusion:mask_fusion_type          union
   :merger:nms_fusion:label_dic                 { 'background': 0, 'bull': 1, 'subadult_male': 2, 'female': 3, 'juvenile': 4, 'pup': 5, 'northern_fur_seal': 6, 'dead_pup': 5 }
 
-connect from nms_refiner_cam1_1.detected_object_set
-        to   detector_fuser_cam1.detected_object_set1
-connect from nms_refiner_cam1_2.detected_object_set
-        to   detector_fuser_cam1.detected_object_set2
+connect from nms_refiner_cam2_1.detected_object_set
+        to   detector_fuser_cam2.detected_object_set1
+connect from nms_refiner_cam2_2.detected_object_set
+        to   detector_fuser_cam2.detected_object_set2
 
-process detector_output_cam1
+process detector_output_cam2
   :: refine_detections
   :refiner:type                                nms
 
@@ -150,5 +150,5 @@ process detector_output_cam1
     :output_scale_factor                       1.0
   endblock
 
-connect from detector_fuser_cam1.detected_object_set
-        to   detector_output_cam1.detected_object_set
+connect from detector_fuser_cam2.detected_object_set
+        to   detector_output_cam2.detected_object_set
