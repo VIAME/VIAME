@@ -90,7 +90,11 @@ WORKDIR /workspace
 
 ENV VIAME_INSTALL_DIR=/opt/noaa/viame
 ENV VIAME_WORK_DIR=/workspace
-ENV LD_LIBRARY_PATH=/usr/local/cuda/compat:${LD_LIBRARY_PATH}
+# Match the LD_LIBRARY_PATH from the official NVIDIA CUDA image so the "regular"
+# cuda libraries are found before the compat layer. Vertex/Cloud Run inject newer
+# NVIDIA drivers than the compat layer's hard-coded support list, so preferring
+# the compat libs causes driver/cuda mismatch failures (see issue #273).
+ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64
 ENV AIP_HTTP_PORT=8080
 DOCKERFILE
 
