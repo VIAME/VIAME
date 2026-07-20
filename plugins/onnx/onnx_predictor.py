@@ -68,6 +68,17 @@ def _cuda_device_id(device: str):
     return int(parts[1]) if len(parts) == 2 else 0
 
 
+def _safe_extract_zip(zf: zipfile.ZipFile, dst) -> None:
+    """extractall with zip-slip protection: refuse member paths that would
+    land outside the destination directory."""
+    dst = Path(dst).resolve()
+    for member in zf.infolist():
+        target = (dst / member.filename).resolve()
+        if not target.is_relative_to(dst):
+            raise RuntimeError(f"unsafe zip member path: {member.filename}")
+    zf.extractall(dst)
+
+
 @contextmanager
 def _open_onnx_package(package) -> Iterator[tuple]:
     """Yield (onnx_path, modelspec_dict) for a package dir, .onnx, or .zip.
@@ -89,7 +100,7 @@ def _open_onnx_package(package) -> Iterator[tuple]:
     if package.suffix == ".zip":
         with tempfile.TemporaryDirectory() as tmp:
             with zipfile.ZipFile(package) as zf:
-                zf.extractall(tmp)
+                _safe_extract_zip(zf, tmp)
             onnx_files = sorted(Path(tmp).rglob("*.onnx"))
             if not onnx_files:
                 raise FileNotFoundError(f"no .onnx file inside {package}")
