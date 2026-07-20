@@ -19,6 +19,7 @@ from kwiver.vital.algo import WriteObjectTrackSet
 from viame.core.utilities_coco import (
     global_categories,
     detection_to_annotation,
+    seconds_to_iso8601,
     write_coco_json,
 )
 
@@ -150,7 +151,7 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
             if file_name:
                 entry["file_name"] = file_name
             if frame_id in self._frame_times:
-                entry["timestamp"] = self._frame_times[frame_id]
+                entry["timestamp"] = seconds_to_iso8601(self._frame_times[frame_id])
             self.images.append(entry)
         return self._frame_to_image_id[frame_id]
 

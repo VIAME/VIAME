@@ -28,7 +28,7 @@ import json
 from kwiver.vital.algo import ReadObjectTrackSet
 import kwiver.vital.types as vt
 
-from viame.core.utilities_coco import annotation_to_detection
+from viame.core.utilities_coco import annotation_to_detection, timestamp_to_seconds
 
 
 class ReadObjectTrackSetCoco(ReadObjectTrackSet):
@@ -191,8 +191,9 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
                     ann, categories, image_dims=dims,
                     kp_cat_names=kp_cat_names)
 
-                if timestamp is not None:
-                    time_usec = int(timestamp * 1e6)
+                seconds = timestamp_to_seconds(timestamp)
+                if seconds is not None:
+                    time_usec = int(seconds * 1e6)
                 else:
                     time_usec = frame_index
 

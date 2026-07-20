@@ -392,21 +392,59 @@ def build_image_list(images, aux_image_labels, aux_image_extensions):
 
 
 def _collect_keypoint_categories(annotations):
-    """Extract unique keypoint category names from annotation dicts.
+    """Build the keypoint_categories table and stamp each keypoint with its id.
 
-    Returns a list of ``{id, name}`` dicts, or *None* if no keypoints
-    are present.
+    Assigns a name -> id mapping (ids 1-based, in order of first
+    appearance) and injects a ``keypoint_category_id`` into every keypoint
+    dict alongside the existing ``keypoint_category`` name, so files
+    round-trip through readers that key on the id (e.g. DIVE) as well as
+    those that key on the name.
+
+    Returns a list of ``{id, name}`` dicts, or *None* if no keypoints are
+    present.
     """
     names = {}
     for ann in annotations:
         for kp in ann.get('keypoints', []):
             if isinstance(kp, dict):
                 name = kp.get('keypoint_category', '')
-                if name and name not in names:
+                if not name:
+                    continue
+                if name not in names:
                     names[name] = len(names) + 1
+                kp['keypoint_category_id'] = names[name]
     if not names:
         return None
     return [dict(id=i, name=n) for n, i in names.items()]
+
+
+# ------------------------------------------------------------------
+# Timestamp helpers
+# ------------------------------------------------------------------
+
+def seconds_to_iso8601(seconds):
+    """Format a POSIX timestamp (seconds since the epoch) as ISO-8601 UTC."""
+    return datetime.datetime.fromtimestamp(
+        seconds, tz=datetime.timezone.utc).isoformat()
+
+
+def timestamp_to_seconds(ts):
+    """Parse a COCO image ``timestamp`` into a float number of seconds.
+
+    Accepts an ISO-8601 string or a numeric (UNIX) timestamp, matching the
+    kwcoco spec. Returns *None* if the value can't be parsed.
+    """
+    if ts is None:
+        return None
+    if isinstance(ts, (int, float)):
+        return float(ts)
+    try:
+        return datetime.datetime.fromisoformat(ts.replace('Z', '+00:00')).timestamp()
+    except (ValueError, TypeError, AttributeError):
+        try:
+            return float(ts)
+        except (ValueError, TypeError):
+            return None
 
 
 # ------------------------------------------------------------------
@@ -424,6 +462,9 @@ def write_coco_json(file_obj, annotations, images, categories,
     category_dict = [dict(id=i, name=c) for c, i in mapping.items()]
     image_dict = build_image_list(images, aux_image_labels, aux_image_extensions)
 
+    # Stamp keypoint_category_id onto each keypoint before serialising.
+    kp_cats = _collect_keypoint_categories(annotations)
+
     output = dict(
         info=dict(
             year=now.year,
@@ -439,7 +480,6 @@ def write_coco_json(file_obj, annotations, images, categories,
     if tracks is not None:
         output['tracks'] = tracks
 
-    kp_cats = _collect_keypoint_categories(annotations)
     if kp_cats is not None:
         output['keypoint_categories'] = kp_cats
 
