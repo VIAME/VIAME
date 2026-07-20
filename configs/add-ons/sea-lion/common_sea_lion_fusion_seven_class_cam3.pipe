@@ -65,7 +65,7 @@ process detector_cam3_1
     :chip_adaptive_thresh                      1000000
 
     block detector:onnx
-      relativepath model =                     models/lifestage_6cls_640px
+      relativepath model =                     models/sea_lion_6cls_deim_640.zip
       :device                                  cuda
       :score_thresh                            0.10
       :nms_thresh                              0.50
@@ -109,7 +109,7 @@ process detector_cam3_2
     :chip_adaptive_thresh                      2800000
 
     block detector:rf_detr
-      relativepath weight =                    models/sealion_detector_8cls_rf_detr_l_1008.pth
+      relativepath weight =                    models/sea_lion_8cls_rf_detr_1008.pth
       :threshold                               0.10
       :device                                  auto
     endblock
@@ -154,7 +154,3 @@ connect from nms_refiner_cam3_1.detected_object_set
         to   detector_fuser_cam3.detected_object_set1
 connect from nms_refiner_cam3_2.detected_object_set
         to   detector_fuser_cam3.detected_object_set2
-
-# Output is taken directly from detector_fuser_cam3 (the WBF merger): the
-# post-fusion containment NMS was removed -- it deleted legitimate similar-scale
-# nested boxes and cost ~0.02 mAP@50; WBF already dedups within-class overlaps.

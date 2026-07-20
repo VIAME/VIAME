@@ -44,7 +44,7 @@ process detector
     :chip_adaptive_thresh                      1000000
 
     block detector:onnx
-      relativepath model =                     models/lifestage_6cls_640px
+      relativepath model =                     models/sea_lion_6cls_deim_640.zip
       :device                                  cuda
       :score_thresh                            0.10
       :nms_thresh                              0.50

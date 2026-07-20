@@ -44,7 +44,7 @@ process detector
     :chip_adaptive_thresh                      2800000
 
     block detector:rf_detr
-      relativepath weight =                    models/sealion_detector_2cls_rf_detr_l_1008.pth
+      relativepath weight =                    models/sea_lion_2cls_rf_detr_1008.pth
       :threshold                               0.10
       :device                                  auto
     endblock
