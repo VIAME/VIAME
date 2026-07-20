@@ -3,8 +3,10 @@
 #
 # Description: Runs object detection pipeline on input imagery. Uses default
 # input with downsampler configuration. Outputs results to
-# sea_lion_detections.csv. Configured for sea lion survey imagery. Uses
-# Cascade R-CNN detection.
+# sea_lion_detections.csv. Configured for sea lion survey imagery. Uses the
+# DEIMv2 6-class lifestage detector (ONNX) at 640px chips -- the best-scoring
+# single detector for six-class output (test-split mAP@50 0.696). This is the
+# same model used as the primary detector in the all-class fusion pipeline.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================
@@ -28,18 +30,24 @@ process detector
   :detector:type                               ocv_windowed
 
   block detector:ocv_windowed
-    :detector:type                             netharn
+    :detector:type                             kwcoco_detector_kit
 
     :mode                                      chip
     :scale                                     $CONFIG{global:scale}
     :chip_width                                640
     :chip_height                               640
-    :chip_step_width                           520
-    :chip_step_height                          520
+    :chip_step_width                           422
+    :chip_step_height                          422
     :chip_edge_filter                          5
+    :black_pad                                 false
+    :original_to_chip_size                     true
+    :chip_adaptive_thresh                      1000000
 
-    block detector:netharn
-      relativepath deployed =                  models/sea_lion_v3_cfrnn_all_class.zip
+    block detector:kwcoco_detector_kit
+      relativepath package =                   models/lifestage_6cls_640px
+      :device                                  cuda
+      :score_thresh                            0.10
+      :nms_thresh                              0.50
     endblock
   endblock
 
@@ -54,8 +62,6 @@ process nms_refiner
     :max_overlap                               0.80
     :nms_scale_factor                          1.0
     :output_scale_factor                       1.0
-    :max_scale_difference                      2.0
-    :min_scale_difference                      0.5
   endblock
 
 connect from detector.detected_object_set
