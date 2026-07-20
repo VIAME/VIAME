@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: Tracker - Sea Lion Fusion Six Class 2-cam
+# Title: Tracker - Sea Lion Fusion Seven Class 3-cam
 #
 # Description: Runs object tracking on detected objects across video frames.
 # Configured for sea lion survey imagery.
@@ -24,41 +24,54 @@ config _pipeline:_edge
 config global
   :scale                                       1.0
 
-include common_two_camera_input_with_downsamplers.pipe
+include common_three_camera_input_with_downsamplers.pipe
 
-include common_sea_lion_registration_2cam.pipe
+include common_sea_lion_registration_3cam.pipe
 
 connect from downsampler1.output_1
         to stabilizer.image1
-connect from downsampler1.output_2
-        to stabilizer.file_name1
 connect from downsampler2.output_1
         to stabilizer.image2
+connect from downsampler3.output_1
+        to stabilizer.image3
+connect from downsampler1.output_2
+        to stabilizer.file_name1
 connect from downsampler2.output_2
         to stabilizer.file_name2
+connect from downsampler3.output_2
+        to stabilizer.file_name3
 
-include common_sea_lion_fusion_six_class_cam1.pipe
+include common_sea_lion_fusion_seven_class_cam1.pipe
 
 connect from downsampler1.output_1
         to   detector_input_cam1.image
 
-include common_sea_lion_fusion_six_class_cam2.pipe
+include common_sea_lion_fusion_seven_class_cam2.pipe
 
 connect from downsampler2.output_1
         to   detector_input_cam2.image
 
+include common_sea_lion_fusion_seven_class_cam3.pipe
+
+connect from downsampler3.output_1
+        to   detector_input_cam3.image
+
 process tracker :: multicam_homog_tracker
-  n_input = 2
+  n_input = 3
 
 connect from stabilizer.homog1
         to tracker.homog1
 connect from stabilizer.homog2
         to tracker.homog2
+connect from stabilizer.homog3
+        to tracker.homog3
 
 connect from detector_output_cam1.detected_object_set
         to tracker.det_objs_1
 connect from detector_output_cam2.detected_object_set
         to tracker.det_objs_2
+connect from detector_output_cam3.detected_object_set
+        to tracker.det_objs_3
 
 connect from downsampler1.timestamp
         to tracker.timestamp
@@ -87,6 +100,18 @@ connect from downsampler2.timestamp
 connect from downsampler2.output_2
         to track_writer2.image_file_name
 
+process track_writer3 :: write_object_track
+  file_name = tracks3.csv
+  frame_list_output = track_images_3.txt
+  writer:type = viame_csv
+
+connect from tracker.obj_tracks_3
+        to track_writer3.object_track_set
+connect from downsampler3.timestamp
+        to track_writer3.timestamp
+connect from downsampler3.output_2
+        to track_writer3.image_file_name
+
 process homog_writer1
   :: kw_write_homography
   output = homogs1.txt
@@ -100,3 +125,10 @@ process homog_writer2
 
 connect from stabilizer.homog2
         to homog_writer2.homography
+
+process homog_writer3
+  :: kw_write_homography
+  output = homogs3.txt
+
+connect from stabilizer.homog3
+        to homog_writer3.homography

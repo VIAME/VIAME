@@ -19,13 +19,14 @@
 # 5 -> [5,7], pseudo_ind 0 -> [1]). That was tested and is deliberately NOT
 # enabled here: because DEIMv2 cannot itself distinguish live from dead pups,
 # relabeling off a single 8-class box lowered dead_pup AP@50 (0.621 -> 0.583).
-# Reinforcement only pays off when a genuine second dead_pup opinion is added:
-# with the EfficientNetV2s reclassifier's relabeled 8-class detections as a
-# third fusion input (weight ~0.5, and pseudo on) the config became best on
-# every metric -- mAP@50 0.747, mAP@75 0.669, dead_pup AP@75 0.490 -> 0.528.
-# That variant is the recommended upgrade once the reclassifier is finalized;
-# add the reclassified detections as detector-set 3 and re-enable pseudo_dic
-# { 5: [ 5, 7 ] } / pseudo_ind { 0: [ 1 ] }.
+# Adding a reclassifier's relabeled detections as a third dead_pup-bearing
+# fusion input was also evaluated. An earlier RF-DETR-based reclassified set
+# nudged the metrics up (mAP@50 0.747, dead_pup AP@75 0.490 -> 0.528), but
+# re-testing with the finalized EfficientNetV2s reclassifier (fixed_width, the
+# winner of the 3-way reclassifier comparison) did NOT help: overall stayed
+# flat (mAP@50 0.745) and dead_pup regressed below 8-class-alone (AP@50 0.621
+# -> 0.598, AP@75 0.490 -> 0.468). So no reclassifier input is used here --
+# deim6 + rf8 is the configuration.
 #
 # Output classes: bull, subadult_male, female, juvenile, pup,
 # northern_fur_seal, dead_pup. 'dead_nonpup' is omitted from the label_dic so
