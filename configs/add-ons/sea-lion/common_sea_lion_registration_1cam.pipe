@@ -22,14 +22,19 @@
 #   method       hybrid (default) | metadata
 #   flight_log   FMCLOG CSV or directory of daily logs; empty = image-only
 #                registration (metadata-optional: hybrid works either way)
+#   require_metadata        true | false (default). Fail the run if no flight_log
+#                metadata file is provided.
+#   require_metadata_match  true | false (default). Fail the run if the metadata
+#                does not correspond to the current image sequence.
+#   min_metadata_coverage   0..1 (default 1.0). Fraction of the sequence that the
+#                metadata must cover when require_metadata_match is set.
 #   water_method auto (default) | svm | sift
-#   site_folder  survey folder; empty = derived from the input image list
-#   image_list   list file used to locate the survey folder when site_folder
-#                is empty (default input_list_1.txt, the pipeline input list)
-#   register_scope list (default) | folder -- register only the given frames
-#                (frame_list) vs. the whole survey folder
-#   frame_list   for register_scope=list: comma-separated image-list file(s);
-#                empty = the pipeline input lists input_list_1..<n_input>.txt
+#   site_folder  survey folder; empty = derived from image_list1
+#   image_list<i> one line-separated image-list file per camera (image_list1,
+#                image_list2, ...); each defaults to the pipeline input list, and
+#                image_list1's first entry also locates the survey folder.
+#   register_scope list (default) | folder -- register the given frames vs. the
+#                whole survey folder
 #   cache        homography cache file; empty = <site>/.sea_lion_reg_cache.npz
 #
 # The first frame blocks while the whole survey is registered once; the result
@@ -40,5 +45,3 @@
 process stabilizer
   :: colmap_registration
   n_input = 1
-  image_list = input_list.txt
-  frame_list = input_list.txt

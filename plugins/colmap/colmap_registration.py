@@ -129,6 +129,20 @@ class ColmapRegistration(KwiverProcess):
             'run - including a list-scope one - reuses it when its stored '
             'algorithm signature still matches, since the full-survey geometry '
             'covers a subset at higher quality. Set false to skip the cache.')
+        _add_declare_config(
+            self, 'require_metadata', 'false',
+            'Fail the pipeline if no metadata file (flight_log) was provided to '
+            'the registration. Default false: image-only registration is allowed.')
+        _add_declare_config(
+            self, 'require_metadata_match', 'false',
+            'Fail the pipeline if the provided metadata does not correspond to '
+            'the current image sequence - fewer than min_metadata_coverage of '
+            'its frames get a pose from the metadata file. Default false.')
+        _add_declare_config(
+            self, 'min_metadata_coverage', '1.0',
+            'When require_metadata_match is set, the minimum fraction (0..1) of '
+            'the image sequence that the metadata must cover. Default 1.0 (every '
+            'frame).')
 
         self._n_input = int(self.config_value('n_input'))
         # One image list per camera: each a single file of line-separated image
@@ -136,8 +150,14 @@ class ColmapRegistration(KwiverProcess):
         # survey folder when site_folder is empty. Defaults keep the pipeline
         # input lists working with no override.
         for i in range(1, self._n_input + 1):
+            # Single-camera pipelines feed input_list.txt; multi-camera ones feed
+            # input_list_1.txt, input_list_2.txt, ... Match those names so the
+            # default works with no override (and DIVE's -s can still override,
+            # since nothing is set in the .pipe file).
+            default_list = ('input_list.txt' if self._n_input == 1
+                            else 'input_list_' + str(i) + '.txt')
             _add_declare_config(
-                self, 'image_list' + str(i), 'input_list_' + str(i) + '.txt',
+                self, 'image_list' + str(i), default_list,
                 'Image-list file for camera ' + str(i) + ': a single file of '
                 'line-separated image paths (not comma-separated).'
                 + (' Its first entry also locates the survey folder when '
@@ -171,6 +191,16 @@ class ColmapRegistration(KwiverProcess):
         self._scope = (self.config_value('register_scope') or 'list').lower()
         self._use_cache = (self.config_value('use_cache') or 'true').lower() \
             not in ('false', '0', 'no', 'off')
+        _truthy = ('true', '1', 'yes', 'on')
+        self._require_metadata = (self.config_value('require_metadata')
+                                  or 'false').lower() in _truthy
+        self._require_metadata_match = (self.config_value('require_metadata_match')
+                                        or 'false').lower() in _truthy
+        try:
+            self._min_metadata_coverage = float(
+                self.config_value('min_metadata_coverage') or '1.0')
+        except ValueError:
+            self._min_metadata_coverage = 1.0
         self._by_name = None                 # basename -> 3x3 or None
         self._frame = 0
         self._last = [None] * self._n_input  # last good homog matrix per cam
@@ -216,6 +246,51 @@ class ColmapRegistration(KwiverProcess):
             with open(lf) as f:
                 images += [ln.strip() for ln in f if ln.strip()]
         return images or None
+
+    def _metadata_coverage(self, site_folder, images):
+        """(matched, total) frames of the current sequence that get a pose from a
+        metadata file (flight log / imagelog.json). Embedded EXIF GPS is ignored
+        (read_exif=False) so this measures the provided metadata file, not the
+        imagery, matching the "requires a metadata file" intent."""
+        from viame.core import survey_metadata as smd
+        records, _cams = smd.build_image_records(
+            site_folder, flight_logs=self._flight_log, read_exif=False,
+            image_list=images, verbose=False)
+        total = len(records)
+        matched = sum(1 for r in records.values()
+                      if r and r.get('lat') is not None)
+        return matched, total
+
+    def _enforce_metadata_requirements(self, site_folder, images):
+        """Raise if require_metadata / require_metadata_match are set and the
+        metadata is missing or does not correspond to the image sequence."""
+        if not (self._require_metadata or self._require_metadata_match):
+            return
+        if self._require_metadata and not self._flight_log:
+            raise RuntimeError(
+                'colmap_registration: require_metadata is set but no metadata '
+                'file was provided (set stabilizer:flight_log to a .csv/.json '
+                'flight log).')
+        if self._require_metadata and not os.path.exists(self._flight_log):
+            raise RuntimeError(
+                'colmap_registration: metadata file not found: %s'
+                % self._flight_log)
+        if not self._require_metadata_match:
+            return
+        matched, total = self._metadata_coverage(site_folder, images)
+        if total == 0:
+            return
+        if matched == 0:
+            raise RuntimeError(
+                'colmap_registration: the provided metadata does not correspond '
+                'to the current image sequence (0/%d frames matched). Check that '
+                'the flight log / imagelog is for this site and flight.' % total)
+        if matched < total * self._min_metadata_coverage:
+            raise RuntimeError(
+                'colmap_registration: the metadata covers only %d/%d frames of '
+                'the image sequence (require >= %.0f%%). It likely does not '
+                'correspond to this sequence.'
+                % (matched, total, 100.0 * self._min_metadata_coverage))
 
     # ---- one-time batch registration -------------------------------------
 
@@ -354,13 +429,22 @@ class ColmapRegistration(KwiverProcess):
         if self._by_name is None:
             site = self._resolve_site(names[0] if names else None)
             if site is None or not os.path.isdir(site):
+                # A required metadata file must fail loudly even when the survey
+                # folder cannot be resolved (there is nothing to register against).
+                if self._require_metadata and not self._flight_log:
+                    raise RuntimeError(
+                        'colmap_registration: require_metadata is set but no '
+                        'metadata file was provided (set stabilizer:flight_log '
+                        'to a .csv/.json flight log).')
                 _log('could not resolve survey folder (site_folder=%r '
                      'image_list1=%r); emitting identity homographies'
                      % (self._site_folder,
                         self._image_lists[0] if self._image_lists else None))
                 self._by_name = {}
             else:
-                self._by_name = self._register(site, self._resolve_images())
+                images = self._resolve_images()
+                self._enforce_metadata_requirements(site, images)
+                self._by_name = self._register(site, images)
         for i in range(self._n_input):
             H = self._homog_for(i, names[i])
             self.push_to_port_using_trait(
