@@ -16,6 +16,18 @@ if( WIN32 )
     CopyFiles( ${VIAME_INSTALL_PREFIX}/x64/*/lib/*.lib ${VIAME_INSTALL_PREFIX}/lib )
   endif()
 
+  # GeographicLib installs a geographiclib-targets.cmake that hard-references its
+  # tool executables (CartConvert.exe, GeoConvert.exe, ...) in install/bin and
+  # asserts their existence at find_package() time. On incremental rebuilds the
+  # fletch (BUILD_ALWAYS) reinstall can leave these exes absent, which breaks
+  # downstream configure of projects that pull in GeographicLib (e.g. vivia via
+  # coredeps). Copy them from the GeographicLib build tree so the imported-target
+  # file-existence checks always pass.
+  set( GEOLIB_BIN "${VIAME_BUILD_FLETCH_DIR}/build/src/GeographicLib-build/bin/Release" )
+  if( EXISTS "${GEOLIB_BIN}" )
+    CopyFiles( ${GEOLIB_BIN}/*.exe ${VIAME_INSTALL_PREFIX}/bin )
+  endif()
+
   # Qt's forced install step may not copy rcc.exe to the install prefix.
   # Copy it here (after all install steps) to ensure it's always present.
   set( QT_RCC_SRC "${VIAME_BUILD_FLETCH_DIR}/build/src/Qt/qtbase/bin/rcc.exe" )
