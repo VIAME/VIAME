@@ -8,6 +8,7 @@ set(VIAME_ENABLE_WEB_EXCLUDES ON CACHE BOOL "Exclude desktop-only components")
 set(VIAME_ENABLE_PYTORCH-LEARN ON CACHE BOOL "Enable learning/training")
 set(VIAME_ENABLE_KWANT ON CACHE BOOL "Enable KWANT")
 set(VIAME_ENABLE_ONNX ON CACHE BOOL "Enable ONNX")
+set(VIAME_ENABLE_COLMAP ON CACHE BOOL "Enable COLMAP")
 
 # Model downloads - minimal for web
 set(VIAME_DOWNLOAD_MODELS ON CACHE BOOL "Download models")
