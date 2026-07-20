@@ -1,3 +1,17 @@
+v0.22.6 - 7/22/2026
+===================
+
+
+- Additional methods for performing image registration and loop closure added
+
+
+- Misc DIVE updates (support suppression regions, metadata pass-downs to pipelines)
+
+
+- Improvements to RF-DETR trainings and support additional data fusion paradigms
+
+
+
 v0.22.5 - 7/02/2026
 ===================
 
