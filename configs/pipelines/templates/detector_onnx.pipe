@@ -1,16 +1,18 @@
 # =============================================================================
-# Title: kwcoco_detector_kit ONNX Detector
+# Title: Generic ONNX Detector
 #
-# Description: Runs a DEIMv2/kwcoco_detector_kit ONNX package on input imagery
-# from disk.  No PyTorch required at inference time — only onnxruntime.
+# Description: Runs an object-detection ONNX package on input imagery from
+# disk.  No PyTorch required at inference time — only onnxruntime.
 #
-# Required edit: replace [-PACKAGE-] with the path to the exported ONNX
-# package directory (or .zip archive) produced by:
+# Required edit: replace [-MODEL-] with the path to the ONNX package: a
+# directory (or .zip archive) holding a .onnx file and, optionally, a
+# .modelspec.json sidecar describing input size, preprocessing, thresholds,
+# and category names (e.g. as produced by
+# "python -m kwcoco_detector_kit export-onnx <workdir>").
 #
-#   python -m kwcoco_detector_kit export-onnx <workdir>
-#
-# Optional edits: score_thresh, device (cpu / cuda / cuda:0).
-# nms_thresh is accepted but advisory — NMS is baked into the ONNX graph.
+# Optional edits: score_thresh, device (cpu / cuda / cuda:0), and decoder
+# (detr / yolo; blank uses the modelspec default).  nms_thresh only applies
+# to decoders without NMS baked into the graph (e.g. yolo).
 # =============================================================================
 
 config _pipeline:_edge
@@ -82,10 +84,10 @@ connect from downsampler.output_1
 
 process detector1
   :: image_object_detector
-  :detector:type                               kwcoco_detector_kit
+  :detector:type                               onnx
 
-  block detector:kwcoco_detector_kit
-    :package                                   [-PACKAGE-]
+  block detector:onnx
+    :model                                     [-MODEL-]
     :device                                    cpu
     :score_thresh                              0.30
     :nms_thresh                                0.50

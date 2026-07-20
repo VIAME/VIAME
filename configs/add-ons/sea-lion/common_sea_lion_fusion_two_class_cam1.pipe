@@ -78,7 +78,7 @@ process detector_cam1_2
   :detector:type                               ocv_windowed
 
   block detector:ocv_windowed
-    :detector:type                             kwcoco_detector_kit
+    :detector:type                             onnx
 
     :mode                                      chip
     :scale                                     $CONFIG{global:scale}
@@ -91,8 +91,8 @@ process detector_cam1_2
     :original_to_chip_size                     true
     :chip_adaptive_thresh                      4000000
 
-    block detector:kwcoco_detector_kit
-      relativepath package =                   models/pup_vs_nonpup_1280px
+    block detector:onnx
+      relativepath model =                     models/pup_vs_nonpup_1280px
       :device                                  cuda
       :score_thresh                            0.10
       :nms_thresh                              0.50
