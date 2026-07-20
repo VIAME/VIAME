@@ -94,7 +94,9 @@ endif()
 # its own packaged cuda-toolkit[cudart,curand] wheels.
 if( VIAME_ENABLE_COLMAP )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "open3d" )
-  if( NOT VIAME_ENABLE_CUDA )
+  # pycolmap-cuda12 (below) publishes Linux-only wheels, so every other
+  # platform gets the CPU wheel even on CUDA builds.
+  if( NOT ( VIAME_ENABLE_CUDA AND UNIX ) )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "pycolmap" )
   endif()
 endif()
@@ -274,7 +276,7 @@ set( VIAME_PYTHON_ADV_DEP_CMDS "custom-install" )
 # (libcudart.so.12 / libcurand.so.10) that VIAME already builds against, instead
 # of pulling packaged cuda-toolkit[cudart,curand] wheels. numpy is provided by
 # the basic deps above (this project depends on python-deps).
-if( VIAME_ENABLE_COLMAP AND VIAME_ENABLE_CUDA )
+if( VIAME_ENABLE_COLMAP AND VIAME_ENABLE_CUDA AND UNIX )
   list( APPEND VIAME_PYTHON_ADV_DEPS pycolmap-cuda12 )
   list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "pycolmap-cuda12 --no-deps" )
 endif()
