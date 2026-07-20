@@ -38,12 +38,13 @@ def _vital_config_update(cfg, cfg_in):
     return cfg
 
 
-def _image_to_rgb_numpy(image_data):
-    """kwiver ImageContainer -> HxWx3 uint8 RGB.
+def _image_to_rgb_numpy(image_data, flip=True):
+    """kwiver ImageContainer -> HxWx3 uint8, in the order the model expects.
 
-    The container delivers channels in BGR order, so the last step reverses
-    them; the model expects RGB. Matches the reference conversion used by the
-    other VIAME detectors."""
+    ``flip`` reverses the channel order (the historical BGR->RGB conversion,
+    kept for the DEIM/kwcoco graphs). RF-DETR is RGB and passes flip=False so it
+    receives the frame in the same order as its torch detector -- an unconditional
+    flip is a red/blue swap that wrecks RF-DETR's per-channel ImageNet norm."""
     arr = image_data.image().asarray().astype("uint8")
     if arr.ndim == 2:
         arr = np.stack((arr,) * 3, axis=-1)
@@ -51,8 +52,8 @@ def _image_to_rgb_numpy(image_data):
         arr = np.stack((arr[:, :, 0],) * 3, axis=-1)
     elif arr.shape[2] == 4:
         arr = arr[:, :, :3]
-    if arr.shape[2] == 3:
-        arr = arr[:, :, ::-1].copy()   # BGR -> RGB
+    if flip and arr.shape[2] == 3:
+        arr = arr[:, :, ::-1].copy()
     return arr
 
 
@@ -72,7 +73,22 @@ def _to_kwiver_detections(dets, predictor):
         bbox = BoundingBoxD(int(b[0]), int(b[1]), int(b[2]), int(b[3]))
         score = float(d["score"])
         dot = DetectedObjectType(predictor.class_name(int(d["label"])), score)
-        out.add(DetectedObject(bbox, score, dot))
+        obj = DetectedObject(bbox, score, dot)
+        # Segmentation models attach a full-frame binary mask; kwiver stores it
+        # cropped to the bounding box (same convention as the torch RF-DETR
+        # detector's supervision_to_kwiver_detections).
+        mask = d.get("mask")
+        if mask is not None:
+            from kwiver.vital.types import ImageContainer, Image
+            h, w = mask.shape[:2]
+            x1 = min(max(int(d["bbox_xyxy"][0]), 0), max(w - 1, 0))
+            y1 = min(max(int(d["bbox_xyxy"][1]), 0), max(h - 1, 0))
+            x2 = min(max(int(np.ceil(d["bbox_xyxy"][2])) + 1, x1 + 1), w)
+            y2 = min(max(int(np.ceil(d["bbox_xyxy"][3])) + 1, y1 + 1), h)
+            crop = np.ascontiguousarray(mask[y1:y2, x1:x2].astype(np.uint8))
+            if crop.size:
+                obj.mask = ImageContainer(Image(crop))
+        out.add(obj)
     return out
 
 
@@ -126,7 +142,8 @@ class OnnxDetector(ImageObjectDetector):
     def detect(self, image_data):
         if self._predictor is None:
             raise RuntimeError("OnnxDetector: set_configuration first")
-        rgb = _image_to_rgb_numpy(image_data)
+        rgb = _image_to_rgb_numpy(
+            image_data, flip=(self._predictor.channel_order == "bgr"))
         dets = self._predictor.predict_image(rgb)
         return _to_kwiver_detections(dets, self._predictor)
 

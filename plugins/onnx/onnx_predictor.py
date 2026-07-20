@@ -132,7 +132,8 @@ class OnnxPredictor:
     """
 
     def __init__(self, package, device="cpu", score_thresh=None,
-                 nms_thresh=None, decoder=None, providers=None):
+                 nms_thresh=None, decoder=None, providers=None,
+                 emit_masks=None):
         import onnxruntime as ort
 
         with _open_onnx_package(package) as (onnx_fpath, spec):
@@ -147,6 +148,15 @@ class OnnxPredictor:
                                   dtype=np.float32).reshape(1, 1, 3)
             self._std = np.array(pre.get("normalize_std", [1.0, 1.0, 1.0]),
                                  dtype=np.float32).reshape(1, 1, 3)
+            # Resize interpolation: DEIM/RT-DETR export against INTER_AREA;
+            # RF-DETR's graph was traced against torchvision BILINEAR, so its
+            # spec sets "bilinear" to reproduce the torch detector's pixels.
+            self._interp_name = str(pre.get("interpolation", "area")).lower()
+            # Channel order the model expects. DEIM/kwcoco graphs are BGR (the
+            # default, matching the historical detector conversion); RF-DETR is
+            # RGB. The kwiver adapter flips only when this is "bgr", so an RGB
+            # model receives the frame in the same order as its torch detector.
+            self._channel_order = str(pre.get("channel_order", "bgr")).lower()
 
             post = spec.get("postprocess", {})
             self._score_thresh = float(
@@ -155,12 +165,17 @@ class OnnxPredictor:
             self._nms_thresh = float(
                 nms_thresh if nms_thresh is not None
                 else post.get("nms_iou_thresh", 0.50))
+            self._topk = int(post.get("topk", 300))
             self._decoder = str(
                 decoder if decoder is not None
                 else post.get("decoder", "detr")).lower()
 
             meta = spec.get("meta", {})
             self._category_names = list(meta.get("category_names", []))
+            # Emit per-instance masks (rfdetr seg models expose a ``masks``
+            # output). Defaults to the spec's segmentation flag; overridable.
+            self._emit_masks = (bool(emit_masks) if emit_masks is not None
+                                else bool(meta.get("segmentation", False)))
 
             if providers is None:
                 providers = _providers_for_device(device)
@@ -190,6 +205,10 @@ class OnnxPredictor:
         return self._category_names
 
     @property
+    def channel_order(self):
+        return getattr(self, "_channel_order", "bgr")
+
+    @property
     def eval_spatial_size(self):
         return (self._eval_h, self._eval_w)
 
@@ -202,8 +221,12 @@ class OnnxPredictor:
             image_np = np.repeat(image_np[..., None], 3, axis=-1)
         elif image_np.shape[2] == 4:
             image_np = image_np[..., :3]
+        interp = {"area": cv2.INTER_AREA, "bilinear": cv2.INTER_LINEAR,
+                  "linear": cv2.INTER_LINEAR, "cubic": cv2.INTER_CUBIC,
+                  "nearest": cv2.INTER_NEAREST}.get(
+                      getattr(self, "_interp_name", "area"), cv2.INTER_AREA)
         resized = cv2.resize(image_np, (self._eval_w, self._eval_h),
-                             interpolation=cv2.INTER_AREA)
+                             interpolation=interp)
         img_f32 = resized.astype(np.float32) * self._scale
         img_f32 = (img_f32 - self._mean) / self._std
         return img_f32.transpose(2, 0, 1)[None, ...]
@@ -218,9 +241,73 @@ class OnnxPredictor:
 
         if self._decoder in ("detr", "baked", "deimv2", "rtdetr"):
             return self._decode_detr(nchw, W, H)
+        if self._decoder in ("rfdetr", "rf_detr"):
+            return self._decode_rfdetr(nchw, W, H)
         if self._decoder == "yolo":
             return self._decode_yolo(nchw, W, H)
         raise ValueError(f"unknown decoder {self._decoder!r}")
+
+    # ------------------------------------------------------------------
+    def _rfdetr_raw(self, nchw):
+        """Run the graph and return (boxes cxcywh (Q,4), logits (Q,C), and the
+        per-query mask logits (Q,h,w) or None). Shared by the box and seg paths."""
+        outputs = self._session.run(None, {self._input_names[0]: nchw})
+        names = [o.name for o in self._session.get_outputs()]
+        bi = next((i for i, n in enumerate(names) if "det" in n), None)
+        li = next((i for i, n in enumerate(names) if "lab" in n), None)
+        mi = next((i for i, n in enumerate(names) if "mask" in n), None)
+        if bi is None or li is None:      # fall back on rank / last-dim
+            b4 = [i for i, o in enumerate(outputs)
+                  if o.ndim == 3 and o.shape[-1] == 4]
+            lo = [i for i, o in enumerate(outputs)
+                  if o.ndim == 3 and o.shape[-1] != 4]
+            bi, li = (b4[0], lo[0]) if (len(b4) == 1 and len(lo) == 1) else (0, 1)
+        masks = outputs[mi][0] if mi is not None else None
+        return outputs[bi][0], outputs[li][0], masks
+
+    def _rfdetr_topk(self, logits):
+        """Replicate rfdetr PostProcess.forward: per-element sigmoid, then top
+        ``num_select`` over the flattened (query x class) grid, threshold, and
+        drop the trailing no-object class. Returns (query_idx, class_idx,
+        scores) sorted by score. This -- not argmax-per-query -- is what makes
+        the ONNX recall match the torch detector."""
+        C = logits.shape[1]
+        prob = 1.0 / (1.0 + np.exp(-np.clip(logits, -88.0, 88.0)))
+        flat = prob.reshape(-1)
+        ns = min(self._topk or 300, flat.size)
+        idx = np.argpartition(-flat, ns - 1)[:ns]
+        idx = idx[np.argsort(-flat[idx])]
+        scores = flat[idx]
+        qi = idx // C
+        ci = idx % C
+        n_names = len(self._category_names) or (C - 1)
+        keep = (scores > self._score_thresh) & (ci < n_names)
+        return qi[keep], ci[keep], scores[keep]
+
+    def _decode_rfdetr(self, nchw, W, H) -> list:
+        """RF-DETR box decode: raw ``dets`` (cxcywh, normalised) + ``labels``
+        (logits), no baked NMS / no ``orig_target_sizes``. NMS is intentionally
+        omitted (RF-DETR is set-based); ocv_windowed dedups across tiles."""
+        boxes, logits, masks = self._rfdetr_raw(nchw)
+        qi, ci, scores = self._rfdetr_topk(logits)
+        want_masks = self._emit_masks and masks is not None
+        if want_masks:
+            import cv2
+        result = []
+        for q, c, s in zip(qi, ci, scores):
+            cx, cy, bw, bh = (float(v) for v in boxes[q])
+            det = {"label": int(c),
+                   "bbox_xyxy": [(cx - bw / 2) * W, (cy - bh / 2) * H,
+                                 (cx + bw / 2) * W, (cy + bh / 2) * H],
+                   "score": float(s)}
+            if want_masks:
+                # Per-query mask logits -> resize (bilinear) to the frame and
+                # threshold at 0, exactly as rfdetr PostProcess does.
+                m = cv2.resize(masks[q].astype(np.float32), (W, H),
+                               interpolation=cv2.INTER_LINEAR)
+                det["mask"] = (m > 0.0).astype(np.uint8)
+            result.append(det)
+        return result
 
     # ------------------------------------------------------------------
     def _decode_detr(self, nchw, W, H) -> list:
