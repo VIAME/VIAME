@@ -7,8 +7,7 @@
 # Required edit: replace [-MODEL-] with the path to the ONNX package: a
 # directory (or .zip archive) holding a .onnx file and, optionally, a
 # .modelspec.json sidecar describing input size, preprocessing, thresholds,
-# and category names (e.g. as produced by
-# "python -m kwcoco_detector_kit export-onnx <workdir>").
+# and category names (as emitted by the model's ONNX export step).
 #
 # Optional edits: score_thresh, device (cpu / cuda / cuda:0), and decoder
 # (detr / yolo; blank uses the modelspec default).  nms_thresh only applies
