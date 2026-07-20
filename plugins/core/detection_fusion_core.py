@@ -55,6 +55,50 @@ def find_matching_box( boxes_list, new_box, match_iou ):
             best_iou = iou
     return best_index, best_iou
 
+class BoxSpatialIndex( object ):
+    """Uniform-grid index over a fixed list of boxes for fast IoU-match
+    queries. Boxes are ( x1, y1, x2, y2 ) in any consistent coordinate scale;
+    cell_size must be in that same scale (~0.05 for [0,1]-normalized boxes,
+    the scale the pseudonym matching runs in). find_matching_box() returns the
+    same ( index, iou ) as the module-level linear scan but only tests boxes
+    sharing a grid cell with the query, turning the O(N*M) pseudonym pass into
+    roughly O(N+M) on the typical case of small, spatially-separated boxes."""
+
+    def __init__( self, boxes_list, cell_size=0.05 ):
+        self._boxes = [ np.asarray( b, dtype=float ).reshape( -1 )[:4]
+                        for b in boxes_list ]
+        self._cell = float( cell_size ) if cell_size and cell_size > 0 else 0.05
+        self._grid = {}
+        for i, b in enumerate( self._boxes ):
+            for key in self._cells( b ):
+                self._grid.setdefault( key, [] ).append( i )
+
+    def _cells( self, b ):
+        c = self._cell
+        cx0 = int( math.floor( min( b[0], b[2] ) / c ) )
+        cx1 = int( math.floor( max( b[0], b[2] ) / c ) )
+        cy0 = int( math.floor( min( b[1], b[3] ) / c ) )
+        cy1 = int( math.floor( max( b[1], b[3] ) / c ) )
+        for cx in range( cx0, cx1 + 1 ):
+            for cy in range( cy0, cy1 + 1 ):
+                yield ( cx, cy )
+
+    def find_matching_box( self, new_box, match_iou ):
+        new_box = np.asarray( new_box, dtype=float ).reshape( -1 )[:4]
+        best_iou = match_iou
+        best_index = -1
+        seen = set()
+        for key in self._cells( new_box ):
+            for i in self._grid.get( key, () ):
+                if i in seen:
+                    continue
+                seen.add( i )
+                iou = bb_intersection_over_union( self._boxes[i], new_box )
+                if iou > best_iou:
+                    best_index = i
+                    best_iou = iou
+        return best_index, best_iou
+
 # ---------------------- PROBABILISTIC ENSEMBLING ------------------------
 
 def dists_to_array( dist_dicts, class_count ):
@@ -355,15 +399,25 @@ def save_rescore_model( filename, model, feature_names ):
 # --------------------------- MASK FUSION -------------------------------
 
 def fuse_mask_arrays( fused_box, contrib_boxes, contrib_masks,
-                      contrib_weights ):
+                      contrib_weights, method='union' ):
     """Fuse instance masks belonging to one fused box.
 
     fused_box is [x1, y1, x2, y2] in pixels; each contributor has its
     own pixel-space box, a 2D mask array aligned to that box's top-left
-    corner, and a scalar weight. Returns a uint8 mask sized to the
-    fused box via per-pixel weighted majority vote (pixels are set where
-    the weighted vote reaches half the total weight covering them), or
-    None when no valid contributor masks exist.
+    corner, and a scalar weight. Returns a uint8 mask sized to the fused
+    box, or None when no valid contributor masks exist.
+
+    method selects how overlapping masks combine (use it to favor a detector):
+      'union'        - foreground if ANY contributor sets the pixel. On the sea
+                       lion seg models this scored highest (the models slightly
+                       under-segment, so the union recovers more true extent).
+      'intersection' - foreground only where EVERY contributor sets the pixel
+                       (conservative; keeps just the agreed core).
+      'max_conf'     - use only the single highest-weight contributor's mask, so
+                       the mask from the higher-weighted / higher-confidence
+                       detector wins outright.
+      'vote'         - per-pixel weighted majority: foreground where the summed
+                       contributor weight reaches half the total covering weight.
     """
     fx1, fy1 = int( round( fused_box[0] ) ), int( round( fused_box[1] ) )
     fx2, fy2 = int( round( fused_box[2] ) ), int( round( fused_box[3] ) )
@@ -371,8 +425,21 @@ def fuse_mask_arrays( fused_box, contrib_boxes, contrib_masks,
     if width <= 0 or height <= 0:
         return None
 
-    acc = np.zeros( ( height, width ), dtype=float )
-    wsum = np.zeros( ( height, width ), dtype=float )
+    if method == 'max_conf':
+        best = None
+        for box, mask, weight in zip( contrib_boxes, contrib_masks,
+                                      contrib_weights ):
+            if mask is not None and ( best is None or weight > best[0] ):
+                best = ( weight, box, mask )
+        if best is None:
+            return None
+        contrib_boxes, contrib_masks, contrib_weights = \
+            [ best[1] ], [ best[2] ], [ best[0] ]
+
+    acc = np.zeros( ( height, width ), dtype=float )   # weighted set
+    wsum = np.zeros( ( height, width ), dtype=float )  # weighted covering
+    hit = np.zeros( ( height, width ), dtype=int )     # count of contributors set
+    n_valid = 0
 
     for box, mask, weight in zip( contrib_boxes, contrib_masks,
                                   contrib_weights ):
@@ -381,6 +448,7 @@ def fuse_mask_arrays( fused_box, contrib_boxes, contrib_masks,
         mask = np.squeeze( np.asarray( mask ) )
         if mask.ndim != 2:
             continue
+        n_valid += 1
         bx1, by1 = int( round( box[0] ) ), int( round( box[1] ) )
         # Region of the contributor mask inside the fused box
         x1 = max( bx1, fx1 )
@@ -392,7 +460,12 @@ def fuse_mask_arrays( fused_box, contrib_boxes, contrib_masks,
         sub = ( mask[ y1 - by1 : y2 - by1, x1 - bx1 : x2 - bx1 ] > 0 )
         acc[ y1 - fy1 : y2 - fy1, x1 - fx1 : x2 - fx1 ] += weight * sub
         wsum[ y1 - fy1 : y2 - fy1, x1 - fx1 : x2 - fx1 ] += weight
+        hit[ y1 - fy1 : y2 - fy1, x1 - fx1 : x2 - fx1 ] += sub
 
-    if not wsum.any():
+    if n_valid == 0:
         return None
+    if method == 'intersection':
+        return ( hit >= n_valid ).astype( np.uint8 )
+    if method == 'union' or method == 'max_conf':
+        return ( hit > 0 ).astype( np.uint8 )
     return ( ( acc >= 0.5 * wsum ) & ( wsum > 0 ) ).astype( np.uint8 )
