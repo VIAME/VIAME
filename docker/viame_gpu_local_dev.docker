@@ -251,13 +251,13 @@ rebuild only what changed:
     make -j"$(nproc)"
 
 Fastest path for PURE-PYTHON plugin edits (no compile needed) -- e.g. the
-kwcoco_detector_kit detector. Symlink the host file straight into the install
+generic onnx detector. Symlink the host file straight into the install
 so edits are live with zero rebuild:
 
 .. code:: bash
 
-    SP=/opt/noaa/viame/lib/python3.10/site-packages/viame/arrows/pytorch
-    ln -sf /host-viame/plugins/pytorch/kwcoco_detector_kit_detector.py "$SP/kwcoco_detector_kit_detector.py"
+    SP=/opt/noaa/viame/lib/python3.10/site-packages/viame/onnx
+    ln -sf /host-viame/plugins/onnx/onnx_detector.py "$SP/onnx_detector.py"
 
 Use VIAME
 ---------

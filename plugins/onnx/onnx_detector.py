@@ -7,10 +7,10 @@ Generic ONNX ImageObjectDetector for VIAME (kwiver vital algorithm ``onnx``).
 
 A thin kwiver adapter around :class:`OnnxPredictor`: it runs any
 object-detection ONNX graph described by a ``.modelspec.json`` sidecar (or by
-explicit config), using onnxruntime. Unlike ``kwcoco_detector_kit`` (which is
-pinned to that project's DEIMv2 export convention and lives in the pytorch
-plugin tree), this detector is architecture-agnostic via the predictor's
-pluggable decoder, so it belongs in ``plugins/onnx``.
+explicit config), using onnxruntime. It supersedes the former
+``kwcoco_detector_kit`` vital algorithm (which was pinned to that project's
+DEIMv2 export convention): the default ``detr`` decoder speaks the same I/O
+contract, and other architectures plug in via the predictor's decoder enum.
 
 Whole-frame only -- like every VIAME detector, wrap it in ``ocv_windowed`` to
 tile large imagery (essential for these sea-lion models; see the pipelines).

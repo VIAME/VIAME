@@ -6,8 +6,9 @@
 Generic ONNX object-detector predictor.
 
 Runs an arbitrary object-detection ONNX graph with onnxruntime -- no PyTorch.
-It is a generalization of the vendored ``kwcoco_detector_kit`` OnnxPredictor:
-that one is hard-wired to the DEIMv2/RT-DETR contract (inputs ``images`` +
+It is a generalization of the ``kwcoco_detector_kit`` OnnxPredictor (formerly
+vendored under plugins/pytorch, now superseded by this module): that one is
+hard-wired to the DEIMv2/RT-DETR contract (inputs ``images`` +
 ``orig_target_sizes``; three outputs ``labels, boxes_xyxy, scores`` with NMS
 baked into the graph). This predictor keeps that as one *decoder* among several
 and drives everything else -- input size, preprocessing, thresholds, class
