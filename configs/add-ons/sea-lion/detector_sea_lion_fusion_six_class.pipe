@@ -22,7 +22,7 @@ include common_default_input_with_downsampler.pipe
 
 # ================================= DETECTOR ==================================
 
-include common_sea_lion_fusion_all_class_cam1.pipe
+include common_sea_lion_fusion_six_class_cam1.pipe
 
 connect from downsampler.output_1
         to   detector_input_cam1.image

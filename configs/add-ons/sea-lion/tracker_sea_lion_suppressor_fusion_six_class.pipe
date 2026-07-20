@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: Tracker - Sea Lion Suppressor Reclassifier All Class
+# Title: Tracker - Sea Lion Suppressor Fusion Six Class
 #
 # Description: Runs object tracking on detected objects across video frames.
 # Configured for sea lion survey imagery.
@@ -28,7 +28,7 @@ connect from downsampler.output_1
 connect from downsampler.output_2
         to stabilizer.file_name1
 
-include common_sea_lion_reclassifier_all_class_cam1.pipe
+include common_sea_lion_fusion_six_class_cam1.pipe
 
 connect from downsampler.output_1
         to detector_input_cam1.image

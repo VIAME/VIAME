@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: Suppressor - Sea Lion Fusion All Class 3-cam
+# Title: Suppressor - Sea Lion Fusion Six Class 3-cam
 #
 # Description: Suppresses false positive detections using learned filters.
 # Configured for sea lion survey imagery.
@@ -33,17 +33,17 @@ connect from downsampler2.output_2
 connect from downsampler3.output_2
         to stabilizer.file_name3
 
-include common_sea_lion_fusion_all_class_cam1.pipe
+include common_sea_lion_fusion_six_class_cam1.pipe
 
 connect from downsampler1.output_1
         to   detector_input_cam1.image
 
-include common_sea_lion_fusion_all_class_cam2.pipe
+include common_sea_lion_fusion_six_class_cam2.pipe
 
 connect from downsampler2.output_1
         to   detector_input_cam2.image
 
-include common_sea_lion_fusion_all_class_cam3.pipe
+include common_sea_lion_fusion_six_class_cam3.pipe
 
 connect from downsampler3.output_1
         to   detector_input_cam3.image

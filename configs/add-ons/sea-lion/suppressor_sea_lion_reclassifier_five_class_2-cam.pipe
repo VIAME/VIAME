@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: Suppressor - Sea Lion Reclassifier All Class 2-cam
+# Title: Suppressor - Sea Lion Reclassifier Five Class 2-cam
 #
 # Description: Suppresses false positive detections using learned filters.
 # Configured for sea lion survey imagery.
@@ -29,12 +29,12 @@ connect from downsampler2.output_1
 connect from downsampler2.output_2
         to stabilizer.file_name2
 
-include common_sea_lion_reclassifier_all_class_cam1.pipe
+include common_sea_lion_reclassifier_five_class_cam1.pipe
 
 connect from downsampler1.output_1
         to   detector_input_cam1.image
 
-include common_sea_lion_reclassifier_all_class_cam2.pipe
+include common_sea_lion_reclassifier_five_class_cam2.pipe
 
 connect from downsampler2.output_1
         to   detector_input_cam2.image
