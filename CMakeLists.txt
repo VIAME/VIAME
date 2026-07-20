@@ -113,7 +113,7 @@ option( VIAME_ENABLE_SVM            "Enable SVM plugins"            ON )
 ###
 # Add secondary algorithm plugin enable flags (non-advanced)
 ##
-option( VIAME_ENABLE_ONNX           "Enable ONNX runtime plugins"   OFF )
+option( VIAME_ENABLE_ONNX           "Enable ONNX runtime plugins"   ON )
 option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
 option( VIAME_ENABLE_TENSORRT       "Enable TensorRT plugins"       OFF )
 option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
