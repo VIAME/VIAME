@@ -21,6 +21,7 @@
 #include "refine_measurements_process.h"
 #include "track_conductor_process.h"
 #include "warp_detections_process.h"
+#include "warp_image_process.h"
 #include "write_homography_list_process.h"
 #include "accumulate_object_tracks_process.h"
 #include "filter_frame_index_process.h"
@@ -250,6 +251,17 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "Warp detection bounding boxes with a 2D transform "
                     "loaded from a file (ITK .h5, DIVE registration .json, "
                     "or plain text homography)" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::warp_image_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "warp_image" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Warp an image with a 2D homography loaded from a file "
+                    "(DIVE registration .json or plain text homography)" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
