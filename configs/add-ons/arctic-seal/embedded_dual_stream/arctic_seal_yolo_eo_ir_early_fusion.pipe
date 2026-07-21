@@ -33,8 +33,8 @@ connect from in_adapt.file_name2
 # =============================================================================
 
 process warp_image
-  :: itk_warp_image
-  relativepath transformation_file = ../transformations/Kotz-2019-Flight-Center.h5
+  :: warp_image
+  relativepath transformation_file = ../transformations/Kotz-2019-Flight-Center.json
 
 connect from downsampler.output_3
         to   warp_image.image
