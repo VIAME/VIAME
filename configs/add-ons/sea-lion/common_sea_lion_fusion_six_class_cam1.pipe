@@ -13,8 +13,8 @@
 # localization the raw WBF box average became the better choice, so anchoring
 # is no longer used here.)
 #
-# Output classes: bull, subadult_male, female, juvenile, pup,
-# northern_fur_seal. The RF-DETR model's extra classes are folded via the
+# Output classes: B (bull), S (subadult_male), F (female), J (juvenile),
+# P (pup), NFS (northern_fur_seal). The RF-DETR model's extra classes fold via the
 # fuser's label_dic: 'dead_pup' aliases onto the pup id, and 'dead_nonpup' is
 # omitted from the dic so those detections are dropped.
 # =============================================================================
@@ -133,7 +133,7 @@ process detector_fuser_cam1
   :merger:nms_fusion:skip_box_thr              0.0001
   :merger:nms_fusion:fuse_masks                true
   :merger:nms_fusion:mask_fusion_type          union
-  :merger:nms_fusion:label_dic                 { 'background': 0, 'bull': 1, 'subadult_male': 2, 'female': 3, 'juvenile': 4, 'pup': 5, 'northern_fur_seal': 6, 'dead_pup': 5 }
+  :merger:nms_fusion:label_dic                 { 'O': 0, 'B': 1, 'S': 2, 'F': 3, 'J': 4, 'P': 5, 'NFS': 6, 'DP': 5 }
   # Class-agnostic merge: collapse boxes overlapping >0.7 IoU (any label) into
   # one detection that KEEPS every competing label, so the box still competes
   # for each class and mAP is preserved; a detector_agreement attribute is set

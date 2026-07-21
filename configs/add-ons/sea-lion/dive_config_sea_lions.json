@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "confidenceFilters": {
+    "default": 0.1,
+    "B": 0.23,
+    "S": 0.21,
+    "F": 0.22,
+    "J": 0.22,
+    "P": 0.27,
+    "DP": 0.24,
+    "NFS": 0.24,
+    "DN": 0.15,
+    "NP": 0.18
+  },
+  "customTypeStyling": {
+    "B": { "color": "#229954", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "S": { "color": "#16A085", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "F": { "color": "#8E44AD", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "J": { "color": "#5DADE2", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "P": { "color": "#2980B9", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "DP": { "color": "#1A5276", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "NFS": { "color": "#58D68D", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "DN": { "color": "#6C3483", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "NP": { "color": "#A569BD", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true }
+  }
+}

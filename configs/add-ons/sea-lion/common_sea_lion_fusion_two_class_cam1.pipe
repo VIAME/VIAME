@@ -4,7 +4,7 @@
 # Description: Shared configuration module that can be included by other
 # pipelines. Configured for sea lion survey imagery. Fuses three detectors --
 # RF-DETR 2-class @1008, DEIMv2 pup-vs-nonpup @1280 (ONNX), and RF-DETR
-# 8-class @1008 (its fine classes folded to adult/pup) -- with weighted box
+# 8-class @1008 (fine classes folded to nonpup/pup, output NP/P) -- with weighted box
 # fusion. This 3-detector combination was the best of those swept with
 # tools/train_detection_fusion.py on 2019/2021/2014 survey sequences and
 # validated on held-out 2009/2024/2022 imagery:
@@ -172,7 +172,7 @@ process detector_fuser_cam1
   :merger:nms_fusion:skip_box_thr              0.0001
   :merger:nms_fusion:fuse_masks                true
   :merger:nms_fusion:mask_fusion_type          union
-  :merger:nms_fusion:label_dic                 { 'background': 0, 'adult': 1, 'pup': 2, 'nonpup_sealion': 1, 'bull': 1, 'female': 1, 'juvenile': 1, 'subadult_male': 1, 'dead_nonpup': 1, 'dead_pup': 2 }
+  :merger:nms_fusion:label_dic                 { 'O': 0, 'NP': 1, 'P': 2, 'B': 1, 'F': 1, 'J': 1, 'S': 1, 'DN': 1, 'DP': 2 }
   # Class-agnostic merge: collapse boxes overlapping >0.7 IoU (any label) into
   # one detection that KEEPS every competing label, so the box still competes
   # for each class and mAP is preserved; a detector_agreement attribute is set

@@ -28,8 +28,8 @@
 # -> 0.598, AP@75 0.490 -> 0.468). So no reclassifier input is used here --
 # deim6 + rf8 is the configuration.
 #
-# Output classes: bull, subadult_male, female, juvenile, pup,
-# northern_fur_seal, dead_pup. 'dead_nonpup' is omitted from the label_dic so
+# Output classes: B (bull), S (subadult_male), F (female), J (juvenile),
+# P (pup), NFS (northern_fur_seal), DP (dead_pup). 'dead_nonpup' (DN) is omitted so
 # those detections are dropped.
 # =============================================================================
 
@@ -153,7 +153,7 @@ process detector_fuser_cam1
   # still competes for each class and mAP is preserved; a detector_agreement
   # attribute is set false on the merged conflicts. Set to 0 to disable.
   :merger:nms_fusion:cross_class_merge_iou     0.7
-  :merger:nms_fusion:label_dic                 { 'background': 0, 'bull': 1, 'subadult_male': 2, 'female': 3, 'juvenile': 4, 'pup': 5, 'northern_fur_seal': 6, 'dead_pup': 7 }
+  :merger:nms_fusion:label_dic                 { 'O': 0, 'B': 1, 'S': 2, 'F': 3, 'J': 4, 'P': 5, 'NFS': 6, 'DP': 7 }
 
 connect from nms_refiner_cam1_1.detected_object_set
         to   detector_fuser_cam1.detected_object_set1
