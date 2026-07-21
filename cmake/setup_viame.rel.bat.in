@@ -42,6 +42,7 @@ SET SPROKIT_PYTHON_MODULES=viame.colmap;%SPROKIT_PYTHON_MODULES%
 SET PYTHONPATH=%VIAME_INSTALL%\python;%PYTHONPATH%
 SET PYTHONPATH=%VIAME_INSTALL%\lib\@VIAME_PYTHON_STRING@;%PYTHONPATH%
 SET PYTHONPATH=%VIAME_INSTALL%\lib\@VIAME_PYTHON_STRING@\site-packages;%PYTHONPATH%
+SET PYTHONNOUSERSITE=1
 
 REM Force UTF-8 encoding for Python to avoid UnicodeEncodeError with emoji
 REM characters in third-party libraries (rich, lightning, yolo) on Windows
