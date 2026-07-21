@@ -220,13 +220,6 @@ if( VIAME_ENABLE_SVM )
   )
 endif()
 
-if( WIN32 AND VIAME_ENABLE_ITK )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_HDF5:BOOL=ON
-  )
-endif()
-
 if( VIAME_ENABLE_TENSORFLOW-MODELS AND NOT VIAME_ENABLE_PYTORCH )
   set( FLETCH_DEP_FLAGS
     ${FLETCH_DEP_FLAGS}
@@ -267,19 +260,6 @@ else()
       -Dfletch_ENABLE_OpenCV_TIFF:BOOL=${FLETCH_BUILD_IMG_LIB}
     )
   endif()
-endif()
-
-if( EXTERNAL_ITK )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_ITK:BOOL=OFF
-  )
-elseif( VIAME_ENABLE_ITK )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_ITK:BOOL=ON
-    -Dfletch_ENABLE_ITK_PYTHON:BOOL=OFF
-  )
 endif()
 
 ExternalProject_Add(fletch
@@ -408,17 +388,5 @@ if( VIAME_ENABLE_VXL )
   set( VIAME_ARGS_VXL_INSTALL
     ${VIAME_ARGS_VXL_INSTALL}
     -DVXL_DIR:PATH=${VIAME_INSTALL_PREFIX}/share/vxl/cmake
-    )
-endif()
-
-if( EXTERNAL_ITK )
-  set( VIAME_ARGS_ITK
-    ${VIAME_ARGS_ITK}
-    -DITK_DIR:PATH=${EXTERNAL_ITK}
-    )
-elseif( VIAME_ENABLE_ITK )
-  set( VIAME_ARGS_ITK
-    ${VIAME_ARGS_ITK}
-    -DITK_DIR:PATH=${VIAME_BUILD_FLETCH_DIR}/build/src/ITK-build
     )
 endif()

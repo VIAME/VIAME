@@ -27,8 +27,8 @@ namespace core
  * @brief Warp detection bounding boxes into another camera's image space
  *
  * The transform is loaded once at configure time via a transform_2d_io
- * reader (default "auto": ITK .h5, DIVE camera registration .json, or plain
- * text 3x3 homography). Each detection's box corners are mapped through the
+ * reader (default "auto": DIVE camera registration .json or plain text
+ * 3x3 homography). Each detection's box corners are mapped through the
  * transform and re-boxed axis-aligned.
  */
 class VIAME_PROCESSES_CORE_NO_EXPORT warp_detections_process

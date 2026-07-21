@@ -122,12 +122,10 @@ option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 # Add tertiary plugin enable flags (advanced)
 ##
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
-option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
 option( VIAME_ENABLE_COLMAP         "Enable COLMAP 3D reconstruction (pycolmap)" OFF )
 
 mark_as_advanced( VIAME_ENABLE_GDAL )
-mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_SEAGIS )
 mark_as_advanced( VIAME_ENABLE_COLMAP )
 
@@ -357,7 +355,7 @@ if( VIAME_ENABLE_DARKNET )
   set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"  FORCE )
 endif()
 
-if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_VIVIA OR VIAME_ENABLE_ITK )
+if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_VIVIA )
   set( VIAME_ENABLE_VXL     ON CACHE BOOL "VXL required for other projects"     FORCE )
 endif()
 
@@ -957,10 +955,6 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_TENSORFLOW )
     include( add_project_tensorflow )
-  endif()
-
-  if( VIAME_ENABLE_ITK )
-    include( add_project_itk_extras )
   endif()
 
   if( VIAME_ENABLE_KEYPOINT )
