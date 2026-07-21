@@ -95,6 +95,84 @@ def arg_suppress_boxes(box_lists, suppression_homogs_and_sizes):
     return [[not center_in_bounds(b, *shs) for b in boxes]
             for boxes, shs in zip(box_lists, suppression_homogs_and_sizes)]
 
+def get_all_other_current_homogs_and_sizes(multihomog, sizes, names):
+    """Get every other camera of the current timestep, in both directions
+
+    Unlike get_self_suppression_homogs_and_sizes, which only pairs cameras in
+    the direction used for suppression, this returns, for each camera, the
+    homographies to all other current-timestep cameras.  Used for the
+    boundary-cutoff check, where coverage by any related frame matters
+    regardless of which of the pair suppresses the other.
+
+    """
+    return [
+        (np.concatenate([to_curr[:cam], to_curr[cam + 1:]]),
+         np.concatenate([sizes[:cam], sizes[cam + 1:]]),
+         np.concatenate([names[:cam], names[cam + 1:]]))
+        for cam, to_curr in enumerate(diff_homogs(
+                multihomog.homogs, multihomog.homogs,
+        ))
+    ]
+
+def get_detection_points(do):
+    """Get an Nx2 ndarray outlining a detection: its polygon if it has one,
+    else the corners of its bounding box"""
+    flat = do.get_flattened_polygon()
+    if flat:
+        points = np.asarray(flat, dtype=float).reshape(-1, 2)
+        if len(points) >= 3:
+            return points
+    bbox = get_DetectedObject_bbox(do)
+    return np.array([
+        [bbox.xmin, bbox.ymin], [bbox.xmax, bbox.ymin],
+        [bbox.xmax, bbox.ymax], [bbox.xmin, bbox.ymax],
+    ], dtype=float)
+
+def get_boundary_points(points, size, threshold):
+    """Of an Nx2 ndarray of points, those within threshold pixels of the
+    boundary of an image of the given (width, height) size"""
+    width, height = size
+    near = (
+        (points[:, 0] <= threshold) | (points[:, 1] <= threshold)
+        | (points[:, 0] >= width - 1 - threshold)
+        | (points[:, 1] >= height - 1 - threshold)
+    )
+    return points[near]
+
+def mark_boundary_suppressed(do_lists, sizes, boundary_homogs_and_sizes,
+                             threshold, attribute):
+    """Mark detections cut off by the image boundary as suppressed
+
+    A detection whose outline (polygon if present, else bounding box) comes
+    within `threshold` pixels of the image boundary is considered cut off by
+    it.  If any of those near-boundary points also falls inside another
+    related frame -- i.e. the boundary area appears in another image, where
+    this image's field of view is drawn as a suppression region -- the
+    detection is marked with a `:<attribute>=true` note, which serializes to
+    a `(atr) <attribute> true` detection attribute in VIAME CSV.  Downstream
+    (DIVE) displays such detections as the suppression type and excludes
+    them from its own type's counts without hiding them.
+
+    """
+    for dos, size, (homogs, src_sizes, _names) in zip(
+            do_lists, sizes, boundary_homogs_and_sizes):
+        if len(homogs) == 0:
+            continue
+        for do in dos:
+            points = get_boundary_points(get_detection_points(do), size, threshold)
+            if len(points) == 0:
+                continue
+            # (n_homogs, 2, n_points) positions of the near-boundary points
+            # in each related frame
+            transformed = Homography.matrix_transform(homogs, points.T)
+            in_bounds = (
+                (0 <= transformed) & (transformed < src_sizes[:, :, np.newaxis])
+            ).all(-2).any()
+            if in_bounds:
+                note = ':' + attribute + '=true'
+                if note not in do.notes:
+                    do.add_note(note)
+
 def clip_poly(poly, scores):
     """Clip a poly, only keeping points with a nonnegative score"""
     result = []
@@ -217,7 +295,8 @@ def find_all_suppression_homogs_and_sizes():
         frames_by_ref[multihomog.to_id] = prev_homogs, prev_sizes, prev_names
 
 @Transformer.decorate
-def suppress(suppression_poly_class=None, *, past_frames):
+def suppress(suppression_poly_class=None, *, past_frames,
+             remove_suppressed=False, boundary_threshold=1.0):
     if past_frames == 'prev_neighbors':
         fshs = find_prev_suppression_homogs_and_sizes()
     elif past_frames == 'all':
@@ -232,11 +311,30 @@ def suppress(suppression_poly_class=None, *, past_frames):
         names = np.array(names, dtype=object)
         multihomog = MultiHomographyF2F.from_homographyf2fs(map(wrap_F2FHomography, homogs))
         do_lists = list(map(to_DetectedObject_list, do_sets))
-        boxes = (map(get_DetectedObject_bbox, dos) for dos in do_lists)
         prev_shs = fshs.step(multihomog, sizes, names)
         curr_shs = get_self_suppression_homogs_and_sizes(multihomog, sizes, names)
         shs = concat_suppression_homogs_and_sizes(prev_shs, curr_shs)
-        keep_its = arg_suppress_boxes(boxes, shs)
+        if remove_suppressed:
+            # Historical behavior: drop detections whose center lies in a
+            # suppressing frame.  Off by default now that display-time
+            # suppression is handled in DIVE via the emitted regions.
+            boxes = (map(get_DetectedObject_bbox, dos) for dos in do_lists)
+            keep_its = arg_suppress_boxes(boxes, shs)
+        else:
+            keep_its = [[True] * len(dos) for dos in do_lists]
+        if suppression_poly_class is not None and boundary_threshold >= 0:
+            # Detections cut off by the image boundary where another frame
+            # covers that boundary are flagged with a detection attribute
+            # named after the suppression class.  Coverage by any related
+            # frame counts, so pair current-timestep cameras in both
+            # directions, not just the suppression direction.
+            all_curr_shs = get_all_other_current_homogs_and_sizes(
+                multihomog, sizes, names)
+            boundary_shs = concat_suppression_homogs_and_sizes(
+                prev_shs, all_curr_shs)
+            mark_boundary_suppressed(do_lists, sizes, boundary_shs,
+                                     boundary_threshold,
+                                     suppression_poly_class)
         if suppression_poly_class is None:
             poly_dets = [()] * len(do_lists)
         else:
@@ -268,6 +366,21 @@ class MulticamHomogDetSuppressor(KwiverProcess):
             ' cameras only; this is the default) and "all" (all past frames'
             ' and cameras)'
         ))
+        add_declare_config(self, 'remove_suppressed', 'false', (
+            'If true, remove detections whose center lies in a suppressing'
+            ' frame from the output (the historical behavior).  Off by'
+            ' default: suppressed detections are left in the output and'
+            ' hidden at display time (e.g. by DIVE) using the emitted'
+            ' suppression regions'
+        ))
+        add_declare_config(self, 'boundary_threshold', '1.0', (
+            'A detection whose polygon (or bounding box, if it has no'
+            ' polygon) comes within this many pixels of the image boundary'
+            ' is considered cut off by it.  If another frame covers that'
+            ' boundary area, the detection is marked with a detection'
+            ' attribute named after suppression_poly_class (set to true).'
+            ' Negative disables the check'
+        ))
 
         optional = process.PortFlags()
         required = process.PortFlags()
@@ -293,7 +406,11 @@ class MulticamHomogDetSuppressor(KwiverProcess):
         self._n_input = int(self.config_value('n_input'))
         spc = self.config_value('suppression_poly_class') or None
         pf = self.config_value('past_frames')
-        self._suppressor = suppress(spc, past_frames=pf)
+        rs = self.config_value('remove_suppressed').lower() in (
+            'true', '1', 'yes', 'on')
+        bt = float(self.config_value('boundary_threshold'))
+        self._suppressor = suppress(spc, past_frames=pf, remove_suppressed=rs,
+                                    boundary_threshold=bt)
         # Determined on the first step (edges are present by then): which
         # optional file_name ports are wired, for the source_image attribute.
         self._fn_connected = None

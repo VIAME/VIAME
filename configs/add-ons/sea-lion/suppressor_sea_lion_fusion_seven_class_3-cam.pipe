@@ -60,6 +60,8 @@ connect from downsampler3.output_1
 process suppressor :: multicam_homog_det_suppressor
   n_input = 3
   suppression_poly_class = Suppressed
+  remove_suppressed = false
+  boundary_threshold = 1.0
 
 connect from stabilizer.homog1
         to suppressor.homog1
