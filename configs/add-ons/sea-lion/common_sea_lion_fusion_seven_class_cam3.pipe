@@ -2,35 +2,16 @@
 # Title: Common - Sea Lion Fusion Seven Class Cam3
 #
 # Description: Shared configuration module that can be included by other
-# pipelines. Configured for sea lion survey imagery. Same detector pair as the
-# six-class fusion -- the DEIMv2 6-class lifestage detector (ONNX, 640px) fused
-# with the RF-DETR 8-class detector (1008px) by weighted box fusion -- but the
-# output keeps 'dead_pup' as its own seventh class instead of folding it into
-# 'pup'. On the held-out test split this reached mAP@50 0.738, mAP@75 0.656
-# (RF-DETR 8-class alone: 0.703 / 0.619), with dead_pup at AP@50 0.621,
-# AP@75 0.490.
+# pipelines. Configured for sea lion survey imagery. Fuses the DEIMv2 6-class
+# lifestage detector (ONNX, 640px) with the RF-DETR 8-class detector (1008px)
+# by weighted box fusion, keeping dead pup as its own seventh class rather than
+# folding it into pup. The DEIMv2 model has no dead-pup category, so the dead
+# pup label comes entirely from the RF-DETR 8-class model; DEIMv2 adds box
+# recall for the other six classes.
 #
-# The DEIMv2 model has no dead_pup category (its 'pup' covers live and dead
-# pups together), so the dead_pup label comes entirely from the RF-DETR 8-class
-# model; DEIMv2's role here is added box recall for the other six classes.
-#
-# NOTE on reinforcement: the fuser's pseudonym mechanism can relabel a DEIMv2
-# 'pup' box to 'dead_pup' when it overlaps an RF-DETR dead_pup (pseudo_dic
-# 5 -> [5,7], pseudo_ind 0 -> [1]). That was tested and is deliberately NOT
-# enabled here: because DEIMv2 cannot itself distinguish live from dead pups,
-# relabeling off a single 8-class box lowered dead_pup AP@50 (0.621 -> 0.583).
-# Adding a reclassifier's relabeled detections as a third dead_pup-bearing
-# fusion input was also evaluated. An earlier RF-DETR-based reclassified set
-# nudged the metrics up (mAP@50 0.747, dead_pup AP@75 0.490 -> 0.528), but
-# re-testing with the finalized EfficientNetV2s reclassifier (fixed_width, the
-# winner of the 3-way reclassifier comparison) did NOT help: overall stayed
-# flat (mAP@50 0.745) and dead_pup regressed below 8-class-alone (AP@50 0.621
-# -> 0.598, AP@75 0.490 -> 0.468). So no reclassifier input is used here --
-# deim6 + rf8 is the configuration.
-#
-# Output classes: B (bull), S (subadult_male), F (female), J (juvenile),
-# P (pup), NFS (northern_fur_seal), DP (dead_pup). 'dead_nonpup' (DN) is omitted so
-# those detections are dropped.
+# Output classes: bull (B), sub-adult male (S), female (F), juvenile (J),
+# pup (P), northern fur seal (NFS), dead pup (DP). dead nonpup (DN) is omitted
+# so those detections are dropped.
 # =============================================================================
 
 # ============================== INPUT FORMATTER ==============================
@@ -150,7 +131,7 @@ process detector_fuser_cam3
   :merger:nms_fusion:mask_fusion_type          union
   # Class-agnostic merge: collapse boxes overlapping >0.7 IoU (any label) into
   # one detection (e.g. a pup/dead_pup pair) that KEEPS every label, so the box
-  # still competes for each class and mAP is preserved; a detector_agreement
+  # still competes for each class and detection accuracy is preserved; a detector_agreement
   # attribute is set false on the merged conflicts. Set to 0 to disable.
   :merger:nms_fusion:cross_class_merge_iou     0.7
   :merger:nms_fusion:label_dic                 { 'O': 0, 'B': 1, 'S': 2, 'F': 3, 'J': 4, 'P': 5, 'NFS': 6, 'DP': 7 }

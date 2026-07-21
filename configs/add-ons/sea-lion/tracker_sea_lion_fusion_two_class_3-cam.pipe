@@ -3,6 +3,8 @@
 #
 # Description: Runs object tracking on detected objects across video frames.
 # Configured for sea lion survey imagery.
+# Input: IMAGE
+# Output: TRACK
 #
 # Metadata File: stabilizer:flight_log
 #   DIVE binds an optional per-dataset metadata file (e.g. an FMCLOG

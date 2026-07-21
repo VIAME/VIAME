@@ -3,18 +3,13 @@
 #
 # Description: Shared configuration module that can be included by other
 # pipelines. Configured for sea lion survey imagery. Fuses three detectors --
-# RF-DETR 2-class @1008, DEIMv2 pup-vs-nonpup @1280 (ONNX), and RF-DETR
-# 8-class @1008 (fine classes folded to nonpup/pup, output NP/P) -- with weighted box
-# fusion. This 3-detector combination was the best of those swept with
-# tools/train_detection_fusion.py on 2019/2021/2014 survey sequences and
-# validated on held-out 2009/2024/2022 imagery:
-#   mAP@50 0.933, mAP@75 0.810, mAP@50:95 0.686 (best single detector: 0.902 /
-#   0.771 / 0.652).
+# RF-DETR 2-class @1008, DEIMv2 pup-vs-nonpup @1280 (ONNX), and RF-DETR 8-class
+# @1008 (fine classes folded to non-pup/pup) -- with weighted box fusion.
 #
-# Label folding is done in the fuser's label_dic: 'nonpup_sealion' and the
-# 8-class adult categories (bull/female/juvenile/subadult_male/dead_nonpup)
-# alias onto the 'adult' id; 'dead_pup' onto 'pup'; 'northern_fur_seal' is
-# omitted so those detections are dropped from the 2-class output.
+# Output classes: non-pup (NP), pup (P). Label folding is done in the fuser's
+# label_dic: NP and the 8-class adult categories (B/F/J/S/DN) map onto the
+# non-pup id; P and DP map onto the pup id; NFS is omitted so northern fur
+# seals are dropped from the 2-class output.
 # =============================================================================
 
 # ============================== INPUT FORMATTER ==============================
@@ -175,7 +170,7 @@ process detector_fuser_cam2
   :merger:nms_fusion:label_dic                 { 'O': 0, 'NP': 1, 'P': 2, 'B': 1, 'F': 1, 'J': 1, 'S': 1, 'DN': 1, 'DP': 2 }
   # Class-agnostic merge: collapse boxes overlapping >0.7 IoU (any label) into
   # one detection that KEEPS every competing label, so the box still competes
-  # for each class and mAP is preserved; a detector_agreement attribute is set
+  # for each class and detection accuracy is preserved; a detector_agreement attribute is set
   # false on the merged conflicts. Set to 0 to disable.
   :merger:nms_fusion:cross_class_merge_iou     0.7
 

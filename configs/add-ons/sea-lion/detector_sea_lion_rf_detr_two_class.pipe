@@ -1,14 +1,11 @@
 # =============================================================================
 # Title: Sea Lion Detection Pipeline
 #
-# Description: Runs object detection pipeline on input imagery. Uses default
-# input with downsampler configuration. Outputs results to
-# sea_lion_detections.csv. Configured for sea lion survey imagery. Uses the
-# RF-DETR 2-class (adult / pup) detector at 1008px chips -- the best-scoring
-# single detector for two-class output (test-split mAP@50 0.845). This is the
-# same model used as the primary detector in the two-class fusion pipeline.
+# Description: Two-class sea lion detection on survey imagery using the RF-DETR
+# segmentation detector at 1008px chips. Produces a segmentation polygon
+# (mask) per detection. Output categories: non-pup (NP), pup (P).
 # Input: IMAGE
-# Output: BBOX
+# Output: MASK
 # =============================================================================
 
 config _pipeline:_edge

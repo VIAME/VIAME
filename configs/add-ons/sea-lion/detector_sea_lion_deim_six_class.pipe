@@ -1,12 +1,10 @@
 # =============================================================================
 # Title: Sea Lion Detection Pipeline
 #
-# Description: Runs object detection pipeline on input imagery. Uses default
-# input with downsampler configuration. Outputs results to
-# sea_lion_detections.csv. Configured for sea lion survey imagery. Uses the
-# DEIMv2 6-class lifestage detector (ONNX) at 640px chips -- the best-scoring
-# single detector for six-class output (test-split mAP@50 0.696). This is the
-# same model used as the primary detector in the six-class fusion pipeline.
+# Description: Six-class sea lion life-stage detection on survey imagery using the DEIMv2
+# detector (ONNX) at 640px chips. Produces bounding boxes only. Output
+# categories: bull (B), sub-adult male (S), female (F), juvenile (J), pup (P),
+# northern fur seal (NFS).
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================
