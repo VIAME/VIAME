@@ -335,6 +335,58 @@ def stack_feature_names( model_count ):
     return [ 'fused_score', 'agreement', 'mean_iou', 'max_model_score' ] + \
            [ 'model_score_' + str( m ) for m in range( model_count ) ]
 
+def merge_overlapping_boxes( boxes, scores, labels, contributors=None,
+                             dists=None, iou_thr=0.7 ):
+    """Class-agnostic consolidation of already-fused detections.
+
+    WBF and ProbEn cluster within a single label, so two heavily-overlapping
+    boxes with different labels (e.g. a 'pup' and a 'dead_pup' on the same
+    animal) survive as two separate detections. This pass greedily clusters the
+    fused boxes by IoU > ``iou_thr`` REGARDLESS of label and collapses each
+    cluster to one detection: the highest-scoring member's label and score, a
+    score-weighted-average box, and the union of the members' contributor lists
+    (so mask fusion combines all their masks) and the top member's distribution.
+
+    Returns ( boxes, scores, labels, contributors_or_None, dists_or_None ).
+    Note: this trades detection mAP (COCO rewards keeping both hypotheses) for a
+    cleaner one-box-per-object output; it is opt-in via cross_class_merge_iou.
+    """
+    n = len( boxes )
+    if n <= 1 or iou_thr <= 0.0:
+        return boxes, scores, labels, contributors, dists
+    boxes = np.asarray( boxes, dtype=float ).reshape( -1, 4 )
+    scores = np.asarray( scores, dtype=float )
+    order = list( np.argsort( -scores ) )
+    used = np.zeros( n, dtype=bool )
+    kb, ks, kl, kc, kd = [], [], [], [], []
+    for k in order:
+        if used[k]:
+            continue
+        cluster = [ k ]
+        used[k] = True
+        for j in order:
+            if used[j]:
+                continue
+            if bb_intersection_over_union( boxes[k], boxes[j] ) > iou_thr:
+                cluster.append( j )
+                used[j] = True
+        w = scores[ cluster ]
+        wsum = float( w.sum() ) if w.sum() > 0 else 1.0
+        kb.append( ( boxes[ cluster ] * w[:, None] ).sum( 0 ) / wsum )
+        ks.append( float( scores[k] ) )          # highest-scoring member
+        kl.append( int( labels[k] ) )
+        if contributors is not None:
+            merged = []
+            for c in cluster:
+                merged.extend( contributors[c] )
+            kc.append( merged )
+        if dists is not None:
+            kd.append( dists[k] )
+    return ( np.asarray( kb ), np.asarray( ks ),
+             np.asarray( kl, dtype=int ),
+             ( kc if contributors is not None else None ),
+             ( np.asarray( kd ) if dists is not None else None ) )
+
 def compute_stack_features( fused_score, contribs, scores_list, model_count ):
     """Compute the agreement feature vector for one fused box given its
     contributor list of (model_index, detection_index, iou) tuples.

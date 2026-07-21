@@ -93,6 +93,11 @@ class MergeDetectionsNMSFusion( MergeDetections ):
         # localizers still contribute detections and confidence.
         self._box_anchor_model = 0
         self._box_anchor_iou = 0.65
+        # Class-agnostic post-fusion merge: >0 collapses fused boxes overlapping
+        # by more than this IoU (regardless of label) into a single detection.
+        # 0 disables it (default). Lowers detection mAP but gives a cleaner
+        # one-box-per-object output (WBF/ProbEn only merge within a label).
+        self._cross_class_merge_iou = 0.0
 
         # These parameters should be deprecated longer-term
         self._height = 1
@@ -123,6 +128,8 @@ class MergeDetectionsNMSFusion( MergeDetections ):
         cfg.set_value( "mask_fusion_type", str( self._mask_fusion_type ) )
         cfg.set_value( "box_anchor_model", str( self._box_anchor_model ) )
         cfg.set_value( "box_anchor_iou", str( self._box_anchor_iou ) )
+        cfg.set_value( "cross_class_merge_iou",
+                       str( self._cross_class_merge_iou ) )
 
         cfg.set_value( "height", str( self._height ) )
         cfg.set_value( "width", str( self._width ) )
@@ -151,6 +158,8 @@ class MergeDetectionsNMSFusion( MergeDetections ):
           ( 'true', '1', 'yes', 'on' )
         self._box_anchor_model = int( cfg.get_value( "box_anchor_model" ) )
         self._box_anchor_iou = float( cfg.get_value( "box_anchor_iou" ) )
+        self._cross_class_merge_iou = float(
+          cfg.get_value( "cross_class_merge_iou" ) )
 
         self._height = float( cfg.get_value( "height" ) )
         self._width = float( cfg.get_value( "width" ) )
@@ -340,6 +349,16 @@ class MergeDetectionsNMSFusion( MergeDetections ):
                         best_iou = iou
                 if best_j >= 0:
                     out_boxes[i] = anchor_boxes[ best_j ]
+
+        # Optional class-agnostic merge: collapse fused boxes that overlap by
+        # more than cross_class_merge_iou (any label) into one detection, so a
+        # pup/dead_pup pair on one animal becomes a single box (WBF/ProbEn only
+        # merge within a label). Contributor lists are unioned so masks combine.
+        if self._cross_class_merge_iou > 0.0 and len( out_boxes ) > 1:
+            out_boxes, out_scores, out_labels, contributors, fused_dists = \
+              dfc.merge_overlapping_boxes( out_boxes, out_scores, out_labels,
+                contributors, fused_dists, self._cross_class_merge_iou )
+            out_scores = np.array( out_scores, dtype=float )
 
         # Compile output detections
         output = DetectedObjectSet()

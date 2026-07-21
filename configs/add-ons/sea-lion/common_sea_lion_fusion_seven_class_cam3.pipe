@@ -148,6 +148,10 @@ process detector_fuser_cam3
   :merger:nms_fusion:skip_box_thr              0.0001
   :merger:nms_fusion:fuse_masks                true
   :merger:nms_fusion:mask_fusion_type          union
+  # Class-agnostic merge: collapse boxes overlapping >0.7 IoU (any label) into
+  # one detection (e.g. a pup/dead_pup pair on one animal). Costs ~0.02 mAP@50
+  # vs 0 (COCO rewards keeping both hypotheses); set to 0 to disable.
+  :merger:nms_fusion:cross_class_merge_iou     0.7
   :merger:nms_fusion:label_dic                 { 'background': 0, 'bull': 1, 'subadult_male': 2, 'female': 3, 'juvenile': 4, 'pup': 5, 'northern_fur_seal': 6, 'dead_pup': 7 }
 
 connect from nms_refiner_cam3_1.detected_object_set
