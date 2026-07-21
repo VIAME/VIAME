@@ -426,6 +426,15 @@ foreach( ID RANGE ${DEP_COUNT} )
       -DVIAME_PATCH_DIR:PATH=${VIAME_SOURCE_DIR}/packages/patches
       -DVIAME_PYTORCH_VERSION:STRING=${VIAME_PYTORCH_VERSION}
       -P ${VIAME_SOURCE_DIR}/cmake/custom_install_pytorch.cmake )
+  elseif( "${DEP}" STREQUAL "python-deps" AND WIN32 )
+    # Apply the transformers distributed-guard patch after the basic deps
+    # (which include transformers) are pip-installed. Only needed on Windows,
+    # whose torch build lacks distributed support (no torch._C._distributed_c10d);
+    # Linux torch ships distributed, so the guards are unnecessary there. The
+    # script no-ops when transformers is absent or already patched.
+    set( PYTHON_DEP_INSTALL ${CMAKE_COMMAND}
+      -DVIAME_PYTHON_BASE:PATH=${VIAME_PYTHON_INSTALL}
+      -P ${VIAME_SOURCE_DIR}/cmake/custom_install_transformers.cmake )
   else()
     set( PYTHON_DEP_INSTALL "" )
   endif()
