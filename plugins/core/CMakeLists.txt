@@ -277,6 +277,7 @@ set( process_headers
   store_descriptors_csv.h
   track_conductor_process.h
   warp_detections_process.h
+  warp_image_process.h
   write_homography_list_process.h
   write_query_results_as_tracks_process.h
 )
@@ -308,6 +309,7 @@ set( process_sources
   store_descriptors_csv.cxx
   track_conductor_process.cxx
   warp_detections_process.cxx
+  warp_image_process.cxx
   write_homography_list_process.cxx
   write_query_results_as_tracks_process.cxx
 )
