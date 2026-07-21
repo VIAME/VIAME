@@ -2,8 +2,9 @@
 # Title: Stereo Camera Calibration
 #
 # Description: Estimate calibration matrices from left and right stereo cameras
-#
-# Requirements: { Checkerboard Square Size (real units), global:square_size, double }
 # =============================================================================
+
+config global
+   :square_size                                80  # DIVE_PARAM["Checkerboard Square Size (real units)", strictly_positive_float, required]
 
 include measurement_calibrate_cameras_default.pipe

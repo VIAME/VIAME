@@ -3,8 +3,6 @@
 #
 # Description: Calibrates camera parameters for measurement. Processes stereo
 # camera image pairs.
-#
-# Requirements: { Checkerboard Square Size (real units), global:square_size, double }
 # =============================================================================
 
 config _pipeline:_edge
@@ -13,7 +11,7 @@ config _pipeline:_edge
 config global
    :output_directory                           ./
    :output_json_file                           calibration_matrices.json
-   :square_size                                80
+   :square_size                                80  # DIVE_PARAM["Checkerboard Square Size (real units)", strictly_positive_float, required]
 
 # ============================= INPUT FRAME LIST ==============================
 
