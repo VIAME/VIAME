@@ -198,15 +198,12 @@ Build Requirements
 
 These are the build flags required to run this example, if building from the source.
 
-In the pre-built binaries OpenCV is enabled by default, though not ITK which is required
-for cross-modality registration.
+In the pre-built binaries OpenCV is enabled by default.
 
 | VIAME_ENABLE_OPENCV set to ON (optional - for default operation)
-| VIAME_ENABLE_ITK set to ON (optional - for cross-modality tools)
 
 ********************
 Code Used in Example
 ********************
 
-| plugins/itk/
 | plugins/opencv/

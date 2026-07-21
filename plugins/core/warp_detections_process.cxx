@@ -29,8 +29,8 @@ namespace core
 create_config_trait( transformation_file, kwiver::vital::path_t, "",
   "File containing the 2D transform mapping this camera's image "
   "coordinates into the target camera's. Read with the transform_reader "
-  "algorithm (default type \"auto\": ITK .h5, DIVE camera registration "
-  ".json, or plain text 3x3 homography)." );
+  "algorithm (default type \"auto\": DIVE camera registration .json or "
+  "plain text 3x3 homography)." );
 create_config_trait( inverse, bool, "false",
   "Apply the inverse of the loaded transform instead" );
 

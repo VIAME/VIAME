@@ -249,8 +249,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Warp detection bounding boxes with a 2D transform "
-                    "loaded from a file (ITK .h5, DIVE registration .json, "
-                    "or plain text homography)" )
+                    "loaded from a file (DIVE registration .json or "
+                    "plain text homography)" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
