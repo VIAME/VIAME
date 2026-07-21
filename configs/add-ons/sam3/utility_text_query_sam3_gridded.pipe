@@ -6,7 +6,6 @@
 #              improve detection of small objects in large images. Each frame
 #              is processed independently with no cross-frame tracking.
 #
-# Requirements: { Text Query, detection_refiner:refiner:ocv_windowed:refiner:sam3:text_query, string }
 # Input: TEXT
 # Output: MASK
 # =============================================================================
@@ -62,7 +61,7 @@ process detection_refiner
     block refiner:sam3
       relativepath grounding_model_id =        models/sam3_grnd_dino_tiny
       :device                                  cuda
-      :text_query                              fish                         # DIVE_PARAM["Text query", string]
+      :text_query                              fish                         # DIVE_PARAM["Text Query", string, required]
       :detection_threshold                     0.3                          # DIVE_PARAM["Detection threshold", range_float, 0, 1, 0.01]
       :text_threshold                          0.25                         # DIVE_PARAM["Text threshold", range_float, 0, 1, 0.01]
       :iou_threshold                           0.5                          # DIVE_PARAM["IoU threshold", range_float, 0, 1, 0.01]
