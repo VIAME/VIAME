@@ -4,11 +4,11 @@
 
 /**
  * \file
- * \brief Warp detections using a 2D transform loaded from a file
+ * \brief Warp an image using a 2D homography loaded from a file
  */
 
-#ifndef VIAME_CORE_WARP_DETECTIONS_PROCESS_H
-#define VIAME_CORE_WARP_DETECTIONS_PROCESS_H
+#ifndef VIAME_CORE_WARP_IMAGE_PROCESS_H
+#define VIAME_CORE_WARP_IMAGE_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -24,20 +24,22 @@ namespace core
 
 // -----------------------------------------------------------------------------
 /**
- * @brief Warp detection bounding boxes into another camera's image space
+ * @brief Warp an image into another camera's image space
  *
  * The transform is loaded once at configure time via a transform_2d_io
- * reader (default "auto": DIVE camera registration .json or plain text
- * 3x3 homography). Each detection's box corners are mapped through the
- * transform and re-boxed axis-aligned.
+ * reader and must be a homography (DIVE camera registration .json or plain
+ * text 3x3 homography). The transform maps this image's coordinates into
+ * the target camera's, the same convention as warp_detections; the output
+ * size defaults to the input's and can follow another camera's via the
+ * optional size_image port.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT warp_detections_process
+class VIAME_PROCESSES_CORE_NO_EXPORT warp_image_process
   : public sprokit::process
 {
 public:
   // -- CONSTRUCTORS --
-  warp_detections_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~warp_detections_process();
+  warp_image_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~warp_image_process();
 
 protected:
   virtual void _configure();
@@ -50,9 +52,9 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class warp_detections_process
+}; // end class warp_image_process
 
 } // end namespace core
 } // end namespace viame
 
-#endif // VIAME_CORE_WARP_DETECTIONS_PROCESS_H
+#endif // VIAME_CORE_WARP_IMAGE_PROCESS_H

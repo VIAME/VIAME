@@ -15,5 +15,4 @@ set(VIAME_BUILD_LIMIT_NINJA ON CACHE BOOL "Disable Ninja for PyTorch")
 
 # Typically disabled in Docker builds
 set(VIAME_ENABLE_DIVE OFF CACHE BOOL "Enable DIVE")
-set(VIAME_ENABLE_ITK OFF CACHE BOOL "Enable ITK")
 set(VIAME_ENABLE_VIVIA OFF CACHE BOOL "Enable ViViA")
