@@ -13,8 +13,6 @@
 #   (image_list1, image_list2, ...). Camera 1's list also locates the survey folder.
 # =============================================================================
 
-# Requirements: { Detection Scale (default 1.0), global:scale, double }
-
 config _scheduler
   type = pythread_per_process
 
@@ -22,7 +20,7 @@ config _pipeline:_edge
   capacity = 5
 
 config global
-  :scale                                       1.0
+  :scale                                       1.0  # DIVE_PARAM["Detection Scale", strictly_positive_float]
 
 include common_three_camera_input_with_downsamplers.pipe
 

@@ -19,6 +19,9 @@ config _scheduler
 config _pipeline:_edge
   capacity = 5
 
+config global
+  :scale                                       1.0  # DIVE_PARAM["Detection Scale", strictly_positive_float]
+
 include common_default_input_with_downsampler.pipe
 
 include common_sea_lion_registration_1cam.pipe

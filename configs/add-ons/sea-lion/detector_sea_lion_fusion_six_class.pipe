@@ -8,13 +8,11 @@
 # Output: BBOX
 # =============================================================================
 
-# Requirements: { Detection Scale (default 1.0), global:scale, double }
-
 config _pipeline:_edge
   :capacity                                    5
 
 config global
-  :scale                                       1.0
+  :scale                                       1.0  # DIVE_PARAM["Detection Scale", strictly_positive_float]
 
 # ============================= INPUT FRAME LIST ==============================
 
