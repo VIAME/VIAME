@@ -22,8 +22,9 @@
 #   method       hybrid (default) | metadata
 #   flight_log   FMCLOG CSV or directory of daily logs; empty = image-only
 #                registration (metadata-optional: hybrid works either way)
-#   require_metadata        true | false (default). Fail the run if no flight_log
-#                metadata file is provided.
+#   require_metadata        true (set below) | false. Fail the run if no
+#                flight_log metadata file is provided. Set false to allow
+#                image-only registration.
 #   require_metadata_match  true | false (default). Fail the run if the metadata
 #                does not correspond to the current image sequence.
 #   min_metadata_coverage   0..1 (default 1.0). Fraction of the sequence that the
@@ -45,3 +46,4 @@
 process stabilizer
   :: colmap_registration
   n_input = 2
+  :require_metadata                            true
