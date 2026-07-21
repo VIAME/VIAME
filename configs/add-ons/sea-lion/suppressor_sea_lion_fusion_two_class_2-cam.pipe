@@ -1,10 +1,9 @@
 # =============================================================================
 # Title: Suppressor - Sea Lion Fusion Two Class 2-cam
 #
-# Description: Suppresses false positive detections using learned filters, and
-# marks regions already observed in previous overlapping frames with boxes so
-# the same sea lions are not counted more than once. Configured for sea lion
-# survey imagery. Output categories: non-pup (NP), pup (P).
+# Description: Marks regions already observed in previous overlapping frames
+# with boxes so the same sea lions are not counted more than once. Configured
+# for sea lion survey imagery. Output categories: non-pup (NP), pup (P).
 #
 # Metadata File: stabilizer:flight_log
 #   DIVE binds an optional per-dataset metadata file (e.g. an FMCLOG

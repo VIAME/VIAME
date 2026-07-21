@@ -1,11 +1,11 @@
 # =============================================================================
 # Title: Suppressor - Sea Lion Fusion Seven Class 2-cam
 #
-# Description: Suppresses false positive detections using learned filters, and
-# marks regions already observed in previous overlapping frames with boxes so
-# the same sea lions are not counted more than once. Configured for sea lion
-# survey imagery. Output categories: bull (B), sub-adult male (S), female (F),
-# juvenile (J), pup (P), northern fur seal (NFS), dead pup (DP).
+# Description: Marks regions already observed in previous overlapping frames
+# with boxes so the same sea lions are not counted more than once. Configured
+# for sea lion survey imagery. Output categories: bull (B), sub-adult male
+# (S), female (F), juvenile (J), pup (P), northern fur seal (NFS), dead pup
+# (DP).
 #
 # Metadata File: stabilizer:flight_log
 #   DIVE binds an optional per-dataset metadata file (e.g. an FMCLOG
