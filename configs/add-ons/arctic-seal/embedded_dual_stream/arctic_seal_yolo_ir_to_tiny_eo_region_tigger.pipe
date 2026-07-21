@@ -40,8 +40,8 @@ connect from downsampler.output_3
 # ================================ EO DETECTOR ================================
 
 process warp_ir_detections_to_eo
-  :: itk_warp_detections
-  relativepath transformation_file = ../transformations/Kotz-2019-Flight-Center.h5
+  :: warp_detections
+  relativepath transformation_file = ../transformations/Kotz-2019-Flight-Center.json
 
 process optical_subregion_selector
   :: detect_in_subregions
