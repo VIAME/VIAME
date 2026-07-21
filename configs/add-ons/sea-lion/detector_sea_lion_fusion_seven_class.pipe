@@ -2,8 +2,8 @@
 # Title: Sea Lion Detection Pipeline
 #
 # Description: Seven-class sea lion life-stage detection on survey imagery, fusing multiple
-# detectors with weighted box fusion. Produces a segmentation polygon (mask)
-# per detection. Output categories: bull (B), sub-adult male (S), female (F),
+# detectors with weighted box fusion. Produces a segmentation polygon (mask) for most
+# detections. Output categories: bull (B), sub-adult male (S), female (F),
 # juvenile (J), pup (P), northern fur seal (NFS), dead pup (DP).
 # Input: IMAGE
 # Output: MASK
