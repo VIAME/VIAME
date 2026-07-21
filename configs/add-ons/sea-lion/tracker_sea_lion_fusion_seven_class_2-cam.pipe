@@ -1,10 +1,11 @@
 # =============================================================================
 # Title: Tracker - Sea Lion Fusion Seven Class 2-cam
 #
-# Description: Runs object tracking on detected objects across video frames.
-# Configured for sea lion survey imagery. Output categories: bull (B),
-# sub-adult male (S), female (F), juvenile (J), pup (P), northern fur seal
-# (NFS), dead pup (DP).
+# Description: Runs object tracking on detected objects across video frames,
+# linking detections of the same sea lion from frame to frame so repeat
+# sightings are tied to one individual. Configured for sea lion survey
+# imagery. Output categories: bull (B), sub-adult male (S), female (F),
+# juvenile (J), pup (P), northern fur seal (NFS), dead pup (DP).
 # Input: IMAGE
 # Output: TRACK
 #

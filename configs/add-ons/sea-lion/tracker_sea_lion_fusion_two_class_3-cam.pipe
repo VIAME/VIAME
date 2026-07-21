@@ -1,8 +1,10 @@
 # =============================================================================
 # Title: Tracker - Sea Lion Fusion Two Class 3-cam
 #
-# Description: Runs object tracking on detected objects across video frames.
-# Configured for sea lion survey imagery. Output categories: non-pup (NP), pup (P).
+# Description: Runs object tracking on detected objects across video frames,
+# linking detections of the same sea lion from frame to frame so repeat
+# sightings are tied to one individual. Configured for sea lion survey
+# imagery. Output categories: non-pup (NP), pup (P).
 # Input: IMAGE
 # Output: TRACK
 #
