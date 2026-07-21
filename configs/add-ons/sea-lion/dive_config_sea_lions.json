@@ -13,14 +13,14 @@
     "NP": 0.18
   },
   "customTypeStyling": {
-    "B": { "color": "#229954", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
-    "S": { "color": "#16A085", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
-    "F": { "color": "#8E44AD", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
-    "J": { "color": "#5DADE2", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
-    "P": { "color": "#2980B9", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "B": { "color": "#2ECC71", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "S": { "color": "#1ABC9C", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "F": { "color": "#AF7AC5", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "J": { "color": "#6FE9FF", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "P": { "color": "#3498DB", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
     "DP": { "color": "#1A5276", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
-    "NFS": { "color": "#58D68D", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
-    "DN": { "color": "#6C3483", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
-    "NP": { "color": "#A569BD", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true }
+    "NFS": { "color": "#FBF6A0", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "DN": { "color": "#8E44AD", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "NP": { "color": "#C39BD3", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true }
   }
 }
