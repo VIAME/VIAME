@@ -353,9 +353,14 @@ class MergeDetectionsNMSFusion( MergeDetections ):
         # Optional class-agnostic merge: collapse fused boxes that overlap by
         # more than cross_class_merge_iou (any label) into one detection, so a
         # pup/dead_pup pair on one animal becomes a single box (WBF/ProbEn only
-        # merge within a label). Contributor lists are unioned so masks combine.
-        if self._cross_class_merge_iou > 0.0 and len( out_boxes ) > 1:
-            out_boxes, out_scores, out_labels, contributors, fused_dists = \
+        # merge within a label). Every competing label is kept on the merged box
+        # (so mAP is preserved), contributor lists are unioned so masks combine,
+        # and a detector_agreement note flags clusters that mixed labels.
+        merge_class_scores = None
+        merge_agreement = None
+        if self._cross_class_merge_iou > 0.0 and len( out_boxes ) >= 1:
+            ( out_boxes, out_scores, out_labels, contributors, fused_dists,
+              merge_class_scores, merge_agreement ) = \
               dfc.merge_overlapping_boxes( out_boxes, out_scores, out_labels,
                 contributors, fused_dists, self._cross_class_merge_iou )
             out_scores = np.array( out_scores, dtype=float )
@@ -373,7 +378,16 @@ class MergeDetectionsNMSFusion( MergeDetections ):
               box[2] * norm_width,
               box[3] * norm_height )
 
-            if fused_dists is not None:
+            if merge_class_scores is not None:
+                # Keep every label the merged cluster carried, so the one box
+                # still competes for each class (pup AND dead_pup, etc.).
+                dot = DetectedObjectType()
+                for lid, class_score in merge_class_scores[i].items():
+                    if lid in self._id_dic:
+                        dot.set_score( self._id_dic[ lid ], float( class_score ) )
+                if not dot.class_names():
+                    dot.set_score( self._id_dic[ label_id ], score )
+            elif fused_dists is not None:
                 dot = DetectedObjectType()
                 for class_id in range( class_count ):
                     if class_id == dfc.BACKGROUND_ID or \
@@ -390,6 +404,12 @@ class MergeDetectionsNMSFusion( MergeDetections ):
                 dot = DetectedObjectType( self._id_dic[ label_id ], score )
 
             det = DetectedObject( bbox, score, dot )
+
+            # Flag detections that came from a mixed-label overlap cluster so
+            # downstream can see the detectors disagreed on the category.
+            if merge_agreement is not None:
+                det.add_note( ":detector_agreement=" +
+                  ( "true" if merge_agreement[i] else "false" ) )
 
             if self._fuse_masks and contributors is not None:
                 contrib_boxes = []

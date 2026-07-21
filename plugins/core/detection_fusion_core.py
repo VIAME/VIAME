@@ -337,28 +337,34 @@ def stack_feature_names( model_count ):
 
 def merge_overlapping_boxes( boxes, scores, labels, contributors=None,
                              dists=None, iou_thr=0.7 ):
-    """Class-agnostic consolidation of already-fused detections.
+    """Class-agnostic consolidation of already-fused detections into one box per
+    object while KEEPING every competing label.
 
     WBF and ProbEn cluster within a single label, so two heavily-overlapping
-    boxes with different labels (e.g. a 'pup' and a 'dead_pup' on the same
-    animal) survive as two separate detections. This pass greedily clusters the
-    fused boxes by IoU > ``iou_thr`` REGARDLESS of label and collapses each
-    cluster to one detection: the highest-scoring member's label and score, a
-    score-weighted-average box, and the union of the members' contributor lists
-    (so mask fusion combines all their masks) and the top member's distribution.
+    boxes with different labels (a 'pup' and a 'dead_pup' on the same animal)
+    survive as two separate detections. This pass greedily clusters the fused
+    boxes by IoU > ``iou_thr`` REGARDLESS of label and collapses each cluster to
+    one detection with a score-weighted-average box and the union of the
+    members' contributor lists (so mask fusion combines all their masks). The
+    detection's primary label/score is the highest-scoring member, but the full
+    per-label score map is retained so the box still competes for every class --
+    keeping mAP intact (dropping the loser costs ~0.02 mAP@50; keeping it does
+    not) while giving a clean one-box-per-object output.
 
-    Returns ( boxes, scores, labels, contributors_or_None, dists_or_None ).
-    Note: this trades detection mAP (COCO rewards keeping both hypotheses) for a
-    cleaner one-box-per-object output; it is opt-in via cross_class_merge_iou.
+    Returns ( boxes, scores, labels, contributors_or_None, dists_or_None,
+    class_scores, agreement ) where class_scores[i] maps label_id -> best score
+    for cluster i and agreement[i] is False when the cluster mixed >1 label.
     """
     n = len( boxes )
-    if n <= 1 or iou_thr <= 0.0:
-        return boxes, scores, labels, contributors, dists
+    if n < 1 or iou_thr <= 0.0:
+        return ( boxes, scores, labels, contributors, dists,
+                 [ { int( l ): float( s ) } for l, s in zip( labels, scores ) ],
+                 [ True ] * n )
     boxes = np.asarray( boxes, dtype=float ).reshape( -1, 4 )
     scores = np.asarray( scores, dtype=float )
     order = list( np.argsort( -scores ) )
     used = np.zeros( n, dtype=bool )
-    kb, ks, kl, kc, kd = [], [], [], [], []
+    kb, ks, kl, kc, kd, kcs, kag = [], [], [], [], [], [], []
     for k in order:
         if used[k]:
             continue
@@ -373,8 +379,15 @@ def merge_overlapping_boxes( boxes, scores, labels, contributors=None,
         w = scores[ cluster ]
         wsum = float( w.sum() ) if w.sum() > 0 else 1.0
         kb.append( ( boxes[ cluster ] * w[:, None] ).sum( 0 ) / wsum )
-        ks.append( float( scores[k] ) )          # highest-scoring member
+        ks.append( float( scores[k] ) )          # primary = highest-scoring
         kl.append( int( labels[k] ) )
+        class_scores = {}
+        for c in cluster:
+            lid = int( labels[c] )
+            class_scores[ lid ] = max( class_scores.get( lid, 0.0 ),
+                                       float( scores[c] ) )
+        kcs.append( class_scores )
+        kag.append( len( class_scores ) <= 1 )   # False => conflicting labels
         if contributors is not None:
             merged = []
             for c in cluster:
@@ -385,7 +398,8 @@ def merge_overlapping_boxes( boxes, scores, labels, contributors=None,
     return ( np.asarray( kb ), np.asarray( ks ),
              np.asarray( kl, dtype=int ),
              ( kc if contributors is not None else None ),
-             ( np.asarray( kd ) if dists is not None else None ) )
+             ( np.asarray( kd ) if dists is not None else None ),
+             kcs, kag )
 
 def compute_stack_features( fused_score, contribs, scores_list, model_count ):
     """Compute the agreement feature vector for one fused box given its
