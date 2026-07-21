@@ -40,7 +40,7 @@
 #
 # The first frame blocks while the whole survey is registered once; the result
 # is cached to disk, so re-runs (and running detector/suppressor/tracker after
-# a utility_register_frames pass) load it instantly.
+# a filter_register_frames pass) load it instantly.
 # =============================================================================
 
 process stabilizer

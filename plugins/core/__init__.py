@@ -52,6 +52,18 @@ def __sprokit_register__():
         pass
 
     try:
+        from viame.core import multicam_homog_blackout
+        multicam_homog_blackout.__sprokit_register__()
+    except ImportError:
+        pass
+
+    try:
+        from viame.core import multicam_homog_mosaic
+        multicam_homog_mosaic.__sprokit_register__()
+    except ImportError:
+        pass
+
+    try:
         from viame.core import merge_tracks_tube_iou
         merge_tracks_tube_iou.__sprokit_register__()
     except ImportError:

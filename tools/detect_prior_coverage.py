@@ -50,6 +50,10 @@ Outputs per site (in --output, default <site>_coverage):
   prior_coverage_vis.png   thumbnail grid (rows = a contiguous run of triggers,
                            columns = STAR|CENTER|PORT) with each prior frame's
                            region outlined and labelled separately
+  blackout_images/         with --blackout-images (non-default): a complete
+                           copy of the site's images with every previously-
+                           observed region filled black (unseen images are
+                           copied through unchanged)
 """
 
 import argparse
@@ -707,6 +711,41 @@ def write_viame_csv(path, rows, coverage_class, obs_registry=None):
                     f'{cls},1.0,{_fmt_poly(poly)}{note}\n')
 
 
+def write_blackout_images(out_dir, site_folder, observations, rows,
+                          verbose=True):
+    """Write a copy of every site image with previously-observed regions
+    filled black.
+
+    Images with no prior-coverage polygons are copied through unchanged
+    (byte-for-byte), so `out_dir` is a complete stand-in image set for the
+    site with everything already seen elsewhere blacked out.
+    """
+    import shutil
+    import cv2
+    by_image = {}
+    for rel, _sfx, poly, _src in rows:
+        by_image.setdefault(rel, []).append(poly)
+    n_black = 0
+    for o in observations:
+        src = os.path.join(site_folder, o.rel)
+        dst = os.path.join(out_dir, o.rel)
+        os.makedirs(os.path.dirname(dst) or out_dir, exist_ok=True)
+        polys = by_image.get(o.rel)
+        if not polys:
+            shutil.copy2(src, dst)
+            continue
+        img = cv2.imread(src, cv2.IMREAD_UNCHANGED)
+        if img is None:
+            shutil.copy2(src, dst)
+            continue
+        cv2.fillPoly(img, [np.round(p).astype(np.int32) for p in polys], 0)
+        cv2.imwrite(dst, img)
+        n_black += 1
+    if verbose:
+        print(f'    blackout images -> {out_dir} '
+              f'({n_black} modified, {len(observations) - n_black} copied)')
+
+
 def write_revisits_csv(path, events):
     cols = ['image', 'camera', 'frame', 'source_image', 'source_site',
             'source_pass', 'source_day', 'overlap_frac', 'confirmed']
@@ -1157,6 +1196,10 @@ def process_site(site_folder, site_id, grid, order_start, args, to_enu,
     if not args.revisits_only:
         write_viame_csv(os.path.join(out_dir, 'prior_coverage.csv'), rows,
                         args.coverage_class, obs_registry)
+    if args.blackout_images:
+        write_blackout_images(
+            args.blackout_dir or os.path.join(out_dir, 'blackout_images'),
+            site_folder, observations, rows)
     write_revisits_csv(os.path.join(out_dir, 'revisits.csv'), revisit_events)
     render_coverage_map(os.path.join(out_dir, 'coverage_map.png'),
                         observations, site_tag)
@@ -1246,6 +1289,14 @@ def main():
                          'grid, e.g. 240-270 (overrides --vis-rows)')
     ap.add_argument('--vis-thumb-width', type=int, default=420,
                     help='Thumbnail width (px) in the grid')
+    ap.add_argument('--blackout-images', action='store_true',
+                    help='Also write a copy of every image with the '
+                         'previously-observed regions filled black (a '
+                         'complete stand-in image set; unseen images are '
+                         'copied unchanged)')
+    ap.add_argument('--blackout-dir', default=None,
+                    help='Output directory for --blackout-images (default '
+                         '<output>/blackout_images)')
     ap.add_argument('--revisits-only', action='store_true',
                     help='Only detect/report revisit events (revisits.csv '
                          '+ coverage map); skip per-frame coverage CSV and '

@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Utility - Register Frames
+# Title: Filter - Register Frames
 #
-# Description: Registers frames between multiple camera views.
+# Description: Registers frames across the survey and writes a copy of each
+# image, optionally with previously-observed regions blacked out.
 #
 # Metadata File: stabilizer:flight_log
 #   DIVE binds an optional per-dataset metadata file (e.g. an FMCLOG
@@ -33,3 +34,24 @@ process homog_writer
 
 connect from stabilizer.homog1
         to homog_writer.homography
+
+process blackout
+  :: multicam_homog_blackout
+  n_input = 1
+  :enabled                                     true  # DIVE_PARAM["Black out previously seen regions", bool]
+  :past_frames                                 prev_neighbors  # DIVE_PARAM["Past frames used (prev_neighbors or all)", string]
+
+connect from downsampler.output_1
+        to blackout.image1
+connect from stabilizer.homog1
+        to blackout.homog1
+
+process image_writer
+  :: image_writer
+  :file_name_template                          .png  # DIVE_PARAM["Filename template", string]
+  :image_writer:type                           vxl
+
+connect from blackout.image1
+        to image_writer.image
+connect from downsampler.output_2
+        to image_writer.image_file_name
