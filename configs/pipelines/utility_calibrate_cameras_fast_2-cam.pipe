@@ -4,7 +4,4 @@
 # Description: Estimate calibration matrices from left and right stereo cameras
 # =============================================================================
 
-config global
-   :square_size                                80  # DIVE_PARAM["Checkerboard Square Size (real units)", strictly_positive_float, required]
-
 include measurement_calibrate_cameras_fast.pipe
