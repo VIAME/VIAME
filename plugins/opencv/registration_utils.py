@@ -797,6 +797,32 @@ def _track_headings(enu):
             head[i] = math.degrees(math.atan2(d[0], d[1]))  # atan2(E, N)
     return head
 
+def _fill_nan_headings(head, logged_yaw):
+    """Fill NaN GPS-track headings (frames with < 1 m of motion, e.g. a
+    hovering UAS) so placements do not silently rotate to north-up.
+
+    Per NaN frame, prefer the frame's LOGGED yaw when it is consistent with
+    the nearest valid track heading (within 45 deg circular) - a hovering
+    drone keeps a meaningful logged yaw and may even rotate in place. When
+    the logged yaw disagrees (e.g. the 2024 rig logs yaw in a different
+    convention than the track heading M was calibrated against) or is absent,
+    hold the nearest valid track heading instead. Returns a filled copy;
+    all-NaN input is returned unchanged."""
+    head = np.asarray(head, dtype=float).copy()
+    valid = np.nonzero(~np.isnan(head))[0]
+    if not len(valid):
+        return head
+    for i in np.nonzero(np.isnan(head))[0]:
+        nearest = head[valid[np.argmin(np.abs(valid - i))]]
+        ly = logged_yaw[i] if logged_yaw is not None else None
+        if ly is not None and not np.isnan(ly):
+            d = abs((float(ly) - nearest + 180.0) % 360.0 - 180.0)
+            head[i] = float(ly) if d <= 45.0 else nearest
+        else:
+            head[i] = nearest
+    return head
+
+
 def _rot2(deg):
     """2x2 rotation matrix for an angle in degrees (NaN -> identity)."""
     if deg is None or np.isnan(deg):

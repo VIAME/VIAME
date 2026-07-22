@@ -27,7 +27,7 @@ from viame.opencv import registration_utils as _sr
 _sr.import_dependencies()
 from viame.opencv.registration_utils import (
     compute_homography_pair, _compute_camera_chain,
-    _poses_to_enu, _track_headings, _rot2, _geo_calibrate,
+    _poses_to_enu, _track_headings, _rot2, _geo_calibrate, _fill_nan_headings,
     reconcile_enu_with_chain,
 )
 
@@ -311,6 +311,15 @@ def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
                     print(f"    {cam}: chirality was mirrored vs the rig; "
                           f"refit to consensus handedness")
     for cam, c in cal.items():
+        # Fill NaN track headings (hovering / <1 m steps) from the logged yaw
+        # or the nearest valid heading BEFORE any placement math - a NaN yaw
+        # otherwise rotates that frame's placement to north-up, swinging its
+        # suppression regions against its correctly-rotated neighbours.
+        logged = [poses_by_cam.get(cam, {}).get(r, {}).get('yaw')
+                  for r in cams[cam]]
+        c['yaw'] = _fill_nan_headings(
+            c['yaw'], np.array([np.nan if v is None else float(v)
+                                for v in logged]))
         target = None       # rig-consensus scale first, metadata GSD second
         reliable = (c['M'] is not None and c['n'] >= 8
                     and c['res'] is not None and c['res'] < 150)
