@@ -101,6 +101,14 @@ class ColmapRegistration(KwiverProcess):
             self, 'water_method', 'auto',
             'Water/land classifier for the hybrid method (auto|svm|sift).')
         _add_declare_config(
+            self, 'gps_chain_reconcile', 'true',
+            'Correct per-frame GPS positions that disagree with the image '
+            'registration chain before placing frames (hybrid method). Fixes '
+            'the periodic misregistration from sub-second trigger / GPS-sample '
+            'aliasing (a frame whose logged GPS step is short/long while the '
+            'imagery shows steady motion). Set false to place frames at raw '
+            'GPS as before.')
+        _add_declare_config(
             self, 'cache', '',
             'Explicit path to the full-folder registration cache file. Empty = '
             '<site>/VIAME/registration_<method>.npz (see use_cache). The cache '
@@ -181,6 +189,9 @@ class ColmapRegistration(KwiverProcess):
         self._flight_log = self.config_value('flight_log') or None
         self._method = self.config_value('method') or 'hybrid'
         self._water_method = self.config_value('water_method') or 'auto'
+        self._gps_chain_reconcile = (self.config_value('gps_chain_reconcile')
+                                     or 'true').lower() not in (
+                                         'false', '0', 'no', 'off')
         self._cache = self.config_value('cache') or None
         self._site_folder = self.config_value('site_folder') or None
         # One image-list file per camera (single file each, line-separated).
@@ -420,7 +431,8 @@ class ColmapRegistration(KwiverProcess):
              % (site_folder, scope, self._method, self._flight_log or 'none'))
         homogs = pcc.compute_frame_homographies(
             site_folder, flight_logs=self._flight_log, method=self._method,
-            water_method=self._water_method, images=images)
+            water_method=self._water_method, images=images,
+            reg_overrides={'gps_chain_reconcile': self._gps_chain_reconcile})
         by_name = {}
         n_geo = 0
         for rel, info in homogs.items():

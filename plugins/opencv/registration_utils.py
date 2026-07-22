@@ -899,6 +899,100 @@ def _geo_fill(chain, cam_images, enu, yaw, M, label="", n_steps=0, residual=None
               f"step-residual {rtxt}{extra}")
     return filled
 
+
+def reconcile_enu_with_chain(chain, enu, yaw, M, max_gap=1, min_run=6,
+                             dev=0.22, label=""):
+    """Correct per-frame GPS positions that disagree with the image chain.
+
+    A camera trigger can alias against a low-rate GPS log (e.g. sub-second
+    triggers sampled from a 1 Hz fix): the logged position lands on the nearest
+    GPS sample, so successive frames show periodic short/long STEPS while the
+    imagery shows steady motion. Placed at raw GPS, those frames misregister and
+    their prior-coverage overlay lands offset along-track (the classic
+    "previous frames sit too far up/down on frame N" symptom).
+
+    Over each contiguous run of chain-registered frames this trusts the image
+    chain for a step whose GPS length is a local outlier while the chain length
+    is not (a GPS timing glitch), keeps GPS where the chain is instead the
+    outlier (a bad match) or where both agree (a real speed/heading change),
+    integrates the chosen per-step motion, and re-anchors to the GPS track via a
+    smoothed residual so global position and track curvature still follow GPS.
+    Frames outside a usable run keep their GPS position.
+
+    Returns a corrected COPY of ``enu``; a no-op (returns ``enu``) when M is
+    missing/singular or too few frames are chained, so it is safe to call
+    unconditionally on any camera. The chain-to-ENU inverse uses the same
+    convention as :func:`_geo_calibrate` (F = M @ R(yaw) @ ground_disp)."""
+    if M is None or enu is None:
+        return enu
+    try:
+        Minv = np.linalg.inv(M)
+    except np.linalg.LinAlgError:
+        return enu
+    n = len(enu)
+    reg = [i for i in range(n) if i in chain and not np.isnan(enu[i, 0])]
+    if len(reg) < min_run:
+        return enu
+    corr = enu.copy()
+    # contiguous runs of registered frames (index gap <= max_gap)
+    runs, cur = [], [reg[0]]
+    for a, b in zip(reg[:-1], reg[1:]):
+        if b - a <= max_gap:
+            cur.append(b)
+        else:
+            runs.append(cur)
+            cur = [b]
+    runs.append(cur)
+    n_fixed = 0
+    for run in runs:
+        if len(run) < min_run:
+            continue
+        pairs = list(zip(run[:-1], run[1:]))
+        gps_d = np.array([enu[b] - enu[a] for a, b in pairs], dtype=float)
+        chn_d = np.empty_like(gps_d)
+        for t, (a, b) in enumerate(pairs):
+            ang = yaw[a] if not np.isnan(yaw[a]) else \
+                (yaw[b] if not np.isnan(yaw[b]) else 0.0)
+            pix = np.array([chain[b][0, 2] - chain[a][0, 2],
+                            chain[b][1, 2] - chain[a][1, 2]])
+            chn_d[t] = _rot2(-ang) @ (Minv @ pix)
+        gm = np.linalg.norm(gps_d, axis=1)
+        cm = np.linalg.norm(chn_d, axis=1)
+        chosen = gps_d.copy()
+        run_fixed = 0
+        for t in range(len(pairs)):
+            lo, hi = max(0, t - 2), min(len(pairs), t + 3)
+            gmed, cmed = np.median(gm[lo:hi]), np.median(cm[lo:hi])
+            gps_off = gmed > 0 and abs(gm[t] - gmed) / gmed > dev
+            chn_off = cmed > 0 and abs(cm[t] - cmed) / cmed > dev
+            if gps_off and not chn_off:
+                # GPS timing glitch: take the chain's motion for this step,
+                # guarding a noisy chain link from overshooting the local scale.
+                d = chn_d[t]
+                dl = np.linalg.norm(d)
+                if cmed > 0 and dl > 1.6 * cmed:
+                    d = d * (cmed / dl)
+                chosen[t] = d
+                run_fixed += 1
+        if not run_fixed:
+            continue
+        n_fixed += run_fixed
+        # Re-integrate positions from the run's first frame using the chosen
+        # per-step motion. Every non-glitch step is the exact GPS position
+        # difference, so the corrected track stays GPS-accurate in absolute
+        # terms (no drift) while the replaced glitch steps snap the frames onto
+        # the steady image motion - no low-pass re-anchoring, which would just
+        # smear the correction back over the neighbours.
+        pos = enu[run[0]].astype(float).copy()
+        corr[run[0]] = pos
+        for (a, b), d in zip(pairs, chosen):
+            pos = pos + d
+            corr[b] = pos
+    if label and n_fixed:
+        print(f"    {label}: GPS/chain reconcile corrected {n_fixed} glitchy "
+              f"step(s)")
+    return corr
+
 def _geo_anchor_cameras(cam_chains, cameras, poses_by_cam, pairwise_by_cam):
     """Calibrate + fill all rig cameras, SHARING the GPS->pixel scale. The rig
     cameras image at the same altitude/focal, so the scale (px/m) is identical;

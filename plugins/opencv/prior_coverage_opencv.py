@@ -28,6 +28,7 @@ _sr.import_dependencies()
 from viame.opencv.registration_utils import (
     compute_homography_pair, _compute_camera_chain,
     _poses_to_enu, _track_headings, _rot2, _geo_calibrate,
+    reconcile_enu_with_chain,
 )
 
 # Physical rig layout as seen from behind the aircraft; acquisition order used
@@ -248,7 +249,7 @@ def _expected_px_per_m(poses):
 
 
 def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
-                         verbose=True):
+                         verbose=True, reconcile=True):
     """Like registration_utils._geo_anchor_cameras but returns the per-camera
     calibration (M, enu, yaw) needed to build pixel->ENU transforms, and
     bounds the fitted scale by the metadata-expected GSD (few clean pairwise
@@ -327,6 +328,14 @@ def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
             note = f"{cam}{'*' if c.get('borrowed') else ''}"
         else:
             note = ''
+        # Correct per-frame GPS positions that disagree with the image chain
+        # (sub-second trigger / GPS-sample aliasing) before dead-reckoning the
+        # unregistered frames off them. Falls back to raw GPS where the chain is
+        # unusable, so it is safe on every camera.
+        if reconcile:
+            c['enu'] = reconcile_enu_with_chain(
+                cam_chains.get(cam, {}), c['enu'], c['yaw'], c['M'],
+                label=(note if verbose else ''))
         _geo_fill(cam_chains.get(cam, {}), cams[cam], c['enu'], c['yaw'],
                   c['M'], label=note, n_steps=c['n'], residual=c['res'])
     return cal
@@ -480,7 +489,9 @@ def _register_site(site_folder, site_id, order_start, args, to_enu,
         have_gps = any(poses_by_cam[cam] for cam in cams)
         if have_gps:
             print('  Geo-anchoring chains (GPS dead-reckoning fill)...')
-            cal = _geo_anchor_with_cal(chains, cams, poses_by_cam, pairwise)
+            cal = _geo_anchor_with_cal(
+                chains, cams, poses_by_cam, pairwise,
+                reconcile=getattr(args, 'gps_chain_reconcile', True))
         else:
             print('  No GPS metadata: moving-average fill for water frames')
             for cam, rels in cams.items():
@@ -626,7 +637,8 @@ def compute_frame_homographies(site_folder, flight_logs=None, method='hybrid',
     args = argparse.Namespace(
         method=method, water_method=water_method, flight_logs=flight_logs,
         match_ratio=0.80, match_scale=0.5, min_inliers=10,
-        cross_cam_trials=15, xcam_cluster_tol=300.0, xcam_offset_frac=0.9)
+        cross_cam_trials=15, xcam_cluster_tol=300.0, xcam_offset_frac=0.9,
+        gps_chain_reconcile=True)
     for k, v in (reg_overrides or {}).items():
         setattr(args, k, v)
     reg = _register_site(site_folder, 0, 0, args, None,
