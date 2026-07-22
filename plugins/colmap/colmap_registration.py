@@ -282,7 +282,7 @@ class ColmapRegistration(KwiverProcess):
         fl = self._flight_log
         cams = smd.list_site_images(site_folder, image_list=images)
         total = sum(len(v) for v in cams.values())
-        if not fl or not os.path.isfile(fl):
+        if not fl or not os.path.exists(fl):
             return 0, total
         if fl.lower().endswith('.json'):
             # Single-camera imagelog: only count GPS-position links; an order
@@ -296,7 +296,8 @@ class ColmapRegistration(KwiverProcess):
             return stats.get('by_position', 0), total
         # Flight-log CSV: count images whose per-day frame number has a log row.
         date = smd.folder_date(site_folder)
-        log = smd.load_flight_log(smd.find_flight_log(fl, date))
+        log_path = smd.find_flight_log(fl, date)
+        log = smd.load_flight_log(log_path) if log_path else {}
         if not log:
             return 0, total
         matched = 0
