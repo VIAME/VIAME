@@ -17,6 +17,7 @@ before the packages are present. Call ``import_dependencies()`` once at startup.
 import os
 import sys
 import math
+import time
 import csv
 import json
 import re
@@ -444,7 +445,7 @@ def _compute_camera_chain(image_folder, cam_images, label="",
                            root_sift=False, use_affine=False,
                            sift_contrast=0.04, clahe_clip=4.0,
                            loop_closure=False, loop_closure_max=24,
-                           anchor_central=False):
+                           anchor_central=False, progress_interval=240.0):
     """Compute sequential homography chain for a single camera's image list.
 
     Returns (H_chain, pairwise_H) where H_chain maps index -> H_to_anchor (3x3)
@@ -462,10 +463,26 @@ def _compute_camera_chain(image_folder, cam_images, label="",
     if n == 0:
         return {}, {}
 
+    # Periodic status for the long stretches: prints at most once per
+    # progress_interval seconds, so a big survey shows signs of life during
+    # anchor scoring / chaining / retries without flooding the log.
+    _t0 = time.time()
+    _last_progress = [_t0]
+
+    def _progress(msg):
+        if progress_interval <= 0:
+            return
+        now = time.time()
+        if now - _last_progress[0] >= progress_interval:
+            _last_progress[0] = now
+            print(f"    {label or 'chain'}: {msg} "
+                  f"[{(now - _t0) / 60.0:.1f} min elapsed]", flush=True)
+
     # Find the best anchor frame (highest SIFT features without CLAHE)
     sift_quick = cv2.SIFT_create(nfeatures=0, contrastThreshold=0.04)
     anchor_scores = []
     for i, fname in enumerate(cam_images):
+        _progress(f"scoring anchor frames {i + 1}/{n}")
         is_water = (water_info or {}).get(fname, {}).get('is_water', False)
         if is_water:
             anchor_scores.append((0, i))
@@ -560,11 +577,15 @@ def _compute_camera_chain(image_folder, cam_images, label="",
     for i in range(anchor_idx - 1, -1, -1):
         search = [j for j in range(i + 1, min(i + search_window, n))]
         try_chain(i, search)
+        _progress(f"chaining backward, frame {i + 1}/{n} "
+                  f"({len(H_chain)}/{n} linked)")
 
     # Extend forward from anchor
     for i in range(anchor_idx + 1, n):
         search = [j for j in range(i - 1, max(i - search_window, -1), -1)]
         try_chain(i, search)
+        _progress(f"chaining forward, frame {i + 1}/{n} "
+                  f"({len(H_chain)}/{n} linked)")
 
     # Final pass: try unchained frames against any chained frame
     for i in range(n):
@@ -572,6 +593,8 @@ def _compute_camera_chain(image_folder, cam_images, label="",
             continue
         candidates = sorted(H_chain.keys(), key=lambda j: abs(i - j))[:10]
         try_chain(i, candidates)
+        _progress(f"retrying unchained frames, frame {i + 1}/{n} "
+                  f"({len(H_chain)}/{n} linked)")
 
     # Boosted retry: for unchained frames classified as coastal (or any
     # non-water frame that failed), retry with higher resolution / relaxed
@@ -588,6 +611,8 @@ def _compute_camera_chain(image_folder, cam_images, label="",
             candidates = sorted(H_chain.keys(), key=lambda j: abs(i - j))[:15]
             if try_chain(i, candidates, boost=True):
                 boosted_count += 1
+        _progress(f"boosted retry, frame {i + 1}/{n} "
+                  f"({len(H_chain)}/{n} linked)")
     if boosted_count and label:
         print(f"    {label}: {boosted_count} frames recovered via boosted matching")
 
@@ -620,6 +645,8 @@ def _compute_camera_chain(image_folder, cam_images, label="",
             # Order farthest-first so a genuine revisit is preferred over a
             # marginal near match the earlier passes already rejected.
             candidates = sorted(candidates, key=lambda j: -abs(i - j))
+            _progress(f"loop-closure pass, frame {i + 1}/{n} "
+                      f"({len(H_chain)}/{n} linked)")
             before = i in H_chain
             if try_chain(i, candidates, boost=True) and not before:
                 # Corroborate: the matched frame's own neighbours should also be
