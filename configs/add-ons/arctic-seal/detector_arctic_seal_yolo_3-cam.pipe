@@ -1,0 +1,166 @@
+# =============================================================================
+# Title: Detector - Arctic Seal YOLO 3-cam
+#
+# Description: Three camera arctic seal detector for synchronized optical,
+# thermal, and ultraviolet imagery. The thermal detector triggers subregion
+# detection on the optical stream; detections are mapped between cameras
+# using camera registration files (DIVE camera registration .json, ITK .h5,
+# or plain text 3x3 homography).
+#
+# Camera order follows DIVE display order: camera 1 is optical (the
+# registration reference), camera 2 is ultraviolet, and camera 3 is thermal
+# (thermal cameras display last). No ultraviolet detector exists; camera 2
+# output is the optical detections projected into its frame.
+# Input: IMAGE (per camera)
+# Output: BBOX (per camera)
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ================================== INPUTS ===================================
+
+process input1
+  :: video_input
+  :video_filename                              input_list_1.txt
+  :frame_time                                  1
+  :exit_on_invalid                             false
+  :video_reader:type                           image_list
+  :video_reader:image_list:image_reader:type   ocv
+
+process input2
+  :: video_input
+  :video_filename                              input_list_2.txt
+  :frame_time                                  1
+  :exit_on_invalid                             false
+  :video_reader:type                           image_list
+  :video_reader:image_list:image_reader:type   ocv
+
+process input3
+  :: video_input
+  :video_filename                              input_list_3.txt
+  :frame_time                                  1
+  :exit_on_invalid                             false
+  :video_reader:type                           image_list
+  :video_reader:image_list:image_reader:type   ocv
+
+# ============================= THERMAL DETECTOR ==============================
+
+include common_arctic_seal_ir_yolo_detector.pipe
+
+connect from input3.image
+        to   thermal_detector_input.image
+
+# ======================= THERMAL TO OPTICAL REGISTRATION =====================
+
+# Maps camera 3 (thermal) image coordinates onto camera 1 (optical). Set on
+# the command line to the dataset's registration file, e.g.:
+#   -s warp3:transformation_file=/path/to/ir_to_eo_registration.json
+process warp3
+  :: warp_detections
+  :transformation_file                         registration_camera3_to_camera1.json
+
+connect from thermal_detector_output.detected_object_set
+        to   warp3.detected_object_set
+
+# ============================= OPTICAL DETECTOR ==============================
+
+process optical_subregion_selector
+  :: detect_in_subregions
+
+  :method                                      fixed_size
+  :max_subregion_count                         10
+  :fixed_size                                  640
+
+  :detector:type                               darknet
+
+  block detector:darknet
+
+    # Network config, weights, and names
+    relativepath net_config  =                 models/arctic_seal_eo.cfg
+    relativepath weight_file =                 models/arctic_seal_eo.weights
+    relativepath class_names =                 models/arctic_seal_eo.lbl
+
+    # Detector parameters
+    :thresh                                    0.010
+    :hier_thresh                               0.001
+    :gpu_index                                 0
+
+    # Image scaling parameters
+    :resize_option                             maintain_ar
+    :scale                                     1.0
+
+  endblock
+
+connect from input1.image
+        to   optical_subregion_selector.image
+connect from warp3.detected_object_set
+        to   optical_subregion_selector.detected_object_set
+
+process optical_detector_output
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.80
+    :max_scale_difference                      0    # 0 means disabled
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from optical_subregion_selector.detected_object_set
+        to   optical_detector_output.detected_object_set
+
+# ===================== OPTICAL TO ULTRAVIOLET REGISTRATION ===================
+
+# Camera 2's registration file maps camera 2 (ultraviolet) coordinates onto
+# camera 1 (optical); inverse projects the optical detections into the
+# ultraviolet frame. Set on the command line, e.g.:
+#   -s warp2:transformation_file=/path/to/uv_to_eo_registration.json
+process warp2
+  :: warp_detections
+  :transformation_file                         registration_camera2_to_camera1.json
+  :inverse                                     true
+
+connect from optical_detector_output.detected_object_set
+        to   warp2.detected_object_set
+
+# ================================ CSV WRITERS ================================
+
+process detector_writer1
+  :: detected_object_output
+
+  :file_name                                   detections_camera1.csv
+  :writer:type                                 viame_csv
+
+connect from optical_detector_output.detected_object_set
+        to   detector_writer1.detected_object_set
+connect from input1.file_name
+        to   detector_writer1.image_file_name
+
+process detector_writer2
+  :: detected_object_output
+
+  :file_name                                   detections_camera2.csv
+  :writer:type                                 viame_csv
+
+connect from warp2.detected_object_set
+        to   detector_writer2.detected_object_set
+connect from input2.file_name
+        to   detector_writer2.image_file_name
+
+process detector_writer3
+  :: detected_object_output
+
+  :file_name                                   detections_camera3.csv
+  :writer:type                                 viame_csv
+
+connect from thermal_detector_output.detected_object_set
+        to   detector_writer3.detected_object_set
+connect from input3.file_name
+        to   detector_writer3.image_file_name
+
+# -- end of file --

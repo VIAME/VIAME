@@ -14,6 +14,7 @@
 #include "adaptive_detector_trainer.h"
 #include "add_timestamp_from_filename.h"
 #include "auto_detect_transform.h"
+#include "dive_transform_io.h"
 #include "average_track_descriptors.h"
 #include "convert_head_tail_points.h"
 #include "empty_detector.h"
@@ -77,6 +78,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< add_timestamp_from_filename >( vpm );
   register_algorithm< auto_detect_transform_io >( vpm );
   register_algorithm< convert_head_tail_points >( vpm );
+  register_algorithm< dive_transform_io >( vpm );
   register_algorithm< empty_detector >( vpm );
   register_algorithm< read_detected_object_set_auto >( vpm );
   register_algorithm< read_detected_object_set_cvat >( vpm );
