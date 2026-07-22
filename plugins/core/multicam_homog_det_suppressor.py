@@ -232,7 +232,7 @@ def suppression_polys(suppression_homogs_and_sizes, sizes):
     ] for (homogs, src_sizes, names), size
         in zip(suppression_homogs_and_sizes, sizes)]
 
-def wrap_poly(poly, class_, source_name=None):
+def wrap_poly(poly, class_, source_name=None, merged_count=0):
     result = DetectedObject(
         bbox=BoundingBoxD(*poly.min(0), *poly.max(0)),
         classifications=DetectedObjectType(class_, 1),
@@ -242,7 +242,78 @@ def wrap_poly(poly, class_, source_name=None):
         # Record which source frame's field of view produced this region, so
         # downstream (e.g. DIVE) can trace a suppression region to its image.
         result.add_note(':source_image=' + os.path.basename(str(source_name)))
+    if merged_count:
+        # This region is the union of several overlapping source regions (see
+        # max_overlap_suppr_regions).
+        result.add_note(':merged_regions=' + str(merged_count))
     return result
+
+
+def _polys_overlap(a, b):
+    """True when convex polygons a and b (N,2) intersect (shapely when
+    available, else cv2.intersectConvexConvex)."""
+    try:
+        from shapely.geometry import Polygon
+        return Polygon(a).intersects(Polygon(b))
+    except ImportError:
+        import cv2
+        area, _ = cv2.intersectConvexConvex(
+            a.astype(np.float32), b.astype(np.float32))
+        return area > 0
+
+
+def _union_poly(polys):
+    """Single polygon covering the union of overlapping polygons: the union's
+    exterior ring via shapely (holes are dropped - the flattened-polygon
+    representation cannot carry them), else the convex hull."""
+    try:
+        from shapely.geometry import Polygon
+        from shapely.ops import unary_union
+        u = unary_union([Polygon(p) for p in polys])
+        if u.geom_type == 'MultiPolygon':   # numeric slivers: take largest
+            u = max(u.geoms, key=lambda g: g.area)
+        pts = np.array(u.exterior.coords[:-1])
+    except ImportError:
+        import cv2
+        pts = cv2.convexHull(
+            np.concatenate(polys).astype(np.float32)).reshape(-1, 2)
+    return np.clip(pts, 0, None)
+
+
+def merge_overlapping_suppression_polys(polys, max_regions):
+    """Reduce clutter on frames covered by many past frames: when one frame
+    carries more than ``max_regions`` suppression regions, merge each group of
+    mutually-overlapping regions into a single union polygon (disjoint groups
+    stay separate regions). ``polys`` is [(poly, source_name)]; returns
+    [(poly, source_name, merged_count)] with merged_count 0 for untouched
+    regions. ``max_regions`` <= 0 disables merging."""
+    if max_regions <= 0 or len(polys) <= max_regions:
+        return [(p, name, 0) for p, name in polys]
+    # overlap-connected components via union-find
+    parent = list(range(len(polys)))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for i in range(len(polys)):
+        for j in range(i + 1, len(polys)):
+            if find(i) != find(j) and _polys_overlap(polys[i][0], polys[j][0]):
+                parent[find(j)] = find(i)
+    groups = {}
+    for i in range(len(polys)):
+        groups.setdefault(find(i), []).append(i)
+    out = []
+    for members in groups.values():
+        if len(members) == 1:
+            p, name = polys[members[0]]
+            out.append((p, name, 0))
+        else:
+            out.append((_union_poly([polys[k][0] for k in members]),
+                        None, len(members)))
+    return out
 
 @Transformer.decorate
 def find_prev_suppression_homogs_and_sizes():
@@ -296,7 +367,8 @@ def find_all_suppression_homogs_and_sizes():
 
 @Transformer.decorate
 def suppress(suppression_poly_class=None, *, past_frames,
-             remove_suppressed=False, boundary_threshold=1.0):
+             remove_suppressed=False, boundary_threshold=1.0,
+             max_overlapping_regions=5):
     if past_frames == 'prev_neighbors':
         fshs = find_prev_suppression_homogs_and_sizes()
     elif past_frames == 'all':
@@ -344,7 +416,9 @@ def suppress(suppression_poly_class=None, *, past_frames,
                 assert (p >= 0).all()
                 return np.where(p, p, 0)  # Replace -0 with 0
             poly_dets = (
-                (wrap_poly(n(p), suppression_poly_class, name) for p, name in ps)
+                (wrap_poly(n(p), suppression_poly_class, name, merged)
+                 for p, name, merged in merge_overlapping_suppression_polys(
+                     ps, max_overlapping_regions))
                 for ps in suppression_polys(shs, sizes)
             )
         output = [
@@ -381,6 +455,15 @@ class MulticamHomogDetSuppressor(KwiverProcess):
             ' attribute named after suppression_poly_class (set to true).'
             ' Negative disables the check'
         ))
+        add_declare_config(self, 'max_overlap_suppr_regions', '5', (
+            'When a frame carries more than this many suppression regions,'
+            ' each group of mutually-overlapping regions is merged into a'
+            ' single Suppression detection whose polygon is their union'
+            ' (disjoint groups stay separate; the merged detection carries a'
+            ' merged_regions attribute with the source count). Keeps frames'
+            ' covered by many past frames (past_frames=all) readable.'
+            ' 0 or negative disables merging'
+        ))
 
         optional = process.PortFlags()
         required = process.PortFlags()
@@ -409,8 +492,13 @@ class MulticamHomogDetSuppressor(KwiverProcess):
         rs = self.config_value('remove_suppressed').lower() in (
             'true', '1', 'yes', 'on')
         bt = float(self.config_value('boundary_threshold'))
+        try:
+            mor = int(self.config_value('max_overlap_suppr_regions'))
+        except (TypeError, ValueError):
+            mor = 5
         self._suppressor = suppress(spc, past_frames=pf, remove_suppressed=rs,
-                                    boundary_threshold=bt)
+                                    boundary_threshold=bt,
+                                    max_overlapping_regions=mor)
         # Determined on the first step (edges are present by then): which
         # optional file_name ports are wired, for the source_image attribute.
         self._fn_connected = None
