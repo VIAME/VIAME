@@ -101,6 +101,15 @@ class ColmapRegistration(KwiverProcess):
             self, 'water_method', 'auto',
             'Water/land classifier for the hybrid method (auto|svm|sift).')
         _add_declare_config(
+            self, 'chain_anchored_placement', 'true',
+            'Feature-primary placement (hybrid method): anchor each camera '
+            'chain to ENU with one similarity fitted over its GPS fixes, so '
+            'frame-to-frame geometry comes from image features instead of '
+            'per-frame GPS+heading dead reckoning. Falls back to per-frame '
+            'GPS placement when the fit is untrustworthy (few chained frames, '
+            'low GPS spread, or high fit residual). Set false for the prior '
+            'per-frame GPS placement.')
+        _add_declare_config(
             self, 'gps_chain_reconcile', 'true',
             'Correct per-frame GPS positions that disagree with the image '
             'registration chain before placing frames (hybrid method). Fixes '
@@ -194,6 +203,9 @@ class ColmapRegistration(KwiverProcess):
         self._gps_chain_reconcile = (self.config_value('gps_chain_reconcile')
                                      or 'true').lower() in (
                                          'true', '1', 'yes', 'on')
+        self._chain_anchored = (self.config_value('chain_anchored_placement')
+                                or 'true').lower() in (
+                                    'true', '1', 'yes', 'on')
         self._cache = self.config_value('cache') or None
         self._site_folder = self.config_value('site_folder') or None
         # One image-list file per camera (single file each, line-separated).
@@ -435,7 +447,8 @@ class ColmapRegistration(KwiverProcess):
         homogs = pcc.compute_frame_homographies(
             site_folder, flight_logs=self._flight_log, method=self._method,
             water_method=self._water_method, images=images,
-            reg_overrides={'gps_chain_reconcile': self._gps_chain_reconcile})
+            reg_overrides={'gps_chain_reconcile': self._gps_chain_reconcile,
+                           'chain_anchored_placement': self._chain_anchored})
         by_name = {}
         n_geo = 0
         for rel, info in homogs.items():

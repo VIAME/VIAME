@@ -368,6 +368,151 @@ def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
     return cal
 
 
+def _chain_anchored_transforms(chain, fit_idx, enu, sizes, origin_off,
+                               min_fit=6, min_spread=15.0, label=''):
+    """Feature-primary placement: anchor the registration chain to GPS with
+    one fitted similarity PER CHAIN SECTION, instead of dead-reckoning every
+    frame from its own GPS fix and heading estimate.
+
+    The chain's per-link geometry is feature-measured (sub-pixel), but scale
+    and rotation drift accumulate smoothly over a long run and jump at broken
+    links, so no single global transform fits - while short sections fit a
+    similarity to metre level. Each contiguous chained run is therefore split
+    recursively at its worst-fitting frame until the robust GPS fit of every
+    section is within tolerance. Within a section the placement reproduces the
+    chain exactly, so overlapping frames register on image features; sections
+    and the per-frame GPS fallback carry the rough metadata alignment.
+
+    Returns ({frame_idx: 3x3 pixel->ENU T}, median_residual_m); ({}, None)
+    when nothing is anchorable (too few chained GPS frames, GPS spread under
+    ``min_spread`` metres, or no section fitting within tolerance) - callers
+    then use per-frame GPS placement."""
+    pts, gps = [], []
+    for i in fit_idx:
+        if i not in chain or np.isnan(enu[i, 0]):
+            continue
+        w, h = sizes.get(i, (5168, 3448))
+        c = chain[i] @ np.array([w / 2.0, h / 2.0, 1.0])
+        pts.append(c[:2] / c[2])
+        gps.append(enu[i] + origin_off)
+    if len(pts) < min_fit:
+        return {}, None
+    pts = np.array(pts); gps = np.array(gps)
+    spread = float(np.max(np.linalg.norm(gps - gps.mean(0), axis=1)))
+    if spread < min_spread:
+        return {}, None
+
+    def _fit(P, G):
+        best = None
+        for chir in (+1.0, -1.0):
+            rows = np.vstack([
+                np.column_stack([P[:, 0], -chir * P[:, 1],
+                                 np.ones(len(P)), np.zeros(len(P))]),
+                np.column_stack([P[:, 1], chir * P[:, 0],
+                                 np.zeros(len(P)), np.ones(len(P))]),
+            ])
+            rhs = np.concatenate([G[:, 0], G[:, 1]])
+            (a, b, tx, ty), *_ = np.linalg.lstsq(rows, rhs, rcond=None)
+            S = np.array([[a, -chir * b, tx], [b, chir * a, ty], [0, 0, 1.0]])
+            r = np.linalg.norm((P @ S[:2, :2].T + S[:2, 2]) - G, axis=1)
+            if best is None or np.median(r) < best[1]:
+                best = (S, float(np.median(r)), r)
+        return best
+
+    # Chain drift is STRUCTURED (weak-texture stretches drift in scale and
+    # rotation, good stretches are tight), so neither one global transform nor
+    # sliding-window fits keep both objectives. Solve the small pose graph
+    # exactly instead: one 4-dof similarity S_i (anchor pixels -> ENU) per
+    # frame, with (a) CONTINUITY terms tying S_i to S_{i+1} at sample points
+    # of their shared geometry - the chain already encodes the relative
+    # motion, so constant S across an edge reproduces the feature-measured
+    # registration exactly - weighted well above (b) per-frame GPS anchor
+    # terms. Where the chain is consistent the continuity terms dominate and
+    # the relative geometry is feature-exact; everywhere the GPS terms bound
+    # the absolute error; a frame with a broken chain position pulls only its
+    # own GPS row, not its neighbours. Linear least squares in 4N unknowns.
+    fit_frames = [int(i) for i in fit_idx
+                  if i in chain and not np.isnan(enu[i, 0])]
+    if len(fit_frames) < min_fit:
+        return {}, None
+    gps_of = dict(zip(fit_frames, gps))
+    centers = {}
+    for f in sorted(chain):
+        w_, h_ = sizes.get(f, (5168, 3448))
+        cc = chain[f] @ np.array([w_ / 2.0, h_ / 2.0, 1.0])
+        centers[f] = cc[:2] / cc[2]
+
+    # The chain is near-perfectly similarity-consistent over SECTIONS (its
+    # per-link feature measurements are sub-pixel) while scale/rotation drift
+    # accumulates smoothly across a long run and jumps at broken links. So:
+    # fit ONE similarity per section, recursively splitting a section at its
+    # worst-fitting frame while the robust fit stays above tolerance. Within
+    # a section the placement reproduces the chain exactly (feature-primary);
+    # sections join through their own GPS fits (metre-level); frames in
+    # fragments with too little GPS support fall back to per-frame placement.
+    runs, cur = [], []
+    for f in sorted(chain):
+        if cur and f != cur[-1] + 1:
+            runs.append(cur)
+            cur = []
+        cur.append(f)
+    if cur:
+        runs.append(cur)
+
+    out, resids, n_sections = {}, [], 0
+
+    def _robust_fit(mem):
+        fits = [f for f in mem if f in gps_of]
+        if len(fits) < max(4, min_fit // 2):
+            return None
+        P = np.array([centers[f] for f in fits])
+        G = np.array([gps_of[f] for f in fits])
+        spread = float(np.max(np.linalg.norm(G - G.mean(0), axis=1)))
+        if spread < min_spread:
+            return None
+        S, res, r = _fit(P, G)
+        keep = r <= max(3.0 * np.median(r), 1.0)
+        if keep.sum() >= 4 and keep.sum() < len(P):
+            S2, res2, r2 = _fit(P[keep], G[keep])
+            if res2 < res:
+                S, res, r = S2, res2, np.linalg.norm(
+                    P @ S2[:2, :2].T + S2[:2, 2] - G, axis=1)
+        return S, res, dict(zip(fits, r))
+
+    def _anchor(mem, depth=0):
+        nonlocal n_sections
+        fit = _robust_fit(mem)
+        if fit is None:
+            return
+        S, res, per = fit
+        if res <= 2.5 or len(mem) <= 6 or depth >= 6:
+            if res > 8.0:
+                return          # even the smallest section will not fit GPS
+            n_sections += 1
+            for f in mem:
+                out[f] = S @ chain[f]
+            resids.extend(per.values())
+            return
+        # split beside the worst-fitting frame, kept strictly interior
+        worst = max(per, key=per.get)
+        cut = min(max(mem.index(worst), 2), len(mem) - 3)
+        _anchor(mem[:cut], depth + 1)
+        _anchor(mem[cut:], depth + 1)
+
+    for run in runs:
+        _anchor(run)
+    if len(out) < min_fit:
+        if label:
+            print(f'    {label}: chain-anchored placement unusable; '
+                  f'per-frame GPS placement')
+        return {}, None
+    res = float(np.median(resids)) if resids else 0.0
+    if label and n_sections:
+        print(f'    {label}: {n_sections} chain section(s) anchored to GPS, '
+              f'{len(out)} frames, median residual {res:.1f} m')
+    return out, res
+
+
 def _pixel_to_enu_transform(enu_xy, yaw_deg, M, width, height, origin_off):
     """Per-frame affine pixel->global-ENU built from the GPS fix, GPS-track
     heading and the calibrated heading-frame-metres -> pixels map M.
@@ -514,6 +659,10 @@ def _register_site(site_folder, site_id, order_start, args, to_enu,
                               if records.get(r, {}).get('lat') is not None}
                         for cam, rels in cams.items()}
         have_gps = any(poses_by_cam[cam] for cam in cams)
+        # Frames that were actually chained from image features, before
+        # _geo_fill pads the chain with GPS dead-reckoned entries: the
+        # chain-anchored fit below must only trust the measured ones.
+        feat_chained = {cam: set(chains.get(cam, {})) for cam in cams}
         if have_gps:
             print('  Geo-anchoring chains (GPS dead-reckoning fill)...')
             cal = _geo_anchor_with_cal(
@@ -560,6 +709,34 @@ def _register_site(site_folder, site_id, order_start, args, to_enu,
                             1.0 / NOMINAL_PX_PER_M, 1.0])
         S_pseudo[0, 2] = S_pseudo[1, 2] = site_id * 1e5
 
+    # Feature-primary placement: for each camera with a usable chain, anchor
+    # the WHOLE chain to ENU with one similarity fitted over the GPS fixes of
+    # the feature-chained frames (positions already reconciled above). The
+    # image features then carry all frame-to-frame geometry; the per-frame
+    # GPS+heading transform below remains only as the fallback for frames or
+    # cameras the fit cannot cover.
+    anchored = {}
+    if args.method == 'hybrid' and \
+            getattr(args, 'chain_anchored_placement', True):
+        for cam in cams:
+            c = cal.get(cam)
+            geo = cam_geo.get(cam)
+            if not c or geo is None or not chains.get(cam):
+                continue
+            sizes = {}
+            for i, rel in enumerate(cams[cam]):
+                rec = records.get(rel, {})
+                sizes[i] = (rec.get('width') or 5168,
+                            rec.get('height') or 3448)
+            Ts, res = _chain_anchored_transforms(
+                chains[cam], sorted(feat_chained.get(cam, ())),
+                c['enu'], sizes, np.asarray(geo['off']),
+                label=str(cam))
+            if Ts:
+                anchored[cam] = Ts
+                print(f'    {cam}: chain-anchored placement for {len(Ts)} '
+                      f'frames ({res:.1f} m GPS fit residual)')
+
     observations = []
     order = order_start
     triggers = sorted({f for fr in frames_by_cam.values() for f in fr})
@@ -576,6 +753,12 @@ def _register_site(site_folder, site_id, order_start, args, to_enu,
             geo = cam_geo.get(cam)
             T = None
             if args.method == 'hybrid' and cam in ('CENTER', None) \
+                    and i in anchored.get(cam, {}):
+                # Feature-primary: the chain-anchored transform places this
+                # frame with the image-measured relative geometry.
+                T = anchored[cam][i]
+                center_T[t] = T
+            elif args.method == 'hybrid' and cam in ('CENTER', None) \
                     and cal.get(cam, {}).get('M') is not None \
                     and geo is not None:
                 # The GPS fix is (near enough) the CENTER nadir point, so the
@@ -666,7 +849,7 @@ def compute_frame_homographies(site_folder, flight_logs=None, method='hybrid',
         method=method, water_method=water_method, flight_logs=flight_logs,
         match_ratio=0.80, match_scale=0.5, min_inliers=10,
         cross_cam_trials=15, xcam_cluster_tol=300.0, xcam_offset_frac=0.9,
-        gps_chain_reconcile=True)
+        gps_chain_reconcile=True, chain_anchored_placement=True)
     for k, v in (reg_overrides or {}).items():
         setattr(args, k, v)
     reg = _register_site(site_folder, 0, 0, args, None,

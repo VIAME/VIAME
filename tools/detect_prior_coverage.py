@@ -1249,6 +1249,13 @@ def main():
                          '+ coverage map); skip per-frame coverage CSV and '
                          'thumbnails. Supersedes detect_site_revisits.py.')
     # Registration options (defaults follow the validated experiment config).
+    ap.add_argument('--no-chain-anchored-placement',
+                    dest='chain_anchored_placement', action='store_false',
+                    default=True,
+                    help='Place frames by per-frame GPS+heading instead of '
+                         'anchoring the feature chain to GPS with one '
+                         'fitted similarity (the default, which keeps the '
+                         'image-measured relative geometry).')
     ap.add_argument('--no-gps-chain-reconcile', dest='gps_chain_reconcile',
                     action='store_false', default=True,
                     help='Disable the verified GPS/chain reconciliation '
