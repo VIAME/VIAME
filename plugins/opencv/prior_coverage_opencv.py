@@ -248,8 +248,24 @@ def _expected_px_per_m(poses):
     return width / (alt * smd.SENSOR_W_MM / f35)
 
 
+def _make_step_verifier(site_folder, rels):
+    """Independent high-quality pairwise match for reconcile verification:
+    (a, b) -> raw pixel displacement or None when the pair cannot be matched
+    confidently (its sign convention is calibrated by the caller)."""
+    def _verify(a, b):
+        H, _t = compute_homography_pair(
+            os.path.join(site_folder, rels[a]),
+            os.path.join(site_folder, rels[b]),
+            scale=0.5, nfeatures=8192, match_ratio=0.7, min_inliers=25,
+            ransac_thresh=3.0, use_affine=True)
+        if H is None:
+            return None
+        return np.array([H[0, 2], H[1, 2]], dtype=float)
+    return _verify
+
+
 def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
-                         verbose=True, reconcile=False):
+                         verbose=True, reconcile=False, site_folder=None):
     """Like registration_utils._geo_anchor_cameras but returns the per-camera
     calibration (M, enu, yaw) needed to build pixel->ENU transforms, and
     bounds the fitted scale by the metadata-expected GSD (few clean pairwise
@@ -333,9 +349,11 @@ def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
         # unregistered frames off them. Falls back to raw GPS where the chain is
         # unusable, so it is safe on every camera.
         if reconcile:
+            ver = (_make_step_verifier(site_folder, cams[cam])
+                   if site_folder else None)
             c['enu'] = reconcile_enu_with_chain(
                 cam_chains.get(cam, {}), c['enu'], c['yaw'], c['M'],
-                label=(note if verbose else ''))
+                verify=ver, label=(note if verbose else ''))
         _geo_fill(cam_chains.get(cam, {}), cams[cam], c['enu'], c['yaw'],
                   c['M'], label=note, n_steps=c['n'], residual=c['res'])
     return cal
@@ -491,7 +509,8 @@ def _register_site(site_folder, site_id, order_start, args, to_enu,
             print('  Geo-anchoring chains (GPS dead-reckoning fill)...')
             cal = _geo_anchor_with_cal(
                 chains, cams, poses_by_cam, pairwise,
-                reconcile=getattr(args, 'gps_chain_reconcile', False))
+                reconcile=getattr(args, 'gps_chain_reconcile', True),
+                site_folder=site_folder)
         else:
             print('  No GPS metadata: moving-average fill for water frames')
             for cam, rels in cams.items():
