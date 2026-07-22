@@ -77,6 +77,9 @@ from viame.opencv.registration_utils import (
     _poses_to_enu, _track_headings, _rot2,
     _geo_calibrate,
 )
+from viame.opencv.prior_coverage_opencv import (
+    _geo_anchor_with_cal,
+)
 
 CAM_ORDER = {'CENTER': 0, 'PORT': 1, 'STAR': 2, None: 0}
 
@@ -381,65 +384,6 @@ def _expected_px_per_m(poses):
     width = p0.get('width') or 5168
     return width / (alt * smd.SENSOR_W_MM / f35)
 
-
-def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
-                         verbose=True):
-    """Like registration_utils._geo_anchor_cameras but returns the per-camera
-    calibration (M, enu, yaw) needed to build pixel->ENU transforms, and
-    bounds the fitted scale by the metadata-expected GSD (few clean pairwise
-    steps on water-heavy sites otherwise corrupt the scale by 50%+)."""
-    from viame.opencv.registration_utils import _geo_fill
-    cal = {}
-    for cam in cams:
-        if poses_by_cam.get(cam) is None:
-            continue
-        M, n, r, enu, yaw = _geo_calibrate(
-            cam_chains.get(cam, {}), cams[cam],
-            poses_by_cam[cam], pairwise_by_cam.get(cam))
-        cal[cam] = {'M': M, 'n': n, 'res': r, 'enu': enu, 'yaw': yaw,
-                    'expect': _expected_px_per_m(poses_by_cam[cam])}
-    good = [np.sqrt(abs(np.linalg.det(c['M']))) for c in cal.values()
-            if c['M'] is not None and c['n'] >= 8
-            and c['res'] is not None and c['res'] < 150]
-    shared = float(np.median(good)) if good else None
-    for cam, c in cal.items():
-        target = None       # rig-consensus scale first, metadata GSD second
-        reliable = (c['M'] is not None and c['n'] >= 8
-                    and c['res'] is not None and c['res'] < 150)
-        if c['M'] is None:
-            ref = shared or c['expect']
-            if ref is not None and not np.all(np.isnan(c['yaw'])):
-                # No usable pairwise steps at all (e.g. all-water camera):
-                # synthesize M from the known mounting. CENTER/PORT image-up =
-                # flight direction; STAR is mounted ~180 deg rotated (measured
-                # on the 2024 rig: sequential pixel motion dy is +1300 px for
-                # CENTER/PORT vs -1380 px for STAR on the same frames), so its
-                # synthesized M is negated (R(180) @ M = -M).
-                sgn = -1.0 if str(cam).upper() == 'STAR' else 1.0
-                c['M'] = sgn * np.array([[ref, 0.0], [0.0, -ref]])
-                c['borrowed'] = True
-            else:
-                continue
-        elif not reliable:
-            target = shared or c['expect']
-        else:
-            # Even a "reliable" fit is distrusted when it disagrees with
-            # physics by >30% - altitude and focal length are well known.
-            own = np.sqrt(abs(np.linalg.det(c['M'])))
-            if c['expect'] and abs(own / c['expect'] - 1.0) > 0.3:
-                target = c['expect']
-        if target is not None:
-            own = np.sqrt(abs(np.linalg.det(c['M'])))
-            if own > 1e-6:
-                c['M'] = c['M'] * (target / own)
-                c['borrowed'] = True
-        if verbose:
-            note = f"{cam}{'*' if c.get('borrowed') else ''}"
-        else:
-            note = ''
-        _geo_fill(cam_chains.get(cam, {}), cams[cam], c['enu'], c['yaw'],
-                  c['M'], label=note, n_steps=c['n'], residual=c['res'])
-    return cal
 
 
 def _pixel_to_enu_transform(enu_xy, yaw_deg, M, width, height, origin_off):
@@ -1068,7 +1012,10 @@ def process_site(site_folder, site_id, grid, order_start, args, to_enu,
         have_gps = any(poses_by_cam[cam] for cam in cams)
         if have_gps:
             print('  Geo-anchoring chains (GPS dead-reckoning fill)...')
-            cal = _geo_anchor_with_cal(chains, cams, poses_by_cam, pairwise)
+            cal = _geo_anchor_with_cal(
+                chains, cams, poses_by_cam, pairwise,
+                reconcile=getattr(args, 'gps_chain_reconcile', True),
+                site_folder=site_folder)
         else:
             print('  No GPS metadata: moving-average fill for water frames')
             for cam, rels in cams.items():
@@ -1302,6 +1249,13 @@ def main():
                          '+ coverage map); skip per-frame coverage CSV and '
                          'thumbnails. Supersedes detect_site_revisits.py.')
     # Registration options (defaults follow the validated experiment config).
+    ap.add_argument('--no-gps-chain-reconcile', dest='gps_chain_reconcile',
+                    action='store_false', default=True,
+                    help='Disable the verified GPS/chain reconciliation '
+                         '(correcting logged GPS steps that disagree with '
+                         'the image motion, each confirmed by an '
+                         'independent match). On by default, matching the '
+                         'in-pipeline registration node.')
     ap.add_argument('--match-ratio', type=float, default=0.80)
     ap.add_argument('--match-scale', type=float, default=0.5)
     ap.add_argument('--min-inliers', type=int, default=10)
