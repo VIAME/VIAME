@@ -261,8 +261,13 @@ def load_exif_meta(path):
 # 2025 UAS imagelog.json ingest
 # ---------------------------------------------------------------------------
 
-def load_imagelog(site_folder):
-    """Load the 2025 single-camera UAS ``imagelog.json`` pose log(s) of a site.
+def load_imagelog(source):
+    """Load the 2025 single-camera UAS ``imagelog.json`` pose log(s).
+
+    ``source`` may be a survey folder (all its ``imagelog*.json`` files are
+    read) or a direct path to one imagelog JSON file - e.g. the metadata file
+    DIVE hands the pipeline, so the node reads exactly that file instead of
+    scanning a directory.
 
     A site folder holds one or more ``imagelog*.json`` files (a flight split
     across battery swaps produces e.g. ``imagelog.json`` + ``imagelog (2).json``).
@@ -277,7 +282,12 @@ def load_imagelog(site_folder):
     renamed and fewer in number than the triggers, so :func:`link_imagelog`
     matches them by GPS position.
     """
-    logs = sorted(glob.glob(os.path.join(site_folder, 'imagelog*.json')))
+    if source and os.path.isfile(source):
+        logs = [source]
+    elif source and os.path.isdir(source):
+        logs = sorted(glob.glob(os.path.join(source, 'imagelog*.json')))
+    else:
+        logs = []
     recs = []
     for path in logs:
         try:
@@ -438,17 +448,28 @@ def build_image_records(site_folder, flight_logs=None, read_exif=True,
     """
     date = folder_date(site_folder)
     cams = list_site_images(site_folder, image_list=image_list)
-    log_path = find_flight_log(flight_logs, date)
-    log = load_flight_log(log_path) if log_path else {}
-    if verbose and flight_logs and not log:
-        print(f'    No flight log found for date {date}')
 
-    # 2025 single-camera UAS: a co-located imagelog.json is the pose source.
-    # Auto-detected (no --flight-logs needed); linked to the renamed image
-    # files by GPS position. Only meaningful for a single-camera collection.
+    # Route the provided metadata file by format instead of guessing from the
+    # folder contents: an explicit .json is a single-camera imagelog; a .csv
+    # (or a directory of daily logs) is an FMCLOG flight log. The node then
+    # uses exactly the file it was handed (e.g. by DIVE), never whatever a
+    # directory scan happens to surface.
+    fl_is_imagelog = bool(flight_logs) and os.path.isfile(flight_logs) \
+        and flight_logs.lower().endswith('.json')
+    log = {}
+    if not fl_is_imagelog:
+        log_path = find_flight_log(flight_logs, date)
+        log = load_flight_log(log_path) if log_path else {}
+        if verbose and flight_logs and not log:
+            print(f'    No flight log found for date {date}')
+
+    # 2025 single-camera UAS: an imagelog.json is the pose source, linked to the
+    # renamed image files by GPS position. Prefer the explicitly-provided file;
+    # otherwise auto-detect a co-located imagelog*.json in the survey folder
+    # (CLI convenience). Only meaningful for a single-camera collection.
     imagelog = {}
     if len(cams) == 1 and None in cams and not log:
-        il_recs = load_imagelog(site_folder)
+        il_recs = load_imagelog(flight_logs if fl_is_imagelog else site_folder)
         if il_recs:
             imagelog, il_stats = link_imagelog(
                 site_folder, cams[None], il_recs, read_exif=read_exif)

@@ -215,20 +215,31 @@ class ColmapRegistration(KwiverProcess):
         need not be named again for the node)."""
         if self._site_folder:
             return self._site_folder
-        # Camera 1's image list locates the survey folder: its first full image
-        # path is <survey>/<camera>/<image>, so the folder is two dirs up.
+        # Camera 1's image list locates the survey folder from its first full
+        # image path (see _survey_folder_of for the rig-vs-single-camera rule).
         lst = self._image_lists[0] if self._image_lists else None
         if lst and os.path.exists(lst):
             with open(lst) as f:
                 for line in f:
                     p = line.strip()
                     if p:
-                        return os.path.dirname(os.path.dirname(
-                            os.path.abspath(p)))
+                        return self._survey_folder_of(p)
         if hint_name and os.path.dirname(str(hint_name)):
-            return os.path.dirname(os.path.dirname(
-                os.path.abspath(str(hint_name))))
+            return self._survey_folder_of(str(hint_name))
         return None
+
+    @staticmethod
+    def _survey_folder_of(image_path):
+        """Survey folder that holds an image. A multi-camera rig lays images out
+        as <survey>/<CENTER|PORT|STAR>/<image> (survey is two dirs up); a single-
+        camera UAS survey puts images directly in <survey>/ (one dir up, and the
+        imagelog.json sits in that same folder). Only strip the camera level when
+        the image's parent really is a rig camera folder, so single-camera
+        surveys resolve to the folder that actually holds their metadata."""
+        parent = os.path.dirname(os.path.abspath(image_path))
+        if os.path.basename(parent).upper() in ('CENTER', 'PORT', 'STAR'):
+            return os.path.dirname(parent)
+        return parent
 
     def _resolve_images(self):
         """Explicit image paths to register (register_scope=list), or None for
@@ -248,44 +259,76 @@ class ColmapRegistration(KwiverProcess):
         return images or None
 
     def _metadata_coverage(self, site_folder, images):
-        """(matched, total) frames of the current sequence that get a pose from a
-        metadata file (flight log / imagelog.json). Embedded EXIF GPS is ignored
-        (read_exif=False) so this measures the provided metadata file, not the
-        imagery, matching the "requires a metadata file" intent."""
+        """(matched, total): frames that get a pose FROM THE PROVIDED metadata
+        file - a flight-log CSV row matched by frame number, or an imagelog JSON
+        record matched to the image by GPS position. EXIF-only GPS is not
+        counted: this measures whether the file itself was applied, so
+        require_metadata can fail when a file was passed but is the wrong log,
+        unreadable, or left unlinked by a survey-folder mismatch."""
         from viame.core import survey_metadata as smd
-        records, _cams = smd.build_image_records(
-            site_folder, flight_logs=self._flight_log, read_exif=False,
-            image_list=images, verbose=False)
-        total = len(records)
-        matched = sum(1 for r in records.values()
-                      if r and r.get('lat') is not None)
+        fl = self._flight_log
+        cams = smd.list_site_images(site_folder, image_list=images)
+        total = sum(len(v) for v in cams.values())
+        if not fl or not os.path.isfile(fl):
+            return 0, total
+        if fl.lower().endswith('.json'):
+            # Single-camera imagelog: only count GPS-position links; an order
+            # fallback means the file did not actually correspond to the frames.
+            rels = cams.get(None, [])
+            recs = smd.load_imagelog(fl)
+            if not recs or not rels:
+                return 0, total
+            _links, stats = smd.link_imagelog(
+                site_folder, rels, recs, read_exif=True)
+            return stats.get('by_position', 0), total
+        # Flight-log CSV: count images whose per-day frame number has a log row.
+        date = smd.folder_date(site_folder)
+        log = smd.load_flight_log(smd.find_flight_log(fl, date))
+        if not log:
+            return 0, total
+        matched = 0
+        for rels in cams.values():
+            for r in rels:
+                fr = smd.parse_image_filename(r).get('frame')
+                if fr is not None and fr in log:
+                    matched += 1
         return matched, total
 
     def _enforce_metadata_requirements(self, site_folder, images):
         """Raise if require_metadata / require_metadata_match are set and the
-        metadata is missing or does not correspond to the image sequence."""
+        metadata is missing, unreadable, or does not actually apply to the
+        frames. Unlike a plain "a path was passed" check, require_metadata now
+        verifies the file is USED: at least one frame must link to it (a
+        flight-log row by frame number, or a GPS-position imagelog match). A
+        wrong, unreadable, or unresolved metadata file therefore fails loudly
+        here instead of silently registering nothing (all-identity homographies
+        that read downstream as "every frame already observed")."""
         if not (self._require_metadata or self._require_metadata_match):
             return
         if self._require_metadata and not self._flight_log:
             raise RuntimeError(
                 'colmap_registration: require_metadata is set but no metadata '
-                'file was provided (set stabilizer:flight_log to a .csv/.json '
-                'flight log).')
-        if self._require_metadata and not os.path.exists(self._flight_log):
+                'file was provided (set stabilizer:flight_log to a .csv flight '
+                'log or .json imagelog).')
+        if self._flight_log and not os.path.exists(self._flight_log):
             raise RuntimeError(
                 'colmap_registration: metadata file not found: %s'
                 % self._flight_log)
-        if not self._require_metadata_match:
-            return
         matched, total = self._metadata_coverage(site_folder, images)
         if total == 0:
             return
         if matched == 0:
             raise RuntimeError(
-                'colmap_registration: the provided metadata does not correspond '
-                'to the current image sequence (0/%d frames matched). Check that '
-                'the flight log / imagelog is for this site and flight.' % total)
-        if matched < total * self._min_metadata_coverage:
+                'colmap_registration: the provided metadata file (%s) could not '
+                'be applied to any of the %d frames. Check that it is the '
+                'correct flight log / imagelog for this sequence and that the '
+                'survey folder resolved correctly (resolved site_folder=%r).'
+                % (self._flight_log, total, site_folder))
+        # require_metadata alone only needs the file to be used at all; the
+        # stricter fractional coverage threshold applies under require_metadata_match.
+        min_cov = (self._min_metadata_coverage
+                   if self._require_metadata_match else 0.0)
+        if matched < total * min_cov:
             raise RuntimeError(
                 'colmap_registration: the metadata covers only %d/%d frames of '
                 'the image sequence (require >= %.0f%%). It likely does not '
