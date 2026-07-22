@@ -47,6 +47,10 @@ import kwiver.vital.types as kvt
 
 _IDENTITY = np.eye(3, dtype=np.float64)
 
+# Bump whenever the registration algorithm changes the emitted homographies
+# (feeds the disk-cache key so stale caches self-invalidate).
+_REG_ALGO_VERSION = 2
+
 
 def _log(msg):
     """Progress to stderr so it shows in the pipeline log (the vital logger's
@@ -376,7 +380,14 @@ class ColmapRegistration(KwiverProcess):
         fl = self._flight_log or ''
         have_fl = fl and os.path.exists(fl)
         fl_stamp = str(os.path.getmtime(fl)) if have_fl else ''
-        blob = '\n'.join(names) + f'|{self._method}|{fl}|{fl_stamp}'
+        # _REG_ALGO_VERSION invalidates cached registrations whenever the
+        # placement algorithm changes (a cache written by an older algorithm
+        # would otherwise be served silently forever). Bump on algorithm
+        # changes that affect the emitted homographies.
+        blob = '\n'.join(names) + (
+            f'|{self._method}|{fl}|{fl_stamp}|{_REG_ALGO_VERSION}'
+            f'|reconcile={self._gps_chain_reconcile}'
+            f'|anchored={self._chain_anchored}')
         return hashlib.sha1(blob.encode('utf-8', 'replace')).hexdigest()
 
     @staticmethod
