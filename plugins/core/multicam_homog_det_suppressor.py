@@ -153,13 +153,20 @@ def mark_boundary_suppressed(do_lists, sizes, boundary_homogs_and_sizes,
     (DIVE) displays such detections as the suppression type and excludes
     them from its own type's counts without hiding them.
 
+    When some related frame contains the WHOLE detection clear of its own
+    boundary band -- i.e. the object appears uncut there -- the frame where
+    it sits most interior is linked with the same `:source_image=` note the
+    suppression regions carry, pointing reviewers at the image most likely
+    to show the object clearly.
+
     """
-    for dos, size, (homogs, src_sizes, _names) in zip(
+    for dos, size, (homogs, src_sizes, names) in zip(
             do_lists, sizes, boundary_homogs_and_sizes):
         if len(homogs) == 0:
             continue
         for do in dos:
-            points = get_boundary_points(get_detection_points(do), size, threshold)
+            all_points = get_detection_points(do)
+            points = get_boundary_points(all_points, size, threshold)
             if len(points) == 0:
                 continue
             # (n_homogs, 2, n_points) positions of the near-boundary points
@@ -172,6 +179,21 @@ def mark_boundary_suppressed(do_lists, sizes, boundary_homogs_and_sizes,
                 note = ':' + attribute + '=true'
                 if note not in do.notes:
                     do.add_note(note)
+                # Best alternative view: transform the FULL outline into each
+                # related frame and score by its margin from that frame's
+                # boundary; link the frame where the detection sits deepest
+                # inside, provided it clears the boundary band there (the
+                # object is genuinely uncut in that image).
+                t_all = Homography.matrix_transform(homogs, all_points.T)
+                margins = np.minimum(
+                    t_all.min(axis=-1),                      # left/top
+                    (src_sizes - 1) - t_all.max(axis=-1),    # right/bottom
+                ).min(axis=-1)
+                best = int(np.argmax(margins))
+                if margins[best] > threshold and names[best] is not None:
+                    src = ':source_image=' + os.path.basename(str(names[best]))
+                    if src not in do.notes:
+                        do.add_note(src)
 
 def clip_poly(poly, scores):
     """Clip a poly, only keeping points with a nonnegative score"""
