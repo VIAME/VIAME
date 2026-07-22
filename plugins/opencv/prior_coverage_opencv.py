@@ -249,7 +249,7 @@ def _expected_px_per_m(poses):
 
 
 def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
-                         verbose=True, reconcile=True):
+                         verbose=True, reconcile=False):
     """Like registration_utils._geo_anchor_cameras but returns the per-camera
     calibration (M, enu, yaw) needed to build pixel->ENU transforms, and
     bounds the fitted scale by the metadata-expected GSD (few clean pairwise
@@ -491,7 +491,7 @@ def _register_site(site_folder, site_id, order_start, args, to_enu,
             print('  Geo-anchoring chains (GPS dead-reckoning fill)...')
             cal = _geo_anchor_with_cal(
                 chains, cams, poses_by_cam, pairwise,
-                reconcile=getattr(args, 'gps_chain_reconcile', True))
+                reconcile=getattr(args, 'gps_chain_reconcile', False))
         else:
             print('  No GPS metadata: moving-average fill for water frames')
             for cam, rels in cams.items():

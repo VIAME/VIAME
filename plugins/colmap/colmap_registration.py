@@ -101,13 +101,14 @@ class ColmapRegistration(KwiverProcess):
             self, 'water_method', 'auto',
             'Water/land classifier for the hybrid method (auto|svm|sift).')
         _add_declare_config(
-            self, 'gps_chain_reconcile', 'true',
+            self, 'gps_chain_reconcile', 'false',
             'Correct per-frame GPS positions that disagree with the image '
-            'registration chain before placing frames (hybrid method). Fixes '
+            'registration chain before placing frames (hybrid method). Targets '
             'the periodic misregistration from sub-second trigger / GPS-sample '
             'aliasing (a frame whose logged GPS step is short/long while the '
-            'imagery shows steady motion). Set false to place frames at raw '
-            'GPS as before.')
+            'imagery shows steady motion). Default false (place frames at raw '
+            'GPS); set true to enable. Still being hardened against sites where '
+            'the registration chain itself is locally unreliable.')
         _add_declare_config(
             self, 'cache', '',
             'Explicit path to the full-folder registration cache file. Empty = '
@@ -190,8 +191,8 @@ class ColmapRegistration(KwiverProcess):
         self._method = self.config_value('method') or 'hybrid'
         self._water_method = self.config_value('water_method') or 'auto'
         self._gps_chain_reconcile = (self.config_value('gps_chain_reconcile')
-                                     or 'true').lower() not in (
-                                         'false', '0', 'no', 'off')
+                                     or 'false').lower() in (
+                                         'true', '1', 'yes', 'on')
         self._cache = self.config_value('cache') or None
         self._site_folder = self.config_value('site_folder') or None
         # One image-list file per camera (single file each, line-separated).

@@ -30,7 +30,7 @@
 #   min_metadata_coverage   0..1 (default 1.0). Fraction of the sequence that the
 #                metadata must cover when require_metadata_match is set.
 #   water_method auto (default) | svm | sift
-#   gps_chain_reconcile true (default) | false -- correct per-frame GPS
+#   gps_chain_reconcile false (default) | true -- correct per-frame GPS
 #                positions that disagree with the image chain (sub-second
 #                trigger / GPS-sample aliasing); false places frames at raw GPS
 #   site_folder  survey folder; empty = derived from image_list1
