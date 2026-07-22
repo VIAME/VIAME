@@ -501,12 +501,53 @@ def _chain_anchored_transforms(chain, fit_idx, enu, sizes, origin_off,
 
     for run in runs:
         _anchor(run)
+    res = float(np.median(resids)) if resids else 0.0
+    # Absorb unanchored frames into a neighbouring section across a chain
+    # link: the feature link defines the geometry (T = S_section @ chain_f),
+    # and the frame's own GPS fix validates it - a genuinely broken link
+    # lands the frame tens of metres from its fix and is rejected, keeping
+    # it on the per-frame GPS fallback. This rescues small good fragments
+    # (e.g. 3 clean frames walled in by broken links) that are too small to
+    # fit their own section.
+    absorbed, changed = 0, True
+    while changed:
+        changed = False
+        for fr in sorted(chain):
+            if fr in out or fr not in gps_of:
+                continue
+            for nb in (fr - 1, fr + 1):
+                if nb not in out or nb not in chain or nb not in gps_of:
+                    continue
+                T = out[nb] @ np.linalg.inv(chain[nb]) @ chain[fr]
+                w_, h_ = sizes.get(fr, (5168, 3448))
+                ct = T @ np.array([w_ / 2.0, h_ / 2.0, 1.0])
+                ct = ct[:2] / ct[2]
+                wn, hn = sizes.get(nb, (5168, 3448))
+                cn = out[nb] @ np.array([wn / 2.0, hn / 2.0, 1.0])
+                cn = cn[:2] / cn[2]
+                # validate the LINK itself: the feature-implied step must
+                # match the GPS step (the absolute landing also inherits the
+                # section-edge residual, which is not the link's fault), plus
+                # a loose absolute cap so absorbed runs cannot drift away.
+                gstep = gps_of[fr] - gps_of[nb]
+                dstep = float(np.linalg.norm((ct - cn) - gstep))
+                dabs = float(np.linalg.norm(ct - gps_of[fr]))
+                # broken links disagree by tens of metres; good links land
+                # within single-digit metres even with section-edge error
+                if dstep <= max(8.0, 0.5 * np.linalg.norm(gstep)) \
+                        and dabs <= 20.0:
+                    out[fr] = T
+                    absorbed += 1
+                    changed = True
+                    break
+    if absorbed and label:
+        print(f'    {label}: absorbed {absorbed} frame(s) into adjacent '
+              f'sections via verified chain links')
     if len(out) < min_fit:
         if label:
             print(f'    {label}: chain-anchored placement unusable; '
                   f'per-frame GPS placement')
         return {}, None
-    res = float(np.median(resids)) if resids else 0.0
     if label and n_sections:
         print(f'    {label}: {n_sections} chain section(s) anchored to GPS, '
               f'{len(out)} frames, median residual {res:.1f} m')
