@@ -390,7 +390,7 @@ def find_all_suppression_homogs_and_sizes():
 @Transformer.decorate
 def suppress(suppression_poly_class=None, *, past_frames,
              remove_suppressed=False, boundary_threshold=1.0,
-             max_overlapping_regions=5):
+             max_overlapping_regions=5, full_homogs=None):
     if past_frames == 'prev_neighbors':
         fshs = find_prev_suppression_homogs_and_sizes()
     elif past_frames == 'all':
@@ -426,6 +426,36 @@ def suppress(suppression_poly_class=None, *, past_frames,
                 multihomog, sizes, names)
             boundary_shs = concat_suppression_homogs_and_sizes(
                 prev_shs, all_curr_shs)
+            fh = full_homogs() if full_homogs is not None else None
+            if fh:
+                # The registration is a whole-survey batch, so the exported
+                # map holds EVERY frame's homography - including future ones
+                # a streaming process has not yet seen. Use it as the
+                # boundary-check candidate set (it is a superset of past +
+                # current cameras), so a detection cut off at the leading
+                # edge is flagged when a FUTURE frame covers it. Frame sizes
+                # are taken from the current frame of each camera (constant
+                # per camera on these surveys).
+                boundary_shs = []
+                for cam in range(len(multihomog)):
+                    self_name = os.path.basename(str(names[cam] or ''))
+                    H_cam = multihomog.homogs[cam].matrix
+                    hs, nm = [], []
+                    for name, H_o in fh.items():
+                        if name == self_name:
+                            continue
+                        try:
+                            hs.append(np.linalg.inv(H_o) @ H_cam)
+                        except np.linalg.LinAlgError:
+                            continue
+                        nm.append(name)
+                    if hs:
+                        boundary_shs.append((
+                            np.stack(hs),
+                            np.tile(sizes[cam], (len(hs), 1)),
+                            np.array(nm, dtype=object)))
+                    else:
+                        boundary_shs.append(zero_homog_and_size)
             mark_boundary_suppressed(do_lists, sizes, boundary_shs,
                                      boundary_threshold,
                                      suppression_poly_class)
@@ -477,6 +507,15 @@ class MulticamHomogDetSuppressor(KwiverProcess):
             ' attribute named after suppression_poly_class (set to true).'
             ' Negative disables the check'
         ))
+        add_declare_config(self, 'full_homogs_file', '', (
+            'Optional path to the registration node\'s export_homogs npz'
+            ' (basename -> 3x3 map of EVERY frame). When set, the boundary-'
+            ' cutoff check considers all frames - including FUTURE ones -'
+            ' so a detection cut off at the leading edge is flagged (and'
+            ' source_image-linked) when a later frame covers it. The file is'
+            ' loaded lazily on first use; registration writes it during its'
+            ' first step, which precedes this process\'s first step'
+        ))
         add_declare_config(self, 'max_overlap_suppr_regions', '5', (
             'When a frame carries more than this many suppression regions,'
             ' each group of mutually-overlapping regions is merged into a'
@@ -518,9 +557,27 @@ class MulticamHomogDetSuppressor(KwiverProcess):
             mor = int(self.config_value('max_overlap_suppr_regions'))
         except (TypeError, ValueError):
             mor = 5
+        fhf = self.config_value('full_homogs_file') or None
+        self._full_homogs_cache = None
+
+        def _load_full_homogs(_self=self, _path=fhf):
+            if _path is None:
+                return None
+            if _self._full_homogs_cache is None:
+                if not os.path.exists(_path):
+                    return None
+                try:
+                    with np.load(_path) as z:
+                        _self._full_homogs_cache = {
+                            n: z[n] for n in z.files}
+                except (OSError, ValueError):
+                    return None
+            return _self._full_homogs_cache
+
         self._suppressor = suppress(spc, past_frames=pf, remove_suppressed=rs,
                                     boundary_threshold=bt,
-                                    max_overlapping_regions=mor)
+                                    max_overlapping_regions=mor,
+                                    full_homogs=_load_full_homogs)
         # Determined on the first step (edges are present by then): which
         # optional file_name ports are wired, for the source_image attribute.
         self._fn_connected = None

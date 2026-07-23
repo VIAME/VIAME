@@ -124,6 +124,13 @@ class ColmapRegistration(KwiverProcess):
             'are never moved without direct image evidence. Set false to place '
             'frames at raw GPS as before.')
         _add_declare_config(
+            self, 'export_homogs', '',
+            'Optional path to write the COMPLETE per-frame homography map '
+            '(basename -> 3x3, npz) as soon as registration finishes. Because '
+            'registration is a whole-survey batch, this gives downstream '
+            'streaming processes (e.g. the suppressor boundary-cutoff check) '
+            'access to FUTURE frames\' homographies. Empty = disabled.')
+        _add_declare_config(
             self, 'cache', '',
             'Explicit path to the full-folder registration cache file. Empty = '
             '<site>/VIAME/registration_<method>.npz (see use_cache). The cache '
@@ -211,6 +218,7 @@ class ColmapRegistration(KwiverProcess):
                                 or 'true').lower() in (
                                     'true', '1', 'yes', 'on')
         self._cache = self.config_value('cache') or None
+        self._export_homogs = self.config_value('export_homogs') or None
         self._site_folder = self.config_value('site_folder') or None
         # One image-list file per camera (single file each, line-separated).
         self._image_lists = [
@@ -527,6 +535,16 @@ class ColmapRegistration(KwiverProcess):
                 images = self._resolve_images()
                 self._enforce_metadata_requirements(site, images)
                 self._by_name = self._register(site, images)
+            if self._export_homogs and self._by_name:
+                try:
+                    np.savez(self._export_homogs,
+                             **{n: H for n, H in self._by_name.items()
+                                if H is not None})
+                    _log('exported %d frame homographies to %s' % (
+                        sum(1 for H in self._by_name.values()
+                            if H is not None), self._export_homogs))
+                except OSError as e:
+                    _log('could not export homographies: %s' % e)
         for i in range(self._n_input):
             H = self._homog_for(i, names[i])
             self.push_to_port_using_trait(

@@ -51,3 +51,4 @@ process stabilizer
   :: colmap_registration
   n_input = 3
   :require_metadata                            true
+  :export_homogs                               registration_full_homogs.npz
