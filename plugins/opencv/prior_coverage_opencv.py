@@ -369,7 +369,8 @@ def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
 
 
 def _chain_anchored_transforms(chain, fit_idx, enu, sizes, origin_off,
-                               min_fit=6, min_spread=15.0, label=''):
+                               min_fit=6, min_spread=15.0, verify_link=None,
+                               label=''):
     """Feature-primary placement: anchor the registration chain to GPS with
     one fitted similarity PER CHAIN SECTION, instead of dead-reckoning every
     frame from its own GPS fix and heading estimate.
@@ -510,6 +511,7 @@ def _chain_anchored_transforms(chain, fit_idx, enu, sizes, origin_off,
     # (e.g. 3 clean frames walled in by broken links) that are too small to
     # fit their own section.
     absorbed, changed = 0, True
+    depth = {}
     while changed:
         changed = False
         for fr in sorted(chain):
@@ -537,9 +539,75 @@ def _chain_anchored_transforms(chain, fit_idx, enu, sizes, origin_off,
                 if dstep <= max(8.0, 0.5 * np.linalg.norm(gstep)) \
                         and dabs <= 20.0:
                     out[fr] = T
+                    depth[fr] = 0
                     absorbed += 1
                     changed = True
                     break
+                # GPS refused - but GPS itself can be stale (frozen fix while
+                # the platform turns). Fall back to independent image
+                # evidence: an extra direct match of the pair, at boosted
+                # settings, must agree with the chain link (two independent
+                # measurements of the same geometry). Depth-capped so a
+                # verified-only run cannot drift unboundedly from any anchor.
+                if verify_link is not None and depth.get(nb, 0) < 3:
+                    R = np.linalg.inv(chain[nb]) @ chain[fr]
+                    Hv = verify_link(min(nb, fr), max(nb, fr))
+                    if Hv is None:
+                        continue
+                    Hv = np.linalg.inv(Hv) if fr > nb else Hv
+                    ok = True
+                    for p in (np.array([w_ / 2.0, h_ / 2.0, 1.0]),
+                              np.array([0.0, 0.0, 1.0]),
+                              np.array([w_ - 1.0, h_ - 1.0, 1.0])):
+                        a = R @ p; b = Hv @ p
+                        if np.linalg.norm(a[:2] / a[2] - b[:2] / b[2]) > 350.0:
+                            ok = False
+                            break
+                    if ok:
+                        out[fr] = T
+                        depth[fr] = depth.get(nb, 0) + 1
+                        absorbed += 1
+                        changed = True
+                        break
+    # Bridge gaps whose GPS is itself untrustworthy (e.g. a stale/frozen
+    # fix while the drone turns): a run of unanchored chained frames between
+    # two anchored endpoints is validated END-TO-END - walk the chain from
+    # the left anchor and require it to land on the right anchor's placement
+    # (a loop closure through good GPS on both sides). When it closes, the
+    # gap frames take the chain geometry, with the small closure error
+    # blended linearly so there is no jump at the far end.
+    bridged = 0
+    anchored_sorted = sorted(out)
+    for li in range(len(anchored_sorted) - 1):
+        l, r = anchored_sorted[li], anchored_sorted[li + 1]
+        if r - l < 2:
+            continue
+        gap = list(range(l + 1, r))
+        if any(g not in chain for g in gap) or l not in chain \
+                or r not in chain:
+            continue
+        pred_r = out[l] @ np.linalg.inv(chain[l]) @ chain[r]
+        wr, hr = sizes.get(r, (5168, 3448))
+        closure = []
+        for p in (np.array([wr / 2.0, hr / 2.0, 1.0]),
+                  np.array([0.0, 0.0, 1.0]),
+                  np.array([wr - 1.0, hr - 1.0, 1.0])):
+            a = pred_r @ p; b = out[r] @ p
+            closure.append(np.linalg.norm(a[:2] / a[2] - b[:2] / b[2]))
+        cerr = float(max(closure))
+        if cerr > 10.0:
+            continue
+        drift = (out[r] @ np.array([wr / 2.0, hr / 2.0, 1.0])
+                 - pred_r @ np.array([wr / 2.0, hr / 2.0, 1.0]))[:2]
+        for g in gap:
+            T = out[l] @ np.linalg.inv(chain[l]) @ chain[g]
+            T = T.copy()
+            T[:2, 2] += drift * ((g - l) / float(r - l))
+            out[g] = T
+            bridged += 1
+    if bridged and label:
+        print(f'    {label}: bridged {bridged} frame(s) across gaps via '
+              f'end-to-end chain closure')
     if absorbed and label:
         print(f'    {label}: absorbed {absorbed} frame(s) into adjacent '
               f'sections via verified chain links')
@@ -769,10 +837,18 @@ def _register_site(site_folder, site_id, order_start, args, to_enu,
                 rec = records.get(rel, {})
                 sizes[i] = (rec.get('width') or 5168,
                             rec.get('height') or 3448)
+            def _vlink(a, b, _rels=cams[cam]):
+                H, _ = compute_homography_pair(
+                    os.path.join(site_folder, _rels[a]),
+                    os.path.join(site_folder, _rels[b]),
+                    scale=0.75, nfeatures=16384, match_ratio=0.75,
+                    min_inliers=15, ransac_thresh=3.0, use_affine=True,
+                    always_clahe=True)
+                return H
             Ts, res = _chain_anchored_transforms(
                 chains[cam], sorted(feat_chained.get(cam, ())),
                 c['enu'], sizes, np.asarray(geo['off']),
-                label=str(cam))
+                verify_link=_vlink, label=str(cam))
             if Ts:
                 anchored[cam] = Ts
                 print(f'    {cam}: chain-anchored placement for {len(Ts)} '
