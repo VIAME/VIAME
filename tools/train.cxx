@@ -1961,9 +1961,15 @@ train_applet
       const std::string& extraction_pipeline =
         unified_augmentation ? pipeline_file : video_extractor;
 
+      // Pass the clip's groundtruth so the extractor's track_reader has a real
+      // path instead of the "[INSERT_ME]" placeholder (which otherwise throws
+      // and yields zero frames -- silently dropping the video from training).
+      const std::string video_gt =
+        ctx.gt_files.empty() ? std::string() : ctx.gt_files[0];
+
       ctx.image_files = extract_video_frames( ctx.data_item, extraction_pipeline,
         ctx.frame_rate, augmented_cache, !regenerate_cache, max_frame_count,
-        "vidl_ffmpeg", "", preserve_bit_depth );
+        "vidl_ffmpeg", "", preserve_bit_depth, video_gt );
 
       ctx.frames_preaugmented = unified_augmentation;
     }

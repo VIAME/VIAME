@@ -471,6 +471,36 @@ std::string get_augmented_filename( const std::string& name,
 // Video frame extraction
 // =============================================================================
 
+namespace {
+
+// Whether a .pipe file declares a process of the given name. Used so that
+// extractors which carry no track_reader are left untouched by the groundtruth
+// wiring below.
+bool pipeline_declares_process( const std::string& pipeline_filename,
+                                const std::string& process_name )
+{
+  std::ifstream in( pipeline_filename, std::ifstream::in );
+
+  if( !in )
+  {
+    return false;
+  }
+
+  std::string line;
+
+  while( std::getline( in, line ) )
+  {
+    if( line.find( process_name ) != std::string::npos )
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+} // end anonymous namespace
+
 std::vector< std::string >
 extract_video_frames( const std::string& video_filename,
                       const std::string& pipeline_filename,
@@ -480,7 +510,8 @@ extract_video_frames( const std::string& video_filename,
                       unsigned max_frame_count,
                       const std::string& reader_type,
                       const std::string& output_subdir,
-                      bool preserve_bit_depth )
+                      bool preserve_bit_depth,
+                      const std::string& groundtruth_file )
 {
   std::cout << "Extracting frames from " << video_filename
             << " at rate " << frame_rate << std::endl;
@@ -519,6 +550,20 @@ extract_video_frames( const std::string& video_filename,
   cmd = cmd + "-s input:video_reader:type=" + reader_type + " ";
   cmd = cmd + "-s downsampler:target_frame_rate=" + frame_rate_str + " ";
   cmd = cmd + "-s image_writer:file_name_template=" + add_quotes( output_path ) + " ";
+
+  // filter_default.pipe (the default video_extractor) wires a track_reader into
+  // the frame flow with file_name defaulting to the "[INSERT_ME]" placeholder;
+  // without a real path it throws "Path does not exist" and no frames are ever
+  // written (the video silently drops out of training). Point it at the clip's
+  // groundtruth so extraction -- and the downsampled track output -- succeed.
+  // Guarded on the pipeline actually declaring a track_reader, so extractors
+  // without one are unaffected.
+  if( !groundtruth_file.empty() &&
+      kwiversys::SystemTools::FileExists( groundtruth_file, true ) &&
+      pipeline_declares_process( pipeline_filename, "track_reader" ) )
+  {
+    cmd = cmd + "-s track_reader:file_name=" + add_quotes( groundtruth_file ) + " ";
+  }
 
   if( max_frame_count > 0 && reader_type == "vidl_ffmpeg" )
   {
