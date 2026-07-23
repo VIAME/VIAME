@@ -2104,17 +2104,32 @@ train_applet
     }
   }
 
-  // ---- Phase 2: augment items concurrently (single-pass pipelines only) ----
-  // Each item's augmentation is an independent kwiver-runner subprocess writing
-  // to its own cache subdir, so they run in parallel. Skipped for the
-  // max_frame_count debug path, which stops after the first video.
-  if( unified_augmentation && max_frame_count == 0 && !contexts.empty() )
+  // ---- Phase 2: augment / extract items concurrently ----
+  // Each item's augmentation or video-frame extraction is an independent
+  // kwiver-runner subprocess writing to its own cache subdir, so they run in
+  // parallel. This also covers plain video-frame extraction (no augmentation
+  // pipeline), which otherwise decoded one clip at a time in the serial phase
+  // below -- a major bottleneck on datasets that are mostly video. Skipped for
+  // the max_frame_count debug path, which stops after the first video.
+  bool any_video_extraction = false;
+  for( const auto& c : contexts )
+  {
+    if( c.is_video )
+    {
+      any_video_extraction = true;
+      break;
+    }
+  }
+
+  if( ( unified_augmentation || any_video_extraction ) &&
+      max_frame_count == 0 && !contexts.empty() )
   {
     unsigned n_workers = std::min< unsigned >(
       std::max< unsigned >( augmentation_threads, 1u ),
       static_cast< unsigned >( contexts.size() ) );
 
-    std::cout << "Augmenting " << contexts.size() << " data item(s) using "
+    std::cout << "Preparing " << contexts.size() << " data item(s) "
+              << "(augmentation / video extraction) using "
               << n_workers << " worker thread(s)" << std::endl;
 
     std::atomic< unsigned > next_index( 0 );
