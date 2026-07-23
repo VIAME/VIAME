@@ -551,6 +551,15 @@ extract_video_frames( const std::string& video_filename,
   cmd = cmd + "-s downsampler:target_frame_rate=" + frame_rate_str + " ";
   cmd = cmd + "-s image_writer:file_name_template=" + add_quotes( output_path ) + " ";
 
+  // Write extracted frames with the OpenCV image_io. The vxl writer corrupts
+  // the heap over long runs (the same failure that crashes the chip writer),
+  // producing malformed frames that later crash the trainer. Skipped when
+  // preserving bit depth, which the vxl path handles for >8-bit imagery.
+  if( !preserve_bit_depth )
+  {
+    cmd = cmd + "-s image_writer:image_writer:type=ocv ";
+  }
+
   // filter_default.pipe (the default video_extractor) wires a track_reader into
   // the frame flow with file_name defaulting to the "[INSERT_ME]" placeholder;
   // without a real path it throws "Path does not exist" and no frames are ever
