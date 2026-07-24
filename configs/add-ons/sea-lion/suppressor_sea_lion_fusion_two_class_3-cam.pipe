@@ -62,6 +62,8 @@ process suppressor :: multicam_homog_det_suppressor
   past_frames = all  # DIVE_PARAM["Past frames used (all or prev_neighbors)", string]
   full_homogs_file = registration_full_homogs.npz
   max_overlap_suppr_regions = 5  # DIVE_PARAM["Merge overlapping suppression regions when more than", integer]
+  min_suppr_region_area_frac = 0.001  # DIVE_PARAM["Drop suppression regions smaller than this fraction of the frame", double]
+  min_suppr_region_fill_ratio = 0.15  # DIVE_PARAM["Drop suppression regions filling less than this fraction of their box (warped slivers)", double]
   boundary_threshold = 1.0
 
 connect from stabilizer.homog1

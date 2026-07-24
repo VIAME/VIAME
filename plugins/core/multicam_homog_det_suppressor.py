@@ -241,9 +241,41 @@ def transform_poly_to_polys(poly, homog, clip_size):
     # Convert from homogeneous coordinates
     return [poly[:, :2] / poly[:, 2:] for poly in cpolys if len(poly) > 2]
 
-def suppression_polys(suppression_homogs_and_sizes, sizes):
+def _poly_area(poly):
+    """Absolute area of a simple polygon (Nx2) via the shoelace formula."""
+    x, y = poly[:, 0], poly[:, 1]
+    return 0.5 * abs(np.dot(x, np.roll(y, -1)) - np.dot(y, np.roll(x, -1)))
+
+def region_is_degenerate(poly, image_area, min_area_frac, min_fill_ratio):
+    """True when a projected coverage polygon is too small or too warped to be
+    a real overlap region.
+
+    A well-conditioned homography maps a source frame's rectangle to a large,
+    near-convex quad that fills most of its bounding box.  A near-singular /
+    badly-registered homography instead collapses the whole frame into a tiny
+    thin sliver (small area, low bbox fill).  Those slivers are meaningless as
+    "already observed" regions, so drop them.  Both checks are skipped when
+    their threshold is <= 0."""
+    if len(poly) < 3:
+        return True
+    area = _poly_area(poly)
+    if min_area_frac > 0 and image_area > 0 and area < min_area_frac * image_area:
+        return True
+    if min_fill_ratio > 0:
+        w = poly[:, 0].max() - poly[:, 0].min()
+        h = poly[:, 1].max() - poly[:, 1].min()
+        bbox_area = w * h
+        if bbox_area > 0 and area / bbox_area < min_fill_ratio:
+            return True
+    return False
+
+def suppression_polys(suppression_homogs_and_sizes, sizes,
+                      min_area_frac=0.0, min_fill_ratio=0.0):
     """Per camera, the suppression-region polygons paired with the filename of
-    the source frame each came from: list[list[(poly, source_name)]]."""
+    the source frame each came from: list[list[(poly, source_name)]].
+
+    Degenerate projections (thin/tiny slivers from bad homographies) are
+    dropped here, before merging, so they cannot corrupt a merged union."""
     def size_to_poly(size):
         w, h = size
         return [[0, 0], [0, h], [w, h], [w, 0]]
@@ -251,6 +283,8 @@ def suppression_polys(suppression_homogs_and_sizes, sizes):
         (r, name)
         for h, s, name in zip(homogs, src_sizes, names)
         for r in transform_poly_to_polys(size_to_poly(s), np.linalg.inv(h), size)
+        if not region_is_degenerate(r, float(size[0]) * float(size[1]),
+                                    min_area_frac, min_fill_ratio)
     ] for (homogs, src_sizes, names), size
         in zip(suppression_homogs_and_sizes, sizes)]
 
@@ -390,7 +424,8 @@ def find_all_suppression_homogs_and_sizes():
 @Transformer.decorate
 def suppress(suppression_poly_class=None, *, past_frames,
              remove_suppressed=False, boundary_threshold=1.0,
-             max_overlapping_regions=5, full_homogs=None):
+             max_overlapping_regions=5, full_homogs=None,
+             min_region_area_frac=0.0, min_region_fill_ratio=0.0):
     if past_frames == 'prev_neighbors':
         fshs = find_prev_suppression_homogs_and_sizes()
     elif past_frames == 'all':
@@ -470,8 +505,18 @@ def suppress(suppression_poly_class=None, *, past_frames,
             poly_dets = (
                 (wrap_poly(n(p), suppression_poly_class, name, merged)
                  for p, name, merged in merge_overlapping_suppression_polys(
-                     ps, max_overlapping_regions))
-                for ps in suppression_polys(shs, sizes)
+                     ps, max_overlapping_regions)
+                 # Defense in depth: drop any merged union still too small (the
+                 # source-level filter already removes slivers pre-merge; fill
+                 # is not re-checked because a union may legitimately be concave).
+                 if not region_is_degenerate(
+                     p, float(size[0]) * float(size[1]),
+                     min_region_area_frac, 0.0))
+                for ps, size in zip(
+                    suppression_polys(shs, sizes,
+                                      min_region_area_frac,
+                                      min_region_fill_ratio),
+                    sizes)
             )
         output = [
             DetectedObjectSet([*(do for k, do in zip(keep, dos) if k), *pd])
@@ -525,6 +570,18 @@ class MulticamHomogDetSuppressor(KwiverProcess):
             ' covered by many past frames (past_frames=all) readable.'
             ' 0 or negative disables merging'
         ))
+        add_declare_config(self, 'min_suppr_region_area_frac', '0.001', (
+            'Drop suppression regions whose area is smaller than this fraction'
+            ' of the frame area. A well-registered overlap covers a sizable'
+            ' chunk of the frame; a near-singular homography collapses a source'
+            ' frame into a tiny sliver. Removes those bogus slivers. 0 disables'
+        ))
+        add_declare_config(self, 'min_suppr_region_fill_ratio', '0.15', (
+            'Drop suppression regions whose area fills less than this fraction'
+            ' of their bounding box (a thin, warped sliver). Real overlap'
+            ' projections are near-convex and fill most of their box; bad'
+            ' homographies produce thin diagonal slivers. 0 disables'
+        ))
 
         optional = process.PortFlags()
         required = process.PortFlags()
@@ -557,6 +614,14 @@ class MulticamHomogDetSuppressor(KwiverProcess):
             mor = int(self.config_value('max_overlap_suppr_regions'))
         except (TypeError, ValueError):
             mor = 5
+        try:
+            min_af = float(self.config_value('min_suppr_region_area_frac'))
+        except (TypeError, ValueError):
+            min_af = 0.001
+        try:
+            min_fr = float(self.config_value('min_suppr_region_fill_ratio'))
+        except (TypeError, ValueError):
+            min_fr = 0.15
         fhf = self.config_value('full_homogs_file') or None
         self._full_homogs_cache = None
 
@@ -577,7 +642,9 @@ class MulticamHomogDetSuppressor(KwiverProcess):
         self._suppressor = suppress(spc, past_frames=pf, remove_suppressed=rs,
                                     boundary_threshold=bt,
                                     max_overlapping_regions=mor,
-                                    full_homogs=_load_full_homogs)
+                                    full_homogs=_load_full_homogs,
+                                    min_region_area_frac=min_af,
+                                    min_region_fill_ratio=min_fr)
         # Determined on the first step (edges are present by then): which
         # optional file_name ports are wired, for the source_image attribute.
         self._fn_connected = None
