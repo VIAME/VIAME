@@ -23,7 +23,7 @@ process detector_filter
   block filter:class_probablity_filter
     :threshold                                 0.001
     :keep_all_classes                          true
-    :keep_classes                              vertebrate;invertebrate
+    :keep_classes                              fish
   endblock
 
 connect from detector_output.detected_object_set
