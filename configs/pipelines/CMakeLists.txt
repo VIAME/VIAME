@@ -323,7 +323,8 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_rf_detr_n_384.conf
     train_detector_rf_detr_b_560.conf
-    train_detector_rf_detr_l_728.conf
+    train_detector_rf_detr_l_720.conf
+    train_detector_rf_detr_l_720_90gb.conf
     train_detector_rf_detr_l_1728_mot_mim.conf
     train_detector_rf_detr_l_1728_mot_opt.conf
     train_detector_rf_detr_l_1728_rgb.conf )
