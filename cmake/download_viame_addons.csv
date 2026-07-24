@@ -1,4 +1,4 @@
-DEFAULT-FISH, https://viame.kitware.com/api/v1/item/680709f60010b9dd2856abdf/download, Default fish detection model (1-class), 003a6e7c348c5b39c07f64fd465d400e, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
+DEFAULT-FISH, https://viame.kitware.com/api/v1/file/6a62de228e0168a9b6370064/download, Default fish detection model (1-class), 5b1ce4bf4b9632299d53c3313da16aea, ALL-PLATFORMS, "PYTORCH, PYTORCH-RF-DETR"
 COMMUNITY-FISH, https://viame.kitware.com/api/v1/item/69bd15b5dc8332f478b44beb/download, Fish detection model from community fish project, 15e9e22177cd0759fca42cddc267cb0b, ALL-PLATFORMS, "PYTORCH, PYTORCH-ULTRALYTICS"
 GENERIC, https://viame.kitware.com/api/v1/item/680708cbed26029b31953f11/download, Generic object proposal model (1-class), 3b88efd85fecc446e8036c478c129019, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 HABCAM, https://viame.kitware.com/girder/api/v1/file/685eecb7a2df48d3c1ae8bfb/download, Detect and measure scallops and flatfish and other friends, 4a11c76c2d17dff4a7ecad71b4814d9b, LINUX-ONLY, "PYTORCH, PYTORCH-NETHARN"
