@@ -49,7 +49,7 @@ _IDENTITY = np.eye(3, dtype=np.float64)
 
 # Bump whenever the registration algorithm changes the emitted homographies
 # (feeds the disk-cache key so stale caches self-invalidate).
-_REG_ALGO_VERSION = 2
+_REG_ALGO_VERSION = 3
 
 
 def _log(msg):

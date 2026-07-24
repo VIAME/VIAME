@@ -100,6 +100,22 @@ def _sane_relative(R, max_aniso=1.5, scale_range=(0.6, 1.6)):
             and scale_range[0] <= scale <= scale_range[1])
 
 
+def _transform_degenerate(T, max_aniso=6.0):
+    """True when an absolute pixel->ENU (or pixel->ref) transform is
+    rank-deficient / grossly anisotropic. Unlike _sane_relative this puts no
+    bound on scale (metres-per-pixel is fine), only on skew: a valid placement
+    is a similarity (aniso ~1). A degenerate chain link baked into a frame's
+    placement collapses it to a sliver (aniso in the hundreds) - such a frame
+    projects no usable coverage, so callers fall back to metadata placement."""
+    if T is None:
+        return True
+    A = np.asarray(T)[:2, :2]
+    if not np.all(np.isfinite(A)):
+        return True
+    s = np.linalg.svd(A, compute_uv=False)
+    return bool(s[1] <= 1e-12 or s[0] / s[1] > max_aniso)
+
+
 def _poly_area(poly):
     if poly is None or len(poly) < 3:
         return 0.0
@@ -870,9 +886,13 @@ def _register_site(site_folder, site_id, order_start, args, to_enu,
             geo = cam_geo.get(cam)
             T = None
             if args.method == 'hybrid' and cam in ('CENTER', None) \
-                    and i in anchored.get(cam, {}):
+                    and i in anchored.get(cam, {}) \
+                    and not _transform_degenerate(anchored[cam][i]):
                 # Feature-primary: the chain-anchored transform places this
-                # frame with the image-measured relative geometry.
+                # frame with the image-measured relative geometry. A degenerate
+                # placement (a poisoned chain link that survived to here) is
+                # skipped so the metadata/calibration fallback below gives this
+                # frame a sane similarity instead of a sliver.
                 T = anchored[cam][i]
                 center_T[t] = T
             elif args.method == 'hybrid' and cam in ('CENTER', None) \

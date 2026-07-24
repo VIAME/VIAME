@@ -30,6 +30,12 @@ cv2 = None
 
 IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.tif', '.tiff', '.bmp'}
 
+# Max anisotropy (ratio of singular values of the 2x2 linear part) allowed for a
+# relative image-to-image transform accepted into a camera chain. Near-nadir
+# survey frames map by a near-similarity (aniso ~1); anything far above this is a
+# degenerate/rank-deficient match that must not be chained.
+_MAX_RELATIVE_ANISO = 6.0
+
 # numpy/cv2 are the only hard requirements of this engine.
 REQUIRED_PACKAGES = {'numpy': 'numpy', 'cv2': 'opencv-python'}
 
@@ -557,6 +563,18 @@ def _compute_camera_chain(image_folder, cam_images, label="",
                 root_sift=root_sift, use_affine=use_affine,
                 sift_contrast=sift_contrast, clahe_clip=clahe_clip)
             if H is not None:
+                # Reject a grossly anisotropic relative transform. Consecutive
+                # near-nadir frames map by a near-similarity (aniso ~1); a
+                # degenerate feature match (e.g. collinear inliers across a
+                # low-overlap gap) yields a rank-deficient sliver transform
+                # (aniso in the hundreds). Accepting one poisons every frame
+                # chained onto it. Skip it so a better link (or GPS fallback)
+                # is used instead.
+                L = np.asarray(H)[:2, :2]
+                sv = np.linalg.svd(L, compute_uv=False)
+                if not np.all(np.isfinite(sv)) or sv[1] <= 1e-9 \
+                        or sv[0] / sv[1] > _MAX_RELATIVE_ANISO:
+                    continue
                 H_candidate = H_chain[j] @ H
                 if max_chain_cond > 0:
                     try:
