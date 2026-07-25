@@ -29,6 +29,7 @@ import os
 import sys
 import shutil
 import json
+import random
 import numpy as np
 from viame.pytorch.utilities import report_cuda_errors
 
@@ -408,7 +409,7 @@ class BoTSORTTrainer(TrainTracker):
             import torch
             import torch.nn as nn
             import torch.optim as optim
-            from torch.utils.data import Dataset, DataLoader
+            from torch.utils.data import Dataset, DataLoader, Sampler
             import torchvision.transforms as transforms
             from torchvision.models import resnet18, resnet50, ResNet18_Weights, ResNet50_Weights
             from PIL import Image
@@ -472,6 +473,50 @@ class BoTSORTTrainer(TrainTracker):
                     img = self.transform(img)
                 return img, self.labels[idx]
 
+        # Identity aware batch sampler
+        class PKSampler(Sampler):
+            """Yield batches of P identities with K crops each.
+
+            Triplet loss can only produce a gradient from an anchor that has
+            both a positive (same track) and a negative (different track) in
+            the same batch. Drawing crops uniformly at random gives a
+            same-identity collision with probability roughly B^2 / 2N for a
+            batch of B over N identities, which for a track dataset this size
+            is only a couple of percent -- so nearly every batch was a no-op
+            and the Re-ID model never actually learned. Sampling K crops from
+            each of P identities guarantees every sample has a positive.
+            """
+
+            def __init__(self, labels, p, k, num_batches=None):
+                self.k = max(int(k), 2)
+
+                self.by_id = {}
+                for idx, label in enumerate(labels):
+                    self.by_id.setdefault(label, []).append(idx)
+
+                # A track with a single crop can never supply a positive pair
+                self.ids = [i for i, idxs in self.by_id.items() if len(idxs) >= 2]
+                self.p = max(min(int(p), len(self.ids)), 1)
+
+                if num_batches is None:
+                    num_batches = max(len(labels) // (self.p * self.k), 1)
+                self.num_batches = num_batches
+
+            def __len__(self):
+                return self.num_batches
+
+            def __iter__(self):
+                for _ in range(self.num_batches):
+                    batch = []
+                    for track_id in random.sample(self.ids, self.p):
+                        pool = self.by_id[track_id]
+                        if len(pool) >= self.k:
+                            batch.extend(random.sample(pool, self.k))
+                        else:
+                            # Short track, repeat crops to fill its slot
+                            batch.extend(random.choices(pool, k=self.k))
+                    yield batch
+
         class TripletLoss(nn.Module):
             def __init__(self, margin=0.3):
                 super().__init__()
@@ -487,7 +532,9 @@ class BoTSORTTrainer(TrainTracker):
                 mask_neg = ~mask_pos
                 mask_pos.fill_diagonal_(False)
 
-                loss = 0
+                # Must stay a tensor: a batch with no valid anchor leaves this
+                # untouched, and callers do loss.item() unconditionally
+                loss = torch.zeros((), device=embeddings.device)
                 count = 0
                 for i in range(n):
                     pos_dists = dist_mat[i][mask_pos[i]]
@@ -529,7 +576,26 @@ class BoTSORTTrainer(TrainTracker):
         print(f"Training samples: {len(train_dataset)}")
         print(f"Test samples: {len(test_dataset)}")
 
-        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+        # Batches are drawn identity-aware rather than uniformly at random, so
+        # that every batch contains valid triplets. See PKSampler.
+        crops_per_id = 4
+        train_sampler = PKSampler(train_dataset.labels,
+                                  max(batch_size // crops_per_id, 1),
+                                  crops_per_id)
+
+        if train_sampler.ids:
+            print(f"PK sampling: {train_sampler.p} identities x "
+                  f"{train_sampler.k} crops = {train_sampler.p * train_sampler.k} "
+                  f"per batch, {len(train_sampler)} batches per epoch "
+                  f"({len(train_sampler.ids)} identities with 2+ crops)")
+            train_loader = DataLoader(train_dataset, batch_sampler=train_sampler,
+                                      num_workers=4)
+        else:
+            print("Warning: no identity has more than one crop, falling back to "
+                  "shuffled batches. Triplet loss cannot train on this data.")
+            train_loader = DataLoader(train_dataset, batch_size=batch_size,
+                                      shuffle=True, num_workers=4)
+
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
 
         model = ReIDModel(self._backbone, embedding_dim).to(device)
@@ -576,10 +642,17 @@ class BoTSORTTrainer(TrainTracker):
 
             avg_val_loss = val_loss / max(num_val_batches, 1)
 
+            # Tracker training gets no validation split unless one is given
+            # explicitly, so test_loader is usually empty and avg_val_loss is a
+            # constant zero. Selecting on that pins best_model to epoch 1 and
+            # silently throws away every later epoch, so fall back to the
+            # training loss whenever there is nothing to validate against.
+            selection_loss = avg_val_loss if num_val_batches else avg_train_loss
+
             print(f"Epoch {epoch+1}/{max_epochs}: train_loss={avg_train_loss:.4f}, val_loss={avg_val_loss:.4f}")
 
-            if avg_val_loss < best_loss:
-                best_loss = avg_val_loss
+            if selection_loss < best_loss:
+                best_loss = selection_loss
                 torch.save(model.state_dict(), snapshot_dir / "best_model.pth")
 
         print("Re-ID model training complete.")
