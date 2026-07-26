@@ -25,6 +25,8 @@ Example:
 
 import argparse
 from ast import literal_eval
+import os
+from concurrent import futures
 from pathlib import Path
 import re
 import subprocess
@@ -43,11 +45,32 @@ def run_mod_raw(args, *more_args, **kwargs):
     return run(args, *more_args, **kwargs)
 
 
-def run_mod(name, *args, **kwargs):
+def run_mod(name, *args, gpu=None, **kwargs):
+    """Run a stage. gpu, when given, pins it to that visible device."""
+    env = None
+
+    if gpu is not None:
+        env = os.environ.copy()
+        env['CUDA_VISIBLE_DEVICES'] = str(gpu)
+
     run_mod_raw([name, *args, *(
         '--{}={}'.format(k.replace('_', '-'), v)
         for k, v in kwargs.items()
-    )])
+    )], env=env)
+
+
+def visible_gpu_count():
+    """Number of devices this process can see, at least one."""
+    visible = os.environ.get('CUDA_VISIBLE_DEVICES')
+
+    if visible is not None:
+        return max(len([d for d in visible.split(',') if d.strip()]), 1)
+
+    try:
+        import torch
+        return max(torch.cuda.device_count(), 1)
+    except Exception:
+        return 1
 
 
 def get_best_model(model_dir):
@@ -137,33 +160,60 @@ def main(data_root, output_dir, stabilized, generate_options=None,
             **(generate_options or {}),
         )
 
-    print("Training individual LSTM models")
+    # The eight individual LSTM trainings are independent of one another --
+    # each writes its own snapshot directory and nothing reads another's output
+    # until the combined stage below -- so they are run concurrently, one per
+    # visible device, rather than eight times in series on a single card.
     model_types = ('app', 'motion', 'interaction', 'bbar')
     lstm_dir = output_dir / 'lstms'
     lstm_models = {}
-    for fixed_length in (True, False):
+
+    jobs = [
+        (fixed_length, model_type)
+        for fixed_length in (True, False)
+        for model_type in model_types
+    ]
+
+    n_gpus = visible_gpu_count()
+    workers = min(n_gpus, len(jobs))
+
+    print("Training {} individual LSTM models across {} device(s)"
+          .format(len(jobs), workers))
+
+    def train_one(index_and_job):
+        index, (fixed_length, model_type) = index_and_job
         fix_letter = 'F' if fixed_length else 'V'
-        models = {}
-        for model_type in model_types:
-            name_key = model_type + '_' + fix_letter
-            print("Training {} model".format(name_key))
-            model_dir = lstm_dir / (name_key + '_models')
-            run_mod(
-                'rnn_main_train',
-                model_snapshot_dir=model_dir,
-                data_root=gen_data_vids,
-                train_file='_'.join([gen_data_prefix, fix_letter, 'train_set.p']),
-                test_file='_'.join([gen_data_prefix, fix_letter, 'test_set.p']),
-                RNN_Type=model_type[0].upper(),
-                model_params=repr(lstm_model_params),
-                **(lstm_train_options or {}),
-            )
-            best_epoch, _model = get_best_model(model_dir)
-            print("Selecting the epoch {} model".format(best_epoch))
-            model = lstm_dir / (name_key + '_best.pt')
-            model.symlink_to(_model.relative_to(model.parent))
-            models[model_type] = model
-        lstm_models['fixed' if fixed_length else 'var'] = models
+        name_key = model_type + '_' + fix_letter
+        model_dir = lstm_dir / (name_key + '_models')
+        gpu = index % n_gpus
+
+        print("Training {} model on device {}".format(name_key, gpu))
+        run_mod(
+            'rnn_main_train',
+            model_snapshot_dir=model_dir,
+            data_root=gen_data_vids,
+            train_file='_'.join([gen_data_prefix, fix_letter, 'train_set.p']),
+            test_file='_'.join([gen_data_prefix, fix_letter, 'test_set.p']),
+            RNN_Type=model_type[0].upper(),
+            model_params=repr(lstm_model_params),
+            gpu=gpu,
+            **(lstm_train_options or {}),
+        )
+        return fixed_length, model_type, name_key, model_dir
+
+    with futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        results = list(executor.map(train_one, enumerate(jobs)))
+
+    # Snapshot selection is bookkeeping, so it stays serial and ordered
+    for fixed_length in (True, False):
+        lstm_models['fixed' if fixed_length else 'var'] = {}
+
+    for fixed_length, model_type, name_key, model_dir in results:
+        best_epoch, _model = get_best_model(model_dir)
+        print("Selecting the epoch {} model for {}".format(best_epoch, name_key))
+        model = lstm_dir / (name_key + '_best.pt')
+        model.symlink_to(_model.relative_to(model.parent))
+        lstm_models['fixed' if fixed_length else 'var'][model_type] = model
 
     print("Training combined LSTM model")
     target_lstm_dir = output_dir / 'target_lstm'
