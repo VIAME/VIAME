@@ -114,6 +114,15 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     strategy = scfg.Value('auto', help=(
         'Multi-GPU strategy. "auto" uses ddp_find_unused_parameters_true when '
         'training on more than one GPU.'))
+    ddp_timeout = scfg.Value(0, help=(
+        'Seconds a DDP rank may lag the others before the NCCL watchdog aborts '
+        'every rank (0 = PyTorch-Lightning default, 1800). A rank that stalls '
+        'longer than this kills the whole run with SIGABRT, and the ranks that '
+        'report the timeout are the victims, not the culprit -- the straggler '
+        'is whichever rank is absent from the error. Raise it when a rank can '
+        'legitimately be slow (checkpoint writes to network storage, a long '
+        'eval); it does NOT rescue a genuine deadlock, it only delays it, so '
+        'a hung run holds its GPUs for this long before dying.'))
     num_channels = scfg.Value(3, help=(
         'Number of input channels. 3 = RGB; 4 = RGB + a motion/flow channel '
         '(RGBA). RF-DETR adapts the pretrained input conv to match.'))
@@ -838,6 +847,9 @@ class RFDETRTrainer(TrainDetector):
             devices=n_gpus,
             strategy=self._resolve_strategy(n_gpus),
         )
+        ddp_timeout = int(self._ddp_timeout)
+        if ddp_timeout > 0:
+            train_kwargs["ddp_timeout_seconds"] = ddp_timeout
         if batch_size == 'auto':
             train_kwargs["auto_batch_target_effective"] = \
                 int(self._auto_batch_target_effective)
