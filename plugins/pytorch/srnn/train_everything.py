@@ -75,20 +75,29 @@ def get_best_model(model_dir):
 
 
 def main(data_root, output_dir, stabilized, generate_options=None,
-         lstm_model_params=None, lstm_train_options=None):
+         lstm_model_params=None, lstm_train_options=None, tracks=None):
     output_dir.mkdir()
     print("Creating Siamese training data")
     gen_data = output_dir / 'training_data'
     gen_data_vids = gen_data / 'vids'
     gen_data_prefix = str(gen_data / 'out')
-    run_mod(
-        'generate_training_files_kw18',
-        # We need a better way to handle flags
-        *(('--stabilized',) if stabilized else ()),
+    # Run in process rather than shelling out, so the track states can be
+    # handed over as objects. This stage was the only reader of the gt.kw18
+    # files, which no longer exist.
+    if tracks is None:
+        raise ValueError(
+            "Track states must be supplied; Siamese data generation no longer"
+            " reads gt.kw18 files from data_root")
+
+    from .generate_training_files_kw18 import generate_siamese_data
+
+    generate_siamese_data(
         root_path=data_root,
         out_path=gen_data_vids,
         out_file_prefix=gen_data_prefix,
-        **(generate_options or {}),
+        tracks=tracks,
+        stabilized=stabilized,
+        **{k: v for k, v in (generate_options or {}).items()},
     )
 
     print("Training Siamese model")

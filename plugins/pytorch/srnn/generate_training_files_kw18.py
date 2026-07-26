@@ -302,29 +302,6 @@ def restrict_bounding_box(image_width, image_height, bounding_box):
         return None
 
 
-def process_gt_file(gt_file_path):
-    r"""Process MOT gt file
-        The output of the function is a list with following format,
-        indexed by frame number: [[(id_num, bbox)]].
-        All quantities (include bbox coordinates) are ints.
-    """
-    tracks = defaultdict(list)
-    with open(gt_file_path, 'r') as f:
-        for line in f:
-            if line[0] == '#':
-                continue
-            cur_line_list = line.rstrip('\n').split(' ')
-
-            frame_id = int(cur_line_list[2])
-            track_id = int(cur_line_list[0])
-            bbox = [int(float(c)) for c in cur_line_list[9:13]]
-
-            tup = (track_id, BoundingBox.from_corners(*bbox))
-            tracks[frame_id].append(tup)
-
-    return [tracks[i] for i in range(max(tracks) + 1)] if tracks else []
-
-
 class Homography:
     __slots__ = 'matrix',
 
@@ -450,6 +427,7 @@ def create_bbox_files(
 def generate_feature_files(
         root_path, data_storage, make_video_id,
         out_detections_file, grid_num, stabilized,
+        tracks_by_sequence,
 ):
     """Find source data in root_path (grandchild directories named "img1")
     and create a track feature file out_detections_file.  The track
@@ -478,10 +456,9 @@ def generate_feature_files(
 
     tracks = {}
     for dirpath, filenames in img_dirs.items():
-        # Maps track IDs to their number of occurrences
-        gt_file_path = dirpath.parent / 'gt.kw18'
-
-        frame_tracks = process_gt_file(gt_file_path)
+        # Track states for this sequence, supplied in memory by the caller
+        # and already aligned to the sorted image list below
+        frame_tracks = tracks_by_sequence[dirpath.parent.name]
 
         if stabilized:
             homographies = load_homographies(dirpath.parent / 'homog.txt')
@@ -578,7 +555,7 @@ def create_parser():
     return parser
 
 
-def process_train_or_test(tt, data_storage, args):
+def process_train_or_test(tt, data_storage, args, tracks_by_sequence=None):
     print("Generating {} files...".format(tt))
     out_dets_file = '{}_{}_features.p'.format(args.out_file_prefix, tt)
 
@@ -586,9 +563,15 @@ def process_train_or_test(tt, data_storage, args):
         data_storage.create()
 
         def make_vid(name): return data_storage.video_id(name, tt)
+        if tracks_by_sequence is None:
+            raise ValueError(
+                "Siamese data generation needs track states passed in; they"
+                " are no longer read from gt.kw18 files on disk")
+
         generate_feature_files(
             os.path.join(args.root_path, tt), data_storage, make_vid,
             out_dets_file, args.grid_num, stabilized=args.stabilized,
+            tracks_by_sequence=tracks_by_sequence[tt],
         )
         # generate training and testing files for Siamese network training
         siamese_tt_file_name = '{}_siamese_{}_set.p'.format(args.out_file_prefix, tt)
@@ -615,6 +598,38 @@ def process_train_or_test(tt, data_storage, args):
             out_dets_file, out_seqs_file, time_seq_len=6,
             aug_occlusion=aug_occlusion, fixSize_flag=args.fix_seq_flag,
         )
+
+
+def generate_siamese_data(
+        root_path, out_path, out_file_prefix, tracks,
+        grid_num=15, stabilized=False,
+        siamese_img_sample_rate=8, siamese_pos_sample_rate=10,
+):
+    """Build the Siamese training data for both splits, in process.
+
+    tracks maps a split name ("train"/"test") to a mapping of sequence
+    directory name to that sequence's per-frame track states, aligned to the
+    sorted image list of the sequence. This is what the caller already holds
+    in memory, so nothing is serialised to disk and re-parsed on the way in.
+    """
+    class _Args:
+        pass
+
+    args = _Args()
+    args.root_path = str(root_path)
+    args.out_path = str(out_path)
+    args.out_file_prefix = str(out_file_prefix)
+    args.grid_num = grid_num
+    args.stabilized = stabilized
+    args.siamese_flag = True
+    args.siamese_img_sample_rate = siamese_img_sample_rate
+    args.siamese_pos_sample_rate = siamese_pos_sample_rate
+
+    os.makedirs(args.out_path, exist_ok=True)
+
+    with DataStorage(args.out_path) as data_storage:
+        for tt in ['train', 'test']:
+            process_train_or_test(tt, data_storage, args, tracks)
 
 
 if __name__ == '__main__':

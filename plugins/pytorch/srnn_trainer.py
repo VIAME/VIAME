@@ -34,6 +34,7 @@ import signal
 import time
 import threading
 from viame.pytorch.utilities import report_cuda_errors
+from viame.pytorch.srnn.generate_training_files_kw18 import BoundingBox
 
 
 class SRNNTrainer( TrainTracker ):
@@ -151,9 +152,7 @@ class SRNNTrainer( TrainTracker ):
 
         Creates directory structure:
         - data_root/train/sequence_XXX/img1/  (images)
-        - data_root/train/sequence_XXX/gt.kw18 (groundtruth)
         - data_root/test/sequence_XXX/img1/
-        - data_root/test/sequence_XXX/gt.kw18
         """
         data_root = Path( self._train_directory ) / "srnn_data"
         if data_root.exists():
@@ -192,16 +191,18 @@ class SRNNTrainer( TrainTracker ):
                    f"{len( self._train_tracks )} sequences for test" )
 
         # Process training data
-        self._prepare_split_data(
+        tracks = {}
+
+        tracks[ "train" ] = self._prepare_split_data(
             train_tracks, self._train_image_files, train_dir, "train"
         )
 
         # Process test data
-        self._prepare_split_data(
+        tracks[ "test" ] = self._prepare_split_data(
             test_tracks, test_image_files, test_dir, "test"
         )
 
-        return data_root
+        return data_root, tracks
 
     def _prepare_split_data( self, track_sets, image_files, output_dir, split_name ):
         """
@@ -209,9 +210,10 @@ class SRNNTrainer( TrainTracker ):
 
         Each track_set represents a sequence. We create:
         - sequence_XXX/img1/ with symlinks to images
-        - sequence_XXX/gt.kw18 with track annotations
         """
         print( f"  Processing {split_name} split: {len(track_sets)} track sets" )
+
+        sequence_tracks = {}
 
         # Build mapping from frame indices to image files if available
         image_map = {}
@@ -273,30 +275,31 @@ class SRNNTrainer( TrainTracker ):
 
             img_dir.mkdir( parents=True )
 
-            # Create symlinks to images (or placeholder if not available)
+            # Symlink the frames this sequence annotates and build its track
+            # states in the same order. Feature generation zips its sorted
+            # image list against this list positionally, so both are built
+            # together here. The old gt.kw18 route indexed by frame id, which
+            # silently misaligned any clip not starting at frame zero.
+            frame_states = []
+
             for frame_id in sorted( all_frame_ids ):
                 dst_path = img_dir / f"frame_{frame_id:06d}.jpg"
                 if frame_id in image_map and os.path.exists( image_map[ frame_id ] ):
                     src_path = Path( image_map[ frame_id ] ).resolve()
                     dst_path.symlink_to( src_path )
-                # If no image available, training will still work with gt.kw18
 
-            # Write gt.kw18 file
-            # KW18 format: track_id frame obj_id len_frames x y w h world_x world_y ts conf
-            # Simplified format used by SRNN: track_id ? frame_id ? ? ? ? ? ? x1 y1 x2 y2
-            gt_file = seq_dir / "gt.kw18"
-            with open( gt_file, 'w' ) as f:
-                for frame_id in sorted( frame_annotations.keys() ):
-                    for track_id, x1, y1, x2, y2 in frame_annotations[ frame_id ]:
-                        # Format matches what process_gt_file expects:
-                        # track_id at [0], frame_id at [2], bbox at [9:13]
-                        # Fields: track_id, obj_len, frame, tracking_plane_loc_x/y,
-                        #         velocity_x/y, image_loc_x/y, img_bbox (x1,y1,x2,y2), ...
-                        line = f"{track_id} 0 {frame_id} 0 0 0 0 0 0 {x1} {y1} {x2} {y2} 0 0 0\n"
-                        f.write( line )
+                frame_states.append( [
+                    ( track_id, BoundingBox.from_corners( x1, y1, x2, y2 ) )
+                    for track_id, x1, y1, x2, y2
+                    in frame_annotations.get( frame_id, [] )
+                ] )
+
+            sequence_tracks[ seq_name ] = frame_states
 
             print( f"    {seq_name}: {len(frame_annotations)} frames, "
                    f"{len(set(t for anns in frame_annotations.values() for t,_,_,_,_ in anns))} tracks" )
+
+        return sequence_tracks
 
     @report_cuda_errors("SRNNTrainer training")
     def update_model( self ):
@@ -305,39 +308,33 @@ class SRNNTrainer( TrainTracker ):
         """
         print( "Starting SRNN training..." )
 
-        # Prepare training data in KW18 format
-        data_root = self._prepare_training_data()
+        # Lay out the image sequences and collect their track states
+        data_root, tracks = self._prepare_training_data()
 
         # Output directory for SRNN training
         srnn_output = Path( self._train_directory ) / "srnn_output"
         if srnn_output.exists():
             shutil.rmtree( srnn_output )
 
-        # Build training command
-        python_exe = "python.exe" if os.name == 'nt' else "python"
-
-        cmd = [
-            python_exe, "-m",
-            "viame.pytorch.srnn.train_everything",
-            str( data_root ),
-            str( srnn_output ),
-        ]
-
-        if self._stabilized:
-            cmd.append( "--stabilized" )
-
-        print( "Running command: " + " ".join( cmd ) )
-
         # Handle interrupt signals
         if threading.current_thread().__class__.__name__ == '_MainThread':
             signal.signal( signal.SIGINT, lambda sig, frame: self._interrupt_handler() )
             signal.signal( signal.SIGTERM, lambda sig, frame: self._interrupt_handler() )
 
-        self.proc = subprocess.Popen( cmd )
-        self.proc.wait()
+        # The pipeline is driven in process so the track states can be passed
+        # as objects. Only the first stage needs them; the model training
+        # stages it runs still shell out, as they read the files that stage
+        # produces rather than any groundtruth.
+        from viame.pytorch.srnn.train_everything import main as run_srnn_pipeline
 
-        if self.proc.returncode != 0:
-            print( f"Warning: Training process exited with code {self.proc.returncode}" )
+        print( "Running SRNN pipeline over " + str( data_root ) )
+
+        run_srnn_pipeline(
+            data_root=Path( data_root ),
+            output_dir=srnn_output,
+            stabilized=bool( self._stabilized ),
+            tracks=tracks,
+        )
 
         output = self._get_output_map( srnn_output )
 
