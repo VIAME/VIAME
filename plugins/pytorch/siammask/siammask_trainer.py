@@ -20,7 +20,14 @@ import shutil
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from tensorboardX import SummaryWriter
+try:
+    from tensorboardX import SummaryWriter
+except ImportError:
+    # tensorboardX is not part of the VIAME python environment, and its absence
+    # used to abort SiamMask training outright at import time. torch ships a
+    # SummaryWriter with the same add_scalar API, so fall back to that rather
+    # than losing the run over an optional logging dependency.
+    from torch.utils.tensorboard import SummaryWriter
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data.distributed import DistributedSampler
 
@@ -49,7 +56,9 @@ parser.add_argument('-t', '--threshold', required=True, help='GT confidence thre
 parser.add_argument('--skip-crop', action='store_true', default=False, help='Add flag if you want to skip the data cropping (crop_511) step.')
 args = parser.parse_args()
 print(os.getcwd())
-os.chdir(os.path.dirname(os.path.dirname(args.image_folder)))
+_chdir_target = os.path.dirname(os.path.dirname(args.image_folder))
+if _chdir_target:
+    os.chdir(_chdir_target)
 print(os.getcwd())
 
 def seed_torch(seed=0):

@@ -14,6 +14,7 @@ from distutils.util import strtobool
 from shutil import copyfile
 
 import os
+import socket
 import sys
 import shutil
 import subprocess
@@ -266,7 +267,23 @@ class SiamMaskTrainer( TrainTracker ):
             signal.signal( signal.SIGINT, lambda sig, frame: self._interrupt_handler() )
             signal.signal( signal.SIGTERM, lambda sig, frame: self._interrupt_handler() )
 
-        self.proc = subprocess.Popen( cmd )
+        # The siammask trainer calls dist_init(), which reads RANK and then
+        # init_process_group. Launched as a plain "python -m" none of the
+        # torchrun variables exist and it dies with KeyError: 'RANK', so a
+        # single rank process group is described here instead.
+        train_env = os.environ.copy()
+        train_env.setdefault( "RANK", "0" )
+        train_env.setdefault( "LOCAL_RANK", "0" )
+        train_env.setdefault( "WORLD_SIZE", "1" )
+        train_env.setdefault( "MASTER_ADDR", "127.0.0.1" )
+
+        if "MASTER_PORT" not in train_env:
+            sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+            sock.bind( ( "", 0 ) )
+            train_env[ "MASTER_PORT" ] = str( sock.getsockname()[1] )
+            sock.close()
+
+        self.proc = subprocess.Popen( cmd, env=train_env )
         self.proc.wait()
 
         self._save_final_model()

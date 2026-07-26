@@ -248,6 +248,13 @@ class SRNNTrainer( TrainTracker ):
                     x2 = int( bbox.max_x() )
                     y2 = int( bbox.max_y() )
 
+                    # Zero area boxes carry no information and are rejected by
+                    # generate_training_files_kw18 with "Width and height must
+                    # be positive", which aborts the whole run over a single
+                    # bad annotation
+                    if x2 <= x1 or y2 <= y1:
+                        continue
+
                     if frame_id not in frame_annotations:
                         frame_annotations[ frame_id ] = []
                     frame_annotations[ frame_id ].append(

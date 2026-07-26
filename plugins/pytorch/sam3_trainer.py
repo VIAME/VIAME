@@ -90,7 +90,10 @@ class SAM3Trainer(TrainDetector):
 
         # Model configuration
         self._identifier = "viame-sam3-segmentation"
-        self._sam_model_id = "facebook/sam2.1-hiera-large"
+        # Native SAM3 checkpoint. Defaults to the weights VIAME installs so
+        # training does not reach for the hub -- facebook/sam3 is a gated repo
+        # and an unauthenticated run dies with a 401 GatedRepoError.
+        self._sam_model_id = "models/sam3.1_weights.pt"
         # SAM2 fallback, used when the native sam3 module is unavailable. These
         # default to the checkpoints VIAME already installs, so training does
         # not depend on reaching the HuggingFace hub. sam2_hbp.pt is a SAM2.1
@@ -156,7 +159,8 @@ class SAM3Trainer(TrainDetector):
         cfg.merge_config(cfg_in)
 
         self._identifier = str(cfg.get_value("identifier"))
-        self._sam_model_id = str(cfg.get_value("sam_model_id"))
+        self._sam_model_id = _resolve_model_path(
+            str(cfg.get_value("sam_model_id")))
         self._sam2_model_path = _resolve_model_path(
             str(cfg.get_value("sam2_model_path")))
         self._sam2_config_file = str(cfg.get_value("sam2_config_file"))
@@ -897,7 +901,10 @@ class SAM3TrackerTrainer(TrainTracker):
 
         # Model configuration
         self._identifier = "viame-sam3-tracker"
-        self._sam_model_id = "facebook/sam2.1-hiera-large"
+        # Native SAM3 checkpoint. Defaults to the weights VIAME installs so
+        # training does not reach for the hub -- facebook/sam3 is a gated repo
+        # and an unauthenticated run dies with a 401 GatedRepoError.
+        self._sam_model_id = "models/sam3.1_weights.pt"
         # SAM2 fallback, used when the native sam3 module is unavailable. These
         # default to the checkpoints VIAME already installs, so training does
         # not depend on reaching the HuggingFace hub. sam2_hbp.pt is a SAM2.1
@@ -966,7 +973,8 @@ class SAM3TrackerTrainer(TrainTracker):
         cfg.merge_config(cfg_in)
 
         self._identifier = str(cfg.get_value("identifier"))
-        self._sam_model_id = str(cfg.get_value("sam_model_id"))
+        self._sam_model_id = _resolve_model_path(
+            str(cfg.get_value("sam_model_id")))
         self._sam2_model_path = _resolve_model_path(
             str(cfg.get_value("sam2_model_path")))
         self._sam2_config_file = str(cfg.get_value("sam2_config_file"))
@@ -1122,6 +1130,7 @@ class SAM3TrackerTrainer(TrainTracker):
                 enable_inst_interactivity=True,
                 compile=False,
             )
+
             print("Loaded SAM3 model via native sam3 module")
             return model
         except ImportError:
