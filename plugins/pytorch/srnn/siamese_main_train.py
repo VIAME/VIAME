@@ -37,7 +37,7 @@ kwargs = {'num_workers': 6, 'pin_memory': True}
 g_config = get_config()
 
 trans = transform=transforms.Compose([
-                        transforms.Scale(224),
+                        transforms.Resize(224),  # was transforms.Scale, removed in torchvision 0.15
                         transforms.ToTensor(),
                         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
                    ])

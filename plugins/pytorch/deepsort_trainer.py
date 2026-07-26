@@ -39,6 +39,100 @@ import random
 from viame.pytorch.utilities import report_cuda_errors
 
 
+# The Re-ID dataset and batch sampler live at module scope rather than inside
+# _train_reid_model because DataLoader worker processes have to be able to find
+# them by name. Python 3.14 switched the default multiprocessing start method on
+# Linux from fork to forkserver, which pickles the worker arguments; a class
+# defined inside a method is a <locals> object and pickling it fails with
+# "Can't pickle local object ... <locals>.ReIDDataset". Fork based Pythons never
+# exercised this path, so the same code ran fine on 3.13 and earlier.
+#
+# torch is imported lazily elsewhere in this file so that the module still
+# imports when torch is absent, which is how kwiver decides whether to register
+# the trainer. The guard here keeps that property.
+try:
+    from torch.utils.data import Dataset as _TorchDataset, Sampler as _TorchSampler
+except ImportError:
+    _TorchDataset = object
+    _TorchSampler = object
+
+
+class ReIDDataset(_TorchDataset):
+    """Crops on disk, one directory per track."""
+
+    def __init__(self, data_dir, transform=None):
+        from PIL import Image  # noqa: F401  (kept local, see module note)
+
+        self.data_dir = Path(data_dir)
+        self.transform = transform
+        self.samples = []
+        self.labels = []
+        self.label_to_idx = {}
+
+        for idx, track_dir in enumerate(sorted(self.data_dir.iterdir())):
+            if not track_dir.is_dir():
+                continue
+
+            self.label_to_idx[track_dir.name] = idx
+            for img_path in track_dir.glob("*.jpg"):
+                self.samples.append(str(img_path))
+                self.labels.append(idx)
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        from PIL import Image
+
+        img = Image.open(self.samples[idx]).convert('RGB')
+        if self.transform:
+            img = self.transform(img)
+        return img, self.labels[idx]
+
+
+class PKSampler(_TorchSampler):
+    """Yield batches of P identities with K crops each.
+
+    Triplet loss can only produce a gradient from an anchor that has both a
+    positive (same track) and a negative (different track) in the same batch.
+    Drawing crops uniformly at random gives a same-identity collision with
+    probability roughly B^2 / 2N for a batch of B over N identities, which for a
+    track dataset this size is only a few percent -- so nearly every batch was a
+    no-op and the Re-ID model never actually learned. Sampling K crops from each
+    of P identities guarantees every sample has a positive.
+    """
+
+    def __init__(self, labels, p, k, num_batches=None):
+        self.k = max(int(k), 2)
+
+        self.by_id = {}
+        for idx, label in enumerate(labels):
+            self.by_id.setdefault(label, []).append(idx)
+
+        # A track with a single crop can never supply a positive pair
+        self.ids = [i for i, idxs in self.by_id.items() if len(idxs) >= 2]
+        self.p = max(min(int(p), len(self.ids)), 1)
+
+        if num_batches is None:
+            num_batches = max(len(labels) // (self.p * self.k), 1)
+        self.num_batches = num_batches
+
+    def __len__(self):
+        return self.num_batches
+
+    def __iter__(self):
+        for _ in range(self.num_batches):
+            batch = []
+            for track_id in random.sample(self.ids, self.p):
+                pool = self.by_id[track_id]
+                if len(pool) >= self.k:
+                    batch.extend(random.sample(pool, self.k))
+                else:
+                    # Short track, repeat crops to fill its slot
+                    batch.extend(random.choices(pool, k=self.k))
+            yield batch
+
+
 class DeepSORTTrainer(TrainTracker):
     """
     Implementation of TrainTracker class for DeepSORT Re-ID model training.
@@ -356,78 +450,6 @@ class DeepSORTTrainer(TrainTracker):
                 x = self.bn(x)
                 x = nn.functional.normalize(x, dim=1)
                 return x
-
-        # Create dataset
-        class ReIDDataset(Dataset):
-            def __init__(self, data_dir, transform=None):
-                self.data_dir = Path(data_dir)
-                self.transform = transform
-                self.samples = []
-                self.labels = []
-                self.label_to_idx = {}
-
-                # Collect all samples
-                for idx, track_dir in enumerate(sorted(self.data_dir.iterdir())):
-                    if not track_dir.is_dir():
-                        continue
-
-                    self.label_to_idx[track_dir.name] = idx
-                    for img_path in track_dir.glob("*.jpg"):
-                        self.samples.append(str(img_path))
-                        self.labels.append(idx)
-
-            def __len__(self):
-                return len(self.samples)
-
-            def __getitem__(self, idx):
-                img = Image.open(self.samples[idx]).convert('RGB')
-                if self.transform:
-                    img = self.transform(img)
-                return img, self.labels[idx]
-
-        # Identity aware batch sampler
-        class PKSampler(Sampler):
-            """Yield batches of P identities with K crops each.
-
-            Triplet loss can only produce a gradient from an anchor that has
-            both a positive (same track) and a negative (different track) in
-            the same batch. Drawing crops uniformly at random gives a
-            same-identity collision with probability roughly B^2 / 2N for a
-            batch of B over N identities, which for a track dataset this size
-            is only a couple of percent -- so nearly every batch was a no-op
-            and the Re-ID model never actually learned. Sampling K crops from
-            each of P identities guarantees every sample has a positive.
-            """
-
-            def __init__(self, labels, p, k, num_batches=None):
-                self.k = max(int(k), 2)
-
-                self.by_id = {}
-                for idx, label in enumerate(labels):
-                    self.by_id.setdefault(label, []).append(idx)
-
-                # A track with a single crop can never supply a positive pair
-                self.ids = [i for i, idxs in self.by_id.items() if len(idxs) >= 2]
-                self.p = max(min(int(p), len(self.ids)), 1)
-
-                if num_batches is None:
-                    num_batches = max(len(labels) // (self.p * self.k), 1)
-                self.num_batches = num_batches
-
-            def __len__(self):
-                return self.num_batches
-
-            def __iter__(self):
-                for _ in range(self.num_batches):
-                    batch = []
-                    for track_id in random.sample(self.ids, self.p):
-                        pool = self.by_id[track_id]
-                        if len(pool) >= self.k:
-                            batch.extend(random.sample(pool, self.k))
-                        else:
-                            # Short track, repeat crops to fill its slot
-                            batch.extend(random.choices(pool, k=self.k))
-                    yield batch
 
         # Triplet loss
         class TripletLoss(nn.Module):

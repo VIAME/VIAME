@@ -166,14 +166,39 @@ class SRNNTrainer( TrainTracker ):
 
         print( "Preparing training data for SRNN..." )
 
+        train_tracks = self._train_tracks
+        test_tracks = self._test_tracks
+        test_image_files = self._test_image_files
+
+        # Tracker training only populates a validation set when one is given
+        # explicitly (validation.txt or --validation-dir), so test_tracks is
+        # normally empty. The Siamese stage then finds no test images at all and
+        # aborts with "Found 0 images in data", which takes the whole SRNN run
+        # down. Hold a slice of the training sequences out instead, so the split
+        # is always non-empty.
+        if not test_tracks and len( train_tracks ) > 1:
+            holdout = max( 1, int( len( train_tracks ) * 0.1 ) )
+
+            test_tracks = train_tracks[ -holdout: ]
+            train_tracks = train_tracks[ :-holdout ]
+
+            # The held out tracks still index into the training image list, so
+            # the test split has to be given that same list. Handing it the
+            # empty _test_image_files would write groundtruth with no imagery
+            # beside it, which fails the same way as having no test set at all.
+            test_image_files = self._train_image_files
+
+            print( f"  No validation set supplied, holding out {holdout} of "
+                   f"{len( self._train_tracks )} sequences for test" )
+
         # Process training data
         self._prepare_split_data(
-            self._train_tracks, self._train_image_files, train_dir, "train"
+            train_tracks, self._train_image_files, train_dir, "train"
         )
 
         # Process test data
         self._prepare_split_data(
-            self._test_tracks, self._test_image_files, test_dir, "test"
+            test_tracks, test_image_files, test_dir, "test"
         )
 
         return data_root
@@ -200,7 +225,6 @@ class SRNNTrainer( TrainTracker ):
             seq_name = f"sequence_{seq_idx:04d}"
             seq_dir = output_dir / seq_name
             img_dir = seq_dir / "img1"
-            img_dir.mkdir( parents=True )
 
             # Collect all frames and annotations for this sequence
             frame_annotations = {}  # frame_id -> [(track_id, x1, y1, x2, y2)]
@@ -230,8 +254,17 @@ class SRNNTrainer( TrainTracker ):
                         ( track_id, x1, y1, x2, y2 )
                     )
 
+            # A clip with no annotations gets no sequence directory at all. The
+            # directory used to be created before this point, which left behind
+            # a sequence_NNNN/img1 with no gt.kw18 beside it; the downstream
+            # generate_training_files_kw18.py walks the sequence directories and
+            # opens gt.kw18 unconditionally, so the first unannotated clip
+            # aborted the whole run with a FileNotFoundError.
             if not frame_annotations:
+                print( f"    {seq_name}: no annotations, skipping" )
                 continue
+
+            img_dir.mkdir( parents=True )
 
             # Create symlinks to images (or placeholder if not available)
             for frame_id in sorted( all_frame_ids ):
