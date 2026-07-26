@@ -17,6 +17,7 @@ import os
 import socket
 import sys
 import shutil
+from glob import glob
 import subprocess
 import signal
 import time
@@ -147,51 +148,46 @@ class SiamMaskTrainer( TrainTracker ):
 
     def _prepare_training_data( self ):
         """
-        Convert track data to SiamMask training format.
+        Lay out training data in the form par_crop and gen_json consume.
 
-        Each track_set in _train_tracks represents a sequence/video and contains
-        all tracks for that sequence. Each track spans multiple frames with
-        consistent track IDs.
+        Per sequence, under the training directory:
+        - sequence_XXXX/frame_NNNNNN.jpg  symlinks to the annotated frames
+        - sequence_XXXX/groundtruth.csv   VIAME CSV for those frames
 
-        This creates:
-        - crop_{crop_size}/ directory with cropped images
-        - dataset.json with track annotations in SiamMask format
+        par_crop then writes crop511/ from that, and gen_json writes
+        dataset.json from the crops. Neither is produced here. This used to
+        write a dataset.json directly and create an empty crop511, but
+        gen_json always runs and overwrote it with {} because there was no
+        image and CSV layout for it to read, so training loaded no data at
+        all.
         """
-        import json
+        image_map = {}
+        for i, img_file in enumerate( self._train_image_files ):
+            image_map[ i ] = img_file
 
-        crop_dir = os.path.join( self._train_directory, f"crop{self._crop_size}" )
-        if os.path.exists( crop_dir ):
-            shutil.rmtree( crop_dir )
-        os.makedirs( crop_dir )
-
-        dataset = {}
-
-        # Process training track sets
-        # Each track_set is a sequence containing tracks that span multiple frames
         print( "Preparing training data for SiamMask..." )
         print( f"  Processing {len(self._train_tracks)} track sets" )
+
+        # Clear sequences left by an earlier run so they cannot be picked up
+        for stale in glob( os.path.join( self._train_directory, "sequence_*" ) ):
+            if os.path.isdir( stale ):
+                shutil.rmtree( stale )
+
+        sequence_count = 0
+        annotation_count = 0
 
         for seq_idx, track_set in enumerate( self._train_tracks ):
             if track_set is None:
                 continue
 
             seq_name = f"sequence_{seq_idx:04d}"
-            video_data = {}
+            seq_dir = os.path.join( self._train_directory, seq_name )
 
-            # Get all tracks in this sequence
-            tracks = track_set.tracks()
-            print( f"  Sequence {seq_idx}: {len(tracks)} tracks" )
+            # frame id -> [ ( track_id, x1, y1, x2, y2 ) ]
+            frame_annotations = {}
 
-            for track in tracks:
-                track_id = track.id
-                track_key = f"{track_id:06d}"
-
-                if track_key not in video_data:
-                    video_data[ track_key ] = {}
-
-                # Iterate through all states (frames) in this track
+            for track in track_set.tracks():
                 for state in track:
-                    frame_id = state.frame_id
                     det = state.detection()
 
                     if det is None:
@@ -202,28 +198,57 @@ class SiamMaskTrainer( TrainTracker ):
                     y1 = int( bbox.min_y() )
                     x2 = int( bbox.max_x() )
                     y2 = int( bbox.max_y() )
-                    w = x2 - x1
-                    h = y2 - y1
-                    cx = x1 + w // 2
-                    cy = y1 + h // 2
 
-                    frame_key = f"{frame_id:06d}"
-                    video_data[ track_key ][ frame_key ] = [ cx, cy, w, h ]
+                    # Zero area boxes crop to nothing
+                    if x2 <= x1 or y2 <= y1:
+                        continue
 
-            if video_data:
-                dataset[ seq_name ] = video_data
-                total_frames = sum( len( v ) for v in video_data.values() )
-                print( f"    Added {len(video_data)} tracks, {total_frames} total annotations" )
+                    frame_annotations.setdefault( state.frame_id, [] ).append(
+                        ( track.id, x1, y1, x2, y2 )
+                    )
 
-        # Write dataset.json
-        dataset_file = os.path.join( self._train_directory, "dataset.json" )
-        with open( dataset_file, 'w' ) as f:
-            json.dump( dataset, f, indent=2 )
+            if not frame_annotations:
+                continue
 
-        total_tracks = sum( len( v ) for v in dataset.values() )
-        print( f"Created dataset.json with {len(dataset)} sequences, {total_tracks} total tracks" )
+            os.makedirs( seq_dir )
 
-        return dataset_file
+            # Frames are numbered by position rather than by their id in the
+            # source clip, so the CSV frame column doubles as an index into the
+            # sorted image list, which is what crop_video falls back to when it
+            # cannot resolve the file name directly
+            rows = []
+
+            for position, frame_id in enumerate( sorted( frame_annotations ) ):
+                src = image_map.get( frame_id )
+
+                if src is None or not os.path.exists( src ):
+                    continue
+
+                image_name = f"frame_{position:06d}.jpg"
+                os.symlink( os.path.realpath( src ),
+                            os.path.join( seq_dir, image_name ) )
+
+                for track_id, x1, y1, x2, y2 in frame_annotations[ frame_id ]:
+                    rows.append( "{},{},{},{},{},{},{},1.0,-1\n".format(
+                        track_id, image_name, position, x1, y1, x2, y2 ) )
+
+            if not rows:
+                shutil.rmtree( seq_dir )
+                continue
+
+            with open( os.path.join( seq_dir, "groundtruth.csv" ), 'w' ) as f:
+                f.writelines( rows )
+
+            sequence_count += 1
+            annotation_count += len( rows )
+
+            print( f"    {seq_name}: {len(frame_annotations)} frames, "
+                   f"{len(rows)} annotations" )
+
+        print( f"Prepared {sequence_count} sequences, "
+               f"{annotation_count} annotations for cropping" )
+
+        return self._train_directory
 
     @report_cuda_errors("SiamMaskTrainer training")
     def update_model( self ):
