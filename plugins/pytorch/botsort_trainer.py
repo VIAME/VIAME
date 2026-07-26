@@ -624,9 +624,25 @@ class BoTSORTTrainer(TrainTracker):
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
 
         model = ReIDModel(self._backbone, embedding_dim).to(device)
-        optimizer = optim.Adam(model.parameters(), lr=lr)
+
+        # Batch-hard triplet loss on its own has a stable degenerate optimum:
+        # map every crop to the same point, and hardest_pos == hardest_neg == 0
+        # so the loss parks on the margin while the distance gradients vanish,
+        # leaving an embedding that cannot tell anything apart. Earlier runs on
+        # this dataset collapsed into exactly that, sitting at 0.3001 for 45 of
+        # 50 epochs. An identity classifier alongside it removes the escape: a
+        # constant embedding cannot classify, so cross entropy keeps a gradient
+        # pointing away from collapse. The head is a training aid only and is
+        # not part of the exported model.
+        num_identities = max(len(train_dataset.label_to_idx), 1)
+        classifier = nn.Linear(embedding_dim, num_identities).to(device)
+
+        optimizer = optim.Adam(
+            list(model.parameters()) + list(classifier.parameters()), lr=lr)
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
         criterion = TripletLoss(margin=0.3)
+        id_criterion = nn.CrossEntropyLoss()
+        id_loss_weight = 1.0
 
         best_loss = float('inf')
         snapshot_dir = Path(self._train_directory) / "snapshot"
@@ -634,20 +650,29 @@ class BoTSORTTrainer(TrainTracker):
 
         for epoch in range(int(max_epochs)):
             model.train()
+            classifier.train()
             train_loss = 0
+            epoch_id_loss = 0
             num_batches = 0
 
             for images, labels in train_loader:
                 images = images.to(device)
                 optimizer.zero_grad()
                 embeddings = model(images)
-                loss = criterion(embeddings, labels)
 
-                if loss.item() > 0:
-                    loss.backward()
-                    optimizer.step()
+                if not isinstance(labels, torch.Tensor):
+                    labels = torch.tensor(labels)
+                labels = labels.to(device)
 
-                train_loss += loss.item()
+                triplet = criterion(embeddings, labels)
+                id_loss = id_criterion(classifier(embeddings), labels)
+                loss = triplet + id_loss_weight * id_loss
+
+                loss.backward()
+                optimizer.step()
+
+                train_loss += triplet.item()
+                epoch_id_loss += id_loss.item()
                 num_batches += 1
 
             scheduler.step()
@@ -674,7 +699,18 @@ class BoTSORTTrainer(TrainTracker):
             # training loss whenever there is nothing to validate against.
             selection_loss = avg_val_loss if num_val_batches else avg_train_loss
 
-            print(f"Epoch {epoch+1}/{max_epochs}: train_loss={avg_train_loss:.4f}, val_loss={avg_val_loss:.4f}")
+            avg_id_loss = epoch_id_loss / max(num_batches, 1)
+
+            with torch.no_grad():
+                spread = float(embeddings.std(0).mean())
+
+            print(f"Epoch {epoch+1}/{max_epochs}: train_loss={avg_train_loss:.4f}, "
+                  f"id_loss={avg_id_loss:.4f}, embed_spread={spread:.5f}, "
+                  f"val_loss={avg_val_loss:.4f}")
+
+            if spread < 1e-4:
+                print("  Warning: embeddings have collapsed to a single point; "
+                      "the resulting model cannot discriminate")
 
             if selection_loss < best_loss:
                 best_loss = selection_loss
