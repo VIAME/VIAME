@@ -324,6 +324,12 @@ class SiamMaskTrainer( TrainTracker ):
         if self._skip_crop:
             cmd.append( "--skip-crop" )
 
+        # seed_model was read from the config but never reached training, so
+        # fine tuning silently started from scratch. It is loaded over the
+        # whole network via TRAIN.PRETRAINED.
+        if self._seed_model:
+            cmd.extend( [ "--pretrained", self._seed_model ] )
+
         print( "Running command: " + " ".join( cmd ) )
 
         # Handle interrupt signals

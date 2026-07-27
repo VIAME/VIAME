@@ -54,6 +54,7 @@ parser.add_argument('-s', '--save-folder', default='siamrpn++_model', help='Fold
 parser.add_argument('-c', '--config-file', required=True, help='Config file for architecture.')
 parser.add_argument('-t', '--threshold', required=True, help='GT confidence threshold.')
 parser.add_argument('--skip-crop', action='store_true', default=False, help='Add flag if you want to skip the data cropping (crop_511) step.')
+parser.add_argument('--pretrained', default='', help='Model to fine tune from. Loaded over the whole network, not just the backbone.')
 args = parser.parse_args()
 print(os.getcwd())
 _chdir_target = os.path.dirname(os.path.dirname(args.image_folder))
@@ -316,6 +317,13 @@ def main():
     seed_torch(args.seed)
     rank, world_size = dist_init()
     cfg.merge_from_file(args.config_file)
+
+    # A model to fine tune from, given on the command line so the shipped yaml
+    # stays untouched. TRAIN.PRETRAINED loads the whole network rather than
+    # BACKBONE.PRETRAINED, which is only the backbone.
+    if args.pretrained:
+        cfg.TRAIN.PRETRAINED = args.pretrained
+
     cfg.TRAIN.LOG_DIR = os.path.join(args.save_folder, cfg.TRAIN.LOG_DIR)
     cfg.TRAIN.SNAPSHOT_DIR = os.path.join(args.save_folder, cfg.TRAIN.SNAPSHOT_DIR)
     if rank == 0:
