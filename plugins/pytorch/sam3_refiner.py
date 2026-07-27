@@ -19,6 +19,10 @@ Features:
 - Generates polygon and/or point outputs from masks
 """
 
+import os
+import shutil
+import tempfile
+
 import scriptconfig as scfg
 import numpy as np
 
@@ -36,6 +40,118 @@ from viame.pytorch.sam3_utilities import (
     image_to_rgb_numpy, get_autocast_context, parse_bool
 )
 from viame.pytorch.utilities import vital_config_update, report_cuda_errors
+
+
+# Bounds and cost model for auto-sizing SAM3's grounding batch (see
+# SAM3RefinerConfig.grounding_batch_size).  SAM3 works at a fixed 1008px
+# internally, so the per-frame activation cost does not depend on source
+# resolution.  Measured on a 16 GB Turing card at 1080p: 4.25 GiB resident
+# for the weights and a 12.72 GiB peak at batch 7, i.e. 8.47 GiB of
+# activations, or ~1.21 GiB per batched frame.  The headroom covers transient
+# allocations and allocator fragmentation.
+_GROUNDING_VRAM_PER_FRAME_GB = 1.2
+_GROUNDING_HEADROOM_GB = 2.0
+_GROUNDING_BATCH_MIN = 1
+_GROUNDING_BATCH_MAX = 16
+
+
+class _FrameBuffer:
+    """
+    Append-only frame buffer that keeps frames in memory while they fit and
+    spills to disk once they do not.
+
+    The video-propagation path collects every frame before running SAM3 in
+    ``finalize()``.  Held as decoded PIL images that costs width*height*3
+    bytes per frame, so a 10k-frame 1080p sequence needs ~65 GB and exhausts
+    host RAM.  Past a budget derived from currently-available memory the
+    frames are written out as JPEGs and re-decoded per chunk, keeping
+    resident memory proportional to ``video_chunk_size`` rather than to
+    video length.
+
+    Short sequences therefore behave exactly as before -- no encode, decode
+    or disk traffic -- and only sequences that would not have fit pay for
+    spilling.
+
+    Supports only the operations the propagation path uses: ``append``,
+    ``len``, truthiness, and slicing (which returns PIL images).
+    """
+
+    JPEG_QUALITY = 95
+    # Fraction of available RAM the in-memory buffer may occupy before
+    # spilling.  Deliberately well under half: SAM3's weights, the CUDA host
+    # allocations and the per-chunk decode all draw on the same pool.
+    MEMORY_FRACTION = 0.25
+    FALLBACK_BUDGET_BYTES = 4 * 1024 ** 3
+
+    def __init__(self):
+        self._frames = []      # in-memory PIL images (before spilling)
+        self._paths = []       # on-disk JPEG paths (after spilling)
+        self._dir = None
+        self._bytes = 0
+        self._budget = None
+
+    @classmethod
+    def _memory_budget(cls):
+        """Bytes the in-memory buffer may use before spilling to disk."""
+        try:
+            with open('/proc/meminfo') as fh:
+                for line in fh:
+                    if line.startswith('MemAvailable:'):
+                        avail_kb = int(line.split()[1])
+                        return int(avail_kb * 1024 * cls.MEMORY_FRACTION)
+        except Exception:
+            pass
+        return cls.FALLBACK_BUDGET_BYTES
+
+    def _spill(self):
+        """Move everything held in memory out to disk and switch modes."""
+        self._dir = tempfile.mkdtemp(prefix="sam3_frames_")
+        for image in self._frames:
+            self._write(image)
+        self._frames = []
+
+    def _write(self, pil_image):
+        path = os.path.join(self._dir, "%08d.jpg" % len(self._paths))
+        pil_image.save(path, "JPEG", quality=self.JPEG_QUALITY)
+        self._paths.append(path)
+
+    def append(self, pil_image):
+        if self._dir is not None:
+            self._write(pil_image)
+            return
+
+        if self._budget is None:
+            self._budget = self._memory_budget()
+
+        width, height = pil_image.size
+        self._bytes += width * height * 3
+        if self._bytes > self._budget:
+            self._spill()
+            self._write(pil_image)
+            return
+
+        self._frames.append(pil_image)
+
+    def __len__(self):
+        return len(self._frames) + len(self._paths)
+
+    def __bool__(self):
+        return bool(self._frames) or bool(self._paths)
+
+    def __getitem__(self, key):
+        if self._dir is None:
+            return self._frames[key]
+        if isinstance(key, slice):
+            return [PILImage.open(p).convert("RGB") for p in self._paths[key]]
+        return PILImage.open(self._paths[key]).convert("RGB")
+
+    def cleanup(self):
+        self._frames = []
+        if self._dir is not None:
+            shutil.rmtree(self._dir, ignore_errors=True)
+            self._dir = None
+        self._paths = []
+        self._bytes = 0
 
 
 class SAM3RefinerConfig(SAM3BaseConfig):
@@ -111,6 +227,16 @@ class SAM3RefinerConfig(SAM3BaseConfig):
     video_hotstart_delay = scfg.Value(
         0,
         help='Frames to hold outputs for hotstart filtering (default 15 in SAM3, 0=disable)'
+    )
+    # Frames batched together through SAM3's grounding detector and
+    # post-processing.  SAM3's model_builder hardcodes 16, which assumes a
+    # datacenter GPU and OOMs on smaller cards regardless of
+    # ``video_chunk_size`` (the batch is internal to SAM3's per-frame
+    # inference, not to our chunk loop).  'auto' sizes it to the GPU memory
+    # actually free once the weights are resident.
+    grounding_batch_size = scfg.Value(
+        'auto',
+        help="Frames per SAM3 grounding batch ('auto'=fit to free VRAM)"
     )
     # Maximum number of frames to process per video chunk.  SAM3 video
     # predictor keeps per-frame features in GPU memory; processing very
@@ -238,7 +364,7 @@ class SAM3Refiner(RefineTracks):
 
         # Video predictor state (used when propagate_tracked=True)
         self._video_predictor = None
-        self._pil_frames = []          # accumulated PIL images for init_state
+        self._pil_frames = _FrameBuffer()   # frames for init_state (spills if large)
         self._frame_prompts = {}       # frame_idx -> [(obj_id, box_rel_xywh)]
         self._text_prompt_frames = {}  # frame_idx -> text_query_string
         self._obj_id_to_class = {}     # obj_id -> class_name
@@ -326,17 +452,146 @@ class SAM3Refiner(RefineTracks):
             new_det_thresh = float(self._config.video_new_det_threshold)
             hotstart_delay = int(self._config.video_hotstart_delay)
 
-            if hasattr(vp, 'score_threshold_detection'):
-                vp.score_threshold_detection = det_thresh
-            if hasattr(vp, 'new_det_thresh'):
-                vp.new_det_thresh = new_det_thresh
-            if hasattr(vp, 'hotstart_delay'):
-                vp.hotstart_delay = hotstart_delay
+            self._set_predictor_attr(vp, 'score_threshold_detection',
+                                     det_thresh)
+            self._set_predictor_attr(vp, 'new_det_thresh', new_det_thresh)
+            self._set_predictor_attr(vp, 'hotstart_delay', hotstart_delay)
+            # SAM3 requires the unmatch/dup suppression windows to fit inside
+            # the hotstart window (it asserts this at construction, but not
+            # for values assigned afterwards).  Lowering only the delay leaves
+            # suppression thresholds larger than the window they index into,
+            # which drops tracklets that should have been kept.
+            for dependent in ('hotstart_unmatch_thresh', 'hotstart_dup_thresh'):
+                current = self._get_predictor_attr(vp, dependent)
+                if current is not None and current > hotstart_delay:
+                    self._set_predictor_attr(vp, dependent, hotstart_delay)
             # Enable detection NMS to suppress overlapping detections.
             # The base class default is 0.0 (disabled) but SAM3's own
             # model_builder sets 0.1 when constructing the video model.
-            if hasattr(vp, 'det_nms_thresh') and vp.det_nms_thresh <= 0:
-                vp.det_nms_thresh = 0.1
+            if self._get_predictor_attr(vp, 'det_nms_thresh', 1.0) <= 0:
+                self._set_predictor_attr(vp, 'det_nms_thresh', 0.1)
+
+            # Shrink SAM3's frame batches to what this GPU can hold. Done
+            # after init_models so the weights are already resident and
+            # mem_get_info reports the memory genuinely left for activations.
+            # Only the grounding batch is resized: that is what the backbone
+            # and segmentation heads allocate against, and what the OOM
+            # traceback points at.  ``postprocess_batch_size`` is left alone
+            # deliberately — it gates output batching, and any trailing
+            # partial batch is emitted upstream as DUMMY_OUTPUT, so lowering
+            # it silently discards detections on real frames.
+            batch = self._resolve_grounding_batch_size()
+            if batch <= 1:
+                # Batched grounding is what allocates the large multi-frame
+                # activations.  At a batch of one there is nothing to gain
+                # from it, and SAM3's unbatched path has a much smaller
+                # peak, so take that route instead of a degenerate batch.
+                self._set_predictor_attr(vp, 'use_batched_grounding', False)
+            else:
+                self._set_predictor_attr(vp, 'batched_grounding_batch_size',
+                                         batch)
+
+            # Echo what the detector will actually run with.  These are
+            # assembled from several config layers and silently defaulted
+            # when a pipe key does not reach the refiner, so an empty or
+            # unexpected query here explains an empty result set.
+            print("[SAM3] effective text query=%r | det_thresh=%s "
+                  "new_det_thresh=%s hotstart_delay=%s nms=%s | "
+                  "add_new_objects=%s propagate_tracked=%s"
+                  % (self._text_query_list, det_thresh, new_det_thresh,
+                     hotstart_delay,
+                     self._get_predictor_attr(vp, 'det_nms_thresh'),
+                     self._add_new_objects, self._propagate_tracked))
+
+    @staticmethod
+    def _predictor_targets(vp):
+        """
+        Objects that may carry SAM3's tunables, outermost first.
+
+        On the SAM 3.1 path ``vp`` is ``_Sam3p1VideoPredictorAdapter``, a thin
+        shim holding only ``_p`` / ``_model`` / ``device``; the thresholds and
+        batch sizes live on the wrapped multiplex model.  Setting them on the
+        adapter silently does nothing, so resolve the real owner instead.
+        """
+        inner = getattr(vp, '_p', None)
+        candidates = [vp,
+                      getattr(vp, '_model', None),
+                      inner,
+                      getattr(inner, 'model', None)]
+        seen, targets = set(), []
+        for obj in candidates:
+            if obj is not None and id(obj) not in seen:
+                seen.add(id(obj))
+                targets.append(obj)
+        return targets
+
+    @classmethod
+    def _get_predictor_attr(cls, vp, name, default=None):
+        for obj in cls._predictor_targets(vp):
+            if hasattr(obj, name):
+                return getattr(obj, name)
+        return default
+
+    @classmethod
+    def _set_predictor_attr(cls, vp, name, value):
+        """
+        Set ``name`` on whichever wrapped object declares it.
+
+        Returns True if it landed somewhere.  A miss is reported rather than
+        ignored — a silently unapplied memory or threshold override looks
+        exactly like the setting having no effect.
+        """
+        applied = False
+        for obj in cls._predictor_targets(vp):
+            if hasattr(obj, name):
+                setattr(obj, name, value)
+                applied = True
+        if not applied:
+            print("[SAM3] WARNING: could not apply %s=%s — no wrapped "
+                  "predictor object declares it" % (name, value))
+        return applied
+
+    def _resolve_grounding_batch_size(self):
+        """
+        Frames to batch through SAM3's grounding detector.
+
+        Honors an explicit ``grounding_batch_size``; otherwise divides the
+        free VRAM (less a headroom allowance for transient allocations and
+        fragmentation) by the measured per-frame cost.
+        """
+        configured = str(self._config.grounding_batch_size).strip().lower()
+        if configured and configured != 'auto':
+            try:
+                return max(1, int(float(configured)))
+            except ValueError:
+                pass
+
+        try:
+            import torch
+            free_bytes, _total = torch.cuda.mem_get_info()
+        except Exception:
+            # No CUDA, or the driver would not report — leave SAM3's default.
+            return _GROUNDING_BATCH_MAX
+
+        usable_gb = (free_bytes / (1024.0 ** 3)) - _GROUNDING_HEADROOM_GB
+        batch = int(usable_gb / _GROUNDING_VRAM_PER_FRAME_GB)
+
+        # Deliberately all-or-nothing.  Measured on a 16 GB Turing card:
+        # batched grounding OOMs at the stock batch of 16, and every reduced
+        # batch (7, 4, 2) completes "successfully" while emitting no
+        # detections at all.  A partial batch is therefore not a usable
+        # middle ground -- it trades a loud failure for a silent one.  If the
+        # full batch does not fit, fall back to the unbatched path, which is
+        # slower but produces correct output.
+        if batch < _GROUNDING_BATCH_MAX:
+            print("[SAM3] %.1f GiB VRAM free -> too little for a full "
+                  "%d-frame grounding batch; using the unbatched path"
+                  % (free_bytes / (1024.0 ** 3), _GROUNDING_BATCH_MAX))
+            return 1
+
+        print("[SAM3] %.1f GiB VRAM free -> grounding batch size %d"
+              % (free_bytes / (1024.0 ** 3), _GROUNDING_BATCH_MAX))
+        return _GROUNDING_BATCH_MAX
 
     def _run_video_propagation(self):
         """
@@ -362,7 +617,7 @@ class SAM3Refiner(RefineTracks):
         if chunk_size <= 0 or total_frames <= chunk_size:
             # Process all at once
             return self._run_video_propagation_chunk(
-                self._pil_frames, 0, self._frame_prompts,
+                self._pil_frames[:], 0, self._frame_prompts,
                 self._text_prompt_frames)
 
         # Process in overlapping chunks with ID reconciliation.
@@ -940,6 +1195,8 @@ class SAM3Refiner(RefineTracks):
             # silently exiting 0 with no tracks. The report_cuda_errors
             # decorator turns this into a DIVE-surfaced ERROR: line.
             raise
+        finally:
+            self._pil_frames.cleanup()
 
         # Split tracks that have large spatial jumps (identity switches)
         self._split_jumping_tracks()
