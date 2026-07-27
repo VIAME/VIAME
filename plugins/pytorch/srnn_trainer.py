@@ -317,7 +317,21 @@ class SRNNTrainer( TrainTracker ):
         # Output directory for SRNN training
         srnn_output = Path( self._train_directory ) / "srnn_output"
 
+        # Never delete previous results silently. The generated training data
+        # and extracted features under here are the bulk of a run's wall clock
+        # and are what a resume exists to reuse, so a run started without
+        # resume set stops rather than destroying them. Move or remove the
+        # directory by hand to start over.
         if srnn_output.exists() and not self._resume:
+            existing = [ p for p in srnn_output.rglob( "*" ) if p.is_file() ]
+
+            if existing:
+                raise RuntimeError(
+                    "{} already holds {} files from an earlier run. Set "
+                    "resume to carry on from them, or move the directory "
+                    "aside to start fresh; it will not be deleted "
+                    "automatically.".format( srnn_output, len( existing ) ) )
+
             shutil.rmtree( srnn_output )
 
         # Handle interrupt signals
