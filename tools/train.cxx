@@ -2747,13 +2747,9 @@ train_applet
     invalid_train_set = is_detection_set_empty( train_gt );
   }
 
-  // Thin the training set AFTER the validation split, not before it. The burst
-  // split assigns each frame by its index ( i % total_segment ), so downsampling
-  // first shifts every index and silently lands validation on a different set of
-  // frames -- two runs differing only in this throughput knob would not be
-  // comparable. Applied here, train and validation membership is identical to
-  // what downsample = 0 would have produced, with fewer training frames evenly
-  // spaced through it. Validation is deliberately left whole.
+  // After the split, not before: the burst split assigns frames by index
+  // ( i % total_segment ), so downsampling first would silently land validation
+  // on a different set of frames. Validation is left whole.
   if( downsample > 0 )
   {
     downsample_data( train_image_fn, train_gt, downsample );
