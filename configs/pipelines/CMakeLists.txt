@@ -376,9 +376,6 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SIAMMASK )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    common_short_term_tracker.pipe
-    train_tracker_siammask.conf
-    utility_track_selections_default_mask.pipe
     utility_track_selections_fish_box_only.pipe
   )
 endif()
