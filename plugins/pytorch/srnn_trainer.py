@@ -59,6 +59,7 @@ class SRNNTrainer( TrainTracker ):
         self._siamese_img_sample_rate = 8
         self._siamese_pos_sample_rate = 10
         self._rnn_component = "AIM"  # Which LSTM components to use
+        self._resume = False
 
         self._categories = []
         self._train_image_files = []
@@ -79,6 +80,7 @@ class SRNNTrainer( TrainTracker ):
         cfg.set_value( "siamese_img_sample_rate", str( self._siamese_img_sample_rate ) )
         cfg.set_value( "siamese_pos_sample_rate", str( self._siamese_pos_sample_rate ) )
         cfg.set_value( "rnn_component", self._rnn_component )
+        cfg.set_value( "resume", str( self._resume ) )
 
         return cfg
 
@@ -97,6 +99,7 @@ class SRNNTrainer( TrainTracker ):
         self._siamese_img_sample_rate = int( cfg.get_value( "siamese_img_sample_rate" ) )
         self._siamese_pos_sample_rate = int( cfg.get_value( "siamese_pos_sample_rate" ) )
         self._rnn_component = str( cfg.get_value( "rnn_component" ) )
+        self._resume = strtobool( cfg.get_value( "resume" ) )
 
         # Check GPU availability
         try:
@@ -313,7 +316,8 @@ class SRNNTrainer( TrainTracker ):
 
         # Output directory for SRNN training
         srnn_output = Path( self._train_directory ) / "srnn_output"
-        if srnn_output.exists():
+
+        if srnn_output.exists() and not self._resume:
             shutil.rmtree( srnn_output )
 
         # Handle interrupt signals
@@ -334,6 +338,7 @@ class SRNNTrainer( TrainTracker ):
             output_dir=srnn_output,
             stabilized=bool( self._stabilized ),
             tracks=tracks,
+            resume=bool( self._resume ),
         )
 
         output = self._get_output_map( srnn_output )

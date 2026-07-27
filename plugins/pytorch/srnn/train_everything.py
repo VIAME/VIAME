@@ -97,9 +97,24 @@ def get_best_model(model_dir):
     return best_epoch, model
 
 
+def stage_done(*paths):
+    """True if every path exists, used to skip a stage already completed."""
+    return all(Path(p).exists() for p in paths)
+
+
 def main(data_root, output_dir, stabilized, generate_options=None,
-         lstm_model_params=None, lstm_train_options=None, tracks=None):
-    output_dir.mkdir()
+         lstm_model_params=None, lstm_train_options=None, tracks=None,
+         resume=False):
+    """Run the SRNN pipeline.
+
+    With resume set, a stage whose outputs are already present under
+    output_dir is skipped. The pipeline has no checkpointing of its own and
+    the early stages cost the bulk of the wall clock -- generating the
+    training data and extracting features took about twenty of the twenty one
+    hours of a full run here -- so being able to carry those over is what
+    makes continuing on another machine worth doing.
+    """
+    output_dir.mkdir(exist_ok=resume)
     print("Creating Siamese training data")
     gen_data = output_dir / 'training_data'
     gen_data_vids = gen_data / 'vids'
@@ -107,49 +122,73 @@ def main(data_root, output_dir, stabilized, generate_options=None,
     # Run in process rather than shelling out, so the track states can be
     # handed over as objects. This stage was the only reader of the gt.kw18
     # files, which no longer exist.
-    if tracks is None:
-        raise ValueError(
-            "Track states must be supplied; Siamese data generation no longer"
-            " reads gt.kw18 files from data_root")
+    siamese_sets = [gen_data_prefix + '_siamese_train_set.p',
+                    gen_data_prefix + '_siamese_test_set.p']
 
-    from .generate_training_files_kw18 import generate_siamese_data
+    if resume and stage_done(*siamese_sets):
+        print("  already generated, skipping")
+    else:
+        if tracks is None:
+            raise ValueError(
+                "Track states must be supplied; Siamese data generation no"
+                " longer reads gt.kw18 files from data_root")
 
-    generate_siamese_data(
-        root_path=data_root,
-        out_path=gen_data_vids,
-        out_file_prefix=gen_data_prefix,
-        tracks=tracks,
-        stabilized=stabilized,
-        **{k: v for k, v in (generate_options or {}).items()},
-    )
+        from .generate_training_files_kw18 import generate_siamese_data
+
+        generate_siamese_data(
+            root_path=data_root,
+            out_path=gen_data_vids,
+            out_file_prefix=gen_data_prefix,
+            tracks=tracks,
+            stabilized=stabilized,
+            **{k: v for k, v in (generate_options or {}).items()},
+        )
 
     print("Training Siamese model")
     siamese_dir = output_dir / 'siamese'
     siamese_models = siamese_dir / 'models'
-    run_mod(
-        'siamese_main_train',
-        model_dir=siamese_models,
-        data_root=gen_data_vids,
-        train_file=gen_data_prefix + '_siamese_train_set.p',
-        test_file=gen_data_prefix + '_siamese_test_set.p',
-    )
-
-    best_epoch, _model = get_best_model(siamese_models)
-    print("Selecting the epoch {} model".format(best_epoch))
     siamese_model = siamese_dir / 'best_model.pt'
-    siamese_model.symlink_to(_model.relative_to(siamese_model.parent))
+
+    if resume and stage_done(siamese_model):
+        print("  already trained, skipping")
+    else:
+        run_mod(
+            'siamese_main_train',
+            model_dir=siamese_models,
+            data_root=gen_data_vids,
+            train_file=gen_data_prefix + '_siamese_train_set.p',
+            test_file=gen_data_prefix + '_siamese_test_set.p',
+        )
+
+        best_epoch, _model = get_best_model(siamese_models)
+        print("Selecting the epoch {} model".format(best_epoch))
+        siamese_model.symlink_to(_model.relative_to(siamese_model.parent))
 
     print("Extracting appearance features")
-    run_mod(
-        'extract_siamese_features',
-        model_path=siamese_model,
-        data_root=gen_data_vids,
-        train_feature_file=gen_data_prefix + '_train_features.p',
-        test_feature_file=gen_data_prefix + '_test_features.p',
-    )
+    feature_files = [gen_data_prefix + '_train_features.p',
+                     gen_data_prefix + '_test_features.p']
+
+    if resume and stage_done(*feature_files):
+        print("  already extracted, skipping")
+    else:
+        run_mod(
+            'extract_siamese_features',
+            model_path=siamese_model,
+            data_root=gen_data_vids,
+            train_feature_file=feature_files[0],
+            test_feature_file=feature_files[1],
+        )
 
     print("Creating LSTM training data")
     for fixed_length in (True, False):
+        fix_letter = 'F' if fixed_length else 'V'
+        seq_sets = ['_'.join([gen_data_prefix, fix_letter, tt + '_set.p'])
+                    for tt in ('train', 'test')]
+
+        if resume and stage_done(*seq_sets):
+            print("  {}-length already generated, skipping".format(fix_letter))
+            continue
+
         run_mod(
             'generate_training_files_kw18',
             '--RNN-training',  # Well that's not ideal
@@ -187,6 +226,10 @@ def main(data_root, output_dir, stabilized, generate_options=None,
         model_dir = lstm_dir / (name_key + '_models')
         gpu = index % n_gpus
 
+        if resume and stage_done(lstm_dir / (name_key + '_best.pt')):
+            print("Skipping {} model, already trained".format(name_key))
+            return fixed_length, model_type, name_key, model_dir
+
         print("Training {} model on device {}".format(name_key, gpu))
         run_mod(
             'rnn_main_train',
@@ -209,10 +252,14 @@ def main(data_root, output_dir, stabilized, generate_options=None,
         lstm_models['fixed' if fixed_length else 'var'] = {}
 
     for fixed_length, model_type, name_key, model_dir in results:
-        best_epoch, _model = get_best_model(model_dir)
-        print("Selecting the epoch {} model for {}".format(best_epoch, name_key))
         model = lstm_dir / (name_key + '_best.pt')
-        model.symlink_to(_model.relative_to(model.parent))
+
+        if not model.exists():
+            best_epoch, _model = get_best_model(model_dir)
+            print("Selecting the epoch {} model for {}".format(best_epoch,
+                                                              name_key))
+            model.symlink_to(_model.relative_to(model.parent))
+
         lstm_models['fixed' if fixed_length else 'var'][model_type] = model
 
     print("Training combined LSTM model")
@@ -223,6 +270,12 @@ def main(data_root, output_dir, stabilized, generate_options=None,
         fix_letter = 'F' if fixed_length else 'V'
         source_models = lstm_models['fixed' if fixed_length else 'var']
         model_dir = target_lstm_dir / (fix_letter + '_models')
+        model = target_lstm_dir / 'best_{}_model.pt'.format(fix_letter)
+
+        if resume and stage_done(model):
+            print("  already trained, skipping")
+            continue
+
         run_mod(
             'target_rnn_main_train',
             model_dir=model_dir,
@@ -237,7 +290,6 @@ def main(data_root, output_dir, stabilized, generate_options=None,
         )
         best_epoch, _model = get_best_model(model_dir)
         print("Selecting the epoch {} model".format(best_epoch))
-        model = target_lstm_dir / 'best_{}_model.pt'.format(fix_letter)
         model.symlink_to(_model.relative_to(model.parent))
 
 
@@ -260,6 +312,9 @@ def create_parser():
                    help='Path to organize all produced files under')
     p.add_argument('--stabilized', action='store_true',
                    help='Generate and train on stabilized data')
+    p.add_argument('--resume', action='store_true',
+                   help='Skip any stage whose outputs are already present'
+                   ' under output_dir')
     # Not ideal
     p.add_argument('--generate-options', type=stringy_dict,
                    help='Extra options for generate_training_files_kw18.py'
