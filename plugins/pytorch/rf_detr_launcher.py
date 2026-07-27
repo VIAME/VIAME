@@ -65,7 +65,21 @@ def build_and_train(params):
     else:
         model = model_cls(**model_kwargs)
 
-    model.train(**params["train_kwargs"])
+    train_kwargs = params["train_kwargs"]
+
+    # TrainConfig is a pydantic model with the default extra="ignore", so an rfdetr
+    # predating ddp_timeout_seconds would drop it silently and leave the run on the
+    # 30-minute watchdog while the config claims otherwise. Say so instead.
+    if "ddp_timeout_seconds" in train_kwargs:
+        from rfdetr.config import TrainConfig
+
+        if "ddp_timeout_seconds" not in getattr(TrainConfig, "model_fields", {}):
+            print("[rf_detr_launcher] WARNING: installed rfdetr does not support "
+                  "ddp_timeout_seconds; DDP stays on PyTorch-Lightning's 30-minute "
+                  "process-group timeout.", flush=True)
+            train_kwargs.pop("ddp_timeout_seconds")
+
+    model.train(**train_kwargs)
 
 
 if __name__ == "__main__":

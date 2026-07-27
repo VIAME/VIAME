@@ -39,6 +39,39 @@ _SEG_MODELS = {
 }
 
 
+# Bytes a complete file of each format ends with. A frame whose write was cut
+# short (interrupted extraction, full disk) keeps a valid header, so PIL reports
+# a size for it and only raises "image file is truncated" much later, inside a
+# DataLoader worker. Under DDP that kills one rank and leaves every other rank
+# blocked in the next collective until the NCCL watchdog aborts the whole job,
+# ddp_timeout seconds later, with no mention of the offending file.
+_IMAGE_EOF_MARKERS = {
+    '.png': b"\x00\x00\x00\x00IEND\xaeB\x60\x82",
+    '.jpg': b"\xff\xd9",
+    '.jpeg': b"\xff\xd9",
+}
+
+
+def image_is_complete(fh, path):
+    """True if an open image file carries its format's end-of-file marker."""
+    marker = _IMAGE_EOF_MARKERS.get(os.path.splitext(path)[1].lower())
+
+    if marker is None:
+        return True
+
+    try:
+        fh.seek(-32, os.SEEK_END)
+        tail = fh.read(32)
+    except OSError:
+        return False
+
+    # JPEGs are commonly padded past their EOI, PNGs never are.
+    if marker == b"\xff\xd9":
+        return marker in tail
+
+    return tail.endswith(marker)
+
+
 def select_model_class(model_size, segmentation):
     """Return the RF-DETR model class for a size + detection/segmentation mode."""
     table = _SEG_MODELS if segmentation else _DET_MODELS
@@ -114,6 +147,15 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     strategy = scfg.Value('auto', help=(
         'Multi-GPU strategy. "auto" uses ddp_find_unused_parameters_true when '
         'training on more than one GPU.'))
+    ddp_timeout = scfg.Value(0, help=(
+        'Seconds a DDP rank may lag the others before the NCCL watchdog aborts '
+        'every rank (0 = PyTorch-Lightning default, 1800). A rank that stalls '
+        'longer than this kills the whole run with SIGABRT, and the ranks that '
+        'report the timeout are the victims, not the culprit -- the straggler '
+        'is whichever rank is absent from the error. Raise it when a rank can '
+        'legitimately be slow (checkpoint writes to network storage, a long '
+        'eval); it does NOT rescue a genuine deadlock, it only delays it, so '
+        'a hung run holds its GPUs for this long before dying.'))
     num_channels = scfg.Value(3, help=(
         'Number of input channels. 3 = RGB; 4 = RGB + a motion/flow channel '
         '(RGBA). RF-DETR adapts the pretrained input conv to match.'))
@@ -415,6 +457,8 @@ class RFDETRTrainer(TrainDetector):
             for category in categories_json:
                 category["keypoints"] = list(kp_names)
 
+        unreadable = []
+
         def build_coco_json(image_files, detection_sets):
             images_json = []
             annotations_json = []
@@ -427,9 +471,17 @@ class RFDETRTrainer(TrainDetector):
                 if not os.path.exists(img_path):
                     continue
 
-                # Read dimensions from header only
-                with Image.open(img_path) as im:
-                    width, height = im.size
+                # Dimensions come from the header; the EOF marker is what says
+                # the rest of the file is actually there.
+                try:
+                    with open(img_path, 'rb') as fh:
+                        with Image.open(fh) as im:
+                            width, height = im.size
+                        if not image_is_complete(fh, img_path):
+                            raise OSError("image file is truncated")
+                except Exception as exc:
+                    unreadable.append((img_path, f"{type(exc).__name__}: {exc}"))
+                    continue
 
                 img_id = img_idx
                 abs_path = os.path.abspath(img_path)
@@ -533,6 +585,19 @@ class RFDETRTrainer(TrainDetector):
         # RF-DETR requires a test split; reuse validation data
         with open(test_dir / "_annotations.coco.json", "w") as f:
             json.dump(valid_coco, f)
+
+        if unreadable:
+            report = ub.Path(self._train_directory) / "unreadable_images.txt"
+            with open(report, "w") as f:
+                for path, reason in unreadable:
+                    f.write(f"{path}\t{reason}\n")
+            print(f"[RFDETRTrainer] WARNING: excluded {len(unreadable)} "
+                  f"truncated or unreadable image(s) from training; full list "
+                  f"in {report}")
+            for path, reason in unreadable[:10]:
+                print(f"[RFDETRTrainer]   {path} ({reason})")
+            if len(unreadable) > 10:
+                print(f"[RFDETRTrainer]   ... and {len(unreadable) - 10} more")
 
         return dataset_dir, class_names
 
@@ -838,6 +903,9 @@ class RFDETRTrainer(TrainDetector):
             devices=n_gpus,
             strategy=self._resolve_strategy(n_gpus),
         )
+        ddp_timeout = int(self._ddp_timeout)
+        if ddp_timeout > 0:
+            train_kwargs["ddp_timeout_seconds"] = ddp_timeout
         if batch_size == 'auto':
             train_kwargs["auto_batch_target_effective"] = \
                 int(self._auto_batch_target_effective)
@@ -925,6 +993,17 @@ class RFDETRTrainer(TrainDetector):
                     f"Ask the scheduler for more memory (Slurm: --mem and "
                     f"--cpus-per-task), or lower num_workers / prefetch_factor / "
                     f"val_subsample."
+                ) from exc
+            if exc.returncode == -6:
+                secs = int(self._ddp_timeout) or 1800
+                raise RuntimeError(
+                    f"A DDP rank aborted with SIGABRT: the NCCL watchdog tore "
+                    f"every rank down after a collective sat unmatched for "
+                    f"{secs}s (ddp_timeout). The ranks that report the timeout "
+                    f"are the victims -- the cause is whichever rank is MISSING "
+                    f"from those errors. Search the log above for that rank's "
+                    f"'[rankN]:' traceback; it precedes the timeout by {secs}s "
+                    f"and names the real failure."
                 ) from exc
             raise
 
