@@ -1,4 +1,4 @@
-META_ARC: "siamrpn_r50_l234_dwxcorr"
+META_ARC: "siammask_r50_l3_dwxcorr"
 
 BACKBONE:
     TYPE: "resnet50"
