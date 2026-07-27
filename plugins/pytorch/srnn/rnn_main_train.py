@@ -44,9 +44,17 @@ parser.add_argument('--model-params', type=literal_eval,
 parser.add_argument('--padding',
                     help='the padding method to use for short sequences')
 
+parser.add_argument('--num-workers', dest='num_workers', type=int, default=2,
+                    help='Data loading worker processes. Python 3.14 spawns'
+                    ' these through a forkserver rather than forking, so each'
+                    ' is a fresh interpreter that receives the dataset by'
+                    ' pickle. Several trainings at once with the old default of'
+                    ' eight exhausted the node and the forkserver died,'
+                    ' surfacing as BrokenPipeError.')
+
 args = parser.parse_args()
 
-kwargs = {'num_workers': 8, 'pin_memory': True}
+kwargs = {'num_workers': args.num_workers, 'pin_memory': True}
 
 device = torch.device("cuda")
 if args.rnn_type_str == 'A':

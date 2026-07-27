@@ -60,6 +60,12 @@ class SRNNTrainer( TrainTracker ):
         self._siamese_pos_sample_rate = 10
         self._rnn_component = "AIM"  # Which LSTM components to use
         self._resume = False
+        # How many of the eight component LSTMs to train at once, and how many
+        # data loading workers each gets. Kept low by default: on Python 3.14
+        # loader workers come from a forkserver, so several trainings at once
+        # with many workers each exhausted a two device node.
+        self._lstm_concurrency = 1
+        self._lstm_loader_workers = 2
 
         self._categories = []
         self._train_image_files = []
@@ -81,6 +87,8 @@ class SRNNTrainer( TrainTracker ):
         cfg.set_value( "siamese_pos_sample_rate", str( self._siamese_pos_sample_rate ) )
         cfg.set_value( "rnn_component", self._rnn_component )
         cfg.set_value( "resume", str( self._resume ) )
+        cfg.set_value( "lstm_concurrency", str( self._lstm_concurrency ) )
+        cfg.set_value( "lstm_loader_workers", str( self._lstm_loader_workers ) )
 
         return cfg
 
@@ -100,6 +108,8 @@ class SRNNTrainer( TrainTracker ):
         self._siamese_pos_sample_rate = int( cfg.get_value( "siamese_pos_sample_rate" ) )
         self._rnn_component = str( cfg.get_value( "rnn_component" ) )
         self._resume = strtobool( cfg.get_value( "resume" ) )
+        self._lstm_concurrency = int( cfg.get_value( "lstm_concurrency" ) )
+        self._lstm_loader_workers = int( cfg.get_value( "lstm_loader_workers" ) )
 
         # Check GPU availability
         try:
@@ -353,6 +363,8 @@ class SRNNTrainer( TrainTracker ):
             stabilized=bool( self._stabilized ),
             tracks=tracks,
             resume=bool( self._resume ),
+            lstm_concurrency=int( self._lstm_concurrency ),
+            lstm_loader_workers=int( self._lstm_loader_workers ),
         )
 
         output = self._get_output_map( srnn_output )

@@ -104,7 +104,7 @@ def stage_done(*paths):
 
 def main(data_root, output_dir, stabilized, generate_options=None,
          lstm_model_params=None, lstm_train_options=None, tracks=None,
-         resume=False):
+         resume=False, lstm_concurrency=1, lstm_loader_workers=2):
     """Run the SRNN pipeline.
 
     With resume set, a stage whose outputs are already present under
@@ -162,6 +162,7 @@ def main(data_root, output_dir, stabilized, generate_options=None,
 
         best_epoch, _model = get_best_model(siamese_models)
         print("Selecting the epoch {} model".format(best_epoch))
+        siamese_model.unlink(missing_ok=True)
         siamese_model.symlink_to(_model.relative_to(siamese_model.parent))
 
     print("Extracting appearance features")
@@ -213,8 +214,13 @@ def main(data_root, output_dir, stabilized, generate_options=None,
         for model_type in model_types
     ]
 
+    # Concurrency is capped separately from the device count. Each training
+    # spawns its own data loading workers, and on Python 3.14 those come from a
+    # forkserver rather than a fork, so every one is a fresh interpreter with
+    # its own copy of the data. Running one per device overwhelmed a two device
+    # node: the forkserver died and the trainings failed with BrokenPipeError.
     n_gpus = visible_gpu_count()
-    workers = min(n_gpus, len(jobs))
+    workers = min(n_gpus, len(jobs), lstm_concurrency or 1)
 
     print("Training {} individual LSTM models across {} device(s)"
           .format(len(jobs), workers))
@@ -239,6 +245,7 @@ def main(data_root, output_dir, stabilized, generate_options=None,
             test_file='_'.join([gen_data_prefix, fix_letter, 'test_set.p']),
             RNN_Type=model_type[0].upper(),
             model_params=repr(lstm_model_params),
+            num_workers=lstm_loader_workers,
             gpu=gpu,
             **(lstm_train_options or {}),
         )
@@ -258,6 +265,9 @@ def main(data_root, output_dir, stabilized, generate_options=None,
             best_epoch, _model = get_best_model(model_dir)
             print("Selecting the epoch {} model for {}".format(best_epoch,
                                                               name_key))
+            # exists() is False for a dangling link but the name is still
+            # taken, so symlink_to would fail on one left by an interrupted run
+            model.unlink(missing_ok=True)
             model.symlink_to(_model.relative_to(model.parent))
 
         lstm_models['fixed' if fixed_length else 'var'][model_type] = model
@@ -286,10 +296,12 @@ def main(data_root, output_dir, stabilized, generate_options=None,
             # XXX This should probably be customizable
             RNN_component='AIM',
             model_params=repr(lstm_model_params),
+            num_workers=lstm_loader_workers,
             **(lstm_train_options or {}),
         )
         best_epoch, _model = get_best_model(model_dir)
         print("Selecting the epoch {} model".format(best_epoch))
+        model.unlink(missing_ok=True)
         model.symlink_to(_model.relative_to(model.parent))
 
 

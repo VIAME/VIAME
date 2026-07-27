@@ -55,6 +55,12 @@ parser.add_argument('--padding',
                     help='the padding method to use for short sequences')
 
 
+parser.add_argument('--num-workers', dest='num_workers', type=int, default=2,
+                    help='Data loading worker processes. Python 3.14 spawns'
+                    ' these through a forkserver rather than forking, so each'
+                    ' is a fresh interpreter that receives the dataset by'
+                    ' pickle.')
+
 args = parser.parse_args()
 
 rnn_list = []
@@ -72,7 +78,7 @@ for r in args.rnn_list_str:
 
 print('rnn_list {}'.format(rnn_list))
 
-kwargs = {'num_workers': 8, 'pin_memory': True}
+kwargs = {'num_workers': args.num_workers, 'pin_memory': True}
 train_loader = torch.utils.data.DataLoader(
     TargetRNNDataLoader(args.data_root, args.train_file, rnn_list, args.padding),
     batch_size=g_config.train_BatchSize, shuffle=True, **kwargs)
