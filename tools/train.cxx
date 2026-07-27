@@ -88,8 +88,10 @@ static kv::config_block_sptr default_config()
     "Keep the source bit depth when running single-pass augmentation, so "
     "bit-depth-sensitive pipelines (e.g. percentile normalization of 16-bit "
     "imagery) see the raw data. Implied by --normalize-16bit." );
-  config->set_value( "regenerate_cache", "true",
-    "If an augmentation cache already exists, should we regenerate it or use it as-is?" );
+  config->set_value( "regenerate_cache", "false",
+    "If an augmentation cache already exists, should we regenerate it or use it as-is? "
+    "Either way a sequence whose cache folder is missing or holds under 3 files is "
+    "extracted; false will not complete a partially extracted one." );
   config->set_value( "augmented_ext_override", ".png",
     "Optional image extension over-ride for augmented images." );
   config->set_value( "default_percent_validation", "0.05",
