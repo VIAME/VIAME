@@ -40,7 +40,7 @@ connect from downsampler.output_2
 process short_term_tracker
   :: siammask_tracker
 
-  relativepath config_file =                   pysot_default_siammask.yaml
+  relativepath config_file =                   models/siammask_default.yaml
   relativepath model_file =                    models/pysot_default_siammask.pth
 
   :threshold                                   0.80
