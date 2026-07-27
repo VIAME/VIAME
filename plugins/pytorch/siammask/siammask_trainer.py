@@ -277,6 +277,12 @@ def train(train_loader, model, optimizer, lr_scheduler, tb_writer):
         batch_info['batch_time'] = average_reduce(batch_time)
         batch_info['data_time'] = average_reduce(data_time)
         for k, v in sorted(outputs.items()):
+            # The model reports a loss it could not compute as None -- mask_loss
+            # is None whenever MASK is enabled but the batch carries no
+            # label_mask, which is the case for box only groundtruth. Averaging
+            # that unconditionally crashed the first training step.
+            if v is None:
+                continue
             batch_info[k] = average_reduce(v.data.item())
 
         average_meter.update(**batch_info)
