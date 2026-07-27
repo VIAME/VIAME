@@ -146,6 +146,28 @@ class SiamMaskTrainer( TrainTracker ):
         self._test_image_files = list( test_files )
         self._test_tracks = list( test_tracks )
 
+    def _visible_gpu_count( self ):
+        """Devices this training may use, at least one.
+
+        CUDA_VISIBLE_DEVICES is what actually bounds the process, and the
+        gpu_count setting caps it further when it is set to a positive number.
+        """
+        visible = os.environ.get( "CUDA_VISIBLE_DEVICES" )
+
+        if visible is not None:
+            count = len( [ d for d in visible.split( "," ) if d.strip() ] )
+        else:
+            try:
+                import torch
+                count = torch.cuda.device_count()
+            except Exception:
+                count = 1
+
+        if self._gpu_count and self._gpu_count > 0:
+            count = min( count, self._gpu_count )
+
+        return max( count, 1 )
+
     def _prepare_training_data( self ):
         """
         Lay out training data in the form par_crop and gen_json consume.
@@ -263,8 +285,25 @@ class SiamMaskTrainer( TrainTracker ):
         # Build training command
         python_exe = "python.exe" if os.name == 'nt' else "python"
 
-        cmd = [
-            python_exe, "-m",
+        # SiamMask training is genuinely distributed -- it wraps the model in
+        # DistModule, reduces gradients across ranks and switches to a
+        # DistributedSampler once the world size exceeds one. Launched as a
+        # plain "python -m" it only ever forms a single rank process group and
+        # uses one device no matter how many are visible, so hand it to
+        # torch.distributed.run when there is more than one to use.
+        train_gpus = self._visible_gpu_count()
+
+        cmd = [ python_exe, "-m" ]
+
+        if train_gpus > 1:
+            cmd = [
+                python_exe, "-m", "torch.distributed.run",
+                "--standalone",
+                "--nproc-per-node", str( train_gpus ),
+                "-m",
+            ]
+
+        cmd += [
             "viame.pytorch.siammask.siammask_trainer",
             "-i", self._train_directory,
             "-s", self._train_directory,
@@ -292,21 +331,23 @@ class SiamMaskTrainer( TrainTracker ):
             signal.signal( signal.SIGINT, lambda sig, frame: self._interrupt_handler() )
             signal.signal( signal.SIGTERM, lambda sig, frame: self._interrupt_handler() )
 
-        # The siammask trainer calls dist_init(), which reads RANK and then
-        # init_process_group. Launched as a plain "python -m" none of the
-        # torchrun variables exist and it dies with KeyError: 'RANK', so a
-        # single rank process group is described here instead.
+        # dist_init() reads RANK and then init_process_group. Under
+        # torch.distributed.run those variables are set per worker, so they are
+        # only described here for the single device launch, which would
+        # otherwise die with KeyError: 'RANK'.
         train_env = os.environ.copy()
-        train_env.setdefault( "RANK", "0" )
-        train_env.setdefault( "LOCAL_RANK", "0" )
-        train_env.setdefault( "WORLD_SIZE", "1" )
-        train_env.setdefault( "MASTER_ADDR", "127.0.0.1" )
 
-        if "MASTER_PORT" not in train_env:
-            sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
-            sock.bind( ( "", 0 ) )
-            train_env[ "MASTER_PORT" ] = str( sock.getsockname()[1] )
-            sock.close()
+        if train_gpus <= 1:
+            train_env.setdefault( "RANK", "0" )
+            train_env.setdefault( "LOCAL_RANK", "0" )
+            train_env.setdefault( "WORLD_SIZE", "1" )
+            train_env.setdefault( "MASTER_ADDR", "127.0.0.1" )
+
+            if "MASTER_PORT" not in train_env:
+                sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+                sock.bind( ( "", 0 ) )
+                train_env[ "MASTER_PORT" ] = str( sock.getsockname()[1] )
+                sock.close()
 
         self.proc = subprocess.Popen( cmd, env=train_env )
         self.proc.wait()
