@@ -13,7 +13,6 @@ import json
 import random
 import numpy as np
 from glob import glob
-from importlib import reload
 import sys
 import shutil
 
@@ -38,7 +37,6 @@ from viame.pytorch.siammask.utils.distributed import dist_init, DistModule, redu
 from viame.pytorch.siammask.utils.model_load import load_pretrain, restore_from
 from viame.pytorch.siammask.utils.average_meter import AverageMeter
 from viame.pytorch.siammask.utils.misc import describe, commit
-import viame.pytorch.siammask.datasets.dataset
 from viame.pytorch.siammask.models.model_builder import ModelBuilder
 from viame.pytorch.siammask.core.config import cfg
 
@@ -84,28 +82,31 @@ def prep_data():
 
     gen_json(args.image_folder, args.save_folder)
 
-    import viame.pytorch.siammask.core.config as cfg_file
-    core_cfg = cfg_file.__file__
-    with open(core_cfg) as f:
-        cc_lines = f.readlines()
-    for idx, line in enumerate(cc_lines):
-        file_path = '/'.join(os.path.abspath(__file__).split('/')[:-1])
-        if '__C.DATASET.VIAME.ROOT = ' in line:
-            cc_lines[idx] = f"__C.DATASET.VIAME.ROOT = \"{os.path.join(os.getcwd(), args.save_folder, 'crop511')}\"\n"
-        if '__C.DATASET.VIAME.ANNO = ' in line:
-            cc_lines[idx] = f"__C.DATASET.VIAME.ANNO = \"{os.path.join(os.getcwd(), args.save_folder, 'dataset.json')}\"\n"
-        if '__C.DATASET.VIDEOS_PER_EPOCH = ' in line:
-            num_vids = 6000*len(glob(os.path.join(args.image_folder, '*')))
-            cc_lines[idx] = f'__C.DATASET.VIDEOS_PER_EPOCH = {num_vids}\n'
-    with open(core_cfg, 'w') as f:
-        for line in cc_lines:
-            f.write(line)
+
+def configure_dataset():
+    """Point the config at the data this run just prepared.
+
+    This used to be done by rewriting the assignments in core/config.py and
+    reloading the module. Reloading rebuilt cfg from those defaults, and since
+    datasets/dataset.py was reloaded straight after, the dataset bound to that
+    fresh object while the model kept the one the yaml had been merged into.
+    The two then disagreed about every setting the yaml overrides. MASK.MASK
+    defaults to False, so the dataset emitted no label_mask and the mask head
+    trained on nothing while the config the run printed said MASK was on.
+
+    Setting the values on the live config keeps one config for the whole run,
+    and stops each run editing an installed source file.
+    """
+    cfg.DATASET.VIAME.ROOT = os.path.join(
+        os.getcwd(), args.save_folder, 'crop511')
+    cfg.DATASET.VIAME.ANNO = os.path.join(
+        os.getcwd(), args.save_folder, 'dataset.json')
+    cfg.DATASET.VIDEOS_PER_EPOCH = \
+        6000 * len(glob(os.path.join(args.image_folder, '*')))
 
 
 def build_data_loader():
     logger.info("build train dataset")
-    reload(viame.pytorch.siammask.core.config)
-    reload(viame.pytorch.siammask.datasets.dataset)
     from viame.pytorch.siammask.datasets.dataset import TrkDataset
     train_dataset = TrkDataset()
     logger.info("build dataset done")
@@ -317,6 +318,9 @@ def main():
     seed_torch(args.seed)
     rank, world_size = dist_init()
     cfg.merge_from_file(args.config_file)
+
+    # After the merge, so the run's own paths are not what the yaml overrides
+    configure_dataset()
 
     # A model to fine tune from, given on the command line so the shipped yaml
     # stays untouched. TRAIN.PRETRAINED loads the whole network rather than
