@@ -145,8 +145,15 @@ def load_computed_detections( directory, sequence_name ):
 
     stem = os.path.splitext( sequence_name )[ 0 ]
 
-    candidates = [ sequence_name + ".csv", stem + ".csv",
-                   sequence_name + ".txt", stem + ".txt" ]
+    # process_video.py writes <stem>_detections.csv and <stem>_tracks.csv, so
+    # its output directory can be pointed at directly rather than renamed
+    # first. Detections are preferred: the tracks file has been through a
+    # tracker, and what is wanted here is what the detector said.
+    candidates = []
+
+    for base in ( sequence_name, stem ):
+        candidates += [ base + "_detections.csv", base + ".csv",
+                        base + "_tracks.csv", base + ".txt" ]
 
     path = None
 
