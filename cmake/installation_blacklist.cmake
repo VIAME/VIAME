@@ -99,19 +99,40 @@ set( VIAME_BLACKLISTED_BINARIES
   xmlpatternsvalidator
   )
 
-foreach( binary_file ${VIAME_BLACKLISTED_BINARIES} )
-  if( EXISTS ${VIAME_INSTALL_PREFIX}/bin/${binary_file} )
-    file( REMOVE ${VIAME_INSTALL_PREFIX}/bin/${binary_file} )
-  endif()
-  if( EXISTS ${VIAME_INSTALL_PREFIX}/bin/${binary_file}.exe )
-    file( REMOVE ${VIAME_INSTALL_PREFIX}/bin/${binary_file}.exe )
-  endif()
-endforeach()
+# Pruning the install tree is a PACKAGING step, not a configure-time one.
+#
+# This file is include()d from build_package.cmake, which runs during super-build
+# *configure*. An unconditional file( REMOVE ) there is useless on a fresh build
+# (nothing is installed yet, so it matches nothing) and actively destructive on
+# any re-configure of a populated build tree, where it deletes binaries that
+# later build steps still need. Concretely: fletch installs GeographicLib along
+# with an exported geographiclib-targets.cmake that declares imported targets
+# for install/bin/CartConvert, ConicProj, GeodSolve, ... and asserts those files
+# exist at find_package() time. Stripping them behind vivia's back makes vivia's
+# configure step fail outright with
+#
+#   CMake Error at install/lib/cmake/GeographicLib/geographiclib-targets.cmake:
+#     The imported target "CartConvert" references the file
+#       ".../install/bin/CartConvert" but this file does not exist.
+#
+# so every incremental super-build after the first one breaks. Guard the removal
+# so including this file only defines the list; a future package-time hook can
+# opt in by setting VIAME_APPLY_INSTALL_BLACKLIST before including it.
+if( VIAME_APPLY_INSTALL_BLACKLIST )
+  foreach( binary_file ${VIAME_BLACKLISTED_BINARIES} )
+    if( EXISTS ${VIAME_INSTALL_PREFIX}/bin/${binary_file} )
+      file( REMOVE ${VIAME_INSTALL_PREFIX}/bin/${binary_file} )
+    endif()
+    if( EXISTS ${VIAME_INSTALL_PREFIX}/bin/${binary_file}.exe )
+      file( REMOVE ${VIAME_INSTALL_PREFIX}/bin/${binary_file}.exe )
+    endif()
+  endforeach()
 
-# Remove pywin32.pth which references directories (win32, win32\lib) that
-# don't exist in the VIAME install layout, causing import errors on startup.
-# pywin32 is only a transitive dependency and is not required at runtime.
-set( PYTHON_SITE_PACKAGES "${VIAME_INSTALL_PREFIX}/lib/python3.10/site-packages" )
-if( EXISTS "${PYTHON_SITE_PACKAGES}/pywin32.pth" )
-  file( REMOVE "${PYTHON_SITE_PACKAGES}/pywin32.pth" )
+  # Remove pywin32.pth which references directories (win32, win32\lib) that
+  # don't exist in the VIAME install layout, causing import errors on startup.
+  # pywin32 is only a transitive dependency and is not required at runtime.
+  set( PYTHON_SITE_PACKAGES "${VIAME_INSTALL_PREFIX}/lib/python3.10/site-packages" )
+  if( EXISTS "${PYTHON_SITE_PACKAGES}/pywin32.pth" )
+    file( REMOVE "${PYTHON_SITE_PACKAGES}/pywin32.pth" )
+  endif()
 endif()
