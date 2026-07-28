@@ -523,6 +523,11 @@ class BoTSORTTrainer(TrainTracker):
 
         total_crops = 0
 
+        computed_by_sequence = self._load_computed_by_sequence(
+            image_maps, names, track_sets)
+        counters = {'matched': 0, 'false_positives': 0, 'missed': 0,
+                    'frames_without': 0}
+
         for seq_idx, track_set in enumerate(track_sets):
             if track_set is None:
                 continue
