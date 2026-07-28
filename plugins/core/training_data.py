@@ -88,6 +88,11 @@ def build_sequence_maps( image_files, track_set_count, label="training" ):
         the files, every entry is the flat map the trainers used to build, so
         behaviour is no worse than before, and a warning says so.
     """
+    # Nothing to divide. A run with no validation split lands here, and has no
+    # problem to be warned about.
+    if not track_set_count or not image_files:
+        return [], []
+
     groups, names = group_files_by_sequence( image_files,
                                              expected=track_set_count )
 

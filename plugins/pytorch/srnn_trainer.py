@@ -34,7 +34,8 @@ import signal
 import time
 import threading
 from viame.pytorch.utilities import report_cuda_errors
-from viame.core.training_data import build_sequence_maps
+from viame.core.training_data import (build_sequence_maps,
+    load_computed_detections, match_to_groundtruth)
 from viame.pytorch.srnn.generate_training_files_kw18 import BoundingBox
 
 
@@ -49,6 +50,11 @@ class SRNNTrainer( TrainTracker ):
         TrainTracker.__init__( self )
 
         self._identifier = "viame-srnn-tracker"
+
+        # Directory of detector output for the same clips, one VIAME
+        # CSV per clip. Optional: left empty everything comes from the
+        # groundtruth exactly as before.
+        self._computed_detections = ""
         self._train_directory = "deep_training"
         self._gpu_count = -1
         self._threshold = "0.00"
@@ -78,6 +84,7 @@ class SRNNTrainer( TrainTracker ):
         cfg = super( TrainTracker, self ).get_configuration()
 
         cfg.set_value( "identifier", self._identifier )
+        cfg.set_value( "computed_detections", self._computed_detections )
         cfg.set_value( "train_directory", self._train_directory )
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
         cfg.set_value( "threshold", self._threshold )
@@ -99,6 +106,7 @@ class SRNNTrainer( TrainTracker ):
         cfg.merge_config( cfg_in )
 
         self._identifier = str( cfg.get_value( "identifier" ) )
+        self._computed_detections = str( cfg.get_value( "computed_detections" ) )
         self._train_directory = str( cfg.get_value( "train_directory" ) )
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
         self._threshold = str( cfg.get_value( "threshold" ) )
@@ -218,6 +226,71 @@ class SRNNTrainer( TrainTracker ):
 
         return data_root, tracks
 
+    def _load_computed_by_sequence( self, names, track_sets ):
+        """Detector output per sequence, keyed by track set index."""
+        if not self._computed_detections:
+            return None
+
+        if not names or all( n is None for n in names ):
+            print( "WARNING: computed_detections was given but the images "
+                   "could not be split per sequence, so there is no clip name "
+                   "to look a detection file up by. Using the groundtruth." )
+            return None
+
+        loaded = {}
+
+        for seq_idx, name in enumerate( names ):
+            if name is None or seq_idx >= len( track_sets ):
+                continue
+
+            detections = load_computed_detections( self._computed_detections,
+                                                   name )
+
+            if detections:
+                loaded[ seq_idx ] = detections
+
+        print( f"  computed detections found for {len(loaded)} of "
+               f"{len(track_sets)} sequences" )
+
+        return loaded or None
+
+    @staticmethod
+    def _substitute_computed( frame_annotations, computed, counters,
+                              iou_threshold=0.5 ):
+        """Swap groundtruth boxes for the detector boxes that matched them."""
+        replaced = {}
+
+        for frame_id, truth in frame_annotations.items():
+            frame_computed = computed.get( frame_id, [] )
+
+            if not frame_computed:
+                continue
+
+            matches, unmatched, missed = match_to_groundtruth(
+                frame_computed,
+                [ ( t[ 1 ], t[ 2 ], t[ 3 ], t[ 4 ], t[ 0 ] ) for t in truth ],
+                iou_threshold )
+
+            counters[ 'matched' ] += len( matches )
+            counters[ 'false_positives' ] += len( unmatched )
+            counters[ 'missed' ] += len( missed )
+
+            rows = []
+
+            for c, t, _overlap in matches:
+                x1, y1, x2, y2 = ( int( c[ 0 ] ), int( c[ 1 ] ),
+                                   int( c[ 2 ] ), int( c[ 3 ] ) )
+
+                if x2 <= x1 or y2 <= y1:
+                    continue
+
+                rows.append( ( t[ 4 ], x1, y1, x2, y2 ) )
+
+            if rows:
+                replaced[ frame_id ] = rows
+
+        return replaced
+
     def _prepare_split_data( self, track_sets, image_files, output_dir, split_name ):
         """
         Prepare data for one split (train or test).
@@ -232,8 +305,12 @@ class SRNNTrainer( TrainTracker ):
         # One image map per sequence. A frame id is a position within its own
         # sequence, so resolving it against the flat list of every sequence's
         # images only ever worked for the first one.
-        image_maps, _names = build_sequence_maps(
+        image_maps, names = build_sequence_maps(
             image_files, len( track_sets ), split_name )
+
+        computed_by_sequence = self._load_computed_by_sequence(
+            names, track_sets )
+        counters = { 'matched': 0, 'false_positives': 0, 'missed': 0 }
 
         for seq_idx, track_set in enumerate( track_sets ):
             if track_set is None:
@@ -279,6 +356,17 @@ class SRNNTrainer( TrainTracker ):
                     frame_annotations[ frame_id ].append(
                         ( track_id, x1, y1, x2, y2 )
                     )
+
+            # Where a detector's own output is supplied, learn from its boxes
+            # rather than the groundtruth's. It matters more here than for a
+            # re-ID crop: the motion LSTM trained on groundtruth sees
+            # trajectories that are smooth by construction, and at inference
+            # it is handed the detector's jitter.
+            if computed_by_sequence and seq_idx in computed_by_sequence:
+                frame_annotations = self._substitute_computed(
+                    frame_annotations, computed_by_sequence[ seq_idx ],
+                    counters )
+                all_frame_ids = set( frame_annotations )
 
             # A clip with no annotations gets no sequence directory at all. The
             # directory used to be created before this point, which left behind

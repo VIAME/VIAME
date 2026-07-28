@@ -37,7 +37,8 @@ import threading
 import json
 import random
 from viame.pytorch.utilities import report_cuda_errors
-from viame.core.training_data import build_sequence_maps
+from viame.core.training_data import (build_sequence_maps,
+    load_computed_detections, match_to_groundtruth)
 
 
 # The Re-ID dataset and batch sampler live at module scope rather than inside
@@ -103,8 +104,18 @@ class PKSampler(_TorchSampler):
     of P identities guarantees every sample has a positive.
     """
 
-    def __init__(self, labels, p, k, num_batches=None):
+    def __init__(self, labels, p, k, num_batches=None, same_sequence=0.7,
+                 names=None):
+        """
+        Args:
+            labels: the dataset's per sample label, an integer index
+            names: label index -> identity name, as ReIDDataset.label_to_idx
+                holds it the other way round. Without it the sampler cannot
+                tell which clip an identity came from and simply draws
+                globally, which is what it always did.
+        """
         self.k = max(int(k), 2)
+        self.same_sequence = same_sequence
 
         self.by_id = {}
         for idx, label in enumerate(labels):
@@ -114,6 +125,26 @@ class PKSampler(_TorchSampler):
         self.ids = [i for i, idxs in self.by_id.items() if len(idxs) >= 2]
         self.p = max(min(int(p), len(self.ids)), 1)
 
+        # Identities grouped by the clip they came from. Names are written
+        # seq{seq:04d}_track{id:06d}, so the clip is the part before _track.
+        self.by_sequence = {}
+
+        if names:
+            for identity in self.ids:
+                name = names.get(identity)
+
+                if name is None:
+                    continue
+
+                sequence = str(name).split("_track")[0]
+                self.by_sequence.setdefault(sequence, []).append(identity)
+
+        # Only clips that can fill a batch on their own are worth drawing
+        # from, otherwise the batch is mostly topped up from elsewhere and
+        # the point is lost
+        self.rich_sequences = [s for s, ids in self.by_sequence.items()
+                               if len(ids) >= self.p]
+
         if num_batches is None:
             num_batches = max(len(labels) // (self.p * self.k), 1)
         self.num_batches = num_batches
@@ -121,10 +152,27 @@ class PKSampler(_TorchSampler):
     def __len__(self):
         return self.num_batches
 
+    def _pick_identities(self):
+        """The P identities for one batch.
+
+        Drawn from a single clip most of the time. Sampling identities
+        uniformly puts each one in a batch with fish from other clips, other
+        water and other lighting, and batch-hard mining will happily satisfy
+        the margin on those cues rather than on what the fish looks like. A
+        negative from the same clip is the one that forces an appearance
+        comparison. The rest of the time the draw is global, so the embedding
+        still has to separate identities across clips.
+        """
+        if self.rich_sequences and random.random() < self.same_sequence:
+            sequence = random.choice(self.rich_sequences)
+            return random.sample(self.by_sequence[sequence], self.p)
+
+        return random.sample(self.ids, self.p)
+
     def __iter__(self):
         for _ in range(self.num_batches):
             batch = []
-            for track_id in random.sample(self.ids, self.p):
+            for track_id in self._pick_identities():
                 pool = self.by_id[track_id]
                 if len(pool) >= self.k:
                     batch.extend(random.sample(pool, self.k))
@@ -148,6 +196,12 @@ class DeepSORTTrainer(TrainTracker):
         self._output_directory = "category_models"
         self._output_prefix = "deepsort_tracker"
         self._pipeline_template = ""
+
+        # Directory of detector output for the same clips, one VIAME CSV
+        # per clip. Left empty the crops come from the groundtruth boxes,
+        # which are framed more exactly than anything the detector will
+        # hand the tracker at inference.
+        self._computed_detections = ""
         self._gpu_count = -1
         self._max_epochs = "50"
         self._batch_size = "32"
@@ -172,6 +226,7 @@ class DeepSORTTrainer(TrainTracker):
         cfg.set_value("output_directory", self._output_directory)
         cfg.set_value("output_prefix", self._output_prefix)
         cfg.set_value("pipeline_template", self._pipeline_template)
+        cfg.set_value("computed_detections", self._computed_detections)
         cfg.set_value("gpu_count", str(self._gpu_count))
         cfg.set_value("max_epochs", self._max_epochs)
         cfg.set_value("batch_size", self._batch_size)
@@ -194,6 +249,7 @@ class DeepSORTTrainer(TrainTracker):
         self._output_directory = str(cfg.get_value("output_directory"))
         self._output_prefix = str(cfg.get_value("output_prefix"))
         self._pipeline_template = str(cfg.get_value("pipeline_template"))
+        self._computed_detections = str(cfg.get_value("computed_detections"))
         self._gpu_count = int(cfg.get_value("gpu_count"))
         self._max_epochs = str(cfg.get_value("max_epochs"))
         self._batch_size = str(cfg.get_value("batch_size"))
@@ -279,20 +335,20 @@ class DeepSORTTrainer(TrainTracker):
         # One image map per sequence. A frame id is a position within its
         # own sequence, so resolving it against the flat list of every
         # sequence's images only ever worked for the first one.
-        train_maps, _names = build_sequence_maps(
+        train_maps, train_names = build_sequence_maps(
             self._train_image_files, len(self._train_tracks), "training"
         )
 
         train_count = self._process_split_data(
-            self._train_tracks, train_maps, train_dir, crop_h, crop_w, "train"
+            self._train_tracks, train_maps, train_names, train_dir, crop_h, crop_w, "train"
         )
 
-        test_maps, _test_names = build_sequence_maps(
+        test_maps, test_names = build_sequence_maps(
             self._test_image_files, len(self._test_tracks), "validation"
         )
 
         test_count = self._process_split_data(
-            self._test_tracks, test_maps, test_dir, crop_h, crop_w, "test"
+            self._test_tracks, test_maps, test_names, test_dir, crop_h, crop_w, "test"
         )
 
         print(f"  Train: {train_count} crops")
@@ -300,13 +356,89 @@ class DeepSORTTrainer(TrainTracker):
 
         return reid_dir
 
-    def _process_split_data(self, track_sets, image_maps, output_dir, crop_h, crop_w, split_name):
+    def _load_computed_by_sequence(self, image_maps, names, track_sets):
+        """Detector output per sequence, keyed by track set index."""
+        if not self._computed_detections:
+            return None
+
+        if not names or all(n is None for n in names):
+            print("WARNING: computed_detections was given but the images "
+                  "could not be split per sequence, so there is no clip name "
+                  "to look a detection file up by. Using the groundtruth "
+                  "boxes.")
+            return None
+
+        loaded = {}
+
+        for seq_idx, name in enumerate(names):
+            if name is None or seq_idx >= len(track_sets):
+                continue
+
+            detections = load_computed_detections(self._computed_detections,
+                                                  name)
+
+            if detections:
+                loaded[seq_idx] = detections
+
+        print(f"  computed detections found for {len(loaded)} of "
+              f"{len(track_sets)} sequences")
+
+        return loaded or None
+
+    @staticmethod
+    def _substitute_computed(frame_to_detections, computed, counters,
+                             iou_threshold=0.5):
+        """Swap groundtruth boxes for the detector boxes that matched them.
+
+        A groundtruth box no detection reached is dropped rather than kept:
+        keeping it would put a perfectly framed crop back into a set that is
+        meant to look like detector output. A detection matching nothing is
+        dropped too, having no identity to belong to.
+        """
+        replaced = {}
+
+        for frame_id, truth in frame_to_detections.items():
+            frame_computed = computed.get(frame_id, [])
+
+            if not frame_computed:
+                counters['frames_without'] += 1
+                continue
+
+            matches, unmatched, missed = match_to_groundtruth(
+                frame_computed,
+                [(*d['bbox'], d['track_id']) for d in truth],
+                iou_threshold)
+
+            counters['matched'] += len(matches)
+            counters['false_positives'] += len(unmatched)
+            counters['missed'] += len(missed)
+
+            rows = []
+
+            for c, t, _overlap in matches:
+                rows.append({
+                    'track_id': t[4],
+                    'bbox': (int(c[0]), int(c[1]), int(c[2]), int(c[3])),
+                    'frame_id': frame_id,
+                })
+
+            if rows:
+                replaced[frame_id] = rows
+
+        return replaced
+
+    def _process_split_data(self, track_sets, image_maps, names, output_dir, crop_h, crop_w, split_name):
         """Process tracks for one split (train/test)."""
         import cv2
         import numpy as np
 
         total_crops = 0
         global_track_id = 0
+
+        computed_by_sequence = self._load_computed_by_sequence(
+            image_maps, names, track_sets)
+        counters = {'matched': 0, 'false_positives': 0, 'missed': 0,
+                    'frames_without': 0}
 
         for seq_idx, track_set in enumerate(track_sets):
             if track_set is None:
@@ -342,6 +474,16 @@ class DeepSORTTrainer(TrainTracker):
                         'bbox': (x1, y1, x2, y2),
                         'frame_id': frame_id
                     })
+
+            # Where a detector's own output is supplied, crop its boxes
+            # instead of the groundtruth's, taking the identity from the
+            # groundtruth box each one matched. Re-ID at inference sees crops
+            # cut by the detector, framed and padded however it frames them;
+            # trained on exact truth boxes the embedding never meets that.
+            if computed_by_sequence and seq_idx in computed_by_sequence:
+                frame_to_detections = self._substitute_computed(
+                    frame_to_detections, computed_by_sequence[seq_idx],
+                    counters)
 
             # Process each frame
             for frame_id, detections in frame_to_detections.items():
@@ -382,6 +524,12 @@ class DeepSORTTrainer(TrainTracker):
                     crop_path = track_dir / f"{det['frame_id']:06d}.jpg"
                     cv2.imwrite(str(crop_path), crop)
                     total_crops += 1
+
+        if computed_by_sequence:
+            print(f"  computed boxes: {counters['matched']} matched a "
+                  f"groundtruth track, {counters['false_positives']} matched "
+                  f"nothing and were dropped, {counters['missed']} truth "
+                  f"boxes were not found")
 
         return total_crops
 
@@ -527,7 +675,9 @@ class DeepSORTTrainer(TrainTracker):
         crops_per_id = 4
         train_sampler = PKSampler(train_dataset.labels,
                                   max(batch_size // crops_per_id, 1),
-                                  crops_per_id)
+                                  crops_per_id,
+                                  names={v: k for k, v
+                                         in train_dataset.label_to_idx.items()})
 
         if train_sampler.ids:
             print(f"PK sampling: {train_sampler.p} identities x "
