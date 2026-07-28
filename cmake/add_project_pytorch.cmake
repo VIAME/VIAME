@@ -13,6 +13,23 @@ set( PYTORCH_LIBS_TO_BUILD )
 
 if( VIAME_BUILD_PYTORCH_FROM_SOURCE )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch )
+
+  # PyTorch is deliberately not a superbuild submodule: a recursive checkout
+  # runs several GB, and only builds that compile it need one at all - the rest
+  # install a wheel. Clone it from the build step that needs it instead.
+  #
+  # Left as a plain variable, not a cache entry, so that bumping the internal
+  # version re-pins the checkout instead of leaving it on whatever tag was
+  # cached first. Override on the command line to build another ref.
+  if( NOT VIAME_PYTORCH_GIT_TAG )
+    set( VIAME_PYTORCH_GIT_TAG "v${PYTORCH_INTERNAL_VERSION}" )
+  endif()
+
+  OnDemandGitPackage( PYTORCH_SOURCE
+    URL https://github.com/pytorch/pytorch.git
+    DIR ${VIAME_PACKAGES_DIR}/pytorch
+    REF ${VIAME_PYTORCH_GIT_TAG}
+    RECURSIVE SHALLOW )
 endif()
 
 if( VIAME_BUILD_TORCHVISION_FROM_SOURCE )
@@ -380,7 +397,14 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   endif()
 
   set( LIBRARY_PATCH_COMMAND "" )
+  set( LIBRARY_DOWNLOAD_ARGS )
   set( PROJECT_DEPS fletch python-deps )
+
+  # Every other package here comes down with the submodules; pytorch is cloned
+  # on demand, so it needs a download step of its own
+  if( "${LIB}" STREQUAL "pytorch" )
+    set( LIBRARY_DOWNLOAD_ARGS DOWNLOAD_COMMAND ${PYTORCH_SOURCE_FETCH_COMMAND} )
+  endif()
 
   if( NOT "${LIB}" STREQUAL "pytorch" )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch )
@@ -550,11 +574,28 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${LIBRARY_LOCATION}
     BUILD_IN_SOURCE 1
+    ${LIBRARY_DOWNLOAD_ARGS}
     PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
     CONFIGURE_COMMAND "${LIBRARY_CONFIGURE_CMD}"
     BUILD_COMMAND ${CONDITIONAL_BUILD_CMD}
     INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
     LIST_SEPARATOR "----" )
+
+  if( "${LIB}" STREQUAL "pytorch" )
+    # Re-run the fetch, and every step downstream of it, when the pin moves
+    ExternalProject_Add_StepDependencies( ${LIB} download
+      ${PYTORCH_SOURCE_REF_FILE} )
+
+    # Has to come after the checkout exists, so it cannot live in the build
+    # server scripts that run before configure
+    ExternalProject_Add_Step( ${LIB} patch_nccl_symmem
+      COMMAND ${CMAKE_COMMAND}
+        -DPYTORCH_SOURCE_DIR=${LIBRARY_LOCATION}
+        -P ${VIAME_CMAKE_DIR}/custom_patch_pytorch_nccl.cmake
+      COMMENT "Disabling PyTorch NCCL symmetric-memory support"
+      DEPENDEES patch
+      DEPENDERS configure )
+  endif()
 
   # CUDA 13's nvcc (cudafe++) mishandles a static_cast in the installed torch
   # ATen/core/List_inl.h header, breaking downstream CUDA extension builds such

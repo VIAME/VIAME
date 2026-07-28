@@ -1,0 +1,3 @@
+# Packages cloned on demand by the build rather than checked out as submodules
+# (see OnDemandGitPackage in cmake/common_macros.cmake)
+pytorch/
