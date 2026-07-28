@@ -35,6 +35,8 @@ import sys
 import json
 import numpy as np
 
+from viame.core.training_data import detector_statistics
+
 
 class ByteTrackTrainer( TrainTracker ):
     """
@@ -53,6 +55,13 @@ class ByteTrackTrainer( TrainTracker ):
         self._output_prefix = "bytetrack_tracker"
         self._pipeline_template = ""
         self._threshold = "0.00"
+
+        # Directory of detector output for the same clips, one VIAME CSV
+        # per clip named after it. Left empty the estimates come from the
+        # groundtruth alone, whose confidences are all 1.0, so the
+        # confidence thresholds carry no information about the detector
+        # this tracker will actually run behind.
+        self._computed_detections = ""
 
         # Output parameter bounds (for clamping estimated values)
         self._min_std_weight_position = 0.01
@@ -75,6 +84,7 @@ class ByteTrackTrainer( TrainTracker ):
         cfg.set_value( "output_prefix", self._output_prefix )
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "threshold", self._threshold )
+        cfg.set_value( "computed_detections", self._computed_detections )
         cfg.set_value( "min_std_weight_position", str( self._min_std_weight_position ) )
         cfg.set_value( "max_std_weight_position", str( self._max_std_weight_position ) )
         cfg.set_value( "min_std_weight_velocity", str( self._min_std_weight_velocity ) )
@@ -92,6 +102,7 @@ class ByteTrackTrainer( TrainTracker ):
         self._output_prefix = str( cfg.get_value( "output_prefix" ) )
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._threshold = str( cfg.get_value( "threshold" ) )
+        self._computed_detections = str( cfg.get_value( "computed_detections" ) )
         self._min_std_weight_position = float( cfg.get_value( "min_std_weight_position" ) )
         self._max_std_weight_position = float( cfg.get_value( "max_std_weight_position" ) )
         self._min_std_weight_velocity = float( cfg.get_value( "min_std_weight_velocity" ) )
@@ -276,6 +287,91 @@ class ByteTrackTrainer( TrainTracker ):
 
         return std_weight_position, std_weight_velocity
 
+    def _detector_stats( self ):
+        """Measure the detector against the groundtruth, when one was given."""
+        if not self._computed_detections:
+            return None
+
+        stats = detector_statistics(
+            self._train_tracks + self._test_tracks,
+            self._train_image_files + self._test_image_files,
+            self._computed_detections )
+
+        matched = len( stats[ 'matched_confidences' ] )
+        unmatched = len( stats[ 'unmatched_confidences' ] )
+
+        print( "Computed detections: {} matched a groundtruth box, {} did "
+               "not, over {} of {} annotated frames".format(
+                   matched, unmatched, stats[ 'frames_with_computed' ],
+                   stats[ 'frames_total' ] ) )
+
+        if stats[ 'frames_total' ] and \
+                stats[ 'frames_with_computed' ] < 0.1 * stats[ 'frames_total' ]:
+            print( "WARNING: almost no annotated frame has a computed "
+                   "detection. Frame ids here are positions within a clip, so "
+                   "the detections must come from a run over the same "
+                   "extracted frames rather than over the source video. "
+                   "Falling back to the groundtruth." )
+            return None
+
+        if matched < 10 or unmatched < 10:
+            print( "Too few matched or unmatched detections to separate the "
+                   "two, falling back to the groundtruth." )
+            return None
+
+        return stats
+
+    def _estimate_thresholds_from_detector( self, stats ):
+        """Thresholds that separate the detector's hits from its misfires.
+
+        The groundtruth cannot answer this: every annotation is confidence
+        1.0, so a percentile of it is a percentile of a constant and the
+        result is whatever the clamp allows. What a threshold has to do is
+        divide the scores of detections that found a real object from the
+        scores of those that did not, and that needs the detector's own
+        output.
+        """
+        matched = np.array( stats[ 'matched_confidences' ] )
+        unmatched = np.array( stats[ 'unmatched_confidences' ] )
+
+        # Keep most real detections in the high tier
+        high_thresh = float( np.percentile( matched, 25 ) )
+
+        # The low tier is ByteTrack's second chance: it should reach well
+        # below the high tier without swallowing the bulk of the misfires
+        low_thresh = float( max( np.percentile( matched, 2 ),
+                                 np.percentile( unmatched, 60 ) ) )
+
+        # Starting a track off a misfire costs more than missing one, so this
+        # sits above the high tier
+        new_track_thresh = float( np.percentile( matched, 40 ) )
+
+        high_thresh = float( np.clip( high_thresh, 0.05, 0.95 ) )
+        low_thresh = float( np.clip( low_thresh, 0.01, high_thresh - 0.05 ) )
+        new_track_thresh = float( np.clip( new_track_thresh,
+                                           high_thresh, 0.95 ) )
+
+        print( "  thresholds from the detector: high {:.3f} low {:.3f} "
+               "new_track {:.3f}".format( high_thresh, low_thresh,
+                                          new_track_thresh ) )
+
+        return high_thresh, low_thresh, new_track_thresh
+
+    def _measurement_noise_from_detector( self, stats ):
+        """Localisation error of the detector, for the Kalman update.
+
+        Estimated from how far a detection sits from the box it matched,
+        which is the quantity the filter's measurement noise describes. The
+        groundtruth cannot supply it: measured against itself its error is
+        zero.
+        """
+        errors = stats[ 'center_errors' ]
+
+        if len( errors ) < 10:
+            return None
+
+        return float( np.median( errors ) )
+
     def _estimate_thresholds( self, stats ):
         """
         Estimate detection confidence thresholds from training data.
@@ -354,6 +450,27 @@ class ByteTrackTrainer( TrainTracker ):
         # Estimate thresholds
         print( "Estimating detection thresholds..." )
         high_thresh, low_thresh, new_track_thresh = self._estimate_thresholds( stats )
+
+        # A detector's own output, when supplied, answers what the
+        # groundtruth cannot: where its boxes land relative to the truth, and
+        # which of its scores correspond to real objects
+        detector = self._detector_stats()
+
+        if detector is not None:
+            high_thresh, low_thresh, new_track_thresh = \
+                self._estimate_thresholds_from_detector( detector )
+
+            measured = self._measurement_noise_from_detector( detector )
+
+            if measured is not None:
+                std_weight_position = float( np.clip(
+                    measured,
+                    self._min_std_weight_position,
+                    self._max_std_weight_position ) )
+                print( "  measurement noise from the detector: "
+                       "std_weight_position {:.4f}".format(
+                           std_weight_position ) )
+
         print( f"  high_thresh: {high_thresh:.3f}" )
         print( f"  low_thresh: {low_thresh:.3f}" )
         print( f"  new_track_thresh: {new_track_thresh:.3f}" )

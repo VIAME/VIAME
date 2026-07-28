@@ -26,6 +26,7 @@ import signal
 import time
 import threading
 from viame.pytorch.utilities import report_cuda_errors
+from viame.core.training_data import build_sequence_maps
 
 
 class SiamMaskTrainer( TrainTracker ):
@@ -198,9 +199,11 @@ class SiamMaskTrainer( TrainTracker ):
         leaves that column empty and trains boxes only, so a mixed dataset
         needs no special handling.
         """
-        image_map = {}
-        for i, img_file in enumerate( self._train_image_files ):
-            image_map[ i ] = img_file
+        # One image map per sequence. A frame id is a position within its own
+        # sequence, so resolving it against the flat list of every sequence's
+        # images only ever worked for the first one.
+        image_maps, _names = build_sequence_maps(
+            self._train_image_files, len( self._train_tracks ), "training" )
 
         print( "Preparing training data for SiamMask..." )
         print( f"  Processing {len(self._train_tracks)} track sets" )
@@ -221,6 +224,7 @@ class SiamMaskTrainer( TrainTracker ):
             seq_name = f"sequence_{seq_idx:04d}"
             seq_dir = os.path.join( self._train_directory, seq_name )
             mask_dir = None
+            image_map = image_maps[ seq_idx ]
 
             # frame id -> [ ( track_id, x1, y1, x2, y2, mask ) ]
             frame_annotations = {}

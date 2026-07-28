@@ -131,7 +131,16 @@ def reduce_gradients(model, _type='sum'):
     log_once("gradients method is {}".format(_type))
     if get_world_size() > 1:
         for param in model.parameters():
-            if param.requires_grad:
+            # requires_grad alone is not enough: a parameter the forward pass
+            # never reached has no grad at all, and reducing it raised
+            # AttributeError on None. The mask refine head is not used in
+            # training, and the backbone is frozen for the first
+            # BACKBONE.TRAIN_EPOCH epochs, so both arrive here empty.
+            #
+            # Every rank builds the same model and freezes the same layers, so
+            # every rank skips the same parameters and the collectives stay in
+            # step. A rank-dependent skip would deadlock instead.
+            if param.requires_grad and param.grad is not None:
                 dist.all_reduce(param.grad.data)
                 if _type == 'avg':
                     param.grad.data /= get_world_size()

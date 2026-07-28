@@ -32,6 +32,7 @@ import json
 import random
 import numpy as np
 from viame.pytorch.utilities import report_cuda_errors
+from viame.core.training_data import build_sequence_maps
 
 
 # The Re-ID dataset and batch sampler live at module scope rather than inside
@@ -366,20 +367,23 @@ class BoTSORTTrainer(TrainTracker):
 
         print("Preparing Re-ID training data...")
 
-        image_map = {}
-        for i, img_file in enumerate(self._train_image_files):
-            image_map[i] = img_file
-
-        train_count = self._process_split_data(
-            self._train_tracks, image_map, train_dir, crop_h, crop_w
+        # One image map per sequence. A frame id is a position within its
+        # own sequence, so resolving it against the flat list of every
+        # sequence's images only ever worked for the first one.
+        train_maps, _names = build_sequence_maps(
+            self._train_image_files, len(self._train_tracks), "training"
         )
 
-        test_image_map = {}
-        for i, img_file in enumerate(self._test_image_files):
-            test_image_map[i] = img_file
+        train_count = self._process_split_data(
+            self._train_tracks, train_maps, train_dir, crop_h, crop_w
+        )
+
+        test_maps, _test_names = build_sequence_maps(
+            self._test_image_files, len(self._test_tracks), "validation"
+        )
 
         test_count = self._process_split_data(
-            self._test_tracks, test_image_map, test_dir, crop_h, crop_w
+            self._test_tracks, test_maps, test_dir, crop_h, crop_w
         )
 
         print(f"  Train: {train_count} crops")
@@ -387,7 +391,7 @@ class BoTSORTTrainer(TrainTracker):
 
         return reid_dir
 
-    def _process_split_data(self, track_sets, image_map, output_dir, crop_h, crop_w):
+    def _process_split_data(self, track_sets, image_maps, output_dir, crop_h, crop_w):
         """Process tracks for one split."""
         import cv2
 
@@ -396,6 +400,8 @@ class BoTSORTTrainer(TrainTracker):
         for seq_idx, track_set in enumerate(track_sets):
             if track_set is None:
                 continue
+
+            image_map = image_maps[seq_idx]
 
             frame_to_detections = {}
 

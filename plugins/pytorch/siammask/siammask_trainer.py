@@ -72,8 +72,10 @@ def seed_torch(seed=0):
 
 def prep_data():
     if not args.skip_crop:
-        if os.path.isdir(os.path.join(args.save_folder, 'crop511')):
-            shutil.rmtree(os.path.join(args.save_folder, 'crop511'))
+        # ignore_errors because a half removed tree from an interrupted run
+        # should not stop this one
+        shutil.rmtree(os.path.join(args.save_folder, 'crop511'),
+                      ignore_errors=True)
         since = time.time()
         par_crop(511, 24, args.image_folder, args.save_folder)
         time_elapsed = time.time() - since
@@ -313,10 +315,20 @@ def train(train_loader, model, optimizer, lr_scheduler, tb_writer):
 
 def main():
 
-    prep_data()
-
     seed_torch(args.seed)
     rank, world_size = dist_init()
+
+    # One rank prepares the data and the rest wait on it. Every rank used to
+    # run this, so on more than one device they raced removing crop511 -- one
+    # rank deleting a directory another was walking, which surfaced as
+    # FileNotFoundError from rmtree -- and had they got past that they would
+    # have run the whole half hour crop concurrently over each other's output.
+    if rank == 0:
+        prep_data()
+
+    if world_size > 1:
+        torch.distributed.barrier()
+
     cfg.merge_from_file(args.config_file)
 
     # After the merge, so the run's own paths are not what the yaml overrides

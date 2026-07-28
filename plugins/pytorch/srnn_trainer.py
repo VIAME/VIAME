@@ -34,6 +34,7 @@ import signal
 import time
 import threading
 from viame.pytorch.utilities import report_cuda_errors
+from viame.core.training_data import build_sequence_maps
 from viame.pytorch.srnn.generate_training_files_kw18 import BoundingBox
 
 
@@ -228,14 +229,17 @@ class SRNNTrainer( TrainTracker ):
 
         sequence_tracks = {}
 
-        # Build mapping from frame indices to image files if available
-        image_map = {}
-        for i, img_file in enumerate( image_files ):
-            image_map[ i ] = img_file
+        # One image map per sequence. A frame id is a position within its own
+        # sequence, so resolving it against the flat list of every sequence's
+        # images only ever worked for the first one.
+        image_maps, _names = build_sequence_maps(
+            image_files, len( track_sets ), split_name )
 
         for seq_idx, track_set in enumerate( track_sets ):
             if track_set is None:
                 continue
+
+            image_map = image_maps[ seq_idx ]
 
             seq_name = f"sequence_{seq_idx:04d}"
             seq_dir = output_dir / seq_name
