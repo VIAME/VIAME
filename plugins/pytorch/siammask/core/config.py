@@ -268,5 +268,12 @@ __C.TRACK.CONFIDENCE_HIGH = 0.998
 # Mask threshold
 __C.TRACK.MASK_THRESHOLD = 0.30
 
+# pysot spelled the above MASK_THERSHOLD, and its released configs still carry
+# that spelling. yacs refuses to merge a key it does not know, so merging one
+# of those raised KeyError before training began. Accept and ignore it. This
+# only affects tracking, so a stale config losing the value costs nothing at
+# training time, and every config in this tree sets the corrected spelling.
+__C.register_deprecated_key( "TRACK.MASK_THERSHOLD" )
+
 # Mask output size
 __C.TRACK.MASK_OUTPUT_SIZE = 127
