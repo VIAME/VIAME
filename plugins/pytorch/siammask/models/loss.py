@@ -37,69 +37,63 @@ def weight_l1_loss(pred_loc, label_loc, loss_weight):
     return loss.sum().div(b)
 
 
-def select_mask_logistic_loss(pred_mask, label_mask, label_weight, mask_output_size=127):
-    """Compute mask loss using soft margin loss on positive anchor locations.
+def select_mask_logistic_loss(pred_mask, label_mask, label_weight,
+                              mask_output_size=127, stride=8):
+    """Mask loss over the search crop, at the positive anchor positions.
+
+    The mask branch predicts a coarse mask for every position of its output
+    grid, each covering a window of the search crop. The label for a position
+    is the corresponding window of the groundtruth mask, which is what unfold
+    below cuts out, and only positions the box branch marked positive are
+    scored.
 
     Args:
-        pred_mask: Predicted mask logits [B, anchors, H, W] or [B, H*W]
-        label_mask: Ground truth mask [B, 1, H_full, W_full]
-        label_weight: Weight mask indicating positive anchors [B, anchors, H, W]
-        mask_output_size: Size of mask output (default 127)
+        pred_mask: mask branch output, [B, o_sz*o_sz, H, W] or already
+            selected as [N, g_sz*g_sz]
+        label_mask: groundtruth over the whole search crop, [B, 1, S, S]
+        label_weight: one per output position, [B, 1, H, W], one where that
+            position is supervised and zero elsewhere
+        mask_output_size: side of the window a position is scored over
+        stride: distance in search crop pixels between output positions
 
     Returns:
-        Scalar loss value
+        Scalar loss, zero when nothing in the batch is supervised.
     """
-    # Find positive anchor positions (where weight == 1)
+    g_sz = mask_output_size
+
     weight = label_weight.view(-1)
     pos = weight.data.eq(1).nonzero().squeeze()
 
-    if len(pos.size()) == 0 or pos.size() == torch.Size([0]):
-        return pred_mask.sum() * 0  # Return zero loss if no positive samples
+    # A batch of box only groundtruth supervises nothing, and so does one
+    # where no anchor matched. Keeping pred_mask in the expression leaves the
+    # graph connected, so backward still runs.
+    if pos.dim() == 0 or pos.numel() == 0:
+        return pred_mask.sum() * 0
 
-    # Handle different input shapes
-    if len(pred_mask.size()) == 4:
-        b, a, h, w = pred_mask.size()
-        pred_mask = pred_mask.view(b, a, -1)
-        # Upsample predictions to mask_output_size if needed
-        if h != mask_output_size:
-            pred_mask = pred_mask.view(b * a, 1, h, w)
-            pred_mask = F.interpolate(pred_mask, size=(mask_output_size, mask_output_size),
-                                      mode='bilinear', align_corners=False)
-            pred_mask = pred_mask.view(b, a, -1)
-        pred_mask = pred_mask.view(-1, mask_output_size * mask_output_size)
+    if pred_mask.dim() == 4:
+        b, c, h, w = pred_mask.size()
+        o_sz = int(round(c ** 0.5))
+
+        # To (b*h*w, 1, o_sz, o_sz), which orders the same way as the
+        # flattened weight above, so pos indexes both
+        pred_mask = pred_mask.permute(0, 2, 3, 1).contiguous()
+        pred_mask = pred_mask.view(-1, 1, o_sz, o_sz)
+        pred_mask = torch.index_select(pred_mask, 0, pos)
+        pred_mask = F.interpolate(pred_mask, size=(g_sz, g_sz),
+                                  mode='bilinear', align_corners=False)
+        pred_mask = pred_mask.view(-1, g_sz * g_sz)
     else:
-        pred_mask = pred_mask.view(-1, mask_output_size * mask_output_size)
+        pred_mask = torch.index_select(pred_mask, 0, pos)
 
-    # Select predictions at positive anchor positions
-    pred_mask = torch.index_select(pred_mask, 0, pos)
+    # The window for each output position. The padding is what makes the
+    # number of windows match the output grid rather than being read off it.
+    positions = label_weight.size(-1)
+    search = label_mask.size(-1)
+    padding = ((positions - 1) * stride + g_sz - search) // 2
 
-    # Extract mask patches from ground truth at corresponding locations
-    # label_mask is [B, 1, H, W], we need to extract patches
-    b = label_mask.size(0)
-    label_mask = label_mask.view(b, -1)
+    label = F.unfold(label_mask, (g_sz, g_sz), padding=padding, stride=stride)
+    label = torch.transpose(label, 1, 2).contiguous().view(-1, g_sz * g_sz)
+    label = torch.index_select(label, 0, pos)
 
-    # Expand label_mask to match number of anchors per batch
-    num_anchors = weight.size(0) // b
-    label_mask = label_mask.unsqueeze(1).expand(b, num_anchors, -1)
-    label_mask = label_mask.contiguous().view(-1, label_mask.size(-1))
-
-    # Select labels at positive positions
-    label_mask = torch.index_select(label_mask, 0, pos)
-
-    # Ensure predictions and labels have same size
-    if pred_mask.size(1) != label_mask.size(1):
-        # Interpolate label mask to match prediction size
-        label_h = int(label_mask.size(1) ** 0.5)
-        label_mask = label_mask.view(-1, 1, label_h, label_h)
-        label_mask = F.interpolate(label_mask, size=(mask_output_size, mask_output_size),
-                                   mode='bilinear', align_corners=False)
-        label_mask = label_mask.view(-1, mask_output_size * mask_output_size)
-
-    # Convert label mask to {-1, 1} for soft margin loss
-    # Ground truth mask is typically {0, 1}, convert to {-1, 1}
-    label_mask = label_mask * 2 - 1
-
-    # Compute soft margin loss: log(1 + exp(-y * x))
-    loss = F.soft_margin_loss(pred_mask, label_mask)
-
-    return loss
+    # Soft margin loss wants labels in {-1, 1}, the mask arrives as {0, 1}
+    return F.soft_margin_loss(pred_mask, label * 2 - 1)

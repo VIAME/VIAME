@@ -28,7 +28,7 @@ class Augmentation:
     def random():
         return np.random.random() * 2 - 1.0
 
-    def _crop_roi(self, image, bbox, out_sz, padding=(0, 0, 0)):
+    def _crop_roi(self, image, bbox, out_sz, padding=(0, 0, 0), nearest=False):
         bbox = [float(x) for x in bbox]
         a = (out_sz-1) / (bbox[2]-bbox[0])
         b = (out_sz-1) / (bbox[3]-bbox[1])
@@ -36,7 +36,10 @@ class Augmentation:
         d = -b * bbox[1]
         mapping = np.array([[a, 0, c],
                             [0, b, d]]).astype(np.float32)
-        crop = cv2.warpAffine(image, mapping, (out_sz, out_sz),
+        # A mask carries labels rather than intensities, so it is resampled
+        # without interpolation to stay binary
+        flags = cv2.INTER_NEAREST if nearest else cv2.INTER_LINEAR
+        crop = cv2.warpAffine(image, mapping, (out_sz, out_sz), flags=flags,
                               borderMode=cv2.BORDER_CONSTANT,
                               borderValue=padding)
         return crop
@@ -67,7 +70,7 @@ class Augmentation:
         image = cv2.cvtColor(grayed, cv2.COLOR_GRAY2BGR)
         return image
 
-    def _shift_scale_aug(self, image, bbox, crop_bbox, size):
+    def _shift_scale_aug(self, image, bbox, crop_bbox, size, mask=None):
         im_h, im_w = image.shape[:2]
 
         # adjust crop bounding box
@@ -105,16 +108,33 @@ class Augmentation:
                           bbox.x2 / scale_x, bbox.y2 / scale_y)
 
         image = self._crop_roi(image, crop_bbox, size)
-        return image, bbox
 
-    def _flip_aug(self, image, bbox):
+        # The same crop as the image, so the two stay registered
+        if mask is not None:
+            mask = self._crop_roi(mask, crop_bbox, size, padding=0,
+                                  nearest=True)
+
+        return image, bbox, mask
+
+    def _flip_aug(self, image, bbox, mask=None):
         image = cv2.flip(image, 1)
         width = image.shape[1]
         bbox = Corner(width - 1 - bbox.x2, bbox.y1,
                       width - 1 - bbox.x1, bbox.y2)
-        return image, bbox
 
-    def __call__(self, image, bbox, size, gray=False):
+        if mask is not None:
+            mask = cv2.flip(mask, 1)
+
+        return image, bbox, mask
+
+    def __call__(self, image, bbox, size, gray=False, mask=None):
+        """Augment an image, and a mask of it when one is given.
+
+        The mask goes through the geometry the image does and none of the
+        photometry, since a shift, scale or flip moves the labelled pixels
+        with the pixels they label while a colour or blur change does not.
+        Returns the mask as None when none was given.
+        """
         shape = image.shape
         crop_bbox = center2corner(Center(shape[0]//2, shape[1]//2,
                                          size-1, size-1))
@@ -123,7 +143,8 @@ class Augmentation:
             image = self._gray_aug(image)
 
         # shift scale augmentation
-        image, bbox = self._shift_scale_aug(image, bbox, crop_bbox, size)
+        image, bbox, mask = self._shift_scale_aug(image, bbox, crop_bbox,
+                                                  size, mask)
 
         # color augmentation
         if self.color > np.random.random():
@@ -135,5 +156,5 @@ class Augmentation:
 
         # flip augmentation
         if self.flip and self.flip > np.random.random():
-            image, bbox = self._flip_aug(image, bbox)
-        return image, bbox
+            image, bbox, mask = self._flip_aug(image, bbox, mask)
+        return image, bbox, mask

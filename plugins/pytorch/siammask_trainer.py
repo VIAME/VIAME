@@ -13,6 +13,9 @@ from kwiver.vital.types import (
 from distutils.util import strtobool
 from shutil import copyfile
 
+import cv2
+import numpy as np
+
 import os
 import socket
 import sys
@@ -175,6 +178,9 @@ class SiamMaskTrainer( TrainTracker ):
         Per sequence, under the training directory:
         - sequence_XXXX/frame_NNNNNN.jpg  symlinks to the annotated frames
         - sequence_XXXX/groundtruth.csv   VIAME CSV for those frames
+        - sequence_XXXX/masks/*.png       per detection masks, where the
+                                          groundtruth segments rather than
+                                          just boxes
 
         par_crop then writes crop511/ from that, and gen_json writes
         dataset.json from the crops. Neither is produced here. This used to
@@ -182,6 +188,15 @@ class SiamMaskTrainer( TrainTracker ):
         gen_json always runs and overwrote it with {} because there was no
         image and CSV layout for it to read, so training loaded no data at
         all.
+
+        A mask is written whenever the detection carries one, which requires
+        poly_to_mask on the track reader for polygon groundtruth. kwiver's
+        convention is that the mask is already cropped to the bounding box, so
+        it is stored that way and par_crop places it back into the frame. Its
+        file name goes in a tenth CSV column, which the readers downstream
+        ignore since they index the first seven. A detection without one
+        leaves that column empty and trains boxes only, so a mixed dataset
+        needs no special handling.
         """
         image_map = {}
         for i, img_file in enumerate( self._train_image_files ):
@@ -197,6 +212,7 @@ class SiamMaskTrainer( TrainTracker ):
 
         sequence_count = 0
         annotation_count = 0
+        mask_count = 0
 
         for seq_idx, track_set in enumerate( self._train_tracks ):
             if track_set is None:
@@ -204,8 +220,9 @@ class SiamMaskTrainer( TrainTracker ):
 
             seq_name = f"sequence_{seq_idx:04d}"
             seq_dir = os.path.join( self._train_directory, seq_name )
+            mask_dir = None
 
-            # frame id -> [ ( track_id, x1, y1, x2, y2 ) ]
+            # frame id -> [ ( track_id, x1, y1, x2, y2, mask ) ]
             frame_annotations = {}
 
             for track in track_set.tracks():
@@ -226,7 +243,8 @@ class SiamMaskTrainer( TrainTracker ):
                         continue
 
                     frame_annotations.setdefault( state.frame_id, [] ).append(
-                        ( track.id, x1, y1, x2, y2 )
+                        ( track.id, x1, y1, x2, y2,
+                          self._detection_mask( det ) )
                     )
 
             if not frame_annotations:
@@ -250,9 +268,25 @@ class SiamMaskTrainer( TrainTracker ):
                 os.symlink( os.path.realpath( src ),
                             os.path.join( seq_dir, image_name ) )
 
-                for track_id, x1, y1, x2, y2 in frame_annotations[ frame_id ]:
-                    rows.append( "{},{},{},{},{},{},{},1.0,-1\n".format(
-                        track_id, image_name, position, x1, y1, x2, y2 ) )
+                for track_id, x1, y1, x2, y2, mask in \
+                        frame_annotations[ frame_id ]:
+                    mask_name = ""
+
+                    if mask is not None:
+                        if mask_dir is None:
+                            mask_dir = os.path.join( seq_dir, "masks" )
+                            os.makedirs( mask_dir )
+
+                        mask_name = "masks/{:06d}_{}.png".format(
+                            position, track_id )
+
+                        cv2.imwrite( os.path.join( seq_dir, mask_name ),
+                                     mask * 255 )
+                        mask_count += 1
+
+                    rows.append( "{},{},{},{},{},{},{},1.0,-1,{}\n".format(
+                        track_id, image_name, position,
+                        x1, y1, x2, y2, mask_name ) )
 
             if not rows:
                 shutil.rmtree( seq_dir )
@@ -268,9 +302,46 @@ class SiamMaskTrainer( TrainTracker ):
                    f"{len(rows)} annotations" )
 
         print( f"Prepared {sequence_count} sequences, "
-               f"{annotation_count} annotations for cropping" )
+               f"{annotation_count} annotations for cropping, "
+               f"{mask_count} of them with a mask" )
+
+        if not mask_count:
+            print( "  No masks in the groundtruth. The mask head will keep "
+                   "whatever weights it was seeded with and only the box "
+                   "branches will train. Polygon groundtruth reaches here "
+                   "only with poly_to_mask set on the track reader." )
 
         return self._train_directory
+
+    @staticmethod
+    def _detection_mask( det ):
+        """This detection's mask as a uint8 0/1 array, or None.
+
+        kwiver hands it over cropped to the bounding box rather than the size
+        of the frame, which is the form it is stored in.
+        """
+        try:
+            container = det.mask
+
+            if container is None:
+                return None
+
+            mask = container.image().asarray()
+        except Exception:
+            return None
+
+        if mask is None:
+            return None
+
+        mask = np.asarray( mask )
+
+        if mask.size == 0:
+            return None
+
+        if mask.ndim == 3:
+            mask = mask[ ..., 0 ]
+
+        return ( mask > 0 ).astype( np.uint8 )
 
     @report_cuda_errors("SiamMaskTrainer training")
     def update_model( self ):
