@@ -56,8 +56,10 @@ public:
   mutable cv::Mat rectification_map_right_x;
   mutable cv::Mat rectification_map_right_y;
 
-  // Calibration data (loaded if calibration_file is set)
-  calibrate_stereo_cameras_result calibration;
+  // Calibration data (loaded if calibration_file is set). Mutable because
+  // single-file formats carry no rectification transforms, so those are filled
+  // in lazily once the first image gives us an image size.
+  mutable calibrate_stereo_cameras_result calibration;
   calibrate_stereo_cameras calibrator;
 
   // Stereo matchers
@@ -117,7 +119,7 @@ public:
       return;
     }
 
-    if( !calibrator.load_calibration_opencv( calibration_file, calibration ) )
+    if( !calibrator.load_calibration( calibration_file, calibration ) )
     {
       VITAL_THROW( kv::invalid_data,
         "Failed to load calibration from: " + calibration_file );
@@ -131,6 +133,14 @@ public:
     if( rectification_computed )
     {
       return;
+    }
+
+    if( !calibrate_stereo_cameras::ensure_rectification( calibration, img_size ) )
+    {
+      VITAL_THROW( kv::invalid_data,
+        "Calibration lacks the rectification transforms needed for " +
+        std::to_string( img_size.width ) + "x" +
+        std::to_string( img_size.height ) + " images: " + calibration_file );
     }
 
     cv::initUndistortRectifyMap(

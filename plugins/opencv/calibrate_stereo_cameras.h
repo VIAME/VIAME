@@ -247,14 +247,34 @@ public:
     const calibrate_stereo_cameras_result& result,
     const std::string& filename ) const;
 
-  /// Load calibration from OpenCV YAML files (intrinsics.yml + extrinsics.yml)
+  /// Load a stereo calibration through viame::read_stereo_rig
   ///
-  /// \param input_directory Directory containing calibration files
+  /// Accepts every format the shared reader handles: .json, .yml/.yaml, .npz,
+  /// .mat, and an OpenCV calibration directory of intrinsics.yml +
+  /// extrinsics.yml. None of them carry the rectification transforms in a form
+  /// the rig can hold, so those are left empty for \ref ensure_rectification to
+  /// derive once the image size is known.
+  ///
+  /// \param calibration_file Calibration file, or OpenCV calibration directory
   /// \param[out] result Loaded calibration result
   /// \return true on success
-  bool load_calibration_opencv(
-    const std::string& input_directory,
+  bool load_calibration(
+    const std::string& calibration_file,
     calibrate_stereo_cameras_result& result ) const;
+
+  /// Derive the rectification transforms if the loaded calibration lacks them
+  ///
+  /// Calibration formats other than the OpenCV directory pair store no
+  /// rectification transforms, and stereoRectify cannot run until an image size
+  /// is known. Call this once the first image arrives; it is a no-op when the
+  /// transforms are already populated.
+  ///
+  /// \param[in,out] result Calibration to complete in place
+  /// \param image_size Size of the images the calibration will be applied to
+  /// \return true if the calibration has usable rectification transforms
+  static bool ensure_rectification(
+    calibrate_stereo_cameras_result& result,
+    const cv::Size& image_size );
 
   // -------------------------------------------------------------------------
   // Utility Methods

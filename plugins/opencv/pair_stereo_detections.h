@@ -38,19 +38,27 @@ public:
   pair_stereo_detections() = default;
 
   // Configuration settings
-  std::string m_cameras_directory;
+  std::string m_calibration_file;
   float m_iou_pair_threshold{ 0.1f };
   std::string m_pairing_method{ "PAIRING_3D" };
   bool m_verbose{}; // Set to true to activate debug print
 
-  // Camera depth information
-  cv::Mat m_Q, m_K1, m_D1, m_R1, m_P1, m_K2, m_D2, m_R2, m_P2, m_R, m_Rvec, m_T;
+  // Camera depth information. The rectification transforms are mutable because
+  // single-file calibrations do not store them; they are derived on first use,
+  // when an image size is finally available.
+  cv::Mat m_K1, m_D1, m_K2, m_D2, m_R, m_Rvec, m_T;
+  mutable cv::Mat m_Q, m_R1, m_P1, m_R2, m_P2;
 
   /// @brief Project depth map as 3 channel 3D image
   cv::Mat reproject_3d_depth_map( const cv::Mat& cv_disparity_left ) const;
 
-  /// @brief Load matrix calibration from settings camera directory
+  /// @brief Load matrix calibration from the configured calibration file
   void load_camera_calibration();
+
+  /// @brief Derive the rectification transforms if the calibration lacked them
+  /// No-op once they are populated. Called for the first disparity map, which
+  /// is the earliest point an image size is known.
+  void ensure_rectification( const cv::Size& image_size ) const;
 
   /// @brief Compute median of input vector of values. Returns 0 if empty.
   static float compute_median( std::vector< float > values, bool is_sorted = false );

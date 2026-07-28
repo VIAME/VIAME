@@ -44,7 +44,7 @@ public:
   pair_stereo_tracks();
 
   // Configuration settings
-  std::string m_cameras_directory;
+  std::string m_calibration_file;
   kwiver::vital::logger_handle_t m_logger;
   float m_iou_pair_threshold{ 0.1f };
   int m_min_detection_number_threshold{ 0 };
@@ -63,7 +63,7 @@ public:
   std::map< size_t, Pairing > m_left_to_right_pairing;
 
 
-  /// @brief Load matrix calibration from settings camera directory
+  /// @brief Load matrix calibration from the configured calibration file
   void load_camera_calibration();
 
   /// @brief Update 3D tracks positions given a list of tracks and tracks disparity map

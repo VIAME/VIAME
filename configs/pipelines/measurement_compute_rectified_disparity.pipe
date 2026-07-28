@@ -4,14 +4,14 @@
 # Description: Pipeline for measuring object dimensions in imagery.
 #
 # Requires Calibration: True
+# Calibration Keys: depth_map:computer:ocv_stereo_disparity:calibration_file
 # =============================================================================
 
 config _pipeline:_edge
        :capacity                               5
 
 config global
-   :input_cameras_directory                    /home/<user>/Desktop/viame_tests/camera_calibrations         # DIVE_PARAM["Calibrations Directory", folder]
-   :output_depths_directory                    /home/<user>/Desktop/viame_tests/depthMap                    # DIVE_PARAM["Output Depths Directory", folder]
+   :output_depths_directory                    .                                                            # DIVE_PARAM["Output Depths Directory", folder]
 
 # ================================ VIDEO INPUT ================================
 
@@ -31,7 +31,8 @@ block computer:ocv_stereo_disparity
   :block_size                                	11          # DIVE_PARAM["Block Size", strictly_positive_int]
   :speckle_window_size			                0
   :speckle_range				                0
-  :calibration_file                             $CONFIG{global:input_cameras_directory}
+  # Bound to the dataset's calibration by the Calibration Keys header above.
+  :calibration_file                             calibration_matrices.npz
   :use_wls_filter                               true
 endblock
 

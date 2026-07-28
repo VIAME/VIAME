@@ -22,8 +22,9 @@ namespace kv = kwiver::vital;
 
 namespace viame {
 
-create_config_trait( cameras_directory, std::string, "",
-  "The calibrated cameras files directory" )
+create_config_trait( calibration_file, std::string, "",
+  "Stereo calibration file (.json, .yml, .npz or .mat), or a directory of "
+  "OpenCV intrinsics.yml / extrinsics.yml" )
 create_config_trait( pairing_method, std::string, "PAIRING_3D",
   "One of PAIRING_3D, PAIRING_IOU, PAIRING_RECTIFIED_IOU" )
 create_config_trait( iou_pair_threshold, double, "0.1",
@@ -78,7 +79,7 @@ void
 pair_stereo_detections_process
 ::make_config()
 {
-  declare_config_using_trait( cameras_directory );
+  declare_config_using_trait( calibration_file );
   declare_config_using_trait( pairing_method );
   declare_config_using_trait( iou_pair_threshold );
   declare_config_using_trait( verbose );
@@ -89,7 +90,7 @@ void
 pair_stereo_detections_process
 ::_configure()
 {
-  d->m_cameras_directory = config_value_using_trait( cameras_directory );
+  d->m_calibration_file = config_value_using_trait( calibration_file );
   d->m_pairing_method = config_value_using_trait( pairing_method );
   d->m_iou_pair_threshold = config_value_using_trait( iou_pair_threshold );
   d->m_verbose = config_value_using_trait( verbose );
