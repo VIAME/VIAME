@@ -44,6 +44,10 @@ from viame.pytorch.siammask.par_crop import par_crop
 from viame.pytorch.siammask.gen_json import gen_json
 
 logger = logging.getLogger('global')
+
+# Written by rank 0 once the crops are built, and waited on by the others
+PREP_COMPLETE = '.prep_complete'
+PREP_TIMEOUT = 14400
 parser = argparse.ArgumentParser()
 parser.add_argument('--local_rank', type=int, default=0, help='compulsory for pytorch launcer')
 parser.add_argument('--seed', type=int, default=123456, help='random seed')
@@ -53,6 +57,14 @@ parser.add_argument('-c', '--config-file', required=True, help='Config file for 
 parser.add_argument('-t', '--threshold', required=True, help='GT confidence threshold.')
 parser.add_argument('--skip-crop', action='store_true', default=False, help='Add flag if you want to skip the data cropping (crop_511) step.')
 parser.add_argument('--pretrained', default='', help='Model to fine tune from. Loaded over the whole network, not just the backbone.')
+parser.add_argument('--samples-per-sequence', dest='samples_per_sequence',
+                    type=int, default=6000,
+                    help='Training pairs drawn from each clip per epoch. The '
+                    'pysot default of 6000 is sized for corpora far larger '
+                    'than a few hundred clips, and it is what sets the length '
+                    'of an epoch, so it is the lever for fitting a run into a '
+                    'given amount of time without disturbing the learning '
+                    'rate schedule or when the backbone unfreezes.')
 args = parser.parse_args()
 print(os.getcwd())
 _chdir_target = os.path.dirname(os.path.dirname(args.image_folder))
@@ -103,8 +115,11 @@ def configure_dataset():
         os.getcwd(), args.save_folder, 'crop511')
     cfg.DATASET.VIAME.ANNO = os.path.join(
         os.getcwd(), args.save_folder, 'dataset.json')
-    cfg.DATASET.VIDEOS_PER_EPOCH = \
-        6000 * len(glob(os.path.join(args.image_folder, '*')))
+    sequences = len(glob(os.path.join(args.image_folder, '*')))
+    cfg.DATASET.VIDEOS_PER_EPOCH = args.samples_per_sequence * sequences
+
+    print('Epoch is {} sequences x {} samples = {}'.format(
+        sequences, args.samples_per_sequence, cfg.DATASET.VIDEOS_PER_EPOCH))
 
 
 def build_data_loader():
@@ -323,11 +338,40 @@ def main():
     # rank deleting a directory another was walking, which surfaced as
     # FileNotFoundError from rmtree -- and had they got past that they would
     # have run the whole half hour crop concurrently over each other's output.
+    #
+    # The wait is on a file rather than a barrier. Cropping this dataset takes
+    # about half an hour, well past the ten minute default timeout of a
+    # collective, so a barrier here killed the other ranks partway through
+    # with "wait timeout after 600000ms" while rank zero was still working.
+    # Raising the process group timeout instead would blind the training that
+    # follows to a genuine hang, and cropping has no useful upper bound.
+    #
+    # The wrapper removes this file before launching, so a flag left by an
+    # earlier run cannot release the other ranks early.
+    ready = os.path.join(args.save_folder, PREP_COMPLETE)
+
     if rank == 0:
         prep_data()
 
-    if world_size > 1:
-        torch.distributed.barrier()
+        if world_size > 1:
+            with open(ready, 'w') as handle:
+                handle.write('prepared by rank 0\n')
+    elif world_size > 1:
+        waited = 0
+
+        while not os.path.exists(ready):
+            time.sleep(5)
+            waited += 5
+
+            if waited % 300 == 0:
+                logger.info('rank {} waiting on data preparation, {} min'
+                            .format(rank, waited // 60))
+
+            if waited > PREP_TIMEOUT:
+                raise RuntimeError(
+                    'Rank {} waited {} seconds for rank 0 to finish preparing '
+                    'the data and it never did. Check the log above for what '
+                    'happened to it.'.format(rank, waited))
 
     cfg.merge_from_file(args.config_file)
 

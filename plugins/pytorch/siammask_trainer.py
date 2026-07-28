@@ -49,6 +49,7 @@ class SiamMaskTrainer( TrainTracker ):
         self._crop_size = 511
         self._threshold = "0.00"
         self._skip_crop = False
+        self._samples_per_sequence = 6000
         self._timeout = "1209600"
 
         self._categories = []
@@ -73,6 +74,7 @@ class SiamMaskTrainer( TrainTracker ):
         cfg.set_value( "crop_size", str( self._crop_size ) )
         cfg.set_value( "threshold", self._threshold )
         cfg.set_value( "skip_crop", str( self._skip_crop ) )
+        cfg.set_value( "samples_per_sequence", str( self._samples_per_sequence ) )
         cfg.set_value( "timeout", self._timeout )
 
         return cfg
@@ -95,6 +97,7 @@ class SiamMaskTrainer( TrainTracker ):
         self._crop_size = int( cfg.get_value( "crop_size" ) )
         self._threshold = str( cfg.get_value( "threshold" ) )
         self._skip_crop = strtobool( cfg.get_value( "skip_crop" ) )
+        self._samples_per_sequence = int( cfg.get_value( "samples_per_sequence" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
 
         # Check GPU availability
@@ -357,6 +360,14 @@ class SiamMaskTrainer( TrainTracker ):
         # Prepare training data
         dataset_file = self._prepare_training_data()
 
+        # The non-zero ranks wait on this file for rank zero to finish
+        # cropping. One left behind by an interrupted run would release them
+        # immediately, against a crop511 that is half built or absent.
+        stale_flag = os.path.join( self._train_directory, ".prep_complete" )
+
+        if os.path.exists( stale_flag ):
+            os.remove( stale_flag )
+
         # Build training command
         python_exe = "python.exe" if os.name == 'nt' else "python"
 
@@ -398,6 +409,9 @@ class SiamMaskTrainer( TrainTracker ):
 
         if self._skip_crop:
             cmd.append( "--skip-crop" )
+
+        cmd.append( "--samples-per-sequence={}".format(
+            self._samples_per_sequence ) )
 
         # seed_model was read from the config but never reached training, so
         # fine tuning silently started from scratch. It is loaded over the
