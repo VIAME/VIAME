@@ -47,8 +47,13 @@ def remove_prefix(state_dict, prefix):
 def load_pretrain(model, pretrained_path):
     logger.info('load pretrained model from {}'.format(pretrained_path))
     device = torch.cuda.current_device()
+    # weights_only defaults to True from torch 2.6, which refuses anything in
+    # the pickle beyond tensors. These checkpoints are written by the trainer
+    # in this tree and by pysot, and carry an epoch and optimizer state
+    # alongside the weights, so they are read in full.
     pretrained_dict = torch.load(pretrained_path,
-        map_location=lambda storage, loc: storage.cuda(device))
+        map_location=lambda storage, loc: storage.cuda(device),
+        weights_only=False)
     if "state_dict" in pretrained_dict.keys():
         pretrained_dict = remove_prefix(pretrained_dict['state_dict'],
                                         'module.')
@@ -72,8 +77,12 @@ def load_pretrain(model, pretrained_path):
 
 def restore_from(model, optimizer, ckpt_path):
     device = torch.cuda.current_device()
+    # As in load_pretrain: a checkpoint holds the epoch and the optimizer
+    # state as well as the weights, and resuming from one failed outright with
+    # "Unsupported global: numpy._core.multiarray.scalar" under the default.
     ckpt = torch.load(ckpt_path,
-        map_location=lambda storage, loc: storage.cuda(device))
+        map_location=lambda storage, loc: storage.cuda(device),
+        weights_only=False)
     epoch = ckpt['epoch']
 
     ckpt_model_dict = remove_prefix(ckpt['state_dict'], 'module.')

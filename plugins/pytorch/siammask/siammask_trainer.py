@@ -449,8 +449,37 @@ def main():
         logger.info("resume from {}".format(cfg.TRAIN.RESUME))
         assert os.path.isfile(cfg.TRAIN.RESUME), \
             '{} is not a valid file.'.format(cfg.TRAIN.RESUME)
-        model, optimizer, cfg.TRAIN.START_EPOCH = \
-            restore_from(model, optimizer, cfg.TRAIN.RESUME)
+
+        # Which parameters the optimizer covers changes at
+        # BACKBONE.TRAIN_EPOCH, when the backbone joins them, so there are two
+        # possible shapes and load_state_dict refuses the wrong one. Which of
+        # them a checkpoint holds depends on whether it was written before or
+        # after the rebuild within that epoch, which is not something its
+        # epoch number settles. Try the shape for its epoch, then the other.
+        resume_epoch = torch.load(
+            cfg.TRAIN.RESUME, map_location='cpu',
+            weights_only=False).get('epoch', cfg.TRAIN.START_EPOCH)
+
+        restored = False
+
+        for candidate in ( resume_epoch, cfg.TRAIN.START_EPOCH ):
+            optimizer, lr_scheduler = build_opt_lr(dist_model.module,
+                                                   candidate)
+            try:
+                model, optimizer, cfg.TRAIN.START_EPOCH = \
+                    restore_from(model, optimizer, cfg.TRAIN.RESUME)
+                restored = True
+                break
+            except ValueError as error:
+                logger.info('optimizer built for epoch %s does not match the '
+                            'checkpoint (%s), trying the other shape',
+                            candidate, error)
+
+        if not restored:
+            raise RuntimeError(
+                'Could not restore the optimizer from {}. Its parameter '
+                'groups match neither the frozen nor the unfrozen backbone.'
+                .format(cfg.TRAIN.RESUME))
     # load pretrain
     elif cfg.TRAIN.PRETRAINED:
         load_pretrain(model, cfg.TRAIN.PRETRAINED)
