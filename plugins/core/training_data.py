@@ -54,25 +54,36 @@ def group_files_by_sequence( image_files, expected=None ):
     if not image_files:
         return None, None
 
-    groups = OrderedDict()
+    # Split on each change of directory as the list is walked, rather than
+    # collecting by directory name. The list arrives as one contiguous block
+    # per input, in the order the inputs were read, so a run of files sharing
+    # a directory is exactly one input.
+    #
+    # Collecting by name instead merged any two inputs that happened to sit in
+    # the same directory and, worse, gave a group count that did not have to
+    # equal the number of inputs. On a set that mixes videos, whose frames are
+    # extracted into a directory each, with folders of images used where they
+    # lie, the two counts disagreed and the whole thing fell back -- which is
+    # to say it kept resolving frame ids against the wrong sequence.
+    groups = []
+    names = []
+    previous = None
 
     for path in image_files:
         parent = os.path.dirname( path )
-        groups.setdefault( parent, [] ).append( path )
 
-    if len( groups ) <= 1:
-        # Everything in one directory. Either there genuinely is one clip, or
-        # this is a flat folder of images that cannot be told apart by path.
-        if expected is not None and expected > 1:
-            return None, None
+        if parent != previous:
+            groups.append( [] )
+            names.append( os.path.splitext(
+                os.path.basename( parent.rstrip( '/' ) ) )[ 0 ] )
+            previous = parent
+
+        groups[ -1 ].append( path )
 
     if expected is not None and len( groups ) != expected:
         return None, None
 
-    names = [ os.path.splitext( os.path.basename( p.rstrip( '/' ) ) )[ 0 ]
-              for p in groups.keys() ]
-
-    return list( groups.values() ), names
+    return groups, names
 
 
 def build_sequence_maps( image_files, track_set_count, label="training" ):
