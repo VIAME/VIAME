@@ -57,6 +57,10 @@ parser.add_argument('-c', '--config-file', required=True, help='Config file for 
 parser.add_argument('-t', '--threshold', required=True, help='GT confidence threshold.')
 parser.add_argument('--skip-crop', action='store_true', default=False, help='Add flag if you want to skip the data cropping (crop_511) step.')
 parser.add_argument('--pretrained', default='', help='Model to fine tune from. Loaded over the whole network, not just the backbone.')
+parser.add_argument('--resume', default='',
+                    help='Checkpoint to carry on from. Restores the optimizer '
+                    'and the epoch as well as the weights, unlike --pretrained '
+                    'which only loads the network.')
 parser.add_argument('--samples-per-sequence', dest='samples_per_sequence',
                     type=int, default=6000,
                     help='Training pairs drawn from each clip per epoch. The '
@@ -142,9 +146,25 @@ def build_data_loader():
 def build_opt_lr(model, current_epoch=0):
     if current_epoch >= cfg.BACKBONE.TRAIN_EPOCH:
         for layer in cfg.BACKBONE.TRAIN_LAYERS:
-            for param in getattr(model.backbone, layer).parameters():
+            # Which layers exist depends on BACKBONE.KWARGS.used_layers, and a
+            # name that is not one of them resolves to a method of the module
+            # rather than raising, so the failure was an AttributeError on
+            # .parameters() ten epochs in rather than anything about the
+            # config. Say what is wrong and carry on with the layers that are
+            # really there.
+            block = getattr(model.backbone, layer, None)
+
+            if not isinstance(block, nn.Module):
+                logger.warning(
+                    'BACKBONE.TRAIN_LAYERS names %s, which this backbone does '
+                    'not have; it builds %s. Leaving it frozen.', layer,
+                    [n for n, _ in model.backbone.named_children()
+                     if n.startswith('layer')])
+                continue
+
+            for param in block.parameters():
                 param.requires_grad = True
-            for m in getattr(model.backbone, layer).modules():
+            for m in block.modules():
                 if isinstance(m, nn.BatchNorm2d):
                     m.train()
     else:
@@ -383,6 +403,9 @@ def main():
     # BACKBONE.PRETRAINED, which is only the backbone.
     if args.pretrained:
         cfg.TRAIN.PRETRAINED = args.pretrained
+
+    if args.resume:
+        cfg.TRAIN.RESUME = args.resume
 
     cfg.TRAIN.LOG_DIR = os.path.join(args.save_folder, cfg.TRAIN.LOG_DIR)
     cfg.TRAIN.SNAPSHOT_DIR = os.path.join(args.save_folder, cfg.TRAIN.SNAPSHOT_DIR)

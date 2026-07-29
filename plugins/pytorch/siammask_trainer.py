@@ -50,6 +50,7 @@ class SiamMaskTrainer( TrainTracker ):
         self._threshold = "0.00"
         self._skip_crop = False
         self._samples_per_sequence = 6000
+        self._resume_model = ""
         self._timeout = "1209600"
 
         self._categories = []
@@ -75,6 +76,7 @@ class SiamMaskTrainer( TrainTracker ):
         cfg.set_value( "threshold", self._threshold )
         cfg.set_value( "skip_crop", str( self._skip_crop ) )
         cfg.set_value( "samples_per_sequence", str( self._samples_per_sequence ) )
+        cfg.set_value( "resume_model", self._resume_model )
         cfg.set_value( "timeout", self._timeout )
 
         return cfg
@@ -98,6 +100,7 @@ class SiamMaskTrainer( TrainTracker ):
         self._threshold = str( cfg.get_value( "threshold" ) )
         self._skip_crop = strtobool( cfg.get_value( "skip_crop" ) )
         self._samples_per_sequence = int( cfg.get_value( "samples_per_sequence" ) )
+        self._resume_model = str( cfg.get_value( "resume_model" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
 
         # Check GPU availability
@@ -412,6 +415,9 @@ class SiamMaskTrainer( TrainTracker ):
 
         cmd.append( "--samples-per-sequence={}".format(
             self._samples_per_sequence ) )
+
+        if self._resume_model:
+            cmd.append( "--resume=" + self._resume_model )
 
         # seed_model was read from the config but never reached training, so
         # fine tuning silently started from scratch. It is loaded over the
