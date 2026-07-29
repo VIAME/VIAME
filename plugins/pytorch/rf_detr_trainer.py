@@ -204,6 +204,13 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         'when batch_size="auto". Ignored for a fixed batch_size.'))
     learning_rate = scfg.Value(1e-4, help='Learning rate')
     learning_rate_encoder = scfg.Value(1.5e-4, help='Learning rate for encoder')
+    lr_vit_layer_decay = scfg.Value(0.8, help=(
+        'Per-block LR decay down the ViT backbone; at the 0.8 default the '
+        'patch-embed stem runs ~20x slower than the last block. 1.0 trains '
+        'every block at learning_rate_encoder.'))
+    lr_component_decay = scfg.Value(0.7, help=(
+        'Whole-component LR multiplier: decoder gets learning_rate * this, the '
+        'backbone a further square of it. 1.0 disables it.'))
     grad_accum_steps = scfg.Value(4, help='Gradient accumulation steps')
     weight_decay = scfg.Value(1e-4, help='Weight decay for optimizer')
     warmup_epochs = scfg.Value(0.0, help='Number of warmup epochs')
@@ -414,7 +421,9 @@ class RFDETRTrainer(TrainDetector):
         print(f"[RFDETRTrainer] Effective batch = {micro} x "
               f"{int(self._grad_accum_steps)} grad_accum x {devices} device(s) "
               f"= {effective} (lr = {self._learning_rate}, "
-              f"lr_encoder = {self._learning_rate_encoder})")
+              f"lr_encoder = {self._learning_rate_encoder}, "
+              f"vit_layer_decay = {self._lr_vit_layer_decay}, "
+              f"component_decay = {self._lr_component_decay})")
 
     def _prepare_roboflow_dataset(self):
         """
@@ -711,6 +720,8 @@ class RFDETRTrainer(TrainDetector):
             batch_size = int(self._batch_size)
         lr = float(self._learning_rate)
         lr_encoder = float(self._learning_rate_encoder)
+        lr_vit_layer_decay = float(self._lr_vit_layer_decay)
+        lr_component_decay = float(self._lr_component_decay)
         grad_accum_steps = int(self._grad_accum_steps)
         weight_decay = float(self._weight_decay)
         warmup_epochs = float(self._warmup_epochs)
@@ -745,6 +756,8 @@ class RFDETRTrainer(TrainDetector):
             batch_size=batch_size,
             lr=lr,
             lr_encoder=lr_encoder,
+            lr_vit_layer_decay=lr_vit_layer_decay,
+            lr_component_decay=lr_component_decay,
             grad_accum_steps=grad_accum_steps,
             weight_decay=weight_decay,
             warmup_epochs=warmup_epochs,
@@ -884,6 +897,8 @@ class RFDETRTrainer(TrainDetector):
             batch_size=batch_size,
             lr=float(self._learning_rate),
             lr_encoder=float(self._learning_rate_encoder),
+            lr_vit_layer_decay=float(self._lr_vit_layer_decay),
+            lr_component_decay=float(self._lr_component_decay),
             grad_accum_steps=int(self._grad_accum_steps),
             weight_decay=float(self._weight_decay),
             warmup_epochs=float(self._warmup_epochs),
