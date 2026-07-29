@@ -158,6 +158,7 @@ def main(data_root, output_dir, stabilized, generate_options=None,
             data_root=gen_data_vids,
             train_file=gen_data_prefix + '_siamese_train_set.p',
             test_file=gen_data_prefix + '_siamese_test_set.p',
+            num_workers=lstm_loader_workers,
         )
 
         best_epoch, _model = get_best_model(siamese_models)
@@ -178,6 +179,7 @@ def main(data_root, output_dir, stabilized, generate_options=None,
             data_root=gen_data_vids,
             train_feature_file=feature_files[0],
             test_feature_file=feature_files[1],
+            num_workers=lstm_loader_workers,
         )
 
     print("Creating LSTM training data")

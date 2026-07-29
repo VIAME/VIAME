@@ -18,7 +18,7 @@ from .storage import DataStorage
 from .utilities import load_track_feature_file
 
 
-def extract_siamese_features(model_path, data_storage, track_feature_file):
+def extract_siamese_features(model_path, data_storage, track_feature_file, num_workers=2):
     # load trained model
     model = Siamese()
     model = torch.nn.DataParallel(model).cuda()
@@ -35,7 +35,7 @@ def extract_siamese_features(model_path, data_storage, track_feature_file):
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
-    kwargs = {'num_workers': 8, 'pin_memory': True}
+    kwargs = {'num_workers': num_workers, 'pin_memory': True}
 
     dids = load_track_feature_file(track_feature_file)[1]
     image_blobs = [data_storage.blob(did, 'img') for did in dids]
@@ -65,12 +65,15 @@ def extract_siamese_features(model_path, data_storage, track_feature_file):
         pbar.update(1)
 
 
-def main(model_path, data_root, train_feature_file, test_feature_file):
+def main(model_path, data_root, train_feature_file, test_feature_file,
+         num_workers=2):
     with DataStorage(data_root) as data_storage:
         print("Extracting train features...")
-        extract_siamese_features(model_path, data_storage, train_feature_file)
+        extract_siamese_features(model_path, data_storage, train_feature_file,
+                                 num_workers)
         print("Extracting test features...")
-        extract_siamese_features(model_path, data_storage, test_feature_file)
+        extract_siamese_features(model_path, data_storage, test_feature_file,
+                                 num_workers)
 
 
 def create_parser():
@@ -83,6 +86,12 @@ def create_parser():
                    help='Path to a track feature file for training data')
     p.add_argument('--test-feature-file', required=True,
                    help='Path to a track feature file for test data')
+    p.add_argument('--num-workers', dest='num_workers', type=int, default=2,
+                   help='Data loading worker processes. On Python 3.14 these '
+                   'come from a forkserver rather than a fork, so each is a '
+                   'fresh interpreter with its own copy rather than shared '
+                   'pages, and the old default of eight was sized for the '
+                   'latter.')
     return p
 
 
