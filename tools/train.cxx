@@ -3055,6 +3055,17 @@ train_applet
              const std::vector< unsigned >& track_items,
              size_t frame_offset ) -> bool
       {
+        // output_directory need not exist yet -- the trainers create their
+        // own -- and an ofstream into a missing directory just fails
+        const std::string parent =
+          kwiversys::SystemTools::GetFilenamePath( path );
+
+        if( !parent.empty() &&
+            !kwiversys::SystemTools::FileIsDirectory( parent ) )
+        {
+          kwiversys::SystemTools::MakeDirectory( parent );
+        }
+
         std::ofstream manifest( path );
 
         if( !manifest )

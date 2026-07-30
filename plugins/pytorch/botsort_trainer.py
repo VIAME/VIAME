@@ -216,6 +216,11 @@ class BoTSORTTrainer(TrainTracker):
         # CSV per clip. Optional: left empty everything comes from the
         # groundtruth exactly as before.
         self._computed_detections = ""
+
+        # Written by the training tool: which frames of the flat list
+        # belong to which track set. Empty falls back to inferring it
+        # from the directory layout, which this dataset defeats.
+        self._sequence_manifest = ""
         self._train_directory = "deep_training"
         self._gpu_count = -1
         self._max_epochs = "50"
