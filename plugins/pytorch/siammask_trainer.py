@@ -29,6 +29,28 @@ from viame.pytorch.utilities import report_cuda_errors
 from viame.core.training_data import build_sequence_maps
 
 
+def _frame_bounds( track_sets ):
+    """Highest frame id each track set refers to, or None where it refers to
+    none, for build_sequence_maps to check its alignment against.
+    """
+    bounds = []
+
+    for track_set in track_sets:
+        highest = None
+
+        if track_set is not None:
+            for track in track_set.tracks():
+                for state in track:
+                    if state.detection() is None:
+                        continue
+                    if highest is None or state.frame_id > highest:
+                        highest = state.frame_id
+
+        bounds.append( highest )
+
+    return bounds
+
+
 class SiamMaskTrainer( TrainTracker ):
     """
     Implementation of TrainTracker class for SiamMask tracker training
@@ -212,7 +234,8 @@ class SiamMaskTrainer( TrainTracker ):
         # sequence, so resolving it against the flat list of every sequence's
         # images only ever worked for the first one.
         image_maps, _names = build_sequence_maps(
-            self._train_image_files, len( self._train_tracks ), "training" )
+            self._train_image_files, len( self._train_tracks ), "training",
+            _frame_bounds( self._train_tracks ) )
 
         print( "Preparing training data for SiamMask..." )
         print( f"  Processing {len(self._train_tracks)} track sets" )

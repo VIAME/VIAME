@@ -39,6 +39,29 @@ from viame.core.training_data import (build_sequence_maps,
 from viame.pytorch.srnn.generate_training_files_kw18 import BoundingBox
 
 
+def _frame_bounds( track_sets ):
+    """Highest frame id each track set refers to, or None where it refers to
+    none. build_sequence_maps checks its alignment against these, since the
+    number of track sets and the number of image directories need not agree.
+    """
+    bounds = []
+
+    for track_set in track_sets:
+        highest = None
+
+        if track_set is not None:
+            for track in track_set.tracks():
+                for state in track:
+                    if state.detection() is None:
+                        continue
+                    if highest is None or state.frame_id > highest:
+                        highest = state.frame_id
+
+        bounds.append( highest )
+
+    return bounds
+
+
 class SRNNTrainer( TrainTracker ):
     """
     Implementation of TrainTracker class for SRNN tracker training.
@@ -306,7 +329,8 @@ class SRNNTrainer( TrainTracker ):
         # sequence, so resolving it against the flat list of every sequence's
         # images only ever worked for the first one.
         image_maps, names = build_sequence_maps(
-            image_files, len( track_sets ), split_name )
+            image_files, len( track_sets ), split_name,
+            _frame_bounds( track_sets ) )
 
         computed_by_sequence = self._load_computed_by_sequence(
             names, track_sets )

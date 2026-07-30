@@ -59,6 +59,29 @@ except ImportError:
     _TorchSampler = object
 
 
+def _frame_bounds(track_sets):
+    """Highest frame id each track set refers to, or None where it refers to
+    none. build_sequence_maps checks its alignment against these, since the
+    number of track sets and the number of image directories need not agree.
+    """
+    bounds = []
+
+    for track_set in track_sets:
+        highest = None
+
+        if track_set is not None:
+            for track in track_set.tracks():
+                for state in track:
+                    if state.detection() is None:
+                        continue
+                    if highest is None or state.frame_id > highest:
+                        highest = state.frame_id
+
+        bounds.append(highest)
+
+    return bounds
+
+
 class ReIDDataset(_TorchDataset):
     """Crops on disk, one directory per track."""
 
@@ -336,7 +359,8 @@ class DeepSORTTrainer(TrainTracker):
         # own sequence, so resolving it against the flat list of every
         # sequence's images only ever worked for the first one.
         train_maps, train_names = build_sequence_maps(
-            self._train_image_files, len(self._train_tracks), "training"
+            self._train_image_files, len(self._train_tracks), "training",
+            _frame_bounds(self._train_tracks)
         )
 
         train_count = self._process_split_data(
@@ -344,7 +368,8 @@ class DeepSORTTrainer(TrainTracker):
         )
 
         test_maps, test_names = build_sequence_maps(
-            self._test_image_files, len(self._test_tracks), "validation"
+            self._test_image_files, len(self._test_tracks), "validation",
+            _frame_bounds(self._test_tracks)
         )
 
         test_count = self._process_split_data(

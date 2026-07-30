@@ -86,49 +86,109 @@ def group_files_by_sequence( image_files, expected=None ):
     return groups, names
 
 
-def build_sequence_maps( image_files, track_set_count, label="training" ):
+def build_sequence_maps( image_files, track_set_count, label="training",
+                         frame_bounds=None ):
     """One frame id to file map per track set.
 
     Args:
         image_files: the flat list add_data_from_disk was handed
         track_set_count: how many track sets go with it
         label: named in the warning, to say which split fell back
+        frame_bounds: per track set, the highest frame id it refers to, or
+            None where it refers to none. Given these the alignment is
+            checked rather than assumed, which matters because the two counts
+            need not agree: a clip can contribute a track set and no images,
+            and then there are fewer groups than track sets and no way to tell
+            positionally which ones went missing.
 
     Returns:
-        ( maps, names ). maps[ i ] belongs to track set i. On failure to split
-        the files, every entry is the flat map the trainers used to build, so
-        behaviour is no worse than before, and a warning says so.
+        ( maps, names ). maps[ i ] belongs to track set i, and is empty for a
+        track set with no images of its own. On failure to align, every entry
+        is the flat map the trainers used to build, so behaviour is no worse
+        than before, and a warning says so.
     """
-    # Nothing to divide. A run with no validation split lands here, and has no
-    # problem to be warned about.
     if not track_set_count or not image_files:
         return [], []
 
-    groups, names = group_files_by_sequence( image_files,
-                                             expected=track_set_count )
+    groups, names = group_files_by_sequence( image_files )
 
-    if groups is None:
-        # Say what it found, not just that it failed. Without the group count
-        # a fallback cannot be told apart from a build that predates this
-        # splitting, and the two want opposite responses.
-        found, _names = group_files_by_sequence( image_files )
-
+    def flat_fallback( found ):
         print( "WARNING: could not split the {} images into one group per "
                "sequence: {} files fall into {} directories but there are {} "
-               "track sets. Frame ids are positions within their own "
-               "sequence, so they will be resolved against the whole list and "
-               "every sequence after the first will read another sequence's "
-               "images. Extracted video frames land in a directory per clip, "
-               "and folders of images are a clip each, which is what this "
-               "counts."
-               .format( label, len( image_files ),
-                        len( found ) if found else 0, track_set_count ) )
+               "track sets, and no alignment of the two was consistent with "
+               "the frame ids. They will be resolved against the whole list "
+               "instead, so every sequence after the first will read another "
+               "sequence's images."
+               .format( label, len( image_files ), found, track_set_count ) )
 
         flat = { i: path for i, path in enumerate( image_files ) }
 
         return [ flat ] * track_set_count, [ None ] * track_set_count
 
-    return [ sequence_image_map( g ) for g in groups ], names
+    if not groups:
+        return flat_fallback( 0 )
+
+    def consistent( assignment ):
+        """Does every track set's highest frame id fit the group it was given?
+
+        A misalignment shows up here as a track set asking for a frame its
+        group does not have. It is not proof of correctness -- a short clip
+        can fit inside the wrong group -- but it catches the case that
+        matters, where the counts differ and the tail is shifted.
+        """
+        if frame_bounds is None:
+            return len( groups ) == track_set_count
+
+        for index, group_index in assignment.items():
+            bound = frame_bounds[ index ]
+
+            if bound is None:
+                continue
+
+            if group_index is None or bound >= len( groups[ group_index ] ):
+                return False
+
+        return True
+
+    # One group per track set, in order
+    straight = { i: ( i if i < len( groups ) else None )
+                 for i in range( track_set_count ) }
+
+    if len( groups ) == track_set_count and consistent( straight ):
+        return ( [ sequence_image_map( groups[ i ] ) for i in
+                   range( track_set_count ) ], list( names ) )
+
+    # Otherwise assume the track sets that refer to no frames are the ones
+    # that contributed no images, and give the groups to the rest in order
+    if frame_bounds is not None:
+        skipped = {}
+        cursor = 0
+
+        for i in range( track_set_count ):
+            if frame_bounds[ i ] is None:
+                skipped[ i ] = None
+            else:
+                skipped[ i ] = cursor if cursor < len( groups ) else None
+                cursor += 1
+
+        if cursor == len( groups ) and consistent( skipped ):
+            print( "{} images: {} directories for {} track sets, and the {} "
+                   "track sets that refer to no frames account for the "
+                   "difference.".format( label.capitalize(), len( groups ),
+                                         track_set_count,
+                                         track_set_count - len( groups ) ) )
+
+            maps, out_names = [], []
+
+            for i in range( track_set_count ):
+                g = skipped[ i ]
+                maps.append( sequence_image_map( groups[ g ] ) if g is not None
+                             else {} )
+                out_names.append( names[ g ] if g is not None else None )
+
+            return maps, out_names
+
+    return flat_fallback( len( groups ) )
 
 
 def sequence_image_map( sequence_files ):
