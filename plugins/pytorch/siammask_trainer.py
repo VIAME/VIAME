@@ -475,8 +475,11 @@ class SiamMaskTrainer( TrainTracker ):
         """
         Copy trained model to output directory and generate pipeline file.
         """
-        if not self._pipeline_template:
-            return
+        # The model is copied whether or not a pipeline template was given.
+        # Returning early on an empty template used to skip the copy as well,
+        # so a run that trained for nineteen hours and reported "training
+        # completed successfully" left category_models empty and was marked
+        # FAILED for having no model in it.
 
         # Find the latest checkpoint
         snapshot_dir = os.path.join( self._train_directory, "snapshot" )
@@ -484,10 +487,20 @@ class SiamMaskTrainer( TrainTracker ):
             print( "No snapshot directory found" )
             return
 
-        checkpoints = sorted( [
+        def epoch_of( name ):
+            return int( name[ len( "checkpoint_e" ):-len( ".pth" ) ] )
+
+        checkpoints = [
             f for f in os.listdir( snapshot_dir )
             if f.startswith( "checkpoint_e" ) and f.endswith( ".pth" )
-        ] )
+        ]
+
+        # By epoch, not by name. Sorted as strings, checkpoint_e9 comes after
+        # checkpoint_e20, so a twenty epoch run shipped the ninth epoch.
+        try:
+            checkpoints.sort( key=epoch_of )
+        except ValueError:
+            checkpoints.sort()
 
         if not checkpoints:
             print( "No checkpoints found" )
@@ -501,8 +514,8 @@ class SiamMaskTrainer( TrainTracker ):
         copyfile( src_model, dst_model )
         print( f"Copied model to {dst_model}" )
 
-        # Generate pipeline file from template
-        if os.path.exists( self._pipeline_template ):
+        # Generate pipeline file from template, where one was given
+        if self._pipeline_template and os.path.exists( self._pipeline_template ):
             with open( self._pipeline_template, 'r' ) as fin:
                 template_content = fin.read()
 
