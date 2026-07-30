@@ -25,6 +25,7 @@ from viame.pytorch.utilities import (
     register_vital_algorithm,
     TrainingInterruptHandler,
     ensure_rfdetr_compatibility,
+    apply_rfdetr_stem_lr,
 )
 
 
@@ -211,6 +212,13 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     lr_component_decay = scfg.Value(0.7, help=(
         'Whole-component LR multiplier: decoder gets learning_rate * this, the '
         'backbone a further square of it. 1.0 disables it.'))
+    lr_stem = scfg.Value(0.0, help=(
+        'Absolute LR for the patch-embed stem, overriding its place at the '
+        'bottom of the lr_vit_layer_decay ladder. Set this instead of '
+        'flattening the decays when only the input stem needs to move -- with '
+        'motion or extra-channel infusion the stem has to learn a non-RGB '
+        'input while the trunk above it is already converged. 0 disables the '
+        'override and leaves the stem on the ladder.'))
     grad_accum_steps = scfg.Value(4, help='Gradient accumulation steps')
     weight_decay = scfg.Value(1e-4, help='Weight decay for optimizer')
     warmup_epochs = scfg.Value(0.0, help='Number of warmup epochs')
@@ -423,7 +431,9 @@ class RFDETRTrainer(TrainDetector):
               f"= {effective} (lr = {self._learning_rate}, "
               f"lr_encoder = {self._learning_rate_encoder}, "
               f"vit_layer_decay = {self._lr_vit_layer_decay}, "
-              f"component_decay = {self._lr_component_decay})")
+              f"component_decay = {self._lr_component_decay}"
+              + (f", lr_stem = {self._lr_stem}"
+                 if float(self._lr_stem) > 0 else "") + ")")
 
     def _prepare_roboflow_dataset(self):
         """
@@ -826,6 +836,10 @@ class RFDETRTrainer(TrainDetector):
 
         rfdetr_training.build_trainer = _build_trainer_with_stop_control
 
+        # Must land before train() builds the optimizer param groups.
+        apply_rfdetr_stem_lr(self._lr_stem, lr_encoder, lr_component_decay,
+                             lr_vit_layer_decay)
+
         with TrainingInterruptHandler("RFDETRTrainer", on_interrupt=stop_control.request_stop) as handler:
             try:
                 model.train(**train_kwargs)
@@ -939,6 +953,10 @@ class RFDETRTrainer(TrainDetector):
             gradient_checkpointing=parse_bool(self._gradient_checkpointing),
             seed_model=self._seed_model,
             class_names=list(self._class_names),
+            # Not a TrainConfig field, so it cannot ride in train_kwargs (pydantic
+            # extra="ignore" would drop it silently). The launcher applies it as a
+            # patch per rank instead.
+            lr_stem=float(self._lr_stem),
             train_kwargs=train_kwargs,
         )
 

@@ -670,6 +670,73 @@ def ensure_rfdetr_compatibility():
         _find_pruneable_heads_and_indices
 
 
+def apply_rfdetr_stem_lr(lr_stem, lr_encoder, lr_component_decay,
+                         lr_vit_layer_decay):
+    """
+    Give the patch-embed stem its own learning rate, off the ViT ladder.
+
+    rfdetr assigns every backbone parameter an LR of
+
+        lr_encoder * lr_vit_layer_decay ** (num_layers + 1 - layer_id)
+                   * lr_component_decay ** 2
+
+    and buckets the stem at ``layer_id = 0``, the bottom of the ladder. With
+    ``out_feature_indexes = [3, 6, 9, 12]`` that is an exponent of 14, so at the
+    0.8/0.7 defaults the stem trains at 0.0216x lr_encoder -- 3.2e-6 for a
+    1.5e-4 encoder, and the slowest group in the network by a factor of ~31.
+
+    That is the wrong end of the ladder for motion infusion, where the stem is
+    the one component that has to learn something genuinely new (a channel that
+    is not RGB) while the trunk above it is already converged. The two decay
+    scalars are global, so flattening them to lift the stem also hands every ViT
+    block a 2-25x increase -- enough to knock a fine-tuned checkpoint out of its
+    optimum. There is no combination of the two that raises the stem alone:
+    reaching 1e-4 at the 0.8 ladder needs lr_encoder = 4.6e-3, which puts the
+    last block at 1.5e-3.
+
+    So override the decay factor for the stem only, leaving every other group on
+    whatever ladder the decays describe. Patches the module-level function
+    rfdetr looks up from ``get_named_param_lr_pairs``.
+
+    ``lr_stem <= 0`` disables the override. Safe to call multiple times; the
+    patch unwraps any previous one rather than compounding.
+    """
+    lr_stem = float(lr_stem)
+    if lr_stem <= 0:
+        return
+
+    import rfdetr.models.backbone.backbone as _bb
+
+    orig = getattr(_bb.get_dinov2_lr_decay_rate, '_viame_orig',
+                   _bb.get_dinov2_lr_decay_rate)
+
+    # get_named_param_lr_pairs multiplies our return value by these two, so
+    # invert them here to land on lr_stem exactly.
+    scale = float(lr_encoder) * float(lr_component_decay) ** 2
+    if scale <= 0:
+        return
+    factor = lr_stem / scale
+
+    def _stem_lr_decay_rate(name, lr_decay_rate=1.0, num_layers=12):
+        # Only the patch-embed projection, not cls_token/mask_token or the
+        # positional embeddings -- those share layer_id 0 but have nothing to do
+        # with the input channels, so they stay on the ladder.
+        if 'patch_embeddings' in name:
+            return factor
+        return orig(name, lr_decay_rate=lr_decay_rate, num_layers=num_layers)
+
+    _stem_lr_decay_rate._viame_orig = orig
+    _bb.get_dinov2_lr_decay_rate = _stem_lr_decay_rate
+
+    # The stem sits at layer_id 0, so its ladder exponent is num_layers + 1,
+    # and num_layers is out_feature_indexes[-1] + 1 = 13 for both the large box
+    # and large seg variants. Informational only.
+    ladder = float(lr_vit_layer_decay)
+    print(f"[rf_detr] patch-embed stem LR pinned to {lr_stem:g}; the "
+          f"{ladder:g}/{float(lr_component_decay):g} ladder would give "
+          f"{scale * ladder ** 14:.3g}", flush=True)
+
+
 def ensure_fork_start_method():
     """
     Force the ``fork`` multiprocessing start method on Linux.

@@ -16,8 +16,8 @@ def build_and_train(params):
     import torch
 
     from viame.pytorch.utilities import (
-        ensure_fork_start_method, ensure_rfdetr_compatibility, parse_resolution,
-        resolution_is_set)
+        apply_rfdetr_stem_lr, ensure_fork_start_method,
+        ensure_rfdetr_compatibility, parse_resolution, resolution_is_set)
 
     # Python 3.14 defaults Linux to the forkserver start method, which cannot
     # pickle rfdetr's ChannelSubset transform and kills every DataLoader worker.
@@ -78,6 +78,16 @@ def build_and_train(params):
                   "ddp_timeout_seconds; DDP stays on PyTorch-Lightning's 30-minute "
                   "process-group timeout.", flush=True)
             train_kwargs.pop("ddp_timeout_seconds")
+
+    # PTL re-execs this script per rank and each rank builds its own optimizer,
+    # so this has to be applied here rather than inherited from the parent, and
+    # before train() constructs the param groups.
+    apply_rfdetr_stem_lr(
+        params.get("lr_stem", 0.0),
+        train_kwargs["lr_encoder"],
+        train_kwargs["lr_component_decay"],
+        train_kwargs["lr_vit_layer_decay"],
+    )
 
     model.train(**train_kwargs)
 
