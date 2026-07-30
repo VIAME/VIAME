@@ -108,13 +108,21 @@ def build_sequence_maps( image_files, track_set_count, label="training" ):
                                              expected=track_set_count )
 
     if groups is None:
+        # Say what it found, not just that it failed. Without the group count
+        # a fallback cannot be told apart from a build that predates this
+        # splitting, and the two want opposite responses.
+        found, _names = group_files_by_sequence( image_files )
+
         print( "WARNING: could not split the {} images into one group per "
-               "sequence ({} files, {} track sets). Frame ids are positions "
-               "within their own sequence, so they will be resolved against "
-               "the whole list and every sequence after the first will read "
-               "another sequence's images. Extracted video frames land in a "
-               "directory per clip, which is what this needs."
-               .format( label, len( image_files ), track_set_count ) )
+               "sequence: {} files fall into {} directories but there are {} "
+               "track sets. Frame ids are positions within their own "
+               "sequence, so they will be resolved against the whole list and "
+               "every sequence after the first will read another sequence's "
+               "images. Extracted video frames land in a directory per clip, "
+               "and folders of images are a clip each, which is what this "
+               "counts."
+               .format( label, len( image_files ),
+                        len( found ) if found else 0, track_set_count ) )
 
         flat = { i: path for i, path in enumerate( image_files ) }
 
