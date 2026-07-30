@@ -33,6 +33,7 @@ import random
 import numpy as np
 from viame.pytorch.utilities import report_cuda_errors
 from viame.core.training_data import (build_sequence_maps,
+    read_sequence_manifest,
     load_computed_detections, match_to_groundtruth)
 
 
@@ -240,6 +241,7 @@ class BoTSORTTrainer(TrainTracker):
 
         cfg.set_value("identifier", self._identifier)
         cfg.set_value("computed_detections", self._computed_detections)
+        cfg.set_value("sequence_manifest", self._sequence_manifest)
         cfg.set_value("train_directory", self._train_directory)
         cfg.set_value("gpu_count", str(self._gpu_count))
         cfg.set_value("max_epochs", self._max_epochs)
@@ -263,6 +265,7 @@ class BoTSORTTrainer(TrainTracker):
 
         self._identifier = str(cfg.get_value("identifier"))
         self._computed_detections = str(cfg.get_value("computed_detections"))
+        self._sequence_manifest = str(cfg.get_value("sequence_manifest"))
         self._train_directory = str(cfg.get_value("train_directory"))
         self._gpu_count = int(cfg.get_value("gpu_count"))
         self._max_epochs = str(cfg.get_value("max_epochs"))
@@ -448,10 +451,15 @@ class BoTSORTTrainer(TrainTracker):
         # One image map per sequence. A frame id is a position within its
         # own sequence, so resolving it against the flat list of every
         # sequence's images only ever worked for the first one.
-        train_maps, train_names = build_sequence_maps(
-            self._train_image_files, len(self._train_tracks), "training",
-            _frame_bounds(self._train_tracks)
-        )
+        train_maps, train_names = read_sequence_manifest(
+            self._sequence_manifest, self._train_image_files,
+            len(self._train_tracks))
+
+        if train_maps is None:
+            train_maps, train_names = build_sequence_maps(
+                self._train_image_files, len(self._train_tracks), "training",
+                _frame_bounds(self._train_tracks)
+            )
 
         train_count = self._process_split_data(
             self._train_tracks, train_maps, train_names, train_dir, crop_h, crop_w

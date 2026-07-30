@@ -2166,9 +2166,17 @@ train_applet
   }
 
   // ---- Phase 3: consume each item's frames and groundtruth (serial) ----
+  // Frames contributed by each data item, in item order. The tracker
+  // trainers are handed one flat list of frames and a separate list of track
+  // sets, and nothing else says which frames belong to which set: the two are
+  // filtered independently here, so their counts need not even match. Recorded
+  // so the association can be written out rather than guessed at downstream.
+  std::vector< size_t > item_frame_counts( all_data.size(), 0 );
+
   for( unsigned i = 0; i < all_data.size(); i++ )
   {
     item_context& ctx = contexts[i];
+    const size_t frames_before_item = train_image_fn.size();
 
     std::string& data_item = ctx.data_item;
     bool is_video = ctx.is_video;
@@ -2503,6 +2511,8 @@ train_applet
     {
       gt_reader->close();
     }
+
+    item_frame_counts[i] = train_image_fn.size() - frames_before_item;
 
     if( max_frame_count > 0 && train_image_fn.size() > max_frame_count )
     {
@@ -2951,6 +2961,15 @@ train_applet
     std::vector< kv::object_track_set_sptr > train_tracks;
     std::vector< kv::object_track_set_sptr > validation_tracks;
 
+    std::string sequence_manifest_file;
+    std::string validation_manifest_file;
+
+    // The data item each track set was read from, so the frames it goes with
+    // can be named. A track set is only pushed when a groundtruth file is
+    // found and parses, so these indices are not contiguous.
+    std::vector< unsigned > train_track_items;
+    std::vector< unsigned > validation_track_items;
+
     // Configure track reader
     kv::algo::read_object_track_set::set_nested_algo_configuration
       ( "track_reader", config, track_reader );
@@ -3003,10 +3022,12 @@ train_applet
               if( is_validation )
               {
                 validation_tracks.push_back( tracks );
+                validation_track_items.push_back( i );
               }
               else
               {
                 train_tracks.push_back( tracks );
+                train_track_items.push_back( i );
               }
             }
 
@@ -3022,6 +3043,91 @@ train_applet
 
       std::cout << "Loaded " << train_tracks.size() << " training track sets, "
                 << validation_tracks.size() << " validation track sets" << std::endl;
+
+      // Write the frame-to-track-set association out for the trainers. Each
+      // line gives a track set, the range of the flat frame list that belongs
+      // to it, and the data item it came from. A track set whose item
+      // contributed no frames gets a count of zero rather than being dropped,
+      // so the line numbers still line up with the track set indices the
+      // trainer sees.
+      auto write_manifest =
+        [&]( const std::string& path,
+             const std::vector< unsigned >& track_items,
+             size_t frame_offset ) -> bool
+      {
+        std::ofstream manifest( path );
+
+        if( !manifest )
+        {
+          std::cerr << "Warning: could not write " << path << std::endl;
+          return false;
+        }
+
+        manifest << "# viame tracker training sequence manifest v1"
+                 << std::endl;
+        manifest << "# track_set first_frame frame_count source" << std::endl;
+
+        // Where each item's frames begin in the flat list
+        std::vector< size_t > item_offsets( all_data.size(), 0 );
+        size_t running = 0;
+
+        for( size_t item = 0; item < all_data.size(); item++ )
+        {
+          item_offsets[ item ] = running;
+          running += item_frame_counts[ item ];
+        }
+
+        for( size_t set = 0; set < track_items.size(); set++ )
+        {
+          const unsigned item = track_items[ set ];
+          size_t first = item_offsets[ item ];
+          size_t count = item_frame_counts[ item ];
+
+          // Ranges are relative to the list the trainer is handed, which for
+          // validation starts at the split
+          if( first >= frame_offset )
+          {
+            first -= frame_offset;
+          }
+          else
+          {
+            first = 0;
+            count = 0;
+          }
+
+          manifest << set << " " << first << " " << count << " "
+                   << all_data[ item ] << std::endl;
+        }
+
+        return true;
+      };
+
+      const size_t split = ( validation_pivot > 0 ?
+        static_cast< size_t >( validation_pivot ) : 0 );
+
+      // output_directory defaults to empty, meaning the working directory
+      const std::string manifest_dir =
+        ( output_directory.empty() ? std::string( "." ) : output_directory );
+
+      sequence_manifest_file =
+        append_path( manifest_dir, "train_sequence_manifest.txt" );
+
+      if( !write_manifest( sequence_manifest_file, train_track_items, 0 ) )
+      {
+        sequence_manifest_file.clear();
+      }
+
+      if( !validation_track_items.empty() )
+      {
+        validation_manifest_file =
+          append_path( manifest_dir, "validation_sequence_manifest.txt" );
+
+        if( !write_manifest( validation_manifest_file,
+                             validation_track_items, split ) )
+        {
+          validation_manifest_file.clear();
+        }
+      }
     }
     else
     {
@@ -3038,6 +3144,23 @@ train_applet
       // Configure tracker trainer
       kv::config_block_sptr tracker_config = default_config();
       tracker_config->set_value( "tracker_trainer:type", current_tracker );
+
+      // Tell the trainer where the frame-to-track-set association is. Set
+      // before the command line overrides so a run can still point it
+      // elsewhere or switch it off with an empty value.
+      if( !sequence_manifest_file.empty() )
+      {
+        tracker_config->set_value(
+          "tracker_trainer:" + current_tracker + ":sequence_manifest",
+          sequence_manifest_file );
+      }
+
+      if( !validation_manifest_file.empty() )
+      {
+        tracker_config->set_value(
+          "tracker_trainer:" + current_tracker + ":validation_manifest",
+          validation_manifest_file );
+      }
 
       // Apply command line settings override
       apply_settings( tracker_config, file_settings );

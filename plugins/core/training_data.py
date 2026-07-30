@@ -121,6 +121,27 @@ def build_sequence_maps( image_files, track_set_count, label="training",
                "sequence's images."
                .format( label, len( image_files ), found, track_set_count ) )
 
+        # Enough to work out what the layout really is without another run
+        if frame_bounds is not None and groups:
+            empty = sum( 1 for b in frame_bounds if b is None )
+            sizes = sorted( len( g ) for g in groups )
+            print( "  {} of the {} track sets refer to no frames; "
+                   "{} refer to some".format( empty, track_set_count,
+                                              track_set_count - empty ) )
+            print( "  directory sizes: min {} median {} max {}".format(
+                sizes[ 0 ], sizes[ len( sizes ) // 2 ], sizes[ -1 ] ) )
+
+            over = [ ( i, frame_bounds[ i ], len( groups[ i ] ) )
+                     for i in range( min( len( groups ), track_set_count ) )
+                     if frame_bounds[ i ] is not None
+                     and frame_bounds[ i ] >= len( groups[ i ] ) ]
+            print( "  straight alignment: {} of {} track sets ask for a frame "
+                   "their directory does not have".format(
+                       len( over ), track_set_count ) )
+            for i, bound, size in over[ :5 ]:
+                print( "     track set {} wants frame {} of a {} frame "
+                       "directory".format( i, bound, size ) )
+
         flat = { i: path for i, path in enumerate( image_files ) }
 
         return [ flat ] * track_set_count, [ None ] * track_set_count
@@ -453,3 +474,59 @@ def match_to_groundtruth( computed, truth, threshold=0.5 ):
     missed = [ t for i, t in enumerate( truth ) if i not in used_truth ]
 
     return matches, unmatched, missed
+
+
+def read_sequence_manifest( path, image_files, track_set_count ):
+    """The frame to track set association, as the training tool recorded it.
+
+    The tool builds the flat frame list and the track set list in two separate
+    passes with their own filtering, so which frames belong to which track set
+    cannot be recovered from either. It now writes the association out; this
+    reads it.
+
+    Returns ( maps, names ) as build_sequence_maps does, or ( None, None )
+    when there is no usable manifest, leaving the caller to fall back to
+    guessing from the directory layout.
+    """
+    if not path or not os.path.isfile( path ):
+        return None, None
+
+    maps = [ {} for _ in range( track_set_count ) ]
+    names = [ None ] * track_set_count
+    seen = 0
+
+    with open( path ) as handle:
+        for line in handle:
+            if not line.strip() or line.lstrip().startswith( '#' ):
+                continue
+
+            fields = line.split( None, 3 )
+
+            if len( fields ) < 4:
+                continue
+
+            try:
+                index = int( fields[ 0 ] )
+                first = int( fields[ 1 ] )
+                count = int( fields[ 2 ] )
+            except ValueError:
+                continue
+
+            source = fields[ 3 ].strip()
+
+            if index >= track_set_count:
+                continue
+
+            files = image_files[ first:first + count ]
+            maps[ index ] = sequence_image_map( files ) if files else {}
+            names[ index ] = os.path.splitext(
+                os.path.basename( source.rstrip( '/' ) ) )[ 0 ]
+            seen += 1
+
+    if not seen:
+        return None, None
+
+    print( "Sequence manifest: {} of {} track sets placed against {} frames"
+           .format( seen, track_set_count, len( image_files ) ) )
+
+    return maps, names

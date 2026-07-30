@@ -35,6 +35,7 @@ import time
 import threading
 from viame.pytorch.utilities import report_cuda_errors
 from viame.core.training_data import (build_sequence_maps,
+    read_sequence_manifest,
     load_computed_detections, match_to_groundtruth)
 from viame.pytorch.srnn.generate_training_files_kw18 import BoundingBox
 
@@ -108,6 +109,7 @@ class SRNNTrainer( TrainTracker ):
 
         cfg.set_value( "identifier", self._identifier )
         cfg.set_value( "computed_detections", self._computed_detections )
+        cfg.set_value( "sequence_manifest", self._sequence_manifest )
         cfg.set_value( "train_directory", self._train_directory )
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
         cfg.set_value( "threshold", self._threshold )
@@ -130,6 +132,7 @@ class SRNNTrainer( TrainTracker ):
 
         self._identifier = str( cfg.get_value( "identifier" ) )
         self._computed_detections = str( cfg.get_value( "computed_detections" ) )
+        self._sequence_manifest = str( cfg.get_value( "sequence_manifest" ) )
         self._train_directory = str( cfg.get_value( "train_directory" ) )
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
         self._threshold = str( cfg.get_value( "threshold" ) )
@@ -328,9 +331,13 @@ class SRNNTrainer( TrainTracker ):
         # One image map per sequence. A frame id is a position within its own
         # sequence, so resolving it against the flat list of every sequence's
         # images only ever worked for the first one.
-        image_maps, names = build_sequence_maps(
-            image_files, len( track_sets ), split_name,
-            _frame_bounds( track_sets ) )
+        image_maps, names = read_sequence_manifest(
+            self._sequence_manifest, image_files, len( track_sets ) )
+
+        if image_maps is None:
+            image_maps, names = build_sequence_maps(
+                image_files, len( track_sets ), split_name,
+                _frame_bounds( track_sets ) )
 
         computed_by_sequence = self._load_computed_by_sequence(
             names, track_sets )

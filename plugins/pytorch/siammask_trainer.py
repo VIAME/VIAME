@@ -26,7 +26,8 @@ import signal
 import time
 import threading
 from viame.pytorch.utilities import report_cuda_errors
-from viame.core.training_data import build_sequence_maps
+from viame.core.training_data import ( build_sequence_maps,
+    read_sequence_manifest )
 
 
 def _frame_bounds( track_sets ):
@@ -74,6 +75,10 @@ class SiamMaskTrainer( TrainTracker ):
         self._samples_per_sequence = 6000
         self._resume_model = ""
         self._backbone_seed = ""
+
+        # Written by the training tool: which frames of the flat list
+        # belong to which track set.
+        self._sequence_manifest = ""
         self._timeout = "1209600"
 
         self._categories = []
@@ -101,6 +106,7 @@ class SiamMaskTrainer( TrainTracker ):
         cfg.set_value( "samples_per_sequence", str( self._samples_per_sequence ) )
         cfg.set_value( "resume_model", self._resume_model )
         cfg.set_value( "backbone_seed", self._backbone_seed )
+        cfg.set_value( "sequence_manifest", self._sequence_manifest )
         cfg.set_value( "timeout", self._timeout )
 
         return cfg
@@ -126,6 +132,7 @@ class SiamMaskTrainer( TrainTracker ):
         self._samples_per_sequence = int( cfg.get_value( "samples_per_sequence" ) )
         self._resume_model = str( cfg.get_value( "resume_model" ) )
         self._backbone_seed = str( cfg.get_value( "backbone_seed" ) )
+        self._sequence_manifest = str( cfg.get_value( "sequence_manifest" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
 
         # Check GPU availability
@@ -233,9 +240,14 @@ class SiamMaskTrainer( TrainTracker ):
         # One image map per sequence. A frame id is a position within its own
         # sequence, so resolving it against the flat list of every sequence's
         # images only ever worked for the first one.
-        image_maps, _names = build_sequence_maps(
-            self._train_image_files, len( self._train_tracks ), "training",
-            _frame_bounds( self._train_tracks ) )
+        image_maps, _names = read_sequence_manifest(
+            self._sequence_manifest, self._train_image_files,
+            len( self._train_tracks ) )
+
+        if image_maps is None:
+            image_maps, _names = build_sequence_maps(
+                self._train_image_files, len( self._train_tracks ), "training",
+                _frame_bounds( self._train_tracks ) )
 
         print( "Preparing training data for SiamMask..." )
         print( f"  Processing {len(self._train_tracks)} track sets" )

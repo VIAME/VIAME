@@ -38,6 +38,7 @@ import json
 import random
 from viame.pytorch.utilities import report_cuda_errors
 from viame.core.training_data import (build_sequence_maps,
+    read_sequence_manifest,
     load_computed_detections, match_to_groundtruth)
 
 
@@ -250,6 +251,7 @@ class DeepSORTTrainer(TrainTracker):
         cfg.set_value("output_prefix", self._output_prefix)
         cfg.set_value("pipeline_template", self._pipeline_template)
         cfg.set_value("computed_detections", self._computed_detections)
+        cfg.set_value("sequence_manifest", self._sequence_manifest)
         cfg.set_value("gpu_count", str(self._gpu_count))
         cfg.set_value("max_epochs", self._max_epochs)
         cfg.set_value("batch_size", self._batch_size)
@@ -273,6 +275,7 @@ class DeepSORTTrainer(TrainTracker):
         self._output_prefix = str(cfg.get_value("output_prefix"))
         self._pipeline_template = str(cfg.get_value("pipeline_template"))
         self._computed_detections = str(cfg.get_value("computed_detections"))
+        self._sequence_manifest = str(cfg.get_value("sequence_manifest"))
         self._gpu_count = int(cfg.get_value("gpu_count"))
         self._max_epochs = str(cfg.get_value("max_epochs"))
         self._batch_size = str(cfg.get_value("batch_size"))
@@ -358,10 +361,15 @@ class DeepSORTTrainer(TrainTracker):
         # One image map per sequence. A frame id is a position within its
         # own sequence, so resolving it against the flat list of every
         # sequence's images only ever worked for the first one.
-        train_maps, train_names = build_sequence_maps(
-            self._train_image_files, len(self._train_tracks), "training",
-            _frame_bounds(self._train_tracks)
-        )
+        train_maps, train_names = read_sequence_manifest(
+            self._sequence_manifest, self._train_image_files,
+            len(self._train_tracks))
+
+        if train_maps is None:
+            train_maps, train_names = build_sequence_maps(
+                self._train_image_files, len(self._train_tracks), "training",
+                _frame_bounds(self._train_tracks)
+            )
 
         train_count = self._process_split_data(
             self._train_tracks, train_maps, train_names, train_dir, crop_h, crop_w, "train"
