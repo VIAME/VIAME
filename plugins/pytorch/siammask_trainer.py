@@ -51,6 +51,7 @@ class SiamMaskTrainer( TrainTracker ):
         self._skip_crop = False
         self._samples_per_sequence = 6000
         self._resume_model = ""
+        self._backbone_seed = ""
         self._timeout = "1209600"
 
         self._categories = []
@@ -77,6 +78,7 @@ class SiamMaskTrainer( TrainTracker ):
         cfg.set_value( "skip_crop", str( self._skip_crop ) )
         cfg.set_value( "samples_per_sequence", str( self._samples_per_sequence ) )
         cfg.set_value( "resume_model", self._resume_model )
+        cfg.set_value( "backbone_seed", self._backbone_seed )
         cfg.set_value( "timeout", self._timeout )
 
         return cfg
@@ -101,6 +103,7 @@ class SiamMaskTrainer( TrainTracker ):
         self._skip_crop = strtobool( cfg.get_value( "skip_crop" ) )
         self._samples_per_sequence = int( cfg.get_value( "samples_per_sequence" ) )
         self._resume_model = str( cfg.get_value( "resume_model" ) )
+        self._backbone_seed = str( cfg.get_value( "backbone_seed" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
 
         # Check GPU availability
@@ -418,6 +421,9 @@ class SiamMaskTrainer( TrainTracker ):
 
         if self._resume_model:
             cmd.append( "--resume=" + self._resume_model )
+
+        if self._backbone_seed:
+            cmd.append( "--backbone-pretrained=" + self._backbone_seed )
 
         # seed_model was read from the config but never reached training, so
         # fine tuning silently started from scratch. It is loaded over the

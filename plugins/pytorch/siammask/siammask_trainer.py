@@ -57,6 +57,12 @@ parser.add_argument('-c', '--config-file', required=True, help='Config file for 
 parser.add_argument('-t', '--threshold', required=True, help='GT confidence threshold.')
 parser.add_argument('--skip-crop', action='store_true', default=False, help='Add flag if you want to skip the data cropping (crop_511) step.')
 parser.add_argument('--pretrained', default='', help='Model to fine tune from. Loaded over the whole network, not just the backbone.')
+parser.add_argument('--backbone-pretrained', dest='backbone_pretrained',
+                    default='',
+                    help='Backbone weights to start from, as distinct from '
+                    '--pretrained which loads a whole tracker. This is how '
+                    'pysot trains one of these from scratch: an ImageNet '
+                    'ResNet50 in the backbone and the heads left random.')
 parser.add_argument('--resume', default='',
                     help='Checkpoint to carry on from. Restores the optimizer '
                     'and the epoch as well as the weights, unlike --pretrained '
@@ -406,6 +412,9 @@ def main():
 
     if args.resume:
         cfg.TRAIN.RESUME = args.resume
+
+    if args.backbone_pretrained:
+        cfg.BACKBONE.PRETRAINED = args.backbone_pretrained
 
     cfg.TRAIN.LOG_DIR = os.path.join(args.save_folder, cfg.TRAIN.LOG_DIR)
     cfg.TRAIN.SNAPSHOT_DIR = os.path.join(args.save_folder, cfg.TRAIN.SNAPSHOT_DIR)
