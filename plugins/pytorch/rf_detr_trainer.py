@@ -250,6 +250,12 @@ class RFDETRTrainerConfig(scfg.DataConfig):
 
     # Checkpointing
     checkpoint_interval = scfg.Value(10, help='Save checkpoint every N epochs')
+    skip_best_epochs = scfg.Value(0, help=(
+        'Ignore the first N epochs when tracking the best regular/EMA '
+        'checkpoints. Set this when seeding from a converged model: warmup '
+        'holds the weights near the seed, so the epoch-0 EMA can win '
+        'best-checkpoint selection outright and the exported model ends up '
+        'being the seed rather than the trained result.'))
 
     # DataLoader performance (accuracy-neutral). Seg models augment on the CPU,
     # so the default of 2 workers/GPU can starve the GPUs; set num_workers near
@@ -779,6 +785,7 @@ class RFDETRTrainer(TrainDetector):
             early_stopping_patience=early_stopping_patience,
             multi_scale=multi_scale,
             checkpoint_interval=checkpoint_interval,
+            skip_best_epochs=int(self._skip_best_epochs),
             eval_interval=int(self._eval_interval),
             eval_max_dets=int(self._eval_max_dets),
             tensorboard=use_tensorboard,
@@ -924,6 +931,7 @@ class RFDETRTrainer(TrainDetector):
             early_stopping_patience=int(self._early_stopping_patience),
             multi_scale=parse_bool(self._multi_scale),
             checkpoint_interval=int(self._checkpoint_interval),
+            skip_best_epochs=int(self._skip_best_epochs),
             eval_interval=int(self._eval_interval),
             eval_max_dets=int(self._eval_max_dets),
             tensorboard=parse_bool(self._use_tensorboard),
