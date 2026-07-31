@@ -26,6 +26,7 @@ from viame.pytorch.utilities import (
     TrainingInterruptHandler,
     ensure_rfdetr_compatibility,
     apply_rfdetr_stem_lr,
+    rfdetr_resume_lr_callback,
 )
 
 
@@ -250,6 +251,17 @@ class RFDETRTrainerConfig(scfg.DataConfig):
 
     # Checkpointing
     checkpoint_interval = scfg.Value(10, help='Save checkpoint every N epochs')
+    resume = scfg.Value(False, help=(
+        'Continue seed_model as a run in progress instead of starting a fresh '
+        'one from its weights. seed_model must then be a checkpoint carrying '
+        'training state -- rf_detr_output/last.ckpt, written every epoch -- so '
+        'the Adam moments and the EMA survive and there is no re-warming '
+        'transient at the handover. The learning rates do NOT carry over: '
+        'PyTorch-Lightning restores them from the checkpoint, and VIAME then '
+        'puts the config values back and restarts the schedule, so the '
+        'learning_rate*, lr_scheduler and lr_drop settings below still apply. '
+        'That is deliberate -- a schedule that has annealed to ~0 has no '
+        'training left in it, so resuming onto it would do nothing.'))
     skip_best_epochs = scfg.Value(0, help=(
         'Ignore the first N epochs when tracking the best regular/EMA '
         'checkpoints. Set this when seeding from a converged model: warmup '
@@ -749,6 +761,7 @@ class RFDETRTrainer(TrainDetector):
         early_stopping_patience = int(self._early_stopping_patience)
         multi_scale = parse_bool(self._multi_scale)
         checkpoint_interval = int(self._checkpoint_interval)
+        resume_from = self._resolve_resume()
         use_tensorboard = parse_bool(self._use_tensorboard)
         aug_config = self._resolve_aug_config(self._augmentation)
 
@@ -791,6 +804,8 @@ class RFDETRTrainer(TrainDetector):
             tensorboard=use_tensorboard,
             wandb=False,
         )
+        if resume_from:
+            train_kwargs["resume"] = resume_from
         # Omit aug_config when None so RF-DETR applies its own default preset.
         if aug_config is not None:
             train_kwargs["aug_config"] = aug_config
@@ -835,10 +850,13 @@ class RFDETRTrainer(TrainDetector):
 
         stop_control = _StopControlCallback(timeout_seconds)
         original_build_trainer = rfdetr_training.build_trainer
+        extra_callbacks = [stop_control]
+        if resume_from:
+            extra_callbacks.append(rfdetr_resume_lr_callback())
 
         def _build_trainer_with_stop_control(*args, **kwargs):
             trainer = original_build_trainer(*args, **kwargs)
-            trainer.callbacks.append(stop_control)
+            trainer.callbacks.extend(extra_callbacks)
             return trainer
 
         rfdetr_training.build_trainer = _build_trainer_with_stop_control
@@ -887,6 +905,33 @@ class RFDETRTrainer(TrainDetector):
         if strat not in ('auto', ''):
             return self._strategy
         return 'ddp_find_unused_parameters_true'
+
+    def _resolve_resume(self):
+        """Return the ckpt_path to resume from, or '' for a fresh run.
+
+        Resume reuses seed_model rather than taking a path of its own. The
+        network is built and head-aligned from model_config.pretrain_weights
+        before fit(ckpt_path=) restores into it, so two separate paths could
+        disagree on num_classes and fail the restore on class_embed, and a
+        resume path with no seed_model would build the default 90-class head
+        that a single-class checkpoint cannot load into.
+        """
+        if not parse_bool(self._resume):
+            return ''
+        path = str(self._seed_model).strip()
+        if not path:
+            raise ValueError(
+                "resume = true requires seed_model to point at the checkpoint "
+                "to continue (rf_detr_output/last.ckpt).")
+        if not os.path.exists(path):
+            raise ValueError(f"resume seed_model does not exist: {path}")
+        if not path.endswith('.ckpt'):
+            raise ValueError(
+                f"resume needs a PyTorch-Lightning .ckpt, got: {path}. The "
+                "checkpoint_best_*.pth files carry weights but no optimizer or "
+                "EMA state, so there is nothing to resume -- set resume = "
+                "false to warm-start from one of those instead.")
+        return path
 
     def _dataloader_kwargs(self):
         """Accuracy-neutral DataLoader tuning passed to model.train(). On
@@ -940,6 +985,9 @@ class RFDETRTrainer(TrainDetector):
             devices=n_gpus,
             strategy=self._resolve_strategy(n_gpus),
         )
+        resume_from = self._resolve_resume()
+        if resume_from:
+            train_kwargs["resume"] = resume_from
         ddp_timeout = int(self._ddp_timeout)
         if ddp_timeout > 0:
             train_kwargs["ddp_timeout_seconds"] = ddp_timeout
