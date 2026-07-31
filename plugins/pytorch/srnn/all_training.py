@@ -70,10 +70,34 @@ def train_model(
             final_metrics /= len(test_loader)
             logging(f'Epoch {epoch}: final v' + format_metrics(final_metrics))
 
+    def resident_memory():
+        """This process and its children, in GB, or None where unavailable.
+
+        Reported each epoch because these stages have twice been killed by a
+        signal with nothing in the log to say why, and a kill from outside
+        looks identical whether it was memory or anything else. A number here
+        settles it from the log alone rather than from a rerun.
+        """
+        try:
+            import resource
+
+            total = resource.getrusage( resource.RUSAGE_SELF ).ru_maxrss
+            total += resource.getrusage( resource.RUSAGE_CHILDREN ).ru_maxrss
+
+            return total / ( 1024.0 * 1024.0 )  # ru_maxrss is KB on linux
+        except Exception:
+            return None
+
     # train loop
     for epoch in range(epoch, max_iterations):
         # change learning rate
         optimizer, lr = lr_scheduler(optimizer, epoch, lr, lr_step)
+
+        peak = resident_memory()
+
+        if peak is not None:
+            logging( 'Epoch {}: peak resident memory {:.1f} GB'
+                     .format( epoch, peak ) )
 
         run_epoch(train=True)
         run_epoch(train=False)
