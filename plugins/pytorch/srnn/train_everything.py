@@ -73,6 +73,47 @@ def visible_gpu_count():
         return 1
 
 
+def latest_sound_snapshot(model_dir):
+    """The newest snapshot whose weights are all finite, and its epoch.
+
+    A snapshot is written at the end of every epoch, including one that ended
+    with a NaN loss, so the newest is not always a model worth carrying on
+    from: resuming from NaN weights resumes nothing. Walk back until the
+    weights are finite.
+
+    Returns ( path, epoch ) or ( None, None ).
+    """
+    import re
+    import torch
+
+    if not model_dir.is_dir():
+        return None, None
+
+    snapshots = []
+
+    for path in model_dir.glob('snapshot_epoch_*.pt'):
+        match = re.search(r'snapshot_epoch_(\d+)\.pt$', path.name)
+
+        if match:
+            snapshots.append((int(match.group(1)), path))
+
+    for epoch, path in sorted(snapshots, reverse=True):
+        try:
+            state = torch.load(path, map_location='cpu', weights_only=False)
+            weights = state.get('state_dict', state)
+
+            if all(torch.isfinite(t).all() for t in weights.values()
+                   if torch.is_tensor(t) and t.is_floating_point()):
+                return path, epoch
+
+            print("  snapshot for epoch {} holds non-finite weights, "
+                  "looking further back".format(epoch))
+        except Exception as error:
+            print("  could not read {}: {}".format(path.name, error))
+
+    return None, None
+
+
 def get_best_model(model_dir):
     """Return the epoch number and the path of the best-trained model in
     model_dir by validation loss.
@@ -152,6 +193,19 @@ def main(data_root, output_dir, stabilized, generate_options=None,
     if resume and stage_done(siamese_model):
         print("  already trained, skipping")
     else:
+        siamese_options = {}
+
+        # Carry on from the last sound epoch rather than starting the stage
+        # again. It is the longest stage by far, and a run that dies partway
+        # through has usually already paid for several epochs of it.
+        if resume:
+            snapshot, snapshot_epoch = latest_sound_snapshot(siamese_models)
+
+            if snapshot is not None:
+                print("  resuming from epoch {} ({})".format(
+                    snapshot_epoch, snapshot.name))
+                siamese_options['load_path'] = snapshot
+
         run_mod(
             'siamese_main_train',
             model_dir=siamese_models,
@@ -159,6 +213,7 @@ def main(data_root, output_dir, stabilized, generate_options=None,
             train_file=gen_data_prefix + '_siamese_train_set.p',
             test_file=gen_data_prefix + '_siamese_test_set.p',
             num_workers=lstm_loader_workers,
+            **siamese_options,
         )
 
         best_epoch, _model = get_best_model(siamese_models)
