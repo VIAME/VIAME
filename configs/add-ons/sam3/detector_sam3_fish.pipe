@@ -38,7 +38,7 @@ process detector
     relativepath grounding_model_id =          models/sam3_grnd_dino_tiny
     :device                                    cuda
     :text_query                                fish
-    :detection_threshold                       0.15
+    :detection_threshold                       0.01
     :text_threshold                            0.15
     :min_mask_area                             10
     :resegment_existing                        false
