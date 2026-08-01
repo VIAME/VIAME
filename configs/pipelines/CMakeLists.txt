@@ -153,6 +153,7 @@ set( CORE_PIPELINE_FILES
   detector_project_folder.pipe
   detector_project_folder_left.pipe
   detector_simple_hough.pipe
+  detector_three_frame_diff.pipe
   display_annotations.pipe
   filter_debayer.pipe
   filter_debayer_and_enhance.pipe
