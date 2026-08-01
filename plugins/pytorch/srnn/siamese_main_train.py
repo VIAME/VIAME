@@ -32,7 +32,16 @@ def main():
 
     args = parser.parse_args()
 
+    # persistent_workers keeps the workers alive between epochs. Without it
+    # every epoch boundary tears the whole set down and spawns a fresh one,
+    # and on Python 3.14 each of those is a new interpreter rather than a
+    # fork, so the two sets briefly coexist. Two runs of this stage were
+    # killed with SIGKILL at exactly that point, one of them having just
+    # finished epoch 0 and the other epoch 1.
     kwargs = {'num_workers': args.num_workers, 'pin_memory': True}
+
+    if args.num_workers > 0:
+        kwargs['persistent_workers'] = True
     g_config = get_config()
 
     trans = transform=transforms.Compose([
