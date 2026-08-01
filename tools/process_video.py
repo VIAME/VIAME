@@ -793,7 +793,13 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   if run_pipeline:
     log_base = ""
     if len( options.log_directory ) > 0 and not options.debug and options.log_directory != "PIPE":
-      log_base = output_dir + div + options.log_directory + div + input_id_no_ext
+      # join rather than concatenate: -logs is normally relative to the
+      # output directory, but an absolute one was being appended to it, so
+      # the logs landed under <output>/<the whole system path>/logs. join
+      # returns the second path unchanged when it is absolute, which is what
+      # someone passing one means.
+      log_base = os.path.join( output_dir, options.log_directory,
+                               input_id_no_ext )
       if os.path.sep in input_id_no_ext and not os.path.exists( os.path.dirname( log_base ) ):
         os.makedirs( os.path.dirname( log_base ) )
       with get_log_output_files( log_base ) as kwargs:
@@ -1088,7 +1094,9 @@ if __name__ == "__main__" :
   # Initialize database
   if args.init_db:
     if len( args.log_directory ) > 0:
-      init_log_file = args.output_directory + div + args.log_directory + div + "database_log.txt"
+      init_log_file = os.path.join( args.output_directory,
+                                    args.log_directory,
+                                    "database_log.txt" )
     else:
       init_log_file = ""
     db_is_init, user_select = database_tool.init( log_file=init_log_file, prompt=(not args.no_reset_prompt) )
@@ -1113,7 +1121,8 @@ if __name__ == "__main__" :
       create_dir( args.output_directory, logging=False, recreate=recreate_dir, prompt=prompt_user )
 
     if len( args.log_directory ) > 0:
-      create_dir( args.output_directory + div + args.log_directory, logging=False )
+      create_dir( os.path.join( args.output_directory, args.log_directory ),
+                  logging=False )
 
     # Identify all videos to process
     if len( args.input ) > 0:
