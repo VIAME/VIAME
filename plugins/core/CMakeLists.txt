@@ -400,6 +400,11 @@ if( VIAME_ENABLE_PYTHON )
     optical_flow )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/frame_diff_trainer.py
+    core
+    frame_diff_trainer )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_tracker.py
     core
     ocsort_tracker )
