@@ -1328,7 +1328,16 @@ train_applet
     valid_config = false;
   }
 
-  if( !kv::algo::train_detector::
+  // A tracker-only run has no detector_trainer to validate. model_count is the
+  // number of detector models about to be trained, and the detector loop below
+  // is bounded by it, so when it is zero nothing ever reads detector_trainer.
+  // Demanding one anyway is what made the form the tracker examples document,
+  //   viame train -i data --tracker bytetrack
+  // exit with "Configuration not valid" before reaching the tracker at all.
+  const bool detector_trainer_required = ( model_count > 0 || !train_trackers );
+
+  if( detector_trainer_required &&
+      !kv::algo::train_detector::
         check_nested_algo_configuration( "detector_trainer", config ) )
   {
     valid_config = false;
