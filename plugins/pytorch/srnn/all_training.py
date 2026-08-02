@@ -10,6 +10,48 @@ import torch
 from .utilities import checkpoint, logging
 
 
+class MemoryBudgetExceeded(RuntimeError):
+    """Raised when a stage is close enough to its limit to stop deliberately."""
+
+
+def memory_limit_gb():
+    """What this run is actually allowed, in GB, or None if unbounded.
+
+    Reads the cgroup the job is in, which is what the kernel enforces and
+    therefore what kills the process, falling back to what slurm was asked
+    for. Nothing here reads the machine's total: a node with 125 GB and a job
+    granted 80 is bounded by the 80.
+    """
+    for path in ( '/sys/fs/cgroup/memory.max',
+                  '/sys/fs/cgroup/memory/memory.limit_in_bytes' ):
+        try:
+            with open( path ) as handle:
+                value = handle.read().strip()
+
+            if value and value != 'max':
+                limit = int( value ) / ( 1024.0 ** 3 )
+
+                # cgroup v1 reports an enormous number when unlimited
+                if limit < 1024 * 1024:
+                    return limit
+        except ( OSError, ValueError ):
+            pass
+
+    for name in ( 'SLURM_MEM_PER_NODE', 'SLURM_MEM_PER_CPU' ):
+        value = os.environ.get( name )
+
+        if value and value.isdigit():
+            megabytes = int( value )
+
+            if name == 'SLURM_MEM_PER_CPU':
+                megabytes *= int( os.environ.get( 'SLURM_CPUS_PER_TASK', 1 ) )
+
+            return megabytes / 1024.0
+
+    return None
+
+
+
 class NTMathMixin:
     def __add__(self, other):
         return self._make(e + f for e, f in zip(self, other))
@@ -45,6 +87,34 @@ def train_model(
             optimizer.step()
         return metrics
 
+    limit = memory_limit_gb()
+    warned = [False]
+
+    def check_memory(epoch, batch_idx, total_batches):
+        if limit is None:
+            return
+
+        used, largest, count = process_tree_memory()
+
+        if used is None:
+            return
+
+        if used > limit * 0.90:
+            logging('Epoch {}: {:.1f} GB of a {:.1f} GB limit at batch {} of '
+                    '{}, across {} processes, largest {:.1f} GB. Stopping '
+                    'before the kernel does.'
+                    .format(epoch, used, limit, batch_idx, total_batches,
+                            count, largest))
+            raise MemoryBudgetExceeded(
+                '{:.1f} GB of a {:.1f} GB limit'.format(used, limit))
+
+        if used > limit * 0.75 and not warned[0]:
+            warned[0] = True
+            logging('Epoch {}: {:.1f} GB of a {:.1f} GB limit at batch {} of '
+                    '{}, across {} processes, largest {:.1f} GB.'
+                    .format(epoch, used, limit, batch_idx, total_batches,
+                            count, largest))
+
     def run_epoch(train):
         if train:
             loader = train_loader
@@ -64,6 +134,12 @@ def train_model(
                         + (f'lr:{lr} - t' if train else 'v')
                         + format_metrics(avg_metrics / display_interval))
                 avg_metrics = metric_zero
+
+                # Stop on our own terms rather than being killed. A stage that
+                # grows without bound is a bug to fix, but until it is found
+                # the difference between stopping here and being sent SIGKILL
+                # is a snapshot and a reason in the log against neither.
+                check_memory(epoch, batch_idx, len(loader))
 
         # Not meaningful for training since the weights change
         if not train:
@@ -153,8 +229,20 @@ def train_model(
             logging( 'Epoch {}: peak resident memory {:.1f} GB'
                      .format( epoch, peak ) )
 
-        run_epoch(train=True)
-        run_epoch(train=False)
+        try:
+            run_epoch(train=True)
+            run_epoch(train=False)
+        except MemoryBudgetExceeded as exceeded:
+            # Keep what this epoch reached before stopping. Being killed loses
+            # the epoch outright; this way the stage carries on from here once
+            # the run is given more memory or the growth is fixed.
+            partial = os.path.join(
+                g_config.model_dir, 'snapshot_epoch_{}.pt'.format(epoch))
+            torch.save(checkpoint(model, epoch), partial)
+            logging('Snapshot saved to {} before stopping'.format(partial))
+            logging('Stopped inside epoch {}: {}. Resume to carry on from '
+                    'this snapshot.'.format(epoch, exceeded))
+            raise
 
         # save snapshot
         save_path = os.path.join(g_config.model_dir, 'snapshot_epoch_{}.pt'.format(epoch))
