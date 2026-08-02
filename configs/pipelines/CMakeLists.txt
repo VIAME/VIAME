@@ -150,10 +150,10 @@ set( CORE_PIPELINE_FILES
   convert_viame_csv_to_kw18.pipe
   database_apply_svm_models.pipe
   detector_gmm_motion.pipe
+  detector_motion_three_frame_diff.pipe
   detector_project_folder.pipe
   detector_project_folder_left.pipe
   detector_simple_hough.pipe
-  detector_three_frame_diff.pipe
   display_annotations.pipe
   filter_debayer.pipe
   filter_debayer_and_enhance.pipe
