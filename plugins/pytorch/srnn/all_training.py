@@ -160,6 +160,21 @@ def train_model(
             import os as _os
 
             def rss_kb(pid):
+                # Pss, not Rss. Workers share most of their mapping with the
+                # parent, so each reports the same pages and summing Rss over
+                # the tree counts them once per process: five processes
+                # sharing 57 GB came out as 170 GB, which tripped the budget
+                # guard against a limit the run was nowhere near. Pss divides
+                # a shared page between those sharing it, so the sum over a
+                # tree is what the tree actually occupies.
+                try:
+                    with open('/proc/{}/smaps_rollup'.format(pid)) as handle:
+                        for line in handle:
+                            if line.startswith('Pss:'):
+                                return int(line.split()[1])
+                except OSError:
+                    pass
+
                 with open('/proc/{}/statm'.format(pid)) as handle:
                     return int(handle.read().split()[1]) * (
                         _os.sysconf('SC_PAGE_SIZE') // 1024)
