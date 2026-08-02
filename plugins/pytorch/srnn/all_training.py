@@ -70,6 +70,54 @@ def train_model(
             final_metrics /= len(test_loader)
             logging(f'Epoch {epoch}: final v' + format_metrics(final_metrics))
 
+    def process_tree_memory():
+        """Current RSS of this process and every descendant, in GB.
+
+        Read from /proc rather than from getrusage: RUSAGE_CHILDREN reports
+        only children that have been waited for, and with persistent workers
+        none have been, so it says almost nothing while the workers are the
+        thing growing. This walks the tree instead, and returns the total
+        alongside the largest single process, which is what says whether the
+        growth is in the parent or spread across the loaders.
+        """
+        try:
+            import os as _os
+
+            def rss_kb(pid):
+                with open('/proc/{}/statm'.format(pid)) as handle:
+                    return int(handle.read().split()[1]) * (
+                        _os.sysconf('SC_PAGE_SIZE') // 1024)
+
+            def children(pid):
+                try:
+                    with open('/proc/{}/task/{}/children'.format(pid, pid)) as h:
+                        return [int(x) for x in h.read().split()]
+                except OSError:
+                    return []
+
+            pids, stack = [], [_os.getpid()]
+
+            while stack:
+                pid = stack.pop()
+                pids.append(pid)
+                stack.extend(children(pid))
+
+            sizes = []
+
+            for pid in pids:
+                try:
+                    sizes.append(rss_kb(pid))
+                except OSError:
+                    pass
+
+            if not sizes:
+                return None, None, 0
+
+            return (sum(sizes) / 1048576.0, max(sizes) / 1048576.0,
+                    len(sizes))
+        except Exception:
+            return None, None, 0
+
     def resident_memory():
         """This process and its children, in GB, or None where unavailable.
 
@@ -94,8 +142,14 @@ def train_model(
         optimizer, lr = lr_scheduler(optimizer, epoch, lr, lr_step)
 
         peak = resident_memory()
+        total, largest, count = process_tree_memory()
 
-        if peak is not None:
+        if total is not None:
+            logging( 'Epoch {}: memory {:.1f} GB across {} processes, '
+                     'largest {:.1f} GB (peak so far {:.1f} GB)'
+                     .format( epoch, total, count, largest,
+                              peak if peak is not None else 0.0 ) )
+        elif peak is not None:
             logging( 'Epoch {}: peak resident memory {:.1f} GB'
                      .format( epoch, peak ) )
 
