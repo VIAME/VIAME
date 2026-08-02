@@ -422,6 +422,12 @@ class ByteTrackTrackerConfig(scfg.DataConfig):
     new_track_thresh = scfg.Value(0.6, help='Minimum confidence to create new track from unmatched detection')
     std_weight_position = scfg.Value(1.0 / 20, help='Kalman position uncertainty weight')
     std_weight_velocity = scfg.Value(1.0 / 160, help='Kalman velocity uncertainty weight')
+    second_match_thresh = scfg.Value(
+        0.5, help='IOU distance bound for the second (low-confidence) '
+                  'association pass; stock ByteTrack hard-coded 0.5')
+    unconfirmed_match_thresh = scfg.Value(
+        0.7, help='IOU distance bound for matching unconfirmed (single-hit) '
+                  'tracks; stock ByteTrack hard-coded 0.7')
     params_file = scfg.Value('', help='Optional JSON file of trained parameters overriding the above')
 
 
@@ -472,6 +478,8 @@ class ByteTrackTracker(TrackObjects):
         self._high_thresh = float(self._config.high_thresh)
         self._low_thresh = float(self._config.low_thresh)
         self._match_thresh = float(self._config.match_thresh)
+        self._second_match_thresh = float(self._config.second_match_thresh)
+        self._unconfirmed_match_thresh = float(self._config.unconfirmed_match_thresh)
         self._track_buffer = int(self._config.track_buffer)
         self._new_track_thresh = float(self._config.new_track_thresh)
         self._std_weight_position = float(self._config.std_weight_position)
@@ -505,6 +513,8 @@ class ByteTrackTracker(TrackObjects):
             'high_thresh': '_high_thresh',
             'low_thresh': '_low_thresh',
             'match_thresh': '_match_thresh',
+            'second_match_thresh': '_second_match_thresh',
+            'unconfirmed_match_thresh': '_unconfirmed_match_thresh',
             'track_buffer': '_track_buffer',
             'new_track_thresh': '_new_track_thresh',
             'std_weight_position': '_std_weight_position',
@@ -584,7 +594,7 @@ class ByteTrackTracker(TrackObjects):
         # ===== SECOND STAGE: Match remaining tracks with low-confidence dets =====
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.TRACKED]
         dists = iou_distance(r_tracked_stracks, low_dets)
-        matches, u_track_second, _ = linear_assignment(dists, thresh=0.5)
+        matches, u_track_second, _ = linear_assignment(dists, thresh=self._second_match_thresh)
 
         for itracked, idet in matches:
             track = r_tracked_stracks[itracked]
@@ -601,7 +611,7 @@ class ByteTrackTracker(TrackObjects):
 
         # ===== HANDLE UNCONFIRMED TRACKS =====
         dists = iou_distance(unconfirmed, [high_dets[i] for i in u_detection])
-        matches, u_unconfirmed, u_detection_final = linear_assignment(dists, thresh=0.7)
+        matches, u_unconfirmed, u_detection_final = linear_assignment(dists, thresh=self._unconfirmed_match_thresh)
 
         for itracked, idet in matches:
             unconfirmed[itracked].update(high_dets[u_detection[idet]], self._frame_id, ts)

@@ -582,6 +582,8 @@ class ByteTrackTrainer( TrainTracker ):
             'high_thresh': high_thresh,
             'low_thresh': low_thresh,
             'match_thresh': match_thresh,
+            'second_match_thresh': match_thresh,
+            'unconfirmed_match_thresh': match_thresh,
             'new_track_thresh': new_track_thresh,
             'track_buffer': track_buffer
         }
@@ -614,6 +616,8 @@ class ByteTrackTrainer( TrainTracker ):
         output[algo + ":high_thresh"] = f"{params['high_thresh']:.3f}"
         output[algo + ":low_thresh"] = f"{params['low_thresh']:.3f}"
         output[algo + ":match_thresh"] = f"{params['match_thresh']:.3f}"
+        output[algo + ":second_match_thresh"] = "{:.3f}".format(params["second_match_thresh"])
+        output[algo + ":unconfirmed_match_thresh"] = "{:.3f}".format(params["unconfirmed_match_thresh"])
         output[algo + ":track_buffer"] = str( params['track_buffer'] )
         output[algo + ":new_track_thresh"] = f"{params['new_track_thresh']:.3f}"
 
