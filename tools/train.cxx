@@ -62,6 +62,8 @@ namespace kv = kwiver::vital;
 namespace viame {
 namespace tools {
 
+const unsigned MAX_AUTO_AUGMENTATION_THREADS = 32;
+
 // =======================================================================================
 // Assorted configuration related helper functions
 static kv::config_block_sptr default_config()
@@ -83,7 +85,8 @@ static kv::config_block_sptr default_config()
   config->set_value( "augmentation_threads", "4",
     "Number of data items to augment concurrently for single-pass (source-driven) "
     "pipelines. Each item is an independent subprocess, so this speeds up "
-    "preparation on large multi-video/-folder datasets. Capped at the item count." );
+    "preparation on large multi-video/-folder datasets. 0 = one per logical "
+    "core (at most 32), 1 = serial; either way capped at the item count." );
   config->set_value( "original_bit_depth", "false",
     "Keep the source bit depth when running single-pass augmentation, so "
     "bit-depth-sensitive pipelines (e.g. percentile normalization of 16-bit "
@@ -2126,8 +2129,16 @@ train_applet
   if( ( unified_augmentation || any_video_extraction ) &&
       max_frame_count == 0 && !contexts.empty() )
   {
+    // Auto stops at MAX_AUTO_AUGMENTATION_THREADS: each worker is a subprocess
+    // running a full pipeline, so a core-count-wide fan-out on a many-core box
+    // oversubscribes both the disk and whatever those pipelines thread over.
+    unsigned auto_threads = ( augmentation_threads > 0 )
+      ? augmentation_threads
+      : std::min( std::thread::hardware_concurrency(),
+                  MAX_AUTO_AUGMENTATION_THREADS );
+
     unsigned n_workers = std::min< unsigned >(
-      std::max< unsigned >( augmentation_threads, 1u ),
+      std::max< unsigned >( auto_threads, 1u ),
       static_cast< unsigned >( contexts.size() ) );
 
     std::cout << "Preparing " << contexts.size() << " data item(s) "

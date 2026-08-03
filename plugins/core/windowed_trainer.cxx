@@ -39,6 +39,8 @@ namespace kv = kwiver::vital;
   const std::string div = "/";
 #endif
 
+const unsigned MAX_AUTO_CHIP_THREADS = 32;
+
 // =============================================================================
 class windowed_trainer::priv
 {
@@ -233,7 +235,8 @@ windowed_trainer
     "either be none, remove, or any other string which will over-ride the "
     "detection type to be that string." );
   config->set_value( "chip_threads", d->m_chip_threads,
-    "Worker threads for chip generation (0 = auto, 1 = serial)." );
+    "Worker threads for chip generation (0 = one per logical core capped at "
+    "32, 1 = serial)." );
   config->set_value( "reuse_cache", d->m_reuse_cache,
     "Reuse existing chips/manifests in train_directory instead of regenerating "
     "(train_directory is not wiped at startup)." );
@@ -567,9 +570,11 @@ windowed_trainer::priv
   std::vector< std::vector< std::string > > frame_names( n );
   std::vector< std::vector< kv::detected_object_set_sptr > > frame_truth( n );
 
+  // Auto stops at MAX_AUTO_CHIP_THREADS: past that the writes contend and a
+  // core-count-wide fan-out on a many-core box costs more than it gains.
   unsigned num_threads = ( m_chip_threads > 0 )
     ? static_cast< unsigned >( m_chip_threads )
-    : std::thread::hardware_concurrency();
+    : std::min( std::thread::hardware_concurrency(), MAX_AUTO_CHIP_THREADS );
 
   if( num_threads == 0 )
   {
