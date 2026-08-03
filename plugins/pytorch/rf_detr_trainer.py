@@ -3,6 +3,7 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 import json
+import math
 import os
 import sys
 import shutil
@@ -39,6 +40,67 @@ _SEG_MODELS = {
     'nano': 'RFDETRSegNano', 'small': 'RFDETRSegSmall',
     'medium': 'RFDETRSegMedium', 'large': 'RFDETRSegLarge',
 }
+
+# Native resolution of each variant, used when resolution = 0 (model default).
+_DET_RESOLUTIONS = {
+    'nano': 384, 'small': 512, 'medium': 576, 'base': 560, 'large': 704,
+}
+_SEG_RESOLUTIONS = {
+    'nano': 312, 'small': 384, 'medium': 432, 'large': 504,
+}
+
+# Coefficients for batch_size = adaptive. Activation memory is roughly linear
+# in pixels x images, on top of a reserve holding the weights, the optimizer
+# moments, the EMA copy and the CUDA context. Calibrated against the configs
+# that have actually been run: large box 1024 -> micro 2 on 24 GB, large box
+# 1280 + checkpointing -> 1 on 24 GB, seg 960x1728 -> 4 on 49 GB.
+_ADAPTIVE_RESERVE_GB = 6.0
+_ADAPTIVE_GB_PER_MEGAPIXEL = 6.0
+_ADAPTIVE_SEG_FACTOR = 1.35
+_ADAPTIVE_MULTI_SCALE_FACTOR = 1.37
+_ADAPTIVE_CHECKPOINT_FACTOR = 0.55
+_ADAPTIVE_MAX_MICRO_BATCH = 32
+
+
+def smallest_visible_vram_gb():
+    """Total VRAM of the smallest visible GPU in GiB, or None without CUDA."""
+    try:
+        import torch
+        if not torch.cuda.is_available():
+            return None
+        count = torch.cuda.device_count()
+        if count < 1:
+            return None
+        return min(torch.cuda.get_device_properties(i).total_memory
+                   for i in range(count)) / (1024.0 ** 3)
+    except Exception:
+        return None
+
+
+def adaptive_micro_batch(vram_gb, resolution, segmentation=False,
+                         multi_scale=True, gradient_checkpointing=False):
+    """Largest micro-batch a single GPU of vram_gb should hold at this workload.
+
+    Deliberately conservative: it estimates the training step only, so a card
+    that lands just above a boundary still has room for the eval pass.
+    """
+    if isinstance(resolution, (list, tuple)):
+        height, width = int(resolution[0]), int(resolution[1])
+    else:
+        height = width = int(resolution)
+
+    per_image = _ADAPTIVE_GB_PER_MEGAPIXEL * (height * width) / 1e6
+    if segmentation:
+        per_image *= _ADAPTIVE_SEG_FACTOR
+    if multi_scale:
+        per_image *= _ADAPTIVE_MULTI_SCALE_FACTOR
+    if gradient_checkpointing:
+        per_image *= _ADAPTIVE_CHECKPOINT_FACTOR
+
+    usable = float(vram_gb) - _ADAPTIVE_RESERVE_GB
+    if usable <= 0 or per_image <= 0:
+        return 1
+    return max(1, min(int(usable // per_image), _ADAPTIVE_MAX_MICRO_BATCH))
 
 
 # Bytes a complete file of each format ends with. A frame whose write was cut
@@ -198,12 +260,18 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     # Training hyperparameters
     max_epochs = scfg.Value(100, help='Maximum number of epochs to train for')
     batch_size = scfg.Value(4, help=(
-        'Images per micro-batch, or "auto" to let RF-DETR probe for the '
-        'largest micro-batch that fits in VRAM and derive grad_accum_steps to '
-        'reach auto_batch_target_effective.'))
+        'Images per micro-batch. "adaptive" sizes it from the VRAM of the '
+        'smallest visible GPU (estimated from resolution, segmentation, '
+        'multi_scale and gradient_checkpointing) and sets grad_accum_steps so '
+        'the global batch still hits auto_batch_target_effective -- one config '
+        'then runs unchanged on an 8 GB card or a 141 GB one. "auto" instead '
+        'has RF-DETR probe the real model for the largest micro-batch that '
+        'fits, which is more accurate but costs a probe pass and needs CUDA.'))
     auto_batch_target_effective = scfg.Value(16, help=(
-        'Per-device effective batch size (micro-batch * grad_accum) targeted '
-        'when batch_size="auto". Ignored for a fixed batch_size.'))
+        'Effective batch (micro-batch * grad_accum * ranks) targeted when '
+        'batch_size is "adaptive" or "auto"; both divide it by the GPU count, '
+        'so it is the GLOBAL batch the learning rate should be tuned for. '
+        'Ignored for a fixed batch_size.'))
     learning_rate = scfg.Value(1e-4, help='Learning rate')
     learning_rate_encoder = scfg.Value(1.5e-4, help='Learning rate for encoder')
     lr_vit_layer_decay = scfg.Value(0.8, help=(
@@ -432,6 +500,65 @@ class RFDETRTrainer(TrainDetector):
                   f"'{self._augmentation}' was requested, but albumentations is "
                   f"not importable. RF-DETR will silently skip ALL augmentation "
                   f"and train on unaugmented imagery. Install albumentations.")
+
+    def _resolve_adaptive_batch(self, n_gpus):
+        """Replace batch_size = adaptive with concrete per-device values.
+
+        What VRAM decides is only how the target batch is *split* -- into a
+        micro-batch the smallest visible GPU can hold plus however many
+        accumulation steps make up the difference. The batch the optimizer
+        actually steps on stays auto_batch_target_effective on every machine,
+        so the same config keeps the learning rate it was tuned with instead of
+        training at whatever global batch the hardware happens to imply.
+        """
+        segmentation = parse_bool(self._segmentation)
+        resolution = self._resolution
+        if not resolution_is_set(resolution):
+            table = _SEG_RESOLUTIONS if segmentation else _DET_RESOLUTIONS
+            resolution = table.get(str(self._model_size).lower(), 704)
+
+        vram_gb = smallest_visible_vram_gb()
+        if vram_gb is None:
+            fits = 1
+        else:
+            fits = adaptive_micro_batch(
+                vram_gb, resolution, segmentation=segmentation,
+                multi_scale=parse_bool(self._multi_scale),
+                gradient_checkpointing=parse_bool(self._gradient_checkpointing))
+
+        target = max(1, int(self._auto_batch_target_effective))
+        ranks = max(1, int(n_gpus))
+
+        # Split the target across the ranks, then over as few accumulation steps
+        # as fit -- and only over ones that divide it evenly, so the global batch
+        # lands on the target rather than above it. Bigger cards therefore buy
+        # fewer accumulation steps, not a larger (and differently tuned) batch;
+        # spending spare VRAM means raising auto_batch_target_effective and the
+        # learning rate with it.
+        per_rank = int(math.ceil(target / float(ranks)))
+        accum = max(1, int(math.ceil(per_rank / float(fits))))
+        while per_rank % accum:
+            accum += 1
+        micro = max(1, per_rank // accum)
+
+        if vram_gb is None:
+            print("[RFDETRTrainer] batch_size = adaptive, but no GPU is "
+                  "visible; using micro-batch 1")
+        else:
+            print(f"[RFDETRTrainer] batch_size = adaptive: {vram_gb:.1f} GiB "
+                  f"on the smallest of {ranks} GPU(s), "
+                  f"{format_resolution(resolution)}"
+                  f"{', segmentation' if segmentation else ''} -> fits "
+                  f"{fits}/GPU, using {micro} x {accum} accum x {ranks} = "
+                  f"{micro * accum * ranks}")
+            if fits <= 1 and accum > 1:
+                print("[RFDETRTrainer] WARNING: only one image per GPU fits at "
+                      "this resolution, so the effective batch is reached "
+                      "entirely by accumulation. gradient_checkpointing = True "
+                      "trades ~30% speed for roughly double the micro-batch.")
+
+        self._batch_size = micro
+        self._grad_accum_steps = accum
 
     def _report_effective_batch(self, n_gpus):
         """
@@ -685,6 +812,10 @@ class RFDETRTrainer(TrainDetector):
         # interpreter, so multi-GPU training runs in a subprocess (see
         # rf_detr_launcher.py); single-GPU stays in-process below.
         n_gpus = self._resolve_gpu_count(device)
+
+        if str(self._batch_size).strip().lower() == 'adaptive':
+            self._resolve_adaptive_batch(n_gpus)
+
         if n_gpus > 1:
             print(f"[RFDETRTrainer] {n_gpus} GPUs visible; training with DDP "
                   "across all of them")
