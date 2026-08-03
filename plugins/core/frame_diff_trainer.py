@@ -17,6 +17,12 @@ Three questions are asked of the groundtruth:
               Each candidate separation is scored end to end, because the
               motion image it produces has its own scale and so needs its own
               threshold -- one cannot be carried over from another separation.
+              That coupling is strong enough to reverse the ranking: measured
+              against an adaptive threshold separation 3 beat 1 across the
+              board, but held at a fixed low threshold it floods (on
+              FishTrack Test, ap50 0.047 -> 0.019 with 28% more detections),
+              because a wider separation moves more pixels past the same bar.
+              Hence the sweep rather than a default.
 
   threshold   For each groundtruth box, a high percentile of the motion image
               inside it, against the same statistic on background patches of the
@@ -200,7 +206,7 @@ class FrameDiffTrainer(TrainDetector):
         self._output_prefix = "frame_diff"
         self._class_name = "motion"
 
-        self._frame_separation = "3"
+        self._frame_separation = "1,3"
         self._min_area = "100"
         self._max_area = "400000"
         self._min_fill = "0.05"
