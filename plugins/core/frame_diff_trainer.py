@@ -9,7 +9,14 @@ Nothing is learned in the usual sense: the detector is threshold, morphology
 and connected components, so training means measuring the motion signal on
 annotated animals and picking the settings that separate them from background.
 
-Two questions are asked of the groundtruth:
+Three questions are asked of the groundtruth:
+
+  separation  How far apart the three frames are taken. Slow animals leave no
+              signal at separation 1 and fast ones smear at 5, so the right
+              value depends on the frame rate and on what is being watched.
+              Each candidate separation is scored end to end, because the
+              motion image it produces has its own scale and so needs its own
+              threshold -- one cannot be carried over from another separation.
 
   threshold   For each groundtruth box, a high percentile of the motion image
               inside it, against the same statistic on background patches of the
@@ -18,8 +25,15 @@ Two questions are asked of the groundtruth:
 
   morphology  For a grid of opening and closing radii, the mask is built,
               cleaned, split into connected components and matched to the
-              groundtruth. The pair maximising recall at the configured
-              matching IoU is kept.
+              groundtruth.
+
+The morphology and separation are chosen together against `objective`. Recall
+answers "how many animals did we touch", which is the right question when the
+output feeds a fusion that will re-rank it anyway. F1 also charges for false
+alarms, which matters when the output is consumed directly: on cluttered
+scenes the most permissive settings reach the highest recall while emitting
+tens of thousands of vegetation blobs per clip, and recall alone cannot see
+that cost.
 
 Emits a pipeline configured with the result.
 """
@@ -186,7 +200,7 @@ class FrameDiffTrainer(TrainDetector):
         self._output_prefix = "frame_diff"
         self._class_name = "motion"
 
-        self._frame_separation = "1"
+        self._frame_separation = "3"
         self._min_area = "100"
         self._max_area = "400000"
         self._min_fill = "0.05"
@@ -198,6 +212,7 @@ class FrameDiffTrainer(TrainDetector):
         self._match_iou = "0.5"
         self._open_radii = "0,1,2,3"
         self._close_radii = "0,2,4,7"
+        self._objective = "recall"
 
         self._train_files = []
         self._train_dets = []
@@ -217,6 +232,7 @@ class FrameDiffTrainer(TrainDetector):
         cfg.set_value("match_iou", self._match_iou)
         cfg.set_value("open_radii", self._open_radii)
         cfg.set_value("close_radii", self._close_radii)
+        cfg.set_value("objective", self._objective)
         return cfg
 
     def set_configuration(self, cfg_in):
@@ -236,6 +252,7 @@ class FrameDiffTrainer(TrainDetector):
         self._match_iou = str(cfg.get_value("match_iou"))
         self._open_radii = str(cfg.get_value("open_radii"))
         self._close_radii = str(cfg.get_value("close_radii"))
+        self._objective = str(cfg.get_value("objective")).strip().lower()
 
         for d in (self._train_directory, self._output_directory):
             if d and not os.path.exists(d):
@@ -268,22 +285,22 @@ class FrameDiffTrainer(TrainDetector):
             out.append((b.min_x(), b.min_y(), b.max_x(), b.max_y()))
         return out
 
-    def update_model(self):
+    def _sample(self, sep, limit):
+        """Motion images and groundtruth for a sample of annotated frames, at
+        one separation, plus the in-box and background motion statistics the
+        threshold is derived from."""
         import cv2
 
-        sep = int(self._frame_separation)
-        limit = int(self._max_samples)
         files, dets = self._train_files, self._train_dets
-
         usable = [i for i in range(sep, len(files) - sep)
                   if i < len(dets) and self._boxes(dets[i])]
         if not usable:
-            print("No annotated frames with temporal neighbours; "
-                  "cannot estimate settings.")
-            return
+            return [], None, None
         step = max(1, len(usable) // limit)
         usable = usable[::step][:limit]
 
+        # seeded per separation so every candidate sees the same background
+        # patches, making the comparison between separations a fair one
         rng = np.random.default_rng(0)
         sig, bkg, frames = [], [], []
 
@@ -316,10 +333,11 @@ class FrameDiffTrainer(TrainDetector):
                             bkg.append(np.percentile(p, 90))
 
         if not sig or not bkg:
-            print("Not enough samples to estimate settings.")
-            return
+            return frames, None, None
+        return frames, np.asarray(sig), np.asarray(bkg)
 
-        sig, bkg = np.asarray(sig), np.asarray(bkg)
+    @staticmethod
+    def _threshold(sig, bkg):
         cands = np.unique(np.percentile(np.concatenate([sig, bkg]),
                                         np.linspace(1, 99, 99)))
         best_j, threshold = -1.0, float(cands[0])
@@ -327,32 +345,87 @@ class FrameDiffTrainer(TrainDetector):
             j = (sig > t).mean() - (bkg > t).mean()
             if j > best_j:
                 best_j, threshold = j, float(t)
+        return threshold, best_j
 
+    def _grid(self, frames, threshold):
+        """Best (score, open, close, recall, precision) over the morphology
+        grid at this threshold, scored against the configured objective."""
         match_iou = float(self._match_iou)
         opens = [int(x) for x in self._open_radii.split(",") if x.strip()]
         closes = [int(x) for x in self._close_radii.split(",") if x.strip()]
-        best = (-1.0, opens[0], closes[0])
+        best = (-1.0, opens[0], closes[0], 0.0, 0.0)
+
         for op in opens:
             for cl in closes:
-                hit = tot = 0
+                hit = tot = matched = emitted = 0
                 for mot, boxes in frames:
                     got = boxes_from_mask(mot > threshold, op, cl,
                                           int(self._min_area),
                                           int(self._max_area),
                                           float(self._min_fill))
                     tot += len(boxes)
+                    emitted += len(got)
                     for g in boxes:
                         if any(iou(g, d) >= match_iou for d in got):
                             hit += 1
+                    for d in got:
+                        if any(iou(g, d) >= match_iou for g in boxes):
+                            matched += 1
                 rec = hit / tot if tot else 0.0
-                if rec > best[0]:
-                    best = (rec, op, cl)
+                prec = matched / emitted if emitted else 0.0
+                if self._objective == "f1":
+                    score = (2 * rec * prec / (rec + prec)
+                             if rec + prec > 0 else 0.0)
+                else:
+                    score = rec
+                if score > best[0]:
+                    best = (score, op, cl, rec, prec)
+        return best
 
-        recall, open_r, close_r = best
-        print("Estimated from %d frames, %d annotations:" % (len(frames), len(sig)))
+    def update_model(self):
+        limit = int(self._max_samples)
+        if self._objective not in ("recall", "f1"):
+            print("Unknown objective '%s'; using recall." % self._objective)
+            self._objective = "recall"
+
+        # accepts a single value or a comma-separated list to sweep
+        seps = [int(x) for x in str(self._frame_separation).split(",")
+                if x.strip()]
+        if not seps:
+            print("No frame separation configured.")
+            return
+
+        overall = None
+        for sep in seps:
+            frames, sig, bkg = self._sample(sep, limit)
+            if not frames or sig is None:
+                print("  separation %d: not enough samples, skipped" % sep)
+                continue
+            threshold, best_j = self._threshold(sig, bkg)
+            score, op, cl, rec, prec = self._grid(frames, threshold)
+            print("  separation %d: threshold %.1f (J %.2f)  open %d close %d"
+                  "  recall %.3f precision %.3f  %s %.3f"
+                  % (sep, threshold, best_j, op, cl, rec, prec,
+                     self._objective, score))
+            if overall is None or score > overall[0]:
+                overall = (score, sep, threshold, best_j, op, cl, rec, prec,
+                           len(frames), len(sig))
+            # one separation's motion images are freed before the next is
+            # sampled, so peak memory does not grow with the sweep
+            del frames
+
+        if overall is None:
+            print("No usable separation; cannot estimate settings.")
+            return
+
+        (_, sep, threshold, best_j, open_r, close_r, recall, precision,
+         n_frames, n_ann) = overall
+        print("Estimated from %d frames, %d annotations:" % (n_frames, n_ann))
+        print("  frame separation %d" % sep)
         print("  threshold %.1f (Youden J %.2f)" % (threshold, best_j))
-        print("  opening %d, closing %d (recall %.3f at IoU %s)"
-              % (open_r, close_r, recall, self._match_iou))
+        print("  opening %d, closing %d (recall %.3f, precision %.3f "
+              "at IoU %s)" % (open_r, close_r, recall, precision,
+                              self._match_iou))
 
         # kernel_radius 0 is not a no-op: vxl_morphology builds a degenerate
         # structuring element and clears the mask. Below 1 is the identity.

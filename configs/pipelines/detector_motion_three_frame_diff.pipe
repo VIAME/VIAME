@@ -41,7 +41,7 @@ connect from downsampler.output_1
 process motion
   :: detect_motion
   :algo:type                                            ocv_3frame_differencing
-  :algo:ocv_3frame_differencing:frame_separation        1
+  :algo:ocv_3frame_differencing:frame_separation        3
   :algo:ocv_3frame_differencing:jitter_radius           1
   :algo:ocv_3frame_differencing:max_foreground_fract    0.15
   :algo:ocv_3frame_differencing:max_foreground_fract_thresh  10
