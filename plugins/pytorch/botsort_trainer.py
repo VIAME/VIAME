@@ -33,7 +33,7 @@ import random
 import numpy as np
 from viame.pytorch.utilities import report_cuda_errors
 from viame.core.training_data import (build_sequence_maps,
-    read_sequence_manifest,
+    read_sequence_manifest, split_validation,
     load_computed_detections, match_to_groundtruth)
 
 
@@ -221,6 +221,12 @@ class BoTSORTTrainer(TrainTracker):
         # belong to which track set. Empty falls back to inferring it
         # from the directory layout, which this dataset defeats.
         self._sequence_manifest = ""
+
+        # Clips held back to choose the epoch on. Tracker training is
+        # handed no validation set unless one is named, so without this
+        # the epoch is chosen on training loss, which cannot tell
+        # improvement from memorisation. 0 disables it.
+        self._validation_fraction = 0.1
         self._train_directory = "deep_training"
         self._gpu_count = -1
         self._max_epochs = "50"
@@ -247,6 +253,7 @@ class BoTSORTTrainer(TrainTracker):
         cfg.set_value("identifier", self._identifier)
         cfg.set_value("computed_detections", self._computed_detections)
         cfg.set_value("sequence_manifest", self._sequence_manifest)
+        cfg.set_value("validation_fraction", str(self._validation_fraction))
         cfg.set_value("train_directory", self._train_directory)
         cfg.set_value("gpu_count", str(self._gpu_count))
         cfg.set_value("max_epochs", self._max_epochs)
@@ -271,6 +278,7 @@ class BoTSORTTrainer(TrainTracker):
         self._identifier = str(cfg.get_value("identifier"))
         self._computed_detections = str(cfg.get_value("computed_detections"))
         self._sequence_manifest = str(cfg.get_value("sequence_manifest"))
+        self._validation_fraction = float(cfg.get_value("validation_fraction"))
         self._train_directory = str(cfg.get_value("train_directory"))
         self._gpu_count = int(cfg.get_value("gpu_count"))
         self._max_epochs = str(cfg.get_value("max_epochs"))
@@ -466,13 +474,25 @@ class BoTSORTTrainer(TrainTracker):
                 _frame_bounds(self._train_tracks)
             )
 
+        # Carve a validation split out of training when none was supplied, so
+        # the epoch kept is chosen on clips the model has not been shown.
+        if not self._test_tracks and self._validation_fraction > 0:
+            (self._train_tracks, train_maps, train_names), \
+                (self._test_tracks, test_maps, test_names) = split_validation(
+                    self._train_tracks, train_maps, train_names,
+                    self._validation_fraction)
+
+            # The held out clips index into the training image list, so the
+            # test split is handed that same list along with its own maps
+            self._test_image_files = self._train_image_files
+        else:
+            test_maps, test_names = build_sequence_maps(
+                self._test_image_files, len(self._test_tracks), "validation",
+                _frame_bounds(self._test_tracks)
+            )
+
         train_count = self._process_split_data(
             self._train_tracks, train_maps, train_names, train_dir, crop_h, crop_w
-        )
-
-        test_maps, test_names = build_sequence_maps(
-            self._test_image_files, len(self._test_tracks), "validation",
-            _frame_bounds(self._test_tracks)
         )
 
         test_count = self._process_split_data(

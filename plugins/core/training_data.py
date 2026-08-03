@@ -530,3 +530,64 @@ def read_sequence_manifest( path, image_files, track_set_count ):
            .format( seen, track_set_count, len( image_files ) ) )
 
     return maps, names
+
+
+def split_validation( track_sets, maps, names, fraction=0.1 ):
+    """Hold the last clips out as a validation split.
+
+    Tracker training only receives a validation set when one is named
+    explicitly, so a normal run hands the trainer every clip and nothing to
+    measure against. A model is then chosen on training loss, which cannot
+    say whether it has begun to memorise.
+
+    The split is by clip and takes the tail rather than a sample: frames
+    within a clip are far from independent, so holding out a slice of frames
+    from clips that are also trained on measures very little. The tail is used
+    rather than a random subset so the same clips are held out every run,
+    which makes two runs comparable.
+
+    Args:
+        track_sets: one per clip, as add_data_from_disk was handed them
+        maps: frame id to file, one per track set
+        names: clip name per track set, may be None
+        fraction: how much to hold back, 0 to disable
+
+    Returns:
+        ( train, validation ), each a tuple of ( track_sets, maps, names ).
+        The validation part is empty when there is too little to split.
+    """
+    empty = ( [], [], [] )
+
+    if not fraction or fraction <= 0 or len( track_sets ) < 2:
+        return ( track_sets, maps, names ), empty
+
+    usable = [ i for i, t in enumerate( track_sets ) if t is not None ]
+
+    if len( usable ) < 2:
+        return ( track_sets, maps, names ), empty
+
+    holdout = max( 1, int( len( usable ) * fraction ) )
+
+    # Never hold back so much that training has less than half the clips
+    holdout = min( holdout, len( usable ) // 2 )
+
+    if holdout < 1:
+        return ( track_sets, maps, names ), empty
+
+    held = set( usable[ -holdout: ] )
+
+    def take( keep ):
+        idx = [ i for i in range( len( track_sets ) ) if ( i in held ) == keep ]
+        return (
+            [ track_sets[ i ] for i in idx ],
+            [ maps[ i ] for i in idx ] if maps else [],
+            [ names[ i ] for i in idx ] if names else [],
+        )
+
+    train_part = take( False )
+    valid_part = take( True )
+
+    print( "Validation split: {} clips held out of {}, by clip rather than by "
+           "frame".format( len( valid_part[ 0 ] ), len( usable ) ) )
+
+    return train_part, valid_part
