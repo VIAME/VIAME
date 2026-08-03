@@ -94,14 +94,36 @@ class concat:
 
 
 def choice_reject(seq, exclude):
-    """Return a random element from the sequence seq that isn't in exclude"""
+    """Return a random element of seq that is not in exclude, or None.
+
+    exclude grows as negatives are drawn, so on a clip with few detections
+    outside the track being sampled it eventually holds every candidate and
+    the filtered sequence is empty. A track spanning the whole clip leaves no
+    candidates at the outset. Either raised IndexError from random.choice and
+    took the stage with it.
+
+    Prefer an unused candidate, fall back to reusing one rather than failing,
+    and return None only when there is genuinely nothing to choose from.
+    """
+    seq = list(seq)
+
+    if not seq:
+        return None
+
     MAX_ITER = 20
     for _ in range(MAX_ITER):
         x = random.choice(seq)
         if x not in exclude:
             return x
     # Do it the slow way
-    return random.choice([x for x in seq if x not in exclude])
+    remaining = [x for x in seq if x not in exclude]
+
+    if remaining:
+        return random.choice(remaining)
+
+    # Every candidate has been used already. A repeated negative is worth far
+    # more than no training data for this clip.
+    return random.choice(seq)
 
 
 class AugOcclusion:
@@ -248,6 +270,12 @@ def generate_sequences(
                         range(0, start),
                         range(stop, len(f_dids)),
                     ), neg_set)
+
+                    # Nothing outside this track to contrast against, which
+                    # happens when it covers the whole clip. The positive pair
+                    # alone teaches nothing, so drop the sequence.
+                    if p_neg_idx is None:
+                        continue
 
                     neg_set.add(p_neg_idx)
                     neg_f_did = f_dids[p_neg_idx]
