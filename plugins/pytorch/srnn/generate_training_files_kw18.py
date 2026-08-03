@@ -105,9 +105,12 @@ def choice_reject(seq, exclude):
     Prefer an unused candidate, fall back to reusing one rather than failing,
     and return None only when there is genuinely nothing to choose from.
     """
-    seq = list(seq)
-
-    if not seq:
+    # Do not materialise seq. It is a concat view over two ranges with O(1)
+    # length and indexing, which is all random.choice needs; calling list() on
+    # it here copied every candidate on every call, and this runs once per
+    # generated sequence. That turned variable length generation from minutes
+    # into an estimated 111 hours.
+    if len(seq) == 0:
         return None
 
     MAX_ITER = 20
@@ -116,7 +119,9 @@ def choice_reject(seq, exclude):
         if x not in exclude:
             return x
     # Do it the slow way
-    remaining = [x for x in seq if x not in exclude]
+    # Reached only when twenty random draws all landed on used candidates,
+    # which means the pool is nearly exhausted and is small by then
+    remaining = [seq[i] for i in range(len(seq)) if seq[i] not in exclude]
 
     if remaining:
         return random.choice(remaining)
