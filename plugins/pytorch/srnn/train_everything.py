@@ -122,17 +122,59 @@ def get_best_model(model_dir):
 
     """
     pattern = re.compile('Epoch ([^:]+): final vloss:([^ ]+)')
-    vlosses = []
-    with open(model_dir / 'log.txt') as f:
-        for line in f:
-            # Remove initial time stamp
-            line = line[line.index(']') + 1:].lstrip()
-            match = pattern.match(line)
-            if match is not None:
-                epoch, vloss = match.group(1, 2)
-                assert int(epoch) == len(vlosses)
-                vlosses.append(float(vloss))
-    best_epoch = min(range(len(vlosses)), key=lambda ep: vlosses[ep])
+
+    # Keyed by epoch rather than appended in order. A resumed stage writes its
+    # epochs across more than one sitting and does not start from zero, so
+    # requiring position to equal epoch number asserted on any resume. A later
+    # record of the same epoch wins, being from the more recent run.
+    vlosses = {}
+
+    log = model_dir / 'log.txt'
+
+    if log.exists():
+        with open(log) as f:
+            for line in f:
+                try:
+                    line = line[line.index(']') + 1:].lstrip()
+                except ValueError:
+                    continue
+
+                match = pattern.match(line)
+
+                if match is not None:
+                    epoch, vloss = match.group(1, 2)
+
+                    try:
+                        vlosses[int(epoch)] = float(vloss)
+                    except ValueError:
+                        continue
+
+    # Only consider epochs whose snapshot is actually there
+    available = {epoch: loss for epoch, loss in vlosses.items()
+                 if (model_dir / 'snapshot_epoch_{}.pt'.format(epoch)).exists()}
+
+    if available:
+        best_epoch = min(available, key=lambda ep: available[ep])
+    else:
+        # No usable record: keep the last epoch trained rather than failing.
+        # Losing the log should cost the choice between snapshots, not the
+        # stage and everything after it.
+        snapshots = []
+
+        for path in model_dir.glob('snapshot_epoch_*.pt'):
+            match = re.search(r'snapshot_epoch_(\d+)\.pt$', path.name)
+
+            if match:
+                snapshots.append(int(match.group(1)))
+
+        if not snapshots:
+            raise RuntimeError(
+                'No snapshots in {} to choose from'.format(model_dir))
+
+        best_epoch = max(snapshots)
+        print('  no validation losses recorded, keeping the last epoch '
+              'trained ({})'.format(best_epoch))
+
     model = model_dir / 'snapshot_epoch_{}.pt'.format(best_epoch)
     assert model.exists()
     return best_epoch, model

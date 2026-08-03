@@ -92,21 +92,16 @@ def exp_lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=2):
 
 
 def setupLogger(fpath):
-    fileMode = 'w'
-    input = None
-    while input is None:
-        print('Logging file exits, overwrite(o)? append(a)? abort(q)?')
-        input = 'o'
-        if input == 'o':
-            fileMode = 'w'
-        elif input == 'a':
-            fileMode = 'a'
-        elif input == 'q':
-            os.exit()
-        else:
-            break
+    # Append. This log is not only for reading: get_best_model picks the
+    # snapshot to keep by the validation losses recorded here, so truncating
+    # it on resume threw away the record of every epoch trained before the
+    # resume. A stage that resumed after its last epoch left an empty log and
+    # no way to choose between ten snapshots.
+    #
+    # The prompt this used to print was never a prompt: it asked whether to
+    # overwrite and then answered itself with 'o' on the next line.
     global gLoggerFile
-    gLoggerFile = open(fpath, fileMode)
+    gLoggerFile = open(fpath, 'a')
 
 
 def shutdownlogger():
