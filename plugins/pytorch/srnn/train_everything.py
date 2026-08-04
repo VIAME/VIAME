@@ -236,8 +236,7 @@ def main(data_root, output_dir, stabilized, generate_options=None,
     gen_data_vids = gen_data / 'vids'
     gen_data_prefix = str(gen_data / 'out')
     # Run in process rather than shelling out, so the track states can be
-    # handed over as objects. This stage was the only reader of the gt.kw18
-    # files, which no longer exist.
+    # handed over as objects rather than round tripped through a file.
     siamese_sets = [gen_data_prefix + '_siamese_train_set.p',
                     gen_data_prefix + '_siamese_test_set.p']
 
@@ -246,8 +245,8 @@ def main(data_root, output_dir, stabilized, generate_options=None,
     else:
         if tracks is None:
             raise ValueError(
-                "Track states must be supplied; Siamese data generation no"
-                " longer reads gt.kw18 files from data_root")
+                "Track states must be supplied; Siamese data generation does"
+                " not read annotations from data_root")
 
         from .generate_training_files import generate_siamese_data
 

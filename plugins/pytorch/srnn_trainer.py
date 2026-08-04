@@ -404,12 +404,10 @@ class SRNNTrainer( TrainTracker ):
                     counters )
                 all_frame_ids = set( frame_annotations )
 
-            # A clip with no annotations gets no sequence directory at all. The
-            # directory used to be created before this point, which left behind
-            # a sequence_NNNN/img1 with no gt.kw18 beside it; the downstream
-            # generate_training_files.py walks the sequence directories and
-            # opens gt.kw18 unconditionally, so the first unannotated clip
-            # aborted the whole run with a FileNotFoundError.
+            # A clip with no annotations gets no sequence directory at all.
+            # The directory used to be created before this point, leaving a
+            # sequence_NNNN/img1 holding frames that nothing described, and
+            # feature generation walks every sequence directory it finds.
             if not frame_annotations:
                 print( f"    {seq_name}: no annotations, skipping" )
                 continue
@@ -419,8 +417,8 @@ class SRNNTrainer( TrainTracker ):
             # Symlink the frames this sequence annotates and build its track
             # states in the same order. Feature generation zips its sorted
             # image list against this list positionally, so both are built
-            # together here. The old gt.kw18 route indexed by frame id, which
-            # silently misaligned any clip not starting at frame zero.
+            # together here. Indexing by frame id instead, as this once did,
+            # silently misaligns any clip not starting at frame zero.
             frame_states = []
 
             for frame_id in sorted( all_frame_ids ):

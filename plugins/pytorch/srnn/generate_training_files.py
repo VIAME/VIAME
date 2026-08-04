@@ -381,7 +381,7 @@ def get_images(path):
 
     """
     return (p for p in path.iterdir() if (
-        p.is_file() and p.suffix.lower() not in ('.csv', '.kw18')
+        p.is_file() and p.suffix.lower() != '.csv'
     ))
 
 
@@ -564,7 +564,7 @@ def generate_feature_files(
 
 
 def create_parser():
-    parser = argparse.ArgumentParser(description='processing kw18 file for generating training data')
+    parser = argparse.ArgumentParser(description='generate Siamese and LSTM training files')
     parser.add_argument('--root-path',
                         help='The root path contains all training data',
                         default='/home/bdong/HiDive_project/non-itar-training_files')
@@ -619,7 +619,7 @@ def process_train_or_test(tt, data_storage, args, tracks_by_sequence=None):
         if tracks_by_sequence is None:
             raise ValueError(
                 "Siamese data generation needs track states passed in; they"
-                " are no longer read from gt.kw18 files on disk")
+                " are not read from annotation files on disk")
 
         generate_feature_files(
             os.path.join(args.root_path, tt), data_storage, make_vid,
