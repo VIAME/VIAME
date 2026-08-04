@@ -82,7 +82,7 @@ static kv::config_block_sptr default_config()
     "input (video or image sequence) in a single pass." );
   config->set_value( "augmentation_cache", "augmented_images",
     "Directory to store augmented samples, a temp directiry is used if not specified." );
-  config->set_value( "augmentation_threads", "4",
+  config->set_value( "augmentation_threads", "0",
     "Number of data items to augment concurrently for single-pass (source-driven) "
     "pipelines. Each item is an independent subprocess, so this speeds up "
     "preparation on large multi-video/-folder datasets. 0 = one per logical "
