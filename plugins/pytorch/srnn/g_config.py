@@ -42,7 +42,21 @@ class Config(_get_model_config().__class__):
     # (other lstm settings are inherited)
     maxRNNIterations = _epochs('VIAME_SRNN_LSTM_EPOCHS', 50)
     lstm_init_lr = 0.002
-    lstm_lr_step = 5
+
+    # The scheduler multiplies the rate by 0.1 every lstm_lr_step epochs. At
+    # the old step of 5 the rate reached 2e-10 by epoch 35 -- zero for any
+    # practical purpose -- so of a 50 epoch budget, thirty were spent applying
+    # updates too small to change a weight. Three steps across the budget
+    # leaves every phase long enough to converge at its rate.
+    lstm_lr_step = 15
+
+    # Stop a training whose validation loss has not improved for this many
+    # epochs, rather than running out the epoch budget on a model that has
+    # already been chosen. The per epoch validation pass this reads already
+    # runs; the best epoch is still selected from the record afterwards, so
+    # stopping early never changes which weights ship, only how long the tail
+    # costs. None disables it.
+    early_stop_patience = _epochs('VIAME_SRNN_PATIENCE', 8)
 
 
 def get_config():

@@ -143,8 +143,12 @@ def train_model(
 
         # Not meaningful for training since the weights change
         if not train:
+            if len(test_loader) == 0:
+                return None
+
             final_metrics /= len(test_loader)
             logging(f'Epoch {epoch}: final v' + format_metrics(final_metrics))
+            return final_metrics
 
     def process_tree_memory():
         """Current RSS of this process and every descendant, in GB.
@@ -227,6 +231,13 @@ def train_model(
         except Exception:
             return None
 
+    # Validation-loss patience. Selection afterwards picks the best epoch
+    # from the record, so epochs past the plateau only cost wall clock; the
+    # first metric field is the loss for every stage that comes through here.
+    patience = getattr(g_config, 'early_stop_patience', None)
+    best_validation = None
+    epochs_since_best = 0
+
     # train loop
     for epoch in range(epoch, max_iterations):
         # change learning rate
@@ -246,7 +257,7 @@ def train_model(
 
         try:
             run_epoch(train=True)
-            run_epoch(train=False)
+            validation_metrics = run_epoch(train=False)
         except MemoryBudgetExceeded as exceeded:
             # Keep what this epoch reached before stopping. Being killed loses
             # the epoch outright; this way the stage carries on from here once
@@ -263,6 +274,23 @@ def train_model(
         save_path = os.path.join(g_config.model_dir, 'snapshot_epoch_{}.pt'.format(epoch))
         torch.save(checkpoint(model, epoch), save_path)
         logging('Snapshot saved to {}'.format(save_path))
+
+        if patience and validation_metrics is not None:
+            validation_loss = validation_metrics[0]
+
+            if best_validation is None \
+                    or validation_loss < best_validation - 1e-5:
+                best_validation = validation_loss
+                epochs_since_best = 0
+            else:
+                epochs_since_best += 1
+
+                if epochs_since_best >= patience:
+                    logging('No validation improvement for {} epochs '
+                            '(best {:.5f}); stopping at epoch {} of {}.'
+                            .format(patience, best_validation, epoch,
+                                    max_iterations))
+                    break
 
     else:
         # terminate
