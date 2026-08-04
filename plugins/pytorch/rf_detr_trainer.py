@@ -49,17 +49,21 @@ _SEG_RESOLUTIONS = {
     'nano': 312, 'small': 384, 'medium': 432, 'large': 504,
 }
 
-# Coefficients for batch_size = adaptive. Activation memory is roughly linear
-# in pixels x images, on top of a reserve holding the weights, the optimizer
-# moments, the EMA copy and the CUDA context. Calibrated against the configs
-# that have actually been run: large box 1024 -> micro 2 on 24 GB, large box
-# 1280 + checkpointing -> 1 on 24 GB, seg 960x1728 -> 4 on 49 GB.
+# Coefficients for batch_size = adaptive. Activation memory is treated as
+# linear in pixels x images, on top of a reserve holding the weights, the
+# optimizer moments, the EMA copy and the CUDA context. Calibrated on the two
+# measured points from the 960x1728 runs on a 49 GB card: box micro 8 peaks
+# near 47 GB, and the mask head halves that to 4.
 _ADAPTIVE_RESERVE_GB = 6.0
-_ADAPTIVE_GB_PER_MEGAPIXEL = 6.0
-_ADAPTIVE_SEG_FACTOR = 1.35
+_ADAPTIVE_GB_PER_MEGAPIXEL = 3.1
+_ADAPTIVE_SEG_FACTOR = 2.0
 _ADAPTIVE_MULTI_SCALE_FACTOR = 1.37
 _ADAPTIVE_CHECKPOINT_FACTOR = 0.55
-_ADAPTIVE_MAX_MICRO_BATCH = 32
+
+# Real growth is super-linear in micro-batch (the matcher/loss cost matrices
+# scale with objects per frame), so auto stops here rather than extrapolating
+# the fit into a range no run has covered.
+_ADAPTIVE_MAX_MICRO_BATCH = 8
 
 
 def smallest_visible_vram_gb():
@@ -264,9 +268,11 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         'smallest visible GPU (estimated from resolution, segmentation, '
         'multi_scale and gradient_checkpointing) and sets grad_accum_steps so '
         'the global batch still hits auto_batch_target_effective -- one config '
-        'then runs unchanged on an 8 GB card or a 141 GB one. "auto" instead '
+        'then runs unchanged on an 8 GB card or a 141 GB one. It resolves once '
+        'here, so every DDP rank is handed the same numbers. "auto" instead '
         'has RF-DETR probe the real model for the largest micro-batch that '
-        'fits, which is more accurate but costs a probe pass and needs CUDA.'))
+        'fits: more accurate, but it costs a probe pass, needs CUDA, and each '
+        'rank probes for itself.'))
     auto_batch_target_effective = scfg.Value(16, help=(
         'Effective batch (micro-batch * grad_accum * ranks) targeted when '
         'batch_size is "adaptive" or "auto"; both divide it by the GPU count, '
