@@ -16,7 +16,6 @@ set( PYTHON_SCRIPTS
   launch_search_interface.py
   plot_eval_results.py
   process_video.py
-  score_results.py
   survey_metadata.py
   train_detection_fusion.py
   viame_csv_tool.py

@@ -61,9 +61,6 @@
 	path = packages/python-utils/pyav
 	url = https://github.com/PyAV-Org/PyAV.git
 	ignore = dirty
-[submodule "packages/pymotmetrics"]
-	path = packages/python-utils/pymotmetrics
-	url = https://github.com/VIAME/py-motmetrics.git
 [submodule "packages/pytorch-libs/sam2"]
 	path = packages/pytorch-libs/sam2
 	url = https://github.com/facebookresearch/sam2.git
