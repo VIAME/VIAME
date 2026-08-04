@@ -32,7 +32,22 @@ def main():
 
     args = parser.parse_args()
 
-    kwargs = {'num_workers': args.num_workers, 'pin_memory': True}
+    # persistent_workers keeps the workers alive between epochs. Without it
+    # every epoch boundary tears the whole set down and spawns a fresh one,
+    # and on Python 3.14 each of those is a new interpreter rather than a
+    # fork, so the two sets briefly coexist. Two runs of this stage were
+    # killed with SIGKILL at exactly that point, one of them having just
+    # finished epoch 0 and the other epoch 1.
+    # pin_memory is off with persistent workers. Pinned buffers are page
+    # locked host memory held by the loader's pinning thread, and a loader
+    # kept alive between epochs keeps allocating them: this stage went from
+    # 5.4 GB after epoch 0 to 57.7 GB after epoch 1 and was killed early in
+    # epoch 2. The copy to GPU is a little slower without it, which is
+    # nothing beside not finishing.
+    kwargs = {'num_workers': args.num_workers, 'pin_memory': False}
+
+    if args.num_workers > 0:
+        kwargs['persistent_workers'] = True
     g_config = get_config()
 
     trans = transform=transforms.Compose([

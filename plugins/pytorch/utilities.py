@@ -670,6 +670,195 @@ def ensure_rfdetr_compatibility():
         _find_pruneable_heads_and_indices
 
 
+def apply_rfdetr_stem_lr(lr_stem, lr_encoder, lr_component_decay,
+                         lr_vit_layer_decay):
+    """
+    Give the patch-embed stem its own learning rate, off the ViT ladder.
+
+    rfdetr assigns every backbone parameter an LR of
+
+        lr_encoder * lr_vit_layer_decay ** (num_layers + 1 - layer_id)
+                   * lr_component_decay ** 2
+
+    and buckets the stem at ``layer_id = 0``, the bottom of the ladder. With
+    ``out_feature_indexes = [3, 6, 9, 12]`` that is an exponent of 14, so at the
+    0.8/0.7 defaults the stem trains at 0.0216x lr_encoder -- 3.2e-6 for a
+    1.5e-4 encoder, and the slowest group in the network by a factor of ~31.
+
+    That is the wrong end of the ladder for motion infusion, where the stem is
+    the one component that has to learn something genuinely new (a channel that
+    is not RGB) while the trunk above it is already converged. The two decay
+    scalars are global, so flattening them to lift the stem also hands every ViT
+    block a 2-25x increase -- enough to knock a fine-tuned checkpoint out of its
+    optimum. There is no combination of the two that raises the stem alone:
+    reaching 1e-4 at the 0.8 ladder needs lr_encoder = 4.6e-3, which puts the
+    last block at 1.5e-3.
+
+    So override the decay factor for the stem only, leaving every other group on
+    whatever ladder the decays describe. Patches the module-level function
+    rfdetr looks up from ``get_named_param_lr_pairs``.
+
+    ``lr_stem <= 0`` disables the override. Safe to call multiple times; the
+    patch unwraps any previous one rather than compounding.
+    """
+    lr_stem = float(lr_stem)
+    if lr_stem <= 0:
+        return
+
+    import rfdetr.models.backbone.backbone as _bb
+
+    orig = getattr(_bb.get_dinov2_lr_decay_rate, '_viame_orig',
+                   _bb.get_dinov2_lr_decay_rate)
+
+    # get_named_param_lr_pairs multiplies our return value by these two, so
+    # invert them here to land on lr_stem exactly.
+    scale = float(lr_encoder) * float(lr_component_decay) ** 2
+    if scale <= 0:
+        return
+    factor = lr_stem / scale
+
+    def _stem_lr_decay_rate(name, lr_decay_rate=1.0, num_layers=12):
+        # Only the patch-embed projection, not cls_token/mask_token or the
+        # positional embeddings -- those share layer_id 0 but have nothing to do
+        # with the input channels, so they stay on the ladder.
+        if 'patch_embeddings' in name:
+            return factor
+        return orig(name, lr_decay_rate=lr_decay_rate, num_layers=num_layers)
+
+    _stem_lr_decay_rate._viame_orig = orig
+    _bb.get_dinov2_lr_decay_rate = _stem_lr_decay_rate
+
+    # The stem sits at layer_id 0, so its ladder exponent is num_layers + 1,
+    # and num_layers is out_feature_indexes[-1] + 1 = 13 for both the large box
+    # and large seg variants. Informational only.
+    ladder = float(lr_vit_layer_decay)
+    print(f"[rf_detr] patch-embed stem LR pinned to {lr_stem:g}; the "
+          f"{ladder:g}/{float(lr_component_decay):g} ladder would give "
+          f"{scale * ladder ** 14:.3g}", flush=True)
+
+
+def rfdetr_resume_lr_callback():
+    """
+    Return a callback that re-imposes the config's LR schedule after a resume.
+
+    ``trainer.fit(ckpt_path=...)`` restores the optimizer and the scheduler,
+    and both carry learning rates: ``optimizer.load_state_dict`` brings back
+    ``param_groups[i]['lr']`` and ``['initial_lr']``, and the scheduler's own
+    state dict brings back ``base_lrs`` and the step counter. So a plain resume
+    silently ignores every ``learning_rate*`` and ``lr_scheduler`` value in the
+    config and carries on down the schedule the previous run was following.
+
+    That is right for restarting a job that died, and wrong for continuing a
+    finished run at a chosen LR -- a cosine that has annealed to ~0 has no
+    training left in it, so the resumed run does nothing. This restores the part
+    worth keeping (weights, Adam moments, EMA) and discards the part that is
+    stale (the LR and where it sat on the schedule).
+
+    ``configure_optimizers`` is re-run to recover the intended rates rather than
+    recomputing them here: it is what applies the layer-decay ladder, the
+    component decay and the lr_stem override, and duplicating that arithmetic
+    would drift from it. The optimizer it builds is discarded -- AdamW allocates
+    its state lazily on the first step, so nothing is paid for it.
+    """
+    import pytorch_lightning as pl
+
+    class _ResumeLRCallback(pl.Callback):
+        # on_train_start runs inside the fit loop, after
+        # _checkpoint_connector.restore_training_state() has replayed the
+        # optimizer and scheduler state, so this is the first hook that can
+        # overwrite what the restore put back.
+        def on_train_start(self, trainer, pl_module):
+            if not getattr(trainer, "ckpt_path", None):
+                return
+
+            fresh = pl_module.configure_optimizers()
+            fresh_sched = None
+            if isinstance(fresh, dict):
+                fresh_opt = fresh["optimizer"]
+                fresh_sched = fresh.get("lr_scheduler")
+                if isinstance(fresh_sched, dict):
+                    fresh_sched = fresh_sched.get("scheduler")
+            else:
+                fresh_opt = fresh
+
+            # Read the base rates, NOT param_groups[i]['lr']: constructing a
+            # scheduler primes it with lr_lambda(0), and under warmup that is
+            # 0, so the live lr is zero the moment configure_optimizers
+            # returns. base_lrs (equivalently 'initial_lr') is the unscaled
+            # value the schedule multiplies.
+            if getattr(fresh_sched, "base_lrs", None):
+                desired = [float(x) for x in fresh_sched.base_lrs]
+            else:
+                desired = [float(g.get("initial_lr", g["lr"]))
+                           for g in fresh_opt.param_groups]
+
+            for opt in trainer.optimizers:
+                if len(opt.param_groups) != len(desired):
+                    # Silently leaving the restored LRs in place is the one
+                    # outcome worth avoiding: the run would look healthy for
+                    # hours while ignoring every rate in the config.
+                    raise RuntimeError(
+                        "resume: optimizer has "
+                        f"{len(opt.param_groups)} param groups but "
+                        f"configure_optimizers built {len(desired)}; refusing "
+                        "to guess which config LR belongs to which group.")
+                for group, lr in zip(opt.param_groups, desired):
+                    group["lr"] = lr
+                    group["initial_lr"] = lr
+
+            for config in trainer.lr_scheduler_configs:
+                sched = config.scheduler
+                sched.base_lrs = list(desired)
+                # Mimic a scheduler that has just been constructed: __init__
+                # leaves last_epoch at 0 and _step_count at 1 after its own
+                # priming step, so the first training step advances to 1 and
+                # warmup starts from the bottom rather than from wherever the
+                # previous run stopped.
+                sched.last_epoch = 0
+                sched._step_count = 1
+                lambdas = getattr(sched, "lr_lambdas", None)
+                if lambdas is not None:
+                    start = [base * fn(0) for base, fn in zip(desired, lambdas)]
+                    for opt in trainer.optimizers:
+                        for group, lr in zip(opt.param_groups, start):
+                            group["lr"] = lr
+                    sched._last_lr = start
+
+            self._restart_best_tracking(trainer)
+            print(f"[rf_detr] resume: schedule restarted at the config LRs "
+                  f"(max {max(desired):.3g}, min {min(desired):.3g}) from "
+                  f"epoch {trainer.current_epoch}", flush=True)
+
+        @staticmethod
+        def _restart_best_tracking(trainer):
+            """Clear the previous run's best-mAP high-water marks.
+
+            They are persisted in the callback state and come back with the
+            checkpoint, so without this the new phase has to beat the old one
+            outright before it will save anything -- and rf-detr's end-of-run
+            copy to checkpoint_best_total.pth would keep exporting the older
+            model. skip_best_epochs is rebased for the same reason: it is
+            compared against trainer.current_epoch, which keeps counting up
+            across a resume, so as configured it would never fire again.
+            """
+            import torch
+
+            for callback in trainer.callbacks:
+                if not hasattr(callback, "_best_ema"):
+                    continue
+                callback._best_ema = 0.0
+                callback.best_model_score = None
+                callback.best_model_path = ""
+                # ModelCheckpoint compares with torch.gt against this, and
+                # seeds it from a tensor, so keep it one.
+                callback.kth_value = torch.tensor(-float("inf"))
+                callback.best_k_models = {}
+                skip = getattr(callback, "_skip_best_epochs", 0)
+                callback._skip_best_epochs = trainer.current_epoch + skip
+
+    return _ResumeLRCallback()
+
+
 def ensure_fork_start_method():
     """
     Force the ``fork`` multiprocessing start method on Linux.

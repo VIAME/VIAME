@@ -94,14 +94,41 @@ class concat:
 
 
 def choice_reject(seq, exclude):
-    """Return a random element from the sequence seq that isn't in exclude"""
+    """Return a random element of seq that is not in exclude, or None.
+
+    exclude grows as negatives are drawn, so on a clip with few detections
+    outside the track being sampled it eventually holds every candidate and
+    the filtered sequence is empty. A track spanning the whole clip leaves no
+    candidates at the outset. Either raised IndexError from random.choice and
+    took the stage with it.
+
+    Prefer an unused candidate, fall back to reusing one rather than failing,
+    and return None only when there is genuinely nothing to choose from.
+    """
+    # Do not materialise seq. It is a concat view over two ranges with O(1)
+    # length and indexing, which is all random.choice needs; calling list() on
+    # it here copied every candidate on every call, and this runs once per
+    # generated sequence. That turned variable length generation from minutes
+    # into an estimated 111 hours.
+    if len(seq) == 0:
+        return None
+
     MAX_ITER = 20
     for _ in range(MAX_ITER):
         x = random.choice(seq)
         if x not in exclude:
             return x
     # Do it the slow way
-    return random.choice([x for x in seq if x not in exclude])
+    # Reached only when twenty random draws all landed on used candidates,
+    # which means the pool is nearly exhausted and is small by then
+    remaining = [seq[i] for i in range(len(seq)) if seq[i] not in exclude]
+
+    if remaining:
+        return random.choice(remaining)
+
+    # Every candidate has been used already. A repeated negative is worth far
+    # more than no training data for this clip.
+    return random.choice(seq)
 
 
 class AugOcclusion:
@@ -249,6 +276,12 @@ def generate_sequences(
                         range(stop, len(f_dids)),
                     ), neg_set)
 
+                    # Nothing outside this track to contrast against, which
+                    # happens when it covers the whole clip. The positive pair
+                    # alone teaches nothing, so drop the sequence.
+                    if p_neg_idx is None:
+                        continue
+
                     neg_set.add(p_neg_idx)
                     neg_f_did = f_dids[p_neg_idx]
                     seqs.append((*pos_f_list, neg_f_did))
@@ -348,7 +381,7 @@ def get_images(path):
 
     """
     return (p for p in path.iterdir() if (
-        p.is_file() and p.suffix.lower() not in ('.csv', '.kw18')
+        p.is_file() and p.suffix.lower() != '.csv'
     ))
 
 
@@ -372,12 +405,32 @@ def generate_pairs_forSiamese(
                     range(stop, len(dets)),
                 ), neg_dict[p_pos_idx])
 
+                # Nothing outside this track to contrast against, which is
+                # every clip holding a single track. A pair with no negative
+                # teaches nothing, so drop it rather than indexing on None.
+                if p_neg_idx is None:
+                    continue
+
                 neg_dict[p_pos_idx].add(p_neg_idx)
                 neg_dict[p_neg_idx].add(p_pos_idx)
 
                 p_neg_det = dets[p_neg_idx]
 
                 pairs.append((p_first_det, p_pos_det, p_neg_det))
+
+    # An empty set here is written out happily and only surfaces two stages
+    # later, as "Found 0 images in data" from the training script, which says
+    # nothing about why. Every pair needs a detection from outside its own
+    # track to contrast against, so a clip holding a single track contributes
+    # nothing -- and a dataset of only such clips contributes nothing at all.
+    if not pairs:
+        raise RuntimeError(
+            "no Siamese training pairs could be built from {} track(s). "
+            "Each pair needs a detection outside its own track as a negative, "
+            "so clips holding a single track contribute none. Train on more "
+            "clips, or on clips holding more than one track.".format(
+                len(tracks)))
+
     with open(out_file, 'wb') as f:
         pickle.dump(SequenceList.from_iterable(pairs), f)
 
@@ -511,7 +564,7 @@ def generate_feature_files(
 
 
 def create_parser():
-    parser = argparse.ArgumentParser(description='processing kw18 file for generating training data')
+    parser = argparse.ArgumentParser(description='generate Siamese and LSTM training files')
     parser.add_argument('--root-path',
                         help='The root path contains all training data',
                         default='/home/bdong/HiDive_project/non-itar-training_files')
@@ -566,7 +619,7 @@ def process_train_or_test(tt, data_storage, args, tracks_by_sequence=None):
         if tracks_by_sequence is None:
             raise ValueError(
                 "Siamese data generation needs track states passed in; they"
-                " are no longer read from gt.kw18 files on disk")
+                " are not read from annotation files on disk")
 
         generate_feature_files(
             os.path.join(args.root_path, tt), data_storage, make_vid,

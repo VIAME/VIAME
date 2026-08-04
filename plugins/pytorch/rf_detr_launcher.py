@@ -16,8 +16,9 @@ def build_and_train(params):
     import torch
 
     from viame.pytorch.utilities import (
-        ensure_fork_start_method, ensure_rfdetr_compatibility, parse_resolution,
-        resolution_is_set)
+        apply_rfdetr_stem_lr, ensure_fork_start_method,
+        ensure_rfdetr_compatibility, parse_resolution, resolution_is_set,
+        rfdetr_resume_lr_callback)
 
     # Python 3.14 defaults Linux to the forkserver start method, which cannot
     # pickle rfdetr's ChannelSubset transform and kills every DataLoader worker.
@@ -78,6 +79,34 @@ def build_and_train(params):
                   "ddp_timeout_seconds; DDP stays on PyTorch-Lightning's 30-minute "
                   "process-group timeout.", flush=True)
             train_kwargs.pop("ddp_timeout_seconds")
+
+    # PTL re-execs this script per rank and each rank builds its own optimizer,
+    # so this has to be applied here rather than inherited from the parent, and
+    # before train() constructs the param groups.
+    apply_rfdetr_stem_lr(
+        params.get("lr_stem", 0.0),
+        train_kwargs["lr_encoder"],
+        train_kwargs["lr_component_decay"],
+        train_kwargs["lr_vit_layer_decay"],
+    )
+
+    # A resume restores the optimizer and scheduler, learning rates included, so
+    # without this the config's LRs are silently discarded. rf_detr_trainer.py
+    # injects the same callback on the single-GPU path; here it has to be done
+    # per rank, since PTL re-execs this script and each rank builds its own
+    # trainer. train() exposes no callbacks seam, so wrap build_trainer.
+    if train_kwargs.get("resume"):
+        import rfdetr.training as rfdetr_training
+
+        original_build_trainer = rfdetr_training.build_trainer
+        resume_lr = rfdetr_resume_lr_callback()
+
+        def _build_trainer_with_resume_lr(*args, **kwargs):
+            trainer = original_build_trainer(*args, **kwargs)
+            trainer.callbacks.append(resume_lr)
+            return trainer
+
+        rfdetr_training.build_trainer = _build_trainer_with_resume_lr
 
     model.train(**train_kwargs)
 

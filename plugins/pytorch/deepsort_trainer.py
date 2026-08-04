@@ -38,6 +38,7 @@ import json
 import random
 from viame.pytorch.utilities import report_cuda_errors
 from viame.core.training_data import (build_sequence_maps,
+    read_sequence_manifest, split_validation,
     load_computed_detections, match_to_groundtruth)
 
 
@@ -57,6 +58,29 @@ try:
 except ImportError:
     _TorchDataset = object
     _TorchSampler = object
+
+
+def _frame_bounds(track_sets):
+    """Highest frame id each track set refers to, or None where it refers to
+    none. build_sequence_maps checks its alignment against these, since the
+    number of track sets and the number of image directories need not agree.
+    """
+    bounds = []
+
+    for track_set in track_sets:
+        highest = None
+
+        if track_set is not None:
+            for track in track_set.tracks():
+                for state in track:
+                    if state.detection() is None:
+                        continue
+                    if highest is None or state.frame_id > highest:
+                        highest = state.frame_id
+
+        bounds.append(highest)
+
+    return bounds
 
 
 class ReIDDataset(_TorchDataset):
@@ -202,6 +226,17 @@ class DeepSORTTrainer(TrainTracker):
         # which are framed more exactly than anything the detector will
         # hand the tracker at inference.
         self._computed_detections = ""
+
+        # Written by the training tool: which frames of the flat list
+        # belong to which track set. Empty falls back to inferring it
+        # from the directory layout, which this dataset defeats.
+        self._sequence_manifest = ""
+
+        # Clips held back to choose the epoch on. Tracker training is
+        # handed no validation set unless one is named, so without this
+        # the epoch is chosen on training loss, which cannot tell
+        # improvement from memorisation. 0 disables it.
+        self._validation_fraction = 0.1
         self._gpu_count = -1
         self._max_epochs = "50"
         self._batch_size = "32"
@@ -227,6 +262,8 @@ class DeepSORTTrainer(TrainTracker):
         cfg.set_value("output_prefix", self._output_prefix)
         cfg.set_value("pipeline_template", self._pipeline_template)
         cfg.set_value("computed_detections", self._computed_detections)
+        cfg.set_value("sequence_manifest", self._sequence_manifest)
+        cfg.set_value("validation_fraction", str(self._validation_fraction))
         cfg.set_value("gpu_count", str(self._gpu_count))
         cfg.set_value("max_epochs", self._max_epochs)
         cfg.set_value("batch_size", self._batch_size)
@@ -250,6 +287,8 @@ class DeepSORTTrainer(TrainTracker):
         self._output_prefix = str(cfg.get_value("output_prefix"))
         self._pipeline_template = str(cfg.get_value("pipeline_template"))
         self._computed_detections = str(cfg.get_value("computed_detections"))
+        self._sequence_manifest = str(cfg.get_value("sequence_manifest"))
+        self._validation_fraction = float(cfg.get_value("validation_fraction"))
         self._gpu_count = int(cfg.get_value("gpu_count"))
         self._max_epochs = str(cfg.get_value("max_epochs"))
         self._batch_size = str(cfg.get_value("batch_size"))
@@ -335,16 +374,35 @@ class DeepSORTTrainer(TrainTracker):
         # One image map per sequence. A frame id is a position within its
         # own sequence, so resolving it against the flat list of every
         # sequence's images only ever worked for the first one.
-        train_maps, train_names = build_sequence_maps(
-            self._train_image_files, len(self._train_tracks), "training"
-        )
+        train_maps, train_names = read_sequence_manifest(
+            self._sequence_manifest, self._train_image_files,
+            len(self._train_tracks))
+
+        if train_maps is None:
+            train_maps, train_names = build_sequence_maps(
+                self._train_image_files, len(self._train_tracks), "training",
+                _frame_bounds(self._train_tracks)
+            )
+
+        # Carve a validation split out of training when none was supplied, so
+        # the epoch kept is chosen on clips the model has not been shown.
+        if not self._test_tracks and self._validation_fraction > 0:
+            (self._train_tracks, train_maps, train_names), \
+                (self._test_tracks, test_maps, test_names) = split_validation(
+                    self._train_tracks, train_maps, train_names,
+                    self._validation_fraction)
+
+            # The held out clips index into the training image list, so the
+            # test split is handed that same list along with its own maps
+            self._test_image_files = self._train_image_files
+        else:
+            test_maps, test_names = build_sequence_maps(
+                self._test_image_files, len(self._test_tracks), "validation",
+                _frame_bounds(self._test_tracks)
+            )
 
         train_count = self._process_split_data(
             self._train_tracks, train_maps, train_names, train_dir, crop_h, crop_w, "train"
-        )
-
-        test_maps, test_names = build_sequence_maps(
-            self._test_image_files, len(self._test_tracks), "validation"
         )
 
         test_count = self._process_split_data(

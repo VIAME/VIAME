@@ -4,6 +4,11 @@ BACKBONE:
     TYPE: "resnet50"
     KWARGS:
         used_layers: [0, 1, 2, 3]
+    # used_layers above builds layer1 to layer3 only, so the default
+    # ['layer2', 'layer3', 'layer4'] names a layer4 that is not there. Nothing
+    # notices until the backbone unfreezes at BACKBONE.TRAIN_EPOCH, ten epochs
+    # in, where the run dies rebuilding the optimizer.
+    TRAIN_LAYERS: ['layer2', 'layer3']
 
 ADJUST:
     ADJUST: true

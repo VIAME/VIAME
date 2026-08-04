@@ -35,8 +35,32 @@ import time
 import threading
 from viame.pytorch.utilities import report_cuda_errors
 from viame.core.training_data import (build_sequence_maps,
+    read_sequence_manifest,
     load_computed_detections, match_to_groundtruth)
-from viame.pytorch.srnn.generate_training_files_kw18 import BoundingBox
+from viame.pytorch.srnn.generate_training_files import BoundingBox
+
+
+def _frame_bounds( track_sets ):
+    """Highest frame id each track set refers to, or None where it refers to
+    none. build_sequence_maps checks its alignment against these, since the
+    number of track sets and the number of image directories need not agree.
+    """
+    bounds = []
+
+    for track_set in track_sets:
+        highest = None
+
+        if track_set is not None:
+            for track in track_set.tracks():
+                for state in track:
+                    if state.detection() is None:
+                        continue
+                    if highest is None or state.frame_id > highest:
+                        highest = state.frame_id
+
+        bounds.append( highest )
+
+    return bounds
 
 
 class SRNNTrainer( TrainTracker ):
@@ -55,6 +79,11 @@ class SRNNTrainer( TrainTracker ):
         # CSV per clip. Optional: left empty everything comes from the
         # groundtruth exactly as before.
         self._computed_detections = ""
+
+        # Written by the training tool: which frames of the flat list
+        # belong to which track set. Empty falls back to inferring it
+        # from the directory layout, which this dataset defeats.
+        self._sequence_manifest = ""
         self._train_directory = "deep_training"
         self._gpu_count = -1
         self._threshold = "0.00"
@@ -85,6 +114,7 @@ class SRNNTrainer( TrainTracker ):
 
         cfg.set_value( "identifier", self._identifier )
         cfg.set_value( "computed_detections", self._computed_detections )
+        cfg.set_value( "sequence_manifest", self._sequence_manifest )
         cfg.set_value( "train_directory", self._train_directory )
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
         cfg.set_value( "threshold", self._threshold )
@@ -107,6 +137,7 @@ class SRNNTrainer( TrainTracker ):
 
         self._identifier = str( cfg.get_value( "identifier" ) )
         self._computed_detections = str( cfg.get_value( "computed_detections" ) )
+        self._sequence_manifest = str( cfg.get_value( "sequence_manifest" ) )
         self._train_directory = str( cfg.get_value( "train_directory" ) )
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
         self._threshold = str( cfg.get_value( "threshold" ) )
@@ -305,8 +336,13 @@ class SRNNTrainer( TrainTracker ):
         # One image map per sequence. A frame id is a position within its own
         # sequence, so resolving it against the flat list of every sequence's
         # images only ever worked for the first one.
-        image_maps, names = build_sequence_maps(
-            image_files, len( track_sets ), split_name )
+        image_maps, names = read_sequence_manifest(
+            self._sequence_manifest, image_files, len( track_sets ) )
+
+        if image_maps is None:
+            image_maps, names = build_sequence_maps(
+                image_files, len( track_sets ), split_name,
+                _frame_bounds( track_sets ) )
 
         computed_by_sequence = self._load_computed_by_sequence(
             names, track_sets )
@@ -345,7 +381,7 @@ class SRNNTrainer( TrainTracker ):
                     y2 = int( bbox.max_y() )
 
                     # Zero area boxes carry no information and are rejected by
-                    # generate_training_files_kw18 with "Width and height must
+                    # generate_training_files with "Width and height must
                     # be positive", which aborts the whole run over a single
                     # bad annotation
                     if x2 <= x1 or y2 <= y1:
@@ -368,12 +404,10 @@ class SRNNTrainer( TrainTracker ):
                     counters )
                 all_frame_ids = set( frame_annotations )
 
-            # A clip with no annotations gets no sequence directory at all. The
-            # directory used to be created before this point, which left behind
-            # a sequence_NNNN/img1 with no gt.kw18 beside it; the downstream
-            # generate_training_files_kw18.py walks the sequence directories and
-            # opens gt.kw18 unconditionally, so the first unannotated clip
-            # aborted the whole run with a FileNotFoundError.
+            # A clip with no annotations gets no sequence directory at all.
+            # The directory used to be created before this point, leaving a
+            # sequence_NNNN/img1 holding frames that nothing described, and
+            # feature generation walks every sequence directory it finds.
             if not frame_annotations:
                 print( f"    {seq_name}: no annotations, skipping" )
                 continue
@@ -383,8 +417,8 @@ class SRNNTrainer( TrainTracker ):
             # Symlink the frames this sequence annotates and build its track
             # states in the same order. Feature generation zips its sorted
             # image list against this list positionally, so both are built
-            # together here. The old gt.kw18 route indexed by frame id, which
-            # silently misaligned any clip not starting at frame zero.
+            # together here. Indexing by frame id instead, as this once did,
+            # silently misaligns any clip not starting at frame zero.
             frame_states = []
 
             for frame_id in sorted( all_frame_ids ):

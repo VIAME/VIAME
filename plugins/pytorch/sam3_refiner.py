@@ -55,6 +55,24 @@ _GROUNDING_BATCH_MIN = 1
 _GROUNDING_BATCH_MAX = 16
 
 
+def _safe_class_name(class_name, fallback=None):
+    """A class name kwiver will accept.
+
+    DetectedObjectType rejects an empty name outright, and the grounding model
+    returns one for its weakest matches, so lowering detection_threshold far
+    enough turns a detection that should simply be kept unlabelled into a
+    ValueError that fails the whole frame. Name it after the query that found
+    it, or 'unknown'.
+    """
+    if class_name is not None and str(class_name).strip():
+        return str(class_name)
+
+    if fallback is not None and str(fallback).strip():
+        return str(fallback)
+
+    return 'unknown'
+
+
 class _FrameBuffer:
     """
     Append-only frame buffer that keeps frames in memory while they fit and
@@ -1486,7 +1504,8 @@ class SAM3Refiner(RefineTracks):
                     ay2 = (box_rel[1] + box_rel[3]) * h
                     bbox = BoundingBoxD(ax1, ay1, ax2, ay2)
                     class_name = self._obj_id_to_class.get(tid, 'unknown')
-                    dot = DetectedObjectType(class_name, 1.0)
+                    dot = DetectedObjectType(
+                        _safe_class_name(class_name), 1.0)
                     det = DetectedObject(bbox, 1.0, dot)
                     state = ObjectTrackState(frame_ts, det)
                     self._propagated_tracks.setdefault(tid, []).append(state)
@@ -1720,7 +1739,9 @@ class SAM3Refiner(RefineTracks):
         else:
             bbox = BoundingBoxD(det_box[0], det_box[1], det_box[2], det_box[3])
 
-        dot = DetectedObjectType(class_name, score)
+        dot = DetectedObjectType(
+            _safe_class_name(class_name, self._text_query_list[0]
+                             if self._text_query_list else None), score)
         det = DetectedObject(bbox, score, dot)
 
         if self._output_type in ('polygon', 'both'):
@@ -1892,7 +1913,10 @@ class Sam3DetectionRefiner(RefineDetections):
                     for sb in suppress_boxes)
                 if not overlaps:
                     bbox = BoundingBoxD(box[0], box[1], box[2], box[3])
-                    dot = DetectedObjectType(class_name, score)
+                    dot = DetectedObjectType(
+                        _safe_class_name(class_name, self._text_query_list[0]
+                                         if self._text_query_list else None),
+                        score)
                     new_det = DetectedObject(bbox, score, dot)
                     detections.add(new_det)
                     suppress_boxes.append(list(box))

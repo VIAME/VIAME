@@ -27,6 +27,7 @@ import argparse
 from ast import literal_eval
 import os
 from concurrent import futures
+import pathlib
 from pathlib import Path
 import re
 import subprocess
@@ -73,6 +74,79 @@ def visible_gpu_count():
         return 1
 
 
+def latest_sound_snapshot(model_dir):
+    """The newest snapshot whose weights are all finite, and its epoch.
+
+    A snapshot is written at the end of every epoch, including one that ended
+    with a NaN loss, so the newest is not always a model worth carrying on
+    from: resuming from NaN weights resumes nothing. Walk back until the
+    weights are finite.
+
+    Returns ( path, epoch ) or ( None, None ).
+    """
+    import re
+    import torch
+
+    if not model_dir.is_dir():
+        return None, None
+
+    snapshots = []
+
+    for path in model_dir.glob('snapshot_epoch_*.pt'):
+        match = re.search(r'snapshot_epoch_(\d+)\.pt$', path.name)
+
+        if match:
+            snapshots.append((int(match.group(1)), path))
+
+    for epoch, path in sorted(snapshots, reverse=True):
+        try:
+            state = torch.load(path, map_location='cpu', weights_only=False)
+            weights = state.get('state_dict', state)
+
+            if all(torch.isfinite(t).all() for t in weights.values()
+                   if torch.is_tensor(t) and t.is_floating_point()):
+                return path, epoch
+
+            print("  snapshot for epoch {} holds non-finite weights, "
+                  "looking further back".format(epoch))
+        except Exception as error:
+            print("  could not read {}: {}".format(path.name, error))
+
+    return None, None
+
+
+def appearance_features_present(vids_dir):
+    """Whether the appearance features have actually been written.
+
+    They live in the detection store as blobs, not in a file, so the presence
+    of a path says nothing about them. The _features.p files this stage is
+    given are written by the data generation before it and exist either way:
+    guarding on those skipped extraction on every resume, and the LSTM stage
+    then failed unpacking an empty row for a feature that had never been
+    stored.
+    """
+    import sqlite3
+
+    db = pathlib.Path(vids_dir) / 'db.sqlite'
+
+    if not db.exists():
+        return False
+
+    try:
+        con = sqlite3.connect('file:{}?mode=ro'.format(db), uri=True)
+    except sqlite3.Error:
+        return False
+
+    try:
+        count = con.execute(
+            "select count(*) from blobs where feature = 'app'").fetchone()[0]
+        return count > 0
+    except sqlite3.Error:
+        return False
+    finally:
+        con.close()
+
+
 def get_best_model(model_dir):
     """Return the epoch number and the path of the best-trained model in
     model_dir by validation loss.
@@ -81,17 +155,59 @@ def get_best_model(model_dir):
 
     """
     pattern = re.compile('Epoch ([^:]+): final vloss:([^ ]+)')
-    vlosses = []
-    with open(model_dir / 'log.txt') as f:
-        for line in f:
-            # Remove initial time stamp
-            line = line[line.index(']') + 1:].lstrip()
-            match = pattern.match(line)
-            if match is not None:
-                epoch, vloss = match.group(1, 2)
-                assert int(epoch) == len(vlosses)
-                vlosses.append(float(vloss))
-    best_epoch = min(range(len(vlosses)), key=lambda ep: vlosses[ep])
+
+    # Keyed by epoch rather than appended in order. A resumed stage writes its
+    # epochs across more than one sitting and does not start from zero, so
+    # requiring position to equal epoch number asserted on any resume. A later
+    # record of the same epoch wins, being from the more recent run.
+    vlosses = {}
+
+    log = model_dir / 'log.txt'
+
+    if log.exists():
+        with open(log) as f:
+            for line in f:
+                try:
+                    line = line[line.index(']') + 1:].lstrip()
+                except ValueError:
+                    continue
+
+                match = pattern.match(line)
+
+                if match is not None:
+                    epoch, vloss = match.group(1, 2)
+
+                    try:
+                        vlosses[int(epoch)] = float(vloss)
+                    except ValueError:
+                        continue
+
+    # Only consider epochs whose snapshot is actually there
+    available = {epoch: loss for epoch, loss in vlosses.items()
+                 if (model_dir / 'snapshot_epoch_{}.pt'.format(epoch)).exists()}
+
+    if available:
+        best_epoch = min(available, key=lambda ep: available[ep])
+    else:
+        # No usable record: keep the last epoch trained rather than failing.
+        # Losing the log should cost the choice between snapshots, not the
+        # stage and everything after it.
+        snapshots = []
+
+        for path in model_dir.glob('snapshot_epoch_*.pt'):
+            match = re.search(r'snapshot_epoch_(\d+)\.pt$', path.name)
+
+            if match:
+                snapshots.append(int(match.group(1)))
+
+        if not snapshots:
+            raise RuntimeError(
+                'No snapshots in {} to choose from'.format(model_dir))
+
+        best_epoch = max(snapshots)
+        print('  no validation losses recorded, keeping the last epoch '
+              'trained ({})'.format(best_epoch))
+
     model = model_dir / 'snapshot_epoch_{}.pt'.format(best_epoch)
     assert model.exists()
     return best_epoch, model
@@ -120,8 +236,7 @@ def main(data_root, output_dir, stabilized, generate_options=None,
     gen_data_vids = gen_data / 'vids'
     gen_data_prefix = str(gen_data / 'out')
     # Run in process rather than shelling out, so the track states can be
-    # handed over as objects. This stage was the only reader of the gt.kw18
-    # files, which no longer exist.
+    # handed over as objects rather than round tripped through a file.
     siamese_sets = [gen_data_prefix + '_siamese_train_set.p',
                     gen_data_prefix + '_siamese_test_set.p']
 
@@ -130,10 +245,10 @@ def main(data_root, output_dir, stabilized, generate_options=None,
     else:
         if tracks is None:
             raise ValueError(
-                "Track states must be supplied; Siamese data generation no"
-                " longer reads gt.kw18 files from data_root")
+                "Track states must be supplied; Siamese data generation does"
+                " not read annotations from data_root")
 
-        from .generate_training_files_kw18 import generate_siamese_data
+        from .generate_training_files import generate_siamese_data
 
         generate_siamese_data(
             root_path=data_root,
@@ -152,12 +267,27 @@ def main(data_root, output_dir, stabilized, generate_options=None,
     if resume and stage_done(siamese_model):
         print("  already trained, skipping")
     else:
+        siamese_options = {}
+
+        # Carry on from the last sound epoch rather than starting the stage
+        # again. It is the longest stage by far, and a run that dies partway
+        # through has usually already paid for several epochs of it.
+        if resume:
+            snapshot, snapshot_epoch = latest_sound_snapshot(siamese_models)
+
+            if snapshot is not None:
+                print("  resuming from epoch {} ({})".format(
+                    snapshot_epoch, snapshot.name))
+                siamese_options['load_path'] = snapshot
+
         run_mod(
             'siamese_main_train',
             model_dir=siamese_models,
             data_root=gen_data_vids,
             train_file=gen_data_prefix + '_siamese_train_set.p',
             test_file=gen_data_prefix + '_siamese_test_set.p',
+            num_workers=lstm_loader_workers,
+            **siamese_options,
         )
 
         best_epoch, _model = get_best_model(siamese_models)
@@ -169,7 +299,8 @@ def main(data_root, output_dir, stabilized, generate_options=None,
     feature_files = [gen_data_prefix + '_train_features.p',
                      gen_data_prefix + '_test_features.p']
 
-    if resume and stage_done(*feature_files):
+    if resume and stage_done(*feature_files) \
+            and appearance_features_present(gen_data_vids):
         print("  already extracted, skipping")
     else:
         run_mod(
@@ -178,6 +309,7 @@ def main(data_root, output_dir, stabilized, generate_options=None,
             data_root=gen_data_vids,
             train_feature_file=feature_files[0],
             test_feature_file=feature_files[1],
+            num_workers=lstm_loader_workers,
         )
 
     print("Creating LSTM training data")
@@ -191,7 +323,7 @@ def main(data_root, output_dir, stabilized, generate_options=None,
             continue
 
         run_mod(
-            'generate_training_files_kw18',
+            'generate_training_files',
             '--RNN-training',  # Well that's not ideal
             root_path=data_root,
             out_path=gen_data_vids,
@@ -219,8 +351,16 @@ def main(data_root, output_dir, stabilized, generate_options=None,
     # forkserver rather than a fork, so every one is a fresh interpreter with
     # its own copy of the data. Running one per device overwhelmed a two device
     # node: the forkserver died and the trainings failed with BrokenPipeError.
+    #
+    # It may also go the other way, above the device count. These models are
+    # small -- under a gigabyte of host memory and a few hundred megabytes of
+    # video memory each, leaving a card that is mostly idle -- so several share
+    # one comfortably, and gpu = index % n_gpus already round robins them. With
+    # eight jobs and three devices the difference is one wave rather than three.
+    # Unset still means one per device, which is what the machine that hit the
+    # forkserver trouble wants.
     n_gpus = visible_gpu_count()
-    workers = min(n_gpus, len(jobs), lstm_concurrency or 1)
+    workers = min(len(jobs), lstm_concurrency or n_gpus)
 
     print("Training {} individual LSTM models across {} device(s)"
           .format(len(jobs), workers))
@@ -329,7 +469,7 @@ def create_parser():
                    ' under output_dir')
     # Not ideal
     p.add_argument('--generate-options', type=stringy_dict,
-                   help='Extra options for generate_training_files_kw18.py'
+                   help='Extra options for generate_training_files.py'
                    ' as a Python dict literal')
     p.add_argument('--lstm-model-params', type=literal_eval,
                    help='Python dict literal with parameters for the LSTM model constructors')

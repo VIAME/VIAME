@@ -26,7 +26,30 @@ import signal
 import time
 import threading
 from viame.pytorch.utilities import report_cuda_errors
-from viame.core.training_data import build_sequence_maps
+from viame.core.training_data import ( build_sequence_maps,
+    read_sequence_manifest )
+
+
+def _frame_bounds( track_sets ):
+    """Highest frame id each track set refers to, or None where it refers to
+    none, for build_sequence_maps to check its alignment against.
+    """
+    bounds = []
+
+    for track_set in track_sets:
+        highest = None
+
+        if track_set is not None:
+            for track in track_set.tracks():
+                for state in track:
+                    if state.detection() is None:
+                        continue
+                    if highest is None or state.frame_id > highest:
+                        highest = state.frame_id
+
+        bounds.append( highest )
+
+    return bounds
 
 
 class SiamMaskTrainer( TrainTracker ):
@@ -50,6 +73,12 @@ class SiamMaskTrainer( TrainTracker ):
         self._threshold = "0.00"
         self._skip_crop = False
         self._samples_per_sequence = 6000
+        self._resume_model = ""
+        self._backbone_seed = ""
+
+        # Written by the training tool: which frames of the flat list
+        # belong to which track set.
+        self._sequence_manifest = ""
         self._timeout = "1209600"
 
         self._categories = []
@@ -75,6 +104,9 @@ class SiamMaskTrainer( TrainTracker ):
         cfg.set_value( "threshold", self._threshold )
         cfg.set_value( "skip_crop", str( self._skip_crop ) )
         cfg.set_value( "samples_per_sequence", str( self._samples_per_sequence ) )
+        cfg.set_value( "resume_model", self._resume_model )
+        cfg.set_value( "backbone_seed", self._backbone_seed )
+        cfg.set_value( "sequence_manifest", self._sequence_manifest )
         cfg.set_value( "timeout", self._timeout )
 
         return cfg
@@ -98,6 +130,9 @@ class SiamMaskTrainer( TrainTracker ):
         self._threshold = str( cfg.get_value( "threshold" ) )
         self._skip_crop = strtobool( cfg.get_value( "skip_crop" ) )
         self._samples_per_sequence = int( cfg.get_value( "samples_per_sequence" ) )
+        self._resume_model = str( cfg.get_value( "resume_model" ) )
+        self._backbone_seed = str( cfg.get_value( "backbone_seed" ) )
+        self._sequence_manifest = str( cfg.get_value( "sequence_manifest" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
 
         # Check GPU availability
@@ -205,8 +240,14 @@ class SiamMaskTrainer( TrainTracker ):
         # One image map per sequence. A frame id is a position within its own
         # sequence, so resolving it against the flat list of every sequence's
         # images only ever worked for the first one.
-        image_maps, _names = build_sequence_maps(
-            self._train_image_files, len( self._train_tracks ), "training" )
+        image_maps, _names = read_sequence_manifest(
+            self._sequence_manifest, self._train_image_files,
+            len( self._train_tracks ) )
+
+        if image_maps is None:
+            image_maps, _names = build_sequence_maps(
+                self._train_image_files, len( self._train_tracks ), "training",
+                _frame_bounds( self._train_tracks ) )
 
         print( "Preparing training data for SiamMask..." )
         print( f"  Processing {len(self._train_tracks)} track sets" )
@@ -396,22 +437,43 @@ class SiamMaskTrainer( TrainTracker ):
             "-t", self._threshold,
         ]
 
+        # The architecture config. Required by the training entry point, so
+        # say what is missing here rather than letting it exit on an argparse
+        # usage dump that names neither the option nor the file it wanted.
         if self._config_file:
-            cmd.extend( [ "-c", self._config_file ] )
+            if not os.path.exists( self._config_file ):
+                raise RuntimeError(
+                    "siammask config_file does not exist: {}".format(
+                        self._config_file ) )
+
+            config_file = self._config_file
         else:
-            # Use default config
-            default_config = os.path.join(
+            config_file = os.path.join(
                 os.path.dirname( os.path.realpath( __file__ ) ),
                 "siammask", "experiments", "siammask_r50_l3.yaml"
             )
-            if os.path.exists( default_config ):
-                cmd.extend( [ "-c", default_config ] )
+
+            if not os.path.exists( config_file ):
+                raise RuntimeError(
+                    "no siammask architecture config. Set "
+                    "tracker_trainer:siammask:config_file in the settings "
+                    "file; the standard training config points it at "
+                    "models/siammask_default.yaml. The built in fallback "
+                    "{} is not present in this install.".format( config_file ) )
+
+        cmd.extend( [ "-c", config_file ] )
 
         if self._skip_crop:
             cmd.append( "--skip-crop" )
 
         cmd.append( "--samples-per-sequence={}".format(
             self._samples_per_sequence ) )
+
+        if self._resume_model:
+            cmd.append( "--resume=" + self._resume_model )
+
+        if self._backbone_seed:
+            cmd.append( "--backbone-pretrained=" + self._backbone_seed )
 
         # seed_model was read from the config but never reached training, so
         # fine tuning silently started from scratch. It is loaded over the
@@ -469,8 +531,11 @@ class SiamMaskTrainer( TrainTracker ):
         """
         Copy trained model to output directory and generate pipeline file.
         """
-        if not self._pipeline_template:
-            return
+        # The model is copied whether or not a pipeline template was given.
+        # Returning early on an empty template used to skip the copy as well,
+        # so a run that trained for nineteen hours and reported "training
+        # completed successfully" left category_models empty and was marked
+        # FAILED for having no model in it.
 
         # Find the latest checkpoint
         snapshot_dir = os.path.join( self._train_directory, "snapshot" )
@@ -478,10 +543,20 @@ class SiamMaskTrainer( TrainTracker ):
             print( "No snapshot directory found" )
             return
 
-        checkpoints = sorted( [
+        def epoch_of( name ):
+            return int( name[ len( "checkpoint_e" ):-len( ".pth" ) ] )
+
+        checkpoints = [
             f for f in os.listdir( snapshot_dir )
             if f.startswith( "checkpoint_e" ) and f.endswith( ".pth" )
-        ] )
+        ]
+
+        # By epoch, not by name. Sorted as strings, checkpoint_e9 comes after
+        # checkpoint_e20, so a twenty epoch run shipped the ninth epoch.
+        try:
+            checkpoints.sort( key=epoch_of )
+        except ValueError:
+            checkpoints.sort()
 
         if not checkpoints:
             print( "No checkpoints found" )
@@ -495,8 +570,8 @@ class SiamMaskTrainer( TrainTracker ):
         copyfile( src_model, dst_model )
         print( f"Copied model to {dst_model}" )
 
-        # Generate pipeline file from template
-        if os.path.exists( self._pipeline_template ):
+        # Generate pipeline file from template, where one was given
+        if self._pipeline_template and os.path.exists( self._pipeline_template ):
             with open( self._pipeline_template, 'r' ) as fin:
                 template_content = fin.read()
 

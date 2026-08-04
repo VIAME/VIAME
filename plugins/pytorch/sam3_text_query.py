@@ -355,7 +355,17 @@ class SAM3TextQuery(PerformTextQuery):
         for det in detections:
             box = det.get('box', [0, 0, 0, 0])
             score = det.get('score', 0.0)
-            label = det.get('label', 'object')
+            # The grounding model can return a detection whose label is
+            # empty, which happens once the threshold is low enough to keep
+            # its weakest matches. DetectedObjectType rejects an empty class
+            # name outright, so the whole frame failed with "Must supply a
+            # non-empty class name" rather than that one detection being
+            # dropped. Fall back to the query that produced it.
+            label = det.get('label') or det.get('query') or 'object'
+
+            if not str(label).strip():
+                label = 'object'
+
             mask = det.get('mask')
 
             bbox = BoundingBoxD(
@@ -460,7 +470,17 @@ class SAM3TextQuery(PerformTextQuery):
 
             box = det.get('box', [0, 0, 0, 0])
             score = det.get('score', 0.0)
-            label = det.get('label', 'object')
+            # The grounding model can return a detection whose label is
+            # empty, which happens once the threshold is low enough to keep
+            # its weakest matches. DetectedObjectType rejects an empty class
+            # name outright, so the whole frame failed with "Must supply a
+            # non-empty class name" rather than that one detection being
+            # dropped. Fall back to the query that produced it.
+            label = det.get('label') or det.get('query') or 'object'
+
+            if not str(label).strip():
+                label = 'object'
+
             mask = det.get('mask')
 
             bbox = BoundingBoxD(

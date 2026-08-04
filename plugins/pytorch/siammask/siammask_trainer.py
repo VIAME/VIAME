@@ -57,6 +57,16 @@ parser.add_argument('-c', '--config-file', required=True, help='Config file for 
 parser.add_argument('-t', '--threshold', required=True, help='GT confidence threshold.')
 parser.add_argument('--skip-crop', action='store_true', default=False, help='Add flag if you want to skip the data cropping (crop_511) step.')
 parser.add_argument('--pretrained', default='', help='Model to fine tune from. Loaded over the whole network, not just the backbone.')
+parser.add_argument('--backbone-pretrained', dest='backbone_pretrained',
+                    default='',
+                    help='Backbone weights to start from, as distinct from '
+                    '--pretrained which loads a whole tracker. This is how '
+                    'pysot trains one of these from scratch: an ImageNet '
+                    'ResNet50 in the backbone and the heads left random.')
+parser.add_argument('--resume', default='',
+                    help='Checkpoint to carry on from. Restores the optimizer '
+                    'and the epoch as well as the weights, unlike --pretrained '
+                    'which only loads the network.')
 parser.add_argument('--samples-per-sequence', dest='samples_per_sequence',
                     type=int, default=6000,
                     help='Training pairs drawn from each clip per epoch. The '
@@ -142,9 +152,25 @@ def build_data_loader():
 def build_opt_lr(model, current_epoch=0):
     if current_epoch >= cfg.BACKBONE.TRAIN_EPOCH:
         for layer in cfg.BACKBONE.TRAIN_LAYERS:
-            for param in getattr(model.backbone, layer).parameters():
+            # Which layers exist depends on BACKBONE.KWARGS.used_layers, and a
+            # name that is not one of them resolves to a method of the module
+            # rather than raising, so the failure was an AttributeError on
+            # .parameters() ten epochs in rather than anything about the
+            # config. Say what is wrong and carry on with the layers that are
+            # really there.
+            block = getattr(model.backbone, layer, None)
+
+            if not isinstance(block, nn.Module):
+                logger.warning(
+                    'BACKBONE.TRAIN_LAYERS names %s, which this backbone does '
+                    'not have; it builds %s. Leaving it frozen.', layer,
+                    [n for n, _ in model.backbone.named_children()
+                     if n.startswith('layer')])
+                continue
+
+            for param in block.parameters():
                 param.requires_grad = True
-            for m in getattr(model.backbone, layer).modules():
+            for m in block.modules():
                 if isinstance(m, nn.BatchNorm2d):
                     m.train()
     else:
@@ -384,6 +410,12 @@ def main():
     if args.pretrained:
         cfg.TRAIN.PRETRAINED = args.pretrained
 
+    if args.resume:
+        cfg.TRAIN.RESUME = args.resume
+
+    if args.backbone_pretrained:
+        cfg.BACKBONE.PRETRAINED = args.backbone_pretrained
+
     cfg.TRAIN.LOG_DIR = os.path.join(args.save_folder, cfg.TRAIN.LOG_DIR)
     cfg.TRAIN.SNAPSHOT_DIR = os.path.join(args.save_folder, cfg.TRAIN.SNAPSHOT_DIR)
     if rank == 0:
@@ -426,8 +458,37 @@ def main():
         logger.info("resume from {}".format(cfg.TRAIN.RESUME))
         assert os.path.isfile(cfg.TRAIN.RESUME), \
             '{} is not a valid file.'.format(cfg.TRAIN.RESUME)
-        model, optimizer, cfg.TRAIN.START_EPOCH = \
-            restore_from(model, optimizer, cfg.TRAIN.RESUME)
+
+        # Which parameters the optimizer covers changes at
+        # BACKBONE.TRAIN_EPOCH, when the backbone joins them, so there are two
+        # possible shapes and load_state_dict refuses the wrong one. Which of
+        # them a checkpoint holds depends on whether it was written before or
+        # after the rebuild within that epoch, which is not something its
+        # epoch number settles. Try the shape for its epoch, then the other.
+        resume_epoch = torch.load(
+            cfg.TRAIN.RESUME, map_location='cpu',
+            weights_only=False).get('epoch', cfg.TRAIN.START_EPOCH)
+
+        restored = False
+
+        for candidate in ( resume_epoch, cfg.TRAIN.START_EPOCH ):
+            optimizer, lr_scheduler = build_opt_lr(dist_model.module,
+                                                   candidate)
+            try:
+                model, optimizer, cfg.TRAIN.START_EPOCH = \
+                    restore_from(model, optimizer, cfg.TRAIN.RESUME)
+                restored = True
+                break
+            except ValueError as error:
+                logger.info('optimizer built for epoch %s does not match the '
+                            'checkpoint (%s), trying the other shape',
+                            candidate, error)
+
+        if not restored:
+            raise RuntimeError(
+                'Could not restore the optimizer from {}. Its parameter '
+                'groups match neither the frozen nor the unfrozen backbone.'
+                .format(cfg.TRAIN.RESUME))
     # load pretrain
     elif cfg.TRAIN.PRETRAINED:
         load_pretrain(model, cfg.TRAIN.PRETRAINED)
