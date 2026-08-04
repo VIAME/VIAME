@@ -574,6 +574,17 @@ extract_video_frames( const std::string& video_filename,
     cmd = cmd + "-s track_reader:file_name=" + add_quotes( groundtruth_file ) + " ";
   }
 
+  // The default extractor's track_writer defaults to a relative
+  // computed_tracks.csv, which lands in the caller's CWD and is clobbered by
+  // concurrent extractions. Keep it beside the clip's frame folder instead
+  // (not inside it: the frame list below picks up every file in output_dir).
+  if( pipeline_declares_process( pipeline_filename, "track_writer" ) )
+  {
+    cmd = cmd + "-s track_writer:file_name="
+              + add_quotes( append_path( output_directory,
+                                         subdir + "_tracks.csv" ) ) + " ";
+  }
+
   if( max_frame_count > 0 && reader_type == "vidl_ffmpeg" )
   {
     cmd = cmd + "-s input:video_reader:vidl_ffmpeg:stop_after_frame="
