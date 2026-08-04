@@ -351,8 +351,16 @@ def main(data_root, output_dir, stabilized, generate_options=None,
     # forkserver rather than a fork, so every one is a fresh interpreter with
     # its own copy of the data. Running one per device overwhelmed a two device
     # node: the forkserver died and the trainings failed with BrokenPipeError.
+    #
+    # It may also go the other way, above the device count. These models are
+    # small -- under a gigabyte of host memory and a few hundred megabytes of
+    # video memory each, leaving a card that is mostly idle -- so several share
+    # one comfortably, and gpu = index % n_gpus already round robins them. With
+    # eight jobs and three devices the difference is one wave rather than three.
+    # Unset still means one per device, which is what the machine that hit the
+    # forkserver trouble wants.
     n_gpus = visible_gpu_count()
-    workers = min(n_gpus, len(jobs), lstm_concurrency or 1)
+    workers = min(len(jobs), lstm_concurrency or n_gpus)
 
     print("Training {} individual LSTM models across {} device(s)"
           .format(len(jobs), workers))
