@@ -811,36 +811,72 @@ class DeepSORTTrainer(TrainTracker):
 
             avg_train_loss = train_loss / max(num_batches, 1)
 
-            # Validation
+            # Validation, as retrieval rather than as loss. The triplet loss
+            # needs a positive and a negative inside the same batch, and the
+            # validation loader walks the crops in track order, so nearly every
+            # batch holds a single identity and contributes exactly zero. A
+            # constant-zero validation "loss" pins best_model to epoch 1 while
+            # looking perfectly healthy in the log.
+            #
+            # Top-1 retrieval sidesteps batching entirely: embed every
+            # validation crop, and ask how often a crop's nearest neighbour
+            # (not itself) belongs to its own track. That is also literally the
+            # query the tracker answers with this embedding at association
+            # time, so the number selected on is the number that matters.
             model.eval()
-            val_loss = 0
-            num_val_batches = 0
+            val_top1 = None
 
             with torch.no_grad():
+                val_embeddings = []
+                val_labels = []
+
                 for images, labels in test_loader:
-                    images = images.to(device)
-                    embeddings = model(images)
-                    loss = criterion(embeddings, labels)
-                    val_loss += loss.item()
-                    num_val_batches += 1
+                    val_embeddings.append(model(images.to(device)))
+                    val_labels.append(labels if isinstance(labels, torch.Tensor)
+                                      else torch.tensor(labels))
 
-            avg_val_loss = val_loss / max(num_val_batches, 1)
+                if val_embeddings:
+                    val_embeddings = torch.cat(val_embeddings)
+                    val_labels = torch.cat(val_labels).to(device)
 
-            # Tracker training gets no validation split unless one is given
-            # explicitly, so test_loader is usually empty and avg_val_loss is a
-            # constant zero. Selecting on that pins best_model to epoch 1 and
-            # silently throws away every later epoch, so fall back to the
-            # training loss whenever there is nothing to validate against.
-            selection_loss = avg_val_loss if num_val_batches else avg_train_loss
+                    # Retrieval needs a wrong answer to be available: at least
+                    # two identities, and every crop needs a neighbour
+                    if len(torch.unique(val_labels)) >= 2:
+                        # The full pairwise matrix is N^2: at fifty thousand
+                        # validation crops that is an 11 GB allocation, so the
+                        # nearest neighbour is found a block of rows at a time.
+                        correct = 0
+                        block = 2048
+
+                        for row in range(0, len(val_embeddings), block):
+                            dists = torch.cdist(
+                                val_embeddings[row:row + block], val_embeddings)
+
+                            for i in range(dists.size(0)):
+                                dists[i, row + i] = float('inf')
+
+                            nearest = val_labels[dists.argmin(dim=1)]
+                            correct += int(
+                                (nearest == val_labels[row:row + block]).sum())
+
+                        val_top1 = correct / float(len(val_embeddings))
+
+            # Highest retrieval accuracy wins; negated so the existing
+            # lower-is-better comparison keeps working. Without a usable
+            # validation set (none supplied, or a single identity), fall back
+            # to the training loss rather than to a constant.
+            selection_loss = -val_top1 if val_top1 is not None else avg_train_loss
 
             avg_id_loss = epoch_id_loss / max(num_batches, 1)
 
             with torch.no_grad():
                 spread = float(embeddings.std(0).mean())
 
+            val_text = ('val_top1={:.4f}'.format(val_top1)
+                        if val_top1 is not None else 'val_top1=n/a')
             print(f"Epoch {epoch+1}/{max_epochs}: train_loss={avg_train_loss:.4f}, "
                   f"id_loss={avg_id_loss:.4f}, embed_spread={spread:.5f}, "
-                  f"val_loss={avg_val_loss:.4f}")
+                  f"{val_text}")
 
             if spread < 1e-4:
                 print("  Warning: embeddings have collapsed to a single point; "
@@ -853,7 +889,7 @@ class DeepSORTTrainer(TrainTracker):
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'train_loss': avg_train_loss,
-                'val_loss': avg_val_loss,
+                'val_top1': val_top1,
             }, checkpoint_path)
 
             if selection_loss < best_loss:
