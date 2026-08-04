@@ -41,7 +41,11 @@ Common options accepted by all scripts:
 | ``--per-class`` -- Report each category independently as well as in aggregate.
 | ``--no-tracking`` -- Skip the track metrics and score detections only.
 | ``--output-summary`` -- Write the printed summary to a file.
-| ``--output-metrics`` -- Write every metric as JSON.
+| ``--output-metrics`` -- Write every metric as JSON, including the confusion
+  matrix (class names, raw and row-normalised counts, per-class accuracy).
+| ``--json-curves`` -- Also inline the full PR and ROC curve points in that
+  JSON. Off by default: the curves carry one point per detection, so a large
+  run would inline millions.
 | ``--output-plots`` -- Render PRC, ROC, confusion matrix and score histograms.
 | ``--output-pr-csv`` / ``--output-roc-csv`` / ``--output-conf-csv`` -- Write the
   underlying curve and matrix data as CSV, so it can be replotted or diffed
@@ -85,6 +89,12 @@ The area under each curve is the Average Precision (AP) for that class.
   class, summarizing performance across all confidence thresholds.
 - **Mean AP (mAP)** -- The mean of AP values across all classes. Reported in the
   plot title (e.g. ``perclass mAP=0.5738``).
+- **AP@any (mAP@any)** -- AP under any-overlap matching: a detection counts as a
+  hit if it touches its groundtruth box at all. Localisation quality is not
+  judged, which separates "did we find the animal" from "did we box it tightly"
+  -- the useful split for a detector feeding a refiner or a fusion. Reported
+  alongside AP@50/AP@75/AP@[.5:.95] in the summary, the per-class table and the
+  metrics JSON (``ap_any``).
 - **Max F1** -- The best F1 score achievable at any threshold, where
   F1 = 2 * precision * recall / (precision + recall).
 

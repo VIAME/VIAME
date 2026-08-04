@@ -2310,9 +2310,16 @@ model_evaluator::priv::compute_average_precision( evaluation_results& results )
 // =============================================================================
 // Multi-threshold AP computation (COCO-style)
 
+// Any-overlap matching. Not 0.0: the IoU comparison is inclusive, so a zero
+// threshold pairs boxes that merely share a corner or nothing at all, which
+// inflates AP sharply. The smallest positive value keeps "must actually
+// overlap" while asking nothing of how well.
+static const double ANY_OVERLAP_IOU = 1e-6;
+
 void
 model_evaluator::priv::compute_multi_threshold_ap( evaluation_results& results )
 {
+  results.ap_any = compute_ap_cached( ANY_OVERLAP_IOU );
   results.ap50 = compute_ap_cached( 0.5 );
   results.ap75 = compute_ap_cached( 0.75 );
 
@@ -2559,6 +2566,8 @@ model_evaluator::priv::compute_per_class_metrics( evaluation_results& results )
     // Per-class AP at the fixed COCO thresholds and the 0.5:0.95 mean, mirroring
     // the overall ap50 / ap75 / ap50_95 but restricted to this class's boxes so
     // per-class mAP is available (not just AP at the single configured IoU).
+    class_metrics["ap_any"] =
+      compute_ap_subset( class_comp, class_gt, ANY_OVERLAP_IOU );
     class_metrics["ap50"] = compute_ap_subset( class_comp, class_gt, 0.5 );
     class_metrics["ap75"] = compute_ap_subset( class_comp, class_gt, 0.75 );
     {
@@ -2594,6 +2603,7 @@ evaluation_results::populate_all_metrics()
   all_metrics["f1_score"] = f1_score;
   all_metrics["mcc"] = mcc;
   all_metrics["average_precision"] = average_precision;
+  all_metrics["ap_any"] = ap_any;
   all_metrics["ap50"] = ap50;
   all_metrics["ap75"] = ap75;
   all_metrics["ap50_95"] = ap50_95;

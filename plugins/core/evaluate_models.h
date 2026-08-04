@@ -65,6 +65,12 @@ struct VIAME_CORE_EXPORT evaluation_results
   /// Average Precision (all-point interpolated area under the PR curve, using
   /// confidence-ordered matching at the configured IoU threshold)
   double average_precision = 0.0;
+  /// AP under any-overlap matching: a detection counts as a hit if it
+  /// touches its groundtruth box at all. Reported as mAP@any. Localisation
+  /// quality is deliberately not judged here, so this isolates whether the
+  /// animal was found from whether its box was drawn tightly -- the useful
+  /// question for detectors feeding a downstream refiner or fusion.
+  double ap_any = 0.0;
   /// AP at IoU threshold 0.5
   double ap50 = 0.0;
   /// AP at IoU threshold 0.75

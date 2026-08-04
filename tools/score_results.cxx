@@ -20,6 +20,7 @@
 #include <map>
 #include <set>
 #include <fstream>
+#include <memory>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
@@ -56,6 +57,7 @@ public:
   std::string opt_output_plots;      // Output plot data to directory
   std::string opt_output_pr_csv;     // Output PR curve to CSV
   std::string opt_output_conf_csv;   // Output confusion matrix to CSV
+  bool opt_json_curves = false;      // Inline curve points in the JSON
   std::string opt_output_roc_csv;    // Output ROC curve to CSV
   bool opt_print_summary = true;
 
@@ -198,6 +200,7 @@ void print_summary( const viame::evaluation_results& results )
   std::cout << "  F1 Score:               " << results.f1_score << "\n";
   std::cout << "  MCC:                    " << results.mcc << "\n";
   std::cout << "  Average Precision:      " << results.average_precision << "\n";
+  std::cout << "  AP@any:                 " << results.ap_any << "\n";
   std::cout << "  AP@50:                  " << results.ap50 << "\n";
   std::cout << "  AP@75:                  " << results.ap75 << "\n";
   std::cout << "  AP@50:95:               " << results.ap50_95 << "\n";
@@ -278,11 +281,12 @@ void print_per_class_metrics( const viame::evaluation_results& results )
             << std::setw( 12 ) << "Precision"
             << std::setw( 12 ) << "Recall"
             << std::setw( 12 ) << "F1"
+            << std::setw( 12 ) << "AP@any"
             << std::setw( 12 ) << "AP50"
             << std::setw( 12 ) << "AP75"
             << std::setw( 12 ) << "AP[.5:.95]"
             << "\n";
-  std::cout << std::string( 127, '-' ) << "\n";
+  std::cout << std::string( 139, '-' ) << "\n";
 
   for( const auto& kv : results.per_class_metrics )
   {
@@ -317,6 +321,7 @@ void print_per_class_metrics( const viame::evaluation_results& results )
               << std::setw( 12 ) << format_metric( "precision" )
               << std::setw( 12 ) << format_metric( "recall" )
               << std::setw( 12 ) << format_metric( "f1_score" )
+              << std::setw( 12 ) << format_metric( "ap_any" )
               << std::setw( 12 ) << format_metric( "ap50" )
               << std::setw( 12 ) << format_metric( "ap75" )
               << std::setw( 12 ) << format_metric( "ap50_95" )
@@ -325,8 +330,14 @@ void print_per_class_metrics( const viame::evaluation_results& results )
   std::cout << "\n";
 }
 
+// The confusion matrix is O(classes^2) and always small, so it goes into the
+// metrics JSON unconditionally. The curves are one point per detection with no
+// downsampling -- a large run produces millions -- so they are opt-in behind
+// --json-curves rather than silently turning a metrics file into a huge one.
 bool write_metrics_json( const viame::evaluation_results& results,
-                         const std::string& filepath )
+                         const std::string& filepath,
+                         const viame::evaluation_plot_data* plot_data = nullptr,
+                         bool include_curves = false )
 {
   std::ofstream out( filepath );
   if( !out.is_open() )
@@ -385,6 +396,126 @@ bool write_metrics_json( const viame::evaluation_results& results,
     }
 
     out << "\n  }";
+  }
+
+  if( plot_data )
+  {
+    const auto& cm = plot_data->confusion_matrix;
+
+    if( !cm.class_names.empty() )
+    {
+      out << ",\n  \"confusion_matrix\": {\n";
+      out << "    \"class_names\": [";
+      for( size_t i = 0; i < cm.class_names.size(); ++i )
+      {
+        if( i ) out << ", ";
+        out << "\"" << escape_json( cm.class_names[i] ) << "\"";
+      }
+      out << "],\n";
+
+      out << "    \"matrix\": [";
+      for( size_t r = 0; r < cm.matrix.size(); ++r )
+      {
+        if( r ) out << ", ";
+        out << "[";
+        for( size_t c = 0; c < cm.matrix[r].size(); ++c )
+        {
+          if( c ) out << ", ";
+          out << cm.matrix[r][c];
+        }
+        out << "]";
+      }
+      out << "],\n";
+
+      out << "    \"normalized_matrix\": [";
+      for( size_t r = 0; r < cm.normalized_matrix.size(); ++r )
+      {
+        if( r ) out << ", ";
+        out << "[";
+        for( size_t c = 0; c < cm.normalized_matrix[r].size(); ++c )
+        {
+          if( c ) out << ", ";
+          out << json_value( cm.normalized_matrix[r][c] );
+        }
+        out << "]";
+      }
+      out << "],\n";
+
+      out << "    \"per_class_accuracy\": {";
+      bool first_acc = true;
+      for( const auto& kv : cm.per_class_accuracy )
+      {
+        if( !first_acc ) out << ", ";
+        out << "\"" << escape_json( kv.first ) << "\": " << json_value( kv.second );
+        first_acc = false;
+      }
+      out << "}\n  }";
+    }
+
+    if( include_curves )
+    {
+      auto write_pr = [&]( const viame::pr_curve_data& pr, const char* indent )
+      {
+        out << "{\n";
+        out << indent << "  \"average_precision\": "
+            << json_value( pr.average_precision ) << ",\n";
+        out << indent << "  \"max_f1\": " << json_value( pr.max_f1 ) << ",\n";
+        out << indent << "  \"best_threshold\": "
+            << json_value( pr.best_threshold ) << ",\n";
+        out << indent << "  \"points\": [\n";
+        for( size_t i = 0; i < pr.points.size(); ++i )
+        {
+          const auto& pt = pr.points[i];
+          out << indent << "    {\"recall\": " << json_value( pt.recall )
+              << ", \"precision\": " << json_value( pt.precision )
+              << ", \"confidence\": " << json_value( pt.confidence )
+              << ", \"f1\": " << json_value( pt.f1 )
+              << ", \"tp\": " << pt.tp
+              << ", \"fp\": " << pt.fp
+              << ", \"fn\": " << pt.fn << "}";
+          if( i + 1 < pr.points.size() ) out << ",";
+          out << "\n";
+        }
+        out << indent << "  ]\n" << indent << "}";
+      };
+
+      out << ",\n  \"pr_curve\": ";
+      write_pr( plot_data->overall_pr_curve, "  " );
+
+      out << ",\n  \"roc_curve\": {\n";
+      out << "    \"mean_pd\": "
+          << json_value( plot_data->overall_roc_curve.mean_pd ) << ",\n";
+      out << "    \"max_false_alarms_per_frame\": "
+          << json_value( plot_data->overall_roc_curve.max_false_alarms_per_frame )
+          << ",\n";
+      out << "    \"points\": [\n";
+      for( size_t i = 0; i < plot_data->overall_roc_curve.points.size(); ++i )
+      {
+        const auto& pt = plot_data->overall_roc_curve.points[i];
+        out << "      {\"false_alarms_per_frame\": "
+            << json_value( pt.false_alarms_per_frame )
+            << ", \"true_positive_rate\": "
+            << json_value( pt.true_positive_rate )
+            << ", \"confidence\": " << json_value( pt.confidence ) << "}";
+        if( i + 1 < plot_data->overall_roc_curve.points.size() ) out << ",";
+        out << "\n";
+      }
+      out << "    ]\n  }";
+
+      if( !plot_data->per_class_pr_curves.empty() )
+      {
+        out << ",\n  \"per_class_pr_curves\": {\n";
+        bool first_curve = true;
+        for( const auto& kv : plot_data->per_class_pr_curves )
+        {
+          if( !first_curve ) out << ",\n";
+          out << "    \"" << escape_json( kv.first ) << "\": ";
+          write_pr( kv.second, "    " );
+          first_curve = false;
+        }
+        out << "\n  }";
+      }
+    }
   }
 
   out << "\n}\n";
@@ -484,6 +615,11 @@ int main( int argc, char* argv[] )
     &g_params.opt_output_conf_csv, "Output confusion matrix to CSV" );
   g_params.m_args.AddArgument( "--output-roc-csv", argT::SPACE_ARGUMENT,
     &g_params.opt_output_roc_csv, "Output ROC curve to CSV" );
+  g_params.m_args.AddArgument( "--json-curves", argT::NO_ARGUMENT,
+    &g_params.opt_json_curves,
+    "Include full PR and ROC curve points in the metrics JSON. Off by default: "
+    "curves carry one point per detection, so a large run inlines millions" );
+
   g_params.m_args.AddArgument( "--no-print", argT::NO_ARGUMENT,
     &g_params.opt_print_summary, "Suppress printing summary to stdout" );
 
@@ -653,9 +789,36 @@ int main( int argc, char* argv[] )
   // Write outputs
   bool success = true;
 
+  // The metrics JSON carries the confusion matrix, and optionally the curves,
+  // so it needs the same pass the plot exports use. Generated once up front and
+  // shared, rather than evaluated twice.
+  bool need_plots = !g_params.opt_output_plots.empty() ||
+                    !g_params.opt_output_pr_csv.empty() ||
+                    !g_params.opt_output_conf_csv.empty() ||
+                    !g_params.opt_output_roc_csv.empty() ||
+                    !g_params.opt_output_metrics.empty();
+
+  std::unique_ptr< viame::evaluation_plot_data > plot_data_ptr;
+
+  if( need_plots )
+  {
+    try
+    {
+      LOG_INFO( g_logger, "Generating plot data..." );
+      plot_data_ptr.reset(
+        new viame::evaluation_plot_data( evaluator.generate_plot_data() ) );
+    }
+    catch( const std::exception& e )
+    {
+      LOG_ERROR( g_logger, "Failed to generate plot data: " << e.what() );
+    }
+  }
+
   if( !g_params.opt_output_metrics.empty() )
   {
-    success = write_metrics_json( results, g_params.opt_output_metrics ) && success;
+    success = write_metrics_json( results, g_params.opt_output_metrics,
+                                  plot_data_ptr.get(),
+                                  g_params.opt_json_curves ) && success;
   }
 
   if( !g_params.opt_output_summary.empty() )
@@ -663,21 +826,11 @@ int main( int argc, char* argv[] )
     success = write_summary_text( results, g_params.opt_output_summary ) && success;
   }
 
-  // Generate and export plot data if requested
-  bool need_plots = !g_params.opt_output_plots.empty() ||
-                    !g_params.opt_output_pr_csv.empty() ||
-                    !g_params.opt_output_conf_csv.empty() ||
-                    !g_params.opt_output_roc_csv.empty();
-
-  if( need_plots )
+  if( plot_data_ptr )
   {
     try
     {
-      LOG_INFO( g_logger, "Generating plot data..." );
-
-      // Curves, confusion matrix and histograms are all derived from one pass
-      // over the evaluation, whichever outputs were requested
-      const auto plot_data = evaluator.generate_plot_data();
+      const auto& plot_data = *plot_data_ptr;
 
       // Export full plot data to directory
       if( !g_params.opt_output_plots.empty() )
