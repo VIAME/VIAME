@@ -74,9 +74,20 @@ def normalize_loss(loss):
 def train_model(
         model, train_loader, test_loader, g_config,
         lr_scheduler, epoch, lr, lr_step, max_iterations,
-        run_model, metric_zero, format_metrics,
+        run_model, metric_zero, format_metrics, weight_decay=0.0,
 ):
-    optimizer = g_config.optimizer(model.parameters(), lr=lr)
+    # Decay is passed only when a stage asks for it, so a stage that wants
+    # none is left at whatever its optimizer's own default is rather than
+    # being handed an explicit zero -- the same call it made before this
+    # argument existed. The scheduler below rewrites param_groups['lr'] in
+    # place and returns the same optimizer, so this survives every step.
+    optimizer_args = {'lr': lr}
+
+    if weight_decay:
+        optimizer_args['weight_decay'] = weight_decay
+        logging('Optimizing with weight decay {}'.format(weight_decay))
+
+    optimizer = g_config.optimizer(model.parameters(), **optimizer_args)
 
     def run_batch(input_batch, train):
         model.train(train)
