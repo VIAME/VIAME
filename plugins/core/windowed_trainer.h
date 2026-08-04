@@ -112,7 +112,7 @@ public:
       "" ), \
     PARAM_DEFAULT( \
       chip_threads, int, \
-      "Worker threads for chip generation (0 = one per logical core capped "
+      "Worker threads for chip generation (0 = one per logical core capped " \
       "at 32, 1 = serial).", \
       0 ), \
     PARAM_DEFAULT( \
