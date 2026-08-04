@@ -249,7 +249,7 @@ def main(data_root, output_dir, stabilized, generate_options=None,
                 "Track states must be supplied; Siamese data generation no"
                 " longer reads gt.kw18 files from data_root")
 
-        from .generate_training_files_kw18 import generate_siamese_data
+        from .generate_training_files import generate_siamese_data
 
         generate_siamese_data(
             root_path=data_root,
@@ -324,7 +324,7 @@ def main(data_root, output_dir, stabilized, generate_options=None,
             continue
 
         run_mod(
-            'generate_training_files_kw18',
+            'generate_training_files',
             '--RNN-training',  # Well that's not ideal
             root_path=data_root,
             out_path=gen_data_vids,
@@ -462,7 +462,7 @@ def create_parser():
                    ' under output_dir')
     # Not ideal
     p.add_argument('--generate-options', type=stringy_dict,
-                   help='Extra options for generate_training_files_kw18.py'
+                   help='Extra options for generate_training_files.py'
                    ' as a Python dict literal')
     p.add_argument('--lstm-model-params', type=literal_eval,
                    help='Python dict literal with parameters for the LSTM model constructors')

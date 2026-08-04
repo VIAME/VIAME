@@ -437,16 +437,31 @@ class SiamMaskTrainer( TrainTracker ):
             "-t", self._threshold,
         ]
 
+        # The architecture config. Required by the training entry point, so
+        # say what is missing here rather than letting it exit on an argparse
+        # usage dump that names neither the option nor the file it wanted.
         if self._config_file:
-            cmd.extend( [ "-c", self._config_file ] )
+            if not os.path.exists( self._config_file ):
+                raise RuntimeError(
+                    "siammask config_file does not exist: {}".format(
+                        self._config_file ) )
+
+            config_file = self._config_file
         else:
-            # Use default config
-            default_config = os.path.join(
+            config_file = os.path.join(
                 os.path.dirname( os.path.realpath( __file__ ) ),
                 "siammask", "experiments", "siammask_r50_l3.yaml"
             )
-            if os.path.exists( default_config ):
-                cmd.extend( [ "-c", default_config ] )
+
+            if not os.path.exists( config_file ):
+                raise RuntimeError(
+                    "no siammask architecture config. Set "
+                    "tracker_trainer:siammask:config_file in the settings "
+                    "file; the standard training config points it at "
+                    "models/siammask_default.yaml. The built in fallback "
+                    "{} is not present in this install.".format( config_file ) )
+
+        cmd.extend( [ "-c", config_file ] )
 
         if self._skip_crop:
             cmd.append( "--skip-crop" )

@@ -37,7 +37,7 @@ from viame.pytorch.utilities import report_cuda_errors
 from viame.core.training_data import (build_sequence_maps,
     read_sequence_manifest,
     load_computed_detections, match_to_groundtruth)
-from viame.pytorch.srnn.generate_training_files_kw18 import BoundingBox
+from viame.pytorch.srnn.generate_training_files import BoundingBox
 
 
 def _frame_bounds( track_sets ):
@@ -381,7 +381,7 @@ class SRNNTrainer( TrainTracker ):
                     y2 = int( bbox.max_y() )
 
                     # Zero area boxes carry no information and are rejected by
-                    # generate_training_files_kw18 with "Width and height must
+                    # generate_training_files with "Width and height must
                     # be positive", which aborts the whole run over a single
                     # bad annotation
                     if x2 <= x1 or y2 <= y1:
@@ -407,7 +407,7 @@ class SRNNTrainer( TrainTracker ):
             # A clip with no annotations gets no sequence directory at all. The
             # directory used to be created before this point, which left behind
             # a sequence_NNNN/img1 with no gt.kw18 beside it; the downstream
-            # generate_training_files_kw18.py walks the sequence directories and
+            # generate_training_files.py walks the sequence directories and
             # opens gt.kw18 unconditionally, so the first unannotated clip
             # aborted the whole run with a FileNotFoundError.
             if not frame_annotations:

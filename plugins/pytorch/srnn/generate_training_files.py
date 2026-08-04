@@ -405,12 +405,32 @@ def generate_pairs_forSiamese(
                     range(stop, len(dets)),
                 ), neg_dict[p_pos_idx])
 
+                # Nothing outside this track to contrast against, which is
+                # every clip holding a single track. A pair with no negative
+                # teaches nothing, so drop it rather than indexing on None.
+                if p_neg_idx is None:
+                    continue
+
                 neg_dict[p_pos_idx].add(p_neg_idx)
                 neg_dict[p_neg_idx].add(p_pos_idx)
 
                 p_neg_det = dets[p_neg_idx]
 
                 pairs.append((p_first_det, p_pos_det, p_neg_det))
+
+    # An empty set here is written out happily and only surfaces two stages
+    # later, as "Found 0 images in data" from the training script, which says
+    # nothing about why. Every pair needs a detection from outside its own
+    # track to contrast against, so a clip holding a single track contributes
+    # nothing -- and a dataset of only such clips contributes nothing at all.
+    if not pairs:
+        raise RuntimeError(
+            "no Siamese training pairs could be built from {} track(s). "
+            "Each pair needs a detection outside its own track as a negative, "
+            "so clips holding a single track contribute none. Train on more "
+            "clips, or on clips holding more than one track.".format(
+                len(tracks)))
+
     with open(out_file, 'wb') as f:
         pickle.dump(SequenceList.from_iterable(pairs), f)
 

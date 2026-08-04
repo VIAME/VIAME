@@ -15,7 +15,7 @@ from .models import RnnType
 
 def load_track_feature_file(tff):
     """Given a path to a "track feature file" as created by
-    .bin.generate_training_files_kw18, return a tuple of:
+    .bin.generate_training_files, return a tuple of:
     - The raw loaded dictionary of tracks
     - All the DetectionIds as one list
     - A list of pairs giving the slice of the big list corresponding

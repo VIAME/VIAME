@@ -23,8 +23,27 @@ localisation error and separate its true from its false positives.
 """
 
 import os
+import sys
 
 from collections import OrderedDict
+
+
+# Training runs embedded in the kwiver process, and its stdout is a pipe
+# rather than a terminal, so python block buffers it. Nothing finalises the
+# interpreter on the way out, so whatever is still in that buffer when the
+# process exits is discarded -- which is always the tail, the part holding the
+# final losses and the model that was selected. A three epoch run logs two
+# epochs and stops mid sentence, and the run looks like it died where it in
+# fact finished.
+#
+# Line buffering costs nothing at these volumes and makes the log match what
+# actually ran. Done here because every tracker trainer imports this module.
+try:
+    sys.stdout.reconfigure( line_buffering=True )
+    sys.stderr.reconfigure( line_buffering=True )
+except ( AttributeError, ValueError ):
+    # Not a reconfigurable stream, which is fine; this is a convenience
+    pass
 
 
 # ---------------------------------------------------------------------------
