@@ -27,6 +27,7 @@ import argparse
 from ast import literal_eval
 import os
 from concurrent import futures
+import pathlib
 from pathlib import Path
 import re
 import subprocess
@@ -112,6 +113,38 @@ def latest_sound_snapshot(model_dir):
             print("  could not read {}: {}".format(path.name, error))
 
     return None, None
+
+
+def appearance_features_present(vids_dir):
+    """Whether the appearance features have actually been written.
+
+    They live in the detection store as blobs, not in a file, so the presence
+    of a path says nothing about them. The _features.p files this stage is
+    given are written by the data generation before it and exist either way:
+    guarding on those skipped extraction on every resume, and the LSTM stage
+    then failed unpacking an empty row for a feature that had never been
+    stored.
+    """
+    import sqlite3
+
+    db = pathlib.Path(vids_dir) / 'db.sqlite'
+
+    if not db.exists():
+        return False
+
+    try:
+        con = sqlite3.connect('file:{}?mode=ro'.format(db), uri=True)
+    except sqlite3.Error:
+        return False
+
+    try:
+        count = con.execute(
+            "select count(*) from blobs where feature = 'app'").fetchone()[0]
+        return count > 0
+    except sqlite3.Error:
+        return False
+    finally:
+        con.close()
 
 
 def get_best_model(model_dir):
@@ -267,7 +300,8 @@ def main(data_root, output_dir, stabilized, generate_options=None,
     feature_files = [gen_data_prefix + '_train_features.p',
                      gen_data_prefix + '_test_features.p']
 
-    if resume and stage_done(*feature_files):
+    if resume and stage_done(*feature_files) \
+            and appearance_features_present(gen_data_vids):
         print("  already extracted, skipping")
     else:
         run_mod(
