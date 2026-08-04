@@ -32,6 +32,23 @@ from viame.core.training_data import detector_statistics
 from kwiver.vital.algo import TrainTracker
 
 
+def _link_iou(a, b):
+    """Intersection over union of two (x1, y1, x2, y2) boxes."""
+    x0 = max(a[0], b[0])
+    y0 = max(a[1], b[1])
+    x1 = min(a[2], b[2])
+    y1 = min(a[3], b[3])
+
+    if x1 <= x0 or y1 <= y0:
+        return 0.0
+
+    inter = (x1 - x0) * (y1 - y0)
+    aa = (a[2] - a[0]) * (a[3] - a[1])
+    bb = (b[2] - b[0]) * (b[3] - b[1])
+
+    return inter / (aa + bb - inter)
+
+
 class OCSORTTrainer(TrainTracker):
     """
     Implementation of TrainTracker class for OC-SORT parameter estimation
@@ -54,6 +71,10 @@ class OCSORTTrainer(TrainTracker):
         # this tracker will actually run behind.
         self._computed_detections = ""
         self._delta_t = "3"
+        # Association-gate fitting, as in the ByteTrack trainer.
+        self._match_gate_admit_percent = 99.5
+        self._min_match_gate = 0.02
+        self._max_match_gate = 0.5
 
         # Deep OC-SORT (appearance Re-ID) training. Disabled by default;
         # when off, no torch/pytorch code is imported.
@@ -83,6 +104,10 @@ class OCSORTTrainer(TrainTracker):
         cfg.set_value("threshold", self._threshold)
         cfg.set_value("computed_detections", self._computed_detections)
         cfg.set_value("delta_t", self._delta_t)
+        cfg.set_value("match_gate_admit_percent",
+                      str(self._match_gate_admit_percent))
+        cfg.set_value("min_match_gate", str(self._min_match_gate))
+        cfg.set_value("max_match_gate", str(self._max_match_gate))
         cfg.set_value("use_reid", self._use_reid)
         cfg.set_value("crop_size", self._crop_size)
         cfg.set_value("embedding_dim", self._embedding_dim)
@@ -106,6 +131,10 @@ class OCSORTTrainer(TrainTracker):
         self._threshold = str(cfg.get_value("threshold"))
         self._computed_detections = str(cfg.get_value("computed_detections"))
         self._delta_t = str(cfg.get_value("delta_t"))
+        self._match_gate_admit_percent = float(
+            cfg.get_value("match_gate_admit_percent"))
+        self._min_match_gate = float(cfg.get_value("min_match_gate"))
+        self._max_match_gate = float(cfg.get_value("max_match_gate"))
         self._use_reid = str(cfg.get_value("use_reid"))
         self._crop_size = str(cfg.get_value("crop_size"))
         self._embedding_dim = str(cfg.get_value("embedding_dim"))
@@ -161,6 +190,8 @@ class OCSORTTrainer(TrainTracker):
         velocities = []
         confidences = []
         track_lengths = []
+        link_ious = []
+        recovery_ious = []
         gap_lengths = []
         direction_changes = []  # Angle changes in velocity direction
 
@@ -177,6 +208,7 @@ class OCSORTTrainer(TrainTracker):
                 prev_frame = None
                 prev_cx, prev_cy = None, None
                 prev_vx, prev_vy = None, None
+                prev_box = None
 
                 for state in states:
                     frame_id = state.frame_id
@@ -207,6 +239,17 @@ class OCSORTTrainer(TrainTracker):
                             vy = (cy - prev_cy) / dt
                             velocities.append((vx, vy, h, dt))
 
+                            # The overlap an association gate has to admit for
+                            # this track to survive one frame to the next, and
+                            # -- across a gap -- for recovery to re-attach it.
+                            if prev_box is not None:
+                                ov = _link_iou(prev_box, (x1, y1, x2, y2))
+
+                                if dt == 1:
+                                    link_ious.append(ov)
+                                else:
+                                    recovery_ious.append(ov)
+
                             # Track velocity direction changes
                             if prev_vx is not None and dt == 1:
                                 v1 = np.array([prev_vx, prev_vy])
@@ -226,6 +269,7 @@ class OCSORTTrainer(TrainTracker):
                             prev_vx, prev_vy = vx, vy
 
                     prev_frame = frame_id
+                    prev_box = (x1, y1, x2, y2)
                     prev_cx, prev_cy = cx, cy
 
         return {
@@ -234,8 +278,54 @@ class OCSORTTrainer(TrainTracker):
             'confidences': confidences,
             'track_lengths': track_lengths,
             'gap_lengths': gap_lengths,
-            'direction_changes': direction_changes
+            'direction_changes': direction_changes,
+            'link_ious': link_ious,
+            'recovery_ious': recovery_ious
         }
+
+    def _estimate_match_threshold(self, stats):
+        """The IoU association gate, fit from the groundtruth.
+
+        Consecutive states of one animal give the overlap a gate must admit
+        directly. match_thresh is a distance bound in the tracker (1 - IoU),
+        so the return is 1 - gate. Previously this was hardcoded to 0.8, which
+        demands IoU > 0.2 and rejects real links on fast-moving targets.
+        """
+        link_ious = stats.get('link_ious', [])
+
+        if len(link_ious) < 100:
+            print("Warning: too few consecutive-frame links ({}), "
+                  "keeping match_thresh default".format(len(link_ious)))
+            return 0.8
+
+        gate = float(np.percentile(np.array(link_ious),
+                                   100.0 - self._match_gate_admit_percent))
+        gate = float(np.clip(gate, self._min_match_gate, self._max_match_gate))
+        admitted = float(np.mean(np.array(link_ious) >= gate))
+        print("  match gate IoU>={:.3f} admits {:.1f}% of {} true links "
+              "-> match_thresh {:.3f}".format(gate, 100 * admitted,
+                                              len(link_ious), 1.0 - gate))
+        return round(1.0 - gate, 3)
+
+    def _estimate_recovery_gate(self, stats):
+        """The overlap observation-centric recovery needs across a gap.
+
+        A track that was lost for several frames re-attaches to a box that has
+        moved further than one frame's worth, so this gate has to sit below
+        the consecutive-frame one. Fit from the same groundtruth, over links
+        that actually span a gap.
+        """
+        gap_ious = stats.get('recovery_ious', [])
+
+        if len(gap_ious) < 50:
+            return 0.3
+
+        gate = float(np.percentile(np.array(gap_ious),
+                                   100.0 - self._match_gate_admit_percent))
+        gate = float(np.clip(gate, self._min_match_gate, self._max_match_gate))
+        print("  recovery gate IoU>={:.3f} from {} gap-spanning links".format(
+            gate, len(gap_ious)))
+        return round(gate, 3)
 
     def _estimate_kalman_parameters(self, stats):
         """Estimate Kalman filter parameters (same as ByteTrack)."""
@@ -531,6 +621,10 @@ class OCSORTTrainer(TrainTracker):
         vdc_weight = self._estimate_vdc_weight(stats)
         print(f"  vdc_weight: {vdc_weight:.3f}")
 
+        print("Estimating association gates...")
+        match_thresh = self._estimate_match_threshold(stats)
+        ocr_iou_thresh = self._estimate_recovery_gate(stats)
+
         delta_t = self._estimate_delta_t(stats)
         print(f"  delta_t: {delta_t}")
 
@@ -541,12 +635,12 @@ class OCSORTTrainer(TrainTracker):
             'std_weight_velocity': std_weight_velocity,
             'high_thresh': high_thresh,
             'low_thresh': low_thresh,
-            'match_thresh': 0.8,
+            'match_thresh': match_thresh,
             'new_track_thresh': new_track_thresh,
             'track_buffer': track_buffer,
             'delta_t': delta_t,
             'vdc_weight': vdc_weight,
-            'ocr_iou_thresh': 0.3,
+            'ocr_iou_thresh': ocr_iou_thresh,
             'use_vdc': True,
             'use_oru': True,
             'use_byte': True,

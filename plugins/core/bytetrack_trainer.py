@@ -496,21 +496,36 @@ class ByteTrackTrainer( TrainTracker ):
 
         return round( 1.0 - gate, 3 )
 
-    def _estimate_track_buffer( self, stats ):
-        """
-        Estimate track_buffer (frames to keep lost tracks) from gap statistics.
-        """
-        gap_lengths = stats['gap_lengths']
+    def _estimate_track_buffer( self, stats, detector_stats=None ):
+        """How long a lost track should be kept alive.
 
-        if len( gap_lengths ) < 5:
+        The gap that matters is the one the tracker actually has to survive:
+        the detector losing an animal for a few frames and finding it again.
+        That is not the same as a gap in the annotation, which is rare (0.25%
+        of steps on FishTrack train) and reflects how the data was labelled
+        rather than how the detector behaves. Prefer the detector's own
+        miss-run distribution and fall back to annotation gaps only when no
+        detector output was supplied.
+        """
+        source = 'detector miss-runs'
+        runs = detector_stats.get( 'miss_runs', [] ) if detector_stats else []
+
+        if len( runs ) < 20:
+            source = 'annotation gaps'
+            runs = stats[ 'gap_lengths' ]
+
+        if len( runs ) < 5:
             return 30  # Default
 
-        # Use 90th percentile of gaps + some margin
-        gap_90 = np.percentile( gap_lengths, 90 )
-        track_buffer = int( gap_90 * 1.5 ) + 5
+        # 90th percentile of the gap, plus margin
+        run_90 = np.percentile( runs, 90 )
+        track_buffer = int( run_90 * 1.5 ) + 5
 
         # Clamp to reasonable range
         track_buffer = max( 10, min( 100, track_buffer ) )
+
+        print( "  track_buffer {} from {} ({} samples, 90th pct {:.1f})".format(
+            track_buffer, source, len( runs ), run_90 ) )
 
         return track_buffer
 
@@ -568,8 +583,7 @@ class ByteTrackTrainer( TrainTracker ):
 
         # Estimate track buffer
         print( "Estimating track buffer..." )
-        track_buffer = self._estimate_track_buffer( stats )
-        print( f"  track_buffer: {track_buffer}" )
+        track_buffer = self._estimate_track_buffer( stats, detector )
 
         # IOU association gate, from the groundtruth's own link overlaps
         print( "Estimating match threshold..." )

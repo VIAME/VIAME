@@ -331,6 +331,10 @@ def detector_statistics( track_sets, image_files, directory,
             object, so the scores a threshold must keep
         unmatched_confidences: confidence of detections that found nothing,
             so the scores a threshold must reject
+        miss_runs: for each groundtruth track, the lengths of consecutive
+            annotated frames over which the detector found nothing for it.
+            This is the gap a lost track has to survive at inference, which
+            is not the same quantity as a gap in the annotation itself
         center_errors: centre offset of a matched box from its truth, in
             units of the truth box height
         scale_errors: |w - w_truth| / w_truth and the same for height
@@ -345,6 +349,7 @@ def detector_statistics( track_sets, image_files, directory,
         'matched_boxes': 0,
         'frames_with_computed': 0,
         'frames_total': 0,
+        'miss_runs': [],
     }
 
     if not directory:
@@ -381,7 +386,9 @@ def detector_statistics( track_sets, image_files, directory,
                     ( box.min_x(), box.min_y(), box.max_x(), box.max_y(),
                       track.id ) )
 
-        for frame_id, truth in truth_by_frame.items():
+        hit_by_track = {}
+
+        for frame_id, truth in sorted( truth_by_frame.items() ):
             stats[ 'frames_total' ] += 1
             stats[ 'gt_boxes' ] += len( truth )
 
@@ -394,6 +401,12 @@ def detector_statistics( track_sets, image_files, directory,
                 frame_computed, truth, iou_threshold )
 
             stats[ 'matched_boxes' ] += len( matches )
+
+            found = set( t[ 4 ] for _c, t, _o in matches )
+
+            for t in truth:
+                hit_by_track.setdefault( t[ 4 ], [] ).append(
+                    ( frame_id, t[ 4 ] in found ) )
 
             for c, t, _overlap in matches:
                 stats[ 'matched_confidences' ].append( c[ 4 ] )
@@ -419,6 +432,20 @@ def detector_statistics( track_sets, image_files, directory,
 
             for c in unmatched:
                 stats[ 'unmatched_confidences' ].append( c[ 4 ] )
+
+        for states in hit_by_track.values():
+            run = 0
+
+            for _frame_id, hit in sorted( states ):
+                if hit:
+                    if run:
+                        stats[ 'miss_runs' ].append( run )
+                    run = 0
+                else:
+                    run += 1
+
+            if run:
+                stats[ 'miss_runs' ].append( run )
 
     return stats
 
