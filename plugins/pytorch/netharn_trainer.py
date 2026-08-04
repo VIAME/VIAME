@@ -41,7 +41,8 @@ class NetHarnTrainer( TrainDetector ):
     def __init__( self ):
         TrainDetector.__init__( self )
 
-        self._identifier = "viame-netharn-detector"
+        # Kept short to reduce output path lengths (Windows MAX_PATH)
+        self._identifier = "netharn"
         self._mode = "detector"
         self._arch = ""
         self._seed_model = ""
