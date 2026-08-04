@@ -31,14 +31,18 @@ def printProgress(iteration, total, prefix='', suffix='', decimals=1, barLength=
     sys.stdout.flush()
 
 
-def crop_hwc(image, bbox, out_sz, padding=(0, 0, 0)):
+def crop_hwc(image, bbox, out_sz, padding=(0, 0, 0), nearest=False):
     a = (out_sz-1) / (bbox[2]-bbox[0])
     b = (out_sz-1) / (bbox[3]-bbox[1])
     c = -a * bbox[0]
     d = -b * bbox[1]
     mapping = np.array([[a, 0, c],
                         [0, b, d]]).astype(np.float32)
-    crop = cv2.warpAffine(image, mapping, (out_sz, out_sz), borderMode=cv2.BORDER_CONSTANT, borderValue=padding)
+    # Masks are labels rather than intensities, so they are resampled without
+    # interpolation to stay binary
+    flags = cv2.INTER_NEAREST if nearest else cv2.INTER_LINEAR
+    crop = cv2.warpAffine(image, mapping, (out_sz, out_sz), flags=flags,
+                          borderMode=cv2.BORDER_CONSTANT, borderValue=padding)
     return crop
 
 
@@ -46,7 +50,7 @@ def pos_s_2_bbox(pos, s):
     return [pos[0]-s/2, pos[1]-s/2, pos[0]+s/2, pos[1]+s/2]
 
 
-def crop_like_SiamFC(image, bbox, context_amount=0.5, exemplar_size=127, instance_size=255, padding=(0, 0, 0)):
+def crop_like_SiamFC(image, bbox, context_amount=0.5, exemplar_size=127, instance_size=255, padding=(0, 0, 0), mask=None):
     target_pos = [(bbox[2]+bbox[0])/2., (bbox[3]+bbox[1])/2.]
     target_size = [bbox[2]-bbox[0], bbox[3]-bbox[1]]
     wc_z = target_size[1] + context_amount * sum(target_size)
@@ -59,7 +63,15 @@ def crop_like_SiamFC(image, bbox, context_amount=0.5, exemplar_size=127, instanc
 
     z = crop_hwc(image, pos_s_2_bbox(target_pos, s_z), exemplar_size, padding)
     x = crop_hwc(image, pos_s_2_bbox(target_pos, s_x), instance_size, padding)
-    return z, x
+
+    if mask is None:
+        return z, x, None
+
+    # The same geometry as x, so the mask stays registered with the search
+    # crop the loss compares it against
+    x_mask = crop_hwc(mask, pos_s_2_bbox(target_pos, s_x), instance_size,
+                      padding=0, nearest=True)
+    return z, x, x_mask
 
 
 def crop_video(video, image_folder, crop_path, instance_size):
@@ -68,6 +80,39 @@ def crop_video(video, image_folder, crop_path, instance_size):
 
     def get_bbox(line):
         return [int(float(i)) for i in line[3:7]]
+
+    def get_mask(line, im_shape, bbox):
+        """Full frame mask for this annotation, or None.
+
+        The tenth column names a mask stored cropped to the bounding box,
+        which is kwiver's convention. Placing it back into a frame sized
+        canvas is what lets it go through the same crop as the image.
+        """
+        if len(line) < 10 or not line[9]:
+            return None
+
+        mask_file = join(image_folder, video, line[9])
+
+        if not exists(mask_file):
+            return None
+
+        patch = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
+
+        if patch is None:
+            return None
+
+        canvas = np.zeros(im_shape[:2], dtype=np.uint8)
+
+        x1 = max(bbox[0], 0)
+        y1 = max(bbox[1], 0)
+        x2 = min(bbox[0] + patch.shape[1], im_shape[1])
+        y2 = min(bbox[1] + patch.shape[0], im_shape[0])
+
+        if x2 <= x1 or y2 <= y1:
+            return None
+
+        canvas[y1:y2, x1:x2] = patch[:y2-y1, :x2-x1]
+        return canvas
 
     def box_overlap(b1, b2):
         x_left = max( b1[0], b2[0] )
@@ -119,11 +164,17 @@ def crop_video(video, image_folder, crop_path, instance_size):
             if box_overlap(bbox, [ 0, 0, im.shape[0], im.shape[1] ]) < 0.50:
                 continue
             avg_chans = np.mean(im, axis=(0, 1))
-            z, x = crop_like_SiamFC(im, bbox, instance_size=instance_size, padding=avg_chans)
+            mask = get_mask(line, im.shape, bbox)
+            z, x, x_mask = crop_like_SiamFC(im, bbox, instance_size=instance_size, padding=avg_chans, mask=mask)
             z_path = join(video_crop_base_path, f'{im_num:08}.{idx:08}.z.jpg')
             x_path = join(video_crop_base_path, f'{im_num:08}.{idx:08}.x.jpg')
             cv2.imwrite(x_path, x)
             cv2.imwrite(z_path, z)
+            if x_mask is not None:
+                # Named off the search crop so the dataset can find it without
+                # dataset.json having to carry it
+                cv2.imwrite(join(video_crop_base_path,
+                                 f'{im_num:08}.{idx:08}.x.mask.png'), x_mask)
 
 
 def par_crop(instance_size=511, num_threads=24, image_folder='data_folder', save_folder='siamrpn++_model'):

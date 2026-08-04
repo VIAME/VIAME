@@ -5,7 +5,6 @@
 #              queries. Textual query support uses architectures derived from
 #              Meta's SAM3 project.
 #
-# Requirements: { Text Query, track_refiner:refiner:sam3:text_query, string }
 # Input: TEXT
 # Output: MASK
 # =============================================================================
@@ -50,7 +49,7 @@ process track_refiner
   block refiner:sam3
     :grounding_model_id                        none
     :device                                    cuda
-    :text_query                                object
+    :text_query                                object  # DIVE_PARAM["Text Query", string, required]
     :min_mask_area                             10  # DIVE_PARAM["Min mask area", positive_int]
     :resegment_existing                        true
     :add_new_objects                           true

@@ -54,7 +54,7 @@ endif()
 
 # Protobuf for siammask (if enabled)
 if( VIAME_ENABLE_PYTORCH-SIAMMASK )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "protobuf" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "protobuf" "yacs" "colorama" "tensorboardX" "einops" )
 endif()
 
 # For fusion classifier
@@ -91,15 +91,23 @@ if( VIAME_ENABLE_POSTGRESQL )
 endif()
 
 # For COLMAP structure-from-motion / 3D reconstruction (reconstruct_3d.py).
-# pycolmap provides SfM + (CUDA) MVS; open3d is used for point-cloud output.
-# On CUDA builds we swap the CPU-only pycolmap wheel for pycolmap-cuda12, which
-# ships GPU-accelerated feature extraction / matching / MVS. That wheel is
-# installed individually (see the advanced deps below) with --no-deps so it uses
-# the system CUDA 12.x runtime VIAME already builds against, rather than pulling
-# its own packaged cuda-toolkit[cudart,curand] wheels.
+# pycolmap provides SfM + (CUDA) MVS. On CUDA builds we swap the CPU-only
+# pycolmap wheel for pycolmap-cuda12, which ships GPU-accelerated feature
+# extraction / matching / MVS. That wheel is installed individually (see the
+# advanced deps below) with --no-deps so it uses the system CUDA 12.x runtime
+# VIAME already builds against, rather than pulling its own packaged
+# cuda-toolkit[cudart,curand] wheels.
+#
+# open3d is deliberately NOT shipped: it is only used for the final
+# point-cloud / Poisson-mesh output of reconstruct_3d.py, and its Linux wheel
+# is ~427 MB compressed (1.1 GB installed, bundling both CPU and CUDA builds
+# of the library). The tool prints a clear pip-install hint when it is
+# missing; "pip install open3d-cpu" (Linux) or "open3d" (other platforms)
+# enables mesh output on demand.
 if( VIAME_ENABLE_COLMAP )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "open3d" )
-  if( NOT VIAME_ENABLE_CUDA )
+  # pycolmap-cuda12 (below) publishes Linux-only wheels, so every other
+  # platform gets the CPU wheel even on CUDA builds.
+  if( NOT ( VIAME_ENABLE_CUDA AND UNIX ) )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "pycolmap" )
   endif()
 endif()
@@ -129,7 +137,7 @@ if( VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-NETHARN )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "scriptconfig" "parse" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "scriptconfig" "kwconf" "parse" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "kwarray" "kwimage" "kwplot" )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "astunparse" "pygtrie" "pyflakes" )
 endif()
@@ -186,6 +194,10 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pycocotools" )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-RF-DETR )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorboard>=2.13.0" )
 endif()
 
 # For Vertex AI custom container support
@@ -250,8 +262,21 @@ if( VIAME_ENABLE_PYTORCH-LEARN OR
 endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
+  # albumentations builds RF-DETR's resize to the configured training resolution, not just its
+  # augmentations; without it the transform pipeline silently yields zero transforms and the model
+  # trains on natively-sized chips that inference never reproduces.
+  #
+  # This list is pip-installed with --no-deps (see add_project_pytorch.cmake), so transitive
+  # dependencies must be named here. albumentations pins albucore exactly, and albucore in turn
+  # needs simsimd/stringzilla; pip cannot enforce that pin under --no-deps, so both versions are
+  # pinned together and must be bumped together. opencv-python-headless is deliberately omitted:
+  # cv2 comes from the fletch OpenCV build, which registers itself under that distribution name
+  # (see custom_install_fletch.cmake).
   list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "supervision" "defusedxml>=0.7.1" "pyDeprecate>=0.9,<0.10"
-    "faster-coco-eval>=1.6.0" )
+    "faster-coco-eval>=1.7.2" "albumentations==2.0.8" "albucore==0.0.24" "simsimd>=5.9.2"
+    "stringzilla>=3.10.4" "pytorch_lightning>=2.6,<3,!=2.6.2,!=2.6.3"
+    "lightning-utilities>=0.10.0" "torchmetrics>=1.2" "pycocotools" "scipy" "fsspec" "pyyaml"
+    "packaging" "typing-extensions" "tqdm" )
 endif()
 
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------
@@ -265,7 +290,7 @@ set( VIAME_PYTHON_ADV_DEP_CMDS "custom-install" )
 # (libcudart.so.12 / libcurand.so.10) that VIAME already builds against, instead
 # of pulling packaged cuda-toolkit[cudart,curand] wheels. numpy is provided by
 # the basic deps above (this project depends on python-deps).
-if( VIAME_ENABLE_COLMAP AND VIAME_ENABLE_CUDA )
+if( VIAME_ENABLE_COLMAP AND VIAME_ENABLE_CUDA AND UNIX )
   list( APPEND VIAME_PYTHON_ADV_DEPS pycolmap-cuda12 )
   list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "pycolmap-cuda12 --no-deps" )
 endif()
@@ -409,6 +434,15 @@ foreach( ID RANGE ${DEP_COUNT} )
       -DVIAME_PATCH_DIR:PATH=${VIAME_SOURCE_DIR}/packages/patches
       -DVIAME_PYTORCH_VERSION:STRING=${VIAME_PYTORCH_VERSION}
       -P ${VIAME_SOURCE_DIR}/cmake/custom_install_pytorch.cmake )
+  elseif( "${DEP}" STREQUAL "python-deps" AND WIN32 )
+    # Apply the transformers distributed-guard patch after the basic deps
+    # (which include transformers) are pip-installed. Only needed on Windows,
+    # whose torch build lacks distributed support (no torch._C._distributed_c10d);
+    # Linux torch ships distributed, so the guards are unnecessary there. The
+    # script no-ops when transformers is absent or already patched.
+    set( PYTHON_DEP_INSTALL ${CMAKE_COMMAND}
+      -DVIAME_PYTHON_BASE:PATH=${VIAME_PYTHON_INSTALL}
+      -P ${VIAME_SOURCE_DIR}/cmake/custom_install_transformers.cmake )
   else()
     set( PYTHON_DEP_INSTALL "" )
   endif()

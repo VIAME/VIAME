@@ -47,6 +47,8 @@ namespace ocv = kwiver::arrows::ocv;
   const std::string div = "/";
 #endif
 
+const unsigned MAX_AUTO_CHIP_THREADS = 32;
+
 
 
 
@@ -349,9 +351,11 @@ ocv_windowed_trainer
   std::vector< std::vector< std::string > > frame_names( n );
   std::vector< std::vector< kv::detected_object_set_sptr > > frame_truth( n );
 
+  // Auto stops at MAX_AUTO_CHIP_THREADS: past that the writes contend and a
+  // core-count-wide fan-out on a many-core box costs more than it gains.
   unsigned num_threads = ( c_chip_threads > 0 )
     ? static_cast< unsigned >( c_chip_threads )
-    : std::thread::hardware_concurrency();
+    : std::min( std::thread::hardware_concurrency(), MAX_AUTO_CHIP_THREADS );
 
   if( num_threads == 0 )
   {

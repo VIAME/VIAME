@@ -1,11 +1,21 @@
 # =============================================================================
 # Title: Tracker - Sea Lion Fusion Two Class 2-cam
 #
-# Description: Runs object tracking on detected objects across video frames.
-# Configured for sea lion survey imagery.
+# Description: Runs object tracking on detected objects across video frames,
+# linking detections of the same sea lion from frame to frame so repeat
+# sightings are tied to one individual. Configured for sea lion survey
+# imagery. Output categories: non-pup (NP), pup (P).
+# Input: IMAGE
+# Output: TRACK
+#
+# Metadata File: stabilizer:flight_log
+#   DIVE binds an optional per-dataset metadata file (e.g. an FMCLOG
+#   flight-log CSV) to the registration stabilizer's flight_log input.
+# Image List Keys: stabilizer:image_list{cam}
+#   DIVE binds each camera's input image list (one line-separated file per
+#   camera) to the stabilizer's per-camera image_list<i> input
+#   (image_list1, image_list2, ...). Camera 1's list also locates the survey folder.
 # =============================================================================
-
-# Requirements: { Detection Scale (default 1.0), global:scale, double }
 
 config _scheduler
   type = pythread_per_process
@@ -14,16 +24,20 @@ config _pipeline:_edge
   capacity = 5
 
 config global
-  :scale                                       1.0
+  :scale                                       1.0  # DIVE_PARAM["Detection Scale", strictly_positive_float]
 
 include common_two_camera_input_with_downsamplers.pipe
 
-include common_sea_lion_stabilizer_2cam.pipe
+include common_sea_lion_registration_2cam.pipe
 
 connect from downsampler1.output_1
         to stabilizer.image1
+connect from downsampler1.output_2
+        to stabilizer.file_name1
 connect from downsampler2.output_1
         to stabilizer.image2
+connect from downsampler2.output_2
+        to stabilizer.file_name2
 
 include common_sea_lion_fusion_two_class_cam1.pipe
 
@@ -43,9 +57,9 @@ connect from stabilizer.homog1
 connect from stabilizer.homog2
         to tracker.homog2
 
-connect from detector_output_cam1.detected_object_set
+connect from detector_fuser_cam1.detected_object_set
         to tracker.det_objs_1
-connect from detector_output_cam2.detected_object_set
+connect from detector_fuser_cam2.detected_object_set
         to tracker.det_objs_2
 
 connect from downsampler1.timestamp

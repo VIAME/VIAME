@@ -1,11 +1,18 @@
 # =============================================================================
 # Title: Suppressor - Sea Lion Fusion Two Class 3-cam
 #
-# Description: Suppresses false positive detections using learned filters.
-# Configured for sea lion survey imagery.
+# Description: Marks regions already observed in previous overlapping frames
+# with boxes so the same sea lions are not counted more than once. Configured
+# for sea lion survey imagery. Output categories: non-pup (NP), pup (P).
+#
+# Metadata File: stabilizer:flight_log
+#   DIVE binds an optional per-dataset metadata file (e.g. an FMCLOG
+#   flight-log CSV) to the registration stabilizer's flight_log input.
+# Image List Keys: stabilizer:image_list{cam}
+#   DIVE binds each camera's input image list (one line-separated file per
+#   camera) to the stabilizer's per-camera image_list<i> input
+#   (image_list1, image_list2, ...). Camera 1's list also locates the survey folder.
 # =============================================================================
-
-# Requirements: { Detection Scale (default 1.0), global:scale, double }
 
 config _scheduler
   type = pythread_per_process
@@ -14,18 +21,24 @@ config _pipeline:_edge
   capacity = 5
 
 config global
-  :scale                                       1.0
+  :scale                                       1.0  # DIVE_PARAM["Detection Scale", strictly_positive_float]
 
 include common_three_camera_input_with_downsamplers.pipe
 
-include common_sea_lion_stabilizer_3cam.pipe
+include common_sea_lion_registration_3cam.pipe
 
 connect from downsampler1.output_1
         to stabilizer.image1
+connect from downsampler1.output_2
+        to stabilizer.file_name1
 connect from downsampler2.output_1
         to stabilizer.image2
+connect from downsampler2.output_2
+        to stabilizer.file_name2
 connect from downsampler3.output_1
         to stabilizer.image3
+connect from downsampler3.output_2
+        to stabilizer.file_name3
 
 include common_sea_lion_fusion_two_class_cam1.pipe
 
@@ -45,6 +58,13 @@ connect from downsampler3.output_1
 process suppressor :: multicam_homog_det_suppressor
   n_input = 3
   suppression_poly_class = Suppressed
+  remove_suppressed = false
+  past_frames = all  # DIVE_PARAM["Past frames used (all or prev_neighbors)", string]
+  full_homogs_file = registration_full_homogs.npz
+  max_overlap_suppr_regions = 5  # DIVE_PARAM["Merge overlapping suppression regions when more than", integer]
+  min_suppr_region_area_frac = 0.001  # DIVE_PARAM["Drop suppression regions smaller than this fraction of the frame", double]
+  min_suppr_region_fill_ratio = 0.15  # DIVE_PARAM["Drop suppression regions filling less than this fraction of their box (warped slivers)", double]
+  boundary_threshold = 1.0
 
 connect from stabilizer.homog1
         to suppressor.homog1
@@ -53,19 +73,25 @@ connect from stabilizer.homog2
 connect from stabilizer.homog3
         to suppressor.homog3
 
-connect from detector_output_cam1.detected_object_set
+connect from detector_fuser_cam1.detected_object_set
         to suppressor.det_objs_1
-connect from detector_output_cam2.detected_object_set
+connect from detector_fuser_cam2.detected_object_set
         to suppressor.det_objs_2
-connect from detector_output_cam3.detected_object_set
+connect from detector_fuser_cam3.detected_object_set
         to suppressor.det_objs_3
 
 connect from downsampler1.output_1
         to suppressor.image1
+connect from downsampler1.output_2
+        to suppressor.file_name1
 connect from downsampler2.output_1
         to suppressor.image2
+connect from downsampler2.output_2
+        to suppressor.file_name2
 connect from downsampler3.output_1
         to suppressor.image3
+connect from downsampler3.output_2
+        to suppressor.file_name3
 
 process detector_writer1 :: detected_object_output
   file_name = detections1.csv

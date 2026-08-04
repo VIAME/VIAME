@@ -22,33 +22,7 @@ include common_stereo_input_with_downsampler.pipe
 
 # ================================= DETECTOR ==================================
 
-process detector_input1
-  :: image_filter
-  :filter:type                                 vxl_convert_image
-
-  block filter:vxl_convert_image
-    :format                                    byte
-    :force_three_channel                       true
-  endblock
-
-process detector1
-  :: image_object_detector
-  :detector:type                               ocv_windowed
-
-  block detector:ocv_windowed
-    :detector:type                             netharn
-
-    :mode                                      original_and_resized
-    :chip_width                                1920
-    :chip_height                               1920
-    :chip_width_step                           960
-    :chip_height_step                          960
-    :chip_adaptive_thresh                      16000000
-
-    block detector:netharn
-      relativepath deployed =                  models/fish_no_motion_detector.zip
-    endblock
-  endblock
+include common_stereo_fish_detector.pipe
 
 process nms_refiner1
   :: refine_detections
@@ -63,40 +37,10 @@ process nms_refiner1
 connect from downsampler.output_1
         to   detector_input1.image
 connect from detector_input1.image
-        to   detector1.image
-connect from detector_input1.image
         to   nms_refiner1.image
 
-connect from detector1.detected_object_set
+connect from detector_output1.detected_object_set
         to   nms_refiner1.detected_object_set
-
-process detector_input2
-  :: image_filter
-  :filter:type                                 vxl_convert_image
-
-  block filter:vxl_convert_image
-    :format                                    byte
-    :force_three_channel                       true
-  endblock
-
-process detector2
-  :: image_object_detector
-  :detector:type                               ocv_windowed
-
-  block detector:ocv_windowed
-    :detector:type                             netharn
-
-    :mode                                      original_and_resized
-    :chip_width                                1920
-    :chip_height                               1920
-    :chip_width_step                           960
-    :chip_height_step                          960
-    :chip_adaptive_thresh                      16000000
-
-    block detector:netharn
-      relativepath deployed =                  models/fish_no_motion_detector.zip
-    endblock
-  endblock
 
 process nms_refiner2
   :: refine_detections
@@ -111,11 +55,9 @@ process nms_refiner2
 connect from downsampler.output_3
         to   detector_input2.image
 connect from detector_input2.image
-        to   detector2.image
-connect from detector_input2.image
         to   nms_refiner2.image
 
-connect from detector2.detected_object_set
+connect from detector_output2.detected_object_set
         to   nms_refiner2.detected_object_set
 
 # =============================== KP ASSIGNMENT ===============================

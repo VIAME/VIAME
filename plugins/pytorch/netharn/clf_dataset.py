@@ -32,12 +32,14 @@ class ClfDataset(torch_data.Dataset):
         >>> kwplot.autompl()
         >>> kwplot.imshow(batch['inputs']['rgb'][0])
     """
-    def __init__(self, sampler, input_dims=(256, 256), min_dim=64, augment=None, gravity=0):
+    def __init__(self, sampler, input_dims=(256, 256), min_dim=64, augment=None, gravity=0,
+                 scale_jitter=0.2):
         self.sampler = sampler
         self.augment = augment
         self.conditional_augmentors = None
         self.input_dims = input_dims
         self.min_dim = min_dim
+        self.scale_jitter = float(scale_jitter)
         self.classes = self.sampler.catgraph
 
         self.disable_augmenter = not bool(augment)
@@ -77,10 +79,11 @@ class ClfDataset(torch_data.Dataset):
         dim = max(tr['width'], tr['height'])
         dim = max(dim, self.min_dim)
 
-        if not self.disable_augmenter:
+        if not self.disable_augmenter and self.scale_jitter > 0:
             if rng.rand() > 0.5:
-                # sometimes add a random pad
-                dim += int((rng.rand() * 0.2) * dim)
+                # sometimes zoom out by up to scale_jitter (grows the sampled
+                # window, shrinking the object); 0 disables this entirely
+                dim += int((rng.rand() * self.scale_jitter) * dim)
 
         tr['width'] = tr['height'] = dim
         tr['legacy_target'] = False

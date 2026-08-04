@@ -150,6 +150,7 @@ set( CORE_PIPELINE_FILES
   convert_viame_csv_to_kw18.pipe
   database_apply_svm_models.pipe
   detector_gmm_motion.pipe
+  detector_motion_three_frame_diff.pipe
   detector_project_folder.pipe
   detector_three_frame_diff.pipe
   detector_project_folder_left.pipe
@@ -279,16 +280,6 @@ if( VIAME_ENABLE_VIVIA )
       embedded_single_stream/train_deep_detector_cfrnn.pipe )
   endif()
 
-  if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SIAMMASK )
-    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      embedded_single_stream/track_user_selections_fast.pipe )
-
-    if( VIAME_ENABLE_PYTORCH-MDNET )
-      set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-        embedded_single_stream/track_user_selections_fusion.pipe )
-    endif()
-  endif()
-
   install( FILES       ${GUI_PIPELINE_FILES}
            DESTINATION configs/pipelines/embedded_single_stream )
 endif()
@@ -324,9 +315,13 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_rf_detr_n_384.conf
     train_detector_rf_detr_b_560.conf
-    train_detector_rf_detr_l_728.conf
-    train_detector_rf_detr_l_1024_mot_mim.conf
-    train_detector_rf_detr_l_1024_mot_opt.conf )
+    train_detector_rf_detr_l_720.conf
+    train_detector_rf_detr_l_seg_720.conf
+    train_detector_rf_detr_l_1728_mot_mim.conf
+    train_detector_rf_detr_l_1728_mot_mim_r2.conf
+    train_detector_rf_detr_l_seg_1728_mot_opt.conf
+    train_detector_rf_detr_l_seg_1728_mot_opt_r2.conf
+    train_detector_rf_detr_l_seg_1728_rgb.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-LITDET )
@@ -373,15 +368,6 @@ if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
     train_detector_mit_yolo_v9_c_640.conf )
 endif()
 
-if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SIAMMASK )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    common_short_term_tracker.pipe
-    train_tracker_siammask.conf
-    utility_track_selections_default_mask.pipe
-    utility_track_selections_fish_box_only.pipe
-  )
-endif()
-
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_tracker_botsort.conf
@@ -422,11 +408,6 @@ if( VIAME_ENABLE_SEAL OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
       embedded_dual_stream/train_yolo_eo.pipe
       embedded_dual_stream/train_yolo_ir.pipe )
-  endif()
-
-  if( VIAME_ENABLE_PYTORCH-SIAMMASK )
-    set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
-      embedded_dual_stream/track_user_selections_fast.pipe )
   endif()
 
   install( FILES       ${DUAL_EMBEDDED_FILES}

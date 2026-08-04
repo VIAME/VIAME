@@ -60,6 +60,35 @@ SET "INSTALL_DIR_VDIST=%INSTALL_DIR_VDIST%\%MSVS_REDIST_VER%"
 SET "INSTALL_DIR_VDIST=%INSTALL_DIR_VDIST%\%MSVS_ARCH%\Microsoft.VC%VDIST_VER_STR%.OpenMP"
 
 REM --------------------------------------------------------------------------
+REM Locate a host Python (>= 3.8) to bootstrap the CPython (fletch) build.
+REM CPython's PCbuild\find_python.bat otherwise downloads a private copy via
+REM nuget (https://aka.ms/nugetclidl). That redirect intermittently returns an
+REM HTML page instead of nuget.exe; the bogus "nuget.exe" then fails to run
+REM with "The system cannot execute the specified program", and the build
+REM aborts with "Cannot locate python.exe on PATH or as PYTHON variable".
+REM Setting HOST_PYTHON makes find_python.bat use it and skip nuget entirely.
+REM --------------------------------------------------------------------------
+IF NOT DEFINED HOST_PYTHON (
+    FOR %%P IN (
+        "C:\Python314\python.exe"
+        "C:\Python313\python.exe"
+        "C:\Python312\python.exe"
+        "C:\Python311\python.exe"
+        "C:\Python310\python.exe"
+        "%LOCALAPPDATA%\Programs\Python\Python314\python.exe"
+        "%LOCALAPPDATA%\Programs\Python\Python313\python.exe"
+        "%LOCALAPPDATA%\Programs\Python\Python312\python.exe"
+    ) DO (
+        IF NOT DEFINED HOST_PYTHON IF EXIST %%P SET "HOST_PYTHON=%%~P"
+    )
+)
+IF DEFINED HOST_PYTHON (
+    ECHO [%DATE% %TIME%] Using HOST_PYTHON=!HOST_PYTHON! to bootstrap CPython
+) ELSE (
+    ECHO [%DATE% %TIME%] WARNING: no host Python found; CPython may fall back to nuget
+)
+
+REM --------------------------------------------------------------------------
 REM Check Build Dependencies
 REM --------------------------------------------------------------------------
 

@@ -107,13 +107,14 @@ def _fit_similarity_2d(src, dst):
 def run(args):
     """Entry point called by detect_prior_coverage.main for --method sfm-rig.
 
-    The tool modules (detect_prior_coverage, survey_metadata) live in the
-    tools/configs directory, which the calling tool puts on sys.path; they
-    are imported lazily so this plugin module can be imported standalone.
+    The coverage grid and output writers still live in the detect_prior_coverage
+    tool (on sys.path via the calling tool); the registration core and metadata
+    reader now live in the viame.opencv plugin. All are imported lazily so this
+    module stays importable standalone.
     """
     import pycolmap
     import detect_prior_coverage as dpc
-    import survey_metadata as smd
+    from viame.core import survey_metadata as smd
 
     grid = dpc.CoverageGrid(cell_m=args.grid_cell)
     origin_ref = {'lat': None, 'lon': None, 'to_enu': None}
@@ -488,7 +489,7 @@ def run(args):
             site_folder, {}, obs_registry)
 
         dpc.write_viame_csv(os.path.join(out_dir, 'prior_coverage.csv'),
-                            rows, args.coverage_class)
+                            rows, args.coverage_class, obs_registry)
         dpc.write_revisits_csv(os.path.join(out_dir, 'revisits.csv'),
                                revisit_events)
         dpc.render_coverage_map(os.path.join(out_dir, 'coverage_map.png'),
@@ -496,7 +497,11 @@ def run(args):
         if not args.no_thumbnails:
             dpc.render_thumbnail_grid(
                 os.path.join(out_dir, 'prior_coverage_vis.png'),
-                site_folder, observations, rows, {})
+                site_folder, observations, rows, {},
+                obs_registry=obs_registry,
+                max_rows=getattr(args, 'vis_rows', 40),
+                thumb_w=getattr(args, 'vis_thumb_width', 420),
+                frames=dpc.parse_frame_range(getattr(args, 'vis_frames', None)))
         by_cam = {}
         for o in observations:
             by_cam.setdefault(o.cam, []).append(frac.get(o.rel, 0.0))

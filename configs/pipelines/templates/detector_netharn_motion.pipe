@@ -78,7 +78,7 @@ process motion_filter1
 
   block filter:vxl_average
     :type                                      window
-    :window_size                               8
+    :window_size                               20
     :round                                     false
     :output_variance                           true
   endblock
@@ -104,7 +104,7 @@ process motion_filter2
 
   block filter:vxl_average
     :type                                      window
-    :window_size                               16
+    :window_size                               20
     :round                                     false
     :output_variance                           true
   endblock
@@ -200,3 +200,5 @@ connect from detector_output.detected_object_set
         to   detector_writer.detected_object_set
 connect from downsampler.output_2
         to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp

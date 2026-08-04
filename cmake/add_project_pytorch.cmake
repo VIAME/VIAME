@@ -106,6 +106,14 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND PYTORCH_ENV_VARS "BEZIER_NO_EXTENSION=1" )
 endif()
 
+# Honor the configured thread cap for PyTorch's own (nested) build. Without
+# this PyTorch ignores the outer make -j and spawns one job per core, which
+# for its larger CUDA and oneDNN translation units can exhaust RAM (Linux
+# OOM-killer takes out cicc/cc1plus) or MSVC heap space (C1060) on Windows.
+if( VIAME_BUILD_MAX_THREADS )
+  list( APPEND PYTORCH_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
+endif()
+
 if( VIAME_ENABLE_CUDA )
   list( APPEND PYTORCH_ENV_VARS "USE_CUDA=1" )
   list( APPEND PYTORCH_ENV_VARS "FORCE_CUDA=1" )
@@ -119,6 +127,16 @@ if( VIAME_ENABLE_CUDA )
   list( APPEND PYTORCH_ENV_VARS "CMAKE_CUDA_FLAGS=--allow-unsupported-compiler" )
   list( APPEND PYTORCH_ENV_VARS "MMCV_CUDA_ARGS=-allow-unsupported-compiler" )
   list( APPEND PYTORCH_ENV_VARS "NO_CAFFE2_OPS=1" )
+
+  # Disable the MSLK (formerly FBGEMM-GenAI) blockscaled FP4/FP8 CUTLASS GEMM
+  # kernels. PyTorch turns these on by default whenever TORCH_CUDA_ARCH_LIST
+  # contains 10.0 and nvcc is >= 12.8, and each f4f4bf16 / mx8mx8bf16 SM100a
+  # translation unit costs cicc well over 10 GB of RAM. At make -j$(nproc) on a
+  # normal build server that reliably OOM-kills nvcc mid-build:
+  #   nvcc error : '"$CICC_PATH/cicc"' died due to signal 9 (Kill signal)
+  # Nothing in VIAME uses MXFP4 blockscaled GEMM, so build them out rather than
+  # throttling the entire PyTorch build to work around a handful of kernels.
+  list( APPEND PYTORCH_ENV_VARS "USE_MSLK=0" )
 else()
   list( APPEND PYTORCH_ENV_VARS "USE_CUDA=0" )
 endif()
@@ -142,13 +160,6 @@ if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
   list( APPEND PYTORCH_ENV_VARS "USE_NCCL=0" )
   list( APPEND PYTORCH_ENV_VARS "CC=${CMAKE_C_COMPILER}" )
   list( APPEND PYTORCH_ENV_VARS "CXX=${CMAKE_CXX_COMPILER}" )
-
-  # Limit parallel compile jobs to prevent MSVC from running out of heap space
-  # (C1060) when building oneDNN/mkl-dnn. Each compiler instance can use several
-  # GB for these large translation units.
-  if( VIAME_BUILD_MAX_THREADS )
-    list( APPEND PYTORCH_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
-  endif()
 
   # Force Ninja generator for PyTorch's internal CMake build.
   # The Visual Studio generator produces DLLs whose DllMain initialization fails

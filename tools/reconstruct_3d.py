@@ -52,7 +52,7 @@ REQUIRED_PACKAGES = {
 }
 OPTIONAL_PACKAGES = {
     'pycolmap': 'pycolmap',
-    'open3d': 'open3d',
+    'open3d': 'open3d-cpu (Linux) or open3d (Windows/Mac)',
 }
 
 
@@ -75,7 +75,9 @@ def require_colmap():
         print("ERROR: COLMAP 3D-reconstruction mode requires:")
         for import_name, pip_name in missing:
             print(f"  {pip_name} (import {import_name})")
-        print("\nInstall them (or build VIAME with -DVIAME_ENABLE_COLMAP=ON). "
+        print("\nInstall them with pip (pycolmap also ships with "
+              "-DVIAME_ENABLE_COLMAP=ON builds; open3d is never bundled "
+              "due to its size). "
               "For 2D planar coverage/registration use detect_prior_coverage.py, "
               "which does not need COLMAP.")
         sys.exit(1)

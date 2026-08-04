@@ -1,0 +1,80 @@
+# =============================================================================
+# Title: Sea Lion Detection Pipeline
+#
+# Description: Two-class sea lion detection on survey imagery using the RF-DETR
+# segmentation detector at 1008px chips. Produces a segmentation polygon
+# (mask) per detection. Output categories: non-pup (NP), pup (P).
+# Input: IMAGE
+# Output: MASK
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config global
+  :scale                                       1.0  # DIVE_PARAM["Detection Scale", strictly_positive_float]
+
+# ============================= INPUT FRAME LIST ==============================
+
+include common_default_input_with_downsampler.pipe
+
+# ================================= DETECTOR ==================================
+
+process detector
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :detector:type                             rf_detr
+
+    :mode                                      chip
+    :scale                                     $CONFIG{global:scale}
+    :chip_width                                1008
+    :chip_height                               1008
+    :chip_step_width                           665
+    :chip_step_height                          665
+    :chip_edge_filter                          5
+    :black_pad                                 false
+    :original_to_chip_size                     true
+    :chip_adaptive_thresh                      2800000
+
+    block detector:rf_detr
+      relativepath weight =                    models/sea_lion_2cls_rf_detr_1008.pth
+      :threshold                               0.10
+      :device                                  auto
+    endblock
+  endblock
+
+connect from downsampler.output_1
+        to   detector.image
+
+process nms_refiner
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.80
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from detector.detected_object_set
+        to   nms_refiner.detected_object_set
+
+# ================================== WRITER ===================================
+
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   sea_lion_detections.csv
+  :writer:type                                 viame_csv
+
+connect from nms_refiner.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp
+
+# -- end of file --

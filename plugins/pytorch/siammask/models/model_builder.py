@@ -142,7 +142,8 @@ class ModelBuilder(nn.Module):
                 label_mask_weight = data['label_mask_weight'].cuda()
                 mask_loss = select_mask_logistic_loss(
                     mask, label_mask, label_mask_weight,
-                    mask_output_size=cfg.TRACK.MASK_OUTPUT_SIZE
+                    mask_output_size=cfg.TRACK.MASK_OUTPUT_SIZE,
+                    stride=cfg.ANCHOR.STRIDE
                 )
                 outputs['total_loss'] += cfg.TRAIN.MASK_WEIGHT * mask_loss
                 outputs['mask_loss'] = mask_loss

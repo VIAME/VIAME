@@ -37,6 +37,8 @@ export VIDTK_MODULE_PATH=$this_dir/lib/modules
 @SETUP_PYTHON_LIBRARY_PATH@
 export PYTHONPATH=$this_dir/python:$this_dir/lib/@VIAME_PYTHON_STRING@
 export PYTHONPATH=$this_dir/lib/@VIAME_PYTHON_STRING@/site-packages:$PYTHONPATH
+export PYTHONPATH=$this_dir/lib/@VIAME_PYTHON_STRING@/dist-packages:$PYTHONPATH
+export PYTHONNOUSERSITE=1
 
 # Excessive KWIVER python arrow and process import locations
 export SPROKIT_PYTHON_MODULES=kwiver.sprokit.processes:kwiver.sprokit.schedulers
@@ -46,8 +48,10 @@ export SPROKIT_PYTHON_MODULES=kwiver.arrows.python:$SPROKIT_PYTHON_MODULES
 export SPROKIT_PYTHON_MODULES=kwiver.sprokit.processes.pytorch:$SPROKIT_PYTHON_MODULES
 export SPROKIT_PYTHON_MODULES=viame.core:$SPROKIT_PYTHON_MODULES
 export SPROKIT_PYTHON_MODULES=viame.pytorch:$SPROKIT_PYTHON_MODULES
+export SPROKIT_PYTHON_MODULES=viame.onnx:$SPROKIT_PYTHON_MODULES
 export SPROKIT_PYTHON_MODULES=viame.tensorflow:$SPROKIT_PYTHON_MODULES
 export SPROKIT_PYTHON_MODULES=viame.opencv:$SPROKIT_PYTHON_MODULES
+export SPROKIT_PYTHON_MODULES=viame.colmap:$SPROKIT_PYTHON_MODULES
 
 # Set default log level
 export KWIVER_DEFAULT_LOG_LEVEL=info

@@ -41,6 +41,8 @@ namespace kv = kwiver::vital;
   const std::string div = "/";
 #endif
 
+const unsigned MAX_AUTO_CHIP_THREADS = 32;
+
 
 
 
@@ -117,6 +119,26 @@ windowed_trainer
   kv::algo::image_io_sptr io;
   kv::set_nested_algo_configuration<kv::algo::image_io>( "image_reader", config, io );
   m_image_io = io;
+
+  // Nested trainers keep their own train_directory, defaulting to
+  // "deep_training" independently of ours. Left alone they silently write
+  // their datasets and checkpoints under that default while we chip into the
+  // configured directory, so a run would scatter across two folders and
+  // clobber whatever lives in "deep_training". Hand our value down unless the
+  // config names one explicitly.
+  const std::string trainer_type =
+    config->get_value< std::string >( "trainer:type", "" );
+
+  if( !trainer_type.empty() )
+  {
+    const std::string trainer_dir_key =
+      "trainer:" + trainer_type + ":train_directory";
+
+    if( !config->has_value( trainer_dir_key ) )
+    {
+      config->set_value( trainer_dir_key, c_train_directory );
+    }
+  }
 
   kv::algo::train_detector_sptr trainer;
   kv::set_nested_algo_configuration<kv::algo::train_detector>( "trainer", config, trainer );
@@ -362,9 +384,11 @@ windowed_trainer
   std::vector< std::vector< std::string > > frame_names( n );
   std::vector< std::vector< kv::detected_object_set_sptr > > frame_truth( n );
 
+  // Auto stops at MAX_AUTO_CHIP_THREADS: past that the writes contend and a
+  // core-count-wide fan-out on a many-core box costs more than it gains.
   unsigned num_threads = ( c_chip_threads > 0 )
     ? static_cast< unsigned >( c_chip_threads )
-    : std::thread::hardware_concurrency();
+    : std::min( std::thread::hardware_concurrency(), MAX_AUTO_CHIP_THREADS );
 
   if( num_threads == 0 )
   {

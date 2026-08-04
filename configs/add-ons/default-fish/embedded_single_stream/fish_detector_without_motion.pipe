@@ -1,8 +1,9 @@
 # =============================================================================
-# Title: Fish Detector Without Motion
+# Title: Fish Detector
 #
 # Description: Runs object detection pipeline on input imagery. Uses ../fish
-# detector with filter configuration.
+# detector with filter configuration. Note that the underlying detector is now
+# motion-infused, so frames must arrive in temporal order.
 # =============================================================================
 
 config _pipeline:_edge

@@ -64,6 +64,7 @@ class ClfConfig(scfg.Config):
 
         'augmenter': scfg.Value('simple', help='type of training dataset augmentation'),  # TODO: rename to augment
         'gravity': scfg.Value(0.0, help='how often to assume gravity vector for augmentation'),
+        'scale_jitter': scfg.Value(0.2, help='max fractional random zoom-out pad applied to the sampled window during augmentation; 0 disables'),
 
         'batch_size': scfg.Value(3, help='number of items per batch'),
         'num_batches': scfg.Value('auto', help='Number of batches per epoch (mainly for balanced batch sampling)'),
@@ -603,6 +604,7 @@ def setup_harn(cmdline=True, **kw):
             min_dim=config['min_dim'],
             augment=config['augmenter'],
             gravity=config['gravity'],
+            scale_jitter=config['scale_jitter'],
         ),
         'vali': clf_dataset.ClfDataset(
             samplers['vali'],

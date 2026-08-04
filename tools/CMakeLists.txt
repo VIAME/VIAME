@@ -6,6 +6,7 @@
 # Python standalone tools
 ##
 set( PYTHON_SCRIPTS
+  add_segmentations.py
   convert_cam_format.py
   database_tool.py
   extract_video_frames.py
@@ -16,6 +17,7 @@ set( PYTHON_SCRIPTS
   plot_eval_results.py
   process_video.py
   score_results.py
+  survey_metadata.py
   train_detection_fusion.py
   viame_csv_tool.py
 )
@@ -31,7 +33,6 @@ if( VIAME_ENABLE_OPENCV )
     ply_utilities.py
     reconstruct_3d.py
     stereo_rectify.py
-    survey_metadata.py
   )
 endif()
 
@@ -93,6 +94,7 @@ kwiver_add_plugin( viame_tools_applets
                kwiver::sprokit_pipeline
                kwiver::kwiver_adapter
                viame_core
+               viame_claude
 )
 
 kwiver_add_executable( viame_get_configs

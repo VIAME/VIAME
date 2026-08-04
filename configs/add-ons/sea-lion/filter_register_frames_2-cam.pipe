@@ -1,0 +1,82 @@
+# =============================================================================
+# Title: Filter - Register Frames 2-cam
+#
+# Description: Registers frames between multiple camera views and writes a
+# copy of each image, optionally with previously-observed regions blacked out.
+#
+# Metadata File: stabilizer:flight_log
+#   DIVE binds an optional per-dataset metadata file (e.g. an FMCLOG
+#   flight-log CSV) to the registration stabilizer's flight_log input.
+# Image List Keys: stabilizer:image_list{cam}
+#   DIVE binds each camera's input image list (one line-separated file per
+#   camera) to the stabilizer's per-camera image_list<i> input
+#   (image_list1, image_list2, ...). Camera 1's list also locates the survey folder.
+# =============================================================================
+
+config _scheduler
+  type = pythread_per_process
+
+config _pipeline:_edge
+  capacity = 5
+
+include common_two_camera_input_with_downsamplers.pipe
+
+include common_sea_lion_registration_2cam.pipe
+
+connect from downsampler1.output_1
+        to stabilizer.image1
+connect from downsampler1.output_2
+        to stabilizer.file_name1
+connect from downsampler2.output_1
+        to stabilizer.image2
+connect from downsampler2.output_2
+        to stabilizer.file_name2
+
+process homog_writer1
+  :: kw_write_homography
+  output = homogs1.txt
+
+connect from stabilizer.homog1
+        to homog_writer1.homography
+
+process homog_writer2
+  :: kw_write_homography
+  output = homogs2.txt
+
+connect from stabilizer.homog2
+        to homog_writer2.homography
+
+process blackout
+  :: multicam_homog_blackout
+  n_input = 2
+  :enabled                                     true  # DIVE_PARAM["Black out previously seen regions", bool]
+  :past_frames                                 prev_neighbors  # DIVE_PARAM["Past frames used (prev_neighbors or all)", string]
+
+connect from downsampler1.output_1
+        to blackout.image1
+connect from downsampler2.output_1
+        to blackout.image2
+connect from stabilizer.homog1
+        to blackout.homog1
+connect from stabilizer.homog2
+        to blackout.homog2
+
+process image_writer
+  :: image_writer
+  :file_name_template                          .png  # DIVE_PARAM["Filename template", string]
+  :image_writer:type                           vxl
+
+connect from blackout.image1
+        to image_writer.image
+connect from downsampler1.output_2
+        to image_writer.image_file_name
+
+process image_writer2
+  :: image_writer
+  :file_name_template                          .png
+  :image_writer:type                           vxl
+
+connect from blackout.image2
+        to image_writer2.image
+connect from downsampler2.output_2
+        to image_writer2.image_file_name

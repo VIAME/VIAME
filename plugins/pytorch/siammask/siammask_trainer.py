@@ -13,14 +13,20 @@ import json
 import random
 import numpy as np
 from glob import glob
-from importlib import reload
 import sys
 import shutil
 
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from tensorboardX import SummaryWriter
+try:
+    from tensorboardX import SummaryWriter
+except ImportError:
+    # tensorboardX is not part of the VIAME python environment, and its absence
+    # used to abort SiamMask training outright at import time. torch ships a
+    # SummaryWriter with the same add_scalar API, so fall back to that rather
+    # than losing the run over an optional logging dependency.
+    from torch.utils.tensorboard import SummaryWriter
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data.distributed import DistributedSampler
 
@@ -31,7 +37,6 @@ from viame.pytorch.siammask.utils.distributed import dist_init, DistModule, redu
 from viame.pytorch.siammask.utils.model_load import load_pretrain, restore_from
 from viame.pytorch.siammask.utils.average_meter import AverageMeter
 from viame.pytorch.siammask.utils.misc import describe, commit
-import viame.pytorch.siammask.datasets.dataset
 from viame.pytorch.siammask.models.model_builder import ModelBuilder
 from viame.pytorch.siammask.core.config import cfg
 
@@ -39,6 +44,10 @@ from viame.pytorch.siammask.par_crop import par_crop
 from viame.pytorch.siammask.gen_json import gen_json
 
 logger = logging.getLogger('global')
+
+# Written by rank 0 once the crops are built, and waited on by the others
+PREP_COMPLETE = '.prep_complete'
+PREP_TIMEOUT = 14400
 parser = argparse.ArgumentParser()
 parser.add_argument('--local_rank', type=int, default=0, help='compulsory for pytorch launcer')
 parser.add_argument('--seed', type=int, default=123456, help='random seed')
@@ -47,9 +56,30 @@ parser.add_argument('-s', '--save-folder', default='siamrpn++_model', help='Fold
 parser.add_argument('-c', '--config-file', required=True, help='Config file for architecture.')
 parser.add_argument('-t', '--threshold', required=True, help='GT confidence threshold.')
 parser.add_argument('--skip-crop', action='store_true', default=False, help='Add flag if you want to skip the data cropping (crop_511) step.')
+parser.add_argument('--pretrained', default='', help='Model to fine tune from. Loaded over the whole network, not just the backbone.')
+parser.add_argument('--backbone-pretrained', dest='backbone_pretrained',
+                    default='',
+                    help='Backbone weights to start from, as distinct from '
+                    '--pretrained which loads a whole tracker. This is how '
+                    'pysot trains one of these from scratch: an ImageNet '
+                    'ResNet50 in the backbone and the heads left random.')
+parser.add_argument('--resume', default='',
+                    help='Checkpoint to carry on from. Restores the optimizer '
+                    'and the epoch as well as the weights, unlike --pretrained '
+                    'which only loads the network.')
+parser.add_argument('--samples-per-sequence', dest='samples_per_sequence',
+                    type=int, default=6000,
+                    help='Training pairs drawn from each clip per epoch. The '
+                    'pysot default of 6000 is sized for corpora far larger '
+                    'than a few hundred clips, and it is what sets the length '
+                    'of an epoch, so it is the lever for fitting a run into a '
+                    'given amount of time without disturbing the learning '
+                    'rate schedule or when the backbone unfreezes.')
 args = parser.parse_args()
 print(os.getcwd())
-os.chdir(os.path.dirname(os.path.dirname(args.image_folder)))
+_chdir_target = os.path.dirname(os.path.dirname(args.image_folder))
+if _chdir_target:
+    os.chdir(_chdir_target)
 print(os.getcwd())
 
 def seed_torch(seed=0):
@@ -64,8 +94,10 @@ def seed_torch(seed=0):
 
 def prep_data():
     if not args.skip_crop:
-        if os.path.isdir(os.path.join(args.save_folder, 'crop511')):
-            shutil.rmtree(os.path.join(args.save_folder, 'crop511'))
+        # ignore_errors because a half removed tree from an interrupted run
+        # should not stop this one
+        shutil.rmtree(os.path.join(args.save_folder, 'crop511'),
+                      ignore_errors=True)
         since = time.time()
         par_crop(511, 24, args.image_folder, args.save_folder)
         time_elapsed = time.time() - since
@@ -74,28 +106,34 @@ def prep_data():
 
     gen_json(args.image_folder, args.save_folder)
 
-    import viame.pytorch.siammask.core.config as cfg_file
-    core_cfg = cfg_file.__file__
-    with open(core_cfg) as f:
-        cc_lines = f.readlines()
-    for idx, line in enumerate(cc_lines):
-        file_path = '/'.join(os.path.abspath(__file__).split('/')[:-1])
-        if '__C.DATASET.VIAME.ROOT = ' in line:
-            cc_lines[idx] = f"__C.DATASET.VIAME.ROOT = \"{os.path.join(os.getcwd(), args.save_folder, 'crop511')}\"\n"
-        if '__C.DATASET.VIAME.ANNO = ' in line:
-            cc_lines[idx] = f"__C.DATASET.VIAME.ANNO = \"{os.path.join(os.getcwd(), args.save_folder, 'dataset.json')}\"\n"
-        if '__C.DATASET.VIDEOS_PER_EPOCH = ' in line:
-            num_vids = 6000*len(glob(os.path.join(args.image_folder, '*')))
-            cc_lines[idx] = f'__C.DATASET.VIDEOS_PER_EPOCH = {num_vids}\n'
-    with open(core_cfg, 'w') as f:
-        for line in cc_lines:
-            f.write(line)
+
+def configure_dataset():
+    """Point the config at the data this run just prepared.
+
+    This used to be done by rewriting the assignments in core/config.py and
+    reloading the module. Reloading rebuilt cfg from those defaults, and since
+    datasets/dataset.py was reloaded straight after, the dataset bound to that
+    fresh object while the model kept the one the yaml had been merged into.
+    The two then disagreed about every setting the yaml overrides. MASK.MASK
+    defaults to False, so the dataset emitted no label_mask and the mask head
+    trained on nothing while the config the run printed said MASK was on.
+
+    Setting the values on the live config keeps one config for the whole run,
+    and stops each run editing an installed source file.
+    """
+    cfg.DATASET.VIAME.ROOT = os.path.join(
+        os.getcwd(), args.save_folder, 'crop511')
+    cfg.DATASET.VIAME.ANNO = os.path.join(
+        os.getcwd(), args.save_folder, 'dataset.json')
+    sequences = len(glob(os.path.join(args.image_folder, '*')))
+    cfg.DATASET.VIDEOS_PER_EPOCH = args.samples_per_sequence * sequences
+
+    print('Epoch is {} sequences x {} samples = {}'.format(
+        sequences, args.samples_per_sequence, cfg.DATASET.VIDEOS_PER_EPOCH))
 
 
 def build_data_loader():
     logger.info("build train dataset")
-    reload(viame.pytorch.siammask.core.config)
-    reload(viame.pytorch.siammask.datasets.dataset)
     from viame.pytorch.siammask.datasets.dataset import TrkDataset
     train_dataset = TrkDataset()
     logger.info("build dataset done")
@@ -114,9 +152,25 @@ def build_data_loader():
 def build_opt_lr(model, current_epoch=0):
     if current_epoch >= cfg.BACKBONE.TRAIN_EPOCH:
         for layer in cfg.BACKBONE.TRAIN_LAYERS:
-            for param in getattr(model.backbone, layer).parameters():
+            # Which layers exist depends on BACKBONE.KWARGS.used_layers, and a
+            # name that is not one of them resolves to a method of the module
+            # rather than raising, so the failure was an AttributeError on
+            # .parameters() ten epochs in rather than anything about the
+            # config. Say what is wrong and carry on with the layers that are
+            # really there.
+            block = getattr(model.backbone, layer, None)
+
+            if not isinstance(block, nn.Module):
+                logger.warning(
+                    'BACKBONE.TRAIN_LAYERS names %s, which this backbone does '
+                    'not have; it builds %s. Leaving it frozen.', layer,
+                    [n for n, _ in model.backbone.named_children()
+                     if n.startswith('layer')])
+                continue
+
+            for param in block.parameters():
                 param.requires_grad = True
-            for m in getattr(model.backbone, layer).modules():
+            for m in block.modules():
                 if isinstance(m, nn.BatchNorm2d):
                     m.train()
     else:
@@ -144,7 +198,7 @@ def build_opt_lr(model, current_epoch=0):
 
     if cfg.REFINE.REFINE:
         trainable_params += [{'params': model.refine_head.parameters(),
-                              'lr': cfg.TRAIN.LR.BASE_LR}]
+                              'lr': cfg.TRAIN.BASE_LR}]
 
     optimizer = torch.optim.SGD(trainable_params,
                                 momentum=cfg.TRAIN.MOMENTUM,
@@ -268,6 +322,12 @@ def train(train_loader, model, optimizer, lr_scheduler, tb_writer):
         batch_info['batch_time'] = average_reduce(batch_time)
         batch_info['data_time'] = average_reduce(data_time)
         for k, v in sorted(outputs.items()):
+            # The model reports a loss it could not compute as None -- mask_loss
+            # is None whenever MASK is enabled but the batch carries no
+            # label_mask, which is the case for box only groundtruth. Averaging
+            # that unconditionally crashed the first training step.
+            if v is None:
+                continue
             batch_info[k] = average_reduce(v.data.item())
 
         average_meter.update(**batch_info)
@@ -296,11 +356,66 @@ def train(train_loader, model, optimizer, lr_scheduler, tb_writer):
 
 def main():
 
-    prep_data()
-
     seed_torch(args.seed)
     rank, world_size = dist_init()
+
+    # One rank prepares the data and the rest wait on it. Every rank used to
+    # run this, so on more than one device they raced removing crop511 -- one
+    # rank deleting a directory another was walking, which surfaced as
+    # FileNotFoundError from rmtree -- and had they got past that they would
+    # have run the whole half hour crop concurrently over each other's output.
+    #
+    # The wait is on a file rather than a barrier. Cropping this dataset takes
+    # about half an hour, well past the ten minute default timeout of a
+    # collective, so a barrier here killed the other ranks partway through
+    # with "wait timeout after 600000ms" while rank zero was still working.
+    # Raising the process group timeout instead would blind the training that
+    # follows to a genuine hang, and cropping has no useful upper bound.
+    #
+    # The wrapper removes this file before launching, so a flag left by an
+    # earlier run cannot release the other ranks early.
+    ready = os.path.join(args.save_folder, PREP_COMPLETE)
+
+    if rank == 0:
+        prep_data()
+
+        if world_size > 1:
+            with open(ready, 'w') as handle:
+                handle.write('prepared by rank 0\n')
+    elif world_size > 1:
+        waited = 0
+
+        while not os.path.exists(ready):
+            time.sleep(5)
+            waited += 5
+
+            if waited % 300 == 0:
+                logger.info('rank {} waiting on data preparation, {} min'
+                            .format(rank, waited // 60))
+
+            if waited > PREP_TIMEOUT:
+                raise RuntimeError(
+                    'Rank {} waited {} seconds for rank 0 to finish preparing '
+                    'the data and it never did. Check the log above for what '
+                    'happened to it.'.format(rank, waited))
+
     cfg.merge_from_file(args.config_file)
+
+    # After the merge, so the run's own paths are not what the yaml overrides
+    configure_dataset()
+
+    # A model to fine tune from, given on the command line so the shipped yaml
+    # stays untouched. TRAIN.PRETRAINED loads the whole network rather than
+    # BACKBONE.PRETRAINED, which is only the backbone.
+    if args.pretrained:
+        cfg.TRAIN.PRETRAINED = args.pretrained
+
+    if args.resume:
+        cfg.TRAIN.RESUME = args.resume
+
+    if args.backbone_pretrained:
+        cfg.BACKBONE.PRETRAINED = args.backbone_pretrained
+
     cfg.TRAIN.LOG_DIR = os.path.join(args.save_folder, cfg.TRAIN.LOG_DIR)
     cfg.TRAIN.SNAPSHOT_DIR = os.path.join(args.save_folder, cfg.TRAIN.SNAPSHOT_DIR)
     if rank == 0:
@@ -343,8 +458,37 @@ def main():
         logger.info("resume from {}".format(cfg.TRAIN.RESUME))
         assert os.path.isfile(cfg.TRAIN.RESUME), \
             '{} is not a valid file.'.format(cfg.TRAIN.RESUME)
-        model, optimizer, cfg.TRAIN.START_EPOCH = \
-            restore_from(model, optimizer, cfg.TRAIN.RESUME)
+
+        # Which parameters the optimizer covers changes at
+        # BACKBONE.TRAIN_EPOCH, when the backbone joins them, so there are two
+        # possible shapes and load_state_dict refuses the wrong one. Which of
+        # them a checkpoint holds depends on whether it was written before or
+        # after the rebuild within that epoch, which is not something its
+        # epoch number settles. Try the shape for its epoch, then the other.
+        resume_epoch = torch.load(
+            cfg.TRAIN.RESUME, map_location='cpu',
+            weights_only=False).get('epoch', cfg.TRAIN.START_EPOCH)
+
+        restored = False
+
+        for candidate in ( resume_epoch, cfg.TRAIN.START_EPOCH ):
+            optimizer, lr_scheduler = build_opt_lr(dist_model.module,
+                                                   candidate)
+            try:
+                model, optimizer, cfg.TRAIN.START_EPOCH = \
+                    restore_from(model, optimizer, cfg.TRAIN.RESUME)
+                restored = True
+                break
+            except ValueError as error:
+                logger.info('optimizer built for epoch %s does not match the '
+                            'checkpoint (%s), trying the other shape',
+                            candidate, error)
+
+        if not restored:
+            raise RuntimeError(
+                'Could not restore the optimizer from {}. Its parameter '
+                'groups match neither the frozen nor the unfrozen backbone.'
+                .format(cfg.TRAIN.RESUME))
     # load pretrain
     elif cfg.TRAIN.PRETRAINED:
         load_pretrain(model, cfg.TRAIN.PRETRAINED)

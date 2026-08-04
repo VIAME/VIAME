@@ -1,8 +1,20 @@
 # =============================================================================
 # Title: Tracker - Sea Lion Tracker Fusion Two Class
 #
-# Description: Runs object tracking on detected objects across video frames.
-# Configured for sea lion survey imagery.
+# Description: Runs object tracking on detected objects across video frames,
+# linking detections of the same sea lion from frame to frame so repeat
+# sightings are tied to one individual. Configured for sea lion survey
+# imagery. Output categories: non-pup (NP), pup (P).
+# Input: IMAGE
+# Output: TRACK
+#
+# Metadata File: stabilizer:flight_log
+#   DIVE binds an optional per-dataset metadata file (e.g. an FMCLOG
+#   flight-log CSV) to the registration stabilizer's flight_log input.
+# Image List Keys: stabilizer:image_list{cam}
+#   DIVE binds each camera's input image list (one line-separated file per
+#   camera) to the stabilizer's per-camera image_list<i> input
+#   (image_list1, image_list2, ...). Camera 1's list also locates the survey folder.
 # =============================================================================
 
 config _scheduler
@@ -11,12 +23,17 @@ config _scheduler
 config _pipeline:_edge
   capacity = 5
 
+config global
+  :scale                                       1.0  # DIVE_PARAM["Detection Scale", strictly_positive_float]
+
 include common_default_input_with_downsampler.pipe
 
-include common_sea_lion_stabilizer_1cam.pipe
+include common_sea_lion_registration_1cam.pipe
 
 connect from downsampler.output_1
         to stabilizer.image1
+connect from downsampler.output_2
+        to stabilizer.file_name1
 
 include common_sea_lion_fusion_two_class_cam1.pipe
 
@@ -29,7 +46,7 @@ process tracker :: multicam_homog_tracker
 connect from stabilizer.homog1
         to tracker.homog1
 
-connect from detector_output_cam1.detected_object_set
+connect from detector_fuser_cam1.detected_object_set
         to tracker.det_objs_1
 
 connect from downsampler.timestamp

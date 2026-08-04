@@ -138,3 +138,8 @@ connect from track_descriptor.string_vector
         to   descriptor_indexer.string_vector
 
 # -- end of file --
+
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp

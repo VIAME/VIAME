@@ -7,7 +7,6 @@
 #              cross-frame tracking. Suitable for image sets and videos where
 #              frame-to-frame correspondence is not needed.
 #
-# Requirements: { Text Query, track_refiner:refiner:sam3:text_query, string }
 # Input: TEXT
 # Output: MASK
 # =============================================================================
@@ -52,7 +51,7 @@ process track_refiner
   block refiner:sam3
     relativepath grounding_model_id =          models/sam3_grnd_dino_tiny
     :device                                    cuda
-    :text_query                                object
+    :text_query                                object  # DIVE_PARAM["Text Query", string, required]
     :detection_threshold                       0.3
     :text_threshold                            0.25
     :iou_threshold                             0.5

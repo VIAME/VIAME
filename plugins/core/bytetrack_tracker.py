@@ -16,7 +16,9 @@ Reference: Zhang et al., "ByteTrack: Multi-Object Tracking by Associating
 Every Detection Box" (ECCV 2022)
 """
 
+import json
 import logging
+import os
 
 import numpy as np
 import scipy.optimize
@@ -33,7 +35,6 @@ logger = logging.getLogger(__name__)
 # Kalman Filter for motion prediction
 # =============================================================================
 
-
 class KalmanFilter:
     """
     A simple Kalman filter for tracking bounding boxes in image space.
@@ -47,7 +48,7 @@ class KalmanFilter:
     Object motion follows a constant velocity model.
     """
 
-    def __init__(self):
+    def __init__(self, std_weight_position=1.0 / 20, std_weight_velocity=1.0 / 160):
         ndim = 4
         dt = 1.0
 
@@ -59,9 +60,11 @@ class KalmanFilter:
         # Observation matrix
         self._update_mat = np.eye(ndim, 2 * ndim)
 
-        # Motion and observation uncertainty weights
-        self._std_weight_position = 1.0 / 20
-        self._std_weight_velocity = 1.0 / 160
+        # Motion and observation uncertainty weights. Defaults are ByteTrack's
+        # originals; the bytetrack trainer fits both, so they are injectable
+        # here the same way OCSORTTracker's KalmanFilter takes them.
+        self._std_weight_position = std_weight_position
+        self._std_weight_velocity = std_weight_velocity
 
     def initiate(self, measurement):
         """Create track from unassociated measurement."""
@@ -99,10 +102,9 @@ class KalmanFilter:
         motion_cov = np.diag(np.square(np.r_[std_pos, std_vel]))
 
         mean = np.dot(self._motion_mat, mean)
-        covariance = (
-            np.linalg.multi_dot([self._motion_mat, covariance, self._motion_mat.T])
-            + motion_cov
-        )
+        covariance = np.linalg.multi_dot([
+            self._motion_mat, covariance, self._motion_mat.T
+        ]) + motion_cov
 
         return mean, covariance
 
@@ -117,9 +119,9 @@ class KalmanFilter:
         innovation_cov = np.diag(np.square(std))
 
         mean = np.dot(self._update_mat, mean)
-        covariance = np.linalg.multi_dot(
-            [self._update_mat, covariance, self._update_mat.T]
-        )
+        covariance = np.linalg.multi_dot([
+            self._update_mat, covariance, self._update_mat.T
+        ])
         return mean, covariance + innovation_cov
 
     def update(self, mean, covariance, measurement):
@@ -132,21 +134,20 @@ class KalmanFilter:
         kalman_gain = scipy.linalg.cho_solve(
             (chol_factor, lower),
             np.dot(covariance, self._update_mat.T).T,
-            check_finite=False,
+            check_finite=False
         ).T
         innovation = measurement - projected_mean
 
         new_mean = mean + np.dot(innovation, kalman_gain.T)
-        new_covariance = covariance - np.linalg.multi_dot(
-            [kalman_gain, projected_cov, kalman_gain.T]
-        )
+        new_covariance = covariance - np.linalg.multi_dot([
+            kalman_gain, projected_cov, kalman_gain.T
+        ])
         return new_mean, new_covariance
 
 
 # =============================================================================
 # Track state enumeration
 # =============================================================================
-
 
 class TrackState:
     NEW = 0
@@ -159,10 +160,8 @@ class TrackState:
 # Single track representation
 # =============================================================================
 
-
 class STrack:
     """Represents a single tracked object with Kalman filter state."""
-
     shared_kalman = KalmanFilter()
     _count = 0
 
@@ -209,7 +208,8 @@ class STrack:
     def re_activate(self, new_track, frame_id, timestamp, new_id=False):
         """Reactivate a previously lost track."""
         self.mean, self.covariance = self.kalman_filter.update(
-            self.mean, self.covariance, self.tlwh_to_xyah(new_track.tlwh)
+            self.mean, self.covariance,
+            self.tlwh_to_xyah(new_track.tlwh)
         )
         self.tracklet_len = 0
         self.state = TrackState.TRACKED
@@ -229,7 +229,8 @@ class STrack:
         self.tracklet_len += 1
         new_tlwh = new_track.tlwh
         self.mean, self.covariance = self.kalman_filter.update(
-            self.mean, self.covariance, self.tlwh_to_xyah(new_tlwh)
+            self.mean, self.covariance,
+            self.tlwh_to_xyah(new_tlwh)
         )
         self.state = TrackState.TRACKED
         self.is_activated = True
@@ -301,7 +302,6 @@ class STrack:
 # IOU computation
 # =============================================================================
 
-
 def iou_batch(bboxes1, bboxes2):
     """Compute IOU between two sets of bounding boxes."""
     bboxes1 = np.atleast_2d(bboxes1)
@@ -347,7 +347,6 @@ def iou_distance(atracks, btracks):
 # Linear assignment
 # =============================================================================
 
-
 def linear_assignment(cost_matrix, thresh):
     """Perform linear assignment with threshold."""
     if cost_matrix.size == 0:
@@ -374,7 +373,6 @@ def linear_assignment(cost_matrix, thresh):
 # =============================================================================
 # Converters to/from Kwiver types
 # =============================================================================
-
 
 def to_DetectedObject_list(dos):
     """Get a list of the DetectedObjects in a Kwiver DetectedObjectSet."""
@@ -406,9 +404,7 @@ def to_ObjectTrackSet(tracks):
         for ts, do in track.history:
             ots = ObjectTrackState(ts.get_frame(), ts.get_time_usec(), do)
             if not t.append(ots):
-                logger.warning(
-                    "Unsorted input in to_ObjectTrackSet for track %d", track.track_id
-                )
+                logger.warning("Unsorted input in to_ObjectTrackSet for track %d", track.track_id)
         result.append(t)
     return ObjectTrackSet(result)
 
@@ -417,31 +413,27 @@ def to_ObjectTrackSet(tracks):
 # ByteTrack Configuration
 # =============================================================================
 
-
 class ByteTrackTrackerConfig(scfg.DataConfig):
     """Configuration for ByteTrack tracker."""
-
-    high_thresh = scfg.Value(
-        0.6, help="Confidence threshold for high-confidence detections (first stage)"
-    )
-    low_thresh = scfg.Value(
-        0.1, help="Confidence threshold for low-confidence detections (second stage)"
-    )
-    match_thresh = scfg.Value(
-        0.8, help="IOU threshold for matching (1 - IOU must be below this)"
-    )
-    track_buffer = scfg.Value(
-        30, help="Number of frames to keep lost tracks before removal"
-    )
-    new_track_thresh = scfg.Value(
-        0.6, help="Minimum confidence to create new track from unmatched detection"
-    )
+    high_thresh = scfg.Value(0.6, help='Confidence threshold for high-confidence detections (first stage)')
+    low_thresh = scfg.Value(0.1, help='Confidence threshold for low-confidence detections (second stage)')
+    match_thresh = scfg.Value(0.8, help='IOU threshold for matching (1 - IOU must be below this)')
+    track_buffer = scfg.Value(30, help='Number of frames to keep lost tracks before removal')
+    new_track_thresh = scfg.Value(0.6, help='Minimum confidence to create new track from unmatched detection')
+    std_weight_position = scfg.Value(1.0 / 20, help='Kalman position uncertainty weight')
+    std_weight_velocity = scfg.Value(1.0 / 160, help='Kalman velocity uncertainty weight')
+    second_match_thresh = scfg.Value(
+        0.5, help='IOU distance bound for the second (low-confidence) '
+                  'association pass; stock ByteTrack hard-coded 0.5')
+    unconfirmed_match_thresh = scfg.Value(
+        0.7, help='IOU distance bound for matching unconfirmed (single-hit) '
+                  'tracks; stock ByteTrack hard-coded 0.7')
+    params_file = scfg.Value('', help='Optional JSON file of trained parameters overriding the above')
 
 
 # =============================================================================
 # ByteTrack Algorithm (TrackObjects implementation)
 # =============================================================================
-
 
 class ByteTrackTracker(TrackObjects):
     """
@@ -486,11 +478,27 @@ class ByteTrackTracker(TrackObjects):
         self._high_thresh = float(self._config.high_thresh)
         self._low_thresh = float(self._config.low_thresh)
         self._match_thresh = float(self._config.match_thresh)
+        self._second_match_thresh = float(self._config.second_match_thresh)
+        self._unconfirmed_match_thresh = float(self._config.unconfirmed_match_thresh)
         self._track_buffer = int(self._config.track_buffer)
         self._new_track_thresh = float(self._config.new_track_thresh)
+        self._std_weight_position = float(self._config.std_weight_position)
+        self._std_weight_velocity = float(self._config.std_weight_velocity)
+
+        # Trained parameter file (produced by the bytetrack trainer) overrides
+        # any scalar values configured above.
+        params_file = str(self._config.params_file)
+        if params_file and os.path.exists(params_file):
+            with open(params_file, 'r') as f:
+                params = json.load(f)
+            self._apply_trained_params(params)
+            print(f"[ByteTrack] Loaded trained parameters from {params_file}")
 
         # Initialize tracker state
-        self._kalman_filter = KalmanFilter()
+        self._kalman_filter = KalmanFilter(
+            std_weight_position=self._std_weight_position,
+            std_weight_velocity=self._std_weight_velocity,
+        )
         self._tracked_stracks = []
         self._lost_stracks = []
         self._removed_stracks = []
@@ -498,6 +506,23 @@ class ByteTrackTracker(TrackObjects):
         STrack.reset_id()
 
         return True
+
+    def _apply_trained_params(self, params):
+        """Override scalar parameters from a trained params JSON dict."""
+        mapping = {
+            'high_thresh': '_high_thresh',
+            'low_thresh': '_low_thresh',
+            'match_thresh': '_match_thresh',
+            'second_match_thresh': '_second_match_thresh',
+            'unconfirmed_match_thresh': '_unconfirmed_match_thresh',
+            'track_buffer': '_track_buffer',
+            'new_track_thresh': '_new_track_thresh',
+            'std_weight_position': '_std_weight_position',
+            'std_weight_velocity': '_std_weight_velocity',
+        }
+        for key, attr in mapping.items():
+            if key in params:
+                setattr(self, attr, type(getattr(self, attr))(params[key]))
 
     def check_configuration(self, cfg):
         """Check if the configuration is valid."""
@@ -537,9 +562,7 @@ class ByteTrackTracker(TrackObjects):
 
         # Separate detections by confidence
         high_dets = [d for d in all_detections if d.score >= self._high_thresh]
-        low_dets = [
-            d for d in all_detections if self._low_thresh <= d.score < self._high_thresh
-        ]
+        low_dets = [d for d in all_detections if self._low_thresh <= d.score < self._high_thresh]
 
         # Add newly detected tracklets to tracked_stracks
         unconfirmed = []
@@ -556,9 +579,7 @@ class ByteTrackTracker(TrackObjects):
 
         # ===== FIRST STAGE: Match high-confidence detections with tracks =====
         dists = iou_distance(strack_pool, high_dets)
-        matches, u_track, u_detection = linear_assignment(
-            dists, thresh=self._match_thresh
-        )
+        matches, u_track, u_detection = linear_assignment(dists, thresh=self._match_thresh)
 
         for itracked, idet in matches:
             track = strack_pool[itracked]
@@ -571,13 +592,9 @@ class ByteTrackTracker(TrackObjects):
                 refind_stracks.append(track)
 
         # ===== SECOND STAGE: Match remaining tracks with low-confidence dets =====
-        r_tracked_stracks = [
-            strack_pool[i]
-            for i in u_track
-            if strack_pool[i].state == TrackState.TRACKED
-        ]
+        r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.TRACKED]
         dists = iou_distance(r_tracked_stracks, low_dets)
-        matches, u_track_second, _ = linear_assignment(dists, thresh=0.5)
+        matches, u_track_second, _ = linear_assignment(dists, thresh=self._second_match_thresh)
 
         for itracked, idet in matches:
             track = r_tracked_stracks[itracked]
@@ -594,12 +611,10 @@ class ByteTrackTracker(TrackObjects):
 
         # ===== HANDLE UNCONFIRMED TRACKS =====
         dists = iou_distance(unconfirmed, [high_dets[i] for i in u_detection])
-        matches, u_unconfirmed, u_detection_final = linear_assignment(dists, thresh=0.7)
+        matches, u_unconfirmed, u_detection_final = linear_assignment(dists, thresh=self._unconfirmed_match_thresh)
 
         for itracked, idet in matches:
-            unconfirmed[itracked].update(
-                high_dets[u_detection[idet]], self._frame_id, ts
-            )
+            unconfirmed[itracked].update(high_dets[u_detection[idet]], self._frame_id, ts)
             activated_stracks.append(unconfirmed[itracked])
 
         for it in u_unconfirmed:
@@ -621,23 +636,15 @@ class ByteTrackTracker(TrackObjects):
                 self._removed_stracks.append(track)
 
         # ===== MERGE TRACK LISTS =====
-        self._tracked_stracks = [
-            t for t in self._tracked_stracks if t.state == TrackState.TRACKED
-        ]
+        self._tracked_stracks = [t for t in self._tracked_stracks if t.state == TrackState.TRACKED]
         self._tracked_stracks = list(set(self._tracked_stracks + activated_stracks))
         self._tracked_stracks = list(set(self._tracked_stracks + refind_stracks))
 
-        self._lost_stracks = [
-            t for t in self._lost_stracks if t.state == TrackState.LOST
-        ]
-        self._lost_stracks = [
-            t for t in self._lost_stracks if t not in self._tracked_stracks
-        ]
+        self._lost_stracks = [t for t in self._lost_stracks if t.state == TrackState.LOST]
+        self._lost_stracks = [t for t in self._lost_stracks if t not in self._tracked_stracks]
 
         # Output all activated tracks with history
-        output_tracks = [
-            t for t in self._tracked_stracks if t.is_activated and len(t.history) > 0
-        ]
+        output_tracks = [t for t in self._tracked_stracks if t.is_activated and len(t.history) > 0]
         return to_ObjectTrackSet(output_tracks)
 
     def initialize(self, ts, image, seed_detections):
@@ -666,7 +673,6 @@ class ByteTrackTracker(TrackObjects):
 # =============================================================================
 # Algorithm Registration
 # =============================================================================
-
 
 def __vital_algorithm_register__():
     from viame.core.vital_registration import register_vital_algorithm

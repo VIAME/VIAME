@@ -189,16 +189,23 @@ def apply_calibration_to_dets( seq_computed, tables ):
 # --------------------------- FRAME BUILDING ---------------------------
 
 def apply_pseudonyms( models, pseudo_dic, pseudo_ind, match_iou ):
-  # Mirrors the category upsampling step of merge_detections_nms_fusion
+  # Mirrors the category upsampling step of merge_detections_nms_fusion.
+  # One spatial index is built per referenced detector so the per-box match
+  # is a local cell lookup rather than a full scan (dense frames carry
+  # thousands of boxes, which made the naive O(N*M) pass hang).
+  index_cache = {}
   for chk_ind in pseudo_ind:
     boxes, _, labels = models[ chk_ind ][:3]
+    for other_ind in pseudo_ind[ chk_ind ]:
+      if other_ind not in index_cache:
+        index_cache[ other_ind ] = dfc.BoxSpatialIndex( models[ other_ind ][0] )
     for k in range( len( boxes ) ):
       orig_label = labels[k]
       if orig_label not in pseudo_dic:
         continue
       for other_ind in pseudo_ind[ chk_ind ]:
-        best_idx, _ = dfc.find_matching_box(
-          models[ other_ind ][0], boxes[k], match_iou )
+        best_idx, _ = index_cache[ other_ind ].find_matching_box(
+          boxes[k], match_iou )
         if best_idx >= 0:
           new_label = models[ other_ind ][2][ best_idx ]
           if new_label in pseudo_dic[ orig_label ]:

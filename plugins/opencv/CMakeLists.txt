@@ -188,6 +188,7 @@ if( VIAME_ENABLE_PYTHON )
     __init__
     fft_filter_based_on_ref
     multimodal_registration
+    prior_coverage_opencv
     registration_utils
     stereo_algos
     stereo_demo

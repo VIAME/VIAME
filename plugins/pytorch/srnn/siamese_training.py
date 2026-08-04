@@ -15,8 +15,13 @@ from .all_training import (
 
 @torch.no_grad()
 def cal_accuracy(output0, output1, label, g_config):
-    label_tensor = label.cpu()
-    l21_tensor = dist(output0, output1).cpu()
+    # detach before anything else. These come back as metrics and are summed
+    # over the epoch, and .cpu() alone keeps them attached to the graph that
+    # produced them, so the accumulator holds every batch's activations: the
+    # stage grew past 170 GB across five processes by its fourth epoch. They
+    # are returned as floats for the same reason.
+    label_tensor = label.detach().cpu()
+    l21_tensor = dist(output0, output1).detach().cpu()
 
     # Distance
     _idx = label_tensor == -1  # y==-1
@@ -32,7 +37,7 @@ def cal_accuracy(output0, output1, label, g_config):
 
     accuracy = torch.eq(cur_score, label_tensor).sum().float() / label_tensor.size(0)
 
-    return accuracy, s_dis, d_dis
+    return float(accuracy), float(s_dis), float(d_dis)
 
 
 _Metrics = collections.namedtuple('_Metrics', [

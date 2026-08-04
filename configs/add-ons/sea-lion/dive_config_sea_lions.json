@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "confidenceFilters": {
+    "default": 0.1,
+    "B": 0.23,
+    "S": 0.21,
+    "F": 0.22,
+    "J": 0.22,
+    "P": 0.27,
+    "DP": 0.24,
+    "NFS": 0.24,
+    "DN": 0.15,
+    "NP": 0.18
+  },
+  "customTypeStyling": {
+    "B": { "color": "#2ECC71", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "S": { "color": "#1ABC9C", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "F": { "color": "#AF7AC5", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "J": { "color": "#6FE9FF", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "P": { "color": "#3498DB", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "DP": { "color": "#1A5276", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "NFS": { "color": "#FBF6A0", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "DN": { "color": "#8E44AD", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "NP": { "color": "#C39BD3", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "Suppressed": { "color": "#A5A5A3", "opacity": 0.58, "fill": true, "showLabel": true, "showConfidence": true }
+  }
+}

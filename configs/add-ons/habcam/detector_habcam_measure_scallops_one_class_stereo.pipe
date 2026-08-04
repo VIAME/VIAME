@@ -85,6 +85,8 @@ connect from measurer_pass2_left.detected_object_set
         to   detector_writer.detected_object_set
 connect from downsampler.output_2
         to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp
 
 process detector_writer2
   :: detected_object_output
@@ -97,5 +99,7 @@ connect from measurer_pass2_right.detected_object_set
         to   detector_writer2.detected_object_set
 connect from downsampler.output_2
         to   detector_writer2.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer2.timestamp
 
 # -- end of file --

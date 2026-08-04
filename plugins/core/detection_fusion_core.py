@@ -55,6 +55,50 @@ def find_matching_box( boxes_list, new_box, match_iou ):
             best_iou = iou
     return best_index, best_iou
 
+class BoxSpatialIndex( object ):
+    """Uniform-grid index over a fixed list of boxes for fast IoU-match
+    queries. Boxes are ( x1, y1, x2, y2 ) in any consistent coordinate scale;
+    cell_size must be in that same scale (~0.05 for [0,1]-normalized boxes,
+    the scale the pseudonym matching runs in). find_matching_box() returns the
+    same ( index, iou ) as the module-level linear scan but only tests boxes
+    sharing a grid cell with the query, turning the O(N*M) pseudonym pass into
+    roughly O(N+M) on the typical case of small, spatially-separated boxes."""
+
+    def __init__( self, boxes_list, cell_size=0.05 ):
+        self._boxes = [ np.asarray( b, dtype=float ).reshape( -1 )[:4]
+                        for b in boxes_list ]
+        self._cell = float( cell_size ) if cell_size and cell_size > 0 else 0.05
+        self._grid = {}
+        for i, b in enumerate( self._boxes ):
+            for key in self._cells( b ):
+                self._grid.setdefault( key, [] ).append( i )
+
+    def _cells( self, b ):
+        c = self._cell
+        cx0 = int( math.floor( min( b[0], b[2] ) / c ) )
+        cx1 = int( math.floor( max( b[0], b[2] ) / c ) )
+        cy0 = int( math.floor( min( b[1], b[3] ) / c ) )
+        cy1 = int( math.floor( max( b[1], b[3] ) / c ) )
+        for cx in range( cx0, cx1 + 1 ):
+            for cy in range( cy0, cy1 + 1 ):
+                yield ( cx, cy )
+
+    def find_matching_box( self, new_box, match_iou ):
+        new_box = np.asarray( new_box, dtype=float ).reshape( -1 )[:4]
+        best_iou = match_iou
+        best_index = -1
+        seen = set()
+        for key in self._cells( new_box ):
+            for i in self._grid.get( key, () ):
+                if i in seen:
+                    continue
+                seen.add( i )
+                iou = bb_intersection_over_union( self._boxes[i], new_box )
+                if iou > best_iou:
+                    best_index = i
+                    best_iou = iou
+        return best_index, best_iou
+
 # ---------------------- PROBABILISTIC ENSEMBLING ------------------------
 
 def dists_to_array( dist_dicts, class_count ):
@@ -291,6 +335,72 @@ def stack_feature_names( model_count ):
     return [ 'fused_score', 'agreement', 'mean_iou', 'max_model_score' ] + \
            [ 'model_score_' + str( m ) for m in range( model_count ) ]
 
+def merge_overlapping_boxes( boxes, scores, labels, contributors=None,
+                             dists=None, iou_thr=0.7 ):
+    """Class-agnostic consolidation of already-fused detections into one box per
+    object while KEEPING every competing label.
+
+    WBF and ProbEn cluster within a single label, so two heavily-overlapping
+    boxes with different labels (a 'pup' and a 'dead_pup' on the same animal)
+    survive as two separate detections. This pass greedily clusters the fused
+    boxes by IoU > ``iou_thr`` REGARDLESS of label and collapses each cluster to
+    one detection with a score-weighted-average box and the union of the
+    members' contributor lists (so mask fusion combines all their masks). The
+    detection's primary label/score is the highest-scoring member, but the full
+    per-label score map is retained so the box still competes for every class --
+    keeping mAP intact (dropping the loser costs ~0.02 mAP@50; keeping it does
+    not) while giving a clean one-box-per-object output.
+
+    Returns ( boxes, scores, labels, contributors_or_None, dists_or_None,
+    class_scores, agreement ) where class_scores[i] maps label_id -> best score
+    for cluster i and agreement[i] is False when the cluster mixed >1 label.
+    """
+    n = len( boxes )
+    if n < 1 or iou_thr <= 0.0:
+        return ( boxes, scores, labels, contributors, dists,
+                 [ { int( l ): float( s ) } for l, s in zip( labels, scores ) ],
+                 [ True ] * n )
+    boxes = np.asarray( boxes, dtype=float ).reshape( -1, 4 )
+    scores = np.asarray( scores, dtype=float )
+    order = list( np.argsort( -scores ) )
+    used = np.zeros( n, dtype=bool )
+    kb, ks, kl, kc, kd, kcs, kag = [], [], [], [], [], [], []
+    for k in order:
+        if used[k]:
+            continue
+        cluster = [ k ]
+        used[k] = True
+        for j in order:
+            if used[j]:
+                continue
+            if bb_intersection_over_union( boxes[k], boxes[j] ) > iou_thr:
+                cluster.append( j )
+                used[j] = True
+        w = scores[ cluster ]
+        wsum = float( w.sum() ) if w.sum() > 0 else 1.0
+        kb.append( ( boxes[ cluster ] * w[:, None] ).sum( 0 ) / wsum )
+        ks.append( float( scores[k] ) )          # primary = highest-scoring
+        kl.append( int( labels[k] ) )
+        class_scores = {}
+        for c in cluster:
+            lid = int( labels[c] )
+            class_scores[ lid ] = max( class_scores.get( lid, 0.0 ),
+                                       float( scores[c] ) )
+        kcs.append( class_scores )
+        kag.append( len( class_scores ) <= 1 )   # False => conflicting labels
+        if contributors is not None:
+            merged = []
+            for c in cluster:
+                merged.extend( contributors[c] )
+            kc.append( merged )
+        if dists is not None:
+            kd.append( dists[k] )
+    return ( np.asarray( kb ), np.asarray( ks ),
+             np.asarray( kl, dtype=int ),
+             ( kc if contributors is not None else None ),
+             ( np.asarray( kd ) if dists is not None else None ),
+             kcs, kag )
+
 def compute_stack_features( fused_score, contribs, scores_list, model_count ):
     """Compute the agreement feature vector for one fused box given its
     contributor list of (model_index, detection_index, iou) tuples.
@@ -355,15 +465,25 @@ def save_rescore_model( filename, model, feature_names ):
 # --------------------------- MASK FUSION -------------------------------
 
 def fuse_mask_arrays( fused_box, contrib_boxes, contrib_masks,
-                      contrib_weights ):
+                      contrib_weights, method='union' ):
     """Fuse instance masks belonging to one fused box.
 
     fused_box is [x1, y1, x2, y2] in pixels; each contributor has its
     own pixel-space box, a 2D mask array aligned to that box's top-left
-    corner, and a scalar weight. Returns a uint8 mask sized to the
-    fused box via per-pixel weighted majority vote (pixels are set where
-    the weighted vote reaches half the total weight covering them), or
-    None when no valid contributor masks exist.
+    corner, and a scalar weight. Returns a uint8 mask sized to the fused
+    box, or None when no valid contributor masks exist.
+
+    method selects how overlapping masks combine (use it to favor a detector):
+      'union'        - foreground if ANY contributor sets the pixel. On the sea
+                       lion seg models this scored highest (the models slightly
+                       under-segment, so the union recovers more true extent).
+      'intersection' - foreground only where EVERY contributor sets the pixel
+                       (conservative; keeps just the agreed core).
+      'max_conf'     - use only the single highest-weight contributor's mask, so
+                       the mask from the higher-weighted / higher-confidence
+                       detector wins outright.
+      'vote'         - per-pixel weighted majority: foreground where the summed
+                       contributor weight reaches half the total covering weight.
     """
     fx1, fy1 = int( round( fused_box[0] ) ), int( round( fused_box[1] ) )
     fx2, fy2 = int( round( fused_box[2] ) ), int( round( fused_box[3] ) )
@@ -371,8 +491,21 @@ def fuse_mask_arrays( fused_box, contrib_boxes, contrib_masks,
     if width <= 0 or height <= 0:
         return None
 
-    acc = np.zeros( ( height, width ), dtype=float )
-    wsum = np.zeros( ( height, width ), dtype=float )
+    if method == 'max_conf':
+        best = None
+        for box, mask, weight in zip( contrib_boxes, contrib_masks,
+                                      contrib_weights ):
+            if mask is not None and ( best is None or weight > best[0] ):
+                best = ( weight, box, mask )
+        if best is None:
+            return None
+        contrib_boxes, contrib_masks, contrib_weights = \
+            [ best[1] ], [ best[2] ], [ best[0] ]
+
+    acc = np.zeros( ( height, width ), dtype=float )   # weighted set
+    wsum = np.zeros( ( height, width ), dtype=float )  # weighted covering
+    hit = np.zeros( ( height, width ), dtype=int )     # count of contributors set
+    n_valid = 0
 
     for box, mask, weight in zip( contrib_boxes, contrib_masks,
                                   contrib_weights ):
@@ -381,6 +514,7 @@ def fuse_mask_arrays( fused_box, contrib_boxes, contrib_masks,
         mask = np.squeeze( np.asarray( mask ) )
         if mask.ndim != 2:
             continue
+        n_valid += 1
         bx1, by1 = int( round( box[0] ) ), int( round( box[1] ) )
         # Region of the contributor mask inside the fused box
         x1 = max( bx1, fx1 )
@@ -392,7 +526,12 @@ def fuse_mask_arrays( fused_box, contrib_boxes, contrib_masks,
         sub = ( mask[ y1 - by1 : y2 - by1, x1 - bx1 : x2 - bx1 ] > 0 )
         acc[ y1 - fy1 : y2 - fy1, x1 - fx1 : x2 - fx1 ] += weight * sub
         wsum[ y1 - fy1 : y2 - fy1, x1 - fx1 : x2 - fx1 ] += weight
+        hit[ y1 - fy1 : y2 - fy1, x1 - fx1 : x2 - fx1 ] += sub
 
-    if not wsum.any():
+    if n_valid == 0:
         return None
+    if method == 'intersection':
+        return ( hit >= n_valid ).astype( np.uint8 )
+    if method == 'union' or method == 'max_conf':
+        return ( hit > 0 ).astype( np.uint8 )
     return ( ( acc >= 0.5 * wsum ) & ( wsum > 0 ) ).astype( np.uint8 )

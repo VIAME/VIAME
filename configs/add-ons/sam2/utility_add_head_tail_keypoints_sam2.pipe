@@ -71,6 +71,8 @@ connect from detector_input.image
         to   add_segmentations.image
 connect from input.file_name
         to   detector_writer.image_file_name
+connect from input.timestamp
+        to   detector_writer.timestamp
 
 connect from detection_reader.detected_object_set
         to   add_segmentations.detected_object_set

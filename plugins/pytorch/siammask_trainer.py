@@ -6,32 +6,58 @@ from kwiver.vital.algo import TrainTracker
 
 from kwiver.vital.types import (
     CategoryHierarchy,
-    ObjectTrackSet,
-    ObjectTrackState,
-    BoundingBoxD,
-    DetectedObjectType,
+    ObjectTrackSet, ObjectTrackState,
+    BoundingBoxD, DetectedObjectType
 )
 
 from distutils.util import strtobool
 from shutil import copyfile
 
+import cv2
+import numpy as np
+
 import os
+import socket
 import sys
 import shutil
+from glob import glob
 import subprocess
 import signal
 import time
 import threading
 from viame.pytorch.utilities import report_cuda_errors
+from viame.core.training_data import ( build_sequence_maps,
+    read_sequence_manifest )
 
 
-class SiamMaskTrainer(TrainTracker):
+def _frame_bounds( track_sets ):
+    """Highest frame id each track set refers to, or None where it refers to
+    none, for build_sequence_maps to check its alignment against.
+    """
+    bounds = []
+
+    for track_set in track_sets:
+        highest = None
+
+        if track_set is not None:
+            for track in track_set.tracks():
+                for state in track:
+                    if state.detection() is None:
+                        continue
+                    if highest is None or state.frame_id > highest:
+                        highest = state.frame_id
+
+        bounds.append( highest )
+
+    return bounds
+
+
+class SiamMaskTrainer( TrainTracker ):
     """
     Implementation of TrainTracker class for SiamMask tracker training
     """
-
-    def __init__(self):
-        TrainTracker.__init__(self)
+    def __init__( self ):
+        TrainTracker.__init__( self )
 
         self._identifier = "viame-siammask-tracker"
         self._config_file = ""
@@ -46,6 +72,13 @@ class SiamMaskTrainer(TrainTracker):
         self._crop_size = 511
         self._threshold = "0.00"
         self._skip_crop = False
+        self._samples_per_sequence = 6000
+        self._resume_model = ""
+        self._backbone_seed = ""
+
+        # Written by the training tool: which frames of the flat list
+        # belong to which track set.
+        self._sequence_manifest = ""
         self._timeout = "1209600"
 
         self._categories = []
@@ -54,301 +87,518 @@ class SiamMaskTrainer(TrainTracker):
         self._test_image_files = []
         self._test_tracks = []
 
-    def get_configuration(self):
-        cfg = super(TrainTracker, self).get_configuration()
+    def get_configuration( self ):
+        cfg = super( TrainTracker, self ).get_configuration()
 
-        cfg.set_value("identifier", self._identifier)
-        cfg.set_value("config_file", self._config_file)
-        cfg.set_value("seed_model", self._seed_model)
-        cfg.set_value("train_directory", self._train_directory)
-        cfg.set_value("output_directory", self._output_directory)
-        cfg.set_value("output_prefix", self._output_prefix)
-        cfg.set_value("pipeline_template", self._pipeline_template)
-        cfg.set_value("gpu_count", str(self._gpu_count))
-        cfg.set_value("max_epochs", str(self._max_epochs))
-        cfg.set_value("batch_size", self._batch_size)
-        cfg.set_value("crop_size", str(self._crop_size))
-        cfg.set_value("threshold", self._threshold)
-        cfg.set_value("skip_crop", str(self._skip_crop))
-        cfg.set_value("timeout", self._timeout)
+        cfg.set_value( "identifier", self._identifier )
+        cfg.set_value( "config_file", self._config_file )
+        cfg.set_value( "seed_model", self._seed_model )
+        cfg.set_value( "train_directory", self._train_directory )
+        cfg.set_value( "output_directory", self._output_directory )
+        cfg.set_value( "output_prefix", self._output_prefix )
+        cfg.set_value( "pipeline_template", self._pipeline_template )
+        cfg.set_value( "gpu_count", str( self._gpu_count ) )
+        cfg.set_value( "max_epochs", str( self._max_epochs ) )
+        cfg.set_value( "batch_size", self._batch_size )
+        cfg.set_value( "crop_size", str( self._crop_size ) )
+        cfg.set_value( "threshold", self._threshold )
+        cfg.set_value( "skip_crop", str( self._skip_crop ) )
+        cfg.set_value( "samples_per_sequence", str( self._samples_per_sequence ) )
+        cfg.set_value( "resume_model", self._resume_model )
+        cfg.set_value( "backbone_seed", self._backbone_seed )
+        cfg.set_value( "sequence_manifest", self._sequence_manifest )
+        cfg.set_value( "timeout", self._timeout )
 
         return cfg
 
     @report_cuda_errors("SiamMaskTrainer initialization")
-    def set_configuration(self, cfg_in):
+    def set_configuration( self, cfg_in ):
         cfg = self.get_configuration()
-        cfg.merge_config(cfg_in)
+        cfg.merge_config( cfg_in )
 
-        self._identifier = str(cfg.get_value("identifier"))
-        self._config_file = str(cfg.get_value("config_file"))
-        self._seed_model = str(cfg.get_value("seed_model"))
-        self._train_directory = str(cfg.get_value("train_directory"))
-        self._output_directory = str(cfg.get_value("output_directory"))
-        self._output_prefix = str(cfg.get_value("output_prefix"))
-        self._pipeline_template = str(cfg.get_value("pipeline_template"))
-        self._gpu_count = int(cfg.get_value("gpu_count"))
-        self._max_epochs = str(cfg.get_value("max_epochs"))
-        self._batch_size = str(cfg.get_value("batch_size"))
-        self._crop_size = int(cfg.get_value("crop_size"))
-        self._threshold = str(cfg.get_value("threshold"))
-        self._skip_crop = strtobool(cfg.get_value("skip_crop"))
-        self._timeout = str(cfg.get_value("timeout"))
+        self._identifier = str( cfg.get_value( "identifier" ) )
+        self._config_file = str( cfg.get_value( "config_file" ) )
+        self._seed_model = str( cfg.get_value( "seed_model" ) )
+        self._train_directory = str( cfg.get_value( "train_directory" ) )
+        self._output_directory = str( cfg.get_value( "output_directory" ) )
+        self._output_prefix = str( cfg.get_value( "output_prefix" ) )
+        self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
+        self._gpu_count = int( cfg.get_value( "gpu_count" ) )
+        self._max_epochs = str( cfg.get_value( "max_epochs" ) )
+        self._batch_size = str( cfg.get_value( "batch_size" ) )
+        self._crop_size = int( cfg.get_value( "crop_size" ) )
+        self._threshold = str( cfg.get_value( "threshold" ) )
+        self._skip_crop = strtobool( cfg.get_value( "skip_crop" ) )
+        self._samples_per_sequence = int( cfg.get_value( "samples_per_sequence" ) )
+        self._resume_model = str( cfg.get_value( "resume_model" ) )
+        self._backbone_seed = str( cfg.get_value( "backbone_seed" ) )
+        self._sequence_manifest = str( cfg.get_value( "sequence_manifest" ) )
+        self._timeout = str( cfg.get_value( "timeout" ) )
 
         # Check GPU availability
         try:
             import torch
-
             if torch.cuda.is_available():
                 if self._gpu_count < 0:
                     self._gpu_count = torch.cuda.device_count()
         except ImportError:
-            print("PyTorch not available, defaulting to 1 GPU")
+            print( "PyTorch not available, defaulting to 1 GPU" )
             if self._gpu_count < 0:
                 self._gpu_count = 1
 
         # Create directories
         if self._train_directory:
-            if not os.path.exists(self._train_directory):
-                os.makedirs(self._train_directory)
+            if not os.path.exists( self._train_directory ):
+                os.makedirs( self._train_directory )
 
         if self._output_directory:
-            if not os.path.exists(self._output_directory):
-                os.makedirs(self._output_directory)
+            if not os.path.exists( self._output_directory ):
+                os.makedirs( self._output_directory )
 
         return True
 
-    def check_configuration(self, cfg):
-        if not cfg.has_value("identifier") or len(cfg.get_value("identifier")) == 0:
-            print("A model identifier must be specified!")
+    def check_configuration( self, cfg ):
+        if not cfg.has_value( "identifier" ) or \
+          len( cfg.get_value( "identifier") ) == 0:
+            print( "A model identifier must be specified!" )
             return False
         return True
 
-    def add_data_from_disk(
-        self, categories, train_files, train_tracks, test_files, test_tracks
-    ):
+    def add_data_from_disk( self, categories, train_files, train_tracks,
+                            test_files, test_tracks ):
         """
         Store track data for later processing during update_model.
 
         The track data will be converted to SiamMask training format
         (cropped image pairs) when update_model is called.
         """
-        print("Adding training data from disk...")
-        print("  Training files: ", len(train_files))
-        print("  Training tracks: ", len(train_tracks))
-        print("  Test files: ", len(test_files))
-        print("  Test tracks: ", len(test_tracks))
+        print( "Adding training data from disk..." )
+        print( "  Training files: ", len( train_files ) )
+        print( "  Training tracks: ", len( train_tracks ) )
+        print( "  Test files: ", len( test_files ) )
+        print( "  Test tracks: ", len( test_tracks ) )
 
         if categories is not None:
             self._categories = categories.all_class_names()
         else:
             self._categories = []
 
-        self._train_image_files = list(train_files)
-        self._train_tracks = list(train_tracks)
-        self._test_image_files = list(test_files)
-        self._test_tracks = list(test_tracks)
+        self._train_image_files = list( train_files )
+        self._train_tracks = list( train_tracks )
+        self._test_image_files = list( test_files )
+        self._test_tracks = list( test_tracks )
 
-    def _prepare_training_data(self):
+    def _visible_gpu_count( self ):
+        """Devices this training may use, at least one.
+
+        CUDA_VISIBLE_DEVICES is what actually bounds the process, and the
+        gpu_count setting caps it further when it is set to a positive number.
         """
-        Convert track data to SiamMask training format.
+        visible = os.environ.get( "CUDA_VISIBLE_DEVICES" )
 
-        Each track_set in _train_tracks represents a sequence/video and contains
-        all tracks for that sequence. Each track spans multiple frames with
-        consistent track IDs.
+        if visible is not None:
+            count = len( [ d for d in visible.split( "," ) if d.strip() ] )
+        else:
+            try:
+                import torch
+                count = torch.cuda.device_count()
+            except Exception:
+                count = 1
 
-        This creates:
-        - crop_{crop_size}/ directory with cropped images
-        - dataset.json with track annotations in SiamMask format
+        if self._gpu_count and self._gpu_count > 0:
+            count = min( count, self._gpu_count )
+
+        return max( count, 1 )
+
+    def _prepare_training_data( self ):
         """
-        import json
+        Lay out training data in the form par_crop and gen_json consume.
 
-        crop_dir = os.path.join(self._train_directory, f"crop{self._crop_size}")
-        if os.path.exists(crop_dir):
-            shutil.rmtree(crop_dir)
-        os.makedirs(crop_dir)
+        Per sequence, under the training directory:
+        - sequence_XXXX/frame_NNNNNN.jpg  symlinks to the annotated frames
+        - sequence_XXXX/groundtruth.csv   VIAME CSV for those frames
+        - sequence_XXXX/masks/*.png       per detection masks, where the
+                                          groundtruth segments rather than
+                                          just boxes
 
-        dataset = {}
+        par_crop then writes crop511/ from that, and gen_json writes
+        dataset.json from the crops. Neither is produced here. This used to
+        write a dataset.json directly and create an empty crop511, but
+        gen_json always runs and overwrote it with {} because there was no
+        image and CSV layout for it to read, so training loaded no data at
+        all.
 
-        # Process training track sets
-        # Each track_set is a sequence containing tracks that span multiple frames
-        print("Preparing training data for SiamMask...")
-        print(f"  Processing {len(self._train_tracks)} track sets")
+        A mask is written whenever the detection carries one, which requires
+        poly_to_mask on the track reader for polygon groundtruth. kwiver's
+        convention is that the mask is already cropped to the bounding box, so
+        it is stored that way and par_crop places it back into the frame. Its
+        file name goes in a tenth CSV column, which the readers downstream
+        ignore since they index the first seven. A detection without one
+        leaves that column empty and trains boxes only, so a mixed dataset
+        needs no special handling.
+        """
+        # One image map per sequence. A frame id is a position within its own
+        # sequence, so resolving it against the flat list of every sequence's
+        # images only ever worked for the first one.
+        image_maps, _names = read_sequence_manifest(
+            self._sequence_manifest, self._train_image_files,
+            len( self._train_tracks ) )
 
-        for seq_idx, track_set in enumerate(self._train_tracks):
+        if image_maps is None:
+            image_maps, _names = build_sequence_maps(
+                self._train_image_files, len( self._train_tracks ), "training",
+                _frame_bounds( self._train_tracks ) )
+
+        print( "Preparing training data for SiamMask..." )
+        print( f"  Processing {len(self._train_tracks)} track sets" )
+
+        # Clear sequences left by an earlier run so they cannot be picked up
+        for stale in glob( os.path.join( self._train_directory, "sequence_*" ) ):
+            if os.path.isdir( stale ):
+                shutil.rmtree( stale )
+
+        sequence_count = 0
+        annotation_count = 0
+        mask_count = 0
+
+        for seq_idx, track_set in enumerate( self._train_tracks ):
             if track_set is None:
                 continue
 
             seq_name = f"sequence_{seq_idx:04d}"
-            video_data = {}
+            seq_dir = os.path.join( self._train_directory, seq_name )
+            mask_dir = None
+            image_map = image_maps[ seq_idx ]
 
-            # Get all tracks in this sequence
-            tracks = track_set.tracks()
-            print(f"  Sequence {seq_idx}: {len(tracks)} tracks")
+            # frame id -> [ ( track_id, x1, y1, x2, y2, mask ) ]
+            frame_annotations = {}
 
-            for track in tracks:
-                track_id = track.id
-                track_key = f"{track_id:06d}"
-
-                if track_key not in video_data:
-                    video_data[track_key] = {}
-
-                # Iterate through all states (frames) in this track
+            for track in track_set.tracks():
                 for state in track:
-                    frame_id = state.frame_id
                     det = state.detection()
 
                     if det is None:
                         continue
 
                     bbox = det.bounding_box
-                    x1 = int(bbox.min_x())
-                    y1 = int(bbox.min_y())
-                    x2 = int(bbox.max_x())
-                    y2 = int(bbox.max_y())
-                    w = x2 - x1
-                    h = y2 - y1
-                    cx = x1 + w // 2
-                    cy = y1 + h // 2
+                    x1 = int( bbox.min_x() )
+                    y1 = int( bbox.min_y() )
+                    x2 = int( bbox.max_x() )
+                    y2 = int( bbox.max_y() )
 
-                    frame_key = f"{frame_id:06d}"
-                    video_data[track_key][frame_key] = [cx, cy, w, h]
+                    # Zero area boxes crop to nothing
+                    if x2 <= x1 or y2 <= y1:
+                        continue
 
-            if video_data:
-                dataset[seq_name] = video_data
-                total_frames = sum(len(v) for v in video_data.values())
-                print(
-                    f"    Added {len(video_data)} tracks, {total_frames} total annotations"
-                )
+                    frame_annotations.setdefault( state.frame_id, [] ).append(
+                        ( track.id, x1, y1, x2, y2,
+                          self._detection_mask( det ) )
+                    )
 
-        # Write dataset.json
-        dataset_file = os.path.join(self._train_directory, "dataset.json")
-        with open(dataset_file, "w") as f:
-            json.dump(dataset, f, indent=2)
+            if not frame_annotations:
+                continue
 
-        total_tracks = sum(len(v) for v in dataset.values())
-        print(
-            f"Created dataset.json with {len(dataset)} sequences, {total_tracks} total tracks"
-        )
+            os.makedirs( seq_dir )
 
-        return dataset_file
+            # Frames are numbered by position rather than by their id in the
+            # source clip, so the CSV frame column doubles as an index into the
+            # sorted image list, which is what crop_video falls back to when it
+            # cannot resolve the file name directly
+            rows = []
+
+            for position, frame_id in enumerate( sorted( frame_annotations ) ):
+                src = image_map.get( frame_id )
+
+                if src is None or not os.path.exists( src ):
+                    continue
+
+                image_name = f"frame_{position:06d}.jpg"
+                os.symlink( os.path.realpath( src ),
+                            os.path.join( seq_dir, image_name ) )
+
+                for track_id, x1, y1, x2, y2, mask in \
+                        frame_annotations[ frame_id ]:
+                    mask_name = ""
+
+                    if mask is not None:
+                        if mask_dir is None:
+                            mask_dir = os.path.join( seq_dir, "masks" )
+                            os.makedirs( mask_dir )
+
+                        mask_name = "masks/{:06d}_{}.png".format(
+                            position, track_id )
+
+                        cv2.imwrite( os.path.join( seq_dir, mask_name ),
+                                     mask * 255 )
+                        mask_count += 1
+
+                    rows.append( "{},{},{},{},{},{},{},1.0,-1,{}\n".format(
+                        track_id, image_name, position,
+                        x1, y1, x2, y2, mask_name ) )
+
+            if not rows:
+                shutil.rmtree( seq_dir )
+                continue
+
+            with open( os.path.join( seq_dir, "groundtruth.csv" ), 'w' ) as f:
+                f.writelines( rows )
+
+            sequence_count += 1
+            annotation_count += len( rows )
+
+            print( f"    {seq_name}: {len(frame_annotations)} frames, "
+                   f"{len(rows)} annotations" )
+
+        print( f"Prepared {sequence_count} sequences, "
+               f"{annotation_count} annotations for cropping, "
+               f"{mask_count} of them with a mask" )
+
+        if not mask_count:
+            print( "  No masks in the groundtruth. The mask head will keep "
+                   "whatever weights it was seeded with and only the box "
+                   "branches will train. Polygon groundtruth reaches here "
+                   "only with poly_to_mask set on the track reader." )
+
+        return self._train_directory
+
+    @staticmethod
+    def _detection_mask( det ):
+        """This detection's mask as a uint8 0/1 array, or None.
+
+        kwiver hands it over cropped to the bounding box rather than the size
+        of the frame, which is the form it is stored in.
+        """
+        try:
+            container = det.mask
+
+            if container is None:
+                return None
+
+            mask = container.image().asarray()
+        except Exception:
+            return None
+
+        if mask is None:
+            return None
+
+        mask = np.asarray( mask )
+
+        if mask.size == 0:
+            return None
+
+        if mask.ndim == 3:
+            mask = mask[ ..., 0 ]
+
+        return ( mask > 0 ).astype( np.uint8 )
 
     @report_cuda_errors("SiamMaskTrainer training")
-    def update_model(self):
+    def update_model( self ):
         """
         Run the SiamMask training process.
         """
-        print("Starting SiamMask training...")
+        print( "Starting SiamMask training..." )
 
         # Prepare training data
         dataset_file = self._prepare_training_data()
 
-        # Build training command
-        python_exe = "python.exe" if os.name == "nt" else "python"
+        # The non-zero ranks wait on this file for rank zero to finish
+        # cropping. One left behind by an interrupted run would release them
+        # immediately, against a crop511 that is half built or absent.
+        stale_flag = os.path.join( self._train_directory, ".prep_complete" )
 
-        cmd = [
-            python_exe,
-            "-m",
+        if os.path.exists( stale_flag ):
+            os.remove( stale_flag )
+
+        # Build training command
+        python_exe = "python.exe" if os.name == 'nt' else "python"
+
+        # SiamMask training is genuinely distributed -- it wraps the model in
+        # DistModule, reduces gradients across ranks and switches to a
+        # DistributedSampler once the world size exceeds one. Launched as a
+        # plain "python -m" it only ever forms a single rank process group and
+        # uses one device no matter how many are visible, so hand it to
+        # torch.distributed.run when there is more than one to use.
+        train_gpus = self._visible_gpu_count()
+
+        cmd = [ python_exe, "-m" ]
+
+        if train_gpus > 1:
+            cmd = [
+                python_exe, "-m", "torch.distributed.run",
+                "--standalone",
+                "--nproc-per-node", str( train_gpus ),
+                "-m",
+            ]
+
+        cmd += [
             "viame.pytorch.siammask.siammask_trainer",
-            "-i",
-            self._train_directory,
-            "-s",
-            self._train_directory,
-            "-t",
-            self._threshold,
+            "-i", self._train_directory,
+            "-s", self._train_directory,
+            "-t", self._threshold,
         ]
 
+        # The architecture config. Required by the training entry point, so
+        # say what is missing here rather than letting it exit on an argparse
+        # usage dump that names neither the option nor the file it wanted.
         if self._config_file:
-            cmd.extend(["-c", self._config_file])
+            if not os.path.exists( self._config_file ):
+                raise RuntimeError(
+                    "siammask config_file does not exist: {}".format(
+                        self._config_file ) )
+
+            config_file = self._config_file
         else:
-            # Use default config
-            default_config = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "siammask",
-                "experiments",
-                "siammask_r50_l3.yaml",
+            config_file = os.path.join(
+                os.path.dirname( os.path.realpath( __file__ ) ),
+                "siammask", "experiments", "siammask_r50_l3.yaml"
             )
-            if os.path.exists(default_config):
-                cmd.extend(["-c", default_config])
+
+            if not os.path.exists( config_file ):
+                raise RuntimeError(
+                    "no siammask architecture config. Set "
+                    "tracker_trainer:siammask:config_file in the settings "
+                    "file; the standard training config points it at "
+                    "models/siammask_default.yaml. The built in fallback "
+                    "{} is not present in this install.".format( config_file ) )
+
+        cmd.extend( [ "-c", config_file ] )
 
         if self._skip_crop:
-            cmd.append("--skip-crop")
+            cmd.append( "--skip-crop" )
 
-        print("Running command: " + " ".join(cmd))
+        cmd.append( "--samples-per-sequence={}".format(
+            self._samples_per_sequence ) )
+
+        if self._resume_model:
+            cmd.append( "--resume=" + self._resume_model )
+
+        if self._backbone_seed:
+            cmd.append( "--backbone-pretrained=" + self._backbone_seed )
+
+        # seed_model was read from the config but never reached training, so
+        # fine tuning silently started from scratch. It is loaded over the
+        # whole network via TRAIN.PRETRAINED.
+        if self._seed_model:
+            cmd.extend( [ "--pretrained", self._seed_model ] )
+
+        print( "Running command: " + " ".join( cmd ) )
 
         # Handle interrupt signals
-        if threading.current_thread().__class__.__name__ == "_MainThread":
-            signal.signal(signal.SIGINT, lambda sig, frame: self._interrupt_handler())
-            signal.signal(signal.SIGTERM, lambda sig, frame: self._interrupt_handler())
+        if threading.current_thread().__class__.__name__ == '_MainThread':
+            signal.signal( signal.SIGINT, lambda sig, frame: self._interrupt_handler() )
+            signal.signal( signal.SIGTERM, lambda sig, frame: self._interrupt_handler() )
 
-        self.proc = subprocess.Popen(cmd)
+        # dist_init() reads RANK and then init_process_group. Under
+        # torch.distributed.run those variables are set per worker, so they are
+        # only described here for the single device launch, which would
+        # otherwise die with KeyError: 'RANK'.
+        train_env = os.environ.copy()
+
+        if train_gpus <= 1:
+            train_env.setdefault( "RANK", "0" )
+            train_env.setdefault( "LOCAL_RANK", "0" )
+            train_env.setdefault( "WORLD_SIZE", "1" )
+            train_env.setdefault( "MASTER_ADDR", "127.0.0.1" )
+
+            if "MASTER_PORT" not in train_env:
+                sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+                sock.bind( ( "", 0 ) )
+                train_env[ "MASTER_PORT" ] = str( sock.getsockname()[1] )
+                sock.close()
+
+        self.proc = subprocess.Popen( cmd, env=train_env )
         self.proc.wait()
 
         self._save_final_model()
 
-        print("\nSiamMask training complete!\n")
+        print( "\nSiamMask training complete!\n" )
 
         return {"type": "siammask"}
 
-    def _interrupt_handler(self):
-        self.proc.send_signal(signal.SIGINT)
+    def _interrupt_handler( self ):
+        self.proc.send_signal( signal.SIGINT )
         timeout = 0
         while self.proc.poll() is None:
-            time.sleep(0.1)
+            time.sleep( 0.1 )
             timeout += 0.1
             if timeout > 5:
                 self.proc.kill()
                 break
         self._save_final_model()
-        sys.exit(0)
+        sys.exit( 0 )
 
-    def _save_final_model(self):
+    def _save_final_model( self ):
         """
         Copy trained model to output directory and generate pipeline file.
         """
-        if not self._pipeline_template:
-            return
+        # The model is copied whether or not a pipeline template was given.
+        # Returning early on an empty template used to skip the copy as well,
+        # so a run that trained for nineteen hours and reported "training
+        # completed successfully" left category_models empty and was marked
+        # FAILED for having no model in it.
 
         # Find the latest checkpoint
-        snapshot_dir = os.path.join(self._train_directory, "snapshot")
-        if not os.path.exists(snapshot_dir):
-            print("No snapshot directory found")
+        snapshot_dir = os.path.join( self._train_directory, "snapshot" )
+        if not os.path.exists( snapshot_dir ):
+            print( "No snapshot directory found" )
             return
 
-        checkpoints = sorted(
-            [
-                f
-                for f in os.listdir(snapshot_dir)
-                if f.startswith("checkpoint_e") and f.endswith(".pth")
-            ]
-        )
+        def epoch_of( name ):
+            return int( name[ len( "checkpoint_e" ):-len( ".pth" ) ] )
+
+        checkpoints = [
+            f for f in os.listdir( snapshot_dir )
+            if f.startswith( "checkpoint_e" ) and f.endswith( ".pth" )
+        ]
+
+        # By epoch, not by name. Sorted as strings, checkpoint_e9 comes after
+        # checkpoint_e20, so a twenty epoch run shipped the ninth epoch.
+        try:
+            checkpoints.sort( key=epoch_of )
+        except ValueError:
+            checkpoints.sort()
 
         if not checkpoints:
-            print("No checkpoints found")
+            print( "No checkpoints found" )
             return
 
-        latest_checkpoint = checkpoints[-1]
-        src_model = os.path.join(snapshot_dir, latest_checkpoint)
+        latest_checkpoint = checkpoints[ -1 ]
+        src_model = os.path.join( snapshot_dir, latest_checkpoint )
         output_model_name = "trained_tracker.pth"
-        dst_model = os.path.join(self._output_directory, output_model_name)
+        dst_model = os.path.join( self._output_directory, output_model_name )
 
-        copyfile(src_model, dst_model)
-        print(f"Copied model to {dst_model}")
+        copyfile( src_model, dst_model )
+        print( f"Copied model to {dst_model}" )
 
-        # Generate pipeline file from template
-        if os.path.exists(self._pipeline_template):
-            with open(self._pipeline_template, "r") as fin:
+        # Generate pipeline file from template, where one was given
+        if self._pipeline_template and os.path.exists( self._pipeline_template ):
+            with open( self._pipeline_template, 'r' ) as fin:
                 template_content = fin.read()
 
             pipeline_content = template_content.replace(
                 "[-MODEL-FILE-]", output_model_name
             )
 
-            output_pipeline = os.path.join(self._output_directory, "tracker.pipe")
+            output_pipeline = os.path.join(
+                self._output_directory, "tracker.pipe"
+            )
 
-            with open(output_pipeline, "w") as fout:
-                fout.write(pipeline_content)
+            with open( output_pipeline, 'w' ) as fout:
+                fout.write( pipeline_content )
 
-            print(f"Generated pipeline file: {output_pipeline}")
+            print( f"Generated pipeline file: {output_pipeline}" )
+
+
+
+class SiamRPNTrainer(SiamMaskTrainer):
+    """SiamRPN++ variant.
+
+    The same trainer drives both architectures; which one is built is decided
+    by MASK and REFINE in the yaml each config points at. Registration pins a
+    plugin name onto the class, so the second name needs its own type for a
+    training to be able to select it by tracker name and get the matching
+    config.
+    """
 
 
 def __vital_algorithm_register__():
@@ -356,4 +606,7 @@ def __vital_algorithm_register__():
 
     register_vital_algorithm(
         SiamMaskTrainer, "siammask", "PyTorch SiamMask tracker training routine"
+    )
+    register_vital_algorithm(
+        SiamRPNTrainer, "siamrpn", "PyTorch SiamRPN++ tracker training routine"
     )

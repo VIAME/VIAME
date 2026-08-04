@@ -70,6 +70,11 @@ public:
       "Optional processing batch size to send to the detector.",
       1 ),
     PARAM_DEFAULT(
+      min_refine_dimension, int,
+      "Detections smaller than this in either dimension are passed through "
+      "unmodified rather than refined",
+      1 ),
+    PARAM_DEFAULT(
       min_detection_dim, int,
       "Minimum detection dimension in original image space.",
       1 ),
@@ -123,7 +128,13 @@ public:
 
 private:
 
-
+  // Core windowing refinement. Refines every input detection that overlaps a
+  // processing region; detections too small/degenerate to refine are handled
+  // by the public refine() wrapper (passed through unmodified) so that the
+  // returned set stays 1:1 with the input.
+  kwiver::vital::detected_object_set_sptr refine_core(
+    kwiver::vital::image_container_sptr image_data,
+    kwiver::vital::detected_object_set_sptr detections ) const;
 };
 
 } // end namespace viame

@@ -72,6 +72,14 @@ protected:
   void set_configuration_internal( kwiver::vital::config_block_sptr config ) override;
 
 private:
+  // Core windowing refinement. Refines every input detection that overlaps a
+  // processing region; detections too small/degenerate to refine are handled
+  // by the public refine() wrapper (passed through unmodified) so that the
+  // returned set stays 1:1 with the input.
+  kwiver::vital::detected_object_set_sptr refine_core(
+    kwiver::vital::image_container_sptr image_data,
+    kwiver::vital::detected_object_set_sptr detections ) const;
+
   window_settings m_settings;
   kwiver::vital::algo::refine_detections_sptr m_refiner;
   kwiver::vital::logger_handle_t m_logger;
