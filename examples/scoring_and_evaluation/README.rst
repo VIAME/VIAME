@@ -46,6 +46,26 @@ Common options accepted by all scripts:
 | ``--json-curves`` -- Also inline the full PR and ROC curve points in that
   JSON. Off by default: the curves carry one point per detection, so a large
   run would inline millions.
+| ``--labels`` -- Class synonym file, so a model and its groundtruth may use
+  different vocabularies. One class per line: ``canonical: alias1, alias2``.
+| ``--list`` -- Text file of frame identifiers; only those frames are scored,
+  on both sides.
+| ``--input-format`` -- ``viame_csv`` (default) or any kwiver reader: coco,
+  cvat, dive, habcam, yolo.
+| ``--track-detections`` -- In a folder holding both ``*_detections.csv`` and
+  ``*_tracks.csv``, score the track files instead.
+| ``--top-class`` -- Consider only each detection's highest scoring class.
+  By default a detection naming several classes is offered to each of them.
+| ``--aux-confidence`` -- Rank on the detection confidence column rather than
+  the per-class score.
+| ``--defaultlabel`` -- Class name for detections carrying none.
+| ``--sweep-thresholds`` / ``--sweep-interval`` -- Score across a range of
+  confidence thresholds and report, per class, the threshold maximising IDF1
+  and the one maximising MOTA.
+| ``--filter-estimator`` / ``--output-sweep`` -- Turn those swept thresholds
+  into a DIVE confidence filter (``none``, ``min``, ``avg``,
+  ``avg_minus_1p``, ``idf1``, ``mota``), written with ``class_metrics.csv``
+  into the sweep directory.
 | ``--output-plots`` -- Render PRC, ROC, confusion matrix and score histograms.
 | ``--output-pr-csv`` / ``--output-roc-csv`` / ``--output-conf-csv`` -- Write the
   underlying curve and matrix data as CSV, so it can be replotted or diffed

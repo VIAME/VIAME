@@ -5,6 +5,9 @@
 #include "evaluate_models.h"
 
 #include <vital/logger/logger.h>
+#include <vital/algo/algorithm.txx>
+#include <vital/algo/detected_object_set_input.h>
+#include <vital/config/config_block.h>
 
 #include <filesystem>
 
@@ -36,9 +39,32 @@ struct detection
   std::string frame_name;         // Image/video identifier
   double x1 = 0, y1 = 0;          // Top-left corner
   double x2 = 0, y2 = 0;          // Bottom-right corner
-  double confidence = 1.0;        // Detection confidence
-  std::string class_name;         // Primary class label
+  double confidence = 1.0;        // Confidence used for scoring
+  double aux_confidence = 1.0;    // Column 7, the detection/objectness score
+  std::string class_name;         // Primary (highest scoring) class label
   double class_confidence = 1.0;  // Confidence for primary class
+
+  // Every (class, score) pair the row carried. Per-class scoring consults all
+  // of them unless top_class_only is set, so a detection hedging across two
+  // classes is offered to both rather than silently only to its best.
+  std::vector< std::pair< std::string, double > > class_scores;
+
+  /// Score this detection carries for a given class, or -1 if it names none.
+  double score_for_class( const std::string& name, bool top_only ) const
+  {
+    if( top_only )
+    {
+      return ( class_name == name ) ? class_confidence : -1.0;
+    }
+    for( const auto& cs : class_scores )
+    {
+      if( cs.first == name )
+      {
+        return cs.second;
+      }
+    }
+    return ( class_name == name ) ? class_confidence : -1.0;
+  }
 
   double width() const { return x2 - x1; }
   double height() const { return y2 - y1; }
@@ -125,6 +151,23 @@ public:
   ///
   /// Frame and track IDs are remapped into a global namespace so that IDs from
   /// different sequences never collide (see remap_frame_id / remap_track_id).
+  /// Map a class name through the configured synonyms, or return it unchanged.
+  std::string canonical_label( const std::string& name ) const
+  {
+    auto it = m_config.label_synonyms.find( name );
+    return ( it != m_config.label_synonyms.end() ) ? it->second : name;
+  }
+
+  /// Unfiltered copies kept by evaluate() so a sweep can re-filter cheaply
+  std::vector< detection > m_computed_all;
+  std::vector< detection > m_groundtruth_all;
+
+  /// Read a non-CSV format through the matching kwiver reader plugin.
+  bool parse_via_kwiver( const std::string& filepath,
+                         std::vector< detection >& detections,
+                         bool is_ground_truth,
+                         int sequence_id );
+
   bool parse_viame_csv( const std::string& filepath,
                         std::vector< detection >& detections,
                         bool is_ground_truth,
@@ -243,6 +286,143 @@ model_evaluator::priv::remap_track_id( int sequence_id, int track_id,
   return mapped;
 }
 
+
+bool
+model_evaluator::priv::parse_via_kwiver( const std::string& filepath,
+                                         std::vector< detection >& detections,
+                                         bool is_ground_truth,
+                                         int sequence_id )
+{
+  namespace kv = kwiver::vital;
+
+  kv::algo::detected_object_set_input_sptr reader;
+
+  try
+  {
+    auto config = kv::config_block::empty_config();
+    config->set_value( "reader:type", m_config.input_format );
+    kv::set_nested_algo_configuration< kv::algo::detected_object_set_input >(
+      "reader", config, reader );
+  }
+  catch( const std::exception& e )
+  {
+    LOG_ERROR( m_logger, "Could not create reader for format '"
+               << m_config.input_format << "': " << e.what() );
+    return false;
+  }
+
+  if( !reader )
+  {
+    LOG_ERROR( m_logger, "No reader registered for input format: "
+               << m_config.input_format );
+    return false;
+  }
+
+  const size_t initial_count = detections.size();
+
+  try
+  {
+    reader->open( filepath );
+  }
+  catch( const std::exception& e )
+  {
+    LOG_ERROR( m_logger, "Failed to open " << filepath << ": " << e.what() );
+    return false;
+  }
+
+  kv::detected_object_set_sptr set;
+  std::string image_name;
+  int frame_counter = 0;
+
+  // These formats carry no frame index, only an ordered stream of image names,
+  // so frames are numbered by arrival. Both sides are read the same way, which
+  // keeps computed and groundtruth aligned as long as they list the same
+  // images in the same order.
+  while( reader->read_set( set, image_name ) )
+  {
+    const int frame_id = remap_frame_id( sequence_id, frame_counter++ );
+
+    if( !set )
+    {
+      continue;
+    }
+
+    int local_id = 0;
+    for( const auto det_sptr : *set )
+    {
+      if( !det_sptr )
+      {
+        continue;
+      }
+
+      detection det;
+      const auto bbox = det_sptr->bounding_box();
+      det.x1 = bbox.min_x();
+      det.y1 = bbox.min_y();
+      det.x2 = bbox.max_x();
+      det.y2 = bbox.max_y();
+      det.frame_id = frame_id;
+      det.frame_name = image_name;
+      det.id = local_id;
+      det.track_id = remap_track_id( sequence_id, local_id, is_ground_truth );
+      local_id++;
+
+      det.confidence = det_sptr->confidence();
+      det.aux_confidence = det.confidence;
+      det.class_name = m_config.default_label.empty() ? "unknown"
+                                                      : m_config.default_label;
+      det.class_confidence = det.confidence;
+
+      if( auto type = det_sptr->type() )
+      {
+        double best = -std::numeric_limits< double >::max();
+        for( const auto& name : type->class_names() )
+        {
+          const double score = type->score( name );
+          const std::string mapped = canonical_label( name );
+          det.class_scores.emplace_back( mapped, score );
+          if( score > best )
+          {
+            best = score;
+            det.class_name = mapped;
+            det.class_confidence = score;
+          }
+        }
+      }
+
+      if( !m_config.use_aux_confidence )
+      {
+        det.confidence = det.class_confidence;
+      }
+
+      if( !std::isfinite( det.x1 ) || !std::isfinite( det.y1 ) ||
+          !std::isfinite( det.x2 ) || !std::isfinite( det.y2 ) ||
+          !std::isfinite( det.confidence ) )
+      {
+        continue;
+      }
+
+      if( !m_config.frame_whitelist.empty() &&
+          !m_config.frame_whitelist.count( det.frame_name ) )
+      {
+        continue;
+      }
+
+      if( is_ground_truth || det.confidence >= m_config.confidence_threshold )
+      {
+        detections.push_back( det );
+      }
+    }
+  }
+
+  reader->close();
+
+  LOG_INFO( m_logger, "Loaded " << ( detections.size() - initial_count )
+            << " detections from " << filepath << " as "
+            << m_config.input_format );
+  return true;
+}
+
 bool
 model_evaluator::priv::parse_viame_csv( const std::string& filepath,
                                         std::vector< detection >& detections,
@@ -321,6 +501,7 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
 
       // Column 7: Detection confidence
       det.confidence = std::stod( tokens[7] );
+      det.aux_confidence = det.confidence;
 
       if( !std::isfinite( det.x1 ) || !std::isfinite( det.y1 ) ||
           !std::isfinite( det.x2 ) || !std::isfinite( det.y2 ) ||
@@ -340,7 +521,7 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
 
       if( tokens.size() >= 10 && !tokens[9].empty() )
       {
-        det.class_name = tokens[9];
+        det.class_name = canonical_label( tokens[9] );
         double best_score = -std::numeric_limits< double >::max();
         bool have_score = false;
 
@@ -361,10 +542,18 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
             break;  // Not a (class, score) pair, stop scanning
           }
 
-          if( std::isfinite( score ) && score > best_score )
+          if( !std::isfinite( score ) )
+          {
+            continue;
+          }
+
+          const std::string mapped = canonical_label( tokens[t] );
+          det.class_scores.emplace_back( mapped, score );
+
+          if( score > best_score )
           {
             best_score = score;
-            det.class_name = tokens[t];
+            det.class_name = mapped;
             have_score = true;
           }
         }
@@ -373,6 +562,28 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
         {
           det.class_confidence = best_score;
         }
+      }
+
+      if( det.class_name == "unknown" && !m_config.default_label.empty() )
+      {
+        det.class_name = m_config.default_label;
+      }
+
+      // Which confidence drives ranking and thresholding. The per-class score
+      // is the default, matching how these files are normally interpreted;
+      // --aux-confidence selects the column 7 objectness instead.
+      if( !m_config.use_aux_confidence )
+      {
+        det.confidence = det.class_confidence;
+      }
+
+      // A frame list restricts scoring to named frames. Applied to both sides
+      // so an excluded frame contributes neither detections nor missed
+      // groundtruth, rather than counting as pure false negatives.
+      if( !m_config.frame_whitelist.empty() &&
+          !m_config.frame_whitelist.count( det.frame_name ) )
+      {
+        continue;
       }
 
       // Ground truth is never confidence filtered: GT rows routinely carry a
@@ -2461,6 +2672,14 @@ model_evaluator::priv::compute_per_class_metrics( evaluation_results& results )
   for( const auto& d : m_computed )
   {
     all_classes.insert( d.class_name );
+
+    if( !m_config.top_class_only )
+    {
+      for( const auto& cs : d.class_scores )
+      {
+        all_classes.insert( cs.first );
+      }
+    }
   }
 
   // Group detections by class
@@ -2471,9 +2690,34 @@ model_evaluator::priv::compute_per_class_metrics( evaluation_results& results )
   {
     gt_by_class[d.class_name].push_back( d );
   }
+
+  // A detection hedging across classes is offered to each of them, carrying
+  // the score it gave that class -- so a secondary guess is scored as the
+  // weak detection it is instead of vanishing. top_class_only keeps just the
+  // strongest, which is the older behaviour.
   for( const auto& d : m_computed )
   {
-    comp_by_class[d.class_name].push_back( d );
+    if( m_config.top_class_only || d.class_scores.empty() )
+    {
+      comp_by_class[d.class_name].push_back( d );
+      continue;
+    }
+
+    std::set< std::string > seen;
+    for( const auto& cs : d.class_scores )
+    {
+      if( !seen.insert( cs.first ).second )
+      {
+        continue;  // same class listed twice; the first (best) wins
+      }
+
+      detection copy = d;
+      copy.class_name = cs.first;
+      copy.class_confidence = cs.second;
+      copy.confidence =
+        m_config.use_aux_confidence ? d.aux_confidence : cs.second;
+      comp_by_class[cs.first].push_back( copy );
+    }
   }
 
   // Compute metrics for each class
@@ -2728,13 +2972,22 @@ model_evaluator::evaluate(
   {
     const int sequence_id = static_cast< int >( i );
 
-    if( !d->parse_viame_csv( computed_files[i], d->m_computed,
-                             false, sequence_id ) )
+    const bool use_csv = ( d->m_config.input_format.empty() ||
+                           d->m_config.input_format == "viame_csv" );
+
+    if( !( use_csv
+             ? d->parse_viame_csv( computed_files[i], d->m_computed,
+                                   false, sequence_id )
+             : d->parse_via_kwiver( computed_files[i], d->m_computed,
+                                    false, sequence_id ) ) )
     {
       LOG_WARN( d->m_logger, "Failed to parse computed file: " << computed_files[i] );
     }
-    if( !d->parse_viame_csv( groundtruth_files[i], d->m_groundtruth,
-                             true, sequence_id ) )
+    if( !( use_csv
+             ? d->parse_viame_csv( groundtruth_files[i], d->m_groundtruth,
+                                   true, sequence_id )
+             : d->parse_via_kwiver( groundtruth_files[i], d->m_groundtruth,
+                                    true, sequence_id ) ) )
     {
       LOG_WARN( d->m_logger, "Failed to parse groundtruth file: " << groundtruth_files[i] );
     }
@@ -2743,6 +2996,10 @@ model_evaluator::evaluate(
   LOG_INFO( d->m_logger, "Loaded " << d->m_computed.size()
             << " computed detections and " << d->m_groundtruth.size()
             << " ground truth annotations" );
+
+  // Retained so evaluate_loaded() can re-filter without re-parsing
+  d->m_computed_all = d->m_computed;
+  d->m_groundtruth_all = d->m_groundtruth;
 
   // Build caches for efficient processing
   d->build_caches();
@@ -3372,6 +3629,65 @@ model_evaluator::generate_roc_curve()
   }
 
   return result;
+}
+
+
+evaluation_results
+model_evaluator::evaluate_loaded( double confidence_threshold,
+                                  const std::string& class_filter )
+{
+  evaluation_results results;
+
+  if( d->m_computed_all.empty() && d->m_groundtruth_all.empty() )
+  {
+    LOG_ERROR( d->m_logger,
+      "evaluate_loaded() called before evaluate() loaded any data" );
+    results.populate_all_metrics();
+    return results;
+  }
+
+  d->m_computed.clear();
+  d->m_groundtruth.clear();
+
+  for( const auto& det : d->m_computed_all )
+  {
+    if( det.confidence < confidence_threshold )
+    {
+      continue;
+    }
+    if( !class_filter.empty() && det.class_name != class_filter )
+    {
+      continue;
+    }
+    d->m_computed.push_back( det );
+  }
+
+  // Groundtruth is filtered by class but never by confidence, for the same
+  // reason evaluate() does not: dropping it would delete false negatives.
+  for( const auto& gt : d->m_groundtruth_all )
+  {
+    if( !class_filter.empty() && gt.class_name != class_filter )
+    {
+      continue;
+    }
+    d->m_groundtruth.push_back( gt );
+  }
+
+  d->build_caches();
+  d->perform_matching();
+
+  d->compute_detection_metrics( results );
+  d->compute_localization_metrics( results );
+  d->compute_mot_metrics( results );
+  d->compute_hota_metrics( results );
+  d->compute_kwant_metrics( results );
+  d->compute_track_quality_metrics( results );
+  d->compute_average_precision( results );
+  d->compute_multi_threshold_ap( results );
+  d->compute_classification_metrics( results );
+
+  results.populate_all_metrics();
+  return results;
 }
 
 evaluation_plot_data

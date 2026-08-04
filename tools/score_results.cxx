@@ -20,6 +20,7 @@
 #include <map>
 #include <set>
 #include <fstream>
+#include <limits>
 #include <memory>
 #include <iostream>
 #include <sstream>
@@ -58,6 +59,17 @@ public:
   std::string opt_output_pr_csv;     // Output PR curve to CSV
   std::string opt_output_conf_csv;   // Output confusion matrix to CSV
   bool opt_json_curves = false;      // Inline curve points in the JSON
+  std::string opt_labels;            // Class synonym file
+  std::string opt_frame_list;        // Frame list to downselect scoring
+  std::string opt_default_label;     // Label for detections carrying none
+  bool opt_aux_confidence = false;   // Score on column 7 not the class score
+  bool opt_top_class = false;        // Only each detection's best class
+  bool opt_sweep = false;            // Sweep confidence thresholds
+  int opt_sweep_interval = 100;      // Number of thresholds in the sweep
+  std::string opt_filter_estimator = "min";  // DIVE filter estimate method
+  std::string opt_output_sweep;      // Directory for sweep artifacts
+  bool opt_track_detections = false; // Prefer *_tracks.csv over *_detections.csv
+  std::string opt_input_format = "viame_csv";  // Reader for non-CSV inputs
   std::string opt_output_roc_csv;    // Output ROC curve to CSV
   bool opt_print_summary = true;
 
@@ -334,6 +346,254 @@ void print_per_class_metrics( const viame::evaluation_results& results )
 // metrics JSON unconditionally. The curves are one point per detection with no
 // downsampling -- a large run produces millions -- so they are opt-in behind
 // --json-curves rather than silently turning a metrics file into a huge one.
+// Synonym file: "canonical: alias1, alias2" per line, blanks and # ignored.
+// Aliases map onto the canonical name; the canonical name maps to itself so a
+// file may list it explicitly without surprise.
+bool load_label_synonyms( const std::string& path,
+                          std::map< std::string, std::string >& out )
+{
+  std::ifstream in( path );
+  if( !in.is_open() )
+  {
+    LOG_ERROR( g_logger, "Could not open labels file: " << path );
+    return false;
+  }
+
+  auto trim = []( std::string v ) -> std::string
+  {
+    const size_t b = v.find_first_not_of( " \t\r\n" );
+    const size_t e = v.find_last_not_of( " \t\r\n" );
+    return ( b == std::string::npos ) ? std::string() : v.substr( b, e - b + 1 );
+  };
+
+  std::string line;
+  while( std::getline( in, line ) )
+  {
+    line = trim( line );
+    if( line.empty() || line[0] == '#' )
+    {
+      continue;
+    }
+
+    const size_t colon = line.find( ':' );
+    const std::string canonical =
+      trim( colon == std::string::npos ? line : line.substr( 0, colon ) );
+    if( canonical.empty() )
+    {
+      continue;
+    }
+    out[canonical] = canonical;
+
+    if( colon == std::string::npos )
+    {
+      continue;
+    }
+
+    std::stringstream aliases( line.substr( colon + 1 ) );
+    std::string alias;
+    while( std::getline( aliases, alias, ',' ) )
+    {
+      alias = trim( alias );
+      if( !alias.empty() )
+      {
+        out[alias] = canonical;
+      }
+    }
+  }
+
+  LOG_INFO( g_logger, "Loaded " << out.size() << " label mappings from " << path );
+  return true;
+}
+
+bool load_frame_list( const std::string& path, std::set< std::string >& out )
+{
+  std::ifstream in( path );
+  if( !in.is_open() )
+  {
+    LOG_ERROR( g_logger, "Could not open frame list: " << path );
+    return false;
+  }
+
+  std::string line;
+  while( std::getline( in, line ) )
+  {
+    const size_t b = line.find_first_not_of( " \t\r\n" );
+    const size_t e = line.find_last_not_of( " \t\r\n" );
+    if( b == std::string::npos )
+    {
+      continue;
+    }
+    line = line.substr( b, e - b + 1 );
+    if( !line.empty() && line[0] != '#' )
+    {
+      out.insert( line );
+    }
+  }
+
+  LOG_INFO( g_logger, "Scoring restricted to " << out.size()
+            << " frames from " << path );
+  return true;
+}
+
+// A VIAME output folder commonly holds both <seq>_detections.csv and
+// <seq>_tracks.csv for the same sequence. Scoring both would double count, so
+// one form is chosen per sequence: detections by default, tracks when asked.
+std::vector< std::string >
+select_track_or_detection_files( const std::vector< std::string >& files,
+                                 bool prefer_tracks )
+{
+  auto stem_of = []( const std::string& path ) -> std::string
+  {
+    std::string base =
+      kwiversys::SystemTools::GetFilenameWithoutLastExtension( path );
+    for( const char* suffix : { "_detections", "_tracks" } )
+    {
+      const size_t n = std::string( suffix ).size();
+      if( base.size() > n && base.compare( base.size() - n, n, suffix ) == 0 )
+      {
+        return base.substr( 0, base.size() - n );
+      }
+    }
+    return base;
+  };
+
+  auto is_tracks = []( const std::string& path ) -> bool
+  {
+    const std::string base =
+      kwiversys::SystemTools::GetFilenameWithoutLastExtension( path );
+    return base.size() > 7 &&
+           base.compare( base.size() - 7, 7, "_tracks" ) == 0;
+  };
+
+  std::map< std::string, std::string > chosen;
+  std::vector< std::string > passthrough;
+
+  for( const auto& f : files )
+  {
+    const std::string base =
+      kwiversys::SystemTools::GetFilenameWithoutLastExtension( f );
+    const bool tracks = is_tracks( f );
+    const bool dets = base.size() > 11 &&
+                      base.compare( base.size() - 11, 11, "_detections" ) == 0;
+
+    if( !tracks && !dets )
+    {
+      passthrough.push_back( f );
+      continue;
+    }
+
+    const std::string stem = stem_of( f );
+    auto it = chosen.find( stem );
+    if( it == chosen.end() )
+    {
+      chosen[stem] = f;
+    }
+    else if( tracks == prefer_tracks )
+    {
+      it->second = f;  // the preferred form wins the slot
+    }
+  }
+
+  std::vector< std::string > out = passthrough;
+  for( const auto& kv : chosen )
+  {
+    out.push_back( kv.second );
+  }
+  std::sort( out.begin(), out.end() );
+  return out;
+}
+
+// Per class, the threshold maximising IDF1 and the one maximising MOTA.
+// Ordered [idf1, idf1_thresh, mota, mota_thresh] to match the columns the DIVE
+// side has always consumed.
+struct sweep_result
+{
+  double idf1 = -1.0;
+  double idf1_thresh = 0.0;
+  double mota = -std::numeric_limits< double >::max();
+  double mota_thresh = 0.0;
+};
+
+// Turn swept thresholds into the per-class confidence filter DIVE applies.
+// "min" is deliberately the conservative choice: it keeps whichever of the two
+// operating points admits more detections, so the filter never hides anything
+// either metric wanted.
+bool write_dive_filter( const std::string& filepath,
+                        const std::map< std::string, sweep_result >& scores,
+                        const std::string& method )
+{
+  std::map< std::string, double > filters;
+
+  for( const auto& kv : scores )
+  {
+    const auto& v = kv.second;
+    double value = 0.0;
+
+    if( method == "min" )
+    {
+      value = std::min( v.idf1_thresh, v.mota_thresh );
+    }
+    else if( method == "avg" || method == "avg_minus_1p" )
+    {
+      const double adj = ( method == "avg_minus_1p" ) ? -0.01 : 0.0;
+      value = std::max( 0.5 * ( v.idf1_thresh + v.mota_thresh ) + adj, 0.0 );
+    }
+    else if( method == "idf1" )
+    {
+      value = v.idf1_thresh;
+    }
+    else if( method == "mota" )
+    {
+      value = v.mota_thresh;
+    }
+    else
+    {
+      LOG_ERROR( g_logger, "Unknown filter estimator: " << method );
+      return false;
+    }
+
+    filters[kv.first] = value;
+  }
+
+  // DIVE falls back to "default" for any class the file does not name, so
+  // supply the least aggressive per-class filter rather than leaving unlisted
+  // classes unfiltered.
+  if( !filters.count( "default" ) && !filters.empty() )
+  {
+    double min_filter = std::numeric_limits< double >::max();
+    for( const auto& kv : filters )
+    {
+      min_filter = std::min( min_filter, kv.second );
+    }
+    if( min_filter > 0.0 )
+    {
+      filters["default"] = min_filter;
+    }
+  }
+
+  std::ofstream out( filepath );
+  if( !out.is_open() )
+  {
+    LOG_ERROR( g_logger, "Could not open filter file: " << filepath );
+    return false;
+  }
+
+  out << std::fixed << std::setprecision( 6 );
+  out << "{\n    \"confidenceFilters\": {\n";
+  bool first = true;
+  for( const auto& kv : filters )
+  {
+    if( !first ) out << ",\n";
+    out << "        \"" << escape_json( kv.first ) << "\": " << kv.second;
+    first = false;
+  }
+  out << "\n    }\n}\n";
+  out.close();
+
+  LOG_INFO( g_logger, "DIVE confidence filter written to: " << filepath );
+  return true;
+}
+
 bool write_metrics_json( const viame::evaluation_results& results,
                          const std::string& filepath,
                          const viame::evaluation_plot_data* plot_data = nullptr,
@@ -615,6 +875,60 @@ int main( int argc, char* argv[] )
     &g_params.opt_output_conf_csv, "Output confusion matrix to CSV" );
   g_params.m_args.AddArgument( "--output-roc-csv", argT::SPACE_ARGUMENT,
     &g_params.opt_output_roc_csv, "Output ROC curve to CSV" );
+  g_params.m_args.AddArgument( "--input-format", argT::SPACE_ARGUMENT,
+    &g_params.opt_input_format,
+    "Input file format: viame_csv (default) or any kwiver reader such as "
+    "coco, cvat, dive, habcam, yolo" );
+
+  g_params.m_args.AddArgument( "--track-detections", argT::NO_ARGUMENT,
+    &g_params.opt_track_detections,
+    "In a VIAME folder holding both *_detections.csv and *_tracks.csv, score "
+    "the detections stored in the track files instead of the detection files" );
+
+  g_params.m_args.AddArgument( "--sweep-thresholds", argT::NO_ARGUMENT,
+    &g_params.opt_sweep,
+    "Score at a range of confidence thresholds and report, per class, the "
+    "threshold maximising IDF1 and the one maximising MOTA" );
+
+  g_params.m_args.AddArgument( "--sweep-interval", argT::SPACE_ARGUMENT,
+    &g_params.opt_sweep_interval,
+    "Number of thresholds in the sweep (default: 100, i.e. 0.00 to 0.99)" );
+
+  g_params.m_args.AddArgument( "--filter-estimator", argT::SPACE_ARGUMENT,
+    &g_params.opt_filter_estimator,
+    "How to turn the swept thresholds into a DIVE confidence filter: none, "
+    "min, avg, avg_minus_1p, idf1, mota (default: min)" );
+
+  g_params.m_args.AddArgument( "--output-sweep", argT::SPACE_ARGUMENT,
+    &g_params.opt_output_sweep,
+    "Directory for sweep output: class_metrics.csv and, unless the estimator "
+    "is none, dive.config.json" );
+
+  g_params.m_args.AddArgument( "--labels", argT::SPACE_ARGUMENT,
+    &g_params.opt_labels,
+    "Class synonym file mapping alternate names onto canonical ones, so a "
+    "model and its groundtruth may use different vocabularies. One class per "
+    "line: 'canonical: alias1, alias2'" );
+
+  g_params.m_args.AddArgument( "--list", argT::SPACE_ARGUMENT,
+    &g_params.opt_frame_list,
+    "Text file of frame identifiers, one per line. Only these frames are "
+    "scored, on both sides" );
+
+  g_params.m_args.AddArgument( "--defaultlabel", argT::SPACE_ARGUMENT,
+    &g_params.opt_default_label,
+    "Class name to report for detections that carry none" );
+
+  g_params.m_args.AddArgument( "--aux-confidence", argT::NO_ARGUMENT,
+    &g_params.opt_aux_confidence,
+    "Rank and threshold on the detection confidence column rather than the "
+    "per-class score" );
+
+  g_params.m_args.AddArgument( "--top-class", argT::NO_ARGUMENT,
+    &g_params.opt_top_class,
+    "In per-class scoring consider only each detection's highest scoring "
+    "class, instead of every class it names" );
+
   g_params.m_args.AddArgument( "--json-curves", argT::NO_ARGUMENT,
     &g_params.opt_json_curves,
     "Include full PR and ROC curve points in the metrics JSON. Off by default: "
@@ -701,7 +1015,9 @@ int main( int argc, char* argv[] )
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   // Collect input files
-  auto computed_files = collect_files( g_params.opt_computed, g_params.opt_input_ext );
+  auto computed_files = select_track_or_detection_files(
+    collect_files( g_params.opt_computed, g_params.opt_input_ext ),
+    g_params.opt_track_detections );
   auto truth_files = collect_files( g_params.opt_truth, g_params.opt_input_ext );
 
   if( computed_files.empty() )
@@ -760,6 +1076,22 @@ int main( int argc, char* argv[] )
   config.confidence_threshold = g_params.opt_confidence_threshold;
   config.compute_tracking_metrics = g_params.opt_compute_tracking;
   config.compute_per_class_metrics = g_params.opt_per_class;
+  config.use_aux_confidence = g_params.opt_aux_confidence;
+  config.top_class_only = g_params.opt_top_class;
+  config.default_label = g_params.opt_default_label;
+  config.input_format = g_params.opt_input_format;
+
+  if( !g_params.opt_labels.empty() &&
+      !load_label_synonyms( g_params.opt_labels, config.label_synonyms ) )
+  {
+    return EXIT_FAILURE;
+  }
+
+  if( !g_params.opt_frame_list.empty() &&
+      !load_frame_list( g_params.opt_frame_list, config.frame_whitelist ) )
+  {
+    return EXIT_FAILURE;
+  }
 
   // Create evaluator and run evaluation
   viame::model_evaluator evaluator;
@@ -788,6 +1120,111 @@ int main( int argc, char* argv[] )
 
   // Write outputs
   bool success = true;
+
+  // Threshold sweep. evaluate() has already loaded the inputs, so each step
+  // re-filters that copy rather than re-parsing; cost is thresholds x classes
+  // evaluations, which --sweep-interval controls.
+  if( g_params.opt_sweep )
+  {
+    if( g_params.opt_sweep_interval < 1 )
+    {
+      LOG_ERROR( g_logger, "--sweep-interval must be at least 1" );
+      return EXIT_FAILURE;
+    }
+
+    std::set< std::string > sweep_classes;
+    for( const auto& kv : results.per_class_metrics )
+    {
+      sweep_classes.insert( kv.first );
+    }
+    if( sweep_classes.empty() )
+    {
+      // Without --per-class there is nothing to break down, so sweep the
+      // aggregate and report it under a single name.
+      sweep_classes.insert( std::string() );
+    }
+
+    std::map< std::string, sweep_result > sweep_scores;
+
+    LOG_INFO( g_logger, "Sweeping " << g_params.opt_sweep_interval
+              << " thresholds over " << sweep_classes.size() << " class(es)..." );
+
+    for( const auto& class_name : sweep_classes )
+    {
+      sweep_result best;
+
+      for( int i = 0; i < g_params.opt_sweep_interval; ++i )
+      {
+        const double thresh =
+          static_cast< double >( i ) / g_params.opt_sweep_interval;
+
+        const auto r = evaluator.evaluate_loaded( thresh, class_name );
+
+        if( r.idf1 > best.idf1 )
+        {
+          best.idf1 = r.idf1;
+          best.idf1_thresh = thresh;
+        }
+        if( r.mota > best.mota )
+        {
+          best.mota = r.mota;
+          best.mota_thresh = thresh;
+        }
+      }
+
+      sweep_scores[class_name.empty() ? "default" : class_name] = best;
+    }
+
+    const std::string sweep_dir = g_params.opt_output_sweep.empty()
+      ? std::string( "." ) : g_params.opt_output_sweep;
+
+    if( !g_params.opt_output_sweep.empty() &&
+        !kwiversys::SystemTools::FileIsDirectory( sweep_dir ) &&
+        !kwiversys::SystemTools::MakeDirectory( sweep_dir ) )
+    {
+      LOG_ERROR( g_logger, "Could not create sweep output directory: " << sweep_dir );
+      return EXIT_FAILURE;
+    }
+
+    const std::string csv_path = sweep_dir + "/class_metrics.csv";
+    std::ofstream csv( csv_path );
+    if( csv.is_open() )
+    {
+      csv << std::fixed << std::setprecision( 6 );
+      csv << "# class,idf1,idf1_thresh,mota,mota_thresh\n";
+      for( const auto& kv : sweep_scores )
+      {
+        csv << kv.first << "," << kv.second.idf1 << "," << kv.second.idf1_thresh
+            << "," << kv.second.mota << "," << kv.second.mota_thresh << "\n";
+      }
+      csv.close();
+      LOG_INFO( g_logger, "Sweep metrics written to: " << csv_path );
+    }
+    else
+    {
+      LOG_ERROR( g_logger, "Could not open sweep output: " << csv_path );
+      success = false;
+    }
+
+    std::cout << "\n--- Threshold Sweep ---\n";
+    std::cout << std::fixed << std::setprecision( 4 );
+    for( const auto& kv : sweep_scores )
+    {
+      std::cout << "  " << kv.first
+                << ": IDF1 " << kv.second.idf1
+                << " @ " << kv.second.idf1_thresh
+                << ",  MOTA " << kv.second.mota
+                << " @ " << kv.second.mota_thresh << "\n";
+    }
+    std::cout << "\n";
+
+    if( g_params.opt_filter_estimator != "none" )
+    {
+      success = write_dive_filter( sweep_dir + "/dive.config.json",
+                                   sweep_scores,
+                                   g_params.opt_filter_estimator ) && success;
+    }
+  }
 
   // The metrics JSON carries the confusion matrix, and optionally the curves,
   // so it needs the same pass the plot exports use. Generated once up front and
