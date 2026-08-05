@@ -243,6 +243,7 @@ endif()
 # Pytorch specific configs
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_detector_adaptive.conf
     train_detector_default.conf
     train_frame_classifier_default.conf
     train_reclassifier_default.conf
@@ -312,12 +313,20 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    common_train_rf_detr.conf
+    common_train_rf_detr_l_720_box.conf
+    common_train_rf_detr_l_720_seg.conf
+    train_detector_rf_detr_default.conf
     train_detector_rf_detr_n_384.conf
     train_detector_rf_detr_b_560.conf
     train_detector_rf_detr_l_720.conf
     train_detector_rf_detr_l_seg_720.conf
+    train_detector_rf_detr_l_1024.conf
+    train_detector_rf_detr_l_1280.conf
     train_detector_rf_detr_l_1728_mot_mim.conf
     train_detector_rf_detr_l_1728_mot_mim_r2.conf
+    train_detector_rf_detr_l_1728_rgb.conf
+    train_detector_rf_detr_l_seg_1728_mot_all.conf
     train_detector_rf_detr_l_seg_1728_mot_opt.conf
     train_detector_rf_detr_l_seg_1728_mot_opt_r2.conf
     train_detector_rf_detr_l_seg_1728_rgb.conf )
@@ -364,11 +373,13 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_mit_yolo_v9_c_640.conf )
+    train_detector_mit_yolo_v9_c_640.conf
+    train_detector_mit_yolo_v9_s_640.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_tracker_adaptive.conf
     train_tracker_botsort.conf
     train_tracker_deepsort.conf
   )
