@@ -13,7 +13,17 @@ import json
 
 
 def build_and_train(params):
+    import warnings
+
     import torch
+
+    # rfdetr points its CSVLogger at output_dir with no name/version, so
+    # hparams.yaml lands beside the checkpoints and ModelCheckpoint then reports
+    # the directory as non-empty on a clean run. Expected, not a resume.
+    warnings.filterwarnings(
+        "ignore",
+        message=r".*Checkpoint directory .* exists and is not empty.*",
+        module=r"pytorch_lightning\.callbacks\.model_checkpoint")
 
     from viame.pytorch.utilities import (
         apply_rfdetr_stem_lr, ensure_fork_start_method,
