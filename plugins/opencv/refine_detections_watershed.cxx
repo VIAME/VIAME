@@ -25,70 +25,6 @@ namespace kv = kwiver::vital;
 namespace ocv = kwiver::arrows::ocv;
 
 // ----------------------------------------------------------------------------
-// Private implementation class
-class refine_detections_watershed::priv
-{
-public:
-  priv()
-  {
-  }
-
-  bool seed_with_existing_masks = true;
-  double seed_scale_factor = 0.2;
-  double uncertain_scale_factor = 1;
-};
-
-// ----------------------------------------------------------------------------
-// Constructor
-refine_detections_watershed
-::refine_detections_watershed()
-: d_( new priv() )
-{
-}
-
-
-// Destructor
-refine_detections_watershed
-::~refine_detections_watershed()
-{
-}
-
-// ----------------------------------------------------------------------------
-// Get this algorithm's vital::config_block configuration block
-kv::config_block_sptr
-refine_detections_watershed
-::get_configuration() const
-{
-  kv::config_block_sptr config = kv::algo::refine_detections::get_configuration();
-  config->set_value( "uncertain_scale_factor", d_->uncertain_scale_factor,
-                     "Amount to scale the detection by to produce "
-                     "a region that will be marked as uncertain" );
-  config->set_value( "seed_scale_factor", d_->seed_scale_factor,
-                     "Amount to scale the detection by to produce "
-                     "a high-confidence seed region" );
-  config->set_value( "seed_with_existing_masks", d_->seed_with_existing_masks,
-                     "If true, use existing masks as seed regions" );
-  return config;
-}
-
-// ----------------------------------------------------------------------------
-// Set this algorithm's properties via a config block
-void
-refine_detections_watershed
-::set_configuration( kv::config_block_sptr in_config )
-{
-  kv::config_block_sptr config = this->get_configuration();
-  config->merge_config( in_config );
-
-  d_->seed_with_existing_masks =
-    config->get_value< bool >( "seed_with_existing_masks" );
-  d_->seed_scale_factor =
-    config->get_value< double >( "seed_scale_factor" );
-  d_->uncertain_scale_factor =
-    config->get_value< double >( "uncertain_scale_factor" );
-}
-
-// ----------------------------------------------------------------------------
 // Check that the algorithm's current configuration is valid
 bool
 refine_detections_watershed
@@ -125,21 +61,21 @@ refine_detections_watershed
     auto&& bbox = det->bounding_box();
     auto rect = bbox_to_mask_rect( bbox );
     auto uncertain_bbox = kv::scale_about_center(
-      bbox, d_->uncertain_scale_factor );
+      bbox, c_uncertain_scale_factor );
     auto uncertain_rect = bbox_to_mask_rect( uncertain_bbox );
     background( uncertain_rect & img_rect ) = 0;
     auto crop_rect = rect & img_rect;
     cv::Mat m = markers( crop_rect );
     cv::Mat already_set = m != 0;
     cv::Mat seed;
-    if( d_->seed_with_existing_masks && det->mask() )
+    if( c_seed_with_existing_masks && det->mask() )
     {
       // Clone because this is modified below (crop_mask.setTo)
       seed = get_standard_mask( det ).clone();
     }
     else
     {
-      auto seed_bbox = kv::scale_about_center( bbox, d_->seed_scale_factor );
+      auto seed_bbox = kv::scale_about_center( bbox, c_seed_scale_factor );
       seed = cv::Mat( rect.size(), CV_8UC1, cv::Scalar( 0 ) );
       seed( ( bbox_to_mask_rect( seed_bbox ) & rect ) - rect.tl() ) = 1;
     }

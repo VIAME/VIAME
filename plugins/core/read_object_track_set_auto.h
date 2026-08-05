@@ -13,6 +13,7 @@
 #include "viame_core_export.h"
 
 #include <vital/algo/read_object_track_set.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 #include <memory>
 
@@ -37,22 +38,18 @@ class VIAME_CORE_EXPORT read_object_track_set_auto
   : public kwiver::vital::algo::read_object_track_set
 {
 public:
-  static constexpr char const* name = "auto";
-
-  static constexpr char const* description =
+  PLUGGABLE_IMPL_NAMED(
+    read_object_track_set_auto, "auto",
     "Auto-detecting object track set reader.\n\n"
     "Detects format from file extension and content:\n"
     "  - .dive.json: DIVE JSON format\n"
     "  - .coco.json: COCO JSON format\n"
     "  - .json: Inspects content (DIVE vs COCO)\n"
     "  - .csv: VIAME CSV format\n\n"
-    "Delegates to appropriate specialized reader.";
+    "Delegates to appropriate specialized reader." )
 
-  read_object_track_set_auto();
   virtual ~read_object_track_set_auto();
 
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   virtual void open( std::string const& filename );
@@ -61,8 +58,12 @@ public:
   virtual bool read_set( kwiver::vital::object_track_set_sptr& set );
 
 private:
+  void initialize() override;
+  void set_configuration_internal(
+    kwiver::vital::config_block_sptr config ) override;
+
   class priv;
-  std::unique_ptr< priv > d;
+  KWIVER_UNIQUE_PTR( priv, d );
 };
 
 } // end namespace

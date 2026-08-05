@@ -16,10 +16,12 @@ CSV format. Two example files are provided:
 - ``detections.csv`` -- computed detections with confidence scores
 - ``groundtruth.csv`` -- ground truth annotations
 
-``detection_and_track_metrics_*`` call the ``viame_score_results`` tool, which
-computes detection, MOT, HOTA and KWANT-style metrics together in one pass. The
-remaining scripts call ``score_results.py``, which wraps kwcoco (for PRC and
-confusion matrices) and motmetrics (for MOT statistics).
+Every script calls the ``viame_score_results`` tool, which computes detection,
+MOT, HOTA and KWANT-style metrics together in one pass. The metrics are
+implemented directly in C++ against VIAME CSV, with no external scoring
+dependency: earlier releases shelled out to KWANT and wrapped kwcoco and
+motmetrics, and those paths are gone. The scripts differ only in which outputs
+they ask for.
 
 For each script, there are two operating modes: a normal ("across all") option and
 a per-class option. The normal method will score the outputs of all categories jointly
@@ -34,11 +36,40 @@ single category will be generated (for each category).
 
 Common options accepted by all scripts:
 
-| ``-iou-thresh`` (default: 0.5) -- IoU threshold for matching detections to ground truth.
-| ``-threshold`` (default: 0.0) -- Minimum confidence threshold for computed detections.
-| ``-labels`` -- Optional label synonym file for mapping between class name conventions.
-| ``--per-class`` -- Generate separate results for each category independently.
-| ``--ignore-classes`` -- Treat all detections as a single class (classless scoring).
+| ``--iou`` (default: 0.5) -- IoU threshold for matching detections to ground truth.
+| ``--conf`` (default: 0.0) -- Minimum confidence threshold for computed detections.
+| ``--per-class`` -- Report each category independently as well as in aggregate.
+| ``--no-tracking`` -- Skip the track metrics and score detections only.
+| ``--output-summary`` -- Write the printed summary to a file.
+| ``--output-metrics`` -- Write every metric as JSON, including the confusion
+  matrix (class names, raw and row-normalised counts, per-class accuracy).
+| ``--json-curves`` -- Also inline the full PR and ROC curve points in that
+  JSON. Off by default: the curves carry one point per detection, so a large
+  run would inline millions.
+| ``--labels`` -- Class synonym file, so a model and its groundtruth may use
+  different vocabularies. One class per line: ``canonical: alias1, alias2``.
+| ``--list`` -- Text file of frame identifiers; only those frames are scored,
+  on both sides.
+| ``--input-format`` -- ``viame_csv`` (default) or any kwiver reader: coco,
+  cvat, dive, habcam, yolo.
+| ``--track-detections`` -- In a folder holding both ``*_detections.csv`` and
+  ``*_tracks.csv``, score the track files instead.
+| ``--top-class`` -- Consider only each detection's highest scoring class.
+  By default a detection naming several classes is offered to each of them.
+| ``--aux-confidence`` -- Rank on the detection confidence column rather than
+  the per-class score.
+| ``--defaultlabel`` -- Class name for detections carrying none.
+| ``--sweep-thresholds`` / ``--sweep-interval`` -- Score across a range of
+  confidence thresholds and report, per class, the threshold maximising IDF1
+  and the one maximising MOTA.
+| ``--filter-estimator`` / ``--output-sweep`` -- Turn those swept thresholds
+  into a DIVE confidence filter (``none``, ``min``, ``avg``,
+  ``avg_minus_1p``, ``idf1``, ``mota``), written with ``class_metrics.csv``
+  into the sweep directory.
+| ``--output-plots`` -- Render PRC, ROC, confusion matrix and score histograms.
+| ``--output-pr-csv`` / ``--output-roc-csv`` / ``--output-conf-csv`` -- Write the
+  underlying curve and matrix data as CSV, so it can be replotted or diffed
+  without rescoring.
 
 
 ---------------------------
@@ -78,6 +109,12 @@ The area under each curve is the Average Precision (AP) for that class.
   class, summarizing performance across all confidence thresholds.
 - **Mean AP (mAP)** -- The mean of AP values across all classes. Reported in the
   plot title (e.g. ``perclass mAP=0.5738``).
+- **AP@any (mAP@any)** -- AP under any-overlap matching: a detection counts as a
+  hit if it touches its groundtruth box at all. Localisation quality is not
+  judged, which separates "did we find the animal" from "did we box it tightly"
+  -- the useful split for a detector feeding a refiner or a fusion. Reported
+  alongside AP@50/AP@75/AP@[.5:.95] in the summary, the per-class table and the
+  metrics JSON (``ap_any``).
 - **Max F1** -- The best F1 score achievable at any threshold, where
   F1 = 2 * precision * recall / (precision + recall).
 
@@ -105,15 +142,13 @@ misclassifications between categories. The matrix header reports:
    :target: https://www.viametoolkit.org/wp-content/uploads/2026/04/Score_ROC.png
 
 **Metrics Table:**
-A per-class summary table is also generated (``metrics.csv``) listing:
+``--output-metrics`` writes every metric as JSON, and ``--output-summary`` writes
+the printed table. With ``--per-class`` the table reports TP, FP, FN, precision,
+recall, F1 and average precision for each category, alongside the aggregate.
 
-- **Method** -- The model or ensemble configuration evaluated.
-- **Detection AP** -- Average Precision for each class or ensemble combination.
-
-When using ``--per-class``, separate output directories are created for each category,
-each containing its own PRC plot, confusion matrix, and metrics file.
-
-Output is written to the folder specified by ``-det-prc-conf``.
+Plots are written to the folder given by ``--output-plots``; the same curves
+and matrix are also written as CSV by ``--output-pr-csv``, ``--output-roc-csv``
+and ``--output-conf-csv``.
 
 
 -------------------------------------------------------------
@@ -181,10 +216,11 @@ Scripts:
 | ``track_mot_stats_per_category`` -- Each category scored independently, with
   optional confidence threshold sweep and DIVE filter file generation.
 
-These scripts use the ``motmetrics`` Python library to compute standard Multiple
-Object Tracking (MOT) benchmark metrics. They evaluate how well computed tracks
-match ground truth tracks over time, considering both detection quality and identity
-consistency.
+These scripts report the standard Multiple Object Tracking (MOT) benchmark
+metrics, computed in C++ by ``viame_score_results``. They evaluate how well
+computed tracks match ground truth tracks over time, considering both detection
+quality and identity consistency. The metrics are produced in the same pass as
+the detection metrics, so scoring once yields both.
 
 **Core MOT Metrics:**
 
@@ -249,7 +285,8 @@ class. With ``-filter-estimator avg_minus_1p``, it also generates a
 ``dive.config.json`` file containing per-class confidence thresholds that can be
 loaded directly into the DIVE interface to filter detections at optimal levels.
 
-Output is written to the text file or folder specified by ``-trk-mot-stats``.
+The summary is written by ``--output-summary`` and the full metric set by
+``--output-metrics``.
 
 
 -------------------------------------------------------

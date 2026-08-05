@@ -9,6 +9,8 @@
 
 #include "write_query_results_as_tracks_process.h"
 
+#include <vital/algo/algorithm.txx>
+
 #include <sprokit/processes/kwiver_type_traits.h>
 
 #include <vital/vital_types.h>
@@ -123,10 +125,7 @@ write_query_results_as_tracks_process
   {
     kv::config_block_sptr algo_config = get_config();
 
-    kv::algo::write_object_track_set::set_nested_algo_configuration_using_trait(
-      writer,
-      algo_config,
-      d->m_writer );
+    set_nested_algo_configuration_using_trait( writer, algo_config, d->m_writer );
 
     if( !d->m_writer )
     {

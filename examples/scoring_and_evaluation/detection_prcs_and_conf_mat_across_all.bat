@@ -1,15 +1,23 @@
-@ECHO OFF
+@echo off
 
-REM Setup VIAME Paths (no need to set if installed to registry or already set up)
+REM Setup VIAME Paths (no need to run multiple times if you already ran it)
 
-SET VIAME_INSTALL=.\..\..
+SET VIAME_INSTALL=%~dp0\..\..
 
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
-REM Generate ROC
+REM Write precision-recall, ROC and confusion-matrix data, treating all
+REM categories as one.
+REM
+REM The curves are emitted as CSV alongside rendered plots, so they can be
+REM replotted or diffed without rerunning the scoring.
 
-python "%VIAME_INSTALL%\configs\score_results.py" ^
- -computed detections.csv -truth groundtruth.csv ^
- -det-prc-conf output_prc_and_conf_mat
+viame_score_results.exe ^
+ --computed detections.csv --truth groundtruth.csv ^
+ --iou 0.5 ^
+ --output-pr-csv output_prc_and_conf_mat/pr_curve.csv ^
+ --output-roc-csv output_prc_and_conf_mat/roc_curve.csv ^
+ --output-conf-csv output_prc_and_conf_mat/confusion_matrix.csv ^
+ --output-plots output_prc_and_conf_mat
 
-PAUSE
+pause

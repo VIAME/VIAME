@@ -390,9 +390,9 @@ class MeasureProcess(KwiverProcess):
 
             has_match1[i1] = True
             has_match2[i2] = True
-  
-            output_dets1[i1].set_length(match["fishlen"])
-            output_dets2[i2].set_length(match["fishlen"])
+
+            output_dets1[i1].set_attribute("length", match["fishlen"])
+            output_dets2[i2].set_attribute("length", match["fishlen"])
 
             head, tail = detections1[i1].center_keypoints()
             output_dets1[i1].add_keypoint('head', Point2d(float(head[0]), float(head[1])))

@@ -26,69 +26,82 @@
 
 namespace viame {
 
+namespace kv = kwiver::vital;
+
+// Helper function for computing average track object type
+static kv::detected_object_type_sptr
+compute_average_tot( kv::track_sptr trk_ptr,
+                     bool weighted = false,
+                     bool scale_by_conf = false,
+                     std::string ignore_class = "" )
+{
+  if( !trk_ptr )
+  {
+    return kv::detected_object_type_sptr();
+  }
+
+  // Extract detections from track states
+  std::vector< kwiver::vital::detected_object_sptr > detections;
+  for( auto ts_ptr : *trk_ptr )
+  {
+    auto* ts = static_cast< kwiver::vital::object_track_state* >( ts_ptr.get() );
+    if( ts->detection() )
+    {
+      detections.push_back( ts->detection() );
+    }
+  }
+
+  return core::compute_average_classification(
+    detections, weighted, scale_by_conf, ignore_class );
+}
+
+
+// ===============================================================================
+void
+write_object_track_set_viame_csv
+::initialize()
+{
+  m_logger = kv::get_logger( "write_object_track_set_viame_csv" );
+  m_first = true;
+  m_start_time = 0;
+}
+
 
 // -------------------------------------------------------------------------------
-class write_object_track_set_viame_csv::priv
+void
+write_object_track_set_viame_csv
+::set_configuration_internal( kv::config_block_sptr config )
 {
-public:
-  priv( write_object_track_set_viame_csv* parent)
-    : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "write_object_track_set_viame_csv" ) )
-    , m_first( true )
-    , m_delim( "," )
-    , m_stream_identifier( "" )
-    , m_model_identifier( "" )
-    , m_version_identifier( "" )
-    , m_frame_rate( "" )
-    , m_active_writing( false )
-    , m_write_time_as_uid( false )
-    , m_tot_option( "weighted_average" )
-    , m_tot_ignore_class( "" )
-    , m_frame_id_adjustment( 0 )
-    , m_top_n_classes( 0 )
-    , m_mask_to_poly_tol( -1 )
-    , m_mask_to_poly_points( 20 )
-    , m_start_time( 0 )
-  { }
+  if( !c_active_writing )
+  {
+    time( &m_start_time );
+  }
+  if( c_mask_to_poly_tol >= 0 && c_mask_to_poly_points >= 0 )
+  {
+    throw std::runtime_error(
+        "At most one of use mask_to_poly_tol and mask_to_poly_points "
+        "can be enabled (nonnegative)" );
+  }
+#ifndef VIAME_ENABLE_OPENCV
+  if( c_mask_to_poly_tol >= 0 || c_mask_to_poly_points >= 0 )
+  {
+    throw std::runtime_error(
+      "Must have OpenCV enabled to use mask_to_poly_tol or mask_to_poly_points" );
+  }
+#endif
+}
 
-  ~priv() { }
 
-  write_object_track_set_viame_csv* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
-  bool m_first;
-  std::string m_delim;
-  std::string m_stream_identifier;
-  std::string m_model_identifier;
-  std::string m_version_identifier;
-  std::string m_frame_rate;
-  std::map< unsigned, kwiver::vital::track_sptr > m_tracks;
-  bool m_active_writing;
-  bool m_write_time_as_uid;
-
-  std::string m_tot_option;
-  std::string m_tot_ignore_class;
-  int m_frame_id_adjustment;
-  std::map< unsigned, std::string > m_frame_uids;
-  unsigned m_top_n_classes;
-  double m_mask_to_poly_tol;
-  int m_mask_to_poly_points;
-  std::time_t m_start_time;
-
-  std::string format_image_id( const kwiver::vital::object_track_state* ts );
-  void write_header_info( std::ostream& stream );
-  void write_detection_info( std::ostream& stream,
-                             const kwiver::vital::detected_object_sptr& det );
-};
-
+// -------------------------------------------------------------------------------
 std::string
-write_object_track_set_viame_csv::priv
-::format_image_id( const kwiver::vital::object_track_state* ts )
+write_object_track_set_viame_csv
+::format_image_id( const kv::object_track_state* ts )
 {
-  if( m_write_time_as_uid )
+  if( c_write_time_as_uid )
   {
     char output[10];
-    const kwiver::vital::time_usec_t usec( 1000000 );
-    const kwiver::vital::time_usec_t time_s = ts->time() / usec;
+    const kv::time_usec_t usec( 1000000 );
+    const kv::time_usec_t time_s = ts->time() / usec;
     unsigned time_us = ts->time() % usec;
     std::string time_us_str = std::to_string( time_us );
     while( time_us_str.size() < 6 )
@@ -114,12 +127,15 @@ write_object_track_set_viame_csv::priv
   }
   else
   {
-    return m_stream_identifier;
+    return c_stream_identifier;
   }
 }
 
-void write_object_track_set_viame_csv::priv::write_header_info(
-  std::ostream &stream )
+
+// -------------------------------------------------------------------------------
+void
+write_object_track_set_viame_csv
+::write_header_info( std::ostream &stream )
 {
   std::time_t current_time;
   struct tm* timeinfo;
@@ -142,9 +158,9 @@ void write_object_track_set_viame_csv::priv::write_header_info(
 
   stream << "# metadata";
 
-  if( !m_frame_rate.empty() )
+  if( !c_frame_rate.empty() )
   {
-    stream << ", fps: " << m_frame_rate;
+    stream << ", fps: " << c_frame_rate;
   }
   if( m_start_time )
   {
@@ -154,20 +170,23 @@ void write_object_track_set_viame_csv::priv::write_header_info(
   stream << ", exported_by: write_object_track_set_viame_csv";
   stream << ", exported_at: " << formatted_time;
 
-  if( !m_model_identifier.empty() )
+  if( !c_model_identifier.empty() )
   {
-    stream << ", model: " << m_model_identifier;
+    stream << ", model: " << c_model_identifier;
   }
-  if( !m_version_identifier.empty() )
+  if( !c_version_identifier.empty() )
   {
-    stream << ", software: " << m_version_identifier;
+    stream << ", software: " << c_version_identifier;
   }
   stream << std::endl;
 }
 
-void write_object_track_set_viame_csv::priv::write_detection_info(
-  std::ostream &stream,
-  const kwiver::vital::detected_object_sptr &det )
+
+// -------------------------------------------------------------------------------
+void
+write_object_track_set_viame_csv
+::write_detection_info( std::ostream &stream,
+                        const kv::detected_object_sptr &det )
 {
   // Sanity return in case method was called with empty detection
   if( !det )
@@ -177,11 +196,11 @@ void write_object_track_set_viame_csv::priv::write_detection_info(
 
   // Preferentially write out the explicit polygon
   if( !det->polygon().empty() &&
-      ( ( m_mask_to_poly_tol < 0 &&
-          m_mask_to_poly_points < 0 ) ||
+      ( ( c_mask_to_poly_tol < 0 &&
+          c_mask_to_poly_points < 0 ) ||
         !det->mask() ) )
   {
-    stream << m_delim << "(poly)";
+    stream << c_delimiter << "(poly)";
     auto poly = det->polygon();
     for( auto&& p : poly )
     {
@@ -189,8 +208,8 @@ void write_object_track_set_viame_csv::priv::write_detection_info(
     }
   }
 #ifdef VIAME_ENABLE_OPENCV
-  else if( det->mask() && ( m_mask_to_poly_tol >= 0 ||
-                            m_mask_to_poly_points >= 0 ) )
+  else if( det->mask() && ( c_mask_to_poly_tol >= 0 ||
+                            c_mask_to_poly_points >= 0 ) )
   {
     using ic = kwiver::arrows::ocv::image_container;
     auto ref_x = static_cast< int >( bbox.min_x() );
@@ -216,9 +235,9 @@ void write_object_track_set_viame_csv::priv::write_detection_info(
         y_max = std::max( y_max, contour[j].y );
       }
       std::vector< kwiver::vital::point_2i > simp_contour;
-      if( m_mask_to_poly_tol >= 0 )
+      if( c_mask_to_poly_tol >= 0 )
       {
-        double tol = m_mask_to_poly_tol * std::min( x_max - x_min + 1,
+        double tol = c_mask_to_poly_tol * std::min( x_max - x_min + 1,
                                                     y_max - y_min + 1 );
         std::vector< cv::Point > approx;
         cv::approxPolyDP( contour, approx, tol, /*closed:*/ true );
@@ -235,9 +254,9 @@ void write_object_track_set_viame_csv::priv::write_detection_info(
         {
           kwiver_contour.emplace_back( p.x, p.y );
         }
-        simp_contour = simplify_polygon( kwiver_contour, m_mask_to_poly_points );
+        simp_contour = simplify_polygon( kwiver_contour, c_mask_to_poly_points );
       }
-      stream << ( hierarchy[i][3] < 0 ? m_delim  + "(poly)" : m_delim  + "(hole)" );
+      stream << ( hierarchy[i][3] < 0 ? c_delimiter  + "(poly)" : c_delimiter  + "(hole)" );
       for( auto const& p : simp_contour )
       {
         stream << " " << p[ 0 ] + ref_x << " " << p[ 1 ] + ref_y;
@@ -250,124 +269,107 @@ void write_object_track_set_viame_csv::priv::write_detection_info(
   {
     for( const auto& kp : det->keypoints() )
     {
-      stream << m_delim << "(kp) " << kp.first;
+      stream << c_delimiter << "(kp) " << kp.first;
       stream << " " << kp.second.value()[0] << " " << kp.second.value()[1];
     }
   }
 
   if( !det->notes().empty() )
   {
-    stream << notes_to_attributes( det->notes(), m_delim );
+    stream << notes_to_attributes( det->notes(), c_delimiter );
   }
 }
 
-kwiver::vital::detected_object_type_sptr
-compute_average_tot( kwiver::vital::track_sptr trk_ptr,
-                     bool weighted = false,
-                     bool scale_by_conf = false,
-                     std::string ignore_class = "" )
-{
-  if( !trk_ptr )
-  {
-    return kwiver::vital::detected_object_type_sptr();
-  }
 
-  // Extract detections from track states
-  std::vector< kwiver::vital::detected_object_sptr > detections;
-  for( auto ts_ptr : *trk_ptr )
-  {
-    auto* ts = static_cast< kwiver::vital::object_track_state* >( ts_ptr.get() );
-    if( ts->detection() )
-    {
-      detections.push_back( ts->detection() );
-    }
-  }
-
-  return core::compute_average_classification(
-    detections, weighted, scale_by_conf, ignore_class );
-}
-
-
-// ===============================================================================
-write_object_track_set_viame_csv
-::write_object_track_set_viame_csv()
-  : d( new write_object_track_set_viame_csv::priv( this ) )
-{
-}
-
-
-write_object_track_set_viame_csv
-::~write_object_track_set_viame_csv()
-{
-}
-
-
+// -------------------------------------------------------------------------------
 void write_object_track_set_viame_csv
 ::close()
 {
-  if( d->m_active_writing )
+  if( c_active_writing )
   {
     // No flushing required
     write_object_track_set::close();
     return;
   }
 
-  d->write_header_info( stream() );
+  write_header_info( stream() );
 
-  for( auto trk_pair : d->m_tracks )
+  for( auto trk_pair : m_tracks )
   {
     auto trk_ptr = trk_pair.second;
 
-    const kwiver::vital::detected_object_type_sptr trk_average_tot =
-          ( d->m_tot_option == "detection" ? kwiver::vital::detected_object_type_sptr()
+    const kv::detected_object_type_sptr trk_average_tot =
+          ( c_tot_option == "detection" ? kv::detected_object_type_sptr()
             : compute_average_tot( trk_ptr,
-                d->m_tot_option.find( "weighted" ) != std::string::npos,
-                d->m_tot_option.find( "scaled_by_conf" ) != std::string::npos,
-                d->m_tot_ignore_class ) );
+                c_tot_option.find( "weighted" ) != std::string::npos,
+                c_tot_option.find( "scaled_by_conf" ) != std::string::npos,
+                c_tot_ignore_class ) );
 
     for( auto ts_ptr : *trk_ptr )
     {
-      kwiver::vital::object_track_state* ts =
-        dynamic_cast< kwiver::vital::object_track_state* >( ts_ptr.get() );
+      kv::object_track_state* ts =
+        dynamic_cast< kv::object_track_state* >( ts_ptr.get() );
 
       if( !ts )
       {
-        LOG_ERROR( d->m_logger,
+        LOG_ERROR( m_logger,
           "Invalid timestamp " << trk_ptr->id() << " " << trk_ptr->size() );
         continue;
       }
 
-      kwiver::vital::detected_object_sptr det = ts->detection();
-      const kwiver::vital::bounding_box_d empty_box =
-        kwiver::vital::bounding_box_d( -1, -1, -1, -1 );
-      kwiver::vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
+      kv::detected_object_sptr det = ts->detection();
+      const kv::bounding_box_d empty_box =
+        kv::bounding_box_d( -1, -1, -1, -1 );
+      kv::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
       auto confidence = ( det ? det->confidence() : 0 );
-      kwiver::vital::frame_id_t frame_id = ts->frame() + d->m_frame_id_adjustment;
+      kv::frame_id_t frame_id = ts->frame() + c_frame_id_adjustment;
 
-      stream() << trk_ptr->id() << d->m_delim            // 1: track id
-               << d->format_image_id( ts ) << d->m_delim // 2: video or image id
-               << frame_id << d->m_delim                 // 3: frame number
-               << bbox.min_x() << d->m_delim             // 4: TL-x
-               << bbox.min_y() << d->m_delim             // 5: TL-y
-               << bbox.max_x() << d->m_delim             // 6: BR-x
-               << bbox.max_y() << d->m_delim             // 7: BR-y
-               << confidence << d->m_delim               // 8: confidence
-               << "0";                                   // 9: length
+      stream() << trk_ptr->id() << c_delimiter            // 1: track id
+               << format_image_id( ts ) << c_delimiter    // 2: video or image id
+               << frame_id << c_delimiter                 // 3: frame number
+               << bbox.min_x() << c_delimiter             // 4: TL-x
+               << bbox.min_y() << c_delimiter             // 5: TL-y
+               << bbox.max_x() << c_delimiter             // 6: BR-x
+               << bbox.max_y() << c_delimiter             // 7: BR-y
+               << confidence << c_delimiter;              // 8: confidence
+
+      // 9: length - read from track attributes if available, fallback to detection
+      double length_value = 0.0;
+      bool found_length = false;
+      if( trk_ptr->has_attribute( "length" ) )
+      {
+        try
+        {
+          length_value = trk_ptr->get_attribute< double >( "length" );
+          found_length = true;
+        }
+        catch( ... ) {}
+      }
+      if( !found_length && det && det->has_attribute( "length" ) )
+      {
+        try
+        {
+          length_value = det->get_attribute< double >( "length" );
+          found_length = true;
+        }
+        catch( ... ) {}
+      }
+      stream() << length_value;
 
       if( det )
       {
-        const kwiver::vital::detected_object_type_sptr dot =
-          ( d->m_tot_option == "detection" ? det->type() : trk_average_tot );
+        const kv::detected_object_type_sptr dot =
+          ( c_tot_option == "detection" ? det->type() : trk_average_tot );
 
         if( dot )
         {
-          for( auto name : dot->top_class_names( d->m_top_n_classes ) )
+          for( auto name : dot->top_class_names( c_top_n_classes ) )
           {
-            stream() << d->m_delim << name << d->m_delim << dot->score( name );
+            stream() << c_delimiter << name << c_delimiter << dot->score( name );
           }
         }
 
-        d->write_detection_info( stream(), det );
+        write_detection_info( stream(), det );
 
         stream() << std::endl;
       }
@@ -382,61 +384,9 @@ void write_object_track_set_viame_csv
 
 
 // -------------------------------------------------------------------------------
-void
-write_object_track_set_viame_csv
-::set_configuration( kwiver::vital::config_block_sptr config )
-{
-  d->m_delim =
-    config->get_value< std::string >( "delimiter", d->m_delim );
-  d->m_stream_identifier =
-    config->get_value< std::string >( "stream_identifier", d->m_stream_identifier );
-  d->m_model_identifier =
-    config->get_value< std::string >( "model_identifier", d->m_model_identifier );
-  d->m_version_identifier =
-    config->get_value< std::string >( "version_identifier", d->m_version_identifier );
-  d->m_frame_rate =
-    config->get_value< std::string >( "frame_rate", d->m_frame_rate );
-  d->m_active_writing =
-    config->get_value< bool >( "active_writing", d->m_active_writing );
-  d->m_write_time_as_uid =
-    config->get_value< bool >( "write_time_as_uid", d->m_write_time_as_uid );
-  d->m_tot_option =
-    config->get_value< std::string> ( "tot_option", d->m_tot_option );
-  d->m_tot_ignore_class =
-    config->get_value< std::string >( "tot_ignore_class", d->m_tot_ignore_class );
-  d->m_frame_id_adjustment =
-    config->get_value< int >( "frame_id_adjustment", d->m_frame_id_adjustment );
-  d->m_top_n_classes =
-    config->get_value< unsigned >( "top_n_classes", d->m_top_n_classes );
-  d->m_mask_to_poly_tol =
-      config->get_value< double >( "mask_to_poly_tol", d->m_mask_to_poly_tol );
-  d->m_mask_to_poly_points =
-      config->get_value< int >( "mask_to_poly_points", d->m_mask_to_poly_points );
-
-  if( !d->m_active_writing )
-  {
-    time( &d->m_start_time );
-  }
-  if( d->m_mask_to_poly_tol >= 0 && d->m_mask_to_poly_points >= 0 )
-  {
-    throw std::runtime_error(
-        "At most one of use mask_to_poly_tol and mask_to_poly_points "
-        "can be enabled (nonnegative)" );
-  }
-#ifndef VIAME_ENABLE_OPENCV
-  if( d->m_mask_to_poly_tol >= 0 || d->m_mask_to_poly_points >= 0 )
-  {
-    throw std::runtime_error(
-      "Must have OpenCV enabled to use mask_to_poly_tol or mask_to_poly_points" );
-  }
-#endif
-}
-
-
-// -------------------------------------------------------------------------------
 bool
 write_object_track_set_viame_csv
-::check_configuration( kwiver::vital::config_block_sptr config ) const
+::check_configuration( kv::config_block_sptr config ) const
 {
   return true;
 }
@@ -445,23 +395,23 @@ write_object_track_set_viame_csv
 // -------------------------------------------------------------------------------
 void
 write_object_track_set_viame_csv
-::write_set( const kwiver::vital::object_track_set_sptr& set,
-             const kwiver::vital::timestamp& ts,
+::write_set( const kv::object_track_set_sptr& set,
+             const kv::timestamp& ts,
              const std::string& file_id )
 {
-  if( d->m_first )
+  if( m_first )
   {
-    if( d->m_active_writing )
+    if( c_active_writing )
     {
-      d->write_header_info( stream() );
+      write_header_info( stream() );
     }
 
-    d->m_first = false;
+    m_first = false;
   }
 
   if( !file_id.empty() && ts.has_valid_frame() )
   {
-    d->m_frame_uids[ static_cast<unsigned>( ts.get_frame() ) ] = file_id;
+    m_frame_uids[ static_cast<unsigned>( ts.get_frame() ) ] = file_id;
   }
 
   if( !set )
@@ -469,11 +419,11 @@ write_object_track_set_viame_csv
     return;
   }
 
-  if( !d->m_active_writing )
+  if( !c_active_writing )
   {
     for( auto trk : set->tracks() )
     {
-      d->m_tracks[ static_cast<unsigned>( trk->id() ) ] = trk;
+      m_tracks[ static_cast<unsigned>( trk->id() ) ] = trk;
     }
   }
   else
@@ -482,19 +432,19 @@ write_object_track_set_viame_csv
     {
       if( !trk_ptr || trk_ptr->empty() )
       {
-        LOG_ERROR( d->m_logger, "Received invalid track" );
+        LOG_ERROR( m_logger, "Received invalid track" );
         continue;
       }
 
-      kwiver::vital::object_track_state* state =
-        dynamic_cast< kwiver::vital::object_track_state* >( trk_ptr->back().get() );
+      kv::object_track_state* state =
+        dynamic_cast< kv::object_track_state* >( trk_ptr->back().get() );
 
       if( !state )
       {
-        LOG_ERROR( d->m_logger, "Invalid track state for track "
-                                << trk_ptr->id()
-                                << " of length "
-                                << trk_ptr->size() );
+        LOG_ERROR( m_logger, "Invalid track state for track "
+                              << trk_ptr->id()
+                              << " of length "
+                              << trk_ptr->size() );
         continue;
       }
 
@@ -504,44 +454,66 @@ write_object_track_set_viame_csv
         continue;
       }
 
-      kwiver::vital::detected_object_sptr det = state->detection();
+      kv::detected_object_sptr det = state->detection();
 
-      const kwiver::vital::bounding_box_d empty_box =
-        kwiver::vital::bounding_box_d( -1, -1, -1, -1 );
+      const kv::bounding_box_d empty_box =
+        kv::bounding_box_d( -1, -1, -1, -1 );
 
-      kwiver::vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
+      kv::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
 
       auto confidence = ( det ? det->confidence() : 0 );
-      kwiver::vital::frame_id_t frame_id = state->frame() + d->m_frame_id_adjustment;
+      kv::frame_id_t frame_id = state->frame() + c_frame_id_adjustment;
 
-      stream() << trk_ptr->id() << d->m_delim               // 1: track id
-               << d->format_image_id( state ) << d->m_delim // 2: video or image id
-               << frame_id << d->m_delim                    // 3: frame number
-               << bbox.min_x() << d->m_delim                // 4: TL-x
-               << bbox.min_y() << d->m_delim                // 5: TL-y
-               << bbox.max_x() << d->m_delim                // 6: BR-x
-               << bbox.max_y() << d->m_delim                // 7: BR-y
-               << confidence << d->m_delim                  // 8: confidence
-               << "0";                                      // 9: length
+      stream() << trk_ptr->id() << c_delimiter               // 1: track id
+               << format_image_id( state ) << c_delimiter    // 2: video or image id
+               << frame_id << c_delimiter                    // 3: frame number
+               << bbox.min_x() << c_delimiter                // 4: TL-x
+               << bbox.min_y() << c_delimiter                // 5: TL-y
+               << bbox.max_x() << c_delimiter                // 6: BR-x
+               << bbox.max_y() << c_delimiter                // 7: BR-y
+               << confidence << c_delimiter;                 // 8: confidence
+
+      // 9: length - read from track attributes if available, fallback to detection
+      double length_value = 0.0;
+      bool found_length = false;
+      if( trk_ptr->has_attribute( "length" ) )
+      {
+        try
+        {
+          length_value = trk_ptr->get_attribute< double >( "length" );
+          found_length = true;
+        }
+        catch( ... ) {}
+      }
+      if( !found_length && det && det->has_attribute( "length" ) )
+      {
+        try
+        {
+          length_value = det->get_attribute< double >( "length" );
+          found_length = true;
+        }
+        catch( ... ) {}
+      }
+      stream() << length_value;
 
       if( det )
       {
-        const kwiver::vital::detected_object_type_sptr dot =
-          ( d->m_tot_option == "detection" ? det->type() :
+        const kv::detected_object_type_sptr dot =
+          ( c_tot_option == "detection" ? det->type() :
             compute_average_tot( trk_ptr,
-              d->m_tot_option.find( "weighted" ) != std::string::npos,
-              d->m_tot_option.find( "scaled_by_conf" ) != std::string::npos,
-              d->m_tot_ignore_class ) );
+              c_tot_option.find( "weighted" ) != std::string::npos,
+              c_tot_option.find( "scaled_by_conf" ) != std::string::npos,
+              c_tot_ignore_class ) );
 
         if( dot )
         {
-          for( auto name : dot->top_class_names( d->m_top_n_classes ) )
+          for( auto name : dot->top_class_names( c_top_n_classes ) )
           {
-            stream() << d->m_delim << name << d->m_delim << dot->score( name );
+            stream() << c_delimiter << name << c_delimiter << dot->score( name );
           }
         }
 
-        d->write_detection_info( stream(), det );
+        write_detection_info( stream(), det );
 
         stream() << std::endl;
       }

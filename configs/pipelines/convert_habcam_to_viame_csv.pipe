@@ -22,9 +22,9 @@ process detection_reader
 
 process detection_filter
   :: detected_object_filter
-  :filter:type                             class_probablity_filter
-  :filter:class_probablity_filter:keep_all_classes            true
-  :filter:class_probablity_filter:keep_classes        fish;scallop
+  :filter:type                             class_probability_filter
+  :filter:class_probability_filter:keep_all_classes            true
+  :filter:class_probability_filter:keep_classes        fish;scallop
 
 process detector_writer
   :: detected_object_output

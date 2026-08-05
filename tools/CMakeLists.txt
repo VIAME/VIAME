@@ -16,7 +16,6 @@ set( PYTHON_SCRIPTS
   launch_search_interface.py
   plot_eval_results.py
   process_video.py
-  score_results.py
   survey_metadata.py
   train_detection_fusion.py
   viame_csv_tool.py
@@ -60,7 +59,7 @@ target_link_libraries( viame
                kwiver::vital_logger
                kwiver::vital_util
                kwiver::kwiversys
-               kwiver::kwiver_tools_applet
+               kwiver::vital_applets
   )
 
 ###
@@ -90,7 +89,7 @@ kwiver_add_plugin( viame_tools_applets
                kwiver::vital_algo
                kwiver::vital_util
                kwiver::kwiversys
-               kwiver::kwiver_tools_applet
+               kwiver::vital_applets
                kwiver::sprokit_pipeline
                kwiver::kwiver_adapter
                viame_core

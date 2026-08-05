@@ -42,7 +42,6 @@ export VIDTK_MODULE_PATH=$this_dir/lib/modules
 @SETUP_PYTHON_LIBRARY_PATH@
 export PYTHONPATH=$this_dir/python:$PYTHONPATH
 export PYTHONPATH=$this_dir/lib/@VIAME_PYTHON_STRING@/site-packages:$PYTHONPATH
-export PYTHONPATH=$this_dir/lib/@VIAME_PYTHON_STRING@/dist-packages:$PYTHONPATH
 export LD_LIBRARY_PATH=$PYTHON_INSTALL_DIR/lib:$LD_LIBRARY_PATH
 
 # Excessive KWIVER python arrow and process import locations

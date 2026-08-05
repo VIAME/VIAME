@@ -4,6 +4,8 @@
 
 #include "adaptive_tracker_trainer.h"
 
+#include <vital/algo/algorithm.txx>
+#include <vital/algo/feature_descriptor_io.h>
 #include <vital/util/cpu_timer.h>
 #include <vital/types/image_container.h>
 #include <vital/types/object_track_set.h>
@@ -389,60 +391,8 @@ struct tracker_trainer_config
 class adaptive_tracker_trainer::priv
 {
 public:
-  priv()
-    : m_max_trainers_to_run( 3 )
-    // Track length thresholds
-    , m_short_track_threshold( 10 )
-    , m_long_track_threshold( 100 )
-    // Motion thresholds (pixels per frame)
-    , m_stationary_velocity_threshold( 2.0 )
-    , m_fast_velocity_threshold( 50.0 )
-    // Density thresholds
-    , m_sparse_frame_threshold( 3 )
-    , m_crowded_frame_threshold( 15 )
-    // Size thresholds
-    , m_small_object_threshold( 1024.0 )
-    , m_large_object_threshold( 16384.0 )
-    // Proximity threshold
-    , m_close_distance_threshold( 50.0 )
-    // Variance threshold
-    , m_high_variance_threshold( 0.3 )
-    // Output
-    , m_output_statistics_file( "" )
-    , m_verbose( true )
-  {}
-
+  priv( adaptive_tracker_trainer& ) {}
   ~priv() {}
-
-  // -------------------------------------------------------------------------
-  // Global configuration
-  size_t m_max_trainers_to_run;
-
-  // Track length thresholds
-  size_t m_short_track_threshold;
-  size_t m_long_track_threshold;
-
-  // Motion thresholds
-  double m_stationary_velocity_threshold;
-  double m_fast_velocity_threshold;
-
-  // Density thresholds
-  size_t m_sparse_frame_threshold;
-  size_t m_crowded_frame_threshold;
-
-  // Size thresholds
-  double m_small_object_threshold;
-  double m_large_object_threshold;
-
-  // Proximity threshold
-  double m_close_distance_threshold;
-
-  // Variance threshold
-  double m_high_variance_threshold;
-
-  // Output
-  std::string m_output_statistics_file;
-  bool m_verbose;
 
   // -------------------------------------------------------------------------
   // Configured trainers
@@ -465,6 +415,21 @@ public:
 
   // Logging
   kv::logger_handle_t m_logger;
+
+  // Config parameter references (set by owner)
+  size_t short_track_threshold = 10;
+  size_t long_track_threshold = 100;
+  double stationary_velocity_threshold = 2.0;
+  double fast_velocity_threshold = 50.0;
+  size_t sparse_frame_threshold = 3;
+  size_t crowded_frame_threshold = 15;
+  double small_object_threshold = 1024.0;
+  double large_object_threshold = 16384.0;
+  double close_distance_threshold = 50.0;
+  double high_variance_threshold = 0.3;
+  std::string output_statistics_file;
+  bool verbose = true;
+  size_t max_trainers_to_run = 3;
 
   // -------------------------------------------------------------------------
   // Helper methods
@@ -708,7 +673,7 @@ adaptive_tracker_trainer::priv::compute_statistics_from_groundtruth(
           double dx = positions[i].first - positions[j].first;
           double dy = positions[i].second - positions[j].second;
           double dist = std::sqrt( dx * dx + dy * dy );
-          if( dist < m_close_distance_threshold )
+          if( dist < close_distance_threshold )
           {
             m_stats.potential_id_switch_count++;
             m_stats.close_track_pair_count++;
@@ -720,13 +685,13 @@ adaptive_tracker_trainer::priv::compute_statistics_from_groundtruth(
 
   // Compute summary statistics
   m_stats.compute_summary(
-    m_short_track_threshold, m_long_track_threshold,
-    m_stationary_velocity_threshold, m_fast_velocity_threshold,
-    m_crowded_frame_threshold, m_sparse_frame_threshold,
-    m_small_object_threshold, m_large_object_threshold,
-    m_close_distance_threshold, m_high_variance_threshold );
+    short_track_threshold, long_track_threshold,
+    stationary_velocity_threshold, fast_velocity_threshold,
+    crowded_frame_threshold, sparse_frame_threshold,
+    small_object_threshold, large_object_threshold,
+    close_distance_threshold, high_variance_threshold );
 
-  if( m_verbose )
+  if( verbose )
   {
     m_stats.log_statistics( m_logger );
   }
@@ -740,7 +705,7 @@ adaptive_tracker_trainer::priv::check_hard_requirements(
   // Check minimum track count
   if( tc.required_min_tracks > 0 && m_stats.total_tracks < tc.required_min_tracks )
   {
-    if( m_verbose )
+    if( verbose )
     {
       LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: "
                  << m_stats.total_tracks << " tracks < required "
@@ -756,7 +721,7 @@ adaptive_tracker_trainer::priv::check_hard_requirements(
     {
       if( len < tc.required_min_track_length )
       {
-        if( m_verbose )
+        if( verbose )
         {
           LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: "
                      << "track with length " << len << " < required "
@@ -771,7 +736,7 @@ adaptive_tracker_trainer::priv::check_hard_requirements(
   if( tc.required_min_mean_track_length > 0 &&
       m_stats.mean_track_length < tc.required_min_mean_track_length )
   {
-    if( m_verbose )
+    if( verbose )
     {
       LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: "
                  << "mean track length " << m_stats.mean_track_length
@@ -784,7 +749,7 @@ adaptive_tracker_trainer::priv::check_hard_requirements(
   if( tc.required_max_fragmentation_rate > 0 &&
       m_stats.fragmentation_rate > tc.required_max_fragmentation_rate )
   {
-    if( m_verbose )
+    if( verbose )
     {
       LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: "
                  << "fragmentation rate " << m_stats.fragmentation_rate
@@ -796,7 +761,7 @@ adaptive_tracker_trainer::priv::check_hard_requirements(
   // Check max velocity
   if( tc.required_max_velocity > 0 && m_stats.max_velocity > tc.required_max_velocity )
   {
-    if( m_verbose )
+    if( verbose )
     {
       LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: "
                  << "max velocity " << m_stats.max_velocity
@@ -809,7 +774,7 @@ adaptive_tracker_trainer::priv::check_hard_requirements(
   if( tc.required_max_concurrent_tracks > 0 &&
       m_stats.max_concurrent_tracks > tc.required_max_concurrent_tracks )
   {
-    if( m_verbose )
+    if( verbose )
     {
       LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: "
                  << "max concurrent tracks " << m_stats.max_concurrent_tracks
@@ -821,7 +786,7 @@ adaptive_tracker_trainer::priv::check_hard_requirements(
   // Check min object area (for Re-ID)
   if( tc.required_min_object_area > 0 && m_stats.mean_object_area < tc.required_min_object_area )
   {
-    if( m_verbose )
+    if( verbose )
     {
       LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: "
                  << "mean object area " << m_stats.mean_object_area
@@ -880,13 +845,13 @@ adaptive_tracker_trainer::priv::compute_preference_score(
   // Density preference
   if( !tc.density_preference.empty() )
   {
-    if( tc.density_preference == "sparse" && m_stats.mean_concurrent_tracks < m_sparse_frame_threshold )
+    if( tc.density_preference == "sparse" && m_stats.mean_concurrent_tracks < sparse_frame_threshold )
       score += 1.0;
-    else if( tc.density_preference == "dense" && m_stats.mean_concurrent_tracks >= m_crowded_frame_threshold )
+    else if( tc.density_preference == "dense" && m_stats.mean_concurrent_tracks >= crowded_frame_threshold )
       score += 1.0;
     else if( tc.density_preference == "medium" &&
-             m_stats.mean_concurrent_tracks >= m_sparse_frame_threshold &&
-             m_stats.mean_concurrent_tracks < m_crowded_frame_threshold )
+             m_stats.mean_concurrent_tracks >= sparse_frame_threshold &&
+             m_stats.mean_concurrent_tracks < crowded_frame_threshold )
       score += 1.0;
   }
 
@@ -935,7 +900,7 @@ adaptive_tracker_trainer::priv::compute_preference_score(
     bool reid_beneficial =
       m_stats.mean_concurrent_tracks >= 5 ||
       m_stats.occlusion_prone_fraction >= 0.2 ||
-      m_stats.mean_object_area >= m_small_object_threshold;
+      m_stats.mean_object_area >= small_object_threshold;
 
     if( reid_beneficial )
       score += 1.0;
@@ -957,7 +922,7 @@ adaptive_tracker_trainer::priv::select_trainers()
       tc.preference_score = compute_preference_score( tc );
       qualifying.push_back( &tc );
 
-      if( m_verbose )
+      if( verbose )
       {
         LOG_INFO( m_logger, "Trainer " << tc.name << " qualifies with preference score "
                   << tc.preference_score );
@@ -965,7 +930,7 @@ adaptive_tracker_trainer::priv::select_trainers()
     }
     else
     {
-      if( m_verbose )
+      if( verbose )
       {
         LOG_INFO( m_logger, "Trainer " << tc.name << " does not meet hard requirements" );
       }
@@ -980,9 +945,9 @@ adaptive_tracker_trainer::priv::select_trainers()
     } );
 
   // Limit to max_trainers_to_run
-  if( qualifying.size() > m_max_trainers_to_run )
+  if( qualifying.size() > max_trainers_to_run )
   {
-    qualifying.resize( m_max_trainers_to_run );
+    qualifying.resize( max_trainers_to_run );
   }
 
   return qualifying;
@@ -992,10 +957,10 @@ adaptive_tracker_trainer::priv::select_trainers()
 void
 adaptive_tracker_trainer::priv::write_statistics_file() const
 {
-  std::ofstream out( m_output_statistics_file );
+  std::ofstream out( output_statistics_file );
   if( !out.is_open() )
   {
-    LOG_WARN( m_logger, "Could not open statistics file: " << m_output_statistics_file );
+    LOG_WARN( m_logger, "Could not open statistics file: " << output_statistics_file );
     return;
   }
 
@@ -1093,23 +1058,17 @@ adaptive_tracker_trainer::priv::write_statistics_file() const
   out << "}\n";
 
   out.close();
-  LOG_INFO( m_logger, "Wrote statistics to: " << m_output_statistics_file );
+  LOG_INFO( m_logger, "Wrote statistics to: " << output_statistics_file );
 }
 
 
 // =============================================================================
+void
 adaptive_tracker_trainer
-::adaptive_tracker_trainer()
-  : d( new priv() )
+::initialize()
 {
-  attach_logger( "viame.core.adaptive_tracker_trainer" );
-  d->m_logger = logger();
-}
-
-
-adaptive_tracker_trainer
-::~adaptive_tracker_trainer()
-{
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
+  d->m_logger = this->logger();
 }
 
 
@@ -1118,50 +1077,12 @@ kv::config_block_sptr
 adaptive_tracker_trainer
 ::get_configuration() const
 {
-  kv::config_block_sptr config = kv::algorithm::get_configuration();
+  // Get base config from base class (includes PLUGGABLE_IMPL params)
+  kv::config_block_sptr config = kv::algo::train_tracker::get_configuration();
 
-  // -------------------------------------------------------------------------
-  // Global settings
-  config->set_value( "max_trainers_to_run", d->m_max_trainers_to_run,
-    "Maximum number of trainers to run sequentially. Default: 3" );
-
-  // Track length thresholds
-  config->set_value( "short_track_threshold", d->m_short_track_threshold,
-    "Track length (frames) below which tracks are 'short'. Default: 10" );
-  config->set_value( "long_track_threshold", d->m_long_track_threshold,
-    "Track length (frames) above which tracks are 'long'. Default: 100" );
-
-  // Motion thresholds
-  config->set_value( "stationary_velocity_threshold", d->m_stationary_velocity_threshold,
-    "Velocity (pixels/frame) below which objects are 'stationary'. Default: 2.0" );
-  config->set_value( "fast_velocity_threshold", d->m_fast_velocity_threshold,
-    "Velocity (pixels/frame) above which objects are 'fast'. Default: 50.0" );
-
-  // Density thresholds
-  config->set_value( "sparse_frame_threshold", d->m_sparse_frame_threshold,
-    "Max concurrent tracks for 'sparse' classification. Default: 3" );
-  config->set_value( "crowded_frame_threshold", d->m_crowded_frame_threshold,
-    "Min concurrent tracks for 'crowded' classification. Default: 15" );
-
-  // Size thresholds
-  config->set_value( "small_object_threshold", d->m_small_object_threshold,
-    "Area threshold (pixels^2) below which objects are 'small'. Default: 1024" );
-  config->set_value( "large_object_threshold", d->m_large_object_threshold,
-    "Area threshold (pixels^2) above which objects are 'large'. Default: 16384" );
-
-  // Proximity threshold
-  config->set_value( "close_distance_threshold", d->m_close_distance_threshold,
-    "Distance (pixels) below which tracks are 'close'. Default: 50.0" );
-
-  // Variance threshold
-  config->set_value( "high_variance_threshold", d->m_high_variance_threshold,
-    "Size CV above which a track has 'high variance'. Default: 0.3" );
-
-  // Output
-  config->set_value( "output_statistics_file", d->m_output_statistics_file,
-    "Optional file path for JSON statistics. Empty = disabled." );
-  config->set_value( "verbose", d->m_verbose,
-    "Enable verbose logging. Default: true" );
+  // Add static params from this class
+  kv::config_block_sptr cb = config;
+  CPP_MAGIC_MAP( PARAM_CONFIG_GET_FROM_THIS, CPP_MAGIC_EMPTY, VIAME_CORE_ATT_PARAMS )
 
   // -------------------------------------------------------------------------
   // Trainer configurations
@@ -1202,7 +1123,7 @@ adaptive_tracker_trainer
     config->set_value( prefix + "prefers_reid", tc.prefers_reid,
       "Prefer scenarios where Re-ID/appearance features help. Default: false" );
 
-    kv::algo::train_tracker::get_nested_algo_configuration(
+    kv::get_nested_algo_configuration<kv::algo::train_tracker>(
       prefix + "trainer", config, tc.trainer );
   }
 
@@ -1213,26 +1134,26 @@ adaptive_tracker_trainer
 // -----------------------------------------------------------------------------
 void
 adaptive_tracker_trainer
-::set_configuration( kv::config_block_sptr config_in )
+::set_configuration_internal( kv::config_block_sptr config_in )
 {
+  // Merge with defaults
   kv::config_block_sptr config = this->get_configuration();
   config->merge_config( config_in );
 
-  // -------------------------------------------------------------------------
-  // Global settings
-  d->m_max_trainers_to_run = config->get_value< size_t >( "max_trainers_to_run" );
-  d->m_short_track_threshold = config->get_value< size_t >( "short_track_threshold" );
-  d->m_long_track_threshold = config->get_value< size_t >( "long_track_threshold" );
-  d->m_stationary_velocity_threshold = config->get_value< double >( "stationary_velocity_threshold" );
-  d->m_fast_velocity_threshold = config->get_value< double >( "fast_velocity_threshold" );
-  d->m_sparse_frame_threshold = config->get_value< size_t >( "sparse_frame_threshold" );
-  d->m_crowded_frame_threshold = config->get_value< size_t >( "crowded_frame_threshold" );
-  d->m_small_object_threshold = config->get_value< double >( "small_object_threshold" );
-  d->m_large_object_threshold = config->get_value< double >( "large_object_threshold" );
-  d->m_close_distance_threshold = config->get_value< double >( "close_distance_threshold" );
-  d->m_high_variance_threshold = config->get_value< double >( "high_variance_threshold" );
-  d->m_output_statistics_file = config->get_value< std::string >( "output_statistics_file" );
-  d->m_verbose = config->get_value< bool >( "verbose" );
+  // Copy config values to priv for use by helper methods
+  d->max_trainers_to_run = c_max_trainers_to_run;
+  d->short_track_threshold = c_short_track_threshold;
+  d->long_track_threshold = c_long_track_threshold;
+  d->stationary_velocity_threshold = c_stationary_velocity_threshold;
+  d->fast_velocity_threshold = c_fast_velocity_threshold;
+  d->sparse_frame_threshold = c_sparse_frame_threshold;
+  d->crowded_frame_threshold = c_crowded_frame_threshold;
+  d->small_object_threshold = c_small_object_threshold;
+  d->large_object_threshold = c_large_object_threshold;
+  d->close_distance_threshold = c_close_distance_threshold;
+  d->high_variance_threshold = c_high_variance_threshold;
+  d->output_statistics_file = c_output_statistics_file;
+  d->verbose = c_verbose;
 
   // -------------------------------------------------------------------------
   // Trainer configurations
@@ -1285,7 +1206,7 @@ adaptive_tracker_trainer
 
     // Nested trainer
     kv::algo::train_tracker_sptr trainer;
-    kv::algo::train_tracker::set_nested_algo_configuration( trainer_key, config, trainer );
+    kv::set_nested_algo_configuration<kv::algo::train_tracker>( trainer_key, config, trainer );
     tc.trainer = trainer;
 
     if( tc.trainer )
@@ -1313,7 +1234,7 @@ adaptive_tracker_trainer
     std::string trainer_key = "trainer_" + std::to_string( i ) + ":trainer";
     if( config->has_value( trainer_key + ":type" ) )
     {
-      if( kv::algo::train_tracker::check_nested_algo_configuration( trainer_key, config ) )
+      if( kv::check_nested_algo_configuration<kv::algo::train_tracker>( trainer_key, config ) )
       {
         return true;
       }
@@ -1383,7 +1304,7 @@ adaptive_tracker_trainer
   LOG_INFO( d->m_logger, "Selecting tracker trainers to run..." );
 
   // Write statistics file if configured
-  if( !d->m_output_statistics_file.empty() )
+  if( !c_output_statistics_file.empty() )
   {
     d->write_statistics_file();
   }

@@ -39,6 +39,11 @@ if( VIAME_ENABLE_TESTS )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pytest" )
 endif()
 
+# For KWIVER v2.0
+if( VIAME_ENABLE_KWIVER )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "pygccxml" "castxml" )
+endif()
+
 # For scoring and plotting
 list( APPEND VIAME_PYTHON_BASIC_DEPS "kiwisolver" )
 if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
@@ -237,7 +242,9 @@ if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
   list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "ultralytics_thop==2.0.18" )
 endif()
 
-# kwcoco is a basic dependency, not a torch one: score_results.py shells out to
+# kwcoco is a basic dependency, not a torch one: the COCO readers and writers
+# in plugins/core use it and are built without torch. It is no longer used for
+# scoring -- viame_score_results computes every metric in C++. Formerly:
 # its eval command, and adding it to the torch-only list left it uninstalled in
 # any build with PyTorch disabled
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
@@ -340,13 +347,6 @@ if( VIAME_ENABLE_PYTORCH AND
   endif()
 endif()
 
-# pymotmetrics from source - currently always enabled
-list( APPEND VIAME_PYTHON_ADV_DEPS pymotmetrics )
-if( VIAME_PYTHON_SYMLINK )
-  list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "-e ${VIAME_PACKAGES_DIR}/python-utils/pymotmetrics" )
-else()
-  list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "${VIAME_PACKAGES_DIR}/python-utils/pymotmetrics" )
-endif()
 
 # ------------------------------------- INSTALL ROUTINES -----------------------------------------
 

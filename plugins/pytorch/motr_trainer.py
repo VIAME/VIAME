@@ -127,6 +127,7 @@ class MOTRTrainer(TrainTracker):
 
         try:
             import torch
+
             if torch.cuda.is_available():
                 if self._gpu_count < 0:
                     self._gpu_count = torch.cuda.device_count()
@@ -141,14 +142,14 @@ class MOTRTrainer(TrainTracker):
         return True
 
     def check_configuration(self, cfg):
-        if not cfg.has_value("identifier") or \
-           len(cfg.get_value("identifier")) == 0:
+        if not cfg.has_value("identifier") or len(cfg.get_value("identifier")) == 0:
             print("A model identifier must be specified!")
             return False
         return True
 
-    def add_data_from_disk(self, categories, train_files, train_tracks,
-                           test_files, test_tracks):
+    def add_data_from_disk(
+        self, categories, train_files, train_tracks, test_files, test_tracks
+    ):
         print("Adding training data from disk...")
         print("  Training files: ", len(train_files))
         print("  Training tracks: ", len(train_tracks))
@@ -195,12 +196,10 @@ class MOTRTrainer(TrainTracker):
                     if frame_id >= len(image_files):
                         continue
                     bbox = det.bounding_box
-                    tlbr = [bbox.min_x(), bbox.min_y(),
-                            bbox.max_x(), bbox.max_y()]
+                    tlbr = [bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()]
                     if tlbr[2] - tlbr[0] <= 0 or tlbr[3] - tlbr[1] <= 0:
                         continue
-                    frame_objects.setdefault(frame_id, []).append(
-                        (identity, tlbr))
+                    frame_objects.setdefault(frame_id, []).append((identity, tlbr))
 
             if not frame_objects:
                 continue
@@ -208,7 +207,7 @@ class MOTRTrainer(TrainTracker):
             frames_sorted = sorted(frame_objects.keys())
 
             for start_pos in range(0, len(frames_sorted), clip_stride):
-                window = frames_sorted[start_pos:start_pos + clip_length]
+                window = frames_sorted[start_pos : start_pos + clip_length]
                 if len(window) < 2:
                     break
 
@@ -217,10 +216,12 @@ class MOTRTrainer(TrainTracker):
                     img_path = image_files[frame_id]
                     if not os.path.exists(img_path):
                         continue
-                    clip.append({
-                        'image': img_path,
-                        'objects': frame_objects[frame_id],
-                    })
+                    clip.append(
+                        {
+                            "image": img_path,
+                            "objects": frame_objects[frame_id],
+                        }
+                    )
 
                 if len(clip) >= 2:
                     clips.append(clip)
@@ -230,8 +231,7 @@ class MOTRTrainer(TrainTracker):
 
         return clips
 
-    def _simulate_detections(self, objects, img_w, img_h, rng,
-                             augment=True):
+    def _simulate_detections(self, objects, img_w, img_h, rng, augment=True):
         """
         Turn groundtruth objects into simulated detector proposals.
 
@@ -294,19 +294,21 @@ class MOTRTrainer(TrainTracker):
         import torch.nn.functional as F
 
         from viame.pytorch.motr_tracker import (
-            crop_detections, boxes_tlbr_to_norm_cxcywh)
+            crop_detections,
+            boxes_tlbr_to_norm_cxcywh,
+        )
 
         crop_size = int(self._crop_size)
 
-        queries = {}       # identity -> query tensor
-        last_boxes = {}    # identity -> normalized cxcywh
-        last_frames = {}   # identity -> frame index within clip
+        queries = {}  # identity -> query tensor
+        last_boxes = {}  # identity -> normalized cxcywh
+        last_frames = {}  # identity -> frame index within clip
 
         total_loss = 0
         supervised = 0
 
         for t, frame in enumerate(clip):
-            img = cv2.imread(frame['image'])
+            img = cv2.imread(frame["image"])
             if img is None:
                 continue
             # Runtime images arrive RGB from ImageContainer.asarray()
@@ -314,7 +316,8 @@ class MOTRTrainer(TrainTracker):
             img_h, img_w = img.shape[:2]
 
             identities, boxes, scores = self._simulate_detections(
-                frame['objects'], img_w, img_h, rng, augment=augment)
+                frame["objects"], img_w, img_h, rng, augment=augment
+            )
 
             D = len(boxes)
 
@@ -323,13 +326,10 @@ class MOTRTrainer(TrainTracker):
             if D > 0:
                 crops = crop_detections(img, boxes, crop_size)
                 crops_t = torch.from_numpy(crops).to(device)
-                boxes_norm = boxes_tlbr_to_norm_cxcywh(
-                    boxes, img_w, img_h)
+                boxes_norm = boxes_tlbr_to_norm_cxcywh(boxes, img_w, img_h)
                 boxes_norm_t = torch.from_numpy(boxes_norm).to(device)
-                scores_t = torch.tensor(
-                    scores, dtype=torch.float32, device=device)
-                det_tokens = model.encode_detections(
-                    crops_t, boxes_norm_t, scores_t)
+                scores_t = torch.tensor(scores, dtype=torch.float32, device=device)
+                det_tokens = model.encode_detections(crops_t, boxes_norm_t, scores_t)
 
             # Supervise association of existing queries
             active = list(queries.keys())
@@ -341,19 +341,21 @@ class MOTRTrainer(TrainTracker):
                 else:
                     refined = query_stack
 
-                qboxes = torch.stack(
-                    [last_boxes[k] for k in active]).to(device)
-                dt = torch.tensor(
-                    [t - last_frames[k] for k in active], device=device)
+                qboxes = torch.stack([last_boxes[k] for k in active]).to(device)
+                dt = torch.tensor([t - last_frames[k] for k in active], device=device)
 
                 if D > 0:
                     logits = model.association_logits(
-                        refined, qboxes, det_tokens, boxes_norm_t, dt)
+                        refined, qboxes, det_tokens, boxes_norm_t, dt
+                    )
                 else:
                     logits = model.association_logits(
-                        refined, qboxes,
+                        refined,
+                        qboxes,
                         torch.zeros((0, model.d_model), device=device),
-                        torch.zeros((0, 4), device=device), dt)
+                        torch.zeros((0, 4), device=device),
+                        dt,
+                    )
 
                 targets = []
                 for k in active:
@@ -364,15 +366,15 @@ class MOTRTrainer(TrainTracker):
 
                 targets_t = torch.tensor(targets, device=device)
                 total_loss = total_loss + F.cross_entropy(
-                    logits, targets_t, reduction='sum')
+                    logits, targets_t, reduction="sum"
+                )
                 supervised += len(active)
 
                 # Teacher forcing: update queries with their true tokens
                 for row, k in enumerate(active):
                     if k in identities:
                         col = identities.index(k)
-                        queries[k] = model.update_query(
-                            refined[row], det_tokens[col])
+                        queries[k] = model.update_query(refined[row], det_tokens[col])
                         last_boxes[k] = boxes_norm_t[col].detach()
                         last_frames[k] = t
 
@@ -399,10 +401,8 @@ class MOTRTrainer(TrainTracker):
         rng = random.Random(int(self._seed))
         torch.manual_seed(int(self._seed))
 
-        train_clips = self._extract_clips(
-            self._train_image_files, self._train_tracks)
-        val_clips = self._extract_clips(
-            self._test_image_files, self._test_tracks)
+        train_clips = self._extract_clips(self._train_image_files, self._train_tracks)
+        val_clips = self._extract_clips(self._test_image_files, self._test_tracks)
 
         print(f"  Training clips: {len(train_clips)}")
         print(f"  Validation clips: {len(val_clips)}")
@@ -411,14 +411,14 @@ class MOTRTrainer(TrainTracker):
             print("No training clips could be sampled from track data!")
             return {}
 
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"Using device: {device}")
 
         model_config = {
-            'd_model': int(self._d_model),
-            'nhead': int(self._nhead),
-            'num_layers': int(self._num_layers),
-            'crop_size': int(self._crop_size),
+            "d_model": int(self._d_model),
+            "nhead": int(self._nhead),
+            "num_layers": int(self._num_layers),
+            "crop_size": int(self._crop_size),
         }
         model = build_track_query_model(**model_config).to(device)
 
@@ -433,12 +433,11 @@ class MOTRTrainer(TrainTracker):
             lr=float(self._learning_rate),
             weight_decay=0.01,
         )
-        scheduler = optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=max_epochs)
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max_epochs)
 
         checkpoint_dir = Path(self._train_directory) / "checkpoints"
         checkpoint_dir.mkdir(exist_ok=True)
-        best_val_loss = float('inf')
+        best_val_loss = float("inf")
 
         for epoch in range(max_epochs):
             model.train()
@@ -450,7 +449,8 @@ class MOTRTrainer(TrainTracker):
 
             for clip_idx, clip in enumerate(train_clips):
                 loss, supervised = self._run_clip(
-                    model, clip, device, rng, augment=True)
+                    model, clip, device, rng, augment=True
+                )
 
                 if supervised == 0:
                     continue
@@ -476,7 +476,8 @@ class MOTRTrainer(TrainTracker):
             with torch.no_grad():
                 for clip in val_clips:
                     loss, supervised = self._run_clip(
-                        model, clip, device, rng, augment=False)
+                        model, clip, device, rng, augment=False
+                    )
                     if supervised == 0:
                         continue
                     val_loss += (loss / supervised).item()
@@ -484,29 +485,29 @@ class MOTRTrainer(TrainTracker):
 
             avg_val_loss = val_loss / max(val_rows, 1)
 
-            print(f"Epoch {epoch+1}/{max_epochs}: "
-                  f"train_loss={avg_train_loss:.4f}, "
-                  f"val_loss={avg_val_loss:.4f}")
+            print(
+                f"Epoch {epoch+1}/{max_epochs}: "
+                f"train_loss={avg_train_loss:.4f}, "
+                f"val_loss={avg_val_loss:.4f}"
+            )
 
             checkpoint = {
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'config': model_config,
-                'train_loss': avg_train_loss,
-                'val_loss': avg_val_loss,
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "config": model_config,
+                "train_loss": avg_train_loss,
+                "val_loss": avg_val_loss,
             }
-            torch.save(checkpoint,
-                       checkpoint_dir / f"checkpoint_e{epoch+1}.pth")
+            torch.save(checkpoint, checkpoint_dir / f"checkpoint_e{epoch+1}.pth")
 
             # With no validation clips fall back to tracking train loss
-            selection_loss = avg_val_loss if val_rows > 0 \
-                else avg_train_loss
+            selection_loss = avg_val_loss if val_rows > 0 else avg_train_loss
             if selection_loss < best_val_loss:
                 best_val_loss = selection_loss
                 torch.save(
-                    {'model_state_dict': model.state_dict(),
-                     'config': model_config},
-                    checkpoint_dir / "best_model.pth")
+                    {"model_state_dict": model.state_dict(), "config": model_config},
+                    checkpoint_dir / "best_model.pth",
+                )
 
         output = self._get_output_map()
 
@@ -523,8 +524,7 @@ class MOTRTrainer(TrainTracker):
         best_model = checkpoint_dir / "best_model.pth"
 
         if not best_model.exists():
-            print("\n[MOTRTrainer] No best model found, "
-                  "training may have failed")
+            print("\n[MOTRTrainer] No best model found, " "training may have failed")
             return output
 
         algo = "motr"
@@ -534,25 +534,19 @@ class MOTRTrainer(TrainTracker):
         output[output_model_name] = str(best_model)
 
         print(f"\nModel found at: {best_model}")
-        print(f"\nThe {self._train_directory} directory can now be deleted, "
-              "unless you want to review training metrics first.")
+        print(
+            f"\nThe {self._train_directory} directory can now be deleted, "
+            "unless you want to review training metrics first."
+        )
 
         return output
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "motr"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            MOTRTrainer.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
+    register_vital_algorithm(
+        MOTRTrainer,
+        "motr",
         "MOTR-style track-query transformer training for learned association",
-        MOTRTrainer
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

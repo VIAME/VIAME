@@ -17,8 +17,12 @@ import math
 import delayed_image
 from viame.pytorch.utilities import (
     report_cuda_errors,
-    vital_config_update, vital_to_kwimage_box,
-    mask_to_polygon, box_from_mask, image_to_rgb_numpy, get_autocast_context
+    vital_config_update,
+    vital_to_kwimage_box,
+    mask_to_polygon,
+    box_from_mask,
+    image_to_rgb_numpy,
+    get_autocast_context,
 )
 from viame.core.segmentation_utils import (
     kwimage_mask_to_shapely,
@@ -90,19 +94,19 @@ class Sam2Refiner(RefineDetections):
 
         # kwiver configuration variables
         self._kwiver_config = {
-            'cfg': "configs/sam2.1/sam2.1_hiera_b+.yaml",
-            'checkpoint': 'https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt',
-            'device': "cuda",
-            'overwrite_existing': 'True',
-            'hole_policy': 'allow',  # can be allow or discard
-            'multipolygon_policy': 'allow',  # can be allow, convex_hull, or largest
+            "cfg": "configs/sam2.1/sam2.1_hiera_b+.yaml",
+            "checkpoint": "https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt",
+            "device": "cuda",
+            "overwrite_existing": "True",
+            "hole_policy": "allow",  # can be allow or discard
+            "multipolygon_policy": "allow",  # can be allow, convex_hull, or largest
             # On a box-prompt mask that is empty/degenerate, retry that
             # detection with a foreground point prompt at the box center.
-            'second_pass_on_failure': 'True',
-            'second_pass_min_pixels': '10',
-            'second_pass_window': '1024',
+            "second_pass_on_failure": "True",
+            "second_pass_min_pixels": "10",
+            "second_pass_window": "1024",
             # Max boxes per SAM2 predict call (bounds GPU memory on dense chips).
-            'predict_batch': '48',
+            "predict_batch": "48",
         }
 
         # netharn variables
@@ -126,26 +130,26 @@ class Sam2Refiner(RefineDetections):
 
         from sam2.build_sam import build_sam2
         from sam2.sam2_image_predictor import SAM2ImagePredictor
+
         hydra_overrides_extra = [
             # "++model.fill_hole_area=8",
         ]
         model = build_sam2(
-            config_file=self._kwiver_config['cfg'],
-            ckpt_path=self._kwiver_config['checkpoint'],
-            device=self._kwiver_config['device'],
-            mode='eval',
+            config_file=self._kwiver_config["cfg"],
+            ckpt_path=self._kwiver_config["checkpoint"],
+            device=self._kwiver_config["device"],
+            mode="eval",
             hydra_overrides_extra=hydra_overrides_extra,
             apply_postprocessing=True,
         )
         self.predictor = SAM2ImagePredictor(model)
-        self.overwrite_existing = strtobool(self._kwiver_config['overwrite_existing'])
+        self.overwrite_existing = strtobool(self._kwiver_config["overwrite_existing"])
         self.second_pass_on_failure = strtobool(
-            self._kwiver_config['second_pass_on_failure'])
-        self.second_pass_min_pixels = int(
-            self._kwiver_config['second_pass_min_pixels'])
-        self.second_pass_window = int(
-            self._kwiver_config['second_pass_window'])
-        self.predict_batch = int(self._kwiver_config['predict_batch'])
+            self._kwiver_config["second_pass_on_failure"]
+        )
+        self.second_pass_min_pixels = int(self._kwiver_config["second_pass_min_pixels"])
+        self.second_pass_window = int(self._kwiver_config["second_pass_window"])
+        self.predict_batch = int(self._kwiver_config["predict_batch"])
         return True
 
     def check_configuration(self, cfg):
@@ -173,11 +177,13 @@ class Sam2Refiner(RefineDetections):
         if len(detections) == 0:
             return DetectedObjectSet()
 
-        imdata = image_data.asarray().astype('uint8')
+        imdata = image_data.asarray().astype("uint8")
 
         # SAM2 requires RGB input
         if imdata.ndim == 2 or imdata.shape[2] == 1:
-            imdata = np.repeat(imdata.reshape(imdata.shape[0], imdata.shape[1], 1), 3, axis=2)
+            imdata = np.repeat(
+                imdata.reshape(imdata.shape[0], imdata.shape[1], 1), 3, axis=2
+            )
         elif imdata.shape[2] == 4:
             imdata = imdata[:, :, :3]
 
@@ -191,7 +197,7 @@ class Sam2Refiner(RefineDetections):
 
         # TODO: can use more than boxes as prompts
         det_list = list(detections)
-        boxes_xyxy = np.asarray(kw_dets.boxes.toformat('xyxy').data)
+        boxes_xyxy = np.asarray(kw_dets.boxes.toformat("xyxy").data)
 
         # Predict in box batches. Dense chips can contain hundreds of boxes; a
         # single predict over all of them allocates per-box full-resolution
@@ -202,15 +208,17 @@ class Sam2Refiner(RefineDetections):
         with torch.inference_mode(), autocast_context:
             predictor.set_image(imdata)
             for b0 in range(0, len(boxes_xyxy), batch):
-                bxs = boxes_xyxy[b0:b0 + batch]
-                m, _scores, _lr = predictor.predict(
-                    box=bxs, multimask_output=False)
+                bxs = boxes_xyxy[b0 : b0 + batch]
+                m, _scores, _lr = predictor.predict(box=bxs, multimask_output=False)
                 m = m.astype(np.uint8)
                 if len(m.shape) == 3:
                     m = m[None, :, :, :]
                 mask_batches.append(m)
-        masks = np.concatenate(mask_batches, axis=0) if mask_batches \
+        masks = (
+            np.concatenate(mask_batches, axis=0)
+            if mask_batches
             else np.zeros((0, 1) + imdata.shape[:2], dtype=np.uint8)
+        )
 
         # Fallback (optional, configurable): SAM2 sometimes returns an empty or
         # degenerate (a few pixels) mask for a box prompt. For those detections
@@ -223,22 +231,26 @@ class Sam2Refiner(RefineDetections):
             # too small, or so thin it cannot form a (>=3 point) polygon.
             box = vital_to_kwimage_box(vital_det.bounding_box)
             sl = box.quantize().to_slice()
-            sub = delayed_image.DelayedIdentity(binmask).crop(
-                sl, clip=False, wrap=False).finalize()
+            sub = (
+                delayed_image.DelayedIdentity(binmask)
+                .crop(sl, clip=False, wrap=False)
+                .finalize()
+            )
             sub = np.ascontiguousarray(
-                (np.asarray(sub).reshape(sub.shape[:2]) > 0).astype(np.uint8))
+                (np.asarray(sub).reshape(sub.shape[:2]) > 0).astype(np.uint8)
+            )
             if int(sub.sum()) < self.second_pass_min_pixels:
                 return True
-            cnts, _ = cv2.findContours(
-                sub, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            cnts, _ = cv2.findContours(sub, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             if not cnts:
                 return True
             return len(max(cnts, key=cv2.contourArea)) < 3
 
         retry = []
         if self.second_pass_on_failure:
-            retry = [i for i, vd in enumerate(det_list)
-                     if _box_mask_failed(masks[i, 0], vd)]
+            retry = [
+                i for i, vd in enumerate(det_list) if _box_mask_failed(masks[i, 0], vd)
+            ]
         if retry:
             # Re-segment each failed box on a smaller, full-resolution window
             # centered on it (a small object is under-resolved in a large chip).
@@ -253,15 +265,16 @@ class Sam2Refiner(RefineDetections):
                 wx1 = int(min(iw, wx0 + win))
                 wy1 = int(min(ih, wy0 + win))
                 sub = np.ascontiguousarray(imdata[wy0:wy1, wx0:wx1])
-                lb = np.array([[x0 - wx0, y0 - wy0, x1 - wx0, y1 - wy0]],
-                              dtype=np.float32)
+                lb = np.array(
+                    [[x0 - wx0, y0 - wy0, x1 - wx0, y1 - wy0]], dtype=np.float32
+                )
                 pc = np.array([[[cx - wx0, cy - wy0]]], dtype=np.float32)
                 pl = np.ones((1, 1), dtype=np.int32)
                 with torch.inference_mode(), autocast_context:
                     predictor.set_image(sub)
                     mm, _, _ = predictor.predict(
-                        point_coords=pc, point_labels=pl, box=lb,
-                        multimask_output=True)
+                        point_coords=pc, point_labels=pl, box=lb, multimask_output=True
+                    )
                 mm = mm.astype(np.uint8)
                 mm = mm.reshape(-1, sub.shape[0], sub.shape[1])
                 best = mm[int(np.argmax([m.sum() for m in mm]))]
@@ -269,20 +282,19 @@ class Sam2Refiner(RefineDetections):
                 full[wy0:wy1, wx0:wx1] = best
                 masks[i, 0] = full
 
-        hole_policy = self._kwiver_config['hole_policy']
-        mpoly_policy = self._kwiver_config['multipolygon_policy']
+        hole_policy = self._kwiver_config["hole_policy"]
+        mpoly_policy = self._kwiver_config["multipolygon_policy"]
 
         # TODO: we may like to make these configrable
         # Area requires rasterio
         # pixels_are = 'areas'
         # origin_convention = 'corner'
 
-        pixels_are = 'points'
-        origin_convention = 'center'
+        pixels_are = "points"
+        origin_convention = "center"
 
         needs_polygon_postprocess = not (
-            (hole_policy == 'allow') and
-            (mpoly_policy == 'allow')
+            (hole_policy == "allow") and (mpoly_policy == "allow")
         )
         # Insert modified detections into a new DetectedObjectSet
         output = DetectedObjectSet()
@@ -331,6 +343,7 @@ class Sam2Refiner(RefineDetections):
             pass
         try:
             import gc
+
             del masks
             gc.collect()
             torch.cuda.empty_cache()
@@ -365,20 +378,20 @@ class Sam2TrackRefiner(RefineTracks):
         RefineTracks.__init__(self)
 
         self._kwiver_config = {
-            'cfg': "configs/sam2.1/sam2.1_hiera_b+.yaml",
-            'checkpoint': 'https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt',
-            'device': "cuda",
-            'overwrite_existing': 'True',
-            'hole_policy': 'allow',
-            'multipolygon_policy': 'allow',
-            'min_mask_area': '10',
-            'filter_by_quality': 'True',
-            'adjust_boxes': 'True',
-            'output_type': 'polygon',
-            'polygon_simplification': '0.01',
+            "cfg": "configs/sam2.1/sam2.1_hiera_b+.yaml",
+            "checkpoint": "https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt",
+            "device": "cuda",
+            "overwrite_existing": "True",
+            "hole_policy": "allow",
+            "multipolygon_policy": "allow",
+            "min_mask_area": "10",
+            "filter_by_quality": "True",
+            "adjust_boxes": "True",
+            "output_type": "polygon",
+            "polygon_simplification": "0.01",
             # Cross-frame tracking: propagate seed boxes to subsequent frames
-            'track_new_objects': 'True',
-            'lost_track_frames': '10',
+            "track_new_objects": "True",
+            "lost_track_frames": "10",
         }
 
         self.predictor = None
@@ -410,26 +423,28 @@ class Sam2TrackRefiner(RefineTracks):
 
         hydra_overrides_extra = []
         model = build_sam2(
-            config_file=self._kwiver_config['cfg'],
-            ckpt_path=self._kwiver_config['checkpoint'],
-            device=self._kwiver_config['device'],
-            mode='eval',
+            config_file=self._kwiver_config["cfg"],
+            ckpt_path=self._kwiver_config["checkpoint"],
+            device=self._kwiver_config["device"],
+            mode="eval",
             hydra_overrides_extra=hydra_overrides_extra,
             apply_postprocessing=True,
         )
         self.predictor = SAM2ImagePredictor(model)
 
         # Parse config values
-        self.overwrite_existing = strtobool(self._kwiver_config['overwrite_existing'])
-        self._min_mask_area = int(self._kwiver_config['min_mask_area'])
-        self._filter_by_quality = strtobool(self._kwiver_config['filter_by_quality'])
-        self._adjust_boxes = strtobool(self._kwiver_config['adjust_boxes'])
-        self._output_type = self._kwiver_config['output_type']
-        self._polygon_simplification = float(self._kwiver_config['polygon_simplification'])
-        self._hole_policy = self._kwiver_config['hole_policy']
-        self._mpoly_policy = self._kwiver_config['multipolygon_policy']
-        self._track_new_objects = strtobool(self._kwiver_config['track_new_objects'])
-        self._lost_track_frames = int(self._kwiver_config['lost_track_frames'])
+        self.overwrite_existing = strtobool(self._kwiver_config["overwrite_existing"])
+        self._min_mask_area = int(self._kwiver_config["min_mask_area"])
+        self._filter_by_quality = strtobool(self._kwiver_config["filter_by_quality"])
+        self._adjust_boxes = strtobool(self._kwiver_config["adjust_boxes"])
+        self._output_type = self._kwiver_config["output_type"]
+        self._polygon_simplification = float(
+            self._kwiver_config["polygon_simplification"]
+        )
+        self._hole_policy = self._kwiver_config["hole_policy"]
+        self._mpoly_policy = self._kwiver_config["multipolygon_policy"]
+        self._track_new_objects = strtobool(self._kwiver_config["track_new_objects"])
+        self._lost_track_frames = int(self._kwiver_config["lost_track_frames"])
 
         return True
 
@@ -502,14 +517,14 @@ class Sam2TrackRefiner(RefineTracks):
             bbox = det.bounding_box
             box = [bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()]
             boxes_to_segment.append(box)
-            box_sources.append(('input', tid))
+            box_sources.append(("input", tid))
 
         # 2) Tracked objects from previous frames whose box we propagate
         if self._track_new_objects:
             for tid, tdata in self._tracked_objects.items():
                 if tid not in track_states:
-                    boxes_to_segment.append(list(tdata['last_box']))
-                    box_sources.append(('propagated', tid))
+                    boxes_to_segment.append(list(tdata["last_box"]))
+                    box_sources.append(("propagated", tid))
 
         # -----------------------------------------------------------------
         # Segment all boxes with SAM2
@@ -532,11 +547,11 @@ class Sam2TrackRefiner(RefineTracks):
 
             # Filter by minimum mask area
             if self._filter_by_quality and mask_area < self._min_mask_area:
-                if source_type == 'input':
+                if source_type == "input":
                     processed_track_ids.add(tid)
                 continue
 
-            if source_type == 'input':
+            if source_type == "input":
                 # Refine an existing input track detection
                 track, old_state, old_det = track_states[tid]
                 processed_track_ids.add(tid)
@@ -559,23 +574,22 @@ class Sam2TrackRefiner(RefineTracks):
                 # object so its box is propagated to future frames
                 if self._track_new_objects:
                     bbox = new_det.bounding_box
-                    new_box = [bbox.min_x(), bbox.min_y(),
-                               bbox.max_x(), bbox.max_y()]
-                    class_name = ''
+                    new_box = [bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()]
+                    class_name = ""
                     try:
                         class_name = old_det.type.get_most_likely_class()
                     except Exception:
                         pass
                     if tid in self._tracked_objects:
-                        self._tracked_objects[tid]['last_box'] = new_box
-                        self._tracked_objects[tid]['lost'] = 0
-                        self._tracked_objects[tid]['history'].append(new_state)
+                        self._tracked_objects[tid]["last_box"] = new_box
+                        self._tracked_objects[tid]["lost"] = 0
+                        self._tracked_objects[tid]["history"].append(new_state)
                     else:
                         self._tracked_objects[tid] = {
-                            'class_name': class_name,
-                            'last_box': new_box,
-                            'lost': 0,
-                            'history': [new_state],
+                            "class_name": class_name,
+                            "last_box": new_box,
+                            "lost": 0,
+                            "history": [new_state],
                         }
                     seen_tracked_ids.add(tid)
 
@@ -585,17 +599,21 @@ class Sam2TrackRefiner(RefineTracks):
                 tdata = self._tracked_objects[tid]
 
                 new_det = self._create_propagated_detection(
-                    mask, boxes_to_segment[i], tdata['class_name']
+                    mask, boxes_to_segment[i], tdata["class_name"]
                 )
                 if new_det is None:
                     continue
 
                 new_state = ObjectTrackState(ts, new_det)
-                tdata['history'].append(new_state)
+                tdata["history"].append(new_state)
                 bbox = new_det.bounding_box
-                tdata['last_box'] = [bbox.min_x(), bbox.min_y(),
-                                     bbox.max_x(), bbox.max_y()]
-                tdata['lost'] = 0
+                tdata["last_box"] = [
+                    bbox.min_x(),
+                    bbox.min_y(),
+                    bbox.max_x(),
+                    bbox.max_y(),
+                ]
+                tdata["lost"] = 0
 
         # -----------------------------------------------------------------
         # Update lost counts and emit tracked-object tracks
@@ -604,13 +622,13 @@ class Sam2TrackRefiner(RefineTracks):
             expired = []
             for tid, tdata in self._tracked_objects.items():
                 if tid not in seen_tracked_ids:
-                    tdata['lost'] += 1
-                if tdata['lost'] > self._lost_track_frames:
+                    tdata["lost"] += 1
+                if tdata["lost"] > self._lost_track_frames:
                     expired.append(tid)
 
             for tid, tdata in self._tracked_objects.items():
-                if tid not in processed_track_ids and len(tdata['history']) > 0:
-                    output_tracks.append(Track(tid, list(tdata['history'])))
+                if tid not in processed_track_ids and len(tdata["history"]) > 0:
+                    output_tracks.append(Track(tid, list(tdata["history"])))
 
             for tid in expired:
                 del self._tracked_objects[tid]
@@ -641,10 +659,7 @@ class Sam2TrackRefiner(RefineTracks):
 
         autocast_context = get_autocast_context(self.predictor.device)
 
-        prompts = {
-            'box': np.array(boxes),
-            'multimask_output': False
-        }
+        prompts = {"box": np.array(boxes), "multimask_output": False}
 
         with torch.inference_mode(), autocast_context:
             self.predictor.set_image(image_np)
@@ -678,8 +693,10 @@ class Sam2TrackRefiner(RefineTracks):
         dot = DetectedObjectType(class_name, 1.0) if class_name else None
         det = DetectedObject(bbox, 1.0, dot) if dot else DetectedObject(bbox, 1.0)
 
-        if self._output_type in ('polygon', 'both'):
-            binary_mask = (mask > 0.5).astype(np.uint8) if mask.dtype != np.uint8 else mask
+        if self._output_type in ("polygon", "both"):
+            binary_mask = (
+                (mask > 0.5).astype(np.uint8) if mask.dtype != np.uint8 else mask
+            )
             poly_pts = mask_to_polygon(binary_mask, self._polygon_simplification)
             if poly_pts is not None:
                 det.set_flattened_polygon(poly_pts)
@@ -725,8 +742,10 @@ class Sam2TrackRefiner(RefineTracks):
         new_det = DetectedObject(bbox, confidence, det_type)
 
         # Add polygon
-        if self._output_type in ('polygon', 'both'):
-            binary_mask = (mask > 0.5).astype(np.uint8) if mask.dtype != np.uint8 else mask
+        if self._output_type in ("polygon", "both"):
+            binary_mask = (
+                (mask > 0.5).astype(np.uint8) if mask.dtype != np.uint8 else mask
+            )
             poly_pts = mask_to_polygon(binary_mask, self._polygon_simplification)
             if poly_pts is not None:
                 new_det.set_flattened_polygon(poly_pts)
@@ -774,11 +793,12 @@ def kwimage_boxes_to_vital(boxes):
         >>> kwimage_boxes_to_vital(boxes.scale(100).astype(int))
     """
     from kwiver.vital.types import BoundingBoxI
+
     # from kwiver.vital.types import BoundingBoxF
     from kwiver.vital.types import BoundingBoxD
 
     # Determine which bbox type is needed
-    if boxes.data.dtype.kind == 'f':
+    if boxes.data.dtype.kind == "f":
         # not sure if using BoundingBoxF makes sense or works with other classes
         # if boxes.data.dtype.itemsize == 4:
         #     box_cls = BoundingBoxF
@@ -786,7 +806,7 @@ def kwimage_boxes_to_vital(boxes):
         box_cls = BoundingBoxD
         # else:
         #     raise TypeError(boxes.data.dtype)
-    elif boxes.data.dtype.kind == 'i':
+    elif boxes.data.dtype.kind == "i":
         box_cls = BoundingBoxI
     else:
         raise TypeError(boxes.data.dtype)
@@ -794,8 +814,8 @@ def kwimage_boxes_to_vital(boxes):
     # Convert to the bbox format vital likes and make the objects
     xyxy_data = boxes.to_ltrb().data
     vital_boxes = [
-        box_cls(xmin, ymin, xmax, ymax)
-        for xmin, ymin, xmax, ymax in xyxy_data]
+        box_cls(xmin, ymin, xmax, ymax) for xmin, ymin, xmax, ymax in xyxy_data
+    ]
     return vital_boxes
 
 
@@ -829,10 +849,10 @@ def kwimage_detections_to_vital(kwimage_dets):
     dets = kwimage_dets
 
     boxes = dets.boxes  # required
-    scores = dets.data.get('scores', None)
-    class_idxs = dets.data.get('class_idxs', None)
-    segmentations = dets.data.get('segmentations', None)
-    classes = dets.meta.get('classes', None)
+    scores = dets.data.get("scores", None)
+    class_idxs = dets.data.get("class_idxs", None)
+    segmentations = dets.data.get("segmentations", None)
+    classes = dets.meta.get("classes", None)
 
     if scores is None:
         scores = np.ones(len(dets))
@@ -844,12 +864,14 @@ def kwimage_detections_to_vital(kwimage_dets):
     vital_boxes = kwimage_boxes_to_vital(boxes)
 
     vital_dets = []
-    for bbox, score, class_idx, sseg in zip(vital_boxes, scores, class_idxs, segmentations):
+    for bbox, score, class_idx, sseg in zip(
+        vital_boxes, scores, class_idxs, segmentations
+    ):
         detobjkw = {
-            'bbox': bbox,
+            "bbox": bbox,
         }
         if score is not None:
-            detobjkw['confidence'] = score
+            detobjkw["confidence"] = score
 
         if sseg is not None:
             # Convert the segmentation to vital
@@ -859,7 +881,7 @@ def kwimage_detections_to_vital(kwimage_dets):
             # for float bboxes the second doesn't make much sense, but the
             # first takes much more data.
             # TODO: in kwimage to denote which space masks belong to.
-            if hasattr(sseg, 'to_relative_mask'):
+            if hasattr(sseg, "to_relative_mask"):
                 # sseg is a Polygon, and has this method
                 offset = [int(math.ceil(bbox.min_x())), int(math.ceil(bbox.min_y()))]
                 bottom = [int(math.floor(bbox.max_x())), int(math.floor(bbox.max_y()))]
@@ -874,16 +896,16 @@ def kwimage_detections_to_vital(kwimage_dets):
                 # sseg is probably a mask already
                 # TODO: handle relativeness
                 mask = sseg.data.to_c_mask()
-                print('case2')
-                raise NotImplementedError('implement correctly if needed')
+                print("case2")
+                raise NotImplementedError("implement correctly if needed")
 
             nd_mask = mask.to_c_mask().data
             vital_mask = vital_image_container_from_ndarray(nd_mask)
-            detobjkw['mask'] = vital_mask
+            detobjkw["mask"] = vital_mask
 
         if classes is not None and class_idx is not None:
             label = classes[class_idx]
-            detobjkw['classifications'] = DetectedObjectType(label, score)
+            detobjkw["classifications"] = DetectedObjectType(label, score)
 
         obj = DetectedObject(**detobjkw)
         vital_dets.append(obj)
@@ -915,10 +937,7 @@ def kwimage_new_to_relative_mask(self, offset=None, dims=None, return_offset=Fal
         offset = (x, y)
 
     if dims is None:
-        dims = (
-            x - offset[0] + w,
-            x - offset[1] + h
-        )
+        dims = (x - offset[0] + w, x - offset[1] + h)
     translation = tuple(-p for p in offset)
     mask = self.translate(translation).to_mask(dims=dims)
     if return_offset:
@@ -955,6 +974,7 @@ def vital_detections_to_kwimage(vital_dets):
         >>>     print(recon_kwimage_dets2.data['segmentations'][i].data.to_c_mask().data.sum())
     """
     import kwimage
+
     boxes = []
     scores = []
     masks = []
@@ -997,17 +1017,17 @@ def vital_detections_to_kwimage(vital_dets):
         masks.append(kw_mask)
 
     if len(masks):
-        detkw['segmentations'] = kwimage.SegmentationList(masks)
+        detkw["segmentations"] = kwimage.SegmentationList(masks)
 
     classes = sorted(all_catnames)
     if len(classes):
         catname_to_idx = {name: idx for idx, name in enumerate(classes)}
         class_idxs = np.array([catname_to_idx[cname] for cname in catnames])
-        detkw['class_idxs'] = class_idxs
-        detkw['classes'] = classes
+        detkw["class_idxs"] = class_idxs
+        detkw["classes"] = classes
 
-    detkw['boxes'] = kwimage.Boxes(np.array(boxes), format='ltrb')
-    detkw['scores'] = np.array(scores)
+    detkw["boxes"] = kwimage.Boxes(np.array(boxes), format="ltrb")
+    detkw["scores"] = np.array(scores)
 
     dets = kwimage.Detections(**detkw)
     return dets
@@ -1027,26 +1047,11 @@ def vital_image_container_from_ndarray(ndarray_img):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    # Register Sam2Refiner (RefineDetections)
-    implementation_name = "sam2"
-
-    if not algorithm_factory.has_algorithm_impl_name(
-            Sam2Refiner.static_type_name(), implementation_name):
-        algorithm_factory.add_algorithm(
-            implementation_name, "SAM2-based detection refiner",
-            Sam2Refiner)
-
-        algorithm_factory.mark_algorithm_as_loaded(implementation_name)
-
-    # Register Sam2TrackRefiner (RefineTracks)
-    track_impl_name = "sam2"
-
-    if not algorithm_factory.has_algorithm_impl_name(
-            Sam2TrackRefiner.static_type_name(), track_impl_name):
-        algorithm_factory.add_algorithm(
-            track_impl_name, "SAM2-based track refiner for adding segmentation masks to tracks",
-            Sam2TrackRefiner)
-
-        algorithm_factory.mark_algorithm_as_loaded(track_impl_name)
+    register_vital_algorithm(Sam2Refiner, "sam2", "SAM2-based detection refiner")
+    register_vital_algorithm(
+        Sam2TrackRefiner,
+        "sam2",
+        "SAM2-based track refiner for adding segmentation masks to tracks",
+    )

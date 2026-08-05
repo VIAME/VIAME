@@ -41,15 +41,6 @@ target_include_directories( viame_svm PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   )
 
-find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
-  COMPONENTS
-    filesystem
-    regex
-    system )
-
-include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
-link_directories( ${Boost_LIBRARY_DIRS} )
-
 target_link_libraries( viame_svm
   PUBLIC               kwiver::vital
                        kwiver::vital_algo
@@ -57,9 +48,6 @@ target_link_libraries( viame_svm
                        ${OpenCV_LIBS}
   PRIVATE              kwiver::vital_config
                        kwiver::kwiversys
-                       ${Boost_SYSTEM_LIBRARY}
-                       ${Boost_FILESYSTEM_LIBRARY}
-                       ${Boost_REGEX_LIBRARY}
                        ${SVM_LIBRARY}
   )
 

@@ -8,39 +8,38 @@
  */
 
 #include "viame_svm_plugin_export.h"
-#include <vital/algo/algorithm_factory.h>
+#include <vital/plugin_management/plugin_loader.h>
+
+#include <vital/algo/refine_detections.h>
+#include <vital/algo/train_detector.h>
 
 #include "refine_detections_svm.h"
 #include "train_detector_svm.h"
 
 namespace viame {
 
+namespace kv = kwiver::vital;
+
 extern "C"
 VIAME_SVM_PLUGIN_EXPORT
 void
-register_factories( kwiver::vital::plugin_loader& vpm )
+register_factories( kv::plugin_loader& vpm )
 {
-  static auto const module_name = std::string( "viame.svm" );
-  if (vpm.is_module_loaded( module_name ) )
+  using kvpf = kv::plugin_factory;
+  const std::string module_name = "viame.svm";
+
+  if( vpm.is_module_loaded( module_name ) )
   {
     return;
   }
 
-  auto fact = vpm.ADD_ALGORITHM( "svm", viame::refine_detections_svm );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Apply svm to refine detection" )
-      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-      ;
+  auto fact = vpm.add_factory< kv::algo::refine_detections, refine_detections_svm >(
+    refine_detections_svm::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
-  auto fact2 = vpm.ADD_ALGORITHM( "svm", viame::train_detector_svm );
-  fact2->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                        "Train SVM models for object detection" )
-      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-      ;
+  fact = vpm.add_factory< kv::algo::train_detector, train_detector_svm >(
+    train_detector_svm::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   vpm.mark_module_as_loaded( module_name );
 }

@@ -2,18 +2,30 @@ import scriptconfig as scfg
 import numpy as np
 
 from kwiver.vital.algo import ImageObjectDetector
-from viame.pytorch.utilities import kwimage_to_kwiver_detections, vital_config_update, report_cuda_errors
+from viame.pytorch.utilities import (
+    kwimage_to_kwiver_detections,
+    vital_config_update,
+    report_cuda_errors,
+)
 
 
 class HuggingFaceZeroShotDetectorConfig(scfg.DataConfig):
     """
     The configuration for :class:`HuggingFaceZeroShotDetector`.
     """
-    model_id = scfg.Value("IDEA-Research/grounding-dino-tiny", help='huggingface model ID')
-    device = scfg.Value('cuda', help='a torch device string or number')
-    classes = scfg.Value('[foreground object]', help='A YAML list of text prompts')
-    threshold = scfg.Value(0.25, help='Threshold to keep object detection predictions based on confidence score')
-    text_threshold = scfg.Value(0.25, help='Score threshold to keep text detection predictions')
+
+    model_id = scfg.Value(
+        "IDEA-Research/grounding-dino-tiny", help="huggingface model ID"
+    )
+    device = scfg.Value("cuda", help="a torch device string or number")
+    classes = scfg.Value("[foreground object]", help="A YAML list of text prompts")
+    threshold = scfg.Value(
+        0.25,
+        help="Threshold to keep object detection predictions based on confidence score",
+    )
+    text_threshold = scfg.Value(
+        0.25, help="Score threshold to keep text detection predictions"
+    )
 
     def __post_init__(self):
         super().__post_init__()
@@ -59,6 +71,7 @@ class HuggingFaceZeroShotDetector(ImageObjectDetector):
         from kwiver.vital.util import VitalPIL
         from kwiver.vital.types import ImageContainer
         import kwimage
+
         image_fpath = kwimage.grab_test_image_fpath()
         pil_img = PILImage.open(image_fpath)
         image_data = ImageContainer(VitalPIL.from_pil(pil_img))
@@ -74,16 +87,19 @@ class HuggingFaceZeroShotDetector(ImageObjectDetector):
     @report_cuda_errors("HuggingFaceZeroShotDetector initialization")
     def set_configuration(self, cfg_in):
         from transformers import AutoProcessor, AutoModelForZeroShotObjectDetection
+
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)
 
         for key in self._kwiver_config.keys():
             self._kwiver_config[key] = str(cfg.get_value(key))
 
-        model_id = self._kwiver_config['model_id']
-        device = self._kwiver_config['device']
+        model_id = self._kwiver_config["model_id"]
+        device = self._kwiver_config["device"]
         self.processor = AutoProcessor.from_pretrained(model_id)
-        self.model = AutoModelForZeroShotObjectDetection.from_pretrained(model_id).to(device)
+        self.model = AutoModelForZeroShotObjectDetection.from_pretrained(model_id).to(
+            device
+        )
         return True
 
     def check_configuration(self, cfg):
@@ -97,6 +113,7 @@ class HuggingFaceZeroShotDetector(ImageObjectDetector):
         import kwcoco
         import kwarray
         import kwutil
+
         full_rgb = image_data.asarray()
         pil_img = Image.fromarray(full_rgb)
 
@@ -105,9 +122,11 @@ class HuggingFaceZeroShotDetector(ImageObjectDetector):
 
         device = self._kwiver_config.device
         classes: list[str] = kwutil.Yaml.coerce(self._kwiver_config.classes)
-        text_labels : list[list[str]] = [classes]
+        text_labels: list[list[str]] = [classes]
 
-        inputs = processor(images=pil_img, text=text_labels, return_tensors="pt").to(device)
+        inputs = processor(images=pil_img, text=text_labels, return_tensors="pt").to(
+            device
+        )
         with torch.no_grad():
             outputs = model(**inputs)
 
@@ -116,18 +135,18 @@ class HuggingFaceZeroShotDetector(ImageObjectDetector):
             inputs.input_ids,
             threshold=self._kwiver_config.threshold,
             text_threshold=self._kwiver_config.text_threshold,
-            target_sizes=[pil_img.size[::-1]]
+            target_sizes=[pil_img.size[::-1]],
         )
         assert len(results) == 1
         result = results[0]
 
-        boxes = kwimage.Boxes(result["boxes"], 'ltrb')
+        boxes = kwimage.Boxes(result["boxes"], "ltrb")
         classes = kwcoco.CategoryTree.coerce(sorted(set(result["text_labels"])))
         class_idxs = np.array([classes.node_to_idx[c] for c in result["text_labels"]])
 
         dets = kwimage.Detections(
             boxes=boxes.numpy(),
-            scores=kwarray.ArrayAPI.numpy(result['scores']),
+            scores=kwarray.ArrayAPI.numpy(result["scores"]),
             class_idxs=class_idxs,
             classes=classes,
         )
@@ -137,17 +156,10 @@ class HuggingFaceZeroShotDetector(ImageObjectDetector):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    # Register Algorithm
-    implementation_name = "huggingface_zeroshot_detector"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            HuggingFaceZeroShotDetector.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name, "HuggingFace ZeroShot Object Detection",
-        HuggingFaceZeroShotDetector)
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+    register_vital_algorithm(
+        HuggingFaceZeroShotDetector,
+        "huggingface_zeroshot_detector",
+        "HuggingFace ZeroShot Object Detection",
+    )

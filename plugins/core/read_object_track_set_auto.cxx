@@ -9,6 +9,8 @@
 
 #include "read_object_track_set_auto.h"
 
+#include <vital/algo/algorithm.txx>
+
 #include "read_object_track_set_dive.h"
 #include "read_object_track_set_viame_csv.h"
 #include "utilities_file.h"
@@ -97,8 +99,8 @@ std::string detect_json_track_format( std::string const& content )
 class read_object_track_set_auto::priv
 {
 public:
-  priv( read_object_track_set_auto* parent )
-    : m_parent( parent )
+  priv( read_object_track_set_auto& parent )
+    : m_parent( &parent )
     , m_detected_format( "" )
   { }
 
@@ -112,8 +114,6 @@ public:
 
   // The underlying reader we delegate to
   kwiver::vital::algo::read_object_track_set_sptr m_reader;
-
-  // Configuration to pass to underlying readers
   kwiver::vital::config_block_sptr m_config;
 };
 
@@ -190,46 +190,25 @@ read_object_track_set_auto::priv
 
 // ===================================================================================
 read_object_track_set_auto
-::read_object_track_set_auto()
-  : d( new read_object_track_set_auto::priv( this ) )
-{
-  attach_logger( "viame.core.read_object_track_set_auto" );
-}
-
-
-read_object_track_set_auto
 ::~read_object_track_set_auto()
 {
 }
 
 
 // -----------------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
+void
 read_object_track_set_auto
-::get_configuration() const
+::initialize()
 {
-  auto config = kwiver::vital::algo::read_object_track_set::get_configuration();
-
-  // Add configuration options that may be needed by underlying readers
-
-  // VIAME CSV options
-  config->set_value( "viame_csv:delimiter", ",",
-    "Delimiter character for CSV parsing" );
-  config->set_value( "viame_csv:batch_load", "false",
-    "Load all tracks at once (true) or stream frame-by-frame (false)" );
-
-  // DIVE options
-  config->set_value( "dive:batch_load", "true",
-    "Load all tracks at once (true) or stream frame-by-frame (false)" );
-
-  return config;
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
+  attach_logger( "viame.core.read_object_track_set_auto" );
 }
 
 
 // -----------------------------------------------------------------------------------
 void
 read_object_track_set_auto
-::set_configuration( kwiver::vital::config_block_sptr config )
+::set_configuration_internal( kwiver::vital::config_block_sptr config )
 {
   d->m_config = config;
 }
@@ -281,13 +260,13 @@ read_object_track_set_auto
   else if( d->m_detected_format == "coco" )
   {
     // COCO reader is in Python, use algorithm factory
-    kwiver::vital::algo::read_object_track_set::set_nested_algo_configuration(
+    kwiver::vital::set_nested_algo_configuration< kwiver::vital::algo::read_object_track_set >(
       "reader", d->m_config, d->m_reader );
 
     if( !d->m_reader )
     {
       // Try to create via factory
-      kwiver::vital::algo::read_object_track_set::get_nested_algo_configuration(
+      kwiver::vital::get_nested_algo_configuration< kwiver::vital::algo::read_object_track_set >(
         "reader", d->m_config, d->m_reader );
 
       if( d->m_config )
@@ -295,7 +274,7 @@ read_object_track_set_auto
         d->m_config->set_value( "reader:type", "coco" );
       }
 
-      kwiver::vital::algo::read_object_track_set::set_nested_algo_configuration(
+      kwiver::vital::set_nested_algo_configuration< kwiver::vital::algo::read_object_track_set >(
         "reader", d->m_config, d->m_reader );
     }
 
@@ -309,28 +288,7 @@ read_object_track_set_auto
   }
   else if( d->m_detected_format == "viame_csv" )
   {
-    auto csv_reader = std::make_shared< read_object_track_set_viame_csv >();
-
-    // Configure VIAME CSV reader if we have config
-    if( d->m_config )
-    {
-      auto csv_config = csv_reader->get_configuration();
-
-      if( d->m_config->has_value( "viame_csv:delimiter" ) )
-      {
-        csv_config->set_value( "delimiter",
-          d->m_config->get_value< std::string >( "viame_csv:delimiter" ) );
-      }
-      if( d->m_config->has_value( "viame_csv:batch_load" ) )
-      {
-        csv_config->set_value( "batch_load",
-          d->m_config->get_value< std::string >( "viame_csv:batch_load" ) );
-      }
-
-      csv_reader->set_configuration( csv_config );
-    }
-
-    d->m_reader = csv_reader;
+    d->m_reader = std::make_shared< read_object_track_set_viame_csv >();
   }
   else
   {

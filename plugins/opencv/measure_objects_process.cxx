@@ -556,8 +556,8 @@ measure_objects_process
     has_match2[i2] = true;
 
     // Set length on detections
-    detections1[i1]->set_length( match.fishlen );
-    detections2[i2]->set_length( match.fishlen );
+    detections1[i1]->set_attribute( "length", match.fishlen );
+    detections2[i2]->set_attribute( "length", match.fishlen );
 
     // Add keypoints (already computed with configured method)
     const auto& kp1 = match.keypoints1;

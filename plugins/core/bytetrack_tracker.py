@@ -675,19 +675,10 @@ class ByteTrackTracker(TrackObjects):
 # =============================================================================
 
 def __vital_algorithm_register__():
-    """Register the ByteTrack algorithm with KWIVER."""
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "bytetrack"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            ByteTrackTracker.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
+    register_vital_algorithm(
+        ByteTrackTracker,
+        "bytetrack",
         "ByteTrack multi-object tracker with two-stage association",
-        ByteTrackTracker
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

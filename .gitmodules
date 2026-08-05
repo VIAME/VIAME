@@ -10,9 +10,6 @@
 [submodule "packages/vivia"]
 	path = packages/vivia
 	url = https://github.com/Kitware/vivia.git
-[submodule "packages/kwant"]
-	path = packages/kwant
-	url = https://github.com/Kitware/kwant.git
 [submodule "packages/darknet"]
 	path = packages/darknet
 	url = https://github.com/VIAME/darknet.git
@@ -64,9 +61,6 @@
 	path = packages/python-utils/pyav
 	url = https://github.com/PyAV-Org/PyAV.git
 	ignore = dirty
-[submodule "packages/pymotmetrics"]
-	path = packages/python-utils/pymotmetrics
-	url = https://github.com/VIAME/py-motmetrics.git
 [submodule "packages/pytorch-libs/sam2"]
 	path = packages/pytorch-libs/sam2
 	url = https://github.com/facebookresearch/sam2.git

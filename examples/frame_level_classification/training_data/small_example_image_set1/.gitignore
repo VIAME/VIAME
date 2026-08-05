@@ -1,0 +1,9 @@
+# Training images are example data pulled in at runtime, not source.
+# Keep them out of the repo so they don't bloat history.
+*.png
+*.jpg
+*.jpeg
+*.tif
+*.tiff
+*.bmp
+*.gif

@@ -406,7 +406,7 @@ class ManyImageStabilizer(KwiverProcess):
         add_declare_config(self, 'n_input', '2', 'Number of inputs')
         for k, v in self._REQUIRED_ALGOS.items():
             add_declare_config(self, k, '',
-                               'Configuration for a nested ' + v.static_type_name())
+                               'Configuration for a nested ' + v.__name__)
         add_declare_config(self, 'loop_closer', '',
                            'Configuration for a nested close_loops (optional)')
 

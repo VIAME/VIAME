@@ -20,14 +20,24 @@ import numpy as np
 
 from kwiver.vital.algo import TrackObjects
 from kwiver.vital.types import (
-    BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType,
-    ObjectTrackState, Track, ObjectTrackSet, Polygon
+    BoundingBoxD,
+    DetectedObject,
+    DetectedObjectSet,
+    DetectedObjectType,
+    ObjectTrackState,
+    Track,
+    ObjectTrackSet,
+    Polygon,
 )
 
 from viame.pytorch.sam3_utilities import (
-    SAM3BaseConfig, SAM3ModelManager,
-    mask_to_polygon, mask_to_points, box_from_mask, compute_iou,
-    image_to_rgb_numpy
+    SAM3BaseConfig,
+    SAM3ModelManager,
+    mask_to_polygon,
+    mask_to_points,
+    box_from_mask,
+    compute_iou,
+    image_to_rgb_numpy,
 )
 from viame.pytorch.utilities import vital_config_update, report_cuda_errors
 
@@ -40,22 +50,19 @@ class SAM3TrackerConfig(SAM3BaseConfig):
     tracking with text queries. It can use Grounding DINO for text-based
     object detection and SAM 3 for mask propagation.
     """
+
     # Tracking parameters
     track_threshold = scfg.Value(
-        0.5,
-        help='Minimum mask confidence to continue tracking'
+        0.5, help="Minimum mask confidence to continue tracking"
     )
     max_objects = scfg.Value(
-        50,
-        help='Maximum number of objects to track simultaneously'
+        50, help="Maximum number of objects to track simultaneously"
     )
     reinit_interval = scfg.Value(
-        30,
-        help='Frames between re-detection to find new objects (0 to disable)'
+        30, help="Frames between re-detection to find new objects (0 to disable)"
     )
     lost_track_frames = scfg.Value(
-        10,
-        help='Number of frames without detection before track is considered lost'
+        10, help="Number of frames without detection before track is considered lost"
     )
 
 
@@ -157,9 +164,8 @@ class SAM3Tracker(TrackObjects):
         img_np = image_to_rgb_numpy(image)
 
         # Determine if we should re-detect
-        should_detect = (
-            len(self._tracks) == 0 or
-            (self._reinit_interval > 0 and frame_id % self._reinit_interval == 0)
+        should_detect = len(self._tracks) == 0 or (
+            self._reinit_interval > 0 and frame_id % self._reinit_interval == 0
         )
 
         new_detections = []
@@ -169,7 +175,7 @@ class SAM3Tracker(TrackObjects):
                 img_np,
                 self._text_query_list,
                 self._detection_threshold,
-                self._text_threshold
+                self._text_threshold,
             )
 
         # Get boxes for segmentation
@@ -181,21 +187,23 @@ class SAM3Tracker(TrackObjects):
             # Check if overlaps with existing track
             overlaps = False
             for tid, track_data in self._tracks.items():
-                if 'last_box' in track_data:
-                    iou = compute_iou(box, track_data['last_box'])
+                if "last_box" in track_data:
+                    iou = compute_iou(box, track_data["last_box"])
                     if iou > 0.5:
                         overlaps = True
                         break
 
             if not overlaps and len(boxes_to_segment) < self._max_objects:
                 boxes_to_segment.append(box)
-                box_sources.append(('new', score, class_name))
+                box_sources.append(("new", score, class_name))
 
         # Add boxes from existing tracks for propagation
         for tid, track_data in self._tracks.items():
-            if 'last_box' in track_data:
-                boxes_to_segment.append(track_data['last_box'])
-                box_sources.append(('track', tid, track_data.get('class_name', 'object')))
+            if "last_box" in track_data:
+                boxes_to_segment.append(track_data["last_box"])
+                box_sources.append(
+                    ("track", tid, track_data.get("class_name", "object"))
+                )
 
         # Segment all boxes
         if len(boxes_to_segment) > 0:
@@ -205,16 +213,13 @@ class SAM3Tracker(TrackObjects):
 
         # Process results
         for i, (mask, source) in enumerate(zip(masks, box_sources)):
-            if source[0] == 'new':
+            if source[0] == "new":
                 # Create new track
                 score, class_name = source[1], source[2]
                 self._track_counter += 1
                 tid = self._track_counter
 
-                self._tracks[tid] = {
-                    'class_name': class_name,
-                    'history': []
-                }
+                self._tracks[tid] = {"class_name": class_name, "history": []}
                 self._lost_counts[tid] = 0
             else:
                 # Existing track
@@ -237,8 +242,11 @@ class SAM3Tracker(TrackObjects):
             self._lost_counts[tid] = 0
 
             # Store last box for next frame
-            self._tracks[tid]['last_box'] = [
-                bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y()
+            self._tracks[tid]["last_box"] = [
+                bbox.min_x(),
+                bbox.min_y(),
+                bbox.max_x(),
+                bbox.max_y(),
             ]
             self._last_masks[tid] = mask
 
@@ -247,21 +255,23 @@ class SAM3Tracker(TrackObjects):
             det = DetectedObject(bbox, 1.0, dot)
 
             # Add polygon if requested
-            if self._output_type in ('polygon', 'both'):
-                binary_mask = (mask > 0.5).astype(np.uint8) if mask.dtype != np.uint8 else mask
+            if self._output_type in ("polygon", "both"):
+                binary_mask = (
+                    (mask > 0.5).astype(np.uint8) if mask.dtype != np.uint8 else mask
+                )
                 poly_pts = mask_to_polygon(binary_mask, self._polygon_simplification)
                 if poly_pts is not None:
                     det.set_flattened_polygon(poly_pts)
 
             # Add points if requested
-            if self._output_type in ('points', 'both'):
+            if self._output_type in ("points", "both"):
                 points = mask_to_points(mask, self._num_points)
                 # Points are stored in detection notes or as keypoints
                 # For now, we'll add them to detection as extra data
 
             # Create track state
             track_state = ObjectTrackState(ts, det)
-            self._tracks[tid]['history'].append(track_state)
+            self._tracks[tid]["history"].append(track_state)
 
         # Remove lost tracks
         lost_tracks = []
@@ -278,8 +288,8 @@ class SAM3Tracker(TrackObjects):
         # Build output track set
         output_tracks = []
         for tid, track_data in self._tracks.items():
-            if len(track_data['history']) > 0:
-                track = Track(tid, track_data['history'])
+            if len(track_data["history"]) > 0:
+                track = Track(tid, track_data["history"])
                 output_tracks.append(track)
 
         return ObjectTrackSet(output_tracks)
@@ -315,8 +325,8 @@ class SAM3Tracker(TrackObjects):
         """
         output_tracks = []
         for tid, track_data in self._tracks.items():
-            if len(track_data['history']) > 0:
-                track = Track(tid, track_data['history'])
+            if len(track_data["history"]) > 0:
+                track = Track(tid, track_data["history"])
                 output_tracks.append(track)
 
         return ObjectTrackSet(output_tracks)
@@ -332,19 +342,10 @@ class SAM3Tracker(TrackObjects):
 
 
 def __vital_algorithm_register__():
-    """Register the SAM3Tracker algorithm with KWIVER."""
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "sam3_tracker"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            SAM3Tracker.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
+    register_vital_algorithm(
+        SAM3Tracker,
+        "sam3_tracker",
         "SAM3 (Segment Anything Model 3) based object tracker with text queries",
-        SAM3Tracker
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

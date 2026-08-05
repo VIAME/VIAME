@@ -999,18 +999,10 @@ class BoTSORTTrainer(TrainTracker):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "botsort"
-
-    if algorithm_factory.has_algorithm_impl_name(
-        BoTSORTTrainer.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
+    register_vital_algorithm(
+        BoTSORTTrainer,
+        "botsort",
         "PyTorch BoT-SORT Re-ID model training and parameter estimation",
-        BoTSORTTrainer
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

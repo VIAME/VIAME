@@ -2,8 +2,8 @@
 
 #include <vital/config/config_block_io.h>
 #include <arrows/ocv/image_container.h>
-#include <arrows/ocv/image_io.h>
-#include <arrows/ocv/hough_circle_detector.h>
+#include <arrows/ocv/algo/image_io.h>
+#include <arrows/ocv/algo/hough_circle_detector.h>
 
 #include <string>
 

@@ -13,6 +13,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <set>
 #include <vector>
 
 namespace viame
@@ -33,6 +34,35 @@ struct VIAME_CORE_EXPORT evaluation_config
 
   /// Whether to compute per-class metrics in addition to overall metrics
   bool compute_per_class_metrics = false;
+
+  /// Class-name synonyms, alternate name -> canonical name. Applied to both
+  /// computed and groundtruth as they load, so a model trained on one
+  /// vocabulary can be scored against groundtruth written in another without
+  /// rewriting either file.
+  std::map< std::string, std::string > label_synonyms;
+
+  /// If non-empty, only frames whose identifier appears here are scored.
+  /// Everything else is dropped from both sides, so the excluded frames
+  /// contribute neither detections nor missed groundtruth.
+  std::set< std::string > frame_whitelist;
+
+  /// Rank and threshold on the detection confidence column rather than on the
+  /// per-class score. The two are equal for most detectors; they differ when a
+  /// detector reports an objectness separate from its class posterior.
+  bool use_aux_confidence = false;
+
+  /// Consider only each detection's highest-scoring class. Off by default, so
+  /// a detection carrying several (class, score) pairs is offered to each of
+  /// those classes during per-class scoring.
+  bool top_class_only = false;
+
+  /// Class name to report for detections that carry none.
+  std::string default_label;
+
+  /// Input file format. "viame_csv" uses the built-in parser; any other value
+  /// names a kwiver detected_object_set_input implementation (coco, cvat,
+  /// dive, habcam, yolo, ...) and is read through that instead.
+  std::string input_format = "viame_csv";
 };
 
 // ----------------------------------------------------------------------------
@@ -65,6 +95,12 @@ struct VIAME_CORE_EXPORT evaluation_results
   /// Average Precision (all-point interpolated area under the PR curve, using
   /// confidence-ordered matching at the configured IoU threshold)
   double average_precision = 0.0;
+  /// AP under any-overlap matching: a detection counts as a hit if it
+  /// touches its groundtruth box at all. Reported as mAP@any. Localisation
+  /// quality is deliberately not judged here, so this isolates whether the
+  /// animal was found from whether its box was drawn tightly -- the useful
+  /// question for detectors feeding a downstream refiner or fusion.
+  double ap_any = 0.0;
   /// AP at IoU threshold 0.5
   double ap50 = 0.0;
   /// AP at IoU threshold 0.75
@@ -373,6 +409,20 @@ public:
   evaluation_results evaluate(
     const std::vector< std::string >& computed_files,
     const std::vector< std::string >& groundtruth_files );
+
+  /// \brief Re-evaluate data already loaded by evaluate(), at a different
+  /// confidence threshold and optionally restricted to a single class.
+  ///
+  /// A threshold sweep asks the same question a hundred times over, so this
+  /// exists to avoid re-parsing the inputs each time: evaluate() loads once
+  /// and this filters the loaded copy.
+  ///
+  /// \param confidence_threshold Minimum confidence for computed detections
+  /// \param class_filter Score only this class, both sides, if non-empty
+  /// \returns evaluation_results for the filtered subset
+  evaluation_results evaluate_loaded(
+    double confidence_threshold,
+    const std::string& class_filter = std::string() );
 
   /// \brief Get the results as a simple string-to-double map
   ///

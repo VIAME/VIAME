@@ -65,7 +65,7 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
         self._ensure_loaded()
         if self.frame >= self.stop_frame:
             return None
-        fname, annots = self.frame_info.get(self.frame, ('', ()))
+        fname, annots = self.frame_info.get(self.frame, ("", ()))
         det_objs = self.__to_detected_object_set(annots)
         self.frame += 1
         return det_objs, fname
@@ -81,10 +81,10 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
         """Convert list of annotations to a DetectedObjectSet."""
         det_objs = []
         for ann in annots:
-            dims = self._image_dims.get(ann.get('image_id'))
+            dims = self._image_dims.get(ann.get("image_id"))
             det = annotation_to_detection(
-                ann, self.categories, image_dims=dims,
-                kp_cat_names=self._kp_cat_names)
+                ann, self.categories, image_dims=dims, kp_cat_names=self._kp_cat_names
+            )
             det_objs.append(det)
         return vt.DetectedObjectSet(det_objs)
 
@@ -93,14 +93,14 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
             return
         data = json.load(self.file)
 
-        categories = {cat['id']: cat['name'] for cat in data['categories']}
-        assert len(categories) == len(data['categories'])
+        categories = {cat["id"]: cat["name"] for cat in data["categories"]}
+        assert len(categories) == len(data["categories"])
         assert len(categories) == len(set(categories.values()))
 
         # Build video name -> id lookup and resolve config filter
         video_name_to_id = {}
-        for vid in data.get('videos', []):
-            video_name_to_id[vid['name']] = vid['id']
+        for vid in data.get("videos", []):
+            video_name_to_id[vid["name"]] = vid["id"]
 
         filter_video_id = None
         if self.video_name:
@@ -108,25 +108,23 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
                 filter_video_id = video_name_to_id[self.video_name]
 
         video_id_to_img_ids = {}
-        for im in data.get('images', []):
-            vid = im.get('video_id')
+        for im in data.get("images", []):
+            vid = im.get("video_id")
             if vid is not None:
-                video_id_to_img_ids.setdefault(vid, set()).add(im['id'])
+                video_id_to_img_ids.setdefault(vid, set()).add(im["id"])
 
         # For compatibility with other parts of KWIVER, we treat image
         # IDs as frame numbers
 
         # Map from frame number to a pair of image name and list of
         # detections
-        images = data['images']
+        images = data["images"]
         if filter_video_id is not None:
-            images = [im for im in images
-                      if im.get('video_id') == filter_video_id]
-        frame_info = {im['id']: (im.get('file_name', ''), [])
-                      for im in images}
-        for ann in data['annotations']:
-            if ann['image_id'] in frame_info:
-                frame_info[ann['image_id']][1].append(ann)
+            images = [im for im in images if im.get("video_id") == filter_video_id]
+        frame_info = {im["id"]: (im.get("file_name", ""), []) for im in images}
+        for ann in data["annotations"]:
+            if ann["image_id"] in frame_info:
+                frame_info[ann["image_id"]][1].append(ann)
         frame_info_by_path = {}
         for fname, annots in frame_info.values():
             if fname:
@@ -144,17 +142,17 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
 
         # Image dimensions for rasterizing multi-polygon masks
         image_dims = {}
-        for im in data.get('images', []):
-            w, h = im.get('width'), im.get('height')
+        for im in data.get("images", []):
+            w, h = im.get("width"), im.get("height")
             if w and h:
-                image_dims[im['id']] = (w, h)
+                image_dims[im["id"]] = (w, h)
 
         # Keypoint category names for decoding COCO flat-format keypoints
         kp_cat_names = None
-        kp_cats = data.get('keypoint_categories', [])
+        kp_cats = data.get("keypoint_categories", [])
         if kp_cats:
-            kp_cats_sorted = sorted(kp_cats, key=lambda c: c['id'])
-            kp_cat_names = [c['name'] for c in kp_cats_sorted]
+            kp_cats_sorted = sorted(kp_cats, key=lambda c: c["id"])
+            kp_cat_names = [c["name"] for c in kp_cats_sorted]
 
         if frame_info:
             self.frame, self.stop_frame = min(frame_info), max(frame_info) + 1
@@ -170,20 +168,8 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "coco"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            ReadDetectedObjectSetCoco.static_type_name(),
-            implementation_name,
-    ):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
-        "Read detections from COCO-style JSON format",
-        ReadDetectedObjectSetCoco,
+    register_vital_algorithm(
+        ReadDetectedObjectSetCoco, "coco", "Read detections from COCO-style JSON format"
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

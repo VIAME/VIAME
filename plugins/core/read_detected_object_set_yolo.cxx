@@ -9,6 +9,7 @@
 
 #include "read_detected_object_set_yolo.h"
 
+#include <vital/algo/algorithm.txx>
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
 #include <vital/exceptions.h>
@@ -107,12 +108,11 @@ bool get_image_dimensions_from_header( std::string const& filename,
 class read_detected_object_set_yolo::priv
 {
 public:
-  priv( read_detected_object_set_yolo* parent )
-    : m_parent( parent )
+  priv( read_detected_object_set_yolo& parent )
+    : m_parent( &parent )
     , m_first( true )
     , m_image_width( 0 )
     , m_image_height( 0 )
-    , m_default_confidence( 1.0 )
     , m_current_idx( 0 )
   { }
 
@@ -128,11 +128,9 @@ public:
   read_detected_object_set_yolo* m_parent;
   bool m_first;
 
-  // Configuration
-  std::string m_classes_file;
+  // Runtime dimensions (may differ from config if auto-detected)
   int m_image_width;
   int m_image_height;
-  double m_default_confidence;
 
   // Image reader for dimension auto-detection
   kwiver::vital::algo::image_io_sptr m_image_reader;
@@ -151,71 +149,28 @@ public:
 
 // ===================================================================================
 read_detected_object_set_yolo
-::read_detected_object_set_yolo()
-  : d( new read_detected_object_set_yolo::priv( this ) )
-{
-  attach_logger( "viame.core.read_detected_object_set_yolo" );
-}
-
-
-read_detected_object_set_yolo
 ::~read_detected_object_set_yolo()
 {
 }
 
 
 // -----------------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
-read_detected_object_set_yolo
-::get_configuration() const
-{
-  auto config = kwiver::vital::algo::detected_object_set_input::get_configuration();
-
-  config->set_value( "classes_file", d->m_classes_file,
-    "Path to file containing class names, one per line. "
-    "Line number corresponds to class ID (0-indexed). "
-    "If empty, will search for 'labels.txt' in image directory or parent." );
-
-  config->set_value( "image_width", d->m_image_width,
-    "Width of images in pixels. If 0, will auto-detect from first image." );
-
-  config->set_value( "image_height", d->m_image_height,
-    "Height of images in pixels. If 0, will auto-detect from first image." );
-
-  config->set_value( "default_confidence", d->m_default_confidence,
-    "Default confidence score to use when not specified in label file." );
-
-  // Nested image_io algorithm for reading images to get dimensions
-  kwiver::vital::algo::image_io::get_nested_algo_configuration(
-    "image_reader", config, d->m_image_reader );
-
-  return config;
-}
-
-
-// -----------------------------------------------------------------------------------
 void
 read_detected_object_set_yolo
-::set_configuration( kwiver::vital::config_block_sptr config )
+::initialize()
 {
-  d->m_classes_file =
-    config->get_value< std::string >( "classes_file", d->m_classes_file );
-  d->m_image_width =
-    config->get_value< int >( "image_width", d->m_image_width );
-  d->m_image_height =
-    config->get_value< int >( "image_height", d->m_image_height );
-  d->m_default_confidence =
-    config->get_value< double >( "default_confidence", d->m_default_confidence );
-
-  // Configure nested image_io algorithm
-  kwiver::vital::algo::image_io::set_nested_algo_configuration(
-    "image_reader", config, d->m_image_reader );
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
+  attach_logger( "viame.core.read_detected_object_set_yolo" );
 
   // Load class names if file specified
-  if( !d->m_classes_file.empty() )
+  if( !c_classes_file.empty() )
   {
-    d->load_classes( d->m_classes_file );
+    d->load_classes( c_classes_file );
   }
+
+  // Initialize dimensions from config
+  d->m_image_width = c_image_width;
+  d->m_image_height = c_image_height;
 }
 
 
@@ -534,7 +489,7 @@ read_detected_object_set_yolo::priv
     double width_norm = std::atof( tokens[3].c_str() );
     double height_norm = std::atof( tokens[4].c_str() );
 
-    double confidence = m_default_confidence;
+    double confidence = m_parent->c_default_confidence;
     if( tokens.size() > 5 )
     {
       confidence = std::atof( tokens[5].c_str() );
@@ -636,7 +591,7 @@ read_detected_object_set_yolo::priv
   }
 
   // Auto-detect classes file if not specified
-  if( m_classes_file.empty() && m_class_names.empty() )
+  if( m_parent->c_classes_file.empty() && m_class_names.empty() )
   {
     std::string auto_classes = find_classes_file( m_image_list[0] );
     if( !auto_classes.empty() )

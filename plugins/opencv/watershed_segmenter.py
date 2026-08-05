@@ -25,31 +25,36 @@ class WatershedSegmenterConfig(scfg.DataConfig):
 
     # Seed region parameters
     foreground_radius = scfg.Value(
-        5, help='Radius of foreground seed regions around click points (pixels)')
+        5, help="Radius of foreground seed regions around click points (pixels)"
+    )
     background_radius = scfg.Value(
-        3, help='Radius of background seed regions around click points (pixels)')
+        3, help="Radius of background seed regions around click points (pixels)"
+    )
 
     # Morphological operations
     morph_kernel_size = scfg.Value(
-        3, help='Kernel size for morphological operations (erosion/dilation)')
+        3, help="Kernel size for morphological operations (erosion/dilation)"
+    )
     morph_iterations = scfg.Value(
-        2, help='Number of iterations for morphological operations')
+        2, help="Number of iterations for morphological operations"
+    )
 
     # Pre-processing
     blur_kernel_size = scfg.Value(
-        5, help='Gaussian blur kernel size for pre-processing (0 to disable)')
+        5, help="Gaussian blur kernel size for pre-processing (0 to disable)"
+    )
     use_gradient = scfg.Value(
-        'true', help='Use gradient magnitude to guide watershed boundaries')
+        "true", help="Use gradient magnitude to guide watershed boundaries"
+    )
 
     # Post-processing
-    min_area = scfg.Value(
-        100, help='Minimum area in pixels for output segments')
-    fill_holes = scfg.Value(
-        'true', help='Fill holes in the output mask')
+    min_area = scfg.Value(100, help="Minimum area in pixels for output segments")
+    fill_holes = scfg.Value("true", help="Fill holes in the output mask")
 
     # Expansion parameters for uncertain region
     expansion_factor = scfg.Value(
-        2.0, help='Factor to expand bounding box for uncertain watershed region')
+        2.0, help="Factor to expand bounding box for uncertain watershed region"
+    )
 
 
 class WatershedSegmenter(SegmentViaPoints):
@@ -94,7 +99,7 @@ class WatershedSegmenter(SegmentViaPoints):
         """Parse a string value as boolean."""
         if isinstance(value, bool):
             return value
-        return str(value).lower() in ('true', '1', 'yes', 'on')
+        return str(value).lower() in ("true", "1", "yes", "on")
 
     def segment(self, image, points, point_labels):
         """
@@ -108,7 +113,12 @@ class WatershedSegmenter(SegmentViaPoints):
         Returns:
             DetectedObjectSet containing segmented objects with masks
         """
-        from kwiver.vital.types import DetectedObjectSet, DetectedObject, DetectedObjectType
+        from kwiver.vital.types import (
+            DetectedObjectSet,
+            DetectedObject,
+            DetectedObjectType,
+        )
+
         try:
             from kwiver.vital.types import BoundingBoxD
         except ImportError:
@@ -161,8 +171,9 @@ class WatershedSegmenter(SegmentViaPoints):
         x_max, y_max = fg_array.max(axis=0)
 
         # Add padding based on foreground radius and expansion factor
-        expansion = int(self._config.expansion_factor * max(
-            self._config.foreground_radius, 50))
+        expansion = int(
+            self._config.expansion_factor * max(self._config.foreground_radius, 50)
+        )
         x_min = max(0, x_min - expansion)
         y_min = max(0, y_min - expansion)
         x_max = min(w, x_max + expansion)
@@ -172,11 +183,11 @@ class WatershedSegmenter(SegmentViaPoints):
         markers = np.zeros((h, w), dtype=np.int32)
 
         # Draw foreground markers (label 1)
-        for (x, y) in fg_points:
+        for x, y in fg_points:
             cv2.circle(markers, (x, y), self._config.foreground_radius, 1, -1)
 
         # Draw background markers (label 2)
-        for (x, y) in bg_points:
+        for x, y in bg_points:
             cv2.circle(markers, (x, y), self._config.background_radius, 2, -1)
 
         # If no background points provided, create automatic background markers
@@ -184,10 +195,10 @@ class WatershedSegmenter(SegmentViaPoints):
         if not bg_points:
             # Mark border as background
             border_width = 3
-            markers[y_min:y_min+border_width, x_min:x_max] = 2  # Top
-            markers[y_max-border_width:y_max, x_min:x_max] = 2  # Bottom
-            markers[y_min:y_max, x_min:x_min+border_width] = 2  # Left
-            markers[y_min:y_max, x_max-border_width:x_max] = 2  # Right
+            markers[y_min : y_min + border_width, x_min:x_max] = 2  # Top
+            markers[y_max - border_width : y_max, x_min:x_max] = 2  # Bottom
+            markers[y_min:y_max, x_min : x_min + border_width] = 2  # Left
+            markers[y_min:y_max, x_max - border_width : x_max] = 2  # Right
 
         # Pre-process image
         img_processed = img_array.copy()
@@ -205,28 +216,31 @@ class WatershedSegmenter(SegmentViaPoints):
         mask = (markers == 1).astype(np.uint8)
 
         # Post-process mask
-        kernel = np.ones((self._config.morph_kernel_size,
-                         self._config.morph_kernel_size), np.uint8)
+        kernel = np.ones(
+            (self._config.morph_kernel_size, self._config.morph_kernel_size), np.uint8
+        )
 
         # Close small holes
-        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel,
-                                iterations=self._config.morph_iterations)
+        mask = cv2.morphologyEx(
+            mask, cv2.MORPH_CLOSE, kernel, iterations=self._config.morph_iterations
+        )
 
         # Remove small noise
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel,
-                                iterations=1)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
 
         # Fill holes if requested
         if self._parse_bool(self._config.fill_holes):
             # Find contours and fill
-            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,
-                                           cv2.CHAIN_APPROX_SIMPLE)
+            contours, _ = cv2.findContours(
+                mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+            )
             cv2.drawContours(mask, contours, -1, 1, -1)
 
         # Filter by minimum area
         if self._config.min_area > 0:
-            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,
-                                           cv2.CHAIN_APPROX_SIMPLE)
+            contours, _ = cv2.findContours(
+                mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+            )
             mask_filtered = np.zeros_like(mask)
             for cnt in contours:
                 if cv2.contourArea(cnt) >= self._config.min_area:
@@ -254,7 +268,9 @@ class WatershedSegmenter(SegmentViaPoints):
             detected_obj = DetectedObject(bbox, score, dot)
 
             # Create mask image (crop to bounding box)
-            mask_crop = mask[int(y1):int(y2)+1, int(x1):int(x2)+1].astype(np.uint8)
+            mask_crop = mask[int(y1) : int(y2) + 1, int(x1) : int(x2) + 1].astype(
+                np.uint8
+            )
             detected_obj.mask = ImageContainer(Image(mask_crop))
 
             detected_objects.add(detected_obj)
@@ -263,17 +279,10 @@ class WatershedSegmenter(SegmentViaPoints):
 
 
 def __vital_algorithm_register__():
-    """Register the OpenCV watershed segment via points algorithm with KWIVER."""
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "ocv_watershed"
-    if algorithm_factory.has_algorithm_impl_name(
-            WatershedSegmenter.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
+    register_vital_algorithm(
+        WatershedSegmenter,
+        "ocv_watershed",
         "OpenCV watershed-based point segmentation algorithm",
-        WatershedSegmenter)
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+    )

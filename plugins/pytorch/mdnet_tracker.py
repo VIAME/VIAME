@@ -8,8 +8,13 @@ import numpy as np
 from kwiver.vital.algo import TrackObjects
 
 from kwiver.vital.types import (
-    BoundingBoxD, DetectedObject, DetectedObjectSet, DetectedObjectType,
-    ObjectTrackState, ObjectTrackSet, Track,
+    BoundingBoxD,
+    DetectedObject,
+    DetectedObjectSet,
+    DetectedObjectType,
+    ObjectTrackState,
+    ObjectTrackSet,
+    Track,
 )
 
 import viame.pytorch.mdnet.tracker as mdnet
@@ -20,23 +25,28 @@ class MDNetTrackerConfig(scfg.DataConfig):
     """
     The configuration for :class:`MDNetTracker`.
     """
+
     weights_file = scfg.Value(
-        'models/mdnet_seed.pth',
-        help='MDNet initial weight file for each object track.')
+        "models/mdnet_seed.pth", help="MDNet initial weight file for each object track."
+    )
     init_method = scfg.Value(
-        'external_only',
-        help='Method for initializing new tracks, can be: external_only or using_detections.')
+        "external_only",
+        help="Method for initializing new tracks, can be: external_only or using_detections.",
+    )
     init_threshold = scfg.Value(
         0.20,
-        help='If tracking multiple targets, the initialization threshold over '
-             'detected object classifications for new tracks')
+        help="If tracking multiple targets, the initialization threshold over "
+        "detected object classifications for new tracks",
+    )
     iou_threshold = scfg.Value(
         0.50,
-        help='If tracking multiple targets, the initialization threshold over '
-             'box intersections in order to generate new tracks')
+        help="If tracking multiple targets, the initialization threshold over "
+        "box intersections in order to generate new tracks",
+    )
     type_string = scfg.Value(
-        '',
-        help='If non-empty set the output track to be a track of this object category.')
+        "",
+        help="If non-empty set the output track to be a track of this object category.",
+    )
 
     def __post_init__(self):
         super().__post_init__()
@@ -72,6 +82,7 @@ class MDNetTracker(TrackObjects):
     @report_cuda_errors("MDNetTracker initialization")
     def set_configuration(self, cfg_in):
         from viame.pytorch.utilities import vital_config_update
+
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)
 
@@ -83,7 +94,7 @@ class MDNetTracker(TrackObjects):
         self._kwiver_config.iou_threshold = float(self._kwiver_config.iou_threshold)
 
         # Load model only once across all tracks for speed
-        mdnet.opts['model_path'] = mdnet.MDNet(self._kwiver_config.weights_file)
+        mdnet.opts["model_path"] = mdnet.MDNet(self._kwiver_config.weights_file)
 
         return True
 
@@ -93,7 +104,7 @@ class MDNetTracker(TrackObjects):
     def _format_image(self, image):
         """Convert image to numpy array format suitable for MDNet."""
         if not isinstance(image, np.ndarray):
-            img_npy = image.asarray().astype('uint8')
+            img_npy = image.asarray().astype("uint8")
             # Greyscale to color image if necessary
             if len(np.shape(img_npy)) > 2 and np.shape(img_npy)[2] == 1:
                 img_npy = img_npy[:, :, 0]
@@ -103,8 +114,15 @@ class MDNetTracker(TrackObjects):
         return image
 
     @report_cuda_errors("MDNetTracker tracking")
-    def track(self, timestamp, image_data, detected_object_set, initializations=None,
-              recommendations=None, evaluation_requests=None):
+    def track(
+        self,
+        timestamp,
+        image_data,
+        detected_object_set,
+        initializations=None,
+        recommendations=None,
+        evaluation_requests=None,
+    ):
         """
         Track objects in the current frame.
 
@@ -143,9 +161,10 @@ class MDNetTracker(TrackObjects):
 
         for trk in init_track_pool:
             # Special case, initialize a track on a previous frame
-            if trk[trk.last_frame].frame_id == self._last_frame_id and \
-               (trk.id not in self._track_init_frames or
-                self._track_init_frames[trk.id] < self._last_frame_id):
+            if trk[trk.last_frame].frame_id == self._last_frame_id and (
+                trk.id not in self._track_init_frames
+                or self._track_init_frames[trk.id] < self._last_frame_id
+            ):
                 tid = trk.id
                 cbox = trk[trk.last_frame].detection().bounding_box
                 bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
@@ -172,18 +191,25 @@ class MDNetTracker(TrackObjects):
             for trk in recc_track_pool:
                 if trk.id == tid and trk[trk.last_frame].frame_id == frame_id:
                     cbox = trk[trk.last_frame].detection().bounding_box
-                    recc_bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
+                    recc_bbox = [
+                        cbox.min_x(),
+                        cbox.min_y(),
+                        cbox.width(),
+                        cbox.height(),
+                    ]
                     break
             bbox, score = self._trackers[tid].update(img_npy, likely_bbox=recc_bbox)
-            if score > mdnet.opts['success_thr']:
+            if score > mdnet.opts["success_thr"]:
                 cbox = BoundingBoxD(
-                    bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3])
+                    bbox[0], bbox[1], bbox[0] + bbox[2], bbox[1] + bbox[3]
+                )
                 new_state = ObjectTrackState(timestamp, cbox, score)
                 self._tracks[tid].append(new_state)
 
         # Output results
         output_tracks = ObjectTrackSet(
-            [Track(tid, trk) for tid, trk in self._tracks.items()])
+            [Track(tid, trk) for tid, trk in self._tracks.items()]
+        )
 
         self._last_frame_id = timestamp.get_frame()
         if img_used:
@@ -195,15 +221,6 @@ class MDNetTracker(TrackObjects):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "mdnet"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            MDNetTracker.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name, "MDNet visual object tracker", MDNetTracker)
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+    register_vital_algorithm(MDNetTracker, "mdnet", "MDNet visual object tracker")

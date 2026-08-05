@@ -46,9 +46,9 @@ process fish_yolo_v2_detector
 
 process fish_yolo_v2_filter
   :: detected_object_filter
-  :filter:type                                 class_probablity_filter
+  :filter:type                                 class_probability_filter
 
-  block filter:class_probablity_filter
+  block filter:class_probability_filter
 
     # Filter parameters
     :threshold                                 0.100

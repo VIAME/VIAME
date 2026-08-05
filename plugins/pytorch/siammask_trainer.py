@@ -589,27 +589,24 @@ class SiamMaskTrainer( TrainTracker ):
             print( f"Generated pipeline file: {output_pipeline}" )
 
 
+
+class SiamRPNTrainer(SiamMaskTrainer):
+    """SiamRPN++ variant.
+
+    The same trainer drives both architectures; which one is built is decided
+    by MASK and REFINE in the yaml each config points at. Registration pins a
+    plugin name onto the class, so the second name needs its own type for a
+    training to be able to select it by tracker name and get the matching
+    config.
+    """
+
+
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    # The same trainer drives both architectures; which one is built is decided
-    # by MASK and REFINE in the yaml each config points at. Registering the two
-    # names separately is what lets a training pick one by tracker name and get
-    # the matching config.
-    variants = [
-        ( "siammask", "PyTorch SiamMask tracker training routine" ),
-        ( "siamrpn", "PyTorch SiamRPN++ tracker training routine" ),
-    ]
-
-    for implementation_name, description in variants:
-        if algorithm_factory.has_algorithm_impl_name(
-            SiamMaskTrainer.static_type_name(), implementation_name ):
-            continue
-
-        algorithm_factory.add_algorithm(
-            implementation_name,
-            description,
-            SiamMaskTrainer
-        )
-
-        algorithm_factory.mark_algorithm_as_loaded( implementation_name )
+    register_vital_algorithm(
+        SiamMaskTrainer, "siammask", "PyTorch SiamMask tracker training routine"
+    )
+    register_vital_algorithm(
+        SiamRPNTrainer, "siamrpn", "PyTorch SiamRPN++ tracker training routine"
+    )

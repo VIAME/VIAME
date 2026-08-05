@@ -3,10 +3,9 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "add_timestamp_from_filename.h"
-#include "filename_to_timestamp.h"
+#include <vital/algo/algorithm.txx>
 
-#include <vital/algo/algorithm_factory.h>
-#include <vital/plugin_loader/plugin_manager.h>
+#include "filename_to_timestamp.h"
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -22,45 +21,48 @@
 namespace viame
 {
 
+namespace kv = kwiver::vital;
+namespace kva = kv::algo;
+
 // ----------------------------------------------------------------------------
-add_timestamp_from_filename::add_timestamp_from_filename()
+void add_timestamp_from_filename::initialize()
 {
-  this->set_capability( kwiver::vital::algo::image_io::HAS_TIME, true );
+  this->set_capability( kva::image_io::HAS_TIME, true );
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::config_block_sptr
+kv::config_block_sptr
   add_timestamp_from_filename::get_configuration() const
 {
-  auto config = kwiver::vital::algo::image_io::get_configuration();
+  auto config = kva::image_io::get_configuration();
 
-  kwiver::vital::algo::image_io::get_nested_algo_configuration(
+  kv::get_nested_algo_configuration<kva::image_io>(
     "image_reader", config, this->image_reader);
 
   return config;
 }
 
 // ----------------------------------------------------------------------------
-void add_timestamp_from_filename::set_configuration(
-  kwiver::vital::config_block_sptr config )
+void add_timestamp_from_filename::set_configuration_internal(
+  kv::config_block_sptr config )
 {
   auto new_config = this->get_configuration();
   new_config->merge_config( config );
 
-  kwiver::vital::algo::image_io::set_nested_algo_configuration(
+  kv::set_nested_algo_configuration<kva::image_io>(
     "image_reader", new_config, this->image_reader );
 }
 
 // ----------------------------------------------------------------------------
 bool add_timestamp_from_filename::check_configuration(
-  kwiver::vital::config_block_sptr config ) const
+  kv::config_block_sptr config ) const
 {
-  return kwiver::vital::algo::image_io::check_nested_algo_configuration(
+  return kv::check_nested_algo_configuration<kva::image_io>(
     "image_reader", config );
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::image_container_sptr add_timestamp_from_filename::load_(
+kv::image_container_sptr add_timestamp_from_filename::load_(
   std::string const& filename ) const
 {
   if( this->image_reader )
@@ -76,7 +78,7 @@ kwiver::vital::image_container_sptr add_timestamp_from_filename::load_(
 // ----------------------------------------------------------------------------
 void add_timestamp_from_filename::save_(
   std::string const& filename,
-  kwiver::vital::image_container_sptr data ) const
+  kv::image_container_sptr data ) const
 {
   if( this->image_reader )
   {
@@ -85,7 +87,7 @@ void add_timestamp_from_filename::save_(
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::metadata_sptr add_timestamp_from_filename::load_metadata_(
+kv::metadata_sptr add_timestamp_from_filename::load_metadata_(
   std::string const& filename) const
 {
   if( this->image_reader )
@@ -98,17 +100,17 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::load_metadata_(
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
-  std::string const& filename, kwiver::vital::metadata_sptr md ) const
+kv::metadata_sptr add_timestamp_from_filename::fixup_metadata(
+  std::string const& filename, kv::metadata_sptr md ) const
 {
   if( !md )
   {
-    md = std::make_shared<kwiver::vital::metadata>();
+    md = std::make_shared<kv::metadata>();
   }
 
-  kwiver::vital::time_usec_t utc_time_usec = convert_to_timestamp( filename );
+  kv::time_usec_t utc_time_usec = convert_to_timestamp( filename );
 
-  kwiver::vital::timestamp ts;
+  kv::timestamp ts;
   ts.set_time_usec( utc_time_usec );
 
   md->set_timestamp( ts );

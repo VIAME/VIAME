@@ -25,6 +25,7 @@ import torch
 # Initialize cuDNN early at module import time to prevent
 # CUDNN_STATUS_SUBLIBRARY_LOADING_FAILED when running with other CUDA processes
 from viame.pytorch.utilities import init_cudnn, report_cuda_errors
+
 init_cudnn()
 
 from timeit import default_timer as timer
@@ -57,7 +58,7 @@ def timing(desc, f):
     start = timer()
     result = f()
     end = timer()
-    print('%%%', desc, ' elapsed time: ', end - start, sep='')
+    print("%%%", desc, " elapsed time: ", end - start, sep="")
     return result
 
 
@@ -75,10 +76,11 @@ def ts2ots(track_set):
     for idx, t in enumerate(track_set):
         ot = ot_list[idx]
         for ti in t.full_history:
-            ot_state = ObjectTrackState(ti.sys_frame_id, ti.sys_frame_time,
-                                        ti.detected_object)
+            ot_state = ObjectTrackState(
+                ti.sys_frame_id, ti.sys_frame_time, ti.detected_object
+            )
             if not ot.append(ot_state):
-                logger.warning('Cannot add ObjectTrackState')
+                logger.warning("Cannot add ObjectTrackState")
     return ObjectTrackSet(ot_list)
 
 
@@ -87,9 +89,7 @@ def from_homog_f2f(homog_f2f):
     two integers corresponding to the contained homography and the
     from and to IDs, respectively.
     """
-    arr = np.array([
-        [homog_f2f.get(r, c) for c in range(3)] for r in range(3)
-    ])
+    arr = np.array([[homog_f2f.get(r, c) for c in range(3)] for r in range(3)])
     return arr, homog_f2f.from_id, homog_f2f.to_id
 
 
@@ -125,65 +125,83 @@ def transform_homog_bbox(homog, bbox):
 # Configuration
 # =============================================================================
 
+
 class SRNNTrackerConfig(scfg.DataConfig):
     """Configuration for SRNN tracker algorithm."""
+
     # GPU list
-    gpu_list = scfg.Value('all', help=gpu_list_desc(use_for='SRNN tracking'))
+    gpu_list = scfg.Value("all", help=gpu_list_desc(use_for="SRNN tracking"))
 
     # Siamese model config
-    siamese_model_path = scfg.Value('siamese/snapshot_epoch_6.pt', help='Trained PyTorch model.')
-    siamese_model_input_size = scfg.Value(224, help='Model input image size')
-    siamese_batch_size = scfg.Value(128, help='siamese model processing batch size')
+    siamese_model_path = scfg.Value(
+        "siamese/snapshot_epoch_6.pt", help="Trained PyTorch model."
+    )
+    siamese_model_input_size = scfg.Value(224, help="Model input image size")
+    siamese_batch_size = scfg.Value(128, help="siamese model processing batch size")
 
     # Detection thresholds
-    detection_select_threshold = scfg.Value(0.0, help='detection select threshold')
-    track_initialization_threshold = scfg.Value(0.0, help='track initialization threshold')
+    detection_select_threshold = scfg.Value(0.0, help="detection select threshold")
+    track_initialization_threshold = scfg.Value(
+        0.0, help="track initialization threshold"
+    )
 
     # Target RNN config
-    targetRNN_AIM_model_path = scfg.Value('targetRNN_snapshot/App_LSTM_epoch_51.pt',
-                                          help='Trained targetRNN PyTorch model.')
-    targetRNN_AIM_V_model_path = scfg.Value('targetRNN_AI/App_LSTM_epoch_51.pt',
-                                            help='Trained targetRNN AIM with variable input size PyTorch model.')
-    targetRNN_batch_size = scfg.Value(256, help='targetRNN model processing batch size')
-    targetRNN_normalized_models = scfg.Value(False,
-                                             help='If the provided models have a normalization layer')
+    targetRNN_AIM_model_path = scfg.Value(
+        "targetRNN_snapshot/App_LSTM_epoch_51.pt",
+        help="Trained targetRNN PyTorch model.",
+    )
+    targetRNN_AIM_V_model_path = scfg.Value(
+        "targetRNN_AI/App_LSTM_epoch_51.pt",
+        help="Trained targetRNN AIM with variable input size PyTorch model.",
+    )
+    targetRNN_batch_size = scfg.Value(256, help="targetRNN model processing batch size")
+    targetRNN_normalized_models = scfg.Value(
+        False, help="If the provided models have a normalization layer"
+    )
 
     # Matching
-    similarity_threshold = scfg.Value(0.5, help='similarity threshold.')
+    similarity_threshold = scfg.Value(0.5, help="similarity threshold.")
 
     # IOU tracker
-    IOU_tracker_flag = scfg.Value(True, help='IOU tracker flag.')
-    IOU_accept_threshold = scfg.Value(0.5, help='IOU accept threshold.')
-    IOU_reject_threshold = scfg.Value(0.1, help='IOU reject threshold.')
+    IOU_tracker_flag = scfg.Value(True, help="IOU tracker flag.")
+    IOU_accept_threshold = scfg.Value(0.5, help="IOU accept threshold.")
+    IOU_reject_threshold = scfg.Value(0.1, help="IOU reject threshold.")
 
     # Track search
-    track_search_threshold = scfg.Value(0.1, help='track search threshold.')
+    track_search_threshold = scfg.Value(0.1, help="track search threshold.")
 
     # Track termination
-    terminate_track_threshold = scfg.Value(15,
-                                           help='terminate tracking if target lost for this many read-in frames.')
-    sys_terminate_track_threshold = scfg.Value(50,
-                                               help='terminate tracking if target lost for this many system frames.')
+    terminate_track_threshold = scfg.Value(
+        15, help="terminate tracking if target lost for this many read-in frames."
+    )
+    sys_terminate_track_threshold = scfg.Value(
+        50, help="terminate tracking if target lost for this many system frames."
+    )
 
     # GT bbox (for testing)
-    MOT_GTbbox_flag = scfg.Value(False, help='MOT GT bbox flag')
-    AFRL_GTbbox_flag = scfg.Value(False, help='AFRL GT bbox flag')
-    GT_bbox_file_path = scfg.Value('', help='ground truth detection file for testing')
+    MOT_GTbbox_flag = scfg.Value(False, help="MOT GT bbox flag")
+    AFRL_GTbbox_flag = scfg.Value(False, help="AFRL GT bbox flag")
+    GT_bbox_file_path = scfg.Value("", help="ground truth detection file for testing")
 
     # Features
-    add_features_to_detections = scfg.Value(True,
-                                            help='Should we add internally computed features to detections?')
+    add_features_to_detections = scfg.Value(
+        True, help="Should we add internally computed features to detections?"
+    )
 
     # Track initialization
-    explicit_initialization = scfg.Value(False,
-                                         help='If True, only tracks derived from provided track set should be output')
-    initialization_overlap_threshold = scfg.Value(0.7,
-                                                  help='Max IOU with initializations for additional detections')
+    explicit_initialization = scfg.Value(
+        False,
+        help="If True, only tracks derived from provided track set should be output",
+    )
+    initialization_overlap_threshold = scfg.Value(
+        0.7, help="Max IOU with initializations for additional detections"
+    )
 
 
 # =============================================================================
 # SRNN TrackObjects Algorithm
 # =============================================================================
+
 
 class SRNNTracker(TrackObjects):
     """
@@ -231,48 +249,71 @@ class SRNNTracker(TrackObjects):
     @report_cuda_errors("SRNNTracker initialization")
     def set_configuration(self, cfg_in):
         from viame.pytorch.utilities import vital_config_update
+
         cfg = self.get_configuration()
         vital_config_update(cfg, cfg_in)
 
-        self._config.gpu_list = cfg.get_value('gpu_list')
-        self._config.siamese_model_path = cfg.get_value('siamese_model_path')
-        self._config.siamese_model_input_size = int(cfg.get_value('siamese_model_input_size'))
-        self._config.siamese_batch_size = int(cfg.get_value('siamese_batch_size'))
-        self._config.detection_select_threshold = float(cfg.get_value('detection_select_threshold'))
-        self._config.track_initialization_threshold = float(cfg.get_value('track_initialization_threshold'))
-        self._config.targetRNN_AIM_model_path = cfg.get_value('targetRNN_AIM_model_path')
-        self._config.targetRNN_AIM_V_model_path = cfg.get_value('targetRNN_AIM_V_model_path')
-        self._config.targetRNN_batch_size = int(cfg.get_value('targetRNN_batch_size'))
+        self._config.gpu_list = cfg.get_value("gpu_list")
+        self._config.siamese_model_path = cfg.get_value("siamese_model_path")
+        self._config.siamese_model_input_size = int(
+            cfg.get_value("siamese_model_input_size")
+        )
+        self._config.siamese_batch_size = int(cfg.get_value("siamese_batch_size"))
+        self._config.detection_select_threshold = float(
+            cfg.get_value("detection_select_threshold")
+        )
+        self._config.track_initialization_threshold = float(
+            cfg.get_value("track_initialization_threshold")
+        )
+        self._config.targetRNN_AIM_model_path = cfg.get_value(
+            "targetRNN_AIM_model_path"
+        )
+        self._config.targetRNN_AIM_V_model_path = cfg.get_value(
+            "targetRNN_AIM_V_model_path"
+        )
+        self._config.targetRNN_batch_size = int(cfg.get_value("targetRNN_batch_size"))
 
-        targetRNN_normalized = cfg.get_value('targetRNN_normalized_models').lower()
-        self._config.targetRNN_normalized_models = targetRNN_normalized in ('true', '1', 'yes')
+        targetRNN_normalized = cfg.get_value("targetRNN_normalized_models").lower()
+        self._config.targetRNN_normalized_models = targetRNN_normalized in (
+            "true",
+            "1",
+            "yes",
+        )
 
-        self._config.similarity_threshold = float(cfg.get_value('similarity_threshold'))
+        self._config.similarity_threshold = float(cfg.get_value("similarity_threshold"))
 
-        iou_flag = cfg.get_value('IOU_tracker_flag').lower()
-        self._config.IOU_tracker_flag = iou_flag in ('true', '1', 'yes')
-        self._config.IOU_accept_threshold = float(cfg.get_value('IOU_accept_threshold'))
-        self._config.IOU_reject_threshold = float(cfg.get_value('IOU_reject_threshold'))
+        iou_flag = cfg.get_value("IOU_tracker_flag").lower()
+        self._config.IOU_tracker_flag = iou_flag in ("true", "1", "yes")
+        self._config.IOU_accept_threshold = float(cfg.get_value("IOU_accept_threshold"))
+        self._config.IOU_reject_threshold = float(cfg.get_value("IOU_reject_threshold"))
 
-        self._config.track_search_threshold = float(cfg.get_value('track_search_threshold'))
-        self._config.terminate_track_threshold = int(cfg.get_value('terminate_track_threshold'))
-        self._config.sys_terminate_track_threshold = int(cfg.get_value('sys_terminate_track_threshold'))
+        self._config.track_search_threshold = float(
+            cfg.get_value("track_search_threshold")
+        )
+        self._config.terminate_track_threshold = int(
+            cfg.get_value("terminate_track_threshold")
+        )
+        self._config.sys_terminate_track_threshold = int(
+            cfg.get_value("sys_terminate_track_threshold")
+        )
 
-        mot_gt_flag = cfg.get_value('MOT_GTbbox_flag').lower()
-        self._config.MOT_GTbbox_flag = mot_gt_flag in ('true', '1', 'yes')
+        mot_gt_flag = cfg.get_value("MOT_GTbbox_flag").lower()
+        self._config.MOT_GTbbox_flag = mot_gt_flag in ("true", "1", "yes")
 
-        afrl_gt_flag = cfg.get_value('AFRL_GTbbox_flag').lower()
-        self._config.AFRL_GTbbox_flag = afrl_gt_flag in ('true', '1', 'yes')
+        afrl_gt_flag = cfg.get_value("AFRL_GTbbox_flag").lower()
+        self._config.AFRL_GTbbox_flag = afrl_gt_flag in ("true", "1", "yes")
 
-        self._config.GT_bbox_file_path = cfg.get_value('GT_bbox_file_path')
+        self._config.GT_bbox_file_path = cfg.get_value("GT_bbox_file_path")
 
-        add_features = cfg.get_value('add_features_to_detections').lower()
-        self._config.add_features_to_detections = add_features in ('true', '1', 'yes')
+        add_features = cfg.get_value("add_features_to_detections").lower()
+        self._config.add_features_to_detections = add_features in ("true", "1", "yes")
 
-        explicit_init = cfg.get_value('explicit_initialization').lower()
-        self._config.explicit_initialization = explicit_init in ('true', '1', 'yes')
+        explicit_init = cfg.get_value("explicit_initialization").lower()
+        self._config.explicit_initialization = explicit_init in ("true", "1", "yes")
 
-        self._config.initialization_overlap_threshold = float(cfg.get_value('initialization_overlap_threshold'))
+        self._config.initialization_overlap_threshold = float(
+            cfg.get_value("initialization_overlap_threshold")
+        )
 
         # Initialize components
         self._initialize_components()
@@ -289,7 +330,7 @@ class SRNNTracker(TrackObjects):
             self._config.siamese_model_path,
             self._config.siamese_model_input_size,
             self._config.siamese_batch_size,
-            gpu_list
+            gpu_list,
         )
 
         # SRNN matching
@@ -302,7 +343,9 @@ class SRNNTracker(TrackObjects):
         )
 
         # GT bbox handling
-        self._gtbbox_flag = self._config.MOT_GTbbox_flag or self._config.AFRL_GTbbox_flag
+        self._gtbbox_flag = (
+            self._config.MOT_GTbbox_flag or self._config.AFRL_GTbbox_flag
+        )
         if self._gtbbox_flag:
             if self._config.MOT_GTbbox_flag:
                 file_format = GTFileType.MOT
@@ -312,8 +355,7 @@ class SRNNTracker(TrackObjects):
 
         # IOU tracker
         self._iou_tracker = IOUTracker(
-            self._config.IOU_accept_threshold,
-            self._config.IOU_reject_threshold
+            self._config.IOU_accept_threshold, self._config.IOU_reject_threshold
         )
 
         # Grid feature extractor
@@ -349,6 +391,7 @@ class SRNNTracker(TrackObjects):
         except BaseException as e:
             logger.error(repr(e))
             import traceback
+
             logger.error(traceback.format_exc())
             raise
 
@@ -359,15 +402,17 @@ class SRNNTracker(TrackObjects):
 
     def _track_step(self, timestamp, in_img_c, dos_ptr):
         """Perform tracking step."""
-        logger.debug('step %d', self._step_id)
+        logger.debug("step %d", self._step_id)
 
         # Get current frame as PIL image
-        im = get_pil_image(in_img_c.image()).convert('RGB')
+        im = get_pil_image(in_img_c.image()).convert("RGB")
 
         # Get detection bbox
         if self._gtbbox_flag:
-            dos = [DetectedObject(bbox=bbox, confidence=1.)
-                   for bbox in self._m_bbox[self._step_id]]
+            dos = [
+                DetectedObject(bbox=bbox, confidence=1.0)
+                for bbox in self._m_bbox[self._step_id]
+            ]
         else:
             dos = dos_ptr.select(self._config.detection_select_threshold)
 
@@ -386,7 +431,12 @@ class SRNNTracker(TrackObjects):
             ts_time = timestamp.get_time_usec()
 
         det_obj_set, all_track_state_list = self._convert_detected_objects(
-            all_dos, self._step_id, fid, ts_time, im, homog_src_to_base,
+            all_dos,
+            self._step_id,
+            fid,
+            ts_time,
+            im,
+            homog_src_to_base,
         )
         track_state_list = all_track_state_list
 
@@ -400,31 +450,42 @@ class SRNNTracker(TrackObjects):
         self._prev_all_dos = all_dos
 
     def _convert_detected_objects(
-            self, dos, frame_id, sys_frame_id, sys_frame_time,
-            image, homog_src_to_base, extra_dos=None,
+        self,
+        dos,
+        frame_id,
+        sys_frame_id,
+        sys_frame_time,
+        image,
+        homog_src_to_base,
+        extra_dos=None,
     ):
         """Turn a list of DetectedObjects into a feature-enhanced
         DetectedObjectSet and list of track_states.
         """
         bboxes = [d_obj.bounding_box for d_obj in dos]
-        extra_bboxes = None if extra_dos is None else [
-            d_obj.bounding_box for d_obj in extra_dos
-        ]
+        extra_bboxes = (
+            None if extra_dos is None else [d_obj.bounding_box for d_obj in extra_dos]
+        )
 
         # Interaction features
-        grid_feature_list = timing('grid feature', lambda: (
-            self._grid(image.size, bboxes, extra_bboxes)))
+        grid_feature_list = timing(
+            "grid feature", lambda: (self._grid(image.size, bboxes, extra_bboxes))
+        )
 
         # Appearance features (format: pytorch tensor)
-        pt_app_features = timing('app feature', lambda: (
-            self._app_feature_extractor(image, bboxes)))
+        pt_app_features = timing(
+            "app feature", lambda: (self._app_feature_extractor(image, bboxes))
+        )
 
         det_obj_set = DetectedObjectSet()
         track_state_list = []
 
         # Get new track state from new frame and detections
         for bbox, d_obj, grid_feature, app_feature in zip(
-                bboxes, dos, grid_feature_list, pt_app_features,
+            bboxes,
+            dos,
+            grid_feature_list,
+            pt_app_features,
         ):
             if self._config.add_features_to_detections:
                 # Store app feature to detected_object
@@ -458,8 +519,12 @@ class SRNNTracker(TrackObjects):
         """
         # Check whether we need to terminate a track
         for track in list(self._track_set.iter_active()):
-            if (self._step_id - track[-1].frame_id > self._config.terminate_track_threshold
-                or frame_id - track[-1].sys_frame_id > self._config.sys_terminate_track_threshold):
+            if (
+                self._step_id - track[-1].frame_id
+                > self._config.terminate_track_threshold
+                or frame_id - track[-1].sys_frame_id
+                > self._config.sys_terminate_track_threshold
+            ):
                 self._track_set.deactivate_track(track)
 
         # Get a list of the active tracks before directly adding the
@@ -468,25 +533,31 @@ class SRNNTracker(TrackObjects):
 
         # Directly add explicit init tracks
         for tid, ts in init_track_states:
-            self._track_set.make_track(tid, on_exist='restart').append(ts)
+            self._track_set.make_track(tid, on_exist="restart").append(ts)
 
         next_track_id = int(self._track_set.get_max_track_id()) + 1
 
         # Call IOU tracker
         if self._config.IOU_tracker_flag:
-            tracks, track_state_list = timing('IOU tracking', lambda: (
-                self._iou_tracker(tracks, track_state_list)
-            ))
+            tracks, track_state_list = timing(
+                "IOU tracking", lambda: (self._iou_tracker(tracks, track_state_list))
+            )
 
         # Estimate similarity matrix
-        similarity_mat = timing('SRNN association', lambda: (
-            self._srnn_matching(tracks, track_state_list, self._config.track_search_threshold)
-        ))
+        similarity_mat = timing(
+            "SRNN association",
+            lambda: (
+                self._srnn_matching(
+                    tracks, track_state_list, self._config.track_search_threshold
+                )
+            ),
+        )
 
         # Hungarian algorithm
-        row_idx_list, col_idx_list = timing('Hungarian algorithm', lambda: (
-            sp.optimize.linear_sum_assignment(similarity_mat)
-        ))
+        row_idx_list, col_idx_list = timing(
+            "Hungarian algorithm",
+            lambda: (sp.optimize.linear_sum_assignment(similarity_mat)),
+        )
 
         # Contains the row associated with each column, or None
         hung_idx_list = [None] * len(track_state_list)
@@ -497,8 +568,8 @@ class SRNNTracker(TrackObjects):
             if r is None or -similarity_mat[r, c] < self._config.similarity_threshold:
                 # Conditionally initialize a new track
                 if not self._config.explicit_initialization and (
-                        track_state_list[c].detected_object.confidence
-                        >= self._config.track_initialization_threshold
+                    track_state_list[c].detected_object.confidence
+                    >= self._config.track_initialization_threshold
                 ):
                     track = self._track_set.make_track(next_track_id)
                     track.append(track_state_list[c])
@@ -507,7 +578,7 @@ class SRNNTracker(TrackObjects):
                 # Add to existing track
                 tracks[r].append(track_state_list[c])
 
-        logger.debug('total tracks %d', len(self._track_set))
+        logger.debug("total tracks %d", len(self._track_set))
 
     @report_cuda_errors("SRNNTracker tracking")
     def initialize(self, ts, image, seed_detections):
@@ -552,18 +623,6 @@ class SRNNTracker(TrackObjects):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "srnn"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            SRNNTracker.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
-        "Structural RNN multi-object tracker",
-        SRNNTracker
-    )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+    register_vital_algorithm(SRNNTracker, "srnn", "Structural RNN multi-object tracker")

@@ -52,8 +52,8 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
         cfg = super(DetectedObjectSetOutput, self).get_configuration()
         cfg.set_value("category_start_id", str(self.category_start_id))
         cfg.set_value("global_categories", str(self.global_categories))
-        cfg.set_value("aux_image_labels", ','.join(self.aux_image_labels))
-        cfg.set_value("aux_image_extensions", ','.join(self.aux_image_extensions))
+        cfg.set_value("aux_image_labels", ",".join(self.aux_image_labels))
+        cfg.set_value("aux_image_extensions", ",".join(self.aux_image_extensions))
         return cfg
 
     def set_configuration(self, cfg_in):
@@ -64,8 +64,8 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
         self.aux_image_labels = str(cfg.get_value("aux_image_labels"))
         self.aux_image_extensions = str(cfg.get_value("aux_image_extensions"))
 
-        self.aux_image_labels = self.aux_image_labels.rstrip().split(',')
-        self.aux_image_extensions = self.aux_image_extensions.rstrip().split(',')
+        self.aux_image_labels = self.aux_image_labels.rstrip().split(",")
+        self.aux_image_extensions = self.aux_image_extensions.rstrip().split(",")
 
         if len(self.aux_image_labels) != len(self.aux_image_extensions):
             print("Auxiliary image labels and extensions must be same size")
@@ -76,9 +76,9 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
     def _strtobool(self, val):
         """Convert a string representation of truth to True or False."""
         val = val.lower()
-        if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        if val in ("y", "yes", "t", "true", "on", "1"):
             return True
-        elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        elif val in ("n", "no", "f", "false", "off", "0"):
             return False
         else:
             raise ValueError("Invalid truth value %r" % (val,))
@@ -87,7 +87,7 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
         return True
 
     def open(self, file_name):
-        self.file = open(file_name, 'w')
+        self.file = open(file_name, "w")
 
     def close(self):
         if self.file:
@@ -97,35 +97,32 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
         cats = self._local_categories
         for det in detected_object_set:
             d = detection_to_annotation(
-                det, len(self.images), cats,
-                self.category_start_id, self.global_categories)
+                det,
+                len(self.images),
+                cats,
+                self.category_start_id,
+                self.global_categories,
+            )
             self.detections.append(d)
         self.images.append(file_name)
 
     def complete(self):
         cats = self._local_categories
         write_coco_json(
-            self.file, self.detections, self.images, cats,
+            self.file,
+            self.detections,
+            self.images,
+            cats,
             self.global_categories,
-            self.aux_image_labels, self.aux_image_extensions,
-            description="Created by WriteDetectedObjectSetCoco")
+            self.aux_image_labels,
+            self.aux_image_extensions,
+            description="Created by WriteDetectedObjectSetCoco",
+        )
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "coco"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            WriteDetectedObjectSetCoco.static_type_name(),
-            implementation_name,
-    ):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
-        "Write detections to COCO-style JSON format",
-        WriteDetectedObjectSetCoco,
+    register_vital_algorithm(
+        WriteDetectedObjectSetCoco, "coco", "Write detections to COCO-style JSON format"
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

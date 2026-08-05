@@ -1950,30 +1950,17 @@ class Sam3DetectionRefiner(RefineDetections):
         return output
 
 
+
 def __vital_algorithm_register__():
-    """Register SAM3 refiner algorithms with KWIVER."""
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    # Register SAM3Refiner (RefineTracks)
-    track_impl_name = "sam3"
-
-    if not algorithm_factory.has_algorithm_impl_name(
-            SAM3Refiner.static_type_name(), track_impl_name):
-        algorithm_factory.add_algorithm(
-            track_impl_name,
-            "SAM3 (Segment Anything Model 3) based track refiner with text queries",
-            SAM3Refiner
-        )
-        algorithm_factory.mark_algorithm_as_loaded(track_impl_name)
-
-    # Register Sam3DetectionRefiner (RefineDetections)
-    det_impl_name = "sam3"
-
-    if not algorithm_factory.has_algorithm_impl_name(
-            Sam3DetectionRefiner.static_type_name(), det_impl_name):
-        algorithm_factory.add_algorithm(
-            det_impl_name,
-            "SAM3 (SAM 2.1) based detection refiner for adding segmentation masks",
-            Sam3DetectionRefiner
-        )
-        algorithm_factory.mark_algorithm_as_loaded(det_impl_name)
+    register_vital_algorithm(
+        SAM3Refiner,
+        "sam3",
+        "SAM3 (Segment Anything Model 3) based track refiner with text queries",
+    )
+    register_vital_algorithm(
+        Sam3DetectionRefiner,
+        "sam3",
+        "SAM3 (SAM 2.1) based detection refiner for adding segmentation masks",
+    )

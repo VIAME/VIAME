@@ -13,6 +13,7 @@
 
 #include <vital/types/metadata.h>
 #include <vital/types/metadata_traits.h>
+#include <vital/types/rotation.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
@@ -289,14 +290,53 @@ read_habcam_metadata_process
       }                                                           \
     }
 
+  // kwiver replaced the scalar SENSOR_{YAW,PITCH,ROLL}_ANGLE tags with a
+  // single SENSOR_ORIENTATION rotation, so the three habcam angles have to be
+  // collected and combined. The file stores them in degrees; rotation_d takes
+  // radians.
+  #define CHECK_ANGLE( STR, VAR )                                 \
+    {                                                             \
+      std::string field = STR ;                                   \
+      std::size_t pos = field.size() + 1;                         \
+      if( token.substr( 0, pos ) == field + "=" )                 \
+      {                                                           \
+        try                                                       \
+        {                                                         \
+          std::string str_val = token.substr( pos );              \
+                                                                  \
+          if( str_val != "-99.99" )                               \
+          {                                                       \
+            VAR = std::stod( str_val ) * deg_to_rad;              \
+            have_orientation = true;                              \
+          }                                                       \
+        }                                                         \
+        catch( ... )                                              \
+        {                                                         \
+        }                                                         \
+      }                                                           \
+    }
+
+    constexpr double deg_to_rad = 3.14159265358979323846 / 180.0;
+
+    bool have_orientation = false;
+    double yaw = 0.0, pitch = 0.0, roll = 0.0;
+
     for( std::string token : tokens )
     {
-      CHECK_FIELD( "hdg", kwiver::vital::VITAL_META_SENSOR_YAW_ANGLE );
-      CHECK_FIELD( "pitch", kwiver::vital::VITAL_META_SENSOR_PITCH_ANGLE );
-      CHECK_FIELD( "roll", kwiver::vital::VITAL_META_SENSOR_ROLL_ANGLE );
-      CHECK_FIELD( "alt0", kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
-      CHECK_FIELD( "alt1", kwiver::vital::VITAL_META_SENSOR_ALTITUDE );
+      CHECK_ANGLE( "hdg", yaw );
+      CHECK_ANGLE( "pitch", pitch );
+      CHECK_ANGLE( "roll", roll );
+      CHECK_FIELD( "alt0", kwiver::vital::VITAL_META_DENSITY_ALTITUDE );
+      CHECK_FIELD( "alt1", kwiver::vital::VITAL_META_DENSITY_ALTITUDE );
     }
+
+    if( have_orientation )
+    {
+      output_md->add< kwiver::vital::VITAL_META_SENSOR_ORIENTATION >(
+        kwiver::vital::rotation_d( yaw, pitch, roll ) );
+    }
+
+  #undef CHECK_ANGLE
   }
   else
   {
@@ -334,14 +374,17 @@ read_habcam_metadata_process
 
     if( image_id_ind + 6 <= static_cast<int>( tokens.size() ) )
     {
-      output_md->add< kwiver::vital::VITAL_META_SENSOR_ALTITUDE >(
+      constexpr double deg_to_rad = 3.14159265358979323846 / 180.0;
+
+      output_md->add< kwiver::vital::VITAL_META_DENSITY_ALTITUDE >(
         std::stod( tokens[ image_id_ind + 2 ] ) );
-      output_md->add< kwiver::vital::VITAL_META_SENSOR_YAW_ANGLE >(
-        std::stod( tokens[ image_id_ind + 3 ] ) );
-      output_md->add< kwiver::vital::VITAL_META_SENSOR_PITCH_ANGLE >(
-        std::stod( tokens[ image_id_ind + 4 ] ) );
-      output_md->add< kwiver::vital::VITAL_META_SENSOR_ROLL_ANGLE >(
-        std::stod( tokens[ image_id_ind + 5 ] ) );
+
+      // Yaw, pitch and roll are stored in degrees; rotation_d takes radians.
+      output_md->add< kwiver::vital::VITAL_META_SENSOR_ORIENTATION >(
+        kwiver::vital::rotation_d(
+          std::stod( tokens[ image_id_ind + 3 ] ) * deg_to_rad,
+          std::stod( tokens[ image_id_ind + 4 ] ) * deg_to_rad,
+          std::stod( tokens[ image_id_ind + 5 ] ) * deg_to_rad ) );
     }
     else
     {

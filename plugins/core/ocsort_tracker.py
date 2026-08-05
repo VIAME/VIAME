@@ -53,10 +53,11 @@ logger = logging.getLogger(__name__)
 # Kalman Filter with OC-SORT modifications
 # =============================================================================
 
+
 class KalmanFilter:
     """Kalman filter with OC-SORT's Observation-Centric Momentum (OCM)."""
 
-    def __init__(self, std_weight_position=1.0/20, std_weight_velocity=1.0/160):
+    def __init__(self, std_weight_position=1.0 / 20, std_weight_velocity=1.0 / 160):
         ndim = 4
         dt = 1.0
 
@@ -102,9 +103,10 @@ class KalmanFilter:
         motion_cov = np.diag(np.square(np.r_[std_pos, std_vel]))
 
         mean = np.dot(self._motion_mat, mean)
-        covariance = np.linalg.multi_dot([
-            self._motion_mat, covariance, self._motion_mat.T
-        ]) + motion_cov
+        covariance = (
+            np.linalg.multi_dot([self._motion_mat, covariance, self._motion_mat.T])
+            + motion_cov
+        )
 
         return mean, covariance
 
@@ -118,9 +120,9 @@ class KalmanFilter:
         innovation_cov = np.diag(np.square(std))
 
         mean = np.dot(self._update_mat, mean)
-        covariance = np.linalg.multi_dot([
-            self._update_mat, covariance, self._update_mat.T
-        ])
+        covariance = np.linalg.multi_dot(
+            [self._update_mat, covariance, self._update_mat.T]
+        )
         return mean, covariance + innovation_cov
 
     def update(self, mean, covariance, measurement):
@@ -132,20 +134,21 @@ class KalmanFilter:
         kalman_gain = scipy.linalg.cho_solve(
             (chol_factor, lower),
             np.dot(covariance, self._update_mat.T).T,
-            check_finite=False
+            check_finite=False,
         ).T
         innovation = measurement - projected_mean
 
         new_mean = mean + np.dot(innovation, kalman_gain.T)
-        new_covariance = covariance - np.linalg.multi_dot([
-            kalman_gain, projected_cov, kalman_gain.T
-        ])
+        new_covariance = covariance - np.linalg.multi_dot(
+            [kalman_gain, projected_cov, kalman_gain.T]
+        )
         return new_mean, new_covariance
 
 
 # =============================================================================
 # Track state
 # =============================================================================
+
 
 class TrackState:
     NEW = 0
@@ -158,13 +161,16 @@ class TrackState:
 # Single track representation with OCM and optional appearance memory
 # =============================================================================
 
+
 class STrack:
     """Single tracked object with OC-SORT's Observation-Centric Momentum."""
+
     shared_kalman = KalmanFilter()
     _count = 0
 
-    def __init__(self, tlwh, score, detected_object=None, feature=None,
-                 feat_alpha=0.9, delta_t=3):
+    def __init__(
+        self, tlwh, score, detected_object=None, feature=None, feat_alpha=0.9, delta_t=3
+    ):
         self._tlwh = np.asarray(tlwh, dtype=np.float64)
         self.kalman_filter = None
         self.mean = None
@@ -207,10 +213,10 @@ class STrack:
         if self.smooth_feat is None:
             self.smooth_feat = feat
         else:
-            self.smooth_feat = self.feat_alpha * self.smooth_feat + \
-                (1 - self.feat_alpha) * feat
-        self.smooth_feat = self.smooth_feat / \
-            (np.linalg.norm(self.smooth_feat) + 1e-12)
+            self.smooth_feat = (
+                self.feat_alpha * self.smooth_feat + (1 - self.feat_alpha) * feat
+            )
+        self.smooth_feat = self.smooth_feat / (np.linalg.norm(self.smooth_feat) + 1e-12)
 
     def _refresh_velocity(self, frame_id, new_measurement):
         """
@@ -266,7 +272,9 @@ class STrack:
             if delta_t > 1:
                 for i in range(1, delta_t):
                     alpha = i / delta_t
-                    virtual_obs = (1 - alpha) * self.last_observation + alpha * new_measurement
+                    virtual_obs = (
+                        1 - alpha
+                    ) * self.last_observation + alpha * new_measurement
                     self.mean, self.covariance = self.kalman_filter.update(
                         self.mean, self.covariance, virtual_obs
                     )
@@ -388,6 +396,7 @@ class STrack:
 # Distance metrics
 # =============================================================================
 
+
 def iou_batch(bboxes1, bboxes2):
     bboxes1 = np.atleast_2d(bboxes1)
     bboxes2 = np.atleast_2d(bboxes2)
@@ -446,7 +455,11 @@ def velocity_direction_consistency(tracks, detections, vdc_weight=0.2):
         track_vel = track.velocity[:2]
         track_vel_norm = track_vel / np.linalg.norm(track_vel)
 
-        track_pos = track.mean[:2] if track.mean is not None else track.tlwh_to_xyah(track._tlwh)[:2]
+        track_pos = (
+            track.mean[:2]
+            if track.mean is not None
+            else track.tlwh_to_xyah(track._tlwh)[:2]
+        )
 
         for j, det in enumerate(detections):
             det_pos = det.tlwh_to_xyah(det._tlwh)[:2]
@@ -504,6 +517,7 @@ def linear_assignment(cost_matrix, thresh):
 # Converters
 # =============================================================================
 
+
 def to_DetectedObject_list(dos):
     return list(dos)
 
@@ -539,32 +553,60 @@ def to_ObjectTrackSet(tracks):
 # OC-SORT Configuration
 # =============================================================================
 
+
 class OCSORTTrackerConfig(scfg.DataConfig):
     """Configuration for OC-SORT / Deep OC-SORT tracker."""
-    high_thresh = scfg.Value(0.6, help='Confidence threshold for high-confidence detections')
-    low_thresh = scfg.Value(0.1, help='Confidence threshold for low-confidence detections')
-    match_thresh = scfg.Value(0.8, help='Association cost threshold for first-stage matching')
-    track_buffer = scfg.Value(30, help='Number of frames to keep lost tracks')
-    new_track_thresh = scfg.Value(0.6, help='Minimum confidence to create new track')
-    min_hits = scfg.Value(1, help='Number of associations before a track is output')
-    delta_t = scfg.Value(3, help='Frame gap used to compute observation-based velocity (OCM)')
-    use_vdc = scfg.Value(True, help='Enable velocity direction consistency (OCM)')
-    vdc_weight = scfg.Value(0.2, help='Weight for velocity direction consistency penalty')
-    use_oru = scfg.Value(True, help='Enable observation-centric re-update')
-    use_byte = scfg.Value(True, help='Enable low-confidence (BYTE) second-stage matching')
-    use_ocr = scfg.Value(True, help='Enable observation-centric recovery of lost tracks')
-    ocr_iou_thresh = scfg.Value(0.3, help='Minimum IoU for observation-centric recovery matching')
-    use_reid = scfg.Value(False, help='Enable appearance (Deep OC-SORT) cost fusion; imports torch only when enabled')
-    reid_weight = scfg.Value(0.25, help='Weight of appearance cost when use_reid is enabled')
-    feat_ema_alpha = scfg.Value(0.9, help='EMA momentum for appearance feature smoothing')
-    model_path = scfg.Value('', help='Path to Re-ID model weights (Deep OC-SORT)')
-    use_cmc = scfg.Value(False, help='Enable camera motion compensation')
-    params_file = scfg.Value('', help='Optional JSON file of trained parameters overriding the above')
+
+    high_thresh = scfg.Value(
+        0.6, help="Confidence threshold for high-confidence detections"
+    )
+    low_thresh = scfg.Value(
+        0.1, help="Confidence threshold for low-confidence detections"
+    )
+    match_thresh = scfg.Value(
+        0.8, help="Association cost threshold for first-stage matching"
+    )
+    track_buffer = scfg.Value(30, help="Number of frames to keep lost tracks")
+    new_track_thresh = scfg.Value(0.6, help="Minimum confidence to create new track")
+    min_hits = scfg.Value(1, help="Number of associations before a track is output")
+    delta_t = scfg.Value(
+        3, help="Frame gap used to compute observation-based velocity (OCM)"
+    )
+    use_vdc = scfg.Value(True, help="Enable velocity direction consistency (OCM)")
+    vdc_weight = scfg.Value(
+        0.2, help="Weight for velocity direction consistency penalty"
+    )
+    use_oru = scfg.Value(True, help="Enable observation-centric re-update")
+    use_byte = scfg.Value(
+        True, help="Enable low-confidence (BYTE) second-stage matching"
+    )
+    use_ocr = scfg.Value(
+        True, help="Enable observation-centric recovery of lost tracks"
+    )
+    ocr_iou_thresh = scfg.Value(
+        0.3, help="Minimum IoU for observation-centric recovery matching"
+    )
+    use_reid = scfg.Value(
+        False,
+        help="Enable appearance (Deep OC-SORT) cost fusion; imports torch only when enabled",
+    )
+    reid_weight = scfg.Value(
+        0.25, help="Weight of appearance cost when use_reid is enabled"
+    )
+    feat_ema_alpha = scfg.Value(
+        0.9, help="EMA momentum for appearance feature smoothing"
+    )
+    model_path = scfg.Value("", help="Path to Re-ID model weights (Deep OC-SORT)")
+    use_cmc = scfg.Value(False, help="Enable camera motion compensation")
+    params_file = scfg.Value(
+        "", help="Optional JSON file of trained parameters overriding the above"
+    )
 
 
 # =============================================================================
 # OC-SORT Algorithm (TrackObjects implementation)
 # =============================================================================
+
 
 class OCSORTTracker(TrackObjects):
     """
@@ -614,7 +656,7 @@ class OCSORTTracker(TrackObjects):
             self._config[key] = str(cfg.get_value(key))
 
         def as_bool(v):
-            return str(v).lower() in ('true', '1', 'yes')
+            return str(v).lower() in ("true", "1", "yes")
 
         # Convert types
         self._high_thresh = float(self._config.high_thresh)
@@ -640,7 +682,7 @@ class OCSORTTracker(TrackObjects):
         # any scalar values configured above.
         params_file = str(self._config.params_file)
         if params_file and os.path.exists(params_file):
-            with open(params_file, 'r') as f:
+            with open(params_file, "r") as f:
                 params = json.load(f)
             self._apply_trained_params(params)
             print(f"[OCSORT] Loaded trained parameters from {params_file}")
@@ -659,6 +701,7 @@ class OCSORTTracker(TrackObjects):
         # Optional camera motion compensation (numpy/opencv only, no torch)
         if self._use_cmc:
             from viame.pytorch.botsort_tracker import CameraMotionCompensation
+
             self._cmc = CameraMotionCompensation()
         else:
             self._cmc = None
@@ -668,6 +711,7 @@ class OCSORTTracker(TrackObjects):
         # unless use_reid is enabled AND tracking actually runs.
         if self._use_reid:
             from viame.pytorch.botsort_tracker import FeatureExtractor
+
             self._feature_extractor = FeatureExtractor(model_path=self._model_path)
         else:
             self._feature_extractor = None
@@ -677,29 +721,29 @@ class OCSORTTracker(TrackObjects):
     def _apply_trained_params(self, params):
         """Override scalar parameters from a trained params JSON dict."""
         mapping = {
-            'high_thresh': '_high_thresh',
-            'low_thresh': '_low_thresh',
-            'match_thresh': '_match_thresh',
-            'track_buffer': '_track_buffer',
-            'new_track_thresh': '_new_track_thresh',
-            'min_hits': '_min_hits',
-            'delta_t': '_delta_t',
-            'vdc_weight': '_vdc_weight',
-            'ocr_iou_thresh': '_ocr_iou_thresh',
-            'reid_weight': '_reid_weight',
-            'feat_ema_alpha': '_feat_ema_alpha',
-            'std_weight_position': '_std_weight_position',
-            'std_weight_velocity': '_std_weight_velocity',
+            "high_thresh": "_high_thresh",
+            "low_thresh": "_low_thresh",
+            "match_thresh": "_match_thresh",
+            "track_buffer": "_track_buffer",
+            "new_track_thresh": "_new_track_thresh",
+            "min_hits": "_min_hits",
+            "delta_t": "_delta_t",
+            "vdc_weight": "_vdc_weight",
+            "ocr_iou_thresh": "_ocr_iou_thresh",
+            "reid_weight": "_reid_weight",
+            "feat_ema_alpha": "_feat_ema_alpha",
+            "std_weight_position": "_std_weight_position",
+            "std_weight_velocity": "_std_weight_velocity",
         }
         for key, attr in mapping.items():
             if key in params:
                 setattr(self, attr, type(getattr(self, attr))(params[key]))
 
         bool_mapping = {
-            'use_vdc': '_use_vdc',
-            'use_oru': '_use_oru',
-            'use_byte': '_use_byte',
-            'use_ocr': '_use_ocr',
+            "use_vdc": "_use_vdc",
+            "use_oru": "_use_oru",
+            "use_byte": "_use_byte",
+            "use_ocr": "_use_ocr",
         }
         for key, attr in bool_mapping.items():
             if key in params:
@@ -711,8 +755,7 @@ class OCSORTTracker(TrackObjects):
 
     def _extract_features(self, np_image, detections):
         """Attach appearance features to detection STracks (Deep OC-SORT)."""
-        if (self._feature_extractor is None or np_image is None
-                or len(detections) == 0):
+        if self._feature_extractor is None or np_image is None or len(detections) == 0:
             return
         boxes = [d.tlbr for d in detections]
         features = self._feature_extractor.extract(np_image, boxes)
@@ -724,10 +767,12 @@ class OCSORTTracker(TrackObjects):
         dists = iou_distance(strack_pool, high_dets)
         if self._use_vdc:
             dists = dists + velocity_direction_consistency(
-                strack_pool, high_dets, self._vdc_weight)
+                strack_pool, high_dets, self._vdc_weight
+            )
         if self._use_reid:
             dists = dists + self._reid_weight * embedding_distance(
-                strack_pool, high_dets)
+                strack_pool, high_dets
+            )
         return dists
 
     def track(self, ts, image, detections):
@@ -742,17 +787,24 @@ class OCSORTTracker(TrackObjects):
         for do in det_list:
             tlwh = get_DetectedObject_bbox_tlwh(do)
             score = get_DetectedObject_score(do)
-            all_detections.append(STrack(
-                tlwh, score, detected_object=do,
-                feat_alpha=self._feat_ema_alpha, delta_t=self._delta_t))
+            all_detections.append(
+                STrack(
+                    tlwh,
+                    score,
+                    detected_object=do,
+                    feat_alpha=self._feat_ema_alpha,
+                    delta_t=self._delta_t,
+                )
+            )
 
         # Deep OC-SORT: appearance features for all detections
         if self._use_reid:
             self._extract_features(np_image, all_detections)
 
         high_dets = [d for d in all_detections if d.score >= self._high_thresh]
-        low_dets = [d for d in all_detections
-                    if self._low_thresh <= d.score < self._high_thresh]
+        low_dets = [
+            d for d in all_detections if self._low_thresh <= d.score < self._high_thresh
+        ]
 
         activated_stracks = []
         refind_stracks = []
@@ -776,7 +828,8 @@ class OCSORTTracker(TrackObjects):
         # === FIRST STAGE: High-confidence matching (IoU + VDC + ReID) ===
         dists = self._first_stage_cost(strack_pool, high_dets)
         matches, u_track, u_detection = linear_assignment(
-            dists, thresh=self._match_thresh)
+            dists, thresh=self._match_thresh
+        )
 
         for itracked, idet in matches:
             track = strack_pool[itracked]
@@ -793,8 +846,11 @@ class OCSORTTracker(TrackObjects):
 
         # === SECOND STAGE: Low-confidence (BYTE) matching, IoU only ===
         if self._use_byte:
-            r_tracked_stracks = [strack_pool[i] for i in u_track
-                                 if strack_pool[i].state == TrackState.TRACKED]
+            r_tracked_stracks = [
+                strack_pool[i]
+                for i in u_track
+                if strack_pool[i].state == TrackState.TRACKED
+            ]
             dists = iou_distance(r_tracked_stracks, low_dets)
             matches, u_track_second, _ = linear_assignment(dists, thresh=0.5)
 
@@ -818,14 +874,17 @@ class OCSORTTracker(TrackObjects):
 
         # === THIRD STAGE (OCR): recover lost tracks via last observation ===
         if self._use_ocr:
-            lost_pool = [strack_pool[i] for i in u_track
-                         if strack_pool[i].state == TrackState.LOST]
+            lost_pool = [
+                strack_pool[i]
+                for i in u_track
+                if strack_pool[i].state == TrackState.LOST
+            ]
             remaining_high = [high_dets[i] for i in u_detection]
             if len(lost_pool) > 0 and len(remaining_high) > 0:
-                ocr_dists = last_observation_iou_distance(
-                    lost_pool, remaining_high)
+                ocr_dists = last_observation_iou_distance(lost_pool, remaining_high)
                 ocr_matches, _, _ = linear_assignment(
-                    ocr_dists, thresh=1.0 - self._ocr_iou_thresh)
+                    ocr_dists, thresh=1.0 - self._ocr_iou_thresh
+                )
                 matched_rem = set()
                 for il, ir in ocr_matches:
                     track = lost_pool[il]
@@ -837,19 +896,19 @@ class OCSORTTracker(TrackObjects):
                     refind_stracks.append(track)
                     matched_rem.add(ir)
                 # Keep only detections OCR did not consume
-                u_detection = [u_detection[ir]
-                               for ir in range(len(remaining_high))
-                               if ir not in matched_rem]
+                u_detection = [
+                    u_detection[ir]
+                    for ir in range(len(remaining_high))
+                    if ir not in matched_rem
+                ]
 
         # === Handle unconfirmed tracks ===
         remaining_dets = [high_dets[i] for i in u_detection]
         dists = iou_distance(unconfirmed, remaining_dets)
-        matches, u_unconfirmed, u_detection_final = linear_assignment(
-            dists, thresh=0.7)
+        matches, u_unconfirmed, u_detection_final = linear_assignment(dists, thresh=0.7)
 
         for itracked, idet in matches:
-            unconfirmed[itracked].update(
-                remaining_dets[idet], self._frame_id, ts)
+            unconfirmed[itracked].update(remaining_dets[idet], self._frame_id, ts)
             activated_stracks.append(unconfirmed[itracked])
 
         for it in u_unconfirmed:
@@ -871,16 +930,26 @@ class OCSORTTracker(TrackObjects):
                 self._removed_stracks.append(track)
 
         # === Merge track lists ===
-        self._tracked_stracks = [t for t in self._tracked_stracks if t.state == TrackState.TRACKED]
+        self._tracked_stracks = [
+            t for t in self._tracked_stracks if t.state == TrackState.TRACKED
+        ]
         self._tracked_stracks = list(set(self._tracked_stracks + activated_stracks))
         self._tracked_stracks = list(set(self._tracked_stracks + refind_stracks))
 
-        self._lost_stracks = [t for t in self._lost_stracks if t.state == TrackState.LOST]
-        self._lost_stracks = [t for t in self._lost_stracks if t not in self._tracked_stracks]
+        self._lost_stracks = [
+            t for t in self._lost_stracks if t.state == TrackState.LOST
+        ]
+        self._lost_stracks = [
+            t for t in self._lost_stracks if t not in self._tracked_stracks
+        ]
 
-        output_tracks = [t for t in self._tracked_stracks
-                         if t.is_activated and len(t.history) > 0
-                         and t.tracklet_len + 1 >= self._min_hits]
+        output_tracks = [
+            t
+            for t in self._tracked_stracks
+            if t.is_activated
+            and len(t.history) > 0
+            and t.tracklet_len + 1 >= self._min_hits
+        ]
         return to_ObjectTrackSet(output_tracks)
 
     def initialize(self, ts, image, seed_detections):
@@ -915,21 +984,13 @@ class OCSORTTracker(TrackObjects):
 # Algorithm Registration
 # =============================================================================
 
+
 def __vital_algorithm_register__():
-    """Register the OC-SORT algorithm with KWIVER."""
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "ocsort"
-
-    if algorithm_factory.has_algorithm_impl_name(
-            OCSORTTracker.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
+    register_vital_algorithm(
+        OCSORTTracker,
+        "ocsort",
         "OC-SORT / Deep OC-SORT tracker with observation-centric momentum, "
         "re-update, recovery, and optional appearance fusion",
-        OCSORTTracker
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
