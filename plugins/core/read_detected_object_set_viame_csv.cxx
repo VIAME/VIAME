@@ -583,7 +583,8 @@ read_detected_object_set_viame_csv::priv
     }
   } // ...while !eof
 
-  // Check if all frame names are timestamps, if so don't use them in favor of frame ids
+  // Check if all frame names are timestamps, if so don't use them in favor of
+  // frame ids. Covers both MM:SS.s and HH:MM:SS, the latter having no period.
   unsigned timestamp_count = 0;
   unsigned frame_count = 0;
 
@@ -591,9 +592,13 @@ read_detected_object_set_viame_csv::priv
   {
     const std::string& entry = itr.first;
 
-    if( ( ( std::count( entry.begin(), entry.end(), ':' ) == 2 ||
-            std::count( entry.begin(), entry.end(), ':' ) == 1 ) &&
-          std::count( entry.begin(), entry.end(), '.' ) == 1 ) ||
+    const auto colons = std::count( entry.begin(), entry.end(), ':' );
+    const auto periods = std::count( entry.begin(), entry.end(), '.' );
+
+    const bool numeric = std::all_of( entry.begin(), entry.end(),
+      []( char c ) { return ( c >= '0' && c <= '9' ) || c == ':' || c == '.'; } );
+
+    if( ( numeric && ( colons == 1 || colons == 2 ) && periods <= 1 ) ||
          entry.find( ".data@" ) != std::string::npos )
     {
       timestamp_count++;
