@@ -73,6 +73,7 @@ class OCSORTTrainer(TrainTracker):
         self._delta_t = "3"
         # Association-gate fitting, as in the ByteTrack trainer.
         self._match_gate_admit_percent = 99.5
+        self._fit_recovery_gate = "false"
         self._min_match_gate = 0.02
         self._max_match_gate = 0.5
 
@@ -107,6 +108,7 @@ class OCSORTTrainer(TrainTracker):
         cfg.set_value("match_gate_admit_percent",
                       str(self._match_gate_admit_percent))
         cfg.set_value("min_match_gate", str(self._min_match_gate))
+        cfg.set_value("fit_recovery_gate", str(self._fit_recovery_gate))
         cfg.set_value("max_match_gate", str(self._max_match_gate))
         cfg.set_value("use_reid", self._use_reid)
         cfg.set_value("crop_size", self._crop_size)
@@ -134,6 +136,8 @@ class OCSORTTrainer(TrainTracker):
         self._match_gate_admit_percent = float(
             cfg.get_value("match_gate_admit_percent"))
         self._min_match_gate = float(cfg.get_value("min_match_gate"))
+        self._fit_recovery_gate = str(
+            cfg.get_value("fit_recovery_gate"))
         self._max_match_gate = float(cfg.get_value("max_match_gate"))
         self._use_reid = str(cfg.get_value("use_reid"))
         self._crop_size = str(cfg.get_value("crop_size"))
@@ -311,9 +315,20 @@ class OCSORTTrainer(TrainTracker):
         """The overlap observation-centric recovery needs across a gap.
 
         A track that was lost for several frames re-attaches to a box that has
-        moved further than one frame's worth, so this gate has to sit below
-        the consecutive-frame one. Fit from the same groundtruth, over links
-        that actually span a gap.
+        moved further than one frame's worth, so this gate sits below the
+        consecutive-frame one: on FishTrack train the median gap-spanning
+        overlap is 0.17 against 0.75 frame-to-frame.
+
+        That does NOT mean the shipped 0.3 is too tight, and this is off by
+        default because measurement says otherwise. Sweeping it on the train
+        split made things monotonically worse the lower it went -- fit IDF1
+        0.5721 at the shipped 0.3, against 0.5703 at 0.17, 0.566 at 0.1 and
+        0.5572 at 0.02. Loosening the gate admits the false re-associations
+        along with the true ones, and those cost more. The distribution of
+        true links tells you what a gate could admit, not what it should.
+
+        Enable with fit_recovery_gate if a dataset's gap statistics differ
+        enough to be worth re-testing.
         """
         gap_ious = stats.get('recovery_ious', [])
 
@@ -623,7 +638,10 @@ class OCSORTTrainer(TrainTracker):
 
         print("Estimating association gates...")
         match_thresh = self._estimate_match_threshold(stats)
-        ocr_iou_thresh = self._estimate_recovery_gate(stats)
+        if str(self._fit_recovery_gate).lower() in ('true', '1', 'yes'):
+            ocr_iou_thresh = self._estimate_recovery_gate(stats)
+        else:
+            ocr_iou_thresh = 0.3
 
         delta_t = self._estimate_delta_t(stats)
         print(f"  delta_t: {delta_t}")
