@@ -217,6 +217,50 @@ class SAM3RefinerConfig(SAM3BaseConfig):
     # predictor.  Enable for track-user-selections (seed boxes forwarded
     # across frames).  Disable for text-query pipelines where grounding
     # DINO re-detects on every frame independently.
+    # Externally supplied detections, rather than a handful of seed boxes,
+    # are the input in a detector-comparison setting: every tracker replays
+    # the same detection set so the comparison is of association alone.
+    #
+    # SAM 3.1 resets its inference state on every add_prompt call, so the
+    # seed path hands it all boxes in one call WITHOUT per-box obj_ids and
+    # lets SAM 3 number the objects itself. Those numbers cannot match the
+    # ids of the tracks that supplied the boxes, so with
+    # add_new_objects=False every propagated object is filtered out as
+    # "not one we seeded" and the refiner emits nothing at all. Enabling
+    # this records the seed order and maps SAM 3's ids back onto the input
+    # track ids, which is what makes add_new_objects=False usable.
+    #
+    # Off by default: it changes the object ids in the output, and the
+    # text-query pipelines depend on the existing numbering.
+    # Replay an external detection set, by frame index, as the seeds.
+    #
+    # The pipeline's read_object_track matches rows to frames by image
+    # file name and hands the refiner nothing per frame when those names
+    # do not line up, which makes the whole run silently empty. Every
+    # other tracker in this benchmark sidesteps that by leaving
+    # image_file_name unconnected and replaying detections positionally.
+    # This does the same: give it a VIAME CSV and the detections on the
+    # Nth frame of the CSV seed the Nth frame of the video, whatever the
+    # file names say.
+    #
+    # Empty by default, so the ordinary seed-track and text-query
+    # pipelines are unaffected.
+    detections_file = scfg.Value(
+        '',
+        help='VIAME CSV of detections to replay as seeds, matched to '
+             'frames by index rather than by image file name. Intended '
+             'for replaying a shared detection set so SAM 3 can be '
+             'compared against other trackers on equal input.'
+    )
+
+    preserve_seed_ids = scfg.Value(
+        False,
+        help='Map propagated object ids back onto the ids of the input '
+             'tracks that seeded them, so seeded objects survive an '
+             'add_new_objects=False filter. Required when replaying an '
+             'external detection set through SAM 3.'
+    )
+
     propagate_tracked = scfg.Value(
         True,
         help='Propagate seed boxes across frames using SAM3 video predictor'
@@ -340,6 +384,39 @@ def _set_polygon_on_detection(det, mask, simplification):
         det.set_flattened_polygon(poly_pts)
 
 
+def _load_viame_csv_by_frame(path):
+    """Read a VIAME CSV into {frame_index: [(id, (x1,y1,x2,y2), conf, cls)]}.
+
+    Frame index is column 3 as written in the file. Rows are keyed by that
+    value directly, so the Nth annotated frame seeds the Nth frame of the
+    video; this is the same positional replay the other trackers use, and
+    it does not depend on image file names agreeing.
+    """
+    import csv as _csv
+
+    by_frame = {}
+    try:
+        with open(path, errors='replace') as handle:
+            for row in _csv.reader(handle):
+                if not row or row[0].lstrip().startswith('#'):
+                    continue
+                if len(row) < 8:
+                    continue
+                try:
+                    det_id = int(row[0])
+                    frame = int(row[2])
+                    box = tuple(float(v) for v in row[3:7])
+                    conf = float(row[7])
+                except ValueError:
+                    continue
+                cls = row[9] if len(row) > 9 else ''
+                by_frame.setdefault(frame, []).append((det_id, box, conf, cls))
+    except OSError as error:
+        print('[SAM3] could not read detections file %s: %s' % (path, error))
+        return {}
+    return by_frame
+
+
 class SAM3Refiner(RefineTracks):
     """
     SAM3-based track refiner with native video tracking.
@@ -379,6 +456,11 @@ class SAM3Refiner(RefineTracks):
         #   'last_box': [x1,y1,x2,y2], 'class_name': str, 'lost': int,
         #   'history': [ObjectTrackState, ...] }
         self._tracked_objects = {}
+
+        self._preserve_seed_ids = False
+        self._detections_file = ''
+        self._external_dets = {}
+        self._clamped_out = 0
 
         # Video predictor state (used when propagate_tracked=True)
         self._video_predictor = None
@@ -425,6 +507,15 @@ class SAM3Refiner(RefineTracks):
         self._output_type = self._config.output_type
         self._text_query_list = self._config.text_query_list
         self._propagate_tracked = parse_bool(self._config.propagate_tracked)
+        self._preserve_seed_ids = parse_bool(
+            self._config.preserve_seed_ids)
+        self._detections_file = str(self._config.detections_file or '')
+        self._external_dets = {}
+        if self._detections_file:
+            self._external_dets = _load_viame_csv_by_frame(
+                self._detections_file)
+            print('[SAM3] replaying %d frames of external detections from %s'
+                  % (len(self._external_dets), self._detections_file))
         self._reinit_interval = int(self._config.reinit_interval)
         self._next_track_id = int(self._config.new_track_id_start)
         self._assigned_ids.clear()
@@ -850,7 +941,7 @@ class SAM3Refiner(RefineTracks):
                         state, class_terms, text_seed_frame,
                     )
                 else:
-                    self._seed_prompts_single_pass(
+                    seed_order = self._seed_prompts_single_pass(
                         state, is_sam31, text_query, text_seed_frame,
                         frame_prompts,
                     )
@@ -859,6 +950,8 @@ class SAM3Refiner(RefineTracks):
                         self._collect_frame_results(
                             results, frame_idx, frame_results,
                         )
+                    if self._preserve_seed_ids and seed_order:
+                        results = self._remap_seed_ids(results, seed_order)
             finally:
                 tqdm.tqdm.__init__ = _orig_init
 
@@ -870,6 +963,37 @@ class SAM3Refiner(RefineTracks):
 
         return results
 
+    def _remap_seed_ids(self, results, seed_order):
+        """Rename SAM 3's object ids back to the tracks that seeded them.
+
+        SAM 3.1 numbers the objects it returns 0, 1, 2, ... in the order the
+        seed boxes were handed to add_prompt, so position i in ``seed_order``
+        is the input track id for object id i. Objects beyond the seeds are
+        ones SAM 3 found itself; they keep their own ids and are dropped
+        later if add_new_objects is off.
+
+        Ids are rewritten into a fresh dict rather than in place, because a
+        seeded id and a discovered id can collide once the seeded ones are
+        renamed.
+        """
+        remapped = {}
+        collisions = 0
+        for (oid, fidx), value in results.items():
+            new_oid = seed_order[oid] if 0 <= oid < len(seed_order) else oid
+            key = (new_oid, fidx)
+            if key in remapped:
+                collisions += 1
+                continue
+            remapped[key] = value
+            if new_oid != oid:
+                cls = self._obj_id_to_class.get(new_oid)
+                if cls is not None:
+                    self._obj_id_to_class[new_oid] = cls
+        if collisions:
+            print("[SAM3] %d propagated results dropped on seed-id remap "
+                  "(id collision)" % collisions)
+        return remapped
+
     def _seed_prompts_single_pass(self, state, is_sam31, text_query,
                                   text_seed_frame, frame_prompts):
         """
@@ -879,6 +1003,7 @@ class SAM3Refiner(RefineTracks):
         everything into one call. SAM 3.0 accumulates state across calls
         and can accept per-frame seed boxes plus a single text prompt.
         """
+        seed_order = []
         if is_sam31:
             if frame_prompts:
                 seed_frame = min(frame_prompts.keys())
@@ -886,6 +1011,11 @@ class SAM3Refiner(RefineTracks):
                 for fidx in sorted(frame_prompts.keys()):
                     for _obj_id, box_rel_xywh in frame_prompts[fidx]:
                         seed_boxes.append(box_rel_xywh)
+                        # The order boxes are handed to add_prompt is the
+                        # only link back to the tracks they came from:
+                        # SAM 3.1 takes no per-box obj_id and numbers the
+                        # objects itself, starting at 0 in this same order.
+                        seed_order.append(_obj_id)
                 add_kwargs = dict(
                     frame_idx=seed_frame,
                     boxes_xywh=seed_boxes,
@@ -901,6 +1031,8 @@ class SAM3Refiner(RefineTracks):
                     text_str=text_query,
                 )
         else:
+            # SAM 3.0 accepts an explicit obj_id per box, so identity is
+            # preserved here already and no remap is needed.
             for frame_idx, prompts in frame_prompts.items():
                 for obj_id, box_rel_xywh in prompts:
                     self._video_predictor.add_prompt(
@@ -916,6 +1048,8 @@ class SAM3Refiner(RefineTracks):
                     frame_idx=text_seed_frame,
                     text_str=text_query,
                 )
+
+        return seed_order
 
     def _propagate_per_class(self, state, class_terms, text_seed_frame):
         """
@@ -1160,6 +1294,32 @@ class SAM3Refiner(RefineTracks):
 
         local_frame_idx = len(self._pil_frames) - 1
         self._timestamps[local_frame_idx] = ts
+
+        # An external detection set replaces the input tracks as the seed
+        # source when one was supplied, and is matched by frame position.
+        if self._external_dets:
+            w, h = self._img_width, self._img_height
+            for det_id, (x1, y1, x2, y2), conf, cls in \
+                    self._external_dets.get(local_frame_idx, []):
+                # Detector boxes routinely run past the image edge --
+                # negative origins and corners beyond width/height are both
+                # common in the shared detection sets. SAM 3 asserts its
+                # prompts are normalised inside [0, 1], so clamp here and
+                # drop anything with no area left afterwards rather than
+                # letting the assertion take down the whole run.
+                nx1 = min(max(x1 / w, 0.0), 1.0)
+                ny1 = min(max(y1 / h, 0.0), 1.0)
+                nx2 = min(max(x2 / w, 0.0), 1.0)
+                ny2 = min(max(y2 / h, 0.0), 1.0)
+                if nx2 <= nx1 or ny2 <= ny1:
+                    self._clamped_out += 1
+                    continue
+                box_rel = [nx1, ny1, nx2 - nx1, ny2 - ny1]
+                self._frame_prompts.setdefault(local_frame_idx, []).append(
+                    (det_id, box_rel)
+                )
+                self._obj_id_to_class[det_id] = cls
+            return ObjectTrackSet([])
 
         # Collect seed box prompts from input tracks on this frame
         for tid, (track, state, det) in track_states.items():
