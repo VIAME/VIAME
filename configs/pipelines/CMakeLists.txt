@@ -152,7 +152,6 @@ set( CORE_PIPELINE_FILES
   detector_gmm_motion.pipe
   detector_motion_three_frame_diff.pipe
   detector_project_folder.pipe
-  detector_three_frame_diff.pipe
   detector_project_folder_left.pipe
   detector_simple_hough.pipe
   display_annotations.pipe
