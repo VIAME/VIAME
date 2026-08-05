@@ -287,6 +287,29 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
       tokens.push_back( token );
     }
 
+    // Tolerate exporters that pack the species pairs into one quoted field.
+    // Stops at the first attribute so its own quoting is preserved.
+    for( size_t t = 9; t < tokens.size(); ++t )
+    {
+      std::string& tok = tokens[t];
+      const size_t first = ( !tok.empty() && tok.front() == '"' ) ? 1 : 0;
+
+      if( tok.size() > first && tok[first] == '(' )
+      {
+        break;
+      }
+
+      if( first )
+      {
+        tok.erase( tok.begin() );
+      }
+
+      if( !tok.empty() && tok.back() == '"' )
+      {
+        tok.pop_back();
+      }
+    }
+
     // Minimum 9 columns required for VIAME CSV
     if( tokens.size() < 9 )
     {

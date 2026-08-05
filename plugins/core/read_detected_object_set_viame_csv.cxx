@@ -44,6 +44,32 @@ create_viame_csv_bbox( std::vector< std::string > const& cols )
     atof( cols[VIAME_CSV_COL_MAX_Y].c_str() ) );
 }
 
+void
+strip_viame_csv_quotes( std::vector< std::string >& cols )
+{
+  for( size_t i = VIAME_CSV_COL_TOT; i < cols.size(); ++i )
+  {
+    std::string& col = cols[i];
+    const size_t first = ( !col.empty() && col.front() == '"' ) ? 1 : 0;
+
+    // Stop at the first attribute so any quoting it carries is preserved
+    if( col.size() > first && col[first] == '(' )
+    {
+      break;
+    }
+
+    if( first )
+    {
+      col.erase( col.begin() );
+    }
+
+    if( !col.empty() && col.back() == '"' )
+    {
+      col.pop_back();
+    }
+  }
+}
+
 size_t parse_viame_csv_species(
   std::vector< std::string > const& cols,
   double confidence_override,
@@ -411,6 +437,7 @@ read_detected_object_set_viame_csv::priv
   {
     std::vector< std::string > col;
     kwiver::vital::tokenize( line, col, ",", false );
+    strip_viame_csv_quotes( col );
 
     if( col.empty() || ( !col[0].empty() && col[0][0] == '#' ) )
     {

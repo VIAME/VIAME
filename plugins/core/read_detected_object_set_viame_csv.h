@@ -54,6 +54,15 @@ VIAME_CORE_EXPORT
 kwiver::vital::bounding_box_d
 create_viame_csv_bbox( std::vector< std::string > const& cols );
 
+/// Strip surrounding double quotes from the species/confidence pair columns
+///
+/// Those pairs belong in their own columns, but some exporters emit them inside
+/// a single quoted field. Splitting on commas then leaves a stray quote on that
+/// field's first and last tokens, making the confidences unparseable. Stops at
+/// the first attribute column, leaving any quoting in attributes intact.
+VIAME_CORE_EXPORT
+void strip_viame_csv_quotes( std::vector< std::string >& cols );
+
 /// Parse species/confidence pairs from VIAME CSV columns
 ///
 /// Parses columns starting at VIAME_CSV_COL_TOT, reading pairs of
