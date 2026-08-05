@@ -297,6 +297,98 @@ static void apply_command_line_setting( kv::config_block_sptr config,
   config->set_value( parsed.first, parsed.second );
 }
 
+// Apply --continue: reuse the extracted-frame and chip caches from a prior run
+// in the same directory, and resume trainer checkpoints where the trainer
+// supports it. Called before the --setting over-rides so those still win.
+static void apply_continue_settings( kv::config_block_sptr config,
+                                     const std::string& trainer_root )
+{
+  config->set_value( "regenerate_cache", "false" );
+
+  std::string base_type =
+    config->get_value< std::string >( trainer_root + ":type", "" );
+
+  if( base_type.empty() )
+  {
+    return;
+  }
+
+  std::string base = trainer_root + ":" + base_type;
+  std::string trainer_type = base_type;
+  std::string trainer_prefix = base;
+
+  if( base_type == "ocv_windowed" || base_type == "windowed" )
+  {
+    config->set_value( base + ":reuse_cache", "true" );
+
+    trainer_type =
+      config->get_value< std::string >( base + ":trainer:type", "" );
+
+    if( trainer_type.empty() )
+    {
+      return;
+    }
+
+    trainer_prefix = base + ":trainer:" + trainer_type;
+  }
+
+  std::string train_dir =
+    config->get_value< std::string >( trainer_prefix + ":train_directory",
+      config->get_value< std::string >( base + ":train_directory",
+        "deep_training" ) );
+
+  if( !does_folder_exist( train_dir ) )
+  {
+    std::cout << "Continue: no prior train directory " << train_dir
+              << ", starting fresh" << std::endl;
+    return;
+  }
+
+  if( trainer_type == "rf_detr" )
+  {
+    std::string ckpt = append_path(
+      append_path( train_dir, "rf_detr_output" ), "last.ckpt" );
+
+    if( does_file_exist( ckpt ) )
+    {
+      config->set_value( trainer_prefix + ":resume", "true" );
+      config->set_value( trainer_prefix + ":seed_model", ckpt );
+      std::cout << "Continue: resuming from " << ckpt << std::endl;
+    }
+    else
+    {
+      std::cout << "Continue: no checkpoint at " << ckpt
+                << ", reusing caches only" << std::endl;
+    }
+  }
+  else if( trainer_type == "ultralytics" )
+  {
+    if( does_folder_exist( append_path( train_dir, "yolo_runs" ) ) )
+    {
+      config->set_value( trainer_prefix + ":resume", "true" );
+      std::cout << "Continue: resuming last ultralytics checkpoint in "
+                << train_dir << "/yolo_runs" << std::endl;
+    }
+  }
+  else if( trainer_type == "detectron2" )
+  {
+    config->set_value( trainer_prefix + ":no_format", "true" );
+    config->set_value( trainer_prefix + ":resume", "true" );
+    std::cout << "Continue: resuming detectron2 run in "
+              << train_dir << std::endl;
+  }
+  else if( trainer_type == "netharn" ||
+           trainer_type == "mit_yolo" ||
+           trainer_type == "litdet" )
+  {
+    // Reuses the trainer's formatted dataset; netharn additionally
+    // auto-resumes from the checkpoints in its run directory.
+    config->set_value( trainer_prefix + ":no_format", "true" );
+    std::cout << "Continue: reusing formatted " << trainer_type
+              << " dataset in " << train_dir << std::endl;
+  }
+}
+
 // =======================================================================================
 // True if a token is the value of the option preceding it rather than the next
 // option. Used for flags that may be given without a value.
@@ -862,6 +954,10 @@ train_applet
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "gt-frames-only", "Use frames with annotations only",
       ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "continue", "Continue a prior training run in the current directory: "
+      "reuse the extracted-frame and chip caches and resume from the last "
+      "checkpoint when the trainer supports it",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "c,config", "Input configuration file(s) with parameters",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "i,input", "Input directory containing groundtruth",
@@ -944,6 +1040,7 @@ train_applet
   bool opt_no_adv_print = cmd_args[ "no-adv-prints" ].as< bool >();
   bool opt_no_emb_pipe = cmd_args[ "no-embedded-pipe" ].as< bool >();
   bool opt_gt_only = cmd_args[ "gt-frames-only" ].as< bool >();
+  bool opt_continue = cmd_args[ "continue" ].as< bool >();
 
   std::string opt_config = cmd_args[ "config" ].as< std::string >();
   std::string opt_input_dir = cmd_args[ "input" ].as< std::string >();
@@ -1159,6 +1256,11 @@ train_applet
   else
   {
     config->set_value( "detector_trainer:type", first_detector );
+  }
+
+  if( opt_continue )
+  {
+    apply_continue_settings( config, "detector_trainer" );
   }
 
   apply_settings( config, file_settings );
@@ -2880,6 +2982,11 @@ train_applet
         current_config->set_value( "detector_trainer:type", current_detector );
       }
 
+      if( opt_continue )
+      {
+        apply_continue_settings( current_config, "detector_trainer" );
+      }
+
       // Apply command line settings override
       apply_settings( current_config, file_settings );
       apply_command_line_setting( current_config, opt_settings );
@@ -3191,6 +3298,11 @@ train_applet
         tracker_config->set_value(
           "tracker_trainer:" + current_tracker + ":validation_manifest",
           validation_manifest_file );
+      }
+
+      if( opt_continue )
+      {
+        apply_continue_settings( tracker_config, "tracker_trainer" );
       }
 
       // Apply command line settings override
