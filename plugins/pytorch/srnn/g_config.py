@@ -62,6 +62,14 @@ class Config(_get_model_config().__class__):
     # this is the one that keeps working after dropout is turned off.
     lstm_weight_decay = _rate('VIAME_SRNN_LSTM_WEIGHT_DECAY', 1e-4)
 
+    # The combined model does not start from scratch: it is seeded from the
+    # already-converged individual LSTMs and fine-tunes them jointly. At the
+    # shared 2e-3 its best validation epoch was the zeroth in one run and the
+    # second in the other -- the first hot epochs walked it out of the basin
+    # its components arrived in and it never got back. A tenth of the rate
+    # lets the fusion layers learn without destroying what they fuse.
+    target_init_lr = _rate('VIAME_SRNN_TARGET_LR', 2e-4)
+
     # The scheduler multiplies the rate by 0.1 every lstm_lr_step epochs. At
     # the old step of 5 the rate reached 2e-10 by epoch 35 -- zero for any
     # practical purpose -- so of a 50 epoch budget, thirty were spent applying
