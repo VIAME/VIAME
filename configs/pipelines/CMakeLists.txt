@@ -177,7 +177,7 @@ set( CORE_PIPELINE_FILES
   index_existing.pipe
   index_frame.pipe
   index_frame.svm.pipe
-  index_frame.svm.gt_only.pipe
+  index_frame.svm.annot_only.pipe
   interactive_segmenter_default.conf
   interactive_segmenter_watershed.conf
   interactive_text_query_default.conf
