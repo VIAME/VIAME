@@ -320,7 +320,11 @@ TEST( PairStereoDetectionsTest, keypoint_projection_options_defaults )
 {
   keypoint_projection_matching_options opts;
   EXPECT_DOUBLE_EQ( opts.max_keypoint_distance, 50.0 );
-  EXPECT_DOUBLE_EQ( opts.default_depth, 5.0 );
+  // Unlike epipolar_iou, which always projects at a fixed depth, this matcher
+  // reads default_depth <= 0 as "triangulate" -- finding the depth that
+  // minimises the L/R reprojection residual instead of assuming one. Zero is
+  // therefore the intended default, and a positive value switches that off.
+  EXPECT_DOUBLE_EQ( opts.default_depth, 0.0 );
   EXPECT_TRUE( opts.require_class_match );
   EXPECT_TRUE( opts.use_optimal_assignment );
 }
