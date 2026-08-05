@@ -304,6 +304,10 @@ public:
   // Alternative basepaths for strings as the above frame name might ref a full path.
   std::map< std::string, std::string > m_alt_filenames;
 
+  // Map of frame number to source identifier (column 2) for standalone use
+  // without an external image source connected.
+  std::map< int, std::string > m_name_by_id;
+
   // A list of all input filename strings used for error checking.
   std::vector< std::string > m_searched_filenames;
 };
@@ -455,6 +459,13 @@ read_detected_object_set_viame_csv
     set = d->m_detection_by_id[ d->m_current_idx ];
   }
 
+  auto name_itr = d->m_name_by_id.find( d->m_current_idx );
+
+  if( image_name.empty() && name_itr != d->m_name_by_id.end() )
+  {
+    image_name = name_itr->second;
+  }
+
   ++d->m_current_idx;
 
   return true;
@@ -481,6 +492,7 @@ read_detected_object_set_viame_csv::priv
   // Read detections
   m_detection_by_id.clear();
   m_detection_by_str.clear();
+  m_name_by_id.clear();
 
   while( stream_reader.getline( line ) )
   {
@@ -512,6 +524,11 @@ read_detected_object_set_viame_csv::priv
      */
     int frame_id = atoi( col[COL_FRAME_ID].c_str() );
     std::string str_id = col[COL_SOURCE_ID];
+
+    if( !str_id.empty() && m_name_by_id.count( frame_id ) == 0 )
+    {
+      m_name_by_id[ frame_id ] = str_id;
+    }
 
     if( m_detection_by_id.count( frame_id ) == 0 )
     {

@@ -26,7 +26,8 @@ IF EXIST "%INITIAL_MODEL%" (
   IF EXIST "deep_training" (
     viame.exe train ^
       -i "%INPUT_DIRECTORY%" ^
-      -c "%VIAME_INSTALL%\configs\pipelines\train_frame_classifier_netharn_efficientnet.continue.conf" ^
+      -c "%VIAME_INSTALL%\configs\pipelines\train_frame_classifier_netharn_efficientnet.conf" ^
+      --continue ^
       --threshold 0.0
   ) ELSE (
     ECHO Initial seed model or in progress training folder does not exist, exiting

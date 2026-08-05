@@ -12,7 +12,7 @@ SET OUTPUT_EXTENSION=json
 SET DEFAULT_FRAME_RATE=5
 
 REM Setup paths and run command
-SET PIPELINE=pipelines\convert_%INPUT_FORMAT%_to_%OUTPUT_FORMAT%.pipe
+SET PIPELINE=pipelines\convert_%INPUT_FORMAT%_to_%OUTPUT_FORMAT%_gt_plus_data.pipe
 
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 

@@ -12,7 +12,7 @@ export OUTPUT_EXTENSION=json
 export DEFAULT_FRAME_RATE=5
 
 # Setup paths, pipeline, and run the command
-export PIPELINE=pipelines/convert_${INPUT_FORMAT}_to_${OUTPUT_FORMAT}.pipe
+export PIPELINE=pipelines/convert_${INPUT_FORMAT}_to_${OUTPUT_FORMAT}_gt_plus_data.pipe
 
 source ${VIAME_INSTALL}/setup_viame.sh
 

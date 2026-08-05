@@ -140,14 +140,15 @@ set( CORE_PIPELINE_FILES
   common_train_detector.conf
   convert_add_filename_to_det_csv.pipe
   convert_add_filename_to_trk_csv.pipe
-  convert_coco_json_to_viame_csv.pipe
-  convert_habcam_to_kw18.pipe
-  convert_habcam_to_viame_csv.pipe
-  convert_kw18_to_viame_csv.pipe
-  convert_oceaneyes_to_viame_csv.pipe
+  convert_coco_json_to_viame_csv_gt_plus_data.pipe
+  convert_habcam_to_kw18_gt_plus_data.pipe
+  convert_habcam_to_viame_csv_gt_plus_data.pipe
+  convert_kw18_to_viame_csv_gt_plus_data.pipe
+  convert_oceaneyes_to_viame_csv_gt_plus_data.pipe
   convert_model_to_onnx.pipe
-  convert_viame_csv_to_coco_json.pipe
-  convert_viame_csv_to_kw18.pipe
+  convert_viame_csv_to_coco_json_gt_plus_data.pipe
+  convert_viame_csv_to_coco_json_gt_only.pipe
+  convert_viame_csv_to_kw18_gt_plus_data.pipe
   database_apply_svm_models.pipe
   detector_gmm_motion.pipe
   detector_motion_three_frame_diff.pipe
@@ -176,7 +177,7 @@ set( CORE_PIPELINE_FILES
   index_existing.pipe
   index_frame.pipe
   index_frame.svm.pipe
-  index_frame.svm.annot_only.pipe
+  index_frame.svm.gt_only.pipe
   interactive_segmenter_default.conf
   interactive_segmenter_watershed.conf
   interactive_text_query_default.conf
@@ -348,7 +349,6 @@ endif()
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_netharn_cfrnn.conf
-    train_detector_netharn_cfrnn.continue.conf
     train_detector_netharn_cfrnn.grid_only.20ep.conf
     train_detector_netharn_cfrnn.grid_only.40ep.conf
     train_detector_netharn_cfrnn.grid_only.conf
@@ -358,9 +358,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     train_detector_netharn_mask_rcnn_720.conf
     train_detector_netharn_mask_rcnn_grid.conf
     train_frame_classifier_netharn_efficientnet.conf
-    train_frame_classifier_netharn_efficientnet.continue.conf
     train_frame_classifier_netharn_resnet.conf
-    train_frame_classifier_netharn_resnet.continue.conf
     train_reclassifier_netharn_efficientnet.conf
     train_reclassifier_netharn_resnet.conf
   )
@@ -436,11 +434,8 @@ if( VIAME_ENABLE_WEB_EXCLUDES )
     frame_classifier_project_folder.pipe
     frame_classifier_svm.pipe
     tracker_project_folder.pipe
-    train_detector_netharn_cfrnn.continue.conf
     train_detector_netharn_cfrnn_special.conf
     train_detector_netharn_cfrnn_wtf.conf
-    train_frame_classifier_netharn_efficientnet.continue.conf
-    train_frame_classifier_netharn_resnet.continue.conf
     utility_add_head_tail_keypoints.pipe
     utility_enhance.pipe
     utility_extract_chips.pipe

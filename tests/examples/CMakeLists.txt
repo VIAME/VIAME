@@ -144,9 +144,16 @@ if( VIAME_ENABLE_PYTHON )
   # Detection File Conversions Tests
   # ============================================================================
   add_example_script_test(
-    viame_examples:bulk_convert_using_pipe
+    viame_examples:bulk_convert_gt_plus_data
     test_detection_file_conversions.py
-    TestBulkConvertUsingPipe
+    TestBulkConvertGtPlusData
+    detection_file_conversions
+  )
+
+  add_example_script_test(
+    viame_examples:bulk_convert_gt_only
+    test_detection_file_conversions.py
+    TestBulkConvertGtOnly
     detection_file_conversions
   )
 
