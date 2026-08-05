@@ -62,6 +62,11 @@ class ByteTrackTrainer( TrainTracker ):
         # confidence thresholds carry no information about the detector
         # this tracker will actually run behind.
         self._computed_detections = ""
+        # Written by the training tool: which frames of the flat list belong
+        # to which track set. Without it the detector statistics fall back to
+        # guessing from the directory layout, which fails open the moment the
+        # image tree holds more directories than there are annotated clips.
+        self._sequence_manifest = ""
 
         # Output parameter bounds (for clamping estimated values). The
         # velocity ceiling used to be 0.1 and the FishTrack23 fit landed
@@ -102,6 +107,7 @@ class ByteTrackTrainer( TrainTracker ):
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "threshold", self._threshold )
         cfg.set_value( "computed_detections", self._computed_detections )
+        cfg.set_value( "sequence_manifest", self._sequence_manifest )
         cfg.set_value( "min_std_weight_position", str( self._min_std_weight_position ) )
         cfg.set_value( "max_std_weight_position", str( self._max_std_weight_position ) )
         cfg.set_value( "min_std_weight_velocity", str( self._min_std_weight_velocity ) )
@@ -123,6 +129,7 @@ class ByteTrackTrainer( TrainTracker ):
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._threshold = str( cfg.get_value( "threshold" ) )
         self._computed_detections = str( cfg.get_value( "computed_detections" ) )
+        self._sequence_manifest = str( cfg.get_value( "sequence_manifest" ) )
         self._min_std_weight_position = float( cfg.get_value( "min_std_weight_position" ) )
         self._max_std_weight_position = float( cfg.get_value( "max_std_weight_position" ) )
         self._min_std_weight_velocity = float( cfg.get_value( "min_std_weight_velocity" ) )
@@ -343,7 +350,8 @@ class ByteTrackTrainer( TrainTracker ):
         stats = detector_statistics(
             self._train_tracks + self._test_tracks,
             self._train_image_files + self._test_image_files,
-            self._computed_detections )
+            self._computed_detections,
+            sequence_manifest=self._sequence_manifest )
 
         matched = len( stats[ 'matched_confidences' ] )
         unmatched = len( stats[ 'unmatched_confidences' ] )

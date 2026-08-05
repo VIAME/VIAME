@@ -315,7 +315,7 @@ def load_computed_detections( directory, sequence_name ):
 
 
 def detector_statistics( track_sets, image_files, directory,
-                         iou_threshold=0.5 ):
+                         iou_threshold=0.5, sequence_manifest="" ):
     """Measure a detector against the groundtruth over the same clips.
 
     Frame ids here are positions within a clip, so the computed detections
@@ -355,8 +355,21 @@ def detector_statistics( track_sets, image_files, directory,
     if not directory:
         return stats
 
-    maps, names = build_sequence_maps( image_files, len( track_sets ),
-                                       "training" )
+    # The manifest the training tool writes, when the caller passed it on.
+    # The directory-layout heuristic below needs the image list to divide
+    # into exactly one directory per track set, and it stops holding as soon
+    # as anything else shares the tree -- an augmentation cache regrown with
+    # more clips than the annotations cover turned every one of these
+    # statistics into "0 of 0" for a trainer relying on the guess.
+    maps = names = None
+
+    if sequence_manifest:
+        maps, names = read_sequence_manifest(
+            sequence_manifest, image_files, len( track_sets ) )
+
+    if names is None:
+        maps, names = build_sequence_maps( image_files, len( track_sets ),
+                                           "training" )
 
     for seq_idx, track_set in enumerate( track_sets ):
         if track_set is None:
