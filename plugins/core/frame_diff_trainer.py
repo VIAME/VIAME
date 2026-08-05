@@ -458,18 +458,10 @@ class FrameDiffTrainer(TrainDetector):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    implementation_name = "frame_diff"
-
-    if algorithm_factory.has_algorithm_impl_name(
-        FrameDiffTrainer.static_type_name(), implementation_name):
-        return
-
-    algorithm_factory.add_algorithm(
-        implementation_name,
+    register_vital_algorithm(
+        FrameDiffTrainer,
+        "frame_diff",
         "Three-frame difference detector settings estimation",
-        FrameDiffTrainer
     )
-
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

@@ -154,12 +154,10 @@ class OnnxDetector(ImageObjectDetector):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
-    impl = "onnx"
-    if algorithm_factory.has_algorithm_impl_name(
-            OnnxDetector.static_type_name(), impl):
-        return
-    algorithm_factory.add_algorithm(
-        impl, "Generic ONNX object detector (onnxruntime, no torch)",
-        OnnxDetector)
-    algorithm_factory.mark_algorithm_as_loaded(impl)
+    from viame.core.vital_registration import register_vital_algorithm
+
+    register_vital_algorithm(
+        OnnxDetector,
+        "onnx",
+        "Generic ONNX object detector (onnxruntime, no torch)",
+    )

@@ -416,4 +416,3 @@ def __vital_algorithm_register__():
     register_vital_algorithm(
         ReMaxDINOTrainer, "dino_remax", "PyTorch MMDetection inference routine"
     )
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
