@@ -124,6 +124,11 @@ static kv::config_block_sptr default_config()
   config->set_value( "use_labels", "true",
     "Adjust labels based on labels.txt file in this loader instead of passing the "
     "responsibility to individual detector trainer classes." );
+  config->set_value( "use_top_class_only", "true",
+    "Use only each groundtruth detection's highest scoring class, discarding the "
+    "rest of its score vector before it reaches the trainer. Set false to keep "
+    "every class, counting each towards the label histogram and warning on any "
+    "missing from labels.txt however low it ranks." );
   config->set_value( "downsample", "0",
     "Downsample factor applied across all inputs." );
   config->set_value( "targetted_downsample", "0",
@@ -1504,6 +1509,8 @@ train_applet
     config->get_value< unsigned >( "max_frame_count" );
   bool use_labels =
     config->get_value< bool >( "use_labels" );
+  bool use_top_class_only =
+    config->get_value< bool >( "use_top_class_only" );
   double downsample =
     config->get_value< double >( "downsample" );
   double targetted_downsample =
@@ -2568,7 +2575,35 @@ train_applet
 
           if( class_scores )
           {
-            for( auto gt_class : class_scores->class_names() )
+            // Truth exported as a full score vector carries every candidate
+            // class per detection; keeping only the top one avoids counting
+            // and warning on low-ranked entries.
+            std::vector< std::string > gt_classes;
+
+            if( use_top_class_only )
+            {
+              if( class_scores->size() > 0 )
+              {
+                std::string top_class;
+                class_scores->get_most_likely( top_class );
+
+                for( auto other_class : class_scores->class_names() )
+                {
+                  if( other_class != top_class )
+                  {
+                    class_scores->delete_score( other_class );
+                  }
+                }
+
+                gt_classes.push_back( top_class );
+              }
+            }
+            else
+            {
+              gt_classes = class_scores->class_names();
+            }
+
+            for( auto gt_class : gt_classes )
             {
               if( !model_labels || model_labels->has_class_name( gt_class ) )
               {
