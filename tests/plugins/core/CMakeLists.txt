@@ -14,24 +14,19 @@ set( test_libraries
   GTest::gtest_main )
 
 kwiver_discover_gtests( viame_core measurement_utilities
-  LIBRARIES ${test_libraries}
-  PROPERTIES LABELS "UNIT;CORE" )
+  LIBRARIES ${test_libraries} )
 
 kwiver_discover_gtests( viame_core resample_object_tracks
-  LIBRARIES ${test_libraries}
-  PROPERTIES LABELS "UNIT;CORE" )
+  LIBRARIES ${test_libraries} )
 
 kwiver_discover_gtests( viame_core pair_stereo_detections
-  LIBRARIES ${test_libraries}
-  PROPERTIES LABELS "UNIT;CORE" )
+  LIBRARIES ${test_libraries} )
 
 kwiver_discover_gtests( viame_core windowed_refiner_utils
-  LIBRARIES ${test_libraries}
-  PROPERTIES LABELS "UNIT;CORE" )
+  LIBRARIES ${test_libraries} )
 
 kwiver_discover_gtests( viame_core evaluate_models
-  LIBRARIES ${test_libraries}
-  PROPERTIES LABELS "UNIT;CORE" )
+  LIBRARIES ${test_libraries} )
 
 # TODO: Enable when tracks_pairing_from_stereo.h is implemented
 # kwiver_discover_gtests( viame_core tracks_pairing_from_stereo LIBRARIES ${test_libraries} )
