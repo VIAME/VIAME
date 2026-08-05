@@ -41,8 +41,11 @@ def train_model(model, criterion, train_loader, test_loader, g_config, lr_schedu
     lr = g_config.lstm_init_lr
     lr_step = g_config.lstm_lr_step
     max_iterations = g_config.maxRNNIterations
+    # getattr, so that a config predating the knob still trains rather than
+    # dying on an attribute, which is how early_stop_patience is read too.
+    weight_decay = getattr(g_config, 'lstm_weight_decay', 0.0)
     _train_model(
         model, train_loader, test_loader, g_config, lr_scheduler, epoch,
         lr, lr_step, max_iterations, run_model, Metrics._zero(),
-        format_metrics,
+        format_metrics, weight_decay=weight_decay,
     )

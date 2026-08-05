@@ -139,7 +139,20 @@ class SubDataset(object):
 
 
 class TrkDataset(Dataset):
-    def __init__(self,):
+    def __init__(self, anno=None, num_samples=None):
+        """Pairs drawn from the cropped clips.
+
+        anno names an annotation file to read instead of the one in the
+        config, which is how the held out clips are loaded: they share the
+        crop511 pyramid with the training clips and differ only in which
+        videos their dataset json lists.
+
+        num_samples fixes the length. Without it the length is a whole run --
+        VIDEOS_PER_EPOCH times the epoch count -- because training iterates
+        this once and finds its epoch boundaries by counting batches. A
+        validation set is iterated once per epoch instead and wants the length
+        of a single pass.
+        """
         super(TrkDataset, self).__init__()
 
         desired_size = (cfg.TRAIN.SEARCH_SIZE - cfg.TRAIN.EXEMPLAR_SIZE) / \
@@ -159,7 +172,7 @@ class TrkDataset(Dataset):
             sub_dataset = SubDataset(
                     name,
                     subdata_cfg.ROOT,
-                    subdata_cfg.ANNO,
+                    anno if anno else subdata_cfg.ANNO,
                     subdata_cfg.FRAME_RANGE,
                     subdata_cfg.NUM_USE,
                     start
@@ -185,9 +198,13 @@ class TrkDataset(Dataset):
                 cfg.DATASET.SEARCH.FLIP,
                 cfg.DATASET.SEARCH.COLOR
             )
-        videos_per_epoch = cfg.DATASET.VIDEOS_PER_EPOCH
-        self.num = videos_per_epoch if videos_per_epoch > 0 else self.num
-        self.num *= cfg.TRAIN.EPOCH
+        if num_samples:
+            self.num = num_samples
+        else:
+            videos_per_epoch = cfg.DATASET.VIDEOS_PER_EPOCH
+            self.num = videos_per_epoch if videos_per_epoch > 0 else self.num
+            self.num *= cfg.TRAIN.EPOCH
+
         self.pick = self.shuffle()
 
     def shuffle(self):

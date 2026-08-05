@@ -364,6 +364,7 @@ struct trainer_config
   double required_max_objects_per_frame = 0;     // 0 = no requirement
   double required_max_class_imbalance = 0;       // 0 = no requirement
   bool required_masks = false;                   // true = must have masks
+  double required_mask_fraction = 0;             // 0 = no requirement
 
   // -------------------------------------------------------------------------
   // Soft preferences (for ranking)
@@ -595,8 +596,9 @@ adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
           }
         }
 
-        // Check for mask
-        if( (*detection)->mask() )
+        // Segmentation truth arrives as either a mask image or a polygon
+        // (viame_csv stores (poly) rows as flattened polygons)
+        if( (*detection)->mask() || !(*detection)->get_flattened_polygon().empty() )
         {
           m_stats.objects_with_masks++;
         }
@@ -772,6 +774,20 @@ adaptive_detector_trainer::priv::check_hard_requirements( const trainer_config& 
       LOG_DEBUG( m_logger, "Trainer " << tc.name
                  << " failed: requires masks but data has insufficient masks ("
                  << ( m_stats.mask_fraction * 100 ) << "%)" );
+    }
+    return false;
+  }
+
+  // Check mask fraction requirement (1.0 = every annotation needs a mask/poly)
+  if( tc.required_mask_fraction > 0 &&
+      m_stats.mask_fraction < tc.required_mask_fraction )
+  {
+    if( m_verbose )
+    {
+      LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: mask/polygon "
+                 << "fraction " << ( m_stats.mask_fraction * 100 )
+                 << "% is below required "
+                 << ( tc.required_mask_fraction * 100 ) << "%" );
     }
     return false;
   }
@@ -1132,6 +1148,9 @@ adaptive_detector_trainer
       "Max allowed class imbalance ratio. 0 = no requirement." );
     config->set_value( prefix + "required_masks", tc.required_masks,
       "Require majority of objects to have masks. Default: false" );
+    config->set_value( prefix + "required_mask_fraction", tc.required_mask_fraction,
+      "Minimum fraction of objects with masks/polygons (1.0 = all). "
+      "0 = no requirement." );
 
     // Soft preferences
     config->set_value( prefix + "annotation_count_preference", tc.annotation_count_preference,
@@ -1215,6 +1234,8 @@ adaptive_detector_trainer
       config->get_value< double >( prefix + "required_max_class_imbalance", 0.0 );
     tc.required_masks =
       config->get_value< bool >( prefix + "required_masks", false );
+    tc.required_mask_fraction =
+      config->get_value< double >( prefix + "required_mask_fraction", 0.0 );
 
     // Soft preferences
     tc.annotation_count_preference =

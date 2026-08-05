@@ -10,6 +10,8 @@ learned components), so "training" primarily estimates optimal parameters
 from groundtruth tracks:
 - Kalman filter noise weights, from observed motion patterns
 - Detection confidence thresholds and track buffer
+- The IoU association gates of each matching stage, from the overlaps the
+  groundtruth's own consecutive-frame links present to them
 - Velocity direction consistency (VDC) weight
 - Observation-centric velocity window (delta_t)
 
@@ -32,21 +34,55 @@ from viame.core.training_data import detector_statistics
 from kwiver.vital.algo import TrainTracker
 
 
-def _link_iou(a, b):
-    """Intersection over union of two (x1, y1, x2, y2) boxes."""
-    x0 = max(a[0], b[0])
-    y0 = max(a[1], b[1])
-    x1 = min(a[2], b[2])
-    y1 = min(a[3], b[3])
+# Competitors scored against a single link when measuring how well the
+# velocity direction penalty separates a true candidate from a wrong one.
+# Only their mean is used, so a crowded frame is strided rather than
+# enumerated, which keeps the measurement linear in the annotation count.
+_CROSS_SAMPLE_LIMIT = 32
+
+
+def _box_iou( a, b ):
+    """Intersection over union of two ( x1, y1, x2, y2 ) boxes."""
+    x0 = max( a[ 0 ], b[ 0 ] )
+    y0 = max( a[ 1 ], b[ 1 ] )
+    x1 = min( a[ 2 ], b[ 2 ] )
+    y1 = min( a[ 3 ], b[ 3 ] )
 
     if x1 <= x0 or y1 <= y0:
         return 0.0
 
-    inter = (x1 - x0) * (y1 - y0)
-    aa = (a[2] - a[0]) * (a[3] - a[1])
-    bb = (b[2] - b[0]) * (b[3] - b[1])
+    inter = ( x1 - x0 ) * ( y1 - y0 )
+    area_a = ( a[ 2 ] - a[ 0 ] ) * ( a[ 3 ] - a[ 1 ] )
+    area_b = ( b[ 2 ] - b[ 0 ] ) * ( b[ 3 ] - b[ 1 ] )
 
-    return inter / (aa + bb - inter)
+    return inter / ( area_a + area_b - inter )
+
+
+def _box_center( b ):
+    return np.array( [ ( b[ 0 ] + b[ 2 ] ) / 2.0, ( b[ 1 ] + b[ 3 ] ) / 2.0 ] )
+
+
+def _shift_box( b, offset ):
+    return ( b[ 0 ] + offset[ 0 ], b[ 1 ] + offset[ 1 ],
+             b[ 2 ] + offset[ 0 ], b[ 3 ] + offset[ 1 ] )
+
+
+def _vdc_factor( velocity, residual ):
+    """OC-SORT's velocity direction penalty, before vdc_weight scales it.
+
+    Mirrors velocity_direction_consistency in the tracker: zero unless the
+    step an association would require points backwards along the track's
+    observed velocity, rising to 2 for a full reversal.
+    """
+    speed = np.linalg.norm( velocity )
+    length = np.linalg.norm( residual )
+
+    if speed < 1e-5 or length < 1e-5:
+        return 0.0
+
+    cosine = float( np.dot( velocity / speed, residual / length ) )
+
+    return ( 1.0 - cosine ) if cosine < 0 else 0.0
 
 
 class OCSORTTrainer(TrainTracker):
@@ -71,11 +107,24 @@ class OCSORTTrainer(TrainTracker):
         # this tracker will actually run behind.
         self._computed_detections = ""
         self._delta_t = "3"
-        # Association-gate fitting, as in the ByteTrack trainer.
+
+        # The IoU association gates are fit so that this fraction of the
+        # groundtruth's true consecutive-frame links clears them. 99.5
+        # follows ByteTrack: assignment still picks the best candidate among
+        # those admitted, so a gate is a safety net against dropping a true
+        # link rather than a discriminator between candidates, and a tight
+        # quantile measured on one split does not transfer to another. The
+        # floor and ceiling bound the gate itself (an IoU), not the emitted
+        # match_thresh values, which are 1 - gate.
         self._match_gate_admit_percent = 99.5
-        self._fit_recovery_gate = "false"
         self._min_match_gate = 0.02
         self._max_match_gate = 0.5
+
+        # Observation-centric recovery is fit far tighter, and against a
+        # different quantity: see _estimate_ocr_gate.
+        self._ocr_gate_admit_percent = 50.0
+        self._min_ocr_gate = 0.1
+        self._max_ocr_gate = 0.5
 
         # Deep OC-SORT (appearance Re-ID) training. Disabled by default;
         # when off, no torch/pytorch code is imported.
@@ -108,8 +157,11 @@ class OCSORTTrainer(TrainTracker):
         cfg.set_value("match_gate_admit_percent",
                       str(self._match_gate_admit_percent))
         cfg.set_value("min_match_gate", str(self._min_match_gate))
-        cfg.set_value("fit_recovery_gate", str(self._fit_recovery_gate))
         cfg.set_value("max_match_gate", str(self._max_match_gate))
+        cfg.set_value("ocr_gate_admit_percent",
+                      str(self._ocr_gate_admit_percent))
+        cfg.set_value("min_ocr_gate", str(self._min_ocr_gate))
+        cfg.set_value("max_ocr_gate", str(self._max_ocr_gate))
         cfg.set_value("use_reid", self._use_reid)
         cfg.set_value("crop_size", self._crop_size)
         cfg.set_value("embedding_dim", self._embedding_dim)
@@ -133,12 +185,14 @@ class OCSORTTrainer(TrainTracker):
         self._threshold = str(cfg.get_value("threshold"))
         self._computed_detections = str(cfg.get_value("computed_detections"))
         self._delta_t = str(cfg.get_value("delta_t"))
-        self._match_gate_admit_percent = float(
-            cfg.get_value("match_gate_admit_percent"))
+        self._match_gate_admit_percent = \
+            float(cfg.get_value("match_gate_admit_percent"))
         self._min_match_gate = float(cfg.get_value("min_match_gate"))
-        self._fit_recovery_gate = str(
-            cfg.get_value("fit_recovery_gate"))
         self._max_match_gate = float(cfg.get_value("max_match_gate"))
+        self._ocr_gate_admit_percent = \
+            float(cfg.get_value("ocr_gate_admit_percent"))
+        self._min_ocr_gate = float(cfg.get_value("min_ocr_gate"))
+        self._max_ocr_gate = float(cfg.get_value("max_ocr_gate"))
         self._use_reid = str(cfg.get_value("use_reid"))
         self._crop_size = str(cfg.get_value("crop_size"))
         self._embedding_dim = str(cfg.get_value("embedding_dim"))
@@ -194,10 +248,15 @@ class OCSORTTrainer(TrainTracker):
         velocities = []
         confidences = []
         track_lengths = []
-        link_ious = []
-        recovery_ious = []
         gap_lengths = []
         direction_changes = []  # Angle changes in velocity direction
+
+        # Boxes per track, kept per clip so that a candidate can later be
+        # scored against the other animals it actually competes with. The
+        # association gates are fit from these in a second pass, once
+        # delta_t is known, since the window decides which past observation
+        # the velocity direction is measured from.
+        clips = []
 
         all_tracks = self._train_tracks + self._test_tracks
 
@@ -205,14 +264,19 @@ class OCSORTTrainer(TrainTracker):
             if track_set is None:
                 continue
 
+            clip = []
+            clips.append(clip)
+
             for track in track_set.tracks():
                 states = list(track)
                 track_lengths.append(len(states))
 
+                observations = []
+                clip.append(observations)
+
                 prev_frame = None
                 prev_cx, prev_cy = None, None
                 prev_vx, prev_vy = None, None
-                prev_box = None
 
                 for state in states:
                     frame_id = state.frame_id
@@ -232,6 +296,7 @@ class OCSORTTrainer(TrainTracker):
                     cy = y1 + h / 2
 
                     positions.append((cx, cy, w, h))
+                    observations.append((frame_id, (x1, y1, x2, y2)))
 
                     if det.confidence is not None:
                         confidences.append(det.confidence)
@@ -242,17 +307,6 @@ class OCSORTTrainer(TrainTracker):
                             vx = (cx - prev_cx) / dt
                             vy = (cy - prev_cy) / dt
                             velocities.append((vx, vy, h, dt))
-
-                            # The overlap an association gate has to admit for
-                            # this track to survive one frame to the next, and
-                            # -- across a gap -- for recovery to re-attach it.
-                            if prev_box is not None:
-                                ov = _link_iou(prev_box, (x1, y1, x2, y2))
-
-                                if dt == 1:
-                                    link_ious.append(ov)
-                                else:
-                                    recovery_ious.append(ov)
 
                             # Track velocity direction changes
                             if prev_vx is not None and dt == 1:
@@ -273,8 +327,9 @@ class OCSORTTrainer(TrainTracker):
                             prev_vx, prev_vy = vx, vy
 
                     prev_frame = frame_id
-                    prev_box = (x1, y1, x2, y2)
                     prev_cx, prev_cy = cx, cy
+
+                observations.sort()
 
         return {
             'positions': positions,
@@ -283,64 +338,131 @@ class OCSORTTrainer(TrainTracker):
             'track_lengths': track_lengths,
             'gap_lengths': gap_lengths,
             'direction_changes': direction_changes,
-            'link_ious': link_ious,
-            'recovery_ious': recovery_ious
+            'clips': clips
         }
 
-    def _estimate_match_threshold(self, stats):
-        """The IoU association gate, fit from the groundtruth.
+    def _association_statistics( self, clips, delta_t ):
+        """What each of OC-SORT's association gates actually sees.
 
-        Consecutive states of one animal give the overlap a gate must admit
-        directly. match_thresh is a distance bound in the tracker (1 - IoU),
-        so the return is 1 - gate. Previously this was hardcoded to 0.8, which
-        demands IoU > 0.2 and rejects real links on fast-moving targets.
+        OC-SORT does not compare the same pair of boxes at every stage, so
+        one distribution of overlaps is not enough to fit all of its gates
+        from. Four quantities are measured here, each matching the boxes a
+        particular gate is handed:
+
+        raw_link_ious
+            Previous observation against the next one. An unconfirmed track
+            has been seen once and its Kalman state was initiated with zero
+            velocity, so nothing is compensated and its prediction is the
+            previous box itself.
+
+        pred_link_ious
+            A constant-velocity step off the previous box against the next
+            observation. This is what a confirmed track's gate sees: the
+            filter has converged on the last observed displacement, so most
+            of the motion is already removed before the IoU is taken. On
+            FishTrack23 this is a visibly easier gate than the raw overlap
+            ByteTrack fits against -- 5th percentile 0.211 against 0.072 --
+            which is exactly why the ByteTrack quantiles cannot simply be
+            copied across.
+
+        gap_reobs_ious
+            Last box before an annotation gap against the first box after
+            it. Observation-centric recovery matches a lost track's *stale*
+            last observation, with no prediction of any kind, so this and
+            not either link distribution is what its gate must admit.
+
+        link_vdc_factors / cross_vdc_*
+            The velocity direction penalty the tracker would attach to a
+            true link, and to the same track paired with the other animals
+            present on that frame. Stage one adds this to the IoU distance
+            before the gate sees it, so the gate cannot be fit without it,
+            and the two together say whether the term separates a true
+            candidate from a wrong one at all. Only the mean of the
+            cross-animal side is ever read, so it is accumulated rather than
+            kept, and a crowded frame is strided through: the number of
+            pairs is the number of links times the number of animals in
+            frame, which is the one quantity here that grows quadratically.
         """
-        link_ious = stats.get('link_ious', [])
+        raw_link_ious = []
+        pred_link_ious = []
+        gap_reobs_ious = []
+        link_vdc_factors = []
+        cross_vdc_total = 0.0
+        cross_vdc_count = 0
 
-        if len(link_ious) < 100:
-            print("Warning: too few consecutive-frame links ({}), "
-                  "keeping match_thresh default".format(len(link_ious)))
-            return 0.8
+        for clip in clips:
+            by_frame = {}
 
-        gate = float(np.percentile(np.array(link_ious),
-                                   100.0 - self._match_gate_admit_percent))
-        gate = float(np.clip(gate, self._min_match_gate, self._max_match_gate))
-        admitted = float(np.mean(np.array(link_ious) >= gate))
-        print("  match gate IoU>={:.3f} admits {:.1f}% of {} true links "
-              "-> match_thresh {:.3f}".format(gate, 100 * admitted,
-                                              len(link_ious), 1.0 - gate))
-        return round(1.0 - gate, 3)
+            for observations in clip:
+                for frame, box in observations:
+                    by_frame.setdefault( frame, [] ).append( box )
 
-    def _estimate_recovery_gate(self, stats):
-        """The overlap observation-centric recovery needs across a gap.
+            for observations in clip:
+                frames = dict( observations )
 
-        A track that was lost for several frames re-attaches to a box that has
-        moved further than one frame's worth, so this gate sits below the
-        consecutive-frame one: on FishTrack train the median gap-spanning
-        overlap is 0.17 against 0.75 frame-to-frame.
+                for index in range( 1, len( observations ) ):
+                    frame, box = observations[ index ]
+                    prev_frame, prev_box = observations[ index - 1 ]
+                    step = frame - prev_frame
 
-        That does NOT mean the shipped 0.3 is too tight, and this is off by
-        default because measurement says otherwise. Sweeping it on the train
-        split made things monotonically worse the lower it went -- fit IDF1
-        0.5721 at the shipped 0.3, against 0.5703 at 0.17, 0.566 at 0.1 and
-        0.5572 at 0.02. Loosening the gate admits the false re-associations
-        along with the true ones, and those cost more. The distribution of
-        true links tells you what a gate could admit, not what it should.
+                    if step != 1:
+                        if step > 1:
+                            gap_reobs_ious.append( _box_iou( prev_box, box ) )
+                        continue
 
-        Enable with fit_recovery_gate if a dataset's gap statistics differ
-        enough to be worth re-testing.
-        """
-        gap_ious = stats.get('recovery_ious', [])
+                    raw_link_ious.append( _box_iou( prev_box, box ) )
 
-        if len(gap_ious) < 50:
-            return 0.3
+                    if prev_frame - 1 not in frames:
+                        continue
 
-        gate = float(np.percentile(np.array(gap_ious),
-                                   100.0 - self._match_gate_admit_percent))
-        gate = float(np.clip(gate, self._min_match_gate, self._max_match_gate))
-        print("  recovery gate IoU>={:.3f} from {} gap-spanning links".format(
-            gate, len(gap_ious)))
-        return round(gate, 3)
+                    velocity = _box_center( prev_box ) - \
+                        _box_center( frames[ prev_frame - 1 ] )
+                    predicted = _shift_box( prev_box, velocity )
+                    predicted_center = _box_center( predicted )
+
+                    pred_link_ious.append( _box_iou( predicted, box ) )
+
+                    # Observation-centric momentum takes the oldest
+                    # observation inside the delta_t window, exactly as
+                    # STrack._refresh_velocity walks it.
+                    momentum = None
+                    span = 1
+
+                    for back in range( delta_t, 0, -1 ):
+                        if prev_frame - back in frames:
+                            momentum = frames[ prev_frame - back ]
+                            span = back
+                            break
+
+                    if momentum is None:
+                        continue
+
+                    momentum = ( _box_center( prev_box ) -
+                                 _box_center( momentum ) ) / span
+
+                    link_vdc_factors.append( _vdc_factor(
+                        momentum, _box_center( box ) - predicted_center ) )
+
+                    competitors = by_frame.get( frame, [] )
+                    stride = 1 + len( competitors ) // _CROSS_SAMPLE_LIMIT
+
+                    for other in competitors[ ::stride ]:
+                        if other is box:
+                            continue
+
+                        cross_vdc_total += _vdc_factor(
+                            momentum,
+                            _box_center( other ) - predicted_center )
+                        cross_vdc_count += 1
+
+        return {
+            'raw_link_ious': raw_link_ious,
+            'pred_link_ious': pred_link_ious,
+            'gap_reobs_ious': gap_reobs_ious,
+            'link_vdc_factors': link_vdc_factors,
+            'cross_vdc_total': cross_vdc_total,
+            'cross_vdc_count': cross_vdc_count
+        }
 
     def _estimate_kalman_parameters(self, stats):
         """Estimate Kalman filter parameters (same as ByteTrack)."""
@@ -515,6 +637,28 @@ class OCSORTTrainer(TrainTracker):
         Higher weight is warranted when motion is mostly linear (so a
         direction reversal is strong evidence against an association);
         lower when motion is erratic.
+
+        That is the motion argument, and it is only half of it. The penalty
+        is added straight onto the IoU distance that stage one gates on, so
+        every point of weight is spent out of the same budget the gate has,
+        and it is only worth spending where the penalty is actually larger
+        for a wrong candidate than for a true one. The groundtruth answers
+        that directly, by scoring the term against the animal a track really
+        continues into and against every other animal on the same frame, so
+        the motion weight is scaled by the separation between the two.
+
+        On FishTrack23 that separation is *negative* (mean factor 0.94 on
+        true links against 0.90 on cross-animal candidates, both non-zero on
+        about 53% of pairs), and the reason is visible in the tracker: the
+        direction it tests is the direction from the Kalman *prediction* to
+        the candidate, and on a track the filter is predicting well that
+        residual is noise, pointing backwards about half the time whoever
+        the candidate is. Left at the stock 0.2 the term vetoes 7.5% of true
+        links at the fitted gate and separates nothing, so the fit takes it
+        to zero and the tracker skips the stage entirely. Over a handful of
+        clips the separation is a small number of either sign, which is the
+        same answer: a term that cannot be shown to discriminate is not
+        worth much of the gate's budget.
         """
         direction_changes = stats['direction_changes']
 
@@ -535,7 +679,161 @@ class OCSORTTrainer(TrainTracker):
         print(f"  Mean direction change: {mean_change:.1f} degrees")
         print(f"  Std direction change: {std_change:.1f} degrees")
 
+        link_factors = stats.get( 'link_vdc_factors', [] )
+        cross_count = stats.get( 'cross_vdc_count', 0 )
+
+        if len( link_factors ) < 100 or cross_count < 100:
+            return vdc_weight
+
+        separation = float( stats[ 'cross_vdc_total' ] / cross_count -
+                            np.mean( np.array( link_factors ) ) )
+
+        # Scaled by the separation in factor units. A full reversal is 2, so
+        # a separation of 1 is a wrong candidate penalised half a reversal
+        # more than a true one on average -- ample evidence, and the point at
+        # which the motion weight is kept whole.
+        vdc_weight = round(
+            vdc_weight * float( np.clip( separation, 0.0, 1.0 ) ), 3 )
+
+        print( "  vdc penalty separates cross-animal from true candidates "
+               "by {:+.3f} of a reversal -> vdc_weight {:.3f}".format(
+                   separation / 2.0, vdc_weight ) )
+
         return vdc_weight
+
+    def _estimate_match_thresholds( self, stats, vdc_weight ):
+        """The IoU association gates, fit from the groundtruth's own links.
+
+        A gate has one job: admit the overlap between where a track's animal
+        is predicted to be and where it turns out to be, while excluding the
+        overlap it has with the other animals competing for the same
+        detection. The groundtruth supplies both distributions, and on
+        FishTrack23 they barely meet -- against a track's prediction, fewer
+        than 5% of cross-animal candidates reach even 0.02 IoU, while 98% of
+        true links clear it.
+
+        So the quantile is loose, and for the same reason ByteTrack's is:
+        assignment still picks the best candidate among those admitted, so
+        the gate is a safety net against dropping a true link rather than a
+        discriminator between candidates, and a tight quantile fit on one
+        split does not transfer to another.
+
+        What does not carry across from ByteTrack is which overlap to
+        measure. A confirmed track is gated on its velocity-compensated
+        prediction, an unconfirmed one on its previous box, and those are
+        different distributions -- fitting both from the raw link overlap is
+        what leaves a brand-new track, the one with the worst prediction in
+        the tracker, facing the strictest gate.
+
+        The returned values are distance bounds (linear_assignment runs on
+        1 - IoU), so LOOSENING a gate RAISES them.
+        """
+        stock = ( 0.8, 0.5, 0.7 )
+
+        pred_ious = stats.get( 'pred_link_ious', [] )
+        raw_ious = stats.get( 'raw_link_ious', [] )
+
+        if len( pred_ious ) < 100 or len( raw_ious ) < 100:
+            print( "Warning: too few consecutive-frame links ({}), keeping "
+                   "the association gate defaults".format( len( raw_ious ) ) )
+            return stock
+
+        def gate( values ):
+            fitted = float( np.percentile(
+                np.array( values ), 100.0 - self._match_gate_admit_percent ) )
+            return float( np.clip( fitted, self._min_match_gate,
+                                   self._max_match_gate ) )
+
+        pred_gate = gate( pred_ious )
+        raw_gate = gate( raw_ious )
+
+        # Stage one adds the velocity direction penalty to the IoU distance
+        # before the gate sees it, so a true link that attracts one needs
+        # that much more room. The allowance is capped rather than simply
+        # added: at 1.0 a bound admits pairs that do not overlap at all, at
+        # which point it has stopped being a gate, and the fix for a penalty
+        # that will not fit under that ceiling is a smaller vdc_weight
+        # rather than a gate that admits everything.
+        factors = stats.get( 'link_vdc_factors', [] )
+        allowance = 0.0
+
+        if vdc_weight > 0 and factors:
+            allowance = vdc_weight * float( np.percentile(
+                np.array( factors ), self._match_gate_admit_percent ) )
+
+        match_thresh = min( 1.0 - pred_gate + allowance,
+                            1.0 - self._min_match_gate )
+
+        # The second (low confidence) pass compares the same predictions
+        # against the same kind of link, only with weaker detections, so it
+        # is fit from the same distribution -- without the allowance, since
+        # that pass costs on IoU alone.
+        second_match_thresh = 1.0 - pred_gate
+
+        # An unconfirmed track predicts nothing; its gate sees the raw
+        # frame-to-frame overlap.
+        unconfirmed_match_thresh = 1.0 - raw_gate
+
+        print( "  gate IoU>={:.3f} on velocity-compensated predictions "
+               "admits {:.1f}% of {} links".format(
+                   pred_gate,
+                   100 * float( np.mean( np.array( pred_ious ) >= pred_gate ) ),
+                   len( pred_ious ) ) )
+        print( "  gate IoU>={:.3f} on raw links admits {:.1f}% of "
+               "{}".format(
+                   raw_gate,
+                   100 * float( np.mean( np.array( raw_ious ) >= raw_gate ) ),
+                   len( raw_ious ) ) )
+
+        return ( round( match_thresh, 3 ),
+                 round( second_match_thresh, 3 ),
+                 round( unconfirmed_match_thresh, 3 ) )
+
+    def _estimate_ocr_gate( self, stats ):
+        """The observation-centric recovery gate.
+
+        Fit from a different quantity and at a far tighter quantile than the
+        matching gates, because it is a different kind of gate. OCR compares
+        a lost track's last real observation, stale by up to track_buffer
+        frames, against detections nothing else claimed; there is no
+        prediction to compensate the motion and no second opinion behind it.
+        A wrong match here does not cost a frame of association, it
+        transplants an identity and then replays that identity backwards
+        through the Kalman filter as ORU interpolates the gap. A rejected
+        true one only starts a new track. So this gate is a discriminator,
+        and unlike the matching gates it cannot afford to err loose.
+
+        It also could not be loosened usefully even if it were free: on
+        FishTrack23 a quarter of the boxes on the far side of an annotation
+        gap do not overlap their own predecessor at all, so no positive gate
+        recovers them, and reaching for them means admitting every leftover
+        detection in the frame. The gate is set at the median instead,
+        keeping the half of re-observations that still overlap enough to be
+        recognised as the same animal.
+        """
+        gap_ious = stats.get( 'gap_reobs_ious', [] )
+
+        # Gaps are two orders of magnitude rarer than links, so the sample
+        # floor is correspondingly lower; below it the percentile says more
+        # about which clips were annotated than about the tracker.
+        if len( gap_ious ) < 30:
+            print( "Warning: only {} re-observations across an annotation "
+                   "gap, keeping ocr_iou_thresh default".format(
+                       len( gap_ious ) ) )
+            return 0.3
+
+        fitted = float( np.percentile(
+            np.array( gap_ious ), 100.0 - self._ocr_gate_admit_percent ) )
+        fitted = float( np.clip( fitted, self._min_ocr_gate,
+                                 self._max_ocr_gate ) )
+
+        print( "  ocr gate IoU>={:.3f} admits {:.1f}% of {} "
+               "re-observations".format(
+                   fitted,
+                   100 * float( np.mean( np.array( gap_ious ) >= fitted ) ),
+                   len( gap_ious ) ) )
+
+        return round( fitted, 3 )
 
     def _train_reid_model(self):
         """
@@ -632,19 +930,31 @@ class OCSORTTrainer(TrainTracker):
         track_buffer = self._estimate_track_buffer(stats)
         print(f"  track_buffer: {track_buffer}")
 
+        delta_t = self._estimate_delta_t(stats)
+        print(f"  delta_t: {delta_t}")
+
+        # Measured after delta_t, since the observation-centric window
+        # decides which past observation a velocity direction is taken from
+        print("Measuring what the association gates see...")
+        stats.update(self._association_statistics(stats['clips'], delta_t))
+        print("  {} links, {} of them velocity compensated, {} "
+              "re-observations across a gap".format(
+                  len(stats['raw_link_ious']), len(stats['pred_link_ious']),
+                  len(stats['gap_reobs_ious'])))
+
         print("Estimating VDC weight...")
         vdc_weight = self._estimate_vdc_weight(stats)
         print(f"  vdc_weight: {vdc_weight:.3f}")
 
         print("Estimating association gates...")
-        match_thresh = self._estimate_match_threshold(stats)
-        if str(self._fit_recovery_gate).lower() in ('true', '1', 'yes'):
-            ocr_iou_thresh = self._estimate_recovery_gate(stats)
-        else:
-            ocr_iou_thresh = 0.3
+        match_thresh, second_match_thresh, unconfirmed_match_thresh = \
+            self._estimate_match_thresholds(stats, vdc_weight)
+        print(f"  match_thresh: {match_thresh:.3f}")
+        print(f"  second_match_thresh: {second_match_thresh:.3f}")
+        print(f"  unconfirmed_match_thresh: {unconfirmed_match_thresh:.3f}")
 
-        delta_t = self._estimate_delta_t(stats)
-        print(f"  delta_t: {delta_t}")
+        ocr_iou_thresh = self._estimate_ocr_gate(stats)
+        print(f"  ocr_iou_thresh: {ocr_iou_thresh:.3f}")
 
         use_reid = self._reid_enabled()
 
@@ -654,12 +964,16 @@ class OCSORTTrainer(TrainTracker):
             'high_thresh': high_thresh,
             'low_thresh': low_thresh,
             'match_thresh': match_thresh,
+            'second_match_thresh': second_match_thresh,
+            'unconfirmed_match_thresh': unconfirmed_match_thresh,
             'new_track_thresh': new_track_thresh,
             'track_buffer': track_buffer,
             'delta_t': delta_t,
             'vdc_weight': vdc_weight,
             'ocr_iou_thresh': ocr_iou_thresh,
-            'use_vdc': True,
+            # A zero weight leaves the stage computing a matrix of zeros for
+            # every track against every detection, so it is skipped outright
+            'use_vdc': vdc_weight > 0,
             'use_oru': True,
             'use_byte': True,
             'use_ocr': True,

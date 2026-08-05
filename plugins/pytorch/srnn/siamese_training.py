@@ -68,8 +68,10 @@ def train_model(model, criterion, train_loader, test_loader, g_config, lr_schedu
 
     lr, lr_step = 0.001, 2
     max_iterations = g_config.maxIterations
+    # Zero by default; see the reasoning on the knob in g_config.
+    weight_decay = getattr(g_config, 'siamese_weight_decay', 0.0)
     _train_model(
         model, train_loader, test_loader, g_config, lr_scheduler, epoch,
         lr, lr_step, max_iterations, run_model, Metrics._zero(),
-        format_metrics,
+        format_metrics, weight_decay=weight_decay,
     )

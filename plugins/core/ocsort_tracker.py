@@ -544,6 +544,13 @@ class OCSORTTrackerConfig(scfg.DataConfig):
     high_thresh = scfg.Value(0.6, help='Confidence threshold for high-confidence detections')
     low_thresh = scfg.Value(0.1, help='Confidence threshold for low-confidence detections')
     match_thresh = scfg.Value(0.8, help='Association cost threshold for first-stage matching')
+    second_match_thresh = scfg.Value(
+        0.5, help='IOU distance bound for the second (low-confidence) '
+                  'association pass; stock OC-SORT hard-coded 0.5')
+    unconfirmed_match_thresh = scfg.Value(
+        0.7, help='IOU distance bound for matching unconfirmed (single-hit) '
+                  'tracks, whose Kalman state still has no velocity; stock '
+                  'OC-SORT hard-coded 0.7')
     track_buffer = scfg.Value(30, help='Number of frames to keep lost tracks')
     new_track_thresh = scfg.Value(0.6, help='Minimum confidence to create new track')
     min_hits = scfg.Value(1, help='Number of associations before a track is output')
@@ -620,6 +627,9 @@ class OCSORTTracker(TrackObjects):
         self._high_thresh = float(self._config.high_thresh)
         self._low_thresh = float(self._config.low_thresh)
         self._match_thresh = float(self._config.match_thresh)
+        self._second_match_thresh = float(self._config.second_match_thresh)
+        self._unconfirmed_match_thresh = float(
+            self._config.unconfirmed_match_thresh)
         self._track_buffer = int(self._config.track_buffer)
         self._new_track_thresh = float(self._config.new_track_thresh)
         self._min_hits = int(self._config.min_hits)
@@ -680,6 +690,8 @@ class OCSORTTracker(TrackObjects):
             'high_thresh': '_high_thresh',
             'low_thresh': '_low_thresh',
             'match_thresh': '_match_thresh',
+            'second_match_thresh': '_second_match_thresh',
+            'unconfirmed_match_thresh': '_unconfirmed_match_thresh',
             'track_buffer': '_track_buffer',
             'new_track_thresh': '_new_track_thresh',
             'min_hits': '_min_hits',
@@ -796,7 +808,8 @@ class OCSORTTracker(TrackObjects):
             r_tracked_stracks = [strack_pool[i] for i in u_track
                                  if strack_pool[i].state == TrackState.TRACKED]
             dists = iou_distance(r_tracked_stracks, low_dets)
-            matches, u_track_second, _ = linear_assignment(dists, thresh=0.5)
+            matches, u_track_second, _ = linear_assignment(
+                dists, thresh=self._second_match_thresh)
 
             for itracked, idet in matches:
                 track = r_tracked_stracks[itracked]
@@ -845,7 +858,7 @@ class OCSORTTracker(TrackObjects):
         remaining_dets = [high_dets[i] for i in u_detection]
         dists = iou_distance(unconfirmed, remaining_dets)
         matches, u_unconfirmed, u_detection_final = linear_assignment(
-            dists, thresh=0.7)
+            dists, thresh=self._unconfirmed_match_thresh)
 
         for itracked, idet in matches:
             unconfirmed[itracked].update(

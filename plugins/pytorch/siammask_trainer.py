@@ -27,7 +27,9 @@ import time
 import threading
 from viame.pytorch.utilities import report_cuda_errors
 from viame.core.training_data import ( build_sequence_maps,
-    read_sequence_manifest )
+    read_sequence_manifest, split_validation )
+from viame.pytorch.siammask import ( VALIDATION_RECORD,
+    VALIDATION_SEQUENCES )
 
 
 def _frame_bounds( track_sets ):
@@ -76,6 +78,13 @@ class SiamMaskTrainer( TrainTracker ):
         self._resume_model = ""
         self._backbone_seed = ""
 
+        # How much of the training data to hold back to choose the epoch on,
+        # as deepsort and botsort already do. Tracker training is handed no
+        # validation set unless one is named, so without this the shipped
+        # model is the last epoch trained, whether or not it is the best one.
+        # 0 disables it and restores that behaviour.
+        self._validation_fraction = 0.1
+
         # Written by the training tool: which frames of the flat list
         # belong to which track set.
         self._sequence_manifest = ""
@@ -106,6 +115,7 @@ class SiamMaskTrainer( TrainTracker ):
         cfg.set_value( "samples_per_sequence", str( self._samples_per_sequence ) )
         cfg.set_value( "resume_model", self._resume_model )
         cfg.set_value( "backbone_seed", self._backbone_seed )
+        cfg.set_value( "validation_fraction", str( self._validation_fraction ) )
         cfg.set_value( "sequence_manifest", self._sequence_manifest )
         cfg.set_value( "timeout", self._timeout )
 
@@ -132,6 +142,8 @@ class SiamMaskTrainer( TrainTracker ):
         self._samples_per_sequence = int( cfg.get_value( "samples_per_sequence" ) )
         self._resume_model = str( cfg.get_value( "resume_model" ) )
         self._backbone_seed = str( cfg.get_value( "backbone_seed" ) )
+        self._validation_fraction = float(
+            cfg.get_value( "validation_fraction" ) )
         self._sequence_manifest = str( cfg.get_value( "sequence_manifest" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
 
@@ -261,6 +273,11 @@ class SiamMaskTrainer( TrainTracker ):
         annotation_count = 0
         mask_count = 0
 
+        # Sequence directories that really got written, in track set order.
+        # A track set can be dropped here for holding no usable box, and one
+        # that was dropped must not end up in the validation list.
+        written = []
+
         for seq_idx, track_set in enumerate( self._train_tracks ):
             if track_set is None:
                 continue
@@ -345,6 +362,7 @@ class SiamMaskTrainer( TrainTracker ):
 
             sequence_count += 1
             annotation_count += len( rows )
+            written.append( seq_name )
 
             print( f"    {seq_name}: {len(frame_annotations)} frames, "
                    f"{len(rows)} annotations" )
@@ -359,7 +377,82 @@ class SiamMaskTrainer( TrainTracker ):
                    "branches will train. Polygon groundtruth reaches here "
                    "only with poly_to_mask set on the track reader." )
 
+        self._plan_validation( written )
+
         return self._train_directory
+
+    def _plan_validation( self, written ):
+        """Name the clips to hold out of training, for the entry point to read.
+
+        The split is by clip and is decided here because this is the last
+        point at which a clip is still a track set, which is what
+        split_validation takes -- the same call, and so the same tail of
+        clips, that deepsort and botsort hold out. Past here a clip is a
+        directory of crops and then a key in dataset.json.
+
+        Only the names are handed over. Every sequence is still written and
+        cropped, held out or not, because measuring a held out clip needs its
+        crop511 pyramid exactly as training does; what the entry point does
+        with this list is partition dataset.json, which costs nothing and
+        keeps one crop pass for both splits.
+
+        The tail is deterministic, so a resumed run holds out the same clips
+        as the run it continues and the two runs' validation numbers can be
+        compared against each other.
+        """
+        listing = os.path.join( self._train_directory, VALIDATION_SEQUENCES )
+        record = os.path.join( self._train_directory, VALIDATION_RECORD )
+
+        # A list left by an earlier run describes that run's clips, and would
+        # hold out the wrong ones here if this run writes no list of its own
+        if os.path.exists( listing ):
+            os.remove( listing )
+
+        # Only a run continuing an earlier one inherits its measurements,
+        # which is what keeping them in a file is for: its own early epochs
+        # may have been measured in a previous sitting. A run starting over is
+        # about to overwrite those checkpoints, so what was measured of them
+        # no longer describes what is on disk.
+        if not self._resume_model and os.path.exists( record ):
+            os.remove( record )
+
+        held = []
+
+        # Under three clips there is nothing to hold back that still leaves a
+        # training set worth the name -- split_validation would refuse below
+        # two anyway -- so such a dataset trains on everything and keeps the
+        # last epoch, which is what it did before validation existed.
+        if self._validation_fraction > 0 and len( written ) >= 3:
+            names = [ "sequence_{:04d}".format( i )
+                      for i in range( len( self._train_tracks ) ) ]
+
+            _train_part, valid_part = split_validation(
+                self._train_tracks, None, names, self._validation_fraction )
+
+            held = [ n for n in valid_part[ 2 ] if n in written ]
+
+        if not held:
+            if self._validation_fraction > 0:
+                print( "Validation: {} usable clip(s) is too few to hold any "
+                       "back, so every clip is trained on and the last epoch "
+                       "is the one shipped.".format( len( written ) ) )
+            else:
+                print( "Validation: disabled by validation_fraction, so the "
+                       "last epoch is the one shipped." )
+
+            # Nothing will be measured to supersede an inherited record, and
+            # selecting on it would ship an epoch of a different run
+            if os.path.exists( record ):
+                os.remove( record )
+
+            return
+
+        with open( listing, 'w' ) as handle:
+            handle.writelines( name + "\n" for name in held )
+
+        print( "Validation: holding out {} of {} clips ({}), training on the "
+               "rest".format( len( held ), len( written ),
+                              ", ".join( held ) ) )
 
     @staticmethod
     def _detection_mask( det ):
@@ -469,6 +562,19 @@ class SiamMaskTrainer( TrainTracker ):
         cmd.append( "--samples-per-sequence={}".format(
             self._samples_per_sequence ) )
 
+        # max_epochs was read from the settings and then never reached the
+        # training, which took TRAIN.EPOCH from the architecture yaml -- 20 by
+        # default, whatever the setting said. The default here is the same 20,
+        # so nothing changes for a run that leaves it alone.
+        cmd.append( "--epochs={}".format( self._max_epochs ) )
+
+        # The held out clips, where there are any. Absent, the entry point
+        # trains on everything and measures nothing.
+        listing = os.path.join( self._train_directory, VALIDATION_SEQUENCES )
+
+        if os.path.exists( listing ):
+            cmd.append( "--validation-sequences=" + listing )
+
         if self._resume_model:
             cmd.append( "--resume=" + self._resume_model )
 
@@ -552,18 +658,28 @@ class SiamMaskTrainer( TrainTracker ):
         ]
 
         # By epoch, not by name. Sorted as strings, checkpoint_e9 comes after
-        # checkpoint_e20, so a twenty epoch run shipped the ninth epoch.
+        # checkpoint_e20, so a twenty epoch run shipped the ninth epoch. The
+        # same holds of the lookup below, which is keyed by epoch number for
+        # the same reason.
         try:
+            by_epoch = { epoch_of( f ): f for f in checkpoints }
             checkpoints.sort( key=epoch_of )
         except ValueError:
+            by_epoch = {}
             checkpoints.sort()
 
         if not checkpoints:
             print( "No checkpoints found" )
             return
 
-        latest_checkpoint = checkpoints[ -1 ]
-        src_model = os.path.join( snapshot_dir, latest_checkpoint )
+        selected = self._best_checkpoint( by_epoch )
+
+        if selected is None:
+            selected = checkpoints[ -1 ]
+            print( "Selected {} (the last epoch trained); there were no "
+                   "validation losses to choose on".format( selected ) )
+
+        src_model = os.path.join( snapshot_dir, selected )
         output_model_name = "trained_tracker.pth"
         dst_model = os.path.join( self._output_directory, output_model_name )
 
@@ -587,6 +703,69 @@ class SiamMaskTrainer( TrainTracker ):
                 fout.write( pipeline_content )
 
             print( f"Generated pipeline file: {output_pipeline}" )
+
+    def _best_checkpoint( self, by_epoch ):
+        """The checkpoint with the lowest validation loss, or None.
+
+        None where nothing was measured -- validation off, too few clips,
+        every epoch's validation failed -- leaving the caller to keep the last
+        epoch, as this did for every run before validation existed. Losing the
+        record should cost the choice between checkpoints and not the run.
+
+        The record is a file rather than a scrape of the log because a resumed
+        run has to choose across every epoch of every sitting, including ones
+        whose log was rotated away, in the same way the SRNN stage does.
+
+        A plain global minimum: the epoch with the lowest val_total wins,
+        wherever it falls. Worth knowing that the loss landscape is not
+        stationary across the run -- at BACKBONE.TRAIN_EPOCH the backbone
+        unfreezes and the losses shift, so epochs either side of it are not
+        strictly comparable -- but a rule that preferred the later regime
+        would be guessing, and the measurement is on held out clips either
+        way, so the argmin is taken over all of them.
+        """
+        record = os.path.join( self._train_directory, VALIDATION_RECORD )
+
+        if not os.path.isfile( record ):
+            return None
+
+        # Keyed by epoch rather than appended in order. A resumed run writes
+        # its epochs across more than one sitting and does not start from
+        # zero, and a re-run over the same directory measures an epoch that
+        # was already recorded; the later record of an epoch is the one that
+        # describes the checkpoint now on disk, so it wins.
+        losses = {}
+
+        with open( record ) as handle:
+            for line in handle:
+                if not line.strip() or line.lstrip().startswith( '#' ):
+                    continue
+
+                fields = line.split()
+
+                if len( fields ) < 2:
+                    continue
+
+                try:
+                    losses[ int( fields[ 0 ] ) ] = float( fields[ 1 ] )
+                except ValueError:
+                    continue
+
+        # Only epochs whose checkpoint is actually there
+        available = { epoch: loss for epoch, loss in losses.items()
+                      if epoch in by_epoch }
+
+        if not available:
+            return None
+
+        best = min( available, key=lambda epoch: available[ epoch ] )
+
+        print( "Selected epoch {} by validation loss ({:.5f}), out of the {} "
+               "epoch(s) measured; the last epoch trained was {}".format(
+                   best, available[ best ], len( available ),
+                   max( by_epoch ) ) )
+
+        return by_epoch[ best ]
 
 
 def __vital_algorithm_register__():

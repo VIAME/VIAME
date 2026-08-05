@@ -69,7 +69,7 @@ process detector_trainer
 
   block trainer:ocv_windowed:trainer
     :type                                       netharn
-    :netharn:identifier                         viame-netharn-detector
+    :netharn:identifier                         netharn
     :netharn:train_directory                    deep_training
     :netharn:gpu_count                          -1
     :netharn:chip_width                         640

@@ -39,6 +39,7 @@ set( plugin_headers
   utilities_file.h
   utilities_image.h
   utilities_segmentation.h
+  utilities_tracks.h
   utilities_training.h
   windowed_detector.h
   windowed_refiner.h
@@ -88,6 +89,7 @@ set( plugin_sources
   utilities_file.cxx
   utilities_image.cxx
   utilities_segmentation.cxx
+  utilities_tracks.cxx
   utilities_training.cxx
   windowed_detector.cxx
   windowed_refiner.cxx

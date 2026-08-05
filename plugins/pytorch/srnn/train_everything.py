@@ -30,6 +30,7 @@ from concurrent import futures
 import pathlib
 from pathlib import Path
 import re
+import shutil
 import subprocess
 
 
@@ -60,18 +61,54 @@ def run_mod(name, *args, gpu=None, **kwargs):
     )], env=env)
 
 
-def visible_gpu_count():
-    """Number of devices this process can see, at least one."""
+def visible_gpu_ids():
+    """The devices this process can see, as CUDA_VISIBLE_DEVICES entries.
+
+    A child pinned to one card is given one of these strings rather than its
+    position in the list. CUDA_VISIBLE_DEVICES is read against the physical
+    devices and not against the parent's already-restricted view, so a job
+    allocated cards 4,5,6 that told a child "0" would send it to card 0, which
+    is not one of its own.
+    """
     visible = os.environ.get('CUDA_VISIBLE_DEVICES')
 
     if visible is not None:
-        return max(len([d for d in visible.split(',') if d.strip()]), 1)
+        ids = [d.strip() for d in visible.split(',') if d.strip()]
+        return ids or ['0']
 
     try:
         import torch
-        return max(torch.cuda.device_count(), 1)
+        return [str(d) for d in range(max(torch.cuda.device_count(), 1))]
     except Exception:
-        return 1
+        return ['0']
+
+
+def visible_gpu_count():
+    """Number of devices this process can see, at least one."""
+    return len(visible_gpu_ids())
+
+
+def extract_worker_count():
+    """How many processes to extract appearance features with.
+
+    One per visible device by default. Extraction is a forward pass over every
+    crop in the dataset -- around half a million of them on a full run, an hour
+    of wall clock -- and running it in one process leaves the rest of a
+    multi-card allocation idle for that hour.
+
+    The override is for the cases the device count gets wrong: sharing cards
+    with another job, or reducing to the undivided path deliberately.
+    """
+    override = os.environ.get('VIAME_SRNN_EXTRACT_WORKERS')
+
+    if override:
+        try:
+            return max(int(override), 1)
+        except ValueError:
+            print("  ignoring unparseable VIAME_SRNN_EXTRACT_WORKERS={!r}"
+                  .format(override))
+
+    return visible_gpu_count()
 
 
 def latest_sound_snapshot(model_dir):
@@ -145,6 +182,93 @@ def appearance_features_present(vids_dir):
         return False
     finally:
         con.close()
+
+
+def extract_appearance_features(model, vids_dir, feature_files,
+                                loader_workers):
+    """Push every crop through the trained Siamese model and store the result.
+
+    The crops do not interact -- this is one forward pass each, in eval mode --
+    so the work divides cleanly across the cards the job holds. Each worker
+    takes a contiguous slice of the detection list, is pinned to one device,
+    and writes its descriptors to a store of its own; the parent then folds
+    those into the crop store in a single transaction.
+
+    Separate stores are what makes this safe. Sqlite is happy with concurrent
+    readers, which is all the workers are to the crop store, but concurrent
+    writers to one file need care that nothing here would give them, and the
+    crop store is the product of the longest stage in the pipeline. Only the
+    merge writes to it, and only from this one process.
+
+    The merge is also why a run killed partway through is recoverable. The
+    resume guard asks whether appearance blobs are present at all, so a store
+    left holding some of them would be taken for a finished stage and the LSTM
+    training after it would fail unpacking a row that was never written. One
+    transaction means the store holds all of them or none.
+    """
+    workers = extract_worker_count()
+
+    # Nothing to divide and nothing to merge: run the stage exactly as the
+    # single-device pipeline always has.
+    if workers <= 1:
+        run_mod(
+            'extract_siamese_features',
+            model_path=model,
+            data_root=vids_dir,
+            train_feature_file=feature_files[0],
+            test_feature_file=feature_files[1],
+            num_workers=loader_workers,
+        )
+        return
+
+    from .storage import DataStorage
+    from .utilities import load_track_feature_file
+
+    expected = sum(len(load_track_feature_file(f)[1]) for f in feature_files)
+
+    gpus = visible_gpu_ids()
+    devices = [gpus[index % len(gpus)] for index in range(workers)]
+
+    shard_root = Path(vids_dir).parent / 'feature_shards'
+    shard_dirs = [shard_root / 'shard_{}'.format(index)
+                  for index in range(workers)]
+
+    # Shards left by an earlier attempt hold descriptors from a model that may
+    # since have been retrained, and a shard from an interrupted worker holds
+    # fewer than it should. Neither is worth keeping over recomputing it.
+    shutil.rmtree(shard_root, ignore_errors=True)
+    shard_root.mkdir(parents=True)
+
+    print("  extracting {} feature(s) across {} worker(s) on device(s) {}"
+          .format(expected, workers, ','.join(devices)))
+
+    def extract_shard(index):
+        run_mod(
+            'extract_features_shard',
+            model_path=model,
+            data_root=vids_dir,
+            train_feature_file=feature_files[0],
+            test_feature_file=feature_files[1],
+            shard_index=index,
+            shard_count=workers,
+            shard_root=shard_dirs[index],
+            num_workers=loader_workers,
+            gpu=devices[index],
+        )
+
+    with futures.ThreadPoolExecutor(max_workers=workers) as executor:
+        # list() rather than leaving the iterator unconsumed: that is what
+        # re-raises a failed worker's error here instead of losing it
+        list(executor.map(extract_shard, range(workers)))
+
+    print("  merging {} shard(s) into the detection store".format(workers))
+
+    with DataStorage(str(vids_dir)) as data_storage:
+        merged = data_storage.merge_feature(shard_dirs, 'app',
+                                            expected_count=expected)
+
+    print("  stored {} appearance feature(s)".format(merged))
+    shutil.rmtree(shard_root, ignore_errors=True)
 
 
 def get_best_model(model_dir):
@@ -303,14 +427,8 @@ def main(data_root, output_dir, stabilized, generate_options=None,
             and appearance_features_present(gen_data_vids):
         print("  already extracted, skipping")
     else:
-        run_mod(
-            'extract_siamese_features',
-            model_path=siamese_model,
-            data_root=gen_data_vids,
-            train_feature_file=feature_files[0],
-            test_feature_file=feature_files[1],
-            num_workers=lstm_loader_workers,
-        )
+        extract_appearance_features(siamese_model, gen_data_vids,
+                                    feature_files, lstm_loader_workers)
 
     print("Creating LSTM training data")
     for fixed_length in (True, False):
@@ -370,7 +488,11 @@ def main(data_root, output_dir, stabilized, generate_options=None,
         fix_letter = 'F' if fixed_length else 'V'
         name_key = model_type + '_' + fix_letter
         model_dir = lstm_dir / (name_key + '_models')
-        gpu = index % n_gpus
+        # The entry from CUDA_VISIBLE_DEVICES, not the index. The value is
+        # re-exported to the child outright, so an index would send a job
+        # allocated cards 4,5,6 to physical card 0 -- the extraction stage
+        # and the launcher script both pin this way for the same reason.
+        gpu = visible_gpu_ids()[index % n_gpus]
 
         if resume and stage_done(lstm_dir / (name_key + '_best.pt')):
             print("Skipping {} model, already trained".format(name_key))
