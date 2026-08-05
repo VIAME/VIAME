@@ -103,7 +103,7 @@ TEST( measurement_utilities_static, method_requires_images )
 TEST( measurement_utilities_static, get_valid_methods )
 {
   auto methods = get_valid_methods();
-  EXPECT_EQ( methods.size(), 7 );
+  EXPECT_EQ( methods.size(), 8 );
 
   // Check all expected methods are present
   std::set<std::string> method_set( methods.begin(), methods.end() );
@@ -112,6 +112,7 @@ TEST( measurement_utilities_static, get_valid_methods )
   EXPECT_TRUE( method_set.count( "external_disparity" ) > 0 );
   EXPECT_TRUE( method_set.count( "compute_disparity" ) > 0 );
   EXPECT_TRUE( method_set.count( "template_matching" ) > 0 );
+  EXPECT_TRUE( method_set.count( "epipolar_template_matching" ) > 0 );
   EXPECT_TRUE( method_set.count( "feature_descriptor" ) > 0 );
   EXPECT_TRUE( method_set.count( "ransac_feature" ) > 0 );
 }
