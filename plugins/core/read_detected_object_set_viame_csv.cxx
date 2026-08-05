@@ -45,28 +45,77 @@ create_viame_csv_bbox( std::vector< std::string > const& cols )
 }
 
 void
-strip_viame_csv_quotes( std::vector< std::string >& cols )
+tokenize_viame_csv_line( std::string const& line,
+                         std::vector< std::string >& cols,
+                         char delim )
 {
-  for( size_t i = VIAME_CSV_COL_TOT; i < cols.size(); ++i )
-  {
-    std::string& col = cols[i];
-    const size_t first = ( !col.empty() && col.front() == '"' ) ? 1 : 0;
+  cols.clear();
 
-    // Stop at the first attribute so any quoting it carries is preserved
-    if( col.size() > first && col[first] == '(' )
+  std::string current;
+  bool quoted = false;
+
+  for( size_t i = 0; i < line.size(); ++i )
+  {
+    const char c = line[i];
+
+    if( c == '"' )
+    {
+      if( quoted && i + 1 < line.size() && line[i + 1] == '"' )
+      {
+        current += '"';
+        ++i;
+      }
+      else
+      {
+        quoted = !quoted;
+      }
+    }
+    else if( c == delim && !quoted )
+    {
+      cols.push_back( current );
+      current.clear();
+    }
+    else
+    {
+      current += c;
+    }
+  }
+
+  cols.push_back( current );
+}
+
+void
+expand_packed_viame_csv_pairs( std::vector< std::string >& cols, char delim )
+{
+  for( size_t i = VIAME_CSV_COL_TOT; i + 1 < cols.size(); i += 2 )
+  {
+    if( cols[i].empty() || cols[i][0] == '(' )
     {
       break;
     }
 
-    if( first )
+    const std::string conf = cols[i + 1];
+
+    if( conf.find( delim ) == std::string::npos )
     {
-      col.erase( col.begin() );
+      continue;
     }
 
-    if( !col.empty() && col.back() == '"' )
+    // Only a number followed by the delimiter marks a packed run; anything
+    // else is a type that legitimately contains the delimiter
+    char* end = nullptr;
+    std::strtod( conf.c_str(), &end );
+
+    if( end == conf.c_str() || *end != delim )
     {
-      col.pop_back();
+      continue;
     }
+
+    std::vector< std::string > parts;
+    kwiver::vital::tokenize( conf, parts, std::string( 1, delim ), false );
+
+    cols.erase( cols.begin() + i + 1 );
+    cols.insert( cols.begin() + i + 1, parts.begin(), parts.end() );
   }
 }
 
@@ -436,8 +485,8 @@ read_detected_object_set_viame_csv::priv
   while( stream_reader.getline( line ) )
   {
     std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, ",", false );
-    strip_viame_csv_quotes( col );
+    tokenize_viame_csv_line( line, col );
+    expand_packed_viame_csv_pairs( col );
 
     if( col.empty() || ( !col[0].empty() && col[0][0] == '#' ) )
     {

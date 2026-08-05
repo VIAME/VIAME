@@ -3,6 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "evaluate_models.h"
+#include "read_detected_object_set_viame_csv.h"
 
 #include <vital/logger/logger.h>
 
@@ -270,43 +271,19 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
       continue;
     }
 
-    // Parse CSV line
+    // Parse CSV line, honoring quoted fields, then unpack any exporter that
+    // quoted the whole species/confidence run into one column
     std::vector< std::string > tokens;
-    std::stringstream ss( line );
-    std::string token;
+    tokenize_viame_csv_line( line, tokens );
+    expand_packed_viame_csv_pairs( tokens );
 
-    while( std::getline( ss, token, ',' ) )
+    for( auto& tok : tokens )
     {
-      // Trim whitespace
-      size_t start = token.find_first_not_of( " \t" );
-      size_t end = token.find_last_not_of( " \t" );
+      size_t start = tok.find_first_not_of( " \t" );
+      size_t end = tok.find_last_not_of( " \t" );
       if( start != std::string::npos )
       {
-        token = token.substr( start, end - start + 1 );
-      }
-      tokens.push_back( token );
-    }
-
-    // Tolerate exporters that pack the species pairs into one quoted field.
-    // Stops at the first attribute so its own quoting is preserved.
-    for( size_t t = 9; t < tokens.size(); ++t )
-    {
-      std::string& tok = tokens[t];
-      const size_t first = ( !tok.empty() && tok.front() == '"' ) ? 1 : 0;
-
-      if( tok.size() > first && tok[first] == '(' )
-      {
-        break;
-      }
-
-      if( first )
-      {
-        tok.erase( tok.begin() );
-      }
-
-      if( !tok.empty() && tok.back() == '"' )
-      {
-        tok.pop_back();
+        tok = tok.substr( start, end - start + 1 );
       }
     }
 

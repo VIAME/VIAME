@@ -254,8 +254,10 @@ read_object_track_set_viame_csv::priv
     }
 
     std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, m_delim, false );
-    strip_viame_csv_quotes( col );
+    const char delim = ( m_delim.empty() ? ',' : m_delim[0] );
+
+    tokenize_viame_csv_line( line, col, delim );
+    expand_packed_viame_csv_pairs( col, delim );
 
     if( col.size() < 9 )
     {
