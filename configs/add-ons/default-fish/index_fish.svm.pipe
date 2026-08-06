@@ -25,7 +25,7 @@ connect from downsampler.output_2
 
 # ================================= DETECTOR ==================================
 
-include common_fish_detector.pipe
+include common_fish_detector_box.pipe
 
 connect from downsampler.output_1
         to   detector_input.image

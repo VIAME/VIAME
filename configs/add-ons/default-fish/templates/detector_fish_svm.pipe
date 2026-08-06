@@ -60,7 +60,7 @@ connect from input.timestamp
 
 # =============================================================================
 
-include $ENV{VIAME_INSTALL}/configs/pipelines/common_fish_detector.pipe
+include $ENV{VIAME_INSTALL}/configs/pipelines/common_fish_detector_box.pipe
 include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_descriptor.pipe
 
 process svm_refiner

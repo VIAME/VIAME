@@ -9,7 +9,7 @@
 # only add detections, never displace one.
 # =============================================================================
 
-include common_fish_detector.pipe
+include common_fish_detector_box.pipe
 
 # ============================== MOTION BRANCH ================================
 

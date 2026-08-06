@@ -12,7 +12,7 @@ config _scheduler
 # ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
-include common_fish_detector.pipe
+include common_fish_detector_box.pipe
 include common_stabilized_iou_tracker.pipe
 
 connect from downsampler.output_1
