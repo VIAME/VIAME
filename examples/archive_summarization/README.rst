@@ -112,7 +112,7 @@ or use a different pre-trained model.
 Available pipelines vary by installation but may include:
 
 - ``index_default.pipe`` - Default detection and indexing
-- ``index_fish.svm.pipe`` - Fish detection with SVM classifier
+- ``index_default_fish.svm.pipe`` - Fish detection with SVM classifier
 - ``index_frame.pipe`` - Frame-level indexing
 - Custom pipelines for your specific use case
 

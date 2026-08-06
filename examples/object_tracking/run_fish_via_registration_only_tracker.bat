@@ -10,7 +10,7 @@ REM Run stabilized IOU tracker for moving camera scenarios
 REM Note: Requires a domain-specific add-on (e.g. default-fish) that includes
 REM the stabilized IOU tracker pipeline with a detector.
 
-viame "%VIAME_INSTALL%\configs\pipelines\tracker_stabilized_iou.pipe" ^
+viame "%VIAME_INSTALL%\configs\pipelines\tracker_fish_via_registration_only.pipe" ^
       -s input:video_filename=input_list.txt
 
 PAUSE

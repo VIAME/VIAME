@@ -14,8 +14,8 @@ source ${VIAME_INSTALL}/setup_viame.sh
 #
 # Note: Requires a domain-specific add-on that includes a detector and the
 # stabilized IOU tracker pipeline (e.g. default-fish add-on provides
-# tracker_stabilized_iou.pipe). The common_stabilized_iou_tracker.pipe
+# tracker_fish_via_registration_only.pipe). The common_stabilized_iou_tracker.pipe
 # component is available in all installations.
 
-viame ${VIAME_INSTALL}/configs/pipelines/tracker_stabilized_iou.pipe \
+viame ${VIAME_INSTALL}/configs/pipelines/tracker_fish_via_registration_only.pipe \
       -s input:video_filename=input_list.txt
