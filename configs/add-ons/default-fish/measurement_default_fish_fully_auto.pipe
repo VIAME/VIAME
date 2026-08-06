@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Fully automatic fish measurement pipeline
 #
-# Description: Fully automatic fish measurement pipeline Uses model:
-# sam2_hbp.pt. Outputs to computed_tracks2.csv.
+# Description: Fully automatic fish measurement pipeline. Head and tail points
+# come from the stereo detector's own masks. Outputs to computed_tracks2.csv.
 #
 # Requires Calibration: True
 # =============================================================================
@@ -24,61 +24,12 @@ include common_stereo_input_with_downsampler.pipe
 
 include common_stereo_fish_detector.pipe
 
-process nms_refiner1
-  :: refine_detections
-  :refiner:type                                nms
-
-  block refiner:nms
-    :max_overlap                               0.50
-    :nms_scale_factor                          1.0
-    :output_scale_factor                       1.0
-  endblock
-
 connect from downsampler.output_1
         to   detector_input1.image
-connect from detector_input1.image
-        to   nms_refiner1.image
-
-connect from detector_output1.detected_object_set
-        to   nms_refiner1.detected_object_set
-
-process nms_refiner2
-  :: refine_detections
-  :refiner:type                                nms
-
-  block refiner:nms
-    :max_overlap                               0.50
-    :nms_scale_factor                          1.0
-    :output_scale_factor                       1.0
-  endblock
-
 connect from downsampler.output_3
         to   detector_input2.image
-connect from detector_input2.image
-        to   nms_refiner2.image
-
-connect from detector_output2.detected_object_set
-        to   nms_refiner2.detected_object_set
 
 # =============================== KP ASSIGNMENT ===============================
-
-process add_segmentations1
-  :: refine_detections
-  :refiner:type                                ocv_windowed
-
-  block refiner:ocv_windowed
-    :mode                                      adaptive
-    :chip_adaptive_thresh                      25000000
-    :chip_width                                2000
-    :chip_height                               2000
-    :chip_step_width                           1000
-    :chip_step_height                          1000
-
-    :refiner:type                              sam2
-    :refiner:sam2:cfg                          configs/sam2.1/sam2.1_hiera_b+.yaml
-    :refiner:sam2:overwrite_existing           false
-    relativepath refiner:sam2:checkpoint =     models/sam2_hbp.pt
-  endblock
 
 process add_head_tail1
   :: refine_detections
@@ -90,32 +41,9 @@ process add_head_tail1
   endblock
 
 connect from detector_input1.image
-        to   add_segmentations1.image
-
-connect from nms_refiner1.detected_object_set
-        to   add_segmentations1.detected_object_set
-connect from detector_input1.image
         to   add_head_tail1.image
-connect from add_segmentations1.detected_object_set
+connect from detector_output1.detected_object_set
         to   add_head_tail1.detected_object_set
-
-process add_segmentations2
-  :: refine_detections
-  :refiner:type                                ocv_windowed
-
-  block refiner:ocv_windowed
-    :mode                                      adaptive
-    :chip_adaptive_thresh                      25000000
-    :chip_width                                2000
-    :chip_height                               2000
-    :chip_step_width                           1000
-    :chip_step_height                          1000
-
-    :refiner:type                              sam2
-    :refiner:sam2:cfg                          configs/sam2.1/sam2.1_hiera_b+.yaml
-    :refiner:sam2:overwrite_existing           false
-    relativepath refiner:sam2:checkpoint =     models/sam2_hbp.pt
-  endblock
 
 process add_head_tail2
   :: refine_detections
@@ -127,13 +55,8 @@ process add_head_tail2
   endblock
 
 connect from detector_input2.image
-        to   add_segmentations2.image
-
-connect from nms_refiner2.detected_object_set
-        to   add_segmentations2.detected_object_set
-connect from detector_input2.image
         to   add_head_tail2.image
-connect from add_segmentations2.detected_object_set
+connect from detector_output2.detected_object_set
         to   add_head_tail2.detected_object_set
 
 # ================================= MEASURER ==================================
