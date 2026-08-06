@@ -24,7 +24,7 @@ process detector
     :chip_height                               704
     :chip_step_height                          480
     :chip_step_width                           480
-    :chip_adaptive_thresh                      1500000
+    :chip_adaptive_thresh                      1400000
     :scale                                     1.0
     :black_pad                                 false
   endblock
