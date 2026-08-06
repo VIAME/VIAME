@@ -46,7 +46,7 @@ homography_ext = "_homogs" + default_homography_ext
 image_list_ext = "_images" + default_list_ext
 
 pipeline_dir = "pipelines"
-default_pipeline = pipeline_dir + div + "index_default" + default_pipe_ext
+default_pipeline = pipeline_dir + div + "index_generic" + default_pipe_ext
 no_pipeline = "none"
 auto_pipeline = "auto"
 
