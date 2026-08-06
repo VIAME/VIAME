@@ -1,15 +1,8 @@
 # =============================================================================
-# Title: Common - Fish Detector
+# Title: Default Fish Detector
 #
-# Description: Default fish detector. Runs the RF-DETR large model trained via
-# train_detector_rf_detr_l_1728_mot_mim.conf on motion-infused imagery. The
-# input is converted to greyscale and merged with two temporal-variance motion
-# channels, reproducing the channel layout the model was trained on
-# ([ variance@window5, grey, variance@window30 ], see
-# train_aug_add_double_motion.pipe). Requires temporally ordered input frames.
-#
-# detector_input still emits the unmodified 3-channel image so downstream
-# consumers (descriptors, refiners) see colour imagery, not the motion stack.
+# Description: Detects a single 'fish' output category via running a 960x1728
+# RF-DETR model on RGB inputs.
 # =============================================================================
 
 process detector_input
@@ -21,113 +14,27 @@ process detector_input
     :force_three_channel                       true
   endblock
 
-process detector_grey
-  :: image_filter
-  :filter:type                                 vxl_convert_image
-
-  block filter:vxl_convert_image
-    :format                                    byte
-    :single_channel                            true
-  endblock
-
-connect from detector_input.image
-        to   detector_grey.image
-
-# =============================== MOTION CHANNELS =============================
-
-process motion_filter1
-  :: image_filter
-  :filter:type                                 vxl_average
-
-  block filter:vxl_average
-    :type                                      window
-    :window_size                               5
-    :round                                     false
-    :output_variance                           true
-  endblock
-
-connect from detector_grey.image
-        to   motion_filter1.image
-
-process float_to_byte1
-  :: image_filter
-  :filter:type                                 vxl_convert_image
-
-  block filter:vxl_convert_image
-    :format                                    byte
-    :scale_factor                              0.50
-  endblock
-
-connect from motion_filter1.image
-        to   float_to_byte1.image
-
-process motion_filter2
-  :: image_filter
-  :filter:type                                 vxl_average
-
-  block filter:vxl_average
-    :type                                      window
-    :window_size                               30
-    :round                                     false
-    :output_variance                           true
-  endblock
-
-connect from detector_grey.image
-        to   motion_filter2.image
-
-process float_to_byte2
-  :: image_filter
-  :filter:type                                 vxl_convert_image
-
-  block filter:vxl_convert_image
-    :format                                    byte
-    :scale_factor                              0.50
-  endblock
-
-connect from motion_filter2.image
-        to   float_to_byte2.image
-
-process image_merger1
-  :: merge_images
-  :merge_images:type                           ocv
-
-connect from float_to_byte1.image
-        to   image_merger1.image1
-connect from detector_grey.image
-        to   image_merger1.image2
-
-process image_merger2
-  :: merge_images
-  :merge_images:type                           ocv
-
-connect from image_merger1.image
-        to   image_merger2.image1
-connect from float_to_byte2.image
-        to   image_merger2.image2
-
-# ================================= DETECTOR ==================================
-
-process detector1
+process detector
   :: image_object_detector
   :detector:type                               rf_detr
 
   block detector:rf_detr
-    relativepath weight =                      models/fish_with_motion_rf_detr.pth
     :model_size                                large
+    :device                                    auto
+    relativepath weight =                      models/fish_rf_detr_1728.pth
     :num_channels                              3
     :segmentation                              false
     :resolution                                960x1728
     :threshold                                 0.10
-    :device                                    auto
   endblock
 
-connect from image_merger2.image
-        to   detector1.image
+connect from detector_input.image
+        to   detector.image
 
 process detector_output
   :: merge_detection_sets
 
-connect from detector1.detected_object_set
+connect from detector.detected_object_set
         to   detector_output.detected_object_set1
 
 # -- end of file --
