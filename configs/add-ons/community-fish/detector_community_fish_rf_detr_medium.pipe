@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Community Fish Detector
 #
-# Description: Runs the cfd_rf_detr_medium_1024 RF-DETR model for fish detection.
+# Description: Runs the cfd_rf_detr_m_1024 RF-DETR model for fish detection.
 # Outputs to computed_detections.csv.
 # Input: IMAGE
 # Output: BBOX
@@ -87,7 +87,7 @@ process detector1
     :chip_width                                1024
     :chip_height                               1024
     block detector:rf_detr
-      relativepath weight =                    models/cfd_rf_detr_medium_1024.pth
+      relativepath weight =                    models/cfd_rf_detr_m_1024.pth
       :model_size                              medium
       :resolution                              1024
       :device                                  auto
