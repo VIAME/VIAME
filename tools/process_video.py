@@ -1262,7 +1262,7 @@ if __name__ == "__main__" :
       if not os.path.exists( "category_models/detector.pipe" ):
         if has_file_with_extension( "category_models", "svm" ):
           if args.pipeline.endswith( "detector_project_folder.pipe" ):
-            args.pipeline = os.path.join( "pipelines", "detector_svm_models.pipe" )
+            args.pipeline = os.path.join( "pipelines", "detector_svm_over_generic_proposals.pipe" )
           elif args.pipeline.endswith( "frame_classifier_project_folder.pipe" ):
             args.pipeline = os.path.join( "pipelines", "frame_classifier_svm.pipe" )
           elif args.pipeline.endswith( "tracker_project_folder.pipe" ):
