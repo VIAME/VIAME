@@ -99,7 +99,31 @@ def train_model(
         return metrics
 
     limit = memory_limit_gb()
+
+    if limit is not None:
+        logging('Memory limit: {:.1f} GB (warn at {:.1f}, stop at {:.1f})'
+                .format(limit, limit * 0.75, limit * 0.90))
+    else:
+        logging('Memory limit: none found; the budget guard is inactive')
     warned = [False]
+
+    checks = [0]
+
+    def job_tree_memory():
+        """The parent's whole tree: the stage above us and every sibling.
+
+        The stage that was OOM killed reported 0.6 GB for its own tree right
+        up to the SIGKILL, so whatever consumed the allocation was beside it,
+        not below it. Walking down from the parent instead of from here makes
+        that growth visible -- and attributable, since the difference between
+        the two numbers is exactly the part this stage cannot see.
+        """
+        try:
+            import os as _os
+
+            return process_tree_memory(_os.getppid())[0]
+        except Exception:
+            return None
 
     def check_memory(epoch, batch_idx, total_batches):
         if limit is None:
@@ -109,6 +133,18 @@ def train_model(
 
         if used is None:
             return
+
+        # A breadcrumb every ~20 checks even while healthy. A run that dies
+        # without ever crossing a threshold otherwise leaves no trail at all.
+        checks[0] += 1
+
+        if checks[0] % 20 == 0:
+            job = job_tree_memory()
+            logging('Epoch {}: batch {} of {}: stage {:.1f} GB, job {} '
+                    'of {:.1f} GB limit'
+                    .format(epoch, batch_idx, total_batches, used,
+                            '{:.1f} GB'.format(job) if job is not None
+                            else 'unreadable', limit))
 
         if used > limit * 0.90:
             logging('Epoch {}: {:.1f} GB of a {:.1f} GB limit at batch {} of '
@@ -161,8 +197,9 @@ def train_model(
             logging(f'Epoch {epoch}: final v' + format_metrics(final_metrics))
             return final_metrics
 
-    def process_tree_memory():
-        """Current RSS of this process and every descendant, in GB.
+    def process_tree_memory(root_pid=None):
+        """Current RSS of root_pid (default: this process) and every
+        descendant, in GB.
 
         Read from /proc rather than from getrusage: RUSAGE_CHILDREN reports
         only children that have been waited for, and with persistent workers
@@ -201,7 +238,7 @@ def train_model(
                 except OSError:
                     return []
 
-            pids, stack = [], [_os.getpid()]
+            pids, stack = [], [root_pid if root_pid is not None else _os.getpid()]
 
             while stack:
                 pid = stack.pop()
