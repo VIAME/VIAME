@@ -129,6 +129,7 @@ set( CORE_PIPELINE_FILES
   common_default_input.pipe
   common_default_input_16bit.pipe
   common_default_input_with_downsampler.pipe
+  common_default_tracker.pipe
   common_empty_tracker.pipe
   common_image_stabilizer.pipe
   common_no_load_input.pipe
@@ -225,16 +226,12 @@ set( CORE_PIPELINE_FILES
 if( VIAME_ENABLE_CUDA )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     common_default_descriptor.pipe
-    common_default_tracker.pipe
     query_augment_image.pipe
   )
 else()
   install( FILES common_default_descriptor.cpu.pipe
     DESTINATION configs/pipelines
     RENAME common_default_descriptor.pipe )
-  install( FILES common_default_tracker.cpu.pipe
-    DESTINATION configs/pipelines
-    RENAME common_default_tracker.pipe )
   install( FILES query_augment_image.cpu.pipe
     DESTINATION configs/pipelines
     RENAME query_augment_image.pipe )
