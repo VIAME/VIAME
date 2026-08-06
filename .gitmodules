@@ -16,10 +16,6 @@
 [submodule "packages/darknet"]
 	path = packages/darknet
 	url = https://github.com/VIAME/darknet.git
-[submodule "packages/pytorch"]
-	path = packages/pytorch
-	url = https://github.com/pytorch/pytorch.git
-	ignore = dirty
 [submodule "packages/pytorch-libs/torchvision"]
 	path = packages/pytorch-libs/torchvision
 	url = https://github.com/pytorch/vision.git
