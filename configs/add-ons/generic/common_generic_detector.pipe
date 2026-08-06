@@ -1,7 +1,9 @@
 # =============================================================================
-# Title: Generates generic object proposals as opposed to specific class labels
+# Title: Generates generic object proposals, not specific class labels
 #
-# Description: Generates single-class generic object proposals
+# Description: Generates single-class generic object proposals output, with
+# boxes around many things in the scene which are likely to be objects, but
+# without specifying what those objects are.
 # =============================================================================
 
 process detector_input
