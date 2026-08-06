@@ -173,7 +173,6 @@ set( CORE_PIPELINE_FILES
   filter_tracks_only_adjust_csv.pipe
   frame_classifier_project_folder.pipe
   frame_classifier_svm.pipe
-  index_default.trk.pipe
   index_existing.pipe
   index_frame.pipe
   index_frame.svm.pipe
