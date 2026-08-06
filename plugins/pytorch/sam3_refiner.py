@@ -245,6 +245,33 @@ class SAM3RefinerConfig(SAM3BaseConfig):
     #
     # Empty by default, so the ordinary seed-track and text-query
     # pipelines are unaffected.
+    # How much a detection must overlap a live object to count as that
+    # object continuing, rather than as a new one. Only used when
+    # detections_file is set.
+    link_iou = scfg.Value(
+        0.3,
+        help='IoU at which a detection is treated as a continuation of an '
+             'object already being propagated instead of seeding a new one.'
+    )
+
+    # How long an object stays linkable after its last supporting detection.
+    # Detectors miss animals for a few frames at a time; expiring too eagerly
+    # splits one animal into several tracks.
+    link_max_gap = scfg.Value(
+        5,
+        help='Frames an object remains available for linking after its last '
+             'matching detection.'
+    )
+
+    # SAM 3 caps concurrent tracked objects and its memory cost scales with
+    # them, so this bounds how many are alive at once. Without a bound a
+    # crowded sequence exhausts system memory and the run is killed.
+    max_seed_objects = scfg.Value(
+        16,
+        help='Maximum objects seeded concurrently when replaying an external '
+             'detection set.'
+    )
+
     detections_file = scfg.Value(
         '',
         help='VIAME CSV of detections to replay as seeds, matched to '
@@ -339,6 +366,8 @@ class SAM3RefinerConfig(SAM3BaseConfig):
 
 def _ensure_binary_mask(mask):
     """Ensure mask is a numpy uint8 binary array suitable for contour finding."""
+    if isinstance(mask, _PackedMask):
+        return mask.unpack()
     if not isinstance(mask, np.ndarray):
         import torch
         if isinstance(mask, torch.Tensor):
@@ -346,6 +375,57 @@ def _ensure_binary_mask(mask):
         else:
             mask = np.array(mask)
     return (mask > 0.5).astype(np.uint8)
+
+
+class _PackedMask(object):
+    """A propagated mask stored as the bit-packed crop of its bounding box.
+
+    Video propagation keeps one mask per object per frame for the whole
+    video. At full-frame resolution that grows by gigabytes per chunk and
+    long sequences are OOM-killed before they can finish; the objects
+    themselves cover a tiny fraction of the frame, so the crop packs into
+    a few kilobytes.
+    """
+
+    __slots__ = ('_bits', '_crop', 'shape', 'bbox')
+
+    def __init__(self, mask):
+        if isinstance(mask, np.ndarray) and mask.dtype == np.uint8:
+            m = mask
+        else:
+            m = _ensure_binary_mask(mask)
+        self.shape = m.shape
+        rows = np.any(m, axis=1)
+        if not rows.any():
+            self._bits = None
+            self._crop = (0, 0, 0, 0)
+            self.bbox = [0.0, 0.0, 0.0, 0.0]
+            return
+        cols = np.any(m, axis=0)
+        y1, y2 = np.where(rows)[0][[0, -1]]
+        x1, x2 = np.where(cols)[0][[0, -1]]
+        y2, x2 = int(y2) + 1, int(x2) + 1
+        y1, x1 = int(y1), int(x1)
+        self._crop = (y1, y2, x1, x2)
+        self.bbox = [float(x1), float(y1), float(x2), float(y2)]
+        self._bits = np.packbits(m[y1:y2, x1:x2] > 0)
+
+    def unpack(self):
+        """The full-frame uint8 mask this was built from."""
+        full = np.zeros(self.shape, dtype=np.uint8)
+        if self._bits is not None:
+            y1, y2, x1, x2 = self._crop
+            n = (y2 - y1) * (x2 - x1)
+            crop = np.unpackbits(self._bits, count=n)
+            full[y1:y2, x1:x2] = crop.reshape(y2 - y1, x2 - x1)
+        return full
+
+    def area(self):
+        """Number of set pixels (packbits pads with zeros, so a plain
+        popcount over the packed bytes is exact)."""
+        if self._bits is None:
+            return 0
+        return int(np.unpackbits(self._bits).sum())
 
 
 def _mask_bbox(mask):
@@ -382,6 +462,23 @@ def _set_polygon_on_detection(det, mask, simplification):
     poly_pts = mask_to_polygon(binary_mask, simplification)
     if poly_pts is not None:
         det.set_flattened_polygon(poly_pts)
+
+
+def _box_iou(a, b):
+    """Intersection over union of two (x1, y1, x2, y2) boxes."""
+    x0 = max(a[0], b[0])
+    y0 = max(a[1], b[1])
+    x1 = min(a[2], b[2])
+    y1 = min(a[3], b[3])
+
+    if x1 <= x0 or y1 <= y0:
+        return 0.0
+
+    inter = (x1 - x0) * (y1 - y0)
+    aa = (a[2] - a[0]) * (a[3] - a[1])
+    bb = (b[2] - b[0]) * (b[3] - b[1])
+
+    return inter / (aa + bb - inter)
 
 
 def _load_viame_csv_by_frame(path):
@@ -461,6 +558,13 @@ class SAM3Refiner(RefineTracks):
         self._detections_file = ''
         self._external_dets = {}
         self._clamped_out = 0
+        self._link_iou = 0.3
+        self._link_max_gap = 5
+        self._max_seed_objects = 16
+        self._active_seeds = {}   # obj_id -> (last_frame, box_xyxy)
+        self._seeded = 0
+        self._linked = 0
+        self._seed_capacity_drops = 0
 
         # Video predictor state (used when propagate_tracked=True)
         self._video_predictor = None
@@ -509,6 +613,9 @@ class SAM3Refiner(RefineTracks):
         self._propagate_tracked = parse_bool(self._config.propagate_tracked)
         self._preserve_seed_ids = parse_bool(
             self._config.preserve_seed_ids)
+        self._link_iou = float(self._config.link_iou)
+        self._link_max_gap = int(self._config.link_max_gap)
+        self._max_seed_objects = int(self._config.max_seed_objects)
         self._detections_file = str(self._config.detections_file or '')
         self._external_dets = {}
         if self._detections_file:
@@ -761,6 +868,13 @@ class SAM3Refiner(RefineTracks):
                 first_text = next(iter(self._text_prompt_frames.values()))
                 chunk_text_prompts[0] = first_text
 
+            # A span of video with no seeds in it at all: nothing to
+            # propagate, and SAM3 raises rather than returning empty if
+            # asked to run without a single prompt.
+            if not chunk_box_prompts and not chunk_text_prompts:
+                start += chunk_size - overlap
+                continue
+
             chunk_results = self._run_video_propagation_chunk(
                 chunk_frames, start, chunk_box_prompts, chunk_text_prompts)
 
@@ -845,8 +959,8 @@ class SAM3Refiner(RefineTracks):
                 total_iou = 0.0
                 for fidx in shared:
                     total_iou += compute_iou(
-                        _mask_bbox(c_frames[fidx]),
-                        _mask_bbox(g_frames[fidx]))
+                        c_frames[fidx].bbox,
+                        g_frames[fidx].bbox)
                 avg_iou = total_iou / len(shared)
                 if avg_iou > iou_thresh:
                     pairs.append((avg_iou, cid, gid))
@@ -1177,7 +1291,10 @@ class SAM3Refiner(RefineTracks):
             ax2 = (bx[0] + bx[2]) * self._img_width
             ay2 = (bx[1] + bx[3]) * self._img_height
             score = float(probs[i]) if i < len(probs) else 1.0
-            results[key] = (masks[i], [ax1, ay1, ax2, ay2], score)
+            # Packed, not raw: these tuples are held for every object on
+            # every frame until the whole video has been propagated.
+            results[key] = (_PackedMask(masks[i]),
+                            [ax1, ay1, ax2, ay2], score)
 
     # ------------------------------------------------------------------
     # Main refine method
@@ -1299,6 +1416,21 @@ class SAM3Refiner(RefineTracks):
         # source when one was supplied, and is matched by frame position.
         if self._external_dets:
             w, h = self._img_width, self._img_height
+
+            # A detection that continues an object already being propagated
+            # is a LINK, not a new object: SAM 3 is already carrying that
+            # object forward and re-prompting it would start a second track
+            # on the same animal. Only detections that match nothing alive
+            # become new seeds.
+            #
+            # Prompting every detection instead -- which is what this did
+            # first -- asks SAM 3 to hold one object per detection, so a
+            # sequence with a few thousand detections grows without bound
+            # and is killed long before it finishes.
+            for oid in [o for o, (lf, _b) in self._active_seeds.items()
+                        if local_frame_idx - lf > self._link_max_gap]:
+                del self._active_seeds[oid]
+
             for det_id, (x1, y1, x2, y2), conf, cls in \
                     self._external_dets.get(local_frame_idx, []):
                 # Detector boxes routinely run past the image edge --
@@ -1314,11 +1446,36 @@ class SAM3Refiner(RefineTracks):
                 if nx2 <= nx1 or ny2 <= ny1:
                     self._clamped_out += 1
                     continue
+
+                best_oid, best_iou = None, 0.0
+                for oid, (_lf, last_box) in self._active_seeds.items():
+                    overlap = _box_iou((x1, y1, x2, y2), last_box)
+                    if overlap > best_iou:
+                        best_oid, best_iou = oid, overlap
+
+                if best_oid is not None and best_iou >= self._link_iou:
+                    # Continuation of a live object; refresh its position so
+                    # the next frame links against where it actually is.
+                    self._active_seeds[best_oid] = (
+                        local_frame_idx, (x1, y1, x2, y2))
+                    self._linked += 1
+                    continue
+
+                if len(self._active_seeds) >= self._max_seed_objects:
+                    # SAM 3 caps how many objects it will track at once, and
+                    # the memory cost is per object. Drop the detection
+                    # rather than exceed it, and say how many were dropped.
+                    self._seed_capacity_drops += 1
+                    continue
+
                 box_rel = [nx1, ny1, nx2 - nx1, ny2 - ny1]
                 self._frame_prompts.setdefault(local_frame_idx, []).append(
                     (det_id, box_rel)
                 )
                 self._obj_id_to_class[det_id] = cls
+                self._active_seeds[det_id] = (
+                    local_frame_idx, (x1, y1, x2, y2))
+                self._seeded += 1
             return ObjectTrackSet([])
 
         # Collect seed box prompts from input tracks on this frame
@@ -1599,6 +1756,12 @@ class SAM3Refiner(RefineTracks):
         if not self._frame_prompts and not self._text_prompt_frames:
             return
 
+        if self._external_dets:
+            print('[SAM3] external detections: %d seeded, %d linked to a live '
+                  'object, %d dropped at the %d-object cap, %d clamped out'
+                  % (self._seeded, self._linked, self._seed_capacity_drops,
+                     self._max_seed_objects, self._clamped_out), flush=True)
+
         all_results = self._run_video_propagation()
 
         # Collect the set of object IDs we explicitly prompted
@@ -1618,7 +1781,7 @@ class SAM3Refiner(RefineTracks):
             if not self._add_new_objects and oid not in prompted_ids:
                 continue
 
-            mask_area = np.sum(mask)
+            mask_area = mask.area()
             if self._filter_by_quality and mask_area < self._min_mask_area:
                 continue
 
@@ -1627,8 +1790,9 @@ class SAM3Refiner(RefineTracks):
                 class_name = self._text_query_list[0]
             if not class_name:
                 class_name = 'unknown'
-            bbox = box_from_mask(mask)
-            if bbox is None:
+            if mask_area > 0:
+                bbox = BoundingBoxD(*mask.bbox)
+            else:
                 bbox = BoundingBoxD(box_xyxy[0], box_xyxy[1],
                                     box_xyxy[2], box_xyxy[3])
 
