@@ -335,7 +335,9 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         'puts the config values back and restarts the schedule, so the '
         'learning_rate*, lr_scheduler and lr_drop settings below still apply. '
         'That is deliberate -- a schedule that has annealed to ~0 has no '
-        'training left in it, so resuming onto it would do nothing.'))
+        'training left in it, so resuming onto it would do nothing. A '
+        'checkpoint that already completed max_epochs trains another full '
+        'round: the total extends to the next multiple of max_epochs.'))
     skip_best_epochs = scfg.Value(0, help=(
         'Ignore the first N epochs when tracking the best regular/EMA '
         'checkpoints. Set this when seeding from a converged model: warmup '
@@ -877,7 +879,8 @@ class RFDETRTrainer(TrainDetector):
             model = RFDETRModel(**model_kwargs)
 
         # Parse training parameters
-        epochs = int(self._max_epochs)
+        resume_from = self._resolve_resume()
+        epochs = self._resolve_epochs(resume_from)
         # "auto" lets RF-DETR probe for the largest micro-batch that fits VRAM.
         if str(self._batch_size).strip().lower() == 'auto':
             batch_size = 'auto'
@@ -898,7 +901,6 @@ class RFDETRTrainer(TrainDetector):
         early_stopping_patience = int(self._early_stopping_patience)
         multi_scale = parse_bool(self._multi_scale)
         checkpoint_interval = int(self._checkpoint_interval)
-        resume_from = self._resolve_resume()
         use_tensorboard = parse_bool(self._use_tensorboard)
         aug_config = self._resolve_aug_config(self._augmentation)
 
@@ -1070,6 +1072,34 @@ class RFDETRTrainer(TrainDetector):
                 "false to warm-start from one of those instead.")
         return path
 
+    def _resolve_epochs(self, resume_from):
+        """Total epochs to pass to fit(). A resumed checkpoint that already
+        finished its schedule would restore and stop without training a step,
+        so extend the total to the next multiple of max_epochs -- a finished
+        run continued with --continue trains another full round, while a
+        partially-trained one (including a prior extension) just runs to the
+        end of its current round."""
+        epochs = int(self._max_epochs)
+        if not resume_from:
+            return epochs
+        import torch
+        ckpt = torch.load(resume_from, map_location="cpu", weights_only=False)
+        # last.ckpt is written inside the final epoch's end-of-epoch hooks, so
+        # the stored epoch is the just-finished one; Lightning only advances
+        # past it at restore time.
+        try:
+            saved_epoch = int(ckpt["epoch"])
+        except (KeyError, TypeError, ValueError):
+            saved_epoch = int(ckpt["loops"]["fit_loop"]
+                              ["epoch_progress"]["current"]["processed"])
+        completed = saved_epoch + 1
+        del ckpt
+        total = epochs * (completed // epochs + 1)
+        if total != epochs:
+            print(f"[RFDETRTrainer] Resume checkpoint has completed "
+                  f"{completed} epochs; extending schedule to {total} total")
+        return total
+
     def _dataloader_kwargs(self):
         """Accuracy-neutral DataLoader tuning passed to model.train(). On
         Windows, worker subprocesses fail (spawn re-invokes viame.exe), so force
@@ -1093,10 +1123,11 @@ class RFDETRTrainer(TrainDetector):
         else:
             batch_size = int(self._batch_size)
 
+        resume_from = self._resolve_resume()
         train_kwargs = dict(
             dataset_dir=str(dataset_dir),
             output_dir=str(output_dir),
-            epochs=int(self._max_epochs),
+            epochs=self._resolve_epochs(resume_from),
             batch_size=batch_size,
             lr=float(self._learning_rate),
             lr_encoder=float(self._learning_rate_encoder),
@@ -1122,7 +1153,6 @@ class RFDETRTrainer(TrainDetector):
             devices=n_gpus,
             strategy=self._resolve_strategy(n_gpus),
         )
-        resume_from = self._resolve_resume()
         if resume_from:
             train_kwargs["resume"] = resume_from
         ddp_timeout = int(self._ddp_timeout)

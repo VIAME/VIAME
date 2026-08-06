@@ -961,7 +961,8 @@ train_applet
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "continue", "Continue a prior training run in the current directory: "
       "reuse the extracted-frame and chip caches and resume from the last "
-      "checkpoint when the trainer supports it",
+      "checkpoint when the trainer supports it. A run that already finished "
+      "its epoch schedule trains another full round of epochs",
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "c,config", "Input configuration file(s) with parameters",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )

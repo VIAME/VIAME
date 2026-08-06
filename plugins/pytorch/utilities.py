@@ -817,6 +817,21 @@ def rfdetr_resume_lr_callback():
                 sched.last_epoch = 0
                 sched._step_count = 1
                 lambdas = getattr(sched, "lr_lambdas", None)
+                # The lambdas span estimated_stepping_batches, i.e. all of
+                # max_epochs from step 0, but only the remaining epochs will
+                # run against the restarted counter -- unscaled, a continued
+                # round stops mid-schedule (a cosine at half its anneal).
+                # Compress the schedule into the steps that will actually run.
+                max_ep = trainer.max_epochs or 0
+                done_ep = trainer.current_epoch
+                if lambdas is not None and max_ep > done_ep > 0:
+                    total = int(trainer.estimated_stepping_batches)
+                    scale = max_ep / (max_ep - done_ep)
+                    lambdas = [
+                        (lambda step, fn=fn: fn(min(int(step * scale), total)))
+                        for fn in lambdas
+                    ]
+                    sched.lr_lambdas = lambdas
                 if lambdas is not None:
                     start = [base * fn(0) for base, fn in zip(desired, lambdas)]
                     for opt in trainer.optimizers:
