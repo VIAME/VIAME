@@ -13,7 +13,7 @@ from .models import Siamese
 from .siamese_training import train_model
 from .g_config import get_config
 from .siamese_dataset import SiameseDataLoader
-from .utilities import setupLogger, logging, exp_lr_scheduler
+from .utilities import resume_epoch, setupLogger, logging, exp_lr_scheduler
 from .ContrastiveLoss import ContrastiveLoss
 
 def main():
@@ -81,7 +81,7 @@ def main():
     if load_path:
         snapshot = torch.load(load_path)
         model.load_state_dict(snapshot['state_dict'])
-        epoch = snapshot['epoch'] + 1
+        epoch = resume_epoch(snapshot, load_path)
         logging('Model loaded from {}'.format(load_path))
 
     train_model(model, criterion, train_loader, test_loader, g_config, exp_lr_scheduler, epoch)
