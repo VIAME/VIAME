@@ -2,7 +2,7 @@
 # Title: Default Fish Detector
 #
 # Description: Detects a single 'fish' output category via running a 960x1728
-# RF-DETR model on RGB inputs.
+# RF-DETR model on RGB inputs. Produces just a bounding box output.
 # =============================================================================
 
 process detector_input
@@ -21,7 +21,7 @@ process detector
   block detector:rf_detr
     :model_size                                large
     :device                                    auto
-    relativepath weight =                      models/fish_rf_detr_1728.pth
+    relativepath weight =                      models/fish_rf_detr_box_1728.pth
     :num_channels                              3
     :segmentation                              false
     :resolution                                960x1728
