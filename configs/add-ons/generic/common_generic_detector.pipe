@@ -15,7 +15,7 @@ process detector_input
 
 process detector
   :: image_object_detector
-  :detector:type                               ocv_windowed
+  :detector:type                               windowed
   
   block detector:ocv_windowed
     :mode                                      adaptive
@@ -29,9 +29,9 @@ process detector
     :black_pad                                 false
   endblock
 
-  :detector:ocv_windowed:detector:type         rf_detr
+  :detector:windowed:detector:type             rf_detr
 
-  block detector:ocv_windowed:detector:rf_detr
+  block detector:windowed:detector:rf_detr
     :model_size                                large
     :device                                    auto
     relativepath weight =                      models/generic_rf_detr_704.pth
@@ -48,7 +48,7 @@ process detector_output
   :refiner:type                                nms
 
   block refiner:nms
-    :max_overlap                               0.5
+    :max_overlap                               0.6
     :nms_scale_factor                          1.0
     :output_scale_factor                       1.0
   endblock
