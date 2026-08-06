@@ -72,7 +72,25 @@ def main():
     criterion = ContrastiveLoss(margin=g_config.margin)
 
     model = Siamese(pretrained=True)
-    model = torch.nn.DataParallel(model, device_ids=[x for x in range(torch.cuda.device_count())]).to(torch.device("cuda"))
+
+    # One device by default. Spread over three cards with DataParallel this
+    # stage leaked host memory at about 1.8 MB per batch -- linear across
+    # epoch boundaries, to 88 GB by the second epoch -- while the identical
+    # stage on one card measured a flat 1.7 GB over ten thousand batches of
+    # the same data, resumed from the same snapshot. The leak was never
+    # reproduced off the three-card path; every other layer (dataset, loader,
+    # loss, metrics, resume) was ruled out individually. DataParallel also
+    # re-replicates the model on every forward and bought less than 2x from
+    # its three cards on this loader-bound stage, so the trade is a modest
+    # slowdown for a stage that reliably finishes. VIAME_SRNN_SIAMESE_GPUS
+    # restores the old behaviour for hunting the leak properly.
+    try:
+        siamese_gpus = max(int(os.environ.get('VIAME_SRNN_SIAMESE_GPUS', 1)), 1)
+    except ValueError:
+        siamese_gpus = 1
+
+    devices = list(range(min(torch.cuda.device_count(), siamese_gpus)))
+    model = torch.nn.DataParallel(model, device_ids=devices).to(torch.device("cuda"))
 
     # load model snapshot
     load_path = args.load_path
