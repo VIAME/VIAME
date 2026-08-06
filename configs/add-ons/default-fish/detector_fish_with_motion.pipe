@@ -23,7 +23,7 @@ include common_default_input_with_downsampler.pipe
 
 # ================================= DETECTOR ==================================
 
-include common_fish_detector_fusion.pipe
+include common_fish_detector_motion.pipe
 
 process nms_refiner
   :: refine_detections

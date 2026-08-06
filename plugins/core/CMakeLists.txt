@@ -367,6 +367,11 @@ if( VIAME_ENABLE_PYTHON )
     merge_detections_nms_fusion )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_coverage_reinforce.py
+    core
+    merge_detections_coverage_reinforce )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/merge_tracks_tube_iou.py
     core
     merge_tracks_tube_iou )
