@@ -12,7 +12,7 @@ config _scheduler
 # ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
-include common_fish_detector_with_filter.pipe
+include common_fish_detector.pipe
 include common_stabilized_iou_tracker.pipe
 
 connect from downsampler.output_1
@@ -23,7 +23,7 @@ connect from downsampler.timestamp
 connect from downsampler.output_1
         to   stabilizer.image
 
-connect from detector_filter.detected_object_set
+connect from detector_output.detected_object_set
         to   tracker.detected_object_set
 connect from downsampler.timestamp
 	      to   tracker.timestamp
