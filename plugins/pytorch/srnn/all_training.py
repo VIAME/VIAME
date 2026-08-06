@@ -89,7 +89,17 @@ def train_model(
 
     optimizer = g_config.optimizer(model.parameters(), **optimizer_args)
 
+    batch_counter = [0]
+
     def run_batch(input_batch, train):
+        # Cheap enough for every tenth batch: one line of /proc/meminfo. The
+        # kill this defends against arrived faster than the hundred-batch
+        # cadence of the full check.
+        batch_counter[0] += 1
+
+        if batch_counter[0] % 10 == 0:
+            check_node(epoch, batch_counter[0], 0)
+
         model.train(train)
         loss, metrics = run_model(input_batch)
         if train:
@@ -124,6 +134,53 @@ def train_model(
             return process_tree_memory(_os.getppid())[0]
         except Exception:
             return None
+
+    def node_available_gb():
+        """What the whole machine has left, in GB, or None.
+
+        The budget above is what this job asked slurm for, but slurm here
+        runs jobacct_gather/none and task/none: nothing enforces the budget,
+        and the ceiling that actually kills is the node running dry -- the
+        kernel's OOM killer took a stage whose own tree measured 0.6 GB, and
+        with no kernel log access the memory it died for was never even
+        attributable to this job. Watching MemAvailable defends against that
+        whoever causes it: better to snapshot and stop than be SIGKILLed
+        blind because of a neighbour.
+        """
+        try:
+            with open('/proc/meminfo') as handle:
+                for line in handle:
+                    if line.startswith('MemAvailable:'):
+                        return int(line.split()[1]) / (1024.0 ** 2)
+        except (OSError, ValueError, IndexError):
+            pass
+
+        return None
+
+    node_warned = [False]
+
+    def check_node(epoch, batch_idx, total_batches):
+        available = node_available_gb()
+
+        if available is None:
+            return
+
+        if available < 8.0:
+            logging('Epoch {}: the NODE is down to {:.1f} GB available at '
+                    'batch {} of {} -- this may be another process entirely. '
+                    'Stopping before the kernel picks a victim.'
+                    .format(epoch, available, batch_idx, total_batches))
+            raise MemoryBudgetExceeded(
+                'node down to {:.1f} GB available'.format(available))
+
+        if available < 15.0 and not node_warned[0]:
+            node_warned[0] = True
+            used, largest, count = process_tree_memory()
+            logging('Epoch {}: the node is down to {:.1f} GB available; this '
+                    'stage holds {} across {} processes.'
+                    .format(epoch, available,
+                            '{:.1f} GB'.format(used) if used is not None
+                            else 'an unreadable amount', count))
 
     def check_memory(epoch, batch_idx, total_batches):
         if limit is None:
