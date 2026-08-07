@@ -1,6 +1,6 @@
 DEFAULT-FISH, https://viame.kitware.com/api/v1/item/6a75367956d7c3abbe88932b/download, Default fish detection model (1-class), 30b5ba31ef8d885b0ca2e5a342ceac22, ALL-PLATFORMS, "PYTORCH, PYTORCH-RF-DETR"
 COMMUNITY-FISH, https://viame.kitware.com/api/v1/item/6a7536765584f7704ef009b6/download, Fish detection model from community fish project, b640929e49ffd0621d45e03ff8642132, ALL-PLATFORMS, "PYTORCH, PYTORCH-ULTRALYTICS, PYTORCH-RF-DETR"
-GENERIC, https://viame.kitware.com/api/v1/item/6a75367a56d7c3abbe88932e/download, Generic object proposal model (1-class), 863ea2d62ad1fd031350dbd29a8d71fb, ALL-PLATFORMS, "PYTORCH, PYTORCH-RF-DETR"
+GENERIC, https://viame.kitware.com/api/v1/item/6a76362456d7c3abbe88fd9a/download, Generic object proposal model (1-class), 4aab07dce26664f764b125eb789d14a7, ALL-PLATFORMS, "PYTORCH, PYTORCH-RF-DETR"
 HABCAM, https://viame.kitware.com/girder/api/v1/file/685eecb7a2df48d3c1ae8bfb/download, Detect and measure scallops and flatfish and other friends, 4a11c76c2d17dff4a7ecad71b4814d9b, LINUX-ONLY, "PYTORCH, PYTORCH-NETHARN"
 SEFSC-SEAMAP, https://viame.kitware.com/api/v1/file/69cea9e2dc8332f478b87605/download, 170 species fish detector and trackers for Gulf of Mexico, 6d8409ec2807777cbf1743147a4b0987, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 SWFSC-PENGHEAD, https://viame.kitware.com/api/v1/item/627b3289ea630db5587b577d/download, Penguin headcam classification, 7c0a2e38c391a1f5d6e42cf62c710e65, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
