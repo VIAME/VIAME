@@ -421,11 +421,10 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   elseif( "${LIB}" STREQUAL "torch2rt" )
     set( PROJECT_DEPS fletch python-deps tensorrt )
   elseif( "${LIB}" STREQUAL "detectron2" )
-    if( WIN32 )
-      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${VIAME_PATCHES_DIR}/detectron2
-        ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
-    endif()
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/detectron2
+      ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   elseif( "${LIB}" STREQUAL "pyav" )
     # On Windows, FFmpeg puts .lib files in bin/ instead of lib/
     # Need to include both directories in library search path
@@ -461,8 +460,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       ${VIAME_PATCHES_DIR}/mmdeploy
       ${VIAME_PACKAGES_DIR}/pytorch-libs/mmdeploy )
     set( PROJECT_DEPS ${PROJECT_DEPS} mmdetection onnxruntimelibs )
-  elseif( "${LIB}" STREQUAL "detectron2" )
-    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   elseif( "${LIB}" STREQUAL "sam3" )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/sam3
