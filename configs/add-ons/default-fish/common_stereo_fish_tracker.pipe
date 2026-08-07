@@ -25,7 +25,7 @@ config srnn
   :IOU_reject_threshold                        0.100
   :track_search_threshold                      2
   :gpu_list                                    0
-  :siamese_model_path                          models/siamese_model.pt
+  :siamese_model_path                          siamese/snapshot_epoch_6.pt
   :targetRNN_AIM_model_path                    models/rnn_f_aim.pt
   :targetRNN_AIM_V_model_path                  models/rnn_ml_aim.pt
   :siamese_batch_size                          64
