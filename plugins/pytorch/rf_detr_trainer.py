@@ -366,6 +366,30 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         '(batch>1 is unusable), so this dominates epoch time on large vali '
         'sets. A subsample gives a fast, stable selection signal; run a full '
         'eval on the final best checkpoint for the headline number.'))
+    val_min_class_instances = scfg.Value(0, help=(
+        'Ground-truth instances each class is guaranteed in the val_subsample. '
+        '0 samples uniformly, which on a long-tailed set leaves rare classes '
+        'with a handful of boxes apiece -- an AP over five instances swings '
+        'visibly epoch to epoch, and that noise lands in the macro-averaged '
+        'mAP that selects the exported checkpoint. Above 0, chips are reserved '
+        'rarest-class-first until every class reaches the floor, then the rest '
+        'of the budget is filled uniformly. Ignored when val_subsample = 0 '
+        '(the whole validation set is already used).'))
+    min_class_support = scfg.Value(0, help=(
+        'Ground-truth instances a class needs before it counts toward the '
+        'macro-averaged mAP and the macro-F1 the threshold sweep maximises, '
+        'and therefore toward best-checkpoint selection. Classes under the '
+        'floor still appear in the per-class table and in val/AP/<name>. 0 '
+        'averages every class carrying ground truth. Pair it with '
+        'val_min_class_instances: that one buys the rare classes a real '
+        'denominator, this one keeps whatever is still too thin to measure '
+        'from steering the run.'))
+    class_agnostic_eval = scfg.Value(True, help=(
+        'Also evaluate with every label collapsed to a single class, logged as '
+        'val/mAP_50_95_agnostic. Separates localisation from classification: '
+        'it scores whether the object was found at all, independent of whether '
+        'it was named correctly. Boxes only, and the base model only, so the '
+        'added validation cost is small.'))
     max_mask_instances = scfg.Value(0, help=(
         'Cap matched instances per chip used by the segmentation mask loss '
         '(0 = off). The RF-DETR mask loss allocates per-matched-instance '
@@ -588,6 +612,90 @@ class RFDETRTrainer(TrainDetector):
               + (f", lr_stem = {self._lr_stem}"
                  if float(self._lr_stem) > 0 else "") + ")")
 
+    @staticmethod
+    def _subsample_val_indices(val_dets, cat_name_to_id, n_sub, min_per_class):
+        """Pick which validation images to keep, as a sorted index list.
+
+        With min_per_class = 0 this is a plain uniform sample. Above 0 it first
+        reserves images until every class that can reach the floor has at least
+        that many instances, then fills the remaining budget uniformly.
+
+        A uniform sample of a long-tailed set gives rare classes single-digit
+        instance counts, and an AP over five boxes moves in visible steps from
+        epoch to epoch -- noise that lands directly in the macro-averaged mAP that
+        selects the exported checkpoint. Reserving a floor costs a few images of
+        budget and cuts that variance at the source.
+
+        Classes whose whole-set count is already below the floor take every image
+        they appear in; nothing can be done for them beyond that.
+        """
+        import random
+        from collections import Counter
+
+        order = list(range(len(val_dets)))
+        random.Random(1234).shuffle(order)
+
+        if min_per_class <= 0:
+            return sorted(order[:n_sub])
+
+        per_image = []
+        for det_set in val_dets:
+            counts = Counter()
+            if det_set is not None:
+                for det in det_set:
+                    det_type = det.type
+                    if det_type is None:
+                        continue
+                    name = det_type.get_most_likely_class()
+                    if name in cat_name_to_id:
+                        counts[name] += 1
+            per_image.append(counts)
+
+        totals = Counter()
+        for counts in per_image:
+            totals.update(counts)
+
+        selected = set()
+        held = Counter()
+        # Rarest first: a rare class has few images to draw on, and an image taken
+        # for it also credits every other class in the same frame. Filling common
+        # classes first would spend the budget before the tail is reached.
+        for name, _ in sorted(totals.items(), key=lambda kv: kv[1]):
+            for i in order:
+                if held[name] >= min_per_class:
+                    break
+                if i in selected or not per_image[i][name]:
+                    continue
+                selected.add(i)
+                held.update(per_image[i])
+
+        reserved = len(selected)
+        for i in order:
+            if len(selected) >= n_sub:
+                break
+            selected.add(i)
+
+        # Recounted over the final selection, not the reserved subset: the uniform
+        # fill carries instances of its own and can lift a class over the floor.
+        final = Counter()
+        for i in selected:
+            final.update(per_image[i])
+        short = sorted(
+            name for name, total in totals.items()
+            if final[name] < min_per_class and total >= min_per_class
+        )
+        print(f"[RFDETRTrainer] Stratified validation: {reserved} chip(s) "
+              f"reserved to give {len(totals)} class(es) >= {min_per_class} "
+              f"instance(s)")
+        if reserved > n_sub:
+            print(f"[RFDETRTrainer] WARNING: the per-class floor needs "
+                  f"{reserved} chips, over the val_subsample budget of {n_sub}; "
+                  f"keeping all of them")
+        if short:
+            print(f"[RFDETRTrainer] WARNING: below the floor despite having "
+                  f"enough instances overall: {', '.join(short)}")
+        return sorted(selected)
+
     def _prepare_roboflow_dataset(self):
         """
         Convert stored kwiver data directly to Roboflow directory format
@@ -739,10 +847,9 @@ class RFDETRTrainer(TrainDetector):
         val_dets = self._test_detections
         n_sub = int(self._val_subsample)
         if n_sub > 0 and len(val_files) > n_sub:
-            import random
-            idx = list(range(len(val_files)))
-            random.Random(1234).shuffle(idx)
-            idx = sorted(idx[:n_sub])
+            idx = self._subsample_val_indices(
+                val_dets, cat_name_to_id, n_sub,
+                int(self._val_min_class_instances))
             val_files = [val_files[i] for i in idx]
             val_dets = [val_dets[i] for i in idx]
             print(f"[RFDETRTrainer] Validation subsampled to {len(val_files)} "
@@ -940,6 +1047,8 @@ class RFDETRTrainer(TrainDetector):
             skip_best_epochs=int(self._skip_best_epochs),
             eval_interval=int(self._eval_interval),
             eval_max_dets=int(self._eval_max_dets),
+            min_class_support=int(self._min_class_support),
+            class_agnostic_eval=parse_bool(self._class_agnostic_eval),
             tensorboard=use_tensorboard,
             wandb=False,
         )
@@ -1147,6 +1256,8 @@ class RFDETRTrainer(TrainDetector):
             skip_best_epochs=int(self._skip_best_epochs),
             eval_interval=int(self._eval_interval),
             eval_max_dets=int(self._eval_max_dets),
+            min_class_support=int(self._min_class_support),
+            class_agnostic_eval=parse_bool(self._class_agnostic_eval),
             tensorboard=parse_bool(self._use_tensorboard),
             wandb=False,
             class_names=list(self._class_names),
