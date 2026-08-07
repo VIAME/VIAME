@@ -111,8 +111,8 @@ if( VIAME_DOWNLOAD_MODELS )
       ${CMAKE_CURRENT_SOURCE_DIR} )
   endif()
 
-  # Darknet training seed models
-  if( VIAME_ENABLE_DARKNET )
+  # Darknet training seed models, consumed by the darknet-yolo add-on configs
+  if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-DARKNET-YOLO )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/65697428c5a2b36857ad1a0a/download
       80cfe1dfd89ccd938b587a81b13bdef9
@@ -247,8 +247,6 @@ if( VIAME_ENABLE_PYTORCH )
   )
 endif()
 
-# Darknet specific configs
-
 # Configs used exclusively for VIEW
 if( VIAME_ENABLE_VIVIA )
   set( GUI_PIPELINE_FILES
@@ -266,11 +264,6 @@ if( VIAME_ENABLE_VIVIA )
     embedded_single_stream/local_deep_detector_with_stab_tracker.pipe
     embedded_single_stream/local_svm_frame_classifier.pipe
   )
-
-  if( VIAME_ENABLE_DARKNET )
-    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      embedded_single_stream/train_deep_detector_yolo.pipe )
-  endif()
 
   if( VIAME_ENABLE_PYTORCH )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
@@ -407,12 +400,6 @@ if( VIAME_ENABLE_SEAL OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
       embedded_dual_stream/train_cfrnn_eo.pipe
       embedded_dual_stream/train_cfrnn_ir.pipe )
-  endif()
-
-  if( VIAME_ENABLE_DARKNET )
-    set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
-      embedded_dual_stream/train_yolo_eo.pipe
-      embedded_dual_stream/train_yolo_ir.pipe )
   endif()
 
   install( FILES       ${DUAL_EMBEDDED_FILES}
