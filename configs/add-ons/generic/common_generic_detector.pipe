@@ -43,7 +43,7 @@ process detector
   endblock
 
 connect from detector_input.image
-        to   detector1.image
+        to   detector.image
 
 process detector_output
   :: refine_detections
