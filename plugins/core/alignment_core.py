@@ -246,6 +246,188 @@ def _homography_is_sane(
     return 1e-2 < ratio < 1e2
 
 
+def fit_pooled_homography(
+    observations: List[Dict[str, Any]],
+    opts: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """MAGSAC over correspondences pooled from every image pair.
+
+    Normalizes each observation's points by its own image size before RANSAC
+    so the pixel threshold means the same thing across frames, fits one
+    homography, then reports per-observation inlier counts and reprojection
+    RMS so callers can identify (and the GUI can surface) a frame that
+    disagrees with the consensus.
+
+    Each observation is a dict with:
+      points  [[ax, ay, bx, by], ...] in native pixels
+      size_a  (width, height) of image A for that observation
+      size_b  (width, height) of image B
+
+    Returns on success::
+
+      {success: True, homography (3x3 A native px -> B native px),
+       num_points, num_inliers, rms_px,
+       observations: [{num_points, num_inliers, inlier_ratio, rms_px}, ...]}
+
+    Per-observation ``rms_px`` is computed over *all* of that observation's
+    points against the pooled fit -- a frame whose points are outliers to
+    the consensus shows a large RMS rather than disappearing from the
+    statistics.
+    """
+    merged = dict(DEFAULT_OPTIONS)
+    merged.update(opts or {})
+
+    norm_a: List[np.ndarray] = []
+    norm_b: List[np.ndarray] = []
+    native_a: List[np.ndarray] = []
+    native_b: List[np.ndarray] = []
+    obs_slices: List[Tuple[int, int]] = []
+    first_sizes: Optional[Tuple[Tuple[int, int], Tuple[int, int]]] = None
+    cursor = 0
+    for obs in observations:
+        pts = np.asarray(
+            obs.get("points") if obs.get("points") is not None else [],
+            dtype=np.float64,
+        ).reshape(-1, 4)
+        n = len(pts)
+        obs_slices.append((cursor, cursor + n))
+        cursor += n
+        if n == 0:
+            continue
+        wa, ha = obs["size_a"]
+        wb, hb = obs["size_b"]
+        if first_sizes is None:
+            first_sizes = ((wa, ha), (wb, hb))
+        sa = MATCH_SIZE / float(max(wa, ha))
+        sb = MATCH_SIZE / float(max(wb, hb))
+        native_a.append(pts[:, 0:2])
+        native_b.append(pts[:, 2:4])
+        norm_a.append(pts[:, 0:2] * sa)
+        norm_b.append(pts[:, 2:4] * sb)
+
+    num_points = cursor
+
+    def failure(code: str, message: str) -> Dict[str, Any]:
+        return {
+            "success": False,
+            "code": code,
+            "error": message,
+            "num_points": num_points,
+        }
+
+    if num_points < 4:
+        return failure(
+            "insufficient_points",
+            f"Only {num_points} pooled correspondences (need >=4).")
+
+    a_norm = np.concatenate(norm_a)
+    b_norm = np.concatenate(norm_b)
+    a_native = np.concatenate(native_a)
+    b_native = np.concatenate(native_b)
+
+    cv2.setRNGSeed(0)
+    H_norm, mask = cv2.findHomography(
+        a_norm, b_norm,
+        cv2.USAC_MAGSAC,
+        ransacReprojThreshold=float(merged["ransac_threshold"]),
+        confidence=0.999999,
+        maxIters=10000,
+    )
+    if H_norm is None or mask is None:
+        return failure(
+            "low_confidence",
+            "Could not find a consistent pooled alignment; the frames may "
+            "disagree with each other.")
+    mask = mask.ravel().astype(bool)
+    num_inliers = int(mask.sum())
+    if num_inliers < 4:
+        return failure(
+            "low_confidence",
+            f"Pooled consensus too weak ({num_inliers} inliers).")
+
+    # Refit in native pixels over the inliers (plain least squares),
+    # mirroring the single-pair path.
+    H_native, _ = cv2.findHomography(
+        a_native[mask], b_native[mask], 0)
+    if H_native is None or first_sizes is None \
+            or not _homography_is_sane(H_native, first_sizes[0],
+                                       first_sizes[1]):
+        return failure(
+            "degenerate_homography",
+            "The pooled alignment fit is degenerate.")
+
+    def reprojection_errors(a_pts: np.ndarray, b_pts: np.ndarray):
+        projected = cv2.perspectiveTransform(
+            a_pts.reshape(-1, 1, 2), H_native).reshape(-1, 2)
+        return np.linalg.norm(projected - b_pts, axis=1)
+
+    all_errors = reprojection_errors(a_native, b_native)
+    overall_rms = float(np.sqrt(np.mean(all_errors[mask] ** 2)))
+
+    per_obs: List[Dict[str, Any]] = []
+    for start, end in obs_slices:
+        n = end - start
+        if n == 0:
+            per_obs.append({
+                "num_points": 0,
+                "num_inliers": 0,
+                "inlier_ratio": 0.0,
+                "rms_px": None,
+            })
+            continue
+        obs_mask = mask[start:end]
+        obs_errors = all_errors[start:end]
+        obs_inliers = int(obs_mask.sum())
+        per_obs.append({
+            "num_points": n,
+            "num_inliers": obs_inliers,
+            "inlier_ratio": round(obs_inliers / float(n), 4),
+            "rms_px": round(float(np.sqrt(np.mean(obs_errors ** 2))), 4),
+        })
+
+    return {
+        "success": True,
+        "homography": H_native.tolist(),
+        "num_points": num_points,
+        "num_inliers": num_inliers,
+        "rms_px": round(overall_rms, 4),
+        "observations": per_obs,
+    }
+
+
+def loop_closure_residual(
+    H_12: np.ndarray,
+    H_23: np.ndarray,
+    H_13: np.ndarray,
+    size_1: Tuple[int, int],
+    grid: int = 10,
+) -> Dict[str, float]:
+    """Mutual-consistency check for a solved camera triplet.
+
+    Pushes a grid of points from camera 1 into camera 3 via the direct
+    homography (H_13) and via the composed route (H_23 . H_12), and reports
+    the mean/max disagreement in camera-3 pixels. Near-zero means the three
+    independently fitted pairs describe one consistent rig; a large value
+    means at least one pair disagrees with the route through the third
+    camera.
+    """
+    w, h = size_1
+    xs = np.linspace(0, w, grid)
+    ys = np.linspace(0, h, grid)
+    points = np.array(
+        [[x, y] for y in ys for x in xs], dtype=np.float64
+    ).reshape(-1, 1, 2)
+    direct = cv2.perspectiveTransform(points, np.asarray(H_13, np.float64))
+    composed = cv2.perspectiveTransform(
+        points, np.asarray(H_23, np.float64) @ np.asarray(H_12, np.float64))
+    dists = np.linalg.norm(
+        direct.reshape(-1, 2) - composed.reshape(-1, 2), axis=1)
+    return {
+        "mean_px": round(float(np.mean(dists)), 4),
+        "max_px": round(float(np.max(dists)), 4),
+    }
+
+
 class MatchResult:
     """Raw matcher output for one image pair, in matcher coordinates.
 
