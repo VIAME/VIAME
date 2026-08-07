@@ -56,6 +56,6 @@ process detector_output
   endblock
 
 connect from detector.detected_object_set
-        to   detector_output.detected_object_set1
+        to   detector_output.detected_object_set
 
 # -- end of file --
