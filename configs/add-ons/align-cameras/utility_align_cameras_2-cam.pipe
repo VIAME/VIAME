@@ -1,0 +1,49 @@
+# =============================================================================
+# Title: Align Cameras (2-Camera)
+#
+# Description: Registers a two-camera rig by matching many image pairs with
+# the MINIMA-LoFTR cross-spectral matcher and pooling one homography over
+# every contributing frame. Writes a DIVE camera registration JSON
+# (format v2) with per-frame observations and quality statistics.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config global
+   :output_directory                           ./
+   :output_json_file                           registration.json
+
+# ============================= INPUT FRAME LIST ==============================
+
+include common_stereo_input.pipe
+
+# ============================ CAMERA REGISTRATION ============================
+# The register process reads image files itself (native bit depth, percentile
+# stretch for 16-bit thermal); the decoded image ports stay unconnected on
+# purpose -- the input includes force 8-bit via image_reader:vxl:force_byte.
+
+process register
+  :: align_cameras
+  :n_input                                     2
+  :pairs                                       1-2
+  :output_directory                            $CONFIG{global:output_directory}
+  :output_json_file                            $CONFIG{global:output_json_file}
+  :max_frames                                  12
+  :ransac_threshold                            2.0   # DIVE_PARAM["RANSAC threshold (px)", range_float, 0.5, 10, 0.1]
+  :min_matches                                 100   # DIVE_PARAM["Min matches per frame", range_int, 4, 1000, 1]
+  :min_inliers                                 30    # DIVE_PARAM["Min inliers per frame", range_int, 4, 500, 1]
+  :min_inlier_ratio                            0.15  # DIVE_PARAM["Min inlier ratio", range_float, 0, 1, 0.01]
+  :top_k                                       24    # DIVE_PARAM["Points kept per frame", range_int, 4, 100, 1]
+  :match_threshold                             0.2   # DIVE_PARAM["Match confidence threshold", range_float, 0, 1, 0.01]
+  :lower_percentile                            2.0   # DIVE_PARAM["16-bit lower percentile", range_float, 0, 100, 0.1]
+  :upper_percentile                            98.0  # DIVE_PARAM["16-bit upper percentile", range_float, 0, 100, 0.1]
+
+# ============================ PROCESS CONNECTION =============================
+
+connect from input1.file_name
+        to   register.file_name1
+connect from input2.file_name
+        to   register.file_name2
+
+# -- end of file --
