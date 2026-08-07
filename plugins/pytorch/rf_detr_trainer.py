@@ -367,29 +367,26 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         'sets. A subsample gives a fast, stable selection signal; run a full '
         'eval on the final best checkpoint for the headline number.'))
     val_min_class_instances = scfg.Value(0, help=(
-        'Ground-truth instances each class is guaranteed in the val_subsample. '
-        '0 samples uniformly, which on a long-tailed set leaves rare classes '
-        'with a handful of boxes apiece -- an AP over five instances swings '
-        'visibly epoch to epoch, and that noise lands in the macro-averaged '
-        'mAP that selects the exported checkpoint. Above 0, chips are reserved '
-        'rarest-class-first until every class reaches the floor, then the rest '
-        'of the budget is filled uniformly. Ignored when val_subsample = 0 '
-        '(the whole validation set is already used).'))
+        'Ground-truth instances each class is guaranteed in the val_subsample. 0 '
+        'samples uniformly, leaving rare classes a handful of boxes apiece and '
+        'their AP swinging epoch to epoch. Above 0, chips are reserved rarest-'
+        'class-first, then the budget is filled uniformly. Needs val_subsample.'))
     min_class_support = scfg.Value(0, help=(
-        'Ground-truth instances a class needs before it counts toward the '
-        'macro-averaged mAP and the macro-F1 the threshold sweep maximises, '
-        'and therefore toward best-checkpoint selection. Classes under the '
-        'floor still appear in the per-class table and in val/AP/<name>. 0 '
-        'averages every class carrying ground truth. Pair it with '
-        'val_min_class_instances: that one buys the rare classes a real '
-        'denominator, this one keeps whatever is still too thin to measure '
-        'from steering the run.'))
+        'Ground-truth instances a class needs to count toward the macro mAP and '
+        'macro-F1, and so toward checkpoint selection. Thinner classes stay in the '
+        'per-class table and val/AP/<name>. Pairs with val_min_class_instances.'))
+    verify_images = scfg.Value(True, help=(
+        'Exclude images missing their end-of-file marker when building the COCO '
+        'dataset, catching chips a crashed chipping pass left truncated. Costs a '
+        'second read per file; turn off to re-scan an already-validated cache.'))
+    dataset_scan_threads = scfg.Value(0, help=(
+        'Threads reading image dimensions while building the COCO dataset. Bound '
+        'by filesystem round trips, not bytes or CPU, so counts well past the core '
+        'count help. 0 auto-sizes from the CPU count; 1 disables the pool.'))
     class_agnostic_eval = scfg.Value(True, help=(
-        'Also evaluate with every label collapsed to a single class, logged as '
-        'val/mAP_50_95_agnostic. Separates localisation from classification: '
-        'it scores whether the object was found at all, independent of whether '
-        'it was named correctly. Boxes only, and the base model only, so the '
-        'added validation cost is small.'))
+        'Also evaluate with every label collapsed to one class, logged as '
+        'val/mAP_50_95_agnostic: scores whether the object was found at all, '
+        'independent of naming. Boxes and base model only, so the cost is small.'))
     max_mask_instances = scfg.Value(0, help=(
         'Cap matched instances per chip used by the segmentation mask loss '
         '(0 = off). The RF-DETR mask loss allocates per-matched-instance '
@@ -612,6 +609,17 @@ class RFDETRTrainer(TrainDetector):
               + (f", lr_stem = {self._lr_stem}"
                  if float(self._lr_stem) > 0 else "") + ")")
 
+    def _resolve_scan_threads(self):
+        """Threads for the COCO dimension scan; 0 auto-sizes from the CPU count.
+
+        Oversubscribed at 4x cores because the threads block on I/O rather than
+        hold the GIL; capped so a big node does not bury network storage.
+        """
+        configured = int(self._dataset_scan_threads)
+        if configured > 0:
+            return configured
+        return max(1, min(32, (os.cpu_count() or 4) * 4))
+
     @staticmethod
     def _subsample_val_indices(val_dets, cat_name_to_id, n_sub, min_per_class):
         """Pick which validation images to keep, as a sorted index list.
@@ -738,29 +746,70 @@ class RFDETRTrainer(TrainDetector):
                 category["keypoints"] = list(kp_names)
 
         unreadable = []
+        verify_images = parse_bool(self._verify_images)
+        scan_threads = self._resolve_scan_threads()
+        print(f"[RFDETRTrainer] Image scan: {scan_threads} thread(s), "
+              f"truncation check {'on' if verify_images else 'off'}")
+
+        def probe_image(item):
+            """Read one image's dimensions. Returns (index, width, height, error)."""
+            img_idx, img_path = item
+            try:
+                with open(img_path, 'rb') as fh:
+                    with Image.open(fh) as im:  # lazy: header only, ~57 bytes
+                        width, height = im.size
+                    # Seeks past the buffer the header read filled, so it costs a
+                    # second round trip per file.
+                    if verify_images and not image_is_complete(fh, img_path):
+                        raise OSError("image file is truncated")
+            except Exception as exc:
+                return img_idx, None, None, f"{type(exc).__name__}: {exc}"
+            return img_idx, width, height, None
+
+        def probe_block(items):
+            """Map probe_image over (index, path) pairs, threaded when worthwhile.
+
+            Bound by filesystem round trips, not bytes or CPU, so threads overlap
+            the waiting and oversubscription helps.
+            """
+            if scan_threads > 1 and len(items) > 1:
+                from concurrent.futures import ThreadPoolExecutor
+                with ThreadPoolExecutor(max_workers=scan_threads) as pool:
+                    return {i: (w, h, e) for i, w, h, e in pool.map(probe_image, items)}
+            return {i: (w, h, e) for i, w, h, e in map(probe_image, items)}
+
+        # Blocked, not all at once: one entry per image over a 5M-image split would
+        # cost ~1 GB on top of the COCO lists already accumulating here.
+        probe_block_size = 20000
 
         def build_coco_json(image_files, detection_sets):
             images_json = []
             annotations_json = []
             ann_id = 1
+            total = min(len(image_files), len(detection_sets))
+            probed = {}
 
-            for img_idx, (img_path, det_set) in enumerate(
-                zip(image_files, detection_sets)
-            ):
-                img_path = str(img_path)
-                if not os.path.exists(img_path):
-                    continue
+            for img_idx in range(total):
+                img_path = str(image_files[img_idx])
+                det_set = detection_sets[img_idx]
 
-                # Dimensions come from the header; the EOF marker is what says
-                # the rest of the file is actually there.
-                try:
-                    with open(img_path, 'rb') as fh:
-                        with Image.open(fh) as im:
-                            width, height = im.size
-                        if not image_is_complete(fh, img_path):
-                            raise OSError("image file is truncated")
-                except Exception as exc:
-                    unreadable.append((img_path, f"{type(exc).__name__}: {exc}"))
+                if img_idx % probe_block_size == 0:
+                    # Only the I/O is parallel: the loop below walks kwiver
+                    # detection objects, which are not safe to share.
+                    probed = probe_block([
+                        (i, str(image_files[i]))
+                        for i in range(img_idx, min(img_idx + probe_block_size, total))
+                    ])
+                    # Silence here is indistinguishable from a hang.
+                    if total > probe_block_size:
+                        print(f"[RFDETRTrainer] Scanning image dimensions: "
+                              f"{img_idx}/{total}", flush=True)
+
+                # No exists() pre-check: probe_image's open() already catches a
+                # missing path, and now reports it instead of skipping silently.
+                width, height, error = probed[img_idx]
+                if error is not None:
+                    unreadable.append((img_path, error))
                     continue
 
                 img_id = img_idx
