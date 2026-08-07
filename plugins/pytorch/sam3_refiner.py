@@ -272,6 +272,34 @@ class SAM3RefinerConfig(SAM3BaseConfig):
              'detection set.'
     )
 
+    # SAM 3.1 refuses to instantiate a new object once this many are already
+    # being tracked, silently dropping the lowest-scoring new detections. The
+    # model builder's default is 16, which is well under what a crowded frame
+    # holds -- a quarter of the sequences here exceed it -- so it has to be
+    # raised for a detection set to be replayed faithfully rather than
+    # truncated. Costs memory and time roughly in proportion to the objects
+    # actually present, so scenes below the cap are unaffected.
+    max_tracked_objects = scfg.Value(
+        0,
+        help='Override SAM 3.1\'s concurrent tracked-object limit. 0 leaves '
+             'the model default (16) alone.'
+    )
+
+    # Every tracker in a detector-shared comparison gates the detection set
+    # before it will start a track -- ByteTrack and OC-SORT here keep only the
+    # 15% above 0.804. Replaying an ungated set instead makes SAM 3 open a
+    # track on detections the others silently discard, so it is charged with
+    # false positives they never had the chance to emit and its precision is
+    # not comparable with theirs. Off by default: the seed-track and
+    # text-query pipelines supply their own detections and do not want them
+    # second-guessed.
+    detections_threshold = scfg.Value(
+        0.0,
+        help='Drop detections below this confidence before seeding. Set it to '
+             'the new-track threshold of the trackers being compared against, '
+             'so every tracker starts tracks on the same detections.'
+    )
+
     detections_file = scfg.Value(
         '',
         help='VIAME CSV of detections to replay as seeds, matched to '
@@ -561,10 +589,19 @@ class SAM3Refiner(RefineTracks):
         self._link_iou = 0.3
         self._link_max_gap = 5
         self._max_seed_objects = 16
+        self._max_tracked_objects = 0
+        self._detections_threshold = 0.0
+        self._below_threshold = 0
         self._active_seeds = {}   # obj_id -> (last_frame, box_xyxy)
         self._seeded = 0
         self._linked = 0
         self._seed_capacity_drops = 0
+        # Ids handed to objects SAM 3 discovered rather than ones that were
+        # seeded. Negative and strictly decreasing, so they stay distinct from
+        # every real track id and from each other across chunks.
+        self._discovered_id_seq = 0
+        self._seeds_submitted = 0
+        self._seeds_mapped = 0
 
         # Video predictor state (used when propagate_tracked=True)
         self._video_predictor = None
@@ -616,6 +653,9 @@ class SAM3Refiner(RefineTracks):
         self._link_iou = float(self._config.link_iou)
         self._link_max_gap = int(self._config.link_max_gap)
         self._max_seed_objects = int(self._config.max_seed_objects)
+        self._max_tracked_objects = int(self._config.max_tracked_objects)
+        self._detections_threshold = float(
+            self._config.detections_threshold)
         self._detections_file = str(self._config.detections_file or '')
         self._external_dets = {}
         if self._detections_file:
@@ -706,6 +746,20 @@ class SAM3Refiner(RefineTracks):
             else:
                 self._set_predictor_attr(vp, 'batched_grounding_batch_size',
                                          batch)
+
+            if self._max_tracked_objects > 0:
+                self._set_predictor_attr(vp, 'max_num_objects',
+                                         self._max_tracked_objects)
+                # SAM 3 post-processes masks for a whole batch of frames at
+                # once, concatenating one full-resolution mask per object per
+                # frame. That allocation scales with the object limit and is
+                # what runs a 16 GB card out of memory as soon as the limit is
+                # raised, so take the per-frame path instead: same masks, peak
+                # divided by the batch.
+                self._set_predictor_attr(vp, 'postprocess_batch_size', 1)
+                print("[SAM3] concurrent tracked-object limit raised to %d "
+                      "(mask post-processing unbatched to fit)"
+                      % self._max_tracked_objects)
 
             # Echo what the detector will actually run with.  These are
             # assembled from several config layers and silently defaulted
@@ -877,6 +931,23 @@ class SAM3Refiner(RefineTracks):
 
             chunk_results = self._run_video_propagation_chunk(
                 chunk_frames, start, chunk_box_prompts, chunk_text_prompts)
+
+            if self._preserve_seed_ids:
+                # The chunk has already mapped its objects back onto the ids
+                # of the detections that seeded them, and those ids are the
+                # input track ids -- global across the whole video by
+                # construction. Renumbering them here would undo exactly the
+                # identity this mode exists to preserve, and the renumbered
+                # ids then collide with the seed-id space, so the
+                # add_new_objects=False filter keeps arbitrary objects
+                # instead of dropping SAM 3's own discoveries.
+                for (cid, local_fidx), val in chunk_results.items():
+                    key = (cid, local_fidx + start)
+                    if key in all_results:
+                        continue
+                    all_results[key] = val
+                start += chunk_size - overlap
+                continue
 
             if not all_results:
                 # First chunk — adopt IDs directly, offset to global range
@@ -1055,7 +1126,7 @@ class SAM3Refiner(RefineTracks):
                         state, class_terms, text_seed_frame,
                     )
                 else:
-                    seed_order = self._seed_prompts_single_pass(
+                    seeds = self._seed_prompts_single_pass(
                         state, is_sam31, text_query, text_seed_frame,
                         frame_prompts,
                     )
@@ -1064,8 +1135,11 @@ class SAM3Refiner(RefineTracks):
                         self._collect_frame_results(
                             results, frame_idx, frame_results,
                         )
-                    if self._preserve_seed_ids and seed_order:
-                        results = self._remap_seed_ids(results, seed_order)
+                    if self._preserve_seed_ids and seeds:
+                        seed_map = self._map_seed_ids_from_results(
+                            results, seeds)
+                        self._seeds_mapped += len(seed_map)
+                        results = self._remap_seed_ids(results, seed_map)
             finally:
                 tqdm.tqdm.__init__ = _orig_init
 
@@ -1077,14 +1151,63 @@ class SAM3Refiner(RefineTracks):
 
         return results
 
+    def _map_seed_ids_from_results(self, results, seeds):
+        """Map SAM 3's own object ids onto the track ids that seeded them.
+
+        SAM 3.1 takes no per-box obj_id: it numbers objects itself, skips seed
+        boxes it declines to instantiate, and mixes in anything it detected on
+        its own. Pairing its ids with the submitted boxes by position --
+        which is what this did first -- therefore hands a track the mask of
+        whichever unrelated object happened to land in the same slot.
+
+        The reliable link is spatial: on the frame a seed was planted, the
+        object covering that seed's box is the one it created. Objects
+        matching no seed are SAM 3's own discoveries and are left out; the
+        caller gives them ids that cannot collide with a real track.
+        """
+        if not results or not seeds:
+            return {}
+
+        # Propagated boxes, per frame, in image pixels.
+        by_frame = {}
+        for (oid, fidx), (_mask, box_xyxy, _score) in results.items():
+            by_frame.setdefault(fidx, []).append((oid, box_xyxy))
+
+        w, h = self._img_width, self._img_height
+
+        pairs = []
+        for si, (_det_id, fidx, box_rel) in enumerate(seeds):
+            sbox = [box_rel[0] * w, box_rel[1] * h,
+                    (box_rel[0] + box_rel[2]) * w,
+                    (box_rel[1] + box_rel[3]) * h]
+            for oid, obox in by_frame.get(fidx, ()):
+                iou = _box_iou(sbox, obox)
+                if iou > 0.0:
+                    pairs.append((iou, si, oid))
+
+        # Best-first greedy assignment, so a seed and the object over it are
+        # paired before either can be claimed by a poorer overlap.
+        pairs.sort(key=lambda p: (-p[0], p[1], p[2]))
+
+        seed_map = {}
+        used_seeds, used_oids = set(), set()
+        for _iou, si, oid in pairs:
+            if si in used_seeds or oid in used_oids:
+                continue
+            seed_map[oid] = seeds[si][0]
+            used_seeds.add(si)
+            used_oids.add(oid)
+
+        return seed_map
+
     def _remap_seed_ids(self, results, seed_order):
         """Rename SAM 3's object ids back to the tracks that seeded them.
 
-        SAM 3.1 numbers the objects it returns 0, 1, 2, ... in the order the
-        seed boxes were handed to add_prompt, so position i in ``seed_order``
-        is the input track id for object id i. Objects beyond the seeds are
-        ones SAM 3 found itself; they keep their own ids and are dropped
-        later if add_new_objects is off.
+        ``seed_order`` maps a SAM 3 object id to the input track id whose
+        detection seeded it. Anything absent from it is an object SAM 3 found
+        on its own; it is given a negative id, unique across the whole run, so
+        it can never be mistaken for a seeded track by the
+        ``add_new_objects=False`` filter downstream.
 
         Ids are rewritten into a fresh dict rather than in place, because a
         seeded id and a discovered id can collide once the seeded ones are
@@ -1092,8 +1215,15 @@ class SAM3Refiner(RefineTracks):
         """
         remapped = {}
         collisions = 0
+        discovered = {}
         for (oid, fidx), value in results.items():
-            new_oid = seed_order[oid] if 0 <= oid < len(seed_order) else oid
+            if oid in seed_order:
+                new_oid = seed_order[oid]
+            else:
+                if oid not in discovered:
+                    self._discovered_id_seq -= 1
+                    discovered[oid] = self._discovered_id_seq
+                new_oid = discovered[oid]
             key = (new_oid, fidx)
             if key in remapped:
                 collisions += 1
@@ -1117,27 +1247,39 @@ class SAM3Refiner(RefineTracks):
         everything into one call. SAM 3.0 accumulates state across calls
         and can accept per-frame seed boxes plus a single text prompt.
         """
-        seed_order = []
+        seeds = []
         if is_sam31:
             if frame_prompts:
+                # add_prompt resets the whole inference state, so it can only
+                # be called once per pass -- but it stores its boxes into
+                # per-frame slots that propagation reads on every frame it
+                # visits. So prompt with the earliest frame's boxes, then
+                # plant the remaining frames' boxes into those same slots
+                # directly.
+                #
+                # Piling every box onto the first frame instead -- which is
+                # what this did first -- plants each object where it is not
+                # yet, so SAM 3 either segments whatever else is at that spot
+                # or instantiates nothing, and the detection is lost.
                 seed_frame = min(frame_prompts.keys())
-                seed_boxes = []
-                for fidx in sorted(frame_prompts.keys()):
-                    for _obj_id, box_rel_xywh in frame_prompts[fidx]:
-                        seed_boxes.append(box_rel_xywh)
-                        # The order boxes are handed to add_prompt is the
-                        # only link back to the tracks they came from:
-                        # SAM 3.1 takes no per-box obj_id and numbers the
-                        # objects itself, starting at 0 in this same order.
-                        seed_order.append(_obj_id)
+                first_boxes = [b for _oid, b in frame_prompts[seed_frame]]
                 add_kwargs = dict(
                     frame_idx=seed_frame,
-                    boxes_xywh=seed_boxes,
-                    box_labels=[1] * len(seed_boxes),
+                    boxes_xywh=first_boxes,
+                    box_labels=[1] * len(first_boxes),
                 )
                 if text_query is not None:
                     add_kwargs['text_str'] = text_query
                 self._video_predictor.add_prompt(state, **add_kwargs)
+
+                for fidx in sorted(frame_prompts.keys()):
+                    if fidx != seed_frame:
+                        self._plant_box_prompts(
+                            state, fidx,
+                            [b for _oid, b in frame_prompts[fidx]])
+                    for _obj_id, box_rel_xywh in frame_prompts[fidx]:
+                        seeds.append((_obj_id, fidx, box_rel_xywh))
+                self._seeds_submitted += len(seeds)
             elif text_query is not None:
                 self._video_predictor.add_prompt(
                     state,
@@ -1163,7 +1305,32 @@ class SAM3Refiner(RefineTracks):
                     text_str=text_query,
                 )
 
-        return seed_order
+        return seeds
+
+    def _plant_box_prompts(self, state, frame_idx, boxes_rel_xywh):
+        """Add box prompts on a frame other than the one add_prompt was given.
+
+        ``add_prompt`` resets the entire inference state on every call, so it
+        cannot be used a second time to prompt another frame. What it does
+        with the boxes, though, is write them into per-frame slots that
+        propagation consults on each frame it reaches, so writing those same
+        slots directly is how a pass gets prompts on more than one frame.
+        Mirrors add_prompt's box branch, minus the reset and the backbone
+        setup the first call already did.
+        """
+        import torch
+        from sam3.model.box_ops import box_xywh_to_cxcywh
+
+        model = getattr(self._video_predictor, '_model', self._video_predictor)
+        boxes_xywh = torch.as_tensor(boxes_rel_xywh, dtype=torch.float32)
+        box_labels = torch.ones(len(boxes_rel_xywh), dtype=torch.long)
+        boxes_cxcywh = box_xywh_to_cxcywh(boxes_xywh)
+
+        state['per_frame_raw_box_input'][frame_idx] = (
+            boxes_cxcywh, box_labels)
+        _b, _l, geometric_prompt = model._get_visual_prompt(
+            state, frame_idx, boxes_cxcywh, box_labels)
+        state['per_frame_geometric_prompt'][frame_idx] = geometric_prompt
 
     def _propagate_per_class(self, state, class_terms, text_seed_frame):
         """
@@ -1433,6 +1600,10 @@ class SAM3Refiner(RefineTracks):
 
             for det_id, (x1, y1, x2, y2), conf, cls in \
                     self._external_dets.get(local_frame_idx, []):
+                if conf < self._detections_threshold:
+                    self._below_threshold += 1
+                    continue
+
                 # Detector boxes routinely run past the image edge --
                 # negative origins and corners beyond width/height are both
                 # common in the shared detection sets. SAM 3 asserts its
@@ -1758,11 +1929,21 @@ class SAM3Refiner(RefineTracks):
 
         if self._external_dets:
             print('[SAM3] external detections: %d seeded, %d linked to a live '
-                  'object, %d dropped at the %d-object cap, %d clamped out'
+                  'object, %d dropped at the %d-object cap, %d clamped out, '
+                  '%d below the %.3f confidence gate'
                   % (self._seeded, self._linked, self._seed_capacity_drops,
-                     self._max_seed_objects, self._clamped_out), flush=True)
+                     self._max_seed_objects, self._clamped_out,
+                     self._below_threshold, self._detections_threshold),
+                  flush=True)
 
         all_results = self._run_video_propagation()
+
+        if self._external_dets and self._seeds_submitted:
+            print('[SAM3] seed prompts: %d submitted across chunks, %d picked '
+                  'up by SAM 3 (%.1f%%)'
+                  % (self._seeds_submitted, self._seeds_mapped,
+                     100.0 * self._seeds_mapped / self._seeds_submitted),
+                  flush=True)
 
         # Collect the set of object IDs we explicitly prompted
         prompted_ids = set()
