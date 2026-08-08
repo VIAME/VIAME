@@ -52,17 +52,25 @@ warnings.filterwarnings(
     "ignore", message=r'The "\w+" class attribute of .* was deprecated in scriptconfig')
 logging.getLogger("torch.utils.cpp_extension").setLevel(logging.ERROR)
 
-from viame.core.interactive_segmentation import (  # noqa: E402
-    InteractiveSegmentationService,
-    load_algorithms_from_config,
-    find_viame_config as find_segmentation_config,
-    suppress_stdout,
+# The segmentation and stereo backends are imported lazily inside their
+# _ensure_* builders: both pull in kwiver / compiled bindings at import time
+# (interactive_stereo hard-imports viame.core._measurement), and a problem
+# there must fail that feature's first request with a JSON error rather than
+# kill the whole service -- the alignment backend below is pure Python
+# (torch/cv2) and stays usable regardless.
+from viame.core.interactive_alignment import (  # noqa: E402
+    InteractiveAlignmentService,
 )
-from viame.core.interactive_stereo import (  # noqa: E402
-    InteractiveStereoService,
-    load_algorithm_from_config,
-    find_viame_config as find_stereo_config,
-)
+
+
+def _suppress_stdout():
+    """Segmentation's stdout guard, or a no-op before that module loads."""
+    try:
+        from viame.core.interactive_segmentation import suppress_stdout
+        return suppress_stdout()
+    except ImportError:
+        import contextlib
+        return contextlib.nullcontext()
 
 
 # Commands routed to the interactive-stereo backend. Everything else
@@ -79,9 +87,25 @@ STEREO_COMMANDS = {
 # disabling something that was never enabled, must stay cheap no-ops.
 STEREO_IDLE_COMMANDS = {"get_status", "cancel", "disable"}
 
+# Commands routed to the interactive-alignment (auto-align) backend. The
+# backend object itself is cheap to construct (its model loads lazily on the
+# first register_images), so no idle-command special casing is needed.
+ALIGNMENT_COMMANDS = {"register_images", "get_alignment_status"}
+
 # Segmentation cache-management commands that must NOT construct (load) the
 # segmentation backend / model before the user's first prediction.
 SEG_IDLE_COMMANDS = {"set_image", "clear_image"}
+
+# Commands that make a competing feature (segmentation or stereo) actually use
+# its model. The auto-align matcher, if resident, is released just before these
+# run so its device memory yields to the feature that needs it -- rather than
+# on alignment-panel close, which would thrash the model on every open/close.
+# Cheap idle/lifecycle commands (status polls, disable, image-cache management)
+# are intentionally excluded: they neither load nor run a model.
+SEG_MODEL_COMMANDS = {
+    "init_segmentation", "predict", "text_query", "refine", "stereo_segment",
+}
+STEREO_MODEL_COMMANDS = STEREO_COMMANDS - STEREO_IDLE_COMMANDS
 
 
 class InteractiveService:
@@ -93,15 +117,18 @@ class InteractiveService:
         stereo_config: Optional[str],
         plugin_paths: Optional[List[str]] = None,
         device: Optional[str] = None,
+        alignment_weights: Optional[str] = None,
     ):
         self._segmentation_configs = segmentation_configs
         self._stereo_config = stereo_config
         self._plugin_paths = plugin_paths or []
         self._device = device
+        self._alignment_weights = alignment_weights
 
         # Lazily constructed sub-services (their models load lazily in turn).
-        self._seg_service: Optional[InteractiveSegmentationService] = None
-        self._stereo_service: Optional[InteractiveStereoService] = None
+        self._seg_service: Optional["InteractiveSegmentationService"] = None  # noqa: F821
+        self._stereo_service: Optional["InteractiveStereoService"] = None  # noqa: F821
+        self._alignment_service: Optional[InteractiveAlignmentService] = None
 
         self._build_lock = threading.Lock()  # guards lazy construction
         self._send_lock = threading.Lock()   # serializes stdout writes
@@ -122,11 +149,17 @@ class InteractiveService:
         self._send({"id": request_id, "success": False, "error": error})
 
     # ------------------------------------------------- lazy construction
-    def _ensure_segmentation(self) -> InteractiveSegmentationService:
+    def _ensure_segmentation(self) -> "InteractiveSegmentationService":  # noqa: F821
         if self._seg_service is not None:
             return self._seg_service
         with self._build_lock:
             if self._seg_service is None:
+                from viame.core.interactive_segmentation import (
+                    InteractiveSegmentationService,
+                    load_algorithms_from_config,
+                    find_viame_config as find_segmentation_config,
+                    suppress_stdout,
+                )
                 configs = self._segmentation_configs
                 if not configs:
                     auto = find_segmentation_config()
@@ -153,18 +186,23 @@ class InteractiveService:
                 self._log("Segmentation backend ready")
         return self._seg_service
 
-    def _ensure_stereo(self) -> InteractiveStereoService:
+    def _ensure_stereo(self) -> "InteractiveStereoService":  # noqa: F821
         if self._stereo_service is not None:
             return self._stereo_service
         with self._build_lock:
             if self._stereo_service is None:
+                from viame.core.interactive_stereo import (
+                    InteractiveStereoService,
+                    load_algorithm_from_config,
+                    find_viame_config as find_stereo_config,
+                )
                 config = self._stereo_config or find_stereo_config()
                 if not config:
                     raise ValueError(
                         "No stereo config available "
                         "(interactive_stereo_default.conf); is VIAME_INSTALL set?")
                 self._log("Loading stereo backend...")
-                with suppress_stdout():
+                with _suppress_stdout():
                     stereo_algo, matcher, svc_cfg = load_algorithm_from_config(
                         config, self._plugin_paths)
                 if stereo_algo is None and matcher is None:
@@ -183,6 +221,19 @@ class InteractiveService:
                     f"({'epipolar' if matcher is not None else 'dense'} mode)")
         return self._stereo_service
 
+    def _ensure_alignment(self) -> InteractiveAlignmentService:
+        if self._alignment_service is not None:
+            return self._alignment_service
+        with self._build_lock:
+            if self._alignment_service is None:
+                # Cheap to construct; the matcher model loads lazily on the
+                # first register_images request and stays resident afterwards.
+                self._alignment_service = InteractiveAlignmentService(
+                    weights_path=self._alignment_weights,
+                    device=self._device,
+                )
+        return self._alignment_service
+
     # ----------------------------------------------------------- routing
     def handle_request(self, request: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Route a request to the appropriate backend, building it on first use.
@@ -192,11 +243,18 @@ class InteractiveService:
         it later via the shared writer)."""
         command = request.get("command")
 
+        if command in ALIGNMENT_COMMANDS:
+            return self._ensure_alignment().handle_request(request)
+
         if command in STEREO_COMMANDS:
             # Don't spin up the stereo backend just to answer a status/lifecycle
             # query (keeps single-camera sessions from ever loading stereo).
             if self._stereo_service is None and command in STEREO_IDLE_COMMANDS:
                 return self._stereo_idle_response(command)
+            # Stereo is about to use its model: free the auto-align matcher so
+            # its memory yields to stereo (no-op if nothing was aligned).
+            if command in STEREO_MODEL_COMMANDS:
+                self._release_alignment_memory("stereo")
             return self._ensure_stereo().handle_request(request)
 
         # Build + warm up the segmentation models. Sent when the user enters
@@ -204,7 +262,8 @@ class InteractiveService:
         # click). This is the ONLY segmentation command that loads the model
         # ahead of an actual prediction.
         if command == "init_segmentation":
-            with suppress_stdout():
+            self._release_alignment_memory("segmentation")
+            with _suppress_stdout():
                 self._ensure_segmentation().warmup()
             return {"success": True}
 
@@ -213,11 +272,38 @@ class InteractiveService:
         if self._seg_service is None and command in SEG_IDLE_COMMANDS:
             return {"success": True}
 
+        # A real segmentation request will use (and, first time, load) the SAM
+        # model: free the auto-align matcher so its memory yields to it.
+        if command in SEG_MODEL_COMMANDS:
+            self._release_alignment_memory("segmentation")
+
         seg = self._ensure_segmentation()
         if command == "stereo_segment":
             # Reuse the one stereo backend (no second stereo model load).
             seg.set_stereo_warper(self._ensure_stereo())
         return seg.handle_request(request)
+
+    def _release_alignment_memory(self, feature: str) -> None:
+        """Free the resident auto-align matcher so ``feature`` (segmentation or
+        stereo) can use its device memory.
+
+        A no-op when auto-align never loaded a model (the backend may not even
+        be constructed), so it is cheap to call on the hot path of every
+        model-using segmentation/stereo request. The matcher reloads lazily on
+        the next register_images, so the only cost is a re-load if the user
+        returns to auto-align after using the other feature -- which is
+        exactly the
+        case where the two genuinely contend for memory."""
+        svc = self._alignment_service
+        if svc is None:
+            return
+        try:
+            result = svc.unload()
+        except Exception as e:  # releasing memory must never break the request
+            self._log(f"Alignment memory release failed (ignored): {e}")
+            return
+        if result.get("unloaded"):
+            self._log(f"Released auto-align model so {feature} can use its memory")
 
     @staticmethod
     def _stereo_idle_response(command: str) -> Dict[str, Any]:
@@ -320,6 +406,13 @@ def main():
         default="cuda",
         help="Device to run on (cuda, cpu, auto)",
     )
+    parser.add_argument(
+        "--alignment-weights",
+        default=None,
+        help="Path to the auto-align matcher weights (minima_loftr.ckpt). "
+             "If omitted, $VIAME_ALIGNMENT_WEIGHTS or "
+             "$VIAME_INSTALL/configs/pipelines/models is searched.",
+    )
     args = parser.parse_args()
 
     if args.viame_path:
@@ -339,6 +432,7 @@ def main():
         stereo_config=args.stereo_config,
         plugin_paths=args.plugin_path,
         device=args.device,
+        alignment_weights=args.alignment_weights,
     )
 
     try:
