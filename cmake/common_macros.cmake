@@ -56,16 +56,6 @@ function( FormatPassdowns _str _varResult )
   endif()
 endfunction()
 
-function( FormatPassdownsWithIgnore _str _varResult _ignoreStr )
-  FormatPassdownsCond( ${_str} _tmpResult OFF ${_ignoreStr} )
-  set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
-endfunction()
-
-function( FormatPassdownsCaseSensitive _str _varResult )
-  FormatPassdownsCond( ${_str} _tmpResult OFF "" )
-  set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
-endfunction()
-
 function( CopyVarsToAllCaps _str )
   get_cmake_property( _vars VARIABLES )
   string( REGEX MATCHALL "(^|;)${_str}[A-Za-z0-9_]*" _matchedVars "${_vars}" )
@@ -226,18 +216,6 @@ function( CopyFiles _inRegex _outDir )
   endif()
 endfunction()
 
-function( MoveFiles _inRegex _outDir )
-  file( GLOB FILES_TO_COPY ${_inRegex} )
-  if( FILES_TO_COPY )
-    file( COPY ${FILES_TO_COPY} DESTINATION ${_outDir} )
-    file( REMOVE ${FILES_TO_COPY} )
-  endif()
-endfunction()
-
-function( CopyFileIfExists _inFile _outFile )
-  file( COPY ${_inFile} DESTINATION ${_outFile} )
-endfunction()
-
 function( CreateSymlink _inFile _outFile )
   if( NOT EXISTS ${_outFile} )
     execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink ${_inFile} ${_outFile} )
@@ -248,26 +226,6 @@ function( CreateDirectory _outFolder )
   if( NOT EXISTS ${_outFolder} )
     file( MAKE_DIRECTORY ${_outFolder} )
   endif()
-endfunction()
-
-function( RemoveDir _inDir )
-  file( REMOVE_RECURSE ${_inDir} )
-endfunction()
-
-function( ParseLinuxOSField field retval )
-  file( STRINGS /etc/os-release vars )
-  set( ${_value} "${field}-NOTFOUND" )
-  foreach( var ${vars} )
-    if( var MATCHES "^${field}=(.*)" )
-      set( _value "${CMAKE_MATCH_1}" )
-      # Value may be quoted in single- or double-quotes; strip them
-      if( _value MATCHES "^['\"](.*)['\"]\$" )
-        set( _value "${CMAKE_MATCH_1}" )
-      endif()
-      break()
-    endif()
-  endforeach()
-  set( ${retval} "${_value}" PARENT_SCOPE )
 endfunction()
 
 function( ReplaceStringInFile ifile oldstr newstr )
@@ -347,7 +305,6 @@ function( OnDemandGitPackage _prefix )
 endfunction()
 
 # Remove project CMake stamp file to trigger rebuild.
-# This is the traditional method - always rebuilds.
 #
 # Usage: RemoveProjectCMakeStamp( project_name )
 #
@@ -356,26 +313,6 @@ function( RemoveProjectCMakeStamp _project_name )
     COMMAND ${CMAKE_COMMAND}
       -E remove ${VIAME_BUILD_PREFIX}/src/${_project_name}-stamp/${_project_name}-build
     COMMENT "Removing build stamp file for build update (forcebuild)."
-    DEPENDEES configure
-    DEPENDERS build
-    ALWAYS 1
-    )
-endfunction()
-
-# Only rebuild when source hash changes.
-# Uses git commit hash to detect changes in submodules/source directories.
-#
-# Usage: BuildOnHashChangeOnly( project_name source_dir )
-#
-function( BuildOnHashChangeOnly _project_name _source_dir )
-  ExternalProject_Add_Step( ${_project_name} forcebuild
-    COMMAND ${CMAKE_COMMAND}
-      -DLIB_NAME=${_project_name}
-      -DLIB_SOURCE_DIR=${_source_dir}
-      -DSTAMP_DIR=${VIAME_BUILD_PREFIX}/src/${_project_name}-stamp
-      -DHASH_FILE=${VIAME_BUILD_PREFIX}/src/${_project_name}-source-hash.txt
-      -P ${VIAME_CMAKE_DIR}/custom_build_check_source.cmake
-    COMMENT "Checking if ${_project_name} source has changed..."
     DEPENDEES configure
     DEPENDERS build
     ALWAYS 1
