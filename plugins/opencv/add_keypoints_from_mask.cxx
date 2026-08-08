@@ -760,7 +760,18 @@ add_keypoints_from_mask
 
   for( auto det : *detections )
   {
-    if( det->mask() )
+    auto mask_ptr = det->mask();
+    bool has_valid_mask = false;
+    if( mask_ptr )
+    {
+      auto img = mask_ptr->get_image();
+      if( img.size() > 0 && img.width() > 0 && img.height() > 0 )
+      {
+        has_valid_mask = true;
+      }
+    }
+
+    if( has_valid_mask )
     {
       auto keypoints = compute_keypoints( det, d->method );
 
@@ -772,6 +783,10 @@ add_keypoints_from_mask
 
       det->add_keypoint( "head", kv::point_2d( keypoints.first.x, keypoints.first.y ) );
       det->add_keypoint( "tail", kv::point_2d( keypoints.second.x, keypoints.second.y ) );
+    }
+    else
+    {
+      det->set_mask( nullptr );
     }
 
     output->add( det );
