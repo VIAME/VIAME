@@ -43,6 +43,7 @@ from viame.pytorch.siammask.core.config import cfg
 from viame.pytorch.siammask.par_crop import par_crop
 from viame.pytorch.siammask.gen_json import gen_json
 from viame.pytorch.siammask import VALIDATION_RECORD
+from viame.core.training_data import seed_from_environment
 
 logger = logging.getLogger('global')
 
@@ -656,6 +657,21 @@ def train(train_loader, model, optimizer, lr_scheduler, tb_writer,
 def main():
 
     seed_torch(args.seed)
+
+    # After seed_torch, not before: that call re-seeds random, numpy and torch
+    # from args.seed and would silently undo this one. pysot has always seeded
+    # itself here, from a fixed default of 123456, and sets cudnn deterministic
+    # while it is at it -- so this stage was reproducible before any of the
+    # seeding work and stays so if nothing is exported. What this adds is that
+    # VIAME_TRAINING_SEED, when the trainer sets it, becomes the single knob
+    # covering this stage too rather than leaving it on its own constant.
+    #
+    # No rank offset. build_data_loader wraps the dataset in a
+    # DistributedSampler above world size one, so the ranks are already given
+    # disjoint samples; offsetting the seed as well would buy nothing and
+    # depart from what pysot expects.
+    seed_from_environment( "siammask rank " + os.environ.get( "RANK", "0" ) )
+
     rank, world_size = dist_init()
 
     # One rank prepares the data and the rest wait on it. Every rank used to

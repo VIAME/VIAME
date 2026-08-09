@@ -27,7 +27,7 @@ import time
 import threading
 from viame.pytorch.utilities import report_cuda_errors
 from viame.core.training_data import ( build_sequence_maps,
-    read_sequence_manifest, split_validation )
+    read_sequence_manifest, split_validation, seed_everything )
 from viame.pytorch.siammask import ( VALIDATION_RECORD,
     VALIDATION_SEQUENCES )
 
@@ -85,6 +85,12 @@ class SiamMaskTrainer( TrainTracker ):
         # 0 disables it and restores that behaviour.
         self._validation_fraction = 0.1
 
+        # Seed for every generator this trainer and its ranks draw from.
+        # Distinct from backbone_seed above, which names pretrained weights.
+        # Exported by seed_everything so each worker inherits it; the worker
+        # offsets by rank. Negative restores the previous behaviour.
+        self._random_seed = "42"
+
         # Written by the training tool: which frames of the flat list
         # belong to which track set.
         self._sequence_manifest = ""
@@ -116,6 +122,7 @@ class SiamMaskTrainer( TrainTracker ):
         cfg.set_value( "resume_model", self._resume_model )
         cfg.set_value( "backbone_seed", self._backbone_seed )
         cfg.set_value( "validation_fraction", str( self._validation_fraction ) )
+        cfg.set_value( "random_seed", self._random_seed )
         cfg.set_value( "sequence_manifest", self._sequence_manifest )
         cfg.set_value( "timeout", self._timeout )
 
@@ -144,6 +151,7 @@ class SiamMaskTrainer( TrainTracker ):
         self._backbone_seed = str( cfg.get_value( "backbone_seed" ) )
         self._validation_fraction = float(
             cfg.get_value( "validation_fraction" ) )
+        self._random_seed = str( cfg.get_value( "random_seed" ) )
         self._sequence_manifest = str( cfg.get_value( "sequence_manifest" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
 
@@ -490,6 +498,14 @@ class SiamMaskTrainer( TrainTracker ):
         Run the SiamMask training process.
         """
         print( "Starting SiamMask training..." )
+
+        # Before the dataset is laid out and before any worker is spawned.
+        # seed_everything exports the seed, and train_env below is a copy of
+        # this environment, so every rank inherits it.
+        if seed_everything( self._random_seed ):
+            print( "  seeded with " + str( self._random_seed ) )
+        else:
+            print( "  unseeded: run to run variation is expected" )
 
         # Prepare training data
         dataset_file = self._prepare_training_data()

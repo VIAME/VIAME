@@ -22,6 +22,7 @@ from viame.pytorch.utilities import Grid
 
 from .storage import DataStorage, SequenceList
 from .utilities import load_track_feature_file
+from viame.core.training_data import seed_from_environment
 
 
 # Homography state
@@ -686,6 +687,10 @@ def generate_siamese_data(
 
 
 if __name__ == '__main__':
+    # Draws the Siamese pair sets, so this is the stage where an unseeded
+    # run diverges most from the last one.
+    seed_from_environment("pair generation")
+
     args = create_parser().parse_args()
 
     if args.siamese_img_sample_rate < 1:

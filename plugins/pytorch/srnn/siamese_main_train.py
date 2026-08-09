@@ -15,8 +15,13 @@ from .g_config import get_config
 from .siamese_dataset import SiameseDataLoader
 from .utilities import resume_epoch, setupLogger, logging, exp_lr_scheduler
 from .ContrastiveLoss import ContrastiveLoss
+from viame.core.training_data import seed_from_environment
 
 def main():
+    # Separate process from the trainer that launched it, so the seed
+    # arrives through the environment or not at all.
+    seed_from_environment("siamese training")
+
     parser = argparse.ArgumentParser(description='Siamese model')
     parser.add_argument('--model-dir', type=str, dest='model_dir',
                         help='path to where models are saved', default='../snapshot/temp')

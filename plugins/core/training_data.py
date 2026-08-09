@@ -23,6 +23,7 @@ localisation error and separate its true from its false positives.
 """
 
 import os
+import random
 import sys
 
 from collections import OrderedDict
@@ -44,6 +45,187 @@ try:
 except ( AttributeError, ValueError ):
     # Not a reconfigurable stream, which is fine; this is a convenience
     pass
+
+
+# ---------------------------------------------------------------------------
+# Determinism
+# ---------------------------------------------------------------------------
+
+# Carries the seed across the process boundary to the stage entry points that
+# SRNN and SiamMask shell out to.
+SEED_ENV_VAR = "VIAME_TRAINING_SEED"
+
+# Opts a run into deterministic cuDNN without touching a config. Seeding alone
+# aligns initialisation and sampling but leaves convolution backward free to
+# pick a nondeterministic algorithm, which is worth about 0.2% on a one epoch
+# training loss here -- small against unseeded variation, but not zero, and it
+# compounds over a long run. Set this when a comparison has to be exact.
+DETERMINISTIC_ENV_VAR = "VIAME_TRAINING_DETERMINISTIC"
+
+
+def _parse_seed( seed ):
+    """Coerce a configured seed to an int, or None where seeding is declined.
+
+    Config values arrive as strings, and an unset one arrives as the empty
+    string rather than as None, so both have to mean "do not seed" without
+    raising.
+    """
+    if seed is None:
+        return None
+
+    try:
+        seed = int( str( seed ).strip() )
+    except ( TypeError, ValueError ):
+        return None
+
+    return None if seed < 0 else seed
+
+
+def seed_everything( seed, deterministic_cudnn=False ):
+    """Seed every generator a tracker trainer draws from.
+
+    Nothing in this training path was seeded, so two runs of one
+    configuration differed in weight initialisation, in the train/validation
+    split wherever that split is drawn rather than sliced, in pair and
+    triplet sampling, and in loader worker ordering. That noise sits under
+    every comparison between runs, which is why the run 1 against run 2
+    regularisation result could not be called either way.
+
+    torch is imported lazily. The core trainers that fit parameters rather
+    than train a network import this module and do not otherwise need it.
+
+    Args:
+        seed: integer seed. Negative disables seeding and returns False,
+            which is how a caller asks for the previous behaviour.
+        deterministic_cudnn: additionally force cuDNN to pick deterministic
+            algorithms. Off by default -- it removes the remaining
+            nondeterminism in convolution backward at a real throughput
+            cost, whereas the sampling and initialisation noise this
+            function removes is what actually moved results between runs.
+
+    Returns:
+        True when seeding was applied, False when it was declined.
+    """
+    seed = _parse_seed( seed )
+
+    if seed is None:
+        return False
+
+    os.environ[ "PYTHONHASHSEED" ] = str( seed )
+
+    # SRNN and SiamMask both shell out to per stage entry points, and a seed
+    # set in this process reaches none of them. Children inherit the
+    # environment, so the seed travels there and seed_from_environment picks
+    # it up on the other side.
+    os.environ[ SEED_ENV_VAR ] = str( seed )
+
+    random.seed( seed )
+
+    try:
+        import numpy as np
+        np.random.seed( seed % ( 2 ** 32 ) )
+    except ImportError:
+        pass
+
+    try:
+        import torch
+    except ImportError:
+        return True
+
+    torch.manual_seed( seed )
+
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all( seed )
+
+    requested = os.environ.get( DETERMINISTIC_ENV_VAR, "" )
+
+    if deterministic_cudnn or requested.strip().lower() in ( "1", "true", "yes", "on" ):
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+        # cuBLAS reductions are the other source, and it only reads this at
+        # first handle creation, so setting it here is early enough for a
+        # stage entry point but not for a process that has already used cuda.
+        os.environ.setdefault( "CUBLAS_WORKSPACE_CONFIG", ":4096:8" )
+        os.environ[ DETERMINISTIC_ENV_VAR ] = "1"
+
+    return True
+
+
+def seed_from_environment( label="", offset=0 ):
+    """Seed this process from what the launching trainer exported.
+
+    The stage entry points SRNN and SiamMask shell out to are separate
+    processes and inherit nothing but the environment. Each one calls this on
+    the way in, so a seeded parent produces a seeded stage. Silent and
+    harmless when the variable is absent, which is how a stage run by hand
+    behaves.
+
+    Args:
+        label: named in the log line, so a multi stage run says which stage
+            was seeded.
+        offset: added to the inherited seed. One process per card under
+            torch.distributed.run inherits one seed, and seeding them all
+            identically would have every rank draw the same samples; passing
+            the rank here keeps the streams distinct while staying
+            reproducible.
+
+    Returns:
+        True when seeding was applied.
+    """
+    base = _parse_seed( os.environ.get( SEED_ENV_VAR ) )
+
+    if base is None:
+        return False
+
+    if not seed_everything( base + int( offset ) ):
+        return False
+
+    # seed_everything re-exports what it was given. Put the base back, so a
+    # rank offset applied here does not compound into anything this process
+    # goes on to launch.
+    os.environ[ SEED_ENV_VAR ] = str( base )
+
+    where = " in " + label if label else ""
+    print( "Seeded{} with {}".format( where, base + int( offset ) ) )
+
+    return True
+
+
+def loader_worker_seed( seed ):
+    """Build a worker_init_fn that seeds each DataLoader worker distinctly.
+
+    Workers are forked after the parent is seeded, so without this every
+    worker draws the identical augmentation stream, and the combined stream
+    changes with worker count. Offsetting by worker id keeps them distinct
+    and keeps the result reproducible for a fixed worker count.
+
+    Returns None when seeding is disabled, which is what DataLoader expects
+    for "no initialiser".
+    """
+    base = _parse_seed( seed )
+
+    if base is None:
+        return None
+
+    def _init( worker_id ):
+        worker_seed = base + worker_id
+
+        random.seed( worker_seed )
+
+        try:
+            import numpy as np
+            np.random.seed( worker_seed % ( 2 ** 32 ) )
+        except ImportError:
+            pass
+
+        try:
+            import torch
+            torch.manual_seed( worker_seed )
+        except ImportError:
+            pass
+
+    return _init
 
 
 # ---------------------------------------------------------------------------

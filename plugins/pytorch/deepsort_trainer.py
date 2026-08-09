@@ -39,7 +39,8 @@ import random
 from viame.pytorch.utilities import report_cuda_errors
 from viame.core.training_data import (build_sequence_maps,
     read_sequence_manifest, split_validation,
-    load_computed_detections, match_to_groundtruth)
+    load_computed_detections, match_to_groundtruth,
+    seed_everything, loader_worker_seed)
 
 
 # The Re-ID dataset and batch sampler live at module scope rather than inside
@@ -237,6 +238,12 @@ class DeepSORTTrainer(TrainTracker):
         # the epoch is chosen on training loss, which cannot tell
         # improvement from memorisation. 0 disables it.
         self._validation_fraction = 0.1
+
+        # Seed for every generator this trainer draws from. Nothing here was
+        # seeded, so run to run noise sat under every comparison between
+        # runs. Negative restores the previous nondeterministic behaviour.
+        self._random_seed = "42"
+
         self._gpu_count = -1
         self._max_epochs = "50"
         self._batch_size = "32"
@@ -264,6 +271,7 @@ class DeepSORTTrainer(TrainTracker):
         cfg.set_value("computed_detections", self._computed_detections)
         cfg.set_value("sequence_manifest", self._sequence_manifest)
         cfg.set_value("validation_fraction", str(self._validation_fraction))
+        cfg.set_value("random_seed", self._random_seed)
         cfg.set_value("gpu_count", str(self._gpu_count))
         cfg.set_value("max_epochs", self._max_epochs)
         cfg.set_value("batch_size", self._batch_size)
@@ -289,6 +297,7 @@ class DeepSORTTrainer(TrainTracker):
         self._computed_detections = str(cfg.get_value("computed_detections"))
         self._sequence_manifest = str(cfg.get_value("sequence_manifest"))
         self._validation_fraction = float(cfg.get_value("validation_fraction"))
+        self._random_seed = str(cfg.get_value("random_seed"))
         self._gpu_count = int(cfg.get_value("gpu_count"))
         self._max_epochs = str(cfg.get_value("max_epochs"))
         self._batch_size = str(cfg.get_value("batch_size"))
@@ -601,6 +610,14 @@ class DeepSORTTrainer(TrainTracker):
         """
         print("Starting DeepSORT Re-ID training...")
 
+        # Before anything draws. The validation split, the identity sampling
+        # and the weight initialisation all consume these generators, so this
+        # has to precede _prepare_reid_data rather than sit next to the model.
+        if seed_everything(self._random_seed):
+            print(f"  seeded with {self._random_seed}")
+        else:
+            print("  unseeded: run to run variation is expected")
+
         # Prepare training data
         reid_dir = self._prepare_reid_data()
 
@@ -737,20 +754,27 @@ class DeepSORTTrainer(TrainTracker):
                                   names={v: k for k, v
                                          in train_dataset.label_to_idx.items()})
 
+        # Workers fork after the parent is seeded, so without an initialiser
+        # all four draw the identical stream. None when seeding is off, which
+        # is what DataLoader wants for "no initialiser".
+        worker_init = loader_worker_seed(self._random_seed)
+
         if train_sampler.ids:
             print(f"PK sampling: {train_sampler.p} identities x "
                   f"{train_sampler.k} crops = {train_sampler.p * train_sampler.k} "
                   f"per batch, {len(train_sampler)} batches per epoch "
                   f"({len(train_sampler.ids)} identities with 2+ crops)")
             train_loader = DataLoader(train_dataset, batch_sampler=train_sampler,
-                                      num_workers=4)
+                                      num_workers=4, worker_init_fn=worker_init)
         else:
             print("Warning: no identity has more than one crop, falling back to "
                   "shuffled batches. Triplet loss cannot train on this data.")
             train_loader = DataLoader(train_dataset, batch_size=batch_size,
-                                      shuffle=True, num_workers=4)
+                                      shuffle=True, num_workers=4,
+                                      worker_init_fn=worker_init)
 
-        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
+                                 num_workers=4, worker_init_fn=worker_init)
 
         # Create model and optimizer
         model = ReIDModel(self._backbone, embedding_dim).to(device)
