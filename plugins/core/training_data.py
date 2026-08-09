@@ -48,6 +48,54 @@ except ( AttributeError, ValueError ):
 
 
 # ---------------------------------------------------------------------------
+# Confidence thresholds
+# ---------------------------------------------------------------------------
+
+def thresholds_from_detector( matched_confidences, unmatched_confidences ):
+    """Confidence tiers that separate the detector's hits from its misfires.
+
+    The groundtruth cannot answer this: every annotation is confidence 1.0,
+    so a percentile of it is a percentile of a constant and the result is
+    whatever the clamp allows. Nor can the matched detections alone -- they
+    are the detector's true positives, which sit high by construction, so a
+    percentile of them lands near the top of the range and the clamp takes
+    over again. Placing a threshold needs both sides: the scores of
+    detections that found a real object, and the scores of those that did
+    not.
+
+    Lives here rather than in a trainer because bytetrack and botsort both
+    gate on detector confidence, and how well a detector's hits separate
+    from its misfires is a property of the detector, not of the tracker
+    reading it.
+
+    Returns:
+        ( high_thresh, low_thresh, new_track_thresh )
+    """
+    import numpy as np
+
+    matched = np.array( matched_confidences )
+    unmatched = np.array( unmatched_confidences )
+
+    # Keep most real detections in the high tier
+    high_thresh = float( np.percentile( matched, 25 ) )
+
+    # The low tier is the second chance: it should reach well below the high
+    # tier without swallowing the bulk of the misfires
+    low_thresh = float( max( np.percentile( matched, 2 ),
+                             np.percentile( unmatched, 60 ) ) )
+
+    # Starting a track off a misfire costs more than missing one, so this
+    # sits above the high tier
+    new_track_thresh = float( np.percentile( matched, 40 ) )
+
+    high_thresh = float( np.clip( high_thresh, 0.05, 0.95 ) )
+    low_thresh = float( np.clip( low_thresh, 0.01, high_thresh - 0.05 ) )
+    new_track_thresh = float( np.clip( new_track_thresh, high_thresh, 0.95 ) )
+
+    return high_thresh, low_thresh, new_track_thresh
+
+
+# ---------------------------------------------------------------------------
 # Determinism
 # ---------------------------------------------------------------------------
 

@@ -35,7 +35,8 @@ import sys
 import json
 import numpy as np
 
-from viame.core.training_data import detector_statistics
+from viame.core.training_data import ( detector_statistics,
+    thresholds_from_detector )
 
 
 class ByteTrackTrainer( TrainTracker ):
@@ -387,25 +388,8 @@ class ByteTrackTrainer( TrainTracker ):
         scores of those that did not, and that needs the detector's own
         output.
         """
-        matched = np.array( stats[ 'matched_confidences' ] )
-        unmatched = np.array( stats[ 'unmatched_confidences' ] )
-
-        # Keep most real detections in the high tier
-        high_thresh = float( np.percentile( matched, 25 ) )
-
-        # The low tier is ByteTrack's second chance: it should reach well
-        # below the high tier without swallowing the bulk of the misfires
-        low_thresh = float( max( np.percentile( matched, 2 ),
-                                 np.percentile( unmatched, 60 ) ) )
-
-        # Starting a track off a misfire costs more than missing one, so this
-        # sits above the high tier
-        new_track_thresh = float( np.percentile( matched, 40 ) )
-
-        high_thresh = float( np.clip( high_thresh, 0.05, 0.95 ) )
-        low_thresh = float( np.clip( low_thresh, 0.01, high_thresh - 0.05 ) )
-        new_track_thresh = float( np.clip( new_track_thresh,
-                                           high_thresh, 0.95 ) )
+        high_thresh, low_thresh, new_track_thresh = thresholds_from_detector(
+            stats[ 'matched_confidences' ], stats[ 'unmatched_confidences' ] )
 
         print( "  thresholds from the detector: high {:.3f} low {:.3f} "
                "new_track {:.3f}".format( high_thresh, low_thresh,
