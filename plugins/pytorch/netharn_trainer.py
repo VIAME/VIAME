@@ -516,7 +516,11 @@ class NetHarnTrainer( TrainDetector ):
                 # (matches the scale it was trained at), then map its boxes into
                 # the scaled chip coordinate space used for cropping below.
                 if detector is not None:
-                    kw_image_container = ImageContainer( Image( img ) )
+                    # Detectors see RGB at inference time (pipeline image
+                    # readers), but cv2.imread returns BGR. Only the detector
+                    # input is swapped; chips are written back out via cv2.
+                    kw_image_container = ImageContainer(
+                        Image( cv2.cvtColor( img, cv2.COLOR_BGR2RGB ) ) )
                     detections = detector.detect( kw_image_container )
                     if scale != 1.0:
                         for det in detections:
