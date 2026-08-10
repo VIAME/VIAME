@@ -103,12 +103,25 @@ if( VIAME_DOWNLOAD_MODELS )
       ${VIAME_DOWNLOAD_DIR}/models-pytorch_tracking-v1.2.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR} )
 
-    # Default descriptor models
+    # Default descriptor models, also supplies the efficientnetv2s train seed
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/62d4dc10bddec9d0c45560b9/download
       c2a966ee5b48cb123ff6e3739c00b9bf
       ${VIAME_DOWNLOAD_DIR}/models-pytorch_descriptors-v1.3.zip
       ${CMAKE_CURRENT_SOURCE_DIR} )
+  endif()
+
+  # EfficientNetV2-M classifier train seed, carried in no model pack
+  if( VIAME_DOWNLOAD_MODELS-EFFICIENTNETV2M )
+    if( VIAME_ENABLE_PYTORCH-NETHARN )
+      DownloadFile(
+        https://download.pytorch.org/models/efficientnet_v2_m-dc08266a.pth
+        ${CMAKE_CURRENT_SOURCE_DIR}/models/pytorch_efficientnet_v2_m.pth
+        17fb8ae09ed0b48dd49a7ec60ec423c4 )
+    else()
+      message( FATAL_ERROR
+        "VIAME_DOWNLOAD_MODELS-EFFICIENTNETV2M requires VIAME_ENABLE_PYTORCH-NETHARN" )
+    endif()
   endif()
 
   # Darknet training seed models, consumed by the darknet-yolo add-on configs
