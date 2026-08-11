@@ -255,7 +255,11 @@ class NetHarnTrainer( TrainDetector ):
                 else:
                     self._batch_size = str( 8 * gpu_param_adj )
             if self._learning_rate == "auto":
-                self._learning_rate = str( 5e-3 )
+                # Scaled off 64 images at 5e-4, the largest rate that holds up
+                # with a randomly initialized head; clf_fit has no warmup or
+                # gradient clipping, so one bad step is unrecoverable
+                self._learning_rate = str(
+                  5e-4 * math.sqrt( float( self._batch_size ) / 64.0 ) )
             if self._scheduler == "auto":
                 self._scheduler = "ReduceLROnPlateau-p3-c3"
         else:
@@ -830,7 +834,7 @@ class NetHarnTrainer( TrainDetector ):
                      "--arch=" + self._arch,
                      "--input_dims=" + self._chip_height + "," + self._chip_width,
                      "--scale_jitter=" + self._scale_jitter,
-                     "--multiclass=" + "True" if self._multi_output else "False" ]
+                     "--multiclass=" + ( "True" if self._multi_output else "False" ) ]
             if "ReduceLR" in self._scheduler:
                 cmd.append( "--patience=16" )
         else:

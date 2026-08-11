@@ -165,9 +165,12 @@ class ClfModel(nh.layers.Module):
             new_conv1 = torch.nn.Conv2d(in_channels, 64, kernel_size=7,
                                         stride=3, padding=3, bias=False)
             new_fc = torch.nn.Linear(2048, num_classes, bias=True)
-            new_conv1.weight.data[:, 0:in_channels, :, :] = model.conv1.weight.data[0:, 0:in_channels, :, :]
-            new_fc.weight.data[0:num_classes, :] = model.fc.weight.data[0:num_classes, :]
-            new_fc.bias.data[0:num_classes] = model.fc.bias.data[0:num_classes]
+            # narrow() instead of multi-dim slicing: the torch_liberator
+            # exporter cannot round-trip `x[:, 0:n, :, :]` and model topology
+            # export fails for every arch if it appears anywhere in this file
+            new_conv1.weight.data.copy_(model.conv1.weight.data.narrow(1, 0, in_channels))
+            new_fc.weight.data.copy_(model.fc.weight.data.narrow(0, 0, num_classes))
+            new_fc.bias.data.copy_(model.fc.bias.data.narrow(0, 0, num_classes))
             model.fc = new_fc
             model.conv1 = new_conv1
         elif arch == 'resnext101':
@@ -177,9 +180,9 @@ class ClfModel(nh.layers.Module):
             new_conv1 = torch.nn.Conv2d(in_channels, 64, kernel_size=7,
                                         stride=3, padding=3, bias=False)
             new_fc = torch.nn.Linear(2048, num_classes, bias=True)
-            new_conv1.weight.data[:, 0:in_channels, :, :] = model.conv1.weight.data[0:, 0:in_channels, :, :]
-            new_fc.weight.data[0:num_classes, :] = model.fc.weight.data[0:num_classes, :]
-            new_fc.bias.data[0:num_classes] = model.fc.bias.data[0:num_classes]
+            new_conv1.weight.data.copy_(model.conv1.weight.data.narrow(1, 0, in_channels))
+            new_fc.weight.data.copy_(model.fc.weight.data.narrow(0, 0, num_classes))
+            new_fc.bias.data.copy_(model.fc.bias.data.narrow(0, 0, num_classes))
             model.fc = new_fc
             model.conv1 = new_conv1
         elif arch == 'efficientnetv2s':
@@ -639,7 +642,7 @@ def setup_harn(cmdline=True, **kw):
             _dset.input_id
         ]
 
-        cacher = ub.Cacher('dset_mean', depends=[*depends, 'v4'])
+        cacher = ub.Cacher('dset_mean', depends=[*depends, 'v5'])
         input_stats = cacher.tryload()
 
         if input_stats is None:
@@ -673,8 +676,8 @@ def setup_harn(cmdline=True, **kw):
                 running = ub.peek(channel_stats.values())
                 perchan_stats = running.simple(axis=(1, 2))
                 perchan_input_stats[key] = {
-                    'std': perchan_stats['mean'].round(3),
-                    'mean': perchan_stats['std'].round(3),
+                    'mean': perchan_stats['mean'].round(3),
+                    'std': perchan_stats['std'].round(3),
                 }
 
             input_stats = ub.peek(perchan_input_stats.values())
