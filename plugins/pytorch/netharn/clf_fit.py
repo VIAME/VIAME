@@ -76,6 +76,12 @@ class ClfConfig(scfg.Config):
 
         'lr': scfg.Value(1e-4, help='Base learning rate'),
         'decay':  scfg.Value(1e-5, help='Base weight decay'),
+        'grad_norm_max': scfg.Value(None, help=(
+            'Clip gradients to this max L2 norm. Unset means no clipping, '
+            'which lets a single outlier batch NaN the whole model')),
+        'warmup_iters': scfg.Value(0, help=(
+            'Linearly ramp the learning rate over this many batches at the '
+            'start of the first epoch')),
         'schedule': scfg.Value(
             'step90-120', help=(
                 'Special coercible netharn code. Eg: onecycle50, step50, gamma, ReduceLROnPlateau-p10-c10')),
