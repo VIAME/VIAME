@@ -119,12 +119,14 @@ def main():
 
     registration = {
         "type": "dive-camera-registration",
-        "version": 1,
+        # v2 is what the DIVE client accepts; its per-image-pair
+        # "observations" are optional, and a converted ITK transform has no
+        # per-frame evidence to record -- just the fitted homography.
+        "version": 2,
         "pairs": [
             {
                 "left": args.left,
                 "right": args.right,
-                "points": [],
                 "leftToRight": matrix.tolist(),
                 "rightToLeft": inverse.tolist(),
                 "transformType": "homography",
