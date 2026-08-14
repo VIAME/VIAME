@@ -49,7 +49,7 @@ with open('cam1_images.txt', 'w') as list1, \
         list2.write(f'cam2_{k:04d}.png\n')
 EOF
 
-pipeline_runner -p "$PIPE" \
+kwiver runner -p "$PIPE" \
     -s input1:video_filename=cam1_images.txt \
     -s input2:video_filename=cam2_images.txt \
     -s register:output_directory="$WORK_DIR" \
