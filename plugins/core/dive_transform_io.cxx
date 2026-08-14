@@ -309,7 +309,7 @@ dive_transform_io
 
   document.AddMember( "type",
     rapidjson::Value( registration_file_type.c_str(), alloc ), alloc );
-  document.AddMember( "version", 1, alloc );
+  document.AddMember( "version", 2, alloc );
 
   auto make_matrix = [&alloc]( Eigen::Matrix< double, 3, 3 > const& m )
   {
@@ -329,7 +329,6 @@ dive_transform_io
   rapidjson::Value pair( rapidjson::kObjectType );
   pair.AddMember( "left", rapidjson::Value( left.c_str(), alloc ), alloc );
   pair.AddMember( "right", rapidjson::Value( right.c_str(), alloc ), alloc );
-  pair.AddMember( "points", rapidjson::Value( rapidjson::kArrayType ), alloc );
   pair.AddMember( "leftToRight", make_matrix( matrix ), alloc );
 
   if( std::abs( matrix.determinant() ) > 1e-12 )
