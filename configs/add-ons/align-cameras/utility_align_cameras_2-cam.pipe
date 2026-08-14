@@ -16,7 +16,7 @@ config global
 
 # ============================= INPUT FRAME LIST ==============================
 
-include common_stereo_input.pipe
+include common_2cam_input.pipe
 
 # ============================ CAMERA REGISTRATION ============================
 # The register process reads image files itself (native bit depth, percentile

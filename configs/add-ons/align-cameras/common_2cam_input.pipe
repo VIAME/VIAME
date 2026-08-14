@@ -1,9 +1,10 @@
 # =============================================================================
 # Title: :video_reader:type to be vidl_ffmpeg for videos
 #
-# Description: Three-camera input trio (input1/input2/input3). By default,
-# these are image list readers, but this can be over-riden by changing
-# :video_reader:type to be vidl_ffmpeg for videos
+# Description: Two-camera input pair (input1/input2) for the align_cameras
+# pipes. Mirrors common_3cam_input.pipe rather than reusing
+# common_stereo_input.pipe, which is shared with the measurement/seamap
+# pipelines that rely on the basename-only file_name default.
 # =============================================================================
 
 process input1
@@ -42,39 +43,6 @@ process input1
 process input2
   :: video_input
   :video_filename                                       cam2_images.txt
-  :frame_time                                           1
-  :exit_on_invalid                                      false
-  # Keep the directory on file_name: the align_cameras process opens these
-  # paths itself (cv2), so a bare basename only resolves when the working
-  # directory happens to be the image directory.
-  :no_path_in_name                                      false
-
-  :video_reader:type                                    image_list
-
-  block video_reader:vidl_ffmpeg
-    :time_source                                        start_at_0
-  endblock
-
-  block video_reader:image_list
-    :image_reader:type                                  vxl
-    :skip_bad_images                                    true
-
-    block image_reader:vxl
-      :force_byte                                       true
-    endblock
-
-    block image_reader:add_timestamp_from_filename
-      :image_reader:type                                vxl
-
-      block image_reader:vxl
-        :force_byte                                     true
-      endblock
-    endblock
-  endblock
-
-process input3
-  :: video_input
-  :video_filename                                       cam3_images.txt
   :frame_time                                           1
   :exit_on_invalid                                      false
   # Keep the directory on file_name: the align_cameras process opens these
