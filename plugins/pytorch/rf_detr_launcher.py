@@ -55,6 +55,11 @@ def build_and_train(params):
     model_cls = getattr(rfdetr, sizes[params["model_size"]])
 
     model_kwargs = dict(num_channels=params["num_channels"], device="cuda")
+    # Explicit num_classes makes load_pretrain_weights keep every seed weight
+    # except the classification head, which is reinitialized at the dataset's
+    # class count (see rf_detr_trainer.py).
+    if params.get("class_names"):
+        model_kwargs["num_classes"] = len(params["class_names"])
     # Arrives as a string ("1280" or "960x1728") so a non-square pair survives JSON.
     resolution = parse_resolution(params.get("resolution", 0))
     if resolution_is_set(resolution):
@@ -68,8 +73,9 @@ def build_and_train(params):
     # Seed from a prior checkpoint by routing it through pretrain_weights. train()
     # rebuilds the network inside RFDETRModelModule from model_config and loads
     # only model_config.pretrain_weights, so a post-construction load_state_dict on
-    # the wrapper would be silently discarded. load_pretrain_weights aligns
-    # num_classes from the checkpoint/dataset.
+    # the wrapper would be silently discarded. With num_classes set above,
+    # load_pretrain_weights sizes the head for this dataset and keeps the rest
+    # of the checkpoint.
     seed = params.get("seed_model") or ""
     if seed and os.path.exists(seed):
         model = model_cls(pretrain_weights=seed, **model_kwargs)

@@ -1004,6 +1004,12 @@ class RFDETRTrainer(TrainDetector):
         # of the pretrained positional embeddings to match (see
         # rfdetr.models.weights.interpolate_position_embeddings).
         model_kwargs = dict(num_channels=num_channels, device=device)
+        # Explicit num_classes makes load_pretrain_weights keep every seed
+        # weight except the classification head, which is reinitialized at the
+        # dataset's class count. Without it a seed checkpoint's head size wins
+        # and a larger dataset class count crashes CUDA in the criterion.
+        if self._class_names:
+            model_kwargs['num_classes'] = len(self._class_names)
         if resolution_is_set(self._resolution):
             model_kwargs['resolution'] = self._resolution
         if gradient_checkpointing:
@@ -1026,8 +1032,9 @@ class RFDETRTrainer(TrainDetector):
         # Create model. Seed via pretrain_weights so the weights survive into
         # RFDETRModelModule, which rebuilds the network from model_config inside
         # train() and loads only model_config.pretrain_weights (a load_state_dict on
-        # the wrapper here would be discarded). load_pretrain_weights aligns
-        # num_classes from the checkpoint/dataset.
+        # the wrapper here would be discarded). With num_classes set above,
+        # load_pretrain_weights sizes the head for this dataset and keeps the rest
+        # of the checkpoint.
         if len(self._seed_model) > 0 and ub.Path(self._seed_model).exists():
             model = RFDETRModel(pretrain_weights=self._seed_model, **model_kwargs)
         else:
