@@ -11,7 +11,6 @@ MOUSS-DEEP7, https://viame.kitware.com/api/v1/item/627b3282c4da86e2cd3abb5d/down
 AERIAL-PENGUIN, https://viame.kitware.com/api/v1/item/615bc7aa7e5c13a5bb9af7a7/download, Aerial penguin detection from fixed wings/drones, c07264b548bc9879507157a5bcf222a6, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 SEA-LION, https://viame.kitware.com/api/v1/file/6a6387e9bc0a57110860881b/download, Sea lion aerial detection data, ab8a14e1258787dcdecae7abc85f3256, ALL-PLATFORMS, "PYTORCH, PYTORCH-RF-DETR", "ONNX"
 LEARN, https://viame.kitware.com/girder/api/v1/item/64e2c485ef791ec92a7221b2/download, DARPA Learn ConvNext low-shot detector, 485daf5a1a79ba73860334fbc36c58f5, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
-DARKNET-YOLO, https://data.kitware.com/api/v1/item/656fd7b6dfc0e5d60cffa247/download, Darknet YOLO training configs and model architectures, fc1f4e11da230f23209c5f390d554629, ALL-PLATFORMS, "DARKNET"
 GROUPER-MOON, https://viame.kitware.com/api/v1/item/68001795334bc54295c78afd/download, Grouper Moon project detection and tracking models, ac841d8fc0f31d60fc9481c43471b44b, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 SAM3, https://drive.google.com/file/d/1Oe-2xvuPsbPiySUn4etkvI0Na5RNjkAf/view?usp=sharing, SAM3 text query and tracking/segmentation models, 012ac43c104fa06083c3b74b1e877f56, ALL-PLATFORMS, "PYTORCH, PYTORCH-SAM3"
 SAM2, https://viame.kitware.com/api/v1/item/69c42957dc8332f478b60389/download, SAM2 segmentation and interactive segmentation models, 9bf89a6050af99f0daf14d484930f957, ALL-PLATFORMS, "PYTORCH, PYTORCH-SAM2"
