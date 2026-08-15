@@ -110,6 +110,13 @@ class SRNNTrainer( TrainTracker ):
         # restores the previous nondeterministic behaviour.
         self._random_seed = "42"
 
+        # Weights to start the Siamese embedding from, for a fine tune off
+        # an earlier corpus. Empty trains it from scratch, which is what
+        # every run before this did. The embedding is the transferable
+        # piece and by far the longest stage; the LSTMs above it are small
+        # and specific to the data, so they always train fresh.
+        self._seed_model = ""
+
         self._categories = []
         self._train_image_files = []
         self._train_tracks = []
@@ -134,6 +141,7 @@ class SRNNTrainer( TrainTracker ):
         cfg.set_value( "resume", str( self._resume ) )
         cfg.set_value( "lstm_concurrency", str( self._lstm_concurrency ) )
         cfg.set_value( "random_seed", self._random_seed )
+        cfg.set_value( "seed_model", self._seed_model )
         cfg.set_value( "lstm_loader_workers", str( self._lstm_loader_workers ) )
 
         return cfg
@@ -158,6 +166,7 @@ class SRNNTrainer( TrainTracker ):
         self._resume = strtobool( cfg.get_value( "resume" ) )
         self._lstm_concurrency = int( cfg.get_value( "lstm_concurrency" ) )
         self._random_seed = str( cfg.get_value( "random_seed" ) )
+        self._seed_model = str( cfg.get_value( "seed_model" ) )
         self._lstm_loader_workers = int( cfg.get_value( "lstm_loader_workers" ) )
 
         # Check GPU availability
@@ -507,6 +516,7 @@ class SRNNTrainer( TrainTracker ):
             resume=bool( self._resume ),
             lstm_concurrency=int( self._lstm_concurrency ),
             lstm_loader_workers=int( self._lstm_loader_workers ),
+            seed_siamese=( self._seed_model or None ),
         )
 
         output = self._get_output_map( srnn_output )

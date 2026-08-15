@@ -344,7 +344,8 @@ def stage_done(*paths):
 
 def main(data_root, output_dir, stabilized, generate_options=None,
          lstm_model_params=None, lstm_train_options=None, tracks=None,
-         resume=False, lstm_concurrency=1, lstm_loader_workers=2):
+         resume=False, lstm_concurrency=1, lstm_loader_workers=2,
+         seed_siamese=None):
     """Run the SRNN pipeline.
 
     With resume set, a stage whose outputs are already present under
@@ -403,6 +404,15 @@ def main(data_root, output_dir, stabilized, generate_options=None,
                 print("  resuming from epoch {} ({})".format(
                     snapshot_epoch, snapshot.name))
                 siamese_options['load_path'] = snapshot
+
+        # Fine tune from someone else's embedding, where no resume snapshot
+        # took precedence. A resume is the stronger claim -- it means this
+        # very run was interrupted -- so it wins, and the seed only applies
+        # to a stage starting fresh. Weights only, epoch zero: see the note
+        # in siamese_main_train on why the distinction matters.
+        if 'load_path' not in siamese_options and seed_siamese:
+            print("  seeding the embedding from {}".format(seed_siamese))
+            siamese_options['seed_path'] = seed_siamese
 
         run_mod(
             'siamese_main_train',

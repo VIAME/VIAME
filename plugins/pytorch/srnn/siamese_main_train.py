@@ -26,7 +26,12 @@ def main():
     parser.add_argument('--model-dir', type=str, dest='model_dir',
                         help='path to where models are saved', default='../snapshot/temp')
     parser.add_argument('--load-path', dest='load_path', type=str,
-                        help='path to pretrained model', default='')
+                        help='snapshot to resume from, epoch and all', default='')
+    parser.add_argument('--seed-path', dest='seed_path', type=str,
+                        help='weights to start from, as epoch zero. Unlike '
+                             '--load-path this is a fine tune rather than a '
+                             'resume: the schedule restarts from the top',
+                        default='')
     parser.add_argument('--data-root', help='Path to root of processed training data')
     parser.add_argument('--train-file', type=str, dest='train_file',
                         help='the file with train tripulet', default='../script/non_itar_siamese_train_set.p')
@@ -106,6 +111,18 @@ def main():
         model.load_state_dict(snapshot['state_dict'])
         epoch = resume_epoch(snapshot, load_path)
         logging('Model loaded from {}'.format(load_path))
+    elif args.seed_path:
+        # Weights only. A resume carries the epoch across so the schedule
+        # picks up where it left off, which is right for continuing an
+        # interrupted run and wrong for starting a new one from someone
+        # else's weights: seeded from a model whose best epoch was six, the
+        # learning rate would begin already decayed and the run would train
+        # a different schedule than an unseeded one. Holding epoch at zero
+        # is what makes the two arms comparable.
+        snapshot = torch.load(args.seed_path)
+        model.load_state_dict(snapshot['state_dict'])
+        logging('Seeded from {} (weights only, starting at epoch 0)'.format(
+            args.seed_path))
 
     train_model(model, criterion, train_loader, test_loader, g_config, exp_lr_scheduler, epoch)
 
