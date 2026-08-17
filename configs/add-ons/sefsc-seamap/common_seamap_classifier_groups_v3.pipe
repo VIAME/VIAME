@@ -10,7 +10,7 @@ process classifier_groups_large
   :refiner:type                                netharn
 
   block refiner:netharn
-    relativepath deployed =                    models/seamap_groups_enetv2m_large.zip
+    relativepath deployed =                    models/gfit_groups_enetv2m_large.zip
     :batch_size                                auto
     :area_pivot                                7000
     :chip_method                               native_square

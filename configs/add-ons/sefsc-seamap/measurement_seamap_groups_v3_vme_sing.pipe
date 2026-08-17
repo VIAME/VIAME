@@ -95,7 +95,7 @@ connect from add_head_tail.detected_object_set
 
 process measurer
   :: compute_measurements
-  relativepath calibration_file =              models/seamap-cal.json
+  relativepath calibration_file =              models/gfit_cal.json
   :min_track_states                            6
   :matching_methods                            input_pairs_only,epipolar_template_matching
 

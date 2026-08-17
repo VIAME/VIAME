@@ -55,7 +55,7 @@ process detector1_l
   :detector:ocv_windowed:detector:type         rf_detr
 
   block detector:ocv_windowed:detector:rf_detr
-    relativepath weight =                      models/sefsc_groups_rf_detr_1728.pth
+    relativepath weight =                      models/gfit_groups_rf_detr_1728.pth
     :model_size                                large
     :num_channels                              3
     :resolution                                960x1728
@@ -161,7 +161,7 @@ process detector2_l
   :detector:ocv_windowed:detector:type         rf_detr
 
   block detector:ocv_windowed:detector:rf_detr
-    relativepath weight =                      models/fishtrack_motion_rf_detr_1728.pth
+    relativepath weight =                      models/gfit_motion_rf_detr_1728.pth
     :model_size                                large
     :num_channels                              3
     :resolution                                960x1728
@@ -207,7 +207,7 @@ process classifier_groups_large_l
   :refiner:type                                netharn
 
   block refiner:netharn
-    relativepath deployed =                    models/seamap_groups_enetv2m_large.zip
+    relativepath deployed =                    models/gfit_groups_enetv2m_large.zip
 
     :batch_size                                auto
     :area_pivot                                7000
@@ -293,11 +293,11 @@ block track_objects:srnn
   :track_search_threshold                      2
   :gpu_list                                    0
 
-  relativepath siamese_model_path =            models/fishtrack_srnn_siamese.pt
+  relativepath siamese_model_path =            models/gfit_srnn_siamese.pt
   :siamese_batch_size                          64
 
-  relativepath targetRNN_AIM_model_path =      models/fishtrack_srnn_rnn_f.pt
-  relativepath targetRNN_AIM_V_model_path =    models/fishtrack_srnn_rnn_v.pt
+  relativepath targetRNN_AIM_model_path =      models/gfit_srnn_rnn_f.pt
+  relativepath targetRNN_AIM_V_model_path =    models/gfit_srnn_rnn_v.pt
   :targetRNN_normalized_models                 True
   :targetRNN_batch_size                        128
 endblock
@@ -342,7 +342,7 @@ process detector1_r
   :detector:ocv_windowed:detector:type         rf_detr
 
   block detector:ocv_windowed:detector:rf_detr
-    relativepath weight =                      models/sefsc_groups_rf_detr_1728.pth
+    relativepath weight =                      models/gfit_groups_rf_detr_1728.pth
     :model_size                                large
     :num_channels                              3
     :resolution                                960x1728
@@ -448,7 +448,7 @@ process detector2_r
   :detector:ocv_windowed:detector:type         rf_detr
 
   block detector:ocv_windowed:detector:rf_detr
-    relativepath weight =                      models/fishtrack_motion_rf_detr_1728.pth
+    relativepath weight =                      models/gfit_motion_rf_detr_1728.pth
     :model_size                                large
     :num_channels                              3
     :resolution                                960x1728
@@ -494,7 +494,7 @@ process classifier_groups_large_r
   :refiner:type                                netharn
 
   block refiner:netharn
-    relativepath deployed =                    models/seamap_groups_enetv2m_large.zip
+    relativepath deployed =                    models/gfit_groups_enetv2m_large.zip
 
     :batch_size                                auto
     :area_pivot                                7000
@@ -580,11 +580,11 @@ block track_objects:srnn
   :track_search_threshold                      2
   :gpu_list                                    0
 
-  relativepath siamese_model_path =            models/fishtrack_srnn_siamese.pt
+  relativepath siamese_model_path =            models/gfit_srnn_siamese.pt
   :siamese_batch_size                          64
 
-  relativepath targetRNN_AIM_model_path =      models/fishtrack_srnn_rnn_f.pt
-  relativepath targetRNN_AIM_V_model_path =    models/fishtrack_srnn_rnn_v.pt
+  relativepath targetRNN_AIM_model_path =      models/gfit_srnn_rnn_f.pt
+  relativepath targetRNN_AIM_V_model_path =    models/gfit_srnn_rnn_v.pt
   :targetRNN_normalized_models                 True
   :targetRNN_batch_size                        128
 endblock
@@ -603,7 +603,7 @@ connect from add_head_tail_r.detected_object_set
 
 process measurer
   :: compute_measurements
-  relativepath calibration_file =              models/seamap-cal.json
+  relativepath calibration_file =              models/gfit_cal.json
   :min_track_states                            6
 
   # Detection pairing for unmatched left/right tracks

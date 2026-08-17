@@ -34,7 +34,7 @@ process detector1
   :detector:ocv_windowed:detector:type         rf_detr
 
   block detector:ocv_windowed:detector:rf_detr
-    relativepath weight =                      models/sefsc_groups_rf_detr_1728.pth
+    relativepath weight =                      models/gfit_groups_rf_detr_1728.pth
     :model_size                                large
     :num_channels                              3
     :resolution                                960x1728
@@ -140,7 +140,7 @@ process detector2
   :detector:ocv_windowed:detector:type         rf_detr
 
   block detector:ocv_windowed:detector:rf_detr
-    relativepath weight =                      models/fishtrack_motion_rf_detr_1728.pth
+    relativepath weight =                      models/gfit_motion_rf_detr_1728.pth
     :model_size                                large
     :num_channels                              3
     :resolution                                960x1728
