@@ -28,10 +28,6 @@ include common_stereo_input_with_downsampler.pipe
 
 # ========================= LEFT CAMERA DETECTOR ==============================
 # =============================================================================
-# Title: SeaMap v3 Fused Detector
-#
-# Description: SEFSC group RF-DETR fused with the FishTrack motion RF-DETR.
-# Union of both detection sets followed by NMS.
 # =============================================================================
 
 # --------------------------- detector 1: SEFSC groups ------------------------
@@ -319,10 +315,6 @@ connect from add_head_tail_l.detected_object_set
 
 # ========================= RIGHT CAMERA DETECTOR =============================
 # =============================================================================
-# Title: SeaMap v3 Fused Detector
-#
-# Description: SEFSC group RF-DETR fused with the FishTrack motion RF-DETR.
-# Union of both detection sets followed by NMS.
 # =============================================================================
 
 # --------------------------- detector 1: SEFSC groups ------------------------
