@@ -181,12 +181,16 @@ class FeatureExtractor:
                 self.device = 'cpu'
 
             if self.model_path and self.model_path.strip():
-                self.model = torch.load(self.model_path, map_location=self.device)
+                # The trainers save a bare state_dict, not a module; see
+                # load_reid_model for what went wrong when this called .to()
+                # on the loaded object directly.
+                from viame.pytorch.utilities import load_reid_model
+                self.model = load_reid_model(self.model_path, self.device)
             else:
                 self.model = resnet18(weights=ResNet18_Weights.DEFAULT)
                 self.model = torch.nn.Sequential(*list(self.model.children())[:-1])
+                self.model = self.model.to(self.device)
 
-            self.model = self.model.to(self.device)
             self.model.eval()
 
             class SafeNormalize(object):

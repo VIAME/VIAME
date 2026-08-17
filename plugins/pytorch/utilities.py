@@ -1591,3 +1591,80 @@ class Grid(object):
             grid_feature_list.append(neighborhood_grid.view(neighborhood_grid.numel()))
 
         return grid_feature_list
+
+
+def load_reid_model(model_path, device):
+    """Load a Re-ID appearance model saved by the DeepSORT/BoT-SORT trainers.
+
+    Those trainers save `model.state_dict()` of a ReIDModel -- a torchvision
+    resnet backbone, a linear embedding, and a BatchNorm1d -- whereas the
+    inference side used to assume `torch.load` handed back a ready module and
+    called `.to(device)` on the result. Against any actually-trained checkpoint
+    that raised
+
+        AttributeError: 'collections.OrderedDict' object has no attribute 'to'
+
+    so every trained Re-ID model failed at the first frame and both trackers
+    produced an empty output file. Rebuild the architecture from the shapes in
+    the state dict and load the weights into it instead.
+
+    The backbone is constructed with `weights=None`: the checkpoint supplies
+    every parameter, and asking torchvision for pretrained weights here would
+    download them only to overwrite them, which also fails on an offline node.
+
+    Returns a module in eval mode on `device`. An object that is already a
+    module is passed straight through, so hand-pickled models keep working.
+    """
+    import collections.abc
+
+    import torch
+    from torch import nn
+
+    obj = torch.load(model_path, map_location=device, weights_only=False)
+
+    if not isinstance(obj, collections.abc.Mapping):
+        return obj.to(device).eval()
+
+    state = obj
+    for key in ('model_state_dict', 'state_dict', 'net_dict'):
+        nested = state.get(key)
+        if isinstance(nested, collections.abc.Mapping):
+            state = nested
+            break
+
+    # Checkpoints written from a DataParallel wrapper carry a module. prefix
+    # that will not match the bare architecture rebuilt below.
+    if any(k.startswith('module.') for k in state):
+        state = collections.OrderedDict(
+            (k[len('module.'):] if k.startswith('module.') else k, v)
+            for k, v in state.items())
+
+    weight = state.get('embedding.weight')
+    if weight is None:
+        raise RuntimeError(
+            '{} is a state dict with no embedding.weight, so it did not come '
+            'from the DeepSORT/BoT-SORT Re-ID trainer and its architecture '
+            'cannot be inferred'.format(model_path))
+
+    embedding_dim, backbone_dim = int(weight.shape[0]), int(weight.shape[1])
+
+    from torchvision.models import resnet18, resnet50
+    base = resnet50(weights=None) if backbone_dim == 2048 else resnet18(weights=None)
+
+    class ReIDModel(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.backbone = nn.Sequential(*list(base.children())[:-1])
+            self.embedding = nn.Linear(backbone_dim, embedding_dim)
+            self.bn = nn.BatchNorm1d(embedding_dim)
+
+        def forward(self, x):
+            x = self.backbone(x)
+            x = x.view(x.size(0), -1)
+            x = self.embedding(x)
+            x = self.bn(x)
+            return nn.functional.normalize(x, dim=1)
+
+    model = ReIDModel()
+    model.load_state_dict(state)
+    return model.to(device).eval()
