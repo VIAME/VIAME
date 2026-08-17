@@ -22,12 +22,21 @@ connect from downsampler.output_1
 connect from downsampler.output_1
         to   detector_grey.image
 
-# ================================= CLASSIFIER ================================
+# ============================ GROUPS THEN SPECIES ============================
+# Groups classify first; the species stage blends that distribution through
+# the taxonomy so each species inherits its parent group's evidence.
+include common_seamap_classifier_groups_v3.pipe
+
+connect from downsampler.output_1
+        to   classifier_groups_large.image
+connect from detector_fused.detected_object_set
+        to   classifier_groups_large.detected_object_set
+
 include common_seamap_classifier_species_v3.pipe
 
 connect from downsampler.output_1
         to   classifier_species_large.image
-connect from detector_fused.detected_object_set
+connect from classifier_groups_output.detected_object_set
         to   classifier_species_large.detected_object_set
 
 # ================================== WRITER ===================================

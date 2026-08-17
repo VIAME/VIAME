@@ -17,6 +17,11 @@ import cv2
 from viame.pytorch.utilities import safe_crop, vital_config_update, report_cuda_errors
 
 
+def _strip_taxon_id(name):
+    i = name.rfind('-')
+    return name[:i] if i > 0 and name[i+1:].isdigit() else name
+
+
 class NetharnRefiner(RefineDetections):
     """
     Full-Frame Classifier around Detection Sets
@@ -55,6 +60,7 @@ class NetharnRefiner(RefineDetections):
             'chip_expansion' : "1.0",
             'average_prior': "False",
             'prior_weight': "0.5",
+            'prior_taxonomy_file': "",
             'scale_type_file': ""
         }
 
@@ -110,6 +116,16 @@ class NetharnRefiner(RefineDetections):
         self.predictor._ensure_model()
         self._average_prior = strtobool(self._kwiver_config['average_prior'])
         self._prior_weight = float(self._kwiver_config['prior_weight'])
+        # canon-group lookup keyed by id-stripped class name; empty = name-match
+        self._taxonomy = {}
+        tax_file = self._kwiver_config['prior_taxonomy_file']
+        if tax_file:
+            for line in open(tax_file):
+                toks = line.split()
+                if not toks:
+                    continue
+                for t in toks:
+                    self._taxonomy[_strip_taxon_id(t)] = toks[0]
         if not 0.0 <= self._prior_weight <= 1.0:
             raise ValueError(
                 "prior_weight must be in [0, 1], got %s" % self._prior_weight)
@@ -280,21 +296,32 @@ class NetharnRefiner(RefineDetections):
                 class_scores = [ new_class.conf ]
 
             if self._average_prior and det.type is not None:
-                # Weight applied per source before summing. Classes are matched
-                # by name, so mismatched vocabularies concatenate, not blend.
                 w = self._prior_weight
-                for i in range(len(class_scores)):
-                    class_scores[i] = class_scores[i] * (1.0 - w)
-
                 priors = det.type
-                prior_names = priors.class_names()
-                for name in prior_names:
-                    weighted = priors.score(name) * w
-                    if name in class_names:
-                        class_scores[ class_names.index(name) ] += weighted
-                    else:
-                        class_names.append(name)
-                        class_scores.append(weighted)
+                if self._taxonomy:
+                    # Hierarchical: prior mass pools by canonical group and is
+                    # added to each class whose parent group matches.
+                    group_mass = {}
+                    for name in priors.class_names():
+                        g = self._taxonomy.get(_strip_taxon_id(name))
+                        if g is not None:
+                            group_mass[g] = group_mass.get(g, 0.0) + priors.score(name)
+                    for i in range(len(class_scores)):
+                        g = self._taxonomy.get(_strip_taxon_id(class_names[i]))
+                        class_scores[i] = class_scores[i] * (1.0 - w) \
+                            + w * group_mass.get(g, 0.0)
+                else:
+                    # Flat: matched by name, so mismatched vocabularies
+                    # concatenate rather than blend.
+                    for i in range(len(class_scores)):
+                        class_scores[i] = class_scores[i] * (1.0 - w)
+                    for name in priors.class_names():
+                        weighted = priors.score(name) * w
+                        if name in class_names:
+                            class_scores[ class_names.index(name) ] += weighted
+                        else:
+                            class_names.append(name)
+                            class_scores.append(weighted)
 
             detected_object_type = DetectedObjectType(class_names, class_scores)
             det.type = detected_object_type
