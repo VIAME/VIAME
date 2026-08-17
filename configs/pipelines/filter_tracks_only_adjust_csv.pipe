@@ -97,8 +97,6 @@ process detector_writer
 
 connect from downsampler2.output_3
         to   detector_writer.detected_object_set
-connect from downsampler2.timestamp
-        to   detector_writer.timestamp
 connect from image_writer.image_file_name
         to   detector_writer.image_file_name
 
