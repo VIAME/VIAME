@@ -6,6 +6,10 @@
 
 #include <vital/types/homography.h>
 
+// homography.h only brings in Eigen/Core; determinant() and inverse()
+// live in the LU module
+#include <Eigen/LU>
+
 // Pulled in for the vendored rapidjson headers and to route rapidjson
 // assertions to exceptions rather than aborts
 #include <vital/internal/cereal/archives/json.hpp>
