@@ -23,8 +23,9 @@ public:
   static constexpr char const* name = "auto";
 
   static constexpr char const* description = "Automatically detect a transform "
-    "type stored in either an ITK (.h5), DIVE camera registration (.json), or "
-    "simple homography (.txt) format.";
+    "type stored in either a DIVE camera registration (.json) or simple "
+    "homography (.txt) format. ITK (.h5) transforms are rejected with a "
+    "pointer to tools/convert_itk_h5_transform.py.";
 
   /// Constructor
   auto_detect_transform_io();
