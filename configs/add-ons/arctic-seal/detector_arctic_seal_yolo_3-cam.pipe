@@ -7,12 +7,12 @@
 # using camera registration files (DIVE camera registration .json, ITK .h5,
 # or plain text 3x3 homography).
 #
-# Camera order contract: camera 1 is optical, camera 2 is ultraviolet, and
-# camera 3 is thermal. DIVE feeds cameras registration-reference first (the
-# dataset's default display camera), then display order, so the optical
-# camera must be the reference and each other camera's registration must map
-# onto it. No ultraviolet detector exists; camera 2 output is the optical
-# detections projected into its frame.
+# Camera Order: EO, UV, IR
+# Camera 1 is optical, camera 2 is ultraviolet, and camera 3 is thermal; DIVE
+# matches the dataset's cameras onto these slots by name (eo/rgb/optical...,
+# uv/ultraviolet, ir/thermal...) and hands warp2/warp3 each camera's
+# registration onto the optical camera. No ultraviolet detector exists;
+# camera 2 output is the optical detections projected into its frame.
 # Input: IMAGE (per camera)
 # Output: BBOX (per camera)
 # =============================================================================
