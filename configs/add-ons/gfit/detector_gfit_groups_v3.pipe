@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: SeaMap v3 groups Detector Pipe
+# Title: GFIT v3 groups Detector Pipe
 #
 # Description: Fused SEFSC group + FishTrack motion detectors, reclassified to
 # groups. Outputs computed_detections.csv.
@@ -15,7 +15,7 @@ config _scheduler
 include common_default_input_with_downsampler.pipe
 
 # ================================= DETECTOR ==================================
-include common_seamap_detector_v3.pipe
+include common_gfit_detector_v3.pipe
 
 connect from downsampler.output_1
         to   detector_rgb_input.image
@@ -23,7 +23,7 @@ connect from downsampler.output_1
         to   detector_grey.image
 
 # ================================= CLASSIFIER ================================
-include common_seamap_classifier_groups_v3.pipe
+include common_gfit_classifier_groups_v3.pipe
 
 connect from downsampler.output_1
         to   classifier_groups_large.image

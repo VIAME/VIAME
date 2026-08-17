@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: SeaMap v3 species Detector Pipe
+# Title: GFIT v3 species Detector Pipe
 #
 # Description: Fused SEFSC group + FishTrack motion detectors, reclassified to
 # species. Outputs computed_detections.csv.
@@ -15,7 +15,7 @@ config _scheduler
 include common_default_input_with_downsampler.pipe
 
 # ================================= DETECTOR ==================================
-include common_seamap_detector_v3.pipe
+include common_gfit_detector_v3.pipe
 
 connect from downsampler.output_1
         to   detector_rgb_input.image
@@ -25,14 +25,14 @@ connect from downsampler.output_1
 # ============================ GROUPS THEN SPECIES ============================
 # Groups classify first; the species stage blends that distribution through
 # the taxonomy so each species inherits its parent group's evidence.
-include common_seamap_classifier_groups_v3.pipe
+include common_gfit_classifier_groups_v3.pipe
 
 connect from downsampler.output_1
         to   classifier_groups_large.image
 connect from detector_fused.detected_object_set
         to   classifier_groups_large.detected_object_set
 
-include common_seamap_classifier_species_v3.pipe
+include common_gfit_classifier_species_v3.pipe
 
 connect from downsampler.output_1
         to   classifier_species_large.image

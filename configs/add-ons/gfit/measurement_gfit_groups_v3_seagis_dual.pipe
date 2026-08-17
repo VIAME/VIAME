@@ -1,11 +1,14 @@
 # =============================================================================
-# Title: SeaMap Stereo Measurement (Dual Camera Detection, Core)
+# Title: GFIT Stereo Measurement (Dual Camera Detection)
 #
 # Description: Stereo measurement pipeline that runs detection, classification,
 # SAM2 segmentation, head/tail keypoint identification, and tracking on BOTH
-# left and right cameras independently. The core measurement process handles
+# left and right cameras independently. The SEAGIS measurement process handles
 # track pairing (detection matching, ID unification, class averaging) and
-# triangulates matched keypoints for 3D measurements using calibration data.
+# triangulates matched keypoints for 3D measurements, with epipolar template
+# matching as fallback for tracks where only one camera has keypoints.
+#
+# Requires: SEAGIS .CAM calibration files for left and right cameras.
 #
 # Requires Calibration: True
 # =============================================================================
@@ -596,44 +599,31 @@ connect from downsampler.timestamp
 connect from add_head_tail_r.detected_object_set
         to   tracker_r.detected_object_set
 
-# ============================= CORE MEASUREMENT ==============================
-# Measurement process now handles track pairing internally via the shared
-# stereo_track_pairer. Detection pairing uses keypoint_projection to match
-# unmatched left/right detections before measuring.
+# ============================ SEAGIS MEASUREMENT =============================
 
 process measurer
-  :: compute_measurements
-  relativepath calibration_file =              models/gfit_cal.json
+  :: seagis_measurement
+  #:licence_key1                                [INSERT_HERE]
+  #:licence_key2                                [INSERT_HERE]
+  relativepath left_camera_file =              models/SC6_camera3_2024.CamCAL
+  relativepath right_camera_file =             models/SC6_satelliteA_2024.CamCAL
+  :assume_inputs_paired                        false
+  :detection_pairing_method                    keypoint_distance
+  :detection_pairing_threshold                 50.0
   :min_track_states                            6
 
-  # Detection pairing for unmatched left/right tracks
-  :detection_pairing_method                    keypoint_projection
-  :detection_pairing_threshold                 50.0
-  :detection_pairing_require_class_match       false
-
-  # Per-frame pair-quality filters applied at the accumulator. The stereo
-  # rig has a non-trivial vertical baseline (cal T_y ~ -177 mm), so close-
-  # range targets exhibit large vertical bbox-center disparities (~130 px
-  # at ~1.4 m depth). The y-offset filter and area-ratio filter are kept
-  # loose enough not to reject legitimate close-range / edge-truncated
-  # pairs; stereo_rms is the primary geometry gate, and the multi-fragment
-  # disjoint-set logic in select_most_likely_pairing is what guards
-  # against transitive over-merging across distinct fish.
-  :max_stereo_rms                              20.0
-  :max_bbox_y_center_offset                    200.0
-  :max_bbox_area_ratio                         3.0
-
   # Track remapping (unified IDs, class averaging, length averaging)
-  # Accumulate pairings across the full stream and resolve once at finalize,
-  # so output track IDs never shift mid-run (per-frame remap is unstable and
-  # causes ID-keyed writers to accumulate stale duplicate entries).
-  :accumulate_track_pairings                   true
-  :pairing_resolution_method                   most_likely
   :output_unmatched                            true
   :average_stereo_classes                      true
   :class_averaging_method                      weighted_scaled_by_conf
   :class_averaging_ignore_class                UNKNOWNFISH
   :length_aggregation_method                   median
+
+  :enable_epipolar_matching                    true
+  :epipolar_min_depth                          500
+  :epipolar_max_depth                          10000
+  :template_size                               25
+  :template_matching_threshold                 0.1
 
 connect from tracker_l.object_track_set
         to   measurer.object_track_set1

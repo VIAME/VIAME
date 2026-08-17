@@ -1,22 +1,22 @@
 # =============================================================================
-# Title: SeaMap v3 species Tracker Pipe
+# Title: GFIT v3 groups Tracker Pipe
 #
-# Description: Fused detector, species reclassification, then SRNN tracking.
+# Description: Fused detector, groups reclassification, then SRNN tracking.
 # =============================================================================
 
 config _scheduler
   :type                                        pythread_per_process
 
-include detector_seamap_species_v3.pipe
+include detector_gfit_groups_v3.pipe
 
 # ================================= TRACKER ===================================
-include common_seamap_tracker_v3.pipe
+include common_gfit_tracker_v3.pipe
 
 connect from downsampler.output_1
         to   tracker.image
 connect from downsampler.timestamp
         to   tracker.timestamp
-connect from classifier_species_output.detected_object_set
+connect from classifier_groups_output.detected_object_set
         to   tracker.detected_object_set
 
 process track_filter

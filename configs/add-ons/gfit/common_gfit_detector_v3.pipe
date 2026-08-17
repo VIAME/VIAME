@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: SeaMap v3 Fused Detector
+# Title: GFIT v3 Fused Detector
 #
 # Description: SEFSC group RF-DETR fused with the FishTrack motion RF-DETR.
 # Union of both detection sets followed by NMS.

@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: SeaMap v3 tracker
+# Title: GFIT v3 tracker
 #
 # Description: ByteTrack, tuned on the fused detection CSVs. Tracking is driven
 # by detection confidence, not by the class labels.

@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: SeaMap Stereo Measurement (Single Camera Detection)
+# Title: GFIT Stereo Measurement (Single Camera Detection)
 #
 # Description: Stereo measurement pipeline that detects/tracks on the LEFT
 # camera only. SAM2 segmentation and head/tail keypoint identification are
@@ -26,7 +26,7 @@ config _scheduler
 include common_stereo_input_with_downsampler.pipe
 
 # ================================= DETECTOR ==================================
-include common_seamap_detector_v3.pipe
+include common_gfit_detector_v3.pipe
 
 connect from downsampler.output_1
         to   detector_rgb_input.image
@@ -35,7 +35,7 @@ connect from downsampler.output_1
 
 # ================================ CLASSIFIER =================================
 
-include common_seamap_classifier_groups_v3.pipe
+include common_gfit_classifier_groups_v3.pipe
 
 connect from downsampler.output_1
         to   classifier_groups_large.image
@@ -84,7 +84,7 @@ connect from add_segmentations.detected_object_set
 
 # =============================== CORE TRACKER ================================
 
-include common_seamap_tracker_v3.pipe
+include common_gfit_tracker_v3.pipe
 
 connect from downsampler.output_1
         to   tracker.image
