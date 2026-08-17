@@ -4,8 +4,9 @@
 # Description: Three camera arctic seal detector for synchronized optical,
 # thermal, and ultraviolet imagery. The thermal detector triggers subregion
 # detection on the optical stream; detections are mapped between cameras
-# using camera registration files (DIVE camera registration .json, ITK .h5,
-# or plain text 3x3 homography).
+# using camera registration files (DIVE camera registration .json or plain
+# text 3x3 homography; legacy ITK .h5 files must first be converted with
+# tools/convert_itk_h5_transform.py).
 #
 # Camera Order: EO, UV, IR
 # Camera 1 is optical, camera 2 is ultraviolet, and camera 3 is thermal; DIVE
