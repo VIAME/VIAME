@@ -6,23 +6,27 @@ Drop these into the add-on's `models/` directory. Not checked in.
 
 | file | what | source |
 |---|---|---|
+| `sefsc_groups_rf_detr_1728.pth` | group RF-DETR, detector 1 of the fusion | `SEFSC/Models/rgb_1728_groups/trained_detector.pth`, 46 classes, 247,828 steps |
 | `fishtrack_motion_rf_detr_1728.pth` | motion RF-DETR, detector 2 of the fusion | install `fish_with_motion_rf_detr.pth`, 316,992 steps |
 | `seamap_groups_enetv2m_large.zip` | groups classifier | `SEFSC/Models/classifiers/large_fish_enetv2m.zip` |
 | `seamap_species_enetv2m_large.zip` | species classifier | `large_fish_enetv2m_species.zip` |
 | `fishtrack_srnn_siamese.pt` | SRNN appearance head | FishTrack23 round 3, `siamese_model.pt` |
 | `fishtrack_srnn_rnn_f.pt` | SRNN targetRNN AIM | `target_lstm_F.pt` |
 | `fishtrack_srnn_rnn_v.pt` | SRNN targetRNN AIM V | `target_lstm_V.pt` |
+| `sam2_hbp.pt` | segmentation, measurement pipes | install `configs/pipelines/models/` |
+| `seamap-cal.json` | stereo calibration | `~/Desktop`; T_y -176.9 mm matches the vertical-baseline note in the stereo pipes |
 
 ## Still needed
 
 | file | why |
 |---|---|
-| `sefsc_groups_rf_detr_1728.pth` | detector 1 of the fusion. The SEFSC-trained group RF-DETR is not on this machine -- its detections were copied in from elsewhere. |
-| `sam2_hbp.pt` | segmentation stage, measurement pipes |
-| `seamap-cal.json`, `SC6_camera3_2024.CamCAL`, `SC6_satelliteA_2024.CamCAL` | stereo calibration, measurement pipes |
-| `fast-fdn-stereo.onnx` | fast-fdn measurement pipe |
+| `SC6_camera3_2024.CamCAL`, `SC6_satelliteA_2024.CamCAL` | seagis measurement pipes only. Not in either `VIAME-SEFSC-SEAMAP-Models*.zip` (34 entries each, all pipes and models) and not anywhere on this machine. |
 
-Carried over from the v2.5 pack; they were not in the install tree.
+Detection, classification and tracking are complete, as are both `vme`
+measurement pipes. Only the two `seagis` pipes remain blocked.
+
+`measurement_seamap_groups_v3_vme_fast_fdn.pipe` was removed from the pack
+pending the Fast Foundation Stereo ONNX export.
 
 ## Chosen settings
 
