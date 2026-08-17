@@ -111,6 +111,19 @@ target_link_libraries( viame_get_configs
                kwiver::sprokit_pipeline
   )
 
+kwiver_add_executable( viame_resample_tracks
+    resample_tracks.cxx
+  )
+
+target_link_libraries( viame_resample_tracks
+  PRIVATE      kwiver::vital
+               kwiver::vital_vpm
+               kwiver::vital_config
+               kwiver::vital_logger
+               kwiver::kwiversys
+               viame_core
+  )
+
 if( VIAME_ENABLE_OPENCV )
   kwiver_add_executable( viame_score_results
     score_results.cxx

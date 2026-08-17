@@ -103,7 +103,7 @@ if( VIAME_DOWNLOAD_MODELS )
       ${VIAME_DOWNLOAD_DIR}/models-pytorch_tracking-v1.2.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR} )
 
-    # Default descriptor models
+    # Default descriptor models, also supplies the efficientnetv2s train seed
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/62d4dc10bddec9d0c45560b9/download
       c2a966ee5b48cb123ff6e3739c00b9bf
@@ -111,8 +111,21 @@ if( VIAME_DOWNLOAD_MODELS )
       ${CMAKE_CURRENT_SOURCE_DIR} )
   endif()
 
-  # Darknet training seed models
-  if( VIAME_ENABLE_DARKNET )
+  # EfficientNetV2-M classifier train seed, carried in no model pack
+  if( VIAME_DOWNLOAD_MODELS-EFFICIENTNETV2M )
+    if( VIAME_ENABLE_PYTORCH-NETHARN )
+      DownloadFile(
+        https://download.pytorch.org/models/efficientnet_v2_m-dc08266a.pth
+        ${CMAKE_CURRENT_SOURCE_DIR}/models/pytorch_efficientnet_v2_m.pth
+        17fb8ae09ed0b48dd49a7ec60ec423c4 )
+    else()
+      message( FATAL_ERROR
+        "VIAME_DOWNLOAD_MODELS-EFFICIENTNETV2M requires VIAME_ENABLE_PYTORCH-NETHARN" )
+    endif()
+  endif()
+
+  # Darknet training seed models, consumed by the darknet-yolo add-on configs
+  if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-DARKNET-YOLO )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/65697428c5a2b36857ad1a0a/download
       80cfe1dfd89ccd938b587a81b13bdef9
@@ -129,6 +142,7 @@ set( CORE_PIPELINE_FILES
   common_default_input.pipe
   common_default_input_16bit.pipe
   common_default_input_with_downsampler.pipe
+  common_default_tracker.pipe
   common_empty_tracker.pipe
   common_image_stabilizer.pipe
   common_no_load_input.pipe
@@ -140,16 +154,18 @@ set( CORE_PIPELINE_FILES
   common_train_detector.conf
   convert_add_filename_to_det_csv.pipe
   convert_add_filename_to_trk_csv.pipe
-  convert_coco_json_to_viame_csv.pipe
-  convert_habcam_to_kw18.pipe
-  convert_habcam_to_viame_csv.pipe
-  convert_kw18_to_viame_csv.pipe
-  convert_oceaneyes_to_viame_csv.pipe
+  convert_coco_json_to_viame_csv_gt_plus_data.pipe
+  convert_habcam_to_kw18_gt_plus_data.pipe
+  convert_habcam_to_viame_csv_gt_plus_data.pipe
+  convert_kw18_to_viame_csv_gt_plus_data.pipe
+  convert_oceaneyes_to_viame_csv_gt_plus_data.pipe
   convert_model_to_onnx.pipe
-  convert_viame_csv_to_coco_json.pipe
-  convert_viame_csv_to_kw18.pipe
+  convert_viame_csv_to_coco_json_gt_plus_data.pipe
+  convert_viame_csv_to_coco_json_gt_only.pipe
+  convert_viame_csv_to_kw18_gt_plus_data.pipe
   database_apply_svm_models.pipe
   detector_gmm_motion.pipe
+  detector_motion_three_frame_diff.pipe
   detector_project_folder.pipe
   detector_project_folder_left.pipe
   detector_simple_hough.pipe
@@ -171,11 +187,10 @@ set( CORE_PIPELINE_FILES
   filter_tracks_only_adjust_csv.pipe
   frame_classifier_project_folder.pipe
   frame_classifier_svm.pipe
-  index_default.trk.pipe
   index_existing.pipe
   index_frame.pipe
   index_frame.svm.pipe
-  index_frame.svm.annot_only.pipe
+  index_frame.svm.gt_only.pipe
   interactive_segmenter_default.conf
   interactive_segmenter_watershed.conf
   interactive_text_query_default.conf
@@ -224,16 +239,12 @@ set( CORE_PIPELINE_FILES
 if( VIAME_ENABLE_CUDA )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     common_default_descriptor.pipe
-    common_default_tracker.pipe
     query_augment_image.pipe
   )
 else()
   install( FILES common_default_descriptor.cpu.pipe
     DESTINATION configs/pipelines
     RENAME common_default_descriptor.pipe )
-  install( FILES common_default_tracker.cpu.pipe
-    DESTINATION configs/pipelines
-    RENAME common_default_tracker.pipe )
   install( FILES query_augment_image.cpu.pipe
     DESTINATION configs/pipelines
     RENAME query_augment_image.pipe )
@@ -242,13 +253,12 @@ endif()
 # Pytorch specific configs
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_detector_adaptive.conf
     train_detector_default.conf
     train_frame_classifier_default.conf
     train_reclassifier_default.conf
   )
 endif()
-
-# Darknet specific configs
 
 # Configs used exclusively for VIEW
 if( VIAME_ENABLE_VIVIA )
@@ -268,24 +278,9 @@ if( VIAME_ENABLE_VIVIA )
     embedded_single_stream/local_svm_frame_classifier.pipe
   )
 
-  if( VIAME_ENABLE_DARKNET )
-    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      embedded_single_stream/train_deep_detector_yolo.pipe )
-  endif()
-
   if( VIAME_ENABLE_PYTORCH )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
       embedded_single_stream/train_deep_detector_cfrnn.pipe )
-  endif()
-
-  if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SIAMMASK )
-    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      embedded_single_stream/track_user_selections_fast.pipe )
-
-    if( VIAME_ENABLE_PYTORCH-MDNET )
-      set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-        embedded_single_stream/track_user_selections_fusion.pipe )
-    endif()
   endif()
 
   install( FILES       ${GUI_PIPELINE_FILES}
@@ -321,11 +316,24 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    common_train_rf_detr.conf
+    common_train_rf_detr_l_720_box.conf
+    common_train_rf_detr_l_720_seg.conf
+    train_detector_rf_detr_default.conf
     train_detector_rf_detr_n_384.conf
     train_detector_rf_detr_b_560.conf
-    train_detector_rf_detr_l_728.conf
+    train_detector_rf_detr_l_720.conf
+    train_detector_rf_detr_l_seg_720.conf
+    train_detector_rf_detr_l_1024.conf
+    train_detector_rf_detr_l_1280.conf
     train_detector_rf_detr_l_1728_mot_mim.conf
-    train_detector_rf_detr_l_1728_mot_opt.conf )
+    train_detector_rf_detr_l_1728_mot_mim_r2.conf
+    train_detector_rf_detr_l_1728_rgb.conf
+    train_detector_rf_detr_l_1728_rgb_r2.conf
+    train_detector_rf_detr_l_seg_1728_mot_all.conf
+    train_detector_rf_detr_l_seg_1728_mot_opt.conf
+    train_detector_rf_detr_l_seg_1728_mot_opt_r2.conf
+    train_detector_rf_detr_l_seg_1728_rgb.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-LITDET )
@@ -344,7 +352,6 @@ endif()
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_netharn_cfrnn.conf
-    train_detector_netharn_cfrnn.continue.conf
     train_detector_netharn_cfrnn.grid_only.20ep.conf
     train_detector_netharn_cfrnn.grid_only.40ep.conf
     train_detector_netharn_cfrnn.grid_only.conf
@@ -354,9 +361,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     train_detector_netharn_mask_rcnn_720.conf
     train_detector_netharn_mask_rcnn_grid.conf
     train_frame_classifier_netharn_efficientnet.conf
-    train_frame_classifier_netharn_efficientnet.continue.conf
     train_frame_classifier_netharn_resnet.conf
-    train_frame_classifier_netharn_resnet.continue.conf
     train_reclassifier_netharn_efficientnet.conf
     train_reclassifier_netharn_resnet.conf
   )
@@ -369,20 +374,13 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-MIT-YOLO )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_mit_yolo_v9_c_640.conf )
-endif()
-
-if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-SIAMMASK )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    common_short_term_tracker.pipe
-    train_tracker_siammask.conf
-    utility_track_selections_default_mask.pipe
-    utility_track_selections_fish_box_only.pipe
-  )
+    train_detector_mit_yolo_v9_c_640.conf
+    train_detector_mit_yolo_v9_s_640.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_tracker_adaptive.conf
     train_tracker_botsort.conf
     train_tracker_deepsort.conf
   )
@@ -417,17 +415,6 @@ if( VIAME_ENABLE_SEAL OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
       embedded_dual_stream/train_cfrnn_ir.pipe )
   endif()
 
-  if( VIAME_ENABLE_DARKNET )
-    set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
-      embedded_dual_stream/train_yolo_eo.pipe
-      embedded_dual_stream/train_yolo_ir.pipe )
-  endif()
-
-  if( VIAME_ENABLE_PYTORCH-SIAMMASK )
-    set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
-      embedded_dual_stream/track_user_selections_fast.pipe )
-  endif()
-
   install( FILES       ${DUAL_EMBEDDED_FILES}
            DESTINATION configs/pipelines/embedded_dual_stream )
 endif()
@@ -444,11 +431,8 @@ if( VIAME_ENABLE_WEB_EXCLUDES )
     frame_classifier_project_folder.pipe
     frame_classifier_svm.pipe
     tracker_project_folder.pipe
-    train_detector_netharn_cfrnn.continue.conf
     train_detector_netharn_cfrnn_special.conf
     train_detector_netharn_cfrnn_wtf.conf
-    train_frame_classifier_netharn_efficientnet.continue.conf
-    train_frame_classifier_netharn_resnet.continue.conf
     utility_add_head_tail_keypoints.pipe
     utility_enhance.pipe
     utility_extract_chips.pipe

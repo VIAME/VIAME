@@ -1,0 +1,70 @@
+# =============================================================================
+# Title: Default Fish Detector with Motion Fusion
+#
+# Description: As detector_default_fish.pipe, with a three-frame-difference
+# branch merged in to recover small animals the detector misses. Outputs to
+# computed_detections.csv.
+#
+# Input: IMAGE
+# Output: BBOX
+# =============================================================================
+
+# ============================= GLOBAL PROPERTIES =============================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================= INPUT FRAME LIST ==============================
+
+include common_default_input_with_downsampler.pipe
+
+# ================================= DETECTOR ==================================
+
+include common_fish_detector_motion.pipe
+
+process nms_refiner
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+process detector_filter
+  :: detected_object_filter
+  :filter:type                                 class_probablity_filter
+
+  block filter:class_probablity_filter
+    :threshold                                 0.001
+    :keep_all_classes                          true
+    :keep_classes                              fish
+  endblock
+
+connect from detector_output.detected_object_set
+        to   nms_refiner.detected_object_set
+connect from nms_refiner.detected_object_set
+        to   detector_filter.detected_object_set
+
+# ================================== OUTPUT ===================================
+
+process detector_writer
+  :: detected_object_output
+
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from downsampler.output_1
+        to   detector_input.image
+connect from detector_filter.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp
+
+# -- end of file --

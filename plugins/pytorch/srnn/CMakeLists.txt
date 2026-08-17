@@ -91,13 +91,17 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/target_rnn_main_train.py
   pytorch/srnn
   target_rnn_main_train )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/generate_training_files_kw18.py
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/generate_training_files.py
   pytorch/srnn
-  generate_training_files_kw18 )
+  generate_training_files )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/extract_siamese_features.py
   pytorch/srnn
   extract_siamese_features )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/extract_features_shard.py
+  pytorch/srnn
+  extract_features_shard )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/sgi2png.py
   pytorch/srnn

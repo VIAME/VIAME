@@ -22,8 +22,8 @@ if [ -f ${INITIAL_MODEL} ]; then
 elif [ -d deep_training ]; then
   viame train \
     -i ${INPUT_DIRECTORY} \
-    -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_cfrnn_nf.conf \
-    -s detector_trainer:ocv_windowed:skip_format=true \
+    -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_cfrnn.conf \
+    --continue \
     --threshold 0.0
 else
   echo "Initial model or in progress training folder does not exist, exiting"

@@ -103,13 +103,25 @@ def normalize_site(name):
 def find_flight_log(logs, date):
     """Locate the flight-log CSV for YYYYMMDD `date`.
 
-    `logs` may be a CSV path (returned as-is), or a directory searched for
+    `logs` may be a CSV path, or a directory searched for
     SSL-FMCLOG_YYYY-MM-DD_*.csv (an '_edited' variant is preferred when both
     exist since those contain manual corrections).
+
+    An explicit CSV whose filename embeds a date is only accepted when that
+    date matches: flight-log rows link to images by the per-day frame counter,
+    so a wrong-day CSV would otherwise "match" by frame number and silently
+    georeference the site with another flight's positions (it also outranks
+    per-image EXIF GPS). A filename without a recognizable date is passed
+    through unchanged.
     """
     if logs is None or date is None:
         return None
     if os.path.isfile(logs):
+        m = re.search(r'(\d{4})-(\d{2})-(\d{2})', os.path.basename(logs))
+        if m and ''.join(m.groups()) != date:
+            print(f'    Ignoring flight log {os.path.basename(logs)}: its '
+                  f'date does not match the survey folder date {date}')
+            return None
         return logs
     iso = f'{date[:4]}-{date[4:6]}-{date[6:8]}'
     matches = sorted(glob.glob(os.path.join(logs, f'*FMCLOG_{iso}*.csv')))
@@ -277,7 +289,12 @@ def load_imagelog(site_folder):
     renamed and fewer in number than the triggers, so :func:`link_imagelog`
     matches them by GPS position.
     """
-    logs = sorted(glob.glob(os.path.join(site_folder, 'imagelog*.json')))
+    if site_folder and os.path.isfile(site_folder):
+        logs = [site_folder]
+    elif site_folder and os.path.isdir(site_folder):
+        logs = sorted(glob.glob(os.path.join(site_folder, 'imagelog*.json')))
+    else:
+        logs = []
     recs = []
     for path in logs:
         try:

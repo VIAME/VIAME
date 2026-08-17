@@ -14,7 +14,7 @@ rm -rf ${VIAME_PIPELINES}/detector_extract_chips.pipe
 
 # Remove tracker pipelines which hold no meaning in web
 rm -rf ${VIAME_PIPELINES}/tracker_short_term.pipe
-rm -rf ${VIAME_PIPELINES}/tracker_stabilized_iou.pipe
+rm -rf ${VIAME_PIPELINES}/tracker_fish_via_registration_only.pipe
 
 # Remove seal and sea lion specialized pipelines un-runnable in web
 rm -rf ${VIAME_PIPELINES}/detector_arctic_*fusion*.pipe

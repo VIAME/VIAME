@@ -90,11 +90,27 @@ public:
   int plot_width() const { return plot_right() - plot_left(); }
   int plot_height() const { return plot_bottom() - plot_top(); }
 
+  // Number of ticks, floored at two so that the (n - 1) tick spacing divisor
+  // below can never be zero
+  int x_ticks() const { return std::max( 2, config.num_x_ticks ); }
+  int y_ticks() const { return std::max( 2, config.num_y_ticks ); }
+
   // Coordinate transformations
   cv::Point data_to_pixel( double x, double y ) const
   {
+    // A degenerate axis range would divide by zero and produce a NaN pixel
+    // coordinate, whose cast to int is undefined behavior
     double x_range = config.x_max - config.x_min;
     double y_range = config.y_max - config.y_min;
+
+    if( x_range <= 0.0 )
+    {
+      x_range = 1.0;
+    }
+    if( y_range <= 0.0 )
+    {
+      y_range = 1.0;
+    }
 
     int px = plot_left() + static_cast< int >(
       ( x - config.x_min ) / x_range * plot_width() );
@@ -127,9 +143,9 @@ public:
     }
 
     // Vertical grid lines
-    for( int i = 0; i <= config.num_x_ticks - 1; ++i )
+    for( int i = 0; i < x_ticks(); ++i )
     {
-      double t = static_cast< double >( i ) / ( config.num_x_ticks - 1 );
+      double t = static_cast< double >( i ) / ( x_ticks() - 1 );
       double x = config.x_min + t * ( config.x_max - config.x_min );
       cv::Point pt = data_to_pixel( x, config.y_min );
       cv::line( canvas,
@@ -139,9 +155,9 @@ public:
     }
 
     // Horizontal grid lines
-    for( int i = 0; i <= config.num_y_ticks - 1; ++i )
+    for( int i = 0; i < y_ticks(); ++i )
     {
-      double t = static_cast< double >( i ) / ( config.num_y_ticks - 1 );
+      double t = static_cast< double >( i ) / ( y_ticks() - 1 );
       double y = config.y_min + t * ( config.y_max - config.y_min );
       cv::Point pt = data_to_pixel( config.x_min, y );
       cv::line( canvas,
@@ -161,9 +177,9 @@ public:
       config.colors.axis_color, 1, cv::LINE_AA );
 
     // Draw tick marks and labels on X axis
-    for( int i = 0; i < config.num_x_ticks; ++i )
+    for( int i = 0; i < x_ticks(); ++i )
     {
-      double t = static_cast< double >( i ) / ( config.num_x_ticks - 1 );
+      double t = static_cast< double >( i ) / ( x_ticks() - 1 );
       double x = config.x_min + t * ( config.x_max - config.x_min );
       cv::Point pt = data_to_pixel( x, config.y_min );
 
@@ -173,8 +189,10 @@ public:
         cv::Point( pt.x, plot_bottom() + 5 ),
         config.colors.axis_color, 1, cv::LINE_AA );
 
-      // Label
-      std::string label = format_double( x, 1 );
+      // Label. An axis spanning a wide range (false alarms per frame) needs
+      // more than one decimal to distinguish its ticks.
+      std::string label =
+        format_double( x, ( config.x_max - config.x_min ) >= 5.0 ? 0 : 1 );
       int baseline = 0;
       cv::Size text_size = get_text_size( label, font_face,
         config.font_scale, config.font_thickness, &baseline );
@@ -185,9 +203,9 @@ public:
     }
 
     // Draw tick marks and labels on Y axis
-    for( int i = 0; i < config.num_y_ticks; ++i )
+    for( int i = 0; i < y_ticks(); ++i )
     {
-      double t = static_cast< double >( i ) / ( config.num_y_ticks - 1 );
+      double t = static_cast< double >( i ) / ( y_ticks() - 1 );
       double y = config.y_min + t * ( config.y_max - config.y_min );
       cv::Point pt = data_to_pixel( config.x_min, y );
 
@@ -244,8 +262,10 @@ public:
       cv::Size text_size = get_text_size( config.y_label, font_face,
         config.font_scale, config.font_thickness, &baseline );
 
-      // Create temporary image for rotation
-      cv::Mat text_img( text_size.width + 10, text_size.height + 10, CV_8UC3,
+      // Create temporary image for rotation. cv::Mat takes (rows, cols), so
+      // the text height is the row count and the text width the column count:
+      // passing them the other way round clips the label to its first glyph.
+      cv::Mat text_img( text_size.height + 10, text_size.width + 10, CV_8UC3,
                         config.colors.background );
       cv::putText( text_img, config.y_label,
         cv::Point( 5, text_size.height + 2 ),
@@ -517,30 +537,52 @@ metrics_plotter::render_pr_curves( const std::map< std::string, pr_curve_data >&
 // ROC Curve Rendering
 // -----------------------------------------------------------------------------
 
+namespace {
+
+/// Pick an x axis maximum that covers the curves' false alarm range.
+///
+/// The x axis is false alarms per frame, which is unbounded, so a fixed [0, 1]
+/// range would push most of a typical curve outside the plot area. Round up to
+/// a tidy value so the ticks stay readable.
+double
+false_alarm_axis_max( double max_false_alarms )
+{
+  if( !( max_false_alarms > 0.0 ) )
+  {
+    return 1.0;
+  }
+
+  double step = std::pow( 10.0, std::floor( std::log10( max_false_alarms ) ) );
+  double rounded = std::ceil( max_false_alarms / step ) * step;
+
+  return std::max( rounded, max_false_alarms );
+}
+
+} // anonymous namespace
+
 cv::Mat
 metrics_plotter::render_roc_curve( const roc_curve_data& curve )
 {
-  // Set up config for ROC curve
+  // Set up config for the DET curve. Note this is Pd against false alarms per
+  // frame, not a classification ROC: there is no false positive rate to plot
+  // because detection has no enumerable set of true negatives. That also means
+  // there is no meaningful random-classifier diagonal to draw.
   plot_config cfg = d->config;
   if( cfg.title.empty() )
   {
-    cfg.title = curve.class_name.empty() ? "ROC Curve" :
-      "ROC Curve: " + curve.class_name;
+    cfg.title = curve.class_name.empty() ? "Detection ROC Curve" :
+      "Detection ROC Curve: " + curve.class_name;
   }
-  if( cfg.x_label.empty() ) cfg.x_label = "False Positive Rate";
-  if( cfg.y_label.empty() ) cfg.y_label = "True Positive Rate";
+  if( cfg.x_label.empty() ) cfg.x_label = "False Alarms per Frame";
+  if( cfg.y_label.empty() ) cfg.y_label = "Probability of Detection";
+
+  cfg.x_min = 0.0;
+  cfg.x_max = false_alarm_axis_max( curve.max_false_alarms_per_frame );
 
   d->config = cfg;
 
   cv::Mat canvas = d->create_canvas();
   d->draw_grid( canvas );
-
-  // Draw diagonal reference line (random classifier)
-  cv::Point diag_start = d->data_to_pixel( 0.0, 0.0 );
-  cv::Point diag_end = d->data_to_pixel( 1.0, 1.0 );
-  cv::line( canvas, diag_start, diag_end,
-            cv::Scalar( 180, 180, 180 ), 1, cv::LINE_AA );
-
   d->draw_axes( canvas );
   d->draw_labels( canvas );
 
@@ -548,18 +590,20 @@ metrics_plotter::render_roc_curve( const roc_curve_data& curve )
   std::vector< cv::Point > points;
   for( const auto& pt : curve.points )
   {
-    points.push_back( d->data_to_pixel( pt.false_positive_rate, pt.true_positive_rate ) );
+    points.push_back(
+      d->data_to_pixel( pt.false_alarms_per_frame, pt.true_positive_rate ) );
   }
 
   // Draw curve
   cv::Scalar line_color = d->config.colors.get_line_color( 0 );
   d->draw_curve( canvas, points, line_color );
 
-  // Draw AUC annotation
-  if( d->config.show_auc && curve.auc > 0 )
+  // Annotate the mean probability of detection over the observed false alarm
+  // range (the area under this curve normalized by its x extent)
+  if( d->config.show_auc && curve.mean_pd > 0 )
   {
-    std::string auc_text = "AUC = " + format_double( curve.auc, 3 );
-    d->draw_annotation( canvas, auc_text, d->plot_left() + 10, d->plot_top() + 25, line_color );
+    std::string text = "Mean Pd = " + format_double( curve.mean_pd, 3 );
+    d->draw_annotation( canvas, text, d->plot_left() + 10, d->plot_top() + 25, line_color );
   }
 
   return canvas;
@@ -570,21 +614,25 @@ metrics_plotter::render_roc_curves( const std::map< std::string, roc_curve_data 
 {
   // Set up config
   plot_config cfg = d->config;
-  if( cfg.title.empty() ) cfg.title = "ROC Curves";
-  if( cfg.x_label.empty() ) cfg.x_label = "False Positive Rate";
-  if( cfg.y_label.empty() ) cfg.y_label = "True Positive Rate";
+  if( cfg.title.empty() ) cfg.title = "Detection ROC Curves";
+  if( cfg.x_label.empty() ) cfg.x_label = "False Alarms per Frame";
+  if( cfg.y_label.empty() ) cfg.y_label = "Probability of Detection";
+
+  // Scale the shared x axis to the widest curve
+  double max_false_alarms = 0.0;
+  for( const auto& kv : curves )
+  {
+    max_false_alarms =
+      std::max( max_false_alarms, kv.second.max_false_alarms_per_frame );
+  }
+
+  cfg.x_min = 0.0;
+  cfg.x_max = false_alarm_axis_max( max_false_alarms );
 
   d->config = cfg;
 
   cv::Mat canvas = d->create_canvas();
   d->draw_grid( canvas );
-
-  // Draw diagonal reference line
-  cv::Point diag_start = d->data_to_pixel( 0.0, 0.0 );
-  cv::Point diag_end = d->data_to_pixel( 1.0, 1.0 );
-  cv::line( canvas, diag_start, diag_end,
-            cv::Scalar( 180, 180, 180 ), 1, cv::LINE_AA );
-
   d->draw_axes( canvas );
   d->draw_labels( canvas );
 
@@ -600,16 +648,17 @@ metrics_plotter::render_roc_curves( const std::map< std::string, roc_curve_data 
     std::vector< cv::Point > points;
     for( const auto& pt : curve.points )
     {
-      points.push_back( d->data_to_pixel( pt.false_positive_rate, pt.true_positive_rate ) );
+      points.push_back(
+        d->data_to_pixel( pt.false_alarms_per_frame, pt.true_positive_rate ) );
     }
 
     cv::Scalar color = d->config.colors.get_line_color( color_idx++ );
     d->draw_curve( canvas, points, color );
 
     std::string label = name;
-    if( d->config.show_auc && curve.auc > 0 )
+    if( d->config.show_auc && curve.mean_pd > 0 )
     {
-      label += " (AUC=" + format_double( curve.auc, 2 ) + ")";
+      label += " (Mean Pd=" + format_double( curve.mean_pd, 2 ) + ")";
     }
     legend_entries.push_back( { label, color } );
   }
@@ -778,11 +827,12 @@ metrics_plotter::render_confusion_matrix( const confusion_matrix_data& matrix,
       label = label.substr( 0, 10 ) + "..";
     }
 
-    // Draw rotated text (vertical)
+    // Draw rotated text (vertical). cv::Mat takes (rows, cols): the text has
+    // to be laid out horizontally at its full width before being rotated.
     cv::Size text_size = get_text_size( label, priv::font_face,
       label_font_scale, 1, &baseline );
 
-    cv::Mat text_img( text_size.width + 10, text_size.height + 10, CV_8UC3,
+    cv::Mat text_img( text_size.height + 10, text_size.width + 10, CV_8UC3,
                       d->config.colors.background );
     cv::putText( text_img, label, cv::Point( 5, text_size.height + 2 ),
       priv::font_face, label_font_scale, d->config.colors.text_color, 1, cv::LINE_AA );
@@ -824,7 +874,12 @@ metrics_plotter::render_histogram( const std::vector< int >& bins,
 
   plot_config cfg = d->config;
   cfg.y_min = 0;
-  cfg.y_max = *std::max_element( bins.begin(), bins.end() ) * 1.1;
+
+  // An all-zero histogram would give a zero-height y axis, so floor the top of
+  // the axis at one count
+  const int max_count = *std::max_element( bins.begin(), bins.end() );
+  cfg.y_max = std::max( max_count * 1.1, 1.0 );
+
   cfg.x_min = 0;
   cfg.x_max = static_cast< double >( bins.size() );
   cfg.num_x_ticks = std::min( static_cast< int >( bins.size() ) + 1, 11 );
@@ -914,10 +969,16 @@ metrics_plotter::render_all_plots( const evaluation_plot_data& plot_data,
   // Create output directory if needed
   // (caller should ensure directory exists)
 
+  // Each plot starts from the caller's configuration rather than a default
+  // one, so canvas size and colors are honored. Taking a copy up front also
+  // keeps the axis ranges and labels a renderer derives for its own plot from
+  // leaking into the next one.
+  const plot_config base_config = d->config;
+
   // Overall PR curve
   if( !plot_data.overall_pr_curve.points.empty() )
   {
-    plot_config cfg;
+    plot_config cfg = base_config;
     cfg.title = "Overall Precision-Recall Curve";
     set_config( cfg );
 
@@ -928,7 +989,7 @@ metrics_plotter::render_all_plots( const evaluation_plot_data& plot_data,
   // Per-class PR curves
   if( !plot_data.per_class_pr_curves.empty() )
   {
-    plot_config cfg;
+    plot_config cfg = base_config;
     cfg.title = "Per-Class Precision-Recall Curves";
     set_config( cfg );
 
@@ -939,7 +1000,7 @@ metrics_plotter::render_all_plots( const evaluation_plot_data& plot_data,
   // Overall ROC curve
   if( !plot_data.overall_roc_curve.points.empty() )
   {
-    plot_config cfg;
+    plot_config cfg = base_config;
     cfg.title = "Overall ROC Curve";
     set_config( cfg );
 
@@ -950,7 +1011,7 @@ metrics_plotter::render_all_plots( const evaluation_plot_data& plot_data,
   // Confusion matrix
   if( !plot_data.confusion_matrix.class_names.empty() )
   {
-    plot_config cfg;
+    plot_config cfg = base_config;
     cfg.title = "Confusion Matrix";
     set_config( cfg );
 
@@ -961,7 +1022,7 @@ metrics_plotter::render_all_plots( const evaluation_plot_data& plot_data,
   // IoU histogram
   if( !plot_data.iou_histogram.empty() )
   {
-    plot_config cfg;
+    plot_config cfg = base_config;
     cfg.title = "IoU Distribution";
     cfg.x_label = "IoU";
     cfg.y_label = "Count";
@@ -980,7 +1041,7 @@ metrics_plotter::render_all_plots( const evaluation_plot_data& plot_data,
   // Track purity histogram
   if( !plot_data.track_purity_histogram.empty() )
   {
-    plot_config cfg;
+    plot_config cfg = base_config;
     cfg.title = "Track Purity Distribution";
     cfg.x_label = "Purity %";
     cfg.y_label = "Count";
@@ -998,7 +1059,7 @@ metrics_plotter::render_all_plots( const evaluation_plot_data& plot_data,
   // Track continuity histogram
   if( !plot_data.track_continuity_histogram.empty() )
   {
-    plot_config cfg;
+    plot_config cfg = base_config;
     cfg.title = "Track Continuity Distribution";
     cfg.x_label = "Continuity %";
     cfg.y_label = "Count";
@@ -1016,7 +1077,7 @@ metrics_plotter::render_all_plots( const evaluation_plot_data& plot_data,
   // Track length histogram
   if( !plot_data.track_length_histogram.empty() )
   {
-    plot_config cfg;
+    plot_config cfg = base_config;
     cfg.title = "Track Length Distribution";
     cfg.x_label = "Length (frames)";
     cfg.y_label = "Count";

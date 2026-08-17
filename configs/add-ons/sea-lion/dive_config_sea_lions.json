@@ -21,6 +21,7 @@
     "DP": { "color": "#1A5276", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
     "NFS": { "color": "#FBF6A0", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
     "DN": { "color": "#8E44AD", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
-    "NP": { "color": "#C39BD3", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true }
+    "NP": { "color": "#C39BD3", "opacity": 1.0, "fill": false, "showLabel": true, "showConfidence": true },
+    "Suppressed": { "color": "#A5A5A3", "opacity": 0.58, "fill": true, "showLabel": true, "showConfidence": true }
   }
 }

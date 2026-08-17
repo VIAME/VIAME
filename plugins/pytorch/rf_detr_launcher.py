@@ -13,11 +13,22 @@ import json
 
 
 def build_and_train(params):
+    import warnings
+
     import torch
 
+    # rfdetr points its CSVLogger at output_dir with no name/version, so
+    # hparams.yaml lands beside the checkpoints and ModelCheckpoint then reports
+    # the directory as non-empty on a clean run. Expected, not a resume.
+    warnings.filterwarnings(
+        "ignore",
+        message=r".*Checkpoint directory .* exists and is not empty.*",
+        module=r"pytorch_lightning\.callbacks\.model_checkpoint")
+
     from viame.pytorch.utilities import (
-        ensure_fork_start_method, ensure_rfdetr_compatibility, parse_resolution,
-        resolution_is_set)
+        apply_rfdetr_stem_lr, ensure_fork_start_method,
+        ensure_rfdetr_compatibility, parse_resolution, resolution_is_set,
+        rfdetr_resume_lr_callback)
 
     # Python 3.14 defaults Linux to the forkserver start method, which cannot
     # pickle rfdetr's ChannelSubset transform and kills every DataLoader worker.
@@ -44,6 +55,11 @@ def build_and_train(params):
     model_cls = getattr(rfdetr, sizes[params["model_size"]])
 
     model_kwargs = dict(num_channels=params["num_channels"], device="cuda")
+    # Explicit num_classes makes load_pretrain_weights keep every seed weight
+    # except the classification head, which is reinitialized at the dataset's
+    # class count (see rf_detr_trainer.py).
+    if params.get("class_names"):
+        model_kwargs["num_classes"] = len(params["class_names"])
     # Arrives as a string ("1280" or "960x1728") so a non-square pair survives JSON.
     resolution = parse_resolution(params.get("resolution", 0))
     if resolution_is_set(resolution):
@@ -57,15 +73,58 @@ def build_and_train(params):
     # Seed from a prior checkpoint by routing it through pretrain_weights. train()
     # rebuilds the network inside RFDETRModelModule from model_config and loads
     # only model_config.pretrain_weights, so a post-construction load_state_dict on
-    # the wrapper would be silently discarded. load_pretrain_weights aligns
-    # num_classes from the checkpoint/dataset.
+    # the wrapper would be silently discarded. With num_classes set above,
+    # load_pretrain_weights sizes the head for this dataset and keeps the rest
+    # of the checkpoint.
     seed = params.get("seed_model") or ""
     if seed and os.path.exists(seed):
         model = model_cls(pretrain_weights=seed, **model_kwargs)
     else:
         model = model_cls(**model_kwargs)
 
-    model.train(**params["train_kwargs"])
+    train_kwargs = params["train_kwargs"]
+
+    # TrainConfig is a pydantic model with the default extra="ignore", so an rfdetr
+    # predating ddp_timeout_seconds would drop it silently and leave the run on the
+    # 30-minute watchdog while the config claims otherwise. Say so instead.
+    if "ddp_timeout_seconds" in train_kwargs:
+        from rfdetr.config import TrainConfig
+
+        if "ddp_timeout_seconds" not in getattr(TrainConfig, "model_fields", {}):
+            print("[rf_detr_launcher] WARNING: installed rfdetr does not support "
+                  "ddp_timeout_seconds; DDP stays on PyTorch-Lightning's 30-minute "
+                  "process-group timeout.", flush=True)
+            train_kwargs.pop("ddp_timeout_seconds")
+
+    # PTL re-execs this script per rank and each rank builds its own optimizer,
+    # so this has to be applied here rather than inherited from the parent, and
+    # before train() constructs the param groups.
+    apply_rfdetr_stem_lr(
+        params.get("lr_stem", 0.0),
+        train_kwargs["lr_encoder"],
+        train_kwargs["lr_component_decay"],
+        train_kwargs["lr_vit_layer_decay"],
+    )
+
+    # A resume restores the optimizer and scheduler, learning rates included, so
+    # without this the config's LRs are silently discarded. rf_detr_trainer.py
+    # injects the same callback on the single-GPU path; here it has to be done
+    # per rank, since PTL re-execs this script and each rank builds its own
+    # trainer. train() exposes no callbacks seam, so wrap build_trainer.
+    if train_kwargs.get("resume"):
+        import rfdetr.training as rfdetr_training
+
+        original_build_trainer = rfdetr_training.build_trainer
+        resume_lr = rfdetr_resume_lr_callback()
+
+        def _build_trainer_with_resume_lr(*args, **kwargs):
+            trainer = original_build_trainer(*args, **kwargs)
+            trainer.callbacks.append(resume_lr)
+            return trainer
+
+        rfdetr_training.build_trainer = _build_trainer_with_resume_lr
+
+    model.train(**train_kwargs)
 
 
 if __name__ == "__main__":

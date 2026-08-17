@@ -1,0 +1,32 @@
+# =============================================================================
+# Title: Format Converter
+#
+# Description: Converts annotation data between different file formats without
+# requiring the source imagery or videos to be present. Image names are pulled
+# from the identifiers stored in the input annotation files instead.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                                      5
+
+config _scheduler
+  :type                                       pythread_per_process
+
+# ============================== CONVERTER FUNC ===============================
+
+process detection_reader
+  :: detected_object_input
+  :file_name                                             input.csv
+  :reader:type                                           viame_csv
+
+process detector_writer
+  :: detected_object_output
+  :file_name                                           output.json
+  :writer:type                                                coco
+
+connect from detection_reader.detected_object_set
+        to   detector_writer.detected_object_set
+connect from detection_reader.image_file_name
+        to   detector_writer.image_file_name
+
+# -- end of file --

@@ -94,6 +94,10 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
             self.file.close()
 
     def write_set(self, detected_object_set, file_name):
+        # Frames with no identifier occur when converting annotation files
+        # standalone (no imagery); skip them unless they carry detections.
+        if not file_name and len(detected_object_set) == 0:
+            return
         cats = self._local_categories
         for det in detected_object_set:
             d = detection_to_annotation(

@@ -365,7 +365,7 @@ Fully Automatic Measurement Pipelines
 These pipelines perform end-to-end automatic detection and measurement without
 requiring any manual annotations.
 
-**measurement_fully_auto_fish_default.pipe**
+**measurement_default_fish_fully_auto.pipe**
   Fully automatic fish detection and measurement pipeline. Uses a neural network
   fish detector with windowed processing on both stereo cameras, then performs stereo
   matching and triangulation to compute fish lengths. Outputs measured tracks to

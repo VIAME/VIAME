@@ -22,7 +22,7 @@ include common_stereo_input_with_downsampler.pipe
 
 # ================================= DETECTOR ==================================
 
-include common_stereo_fish_detector_with_filter.pipe
+include common_stereo_fish_detector.pipe
 
 # ================================= DEPTH MAP =================================
 
@@ -85,9 +85,9 @@ connect from downsampler.output_3
 # Connect detector outputs and depth map to stereo pairing
 connect from depth_map.depth_map
         to   stereo_pairing.depth_map
-connect from detector_filter1.detected_object_set
+connect from detector_output1.detected_object_set
         to   stereo_pairing.detected_object_set1
-connect from detector_filter2.detected_object_set
+connect from detector_output2.detected_object_set
         to   stereo_pairing.detected_object_set2
 
 # Connect stereo pairing output to output writer

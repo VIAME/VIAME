@@ -40,6 +40,7 @@ set( plugin_headers
   utilities_file.h
   utilities_image.h
   utilities_segmentation.h
+  utilities_tracks.h
   utilities_training.h
   windowed_detector.h
   windowed_refiner.h
@@ -90,6 +91,7 @@ set( plugin_sources
   utilities_file.cxx
   utilities_image.cxx
   utilities_segmentation.cxx
+  utilities_tracks.cxx
   utilities_training.cxx
   windowed_detector.cxx
   windowed_refiner.cxx
@@ -354,6 +356,11 @@ if( VIAME_ENABLE_PYTHON )
     bytetrack_trainer )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/training_data.py
+    core
+    training_data )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/detection_fusion_core.py
     core
     detection_fusion_core )
@@ -364,14 +371,29 @@ if( VIAME_ENABLE_PYTHON )
     merge_detections_nms_fusion )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_coverage_reinforce.py
+    core
+    merge_detections_coverage_reinforce )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/merge_tracks_tube_iou.py
     core
     merge_tracks_tube_iou )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_blackout.py
+    core
+    multicam_homog_blackout )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_det_suppressor.py
     core
     multicam_homog_det_suppressor )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_mosaic.py
+    core
+    multicam_homog_mosaic )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/multicam_homog_tracker.py
@@ -387,6 +409,11 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/optical_flow.py
     core
     optical_flow )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/frame_diff_trainer.py
+    core
+    frame_diff_trainer )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/ocsort_tracker.py

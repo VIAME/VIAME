@@ -810,12 +810,10 @@ class ProgMixin(object):
         """
         parts = ['{}:{:.4g}'.format(k, v) for k, v in metric_dict.items()]
 
-        if learn and harn.epoch == 0:
-            HACK_WARMUP = bool(harn.dynamics['warmup_iters'])
-            if HACK_WARMUP:
-                lrs = set(harn._current_lrs())
-                lr_str = ','.join(['{:.4g}'.format(lr) for lr in lrs])
-                parts.append('lr=' + lr_str)
+        if learn and harn.dynamics['warmup_iters'] and not harn._warmup_done:
+            lrs = set(harn._current_lrs())
+            lr_str = ','.join(['{:.4g}'.format(lr) for lr in lrs])
+            parts.append('lr=' + lr_str)
 
         if harn.preferences['prog_backend'] == 'progiter':
             if learn and harn.scheduler and getattr(harn.scheduler, '__batchaware__', False):
@@ -1389,27 +1387,22 @@ class ScheduleMixin(object):
             harn = nh.FitHarn(nh.HyperParams.demo()).initialize()
         """
         # TODO: proper warmup iters
-        if harn.epoch == 0:
-            HACK_WARMUP = bool(harn.dynamics['warmup_iters'])
-            if HACK_WARMUP:
-                from .schedulers.scheduler_redesign import _get_optimizer_values
-                from .schedulers.scheduler_redesign import _set_optimizer_values
-                # Based on mmdet logic, need to generalize better for netharn
-                # So warmup can be used with any scheduler, even a torch one
-                cur_iters = harn.batch_index
-                warmup = 'linear'
-                warmup_iters = harn.dynamics['warmup_iters']
-                warmup_ratio = harn.dynamics['warmup_ratio']   # 1.0 / 3.0
-                if cur_iters < warmup_iters:
-                    # for cur_iters in range(0, warmup_iters):
-                    regular_lr = _get_optimizer_values(harn.optimizer, 'initial_lr')
-                    if warmup == 'linear':
-                        k = (1 - (cur_iters + 1) / warmup_iters) * (1 - warmup_ratio)
-                        warmup_lr = [_lr * (1 - k) for _lr in regular_lr]
-                    else:
-                        raise KeyError(warmup)
-                    # harn.debug('warmup_lr = {}'.format(warmup_lr))
-                    _set_optimizer_values(harn.optimizer, 'lr', warmup_lr)
+        if harn.dynamics['warmup_iters'] and not harn._warmup_done:
+            from .schedulers.scheduler_redesign import _get_optimizer_values
+            from .schedulers.scheduler_redesign import _set_optimizer_values
+            # Based on mmdet logic, need to generalize better for netharn
+            # So warmup can be used with any scheduler, even a torch one
+            warmup_iters = harn.dynamics['warmup_iters']
+            warmup_ratio = harn.dynamics['warmup_ratio']   # 1.0 / 3.0
+            # batch_index restarts each epoch; a warmup longer than one epoch
+            # still has to hand the base rate back rather than stay throttled
+            cur_iters = harn.batch_index if harn.epoch == 0 else warmup_iters
+            frac = min(1.0, (cur_iters + 1) / warmup_iters)
+            scale = warmup_ratio + (1 - warmup_ratio) * frac
+            regular_lr = _get_optimizer_values(harn.optimizer, 'initial_lr')
+            _set_optimizer_values(harn.optimizer, 'lr',
+                                  [_lr * scale for _lr in regular_lr])
+            harn._warmup_done = (frac >= 1.0)
 
         # TODO: REFACTOR SO NETHARN HAS A PROPER ITERATION MODE
         if getattr(harn.scheduler, '__batchaware__', False):
@@ -2061,6 +2054,7 @@ class CoreMixin(object):
                             loss = sum(loss_parts.values())
 
                     if learn:
+                        harn._check_batch_loss(loss)
                         harn.backpropogate(bx, batch, loss)
 
                     if is_profiling:
@@ -2250,6 +2244,30 @@ class ChecksMixin(object):
                 raise TrainingDiverged(
                     'NON-FINITE GRAD {}.grad = {!r}'.format(key, value))
         return all_grads
+
+    @profiler.profile
+    def _check_batch_loss(harn, loss):
+        """
+        Guards the backward pass. A single non-finite loss propagates NaN into
+        every weight, which no later batch can undo, so the batch is dropped
+        instead.
+
+        Raises:
+            SkipBatch: if this batch has a non-finite loss
+            TrainingDiverged: if too many consecutive batches were skipped
+        """
+        if bool(torch.isfinite(loss.detach()).all()):
+            harn._nonfinite_batches = 0
+            return
+        harn._nonfinite_batches += 1
+        max_skips = harn.preferences['max_nonfinite_batches']
+        if harn._nonfinite_batches > max_skips:
+            raise TrainingDiverged(
+                'NON-FINITE LOSS on {} consecutive batches'.format(
+                    harn._nonfinite_batches))
+        harn.warn('non-finite loss, skipping batch {} (streak={})'.format(
+            harn.bxs[harn.current_tag], harn._nonfinite_batches))
+        raise SkipBatch('non-finite loss')
 
     @profiler.profile
     def _check_loss(harn, loss_value):
@@ -2523,6 +2541,13 @@ class CoreCallbacks(object):
                     if harn.check_interval('log_iter_' + tag, iter_idx, first=True):
                         harn.log_value(tag + ' iter clipped total norm', total_norm, iter_idx)
 
+                if not np.isfinite(float(total_norm)):
+                    # clip_grad_norm_ scales by nan in this case, so the step
+                    # has to be abandoned rather than clipped
+                    harn.warn('non-finite gradient norm, skipping step')
+                    harn.optimizer.zero_grad()
+                    return
+
                 if total_norm > harn.dynamics['grad_norm_max'] * 100:
                     harn.warn('grad norm is too high: '
                               'total_norm = {!r}'.format(total_norm))
@@ -2794,6 +2819,9 @@ class FitHarn(ExtraMixins, InitializeMixin, ProgMixin, LogMixin, SnapshotMixin,
             'cali': 0,   # TODO: calibration dataset
         }
 
+        harn._warmup_done = False
+        harn._nonfinite_batches = 0
+
         harn.intervals = {
             'display_train': 1,
             'display_vali': 1,
@@ -2955,6 +2983,11 @@ class FitHarnPreferences(scfg.Config):
         'large_loss': scfg.Value(1000, help=(
             'A loss that would be considered large '
             '(This tells netharn when to check for divergence)')
+        ),
+
+        'max_nonfinite_batches': scfg.Value(10, help=(
+            'How many consecutive batches with a non-finite loss to skip '
+            'before declaring the training diverged')
         ),
 
         'num_keep': scfg.Value(2, help=(

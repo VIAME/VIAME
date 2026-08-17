@@ -50,6 +50,10 @@ Outputs per site (in --output, default <site>_coverage):
   prior_coverage_vis.png   thumbnail grid (rows = a contiguous run of triggers,
                            columns = STAR|CENTER|PORT) with each prior frame's
                            region outlined and labelled separately
+  blackout_images/         with --blackout-images (non-default): a complete
+                           copy of the site's images with every previously-
+                           observed region filled black (unseen images are
+                           copied through unchanged)
 """
 
 import argparse
@@ -72,6 +76,9 @@ from viame.opencv.registration_utils import (
     compute_homography_pair, _compute_camera_chain,
     _poses_to_enu, _track_headings, _rot2,
     _geo_calibrate,
+)
+from viame.opencv.prior_coverage_opencv import (
+    _geo_anchor_with_cal,
 )
 
 CAM_ORDER = {'CENTER': 0, 'PORT': 1, 'STAR': 2, None: 0}
@@ -378,65 +385,6 @@ def _expected_px_per_m(poses):
     return width / (alt * smd.SENSOR_W_MM / f35)
 
 
-def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
-                         verbose=True):
-    """Like registration_utils._geo_anchor_cameras but returns the per-camera
-    calibration (M, enu, yaw) needed to build pixel->ENU transforms, and
-    bounds the fitted scale by the metadata-expected GSD (few clean pairwise
-    steps on water-heavy sites otherwise corrupt the scale by 50%+)."""
-    from viame.opencv.registration_utils import _geo_fill
-    cal = {}
-    for cam in cams:
-        if poses_by_cam.get(cam) is None:
-            continue
-        M, n, r, enu, yaw = _geo_calibrate(
-            cam_chains.get(cam, {}), cams[cam],
-            poses_by_cam[cam], pairwise_by_cam.get(cam))
-        cal[cam] = {'M': M, 'n': n, 'res': r, 'enu': enu, 'yaw': yaw,
-                    'expect': _expected_px_per_m(poses_by_cam[cam])}
-    good = [np.sqrt(abs(np.linalg.det(c['M']))) for c in cal.values()
-            if c['M'] is not None and c['n'] >= 8
-            and c['res'] is not None and c['res'] < 150]
-    shared = float(np.median(good)) if good else None
-    for cam, c in cal.items():
-        target = None       # rig-consensus scale first, metadata GSD second
-        reliable = (c['M'] is not None and c['n'] >= 8
-                    and c['res'] is not None and c['res'] < 150)
-        if c['M'] is None:
-            ref = shared or c['expect']
-            if ref is not None and not np.all(np.isnan(c['yaw'])):
-                # No usable pairwise steps at all (e.g. all-water camera):
-                # synthesize M from the known mounting. CENTER/PORT image-up =
-                # flight direction; STAR is mounted ~180 deg rotated (measured
-                # on the 2024 rig: sequential pixel motion dy is +1300 px for
-                # CENTER/PORT vs -1380 px for STAR on the same frames), so its
-                # synthesized M is negated (R(180) @ M = -M).
-                sgn = -1.0 if str(cam).upper() == 'STAR' else 1.0
-                c['M'] = sgn * np.array([[ref, 0.0], [0.0, -ref]])
-                c['borrowed'] = True
-            else:
-                continue
-        elif not reliable:
-            target = shared or c['expect']
-        else:
-            # Even a "reliable" fit is distrusted when it disagrees with
-            # physics by >30% - altitude and focal length are well known.
-            own = np.sqrt(abs(np.linalg.det(c['M'])))
-            if c['expect'] and abs(own / c['expect'] - 1.0) > 0.3:
-                target = c['expect']
-        if target is not None:
-            own = np.sqrt(abs(np.linalg.det(c['M'])))
-            if own > 1e-6:
-                c['M'] = c['M'] * (target / own)
-                c['borrowed'] = True
-        if verbose:
-            note = f"{cam}{'*' if c.get('borrowed') else ''}"
-        else:
-            note = ''
-        _geo_fill(cam_chains.get(cam, {}), cams[cam], c['enu'], c['yaw'],
-                  c['M'], label=note, n_steps=c['n'], residual=c['res'])
-    return cal
-
 
 def _pixel_to_enu_transform(enu_xy, yaw_deg, M, width, height, origin_off):
     """Per-frame affine pixel->global-ENU built from the GPS fix, GPS-track
@@ -705,6 +653,41 @@ def write_viame_csv(path, rows, coverage_class, obs_registry=None):
             f.write(f'{tid},{rel},{frame_ids[rel]},'
                     f'{x0:.1f},{y0:.1f},{x1:.1f},{y1:.1f},1.0,-1,'
                     f'{cls},1.0,{_fmt_poly(poly)}{note}\n')
+
+
+def write_blackout_images(out_dir, site_folder, observations, rows,
+                          verbose=True):
+    """Write a copy of every site image with previously-observed regions
+    filled black.
+
+    Images with no prior-coverage polygons are copied through unchanged
+    (byte-for-byte), so `out_dir` is a complete stand-in image set for the
+    site with everything already seen elsewhere blacked out.
+    """
+    import shutil
+    import cv2
+    by_image = {}
+    for rel, _sfx, poly, _src in rows:
+        by_image.setdefault(rel, []).append(poly)
+    n_black = 0
+    for o in observations:
+        src = os.path.join(site_folder, o.rel)
+        dst = os.path.join(out_dir, o.rel)
+        os.makedirs(os.path.dirname(dst) or out_dir, exist_ok=True)
+        polys = by_image.get(o.rel)
+        if not polys:
+            shutil.copy2(src, dst)
+            continue
+        img = cv2.imread(src, cv2.IMREAD_UNCHANGED)
+        if img is None:
+            shutil.copy2(src, dst)
+            continue
+        cv2.fillPoly(img, [np.round(p).astype(np.int32) for p in polys], 0)
+        cv2.imwrite(dst, img)
+        n_black += 1
+    if verbose:
+        print(f'    blackout images -> {out_dir} '
+              f'({n_black} modified, {len(observations) - n_black} copied)')
 
 
 def write_revisits_csv(path, events):
@@ -1029,7 +1012,10 @@ def process_site(site_folder, site_id, grid, order_start, args, to_enu,
         have_gps = any(poses_by_cam[cam] for cam in cams)
         if have_gps:
             print('  Geo-anchoring chains (GPS dead-reckoning fill)...')
-            cal = _geo_anchor_with_cal(chains, cams, poses_by_cam, pairwise)
+            cal = _geo_anchor_with_cal(
+                chains, cams, poses_by_cam, pairwise,
+                reconcile=getattr(args, 'gps_chain_reconcile', True),
+                site_folder=site_folder)
         else:
             print('  No GPS metadata: moving-average fill for water frames')
             for cam, rels in cams.items():
@@ -1157,6 +1143,10 @@ def process_site(site_folder, site_id, grid, order_start, args, to_enu,
     if not args.revisits_only:
         write_viame_csv(os.path.join(out_dir, 'prior_coverage.csv'), rows,
                         args.coverage_class, obs_registry)
+    if args.blackout_images:
+        write_blackout_images(
+            args.blackout_dir or os.path.join(out_dir, 'blackout_images'),
+            site_folder, observations, rows)
     write_revisits_csv(os.path.join(out_dir, 'revisits.csv'), revisit_events)
     render_coverage_map(os.path.join(out_dir, 'coverage_map.png'),
                         observations, site_tag)
@@ -1246,11 +1236,33 @@ def main():
                          'grid, e.g. 240-270 (overrides --vis-rows)')
     ap.add_argument('--vis-thumb-width', type=int, default=420,
                     help='Thumbnail width (px) in the grid')
+    ap.add_argument('--blackout-images', action='store_true',
+                    help='Also write a copy of every image with the '
+                         'previously-observed regions filled black (a '
+                         'complete stand-in image set; unseen images are '
+                         'copied unchanged)')
+    ap.add_argument('--blackout-dir', default=None,
+                    help='Output directory for --blackout-images (default '
+                         '<output>/blackout_images)')
     ap.add_argument('--revisits-only', action='store_true',
                     help='Only detect/report revisit events (revisits.csv '
                          '+ coverage map); skip per-frame coverage CSV and '
                          'thumbnails. Supersedes detect_site_revisits.py.')
     # Registration options (defaults follow the validated experiment config).
+    ap.add_argument('--no-chain-anchored-placement',
+                    dest='chain_anchored_placement', action='store_false',
+                    default=True,
+                    help='Place frames by per-frame GPS+heading instead of '
+                         'anchoring the feature chain to GPS with one '
+                         'fitted similarity (the default, which keeps the '
+                         'image-measured relative geometry).')
+    ap.add_argument('--no-gps-chain-reconcile', dest='gps_chain_reconcile',
+                    action='store_false', default=True,
+                    help='Disable the verified GPS/chain reconciliation '
+                         '(correcting logged GPS steps that disagree with '
+                         'the image motion, each confirmed by an '
+                         'independent match). On by default, matching the '
+                         'in-pipeline registration node.')
     ap.add_argument('--match-ratio', type=float, default=0.80)
     ap.add_argument('--match-scale', type=float, default=0.5)
     ap.add_argument('--min-inliers', type=int, default=10)

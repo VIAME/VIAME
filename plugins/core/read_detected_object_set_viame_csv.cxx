@@ -44,6 +44,81 @@ create_viame_csv_bbox( std::vector< std::string > const& cols )
     atof( cols[VIAME_CSV_COL_MAX_Y].c_str() ) );
 }
 
+void
+tokenize_viame_csv_line( std::string const& line,
+                         std::vector< std::string >& cols,
+                         char delim )
+{
+  cols.clear();
+
+  std::string current;
+  bool quoted = false;
+
+  for( size_t i = 0; i < line.size(); ++i )
+  {
+    const char c = line[i];
+
+    if( c == '"' )
+    {
+      if( quoted && i + 1 < line.size() && line[i + 1] == '"' )
+      {
+        current += '"';
+        ++i;
+      }
+      else
+      {
+        quoted = !quoted;
+      }
+    }
+    else if( c == delim && !quoted )
+    {
+      cols.push_back( current );
+      current.clear();
+    }
+    else
+    {
+      current += c;
+    }
+  }
+
+  cols.push_back( current );
+}
+
+void
+expand_packed_viame_csv_pairs( std::vector< std::string >& cols, char delim )
+{
+  for( size_t i = VIAME_CSV_COL_TOT; i + 1 < cols.size(); i += 2 )
+  {
+    if( cols[i].empty() || cols[i][0] == '(' )
+    {
+      break;
+    }
+
+    const std::string conf = cols[i + 1];
+
+    if( conf.find( delim ) == std::string::npos )
+    {
+      continue;
+    }
+
+    // Only a number followed by the delimiter marks a packed run; anything
+    // else is a type that legitimately contains the delimiter
+    char* end = nullptr;
+    std::strtod( conf.c_str(), &end );
+
+    if( end == conf.c_str() || *end != delim )
+    {
+      continue;
+    }
+
+    std::vector< std::string > parts;
+    kwiver::vital::tokenize( conf, parts, std::string( 1, delim ), false );
+
+    cols.erase( cols.begin() + i + 1 );
+    cols.insert( cols.begin() + i + 1, parts.begin(), parts.end() );
+  }
+}
+
 size_t parse_viame_csv_species(
   std::vector< std::string > const& cols,
   double confidence_override,
@@ -229,6 +304,10 @@ public:
   // Alternative basepaths for strings as the above frame name might ref a full path.
   std::map< std::string, std::string > m_alt_filenames;
 
+  // Map of frame number to source identifier (column 2) for standalone use
+  // without an external image source connected.
+  std::map< int, std::string > m_name_by_id;
+
   // A list of all input filename strings used for error checking.
   std::vector< std::string > m_searched_filenames;
 };
@@ -380,6 +459,13 @@ read_detected_object_set_viame_csv
     set = d->m_detection_by_id[ d->m_current_idx ];
   }
 
+  auto name_itr = d->m_name_by_id.find( d->m_current_idx );
+
+  if( image_name.empty() && name_itr != d->m_name_by_id.end() )
+  {
+    image_name = name_itr->second;
+  }
+
   ++d->m_current_idx;
 
   return true;
@@ -406,11 +492,13 @@ read_detected_object_set_viame_csv::priv
   // Read detections
   m_detection_by_id.clear();
   m_detection_by_str.clear();
+  m_name_by_id.clear();
 
   while( stream_reader.getline( line ) )
   {
     std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, ",", false );
+    tokenize_viame_csv_line( line, col );
+    expand_packed_viame_csv_pairs( col );
 
     if( col.empty() || ( !col[0].empty() && col[0][0] == '#' ) )
     {
@@ -436,6 +524,11 @@ read_detected_object_set_viame_csv::priv
      */
     int frame_id = atoi( col[COL_FRAME_ID].c_str() );
     std::string str_id = col[COL_SOURCE_ID];
+
+    if( !str_id.empty() && m_name_by_id.count( frame_id ) == 0 )
+    {
+      m_name_by_id[ frame_id ] = str_id;
+    }
 
     if( m_detection_by_id.count( frame_id ) == 0 )
     {
@@ -583,7 +676,8 @@ read_detected_object_set_viame_csv::priv
     }
   } // ...while !eof
 
-  // Check if all frame names are timestamps, if so don't use them in favor of frame ids
+  // Check if all frame names are timestamps, if so don't use them in favor of
+  // frame ids. Covers both MM:SS.s and HH:MM:SS, the latter having no period.
   unsigned timestamp_count = 0;
   unsigned frame_count = 0;
 
@@ -591,9 +685,13 @@ read_detected_object_set_viame_csv::priv
   {
     const std::string& entry = itr.first;
 
-    if( ( ( std::count( entry.begin(), entry.end(), ':' ) == 2 ||
-            std::count( entry.begin(), entry.end(), ':' ) == 1 ) &&
-          std::count( entry.begin(), entry.end(), '.' ) == 1 ) ||
+    const auto colons = std::count( entry.begin(), entry.end(), ':' );
+    const auto periods = std::count( entry.begin(), entry.end(), '.' );
+
+    const bool numeric = std::all_of( entry.begin(), entry.end(),
+      []( char c ) { return ( c >= '0' && c <= '9' ) || c == ':' || c == '.'; } );
+
+    if( ( numeric && ( colons == 1 || colons == 2 ) && periods <= 1 ) ||
          entry.find( ".data@" ) != std::string::npos )
     {
       timestamp_count++;

@@ -13,25 +13,32 @@ process tracker
 
 block track_objects:bytetrack
 
-  # Detection confidence threshold for first association stage
-  # Detections above this threshold are matched first with high priority
-  :high_thresh                                 0.6
+  # Tuned on FishTrack23 over RF-DETR rgb_1728 detections.
 
-  # Detection confidence threshold for second association stage
-  # Detections between low_thresh and high_thresh are matched in second stage
-  :low_thresh                                  0.1
+  # Confidence threshold for the first (high-confidence) association stage
+  :high_thresh                                 0.75097625
 
-  # IoU threshold for matching detections to existing tracks
-  # Higher values require more overlap for association
-  :match_thresh                                0.8
+  # Confidence threshold for the second (low-confidence) association stage
+  :low_thresh                                  0.27399542
+
+  # IoU distance bound for the first association pass
+  :match_thresh                                0.98
+
+  # IoU distance bound for the second (low-confidence) association pass
+  :second_match_thresh                         0.98
+
+  # IoU distance bound for matching unconfirmed, single-hit tracks
+  :unconfirmed_match_thresh                    0.98
 
   # Number of frames to keep lost tracks before removal
-  # Tracks not matched for this many frames are terminated
-  :track_buffer                                30
+  :track_buffer                                17
 
-  # Minimum confidence threshold to initialize a new track
-  # Only detections above this threshold can start new tracks
-  :new_track_thresh                            0.6
+  # Minimum confidence to initialize a new track
+  :new_track_thresh                            0.8049812
+
+  # Kalman position and velocity uncertainty weights
+  :std_weight_position                         0.26666666666666666
+  :std_weight_velocity                         0.17804493814764857
 
 endblock
 

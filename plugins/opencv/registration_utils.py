@@ -17,6 +17,7 @@ before the packages are present. Call ``import_dependencies()`` once at startup.
 import os
 import sys
 import math
+import time
 import csv
 import json
 import re
@@ -28,6 +29,12 @@ np = None
 cv2 = None
 
 IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.tif', '.tiff', '.bmp'}
+
+# Max anisotropy (ratio of singular values of the 2x2 linear part) allowed for a
+# relative image-to-image transform accepted into a camera chain. Near-nadir
+# survey frames map by a near-similarity (aniso ~1); anything far above this is a
+# degenerate/rank-deficient match that must not be chained.
+_MAX_RELATIVE_ANISO = 6.0
 
 # numpy/cv2 are the only hard requirements of this engine.
 REQUIRED_PACKAGES = {'numpy': 'numpy', 'cv2': 'opencv-python'}
@@ -444,7 +451,7 @@ def _compute_camera_chain(image_folder, cam_images, label="",
                            root_sift=False, use_affine=False,
                            sift_contrast=0.04, clahe_clip=4.0,
                            loop_closure=False, loop_closure_max=24,
-                           anchor_central=False):
+                           anchor_central=False, progress_interval=240.0):
     """Compute sequential homography chain for a single camera's image list.
 
     Returns (H_chain, pairwise_H) where H_chain maps index -> H_to_anchor (3x3)
@@ -462,10 +469,26 @@ def _compute_camera_chain(image_folder, cam_images, label="",
     if n == 0:
         return {}, {}
 
+    # Periodic status for the long stretches: prints at most once per
+    # progress_interval seconds, so a big survey shows signs of life during
+    # anchor scoring / chaining / retries without flooding the log.
+    _t0 = time.time()
+    _last_progress = [_t0]
+
+    def _progress(msg):
+        if progress_interval <= 0:
+            return
+        now = time.time()
+        if now - _last_progress[0] >= progress_interval:
+            _last_progress[0] = now
+            print(f"    {label or 'chain'}: {msg} "
+                  f"[{(now - _t0) / 60.0:.1f} min elapsed]", flush=True)
+
     # Find the best anchor frame (highest SIFT features without CLAHE)
     sift_quick = cv2.SIFT_create(nfeatures=0, contrastThreshold=0.04)
     anchor_scores = []
     for i, fname in enumerate(cam_images):
+        _progress(f"scoring anchor frames {i + 1}/{n}")
         is_water = (water_info or {}).get(fname, {}).get('is_water', False)
         if is_water:
             anchor_scores.append((0, i))
@@ -540,6 +563,18 @@ def _compute_camera_chain(image_folder, cam_images, label="",
                 root_sift=root_sift, use_affine=use_affine,
                 sift_contrast=sift_contrast, clahe_clip=clahe_clip)
             if H is not None:
+                # Reject a grossly anisotropic relative transform. Consecutive
+                # near-nadir frames map by a near-similarity (aniso ~1); a
+                # degenerate feature match (e.g. collinear inliers across a
+                # low-overlap gap) yields a rank-deficient sliver transform
+                # (aniso in the hundreds). Accepting one poisons every frame
+                # chained onto it. Skip it so a better link (or GPS fallback)
+                # is used instead.
+                L = np.asarray(H)[:2, :2]
+                sv = np.linalg.svd(L, compute_uv=False)
+                if not np.all(np.isfinite(sv)) or sv[1] <= 1e-9 \
+                        or sv[0] / sv[1] > _MAX_RELATIVE_ANISO:
+                    continue
                 H_candidate = H_chain[j] @ H
                 if max_chain_cond > 0:
                     try:
@@ -560,11 +595,15 @@ def _compute_camera_chain(image_folder, cam_images, label="",
     for i in range(anchor_idx - 1, -1, -1):
         search = [j for j in range(i + 1, min(i + search_window, n))]
         try_chain(i, search)
+        _progress(f"chaining backward, frame {i + 1}/{n} "
+                  f"({len(H_chain)}/{n} linked)")
 
     # Extend forward from anchor
     for i in range(anchor_idx + 1, n):
         search = [j for j in range(i - 1, max(i - search_window, -1), -1)]
         try_chain(i, search)
+        _progress(f"chaining forward, frame {i + 1}/{n} "
+                  f"({len(H_chain)}/{n} linked)")
 
     # Final pass: try unchained frames against any chained frame
     for i in range(n):
@@ -572,6 +611,8 @@ def _compute_camera_chain(image_folder, cam_images, label="",
             continue
         candidates = sorted(H_chain.keys(), key=lambda j: abs(i - j))[:10]
         try_chain(i, candidates)
+        _progress(f"retrying unchained frames, frame {i + 1}/{n} "
+                  f"({len(H_chain)}/{n} linked)")
 
     # Boosted retry: for unchained frames classified as coastal (or any
     # non-water frame that failed), retry with higher resolution / relaxed
@@ -588,6 +629,8 @@ def _compute_camera_chain(image_folder, cam_images, label="",
             candidates = sorted(H_chain.keys(), key=lambda j: abs(i - j))[:15]
             if try_chain(i, candidates, boost=True):
                 boosted_count += 1
+        _progress(f"boosted retry, frame {i + 1}/{n} "
+                  f"({len(H_chain)}/{n} linked)")
     if boosted_count and label:
         print(f"    {label}: {boosted_count} frames recovered via boosted matching")
 
@@ -620,6 +663,8 @@ def _compute_camera_chain(image_folder, cam_images, label="",
             # Order farthest-first so a genuine revisit is preferred over a
             # marginal near match the earlier passes already rejected.
             candidates = sorted(candidates, key=lambda j: -abs(i - j))
+            _progress(f"loop-closure pass, frame {i + 1}/{n} "
+                      f"({len(H_chain)}/{n} linked)")
             before = i in H_chain
             if try_chain(i, candidates, boost=True) and not before:
                 # Corroborate: the matched frame's own neighbours should also be
@@ -797,6 +842,32 @@ def _track_headings(enu):
             head[i] = math.degrees(math.atan2(d[0], d[1]))  # atan2(E, N)
     return head
 
+def _fill_nan_headings(head, logged_yaw):
+    """Fill NaN GPS-track headings (frames with < 1 m of motion, e.g. a
+    hovering UAS) so placements do not silently rotate to north-up.
+
+    Per NaN frame, prefer the frame's LOGGED yaw when it is consistent with
+    the nearest valid track heading (within 45 deg circular) - a hovering
+    drone keeps a meaningful logged yaw and may even rotate in place. When
+    the logged yaw disagrees (e.g. the 2024 rig logs yaw in a different
+    convention than the track heading M was calibrated against) or is absent,
+    hold the nearest valid track heading instead. Returns a filled copy;
+    all-NaN input is returned unchanged."""
+    head = np.asarray(head, dtype=float).copy()
+    valid = np.nonzero(~np.isnan(head))[0]
+    if not len(valid):
+        return head
+    for i in np.nonzero(np.isnan(head))[0]:
+        nearest = head[valid[np.argmin(np.abs(valid - i))]]
+        ly = logged_yaw[i] if logged_yaw is not None else None
+        if ly is not None and not np.isnan(ly):
+            d = abs((float(ly) - nearest + 180.0) % 360.0 - 180.0)
+            head[i] = float(ly) if d <= 45.0 else nearest
+        else:
+            head[i] = nearest
+    return head
+
+
 def _rot2(deg):
     """2x2 rotation matrix for an angle in degrees (NaN -> identity)."""
     if deg is None or np.isnan(deg):
@@ -898,6 +969,206 @@ def _geo_fill(chain, cam_images, enu, yaw, M, label="", n_steps=0, residual=None
         print(f"    {label}: geo-anchor {n_steps} pairwise steps, {scale:.0f}px/m, "
               f"step-residual {rtxt}{extra}")
     return filled
+
+
+def reconcile_enu_with_chain(chain, enu, yaw, M, max_gap=1, min_run=6,
+                             disagree=0.15, disagree_abs=2.5, chain_dev=0.30,
+                             dir_tol_deg=30.0, min_agree=0.5,
+                             max_shift_steps=2.5, verify=None, label=""):
+    """Correct per-frame GPS positions that disagree with the image chain.
+
+    A camera trigger can alias against a low-rate GPS log (e.g. sub-second
+    triggers sampled from a 1 Hz fix): the logged position lands on the nearest
+    GPS sample, so successive frames show short/long STEPS - and segments with a
+    persistent along-track offset - while the imagery shows steady motion.
+    Placed at raw GPS, those frames misregister and their prior-coverage
+    overlay lands offset along-track (the classic "previous frames sit too far
+    up/down on frame N" symptom).
+
+    Per contiguous run of chain-registered frames, each per-step GPS
+    displacement is compared against the chain's displacement mapped to metres.
+    A step where they DISAGREE is replaced by the chain's motion only when the
+    chain step earns trust on every axis; otherwise the GPS step is kept, so a
+    locally-broken chain can never make things worse:
+
+      * calibration sanity - at least ``min_agree`` of the run's steps must
+        already agree between GPS and chain (|gps-chain| within ``disagree`` /
+        ``disagree_abs``), proving M's scale and the chain track GPS overall.
+        A mis-scaled M or broken chain fails this and the run is left at GPS.
+      * magnitude - the chain step must be consistent with the AGREEING chain
+        steps, both globally over the run and in a local window (within
+        ``chain_dev``). Near-zero or overlong chain links (bad matches) fail.
+      * direction - the chain step must point along the local track direction
+        voted by the agreeing GPS steps around it (within ``dir_tol_deg``).
+        A wrong-frame yaw or mismatched link fails.
+
+    Steps where GPS and chain AGREE are never touched, so a real speed or
+    heading change (which both sources see) survives. The chosen per-step
+    motion is re-integrated from the run's first frame - non-glitch steps are
+    exact GPS differences, so the corrected track stays GPS-accurate while the
+    replaced steps snap onto the steady image motion. If the cumulative shift
+    of any frame exceeds ``max_shift_steps`` typical steps the run is deemed
+    suspicious and left at raw GPS.
+
+    ``verify``, when given, is a callable ``(a, b) -> pixel displacement (2,)
+    or None`` performing an INDEPENDENT high-quality match of camera frames a
+    and b (indices into this camera's list). Its sign convention is calibrated
+    at runtime against the agreeing steps; if it cannot reproduce them it is
+    ignored (falling back to the chain-trust logic above). Once calibrated,
+    every candidate replacement must be confirmed by a successful verified
+    match - a disagreement step where verification fails (too little texture)
+    or sides with GPS (a real motion change the chain mis-measured) keeps its
+    GPS step, so no frame is ever moved without direct image evidence. This
+    also recovers glitches the chain missed: the verified motion is used even
+    where the chain link itself was broken.
+
+    Returns a corrected COPY of ``enu``; a no-op (returns ``enu``) when M is
+    missing/singular or too few frames are chained, so it is safe to call
+    unconditionally on any camera. The chain-to-ENU inverse uses the same
+    convention as :func:`_geo_calibrate` (F = M @ R(yaw) @ ground_disp)."""
+    if M is None or enu is None:
+        return enu
+    try:
+        Minv = np.linalg.inv(M)
+    except np.linalg.LinAlgError:
+        return enu
+    n = len(enu)
+    reg = [i for i in range(n) if i in chain and not np.isnan(enu[i, 0])]
+    if len(reg) < min_run:
+        return enu
+    corr = enu.copy()
+    # contiguous runs of registered frames (index gap <= max_gap)
+    runs, cur = [], [reg[0]]
+    for a, b in zip(reg[:-1], reg[1:]):
+        if b - a <= max_gap:
+            cur.append(b)
+        else:
+            runs.append(cur)
+            cur = [b]
+    runs.append(cur)
+    n_fixed = 0
+    dir_cos = math.cos(math.radians(dir_tol_deg))
+    for run in runs:
+        if len(run) < min_run:
+            continue
+        pairs = list(zip(run[:-1], run[1:]))
+        m = len(pairs)
+        gps_d = np.array([enu[b] - enu[a] for a, b in pairs], dtype=float)
+        chn_d = np.empty_like(gps_d)
+        for t, (a, b) in enumerate(pairs):
+            ang = yaw[a] if not np.isnan(yaw[a]) else \
+                (yaw[b] if not np.isnan(yaw[b]) else 0.0)
+            pix = np.array([chain[b][0, 2] - chain[a][0, 2],
+                            chain[b][1, 2] - chain[a][1, 2]])
+            chn_d[t] = _rot2(-ang) @ (Minv @ pix)
+        gm = np.linalg.norm(gps_d, axis=1)
+        cm = np.linalg.norm(chn_d, axis=1)
+        # Steps where GPS and chain already agree: the calibration sanity
+        # check, and the reference set every trust test below draws from
+        # (medians over ALL steps are corruptible when several neighbouring
+        # chain links are bad - the agreeing majority is not).
+        tol = np.maximum(disagree_abs, disagree * np.maximum(gm, cm))
+        agree = np.abs(gm - cm) <= tol
+        if agree.sum() < max(3, min_agree * m):
+            # Chain does not track GPS over this run (mis-scaled M, broken
+            # chain, ...): unusable for single-step corrections.
+            continue
+        C = float(np.median(cm[agree]))
+        if C <= 0:
+            continue
+        # Calibrate the independent verifier's sign convention against a few
+        # agreeing steps; a verifier that cannot reproduce them is ignored.
+        ver_sign = None
+        if verify is not None:
+            resid = {+1.0: [], -1.0: []}
+            for t in np.nonzero(agree)[0][:3]:
+                a, b = pairs[t]
+                pix = verify(a, b)
+                if pix is None:
+                    continue
+                ang = yaw[a] if not np.isnan(yaw[a]) else \
+                    (yaw[b] if not np.isnan(yaw[b]) else 0.0)
+                d = _rot2(-ang) @ (Minv @ np.asarray(pix, dtype=float))
+                for s in (+1.0, -1.0):
+                    resid[s].append(np.linalg.norm(s * d - gps_d[t]))
+            if resid[+1.0]:
+                s_best = min((+1.0, -1.0), key=lambda s: np.median(resid[s]))
+                if np.median(resid[s_best]) <= max(disagree_abs,
+                                                   disagree * C):
+                    ver_sign = s_best
+        chosen = gps_d.copy()
+        run_fixed = 0
+        for t in range(m):
+            if agree[t]:
+                continue        # both sources agree: keep GPS (real motion)
+            lo, hi = max(0, t - 4), min(m, t + 5)
+            # Candidate motion for this step: the verified direct match when a
+            # calibrated verifier is available (required to pass, so nothing
+            # moves without direct image evidence), else the chain step.
+            if verify is not None:
+                if ver_sign is None:
+                    continue    # verifier unusable: no evidence, keep GPS
+                a, b = pairs[t]
+                pix = verify(a, b)
+                if pix is None:
+                    continue    # unverifiable step (low texture): keep GPS
+                ang = yaw[a] if not np.isnan(yaw[a]) else \
+                    (yaw[b] if not np.isnan(yaw[b]) else 0.0)
+                cand = ver_sign * (_rot2(-ang) @
+                                   (Minv @ np.asarray(pix, dtype=float)))
+                if np.linalg.norm(cand - gps_d[t]) <= max(
+                        disagree_abs, disagree * max(gm[t], 1.0)):
+                    continue    # verification sides with GPS: real motion
+            else:
+                cand = chn_d[t]
+            cl = float(np.linalg.norm(cand))
+            # Magnitude trust: consistent with the agreeing chain steps, both
+            # over the whole run and in a local window around t.
+            loc = cm[lo:hi][agree[lo:hi]]
+            c_loc = float(np.median(loc)) if len(loc) else C
+            if abs(cl - C) > chain_dev * C or \
+                    abs(cl - c_loc) > chain_dev * max(c_loc, 1e-6):
+                continue        # candidate step is an outlier: keep GPS
+            # Direction trust: along the local track direction voted by the
+            # agreeing GPS steps around t.
+            dirs = gps_d[lo:hi][agree[lo:hi]]
+            if not len(dirs):
+                continue
+            track = dirs.sum(axis=0)
+            nt = np.linalg.norm(track)
+            if nt < 1e-6 or cl < 1e-6:
+                continue
+            if float(track @ cand) / (nt * cl) < dir_cos:
+                continue        # wrong-direction candidate: keep GPS
+            chosen[t] = cand
+            run_fixed += 1
+        if not run_fixed:
+            continue
+        # Re-integrate positions from the run's first frame using the chosen
+        # per-step motion. Every non-glitch step is the exact GPS position
+        # difference, so the corrected track stays GPS-accurate in absolute
+        # terms (no drift) while the replaced glitch steps snap the frames onto
+        # the steady image motion - no low-pass re-anchoring, which would just
+        # smear the correction back over the neighbours.
+        pos = enu[run[0]].astype(float).copy()
+        new_pos = {run[0]: pos.copy()}
+        for (a, b), d in zip(pairs, chosen):
+            pos = pos + d
+            new_pos[b] = pos.copy()
+        max_shift = max(np.linalg.norm(new_pos[k] - enu[k]) for k in run)
+        if max_shift > max_shift_steps * C:
+            if label:
+                print(f"    {label}: GPS/chain reconcile shift suspiciously "
+                      f"large ({max_shift:.1f} m); keeping raw GPS for this "
+                      f"run")
+            continue
+        for k in run:
+            corr[k] = new_pos[k]
+        n_fixed += run_fixed
+    if label and n_fixed:
+        print(f"    {label}: GPS/chain reconcile corrected {n_fixed} glitchy "
+              f"step(s)")
+    return corr
 
 def _geo_anchor_cameras(cam_chains, cameras, poses_by_cam, pairwise_by_cam):
     """Calibrate + fill all rig cameras, SHARING the GPS->pixel scale. The rig

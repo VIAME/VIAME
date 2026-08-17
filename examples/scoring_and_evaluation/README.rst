@@ -10,11 +10,16 @@ This document corresponds to the `scoring and evaluation`_ example folder within
 VIAME desktop installation. Contained in this folder are a few options for scoring
 either detections, frame-level classifications, or object tracks.
 
-All scripts call ``score_results.py`` with a computed detections file and a ground
-truth file, both in VIAME CSV format. Two example files are provided:
+The scripts take a computed detections file and a ground truth file, both in VIAME
+CSV format. Two example files are provided:
 
 - ``detections.csv`` -- computed detections with confidence scores
 - ``groundtruth.csv`` -- ground truth annotations
+
+``detection_and_track_metrics_*`` call the ``viame_score_results`` tool, which
+computes detection, MOT, HOTA and KWANT-style metrics together in one pass. The
+remaining scripts call ``score_results.py``, which wraps kwcoco (for PRC and
+confusion matrices) and motmetrics (for MOT statistics).
 
 For each script, there are two operating modes: a normal ("across all") option and
 a per-class option. The normal method will score the outputs of all categories jointly
@@ -111,44 +116,59 @@ each containing its own PRC plot, confusion matrix, and metrics file.
 Output is written to the folder specified by ``-det-prc-conf``.
 
 
------------------------------------------------------------
-Receiver Operating Curves (ROC) and Fixed Detection Metrics
------------------------------------------------------------
+-------------------------------------------------------------
+All-in-One Detection, Track, ROC, and HOTA Metrics
+-------------------------------------------------------------
 
 Scripts:
 
-| ``detection_rocs_across_all`` -- All categories scored jointly into a single ROC.
-| ``detection_rocs_per_category`` -- One ROC curve generated per category.
+| ``detection_and_track_metrics_across_all`` -- All categories scored jointly.
+| ``detection_and_track_metrics_per_category`` -- Each category also scored separately.
 
-These scripts use the KWANT ``score_events`` tool to generate Receiver Operating
-Characteristic (ROC) curves.
+These scripts call the ``viame_score_results`` tool, which computes every metric
+family below in a single pass over the data, with no external scoring dependencies.
+It reads the same VIAME CSV inputs as the other scripts.
 
-**ROC Curve:**
-Plots Detection Probability (Pd) on the Y-axis against False Alarm count (FA) on
-the X-axis as the confidence threshold is swept from high to low. Each point on the
-curve corresponds to one threshold value. The curve shows how many true detections
-are found (Pd) for a given number of false alarms (FA).
+**Detection metrics:**
+True and false positives, false negatives, precision, recall, F1, MCC, and Average
+Precision (AP, AP@50, AP@75, and COCO-style AP@[0.50:0.95]). All AP values match
+detections to ground truth in descending confidence order and integrate the
+precision-recall curve with all-point interpolation.
 
-- **Detection Pd** (Probability of Detection) = TP / (TP + FN) -- The fraction of
-  ground truth objects successfully detected. Also called recall or true positive rate.
-- **Detection FA** (False Alarm count) -- The total number of false positive
-  detections at a given threshold.
-- A good detector reaches high Pd with few false alarms (curve rises steeply toward
-  the upper-left corner).
+**Detection ROC curve:**
+Plots Probability of Detection (Pd) on the Y-axis against false alarms per frame on
+the X-axis as the confidence threshold is swept from high to low. Note this is a
+detection ROC, not a classification one: object detection has no enumerable set of
+true negatives, so there is no false positive rate, and the X-axis is unbounded.
+The annotated ``Mean Pd`` is the area under the curve normalized by the false alarm
+range it covers, so it lies in [0, 1].
 
-When using ``--per-class``, a separate curve is generated for each category on the
-same plot, color-coded in the legend. Without ``--per-class``, a single aggregate
-curve is produced.
+**Tracking metrics:**
+MOTA, MOTP, IDF1, ID precision and recall, ID switches, fragmentations, and
+mostly-tracked / partially-tracked / mostly-lost counts; HOTA with its DetA, AssA
+and LocA components; and KWANT-style track and target continuity and purity, track
+Pd, and track false alarm rate. Note MOTP here is the mean IoU of matched boxes
+(higher is better), where MOTChallenge reports the mean 1 - IoU distance.
 
-Additional plot options:
+**Outputs:**
+A metric summary (``--output-summary``), all metrics as JSON (``--output-metrics``),
+and a plot directory (``--output-plots``) containing the precision-recall curve, the
+detection ROC curve, the confusion matrix, IoU and track-quality histograms, and the
+CSV data behind each plot. Individual CSVs can also be written with
+``--output-pr-csv``, ``--output-roc-csv``, and ``--output-conf-csv``.
 
-| ``--logx`` -- Use logarithmic scale for the FA axis (useful when FA counts span
-  several orders of magnitude).
-| ``--autoscale`` -- Automatically scale axes to fit the data.
-| ``-rangey min:max`` -- Set Y-axis range (e.g. ``0.0:1.0``).
-| ``-rangex min:max`` -- Set X-axis range.
+Options:
 
-Output is written to the PNG file specified by ``-det-roc``.
+| ``--iou`` (default: 0.5) -- IoU threshold for matching detections to ground truth.
+| ``--conf`` (default: 0.0) -- Minimum confidence threshold for computed detections.
+  Ground truth is never confidence filtered.
+| ``--per-class`` -- Additionally report TP, FP, FN, precision, recall, F1 and AP for
+  every category, plus their mean AP.
+| ``--no-tracking`` -- Skip the tracking metrics and report detection metrics only.
+
+Both ``--computed`` and ``--truth`` accept either a single file or a folder. When
+given folders, files are paired by name and each pair is scored as its own sequence,
+so frame and track IDs are never matched across sequences.
 
 
 -------------------------------------------------------
@@ -232,117 +252,33 @@ loaded directly into the DIVE interface to filter detections at optimal levels.
 Output is written to the text file or folder specified by ``-trk-mot-stats``.
 
 
---------------------------------------------------
-KWANT - Basic Track and Detection-Level Properties
---------------------------------------------------
+-------------------------------------------------------
+KWANT-Style Track and Detection-Level Properties
+-------------------------------------------------------
 
-Scripts:
+These properties were historically produced by the external KWANT ``score_tracks``
+tool, which required inputs in the Kitware kw18 format. They are now computed
+directly from VIAME CSV by ``viame_score_results`` (see the all-in-one section
+above), and are reported in its summary under "KWANT-style Metrics" and
+"Track Quality".
 
-| ``track_kwant_stats_across_all`` -- All categories scored jointly.
-| ``track_kwant_stats_per_category`` -- Each category scored independently.
+**Metrics:**
 
-The KWANT package provides scoring tools that can be used to
-calculate the probability of detecting an item, along with other scoring
-metrics such as ROC curves, specificity, sensitivities, etc. The input to
-these tools must be in the Kitware kw18 format. Several scripts are provided to
-convert other formats (such as habcam annotations and Scallop-tk outputs) to
-kw18 format. The format is very simple so additional converters can be easily
-created.
-
-These scripts use the KWANT ``score_tracks`` tool with the ``--hadwav`` scoring
-framework to compute track-level and detection-level statistics.
-
-**KWANT Output Metrics:**
-
-- **Detection-Pd** (Probability of Detection) -- Fraction of ground truth detections
-  that were matched by a computed detection: Pd = matched / total_truth. This is the
-  most important single metric for detection performance.
-- **Detection-FA** (False Alarms) -- Total count of computed detections that did not
-  match any ground truth.
-- **Detection-PFA** (Probability of False Alarm) -- Fraction of computed detections
-  that are false alarms: PFA = FA / total_computed.
-- **Track-Pd** -- Probability of detection applied at the track level.
-- **Track-FA** -- False alarm count at the track level.
-- **Computed-track-PFA** -- Probability of false alarm for computed tracks.
-- **Frame-NFAR** -- Normalized false alarm rate per frame (if computed).
-- **Track-frame-precision** -- Frame-level precision of tracks, measuring how many
-  frames in computed tracks correspond to ground truth.
-- **Avg track continuity** -- Average length of unbroken computed track segments.
-  Higher values mean fewer tracking gaps.
-- **Avg track purity** -- Average fraction of each computed track dominated by a
-  single ground truth object (0-1). A purity of 1.0 means each computed track follows
-  exactly one ground truth object without identity confusion.
-- **Avg target continuity** -- Average length of unbroken ground truth coverage by
-  computed tracks.
-- **Avg target purity** -- Average fraction of each ground truth object's coverage
+- **Track Pd** (Probability of Detection) -- Fraction of ground truth tracks matched
+  at least once by a computed track.
+- **Track FA** (False Alarm rate) -- Fraction of computed tracks that never matched
+  any ground truth.
+- **Track continuity** -- One divided by the number of unbroken segments in a computed
+  track, averaged over tracks. A value of 1.0 means no tracking gaps.
+- **Track purity** -- Average fraction of each computed track dominated by a single
+  ground truth object (0-1). A purity of 1.0 means each computed track follows exactly
+  one ground truth object without identity confusion.
+- **Target continuity** -- The same continuity measure applied to ground truth tracks.
+- **Target purity** -- Average fraction of each ground truth object's coverage
   dominated by a single computed track.
+- **Track completeness** -- Average fraction of each ground truth track's lifespan
+  covered by its best matching computed track.
+- **Avg gap length** -- Average length, in frames, of the gaps inside fragmented tracks.
 
-An example of running scoring tools can be found `here`_.
-The scoring tool takes two files: the actual detections in the truth
-file and the computed detections. The computed detections are scored
-against the truth file to give a set of statistics as shown below. Additional
-parameters that can be passed to the tool and other options can be found in
-the `KWANT documentation`_.
-
-.. _here: https://github.com/VIAME/VIAME/blob/master/examples/scoring_and_evaluation/
-.. _KWANT documentation: https://github.com/Kitware/kwant/blob/master/doc/manuals/introduction.rst
-
-::
-
-  HADWAV Scoring Results:
-     Detection-Pd: 0.748387
-     Detection-FA: 8
-     Detection-PFA: 0.0338983
-     Frame-NFAR: not computed
-     Track-Pd: 0.748387
-     Track-FA: 8
-     Computed-track-PFA: 0.0338983
-     Track-NFAR: not computed
-     Avg track (continuity, purity ): 13.693, 1
-     Avg target (continuity, purity ): 20.1419, 0.748387
-     Track-frame-precision: 0.947826
-
-The tool was originally written to analyze object tracks in full
-motion video imagery so some of the terminology and calculated metrics
-may not apply.
-
-One main metric is the probability of detection Pd. This is calculated
-as follows:
-
-    Pd = (num detections match truth) / (num truth)
-
-Detection files can be written in the kw18 format by using the
-appropriate writer in the pipeline or by running one of these
-converters. One downside to using the kw18 writer in the pipeline is
-that the image file name is not captured.  All the converters take the
-same set of command line options. For example:
-
-::
-
-  Usage: habcam_to_kw18.pl [opts] file
-    Options:
-      --help                     print usage
-      --write-file file-name     Write image file/index correspondence to file
-      --read-file  file-name     Read image file/index correspondence to file
-
-In order to get the best statistics the number of images processed
-must be the same as the number of images in the truth set. Computed
-detections and truth are compared on an image basis so the number of
-truth entries must be limited to the same number of images as the
-computed detections. The options to these converters aide in this regard.
-
-Calculated detections are converted first and use the --out-file
-option to write out the list of files processed. The truth set is
-processed next with the --in-file option referring to the file created
-in the previous step. The --cache-only flag should be added to this
-second conversion to cause images not in the first step to be skipped.
-
-The score_tracks tool is run as follows:
-
-::
-
-  score_tracks --computed-tracks computed_det.kw18 --truth-tracks ground_truth2.kw18
-
-A full list of the options can be coaxed from the tool by using the `-?` option.
-
-Output is written to the text file specified by ``-trk-kwant-stats``.
+Distributions of track purity and continuity are also written to the plot directory
+as histograms.

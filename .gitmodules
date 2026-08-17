@@ -16,10 +16,6 @@
 [submodule "packages/darknet"]
 	path = packages/darknet
 	url = https://github.com/VIAME/darknet.git
-[submodule "packages/pytorch"]
-	path = packages/pytorch
-	url = https://github.com/pytorch/pytorch.git
-	ignore = dirty
 [submodule "packages/pytorch-libs/torchvision"]
 	path = packages/pytorch-libs/torchvision
 	url = https://github.com/pytorch/vision.git
@@ -73,6 +69,7 @@
 [submodule "packages/pytorch-libs/mmdeploy"]
 	path = packages/pytorch-libs/mmdeploy
 	url = https://github.com/open-mmlab/mmdeploy
+	ignore = dirty
 [submodule "packages/pytorch-libs/darknet-to-pytorch-onnx"]
 	path = packages/pytorch-libs/darknet-to-pytorch-onnx
 	url = https://gitlab.kitware.com/keu-computervision/ml/darknet-to-pytorch-onnx.git

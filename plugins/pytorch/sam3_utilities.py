@@ -482,10 +482,19 @@ class _Sam3p1ImagePredictorAdapter:
             b = b.reshape(-1, 4)
         N = int(b.shape[0])
 
-        x1 = b[:, 0] / float(W)
-        y1 = b[:, 1] / float(H)
-        x2 = b[:, 2] / float(W)
-        y2 = b[:, 3] / float(H)
+        # Detector and propagated-track boxes can extend past the image edge;
+        # SAM3 asserts its relative prompts lie within [0,1]. Clamp to frame
+        # and keep a minimum one-pixel extent so box count and ordering (which
+        # callers index into) are preserved.
+        x1 = np.clip(b[:, 0], 0.0, float(W) - 1.0)
+        y1 = np.clip(b[:, 1], 0.0, float(H) - 1.0)
+        x2 = np.clip(b[:, 2], x1 + 1.0, float(W))
+        y2 = np.clip(b[:, 3], y1 + 1.0, float(H))
+
+        x1 = x1 / float(W)
+        y1 = y1 / float(H)
+        x2 = x2 / float(W)
+        y2 = y2 / float(H)
         rel_boxes_xywh = np.stack([x1, y1, x2 - x1, y2 - y1], axis=-1)
 
         req = {
@@ -1456,8 +1465,19 @@ class SAM3ModelManager:
                 self._sam_model = model
 
             print(f"[SAM3] Successfully loaded SAM3 via native sam3 module")
-        except ImportError:
-            raise ImportError("sam3 module not available for native loading")
+        except ImportError as error:
+            # Carry the underlying reason. "sam3 module not available" reads
+            # as the package being absent, but the same line appears when sam3
+            # is installed and one of its dependencies is not, and the two
+            # want different fixes. The package itself is built only when
+            # VIAME_ENABLE_PYTORCH-SAM3 is on, which is off by default, while
+            # the pipelines and weights install either way -- so a build can
+            # look like it has SAM3 and be unable to load it.
+            raise ImportError(
+                "sam3 module not available for native loading: {}. The sam3 "
+                "package is built by the superbuild only when "
+                "VIAME_ENABLE_PYTORCH-SAM3 is ON; the pipelines and weights "
+                "are installed whether or not it is.".format(error))
 
     def _init_grounding_dino(self, model_id):
         """Initialize Grounding DINO for text-based detection.

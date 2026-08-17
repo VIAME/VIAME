@@ -62,6 +62,8 @@ namespace kv = kwiver::vital;
 namespace viame {
 namespace tools {
 
+const unsigned MAX_AUTO_AUGMENTATION_THREADS = 32;
+
 // =======================================================================================
 // Assorted configuration related helper functions
 static kv::config_block_sptr default_config()
@@ -80,16 +82,19 @@ static kv::config_block_sptr default_config()
     "input (video or image sequence) in a single pass." );
   config->set_value( "augmentation_cache", "augmented_images",
     "Directory to store augmented samples, a temp directiry is used if not specified." );
-  config->set_value( "augmentation_threads", "4",
+  config->set_value( "augmentation_threads", "0",
     "Number of data items to augment concurrently for single-pass (source-driven) "
     "pipelines. Each item is an independent subprocess, so this speeds up "
-    "preparation on large multi-video/-folder datasets. Capped at the item count." );
+    "preparation on large multi-video/-folder datasets. 0 = one per logical "
+    "core (at most 32), 1 = serial; either way capped at the item count." );
   config->set_value( "original_bit_depth", "false",
     "Keep the source bit depth when running single-pass augmentation, so "
     "bit-depth-sensitive pipelines (e.g. percentile normalization of 16-bit "
     "imagery) see the raw data. Implied by --normalize-16bit." );
-  config->set_value( "regenerate_cache", "true",
-    "If an augmentation cache already exists, should we regenerate it or use it as-is?" );
+  config->set_value( "regenerate_cache", "false",
+    "If an augmentation cache already exists, should we regenerate it or use it as-is? "
+    "Either way a sequence whose cache folder is missing or holds under 3 files is "
+    "extracted; false will not complete a partially extracted one." );
   config->set_value( "augmented_ext_override", ".png",
     "Optional image extension over-ride for augmented images." );
   config->set_value( "default_percent_validation", "0.05",
@@ -119,6 +124,11 @@ static kv::config_block_sptr default_config()
   config->set_value( "use_labels", "true",
     "Adjust labels based on labels.txt file in this loader instead of passing the "
     "responsibility to individual detector trainer classes." );
+  config->set_value( "use_top_class_only", "true",
+    "Use only each groundtruth detection's highest scoring class, discarding the "
+    "rest of its score vector before it reaches the trainer. Set false to keep "
+    "every class, counting each towards the label histogram and warning on any "
+    "missing from labels.txt however low it ranks." );
   config->set_value( "downsample", "0",
     "Downsample factor applied across all inputs." );
   config->set_value( "targetted_downsample", "0",
@@ -290,6 +300,98 @@ static void apply_command_line_setting( kv::config_block_sptr config,
   }
 
   config->set_value( parsed.first, parsed.second );
+}
+
+// Apply --continue: reuse the extracted-frame and chip caches from a prior run
+// in the same directory, and resume trainer checkpoints where the trainer
+// supports it. Called before the --setting over-rides so those still win.
+static void apply_continue_settings( kv::config_block_sptr config,
+                                     const std::string& trainer_root )
+{
+  config->set_value( "regenerate_cache", "false" );
+
+  std::string base_type =
+    config->get_value< std::string >( trainer_root + ":type", "" );
+
+  if( base_type.empty() )
+  {
+    return;
+  }
+
+  std::string base = trainer_root + ":" + base_type;
+  std::string trainer_type = base_type;
+  std::string trainer_prefix = base;
+
+  if( base_type == "ocv_windowed" || base_type == "windowed" )
+  {
+    config->set_value( base + ":reuse_cache", "true" );
+
+    trainer_type =
+      config->get_value< std::string >( base + ":trainer:type", "" );
+
+    if( trainer_type.empty() )
+    {
+      return;
+    }
+
+    trainer_prefix = base + ":trainer:" + trainer_type;
+  }
+
+  std::string train_dir =
+    config->get_value< std::string >( trainer_prefix + ":train_directory",
+      config->get_value< std::string >( base + ":train_directory",
+        "deep_training" ) );
+
+  if( !does_folder_exist( train_dir ) )
+  {
+    std::cout << "Continue: no prior train directory " << train_dir
+              << ", starting fresh" << std::endl;
+    return;
+  }
+
+  if( trainer_type == "rf_detr" )
+  {
+    std::string ckpt = append_path(
+      append_path( train_dir, "rf_detr_output" ), "last.ckpt" );
+
+    if( does_file_exist( ckpt ) )
+    {
+      config->set_value( trainer_prefix + ":resume", "true" );
+      config->set_value( trainer_prefix + ":seed_model", ckpt );
+      std::cout << "Continue: resuming from " << ckpt << std::endl;
+    }
+    else
+    {
+      std::cout << "Continue: no checkpoint at " << ckpt
+                << ", reusing caches only" << std::endl;
+    }
+  }
+  else if( trainer_type == "ultralytics" )
+  {
+    if( does_folder_exist( append_path( train_dir, "yolo_runs" ) ) )
+    {
+      config->set_value( trainer_prefix + ":resume", "true" );
+      std::cout << "Continue: resuming last ultralytics checkpoint in "
+                << train_dir << "/yolo_runs" << std::endl;
+    }
+  }
+  else if( trainer_type == "detectron2" )
+  {
+    config->set_value( trainer_prefix + ":no_format", "true" );
+    config->set_value( trainer_prefix + ":resume", "true" );
+    std::cout << "Continue: resuming detectron2 run in "
+              << train_dir << std::endl;
+  }
+  else if( trainer_type == "netharn" ||
+           trainer_type == "mit_yolo" ||
+           trainer_type == "litdet" )
+  {
+    // Reuses the trainer's formatted dataset; netharn additionally
+    // auto-resumes from the checkpoints in its run directory.
+    config->set_value( trainer_prefix + ":no_format", "true" );
+    std::cout << "Continue: reusing formatted " << trainer_type
+              << " dataset in " << train_dir << std::endl;
+  }
 }
 
 // =======================================================================================
@@ -857,6 +959,11 @@ train_applet
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "gt-frames-only", "Use frames with annotations only",
       ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "continue", "Continue a prior training run in the current directory: "
+      "reuse the extracted-frame and chip caches and resume from the last "
+      "checkpoint when the trainer supports it. A run that already finished "
+      "its epoch schedule trains another full round of epochs",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "c,config", "Input configuration file(s) with parameters",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "i,input", "Input directory containing groundtruth",
@@ -939,6 +1046,7 @@ train_applet
   bool opt_no_adv_print = cmd_args[ "no-adv-prints" ].as< bool >();
   bool opt_no_emb_pipe = cmd_args[ "no-embedded-pipe" ].as< bool >();
   bool opt_gt_only = cmd_args[ "gt-frames-only" ].as< bool >();
+  bool opt_continue = cmd_args[ "continue" ].as< bool >();
 
   std::string opt_config = cmd_args[ "config" ].as< std::string >();
   std::string opt_input_dir = cmd_args[ "input" ].as< std::string >();
@@ -1156,6 +1264,11 @@ train_applet
     config->set_value( "detector_trainer:type", first_detector );
   }
 
+  if( opt_continue )
+  {
+    apply_continue_settings( config, "detector_trainer" );
+  }
+
   apply_settings( config, file_settings );
   apply_command_line_setting( config, opt_settings );
 
@@ -1326,7 +1439,16 @@ train_applet
     valid_config = false;
   }
 
-  if( !kv::algo::train_detector::
+  // A tracker-only run has no detector_trainer to validate. model_count is the
+  // number of detector models about to be trained, and the detector loop below
+  // is bounded by it, so when it is zero nothing ever reads detector_trainer.
+  // Demanding one anyway is what made the form the tracker examples document,
+  //   viame train -i data --tracker bytetrack
+  // exit with "Configuration not valid" before reaching the tracker at all.
+  const bool detector_trainer_required = ( model_count > 0 || !train_trackers );
+
+  if( detector_trainer_required &&
+      !kv::algo::train_detector::
         check_nested_algo_configuration( "detector_trainer", config ) )
   {
     valid_config = false;
@@ -1388,6 +1510,8 @@ train_applet
     config->get_value< unsigned >( "max_frame_count" );
   bool use_labels =
     config->get_value< bool >( "use_labels" );
+  bool use_top_class_only =
+    config->get_value< bool >( "use_top_class_only" );
   double downsample =
     config->get_value< double >( "downsample" );
   double targetted_downsample =
@@ -1961,9 +2085,15 @@ train_applet
       const std::string& extraction_pipeline =
         unified_augmentation ? pipeline_file : video_extractor;
 
+      // Pass the clip's groundtruth so the extractor's track_reader has a real
+      // path instead of the "[INSERT_ME]" placeholder (which otherwise throws
+      // and yields zero frames -- silently dropping the video from training).
+      const std::string video_gt =
+        ctx.gt_files.empty() ? std::string() : ctx.gt_files[0];
+
       ctx.image_files = extract_video_frames( ctx.data_item, extraction_pipeline,
         ctx.frame_rate, augmented_cache, !regenerate_cache, max_frame_count,
-        "vidl_ffmpeg", "", preserve_bit_depth );
+        "vidl_ffmpeg", "", preserve_bit_depth, video_gt );
 
       ctx.frames_preaugmented = unified_augmentation;
     }
@@ -2098,17 +2228,40 @@ train_applet
     }
   }
 
-  // ---- Phase 2: augment items concurrently (single-pass pipelines only) ----
-  // Each item's augmentation is an independent kwiver-runner subprocess writing
-  // to its own cache subdir, so they run in parallel. Skipped for the
-  // max_frame_count debug path, which stops after the first video.
-  if( unified_augmentation && max_frame_count == 0 && !contexts.empty() )
+  // ---- Phase 2: augment / extract items concurrently ----
+  // Each item's augmentation or video-frame extraction is an independent
+  // kwiver-runner subprocess writing to its own cache subdir, so they run in
+  // parallel. This also covers plain video-frame extraction (no augmentation
+  // pipeline), which otherwise decoded one clip at a time in the serial phase
+  // below -- a major bottleneck on datasets that are mostly video. Skipped for
+  // the max_frame_count debug path, which stops after the first video.
+  bool any_video_extraction = false;
+  for( const auto& c : contexts )
   {
+    if( c.is_video )
+    {
+      any_video_extraction = true;
+      break;
+    }
+  }
+
+  if( ( unified_augmentation || any_video_extraction ) &&
+      max_frame_count == 0 && !contexts.empty() )
+  {
+    // Auto stops at MAX_AUTO_AUGMENTATION_THREADS: each worker is a subprocess
+    // running a full pipeline, so a core-count-wide fan-out on a many-core box
+    // oversubscribes both the disk and whatever those pipelines thread over.
+    unsigned auto_threads = ( augmentation_threads > 0 )
+      ? augmentation_threads
+      : std::min( std::thread::hardware_concurrency(),
+                  MAX_AUTO_AUGMENTATION_THREADS );
+
     unsigned n_workers = std::min< unsigned >(
-      std::max< unsigned >( augmentation_threads, 1u ),
+      std::max< unsigned >( auto_threads, 1u ),
       static_cast< unsigned >( contexts.size() ) );
 
-    std::cout << "Augmenting " << contexts.size() << " data item(s) using "
+    std::cout << "Preparing " << contexts.size() << " data item(s) "
+              << "(augmentation / video extraction) using "
               << n_workers << " worker thread(s)" << std::endl;
 
     std::atomic< unsigned > next_index( 0 );
@@ -2143,9 +2296,17 @@ train_applet
   }
 
   // ---- Phase 3: consume each item's frames and groundtruth (serial) ----
+  // Frames contributed by each data item, in item order. The tracker
+  // trainers are handed one flat list of frames and a separate list of track
+  // sets, and nothing else says which frames belong to which set: the two are
+  // filtered independently here, so their counts need not even match. Recorded
+  // so the association can be written out rather than guessed at downstream.
+  std::vector< size_t > item_frame_counts( all_data.size(), 0 );
+
   for( unsigned i = 0; i < all_data.size(); i++ )
   {
     item_context& ctx = contexts[i];
+    const size_t frames_before_item = train_image_fn.size();
 
     std::string& data_item = ctx.data_item;
     bool is_video = ctx.is_video;
@@ -2415,7 +2576,35 @@ train_applet
 
           if( class_scores )
           {
-            for( auto gt_class : class_scores->class_names() )
+            // Truth exported as a full score vector carries every candidate
+            // class per detection; keeping only the top one avoids counting
+            // and warning on low-ranked entries.
+            std::vector< std::string > gt_classes;
+
+            if( use_top_class_only )
+            {
+              if( class_scores->size() > 0 )
+              {
+                std::string top_class;
+                class_scores->get_most_likely( top_class );
+
+                for( auto other_class : class_scores->class_names() )
+                {
+                  if( other_class != top_class )
+                  {
+                    class_scores->delete_score( other_class );
+                  }
+                }
+
+                gt_classes.push_back( top_class );
+              }
+            }
+            else
+            {
+              gt_classes = class_scores->class_names();
+            }
+
+            for( auto gt_class : gt_classes )
             {
               if( !model_labels || model_labels->has_class_name( gt_class ) )
               {
@@ -2481,6 +2670,8 @@ train_applet
       gt_reader->close();
     }
 
+    item_frame_counts[i] = train_image_fn.size() - frames_before_item;
+
     if( max_frame_count > 0 && train_image_fn.size() > max_frame_count )
     {
       break;
@@ -2504,16 +2695,6 @@ train_applet
       train_image_fn.begin() + validation_pivot, train_image_fn.end() );
     train_gt.erase(
       train_gt.begin() + validation_pivot, train_gt.end() );
-  }
-
-  if( downsample > 0 )
-  {
-    downsample_data( train_image_fn, train_gt, downsample );
-  }
-
-  if( targetted_downsample > 0 )
-  {
-    downsample_data( train_image_fn, train_gt, targetted_downsample, targetted_downsample_string );
   }
 
   if( label_counts.empty() )
@@ -2736,6 +2917,20 @@ train_applet
     invalid_train_set = is_detection_set_empty( train_gt );
   }
 
+  // After the split, not before: the burst split assigns frames by index
+  // ( i % total_segment ), so downsampling first would silently land validation
+  // on a different set of frames. Validation is left whole.
+  if( downsample > 0 )
+  {
+    downsample_data( train_image_fn, train_gt, downsample );
+  }
+
+  if( targetted_downsample > 0 )
+  {
+    downsample_data( train_image_fn, train_gt, targetted_downsample,
+                     targetted_downsample_string );
+  }
+
   // Final validation checks
   if( !found_any )
   {
@@ -2821,6 +3016,11 @@ train_applet
         std::string current_detector = training_detectors[ model_idx ];
         std::cout << "Using detector type: " << current_detector << std::endl;
         current_config->set_value( "detector_trainer:type", current_detector );
+      }
+
+      if( opt_continue )
+      {
+        apply_continue_settings( current_config, "detector_trainer" );
       }
 
       // Apply command line settings override
@@ -2924,6 +3124,15 @@ train_applet
     std::vector< kv::object_track_set_sptr > train_tracks;
     std::vector< kv::object_track_set_sptr > validation_tracks;
 
+    std::string sequence_manifest_file;
+    std::string validation_manifest_file;
+
+    // The data item each track set was read from, so the frames it goes with
+    // can be named. A track set is only pushed when a groundtruth file is
+    // found and parses, so these indices are not contiguous.
+    std::vector< unsigned > train_track_items;
+    std::vector< unsigned > validation_track_items;
+
     // Configure track reader
     kv::algo::read_object_track_set::set_nested_algo_configuration
       ( "track_reader", config, track_reader );
@@ -2976,10 +3185,12 @@ train_applet
               if( is_validation )
               {
                 validation_tracks.push_back( tracks );
+                validation_track_items.push_back( i );
               }
               else
               {
                 train_tracks.push_back( tracks );
+                train_track_items.push_back( i );
               }
             }
 
@@ -2995,6 +3206,102 @@ train_applet
 
       std::cout << "Loaded " << train_tracks.size() << " training track sets, "
                 << validation_tracks.size() << " validation track sets" << std::endl;
+
+      // Write the frame-to-track-set association out for the trainers. Each
+      // line gives a track set, the range of the flat frame list that belongs
+      // to it, and the data item it came from. A track set whose item
+      // contributed no frames gets a count of zero rather than being dropped,
+      // so the line numbers still line up with the track set indices the
+      // trainer sees.
+      auto write_manifest =
+        [&]( const std::string& path,
+             const std::vector< unsigned >& track_items,
+             size_t frame_offset ) -> bool
+      {
+        // output_directory need not exist yet -- the trainers create their
+        // own -- and an ofstream into a missing directory just fails
+        const std::string parent =
+          kwiversys::SystemTools::GetFilenamePath( path );
+
+        if( !parent.empty() &&
+            !kwiversys::SystemTools::FileIsDirectory( parent ) )
+        {
+          kwiversys::SystemTools::MakeDirectory( parent );
+        }
+
+        std::ofstream manifest( path );
+
+        if( !manifest )
+        {
+          std::cerr << "Warning: could not write " << path << std::endl;
+          return false;
+        }
+
+        manifest << "# viame tracker training sequence manifest v1"
+                 << std::endl;
+        manifest << "# track_set first_frame frame_count source" << std::endl;
+
+        // Where each item's frames begin in the flat list
+        std::vector< size_t > item_offsets( all_data.size(), 0 );
+        size_t running = 0;
+
+        for( size_t item = 0; item < all_data.size(); item++ )
+        {
+          item_offsets[ item ] = running;
+          running += item_frame_counts[ item ];
+        }
+
+        for( size_t set = 0; set < track_items.size(); set++ )
+        {
+          const unsigned item = track_items[ set ];
+          size_t first = item_offsets[ item ];
+          size_t count = item_frame_counts[ item ];
+
+          // Ranges are relative to the list the trainer is handed, which for
+          // validation starts at the split
+          if( first >= frame_offset )
+          {
+            first -= frame_offset;
+          }
+          else
+          {
+            first = 0;
+            count = 0;
+          }
+
+          manifest << set << " " << first << " " << count << " "
+                   << all_data[ item ] << std::endl;
+        }
+
+        return true;
+      };
+
+      const size_t split = ( validation_pivot > 0 ?
+        static_cast< size_t >( validation_pivot ) : 0 );
+
+      // output_directory defaults to empty, meaning the working directory
+      const std::string manifest_dir =
+        ( output_directory.empty() ? std::string( "." ) : output_directory );
+
+      sequence_manifest_file =
+        append_path( manifest_dir, "train_sequence_manifest.txt" );
+
+      if( !write_manifest( sequence_manifest_file, train_track_items, 0 ) )
+      {
+        sequence_manifest_file.clear();
+      }
+
+      if( !validation_track_items.empty() )
+      {
+        validation_manifest_file =
+          append_path( manifest_dir, "validation_sequence_manifest.txt" );
+
+        if( !write_manifest( validation_manifest_file,
+                             validation_track_items, split ) )
+        {
+          validation_manifest_file.clear();
+        }
+      }
     }
     else
     {
@@ -3011,6 +3318,28 @@ train_applet
       // Configure tracker trainer
       kv::config_block_sptr tracker_config = default_config();
       tracker_config->set_value( "tracker_trainer:type", current_tracker );
+
+      // Tell the trainer where the frame-to-track-set association is. Set
+      // before the command line overrides so a run can still point it
+      // elsewhere or switch it off with an empty value.
+      if( !sequence_manifest_file.empty() )
+      {
+        tracker_config->set_value(
+          "tracker_trainer:" + current_tracker + ":sequence_manifest",
+          sequence_manifest_file );
+      }
+
+      if( !validation_manifest_file.empty() )
+      {
+        tracker_config->set_value(
+          "tracker_trainer:" + current_tracker + ":validation_manifest",
+          validation_manifest_file );
+      }
+
+      if( opt_continue )
+      {
+        apply_continue_settings( tracker_config, "tracker_trainer" );
+      }
 
       // Apply command line settings override
       apply_settings( tracker_config, file_settings );

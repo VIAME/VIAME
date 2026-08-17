@@ -15,7 +15,7 @@ from .models import RnnType
 
 def load_track_feature_file(tff):
     """Given a path to a "track feature file" as created by
-    .bin.generate_training_files_kw18, return a tuple of:
+    .bin.generate_training_files, return a tuple of:
     - The raw loaded dictionary of tracks
     - All the DetectionIds as one list
     - A list of pairs giving the slice of the big list corresponding
@@ -92,21 +92,16 @@ def exp_lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=2):
 
 
 def setupLogger(fpath):
-    fileMode = 'w'
-    input = None
-    while input is None:
-        print('Logging file exits, overwrite(o)? append(a)? abort(q)?')
-        input = 'o'
-        if input == 'o':
-            fileMode = 'w'
-        elif input == 'a':
-            fileMode = 'a'
-        elif input == 'q':
-            os.exit()
-        else:
-            break
+    # Append. This log is not only for reading: get_best_model picks the
+    # snapshot to keep by the validation losses recorded here, so truncating
+    # it on resume threw away the record of every epoch trained before the
+    # resume. A stage that resumed after its last epoch left an empty log and
+    # no way to choose between ten snapshots.
+    #
+    # The prompt this used to print was never a prompt: it asked whether to
+    # overwrite and then answered itself with 'o' on the next line.
     global gLoggerFile
-    gLoggerFile = open(fpath, fileMode)
+    gLoggerFile = open(fpath, 'a')
 
 
 def shutdownlogger():
@@ -147,9 +142,34 @@ def diagnoseGradients(params):
     pass
 
 
+def resume_epoch(snapshot, load_path):
+    """The epoch to continue from, whatever the snapshot recorded.
+
+    Snapshots written before the fix hold the string 'N/A' where the zeroth
+    epoch's number should be, so the field cannot be trusted blindly; the
+    file name carries the same number and is authoritative for those.
+    """
+    import re as _re
+
+    recorded = snapshot.get('epoch')
+
+    if isinstance(recorded, int):
+        return recorded + 1
+
+    match = _re.search(r'snapshot_epoch_(\d+)', str(load_path))
+
+    if match:
+        return int(match.group(1)) + 1
+
+    return 0
+
+
 def checkpoint(model, epoch=None):
+    # Zero is an epoch, and a falsiness test turned every zeroth-epoch
+    # snapshot's number into the string 'N/A' -- which sat harmlessly in the
+    # file until a resume computed snapshot['epoch'] + 1 and died on it.
     package = {
-        'epoch': epoch if epoch else 'N/A',
+        'epoch': epoch if epoch is not None else 'N/A',
         'state_dict': model.state_dict(),
     }
     return package

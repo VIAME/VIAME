@@ -1,0 +1,42 @@
+# =============================================================================
+# Title: SeaMap v3 species Tracker Pipe
+#
+# Description: Fused detector, species reclassification, then SRNN tracking.
+# =============================================================================
+
+config _scheduler
+  :type                                        pythread_per_process
+
+include detector_seamap_species_v3.pipe
+
+# ================================= TRACKER ===================================
+include common_seamap_tracker_v3.pipe
+
+connect from downsampler.output_1
+        to   tracker.image
+connect from downsampler.timestamp
+        to   tracker.timestamp
+connect from classifier_species_output.detected_object_set
+        to   tracker.detected_object_set
+
+process track_filter
+  :: filter_object_tracks
+  :required_states                             5
+
+connect from tracker.object_track_set
+        to   track_filter.object_track_set
+
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:write_time_as_uid          true
+  :writer:viame_csv:tot_option                 weighted_scaled_by_conf
+  :writer:viame_csv:tot_ignore_class           UNKNOWNFISH
+
+connect from track_filter.object_track_set
+        to   track_writer.object_track_set
+connect from downsampler.timestamp
+        to   track_writer.timestamp
+
+# -- end of file --

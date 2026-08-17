@@ -35,6 +35,9 @@ import sys
 import json
 import numpy as np
 
+from viame.core.training_data import ( detector_statistics,
+    thresholds_from_detector )
+
 
 class ByteTrackTrainer( TrainTracker ):
     """
@@ -54,11 +57,40 @@ class ByteTrackTrainer( TrainTracker ):
         self._pipeline_template = ""
         self._threshold = "0.00"
 
-        # Output parameter bounds (for clamping estimated values)
+        # Directory of detector output for the same clips, one VIAME CSV
+        # per clip named after it. Left empty the estimates come from the
+        # groundtruth alone, whose confidences are all 1.0, so the
+        # confidence thresholds carry no information about the detector
+        # this tracker will actually run behind.
+        self._computed_detections = ""
+        # Written by the training tool: which frames of the flat list belong
+        # to which track set. Without it the detector statistics fall back to
+        # guessing from the directory layout, which fails open the moment the
+        # image tree holds more directories than there are annotated clips.
+        self._sequence_manifest = ""
+
+        # Output parameter bounds (for clamping estimated values). The
+        # velocity ceiling used to be 0.1 and the FishTrack23 fit landed
+        # exactly on it -- the estimator railed rather than converged -- so
+        # the default now leaves headroom above any value yet observed.
         self._min_std_weight_position = 0.01
         self._max_std_weight_position = 0.5
         self._min_std_weight_velocity = 0.001
-        self._max_std_weight_velocity = 0.1
+        self._max_std_weight_velocity = 0.5
+
+        # The association gate is fit from the groundtruth so that this
+        # fraction of true consecutive-frame links clears it. 99.5 rather
+        # than a tighter figure because assignment still picks the best
+        # candidate among those admitted, so the gate is a safety net and
+        # not a discriminator. At 97.5 the FishTrack train split yields a
+        # gate of 0.238 against 0.051 for test -- the two splits agree in
+        # the bulk (median link IoU 0.763 vs 0.755) and differ only in the
+        # low tail, so a tight quantile does not transfer between them. The floor and
+        # ceiling bound the gate itself (an IoU), not the config value
+        # match_thresh, which is 1 - gate.
+        self._match_gate_admit_percent = 99.5
+        self._min_match_gate = 0.02
+        self._max_match_gate = 0.5
 
         self._categories = []
         self._train_image_files = []
@@ -75,10 +107,15 @@ class ByteTrackTrainer( TrainTracker ):
         cfg.set_value( "output_prefix", self._output_prefix )
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "threshold", self._threshold )
+        cfg.set_value( "computed_detections", self._computed_detections )
+        cfg.set_value( "sequence_manifest", self._sequence_manifest )
         cfg.set_value( "min_std_weight_position", str( self._min_std_weight_position ) )
         cfg.set_value( "max_std_weight_position", str( self._max_std_weight_position ) )
         cfg.set_value( "min_std_weight_velocity", str( self._min_std_weight_velocity ) )
         cfg.set_value( "max_std_weight_velocity", str( self._max_std_weight_velocity ) )
+        cfg.set_value( "match_gate_admit_percent", str( self._match_gate_admit_percent ) )
+        cfg.set_value( "min_match_gate", str( self._min_match_gate ) )
+        cfg.set_value( "max_match_gate", str( self._max_match_gate ) )
 
         return cfg
 
@@ -92,10 +129,15 @@ class ByteTrackTrainer( TrainTracker ):
         self._output_prefix = str( cfg.get_value( "output_prefix" ) )
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._threshold = str( cfg.get_value( "threshold" ) )
+        self._computed_detections = str( cfg.get_value( "computed_detections" ) )
+        self._sequence_manifest = str( cfg.get_value( "sequence_manifest" ) )
         self._min_std_weight_position = float( cfg.get_value( "min_std_weight_position" ) )
         self._max_std_weight_position = float( cfg.get_value( "max_std_weight_position" ) )
         self._min_std_weight_velocity = float( cfg.get_value( "min_std_weight_velocity" ) )
         self._max_std_weight_velocity = float( cfg.get_value( "max_std_weight_velocity" ) )
+        self._match_gate_admit_percent = float( cfg.get_value( "match_gate_admit_percent" ) )
+        self._min_match_gate = float( cfg.get_value( "min_match_gate" ) )
+        self._max_match_gate = float( cfg.get_value( "max_match_gate" ) )
 
         # Create directories
         if self._train_directory:
@@ -152,6 +194,19 @@ class ByteTrackTrainer( TrainTracker ):
         confidences = []
         track_lengths = []
         gap_lengths = []
+        link_ious = []
+
+        def _iou( a, b ):
+            x0 = max( a[0], b[0] )
+            y0 = max( a[1], b[1] )
+            x1 = min( a[2], b[2] )
+            y1 = min( a[3], b[3] )
+            if x1 <= x0 or y1 <= y0:
+                return 0.0
+            inter = ( x1 - x0 ) * ( y1 - y0 )
+            area_a = ( a[2] - a[0] ) * ( a[3] - a[1] )
+            area_b = ( b[2] - b[0] ) * ( b[3] - b[1] )
+            return inter / ( area_a + area_b - inter )
 
         all_tracks = self._train_tracks + self._test_tracks
 
@@ -165,6 +220,7 @@ class ByteTrackTrainer( TrainTracker ):
 
                 prev_frame = None
                 prev_cx, prev_cy = None, None
+                prev_box = None
 
                 for state in states:
                     frame_id = state.frame_id
@@ -196,19 +252,30 @@ class ByteTrackTrainer( TrainTracker ):
                             vy = ( cy - prev_cy ) / dt
                             velocities.append( ( vx, vy, h, dt ) )
 
+                            # The IoU an association gate must admit for this
+                            # track to survive one frame to the next. Only
+                            # consecutive frames count: across a gap the
+                            # filter has predicted forward and the overlap is
+                            # not the quantity the gate sees.
+                            if dt == 1 and prev_box is not None:
+                                link_ious.append(
+                                    _iou( prev_box, ( x1, y1, x2, y2 ) ) )
+
                             # Track gaps (missing frames)
                             if dt > 1:
                                 gap_lengths.append( dt - 1 )
 
                     prev_frame = frame_id
                     prev_cx, prev_cy = cx, cy
+                    prev_box = ( x1, y1, x2, y2 )
 
         return {
             'positions': positions,
             'velocities': velocities,
             'confidences': confidences,
             'track_lengths': track_lengths,
-            'gap_lengths': gap_lengths
+            'gap_lengths': gap_lengths,
+            'link_ious': link_ious
         }
 
     def _estimate_kalman_parameters( self, stats ):
@@ -276,6 +343,75 @@ class ByteTrackTrainer( TrainTracker ):
 
         return std_weight_position, std_weight_velocity
 
+    def _detector_stats( self ):
+        """Measure the detector against the groundtruth, when one was given."""
+        if not self._computed_detections:
+            return None
+
+        stats = detector_statistics(
+            self._train_tracks + self._test_tracks,
+            self._train_image_files + self._test_image_files,
+            self._computed_detections,
+            sequence_manifest=self._sequence_manifest )
+
+        matched = len( stats[ 'matched_confidences' ] )
+        unmatched = len( stats[ 'unmatched_confidences' ] )
+
+        print( "Computed detections: {} matched a groundtruth box, {} did "
+               "not, over {} of {} annotated frames".format(
+                   matched, unmatched, stats[ 'frames_with_computed' ],
+                   stats[ 'frames_total' ] ) )
+
+        if stats[ 'frames_total' ] and \
+                stats[ 'frames_with_computed' ] < 0.1 * stats[ 'frames_total' ]:
+            print( "WARNING: almost no annotated frame has a computed "
+                   "detection. Frame ids here are positions within a clip, so "
+                   "the detections must come from a run over the same "
+                   "extracted frames rather than over the source video. "
+                   "Falling back to the groundtruth." )
+            return None
+
+        if matched < 10 or unmatched < 10:
+            print( "Too few matched or unmatched detections to separate the "
+                   "two, falling back to the groundtruth." )
+            return None
+
+        return stats
+
+    def _estimate_thresholds_from_detector( self, stats ):
+        """Thresholds that separate the detector's hits from its misfires.
+
+        The groundtruth cannot answer this: every annotation is confidence
+        1.0, so a percentile of it is a percentile of a constant and the
+        result is whatever the clamp allows. What a threshold has to do is
+        divide the scores of detections that found a real object from the
+        scores of those that did not, and that needs the detector's own
+        output.
+        """
+        high_thresh, low_thresh, new_track_thresh = thresholds_from_detector(
+            stats[ 'matched_confidences' ], stats[ 'unmatched_confidences' ] )
+
+        print( "  thresholds from the detector: high {:.3f} low {:.3f} "
+               "new_track {:.3f}".format( high_thresh, low_thresh,
+                                          new_track_thresh ) )
+
+        return high_thresh, low_thresh, new_track_thresh
+
+    def _measurement_noise_from_detector( self, stats ):
+        """Localisation error of the detector, for the Kalman update.
+
+        Estimated from how far a detection sits from the box it matched,
+        which is the quantity the filter's measurement noise describes. The
+        groundtruth cannot supply it: measured against itself its error is
+        zero.
+        """
+        errors = stats[ 'center_errors' ]
+
+        if len( errors ) < 10:
+            return None
+
+        return float( np.median( errors ) )
+
     def _estimate_thresholds( self, stats ):
         """
         Estimate detection confidence thresholds from training data.
@@ -309,21 +445,79 @@ class ByteTrackTrainer( TrainTracker ):
 
         return float( high_thresh ), float( low_thresh ), float( new_track_thresh )
 
-    def _estimate_track_buffer( self, stats ):
-        """
-        Estimate track_buffer (frames to keep lost tracks) from gap statistics.
-        """
-        gap_lengths = stats['gap_lengths']
+    def _estimate_match_threshold( self, stats ):
+        """The IoU association gate, fit from the groundtruth.
 
-        if len( gap_lengths ) < 5:
+        The gate has one job: admit the overlap between where a track's
+        animal was last frame and where it is now, while excluding overlap
+        with other animals. The groundtruth gives the first distribution
+        directly -- the consecutive-frame IoU of every annotated track --
+        so the gate is set at the quantile that admits
+        match_gate_admit_percent of those true links.
+
+        On FishTrack23 the two distributions barely overlap (the 99th
+        percentile of cross-animal IoU sits near the 5th percentile of
+        same-animal IoU), and assignment still prefers the best match among
+        admitted candidates, so erring loose costs little. Fast targets --
+        an animal moving more than its own length per frame -- produce true
+        links with near-zero IoU, which is why the floor matters and why a
+        sweep on FishTrack23 favoured gates as low as 0.02.
+
+        match_thresh is a distance bound in the tracker
+        (linear_assignment on 1 - IoU), so the returned value is 1 - gate:
+        LOOSENING the gate RAISES match_thresh.
+        """
+        link_ious = stats.get( 'link_ious', [] )
+
+        if len( link_ious ) < 100:
+            print( "Warning: too few consecutive-frame links "
+                   "({}), keeping match_thresh default".format(
+                       len( link_ious ) ) )
+            return 0.8
+
+        gate = float( np.percentile(
+            np.array( link_ious ),
+            100.0 - self._match_gate_admit_percent ) )
+        gate = float( np.clip(
+            gate, self._min_match_gate, self._max_match_gate ) )
+
+        admitted = float( np.mean( np.array( link_ious ) >= gate ) )
+        print( "  match gate IoU>={:.3f} admits {:.1f}% of {} true "
+               "links -> match_thresh {:.3f}".format(
+                   gate, 100 * admitted, len( link_ious ), 1.0 - gate ) )
+
+        return round( 1.0 - gate, 3 )
+
+    def _estimate_track_buffer( self, stats, detector_stats=None ):
+        """How long a lost track should be kept alive.
+
+        The gap that matters is the one the tracker actually has to survive:
+        the detector losing an animal for a few frames and finding it again.
+        That is not the same as a gap in the annotation, which is rare (0.25%
+        of steps on FishTrack train) and reflects how the data was labelled
+        rather than how the detector behaves. Prefer the detector's own
+        miss-run distribution and fall back to annotation gaps only when no
+        detector output was supplied.
+        """
+        source = 'detector miss-runs'
+        runs = detector_stats.get( 'miss_runs', [] ) if detector_stats else []
+
+        if len( runs ) < 20:
+            source = 'annotation gaps'
+            runs = stats[ 'gap_lengths' ]
+
+        if len( runs ) < 5:
             return 30  # Default
 
-        # Use 90th percentile of gaps + some margin
-        gap_90 = np.percentile( gap_lengths, 90 )
-        track_buffer = int( gap_90 * 1.5 ) + 5
+        # 90th percentile of the gap, plus margin
+        run_90 = np.percentile( runs, 90 )
+        track_buffer = int( run_90 * 1.5 ) + 5
 
         # Clamp to reasonable range
         track_buffer = max( 10, min( 100, track_buffer ) )
+
+        print( "  track_buffer {} from {} ({} samples, 90th pct {:.1f})".format(
+            track_buffer, source, len( runs ), run_90 ) )
 
         return track_buffer
 
@@ -354,17 +548,38 @@ class ByteTrackTrainer( TrainTracker ):
         # Estimate thresholds
         print( "Estimating detection thresholds..." )
         high_thresh, low_thresh, new_track_thresh = self._estimate_thresholds( stats )
+
+        # A detector's own output, when supplied, answers what the
+        # groundtruth cannot: where its boxes land relative to the truth, and
+        # which of its scores correspond to real objects
+        detector = self._detector_stats()
+
+        if detector is not None:
+            high_thresh, low_thresh, new_track_thresh = \
+                self._estimate_thresholds_from_detector( detector )
+
+            measured = self._measurement_noise_from_detector( detector )
+
+            if measured is not None:
+                std_weight_position = float( np.clip(
+                    measured,
+                    self._min_std_weight_position,
+                    self._max_std_weight_position ) )
+                print( "  measurement noise from the detector: "
+                       "std_weight_position {:.4f}".format(
+                           std_weight_position ) )
+
         print( f"  high_thresh: {high_thresh:.3f}" )
         print( f"  low_thresh: {low_thresh:.3f}" )
         print( f"  new_track_thresh: {new_track_thresh:.3f}" )
 
         # Estimate track buffer
         print( "Estimating track buffer..." )
-        track_buffer = self._estimate_track_buffer( stats )
-        print( f"  track_buffer: {track_buffer}" )
+        track_buffer = self._estimate_track_buffer( stats, detector )
 
-        # IOU match threshold (use default, hard to estimate from GT)
-        match_thresh = 0.8
+        # IOU association gate, from the groundtruth's own link overlaps
+        print( "Estimating match threshold..." )
+        match_thresh = self._estimate_match_threshold( stats )
 
         # Save parameters to JSON file in train directory (will be copied by caller)
         params = {
@@ -373,6 +588,8 @@ class ByteTrackTrainer( TrainTracker ):
             'high_thresh': high_thresh,
             'low_thresh': low_thresh,
             'match_thresh': match_thresh,
+            'second_match_thresh': match_thresh,
+            'unconfirmed_match_thresh': match_thresh,
             'new_track_thresh': new_track_thresh,
             'track_buffer': track_buffer
         }
@@ -405,6 +622,8 @@ class ByteTrackTrainer( TrainTracker ):
         output[algo + ":high_thresh"] = f"{params['high_thresh']:.3f}"
         output[algo + ":low_thresh"] = f"{params['low_thresh']:.3f}"
         output[algo + ":match_thresh"] = f"{params['match_thresh']:.3f}"
+        output[algo + ":second_match_thresh"] = "{:.3f}".format(params["second_match_thresh"])
+        output[algo + ":unconfirmed_match_thresh"] = "{:.3f}".format(params["unconfirmed_match_thresh"])
         output[algo + ":track_buffer"] = str( params['track_buffer'] )
         output[algo + ":new_track_thresh"] = f"{params['new_track_thresh']:.3f}"
 

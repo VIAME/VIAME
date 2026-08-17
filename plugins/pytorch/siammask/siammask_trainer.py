@@ -13,14 +13,20 @@ import json
 import random
 import numpy as np
 from glob import glob
-from importlib import reload
 import sys
 import shutil
 
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from tensorboardX import SummaryWriter
+try:
+    from tensorboardX import SummaryWriter
+except ImportError:
+    # tensorboardX is not part of the VIAME python environment, and its absence
+    # used to abort SiamMask training outright at import time. torch ships a
+    # SummaryWriter with the same add_scalar API, so fall back to that rather
+    # than losing the run over an optional logging dependency.
+    from torch.utils.tensorboard import SummaryWriter
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data.distributed import DistributedSampler
 
@@ -31,14 +37,39 @@ from viame.pytorch.siammask.utils.distributed import dist_init, DistModule, redu
 from viame.pytorch.siammask.utils.model_load import load_pretrain, restore_from
 from viame.pytorch.siammask.utils.average_meter import AverageMeter
 from viame.pytorch.siammask.utils.misc import describe, commit
-import viame.pytorch.siammask.datasets.dataset
 from viame.pytorch.siammask.models.model_builder import ModelBuilder
 from viame.pytorch.siammask.core.config import cfg
 
 from viame.pytorch.siammask.par_crop import par_crop
 from viame.pytorch.siammask.gen_json import gen_json
+from viame.pytorch.siammask import VALIDATION_RECORD
+from viame.core.training_data import seed_from_environment
 
 logger = logging.getLogger('global')
+
+# Written by rank 0 once the crops are built, and waited on by the others
+PREP_COMPLETE = '.prep_complete'
+PREP_TIMEOUT = 14400
+
+# dataset.json as gen_json writes it holds every clip. These are the two
+# halves of it, written beside it when clips are held out; the training reads
+# the first and the validation the second, off the one crop511 pyramid.
+DATASET_ALL = 'dataset.json'
+DATASET_TRAIN = 'dataset_train.json'
+DATASET_VAL = 'dataset_val.json'
+
+# How much validation to run at each epoch. It is bounded rather than sized
+# from the data because on more than one device the other ranks sit blocked in
+# the next gradient all_reduce for as long as rank 0 spends here, and a stall
+# longer than the NCCL watchdog allows would be reported to them as a
+# collective timeout and kill the run.
+VALIDATION_MAX_BATCHES = 50
+
+# The same pairs, in the same order, with the same augmentation every epoch.
+# Validation is drawing from the same random pipeline training does, so
+# without pinning it each epoch would be measured on a different sample and
+# the differences between epochs would be mostly noise.
+VALIDATION_SEED = 20240101
 parser = argparse.ArgumentParser()
 parser.add_argument('--local_rank', type=int, default=0, help='compulsory for pytorch launcer')
 parser.add_argument('--seed', type=int, default=123456, help='random seed')
@@ -47,9 +78,38 @@ parser.add_argument('-s', '--save-folder', default='siamrpn++_model', help='Fold
 parser.add_argument('-c', '--config-file', required=True, help='Config file for architecture.')
 parser.add_argument('-t', '--threshold', required=True, help='GT confidence threshold.')
 parser.add_argument('--skip-crop', action='store_true', default=False, help='Add flag if you want to skip the data cropping (crop_511) step.')
+parser.add_argument('--pretrained', default='', help='Model to fine tune from. Loaded over the whole network, not just the backbone.')
+parser.add_argument('--backbone-pretrained', dest='backbone_pretrained',
+                    default='',
+                    help='Backbone weights to start from, as distinct from '
+                    '--pretrained which loads a whole tracker. This is how '
+                    'pysot trains one of these from scratch: an ImageNet '
+                    'ResNet50 in the backbone and the heads left random.')
+parser.add_argument('--resume', default='',
+                    help='Checkpoint to carry on from. Restores the optimizer '
+                    'and the epoch as well as the weights, unlike --pretrained '
+                    'which only loads the network.')
+parser.add_argument('--samples-per-sequence', dest='samples_per_sequence',
+                    type=int, default=6000,
+                    help='Training pairs drawn from each clip per epoch. The '
+                    'pysot default of 6000 is sized for corpora far larger '
+                    'than a few hundred clips, and it is what sets the length '
+                    'of an epoch, so it is the lever for fitting a run into a '
+                    'given amount of time without disturbing the learning '
+                    'rate schedule or when the backbone unfreezes.')
+parser.add_argument('--epochs', type=int, default=0,
+                    help='Epochs to train for, overriding TRAIN.EPOCH in the '
+                    'architecture config. 0 leaves the config alone.')
+parser.add_argument('--validation-sequences', dest='validation_sequences',
+                    default='',
+                    help='File listing the sequence directories held out of '
+                    'training, one per line. Their clips are trained on when '
+                    'this is not given, and no validation is measured.')
 args = parser.parse_args()
 print(os.getcwd())
-os.chdir(os.path.dirname(os.path.dirname(args.image_folder)))
+_chdir_target = os.path.dirname(os.path.dirname(args.image_folder))
+if _chdir_target:
+    os.chdir(_chdir_target)
 print(os.getcwd())
 
 def seed_torch(seed=0):
@@ -64,8 +124,10 @@ def seed_torch(seed=0):
 
 def prep_data():
     if not args.skip_crop:
-        if os.path.isdir(os.path.join(args.save_folder, 'crop511')):
-            shutil.rmtree(os.path.join(args.save_folder, 'crop511'))
+        # ignore_errors because a half removed tree from an interrupted run
+        # should not stop this one
+        shutil.rmtree(os.path.join(args.save_folder, 'crop511'),
+                      ignore_errors=True)
         since = time.time()
         par_crop(511, 24, args.image_folder, args.save_folder)
         time_elapsed = time.time() - since
@@ -73,29 +135,124 @@ def prep_data():
             time_elapsed // 60, time_elapsed % 60))
 
     gen_json(args.image_folder, args.save_folder)
+    split_dataset()
 
-    import viame.pytorch.siammask.core.config as cfg_file
-    core_cfg = cfg_file.__file__
-    with open(core_cfg) as f:
-        cc_lines = f.readlines()
-    for idx, line in enumerate(cc_lines):
-        file_path = '/'.join(os.path.abspath(__file__).split('/')[:-1])
-        if '__C.DATASET.VIAME.ROOT = ' in line:
-            cc_lines[idx] = f"__C.DATASET.VIAME.ROOT = \"{os.path.join(os.getcwd(), args.save_folder, 'crop511')}\"\n"
-        if '__C.DATASET.VIAME.ANNO = ' in line:
-            cc_lines[idx] = f"__C.DATASET.VIAME.ANNO = \"{os.path.join(os.getcwd(), args.save_folder, 'dataset.json')}\"\n"
-        if '__C.DATASET.VIDEOS_PER_EPOCH = ' in line:
-            num_vids = 6000*len(glob(os.path.join(args.image_folder, '*')))
-            cc_lines[idx] = f'__C.DATASET.VIDEOS_PER_EPOCH = {num_vids}\n'
-    with open(core_cfg, 'w') as f:
-        for line in cc_lines:
-            f.write(line)
+
+def held_out_sequences():
+    """Names of the clips to keep out of training, as the wrapper chose them.
+
+    The choice is made there, by the same split_validation the other tracker
+    trainers use, because that is where a clip is still a track set. By the
+    time it reaches here it is a directory of crops and a key in dataset.json,
+    and all that is needed is its name.
+    """
+    if not args.validation_sequences or \
+            not os.path.isfile(args.validation_sequences):
+        return []
+
+    with open(args.validation_sequences) as handle:
+        return [line.strip() for line in handle if line.strip()]
+
+
+def split_dataset():
+    """Write dataset.json out as a training half and a held out half.
+
+    Both halves index the same crop511 pyramid, so the clips held out are
+    cropped along with the rest and only the annotation file distinguishes
+    them. Nothing is written when there is no split to make, and a pair left
+    by an earlier run is removed first so a run that holds nothing out cannot
+    pick up the previous run's split.
+    """
+    train_path = os.path.join(args.save_folder, DATASET_TRAIN)
+    val_path = os.path.join(args.save_folder, DATASET_VAL)
+
+    for stale in (train_path, val_path):
+        if os.path.exists(stale):
+            os.remove(stale)
+
+    held = set(held_out_sequences())
+
+    if not held:
+        return
+
+    with open(os.path.join(args.save_folder, DATASET_ALL)) as handle:
+        dataset = json.load(handle)
+
+    val = {name: data for name, data in dataset.items() if name in held}
+    train = {name: data for name, data in dataset.items() if name not in held}
+
+    # Either half being empty means the split did not survive cropping -- a
+    # held out clip whose crops all failed, or a list naming every clip there
+    # is. Training on everything and measuring nothing is the better failure.
+    if not val or not train:
+        print('The {} clip(s) held out leave {} to train on, which is not a '
+              'usable split. Training on all of them and skipping '
+              'validation.'.format(len(val), len(train)))
+        return
+
+    with open(train_path, 'w') as handle:
+        json.dump(train, handle, indent=4, sort_keys=True)
+
+    with open(val_path, 'w') as handle:
+        json.dump(val, handle, indent=4, sort_keys=True)
+
+    print('Held out {} of {} clips for validation: {}'.format(
+        len(val), len(dataset), ', '.join(sorted(val))))
+
+
+def dataset_path(name):
+    """Absolute path of one of the annotation files in the save folder."""
+    return os.path.join(os.getcwd(), args.save_folder, name)
+
+
+def video_count(path):
+    """Clips in an annotation file, or zero where it is not there."""
+    if not os.path.exists(path):
+        return 0
+
+    with open(path) as handle:
+        return len(json.load(handle))
+
+
+def configure_dataset():
+    """Point the config at the data this run just prepared.
+
+    This used to be done by rewriting the assignments in core/config.py and
+    reloading the module. Reloading rebuilt cfg from those defaults, and since
+    datasets/dataset.py was reloaded straight after, the dataset bound to that
+    fresh object while the model kept the one the yaml had been merged into.
+    The two then disagreed about every setting the yaml overrides. MASK.MASK
+    defaults to False, so the dataset emitted no label_mask and the mask head
+    trained on nothing while the config the run printed said MASK was on.
+
+    Setting the values on the live config keeps one config for the whole run,
+    and stops each run editing an installed source file.
+    """
+    cfg.DATASET.VIAME.ROOT = os.path.join(
+        os.getcwd(), args.save_folder, 'crop511')
+
+    # The training half where clips were held out, all of them otherwise.
+    # Pointing this at the whole dataset while validating on part of it would
+    # be measuring the model on clips it had trained on.
+    train_anno = dataset_path(DATASET_TRAIN)
+
+    if not os.path.exists(train_anno):
+        train_anno = dataset_path(DATASET_ALL)
+
+    cfg.DATASET.VIAME.ANNO = train_anno
+
+    # The clips that will actually be sampled, which is fewer than the
+    # directories on disk once some of them are held out
+    sequences = video_count(train_anno) or \
+        len(glob(os.path.join(args.image_folder, '*')))
+    cfg.DATASET.VIDEOS_PER_EPOCH = args.samples_per_sequence * sequences
+
+    print('Epoch is {} sequences x {} samples = {}'.format(
+        sequences, args.samples_per_sequence, cfg.DATASET.VIDEOS_PER_EPOCH))
 
 
 def build_data_loader():
     logger.info("build train dataset")
-    reload(viame.pytorch.siammask.core.config)
-    reload(viame.pytorch.siammask.datasets.dataset)
     from viame.pytorch.siammask.datasets.dataset import TrkDataset
     train_dataset = TrkDataset()
     logger.info("build dataset done")
@@ -111,12 +268,195 @@ def build_data_loader():
     return train_loader
 
 
+def build_val_loader():
+    """Loader over the held out clips, or None when none were held out.
+
+    Rank 0 builds and uses this alone, so it carries no sampler: it is not
+    part of the distributed training and must not divide its work across
+    ranks that are not going to read it.
+
+    num_workers is zero deliberately. The samples are drawn through the same
+    random pipeline training uses, and with the seed pinned in the main
+    process that only reproduces the same batches every epoch if nothing is
+    generating them in a forked worker with a seed of its own.
+    """
+    val_anno = dataset_path(DATASET_VAL)
+    videos = video_count(val_anno)
+
+    if not videos:
+        return None
+
+    from viame.pytorch.siammask.datasets.dataset import TrkDataset
+
+    samples = min(args.samples_per_sequence * videos,
+                  VALIDATION_MAX_BATCHES * cfg.TRAIN.BATCH_SIZE)
+    samples = max(samples, cfg.TRAIN.BATCH_SIZE)
+
+    logger.info('build validation dataset: {} clips, {} samples'.format(
+        videos, samples))
+
+    val_dataset = TrkDataset(anno=val_anno, num_samples=samples)
+
+    return DataLoader(val_dataset,
+                      batch_size=cfg.TRAIN.BATCH_SIZE,
+                      num_workers=0,
+                      pin_memory=True)
+
+
+def validate(model, val_loader):
+    """Mean cls, loc, mask and total loss over the held out clips.
+
+    Called on rank 0 only, and so it must issue no collective of its own: a
+    reduction made by one rank and not the others is a deadlock, and the last
+    one of those in this codebase cost a ten minute NCCL watchdog timeout at
+    the epoch the backbone unfreezes. The model is called unwrapped for that
+    reason, bypassing DistModule and its buffer broadcast, and the losses are
+    averaged as plain Python floats rather than through average_reduce, which
+    is an all_reduce whenever the world is bigger than one.
+
+    No gradients either, so nothing here reaches the optimizer. Every module
+    is put in eval mode and put back exactly as it was: model.train() would
+    not restore it, since the backbone's batch norms are held in eval while
+    it is frozen and it is build_opt_lr, not this, that decides when that ends.
+
+    Returns a dict of means, with 'mask' None where no batch carried one.
+    """
+    totals = {'cls': 0.0, 'loc': 0.0, 'total': 0.0}
+    batches = 0
+    mask_total = 0.0
+    mask_batches = 0
+
+    modes = [(module, module.training) for module in model.modules()]
+    np_state = np.random.get_state()
+    torch_state = torch.get_rng_state()
+    cuda_state = torch.cuda.get_rng_state() if torch.cuda.is_available() \
+        else None
+
+    # Pinned here and put back below, so that measuring an epoch does not
+    # shift the stream of augmentations the epochs after it train on
+    np.random.seed(VALIDATION_SEED)
+    torch.manual_seed(VALIDATION_SEED)
+
+    try:
+        model.eval()
+
+        with torch.no_grad():
+            for data in val_loader:
+                outputs = model(data)
+
+                totals['cls'] += outputs['cls_loss'].item()
+                totals['loc'] += outputs['loc_loss'].item()
+                totals['total'] += outputs['total_loss'].item()
+                batches += 1
+
+                # None whenever MASK is on but the batch carries no
+                # label_mask, which is what box only groundtruth gives
+                mask_loss = outputs.get('mask_loss')
+
+                if mask_loss is not None:
+                    mask_total += mask_loss.item()
+                    mask_batches += 1
+    finally:
+        for module, mode in modes:
+            module.training = mode
+
+        np.random.set_state(np_state)
+        torch.set_rng_state(torch_state)
+
+        if cuda_state is not None:
+            torch.cuda.set_rng_state(cuda_state)
+
+    if not batches:
+        return None
+
+    result = {k: v / batches for k, v in totals.items()}
+    result['mask'] = mask_total / mask_batches if mask_batches else None
+    return result
+
+
+def record_validation(losses, epoch):
+    """Append this epoch's validation to the record in the train directory.
+
+    A file rather than the log, because the run that reads it back to choose a
+    checkpoint may be a resumed one whose earlier epochs were measured in an
+    earlier sitting -- the same reason the SRNN stage keeps a record of its
+    own. Whitespace separated, one line per epoch, the epoch first and the
+    total second so the reader needs no more than the first two fields.
+    """
+    path = os.path.join(args.save_folder, VALIDATION_RECORD)
+    fresh = not os.path.exists(path)
+
+    def number(value):
+        return '{:.6f}'.format(value) if value is not None else '-'
+
+    with open(path, 'a') as handle:
+        if fresh:
+            handle.write('# epoch val_total val_cls val_loc val_mask\n')
+
+        handle.write('{} {} {} {} {}\n'.format(
+            epoch, number(losses['total']), number(losses['cls']),
+            number(losses['loc']), number(losses['mask'])))
+
+
+def run_validation(model, val_loader, epoch, tb_writer, tb_index):
+    """Validate the checkpoint just written, log it and record it.
+
+    Failing to validate must not lose the training: the epoch simply goes
+    unrecorded and the choice of checkpoint is made over the epochs that were
+    measured.
+    """
+    if val_loader is None:
+        return
+
+    try:
+        losses = validate(model, val_loader)
+    except Exception as error:
+        logger.warning('validation of epoch %d failed, carrying on without '
+                       'it: %s', epoch, error)
+        return
+
+    if losses is None:
+        logger.warning('validation of epoch %d covered no batches', epoch)
+        return
+
+    logger.info(
+        'Epoch {} validation: val_cls {:.5f}\tval_loc {:.5f}\t'
+        'val_mask {}\tval_total {:.5f}'.format(
+            epoch, losses['cls'], losses['loc'],
+            '{:.5f}'.format(losses['mask'])
+            if losses['mask'] is not None else 'n/a',
+            losses['total']))
+
+    if tb_writer is not None:
+        for name, value in losses.items():
+            if value is not None:
+                tb_writer.add_scalar('val/' + name, value, tb_index)
+
+    record_validation(losses, epoch)
+
+
 def build_opt_lr(model, current_epoch=0):
     if current_epoch >= cfg.BACKBONE.TRAIN_EPOCH:
         for layer in cfg.BACKBONE.TRAIN_LAYERS:
-            for param in getattr(model.backbone, layer).parameters():
+            # Which layers exist depends on BACKBONE.KWARGS.used_layers, and a
+            # name that is not one of them resolves to a method of the module
+            # rather than raising, so the failure was an AttributeError on
+            # .parameters() ten epochs in rather than anything about the
+            # config. Say what is wrong and carry on with the layers that are
+            # really there.
+            block = getattr(model.backbone, layer, None)
+
+            if not isinstance(block, nn.Module):
+                logger.warning(
+                    'BACKBONE.TRAIN_LAYERS names %s, which this backbone does '
+                    'not have; it builds %s. Leaving it frozen.', layer,
+                    [n for n, _ in model.backbone.named_children()
+                     if n.startswith('layer')])
+                continue
+
+            for param in block.parameters():
                 param.requires_grad = True
-            for m in getattr(model.backbone, layer).modules():
+            for m in block.modules():
                 if isinstance(m, nn.BatchNorm2d):
                     m.train()
     else:
@@ -144,7 +484,7 @@ def build_opt_lr(model, current_epoch=0):
 
     if cfg.REFINE.REFINE:
         trainable_params += [{'params': model.refine_head.parameters(),
-                              'lr': cfg.TRAIN.LR.BASE_LR}]
+                              'lr': cfg.TRAIN.BASE_LR}]
 
     optimizer = torch.optim.SGD(trainable_params,
                                 momentum=cfg.TRAIN.MOMENTUM,
@@ -192,7 +532,8 @@ def log_grads(model, tb_writer, tb_index):
     tb_writer.add_scalar('grad/rpn', rpn_norm, tb_index)
 
 
-def train(train_loader, model, optimizer, lr_scheduler, tb_writer):
+def train(train_loader, model, optimizer, lr_scheduler, tb_writer,
+          val_loader=None):
     cur_lr = lr_scheduler.get_cur_lr()
     rank = get_rank()
 
@@ -204,6 +545,12 @@ def train(train_loader, model, optimizer, lr_scheduler, tb_writer):
     world_size = get_world_size()
     num_per_epoch = len(train_loader.dataset) // \
         cfg.TRAIN.EPOCH // (cfg.TRAIN.BATCH_SIZE * world_size)
+
+    # An epoch smaller than one batch per rank floors to zero here and the
+    # loop divides by it. Small datasets get closer to that now that some of
+    # their clips are held back, so it is worth not dying on.
+    num_per_epoch = max(num_per_epoch, 1)
+
     start_epoch = cfg.TRAIN.START_EPOCH
     epoch = start_epoch
 
@@ -223,6 +570,13 @@ def train(train_loader, model, optimizer, lr_scheduler, tb_writer):
                          'state_dict': model.module.state_dict(),
                          'optimizer': optimizer.state_dict()},
                         cfg.TRAIN.SNAPSHOT_DIR+'/checkpoint_e%d.pth' % (epoch))
+
+                # Measure what was just written, so the record and the
+                # checkpoint of an epoch describe the same weights. Rank 0
+                # only: the other ranks carry straight on and block in their
+                # next gradient all_reduce until this returns, which costs
+                # nothing but their idle time and adds no collective here.
+                run_validation(model.module, val_loader, epoch, tb_writer, idx)
 
             if epoch == cfg.TRAIN.EPOCH:
                 return
@@ -268,6 +622,12 @@ def train(train_loader, model, optimizer, lr_scheduler, tb_writer):
         batch_info['batch_time'] = average_reduce(batch_time)
         batch_info['data_time'] = average_reduce(data_time)
         for k, v in sorted(outputs.items()):
+            # The model reports a loss it could not compute as None -- mask_loss
+            # is None whenever MASK is enabled but the batch carries no
+            # label_mask, which is the case for box only groundtruth. Averaging
+            # that unconditionally crashed the first training step.
+            if v is None:
+                continue
             batch_info[k] = average_reduce(v.data.item())
 
         average_meter.update(**batch_info)
@@ -296,11 +656,111 @@ def train(train_loader, model, optimizer, lr_scheduler, tb_writer):
 
 def main():
 
-    prep_data()
-
     seed_torch(args.seed)
+
+    # After seed_torch, not before: that call re-seeds random, numpy and torch
+    # from args.seed and would silently undo this one. pysot has always seeded
+    # itself here, from a fixed default of 123456, and sets cudnn deterministic
+    # while it is at it -- so this stage was reproducible before any of the
+    # seeding work and stays so if nothing is exported. What this adds is that
+    # VIAME_TRAINING_SEED, when the trainer sets it, becomes the single knob
+    # covering this stage too rather than leaving it on its own constant.
+    #
+    # No rank offset. build_data_loader wraps the dataset in a
+    # DistributedSampler above world size one, so the ranks are already given
+    # disjoint samples; offsetting the seed as well would buy nothing and
+    # depart from what pysot expects.
+    seed_from_environment( "siammask rank " + os.environ.get( "RANK", "0" ) )
+
     rank, world_size = dist_init()
+
+    # One rank prepares the data and the rest wait on it. Every rank used to
+    # run this, so on more than one device they raced removing crop511 -- one
+    # rank deleting a directory another was walking, which surfaced as
+    # FileNotFoundError from rmtree -- and had they got past that they would
+    # have run the whole half hour crop concurrently over each other's output.
+    #
+    # The wait is on a file rather than a barrier. Cropping this dataset takes
+    # about half an hour, well past the ten minute default timeout of a
+    # collective, so a barrier here killed the other ranks partway through
+    # with "wait timeout after 600000ms" while rank zero was still working.
+    # Raising the process group timeout instead would blind the training that
+    # follows to a genuine hang, and cropping has no useful upper bound.
+    #
+    # The wrapper removes this file before launching, so a flag left by an
+    # earlier run cannot release the other ranks early.
+    ready = os.path.join(args.save_folder, PREP_COMPLETE)
+
+    if rank == 0:
+        prep_data()
+
+        if world_size > 1:
+            with open(ready, 'w') as handle:
+                handle.write('prepared by rank 0\n')
+    elif world_size > 1:
+        waited = 0
+
+        while not os.path.exists(ready):
+            time.sleep(5)
+            waited += 5
+
+            if waited % 300 == 0:
+                logger.info('rank {} waiting on data preparation, {} min'
+                            .format(rank, waited // 60))
+
+            if waited > PREP_TIMEOUT:
+                raise RuntimeError(
+                    'Rank {} waited {} seconds for rank 0 to finish preparing '
+                    'the data and it never did. Check the log above for what '
+                    'happened to it.'.format(rank, waited))
+
     cfg.merge_from_file(args.config_file)
+
+    # The number of epochs the settings file asked for. It used to stop at the
+    # wrapper, which read max_epochs and never passed it on, so every run was
+    # the twenty of the architecture config no matter what was configured.
+    if args.epochs > 0:
+        cfg.TRAIN.EPOCH = args.epochs
+
+        # The warm up takes the first LR_WARMUP.EPOCH epochs of the schedule
+        # and the main policy whatever is left, so a run no longer than the
+        # warm up leaves one of the two an empty schedule. Neither survives
+        # that: an empty one is indexed as soon as it is built, and the run
+        # dies in get_lr before the first batch with an IndexError that says
+        # nothing about epoch counts. Shorten the warm up to fit, and where
+        # there is no room for even one epoch of it, drop it and let the main
+        # policy cover the whole run. Five epochs of warm up out of the
+        # default twenty is untouched by either.
+        if cfg.TRAIN.LR_WARMUP.WARMUP and \
+                cfg.TRAIN.LR_WARMUP.EPOCH >= cfg.TRAIN.EPOCH:
+            capped = min(cfg.TRAIN.LR_WARMUP.EPOCH, cfg.TRAIN.EPOCH - 1)
+
+            if capped >= 1:
+                cfg.TRAIN.LR_WARMUP.EPOCH = capped
+                shortened = 'shortened to {} epoch(s)'.format(capped)
+            else:
+                cfg.TRAIN.LR_WARMUP.WARMUP = False
+                shortened = 'switched off'
+
+            if rank == 0:
+                print('Warm up {}, which is all a {} epoch run has room '
+                      'for'.format(shortened, cfg.TRAIN.EPOCH))
+
+    # After the merge, so the run's own paths are not what the yaml overrides
+    configure_dataset()
+
+    # A model to fine tune from, given on the command line so the shipped yaml
+    # stays untouched. TRAIN.PRETRAINED loads the whole network rather than
+    # BACKBONE.PRETRAINED, which is only the backbone.
+    if args.pretrained:
+        cfg.TRAIN.PRETRAINED = args.pretrained
+
+    if args.resume:
+        cfg.TRAIN.RESUME = args.resume
+
+    if args.backbone_pretrained:
+        cfg.BACKBONE.PRETRAINED = args.backbone_pretrained
+
     cfg.TRAIN.LOG_DIR = os.path.join(args.save_folder, cfg.TRAIN.LOG_DIR)
     cfg.TRAIN.SNAPSHOT_DIR = os.path.join(args.save_folder, cfg.TRAIN.SNAPSHOT_DIR)
     if rank == 0:
@@ -334,6 +794,15 @@ def main():
     # build dataset loader
     train_loader = build_data_loader()
 
+    # The held out clips, measured by rank 0 alone. Built here rather than at
+    # each epoch so a dataset that cannot be loaded is found before the first
+    # batch instead of an epoch later.
+    val_loader = build_val_loader() if rank == 0 else None
+
+    if rank == 0 and val_loader is None:
+        logger.info('No clips were held out, so nothing is validated and the '
+                    'last epoch trained is the one that ships.')
+
     # build optimizer and lr_scheduler
     optimizer, lr_scheduler = build_opt_lr(dist_model.module,
                                            cfg.TRAIN.START_EPOCH)
@@ -343,8 +812,37 @@ def main():
         logger.info("resume from {}".format(cfg.TRAIN.RESUME))
         assert os.path.isfile(cfg.TRAIN.RESUME), \
             '{} is not a valid file.'.format(cfg.TRAIN.RESUME)
-        model, optimizer, cfg.TRAIN.START_EPOCH = \
-            restore_from(model, optimizer, cfg.TRAIN.RESUME)
+
+        # Which parameters the optimizer covers changes at
+        # BACKBONE.TRAIN_EPOCH, when the backbone joins them, so there are two
+        # possible shapes and load_state_dict refuses the wrong one. Which of
+        # them a checkpoint holds depends on whether it was written before or
+        # after the rebuild within that epoch, which is not something its
+        # epoch number settles. Try the shape for its epoch, then the other.
+        resume_epoch = torch.load(
+            cfg.TRAIN.RESUME, map_location='cpu',
+            weights_only=False).get('epoch', cfg.TRAIN.START_EPOCH)
+
+        restored = False
+
+        for candidate in ( resume_epoch, cfg.TRAIN.START_EPOCH ):
+            optimizer, lr_scheduler = build_opt_lr(dist_model.module,
+                                                   candidate)
+            try:
+                model, optimizer, cfg.TRAIN.START_EPOCH = \
+                    restore_from(model, optimizer, cfg.TRAIN.RESUME)
+                restored = True
+                break
+            except ValueError as error:
+                logger.info('optimizer built for epoch %s does not match the '
+                            'checkpoint (%s), trying the other shape',
+                            candidate, error)
+
+        if not restored:
+            raise RuntimeError(
+                'Could not restore the optimizer from {}. Its parameter '
+                'groups match neither the frozen nor the unfrozen backbone.'
+                .format(cfg.TRAIN.RESUME))
     # load pretrain
     elif cfg.TRAIN.PRETRAINED:
         load_pretrain(model, cfg.TRAIN.PRETRAINED)
@@ -354,7 +852,8 @@ def main():
     logger.info("model prepare done")
 
     # start training
-    train(train_loader, dist_model, optimizer, lr_scheduler, tb_writer)
+    train(train_loader, dist_model, optimizer, lr_scheduler, tb_writer,
+          val_loader)
 
 
 if __name__ == '__main__':

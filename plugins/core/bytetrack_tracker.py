@@ -16,7 +16,9 @@ Reference: Zhang et al., "ByteTrack: Multi-Object Tracking by Associating
 Every Detection Box" (ECCV 2022)
 """
 
+import json
 import logging
+import os
 
 import numpy as np
 import scipy.optimize
@@ -46,7 +48,7 @@ class KalmanFilter:
     Object motion follows a constant velocity model.
     """
 
-    def __init__(self):
+    def __init__(self, std_weight_position=1.0 / 20, std_weight_velocity=1.0 / 160):
         ndim = 4
         dt = 1.0
 
@@ -58,9 +60,11 @@ class KalmanFilter:
         # Observation matrix
         self._update_mat = np.eye(ndim, 2 * ndim)
 
-        # Motion and observation uncertainty weights
-        self._std_weight_position = 1.0 / 20
-        self._std_weight_velocity = 1.0 / 160
+        # Motion and observation uncertainty weights. Defaults are ByteTrack's
+        # originals; the bytetrack trainer fits both, so they are injectable
+        # here the same way OCSORTTracker's KalmanFilter takes them.
+        self._std_weight_position = std_weight_position
+        self._std_weight_velocity = std_weight_velocity
 
     def initiate(self, measurement):
         """Create track from unassociated measurement."""
@@ -416,6 +420,15 @@ class ByteTrackTrackerConfig(scfg.DataConfig):
     match_thresh = scfg.Value(0.8, help='IOU threshold for matching (1 - IOU must be below this)')
     track_buffer = scfg.Value(30, help='Number of frames to keep lost tracks before removal')
     new_track_thresh = scfg.Value(0.6, help='Minimum confidence to create new track from unmatched detection')
+    std_weight_position = scfg.Value(1.0 / 20, help='Kalman position uncertainty weight')
+    std_weight_velocity = scfg.Value(1.0 / 160, help='Kalman velocity uncertainty weight')
+    second_match_thresh = scfg.Value(
+        0.5, help='IOU distance bound for the second (low-confidence) '
+                  'association pass; stock ByteTrack hard-coded 0.5')
+    unconfirmed_match_thresh = scfg.Value(
+        0.7, help='IOU distance bound for matching unconfirmed (single-hit) '
+                  'tracks; stock ByteTrack hard-coded 0.7')
+    params_file = scfg.Value('', help='Optional JSON file of trained parameters overriding the above')
 
 
 # =============================================================================
@@ -465,11 +478,27 @@ class ByteTrackTracker(TrackObjects):
         self._high_thresh = float(self._config.high_thresh)
         self._low_thresh = float(self._config.low_thresh)
         self._match_thresh = float(self._config.match_thresh)
+        self._second_match_thresh = float(self._config.second_match_thresh)
+        self._unconfirmed_match_thresh = float(self._config.unconfirmed_match_thresh)
         self._track_buffer = int(self._config.track_buffer)
         self._new_track_thresh = float(self._config.new_track_thresh)
+        self._std_weight_position = float(self._config.std_weight_position)
+        self._std_weight_velocity = float(self._config.std_weight_velocity)
+
+        # Trained parameter file (produced by the bytetrack trainer) overrides
+        # any scalar values configured above.
+        params_file = str(self._config.params_file)
+        if params_file and os.path.exists(params_file):
+            with open(params_file, 'r') as f:
+                params = json.load(f)
+            self._apply_trained_params(params)
+            print(f"[ByteTrack] Loaded trained parameters from {params_file}")
 
         # Initialize tracker state
-        self._kalman_filter = KalmanFilter()
+        self._kalman_filter = KalmanFilter(
+            std_weight_position=self._std_weight_position,
+            std_weight_velocity=self._std_weight_velocity,
+        )
         self._tracked_stracks = []
         self._lost_stracks = []
         self._removed_stracks = []
@@ -477,6 +506,23 @@ class ByteTrackTracker(TrackObjects):
         STrack.reset_id()
 
         return True
+
+    def _apply_trained_params(self, params):
+        """Override scalar parameters from a trained params JSON dict."""
+        mapping = {
+            'high_thresh': '_high_thresh',
+            'low_thresh': '_low_thresh',
+            'match_thresh': '_match_thresh',
+            'second_match_thresh': '_second_match_thresh',
+            'unconfirmed_match_thresh': '_unconfirmed_match_thresh',
+            'track_buffer': '_track_buffer',
+            'new_track_thresh': '_new_track_thresh',
+            'std_weight_position': '_std_weight_position',
+            'std_weight_velocity': '_std_weight_velocity',
+        }
+        for key, attr in mapping.items():
+            if key in params:
+                setattr(self, attr, type(getattr(self, attr))(params[key]))
 
     def check_configuration(self, cfg):
         """Check if the configuration is valid."""
@@ -548,7 +594,7 @@ class ByteTrackTracker(TrackObjects):
         # ===== SECOND STAGE: Match remaining tracks with low-confidence dets =====
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.TRACKED]
         dists = iou_distance(r_tracked_stracks, low_dets)
-        matches, u_track_second, _ = linear_assignment(dists, thresh=0.5)
+        matches, u_track_second, _ = linear_assignment(dists, thresh=self._second_match_thresh)
 
         for itracked, idet in matches:
             track = r_tracked_stracks[itracked]
@@ -565,7 +611,7 @@ class ByteTrackTracker(TrackObjects):
 
         # ===== HANDLE UNCONFIRMED TRACKS =====
         dists = iou_distance(unconfirmed, [high_dets[i] for i in u_detection])
-        matches, u_unconfirmed, u_detection_final = linear_assignment(dists, thresh=0.7)
+        matches, u_unconfirmed, u_detection_final = linear_assignment(dists, thresh=self._unconfirmed_match_thresh)
 
         for itracked, idet in matches:
             unconfirmed[itracked].update(high_dets[u_detection[idet]], self._frame_id, ts)

@@ -139,7 +139,20 @@ class SubDataset(object):
 
 
 class TrkDataset(Dataset):
-    def __init__(self,):
+    def __init__(self, anno=None, num_samples=None):
+        """Pairs drawn from the cropped clips.
+
+        anno names an annotation file to read instead of the one in the
+        config, which is how the held out clips are loaded: they share the
+        crop511 pyramid with the training clips and differ only in which
+        videos their dataset json lists.
+
+        num_samples fixes the length. Without it the length is a whole run --
+        VIDEOS_PER_EPOCH times the epoch count -- because training iterates
+        this once and finds its epoch boundaries by counting batches. A
+        validation set is iterated once per epoch instead and wants the length
+        of a single pass.
+        """
         super(TrkDataset, self).__init__()
 
         desired_size = (cfg.TRAIN.SEARCH_SIZE - cfg.TRAIN.EXEMPLAR_SIZE) / \
@@ -159,7 +172,7 @@ class TrkDataset(Dataset):
             sub_dataset = SubDataset(
                     name,
                     subdata_cfg.ROOT,
-                    subdata_cfg.ANNO,
+                    anno if anno else subdata_cfg.ANNO,
                     subdata_cfg.FRAME_RANGE,
                     subdata_cfg.NUM_USE,
                     start
@@ -185,9 +198,13 @@ class TrkDataset(Dataset):
                 cfg.DATASET.SEARCH.FLIP,
                 cfg.DATASET.SEARCH.COLOR
             )
-        videos_per_epoch = cfg.DATASET.VIDEOS_PER_EPOCH
-        self.num = videos_per_epoch if videos_per_epoch > 0 else self.num
-        self.num *= cfg.TRAIN.EPOCH
+        if num_samples:
+            self.num = num_samples
+        else:
+            videos_per_epoch = cfg.DATASET.VIDEOS_PER_EPOCH
+            self.num = videos_per_epoch if videos_per_epoch > 0 else self.num
+            self.num *= cfg.TRAIN.EPOCH
+
         self.pick = self.shuffle()
 
     def shuffle(self):
@@ -253,27 +270,36 @@ class TrkDataset(Dataset):
         if search_image is None:
             raise IOError(f"Failed to load search image: {search[0]}")
 
+        # get the search mask, where par_crop wrote one. A negative pair
+        # searches a different target than the template, so its mask would
+        # not label what the template asks for and is left out.
+        search_mask = None
+
+        if cfg.MASK.MASK and not neg:
+            search_mask = self._get_mask(search[0])
+
         # get bounding box
         template_box = self._get_bbox(template_image, template[1])
         search_box = self._get_bbox(search_image, search[1])
 
         # augmentation
-        template, _ = self.template_aug(template_image,
-                                        template_box,
-                                        cfg.TRAIN.EXEMPLAR_SIZE,
-                                        gray=gray)
+        template, _, _ = self.template_aug(template_image,
+                                           template_box,
+                                           cfg.TRAIN.EXEMPLAR_SIZE,
+                                           gray=gray)
 
-        search, bbox = self.search_aug(search_image,
-                                       search_box,
-                                       cfg.TRAIN.SEARCH_SIZE,
-                                       gray=gray)
+        search, bbox, search_mask = self.search_aug(search_image,
+                                                    search_box,
+                                                    cfg.TRAIN.SEARCH_SIZE,
+                                                    gray=gray,
+                                                    mask=search_mask)
 
         # get labels
         cls, delta, delta_weight, overlap = self.anchor_target(
                 bbox, cfg.TRAIN.OUTPUT_SIZE, neg)
         template = template.transpose((2, 0, 1)).astype(np.float32)
         search = search.transpose((2, 0, 1)).astype(np.float32)
-        return {
+        result = {
                 'template': template,
                 'search': search,
                 'label_cls': cls,
@@ -281,3 +307,39 @@ class TrkDataset(Dataset):
                 'label_loc_weight': delta_weight,
                 'bbox': np.array(bbox)
                 }
+
+        if cfg.MASK.MASK:
+            # Every sample carries these whatever its groundtruth, since the
+            # default collate cannot batch samples with differing keys. A
+            # sample with no mask is excluded by a zero weight instead, which
+            # is what lets box only and segmented groundtruth train together.
+            if search_mask is None:
+                result['label_mask'] = np.zeros(
+                    (1, cfg.TRAIN.SEARCH_SIZE, cfg.TRAIN.SEARCH_SIZE),
+                    dtype=np.float32)
+                result['label_mask_weight'] = np.zeros(
+                    (1, cfg.TRAIN.OUTPUT_SIZE, cfg.TRAIN.OUTPUT_SIZE),
+                    dtype=np.float32)
+            else:
+                result['label_mask'] = \
+                    (search_mask > 0).astype(np.float32)[np.newaxis, ...]
+
+                # The mask is supervised where the box branch found a positive
+                # anchor. delta_weight cannot serve here: it holds 1/pos_num
+                # rather than one, and the loss selects on equality with one.
+                positive = (cls == 1).any(axis=0)
+                result['label_mask_weight'] = \
+                    positive.astype(np.float32)[np.newaxis, ...]
+
+        return result
+
+    @staticmethod
+    def _get_mask(image_path):
+        """The mask par_crop wrote beside this search crop, or None."""
+        mask_path = image_path[:-4] + '.mask.png' \
+            if image_path.endswith('.jpg') else image_path + '.mask.png'
+
+        if not os.path.exists(mask_path):
+            return None
+
+        return cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)

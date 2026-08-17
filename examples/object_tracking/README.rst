@@ -75,7 +75,7 @@ Example CLI scripts in this folder for MTT trackers include:
 
 * ``run_generic_tracker`` -- run the default multi-target tracker with generic proposals
 * ``run_bytetrack_tracker`` -- run the ByteTrack multi-target tracker
-* ``run_stabilized_iou_tracker`` -- run homography-stabilized IOU tracker
+* ``run_fish_via_registration_only_tracker`` -- run homography-stabilized IOU tracker
 
 The default multi-target tracker in a given VIAME release is configured in
 ``common_default_tracker.pipe``. This file can be modified to switch between any
@@ -427,7 +427,7 @@ Automatic Multi-Target Tracking
     Runs the ByteTrack automatic multi-target tracker with generic proposals.
     Demonstrates how to override tracker parameters from the command line.
 
-``run_stabilized_iou_tracker.sh``
+``run_fish_via_registration_only_tracker.sh``
     Runs the homography-stabilized IOU tracker for moving camera scenarios.
     Uses ``common_stabilized_iou_tracker.pipe`` with feature-based image stabilization.
 

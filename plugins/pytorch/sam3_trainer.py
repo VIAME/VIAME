@@ -52,6 +52,31 @@ def _resolve_attr(model, names):
     return None
 
 
+def _resolve_model_path(path):
+    """Resolve a shipped model file to an absolute path.
+
+    Training runs from a per-model working directory, so a relative default
+    like "models/sam2_hbp.pt" will not resolve against the current directory.
+    Fall back to the install tree, which is where VIAME puts the checkpoints
+    that ship with it, and which is what the shipped pipelines reference.
+    """
+    if not path or os.path.isabs(path):
+        return path
+
+    if os.path.exists(path):
+        return os.path.abspath(path)
+
+    viame_install = os.environ.get("VIAME_INSTALL")
+
+    if viame_install:
+        candidate = os.path.join(viame_install, "configs", "pipelines", path)
+
+        if os.path.exists(candidate):
+            return candidate
+
+    return path
+
+
 class SAM3Trainer(TrainDetector):
     """
     Implementation of TrainDetector class for SAM3 fine-tuning.
@@ -65,7 +90,18 @@ class SAM3Trainer(TrainDetector):
 
         # Model configuration
         self._identifier = "viame-sam3-segmentation"
-        self._sam_model_id = "facebook/sam2.1-hiera-large"
+        # Native SAM3 checkpoint. Defaults to the weights VIAME installs so
+        # training does not reach for the hub -- facebook/sam3 is a gated repo
+        # and an unauthenticated run dies with a 401 GatedRepoError.
+        self._sam_model_id = "models/sam3.1_weights.pt"
+        # SAM2 fallback, used when the native sam3 module is unavailable. These
+        # default to the checkpoints VIAME already installs, so training does
+        # not depend on reaching the HuggingFace hub. sam2_hbp.pt is a SAM2.1
+        # hiera base-plus checkpoint (24 trunk blocks, 112 channel patch
+        # embed), so it must be paired with the b+ config -- the large config
+        # this used to hardcode does not match those weights.
+        self._sam2_model_path = "models/sam2_hbp.pt"
+        self._sam2_config_file = "configs/sam2.1/sam2.1_hiera_b+.yaml"
         self._train_directory = "deep_training"
 
         # Training configuration
@@ -99,6 +135,8 @@ class SAM3Trainer(TrainDetector):
 
         cfg.set_value("identifier", self._identifier)
         cfg.set_value("sam_model_id", self._sam_model_id)
+        cfg.set_value("sam2_model_path", self._sam2_model_path)
+        cfg.set_value("sam2_config_file", self._sam2_config_file)
         cfg.set_value("train_directory", self._train_directory)
         cfg.set_value("gpu_count", str(self._gpu_count))
         cfg.set_value("max_epochs", self._max_epochs)
@@ -121,7 +159,11 @@ class SAM3Trainer(TrainDetector):
         cfg.merge_config(cfg_in)
 
         self._identifier = str(cfg.get_value("identifier"))
-        self._sam_model_id = str(cfg.get_value("sam_model_id"))
+        self._sam_model_id = _resolve_model_path(
+            str(cfg.get_value("sam_model_id")))
+        self._sam2_model_path = _resolve_model_path(
+            str(cfg.get_value("sam2_model_path")))
+        self._sam2_config_file = str(cfg.get_value("sam2_config_file"))
         self._train_directory = str(cfg.get_value("train_directory"))
         self._gpu_count = int(cfg.get_value("gpu_count"))
         self._max_epochs = str(cfg.get_value("max_epochs"))
@@ -467,12 +509,12 @@ class SAM3Trainer(TrainDetector):
             try:
                 from sam2.build_sam import build_sam2
                 model = build_sam2(
-                    config_file="configs/sam2.1/sam2.1_hiera_l.yaml",
-                    ckpt_path=config["model"]["sam_model_id"],
+                    config_file=self._sam2_config_file,
+                    ckpt_path=self._sam2_model_path,
                     device=str(device),
                     mode='train',
                 )
-            except ImportError:
+            except (ImportError, FileNotFoundError):
                 print("SAM3/SAM2 not available. Using HuggingFace fallback.")
                 from transformers import Sam2Model
                 model = Sam2Model.from_pretrained(config["model"]["sam_model_id"])
@@ -859,7 +901,18 @@ class SAM3TrackerTrainer(TrainTracker):
 
         # Model configuration
         self._identifier = "viame-sam3-tracker"
-        self._sam_model_id = "facebook/sam2.1-hiera-large"
+        # Native SAM3 checkpoint. Defaults to the weights VIAME installs so
+        # training does not reach for the hub -- facebook/sam3 is a gated repo
+        # and an unauthenticated run dies with a 401 GatedRepoError.
+        self._sam_model_id = "models/sam3.1_weights.pt"
+        # SAM2 fallback, used when the native sam3 module is unavailable. These
+        # default to the checkpoints VIAME already installs, so training does
+        # not depend on reaching the HuggingFace hub. sam2_hbp.pt is a SAM2.1
+        # hiera base-plus checkpoint (24 trunk blocks, 112 channel patch
+        # embed), so it must be paired with the b+ config -- the large config
+        # this used to hardcode does not match those weights.
+        self._sam2_model_path = "models/sam2_hbp.pt"
+        self._sam2_config_file = "configs/sam2.1/sam2.1_hiera_b+.yaml"
         self._train_directory = "deep_training"
 
         # Training configuration
@@ -894,6 +947,8 @@ class SAM3TrackerTrainer(TrainTracker):
 
         cfg.set_value("identifier", self._identifier)
         cfg.set_value("sam_model_id", self._sam_model_id)
+        cfg.set_value("sam2_model_path", self._sam2_model_path)
+        cfg.set_value("sam2_config_file", self._sam2_config_file)
         cfg.set_value("train_directory", self._train_directory)
         cfg.set_value("gpu_count", str(self._gpu_count))
         cfg.set_value("max_epochs", self._max_epochs)
@@ -918,7 +973,11 @@ class SAM3TrackerTrainer(TrainTracker):
         cfg.merge_config(cfg_in)
 
         self._identifier = str(cfg.get_value("identifier"))
-        self._sam_model_id = str(cfg.get_value("sam_model_id"))
+        self._sam_model_id = _resolve_model_path(
+            str(cfg.get_value("sam_model_id")))
+        self._sam2_model_path = _resolve_model_path(
+            str(cfg.get_value("sam2_model_path")))
+        self._sam2_config_file = str(cfg.get_value("sam2_config_file"))
         self._train_directory = str(cfg.get_value("train_directory"))
         self._gpu_count = int(cfg.get_value("gpu_count"))
         self._max_epochs = str(cfg.get_value("max_epochs"))
@@ -1071,6 +1130,7 @@ class SAM3TrackerTrainer(TrainTracker):
                 enable_inst_interactivity=True,
                 compile=False,
             )
+
             print("Loaded SAM3 model via native sam3 module")
             return model
         except ImportError:
@@ -1079,15 +1139,23 @@ class SAM3TrackerTrainer(TrainTracker):
         try:
             from sam2.build_sam import build_sam2
             model = build_sam2(
-                config_file="configs/sam2.1/sam2.1_hiera_l.yaml",
-                ckpt_path=self._sam_model_id,
+                config_file=self._sam2_config_file,
+                ckpt_path=self._sam2_model_path,
                 device=str(device),
                 mode='train',
             )
-            print("Loaded SAM2 model via native sam2 module")
+            print(f"Loaded SAM2 model via native sam2 module "
+                  f"({self._sam2_model_path})")
             return model
         except ImportError:
             pass
+        except FileNotFoundError:
+            # sam_model_id is a hub identifier rather than a checkpoint on disk,
+            # so fall through to the HuggingFace loader below, which knows how
+            # to resolve one. Without this the FileNotFoundError escapes and
+            # training dies outright.
+            print(f"No SAM2 checkpoint at {self._sam2_model_path}, "
+                  f"falling back to HuggingFace")
 
         from transformers import Sam2Model
         model = Sam2Model.from_pretrained(self._sam_model_id)

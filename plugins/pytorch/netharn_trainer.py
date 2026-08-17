@@ -41,7 +41,8 @@ class NetHarnTrainer( TrainDetector ):
     def __init__( self ):
         TrainDetector.__init__( self )
 
-        self._identifier = "viame-netharn-detector"
+        # Kept short to reduce output path lengths (Windows MAX_PATH)
+        self._identifier = "netharn"
         self._mode = "detector"
         self._arch = ""
         self._seed_model = ""
@@ -84,7 +85,8 @@ class NetHarnTrainer( TrainDetector ):
         self._detector_type = "netharn"
         self._detector_config = ""
         self._detector_config_file = ""
-        self._detector_gpu_count = 1
+        self._detector_gpu_count = "auto"
+        self._detector_instances_per_gpu = "auto"
         self._detector = None
         self._detectors = []
         self._min_overlap_for_association = 0.90
@@ -141,6 +143,8 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "detector_config", self._detector_config )
         cfg.set_value( "detector_config_file", self._detector_config_file )
         cfg.set_value( "detector_gpu_count", str( self._detector_gpu_count ) )
+        cfg.set_value( "detector_instances_per_gpu",
+                       str( self._detector_instances_per_gpu ) )
         cfg.set_value( "max_neg_per_frame", str( self._max_neg_per_frame ) )
         cfg.set_value( "negative_category", self._negative_category )
         cfg.set_value( "reduce_category", self._reduce_category )
@@ -196,7 +200,9 @@ class NetHarnTrainer( TrainDetector ):
         self._detector_type = str( cfg.get_value( "detector_type" ) )
         self._detector_config = str( cfg.get_value( "detector_config" ) )
         self._detector_config_file = str( cfg.get_value( "detector_config_file" ) )
-        self._detector_gpu_count = int( float( cfg.get_value( "detector_gpu_count" ) ) )
+        self._detector_gpu_count = str( cfg.get_value( "detector_gpu_count" ) )
+        self._detector_instances_per_gpu = \
+            str( cfg.get_value( "detector_instances_per_gpu" ) )
         self._max_neg_per_frame = float( cfg.get_value( "max_neg_per_frame" ) )
         self._negative_category = str( cfg.get_value( "negative_category" ) )
         self._reduce_category = str( cfg.get_value( "reduce_category" ) )
@@ -249,7 +255,8 @@ class NetHarnTrainer( TrainDetector ):
                 else:
                     self._batch_size = str( 8 * gpu_param_adj )
             if self._learning_rate == "auto":
-                self._learning_rate = str( 5e-3 )
+                self._learning_rate = str(
+                  5e-4 * math.sqrt( float( self._batch_size ) / 64.0 ) )
             if self._scheduler == "auto":
                 self._scheduler = "ReduceLROnPlateau-p3-c3"
         else:
@@ -307,26 +314,21 @@ class NetHarnTrainer( TrainDetector ):
         #     nested-algorithm block (any detector type, e.g. a windowed RF-DETR);
         #   * detector_model (+ detector_type / detector_config) for the simple
         #     single-detector case (detector_type defaults to "netharn").
-        # detector_gpu_count > 1 (or -1 = all visible GPUs) builds one detector
-        # instance per GPU so background mining runs in parallel across them.
+        # detector_gpu_count / detector_instances_per_gpu decide how many
+        # instances get built; see _resolve_detector_devices.
         self._detectors = []
         if self._detector_config_file or self._detector_model:
-            n_det = self._detector_gpu_count
-            if n_det is None or n_det < 0:
-                try:
-                    n_det = max( 1, torch.cuda.device_count() )
-                except Exception:
-                    n_det = 1
-            n_det = max( 1, int( n_det ) )
-            for gpu_index in range( n_det ):
-                # For a single detector keep the config's own device (auto);
-                # for many, pin each to a distinct GPU.
-                det = self._build_one_detector( gpu_index if n_det > 1 else None )
+            devices = self._resolve_detector_devices()
+            for device in devices:
+                det = self._build_one_detector( device )
                 if det is None:
                     print( "Unable to configure detector" )
                     return False
                 self._detectors.append( det )
             self._detector = self._detectors[0]
+            if len( self._detectors ) > 1:
+                print( "Mining backgrounds with " + str( len( self._detectors ) ) +
+                       " detectors on " + ", ".join( devices ) )
 
         # Load scale based on type file if enabled
         self._target_type_scales = dict()
@@ -396,10 +398,41 @@ class NetHarnTrainer( TrainDetector ):
 
         return filtered_truth, use_frame
 
-    def _build_one_detector( self, gpu_index ):
-        # Build a single background detector, optionally pinned to a GPU. When
-        # gpu_index is not None, every "*device" config key is set to that GPU.
-        device = None if gpu_index is None else ( "cuda:%d" % gpu_index )
+    def _resolve_detector_devices( self ):
+        # One entry per background detector instance, or [None] to leave the
+        # detector's own device setting alone. "auto" spreads over every visible
+        # GPU and puts two instances on each, so one can occupy the card while
+        # the other is in its python-side pre/post-processing.
+        try:
+            visible_gpus = torch.cuda.device_count()
+        except Exception:
+            visible_gpus = 0
+
+        if visible_gpus <= 0:
+            return [ None ]
+
+        if self._detector_gpu_count.strip().lower() == "auto":
+            gpu_count = visible_gpus
+        else:
+            gpu_count = int( float( self._detector_gpu_count ) )
+            if gpu_count < 0:
+                gpu_count = visible_gpus
+        gpu_count = max( 1, min( gpu_count, visible_gpus ) )
+
+        if self._detector_instances_per_gpu.strip().lower() == "auto":
+            per_gpu = 2
+        else:
+            per_gpu = max( 1, int( float( self._detector_instances_per_gpu ) ) )
+
+        if gpu_count * per_gpu <= 1:
+            return [ None ]
+
+        return [ "cuda:%d" % ( i % gpu_count )
+                 for i in range( gpu_count * per_gpu ) ]
+
+    def _build_one_detector( self, device ):
+        # Build a single background detector. When device is not None, every
+        # "*device" config key is set to it, pinning the instance to that GPU.
         if self._detector_config_file:
             from kwiver.vital.config import read_config_file
             det_cfg = read_config_file( self._detector_config_file )
@@ -471,9 +504,9 @@ class NetHarnTrainer( TrainDetector ):
             return self._extract_chips_range(
                 image_files, truth_sets, range( len( image_files ) ), detector )
 
-        # One detector per GPU: partition frames round-robin, one worker thread
-        # per detector. The heavy work (RF-DETR forward) releases the GIL, so
-        # the GPUs run concurrently.
+        # Partition frames round-robin, one worker thread per detector instance.
+        # The heavy work (detector forward, image read/write) releases the GIL,
+        # so instances overlap both across and within a GPU.
         from concurrent.futures import ThreadPoolExecutor
         all_indices = list( range( len( image_files ) ) )
         chunks = [ all_indices[k::n_det] for k in range( n_det ) ]
@@ -515,7 +548,11 @@ class NetHarnTrainer( TrainDetector ):
                 # (matches the scale it was trained at), then map its boxes into
                 # the scaled chip coordinate space used for cropping below.
                 if detector is not None:
-                    kw_image_container = ImageContainer( Image( img ) )
+                    # Detectors see RGB at inference time (pipeline image
+                    # readers), but cv2.imread returns BGR. Only the detector
+                    # input is swapped; chips are written back out via cv2.
+                    kw_image_container = ImageContainer(
+                        Image( cv2.cvtColor( img, cv2.COLOR_BGR2RGB ) ) )
                     detections = detector.detect( kw_image_container )
                     if scale != 1.0:
                         for det in detections:
@@ -794,7 +831,9 @@ class NetHarnTrainer( TrainDetector ):
                      "--arch=" + self._arch,
                      "--input_dims=" + self._chip_height + "," + self._chip_width,
                      "--scale_jitter=" + self._scale_jitter,
-                     "--multiclass=" + "True" if self._multi_output else "False" ]
+                     "--multiclass=" + ( "True" if self._multi_output else "False" ),
+                     "--grad_norm_max=10",
+                     "--warmup_iters=200" ]
             if "ReduceLR" in self._scheduler:
                 cmd.append( "--patience=16" )
         else:

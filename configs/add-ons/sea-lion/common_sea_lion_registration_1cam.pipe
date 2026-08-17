@@ -30,6 +30,10 @@
 #   min_metadata_coverage   0..1 (default 1.0). Fraction of the sequence that the
 #                metadata must cover when require_metadata_match is set.
 #   water_method auto (default) | svm | sift
+#   gps_chain_reconcile true (default) | false -- correct per-frame GPS
+#                positions that disagree with the image chain (sub-second
+#                trigger / GPS-sample aliasing), verified per-step by an
+#                independent image match; false places frames at raw GPS
 #   site_folder  survey folder; empty = derived from image_list1
 #   image_list<i> one line-separated image-list file per camera (image_list1,
 #                image_list2, ...); each defaults to the pipeline input list, and
@@ -40,10 +44,11 @@
 #
 # The first frame blocks while the whole survey is registered once; the result
 # is cached to disk, so re-runs (and running detector/suppressor/tracker after
-# a utility_register_frames pass) load it instantly.
+# a filter_register_frames pass) load it instantly.
 # =============================================================================
 
 process stabilizer
   :: colmap_registration
   n_input = 1
   :require_metadata                            true
+  :export_homogs                               registration_full_homogs.npz

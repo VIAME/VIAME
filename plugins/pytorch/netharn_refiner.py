@@ -54,6 +54,7 @@ class NetharnRefiner(RefineDetections):
             'chip_width' : "",
             'chip_expansion' : "1.0",
             'average_prior': "False",
+            'prior_weight': "0.5",
             'scale_type_file': ""
         }
 
@@ -108,6 +109,10 @@ class NetharnRefiner(RefineDetections):
         self.predictor = clf_predict.ClfPredictor(pred_config)
         self.predictor._ensure_model()
         self._average_prior = strtobool(self._kwiver_config['average_prior'])
+        self._prior_weight = float(self._kwiver_config['prior_weight'])
+        if not 0.0 <= self._prior_weight <= 1.0:
+            raise ValueError(
+                "prior_weight must be in [0, 1], got %s" % self._prior_weight)
         self._area_pivot = int(self._kwiver_config['area_pivot'])
         self._area_lower_bound = int(self._kwiver_config['area_lower_bound'])
         self._area_upper_bound = int(self._kwiver_config['area_upper_bound'])
@@ -275,16 +280,21 @@ class NetharnRefiner(RefineDetections):
                 class_scores = [ new_class.conf ]
 
             if self._average_prior and det.type is not None:
+                # Weight applied per source before summing. Classes are matched
+                # by name, so mismatched vocabularies concatenate, not blend.
+                w = self._prior_weight
+                for i in range(len(class_scores)):
+                    class_scores[i] = class_scores[i] * (1.0 - w)
+
                 priors = det.type
                 prior_names = priors.class_names()
                 for name in prior_names:
+                    weighted = priors.score(name) * w
                     if name in class_names:
-                        class_scores[ class_names.index(name) ] += priors.score(name)
+                        class_scores[ class_names.index(name) ] += weighted
                     else:
                         class_names.append(name)
-                        class_scores.append(priors.score(name))
-                for i in range(len(class_scores)):
-                    class_scores[i] = class_scores[i] * 0.5
+                        class_scores.append(weighted)
 
             detected_object_type = DetectedObjectType(class_names, class_scores)
             det.type = detected_object_type

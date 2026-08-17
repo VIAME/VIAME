@@ -160,6 +160,11 @@ if( VIAME_DOWNLOAD_MODELS )
 
   # Auto-detect addon folders not in the CSV and declare options for them
   ModelDownloadOptionsFromFolders( "${CMAKE_SOURCE_DIR}/configs/add-ons" )
+
+  # Standalone seed weights, not backed by an addon folder or model pack
+  option( VIAME_DOWNLOAD_MODELS-EFFICIENTNETV2M
+    "EfficientNetV2-M classifier training seed model" OFF )
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-EFFICIENTNETV2M )
 else()
   # Force all flags to OFF in the event that the root flag is set
   DisableAllModelDownloads()

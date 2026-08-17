@@ -9,6 +9,7 @@
 
 #include "read_object_track_set_viame_csv.h"
 
+#include "read_detected_object_set_viame_csv.h"
 #include "filename_to_timestamp.h"
 #include "convert_notes_to_attributes.h"
 #include "convert_polygons_to_mask.h"
@@ -253,7 +254,10 @@ read_object_track_set_viame_csv::priv
     }
 
     std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, m_delim, false );
+    const char delim = ( m_delim.empty() ? ',' : m_delim[0] );
+
+    tokenize_viame_csv_line( line, col, delim );
+    expand_packed_viame_csv_pairs( col, delim );
 
     if( col.size() < 9 )
     {

@@ -225,6 +225,12 @@ std::string get_augmented_filename( const std::string& name,
 /// \param preserve_bit_depth Keep the source bit depth (do not force 8-bit) so
 ///        bit-depth-sensitive augmentations (e.g. percentile normalization) see
 ///        the raw 16-bit/float data
+/// \param groundtruth_file Optional groundtruth track file (e.g. the clip's
+///        VIAME-CSV). Extractors such as filter_default.pipe wire a track_reader
+///        into the frame flow whose file_name defaults to the "[INSERT_ME]"
+///        placeholder; without a real path the reader throws and no frames are
+///        written. When set (and the pipeline declares a track_reader) it is
+///        passed as track_reader:file_name so extraction succeeds.
 /// \returns Vector of extracted frame file paths
 VIAME_CORE_EXPORT
 std::vector< std::string >
@@ -236,7 +242,8 @@ extract_video_frames( const std::string& video_filename,
                       unsigned max_frame_count = 0,
                       const std::string& reader_type = "vidl_ffmpeg",
                       const std::string& output_subdir = "",
-                      bool preserve_bit_depth = false );
+                      bool preserve_bit_depth = false,
+                      const std::string& groundtruth_file = "" );
 
 /// Augment an ordered image sequence in a single pass via the image_list reader,
 /// producing one augmented frame per input, ordered to match image_files.

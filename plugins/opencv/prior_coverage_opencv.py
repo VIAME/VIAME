@@ -27,7 +27,8 @@ from viame.opencv import registration_utils as _sr
 _sr.import_dependencies()
 from viame.opencv.registration_utils import (
     compute_homography_pair, _compute_camera_chain,
-    _poses_to_enu, _track_headings, _rot2, _geo_calibrate,
+    _poses_to_enu, _track_headings, _rot2, _geo_calibrate, _fill_nan_headings,
+    reconcile_enu_with_chain,
 )
 
 # Physical rig layout as seen from behind the aircraft; acquisition order used
@@ -97,6 +98,22 @@ def _sane_relative(R, max_aniso=1.5, scale_range=(0.6, 1.6)):
     scale = float(np.sqrt(s[0] * s[1]))
     return (s[0] / s[1] <= max_aniso
             and scale_range[0] <= scale <= scale_range[1])
+
+
+def _transform_degenerate(T, max_aniso=6.0):
+    """True when an absolute pixel->ENU (or pixel->ref) transform is
+    rank-deficient / grossly anisotropic. Unlike _sane_relative this puts no
+    bound on scale (metres-per-pixel is fine), only on skew: a valid placement
+    is a similarity (aniso ~1). A degenerate chain link baked into a frame's
+    placement collapses it to a sliver (aniso in the hundreds) - such a frame
+    projects no usable coverage, so callers fall back to metadata placement."""
+    if T is None:
+        return True
+    A = np.asarray(T)[:2, :2]
+    if not np.all(np.isfinite(A)):
+        return True
+    s = np.linalg.svd(A, compute_uv=False)
+    return bool(s[1] <= 1e-12 or s[0] / s[1] > max_aniso)
 
 
 def _poly_area(poly):
@@ -247,8 +264,24 @@ def _expected_px_per_m(poses):
     return width / (alt * smd.SENSOR_W_MM / f35)
 
 
+def _make_step_verifier(site_folder, rels):
+    """Independent high-quality pairwise match for reconcile verification:
+    (a, b) -> raw pixel displacement or None when the pair cannot be matched
+    confidently (its sign convention is calibrated by the caller)."""
+    def _verify(a, b):
+        H, _t = compute_homography_pair(
+            os.path.join(site_folder, rels[a]),
+            os.path.join(site_folder, rels[b]),
+            scale=0.5, nfeatures=8192, match_ratio=0.7, min_inliers=25,
+            ransac_thresh=3.0, use_affine=True)
+        if H is None:
+            return None
+        return np.array([H[0, 2], H[1, 2]], dtype=float)
+    return _verify
+
+
 def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
-                         verbose=True):
+                         verbose=True, reconcile=False, site_folder=None):
     """Like registration_utils._geo_anchor_cameras but returns the per-camera
     calibration (M, enu, yaw) needed to build pixel->ENU transforms, and
     bounds the fitted scale by the metadata-expected GSD (few clean pairwise
@@ -294,6 +327,15 @@ def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
                     print(f"    {cam}: chirality was mirrored vs the rig; "
                           f"refit to consensus handedness")
     for cam, c in cal.items():
+        # Fill NaN track headings (hovering / <1 m steps) from the logged yaw
+        # or the nearest valid heading BEFORE any placement math - a NaN yaw
+        # otherwise rotates that frame's placement to north-up, swinging its
+        # suppression regions against its correctly-rotated neighbours.
+        logged = [poses_by_cam.get(cam, {}).get(r, {}).get('yaw')
+                  for r in cams[cam]]
+        c['yaw'] = _fill_nan_headings(
+            c['yaw'], np.array([np.nan if v is None else float(v)
+                                for v in logged]))
         target = None       # rig-consensus scale first, metadata GSD second
         reliable = (c['M'] is not None and c['n'] >= 8
                     and c['res'] is not None and c['res'] < 150)
@@ -327,9 +369,273 @@ def _geo_anchor_with_cal(cam_chains, cams, poses_by_cam, pairwise_by_cam,
             note = f"{cam}{'*' if c.get('borrowed') else ''}"
         else:
             note = ''
+        # Correct per-frame GPS positions that disagree with the image chain
+        # (sub-second trigger / GPS-sample aliasing) before dead-reckoning the
+        # unregistered frames off them. Falls back to raw GPS where the chain is
+        # unusable, so it is safe on every camera.
+        if reconcile:
+            ver = (_make_step_verifier(site_folder, cams[cam])
+                   if site_folder else None)
+            c['enu'] = reconcile_enu_with_chain(
+                cam_chains.get(cam, {}), c['enu'], c['yaw'], c['M'],
+                verify=ver, label=(note if verbose else ''))
         _geo_fill(cam_chains.get(cam, {}), cams[cam], c['enu'], c['yaw'],
                   c['M'], label=note, n_steps=c['n'], residual=c['res'])
     return cal
+
+
+def _chain_anchored_transforms(chain, fit_idx, enu, sizes, origin_off,
+                               min_fit=6, min_spread=15.0, verify_link=None,
+                               label=''):
+    """Feature-primary placement: anchor the registration chain to GPS with
+    one fitted similarity PER CHAIN SECTION, instead of dead-reckoning every
+    frame from its own GPS fix and heading estimate.
+
+    The chain's per-link geometry is feature-measured (sub-pixel), but scale
+    and rotation drift accumulate smoothly over a long run and jump at broken
+    links, so no single global transform fits - while short sections fit a
+    similarity to metre level. Each contiguous chained run is therefore split
+    recursively at its worst-fitting frame until the robust GPS fit of every
+    section is within tolerance. Within a section the placement reproduces the
+    chain exactly, so overlapping frames register on image features; sections
+    and the per-frame GPS fallback carry the rough metadata alignment.
+
+    Returns ({frame_idx: 3x3 pixel->ENU T}, median_residual_m); ({}, None)
+    when nothing is anchorable (too few chained GPS frames, GPS spread under
+    ``min_spread`` metres, or no section fitting within tolerance) - callers
+    then use per-frame GPS placement."""
+    pts, gps = [], []
+    for i in fit_idx:
+        if i not in chain or np.isnan(enu[i, 0]):
+            continue
+        w, h = sizes.get(i, (5168, 3448))
+        c = chain[i] @ np.array([w / 2.0, h / 2.0, 1.0])
+        pts.append(c[:2] / c[2])
+        gps.append(enu[i] + origin_off)
+    if len(pts) < min_fit:
+        return {}, None
+    pts = np.array(pts); gps = np.array(gps)
+    spread = float(np.max(np.linalg.norm(gps - gps.mean(0), axis=1)))
+    if spread < min_spread:
+        return {}, None
+
+    def _fit(P, G):
+        best = None
+        for chir in (+1.0, -1.0):
+            rows = np.vstack([
+                np.column_stack([P[:, 0], -chir * P[:, 1],
+                                 np.ones(len(P)), np.zeros(len(P))]),
+                np.column_stack([P[:, 1], chir * P[:, 0],
+                                 np.zeros(len(P)), np.ones(len(P))]),
+            ])
+            rhs = np.concatenate([G[:, 0], G[:, 1]])
+            (a, b, tx, ty), *_ = np.linalg.lstsq(rows, rhs, rcond=None)
+            S = np.array([[a, -chir * b, tx], [b, chir * a, ty], [0, 0, 1.0]])
+            r = np.linalg.norm((P @ S[:2, :2].T + S[:2, 2]) - G, axis=1)
+            if best is None or np.median(r) < best[1]:
+                best = (S, float(np.median(r)), r)
+        return best
+
+    # Chain drift is STRUCTURED (weak-texture stretches drift in scale and
+    # rotation, good stretches are tight), so neither one global transform nor
+    # sliding-window fits keep both objectives. Solve the small pose graph
+    # exactly instead: one 4-dof similarity S_i (anchor pixels -> ENU) per
+    # frame, with (a) CONTINUITY terms tying S_i to S_{i+1} at sample points
+    # of their shared geometry - the chain already encodes the relative
+    # motion, so constant S across an edge reproduces the feature-measured
+    # registration exactly - weighted well above (b) per-frame GPS anchor
+    # terms. Where the chain is consistent the continuity terms dominate and
+    # the relative geometry is feature-exact; everywhere the GPS terms bound
+    # the absolute error; a frame with a broken chain position pulls only its
+    # own GPS row, not its neighbours. Linear least squares in 4N unknowns.
+    fit_frames = [int(i) for i in fit_idx
+                  if i in chain and not np.isnan(enu[i, 0])]
+    if len(fit_frames) < min_fit:
+        return {}, None
+    gps_of = dict(zip(fit_frames, gps))
+    centers = {}
+    for f in sorted(chain):
+        w_, h_ = sizes.get(f, (5168, 3448))
+        cc = chain[f] @ np.array([w_ / 2.0, h_ / 2.0, 1.0])
+        centers[f] = cc[:2] / cc[2]
+
+    # The chain is near-perfectly similarity-consistent over SECTIONS (its
+    # per-link feature measurements are sub-pixel) while scale/rotation drift
+    # accumulates smoothly across a long run and jumps at broken links. So:
+    # fit ONE similarity per section, recursively splitting a section at its
+    # worst-fitting frame while the robust fit stays above tolerance. Within
+    # a section the placement reproduces the chain exactly (feature-primary);
+    # sections join through their own GPS fits (metre-level); frames in
+    # fragments with too little GPS support fall back to per-frame placement.
+    runs, cur = [], []
+    for f in sorted(chain):
+        if cur and f != cur[-1] + 1:
+            runs.append(cur)
+            cur = []
+        cur.append(f)
+    if cur:
+        runs.append(cur)
+
+    out, resids, n_sections = {}, [], 0
+
+    def _robust_fit(mem):
+        fits = [f for f in mem if f in gps_of]
+        if len(fits) < max(4, min_fit // 2):
+            return None
+        P = np.array([centers[f] for f in fits])
+        G = np.array([gps_of[f] for f in fits])
+        spread = float(np.max(np.linalg.norm(G - G.mean(0), axis=1)))
+        if spread < min_spread:
+            return None
+        S, res, r = _fit(P, G)
+        keep = r <= max(3.0 * np.median(r), 1.0)
+        if keep.sum() >= 4 and keep.sum() < len(P):
+            S2, res2, r2 = _fit(P[keep], G[keep])
+            if res2 < res:
+                S, res, r = S2, res2, np.linalg.norm(
+                    P @ S2[:2, :2].T + S2[:2, 2] - G, axis=1)
+        return S, res, dict(zip(fits, r))
+
+    def _anchor(mem, depth=0):
+        nonlocal n_sections
+        fit = _robust_fit(mem)
+        if fit is None:
+            return
+        S, res, per = fit
+        if res <= 2.5 or len(mem) <= 6 or depth >= 6:
+            if res > 8.0:
+                return          # even the smallest section will not fit GPS
+            n_sections += 1
+            for f in mem:
+                out[f] = S @ chain[f]
+            resids.extend(per.values())
+            return
+        # split beside the worst-fitting frame, kept strictly interior
+        worst = max(per, key=per.get)
+        cut = min(max(mem.index(worst), 2), len(mem) - 3)
+        _anchor(mem[:cut], depth + 1)
+        _anchor(mem[cut:], depth + 1)
+
+    for run in runs:
+        _anchor(run)
+    res = float(np.median(resids)) if resids else 0.0
+    # Absorb unanchored frames into a neighbouring section across a chain
+    # link: the feature link defines the geometry (T = S_section @ chain_f),
+    # and the frame's own GPS fix validates it - a genuinely broken link
+    # lands the frame tens of metres from its fix and is rejected, keeping
+    # it on the per-frame GPS fallback. This rescues small good fragments
+    # (e.g. 3 clean frames walled in by broken links) that are too small to
+    # fit their own section.
+    absorbed, changed = 0, True
+    depth = {}
+    while changed:
+        changed = False
+        for fr in sorted(chain):
+            if fr in out or fr not in gps_of:
+                continue
+            for nb in (fr - 1, fr + 1):
+                if nb not in out or nb not in chain or nb not in gps_of:
+                    continue
+                T = out[nb] @ np.linalg.inv(chain[nb]) @ chain[fr]
+                w_, h_ = sizes.get(fr, (5168, 3448))
+                ct = T @ np.array([w_ / 2.0, h_ / 2.0, 1.0])
+                ct = ct[:2] / ct[2]
+                wn, hn = sizes.get(nb, (5168, 3448))
+                cn = out[nb] @ np.array([wn / 2.0, hn / 2.0, 1.0])
+                cn = cn[:2] / cn[2]
+                # validate the LINK itself: the feature-implied step must
+                # match the GPS step (the absolute landing also inherits the
+                # section-edge residual, which is not the link's fault), plus
+                # a loose absolute cap so absorbed runs cannot drift away.
+                gstep = gps_of[fr] - gps_of[nb]
+                dstep = float(np.linalg.norm((ct - cn) - gstep))
+                dabs = float(np.linalg.norm(ct - gps_of[fr]))
+                # broken links disagree by tens of metres; good links land
+                # within single-digit metres even with section-edge error
+                if dstep <= max(8.0, 0.5 * np.linalg.norm(gstep)) \
+                        and dabs <= 20.0:
+                    out[fr] = T
+                    depth[fr] = 0
+                    absorbed += 1
+                    changed = True
+                    break
+                # GPS refused - but GPS itself can be stale (frozen fix while
+                # the platform turns). Fall back to independent image
+                # evidence: an extra direct match of the pair, at boosted
+                # settings, must agree with the chain link (two independent
+                # measurements of the same geometry). Depth-capped so a
+                # verified-only run cannot drift unboundedly from any anchor.
+                if verify_link is not None and depth.get(nb, 0) < 3:
+                    R = np.linalg.inv(chain[nb]) @ chain[fr]
+                    Hv = verify_link(min(nb, fr), max(nb, fr))
+                    if Hv is None:
+                        continue
+                    Hv = np.linalg.inv(Hv) if fr > nb else Hv
+                    ok = True
+                    for p in (np.array([w_ / 2.0, h_ / 2.0, 1.0]),
+                              np.array([0.0, 0.0, 1.0]),
+                              np.array([w_ - 1.0, h_ - 1.0, 1.0])):
+                        a = R @ p; b = Hv @ p
+                        if np.linalg.norm(a[:2] / a[2] - b[:2] / b[2]) > 350.0:
+                            ok = False
+                            break
+                    if ok:
+                        out[fr] = T
+                        depth[fr] = depth.get(nb, 0) + 1
+                        absorbed += 1
+                        changed = True
+                        break
+    # Bridge gaps whose GPS is itself untrustworthy (e.g. a stale/frozen
+    # fix while the drone turns): a run of unanchored chained frames between
+    # two anchored endpoints is validated END-TO-END - walk the chain from
+    # the left anchor and require it to land on the right anchor's placement
+    # (a loop closure through good GPS on both sides). When it closes, the
+    # gap frames take the chain geometry, with the small closure error
+    # blended linearly so there is no jump at the far end.
+    bridged = 0
+    anchored_sorted = sorted(out)
+    for li in range(len(anchored_sorted) - 1):
+        l, r = anchored_sorted[li], anchored_sorted[li + 1]
+        if r - l < 2:
+            continue
+        gap = list(range(l + 1, r))
+        if any(g not in chain for g in gap) or l not in chain \
+                or r not in chain:
+            continue
+        pred_r = out[l] @ np.linalg.inv(chain[l]) @ chain[r]
+        wr, hr = sizes.get(r, (5168, 3448))
+        closure = []
+        for p in (np.array([wr / 2.0, hr / 2.0, 1.0]),
+                  np.array([0.0, 0.0, 1.0]),
+                  np.array([wr - 1.0, hr - 1.0, 1.0])):
+            a = pred_r @ p; b = out[r] @ p
+            closure.append(np.linalg.norm(a[:2] / a[2] - b[:2] / b[2]))
+        cerr = float(max(closure))
+        if cerr > 10.0:
+            continue
+        drift = (out[r] @ np.array([wr / 2.0, hr / 2.0, 1.0])
+                 - pred_r @ np.array([wr / 2.0, hr / 2.0, 1.0]))[:2]
+        for g in gap:
+            T = out[l] @ np.linalg.inv(chain[l]) @ chain[g]
+            T = T.copy()
+            T[:2, 2] += drift * ((g - l) / float(r - l))
+            out[g] = T
+            bridged += 1
+    if bridged and label:
+        print(f'    {label}: bridged {bridged} frame(s) across gaps via '
+              f'end-to-end chain closure')
+    if absorbed and label:
+        print(f'    {label}: absorbed {absorbed} frame(s) into adjacent '
+              f'sections via verified chain links')
+    if len(out) < min_fit:
+        if label:
+            print(f'    {label}: chain-anchored placement unusable; '
+                  f'per-frame GPS placement')
+        return {}, None
+    if label and n_sections:
+        print(f'    {label}: {n_sections} chain section(s) anchored to GPS, '
+              f'{len(out)} frames, median residual {res:.1f} m')
+    return out, res
 
 
 def _pixel_to_enu_transform(enu_xy, yaw_deg, M, width, height, origin_off):
@@ -478,9 +784,16 @@ def _register_site(site_folder, site_id, order_start, args, to_enu,
                               if records.get(r, {}).get('lat') is not None}
                         for cam, rels in cams.items()}
         have_gps = any(poses_by_cam[cam] for cam in cams)
+        # Frames that were actually chained from image features, before
+        # _geo_fill pads the chain with GPS dead-reckoned entries: the
+        # chain-anchored fit below must only trust the measured ones.
+        feat_chained = {cam: set(chains.get(cam, {})) for cam in cams}
         if have_gps:
             print('  Geo-anchoring chains (GPS dead-reckoning fill)...')
-            cal = _geo_anchor_with_cal(chains, cams, poses_by_cam, pairwise)
+            cal = _geo_anchor_with_cal(
+                chains, cams, poses_by_cam, pairwise,
+                reconcile=getattr(args, 'gps_chain_reconcile', True),
+                site_folder=site_folder)
         else:
             print('  No GPS metadata: moving-average fill for water frames')
             for cam, rels in cams.items():
@@ -521,6 +834,42 @@ def _register_site(site_folder, site_id, order_start, args, to_enu,
                             1.0 / NOMINAL_PX_PER_M, 1.0])
         S_pseudo[0, 2] = S_pseudo[1, 2] = site_id * 1e5
 
+    # Feature-primary placement: for each camera with a usable chain, anchor
+    # the WHOLE chain to ENU with one similarity fitted over the GPS fixes of
+    # the feature-chained frames (positions already reconciled above). The
+    # image features then carry all frame-to-frame geometry; the per-frame
+    # GPS+heading transform below remains only as the fallback for frames or
+    # cameras the fit cannot cover.
+    anchored = {}
+    if args.method == 'hybrid' and \
+            getattr(args, 'chain_anchored_placement', True):
+        for cam in cams:
+            c = cal.get(cam)
+            geo = cam_geo.get(cam)
+            if not c or geo is None or not chains.get(cam):
+                continue
+            sizes = {}
+            for i, rel in enumerate(cams[cam]):
+                rec = records.get(rel, {})
+                sizes[i] = (rec.get('width') or 5168,
+                            rec.get('height') or 3448)
+            def _vlink(a, b, _rels=cams[cam]):
+                H, _ = compute_homography_pair(
+                    os.path.join(site_folder, _rels[a]),
+                    os.path.join(site_folder, _rels[b]),
+                    scale=0.75, nfeatures=16384, match_ratio=0.75,
+                    min_inliers=15, ransac_thresh=3.0, use_affine=True,
+                    always_clahe=True)
+                return H
+            Ts, res = _chain_anchored_transforms(
+                chains[cam], sorted(feat_chained.get(cam, ())),
+                c['enu'], sizes, np.asarray(geo['off']),
+                verify_link=_vlink, label=str(cam))
+            if Ts:
+                anchored[cam] = Ts
+                print(f'    {cam}: chain-anchored placement for {len(Ts)} '
+                      f'frames ({res:.1f} m GPS fit residual)')
+
     observations = []
     order = order_start
     triggers = sorted({f for fr in frames_by_cam.values() for f in fr})
@@ -537,6 +886,16 @@ def _register_site(site_folder, site_id, order_start, args, to_enu,
             geo = cam_geo.get(cam)
             T = None
             if args.method == 'hybrid' and cam in ('CENTER', None) \
+                    and i in anchored.get(cam, {}) \
+                    and not _transform_degenerate(anchored[cam][i]):
+                # Feature-primary: the chain-anchored transform places this
+                # frame with the image-measured relative geometry. A degenerate
+                # placement (a poisoned chain link that survived to here) is
+                # skipped so the metadata/calibration fallback below gives this
+                # frame a sane similarity instead of a sliver.
+                T = anchored[cam][i]
+                center_T[t] = T
+            elif args.method == 'hybrid' and cam in ('CENTER', None) \
                     and cal.get(cam, {}).get('M') is not None \
                     and geo is not None:
                 # The GPS fix is (near enough) the CENTER nadir point, so the
@@ -626,7 +985,8 @@ def compute_frame_homographies(site_folder, flight_logs=None, method='hybrid',
     args = argparse.Namespace(
         method=method, water_method=water_method, flight_logs=flight_logs,
         match_ratio=0.80, match_scale=0.5, min_inliers=10,
-        cross_cam_trials=15, xcam_cluster_tol=300.0, xcam_offset_frac=0.9)
+        cross_cam_trials=15, xcam_cluster_tol=300.0, xcam_offset_frac=0.9,
+        gps_chain_reconcile=True, chain_anchored_placement=True)
     for k, v in (reg_overrides or {}).items():
         setattr(args, k, v)
     reg = _register_site(site_folder, 0, 0, args, None,

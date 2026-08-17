@@ -131,9 +131,30 @@ def reduce_gradients(model, _type='sum'):
     log_once("gradients method is {}".format(_type))
     if get_world_size() > 1:
         for param in model.parameters():
-            if param.requires_grad:
-                dist.all_reduce(param.grad.data)
-                if _type == 'avg':
-                    param.grad.data /= get_world_size()
+            # Which parameters are reduced has to depend on requires_grad
+            # alone. That flag is set by the same code on every rank, so the
+            # ranks issue the same collectives in the same order.
+            #
+            # Skipping a parameter whose grad is None instead looks equivalent
+            # and is not: whether a grad exists can differ between ranks at
+            # the epoch where the backbone unfreezes, and then the ranks
+            # disagree about how many all_reduces to make. One waits for a
+            # collective the others never issue, and the job stops for ten
+            # minutes until the NCCL watchdog kills it -- which is what
+            # happened at epoch 10 of a siamrpn run.
+            #
+            # A parameter the backward never reached has no grad to reduce, so
+            # give it a zero one and reduce that. It contributes nothing and
+            # keeps every rank in step.
+            if not param.requires_grad:
+                continue
+
+            if param.grad is None:
+                param.grad = torch.zeros_like(param)
+
+            dist.all_reduce(param.grad.data)
+
+            if _type == 'avg':
+                param.grad.data /= get_world_size()
     else:
         return None

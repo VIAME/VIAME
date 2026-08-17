@@ -1,3 +1,14 @@
+v0.22.7 - 8/09/2026
+===================
+
+
+-Updated default fish and generic detection model
+
+
+-Improvements to registration-based pipelines
+
+
+
 v0.22.6 - 7/22/2026
 ===================
 

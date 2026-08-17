@@ -46,7 +46,7 @@ homography_ext = "_homogs" + default_homography_ext
 image_list_ext = "_images" + default_list_ext
 
 pipeline_dir = "pipelines"
-default_pipeline = pipeline_dir + div + "index_default" + default_pipe_ext
+default_pipeline = pipeline_dir + div + "index_generic" + default_pipe_ext
 no_pipeline = "none"
 auto_pipeline = "auto"
 
@@ -133,6 +133,26 @@ def auto_folder_recurse( folder, video_exts, image_exts, check_mc ):
 def auto_identify_data( folder, video_exts, image_exts, check_mc = True ):
   entries = auto_folder_recurse( folder, video_exts, image_exts, check_mc )
   print( os.linesep + "Found " + str( len( entries ) ) + " items for possible processing" + os.linesep )
+  for i in entries:
+    print( i )
+  return entries
+
+def gt_file_extension( gt_format ):
+  if not gt_format or gt_format == 'habcam' or 'csv' in gt_format:
+    return '.csv'
+  elif gt_format[0] != '.':
+    return '.' + gt_format
+  return gt_format
+
+def auto_identify_gt_files( folder, gt_format ):
+  gt_ext = gt_file_extension( gt_format )
+  entries = []
+  for root, dirs, files in os.walk( folder ):
+    dirs[:] = [ d for d in dirs if not d.startswith( '.' ) ]
+    for f in sorted( files ):
+      if f.endswith( gt_ext ) and not f.startswith( '.' ):
+        entries.append( os.path.join( root, f ) )
+  print( os.linesep + "Found " + str( len( entries ) ) + " annotation files for possible processing" + os.linesep )
   for i in entries:
     print( i )
   return entries
@@ -578,6 +598,69 @@ def add_final_list_csv( args, data_list ):
     input_stream.close()
     is_first = False
 
+# Convert a single annotation file without requiring any imagery on disk
+def convert_gt_only_using_kwiver( input_path, options, gpu=None, run_pipeline=True ):
+
+  multi_threaded = ( options.gpu_count * options.pipes > 1 )
+  output_dir = options.output_directory
+  input_id = os.path.basename( input_path )
+  input_id_no_ext = os.path.splitext( input_id )[0]
+  gt_type = options.auto_detect_gt if options.auto_detect_gt else "viame_csv"
+
+  if multi_threaded:
+    log_info( 'Converting: {} on thread {}'.format( input_id, gpu ) + lb1 )
+  else:
+    log_info( 'Converting: {}... '.format( input_id ) )
+
+  output_file = output_dir + div + input_id_no_ext + detection_ext
+
+  command = ( get_pipeline_cmd( options.debug ) +
+              [ find_file( options.pipeline, run_pipeline ) ] +
+              fset( 'detection_reader:file_name=' + input_path ) +
+              fset( 'detection_reader:reader:type=' + gt_type ) +
+              fset( 'detector_writer:file_name=' + output_file ) )
+
+  try:
+    if len( options.extra_settings ) > 0:
+      for extra_option in options.extra_settings:
+        command += fset( " ".join( extra_option ) )
+  except Exception:
+    pass
+
+  log_base = ""
+  if run_pipeline:
+    if len( options.log_directory ) > 0 and not options.debug and options.log_directory != "PIPE":
+      log_base = os.path.join( output_dir, options.log_directory, input_id_no_ext )
+      if os.path.sep in input_id_no_ext and not os.path.exists( os.path.dirname( log_base ) ):
+        os.makedirs( os.path.dirname( log_base ) )
+      with get_log_output_files( log_base ) as kwargs:
+        return_id = execute_command( command, gpu=gpu, **kwargs )
+    else:
+      return_id = execute_command( command, gpu=gpu )
+  else:
+    return_id = 0
+
+  global any_video_complete
+
+  if return_id == 0:
+    if multi_threaded:
+      log_info( 'Completed: {}'.format( input_id ) + lb1 )
+    else:
+      log_info( 'Success' + lb1 )
+    any_video_complete = True
+  else:
+    if multi_threaded:
+      log_info( 'Failure: {}'.format( input_id ) + lb1 )
+    else:
+      log_info( 'Failure' + lb1 )
+    if not any_video_complete:
+      if len( log_base ) > 0:
+        exit_with_error( 'Processing failed, check ' + log_base + '.txt, terminating.' )
+      else:
+        exit_with_error( 'Processing failed, terminating.' )
+    elif len( log_base ) > 0:
+      log_info( lb1 + 'Check ' + log_base + '.txt for error messages' + lb2 )
+
 # Process a single data item (image list, folder, or video)
 def process_using_kwiver( input_path, options, is_image_list=False,
                           base_name_override='', cpu=0, gpu=None,
@@ -640,12 +723,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
 
   # Formulate input setting string
   if auto_detect_gt:
-    if options.auto_detect_gt == 'habcam' or 'csv' in options.auto_detect_gt:
-      gt_ext = '.csv'
-    elif options.auto_detect_gt[0] != '.':
-      gt_ext = '.' + options.auto_detect_gt
-    else:
-      gt_ext = options.auto_detect_gt
+    gt_ext = gt_file_extension( options.auto_detect_gt )
 
   if not is_image_list and \
       ( input_ext == '.csv' or input_ext == '.txt' or input_path == "__pycache__" ):
@@ -793,7 +871,13 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   if run_pipeline:
     log_base = ""
     if len( options.log_directory ) > 0 and not options.debug and options.log_directory != "PIPE":
-      log_base = output_dir + div + options.log_directory + div + input_id_no_ext
+      # join rather than concatenate: -logs is normally relative to the
+      # output directory, but an absolute one was being appended to it, so
+      # the logs landed under <output>/<the whole system path>/logs. join
+      # returns the second path unchanged when it is absolute, which is what
+      # someone passing one means.
+      log_base = os.path.join( output_dir, options.log_directory,
+                               input_id_no_ext )
       if os.path.sep in input_id_no_ext and not os.path.exists( os.path.dirname( log_base ) ):
         os.makedirs( os.path.dirname( log_base ) )
       with get_log_output_files( log_base ) as kwargs:
@@ -1013,6 +1097,12 @@ if __name__ == "__main__" :
   parser.add_argument( "-auto-detect-gt", dest="auto_detect_gt", default="",
     help="Automatically pass to pipes GT of this type if present" )
 
+  parser.add_argument( "--gt-only", dest="gt_only", action="store_true",
+    help="Process groundtruth annotation files directly without requiring "
+         "the source imagery or videos to be present. Only usable with "
+         "conversion pipelines which read image names from the annotation "
+         "files themselves." )
+
   parser.add_argument( "-lbl-file", dest="label_file", default="",
     help="Pass this label file to pipes" )
 
@@ -1088,7 +1178,9 @@ if __name__ == "__main__" :
   # Initialize database
   if args.init_db:
     if len( args.log_directory ) > 0:
-      init_log_file = args.output_directory + div + args.log_directory + div + "database_log.txt"
+      init_log_file = os.path.join( args.output_directory,
+                                    args.log_directory,
+                                    "database_log.txt" )
     else:
       init_log_file = ""
     db_is_init, user_select = database_tool.init( log_file=init_log_file, prompt=(not args.no_reset_prompt) )
@@ -1113,7 +1205,8 @@ if __name__ == "__main__" :
       create_dir( args.output_directory, logging=False, recreate=recreate_dir, prompt=prompt_user )
 
     if len( args.log_directory ) > 0:
-      create_dir( args.output_directory + div + args.log_directory, logging=False )
+      create_dir( os.path.join( args.output_directory, args.log_directory ),
+                  logging=False )
 
     # Identify all videos to process
     if len( args.input ) > 0:
@@ -1121,12 +1214,15 @@ if __name__ == "__main__" :
       if not os.path.exists( args.input ):
         exit_with_error( "Input folder \"" + args.input + "\" does not exist" )
       if os.path.isfile( args.input ):
-        textchars = bytearray( {7,8,9,10,12,13,27} | set( range(0x20, 0x100) ) - {0x7f} )
-        is_binary_string = lambda bytes: bool( bytes.translate( None, textchars ) )
-        if is_binary_string( open( args.input, 'rb' ).read( 1024 ) ):
+        if args.gt_only:
           args.input_video = args.input
         else:
-          args.input_list = args.input
+          textchars = bytearray( {7,8,9,10,12,13,27} | set( range(0x20, 0x100) ) - {0x7f} )
+          is_binary_string = lambda bytes: bool( bytes.translate( None, textchars ) )
+          if is_binary_string( open( args.input, 'rb' ).read( 1024 ) ):
+            args.input_video = args.input
+          else:
+            args.input_list = args.input
       else:
         args.input_dir = args.input
 
@@ -1138,19 +1234,25 @@ if __name__ == "__main__" :
         data_list = [ args.input_list ]
       is_image_list = True
     elif len( args.input_dir ) > 0:
-      data_list = auto_identify_data( args.input_dir, \
-        args.video_exts, args.image_exts, not args.recursive )
+      if args.gt_only:
+        data_list = auto_identify_gt_files( args.input_dir, args.auto_detect_gt )
+      else:
+        data_list = auto_identify_data( args.input_dir, \
+          args.video_exts, args.image_exts, not args.recursive )
       is_image_list = False
     else:
       data_list = [ args.input_video ]
       is_image_list = False
 
     if len( data_list ) == 0:
+      if args.gt_only:
+        exit_with_error( "No annotation files found in given folder, exiting." )
       exit_with_error( "No videos found for ingest in given folder, exiting." )
     elif not is_image_list:
       if not args.init_db:
         log_info( lb1 )
-      video_str = " video" if len( data_list ) == 1 else " videos"
+      video_str = " file" if args.gt_only else " video"
+      video_str += "" if len( data_list ) == 1 else "s"
       log_info( "Processing " + str( len( data_list ) ) + video_str + lb2 )
     elif not args.build_index:
       log_info( lb1 )
@@ -1160,7 +1262,7 @@ if __name__ == "__main__" :
       if not os.path.exists( "category_models/detector.pipe" ):
         if has_file_with_extension( "category_models", "svm" ):
           if args.pipeline.endswith( "detector_project_folder.pipe" ):
-            args.pipeline = os.path.join( "pipelines", "detector_svm_models.pipe" )
+            args.pipeline = os.path.join( "pipelines", "detector_svm_over_generic_proposals.pipe" )
           elif args.pipeline.endswith( "frame_classifier_project_folder.pipe" ):
             args.pipeline = os.path.join( "pipelines", "frame_classifier_svm.pipe" )
           elif args.pipeline.endswith( "tracker_project_folder.pipe" ):
@@ -1192,7 +1294,10 @@ if __name__ == "__main__" :
           break
         if auto_select_pipe:
           args.pipeline = auto_select_registration_pipe( entry_name )
-        process_using_kwiver( entry_name, args, is_image_list, cpu=cpu, gpu=gpu, run_pipeline=call_pipeline )
+        if args.gt_only:
+          convert_gt_only_using_kwiver( entry_name, args, gpu=gpu, run_pipeline=call_pipeline )
+        else:
+          process_using_kwiver( entry_name, args, is_image_list, cpu=cpu, gpu=gpu, run_pipeline=call_pipeline )
 
     gpu_thread_list = [ i for i in range( args.gpu_count ) for _ in range( args.pipes ) ]
     cpu_thread_list = list( range( args.pipes ) ) * args.gpu_count

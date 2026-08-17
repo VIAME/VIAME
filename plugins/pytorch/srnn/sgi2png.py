@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='processing kw18 file for generating training data')
+    parser = argparse.ArgumentParser(description='convert a directory of SGI images to PNG')
     parser.add_argument('--root_path', type=str, dest='root_path',
                         help='The root path contains all sgi image',
                         default='/home/bdong/NOAA/v1_annotations')

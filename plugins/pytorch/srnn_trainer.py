@@ -34,6 +34,34 @@ import signal
 import time
 import threading
 from viame.pytorch.utilities import report_cuda_errors
+from viame.core.training_data import (build_sequence_maps,
+    read_sequence_manifest,
+    load_computed_detections, match_to_groundtruth,
+    seed_everything)
+from viame.pytorch.srnn.generate_training_files import BoundingBox
+
+
+def _frame_bounds( track_sets ):
+    """Highest frame id each track set refers to, or None where it refers to
+    none. build_sequence_maps checks its alignment against these, since the
+    number of track sets and the number of image directories need not agree.
+    """
+    bounds = []
+
+    for track_set in track_sets:
+        highest = None
+
+        if track_set is not None:
+            for track in track_set.tracks():
+                for state in track:
+                    if state.detection() is None:
+                        continue
+                    if highest is None or state.frame_id > highest:
+                        highest = state.frame_id
+
+        bounds.append( highest )
+
+    return bounds
 
 
 class SRNNTrainer( TrainTracker ):
@@ -47,6 +75,16 @@ class SRNNTrainer( TrainTracker ):
         TrainTracker.__init__( self )
 
         self._identifier = "viame-srnn-tracker"
+
+        # Directory of detector output for the same clips, one VIAME
+        # CSV per clip. Optional: left empty everything comes from the
+        # groundtruth exactly as before.
+        self._computed_detections = ""
+
+        # Written by the training tool: which frames of the flat list
+        # belong to which track set. Empty falls back to inferring it
+        # from the directory layout, which this dataset defeats.
+        self._sequence_manifest = ""
         self._train_directory = "deep_training"
         self._gpu_count = -1
         self._threshold = "0.00"
@@ -58,6 +96,26 @@ class SRNNTrainer( TrainTracker ):
         self._siamese_img_sample_rate = 8
         self._siamese_pos_sample_rate = 10
         self._rnn_component = "AIM"  # Which LSTM components to use
+        self._resume = False
+        # How many of the eight component LSTMs to train at once, and how many
+        # data loading workers each gets. Kept low by default: on Python 3.14
+        # loader workers come from a forkserver, so several trainings at once
+        # with many workers each exhausted a two device node.
+        self._lstm_concurrency = 1
+        self._lstm_loader_workers = 2
+
+        # Seed for every generator this trainer and its stages draw from.
+        # Exported to the environment by seed_everything, which is how it
+        # reaches the stages that run as separate processes. Negative
+        # restores the previous nondeterministic behaviour.
+        self._random_seed = "42"
+
+        # Weights to start the Siamese embedding from, for a fine tune off
+        # an earlier corpus. Empty trains it from scratch, which is what
+        # every run before this did. The embedding is the transferable
+        # piece and by far the longest stage; the LSTMs above it are small
+        # and specific to the data, so they always train fresh.
+        self._seed_model = ""
 
         self._categories = []
         self._train_image_files = []
@@ -69,6 +127,8 @@ class SRNNTrainer( TrainTracker ):
         cfg = super( TrainTracker, self ).get_configuration()
 
         cfg.set_value( "identifier", self._identifier )
+        cfg.set_value( "computed_detections", self._computed_detections )
+        cfg.set_value( "sequence_manifest", self._sequence_manifest )
         cfg.set_value( "train_directory", self._train_directory )
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
         cfg.set_value( "threshold", self._threshold )
@@ -78,6 +138,11 @@ class SRNNTrainer( TrainTracker ):
         cfg.set_value( "siamese_img_sample_rate", str( self._siamese_img_sample_rate ) )
         cfg.set_value( "siamese_pos_sample_rate", str( self._siamese_pos_sample_rate ) )
         cfg.set_value( "rnn_component", self._rnn_component )
+        cfg.set_value( "resume", str( self._resume ) )
+        cfg.set_value( "lstm_concurrency", str( self._lstm_concurrency ) )
+        cfg.set_value( "random_seed", self._random_seed )
+        cfg.set_value( "seed_model", self._seed_model )
+        cfg.set_value( "lstm_loader_workers", str( self._lstm_loader_workers ) )
 
         return cfg
 
@@ -87,6 +152,8 @@ class SRNNTrainer( TrainTracker ):
         cfg.merge_config( cfg_in )
 
         self._identifier = str( cfg.get_value( "identifier" ) )
+        self._computed_detections = str( cfg.get_value( "computed_detections" ) )
+        self._sequence_manifest = str( cfg.get_value( "sequence_manifest" ) )
         self._train_directory = str( cfg.get_value( "train_directory" ) )
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
         self._threshold = str( cfg.get_value( "threshold" ) )
@@ -96,6 +163,11 @@ class SRNNTrainer( TrainTracker ):
         self._siamese_img_sample_rate = int( cfg.get_value( "siamese_img_sample_rate" ) )
         self._siamese_pos_sample_rate = int( cfg.get_value( "siamese_pos_sample_rate" ) )
         self._rnn_component = str( cfg.get_value( "rnn_component" ) )
+        self._resume = strtobool( cfg.get_value( "resume" ) )
+        self._lstm_concurrency = int( cfg.get_value( "lstm_concurrency" ) )
+        self._random_seed = str( cfg.get_value( "random_seed" ) )
+        self._seed_model = str( cfg.get_value( "seed_model" ) )
+        self._lstm_loader_workers = int( cfg.get_value( "lstm_loader_workers" ) )
 
         # Check GPU availability
         try:
@@ -151,9 +223,7 @@ class SRNNTrainer( TrainTracker ):
 
         Creates directory structure:
         - data_root/train/sequence_XXX/img1/  (images)
-        - data_root/train/sequence_XXX/gt.kw18 (groundtruth)
         - data_root/test/sequence_XXX/img1/
-        - data_root/test/sequence_XXX/gt.kw18
         """
         data_root = Path( self._train_directory ) / "srnn_data"
         if data_root.exists():
@@ -166,17 +236,109 @@ class SRNNTrainer( TrainTracker ):
 
         print( "Preparing training data for SRNN..." )
 
+        train_tracks = self._train_tracks
+        test_tracks = self._test_tracks
+        test_image_files = self._test_image_files
+
+        # Tracker training only populates a validation set when one is given
+        # explicitly (validation.txt or --validation-dir), so test_tracks is
+        # normally empty. The Siamese stage then finds no test images at all and
+        # aborts with "Found 0 images in data", which takes the whole SRNN run
+        # down. Hold a slice of the training sequences out instead, so the split
+        # is always non-empty.
+        if not test_tracks and len( train_tracks ) > 1:
+            holdout = max( 1, int( len( train_tracks ) * 0.1 ) )
+
+            test_tracks = train_tracks[ -holdout: ]
+            train_tracks = train_tracks[ :-holdout ]
+
+            # The held out tracks still index into the training image list, so
+            # the test split has to be given that same list. Handing it the
+            # empty _test_image_files would write groundtruth with no imagery
+            # beside it, which fails the same way as having no test set at all.
+            test_image_files = self._train_image_files
+
+            print( f"  No validation set supplied, holding out {holdout} of "
+                   f"{len( self._train_tracks )} sequences for test" )
+
         # Process training data
-        self._prepare_split_data(
-            self._train_tracks, self._train_image_files, train_dir, "train"
+        tracks = {}
+
+        tracks[ "train" ] = self._prepare_split_data(
+            train_tracks, self._train_image_files, train_dir, "train"
         )
 
         # Process test data
-        self._prepare_split_data(
-            self._test_tracks, self._test_image_files, test_dir, "test"
+        tracks[ "test" ] = self._prepare_split_data(
+            test_tracks, test_image_files, test_dir, "test"
         )
 
-        return data_root
+        return data_root, tracks
+
+    def _load_computed_by_sequence( self, names, track_sets ):
+        """Detector output per sequence, keyed by track set index."""
+        if not self._computed_detections:
+            return None
+
+        if not names or all( n is None for n in names ):
+            print( "WARNING: computed_detections was given but the images "
+                   "could not be split per sequence, so there is no clip name "
+                   "to look a detection file up by. Using the groundtruth." )
+            return None
+
+        loaded = {}
+
+        for seq_idx, name in enumerate( names ):
+            if name is None or seq_idx >= len( track_sets ):
+                continue
+
+            detections = load_computed_detections( self._computed_detections,
+                                                   name )
+
+            if detections:
+                loaded[ seq_idx ] = detections
+
+        print( f"  computed detections found for {len(loaded)} of "
+               f"{len(track_sets)} sequences" )
+
+        return loaded or None
+
+    @staticmethod
+    def _substitute_computed( frame_annotations, computed, counters,
+                              iou_threshold=0.5 ):
+        """Swap groundtruth boxes for the detector boxes that matched them."""
+        replaced = {}
+
+        for frame_id, truth in frame_annotations.items():
+            frame_computed = computed.get( frame_id, [] )
+
+            if not frame_computed:
+                continue
+
+            matches, unmatched, missed = match_to_groundtruth(
+                frame_computed,
+                [ ( t[ 1 ], t[ 2 ], t[ 3 ], t[ 4 ], t[ 0 ] ) for t in truth ],
+                iou_threshold )
+
+            counters[ 'matched' ] += len( matches )
+            counters[ 'false_positives' ] += len( unmatched )
+            counters[ 'missed' ] += len( missed )
+
+            rows = []
+
+            for c, t, _overlap in matches:
+                x1, y1, x2, y2 = ( int( c[ 0 ] ), int( c[ 1 ] ),
+                                   int( c[ 2 ] ), int( c[ 3 ] ) )
+
+                if x2 <= x1 or y2 <= y1:
+                    continue
+
+                rows.append( ( t[ 4 ], x1, y1, x2, y2 ) )
+
+            if rows:
+                replaced[ frame_id ] = rows
+
+        return replaced
 
     def _prepare_split_data( self, track_sets, image_files, output_dir, split_name ):
         """
@@ -184,23 +346,35 @@ class SRNNTrainer( TrainTracker ):
 
         Each track_set represents a sequence. We create:
         - sequence_XXX/img1/ with symlinks to images
-        - sequence_XXX/gt.kw18 with track annotations
         """
         print( f"  Processing {split_name} split: {len(track_sets)} track sets" )
 
-        # Build mapping from frame indices to image files if available
-        image_map = {}
-        for i, img_file in enumerate( image_files ):
-            image_map[ i ] = img_file
+        sequence_tracks = {}
+
+        # One image map per sequence. A frame id is a position within its own
+        # sequence, so resolving it against the flat list of every sequence's
+        # images only ever worked for the first one.
+        image_maps, names = read_sequence_manifest(
+            self._sequence_manifest, image_files, len( track_sets ) )
+
+        if image_maps is None:
+            image_maps, names = build_sequence_maps(
+                image_files, len( track_sets ), split_name,
+                _frame_bounds( track_sets ) )
+
+        computed_by_sequence = self._load_computed_by_sequence(
+            names, track_sets )
+        counters = { 'matched': 0, 'false_positives': 0, 'missed': 0 }
 
         for seq_idx, track_set in enumerate( track_sets ):
             if track_set is None:
                 continue
 
+            image_map = image_maps[ seq_idx ]
+
             seq_name = f"sequence_{seq_idx:04d}"
             seq_dir = output_dir / seq_name
             img_dir = seq_dir / "img1"
-            img_dir.mkdir( parents=True )
 
             # Collect all frames and annotations for this sequence
             frame_annotations = {}  # frame_id -> [(track_id, x1, y1, x2, y2)]
@@ -224,39 +398,65 @@ class SRNNTrainer( TrainTracker ):
                     x2 = int( bbox.max_x() )
                     y2 = int( bbox.max_y() )
 
+                    # Zero area boxes carry no information and are rejected by
+                    # generate_training_files with "Width and height must
+                    # be positive", which aborts the whole run over a single
+                    # bad annotation
+                    if x2 <= x1 or y2 <= y1:
+                        continue
+
                     if frame_id not in frame_annotations:
                         frame_annotations[ frame_id ] = []
                     frame_annotations[ frame_id ].append(
                         ( track_id, x1, y1, x2, y2 )
                     )
 
+            # Where a detector's own output is supplied, learn from its boxes
+            # rather than the groundtruth's. It matters more here than for a
+            # re-ID crop: the motion LSTM trained on groundtruth sees
+            # trajectories that are smooth by construction, and at inference
+            # it is handed the detector's jitter.
+            if computed_by_sequence and seq_idx in computed_by_sequence:
+                frame_annotations = self._substitute_computed(
+                    frame_annotations, computed_by_sequence[ seq_idx ],
+                    counters )
+                all_frame_ids = set( frame_annotations )
+
+            # A clip with no annotations gets no sequence directory at all.
+            # The directory used to be created before this point, leaving a
+            # sequence_NNNN/img1 holding frames that nothing described, and
+            # feature generation walks every sequence directory it finds.
             if not frame_annotations:
+                print( f"    {seq_name}: no annotations, skipping" )
                 continue
 
-            # Create symlinks to images (or placeholder if not available)
+            img_dir.mkdir( parents=True )
+
+            # Symlink the frames this sequence annotates and build its track
+            # states in the same order. Feature generation zips its sorted
+            # image list against this list positionally, so both are built
+            # together here. Indexing by frame id instead, as this once did,
+            # silently misaligns any clip not starting at frame zero.
+            frame_states = []
+
             for frame_id in sorted( all_frame_ids ):
                 dst_path = img_dir / f"frame_{frame_id:06d}.jpg"
                 if frame_id in image_map and os.path.exists( image_map[ frame_id ] ):
                     src_path = Path( image_map[ frame_id ] ).resolve()
                     dst_path.symlink_to( src_path )
-                # If no image available, training will still work with gt.kw18
 
-            # Write gt.kw18 file
-            # KW18 format: track_id frame obj_id len_frames x y w h world_x world_y ts conf
-            # Simplified format used by SRNN: track_id ? frame_id ? ? ? ? ? ? x1 y1 x2 y2
-            gt_file = seq_dir / "gt.kw18"
-            with open( gt_file, 'w' ) as f:
-                for frame_id in sorted( frame_annotations.keys() ):
-                    for track_id, x1, y1, x2, y2 in frame_annotations[ frame_id ]:
-                        # Format matches what process_gt_file expects:
-                        # track_id at [0], frame_id at [2], bbox at [9:13]
-                        # Fields: track_id, obj_len, frame, tracking_plane_loc_x/y,
-                        #         velocity_x/y, image_loc_x/y, img_bbox (x1,y1,x2,y2), ...
-                        line = f"{track_id} 0 {frame_id} 0 0 0 0 0 0 {x1} {y1} {x2} {y2} 0 0 0\n"
-                        f.write( line )
+                frame_states.append( [
+                    ( track_id, BoundingBox.from_corners( x1, y1, x2, y2 ) )
+                    for track_id, x1, y1, x2, y2
+                    in frame_annotations.get( frame_id, [] )
+                ] )
+
+            sequence_tracks[ seq_name ] = frame_states
 
             print( f"    {seq_name}: {len(frame_annotations)} frames, "
                    f"{len(set(t for anns in frame_annotations.values() for t,_,_,_,_ in anns))} tracks" )
+
+        return sequence_tracks
 
     @report_cuda_errors("SRNNTrainer training")
     def update_model( self ):
@@ -265,39 +465,59 @@ class SRNNTrainer( TrainTracker ):
         """
         print( "Starting SRNN training..." )
 
-        # Prepare training data in KW18 format
-        data_root = self._prepare_training_data()
+        # Before the data layout is drawn, and before any stage is spawned:
+        # this also exports the seed so the stages that shell out inherit it.
+        if seed_everything( self._random_seed ):
+            print( "  seeded with " + str( self._random_seed ) )
+        else:
+            print( "  unseeded: run to run variation is expected" )
+
+        # Lay out the image sequences and collect their track states
+        data_root, tracks = self._prepare_training_data()
 
         # Output directory for SRNN training
         srnn_output = Path( self._train_directory ) / "srnn_output"
-        if srnn_output.exists():
+
+        # Never delete previous results silently. The generated training data
+        # and extracted features under here are the bulk of a run's wall clock
+        # and are what a resume exists to reuse, so a run started without
+        # resume set stops rather than destroying them. Move or remove the
+        # directory by hand to start over.
+        if srnn_output.exists() and not self._resume:
+            existing = [ p for p in srnn_output.rglob( "*" ) if p.is_file() ]
+
+            if existing:
+                raise RuntimeError(
+                    "{} already holds {} files from an earlier run. Set "
+                    "resume to carry on from them, or move the directory "
+                    "aside to start fresh; it will not be deleted "
+                    "automatically.".format( srnn_output, len( existing ) ) )
+
             shutil.rmtree( srnn_output )
-
-        # Build training command
-        python_exe = "python.exe" if os.name == 'nt' else "python"
-
-        cmd = [
-            python_exe, "-m",
-            "viame.pytorch.srnn.train_everything",
-            str( data_root ),
-            str( srnn_output ),
-        ]
-
-        if self._stabilized:
-            cmd.append( "--stabilized" )
-
-        print( "Running command: " + " ".join( cmd ) )
 
         # Handle interrupt signals
         if threading.current_thread().__class__.__name__ == '_MainThread':
             signal.signal( signal.SIGINT, lambda sig, frame: self._interrupt_handler() )
             signal.signal( signal.SIGTERM, lambda sig, frame: self._interrupt_handler() )
 
-        self.proc = subprocess.Popen( cmd )
-        self.proc.wait()
+        # The pipeline is driven in process so the track states can be passed
+        # as objects. Only the first stage needs them; the model training
+        # stages it runs still shell out, as they read the files that stage
+        # produces rather than any groundtruth.
+        from viame.pytorch.srnn.train_everything import main as run_srnn_pipeline
 
-        if self.proc.returncode != 0:
-            print( f"Warning: Training process exited with code {self.proc.returncode}" )
+        print( "Running SRNN pipeline over " + str( data_root ) )
+
+        run_srnn_pipeline(
+            data_root=Path( data_root ),
+            output_dir=srnn_output,
+            stabilized=bool( self._stabilized ),
+            tracks=tracks,
+            resume=bool( self._resume ),
+            lstm_concurrency=int( self._lstm_concurrency ),
+            lstm_loader_workers=int( self._lstm_loader_workers ),
+            seed_siamese=( self._seed_model or None ),
+        )
 
         output = self._get_output_map( srnn_output )
 

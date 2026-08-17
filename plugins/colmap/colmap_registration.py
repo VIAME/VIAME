@@ -47,6 +47,10 @@ import kwiver.vital.types as kvt
 
 _IDENTITY = np.eye(3, dtype=np.float64)
 
+# Bump whenever the registration algorithm changes the emitted homographies
+# (feeds the disk-cache key so stale caches self-invalidate).
+_REG_ALGO_VERSION = 3
+
 
 def _log(msg):
     """Progress to stderr so it shows in the pipeline log (the vital logger's
@@ -100,6 +104,32 @@ class ColmapRegistration(KwiverProcess):
         _add_declare_config(
             self, 'water_method', 'auto',
             'Water/land classifier for the hybrid method (auto|svm|sift).')
+        _add_declare_config(
+            self, 'chain_anchored_placement', 'true',
+            'Feature-primary placement (hybrid method): anchor each camera '
+            'chain to ENU with one similarity fitted over its GPS fixes, so '
+            'frame-to-frame geometry comes from image features instead of '
+            'per-frame GPS+heading dead reckoning. Falls back to per-frame '
+            'GPS placement when the fit is untrustworthy (few chained frames, '
+            'low GPS spread, or high fit residual). Set false for the prior '
+            'per-frame GPS placement.')
+        _add_declare_config(
+            self, 'gps_chain_reconcile', 'true',
+            'Correct per-frame GPS positions that disagree with the image '
+            'registration chain before placing frames (hybrid method). Fixes '
+            'the periodic misregistration from sub-second trigger / GPS-sample '
+            'aliasing (a frame whose logged GPS step is short/long while the '
+            'imagery shows steady motion). Every correction must be confirmed '
+            'by an independent high-quality match of the two frames, so frames '
+            'are never moved without direct image evidence. Set false to place '
+            'frames at raw GPS as before.')
+        _add_declare_config(
+            self, 'export_homogs', '',
+            'Optional path to write the COMPLETE per-frame homography map '
+            '(basename -> 3x3, npz) as soon as registration finishes. Because '
+            'registration is a whole-survey batch, this gives downstream '
+            'streaming processes (e.g. the suppressor boundary-cutoff check) '
+            'access to FUTURE frames\' homographies. Empty = disabled.')
         _add_declare_config(
             self, 'cache', '',
             'Explicit path to the full-folder registration cache file. Empty = '
@@ -181,7 +211,14 @@ class ColmapRegistration(KwiverProcess):
         self._flight_log = self.config_value('flight_log') or None
         self._method = self.config_value('method') or 'hybrid'
         self._water_method = self.config_value('water_method') or 'auto'
+        self._gps_chain_reconcile = (self.config_value('gps_chain_reconcile')
+                                     or 'true').lower() in (
+                                         'true', '1', 'yes', 'on')
+        self._chain_anchored = (self.config_value('chain_anchored_placement')
+                                or 'true').lower() in (
+                                    'true', '1', 'yes', 'on')
         self._cache = self.config_value('cache') or None
+        self._export_homogs = self.config_value('export_homogs') or None
         self._site_folder = self.config_value('site_folder') or None
         # One image-list file per camera (single file each, line-separated).
         self._image_lists = [
@@ -215,20 +252,31 @@ class ColmapRegistration(KwiverProcess):
         need not be named again for the node)."""
         if self._site_folder:
             return self._site_folder
-        # Camera 1's image list locates the survey folder: its first full image
-        # path is <survey>/<camera>/<image>, so the folder is two dirs up.
+        # Camera 1's image list locates the survey folder from its first full
+        # image path (see _survey_folder_of for the rig-vs-single-camera rule).
         lst = self._image_lists[0] if self._image_lists else None
         if lst and os.path.exists(lst):
             with open(lst) as f:
                 for line in f:
                     p = line.strip()
                     if p:
-                        return os.path.dirname(os.path.dirname(
-                            os.path.abspath(p)))
+                        return self._survey_folder_of(p)
         if hint_name and os.path.dirname(str(hint_name)):
-            return os.path.dirname(os.path.dirname(
-                os.path.abspath(str(hint_name))))
+            return self._survey_folder_of(str(hint_name))
         return None
+
+    @staticmethod
+    def _survey_folder_of(image_path):
+        """Survey folder that holds an image. A multi-camera rig lays images out
+        as <survey>/<CENTER|PORT|STAR>/<image> (survey is two dirs up); a single-
+        camera UAS survey puts images directly in <survey>/ (one dir up, and the
+        imagelog.json sits in that same folder). Only strip the camera level when
+        the image's parent really is a rig camera folder, so single-camera
+        surveys resolve to the folder that actually holds their metadata."""
+        parent = os.path.dirname(os.path.abspath(image_path))
+        if os.path.basename(parent).upper() in ('CENTER', 'PORT', 'STAR'):
+            return os.path.dirname(parent)
+        return parent
 
     def _resolve_images(self):
         """Explicit image paths to register (register_scope=list), or None for
@@ -248,44 +296,77 @@ class ColmapRegistration(KwiverProcess):
         return images or None
 
     def _metadata_coverage(self, site_folder, images):
-        """(matched, total) frames of the current sequence that get a pose from a
-        metadata file (flight log / imagelog.json). Embedded EXIF GPS is ignored
-        (read_exif=False) so this measures the provided metadata file, not the
-        imagery, matching the "requires a metadata file" intent."""
+        """(matched, total): frames that get a pose FROM THE PROVIDED metadata
+        file - a flight-log CSV row matched by frame number, or an imagelog JSON
+        record matched to the image by GPS position. EXIF-only GPS is not
+        counted: this measures whether the file itself was applied, so
+        require_metadata can fail when a file was passed but is the wrong log,
+        unreadable, or left unlinked by a survey-folder mismatch."""
         from viame.core import survey_metadata as smd
-        records, _cams = smd.build_image_records(
-            site_folder, flight_logs=self._flight_log, read_exif=False,
-            image_list=images, verbose=False)
-        total = len(records)
-        matched = sum(1 for r in records.values()
-                      if r and r.get('lat') is not None)
+        fl = self._flight_log
+        cams = smd.list_site_images(site_folder, image_list=images)
+        total = sum(len(v) for v in cams.values())
+        if not fl or not os.path.exists(fl):
+            return 0, total
+        if fl.lower().endswith('.json'):
+            # Single-camera imagelog: only count GPS-position links; an order
+            # fallback means the file did not actually correspond to the frames.
+            rels = cams.get(None, [])
+            recs = smd.load_imagelog(fl)
+            if not recs or not rels:
+                return 0, total
+            _links, stats = smd.link_imagelog(
+                site_folder, rels, recs, read_exif=True)
+            return stats.get('by_position', 0), total
+        # Flight-log CSV: count images whose per-day frame number has a log row.
+        date = smd.folder_date(site_folder)
+        log_path = smd.find_flight_log(fl, date)
+        log = smd.load_flight_log(log_path) if log_path else {}
+        if not log:
+            return 0, total
+        matched = 0
+        for rels in cams.values():
+            for r in rels:
+                fr = smd.parse_image_filename(r).get('frame')
+                if fr is not None and fr in log:
+                    matched += 1
         return matched, total
 
     def _enforce_metadata_requirements(self, site_folder, images):
         """Raise if require_metadata / require_metadata_match are set and the
-        metadata is missing or does not correspond to the image sequence."""
+        metadata is missing, unreadable, or does not actually apply to the
+        frames. Unlike a plain "a path was passed" check, require_metadata now
+        verifies the file is USED: at least one frame must link to it (a
+        flight-log row by frame number, or a GPS-position imagelog match). A
+        wrong, unreadable, or unresolved metadata file therefore fails loudly
+        here instead of silently registering nothing (all-identity homographies
+        that read downstream as "every frame already observed")."""
         if not (self._require_metadata or self._require_metadata_match):
             return
         if self._require_metadata and not self._flight_log:
             raise RuntimeError(
                 'colmap_registration: require_metadata is set but no metadata '
-                'file was provided (set stabilizer:flight_log to a .csv/.json '
-                'flight log).')
-        if self._require_metadata and not os.path.exists(self._flight_log):
+                'file was provided (set stabilizer:flight_log to a .csv flight '
+                'log or .json imagelog).')
+        if self._flight_log and not os.path.exists(self._flight_log):
             raise RuntimeError(
                 'colmap_registration: metadata file not found: %s'
                 % self._flight_log)
-        if not self._require_metadata_match:
-            return
         matched, total = self._metadata_coverage(site_folder, images)
         if total == 0:
             return
         if matched == 0:
             raise RuntimeError(
-                'colmap_registration: the provided metadata does not correspond '
-                'to the current image sequence (0/%d frames matched). Check that '
-                'the flight log / imagelog is for this site and flight.' % total)
-        if matched < total * self._min_metadata_coverage:
+                'colmap_registration: the provided metadata file (%s) could not '
+                'be applied to any of the %d frames. Check that it is the '
+                'correct flight log / imagelog for this sequence and that the '
+                'survey folder resolved correctly (resolved site_folder=%r).'
+                % (self._flight_log, total, site_folder))
+        # require_metadata alone only needs the file to be used at all; the
+        # stricter fractional coverage threshold applies under require_metadata_match.
+        min_cov = (self._min_metadata_coverage
+                   if self._require_metadata_match else 0.0)
+        if matched < total * min_cov:
             raise RuntimeError(
                 'colmap_registration: the metadata covers only %d/%d frames of '
                 'the image sequence (require >= %.0f%%). It likely does not '
@@ -307,7 +388,14 @@ class ColmapRegistration(KwiverProcess):
         fl = self._flight_log or ''
         have_fl = fl and os.path.exists(fl)
         fl_stamp = str(os.path.getmtime(fl)) if have_fl else ''
-        blob = '\n'.join(names) + f'|{self._method}|{fl}|{fl_stamp}'
+        # _REG_ALGO_VERSION invalidates cached registrations whenever the
+        # placement algorithm changes (a cache written by an older algorithm
+        # would otherwise be served silently forever). Bump on algorithm
+        # changes that affect the emitted homographies.
+        blob = '\n'.join(names) + (
+            f'|{self._method}|{fl}|{fl_stamp}|{_REG_ALGO_VERSION}'
+            f'|reconcile={self._gps_chain_reconcile}'
+            f'|anchored={self._chain_anchored}')
         return hashlib.sha1(blob.encode('utf-8', 'replace')).hexdigest()
 
     @staticmethod
@@ -377,7 +465,9 @@ class ColmapRegistration(KwiverProcess):
              % (site_folder, scope, self._method, self._flight_log or 'none'))
         homogs = pcc.compute_frame_homographies(
             site_folder, flight_logs=self._flight_log, method=self._method,
-            water_method=self._water_method, images=images)
+            water_method=self._water_method, images=images,
+            reg_overrides={'gps_chain_reconcile': self._gps_chain_reconcile,
+                           'chain_anchored_placement': self._chain_anchored})
         by_name = {}
         n_geo = 0
         for rel, info in homogs.items():
@@ -445,6 +535,16 @@ class ColmapRegistration(KwiverProcess):
                 images = self._resolve_images()
                 self._enforce_metadata_requirements(site, images)
                 self._by_name = self._register(site, images)
+            if self._export_homogs and self._by_name:
+                try:
+                    np.savez(self._export_homogs,
+                             **{n: H for n, H in self._by_name.items()
+                                if H is not None})
+                    _log('exported %d frame homographies to %s' % (
+                        sum(1 for H in self._by_name.values()
+                            if H is not None), self._export_homogs))
+                except OSError as e:
+                    _log('could not export homographies: %s' % e)
         for i in range(self._n_input):
             H = self._homog_for(i, names[i])
             self.push_to_port_using_trait(

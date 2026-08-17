@@ -37,6 +37,174 @@ import threading
 import json
 import random
 from viame.pytorch.utilities import report_cuda_errors
+from viame.core.training_data import (build_sequence_maps,
+    read_sequence_manifest, split_validation,
+    load_computed_detections, match_to_groundtruth,
+    seed_everything, loader_worker_seed)
+
+
+# The Re-ID dataset and batch sampler live at module scope rather than inside
+# _train_reid_model because DataLoader worker processes have to be able to find
+# them by name. Python 3.14 switched the default multiprocessing start method on
+# Linux from fork to forkserver, which pickles the worker arguments; a class
+# defined inside a method is a <locals> object and pickling it fails with
+# "Can't pickle local object ... <locals>.ReIDDataset". Fork based Pythons never
+# exercised this path, so the same code ran fine on 3.13 and earlier.
+#
+# torch is imported lazily elsewhere in this file so that the module still
+# imports when torch is absent, which is how kwiver decides whether to register
+# the trainer. The guard here keeps that property.
+try:
+    from torch.utils.data import Dataset as _TorchDataset, Sampler as _TorchSampler
+except ImportError:
+    _TorchDataset = object
+    _TorchSampler = object
+
+
+def _frame_bounds(track_sets):
+    """Highest frame id each track set refers to, or None where it refers to
+    none. build_sequence_maps checks its alignment against these, since the
+    number of track sets and the number of image directories need not agree.
+    """
+    bounds = []
+
+    for track_set in track_sets:
+        highest = None
+
+        if track_set is not None:
+            for track in track_set.tracks():
+                for state in track:
+                    if state.detection() is None:
+                        continue
+                    if highest is None or state.frame_id > highest:
+                        highest = state.frame_id
+
+        bounds.append(highest)
+
+    return bounds
+
+
+class ReIDDataset(_TorchDataset):
+    """Crops on disk, one directory per track."""
+
+    def __init__(self, data_dir, transform=None):
+        from PIL import Image  # noqa: F401  (kept local, see module note)
+
+        self.data_dir = Path(data_dir)
+        self.transform = transform
+        self.samples = []
+        self.labels = []
+        self.label_to_idx = {}
+
+        for idx, track_dir in enumerate(sorted(self.data_dir.iterdir())):
+            if not track_dir.is_dir():
+                continue
+
+            self.label_to_idx[track_dir.name] = idx
+            for img_path in track_dir.glob("*.jpg"):
+                self.samples.append(str(img_path))
+                self.labels.append(idx)
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        from PIL import Image
+
+        img = Image.open(self.samples[idx]).convert('RGB')
+        if self.transform:
+            img = self.transform(img)
+        return img, self.labels[idx]
+
+
+class PKSampler(_TorchSampler):
+    """Yield batches of P identities with K crops each.
+
+    Triplet loss can only produce a gradient from an anchor that has both a
+    positive (same track) and a negative (different track) in the same batch.
+    Drawing crops uniformly at random gives a same-identity collision with
+    probability roughly B^2 / 2N for a batch of B over N identities, which for a
+    track dataset this size is only a few percent -- so nearly every batch was a
+    no-op and the Re-ID model never actually learned. Sampling K crops from each
+    of P identities guarantees every sample has a positive.
+    """
+
+    def __init__(self, labels, p, k, num_batches=None, same_sequence=0.7,
+                 names=None):
+        """
+        Args:
+            labels: the dataset's per sample label, an integer index
+            names: label index -> identity name, as ReIDDataset.label_to_idx
+                holds it the other way round. Without it the sampler cannot
+                tell which clip an identity came from and simply draws
+                globally, which is what it always did.
+        """
+        self.k = max(int(k), 2)
+        self.same_sequence = same_sequence
+
+        self.by_id = {}
+        for idx, label in enumerate(labels):
+            self.by_id.setdefault(label, []).append(idx)
+
+        # A track with a single crop can never supply a positive pair
+        self.ids = [i for i, idxs in self.by_id.items() if len(idxs) >= 2]
+        self.p = max(min(int(p), len(self.ids)), 1)
+
+        # Identities grouped by the clip they came from. Names are written
+        # seq{seq:04d}_track{id:06d}, so the clip is the part before _track.
+        self.by_sequence = {}
+
+        if names:
+            for identity in self.ids:
+                name = names.get(identity)
+
+                if name is None:
+                    continue
+
+                sequence = str(name).split("_track")[0]
+                self.by_sequence.setdefault(sequence, []).append(identity)
+
+        # Only clips that can fill a batch on their own are worth drawing
+        # from, otherwise the batch is mostly topped up from elsewhere and
+        # the point is lost
+        self.rich_sequences = [s for s, ids in self.by_sequence.items()
+                               if len(ids) >= self.p]
+
+        if num_batches is None:
+            num_batches = max(len(labels) // (self.p * self.k), 1)
+        self.num_batches = num_batches
+
+    def __len__(self):
+        return self.num_batches
+
+    def _pick_identities(self):
+        """The P identities for one batch.
+
+        Drawn from a single clip most of the time. Sampling identities
+        uniformly puts each one in a batch with fish from other clips, other
+        water and other lighting, and batch-hard mining will happily satisfy
+        the margin on those cues rather than on what the fish looks like. A
+        negative from the same clip is the one that forces an appearance
+        comparison. The rest of the time the draw is global, so the embedding
+        still has to separate identities across clips.
+        """
+        if self.rich_sequences and random.random() < self.same_sequence:
+            sequence = random.choice(self.rich_sequences)
+            return random.sample(self.by_sequence[sequence], self.p)
+
+        return random.sample(self.ids, self.p)
+
+    def __iter__(self):
+        for _ in range(self.num_batches):
+            batch = []
+            for track_id in self._pick_identities():
+                pool = self.by_id[track_id]
+                if len(pool) >= self.k:
+                    batch.extend(random.sample(pool, self.k))
+                else:
+                    # Short track, repeat crops to fill its slot
+                    batch.extend(random.choices(pool, k=self.k))
+            yield batch
 
 
 class DeepSORTTrainer(TrainTracker):
@@ -53,6 +221,29 @@ class DeepSORTTrainer(TrainTracker):
         self._output_directory = "category_models"
         self._output_prefix = "deepsort_tracker"
         self._pipeline_template = ""
+
+        # Directory of detector output for the same clips, one VIAME CSV
+        # per clip. Left empty the crops come from the groundtruth boxes,
+        # which are framed more exactly than anything the detector will
+        # hand the tracker at inference.
+        self._computed_detections = ""
+
+        # Written by the training tool: which frames of the flat list
+        # belong to which track set. Empty falls back to inferring it
+        # from the directory layout, which this dataset defeats.
+        self._sequence_manifest = ""
+
+        # Clips held back to choose the epoch on. Tracker training is
+        # handed no validation set unless one is named, so without this
+        # the epoch is chosen on training loss, which cannot tell
+        # improvement from memorisation. 0 disables it.
+        self._validation_fraction = 0.1
+
+        # Seed for every generator this trainer draws from. Nothing here was
+        # seeded, so run to run noise sat under every comparison between
+        # runs. Negative restores the previous nondeterministic behaviour.
+        self._random_seed = "42"
+
         self._gpu_count = -1
         self._max_epochs = "50"
         self._batch_size = "32"
@@ -77,6 +268,10 @@ class DeepSORTTrainer(TrainTracker):
         cfg.set_value("output_directory", self._output_directory)
         cfg.set_value("output_prefix", self._output_prefix)
         cfg.set_value("pipeline_template", self._pipeline_template)
+        cfg.set_value("computed_detections", self._computed_detections)
+        cfg.set_value("sequence_manifest", self._sequence_manifest)
+        cfg.set_value("validation_fraction", str(self._validation_fraction))
+        cfg.set_value("random_seed", self._random_seed)
         cfg.set_value("gpu_count", str(self._gpu_count))
         cfg.set_value("max_epochs", self._max_epochs)
         cfg.set_value("batch_size", self._batch_size)
@@ -99,6 +294,10 @@ class DeepSORTTrainer(TrainTracker):
         self._output_directory = str(cfg.get_value("output_directory"))
         self._output_prefix = str(cfg.get_value("output_prefix"))
         self._pipeline_template = str(cfg.get_value("pipeline_template"))
+        self._computed_detections = str(cfg.get_value("computed_detections"))
+        self._sequence_manifest = str(cfg.get_value("sequence_manifest"))
+        self._validation_fraction = float(cfg.get_value("validation_fraction"))
+        self._random_seed = str(cfg.get_value("random_seed"))
         self._gpu_count = int(cfg.get_value("gpu_count"))
         self._max_epochs = str(cfg.get_value("max_epochs"))
         self._batch_size = str(cfg.get_value("batch_size"))
@@ -181,23 +380,42 @@ class DeepSORTTrainer(TrainTracker):
 
         print("Preparing Re-ID training data...")
 
-        # Build image file mapping
-        image_map = {}
-        for i, img_file in enumerate(self._train_image_files):
-            image_map[i] = img_file
+        # One image map per sequence. A frame id is a position within its
+        # own sequence, so resolving it against the flat list of every
+        # sequence's images only ever worked for the first one.
+        train_maps, train_names = read_sequence_manifest(
+            self._sequence_manifest, self._train_image_files,
+            len(self._train_tracks))
 
-        # Process training tracks
+        if train_maps is None:
+            train_maps, train_names = build_sequence_maps(
+                self._train_image_files, len(self._train_tracks), "training",
+                _frame_bounds(self._train_tracks)
+            )
+
+        # Carve a validation split out of training when none was supplied, so
+        # the epoch kept is chosen on clips the model has not been shown.
+        if not self._test_tracks and self._validation_fraction > 0:
+            (self._train_tracks, train_maps, train_names), \
+                (self._test_tracks, test_maps, test_names) = split_validation(
+                    self._train_tracks, train_maps, train_names,
+                    self._validation_fraction)
+
+            # The held out clips index into the training image list, so the
+            # test split is handed that same list along with its own maps
+            self._test_image_files = self._train_image_files
+        else:
+            test_maps, test_names = build_sequence_maps(
+                self._test_image_files, len(self._test_tracks), "validation",
+                _frame_bounds(self._test_tracks)
+            )
+
         train_count = self._process_split_data(
-            self._train_tracks, image_map, train_dir, crop_h, crop_w, "train"
+            self._train_tracks, train_maps, train_names, train_dir, crop_h, crop_w, "train"
         )
 
-        # Process test tracks
-        test_image_map = {}
-        for i, img_file in enumerate(self._test_image_files):
-            test_image_map[i] = img_file
-
         test_count = self._process_split_data(
-            self._test_tracks, test_image_map, test_dir, crop_h, crop_w, "test"
+            self._test_tracks, test_maps, test_names, test_dir, crop_h, crop_w, "test"
         )
 
         print(f"  Train: {train_count} crops")
@@ -205,7 +423,78 @@ class DeepSORTTrainer(TrainTracker):
 
         return reid_dir
 
-    def _process_split_data(self, track_sets, image_map, output_dir, crop_h, crop_w, split_name):
+    def _load_computed_by_sequence(self, image_maps, names, track_sets):
+        """Detector output per sequence, keyed by track set index."""
+        if not self._computed_detections:
+            return None
+
+        if not names or all(n is None for n in names):
+            print("WARNING: computed_detections was given but the images "
+                  "could not be split per sequence, so there is no clip name "
+                  "to look a detection file up by. Using the groundtruth "
+                  "boxes.")
+            return None
+
+        loaded = {}
+
+        for seq_idx, name in enumerate(names):
+            if name is None or seq_idx >= len(track_sets):
+                continue
+
+            detections = load_computed_detections(self._computed_detections,
+                                                  name)
+
+            if detections:
+                loaded[seq_idx] = detections
+
+        print(f"  computed detections found for {len(loaded)} of "
+              f"{len(track_sets)} sequences")
+
+        return loaded or None
+
+    @staticmethod
+    def _substitute_computed(frame_to_detections, computed, counters,
+                             iou_threshold=0.5):
+        """Swap groundtruth boxes for the detector boxes that matched them.
+
+        A groundtruth box no detection reached is dropped rather than kept:
+        keeping it would put a perfectly framed crop back into a set that is
+        meant to look like detector output. A detection matching nothing is
+        dropped too, having no identity to belong to.
+        """
+        replaced = {}
+
+        for frame_id, truth in frame_to_detections.items():
+            frame_computed = computed.get(frame_id, [])
+
+            if not frame_computed:
+                counters['frames_without'] += 1
+                continue
+
+            matches, unmatched, missed = match_to_groundtruth(
+                frame_computed,
+                [(*d['bbox'], d['track_id']) for d in truth],
+                iou_threshold)
+
+            counters['matched'] += len(matches)
+            counters['false_positives'] += len(unmatched)
+            counters['missed'] += len(missed)
+
+            rows = []
+
+            for c, t, _overlap in matches:
+                rows.append({
+                    'track_id': t[4],
+                    'bbox': (int(c[0]), int(c[1]), int(c[2]), int(c[3])),
+                    'frame_id': frame_id,
+                })
+
+            if rows:
+                replaced[frame_id] = rows
+
+        return replaced
+
+    def _process_split_data(self, track_sets, image_maps, names, output_dir, crop_h, crop_w, split_name):
         """Process tracks for one split (train/test)."""
         import cv2
         import numpy as np
@@ -213,9 +502,16 @@ class DeepSORTTrainer(TrainTracker):
         total_crops = 0
         global_track_id = 0
 
+        computed_by_sequence = self._load_computed_by_sequence(
+            image_maps, names, track_sets)
+        counters = {'matched': 0, 'false_positives': 0, 'missed': 0,
+                    'frames_without': 0}
+
         for seq_idx, track_set in enumerate(track_sets):
             if track_set is None:
                 continue
+
+            image_map = image_maps[seq_idx]
 
             # Group detections by frame for efficient image loading
             frame_to_detections = {}
@@ -245,6 +541,16 @@ class DeepSORTTrainer(TrainTracker):
                         'bbox': (x1, y1, x2, y2),
                         'frame_id': frame_id
                     })
+
+            # Where a detector's own output is supplied, crop its boxes
+            # instead of the groundtruth's, taking the identity from the
+            # groundtruth box each one matched. Re-ID at inference sees crops
+            # cut by the detector, framed and padded however it frames them;
+            # trained on exact truth boxes the embedding never meets that.
+            if computed_by_sequence and seq_idx in computed_by_sequence:
+                frame_to_detections = self._substitute_computed(
+                    frame_to_detections, computed_by_sequence[seq_idx],
+                    counters)
 
             # Process each frame
             for frame_id, detections in frame_to_detections.items():
@@ -286,6 +592,12 @@ class DeepSORTTrainer(TrainTracker):
                     cv2.imwrite(str(crop_path), crop)
                     total_crops += 1
 
+        if computed_by_sequence:
+            print(f"  computed boxes: {counters['matched']} matched a "
+                  f"groundtruth track, {counters['false_positives']} matched "
+                  f"nothing and were dropped, {counters['missed']} truth "
+                  f"boxes were not found")
+
         return total_crops
 
     @report_cuda_errors("DeepSORTTrainer training")
@@ -297,6 +609,14 @@ class DeepSORTTrainer(TrainTracker):
             dict: Map of template replacements and file copies
         """
         print("Starting DeepSORT Re-ID training...")
+
+        # Before anything draws. The validation split, the identity sampling
+        # and the weight initialisation all consume these generators, so this
+        # has to precede _prepare_reid_data rather than sit next to the model.
+        if seed_everything(self._random_seed):
+            print(f"  seeded with {self._random_seed}")
+        else:
+            print("  unseeded: run to run variation is expected")
 
         # Prepare training data
         reid_dir = self._prepare_reid_data()
@@ -316,7 +636,7 @@ class DeepSORTTrainer(TrainTracker):
             import torch
             import torch.nn as nn
             import torch.optim as optim
-            from torch.utils.data import Dataset, DataLoader
+            from torch.utils.data import Dataset, DataLoader, Sampler
             import torchvision.transforms as transforms
             from torchvision.models import resnet18, resnet50, ResNet18_Weights, ResNet50_Weights
             import cv2
@@ -357,34 +677,6 @@ class DeepSORTTrainer(TrainTracker):
                 x = nn.functional.normalize(x, dim=1)
                 return x
 
-        # Create dataset
-        class ReIDDataset(Dataset):
-            def __init__(self, data_dir, transform=None):
-                self.data_dir = Path(data_dir)
-                self.transform = transform
-                self.samples = []
-                self.labels = []
-                self.label_to_idx = {}
-
-                # Collect all samples
-                for idx, track_dir in enumerate(sorted(self.data_dir.iterdir())):
-                    if not track_dir.is_dir():
-                        continue
-
-                    self.label_to_idx[track_dir.name] = idx
-                    for img_path in track_dir.glob("*.jpg"):
-                        self.samples.append(str(img_path))
-                        self.labels.append(idx)
-
-            def __len__(self):
-                return len(self.samples)
-
-            def __getitem__(self, idx):
-                img = Image.open(self.samples[idx]).convert('RGB')
-                if self.transform:
-                    img = self.transform(img)
-                return img, self.labels[idx]
-
         # Triplet loss
         class TripletLoss(nn.Module):
             def __init__(self, margin=0.3):
@@ -406,7 +698,9 @@ class DeepSORTTrainer(TrainTracker):
                 # Set diagonal to False for positives
                 mask_pos.fill_diagonal_(False)
 
-                loss = 0
+                # Must stay a tensor: a batch with no valid anchor leaves this
+                # untouched, and callers do loss.item() unconditionally
+                loss = torch.zeros((), device=embeddings.device)
                 count = 0
                 for i in range(n):
                     pos_dists = dist_mat[i][mask_pos[i]]
@@ -451,14 +745,58 @@ class DeepSORTTrainer(TrainTracker):
         print(f"Test samples: {len(test_dataset)}")
         print(f"Number of identities (train): {len(train_dataset.label_to_idx)}")
 
-        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
-        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+        # Batches are drawn identity-aware rather than uniformly at random, so
+        # that every batch contains valid triplets. See PKSampler.
+        crops_per_id = 4
+        train_sampler = PKSampler(train_dataset.labels,
+                                  max(batch_size // crops_per_id, 1),
+                                  crops_per_id,
+                                  names={v: k for k, v
+                                         in train_dataset.label_to_idx.items()})
+
+        # Workers fork after the parent is seeded, so without an initialiser
+        # all four draw the identical stream. None when seeding is off, which
+        # is what DataLoader wants for "no initialiser".
+        worker_init = loader_worker_seed(self._random_seed)
+
+        if train_sampler.ids:
+            print(f"PK sampling: {train_sampler.p} identities x "
+                  f"{train_sampler.k} crops = {train_sampler.p * train_sampler.k} "
+                  f"per batch, {len(train_sampler)} batches per epoch "
+                  f"({len(train_sampler.ids)} identities with 2+ crops)")
+            train_loader = DataLoader(train_dataset, batch_sampler=train_sampler,
+                                      num_workers=4, worker_init_fn=worker_init)
+        else:
+            print("Warning: no identity has more than one crop, falling back to "
+                  "shuffled batches. Triplet loss cannot train on this data.")
+            train_loader = DataLoader(train_dataset, batch_size=batch_size,
+                                      shuffle=True, num_workers=4,
+                                      worker_init_fn=worker_init)
+
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
+                                 num_workers=4, worker_init_fn=worker_init)
 
         # Create model and optimizer
         model = ReIDModel(self._backbone, embedding_dim).to(device)
-        optimizer = optim.Adam(model.parameters(), lr=lr)
+
+        # Batch-hard triplet loss on its own has a stable degenerate optimum:
+        # map every crop to the same point, and hardest_pos == hardest_neg == 0
+        # so the loss parks on the margin while the distance gradients vanish,
+        # leaving an embedding that cannot tell anything apart. Earlier runs on
+        # this dataset collapsed into exactly that, sitting at 0.3001 for 45 of
+        # 50 epochs. An identity classifier alongside it removes the escape: a
+        # constant embedding cannot classify, so cross entropy keeps a gradient
+        # pointing away from collapse. The head is a training aid only and is
+        # not part of the exported model.
+        num_identities = max(len(train_dataset.label_to_idx), 1)
+        classifier = nn.Linear(embedding_dim, num_identities).to(device)
+
+        optimizer = optim.Adam(
+            list(model.parameters()) + list(classifier.parameters()), lr=lr)
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
         criterion = TripletLoss(margin=0.3)
+        id_criterion = nn.CrossEntropyLoss()
+        id_loss_weight = 1.0
 
         # Training loop
         best_loss = float('inf')
@@ -467,7 +805,9 @@ class DeepSORTTrainer(TrainTracker):
 
         for epoch in range(max_epochs):
             model.train()
+            classifier.train()
             train_loss = 0
+            epoch_id_loss = 0
             num_batches = 0
 
             for batch_idx, (images, labels) in enumerate(train_loader):
@@ -475,35 +815,96 @@ class DeepSORTTrainer(TrainTracker):
 
                 optimizer.zero_grad()
                 embeddings = model(images)
-                loss = criterion(embeddings, labels)
 
-                if loss.item() > 0:
-                    loss.backward()
-                    optimizer.step()
+                if not isinstance(labels, torch.Tensor):
+                    labels = torch.tensor(labels)
+                labels = labels.to(device)
 
-                train_loss += loss.item()
+                triplet = criterion(embeddings, labels)
+                id_loss = id_criterion(classifier(embeddings), labels)
+                loss = triplet + id_loss_weight * id_loss
+
+                loss.backward()
+                optimizer.step()
+
+                train_loss += triplet.item()
+                epoch_id_loss += id_loss.item()
                 num_batches += 1
 
             scheduler.step()
 
             avg_train_loss = train_loss / max(num_batches, 1)
 
-            # Validation
+            # Validation, as retrieval rather than as loss. The triplet loss
+            # needs a positive and a negative inside the same batch, and the
+            # validation loader walks the crops in track order, so nearly every
+            # batch holds a single identity and contributes exactly zero. A
+            # constant-zero validation "loss" pins best_model to epoch 1 while
+            # looking perfectly healthy in the log.
+            #
+            # Top-1 retrieval sidesteps batching entirely: embed every
+            # validation crop, and ask how often a crop's nearest neighbour
+            # (not itself) belongs to its own track. That is also literally the
+            # query the tracker answers with this embedding at association
+            # time, so the number selected on is the number that matters.
             model.eval()
-            val_loss = 0
-            num_val_batches = 0
+            val_top1 = None
 
             with torch.no_grad():
+                val_embeddings = []
+                val_labels = []
+
                 for images, labels in test_loader:
-                    images = images.to(device)
-                    embeddings = model(images)
-                    loss = criterion(embeddings, labels)
-                    val_loss += loss.item()
-                    num_val_batches += 1
+                    val_embeddings.append(model(images.to(device)))
+                    val_labels.append(labels if isinstance(labels, torch.Tensor)
+                                      else torch.tensor(labels))
 
-            avg_val_loss = val_loss / max(num_val_batches, 1)
+                if val_embeddings:
+                    val_embeddings = torch.cat(val_embeddings)
+                    val_labels = torch.cat(val_labels).to(device)
 
-            print(f"Epoch {epoch+1}/{max_epochs}: train_loss={avg_train_loss:.4f}, val_loss={avg_val_loss:.4f}")
+                    # Retrieval needs a wrong answer to be available: at least
+                    # two identities, and every crop needs a neighbour
+                    if len(torch.unique(val_labels)) >= 2:
+                        # The full pairwise matrix is N^2: at fifty thousand
+                        # validation crops that is an 11 GB allocation, so the
+                        # nearest neighbour is found a block of rows at a time.
+                        correct = 0
+                        block = 2048
+
+                        for row in range(0, len(val_embeddings), block):
+                            dists = torch.cdist(
+                                val_embeddings[row:row + block], val_embeddings)
+
+                            for i in range(dists.size(0)):
+                                dists[i, row + i] = float('inf')
+
+                            nearest = val_labels[dists.argmin(dim=1)]
+                            correct += int(
+                                (nearest == val_labels[row:row + block]).sum())
+
+                        val_top1 = correct / float(len(val_embeddings))
+
+            # Highest retrieval accuracy wins; negated so the existing
+            # lower-is-better comparison keeps working. Without a usable
+            # validation set (none supplied, or a single identity), fall back
+            # to the training loss rather than to a constant.
+            selection_loss = -val_top1 if val_top1 is not None else avg_train_loss
+
+            avg_id_loss = epoch_id_loss / max(num_batches, 1)
+
+            with torch.no_grad():
+                spread = float(embeddings.std(0).mean())
+
+            val_text = ('val_top1={:.4f}'.format(val_top1)
+                        if val_top1 is not None else 'val_top1=n/a')
+            print(f"Epoch {epoch+1}/{max_epochs}: train_loss={avg_train_loss:.4f}, "
+                  f"id_loss={avg_id_loss:.4f}, embed_spread={spread:.5f}, "
+                  f"{val_text}")
+
+            if spread < 1e-4:
+                print("  Warning: embeddings have collapsed to a single point; "
+                      "the resulting model cannot discriminate")
 
             # Save checkpoint
             checkpoint_path = snapshot_dir / f"checkpoint_e{epoch+1}.pth"
@@ -512,11 +913,11 @@ class DeepSORTTrainer(TrainTracker):
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'train_loss': avg_train_loss,
-                'val_loss': avg_val_loss,
+                'val_top1': val_top1,
             }, checkpoint_path)
 
-            if avg_val_loss < best_loss:
-                best_loss = avg_val_loss
+            if selection_loss < best_loss:
+                best_loss = selection_loss
                 best_path = snapshot_dir / "best_model.pth"
                 torch.save(model.state_dict(), best_path)
 

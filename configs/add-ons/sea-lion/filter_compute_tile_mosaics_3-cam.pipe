@@ -1,0 +1,71 @@
+# =============================================================================
+# Title: Filter - Compute Tile Mosaics 3-cam
+#
+# Description: Registers the camera views and composites each time slice into
+# a single tile mosaic image (all cameras warped into camera 1's frame).
+#
+# Metadata File: stabilizer:flight_log
+#   DIVE binds an optional per-dataset metadata file (e.g. an FMCLOG
+#   flight-log CSV) to the registration stabilizer's flight_log input.
+# Image List Keys: stabilizer:image_list{cam}
+#   DIVE binds each camera's input image list (one line-separated file per
+#   camera) to the stabilizer's per-camera image_list<i> input
+#   (image_list1, image_list2, ...). Camera 1's list also locates the survey folder.
+# =============================================================================
+
+config _scheduler
+  type = pythread_per_process
+
+config _pipeline:_edge
+  capacity = 5
+
+include common_three_camera_input_with_downsamplers.pipe
+
+include common_sea_lion_registration_3cam.pipe
+
+connect from downsampler1.output_1
+        to stabilizer.image1
+connect from downsampler1.output_2
+        to stabilizer.file_name1
+connect from downsampler2.output_1
+        to stabilizer.image2
+connect from downsampler2.output_2
+        to stabilizer.file_name2
+connect from downsampler3.output_1
+        to stabilizer.image3
+connect from downsampler3.output_2
+        to stabilizer.file_name3
+
+process mosaicer
+  :: multicam_homog_mosaic
+  n_input = 3
+  :max_dimension                               20000  # DIVE_PARAM["Max mosaic dimension (px)", strictly_positive_int]
+
+connect from downsampler1.output_1
+        to mosaicer.image1
+connect from downsampler2.output_1
+        to mosaicer.image2
+connect from downsampler3.output_1
+        to mosaicer.image3
+connect from stabilizer.homog1
+        to mosaicer.homog1
+connect from stabilizer.homog2
+        to mosaicer.homog2
+connect from stabilizer.homog3
+        to mosaicer.homog3
+connect from downsampler1.output_2
+        to mosaicer.file_name1
+connect from downsampler2.output_2
+        to mosaicer.file_name2
+connect from downsampler3.output_2
+        to mosaicer.file_name3
+
+process image_writer
+  :: image_writer
+  :file_name_template                          .png  # DIVE_PARAM["Filename template", string]
+  :image_writer:type                           vxl
+
+connect from mosaicer.image
+        to image_writer.image
+connect from mosaicer.file_name
+        to image_writer.image_file_name

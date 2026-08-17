@@ -13,6 +13,23 @@ set( PYTORCH_LIBS_TO_BUILD )
 
 if( VIAME_BUILD_PYTORCH_FROM_SOURCE )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch )
+
+  # PyTorch is deliberately not a superbuild submodule: a recursive checkout
+  # runs several GB, and only builds that compile it need one at all - the rest
+  # install a wheel. Clone it from the build step that needs it instead.
+  #
+  # Left as a plain variable, not a cache entry, so that bumping the internal
+  # version re-pins the checkout instead of leaving it on whatever tag was
+  # cached first. Override on the command line to build another ref.
+  if( NOT VIAME_PYTORCH_GIT_TAG )
+    set( VIAME_PYTORCH_GIT_TAG "v${PYTORCH_INTERNAL_VERSION}" )
+  endif()
+
+  OnDemandGitPackage( PYTORCH_SOURCE
+    URL https://github.com/pytorch/pytorch.git
+    DIR ${VIAME_PACKAGES_DIR}/pytorch
+    REF ${VIAME_PYTORCH_GIT_TAG}
+    RECURSIVE SHALLOW )
 endif()
 
 if( VIAME_BUILD_TORCHVISION_FROM_SOURCE )
@@ -106,6 +123,14 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND PYTORCH_ENV_VARS "BEZIER_NO_EXTENSION=1" )
 endif()
 
+# Honor the configured thread cap for PyTorch's own (nested) build. Without
+# this PyTorch ignores the outer make -j and spawns one job per core, which
+# for its larger CUDA and oneDNN translation units can exhaust RAM (Linux
+# OOM-killer takes out cicc/cc1plus) or MSVC heap space (C1060) on Windows.
+if( VIAME_BUILD_MAX_THREADS )
+  list( APPEND PYTORCH_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
+endif()
+
 if( VIAME_ENABLE_CUDA )
   list( APPEND PYTORCH_ENV_VARS "USE_CUDA=1" )
   list( APPEND PYTORCH_ENV_VARS "FORCE_CUDA=1" )
@@ -119,6 +144,16 @@ if( VIAME_ENABLE_CUDA )
   list( APPEND PYTORCH_ENV_VARS "CMAKE_CUDA_FLAGS=--allow-unsupported-compiler" )
   list( APPEND PYTORCH_ENV_VARS "MMCV_CUDA_ARGS=-allow-unsupported-compiler" )
   list( APPEND PYTORCH_ENV_VARS "NO_CAFFE2_OPS=1" )
+
+  # Disable the MSLK (formerly FBGEMM-GenAI) blockscaled FP4/FP8 CUTLASS GEMM
+  # kernels. PyTorch turns these on by default whenever TORCH_CUDA_ARCH_LIST
+  # contains 10.0 and nvcc is >= 12.8, and each f4f4bf16 / mx8mx8bf16 SM100a
+  # translation unit costs cicc well over 10 GB of RAM. At make -j$(nproc) on a
+  # normal build server that reliably OOM-kills nvcc mid-build:
+  #   nvcc error : '"$CICC_PATH/cicc"' died due to signal 9 (Kill signal)
+  # Nothing in VIAME uses MXFP4 blockscaled GEMM, so build them out rather than
+  # throttling the entire PyTorch build to work around a handful of kernels.
+  list( APPEND PYTORCH_ENV_VARS "USE_MSLK=0" )
 else()
   list( APPEND PYTORCH_ENV_VARS "USE_CUDA=0" )
 endif()
@@ -142,13 +177,6 @@ if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
   list( APPEND PYTORCH_ENV_VARS "USE_NCCL=0" )
   list( APPEND PYTORCH_ENV_VARS "CC=${CMAKE_C_COMPILER}" )
   list( APPEND PYTORCH_ENV_VARS "CXX=${CMAKE_CXX_COMPILER}" )
-
-  # Limit parallel compile jobs to prevent MSVC from running out of heap space
-  # (C1060) when building oneDNN/mkl-dnn. Each compiler instance can use several
-  # GB for these large translation units.
-  if( VIAME_BUILD_MAX_THREADS )
-    list( APPEND PYTORCH_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
-  endif()
 
   # Force Ninja generator for PyTorch's internal CMake build.
   # The Visual Studio generator produces DLLs whose DllMain initialization fails
@@ -369,7 +397,14 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   endif()
 
   set( LIBRARY_PATCH_COMMAND "" )
+  set( LIBRARY_DOWNLOAD_ARGS )
   set( PROJECT_DEPS fletch python-deps )
+
+  # Every other package here comes down with the submodules; pytorch is cloned
+  # on demand, so it needs a download step of its own
+  if( "${LIB}" STREQUAL "pytorch" )
+    set( LIBRARY_DOWNLOAD_ARGS DOWNLOAD_COMMAND ${PYTORCH_SOURCE_FETCH_COMMAND} )
+  endif()
 
   if( NOT "${LIB}" STREQUAL "pytorch" )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch )
@@ -386,11 +421,10 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   elseif( "${LIB}" STREQUAL "torch2rt" )
     set( PROJECT_DEPS fletch python-deps tensorrt )
   elseif( "${LIB}" STREQUAL "detectron2" )
-    if( WIN32 )
-      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${VIAME_PATCHES_DIR}/detectron2
-        ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
-    endif()
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/detectron2
+      ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   elseif( "${LIB}" STREQUAL "pyav" )
     # On Windows, FFmpeg puts .lib files in bin/ instead of lib/
     # Need to include both directories in library search path
@@ -426,8 +460,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       ${VIAME_PATCHES_DIR}/mmdeploy
       ${VIAME_PACKAGES_DIR}/pytorch-libs/mmdeploy )
     set( PROJECT_DEPS ${PROJECT_DEPS} mmdetection onnxruntimelibs )
-  elseif( "${LIB}" STREQUAL "detectron2" )
-    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   elseif( "${LIB}" STREQUAL "sam3" )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/sam3
@@ -539,11 +571,28 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${LIBRARY_LOCATION}
     BUILD_IN_SOURCE 1
+    ${LIBRARY_DOWNLOAD_ARGS}
     PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
     CONFIGURE_COMMAND "${LIBRARY_CONFIGURE_CMD}"
     BUILD_COMMAND ${CONDITIONAL_BUILD_CMD}
     INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
     LIST_SEPARATOR "----" )
+
+  if( "${LIB}" STREQUAL "pytorch" )
+    # Re-run the fetch, and every step downstream of it, when the pin moves
+    ExternalProject_Add_StepDependencies( ${LIB} download
+      ${PYTORCH_SOURCE_REF_FILE} )
+
+    # Has to come after the checkout exists, so it cannot live in the build
+    # server scripts that run before configure
+    ExternalProject_Add_Step( ${LIB} patch_nccl_symmem
+      COMMAND ${CMAKE_COMMAND}
+        -DPYTORCH_SOURCE_DIR=${LIBRARY_LOCATION}
+        -P ${VIAME_CMAKE_DIR}/custom_patch_pytorch_nccl.cmake
+      COMMENT "Disabling PyTorch NCCL symmetric-memory support"
+      DEPENDEES patch
+      DEPENDERS configure )
+  endif()
 
   # CUDA 13's nvcc (cudafe++) mishandles a static_cast in the installed torch
   # ATen/core/List_inl.h header, breaking downstream CUDA extension builds such

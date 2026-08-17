@@ -49,7 +49,7 @@ endif()
 
 # Protobuf for siammask (if enabled)
 if( VIAME_ENABLE_PYTORCH-SIAMMASK )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "protobuf" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "protobuf" "yacs" "colorama" "tensorboardX" "einops" )
 endif()
 
 # For fusion classifier
@@ -167,7 +167,7 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_BUILD_PYTORCH_FROM_SOURCE )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-HUGGINGFACE OR VIAME_ENABLE_PYTORCH-RF-DETR )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "transformers>=4.49.0,<5.0.0" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "transformers>=5.1.0,<6.0.0" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-LEARN OR
@@ -187,7 +187,8 @@ if( VIAME_ENABLE_ONNX )
   endif()
 endif()
 
-if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
+if( VIAME_ENABLE_PYTORCH AND
+    ( VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-DETECTRON2 ) )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pycocotools" )
 endif()
 
@@ -237,12 +238,15 @@ if( VIAME_ENABLE_PYTORCH-ULTRALYTICS )
   list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "ultralytics_thop==2.0.18" )
 endif()
 
+# kwcoco is a basic dependency, not a torch one: score_results.py shells out to
+# its eval command, and adding it to the torch-only list left it uninstalled in
+# any build with PyTorch disabled
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR
     VIAME_ENABLE_PYTORCH-MIT-YOLO OR VIAME_ENABLE_PYTORCH-ULTRALYTICS )
   if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
-    list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "kwcoco>=0.8.5" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "kwcoco>=0.8.5" )
   else()
-    list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH "kwcoco>=0.8.0" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "kwcoco>=0.8.0" )
   endif()
 endif()
 

@@ -3,6 +3,7 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 import json
+import math
 import os
 import sys
 import shutil
@@ -25,6 +26,8 @@ from viame.pytorch.utilities import (
     register_vital_algorithm,
     TrainingInterruptHandler,
     ensure_rfdetr_compatibility,
+    apply_rfdetr_stem_lr,
+    rfdetr_resume_lr_callback,
 )
 
 
@@ -37,6 +40,104 @@ _SEG_MODELS = {
     'nano': 'RFDETRSegNano', 'small': 'RFDETRSegSmall',
     'medium': 'RFDETRSegMedium', 'large': 'RFDETRSegLarge',
 }
+
+# Native resolution of each variant, used when resolution = 0 (model default).
+_DET_RESOLUTIONS = {
+    'nano': 384, 'small': 512, 'medium': 576, 'base': 560, 'large': 704,
+}
+_SEG_RESOLUTIONS = {
+    'nano': 312, 'small': 384, 'medium': 432, 'large': 504,
+}
+
+# Coefficients for batch_size = adaptive. Activation memory is treated as
+# linear in pixels x images, on top of a reserve holding the weights, the
+# optimizer moments, the EMA copy and the CUDA context. Calibrated on the two
+# measured points from the 960x1728 runs on a 49 GB card: box micro 8 peaks
+# near 47 GB, and the mask head halves that to 4.
+_ADAPTIVE_RESERVE_GB = 6.0
+_ADAPTIVE_GB_PER_MEGAPIXEL = 3.1
+_ADAPTIVE_SEG_FACTOR = 2.0
+_ADAPTIVE_MULTI_SCALE_FACTOR = 1.37
+_ADAPTIVE_CHECKPOINT_FACTOR = 0.55
+
+# Real growth is super-linear in micro-batch (the matcher/loss cost matrices
+# scale with objects per frame), so auto stops here rather than extrapolating
+# the fit into a range no run has covered.
+_ADAPTIVE_MAX_MICRO_BATCH = 8
+
+
+def smallest_visible_vram_gb():
+    """Total VRAM of the smallest visible GPU in GiB, or None without CUDA."""
+    try:
+        import torch
+        if not torch.cuda.is_available():
+            return None
+        count = torch.cuda.device_count()
+        if count < 1:
+            return None
+        return min(torch.cuda.get_device_properties(i).total_memory
+                   for i in range(count)) / (1024.0 ** 3)
+    except Exception:
+        return None
+
+
+def adaptive_micro_batch(vram_gb, resolution, segmentation=False,
+                         multi_scale=True, gradient_checkpointing=False):
+    """Largest micro-batch a single GPU of vram_gb should hold at this workload.
+
+    Deliberately conservative: it estimates the training step only, so a card
+    that lands just above a boundary still has room for the eval pass.
+    """
+    if isinstance(resolution, (list, tuple)):
+        height, width = int(resolution[0]), int(resolution[1])
+    else:
+        height = width = int(resolution)
+
+    per_image = _ADAPTIVE_GB_PER_MEGAPIXEL * (height * width) / 1e6
+    if segmentation:
+        per_image *= _ADAPTIVE_SEG_FACTOR
+    if multi_scale:
+        per_image *= _ADAPTIVE_MULTI_SCALE_FACTOR
+    if gradient_checkpointing:
+        per_image *= _ADAPTIVE_CHECKPOINT_FACTOR
+
+    usable = float(vram_gb) - _ADAPTIVE_RESERVE_GB
+    if usable <= 0 or per_image <= 0:
+        return 1
+    return max(1, min(int(usable // per_image), _ADAPTIVE_MAX_MICRO_BATCH))
+
+
+# Bytes a complete file of each format ends with. A frame whose write was cut
+# short (interrupted extraction, full disk) keeps a valid header, so PIL reports
+# a size for it and only raises "image file is truncated" much later, inside a
+# DataLoader worker. Under DDP that kills one rank and leaves every other rank
+# blocked in the next collective until the NCCL watchdog aborts the whole job,
+# ddp_timeout seconds later, with no mention of the offending file.
+_IMAGE_EOF_MARKERS = {
+    '.png': b"\x00\x00\x00\x00IEND\xaeB\x60\x82",
+    '.jpg': b"\xff\xd9",
+    '.jpeg': b"\xff\xd9",
+}
+
+
+def image_is_complete(fh, path):
+    """True if an open image file carries its format's end-of-file marker."""
+    marker = _IMAGE_EOF_MARKERS.get(os.path.splitext(path)[1].lower())
+
+    if marker is None:
+        return True
+
+    try:
+        fh.seek(-32, os.SEEK_END)
+        tail = fh.read(32)
+    except OSError:
+        return False
+
+    # JPEGs are commonly padded past their EOI, PNGs never are.
+    if marker == b"\xff\xd9":
+        return marker in tail
+
+    return tail.endswith(marker)
 
 
 def select_model_class(model_size, segmentation):
@@ -114,6 +215,15 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     strategy = scfg.Value('auto', help=(
         'Multi-GPU strategy. "auto" uses ddp_find_unused_parameters_true when '
         'training on more than one GPU.'))
+    ddp_timeout = scfg.Value(0, help=(
+        'Seconds a DDP rank may lag the others before the NCCL watchdog aborts '
+        'every rank (0 = PyTorch-Lightning default, 1800). A rank that stalls '
+        'longer than this kills the whole run with SIGABRT, and the ranks that '
+        'report the timeout are the victims, not the culprit -- the straggler '
+        'is whichever rank is absent from the error. Raise it when a rank can '
+        'legitimately be slow (checkpoint writes to network storage, a long '
+        'eval); it does NOT rescue a genuine deadlock, it only delays it, so '
+        'a hung run holds its GPUs for this long before dying.'))
     num_channels = scfg.Value(3, help=(
         'Number of input channels. 3 = RGB; 4 = RGB + a motion/flow channel '
         '(RGBA). RF-DETR adapts the pretrained input conv to match.'))
@@ -154,14 +264,36 @@ class RFDETRTrainerConfig(scfg.DataConfig):
     # Training hyperparameters
     max_epochs = scfg.Value(100, help='Maximum number of epochs to train for')
     batch_size = scfg.Value(4, help=(
-        'Images per micro-batch, or "auto" to let RF-DETR probe for the '
-        'largest micro-batch that fits in VRAM and derive grad_accum_steps to '
-        'reach auto_batch_target_effective.'))
+        'Images per micro-batch. "adaptive" sizes it from the VRAM of the '
+        'smallest visible GPU (estimated from resolution, segmentation, '
+        'multi_scale and gradient_checkpointing) and sets grad_accum_steps so '
+        'the global batch still hits auto_batch_target_effective -- one config '
+        'then runs unchanged on an 8 GB card or a 141 GB one. It resolves once '
+        'here, so every DDP rank is handed the same numbers. "auto" instead '
+        'has RF-DETR probe the real model for the largest micro-batch that '
+        'fits: more accurate, but it costs a probe pass, needs CUDA, and each '
+        'rank probes for itself.'))
     auto_batch_target_effective = scfg.Value(16, help=(
-        'Per-device effective batch size (micro-batch * grad_accum) targeted '
-        'when batch_size="auto". Ignored for a fixed batch_size.'))
+        'Effective batch (micro-batch * grad_accum * ranks) targeted when '
+        'batch_size is "adaptive" or "auto"; both divide it by the GPU count, '
+        'so it is the GLOBAL batch the learning rate should be tuned for. '
+        'Ignored for a fixed batch_size.'))
     learning_rate = scfg.Value(1e-4, help='Learning rate')
     learning_rate_encoder = scfg.Value(1.5e-4, help='Learning rate for encoder')
+    lr_vit_layer_decay = scfg.Value(0.8, help=(
+        'Per-block LR decay down the ViT backbone; at the 0.8 default the '
+        'patch-embed stem runs ~20x slower than the last block. 1.0 trains '
+        'every block at learning_rate_encoder.'))
+    lr_component_decay = scfg.Value(0.7, help=(
+        'Whole-component LR multiplier: decoder gets learning_rate * this, the '
+        'backbone a further square of it. 1.0 disables it.'))
+    lr_stem = scfg.Value(0.0, help=(
+        'Absolute LR for the patch-embed stem, overriding its place at the '
+        'bottom of the lr_vit_layer_decay ladder. Set this instead of '
+        'flattening the decays when only the input stem needs to move -- with '
+        'motion or extra-channel infusion the stem has to learn a non-RGB '
+        'input while the trunk above it is already converged. 0 disables the '
+        'override and leaves the stem on the ladder.'))
     grad_accum_steps = scfg.Value(4, help='Gradient accumulation steps')
     weight_decay = scfg.Value(1e-4, help='Weight decay for optimizer')
     warmup_epochs = scfg.Value(0.0, help='Number of warmup epochs')
@@ -193,6 +325,25 @@ class RFDETRTrainerConfig(scfg.DataConfig):
 
     # Checkpointing
     checkpoint_interval = scfg.Value(10, help='Save checkpoint every N epochs')
+    resume = scfg.Value(False, help=(
+        'Continue seed_model as a run in progress instead of starting a fresh '
+        'one from its weights. seed_model must then be a checkpoint carrying '
+        'training state -- rf_detr_output/last.ckpt, written every epoch -- so '
+        'the Adam moments and the EMA survive and there is no re-warming '
+        'transient at the handover. The learning rates do NOT carry over: '
+        'PyTorch-Lightning restores them from the checkpoint, and VIAME then '
+        'puts the config values back and restarts the schedule, so the '
+        'learning_rate*, lr_scheduler and lr_drop settings below still apply. '
+        'That is deliberate -- a schedule that has annealed to ~0 has no '
+        'training left in it, so resuming onto it would do nothing. A '
+        'checkpoint that already completed max_epochs trains another full '
+        'round: the total extends to the next multiple of max_epochs.'))
+    skip_best_epochs = scfg.Value(0, help=(
+        'Ignore the first N epochs when tracking the best regular/EMA '
+        'checkpoints. Set this when seeding from a converged model: warmup '
+        'holds the weights near the seed, so the epoch-0 EMA can win '
+        'best-checkpoint selection outright and the exported model ends up '
+        'being the seed rather than the trained result.'))
 
     # DataLoader performance (accuracy-neutral). Seg models augment on the CPU,
     # so the default of 2 workers/GPU can starve the GPUs; set num_workers near
@@ -215,6 +366,27 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         '(batch>1 is unusable), so this dominates epoch time on large vali '
         'sets. A subsample gives a fast, stable selection signal; run a full '
         'eval on the final best checkpoint for the headline number.'))
+    val_min_class_instances = scfg.Value(0, help=(
+        'Ground-truth instances each class is guaranteed in the val_subsample. 0 '
+        'samples uniformly, leaving rare classes a handful of boxes apiece and '
+        'their AP swinging epoch to epoch. Above 0, chips are reserved rarest-'
+        'class-first, then the budget is filled uniformly. Needs val_subsample.'))
+    min_class_support = scfg.Value(0, help=(
+        'Ground-truth instances a class needs to count toward the macro mAP and '
+        'macro-F1, and so toward checkpoint selection. Thinner classes stay in the '
+        'per-class table and val/AP/<name>. Pairs with val_min_class_instances.'))
+    verify_images = scfg.Value(True, help=(
+        'Exclude images missing their end-of-file marker when building the COCO '
+        'dataset, catching chips a crashed chipping pass left truncated. Costs a '
+        'second read per file; turn off to re-scan an already-validated cache.'))
+    dataset_scan_threads = scfg.Value(0, help=(
+        'Threads reading image dimensions while building the COCO dataset. Bound '
+        'by filesystem round trips, not bytes or CPU, so counts well past the core '
+        'count help. 0 auto-sizes from the CPU count; 1 disables the pool.'))
+    class_agnostic_eval = scfg.Value(True, help=(
+        'Also evaluate with every label collapsed to one class, logged as '
+        'val/mAP_50_95_agnostic: scores whether the object was found at all, '
+        'independent of naming. Boxes and base model only, so the cost is small.'))
     max_mask_instances = scfg.Value(0, help=(
         'Cap matched instances per chip used by the segmentation mask loss '
         '(0 = off). The RF-DETR mask loss allocates per-matched-instance '
@@ -358,6 +530,65 @@ class RFDETRTrainer(TrainDetector):
                   f"not importable. RF-DETR will silently skip ALL augmentation "
                   f"and train on unaugmented imagery. Install albumentations.")
 
+    def _resolve_adaptive_batch(self, n_gpus):
+        """Replace batch_size = adaptive with concrete per-device values.
+
+        What VRAM decides is only how the target batch is *split* -- into a
+        micro-batch the smallest visible GPU can hold plus however many
+        accumulation steps make up the difference. The batch the optimizer
+        actually steps on stays auto_batch_target_effective on every machine,
+        so the same config keeps the learning rate it was tuned with instead of
+        training at whatever global batch the hardware happens to imply.
+        """
+        segmentation = parse_bool(self._segmentation)
+        resolution = self._resolution
+        if not resolution_is_set(resolution):
+            table = _SEG_RESOLUTIONS if segmentation else _DET_RESOLUTIONS
+            resolution = table.get(str(self._model_size).lower(), 704)
+
+        vram_gb = smallest_visible_vram_gb()
+        if vram_gb is None:
+            fits = 1
+        else:
+            fits = adaptive_micro_batch(
+                vram_gb, resolution, segmentation=segmentation,
+                multi_scale=parse_bool(self._multi_scale),
+                gradient_checkpointing=parse_bool(self._gradient_checkpointing))
+
+        target = max(1, int(self._auto_batch_target_effective))
+        ranks = max(1, int(n_gpus))
+
+        # Split the target across the ranks, then over as few accumulation steps
+        # as fit -- and only over ones that divide it evenly, so the global batch
+        # lands on the target rather than above it. Bigger cards therefore buy
+        # fewer accumulation steps, not a larger (and differently tuned) batch;
+        # spending spare VRAM means raising auto_batch_target_effective and the
+        # learning rate with it.
+        per_rank = int(math.ceil(target / float(ranks)))
+        accum = max(1, int(math.ceil(per_rank / float(fits))))
+        while per_rank % accum:
+            accum += 1
+        micro = max(1, per_rank // accum)
+
+        if vram_gb is None:
+            print("[RFDETRTrainer] batch_size = adaptive, but no GPU is "
+                  "visible; using micro-batch 1")
+        else:
+            print(f"[RFDETRTrainer] batch_size = adaptive: {vram_gb:.1f} GiB "
+                  f"on the smallest of {ranks} GPU(s), "
+                  f"{format_resolution(resolution)}"
+                  f"{', segmentation' if segmentation else ''} -> fits "
+                  f"{fits}/GPU, using {micro} x {accum} accum x {ranks} = "
+                  f"{micro * accum * ranks}")
+            if fits <= 1 and accum > 1:
+                print("[RFDETRTrainer] WARNING: only one image per GPU fits at "
+                      "this resolution, so the effective batch is reached "
+                      "entirely by accumulation. gradient_checkpointing = True "
+                      "trades ~30% speed for roughly double the micro-batch.")
+
+        self._batch_size = micro
+        self._grad_accum_steps = accum
+
     def _report_effective_batch(self, n_gpus):
         """
         batch_size and grad_accum_steps are per-device and the learning rate is
@@ -372,7 +603,106 @@ class RFDETRTrainer(TrainDetector):
         print(f"[RFDETRTrainer] Effective batch = {micro} x "
               f"{int(self._grad_accum_steps)} grad_accum x {devices} device(s) "
               f"= {effective} (lr = {self._learning_rate}, "
-              f"lr_encoder = {self._learning_rate_encoder})")
+              f"lr_encoder = {self._learning_rate_encoder}, "
+              f"vit_layer_decay = {self._lr_vit_layer_decay}, "
+              f"component_decay = {self._lr_component_decay}"
+              + (f", lr_stem = {self._lr_stem}"
+                 if float(self._lr_stem) > 0 else "") + ")")
+
+    def _resolve_scan_threads(self):
+        """Threads for the COCO dimension scan; 0 auto-sizes from the CPU count.
+
+        Oversubscribed at 4x cores because the threads block on I/O rather than
+        hold the GIL; capped so a big node does not bury network storage.
+        """
+        configured = int(self._dataset_scan_threads)
+        if configured > 0:
+            return configured
+        return max(1, min(32, (os.cpu_count() or 4) * 4))
+
+    @staticmethod
+    def _subsample_val_indices(val_dets, cat_name_to_id, n_sub, min_per_class):
+        """Pick which validation images to keep, as a sorted index list.
+
+        With min_per_class = 0 this is a plain uniform sample. Above 0 it first
+        reserves images until every class that can reach the floor has at least
+        that many instances, then fills the remaining budget uniformly.
+
+        A uniform sample of a long-tailed set gives rare classes single-digit
+        instance counts, and an AP over five boxes moves in visible steps from
+        epoch to epoch -- noise that lands directly in the macro-averaged mAP that
+        selects the exported checkpoint. Reserving a floor costs a few images of
+        budget and cuts that variance at the source.
+
+        Classes whose whole-set count is already below the floor take every image
+        they appear in; nothing can be done for them beyond that.
+        """
+        import random
+        from collections import Counter
+
+        order = list(range(len(val_dets)))
+        random.Random(1234).shuffle(order)
+
+        if min_per_class <= 0:
+            return sorted(order[:n_sub])
+
+        per_image = []
+        for det_set in val_dets:
+            counts = Counter()
+            if det_set is not None:
+                for det in det_set:
+                    det_type = det.type
+                    if det_type is None:
+                        continue
+                    name = det_type.get_most_likely_class()
+                    if name in cat_name_to_id:
+                        counts[name] += 1
+            per_image.append(counts)
+
+        totals = Counter()
+        for counts in per_image:
+            totals.update(counts)
+
+        selected = set()
+        held = Counter()
+        # Rarest first: a rare class has few images to draw on, and an image taken
+        # for it also credits every other class in the same frame. Filling common
+        # classes first would spend the budget before the tail is reached.
+        for name, _ in sorted(totals.items(), key=lambda kv: kv[1]):
+            for i in order:
+                if held[name] >= min_per_class:
+                    break
+                if i in selected or not per_image[i][name]:
+                    continue
+                selected.add(i)
+                held.update(per_image[i])
+
+        reserved = len(selected)
+        for i in order:
+            if len(selected) >= n_sub:
+                break
+            selected.add(i)
+
+        # Recounted over the final selection, not the reserved subset: the uniform
+        # fill carries instances of its own and can lift a class over the floor.
+        final = Counter()
+        for i in selected:
+            final.update(per_image[i])
+        short = sorted(
+            name for name, total in totals.items()
+            if final[name] < min_per_class and total >= min_per_class
+        )
+        print(f"[RFDETRTrainer] Stratified validation: {reserved} chip(s) "
+              f"reserved to give {len(totals)} class(es) >= {min_per_class} "
+              f"instance(s)")
+        if reserved > n_sub:
+            print(f"[RFDETRTrainer] WARNING: the per-class floor needs "
+                  f"{reserved} chips, over the val_subsample budget of {n_sub}; "
+                  f"keeping all of them")
+        if short:
+            print(f"[RFDETRTrainer] WARNING: below the floor despite having "
+                  f"enough instances overall: {', '.join(short)}")
+        return sorted(selected)
 
     def _prepare_roboflow_dataset(self):
         """
@@ -415,21 +745,72 @@ class RFDETRTrainer(TrainDetector):
             for category in categories_json:
                 category["keypoints"] = list(kp_names)
 
+        unreadable = []
+        verify_images = parse_bool(self._verify_images)
+        scan_threads = self._resolve_scan_threads()
+        print(f"[RFDETRTrainer] Image scan: {scan_threads} thread(s), "
+              f"truncation check {'on' if verify_images else 'off'}")
+
+        def probe_image(item):
+            """Read one image's dimensions. Returns (index, width, height, error)."""
+            img_idx, img_path = item
+            try:
+                with open(img_path, 'rb') as fh:
+                    with Image.open(fh) as im:  # lazy: header only, ~57 bytes
+                        width, height = im.size
+                    # Seeks past the buffer the header read filled, so it costs a
+                    # second round trip per file.
+                    if verify_images and not image_is_complete(fh, img_path):
+                        raise OSError("image file is truncated")
+            except Exception as exc:
+                return img_idx, None, None, f"{type(exc).__name__}: {exc}"
+            return img_idx, width, height, None
+
+        def probe_block(items):
+            """Map probe_image over (index, path) pairs, threaded when worthwhile.
+
+            Bound by filesystem round trips, not bytes or CPU, so threads overlap
+            the waiting and oversubscription helps.
+            """
+            if scan_threads > 1 and len(items) > 1:
+                from concurrent.futures import ThreadPoolExecutor
+                with ThreadPoolExecutor(max_workers=scan_threads) as pool:
+                    return {i: (w, h, e) for i, w, h, e in pool.map(probe_image, items)}
+            return {i: (w, h, e) for i, w, h, e in map(probe_image, items)}
+
+        # Blocked, not all at once: one entry per image over a 5M-image split would
+        # cost ~1 GB on top of the COCO lists already accumulating here.
+        probe_block_size = 20000
+
         def build_coco_json(image_files, detection_sets):
             images_json = []
             annotations_json = []
             ann_id = 1
+            total = min(len(image_files), len(detection_sets))
+            probed = {}
 
-            for img_idx, (img_path, det_set) in enumerate(
-                zip(image_files, detection_sets)
-            ):
-                img_path = str(img_path)
-                if not os.path.exists(img_path):
+            for img_idx in range(total):
+                img_path = str(image_files[img_idx])
+                det_set = detection_sets[img_idx]
+
+                if img_idx % probe_block_size == 0:
+                    # Only the I/O is parallel: the loop below walks kwiver
+                    # detection objects, which are not safe to share.
+                    probed = probe_block([
+                        (i, str(image_files[i]))
+                        for i in range(img_idx, min(img_idx + probe_block_size, total))
+                    ])
+                    # Silence here is indistinguishable from a hang.
+                    if total > probe_block_size:
+                        print(f"[RFDETRTrainer] Scanning image dimensions: "
+                              f"{img_idx}/{total}", flush=True)
+
+                # No exists() pre-check: probe_image's open() already catches a
+                # missing path, and now reports it instead of skipping silently.
+                width, height, error = probed[img_idx]
+                if error is not None:
+                    unreadable.append((img_path, error))
                     continue
-
-                # Read dimensions from header only
-                with Image.open(img_path) as im:
-                    width, height = im.size
 
                 img_id = img_idx
                 abs_path = os.path.abspath(img_path)
@@ -515,10 +896,9 @@ class RFDETRTrainer(TrainDetector):
         val_dets = self._test_detections
         n_sub = int(self._val_subsample)
         if n_sub > 0 and len(val_files) > n_sub:
-            import random
-            idx = list(range(len(val_files)))
-            random.Random(1234).shuffle(idx)
-            idx = sorted(idx[:n_sub])
+            idx = self._subsample_val_indices(
+                val_dets, cat_name_to_id, n_sub,
+                int(self._val_min_class_instances))
             val_files = [val_files[i] for i in idx]
             val_dets = [val_dets[i] for i in idx]
             print(f"[RFDETRTrainer] Validation subsampled to {len(val_files)} "
@@ -533,6 +913,19 @@ class RFDETRTrainer(TrainDetector):
         # RF-DETR requires a test split; reuse validation data
         with open(test_dir / "_annotations.coco.json", "w") as f:
             json.dump(valid_coco, f)
+
+        if unreadable:
+            report = ub.Path(self._train_directory) / "unreadable_images.txt"
+            with open(report, "w") as f:
+                for path, reason in unreadable:
+                    f.write(f"{path}\t{reason}\n")
+            print(f"[RFDETRTrainer] WARNING: excluded {len(unreadable)} "
+                  f"truncated or unreadable image(s) from training; full list "
+                  f"in {report}")
+            for path, reason in unreadable[:10]:
+                print(f"[RFDETRTrainer]   {path} ({reason})")
+            if len(unreadable) > 10:
+                print(f"[RFDETRTrainer]   ... and {len(unreadable) - 10} more")
 
         return dataset_dir, class_names
 
@@ -583,6 +976,10 @@ class RFDETRTrainer(TrainDetector):
         # interpreter, so multi-GPU training runs in a subprocess (see
         # rf_detr_launcher.py); single-GPU stays in-process below.
         n_gpus = self._resolve_gpu_count(device)
+
+        if str(self._batch_size).strip().lower() == 'adaptive':
+            self._resolve_adaptive_batch(n_gpus)
+
         if n_gpus > 1:
             print(f"[RFDETRTrainer] {n_gpus} GPUs visible; training with DDP "
                   "across all of them")
@@ -607,6 +1004,12 @@ class RFDETRTrainer(TrainDetector):
         # of the pretrained positional embeddings to match (see
         # rfdetr.models.weights.interpolate_position_embeddings).
         model_kwargs = dict(num_channels=num_channels, device=device)
+        # Explicit num_classes makes load_pretrain_weights keep every seed
+        # weight except the classification head, which is reinitialized at the
+        # dataset's class count. Without it a seed checkpoint's head size wins
+        # and a larger dataset class count crashes CUDA in the criterion.
+        if self._class_names:
+            model_kwargs['num_classes'] = len(self._class_names)
         if resolution_is_set(self._resolution):
             model_kwargs['resolution'] = self._resolution
         if gradient_checkpointing:
@@ -629,8 +1032,9 @@ class RFDETRTrainer(TrainDetector):
         # Create model. Seed via pretrain_weights so the weights survive into
         # RFDETRModelModule, which rebuilds the network from model_config inside
         # train() and loads only model_config.pretrain_weights (a load_state_dict on
-        # the wrapper here would be discarded). load_pretrain_weights aligns
-        # num_classes from the checkpoint/dataset.
+        # the wrapper here would be discarded). With num_classes set above,
+        # load_pretrain_weights sizes the head for this dataset and keeps the rest
+        # of the checkpoint.
         if len(self._seed_model) > 0 and ub.Path(self._seed_model).exists():
             model = RFDETRModel(pretrain_weights=self._seed_model, **model_kwargs)
         else:
@@ -638,7 +1042,8 @@ class RFDETRTrainer(TrainDetector):
             model = RFDETRModel(**model_kwargs)
 
         # Parse training parameters
-        epochs = int(self._max_epochs)
+        resume_from = self._resolve_resume()
+        epochs = self._resolve_epochs(resume_from)
         # "auto" lets RF-DETR probe for the largest micro-batch that fits VRAM.
         if str(self._batch_size).strip().lower() == 'auto':
             batch_size = 'auto'
@@ -646,6 +1051,8 @@ class RFDETRTrainer(TrainDetector):
             batch_size = int(self._batch_size)
         lr = float(self._learning_rate)
         lr_encoder = float(self._learning_rate_encoder)
+        lr_vit_layer_decay = float(self._lr_vit_layer_decay)
+        lr_component_decay = float(self._lr_component_decay)
         grad_accum_steps = int(self._grad_accum_steps)
         weight_decay = float(self._weight_decay)
         warmup_epochs = float(self._warmup_epochs)
@@ -680,6 +1087,8 @@ class RFDETRTrainer(TrainDetector):
             batch_size=batch_size,
             lr=lr,
             lr_encoder=lr_encoder,
+            lr_vit_layer_decay=lr_vit_layer_decay,
+            lr_component_decay=lr_component_decay,
             grad_accum_steps=grad_accum_steps,
             weight_decay=weight_decay,
             warmup_epochs=warmup_epochs,
@@ -691,11 +1100,16 @@ class RFDETRTrainer(TrainDetector):
             early_stopping_patience=early_stopping_patience,
             multi_scale=multi_scale,
             checkpoint_interval=checkpoint_interval,
+            skip_best_epochs=int(self._skip_best_epochs),
             eval_interval=int(self._eval_interval),
             eval_max_dets=int(self._eval_max_dets),
+            min_class_support=int(self._min_class_support),
+            class_agnostic_eval=parse_bool(self._class_agnostic_eval),
             tensorboard=use_tensorboard,
             wandb=False,
         )
+        if resume_from:
+            train_kwargs["resume"] = resume_from
         # Omit aug_config when None so RF-DETR applies its own default preset.
         if aug_config is not None:
             train_kwargs["aug_config"] = aug_config
@@ -740,13 +1154,20 @@ class RFDETRTrainer(TrainDetector):
 
         stop_control = _StopControlCallback(timeout_seconds)
         original_build_trainer = rfdetr_training.build_trainer
+        extra_callbacks = [stop_control]
+        if resume_from:
+            extra_callbacks.append(rfdetr_resume_lr_callback())
 
         def _build_trainer_with_stop_control(*args, **kwargs):
             trainer = original_build_trainer(*args, **kwargs)
-            trainer.callbacks.append(stop_control)
+            trainer.callbacks.extend(extra_callbacks)
             return trainer
 
         rfdetr_training.build_trainer = _build_trainer_with_stop_control
+
+        # Must land before train() builds the optimizer param groups.
+        apply_rfdetr_stem_lr(self._lr_stem, lr_encoder, lr_component_decay,
+                             lr_vit_layer_decay)
 
         with TrainingInterruptHandler("RFDETRTrainer", on_interrupt=stop_control.request_stop) as handler:
             try:
@@ -789,6 +1210,61 @@ class RFDETRTrainer(TrainDetector):
             return self._strategy
         return 'ddp_find_unused_parameters_true'
 
+    def _resolve_resume(self):
+        """Return the ckpt_path to resume from, or '' for a fresh run.
+
+        Resume reuses seed_model rather than taking a path of its own. The
+        network is built and head-aligned from model_config.pretrain_weights
+        before fit(ckpt_path=) restores into it, so two separate paths could
+        disagree on num_classes and fail the restore on class_embed, and a
+        resume path with no seed_model would build the default 90-class head
+        that a single-class checkpoint cannot load into.
+        """
+        if not parse_bool(self._resume):
+            return ''
+        path = str(self._seed_model).strip()
+        if not path:
+            raise ValueError(
+                "resume = true requires seed_model to point at the checkpoint "
+                "to continue (rf_detr_output/last.ckpt).")
+        if not os.path.exists(path):
+            raise ValueError(f"resume seed_model does not exist: {path}")
+        if not path.endswith('.ckpt'):
+            raise ValueError(
+                f"resume needs a PyTorch-Lightning .ckpt, got: {path}. The "
+                "checkpoint_best_*.pth files carry weights but no optimizer or "
+                "EMA state, so there is nothing to resume -- set resume = "
+                "false to warm-start from one of those instead.")
+        return path
+
+    def _resolve_epochs(self, resume_from):
+        """Total epochs to pass to fit(). A resumed checkpoint that already
+        finished its schedule would restore and stop without training a step,
+        so extend the total to the next multiple of max_epochs -- a finished
+        run continued with --continue trains another full round, while a
+        partially-trained one (including a prior extension) just runs to the
+        end of its current round."""
+        epochs = int(self._max_epochs)
+        if not resume_from:
+            return epochs
+        import torch
+        ckpt = torch.load(resume_from, map_location="cpu", weights_only=False)
+        # last.ckpt is written inside the final epoch's end-of-epoch hooks, so
+        # the stored epoch is the just-finished one; Lightning only advances
+        # past it at restore time.
+        try:
+            saved_epoch = int(ckpt["epoch"])
+        except (KeyError, TypeError, ValueError):
+            saved_epoch = int(ckpt["loops"]["fit_loop"]
+                              ["epoch_progress"]["current"]["processed"])
+        completed = saved_epoch + 1
+        del ckpt
+        total = epochs * (completed // epochs + 1)
+        if total != epochs:
+            print(f"[RFDETRTrainer] Resume checkpoint has completed "
+                  f"{completed} epochs; extending schedule to {total} total")
+        return total
+
     def _dataloader_kwargs(self):
         """Accuracy-neutral DataLoader tuning passed to model.train(). On
         Windows, worker subprocesses fail (spawn re-invokes viame.exe), so force
@@ -812,13 +1288,16 @@ class RFDETRTrainer(TrainDetector):
         else:
             batch_size = int(self._batch_size)
 
+        resume_from = self._resolve_resume()
         train_kwargs = dict(
             dataset_dir=str(dataset_dir),
             output_dir=str(output_dir),
-            epochs=int(self._max_epochs),
+            epochs=self._resolve_epochs(resume_from),
             batch_size=batch_size,
             lr=float(self._learning_rate),
             lr_encoder=float(self._learning_rate_encoder),
+            lr_vit_layer_decay=float(self._lr_vit_layer_decay),
+            lr_component_decay=float(self._lr_component_decay),
             grad_accum_steps=int(self._grad_accum_steps),
             weight_decay=float(self._weight_decay),
             warmup_epochs=float(self._warmup_epochs),
@@ -830,14 +1309,22 @@ class RFDETRTrainer(TrainDetector):
             early_stopping_patience=int(self._early_stopping_patience),
             multi_scale=parse_bool(self._multi_scale),
             checkpoint_interval=int(self._checkpoint_interval),
+            skip_best_epochs=int(self._skip_best_epochs),
             eval_interval=int(self._eval_interval),
             eval_max_dets=int(self._eval_max_dets),
+            min_class_support=int(self._min_class_support),
+            class_agnostic_eval=parse_bool(self._class_agnostic_eval),
             tensorboard=parse_bool(self._use_tensorboard),
             wandb=False,
             class_names=list(self._class_names),
             devices=n_gpus,
             strategy=self._resolve_strategy(n_gpus),
         )
+        if resume_from:
+            train_kwargs["resume"] = resume_from
+        ddp_timeout = int(self._ddp_timeout)
+        if ddp_timeout > 0:
+            train_kwargs["ddp_timeout_seconds"] = ddp_timeout
         if batch_size == 'auto':
             train_kwargs["auto_batch_target_effective"] = \
                 int(self._auto_batch_target_effective)
@@ -856,6 +1343,10 @@ class RFDETRTrainer(TrainDetector):
             gradient_checkpointing=parse_bool(self._gradient_checkpointing),
             seed_model=self._seed_model,
             class_names=list(self._class_names),
+            # Not a TrainConfig field, so it cannot ride in train_kwargs (pydantic
+            # extra="ignore" would drop it silently). The launcher applies it as a
+            # patch per rank instead.
+            lr_stem=float(self._lr_stem),
             train_kwargs=train_kwargs,
         )
 
@@ -925,6 +1416,17 @@ class RFDETRTrainer(TrainDetector):
                     f"Ask the scheduler for more memory (Slurm: --mem and "
                     f"--cpus-per-task), or lower num_workers / prefetch_factor / "
                     f"val_subsample."
+                ) from exc
+            if exc.returncode == -6:
+                secs = int(self._ddp_timeout) or 1800
+                raise RuntimeError(
+                    f"A DDP rank aborted with SIGABRT: the NCCL watchdog tore "
+                    f"every rank down after a collective sat unmatched for "
+                    f"{secs}s (ddp_timeout). The ranks that report the timeout "
+                    f"are the victims -- the cause is whichever rank is MISSING "
+                    f"from those errors. Search the log above for that rank's "
+                    f"'[rankN]:' traceback; it precedes the timeout by {secs}s "
+                    f"and names the real failure."
                 ) from exc
             raise
 
