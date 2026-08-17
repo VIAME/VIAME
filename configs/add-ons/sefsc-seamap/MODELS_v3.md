@@ -7,19 +7,18 @@ Drop these into the add-on's `models/` directory. Not checked in.
 | file | what | source |
 |---|---|---|
 | `gfit_groups_rf_detr_1728.pth` | group RF-DETR, detector 1 of the fusion | `SEFSC/Models/rgb_1728_groups/trained_detector.pth`, 46 classes, 247,828 steps |
-| `gfit_motion_rf_detr_1728.pth` | motion RF-DETR, detector 2 of the fusion | install `fish_with_motion_rf_detr.pth`, 316,992 steps |
+| `fishtrack_motion_rf_detr_1728.pth` | motion RF-DETR, detector 2 of the fusion | install `fish_with_motion_rf_detr.pth`, 316,992 steps |
 | `gfit_groups_enetv2m_large.zip` | groups classifier | `SEFSC/Models/classifiers/large_fish_enetv2m.zip` |
 | `gfit_species_enetv2m_large.zip` | species classifier | `large_fish_enetv2m_species.zip` |
-| `gfit_srnn_siamese.pt` | SRNN appearance head | FishTrack23 round 3, `siamese_model.pt` |
-| `gfit_srnn_rnn_f.pt` | SRNN targetRNN AIM | `target_lstm_F.pt` |
-| `gfit_srnn_rnn_v.pt` | SRNN targetRNN AIM V | `target_lstm_V.pt` |
+| `fishtrack_srnn_siamese.pt` | SRNN appearance head | FishTrack23 round 3, `siamese_model.pt` |
+| `fishtrack_srnn_rnn_f.pt` | SRNN targetRNN AIM | `target_lstm_F.pt` |
+| `fishtrack_srnn_rnn_v.pt` | SRNN targetRNN AIM V | `target_lstm_V.pt` |
 | `sam2_hbp.pt` | segmentation, measurement pipes | install `configs/pipelines/models/` |
 | `gfit_cal.json` | stereo calibration | `~/Desktop`; T_y -176.9 mm matches the vertical-baseline note in the stereo pipes |
 
-Two files keep their upstream names rather than taking the `gfit_` prefix:
-`sam2_hbp.pt` ships with the sam2 add-on, and the `.CamCAL` files name the
-physical cameras they calibrate. Rename them too if the pack should be
-self-contained.
+`gfit_` replaces the old `sefsc_` / `seamap_` / `seamap-` prefixes only. The
+FishTrack23-derived models keep `fishtrack_`, and `sam2_hbp.pt` and the
+`.CamCAL` files keep their upstream names.
 
 ## Still needed
 

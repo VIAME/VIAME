@@ -164,7 +164,7 @@ process detector2_l
   :detector:ocv_windowed:detector:type         rf_detr
 
   block detector:ocv_windowed:detector:rf_detr
-    relativepath weight =                      models/gfit_motion_rf_detr_1728.pth
+    relativepath weight =                      models/fishtrack_motion_rf_detr_1728.pth
     :model_size                                large
     :num_channels                              3
     :resolution                                960x1728
@@ -296,11 +296,11 @@ block track_objects:srnn
   :track_search_threshold                      2
   :gpu_list                                    0
 
-  relativepath siamese_model_path =            models/gfit_srnn_siamese.pt
+  relativepath siamese_model_path =            models/fishtrack_srnn_siamese.pt
   :siamese_batch_size                          64
 
-  relativepath targetRNN_AIM_model_path =      models/gfit_srnn_rnn_f.pt
-  relativepath targetRNN_AIM_V_model_path =    models/gfit_srnn_rnn_v.pt
+  relativepath targetRNN_AIM_model_path =      models/fishtrack_srnn_rnn_f.pt
+  relativepath targetRNN_AIM_V_model_path =    models/fishtrack_srnn_rnn_v.pt
   :targetRNN_normalized_models                 True
   :targetRNN_batch_size                        128
 endblock
@@ -451,7 +451,7 @@ process detector2_r
   :detector:ocv_windowed:detector:type         rf_detr
 
   block detector:ocv_windowed:detector:rf_detr
-    relativepath weight =                      models/gfit_motion_rf_detr_1728.pth
+    relativepath weight =                      models/fishtrack_motion_rf_detr_1728.pth
     :model_size                                large
     :num_channels                              3
     :resolution                                960x1728
@@ -583,11 +583,11 @@ block track_objects:srnn
   :track_search_threshold                      2
   :gpu_list                                    0
 
-  relativepath siamese_model_path =            models/gfit_srnn_siamese.pt
+  relativepath siamese_model_path =            models/fishtrack_srnn_siamese.pt
   :siamese_batch_size                          64
 
-  relativepath targetRNN_AIM_model_path =      models/gfit_srnn_rnn_f.pt
-  relativepath targetRNN_AIM_V_model_path =    models/gfit_srnn_rnn_v.pt
+  relativepath targetRNN_AIM_model_path =      models/fishtrack_srnn_rnn_f.pt
+  relativepath targetRNN_AIM_V_model_path =    models/fishtrack_srnn_rnn_v.pt
   :targetRNN_normalized_models                 True
   :targetRNN_batch_size                        128
 endblock
