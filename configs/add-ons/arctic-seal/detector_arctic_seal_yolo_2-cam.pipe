@@ -7,9 +7,10 @@
 # a camera registration file (DIVE camera registration .json, ITK .h5, or
 # plain text 3x3 homography).
 #
-# Camera order follows DIVE display order: camera 1 is optical (the
-# registration reference), camera 2 is thermal (thermal cameras display
-# last).
+# Camera order contract: camera 1 is optical and camera 2 is thermal. DIVE
+# feeds cameras registration-reference first (the dataset's default display
+# camera), then display order, so the optical camera must be the reference
+# and each other camera's registration must map onto it.
 # Input: IMAGE (per camera)
 # Output: BBOX (per camera)
 # =============================================================================
