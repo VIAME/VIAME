@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Shared tracker configuration used in other seamap configurations
+# Title: SeaMap v3 tracker
 #
-# Description: Shared tracker configuration that can be included by other
-# pipelines. Uses model: seamap_tracker_rnn_v_aim.pt.
+# Description: SRNN tracker using the FishTrack23-trained models rather than
+# the SeaMap models shipped with earlier packs.
 # =============================================================================
 
 process tracker
@@ -20,12 +20,12 @@ block track_objects:srnn
   :IOU_reject_threshold                        0.100
   :track_search_threshold                      2
   :gpu_list                                    0
-
-  relativepath siamese_model_path =            models/seamap_tracker_siamese.pt
+  relativepath siamese_model_path =            models/fishtrack_srnn_siamese.pt
   :siamese_batch_size                          64
-
-  relativepath targetRNN_AIM_model_path =      models/seamap_tracker_rnn_f_aim.pt
-  relativepath targetRNN_AIM_V_model_path =    models/seamap_tracker_rnn_v_aim.pt
+  relativepath targetRNN_AIM_model_path =      models/fishtrack_srnn_rnn_f.pt
+  relativepath targetRNN_AIM_V_model_path =    models/fishtrack_srnn_rnn_v.pt
   :targetRNN_normalized_models                 True
   :targetRNN_batch_size                        128
 endblock
+
+# -- end of file --

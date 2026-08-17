@@ -1,0 +1,46 @@
+# =============================================================================
+# Title: SeaMap v3 groups Detector Pipe
+#
+# Description: Fused SEFSC group + FishTrack motion detectors, reclassified to
+# groups. Outputs computed_detections.csv.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================= INPUT FRAME LIST ==============================
+include common_default_input_with_downsampler.pipe
+
+# ================================= DETECTOR ==================================
+include common_seamap_detector_v3.pipe
+
+connect from downsampler.output_1
+        to   detector_rgb_input.image
+connect from downsampler.output_1
+        to   detector_grey.image
+
+# ================================= CLASSIFIER ================================
+include common_seamap_classifier_groups_v3.pipe
+
+connect from downsampler.output_1
+        to   classifier_groups_large.image
+connect from detector_fused.detected_object_set
+        to   classifier_groups_large.detected_object_set
+
+# ================================== WRITER ===================================
+process detector_writer
+  :: detected_object_output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from classifier_groups_output.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp
+
+# -- end of file --

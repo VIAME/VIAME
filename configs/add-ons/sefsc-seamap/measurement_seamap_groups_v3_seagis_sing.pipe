@@ -26,50 +26,22 @@ config _scheduler
 include common_stereo_input_with_downsampler.pipe
 
 # ================================= DETECTOR ==================================
-
-process detector_input
-  :: image_filter
-  :filter:type                                 vxl_convert_image
-
-  block filter:vxl_convert_image
-    :format                                    byte
-    :force_three_channel                       true
-  endblock
+include common_seamap_detector_v3.pipe
 
 connect from downsampler.output_1
-        to   detector_input.image
-
-process detector
-  :: image_object_detector
-  :detector:type                               ocv_windowed
-
-  block detector:ocv_windowed
-    :detector:type                             netharn
-
-    :mode                                      original_and_resized
-    :chip_width                                800
-    :chip_height                               800
-    :chip_width_step                           600
-    :chip_height_step                          400
-    :chip_adaptive_thresh                      1500000
-
-    block detector:netharn
-      relativepath deployed =                  models/seamap_bw_fish_cfrnn_800x800.zip
-    endblock
-  endblock
-
-connect from detector_input.image
-        to   detector.image
+        to   detector_rgb_input.image
+connect from downsampler.output_1
+        to   detector_grey.image
 
 # ================================ CLASSIFIER =================================
 
-include common_seamap_classifier_groups_v2.5.pipe
+include common_seamap_classifier_groups_v3.pipe
 
-connect from detector_input.image
+connect from downsampler.output_1
         to   classifier_groups_large.image
-connect from detector_input.image
-        to   classifier_groups_small.image
-connect from detector.detected_object_set
+connect from downsampler.output_1
+        to   classifier_groups_large.image
+connect from detector_fused.detected_object_set
         to   classifier_groups_large.detected_object_set
 
 # =============================== KP ASSIGNMENT ===============================
@@ -101,18 +73,18 @@ process add_head_tail
     :clip_to_mask                              true
   endblock
 
-connect from detector_input.image
+connect from downsampler.output_1
         to   add_segmentations.image
 connect from classifier_groups_output.detected_object_set
         to   add_segmentations.detected_object_set
-connect from detector_input.image
+connect from downsampler.output_1
         to   add_head_tail.image
 connect from add_segmentations.detected_object_set
         to   add_head_tail.detected_object_set
 
 # =============================== CORE TRACKER ================================
 
-include common_seamap_tracker_v2.5.pipe
+include common_seamap_tracker_v3.pipe
 
 connect from downsampler.output_1
         to   tracker.image
