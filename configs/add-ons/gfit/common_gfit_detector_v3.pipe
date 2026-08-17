@@ -46,7 +46,8 @@ connect from detector_rgb_input.image
         to   detector1.image
 
 # ------------------- detector 2: FishTrack motion RF-DETR --------------------
-# Three channels: grey, plus variance over 5- and 30-frame windows.
+# Three channels: grey, plus variance over 5- and 30-frame windows. The pack's
+# checkpoint emits UNKNOWNFISH (renamed from fish) for label consistency.
 process detector_grey
   :: image_filter
   :filter:type                                 vxl_convert_image
