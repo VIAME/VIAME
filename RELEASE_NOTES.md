@@ -1,3 +1,11 @@
+v0.22.8 - 8/18/2026
+===================
+
+
+-Additional fusion methods to support GFIT pipelines
+
+
+
 v0.22.7 - 8/09/2026
 ===================
 
