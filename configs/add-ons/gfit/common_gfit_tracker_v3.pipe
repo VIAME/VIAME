@@ -12,12 +12,12 @@ process tracker
 block track_objects:bytetrack
   :std_weight_position                         0.050630267994044076
   :std_weight_velocity                         0.1
-  :high_thresh                                 0.45
+  :high_thresh                                 0.30
   :low_thresh                                  0.05
   :match_thresh                                0.98
   :second_match_thresh                         0.98
   :unconfirmed_match_thresh                    0.98
-  :new_track_thresh                            0.45
+  :new_track_thresh                            0.30
   :track_buffer                                21
 endblock
 
