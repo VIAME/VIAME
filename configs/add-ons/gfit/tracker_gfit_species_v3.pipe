@@ -21,7 +21,7 @@ connect from classifier_species_output.detected_object_set
 
 process track_filter
   :: filter_object_tracks
-  :required_states                             5
+  :required_states                             3
 
 connect from tracker.object_track_set
         to   track_filter.object_track_set
