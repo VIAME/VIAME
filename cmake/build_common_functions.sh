@@ -202,11 +202,15 @@ install_deps_apt() {
     python3-pip \
     python-is-python3
 
-  # Install numpy via pip (to target directory if specified, otherwise system)
+  # Install numpy via pip (to target directory if specified, otherwise system).
+  # Ubuntu 24.04+ marks the system interpreter externally-managed (PEP 668), so a
+  # plain system-wide install fails; fall back to --break-system-packages there.
+  # Older distros (22.04) succeed on the first call and never touch the fallback.
   if [ -n "$pip_target" ]; then
     python -m pip install --target "$pip_target" numpy==2.0.2
   else
-    python -m pip install numpy==2.0.2
+    python -m pip install numpy==2.0.2 || \
+      python -m pip install --break-system-packages numpy==2.0.2
   fi
 
   echo "apt-get dependency installation complete"
