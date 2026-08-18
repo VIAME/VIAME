@@ -8,7 +8,7 @@ set(VIAME_FIXUP_BUNDLE ON CACHE BOOL "Fixup bundle for distribution")
 
 # Build Python from source for portability
 set(VIAME_BUILD_PYTHON_FROM_SOURCE ON CACHE BOOL "Build Python from source")
-set(VIAME_PYTHON_VERSION "3.10.4" CACHE STRING "Python version")
+set(VIAME_PYTHON_VERSION "3.12.12" CACHE STRING "Python version")
 
 # PyTorch settings
 set(VIAME_BUILD_LIMIT_NINJA OFF CACHE BOOL "Disable Ninja for PyTorch")

@@ -470,6 +470,11 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       ${VIAME_PATCHES_DIR}/foundation-stereo
       ${VIAME_PACKAGES_DIR}/pytorch-libs/foundation-stereo )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
+  elseif( "${LIB}" STREQUAL "dino3" )
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/dino3
+      ${VIAME_PACKAGES_DIR}/pytorch-libs/dino3 )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   elseif( "${LIB}" STREQUAL "darknet-to-pytorch-onnx" )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/darknet-to-pytorch-onnx
