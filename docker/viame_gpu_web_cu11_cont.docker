@@ -3,7 +3,7 @@ FROM kitware/viame:gpu-algorithms-web-cu11 AS builder
 FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 
 RUN apt-get update -y && \
-    apt-get install -y wget tar openssl curl bzip2 gfortran libharfbuzz0b && \
+    apt-get install -y wget tar openssl curl bzip2 gfortran libharfbuzz0b libxcb-shm0 && \
     apt-get install -y python3-pip python-is-python3 && \
     python -m pip install numpy==2.0.2
 
