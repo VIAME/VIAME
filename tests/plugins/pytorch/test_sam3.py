@@ -35,29 +35,22 @@ import numpy as np
 import pytest
 from PIL import Image
 
+# These plugin tests run with the VIAME-install PYTHONPATH only, so add
+# tests/common explicitly to import the shared helpers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "common"))
+from viame_env import find_viame_install
+
 
 # =============================================================================
 # Test Utilities
 # =============================================================================
 
 def get_viame_install():
-    """Get the VIAME install directory."""
-    if 'VIAME_INSTALL' in os.environ:
-        install_path = Path(os.environ['VIAME_INSTALL'])
-        if install_path.exists():
-            return install_path
-
-    # Try relative paths
-    src_dir = Path(__file__).resolve().parent.parent.parent.parent
-    candidates = [
-        src_dir.parent / "build" / "install",
-        src_dir / "build" / "install",
-    ]
-    for candidate in candidates:
-        if (candidate / "setup_viame.sh").exists():
-            return candidate
-
-    pytest.skip("VIAME install directory not found. Set VIAME_INSTALL environment variable.")
+    """Get the VIAME install directory, skipping the test if it cannot be found."""
+    install = find_viame_install()
+    if install is None:
+        pytest.skip("VIAME install directory not found. Set VIAME_INSTALL environment variable.")
+    return install
 
 
 def get_sam3_models_dir():
