@@ -749,6 +749,31 @@ if( VIAME_ENABLE_PYTHON )
   # nested) cmake invocation and raises the policy floor to 3.5 for them.
   list( APPEND PYTHON_DEP_ENV_VARS "CMAKE_POLICY_VERSION_MINIMUM=3.5" )
 
+  # PEP 668: distributions from Ubuntu 24.04 / Debian 12 onwards drop an
+  # EXTERNALLY-MANAGED marker beside their system interpreter, which makes pip
+  # refuse every install that is not into a venv, --target or --prefix. All of
+  # the superbuild's python dependencies go in through "pip install --user"
+  # with PYTHONUSERBASE pointed at VIAME's own install tree, so they are
+  # refused outright and the build dies as soon as the first python dep runs.
+  # Nothing lands in the distro's site-packages, so opt out of the marker.
+  # Only set when the marker is actually present: the flag arrived in pip
+  # 23.0.1, well after the older interpreters (22.04, Rocky) VIAME also builds
+  # against, and an internally built python is never externally managed.
+  if( NOT VIAME_BUILD_PYTHON_FROM_SOURCE )
+    execute_process(
+      COMMAND ${Python_EXECUTABLE} -c
+        "import os, sysconfig; print( os.path.exists( os.path.join( sysconfig.get_path( 'stdlib' ), 'EXTERNALLY-MANAGED' ) ) )"
+      OUTPUT_VARIABLE VIAME_PYTHON_EXTERNALLY_MANAGED
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET )
+
+    if( VIAME_PYTHON_EXTERNALLY_MANAGED STREQUAL "True" )
+      message( STATUS "System python is PEP 668 externally managed, enabling "
+        "PIP_BREAK_SYSTEM_PACKAGES for VIAME python dependency installs" )
+      list( APPEND PYTHON_DEP_ENV_VARS "PIP_BREAK_SYSTEM_PACKAGES=1" )
+    endif()
+  endif()
+
   if( VIAME_BUILD_MAX_THREADS )
     list( APPEND PYTHON_DEP_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
   endif()

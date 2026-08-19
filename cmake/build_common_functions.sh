@@ -134,6 +134,26 @@ setup_basic_build_environment() {
     export PATH="$cuda_dir/bin:$PATH"
     export LD_LIBRARY_PATH="$cuda_dir/lib64:$LD_LIBRARY_PATH"
   fi
+
+  enable_pip_break_system_packages
+}
+
+# Opt out of PEP 668 when the system interpreter is externally managed
+# (Ubuntu 24.04+, Debian 12+). Everything the superbuild pip installs goes into
+# VIAME's own tree via --user and PYTHONUSERBASE, never the distro's
+# site-packages, but pip refuses those installs outright while the marker is
+# present. The superbuild sets the same variable for its own dependency
+# projects; exporting it here additionally covers pip calls made by nested
+# builds (fletch, kwiver, viame) which inherit this environment. Gated on the
+# marker because the flag only exists in pip 23.0.1 and newer.
+enable_pip_break_system_packages() {
+  local marker
+  marker=$(python -c "import os, sysconfig; print( os.path.join( sysconfig.get_path( 'stdlib' ), 'EXTERNALLY-MANAGED' ) )" 2>/dev/null)
+
+  if [ -n "$marker" ] && [ -f "$marker" ]; then
+    export PIP_BREAK_SYSTEM_PACKAGES=1
+    echo "System python is PEP 668 externally managed, exported PIP_BREAK_SYSTEM_PACKAGES=1"
+  fi
 }
 
 # Export CUDA paths for cmake
