@@ -1066,11 +1066,43 @@ run_build() {
   # Tee to stdout as well as the log file so build errors are visible in the
   # Docker/CI driver output; otherwise a failed make is invisible outside the
   # (discarded) image, which previously let broken builds pass silently.
-  if [ "$continue_on_error" = "true" ]; then
-    make -j$(nproc) 2>&1 | tee "$log_file" || true
+  # pipefail inside the subshell so make's status is seen rather than tee's
+  local status=0
+  if ( set -o pipefail; make -j$(nproc) 2>&1 | tee "$log_file" ); then
+    status=0
   else
-    ( set -o pipefail; make -j$(nproc) 2>&1 | tee "$log_file" )
+    status=$?
+    summarize_build_failure "$log_file"
   fi
+
+  if [ "$continue_on_error" = "true" ]; then
+    return 0
+  fi
+
+  return "$status"
+}
+
+# Re-print the failing part of a build log at the very end of the step output.
+# BuildKit clips a step's log once it passes its (2 MiB by default) limit, and
+# a superbuild's make output blows through that long before it fails, so the
+# actual error scrolls away and the driver reports only "Error 2". Echoing the
+# matching lines last keeps them inside the tail that BuildKit does show.
+# Arguments: $1 = log file
+summarize_build_failure() {
+  local log_file="${1:-build_log.txt}"
+
+  echo "================================================================"
+  echo "BUILD FAILED - error lines from $log_file"
+  echo "================================================================"
+  if [ -f "$log_file" ]; then
+    grep -nE "(^|[[:space:]])(Error [0-9]+|error:|CMake Error|fatal error:|No space left on device)" \
+      "$log_file" | tail -n 60
+    echo "---------------- last 100 lines of $log_file ----------------"
+    tail -n 100 "$log_file"
+  else
+    echo "(no log file at $log_file)"
+  fi
+  echo "================================================================"
 }
 
 # ==============================================================================
