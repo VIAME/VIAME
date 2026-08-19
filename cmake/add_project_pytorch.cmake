@@ -167,7 +167,14 @@ if( VIAME_BUILD_TORCHVISION_FROM_SOURCE AND NOT WIN32 )
 endif()
 
 if( WIN32 AND VIAME_ENABLE_PYTORCH-LEARN )
-  list( APPEND PYTORCH_ENV_VARS "SETUPTOOLS_USE_DISTUTILS=1" )
+  # Must be "local" (setuptools' vendored distutils), not "1". setuptools only
+  # honors "local"/"stdlib"; any other value makes distutils-precedence.pth skip
+  # installing the _distutils_hack shim. On Python <= 3.11 that was harmless --
+  # imports fell through to the stdlib distutils. Python 3.12 removed stdlib
+  # distutils, so the unshimmed import dies with "No module named 'distutils'"
+  # inside setuptools.monkey, and every PEP 517 build against this interpreter
+  # fails with "BackendUnavailable: Cannot import 'setuptools.build_meta'".
+  list( APPEND PYTORCH_ENV_VARS "SETUPTOOLS_USE_DISTUTILS=local" )
 endif()
 
 if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
