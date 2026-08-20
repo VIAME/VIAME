@@ -213,7 +213,7 @@ process classifier_groups_large_l
     relativepath deployed =                    models/gfit_groups_enetv2m_large.zip
 
     :batch_size                                auto
-    :area_pivot                                7000
+    :area_pivot                                0
     :chip_method                               native_square
     :chip_width                                224
     :chip_expansion                            1.3
@@ -500,7 +500,7 @@ process classifier_groups_large_r
     relativepath deployed =                    models/gfit_groups_enetv2m_large.zip
 
     :batch_size                                auto
-    :area_pivot                                7000
+    :area_pivot                                0
     :chip_method                               native_square
     :chip_width                                224
     :chip_expansion                            1.3
