@@ -487,6 +487,21 @@ if( VIAME_ENABLE_PYTHON )
     interactive_stereo )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/align_cameras_process.py
+    core
+    align_cameras_process )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/alignment_core.py
+    core
+    alignment_core )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/interactive_alignment.py
+    core
+    interactive_alignment )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_service.py
     core
     interactive_service )

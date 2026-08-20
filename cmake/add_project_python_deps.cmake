@@ -119,7 +119,10 @@ if( VIAME_ENABLE_KEYPOINT )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb<=0.25.0" )
+  # einops is required by the vendored MINIMA-LoFTR matcher, which
+  # plugins/pytorch/CMakeLists.txt builds unconditionally under this option.
+  # It is also listed under VIAME_ENABLE_PYTORCH-SIAMMASK above; pip dedupes.
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "wandb<=0.25.0" "einops" )
   if( Python_VERSION VERSION_GREATER_EQUAL "3.12" )
     list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-image>=0.24.0" )
   else()

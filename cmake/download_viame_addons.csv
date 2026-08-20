@@ -14,3 +14,4 @@ LEARN, https://viame.kitware.com/girder/api/v1/item/64e2c485ef791ec92a7221b2/dow
 GROUPER-MOON, https://viame.kitware.com/api/v1/item/68001795334bc54295c78afd/download, Grouper Moon project detection and tracking models, ac841d8fc0f31d60fc9481c43471b44b, ALL-PLATFORMS, "PYTORCH, PYTORCH-NETHARN"
 SAM3, https://drive.google.com/file/d/1Oe-2xvuPsbPiySUn4etkvI0Na5RNjkAf/view?usp=sharing, SAM3 text query and tracking/segmentation models, 012ac43c104fa06083c3b74b1e877f56, ALL-PLATFORMS, "PYTORCH, PYTORCH-SAM3"
 SAM2, https://viame.kitware.com/api/v1/item/69c42957dc8332f478b60389/download, SAM2 segmentation and interactive segmentation models, 9bf89a6050af99f0daf14d484930f957, ALL-PLATFORMS, "PYTORCH, PYTORCH-SAM2"
+ALIGN-CAMERAS, https://viame.kitware.com/api/v1/item/6a85d53562ae0bf981c5a0d6/download, MINIMA-LoFTR cross-spectral camera alignment model, d94a91c8bd844e59581e8a9613d5f4b1, ALL-PLATFORMS, "PYTORCH"
