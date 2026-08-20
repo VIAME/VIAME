@@ -61,8 +61,13 @@ compute_average_classification(
     }
     else
     {
+      // Ignored class mass is excluded from mixed distributions as well
       for( const auto& name : dot->class_names() )
       {
+        if( !ignore_class.empty() && name == ignore_class )
+        {
+          continue;
+        }
         class_sum[name] += dot->score( name ) * weight;
       }
       weighted_non_ignore_mass += weight;

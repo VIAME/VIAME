@@ -60,6 +60,7 @@ class NetharnRefiner(RefineDetections):
             'chip_expansion' : "1.0",
             'average_prior': "False",
             'prior_weight': "0.5",
+            'prior_ignore_class': "",
             'prior_taxonomy_file': "",
             'scale_type_file': ""
         }
@@ -116,6 +117,7 @@ class NetharnRefiner(RefineDetections):
         self.predictor._ensure_model()
         self._average_prior = strtobool(self._kwiver_config['average_prior'])
         self._prior_weight = float(self._kwiver_config['prior_weight'])
+        self._prior_ignore_class = self._kwiver_config['prior_ignore_class']
         # canon-group lookup keyed by id-stripped class name; empty = name-match
         self._taxonomy = {}
         tax_file = self._kwiver_config['prior_taxonomy_file']
@@ -303,6 +305,8 @@ class NetharnRefiner(RefineDetections):
                     # added to each class whose parent group matches.
                     group_mass = {}
                     for name in priors.class_names():
+                        if name == self._prior_ignore_class:
+                            continue
                         g = self._taxonomy.get(_strip_taxon_id(name))
                         if g is not None:
                             group_mass[g] = group_mass.get(g, 0.0) + priors.score(name)
@@ -316,6 +320,8 @@ class NetharnRefiner(RefineDetections):
                     for i in range(len(class_scores)):
                         class_scores[i] = class_scores[i] * (1.0 - w)
                     for name in priors.class_names():
+                        if name == self._prior_ignore_class:
+                            continue
                         weighted = priors.score(name) * w
                         if name in class_names:
                             class_scores[ class_names.index(name) ] += weighted

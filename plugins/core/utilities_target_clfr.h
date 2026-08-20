@@ -40,11 +40,10 @@ namespace kv = kwiver::vital;
  *     (0.1 + 0.9 * average_confidence) so that low-confidence tracks
  *     produce lower overall scores.
  *
- * The optional ignore_class parameter names a class that receives special
- * treatment: detections whose *only* class label is ignore_class are
- * accumulated separately.  When both ignored and non-ignored detections
- * are present, the ignored detections are excluded from the output.
- * When all detections are ignored, the ignored class is output normally.
+ * The optional ignore_class parameter names a class excluded from the
+ * average: its mass is dropped from every distribution, and detections
+ * carrying only that class are skipped. The ignored class is emitted
+ * only when no detection carries any other class.
  *
  * \param detections  Flat list of detections to average.
  * \param weighted    If true, weight by detection confidence.

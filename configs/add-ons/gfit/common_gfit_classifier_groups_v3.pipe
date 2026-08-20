@@ -18,6 +18,7 @@ process classifier_groups_large
     :chip_expansion                            1.3
     :average_prior                             true
     :prior_weight                              0.55
+    :prior_ignore_class                        UNKNOWNFISH
   endblock
 
 process classifier_groups_output
