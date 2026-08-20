@@ -127,8 +127,26 @@ endif()
 # this PyTorch ignores the outer make -j and spawns one job per core, which
 # for its larger CUDA and oneDNN translation units can exhaust RAM (Linux
 # OOM-killer takes out cicc/cc1plus) or MSVC heap space (C1060) on Windows.
+# When no explicit cap is configured, derive one from physical RAM: the
+# flash attention backward kernels alone push each cicc to roughly 5 GB, so
+# one job per core on a many-core build server (e.g. -j64) reliably ends in
+#   nvcc error : '"$CICC_PATH/cicc"' died due to signal 9 (Kill signal)
 if( VIAME_BUILD_MAX_THREADS )
   list( APPEND PYTORCH_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
+else()
+  cmake_host_system_information( RESULT PYTORCH_HOST_CORES
+    QUERY NUMBER_OF_LOGICAL_CORES )
+  cmake_host_system_information( RESULT PYTORCH_HOST_RAM_MB
+    QUERY TOTAL_PHYSICAL_MEMORY )
+  math( EXPR PYTORCH_MAX_JOBS "${PYTORCH_HOST_RAM_MB} / 5120" )
+  if( PYTORCH_MAX_JOBS LESS 2 )
+    set( PYTORCH_MAX_JOBS 2 )
+  elseif( PYTORCH_MAX_JOBS GREATER PYTORCH_HOST_CORES )
+    set( PYTORCH_MAX_JOBS ${PYTORCH_HOST_CORES} )
+  endif()
+  message( STATUS "Capping PyTorch build MAX_JOBS at ${PYTORCH_MAX_JOBS} "
+    "(${PYTORCH_HOST_RAM_MB} MB RAM, ${PYTORCH_HOST_CORES} cores)" )
+  list( APPEND PYTORCH_ENV_VARS "MAX_JOBS=${PYTORCH_MAX_JOBS}" )
 endif()
 
 if( VIAME_ENABLE_CUDA )
