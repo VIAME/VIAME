@@ -33,7 +33,6 @@ cmake ../ \
   -C ../cmake/build_cmake_base.cmake \
   -C ../cmake/build_cmake_docker.cmake \
   -DVIAME_BUILD_PYTHON_FROM_SOURCE:BOOL=ON \
-  -DVIAME_ENABLE_ITK:BOOL=ON \
   -DVIAME_ENABLE_WEB_EXCLUDES:BOOL=ON \
   -DVIAME_ENABLE_PYTORCH-LEARN:BOOL=OFF \
   -DVIAME_ENABLE_PYTORCH-SIAMMASK:BOOL=ON \

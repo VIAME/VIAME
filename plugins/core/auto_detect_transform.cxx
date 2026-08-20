@@ -4,6 +4,7 @@
 #include <vital/types/homography.h>
 
 #include <fstream>
+#include <stdexcept>
 
 namespace viame
 {
@@ -57,14 +58,21 @@ auto_detect_transform_io
 
   if( extension == "h5" )
   {
+    throw std::runtime_error(
+      "ITK .h5 transforms are no longer supported; convert " + filename +
+      " once with tools/convert_itk_h5_transform.py" );
+  }
+
+  if( extension == "json" )
+  {
     auto config = kwiver::vital::config_block::empty_config();
-    config->set_value( "transform_reader:type", "itk" );
+    config->set_value( "transform_reader:type", "dive" );
 
     kwiver::vital::algo::transform_2d_io_sptr ti;
 
     kwiver::vital::algo::transform_2d_io::set_nested_algo_configuration(
       "transform_reader", config, ti );
-  
+
     if( ti )
     {
       output = ti->load( filename );
