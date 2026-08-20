@@ -36,6 +36,7 @@ lb2 = lb * 2
 lb3 = lb * 3
 
 default_gt_ext = ".csv"
+default_writer_type = ""
 default_pipe_ext = ".pipe"
 default_homography_ext = ".txt"
 default_list_ext = ".txt"
@@ -415,6 +416,18 @@ def detection_output_settings_list( output_dir, basename, stream_id='',
 
   output += fset( det_writer_str + 'file_name=' + detection_file )
   output += fset( trk_writer_str + 'file_name=' + track_file )
+
+  if default_writer_type:
+    output += fset( det_writer_str + 'writer:type=' + default_writer_type )
+    output += fset( trk_writer_str + 'writer:type=' + default_writer_type )
+
+  # The remaining options are viame_csv spellings; other writers take the
+  # stream identifier as a video name and carry timing themselves.
+  if default_writer_type and default_writer_type != 'viame_csv':
+    if default_writer_type == 'coco' and stream_id:
+      output += fset( det_writer_str + 'writer:coco:video_name=' + stream_id )
+      output += fset( trk_writer_str + 'writer:coco:video_name=' + stream_id )
+    return output
 
   if write_timecode:
     output += fset( det_writer_str + 'writer:viame_csv:write_time_as_uid=true' )
@@ -1046,6 +1059,11 @@ if __name__ == "__main__" :
   parser.add_argument( "-output-ext", dest="output_ext", default="",
     help="Advanced: Optional ascii file output extension over-ride" )
 
+  parser.add_argument( "-output-format", dest="output_format", default="",
+    help="Optional output format over-ride (e.g. viame_csv, coco). Defaults "
+         "to coco when the output extension is json, otherwise to whatever "
+         "the pipeline specifies." )
+
   parser.add_argument( "-version-str", dest="version_str", default="",
     help="Optional software version string to use in certain output files" )
 
@@ -1174,6 +1192,20 @@ if __name__ == "__main__" :
     default_gt_ext = ext
     detection_ext = "_detections" + ext
     track_ext = "_tracks" + ext
+
+  # Handle output format. A json extension is meaningless to the default
+  # viame_csv writer, so it selects coco unless asked for something else.
+  if args.output_format:
+    default_writer_type = args.output_format.lstrip( "." ).lower()
+    if default_writer_type == "json":
+      default_writer_type = "coco"
+  elif default_gt_ext == ".json":
+    default_writer_type = "coco"
+
+  if default_writer_type == "coco" and not args.output_ext:
+    default_gt_ext = ".json"
+    detection_ext = "_detections" + default_gt_ext
+    track_ext = "_tracks" + default_gt_ext
 
   # Initialize database
   if args.init_db:
