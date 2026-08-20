@@ -186,6 +186,8 @@ connect from measurer.object_track_set1
         to   track_writer1.object_track_set
 connect from downsampler.timestamp
         to   track_writer1.timestamp
+connect from downsampler.output_2
+        to   track_writer1.image_file_name
 
 process track_writer2
   :: write_object_track
@@ -196,5 +198,7 @@ connect from measurer.object_track_set2
         to   track_writer2.object_track_set
 connect from downsampler.timestamp
         to   track_writer2.timestamp
+connect from downsampler.output_4
+        to   track_writer2.image_file_name
 
 # -- end of file --

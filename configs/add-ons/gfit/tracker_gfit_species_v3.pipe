@@ -38,5 +38,7 @@ connect from track_filter.object_track_set
         to   track_writer.object_track_set
 connect from downsampler.timestamp
         to   track_writer.timestamp
+connect from downsampler.output_2
+        to   track_writer.image_file_name
 
 # -- end of file --

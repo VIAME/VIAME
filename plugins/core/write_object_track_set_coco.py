@@ -5,19 +5,22 @@
 """
 Write object tracks to COCO/kwcoco-format JSON files.
 
-Produces a COCO annotation format with top-level ``videos`` and
-``tracks`` tables and per-annotation ``track_id`` fields so that
-per-frame detections belonging to the same object can be linked
-across time.
+Emits the shared VIAME COCO profile described in utilities_coco, plus the
+kwcoco ``videos`` and ``tracks`` tables and a per-annotation ``track_id`` so
+per-frame detections belonging to the same object can be linked across time.
 
-Supports segmentation masks (RLE), keypoints, and arbitrary
-per-annotation attributes.
+Images are ordered by frame, and ``frame_index`` carries the pipeline's own
+frame number so it round-trips through the reader and lines up with the frame
+column the VIAME CSV writer emits. Unlike the other tables, ``track_id`` keeps
+the pipeline's native track numbering rather than being renumbered from 1.
 """
 
 from kwiver.vital.algo import WriteObjectTrackSet
 
 from viame.core.utilities_coco import (
+    VIDEO_ID,
     global_categories,
+    default_video_name,
     detection_to_annotation,
     seconds_to_iso8601,
     write_coco_json,
@@ -28,16 +31,17 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
     """
     COCO-formatted output for ObjectTrackSets.
 
-    Produces JSON with top-level ``videos`` and ``tracks`` tables
-    alongside standard COCO ``images``, ``annotations``, and
-    ``categories``.
+    Produces JSON with a top-level ``tracks`` table alongside standard
+    COCO ``images``, ``annotations`` and ``categories``, plus a ``videos``
+    table when the input is a video rather than an image list.
 
     Each annotation carries:
     - id, image_id, category_id, bbox, score, segmentation (standard COCO)
     - track_id: links the annotation to an entry in the ``tracks`` table
 
     Each image carries:
-    - video_id, frame_index, timestamp (video fields)
+    - file_name, name, frame_index, and timestamp when the frame has a time
+    - video_id, for video input only
 
     The writer accumulates all track states across ``write_set`` calls
     and serialises them on ``close()``.
@@ -56,6 +60,7 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         self.video_name = ""
         self.file = None
         self._local_categories = {}
+        self._output_path = ""
         # Map frame_id -> index in self.images
         self._frame_to_image_id = {}
         # Accumulate full tracks; keyed by track id
@@ -64,8 +69,6 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         self._frame_ids = {}
         # Map frame_id -> time in seconds
         self._frame_times = {}
-        # Monotonic counter for frame_index assignment
-        self._next_frame_index = 0
 
     # ------------------------------------------------------------------
     # Configuration
@@ -106,6 +109,7 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
     # ------------------------------------------------------------------
 
     def open(self, file_name):
+        self._output_path = file_name
         self.file = open(file_name, 'w')
 
     def close(self):
@@ -118,16 +122,18 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
     # ------------------------------------------------------------------
 
     def write_set(self, track_set, timestamp, frame_identifier):
-        if not track_set:
-            return
-
         frame_id = timestamp.get_frame() if timestamp.has_valid_frame() else None
 
+        # Recorded even for empty frames so the images table covers the whole
+        # sequence rather than only the frames that happen to carry a track.
         if frame_id is not None:
             if frame_identifier:
                 self._frame_ids[frame_id] = frame_identifier
             if timestamp.has_valid_time():
                 self._frame_times[frame_id] = timestamp.get_time_seconds()
+
+        if not track_set:
+            return
 
         for trk in track_set.tracks():
             self._tracks[trk.id] = trk
@@ -137,16 +143,14 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
     # ------------------------------------------------------------------
 
     def _get_image_id(self, frame_id):
-        """Return a stable image index for *frame_id*, creating an entry if needed."""
+        """Return the 1-based image id for *frame_id*, creating an entry if needed.
+
+        Frames must be registered in ascending order (see _register_frames) for
+        image ids to follow time.
+        """
         if frame_id not in self._frame_to_image_id:
-            idx = len(self.images)
-            self._frame_to_image_id[frame_id] = idx
-            frame_index = self._next_frame_index
-            self._next_frame_index += 1
-            entry = dict(
-                video_id=0,
-                frame_index=frame_index,
-            )
+            self._frame_to_image_id[frame_id] = len(self.images) + 1
+            entry = dict(frame_index=frame_id)
             file_name = self._frame_ids.get(frame_id, "")
             if file_name:
                 entry["file_name"] = file_name
@@ -155,9 +159,32 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
             self.images.append(entry)
         return self._frame_to_image_id[frame_id]
 
+    def _register_frames(self):
+        """Create image entries for every known frame, in ascending frame order.
+
+        Track states are visited track by track, so registering frames lazily
+        while converting annotations would number images and frame indices by
+        track iteration order instead of by time.
+        """
+        frame_ids = set(self._frame_ids)
+        frame_ids.update(self._frame_times)
+
+        for trk in self._tracks.values():
+            for state in trk:
+                if state.detection() is None:
+                    continue
+                frame_ids.add(state.frame_id)
+                if state.frame_id not in self._frame_times and state.time_usec > 0:
+                    self._frame_times[state.frame_id] = state.time_usec / 1e6
+
+        for frame_id in sorted(frame_ids):
+            self._get_image_id(frame_id)
+
     def _flush_tracks(self):
         """Convert accumulated tracks to COCO annotations and write JSON."""
         cats = self._local_categories
+
+        self._register_frames()
 
         # Build the tracks table
         tracks = []
@@ -170,11 +197,7 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
                 if det is None:
                     continue
 
-                fid = state.frame_id
-                if fid not in self._frame_times and state.time_usec > 0:
-                    self._frame_times[fid] = state.time_usec / 1e6
-
-                image_id = self._get_image_id(fid)
+                image_id = self._get_image_id(state.frame_id)
 
                 d = detection_to_annotation(
                     det, image_id, cats,
@@ -182,9 +205,18 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
                 d['track_id'] = track_id
                 self.annotations.append(d)
 
-        # Build the videos table
-        video_name = self.video_name if self.video_name else "video_0"
-        videos = [dict(id=0, name=video_name)]
+        # An image list names every frame; video input names none. Both are
+        # temporally ordered, so kwcoco would accept a videos table either
+        # way -- it is gated because DIVE reads `videos` as "this is a video"
+        # and skips its frame_index-against-filename ordering check when one
+        # is present. Image sequences keep that safety net.
+        videos = None
+        if self.video_name or not self._frame_ids:
+            videos = [dict(
+                id=VIDEO_ID,
+                name=default_video_name(self._output_path, self.video_name))]
+            for entry in self.images:
+                entry["video_id"] = VIDEO_ID
 
         write_coco_json(
             self.file, self.annotations, self.images, cats,

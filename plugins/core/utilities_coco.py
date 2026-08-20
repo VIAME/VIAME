@@ -5,13 +5,24 @@
 """
 Shared utilities for reading and writing COCO/kwcoco-format JSON files.
 
-Used by both the detection and track readers/writers.  Supports:
+Used by both the detection and track readers/writers.
 
-- Segmentation masks (RLE), single polygons, multi-polygons, and
-  kwcoco exterior/interiors polygons with holes
-- Keypoints in COCO flat, kwcoco dict-list, and kwcoco column formats
-- Arbitrary per-annotation and per-track attributes (round-tripped
-  through DetectedObject notes as JSON)
+Written output targets a single profile that plain MS-COCO tooling, kwcoco,
+and DIVE can all read:
+
+- 1-based, contiguous ``id`` values for images, annotations, categories and
+  videos, matching the MS-COCO convention and kwcoco's id allocator
+- every image carries a ``file_name`` (required by the kwcoco image schema and
+  dereferenced unconditionally by DIVE's importer) and a unique ``name``
+- annotations carry ``area`` and ``iscrowd`` in addition to ``bbox``
+- segmentations are image-coordinate polygons; DIVE cannot decode RLE, and a
+  kwiver mask is box-relative so it cannot be written as COCO RLE as-is
+- keypoints in the kwcoco dict-list form, with a ``keypoint_categories`` table
+
+Reading additionally accepts RLE masks, multi-polygons, kwcoco
+exterior/interiors polygons, COCO flat and kwcoco column keypoints, and
+arbitrary per-annotation attributes (round-tripped through DetectedObject
+notes as JSON).
 """
 
 import datetime
@@ -32,10 +43,13 @@ except ImportError:
 # consistent category IDs.
 global_categories = {}
 
+# Single-video output; kwcoco and MS-COCO both number tables from 1.
+VIDEO_ID = 1
+
 # Standard COCO annotation keys — not treated as custom attributes.
 _STANDARD_ANNOTATION_KEYS = frozenset({
     'id', 'image_id', 'category_id', 'bbox', 'score', 'segmentation',
-    'keypoints', 'track_id', 'area', 'iscrowd',
+    'keypoints', 'track_id', 'area', 'iscrowd', 'ignore', 'num_keypoints',
 })
 
 
@@ -117,6 +131,62 @@ def _decode_rle_string(s):
     return counts
 
 
+def mask_to_polygons(mask_array, offset_x=0.0, offset_y=0.0):
+    """Trace a binary mask into COCO polygon contours in image coordinates.
+
+    kwiver masks are bounding-box sized and bounding-box relative (see
+    convert_polygons_to_mask.cxx), whereas a COCO segmentation is always in
+    image coordinates, so *offset_x*/*offset_y* shift the traced contours back
+    into image space. Returns a list of flat ``[x1, y1, x2, y2, ...]`` contours,
+    or an empty list if OpenCV is unavailable or nothing was traced.
+    """
+    if not _HAS_CV2:
+        return []
+    found = cv2.findContours(
+        mask_array.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours = found[-2]
+    polygons = []
+    for contour in contours:
+        pts = contour.reshape(-1, 2)
+        if len(pts) < 3:
+            continue
+        flat = []
+        for px, py in pts:
+            flat.append(float(px) + offset_x)
+            flat.append(float(py) + offset_y)
+        polygons.append(flat)
+    return polygons
+
+
+def polygon_area(flat_coords):
+    """Shoelace area of a flat ``[x1, y1, x2, y2, ...]`` polygon."""
+    xs = flat_coords[0::2]
+    ys = flat_coords[1::2]
+    if len(xs) < 3:
+        return 0.0
+    total = 0.0
+    for i in range(len(xs)):
+        j = (i + 1) % len(xs)
+        total += xs[i] * ys[j] - xs[j] * ys[i]
+    return abs(total) / 2.0
+
+
+def segmentation_area(segmentation, bbox_width, bbox_height):
+    """Area for an annotation, matching what ``kwcoco conform`` computes.
+
+    Polygon segmentations use the traced area; anything else falls back to the
+    bounding box area.
+    """
+    if isinstance(segmentation, list) and segmentation:
+        total = 0.0
+        for poly in segmentation:
+            if isinstance(poly, list):
+                total += polygon_area([float(v) for v in poly])
+        if total > 0:
+            return total
+    return float(bbox_width) * float(bbox_height)
+
+
 def polygons_to_mask(segmentation, height, width):
     """Rasterize a COCO/kwcoco polygon segmentation to a binary mask.
 
@@ -158,28 +228,38 @@ def detection_to_annotation(det, image_id, categories, category_start_id,
       top-level annotation keys; plain strings go into a ``notes`` list)
     """
     bbox = det.bounding_box
+    min_x, min_y = bbox.min_x(), bbox.min_y()
+    width, height = bbox.width(), bbox.height()
     d = dict(
         image_id=image_id,
-        bbox=[
-            bbox.min_x(),
-            bbox.min_y(),
-            bbox.width(),
-            bbox.height(),
-        ],
+        bbox=[min_x, min_y, width, height],
         score=det.confidence,
+        iscrowd=0,
     )
 
-    # Segmentation: prefer mask -> RLE, fall back to polygon
-    mask = det.mask
-    if mask is not None:
-        mask_arr = mask.asarray()
-        if mask_arr.ndim == 3:
-            mask_arr = mask_arr[:, :, 0]
-        d['segmentation'] = mask_to_rle((mask_arr > 0).astype(np.uint8))
+    # Segmentation is always emitted as image-coordinate polygons: a kwiver
+    # mask is bounding-box sized and bounding-box relative, so encoding it
+    # directly as RLE would produce a mask whose size is the box rather than
+    # the image, which is not what any COCO reader expects.
+    segmentation = None
+    polygon = det.get_flattened_polygon()
+    if polygon:
+        segmentation = [[int(round(p)) for p in polygon]]
     else:
-        polygon = det.get_flattened_polygon()
-        if polygon:
-            d['segmentation'] = [[int(round(p)) for p in polygon]]
+        mask = det.mask
+        if mask is not None:
+            mask_arr = mask.asarray()
+            if mask_arr.ndim == 3:
+                mask_arr = mask_arr[:, :, 0]
+            traced = mask_to_polygons(
+                (mask_arr > 0).astype(np.uint8), min_x, min_y)
+            if traced:
+                segmentation = [[int(round(p)) for p in poly]
+                                for poly in traced]
+    if segmentation:
+        d['segmentation'] = segmentation
+
+    d['area'] = segmentation_area(segmentation, width, height)
 
     # Keypoints (kwcoco dict-list format)
     keypoints = det.keypoints
@@ -365,21 +445,43 @@ def _apply_keypoints(det, kps, kp_cat_names=None):
 # Image list builder
 # ------------------------------------------------------------------
 
-def build_image_list(images, aux_image_labels, aux_image_extensions):
+def build_image_list(images, aux_image_labels, aux_image_extensions,
+                     placeholder_prefix="frame",
+                     placeholder_extension=".png"):
     """Build the 'images' section of the COCO output.
 
     Each element of *images* is either:
       - a plain filename string  (detection writer), or
       - a dict with at least 'file_name' and optionally 'frame_index',
         'timestamp', 'video_id'.
+
+    IDs are 1-based to match the MS-COCO convention, kwcoco's own id
+    allocator, and DIVE's exporter. Every entry is given a ``file_name``
+    (required by the kwcoco image schema and dereferenced unconditionally by
+    DIVE's importer) and a unique ``name``.
     """
     has_aux = len(aux_image_extensions) > 0 and aux_image_extensions[0]
     result = []
+    used_names = set()
     for i, im in enumerate(images):
+        entry = dict(id=i + 1)
         if isinstance(im, dict):
-            entry = dict(id=i, **im)
+            entry.update(im)
         else:
-            entry = dict(id=i, file_name=im, frame_index=i)
+            entry.update(file_name=im, frame_index=i)
+
+        if not entry.get("file_name"):
+            # Video frames have no file of their own. The name matches what
+            # DIVE's own COCO export invents and what VIAME frame extraction
+            # writes, so it resolves if the frames are ever pulled out.
+            entry["file_name"] = "{}_{:06d}{}".format(
+                placeholder_prefix, entry.get("frame_index", i),
+                placeholder_extension)
+
+        if not entry.get("name"):
+            entry["name"] = _unique_image_name(entry, used_names)
+        used_names.add(entry["name"])
+
         if has_aux:
             fn = entry.get("file_name", "")
             aux = []
@@ -389,6 +491,35 @@ def build_image_list(images, aux_image_labels, aux_image_extensions):
             entry['auxiliary'] = aux
         result.append(entry)
     return result
+
+
+def default_video_name(output_path, configured=""):
+    """Name for the single video a writer emits.
+
+    Falls back to the output file's stem rather than a generic placeholder so
+    the name identifies the clip. kwcoco's NAME pattern rejects '/', hence the
+    basename.
+    """
+    if configured:
+        return configured
+    stem = os.path.splitext(os.path.basename(output_path or ""))[0]
+    return stem or "video"
+
+
+def _unique_image_name(entry, used_names):
+    """Pick a stable, unique ``name`` for an image entry.
+
+    kwcoco checks the name column for uniqueness, so basenames that collide
+    across directories fall back to the full path and then to the image id.
+    """
+    file_name = entry["file_name"]
+    stem = os.path.splitext(os.path.basename(file_name))[0]
+    if stem and stem not in used_names:
+        return stem
+    path_stem = os.path.splitext(file_name)[0]
+    if path_stem and path_stem not in used_names:
+        return path_stem
+    return "{}_{}".format(stem or "image", entry["id"])
 
 
 def _collect_keypoint_categories(annotations):
@@ -471,7 +602,8 @@ def write_coco_json(file_obj, annotations, images, categories,
             description=description,
             date_created=now.replace(microsecond=0).isoformat(' '),
         ),
-        annotations=[dict(d, id=i) for i, d in enumerate(annotations)],
+        licenses=[],
+        annotations=[dict(d, id=i + 1) for i, d in enumerate(annotations)],
         categories=category_dict,
         images=image_dict,
     )

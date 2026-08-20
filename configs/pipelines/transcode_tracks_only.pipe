@@ -107,5 +107,7 @@ connect from downsampler2.output_4
         to   track_writer.object_track_set
 connect from downsampler2.timestamp
         to   track_writer.timestamp
+connect from downsampler2.output_2
+        to   track_writer.image_file_name
 
 # -- end of file --

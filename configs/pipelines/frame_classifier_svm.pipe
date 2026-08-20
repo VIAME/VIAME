@@ -73,6 +73,8 @@ process detector_writer
 
 connect from downsampler.timestamp
         to   detector_writer.timestamp
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
 connect from track_initializer.object_track_set
         to   detector_writer.object_track_set
 
