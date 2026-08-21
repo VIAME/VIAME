@@ -73,6 +73,8 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         self._frame_ids = {}
         # Map frame_id -> time in seconds
         self._frame_times = {}
+        # Frames seen, for pipelines that supply no timestamp
+        self._frame_count = 0
 
     # ------------------------------------------------------------------
     # Configuration
@@ -134,15 +136,19 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
     # ------------------------------------------------------------------
 
     def write_set(self, track_set, timestamp, frame_identifier):
+        # Conversion pipelines have no frame clock of their own, so fall back
+        # to counting calls the way the detection writer numbers its frames.
         frame_id = timestamp.get_frame() if timestamp.has_valid_frame() else None
+        if frame_id is None:
+            frame_id = self._frame_count
+        self._frame_count += 1
 
         # Recorded even for empty frames so the images table covers the whole
         # sequence rather than only the frames that happen to carry a track.
-        if frame_id is not None:
-            if frame_identifier:
-                self._frame_ids[frame_id] = frame_identifier
-            if timestamp.has_valid_time():
-                self._frame_times[frame_id] = timestamp.get_time_seconds()
+        if frame_identifier:
+            self._frame_ids[frame_id] = frame_identifier
+        if timestamp.has_valid_time():
+            self._frame_times[frame_id] = timestamp.get_time_seconds()
 
         if not track_set:
             return

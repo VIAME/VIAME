@@ -636,6 +636,10 @@ def convert_gt_only_using_kwiver( input_path, options, gpu=None, run_pipeline=Tr
               [ find_file( options.pipeline, run_pipeline ) ] +
               fset( 'detection_reader:file_name=' + input_path ) +
               fset( 'detection_reader:reader:type=' + gt_type ) +
+              # Converters that carry tracks read the same file twice; the
+              # setting is ignored by pipelines without a track reader.
+              fset( 'track_reader:file_name=' + input_path ) +
+              fset( 'track_reader:reader:type=' + gt_type ) +
               fset( 'detector_writer:file_name=' + output_file ) )
 
   try:

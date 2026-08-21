@@ -531,3 +531,31 @@ def test_attributes_round_trip_under_their_own_key(tmp_path):
             plain.append(note)
     assert carried == {"occluded": True, "track_attributes": {"gear": "trawl"}}
     assert plain == ["a plain note"]
+
+
+@requires_kwiver
+def test_track_writer_counts_frames_without_a_timestamp(tmp_path):
+    """Conversion pipelines have no frame clock, so the writer keeps its own."""
+    from viame.core.write_object_track_set_coco import WriteObjectTrackSetCoco
+
+    track = vital_types.Track(id=3)
+    for frame in (0, 1):
+        track.append(vital_types.ObjectTrackState(
+            frame, 0, _detection(10, 10, 20, 20, "fish")))
+
+    writer = WriteObjectTrackSetCoco()
+    writer.set_configuration(writer.get_configuration())
+    out = str(tmp_path / "tracks.json")
+    writer.open(out)
+    for name in ("a.png", "b.png"):
+        # An invalid timestamp is what a reader-driven pipeline supplies.
+        writer.write_set(vital_types.ObjectTrackSet([track]),
+                         vital_types.Timestamp(), name)
+    writer.close()
+
+    doc = _load(out)
+    _assert_profile(doc)
+    # Names still land on the right frames, and no videos table is invented.
+    assert [(image["frame_index"], image["file_name"]) for image in doc["images"]] == [
+        (0, "a.png"), (1, "b.png")]
+    assert "videos" not in doc

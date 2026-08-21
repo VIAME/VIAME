@@ -4,6 +4,11 @@
 # Description: Converts annotation data between different file formats without
 # requiring the source imagery or videos to be present. Image names are pulled
 # from the identifiers stored in the input annotation files instead.
+#
+# Tracks are read and written, so per-frame detections keep the track they
+# belong to. A track reader cannot drive itself, so the detection reader reads
+# the same file purely as a frame clock, supplying the frame identifiers the
+# track reader and the writer need.
 # =============================================================================
 
 config _pipeline:_edge
@@ -19,13 +24,20 @@ process detection_reader
   :file_name                                             input.csv
   :reader:type                                           viame_csv
 
+process track_reader
+  :: read_object_track
+  :file_name                                             input.csv
+  :reader:type                                           viame_csv
+
 process detector_writer
-  :: detected_object_output
+  :: write_object_track
   :file_name                                           output.json
   :writer:type                                                coco
 
-connect from detection_reader.detected_object_set
-        to   detector_writer.detected_object_set
+connect from detection_reader.image_file_name
+        to   track_reader.image_file_name
+connect from track_reader.object_track_set
+        to   detector_writer.object_track_set
 connect from detection_reader.image_file_name
         to   detector_writer.image_file_name
 
