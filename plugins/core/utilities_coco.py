@@ -51,7 +51,9 @@ VIDEO_ID = 1
 _STANDARD_ANNOTATION_KEYS = frozenset({
     'id', 'image_id', 'category_id', 'bbox', 'score', 'segmentation',
     'keypoints', 'track_id', 'area', 'iscrowd', 'ignore', 'num_keypoints',
-    'prob', 'dive_confidence_pairs',
+    'prob', 'confidence_pairs', 'attributes', 'notes',
+    # spellings DIVE used before these were given plain names
+    'dive_confidence_pairs', 'dive_detection_attributes', 'dive_notes',
 })
 
 
@@ -319,23 +321,29 @@ def detection_to_annotation(det, image_id, categories, category_start_id,
             # runner-up would be named in the pairs and missing from `prob`.
             for name, _ in pairs:
                 register_class(name, categories, category_start_id, use_global)
-            d['dive_confidence_pairs'] = pairs
+            d['confidence_pairs'] = pairs
 
     # Custom attributes from notes
+    # Attributes go under `attributes`, where DIVE and other COCO consumers
+    # look for them, rather than scattered across the annotation's top level.
     notes = det.notes
     if notes:
         plain_notes = []
+        attributes = {}
         for note in notes:
             try:
                 attrs = json.loads(note)
                 if isinstance(attrs, dict):
-                    for k, v in attrs.items():
-                        if k not in _STANDARD_ANNOTATION_KEYS and k not in d:
-                            d[k] = v
+                    attributes.update(attrs)
                     continue
             except (json.JSONDecodeError, TypeError, ValueError):
                 pass
             plain_notes.append(note)
+        carried = attributes.pop('track_attributes', None)
+        if isinstance(carried, dict) and carried:
+            d['track_attributes'] = carried
+        if attributes:
+            d['attributes'] = attributes
         if plain_notes:
             d['notes'] = plain_notes
 
@@ -353,7 +361,7 @@ def confidence_pairs_from_annotation(ann, ordered_names=None):
     reordering, and falls back to the positional kwcoco `prob` vector.
     """
     pairs = []
-    exact = ann.get('dive_confidence_pairs')
+    exact = ann.get('confidence_pairs', ann.get('dive_confidence_pairs'))
     if isinstance(exact, list):
         for pair in exact:
             if (isinstance(pair, (list, tuple)) and len(pair) == 2
@@ -420,19 +428,22 @@ def annotation_to_detection(ann, categories, image_dims=None,
     if 'keypoints' in ann:
         _apply_keypoints(det, ann['keypoints'], kp_cat_names)
 
-    # Custom attributes -> notes
-    custom = {}
-    for k, v in ann.items():
-        if k in _STANDARD_ANNOTATION_KEYS:
-            continue
-        if k == 'notes':
-            if isinstance(v, list):
-                for note in v:
-                    det.add_note(str(note))
-            else:
-                det.add_note(str(v))
-        else:
-            custom[k] = v
+    # Attributes and notes come from their own keys; anything else unknown is
+    # kept as a JSON note so nothing on the annotation is silently dropped. A
+    # kwiver detection has no track-level store, so track_attributes rides
+    # along as a note and the writer promotes it back.
+    attributes = ann.get('attributes', ann.get('dive_detection_attributes'))
+    if isinstance(attributes, dict) and attributes:
+        det.add_note(json.dumps(attributes))
+
+    note_values = ann.get('notes', ann.get('dive_notes'))
+    if isinstance(note_values, list):
+        for note in note_values:
+            det.add_note(str(note))
+    elif note_values:
+        det.add_note(str(note_values))
+
+    custom = {k: v for k, v in ann.items() if k not in _STANDARD_ANNOTATION_KEYS}
     if custom:
         det.add_note(json.dumps(custom))
 
@@ -712,7 +723,7 @@ def write_coco_json(file_obj, annotations, images, categories,
     ordered_names = [category['name'] for category in category_dict]
     name_index = {name: i for i, name in enumerate(ordered_names)}
     for annotation in annotations:
-        pairs = annotation.get('dive_confidence_pairs')
+        pairs = annotation.get('confidence_pairs')
         if not pairs:
             continue
         vector = [0.0] * len(ordered_names)

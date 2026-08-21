@@ -306,13 +306,13 @@ def test_every_scored_class_survives(tmp_path):
     names = {category["id"]: category["name"] for category in doc["categories"]}
     assert names[ann["category_id"]] == "fish"
 
-    assert ann["dive_confidence_pairs"] == [["fish", 0.7], ["crab", 0.2], ["rock", 0.1]]
+    assert ann["confidence_pairs"] == [["fish", 0.7], ["crab", 0.2], ["rock", 0.1]]
     # A class that never wins still needs a category, or prob cannot name it.
     assert sorted(category["name"] for category in doc["categories"]) == [
         "crab", "fish", "rock"]
     # prob is positional over the categories table, which is only final at write time.
     ordered = [category["name"] for category in doc["categories"]]
-    assert ann["prob"] == [dict(ann["dive_confidence_pairs"])[name] for name in ordered]
+    assert ann["prob"] == [dict(ann["confidence_pairs"])[name] for name in ordered]
 
 
 @requires_kwiver
@@ -336,20 +336,23 @@ def test_top_n_classes_caps_the_pairs(tmp_path):
 
     capped = run(2, "capped.json")
     _assert_profile(capped)
-    assert capped["annotations"][0]["dive_confidence_pairs"] == [
+    assert capped["annotations"][0]["confidence_pairs"] == [
         ["fish", 0.7], ["crab", 0.2]]
     # A class that was cut earns no category, so prob stays aligned.
     assert sorted(c["name"] for c in capped["categories"]) == ["crab", "fish"]
     assert capped["annotations"][0]["prob"] == [0.7, 0.2]
 
     uncapped = run(0, "uncapped.json")
-    assert len(uncapped["annotations"][0]["dive_confidence_pairs"]) == 3
+    assert len(uncapped["annotations"][0]["confidence_pairs"]) == 3
 
 
 def test_confidence_pairs_recovered_from_either_spelling():
     ordered = ["fish", "crab"]
-    exact = {"dive_confidence_pairs": [["crab", 0.25], ["fish", 0.75]]}
+    exact = {"confidence_pairs": [["crab", 0.25], ["fish", 0.75]]}
     assert uc.confidence_pairs_from_annotation(exact, ordered) == [
+        ("crab", 0.25), ("fish", 0.75)]
+    legacy = {"dive_confidence_pairs": [["crab", 0.25], ["fish", 0.75]]}
+    assert uc.confidence_pairs_from_annotation(legacy, ordered) == [
         ("crab", 0.25), ("fish", 0.75)]
 
     # Falls back to the positional vector when the sparse form is absent.
@@ -490,3 +493,41 @@ def test_track_writer_image_list_has_no_video(tmp_path):
     assert "videos" not in doc
     assert not any("video_id" in image for image in doc["images"])
     assert [image["file_name"] for image in doc["images"]] == ["f000.png", "f001.png"]
+
+
+@requires_kwiver
+def test_attributes_round_trip_under_their_own_key(tmp_path):
+    """Attributes belong under `attributes`, not scattered at the top level."""
+    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+
+    det = _detection(1, 2, 3, 4, "fish")
+    det.add_note(json.dumps({"occluded": True, "track_attributes": {"gear": "trawl"}}))
+    det.add_note("a plain note")
+
+    writer = WriteDetectedObjectSetCoco()
+    writer.set_configuration(writer.get_configuration())
+    out = str(tmp_path / "detections.json")
+    writer.open(out)
+    writer.write_set(vital_types.DetectedObjectSet([det]), "f000.png")
+    writer.complete()
+    writer.close()
+
+    doc = _load(out)
+    _assert_profile(doc)
+    ann = doc["annotations"][0]
+    assert ann["attributes"] == {"occluded": True}
+    # A kwiver detection has no track-level store, so this rides as a note.
+    assert ann["track_attributes"] == {"gear": "trawl"}
+    assert ann["notes"] == ["a plain note"]
+    assert "occluded" not in ann
+
+    restored = uc.annotation_to_detection(ann, {1: "fish"})
+    carried = {}
+    plain = []
+    for note in restored.notes:
+        try:
+            carried.update(json.loads(note))
+        except ValueError:
+            plain.append(note)
+    assert carried == {"occluded": True, "track_attributes": {"gear": "trawl"}}
+    assert plain == ["a plain note"]
