@@ -54,6 +54,7 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         self.annotations = []
         self.images = []
         self.category_start_id = 1
+        self.top_n_classes = 0
         self.global_categories = True
         self.aux_image_labels = ""
         self.aux_image_extensions = ""
@@ -80,6 +81,7 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
     def get_configuration(self):
         cfg = super(WriteObjectTrackSet, self).get_configuration()
         cfg.set_value("category_start_id", str(self.category_start_id))
+        cfg.set_value("top_n_classes", str(self.top_n_classes))
         cfg.set_value("global_categories", str(self.global_categories))
         cfg.set_value("aux_image_labels", ','.join(self.aux_image_labels))
         cfg.set_value("aux_image_extensions", ','.join(self.aux_image_extensions))
@@ -93,6 +95,7 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
         self.category_start_id = int(cfg.get_value("category_start_id"))
+        self.top_n_classes = int(cfg.get_value("top_n_classes"))
         self.global_categories = _strtobool(cfg.get_value("global_categories"))
         self.aux_image_labels = str(cfg.get_value("aux_image_labels"))
         self.aux_image_extensions = str(cfg.get_value("aux_image_extensions"))
@@ -210,7 +213,8 @@ class WriteObjectTrackSetCoco(WriteObjectTrackSet):
 
                 d = detection_to_annotation(
                     det, image_id, cats,
-                    self.category_start_id, self.global_categories)
+                    self.category_start_id, self.global_categories,
+                    self.top_n_classes)
                 d['track_id'] = track_id
                 self.annotations.append(d)
 

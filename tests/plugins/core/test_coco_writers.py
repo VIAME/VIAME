@@ -122,6 +122,14 @@ requires_kwiver = pytest.mark.skipif(
     vital_types is None, reason="kwiver python bindings not available")
 
 
+def _multiclass_detection(x, y, w, h, pairs):
+    """A detection the way a VIAME detector scores one: every class kept."""
+    dot = vital_types.DetectedObjectType(
+        [name for name, _ in pairs], [score for _, score in pairs])
+    return vital_types.DetectedObject(
+        vital_types.BoundingBoxD(x, y, x + w, y + h), pairs[0][1], dot)
+
+
 def _detection(x, y, w, h, label, polygon=None):
     dot = vital_types.DetectedObjectType(label, 1.0)
     det = vital_types.DetectedObject(
@@ -272,6 +280,85 @@ def test_detection_writer_image_list_has_no_video(tmp_path):
     assert not any("video_id" in image for image in doc["images"])
     assert [image["file_name"] for image in doc["images"]] == [
         "f000.png", "f001.png", "f002.png"]
+
+
+@requires_kwiver
+def test_every_scored_class_survives(tmp_path):
+    """COCO has one category_id; a VIAME detector scores every class."""
+    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+
+    writer = WriteDetectedObjectSetCoco()
+    writer.set_configuration(writer.get_configuration())
+    out = str(tmp_path / "detections.json")
+    writer.open(out)
+    writer.write_set(vital_types.DetectedObjectSet([
+        _multiclass_detection(1, 2, 3, 4,
+                              [("fish", 0.7), ("crab", 0.2), ("rock", 0.1)])]),
+        "f000.png")
+    writer.complete()
+    writer.close()
+
+    doc = _load(out)
+    _assert_profile(doc)
+    ann = doc["annotations"][0]
+
+    # The winner still occupies category_id, so plain COCO readers are unaffected.
+    names = {category["id"]: category["name"] for category in doc["categories"]}
+    assert names[ann["category_id"]] == "fish"
+
+    assert ann["dive_confidence_pairs"] == [["fish", 0.7], ["crab", 0.2], ["rock", 0.1]]
+    # A class that never wins still needs a category, or prob cannot name it.
+    assert sorted(category["name"] for category in doc["categories"]) == [
+        "crab", "fish", "rock"]
+    # prob is positional over the categories table, which is only final at write time.
+    ordered = [category["name"] for category in doc["categories"]]
+    assert ann["prob"] == [dict(ann["dive_confidence_pairs"])[name] for name in ordered]
+
+
+@requires_kwiver
+def test_top_n_classes_caps_the_pairs(tmp_path):
+    """Mirrors the viame_csv writer's option of the same name; 0 keeps all."""
+    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+
+    def run(top_n, name):
+        writer = WriteDetectedObjectSetCoco()
+        writer.set_configuration(writer.get_configuration())
+        writer.top_n_classes = top_n
+        out = str(tmp_path / name)
+        writer.open(out)
+        writer.write_set(vital_types.DetectedObjectSet([
+            _multiclass_detection(1, 2, 3, 4,
+                                  [("fish", 0.7), ("crab", 0.2), ("rock", 0.1)])]),
+            "f000.png")
+        writer.complete()
+        writer.close()
+        return _load(out)
+
+    capped = run(2, "capped.json")
+    _assert_profile(capped)
+    assert capped["annotations"][0]["dive_confidence_pairs"] == [
+        ["fish", 0.7], ["crab", 0.2]]
+    # A class that was cut earns no category, so prob stays aligned.
+    assert sorted(c["name"] for c in capped["categories"]) == ["crab", "fish"]
+    assert capped["annotations"][0]["prob"] == [0.7, 0.2]
+
+    uncapped = run(0, "uncapped.json")
+    assert len(uncapped["annotations"][0]["dive_confidence_pairs"]) == 3
+
+
+def test_confidence_pairs_recovered_from_either_spelling():
+    ordered = ["fish", "crab"]
+    exact = {"dive_confidence_pairs": [["crab", 0.25], ["fish", 0.75]]}
+    assert uc.confidence_pairs_from_annotation(exact, ordered) == [
+        ("crab", 0.25), ("fish", 0.75)]
+
+    # Falls back to the positional vector when the sparse form is absent.
+    assert uc.confidence_pairs_from_annotation({"prob": [0.75, 0.25]}, ordered) == [
+        ("fish", 0.75), ("crab", 0.25)]
+
+    # A prob vector that does not line up with the categories is unusable.
+    assert uc.confidence_pairs_from_annotation({"prob": [0.75]}, ordered) == []
+    assert uc.confidence_pairs_from_annotation({}, ordered) == []
 
 
 @requires_kwiver

@@ -84,6 +84,7 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
             dims = self._image_dims.get(ann.get('image_id'))
             det = annotation_to_detection(
                 ann, self.categories, image_dims=dims,
+                ordered_names=self.ordered_names,
                 kp_cat_names=self._kp_cat_names)
             det_objs.append(det)
         return vt.DetectedObjectSet(det_objs)
@@ -161,6 +162,7 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
         else:
             self.frame, self.stop_frame = 0, 0
         self.categories = categories
+        self.ordered_names = [cat['name'] for cat in data['categories']]
         self.frame_info = frame_info
         self.frame_info_by_path = frame_info_by_path
         self.frame_info_by_video = frame_info_by_video

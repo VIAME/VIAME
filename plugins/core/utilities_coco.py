@@ -27,6 +27,7 @@ notes as JSON).
 
 import datetime
 import json
+import math
 import os
 
 import numpy as np
@@ -50,6 +51,7 @@ VIDEO_ID = 1
 _STANDARD_ANNOTATION_KEYS = frozenset({
     'id', 'image_id', 'category_id', 'bbox', 'score', 'segmentation',
     'keypoints', 'track_id', 'area', 'iscrowd', 'ignore', 'num_keypoints',
+    'prob', 'dive_confidence_pairs',
 })
 
 
@@ -59,11 +61,41 @@ _STANDARD_ANNOTATION_KEYS = frozenset({
 
 def get_cat_id(dot, categories, category_start_id, use_global):
     """Return the integer category ID for a detected_object_type, creating one if needed."""
+    return register_class(
+        dot.get_most_likely_class(), categories, category_start_id, use_global)
+
+
+def register_class(name, categories, category_start_id, use_global):
+    """Return the integer category ID for *name*, creating one if needed."""
     mapping = global_categories if use_global else categories
-    return mapping.setdefault(
-        dot.get_most_likely_class(),
-        len(mapping) + category_start_id,
-    )
+    return mapping.setdefault(name, len(mapping) + category_start_id)
+
+
+def confidence_pairs_of(dot, top_n_classes=0):
+    """Classes a detected_object_type scored, highest first, as [name, score].
+
+    *top_n_classes* caps the list the way the viame_csv writer's option of the
+    same name does, with 0 keeping every class. Scores are clamped to [0, 1]
+    because that is the range DIVE accepts.
+    """
+    pairs = []
+    for name in dot.class_names():
+        if not name:
+            continue
+        try:
+            score = float(dot.score(name))
+        except (TypeError, ValueError):
+            continue
+        if not math.isfinite(score):
+            continue
+        pairs.append([name, min(1.0, max(0.0, score))])
+
+    # class_names() is already ordered by score, but the cap has to be applied
+    # here: the binding's class_names(n) takes a threshold, not a count.
+    pairs.sort(key=lambda pair: pair[1], reverse=True)
+    if top_n_classes > 0:
+        del pairs[top_n_classes:]
+    return pairs
 
 
 # ------------------------------------------------------------------
@@ -215,7 +247,7 @@ def polygons_to_mask(segmentation, height, width):
 # ------------------------------------------------------------------
 
 def detection_to_annotation(det, image_id, categories, category_start_id,
-                            use_global):
+                            use_global, top_n_classes=0):
     """Convert a single detected_object into a COCO annotation dict.
 
     Returns a dict WITHOUT the ``id`` key — callers assign that.
@@ -274,10 +306,20 @@ def detection_to_annotation(det, image_id, categories, category_start_id,
             ))
         d['keypoints'] = kp_list
 
-    # Category
+    # Category. COCO has room for one category_id, but a VIAME detector scores
+    # every class and the CSV writer keeps them all, so the full set rides
+    # alongside it -- sparse and by name here, positionally as `prob` once the
+    # category table is final (see write_coco_json).
     if det.type is not None:
         d['category_id'] = get_cat_id(
             det.type, categories, category_start_id, use_global)
+        pairs = confidence_pairs_of(det.type, top_n_classes)
+        if pairs:
+            # Every scored class earns a category, not just the winner, or a
+            # runner-up would be named in the pairs and missing from `prob`.
+            for name, _ in pairs:
+                register_class(name, categories, category_start_id, use_global)
+            d['dive_confidence_pairs'] = pairs
 
     # Custom attributes from notes
     notes = det.notes
@@ -304,8 +346,38 @@ def detection_to_annotation(det, image_id, categories, category_start_id,
 # Reader: COCO annotation dict -> DetectedObject
 # ------------------------------------------------------------------
 
+def confidence_pairs_from_annotation(ann, ordered_names=None):
+    """Recover every scored class from an annotation, or [] if it has none.
+
+    Prefers DIVE's sparse by-name spelling, which survives category
+    reordering, and falls back to the positional kwcoco `prob` vector.
+    """
+    pairs = []
+    exact = ann.get('dive_confidence_pairs')
+    if isinstance(exact, list):
+        for pair in exact:
+            if (isinstance(pair, (list, tuple)) and len(pair) == 2
+                    and isinstance(pair[0], str) and pair[0]
+                    and isinstance(pair[1], (int, float))
+                    and not isinstance(pair[1], bool)
+                    and math.isfinite(pair[1])):
+                pairs.append((pair[0], float(pair[1])))
+        if pairs:
+            return pairs
+
+    prob = ann.get('prob')
+    if isinstance(prob, list) and ordered_names and len(prob) == len(ordered_names):
+        for name, value in zip(ordered_names, prob):
+            if (isinstance(name, str) and name
+                    and isinstance(value, (int, float))
+                    and not isinstance(value, bool)
+                    and math.isfinite(value)):
+                pairs.append((name, float(value)))
+    return pairs
+
+
 def annotation_to_detection(ann, categories, image_dims=None,
-                            kp_cat_names=None):
+                            kp_cat_names=None, ordered_names=None):
     """Convert a COCO annotation dict to a DetectedObject.
 
     Parameters
@@ -333,7 +405,11 @@ def annotation_to_detection(ann, categories, image_dims=None,
 
     # Category
     cat_id = ann.get('category_id')
-    if cat_id is not None and cat_id in categories:
+    pairs = confidence_pairs_from_annotation(ann, ordered_names)
+    if pairs:
+        det.type = vt.DetectedObjectType(
+            [name for name, _ in pairs], [value for _, value in pairs])
+    elif cat_id is not None and cat_id in categories:
         det.type = vt.DetectedObjectType(categories[cat_id], score)
 
     # Segmentation
@@ -629,6 +705,20 @@ def write_coco_json(file_obj, annotations, images, categories,
     if rate:
         for video in videos or []:
             video['fps'] = rate
+
+    # `prob` has to line up with the categories array, which is only final
+    # here, so it is filled in once rather than per detection.
+    ordered_names = [category['name'] for category in category_dict]
+    name_index = {name: i for i, name in enumerate(ordered_names)}
+    for annotation in annotations:
+        pairs = annotation.get('dive_confidence_pairs')
+        if not pairs:
+            continue
+        vector = [0.0] * len(ordered_names)
+        for name, score in pairs:
+            if name in name_index:
+                vector[name_index[name]] = score
+        annotation['prob'] = vector
 
     output = dict(
         info=info,

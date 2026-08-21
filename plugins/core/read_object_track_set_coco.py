@@ -124,6 +124,7 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
         data = json.load(self.file)
 
         categories = {cat['id']: cat['name'] for cat in data.get('categories', [])}
+        ordered_names = [cat['name'] for cat in data.get('categories', [])]
 
         # Resolve video_id filter from video_name config
         filter_video_id = None
@@ -189,6 +190,7 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
                 dims = image_dims.get(ann.get('image_id'))
                 det = annotation_to_detection(
                     ann, categories, image_dims=dims,
+                    ordered_names=ordered_names,
                     kp_cat_names=kp_cat_names)
 
                 seconds = timestamp_to_seconds(timestamp)
