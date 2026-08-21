@@ -698,13 +698,14 @@ def write_coco_json(file_obj, annotations, images, categories,
     if contributor:
         info['contributor'] = contributor
 
-    # Neither MS-COCO nor kwcoco define a frame rate. It belongs to a video,
-    # not to an image list, so it rides on the video entry and is spelled the
-    # way the VIAME CSV header and DIVE both spell it.
+    # Neither MS-COCO nor kwcoco define a frame rate. This one is the rate the
+    # annotations were produced at, which is the downsampled rate rather than
+    # the video's native one, hence the name. It belongs to a video, not to an
+    # image list, so it rides on the video entry.
     rate = _parse_fps(fps)
     if rate:
         for video in videos or []:
-            video['fps'] = rate
+            video['annotation_fps'] = rate
 
     # `prob` has to line up with the categories array, which is only final
     # here, so it is filled in once rather than per detection.

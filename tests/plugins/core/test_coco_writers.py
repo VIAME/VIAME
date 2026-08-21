@@ -407,7 +407,8 @@ def test_frame_rate_recorded_for_video(tmp_path):
 
     doc = _load(out)
     _assert_profile(doc, expect_video=True)
-    assert [video["fps"] for video in doc["videos"]] == [5.0]
+    # Named for what it is: the rate annotations were produced at.
+    assert [video["annotation_fps"] for video in doc["videos"]] == [5.0]
     assert "fps" not in doc["info"]
 
 
@@ -430,14 +431,13 @@ def test_frame_rate_absent_for_image_lists(tmp_path):
     doc = _load(out)
     _assert_profile(doc)
     assert "videos" not in doc
-    assert "fps" not in doc["info"]
+    assert "annotation_fps" not in doc["info"]
 
 
 @requires_kwiver
 def test_frame_rate_absent_when_unset(tmp_path):
     doc = _write_detections(tmp_path, "clip.json", [("", [])], video_name="clip")
-    assert "fps" not in doc["info"]
-    assert not any("fps" in video for video in doc["videos"])
+    assert not any("annotation_fps" in video for video in doc["videos"])
 
 
 def test_unusable_frame_rates_are_dropped():
