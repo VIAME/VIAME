@@ -237,8 +237,12 @@ class SiamMaskTracker(TrackObjects):
             # 500x500 track scores 0.01 against a 0.10 gate -- so every already
             # tracked animal seeds a second tracker on the frame after it was
             # found. SiamMask keeps one CNN tracker per initialisation alive,
-            # so that compounds: on the SEFSC test clips it reached 90k track
-            # states in a single sequence and ran six of them out of memory.
+            # so that compounds. Measured on the SEFSC test clips this removes
+            # about a third of the redundant initialisations, and cut one clip
+            # from 1465 track states to 1062. It does NOT on its own bound GPU
+            # memory: a 669 frame clip with 3835 detections over the init
+            # threshold still exhausted a 24 GB card, so dense sequences need
+            # init_threshold raised as well.
             return intsct_area / max(1e-6, min(cbox1.area(), cbox2.area()))
 
         if detections is not None:
