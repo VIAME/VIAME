@@ -7,6 +7,7 @@
 
 #include <vital/vital_config.h>
 #include <vital/types/image_container.h>
+#include <vital/types/image.h>
 #include <vital/exceptions.h>
 #include <vital/logger/logger.h>
 
@@ -36,11 +37,11 @@ public:
   int speckle_range{ 32 };
 
   // Output format: "raw", "float32", or "uint16_scaled"
+  bool compute_depth{ false };
+  bool export_as_alpha{ false };
+  bool output_rectified{ true };
   std::string output_format{ "raw" };
-
-  // Alpha channel output options
-  bool disparity_as_alpha{ false };
-  bool invert_disparity_alpha{ false };
+  double uint16_scale_factor{ 256.0 };
 
   // WLS filtering
   bool use_wls_filter{ false };
@@ -55,6 +56,8 @@ public:
   mutable cv::Mat rectification_map_left_y;
   mutable cv::Mat rectification_map_right_x;
   mutable cv::Mat rectification_map_right_y;
+  mutable cv::Mat unrectification_map_x;
+  mutable cv::Mat unrectification_map_y;
 
   // Calibration data (loaded if calibration_file is set). Mutable because
   // single-file formats carry no rectification transforms, so those are filled
@@ -146,14 +149,37 @@ public:
     cv::initUndistortRectifyMap(
       calibration.left.camera_matrix, calibration.left.dist_coeffs,
       calibration.R1, calibration.P1,
-      img_size, CV_16SC2,
+      img_size, CV_32FC1,
       rectification_map_left_x, rectification_map_left_y );
 
     cv::initUndistortRectifyMap(
       calibration.right.camera_matrix, calibration.right.dist_coeffs,
       calibration.R2, calibration.P2,
-      img_size, CV_16SC2,
+      img_size, CV_32FC1,
       rectification_map_right_x, rectification_map_right_y );
+
+    cv::Mat original_grid( img_size.height * img_size.width, 1, CV_32FC2 );
+    for( int y = 0; y < img_size.height; y++ )
+    {
+      for( int x = 0; x < img_size.width; x++ )
+      {
+        original_grid.at< cv::Vec2f >( y * img_size.width + x, 0 ) = cv::Vec2f( x, y );
+      }
+    }
+
+    cv::Mat rectified_grid;
+    cv::undistortPoints( original_grid, rectified_grid,
+                         calibration.left.camera_matrix,
+                         calibration.left.dist_coeffs,
+                         calibration.R1,
+                         calibration.P1 );
+
+    rectified_grid = rectified_grid.reshape( 2, img_size.height );
+
+    cv::Mat maps[2];
+    cv::split( rectified_grid, maps );
+    unrectification_map_x = maps[0];
+    unrectification_map_y = maps[1];
 
     rectification_computed = true;
   }
@@ -206,20 +232,6 @@ compute_stereo_disparity
   config->set_value( "speckle_range", d->speckle_range,
     "Maximum disparity variation within each connected component for speckle filtering." );
 
-  config->set_value( "output_format", d->output_format,
-    "Output disparity format: "
-    "'raw' (CV_16S with disparity * 16, OpenCV native), "
-    "'float32' (CV_32F with disparity in pixels), "
-    "'uint16_scaled' (CV_16U with disparity * 256, compatible with external algorithms)." );
-
-  config->set_value( "disparity_as_alpha", d->disparity_as_alpha,
-    "If true, returns the rectified left image with disparity as the alpha (4th) channel. "
-    "The output will be a 4-channel BGRA image where the alpha channel contains the 8-bit disparity." );
-
-  config->set_value( "invert_disparity_alpha", d->invert_disparity_alpha,
-    "If true and disparity_as_alpha is enabled, inverts the disparity values in the alpha channel. "
-    "Invalid (zero) disparity pixels are set to white before inversion." );
-
   config->set_value( "use_wls_filter", d->use_wls_filter,
     "Apply Weighted Least Squares (WLS) filtering to smooth the disparity map while "
     "preserving edges. Requires computing disparity for both left and right images." );
@@ -234,6 +246,25 @@ compute_stereo_disparity
     "Path to stereo calibration file (OpenCV YAML/XML format). If specified, images will be "
     "rectified before computing disparity. Leave empty if input images are already rectified "
     "(e.g., when called from measurement_utilities which handles its own rectification)." );
+
+  config->set_value( "compute_depth", d->compute_depth,
+  "If true, computes depth Z = (fx * baseline) / disparity. "
+  "If false, computes disparity. Depth requires a valid calibration file." );
+
+  config->set_value( "export_as_alpha", d->export_as_alpha,
+    "If true, outputs the original left color image with the computed map (depth/disparity) "
+    "in the 4th (Alpha) channel. If false, outputs a 1-channel image of the map." );
+
+  config->set_value( "output_rectified", d->output_rectified,
+    "If true, the output map (and color image if export_as_alpha is true) will be kept "
+    "in the rectified coordinate space. If false, they will be mapped back to the original image." );
+
+  config->set_value( "output_format", d->output_format,
+    "Output format: 'float32' (best for TIFF), 'uint16_scaled' (best for 16-bit PNG), or 'raw'." );
+
+  config->set_value( "uint16_scale_factor", d->uint16_scale_factor,
+    "Multiplier used ONLY when output_format is 'uint16_scaled'. "
+    "e.g., if depth is in meters, a factor of 1000 converts it to millimeters to save as integers in PNG." );
 
   return config;
 }
@@ -252,13 +283,15 @@ void compute_stereo_disparity
   d->block_size = config->get_value< int >( "block_size" );
   d->speckle_window_size = config->get_value< int >( "speckle_window_size" );
   d->speckle_range = config->get_value< int >( "speckle_range" );
-  d->output_format = config->get_value< std::string >( "output_format" );
-  d->disparity_as_alpha = config->get_value< bool >( "disparity_as_alpha" );
-  d->invert_disparity_alpha = config->get_value< bool >( "invert_disparity_alpha" );
   d->use_wls_filter = config->get_value< bool >( "use_wls_filter" );
   d->wls_lambda = config->get_value< double >( "wls_lambda" );
   d->wls_sigma = config->get_value< double >( "wls_sigma" );
   d->calibration_file = config->get_value< std::string >( "calibration_file" );
+  d->compute_depth = config->get_value< bool >( "compute_depth" );
+  d->export_as_alpha = config->get_value< bool >( "export_as_alpha" );
+  d->output_rectified = config->get_value< bool >( "output_rectified" );
+  d->output_format = config->get_value< std::string >( "output_format" );
+  d->uint16_scale_factor = config->get_value< double >( "uint16_scale_factor" );
 
   // Ensure num_disparities is divisible by 16
   if( d->num_disparities % 16 != 0 )
@@ -335,7 +368,7 @@ kv::image_container_sptr compute_stereo_disparity
 
   // Rectify if calibration is loaded
   cv::Mat left_rect, right_rect;
-  cv::Mat left_color_rect;  // For disparity_as_alpha mode
+  cv::Mat left_color_rect;  // For export_as_alpha mode
   if( d->rectify_images )
   {
     d->compute_rectification_maps( left_gray.size() );
@@ -345,7 +378,7 @@ kv::image_container_sptr compute_stereo_disparity
                d->rectification_map_right_y, cv::INTER_LINEAR );
 
     // Also rectify color image if we need it for alpha channel output
-    if( d->disparity_as_alpha )
+    if( d->export_as_alpha )
     {
       cv::remap( ocv_left, left_color_rect, d->rectification_map_left_x,
                  d->rectification_map_left_y, cv::INTER_LINEAR );
@@ -355,105 +388,117 @@ kv::image_container_sptr compute_stereo_disparity
   {
     left_rect = left_gray;
     right_rect = right_gray;
-    if( d->disparity_as_alpha )
+    if( d->export_as_alpha )
     {
       left_color_rect = ocv_left;
     }
   }
 
-  // Compute disparity
-  cv::Mat left_disparity;
-  d->left_matcher->compute( left_rect, right_rect, left_disparity );
+  cv::Mat left_disparity_raw;
+  d->left_matcher->compute( left_rect, right_rect, left_disparity_raw );
 
-  // Apply WLS filter if enabled
   if( d->use_wls_filter && d->right_matcher && d->wls_filter )
   {
-    cv::Mat right_disparity, filtered_disparity;
-    d->right_matcher->compute( right_rect, left_rect, right_disparity );
-    d->wls_filter->filter( left_disparity, left_rect, filtered_disparity,
-                           right_disparity, cv::Rect(), right_rect );
-    left_disparity = filtered_disparity;
+    cv::Mat right_disparity_raw, filtered_disparity;
+    d->right_matcher->compute( right_rect, left_rect, right_disparity_raw );
+
+    d->wls_filter->filter( left_disparity_raw, left_rect, filtered_disparity,
+                           right_disparity_raw, cv::Rect(), right_rect );
+
+    left_disparity_raw = filtered_disparity;
   }
 
-  // Convert to requested output format
+  cv::Mat float_map;
+  left_disparity_raw.convertTo( float_map, CV_32F, 1.0 / 16.0 );
+  float_map.setTo( 0, float_map < 0 );
+
+  if( d->compute_depth )
+  {
+    if( d->calibration.P1.empty() ) {
+      VITAL_THROW( kv::invalid_data, "Cannot compute depth: calibration data missing." );
+    }
+
+    double fx = d->calibration.P1.at<double>( 0, 0 );
+    double baseline = -d->calibration.P2.at<double>( 0, 3 ) / d->calibration.P2.at<double>( 0, 0 );
+    double depth_scale = fx * baseline;
+
+    cv::Mat depth_map = cv::Mat::zeros( float_map.size(), CV_32F );
+    cv::Mat mask = float_map > 0;
+    cv::divide( depth_scale, float_map, depth_map );
+    depth_map.setTo( 0, ~mask );
+
+    float_map = depth_map;
+  }
+
+  cv::Mat aligned_map;
+  if( d->rectify_images && !d->output_rectified )
+  {
+    cv::remap( float_map, aligned_map,
+               d->unrectification_map_x, d->unrectification_map_y,
+               cv::INTER_NEAREST, cv::BORDER_CONSTANT, cv::Scalar( 0 ) );
+  }
+  else
+  {
+    aligned_map = float_map;
+  }
+
+  cv::Mat formatted_map;
+  if( d->output_format == "float32" )
+  {
+    formatted_map = aligned_map;
+  }
+  else if( d->output_format == "uint16_scaled" )
+  {
+    aligned_map.convertTo( formatted_map, CV_16U, d->uint16_scale_factor );
+  }
+  else // "raw"
+  {
+    if( d->compute_depth ) formatted_map = aligned_map;
+    else {
+      aligned_map.convertTo( formatted_map, CV_16S, 16.0 );
+    }
+  }
+  
   cv::Mat output;
-  if( d->output_format == "raw" )
+  if( d->export_as_alpha )
   {
-    // Raw OpenCV format: CV_16S with disparity * 16
-    output = left_disparity;
-  }
-  else if( d->output_format == "float32" )
-  {
-    // Float format: CV_32F with disparity in pixels
-    left_disparity.convertTo( output, CV_32F, 1.0 / 16.0 );
-  }
-  else // uint16_scaled
-  {
-    // Scaled uint16: CV_16U with disparity * 256
-    // Convert from fixed-point (*16) to scaled (*256) = multiply by 16
-    cv::Mat float_disp;
-    left_disparity.convertTo( float_disp, CV_32F, 1.0 / 16.0 );
-
-    // Clamp negative values and scale
-    cv::Mat scaled;
-    float_disp.setTo( 0, float_disp < 0 );
-    float_disp.convertTo( scaled, CV_32F, 256.0 );
-    scaled.setTo( 65535, scaled > 65535 );
-    scaled.convertTo( output, CV_16U );
-  }
-
-  // If disparity_as_alpha is enabled, combine with left color image
-  if( d->disparity_as_alpha && !left_color_rect.empty() )
-  {
-    // Convert left image to BGRA
-    cv::Mat left_bgra;
-    if( left_color_rect.channels() == 1 )
-    {
-      cv::cvtColor( left_color_rect, left_bgra, cv::COLOR_GRAY2BGRA );
-    }
-    else if( left_color_rect.channels() == 3 )
-    {
-      cv::cvtColor( left_color_rect, left_bgra, cv::COLOR_BGR2BGRA );
-    }
-    else if( left_color_rect.channels() == 4 )
-    {
-      left_bgra = left_color_rect;
-    }
-    else
-    {
-      LOG_WARN( d->logger, "Unexpected number of channels in left image" );
-      left_bgra = left_color_rect;
+    cv::Mat color_base;
+    if( d->rectify_images && d->output_rectified ) {
+      color_base = left_color_rect;
+    } else {
+      color_base = ocv_left;
     }
 
-    // Convert disparity to 8-bit for alpha channel
-    cv::Mat disp_8bit;
-    cv::Mat float_disp;
-    left_disparity.convertTo( float_disp, CV_32F, 1.0 / 16.0 );
-    float_disp.setTo( 0, float_disp < 0 );
-    float_disp.convertTo( disp_8bit, CV_8U );
-
-    // Invert if requested
-    if( d->invert_disparity_alpha )
-    {
-      // Set zero (invalid) pixels to white before inversion
-      cv::Mat mask;
-      cv::inRange( disp_8bit, cv::Scalar( 0 ), cv::Scalar( 0 ), mask );
-      disp_8bit.setTo( cv::Scalar( 255 ), mask );
-
-      // Invert
-      cv::bitwise_not( disp_8bit, disp_8bit );
+    cv::Mat color_converted;
+    if( formatted_map.depth() == CV_32F ) {
+      color_base.convertTo( color_converted, CV_32F, 1.0/255.0 );
+    }
+    else if( formatted_map.depth() == CV_16U ) {
+      color_base.convertTo( color_converted, CV_16U, 257.0 );
+    }
+    else {
+      color_base.convertTo( color_converted, formatted_map.depth() );
     }
 
-    // Set disparity as alpha channel
-    std::vector<cv::Mat> channels( 4 );
-    cv::split( left_bgra, channels );
-    channels[3] = disp_8bit;
+    cv::cvtColor( color_converted, output, cv::COLOR_BGR2BGRA );
+    std::vector<cv::Mat> channels;
+    cv::split( output, channels );
+    channels[3] = formatted_map;
     cv::merge( channels, output );
+  }
+  else
+  {
+    output = formatted_map;
+  }
+
+  if (output.channels() == 1)
+  {
+    return kv::image_container_sptr(
+      new kwiver::arrows::ocv::image_container( output, kwiver::arrows::ocv::image_container::OTHER_COLOR ) );
   }
 
   return kv::image_container_sptr(
-    new kwiver::arrows::ocv::image_container(
-      output, kwiver::arrows::ocv::image_container::BGR_COLOR ) );
+    new kwiver::arrows::ocv::image_container( output, kwiver::arrows::ocv::image_container::BGR_COLOR ) );
 }
 
 } //end namespace viame
