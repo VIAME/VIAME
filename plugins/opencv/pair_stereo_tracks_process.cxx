@@ -27,8 +27,9 @@ namespace kv = kwiver::vital;
 
 namespace viame {
 
-create_config_trait( cameras_directory, std::string, "",
-  "The calibrated cameras files directory" )
+create_config_trait( calibration_file, std::string, "",
+  "Stereo calibration file (.json, .yml, .npz or .mat), or a directory of "
+  "OpenCV intrinsics.yml / extrinsics.yml" )
 create_config_trait( pairing_method, std::string, "PAIRING_3D",
   "One of PAIRING_3D, PAIRING_IOU, PAIRING_RECTIFIED_IOU" )
 create_config_trait( min_detection_number_threshold, int, "0",
@@ -100,7 +101,7 @@ void
 pair_stereo_tracks_process
 ::make_config()
 {
-  declare_config_using_trait( cameras_directory );
+  declare_config_using_trait( calibration_file );
   declare_config_using_trait( min_detection_number_threshold );
   declare_config_using_trait( max_detection_number_threshold );
   declare_config_using_trait( min_detection_surface_threshold_pix );
@@ -117,7 +118,7 @@ void
 pair_stereo_tracks_process
 ::_configure()
 {
-  d->m_cameras_directory = config_value_using_trait( cameras_directory );
+  d->m_calibration_file = config_value_using_trait( calibration_file );
   d->m_min_detection_number_threshold = config_value_using_trait( min_detection_number_threshold );
   d->m_max_detection_number_threshold = config_value_using_trait( max_detection_number_threshold );
   d->m_min_detection_surface_threshold_pix = config_value_using_trait( min_detection_surface_threshold_pix );

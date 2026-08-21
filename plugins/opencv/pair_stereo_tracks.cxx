@@ -12,7 +12,7 @@ void
 viame::pair_stereo_tracks
 ::load_camera_calibration()
 {
-  m_detection_pairing->m_cameras_directory = m_cameras_directory;
+  m_detection_pairing->m_calibration_file = m_calibration_file;
   m_detection_pairing->load_camera_calibration();
 }
 
