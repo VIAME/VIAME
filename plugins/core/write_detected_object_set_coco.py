@@ -48,6 +48,7 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
         self.aux_image_extensions = ""
         self.video_name = ""
         self.version_identifier = ""
+        self.frame_rate = ""
         self.contributor = ""
         self.file = None
         self._local_categories = {}
@@ -63,6 +64,7 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
         cfg.set_value("aux_image_extensions", ','.join(self.aux_image_extensions))
         cfg.set_value("video_name", self.video_name)
         cfg.set_value("version_identifier", self.version_identifier)
+        cfg.set_value("frame_rate", self.frame_rate)
         cfg.set_value("contributor", self.contributor)
         return cfg
 
@@ -75,6 +77,7 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
         self.aux_image_extensions = str(cfg.get_value("aux_image_extensions"))
         self.video_name = str(cfg.get_value("video_name"))
         self.version_identifier = str(cfg.get_value("version_identifier"))
+        self.frame_rate = str(cfg.get_value("frame_rate"))
         self.contributor = str(cfg.get_value("contributor"))
 
         self.aux_image_labels = self.aux_image_labels.rstrip().split(',')
@@ -154,6 +157,7 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
             self.aux_image_labels, self.aux_image_extensions,
             description="Created by WriteDetectedObjectSetCoco",
             version=self.version_identifier,
+            fps=self.frame_rate,
             contributor=self.contributor,
             videos=videos)
 

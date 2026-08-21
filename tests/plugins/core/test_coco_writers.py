@@ -302,6 +302,63 @@ def test_info_block_carries_provenance(tmp_path):
     assert "contributor" not in plain["info"]
 
 
+@requires_kwiver
+def test_frame_rate_recorded_for_video(tmp_path):
+    """The CSV header carries a frame rate; COCO has to carry it too."""
+    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+
+    writer = WriteDetectedObjectSetCoco()
+    writer.set_configuration(writer.get_configuration())
+    writer.frame_rate = "5"
+
+    out = str(tmp_path / "clip.json")
+    writer.open(out)
+    writer.write_set(vital_types.DetectedObjectSet(
+        [_detection(1, 2, 3, 4, "fish")]), "")
+    writer.complete()
+    writer.close()
+
+    doc = _load(out)
+    _assert_profile(doc, expect_video=True)
+    assert [video["fps"] for video in doc["videos"]] == [5.0]
+    assert "fps" not in doc["info"]
+
+
+@requires_kwiver
+def test_frame_rate_absent_for_image_lists(tmp_path):
+    """A frame rate describes a video; an image list has none to describe."""
+    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+
+    writer = WriteDetectedObjectSetCoco()
+    writer.set_configuration(writer.get_configuration())
+    writer.frame_rate = "5"
+
+    out = str(tmp_path / "detections.json")
+    writer.open(out)
+    writer.write_set(vital_types.DetectedObjectSet(
+        [_detection(1, 2, 3, 4, "fish")]), "f000.png")
+    writer.complete()
+    writer.close()
+
+    doc = _load(out)
+    _assert_profile(doc)
+    assert "videos" not in doc
+    assert "fps" not in doc["info"]
+
+
+@requires_kwiver
+def test_frame_rate_absent_when_unset(tmp_path):
+    doc = _write_detections(tmp_path, "clip.json", [("", [])], video_name="clip")
+    assert "fps" not in doc["info"]
+    assert not any("fps" in video for video in doc["videos"])
+
+
+def test_unusable_frame_rates_are_dropped():
+    for value in ("", "not-a-number", "0", "-1", None):
+        assert uc._parse_fps(value) is None
+    assert uc._parse_fps("29.97") == pytest.approx(29.97)
+
+
 def test_multichannel_imagery_listed_as_assets():
     """kwcoco marks the older 'auxiliary' spelling as pending deprecation."""
     entries = uc.build_image_list(["img.png"], ["ir"], [".ir"])

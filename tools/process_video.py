@@ -430,6 +430,8 @@ def detection_output_settings_list( output_dir, basename, stream_id='',
           output += fset( writer_str + 'writer:coco:video_name=' + stream_id )
         if version_id:
           output += fset( writer_str + 'writer:coco:version_identifier=' + version_id )
+        if fps:
+          output += fset( writer_str + 'writer:coco:frame_rate=' + fps )
     return output
 
   if write_timecode:

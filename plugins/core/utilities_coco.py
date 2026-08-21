@@ -496,6 +496,17 @@ def build_image_list(images, aux_image_labels, aux_image_extensions,
     return result
 
 
+def _parse_fps(fps):
+    """Frame rate as a number, or None when unset or unusable."""
+    if fps in (None, ""):
+        return None
+    try:
+        rate = float(fps)
+    except (TypeError, ValueError):
+        return None
+    return rate if rate > 0 else None
+
+
 def default_video_name(output_path, configured=""):
     """Name for the single video a writer emits.
 
@@ -589,7 +600,7 @@ def write_coco_json(file_obj, annotations, images, categories,
                     use_global, aux_image_labels, aux_image_extensions,
                     description="Created by VIAME COCO writer",
                     videos=None, tracks=None,
-                    version="", contributor=""):
+                    version="", contributor="", fps=""):
     """Serialize accumulated data to a file in COCO JSON format."""
     now = datetime.datetime.now(datetime.timezone.utc).astimezone()
 
@@ -610,6 +621,14 @@ def write_coco_json(file_obj, annotations, images, categories,
         info['version'] = version
     if contributor:
         info['contributor'] = contributor
+
+    # Neither MS-COCO nor kwcoco define a frame rate. It belongs to a video,
+    # not to an image list, so it rides on the video entry and is spelled the
+    # way the VIAME CSV header and DIVE both spell it.
+    rate = _parse_fps(fps)
+    if rate:
+        for video in videos or []:
+            video['fps'] = rate
 
     output = dict(
         info=info,
