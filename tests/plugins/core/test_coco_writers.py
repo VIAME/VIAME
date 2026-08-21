@@ -275,6 +275,42 @@ def test_detection_writer_image_list_has_no_video(tmp_path):
 
 
 @requires_kwiver
+def test_info_block_carries_provenance(tmp_path):
+    """MS-COCO info fields, written only when the caller supplies them."""
+    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+
+    writer = WriteDetectedObjectSetCoco()
+    writer.set_configuration(writer.get_configuration())
+    writer.version_identifier = "1.2.3"
+    writer.contributor = "VIAME"
+
+    out = str(tmp_path / "detections.json")
+    writer.open(out)
+    writer.write_set(vital_types.DetectedObjectSet(
+        [_detection(1, 2, 3, 4, "fish")]), "f000.png")
+    writer.complete()
+    writer.close()
+
+    doc = _load(out)
+    _assert_profile(doc)
+    assert doc["info"]["version"] == "1.2.3"
+    assert doc["info"]["contributor"] == "VIAME"
+
+    plain = _write_detections(tmp_path, "plain.json",
+                              [("f000.png", [_detection(1, 2, 3, 4, "fish")])])
+    assert "version" not in plain["info"]
+    assert "contributor" not in plain["info"]
+
+
+def test_multichannel_imagery_listed_as_assets():
+    """kwcoco marks the older 'auxiliary' spelling as pending deprecation."""
+    entries = uc.build_image_list(["img.png"], ["ir"], [".ir"])
+
+    assert "auxiliary" not in entries[0]
+    assert [asset["channels"] for asset in entries[0]["assets"]] == ["ir"]
+
+
+@requires_kwiver
 def test_detection_writer_video_name_overrides(tmp_path):
     frames = [("f000.png", [_detection(1, 2, 3, 4, "fish")])]
     doc = _write_detections(tmp_path, "detections.json", frames,

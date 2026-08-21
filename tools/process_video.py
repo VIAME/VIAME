@@ -424,9 +424,12 @@ def detection_output_settings_list( output_dir, basename, stream_id='',
   # The remaining options are viame_csv spellings; other writers take the
   # stream identifier as a video name and carry timing themselves.
   if default_writer_type and default_writer_type != 'viame_csv':
-    if default_writer_type == 'coco' and stream_id:
-      output += fset( det_writer_str + 'writer:coco:video_name=' + stream_id )
-      output += fset( trk_writer_str + 'writer:coco:video_name=' + stream_id )
+    if default_writer_type == 'coco':
+      for writer_str in [ det_writer_str, trk_writer_str ]:
+        if stream_id:
+          output += fset( writer_str + 'writer:coco:video_name=' + stream_id )
+        if version_id:
+          output += fset( writer_str + 'writer:coco:version_identifier=' + version_id )
     return output
 
   if write_timecode:

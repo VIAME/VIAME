@@ -455,6 +455,9 @@ def build_image_list(images, aux_image_labels, aux_image_extensions,
       - a dict with at least 'file_name' and optionally 'frame_index',
         'timestamp', 'video_id'.
 
+    Multi-channel imagery is listed under ``assets``; kwcoco's schema marks
+    the older ``auxiliary`` spelling as pending deprecation.
+
     IDs are 1-based to match the MS-COCO convention, kwcoco's own id
     allocator, and DIVE's exporter. Every entry is given a ``file_name``
     (required by the kwcoco image schema and dereferenced unconditionally by
@@ -488,7 +491,7 @@ def build_image_list(images, aux_image_labels, aux_image_extensions,
             for label, ext in zip(aux_image_labels, aux_image_extensions):
                 base, fext = os.path.splitext(fn)
                 aux.append(dict(file_name=base + ext + fext, channels=label))
-            entry['auxiliary'] = aux
+            entry['assets'] = aux
         result.append(entry)
     return result
 
@@ -585,7 +588,8 @@ def timestamp_to_seconds(ts):
 def write_coco_json(file_obj, annotations, images, categories,
                     use_global, aux_image_labels, aux_image_extensions,
                     description="Created by VIAME COCO writer",
-                    videos=None, tracks=None):
+                    videos=None, tracks=None,
+                    version="", contributor=""):
     """Serialize accumulated data to a file in COCO JSON format."""
     now = datetime.datetime.now(datetime.timezone.utc).astimezone()
 
@@ -596,12 +600,19 @@ def write_coco_json(file_obj, annotations, images, categories,
     # Stamp keypoint_category_id onto each keypoint before serialising.
     kp_cats = _collect_keypoint_categories(annotations)
 
+    info = dict(
+        year=now.year,
+        description=description,
+        date_created=now.replace(microsecond=0).isoformat(' '),
+    )
+    # MS-COCO info fields; omitted rather than written empty.
+    if version:
+        info['version'] = version
+    if contributor:
+        info['contributor'] = contributor
+
     output = dict(
-        info=dict(
-            year=now.year,
-            description=description,
-            date_created=now.replace(microsecond=0).isoformat(' '),
-        ),
+        info=info,
         licenses=[],
         annotations=[dict(d, id=i + 1) for i, d in enumerate(annotations)],
         categories=category_dict,
