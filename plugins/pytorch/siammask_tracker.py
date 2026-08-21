@@ -32,22 +32,9 @@ from viame.pytorch.siammask.models.model_builder import ModelBuilder
 from viame.pytorch.siammask.tracker.tracker_builder import build_tracker
 from viame.pytorch.siammask.utils.bbox import get_axis_aligned_bbox
 from viame.pytorch.siammask.utils.model_load import load_pretrain
-from viame.pytorch.utilities import report_cuda_errors
+from viame.pytorch.utilities import gpu_list_desc, parse_gpu_list, report_cuda_errors
 
 logger = logging.getLogger(__name__)
-
-
-def gpu_list_desc(use_for=None):
-    """Generate a description for a GPU list config trait."""
-    return ('define which GPUs to use{}: "all", "None", or a comma-separated list, e.g. "1,2"'
-            .format('' if use_for is None else ' for ' + use_for))
-
-
-def parse_gpu_list(gpu_list_str):
-    """Parse a string representing a list of GPU indices to a list of numeric GPU indices."""
-    return ([] if gpu_list_str == 'None' else
-            None if gpu_list_str == 'all' else
-            list(map(int, gpu_list_str.split(','))))
 
 
 # =============================================================================
@@ -215,9 +202,14 @@ class SiamMaskTracker(TrackObjects):
                         relative_mask = (full_mask[y1:y2, x1:x2] > 0.5).astype(np.uint8) * 255
                         det.mask = ImageContainer(Image(relative_mask))
 
-                    new_state = ObjectTrackState(ts, cbox, score, det)
+                    # (timestamp, detected_object) is the overload that keeps the
+                    # mask: passing the box and score separately alongside the
+                    # detection matches no overload at all, and the segmentation
+                    # SiamMask exists to produce would be dropped if the type were
+                    # passed instead of the detection.
+                    new_state = ObjectTrackState(ts, det)
                 else:
-                    new_state = ObjectTrackState(ts, cbox, score)
+                    new_state = ObjectTrackState(ts, cbox, float(score))
 
                 self._tracks[tid].append(new_state)
                 self._track_last_frames[tid] = frame_id
@@ -238,7 +230,16 @@ class SiamMaskTracker(TrackObjects):
             y1 = max(cbox1.min_y(), cbox2.min_y())
             y2 = min(cbox1.max_y(), cbox2.max_y())
             intsct_area = max(0, x2 - x1) * max(0, y2 - y1)
-            return intsct_area / (max(cbox1.area(), cbox2.area()))
+            # Intersection over the SMALLER box, so that a detection lying
+            # inside an existing track's box reads as fully overlapping
+            # whatever the size difference. Dividing by the larger box instead
+            # makes containment nearly invisible -- a 50x50 detection inside a
+            # 500x500 track scores 0.01 against a 0.10 gate -- so every already
+            # tracked animal seeds a second tracker on the frame after it was
+            # found. SiamMask keeps one CNN tracker per initialisation alive,
+            # so that compounds: on the SEFSC test clips it reached 90k track
+            # states in a single sequence and ran six of them out of memory.
+            return intsct_area / max(1e-6, min(cbox1.area(), cbox2.area()))
 
         if detections is not None:
             filtered_dets = detections.select(self._config.init_threshold)
