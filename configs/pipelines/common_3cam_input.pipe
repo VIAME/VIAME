@@ -1,9 +1,10 @@
 # =============================================================================
 # Title: :video_reader:type to be vidl_ffmpeg for videos
 #
-# Description: Three-camera input trio (input1/input2/input3). By default,
-# these are image list readers, but this can be over-riden by changing
-# :video_reader:type to be vidl_ffmpeg for videos
+# Description: Three-camera input trio (input1/input2/input3), the 3-camera
+# counterpart to common_2cam_input.pipe. By default these are image list
+# readers, but this can be over-riden by changing :video_reader:type to be
+# vidl_ffmpeg for videos
 # =============================================================================
 
 process input1
@@ -11,10 +12,6 @@ process input1
   :video_filename                                       cam1_images.txt
   :frame_time                                           1
   :exit_on_invalid                                      false
-  # Keep the directory on file_name: the align_cameras process opens these
-  # paths itself (cv2), so a bare basename only resolves when the working
-  # directory happens to be the image directory.
-  :no_path_in_name                                      false
 
   :video_reader:type                                    image_list
 
@@ -25,13 +22,6 @@ process input1
   block video_reader:image_list
     :image_reader:type                                  vxl
     :skip_bad_images                                    true
-    # The align_cameras process reads these files itself (native bit depth,
-    # percentile stretch), so the decoded image port is left unconnected.
-    # Without this the reader would still decode and force_byte every frame
-    # only for the result to be dropped at the unconnected port. Requires
-    # absolute paths in the list -- this flag also skips the reader's
-    # relative-path resolution. DIVE writes absolute paths.
-    :disable_image_load                                 true
 
     block image_reader:vxl
       :force_byte                                       true
@@ -51,10 +41,6 @@ process input2
   :video_filename                                       cam2_images.txt
   :frame_time                                           1
   :exit_on_invalid                                      false
-  # Keep the directory on file_name: the align_cameras process opens these
-  # paths itself (cv2), so a bare basename only resolves when the working
-  # directory happens to be the image directory.
-  :no_path_in_name                                      false
 
   :video_reader:type                                    image_list
 
@@ -65,13 +51,6 @@ process input2
   block video_reader:image_list
     :image_reader:type                                  vxl
     :skip_bad_images                                    true
-    # The align_cameras process reads these files itself (native bit depth,
-    # percentile stretch), so the decoded image port is left unconnected.
-    # Without this the reader would still decode and force_byte every frame
-    # only for the result to be dropped at the unconnected port. Requires
-    # absolute paths in the list -- this flag also skips the reader's
-    # relative-path resolution. DIVE writes absolute paths.
-    :disable_image_load                                 true
 
     block image_reader:vxl
       :force_byte                                       true
@@ -91,10 +70,6 @@ process input3
   :video_filename                                       cam3_images.txt
   :frame_time                                           1
   :exit_on_invalid                                      false
-  # Keep the directory on file_name: the align_cameras process opens these
-  # paths itself (cv2), so a bare basename only resolves when the working
-  # directory happens to be the image directory.
-  :no_path_in_name                                      false
 
   :video_reader:type                                    image_list
 
@@ -105,13 +80,6 @@ process input3
   block video_reader:image_list
     :image_reader:type                                  vxl
     :skip_bad_images                                    true
-    # The align_cameras process reads these files itself (native bit depth,
-    # percentile stretch), so the decoded image port is left unconnected.
-    # Without this the reader would still decode and force_byte every frame
-    # only for the result to be dropped at the unconnected port. Requires
-    # absolute paths in the list -- this flag also skips the reader's
-    # relative-path resolution. DIVE writes absolute paths.
-    :disable_image_load                                 true
 
     block image_reader:vxl
       :force_byte                                       true

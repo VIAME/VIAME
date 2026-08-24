@@ -18,12 +18,29 @@ config global
 
 include common_2cam_input.pipe
 
+# The align_cameras process reads the image files itself, so it needs settings
+# the shared input does not carry:
+#   no_path_in_name false -- the process opens these paths with cv2, and a bare
+#     basename only resolves when the working directory happens to be the image
+#     directory.
+#   disable_image_load true -- the decoded image ports are left unconnected on
+#     purpose (see below), and video_input_process decodes every frame whether
+#     or not anything reads it. Requires paths in the list to resolve as
+#     written, which is what DIVE writes.
+
+config input1
+  :no_path_in_name                             false
+  :video_reader:image_list:disable_image_load  true
+
+config input2
+  :no_path_in_name                             false
+  :video_reader:image_list:disable_image_load  true
+
 # ============================ CAMERA REGISTRATION ============================
 # The register process reads image files itself (native bit depth, percentile
 # stretch for 16-bit thermal); the decoded image ports stay unconnected on
 # purpose, since image_reader:vxl:force_byte would narrow 16-bit thermal to
-# 8 bits. The input includes set disable_image_load so those frames are not
-# decoded just to be dropped.
+# 8 bits with a truncating cast.
 
 process register
   :: align_cameras
