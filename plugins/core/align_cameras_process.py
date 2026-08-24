@@ -29,11 +29,15 @@ machine-readable reason -- one blank-ocean frame must not kill the job.
 
 The images are read with cv2 from the file_name ports rather than from
 the decoded ``image{i}`` ports (declared optional, left unconnected in
-the shipped pipes): common input includes configure
-``image_reader:vxl:force_byte true``, which min/max-crushes 16-bit
-thermal to 8 bits, whereas the alignment core applies a percentile
+the shipped pipes). The common input includes configure
+``image_reader:vxl:force_byte true`` with ``auto_stretch`` left at its
+default false, which narrows 16-bit thermal to 8 bits by a plain
+truncating cast, whereas the alignment core applies a percentile
 stretch. Reading the files ourselves reproduces the interactive path
-exactly.
+exactly. Because nothing consumes the decoded port, those includes also
+set ``image_list:disable_image_load true``, so the reader does not
+decode every frame only for the result to be dropped at the
+unconnected port.
 """
 
 import json
