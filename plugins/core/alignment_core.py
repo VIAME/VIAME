@@ -6,9 +6,8 @@
 """
 Cross-spectral camera alignment core (auto-align).
 
-The matching and fitting logic shared by the interactive alignment service
-(viame.core.interactive_alignment, one pair per stdio request) and the
-``align_cameras`` pipeline process (many image pairs per job). Computes
+The matching and fitting logic behind the ``align_cameras`` pipeline
+process, which registers many image pairs per job. Computes
 homographies between two camera images of the same scene -- typically
 different modalities (EO/RGB vs thermal IR) -- using the vendored
 MINIMA-LoFTR matcher (viame.pytorch.minima_loftr), a LoFTR fine-tuned on
@@ -571,7 +570,7 @@ def register_image_pair(
 ) -> Dict[str, Any]:
     """Full single-pair registration: match, MAGSAC, native refit, spread.
 
-    Returns the interactive-service result shape: on success a dict with
+    Returns, on success, a dict with
     ``homography`` (3x3, A native px -> B native px), ``inliers``
     (spatially spread ``[[ax, ay, bx, by], ...]`` in native px),
     ``num_matches``, ``num_inliers``, ``inlier_ratio``, ``coverage``,

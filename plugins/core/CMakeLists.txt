@@ -497,11 +497,6 @@ if( VIAME_ENABLE_PYTHON )
     alignment_core )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/interactive_alignment.py
-    core
-    interactive_alignment )
-
-  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_service.py
     core
     interactive_service )

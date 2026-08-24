@@ -33,8 +33,7 @@ the shipped pipes). The common input includes configure
 ``image_reader:vxl:force_byte true`` with ``auto_stretch`` left at its
 default false, which narrows 16-bit thermal to 8 bits by a plain
 truncating cast, whereas the alignment core applies a percentile
-stretch. Reading the files ourselves reproduces the interactive path
-exactly. Because nothing consumes the decoded port, the shipped pipes
+stretch. Because nothing consumes the decoded port, the shipped pipes
 override the shared input with ``image_list:disable_image_load true``,
 so the reader does not decode every frame only for the result to be
 dropped at the unconnected port.
