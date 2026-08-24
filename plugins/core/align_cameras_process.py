@@ -238,6 +238,7 @@ class AlignCamerasProcess(KwiverProcess):
         # One record per input row: {paths, score, metrics, skip}
         self._frames = []
         self._finalized = False
+        self._warned_bare_name = False
 
         self._base_configure()
 
@@ -288,6 +289,7 @@ class AlignCamerasProcess(KwiverProcess):
         except Exception as e:
             record['skip'] = 'unreadable'
             _log('prefilter %d: unreadable (%s)' % (index, e))
+            self._warn_if_bare_names(paths)
             return
 
         # A pair is only as good as its worst side.
@@ -308,6 +310,29 @@ class AlignCamerasProcess(KwiverProcess):
         _log('prefilter %d: %s texture=%.1f%s' % (
             index, os.path.basename(paths[0]), texture,
             (' skipped=' + record['skip']) if record['skip'] else ''))
+
+    def _warn_if_bare_names(self, paths):
+        """Name the likely cause when every path arrives as a bare basename.
+
+        The process opens these paths itself, but the file_name port is
+        stripped of its directory unless the input sets no_path_in_name
+        false, and DIVE runs pipelines from the job output directory
+        rather than the image directory. The resulting failure is a wall
+        of 'unreadable' skips that says nothing about why. Warn once.
+        """
+        if self._warned_bare_name:
+            return
+        bare = [
+            path for path in paths
+            if not os.path.dirname(path) and not os.path.exists(path)
+        ]
+        if not bare:
+            return
+        self._warned_bare_name = True
+        _log('%s has no directory component and does not resolve against the '
+             'working directory (%s). align_cameras opens these paths itself, '
+             'so the input needs ":no_path_in_name false".'
+             % (bare[0], os.getcwd()))
 
     # ------------------------------------------------------------- finalize
     def _select_frames(self):
