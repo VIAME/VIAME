@@ -26,6 +26,13 @@ process input1
   block video_reader:image_list
     :image_reader:type                                  vxl
     :skip_bad_images                                    true
+    # The align_cameras process reads these files itself (native bit depth,
+    # percentile stretch), so the decoded image port is left unconnected.
+    # Without this the reader would still decode and force_byte every frame
+    # only for the result to be dropped at the unconnected port. Requires
+    # absolute paths in the list -- this flag also skips the reader's
+    # relative-path resolution. DIVE writes absolute paths.
+    :disable_image_load                                 true
 
     block image_reader:vxl
       :force_byte                                       true
@@ -59,6 +66,13 @@ process input2
   block video_reader:image_list
     :image_reader:type                                  vxl
     :skip_bad_images                                    true
+    # The align_cameras process reads these files itself (native bit depth,
+    # percentile stretch), so the decoded image port is left unconnected.
+    # Without this the reader would still decode and force_byte every frame
+    # only for the result to be dropped at the unconnected port. Requires
+    # absolute paths in the list -- this flag also skips the reader's
+    # relative-path resolution. DIVE writes absolute paths.
+    :disable_image_load                                 true
 
     block image_reader:vxl
       :force_byte                                       true

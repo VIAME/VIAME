@@ -24,7 +24,9 @@ include common_3cam_input.pipe
 # ============================ CAMERA REGISTRATION ============================
 # The register process reads image files itself (native bit depth, percentile
 # stretch for 16-bit thermal); the decoded image ports stay unconnected on
-# purpose -- the input includes force 8-bit via image_reader:vxl:force_byte.
+# purpose, since image_reader:vxl:force_byte would narrow 16-bit thermal to
+# 8 bits. The input includes set disable_image_load so those frames are not
+# decoded just to be dropped.
 
 process register
   :: align_cameras
