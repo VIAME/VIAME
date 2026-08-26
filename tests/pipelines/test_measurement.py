@@ -93,7 +93,7 @@ class TestMeasurementFromAnnotationsTemplate:
 class TestMeasurementFullyAutoFishDefault:
     def test_measurement_fully_auto_fish_default(self, runner, env_stereo_fish, env_dir):
         run_measurement_viame_pipeline(runner, env_dir,
-                                       "pipelines/measurement_fully_auto_fish_default.pipe",
+                                       "pipelines/measurement_default_fish_fully_auto.pipe",
                                        params=CALIBRATION_PARAMS
                                        )
         check_csv(env_dir, expected_detections=2, comparison_detection='min', is_stereo=True)
@@ -107,12 +107,3 @@ class TestMeasurementFullyAutoGmmMotion:
                                        )
         check_csv(env_dir, expected_detections=0, comparison_detection='min', is_stereo=True)
         # TODO: Check on sequence >= 10 to expect detections
-
-
-class TestMeasurementFromAnnotationsNccDINO:
-    def test_measurement_from_annotations_ncc_dino(self, runner, env_stereo_fish_with_polygons, env_dir):
-        run_measurement_viame_pipeline(runner, env_dir,
-                                       "pipelines/measurement_from_annotations_ncc_dino.pipe",
-                                       params=CALIBRATION_PARAMS
-                                       )
-        check_csv(env_dir, expected_detections=2, comparison_detection='min', is_stereo=True)

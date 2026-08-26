@@ -25,8 +25,15 @@ if (VIAME_ENABLE_PYTHON)
     cmake_parse_arguments(TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     set(disabled_arg "")
-    if(TEST_REQ_ADDON AND NOT ${${TEST_REQ_ADDON}})
-      set(disabled_arg DISABLED)
+    if(TEST_REQ_ADDON)
+      # An undefined option would silently expand to "" and disable the test
+      # forever, which is how tests kept pointing at retired add-ons.
+      if(VIAME_DOWNLOAD_MODELS AND NOT DEFINED ${TEST_REQ_ADDON})
+        message(FATAL_ERROR "${TEST_NAME}: unknown add-on option ${TEST_REQ_ADDON}")
+      endif()
+      if(NOT ${${TEST_REQ_ADDON}})
+        set(disabled_arg DISABLED)
+      endif()
     endif()
 
     viame_add_pytest_test(

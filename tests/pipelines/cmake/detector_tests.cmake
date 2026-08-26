@@ -75,6 +75,13 @@ add_pipeline_script_test(
         REQ_ADDON VIAME_DOWNLOAD_MODELS-DEFAULT-FISH
 )
 
+add_pipeline_script_test(
+        test_detector_fish_with_motion
+        test_detector.py
+        TestDetectorFishWithMotion
+        REQ_ADDON VIAME_DOWNLOAD_MODELS-DEFAULT-FISH
+)
+
 # ============ ADD-ON EM-TUNA Pipelines ============ #
 
 add_pipeline_script_test(
@@ -82,29 +89,6 @@ add_pipeline_script_test(
         test_detector.py
         TestDetectorEMTuna
         REQ_ADDON VIAME_DOWNLOAD_MODELS-EM-TUNA
-)
-
-# ============ ADD-ON EXTRA-FISH Pipelines ============ #
-
-add_pipeline_script_test(
-        test_detector_fish_fusion
-        test_detector.py
-        TestDetectorFishFusion
-        REQ_ADDON VIAME_DOWNLOAD_MODELS-EXTRA-FISH
-)
-
-add_pipeline_script_test(
-        test_detector_fish_with_motion
-        test_detector.py
-        TestDetectorFishWithMotion
-        REQ_ADDON VIAME_DOWNLOAD_MODELS-EXTRA-FISH
-)
-
-add_pipeline_script_test(
-        test_detector_fish_without_motion
-        test_detector.py
-        TestDetectorFishWithoutMotion
-        REQ_ADDON VIAME_DOWNLOAD_MODELS-EXTRA-FISH
 )
 
 # ============ ADD-ON GENERIC Pipelines ============ #
@@ -139,7 +123,7 @@ add_pipeline_script_test(
 add_pipeline_script_test(
         test_detector_mouss_deep7
         test_detector.py
-        TestDetectorMoussDeep7
+        TestDetectorMoussDeep7VN
         REQ_ADDON VIAME_DOWNLOAD_MODELS-MOUSS-DEEP7
 )
 
@@ -183,7 +167,7 @@ add_pipeline_script_test(
 add_pipeline_script_test(
         test_detector_sealion_fusion_two_class
         test_detector.py
-        TestDetectorSealionCFRNNTwoClass
+        TestDetectorSealionFusionTwoClass
         REQ_ADDON VIAME_DOWNLOAD_MODELS-SEA-LION
 )
 

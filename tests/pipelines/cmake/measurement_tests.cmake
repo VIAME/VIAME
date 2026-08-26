@@ -37,22 +37,16 @@ add_pipeline_script_test(
 )
 
 add_pipeline_script_test(
-        test_measurement_fully_auto_fish_default
-        test_measurement.py
-        TestMeasurementFullyAutoFishDefault
-)
-
-add_pipeline_script_test(
         test_measurement_fully_auto_gmm_motion
         test_measurement.py
         TestMeasurementFullyAutoGmmMotion
 )
 
-# ============ ADD-ON DINO Pipelines ============ #
+# ============ ADD-ON DEFAULT-FISH Pipelines ============ #
 
 add_pipeline_script_test(
-        test_measurement_from_annotations_ncc_dino
+        test_measurement_fully_auto_fish_default
         test_measurement.py
-        TestMeasurementFromAnnotationsNccDINO
-        REQ_ADDON VIAME_DOWNLOAD_MODELS-DINO
+        TestMeasurementFullyAutoFishDefault
+        REQ_ADDON VIAME_DOWNLOAD_MODELS-DEFAULT-FISH
 )

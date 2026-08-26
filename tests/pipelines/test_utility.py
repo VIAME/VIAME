@@ -68,7 +68,7 @@ class TestUtilityAddSegmentationWatershed:
 class TestUtilityEmptyFrameLbls:
     def test_utility_empty_frame_lbls(self, runner, env_fish_sequence, env_dir):
         run_utility_viame_pipeline(runner, env_dir,
-                                   "pipelines/utility_empty_frame_lbls_10fr.pipe",
+                                   "pipelines/utility_empty_frame_lbls.pipe",
                                    )
         check_csv(env_dir, expected_detections=9)
 

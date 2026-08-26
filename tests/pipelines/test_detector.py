@@ -123,38 +123,10 @@ class TestDetectorEMTuna:
         check_csv(env_dir, expected_detections=1, comparison_detection='min')
 
 
-class TestDetectorFishFusion:
-    def test_detector_fish_fusion(self, runner, env_fish_sequence, env_dir):
-        run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_fish_fusion.pipe",
-                                    )
-        check_csv(env_dir, expected_detections=1, comparison_detection='min')
-
-
 class TestDetectorFishWithMotion:
-    def test_detector_fish_with_motion_1080(self, runner, env_fish_sequence, env_dir):
+    def test_detector_fish_with_motion(self, runner, env_fish_sequence, env_dir):
         run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_fish_with_motion_1080.pipe",
-                                    )
-        check_csv(env_dir, expected_detections=1, comparison_detection='min')
-
-
-class TestDetectorFishWithoutMotion:
-    def test_detector_fish_without_motion_640(self, runner, env_fish_sequence, env_dir):
-        run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_fish_without_motion_640.pipe",
-                                    )
-        check_csv(env_dir, expected_detections=1, comparison_detection='min')
-
-    def test_detector_fish_without_motion_800(self, runner, env_fish_sequence, env_dir):
-        run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_fish_without_motion_800.pipe",
-                                    )
-        check_csv(env_dir, expected_detections=1, comparison_detection='min')
-
-    def test_detector_fish_without_motion_1920(self, runner, env_fish_sequence, env_dir):
-        run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_fish_without_motion_1920.pipe",
+                                    "pipelines/detector_fish_with_motion.pipe",
                                     )
         check_csv(env_dir, expected_detections=1, comparison_detection='min')
 
@@ -194,7 +166,7 @@ class TestDetectorMoussDeep7VN:
 class TestDetectorSealionYoloAllClasses:
     def test_detector_sealion_yolo_all_classes(self, runner, env_seal, env_dir):
         run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_sealion_yolo_all_classes.pipe",
+                                    "pipelines/detector_sea_lion_yolo_all_class.pipe",
                                     )
         check_csv(env_dir, expected_detections=1, comparison_detection='min')
 
@@ -202,7 +174,7 @@ class TestDetectorSealionYoloAllClasses:
 class TestDetectorSealionBackgroundClassifier:
     def test_detector_sealion_background_classifier(self, runner, env_seal, env_dir):
         run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_sealion_background_classifier.pipe",
+                                    "pipelines/detector_sea_lion_background_classifier.pipe",
                                     )
         check_csv(env_dir, expected_detections=1, comparison_detection='min')
 
@@ -210,7 +182,7 @@ class TestDetectorSealionBackgroundClassifier:
 class TestDetectorSealionCFRNNAllClass:
     def test_detector_sealion_cfrnn_all_class(self, runner, env_seal, env_dir):
         run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_sealion_cfrnn_all_class.pipe",
+                                    "pipelines/detector_sea_lion_cfrnn_all_class.pipe",
                                     )
         check_csv(env_dir, expected_detections=1, comparison_detection='min')
 
@@ -218,7 +190,7 @@ class TestDetectorSealionCFRNNAllClass:
 class TestDetectorSealionCFRNNTwoClass:
     def test_detector_sealion_cfrnn_two_class(self, runner, env_seal, env_dir):
         run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_sealion_cfrnn_two_class.pipe",
+                                    "pipelines/detector_sea_lion_cfrnn_two_class.pipe",
                                     )
         check_csv(env_dir, expected_detections=1, comparison_detection='min')
 
@@ -226,7 +198,7 @@ class TestDetectorSealionCFRNNTwoClass:
 class TestDetectorSealionFusionAllClass:
     def test_detector_sealion_fusion_all_class(self, runner, env_seal, env_dir):
         run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_sealion_fusion_all_class.pipe",
+                                    "pipelines/detector_sea_lion_fusion_all_class.pipe",
                                     )
         check_csv(env_dir, expected_detections=1, comparison_detection='min')
 
@@ -234,7 +206,7 @@ class TestDetectorSealionFusionAllClass:
 class TestDetectorSealionFusionTwoClass:
     def test_detector_sealion_fusion_two_class(self, runner, env_seal, env_dir):
         run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_sealion_fusion_two_class.pipe",
+                                    "pipelines/detector_sea_lion_fusion_two_class.pipe",
                                     )
         check_csv(env_dir, expected_detections=1, comparison_detection='min')
 
@@ -242,15 +214,7 @@ class TestDetectorSealionFusionTwoClass:
 class TestDetectorSealionMaskRCNNTwoClass:
     def test_detector_sealion_mask_rcnn_two_class(self, runner, env_seal, env_dir):
         run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_sealion_mask_rcnn_two_class.pipe",
-                                    )
-        check_csv(env_dir, expected_detections=1, comparison_detection='min')
-
-
-class TestDetectorSealionMaskRCNNFiveClass:
-    def test_detector_sealion_mask_rcnn_five_class(self, runner, env_seal, env_dir):
-        run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_sealion_mask_rcnn_five_class.pipe",
+                                    "pipelines/detector_sea_lion_mask_rcnn_two_class.pipe",
                                     )
         check_csv(env_dir, expected_detections=1, comparison_detection='min')
 
@@ -258,7 +222,7 @@ class TestDetectorSealionMaskRCNNFiveClass:
 class TestDetectorSealionMaskReclassifierFiveClass:
     def test_detector_sealion_reclassifier_five_class(self, runner, env_seal, env_dir):
         run_detector_viame_pipeline(runner, env_dir,
-                                    "pipelines/detector_sealion_reclassifier_five_class.pipe",
+                                    "pipelines/detector_sea_lion_reclassifier_five_class.pipe",
                                     )
         check_csv(env_dir, expected_detections=1, comparison_detection='min')
 

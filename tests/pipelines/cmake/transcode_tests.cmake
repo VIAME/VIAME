@@ -23,3 +23,9 @@ add_pipeline_script_test(
         test_transcode.py
         TestTranscodeTracksOnly
 )
+
+add_pipeline_script_test(
+        test_transcode_enhance
+        test_transcode.py
+        TestTranscodeEnhance
+)
