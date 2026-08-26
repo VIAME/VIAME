@@ -1,0 +1,73 @@
+# =============================================================================
+# Title: Utility - Warp Camera 2 Annotations onto Camera 1
+#
+# Description: Model-free check of the DIVE camera registration hand-off.
+# Reads camera 2's existing annotations and projects them into camera 1's
+# frame using the dataset's registration (DIVE writes it into the job dir
+# and points warp2 at it); camera 2's own annotations pass through
+# unchanged. Camera 1 must be the registration reference (DIVE default
+# display camera).
+# Input: IMAGE (per camera), BBOX (per camera)
+# Output: BBOX (per camera)
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+process input1
+  :: video_input
+  :video_filename                              input_list_1.txt
+  :frame_time                                  1
+  :exit_on_invalid                             false
+  :video_reader:type                           image_list
+  :video_reader:image_list:image_reader:type   ocv
+
+process input2
+  :: video_input
+  :video_filename                              input_list_2.txt
+  :frame_time                                  1
+  :exit_on_invalid                             false
+  :video_reader:type                           image_list
+  :video_reader:image_list:image_reader:type   ocv
+
+process detection_reader2
+  :: detected_object_input
+  :file_name                                   detections2.csv
+  :reader:type                                 viame_csv
+
+connect from input2.file_name
+        to   detection_reader2.image_file_name
+
+# Maps camera 2 image coordinates onto camera 1. DIVE sets
+#   -s warp2:transformation_file=<job dir>/<cam2>_to_<cam1>_registration.json
+process warp2
+  :: warp_detections
+  :transformation_file                         registration_camera2_to_camera1.json
+
+connect from detection_reader2.detected_object_set
+        to   warp2.detected_object_set
+
+process detector_writer1
+  :: detected_object_output
+  :file_name                                   detections_camera1.csv
+  :writer:type                                 viame_csv
+
+connect from warp2.detected_object_set
+        to   detector_writer1.detected_object_set
+connect from input1.file_name
+        to   detector_writer1.image_file_name
+
+process detector_writer2
+  :: detected_object_output
+  :file_name                                   detections_camera2.csv
+  :writer:type                                 viame_csv
+
+connect from detection_reader2.detected_object_set
+        to   detector_writer2.detected_object_set
+connect from input2.file_name
+        to   detector_writer2.image_file_name
+
+# -- end of file --

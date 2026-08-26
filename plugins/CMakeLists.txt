@@ -23,10 +23,6 @@ if( VIAME_ENABLE_COLMAP )
   add_subdirectory( colmap )
 endif()
 
-if( VIAME_ENABLE_ITK )
-  add_subdirectory( itk )
-endif()
-
 if( VIAME_ENABLE_SEAGIS )
   add_subdirectory( seagis )
 endif()

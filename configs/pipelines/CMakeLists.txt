@@ -394,12 +394,6 @@ if( VIAME_ENABLE_PYTHON )
     train_tracker_ocsort.conf )
 endif()
 
-if( VIAME_ENABLE_ITK )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    register_multimodal_sync_itk.pipe
-    register_multimodal_unsync_itk.pipe )
-endif()
-
 if( VIAME_ENABLE_MATLAB )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     detector_matlab_camtrawl.pipe )
