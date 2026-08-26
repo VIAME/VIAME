@@ -1,3 +1,11 @@
+v0.22.9 - 8/26/2026
+===================
+
+
+-Updates for multi-camera registration pipelines and registration techniques
+
+
+
 v0.22.8 - 8/18/2026
 ===================
 
