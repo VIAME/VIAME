@@ -46,34 +46,18 @@ def check_csv(
         is_stereo: bool = False
 ):
     """
-    Assert that the detector_output.csv file is created.
-    Additional checks can be provided using optional parameters
-    :param env_dir: fixture to get test environment directory.
-    :param expected_detections: Optional int, expected number of detections in the csv
-    :param comparison_detection: Optional int, expected number of detections in the csv
-    :param all_types: Optional str (polygon, head-tail), all detections must have the declared type
-    :param is_stereo: Optional bool, whether there is 2 stereo csv files to check
-    """
+    Assert the pipeline wrote a detection CSV, plus any optional expectations.
 
-    if not is_stereo:
-        detector_csv_path = env_dir / "output" / "detector_output.csv"
-        track_csv_path = env_dir / "output" / "track_output.csv"
-        csv_path = detector_csv_path
-        if track_csv_path.is_file():
-            csv_path = track_csv_path
-        _check_csv(csv_path, expected_detections, comparison_detection, all_types)
-    else:
-        detector_csv_path = env_dir / "output" / "detector_output1.csv"
-        track_csv_path = env_dir / "output" / "track_output1.csv"
-        csv_path = detector_csv_path
-        if track_csv_path.is_file():
-            csv_path = track_csv_path
-        left_path = csv_path
-        # Left CSVs are named <base>1.csv; swap only the trailing camera index.
-        assert csv_path.stem.endswith("1"), f"Unexpected stereo CSV name: {csv_path.name}"
-        right_path = csv_path.with_name(csv_path.stem[:-1] + "2" + csv_path.suffix)
-        _check_csv(left_path, expected_detections, comparison_detection, all_types)
-        _check_csv(right_path, expected_detections, comparison_detection, all_types)
+    Track output is preferred over detector output when both exist. Stereo
+    pipelines write one CSV per camera, named <base>1.csv and <base>2.csv.
+    """
+    output = env_dir / "output"
+    suffixes = ("1", "2") if is_stereo else ("",)
+    base = ("track_output" if (output / f"track_output{suffixes[0]}.csv").is_file()
+            else "detector_output")
+    for suffix in suffixes:
+        _check_csv(output / f"{base}{suffix}.csv", expected_detections,
+                   comparison_detection, all_types)
 
 
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp", ".pgm", ".ppm"}

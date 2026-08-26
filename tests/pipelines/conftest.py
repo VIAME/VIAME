@@ -17,8 +17,8 @@ def pytest_sessionfinish(session, exitstatus):
 
 
 @pytest.fixture
-def runner(tmp_path):
-    return ViameRunner(tmp_path)
+def runner():
+    return ViameRunner()
 
 
 @pytest.fixture

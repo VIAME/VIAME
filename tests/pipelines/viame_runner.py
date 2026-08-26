@@ -9,8 +9,7 @@ PIPELINE_TIMEOUT = 900
 
 
 class ViameRunner:
-    def __init__(self, tmp_dir):
-        self.tmp_dir = tmp_dir
+    def __init__(self):
         self._viame_env = None
 
     @cached_property

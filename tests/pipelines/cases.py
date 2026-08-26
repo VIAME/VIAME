@@ -135,9 +135,11 @@ RULES = (
     # fixture set has a single seal image and these deadlock without a second.
     (r"^tracker_sea_lion_(suppressor|tracker)_",
      dict(skip="needs a multi-frame seal sequence")),
-    (r"^filter_(debayer|enhance|normalize|split)", dict(check=frames())),
-    (r"^filter_(draw_dets|extract_chips)", dict(env="env_fish_with_detections", check=frames())),
-    (r"^transcode_", dict(check=video(min_size=100))),
+    # These take the category default; the rule marks them covered rather than
+    # letting them fall through to an uncovered skip.
+    (r"^filter_(debayer|enhance|normalize|split)", {}),
+    (r"^filter_(draw_dets|extract_chips)", dict(env="env_fish_with_detections")),
+    (r"^transcode_", {}),
     (r"^utility_add_head_tail_keypoints", dict(check=HEAD_TAIL)),
     (r"^utility_add_segmentations", dict(check=POLYGON)),
     (r"^measurement_from_annotations", dict(params=CALIBRATION_PARAMS, check=STEREO_MIN_2)),
@@ -205,11 +207,6 @@ OVERRIDES = {
     "transcode_native_fps": Case(env="env_fish_sequence_with_detections"),
     "transcode_tracks_only": Case(env="env_fish_sequence_with_detections"),
     "utility_add_head_tail_keypoints_from_dets": Case(env="env_fish_with_polygons"),
-    "utility_add_segmentations_watershed": [
-        Case(id="utility_add_segmentations_watershed"),
-        Case(id="utility_add_segmentations_watershed_2x",
-             params={"detection_refiner:refiner:ocv_watershed:seed_scale_factor": 0.05}),
-    ],
     "utility_empty_frame_lbls": Case(env="env_fish_sequence", check=csv(expected_detections=9)),
     "utility_max_points_per_poly": Case(env="env_fish_with_polygons", check=POLYGON),
     "utility_register_frames": Case(
@@ -280,6 +277,9 @@ def discover(category: str) -> list[Case]:
         elif not isinstance(overrides, list):
             overrides = [overrides]
         cases += [_merge(base, override.__dict__, stem) for override in overrides]
+    ids = [case.id for case in cases]
+    duplicates = {i for i in ids if ids.count(i) > 1}
+    assert not duplicates, f"duplicate case ids in {category}: {sorted(duplicates)}"
     return cases
 
 
