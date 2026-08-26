@@ -3,70 +3,6 @@
 ##
 if( VIAME_DOWNLOAD_MODELS )
 
-  # Default fish detection model
-  if( VIAME_DOWNLOAD_MODELS-DEFAULT-FISH )
-    if( VIAME_ENABLE_PYTORCH-NETHARN )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/660a2e5aaa5c8de3874c4160/download
-        22dacdc4afc2956406cf13d44ae51408
-        ${VIAME_DOWNLOAD_DIR}/models-netharn_fish-v1.6.zip
-        ${CMAKE_CURRENT_SOURCE_DIR} )
-    elseif( VIAME_ENABLE_PYTORCH-MMDET )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5fb196f250a41e3d1956a407/download
-        c6e0cdf1e903dbe3e261977378a97223
-        ${VIAME_DOWNLOAD_DIR}/models-mmdet_default-v1.4.tar.gz
-        ${CMAKE_CURRENT_SOURCE_DIR} )
-    elseif( VIAME_ENABLE_DARKNET )
-      DownloadAndInstallAddOn(
-        https://viame.kitware.com/api/v1/item/6172423562e0e5717e22cc21/download
-        5b8a947d4d9de3ecc7acd8e729652ada
-        ${VIAME_DOWNLOAD_DIR}/VIAME-Default-CPU-Detectors-v1.0.zip )
-    endif()
-  endif()
-
-  # Generic object detection model
-  if( VIAME_DOWNLOAD_MODELS-GENERIC )
-    if( VIAME_ENABLE_DARKNET )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/626e05b54acac99f425acc46/download
-        72fe8f6cc1653b350154e32d03efd6c0
-        ${VIAME_DOWNLOAD_DIR}/models-yolo_generic-v1.5.zip
-        ${CMAKE_CURRENT_SOURCE_DIR} )
-    elseif( VIAME_ENABLE_PYTORCH-NETHARN )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/62682a514acac99f420f6883/download
-        c71f276ac893502803504dad10150cc8
-        ${VIAME_DOWNLOAD_DIR}/models-netharn_generic-v1.4.zip
-        ${CMAKE_CURRENT_SOURCE_DIR} )
-    elseif( VIAME_ENABLE_PYTORCH-MMDET )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5fb1922650a41e3d1956a389/download
-        bf2df19944c55e8a7dc757520c607893
-        ${VIAME_DOWNLOAD_DIR}/models-mmdet_generic-v1.4.tar.gz
-        ${CMAKE_CURRENT_SOURCE_DIR} )
-    endif()
-  endif()
-
-  # SAM2 generic segmentation model
-  if( VIAME_ENABLE_PYTORCH-SAM2 )
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/6757401e9ccf870f61ceacb9/download
-      54958fe7a3a0fdb8f831d89cc5bc0a69
-      ${VIAME_DOWNLOAD_DIR}/models-sam2_v1.0.zip
-      ${CMAKE_CURRENT_SOURCE_DIR} )
-  endif()
-
-  # Motion detection model
-  if( VIAME_DOWNLOAD_MODELS-MOTION )
-    if( VIAME_ENABLE_PYTORCH-NETHARN )
-      DownloadAndInstallAddOn(
-        https://viame.kitware.com/api/v1/item/627b326fea630db5587b577b/download
-        eff47c8693b936514cc98674a2c0c3b7
-        ${VIAME_DOWNLOAD_DIR}/VIAME-Motion-Models-v1.0.zip )
-    endif()
-  endif()
-
   # Other PyTorch detection, tracking, and training (seed) models
   if( VIAME_ENABLE_PYTORCH )
 
@@ -95,13 +31,6 @@ if( VIAME_DOWNLOAD_MODELS )
         ${VIAME_DOWNLOAD_DIR}/models-mdnet_tracking_models-v1.0.0.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR} )
     endif()
-
-    # Default multi-target tracking models
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5facb1bb50a41e3d194d2af6/download
-      eb66d389e7fd58529b5cd4b00d6b5058
-      ${VIAME_DOWNLOAD_DIR}/models-pytorch_tracking-v1.2.0.tar.gz
-      ${CMAKE_CURRENT_SOURCE_DIR} )
 
     # Default descriptor models, also supplies the efficientnetv2s train seed
     DownloadAndExtract(
@@ -227,9 +156,9 @@ set( CORE_PIPELINE_FILES
   transcode_tracks_only.pipe
   utility_add_head_tail_keypoints_from_dets.pipe
   utility_add_segmentations_watershed.pipe
-        utility_empty_frame_lbls.pipe
+  utility_empty_frame_lbls.pipe
   utility_link_detections_default.pipe
-        utility_max_points_per_poly.pipe
+  utility_max_points_per_poly.pipe
   utility_remove_dets_in_ignore_regions.pipe
   utility_register_frames.pipe
   utility_register_frames_2-cam.pipe
