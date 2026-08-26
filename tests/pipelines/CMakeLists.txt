@@ -1,52 +1,18 @@
-# VIAME Examples Tests
+# VIAME Pipeline Tests
 #
-# Integration tests for VIAME example scripts.
-# These tests run the actual example scripts and verify they produce output.
-#
-# Test Categories:
-#   PIPELINES - Standard pipeline script tests
-#   UNIT     - Unit tests (outside pipelines tree)
+# Integration tests that run every DIVE-runnable pipeline the way DIVE runs it.
+# One ctest per pipeline category; the pipelines within a category are
+# discovered from the install tree at test time (see cases.py), so add-on
+# pipelines are covered without being named here.
 #
 # To run only pipelines tests:
 #   ctest -L PIPELINES
+# To run a single pipeline:
+#   pytest tests/pipelines/test_detector.py -k detector_default_fish
 
 if (VIAME_ENABLE_PYTHON)
-  # Common test properties
-  set(PIPELINE_TEST_TIMEOUT 600)
-  set(PIPELINES_TEST_LABELS "PIPELINES")
-
-  # Thin wrapper over the shared viame_add_pytest_test() helper
-  # (tests/common/add_pytest_test.cmake). REQ_ADDON gates the test on a
-  # model add-on being enabled.
-  function(add_pipeline_script_test TEST_NAME TEST_FILE TEST_CLASS)
-    set(options "")
-    set(oneValueArgs REQ_ADDON)
-    set(multiValueArgs "")
-    cmake_parse_arguments(TEST "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-
-    set(disabled_arg "")
-    if(TEST_REQ_ADDON)
-      # An undefined option would silently expand to "" and disable the test
-      # forever, which is how tests kept pointing at retired add-ons.
-      if(VIAME_DOWNLOAD_MODELS AND NOT DEFINED ${TEST_REQ_ADDON})
-        message(FATAL_ERROR "${TEST_NAME}: unknown add-on option ${TEST_REQ_ADDON}")
-      endif()
-      if(NOT ${${TEST_REQ_ADDON}})
-        set(disabled_arg DISABLED)
-      endif()
-    endif()
-
-    viame_add_pytest_test(
-      NAME "viame_pipelines:${TEST_NAME}"
-      TARGET "${CMAKE_CURRENT_SOURCE_DIR}/${TEST_FILE}::${TEST_CLASS}"
-      LABELS "${PIPELINES_TEST_LABELS}"
-      TIMEOUT "${PIPELINE_TEST_TIMEOUT}"
-      SKIP_RETURN_CODE 5
-      PYTHONPATH_DIRS "${CMAKE_CURRENT_SOURCE_DIR}"
-      SOURCE_SETUP ON
-      ${disabled_arg}
-    )
-  endfunction()
+  # Generous: a category can hold dozens of model pipelines on a full install.
+  set(PIPELINE_TEST_TIMEOUT 7200)
 
   DownloadAndExtract(
     https://data.kitware.com/api/v1/file/6a311e9ba7bcc12a3cf54ac1/download
@@ -54,11 +20,16 @@ if (VIAME_ENABLE_PYTHON)
     ${VIAME_DOWNLOAD_DIR}/pipelines_test_data.zip
     ${CMAKE_CURRENT_SOURCE_DIR} )
 
-  include(cmake/utility_tests.cmake)
-  include(cmake/detector_tests.cmake)
-  include(cmake/filter_tests.cmake)
-  include(cmake/transcode_tests.cmake)
-  include(cmake/measurement_tests.cmake)
-  include(cmake/tracker_tests.cmake)
+  foreach (category detector tracker filter transcode utility measurement)
+    viame_add_pytest_test(
+      NAME "viame_pipelines:test_${category}"
+      TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_${category}.py"
+      LABELS "PIPELINES"
+      TIMEOUT "${PIPELINE_TEST_TIMEOUT}"
+      SKIP_RETURN_CODE 5
+      PYTHONPATH_DIRS "${CMAKE_CURRENT_SOURCE_DIR}"
+      SOURCE_SETUP ON
+    )
+  endforeach ()
 
 endif ()

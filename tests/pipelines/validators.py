@@ -8,7 +8,6 @@ def get_viame_csv_lines(path: Path) -> list[str]:
 
 def _check_csv(
         csv_path: Path,
-        env_dir: Path,
         expected_detections: int = None,
         comparison_detection: Literal['equal', 'min', 'max'] = 'equal',
         all_types: Literal['polygon', 'head-tail'] = None
@@ -62,7 +61,7 @@ def check_csv(
         csv_path = detector_csv_path
         if track_csv_path.is_file():
             csv_path = track_csv_path
-        _check_csv(csv_path, env_dir, expected_detections, comparison_detection, all_types)
+        _check_csv(csv_path, expected_detections, comparison_detection, all_types)
     else:
         detector_csv_path = env_dir / "output" / "detector_output1.csv"
         track_csv_path = env_dir / "output" / "track_output1.csv"
@@ -73,8 +72,8 @@ def check_csv(
         # Left CSVs are named <base>1.csv; swap only the trailing camera index.
         assert csv_path.stem.endswith("1"), f"Unexpected stereo CSV name: {csv_path.name}"
         right_path = csv_path.with_name(csv_path.stem[:-1] + "2" + csv_path.suffix)
-        _check_csv(left_path, env_dir, expected_detections, comparison_detection, all_types)
-        _check_csv(right_path, env_dir, expected_detections, comparison_detection, all_types)
+        _check_csv(left_path, expected_detections, comparison_detection, all_types)
+        _check_csv(right_path, expected_detections, comparison_detection, all_types)
 
 
 def check_generated_frames(env_dir: Path, match_names: bool = True, delta: int = 0):

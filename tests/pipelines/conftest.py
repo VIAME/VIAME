@@ -1,17 +1,20 @@
+import shutil
+
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import pytest
-import cv2
-import numpy as np
-import shutil
 
 from .viame_runner import ViameRunner
 
+
 def pytest_sessionfinish(session, exitstatus):
+    # ctest reads 5 as "skipped"; only claim that when nothing actually ran,
+    # otherwise an uncovered pipeline would mask a real failure.
     reporter = session.config.pluginmanager.get_plugin("terminalreporter")
-    skipped = len(reporter.stats.get('skipped', []))
-    if skipped > 0:
+    if exitstatus == 0 and reporter.stats.get('skipped') and not reporter.stats.get('passed'):
         session.exitstatus = 5
+
 
 @pytest.fixture
 def runner(tmp_path):
@@ -22,17 +25,6 @@ def runner(tmp_path):
 def data_path(request) -> Path:
     return request.path.parent / "pipelines_test_data"
 
-@pytest.fixture
-def output_path(tmp_path):
-    out_dir = tmp_path / "output"
-    out_dir.mkdir()
-    return out_dir
-
-@pytest.fixture
-def images_path(tmp_path):
-    images_dir = tmp_path / "images"
-    images_dir.mkdir()
-    return images_dir
 
 @pytest.fixture
 def env_dir(tmp_path, data_path):
@@ -41,136 +33,80 @@ def env_dir(tmp_path, data_path):
     shutil.copy(data_path / "labels" / "empty.csv", tmp_path / "groundtruth.csv")
     return tmp_path
 
-@pytest.fixture
-def env_single_empty(env_dir, data_path):
-    shutil.copy(data_path / "images" / "empty_100_100.jpg", env_dir / "images")
-    return _finalize_env(env_dir)
 
-@pytest.fixture
-def env_checkerboard_9_6(env_dir, data_path):
-    shutil.copy(data_path / "images" / "checkerboards" / "checkerboard_9_6.jpg", env_dir / "images")
-    return _finalize_env(env_dir)
+@dataclass(frozen=True)
+class Environment:
+    """Input data laid out the way DIVE hands a dataset to a pipeline."""
 
-@pytest.fixture
-def env_checkerboard_4_4(env_dir, data_path):
-    shutil.copy(data_path / "images" / "checkerboards" / "checkerboard_4_4.jpg", env_dir / "images")
-    return _finalize_env(env_dir)
-
-@pytest.fixture
-def env_checkerboard_sequence(env_dir, data_path):
-    images = sorted((data_path / "images" / "stereo" / "checkerboards").glob("L_*.jpg"))
-    for image in images:
-        shutil.copy(image, env_dir / "images")
-    return _finalize_env(env_dir)
-
-@pytest.fixture
-def env_circles_3(env_dir, data_path):
-    shutil.copy(data_path / "images" / "circles_3.jpg", env_dir / "images")
-    return _finalize_env(env_dir)
-
-@pytest.fixture
-def env_fish(env_dir, data_path):
-    shutil.copy(data_path / "images" / "fish" / "fish_1.jpg", env_dir / "images")
-    return _finalize_env(env_dir)
-
-@pytest.fixture
-def env_fish_with_detections(env_dir, data_path):
-    shutil.copy(data_path / "images" / "fish" / "fish_1.jpg", env_dir / "images")
-    shutil.copy(data_path / "labels" / "fish" / "fish_1_detections.csv", env_dir / "groundtruth.csv")
-    return _finalize_env(env_dir)
-
-@pytest.fixture
-def env_fish_with_polygons(env_dir, data_path):
-    shutil.copy(data_path / "images" / "fish" / "fish_1.jpg", env_dir / "images")
-    shutil.copy(data_path / "labels" / "fish" / "fish_1_polygons.csv", env_dir / "groundtruth.csv")
-    return _finalize_env(env_dir)
-
-@pytest.fixture
-def env_fish_sequence(env_dir, data_path):
-    for i in range(1, 10):
-        shutil.copy(data_path / "images" / "fish" / f"fish_1_seq_{i:02}.jpg", env_dir / "images")
-    return _finalize_env(env_dir)
-
-@pytest.fixture
-def env_fish_sequence_with_detections(env_dir, data_path):
-    for i in range(1, 10):
-        shutil.copy(data_path / "images" / "fish" / f"fish_1_seq_{i:02}.jpg", env_dir / "images")
-    shutil.copy(data_path / "labels" / "fish" / "fish_1_seq_detections.csv", env_dir / "groundtruth.csv")
-    return _finalize_env(env_dir)
-
-@pytest.fixture
-def env_fish_sequence_with_polygons(env_dir, data_path):
-    for i in range(1, 10):
-        shutil.copy(data_path / "images" / "fish" / f"fish_1_seq_{i:02}.jpg", env_dir / "images")
-    shutil.copy(data_path / "labels" / "fish" / "fish_1_seq_polygons.csv", env_dir / "groundtruth.csv")
-    return _finalize_env(env_dir)
-
-@pytest.fixture
-def env_seal(env_dir, data_path):
-    shutil.copy(data_path / "images" / "seal_1.jpg", env_dir / "images")
-    return _finalize_env(env_dir)
-
-@pytest.fixture
-def env_stereo_checkerboards(env_dir, data_path):
-    checkerboards_path = data_path / "images" / "stereo" / "checkerboards"
-    left_checkerboards = sorted(checkerboards_path.glob("L_*.jpg"))
-    right_checkerboards = sorted(checkerboards_path.glob("R_*.jpg"))
-    for img_path in left_checkerboards + right_checkerboards:
-        shutil.copy(img_path, env_dir / "images")
-    return _finalize_stereo_env(env_dir)
+    images: tuple             # globs under pipelines_test_data/images
+    files: dict = field(default_factory=dict)   # dest name -> path under pipelines_test_data
+    stereo: bool = False
 
 
-@pytest.fixture
-def env_stereo_fish(env_dir, data_path):
-    fish_path = data_path / "images" / "stereo" / "fish"
-    labels_path = data_path / "labels" / "stereo" / "fish"
-    left_fish = sorted(fish_path.glob("L_*.jpg"))
-    right_fish = sorted(fish_path.glob("R_*.jpg"))
-    for img_path in left_fish + right_fish:
-        shutil.copy(img_path, env_dir / "images")
-    shutil.copy(labels_path / "calibration_matrices.json", env_dir)
-    shutil.copy(labels_path / "intrinsics.yml", env_dir)
-    shutil.copy(labels_path / "extrinsics.yml", env_dir)
-    return _finalize_stereo_env(env_dir)
+FISH_DETECTIONS = {"groundtruth.csv": "labels/fish/fish_1_detections.csv"}
+FISH_POLYGONS = {"groundtruth.csv": "labels/fish/fish_1_polygons.csv"}
+STEREO_CALIBRATION = {
+    "calibration_matrices.json": "labels/stereo/fish/calibration_matrices.json",
+    "intrinsics.yml": "labels/stereo/fish/intrinsics.yml",
+    "extrinsics.yml": "labels/stereo/fish/extrinsics.yml",
+}
+
+ENVIRONMENTS = {
+    "env_single_empty": Environment(("empty_100_100.jpg",)),
+    "env_circles_3": Environment(("circles_3.jpg",)),
+    "env_seal": Environment(("seal_1.jpg",)),
+    "env_checkerboard_9_6": Environment(("checkerboards/checkerboard_9_6.jpg",)),
+    "env_checkerboard_4_4": Environment(("checkerboards/checkerboard_4_4.jpg",)),
+    "env_checkerboard_sequence": Environment(("stereo/checkerboards/L_*.jpg",)),
+    "env_fish": Environment(("fish/fish_1.jpg",)),
+    "env_fish_with_detections": Environment(("fish/fish_1.jpg",), FISH_DETECTIONS),
+    "env_fish_with_polygons": Environment(("fish/fish_1.jpg",), FISH_POLYGONS),
+    "env_fish_sequence": Environment(("fish/fish_1_seq_*.jpg",)),
+    "env_fish_sequence_with_detections": Environment(
+        ("fish/fish_1_seq_*.jpg",), {"groundtruth.csv": "labels/fish/fish_1_seq_detections.csv"}),
+    "env_fish_sequence_with_polygons": Environment(
+        ("fish/fish_1_seq_*.jpg",), {"groundtruth.csv": "labels/fish/fish_1_seq_polygons.csv"}),
+    "env_stereo_checkerboards": Environment(
+        ("stereo/checkerboards/L_*.jpg", "stereo/checkerboards/R_*.jpg"), stereo=True),
+    "env_stereo_fish": Environment(
+        ("stereo/fish/L_*.jpg", "stereo/fish/R_*.jpg"), STEREO_CALIBRATION, stereo=True),
+    "env_stereo_fish_with_polygons": Environment(
+        ("stereo/fish/L_*.jpg", "stereo/fish/R_*.jpg"),
+        STEREO_CALIBRATION | {
+            "detections1.csv": "labels/stereo/fish/left-fish.csv",
+            "detections2.csv": "labels/stereo/fish/right-fish.csv",
+        },
+        stereo=True),
+}
 
 
-@pytest.fixture
-def env_stereo_fish_with_polygons(env_dir, data_path):
-    fish_path = data_path / "images" / "stereo" / "fish"
-    labels_path = data_path / "labels" / "stereo" / "fish"
-    left_fish = sorted(fish_path.glob("L_*.jpg"))
-    right_fish = sorted(fish_path.glob("R_*.jpg"))
-    for img_path in left_fish + right_fish:
-        shutil.copy(img_path, env_dir / "images")
-    shutil.copy(labels_path / "left-fish.csv", env_dir / "detections1.csv")
-    shutil.copy(labels_path / "right-fish.csv", env_dir / "detections2.csv")
-    shutil.copy(labels_path / "calibration_matrices.json", env_dir)
-    shutil.copy(labels_path / "intrinsics.yml", env_dir)
-    shutil.copy(labels_path / "extrinsics.yml", env_dir)
-    return _finalize_stereo_env(env_dir)
+def _write_manifest(path: Path, names: list[str]):
+    path.write_text("".join(f"images/{name}\n" for name in names))
 
 
-def _finalize_env(env_path: Path):
-    images_dir = env_path / "images"
-    image_files = sorted([img.name for img in images_dir.glob("*")])
+def _build(env_dir: Path, data_path: Path, spec: Environment) -> Path:
+    for pattern in spec.images:
+        for source in sorted((data_path / "images").glob(pattern)):
+            shutil.copy(source, env_dir / "images")
+    for destination, source in spec.files.items():
+        shutil.copy(data_path / source, env_dir / destination)
 
-    with open(env_path / "image-manifest.txt", 'w') as f:
-        for name in image_files:
-            f.write(f"images/{name}\n")
+    names = sorted(path.name for path in (env_dir / "images").glob("*"))
+    if spec.stereo:
+        _write_manifest(env_dir / "input1_images.txt", [n for n in names if n.startswith("L_")])
+        _write_manifest(env_dir / "input2_images.txt", [n for n in names if n.startswith("R_")])
+    else:
+        _write_manifest(env_dir / "image-manifest.txt", names)
+    return env_dir
 
-    return env_path
 
-def _finalize_stereo_env(env_path: Path):
-    images_dir = env_path / "images"
-    left_image_files = sorted([img.name for img in images_dir.glob("L_*")])
-    right_image_files = sorted([img.name for img in images_dir.glob("R_*")])
+def _env_fixture(spec: Environment):
+    @pytest.fixture
+    def fixture(env_dir, data_path):
+        return _build(env_dir, data_path, spec)
 
-    with open(env_path / "input1_images.txt", 'w') as f:
-        for name in left_image_files:
-            f.write(f"images/{name}\n")
+    return fixture
 
-    with open(env_path / "input2_images.txt", 'w') as f:
-        for name in right_image_files:
-            f.write(f"images/{name}\n")
 
-    return env_path
+for _name, _spec in ENVIRONMENTS.items():
+    globals()[_name] = _env_fixture(_spec)
