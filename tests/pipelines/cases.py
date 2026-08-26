@@ -237,10 +237,11 @@ OVERRIDES = {
 
 def _installed_pipelines(category: str) -> list[str]:
     install = find_viame_install()
-    if install is None:
-        return []
+    assert install is not None, "VIAME install not found; set VIAME_INSTALL"
+    pipelines = install / "configs" / "pipelines"
+    assert pipelines.is_dir(), f"{pipelines} does not exist"
     stems = []
-    for path in sorted((install / "configs" / "pipelines").glob(f"{category}_*.pipe")):
+    for path in sorted(pipelines.glob(f"{category}_*.pipe")):
         if DISALLOWED.match(path.name):
             continue
         if MULTICAM.search(path.stem):
