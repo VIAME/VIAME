@@ -14,7 +14,6 @@
 #include "adaptive_detector_trainer.h"
 #include "add_timestamp_from_filename.h"
 #include "auto_detect_transform.h"
-#include "homography_json_io.h"
 #include "average_track_descriptors.h"
 #include "convert_head_tail_points.h"
 #include "empty_detector.h"
@@ -32,6 +31,7 @@
 #include "read_object_track_set_auto.h"
 #include "read_object_track_set_dive.h"
 #include "read_object_track_set_viame_csv.h"
+#include "read_transform_homography_json.h"
 #include "refine_detections_add_fixed.h"
 #include "refine_detections_nms.h"
 #include "windowed_detector.h"
@@ -78,7 +78,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< add_timestamp_from_filename >( vpm );
   register_algorithm< auto_detect_transform_io >( vpm );
   register_algorithm< convert_head_tail_points >( vpm );
-  register_algorithm< homography_json_io >( vpm );
   register_algorithm< empty_detector >( vpm );
   register_algorithm< read_detected_object_set_auto >( vpm );
   register_algorithm< read_detected_object_set_cvat >( vpm );
@@ -91,6 +90,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< read_object_track_set_auto >( vpm );
   register_algorithm< read_object_track_set_dive >( vpm );
   register_algorithm< read_object_track_set_viame_csv >( vpm );
+  register_algorithm< read_transform_homography_json >( vpm );
   register_algorithm< write_detected_object_set_viame_csv >( vpm );
   register_algorithm< write_disparity_maps >( vpm );
   register_algorithm< write_object_track_set_viame_csv >( vpm );

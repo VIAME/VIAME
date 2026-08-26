@@ -2,8 +2,8 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_CORE_HOMOGRAPHY_JSON_IO_H
-#define VIAME_CORE_HOMOGRAPHY_JSON_IO_H
+#ifndef VIAME_CORE_READ_TRANSFORM_HOMOGRAPHY_JSON_H
+#define VIAME_CORE_READ_TRANSFORM_HOMOGRAPHY_JSON_H
 
 #include "viame_core_export.h"
 
@@ -24,7 +24,7 @@ namespace viame
 /// in both directions ("leftToRight" / "rightToLeft", row-major, either of
 /// which may be null when unfitted). This reader selects one pair and
 /// direction and returns it as a homography transform.
-class VIAME_CORE_EXPORT homography_json_io
+class VIAME_CORE_EXPORT read_transform_homography_json
   : public kwiver::vital::algo::transform_2d_io
 {
 public:
@@ -38,10 +38,10 @@ public:
     "from_camera image coordinates into to_camera image coordinates.";
 
   /// Constructor
-  homography_json_io();
+  read_transform_homography_json();
 
   /// Destructor
-  virtual ~homography_json_io();
+  virtual ~read_transform_homography_json();
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual kwiver::vital::config_block_sptr get_configuration() const;
@@ -75,4 +75,4 @@ private:
 
 } // end namespace viame
 
-#endif // VIAME_CORE_HOMOGRAPHY_JSON_IO_H
+#endif // VIAME_CORE_READ_TRANSFORM_HOMOGRAPHY_JSON_H

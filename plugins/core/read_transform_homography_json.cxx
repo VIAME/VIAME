@@ -2,7 +2,7 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#include "homography_json_io.h"
+#include "read_transform_homography_json.h"
 
 #include <vital/types/homography.h>
 
@@ -192,19 +192,19 @@ reverse_matrix( registration_pair const& pair, std::string const& filename )
 } // end anonymous namespace
 
 
-homography_json_io
-::homography_json_io()
+read_transform_homography_json
+::read_transform_homography_json()
 {
 }
 
-homography_json_io
-::~homography_json_io()
+read_transform_homography_json
+::~read_transform_homography_json()
 {
 }
 
 
 kwiver::vital::config_block_sptr
-homography_json_io
+read_transform_homography_json
 ::get_configuration() const
 {
   auto config = kwiver::vital::algo::transform_2d_io::get_configuration();
@@ -220,7 +220,7 @@ homography_json_io
 }
 
 void
-homography_json_io
+read_transform_homography_json
 ::set_configuration( kwiver::vital::config_block_sptr config )
 {
   m_from_camera = config->get_value< std::string >(
@@ -230,7 +230,7 @@ homography_json_io
 }
 
 bool
-homography_json_io
+read_transform_homography_json
 ::check_configuration( kwiver::vital::config_block_sptr config ) const
 {
   // Camera selection is meaningless unless both endpoints are named
@@ -239,7 +239,7 @@ homography_json_io
 }
 
 kwiver::vital::transform_2d_sptr
-homography_json_io
+read_transform_homography_json
 ::load_( std::string const& filename ) const
 {
   auto const pairs = parse_registration_file( filename );
@@ -287,7 +287,7 @@ homography_json_io
 }
 
 void
-homography_json_io
+read_transform_homography_json
 ::save_( std::string const& filename,
          kwiver::vital::transform_2d_sptr data ) const
 {

@@ -13,7 +13,6 @@ set( plugin_headers
   convert_notes_to_attributes.h
   convert_polygons_to_mask.h
   detect_shot_breaks.h
-  homography_json_io.h
   empty_detector.h
   evaluate_models.h
   filename_to_timestamp.h
@@ -35,6 +34,7 @@ set( plugin_headers
   read_object_track_set_auto.h
   read_object_track_set_dive.h
   read_object_track_set_viame_csv.h
+  read_transform_homography_json.h
   refine_detections_add_fixed.h
   refine_detections_nms.h
   utilities_file.h
@@ -64,7 +64,6 @@ set( plugin_sources
   convert_notes_to_attributes.cxx
   convert_polygons_to_mask.cxx
   detect_shot_breaks.cxx
-  homography_json_io.cxx
   empty_detector.cxx
   evaluate_models.cxx
   filename_to_timestamp.cxx
@@ -86,6 +85,7 @@ set( plugin_sources
   read_object_track_set_auto.cxx
   read_object_track_set_dive.cxx
   read_object_track_set_viame_csv.cxx
+  read_transform_homography_json.cxx
   refine_detections_add_fixed.cxx
   refine_detections_nms.cxx
   utilities_file.cxx
