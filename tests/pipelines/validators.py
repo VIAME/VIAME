@@ -76,17 +76,30 @@ def check_csv(
         _check_csv(right_path, expected_detections, comparison_detection, all_types)
 
 
+IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp", ".pgm", ".ppm"}
+
+
+def _image_stems(folder: Path) -> set[str]:
+    return set(p.stem for p in folder.glob("*") if p.suffix.lower() in IMAGE_SUFFIXES)
+
+
 def check_generated_frames(env_dir: Path, match_names: bool = True, delta: int = 0):
     input_folder = env_dir / "images"
     output_folder = env_dir / "output"
 
-    input_image_names = set(p.stem for p in input_folder.glob("*"))
-    output_image_names = set(p.stem for p in output_folder.glob("*"))
+    input_image_names = _image_stems(input_folder)
+    output_image_names = _image_stems(output_folder)
 
     if match_names:
         diff_set = input_image_names - output_image_names
         assert len(diff_set) == abs(delta)
     assert len(input_image_names) + delta == len(output_image_names)
+
+
+def check_generated_chips(env_dir: Path, csv_name: str = "groundtruth.csv"):
+    """One chip image per detection in the input CSV."""
+    expected = len(get_viame_csv_lines(env_dir / csv_name))
+    assert len(_image_stems(env_dir / "output")) == expected
 
 
 def check_generated_video(env_dir: Path, file_name: str = 'output.mp4', min_size: int = 0):

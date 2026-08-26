@@ -18,7 +18,8 @@ from typing import Callable
 
 from viame_env import find_viame_install
 
-from .validators import check_csv, check_generated_frames, check_generated_video
+from .validators import (check_csv, check_generated_chips, check_generated_frames,
+                         check_generated_video)
 
 # Mirrors dive_tasks.pipeline_discovery, minus its hough exclusion: hough is
 # the one detector with a deterministic, model-free answer.
@@ -41,7 +42,10 @@ MONO_PARAMS = {
     "track_writer:file_name": "output/track_output.csv",
     "kwa_writer:output_directory": "output/",
     "image_writer:file_name_prefix": "output/",
+    "debayered_writer:file_name_prefix": "output/",
+    "depth_map_writer:file_name_prefix": "output/",
     "video_writer:video_filename": "output/output.mp4",
+    "track_resampler:track_file": "groundtruth.csv",
 }
 
 STEREO_PARAMS = {
@@ -77,6 +81,10 @@ def frames(**kwargs):
 
 def video(**kwargs):
     return lambda env_dir: check_generated_video(env_dir, **kwargs)
+
+
+def chips(**kwargs):
+    return lambda env_dir: check_generated_chips(env_dir, **kwargs)
 
 
 SMOKE = csv()
@@ -123,6 +131,10 @@ RULES = (
     (r"^tracker_(community_fish|default_fish|em_tuna|fish\.sfd|generic_proposals"
      r"|grouper_moon|motion|mouss_deep7|seamap_)", dict(check=MIN_2)),
     (r"^tracker_(sea_lion|penguin_aerial)", dict(env="env_seal", check=MIN_1)),
+    # Registration-based suppression needs consecutive frames to align; the
+    # fixture set has a single seal image and these deadlock without a second.
+    (r"^tracker_sea_lion_(suppressor|tracker)_",
+     dict(skip="needs a multi-frame seal sequence")),
     (r"^filter_(debayer|enhance|normalize|split)", dict(check=frames())),
     (r"^filter_(draw_dets|extract_chips)", dict(env="env_fish_with_detections", check=frames())),
     (r"^transcode_", dict(check=video(min_size=100))),
@@ -149,6 +161,18 @@ def _check_kwa(env_dir: Path):
         assert path.stat().st_size >= min_size, f"{name} is {path.stat().st_size} bytes"
 
 
+def _check_homographies(env_dir: Path):
+    lines = (env_dir / "output" / "homogs.txt").read_text().splitlines()
+    assert len(lines) == 9
+    # 3x3 homography, source frame, destination frame.
+    assert all(len(line.split()) == 11 for line in lines)
+
+
+def _check_debayer_and_depth_map(env_dir: Path):
+    for name in ("frame000001.png", "depth_map000001.png"):
+        assert (env_dir / "output" / name).is_file(), f"{name} not written"
+
+
 def _check_depth_maps(env_dir: Path):
     depth_maps = env_dir / "output" / "depthMap"
     assert len(list(depth_maps.glob("*.png"))) == 2
@@ -169,6 +193,8 @@ OVERRIDES = {
     ],
     "tracker_calibration_target": Case(
         env="env_checkerboard_sequence", check=csv(expected_detections=CHECKERBOARD_CORNERS)),
+    "filter_debayer_and_depth_map": Case(check=_check_debayer_and_depth_map),
+    "filter_extract_chips": Case(check=chips()),
     "filter_stereo_depth_map": Case(check=frames(match_names=False)),
     "filter_to_kwa": Case(params={"kwa_writer:base_filename": "kwa"}, check=_check_kwa),
     "filter_to_video": Case(check=video(min_size=10_000)),
@@ -176,6 +202,8 @@ OVERRIDES = {
         env="env_fish_sequence_with_detections", check=frames(match_names=False, delta=-2)),
     "filter_tracks_only_adjust_csv": Case(
         env="env_fish_sequence_with_detections", check=frames(match_names=False, delta=-2)),
+    "transcode_native_fps": Case(env="env_fish_sequence_with_detections"),
+    "transcode_tracks_only": Case(env="env_fish_sequence_with_detections"),
     "utility_add_head_tail_keypoints_from_dets": Case(env="env_fish_with_polygons"),
     "utility_add_segmentations_watershed": [
         Case(id="utility_add_segmentations_watershed"),
@@ -184,7 +212,9 @@ OVERRIDES = {
     ],
     "utility_empty_frame_lbls": Case(env="env_fish_sequence", check=csv(expected_detections=9)),
     "utility_max_points_per_poly": Case(env="env_fish_with_polygons", check=POLYGON),
-    "utility_register_frames": Case(env="env_fish_sequence"),
+    "utility_register_frames": Case(
+        env="env_fish_sequence", params={"homog_writer:output": "output/homogs.txt"},
+        check=_check_homographies),
     "utility_remove_dets_in_ignore_regions": Case(env="env_fish_sequence"),
     "measurement_calibrate_cameras_default": Case(
         env="env_stereo_checkerboards", check=_check_calibrated),

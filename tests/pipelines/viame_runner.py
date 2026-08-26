@@ -5,6 +5,8 @@ from functools import cached_property
 
 from viame_env import find_viame_install, get_sourced_env
 
+PIPELINE_TIMEOUT = 900
+
 
 class ViameRunner:
     def __init__(self, tmp_dir):
@@ -24,7 +26,8 @@ class ViameRunner:
             self._viame_env = get_sourced_env(self.viame_install)
         return self._viame_env
 
-    def run(self, pipeline_path: Path | str, workdir, overrides=None):
+    def run(self, pipeline_path: Path | str, workdir, overrides=None,
+            timeout: int = PIPELINE_TIMEOUT):
         env = self._get_sourced_env()
         if isinstance(pipeline_path, str):
             pipeline_path = Path(self.viame_install, "configs", pipeline_path)
@@ -34,4 +37,10 @@ class ViameRunner:
             for k, v in overrides.items():
                 cmd += ["-s", f"{k}={v}"]
 
-        return subprocess.run(cmd, capture_output=True, text=True, cwd=workdir, env=env)
+        try:
+            return subprocess.run(cmd, capture_output=True, text=True, cwd=workdir,
+                                  env=env, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            # A deadlocked pipeline would otherwise consume the whole ctest budget.
+            raise AssertionError(
+                f"{pipeline_path.name} did not finish within {timeout}s") from None
