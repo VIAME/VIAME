@@ -1,0 +1,68 @@
+# =============================================================================
+# Title: Align Cameras (2-Camera)
+#
+# Description: Registers a two-camera rig by matching many image pairs with
+# the MINIMA-LoFTR cross-spectral matcher and pooling one homography over
+# every contributing frame. Writes a DIVE camera registration JSON
+# (format v2) with per-frame observations and quality statistics.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config global
+   :output_directory                           ./
+   :output_json_file                           registration.json
+
+# ============================= INPUT FRAME LIST ==============================
+
+include common_2cam_input.pipe
+
+# The align_cameras process reads the image files itself, so it needs settings
+# the shared input does not carry:
+#   no_path_in_name false -- the process opens these paths with cv2, and a bare
+#     basename only resolves when the working directory happens to be the image
+#     directory.
+#   disable_image_load true -- the decoded image ports are left unconnected on
+#     purpose (see below), and video_input_process decodes every frame whether
+#     or not anything reads it. Requires paths in the list to resolve as
+#     written, which is what DIVE writes.
+
+config input1
+  :no_path_in_name                             false
+  :video_reader:image_list:disable_image_load  true
+
+config input2
+  :no_path_in_name                             false
+  :video_reader:image_list:disable_image_load  true
+
+# ============================ CAMERA REGISTRATION ============================
+# The register process reads image files itself (native bit depth, percentile
+# stretch for 16-bit thermal); the decoded image ports stay unconnected on
+# purpose, since image_reader:vxl:force_byte would narrow 16-bit thermal to
+# 8 bits with a truncating cast.
+
+process register
+  :: align_cameras
+  :n_input                                     2
+  :pairs                                       1-2
+  :output_directory                            $CONFIG{global:output_directory}
+  :output_json_file                            $CONFIG{global:output_json_file}
+  :max_frames                                  12
+  :ransac_threshold                            2.0   # DIVE_PARAM["RANSAC threshold (px)", range_float, 0.5, 10, 0.1]
+  :min_matches                                 100   # DIVE_PARAM["Min matches per frame", range_int, 4, 1000, 1]
+  :min_inliers                                 30    # DIVE_PARAM["Min inliers per frame", range_int, 4, 500, 1]
+  :min_inlier_ratio                            0.15  # DIVE_PARAM["Min inlier ratio", range_float, 0, 1, 0.01]
+  :top_k                                       24    # DIVE_PARAM["Points kept per frame", range_int, 4, 100, 1]
+  :match_threshold                             0.2   # DIVE_PARAM["Match confidence threshold", range_float, 0, 1, 0.01]
+  :lower_percentile                            2.0   # DIVE_PARAM["16-bit lower percentile", range_float, 0, 100, 0.1]
+  :upper_percentile                            98.0  # DIVE_PARAM["16-bit upper percentile", range_float, 0, 100, 0.1]
+
+# ============================ PROCESS CONNECTION =============================
+
+connect from input1.file_name
+        to   register.file_name1
+connect from input2.file_name
+        to   register.file_name2
+
+# -- end of file --

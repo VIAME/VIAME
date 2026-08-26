@@ -5,7 +5,7 @@
 # over-riden by changing :video_reader:type to be vidl_ffmpeg for videos
 # =============================================================================
 
-include common_stereo_input.pipe
+include common_2cam_input.pipe
 
 process downsampler
   :: downsample
