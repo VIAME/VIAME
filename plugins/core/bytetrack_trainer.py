@@ -88,6 +88,14 @@ class ByteTrackTrainer( TrainTracker ):
         # low tail, so a tight quantile does not transfer between them. The floor and
         # ceiling bound the gate itself (an IoU), not the config value
         # match_thresh, which is 1 - gate.
+        # The estimators below fit proxies rather than tracking quality, and
+        # on SEFSC every one of them erred conservative: their values scored
+        # HOTA 0.5111 where a sweep found 0.5256. When a detector's output is
+        # available the search re-picks them by running the tracker and
+        # scoring it, starting from the estimates so it can only improve.
+        self._search_parameters = True
+        self._search_max_sequences = 25
+        self._search_confidence = 0.0
         self._match_gate_admit_percent = 99.5
         self._min_match_gate = 0.02
         self._max_match_gate = 0.5
@@ -113,6 +121,9 @@ class ByteTrackTrainer( TrainTracker ):
         cfg.set_value( "max_std_weight_position", str( self._max_std_weight_position ) )
         cfg.set_value( "min_std_weight_velocity", str( self._min_std_weight_velocity ) )
         cfg.set_value( "max_std_weight_velocity", str( self._max_std_weight_velocity ) )
+        cfg.set_value( "search_parameters", str( self._search_parameters ) )
+        cfg.set_value( "search_max_sequences", str( self._search_max_sequences ) )
+        cfg.set_value( "search_confidence", str( self._search_confidence ) )
         cfg.set_value( "match_gate_admit_percent", str( self._match_gate_admit_percent ) )
         cfg.set_value( "min_match_gate", str( self._min_match_gate ) )
         cfg.set_value( "max_match_gate", str( self._max_match_gate ) )
@@ -135,6 +146,10 @@ class ByteTrackTrainer( TrainTracker ):
         self._max_std_weight_position = float( cfg.get_value( "max_std_weight_position" ) )
         self._min_std_weight_velocity = float( cfg.get_value( "min_std_weight_velocity" ) )
         self._max_std_weight_velocity = float( cfg.get_value( "max_std_weight_velocity" ) )
+        search = str( cfg.get_value( "search_parameters" ) ).lower()
+        self._search_parameters = search in ( 'true', '1', 'yes' )
+        self._search_max_sequences = int( cfg.get_value( "search_max_sequences" ) )
+        self._search_confidence = float( cfg.get_value( "search_confidence" ) )
         self._match_gate_admit_percent = float( cfg.get_value( "match_gate_admit_percent" ) )
         self._min_match_gate = float( cfg.get_value( "min_match_gate" ) )
         self._max_match_gate = float( cfg.get_value( "max_match_gate" ) )
@@ -593,6 +608,40 @@ class ByteTrackTrainer( TrainTracker ):
             'new_track_thresh': new_track_thresh,
             'track_buffer': track_buffer
         }
+
+        # Re-pick the parameters by running the tracker, when a detector's
+        # output was supplied. The estimates above become the starting point:
+        # a candidate replaces one only by scoring better, so this cannot end
+        # below where the estimators left it except by chance on the clips it
+        # validates against.
+        if self._search_parameters and self._computed_detections:
+            print( "Searching parameters against the detector's output..." )
+
+            try:
+                from viame.core.tracker_param_search import (
+                    collect_sequences, search_parameters,
+                )
+
+                sequences = collect_sequences(
+                    self._train_tracks + self._test_tracks,
+                    self._train_image_files + self._test_image_files,
+                    self._computed_detections,
+                    sequence_manifest=self._sequence_manifest,
+                    max_sequences=self._search_max_sequences )
+
+                params, _report = search_parameters(
+                    'bytetrack', params, sequences,
+                    confidence_threshold=self._search_confidence )
+
+                print( "  high_thresh: {:.3f}".format( params['high_thresh'] ) )
+                print( "  low_thresh: {:.3f}".format( params['low_thresh'] ) )
+                print( "  match_thresh: {:.3f}".format( params['match_thresh'] ) )
+                print( "  track_buffer: {}".format( params['track_buffer'] ) )
+            except Exception as e:
+                # A failed search must not lose a training run: the estimated
+                # parameters are still a usable model.
+                print( "  parameter search failed ({}), keeping the "
+                       "estimated parameters".format( e ) )
 
         params_file = os.path.join( self._train_directory, "bytetrack_params.json" )
         with open( params_file, 'w' ) as f:

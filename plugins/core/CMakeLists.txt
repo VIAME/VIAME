@@ -363,6 +363,11 @@ if( VIAME_ENABLE_PYTHON )
     training_data )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/tracker_param_search.py
+    core
+    tracker_param_search )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/detection_fusion_core.py
     core
     detection_fusion_core )
