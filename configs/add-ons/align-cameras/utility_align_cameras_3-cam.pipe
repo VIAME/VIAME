@@ -19,7 +19,7 @@ config global
 
 # ============================= INPUT FRAME LIST ==============================
 
-include common_3cam_input.pipe
+include common_three_cam_input.pipe
 
 # The align_cameras process reads the image files itself, so it needs settings
 # the shared input does not carry:

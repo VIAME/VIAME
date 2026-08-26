@@ -2,7 +2,7 @@
 # Title: :video_reader:type to be vidl_ffmpeg for videos
 #
 # Description: Three-camera input trio (input1/input2/input3), the 3-camera
-# counterpart to common_2cam_input.pipe. By default these are image list
+# counterpart to common_two_cam_input.pipe. By default these are image list
 # readers, but this can be over-riden by changing :video_reader:type to be
 # vidl_ffmpeg for videos
 # =============================================================================

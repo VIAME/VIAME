@@ -138,8 +138,8 @@ endif()
 # All config files manually-included by default or based on options
 ##
 set( CORE_PIPELINE_FILES
-  common_2cam_input.pipe
-  common_3cam_input.pipe
+  common_two_cam_input.pipe
+  common_three_cam_input.pipe
   common_default_initializer.pipe
   common_default_input.pipe
   common_default_input_16bit.pipe
