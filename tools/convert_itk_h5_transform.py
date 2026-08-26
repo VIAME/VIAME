@@ -10,7 +10,7 @@ The legacy EO/IR registration workflow saved 2D affine transforms with
 ITK's HDF5 transform writer (e.g. the Kotz flight files used by the
 arctic-seal embedded pipelines). This converts those files once so the
 non-ITK transform readers (warp_detections / warp_image with
-transform_reader type "dive") can consume them.
+transform_reader type "homography_json") can consume them.
 
 The h5 transform's forward direction maps the source camera's pixel
 coordinates into the destination camera's (for the Kotz files: thermal

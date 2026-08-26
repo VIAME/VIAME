@@ -66,7 +66,7 @@ auto_detect_transform_io
   if( extension == "json" )
   {
     auto config = kwiver::vital::config_block::empty_config();
-    config->set_value( "transform_reader:type", "dive" );
+    config->set_value( "transform_reader:type", "homography_json" );
 
     kwiver::vital::algo::transform_2d_io_sptr ti;
 

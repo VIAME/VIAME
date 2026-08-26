@@ -13,7 +13,7 @@ set( plugin_headers
   convert_notes_to_attributes.h
   convert_polygons_to_mask.h
   detect_shot_breaks.h
-  dive_transform_io.h
+  homography_json_io.h
   empty_detector.h
   evaluate_models.h
   filename_to_timestamp.h
@@ -64,7 +64,7 @@ set( plugin_sources
   convert_notes_to_attributes.cxx
   convert_polygons_to_mask.cxx
   detect_shot_breaks.cxx
-  dive_transform_io.cxx
+  homography_json_io.cxx
   empty_detector.cxx
   evaluate_models.cxx
   filename_to_timestamp.cxx
