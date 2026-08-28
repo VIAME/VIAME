@@ -1016,13 +1016,21 @@ def kwiver_to_kwimage_detections(detected_objects):
     return dets
 
 
-def supervision_to_kwiver_detections(detections, class_names):
+def supervision_to_kwiver_detections(detections, class_names,
+                                     keypoint_names=None,
+                                     keypoint_vis_thresh=0.5):
     """
     Convert supervision.Detections to kwiver DetectedObjectSet.
 
     Instance masks, when the model is a segmentation variant and supervision
     populates detections.mask, are attached to each detection cropped to its
     bounding box, which is the convention kwiver expects.
+
+    Keypoints, when the model carries a keypoint head and the predictor stashes
+    an (N, K, 3) [x, y, visibility] array in detections.data['keypoints'], are
+    attached as named kwiver keypoints (keypoint_names, index-aligned) for every
+    slot whose visibility clears keypoint_vis_thresh; viame_csv writers emit
+    them as (kp) entries.
 
     Args:
         detections: supervision.Detections object with xyxy, confidence, class_id
@@ -1049,6 +1057,17 @@ def supervision_to_kwiver_detections(detections, class_names):
 
     masks = getattr(detections, 'mask', None)
 
+    kps_all = None
+    if keypoint_names:
+        data = getattr(detections, 'data', None)
+        if data is not None:
+            try:
+                kps_all = data.get('keypoints')
+            except AttributeError:
+                kps_all = None
+        if kps_all is not None:
+            from kwiver.vital.types import Point2d
+
     for i in range(len(detections.xyxy)):
         box = detections.xyxy[i]
         score = detections.confidence[i]
@@ -1066,6 +1085,17 @@ def supervision_to_kwiver_detections(detections, class_names):
 
         detected_object_type = DetectedObjectType(class_name, float(score))
         detected_object = DetectedObject(bbox, float(score), detected_object_type)
+
+        if kps_all is not None and i < len(kps_all):
+            for k, kp_name in enumerate(keypoint_names):
+                if k >= len(kps_all[i]):
+                    break
+                x, y, v = (float(kps_all[i][k][0]), float(kps_all[i][k][1]),
+                           float(kps_all[i][k][2]))
+                if v >= keypoint_vis_thresh:
+                    pt = Point2d()
+                    pt.value = [x, y]
+                    detected_object.add_keypoint(kp_name, pt)
 
         if masks is not None and i < len(masks):
             mask = np.asarray(masks[i])

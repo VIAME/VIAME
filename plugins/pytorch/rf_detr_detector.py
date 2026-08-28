@@ -42,6 +42,12 @@ class RFDETRDetectorConfig(scfg.DataConfig):
         'Load a segmentation (mask) RF-DETR variant (RFDETRSeg*) instead of the '
         'box-only variant. Must match how the checkpoint was trained, otherwise '
         'the segmentation-head weights will not load.'))
+    keypoint_names = scfg.Value('', help=(
+        'Comma-separated names for the keypoint head outputs (e.g. '
+        '"head,tail"). Empty = recover from the checkpoint args, falling back '
+        'to head,tail. Only used when the checkpoint carries a keypoint head; '
+        'keypoints ride along on each detection and viame_csv writers emit '
+        'them as (kp) entries.'))
 
     def __post_init__(self):
         super().__post_init__()
@@ -92,6 +98,23 @@ class RFDETRDetector(ImageObjectDetector):
         'nano': (12, 4, 312), 'small': (12, 4, 384),
         'medium': (12, 5, 432), 'large': (12, 5, 504),
     }
+
+    def _resolve_keypoint_names(self, ckpt_args, num_kp):
+        # Config wins, then checkpoint args. Trainer runs have serialized the
+        # names list sloppily (e.g. ["['head'", "'tail']"]), so strip list
+        # punctuation from each element rather than trusting the format.
+        raw = self._kwiver_config.get('keypoint_names') or ''
+        names = [n.strip() for n in str(raw).split(',') if n.strip()]
+        if not names:
+            ck = ckpt_args.get('keypoint_names') or []
+            if isinstance(ck, str):
+                ck = ck.split(',')
+            names = [str(n).strip(" []'\"") for n in ck]
+            names = [n for n in names if n]
+        if len(names) != num_kp:
+            names = (['head', 'tail'] + [
+                'kp_%d' % i for i in range(2, num_kp)])[:num_kp]
+        return names
 
     @staticmethod
     def _extract_state_dict(checkpoint):
@@ -293,6 +316,21 @@ class RFDETRDetector(ImageObjectDetector):
             if resolution_is_set(resolution):
                 model_kwargs['resolution'] = resolution
 
+            # Keypoint head: the trainer saves keypoint_head.* weights and the
+            # strict state-dict load rejects them unless the model is built
+            # with the head enabled. num_keypoints comes from the checkpoint
+            # args, else from the vis_embed output dimension (one logit per
+            # keypoint). Mirrors rf_detr_launcher's training-side kwargs.
+            kp_layer_dims = [
+                v.shape[0] for k, v in state_dict.items()
+                if k.startswith('keypoint_head.vis_embed.') and k.endswith('.weight')]
+            if kp_layer_dims:
+                num_kp = int(ckpt_args.get('num_keypoints') or kp_layer_dims[-1])
+                model_kwargs['keypoint_head'] = True
+                model_kwargs['num_keypoints'] = num_kp
+                self._keypoint_names = self._resolve_keypoint_names(
+                    ckpt_args, num_kp)
+
             self._model = RFDETRModel(**model_kwargs)
 
             # The constructor adds +1 for background, so resize the
@@ -350,7 +388,9 @@ class RFDETRDetector(ImageObjectDetector):
             detections = self._model.predict(model_input, threshold=threshold)
 
         # Convert supervision Detections to kwiver format
-        output = supervision_to_kwiver_detections(detections, self._classes)
+        output = supervision_to_kwiver_detections(
+            detections, self._classes,
+            keypoint_names=getattr(self, '_keypoint_names', None))
         return output
 
 
