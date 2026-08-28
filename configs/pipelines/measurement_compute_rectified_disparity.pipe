@@ -42,6 +42,7 @@ block computer:ocv_stereo_disparity
   # Bound to the dataset's calibration by the Calibration Keys header above.
   :calibration_file                             calibration_matrices.npz
   :use_wls_filter                               true
+  :output_format                                uint16_scaled
 endblock
 
 connect from downsampler.output_1
