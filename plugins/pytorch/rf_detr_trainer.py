@@ -888,6 +888,29 @@ class RFDETRTrainer(TrainDetector):
         print(f"[RFDETRTrainer] Train: {len(train_coco['images'])} images, "
               f"{len(train_coco['annotations'])} annotations")
 
+        if kp_enabled:
+            # A keypoint run whose annotations carry no VISIBLE keypoints trains
+            # nothing useful and says nothing about it: loss_keypoint masks to
+            # visible slots, so the coordinate head keeps its zero init and
+            # emits the box centre forever, while loss_keypoint_vis still
+            # descends happily on the all-absent targets. The result is a
+            # checkpoint with a dead coordinate head and a normal-looking log.
+            # The usual cause is an annotation reader that drops the source
+            # keypoint fields, so the detections arrive without any.
+            n_vis = sum(a.get("num_keypoints", 0) for a in train_coco["annotations"])
+            n_ann = len(train_coco["annotations"])
+            print(f"[RFDETRTrainer] Keypoints: {n_vis} visible slot(s) over "
+                  f"{n_ann} annotation(s), names={kp_names}")
+            if n_vis == 0:
+                raise RuntimeError(
+                    "keypoints=True but not one of the {} training annotations "
+                    "carries a visible keypoint. The keypoint coordinate head "
+                    "cannot learn from this and would train silently to a dead "
+                    "zero-init. Check that the annotation reader parses the "
+                    "keypoint fields of the input format, and that "
+                    "keypoint_names={} matches the names on the "
+                    "detections.".format(n_ann, kp_names))
+
         # Build valid split (from test data). Optionally subsample the vali
         # chips: seg validation forward-passes every chip at batch 1, which
         # dominates epoch time on large vali sets. The subsample is
