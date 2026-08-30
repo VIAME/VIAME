@@ -2,6 +2,7 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
+import ast
 import json
 import math
 import os
@@ -470,8 +471,45 @@ class RFDETRTrainer(TrainDetector):
         self._test_detections = list(test_dets)
 
     def _keypoint_names_list(self):
-        """Ordered keypoint slot names parsed from the keypoint_names config."""
-        return [n.strip() for n in str(self._keypoint_names).split(',') if n.strip()]
+        """Ordered keypoint slot names parsed from the keypoint_names config.
+
+        The documented form is comma separated -- head,tail -- but a list
+        arrives just as often, either because the caller set the config from
+        Python or because the value was written as a literal in a .conf. Both
+        have to work: str() of a list is "['head', 'tail']", and splitting that
+        on the comma yields "['head'" and "'tail']", which match no keypoint on
+        any detection. Nothing downstream notices, because a name that matches
+        nothing is indistinguishable from a detection that carries no keypoint,
+        so the run reaches the training loop with an entirely empty coordinate
+        target and every slot reported as not visible.
+        """
+        value = self._keypoint_names
+
+        if isinstance(value, (list, tuple)):
+            items = list(value)
+        else:
+            text = str(value).strip()
+
+            if text.startswith('[') and text.endswith(']'):
+                try:
+                    parsed = ast.literal_eval(text)
+                except (ValueError, SyntaxError):
+                    items = text[1:-1].split(',')
+                else:
+                    items = (list(parsed) if isinstance(parsed, (list, tuple))
+                             else [parsed])
+            else:
+                items = text.split(',')
+
+        names = []
+
+        for item in items:
+            name = str(item).strip().strip('"\'').strip()
+
+            if name:
+                names.append(name)
+
+        return names
 
     def _resolve_aug_config(self, augmentation):
         """
