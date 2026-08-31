@@ -65,9 +65,14 @@ class OpticalFlowFilter( ImageFilter ):
     self.scale = float( cfg_in.get_value( "scale" ) )
     self.compensate_background = \
       str( cfg_in.get_value( "compensate_background" ) ).lower() in ( "true", "1", "yes" )
-    self.normalize = cfg_in.get_value( "normalize" )
-    self.adaptive_percentile = float( cfg_in.get_value( "adaptive_percentile" ) )
-    self.adaptive_min_scale = float( cfg_in.get_value( "adaptive_min_scale" ) )
+    # Two-argument get_value so a pipe written before these keys existed still
+    # configures: absent means keep the default, which is the original
+    # fixed-scale behaviour.
+    self.normalize = cfg_in.get_value( "normalize", self.normalize )
+    self.adaptive_percentile = \
+      float( cfg_in.get_value( "adaptive_percentile", str( self.adaptive_percentile ) ) )
+    self.adaptive_min_scale = \
+      float( cfg_in.get_value( "adaptive_min_scale", str( self.adaptive_min_scale ) ) )
 
   def check_configuration( self, cfg ):
     if cfg.get_value( "output" ) not in ( "magnitude", "vector" ):
@@ -76,13 +81,13 @@ class OpticalFlowFilter( ImageFilter ):
     if float( cfg.get_value( "scale" ) ) <= 0.0:
       print( "Error: scale must be positive" )
       return False
-    if cfg.get_value( "normalize" ) not in ( "fixed", "adaptive" ):
+    if cfg.get_value( "normalize", "fixed" ) not in ( "fixed", "adaptive" ):
       print( "Error: normalize must be 'fixed' or 'adaptive'" )
       return False
-    if not 0.0 < float( cfg.get_value( "adaptive_percentile" ) ) <= 100.0:
+    if not 0.0 < float( cfg.get_value( "adaptive_percentile", "99.0" ) ) <= 100.0:
       print( "Error: adaptive_percentile must be in (0, 100]" )
       return False
-    if float( cfg.get_value( "adaptive_min_scale" ) ) <= 0.0:
+    if float( cfg.get_value( "adaptive_min_scale", "0.5" ) ) <= 0.0:
       print( "Error: adaptive_min_scale must be positive" )
       return False
     return True
