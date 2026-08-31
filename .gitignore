@@ -43,3 +43,5 @@ build
 
 _ignore
 *~
+
+tests/pipelines/pipelines_test_data/
