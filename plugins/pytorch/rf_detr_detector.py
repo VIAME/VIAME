@@ -37,7 +37,10 @@ class RFDETRDetectorConfig(scfg.DataConfig):
         'this value.'))
     device = scfg.Value('auto', help='Device to run on: auto, cpu, cuda, or cuda:N')
     threshold = scfg.Value(0.5, help='Detection confidence threshold')
-    optimize_inference = scfg.Value(True, help='Whether to optimize model for inference')
+    optimize_inference = scfg.Value(True, help=(
+        'Whether to optimize the model for inference. Ignored for checkpoints '
+        'carrying a keypoint head: the optimized export path does not emit '
+        'keypoints, so optimizing one would silently drop them.'))
     segmentation = scfg.Value(False, help=(
         'Load a segmentation (mask) RF-DETR variant (RFDETRSeg*) instead of the '
         'box-only variant. Must match how the checkpoint was trained, otherwise '
@@ -355,8 +358,20 @@ class RFDETRDetector(ImageObjectDetector):
         if self._classes is None:
             self._classes = list(self._model.class_names)
 
-        # Optimize for inference if requested
-        if optimize:
+        # Optimize for inference if requested.
+        #
+        # Not for keypoint models: optimize_for_inference swaps the network onto
+        # RF-DETR's export forward, which computes boxes, classes and masks and
+        # returns them as a fixed 2- or 3-tuple. It never computes keypoints, so
+        # the head's output is dropped and every detection comes back without
+        # any -- while boxes and masks look perfectly normal. That failure is
+        # indistinguishable from an untrained keypoint head, so refuse the
+        # optimization rather than silently return a keypointless model.
+        if optimize and getattr(self, '_keypoint_names', None):
+            print("[RFDETRDetector] Skipping inference optimization: this "
+                  "checkpoint has a keypoint head, and the optimized export "
+                  "path does not emit keypoints")
+        elif optimize:
             print("[RFDETRDetector] Optimizing model for inference")
             self._model.optimize_for_inference(compile=False)
 
