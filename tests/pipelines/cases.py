@@ -207,6 +207,10 @@ OVERRIDES = {
     "transcode_native_fps": Case(env="env_fish_sequence_with_detections"),
     "transcode_tracks_only": Case(env="env_fish_sequence_with_detections"),
     "utility_add_head_tail_keypoints_from_dets": Case(env="env_fish_with_polygons"),
+    # Both label every frame of the 9-frame fixture; the sequence is one
+    # continuous shot, so auto finds no break and emits a single track.
+    "utility_empty_frame_lbls_auto": Case(
+        env="env_fish_sequence", check=csv(expected_detections=9)),
     "utility_empty_frame_lbls_fixed_interval": Case(
         env="env_fish_sequence", check=csv(expected_detections=9)),
     "utility_max_points_per_poly": Case(env="env_fish_with_polygons", check=POLYGON),
