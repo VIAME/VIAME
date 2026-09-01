@@ -41,9 +41,41 @@ if( WHEEL_DIR )
 
   # Use platform-specific wheels if available, otherwise use all wheels
   if( _platform_wheels )
-    set( _pip_args "${_platform_wheels}" )
+    set( _candidate_wheels "${_platform_wheels}" )
   else()
-    set( _pip_args "${_all_wheels}" )
+    set( _candidate_wheels "${_all_wheels}" )
+  endif()
+
+  # A wheel dir accumulates every version ever built into it, and handing pip
+  # two versions of one distribution is an unsatisfiable request rather than a
+  # newest-wins choice. Keep only the most recently written wheel per
+  # distribution, so a version bump does not collide with its predecessor.
+  # Distributions other than each other are all still installed together.
+  set( _dist_names )
+  set( _pip_args )
+  foreach( _wheel IN LISTS _candidate_wheels )
+    get_filename_component( _wheel_file "${_wheel}" NAME )
+    string( REGEX REPLACE "^([^-]+)-.*$" "\\1" _dist "${_wheel_file}" )
+    file( TIMESTAMP "${_wheel}" _wheel_time "%Y%m%d%H%M%S" )
+
+    list( FIND _dist_names "${_dist}" _dist_index )
+    if( _dist_index EQUAL -1 )
+      list( APPEND _dist_names "${_dist}" )
+      list( APPEND _pip_args "${_wheel}" )
+      set( _dist_time_${_dist} "${_wheel_time}" )
+    elseif( _wheel_time STRGREATER "${_dist_time_${_dist}}" )
+      list( REMOVE_AT _pip_args ${_dist_index} )
+      list( INSERT _pip_args ${_dist_index} "${_wheel}" )
+      set( _dist_time_${_dist} "${_wheel_time}" )
+    endif()
+  endforeach()
+
+  list( LENGTH _candidate_wheels _candidate_count )
+  list( LENGTH _pip_args _selected_count )
+  if( NOT _candidate_count EQUAL _selected_count )
+    message( STATUS
+      "Ignoring superseded wheels in ${WHEEL_DIR}: installing "
+      "${_selected_count} of ${_candidate_count}" )
   endif()
 
   set( _working_dir "${WHEEL_DIR}" )
