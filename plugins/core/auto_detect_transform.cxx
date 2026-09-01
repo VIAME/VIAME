@@ -5,6 +5,7 @@
 #include <vital/algo/algorithm.txx>
 
 #include <fstream>
+#include <stdexcept>
 
 namespace viame
 {
@@ -35,14 +36,21 @@ auto_detect_transform_io
 
   if( extension == "h5" )
   {
+    throw std::runtime_error(
+      "ITK .h5 transforms are no longer supported; convert " + filename +
+      " once with tools/convert_itk_h5_transform.py" );
+  }
+
+  if( extension == "json" )
+  {
     auto config = kv::config_block::empty_config();
-    config->set_value( "transform_reader:type", "itk" );
+    config->set_value( "transform_reader:type", "homography_json" );
 
     kva::transform_2d_io_sptr ti;
 
     kv::set_nested_algo_configuration<kva::transform_2d_io>(
       "transform_reader", config, ti );
-  
+
     if( ti )
     {
       output = ti->load( filename );

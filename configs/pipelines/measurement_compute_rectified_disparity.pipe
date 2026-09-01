@@ -4,14 +4,14 @@
 # Description: Pipeline for measuring object dimensions in imagery.
 #
 # Requires Calibration: True
+# Calibration Keys: depth_map:computer:ocv_stereo_disparity:calibration_file
 # =============================================================================
 
 config _pipeline:_edge
        :capacity                               5
 
 config global
-   :input_cameras_directory                    /home/<user>/Desktop/viame_tests/camera_calibrations         # DIVE_PARAM["Calibrations Directory", folder]
-   :output_depths_directory                    /home/<user>/Desktop/viame_tests/depthMap                    # DIVE_PARAM["Output Depths Directory", folder]
+   :output_depths_directory                    .
 
 # ================================ VIDEO INPUT ================================
 
@@ -24,6 +24,13 @@ process depth_map
   :computer:type                              ocv_stereo_disparity
 
 block computer:ocv_stereo_disparity
+  # Output params
+  :compute_depth                                false       # DIVE_PARAM["Compute Depth", bool]
+  :output_rectified                             true        # DIVE_PARAM["Output Rectified", bool]
+  :output_format                                uint16_scaled
+  :uint16_scale_factor                          256.0       # DIVE_PARAM["Scale Factor", strictly_positive_float]
+  :export_as_alpha                              false       # DIVE_PARAM["Export as Alpha Channel", bool]
+
   :algorithm                                 	SGBM
   :min_disparity                             	0           # DIVE_PARAM["Min Disparity", positive_int]
   :num_disparities                           	240         # DIVE_PARAM["Num Disparities", positive_int]
@@ -31,7 +38,9 @@ block computer:ocv_stereo_disparity
   :block_size                                	11          # DIVE_PARAM["Block Size", strictly_positive_int]
   :speckle_window_size			                0
   :speckle_range				                0
-  :calibration_file                             $CONFIG{global:input_cameras_directory}
+
+  # Bound to the dataset's calibration by the Calibration Keys header above.
+  :calibration_file                             calibration_matrices.npz
   :use_wls_filter                               true
 endblock
 
@@ -44,7 +53,7 @@ connect from downsampler.output_3
 
 process output
   :: image_writer
-  :file_name_template                          $CONFIG{global:output_depths_directory}/depth_map%06d.png
+  :file_name_template                          $CONFIG{global:output_depths_directory}/map%06d.png
   :image_writer:type                           ocv
 
 connect from depth_map.depth_map

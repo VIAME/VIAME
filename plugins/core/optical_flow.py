@@ -26,6 +26,19 @@ class OpticalFlowFilter(ImageFilter):
       - output: "magnitude" (1 channel) or "vector" (2 channels), default magnitude
       - scale: flow magnitude in pixels mapped to the byte extreme, default 8.0
       - compensate_background: subtract the median flow, default True
+      - normalize: "fixed" maps `scale` px to the byte extreme; "adaptive" maps
+        the frame's own `adaptive_percentile` of magnitude there instead, floored
+        at `adaptive_min_scale` px. Default fixed.
+      - adaptive_percentile: percentile taken as full scale, default 99.0
+      - adaptive_min_scale: smallest px value allowed as full scale, default 0.5
+
+    A fixed scale suits footage whose motion magnitude is known and stable. It
+    serves a mixed corpus poorly: measured across underwater sequences the 95th
+    percentile of magnitude spans 0.01-1.24 px, so a scale chosen for the fast
+    end leaves the slow end encoded into the bottom percent of the byte range and
+    effectively blank. Adaptive spends the range on whatever motion each frame
+    actually contains. The floor stops a still frame -- where the percentile is
+    ~0 -- from being amplified into pure noise.
     """
 
     def __init__(self):
@@ -33,6 +46,9 @@ class OpticalFlowFilter(ImageFilter):
         self.output = "magnitude"
         self.scale = 8.0
         self.compensate_background = True
+        self.normalize = "fixed"
+        self.adaptive_percentile = 99.0
+        self.adaptive_min_scale = 0.5
         self._prev = None
 
     def get_configuration(self):
@@ -40,6 +56,9 @@ class OpticalFlowFilter(ImageFilter):
         cfg.set_value("output", self.output)
         cfg.set_value("scale", str(self.scale))
         cfg.set_value("compensate_background", str(self.compensate_background))
+        cfg.set_value("normalize", self.normalize)
+        cfg.set_value("adaptive_percentile", str(self.adaptive_percentile))
+        cfg.set_value("adaptive_min_scale", str(self.adaptive_min_scale))
         return cfg
 
     def set_configuration(self, cfg_in):
@@ -48,6 +67,16 @@ class OpticalFlowFilter(ImageFilter):
         self.compensate_background = str(
             cfg_in.get_value("compensate_background")
         ).lower() in ("true", "1", "yes")
+        # Two-argument get_value so a pipe written before these keys existed
+        # still configures: absent means keep the default, which is the
+        # original fixed-scale behaviour.
+        self.normalize = cfg_in.get_value("normalize", self.normalize)
+        self.adaptive_percentile = float(
+            cfg_in.get_value("adaptive_percentile", str(self.adaptive_percentile))
+        )
+        self.adaptive_min_scale = float(
+            cfg_in.get_value("adaptive_min_scale", str(self.adaptive_min_scale))
+        )
 
     def check_configuration(self, cfg):
         if cfg.get_value("output") not in ("magnitude", "vector"):
@@ -55,6 +84,15 @@ class OpticalFlowFilter(ImageFilter):
             return False
         if float(cfg.get_value("scale")) <= 0.0:
             print("Error: scale must be positive")
+            return False
+        if cfg.get_value("normalize", "fixed") not in ("fixed", "adaptive"):
+            print("Error: normalize must be 'fixed' or 'adaptive'")
+            return False
+        if not 0.0 < float(cfg.get_value("adaptive_percentile", "99.0")) <= 100.0:
+            print("Error: adaptive_percentile must be in (0, 100]")
+            return False
+        if float(cfg.get_value("adaptive_min_scale", "0.5")) <= 0.0:
+            print("Error: adaptive_min_scale must be positive")
             return False
         return True
 
@@ -82,13 +120,21 @@ class OpticalFlowFilter(ImageFilter):
             flow[..., 0] -= np.median(flow[..., 0])
             flow[..., 1] -= np.median(flow[..., 1])
 
+        mag = np.sqrt(flow[..., 0] ** 2 + flow[..., 1] ** 2)
+
+        full_scale = self.scale
+        if self.normalize == "adaptive":
+            full_scale = max(
+                float(np.percentile(mag, self.adaptive_percentile)),
+                self.adaptive_min_scale,
+            )
+
         if self.output == "vector":
-            encoded = np.clip(128.0 + flow * (127.0 / self.scale), 0, 255).astype(
+            encoded = np.clip(128.0 + flow * (127.0 / full_scale), 0, 255).astype(
                 np.uint8
             )
         else:
-            mag = np.sqrt(flow[..., 0] ** 2 + flow[..., 1] ** 2)
-            encoded = np.clip(mag * (255.0 / self.scale), 0, 255).astype(np.uint8)
+            encoded = np.clip(mag * (255.0 / full_scale), 0, 255).astype(np.uint8)
 
         return ImageContainer(Image(encoded))
 

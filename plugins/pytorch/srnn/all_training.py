@@ -74,11 +74,32 @@ def normalize_loss(loss):
 def train_model(
         model, train_loader, test_loader, g_config,
         lr_scheduler, epoch, lr, lr_step, max_iterations,
-        run_model, metric_zero, format_metrics,
+        run_model, metric_zero, format_metrics, weight_decay=0.0,
 ):
-    optimizer = g_config.optimizer(model.parameters(), lr=lr)
+    # Decay is passed only when a stage asks for it, so a stage that wants
+    # none is left at whatever its optimizer's own default is rather than
+    # being handed an explicit zero -- the same call it made before this
+    # argument existed. The scheduler below rewrites param_groups['lr'] in
+    # place and returns the same optimizer, so this survives every step.
+    optimizer_args = {'lr': lr}
+
+    if weight_decay:
+        optimizer_args['weight_decay'] = weight_decay
+        logging('Optimizing with weight decay {}'.format(weight_decay))
+
+    optimizer = g_config.optimizer(model.parameters(), **optimizer_args)
+
+    batch_counter = [0]
 
     def run_batch(input_batch, train):
+        # Cheap enough for every tenth batch: one line of /proc/meminfo. The
+        # kill this defends against arrived faster than the hundred-batch
+        # cadence of the full check.
+        batch_counter[0] += 1
+
+        if batch_counter[0] % 10 == 0:
+            check_node(epoch, batch_counter[0], 0)
+
         model.train(train)
         loss, metrics = run_model(input_batch)
         if train:
@@ -88,7 +109,78 @@ def train_model(
         return metrics
 
     limit = memory_limit_gb()
+
+    if limit is not None:
+        logging('Memory limit: {:.1f} GB (warn at {:.1f}, stop at {:.1f})'
+                .format(limit, limit * 0.75, limit * 0.90))
+    else:
+        logging('Memory limit: none found; the budget guard is inactive')
     warned = [False]
+
+    checks = [0]
+
+    def job_tree_memory():
+        """The parent's whole tree: the stage above us and every sibling.
+
+        The stage that was OOM killed reported 0.6 GB for its own tree right
+        up to the SIGKILL, so whatever consumed the allocation was beside it,
+        not below it. Walking down from the parent instead of from here makes
+        that growth visible -- and attributable, since the difference between
+        the two numbers is exactly the part this stage cannot see.
+        """
+        try:
+            import os as _os
+
+            return process_tree_memory(_os.getppid())[0]
+        except Exception:
+            return None
+
+    def node_available_gb():
+        """What the whole machine has left, in GB, or None.
+
+        The budget above is what this job asked slurm for, but slurm here
+        runs jobacct_gather/none and task/none: nothing enforces the budget,
+        and the ceiling that actually kills is the node running dry -- the
+        kernel's OOM killer took a stage whose own tree measured 0.6 GB, and
+        with no kernel log access the memory it died for was never even
+        attributable to this job. Watching MemAvailable defends against that
+        whoever causes it: better to snapshot and stop than be SIGKILLed
+        blind because of a neighbour.
+        """
+        try:
+            with open('/proc/meminfo') as handle:
+                for line in handle:
+                    if line.startswith('MemAvailable:'):
+                        return int(line.split()[1]) / (1024.0 ** 2)
+        except (OSError, ValueError, IndexError):
+            pass
+
+        return None
+
+    node_warned = [False]
+
+    def check_node(epoch, batch_idx, total_batches):
+        available = node_available_gb()
+
+        if available is None:
+            return
+
+        if available < 8.0:
+            logging('Epoch {}: the NODE is down to {:.1f} GB available at '
+                    'batch {} of {} -- this may be another process entirely. '
+                    'Stopping before the kernel picks a victim.'
+                    .format(epoch, available, batch_idx, total_batches))
+            raise MemoryBudgetExceeded(
+                'node down to {:.1f} GB available'.format(available))
+
+        if available < 15.0 and not node_warned[0]:
+            node_warned[0] = True
+            used, largest, count = process_tree_memory()
+            logging('Epoch {}: the node is down to {:.1f} GB available; this '
+                    'stage holds {} across {} processes.'
+                    .format(epoch, available,
+                            '{:.1f} GB'.format(used) if used is not None
+                            else 'an unreadable amount', count))
 
     def check_memory(epoch, batch_idx, total_batches):
         if limit is None:
@@ -98,6 +190,18 @@ def train_model(
 
         if used is None:
             return
+
+        # A breadcrumb every ~20 checks even while healthy. A run that dies
+        # without ever crossing a threshold otherwise leaves no trail at all.
+        checks[0] += 1
+
+        if checks[0] % 20 == 0:
+            job = job_tree_memory()
+            logging('Epoch {}: batch {} of {}: stage {:.1f} GB, job {} '
+                    'of {:.1f} GB limit'
+                    .format(epoch, batch_idx, total_batches, used,
+                            '{:.1f} GB'.format(job) if job is not None
+                            else 'unreadable', limit))
 
         if used > limit * 0.90:
             logging('Epoch {}: {:.1f} GB of a {:.1f} GB limit at batch {} of '
@@ -150,8 +254,9 @@ def train_model(
             logging(f'Epoch {epoch}: final v' + format_metrics(final_metrics))
             return final_metrics
 
-    def process_tree_memory():
-        """Current RSS of this process and every descendant, in GB.
+    def process_tree_memory(root_pid=None):
+        """Current RSS of root_pid (default: this process) and every
+        descendant, in GB.
 
         Read from /proc rather than from getrusage: RUSAGE_CHILDREN reports
         only children that have been waited for, and with persistent workers
@@ -190,7 +295,7 @@ def train_model(
                 except OSError:
                     return []
 
-            pids, stack = [], [_os.getpid()]
+            pids, stack = [], [root_pid if root_pid is not None else _os.getpid()]
 
             while stack:
                 pid = stack.pop()

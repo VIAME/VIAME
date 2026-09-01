@@ -44,11 +44,9 @@ rm /usr/local/cuda
 rm /usr/local/cuda-12
 mv /usr/local/cuda-12.8 $CUDA_DIRECTORY
 
-# Update VIAME sub git sources
+# Update VIAME sub git sources. PyTorch is not among them: it is cloned by the
+# build itself, and patched there, only when built from source
 update_git_submodules $VIAME_SOURCE_DIR
-
-# Patch PyTorch when required
-patch_pytorch_nccl_symmem $VIAME_SOURCE_DIR || exit 1
 
 setup_build_directory $VIAME_SOURCE_DIR
 

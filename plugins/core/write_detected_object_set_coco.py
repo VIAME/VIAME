@@ -5,18 +5,19 @@
 """
 Write detections to COCO/kwcoco-format JSON files.
 
-Supports:
-- Segmentation masks (written as RLE) and single polygons
-- Keypoints (written in kwcoco dict-list format with auto-generated
-  keypoint_categories table)
-- Arbitrary per-annotation attributes (round-tripped from
-  DetectedObject notes via JSON)
+Emits the shared VIAME COCO profile described in utilities_coco: 1-based ids,
+a ``file_name`` and unique ``name`` on every image, ``area``/``iscrowd`` on
+every annotation, image-coordinate polygon segmentations, and keypoints in the
+kwcoco dict-list format with an auto-generated keypoint_categories table.
+Arbitrary per-annotation attributes round-trip from DetectedObject notes.
 """
 
 from kwiver.vital.algo import DetectedObjectSetOutput
 
 from viame.core.utilities_coco import (
+    VIDEO_ID,
     global_categories,
+    default_video_name,
     detection_to_annotation,
     write_coco_json,
 )
@@ -42,27 +43,45 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
         self.detections = []
         self.images = []
         self.category_start_id = 1
+        self.top_n_classes = 0
         self.global_categories = True
         self.aux_image_labels = ""
         self.aux_image_extensions = ""
+        self.video_name = ""
+        self.version_identifier = ""
+        self.frame_rate = ""
+        self.contributor = ""
         self.file = None
         self._local_categories = {}
+        self._output_path = ""
+        # Video input names no frame; an image list names every one.
+        self._saw_file_name = False
 
     def get_configuration(self):
         cfg = super(DetectedObjectSetOutput, self).get_configuration()
         cfg.set_value("category_start_id", str(self.category_start_id))
+        cfg.set_value("top_n_classes", str(self.top_n_classes))
         cfg.set_value("global_categories", str(self.global_categories))
-        cfg.set_value("aux_image_labels", ",".join(self.aux_image_labels))
-        cfg.set_value("aux_image_extensions", ",".join(self.aux_image_extensions))
+        cfg.set_value("aux_image_labels", ','.join(self.aux_image_labels))
+        cfg.set_value("aux_image_extensions", ','.join(self.aux_image_extensions))
+        cfg.set_value("video_name", self.video_name)
+        cfg.set_value("version_identifier", self.version_identifier)
+        cfg.set_value("frame_rate", self.frame_rate)
+        cfg.set_value("contributor", self.contributor)
         return cfg
 
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
         self.category_start_id = int(cfg.get_value("category_start_id"))
+        self.top_n_classes = int(cfg.get_value("top_n_classes"))
         self.global_categories = self._strtobool(cfg.get_value("global_categories"))
         self.aux_image_labels = str(cfg.get_value("aux_image_labels"))
         self.aux_image_extensions = str(cfg.get_value("aux_image_extensions"))
+        self.video_name = str(cfg.get_value("video_name"))
+        self.version_identifier = str(cfg.get_value("version_identifier"))
+        self.frame_rate = str(cfg.get_value("frame_rate"))
+        self.contributor = str(cfg.get_value("contributor"))
 
         self.aux_image_labels = self.aux_image_labels.rstrip().split(",")
         self.aux_image_extensions = self.aux_image_extensions.rstrip().split(",")
@@ -87,7 +106,8 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
         return True
 
     def open(self, file_name):
-        self.file = open(file_name, "w")
+        self._output_path = file_name
+        self.file = open(file_name, 'w')
 
     def close(self):
         if self.file:
@@ -95,29 +115,58 @@ class WriteDetectedObjectSetCoco(DetectedObjectSetOutput):
 
     def write_set(self, detected_object_set, file_name):
         cats = self._local_categories
+        # No timestamp reaches this algorithm, so a frame is the Nth
+        # write_set call, the same way viame_csv numbers its frame column.
+        # Blank frames keep their slot: video names no frame, so dropping
+        # them would slide later detections towards the start of the clip.
+        frame_index = len(self.images)
+        image_id = frame_index + 1
+        if file_name:
+            self._saw_file_name = True
         for det in detected_object_set:
             d = detection_to_annotation(
-                det,
-                len(self.images),
-                cats,
-                self.category_start_id,
-                self.global_categories,
-            )
+                det, image_id, cats,
+                self.category_start_id, self.global_categories,
+                self.top_n_classes)
             self.detections.append(d)
-        self.images.append(file_name)
+        self.images.append(dict(file_name=file_name, frame_index=frame_index))
+
+    def _trim_trailing_blank_frames(self):
+        """Drop trailing frames carrying neither imagery nor detections.
+
+        Conversion pipelines run without imagery (gt_only) pad the end of the
+        stream with nameless empty frames. Interior blanks stay, so frames
+        keep the numbering the source file gave them.
+        """
+        last_used = max(
+            (d["image_id"] for d in self.detections), default=0)
+        while len(self.images) > last_used and not self.images[-1]["file_name"]:
+            self.images.pop()
 
     def complete(self):
         cats = self._local_categories
+        self._trim_trailing_blank_frames()
+
+        videos = None
+        if self.video_name or not self._saw_file_name:
+            videos = [dict(
+                id=VIDEO_ID,
+                name=default_video_name(self._output_path, self.video_name))]
+            for entry in self.images:
+                entry["video_id"] = VIDEO_ID
+
         write_coco_json(
             self.file,
             self.detections,
             self.images,
             cats,
             self.global_categories,
-            self.aux_image_labels,
-            self.aux_image_extensions,
+            self.aux_image_labels, self.aux_image_extensions,
             description="Created by WriteDetectedObjectSetCoco",
-        )
+            version=self.version_identifier,
+            fps=self.frame_rate,
+            contributor=self.contributor,
+            videos=videos)
 
 
 def __vital_algorithm_register__():

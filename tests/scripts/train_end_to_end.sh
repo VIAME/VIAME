@@ -82,10 +82,13 @@ fi
 # stays right when more than one install is present.
 VIAME_INSTALL="${VIAME_INSTALL:-$( dirname "$( dirname "$( command -v viame )" )" )}"
 
-# One epoch everywhere. Each of these is read by the trainer it belongs to;
-# the point is to reach every stage, not to fit anything.
-export VIAME_SRNN_SIAMESE_EPOCHS=1
-export VIAME_SRNN_LSTM_EPOCHS=1
+# One epoch everywhere, unless the caller asked for more. Each of these is
+# read by the trainer it belongs to; the point is to reach every stage, not
+# to fit anything -- but a caller proving epoch-dependent behaviour (early
+# stopping, LR steps) needs its own values to survive, and an unconditional
+# export here silently clobbered them.
+export VIAME_SRNN_SIAMESE_EPOCHS="${VIAME_SRNN_SIAMESE_EPOCHS:-1}"
+export VIAME_SRNN_LSTM_EPOCHS="${VIAME_SRNN_LSTM_EPOCHS:-1}"
 
 if [ -z "${WORK_DIRECTORY}" ]
 then

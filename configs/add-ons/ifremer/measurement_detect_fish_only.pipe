@@ -2,6 +2,9 @@
 # Title: Stereo detect fish
 #
 # Description: Pipeline for measuring object dimensions in imagery.
+#
+# Requires Calibration: True
+# Calibration Keys: depth_map:computer:ocv_stereo_disparity:calibration_file stereo_pairing:calibration_file
 # =============================================================================
 
 config _pipeline:_edge
@@ -11,8 +14,6 @@ config _scheduler
    :type                         pythread_per_process
 
 config global
-   :input_cameras_directory                     /home/<user>/Desktop/viame_tests/camera_calibrations
-   :output_depths_directory                     /home/<user>/Desktop/viame_tests/depthMap
    :pairing_method                              PAIRING_RECTIFIED_IOU
    :iou_pair_threshold                          0.1
 
@@ -22,7 +23,7 @@ include common_stereo_input_with_downsampler.pipe
 
 # ================================= DETECTOR ==================================
 
-include common_stereo_fish_detector_with_filter.pipe
+include common_stereo_fish_detector.pipe
 
 # ================================= DEPTH MAP =================================
 
@@ -38,7 +39,8 @@ block computer:ocv_stereo_disparity
   :block_size                                	11
   :speckle_window_size			                0
   :speckle_range				                0
-  :calibration_file                             $CONFIG{global:input_cameras_directory}
+  # Bound to the dataset's calibration by the Calibration Keys header above.
+  :calibration_file                             calibration_matrices.npz
   :use_wls_filter                               true
 endblock
 
@@ -64,7 +66,8 @@ process detector_writer2
 
 process stereo_pairing
   ::ocv_pair_stereo_detections
-  :cameras_directory                      $CONFIG{global:input_cameras_directory}
+  # Bound to the dataset's calibration by the Calibration Keys header above.
+  :calibration_file                      calibration_matrices.npz
   :pairing_method                         $CONFIG{global:pairing_method}
   :iou_pair_threshold                     $CONFIG{global:iou_pair_threshold}
 
@@ -85,9 +88,9 @@ connect from downsampler.output_3
 # Connect detector outputs and depth map to stereo pairing
 connect from depth_map.depth_map
         to   stereo_pairing.depth_map
-connect from detector_filter1.detected_object_set
+connect from detector_output1.detected_object_set
         to   stereo_pairing.detected_object_set1
-connect from detector_filter2.detected_object_set
+connect from detector_output2.detected_object_set
         to   stereo_pairing.detected_object_set2
 
 # Connect stereo pairing output to output writer

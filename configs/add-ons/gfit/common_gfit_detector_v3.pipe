@@ -1,0 +1,178 @@
+# =============================================================================
+# Title: GFIT v3 Fused Detector
+#
+# Description: SEFSC group RF-DETR fused with the FishTrack motion RF-DETR.
+# Union of both detection sets followed by NMS.
+# =============================================================================
+
+# --------------------------- detector 1: SEFSC groups ------------------------
+process detector_rgb_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+process detector1
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :black_pad                                 false
+    :chip_adaptive_thresh                      1600000
+    :chip_height                               960
+    :chip_step_height                          500
+    :chip_step_width                           500
+    :chip_width                                1728
+    :mode                                      disabled
+    :original_to_chip_size                     true
+    :scale                                     1.000000
+  endblock
+
+  :detector:ocv_windowed:detector:type         rf_detr
+
+  block detector:ocv_windowed:detector:rf_detr
+    relativepath weight =                      models/gfit_groups_rf_detr_1728.pth
+    :model_size                                large
+    :num_channels                              3
+    :resolution                                960x1728
+    :threshold                                 0.10
+    :device                                    auto
+  endblock
+
+connect from detector_rgb_input.image
+        to   detector1.image
+
+# ------------------- detector 2: FishTrack motion RF-DETR --------------------
+# Three channels: grey, plus variance over 5- and 30-frame windows. The pack's
+# checkpoint emits UNKNOWNFISH (renamed from fish) for label consistency.
+process detector_grey
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :single_channel                            true
+  endblock
+
+process motion_filter1
+  :: image_filter
+  :filter:type                                 vxl_average
+
+  block filter:vxl_average
+    :type                                      window
+    :window_size                               5
+    :round                                     false
+    :output_variance                           true
+  endblock
+
+process float_to_byte1
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :scale_factor                              0.50
+  endblock
+
+process motion_filter2
+  :: image_filter
+  :filter:type                                 vxl_average
+
+  block filter:vxl_average
+    :type                                      window
+    :window_size                               30
+    :round                                     false
+    :output_variance                           true
+  endblock
+
+process float_to_byte2
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :scale_factor                              0.50
+  endblock
+
+process image_merger1
+  :: merge_images
+  :merge_images:type                           ocv
+
+process image_merger2
+  :: merge_images
+  :merge_images:type                           ocv
+
+connect from detector_grey.image
+        to   motion_filter1.image
+connect from motion_filter1.image
+        to   float_to_byte1.image
+connect from detector_grey.image
+        to   motion_filter2.image
+connect from motion_filter2.image
+        to   float_to_byte2.image
+connect from float_to_byte1.image
+        to   image_merger1.image1
+connect from detector_grey.image
+        to   image_merger1.image2
+connect from image_merger1.image
+        to   image_merger2.image1
+connect from float_to_byte2.image
+        to   image_merger2.image2
+
+process detector2
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :black_pad                                 false
+    :chip_adaptive_thresh                      1600000
+    :chip_height                               960
+    :chip_step_height                          500
+    :chip_step_width                           500
+    :chip_width                                1728
+    :mode                                      disabled
+    :original_to_chip_size                     true
+    :scale                                     1.000000
+  endblock
+
+  :detector:ocv_windowed:detector:type         rf_detr
+
+  block detector:ocv_windowed:detector:rf_detr
+    relativepath weight =                      models/fishtrack_motion_rf_detr_1728.pth
+    :model_size                                large
+    :num_channels                              3
+    :resolution                                960x1728
+    :threshold                                 0.10
+    :device                                    auto
+  endblock
+
+connect from image_merger2.image
+        to   detector2.image
+
+# ---------------------------------- fusion -----------------------------------
+process detector_merger
+  :: merge_detection_sets
+  :merger:type                                 simple
+
+connect from detector1.detected_object_set
+        to   detector_merger.detected_object_set1
+connect from detector2.detected_object_set
+        to   detector_merger.detected_object_set2
+
+process detector_fused
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from detector_merger.detected_object_set
+        to   detector_fused.detected_object_set
+
+# -- end of file --

@@ -34,11 +34,13 @@ set( plugin_headers
   read_object_track_set_auto.h
   read_object_track_set_dive.h
   read_object_track_set_viame_csv.h
+  read_transform_homography_json.h
   refine_detections_add_fixed.h
   refine_detections_nms.h
   utilities_file.h
   utilities_image.h
   utilities_segmentation.h
+  utilities_tracks.h
   utilities_training.h
   windowed_detector.h
   windowed_refiner.h
@@ -83,11 +85,13 @@ set( plugin_sources
   read_object_track_set_auto.cxx
   read_object_track_set_dive.cxx
   read_object_track_set_viame_csv.cxx
+  read_transform_homography_json.cxx
   refine_detections_add_fixed.cxx
   refine_detections_nms.cxx
   utilities_file.cxx
   utilities_image.cxx
   utilities_segmentation.cxx
+  utilities_tracks.cxx
   utilities_training.cxx
   windowed_detector.cxx
   windowed_refiner.cxx
@@ -252,6 +256,8 @@ set( process_headers
   stack_frames_process.h
   store_descriptors_csv.h
   track_conductor_process.h
+  warp_detections_process.h
+  warp_image_process.h
   write_homography_list_process.h
   write_query_results_as_tracks_process.h
 )
@@ -282,6 +288,8 @@ set( process_sources
   stack_frames_process.cxx
   store_descriptors_csv.cxx
   track_conductor_process.cxx
+  warp_detections_process.cxx
+  warp_image_process.cxx
   write_homography_list_process.cxx
   write_query_results_as_tracks_process.cxx
 )
@@ -333,6 +341,11 @@ if( VIAME_ENABLE_PYTHON )
     training_data )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/tracker_param_search.py
+    core
+    tracker_param_search )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/detection_fusion_core.py
     core
     detection_fusion_core )
@@ -341,6 +354,11 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_nms_fusion.py
     core
     merge_detections_nms_fusion )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/merge_detections_coverage_reinforce.py
+    core
+    merge_detections_coverage_reinforce )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/merge_tracks_tube_iou.py
@@ -461,6 +479,16 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_stereo.py
     core
     interactive_stereo )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/align_cameras_process.py
+    core
+    align_cameras_process )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/alignment_core.py
+    core
+    alignment_core )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_service.py

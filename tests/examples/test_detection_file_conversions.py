@@ -12,10 +12,19 @@ from test_utilities import get_script_path, assert_script_runs_successfully
 CATEGORY = "detection_file_conversions"
 
 
-class TestBulkConvertUsingPipe:
-    """Tests for bulk_convert_using_pipe script."""
+class TestBulkConvertGtPlusData:
+    """Tests for bulk_convert_gt_plus_data script."""
 
-    def test_bulk_convert_using_pipe(self):
-        """Test that bulk_convert_using_pipe runs without error and produces output."""
-        script = get_script_path(CATEGORY, "bulk_convert_using_pipe.sh")
+    def test_bulk_convert_gt_plus_data(self):
+        """Test that bulk_convert_gt_plus_data runs without error and produces output."""
+        script = get_script_path(CATEGORY, "bulk_convert_gt_plus_data.sh")
+        assert_script_runs_successfully(script)
+
+
+class TestBulkConvertGtOnly:
+    """Tests for bulk_convert_gt_only script."""
+
+    def test_bulk_convert_gt_only(self):
+        """Test that bulk_convert_gt_only runs without error and produces output."""
+        script = get_script_path(CATEGORY, "bulk_convert_gt_only.sh")
         assert_script_runs_successfully(script)

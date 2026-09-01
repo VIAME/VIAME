@@ -2,6 +2,7 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
+import ast
 import json
 import math
 import os
@@ -335,7 +336,9 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         'puts the config values back and restarts the schedule, so the '
         'learning_rate*, lr_scheduler and lr_drop settings below still apply. '
         'That is deliberate -- a schedule that has annealed to ~0 has no '
-        'training left in it, so resuming onto it would do nothing.'))
+        'training left in it, so resuming onto it would do nothing. A '
+        'checkpoint that already completed max_epochs trains another full '
+        'round: the total extends to the next multiple of max_epochs.'))
     skip_best_epochs = scfg.Value(0, help=(
         'Ignore the first N epochs when tracking the best regular/EMA '
         'checkpoints. Set this when seeding from a converged model: warmup '
@@ -364,6 +367,27 @@ class RFDETRTrainerConfig(scfg.DataConfig):
         '(batch>1 is unusable), so this dominates epoch time on large vali '
         'sets. A subsample gives a fast, stable selection signal; run a full '
         'eval on the final best checkpoint for the headline number.'))
+    val_min_class_instances = scfg.Value(0, help=(
+        'Ground-truth instances each class is guaranteed in the val_subsample. 0 '
+        'samples uniformly, leaving rare classes a handful of boxes apiece and '
+        'their AP swinging epoch to epoch. Above 0, chips are reserved rarest-'
+        'class-first, then the budget is filled uniformly. Needs val_subsample.'))
+    min_class_support = scfg.Value(0, help=(
+        'Ground-truth instances a class needs to count toward the macro mAP and '
+        'macro-F1, and so toward checkpoint selection. Thinner classes stay in the '
+        'per-class table and val/AP/<name>. Pairs with val_min_class_instances.'))
+    verify_images = scfg.Value(True, help=(
+        'Exclude images missing their end-of-file marker when building the COCO '
+        'dataset, catching chips a crashed chipping pass left truncated. Costs a '
+        'second read per file; turn off to re-scan an already-validated cache.'))
+    dataset_scan_threads = scfg.Value(0, help=(
+        'Threads reading image dimensions while building the COCO dataset. Bound '
+        'by filesystem round trips, not bytes or CPU, so counts well past the core '
+        'count help. 0 auto-sizes from the CPU count; 1 disables the pool.'))
+    class_agnostic_eval = scfg.Value(True, help=(
+        'Also evaluate with every label collapsed to one class, logged as '
+        'val/mAP_50_95_agnostic: scores whether the object was found at all, '
+        'independent of naming. Boxes and base model only, so the cost is small.'))
     max_mask_instances = scfg.Value(0, help=(
         'Cap matched instances per chip used by the segmentation mask loss '
         '(0 = off). The RF-DETR mask loss allocates per-matched-instance '
@@ -447,8 +471,45 @@ class RFDETRTrainer(TrainDetector):
         self._test_detections = list(test_dets)
 
     def _keypoint_names_list(self):
-        """Ordered keypoint slot names parsed from the keypoint_names config."""
-        return [n.strip() for n in str(self._keypoint_names).split(',') if n.strip()]
+        """Ordered keypoint slot names parsed from the keypoint_names config.
+
+        The documented form is comma separated -- head,tail -- but a list
+        arrives just as often, either because the caller set the config from
+        Python or because the value was written as a literal in a .conf. Both
+        have to work: str() of a list is "['head', 'tail']", and splitting that
+        on the comma yields "['head'" and "'tail']", which match no keypoint on
+        any detection. Nothing downstream notices, because a name that matches
+        nothing is indistinguishable from a detection that carries no keypoint,
+        so the run reaches the training loop with an entirely empty coordinate
+        target and every slot reported as not visible.
+        """
+        value = self._keypoint_names
+
+        if isinstance(value, (list, tuple)):
+            items = list(value)
+        else:
+            text = str(value).strip()
+
+            if text.startswith('[') and text.endswith(']'):
+                try:
+                    parsed = ast.literal_eval(text)
+                except (ValueError, SyntaxError):
+                    items = text[1:-1].split(',')
+                else:
+                    items = (list(parsed) if isinstance(parsed, (list, tuple))
+                             else [parsed])
+            else:
+                items = text.split(',')
+
+        names = []
+
+        for item in items:
+            name = str(item).strip().strip('"\'').strip()
+
+            if name:
+                names.append(name)
+
+        return names
 
     def _resolve_aug_config(self, augmentation):
         """
@@ -586,6 +647,101 @@ class RFDETRTrainer(TrainDetector):
               + (f", lr_stem = {self._lr_stem}"
                  if float(self._lr_stem) > 0 else "") + ")")
 
+    def _resolve_scan_threads(self):
+        """Threads for the COCO dimension scan; 0 auto-sizes from the CPU count.
+
+        Oversubscribed at 4x cores because the threads block on I/O rather than
+        hold the GIL; capped so a big node does not bury network storage.
+        """
+        configured = int(self._dataset_scan_threads)
+        if configured > 0:
+            return configured
+        return max(1, min(32, (os.cpu_count() or 4) * 4))
+
+    @staticmethod
+    def _subsample_val_indices(val_dets, cat_name_to_id, n_sub, min_per_class):
+        """Pick which validation images to keep, as a sorted index list.
+
+        With min_per_class = 0 this is a plain uniform sample. Above 0 it first
+        reserves images until every class that can reach the floor has at least
+        that many instances, then fills the remaining budget uniformly.
+
+        A uniform sample of a long-tailed set gives rare classes single-digit
+        instance counts, and an AP over five boxes moves in visible steps from
+        epoch to epoch -- noise that lands directly in the macro-averaged mAP that
+        selects the exported checkpoint. Reserving a floor costs a few images of
+        budget and cuts that variance at the source.
+
+        Classes whose whole-set count is already below the floor take every image
+        they appear in; nothing can be done for them beyond that.
+        """
+        import random
+        from collections import Counter
+
+        order = list(range(len(val_dets)))
+        random.Random(1234).shuffle(order)
+
+        if min_per_class <= 0:
+            return sorted(order[:n_sub])
+
+        per_image = []
+        for det_set in val_dets:
+            counts = Counter()
+            if det_set is not None:
+                for det in det_set:
+                    det_type = det.type
+                    if det_type is None:
+                        continue
+                    name = det_type.get_most_likely_class()
+                    if name in cat_name_to_id:
+                        counts[name] += 1
+            per_image.append(counts)
+
+        totals = Counter()
+        for counts in per_image:
+            totals.update(counts)
+
+        selected = set()
+        held = Counter()
+        # Rarest first: a rare class has few images to draw on, and an image taken
+        # for it also credits every other class in the same frame. Filling common
+        # classes first would spend the budget before the tail is reached.
+        for name, _ in sorted(totals.items(), key=lambda kv: kv[1]):
+            for i in order:
+                if held[name] >= min_per_class:
+                    break
+                if i in selected or not per_image[i][name]:
+                    continue
+                selected.add(i)
+                held.update(per_image[i])
+
+        reserved = len(selected)
+        for i in order:
+            if len(selected) >= n_sub:
+                break
+            selected.add(i)
+
+        # Recounted over the final selection, not the reserved subset: the uniform
+        # fill carries instances of its own and can lift a class over the floor.
+        final = Counter()
+        for i in selected:
+            final.update(per_image[i])
+        short = sorted(
+            name for name, total in totals.items()
+            if final[name] < min_per_class and total >= min_per_class
+        )
+        print(f"[RFDETRTrainer] Stratified validation: {reserved} chip(s) "
+              f"reserved to give {len(totals)} class(es) >= {min_per_class} "
+              f"instance(s)")
+        if reserved > n_sub:
+            print(f"[RFDETRTrainer] WARNING: the per-class floor needs "
+                  f"{reserved} chips, over the val_subsample budget of {n_sub}; "
+                  f"keeping all of them")
+        if short:
+            print(f"[RFDETRTrainer] WARNING: below the floor despite having "
+                  f"enough instances overall: {', '.join(short)}")
+        return sorted(selected)
+
     def _prepare_roboflow_dataset(self):
         """
         Convert stored kwiver data directly to Roboflow directory format
@@ -628,29 +784,70 @@ class RFDETRTrainer(TrainDetector):
                 category["keypoints"] = list(kp_names)
 
         unreadable = []
+        verify_images = parse_bool(self._verify_images)
+        scan_threads = self._resolve_scan_threads()
+        print(f"[RFDETRTrainer] Image scan: {scan_threads} thread(s), "
+              f"truncation check {'on' if verify_images else 'off'}")
+
+        def probe_image(item):
+            """Read one image's dimensions. Returns (index, width, height, error)."""
+            img_idx, img_path = item
+            try:
+                with open(img_path, 'rb') as fh:
+                    with Image.open(fh) as im:  # lazy: header only, ~57 bytes
+                        width, height = im.size
+                    # Seeks past the buffer the header read filled, so it costs a
+                    # second round trip per file.
+                    if verify_images and not image_is_complete(fh, img_path):
+                        raise OSError("image file is truncated")
+            except Exception as exc:
+                return img_idx, None, None, f"{type(exc).__name__}: {exc}"
+            return img_idx, width, height, None
+
+        def probe_block(items):
+            """Map probe_image over (index, path) pairs, threaded when worthwhile.
+
+            Bound by filesystem round trips, not bytes or CPU, so threads overlap
+            the waiting and oversubscription helps.
+            """
+            if scan_threads > 1 and len(items) > 1:
+                from concurrent.futures import ThreadPoolExecutor
+                with ThreadPoolExecutor(max_workers=scan_threads) as pool:
+                    return {i: (w, h, e) for i, w, h, e in pool.map(probe_image, items)}
+            return {i: (w, h, e) for i, w, h, e in map(probe_image, items)}
+
+        # Blocked, not all at once: one entry per image over a 5M-image split would
+        # cost ~1 GB on top of the COCO lists already accumulating here.
+        probe_block_size = 20000
 
         def build_coco_json(image_files, detection_sets):
             images_json = []
             annotations_json = []
             ann_id = 1
+            total = min(len(image_files), len(detection_sets))
+            probed = {}
 
-            for img_idx, (img_path, det_set) in enumerate(
-                zip(image_files, detection_sets)
-            ):
-                img_path = str(img_path)
-                if not os.path.exists(img_path):
-                    continue
+            for img_idx in range(total):
+                img_path = str(image_files[img_idx])
+                det_set = detection_sets[img_idx]
 
-                # Dimensions come from the header; the EOF marker is what says
-                # the rest of the file is actually there.
-                try:
-                    with open(img_path, 'rb') as fh:
-                        with Image.open(fh) as im:
-                            width, height = im.size
-                        if not image_is_complete(fh, img_path):
-                            raise OSError("image file is truncated")
-                except Exception as exc:
-                    unreadable.append((img_path, f"{type(exc).__name__}: {exc}"))
+                if img_idx % probe_block_size == 0:
+                    # Only the I/O is parallel: the loop below walks kwiver
+                    # detection objects, which are not safe to share.
+                    probed = probe_block([
+                        (i, str(image_files[i]))
+                        for i in range(img_idx, min(img_idx + probe_block_size, total))
+                    ])
+                    # Silence here is indistinguishable from a hang.
+                    if total > probe_block_size:
+                        print(f"[RFDETRTrainer] Scanning image dimensions: "
+                              f"{img_idx}/{total}", flush=True)
+
+                # No exists() pre-check: probe_image's open() already catches a
+                # missing path, and now reports it instead of skipping silently.
+                width, height, error = probed[img_idx]
+                if error is not None:
+                    unreadable.append((img_path, error))
                     continue
 
                 img_id = img_idx
@@ -729,6 +926,29 @@ class RFDETRTrainer(TrainDetector):
         print(f"[RFDETRTrainer] Train: {len(train_coco['images'])} images, "
               f"{len(train_coco['annotations'])} annotations")
 
+        if kp_enabled:
+            # A keypoint run whose annotations carry no VISIBLE keypoints trains
+            # nothing useful and says nothing about it: loss_keypoint masks to
+            # visible slots, so the coordinate head keeps its zero init and
+            # emits the box centre forever, while loss_keypoint_vis still
+            # descends happily on the all-absent targets. The result is a
+            # checkpoint with a dead coordinate head and a normal-looking log.
+            # The usual cause is an annotation reader that drops the source
+            # keypoint fields, so the detections arrive without any.
+            n_vis = sum(a.get("num_keypoints", 0) for a in train_coco["annotations"])
+            n_ann = len(train_coco["annotations"])
+            print(f"[RFDETRTrainer] Keypoints: {n_vis} visible slot(s) over "
+                  f"{n_ann} annotation(s), names={kp_names}")
+            if n_vis == 0:
+                raise RuntimeError(
+                    "keypoints=True but not one of the {} training annotations "
+                    "carries a visible keypoint. The keypoint coordinate head "
+                    "cannot learn from this and would train silently to a dead "
+                    "zero-init. Check that the annotation reader parses the "
+                    "keypoint fields of the input format, and that "
+                    "keypoint_names={} matches the names on the "
+                    "detections.".format(n_ann, kp_names))
+
         # Build valid split (from test data). Optionally subsample the vali
         # chips: seg validation forward-passes every chip at batch 1, which
         # dominates epoch time on large vali sets. The subsample is
@@ -737,10 +957,9 @@ class RFDETRTrainer(TrainDetector):
         val_dets = self._test_detections
         n_sub = int(self._val_subsample)
         if n_sub > 0 and len(val_files) > n_sub:
-            import random
-            idx = list(range(len(val_files)))
-            random.Random(1234).shuffle(idx)
-            idx = sorted(idx[:n_sub])
+            idx = self._subsample_val_indices(
+                val_dets, cat_name_to_id, n_sub,
+                int(self._val_min_class_instances))
             val_files = [val_files[i] for i in idx]
             val_dets = [val_dets[i] for i in idx]
             print(f"[RFDETRTrainer] Validation subsampled to {len(val_files)} "
@@ -846,6 +1065,12 @@ class RFDETRTrainer(TrainDetector):
         # of the pretrained positional embeddings to match (see
         # rfdetr.models.weights.interpolate_position_embeddings).
         model_kwargs = dict(num_channels=num_channels, device=device)
+        # Explicit num_classes makes load_pretrain_weights keep every seed
+        # weight except the classification head, which is reinitialized at the
+        # dataset's class count. Without it a seed checkpoint's head size wins
+        # and a larger dataset class count crashes CUDA in the criterion.
+        if self._class_names:
+            model_kwargs['num_classes'] = len(self._class_names)
         if resolution_is_set(self._resolution):
             model_kwargs['resolution'] = self._resolution
         if gradient_checkpointing:
@@ -868,8 +1093,9 @@ class RFDETRTrainer(TrainDetector):
         # Create model. Seed via pretrain_weights so the weights survive into
         # RFDETRModelModule, which rebuilds the network from model_config inside
         # train() and loads only model_config.pretrain_weights (a load_state_dict on
-        # the wrapper here would be discarded). load_pretrain_weights aligns
-        # num_classes from the checkpoint/dataset.
+        # the wrapper here would be discarded). With num_classes set above,
+        # load_pretrain_weights sizes the head for this dataset and keeps the rest
+        # of the checkpoint.
         if len(self._seed_model) > 0 and ub.Path(self._seed_model).exists():
             model = RFDETRModel(pretrain_weights=self._seed_model, **model_kwargs)
         else:
@@ -877,7 +1103,8 @@ class RFDETRTrainer(TrainDetector):
             model = RFDETRModel(**model_kwargs)
 
         # Parse training parameters
-        epochs = int(self._max_epochs)
+        resume_from = self._resolve_resume()
+        epochs = self._resolve_epochs(resume_from)
         # "auto" lets RF-DETR probe for the largest micro-batch that fits VRAM.
         if str(self._batch_size).strip().lower() == 'auto':
             batch_size = 'auto'
@@ -898,7 +1125,6 @@ class RFDETRTrainer(TrainDetector):
         early_stopping_patience = int(self._early_stopping_patience)
         multi_scale = parse_bool(self._multi_scale)
         checkpoint_interval = int(self._checkpoint_interval)
-        resume_from = self._resolve_resume()
         use_tensorboard = parse_bool(self._use_tensorboard)
         aug_config = self._resolve_aug_config(self._augmentation)
 
@@ -938,6 +1164,8 @@ class RFDETRTrainer(TrainDetector):
             skip_best_epochs=int(self._skip_best_epochs),
             eval_interval=int(self._eval_interval),
             eval_max_dets=int(self._eval_max_dets),
+            min_class_support=int(self._min_class_support),
+            class_agnostic_eval=parse_bool(self._class_agnostic_eval),
             tensorboard=use_tensorboard,
             wandb=False,
         )
@@ -1070,6 +1298,34 @@ class RFDETRTrainer(TrainDetector):
                 "false to warm-start from one of those instead.")
         return path
 
+    def _resolve_epochs(self, resume_from):
+        """Total epochs to pass to fit(). A resumed checkpoint that already
+        finished its schedule would restore and stop without training a step,
+        so extend the total to the next multiple of max_epochs -- a finished
+        run continued with --continue trains another full round, while a
+        partially-trained one (including a prior extension) just runs to the
+        end of its current round."""
+        epochs = int(self._max_epochs)
+        if not resume_from:
+            return epochs
+        import torch
+        ckpt = torch.load(resume_from, map_location="cpu", weights_only=False)
+        # last.ckpt is written inside the final epoch's end-of-epoch hooks, so
+        # the stored epoch is the just-finished one; Lightning only advances
+        # past it at restore time.
+        try:
+            saved_epoch = int(ckpt["epoch"])
+        except (KeyError, TypeError, ValueError):
+            saved_epoch = int(ckpt["loops"]["fit_loop"]
+                              ["epoch_progress"]["current"]["processed"])
+        completed = saved_epoch + 1
+        del ckpt
+        total = epochs * (completed // epochs + 1)
+        if total != epochs:
+            print(f"[RFDETRTrainer] Resume checkpoint has completed "
+                  f"{completed} epochs; extending schedule to {total} total")
+        return total
+
     def _dataloader_kwargs(self):
         """Accuracy-neutral DataLoader tuning passed to model.train(). On
         Windows, worker subprocesses fail (spawn re-invokes viame.exe), so force
@@ -1093,10 +1349,11 @@ class RFDETRTrainer(TrainDetector):
         else:
             batch_size = int(self._batch_size)
 
+        resume_from = self._resolve_resume()
         train_kwargs = dict(
             dataset_dir=str(dataset_dir),
             output_dir=str(output_dir),
-            epochs=int(self._max_epochs),
+            epochs=self._resolve_epochs(resume_from),
             batch_size=batch_size,
             lr=float(self._learning_rate),
             lr_encoder=float(self._learning_rate_encoder),
@@ -1116,13 +1373,14 @@ class RFDETRTrainer(TrainDetector):
             skip_best_epochs=int(self._skip_best_epochs),
             eval_interval=int(self._eval_interval),
             eval_max_dets=int(self._eval_max_dets),
+            min_class_support=int(self._min_class_support),
+            class_agnostic_eval=parse_bool(self._class_agnostic_eval),
             tensorboard=parse_bool(self._use_tensorboard),
             wandb=False,
             class_names=list(self._class_names),
             devices=n_gpus,
             strategy=self._resolve_strategy(n_gpus),
         )
-        resume_from = self._resolve_resume()
         if resume_from:
             train_kwargs["resume"] = resume_from
         ddp_timeout = int(self._ddp_timeout)

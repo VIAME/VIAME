@@ -198,6 +198,75 @@ class DataStorage:
         """
         self._con.executescript(_CREATE_TABLES)
 
+    def merge_feature(self, roots, feature, expected_count=None):
+        """Fold one feature's blobs from other DataStorage roots into this one.
+
+        Returns the number of blobs merged.
+
+        This exists so that a stage too big for one process can be divided
+        across several, each writing a store of its own, and the results
+        gathered afterwards.  Sqlite tolerates concurrent readers but not
+        concurrent writers to one file without care, and the crop store is the
+        product of hours of work, so nothing writes to it except this method.
+
+        The delete and the inserts share a single transaction.  A reader
+        therefore sees either every blob for the feature or none of them, never
+        a subset: the pipeline decides whether to redo the stage by asking
+        whether the feature is present at all, so a merge that could stop
+        halfway would leave a store that looks finished and is not.  Passing
+        expected_count makes an incomplete set of shards fail the same way, by
+        rolling back rather than committing what did arrive.
+
+        Detection IDs come from this store to begin with -- the shards only add
+        rows keyed by IDs they were given -- so nothing needs renumbering.
+
+        """
+        con = self._con
+        # ATTACH cannot run inside a transaction, and any write through this
+        # connection has left one open behind us.
+        con.commit()
+
+        names = []
+
+        try:
+            for index, root in enumerate(roots):
+                name = 'shard{}'.format(index)
+                con.execute(
+                    'attach database ? as "{}"'.format(name),
+                    (str(_Path(root, 'db.sqlite')),),
+                )
+                names.append(name)
+
+            # Immediate rather than deferred: take the write lock up front so a
+            # second writer is refused now rather than partway through.
+            con.execute('begin immediate')
+            con.execute(_DELETE_FEATURE, (feature,))
+
+            merged = 0
+
+            for name in names:
+                merged += con.execute(
+                    _MERGE_BLOBS.format(name), (feature,)
+                ).rowcount
+
+            if expected_count is not None and merged != expected_count:
+                raise RuntimeError(
+                    "Merging {!r} produced {} blob(s) where {} were expected;"
+                    " leaving the store as it was".format(
+                        feature, merged, expected_count))
+
+            con.commit()
+        except BaseException:
+            # Without this the transaction is still open and the detaches
+            # below fail too, hiding whatever went wrong here.
+            con.rollback()
+            raise
+        finally:
+            for name in names:
+                con.execute('detach database "{}"'.format(name))
+
+        return merged
+
     def flush(self):
         """Flush any pendings writes to this DataStorage"""
         con = self._con_
@@ -261,6 +330,13 @@ _CREATE_DETECTION_ID = """
 insert into "detections"
 ("video_id", "track_id", "frame_id")
 values (?, ?, ?)
+"""
+
+_DELETE_FEATURE = 'delete from "blobs" where "feature" = ?'
+_MERGE_BLOBS = """
+insert into "blobs"
+("det_id", "feature", "data")
+select "det_id", "feature", "data" from "{}"."blobs" where "feature" = ?
 """
 
 _READ_BLOB = 'select "data" from "blobs" where "det_id" = ? and "feature" = ?'

@@ -21,10 +21,10 @@ process empty_tracker
   :track_initializer:type                      threshold
 
   block track_initializer:threshold:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.0
-    :class_probablity_filter:keep_all_classes  true
-    :class_probablity_filter:keep_classes      unused
+    :type                                      class_probability_filter
+    :class_probability_filter:threshold         0.0
+    :class_probability_filter:keep_all_classes  true
+    :class_probability_filter:keep_classes      unused
   endblock
 
 connect from downsampler.timestamp

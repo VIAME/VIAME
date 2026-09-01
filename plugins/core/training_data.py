@@ -23,6 +23,7 @@ localisation error and separate its true from its false positives.
 """
 
 import os
+import random
 import sys
 
 from collections import OrderedDict
@@ -44,6 +45,235 @@ try:
 except ( AttributeError, ValueError ):
     # Not a reconfigurable stream, which is fine; this is a convenience
     pass
+
+
+# ---------------------------------------------------------------------------
+# Confidence thresholds
+# ---------------------------------------------------------------------------
+
+def thresholds_from_detector( matched_confidences, unmatched_confidences ):
+    """Confidence tiers that separate the detector's hits from its misfires.
+
+    The groundtruth cannot answer this: every annotation is confidence 1.0,
+    so a percentile of it is a percentile of a constant and the result is
+    whatever the clamp allows. Nor can the matched detections alone -- they
+    are the detector's true positives, which sit high by construction, so a
+    percentile of them lands near the top of the range and the clamp takes
+    over again. Placing a threshold needs both sides: the scores of
+    detections that found a real object, and the scores of those that did
+    not.
+
+    Lives here rather than in a trainer because bytetrack and botsort both
+    gate on detector confidence, and how well a detector's hits separate
+    from its misfires is a property of the detector, not of the tracker
+    reading it.
+
+    Returns:
+        ( high_thresh, low_thresh, new_track_thresh )
+    """
+    import numpy as np
+
+    matched = np.array( matched_confidences )
+    unmatched = np.array( unmatched_confidences )
+
+    # Keep most real detections in the high tier
+    high_thresh = float( np.percentile( matched, 25 ) )
+
+    # The low tier is the second chance: it should reach well below the high
+    # tier without swallowing the bulk of the misfires
+    low_thresh = float( max( np.percentile( matched, 2 ),
+                             np.percentile( unmatched, 60 ) ) )
+
+    # Starting a track off a misfire costs more than missing one, so this
+    # sits above the high tier
+    new_track_thresh = float( np.percentile( matched, 40 ) )
+
+    high_thresh = float( np.clip( high_thresh, 0.05, 0.95 ) )
+    low_thresh = float( np.clip( low_thresh, 0.01, high_thresh - 0.05 ) )
+    new_track_thresh = float( np.clip( new_track_thresh, high_thresh, 0.95 ) )
+
+    return high_thresh, low_thresh, new_track_thresh
+
+
+# ---------------------------------------------------------------------------
+# Determinism
+# ---------------------------------------------------------------------------
+
+# Carries the seed across the process boundary to the stage entry points that
+# SRNN and SiamMask shell out to.
+SEED_ENV_VAR = "VIAME_TRAINING_SEED"
+
+# Opts a run into deterministic cuDNN without touching a config. Seeding alone
+# aligns initialisation and sampling but leaves convolution backward free to
+# pick a nondeterministic algorithm, which is worth about 0.2% on a one epoch
+# training loss here -- small against unseeded variation, but not zero, and it
+# compounds over a long run. Set this when a comparison has to be exact.
+DETERMINISTIC_ENV_VAR = "VIAME_TRAINING_DETERMINISTIC"
+
+
+def _parse_seed( seed ):
+    """Coerce a configured seed to an int, or None where seeding is declined.
+
+    Config values arrive as strings, and an unset one arrives as the empty
+    string rather than as None, so both have to mean "do not seed" without
+    raising.
+    """
+    if seed is None:
+        return None
+
+    try:
+        seed = int( str( seed ).strip() )
+    except ( TypeError, ValueError ):
+        return None
+
+    return None if seed < 0 else seed
+
+
+def seed_everything( seed, deterministic_cudnn=False ):
+    """Seed every generator a tracker trainer draws from.
+
+    Nothing in this training path was seeded, so two runs of one
+    configuration differed in weight initialisation, in the train/validation
+    split wherever that split is drawn rather than sliced, in pair and
+    triplet sampling, and in loader worker ordering. That noise sits under
+    every comparison between runs, which is why the run 1 against run 2
+    regularisation result could not be called either way.
+
+    torch is imported lazily. The core trainers that fit parameters rather
+    than train a network import this module and do not otherwise need it.
+
+    Args:
+        seed: integer seed. Negative disables seeding and returns False,
+            which is how a caller asks for the previous behaviour.
+        deterministic_cudnn: additionally force cuDNN to pick deterministic
+            algorithms. Off by default -- it removes the remaining
+            nondeterminism in convolution backward at a real throughput
+            cost, whereas the sampling and initialisation noise this
+            function removes is what actually moved results between runs.
+
+    Returns:
+        True when seeding was applied, False when it was declined.
+    """
+    seed = _parse_seed( seed )
+
+    if seed is None:
+        return False
+
+    os.environ[ "PYTHONHASHSEED" ] = str( seed )
+
+    # SRNN and SiamMask both shell out to per stage entry points, and a seed
+    # set in this process reaches none of them. Children inherit the
+    # environment, so the seed travels there and seed_from_environment picks
+    # it up on the other side.
+    os.environ[ SEED_ENV_VAR ] = str( seed )
+
+    random.seed( seed )
+
+    try:
+        import numpy as np
+        np.random.seed( seed % ( 2 ** 32 ) )
+    except ImportError:
+        pass
+
+    try:
+        import torch
+    except ImportError:
+        return True
+
+    torch.manual_seed( seed )
+
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all( seed )
+
+    requested = os.environ.get( DETERMINISTIC_ENV_VAR, "" )
+
+    if deterministic_cudnn or requested.strip().lower() in ( "1", "true", "yes", "on" ):
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+        # cuBLAS reductions are the other source, and it only reads this at
+        # first handle creation, so setting it here is early enough for a
+        # stage entry point but not for a process that has already used cuda.
+        os.environ.setdefault( "CUBLAS_WORKSPACE_CONFIG", ":4096:8" )
+        os.environ[ DETERMINISTIC_ENV_VAR ] = "1"
+
+    return True
+
+
+def seed_from_environment( label="", offset=0 ):
+    """Seed this process from what the launching trainer exported.
+
+    The stage entry points SRNN and SiamMask shell out to are separate
+    processes and inherit nothing but the environment. Each one calls this on
+    the way in, so a seeded parent produces a seeded stage. Silent and
+    harmless when the variable is absent, which is how a stage run by hand
+    behaves.
+
+    Args:
+        label: named in the log line, so a multi stage run says which stage
+            was seeded.
+        offset: added to the inherited seed. One process per card under
+            torch.distributed.run inherits one seed, and seeding them all
+            identically would have every rank draw the same samples; passing
+            the rank here keeps the streams distinct while staying
+            reproducible.
+
+    Returns:
+        True when seeding was applied.
+    """
+    base = _parse_seed( os.environ.get( SEED_ENV_VAR ) )
+
+    if base is None:
+        return False
+
+    if not seed_everything( base + int( offset ) ):
+        return False
+
+    # seed_everything re-exports what it was given. Put the base back, so a
+    # rank offset applied here does not compound into anything this process
+    # goes on to launch.
+    os.environ[ SEED_ENV_VAR ] = str( base )
+
+    where = " in " + label if label else ""
+    print( "Seeded{} with {}".format( where, base + int( offset ) ) )
+
+    return True
+
+
+def loader_worker_seed( seed ):
+    """Build a worker_init_fn that seeds each DataLoader worker distinctly.
+
+    Workers are forked after the parent is seeded, so without this every
+    worker draws the identical augmentation stream, and the combined stream
+    changes with worker count. Offsetting by worker id keeps them distinct
+    and keeps the result reproducible for a fixed worker count.
+
+    Returns None when seeding is disabled, which is what DataLoader expects
+    for "no initialiser".
+    """
+    base = _parse_seed( seed )
+
+    if base is None:
+        return None
+
+    def _init( worker_id ):
+        worker_seed = base + worker_id
+
+        random.seed( worker_seed )
+
+        try:
+            import numpy as np
+            np.random.seed( worker_seed % ( 2 ** 32 ) )
+        except ImportError:
+            pass
+
+        try:
+            import torch
+            torch.manual_seed( worker_seed )
+        except ImportError:
+            pass
+
+    return _init
 
 
 # ---------------------------------------------------------------------------
@@ -315,7 +545,7 @@ def load_computed_detections( directory, sequence_name ):
 
 
 def detector_statistics( track_sets, image_files, directory,
-                         iou_threshold=0.5 ):
+                         iou_threshold=0.5, sequence_manifest="" ):
     """Measure a detector against the groundtruth over the same clips.
 
     Frame ids here are positions within a clip, so the computed detections
@@ -331,6 +561,10 @@ def detector_statistics( track_sets, image_files, directory,
             object, so the scores a threshold must keep
         unmatched_confidences: confidence of detections that found nothing,
             so the scores a threshold must reject
+        miss_runs: for each groundtruth track, the lengths of consecutive
+            annotated frames over which the detector found nothing for it.
+            This is the gap a lost track has to survive at inference, which
+            is not the same quantity as a gap in the annotation itself
         center_errors: centre offset of a matched box from its truth, in
             units of the truth box height
         scale_errors: |w - w_truth| / w_truth and the same for height
@@ -345,13 +579,27 @@ def detector_statistics( track_sets, image_files, directory,
         'matched_boxes': 0,
         'frames_with_computed': 0,
         'frames_total': 0,
+        'miss_runs': [],
     }
 
     if not directory:
         return stats
 
-    maps, names = build_sequence_maps( image_files, len( track_sets ),
-                                       "training" )
+    # The manifest the training tool writes, when the caller passed it on.
+    # The directory-layout heuristic below needs the image list to divide
+    # into exactly one directory per track set, and it stops holding as soon
+    # as anything else shares the tree -- an augmentation cache regrown with
+    # more clips than the annotations cover turned every one of these
+    # statistics into "0 of 0" for a trainer relying on the guess.
+    maps = names = None
+
+    if sequence_manifest:
+        maps, names = read_sequence_manifest(
+            sequence_manifest, image_files, len( track_sets ) )
+
+    if names is None:
+        maps, names = build_sequence_maps( image_files, len( track_sets ),
+                                           "training" )
 
     for seq_idx, track_set in enumerate( track_sets ):
         if track_set is None:
@@ -381,7 +629,9 @@ def detector_statistics( track_sets, image_files, directory,
                     ( box.min_x(), box.min_y(), box.max_x(), box.max_y(),
                       track.id ) )
 
-        for frame_id, truth in truth_by_frame.items():
+        hit_by_track = {}
+
+        for frame_id, truth in sorted( truth_by_frame.items() ):
             stats[ 'frames_total' ] += 1
             stats[ 'gt_boxes' ] += len( truth )
 
@@ -394,6 +644,12 @@ def detector_statistics( track_sets, image_files, directory,
                 frame_computed, truth, iou_threshold )
 
             stats[ 'matched_boxes' ] += len( matches )
+
+            found = set( t[ 4 ] for _c, t, _o in matches )
+
+            for t in truth:
+                hit_by_track.setdefault( t[ 4 ], [] ).append(
+                    ( frame_id, t[ 4 ] in found ) )
 
             for c, t, _overlap in matches:
                 stats[ 'matched_confidences' ].append( c[ 4 ] )
@@ -419,6 +675,20 @@ def detector_statistics( track_sets, image_files, directory,
 
             for c in unmatched:
                 stats[ 'unmatched_confidences' ].append( c[ 4 ] )
+
+        for states in hit_by_track.values():
+            run = 0
+
+            for _frame_id, hit in sorted( states ):
+                if hit:
+                    if run:
+                        stats[ 'miss_runs' ].append( run )
+                    run = 0
+                else:
+                    run += 1
+
+            if run:
+                stats[ 'miss_runs' ].append( run )
 
     return stats
 

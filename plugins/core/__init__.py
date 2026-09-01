@@ -64,6 +64,12 @@ def __sprokit_register__():
         pass
 
     try:
+        from viame.core import align_cameras_process
+        align_cameras_process.__sprokit_register__()
+    except ImportError:
+        pass
+
+    try:
         from viame.core import merge_tracks_tube_iou
         merge_tracks_tube_iou.__sprokit_register__()
     except ImportError:

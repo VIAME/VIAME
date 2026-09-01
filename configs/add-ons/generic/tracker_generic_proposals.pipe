@@ -20,7 +20,7 @@ include common_default_input_with_downsampler.pipe
 
 # ================================= DETECTOR ==================================
 
-include common_generic_detector_with_filter.pipe
+include common_generic_detector.pipe
 
 connect from downsampler.output_1
         to   detector_input.image
@@ -32,7 +32,7 @@ process detector_writer
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
 
-connect from detector_filter.detected_object_set
+connect from detector_output.detected_object_set
         to   detector_writer.detected_object_set
 connect from downsampler.output_2
         to   detector_writer.image_file_name
@@ -48,7 +48,7 @@ connect from downsampler.output_1
         to   tracker.image
 connect from downsampler.timestamp
         to   tracker.timestamp
-connect from detector_filter.detected_object_set
+connect from detector_output.detected_object_set
         to   tracker.detected_object_set
 
 # ================================ OUTPUT DATA ================================
@@ -64,5 +64,7 @@ connect from tracker.object_track_set
         to   track_writer.object_track_set
 connect from downsampler.timestamp
         to   track_writer.timestamp
+connect from downsampler.output_2
+        to   track_writer.image_file_name
 
 # -- end of file --

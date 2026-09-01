@@ -52,6 +52,26 @@ VIAME_CORE_EXPORT
 kwiver::vital::bounding_box_d
 create_viame_csv_bbox( std::vector< std::string > const& cols );
 
+/// Split a CSV line, honoring double quoted fields
+///
+/// A quoted field keeps its delimiters as literal text, so a type containing
+/// commas may be written as "fish_type,a,b". Doubled quotes inside a quoted
+/// field are read as one literal quote.
+VIAME_CORE_EXPORT
+void tokenize_viame_csv_line( std::string const& line,
+                              std::vector< std::string >& cols,
+                              char delim = ',' );
+
+/// Expand a confidence column that has the remaining pairs packed into it
+///
+/// The pairs belong in their own columns, but some exporters quote the whole
+/// run together, leaving a confidence like "0.6,SPECIES,0.2". Only a column
+/// whose leading value is a number followed by a delimiter is expanded, so a
+/// legitimately quoted type is left alone.
+VIAME_CORE_EXPORT
+void expand_packed_viame_csv_pairs( std::vector< std::string >& cols,
+                                    char delim = ',' );
+
 /// Parse species/confidence pairs from VIAME CSV columns
 ///
 /// Parses columns starting at VIAME_CSV_COL_TOT, reading pairs of

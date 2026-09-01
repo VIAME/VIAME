@@ -7,9 +7,12 @@ This document corresponds to the 'Detection File Conversions' example folder wit
 VIAME desktop installation. This folder contains examples of different formats which VIAME
 supports, and additionally how to convert between textual formats representing object
 detections, tracks, results, etc. There are multiple ways to perform format conversions,
-either using KWIVER pipelines with reader/writer nodes (e.g. see bulk_convert_using_pipe
-script) or using quick standalone scripts (see standalone_utils). Conversion pipelines
-are simple, containing a detection input node (reader) and output node (writer).
+either using KWIVER pipelines with reader/writer nodes (e.g. see the bulk_convert scripts)
+or using quick standalone scripts (see standalone_utils). Conversion pipelines are simple,
+containing a detection input node (reader) and output node (writer). Two variants exist:
+bulk_convert_gt_plus_data requires the source imagery or videos alongside the input
+annotation files, while bulk_convert_gt_only converts annotation files alone, using
+the image names or timestamps stored within them.
 
 .. _Detection File Conversions: https://github.com/VIAME/VIAME/tree/master/examples/detection_file_conversions
 

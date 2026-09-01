@@ -40,7 +40,7 @@ REM install directories in cmake or the platforms.cmake file
 SET "VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build"
 SET "VIAME_INSTALL_DIR=%VIAME_BUILD_DIR%\install"
 
-SET "PYTHON_SUBDIR=lib\python3.10"
+SET "PYTHON_SUBDIR=lib\python3.12"
 
 SET "PATH=%WIN_ROOT%;%WIN32_ROOT%"
 SET "PATH=%PATH%;%WIN32_ROOT%\Wbem"

@@ -22,8 +22,10 @@ class VIAME_CORE_EXPORT auto_detect_transform_io
 public:
   PLUGGABLE_IMPL_NAMED(
     auto_detect_transform_io, "auto",
-    "Automatically detect a transform type stored in either an ITK (.h5) "
-    "or simple homography (.txt) format." )
+    "Automatically detect a transform type stored in either a DIVE camera "
+    "registration (.json) or simple homography (.txt) format. ITK (.h5) "
+    "transforms are rejected with a pointer to "
+    "tools/convert_itk_h5_transform.py." )
   virtual ~auto_detect_transform_io() = default;
 
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const override;

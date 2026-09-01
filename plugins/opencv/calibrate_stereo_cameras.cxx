@@ -9,8 +9,11 @@
 
 #include "calibrate_stereo_cameras.h"
 #include "calibrate_single_camera.h"
+#include "camera_rig_io.h"
 
 #include <vital/types/camera_intrinsics.h>
+#include <vital/types/camera_perspective.h>
+#include <vital/types/camera_rig.h>
 
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -846,53 +849,119 @@ calibrate_stereo_cameras::write_calibration_npz(
 }
 
 // -----------------------------------------------------------------------------
-bool
-calibrate_stereo_cameras::load_calibration_opencv(
-  const std::string& input_directory,
-  calibrate_stereo_cameras_result& result ) const
-{
-  std::string intrinsics_file = input_directory + "/intrinsics.yml";
-  std::string extrinsics_file = input_directory + "/extrinsics.yml";
+namespace {
 
-  // Load intrinsics
-  cv::FileStorage fs_intr( intrinsics_file, cv::FileStorage::READ );
-  if( !fs_intr.isOpened() )
+/// Copy a stereo rig's intrinsics and right-relative-to-left extrinsics into a
+/// calibration result. Mirrors the conversion the measurement bindings use, so
+/// every format read_stereo_rig understands lands here identically.
+bool
+rig_to_calibration_result(
+  kv::camera_rig_stereo_sptr const& rig,
+  calibrate_stereo_cameras_result& result )
+{
+  auto const left =
+    std::dynamic_pointer_cast< kv::camera_perspective >( rig->left() );
+  auto const right =
+    std::dynamic_pointer_cast< kv::camera_perspective >( rig->right() );
+
+  if( !left || !right || !left->intrinsics() || !right->intrinsics() )
   {
-    LOG_ERROR( d->m_logger, "Cannot open intrinsics file: " << intrinsics_file );
     return false;
   }
 
-  fs_intr["M1"] >> result.left.camera_matrix;
-  fs_intr["D1"] >> result.left.dist_coeffs;
-  fs_intr["M2"] >> result.right.camera_matrix;
-  fs_intr["D2"] >> result.right.dist_coeffs;
-  fs_intr.release();
+  auto const to_dist = []( kv::camera_intrinsics_sptr const& ci )
+  {
+    auto const& d = ci->dist_coeffs();
+    cv::Mat out( 1, static_cast< int >( d.size() ), CV_64F );
+    for( size_t i = 0; i < d.size(); ++i )
+    {
+      out.at< double >( 0, static_cast< int >( i ) ) = d[ i ];
+    }
+    return out;
+  };
+
+  cv::eigen2cv( kv::matrix_3x3d( left->intrinsics()->as_matrix() ),
+                result.left.camera_matrix );
+  cv::eigen2cv( kv::matrix_3x3d( right->intrinsics()->as_matrix() ),
+                result.right.camera_matrix );
+  result.left.dist_coeffs = to_dist( left->intrinsics() );
+  result.right.dist_coeffs = to_dist( right->intrinsics() );
+
+  // Right camera relative to the left. Derived from the absolute poses so it
+  // stays correct when the left camera is not at the identity pose.
+  kv::matrix_3x3d const r_left = left->rotation().matrix();
+  kv::matrix_3x3d const r_right = right->rotation().matrix();
+  kv::matrix_3x3d const rotation = r_right * r_left.transpose();
+  kv::vector_3d const translation = r_right * ( left->center() - right->center() );
+
+  cv::eigen2cv( rotation, result.R );
+  cv::eigen2cv( kv::vector_3d( translation ), result.T );
 
   result.left.success = !result.left.camera_matrix.empty();
   result.right.success = !result.right.camera_matrix.empty();
+  result.success = result.left.success && result.right.success &&
+                   !result.R.empty() && !result.T.empty();
+  return result.success;
+}
 
-  // Load extrinsics
-  cv::FileStorage fs_extr( extrinsics_file, cv::FileStorage::READ );
-  if( !fs_extr.isOpened() )
+} // end anonymous namespace
+
+// -----------------------------------------------------------------------------
+bool
+calibrate_stereo_cameras::ensure_rectification(
+  calibrate_stereo_cameras_result& result,
+  const cv::Size& image_size )
+{
+  if( !result.R1.empty() && !result.P1.empty() && !result.Q.empty() )
   {
-    LOG_ERROR( d->m_logger, "Cannot open extrinsics file: " << extrinsics_file );
+    return true;
+  }
+
+  if( result.left.camera_matrix.empty() || result.right.camera_matrix.empty() ||
+      result.R.empty() || result.T.empty() || image_size.area() <= 0 )
+  {
     return false;
   }
 
-  fs_extr["R"] >> result.R;
-  fs_extr["T"] >> result.T;
-  fs_extr["R1"] >> result.R1;
-  fs_extr["R2"] >> result.R2;
-  fs_extr["P1"] >> result.P1;
-  fs_extr["P2"] >> result.P2;
-  fs_extr["Q"] >> result.Q;
-  fs_extr.release();
+  cv::stereoRectify(
+    result.left.camera_matrix, result.left.dist_coeffs,
+    result.right.camera_matrix, result.right.dist_coeffs,
+    image_size, result.R, result.T,
+    result.R1, result.R2, result.P1, result.P2, result.Q,
+    cv::CALIB_ZERO_DISPARITY, 0 );
 
-  result.success = result.left.success && result.right.success &&
-                   !result.R.empty() && !result.T.empty();
+  result.image_size = image_size;
+  return !result.R1.empty() && !result.Q.empty();
+}
 
-  LOG_DEBUG( d->m_logger, "Loaded calibration from: " << input_directory );
-  return result.success;
+// -----------------------------------------------------------------------------
+bool
+calibrate_stereo_cameras::load_calibration(
+  const std::string& calibration_file,
+  calibrate_stereo_cameras_result& result ) const
+{
+  kv::camera_rig_stereo_sptr rig;
+  try
+  {
+    rig = viame::read_stereo_rig( calibration_file );
+  }
+  catch( const std::exception& e )
+  {
+    LOG_ERROR( d->m_logger,
+      "Cannot read calibration " << calibration_file << ": " << e.what() );
+    return false;
+  }
+
+  if( !rig || !rig_to_calibration_result( rig, result ) )
+  {
+    LOG_ERROR( d->m_logger, "Cannot read calibration: " << calibration_file );
+    return false;
+  }
+
+  // The rig carries no rectification transforms; ensure_rectification derives
+  // them once the image size is known.
+  LOG_DEBUG( d->m_logger, "Loaded calibration from: " << calibration_file );
+  return true;
 }
 
 // -----------------------------------------------------------------------------

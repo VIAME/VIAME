@@ -8,7 +8,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\detector_svm_models.pipe" ^
+kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\detector_svm_over_generic_proposals.pipe" ^
                   -s input:video_filename=ingest_list.txt
 
 pause

@@ -1,0 +1,46 @@
+# =============================================================================
+# Title: Stabilized IOU tracker pipeline
+#
+# Description: Stabilized IOU tracker pipeline Outputs to computed_tracks.csv.
+# =============================================================================
+
+# ============================= GLOBAL PROPERTIES =============================
+
+config _scheduler
+  type = pythread_per_process
+
+# ============================= INPUT FRAME LIST ==============================
+
+include common_default_input_with_downsampler.pipe
+include common_fish_detector_box.pipe
+include common_stabilized_iou_tracker.pipe
+
+connect from downsampler.output_1
+        to   detector_input.image
+
+connect from downsampler.timestamp
+        to   stabilizer.timestamp
+connect from downsampler.output_1
+        to   stabilizer.image
+
+connect from detector_output.detected_object_set
+        to   tracker.detected_object_set
+connect from downsampler.timestamp
+	      to   tracker.timestamp
+
+# ================================ OUTPUT DATA ================================
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:stream_identifier          input_list.txt
+
+# Connect inputs to track writer
+connect from tracker.object_track_set
+        to   track_writer.object_track_set
+connect from downsampler.timestamp
+        to   track_writer.timestamp
+connect from downsampler.output_2
+        to   track_writer.image_file_name
+
+# -- end of file --

@@ -1,0 +1,42 @@
+# =============================================================================
+# Title: Format Converter
+#
+# Description: Converts annotation data between different file formats. Tracks
+# are read and written, so per-frame detections keep the track they belong to;
+# a detection-only file converts as single-state tracks, which is the same
+# identifier the VIAME CSV carries in its first column.
+#
+# The process names are those of the detection converters they replaced, so
+# existing -s overrides keep working.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                                      5
+
+config _scheduler
+  :type                                       pythread_per_process
+
+include common_no_load_input_with_downsampler.pipe
+
+# ============================== CONVERTER FUNC ===============================
+
+process detection_reader
+  :: read_object_track
+  :file_name                                             input.json
+  :reader:type                                           coco
+
+process detector_writer
+  :: write_object_track
+  :file_name                                            output.csv
+  :writer:type                                          viame_csv
+
+connect from downsampler.output_2
+        to   detection_reader.image_file_name
+connect from detection_reader.object_track_set
+        to   detector_writer.object_track_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp
+
+# -- end of file --

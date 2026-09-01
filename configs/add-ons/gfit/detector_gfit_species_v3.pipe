@@ -1,0 +1,55 @@
+# =============================================================================
+# Title: GFIT v3 species Detector Pipe
+#
+# Description: Fused SEFSC group + FishTrack motion detectors, reclassified to
+# species. Outputs computed_detections.csv.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================= INPUT FRAME LIST ==============================
+include common_default_input_with_downsampler.pipe
+
+# ================================= DETECTOR ==================================
+include common_gfit_detector_v3.pipe
+
+connect from downsampler.output_1
+        to   detector_rgb_input.image
+connect from downsampler.output_1
+        to   detector_grey.image
+
+# ============================ GROUPS THEN SPECIES ============================
+# Groups classify first; the species stage blends that distribution through
+# the taxonomy so each species inherits its parent group's evidence.
+include common_gfit_classifier_groups_v3.pipe
+
+connect from downsampler.output_1
+        to   classifier_groups_large.image
+connect from detector_fused.detected_object_set
+        to   classifier_groups_large.detected_object_set
+
+include common_gfit_classifier_species_v3.pipe
+
+connect from downsampler.output_1
+        to   classifier_species_large.image
+connect from classifier_groups_output.detected_object_set
+        to   classifier_species_large.detected_object_set
+
+# ================================== WRITER ===================================
+process detector_writer
+  :: detected_object_output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from classifier_species_output.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp
+
+# -- end of file --

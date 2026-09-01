@@ -1,0 +1,24 @@
+# =============================================================================
+# Title: GFIT v3 tracker
+#
+# Description: ByteTrack, tuned on the fused detection CSVs. Tracking is driven
+# by detection confidence, not by the class labels.
+# =============================================================================
+
+process tracker
+  :: track_objects
+  :track_objects:type                          bytetrack
+
+block track_objects:bytetrack
+  :std_weight_position                         0.050630267994044076
+  :std_weight_velocity                         0.1
+  :high_thresh                                 0.30
+  :low_thresh                                  0.05
+  :match_thresh                                0.90
+  :second_match_thresh                         0.90
+  :unconfirmed_match_thresh                    0.90
+  :new_track_thresh                            0.30
+  :track_buffer                                10
+endblock
+
+# -- end of file --

@@ -34,7 +34,9 @@ import numpy as np
 from viame.pytorch.utilities import report_cuda_errors
 from viame.core.training_data import (build_sequence_maps,
     read_sequence_manifest, split_validation,
-    load_computed_detections, match_to_groundtruth)
+    load_computed_detections, match_to_groundtruth,
+    seed_everything, loader_worker_seed,
+    detector_statistics, thresholds_from_detector)
 
 
 # The Re-ID dataset and batch sampler live at module scope rather than inside
@@ -227,6 +229,11 @@ class BoTSORTTrainer(TrainTracker):
         # the epoch is chosen on training loss, which cannot tell
         # improvement from memorisation. 0 disables it.
         self._validation_fraction = 0.1
+
+        # Seed for every generator this trainer draws from. Nothing here was
+        # seeded, so run to run noise sat under every comparison between
+        # runs. Negative restores the previous nondeterministic behaviour.
+        self._random_seed = "42"
         self._train_directory = "deep_training"
         self._gpu_count = -1
         self._max_epochs = "50"
@@ -254,6 +261,7 @@ class BoTSORTTrainer(TrainTracker):
         cfg.set_value("computed_detections", self._computed_detections)
         cfg.set_value("sequence_manifest", self._sequence_manifest)
         cfg.set_value("validation_fraction", str(self._validation_fraction))
+        cfg.set_value("random_seed", self._random_seed)
         cfg.set_value("train_directory", self._train_directory)
         cfg.set_value("gpu_count", str(self._gpu_count))
         cfg.set_value("max_epochs", self._max_epochs)
@@ -279,6 +287,7 @@ class BoTSORTTrainer(TrainTracker):
         self._computed_detections = str(cfg.get_value("computed_detections"))
         self._sequence_manifest = str(cfg.get_value("sequence_manifest"))
         self._validation_fraction = float(cfg.get_value("validation_fraction"))
+        self._random_seed = str(cfg.get_value("random_seed"))
         self._train_directory = str(cfg.get_value("train_directory"))
         self._gpu_count = int(cfg.get_value("gpu_count"))
         self._max_epochs = str(cfg.get_value("max_epochs"))
@@ -397,6 +406,45 @@ class BoTSORTTrainer(TrainTracker):
             'gap_lengths': gap_lengths
         }
 
+    def _detector_stats(self):
+        """Measure the detector against the groundtruth, when one was given.
+
+        Mirrors bytetrack's; see thresholds_from_detector for why the
+        unmatched side is needed and the matched side alone will not do.
+        """
+        if not self._computed_detections:
+            return None
+
+        stats = detector_statistics(
+            self._train_tracks + self._test_tracks,
+            self._train_image_files + self._test_image_files,
+            self._computed_detections,
+            sequence_manifest=self._sequence_manifest)
+
+        matched = len(stats['matched_confidences'])
+        unmatched = len(stats['unmatched_confidences'])
+
+        print("Computed detections: {} matched a groundtruth box, {} did "
+              "not, over {} of {} annotated frames".format(
+                  matched, unmatched, stats['frames_with_computed'],
+                  stats['frames_total']))
+
+        if stats['frames_total'] and \
+                stats['frames_with_computed'] < 0.1 * stats['frames_total']:
+            print("WARNING: almost no annotated frame has a computed "
+                  "detection. Frame ids here are positions within a clip, so "
+                  "the detections must come from a run over the same "
+                  "extracted frames rather than over the source video. "
+                  "Falling back to the groundtruth.")
+            return None
+
+        if matched < 10 or unmatched < 10:
+            print("Too few matched or unmatched detections to separate the "
+                  "two, falling back to the groundtruth.")
+            return None
+
+        return stats
+
     def _estimate_parameters(self, stats):
         """Estimate tracking parameters."""
         params = {}
@@ -419,17 +467,42 @@ class BoTSORTTrainer(TrainTracker):
 
         params['std_weight_velocity'] = params['std_weight_position'] / 8
 
-        # Confidence thresholds
-        confidences = stats['confidences']
-        if len(confidences) >= 10:
-            confidences = np.array(confidences)
-            params['high_thresh'] = float(np.clip(np.percentile(confidences, 30), 0.3, 0.9))
-            params['low_thresh'] = float(np.clip(np.percentile(confidences, 10), 0.05, params['high_thresh'] - 0.1))
-            params['new_track_thresh'] = params['high_thresh']
+        # Confidence thresholds.
+        #
+        # stats['confidences'] comes from walking the groundtruth track
+        # states, so with computed detections substituted in it holds the
+        # detector's *true positives* and nothing else. Those sit high by
+        # construction: on FishTrack23 their 30th percentile ran past the 0.9
+        # clip ceiling, so high_thresh and the new_track_thresh that inherits
+        # it were pinned to the clamp rather than fitted, and only the top
+        # tenth of detections could ever start a track. Separating hits from
+        # misfires needs the detections that matched nothing too, which is
+        # what detector_statistics collects and bytetrack and ocsort have
+        # been using since fd1c0564a -- botsort was simply never counted as a
+        # consumer.
+        detector = self._detector_stats()
+
+        if detector is not None:
+            ( params['high_thresh'], params['low_thresh'],
+              params['new_track_thresh'] ) = thresholds_from_detector(
+                  detector['matched_confidences'],
+                  detector['unmatched_confidences'] )
+
+            print("  thresholds from the detector: high {:.3f} low {:.3f} "
+                  "new_track {:.3f}".format(params['high_thresh'],
+                                            params['low_thresh'],
+                                            params['new_track_thresh']))
         else:
-            params['high_thresh'] = 0.6
-            params['low_thresh'] = 0.1
-            params['new_track_thresh'] = 0.6
+            confidences = stats['confidences']
+            if len(confidences) >= 10:
+                confidences = np.array(confidences)
+                params['high_thresh'] = float(np.clip(np.percentile(confidences, 30), 0.3, 0.9))
+                params['low_thresh'] = float(np.clip(np.percentile(confidences, 10), 0.05, params['high_thresh'] - 0.1))
+                params['new_track_thresh'] = params['high_thresh']
+            else:
+                params['high_thresh'] = 0.6
+                params['low_thresh'] = 0.1
+                params['new_track_thresh'] = 0.6
 
         # Track buffer
         gap_lengths = stats['gap_lengths']
@@ -679,6 +752,14 @@ class BoTSORTTrainer(TrainTracker):
         """Train Re-ID model and estimate parameters."""
         print("Starting BoT-SORT training...")
 
+        # Before anything draws. The validation split, the identity
+        # sampling and the weight initialisation all consume these
+        # generators, so this precedes the statistics pass too.
+        if seed_everything(self._random_seed):
+            print(f"  seeded with {self._random_seed}")
+        else:
+            print("  unseeded: run to run variation is expected")
+
         # Extract statistics
         print("Extracting track statistics...")
         stats = self._extract_track_statistics()
@@ -821,20 +902,27 @@ class BoTSORTTrainer(TrainTracker):
                                   names={v: k for k, v
                                          in train_dataset.label_to_idx.items()})
 
+        # Workers fork after the parent is seeded, so without an initialiser
+        # all four draw the identical stream. None when seeding is off, which
+        # is what DataLoader wants for "no initialiser".
+        worker_init = loader_worker_seed(self._random_seed)
+
         if train_sampler.ids:
             print(f"PK sampling: {train_sampler.p} identities x "
                   f"{train_sampler.k} crops = {train_sampler.p * train_sampler.k} "
                   f"per batch, {len(train_sampler)} batches per epoch "
                   f"({len(train_sampler.ids)} identities with 2+ crops)")
             train_loader = DataLoader(train_dataset, batch_sampler=train_sampler,
-                                      num_workers=4)
+                                      num_workers=4, worker_init_fn=worker_init)
         else:
             print("Warning: no identity has more than one crop, falling back to "
                   "shuffled batches. Triplet loss cannot train on this data.")
             train_loader = DataLoader(train_dataset, batch_size=batch_size,
-                                      shuffle=True, num_workers=4)
+                                      shuffle=True, num_workers=4,
+                                      worker_init_fn=worker_init)
 
-        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
+                                 num_workers=4, worker_init_fn=worker_init)
 
         model = ReIDModel(self._backbone, embedding_dim).to(device)
 

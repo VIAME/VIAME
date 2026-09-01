@@ -15,19 +15,16 @@ process detector_input
 
 process fish_detector
   :: image_object_detector
-  :detector:type                               ocv_windowed
+  :detector:type                               rf_detr
 
-  block detector:ocv_windowed
-    :detector:type                             netharn
-
-    :mode                                      original_and_resized
-    :chip_width                                640
-    :chip_height                               640
-    :chip_adaptive_thresh                      1200000
-
-    block detector:netharn
-      :deployed $ENV{VIAME_INSTALL}/configs/pipelines/models/fish_no_motion_detector.zip
-    endblock
+  block detector:rf_detr
+    :model_size                                large
+    :device                                    auto
+    :weight $ENV{VIAME_INSTALL}/configs/pipelines/models/fish_rf_detr_box_1728.pth
+    :num_channels                              3
+    :segmentation                              false
+    :resolution                                960x1728
+    :threshold                                 0.10
   endblock
 
 connect from detector_input.image

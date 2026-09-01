@@ -11,6 +11,6 @@ REM Run Pipeline
 python.exe "%VIAME_INSTALL%\configs\process_video.py" --init -d INPUT_DIRECTORY ^
   --detection-plots ^
   -plot-threshold 0.25 -frate 2 -plot-smooth 2 ^
-  -p pipelines\index_default.pipe
+  -p pipelines\index_generic.pipe
 
 pause

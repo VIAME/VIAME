@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Sea Lion Water Suppression
+# Title: Remove detections falling inside ignore regions
 #
-# Description: Utility pipeline for data processing operations.
+# Description: Drops detections contained in regions labelled ignore, and
+# relabels those only partially inside them as suppressed.
 # Input: BBOX
 # Output: BBOX
 # =============================================================================

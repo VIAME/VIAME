@@ -71,7 +71,7 @@
             <Checkbox Name="DefaultFishModelCheckbox" X="20" Y="481" Width="200" Height="15" TabStop="yes" FontId="3">Default Fish</Checkbox>
             <Checkbox Name="GenericProposalsModelCheckbox" X="230" Y="481" Width="200" Height="15" TabStop="yes" FontId="3">Generic Proposals</Checkbox>
             <Checkbox Name="HabcamModelCheckbox" X="20" Y="498" Width="200" Height="15" TabStop="yes" FontId="3">HabCam</Checkbox>
-            <Checkbox Name="SefscModelCheckbox" X="230" Y="498" Width="200" Height="15" TabStop="yes" FontId="3">SEFSC</Checkbox>
+            <Checkbox Name="GfitModelCheckbox" X="230" Y="498" Width="200" Height="15" TabStop="yes" FontId="3">GFIT</Checkbox>
             <Checkbox Name="SwfscPengheadModelCheckbox" X="20" Y="515" Width="200" Height="15" TabStop="yes" FontId="3">SWFSC-PengHead</Checkbox>
             <Checkbox Name="ArcticSealModelCheckbox" X="230" Y="515" Width="200" Height="15" TabStop="yes" FontId="3">Arctic-Seal</Checkbox>
             <Checkbox Name="MotionModelCheckbox" X="20" Y="532" Width="200" Height="15" TabStop="yes" FontId="3">Motion</Checkbox>

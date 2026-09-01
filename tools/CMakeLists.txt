@@ -8,6 +8,7 @@
 set( PYTHON_SCRIPTS
   add_segmentations.py
   convert_cam_format.py
+  convert_itk_h5_transform.py
   database_tool.py
   extract_video_frames.py
   generate_detection_plots.py
@@ -108,6 +109,19 @@ target_link_libraries( viame_get_configs
                kwiver::vital_algo
                kwiver::kwiversys
                kwiver::sprokit_pipeline
+  )
+
+kwiver_add_executable( viame_resample_tracks
+    resample_tracks.cxx
+  )
+
+target_link_libraries( viame_resample_tracks
+  PRIVATE      kwiver::vital
+               kwiver::vital_vpm
+               kwiver::vital_config
+               kwiver::vital_logger
+               kwiver::kwiversys
+               viame_core
   )
 
 if( VIAME_ENABLE_OPENCV )

@@ -378,21 +378,19 @@ class DetectHarn(nh.FitHarn):
             >>> kwplot.show_if_requested()
         """
         bx = harn.bxs[harn.current_tag]
+        # Batch visualization is cosmetic; never let it crash training.
         try:
             if harn._hack_do_draw:
                 batch_dets = harn.raw_model.coder.decode_batch(outputs)
                 harn._draw_timer.tic()
                 stacked = harn.draw_batch(batch, outputs, batch_dets, thresh=0.0)
                 dump_dpath = ub.ensuredir((harn.train_dpath, 'monitor', harn.current_tag, 'batch'))
-                dump_fname = 'pred_bx{:04d}_epoch{:08d}.png'.format(bx, harn.epoch)
+                dump_fname = 'pred_bx{:04d}_e{:04d}.png'.format(bx, harn.epoch)
                 fpath = os.path.join(dump_dpath, dump_fname)
                 harn.debug('dump viz fpath = {}'.format(fpath))
                 kwimage.imwrite(fpath, stacked)
         except Exception as ex:
-            harn.error('\n\n\n')
-            harn.error('ERROR: FAILED TO POSTPROCESS OUTPUTS')
-            harn.error('DETAILS: {!r}'.format(ex))
-            raise
+            harn.warn('batch drawing failed (non-fatal): {!r}'.format(ex))
 
         if bx % 10 == 0:
             # If multiscale shuffle the input dims
@@ -674,27 +672,34 @@ class DetectHarn(nh.FitHarn):
         We use this to visualize the first convolutional layer
         """
         import kwplot
-        # Visualize the first convolutional layer
-        dpath = ub.ensuredir((harn.train_dpath, 'monitor', 'layers'))
-        # fig = kwplot.figure(fnum=1)
-        for key, layer in nh.util.trainable_layers(harn.model, names=True):
-            # Typically the first convolutional layer returned here is the
-            # first convolutional layer in the network
-            if isinstance(layer, torch.nn.Conv2d):
-                if max(layer.kernel_size) > 2:
-                    fig = kwplot.plot_convolutional_features(
-                        layer, fnum=1, normaxis=0)
-                    kwplot.set_figtitle(key, subtitle=str(layer), fig=fig)
-                    layer_dpath = ub.ensuredir((dpath, key))
-                    fname = 'layer-{}-epoch_{}{}.jpg'.format(
-                        key, harn.epoch, suffix)
-                    fpath = join(layer_dpath, fname)
-                    fig.savefig(fpath)
-                    break
+        # Visualize the first convolutional layer. This is diagnostic output
+        # only, so never let it kill the training run; keep the output path
+        # short to stay under the Windows MAX_PATH limit.
+        try:
+            dpath = ub.ensuredir((harn.train_dpath, 'monitor', 'layers'))
+            for key, layer in nh.util.trainable_layers(harn.model, names=True):
+                # Typically the first convolutional layer returned here is the
+                # first convolutional layer in the network
+                if isinstance(layer, torch.nn.Conv2d):
+                    if max(layer.kernel_size) > 2:
+                        fig = kwplot.plot_convolutional_features(
+                            layer, fnum=1, normaxis=0)
+                        kwplot.set_figtitle(key, subtitle=str(layer), fig=fig)
+                        short_key = key
+                        for prefix in ('module.', 'detector.'):
+                            if short_key.startswith(prefix):
+                                short_key = short_key[len(prefix):]
+                        fname = '{}-e{}{}.jpg'.format(
+                            short_key, harn.epoch, suffix)
+                        fpath = join(dpath, fname)
+                        fig.savefig(fpath)
+                        break
 
-            if isinstance(layer, torch.nn.Linear):
-                # TODO: visualize the FC layer
-                pass
+                if isinstance(layer, torch.nn.Linear):
+                    # TODO: visualize the FC layer
+                    pass
+        except Exception as ex:
+            harn.warn('Failed to draw conv layers: {!r}'.format(ex))
 
     def on_complete(harn):
         """

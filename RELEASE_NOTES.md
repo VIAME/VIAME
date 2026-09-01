@@ -1,4 +1,20 @@
-v0.22.7 - 7/29/2026
+v0.22.9 - 8/26/2026
+===================
+
+
+-Updates for multi-camera registration pipelines and registration techniques
+
+
+
+v0.22.8 - 8/18/2026
+===================
+
+
+-Additional fusion methods to support GFIT pipelines
+
+
+
+v0.22.7 - 8/09/2026
 ===================
 
 

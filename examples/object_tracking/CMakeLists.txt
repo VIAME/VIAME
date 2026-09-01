@@ -11,25 +11,22 @@ if( WIN32 )
        ${EXAMPLE_INSTALL_FILES}
        run_fish_tracker.bat
        run_generic_tracker.bat
-       run_simple_tracker.bat
        run_bytetrack_tracker.bat
-       run_stabilized_iou_tracker.bat )
+       run_fish_via_registration_only_tracker.bat )
 elseif( APPLE )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        run_fish_tracker.sh
        run_generic_tracker.sh
-       run_simple_tracker.sh
        run_bytetrack_tracker.sh
-       run_stabilized_iou_tracker.sh )
+       run_fish_via_registration_only_tracker.sh )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        run_fish_tracker.sh
        run_generic_tracker.sh
-       run_simple_tracker.sh
        run_bytetrack_tracker.sh
-       run_stabilized_iou_tracker.sh )
+       run_fish_via_registration_only_tracker.sh )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-SIAMMASK )

@@ -38,13 +38,12 @@ run_build build_log.txt true
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
 
-# Install old MMDet plugin useful for 1-2 models (this is typically
-# packaged in add-ons but VIAME-web doesn't handle binary code in
-# add-ons currently)
-wget https://viame.kitware.com/api/v1/file/685cd1a5a2df48d3c1ae8604/download
-tar -xvf download
-cp -r lib install
-rm -rf lib download
+# The old MMDet plugin used by 1-2 models is no longer installed here. Its
+# prebuilt tarball is a cp310 binary build (mmcv_depr/_ext.cpython-310-*.so
+# under lib/python3.10), which this image's Python 3.12 can neither import nor
+# even see on its path since the ubuntu24.04 base switch, so it was only
+# shipping dead weight. The cu11 and ifremer web images still run Python 3.10
+# and keep it.
 
 # Fix libsvm symlink issue
 fix_libsvm_symlink install

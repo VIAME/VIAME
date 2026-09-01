@@ -19,6 +19,8 @@ import sys
 import pytest
 from pathlib import Path
 
+from viame_env import find_viame_install, get_viame_source
+
 
 class TimeoutSuccess(Exception):
     """Exception raised when a script times out but timeout is considered success."""
@@ -103,36 +105,12 @@ def validate_output_files(new_files):
     return validated
 
 
-def get_viame_source():
-    """Get the VIAME source directory."""
-    # This file is at tests/examples/conftest.py
-    # Source is at ../../
-    return Path(__file__).resolve().parent.parent.parent
-
-
 def get_viame_install():
-    """Get the VIAME install directory."""
-    # Check environment variable first (set by CMake test properties)
-    if 'VIAME_INSTALL' in os.environ:
-        install_path = Path(os.environ['VIAME_INSTALL'])
-        if install_path.exists():
-            return install_path
-
-    # Try to find it relative to source
-    source = get_viame_source()
-
-    # Common locations to check relative to source
-    candidates = [
-        source.parent / "build" / "install",  # viame/build/install (source is viame/src)
-        source / "build" / "install",  # viame/build/install (source is viame)
-    ]
-
-    for candidate in candidates:
-        if (candidate / "setup_viame.sh").exists():
-            return candidate
-
-    # If not found, skip the test
-    pytest.skip("VIAME install directory not found. Set VIAME_INSTALL environment variable.")
+    """Get the VIAME install directory, skipping the test if it cannot be found."""
+    install = find_viame_install()
+    if install is None:
+        pytest.skip("VIAME install directory not found. Set VIAME_INSTALL environment variable.")
+    return install
 
 
 def get_examples_dir(category):
@@ -322,16 +300,8 @@ def assert_script_runs_successfully(script_path, working_dir=None, timeout=300, 
     return result
 
 
-@pytest.fixture(scope="session")
-def viame_source():
-    """Fixture providing the VIAME source directory."""
-    return get_viame_source()
-
-
-@pytest.fixture(scope="session")
-def viame_install():
-    """Fixture providing the VIAME install directory."""
-    return get_viame_install()
+# viame_source / viame_install session fixtures now live in tests/conftest.py
+# so every subtree inherits them.
 
 
 @pytest.fixture(scope="session")

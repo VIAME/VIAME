@@ -134,6 +134,26 @@ setup_basic_build_environment() {
     export PATH="$cuda_dir/bin:$PATH"
     export LD_LIBRARY_PATH="$cuda_dir/lib64:$LD_LIBRARY_PATH"
   fi
+
+  enable_pip_break_system_packages
+}
+
+# Opt out of PEP 668 when the system interpreter is externally managed
+# (Ubuntu 24.04+, Debian 12+). Everything the superbuild pip installs goes into
+# VIAME's own tree via --user and PYTHONUSERBASE, never the distro's
+# site-packages, but pip refuses those installs outright while the marker is
+# present. The superbuild sets the same variable for its own dependency
+# projects; exporting it here additionally covers pip calls made by nested
+# builds (fletch, kwiver, viame) which inherit this environment. Gated on the
+# marker because the flag only exists in pip 23.0.1 and newer.
+enable_pip_break_system_packages() {
+  local marker
+  marker=$(python -c "import os, sysconfig; print( os.path.join( sysconfig.get_path( 'stdlib' ), 'EXTERNALLY-MANAGED' ) )" 2>/dev/null)
+
+  if [ -n "$marker" ] && [ -f "$marker" ]; then
+    export PIP_BREAK_SYSTEM_PACKAGES=1
+    echo "System python is PEP 668 externally managed, exported PIP_BREAK_SYSTEM_PACKAGES=1"
+  fi
 }
 
 # Export CUDA paths for cmake
@@ -202,11 +222,15 @@ install_deps_apt() {
     python3-pip \
     python-is-python3
 
-  # Install numpy via pip (to target directory if specified, otherwise system)
+  # Install numpy via pip (to target directory if specified, otherwise system).
+  # Ubuntu 24.04+ marks the system interpreter externally-managed (PEP 668), so a
+  # plain system-wide install fails; fall back to --break-system-packages there.
+  # Older distros (22.04) succeed on the first call and never touch the fallback.
   if [ -n "$pip_target" ]; then
     python -m pip install --target "$pip_target" numpy==2.0.2
   else
-    python -m pip install numpy==2.0.2
+    python -m pip install numpy==2.0.2 || \
+      python -m pip install --break-system-packages numpy==2.0.2
   fi
 
   echo "apt-get dependency installation complete"
@@ -511,62 +535,6 @@ patch_cudnn_headers() {
   else
     echo "CUDNN headers OK (no patching needed)"
   fi
-}
-
-# ==============================================================================
-# PYTORCH PATCHING
-# ==============================================================================
-
-# Disable PyTorch's NCCL symmetric-memory support
-# Arguments: $1 = VIAME source directory (default: /viame)
-#
-# The NCCL bundled with PyTorch (2.29.7) exposes a symmetric-memory device API
-# that does not compile under CUDA 12.8: nccl_device.h instantiates OpSum<half>
-# during its host pass, where half has no operator+, so nvcc fails in NCCL's
-# reduce_copy__types.h. That breaks NCCLSymmetricMemory.cu, nccl_extension.cu and
-# ops/nccl_reduce_scatter_offset.cu -> torch_cuda -> the entire build.
-#
-# Both the #include and the four capability macros must go. The macros gate every
-# use of the device API (all #ifdef NCCL_HAS_SYMMEM_*), but the #include sits in a
-# version check rather than a capability check, so dropping the macros alone still
-# pulls in the uncompilable header. With both removed the affected translation
-# units compile to empty bodies. ncclWindow_t and friends come from nccl.h and are
-# unaffected, as are standard NCCL collectives and DDP.
-#
-# Revisit when NCCL or CUDA is bumped.
-patch_pytorch_nccl_symmem() {
-  local source_dir="${1:-/viame}"
-  local header="$source_dir/packages/pytorch/torch/csrc/distributed/c10d/symm_mem/nccl_dev_cap.hpp"
-
-  echo "Checking PyTorch NCCL symmetric-memory support..."
-
-  if [ ! -f "$header" ]; then
-    echo "PyTorch NCCL symmem header not found, skipping patch"
-    return 0
-  fi
-
-  if grep -q 'VIAME_DISABLE_NCCL_SYMMEM' "$header"; then
-    echo "PyTorch NCCL symmem already disabled (no patching needed)"
-    return 0
-  fi
-
-  local tag='// VIAME_DISABLE_NCCL_SYMMEM (does not compile under CUDA 12.8):'
-
-  sed -i -E \
-    -e "s@^#define (NCCL_HAS_SYMMEM_SUPPORT|NCCL_HAS_SYMMEM_DEVICE_SUPPORT|NCCL_HAS_ONE_SIDED_API|NCCL_DEVICE_HAS_REDUCE_COPY)\$@$tag #define \1@" \
-    -e "s@^#include <nccl_device.h>\$@$tag #include <nccl_device.h>@" \
-    "$header"
-
-  local patched
-  patched=$( grep -c 'VIAME_DISABLE_NCCL_SYMMEM' "$header" )
-
-  if [ "$patched" -ne 5 ]; then
-    echo "ERROR: expected to disable 4 NCCL symmem macros + 1 include, got $patched"
-    echo "       $header has likely changed upstream; the patch needs review"
-    return 1
-  fi
-
-  echo "PyTorch NCCL symmem patching complete"
 }
 
 # ==============================================================================
@@ -1098,11 +1066,43 @@ run_build() {
   # Tee to stdout as well as the log file so build errors are visible in the
   # Docker/CI driver output; otherwise a failed make is invisible outside the
   # (discarded) image, which previously let broken builds pass silently.
-  if [ "$continue_on_error" = "true" ]; then
-    make -j$(nproc) 2>&1 | tee "$log_file" || true
+  # pipefail inside the subshell so make's status is seen rather than tee's
+  local status=0
+  if ( set -o pipefail; make -j$(nproc) 2>&1 | tee "$log_file" ); then
+    status=0
   else
-    ( set -o pipefail; make -j$(nproc) 2>&1 | tee "$log_file" )
+    status=$?
+    summarize_build_failure "$log_file"
   fi
+
+  if [ "$continue_on_error" = "true" ]; then
+    return 0
+  fi
+
+  return "$status"
+}
+
+# Re-print the failing part of a build log at the very end of the step output.
+# BuildKit clips a step's log once it passes its (2 MiB by default) limit, and
+# a superbuild's make output blows through that long before it fails, so the
+# actual error scrolls away and the driver reports only "Error 2". Echoing the
+# matching lines last keeps them inside the tail that BuildKit does show.
+# Arguments: $1 = log file
+summarize_build_failure() {
+  local log_file="${1:-build_log.txt}"
+
+  echo "================================================================"
+  echo "BUILD FAILED - error lines from $log_file"
+  echo "================================================================"
+  if [ -f "$log_file" ]; then
+    grep -nE "(^|[[:space:]])(Error [0-9]+|error:|CMake Error|fatal error:|No space left on device)" \
+      "$log_file" | tail -n 60
+    echo "---------------- last 100 lines of $log_file ----------------"
+    tail -n 100 "$log_file"
+  else
+    echo "(no log file at $log_file)"
+  fi
+  echo "================================================================"
 }
 
 # ==============================================================================

@@ -1,8 +1,9 @@
 # =============================================================================
-# Title: Generates generic object proposals as opposed to any specific class labels
+# Title: Generates generic object proposals, not specific class labels
 #
-# Description: Generates generic object proposals as opposed to any specific
-# class labels Uses model: generic_detector.weights.
+# Description: Generates single-class generic object proposals output, with
+# boxes around many things in the scene which are likely to be objects, but
+# without specifying what those objects are.
 # =============================================================================
 
 process detector_input
@@ -14,35 +15,47 @@ process detector_input
     :force_three_channel                       true
   endblock
 
-process detector1
+process detector
   :: image_object_detector
-  :detector:type                               darknet
-
-  block detector:darknet
-    # Network config, weights, and names
-    relativepath net_config  =                 models/generic_detector.cfg
-    relativepath weight_file =                 models/generic_detector.weights
-    relativepath class_names =                 models/generic_detector.lbl
-
-    # Detector parameters
-    :thresh                                    0.010
-    :gpu_index                                 0
-
-    # Image scaling parameters
-    :resize_option                             adaptive
+  :detector:type                               windowed
+  
+  block detector:ocv_windowed
+    :mode                                      adaptive
+    :original_to_chip_size                     true
+    :chip_width                                704
+    :chip_height                               704
+    :chip_step_height                          480
+    :chip_step_width                           480
+    :chip_adaptive_thresh                      1400000
     :scale                                     1.0
-    :chip_step                                 520
-    :chip_edge_filter                          5
+    :black_pad                                 false
+  endblock
 
+  :detector:windowed:detector:type             rf_detr
+
+  block detector:windowed:detector:rf_detr
+    :model_size                                large
+    :device                                    auto
+    relativepath weight =                      models/generic_rf_detr_704.pth
+    :num_channels                              3
+    :resolution                                704x704
+    :segmentation                              false
   endblock
 
 connect from detector_input.image
-        to   detector1.image
+        to   detector.image
 
 process detector_output
-  :: merge_detection_sets
+  :: refine_detections
+  :refiner:type                                nms
 
-connect from detector1.detected_object_set
-        to   detector_output.detected_object_set1
+  block refiner:nms
+    :max_overlap                               0.6
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from detector.detected_object_set
+        to   detector_output.detected_object_set
 
 # -- end of file --

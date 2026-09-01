@@ -11,6 +11,7 @@
  *   - Pre-rectified images (default) or internal rectification with calibration
  *   - BM (Block Matching) or SGBM (Semi-Global Block Matching) algorithms
  *   - Optional WLS (Weighted Least Squares) disparity filtering
+ *   - Disparity or metric depth output
  *   - Various output formats (raw disparity, scaled uint16, float32)
  */
 
@@ -36,7 +37,7 @@ class VIAME_OPENCV_EXPORT compute_stereo_disparity
 public:
   PLUGGABLE_IMPL_NAMED(
     compute_stereo_disparity, "ocv_stereo_disparity",
-                  "OpenCV stereo disparity map computation using BM or SGBM",
+    "OpenCV stereo disparity map computation using BM or SGBM",
     PARAM_DEFAULT( algorithm, std::string,
                    "Stereo matching algorithm: 'BM' (Block Matching) or 'SGBM' (Semi-Global Block Matching). "
                    "SGBM generally produces better results but is slower.", "SGBM" ),
@@ -55,17 +56,6 @@ public:
                    "Set to 0 to disable speckle filtering.", 100 ),
     PARAM_DEFAULT( speckle_range, int,
                    "Maximum disparity variation within each connected component for speckle filtering.", 32 ),
-    PARAM_DEFAULT( output_format, std::string,
-                   "Output disparity format: "
-                   "'raw' (CV_16S with disparity * 16, OpenCV native), "
-                   "'float32' (CV_32F with disparity in pixels), "
-                   "'uint16_scaled' (CV_16U with disparity * 256, compatible with external algorithms).", "raw" ),
-    PARAM_DEFAULT( disparity_as_alpha, bool,
-                   "If true, returns the rectified left image with disparity as the alpha (4th) channel. "
-                   "The output will be a 4-channel BGRA image where the alpha channel contains the 8-bit disparity.", false ),
-    PARAM_DEFAULT( invert_disparity_alpha, bool,
-                   "If true and disparity_as_alpha is enabled, inverts the disparity values in the alpha channel. "
-                   "Invalid (zero) disparity pixels are set to white before inversion.", false ),
     PARAM_DEFAULT( use_wls_filter, bool,
                    "Apply Weighted Least Squares (WLS) filtering to smooth the disparity map while "
                    "preserving edges. Requires computing disparity for both left and right images.", false ),
@@ -76,28 +66,39 @@ public:
     PARAM_DEFAULT( calibration_file, std::string,
                    "Path to stereo calibration file (OpenCV YAML/XML format). If specified, images will be "
                    "rectified before computing disparity. Leave empty if input images are already rectified "
-                   "(e.g., when called from measurement_utilities which handles its own rectification).", "" )
+                   "(e.g., when called from measurement_utilities which handles its own rectification).", "" ),
+    PARAM_DEFAULT( compute_depth, bool,
+                   "If true, computes depth Z = (fx * baseline) / disparity. "
+                   "If false, computes disparity. Depth requires a valid calibration file.", false ),
+    PARAM_DEFAULT( export_as_alpha, bool,
+                   "If true, outputs the original left color image with the computed map (depth/disparity) "
+                   "in the 4th (Alpha) channel. If false, outputs a 1-channel image of the map.", false ),
+    PARAM_DEFAULT( output_rectified, bool,
+                   "If true, the output map (and color image if export_as_alpha is true) will be kept "
+                   "in the rectified coordinate space. If false, they will be mapped back to the original image.", true ),
+    PARAM_DEFAULT( output_format, std::string,
+                   "Output format: 'float32' (best for TIFF), 'uint16_scaled' (best for 16-bit PNG), or 'raw'.", "raw" ),
+    PARAM_DEFAULT( uint16_scale_factor, double,
+                   "Multiplier used ONLY when output_format is 'uint16_scaled'. "
+                   "e.g., if depth is in meters, a factor of 1000 converts it to millimeters "
+                   "to save as integers in PNG.", 256.0 )
   )
 
   virtual ~compute_stereo_disparity() = default;
 
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const
-  {
-    return true;
-  }
-
-
+  virtual bool check_configuration(
+    kwiver::vital::config_block_sptr config ) const override;
 
   virtual void post_set_configuration();
 
-  /// Compute stereo disparity map from left and right images
+  /// Compute stereo disparity (or depth) map from left and right images
   ///
   /// \param left_image Left stereo image (grayscale or color)
   /// \param right_image Right stereo image (grayscale or color)
-  /// \returns Disparity map image. Format depends on output_format config:
+  /// \returns Disparity or depth map image. Format depends on output_format:
   ///          - "raw": CV_16S with disparity * 16 (OpenCV native format)
-  ///          - "float32": CV_32F with disparity in pixels
-  ///          - "uint16_scaled": CV_16U with disparity * 256 (for external algorithms)
+  ///          - "float32": CV_32F in pixels (disparity) or scene units (depth)
+  ///          - "uint16_scaled": CV_16U scaled by uint16_scale_factor
   virtual kwiver::vital::image_container_sptr
   compute( kwiver::vital::image_container_sptr left_image,
            kwiver::vital::image_container_sptr right_image ) const;
@@ -110,9 +111,13 @@ private:
   mutable cv::Mat m_rectification_map_left_y;
   mutable cv::Mat m_rectification_map_right_x;
   mutable cv::Mat m_rectification_map_right_y;
+  mutable cv::Mat m_unrectification_map_x;
+  mutable cv::Mat m_unrectification_map_y;
 
-  // Calibration data (loaded if calibration_file is set)
-  calibrate_stereo_cameras_result m_calibration;
+  // Calibration data (loaded if calibration_file is set). Mutable because
+  // single-file formats carry no rectification transforms, so those are filled
+  // in lazily once the first image gives us an image size.
+  mutable calibrate_stereo_cameras_result m_calibration;
   calibrate_stereo_cameras m_calibrator;
 
   // Stereo matchers

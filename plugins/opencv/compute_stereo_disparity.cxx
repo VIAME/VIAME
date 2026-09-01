@@ -16,6 +16,8 @@
 
 #include <arrows/ocv/image_container.h>
 
+#include <vector>
+
 namespace kv = kwiver::vital;
 
 namespace viame {
@@ -40,11 +42,38 @@ compute_stereo_disparity
     LOG_WARN( logger(), "block_size adjusted to " << c_block_size << " (must be odd)" );
   }
 
+  m_calibrator.set_logger( logger() );
+
   // Load calibration if specified
   load_calibration();
 
   // Create stereo matchers
   create_matchers();
+}
+
+
+// ---------------------------------------------------------------------------------------
+bool
+compute_stereo_disparity
+::check_configuration( kv::config_block_sptr config ) const
+{
+  std::string algorithm = config->get_value< std::string >( "algorithm", c_algorithm );
+  if( algorithm != "BM" && algorithm != "SGBM" )
+  {
+    LOG_ERROR( logger(), "Invalid algorithm: " << algorithm << ". Must be 'BM' or 'SGBM'." );
+    return false;
+  }
+
+  std::string output_format =
+    config->get_value< std::string >( "output_format", c_output_format );
+  if( output_format != "raw" && output_format != "float32" && output_format != "uint16_scaled" )
+  {
+    LOG_ERROR( logger(), "Invalid output_format: " << output_format
+               << ". Must be 'raw', 'float32', or 'uint16_scaled'." );
+    return false;
+  }
+
+  return true;
 }
 
 
@@ -105,7 +134,7 @@ compute_stereo_disparity
     return;
   }
 
-  if( !m_calibrator.load_calibration_opencv( c_calibration_file, m_calibration ) )
+  if( !m_calibrator.load_calibration( c_calibration_file, m_calibration ) )
   {
     VITAL_THROW( kv::invalid_data,
       "Failed to load calibration from: " + c_calibration_file );
@@ -125,17 +154,48 @@ compute_stereo_disparity
     return;
   }
 
+  if( !calibrate_stereo_cameras::ensure_rectification( m_calibration, img_size ) )
+  {
+    VITAL_THROW( kv::invalid_data,
+      "Calibration lacks the rectification transforms needed for " +
+      std::to_string( img_size.width ) + "x" +
+      std::to_string( img_size.height ) + " images: " + c_calibration_file );
+  }
+
   cv::initUndistortRectifyMap(
     m_calibration.left.camera_matrix, m_calibration.left.dist_coeffs,
     m_calibration.R1, m_calibration.P1,
-    img_size, CV_16SC2,
+    img_size, CV_32FC1,
     m_rectification_map_left_x, m_rectification_map_left_y );
 
   cv::initUndistortRectifyMap(
     m_calibration.right.camera_matrix, m_calibration.right.dist_coeffs,
     m_calibration.R2, m_calibration.P2,
-    img_size, CV_16SC2,
+    img_size, CV_32FC1,
     m_rectification_map_right_x, m_rectification_map_right_y );
+
+  cv::Mat original_grid( img_size.height * img_size.width, 1, CV_32FC2 );
+  for( int y = 0; y < img_size.height; y++ )
+  {
+    for( int x = 0; x < img_size.width; x++ )
+    {
+      original_grid.at< cv::Vec2f >( y * img_size.width + x, 0 ) = cv::Vec2f( x, y );
+    }
+  }
+
+  cv::Mat rectified_grid;
+  cv::undistortPoints( original_grid, rectified_grid,
+                       m_calibration.left.camera_matrix,
+                       m_calibration.left.dist_coeffs,
+                       m_calibration.R1,
+                       m_calibration.P1 );
+
+  rectified_grid = rectified_grid.reshape( 2, img_size.height );
+
+  cv::Mat maps[2];
+  cv::split( rectified_grid, maps );
+  m_unrectification_map_x = maps[0];
+  m_unrectification_map_y = maps[1];
 
   m_rectification_computed = true;
 }
@@ -170,7 +230,7 @@ kv::image_container_sptr compute_stereo_disparity
 
   // Rectify if calibration is loaded
   cv::Mat left_rect, right_rect;
-  cv::Mat left_color_rect;  // For disparity_as_alpha mode
+  cv::Mat left_color_rect;  // For export_as_alpha mode
   if( m_rectify_images )
   {
     compute_rectification_maps( left_gray.size() );
@@ -180,7 +240,7 @@ kv::image_container_sptr compute_stereo_disparity
                m_rectification_map_right_y, cv::INTER_LINEAR );
 
     // Also rectify color image if we need it for alpha channel output
-    if( c_disparity_as_alpha )
+    if( c_export_as_alpha )
     {
       cv::remap( ocv_left, left_color_rect, m_rectification_map_left_x,
                  m_rectification_map_left_y, cv::INTER_LINEAR );
@@ -190,100 +250,126 @@ kv::image_container_sptr compute_stereo_disparity
   {
     left_rect = left_gray;
     right_rect = right_gray;
-    if( c_disparity_as_alpha )
+    if( c_export_as_alpha )
     {
       left_color_rect = ocv_left;
     }
   }
 
-  // Compute disparity
-  cv::Mat left_disparity;
-  m_left_matcher->compute( left_rect, right_rect, left_disparity );
+  cv::Mat left_disparity_raw;
+  m_left_matcher->compute( left_rect, right_rect, left_disparity_raw );
 
-  // Apply WLS filter if enabled
   if( c_use_wls_filter && m_right_matcher && m_wls_filter )
   {
-    cv::Mat right_disparity, filtered_disparity;
-    m_right_matcher->compute( right_rect, left_rect, right_disparity );
-    m_wls_filter->filter( left_disparity, left_rect, filtered_disparity,
-                           right_disparity, cv::Rect(), right_rect );
-    left_disparity = filtered_disparity;
+    cv::Mat right_disparity_raw, filtered_disparity;
+    m_right_matcher->compute( right_rect, left_rect, right_disparity_raw );
+
+    m_wls_filter->filter( left_disparity_raw, left_rect, filtered_disparity,
+                          right_disparity_raw, cv::Rect(), right_rect );
+
+    left_disparity_raw = filtered_disparity;
   }
 
-  // Convert to requested output format
-  cv::Mat output;
-  if( c_output_format == "raw" )
-  {
-    // Raw OpenCV format: CV_16S with disparity * 16
-    output = left_disparity;
-  }
-  else if( c_output_format == "float32" )
-  {
-    // Float format: CV_32F with disparity in pixels
-    left_disparity.convertTo( output, CV_32F, 1.0 / 16.0 );
-  }
-  else // uint16_scaled
-  {
-    // Scaled uint16: CV_16U with disparity * 256
-    // Convert from fixed-point (*16) to scaled (*256) = multiply by 16
-    cv::Mat float_disp;
-    left_disparity.convertTo( float_disp, CV_32F, 1.0 / 16.0 );
+  cv::Mat float_map;
+  left_disparity_raw.convertTo( float_map, CV_32F, 1.0 / 16.0 );
+  float_map.setTo( 0, float_map < 0 );
 
-    // Clamp negative values and scale
-    cv::Mat scaled;
-    float_disp.setTo( 0, float_disp < 0 );
-    float_disp.convertTo( scaled, CV_32F, 256.0 );
-    scaled.setTo( 65535, scaled > 65535 );
-    scaled.convertTo( output, CV_16U );
-  }
-
-  // If disparity_as_alpha is enabled, combine with left color image
-  if( c_disparity_as_alpha && !left_color_rect.empty() )
+  if( c_compute_depth )
   {
-    // Convert left image to BGRA
-    cv::Mat left_bgra;
-    if( left_color_rect.channels() == 1 )
+    if( m_calibration.P1.empty() )
     {
-      cv::cvtColor( left_color_rect, left_bgra, cv::COLOR_GRAY2BGRA );
+      VITAL_THROW( kv::invalid_data, "Cannot compute depth: calibration data missing." );
     }
-    else if( left_color_rect.channels() == 3 )
+
+    double fx = m_calibration.P1.at<double>( 0, 0 );
+    double baseline =
+      -m_calibration.P2.at<double>( 0, 3 ) / m_calibration.P2.at<double>( 0, 0 );
+    double depth_scale = fx * baseline;
+
+    cv::Mat depth_map = cv::Mat::zeros( float_map.size(), CV_32F );
+    cv::Mat mask = float_map > 0;
+    cv::divide( depth_scale, float_map, depth_map );
+    depth_map.setTo( 0, ~mask );
+
+    float_map = depth_map;
+  }
+
+  cv::Mat aligned_map;
+  if( m_rectify_images && !c_output_rectified )
+  {
+    cv::remap( float_map, aligned_map,
+               m_unrectification_map_x, m_unrectification_map_y,
+               cv::INTER_NEAREST, cv::BORDER_CONSTANT, cv::Scalar( 0 ) );
+  }
+  else
+  {
+    aligned_map = float_map;
+  }
+
+  cv::Mat formatted_map;
+  if( c_output_format == "float32" )
+  {
+    formatted_map = aligned_map;
+  }
+  else if( c_output_format == "uint16_scaled" )
+  {
+    aligned_map.convertTo( formatted_map, CV_16U, c_uint16_scale_factor );
+  }
+  else // "raw"
+  {
+    if( c_compute_depth )
     {
-      cv::cvtColor( left_color_rect, left_bgra, cv::COLOR_BGR2BGRA );
-    }
-    else if( left_color_rect.channels() == 4 )
-    {
-      left_bgra = left_color_rect;
+      formatted_map = aligned_map;
     }
     else
     {
-      LOG_WARN( logger(), "Unexpected number of channels in left image" );
-      left_bgra = left_color_rect;
+      aligned_map.convertTo( formatted_map, CV_16S, 16.0 );
     }
+  }
 
-    // Convert disparity to 8-bit for alpha channel
-    cv::Mat disp_8bit;
-    cv::Mat float_disp;
-    left_disparity.convertTo( float_disp, CV_32F, 1.0 / 16.0 );
-    float_disp.setTo( 0, float_disp < 0 );
-    float_disp.convertTo( disp_8bit, CV_8U );
-
-    // Invert if requested
-    if( c_invert_disparity_alpha )
+  cv::Mat output;
+  if( c_export_as_alpha )
+  {
+    cv::Mat color_base;
+    if( m_rectify_images && c_output_rectified )
     {
-      // Set zero (invalid) pixels to white before inversion
-      cv::Mat mask;
-      cv::inRange( disp_8bit, cv::Scalar( 0 ), cv::Scalar( 0 ), mask );
-      disp_8bit.setTo( cv::Scalar( 255 ), mask );
-
-      // Invert
-      cv::bitwise_not( disp_8bit, disp_8bit );
+      color_base = left_color_rect;
+    }
+    else
+    {
+      color_base = ocv_left;
     }
 
-    // Set disparity as alpha channel
-    std::vector<cv::Mat> channels( 4 );
-    cv::split( left_bgra, channels );
-    channels[3] = disp_8bit;
+    cv::Mat color_converted;
+    if( formatted_map.depth() == CV_32F )
+    {
+      color_base.convertTo( color_converted, CV_32F, 1.0 / 255.0 );
+    }
+    else if( formatted_map.depth() == CV_16U )
+    {
+      color_base.convertTo( color_converted, CV_16U, 257.0 );
+    }
+    else
+    {
+      color_base.convertTo( color_converted, formatted_map.depth() );
+    }
+
+    cv::cvtColor( color_converted, output, cv::COLOR_BGR2BGRA );
+    std::vector< cv::Mat > channels;
+    cv::split( output, channels );
+    channels[3] = formatted_map;
     cv::merge( channels, output );
+  }
+  else
+  {
+    output = formatted_map;
+  }
+
+  if( output.channels() == 1 )
+  {
+    return kv::image_container_sptr(
+      new kwiver::arrows::ocv::image_container(
+        output, kwiver::arrows::ocv::image_container::OTHER_COLOR ) );
   }
 
   return kv::image_container_sptr(

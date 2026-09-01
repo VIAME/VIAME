@@ -36,7 +36,8 @@ import threading
 from viame.pytorch.utilities import report_cuda_errors
 from viame.core.training_data import (build_sequence_maps,
     read_sequence_manifest,
-    load_computed_detections, match_to_groundtruth)
+    load_computed_detections, match_to_groundtruth,
+    seed_everything)
 from viame.pytorch.srnn.generate_training_files import BoundingBox
 
 
@@ -103,6 +104,19 @@ class SRNNTrainer( TrainTracker ):
         self._lstm_concurrency = 1
         self._lstm_loader_workers = 2
 
+        # Seed for every generator this trainer and its stages draw from.
+        # Exported to the environment by seed_everything, which is how it
+        # reaches the stages that run as separate processes. Negative
+        # restores the previous nondeterministic behaviour.
+        self._random_seed = "42"
+
+        # Weights to start the Siamese embedding from, for a fine tune off
+        # an earlier corpus. Empty trains it from scratch, which is what
+        # every run before this did. The embedding is the transferable
+        # piece and by far the longest stage; the LSTMs above it are small
+        # and specific to the data, so they always train fresh.
+        self._seed_model = ""
+
         self._categories = []
         self._train_image_files = []
         self._train_tracks = []
@@ -126,6 +140,8 @@ class SRNNTrainer( TrainTracker ):
         cfg.set_value( "rnn_component", self._rnn_component )
         cfg.set_value( "resume", str( self._resume ) )
         cfg.set_value( "lstm_concurrency", str( self._lstm_concurrency ) )
+        cfg.set_value( "random_seed", self._random_seed )
+        cfg.set_value( "seed_model", self._seed_model )
         cfg.set_value( "lstm_loader_workers", str( self._lstm_loader_workers ) )
 
         return cfg
@@ -149,6 +165,8 @@ class SRNNTrainer( TrainTracker ):
         self._rnn_component = str( cfg.get_value( "rnn_component" ) )
         self._resume = strtobool( cfg.get_value( "resume" ) )
         self._lstm_concurrency = int( cfg.get_value( "lstm_concurrency" ) )
+        self._random_seed = str( cfg.get_value( "random_seed" ) )
+        self._seed_model = str( cfg.get_value( "seed_model" ) )
         self._lstm_loader_workers = int( cfg.get_value( "lstm_loader_workers" ) )
 
         # Check GPU availability
@@ -447,6 +465,13 @@ class SRNNTrainer( TrainTracker ):
         """
         print( "Starting SRNN training..." )
 
+        # Before the data layout is drawn, and before any stage is spawned:
+        # this also exports the seed so the stages that shell out inherit it.
+        if seed_everything( self._random_seed ):
+            print( "  seeded with " + str( self._random_seed ) )
+        else:
+            print( "  unseeded: run to run variation is expected" )
+
         # Lay out the image sequences and collect their track states
         data_root, tracks = self._prepare_training_data()
 
@@ -491,6 +516,7 @@ class SRNNTrainer( TrainTracker ):
             resume=bool( self._resume ),
             lstm_concurrency=int( self._lstm_concurrency ),
             lstm_loader_workers=int( self._lstm_loader_workers ),
+            seed_siamese=( self._seed_model or None ),
         )
 
         output = self._get_output_map( srnn_output )

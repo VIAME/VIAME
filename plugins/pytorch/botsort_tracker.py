@@ -35,54 +35,6 @@ logger = logging.getLogger(__name__)
 
 
 
-def _reid_model_from_state_dict(state, torch):
-    """
-    Rebuild the ReID network the deepsort/botsort trainers save.
-
-    Those trainers call ``torch.save(model.state_dict(), ...)``, so the file is
-    an OrderedDict of tensors, not a pickled module. Assigning it straight to
-    ``self.model`` and calling ``.to(device)`` raises
-    ``'collections.OrderedDict' object has no attribute 'to'`` and no trained
-    ReID model can be loaded at all. Reconstruct the architecture instead --
-    resnet backbone minus its fc, a linear embedding, and a BN neck -- and load
-    the weights into it. Shapes are read off the checkpoint so resnet18/50 and
-    any embedding width both work.
-
-    Returns None if the dict does not look like this architecture, so callers
-    can fall back rather than crash.
-    """
-    import torch.nn as nn
-    from torchvision.models import resnet18, resnet50
-
-    emb_w = state.get("embedding.weight")
-    if emb_w is None or emb_w.dim() != 2:
-        return None
-    embedding_dim, backbone_dim = int(emb_w.shape[0]), int(emb_w.shape[1])
-
-    class ReIDModel(nn.Module):
-        def __init__(self):
-            super().__init__()
-            # weights=None: never reach for a download here, the checkpoint
-            # supplies every parameter.
-            base = resnet50(weights=None) if backbone_dim == 2048 else resnet18(weights=None)
-            self.backbone = nn.Sequential(*list(base.children())[:-1])
-            self.embedding = nn.Linear(backbone_dim, embedding_dim)
-            self.bn = nn.BatchNorm1d(embedding_dim)
-
-        def forward(self, x):
-            x = self.backbone(x)
-            x = x.view(x.size(0), -1)
-            x = self.embedding(x)
-            x = self.bn(x)
-            return nn.functional.normalize(x, dim=1)
-
-    model = ReIDModel()
-    model.load_state_dict(state)
-    return model
-
-# =============================================================================
-# Camera Motion Compensation (CMC)
-# =============================================================================
 
 
 class CameraMotionCompensation:
@@ -332,26 +284,16 @@ class FeatureExtractor:
                 self.device = "cpu"
 
             if self.model_path and self.model_path.strip():
-                loaded = torch.load(self.model_path, map_location=self.device)
-                if isinstance(loaded, dict):
-                    # A trainer checkpoint: either a bare state_dict or one
-                    # wrapped alongside the optimizer state.
-                    state = loaded.get("model_state_dict", loaded)
-                    rebuilt = _reid_model_from_state_dict(state, torch)
-                    if rebuilt is None:
-                        raise ValueError(
-                            "%s is a state_dict that does not match the ReID "
-                            "architecture (no embedding.weight)" % self.model_path
-                        )
-                    self.model = rebuilt
-                    logger.info("Loaded trained ReID weights from %s", self.model_path)
-                else:
-                    self.model = loaded
+                # The trainers save a bare state_dict, not a module; see
+                # load_reid_model for what went wrong when this called .to()
+                # on the loaded object directly.
+                from viame.pytorch.utilities import load_reid_model
+                self.model = load_reid_model(self.model_path, self.device)
             else:
                 self.model = resnet18(weights=ResNet18_Weights.DEFAULT)
                 self.model = torch.nn.Sequential(*list(self.model.children())[:-1])
+                self.model = self.model.to(self.device)
 
-            self.model = self.model.to(self.device)
             self.model.eval()
 
             class SafeNormalize(object):

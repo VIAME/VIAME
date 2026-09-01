@@ -57,5 +57,7 @@ connect from track_resampler.object_track_set
         to   track_writer.object_track_set
 connect from input.timestamp
         to   track_writer.timestamp
+connect from input.file_name
+        to   track_writer.image_file_name
 
 # -- end of file --

@@ -9,5 +9,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/process_video.py --init \
   -l ingest_list.txt \
-  -p pipelines/index_default.trk.pipe -o database \
+  -p pipelines/index_generic.trk.pipe -o database \
   --build-index -install ${VIAME_INSTALL}

@@ -5,17 +5,29 @@
 """
 Shared utilities for reading and writing COCO/kwcoco-format JSON files.
 
-Used by both the detection and track readers/writers.  Supports:
+Used by both the detection and track readers/writers.
 
-- Segmentation masks (RLE), single polygons, multi-polygons, and
-  kwcoco exterior/interiors polygons with holes
-- Keypoints in COCO flat, kwcoco dict-list, and kwcoco column formats
-- Arbitrary per-annotation and per-track attributes (round-tripped
-  through DetectedObject notes as JSON)
+Written output targets a single profile that plain MS-COCO tooling, kwcoco,
+and DIVE can all read:
+
+- 1-based, contiguous ``id`` values for images, annotations, categories and
+  videos, matching the MS-COCO convention and kwcoco's id allocator
+- every image carries a ``file_name`` (required by the kwcoco image schema and
+  dereferenced unconditionally by DIVE's importer) and a unique ``name``
+- annotations carry ``area`` and ``iscrowd`` in addition to ``bbox``
+- segmentations are image-coordinate polygons; DIVE cannot decode RLE, and a
+  kwiver mask is box-relative so it cannot be written as COCO RLE as-is
+- keypoints in the kwcoco dict-list form, with a ``keypoint_categories`` table
+
+Reading additionally accepts RLE masks, multi-polygons, kwcoco
+exterior/interiors polygons, COCO flat and kwcoco column keypoints, and
+arbitrary per-annotation attributes (round-tripped through DetectedObject
+notes as JSON).
 """
 
 import datetime
 import json
+import math
 import os
 
 import numpy as np
@@ -32,10 +44,16 @@ except ImportError:
 # consistent category IDs.
 global_categories = {}
 
+# Single-video output; kwcoco and MS-COCO both number tables from 1.
+VIDEO_ID = 1
+
 # Standard COCO annotation keys — not treated as custom attributes.
 _STANDARD_ANNOTATION_KEYS = frozenset({
     'id', 'image_id', 'category_id', 'bbox', 'score', 'segmentation',
-    'keypoints', 'track_id', 'area', 'iscrowd',
+    'keypoints', 'track_id', 'area', 'iscrowd', 'ignore', 'num_keypoints',
+    'prob', 'confidence_pairs', 'attributes', 'notes',
+    # spellings DIVE used before these were given plain names
+    'dive_confidence_pairs', 'dive_detection_attributes', 'dive_notes',
 })
 
 
@@ -45,11 +63,41 @@ _STANDARD_ANNOTATION_KEYS = frozenset({
 
 def get_cat_id(dot, categories, category_start_id, use_global):
     """Return the integer category ID for a detected_object_type, creating one if needed."""
+    return register_class(
+        dot.get_most_likely_class(), categories, category_start_id, use_global)
+
+
+def register_class(name, categories, category_start_id, use_global):
+    """Return the integer category ID for *name*, creating one if needed."""
     mapping = global_categories if use_global else categories
-    return mapping.setdefault(
-        dot.get_most_likely_class(),
-        len(mapping) + category_start_id,
-    )
+    return mapping.setdefault(name, len(mapping) + category_start_id)
+
+
+def confidence_pairs_of(dot, top_n_classes=0):
+    """Classes a detected_object_type scored, highest first, as [name, score].
+
+    *top_n_classes* caps the list the way the viame_csv writer's option of the
+    same name does, with 0 keeping every class. Scores are clamped to [0, 1]
+    because that is the range DIVE accepts.
+    """
+    pairs = []
+    for name in dot.class_names():
+        if not name:
+            continue
+        try:
+            score = float(dot.score(name))
+        except (TypeError, ValueError):
+            continue
+        if not math.isfinite(score):
+            continue
+        pairs.append([name, min(1.0, max(0.0, score))])
+
+    # class_names() is already ordered by score, but the cap has to be applied
+    # here: the binding's class_names(n) takes a threshold, not a count.
+    pairs.sort(key=lambda pair: pair[1], reverse=True)
+    if top_n_classes > 0:
+        del pairs[top_n_classes:]
+    return pairs
 
 
 # ------------------------------------------------------------------
@@ -117,6 +165,62 @@ def _decode_rle_string(s):
     return counts
 
 
+def mask_to_polygons(mask_array, offset_x=0.0, offset_y=0.0):
+    """Trace a binary mask into COCO polygon contours in image coordinates.
+
+    kwiver masks are bounding-box sized and bounding-box relative (see
+    convert_polygons_to_mask.cxx), whereas a COCO segmentation is always in
+    image coordinates, so *offset_x*/*offset_y* shift the traced contours back
+    into image space. Returns a list of flat ``[x1, y1, x2, y2, ...]`` contours,
+    or an empty list if OpenCV is unavailable or nothing was traced.
+    """
+    if not _HAS_CV2:
+        return []
+    found = cv2.findContours(
+        mask_array.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours = found[-2]
+    polygons = []
+    for contour in contours:
+        pts = contour.reshape(-1, 2)
+        if len(pts) < 3:
+            continue
+        flat = []
+        for px, py in pts:
+            flat.append(float(px) + offset_x)
+            flat.append(float(py) + offset_y)
+        polygons.append(flat)
+    return polygons
+
+
+def polygon_area(flat_coords):
+    """Shoelace area of a flat ``[x1, y1, x2, y2, ...]`` polygon."""
+    xs = flat_coords[0::2]
+    ys = flat_coords[1::2]
+    if len(xs) < 3:
+        return 0.0
+    total = 0.0
+    for i in range(len(xs)):
+        j = (i + 1) % len(xs)
+        total += xs[i] * ys[j] - xs[j] * ys[i]
+    return abs(total) / 2.0
+
+
+def segmentation_area(segmentation, bbox_width, bbox_height):
+    """Area for an annotation, matching what ``kwcoco conform`` computes.
+
+    Polygon segmentations use the traced area; anything else falls back to the
+    bounding box area.
+    """
+    if isinstance(segmentation, list) and segmentation:
+        total = 0.0
+        for poly in segmentation:
+            if isinstance(poly, list):
+                total += polygon_area([float(v) for v in poly])
+        if total > 0:
+            return total
+    return float(bbox_width) * float(bbox_height)
+
+
 def polygons_to_mask(segmentation, height, width):
     """Rasterize a COCO/kwcoco polygon segmentation to a binary mask.
 
@@ -145,7 +249,7 @@ def polygons_to_mask(segmentation, height, width):
 # ------------------------------------------------------------------
 
 def detection_to_annotation(det, image_id, categories, category_start_id,
-                            use_global):
+                            use_global, top_n_classes=0):
     """Convert a single detected_object into a COCO annotation dict.
 
     Returns a dict WITHOUT the ``id`` key — callers assign that.
@@ -158,28 +262,38 @@ def detection_to_annotation(det, image_id, categories, category_start_id,
       top-level annotation keys; plain strings go into a ``notes`` list)
     """
     bbox = det.bounding_box
+    min_x, min_y = bbox.min_x(), bbox.min_y()
+    width, height = bbox.width(), bbox.height()
     d = dict(
         image_id=image_id,
-        bbox=[
-            bbox.min_x(),
-            bbox.min_y(),
-            bbox.width(),
-            bbox.height(),
-        ],
+        bbox=[min_x, min_y, width, height],
         score=det.confidence,
+        iscrowd=0,
     )
 
-    # Segmentation: prefer mask -> RLE, fall back to polygon
-    mask = det.mask
-    if mask is not None:
-        mask_arr = mask.asarray()
-        if mask_arr.ndim == 3:
-            mask_arr = mask_arr[:, :, 0]
-        d['segmentation'] = mask_to_rle((mask_arr > 0).astype(np.uint8))
+    # Segmentation is always emitted as image-coordinate polygons: a kwiver
+    # mask is bounding-box sized and bounding-box relative, so encoding it
+    # directly as RLE would produce a mask whose size is the box rather than
+    # the image, which is not what any COCO reader expects.
+    segmentation = None
+    polygon = det.get_flattened_polygon()
+    if polygon:
+        segmentation = [[int(round(p)) for p in polygon]]
     else:
-        polygon = det.get_flattened_polygon()
-        if polygon:
-            d['segmentation'] = [[int(round(p)) for p in polygon]]
+        mask = det.mask
+        if mask is not None:
+            mask_arr = mask.asarray()
+            if mask_arr.ndim == 3:
+                mask_arr = mask_arr[:, :, 0]
+            traced = mask_to_polygons(
+                (mask_arr > 0).astype(np.uint8), min_x, min_y)
+            if traced:
+                segmentation = [[int(round(p)) for p in poly]
+                                for poly in traced]
+    if segmentation:
+        d['segmentation'] = segmentation
+
+    d['area'] = segmentation_area(segmentation, width, height)
 
     # Keypoints (kwcoco dict-list format)
     keypoints = det.keypoints
@@ -194,26 +308,42 @@ def detection_to_annotation(det, image_id, categories, category_start_id,
             ))
         d['keypoints'] = kp_list
 
-    # Category
+    # Category. COCO has room for one category_id, but a VIAME detector scores
+    # every class and the CSV writer keeps them all, so the full set rides
+    # alongside it -- sparse and by name here, positionally as `prob` once the
+    # category table is final (see write_coco_json).
     if det.type is not None:
         d['category_id'] = get_cat_id(
             det.type, categories, category_start_id, use_global)
+        pairs = confidence_pairs_of(det.type, top_n_classes)
+        if pairs:
+            # Every scored class earns a category, not just the winner, or a
+            # runner-up would be named in the pairs and missing from `prob`.
+            for name, _ in pairs:
+                register_class(name, categories, category_start_id, use_global)
+            d['confidence_pairs'] = pairs
 
     # Custom attributes from notes
+    # Attributes go under `attributes`, where DIVE and other COCO consumers
+    # look for them, rather than scattered across the annotation's top level.
     notes = det.notes
     if notes:
         plain_notes = []
+        attributes = {}
         for note in notes:
             try:
                 attrs = json.loads(note)
                 if isinstance(attrs, dict):
-                    for k, v in attrs.items():
-                        if k not in _STANDARD_ANNOTATION_KEYS and k not in d:
-                            d[k] = v
+                    attributes.update(attrs)
                     continue
             except (json.JSONDecodeError, TypeError, ValueError):
                 pass
             plain_notes.append(note)
+        carried = attributes.pop('track_attributes', None)
+        if isinstance(carried, dict) and carried:
+            d['track_attributes'] = carried
+        if attributes:
+            d['attributes'] = attributes
         if plain_notes:
             d['notes'] = plain_notes
 
@@ -224,8 +354,38 @@ def detection_to_annotation(det, image_id, categories, category_start_id,
 # Reader: COCO annotation dict -> DetectedObject
 # ------------------------------------------------------------------
 
+def confidence_pairs_from_annotation(ann, ordered_names=None):
+    """Recover every scored class from an annotation, or [] if it has none.
+
+    Prefers DIVE's sparse by-name spelling, which survives category
+    reordering, and falls back to the positional kwcoco `prob` vector.
+    """
+    pairs = []
+    exact = ann.get('confidence_pairs', ann.get('dive_confidence_pairs'))
+    if isinstance(exact, list):
+        for pair in exact:
+            if (isinstance(pair, (list, tuple)) and len(pair) == 2
+                    and isinstance(pair[0], str) and pair[0]
+                    and isinstance(pair[1], (int, float))
+                    and not isinstance(pair[1], bool)
+                    and math.isfinite(pair[1])):
+                pairs.append((pair[0], float(pair[1])))
+        if pairs:
+            return pairs
+
+    prob = ann.get('prob')
+    if isinstance(prob, list) and ordered_names and len(prob) == len(ordered_names):
+        for name, value in zip(ordered_names, prob):
+            if (isinstance(name, str) and name
+                    and isinstance(value, (int, float))
+                    and not isinstance(value, bool)
+                    and math.isfinite(value)):
+                pairs.append((name, float(value)))
+    return pairs
+
+
 def annotation_to_detection(ann, categories, image_dims=None,
-                            kp_cat_names=None):
+                            kp_cat_names=None, ordered_names=None):
     """Convert a COCO annotation dict to a DetectedObject.
 
     Parameters
@@ -253,7 +413,11 @@ def annotation_to_detection(ann, categories, image_dims=None,
 
     # Category
     cat_id = ann.get('category_id')
-    if cat_id is not None and cat_id in categories:
+    pairs = confidence_pairs_from_annotation(ann, ordered_names)
+    if pairs:
+        det.type = vt.DetectedObjectType(
+            [name for name, _ in pairs], [value for _, value in pairs])
+    elif cat_id is not None and cat_id in categories:
         det.type = vt.DetectedObjectType(categories[cat_id], score)
 
     # Segmentation
@@ -264,19 +428,22 @@ def annotation_to_detection(ann, categories, image_dims=None,
     if 'keypoints' in ann:
         _apply_keypoints(det, ann['keypoints'], kp_cat_names)
 
-    # Custom attributes -> notes
-    custom = {}
-    for k, v in ann.items():
-        if k in _STANDARD_ANNOTATION_KEYS:
-            continue
-        if k == 'notes':
-            if isinstance(v, list):
-                for note in v:
-                    det.add_note(str(note))
-            else:
-                det.add_note(str(v))
-        else:
-            custom[k] = v
+    # Attributes and notes come from their own keys; anything else unknown is
+    # kept as a JSON note so nothing on the annotation is silently dropped. A
+    # kwiver detection has no track-level store, so track_attributes rides
+    # along as a note and the writer promotes it back.
+    attributes = ann.get('attributes', ann.get('dive_detection_attributes'))
+    if isinstance(attributes, dict) and attributes:
+        det.add_note(json.dumps(attributes))
+
+    note_values = ann.get('notes', ann.get('dive_notes'))
+    if isinstance(note_values, list):
+        for note in note_values:
+            det.add_note(str(note))
+    elif note_values:
+        det.add_note(str(note_values))
+
+    custom = {k: v for k, v in ann.items() if k not in _STANDARD_ANNOTATION_KEYS}
     if custom:
         det.add_note(json.dumps(custom))
 
@@ -365,30 +532,95 @@ def _apply_keypoints(det, kps, kp_cat_names=None):
 # Image list builder
 # ------------------------------------------------------------------
 
-def build_image_list(images, aux_image_labels, aux_image_extensions):
+def build_image_list(images, aux_image_labels, aux_image_extensions,
+                     placeholder_prefix="frame",
+                     placeholder_extension=".png"):
     """Build the 'images' section of the COCO output.
 
     Each element of *images* is either:
       - a plain filename string  (detection writer), or
       - a dict with at least 'file_name' and optionally 'frame_index',
         'timestamp', 'video_id'.
+
+    Multi-channel imagery is listed under ``assets``; kwcoco's schema marks
+    the older ``auxiliary`` spelling as pending deprecation.
+
+    IDs are 1-based to match the MS-COCO convention, kwcoco's own id
+    allocator, and DIVE's exporter. Every entry is given a ``file_name``
+    (required by the kwcoco image schema and dereferenced unconditionally by
+    DIVE's importer) and a unique ``name``.
     """
     has_aux = len(aux_image_extensions) > 0 and aux_image_extensions[0]
     result = []
+    used_names = set()
     for i, im in enumerate(images):
+        entry = dict(id=i + 1)
         if isinstance(im, dict):
-            entry = dict(id=i, **im)
+            entry.update(im)
         else:
-            entry = dict(id=i, file_name=im, frame_index=i)
+            entry.update(file_name=im, frame_index=i)
+
+        if not entry.get("file_name"):
+            # Video frames have no file of their own. The name matches what
+            # DIVE's own COCO export invents and what VIAME frame extraction
+            # writes, so it resolves if the frames are ever pulled out.
+            entry["file_name"] = "{}_{:06d}{}".format(
+                placeholder_prefix, entry.get("frame_index", i),
+                placeholder_extension)
+
+        if not entry.get("name"):
+            entry["name"] = _unique_image_name(entry, used_names)
+        used_names.add(entry["name"])
+
         if has_aux:
             fn = entry.get("file_name", "")
             aux = []
             for label, ext in zip(aux_image_labels, aux_image_extensions):
                 base, fext = os.path.splitext(fn)
                 aux.append(dict(file_name=base + ext + fext, channels=label))
-            entry['auxiliary'] = aux
+            entry['assets'] = aux
         result.append(entry)
     return result
+
+
+def _parse_fps(fps):
+    """Frame rate as a number, or None when unset or unusable."""
+    if fps in (None, ""):
+        return None
+    try:
+        rate = float(fps)
+    except (TypeError, ValueError):
+        return None
+    return rate if rate > 0 else None
+
+
+def default_video_name(output_path, configured=""):
+    """Name for the single video a writer emits.
+
+    Falls back to the output file's stem rather than a generic placeholder so
+    the name identifies the clip. kwcoco's NAME pattern rejects '/', hence the
+    basename.
+    """
+    if configured:
+        return configured
+    stem = os.path.splitext(os.path.basename(output_path or ""))[0]
+    return stem or "video"
+
+
+def _unique_image_name(entry, used_names):
+    """Pick a stable, unique ``name`` for an image entry.
+
+    kwcoco checks the name column for uniqueness, so basenames that collide
+    across directories fall back to the full path and then to the image id.
+    """
+    file_name = entry["file_name"]
+    stem = os.path.splitext(os.path.basename(file_name))[0]
+    if stem and stem not in used_names:
+        return stem
+    path_stem = os.path.splitext(file_name)[0]
+    if path_stem and path_stem not in used_names:
+        return path_stem
+    return "{}_{}".format(stem or "image", entry["id"])
 
 
 def _collect_keypoint_categories(annotations):
@@ -454,7 +686,8 @@ def timestamp_to_seconds(ts):
 def write_coco_json(file_obj, annotations, images, categories,
                     use_global, aux_image_labels, aux_image_extensions,
                     description="Created by VIAME COCO writer",
-                    videos=None, tracks=None):
+                    videos=None, tracks=None,
+                    version="", contributor="", fps=""):
     """Serialize accumulated data to a file in COCO JSON format."""
     now = datetime.datetime.now(datetime.timezone.utc).astimezone()
 
@@ -465,13 +698,44 @@ def write_coco_json(file_obj, annotations, images, categories,
     # Stamp keypoint_category_id onto each keypoint before serialising.
     kp_cats = _collect_keypoint_categories(annotations)
 
+    info = dict(
+        year=now.year,
+        description=description,
+        date_created=now.replace(microsecond=0).isoformat(' '),
+    )
+    # MS-COCO info fields; omitted rather than written empty.
+    if version:
+        info['version'] = version
+    if contributor:
+        info['contributor'] = contributor
+
+    # Neither MS-COCO nor kwcoco define a frame rate. This one is the rate the
+    # annotations were produced at, which is the downsampled rate rather than
+    # the video's native one, hence the name. It belongs to a video, not to an
+    # image list, so it rides on the video entry.
+    rate = _parse_fps(fps)
+    if rate:
+        for video in videos or []:
+            video['annotation_fps'] = rate
+
+    # `prob` has to line up with the categories array, which is only final
+    # here, so it is filled in once rather than per detection.
+    ordered_names = [category['name'] for category in category_dict]
+    name_index = {name: i for i, name in enumerate(ordered_names)}
+    for annotation in annotations:
+        pairs = annotation.get('confidence_pairs')
+        if not pairs:
+            continue
+        vector = [0.0] * len(ordered_names)
+        for name, score in pairs:
+            if name in name_index:
+                vector[name_index[name]] = score
+        annotation['prob'] = vector
+
     output = dict(
-        info=dict(
-            year=now.year,
-            description=description,
-            date_created=now.replace(microsecond=0).isoformat(' '),
-        ),
-        annotations=[dict(d, id=i) for i, d in enumerate(annotations)],
+        info=info,
+        licenses=[],
+        annotations=[dict(d, id=i + 1) for i, d in enumerate(annotations)],
         categories=category_dict,
         images=image_dict,
     )

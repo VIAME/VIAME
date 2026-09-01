@@ -80,14 +80,14 @@ CentOS
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
-* [VIAME v0.22.6 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1i8uwkzN6NCsgm-DSJm9lfW5t_Rzcwg86/view?usp=sharing) <br>
-* [VIAME v0.22.6 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/6a6370461866d4fa1981b9b4/download) <br>
+* [VIAME v0.22.9 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1nsTcmSlH1UEpk0Wm88b9YOFrlt8R6XXH/view?usp=sharing) <br>
+* [VIAME v0.22.9 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/6a8f2ad992f283f83880062c/download) <br>
 * [VIAME v0.21.1 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1WkFHOdMPkxYrow7Utcyx_RTPdG4EbOan/view?usp=sharing) <br>
 * [VIAME v0.21.1 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/683fbc2bdfcff796fee73cfe/download)
 
 **Linux Full Desktop Binaries:** <br>
-* [VIAME v0.22.6 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1dA_unbxPKi7RIOKjt6-WL9AnUWLe3210/view?usp=sharing) <br>
-* [VIAME v0.22.6 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/6a636ec81866d4fa1981b9b1/download) <br>
+* [VIAME v0.22.9 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1ntYRz6-OKZvlQG5IEeKPig9Pg6n2xYqJ/view?usp=sharing) <br>
+* [VIAME v0.22.9 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/6a8efda992f283f83880061f/download) <br>
 * [VIAME v0.21.1 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1U2H-AE6IwGkClmNEDw-GAETtJTDfKUuR/view?usp=sharing) <br>
 * [VIAME v0.21.1 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/683fbc82dfcff796fee73d01/download)
 
@@ -206,7 +206,6 @@ And lastly, a number of flags which build algorithms or interfaces with more spe
 | VIAME_ENABLE_DARKNET         | Builds Darknet (YOLO) object detector plugin                                   |
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                         |
 | VIAME_ENABLE_SEAL            | Builds Seal multi-modality GUI                                                 |
-| VIAME_ENABLE_ITK             | Builds ITK cross-modality image registration                                   |
 
 </center>
 

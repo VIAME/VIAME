@@ -417,3 +417,61 @@ class EpipolarMeasurer(EpipolarMatcher):
             nx_left, ny_left, nx_r, ny_r,
             R_left, t_left, R_right, t_right)
         return right_points, best, second, points_3d
+
+
+class EpipolarTriangulator(nn.Module):
+    """
+    Two-view triangulation of correspondences the caller already has.
+
+    The matcher graphs above find their own correspondences and triangulate
+    those. This one triangulates supplied pairs, for the case where the same
+    feature is already marked on both cameras -- a stereo annotation the user
+    drew by hand, or matches from any other source -- and only the 3D result
+    is wanted. It takes no imagery, no NCC and no backbone, so the exported
+    graph is a few KB and runs anywhere, including in a browser alongside a
+    matcher graph.
+
+    forward inputs:
+      points_left, points_right : [P, 2] corresponding pixels, one row per pair
+      K_left, dist_left, R_left, t_left, K_right, dist_right, R_right, t_right
+
+    forward outputs:
+      points_3d          : [P, 3] world (= left camera) coordinates
+      reprojection_error : [P]    RMS pixel error of each point over the two
+                                  views, i.e. sqrt((|e_left|^2 + |e_right|^2)/2)
+
+    compute_stereo_measurement reports one RMS over a line's four measurements
+    (two endpoints x two views); combine these per-point values for that as
+    sqrt((e_head^2 + e_tail^2) / 2).
+
+    Triangulation is triangulate_fast_torch, so this carries the same single
+    documented deviation from the C++ path as EpipolarMeasurer.
+    """
+
+    def forward(self, points_left, points_right,
+                K_left, dist_left, R_left, t_left,
+                K_right, dist_right, R_right, t_right):
+        from triangulate import triangulate_fast_torch
+
+        nx_l, ny_l = unmap(points_left[:, 0], points_left[:, 1],
+                           K_left, dist_left)
+        nx_r, ny_r = unmap(points_right[:, 0], points_right[:, 1],
+                           K_right, dist_right)
+        points_3d = triangulate_fast_torch(nx_l, ny_l, nx_r, ny_r,
+                                           R_left, t_left, R_right, t_right)
+
+        err_l = _reprojection_sq(points_3d, points_left, K_left, dist_left,
+                                 R_left, t_left)
+        err_r = _reprojection_sq(points_3d, points_right, K_right, dist_right,
+                                 R_right, t_right)
+        return points_3d, torch.sqrt((err_l + err_r) / 2.0)
+
+
+def _reprojection_sq(points_3d, points_2d, K, d, R, t):
+    """Squared pixel distance between each projected 3D point and its
+    observation (simple_camera_perspective::project, per camera)."""
+    cam = torch.matmul(points_3d, R.t()) + t                  # [P, 3]
+    x, y = map_point(cam[:, 0] / cam[:, 2], cam[:, 1] / cam[:, 2], K, d)
+    dx = x - points_2d[:, 0]
+    dy = y - points_2d[:, 1]
+    return dx * dx + dy * dy

@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Community Fish Detector
 #
-# Description: Runs the cfd_yolov12x_v1.0 ultralytics model for fish detection.
+# Description: Runs the cfd_rf_detr_m_1024 RF-DETR model, gridded, for fish detection.
 # Outputs to computed_detections.csv.
 # Input: IMAGE
 # Output: BBOX
@@ -96,7 +96,7 @@ process detector1
     :original_to_chip_size                     true
     :chip_adaptive_thresh                      2800000
     block detector:rf_detr
-      relativepath weight =                    models/cfd_rf_detr_medium_1024.pth
+      relativepath weight =                    models/cfd_rf_detr_m_1024.pth
       :model_size                              medium
       :resolution                              1024
       :device                                  auto

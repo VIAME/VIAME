@@ -1,4 +1,6 @@
 
+set( VIAME_COMMON_MACROS_DIR "${CMAKE_CURRENT_LIST_DIR}" )
+
 function( FormatPassdownsCond _str _varResult _bothCases _ignoreStr )
   set( _tmpResult "" )
   get_cmake_property( _vars VARIABLES )
@@ -52,16 +54,6 @@ function( FormatPassdowns _str _varResult )
     FormatPassdownsCond( ${_str} _tmpResult ON "" )
     set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
   endif()
-endfunction()
-
-function( FormatPassdownsWithIgnore _str _varResult _ignoreStr )
-  FormatPassdownsCond( ${_str} _tmpResult OFF ${_ignoreStr} )
-  set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
-endfunction()
-
-function( FormatPassdownsCaseSensitive _str _varResult )
-  FormatPassdownsCond( ${_str} _tmpResult OFF "" )
-  set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
 endfunction()
 
 function( CopyVarsToAllCaps _str )
@@ -224,18 +216,6 @@ function( CopyFiles _inRegex _outDir )
   endif()
 endfunction()
 
-function( MoveFiles _inRegex _outDir )
-  file( GLOB FILES_TO_COPY ${_inRegex} )
-  if( FILES_TO_COPY )
-    file( COPY ${FILES_TO_COPY} DESTINATION ${_outDir} )
-    file( REMOVE ${FILES_TO_COPY} )
-  endif()
-endfunction()
-
-function( CopyFileIfExists _inFile _outFile )
-  file( COPY ${_inFile} DESTINATION ${_outFile} )
-endfunction()
-
 function( CreateSymlink _inFile _outFile )
   if( NOT EXISTS ${_outFile} )
     execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink ${_inFile} ${_outFile} )
@@ -248,83 +228,83 @@ function( CreateDirectory _outFolder )
   endif()
 endfunction()
 
-function( RemoveDir _inDir )
-  file( REMOVE_RECURSE ${_inDir} )
-endfunction()
-
-function( ParseLinuxOSField field retval )
-  file( STRINGS /etc/os-release vars )
-  set( ${_value} "${field}-NOTFOUND" )
-  foreach( var ${vars} )
-    if( var MATCHES "^${field}=(.*)" )
-      set( _value "${CMAKE_MATCH_1}" )
-      # Value may be quoted in single- or double-quotes; strip them
-      if( _value MATCHES "^['\"](.*)['\"]\$" )
-        set( _value "${CMAKE_MATCH_1}" )
-      endif()
-      break()
-    endif()
-  endforeach()
-  set( ${retval} "${_value}" PARENT_SCOPE )
-endfunction()
-
 function( ReplaceStringInFile ifile oldstr newstr )
   file( READ "${ifile}" FILE_CONTENTS )
   string( REPLACE "${oldstr}" "${newstr}" FILE_CONTENTS "${FILE_CONTENTS}" )
   file( WRITE "${ifile}" "${FILE_CONTENTS}" )
 endfunction()
 
-# Generate a runtime git clone-or-pull command for use in ExternalProject_Add.
-# Uses runtime checks instead of CMake configure-time checks to handle rebuilds
-# correctly. If the directory contains a .git folder, it pulls; otherwise it
-# removes any existing directory and clones fresh.
+# Declare a source package that is cloned on demand instead of being carried as
+# a superbuild git submodule. The very large packages cost every checkout of
+# this repository several GB when they are submodules, even for the majority of
+# builds that never compile them, so they are fetched into packages/ only by
+# the build step that actually needs them.
 #
-# Usage in ExternalProject_Add:
-#   GitCloneOrPullCmd( MY_CMD https://github.com/org/repo.git ${TARGET_DIR} )
-#   ExternalProject_Add( myproject
-#     CONFIGURE_COMMAND ${MY_CMD}
-#     ...
-#   )
+# Sets two variables in the caller's scope:
+#   <prefix>_FETCH_COMMAND - clones or re-syncs the checkout; use as an
+#                            ExternalProject DOWNLOAD_COMMAND
+#   <prefix>_REF_FILE      - file tracking the requested url and ref. Hand it to
+#                            ExternalProject_Add_StepDependencies so that
+#                            bumping the pin re-runs the fetch, and everything
+#                            downstream of it, on its own
 #
-# With optional branch:
-#   GitCloneOrPullCmd( MY_CMD https://github.com/org/repo.git ${TARGET_DIR} my-branch )
+# Arguments:
+#   URL <url>   - repository to clone from (required)
+#   DIR <path>  - where the checkout lives (required)
+#   REF <ref>   - tag, branch or full sha to pin to (default: default branch)
+#   NAME <name> - label for status messages (default: last component of DIR)
+#   RECURSIVE   - also init/update the package's own submodules
+#   SHALLOW     - clone with --depth 1; ignored when REF is a raw sha
+#   TRACK       - re-fetch on every run, only needed for refs that move
 #
-function( GitCloneOrPullCmd _output_var _repo_url _target_dir )
-  set( _branch "${ARGN}" )
+# Usage:
+#   OnDemandGitPackage( PYTORCH_SOURCE
+#     URL https://github.com/pytorch/pytorch.git
+#     DIR ${VIAME_PACKAGES_DIR}/pytorch
+#     REF v2.12.0
+#     RECURSIVE SHALLOW )
+#
+#   ExternalProject_Add( pytorch
+#     DOWNLOAD_COMMAND ${PYTORCH_SOURCE_FETCH_COMMAND}
+#     ... )
+#   ExternalProject_Add_StepDependencies( pytorch download ${PYTORCH_SOURCE_REF_FILE} )
+#
+function( OnDemandGitPackage _prefix )
+  cmake_parse_arguments( _pkg "RECURSIVE;SHALLOW;TRACK" "URL;DIR;REF;NAME" "" ${ARGN} )
 
-  # Generate a unique script name based on target directory
-  string( MD5 _hash "${_target_dir}" )
-  set( _script_dir "${CMAKE_BINARY_DIR}/git_scripts" )
-  set( _script_path "${_script_dir}/git_clone_or_pull_${_hash}.sh" )
-
-  file( MAKE_DIRECTORY "${_script_dir}" )
-
-  if( _branch )
-    set( _clone_cmd "git clone --branch ${_branch} ${_repo_url} ${_target_dir}" )
-  else()
-    set( _clone_cmd "git clone ${_repo_url} ${_target_dir}" )
+  if( NOT _pkg_URL OR NOT _pkg_DIR )
+    message( FATAL_ERROR "OnDemandGitPackage( ${_prefix} ) requires URL and DIR" )
   endif()
 
-  file( WRITE "${_script_path}"
-"#!/bin/sh
-if [ -d \"${_target_dir}/.git\" ]; then
-  echo \"Pulling updates in ${_target_dir}\"
-  git -C \"${_target_dir}\" pull
-else
-  if [ -d \"${_target_dir}\" ]; then
-    echo \"Removing non-git directory ${_target_dir}\"
-    rm -rf \"${_target_dir}\"
-  fi
-  echo \"Cloning ${_repo_url} to ${_target_dir}\"
-  ${_clone_cmd}
-fi
-" )
+  if( NOT _pkg_NAME )
+    get_filename_component( _pkg_NAME "${_pkg_DIR}" NAME )
+  endif()
 
-  set( ${_output_var} sh "${_script_path}" PARENT_SCOPE )
+  set( _fetch_cmd
+    ${CMAKE_COMMAND}
+      -DPKG_NAME:STRING=${_pkg_NAME}
+      -DREPO_URL:STRING=${_pkg_URL}
+      -DTARGET_DIR:PATH=${_pkg_DIR}
+      -DGIT_REF:STRING=${_pkg_REF}
+      -DRECURSIVE:BOOL=${_pkg_RECURSIVE}
+      -DSHALLOW:BOOL=${_pkg_SHALLOW}
+      -DTRACK:BOOL=${_pkg_TRACK}
+      -P ${VIAME_COMMON_MACROS_DIR}/custom_fetch_git_package.cmake )
+
+  # Contents, not presence, have to drive the dependency: routing the write
+  # through configure_file leaves the timestamp alone unless the pin moved
+  set( _ref_file "${CMAKE_BINARY_DIR}/git-packages/${_pkg_NAME}-ref.txt" )
+
+  file( WRITE "${_ref_file}.in"
+    "${_pkg_URL}\n${_pkg_REF}\n"
+    "recursive=${_pkg_RECURSIVE} shallow=${_pkg_SHALLOW} track=${_pkg_TRACK}\n" )
+  configure_file( "${_ref_file}.in" "${_ref_file}" COPYONLY )
+
+  set( ${_prefix}_FETCH_COMMAND "${_fetch_cmd}" PARENT_SCOPE )
+  set( ${_prefix}_REF_FILE "${_ref_file}" PARENT_SCOPE )
 endfunction()
 
 # Remove project CMake stamp file to trigger rebuild.
-# This is the traditional method - always rebuilds.
 #
 # Usage: RemoveProjectCMakeStamp( project_name )
 #
@@ -333,26 +313,6 @@ function( RemoveProjectCMakeStamp _project_name )
     COMMAND ${CMAKE_COMMAND}
       -E remove ${VIAME_BUILD_PREFIX}/src/${_project_name}-stamp/${_project_name}-build
     COMMENT "Removing build stamp file for build update (forcebuild)."
-    DEPENDEES configure
-    DEPENDERS build
-    ALWAYS 1
-    )
-endfunction()
-
-# Only rebuild when source hash changes.
-# Uses git commit hash to detect changes in submodules/source directories.
-#
-# Usage: BuildOnHashChangeOnly( project_name source_dir )
-#
-function( BuildOnHashChangeOnly _project_name _source_dir )
-  ExternalProject_Add_Step( ${_project_name} forcebuild
-    COMMAND ${CMAKE_COMMAND}
-      -DLIB_NAME=${_project_name}
-      -DLIB_SOURCE_DIR=${_source_dir}
-      -DSTAMP_DIR=${VIAME_BUILD_PREFIX}/src/${_project_name}-stamp
-      -DHASH_FILE=${VIAME_BUILD_PREFIX}/src/${_project_name}-source-hash.txt
-      -P ${VIAME_CMAKE_DIR}/custom_build_check_source.cmake
-    COMMENT "Checking if ${_project_name} source has changed..."
     DEPENDEES configure
     DEPENDERS build
     ALWAYS 1

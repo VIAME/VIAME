@@ -556,51 +556,32 @@ def to_ObjectTrackSet(tracks):
 
 class OCSORTTrackerConfig(scfg.DataConfig):
     """Configuration for OC-SORT / Deep OC-SORT tracker."""
-
-    high_thresh = scfg.Value(
-        0.6, help="Confidence threshold for high-confidence detections"
-    )
-    low_thresh = scfg.Value(
-        0.1, help="Confidence threshold for low-confidence detections"
-    )
-    match_thresh = scfg.Value(
-        0.8, help="Association cost threshold for first-stage matching"
-    )
-    track_buffer = scfg.Value(30, help="Number of frames to keep lost tracks")
-    new_track_thresh = scfg.Value(0.6, help="Minimum confidence to create new track")
-    min_hits = scfg.Value(1, help="Number of associations before a track is output")
-    delta_t = scfg.Value(
-        3, help="Frame gap used to compute observation-based velocity (OCM)"
-    )
-    use_vdc = scfg.Value(True, help="Enable velocity direction consistency (OCM)")
-    vdc_weight = scfg.Value(
-        0.2, help="Weight for velocity direction consistency penalty"
-    )
-    use_oru = scfg.Value(True, help="Enable observation-centric re-update")
-    use_byte = scfg.Value(
-        True, help="Enable low-confidence (BYTE) second-stage matching"
-    )
-    use_ocr = scfg.Value(
-        True, help="Enable observation-centric recovery of lost tracks"
-    )
-    ocr_iou_thresh = scfg.Value(
-        0.3, help="Minimum IoU for observation-centric recovery matching"
-    )
-    use_reid = scfg.Value(
-        False,
-        help="Enable appearance (Deep OC-SORT) cost fusion; imports torch only when enabled",
-    )
-    reid_weight = scfg.Value(
-        0.25, help="Weight of appearance cost when use_reid is enabled"
-    )
-    feat_ema_alpha = scfg.Value(
-        0.9, help="EMA momentum for appearance feature smoothing"
-    )
-    model_path = scfg.Value("", help="Path to Re-ID model weights (Deep OC-SORT)")
-    use_cmc = scfg.Value(False, help="Enable camera motion compensation")
-    params_file = scfg.Value(
-        "", help="Optional JSON file of trained parameters overriding the above"
-    )
+    high_thresh = scfg.Value(0.6, help='Confidence threshold for high-confidence detections')
+    low_thresh = scfg.Value(0.1, help='Confidence threshold for low-confidence detections')
+    match_thresh = scfg.Value(0.8, help='Association cost threshold for first-stage matching')
+    second_match_thresh = scfg.Value(
+        0.5, help='IOU distance bound for the second (low-confidence) '
+                  'association pass; stock OC-SORT hard-coded 0.5')
+    unconfirmed_match_thresh = scfg.Value(
+        0.7, help='IOU distance bound for matching unconfirmed (single-hit) '
+                  'tracks, whose Kalman state still has no velocity; stock '
+                  'OC-SORT hard-coded 0.7')
+    track_buffer = scfg.Value(30, help='Number of frames to keep lost tracks')
+    new_track_thresh = scfg.Value(0.6, help='Minimum confidence to create new track')
+    min_hits = scfg.Value(1, help='Number of associations before a track is output')
+    delta_t = scfg.Value(3, help='Frame gap used to compute observation-based velocity (OCM)')
+    use_vdc = scfg.Value(True, help='Enable velocity direction consistency (OCM)')
+    vdc_weight = scfg.Value(0.2, help='Weight for velocity direction consistency penalty')
+    use_oru = scfg.Value(True, help='Enable observation-centric re-update')
+    use_byte = scfg.Value(True, help='Enable low-confidence (BYTE) second-stage matching')
+    use_ocr = scfg.Value(True, help='Enable observation-centric recovery of lost tracks')
+    ocr_iou_thresh = scfg.Value(0.3, help='Minimum IoU for observation-centric recovery matching')
+    use_reid = scfg.Value(False, help='Enable appearance (Deep OC-SORT) cost fusion; imports torch only when enabled')
+    reid_weight = scfg.Value(0.25, help='Weight of appearance cost when use_reid is enabled')
+    feat_ema_alpha = scfg.Value(0.9, help='EMA momentum for appearance feature smoothing')
+    model_path = scfg.Value('', help='Path to Re-ID model weights (Deep OC-SORT)')
+    use_cmc = scfg.Value(False, help='Enable camera motion compensation')
+    params_file = scfg.Value('', help='Optional JSON file of trained parameters overriding the above')
 
 
 # =============================================================================
@@ -662,6 +643,9 @@ class OCSORTTracker(TrackObjects):
         self._high_thresh = float(self._config.high_thresh)
         self._low_thresh = float(self._config.low_thresh)
         self._match_thresh = float(self._config.match_thresh)
+        self._second_match_thresh = float(self._config.second_match_thresh)
+        self._unconfirmed_match_thresh = float(
+            self._config.unconfirmed_match_thresh)
         self._track_buffer = int(self._config.track_buffer)
         self._new_track_thresh = float(self._config.new_track_thresh)
         self._min_hits = int(self._config.min_hits)
@@ -721,19 +705,21 @@ class OCSORTTracker(TrackObjects):
     def _apply_trained_params(self, params):
         """Override scalar parameters from a trained params JSON dict."""
         mapping = {
-            "high_thresh": "_high_thresh",
-            "low_thresh": "_low_thresh",
-            "match_thresh": "_match_thresh",
-            "track_buffer": "_track_buffer",
-            "new_track_thresh": "_new_track_thresh",
-            "min_hits": "_min_hits",
-            "delta_t": "_delta_t",
-            "vdc_weight": "_vdc_weight",
-            "ocr_iou_thresh": "_ocr_iou_thresh",
-            "reid_weight": "_reid_weight",
-            "feat_ema_alpha": "_feat_ema_alpha",
-            "std_weight_position": "_std_weight_position",
-            "std_weight_velocity": "_std_weight_velocity",
+            'high_thresh': '_high_thresh',
+            'low_thresh': '_low_thresh',
+            'match_thresh': '_match_thresh',
+            'second_match_thresh': '_second_match_thresh',
+            'unconfirmed_match_thresh': '_unconfirmed_match_thresh',
+            'track_buffer': '_track_buffer',
+            'new_track_thresh': '_new_track_thresh',
+            'min_hits': '_min_hits',
+            'delta_t': '_delta_t',
+            'vdc_weight': '_vdc_weight',
+            'ocr_iou_thresh': '_ocr_iou_thresh',
+            'reid_weight': '_reid_weight',
+            'feat_ema_alpha': '_feat_ema_alpha',
+            'std_weight_position': '_std_weight_position',
+            'std_weight_velocity': '_std_weight_velocity',
         }
         for key, attr in mapping.items():
             if key in params:
@@ -852,7 +838,8 @@ class OCSORTTracker(TrackObjects):
                 if strack_pool[i].state == TrackState.TRACKED
             ]
             dists = iou_distance(r_tracked_stracks, low_dets)
-            matches, u_track_second, _ = linear_assignment(dists, thresh=0.5)
+            matches, u_track_second, _ = linear_assignment(
+                dists, thresh=self._second_match_thresh)
 
             for itracked, idet in matches:
                 track = r_tracked_stracks[itracked]
@@ -905,7 +892,8 @@ class OCSORTTracker(TrackObjects):
         # === Handle unconfirmed tracks ===
         remaining_dets = [high_dets[i] for i in u_detection]
         dists = iou_distance(unconfirmed, remaining_dets)
-        matches, u_unconfirmed, u_detection_final = linear_assignment(dists, thresh=0.7)
+        matches, u_unconfirmed, u_detection_final = linear_assignment(
+            dists, thresh=self._unconfirmed_match_thresh)
 
         for itracked, idet in matches:
             unconfirmed[itracked].update(remaining_dets[idet], self._frame_id, ts)

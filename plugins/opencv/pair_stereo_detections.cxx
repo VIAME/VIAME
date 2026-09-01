@@ -1,4 +1,5 @@
 #include "pair_stereo_detections.h"
+#include "calibrate_stereo_cameras.h"
 
 #include <arrows/ocv/image_container.h>
 
@@ -10,51 +11,24 @@ void
 viame::pair_stereo_detections
 ::load_camera_calibration()
 {
-  try
-  {
-    auto intrinsics_path = m_cameras_directory + "/intrinsics.yml";
-    auto extrinsics_path = m_cameras_directory + "/extrinsics.yml";
-    auto fs = cv::FileStorage( intrinsics_path, cv::FileStorage::Mode::READ );
+  calibrate_stereo_cameras calibrator;
+  calibrate_stereo_cameras_result result;
 
-    // load left camera intrinsic parameters
-    if( !fs.isOpened() )
-    {
-      VITAL_THROW( kwiver::vital::file_not_found_exception, intrinsics_path,
-                   "could not locate file in path" );
-    }
-
-    fs["M1"] >> m_K1;
-    fs["D1"] >> m_D1;
-    fs["M2"] >> m_K2;
-    fs["D2"] >> m_D2;
-    fs.release();
-
-    // load extrinsic parameters
-    fs = cv::FileStorage( extrinsics_path, cv::FileStorage::Mode::READ );
-    if( !fs.isOpened() )
-    {
-      VITAL_THROW( kwiver::vital::file_not_found_exception, extrinsics_path,
-                   "could not locate file in path" );
-    }
-
-    fs["Q"] >> m_Q;
-    fs["R1"] >> m_R1;
-    fs["P1"] >> m_P1;
-    fs["R2"] >> m_R2;
-    fs["P2"] >> m_P2;
-    fs["R"] >> m_R;
-    fs["T"] >> m_T;
-
-    // Compute RVec from matrix for later use
-    cv::Rodrigues( m_R, m_Rvec );
-
-    fs.release();
-  }
-  catch( const kwiver::vital::file_not_found_exception& e )
+  if( !calibrator.load_calibration( m_calibration_file, result ) )
   {
     VITAL_THROW( kwiver::vital::invalid_data,
-                 "Calibration file not found : " + std::string( e.what() ) );
+                 "Could not read calibration : " + m_calibration_file );
   }
+
+  m_K1 = result.left.camera_matrix;
+  m_D1 = result.left.dist_coeffs;
+  m_K2 = result.right.camera_matrix;
+  m_D2 = result.right.dist_coeffs;
+  m_R = result.R;
+  m_T = result.T;
+
+  // Compute RVec from matrix for later use
+  cv::Rodrigues( m_R, m_Rvec );
 }
 
 float
@@ -561,9 +535,45 @@ cv::Mat
 viame::pair_stereo_detections
 ::reproject_3d_depth_map( const cv::Mat& cv_disparity_left ) const
 {
+  // Every path that consumes the rectification transforms runs through here
+  // first, so this is where a single-file calibration gets them derived.
+  ensure_rectification( cv_disparity_left.size() );
+
   cv::Mat cv_pos_3d_left_map;
   cv::reprojectImageTo3D( cv_disparity_left, cv_pos_3d_left_map, m_Q, false );
   return cv_pos_3d_left_map;
+}
+
+
+void
+viame::pair_stereo_detections
+::ensure_rectification( const cv::Size& image_size ) const
+{
+  if( !m_R1.empty() && !m_P1.empty() && !m_Q.empty() )
+  {
+    return;
+  }
+
+  calibrate_stereo_cameras_result result;
+  result.left.camera_matrix = m_K1;
+  result.left.dist_coeffs = m_D1;
+  result.right.camera_matrix = m_K2;
+  result.right.dist_coeffs = m_D2;
+  result.R = m_R;
+  result.T = m_T;
+
+  if( !calibrate_stereo_cameras::ensure_rectification( result, image_size ) )
+  {
+    VITAL_THROW( kwiver::vital::invalid_data,
+                 "Could not derive rectification transforms from calibration : " +
+                 m_calibration_file );
+  }
+
+  m_R1 = result.R1;
+  m_R2 = result.R2;
+  m_P1 = result.P1;
+  m_P2 = result.P2;
+  m_Q = result.Q;
 }
 
 

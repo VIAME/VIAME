@@ -13,6 +13,23 @@ set( PYTORCH_LIBS_TO_BUILD )
 
 if( VIAME_BUILD_PYTORCH_FROM_SOURCE )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch )
+
+  # PyTorch is deliberately not a superbuild submodule: a recursive checkout
+  # runs several GB, and only builds that compile it need one at all - the rest
+  # install a wheel. Clone it from the build step that needs it instead.
+  #
+  # Left as a plain variable, not a cache entry, so that bumping the internal
+  # version re-pins the checkout instead of leaving it on whatever tag was
+  # cached first. Override on the command line to build another ref.
+  if( NOT VIAME_PYTORCH_GIT_TAG )
+    set( VIAME_PYTORCH_GIT_TAG "v${PYTORCH_INTERNAL_VERSION}" )
+  endif()
+
+  OnDemandGitPackage( PYTORCH_SOURCE
+    URL https://github.com/pytorch/pytorch.git
+    DIR ${VIAME_PACKAGES_DIR}/pytorch
+    REF ${VIAME_PYTORCH_GIT_TAG}
+    RECURSIVE SHALLOW )
 endif()
 
 if( VIAME_BUILD_TORCHVISION_FROM_SOURCE )
@@ -110,8 +127,26 @@ endif()
 # this PyTorch ignores the outer make -j and spawns one job per core, which
 # for its larger CUDA and oneDNN translation units can exhaust RAM (Linux
 # OOM-killer takes out cicc/cc1plus) or MSVC heap space (C1060) on Windows.
+# When no explicit cap is configured, derive one from physical RAM: the
+# flash attention backward kernels alone push each cicc to roughly 5 GB, so
+# one job per core on a many-core build server (e.g. -j64) reliably ends in
+#   nvcc error : '"$CICC_PATH/cicc"' died due to signal 9 (Kill signal)
 if( VIAME_BUILD_MAX_THREADS )
   list( APPEND PYTORCH_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
+else()
+  cmake_host_system_information( RESULT PYTORCH_HOST_CORES
+    QUERY NUMBER_OF_LOGICAL_CORES )
+  cmake_host_system_information( RESULT PYTORCH_HOST_RAM_MB
+    QUERY TOTAL_PHYSICAL_MEMORY )
+  math( EXPR PYTORCH_MAX_JOBS "${PYTORCH_HOST_RAM_MB} / 5120" )
+  if( PYTORCH_MAX_JOBS LESS 2 )
+    set( PYTORCH_MAX_JOBS 2 )
+  elseif( PYTORCH_MAX_JOBS GREATER PYTORCH_HOST_CORES )
+    set( PYTORCH_MAX_JOBS ${PYTORCH_HOST_CORES} )
+  endif()
+  message( STATUS "Capping PyTorch build MAX_JOBS at ${PYTORCH_MAX_JOBS} "
+    "(${PYTORCH_HOST_RAM_MB} MB RAM, ${PYTORCH_HOST_CORES} cores)" )
+  list( APPEND PYTORCH_ENV_VARS "MAX_JOBS=${PYTORCH_MAX_JOBS}" )
 endif()
 
 if( VIAME_ENABLE_CUDA )
@@ -150,7 +185,14 @@ if( VIAME_BUILD_TORCHVISION_FROM_SOURCE AND NOT WIN32 )
 endif()
 
 if( WIN32 AND VIAME_ENABLE_PYTORCH-LEARN )
-  list( APPEND PYTORCH_ENV_VARS "SETUPTOOLS_USE_DISTUTILS=1" )
+  # Must be "local" (setuptools' vendored distutils), not "1". setuptools only
+  # honors "local"/"stdlib"; any other value makes distutils-precedence.pth skip
+  # installing the _distutils_hack shim. On Python <= 3.11 that was harmless --
+  # imports fell through to the stdlib distutils. Python 3.12 removed stdlib
+  # distutils, so the unshimmed import dies with "No module named 'distutils'"
+  # inside setuptools.monkey, and every PEP 517 build against this interpreter
+  # fails with "BackendUnavailable: Cannot import 'setuptools.build_meta'".
+  list( APPEND PYTORCH_ENV_VARS "SETUPTOOLS_USE_DISTUTILS=local" )
 endif()
 
 if( WIN32 AND VIAME_BUILD_PYTORCH_FROM_SOURCE )
@@ -380,7 +422,14 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   endif()
 
   set( LIBRARY_PATCH_COMMAND "" )
+  set( LIBRARY_DOWNLOAD_ARGS )
   set( PROJECT_DEPS fletch python-deps )
+
+  # Every other package here comes down with the submodules; pytorch is cloned
+  # on demand, so it needs a download step of its own
+  if( "${LIB}" STREQUAL "pytorch" )
+    set( LIBRARY_DOWNLOAD_ARGS DOWNLOAD_COMMAND ${PYTORCH_SOURCE_FETCH_COMMAND} )
+  endif()
 
   if( NOT "${LIB}" STREQUAL "pytorch" )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch )
@@ -397,11 +446,10 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   elseif( "${LIB}" STREQUAL "torch2rt" )
     set( PROJECT_DEPS fletch python-deps tensorrt )
   elseif( "${LIB}" STREQUAL "detectron2" )
-    if( WIN32 )
-      set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${VIAME_PATCHES_DIR}/detectron2
-        ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
-    endif()
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/detectron2
+      ${VIAME_PACKAGES_DIR}/pytorch-libs/detectron2 )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   elseif( "${LIB}" STREQUAL "pyav" )
     # On Windows, FFmpeg puts .lib files in bin/ instead of lib/
     # Need to include both directories in library search path
@@ -437,8 +485,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       ${VIAME_PATCHES_DIR}/mmdeploy
       ${VIAME_PACKAGES_DIR}/pytorch-libs/mmdeploy )
     set( PROJECT_DEPS ${PROJECT_DEPS} mmdetection onnxruntimelibs )
-  elseif( "${LIB}" STREQUAL "detectron2" )
-    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   elseif( "${LIB}" STREQUAL "sam3" )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/sam3
@@ -448,6 +494,11 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
       ${VIAME_PATCHES_DIR}/foundation-stereo
       ${VIAME_PACKAGES_DIR}/pytorch-libs/foundation-stereo )
+    set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
+  elseif( "${LIB}" STREQUAL "dino3" )
+    set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${VIAME_PATCHES_DIR}/dino3
+      ${VIAME_PACKAGES_DIR}/pytorch-libs/dino3 )
     set( PROJECT_DEPS ${PROJECT_DEPS} pytorch-libs-deps )
   elseif( "${LIB}" STREQUAL "darknet-to-pytorch-onnx" )
     set( LIBRARY_PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -550,11 +601,28 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${LIBRARY_LOCATION}
     BUILD_IN_SOURCE 1
+    ${LIBRARY_DOWNLOAD_ARGS}
     PATCH_COMMAND ${LIBRARY_PATCH_COMMAND}
     CONFIGURE_COMMAND "${LIBRARY_CONFIGURE_CMD}"
     BUILD_COMMAND ${CONDITIONAL_BUILD_CMD}
     INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
     LIST_SEPARATOR "----" )
+
+  if( "${LIB}" STREQUAL "pytorch" )
+    # Re-run the fetch, and every step downstream of it, when the pin moves
+    ExternalProject_Add_StepDependencies( ${LIB} download
+      ${PYTORCH_SOURCE_REF_FILE} )
+
+    # Has to come after the checkout exists, so it cannot live in the build
+    # server scripts that run before configure
+    ExternalProject_Add_Step( ${LIB} patch_nccl_symmem
+      COMMAND ${CMAKE_COMMAND}
+        -DPYTORCH_SOURCE_DIR=${LIBRARY_LOCATION}
+        -P ${VIAME_CMAKE_DIR}/custom_patch_pytorch_nccl.cmake
+      COMMENT "Disabling PyTorch NCCL symmetric-memory support"
+      DEPENDEES patch
+      DEPENDERS configure )
+  endif()
 
   # CUDA 13's nvcc (cudafe++) mishandles a static_cast in the installed torch
   # ATen/core/List_inl.h header, breaking downstream CUDA extension builds such

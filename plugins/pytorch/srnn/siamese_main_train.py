@@ -13,15 +13,25 @@ from .models import Siamese
 from .siamese_training import train_model
 from .g_config import get_config
 from .siamese_dataset import SiameseDataLoader
-from .utilities import setupLogger, logging, exp_lr_scheduler
+from .utilities import resume_epoch, setupLogger, logging, exp_lr_scheduler
 from .ContrastiveLoss import ContrastiveLoss
+from viame.core.training_data import seed_from_environment
 
 def main():
+    # Separate process from the trainer that launched it, so the seed
+    # arrives through the environment or not at all.
+    seed_from_environment("siamese training")
+
     parser = argparse.ArgumentParser(description='Siamese model')
     parser.add_argument('--model-dir', type=str, dest='model_dir',
                         help='path to where models are saved', default='../snapshot/temp')
     parser.add_argument('--load-path', dest='load_path', type=str,
-                        help='path to pretrained model', default='')
+                        help='snapshot to resume from, epoch and all', default='')
+    parser.add_argument('--seed-path', dest='seed_path', type=str,
+                        help='weights to start from, as epoch zero. Unlike '
+                             '--load-path this is a fine tune rather than a '
+                             'resume: the schedule restarts from the top',
+                        default='')
     parser.add_argument('--data-root', help='Path to root of processed training data')
     parser.add_argument('--train-file', type=str, dest='train_file',
                         help='the file with train tripulet', default='../script/non_itar_siamese_train_set.p')
@@ -72,7 +82,25 @@ def main():
     criterion = ContrastiveLoss(margin=g_config.margin)
 
     model = Siamese(pretrained=True)
-    model = torch.nn.DataParallel(model, device_ids=[x for x in range(torch.cuda.device_count())]).to(torch.device("cuda"))
+
+    # One device by default. Spread over three cards with DataParallel this
+    # stage leaked host memory at about 1.8 MB per batch -- linear across
+    # epoch boundaries, to 88 GB by the second epoch -- while the identical
+    # stage on one card measured a flat 1.7 GB over ten thousand batches of
+    # the same data, resumed from the same snapshot. The leak was never
+    # reproduced off the three-card path; every other layer (dataset, loader,
+    # loss, metrics, resume) was ruled out individually. DataParallel also
+    # re-replicates the model on every forward and bought less than 2x from
+    # its three cards on this loader-bound stage, so the trade is a modest
+    # slowdown for a stage that reliably finishes. VIAME_SRNN_SIAMESE_GPUS
+    # restores the old behaviour for hunting the leak properly.
+    try:
+        siamese_gpus = max(int(os.environ.get('VIAME_SRNN_SIAMESE_GPUS', 1)), 1)
+    except ValueError:
+        siamese_gpus = 1
+
+    devices = list(range(min(torch.cuda.device_count(), siamese_gpus)))
+    model = torch.nn.DataParallel(model, device_ids=devices).to(torch.device("cuda"))
 
     # load model snapshot
     load_path = args.load_path
@@ -81,8 +109,20 @@ def main():
     if load_path:
         snapshot = torch.load(load_path)
         model.load_state_dict(snapshot['state_dict'])
-        epoch = snapshot['epoch'] + 1
+        epoch = resume_epoch(snapshot, load_path)
         logging('Model loaded from {}'.format(load_path))
+    elif args.seed_path:
+        # Weights only. A resume carries the epoch across so the schedule
+        # picks up where it left off, which is right for continuing an
+        # interrupted run and wrong for starting a new one from someone
+        # else's weights: seeded from a model whose best epoch was six, the
+        # learning rate would begin already decayed and the run would train
+        # a different schedule than an unseeded one. Holding epoch at zero
+        # is what makes the two arms comparable.
+        snapshot = torch.load(args.seed_path)
+        model.load_state_dict(snapshot['state_dict'])
+        logging('Seeded from {} (weights only, starting at epoch 0)'.format(
+            args.seed_path))
 
     train_model(model, criterion, train_loader, test_loader, g_config, exp_lr_scheduler, epoch)
 

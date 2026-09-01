@@ -300,8 +300,97 @@ def _find(fh, start, end, path):
     return None
 
 
+def probe_avi(path):
+    """{width, height, frames, fps} from a RIFF/AVI header, or None.
+
+    AVI carries none of the ISO-BMFF structure probe_video walks, so an AVI
+    read by that parser looks unreadable and the unit is skipped. On a dataset
+    that is part AVI the effect is silent and total: SEFSC3 has 48 of them and
+    every one was passed over, not badly segmented but never segmented.
+
+    The numbers come from the avih chunk in the hdrl list. dwTotalFrames there
+    counts frames in the first stream and is occasionally zero, in which case
+    the stream header's dwLength is used instead.
+    """
+    try:
+        with open(path, 'rb') as fh:
+            if fh.read(4) != b'RIFF':
+                return None
+            fh.seek(8)
+            if fh.read(4) != b'AVI ':
+                return None
+
+            avih = strh = None
+            end = os.path.getsize(path)
+            pos = 12
+
+            # Walk the top level far enough to find hdrl, then inside it.
+            while pos < end and (avih is None or strh is None):
+                fh.seek(pos)
+                head = fh.read(8)
+                if len(head) < 8:
+                    break
+                cid, size = head[:4], struct.unpack('<I', head[4:8])[0]
+
+                if cid == b'LIST':
+                    kind = fh.read(4)
+                    if kind == b'hdrl':
+                        inner = pos + 12
+                        stop = pos + 8 + size
+                        while inner < stop:
+                            fh.seek(inner)
+                            ih = fh.read(8)
+                            if len(ih) < 8:
+                                break
+                            icid, isize = ih[:4], struct.unpack('<I', ih[4:8])[0]
+                            if icid == b'avih':
+                                avih = fh.read(min(isize, 56))
+                            elif icid == b'LIST' and fh.read(4) == b'strl':
+                                sh = inner + 12
+                                fh.seek(sh)
+                                shh = fh.read(8)
+                                if shh[:4] == b'strh':
+                                    strh = fh.read(min(
+                                        struct.unpack('<I', shh[4:8])[0], 56))
+                            inner += 8 + isize + (isize & 1)
+                    pos += 8 + size + (size & 1)
+                    continue
+
+                pos += 8 + size + (size & 1)
+
+            if not avih or len(avih) < 40:
+                return None
+
+            us_per_frame = struct.unpack('<I', avih[0:4])[0]
+            frames = struct.unpack('<I', avih[16:20])[0]
+            width = struct.unpack('<I', avih[32:36])[0]
+            height = struct.unpack('<I', avih[36:40])[0]
+
+            if not frames and strh and len(strh) >= 36:
+                frames = struct.unpack('<I', strh[32:36])[0]
+
+            fps = (1000000.0 / us_per_frame) if us_per_frame else 0.0
+
+            if not (width and height):
+                return None
+
+            return {'width': width, 'height': height, 'frames': frames,
+                    'fps': round(fps, 3)}
+    except Exception:
+        return None
+
+
 def probe_video(path):
-    """{width, height, frames, fps} from the mp4 moov atom, or None."""
+    """{width, height, frames, fps} from the mp4 moov atom, or None.
+
+    Falls through to probe_avi for RIFF containers, which have no moov.
+    """
+    info = probe_avi(path) if os.path.splitext(path)[1].lower() in (
+        '.avi', '.wmv') else None
+
+    if info is not None:
+        return info
+
     try:
         size = os.path.getsize(path)
         with open(path, 'rb') as fh:
@@ -468,19 +557,73 @@ def predict_chipping(width, height):
 # scan
 # -----------------------------------------------------------------------------
 
+def polygon_is_degenerate(fields):
+    """Is this row's polygon just its bounding box traced out?
+
+    Some exports carry a (poly) on every detection that is nothing but the
+    four box corners. It satisfies "already has a polygon" while holding no
+    shape information at all, so treating it as hand-drawn work skips exactly
+    the clips that most need segmenting -- 37 of SEFSC3's 55 image sequences
+    were passed over this way, and would have trained a mask head on
+    rectangles.
+
+    Degenerate means: at most five distinct vertices, or an area within 8% of
+    the box's. A real mask is well under its box, typically about half.
+    """
+    poly = None
+    for cell in fields[9:]:
+        cell = cell.strip()
+        if cell.startswith('(poly)'):
+            try:
+                vals = [float(v) for v in cell[6:].split()]
+            except ValueError:
+                return False
+            if len(vals) >= 6:
+                poly = [(vals[i], vals[i + 1]) for i in range(0, len(vals) - 1, 2)]
+            break
+
+    if not poly:
+        return False
+
+    if len(set(poly)) <= 4:
+        return True
+
+    try:
+        x1, y1, x2, y2 = (float(v) for v in fields[3:7])
+    except (ValueError, IndexError):
+        return False
+
+    box = abs((x2 - x1) * (y2 - y1))
+
+    if box <= 0:
+        return False
+
+    area = 0.0
+    for i in range(len(poly)):
+        ax, ay = poly[i]
+        bx, by = poly[(i + 1) % len(poly)]
+        area += ax * by - bx * ay
+
+    return abs(area) / 2.0 >= 0.92 * box
+
+
 def summarize_gt(gt_path):
     n_det = 0
     max_frame = -1
     tracks = set()
     n_existing_poly = 0
+    n_degenerate_poly = 0
     for _, line, f in csv_rows(gt_path):
         n_det += 1
         max_frame = max(max_frame, row_frame(f))
         tracks.add(f[0])
         if '(poly)' in line:
             n_existing_poly += 1
+            if polygon_is_degenerate(f):
+                n_degenerate_poly += 1
     return {'detections': n_det, 'tracks': len(tracks),
-            'max_frame': max_frame, 'existing_polys': n_existing_poly}
+            'max_frame': max_frame, 'existing_polys': n_existing_poly,
+            'degenerate_polys': n_degenerate_poly}
 
 
 def check_frame_alignment(gt_path, images):
@@ -532,7 +675,15 @@ def cmd_scan(args):
             # Every detection already has a polygon -- almost certainly hand drawn.
             # There is nothing for SAM2 to add, and the surest way not to damage
             # manual work is not to touch it.
-            warnings.append('fully_annotated')
+            #
+            # Unless those polygons are the bounding boxes traced out, which
+            # carry no shape and are what an export produces when it has no
+            # masks to write. Those are the units most in need of segmenting,
+            # so they must not be mistaken for manual work.
+            if rec.get('degenerate_polys', 0) >= 0.9 * rec['existing_polys']:
+                warnings.append('box_polygons_only')
+            else:
+                warnings.append('fully_annotated')
 
         if unit['kind'] == 'video':
             info = probe_video(unit['input'])
@@ -587,6 +738,10 @@ def cmd_scan(args):
         if rec['chipped']:
             warnings.append('will_chip')
         rec['warnings'] = warnings
+        # Carried as its own field so run-unit can act on it without parsing
+        # the warning list: it decides both whether SAM2 overwrites and
+        # whether the merge may replace what is there.
+        rec['box_polygons_only'] = 'box_polygons_only' in warnings
         records.append(rec)
 
     os.makedirs(args.run_dir, exist_ok=True)
@@ -640,12 +795,20 @@ def load_computed_polys(computed_csv):
 
 
 def merge_polys(original_csv, computed_csv, out_csv, box_fallback=True,
-                clean_specks=True):
-    """Write original_csv with polygons appended, boxes and rows untouched."""
+                clean_specks=True, replace_degenerate=False):
+    """Write original_csv with polygons appended, boxes and rows untouched.
+
+    replace_degenerate lets a polygon that is merely its own bounding box be
+    replaced by a computed one. Off by default so hand-drawn work is never at
+    risk; set for units the scan marked box_polygons_only, where the existing
+    shapes carry no information and keeping them is the bug rather than the
+    safeguard.
+    """
     table = load_computed_polys(computed_csv)
     taken = collections.Counter()
 
     n_rows = n_added = n_kept = n_fallback = n_missing = n_specks = 0
+    n_replaced = 0
     lines = list(csv_header(original_csv))
 
     for _, line, fields in csv_rows(original_csv):
@@ -653,11 +816,13 @@ def merge_polys(original_csv, computed_csv, out_csv, box_fallback=True,
 
         # Never overwrite an annotation that already carries a polygon: those are
         # manual, and the pipeline is configured (overwrite_existing=false) not to
-        # touch them either.
+        # touch them either. The exception is a polygon that is just the box.
         if row_polys(line):
-            n_kept += 1
-            lines.append(line)
-            continue
+            if not (replace_degenerate and polygon_is_degenerate(fields)):
+                n_kept += 1
+                lines.append(line)
+                continue
+            n_replaced += 1
 
         key = (row_frame(fields), row_box(fields))
         candidates = table.get(key)
@@ -685,7 +850,7 @@ def merge_polys(original_csv, computed_csv, out_csv, box_fallback=True,
 
     return {'rows': n_rows, 'sam2_polys': n_added, 'kept_existing': n_kept,
             'box_fallback': n_fallback, 'no_polygon': n_missing,
-            'specks_dropped': n_specks}
+            'specks_dropped': n_specks, 'replaced_boxes': n_replaced}
 
 
 def cmd_merge(args):
@@ -950,7 +1115,8 @@ def cmd_run_unit(args):
         '--no-reset-prompt',
         # Keep existing polygons, and read them as polygons rather than masks so a
         # pre-annotated shape survives the round trip unchanged.
-        '-s', 'detection_refiner:ocv_windowed:refiner:sam2:overwrite_existing=false',
+        '-s', 'detection_refiner:ocv_windowed:refiner:sam2:overwrite_existing=%s'
+              % ('true' if rec.get('box_polygons_only') else 'false'),
         '-s', 'track_reader:reader:viame_csv:poly_to_mask=false',
     ]
     if rec['kind'] == 'image_dir':
@@ -982,12 +1148,13 @@ def cmd_run_unit(args):
     out_csv = os.path.join(out_dir, rec['name'] + '.csv')
     stats = merge_polys(gt_path, computed, out_csv,
                         box_fallback=not args.no_box_fallback,
-                        clean_specks=not args.keep_specks)
+                        clean_specks=not args.keep_specks,
+                        replace_degenerate=bool(rec.get('box_polygons_only')))
     print('%s: merged rows=%d sam2=%d kept=%d box_fallback=%d none=%d '
-          'specks_dropped=%d'
+          'specks_dropped=%d replaced_boxes=%d'
           % (rec['name'], stats['rows'], stats['sam2_polys'],
              stats['kept_existing'], stats['box_fallback'], stats['no_polygon'],
-             stats['specks_dropped']), flush=True)
+             stats['specks_dropped'], stats['replaced_boxes']), flush=True)
 
     result = validate_unit(gt_path, out_csv)
     for warn in result['warnings']:

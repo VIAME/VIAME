@@ -19,9 +19,14 @@ from .rnn_training import train_model
 from .g_config import get_config
 
 from .rnn_dataset import RNNDataLoader
-from .utilities import setupLogger, logging, exp_lr_scheduler
+from .utilities import resume_epoch, setupLogger, logging, exp_lr_scheduler
+from viame.core.training_data import seed_from_environment
 
 def main():
+    # Separate process from the trainer that launched it, so the seed
+    # arrives through the environment or not at all.
+    seed_from_environment("rnn training")
+
     g_config = get_config()
 
     parser = argparse.ArgumentParser(description='Train LSTM model')
@@ -96,7 +101,7 @@ def main():
     if load_path:
         snapshot = torch.load(load_path)
         model.load_state_dict(snapshot['state_dict'])
-        epoch = snapshot['epoch'] + 1
+        epoch = resume_epoch(snapshot, load_path)
         logging('Model loaded from {}'.format(load_path))
 
     train_model(model, criterion, train_loader, test_loader, g_config, exp_lr_scheduler, epoch)

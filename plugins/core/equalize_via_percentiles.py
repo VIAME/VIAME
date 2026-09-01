@@ -38,11 +38,16 @@ class EqualizeViaPercentiles(ImageFilter):
         return cfg
 
     def set_configuration(self, cfg_in):
-        self.lower_percentile = float(cfg_in.get_value("lower_percentile"))
-        self.upper_percentile = float(cfg_in.get_value("upper_percentile"))
-        self.output_format = cfg_in.get_value("output_format")
+        # Merge over the defaults so a pipe may set only the keys it changes
+        cfg = self.get_configuration()
+        cfg.merge_config(cfg_in)
+        self.lower_percentile = float(cfg.get_value("lower_percentile"))
+        self.upper_percentile = float(cfg.get_value("upper_percentile"))
+        self.output_format = cfg.get_value("output_format")
 
-    def check_configuration(self, cfg):
+    def check_configuration(self, cfg_in):
+        cfg = self.get_configuration()
+        cfg.merge_config(cfg_in)
         lower = float(cfg.get_value("lower_percentile"))
         upper = float(cfg.get_value("upper_percentile"))
         output_fmt = cfg.get_value("output_format")

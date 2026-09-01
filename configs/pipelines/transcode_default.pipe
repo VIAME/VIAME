@@ -56,5 +56,7 @@ connect from downsampler.output_3
         to   track_writer.object_track_set
 connect from downsampler.timestamp
         to   track_writer.timestamp
+connect from downsampler.output_2
+        to   track_writer.image_file_name
 
 # -- end of file --

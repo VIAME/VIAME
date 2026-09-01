@@ -70,6 +70,9 @@ echo "Installing ${ADDON_IDX} add-on(s)"
 cat > "$BUILD_DIR/Dockerfile" <<'DOCKERFILE'
 FROM kitware/viame:gpu-algorithms-web
 
+# The base image moved to ubuntu24.04, whose Python is PEP 668 externally-managed
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+
 # Vertex AI Flask and GCP dependencies
 RUN pip install --no-cache-dir \
   "flask>=2.3" \

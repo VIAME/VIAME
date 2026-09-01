@@ -122,12 +122,10 @@ option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 # Add tertiary plugin enable flags (advanced)
 ##
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
-option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
 option( VIAME_ENABLE_COLMAP         "Enable COLMAP 3D reconstruction (pycolmap)" OFF )
 
 mark_as_advanced( VIAME_ENABLE_GDAL )
-mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_SEAGIS )
 mark_as_advanced( VIAME_ENABLE_COLMAP )
 
@@ -159,6 +157,11 @@ if( VIAME_DOWNLOAD_MODELS )
 
   # Auto-detect addon folders not in the CSV and declare options for them
   ModelDownloadOptionsFromFolders( "${CMAKE_SOURCE_DIR}/configs/add-ons" )
+
+  # Standalone seed weights, not backed by an addon folder or model pack
+  option( VIAME_DOWNLOAD_MODELS-EFFICIENTNETV2M
+    "EfficientNetV2-M classifier training seed model" OFF )
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-EFFICIENTNETV2M )
 else()
   # Force all flags to OFF in the event that the root flag is set
   DisableAllModelDownloads()
@@ -356,7 +359,7 @@ if( VIAME_ENABLE_DARKNET )
   set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"  FORCE )
 endif()
 
-if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_ITK )
+if( VIAME_ENABLE_VIVIA )
   set( VIAME_ENABLE_VXL     ON CACHE BOOL "VXL required for other projects"     FORCE )
 endif()
 
@@ -634,7 +637,7 @@ if( VIAME_ENABLE_PYTHON )
   mark_as_advanced( VIAME_BUILD_PYTHON_FROM_SOURCE )
 
   if( VIAME_BUILD_PYTHON_FROM_SOURCE )
-    set( VIAME_PYTHON_VERSION 3.10.4
+    set( VIAME_PYTHON_VERSION 3.12.12
          CACHE STRING "Select the version of Python to build." )
     set_property( CACHE VIAME_PYTHON_VERSION
                   PROPERTY STRINGS "3.10.4" "3.12.12" "3.14.2" "3.14.2t" )
@@ -742,6 +745,31 @@ if( VIAME_ENABLE_PYTHON )
   # otherwise abort configuration. This env var is honored by every (including
   # nested) cmake invocation and raises the policy floor to 3.5 for them.
   list( APPEND PYTHON_DEP_ENV_VARS "CMAKE_POLICY_VERSION_MINIMUM=3.5" )
+
+  # PEP 668: distributions from Ubuntu 24.04 / Debian 12 onwards drop an
+  # EXTERNALLY-MANAGED marker beside their system interpreter, which makes pip
+  # refuse every install that is not into a venv, --target or --prefix. All of
+  # the superbuild's python dependencies go in through "pip install --user"
+  # with PYTHONUSERBASE pointed at VIAME's own install tree, so they are
+  # refused outright and the build dies as soon as the first python dep runs.
+  # Nothing lands in the distro's site-packages, so opt out of the marker.
+  # Only set when the marker is actually present: the flag arrived in pip
+  # 23.0.1, well after the older interpreters (22.04, Rocky) VIAME also builds
+  # against, and an internally built python is never externally managed.
+  if( NOT VIAME_BUILD_PYTHON_FROM_SOURCE )
+    execute_process(
+      COMMAND ${Python_EXECUTABLE} -c
+        "import os, sysconfig; print( os.path.exists( os.path.join( sysconfig.get_path( 'stdlib' ), 'EXTERNALLY-MANAGED' ) ) )"
+      OUTPUT_VARIABLE VIAME_PYTHON_EXTERNALLY_MANAGED
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET )
+
+    if( VIAME_PYTHON_EXTERNALLY_MANAGED STREQUAL "True" )
+      message( STATUS "System python is PEP 668 externally managed, enabling "
+        "PIP_BREAK_SYSTEM_PACKAGES for VIAME python dependency installs" )
+      list( APPEND PYTHON_DEP_ENV_VARS "PIP_BREAK_SYSTEM_PACKAGES=1" )
+    endif()
+  endif()
 
   if( VIAME_BUILD_MAX_THREADS )
     list( APPEND PYTHON_DEP_ENV_VARS "MAX_JOBS=${VIAME_BUILD_MAX_THREADS}" )
@@ -952,10 +980,6 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_TENSORFLOW )
     include( add_project_tensorflow )
-  endif()
-
-  if( VIAME_ENABLE_ITK )
-    include( add_project_itk_extras )
   endif()
 
   if( VIAME_ENABLE_KEYPOINT )

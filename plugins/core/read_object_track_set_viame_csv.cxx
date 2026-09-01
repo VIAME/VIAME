@@ -9,6 +9,7 @@
 
 #include "read_object_track_set_viame_csv.h"
 
+#include "read_detected_object_set_viame_csv.h"
 #include "filename_to_timestamp.h"
 #include "convert_notes_to_attributes.h"
 #include "convert_polygons_to_mask.h"
@@ -213,7 +214,11 @@ read_object_track_set_viame_csv::priv
     }
 
     std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, m_parent->c_delimiter, false );
+    const char delim =
+      ( m_parent->c_delimiter.empty() ? ',' : m_parent->c_delimiter[0] );
+
+    tokenize_viame_csv_line( line, col, delim );
+    expand_packed_viame_csv_pairs( col, delim );
 
     if( col.size() < 9 )
     {
@@ -321,6 +326,43 @@ read_object_track_set_viame_csv::priv
             ( col[i].size() >= 7 && col[i].substr( 0, 7 ) == "(+poly)" ) )
         {
           poly_strings.push_back( col[i] );
+        }
+      }
+    }
+
+    // Keypoints are written as single cells of the form "(kp) name x y"
+    // (write_detected_object_set_viame_csv.cxx). They were previously
+    // write-only: training groundtruth carrying head/tail keypoints was read
+    // back with empty keypoint maps, which silently trained keypoint heads
+    // against all-invisible targets. Take the last two tokens as coordinates
+    // so names containing spaces survive.
+    if( found_attribute )
+    {
+      for( unsigned i = COL_TOT; i < col.size(); i++ )
+      {
+        if( col[i].size() >= 5 && col[i].substr( 0, 5 ) == "(kp) " )
+        {
+          std::vector< std::string > kp_parts;
+          kwiver::vital::tokenize( col[i], kp_parts, " ", true );
+          if( kp_parts.size() >= 4 )
+          {
+            try
+            {
+              double kp_x = std::stod( kp_parts[ kp_parts.size() - 2 ] );
+              double kp_y = std::stod( kp_parts[ kp_parts.size() - 1 ] );
+              std::string kp_name = kp_parts[1];
+              for( size_t j = 2; j + 2 < kp_parts.size(); ++j )
+              {
+                kp_name += " " + kp_parts[j];
+              }
+              dob->add_keypoint( kp_name,
+                kwiver::vital::point_2d( kp_x, kp_y ) );
+            }
+            catch( ... )
+            {
+              // Skip malformed keypoint cells
+            }
+          }
         }
       }
     }

@@ -110,16 +110,16 @@ connect from detector_output_l.detected_object_set
 # top category. Only the fish branch receives head/tail keypoints; the two
 # branches are then concatenated back together for tracking.
 #
-# NOTE: class_probablity_filter is keep-list only (no invert), so the split is
+# NOTE: class_probability_filter is keep-list only (no invert), so the split is
 # expressed as two complementary keep_classes lists. top_category_only must
 # stay true on BOTH branches: without it a detection scoring above threshold
 # in both groups would pass both filters and be duplicated at the merge.
 
 process fish_filter_l
   :: detected_object_filter
-  :filter:type                                 class_probablity_filter
+  :filter:type                                 class_probability_filter
 
-  block filter:class_probablity_filter
+  block filter:class_probability_filter
     :threshold                                 0.001
     :keep_all_classes                          false
     :keep_classes                              rockfish;roundfish;flatfish
@@ -128,9 +128,9 @@ process fish_filter_l
 
 process nonfish_filter_l
   :: detected_object_filter
-  :filter:type                                 class_probablity_filter
+  :filter:type                                 class_probability_filter
 
-  block filter:class_probablity_filter
+  block filter:class_probability_filter
     :threshold                                 0.001
     :keep_all_classes                          false
     :keep_classes                              corals;sponges
@@ -173,10 +173,10 @@ process tracker_l
   :track_initializer:type                      threshold
 
   block track_initializer:threshold:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.001
-    :class_probablity_filter:keep_all_classes  true
-    :class_probablity_filter:keep_classes      unused
+    :type                                      class_probability_filter
+    :class_probability_filter:threshold         0.001
+    :class_probability_filter:keep_all_classes  true
+    :class_probability_filter:keep_classes      unused
   endblock
 
 connect from downsampler.timestamp
@@ -260,9 +260,9 @@ connect from detector_output_r.detected_object_set
 
 process fish_filter_r
   :: detected_object_filter
-  :filter:type                                 class_probablity_filter
+  :filter:type                                 class_probability_filter
 
-  block filter:class_probablity_filter
+  block filter:class_probability_filter
     :threshold                                 0.001
     :keep_all_classes                          false
     :keep_classes                              rockfish;roundfish;flatfish
@@ -271,9 +271,9 @@ process fish_filter_r
 
 process nonfish_filter_r
   :: detected_object_filter
-  :filter:type                                 class_probablity_filter
+  :filter:type                                 class_probability_filter
 
-  block filter:class_probablity_filter
+  block filter:class_probability_filter
     :threshold                                 0.001
     :keep_all_classes                          false
     :keep_classes                              corals;sponges
@@ -314,10 +314,10 @@ process tracker_r
   :track_initializer:type                      threshold
 
   block track_initializer:threshold:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.001
-    :class_probablity_filter:keep_all_classes  true
-    :class_probablity_filter:keep_classes      unused
+    :type                                      class_probability_filter
+    :class_probability_filter:threshold         0.001
+    :class_probability_filter:keep_all_classes  true
+    :class_probability_filter:keep_classes      unused
   endblock
 
 connect from downsampler.timestamp
