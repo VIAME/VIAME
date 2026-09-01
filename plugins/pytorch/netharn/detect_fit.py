@@ -1155,7 +1155,7 @@ def setup_harn(cmdline=True, **kw):
             'thresh'         : 0.6,  # iou_thresh
             'seen_thresh': config['seen_thresh'],
         })
-    elif arch == 'rf_detr' or arch.startswith('rfdetr'):
+    elif arch in ('rf_detr', 'rfdetr') or arch.startswith(('rfdetr_', 'rf_detr_')):
         from .detection_models import rf_detr_models
         # Parse variant from arch name (e.g., 'rfdetr_base', 'rf_detr_large')
         variant = 'base'
