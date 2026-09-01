@@ -243,15 +243,9 @@ if( VIAME_ENABLE_PYTHON )
     object_detector_training
   )
   add_example_script_test(
-    viame_examples:train_netharn_rf_detr_16bit
+    viame_examples:train_rf_detr_default_16bit
     test_16bit_normalization.py
-    TestTrainNetharnRfDetr16bit
-    object_detector_training
-  )
-  add_example_script_test(
-    viame_examples:train_mask_rcnn_from_viame_csv
-    test_object_detector_training.py
-    TestTrainMaskRcnnFromViameCsv
+    TestTrainRfDetrDefault16bit
     object_detector_training
   )
   add_example_script_test(

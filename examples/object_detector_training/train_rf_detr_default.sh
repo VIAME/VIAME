@@ -10,6 +10,6 @@ export KWIVER_DEFAULT_LOG_LEVEL=info
 
 # Run pipeline
 viame train \
-  -i training_data_sea_lion \
-  -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_mask_rcnn_720.conf \
+  -i training_data_mouss \
+  -c ${VIAME_INSTALL}/configs/pipelines/train_detector_rf_detr_default.conf \
   --threshold 0.0

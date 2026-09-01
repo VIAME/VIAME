@@ -33,11 +33,11 @@ class TestNormalize16bit:
         assert_script_runs_successfully(script)
 
 
-class TestTrainNetharnRfDetr16bit:
+class TestTrainRfDetrDefault16bit:
     """Tests for training with 16-bit imagery using --normalize-16bit flag."""
 
-    def test_train_netharn_rf_detr_16bit(self):
-        """Test that train_netharn_rf_detr_16bit starts successfully.
+    def test_train_rf_detr_default_16bit(self):
+        """Test that train_rf_detr_default_16bit starts successfully.
 
         Training scripts are long-running, so we use a short timeout and consider
         reaching the timeout as success (the script started and is running).
@@ -45,5 +45,5 @@ class TestTrainNetharnRfDetr16bit:
         This test verifies the --normalize-16bit flag correctly enables percentile
         normalization for training on 16-bit thermal imagery.
         """
-        script = get_script_path(TRAINING_CATEGORY, "train_netharn_rf_detr_16bit.sh")
+        script = get_script_path(TRAINING_CATEGORY, "train_rf_detr_default_16bit.sh")
         assert_script_runs_successfully(script, timeout=TRAINING_TIMEOUT, timeout_is_success=True)

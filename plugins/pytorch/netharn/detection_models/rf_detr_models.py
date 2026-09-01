@@ -522,9 +522,9 @@ class RFDETR_Detector(nh.layers.Module):
 
         variant_to_config_cls = {
             'base': rfdetr_config.RFDETRBaseConfig,
-            # 'large' here predates the 2026 ViT-S large; keep the deprecated
-            # config so models already trained through this wrapper reload
-            'large': rfdetr_config.RFDETRLargeDeprecatedConfig,
+            # The 2026 ViT-S large (patch 16), matching what the rf_detr
+            # lightning trainer calls 'large'
+            'large': rfdetr_config.RFDETRLargeConfig,
             'small': rfdetr_config.RFDETRSmallConfig,
             'medium': rfdetr_config.RFDETRMediumConfig,
             'nano': rfdetr_config.RFDETRNanoConfig,
@@ -596,10 +596,13 @@ class RFDETR_Detector(nh.layers.Module):
         Returns:
             Dict: Netharn-style batch with inputs and labels
         """
+        default_hw = self.resolution
+        if not isinstance(default_hw, (tuple, list)):
+            default_hw = (default_hw, default_hw)
         if h is None:
-            h = self.resolution
+            h = default_hw[0]
         if w is None:
-            w = self.resolution
+            w = default_hw[1]
 
         return _demo_batch_rfdetr(
             bsize=bsize,

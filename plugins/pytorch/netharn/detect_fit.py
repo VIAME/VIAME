@@ -1169,6 +1169,15 @@ def setup_harn(cmdline=True, **kw):
             backbone_init = True
         # Get segmentation_head setting
         segmentation_head = config.get('segmentation_head', False)
+        # Build the positional encoding for the actual training window rather
+        # than the variant's square default; rfdetr validates divisibility by
+        # patch_size * num_windows and errors clearly on a bad window size.
+        resolution = None
+        window_dims = config.get('window_dims', None)
+        if isinstance(window_dims, (list, tuple)) and len(window_dims) == 2:
+            resolution = (int(window_dims[0]), int(window_dims[1]))
+        elif isinstance(window_dims, int):
+            resolution = window_dims
         initkw = dict(
             classes=classes,
             channels=config['channels'],
@@ -1176,6 +1185,7 @@ def setup_harn(cmdline=True, **kw):
             model_variant=variant,
             weight_path=backbone_init,
             segmentation_head=segmentation_head,
+            resolution=resolution,
         )
         model = rf_detr_models.RFDETR_Detector(**initkw)
         model._initkw = initkw
