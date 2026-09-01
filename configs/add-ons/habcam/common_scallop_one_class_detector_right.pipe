@@ -23,7 +23,7 @@ process detector_right_1
   :detector:type                               ocv_windowed
 
   block detector:ocv_windowed
-    :detector:type                             netharn
+    :detector:type                             onnx
 
     :mode                                      chip
     :chip_width                                640
@@ -32,8 +32,10 @@ process detector_right_1
     :chip_step_height                          384
     :chip_edge_filter                          6
 
-    block detector:netharn
-      relativepath deployed =                  models/scallop_cfrnn_one_class.zip
+    block detector:onnx
+      relativepath model =                     models/scallop_cfrnn_one_class.onnx
+      :device                                  cuda
+      :score_thresh                            0.10
     endblock
   endblock
 
@@ -100,10 +102,25 @@ connect from detector_right_2.detected_object_set
 
 process detector_right_3
   :: image_object_detector
-  :detector:type                               netharn
+  :detector:type                               ocv_windowed
 
-  block detector:netharn
-    relativepath deployed =                    models/scallop_hrnet_four_class.zip
+  block detector:ocv_windowed
+    :detector:type                             onnx
+
+    # The ONNX graph is fixed at the 768x768 window the model was trained on,
+    # so the tiling netharn used to do internally is explicit here.
+    :mode                                      chip
+    :chip_width                                768
+    :chip_height                               768
+    :chip_step_width                           384
+    :chip_step_height                          384
+    :chip_edge_filter                          6
+
+    block detector:onnx
+      relativepath model =                     models/scallop_hrnet_four_class.onnx
+      :device                                  cuda
+      :score_thresh                            0.10
+    endblock
   endblock
 
 connect from detector_input_right.image

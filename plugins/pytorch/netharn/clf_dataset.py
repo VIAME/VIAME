@@ -58,12 +58,15 @@ class ClfDataset(torch_data.Dataset):
     @ub.memoize_property
     def input_id(self):
         # TODO: reset memoize dict if augment / other param is changed
-        from viame.pytorch import netharn as nh
+        # imgaug_json_id() cannot introspect the ClfAugmentor wrapper and falls
+        # back to repr(), which embeds the object address. That made input_id --
+        # and therefore the run directory netharn resumes from -- different on
+        # every launch. Hash the wrapped imgaug tree instead.
         depends = [
             self.sampler._depends(),
             self.min_dim,
             self.input_dims,
-            self.augmenter and nh.data.transforms.imgaug_json_id(self.augmenter),
+            self.augmenter and self.augmenter.json_id(),
         ]
         _input_id = ub.hash_data(depends, hasher='sha512', base='abc')[0:40]
         return _input_id

@@ -20,7 +20,7 @@ process detector_left
   :detector:type                               ocv_windowed
 
   block detector:ocv_windowed
-    :detector:type                             netharn
+    :detector:type                             onnx
 
     :mode                                      chip
     :chip_width                                640
@@ -29,8 +29,10 @@ process detector_left
     :chip_step_height                          384
     :chip_edge_filter                          6
 
-    block detector:netharn
-      relativepath deployed =                  models/scallop_cfrnn_one_class.zip
+    block detector:onnx
+      relativepath model =                     models/scallop_cfrnn_one_class.onnx
+      :device                                  cuda
+      :score_thresh                            0.10
     endblock
   endblock
 

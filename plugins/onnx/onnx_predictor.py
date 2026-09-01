@@ -23,6 +23,11 @@ Supported ``postprocess.decoder`` values:
 * ``yolo``: a single output of shape ``(1, 4+C, N)`` or ``(1, N, 4+C)`` in
   ``cxcywh`` (model-input pixels); this decodes, thresholds, rescales to the
   original frame, and runs NMS host-side.
+* ``mmdet``: the mmdet 2.x R-CNN family (Cascade R-CNN, Mask R-CNN ...) as
+  written by :mod:`viame.pytorch.netharn_mmdet_to_onnx`. One output of shape
+  ``(1, N, 6)`` -- ``[x1, y1, x2, y2, score, label]`` in model-input pixels,
+  with NMS baked into the graph -- so this only thresholds and rescales. This
+  is how the HabCam netharn/bioharn detectors run without mmdet installed.
 
 Adding a new architecture is a new ``_decode_*`` method plus an enum value; the
 preprocessing / spec / detection-assembly code is shared.
@@ -243,6 +248,8 @@ class OnnxPredictor:
             return self._decode_detr(nchw, W, H)
         if self._decoder in ("rfdetr", "rf_detr"):
             return self._decode_rfdetr(nchw, W, H)
+        if self._decoder in ("mmdet", "mmdet2", "crcnn"):
+            return self._decode_mmdet(nchw, W, H)
         if self._decoder == "yolo":
             return self._decode_yolo(nchw, W, H)
         raise ValueError(f"unknown decoder {self._decoder!r}")
@@ -326,6 +333,34 @@ class OnnxPredictor:
             x0, y0, x1, y1 = (float(v) for v in boxes[k])
             result.append({"label": int(labels[k]),
                            "bbox_xyxy": [x0, y0, x1, y1], "score": s})
+        return result
+
+    # ------------------------------------------------------------------
+    def _decode_mmdet(self, nchw, W, H) -> list:
+        """mmdet 2.x two-stage export: ``(1, N, 6)`` = xyxy + score + label, in
+        model-input pixels, NMS already applied inside the graph.
+
+        Boxes come back at the network's fixed input size, so they are scaled
+        back to the frame the caller passed in -- for the HabCam models that
+        frame is an ``ocv_windowed`` chip at the model's native window size, so
+        the scale is 1 and this is exact."""
+        outputs = self._session.run(None, {self._input_names[0]: nchw})
+        out = outputs[0][0]
+        if out.shape[-1] == 5:
+            # boxes and labels as separate outputs
+            labels = np.asarray(outputs[1][0]).reshape(-1, 1)
+            out = np.concatenate([out, labels.astype(out.dtype)], axis=-1)
+        sx, sy = W / self._eval_w, H / self._eval_h
+        result = []
+        for row in out:
+            score = float(row[4])
+            if score < self._score_thresh:
+                continue
+            result.append({
+                "label": int(row[5]),
+                "bbox_xyxy": [float(row[0]) * sx, float(row[1]) * sy,
+                              float(row[2]) * sx, float(row[3]) * sy],
+                "score": score})
         return result
 
     # ------------------------------------------------------------------

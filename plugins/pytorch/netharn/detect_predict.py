@@ -91,6 +91,101 @@ def patch_numpy():
         np.Inf = np.inf
 
 
+# Some HabCam-era models were serialized against the standalone
+# "depr-mmdet-plugin" build, whose packages were renamed mmcv_depr / mmdet_depr
+# so they could sit alongside a modern mmdet. That plugin is no longer built
+# (and can no longer be built against current torch), but the model topologies
+# it produced are ordinary mmdet 2.x code, which the mmdet/mmcv VIAME already
+# ships runs unchanged. Redirect the renamed imports onto the real packages so
+# those models load without it.
+_DEPRECATED_MM_PREFIXES = {
+    'mmcv_depr': 'mmcv',
+    'mmdet_depr': 'mmdet',
+}
+
+
+class _AliasLoader:
+    """Loader that hands back an already-imported module under a new name."""
+
+    def __init__(self, target_name):
+        self.target_name = target_name
+
+    def create_module(self, spec):
+        import importlib
+        return importlib.import_module(self.target_name)
+
+    def exec_module(self, module):
+        pass  # the target module is already executed under its real name
+
+
+class _DeprecatedMMFinder:
+    """Meta path finder mapping ``mm*_depr[.sub]`` onto ``mm*[.sub]``.
+
+    A plain ``sys.modules`` alias is not enough: aliasing only the top-level
+    package leaves its ``__path__`` pointing at the real package, so submodule
+    imports get *re-executed* under the aliased name and blow up on mmcv's
+    duplicate registry entries. Resolving every submodule through this finder
+    keeps a single module object per real name.
+    """
+
+    def find_spec(self, fullname, path=None, target=None):
+        import importlib.util
+        root = fullname.split('.')[0]
+        real_root = _DEPRECATED_MM_PREFIXES.get(root)
+        if real_root is None:
+            return None
+        real_name = real_root + fullname[len(root):]
+        return importlib.util.spec_from_loader(
+            fullname, _AliasLoader(real_name))
+
+
+def setup_deprecated_mmdet_aliases():
+    """
+    Make ``import mmcv_depr`` / ``import mmdet_depr`` resolve to mmcv / mmdet.
+
+    Idempotent and safe to call multiple times.
+    """
+    import sys
+    if not any(isinstance(f, _DeprecatedMMFinder) for f in sys.meta_path):
+        sys.meta_path.insert(0, _DeprecatedMMFinder())
+
+
+def patch_legacy_mm_test_cfg(model):
+    """
+    Rewrite mmdet 1.x/early-2.x test-cfg keys into the modern spelling.
+
+    The oldest deploy zips (the HabCam HRNet model, for one) still carry
+    ``nms_thr`` / ``max_num`` at the top of ``test_cfg.rpn`` where mmdet 2.27
+    wants ``nms.iou_threshold`` and ``max_per_img``, and its RPN head reaches
+    for ``cfg.nms`` unconditionally. Normalizing the config in place is what
+    lets those models run at all on the mmdet VIAME ships.
+
+    Accepts either the netharn wrapper or the raw mmdet detector; a model with
+    no ``test_cfg`` is left alone.
+    """
+    detector = getattr(model, 'detector', model)
+    test_cfg = getattr(detector, 'test_cfg', None)
+    if test_cfg is None:
+        return model  # not an mmdet model; nothing to normalize
+
+    from mmcv.utils import ConfigDict
+    for section in ('rpn', 'rcnn'):
+        cfg = test_cfg.get(section, None)
+        if cfg is None:
+            continue
+        if 'nms_thr' in cfg:
+            if 'nms' not in cfg:
+                cfg.nms = ConfigDict(type='nms', iou_threshold=cfg.nms_thr)
+            elif 'iou_threshold' not in cfg.nms:
+                cfg.nms.iou_threshold = cfg.nms_thr
+        if 'max_per_img' not in cfg:
+            for legacy_key in ('max_num', 'nms_post'):
+                if legacy_key in cfg:
+                    cfg.max_per_img = cfg[legacy_key]
+                    break
+    return model
+
+
 def setup_module_aliases():
     """
     Set up module aliases for backwards compatibility with old models.
@@ -104,11 +199,15 @@ def setup_module_aliases():
         - from bioharn.models import mm_models
 
     Will resolve to the corresponding modules under viame.pytorch.netharn.
+    Models built against the deprecated mmcv_depr / mmdet_depr packages are
+    redirected onto the installed mmcv / mmdet as well.
 
     This function is idempotent and safe to call multiple times.
     """
     import sys
     from viame.pytorch import netharn as nh
+
+    setup_deprecated_mmdet_aliases()
 
     # Define the mapping of old module names to new modules
     # netharn -> viame.pytorch.netharn
@@ -376,6 +475,7 @@ class DetectPredictor(object):
             deployed = torch_liberator.DeployedModel.coerce(deployed)
             model = deployed.load_model()
             model.train(False)
+            patch_legacy_mm_test_cfg(model)
             predictor.xpu = xpu
             predictor.model = model
             # The model must have a coder

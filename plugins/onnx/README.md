@@ -1,3 +1,58 @@
+# VIAME ONNX plugins
+
+Two independent groups of pure-Python, onnxruntime-based tools live here (no
+torch at inference time):
+
+1. **A generic ONNX object detector** (`onnx_predictor.py` + `onnx_detector.py`,
+   registered as the kwiver `onnx` algorithm) — see below.
+2. **Epipolar stereo matching as a single ONNX graph** — the rest of this file.
+
+## Generic ONNX object detector
+
+`onnx_detector.py` runs any detection graph described by a
+`<model>.modelspec.json` sidecar sitting next to the `.onnx`. The sidecar names
+the input size, the preprocessing (scale, per-channel mean/std, interpolation,
+RGB vs BGR), the postprocessing thresholds, the class names, and a *decoder*
+that says how to read the graph's outputs:
+
+| `postprocess.decoder` | Graph contract |
+| --- | --- |
+| `detr` / `baked` (default) | DEIMv2 / RT-DETR: `images` + `orig_target_sizes` in, `(labels, boxes_xyxy, scores)` out, NMS baked in. |
+| `rfdetr` | RF-DETR: raw `dets` (normalized `cxcywh`) + `labels` logits; top-k over the query x class grid host-side, optional per-query masks. |
+| `yolo` | One `(1, 4+C, N)` / `(1, N, 4+C)` output in `cxcywh`; decode, threshold and NMS host-side. |
+| `mmdet` | mmdet 2.x R-CNN family: one `(1, N, 6)` output of `[x1, y1, x2, y2, score, label]` in model-input pixels, NMS baked in. |
+
+The detector is whole-frame only; wrap it in `ocv_windowed` to tile large
+imagery, exactly as the other VIAME detectors are wrapped.
+
+### Converting netharn/bioharn mmdet models (the `mmdet` decoder)
+
+The HabCam add-on's detectors are bioharn Cascade R-CNN / HRNet Mask R-CNN zips
+built against mmdet 2.x, and one of them was serialized against the renamed
+`mmcv_depr` / `mmdet_depr` packages from the external
+[depr-mmdet-plugin](https://github.com/VIAME/depr-mmdet-plugin), which is no
+longer buildable. `viame.pytorch.netharn_mmdet_to_onnx` converts such a zip into
+a graph the `onnx` detector runs with nothing but onnxruntime:
+
+```bash
+python -m viame.pytorch.netharn_mmdet_to_onnx \
+    --deployed=models/scallop_cfrnn_one_class.zip \
+    --output=models/scallop_cfrnn_one_class.onnx
+```
+
+That writes both the `.onnx` and its `.modelspec.json`. The network input size
+defaults to the training window recorded in the zip (`--window` overrides it),
+and the graph emits only standard ONNX operators — `RoiAlign` and
+`NonMaxSuppression` included — so no onnxruntime custom-op library is required.
+Conversion needs torch + mmdet (VIAME's own mmdet 2.27 / mmcv 1.7.1); *running*
+the result needs neither. The same conversion is reachable from a pipeline via
+the `convert_to_onnx` process.
+
+Exported graphs reproduce the torch detectors: on HabCam imagery all three
+models return the same detection counts with box differences under ~0.2 px and
+score differences under 1e-4, and `detector_habcam_test_cfrnn_only.pipe` yields
+the same CSV through the `onnx` detector as it did through `netharn`.
+
 # Epipolar stereo matching as a single ONNX graph
 
 This plugin reimplements VIAME's stereo correspondence methods as single,
