@@ -33,16 +33,22 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     typeid( viame::svm::process_query_process ).name(),
     sprokit::process::interface_name(),
     sprokit::create_new_process< viame::svm::process_query_process > );
-  fact->add_attribute( kvpf::PLUGIN_NAME, "svm_process_query" )
-    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kvpf::PLUGIN_NAME, "process_query" )
+    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kvpf::PLUGIN_DESCRIPTION,
+                    "Process a query using SVM models" )
+    .add_attribute( kvpf::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
   fact = new sprokit::cpp_process_factory(
     typeid( viame::svm::train_svm_models_process ).name(),
     sprokit::process::interface_name(),
     sprokit::create_new_process< viame::svm::train_svm_models_process > );
-  fact->add_attribute( kvpf::PLUGIN_NAME, "svm_train" )
-    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kvpf::PLUGIN_NAME, "train_svm_models" )
+    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kvpf::PLUGIN_DESCRIPTION,
+                    "Train SVM models over input descriptors" )
+    .add_attribute( kvpf::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

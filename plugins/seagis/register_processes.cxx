@@ -32,10 +32,11 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     typeid( viame::seagis::seagis_measurement_process ).name(),
     sprokit::process::interface_name(),
     sprokit::create_new_process< viame::seagis::seagis_measurement_process > );
-  
-  // PLUGIN_NAME will be extracted from process or set manually in add_attribute calls below
-  // fact->add_attribute( kvpf::PLUGIN_NAME, "name_here" );  
-  
+  fact->add_attribute( kvpf::PLUGIN_NAME, "seagis_measurement" )
+    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kvpf::PLUGIN_DESCRIPTION,
+                    "Read measurements from SEAGIS annotation files" )
+    .add_attribute( kvpf::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
