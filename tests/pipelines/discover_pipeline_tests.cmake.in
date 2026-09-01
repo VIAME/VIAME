@@ -1,0 +1,84 @@
+# Generated from discover_pipeline_tests.cmake.in - do not edit.
+#
+# Registers one ctest test per pipeline. This runs at ctest time rather than at
+# configure time because the pipeline list is discovered from the install tree,
+# which does not exist when CMake configures and which also carries the add-on
+# pipelines that arrive later as downloaded model packs. CMake supports this
+# through TEST_INCLUDE_FILES, the same mechanism gtest_discover_tests uses.
+#
+# The generated tests keep the execution model the bundled tests used: source
+# the install setup script, then run pytest in that shell. Only the discovery
+# step below needs PYTHONPATH, because it imports cases.py outside pytest and
+# so does not get the path insertion tests/conftest.py performs.
+
+set( _categories @PIPELINE_CATEGORIES@ )
+set( _python "@Python3_EXECUTABLE@" )
+set( _srcdir "@CMAKE_CURRENT_SOURCE_DIR@" )
+set( _setup_cmd "@PIPELINE_SETUP_COMMAND@" )
+set( _discovery_pythonpath "@PIPELINE_DISCOVERY_PYTHONPATH@" )
+set( _install "@VIAME_BUILD_INSTALL_PREFIX@" )
+set( _timeout @PIPELINE_CASE_TIMEOUT@ )
+
+execute_process(
+  COMMAND "${CMAKE_COMMAND}" -E env
+          "PYTHONPATH=${_discovery_pythonpath}"
+          "VIAME_INSTALL=${_install}"
+          "${_python}" "${_srcdir}/list_cases.py" ${_categories}
+  OUTPUT_VARIABLE _discovered
+  ERROR_VARIABLE _discovery_error
+  RESULT_VARIABLE _discovery_result
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+if( NOT _discovery_result EQUAL 0 )
+  # Register a failing placeholder rather than contributing zero pipeline
+  # coverage, which would look like a clean run. This matches the existing
+  # decision to fail collection outright when no install is found.
+  add_test( NAME "viame_pipelines:discovery"
+            COMMAND "${CMAKE_COMMAND}" -E false )
+  set_tests_properties( "viame_pipelines:discovery" PROPERTIES
+    LABELS "PIPELINES" )
+  message( STATUS
+    "Pipeline test discovery failed; is VIAME installed?\n${_discovery_error}" )
+  return()
+endif()
+
+string( REPLACE "\n" ";" _lines "${_discovered}" )
+foreach( _line IN LISTS _lines )
+  if( _line STREQUAL "" )
+    continue()
+  endif()
+
+  string( REPLACE "\t" ";" _fields "${_line}" )
+  list( LENGTH _fields _field_count )
+  if( _field_count LESS 2 )
+    continue()
+  endif()
+  list( GET _fields 0 _category )
+  list( GET _fields 1 _case_id )
+  set( _skip "" )
+  if( _field_count GREATER 2 )
+    list( GET _fields 2 _skip )
+  endif()
+
+  set( _node "${_srcdir}/test_${_category}.py::test_${_category}[${_case_id}]" )
+  set( _test_name "viame_pipelines:${_category}:${_case_id}" )
+
+  add_test(
+    NAME "${_test_name}"
+    COMMAND bash -c "${_setup_cmd} && python -m pytest \"${_node}\" -v --tb=short"
+    )
+  set_tests_properties( "${_test_name}" PROPERTIES
+    LABELS "PIPELINES"
+    TIMEOUT "${_timeout}"
+    )
+
+  # A skip reason means the harness has no case for this pipeline: it matched
+  # no rule in cases.py and has no override saying what inputs and checks it
+  # needs. The pipeline is installed and presumably runnable; it is the test
+  # definition that is missing. Disabling surfaces that gap in ctest -N rather
+  # than burying it in a bundled pass.
+  if( NOT _skip STREQUAL "" )
+    set_tests_properties( "${_test_name}" PROPERTIES DISABLED TRUE )
+  endif()
+endforeach()
