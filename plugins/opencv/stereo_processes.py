@@ -194,8 +194,10 @@ class GMMDetectFishProcess(KwiverProcess):
         self._base_step()
 
 
-@tmp_sprokit_register_process(name='measure_using_stereo',
-                              doc='preliminatry length measurement process')
+# Not registered: the C++ measure_objects_process in this same plugin claims
+# measure_using_stereo, and being a compiled plugin it always registered first,
+# so this prototype was unreachable even before kwiver made a duplicate plugin
+# name a hard error rather than a warning.
 class MeasureProcess(KwiverProcess):
     """
     This process gets an image and detection_set as input, extracts each chip,

@@ -162,17 +162,10 @@ class MergeDetectionsCoverageReinforce( MergeDetections ):
         return output
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
+    from viame.core.vital_registration import register_vital_algorithm
 
-    # Register Algorithm
-    implementation_name  = "coverage_reinforce"
-
-    if algorithm_factory.has_algorithm_impl_name(
-      MergeDetectionsCoverageReinforce.static_type_name(), implementation_name ):
-        return
-
-    algorithm_factory.add_algorithm( implementation_name,
-      "Reinforce detections using a weakly-localizing evidence source",
-      MergeDetectionsCoverageReinforce )
-
-    algorithm_factory.mark_algorithm_as_loaded( implementation_name )
+    register_vital_algorithm(
+        MergeDetectionsCoverageReinforce,
+        "coverage_reinforce",
+        "Reinforce detections using a weakly-localizing evidence source",
+    )
