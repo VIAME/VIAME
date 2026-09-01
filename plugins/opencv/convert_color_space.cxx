@@ -134,7 +134,24 @@ cv_convert_code lookup_cv_conversion_code(
 // --------------------------------------------------------------------------------------
 void
 convert_color_space
-::post_set_configuration()
+::initialize()
+{
+  resolve_conversion_code();
+}
+
+// --------------------------------------------------------------------------------------
+void
+convert_color_space
+::set_configuration_internal(
+  [[maybe_unused]] kwiver::vital::config_block_sptr config )
+{
+  resolve_conversion_code();
+}
+
+// --------------------------------------------------------------------------------------
+void
+convert_color_space
+::resolve_conversion_code()
 {
   kwiver::vital::color_space input_cs =
     kwiver::vital::string_to_color_space( c_input_color_space );

@@ -36,9 +36,17 @@ public:
   virtual kwiver::vital::image_container_sptr filter(
     kwiver::vital::image_container_sptr image_data );
 
-  virtual void post_set_configuration();
+protected:
+  /// Resolve the conversion code from the defaults at construction
+  void initialize() override;
+
+  /// Re-resolve it whenever the configuration changes
+  void set_configuration_internal(
+    kwiver::vital::config_block_sptr config ) override;
 
 private:
+  void resolve_conversion_code();
+
   int m_conversion_code = -1;
 };
 
