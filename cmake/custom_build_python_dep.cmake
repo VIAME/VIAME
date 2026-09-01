@@ -199,8 +199,11 @@ else()
     endif()
   endif()
 
-  # Store the new hash only after successful build
-  file( WRITE "${HASH_FILE}" "${CURRENT_HASH}" )
+  # The hash is deliberately NOT written here. It records "this source state is
+  # fully built and installed", and the pip install below is part of that. If it
+  # were written now, a failed install would still mark the source as done, and
+  # every later run would take the skip path and leave the previous version
+  # installed against freshly built wheels.
 endif()
 
 # Run pip install if wheel dir is provided and build occurred
@@ -239,6 +242,12 @@ if( WHEEL_DIR AND PIP_INSTALL_SCRIPT AND Python_EXECUTABLE AND SHOULD_BUILD )
   if( NOT PIP_RESULT EQUAL 0 )
     message( FATAL_ERROR "${LIB_NAME}: pip install failed with exit code ${PIP_RESULT}" )
   endif()
+
+  # Built and installed: only now is this source state actually done
+  file( WRITE "${HASH_FILE}" "${CURRENT_HASH}" )
 elseif( WHEEL_DIR AND PIP_INSTALL_SCRIPT AND Python_EXECUTABLE )
   message( STATUS "${LIB_NAME}: Build skipped, skipping pip install" )
+elseif( SHOULD_BUILD )
+  # No pip install step for this dependency, so the build alone completes it
+  file( WRITE "${HASH_FILE}" "${CURRENT_HASH}" )
 endif()
