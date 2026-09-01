@@ -14,6 +14,7 @@
 #include <sprokit/processes/kwiver_type_traits.h>
 
 #include <vital/algo/transform_2d_io.h>
+#include <vital/algo/algorithm.txx>
 #include <vital/types/detected_object_set.h>
 #include <vital/types/transform_2d.h>
 
@@ -88,7 +89,8 @@ warp_detections_process
 
   kwiver::vital::algo::transform_2d_io_sptr reader;
 
-  kwiver::vital::algo::transform_2d_io::set_nested_algo_configuration(
+  kwiver::vital::set_nested_algo_configuration<
+    kwiver::vital::algo::transform_2d_io >(
     "transform_reader", algo_config, reader );
 
   if( !reader )
