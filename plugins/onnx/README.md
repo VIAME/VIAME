@@ -176,6 +176,11 @@ decimals. The YOLOv2 region head reproduces confident detections closely (a
 0.9866 skate becomes 0.9855, box within ~5 px) but diverges more in the low
 score range; treat `fish_yolo_v2` as a close-but-not-bit-exact port.
 
+Because of that gap, **the HabCam pipelines deliberately keep both YOLO models
+on the C++ `darknet` detector**, and the add-on ships their `.weights`/`.cfg`
+rather than the converted graphs. This exporter is here for when an exact port
+is not required, or as the starting point for closing the YOLOv2 gap.
+
 # Epipolar stereo matching as a single ONNX graph
 
 This plugin reimplements VIAME's stereo correspondence methods as single,
