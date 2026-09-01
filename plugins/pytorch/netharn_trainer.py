@@ -55,6 +55,7 @@ class NetHarnTrainer( TrainDetector ):
         self._tmp_validation_file = "validation_truth.json"
         self._augmentation = "complex"
         self._scale_jitter = "0.2"
+        self._gravity = "0"
         self._gt_frames_only = False
         self._chip_width = "640"
         self._chip_height = "-1"
@@ -114,6 +115,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
         cfg.set_value( "augmentation", str( self._augmentation ) )
         cfg.set_value( "scale_jitter", str( self._scale_jitter ) )
+        cfg.set_value( "gravity", str( self._gravity ) )
         cfg.set_value( "chip_width", str( self._chip_width ) )
         cfg.set_value( "chip_height", str( self._chip_height ) )
         cfg.set_value( "chip_overlap", str( self._chip_overlap ) )
@@ -172,6 +174,7 @@ class NetHarnTrainer( TrainDetector ):
         self._gt_frames_only = strtobool( cfg.get_value( "gt_frames_only" ) )
         self._augmentation = str( cfg.get_value( "augmentation" ) )
         self._scale_jitter = str( cfg.get_value( "scale_jitter" ) )
+        self._gravity = str( cfg.get_value( "gravity" ) )
         self._chip_width = str( cfg.get_value( "chip_width" ) )
         self._chip_height = str( cfg.get_value( "chip_height" ) )
         self._chip_overlap = str( cfg.get_value( "chip_overlap" ) )
@@ -861,6 +864,7 @@ class NetHarnTrainer( TrainDetector ):
                  "--init=noop",
                  "--optim=sgd",
                  "--augmenter=" + self._augmentation,
+                 "--gravity=" + self._gravity,
                  "--max_epoch=" + self._max_epochs,
                  "--batch_size=" + self._batch_size,
                  "--lr=" + self._learning_rate,

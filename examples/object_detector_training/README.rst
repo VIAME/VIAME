@@ -186,14 +186,14 @@ RF-DETR's transformer attention mechanism makes it particularly effective in den
 scenes with overlapping objects and multi-scale variation. It handles occlusion well
 compared to anchor-based detectors.
 
-Training (base model)::
+Training::
 
-    viame train -i training_data -c train_detector_rf_detr_b_560.conf --threshold 0.0
+    viame train -i training_data -c train_detector_rf_detr_default.conf --threshold 0.0
 
 For 16-bit imagery (e.g. thermal/IR), use the ``--normalize-16bit`` flag::
 
     viame train --input-list images.txt --input-truth annotations.csv \
-        --labels labels.txt -c train_detector_rf_detr_b_560.conf \
+        --labels labels.txt -c train_detector_rf_detr_default.conf \
         --normalize-16bit --threshold 0.0
 
 MIT-YOLO v9
@@ -239,33 +239,6 @@ Training::
 
     viame train -i training_data -c train_detector_litdet_frcnn.conf --threshold 0.0
     viame train -i training_data -c train_detector_litdet_ssd.conf --threshold 0.0
-
-Netharn Mask R-CNN
--------------------
-
-Instance segmentation variant that produces both bounding boxes and pixel-level masks.
-Uses ResNet-50 backbone at 720px. Best for datasets with polygon annotations where
-segmentation output is needed.
-
-Training::
-
-    viame train -i training_data -c train_detector_netharn_mask_rcnn_720.conf --threshold 0.0
-
-MMDetection Cascade R-CNN
---------------------------
-
-The MMDetection trainer provides access to the OpenMMLab detection framework,
-primarily used for Cascade R-CNN with various backbones including ConvNeXt. Supports
-distributed training across multiple GPUs via PyTorch DDP, Slurm, or MPI.
-
-- Cascade R-CNN architecture with configurable backbones
-- EQLv2 loss support for imbalanced class distributions
-- Input resolution: up to 1333px
-- Distributed multi-GPU training support
-
-Training::
-
-    viame train -i training_data -c train_detector_mmdet_cfrnn.conf --threshold 0.0
 
 SVM Classifier
 ---------------
@@ -378,8 +351,9 @@ Training Scripts
 ``train_netharn_cfrnn.sh`` / ``.bat``
     Train a Netharn Cascade Faster R-CNN detector.
 
-``train_rf_detr_b_560.sh`` / ``.bat``
-    Train an RF-DETR base model at 560px resolution.
+``train_rf_detr_default.sh`` / ``.bat``
+    Train an RF-DETR detector with the default recipe, which auto-selects
+    boxes or segmentation from the annotations.
 
 ``train_rf_detr_n_384.sh`` / ``.bat``
     Train an RF-DETR nano model at 384px resolution.
@@ -387,8 +361,8 @@ Training Scripts
 ``train_rf_detr_l_728.sh`` / ``.bat``
     Train an RF-DETR large model at 728px resolution.
 
-``train_rf_detr_b_560_16bit.sh`` / ``.bat``
-    Train an RF-DETR base model on 16-bit (thermal/IR) imagery.
+``train_rf_detr_default_16bit.sh`` / ``.bat``
+    Train an RF-DETR detector on 16-bit (thermal/IR) imagery.
 
 ``train_mit_yolo_v9_c_640.sh`` / ``.bat``
     Train a MIT-YOLO v9-c detector at 640px resolution.
@@ -404,9 +378,6 @@ Training Scripts
 
 ``train_litdet_ssd.sh`` / ``.bat``
     Train a LitDet SSD detector.
-
-``train_netharn_mask_rcnn.sh`` / ``.bat``
-    Train a Netharn Mask R-CNN instance segmentation detector.
 
 ``train_svm_over_fish_dets.sh`` / ``.bat``
     Train an SVM classifier over fish detection proposals.

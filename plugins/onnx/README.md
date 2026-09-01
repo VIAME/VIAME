@@ -21,6 +21,7 @@ that says how to read the graph's outputs:
 | `rfdetr` | RF-DETR: raw `dets` (normalized `cxcywh`) + `labels` logits; top-k over the query x class grid host-side, optional per-query masks. |
 | `yolo` | One `(1, 4+C, N)` / `(1, N, 4+C)` output in `cxcywh`; decode, threshold and NMS host-side. |
 | `mmdet` | mmdet 2.x R-CNN family: one `(1, N, 6)` output of `[x1, y1, x2, y2, score, label]` in model-input pixels, NMS baked in. |
+| `darknet` | darknet YOLO (v2 `[region]` through v7 `[yolo]`): `boxes` `(1, N, 4)` normalized `cxcywh`, `probs` `(1, N, C)`, `confs` `(1, N, 1)`; score is objectness x class, thresholded and NMS'd host-side. |
 
 The detector is whole-frame only; wrap it in `ocv_windowed` to tile large
 imagery, exactly as the other VIAME detectors are wrapped.
@@ -52,6 +53,133 @@ Exported graphs reproduce the torch detectors: on HabCam imagery all three
 models return the same detection counts with box differences under ~0.2 px and
 score differences under 1e-4, and `detector_habcam_test_cfrnn_only.pipe` yields
 the same CSV through the `onnx` detector as it did through `netharn`.
+
+### Converting netharn classifiers
+
+`viame.pytorch.netharn_clf_to_onnx` does the same for netharn `ClfModel`
+classifiers -- the models behind the kwiver `netharn_classifier` algorithm and
+the `refine_detections :refiner:type netharn` reclassifier (in HabCam: 22
+substrate classifiers and 2 scallop EfficientNets):
+
+```bash
+python -m viame.pytorch.netharn_clf_to_onnx \
+    --deployed=models/scallop_efficientnet_four_class.zip \
+    --output=models/scallop_efficientnet_four_class.onnx
+```
+
+These are plain `InputNorm` + torchvision backbone, so the export needs none of
+the detector workarounds. The batch axis is left dynamic so callers can batch
+chips the way netharn's predictor does, the `InputNorm` stays inside the graph
+(the sidecar therefore asks only for a `1/255` rescale), and the softmax is
+baked in -- for the flat class trees these models use, netharn's
+`hierarchical_softmax` is exactly a plain softmax. A model with a real class
+hierarchy is refused rather than silently mis-normalized.
+
+Note the sidecar records `resize_mode: letterbox`: netharn's classifier dataset
+uses `kwimage.imresize(..., letterbox=True)`, which preserves aspect ratio and
+pads, unlike the squash resize the detectors use.
+
+Measured on an RTX 5000 with torch 2.12 / onnxruntime-gpu 1.23.2, EfficientNetV2-S
+at 224x224, versus the eager PyTorch model (ms per batch):
+
+| batch | torch CPU | onnx CPU | torch GPU | onnx GPU |
+| ---: | ---: | ---: | ---: | ---: |
+| 1  |  44.5 |  16.8 | 13.8 |  4.3 |
+| 4  |  85.8 |  45.0 | 14.0 | 11.1 |
+| 8  | 161.8 |  94.5 | 14.9 | 20.3 |
+| 16 | 363.3 | 204.9 | 26.6 | 38.0 |
+| 32 | 959.6 | 470.0 | 51.2 | 75.9 |
+
+ONNX wins on CPU everywhere (1.7-2.6x). On GPU it wins at small batches (3.2x at
+batch 1, 1.3x at batch 4) and loses beyond that (0.7x at batch 16-32): torch is
+launch-bound at small batch, and better at saturating the GPU at large batch.
+Since `netharn_classifier` runs one frame per call and the netharn refiner
+defaults to `batch_size` 2-4, both HabCam uses sit on the winning side.
+
+### Running classifiers: `onnx_classifier` and the `onnx` refiner
+
+Two kwiver algorithms consume these graphs, replacing `netharn_classifier` and
+the `netharn` refiner respectively:
+
+* **`onnx_classifier`** (an `image_object_detector`, like the netharn one it
+  replaces) classifies a whole frame and emits a single detection covering it,
+  carrying every class probability. `negative_class` renaming is preserved.
+* **`onnx`** (a `refine_detections`) crops a chip per input detection,
+  classifies it, and rewrites the detection's type. The chip geometry, area and
+  border filters, target-scale normalization and prior/taxonomy blending are
+  ports of `viame.pytorch.netharn_refiner` and behave identically.
+
+Both share `onnx_clf_predictor`, whose `letterbox_resize` is a pixel-exact port
+of `kwimage.imresize(..., letterbox=True)`. Two details there are load-bearing:
+kwimage picks **`INTER_AREA` when shrinking** (`INTER_LANCZOS4` when growing),
+and it **rounds** the pad offset rather than flooring. Getting either wrong is
+survivable on chips but not on whole-frame classification, where a 1360x1024
+frame is shrunk ~6x -- an early version using `INTER_LINEAR` throughout changed
+the top class on 5 of 66 substrate classifications.
+
+Frame scores match netharn exactly because for the flat class trees these
+models use, `CategoryTree.decision(..., criterion='entropy')` reduces to plain
+argmax / max-probability.
+
+Verified end to end on the HabCam example imagery, against the netharn path:
+
+| pipeline | rows | top-class mismatches | max prob diff |
+| --- | ---: | ---: | ---: |
+| `detector_habcam_substrate.pipe` (22 classifiers) | 66 vs 66 | 0 | 1e-6 |
+| `detector_habcam_scallop_four_class.pipe` (reclassifier) | 37 vs 37 | 0 | 1e-6 |
+
+(1e-6 is the CSV's print precision, not a real difference.)
+
+### Converting darknet YOLO models
+
+`viame.pytorch.darknet_to_onnx` converts a darknet `.cfg`/`.weights` pair,
+using the bundled `darknet2onnx` to rebuild the graph in PyTorch:
+
+```bash
+python -m viame.pytorch.darknet_to_onnx \
+    --cfg=models/fish_yolo_v2.cfg --weights=models/fish_yolo_v2.weights \
+    --labels=models/fish_yolo_v2.lbl --output=models/fish_yolo_v2.onnx \
+    --resize-mode=letterbox
+```
+
+Three things here are easy to get wrong and cost real accuracy:
+
+* **These models are BGR.** VIAME's C++ darknet detector hands OpenCV's native
+  BGR straight to the network, unlike the netharn-derived models. Feeding RGB
+  produces plausible-looking boxes that match the darknet detector *not at all*
+  (0 of 5 on a test chip, versus 5 of 5 with BGR).
+* **`--resize-mode` must mirror the pipe's `resize_option`.** `squash` (the
+  default) matches `resize_option=chip`, where the chip already is the network
+  size; `letterbox` matches `maintain_ar`, where a whole frame is fitted
+  preserving aspect. The `darknet` decoder maps boxes back through whichever.
+* The vendored exporter's own `export_darknet_to_onnx` is not used: it pins
+  opset 11 and leaves `dynamo` at torch's default, which on torch>=2.9 fails
+  the opset downconvert and silently writes a graph with no weights inline.
+
+VIAME patches three gaps in `darknet2onnx` (`packages/patches/darknet-to-pytorch-onnx`),
+without which neither HabCam model converts: the YOLOv2 `[region]` head was
+unimplemented, `[reorg]` used Python-2 float division in a `view()`, and the
+`[route]` builder asserted that a multi-way concat lists the preceding layer
+first (YOLOv7-tiny does not).
+
+Agreement with the C++ `darknet` detector is close but, unlike the netharn
+conversions, not exact. On the HabCam example imagery, counting detections
+above 0.05:
+
+| model | pipeline | darknet | onnx | strong dets matched IoU>0.5 |
+| --- | --- | ---: | ---: | ---: |
+| `scallop_yolo_v7_one_class` | `detector_habcam_test_yolo_only` | 7 | 8 | 7/7 |
+| `fish_yolo_v2` | `detector_habcam_scallop_and_flatfish` | 20 | 21 | 17/20 |
+
+On a single chip with no tiling, v7 matches 10/10 with scores equal to four
+decimals. The YOLOv2 region head reproduces confident detections closely (a
+0.9866 skate becomes 0.9855, box within ~5 px) but diverges more in the low
+score range; treat `fish_yolo_v2` as a close-but-not-bit-exact port.
+
+Because of that gap, **the HabCam pipelines deliberately keep both YOLO models
+on the C++ `darknet` detector**, and the add-on ships their `.weights`/`.cfg`
+rather than the converted graphs. This exporter is here for when an exact port
+is not required, or as the starting point for closing the YOLOv2 gap.
 
 # Epipolar stereo matching as a single ONNX graph
 

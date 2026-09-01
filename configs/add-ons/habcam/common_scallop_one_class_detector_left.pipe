@@ -155,12 +155,13 @@ connect from reclassifier_merger_left.detected_object_set
 
 process reclassifier_left
   :: refine_detections
-  :refiner:type                                netharn
+  :refiner:type                                onnx
 
-  block refiner:netharn
-    relativepath deployed =                    models/scallop_efficientnet_one_class.zip
+  block refiner:onnx
+    relativepath model =                       models/scallop_efficientnet_one_class.onnx
 
-    :batch_size                                auto
+    :device                                    cuda
+    :batch_size                                4
     :area_pivot                                0
     :border_exclude                            0
     :chip_method                               native_square

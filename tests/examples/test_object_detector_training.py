@@ -56,15 +56,6 @@ class TestTrainNetharnCfrnnFromViameCsv:
         assert_script_runs_successfully(script, timeout=TRAINING_TIMEOUT, timeout_is_success=True)
 
 
-class TestTrainMaskRcnnFromViameCsv:
-    """Tests for train_mask_rcnn_from_viame_csv script."""
-
-    def test_train_mask_rcnn_from_viame_csv(self):
-        """Test that train_mask_rcnn_from_viame_csv runs without error and produces output."""
-        script = get_script_path(CATEGORY, "train_mask_rcnn_from_viame_csv.sh")
-        assert_script_runs_successfully(script)
-
-
 class TestTrainMotionCfrnnFromViameCsv:
     """Tests for train_motion_cfrnn_from_viame_csv script."""
 

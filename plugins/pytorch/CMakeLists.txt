@@ -71,6 +71,13 @@ if( VIAME_ENABLE_ONNX)
     pytorch
     convert_to_onnx_process )
 
+  if( VIAME_ENABLE_DARKNET )
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/onnx_exporters/darknet_to_onnx.py
+      pytorch
+      darknet_to_onnx )
+  endif()
+
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
@@ -127,6 +134,11 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
         ${CMAKE_CURRENT_SOURCE_DIR}/onnx_exporters/netharn_mmdet_to_onnx.py
         pytorch
         netharn_mmdet_to_onnx )
+
+      kwiver_add_python_module(
+        ${CMAKE_CURRENT_SOURCE_DIR}/onnx_exporters/netharn_clf_to_onnx.py
+        pytorch
+        netharn_clf_to_onnx )
 
     endif()
 

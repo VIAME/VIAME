@@ -156,7 +156,7 @@ set( CORE_PIPELINE_FILES
   transcode_tracks_only.pipe
   utility_add_head_tail_keypoints_from_dets.pipe
   utility_add_segmentations_watershed.pipe
-  utility_empty_frame_lbls.pipe
+  utility_empty_frame_lbls_fixed_interval.pipe
   utility_link_detections_default.pipe
   utility_max_points_per_poly.pipe
   utility_remove_dets_in_ignore_regions.pipe
@@ -239,11 +239,6 @@ if( VIAME_ENABLE_OPENCV )
   )
 endif()
 
-if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_mmdet_cfrnn.conf )
-endif()
-
 if( VIAME_ENABLE_PYTORCH-RF-DETR )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     common_train_rf_detr.conf
@@ -251,20 +246,14 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
     common_train_rf_detr_l_720_seg.conf
     train_detector_rf_detr_default.conf
     train_detector_rf_detr_n_384.conf
-    train_detector_rf_detr_b_560.conf
-    train_detector_rf_detr_l_720.conf
     train_detector_rf_detr_l_seg_720.conf
     train_detector_rf_detr_l_1024.conf
-    train_detector_rf_detr_l_1280.conf
+    train_detector_rf_detr_l_1728.conf
     train_detector_rf_detr_l_1728_mot_mim.conf
-    train_detector_rf_detr_l_1728_mot_mim_r2.conf
-    train_detector_rf_detr_l_1728_rgb.conf
-    train_detector_rf_detr_l_1728_rgb_r2.conf
+    train_detector_rf_detr_l_seg_1728.conf
     train_detector_rf_detr_l_seg_1728_mot_all.conf
     train_detector_rf_detr_l_seg_1728_mot_opt.conf
-    train_detector_rf_detr_l_seg_1728_mot_opt_r2.conf
-    train_detector_rf_detr_l_seg_1728_rgb.conf
-    train_detector_rf_detr_l_seg_kp_1728_rgb.conf )
+    train_detector_rf_detr_l_seg_kp_1728.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-LITDET )
@@ -286,11 +275,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     train_detector_netharn_cfrnn.grid_only.20ep.conf
     train_detector_netharn_cfrnn.grid_only.40ep.conf
     train_detector_netharn_cfrnn.grid_only.conf
-    train_detector_netharn_cfrnn_special.conf
-    train_detector_netharn_cfrnn_wtf.conf
-    train_detector_netharn_mask_rcnn_1280.conf
-    train_detector_netharn_mask_rcnn_720.conf
-    train_detector_netharn_mask_rcnn_grid.conf
+    train_detector_netharn_rf_detr_l_1728.conf
     train_frame_classifier_netharn_efficientnet.conf
     train_frame_classifier_netharn_resnet.conf
     train_reclassifier_netharn_efficientnet.conf
@@ -356,8 +341,6 @@ if( VIAME_ENABLE_WEB_EXCLUDES )
     frame_classifier_project_folder.pipe
     frame_classifier_svm.pipe
     tracker_project_folder.pipe
-    train_detector_netharn_cfrnn_special.conf
-    train_detector_netharn_cfrnn_wtf.conf
     utility_add_head_tail_keypoints.pipe
     utility_enhance.pipe
     utility_extract_chips.pipe

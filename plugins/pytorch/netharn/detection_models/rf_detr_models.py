@@ -505,8 +505,8 @@ class RFDETR_Detector(nh.layers.Module):
 
         # Get variant-specific config
         config = self._get_variant_config(self.model_variant, num_queries, resolution)
-        self.resolution = config['resolution']
-        self.num_queries = config['num_queries']
+        self.resolution = config.resolution
+        self.num_queries = config.num_queries
 
         # Build model
         self.model, self.criterion, self.postprocess = self._build_model(
@@ -517,191 +517,70 @@ class RFDETR_Detector(nh.layers.Module):
         self.coder = RFDETR_Coder(self.classes, score_thresh=score_thresh)
 
     def _get_variant_config(self, variant, num_queries, resolution):
-        """Get configuration for a model variant."""
-        variant_configs = {
-            'base': {
-                'encoder': 'dinov2_windowed_small',
-                'hidden_dim': 256,
-                'patch_size': 14,
-                'num_windows': 4,
-                'dec_layers': 3,
-                'sa_nheads': 8,
-                'ca_nheads': 16,
-                'dec_n_points': 2,
-                'num_queries': 300,
-                'num_select': 300,
-                'projector_scale': ['P4'],
-                'out_feature_indexes': [2, 5, 8, 11],
-                'resolution': 560,
-                'positional_encoding_size': 37,
-                'pretrain_weights': 'rf-detr-base.pth',
-            },
-            'large': {
-                'encoder': 'dinov2_windowed_base',
-                'hidden_dim': 384,
-                'patch_size': 14,
-                'num_windows': 4,
-                'dec_layers': 3,
-                'sa_nheads': 12,
-                'ca_nheads': 24,
-                'dec_n_points': 4,
-                'num_queries': 300,
-                'num_select': 300,
-                'projector_scale': ['P3', 'P5'],
-                'out_feature_indexes': [2, 5, 8, 11],
-                'resolution': 560,
-                'positional_encoding_size': 37,
-                'pretrain_weights': 'rf-detr-large.pth',
-            },
-            'small': {
-                'encoder': 'dinov2_windowed_small',
-                'hidden_dim': 256,
-                'patch_size': 16,
-                'num_windows': 2,
-                'dec_layers': 3,
-                'sa_nheads': 8,
-                'ca_nheads': 16,
-                'dec_n_points': 2,
-                'num_queries': 300,
-                'num_select': 300,
-                'projector_scale': ['P4'],
-                'out_feature_indexes': [3, 6, 9, 12],
-                'resolution': 512,
-                'positional_encoding_size': 32,
-                'pretrain_weights': 'rf-detr-small.pth',
-            },
-            'medium': {
-                'encoder': 'dinov2_windowed_small',
-                'hidden_dim': 256,
-                'patch_size': 16,
-                'num_windows': 2,
-                'dec_layers': 4,
-                'sa_nheads': 8,
-                'ca_nheads': 16,
-                'dec_n_points': 2,
-                'num_queries': 300,
-                'num_select': 300,
-                'projector_scale': ['P4'],
-                'out_feature_indexes': [3, 6, 9, 12],
-                'resolution': 576,
-                'positional_encoding_size': 36,
-                'pretrain_weights': 'rf-detr-medium.pth',
-            },
-            'nano': {
-                'encoder': 'dinov2_windowed_small',
-                'hidden_dim': 256,
-                'patch_size': 16,
-                'num_windows': 2,
-                'dec_layers': 2,
-                'sa_nheads': 8,
-                'ca_nheads': 16,
-                'dec_n_points': 2,
-                'num_queries': 300,
-                'num_select': 300,
-                'projector_scale': ['P4'],
-                'out_feature_indexes': [3, 6, 9, 12],
-                'resolution': 384,
-                'positional_encoding_size': 24,
-                'pretrain_weights': 'rf-detr-nano.pth',
-            },
+        """Build the pydantic ModelConfig for a model variant."""
+        from rfdetr import config as rfdetr_config
+
+        variant_to_config_cls = {
+            'base': rfdetr_config.RFDETRBaseConfig,
+            # The 2026 ViT-S large (patch 16), matching what the rf_detr
+            # lightning trainer calls 'large'
+            'large': rfdetr_config.RFDETRLargeConfig,
+            'small': rfdetr_config.RFDETRSmallConfig,
+            'medium': rfdetr_config.RFDETRMediumConfig,
+            'nano': rfdetr_config.RFDETRNanoConfig,
         }
 
-        if variant not in variant_configs:
+        if variant not in variant_to_config_cls:
             raise ValueError(f"Unknown variant: {variant}. "
-                           f"Available: {list(variant_configs.keys())}")
+                             f"Available: {list(variant_to_config_cls.keys())}")
 
-        config = variant_configs[variant].copy()
-
-        # Override with user-specified values
+        overrides = {
+            'num_classes': self.num_classes,
+            'device': 'cuda' if torch.cuda.is_available() else 'cpu',
+            'segmentation_head': self.segmentation_head,
+            # group_detr=1 matches how this wrapper has always built the
+            # model; upstream trains with 13, which changes query shapes
+            'group_detr': 1,
+        }
         if num_queries is not None:
-            config['num_queries'] = num_queries
-            config['num_select'] = num_queries
+            overrides['num_queries'] = num_queries
+            overrides['num_select'] = num_queries
         if resolution is not None:
-            config['resolution'] = resolution
+            overrides['resolution'] = resolution
 
-        return config
+        return variant_to_config_cls[variant](**overrides)
 
-    def _build_model(self, config, weight_path):
+    def _build_model(self, model_config, weight_path):
         """Build the RF-DETR model, criterion, and postprocessor."""
-        from rfdetr.main import populate_args
-        from rfdetr.models import build_model, build_criterion_and_postprocessors
+        import os
+        from rfdetr.assets.model_weights import get_model_cache_dir
+        from rfdetr.config import TrainConfig
+        from rfdetr.models import (build_criterion_from_config,
+                                   build_model_from_config,
+                                   load_pretrain_weights)
 
-        # Determine weight path
         if weight_path is True:
-            actual_weight_path = config.get('pretrain_weights')
+            # Keep the variant's default weight name, resolved into the
+            # rfdetr cache dir the same way the upstream facade does
+            pretrain = model_config.pretrain_weights
+            if pretrain and not os.path.dirname(pretrain):
+                cache_dir = get_model_cache_dir()
+                os.makedirs(cache_dir, exist_ok=True)
+                model_config.pretrain_weights = os.path.join(cache_dir, pretrain)
         elif weight_path is False or weight_path is None:
-            actual_weight_path = None
+            model_config.pretrain_weights = None
         else:
-            actual_weight_path = weight_path
+            model_config.pretrain_weights = weight_path
 
-        # Build args namespace
-        args = populate_args(
-            num_classes=self.num_classes,
-            encoder=config['encoder'],
-            hidden_dim=config['hidden_dim'],
-            patch_size=config['patch_size'],
-            num_windows=config['num_windows'],
-            dec_layers=config['dec_layers'],
-            sa_nheads=config['sa_nheads'],
-            ca_nheads=config['ca_nheads'],
-            dec_n_points=config['dec_n_points'],
-            num_queries=config['num_queries'],
-            num_select=config['num_select'],
-            projector_scale=config['projector_scale'],
-            out_feature_indexes=config['out_feature_indexes'],
-            resolution=config['resolution'],
-            positional_encoding_size=config['positional_encoding_size'],
-            pretrain_weights=actual_weight_path,
-            # Loss coefficients
-            cls_loss_coef=1.0,
-            bbox_loss_coef=5.0,
-            giou_loss_coef=2.0,
-            focal_alpha=0.25,
-            # Standard settings
-            two_stage=True,
-            bbox_reparam=True,
-            lite_refpoint_refine=True,
-            aux_loss=True,
-            group_detr=1,  # Use 1 for inference, higher for training
-            ia_bce_loss=True,
-            segmentation_head=self.segmentation_head,
-            mask_downsample_ratio=8,  # Default value, unused when segmentation_head=False
-            device='cuda' if torch.cuda.is_available() else 'cpu',
-        )
+        train_config = TrainConfig(dataset_dir='.', output_dir='.')
+        model = build_model_from_config(model_config, train_config)
 
-        # Build model
-        model = build_model(args)
+        if model_config.pretrain_weights is not None:
+            # Downloads if missing, aligns class heads, filters mismatches
+            load_pretrain_weights(model, model_config)
 
-        # Load pretrained weights if specified
-        if actual_weight_path is not None:
-            from rfdetr.main import download_pretrain_weights
-            download_pretrain_weights(actual_weight_path)
-            if actual_weight_path and torch.cuda.is_available():
-                checkpoint = torch.load(actual_weight_path, map_location='cpu', weights_only=False)
-            elif actual_weight_path:
-                checkpoint = torch.load(actual_weight_path, map_location='cpu', weights_only=False)
-
-            if 'model' in checkpoint:
-                state_dict = checkpoint['model']
-                model_state = model.state_dict()
-
-                # Filter out keys with shape mismatches (class-specific and query-specific layers)
-                filtered_state_dict = {}
-                for k, v in state_dict.items():
-                    if k in model_state:
-                        if v.shape == model_state[k].shape:
-                            filtered_state_dict[k] = v
-                        else:
-                            print(f"Skipping {k} due to shape mismatch: checkpoint {v.shape} vs model {model_state[k].shape}")
-                    else:
-                        print(f"Skipping {k}: not in model")
-
-                # Load compatible weights
-                model.load_state_dict(filtered_state_dict, strict=False)
-                print(f"Loaded {len(filtered_state_dict)}/{len(state_dict)} pretrained weights")
-
-        # Build criterion and postprocessor
-        criterion, postprocess = build_criterion_and_postprocessors(args)
+        criterion, postprocess = build_criterion_from_config(
+            model_config, train_config)
 
         return model, criterion, postprocess
 
@@ -717,10 +596,13 @@ class RFDETR_Detector(nh.layers.Module):
         Returns:
             Dict: Netharn-style batch with inputs and labels
         """
+        default_hw = self.resolution
+        if not isinstance(default_hw, (tuple, list)):
+            default_hw = (default_hw, default_hw)
         if h is None:
-            h = self.resolution
+            h = default_hw[0]
         if w is None:
-            w = self.resolution
+            w = default_hw[1]
 
         return _demo_batch_rfdetr(
             bsize=bsize,
