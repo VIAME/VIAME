@@ -206,7 +206,7 @@ detect_shot_breaks_process::priv
         double cy = current_image->height() / 2.0;
         double scale = std::min( current_image->width(), current_image->height() ) / 2.0;
         auto center_feature = std::make_shared< kv::feature_d >(
-          kv::vector_2d( cx, cy ), scale, 0.0 );
+          kv::vector_2d( cx, cy ), 0.0, std::max( scale, 1.0 ) );
         std::vector< kv::feature_sptr > feature_vec;
         feature_vec.push_back( center_feature );
         kv::feature_set_sptr feature_set =
@@ -413,10 +413,14 @@ detect_shot_breaks_process::priv
   // Create a single feature at the center of the image to extract a global descriptor
   double cx = current_image->width() / 2.0;
   double cy = current_image->height() / 2.0;
-  double scale = std::min( current_image->width(), current_image->height() ) / 2.0;
+  // feature_d is ( loc, magnitude, scale, angle ): scale has to go in the third
+  // slot. A keypoint under 1px wide makes OpenCV's SIFT descriptor overrun its
+  // own buffers and abort the process on a double free.
+  double scale = std::max(
+    std::min( current_image->width(), current_image->height() ) / 2.0, 1.0 );
 
   auto center_feature = std::make_shared< kv::feature_d >(
-    kv::vector_2d( cx, cy ), scale, 0.0 );
+    kv::vector_2d( cx, cy ), 0.0, scale );
 
   std::vector< kv::feature_sptr > feature_vec;
   feature_vec.push_back( center_feature );
