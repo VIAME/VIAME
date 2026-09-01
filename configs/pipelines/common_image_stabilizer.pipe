@@ -103,9 +103,6 @@ process stabilizer
     #   - vxl_homography_guided
     loop_closer:type = multi_method
 
-    # Number of loop closure methods to use.
-    loop_closer:multi_method:count = 2
-
     # Algorithm to use for 'method1'.
     # Must be one of the following options:
     #   - bad_frames_only
@@ -113,9 +110,9 @@ process stabilizer
     #   - keyframe
     #   - multi_method
     #   - vxl_homography_guided
-    loop_closer:multi_method:method1:type = bad_frames_only
+    loop_closer:multi_method:method_1:type = bad_frames_only
 
-    block loop_closer:multi_method:method1:bad_frames_only
+    block loop_closer:multi_method:method_1:bad_frames_only
       # Should bad frame detection be enabled? This option will attempt to bridge the
       # gap between frames which don't meet certain criteria (percentage of feature
       # points tracked) and will instead attempt to match features on the current
@@ -183,9 +180,9 @@ process stabilizer
     #   - keyframe
     #   - multi_method
     #   - vxl_homography_guided
-    loop_closer:multi_method:method2:type                       = vxl_homography_guided
+    loop_closer:multi_method:method_2:type                       = vxl_homography_guided
 
-    block loop_closer:multi_method:method2:vxl_homography_guided
+    block loop_closer:multi_method:method_2:vxl_homography_guided
       # Is long term loop closure enabled?
       enabled       = true
 
