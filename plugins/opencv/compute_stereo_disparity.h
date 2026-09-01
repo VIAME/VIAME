@@ -89,7 +89,15 @@ public:
   virtual bool check_configuration(
     kwiver::vital::config_block_sptr config ) const override;
 
-  virtual void post_set_configuration();
+protected:
+  /// Build the matchers and load calibration from the defaults at construction
+  void initialize() override;
+
+  /// Rebuild them whenever the configuration changes
+  void set_configuration_internal(
+    kwiver::vital::config_block_sptr config ) override;
+
+public:
 
   /// Compute stereo disparity (or depth) map from left and right images
   ///
@@ -126,6 +134,7 @@ private:
   cv::Ptr<cv::ximgproc::DisparityWLSFilter> m_wls_filter;
 
   // Helper methods
+  void configure_from_current_values();
   void create_matchers();
   void load_calibration();
   void compute_rectification_maps( const cv::Size& img_size ) const;

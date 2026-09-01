@@ -25,7 +25,26 @@ namespace viame {
 // ---------------------------------------------------------------------------------------
 void
 compute_stereo_disparity
-::post_set_configuration()
+::initialize()
+{
+  attach_logger( "viame.opencv.compute_stereo_disparity" );
+  configure_from_current_values();
+}
+
+
+// ---------------------------------------------------------------------------------------
+void
+compute_stereo_disparity
+::set_configuration_internal( [[maybe_unused]] kv::config_block_sptr config )
+{
+  configure_from_current_values();
+}
+
+
+// ---------------------------------------------------------------------------------------
+void
+compute_stereo_disparity
+::configure_from_current_values()
 {
   // Ensure num_disparities is divisible by 16
   if( c_num_disparities % 16 != 0 )
