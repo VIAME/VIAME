@@ -18,7 +18,7 @@ process detector
   :detector:type                               ocv_windowed
 
   block detector:ocv_windowed
-    :detector:type                             netharn
+    :detector:type                             onnx
 
     :mode                                      chip_and_original
     :scale                                     1.0
@@ -28,8 +28,10 @@ process detector
     :chip_step_height                          300
     :chip_adaptive_thresh                      1200000
 
-    block detector:netharn
-      relativepath deployed =                  models/multi_category_cfrnn.zip
+    block detector:onnx
+      relativepath model =                     models/multi_category_cfrnn.onnx
+      :device                                  cuda
+      :score_thresh                            0.10
     endblock
   endblock
 

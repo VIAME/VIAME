@@ -4,11 +4,6 @@
 
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from pathlib import Path
-import warnings
-
-import zipfile
-import json
-import ast
 
 
 class OnnxConverter(KwiverProcess):
@@ -63,26 +58,18 @@ class OnnxConverter(KwiverProcess):
                     yolomit_to_onnx(model_path, config_path, output_onnx)
                 else:
                     raise ValueError(f"Detected an invalid YAML configuration at {config_path}")
-            case ".zip":  # netharn backend
+            case ".zip":  # netharn / bioharn mmdet backend
                 print("Detected netharn model.")
-                warnings.warn("Exporting a netharn model to ONNX is currently in beta and may be unstable!")
-                net_shape = ()
-                with zipfile.ZipFile(model_path, 'r') as zip_ref:
-                    all_files_in_zip = zip_ref.namelist()
-                    train_info_files = [file for file in all_files_in_zip if file.endswith("train_info.json")]
-                    if len(train_info_files) != 1:
-                        raise ValueError(f"There should be only one JSON confugration, detected {len(train_info_files)}")
-                    with zip_ref.open(train_info_files[0]) as file:
-                        content = file.read()
-                        json_content = json.loads(content.decode('utf-8'))
-                        config = ast.literal_eval(json_content["extra"]["config"])
-                        net_shape = (config['window_dims'][0], config['window_dims'][1], 3)
+                from viame.pytorch.netharn_mmdet_to_onnx import netharn_mmdet_to_onnx
 
-                from viame.pytorch.crcnn_to_onnx import crcnn_to_onnx
-                crcnn_to_onnx(model_path, net_shape, batch_size, onnx_model_prefix)
-                print(f'The generated onnx model was written to: {onnx_model_prefix}.onnx')
+                # The exporter reads the training window size out of the zip's
+                # train_info.json and writes a .modelspec.json sidecar next to
+                # the graph, which is what the "onnx" detector reads.
+                onnx_file = Path(onnx_model_prefix).with_suffix(".onnx")
+                netharn_mmdet_to_onnx(str(model_path), str(onnx_file))
+                print(f'The generated onnx model was written to: {onnx_file}')
             case _:
-                raise ValueError(f"The model {model_path} is not curently supported, only darknet and yolo-mit backends are supported!")
+                raise ValueError(f"The model {model_path} is not currently supported; the darknet, yolo-mit and netharn backends are.")
 
         self._base_configure()
         self.mark_process_as_complete()

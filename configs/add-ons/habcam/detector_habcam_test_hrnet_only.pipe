@@ -16,10 +16,25 @@ include common_habcam_input_left.pipe
 
 process detector_left
   :: image_object_detector
-  :detector:type                               netharn
+  :detector:type                               ocv_windowed
 
-  block detector:netharn
-    relativepath deployed =                    models/scallop_hrnet_four_class.zip
+  block detector:ocv_windowed
+    :detector:type                             onnx
+
+    # The ONNX graph is fixed at the 768x768 window the model was trained on,
+    # so the tiling netharn used to do internally is explicit here.
+    :mode                                      chip
+    :chip_width                                768
+    :chip_height                               768
+    :chip_step_width                           384
+    :chip_step_height                          384
+    :chip_edge_filter                          6
+
+    block detector:onnx
+      relativepath model =                     models/scallop_hrnet_four_class.onnx
+      :device                                  cuda
+      :score_thresh                            0.10
+    endblock
   endblock
 
 connect from left_image_filter.image

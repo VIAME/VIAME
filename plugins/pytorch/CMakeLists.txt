@@ -124,9 +124,9 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     if( VIAME_ENABLE_ONNX)
 
       kwiver_add_python_module(
-        ${CMAKE_CURRENT_SOURCE_DIR}/onnx_exporters/crcnn_to_onnx.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/onnx_exporters/netharn_mmdet_to_onnx.py
         pytorch
-        crcnn_to_onnx )
+        netharn_mmdet_to_onnx )
 
     endif()
 
