@@ -23,6 +23,11 @@ Supported ``postprocess.decoder`` values:
 * ``yolo``: a single output of shape ``(1, 4+C, N)`` or ``(1, N, 4+C)`` in
   ``cxcywh`` (model-input pixels); this decodes, thresholds, rescales to the
   original frame, and runs NMS host-side.
+* ``darknet``: darknet YOLO (v2 ``[region]`` through v7 ``[yolo]``) as written
+  by :mod:`viame.pytorch.darknet_to_onnx`. Three outputs -- ``boxes``
+  ``(1, N, 4)`` normalized ``cxcywh``, ``probs`` ``(1, N, C)``, ``confs``
+  ``(1, N, 1)`` objectness -- with no NMS in the graph, so this multiplies
+  objectness by class score, thresholds and runs NMS host-side.
 * ``mmdet``: the mmdet 2.x R-CNN family (Cascade R-CNN, Mask R-CNN ...) as
   written by :mod:`viame.pytorch.netharn_mmdet_to_onnx`. One output of shape
   ``(1, N, 6)`` -- ``[x1, y1, x2, y2, score, label]`` in model-input pixels,
@@ -162,6 +167,11 @@ class OnnxPredictor:
             # RGB. The kwiver adapter flips only when this is "bgr", so an RGB
             # model receives the frame in the same order as its torch detector.
             self._channel_order = str(pre.get("channel_order", "bgr")).lower()
+            # "squash" (default) stretches to the eval size; "letterbox"
+            # preserves aspect and pads, which is what darknet's
+            # resize_option=maintain_ar does. Only the darknet decoder maps
+            # boxes back through the letterbox transform.
+            self._resize_mode = str(pre.get("resize_mode", "squash")).lower()
 
             post = spec.get("postprocess", {})
             self._score_thresh = float(
@@ -237,12 +247,40 @@ class OnnxPredictor:
         return img_f32.transpose(2, 0, 1)[None, ...]
 
     # ------------------------------------------------------------------
+    def _preprocess_letterbox(self, image_np: np.ndarray):
+        """Aspect-preserving resize into the eval canvas, zero padded.
+
+        Returns (NCHW, (scale, pad_x, pad_y)) so the decoder can undo it."""
+        import cv2
+        if image_np.ndim == 2:
+            image_np = np.repeat(image_np[..., None], 3, axis=-1)
+        elif image_np.shape[2] == 4:
+            image_np = image_np[..., :3]
+        src_h, src_w = image_np.shape[:2]
+        scale = min(self._eval_h / src_h, self._eval_w / src_w)
+        new_h = max(int(round(src_h * scale)), 1)
+        new_w = max(int(round(src_w * scale)), 1)
+        interp = cv2.INTER_AREA if scale < 1 else cv2.INTER_LINEAR
+        resized = cv2.resize(image_np, (new_w, new_h), interpolation=interp)
+        canvas = np.zeros((self._eval_h, self._eval_w, 3), dtype=image_np.dtype)
+        pad_y = (self._eval_h - new_h) // 2
+        pad_x = (self._eval_w - new_w) // 2
+        canvas[pad_y:pad_y + new_h, pad_x:pad_x + new_w] = resized
+        img_f32 = canvas.astype(np.float32) * self._scale
+        img_f32 = (img_f32 - self._mean) / self._std
+        return img_f32.transpose(2, 0, 1)[None, ...], (scale, pad_x, pad_y)
+
+    # ------------------------------------------------------------------
     def predict_image(self, image_np: np.ndarray, orig_size=None) -> list:
         if orig_size is None:
             h, w = image_np.shape[:2]
             orig_size = (w, h)
         W, H = int(orig_size[0]), int(orig_size[1])
-        nchw = self._preprocess(image_np)
+        letterbox = None
+        if self._resize_mode == "letterbox":
+            nchw, letterbox = self._preprocess_letterbox(image_np)
+        else:
+            nchw = self._preprocess(image_np)
 
         if self._decoder in ("detr", "baked", "deimv2", "rtdetr"):
             return self._decode_detr(nchw, W, H)
@@ -252,6 +290,8 @@ class OnnxPredictor:
             return self._decode_mmdet(nchw, W, H)
         if self._decoder == "yolo":
             return self._decode_yolo(nchw, W, H)
+        if self._decoder in ("darknet", "darknet_yolo"):
+            return self._decode_darknet(nchw, W, H, letterbox)
         raise ValueError(f"unknown decoder {self._decoder!r}")
 
     # ------------------------------------------------------------------
@@ -382,6 +422,60 @@ class OnnxPredictor:
         xyxy[:, 1] = (boxes_cxcywh[:, 1] - boxes_cxcywh[:, 3] / 2) * sy
         xyxy[:, 2] = (boxes_cxcywh[:, 0] + boxes_cxcywh[:, 2] / 2) * sx
         xyxy[:, 3] = (boxes_cxcywh[:, 1] + boxes_cxcywh[:, 3] / 2) * sy
+        keep_idx = self._nms(xyxy, conf, self._nms_thresh)
+        return [{"label": int(cls_ids[i]),
+                 "bbox_xyxy": [float(v) for v in xyxy[i]],
+                 "score": float(conf[i])} for i in keep_idx]
+
+    # ------------------------------------------------------------------
+    def _decode_darknet(self, nchw, W, H, letterbox=None) -> list:
+        """darknet YOLO: ``boxes`` (normalized cxcywh), ``probs`` (per class)
+        and ``confs`` (objectness), no NMS in the graph.
+
+        Score is objectness x class probability, which is what darknet itself
+        thresholds on. Boxes are normalized to the network input, so scaling by
+        the frame size lands them in the caller's pixels directly -- no
+        eval-size division, unlike the ``yolo`` decoder."""
+        outputs = self._session.run(None, {self._input_names[0]: nchw})
+        names = [o.name for o in self._session.get_outputs()]
+
+        def _pick(want, fallback_idx):
+            for i, name in enumerate(names):
+                if want in name.lower():
+                    return outputs[i]
+            return outputs[fallback_idx]
+
+        boxes = _pick("box", 0)[0]
+        probs = _pick("prob", 1)[0]
+        confs = _pick("conf", 2)[0]
+
+        scores_all = probs * confs.reshape(-1, 1)
+        cls_ids = scores_all.argmax(1)
+        conf = scores_all.max(1)
+        keep = conf >= self._score_thresh
+        if not np.any(keep):
+            return []
+        boxes, cls_ids, conf = boxes[keep], cls_ids[keep], conf[keep]
+
+        xyxy = np.empty_like(boxes)
+        if letterbox is None:
+            xyxy[:, 0] = (boxes[:, 0] - boxes[:, 2] / 2) * W
+            xyxy[:, 1] = (boxes[:, 1] - boxes[:, 3] / 2) * H
+            xyxy[:, 2] = (boxes[:, 0] + boxes[:, 2] / 2) * W
+            xyxy[:, 3] = (boxes[:, 1] + boxes[:, 3] / 2) * H
+        else:
+            # Boxes are normalized to the padded canvas: back to canvas
+            # pixels, drop the padding, then undo the aspect-preserving scale.
+            scale, pad_x, pad_y = letterbox
+            cx = boxes[:, 0] * self._eval_w
+            cy = boxes[:, 1] * self._eval_h
+            bw = boxes[:, 2] * self._eval_w
+            bh = boxes[:, 3] * self._eval_h
+            xyxy[:, 0] = (cx - bw / 2 - pad_x) / scale
+            xyxy[:, 1] = (cy - bh / 2 - pad_y) / scale
+            xyxy[:, 2] = (cx + bw / 2 - pad_x) / scale
+            xyxy[:, 3] = (cy + bh / 2 - pad_y) / scale
+
         keep_idx = self._nms(xyxy, conf, self._nms_thresh)
         return [{"label": int(cls_ids[i]),
                  "bbox_xyxy": [float(v) for v in xyxy[i]],

@@ -21,6 +21,7 @@ that says how to read the graph's outputs:
 | `rfdetr` | RF-DETR: raw `dets` (normalized `cxcywh`) + `labels` logits; top-k over the query x class grid host-side, optional per-query masks. |
 | `yolo` | One `(1, 4+C, N)` / `(1, N, 4+C)` output in `cxcywh`; decode, threshold and NMS host-side. |
 | `mmdet` | mmdet 2.x R-CNN family: one `(1, N, 6)` output of `[x1, y1, x2, y2, score, label]` in model-input pixels, NMS baked in. |
+| `darknet` | darknet YOLO (v2 `[region]` through v7 `[yolo]`): `boxes` `(1, N, 4)` normalized `cxcywh`, `probs` `(1, N, C)`, `confs` `(1, N, 1)`; score is objectness x class, thresholded and NMS'd host-side. |
 
 The detector is whole-frame only; wrap it in `ocv_windowed` to tile large
 imagery, exactly as the other VIAME detectors are wrapped.
@@ -128,6 +129,52 @@ Verified end to end on the HabCam example imagery, against the netharn path:
 | `detector_habcam_scallop_four_class.pipe` (reclassifier) | 37 vs 37 | 0 | 1e-6 |
 
 (1e-6 is the CSV's print precision, not a real difference.)
+
+### Converting darknet YOLO models
+
+`viame.pytorch.darknet_to_onnx` converts a darknet `.cfg`/`.weights` pair,
+using the bundled `darknet2onnx` to rebuild the graph in PyTorch:
+
+```bash
+python -m viame.pytorch.darknet_to_onnx \
+    --cfg=models/fish_yolo_v2.cfg --weights=models/fish_yolo_v2.weights \
+    --labels=models/fish_yolo_v2.lbl --output=models/fish_yolo_v2.onnx \
+    --resize-mode=letterbox
+```
+
+Three things here are easy to get wrong and cost real accuracy:
+
+* **These models are BGR.** VIAME's C++ darknet detector hands OpenCV's native
+  BGR straight to the network, unlike the netharn-derived models. Feeding RGB
+  produces plausible-looking boxes that match the darknet detector *not at all*
+  (0 of 5 on a test chip, versus 5 of 5 with BGR).
+* **`--resize-mode` must mirror the pipe's `resize_option`.** `squash` (the
+  default) matches `resize_option=chip`, where the chip already is the network
+  size; `letterbox` matches `maintain_ar`, where a whole frame is fitted
+  preserving aspect. The `darknet` decoder maps boxes back through whichever.
+* The vendored exporter's own `export_darknet_to_onnx` is not used: it pins
+  opset 11 and leaves `dynamo` at torch's default, which on torch>=2.9 fails
+  the opset downconvert and silently writes a graph with no weights inline.
+
+VIAME patches three gaps in `darknet2onnx` (`packages/patches/darknet-to-pytorch-onnx`),
+without which neither HabCam model converts: the YOLOv2 `[region]` head was
+unimplemented, `[reorg]` used Python-2 float division in a `view()`, and the
+`[route]` builder asserted that a multi-way concat lists the preceding layer
+first (YOLOv7-tiny does not).
+
+Agreement with the C++ `darknet` detector is close but, unlike the netharn
+conversions, not exact. On the HabCam example imagery, counting detections
+above 0.05:
+
+| model | pipeline | darknet | onnx | strong dets matched IoU>0.5 |
+| --- | --- | ---: | ---: | ---: |
+| `scallop_yolo_v7_one_class` | `detector_habcam_test_yolo_only` | 7 | 8 | 7/7 |
+| `fish_yolo_v2` | `detector_habcam_scallop_and_flatfish` | 20 | 21 | 17/20 |
+
+On a single chip with no tiling, v7 matches 10/10 with scores equal to four
+decimals. The YOLOv2 region head reproduces confident detections closely (a
+0.9866 skate becomes 0.9855, box within ~5 px) but diverges more in the low
+score range; treat `fish_yolo_v2` as a close-but-not-bit-exact port.
 
 # Epipolar stereo matching as a single ONNX graph
 
