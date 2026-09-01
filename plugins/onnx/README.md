@@ -53,6 +53,82 @@ models return the same detection counts with box differences under ~0.2 px and
 score differences under 1e-4, and `detector_habcam_test_cfrnn_only.pipe` yields
 the same CSV through the `onnx` detector as it did through `netharn`.
 
+### Converting netharn classifiers
+
+`viame.pytorch.netharn_clf_to_onnx` does the same for netharn `ClfModel`
+classifiers -- the models behind the kwiver `netharn_classifier` algorithm and
+the `refine_detections :refiner:type netharn` reclassifier (in HabCam: 22
+substrate classifiers and 2 scallop EfficientNets):
+
+```bash
+python -m viame.pytorch.netharn_clf_to_onnx \
+    --deployed=models/scallop_efficientnet_four_class.zip \
+    --output=models/scallop_efficientnet_four_class.onnx
+```
+
+These are plain `InputNorm` + torchvision backbone, so the export needs none of
+the detector workarounds. The batch axis is left dynamic so callers can batch
+chips the way netharn's predictor does, the `InputNorm` stays inside the graph
+(the sidecar therefore asks only for a `1/255` rescale), and the softmax is
+baked in -- for the flat class trees these models use, netharn's
+`hierarchical_softmax` is exactly a plain softmax. A model with a real class
+hierarchy is refused rather than silently mis-normalized.
+
+Note the sidecar records `resize_mode: letterbox`: netharn's classifier dataset
+uses `kwimage.imresize(..., letterbox=True)`, which preserves aspect ratio and
+pads, unlike the squash resize the detectors use.
+
+Measured on an RTX 5000 with torch 2.12 / onnxruntime-gpu 1.23.2, EfficientNetV2-S
+at 224x224, versus the eager PyTorch model (ms per batch):
+
+| batch | torch CPU | onnx CPU | torch GPU | onnx GPU |
+| ---: | ---: | ---: | ---: | ---: |
+| 1  |  44.5 |  16.8 | 13.8 |  4.3 |
+| 4  |  85.8 |  45.0 | 14.0 | 11.1 |
+| 8  | 161.8 |  94.5 | 14.9 | 20.3 |
+| 16 | 363.3 | 204.9 | 26.6 | 38.0 |
+| 32 | 959.6 | 470.0 | 51.2 | 75.9 |
+
+ONNX wins on CPU everywhere (1.7-2.6x). On GPU it wins at small batches (3.2x at
+batch 1, 1.3x at batch 4) and loses beyond that (0.7x at batch 16-32): torch is
+launch-bound at small batch, and better at saturating the GPU at large batch.
+Since `netharn_classifier` runs one frame per call and the netharn refiner
+defaults to `batch_size` 2-4, both HabCam uses sit on the winning side.
+
+### Running classifiers: `onnx_classifier` and the `onnx` refiner
+
+Two kwiver algorithms consume these graphs, replacing `netharn_classifier` and
+the `netharn` refiner respectively:
+
+* **`onnx_classifier`** (an `image_object_detector`, like the netharn one it
+  replaces) classifies a whole frame and emits a single detection covering it,
+  carrying every class probability. `negative_class` renaming is preserved.
+* **`onnx`** (a `refine_detections`) crops a chip per input detection,
+  classifies it, and rewrites the detection's type. The chip geometry, area and
+  border filters, target-scale normalization and prior/taxonomy blending are
+  ports of `viame.pytorch.netharn_refiner` and behave identically.
+
+Both share `onnx_clf_predictor`, whose `letterbox_resize` is a pixel-exact port
+of `kwimage.imresize(..., letterbox=True)`. Two details there are load-bearing:
+kwimage picks **`INTER_AREA` when shrinking** (`INTER_LANCZOS4` when growing),
+and it **rounds** the pad offset rather than flooring. Getting either wrong is
+survivable on chips but not on whole-frame classification, where a 1360x1024
+frame is shrunk ~6x -- an early version using `INTER_LINEAR` throughout changed
+the top class on 5 of 66 substrate classifications.
+
+Frame scores match netharn exactly because for the flat class trees these
+models use, `CategoryTree.decision(..., criterion='entropy')` reduces to plain
+argmax / max-probability.
+
+Verified end to end on the HabCam example imagery, against the netharn path:
+
+| pipeline | rows | top-class mismatches | max prob diff |
+| --- | ---: | ---: | ---: |
+| `detector_habcam_substrate.pipe` (22 classifiers) | 66 vs 66 | 0 | 1e-6 |
+| `detector_habcam_scallop_four_class.pipe` (reclassifier) | 37 vs 37 | 0 | 1e-6 |
+
+(1e-6 is the CSV's print precision, not a real difference.)
+
 # Epipolar stereo matching as a single ONNX graph
 
 This plugin reimplements VIAME's stereo correspondence methods as single,

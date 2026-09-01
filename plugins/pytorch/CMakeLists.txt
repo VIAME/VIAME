@@ -128,6 +128,11 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
         pytorch
         netharn_mmdet_to_onnx )
 
+      kwiver_add_python_module(
+        ${CMAKE_CURRENT_SOURCE_DIR}/onnx_exporters/netharn_clf_to_onnx.py
+        pytorch
+        netharn_clf_to_onnx )
+
     endif()
 
 endif()

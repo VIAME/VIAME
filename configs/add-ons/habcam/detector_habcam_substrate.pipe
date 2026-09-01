@@ -35,13 +35,13 @@ process merger
 
 process classifier1
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/boulder.zip
+    :device                                    cuda
+    relativepath model =                       models/boulder.onnx
   endblock
 
 connect from classifier_input.image
@@ -51,13 +51,13 @@ connect from classifier1.detected_object_set
 
 process classifier2
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/bryozoan_levels.zip
+    :device                                    cuda
+    relativepath model =                       models/bryozoan_levels.onnx
   endblock
 
 connect from classifier_input.image
@@ -67,13 +67,13 @@ connect from classifier2.detected_object_set
 
 process classifier3
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/burrowing_anemones.zip
+    :device                                    cuda
+    relativepath model =                       models/burrowing_anemones.onnx
   endblock
 
 connect from classifier_input.image
@@ -83,13 +83,13 @@ connect from classifier3.detected_object_set
 
 process classifier4
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/clam_bed.zip
+    :device                                    cuda
+    relativepath model =                       models/clam_bed.onnx
   endblock
 
 connect from classifier_input.image
@@ -99,13 +99,13 @@ connect from classifier4.detected_object_set
 
 process classifier5
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/covered.zip
+    :device                                    cuda
+    relativepath model =                       models/covered.onnx
   endblock
 
 connect from classifier_input.image
@@ -115,13 +115,13 @@ connect from classifier5.detected_object_set
 
 process classifier6
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/detritus.zip
+    :device                                    cuda
+    relativepath model =                       models/detritus.onnx
   endblock
 
 connect from classifier_input.image
@@ -131,13 +131,13 @@ connect from classifier6.detected_object_set
 
 process classifier7
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/diverse_epifauna.zip
+    :device                                    cuda
+    relativepath model =                       models/diverse_epifauna.onnx
   endblock
 
 connect from classifier_input.image
@@ -147,13 +147,13 @@ connect from classifier7.detected_object_set
 
 process classifier8
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/gastropods.zip
+    :device                                    cuda
+    relativepath model =                       models/gastropods.onnx
   endblock
 
 connect from classifier_input.image
@@ -163,13 +163,13 @@ connect from classifier8.detected_object_set
 
 process classifier9
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/gravel_levels.zip
+    :device                                    cuda
+    relativepath model =                       models/gravel_levels.onnx
   endblock
 
 connect from classifier_input.image
@@ -179,13 +179,13 @@ connect from classifier9.detected_object_set
 
 process classifier10
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/mixed_invertebrates.zip
+    :device                                    cuda
+    relativepath model =                       models/mixed_invertebrates.onnx
   endblock
 
 connect from classifier_input.image
@@ -195,13 +195,13 @@ connect from classifier10.detected_object_set
 
 process classifier11
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/mussel_bed.zip
+    :device                                    cuda
+    relativepath model =                       models/mussel_bed.onnx
   endblock
 
 connect from classifier_input.image
@@ -211,13 +211,13 @@ connect from classifier11.detected_object_set
 
 process classifier12
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/organic_other.zip
+    :device                                    cuda
+    relativepath model =                       models/organic_other.onnx
   endblock
 
 connect from classifier_input.image
@@ -227,13 +227,13 @@ connect from classifier12.detected_object_set
 
 process classifier13
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/patchy_or_rows.zip
+    :device                                    cuda
+    relativepath model =                       models/patchy_or_rows.onnx
   endblock
 
 connect from classifier_input.image
@@ -243,13 +243,13 @@ connect from classifier13.detected_object_set
 
 process classifier14
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/pennatulids.zip
+    :device                                    cuda
+    relativepath model =                       models/pennatulids.onnx
   endblock
 
 connect from classifier_input.image
@@ -259,13 +259,13 @@ connect from classifier14.detected_object_set
 
 process classifier15
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/sand_dollar_bed.zip
+    :device                                    cuda
+    relativepath model =                       models/sand_dollar_bed.onnx
   endblock
 
 connect from classifier_input.image
@@ -275,13 +275,13 @@ connect from classifier15.detected_object_set
 
 process classifier16
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/sand_waves.zip
+    :device                                    cuda
+    relativepath model =                       models/sand_waves.onnx
   endblock
 
 connect from classifier_input.image
@@ -291,13 +291,13 @@ connect from classifier16.detected_object_set
 
 process classifier17
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/scallop_bed.zip
+    :device                                    cuda
+    relativepath model =                       models/scallop_bed.onnx
   endblock
 
 connect from classifier_input.image
@@ -307,13 +307,13 @@ connect from classifier17.detected_object_set
 
 process classifier18
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/sea_star_bed.zip
+    :device                                    cuda
+    relativepath model =                       models/sea_star_bed.onnx
   endblock
 
 connect from classifier_input.image
@@ -323,13 +323,13 @@ connect from classifier18.detected_object_set
 
 process classifier19
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/shell_levels.zip
+    :device                                    cuda
+    relativepath model =                       models/shell_levels.onnx
   endblock
 
 connect from classifier_input.image
@@ -339,13 +339,13 @@ connect from classifier19.detected_object_set
 
 process classifier20
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/sponges.zip
+    :device                                    cuda
+    relativepath model =                       models/sponges.onnx
   endblock
 
 connect from classifier_input.image
@@ -355,13 +355,13 @@ connect from classifier20.detected_object_set
 
 process classifier21
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/tunicates.zip
+    :device                                    cuda
+    relativepath model =                       models/tunicates.onnx
   endblock
 
 connect from classifier_input.image
@@ -371,13 +371,13 @@ connect from classifier21.detected_object_set
 
 process classifier22
   :: image_object_detector
-  :detector:type                               netharn_classifier
+  :detector:type                               onnx_classifier
 
-  block detector:netharn_classifier
-    :mode                                      frame_classifier
+  block detector:onnx_classifier
     :batch_size                                1
     :negative_class                            background
-    relativepath deployed =                    models/whole_shells.zip
+    :device                                    cuda
+    relativepath model =                       models/whole_shells.onnx
   endblock
 
 connect from classifier_input.image
