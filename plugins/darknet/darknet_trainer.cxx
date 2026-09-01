@@ -624,7 +624,7 @@ darknet_trainer::priv
   int width, int height, int channels, int nfilters,
   int batch_size, int batch_subdivisions,
   const std::string& input_model,
-  int samp_count, VITAL_UNUSED int gt_count,
+  int samp_count, [[maybe_unused]] int gt_count,
   const std::string& output_str,
   const std::string& image_ext,
   double test_per )
@@ -1139,7 +1139,7 @@ void
 darknet_trainer::priv
 ::generate_fn( std::string output_folder,
                std::string& image, std::string& gt,
-               VITAL_UNUSED const int len )
+               [[maybe_unused]] const int len )
 {
   static int file_id_counter = 0;
   file_id_counter++;

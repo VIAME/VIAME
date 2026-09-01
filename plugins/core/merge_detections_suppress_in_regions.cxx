@@ -32,7 +32,7 @@ merge_detections_suppress_in_regions
 /// Check that the algorithm's currently configuration is valid
 bool
 merge_detections_suppress_in_regions
-::check_configuration( VITAL_UNUSED kv::config_block_sptr config ) const
+::check_configuration( [[maybe_unused]] kv::config_block_sptr config ) const
 {
   return true;
 }

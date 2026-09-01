@@ -1767,7 +1767,7 @@ train_detector_svm
 /// Check that the algorithm's configuration is valid
 bool
 train_detector_svm
-::check_configuration( VITAL_UNUSED kv::config_block_sptr config ) const
+::check_configuration( [[maybe_unused]] kv::config_block_sptr config ) const
 {
   return true;
 }
@@ -1781,8 +1781,8 @@ train_detector_svm
   kv::category_hierarchy_sptr object_labels,
   std::vector< std::string > train_image_names,
   std::vector< kv::detected_object_set_sptr > train_groundtruth,
-  VITAL_UNUSED std::vector< std::string > test_image_names,
-  VITAL_UNUSED std::vector< kv::detected_object_set_sptr > test_groundtruth )
+  [[maybe_unused]] std::vector< std::string > test_image_names,
+  [[maybe_unused]] std::vector< kv::detected_object_set_sptr > test_groundtruth )
 {
   d_->m_categories = object_labels;
   d_->m_train_image_names = train_image_names;

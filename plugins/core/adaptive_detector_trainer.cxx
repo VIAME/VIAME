@@ -726,12 +726,12 @@ check_hard_requirements(
 
   // Check mask fraction requirement (1.0 = every annotation needs a mask/poly)
   if( tc.required_mask_fraction > 0 &&
-      m_stats.mask_fraction < tc.required_mask_fraction )
+      stats.mask_fraction < tc.required_mask_fraction )
   {
-    if( m_verbose )
+    if( verbose )
     {
-      LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: mask/polygon "
-                 << "fraction " << ( m_stats.mask_fraction * 100 )
+      LOG_DEBUG( logger, "Trainer " << tc.name << " failed: mask/polygon "
+                 << "fraction " << ( stats.mask_fraction * 100 )
                  << "% is below required "
                  << ( tc.required_mask_fraction * 100 ) << "%" );
     }

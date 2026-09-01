@@ -162,7 +162,7 @@ public:
 /**
  * Generate list of all applets that have been discovered.
  */
-void tool_runner_usage( VITAL_UNUSED applet_context_t ctxt,
+void tool_runner_usage( [[maybe_unused]] applet_context_t ctxt,
                         kwiver::vital::plugin_manager& vpm )
 {
   // display help message
