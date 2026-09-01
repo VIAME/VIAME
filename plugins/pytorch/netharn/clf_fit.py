@@ -632,10 +632,12 @@ def setup_harn(cmdline=True, **kw):
             }
         }['rgb']  # TODO: handle channels
     elif config['normalize_inputs']:
-        # Get stats on the dataset (todo: turn off augmentation for this)
+        # Augmentation has to stay off here: the resulting mean/std end up in
+        # the model hyperparams, so random stats give the run a new hash and
+        # netharn can never resume it.
         _dset = torch_datasets['train']
         prev = _dset.disable_augmenter
-        _dset.disable_augmenter = False
+        _dset.disable_augmenter = True
         if config['normalize_inputs'] is True:
             est_size = 1000
         else:
