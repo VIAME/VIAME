@@ -9,7 +9,7 @@
 
 process thermal_detector_input
   :: image_filter
-  :filter:type                                 percentile_norm_npy
+  :filter:type                                 equalize_via_percentiles_npy
 
 process thermal_detector1
   :: image_object_detector

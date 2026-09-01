@@ -37,8 +37,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     typeid( viame::measure_objects_process ).name(),
     sprokit::process::interface_name(),
     sprokit::create_new_process< viame::measure_objects_process > );
-  fact->add_attribute( kvpf::PLUGIN_NAME, "ocv_measure_objects" )
-    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kvpf::PLUGIN_NAME, "measure_using_stereo" )
+    .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kvpf::PLUGIN_DESCRIPTION,
+                    "Stereo measurement process that matches detections between "
+                    "left and right cameras and computes fish length measurements "
+                    "using triangulation" )
+    .add_attribute( kvpf::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 
   fact = new sprokit::cpp_process_factory(
