@@ -18,13 +18,13 @@ if [ -f ${SEED_MODEL} ]; then
     -i ${INPUT_DIRECTORY} \
     -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_cfrnn.conf \
     -s detector_trainer:ocv_windowed:trainer:netharn:seed_model=${SEED_MODEL} \
-    --threshold 0.0 --no-embedded-pipe
+    --threshold 0.0
 elif [ -d deep_training ]; then
   viame train \
     -i ${INPUT_DIRECTORY} \
     -c ${VIAME_INSTALL}/configs/pipelines/train_detector_netharn_cfrnn.conf \
     --continue \
-    --threshold 0.0 --no-embedded-pipe
+    --threshold 0.0
 else
   echo "Initial model or in progress training folder does not exist, exiting"
 fi

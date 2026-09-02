@@ -21,14 +21,14 @@ IF EXIST "%SEED_MODEL%" (
     -i "%INPUT_DIRECTORY%" ^
     -c "%VIAME_INSTALL%\configs\pipelines\train_detector_netharn_cfrnn.conf" ^
     -s "detector_trainer:ocv_windowed:trainer:netharn:seed_model=%SEED_MODEL%" ^
-    --threshold 0.0 --no-embedded-pipe
+    --threshold 0.0
 ) ELSE (
   IF EXIST "deep_training" (
     viame.exe train ^
       -i "%INPUT_DIRECTORY%" ^
       -c "%VIAME_INSTALL%\configs\pipelines\train_detector_netharn_cfrnn.conf" ^
       --continue ^
-      --threshold 0.0 --no-embedded-pipe
+      --threshold 0.0
   ) ELSE (
     ECHO Initial seed model or in progress training folder does not exist, exiting
   )

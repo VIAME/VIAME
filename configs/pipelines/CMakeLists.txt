@@ -96,8 +96,6 @@ set( CORE_PIPELINE_FILES
   database_apply_svm_models.pipe
   detector_gmm_motion.pipe
   detector_motion_three_frame_diff.pipe
-  detector_project_folder.pipe
-  detector_project_folder_left.pipe
   detector_simple_hough.pipe
   display_annotations.pipe
   filter_debayer.pipe
@@ -115,7 +113,6 @@ set( CORE_PIPELINE_FILES
   filter_to_video.pipe
   filter_tracks_only.pipe
   filter_tracks_only_adjust_csv.pipe
-  frame_classifier_project_folder.pipe
   frame_classifier_svm.pipe
   index_existing.pipe
   index_frame.pipe
@@ -133,7 +130,6 @@ set( CORE_PIPELINE_FILES
   query_retrieval_and_iqr.pipe
   query_video_exemplar.pipe
   sql_init_table.sql
-  tracker_project_folder.pipe
   train_aug_add_color_freq.pipe
   train_aug_add_double_motion.pipe
   train_aug_add_motion.pipe
@@ -335,13 +331,9 @@ endif()
 if( VIAME_ENABLE_WEB_EXCLUDES )
   set( VIAME_WEB_FILES_TO_IGNORE
     database_apply_svm_models.pipe
-    detector_project_folder.pipe
-    detector_project_folder_left.pipe
-    detector_simple_hough.pipe
-    frame_classifier_project_folder.pipe
-    frame_classifier_svm.pipe
-    tracker_project_folder.pipe
-    utility_add_head_tail_keypoints.pipe
+        detector_simple_hough.pipe
+      frame_classifier_svm.pipe
+      utility_add_head_tail_keypoints.pipe
     utility_enhance.pipe
     utility_extract_chips.pipe
   )

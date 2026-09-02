@@ -393,7 +393,7 @@ Inference Scripts
 ------------------
 
 ``run_trained_model.sh`` / ``.bat``
-    Run a trained detector model on new imagery. Uses ``detector_project_folder.pipe``
+    Run a trained detector model on new imagery. Uses ``category_models/detector.pipe``
     which loads the model from the ``category_models`` directory produced by training.
     Supports multi-GPU processing via the ``TOTAL_GPU_COUNT`` and ``PIPES_PER_GPU``
     options.

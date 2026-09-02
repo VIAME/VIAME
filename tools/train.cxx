@@ -990,7 +990,10 @@ train_applet
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "no-adv-prints", "Do not print out any advanced chars",
       ::cxxopts::value< bool >()->default_value( "false" ) )
-    ( "no-embedded-pipe", "Do not output embedded pipes",
+    ( "embedded-pipe", "Output embedded pipeline fragments for inclusion in "
+      "other pipelines, rather than directly runnable ones",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "no-embedded-pipe", "Deprecated: runnable pipelines are now the default",
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "gt-frames-only", "Use frames with annotations only",
       ::cxxopts::value< bool >()->default_value( "false" ) )
@@ -1079,7 +1082,7 @@ train_applet
   bool opt_list = cmd_args[ "list" ].as< bool >();
   bool opt_no_query = cmd_args[ "no-query" ].as< bool >();
   bool opt_no_adv_print = cmd_args[ "no-adv-prints" ].as< bool >();
-  bool opt_no_emb_pipe = cmd_args[ "no-embedded-pipe" ].as< bool >();
+  bool opt_emb_pipe = cmd_args[ "embedded-pipe" ].as< bool >();
   bool opt_gt_only = cmd_args[ "gt-frames-only" ].as< bool >();
   bool opt_continue = cmd_args[ "continue" ].as< bool >();
 
@@ -1339,7 +1342,7 @@ train_applet
       }
     }
 
-    if( opt_no_emb_pipe )
+    if( !opt_emb_pipe )
     {
       for( auto conf : conf_values )
       {
@@ -1634,7 +1637,8 @@ train_applet
     if( pipeline_template.empty() ||
         pipeline_template.find( "default" ) != std::string::npos )
     {
-      pipeline_template = pipeline_prefix + "templates/embedded_16bit.pipe";
+      pipeline_template = pipeline_prefix + ( opt_emb_pipe ?
+        "templates/embedded_16bit.pipe" : "templates/detector_16bit.pipe" );
       std::cout << "Using 16-bit normalization inference template" << std::endl;
     }
   }
