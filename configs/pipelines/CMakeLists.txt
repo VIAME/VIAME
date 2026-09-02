@@ -184,7 +184,6 @@ endif()
 # Pytorch specific configs
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_adaptive.conf
     train_detector_default.conf
     train_frame_classifier_default.conf
     train_reclassifier_default.conf

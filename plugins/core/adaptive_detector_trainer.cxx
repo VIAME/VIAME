@@ -312,8 +312,8 @@ training_data_statistics::compute_summary(
     keypoint_fraction = static_cast< double >( objects_with_keypoints ) / n;
     has_keypoints = ( keypoint_fraction > 0.5 );
 
-    track_fraction = static_cast< double >( objects_with_tracks ) / n;
-    has_tracks = ( track_fraction > 0.5 );
+    // objects_with_tracks is filled in after this runs, so track_fraction and
+    // has_tracks are set alongside mean_track_length instead.
   }
 
   // -------------------------------------------------------------------------
@@ -709,13 +709,10 @@ adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
           m_stats.objects_with_keypoints++;
         }
 
-        // index() carries the track id; the csv reader leaves it 0 when the
-        // groundtruth has no track column.
-        if( (*detection)->index() > 0 )
-        {
-          m_stats.objects_with_tracks++;
-          m_track_id_counts[ (*detection)->index() ]++;
-        }
+        // index() carries the csv track id. Every row has one, so presence
+        // says nothing; how often an id repeats is what separates tracking
+        // groundtruth from loose detections.
+        m_track_id_counts[ (*detection)->index() ]++;
 
         frame_boxes.push_back( bbox );
       }
@@ -794,16 +791,24 @@ adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
     for( const auto& entry : m_track_id_counts )
     {
       states += entry.second;
+
+      if( entry.second > 1 )
+      {
+        m_stats.objects_with_tracks += entry.second;
+      }
     }
 
     m_stats.mean_track_length =
       static_cast< double >( states ) / m_track_id_counts.size();
+
+    if( states > 0 )
+    {
+      m_stats.track_fraction =
+        static_cast< double >( m_stats.objects_with_tracks ) / states;
+      m_stats.has_tracks = ( m_stats.track_fraction > 0.5 );
+    }
   }
 
-  if( m_verbose )
-  {
-    m_stats.log_statistics( m_logger );
-  }
 }
 
 
@@ -1572,20 +1577,43 @@ adaptive_detector_trainer
   d->m_image_sample_count =
     config->get_value< size_t >( "image_sample_count", 25 );
 
-  // Optional: without these the probe is skipped and any trainer gated on
-  // generic recall simply never runs.
-  if( kv::algo::image_object_detector::check_nested_algo_configuration(
-        "generic_probe_detector", config ) )
+  // Optional, and never fatal: the stock detector's model is an add-on that
+  // may not be installed. Without it the probe is skipped and any trainer
+  // gated on generic recall simply never runs, rather than the whole training
+  // job dying before it starts.
+  if( !config->get_value< std::string >( "generic_probe_detector:type", "" ).empty() )
   {
-    kv::algo::image_object_detector::set_nested_algo_configuration(
-      "generic_probe_detector", config, d->m_generic_probe_detector );
+    try
+    {
+      kv::algo::image_object_detector::set_nested_algo_configuration(
+        "generic_probe_detector", config, d->m_generic_probe_detector );
+    }
+    catch( const std::exception& e )
+    {
+      LOG_WARN( d->m_logger, "Generic detector probe unavailable, skipping it: "
+                << e.what() );
+      d->m_generic_probe_detector = nullptr;
+    }
   }
 
-  if( kv::algo::image_io::check_nested_algo_configuration(
-        "generic_probe_image_reader", config ) )
+  if( !config->get_value< std::string >( "generic_probe_image_reader:type", "" ).empty() )
   {
-    kv::algo::image_io::set_nested_algo_configuration(
-      "generic_probe_image_reader", config, d->m_probe_image_reader );
+    try
+    {
+      kv::algo::image_io::set_nested_algo_configuration(
+        "generic_probe_image_reader", config, d->m_probe_image_reader );
+    }
+    catch( const std::exception& e )
+    {
+      LOG_WARN( d->m_logger, "Probe image reader unavailable: " << e.what() );
+      d->m_probe_image_reader = nullptr;
+    }
+  }
+
+  if( !d->m_probe_image_reader )
+  {
+    LOG_WARN( d->m_logger, "No probe image reader; source resolution will be "
+              "unknown and any trainer gated on it will be allowed through" );
   }
 
   // -------------------------------------------------------------------------
@@ -1717,6 +1745,11 @@ adaptive_detector_trainer
   d->sample_image_dimensions();
   d->run_generic_detector_probe();
 
+  if( d->m_verbose )
+  {
+    d->m_stats.log_statistics( d->m_logger );
+  }
+
   if( !d->m_output_statistics_file.empty() )
   {
     d->write_statistics_file();
@@ -1743,6 +1776,32 @@ adaptive_detector_trainer
 
   LOG_INFO( d->m_logger, "Analyzing training data statistics..." );
   d->compute_statistics_from_groundtruth( train_groundtruth, test_groundtruth );
+
+  for( const auto& image : train_images )
+  {
+    if( image && image->width() > 0 && image->height() > 0 )
+    {
+      d->m_stats.sampled_image_widths.push_back(
+        static_cast< double >( image->width() ) );
+      d->m_stats.sampled_image_heights.push_back(
+        static_cast< double >( image->height() ) );
+    }
+  }
+
+  if( !d->m_stats.sampled_image_widths.empty() )
+  {
+    auto widths = d->m_stats.sampled_image_widths;
+    auto heights = d->m_stats.sampled_image_heights;
+    std::sort( widths.begin(), widths.end() );
+    std::sort( heights.begin(), heights.end() );
+    d->m_stats.median_image_width = widths[ widths.size() / 2 ];
+    d->m_stats.median_image_height = heights[ heights.size() / 2 ];
+  }
+
+  if( d->m_verbose )
+  {
+    d->m_stats.log_statistics( d->m_logger );
+  }
 
   if( !d->m_output_statistics_file.empty() )
   {

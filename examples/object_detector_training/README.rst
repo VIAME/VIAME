@@ -256,32 +256,33 @@ Training::
 
 
 ****************************
-Adaptive Detector Training
+Default (Automatic) Training
 ****************************
 
-VIAME provides an adaptive training mode that automatically analyzes training data
-statistics and selects the best trainer(s) for the given dataset. The adaptive trainer
-considers:
+``train_detector_default.conf`` analyzes the training data and trains the single
+detector that best fits it. The trainer considers:
 
 - Annotation counts (total and per-class)
 - Object sizes (mean, percentiles, distribution)
-- Aspect ratios and scale variance
-- Object density per frame
-- Overlap and occlusion metrics
-- Presence of mask/polygon annotations
+- Aspect ratios, scale variance, density, overlap
+- Presence of mask/polygon and keypoint annotations
+- Source image resolution
+- How well the stock generic detector already covers the data
 
-Based on these statistics, the adaptive trainer selects up to 3 frameworks from:
-SVM (50+ annotations), MIT-YOLO (200+), Netharn Grid (300+), LitDet FRCNN (300+),
-RF-DETR (400+), and Netharn CFRNN (500+). Each trainer has hard requirements
-(minimum count, minimum area, etc.) and soft preferences that are scored against
-the data profile.
+The candidates, in the order they are considered, are an SVM over the stock
+detector's proposals (tiny datasets the stock detector already finds objects
+in, measured by running it), a keypoint RF-DETR, a segmentation RF-DETR, a
+1728x960 RF-DETR for high-resolution imagery, and a 720px RF-DETR otherwise.
 
 Training::
 
-    viame train -i training_data -c train_detector_adaptive.conf --threshold 0.0
+    viame train -i training_data -c train_detector_default.conf --threshold 0.0
 
-The adaptive trainer outputs a ``training_data_statistics.json`` file with the
-computed dataset statistics.
+For tracking groundtruth, add ``--tracker bytetrack`` to train a tracker over
+the detector's output once it finishes.
+
+The trainer outputs a ``training_data_statistics.json`` file with the computed
+dataset statistics, including which branch was selected and why.
 
 
 **********************
