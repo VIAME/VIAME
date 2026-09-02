@@ -548,7 +548,20 @@ class RFDETR_Detector(nh.layers.Module):
         if resolution is not None:
             overrides['resolution'] = resolution
 
-        return variant_to_config_cls[variant](**overrides)
+        try:
+            return variant_to_config_cls[variant](**overrides)
+        except Exception as ex:
+            # rfdetr validates resolution divisibility per variant; fall back
+            # to the variant's own default rather than failing on a window
+            # size the variant cannot take, and let rf-detr resize internally
+            if 'resolution' not in overrides:
+                raise
+            import warnings
+            warnings.warn(
+                'resolution %r rejected for variant %r (%s); using the '
+                'variant default' % (resolution, variant, ex))
+            del overrides['resolution']
+            return variant_to_config_cls[variant](**overrides)
 
     def _build_model(self, model_config, weight_path):
         """Build the RF-DETR model, criterion, and postprocessor."""
