@@ -11,7 +11,7 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-# Standard image or video input plus 5 fps downsampler
+# Standard image or video input plus downsampler
 include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_input_with_downsampler.pipe
 
 process detector_input
