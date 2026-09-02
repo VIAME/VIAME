@@ -1342,11 +1342,13 @@ windowed_trainer::priv
     return false;
   }
 
-  // A chip that is still a view into its source frame -- which is what a crop
-  // is when no rescale was needed -- converts to a vital image with no memory
-  // of its own, and the vxl writer dereferences that without checking. Give
-  // the writer a chip that owns its pixels.
-  const cv::Mat& owned = image.isContinuous() ? image : image.clone();
+  // A chip whose Mat does not own its pixels -- one wrapping a vital image's
+  // buffer, as an unscaled frame or a crop of one is -- converts to a vital
+  // image with a null memory (ocv_to_vital only wraps refcounted Mats), and
+  // the vxl writer dereferences that without checking. Give the writer a chip
+  // that owns its pixels.
+  const cv::Mat owned =
+    ( image.u && image.isContinuous() ) ? image : image.clone();
 
   m_image_io->save( filename,
     kv::image_container_sptr(
