@@ -27,9 +27,13 @@ process shot_break_detector
   :: detect_shot_breaks
   :use_shot_break_detection                    true
   :shot_break_method                           descriptor
+  # A fixed distance suits one camera and not the next; calibrate per video.
+  :adaptive_threshold                          true
+  :adaptive_sensitivity                        3.0
   :descriptor_distance_threshold               0.5
   :min_track_length                            5
-  :max_track_length                            0
+  # Backstop so a video with no detectable cut still gets split.
+  :max_track_length                            300
   :frame_descriptor_extractor:type             ocv_SIFT
 
 connect from downsampler.output_1

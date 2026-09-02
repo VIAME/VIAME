@@ -1,0 +1,23 @@
+# =============================================================================
+# Title: Trained Tracker
+#
+# Description: A track_objects process carrying the parameters estimated by
+# tracker training. Drop-in for common_default_tracker.pipe: the including
+# pipeline connects image, timestamp and detected_object_set itself.
+# =============================================================================
+
+process tracker
+  :: track_objects
+  :track_objects:type                          bytetrack
+
+  block track_objects:bytetrack
+    :high_thresh                               [-HIGH-THRESH-]
+    :low_thresh                                [-LOW-THRESH-]
+    :match_thresh                              [-MATCH-THRESH-]
+    :second_match_thresh                       [-SECOND-MATCH-THRESH-]
+    :unconfirmed_match_thresh                  [-UNCONFIRMED-MATCH-THRESH-]
+    :track_buffer                              [-TRACK-BUFFER-]
+    :new_track_thresh                          [-NEW-TRACK-THRESH-]
+    :std_weight_position                       [-STD-WEIGHT-POSITION-]
+    :std_weight_velocity                       [-STD-WEIGHT-VELOCITY-]
+  endblock

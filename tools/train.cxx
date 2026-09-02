@@ -161,6 +161,11 @@ static kv::config_block_sptr default_config()
   config->set_value( "pipeline_template", "",
     "Optional template file for generating output pipeline. Keywords in the "
     "template will be replaced with values from the trainer." );
+  config->set_value( "tracker_pipeline_template", "",
+    "Optional template for the tracker trained in the same run. Written as its "
+    "own pipe so the detector pipeline keeps its usual shape." );
+  config->set_value( "output_tracker_pipeline_name", "tracker.pipe",
+    "Name for the generated tracker pipeline file." );
   config->set_value( "output_pipeline_name", "detector.pipe",
     "Name for the generated output pipeline file." );
 
@@ -815,13 +820,18 @@ static void process_trainer_output(
     }
   }
 
-  // Build [-DETECTOR-IMPL-] replacement from full trainer output
-  std::string impl = generate_detector_impl_replacement(
-      output_map, pipeline_template );
-
-  if( !impl.empty() )
+  // Build [-DETECTOR-IMPL-] replacement from full trainer output. Only a
+  // detector fills that slot; a tracker sharing the template would otherwise
+  // substitute itself in as the detector.
+  if( is_detector )
   {
-    template_replacements[ "[-DETECTOR-IMPL-]" ] = impl;
+    std::string impl = generate_detector_impl_replacement(
+        output_map, pipeline_template );
+
+    if( !impl.empty() )
+    {
+      template_replacements[ "[-DETECTOR-IMPL-]" ] = impl;
+    }
   }
 
   // If output_file is specified, create a zip archive
@@ -1175,7 +1185,7 @@ train_applet
     ( training_configs.size() > 1 || training_detectors.size() > 1 );
   const unsigned model_count =
     std::max( training_configs.size(), training_detectors.size() );
-  const bool train_trackers = !training_trackers.empty();
+  bool train_trackers = !training_trackers.empty();
 
   if( multi_model_training )
   {
@@ -1540,6 +1550,10 @@ train_applet
     config->get_value< std::string >( "output_file" );
   std::string pipeline_template =
     config->get_value< std::string >( "pipeline_template" );
+  std::string tracker_pipeline_template =
+    config->get_value< std::string >( "tracker_pipeline_template" );
+  std::string output_tracker_pipeline_name =
+    config->get_value< std::string >( "output_tracker_pipeline_name" );
   std::string output_pipeline_name =
     config->get_value< std::string >( "output_pipeline_name" );
 
@@ -2696,6 +2710,70 @@ train_applet
       train_gt.begin() + validation_pivot, train_gt.end() );
   }
 
+  // Turn on tracker training when the groundtruth is actually tracks. The id in
+  // index() comes from column 0 of the viame csv, which is a track id for track
+  // data and a unique per-detection id otherwise, so presence says nothing and
+  // repetition says everything: loose detections average one state per id.
+  const std::string auto_tracker =
+    config->get_value< std::string >( "auto_train_tracker", "" );
+
+  if( !auto_tracker.empty() )
+  {
+    const double min_track_length =
+      config->get_value< double >( "auto_train_tracker_min_track_length", 2.0 );
+
+    std::map< uint64_t, size_t > states_per_id;
+
+    for( auto det_set : train_gt )
+    {
+      if( det_set )
+      {
+        for( auto det : *det_set )
+        {
+          states_per_id[ det->index() ]++;
+        }
+      }
+    }
+
+    double mean_track_length = 0.0;
+
+    if( !states_per_id.empty() )
+    {
+      size_t states = 0;
+
+      for( const auto& entry : states_per_id )
+      {
+        states += entry.second;
+      }
+
+      mean_track_length =
+        static_cast< double >( states ) / states_per_id.size();
+    }
+
+    const bool already_requested =
+      ( std::find( training_trackers.begin(), training_trackers.end(),
+                   auto_tracker ) != training_trackers.end() );
+
+    if( mean_track_length >= min_track_length )
+    {
+      if( !already_requested )
+      {
+        std::cout << "Groundtruth averages " << mean_track_length
+                  << " states per track id; also training the " << auto_tracker
+                  << " tracker" << std::endl;
+
+        training_trackers.push_back( auto_tracker );
+        train_trackers = true;
+      }
+    }
+    else
+    {
+      std::cout << "Groundtruth averages " << mean_track_length
+                << " states per track id, below the " << min_track_length
+                << " needed; not adding a tracker automatically" << std::endl;
+    }
+  }
+
   if( label_counts.empty() )
   {
     for( auto det_set : train_gt )
@@ -3313,8 +3391,10 @@ train_applet
       std::string current_tracker = training_trackers[ tracker_idx ];
       std::cout << std::endl << "Training tracker: " << current_tracker << std::endl;
 
-      // Configure tracker trainer
+      // Start from the run's own configuration rather than the defaults, so a
+      // single -c file can carry both the detector and the tracker it wants.
       kv::config_block_sptr tracker_config = default_config();
+      tracker_config->merge_config( config );
       tracker_config->set_value( "tracker_trainer:type", current_tracker );
 
       // Tell the trainer where the frame-to-track-set association is. Set
@@ -3365,7 +3445,8 @@ train_applet
           tracker_trainer->update_model();
 
         process_trainer_output( trainer_output, output_directory, output_file,
-          pipeline_template, output_pipeline_name, current_tracker, false );
+          tracker_pipeline_template, output_tracker_pipeline_name,
+          current_tracker, false );
       }
       catch( const std::exception& e )
       {

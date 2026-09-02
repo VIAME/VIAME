@@ -238,7 +238,7 @@ private:
 
   std::string generate_filename( const std::string& frame_tag, int chip_idx );
 
-  void write_chip_to_disk( const std::string& filename, const cv::Mat& image );
+  bool write_chip_to_disk( const std::string& filename, const cv::Mat& image );
 
   // Chip-cache (manifest) helpers
   std::string frame_tag_for( unsigned fid, const std::string& image_fn );

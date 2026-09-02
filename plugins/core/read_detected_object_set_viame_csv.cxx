@@ -234,6 +234,15 @@ create_viame_csv_detection(
     dob = std::make_shared< kwiver::vital::detected_object >( bbox, conf );
   }
 
+  // Column 0 is the track id for track data and a unique per-detection id
+  // otherwise. Carrying it through lets consumers tell the two apart by how
+  // often an id repeats; detections read as tracks of one.
+  const long long id = atoll( cols[VIAME_CSV_COL_DET_ID].c_str() );
+  if( id >= 0 )
+  {
+    dob->set_index( static_cast< uint64_t >( id ) );
+  }
+
   // Extract polygon if present
   std::vector< double > polygon;
   if( extract_viame_csv_polygon( cols, optional_start, polygon ) )
@@ -607,6 +616,15 @@ read_detected_object_set_viame_csv::priv
     if( length != 0.0 && length != -1.0 )
     {
       dob->set_attribute( "length", length );
+    }
+
+    // Column 0 is the track id for track data and a unique per-detection id
+    // otherwise. Carrying it through lets consumers tell the two apart by how
+    // often an id repeats; detections read as tracks of one.
+    const long long track_id = atoll( col[COL_DET_ID].c_str() );
+    if( track_id >= 0 )
+    {
+      dob->set_index( static_cast< uint64_t >( track_id ) );
     }
 
     std::vector< std::string > poly_strings;

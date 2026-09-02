@@ -88,6 +88,25 @@ create_config_trait( descriptor_distance_threshold, double, "0.5",
   "Lower values are more sensitive to changes. The distance is normalized to 0-1 range "
   "based on the descriptor type." );
 
+create_config_trait( adaptive_threshold, bool, "false",
+  "If true, calibrate the shot break threshold against the change scores seen "
+  "earlier in this video rather than comparing to a fixed number. An absolute "
+  "threshold that suits one camera rarely suits the next, and one set too high "
+  "silently yields a single track for the whole video." );
+
+create_config_trait( adaptive_sensitivity, double, "3.0",
+  "Standard deviations above this video's mean change score at which a frame "
+  "counts as a shot break. Only used when adaptive_threshold is true." );
+
+create_config_trait( adaptive_min_threshold, double, "0.05",
+  "Floor for the adaptive threshold. Without it a completely static video "
+  "drives the running deviation to zero and every frame reads as a break. "
+  "Only used when adaptive_threshold is true." );
+
+create_config_trait( adaptive_warmup_frames, unsigned, "3",
+  "Change scores to observe before the adaptive threshold takes over; the "
+  "fixed threshold applies until then. Only used when adaptive_threshold is true." );
+
 // =============================================================================
 // Private implementation class
 class detect_shot_breaks_process::priv
@@ -112,6 +131,10 @@ public:
   unsigned m_min_feature_matches;
   double m_feature_match_ratio;
   double m_descriptor_distance_threshold;
+  bool m_adaptive_threshold;
+  double m_adaptive_sensitivity;
+  double m_adaptive_min_threshold;
+  unsigned m_adaptive_warmup_frames;
 
   // Feature matching algorithms
   kv::algo::detect_features_sptr m_feature_detector;
@@ -137,6 +160,15 @@ public:
   // Descriptor-based shot break detection state
   kv::descriptor_sptr m_previous_frame_descriptor;
 
+  // Running change-score statistics backing the adaptive threshold (Welford)
+  unsigned m_score_count;
+  double m_score_mean;
+  double m_score_m2;
+
+  // Adaptive thresholding helpers
+  double effective_threshold( double configured ) const;
+  void update_score_stats( double score );
+
   // Other variables
   detect_shot_breaks_process* parent;
 };
@@ -155,8 +187,15 @@ detect_shot_breaks_process::priv
   , m_min_feature_matches( 20 )
   , m_feature_match_ratio( 0.3 )
   , m_descriptor_distance_threshold( 0.5 )
+  , m_adaptive_threshold( false )
+  , m_adaptive_sensitivity( 3.0 )
+  , m_adaptive_min_threshold( 0.05 )
+  , m_adaptive_warmup_frames( 3 )
   , m_frame_counter( 0 )
   , m_track_counter( 1 )
+  , m_score_count( 0 )
+  , m_score_mean( 0.0 )
+  , m_score_m2( 0.0 )
   , parent( ptr )
 {
 }
@@ -165,6 +204,41 @@ detect_shot_breaks_process::priv
 detect_shot_breaks_process::priv
 ::~priv()
 {
+}
+
+// -----------------------------------------------------------------------------
+// The bar a change score has to clear to count as a shot break. In adaptive
+// mode this tracks the spread of scores already seen in this video, so a noisy
+// camera needs a bigger jump than a locked-off one, and never rises above the
+// configured value.
+double
+detect_shot_breaks_process::priv
+::effective_threshold( double configured ) const
+{
+  if( !m_adaptive_threshold || m_score_count < m_adaptive_warmup_frames )
+  {
+    return configured;
+  }
+
+  const double variance = ( m_score_count > 1 )
+                          ? m_score_m2 / ( m_score_count - 1 ) : 0.0;
+  const double limit = m_score_mean +
+                       m_adaptive_sensitivity * std::sqrt( variance );
+
+  return std::min( std::max( limit, m_adaptive_min_threshold ), configured );
+}
+
+// -----------------------------------------------------------------------------
+// Welford, fed only with scores that were not breaks: letting a cut into the
+// baseline inflates the deviation and hides the cuts that follow it.
+void
+detect_shot_breaks_process::priv
+::update_score_stats( double score )
+{
+  m_score_count++;
+  const double delta = score - m_score_mean;
+  m_score_mean += delta / m_score_count;
+  m_score_m2 += delta * ( score - m_score_mean );
 }
 
 // -----------------------------------------------------------------------------
@@ -209,7 +283,7 @@ detect_shot_breaks_process::priv
         double cy = current_image->height() / 2.0;
         double scale = std::min( current_image->width(), current_image->height() ) / 2.0;
         auto center_feature = std::make_shared< kv::feature_d >(
-          kv::vector_2d( cx, cy ), scale, 0.0 );
+          kv::vector_2d( cx, cy ), 0.0, std::max( scale, 1.0 ) );
         std::vector< kv::feature_sptr > feature_vec;
         feature_vec.push_back( center_feature );
         kv::feature_set_sptr feature_set =
@@ -290,13 +364,18 @@ detect_shot_breaks_process::priv
   m_previous_image = current_image;
 
   // Check threshold
-  bool is_shot_break = ( change_score >= m_shot_break_threshold );
+  const double limit = effective_threshold( m_shot_break_threshold );
+  bool is_shot_break = ( change_score >= limit );
 
   if( is_shot_break )
   {
     LOG_DEBUG( parent->logger(), "Shot break detected with score "
-               << change_score << " >= threshold " << m_shot_break_threshold
+               << change_score << " >= threshold " << limit
                << " (track had " << m_states.size() << " frames)" );
+  }
+  else
+  {
+    update_score_stats( change_score );
   }
 
   return is_shot_break;
@@ -416,10 +495,14 @@ detect_shot_breaks_process::priv
   // Create a single feature at the center of the image to extract a global descriptor
   double cx = current_image->width() / 2.0;
   double cy = current_image->height() / 2.0;
-  double scale = std::min( current_image->width(), current_image->height() ) / 2.0;
+  // feature_d is ( loc, magnitude, scale, angle ): scale has to go in the third
+  // slot. A keypoint under 1px wide makes OpenCV's SIFT descriptor overrun its
+  // own buffers and abort the process on a double free.
+  double scale = std::max(
+    std::min( current_image->width(), current_image->height() ) / 2.0, 1.0 );
 
   auto center_feature = std::make_shared< kv::feature_d >(
-    kv::vector_2d( cx, cy ), scale, 0.0 );
+    kv::vector_2d( cx, cy ), 0.0, scale );
 
   std::vector< kv::feature_sptr > feature_vec;
   feature_vec.push_back( center_feature );
@@ -453,13 +536,18 @@ detect_shot_breaks_process::priv
   m_previous_frame_descriptor = current_descriptor;
 
   // Check threshold
-  bool is_shot_break = ( distance >= m_descriptor_distance_threshold );
+  const double limit = effective_threshold( m_descriptor_distance_threshold );
+  bool is_shot_break = ( distance >= limit );
 
   if( is_shot_break )
   {
     LOG_DEBUG( parent->logger(), "Descriptor-based shot break detected: distance "
-               << distance << " >= threshold " << m_descriptor_distance_threshold
+               << distance << " >= threshold " << limit
                << " (track had " << m_states.size() << " frames)" );
+  }
+  else
+  {
+    update_score_stats( distance );
   }
 
   return is_shot_break;
@@ -519,6 +607,10 @@ detect_shot_breaks_process
   declare_config_using_trait( min_feature_matches );
   declare_config_using_trait( feature_match_ratio );
   declare_config_using_trait( descriptor_distance_threshold );
+  declare_config_using_trait( adaptive_threshold );
+  declare_config_using_trait( adaptive_sensitivity );
+  declare_config_using_trait( adaptive_min_threshold );
+  declare_config_using_trait( adaptive_warmup_frames );
 }
 
 // -----------------------------------------------------------------------------
@@ -536,6 +628,10 @@ detect_shot_breaks_process
   d->m_min_feature_matches = config_value_using_trait( min_feature_matches );
   d->m_feature_match_ratio = config_value_using_trait( feature_match_ratio );
   d->m_descriptor_distance_threshold = config_value_using_trait( descriptor_distance_threshold );
+  d->m_adaptive_threshold = config_value_using_trait( adaptive_threshold );
+  d->m_adaptive_sensitivity = config_value_using_trait( adaptive_sensitivity );
+  d->m_adaptive_min_threshold = config_value_using_trait( adaptive_min_threshold );
+  d->m_adaptive_warmup_frames = config_value_using_trait( adaptive_warmup_frames );
 
   // Validate configuration
   if( d->m_shot_break_threshold < 0.0 || d->m_shot_break_threshold > 1.0 )

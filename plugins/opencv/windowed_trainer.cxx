@@ -573,10 +573,12 @@ ocv_windowed_trainer
     if( filter_detections_in_roi( scaled_groundtruth, roi_box, filtered_truth ) )
     {
       std::string img_file = generate_filename( frame_tag, chip_idx++ );
-      write_chip_to_disk( img_file, resized_image );
 
-      formatted_names.push_back( img_file );
-      formatted_truth.push_back( filtered_truth );
+      if( write_chip_to_disk( img_file, resized_image ) )
+      {
+        formatted_names.push_back( img_file );
+        formatted_truth.push_back( filtered_truth );
+      }
     }
   }
   else
@@ -646,11 +648,13 @@ ocv_windowed_trainer
             m_settings.black_pad );
 
           std::string img_file = generate_filename( frame_tag, chip_idx++ );
-          write_chip_to_disk( img_file, resized_crop );
 
-          formatted_names.push_back( img_file );
-          formatted_truth.push_back( filtered_truth );
-          ++annotated_chips;
+          if( write_chip_to_disk( img_file, resized_crop ) )
+          {
+            formatted_names.push_back( img_file );
+            formatted_truth.push_back( filtered_truth );
+            ++annotated_chips;
+          }
         }
         else if( c_background_chip_ratio > 0.0 && !overlapped )
         {
@@ -679,10 +683,12 @@ ocv_windowed_trainer
           m_settings.black_pad );
 
         std::string img_file = generate_filename( frame_tag, chip_idx++ );
-        write_chip_to_disk( img_file, resized_crop );
 
-        formatted_names.push_back( img_file );
-        formatted_truth.push_back( std::make_shared< kv::detected_object_set >() );
+        if( write_chip_to_disk( img_file, resized_crop ) )
+        {
+          formatted_names.push_back( img_file );
+          formatted_truth.push_back( std::make_shared< kv::detected_object_set >() );
+        }
       }
     }
 
@@ -703,10 +709,12 @@ ocv_windowed_trainer
       if( filter_detections_in_roi( scaled_original_dets_ptr, roi_box, filtered_truth ) )
       {
         std::string img_file = generate_filename( frame_tag, chip_idx++ );
-        write_chip_to_disk( img_file, scaled_original );
 
-        formatted_names.push_back( img_file );
-        formatted_truth.push_back( filtered_truth );
+        if( write_chip_to_disk( img_file, scaled_original ) )
+        {
+          formatted_names.push_back( img_file );
+          formatted_truth.push_back( filtered_truth );
+        }
       }
     }
   }
@@ -1117,14 +1125,30 @@ ocv_windowed_trainer
 }
 
 
-void
+bool
 ocv_windowed_trainer
 ::write_chip_to_disk( const std::string& filename, const cv::Mat& image )
 {
+  if( image.empty() || image.cols <= 0 || image.rows <= 0 )
+  {
+    LOG_WARN( m_logger, "Skipping empty chip " << filename );
+    return false;
+  }
+
+  // A chip whose Mat does not own its pixels -- one wrapping a vital image's
+  // buffer, as an unscaled frame or a crop of one is -- converts to a vital
+  // image with a null memory (ocv_to_vital only wraps refcounted Mats), and
+  // the vxl writer dereferences that without checking. Give the writer a chip
+  // that owns its pixels.
+  const cv::Mat owned =
+    ( image.u && image.isContinuous() ) ? image : image.clone();
+
   c_image_reader->save( filename,
     kv::image_container_sptr(
-      new ocv::image_container( image,
+      new ocv::image_container( owned,
         ocv::image_container::RGB_COLOR ) ) );
+
+  return true;
 }
 
 

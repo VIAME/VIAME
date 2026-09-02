@@ -156,6 +156,7 @@ set( CORE_PIPELINE_FILES
   transcode_tracks_only.pipe
   utility_add_head_tail_keypoints_from_dets.pipe
   utility_add_segmentations_watershed.pipe
+  utility_empty_frame_lbls_auto.pipe
   utility_empty_frame_lbls_fixed_interval.pipe
   utility_link_detections_default.pipe
   utility_max_points_per_poly.pipe
@@ -183,7 +184,6 @@ endif()
 # Pytorch specific configs
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    train_detector_adaptive.conf
     train_detector_default.conf
     train_frame_classifier_default.conf
     train_reclassifier_default.conf
