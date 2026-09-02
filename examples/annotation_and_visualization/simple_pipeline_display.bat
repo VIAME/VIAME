@@ -8,4 +8,6 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\display_annotations.pipe"
+kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\display_annotations.pipe" ^
+  -s input:video_filename=example_image_list.txt ^
+  -s read_annotations:file_name=example_detections.csv

@@ -7,7 +7,11 @@ Tests for annotation_and_visualization example scripts.
 """
 
 import pytest
-from test_utilities import get_script_path, assert_script_runs_successfully
+from test_utilities import (
+    get_script_path,
+    assert_script_runs_successfully,
+    require_opencv_window_support,
+)
 
 CATEGORY = "annotation_and_visualization"
 
@@ -53,5 +57,6 @@ class TestSimplePipelineDisplay:
 
     def test_simple_pipeline_display(self):
         """Test that simple_pipeline_display runs without error and produces output."""
+        require_opencv_window_support()
         script = get_script_path(CATEGORY, "simple_pipeline_display.sh")
         assert_script_runs_successfully(script)

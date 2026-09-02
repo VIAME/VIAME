@@ -116,3 +116,27 @@ class hello_world_filter( KwiverProcess ):
 
         # Signal that this step is complete
         self._base_step()
+
+
+def __sprokit_register__():
+    """
+    Register this process with the KWIVER pipeline system.
+
+    The module loader walks the package directory and imports each module in
+    it, skipping __init__.py, then calls this hook on whatever it imported.
+    Registration therefore has to live in the module that defines the process,
+    not in the package __init__.
+    """
+    from kwiver.sprokit.pipeline import process_factory
+
+    module_name = 'python_' + __name__
+
+    if process_factory.is_process_module_loaded( module_name ):
+        return
+
+    process_factory.add_process(
+        'hello_world_filter',
+        'Example filter that logs a message and passes images through',
+        hello_world_filter )
+
+    process_factory.mark_process_module_as_loaded( module_name )
