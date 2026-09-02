@@ -189,9 +189,17 @@ def run_example_script(script_path, working_dir=None, timeout=300, env=None,
     # kill the entire process tree. Use Popen with CREATE_NEW_PROCESS_GROUP
     # and explicit taskkill so that timeout_is_success tests don't hang
     # until CTest's own timeout fires.
+    # On POSIX, start_new_session makes the shell a process-group leader so a
+    # timeout can signal the whole group. Killing only the direct child leaves
+    # whatever the script launched -- a trainer holding GiB of GPU memory, say
+    # -- running past the test that started it, and later tests then fail with
+    # CUDA out of memory for reasons that have nothing to do with them.
     creationflags = 0
+    start_new_session = False
     if sys.platform == "win32":
         creationflags = subprocess.CREATE_NEW_PROCESS_GROUP
+    else:
+        start_new_session = True
 
     proc = subprocess.Popen(
         cmd,
@@ -203,6 +211,7 @@ def run_example_script(script_path, working_dir=None, timeout=300, env=None,
         executable=executable,
         env=run_env,
         creationflags=creationflags,
+        start_new_session=start_new_session,
     )
 
     try:
@@ -213,15 +222,15 @@ def run_example_script(script_path, working_dir=None, timeout=300, env=None,
         )
         return result
     except subprocess.TimeoutExpired:
-        # Kill the entire process tree on Windows; SIGTERM on Linux
+        # Kill the entire process tree, not just the shell we launched
         if sys.platform == "win32":
             subprocess.call(
                 ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             )
+            proc.wait()
         else:
-            proc.kill()
-        proc.wait()
+            _terminate_process_group(proc)
 
         if timeout_is_success:
             raise TimeoutSuccess(
@@ -349,3 +358,28 @@ def require_opencv_window_support():
         pytest.skip(f"OpenCV built without a highgui window backend: {exc}")
     else:
         cv2.destroyWindow(window)
+
+
+def _terminate_process_group(proc, grace: float = 10.0):
+    """
+    Kill a process and every descendant it started.
+
+    start_new_session made the process a group leader, so its pid doubles as
+    the group id. SIGTERM first so a script can close its outputs, then
+    SIGKILL for anything still standing.
+    """
+    try:
+        pgid = os.getpgid(proc.pid)
+    except ProcessLookupError:
+        return
+
+    for sig in (signal.SIGTERM, signal.SIGKILL):
+        try:
+            os.killpg(pgid, sig)
+        except ProcessLookupError:
+            return
+        try:
+            proc.communicate(timeout=grace)
+            return
+        except subprocess.TimeoutExpired:
+            continue
