@@ -161,6 +161,11 @@ static kv::config_block_sptr default_config()
   config->set_value( "pipeline_template", "",
     "Optional template file for generating output pipeline. Keywords in the "
     "template will be replaced with values from the trainer." );
+  config->set_value( "tracker_pipeline_template", "",
+    "Optional template for the tracker trained in the same run. Written as its "
+    "own pipe so the detector pipeline keeps its usual shape." );
+  config->set_value( "output_tracker_pipeline_name", "tracker.pipe",
+    "Name for the generated tracker pipeline file." );
   config->set_value( "output_pipeline_name", "detector.pipe",
     "Name for the generated output pipeline file." );
 
@@ -745,8 +750,7 @@ static void process_trainer_output(
     const std::string& pipeline_template,
     const std::string& output_pipeline_name,
     const std::string& algorithm_type = "",
-    bool is_detector = true,
-    bool chain_from_existing_pipeline = false )
+    bool is_detector = true )
 {
   if( output_map.empty() )
   {
@@ -927,15 +931,8 @@ static void process_trainer_output(
     std::string output_pipeline = output_directory.empty() ?
       output_pipeline_name : append_path( output_directory, output_pipeline_name );
 
-    // A tracker trains after the detector and writes the same pipeline file.
-    // Starting from the template again would discard the detector the earlier
-    // pass substituted in, so continue from what that pass produced.
-    const std::string source_template =
-      ( chain_from_existing_pipeline && does_file_exist( output_pipeline ) )
-        ? output_pipeline : pipeline_template;
-
     if( replace_keywords_in_template_file(
-          source_template, output_pipeline, template_replacements ) )
+          pipeline_template, output_pipeline, template_replacements ) )
     {
       std::cout << "Generated pipeline: " << output_pipeline << std::endl;
     }
@@ -1553,6 +1550,10 @@ train_applet
     config->get_value< std::string >( "output_file" );
   std::string pipeline_template =
     config->get_value< std::string >( "pipeline_template" );
+  std::string tracker_pipeline_template =
+    config->get_value< std::string >( "tracker_pipeline_template" );
+  std::string output_tracker_pipeline_name =
+    config->get_value< std::string >( "output_tracker_pipeline_name" );
   std::string output_pipeline_name =
     config->get_value< std::string >( "output_pipeline_name" );
 
@@ -2770,7 +2771,7 @@ train_applet
     {
       std::cout << "Groundtruth averages " << mean_track_length
                 << " states per track id, below the " << min_track_length
-                << " needed to train a tracker; detector only" << std::endl;
+                << " needed; not adding a tracker automatically" << std::endl;
     }
   }
 
@@ -3447,8 +3448,8 @@ train_applet
           tracker_trainer->update_model();
 
         process_trainer_output( trainer_output, output_directory, output_file,
-          pipeline_template, output_pipeline_name, current_tracker, false,
-          true );
+          tracker_pipeline_template, output_tracker_pipeline_name,
+          current_tracker, false );
       }
       catch( const std::exception& e )
       {

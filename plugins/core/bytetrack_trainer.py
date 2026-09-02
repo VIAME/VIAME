@@ -675,6 +675,8 @@ class ByteTrackTrainer( TrainTracker ):
         output[algo + ":unconfirmed_match_thresh"] = "{:.3f}".format(params["unconfirmed_match_thresh"])
         output[algo + ":track_buffer"] = str( params['track_buffer'] )
         output[algo + ":new_track_thresh"] = f"{params['new_track_thresh']:.3f}"
+        output[algo + ":std_weight_position"] = "{:.6f}".format(params["std_weight_position"])
+        output[algo + ":std_weight_velocity"] = "{:.6f}".format(params["std_weight_velocity"])
 
         # File copies
         output["bytetrack_params.json"] = params_file
