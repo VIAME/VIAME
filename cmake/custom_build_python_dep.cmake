@@ -9,6 +9,11 @@
 #   LIB_NAME        - Name of the library
 #   LIB_SOURCE_DIR  - Path to the library source directory
 #   HASH_FILE       - Path to the hash file for comparison
+#
+# Optional variables:
+#   ABI_TAG         - Extra string folded into the hash, so a rebuild is forced
+#                     when something outside the source tree changes the ABI
+#                     the library must match (the torch version, in practice)
 #   WORKING_DIR     - Working directory for the build command
 #
 # Optional variables:
@@ -100,6 +105,16 @@ endif()
 
 # Get current source hash
 get_source_hash( "${LIB_SOURCE_DIR}" CURRENT_HASH )
+
+# These libraries compile C++/CUDA extensions against torch and are only
+# loadable by the torch they were built for -- a mismatch surfaces as
+# "operator torchvision::nms does not exist" at import, which in a pipeline
+# run aborts the whole python plugin pass and takes every python scheduler,
+# process and algorithm out of the registry with it. The source hash alone
+# does not notice a torch upgrade, so fold the ABI tag into it.
+if( ABI_TAG )
+  set( CURRENT_HASH "${CURRENT_HASH}+${ABI_TAG}" )
+endif()
 
 # Read stored hash if it exists
 set( STORED_HASH "" )
