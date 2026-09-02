@@ -8,4 +8,6 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run simple display pipeline
 
-viame ${VIAME_INSTALL}/configs/pipelines/display_annotations.pipe
+viame ${VIAME_INSTALL}/configs/pipelines/display_annotations.pipe \
+  -s input:video_filename=example_image_list.txt \
+  -s read_annotations:file_name=example_detections.csv

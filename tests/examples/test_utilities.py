@@ -325,3 +325,27 @@ def small_image_set(example_imagery):
         pytest.skip(f"No images found in {small_set}")
 
     return small_set
+
+
+def require_opencv_window_support():
+    """
+    Skip the calling test unless OpenCV can actually open a window.
+
+    highgui is an optional part of an OpenCV build: without a GTK, Qt, Cocoa or
+    Win32 backend, namedWindow raises "The function is not implemented" and any
+    pipeline containing an image_viewer dies with it. That is a property of how
+    OpenCV was configured, not a defect in the pipeline under test, so skip
+    rather than fail. A build that does have a backend still runs the test.
+    """
+    try:
+        import cv2
+    except ImportError:
+        pytest.skip("OpenCV python bindings not available")
+
+    window = "viame_highgui_probe"
+    try:
+        cv2.namedWindow(window)
+    except cv2.error as exc:
+        pytest.skip(f"OpenCV built without a highgui window backend: {exc}")
+    else:
+        cv2.destroyWindow(window)
