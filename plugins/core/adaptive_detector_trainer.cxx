@@ -464,6 +464,10 @@ struct trainer_config
   std::string overlap_preference;            // "low", "medium", "high", or empty
   bool prefers_masks = false;
 
+  // Tracker pipeline shape this branch needs, when its detector is not a single
+  // image_object_detector the stock tracker template can slot in.
+  std::string tracker_pipeline_template;
+
   // Computed preference score
   double preference_score = 0.0;
 };
@@ -1451,6 +1455,11 @@ adaptive_detector_trainer
       "Preference: 'low', 'medium', 'high', or empty." );
     config->set_value( prefix + "prefers_masks", tc.prefers_masks,
       "Prefer datasets with masks. Default: false" );
+    config->set_value( prefix + "tracker_pipeline_template",
+      tc.tracker_pipeline_template,
+      "Optional tracker template to use when this branch wins, overriding the "
+      "top-level one. Needed when the branch's detector is a chain of processes "
+      "rather than a single detector the stock template can slot in." );
 
     kv::get_nested_algo_configuration<kv::algo::train_detector>(
       prefix + "trainer", config, tc.trainer );
@@ -1580,6 +1589,8 @@ adaptive_detector_trainer
       config->get_value< std::string >( prefix + "overlap_preference", "" );
     tc.prefers_masks =
       config->get_value< bool >( prefix + "prefers_masks", false );
+    tc.tracker_pipeline_template =
+      config->get_value< std::string >( prefix + "tracker_pipeline_template", "" );
 
     // Nested trainer
     kv::algo::train_detector_sptr trainer;
@@ -1784,6 +1795,11 @@ adaptive_detector_trainer
     for( const auto& pair : trainer_output )
     {
       combined_output[pair.first] = pair.second;
+    }
+
+    if( !tc->tracker_pipeline_template.empty() )
+    {
+      combined_output["tracker_pipeline_template"] = tc->tracker_pipeline_template;
     }
 
     LOG_INFO( d->m_logger, "Completed training for: " << tc->name );

@@ -99,6 +99,7 @@ set( CORE_PIPELINE_FILES
   detector_simple_hough.pipe
   display_annotations.pipe
   filter_debayer.pipe
+  filter_debayer_and_depth_map.pipe
   filter_debayer_and_enhance.pipe
   filter_default.pipe
   filter_draw_dets.pipe
@@ -135,6 +136,8 @@ set( CORE_PIPELINE_FILES
   train_aug_add_motion.pipe
   train_aug_add_motion_and_color_freq.pipe
   train_aug_add_optical_flow.pipe
+  train_aug_add_optical_flow_adaptive.pipe
+  train_aug_all_motion.pipe
   train_aug_enhance_and_add_motion.pipe
   train_aug_hue_shifting_only.pipe
   train_aug_intensity_color_freq_motion.pipe
@@ -216,6 +219,7 @@ endif()
 if( VIAME_ENABLE_SVM )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     query_and_iqr.pipe
+    query_and_iqr_adaboost.pipe
     train_frame_classifier_libsvm_svm.conf
   )
 endif()
@@ -232,6 +236,9 @@ if( VIAME_ENABLE_OPENCV )
     tracker_calibration_target.pipe
     utility_calibrate_cameras_default_2-cam.pipe
     utility_calibrate_cameras_fast_2-cam.pipe
+    utility_calibrate_single_camera.pipe
+    utility_calibrate_stitched_stereo_pair.pipe
+    utility_warp_annotations_2-cam.pipe
   )
 endif()
 
@@ -246,6 +253,7 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
     train_detector_rf_detr_l_1024.conf
     train_detector_rf_detr_l_1728.conf
     train_detector_rf_detr_l_1728_mot_mim.conf
+    train_detector_rf_detr_l_1728_mot_opt.conf
     train_detector_rf_detr_l_seg_1728.conf
     train_detector_rf_detr_l_seg_1728_mot_all.conf
     train_detector_rf_detr_l_seg_1728_mot_opt.conf
@@ -304,12 +312,6 @@ if( VIAME_ENABLE_PYTHON )
     train_tracker_ocsort.conf )
 endif()
 
-if( VIAME_ENABLE_MATLAB )
-  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    detector_matlab_camtrawl.pipe )
-endif()
-
-
 if( VIAME_ENABLE_SEAL OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   set( DUAL_EMBEDDED_FILES
     embedded_dual_stream/local_trained_eo_detector.pipe
@@ -331,11 +333,8 @@ endif()
 if( VIAME_ENABLE_WEB_EXCLUDES )
   set( VIAME_WEB_FILES_TO_IGNORE
     database_apply_svm_models.pipe
-        detector_simple_hough.pipe
-      frame_classifier_svm.pipe
-      utility_add_head_tail_keypoints.pipe
-    utility_enhance.pipe
-    utility_extract_chips.pipe
+    detector_simple_hough.pipe
+    frame_classifier_svm.pipe
   )
 
   foreach( ITEM ${VIAME_WEB_FILES_TO_IGNORE} )

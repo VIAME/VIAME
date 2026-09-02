@@ -152,6 +152,68 @@ def select_model_class(model_size, segmentation):
     return getattr(rfdetr, table[key])
 
 
+def model_block_size(model_size, segmentation):
+    """Return the required divisor for both resolution dims, or None if unknown.
+
+    The backbone splits the input into num_windows x num_windows windows of whole
+    patches, so each dim must be a multiple of patch_size * num_windows.
+    """
+    model_class = select_model_class(model_size, segmentation)
+
+    import rfdetr.config as rfdetr_config
+
+    # Resolve by name first: RFDETRLarge leaves _model_config_class pointing at
+    # the abstract base and picks its real config in get_model_config, so the
+    # attribute alone reports no patch size for the one size most often resized.
+    config_class = getattr(
+        rfdetr_config, model_class.__name__ + 'Config',
+        getattr(model_class, '_model_config_class', None))
+
+    fields = getattr(config_class, 'model_fields', None) or {}
+    block = 1
+
+    for name in ('patch_size', 'num_windows'):
+        field = fields.get(name)
+        value = getattr(field, 'default', None)
+        if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+            return None
+        block *= value
+
+    return block
+
+
+def snap_resolution(resolution, model_size, segmentation):
+    """Round a resolution to the nearest one the model can actually build.
+
+    rfdetr only enforces divisibility at config time for non-square resolutions,
+    so a bad square value trains to completion and fails later when the model is
+    deployed. Snapping keeps the run alive at the closest size the backbone can
+    window evenly, which is what the caller wanted from a resolution request.
+    """
+    if not resolution_is_set(resolution):
+        return resolution
+
+    block = model_block_size(model_size, segmentation)
+    if not block:
+        return resolution
+
+    height, width = (resolution if isinstance(resolution, (list, tuple))
+                     else (resolution, resolution))
+
+    if not height % block and not width % block:
+        return resolution
+
+    snapped = [max(block, round(dim / block) * block) for dim in (height, width)]
+    snapped = snapped[0] if snapped[0] == snapped[1] else tuple(snapped)
+
+    kind = 'seg-' if parse_bool(segmentation) else ''
+    print(f"[RFDETRTrainer] resolution {format_resolution(resolution)} is not a "
+          f"multiple of {block} for {kind}{str(model_size).lower()}; training at "
+          f"{format_resolution(snapped)} instead")
+
+    return snapped
+
+
 def detection_keypoints(det, kp_names):
     """Flatten a detection's named keypoints into COCO ``[x, y, v, ...]`` order.
 
@@ -1030,6 +1092,8 @@ class RFDETRTrainer(TrainDetector):
         # parsed form. Parsing after the dispatch would hand it the raw config
         # string and blow up on any non-square value ("960x1728").
         self._resolution = parse_resolution(self._resolution)
+        self._resolution = snap_resolution(
+            self._resolution, self._model_size, self._segmentation)
 
         self._warn_if_augmentation_unavailable()
 

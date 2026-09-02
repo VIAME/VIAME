@@ -124,7 +124,10 @@ refine_detections_svm::priv
     std::string file_name = (it->path()).filename().string();
     std::string file_name_no_ext = (it->path()).stem().string();
 
-    if( file_name.substr( file_name.find_last_of(".") ) != ".svm" )
+    // A project folder holds subdirectories and dotless files alongside the
+    // models; extension() is empty for those, where find_last_of would be npos.
+    if( !boost::filesystem::is_regular_file( it->path() ) ||
+        it->path().extension().string() != ".svm" )
     {
       LOG_INFO(m_logger, "Ignoring file without .svm extension: " << file_name);
       continue;
