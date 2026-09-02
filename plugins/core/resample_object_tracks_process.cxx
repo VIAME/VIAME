@@ -270,6 +270,17 @@ resample_object_tracks_process
 
   kv::config_block_sptr algo_config = get_config();
 
+  // Every track is needed up front, so demand a reader that hands them over in
+  // one read. The viame_csv reader otherwise walks frame indices and returns
+  // true forever, with no exhaustion to end the load loop below.
+  const std::string reader_type =
+    algo_config->get_value< std::string >( "reader:type", "" );
+
+  if( !reader_type.empty() )
+  {
+    algo_config->set_value( "reader:" + reader_type + ":batch_load", "true" );
+  }
+
   if( !check_nested_algo_configuration_using_trait(
         reader, algo_config, d->m_reader ) )
   {
