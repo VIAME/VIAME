@@ -19,7 +19,7 @@ process detector
   :: image_object_detector
   :detector:type                               windowed
   
-  block detector:ocv_windowed
+  block detector:windowed
     :mode                                      adaptive
     :original_to_chip_size                     true
     :chip_width                                704
