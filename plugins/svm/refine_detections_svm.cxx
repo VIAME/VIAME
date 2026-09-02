@@ -126,7 +126,7 @@ refine_detections_svm::priv
 
     // A project folder holds subdirectories and dotless files alongside the
     // models; extension() is empty for those, where find_last_of would be npos.
-    if( !boost::filesystem::is_regular_file( it->path() ) ||
+    if( !std::filesystem::is_regular_file( it->path() ) ||
         it->path().extension().string() != ".svm" )
     {
       LOG_INFO(m_logger, "Ignoring file without .svm extension: " << file_name);
