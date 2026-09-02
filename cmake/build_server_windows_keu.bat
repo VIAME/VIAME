@@ -8,7 +8,8 @@ REM --------------------------------------------------------------------------
 IF DEFINED CI_PROJECT_DIR (
     SET "VIAME_SOURCE_DIR=%CI_PROJECT_DIR%"
 ) ELSE (
-    SET "VIAME_SOURCE_DIR=C:\VIAME-Builds\GPU"
+    SET "VIAME_SOURCE_DIR=%~dp0"
+    IF "!VIAME_SOURCE_DIR:~-1!"=="\" SET "VIAME_SOURCE_DIR=!VIAME_SOURCE_DIR:~0,-1!"
 )
 
 REM Extract version from RELEASE_NOTES.md (first token of first line)
@@ -41,7 +42,7 @@ REM Do not modify the below unless you are changing python
 REM versions or have alternatively modified the build and
 REM install directories in cmake or the platforms.cmake file
 
-SET "VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build"
+SET "VIAME_BUILD_DIR=C:\tmp\viame_build_main"
 SET "VIAME_INSTALL_DIR=%VIAME_BUILD_DIR%\install"
 
 SET "PYTHON_SUBDIR=lib\python3.12"
