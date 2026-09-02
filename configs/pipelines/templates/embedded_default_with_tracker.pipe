@@ -1,0 +1,59 @@
+# =============================================================================
+# Title: Default Detector + Trained Tracker
+#
+# Description: embedded_default.pipe with a bytetrack tracker whose parameters
+# are substituted in by tracker training. The detector pass fills
+# [-DETECTOR-IMPL-] and the tracker pass fills the thresholds below.
+# =============================================================================
+
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+process detector1
+  :: image_object_detector
+  [-DETECTOR-IMPL-]
+
+connect from detector_input.image
+        to   detector1.image
+
+process detector_merger
+  :: merge_detection_sets
+
+connect from detector1.detected_object_set
+        to   detector_merger.detected_object_set1
+
+process detector_output
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from detector_merger.detected_object_set
+        to   detector_output.detected_object_set
+
+process tracker
+  :: track_objects
+  :track_objects:type                          bytetrack
+
+  block track_objects:bytetrack
+    :high_thresh                               [-HIGH-THRESH-]
+    :low_thresh                                [-LOW-THRESH-]
+    :match_thresh                              [-MATCH-THRESH-]
+    :second_match_thresh                       [-SECOND-MATCH-THRESH-]
+    :unconfirmed_match_thresh                  [-UNCONFIRMED-MATCH-THRESH-]
+    :track_buffer                              [-TRACK-BUFFER-]
+    :new_track_thresh                          [-NEW-TRACK-THRESH-]
+  endblock
+
+connect from detector_output.detected_object_set
+        to   tracker.detected_object_set

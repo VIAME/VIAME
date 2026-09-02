@@ -629,6 +629,15 @@ read_detected_object_set_viame_csv::priv
       dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
     }
 
+    // Column 0 is the track id for track data and a unique per-detection id
+    // otherwise. Carrying it through lets consumers tell the two apart by how
+    // often an id repeats; detections read as tracks of one.
+    const long long track_id = atoll( col[COL_DET_ID].c_str() );
+    if( track_id >= 0 )
+    {
+      dob->set_index( static_cast< uint64_t >( track_id ) );
+    }
+
     std::vector< std::string > poly_strings;
 
     if( found_optional_field )
