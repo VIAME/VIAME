@@ -12,7 +12,7 @@ import re
 
 import pytest
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Callable
 
@@ -269,6 +269,33 @@ def _merge(base: Case, updates: dict, stem: str) -> Case:
     return Case(**merged)
 
 
+_RELATIVEPATH = re.compile(r"^\s*relativepath\s+\S+\s*=\s*(\S+)", re.M)
+_INCLUDE = re.compile(r"^\s*include\s+(\S+\.pipe)\s*$", re.M)
+
+
+def _missing_model(stem: str) -> str:
+    """First model path a pipe (or anything it includes) needs but the install
+    lacks, or "". Model packs get slimmed over time and nothing reconciles the
+    pipes they ship against the models they still carry, so a pipeline can be
+    installed whose model directory no longer exists anywhere. Running it just
+    documents the pack's inconsistency as a 900s failure; skipping names the
+    missing file instead."""
+    pipelines = find_viame_install() / "configs" / "pipelines"
+    queue, seen = [pipelines / f"{stem}.pipe"], set()
+    while queue:
+        pipe = queue.pop()
+        if pipe in seen or not pipe.is_file():
+            continue
+        seen.add(pipe)
+        text = pipe.read_text(errors="replace")
+        for rel in _RELATIVEPATH.findall(text):
+            if not (pipe.parent / rel).exists():
+                return rel
+        for inc in _INCLUDE.findall(text):
+            queue.append(pipe.parent / inc)
+    return ""
+
+
 def discover(category: str) -> list[Case]:
     """Every installed pipeline of a category, as a runnable Case."""
     cases = []
@@ -282,7 +309,13 @@ def discover(category: str) -> list[Case]:
             overrides = [Case()] if matched else [Case(skip="no test case defined")]
         elif not isinstance(overrides, list):
             overrides = [overrides]
-        cases += [_merge(base, override.__dict__, stem) for override in overrides]
+        merged = [_merge(base, override.__dict__, stem) for override in overrides]
+        absent = _missing_model(stem)
+        if absent:
+            merged = [case if case.skip else
+                      replace(case, skip=f"missing model {absent}")
+                      for case in merged]
+        cases += merged
     ids = [case.id for case in cases]
     duplicates = {i for i in ids if ids.count(i) > 1}
     assert not duplicates, f"duplicate case ids in {category}: {sorted(duplicates)}"
