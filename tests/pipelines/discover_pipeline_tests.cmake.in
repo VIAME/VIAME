@@ -14,13 +14,17 @@
 set( _categories @PIPELINE_CATEGORIES@ )
 set( _python "@Python3_EXECUTABLE@" )
 set( _srcdir "@CMAKE_CURRENT_SOURCE_DIR@" )
-set( _setup_cmd "@PIPELINE_SETUP_COMMAND@" )
+set( _setup_verb "@PIPELINE_SETUP_VERB@" )
+set( _setup_script "@PIPELINE_SETUP_SCRIPT@" )
+# CMAKE_COMMAND is not defined when ctest includes this file, so the path
+# has to be baked in at configure time.
+set( _cmake "@CMAKE_COMMAND@" )
 set( _discovery_pythonpath "@PIPELINE_DISCOVERY_PYTHONPATH@" )
 set( _install "@VIAME_BUILD_INSTALL_PREFIX@" )
 set( _timeout @PIPELINE_CASE_TIMEOUT@ )
 
 execute_process(
-  COMMAND "${CMAKE_COMMAND}" -E env
+  COMMAND "${_cmake}" -E env
           "PYTHONPATH=${_discovery_pythonpath}"
           "VIAME_INSTALL=${_install}"
           "${_python}" "${_srcdir}/list_cases.py" ${_categories}
@@ -34,8 +38,7 @@ if( NOT _discovery_result EQUAL 0 )
   # Register a failing placeholder rather than contributing zero pipeline
   # coverage, which would look like a clean run. This matches the existing
   # decision to fail collection outright when no install is found.
-  add_test( NAME "viame_pipelines:discovery"
-            COMMAND "${CMAKE_COMMAND}" -E false )
+  add_test( "viame_pipelines:discovery" "${_cmake}" -E false )
   set_tests_properties( "viame_pipelines:discovery" PROPERTIES
     LABELS "PIPELINES" )
   message( STATUS
@@ -64,10 +67,11 @@ foreach( _line IN LISTS _lines )
   set( _node "${_srcdir}/test_${_category}.py::test_${_category}[${_case_id}]" )
   set( _test_name "viame_pipelines:${_category}:${_case_id}" )
 
-  add_test(
-    NAME "${_test_name}"
-    COMMAND bash -c "${_setup_cmd} && python -m pytest \"${_node}\" -v --tb=short"
-    )
+  # ctest processes this file with its own add_test, which only understands the
+  # legacy positional signature; the NAME/COMMAND form silently registers a test
+  # literally called NAME.
+  add_test( "${_test_name}"
+            bash -c "${_setup_verb} \"${_setup_script}\" && python -m pytest \"${_node}\" -v --tb=short" )
   set_tests_properties( "${_test_name}" PROPERTIES
     LABELS "PIPELINES"
     TIMEOUT "${_timeout}"

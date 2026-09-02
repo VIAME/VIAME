@@ -26,11 +26,15 @@ if (VIAME_ENABLE_PYTHON)
   set( PIPELINE_CASE_TIMEOUT 1800 )
 
   # The generated tests source the install setup script exactly as the bundled
-  # per-category tests did, so their execution model is unchanged.
+  # per-category tests did, so their execution model is unchanged. The verb and
+  # the path are kept apart so the template can quote the path itself; baking a
+  # pre-quoted string here produced nested quotes in the generated file.
   if( WIN32 )
-    set( PIPELINE_SETUP_COMMAND "call \"${VIAME_BUILD_INSTALL_PREFIX}/setup_viame.bat\"" )
+    set( PIPELINE_SETUP_VERB "call" )
+    set( PIPELINE_SETUP_SCRIPT "${VIAME_BUILD_INSTALL_PREFIX}/setup_viame.bat" )
   else()
-    set( PIPELINE_SETUP_COMMAND "source \"${VIAME_BUILD_INSTALL_PREFIX}/setup_viame.sh\"" )
+    set( PIPELINE_SETUP_VERB "source" )
+    set( PIPELINE_SETUP_SCRIPT "${VIAME_BUILD_INSTALL_PREFIX}/setup_viame.sh" )
   endif()
 
   # Discovery alone needs a PYTHONPATH: it imports cases.py outside pytest and
