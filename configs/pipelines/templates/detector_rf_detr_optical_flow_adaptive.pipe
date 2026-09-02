@@ -1,17 +1,8 @@
 # =============================================================================
-# Title: Generic ONNX Detector
+# Title: Detector Rf Detr Optical Flow Adaptive Template
 #
-# Description: Runs an object-detection ONNX package on input imagery from
-# disk.  No PyTorch required at inference time — only onnxruntime.
-#
-# Required edit: replace [-MODEL-] with the path to the ONNX package: a
-# directory (or .zip archive) holding a .onnx file and, optionally, a
-# .modelspec.json sidecar describing input size, preprocessing, thresholds,
-# and category names (as emitted by the model's ONNX export step).
-#
-# Optional edits: score_thresh, device (cpu / cuda / cuda:0), and decoder
-# (detr / yolo; blank uses the modelspec default).  nms_thresh only applies
-# to decoders without NMS baked into the graph (e.g. yolo).
+# Description: Standalone counterpart of embedded_rf_detr_optical_flow_adaptive.pipe, runnable directly on
+# input imagery from disk.
 # =============================================================================
 
 config _pipeline:_edge
@@ -19,8 +10,6 @@ config _pipeline:_edge
 
 config _scheduler
   :type                                        pythread_per_process
-
-# =============================================================================
 
 # Standard image or video input plus 5 fps downsampler
 include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_input_with_downsampler.pipe
@@ -34,23 +23,46 @@ process detector_input
     :force_three_channel                       true
   endblock
 
-connect from downsampler.output_1
-        to   detector_input.image
+process motion_filter
+  :: image_filter
+  :filter:type                                 ocv_optical_flow
+
+  block filter:ocv_optical_flow
+    :output                                    magnitude
+    # Adaptive rather than a fixed 8 px full scale. Magnitude at 5 fps spans
+    # roughly 0.01-1.24 px at the 95th percentile across this corpus, so a fixed
+    # 8 px leaves most sequences encoded into the bottom few percent of the byte
+    # range. Per-frame percentile scaling spends the range on the motion each
+    # frame actually has; the floor keeps genuinely still footage dark instead
+    # of amplifying its noise to full scale.
+    :normalize                                 adaptive
+    :adaptive_percentile                       99.0
+    :adaptive_min_scale                        0.5
+    :scale                                     8.0
+    :compensate_background                     true
+  endblock
+
+connect from detector_input.image
+        to   motion_filter.image
+
+# =============================================================================
+
+process image_merger
+  :: merge_images
+  :merge_images:type                           ocv
+
+connect from detector_input.image
+        to   image_merger.image1
+connect from motion_filter.image
+        to   image_merger.image2
 
 # =============================================================================
 
 process detector1
   :: image_object_detector
-  :detector:type                               onnx
+  [-DETECTOR-IMPL-]
 
-  block detector:onnx
-    :model                                     [-MODEL-]
-    :device                                    cpu
-    :score_thresh                              0.30
-    :nms_thresh                                0.50
-  endblock
-
-connect from detector_input.image
+connect from image_merger.image
         to   detector1.image
 
 # =============================================================================
@@ -74,11 +86,13 @@ process detector_output
 connect from detector_merger.detected_object_set
         to   detector_output.detected_object_set
 
+connect from downsampler.output_1
+        to   detector_input.image
+
 # =============================================================================
 
 process detector_writer
   :: detected_object_output
-
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
 
@@ -86,3 +100,5 @@ connect from detector_output.detected_object_set
         to   detector_writer.detected_object_set
 connect from downsampler.output_2
         to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp
