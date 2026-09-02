@@ -14,7 +14,8 @@
 # downloaded weights that must survive, and templates/ is reinstalled wholesale.
 install( CODE "
   file( GLOB_RECURSE _viame_stale_pipes
-        \"\${CMAKE_INSTALL_PREFIX}/configs/pipelines/*.pipe\" )
+        \"\${CMAKE_INSTALL_PREFIX}/configs/pipelines/*.pipe\"
+        \"\${CMAKE_INSTALL_PREFIX}/configs/pipelines/*.conf\" )
   list( LENGTH _viame_stale_pipes _viame_stale_count )
   if( _viame_stale_count GREATER 0 )
     message( STATUS
