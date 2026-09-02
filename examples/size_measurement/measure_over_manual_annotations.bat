@@ -8,6 +8,6 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\measurement_from_annotations.pipe"
+kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\measurement_from_annotations_default.pipe"
 
 pause

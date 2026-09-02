@@ -71,7 +71,8 @@ VALIDATION_MAX_BATCHES = 50
 # the differences between epochs would be mostly noise.
 VALIDATION_SEED = 20240101
 parser = argparse.ArgumentParser()
-parser.add_argument('--local_rank', type=int, default=0, help='compulsory for pytorch launcer')
+parser.add_argument('--local_rank', '--local-rank', type=int, default=0,
+                    help='compulsory for pytorch launcher')
 parser.add_argument('--seed', type=int, default=123456, help='random seed')
 parser.add_argument('-i', '--image-folder', required=True, help='Folder of images to train on.')
 parser.add_argument('-s', '--save-folder', default='siamrpn++_model', help='Folder where logs/models/data is stored.')

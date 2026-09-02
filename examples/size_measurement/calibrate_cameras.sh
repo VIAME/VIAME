@@ -25,4 +25,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 #   -s FRAME_STEP   Process every Nth frame (default: 1)
 #   -g              Show GUI with detection results
 
-python ${VIAME_INSTALL}/tools/calibrate_cameras.py -a -q 80 -o calibration_matrices.json "$@"
+python ${VIAME_INSTALL}/configs/calibrate_cameras.py -a -q 80 -o calibration_matrices.json "$@"
