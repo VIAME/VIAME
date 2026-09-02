@@ -221,6 +221,11 @@ class ReMaxMMDetDetector(ImageObjectDetector):
 def __vital_algorithm_register__():
     from viame.core.vital_registration import register_vital_algorithm
 
+    # Not "example_detector": kwiver's arrows/core already publishes an
+    # image_object_detector under that name, and taking it here shadowed the
+    # real one for anything asking for it -- the pytorch descriptor and SRNN
+    # tracker tests among them, which then handed this detector their pipeline
+    # file as an mmdet config and died on it.
     register_vital_algorithm(
-        ReMaxMMDetDetector, "example_detector", "ReMax inference routine"
+        ReMaxMMDetDetector, "remax_mmdet", "ReMax inference routine"
     )

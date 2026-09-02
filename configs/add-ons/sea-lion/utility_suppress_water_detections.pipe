@@ -59,7 +59,7 @@ process detector_fuser
   :merger:suppress_in_regions:suppression_class open_water
   :merger:suppress_in_regions:borderline_class  seaweed_water
   :merger:suppress_in_regions:borderline_scale_factor 0.5
-  :merger:suppress_in_regions:output_region_classes   1.0
+  :merger:suppress_in_regions:output_region_classes   true
 
 connect from svm_refiner.detected_object_set
         to   detector_fuser.detected_object_set1

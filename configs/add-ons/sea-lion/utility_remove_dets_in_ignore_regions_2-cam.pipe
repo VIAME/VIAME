@@ -93,7 +93,7 @@ process detector_fuser2
   :merger:suppress_in_regions:suppression_class         Ignore
   :merger:suppress_in_regions:borderline_class          Suppressed
   :merger:suppress_in_regions:borderline_scale_factor   0.10
-  :merger:suppress_in_regions:output_region_classes     1.0
+  :merger:suppress_in_regions:output_region_classes     true
 
 connect from detection_filter2.detected_object_set
         to   detector_fuser2.detected_object_set1

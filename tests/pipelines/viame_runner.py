@@ -1,3 +1,5 @@
+import os
+import signal
 import subprocess
 
 from pathlib import Path
@@ -36,10 +38,47 @@ class ViameRunner:
             for k, v in overrides.items():
                 cmd += ["-s", f"{k}={v}"]
 
+        # start_new_session puts the runner in its own process group so a timeout
+        # can take down everything it spawned. subprocess's own timeout only
+        # signals the direct child: a training pipeline whose kwiver process is
+        # killed leaves its python trainer running, holding several GiB of GPU
+        # memory, and the next tests then fail with CUDA out of memory rather
+        # than for any reason of their own.
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+            cwd=workdir, env=env, start_new_session=True)
+
         try:
-            return subprocess.run(cmd, capture_output=True, text=True, cwd=workdir,
-                                  env=env, timeout=timeout)
+            stdout, stderr = proc.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
+            _terminate_group(proc)
             # A deadlocked pipeline would otherwise consume the whole ctest budget.
             raise AssertionError(
                 f"{pipeline_path.name} did not finish within {timeout}s") from None
+
+        return subprocess.CompletedProcess(cmd, proc.returncode, stdout, stderr)
+
+
+def _terminate_group(proc, grace: float = 10.0):
+    """
+    Kill a process and every descendant it started.
+
+    The process is a group leader courtesy of start_new_session, so its pid
+    doubles as the group id. SIGTERM first, so a pipeline gets the chance to
+    close its outputs, then SIGKILL for anything still standing.
+    """
+    try:
+        pgid = os.getpgid(proc.pid)
+    except ProcessLookupError:
+        return
+
+    for sig in (signal.SIGTERM, signal.SIGKILL):
+        try:
+            os.killpg(pgid, sig)
+        except ProcessLookupError:
+            return
+        try:
+            proc.communicate(timeout=grace)
+            return
+        except subprocess.TimeoutExpired:
+            continue
