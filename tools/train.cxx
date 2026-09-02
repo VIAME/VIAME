@@ -1061,10 +1061,10 @@ train_applet
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "llm-assist", "Run training under claude supervision, which suggests config "
       "improvements up front then monitors and restarts the run as needed. Either "
-      "\"auto\" (if claude is installed, offer it at start up; otherwise train "
-      "normally), \"on\" (require claude, no prompt), or \"off\". Given with no "
-      "value, means \"on\"",
-      ::cxxopts::value< std::string >()->default_value( "auto" )
+      "\"off\" (the default), \"on\" (require claude, no prompt), or \"auto\" "
+      "(if claude is installed, offer it at start up; otherwise train normally). "
+      "Given with no value, means \"on\"",
+      ::cxxopts::value< std::string >()->default_value( "off" )
                                        ->implicit_value( "on" ), "mode" )
     ( "llm-poll", "Seconds between LLM training checkups",
       ::cxxopts::value< std::string >()->default_value( "600" ), "seconds" )
@@ -1239,9 +1239,10 @@ train_applet
               << " models will be trained sequentially" << std::endl;
   }
 
-  // Look for claude up front, so that in the default auto mode the offer to
-  // supervise this run is made at start up rather than after the user has
-  // already waited through setup. "on" and "off" are taken at face value.
+  // Supervision is off unless asked for. Look for claude up front so that in
+  // the opt-in auto mode the offer is made at start up rather than after the
+  // user has already waited through setup. "on" and "off" are taken at face
+  // value.
   std::string claude_cmd;
   bool llm_supervised = false;
 
@@ -1285,7 +1286,8 @@ train_applet
       std::cout << std::endl;
     }
     // Auto mode with --no-query cannot ask, so it stays off. Use
-    // "--llm-assist on" to enable supervision without being prompted.
+    // "--llm-assist on" to enable supervision without being prompted, or
+    // "--llm-assist auto" to be offered it when claude is present.
   }
 
   // Load KWIVER plugins
