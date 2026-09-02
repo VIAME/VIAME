@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Reads image from an arbitrary input source then dumps them out again
+# Title: Default Video Transcode
 #
-# Description: Transcodes input video or images to a different format.
+# Description: Re-encodes input video or images to MP4 at the downsampled frame
+# rate, with the input tracks resampled to match.
 # =============================================================================
 
 config _pipeline:_edge

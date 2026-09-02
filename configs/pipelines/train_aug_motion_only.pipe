@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Training - Aug Motion Only
+# Title: Motion Only Augmentation
 #
-# Description: Training pipeline for model optimization.
+# Description: Replaces each frame with a single 20-frame temporal-variance
+# channel. Frames must be in temporal order.
 # =============================================================================
 
 config _pipeline:_edge

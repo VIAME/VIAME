@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: SVM Classifier on Top of Fish Detections
+# Title: Fish SVM Classifier Template
 #
-# Description: SVM Classifier on Top of Fish Detections Outputs to
-# computed_detections.csv.
+# Description: RF-DETR fish detector, default descriptor and trained SVM refiner
+# (models next to this file), then NMS.
 # =============================================================================
 
 config _pipeline:_edge

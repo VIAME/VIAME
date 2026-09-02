@@ -1,10 +1,7 @@
 # =============================================================================
 # Title: Align Cameras (2-Camera)
 #
-# Description: Registers a two-camera rig by matching many image pairs with
-# the MINIMA-LoFTR cross-spectral matcher and pooling one homography over
-# every contributing frame. Writes a DIVE camera registration JSON
-# (format v2) with per-frame observations and quality statistics.
+# Description: Registers a two-camera rig and writes a camera registration JSON.
 # =============================================================================
 
 config _pipeline:_edge

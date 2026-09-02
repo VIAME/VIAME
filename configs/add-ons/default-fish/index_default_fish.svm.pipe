@@ -1,7 +1,9 @@
 # =============================================================================
-# Title: Ingest video pipeline using pytorch descriptors
+# Title: Fish SVM Training Index
 #
-# Description: Pipeline configuration file.
+# Description: Merges RF-DETR fish detections with the input annotations,
+# computes descriptors, writes positive/negative id lists for SVM training and
+# ingests them into the database.
 # =============================================================================
 
 config _pipeline:_edge

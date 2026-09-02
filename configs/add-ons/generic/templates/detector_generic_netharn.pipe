@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Secondary Classifier After Generic Object Proposals
+# Title: NetHarn Classifier Over Generic Proposals Template
 #
-# Description: Secondary Classifier After Generic Object Proposals Outputs to
-# computed_detections.csv.
+# Description: Generic RF-DETR proposals reclassified by a trained NetHarn
+# classifier, then NMS.
 # =============================================================================
 
 config _pipeline:_edge

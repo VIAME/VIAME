@@ -1,7 +1,9 @@
 # =============================================================================
-# Title: Query Image Exemplar
+# Title: Image Exemplar Query
 #
-# Description: Pipeline configuration file.
+# Description: Embedded query pipeline: runs generic proposals on the exemplar
+# image (skipped when boxes are supplied) plus a full-image box, and returns
+# their descriptors.
 # =============================================================================
 
 config _pipeline:_edge

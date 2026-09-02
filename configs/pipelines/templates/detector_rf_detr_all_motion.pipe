@@ -1,8 +1,9 @@
 # =============================================================================
-# Title: Detector Rf Detr All Motion Template
+# Title: RF-DETR All-Motion Detector Template
 #
-# Description: Standalone counterpart of embedded_rf_detr_all_motion.pipe, runnable directly on
-# input imagery from disk.
+# Description: RF-DETR on a motion-only three-channel stack (flow magnitude,
+# frame difference, temporal variance) matching the all-motion training
+# augmentation. Reads from disk; frames must be in temporal order.
 # =============================================================================
 
 config _pipeline:_edge

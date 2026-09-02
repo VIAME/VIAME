@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Default Detector Pipeline
+# Title: Default Fish Detector
 #
-# Description: Runs pre-trained default object detector targeting vertebrate
-# and invertebrates Outputs to computed_detections.csv.
+# Description: Single-class 960x1728 RF-DETR fish box detector on the default
+# input.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================

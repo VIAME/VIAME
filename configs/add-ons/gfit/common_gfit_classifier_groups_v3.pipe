@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: GFIT v3 groups classifier
+# Title: GFIT v3 Groups Classifier
 #
-# Description: Single large classifier over the fused detections. Its output is
-# blended with the detector's own class scores at prior_weight.
+# Description: NetHarn groups classifier over the fused detections. Its scores
+# are blended with the detector's own class scores.
 # =============================================================================
 
 process classifier_groups_large

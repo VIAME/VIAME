@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Default Generic Detector Pipeline
+# Title: Generic Object Proposal Detector
 #
-# Description: Runs pre-trained object detector aimed at generating generic
-# object proposals Outputs to computed_detections.csv.
+# Description: Windowed RF-DETR generic proposal detector producing
+# class-agnostic object boxes.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================

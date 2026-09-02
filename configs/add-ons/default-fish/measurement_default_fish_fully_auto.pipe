@@ -1,8 +1,9 @@
 # =============================================================================
-# Title: Fully automatic fish measurement pipeline
+# Title: Fully Automatic Stereo Fish Measurement
 #
-# Description: Fully automatic fish measurement pipeline. Head and tail points
-# come from the stereo detector's own masks. Outputs to computed_tracks2.csv.
+# Description: RF-DETR segmentation fish detector on both cameras. Head and tail
+# keypoints come from each mask's oriented bounding box and lengths are
+# triangulated from the calibration.
 #
 # Requires Calibration: True
 # =============================================================================

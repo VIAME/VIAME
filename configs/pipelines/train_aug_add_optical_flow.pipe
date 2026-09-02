@@ -1,21 +1,8 @@
 # =============================================================================
-# Title: Training - Aug Add Optical Flow
+# Title: Optical Flow Channel Augmentation
 #
-# Description: Source-driven augmentation that reads directly from the
-# common_default_input source. Because that source is a video_input, the same pipeline handles both
-# videos (video_reader:type = vidl_ffmpeg) and image sequences
-# (video_reader:type = image_list) -- the viame train tool selects the reader
-# per input. The frames are downsampled, augmented with a background-compensated
-# optical-flow magnitude channel appended to RGB (producing a 4-channel RGBA
-# image), and written out in a single pass, so a video is decoded only once and
-# only the augmented frames are written (no intermediate raw-frame dump).
-# Requires temporally ordered input frames.
-#
-# The train tool drives this via 'kwiver runner' with -s overrides for
-# input:video_filename, input:video_reader:type, downsampler:target_frame_rate
-# and image_writer:file_name_template. The writer names frames purely from the
-# template counter (frame%06d.png) so numbering is identical for video and image
-# inputs and groundtruth association is unchanged.
+# Description: Appends a background-compensated optical-flow magnitude channel
+# at a fixed scale: [R, G, B, flow]. Frames must be in temporal order.
 # =============================================================================
 
 config _pipeline:_edge

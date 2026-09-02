@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Sea Lion Detection Pipeline
+# Title: Sea Lion DEIM Six-Class Detector
 #
-# Description: Six-class sea lion life-stage detection on survey imagery using the DEIMv2
-# detector (ONNX) at 640px chips. Produces bounding boxes only. Output
-# categories: bull (B), sub-adult male (S), female (F), juvenile (J), pup (P),
+# Description: DEIMv2 ONNX detector on 640 px chips producing boxes only.
+# Classes: bull (B), sub-adult male (S), female (F), juvenile (J), pup (P),
 # northern fur seal (NFS).
 # Input: IMAGE
 # Output: BBOX

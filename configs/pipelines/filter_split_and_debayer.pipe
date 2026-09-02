@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Filters input images via spltting them, debayering them and lastly enhancement
+# Title: Split, Debayer and Enhance Filter
 #
-# Description: Applies filtering operations to input data.
+# Description: Splits side-by-side frames, keeps the left half, debayers and
+# enhances it. Writes PNG images.
 # Input: IMAGE
 # Output: IMAGE
 # =============================================================================

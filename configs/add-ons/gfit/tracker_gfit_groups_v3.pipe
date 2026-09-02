@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: GFIT v3 groups Tracker Pipe
+# Title: GFIT v3 Groups Tracker
 #
-# Description: Fused detector, groups reclassification, then SRNN tracking.
+# Description: Fused GFIT detector and groups classifier followed by ByteTrack.
+# Tracks shorter than 3 states are dropped.
 # =============================================================================
 
 config _scheduler

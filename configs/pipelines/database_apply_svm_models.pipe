@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Detection pipeline with SVM rapid model filters
+# Title: Database SVM Model Applier
 #
-# Description: Pipeline configuration file.
+# Description: Scores one video's database tracks with the user's trained SVM
+# models.
 # =============================================================================
 
 config _pipeline:_edge

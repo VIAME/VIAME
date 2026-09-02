@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Fish Tracker
 #
-# Description: Pipeline configuration file.
+# Description: Embedded RF-DETR fish box detector followed by the default
+# ByteTrack tracker.
 # =============================================================================
 
 config _pipeline:_edge

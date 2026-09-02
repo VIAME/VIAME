@@ -1,8 +1,7 @@
 # =============================================================================
-# Title: :video_reader:type to be vidl_ffmpeg for videos
+# Title: Stereo Input with Downsampler
 #
-# Description: By default, this is an image list reader, but this can be
-# over-riden by changing :video_reader:type to be vidl_ffmpeg for videos
+# Description: Two-camera input plus a shared downsampler.
 # =============================================================================
 
 include common_two_cam_input.pipe

@@ -1,9 +1,9 @@
 # =============================================================================
-# Title: Tracker Generic Svm Template
+# Title: Generic SVM Tracker Template
 #
 # Description: The generic-proposal SVM detector followed by a trained tracker,
-# runnable directly on input imagery from disk. Detector training renders this
-# alongside detector.pipe and tracker training fills in the tracker parameters.
+# runnable directly on imagery from disk. Detector training renders it and
+# tracker training fills in the tracker parameters.
 # =============================================================================
 
 config _pipeline:_edge

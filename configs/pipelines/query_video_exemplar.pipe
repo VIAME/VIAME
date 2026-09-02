@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Query Video Exemplar
 #
-# Description: Pipeline configuration file.
+# Description: Placeholder embedded pipeline with only input and output
+# adapters; performs no processing.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Generic Proposal Tracker
 #
-# Description: Pipeline configuration file.
+# Description: Embedded generic proposal detector followed by the default
+# ByteTrack tracker.
 # =============================================================================
 
 config _pipeline:_edge

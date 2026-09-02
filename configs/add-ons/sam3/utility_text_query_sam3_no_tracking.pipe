@@ -1,12 +1,8 @@
 # =============================================================================
-# Title: Text query via SAM3 (per-frame, no tracking)
+# Title: Per-Frame SAM3 Text Query
 #
-# Description: Utility pipeline for detecting objects with text-based queries.
-#              Uses Grounding DINO for per-frame detection and SAM3 for
-#              segmentation. Each frame is processed independently with no
-#              cross-frame tracking. Suitable for image sets and videos where
-#              frame-to-frame correspondence is not needed.
-#
+# Description: Per-frame text-prompted detection (Grounding DINO) segmented by
+# SAM3 into polygon masks. No cross-frame tracking.
 # Input: TEXT
 # Output: MASK
 # =============================================================================

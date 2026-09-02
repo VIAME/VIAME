@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: ResNet Classifier on Fish Detections
+# Title: Embedded Fish SVM Classifier Template
 #
-# Description: ResNet Classifier on Fish Detections
+# Description: RF-DETR fish detector, default descriptor and trained SVM
+# refiner.
 # =============================================================================
 
 process detector_input

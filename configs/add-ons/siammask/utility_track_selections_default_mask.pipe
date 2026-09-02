@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Example simple tracker pipeline
+# Title: Track User Selections With SiamMask
 #
-# Description: Utility pipeline for data processing operations.
+# Description: Extends user-selected boxes into tracks with masks using
+# SiamMask, merging in existing tracks.
 # =============================================================================
 
 config _pipeline:_edge

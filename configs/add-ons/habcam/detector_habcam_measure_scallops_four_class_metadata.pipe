@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Process the left image (or full image if non-stitched pair)
+# Title: Four-Class Scallop Detector with Metadata Measurement
 #
-# Description: Runs object detection pipeline on input imagery. Uses habcam
-# input left configuration. Outputs results to computed_detections_left.csv.
-# Configured for scallop detection in benthic imagery.
+# Description: Four-class scallop ensemble on the left (or unstitched) image,
+# with sizes computed from the image's embedded HabCam metadata.
 # =============================================================================
 
 config _pipeline:_edge

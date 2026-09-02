@@ -1,7 +1,9 @@
 # =============================================================================
-# Title: Query And Iqr (AdaBoost)
+# Title: AdaBoost Query and IQR
 #
-# Description: Pipeline configuration file for IQR using AdaBoost ranking.
+# Description: Embedded query handler ranking database descriptors with an
+# AdaBoost model refined from IQR feedback. Alternative to the default SVM
+# handler.
 # =============================================================================
 
 config _pipeline:_edge

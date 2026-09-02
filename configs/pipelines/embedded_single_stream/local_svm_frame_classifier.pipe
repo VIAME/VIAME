@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Local SVM Frame Classifier
+# Title: Embedded Local SVM Frame Classifier
 #
-# Description: Pipeline configuration file.
+# Description: Scores each whole frame with the default descriptor and the
+# locally trained SVM models.
 # =============================================================================
 
 config _pipeline:_edge

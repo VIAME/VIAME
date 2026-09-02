@@ -1,50 +1,8 @@
 # =============================================================================
-# Title: Common - Sea Lion Registration 2cam
+# Title: Two-Camera Sea Lion Survey Registration
 #
-# Description: Shared registration module, drop-in replacement for
-# common_sea_lion_stabilizer_2cam.pipe. Instead of frame-to-frame SURF/VXL
-# stabilization (many_image_stabilizer), the homographies come from the newer
-# whole-survey registration (viame.colmap.colmap_registration:
-# affine chains + rig cross-camera consensus + optional GPS/flight-log
-# geo-anchoring). Exposes the same process name (stabilizer) and output ports
-# (homog1/homog2/homog3), so the multicam suppressor / tracker / homography
-# writer downstream are unchanged.
-#
-# The process also needs the per-camera image PATHS to key its precomputed
-# homographies, so consumers must additionally connect
-# downsamplerN.output_2 -> stabilizer.file_nameN (see the 3-cam suppressor /
-# tracker / utility pipes).
-#
-# Only n_input is fixed here (structural). Everything else is left at the
-# process defaults so it can be set per run WITHOUT editing this file, via
-#   kwiver runner ... -s stabilizer:<key>=<value>
-# (a value set here would otherwise shadow the command line). Overridable keys:
-#   method       hybrid (default) | metadata
-#   flight_log   FMCLOG CSV or directory of daily logs; empty = image-only
-#                registration (metadata-optional: hybrid works either way)
-#   require_metadata        true (set below) | false. Fail the run if no
-#                flight_log metadata file is provided. Set false to allow
-#                image-only registration.
-#   require_metadata_match  true | false (default). Fail the run if the metadata
-#                does not correspond to the current image sequence.
-#   min_metadata_coverage   0..1 (default 1.0). Fraction of the sequence that the
-#                metadata must cover when require_metadata_match is set.
-#   water_method auto (default) | svm | sift
-#   gps_chain_reconcile true (default) | false -- correct per-frame GPS
-#                positions that disagree with the image chain (sub-second
-#                trigger / GPS-sample aliasing), verified per-step by an
-#                independent image match; false places frames at raw GPS
-#   site_folder  survey folder; empty = derived from image_list1
-#   image_list<i> one line-separated image-list file per camera (image_list1,
-#                image_list2, ...); each defaults to the pipeline input list, and
-#                image_list1's first entry also locates the survey folder.
-#   register_scope list (default) | folder -- register the given frames vs. the
-#                whole survey folder
-#   cache        homography cache file; empty = <site>/.sea_lion_reg_cache.npz
-#
-# The first frame blocks while the whole survey is registered once; the result
-# is cached to disk, so re-runs (and running detector/suppressor/tracker after
-# a filter_register_frames pass) load it instantly.
+# Description: Whole-survey image registration for two cameras, geo-anchored to
+# the flight log.
 # =============================================================================
 
 process stabilizer

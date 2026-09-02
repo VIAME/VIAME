@@ -1,9 +1,9 @@
 # =============================================================================
-# Title: Common - Fish Detector with Motion
+# Title: Fish Detector with Motion
 #
-# Description: The RGB 1728 fish detector fused with a three-frame-difference
-# branch via coverage_reinforce: motion rescores the detector's boxes and adds
-# boxes only where the detector saw nothing. Geometry is never altered.
+# Description: RF-DETR fish detector fused with a three-frame-difference branch:
+# motion rescores the detector's boxes and adds boxes only where the detector
+# found nothing.
 # =============================================================================
 
 include common_fish_detector_box.pipe

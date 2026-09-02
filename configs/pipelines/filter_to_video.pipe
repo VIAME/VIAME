@@ -1,7 +1,7 @@
 # =============================================================================
-# Title: Reads image from an arbitrary input source then dumps them out again
+# Title: Image to Video Encoder
 #
-# Description: Applies filtering operations to input data.
+# Description: Encodes the input frames to an MP4 video with ffmpeg.
 # Input: IMAGE
 # Output: VIDEO
 # =============================================================================

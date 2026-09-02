@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Matlab Camtrawl detector pipeline
+# Title: Matlab Camtrawl Detector
 #
-# Description: Matlab Camtrawl detector pipeline
+# Description: Matlab GMM background-subtraction detector. The classifier and
+# drawing stages are commented out and no detections are written.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

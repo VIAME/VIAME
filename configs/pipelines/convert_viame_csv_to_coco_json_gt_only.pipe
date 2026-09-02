@@ -1,14 +1,8 @@
 # =============================================================================
-# Title: Format Converter
+# Title: VIAME CSV to COCO JSON Converter (GT Only)
 #
-# Description: Converts annotation data between different file formats without
-# requiring the source imagery or videos to be present. Image names are pulled
-# from the identifiers stored in the input annotation files instead.
-#
-# Tracks are read and written, so per-frame detections keep the track they
-# belong to. A track reader cannot drive itself, so the detection reader reads
-# the same file purely as a frame clock, supplying the frame identifiers the
-# track reader and the writer need.
+# Description: Converts VIAME CSV to COCO JSON without the imagery present.
+# Frame names come from the CSV itself.
 # =============================================================================
 
 config _pipeline:_edge

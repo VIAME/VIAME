@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Detector Generic Netharn Template
+# Title: Generic Proposal NetHarn Classifier Template
 #
-# Description: Standalone counterpart of embedded_generic_netharn.pipe, runnable directly on
-# input imagery from disk.
+# Description: Generic object proposals reclassified by a trained NetHarn
+# refiner. Reads from disk.
 # =============================================================================
 
 config _pipeline:_edge

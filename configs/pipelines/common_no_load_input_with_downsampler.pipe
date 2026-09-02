@@ -1,8 +1,7 @@
 # =============================================================================
-# Title: :video_reader:type to be vidl_ffmpeg for videos
+# Title: No-Load Input with Downsampler
 #
-# Description: By default, this is an image list reader, but this can be
-# over-riden by changing :video_reader:type to be vidl_ffmpeg for videos
+# Description: No-load input plus a 5 fps downsampler.
 # =============================================================================
 
 include common_no_load_input.pipe

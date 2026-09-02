@@ -1,7 +1,7 @@
 # =============================================================================
-# Title: Filters input images via debayering them and running basic image filtering
+# Title: Debayer Filter
 #
-# Description: Applies filtering operations to input data.
+# Description: Debayers each frame (BG pattern) and writes PNG images.
 # Input: IMAGE
 # Output: IMAGE
 # =============================================================================

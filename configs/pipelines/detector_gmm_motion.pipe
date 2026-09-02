@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Camtrawl detector pipeline
+# Title: GMM Motion Detector
 #
-# Description: Runs camtrawl GMM model on data Outputs to
-# computed_detections.csv.
+# Description: Gaussian mixture background subtraction; moving regions are
+# written as detections.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

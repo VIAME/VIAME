@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Common - Stereo Fish Detector
+# Title: Stereo Fish Detector
 #
-# Description: Stereo fish detector. Runs the same 960x1728 RF-DETR
-# segmentation model as common_fish_detector_mask.pipe on each camera, so both
-# views emit box + mask output.
+# Description: The 960x1728 RF-DETR segmentation fish detector run on each
+# camera, so both views emit boxes and masks.
 # =============================================================================
 
 process detector_input1

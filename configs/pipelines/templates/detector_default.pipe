@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Default Detector Template
 #
-# Description: Runs object detection pipeline on input imagery from disk
+# Description: Standalone detector template whose detector slot is filled by
+# training. Reads from disk, merges overlapping detections and writes CSV.
 # =============================================================================
 
 config _pipeline:_edge

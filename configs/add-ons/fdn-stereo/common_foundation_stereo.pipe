@@ -1,12 +1,8 @@
 # =============================================================================
-# Title: Common Foundation Stereo Configuration
+# Title: Foundation Stereo Config
 #
-# Description: Shared configuration for Foundation Stereo deep learning model.
-# Used for high-quality disparity estimation in stereo pipelines and
-# interactive stereo annotation in DIVE.
-#
-# This file can be included in other pipelines or read directly by Python
-# services for consistent model configuration.
+# Description: Shared Foundation Stereo model settings (small variant, disparity
+# output) used by the interactive stereo service and the stereo pipelines.
 # =============================================================================
 
 # Foundation-Stereo deep learning model configuration

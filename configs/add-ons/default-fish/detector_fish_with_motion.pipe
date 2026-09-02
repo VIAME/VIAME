@@ -1,9 +1,8 @@
 # =============================================================================
 # Title: Default Fish Detector with Motion Fusion
 #
-# Description: As detector_default_fish.pipe, with a three-frame-difference
-# branch merged in to recover small animals the detector misses. Outputs to
-# computed_detections.csv.
+# Description: The default fish detector with a three-frame-difference motion
+# branch merged in to recover small animals the detector misses.
 #
 # Input: IMAGE
 # Output: BBOX

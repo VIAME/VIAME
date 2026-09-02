@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Fish Detector
+# Title: Fish Detector Without Motion
 #
-# Description: Runs object detection pipeline on input imagery. Uses ../fish
-# detector with filter configuration. Note that the underlying detector is now
-# motion-infused, so frames must arrive in temporal order.
+# Description: Embedded RF-DETR fish box detector with no motion branch;
+# detections are emitted as single-frame tracks.
 # =============================================================================
 
 config _pipeline:_edge

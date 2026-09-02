@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Simple hough transform example detector
+# Title: Hough Circle Detector
 #
-# Description: Simple hough transform example detector Outputs to
-# computed_detections.csv.
+# Description: Example detector running the OpenCV Hough circle transform on
+# each frame.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================

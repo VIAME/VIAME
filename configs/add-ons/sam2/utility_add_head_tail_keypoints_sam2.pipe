@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Add head tail keypoints to existing detections which lack them
+# Title: SAM2 Head-Tail Keypoint Generator
 #
-# Description: Utility pipeline for data processing operations.
+# Description: Segments each box with SAM2 where no mask exists and derives head
+# and tail keypoints from the mask's oriented bounding box.
 # Input: BBOX
 # Output: HEAD-TAIL
 # =============================================================================

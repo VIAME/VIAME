@@ -1,14 +1,10 @@
 # =============================================================================
-# Title: Measurement from annotations pipeline (SEAGIS)
+# Title: SEAGIS Measurement from Annotations
 #
-# Description: Computes stereo measurements from annotated tracks using the
-# SEAGIS StereoLibLX library with .CamCAL calibration files. Reads left and
-# right camera annotations, pairs detections by track ID, and triangulates
-# head/tail keypoints. Epipolar template matching is used as fallback when
-# only one camera has keypoints.
-#
-# Requires: SEAGIS .CamCAL calibration files for left and right cameras.
-#
+# Description: Pairs left and right track annotations by track ID and
+# triangulates head/tail keypoints with the SEAGIS StereoLibLX library from
+# .CamCAL files. Epipolar template matching fills in when only one camera has
+# keypoints.
 # Requires Calibration: True
 # =============================================================================
 

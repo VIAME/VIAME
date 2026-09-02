@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Filters input images via debayering them and running basic image filtering
+# Title: Stereo Depth Map Filter
 #
-# Description: Applies filtering operations to input data. Processes stereo
-# camera image pairs.
+# Description: Splits side-by-side stereo frames and writes an OpenCV disparity
+# map per frame.
 # Input: IMAGE
 # Output: IMAGE
 # =============================================================================

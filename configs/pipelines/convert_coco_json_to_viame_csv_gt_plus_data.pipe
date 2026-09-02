@@ -1,13 +1,8 @@
 # =============================================================================
-# Title: Format Converter
+# Title: COCO JSON to VIAME CSV Converter
 #
-# Description: Converts annotation data between different file formats. Tracks
-# are read and written, so per-frame detections keep the track they belong to;
-# a detection-only file converts as single-state tracks, which is the same
-# identifier the VIAME CSV carries in its first column.
-#
-# The process names are those of the detection converters they replaced, so
-# existing -s overrides keep working.
+# Description: Converts COCO JSON to VIAME CSV, keeping track ids. Frame names
+# come from the input image list.
 # =============================================================================
 
 config _pipeline:_edge

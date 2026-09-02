@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Measurement from annotations pipeline
+# Title: Default Measurement from Annotations
 #
-# Description: Default measurement from annotations pipeline.
-# Outputs to computed_tracks2.csv.
+# Description: Default choice: stereo lengths from annotated keypoints using
+# Foundation Stereo disparity.
 #
 # Requires Calibration: True
 # =============================================================================

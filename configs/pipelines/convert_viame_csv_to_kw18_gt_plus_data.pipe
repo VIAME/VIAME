@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Format Converter
+# Title: VIAME CSV to KW18 Converter
 #
-# Description: Converts annotation data between different file formats.
+# Description: Converts VIAME CSV detections to KW18. Frame names come from the
+# input image list.
 # =============================================================================
 
 config _pipeline:_edge

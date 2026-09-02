@@ -1,10 +1,10 @@
 # =============================================================================
-# Title: Sea Lion Detection Pipeline
+# Title: Sea Lion Fusion Six-Class Detector
 #
-# Description: Six-class sea lion life-stage detection on survey imagery, fusing multiple
-# detectors with weighted box fusion. Produces a segmentation polygon (mask) for most
-# detections. Output categories: bull (B), sub-adult male (S), female (F),
-# juvenile (J), pup (P), northern fur seal (NFS).
+# Description: Weighted box fusion of the DEIMv2 six-class and RF-DETR
+# eight-class detectors, with masks; dead pup folds into pup. Classes: bull (B),
+# sub-adult male (S), female (F), juvenile (J), pup (P), northern fur seal
+# (NFS).
 # Input: IMAGE
 # Output: MASK
 # =============================================================================

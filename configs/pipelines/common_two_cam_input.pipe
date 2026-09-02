@@ -1,10 +1,8 @@
 # =============================================================================
-# Title: :video_reader:type to be vidl_ffmpeg for videos
+# Title: Two-Camera Input
 #
-# Description: Two-camera input pair (input1/input2), shared by the stereo
-# measurement pipelines and the align-cameras utilities. By default these are
-# image list readers, but this can be over-riden by changing
-# :video_reader:type to be vidl_ffmpeg for videos
+# Description: Image list readers for two cameras; switch the reader type for
+# video input.
 # =============================================================================
 
 process input1

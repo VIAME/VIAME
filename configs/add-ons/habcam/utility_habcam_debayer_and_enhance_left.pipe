@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Debayer and color correct the left image only on a given input or input pair
+# Title: HabCam Left Debayer and Enhance
 #
-# Description: Applies image enhancement filters to input imagery. Configured
-# for HabCam underwater survey imagery.
+# Description: Debayers and color corrects the left half of a stitched pair (or
+# the full image) and writes PNG files.
 # =============================================================================
 
 config _pipeline:_edge

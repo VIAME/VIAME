@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Common - Sea Lion Stabilizer 3cam
+# Title: Three-Camera Sea Lion Stabilizer
 #
-# Description: Shared configuration module that can be included by other
-# pipelines. Configured for sea lion survey imagery.
+# Description: Frame-to-frame homography stabilizer for three cameras using SURF
+# features.
 # =============================================================================
 
 process stabilizer

@@ -1,9 +1,7 @@
 # =============================================================================
-# Title: Detector - Arctic Seal IR YOLO
+# Title: Arctic Seal IR YOLO Detector
 #
-# Description: Runs object detection pipeline on input imagery. Uses arctic
-# seal ir yolo detector configuration. Outputs results to
-# ir_out_images/frame%06d.jpg.
+# Description: YOLO hotspot detector on thermal imagery.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================

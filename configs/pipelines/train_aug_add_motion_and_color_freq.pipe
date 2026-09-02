@@ -1,7 +1,9 @@
 # =============================================================================
-# Title: Training - Aug Add Motion And Color Freq
+# Title: Motion and Color Frequency Augmentation
 #
-# Description: Training pipeline for model optimization.
+# Description: Embedded per-image augmenter: random grayscale and hue shift,
+# plus a color-frequency channel and a 20-frame motion variance channel. Frames
+# must be in temporal order.
 # =============================================================================
 
 config _pipeline:_edge

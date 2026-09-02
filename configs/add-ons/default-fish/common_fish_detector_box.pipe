@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Default Fish Detector
+# Title: Fish Box Detector
 #
-# Description: Detects a single 'fish' output category via running a 960x1728
-# RF-DETR model on RGB inputs. Produces just a bounding box output.
+# Description: Single 'fish' class 960x1728 RF-DETR detector on RGB input,
+# producing boxes only.
 # =============================================================================
 
 process detector_input

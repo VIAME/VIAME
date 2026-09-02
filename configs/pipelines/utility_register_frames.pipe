@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Utility - Register Frames
+# Title: Single Camera Frame Registration
 #
-# Description: Registers frames between multiple camera views.
+# Description: Estimates frame-to-reference homographies for one image stream
+# from SURF features and writes them to a homography file.
 # =============================================================================
 
 config _scheduler

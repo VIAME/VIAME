@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: CutLer's MaskCut Pipeline
+# Title: MaskCut Unsupervised Segmenter
 #
-# Description: Runs object detection pipeline on input imagery. Uses default
-# input with downsampler configuration. Outputs results to
-# computed_detections.csv.
+# Description: CutLER's MaskCut produces class-agnostic object masks for each
+# frame.
 # =============================================================================
 
 config _pipeline:_edge

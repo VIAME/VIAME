@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Reads image from an arbitrary input source then dumps them out again
+# Title: Extract Frames with Tracks
 #
-# Description: Applies filtering operations to input data.
+# Description: Writes only frames that contain tracks, with the track CSV
+# renumbered to match.
 # Input: IMAGE
 # Output: IMAGE
 # =============================================================================

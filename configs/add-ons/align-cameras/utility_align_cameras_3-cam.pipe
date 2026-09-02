@@ -1,13 +1,8 @@
 # =============================================================================
 # Title: Align Cameras (3-Camera)
 #
-# Description: Registers a three-camera rig in one job by matching many image
-# pairs with the MINIMA-LoFTR cross-spectral matcher and pooling one
-# homography per camera pair over every contributing frame, sharing one model
-# load and one pass over the selected frames. With all three pairs solved a
-# loop-closure residual reports whether the triplet is mutually consistent.
-# Writes a DIVE camera registration JSON (format v2) with per-frame
-# observations and quality statistics.
+# Description: Registers a three-camera rig and writes a camera registration
+# JSON.
 # =============================================================================
 
 config _pipeline:_edge

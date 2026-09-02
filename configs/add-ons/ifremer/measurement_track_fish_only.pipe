@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Tracker piepline for fish on stereo cameras
+# Title: Stereo Fish Tracker
 #
-# Description: Pipeline for measuring object dimensions in imagery.
+# Description: RF-DETR fish detection and SRNN tracking on both cameras
+# independently, with no stereo pairing.
 # =============================================================================
 
 include common_stereo_fish_tracker.pipe

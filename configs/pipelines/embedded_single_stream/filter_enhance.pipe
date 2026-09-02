@@ -1,7 +1,7 @@
 # =============================================================================
-# Title: Filter - Enhance
+# Title: Embedded Enhance Filter
 #
-# Description: Applies filtering operations to input data.
+# Description: Applies white balance, CLAHE and saturation boost to each frame.
 # =============================================================================
 
 config _pipeline:_edge

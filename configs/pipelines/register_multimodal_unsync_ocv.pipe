@@ -1,7 +1,9 @@
 # =============================================================================
-# Title: Register co-collected optical and thermal imagery
+# Title: Optical-Thermal Image Registration
 #
-# Description: Register co-collected optical and thermal imagery
+# Description: Time-aligns unsynchronized optical and thermal image lists, warps
+# the thermal frame onto the optical one and writes the merged image per optical
+# frame.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

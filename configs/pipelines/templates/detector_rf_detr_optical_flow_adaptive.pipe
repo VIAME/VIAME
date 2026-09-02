@@ -1,8 +1,9 @@
 # =============================================================================
-# Title: Detector Rf Detr Optical Flow Adaptive Template
+# Title: RF-DETR Adaptive Optical Flow Detector Template
 #
-# Description: Standalone counterpart of embedded_rf_detr_optical_flow_adaptive.pipe, runnable directly on
-# input imagery from disk.
+# Description: As the optical flow template, with adaptive per-frame flow
+# normalization matching the adaptive optical-flow training augmentation. Reads
+# from disk.
 # =============================================================================
 
 config _pipeline:_edge

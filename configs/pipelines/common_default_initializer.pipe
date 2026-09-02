@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Common - Default Initializer
+# Title: Default Track Initializer
 #
-# Description: Current incumbent is just a straight-up threshold on detection
-# scores.
+# Description: Starts a track from every detection above a fixed score
+# threshold.
 # =============================================================================
 
 process track_initializer

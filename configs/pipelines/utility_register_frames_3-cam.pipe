@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Utility - Register Frames 3-cam
+# Title: Three-Camera Frame Registration
 #
-# Description: By default, this is an image list reader, but this can be
-# over-riden by changing :video_reader:type to be vidl_ffmpeg for videos
+# Description: Estimates per-frame homographies for three synchronized camera
+# streams from SURF features and writes one homography file per camera.
 # =============================================================================
 
 config _scheduler

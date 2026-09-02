@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Training - Aug Add Motion
+# Title: Motion Channel Augmentation
 #
-# Description: Training pipeline for model optimization.
+# Description: Appends a 20-frame temporal-variance channel to each RGB frame:
+# [R, G, B, motion]. Frames must be in temporal order.
 # =============================================================================
 
 config _pipeline:_edge
