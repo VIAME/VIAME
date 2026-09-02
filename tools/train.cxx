@@ -688,7 +688,7 @@ static bool validate_trainer_output_keys(
       continue;
     }
     if( key == "eval" || key == "type" || key == "eval_folder" ||
-        key == nested_type_key )
+        key == "tracker_pipeline_template" || key == nested_type_key )
     {
       continue;
     }
@@ -775,6 +775,7 @@ static void process_trainer_output(
   std::map< std::string, std::string > template_replacements;
   std::map< std::string, std::string > file_copies;
   std::string eval_folder;  // Optional evaluation folder to copy
+  std::string branch_tracker_template;  // Trainer's own tracker template, if any
 
   for( const auto& pair : output_map )
   {
@@ -785,6 +786,14 @@ static void process_trainer_output(
     if( key == "eval_folder" && !value.empty() && does_folder_exist( value ) )
     {
       eval_folder = value;
+      continue;
+    }
+
+    // A trainer can name the tracker pipeline its detector shape needs, in
+    // place of the one the config asked for. Consumed here, not copied.
+    if( key == "tracker_pipeline_template" && !value.empty() )
+    {
+      branch_tracker_template = value;
       continue;
     }
 
@@ -945,10 +954,19 @@ static void process_trainer_output(
     {
       std::cout << "Generated pipeline: " << output_pipeline << std::endl;
     }
+    else
+    {
+      std::cerr << "Warning: failed to generate pipeline from template" << std::endl;
+    }
+
+    // A trainer whose detector is a chain of processes needs a tracker pipeline
+    // built around that chain, not the stock single-detector one.
+    const std::string tracker_template = branch_tracker_template.empty() ?
+      secondary_template : branch_tracker_template;
 
     // Pre-render the pipeline a later training stage will finish, carrying
     // this stage's substitutions forward
-    if( !secondary_template.empty() && does_file_exist( secondary_template ) &&
+    if( !tracker_template.empty() && does_file_exist( tracker_template ) &&
         !secondary_pipeline_name.empty() )
     {
       std::string secondary_pipeline = output_directory.empty() ?
@@ -956,14 +974,15 @@ static void process_trainer_output(
         append_path( output_directory, secondary_pipeline_name );
 
       if( replace_keywords_in_template_file(
-            secondary_template, secondary_pipeline, template_replacements ) )
+            tracker_template, secondary_pipeline, template_replacements ) )
       {
         std::cout << "Generated pipeline: " << secondary_pipeline << std::endl;
       }
-    }
-    else
-    {
-      std::cerr << "Warning: failed to generate pipeline from template" << std::endl;
+      else
+      {
+        std::cerr << "Warning: failed to generate tracker pipeline from template"
+                  << std::endl;
+      }
     }
   }
 
@@ -1352,6 +1371,9 @@ train_applet
             config->get_value< std::string >( conf ),
             std::regex( "embedded_tracker" ),
             "tracker_default" );
+
+          new_value = std::regex_replace(
+            new_value, std::regex( "embedded_(.+)_tracker" ), "tracker_$1" );
 
           new_value = std::regex_replace(
             new_value, std::regex( "embedded_" ), "detector_" );
