@@ -750,7 +750,10 @@ static void process_trainer_output(
     const std::string& pipeline_template,
     const std::string& output_pipeline_name,
     const std::string& algorithm_type = "",
-    bool is_detector = true )
+    bool is_detector = true,
+    bool fill_into_existing_pipeline = false,
+    const std::string& secondary_template = "",
+    const std::string& secondary_pipeline_name = "" )
 {
   if( output_map.empty() )
   {
@@ -931,10 +934,32 @@ static void process_trainer_output(
     std::string output_pipeline = output_directory.empty() ?
       output_pipeline_name : append_path( output_directory, output_pipeline_name );
 
+    // A tracker trains after the detector and completes the pipeline the
+    // detector pass began, rather than starting over from the template.
+    const std::string source_template =
+      ( fill_into_existing_pipeline && does_file_exist( output_pipeline ) )
+        ? output_pipeline : pipeline_template;
+
     if( replace_keywords_in_template_file(
-          pipeline_template, output_pipeline, template_replacements ) )
+          source_template, output_pipeline, template_replacements ) )
     {
       std::cout << "Generated pipeline: " << output_pipeline << std::endl;
+    }
+
+    // Pre-render the pipeline a later training stage will finish, carrying
+    // this stage's substitutions forward
+    if( !secondary_template.empty() && does_file_exist( secondary_template ) &&
+        !secondary_pipeline_name.empty() )
+    {
+      std::string secondary_pipeline = output_directory.empty() ?
+        secondary_pipeline_name :
+        append_path( output_directory, secondary_pipeline_name );
+
+      if( replace_keywords_in_template_file(
+            secondary_template, secondary_pipeline, template_replacements ) )
+      {
+        std::cout << "Generated pipeline: " << secondary_pipeline << std::endl;
+      }
     }
     else
     {
@@ -1322,8 +1347,11 @@ train_applet
         {
           std::string new_value = std::regex_replace(
             config->get_value< std::string >( conf ),
-            std::regex( "embedded_" ),
-            "detector_" );
+            std::regex( "embedded_tracker" ),
+            "tracker_default" );
+
+          new_value = std::regex_replace(
+            new_value, std::regex( "embedded_" ), "detector_" );
 
           config->set_value( conf, new_value );
         }
@@ -3137,7 +3165,9 @@ train_applet
         detector_trainer->update_model();
 
       process_trainer_output( trainer_output, output_directory, output_file,
-        pipeline_template, output_pipeline_name, detector_type, true );
+        pipeline_template, output_pipeline_name, detector_type, true, false,
+        train_trackers ? tracker_pipeline_template : "",
+        train_trackers ? output_tracker_pipeline_name : "" );
     }
     catch( const std::exception& e )
     {
@@ -3449,7 +3479,7 @@ train_applet
 
         process_trainer_output( trainer_output, output_directory, output_file,
           tracker_pipeline_template, output_tracker_pipeline_name,
-          current_tracker, false );
+          current_tracker, false, true );
       }
       catch( const std::exception& e )
       {

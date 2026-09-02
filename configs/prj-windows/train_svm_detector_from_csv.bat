@@ -15,6 +15,6 @@ SET KWIVER_DEFAULT_LOG_LEVEL=info
 viame.exe train ^
   -i "%INPUT_DIRECTORY%" ^
   -c "%VIAME_INSTALL%\configs\pipelines\train_detector_svm_over_generic_detections.conf" ^
-  --threshold 0.0
+  --threshold 0.0 --no-embedded-pipe
 
 PAUSE

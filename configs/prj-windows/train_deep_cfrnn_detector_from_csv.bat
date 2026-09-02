@@ -19,6 +19,6 @@ SET KWIVER_DEFAULT_LOG_LEVEL=info
 viame.exe train ^
   -i "%INPUT_DIRECTORY%" ^
   -c "%VIAME_INSTALL%\configs\pipelines\train_detector_netharn_cfrnn.conf" ^
-  --threshold 0.0 --default-vfr %DEFAULT_FRAME_RATE%
+  --threshold 0.0 --no-embedded-pipe --default-vfr %DEFAULT_FRAME_RATE%
 
 PAUSE

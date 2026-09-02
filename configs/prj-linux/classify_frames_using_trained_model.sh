@@ -20,5 +20,5 @@ export VIAME_PROJECT_DIR="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)"
 
 python ${VIAME_INSTALL}/configs/process_video.py \
   -i ${INPUT} -o ${OUTPUT} -frate ${FRAME_RATE} \
-  -p pipelines/frame_classifier_project_folder.pipe \
+  -p category_models/detector.pipe \
   -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU}
