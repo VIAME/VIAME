@@ -135,7 +135,7 @@ ECHO [%DATE% %TIME%] Submodules updated
 REM Generate CTest dashboard file
 CALL %~dp0build_common_functions.bat ^
     :GenerateCTestDashboard ^
-    build_server_windows.cmake ^
+    build_server_windows_keu.cmake ^
     ctest_build_steps.cmake %VIAME_SOURCE_DIR%
 
 ECHO [%DATE% %TIME%] Starting CMake configure and build via CTest...
