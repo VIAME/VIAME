@@ -14,8 +14,9 @@ namespace kv = kwiver::vital;
 class query_track_descriptor_set_db::priv
 {
 public:
-  priv( query_track_descriptor_set_db* parent)
-    : m_parent( parent )
+  // KWIVER_INITIALIZE_UNIQUE_PTR hands the priv a reference to the parent
+  priv( query_track_descriptor_set_db& parent )
+    : m_parent( &parent )
     , m_logger( kv::get_logger( "query_track_descriptor_set_db" ) )
     , m_use_tracks_for_history( false )
   { }
@@ -29,18 +30,18 @@ public:
   bool m_use_tracks_for_history;
 };
 
-query_track_descriptor_set_db::query_track_descriptor_set_db()
-  : d( new query_track_descriptor_set_db::priv( this ) )
+void query_track_descriptor_set_db::initialize()
 {
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
 }
 
 query_track_descriptor_set_db::~query_track_descriptor_set_db()
 {
 }
 
-void query_track_descriptor_set_db::set_configuration( kv::config_block_sptr config )
+void query_track_descriptor_set_db::set_configuration_internal( kv::config_block_sptr )
 {
-  d->m_conn_str = config->get_value< std::string > ( "conn_str", "" );
+  d->m_conn_str = get_conn_str();
 }
 
 bool query_track_descriptor_set_db::check_configuration( kv::config_block_sptr config ) const

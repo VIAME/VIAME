@@ -19,8 +19,9 @@ namespace kv = kwiver::vital;
 class read_object_track_set_db::priv
 {
 public:
-  priv( read_object_track_set_db* parent)
-    : m_parent( parent )
+  // KWIVER_INITIALIZE_UNIQUE_PTR hands the priv a reference to the parent
+  priv( read_object_track_set_db& parent )
+    : m_parent( &parent )
     , m_logger( kv::get_logger( "read_object_track_set_db" ) )
     , m_first( true )
     , m_batch_load( true )
@@ -56,10 +57,12 @@ public:
 
 
 // ===============================================================================
+// -------------------------------------------------------------------------------
+void
 read_object_track_set_db
-::read_object_track_set_db()
-  : d( new read_object_track_set_db::priv( this ) )
+::initialize()
 {
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
 }
 
 
@@ -72,11 +75,11 @@ read_object_track_set_db
 // -------------------------------------------------------------------------------
 void
 read_object_track_set_db
-::set_configuration(kv::config_block_sptr config)
+::set_configuration_internal( kv::config_block_sptr )
 {
-  d->m_conn_str = config->get_value< std::string > ( "conn_str", "" );
-  d->m_video_name = config->get_value< std::string > ( "video_name", "" );
-  d->m_batch_load = config->get_value<bool>( "batch_load", d->m_batch_load );
+  d->m_conn_str = get_conn_str();
+  d->m_video_name = get_video_name();
+  d->m_batch_load = get_batch_load();
 }
 
 

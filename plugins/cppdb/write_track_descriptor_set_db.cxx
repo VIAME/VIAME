@@ -22,8 +22,9 @@ namespace kv = kwiver::vital;
 class write_track_descriptor_set_db::priv
 {
 public:
-  priv( write_track_descriptor_set_db* parent)
-    : m_parent( parent )
+  // KWIVER_INITIALIZE_UNIQUE_PTR hands the priv a reference to the parent
+  priv( write_track_descriptor_set_db& parent )
+    : m_parent( &parent )
     , m_logger( kv::get_logger( "write_track_descriptor_set_db" ) )
     , m_write_world_loc( false )
     , m_commit_interval( 1 )
@@ -44,10 +45,11 @@ public:
 
 
 // ===============================================================================
+void
 write_track_descriptor_set_db
-::write_track_descriptor_set_db()
-  : d( new write_track_descriptor_set_db::priv( this ) )
+::initialize()
 {
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
 }
 
 
@@ -60,14 +62,12 @@ write_track_descriptor_set_db
 // -------------------------------------------------------------------------------
 void
 write_track_descriptor_set_db
-::set_configuration( kv::config_block_sptr config )
+::set_configuration_internal( kv::config_block_sptr )
 {
-  d->m_conn_str = config->get_value< std::string > ( "conn_str", "" );
-  d->m_video_name = config->get_value< std::string > ( "video_name", "" );
-  d->m_write_world_loc =
-    config->get_value<bool>( "write_world_loc", d->m_write_world_loc );
-  d->m_commit_interval =
-    config->get_value<unsigned int>( "commit_interval", d->m_commit_interval );
+  d->m_conn_str = get_conn_str();
+  d->m_video_name = get_video_name();
+  d->m_write_world_loc = get_write_world_loc();
+  d->m_commit_interval = get_commit_interval();
 }
 
 

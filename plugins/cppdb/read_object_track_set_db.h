@@ -14,6 +14,7 @@
 #include "viame_cppdb_export.h"
 
 #include <vital/algo/read_object_track_set.h>
+#include <vital/plugin_management/pluggable_macro_magic.h>
 
 #include <memory>
 
@@ -23,10 +24,24 @@ class VIAME_CPPDB_EXPORT read_object_track_set_db
   : public kwiver::vital::algo::read_object_track_set
 {
 public:
-  read_object_track_set_db();
+  // Registered as "db" in register_algorithms.cxx
+  PLUGGABLE_IMPL(
+    read_object_track_set_db,
+    "Reads object tracks from a database.",
+    PARAM_DEFAULT(
+      conn_str, std::string,
+      "Database connection string.",
+      "" ),
+    PARAM_DEFAULT(
+      video_name, std::string,
+      "Name of the video the tracks belong to.",
+      "" ),
+    PARAM_DEFAULT(
+      batch_load, bool,
+      "Load every track for the video in one query rather than per frame.",
+      true ) )
   virtual ~read_object_track_set_db();
 
-  void set_configuration( kwiver::vital::config_block_sptr config ) override;
   bool check_configuration( kwiver::vital::config_block_sptr config ) const override;
 
   void open( std::string const& filename ) override;
@@ -34,8 +49,12 @@ public:
   bool read_set( kwiver::vital::object_track_set_sptr& set ) override;
 
 private:
+  void initialize() override;
+  void set_configuration_internal(
+    kwiver::vital::config_block_sptr config ) override;
+
   class priv;
-  std::unique_ptr< priv > d;
+  KWIVER_UNIQUE_PTR( priv, d );
 };
 
 } // end namespace viame

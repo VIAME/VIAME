@@ -21,8 +21,9 @@ namespace kv = kwiver::vital;
 class write_object_track_set_db::priv
 {
 public:
-  priv( write_object_track_set_db* parent)
-    : m_parent( parent )
+  // KWIVER_INITIALIZE_UNIQUE_PTR hands the priv a reference to the parent
+  priv( write_object_track_set_db& parent )
+    : m_parent( &parent )
     , m_logger( kv::get_logger( "write_object_track_set_db" ) )
     , m_commit_interval( 1 )
     , m_matching_frames_only( true )
@@ -43,10 +44,12 @@ public:
 
 
 // ===============================================================================
+// -------------------------------------------------------------------------------
+void
 write_object_track_set_db
-::write_object_track_set_db()
-  : d( new write_object_track_set_db::priv( this ) )
+::initialize()
 {
+  KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
 }
 
 
@@ -59,14 +62,12 @@ write_object_track_set_db
 // -------------------------------------------------------------------------------
 void
 write_object_track_set_db
-::set_configuration(kv::config_block_sptr config)
+::set_configuration_internal( kv::config_block_sptr )
 {
-  d->m_conn_str = config->get_value< std::string > ( "conn_str", "" );
-  d->m_video_name = config->get_value< std::string > ( "video_name", "" );
-  d->m_commit_interval =
-    config->get_value<unsigned int>( "commit_interval", d->m_commit_interval );
-  d->m_matching_frames_only =
-    config->get_value<bool>( "matching_frames_only", d->m_matching_frames_only );
+  d->m_conn_str = get_conn_str();
+  d->m_video_name = get_video_name();
+  d->m_commit_interval = get_commit_interval();
+  d->m_matching_frames_only = get_matching_frames_only();
 }
 
 
