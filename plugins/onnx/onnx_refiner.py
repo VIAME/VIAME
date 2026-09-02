@@ -287,12 +287,10 @@ class OnnxRefiner(RefineDetections):
 
 
 def __vital_algorithm_register__():
-    from kwiver.vital.algo import algorithm_factory
-    impl = "onnx"
-    if algorithm_factory.has_algorithm_impl_name(
-            OnnxRefiner.static_type_name(), impl):
-        return
-    algorithm_factory.add_algorithm(
-        impl, "ONNX detection reclassifier (onnxruntime, no torch)",
-        OnnxRefiner)
-    algorithm_factory.mark_algorithm_as_loaded(impl)
+    from viame.core.vital_registration import register_vital_algorithm
+
+    register_vital_algorithm(
+        OnnxRefiner,
+        "onnx",
+        "ONNX detection reclassifier (onnxruntime, no torch)",
+    )
