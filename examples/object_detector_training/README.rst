@@ -278,8 +278,8 @@ Training::
 
     viame train -i training_data -c train_detector_default.conf --threshold 0.0
 
-For tracking groundtruth, add ``--tracker bytetrack`` to train a tracker over
-the detector's output once it finishes.
+When the groundtruth contains tracks, a bytetrack tracker is also trained over
+the detector's output and written out as ``tracker.pipe``.
 
 The trainer outputs a ``training_data_statistics.json`` file with the computed
 dataset statistics, including which branch was selected and why.
@@ -393,7 +393,7 @@ Inference Scripts
 ------------------
 
 ``run_trained_model.sh`` / ``.bat``
-    Run a trained detector model on new imagery. Uses ``detector_project_folder.pipe``
+    Run a trained detector model on new imagery. Uses ``category_models/detector.pipe``
     which loads the model from the ``category_models`` directory produced by training.
     Supports multi-GPU processing via the ``TOTAL_GPU_COUNT`` and ``PIPES_PER_GPU``
     options.

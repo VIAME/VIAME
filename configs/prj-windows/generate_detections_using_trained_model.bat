@@ -20,7 +20,7 @@ SET VIAME_PROJECT_DIR=%~dp0
 
 python.exe "%VIAME_INSTALL%\configs\process_video.py" ^
   -i "%INPUT%" -o %OUTPUT% -frate %FRAME_RATE% ^
-  -p pipelines\detector_project_folder.pipe --no-reset-prompt ^
+  -p category_models\detector.pipe --no-reset-prompt ^
   -gpus %TOTAL_GPU_COUNT% -pipes-per-gpu %PIPES_PER_GPU%
 
 PAUSE

@@ -1,17 +1,9 @@
 # =============================================================================
-# Title: Generic ONNX Detector
+# Title: Default Tracker Template
 #
-# Description: Runs an object-detection ONNX package on input imagery from
-# disk.  No PyTorch required at inference time — only onnxruntime.
-#
-# Required edit: replace [-MODEL-] with the path to the ONNX package: a
-# directory (or .zip archive) holding a .onnx file and, optionally, a
-# .modelspec.json sidecar describing input size, preprocessing, thresholds,
-# and category names (as emitted by the model's ONNX export step).
-#
-# Optional edits: score_thresh, device (cpu / cuda / cuda:0), and decoder
-# (detr / yolo; blank uses the modelspec default).  nms_thresh only applies
-# to decoders without NMS baked into the graph (e.g. yolo).
+# Description: Runs detection and tracking on input imagery from disk. The
+# detector slot is filled by detector training and the tracker parameters by
+# tracker training in the same run.
 # =============================================================================
 
 config _pipeline:_edge
@@ -41,14 +33,7 @@ connect from downsampler.output_1
 
 process detector1
   :: image_object_detector
-  :detector:type                               onnx
-
-  block detector:onnx
-    :model                                     [-MODEL-]
-    :device                                    cpu
-    :score_thresh                              0.30
-    :nms_thresh                                0.50
-  endblock
+  [-DETECTOR-IMPL-]
 
 connect from detector_input.image
         to   detector1.image
@@ -74,11 +59,8 @@ process detector_output
 connect from detector_merger.detected_object_set
         to   detector_output.detected_object_set
 
-# =============================================================================
-
 process detector_writer
   :: detected_object_output
-
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
 
@@ -86,3 +68,43 @@ connect from detector_output.detected_object_set
         to   detector_writer.detected_object_set
 connect from downsampler.output_2
         to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp
+
+# =============================================================================
+
+process tracker
+  :: track_objects
+  :track_objects:type                          bytetrack
+
+  block track_objects:bytetrack
+    :high_thresh                               [-HIGH-THRESH-]
+    :low_thresh                                [-LOW-THRESH-]
+    :match_thresh                              [-MATCH-THRESH-]
+    :second_match_thresh                       [-SECOND-MATCH-THRESH-]
+    :unconfirmed_match_thresh                  [-UNCONFIRMED-MATCH-THRESH-]
+    :track_buffer                              [-TRACK-BUFFER-]
+    :new_track_thresh                          [-NEW-TRACK-THRESH-]
+    :std_weight_position                       [-STD-WEIGHT-POSITION-]
+    :std_weight_velocity                       [-STD-WEIGHT-VELOCITY-]
+  endblock
+
+connect from downsampler.output_1
+        to   tracker.image
+connect from downsampler.timestamp
+        to   tracker.timestamp
+connect from detector_output.detected_object_set
+        to   tracker.detected_object_set
+
+process track_writer
+  :: write_object_track
+  :file_name                                   computed_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:stream_identifier          input_list.txt
+
+connect from tracker.object_track_set
+        to   track_writer.object_track_set
+connect from downsampler.timestamp
+        to   track_writer.timestamp
+connect from downsampler.output_2
+        to   track_writer.image_file_name

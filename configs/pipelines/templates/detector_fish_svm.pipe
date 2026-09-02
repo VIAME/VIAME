@@ -1,0 +1,99 @@
+# =============================================================================
+# Title: Detector Fish Svm Template
+#
+# Description: Standalone counterpart of embedded_fish_svm.pipe, runnable directly on
+# input imagery from disk.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# Standard image or video input plus downsampler
+include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_input_with_downsampler.pipe
+
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+process fish_detector
+  :: image_object_detector
+  :detector:type                               rf_detr
+
+  block detector:rf_detr
+    :model_size                                large
+    :device                                    auto
+    :weight $ENV{VIAME_INSTALL}/configs/pipelines/models/fish_rf_detr_box_1728.pth
+    :num_channels                              3
+    :segmentation                              false
+    :resolution                                960x1728
+    :threshold                                 0.10
+  endblock
+
+connect from detector_input.image
+        to   fish_detector.image
+
+# =============================================================================
+
+include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_descriptor.pipe
+
+process svm_refiner
+  :: refine_detections
+  :refiner:type                                svm
+  relativepath refiner:svm:model_dir =         .
+
+process nms_refiner
+  :: refine_detections
+  :refiner:type                                nms
+  
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.5
+    :output_scale_factor                       1.1
+  endblock
+
+connect from detector_input.image
+        to   descriptor.image
+connect from detector_input.image
+        to   svm_refiner.image
+connect from detector_input.image
+        to   nms_refiner.image
+
+connect from fish_detector.detected_object_set
+        to   descriptor.detected_object_set
+connect from descriptor.detected_object_set
+        to   svm_refiner.detected_object_set
+connect from svm_refiner.detected_object_set
+        to   nms_refiner.detected_object_set
+
+# =============================================================================
+
+process detector_output
+  :: merge_detection_sets
+
+connect from nms_refiner.detected_object_set
+        to   detector_output.detected_object_set1
+
+connect from downsampler.output_1
+        to   detector_input.image
+
+# =============================================================================
+
+process detector_writer
+  :: detected_object_output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from detector_output.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp

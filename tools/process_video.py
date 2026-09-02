@@ -1299,17 +1299,28 @@ if __name__ == "__main__" :
       log_info( lb1 )
 
     # Check for local pipelines and pre-reqs present
-    if "_project_folder.pipe" in args.pipeline:
-      if not os.path.exists( "category_models/detector.pipe" ):
+    normalized_pipe = args.pipeline.replace( "\\", "/" )
+    if "_project_folder.pipe" in normalized_pipe or \
+       normalized_pipe.startswith( "category_models/" ):
+      required_pipe = normalized_pipe if \
+        normalized_pipe.startswith( "category_models/" ) else \
+        "category_models/detector.pipe"
+      if not os.path.exists( required_pipe ):
         if has_file_with_extension( "category_models", "svm" ):
-          if args.pipeline.endswith( "detector_project_folder.pipe" ):
+          if normalized_pipe.endswith( "detector_project_folder.pipe" ) or \
+             normalized_pipe == "category_models/detector.pipe":
             args.pipeline = os.path.join( "pipelines", "detector_svm_over_generic_proposals.pipe" )
-          elif args.pipeline.endswith( "frame_classifier_project_folder.pipe" ):
+          elif normalized_pipe.endswith( "frame_classifier_project_folder.pipe" ):
             args.pipeline = os.path.join( "pipelines", "frame_classifier_svm.pipe" )
-          elif args.pipeline.endswith( "tracker_project_folder.pipe" ):
+          elif normalized_pipe.endswith( "tracker_project_folder.pipe" ) or \
+               normalized_pipe == "category_models/tracker.pipe":
             args.pipeline = os.path.join( "pipelines", "tracker_svm_models.pipe" )
           else:
             exit_with_error( "Use of this script requires training a detector first" )
+        elif normalized_pipe == "category_models/tracker.pipe" and \
+             os.path.exists( "category_models/detector.pipe" ):
+          exit_with_error( "This project has no trained tracker; training only "
+                           "produces one when the groundtruth contains tracks" )
         else:
           exit_with_error( "Use of this script requires training a detector first" )
 
