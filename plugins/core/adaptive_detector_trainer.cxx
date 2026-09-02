@@ -6,6 +6,8 @@
 
 #include <vital/util/cpu_timer.h>
 #include <vital/types/image_container.h>
+#include <vital/algo/image_io.h>
+#include <vital/algo/image_object_detector.h>
 
 #include <string>
 #include <sstream>
@@ -100,6 +102,33 @@ struct training_data_statistics
   size_t objects_with_masks = 0;
   double mask_fraction = 0;
   bool has_masks = false;
+
+  // -------------------------------------------------------------------------
+  // Keypoint presence
+  size_t objects_with_keypoints = 0;
+  double keypoint_fraction = 0;
+  bool has_keypoints = false;
+
+  // -------------------------------------------------------------------------
+  // Track presence. Detections carry their track id in index(), zero when the
+  // groundtruth had no track column.
+  size_t objects_with_tracks = 0;
+  double track_fraction = 0;
+  bool has_tracks = false;
+  double mean_track_length = 0;
+
+  // -------------------------------------------------------------------------
+  // Source image geometry, sampled from the training images themselves rather
+  // than inferred from box extents, so a model can be picked by resolution.
+  std::vector< double > sampled_image_widths;
+  std::vector< double > sampled_image_heights;
+  double median_image_width = 0;
+  double median_image_height = 0;
+
+  // -------------------------------------------------------------------------
+  // Recall of the stock generic detector over a sample of training frames.
+  // Negative means the probe did not run.
+  double generic_detector_recall = -1.0;
 
   // -------------------------------------------------------------------------
   // Methods
@@ -277,6 +306,32 @@ training_data_statistics::compute_summary(
   }
 
   // -------------------------------------------------------------------------
+  // Keypoint and track fractions
+  if( n > 0 )
+  {
+    keypoint_fraction = static_cast< double >( objects_with_keypoints ) / n;
+    has_keypoints = ( keypoint_fraction > 0.5 );
+
+    track_fraction = static_cast< double >( objects_with_tracks ) / n;
+    has_tracks = ( track_fraction > 0.5 );
+  }
+
+  // -------------------------------------------------------------------------
+  // Median source resolution
+  auto median_of = []( std::vector< double >& v ) -> double
+  {
+    if( v.empty() )
+    {
+      return 0.0;
+    }
+    std::sort( v.begin(), v.end() );
+    return v[ v.size() / 2 ];
+  };
+
+  median_image_width = median_of( sampled_image_widths );
+  median_image_height = median_of( sampled_image_heights );
+
+  // -------------------------------------------------------------------------
   // Overlap fraction (computed during data collection, just normalize here)
   // high_overlap_fraction is set during compute_statistics_from_groundtruth
 }
@@ -344,6 +399,32 @@ training_data_statistics::log_statistics( kv::logger_handle_t logger ) const
     LOG_INFO( logger, "  Objects with masks: " << objects_with_masks
               << " (" << ( mask_fraction * 100 ) << "%)" );
     LOG_INFO( logger, "  Has masks (majority): " << ( has_masks ? "yes" : "no" ) );
+
+    LOG_INFO( logger, "--- Keypoints ---" );
+    LOG_INFO( logger, "  Objects with keypoints: " << objects_with_keypoints
+              << " (" << ( keypoint_fraction * 100 ) << "%)" );
+    LOG_INFO( logger, "  Has keypoints (majority): " << ( has_keypoints ? "yes" : "no" ) );
+
+    LOG_INFO( logger, "--- Tracks ---" );
+    LOG_INFO( logger, "  Objects in tracks: " << objects_with_tracks
+              << " (" << ( track_fraction * 100 ) << "%)" );
+    LOG_INFO( logger, "  Mean track length: " << mean_track_length );
+    LOG_INFO( logger, "  Has tracks (majority): " << ( has_tracks ? "yes" : "no" ) );
+
+    LOG_INFO( logger, "--- Source Resolution ---" );
+    LOG_INFO( logger, "  Median image size: " << median_image_width
+              << " x " << median_image_height
+              << " (sampled " << sampled_image_widths.size() << " images)" );
+
+    LOG_INFO( logger, "--- Generic Detector Probe ---" );
+    if( generic_detector_recall >= 0.0 )
+    {
+      LOG_INFO( logger, "  Recall: " << ( generic_detector_recall * 100 ) << "%" );
+    }
+    else
+    {
+      LOG_INFO( logger, "  Not run" );
+    }
   }
 }
 
@@ -358,6 +439,11 @@ struct trainer_config
   // -------------------------------------------------------------------------
   // Hard requirements (must be met to run)
   size_t required_min_count_per_class = 0;
+  size_t required_max_total_annotations = 0;     // 0 = no requirement
+  double required_min_image_width = 0;           // 0 = no requirement
+  double required_max_image_width = 0;           // 0 = no requirement
+  bool required_keypoints = false;
+  double required_min_generic_recall = 0;        // 0 = no requirement
   double required_min_object_area = 0;
   double required_percentile = 0.5;
   double required_max_aspect_ratio_std = 0;      // 0 = no requirement
@@ -466,6 +552,20 @@ public:
   // Computed statistics
   training_data_statistics m_stats;
 
+  // Track id -> number of states, for mean track length
+  std::map< uint64_t, size_t > m_track_id_counts;
+
+  // Generic detector probe
+  size_t m_generic_probe_max_annotations = 0;
+  size_t m_generic_probe_max_frames = 25;
+  double m_generic_probe_iou = 0.3;
+  size_t m_image_sample_count = 25;
+  kv::algo::image_object_detector_sptr m_generic_probe_detector;
+  kv::algo::image_io_sptr m_probe_image_reader;
+
+  void sample_image_dimensions();
+  void run_generic_detector_probe();
+
   // Logging
   kv::logger_handle_t m_logger;
 
@@ -521,6 +621,7 @@ adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
   const std::vector< kv::detected_object_set_sptr >& test_gt )
 {
   m_stats = training_data_statistics();  // Reset
+  m_track_id_counts.clear();
 
   // We'll estimate image dimensions from bounding boxes if not available
   // For edge detection, we'll use a heuristic based on max bbox coordinates
@@ -603,6 +704,19 @@ adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
           m_stats.objects_with_masks++;
         }
 
+        if( !(*detection)->keypoints().empty() )
+        {
+          m_stats.objects_with_keypoints++;
+        }
+
+        // index() carries the track id; the csv reader leaves it 0 when the
+        // groundtruth has no track column.
+        if( (*detection)->index() > 0 )
+        {
+          m_stats.objects_with_tracks++;
+          m_track_id_counts[ (*detection)->index() ]++;
+        }
+
         frame_boxes.push_back( bbox );
       }
 
@@ -673,6 +787,19 @@ adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
     m_rare_class_threshold, m_dominant_class_threshold,
     m_edge_margin_fraction, m_overlap_iou_threshold );
 
+  if( !m_track_id_counts.empty() )
+  {
+    size_t states = 0;
+
+    for( const auto& entry : m_track_id_counts )
+    {
+      states += entry.second;
+    }
+
+    m_stats.mean_track_length =
+      static_cast< double >( states ) / m_track_id_counts.size();
+  }
+
   if( m_verbose )
   {
     m_stats.log_statistics( m_logger );
@@ -680,9 +807,236 @@ adaptive_detector_trainer::priv::compute_statistics_from_groundtruth(
 }
 
 
+// -----------------------------------------------------------------------------
+// Read the header of a spread of training images so a recipe can be chosen by
+// source resolution. Sampled rather than exhaustive: this runs before any
+// training and a full pass over a video corpus is not worth the wall time.
+void
+adaptive_detector_trainer::priv::sample_image_dimensions()
+{
+  if( !m_probe_image_reader || m_train_image_names.empty() ||
+      m_image_sample_count == 0 )
+  {
+    return;
+  }
+
+  const size_t stride =
+    std::max< size_t >( 1, m_train_image_names.size() / m_image_sample_count );
+
+  for( size_t i = 0; i < m_train_image_names.size(); i += stride )
+  {
+    if( m_stats.sampled_image_widths.size() >= m_image_sample_count )
+    {
+      break;
+    }
+
+    try
+    {
+      const auto image = m_probe_image_reader->load( m_train_image_names[i] );
+
+      if( image && image->width() > 0 && image->height() > 0 )
+      {
+        m_stats.sampled_image_widths.push_back(
+          static_cast< double >( image->width() ) );
+        m_stats.sampled_image_heights.push_back(
+          static_cast< double >( image->height() ) );
+      }
+    }
+    catch( const std::exception& e )
+    {
+      LOG_DEBUG( m_logger, "Could not read dimensions of "
+                 << m_train_image_names[i] << ": " << e.what() );
+    }
+  }
+
+  auto median_of = []( std::vector< double > v ) -> double
+  {
+    if( v.empty() )
+    {
+      return 0.0;
+    }
+    std::sort( v.begin(), v.end() );
+    return v[ v.size() / 2 ];
+  };
+
+  m_stats.median_image_width = median_of( m_stats.sampled_image_widths );
+  m_stats.median_image_height = median_of( m_stats.sampled_image_heights );
+}
+
+
+// -----------------------------------------------------------------------------
+// Measure how well the stock detector already does on this data, so a cheap
+// classifier over its proposals can be preferred to training a detector from
+// scratch. Only worth the inference cost on small problems, which is what
+// generic_probe_max_annotations bounds.
+void
+adaptive_detector_trainer::priv::run_generic_detector_probe()
+{
+  const size_t total_annotations =
+    m_stats.total_train_annotations + m_stats.total_test_annotations;
+
+  if( !m_generic_probe_detector || !m_probe_image_reader ||
+      m_generic_probe_max_annotations == 0 ||
+      total_annotations == 0 ||
+      total_annotations > m_generic_probe_max_annotations )
+  {
+    return;
+  }
+
+  LOG_INFO( m_logger, "Running the generic detector over up to "
+            << m_generic_probe_max_frames
+            << " frames to see whether it already covers this data" );
+
+  size_t matched_truth = 0;
+  size_t total_truth = 0;
+  size_t frames_probed = 0;
+
+  for( size_t i = 0;
+       i < m_train_image_names.size() && i < m_train_groundtruth.size();
+       ++i )
+  {
+    if( frames_probed >= m_generic_probe_max_frames )
+    {
+      break;
+    }
+
+    const auto& truth = m_train_groundtruth[i];
+
+    if( !truth || truth->empty() )
+    {
+      continue;
+    }
+
+    kv::detected_object_set_sptr found;
+
+    try
+    {
+      const auto image = m_probe_image_reader->load( m_train_image_names[i] );
+
+      if( !image )
+      {
+        continue;
+      }
+
+      found = m_generic_probe_detector->detect( image );
+    }
+    catch( const std::exception& e )
+    {
+      LOG_WARN( m_logger, "Generic detector probe failed on "
+                << m_train_image_names[i] << ": " << e.what() );
+      continue;
+    }
+
+    frames_probed++;
+
+    for( auto gt = truth->cbegin(); gt != truth->cend(); ++gt )
+    {
+      total_truth++;
+
+      if( !found )
+      {
+        continue;
+      }
+
+      // Class-agnostic on purpose: the question is whether the stock detector
+      // finds the objects at all. Naming them is what a classifier trained on
+      // top of its proposals would be for.
+      for( auto det = found->cbegin(); det != found->cend(); ++det )
+      {
+        if( compute_iou( (*gt)->bounding_box(), (*det)->bounding_box() ) >=
+            m_generic_probe_iou )
+        {
+          matched_truth++;
+          break;
+        }
+      }
+    }
+  }
+
+  if( total_truth > 0 )
+  {
+    m_stats.generic_detector_recall =
+      static_cast< double >( matched_truth ) / total_truth;
+
+    LOG_INFO( m_logger, "Generic detector recalled " << matched_truth << " of "
+              << total_truth << " objects over " << frames_probed << " frames ("
+              << ( m_stats.generic_detector_recall * 100 ) << "%)" );
+  }
+}
+
+
 bool
 adaptive_detector_trainer::priv::check_hard_requirements( const trainer_config& tc ) const
 {
+  const size_t total_annotations =
+    m_stats.total_train_annotations + m_stats.total_test_annotations;
+
+  // Upper bound on dataset size, for trainers that only suit small problems
+  if( tc.required_max_total_annotations > 0 &&
+      total_annotations > tc.required_max_total_annotations )
+  {
+    if( m_verbose )
+    {
+      LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: " << total_annotations
+                 << " annotations exceeds max " << tc.required_max_total_annotations );
+    }
+    return false;
+  }
+
+  // Source resolution, so a high-resolution recipe is not run on small imagery
+  // and vice versa. A zero median means no image could be sampled; treat that
+  // as unknown and let the trainer through rather than silently excluding all.
+  if( m_stats.median_image_width > 0 )
+  {
+    if( tc.required_min_image_width > 0 &&
+        m_stats.median_image_width < tc.required_min_image_width )
+    {
+      if( m_verbose )
+      {
+        LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: median width "
+                   << m_stats.median_image_width << " below min "
+                   << tc.required_min_image_width );
+      }
+      return false;
+    }
+
+    if( tc.required_max_image_width > 0 &&
+        m_stats.median_image_width >= tc.required_max_image_width )
+    {
+      if( m_verbose )
+      {
+        LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: median width "
+                   << m_stats.median_image_width << " at or above max "
+                   << tc.required_max_image_width );
+      }
+      return false;
+    }
+  }
+
+  if( tc.required_keypoints && !m_stats.has_keypoints )
+  {
+    if( m_verbose )
+    {
+      LOG_DEBUG( m_logger, "Trainer " << tc.name
+                 << " failed: groundtruth carries no keypoints" );
+    }
+    return false;
+  }
+
+  // Recall of the stock detector. A negative recall means the probe never ran,
+  // which fails the requirement: an unmeasured detector is not a good one.
+  if( tc.required_min_generic_recall > 0 &&
+      m_stats.generic_detector_recall < tc.required_min_generic_recall )
+  {
+    if( m_verbose )
+    {
+      LOG_DEBUG( m_logger, "Trainer " << tc.name << " failed: generic detector recall "
+                 << m_stats.generic_detector_recall << " below min "
+                 << tc.required_min_generic_recall );
+    }
+    return false;
+  }
+
   // Check minimum count per class
   if( tc.required_min_count_per_class > 0 )
   {
@@ -1044,7 +1398,15 @@ adaptive_detector_trainer::priv::write_statistics_file() const
   out << "  \"masks\": {\n";
   out << "    \"objects_with_masks\": " << m_stats.objects_with_masks << ",\n";
   out << "    \"mask_fraction\": " << m_stats.mask_fraction << ",\n";
-  out << "    \"has_masks\": " << ( m_stats.has_masks ? "true" : "false" ) << "\n";
+  out << "    \"has_masks\": " << ( m_stats.has_masks ? "true" : "false" ) << ",\n";
+  out << "    \"keypoint_fraction\": " << m_stats.keypoint_fraction << ",\n";
+  out << "    \"has_keypoints\": " << ( m_stats.has_keypoints ? "true" : "false" ) << ",\n";
+  out << "    \"track_fraction\": " << m_stats.track_fraction << ",\n";
+  out << "    \"mean_track_length\": " << m_stats.mean_track_length << ",\n";
+  out << "    \"has_tracks\": " << ( m_stats.has_tracks ? "true" : "false" ) << ",\n";
+  out << "    \"median_image_width\": " << m_stats.median_image_width << ",\n";
+  out << "    \"median_image_height\": " << m_stats.median_image_height << ",\n";
+  out << "    \"generic_detector_recall\": " << m_stats.generic_detector_recall << "\n";
   out << "  }\n";
 
   out << "}\n";
@@ -1201,6 +1563,30 @@ adaptive_detector_trainer
   d->m_overlap_iou_threshold = config->get_value< double >( "overlap_iou_threshold" );
   d->m_output_statistics_file = config->get_value< std::string >( "output_statistics_file" );
   d->m_verbose = config->get_value< bool >( "verbose" );
+  d->m_generic_probe_max_annotations =
+    config->get_value< size_t >( "generic_probe_max_annotations", 0 );
+  d->m_generic_probe_max_frames =
+    config->get_value< size_t >( "generic_probe_max_frames", 25 );
+  d->m_generic_probe_iou =
+    config->get_value< double >( "generic_probe_iou", 0.3 );
+  d->m_image_sample_count =
+    config->get_value< size_t >( "image_sample_count", 25 );
+
+  // Optional: without these the probe is skipped and any trainer gated on
+  // generic recall simply never runs.
+  if( kv::algo::image_object_detector::check_nested_algo_configuration(
+        "generic_probe_detector", config ) )
+  {
+    kv::algo::image_object_detector::set_nested_algo_configuration(
+      "generic_probe_detector", config, d->m_generic_probe_detector );
+  }
+
+  if( kv::algo::image_io::check_nested_algo_configuration(
+        "generic_probe_image_reader", config ) )
+  {
+    kv::algo::image_io::set_nested_algo_configuration(
+      "generic_probe_image_reader", config, d->m_probe_image_reader );
+  }
 
   // -------------------------------------------------------------------------
   // Trainer configurations
@@ -1222,6 +1608,16 @@ adaptive_detector_trainer
     // Hard requirements
     tc.required_min_count_per_class =
       config->get_value< size_t >( prefix + "required_min_count_per_class", 0 );
+    tc.required_max_total_annotations =
+      config->get_value< size_t >( prefix + "required_max_total_annotations", 0 );
+    tc.required_min_image_width =
+      config->get_value< double >( prefix + "required_min_image_width", 0.0 );
+    tc.required_max_image_width =
+      config->get_value< double >( prefix + "required_max_image_width", 0.0 );
+    tc.required_keypoints =
+      config->get_value< bool >( prefix + "required_keypoints", false );
+    tc.required_min_generic_recall =
+      config->get_value< double >( prefix + "required_min_generic_recall", 0.0 );
     tc.required_min_object_area =
       config->get_value< double >( prefix + "required_min_object_area", 0.0 );
     tc.required_percentile =
@@ -1318,6 +1714,8 @@ adaptive_detector_trainer
 
   LOG_INFO( d->m_logger, "Analyzing training data statistics..." );
   d->compute_statistics_from_groundtruth( train_groundtruth, test_groundtruth );
+  d->sample_image_dimensions();
+  d->run_generic_detector_probe();
 
   if( !d->m_output_statistics_file.empty() )
   {
