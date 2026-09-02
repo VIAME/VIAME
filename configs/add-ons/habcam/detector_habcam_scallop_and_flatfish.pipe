@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Habcam Pipeline
+# Title: HabCam Scallop and Fish Detector
 #
-# Description: Runs object detection pipeline on input imagery. Uses habcam
-# input left configuration. Outputs results to computed_detections.csv.
-# Configured for scallop detection in benthic imagery.
+# Description: One-class scallop ensemble plus a YOLO fish detector (skate,
+# roundfish, flatfish, otherfish) on the left (or unstitched) image.
 # =============================================================================
 
 config _pipeline:_edge

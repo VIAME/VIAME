@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Default input for 16-bit or floating point imagery
+# Title: Default Input (16-bit)
 #
-# Description: By default, this is an image list reader that preserves the
-# original bit depth (does not force 8-bit conversion). This can be over-riden
-# by changing :video_reader:type to be vidl_ffmpeg for videos.
+# Description: Image list reader that preserves the original bit depth instead
+# of forcing 8-bit; switch the reader type for video input.
 # =============================================================================
 
 process input

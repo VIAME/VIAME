@@ -1,9 +1,8 @@
 # =============================================================================
 # Title: Trained Tracker
 #
-# Description: A track_objects process carrying the parameters estimated by
-# tracker training. Drop-in for common_default_tracker.pipe: the including
-# pipeline connects image, timestamp and detected_object_set itself.
+# Description: Tracker carrying the parameters estimated by tracker training, a
+# drop-in for the default tracker in embedded pipelines.
 # =============================================================================
 
 process tracker

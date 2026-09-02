@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Training - Aug Intensity Hue Motion
+# Title: Intensity, Hue and Motion Augmentation
 #
-# Description: Training pipeline for model optimization.
+# Description: Replaces RGB with [lightness, hue, motion] from the HLS planes
+# and a 20-frame variance channel. Frames must be in temporal order.
 # =============================================================================
 
 config _pipeline:_edge

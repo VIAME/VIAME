@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Detector Generic Svm Template
+# Title: Generic Proposal SVM Classifier Template
 #
-# Description: Standalone counterpart of embedded_generic_svm.pipe, runnable directly on
-# input imagery from disk.
+# Description: Generic RF-DETR proposals, default descriptor and trained SVM
+# refiner. Reads from disk.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,9 +1,7 @@
 # =============================================================================
-# Title: Refine tracks using SAM3 with text query support
+# Title: Default SAM3 Text Query
 #
-# Description: Utility pipeline for creating or refining tracks with text-based
-#              queries. Textual query support uses architectures derived from
-#              Meta's SAM3 project.
+# Description: Default choice: the tracked SAM3 text query.
 # =============================================================================
 
 include utility_text_query_sam3_tracking.pipe

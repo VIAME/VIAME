@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Arctic Seal EO Tiny YOLO Tracker
+# Title: Arctic Seal EO Tiny YOLO Stabilized Tracker
 #
-# Description: Configured for arctic seal aerial survey imagery. Uses
-# YOLO-based detection.
+# Description: Embedded tiny darknet seal detector followed by a
+# homography-stabilized IoU tracker.
 # =============================================================================
 
 config _pipeline:_edge

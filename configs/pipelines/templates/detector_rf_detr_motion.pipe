@@ -1,8 +1,9 @@
 # =============================================================================
-# Title: Detector Rf Detr Motion Template
+# Title: RF-DETR Motion Infusion Detector Template
 #
-# Description: Standalone counterpart of embedded_rf_detr_motion.pipe, runnable directly on
-# input imagery from disk.
+# Description: RF-DETR on grayscale merged with short- and long-window motion
+# channels, matching the double-motion training augmentation. Reads from disk;
+# frames must be in temporal order.
 # =============================================================================
 
 config _pipeline:_edge

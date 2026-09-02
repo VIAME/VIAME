@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Generic Proposal Detector
+# Title: Embedded Generic Proposal Detector
 #
-# Description: Pipeline configuration file.
+# Description: Generic RF-DETR object proposals plus the default track
+# initializer.
 # =============================================================================
 
 config _pipeline:_edge

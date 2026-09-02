@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Filter - Compute Tile Mosaics 3-cam
+# Title: Three-Camera Tile Mosaic Filter
 #
-# Description: Registers the camera views and composites each time slice into
-# a single tile mosaic image (all cameras warped into camera 1's frame).
+# Description: Registers all three camera views and composites each time slice
+# into one mosaic image in camera 1's frame.
 #
 # Metadata File: stabilizer:flight_log
 #   DIVE binds an optional per-dataset metadata file (e.g. an FMCLOG

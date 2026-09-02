@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Cascade Faster R-CNN Detector with Motion Infusion
+# Title: NetHarn Motion Infusion Detector Template
 #
-# Description: Cascade Faster R-CNN Detector with Motion Infusion Outputs to
-# computed_detections.csv.
+# Description: Trained NetHarn detector on [ variance, grey, variance ]
+# motion-infused input. Reads from disk.
 # =============================================================================
 
 config _pipeline:_edge

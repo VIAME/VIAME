@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Stereo track OCV targets
+# Title: Stereo Calibration Target Tracker
 #
-# Description: Runs automated ocv target detection on each of the images of a
-# stereo camera Features: - Auto-detects chessboard grid size from first frame
-# - Outputs detected corners with world coordinates
+# Description: Detects chessboard corners in both cameras (grid size
+# auto-detected) and accumulates them into per-camera tracks.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

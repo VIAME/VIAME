@@ -1,7 +1,7 @@
 # =============================================================================
-# Title: Training - Aug Split
+# Title: Split Left Half Augmentation
 #
-# Description: Training pipeline for model optimization.
+# Description: Splits each stitched stereo frame and keeps only the left half.
 # =============================================================================
 
 config _pipeline:_edge

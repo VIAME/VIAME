@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Ingest image list and detections pipeline via pytorch descriptors pipeline
+# Title: Index Existing Detections
 #
-# Description: Pipeline configuration file.
+# Description: Computes descriptors for detections read from a VIAME CSV and
+# ingests the tracks and descriptors into the database.
 # =============================================================================
 
 config _pipeline:_edge

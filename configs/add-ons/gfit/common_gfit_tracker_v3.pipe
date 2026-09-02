@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: GFIT v3 tracker
+# Title: GFIT v3 ByteTrack Tracker
 #
-# Description: ByteTrack, tuned on the fused detection CSVs. Tracking is driven
-# by detection confidence, not by the class labels.
+# Description: ByteTrack tuned on the fused GFIT detections. Association is
+# driven by detection confidence, not class label.
 # =============================================================================
 
 process tracker

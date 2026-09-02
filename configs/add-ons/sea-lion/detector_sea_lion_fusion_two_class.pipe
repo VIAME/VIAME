@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Sea Lion Detection Pipeline
+# Title: Sea Lion Fusion Two-Class Detector
 #
-# Description: Two-class sea lion detection on survey imagery, fusing three detectors
-# with weighted box fusion. Produces a segmentation polygon (mask) for most
-# detections. Output categories: non-pup (NP), pup (P).
+# Description: Weighted box fusion of the RF-DETR two-class, DEIMv2 two-class
+# and RF-DETR eight-class detectors, with masks. Classes: non-pup (NP), pup (P).
 # Input: IMAGE
 # Output: MASK
 # =============================================================================

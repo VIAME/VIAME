@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: SVM Classifier on Top of Full Frame Descriptor
+# Title: SVM Frame Classifier Template
 #
-# Description: SVM Classifier on Top of Full Frame Descriptor Outputs to
-# computed_detections.csv.
+# Description: Scores each whole frame with the default descriptor and trained
+# SVM models. Reads from disk.
 # =============================================================================
 
 config _pipeline:_edge

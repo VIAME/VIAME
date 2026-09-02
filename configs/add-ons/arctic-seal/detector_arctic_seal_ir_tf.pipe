@@ -1,9 +1,7 @@
 # =============================================================================
-# Title: Detector - Arctic Seal IR TF
+# Title: Arctic Seal IR TensorFlow Detector
 #
-# Description: Runs object detection pipeline on input imagery. Uses arctic
-# seal ir tf detector configuration. Outputs results to
-# ir_out_images/frame%06d.jpg.
+# Description: TensorFlow hotspot detector on thermal imagery.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================

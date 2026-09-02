@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Estimate monocular camera calibration from images of a chessboard target
+# Title: Single Camera Calibration
 #
-# Description: Calibrates camera parameters for measurement.
+# Description: Estimates single-camera intrinsics from chessboard corners in at
+# most 50 frames.
 # =============================================================================
 
 config _pipeline:_edge

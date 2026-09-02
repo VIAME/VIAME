@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: SAM3 Fish Detector
 #
-# Description: Detect fish in each frame using SAM3's built-in text-prompted
-#              detection. Produces per-frame detections with polygon masks.
+# Description: Per-frame text-prompted fish detection (Grounding DINO) segmented
+# by SAM3 into polygon masks.
 # =============================================================================
 
 config _pipeline:_edge

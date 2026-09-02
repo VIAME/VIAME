@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Arctic Seal YOLO IR To EO Frame Trigger
 #
-# Description: Configured for arctic seal aerial survey imagery. Uses
-# YOLO-based detection.
+# Description: Tiny darknet hotspot detector on every thermal frame; the optical
+# detector runs only on frames whose thermal pair had a hit.
 # =============================================================================
 
 config _pipeline:_edge

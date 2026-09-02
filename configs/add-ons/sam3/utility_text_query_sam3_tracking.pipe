@@ -1,10 +1,9 @@
 # =============================================================================
-# Title: Refine tracks using SAM3 with text query support
+# Title: Tracked SAM3 Text Query
 #
-# Description: Utility pipeline for creating or refining tracks with text-based
-#              queries. Textual query support uses architectures derived from
-#              Meta's SAM3 project.
-#
+# Description: Creates or refines tracks for the text-query targets with SAM3's
+# video predictor, re-detecting every 10 frames and propagating with memory
+# attention.
 # Input: TEXT
 # Output: MASK
 # =============================================================================

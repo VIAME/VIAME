@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Sea Lion Detection Pipeline
+# Title: Sea Lion RF-DETR Two-Class Detector
 #
-# Description: Two-class sea lion detection on survey imagery using the RF-DETR
-# segmentation detector at 1008px chips. Produces a segmentation polygon
-# (mask) per detection. Output categories: non-pup (NP), pup (P).
+# Description: RF-DETR segmentation detector on 1008 px chips producing boxes
+# with masks. Classes: non-pup (NP), pup (P).
 # Input: IMAGE
 # Output: MASK
 # =============================================================================

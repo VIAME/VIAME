@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: GFIT v3 groups Detector Pipe
+# Title: GFIT v3 Groups Detector
 #
-# Description: Fused SEFSC group + FishTrack motion detectors, reclassified to
-# groups. Outputs computed_detections.csv.
+# Description: Fused SEFSC group and FishTrack motion RF-DETR detectors,
+# reclassified to groups.
 # =============================================================================
 
 config _pipeline:_edge

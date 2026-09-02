@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Optionally debayers and enhances the image if it isn't already RGB (3-channel)
+# Title: Left Debayer and Enhance Filter
 #
-# Description: Shared configuration module that can be included by other
-# pipelines.
+# Description: Debayers and enhances the left image; enhancement is skipped when
+# the input is already RGB.
 # =============================================================================
 
 process left_image_debayer

@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Track User Selections Fast
+# Title: Embedded Fast User Selection Tracker
 #
-# Description: Pipeline configuration file.
+# Description: Embedded dual-stream SiamRPN++ short-term tracker extending
+# user-selected detections into tracks.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: GFIT v3 species Tracker Pipe
+# Title: GFIT v3 Species Tracker
 #
-# Description: Fused detector, species reclassification, then SRNN tracking.
+# Description: Fused GFIT detector, groups then species classification, followed
+# by ByteTrack. Tracks shorter than 3 states are dropped.
 # =============================================================================
 
 config _scheduler

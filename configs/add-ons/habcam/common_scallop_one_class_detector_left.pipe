@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Common - Scallop One Class Detector Left
+# Title: Left One-Class Scallop Detector
 #
-# Description: Shared detector configuration that can be included by other
-# pipelines. Uses model: scallop_yolo_v7_one_class.weights.
+# Description: Cascade R-CNN, HRNet and YOLOv7 scallop detectors with an
+# EfficientNet reclassifier, fused by NMS into a single scallop class.
 # =============================================================================
 
 # ============================== INPUT FORMATTER ==============================

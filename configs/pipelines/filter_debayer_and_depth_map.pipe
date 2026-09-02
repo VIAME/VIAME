@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Filters input images via debayering them and running basic image filtering
+# Title: Debayer and Stereo Depth Map Filter
 #
-# Description: Applies filtering operations to input data.
+# Description: Debayers and enhances side-by-side stereo frames, then writes an
+# SGBM disparity map per frame.
 # =============================================================================
 
 config _pipeline:_edge

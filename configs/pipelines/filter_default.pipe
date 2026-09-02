@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Reads image from an arbitrary input source then dumps them out again
+# Title: Downsample and Rewrite Frames
 #
-# Description: Applies filtering operations to input data.
+# Description: Downsamples to 5 fps, writes the kept frames as images, and
+# renumbers the input track CSV to match.
 # =============================================================================
 
 config _pipeline:_edge

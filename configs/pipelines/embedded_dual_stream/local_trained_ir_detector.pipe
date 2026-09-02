@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Local Trained IR Detector
 #
-# Description: Pipeline configuration file.
+# Description: Embedded run of the locally trained detector on the IR stream
+# (image2).
 # =============================================================================
 
 config _pipeline:_edge

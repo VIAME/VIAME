@@ -1,9 +1,7 @@
 # =============================================================================
-# Title: Detector - Arctic Seal EO YOLO
+# Title: Arctic Seal EO YOLO Detector
 #
-# Description: Runs object detection pipeline on input imagery. Uses arctic
-# seal eo yolo detector configuration. Outputs results to
-# eo_detections%06d.jpg.
+# Description: YOLO seal detector on optical imagery.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================

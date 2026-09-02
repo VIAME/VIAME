@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Arctic Seal TF IR Only
 #
-# Description: Configured for arctic seal aerial survey imagery. Uses
-# TensorFlow-based models.
+# Description: TensorFlow hotspot detector on the thermal stream only; the
+# optical stream is ignored.
 # =============================================================================
 
 config _pipeline:_edge

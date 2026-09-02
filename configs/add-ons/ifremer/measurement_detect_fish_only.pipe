@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Stereo detect fish
+# Title: Stereo Fish Detector with Disparity Pairing
 #
-# Description: Pipeline for measuring object dimensions in imagery.
-#
+# Description: RF-DETR fish detection on both cameras, with left/right
+# detections paired through an SGBM disparity map.
 # Requires Calibration: True
 # Calibration Keys: depth_map:computer:ocv_stereo_disparity:calibration_file stereo_pairing:calibration_file
 # =============================================================================

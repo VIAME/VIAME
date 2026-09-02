@@ -1,46 +1,9 @@
 # =============================================================================
-# Title: Training - Aug All Motion (three motion channels, no RGB)
+# Title: All Motion Channel Augmentation
 #
-# Description: Source-driven augmentation that replaces the RGB image entirely
-# with a 3-channel stack of motion representations. Because it reads from the
-# common_default_input source, the same pipeline handles both videos and image
-# sequences in a single pass. Requires temporally ordered input frames.
-#
-# The output channel layout is
-#
-#     [ flow_magnitude, frame_difference, temporal_variance ]
-#
-# Three different operators at three different temporal baselines, rather than
-# one operator at three settings:
-#
-#   1. flow_magnitude    -- dense Farneback optical flow, background-compensated
-#                           (the per-frame median flow vector is subtracted, so
-#                           camera/platform drift cancels). Compares against the
-#                           immediately preceding frame: the shortest baseline,
-#                           and the only channel that measures true displacement
-#                           rather than intensity change.
-#   2. frame_difference  -- symmetric 3-frame differencing at frame_separation 3.
-#                           A wider baseline than flow, and cheap to compute; the
-#                           symmetric form suppresses the ghosting trail that a
-#                           plain 2-frame difference leaves behind a moving
-#                           object.
-#   3. temporal_variance -- squared deviation from a running 20-frame mean. The
-#                           longest baseline: accumulates slow, low-contrast
-#                           motion that a 1- or 3-frame comparison cannot
-#                           separate from sensor noise.
-#
-# Every channel is undirected, so horizontal and vertical flips remain valid
-# augmentations. This is why optical flow is taken as 'magnitude' and not
-# 'vector' (dx,dy): a flip would have to negate dx, which the augmentation layer
-# does not do, and the channel would be silently corrupted.
-#
-# Note the 20-frame variance window is not configurable: vxl_average ignores
-# window_size in window mode and hardcodes 20 (see arrows/vxl/average_frames.cxx,
-# AVERAGER_window constructs windowed_frame_averager with no arguments).
-#
-# The train tool drives this via 'kwiver runner' with -s overrides for
-# input:video_filename, input:video_reader:type, downsampler:target_frame_rate
-# and image_writer:file_name_template.
+# Description: Replaces RGB with three motion channels (flow magnitude, frame
+# difference, temporal variance), matching the all-motion detector templates.
+# Frames must be in temporal order.
 # =============================================================================
 
 config _pipeline:_edge

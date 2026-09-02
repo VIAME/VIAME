@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Generates generic object proposals, not specific class labels
+# Title: Generic Proposal Detector
 #
-# Description: Generates single-class generic object proposals output, with
-# boxes around many things in the scene which are likely to be objects, but
-# without specifying what those objects are.
+# Description: Windowed RF-DETR detector emitting single-class boxes around
+# likely objects without naming them.
 # =============================================================================
 
 process detector_input

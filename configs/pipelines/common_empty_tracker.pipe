@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Common - Empty Tracker
+# Title: Empty Tracker
 #
-# Description: Produces an empty object_track_set for each frame. Useful when
-# a downstream process (e.g. refine_tracks) requires an object_track_set input
-# but no upstream detector is present.
+# Description: Emits an empty track set per frame for pipelines that need a
+# track input but have no detector upstream.
 #
 # Inputs:  downsampler.output_1, downsampler.timestamp
 # Outputs: empty_tracker.object_track_set

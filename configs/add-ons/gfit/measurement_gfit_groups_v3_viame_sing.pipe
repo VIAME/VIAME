@@ -1,13 +1,9 @@
 # =============================================================================
-# Title: GFIT Stereo Measurement (Single Camera Detection, Core)
+# Title: GFIT Core Single-Camera Stereo Measurement
 #
-# Description: Stereo measurement pipeline that detects/tracks on the LEFT
-# camera only. SAM2 segmentation and head/tail keypoint identification are
-# applied to left-camera detections. The tracked result is fed to the left
-# input of the core measurement process along with both stereo images. The
-# measurement process uses epipolar NCC template matching to find
-# corresponding right-camera keypoints and triangulates for 3D measurements.
-#
+# Description: GFIT detection, SAM2 segmentation, head/tail keypoints and
+# tracking on the left camera only. The core measurement process finds the
+# right-camera points by epipolar template matching and triangulates lengths.
 # Requires Calibration: True
 # =============================================================================
 

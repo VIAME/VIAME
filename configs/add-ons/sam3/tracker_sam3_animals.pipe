@@ -1,12 +1,9 @@
 # =============================================================================
 # Title: SAM3 Open-Vocabulary Tracker
 #
-# Description: Detect and track objects across frames using SAM3's native video
-#              predictor with text-prompted detection. Detects objects on the
-#              first frame (and periodically thereafter) then propagates them
-#              using SAM3's memory-attention tracking. Produces multi-frame
-#              tracks with polygon masks.
-#              Set the text_query parameter to describe the objects to find.
+# Description: Detects and tracks the text-query targets with SAM3's video
+# predictor, re-detecting every 10 frames and propagating with memory attention.
+# Outputs tracks with polygon masks.
 # =============================================================================
 
 config _pipeline:_edge

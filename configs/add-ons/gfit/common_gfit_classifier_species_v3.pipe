@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: GFIT v3 species classifier
+# Title: GFIT v3 Species Classifier
 #
-# Description: Single large classifier over the fused detections. Its output is
-# blended with the detector's own class scores at prior_weight.
+# Description: NetHarn species classifier over the fused detections. Group
+# scores are blended in through the group-to-species taxonomy.
 # =============================================================================
 
 process classifier_species_large

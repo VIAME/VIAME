@@ -1,8 +1,7 @@
 # =============================================================================
-# Title: Detector, scallop-only trained using netharn
+# Title: HabCam Multi-Species Test Detector
 #
-# Description: Runs object detection pipeline on input imagery. Uses habcam
-# input left configuration. Outputs results to computed_detections.csv.
+# Description: Runs only the multi-category Cascade R-CNN detector.
 # =============================================================================
 
 config _pipeline:_edge

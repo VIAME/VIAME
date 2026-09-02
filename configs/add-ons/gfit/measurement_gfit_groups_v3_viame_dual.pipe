@@ -1,12 +1,9 @@
 # =============================================================================
-# Title: GFIT Stereo Measurement (Dual Camera Detection, Core)
+# Title: GFIT Core Dual-Camera Stereo Measurement
 #
-# Description: Stereo measurement pipeline that runs detection, classification,
-# SAM2 segmentation, head/tail keypoint identification, and tracking on BOTH
-# left and right cameras independently. The core measurement process handles
-# track pairing (detection matching, ID unification, class averaging) and
-# triangulates matched keypoints for 3D measurements using calibration data.
-#
+# Description: GFIT detection, SAM2 segmentation, head/tail keypoints and
+# tracking on both cameras. The core measurement process pairs the tracks and
+# triangulates lengths from the calibration file.
 # Requires Calibration: True
 # =============================================================================
 

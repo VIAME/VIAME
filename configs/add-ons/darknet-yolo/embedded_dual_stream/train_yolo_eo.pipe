@@ -1,8 +1,7 @@
 # =============================================================================
-# Title: Training - YOLO EO
+# Title: YOLO EO Training
 #
-# Description: Training pipeline for model optimization. Uses YOLO-based
-# detection.
+# Description: Embedded YOLOv4 detector training on the optical stream.
 # =============================================================================
 
 config _pipeline:_edge

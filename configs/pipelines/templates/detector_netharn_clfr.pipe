@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: NetHarn Full Frame Classifier
+# Title: NetHarn Frame Classifier Template
 #
-# Description: NetHarn Full Frame Classifier Outputs to
-# computed_detections.csv.
+# Description: Trained NetHarn classifier labelling each whole frame. Reads from
+# disk.
 # =============================================================================
 
 config _pipeline:_edge

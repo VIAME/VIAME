@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Local SVM Detector With Def Tracker
+# Title: Local SVM Detector With Default Tracker
 #
-# Description: Runs object detection pipeline on input imagery. Uses
-# ../generic detector configuration.
+# Description: Embedded generic proposals classified with the user's trained SVM
+# models, followed by the default ByteTrack tracker.
 # =============================================================================
 
 config _pipeline:_edge

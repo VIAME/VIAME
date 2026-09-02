@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Query Augment Image
+# Title: Query Image Augmentation
 #
-# Description: Pipeline configuration file.
+# Description: Embedded handler generating extra positive and negative query
+# descriptors from the exemplar image, on the GPU.
 # =============================================================================
 
 config _pipeline:_edge

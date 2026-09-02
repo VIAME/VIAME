@@ -1,9 +1,8 @@
 # =============================================================================
 # Title: SVM Classifier on Generic Object Proposals, with Tracking
 #
-# Description: The generic-proposal SVM detector plus a trained tracker. The
-# including pipeline connects the tracker's image, timestamp and
-# detected_object_set, as it does for embedded_tracker.pipe.
+# Description: The generic-proposal SVM detector plus a trained tracker, for
+# embedding in other pipelines.
 # =============================================================================
 
 process detector_input

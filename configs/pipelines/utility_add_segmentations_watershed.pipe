@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Add automatically generated segmentations via non-DL methods
+# Title: Watershed Segmentation Generator
 #
-# Description: Adds segmentation masks to existing detections.
+# Description: Generates a mask inside each detection box with OpenCV watershed
+# and writes the mask polygons.
 # Input: BBOX
 # Output: MASK
 # =============================================================================

@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: HabCam Input Configuration
+# Title: HabCam Left Image Input
 #
-# Description: Shared input configuration for reading images or video frames.
-# Configured for HabCam underwater survey imagery.
+# Description: Reads and downsamples HabCam imagery, keeps the left half of a
+# stitched pair (or the full image) and debayers and enhances it.
 # =============================================================================
 
 # ============================= INPUT FRAME LIST ==============================

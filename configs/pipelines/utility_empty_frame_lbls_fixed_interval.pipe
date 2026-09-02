@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Generate empty per-frame labels for the entire frame
+# Title: Fixed Interval Empty Frame Labels
 #
-# Description: Utility pipeline for data processing operations.
+# Description: Creates full-frame 'unannotated_sequence' tracks of a fixed
+# length (default 10 frames) covering every frame.
 # Input: IMAGE
 # Output: FULL-SIZE-BBOX
 # =============================================================================

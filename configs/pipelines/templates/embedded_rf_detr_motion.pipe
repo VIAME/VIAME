@@ -1,10 +1,9 @@
 # =============================================================================
-# Title: RF-DETR Detector Template with Motion Infusion
+# Title: Embedded RF-DETR Motion Infusion Detector Template
 #
-# Description: Runs an RF-DETR detector on motion-infused imagery. The input
-# is converted to grayscale and merged with two temporal-variance motion
-# channels, matching the channel layout produced by train_aug_add_double_motion
-# during training ([ motion@window8, grayscale, motion@window16 ]).
+# Description: RF-DETR on grayscale merged with short- and long-window motion
+# channels, matching the double-motion training augmentation. Frames must be in
+# temporal order.
 # =============================================================================
 
 process detector_input

@@ -1,7 +1,7 @@
 # =============================================================================
-# Title: ResNet Classifier
+# Title: Embedded NetHarn Frame Classifier Template
 #
-# Description: Pipeline configuration file.
+# Description: Trained NetHarn classifier labelling each whole frame.
 # =============================================================================
 
 process detector_input

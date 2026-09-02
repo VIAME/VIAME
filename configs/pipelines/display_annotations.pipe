@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Pipe file to display annotations from test data set
+# Title: Annotation Viewer
 #
-# Description: Pipeline configuration file.
+# Description: Draws detections from an example CSV on each frame and shows them
+# in a viewer window.
 # =============================================================================
 
 config _pipeline:_edge
