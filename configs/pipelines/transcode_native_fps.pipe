@@ -13,6 +13,26 @@ config _pipeline:_edge
 
 include common_default_input.pipe
 
+# Downsampling off, so every native frame and timestamp passes straight
+# through. The downsampler is here for its frame_rate port, which reports the
+# source rate once; video_output reads that port a single time, and the input's
+# per-frame rate would fill the edge and stall the pipeline.
+process downsampler
+  :: downsample
+  :target_frame_rate                           -1
+  :burst_frame_count                           0
+  :burst_frame_break                           0
+  :renumber_frames                             false
+
+connect from input.image
+        to   downsampler.input_1
+connect from input.file_name
+        to   downsampler.input_2
+connect from input.frame_rate
+        to   downsampler.frame_rate
+connect from input.timestamp
+        to   downsampler.timestamp
+
 # ================================= RESAMPLE ==================================
 
 process track_resampler
@@ -22,7 +42,7 @@ process track_resampler
   :output_rate                                 1            # DIVE_PARAM["Output rate", strictly_positive_int]
   :reader:type                                 viame_csv
 
-connect from input.timestamp
+connect from downsampler.timestamp
         to   track_resampler.timestamp
 
 # ================================== OUTPUT ===================================
@@ -32,7 +52,7 @@ process filter
   :filter:type                                 ocv_enhancer
   :filter:ocv_enhancer:force_8bit              true
 
-connect from input.image
+connect from downsampler.output_1
         to   filter.image
 
 process video_writer
@@ -42,9 +62,9 @@ process video_writer
 
 connect from filter.image
         to   video_writer.image
-connect from input.timestamp
+connect from downsampler.timestamp
         to   video_writer.timestamp
-connect from input.frame_rate
+connect from downsampler.frame_rate
         to   video_writer.frame_rate
 
 process track_writer
@@ -55,9 +75,9 @@ process track_writer
 
 connect from track_resampler.object_track_set
         to   track_writer.object_track_set
-connect from input.timestamp
+connect from downsampler.timestamp
         to   track_writer.timestamp
-connect from input.file_name
+connect from downsampler.output_2
         to   track_writer.image_file_name
 
 # -- end of file --
