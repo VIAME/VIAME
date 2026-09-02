@@ -2,6 +2,27 @@
 # Root configuration file CMakeLists
 ##
 
+# Nothing in the install ever removes a file, so a pipeline that is renamed or
+# deleted in the source tree stays in configs/pipelines forever. That is not
+# merely untidy: the pipeline tests enumerate the install directory, so stale
+# files become tests for pipelines that no longer exist, and they keep passing
+# against models left behind by earlier add-on packs. Clear the .pipe files
+# first and let the install rules below put back exactly what is current.
+#
+# Declared before the subdirectories so it runs before anything installs into
+# that directory. Only *.pipe is touched -- models/ and transformations/ hold
+# downloaded weights that must survive, and templates/ is reinstalled wholesale.
+install( CODE "
+  file( GLOB_RECURSE _viame_stale_pipes
+        \"\${CMAKE_INSTALL_PREFIX}/configs/pipelines/*.pipe\" )
+  list( LENGTH _viame_stale_pipes _viame_stale_count )
+  if( _viame_stale_count GREATER 0 )
+    message( STATUS
+      \"Clearing \${_viame_stale_count} previously installed pipeline file(s)\" )
+    file( REMOVE \${_viame_stale_pipes} )
+  endif()
+" )
+
 # Core, default configuration files
 add_subdirectory( pipelines )
 
