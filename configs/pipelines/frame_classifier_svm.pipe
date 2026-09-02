@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Detection pipeline with SVM rapid model filters
+# Title: SVM Frame Classifier
 #
-# Description: Pipeline configuration file.
+# Description: Scores each whole frame with the user's trained SVM models over
+# the default descriptor and writes one detection per frame.
 # =============================================================================
 
 config _pipeline:_edge

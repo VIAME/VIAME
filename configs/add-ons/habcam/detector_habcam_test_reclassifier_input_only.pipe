@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Process the left image (or full image if non-stitched pair)
+# Title: HabCam Reclassifier Input Test
 #
-# Description: Runs object detection pipeline on input imagery. Uses habcam
-# input left configuration. Outputs results to computed_detections.csv.
+# Description: Writes the merged detections that feed the four-class
+# reclassifier instead of the fused result.
 # =============================================================================
 
 config _pipeline:_edge

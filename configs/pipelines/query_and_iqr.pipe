@@ -1,7 +1,9 @@
 # =============================================================================
-# Title: Query And Iqr
+# Title: SVM Query and IQR
 #
-# Description: Pipeline configuration file.
+# Description: Embedded query handler ranking database descriptors with a
+# histogram-kernel SVM refined from IQR feedback, seeded through an LSH
+# nearest-neighbor index.
 # =============================================================================
 
 config _pipeline:_edge

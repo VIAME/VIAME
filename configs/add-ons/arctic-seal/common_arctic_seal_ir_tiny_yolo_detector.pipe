@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Threaded seal detector file
+# Title: Arctic Seal IR Tiny YOLO Detector
 #
-# Description: Shared detector configuration that can be included by other
-# pipelines. Uses model: arctic_seal_ir_tiny.weights. Uses YOLO-based
-# detection.
+# Description: Percentile-normalized thermal imagery fed to a lightweight YOLO
+# hotspot detector, run as two alternating-frame instances.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================

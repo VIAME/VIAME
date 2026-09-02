@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Training - Aug Enhance And Add Motion
+# Title: Enhance and Motion Augmentation
 #
-# Description: Training pipeline for model optimization.
+# Description: Embedded per-image augmenter writing an enhanced RGB image and a
+# separate 20-frame variance motion image. Frames must be in temporal order.
 # =============================================================================
 
 config _pipeline:_edge

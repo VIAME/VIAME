@@ -1,7 +1,7 @@
 # =============================================================================
-# Title: Training - Aug Add Color Freq
+# Title: Color Frequency Channel Augmentation
 #
-# Description: Training pipeline for model optimization.
+# Description: Appends a color-frequency channel to each RGB frame.
 # =============================================================================
 
 config _pipeline:_edge

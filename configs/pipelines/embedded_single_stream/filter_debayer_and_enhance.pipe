@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Filter - Debayer And Enhance
+# Title: Embedded Debayer and Enhance Filter
 #
-# Description: Applies filtering operations to input data.
+# Description: Debayers each frame, then applies white balance, CLAHE and
+# saturation boost.
 # =============================================================================
 
 config _pipeline:_edge

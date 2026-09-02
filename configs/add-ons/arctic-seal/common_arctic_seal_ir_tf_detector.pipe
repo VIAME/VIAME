@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Thermal seal detector file
+# Title: Arctic Seal IR TensorFlow Detector
 #
-# Description: Thermal seal detector file
+# Description: TensorFlow hotspot detector for thermal imagery with fixed-range
+# normalization.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================

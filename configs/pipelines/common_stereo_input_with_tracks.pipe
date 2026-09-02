@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Commonly used stereo input files source with included track inputs as well
+# Title: Stereo Input with Track Readers
 #
-# Description: Commonly used stereo input files source with included track
-# inputs as well Outputs to [INSERT_ME].
+# Description: Downsampled stereo input plus one VIAME CSV track reader per
+# camera.
 # =============================================================================
 
 include common_stereo_input_with_downsampler.pipe

@@ -1,15 +1,9 @@
 # =============================================================================
-# Title: GFIT Stereo Measurement (Single Camera Detection)
+# Title: GFIT SEAGIS Single-Camera Stereo Measurement
 #
-# Description: Stereo measurement pipeline that detects/tracks on the LEFT
-# camera only. SAM2 segmentation and head/tail keypoint identification are
-# applied to left-camera detections. The tracked result is fed to both inputs
-# of the SEAGIS measurement process along with both stereo images. SEAGIS
-# uses epipolar template matching to find corresponding right-camera points
-# for each left-camera keypoint, then triangulates to produce 3D measurements.
-#
-# Requires: SEAGIS .CAM calibration files for left and right cameras.
-#
+# Description: GFIT detection, SAM2 segmentation, head/tail keypoints and
+# tracking on the left camera only. SEAGIS finds the right-camera points by
+# epipolar template matching and triangulates lengths from .CamCAL files.
 # Requires Calibration: True
 # =============================================================================
 

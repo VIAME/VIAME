@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Generate Empty Frame Lbls Auto
+# Title: Empty Frame Labels per Shot
 #
-# Description: Pipeline configuration file.
+# Description: Emits full-frame 'unannotated_sequence' tracks split at shot
+# breaks detected from frame descriptors.
 # =============================================================================
 
 config _pipeline:_edge

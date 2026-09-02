@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Stabilized IOU tracker pipeline
+# Title: Fish Stabilized IoU Tracker
 #
-# Description: Stabilized IOU tracker pipeline Outputs to computed_tracks.csv.
+# Description: RF-DETR fish box detector followed by a homography-stabilized IoU
+# tracker, with no appearance model.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

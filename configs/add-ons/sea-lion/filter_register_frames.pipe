@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Filter - Register Frames
+# Title: Frame Registration Filter
 #
 # Description: Registers frames across the survey and writes a copy of each
-# image, optionally with previously-observed regions blacked out.
+# image, optionally with previously observed regions blacked out.
 #
 # Metadata File: stabilizer:flight_log
 #   DIVE binds an optional per-dataset metadata file (e.g. an FMCLOG

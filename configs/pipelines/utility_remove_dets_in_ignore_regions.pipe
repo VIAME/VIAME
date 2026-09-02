@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: Remove detections falling inside ignore regions
+# Title: Remove Detections in Ignore Regions
 #
 # Description: Drops detections contained in regions labelled ignore, and
 # relabels those only partially inside them as suppressed.

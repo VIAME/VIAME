@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Remove detections in regions indicated by fixed type string(s)
+# Title: Remove Detections in Ignore Regions
 #
-# Description: Utility pipeline for data processing operations.
+# Description: Drops detections overlapping Ignore regions and scales the scores
+# of those in Suppressed regions by 0.1. Images are not loaded.
 # =============================================================================
 
 config _pipeline:_edge

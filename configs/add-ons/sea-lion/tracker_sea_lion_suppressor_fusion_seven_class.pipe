@@ -1,11 +1,10 @@
 # =============================================================================
-# Title: Tracker - Sea Lion Suppressor Fusion Seven Class
+# Title: Sea Lion Seven-Class Suppressor
 #
-# Description: Runs object tracking on detected objects across video frames,
-# linking detections of the same sea lion from frame to frame so repeat
-# sightings are tied to one individual. Configured for sea lion survey
-# imagery. Output categories: bull (B), sub-adult male (S), female (F),
-# juvenile (J), pup (P), northern fur seal (NFS), dead pup (DP).
+# Description: Seven-class fusion detection on one camera; detections in regions
+# already seen in earlier registered frames are marked Suppressed. Classes: bull
+# (B), sub-adult male (S), female (F), juvenile (J), pup (P), northern fur seal
+# (NFS), dead pup (DP).
 # Input: IMAGE
 # Output: TRACK
 #

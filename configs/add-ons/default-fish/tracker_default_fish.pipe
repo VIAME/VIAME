@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Example simple tracker pipeline
+# Title: Default Fish Tracker
 #
-# Description: Runs a standalone TUT object tracking pipeline Outputs to
-# computed_tracks.csv.
+# Description: Single-class 960x1728 RF-DETR fish box detector followed by the
+# default ByteTrack tracker.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

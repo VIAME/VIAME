@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Run simple head-length fish measurement using stereo cameras
+# Title: GMM Motion Stereo Measurement
 #
-# Description: Run simple head-length fish measurement using stereo cameras
-# Outputs to computed_tracks2.csv.
+# Description: GMM motion detection in both cameras, with detections measured by
+# stereo triangulation from the calibration file.
 #
 # Requires Calibration: True
 # =============================================================================

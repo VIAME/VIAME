@@ -1,10 +1,8 @@
 # =============================================================================
-# Title: Common - Default Tracker
+# Title: Default ByteTrack Tracker
 #
-# Description: Default multi-object tracker using ByteTrack algorithm. ByteTrack
-# is a simple and effective tracker that associates detections using IoU-based
-# matching with a two-stage association strategy for high and low confidence
-# detections.
+# Description: ByteTrack tracker process: two-stage IoU association with a
+# Kalman motion model.
 # =============================================================================
 
 process tracker

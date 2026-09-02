@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Optionally debayers and enhances the image if it isn't already RGB (3-channel)
+# Title: Right Debayer and Enhance Filter
 #
-# Description: Shared configuration module that can be included by other
-# pipelines.
+# Description: Debayers and enhances the right image; enhancement is skipped
+# when the input is already RGB.
 # =============================================================================
 
 process right_image_debayer

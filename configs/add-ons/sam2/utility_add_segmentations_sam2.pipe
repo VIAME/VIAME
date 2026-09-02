@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Add automatically generated segmentations via SAM2
+# Title: SAM2 Segmentation Generator
 #
-# Description: Adds segmentation masks to existing detections.
+# Description: Adds a SAM2 polygon mask to every existing box, replacing
+# existing masks when Replace is set.
 # Input: BBOX
 # Output: MASK
 # =============================================================================

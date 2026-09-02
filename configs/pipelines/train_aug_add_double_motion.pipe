@@ -1,33 +1,8 @@
 # =============================================================================
-# Title: Training - Aug Add Double Motion
+# Title: Double Motion Channel Augmentation
 #
-# Description: Source-driven augmentation that reads directly from the
-# common_default_input source. Because that source is a video_input, the same pipeline handles
-# both videos (video_reader:type = vidl_ffmpeg) and image sequences
-# (video_reader:type = image_list) -- the viame train tool selects the reader
-# per input. The frames are downsampled, augmented with two temporal-variance
-# motion channels, and written out in a single pass, so a video is decoded only
-# once and only the augmented frames are written (no intermediate raw-frame
-# dump). Requires temporally ordered input frames.
-#
-# Channel layout is [ variance(window 5), grey, variance(window 30) ]. The two
-# windows are a short one, whose running mean adapts fast enough to track the
-# scene and so responds mainly to abrupt motion, and a long one, whose mean is a
-# stable background model and so accumulates slow, low-contrast motion.
-#
-# The window sizes only started doing anything once vxl_average was fixed to pass
-# window_size through to the averager (it previously hardcoded 20, so the old 8
-# and 16 here produced the SAME image, differing only by the byte scale factor --
-# ch2 was literally round(3 * ch0), correlation 0.9985). Keep the two windows far
-# apart; adjacent values buy nothing. Note that even at 5 vs 30 the two channels
-# still correlate at ~0.85, because they are the same operator at two horizons --
-# train_aug_all_motion.pipe uses three different operators and gets 0.11-0.29.
-#
-# The train tool drives this via 'kwiver runner' with -s overrides for
-# input:video_filename, input:video_reader:type, downsampler:target_frame_rate
-# and image_writer:file_name_template. The writer names frames purely from the
-# template counter (frame%06d.png) so numbering is identical for video and image
-# inputs and groundtruth association is unchanged.
+# Description: Replaces RGB with [variance(5 frames), grey, variance(30
+# frames)]. Frames must be in temporal order.
 # =============================================================================
 
 config _pipeline:_edge

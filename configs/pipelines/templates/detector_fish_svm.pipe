@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Detector Fish Svm Template
+# Title: Fish SVM Classifier Template
 #
-# Description: Standalone counterpart of embedded_fish_svm.pipe, runnable directly on
-# input imagery from disk.
+# Description: RF-DETR fish detector, default descriptor and trained SVM
+# refiner, run on imagery from disk.
 # =============================================================================
 
 config _pipeline:_edge

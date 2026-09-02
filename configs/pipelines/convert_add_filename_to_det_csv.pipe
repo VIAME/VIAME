@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Format Converter
+# Title: Add Filenames to Detection CSV
 #
-# Description: Converts annotation data between different file formats.
+# Description: Fills the image file name column of a VIAME detection CSV from
+# the input image list.
 # =============================================================================
 
 config _pipeline:_edge

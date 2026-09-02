@@ -1,7 +1,9 @@
 # =============================================================================
-# Title: Ingest video pipeline using pytorch descriptors
+# Title: Index Frames for SVM Training
 #
-# Description: Pipeline configuration file.
+# Description: Merges groundtruth detections with one unannotated full-frame
+# proposal per image, computes descriptors, writes id lists for SVM training and
+# ingests them into the database.
 # =============================================================================
 
 config _pipeline:_edge

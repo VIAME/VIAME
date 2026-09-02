@@ -1,8 +1,9 @@
 # =============================================================================
-# Title: Track user selections and generate segmentation masks using SAM3
+# Title: SAM3 Selection Tracker
 #
-# Description: Utility pipeline for tracking user selections and adding
-#              segmentation masks using SAM3.
+# Description: Re-segments user-selected boxes with SAM3 and propagates them
+# through later frames into tracks. Existing multi-frame tracks pass through
+# unchanged.
 # =============================================================================
 
 config _pipeline:_edge

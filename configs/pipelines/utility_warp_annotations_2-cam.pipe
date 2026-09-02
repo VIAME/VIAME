@@ -1,12 +1,8 @@
 # =============================================================================
-# Title: Utility - Warp Camera 2 Annotations onto Camera 1
+# Title: Warp Camera 2 Annotations onto Camera 1
 #
-# Description: Model-free check of the DIVE camera registration hand-off.
-# Reads camera 2's existing annotations and projects them into camera 1's
-# frame using the dataset's registration (DIVE writes it into the job dir
-# and points warp2 at it); camera 2's own annotations pass through
-# unchanged. Camera 1 must be the registration reference (DIVE default
-# display camera).
+# Description: Projects camera 2's annotations into camera 1's frame using the
+# dataset registration. Camera 1 must be the registration reference.
 # Input: IMAGE (per camera), BBOX (per camera)
 # Output: BBOX (per camera)
 # =============================================================================

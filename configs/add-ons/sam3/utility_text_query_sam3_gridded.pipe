@@ -1,11 +1,8 @@
 # =============================================================================
-# Title: Text query via SAM3 (gridded for large images, no tracking)
+# Title: Gridded SAM3 Text Query
 #
-# Description: Textual query support uses architectures derived from Meta's
-#              SAM3 project. This variant uses windowed/gridded processing to
-#              improve detection of small objects in large images. Each frame
-#              is processed independently with no cross-frame tracking.
-#
+# Description: Per-frame text-prompted detection in 1008x1008 windows for small
+# objects in large images, segmented by SAM3. No cross-frame tracking.
 # Input: TEXT
 # Output: MASK
 # =============================================================================

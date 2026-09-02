@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Ingest image list pipeline via pytorch descriptors pipeline
+# Title: Index Full Frames
 #
-# Description: Pipeline configuration file.
+# Description: Treats each frame as one proposal, computes its descriptor and
+# ingests the tracks and descriptors into the database.
 # =============================================================================
 
 config _pipeline:_edge

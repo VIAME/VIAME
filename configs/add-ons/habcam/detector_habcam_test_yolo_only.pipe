@@ -1,9 +1,7 @@
 # =============================================================================
-# Title: Process the left image (or full image if non-stitched pair)
+# Title: HabCam YOLOv7 Test Detector
 #
-# Description: Runs object detection pipeline on input imagery. Uses habcam
-# input left configuration. Outputs results to computed_detections.csv. Uses
-# YOLO-based detection.
+# Description: Runs only the YOLOv7 member of the scallop ensemble.
 # =============================================================================
 
 config _pipeline:_edge

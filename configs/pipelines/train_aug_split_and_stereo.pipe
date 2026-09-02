@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Training - Aug Split And Stereo
+# Title: Split and Stereo Disparity Augmentation
 #
-# Description: Training pipeline for model optimization. Processes stereo
-# camera image pairs.
+# Description: Embedded per-image augmenter for stitched stereo pairs: splits
+# the image and appends a disparity map to the left half: [R, G, B, disparity].
 # =============================================================================
 
 config _pipeline:_edge

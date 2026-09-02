@@ -1,7 +1,9 @@
 # =============================================================================
-# Title: Track user selections and generate segmentation masks using SAM2
+# Title: SAM2 Selection Tracker
 #
-# Description: Utility pipeline for data processing operations.
+# Description: Re-segments user-selected boxes with SAM2 and propagates them
+# through later frames into tracks. Existing multi-frame tracks pass through
+# unchanged.
 # =============================================================================
 
 config _pipeline:_edge

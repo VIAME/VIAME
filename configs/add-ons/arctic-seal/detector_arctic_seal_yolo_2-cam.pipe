@@ -1,12 +1,9 @@
 # =============================================================================
-# Title: Detector - Arctic Seal YOLO 2-cam
+# Title: Arctic Seal YOLO Two-Camera Detector
 #
-# Description: Dual camera arctic seal detector for synchronized optical and
-# thermal imagery. The thermal detector triggers subregion detection on the
-# optical stream; thermal detections are mapped into the optical frame using
-# a camera registration file (DIVE camera registration .json or plain text
-# 3x3 homography; legacy ITK .h5 files must first be converted with
-# tools/convert_itk_h5_transform.py).
+# Description: Synchronized optical and thermal seal detection. Thermal hotspots
+# trigger windowed detection on the optical frame, mapped through a camera
+# registration file (DIVE JSON or 3x3 homography text).
 #
 # Camera Order: EO, IR
 # Camera 1 is optical and camera 2 is thermal; DIVE matches the dataset's

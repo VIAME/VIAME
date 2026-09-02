@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Arctic Seal YOLO EO IR Early Fusion
 #
-# Description: Configured for arctic seal aerial survey imagery. Uses
-# YOLO-based detection.
+# Description: Warps each thermal frame onto its optical frame, merges the two
+# into one image and runs the fusion darknet detector on it.
 # =============================================================================
 
 config _pipeline:_edge

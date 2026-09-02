@@ -1,7 +1,8 @@
 # =============================================================================
 # Title: Local SVM Detector
 #
-# Description: Pipeline configuration file.
+# Description: Embedded generic proposals classified with the user's trained SVM
+# models; detections are emitted as single-frame tracks.
 # =============================================================================
 
 config _pipeline:_edge

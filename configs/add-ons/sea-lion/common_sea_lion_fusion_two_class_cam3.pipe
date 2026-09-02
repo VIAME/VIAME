@@ -1,15 +1,9 @@
 # =============================================================================
-# Title: Common - Sea Lion Fusion Two Class Cam3
+# Title: Sea Lion Two-Class Fusion Detector (Cam 3)
 #
-# Description: Shared configuration module that can be included by other
-# pipelines. Configured for sea lion survey imagery. Fuses three detectors --
-# RF-DETR 2-class @1008, DEIMv2 pup-vs-nonpup @1280 (ONNX), and RF-DETR 8-class
-# @1008 (fine classes folded to non-pup/pup) -- with weighted box fusion.
-#
-# Output classes: non-pup (NP), pup (P). Label folding is done in the fuser's
-# label_dic: NP and the 8-class adult categories (B/F/J/S/DN) map onto the
-# non-pup id; P and DP map onto the pup id; NFS is omitted so northern fur
-# seals are dropped from the 2-class output.
+# Description: Weighted box fusion of the RF-DETR two-class, DEIMv2 two-class
+# and RF-DETR eight-class detectors for camera 3. Classes: non-pup (NP), pup
+# (P); northern fur seals are dropped.
 # =============================================================================
 
 # ============================== INPUT FORMATTER ==============================

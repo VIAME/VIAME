@@ -1,16 +1,9 @@
 # =============================================================================
-# Title: RF-DETR Detector Template with All-Motion Input (no RGB)
+# Title: Embedded RF-DETR All-Motion Detector Template
 #
-# Description: Runs an RF-DETR detector on a 3-channel motion stack that carries
-# no appearance information at all, matching the channel layout produced by
-# train_aug_all_motion during training:
-#
-#     [ flow_magnitude, frame_difference, temporal_variance ]
-#
-# The three operators and their settings must stay identical to the training
-# augmentation -- a mismatch in channel order, flow scale or frame_separation
-# silently feeds the network a different input distribution than it was trained
-# on. Requires temporally ordered input frames.
+# Description: RF-DETR on a motion-only three-channel stack (flow magnitude,
+# frame difference, temporal variance) matching the all-motion training
+# augmentation. Frames must be in temporal order.
 # =============================================================================
 
 process detector_input

@@ -1,7 +1,9 @@
 # =============================================================================
-# Title: Ingest video pipeline using pytorch descriptors
+# Title: Generic Proposal Track Index
 #
-# Description: Pipeline configuration file.
+# Description: Indexes video for track queries: generic proposals linked by
+# ByteTrack with descriptors averaged per track, written to a KWA archive and
+# the database.
 # =============================================================================
 
 config _pipeline:_edge

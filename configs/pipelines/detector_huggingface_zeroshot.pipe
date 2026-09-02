@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: HuggingFace Detector
+# Title: HuggingFace Zero-Shot Detector
 #
-# Description: HuggingFace Detector Outputs to computed_detections.csv.
+# Description: Grounding DINO zero-shot detector over 640x640 chips; the prompt
+# classes are configurable.
 # =============================================================================
 
 config _pipeline:_edge

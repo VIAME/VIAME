@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Rectified stereo disparity
+# Title: Rectified Stereo Disparity
 #
-# Description: Pipeline for measuring object dimensions in imagery.
+# Description: Rectifies each stereo pair with the dataset calibration and
+# writes a 16-bit SGBM disparity map per frame.
 #
 # Requires Calibration: True
 # Calibration Keys: depth_map:computer:ocv_stereo_disparity:calibration_file

@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Default homography-based registration pipeline
+# Title: Homography Frame Registration
 #
-# Description: Pipeline configuration file.
+# Description: Tracks SURF features across frames and writes each frame's
+# source-to-reference homography.
 # =============================================================================
 
 config _pipeline:_edge

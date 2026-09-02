@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Generate empty per-frame labels with automatic shot break detection
+# Title: Empty Frame Labels with Shot Break Detection
 #
-# Description: Utility pipeline for data processing operations.
+# Description: Creates full-frame 'unannotated_sequence' tracks split at shot
+# breaks detected from frame descriptors.
 # =============================================================================
 
 config _pipeline:_edge

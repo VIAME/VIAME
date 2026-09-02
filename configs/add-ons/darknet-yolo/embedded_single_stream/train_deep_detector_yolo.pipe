@@ -1,8 +1,7 @@
 # =============================================================================
-# Title: Training - Deep Detector YOLO
+# Title: YOLO Detector Training
 #
-# Description: Runs object detection pipeline on input imagery. Uses
-# YOLO-based detection.
+# Description: Embedded YOLOv4 detector training from input tracks.
 # =============================================================================
 
 config _pipeline:_edge

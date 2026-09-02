@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Reads image from an arbitrary input source then dumps them out again
+# Title: Compressed Video Transcode
 #
-# Description: Transcodes input video or images to a different format.
+# Description: Re-encodes input video or images to MP4 at a configurable CRF
+# (default 30).
 # =============================================================================
 
 config _pipeline:_edge

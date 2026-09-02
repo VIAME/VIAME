@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Community Fish Detector
+# Title: Community Fish RF-DETR Grid Detector
 #
-# Description: Runs the cfd_rf_detr_m_1024 RF-DETR model, gridded, for fish detection.
-# Outputs to computed_detections.csv.
+# Description: Community fish RF-DETR medium model run over a grid of tiles plus
+# the whole frame, for small fish in large images.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================

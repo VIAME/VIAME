@@ -1,22 +1,10 @@
 # =============================================================================
-# Title: NWFSC AUV Stereo Measurement (Dual Camera Detection, Core)
+# Title: NWFSC AUV Stereo Measurement
 #
-# Description: Stereo measurement pipeline that runs detection, SAM2
-# segmentation, and head/tail keypoint identification on BOTH left and right
-# cameras independently. No temporal tracker is run -- each detection becomes
-# its own single-state track. The core measurement process handles pairing
-# (detection matching, ID unification, class averaging) and triangulates
-# matched keypoints for 3D measurements using calibration data.
-#
-# Detector classes: sponges, rockfish, corals, roundfish, flatfish
-#
-# Segmentation runs over every detection, but head/tail keypoints are only
-# assigned to the fish classes (rockfish, roundfish, flatfish). Because
-# compute_measurements only measures detections carrying both a "head" and a
-# "tail" keypoint on both cameras, restricting the keypoint stage is what
-# restricts measurement -- corals and sponges still flow through to the
-# output as segmented detections, just without a length.
-#
+# Description: NetHarn detection, SAM2 segmentation and head/tail keypoints on
+# both cameras, then stereo pairing and triangulation. Only fish classes
+# (rockfish, roundfish, flatfish) get keypoints and lengths; corals and sponges
+# pass through unmeasured.
 # Requires Calibration: True
 # =============================================================================
 

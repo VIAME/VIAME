@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Example simple tracker pipeline
+# Title: Generic Proposal Tracker
 #
-# Description: Runs a standalone TUT object tracking pipeline Outputs to
-# computed_tracks.csv.
+# Description: Generic RF-DETR proposal detector followed by the default
+# ByteTrack tracker.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

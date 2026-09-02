@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Optical seal detector file
+# Title: Arctic Seal EO TensorFlow Detector
 #
-# Description: Optical seal detector file
+# Description: TensorFlow seal detector for optical imagery, shared by the
+# arctic seal pipelines.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================

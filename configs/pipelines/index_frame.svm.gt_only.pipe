@@ -1,7 +1,9 @@
 # =============================================================================
-# Title: Ingest video pipeline using pytorch descriptors
+# Title: Index Groundtruth for SVM Training
 #
-# Description: Pipeline configuration file.
+# Description: Computes descriptors for groundtruth detections only, writes
+# positive/negative id lists for SVM training and ingests them into the
+# database.
 # =============================================================================
 
 config _pipeline:_edge

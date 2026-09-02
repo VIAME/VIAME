@@ -1,7 +1,7 @@
 # =============================================================================
-# Title: Runs an object detector and dumps chips around detections out of it, for later
+# Title: Detection Chip Extractor
 #
-# Description: Extracts image chips around detected objects.
+# Description: Writes an image chip around each detection read from a VIAME CSV.
 # Input: IMAGE
 # Output: IMAGE
 # =============================================================================

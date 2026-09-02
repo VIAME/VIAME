@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Training - Aug Percentile Normalization (Python/NumPy)
+# Title: Percentile Normalization Augmentation (NumPy)
 #
-# Description: Training augmentation pipeline that applies percentile-based
-# normalization to convert non-8-bit imagery (16-bit, float, etc.) to 8-bit.
-# Uses the Python/NumPy implementation of the equalize_via_percentiles filter.
+# Description: Percentile-based normalization converting non-8-bit imagery
+# (16-bit, float) to 8-bit, using the Python/NumPy filter implementation.
 # =============================================================================
 
 config _pipeline:_edge

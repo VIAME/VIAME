@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Format Converter
+# Title: HabCam to KW18 Converter
 #
-# Description: Converts annotation data between different file formats.
-# Configured for HabCam underwater survey imagery.
+# Description: Converts HabCam annotations to KW18. Frame names come from the
+# input image list.
 # =============================================================================
 
 config _pipeline:_edge

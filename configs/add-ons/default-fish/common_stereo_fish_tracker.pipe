@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Common fish detection and tracking util include file
+# Title: Stereo Fish SRNN Tracker
 #
-# Description: Common fish detection and tracking util include file Uses
-# model: rnn_ml_aim.pt.
+# Description: Stereo input, the RF-DETR segmentation fish detector on each
+# camera and an SRNN tracker per camera.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

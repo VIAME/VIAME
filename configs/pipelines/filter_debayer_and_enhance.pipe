@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Filters input images via debayering them and running basic image filtering
+# Title: Debayer and Enhance Filter
 #
-# Description: Applies filtering operations to input data.
+# Description: Debayers each frame, then applies white balance, CLAHE and
+# saturation boost. Writes PNG images.
 # Input: IMAGE
 # Output: IMAGE
 # =============================================================================

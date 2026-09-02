@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Query Retrieval And Iqr
+# Title: Query Retrieval and IQR
 #
-# Description: Pipeline configuration file.
+# Description: Embedded interactive-search handler: builds exemplar descriptors,
+# starts a similarity query and refines it with IQR feedback.
 # =============================================================================
 
 config _pipeline:_edge

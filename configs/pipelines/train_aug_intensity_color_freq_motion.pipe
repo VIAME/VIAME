@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Training - Aug Intensity Color Freq Motion
+# Title: Intensity, Color Frequency and Motion Augmentation
 #
-# Description: Training pipeline for model optimization.
+# Description: Replaces RGB with grayscale intensity, a color-frequency channel
+# and a 20-frame motion variance channel. Frames must be in temporal order.
 # =============================================================================
 
 config _pipeline:_edge

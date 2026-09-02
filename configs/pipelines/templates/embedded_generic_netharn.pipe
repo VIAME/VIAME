@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Secondary Classifier After Generic Object Proposals
+# Title: Embedded Generic Proposal NetHarn Classifier Template
 #
-# Description: Secondary Classifier After Generic Object Proposals Uses model:
-# generic_detector.weights.
+# Description: Generic object proposals reclassified by a trained NetHarn
+# refiner.
 # =============================================================================
 
 process detector_input

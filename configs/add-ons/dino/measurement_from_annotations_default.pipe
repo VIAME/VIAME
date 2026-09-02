@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Measurement from annotations pipeline
+# Title: Default Measurement from Annotations
 #
-# Description: Default measurement from annotations pipeline.
-# Outputs to computed_tracks.csv.
+# Description: Default choice: stereo lengths from annotated head/tail keypoints
+# with NCC epipolar template matching.
 #
 # Requires Calibration: True
 # =============================================================================

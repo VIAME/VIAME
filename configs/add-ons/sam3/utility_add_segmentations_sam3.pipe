@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Add automatically generated segmentations via SAM3
+# Title: SAM3 Segmentation Generator
 #
-# Description: Adds segmentation masks to existing detections using SAM3.
-#              This pipeline replaces existing masks with SAM3-generated masks.
+# Description: Adds a SAM3 polygon mask to every existing box, replacing
+# existing masks when Replace is set.
 # Input: BBOX
 # Output: MASK
 # =============================================================================

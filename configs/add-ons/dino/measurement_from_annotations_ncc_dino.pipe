@@ -1,7 +1,9 @@
 # =============================================================================
-# Title: Measurement from annotations pipeline
+# Title: DINO Measurement from Annotations
 #
-# Description: Measurement from annotations pipeline
+# Description: Stereo lengths from annotated head/tail keypoints. Right-camera
+# matches are found along the epipolar line by DINOv2 candidate selection plus
+# NCC template matching.
 #
 # Requires Calibration: True
 # =============================================================================
