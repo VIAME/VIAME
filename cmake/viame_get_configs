@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Backwards compatibility wrapper: viame_get_configs -> viame get-configs
+# This script will be removed once all tools are updated.
+exec "$(dirname "$(readlink -f "$0")")/viame" get-configs "$@"

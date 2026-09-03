@@ -12,7 +12,7 @@ source ${VIAME_INSTALL}/setup_viame.sh
 # The per-class table reports TP, FP, FN, precision, recall, F1 and average
 # precision for every category, and the summary reports their mean AP.
 
-viame_score_results \
+viame score \
  --computed detections.csv --truth groundtruth.csv \
  --iou 0.5 --per-class \
  --output-summary output_metrics_per_category_summary.txt \

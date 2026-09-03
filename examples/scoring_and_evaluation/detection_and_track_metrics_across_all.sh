@@ -11,7 +11,7 @@ source ${VIAME_INSTALL}/setup_viame.sh
 # Writes a metric summary, a metrics json, and plots (precision-recall curve,
 # detection ROC curve, confusion matrix, and score histograms) into output_metrics.
 
-viame_score_results \
+viame score \
  --computed detections.csv --truth groundtruth.csv \
  --iou 0.5 \
  --output-summary output_metrics_summary.txt \
