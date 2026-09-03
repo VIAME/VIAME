@@ -1,4 +1,4 @@
-DEFAULT-FISH, https://viame.kitware.com/api/v1/item/6a75367956d7c3abbe88932b/download, Default fish detection model (1-class), 30b5ba31ef8d885b0ca2e5a342ceac22, ALL-PLATFORMS, "PYTORCH, PYTORCH-RF-DETR"
+DEFAULT-FISH, https://viame.kitware.com/api/v1/item/6a98f7cb32a37c12f2f93f2b/download, Default fish detection model (1-class), 6419ece4fa6963b466ce007ce1cfa135, ALL-PLATFORMS, "PYTORCH, PYTORCH-RF-DETR, ONNX"
 COMMUNITY-FISH, https://viame.kitware.com/api/v1/item/6a7536765584f7704ef009b6/download, Fish detection model from community fish project, b640929e49ffd0621d45e03ff8642132, ALL-PLATFORMS, "PYTORCH, PYTORCH-ULTRALYTICS, PYTORCH-RF-DETR"
 GENERIC, https://viame.kitware.com/api/v1/item/6a76362456d7c3abbe88fd9a/download, Generic object proposal model (1-class), 4aab07dce26664f764b125eb789d14a7, ALL-PLATFORMS, "PYTORCH, PYTORCH-RF-DETR"
 HABCAM, https://viame.kitware.com/girder/api/v1/file/685eecb7a2df48d3c1ae8bfb/download, Detect and measure scallops and flatfish and other friends, e4a452f7770d4fb1a16f35984d165981, LINUX-ONLY, "ONNX, DARKNET"
