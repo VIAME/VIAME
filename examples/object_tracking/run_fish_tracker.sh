@@ -8,5 +8,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 
-viame ${VIAME_INSTALL}/configs/pipelines/tracker_default_fish.pipe \
+viame ${VIAME_INSTALL}/configs/pipelines/tracker_default_fish_fusion.pipe \
       -s input:video_filename=input_list.txt

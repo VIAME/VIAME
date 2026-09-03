@@ -8,5 +8,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 
-viame ${VIAME_INSTALL}/configs/pipelines/detector_default_fish.pipe \
+viame ${VIAME_INSTALL}/configs/pipelines/detector_default_fish_no_motion.pipe \
       -s input:video_filename=input_image_list_small_set.txt

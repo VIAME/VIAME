@@ -1,13 +1,13 @@
 # =============================================================================
-# Title: Example simple tracker pipeline
+# Title: Default Fish Tracker with Masks and Keypoints
 #
-# Description: Runs a standalone TUT object tracking pipeline Outputs to
-# computed_tracks.csv.
+# Description: As tracker_default_fish_fusion.pipe, but detecting with the RF-DETR
+# variant carrying segmentation and head/tail keypoint heads, so the tracks
+# carry masks and body points. Outputs to computed_tracks.csv.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================
-# global pipeline config
-#
+
 config _pipeline:_edge
   :capacity                                    5
 
@@ -20,7 +20,7 @@ include common_default_input_with_downsampler.pipe
 
 # ================================= DETECTOR ==================================
 
-include common_fish_detector_box.pipe
+include common_fish_detector_mask_and_kp.pipe
 
 connect from downsampler.output_1
         to   detector_input.image
@@ -28,9 +28,9 @@ connect from downsampler.output_1
 process detector_writer
   :: detected_object_output
 
-  # Type of file to output
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        30
 
 connect from detector_output.detected_object_set
         to   detector_writer.detected_object_set
@@ -43,7 +43,6 @@ connect from downsampler.timestamp
 
 include common_default_tracker.pipe
 
-# Connect inputs to tracker
 connect from downsampler.output_1
         to   tracker.image
 connect from downsampler.timestamp
@@ -58,8 +57,8 @@ process track_writer
   :file_name                                   computed_tracks.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:stream_identifier          input_list.txt
+  :writer:viame_csv:mask_to_poly_points        30
 
-# Connect inputs to track writer
 connect from tracker.object_track_set
         to   track_writer.object_track_set
 connect from downsampler.timestamp

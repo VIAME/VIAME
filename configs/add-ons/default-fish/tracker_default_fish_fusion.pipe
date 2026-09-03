@@ -1,34 +1,58 @@
 # =============================================================================
-# Title: Stabilized IOU tracker pipeline
+# Title: Example simple tracker pipeline
 #
-# Description: Stabilized IOU tracker pipeline Outputs to computed_tracks.csv.
+# Description: Runs a standalone TUT object tracking pipeline Outputs to
+# computed_tracks.csv.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
 
 config _scheduler
-  type = pythread_per_process
+  :type                                        pythread_per_process
 
 # ============================= INPUT FRAME LIST ==============================
 
 include common_default_input_with_downsampler.pipe
+
+# ================================= DETECTOR ==================================
+
 include common_fish_detector_motion_fusion.pipe
-include common_stabilized_iou_tracker.pipe
 
 connect from downsampler.output_1
         to   detector_input.image
 
-connect from downsampler.timestamp
-        to   stabilizer.timestamp
-connect from downsampler.output_1
-        to   stabilizer.image
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
 
 connect from detector_output.detected_object_set
-        to   tracker.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
 connect from downsampler.timestamp
-	      to   tracker.timestamp
+        to   detector_writer.timestamp
+
+# =============================== CORE TRACKER ================================
+
+include common_default_tracker.pipe
+
+# Connect inputs to tracker
+connect from downsampler.output_1
+        to   tracker.image
+connect from downsampler.timestamp
+        to   tracker.timestamp
+connect from detector_output.detected_object_set
+        to   tracker.detected_object_set
 
 # ================================ OUTPUT DATA ================================
+
 process track_writer
   :: write_object_track
   :file_name                                   computed_tracks.csv

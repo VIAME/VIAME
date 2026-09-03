@@ -1,9 +1,9 @@
 # =============================================================================
 # Title: Common - Stereo Fish Detector
 #
-# Description: Stereo fish detector. Runs the same 960x1728 RF-DETR
-# segmentation model as common_fish_detector_mask.pipe on each camera, so both
-# views emit box + mask output.
+# Description: Runs the same mask and keypoint RF-DETR as
+# common_fish_detector_mask_and_kp.pipe on each camera, so both views emit box,
+# mask and head/tail output for the measurement stages.
 # =============================================================================
 
 process detector_input1
@@ -22,7 +22,7 @@ process detector1
   block detector:rf_detr
     :model_size                                large
     :device                                    auto
-    relativepath weight =                      models/fish_rf_detr_seg_1728.pth
+    relativepath weight =                      models/fish_rf_detr_seg_kp_1728.pth
     :num_channels                              3
     :segmentation                              true
     :resolution                                960x1728
@@ -56,7 +56,7 @@ process detector2
   block detector:rf_detr
     :model_size                                large
     :device                                    auto
-    relativepath weight =                      models/fish_rf_detr_seg_1728.pth
+    relativepath weight =                      models/fish_rf_detr_seg_kp_1728.pth
     :num_channels                              3
     :segmentation                              true
     :resolution                                960x1728

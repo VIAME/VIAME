@@ -8,12 +8,12 @@
 # Examples:
 #   # Single add-on:
 #   ./viame_gpu_vertex_ai_with_addon.sh VIAME-DEFAULT-FISH-Models.zip \
-#     pipelines/detector_default_fish.pipe \
+#     pipelines/detector_default_fish_no_motion.pipe \
 #     viame-vertex-fish:latest
 #
 #   # Multiple add-ons (comma-separated):
 #   ./viame_gpu_vertex_ai_with_addon.sh VIAME-DEFAULT-FISH-Models.zip,VIAME-GENERIC-Models.zip \
-#     pipelines/tracker_default_fish.pipe \
+#     pipelines/tracker_default_fish_fusion.pipe \
 #     viame-vertex-fish:latest \
 #     coco
 
@@ -27,7 +27,7 @@ usage() {
   echo ""
   echo "Arguments:"
   echo "  addon-zips    Comma-separated paths to VIAME add-on .zip files"
-  echo "  pipeline      Default pipeline to run (e.g. pipelines/detector_default_fish.pipe)"
+  echo "  pipeline      Default pipeline to run (e.g. pipelines/detector_default_fish_no_motion.pipe)"
   echo "  image-name    Name (and optional tag) for the output Docker image"
   echo "  output-type   Output format: coco, viame_csv, kw18 (default: coco)"
   exit 1

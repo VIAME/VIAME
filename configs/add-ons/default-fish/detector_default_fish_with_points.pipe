@@ -1,0 +1,45 @@
+# =============================================================================
+# Title: Default Fish Detector with Masks and Keypoints
+#
+# Description: Runs the RF-DETR variant carrying segmentation and head/tail
+# keypoint heads, so each detection comes out with a box, a mask and its two
+# body points. Outputs to computed_detections.csv.
+#
+# Input: IMAGE
+# Output: BBOX + POLYGON + KEYPOINTS
+# =============================================================================
+
+# ============================= GLOBAL PROPERTIES =============================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ============================= INPUT FRAME LIST ==============================
+
+include common_default_input_with_downsampler.pipe
+
+# ================================= DETECTOR ==================================
+
+include common_fish_detector_mask_and_kp.pipe
+
+process detector_writer
+  :: detected_object_output
+
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        30
+
+connect from downsampler.output_1
+        to   detector_input.image
+
+connect from detector_output.detected_object_set
+        to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+connect from downsampler.timestamp
+        to   detector_writer.timestamp
+
+# -- end of file --

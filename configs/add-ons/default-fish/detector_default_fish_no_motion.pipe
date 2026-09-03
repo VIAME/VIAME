@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Default Detector Pipeline
+# Title: Default Fish Detector without Motion
 #
-# Description: Runs pre-trained default object detector targeting vertebrate
-# and invertebrates Outputs to computed_detections.csv.
+# Description: The standalone DEIMv2 fish detector, without the motion model
+# the default pipeline fuses in. Outputs to computed_detections.csv.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================
@@ -22,7 +22,7 @@ include common_default_input_with_downsampler.pipe
 
 # ================================= DETECTOR ==================================
 
-include common_fish_detector_box.pipe
+include common_fish_detector_box_only.pipe
 
 process detector_writer
   :: detected_object_output

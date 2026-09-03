@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Default Fish Detector with Motion Fusion
 #
-# Description: As detector_default_fish.pipe, with a three-frame-difference
-# branch merged in to recover small animals the detector misses. Outputs to
+# Description: As detector_default_fish_no_motion.pipe, with a motion-infused
+# RF-DETR fused in alongside the color model. Outputs to
 # computed_detections.csv.
 #
 # Input: IMAGE
@@ -23,7 +23,7 @@ include common_default_input_with_downsampler.pipe
 
 # ================================= DETECTOR ==================================
 
-include common_fish_detector_motion.pipe
+include common_fish_detector_motion_fusion.pipe
 
 process nms_refiner
   :: refine_detections

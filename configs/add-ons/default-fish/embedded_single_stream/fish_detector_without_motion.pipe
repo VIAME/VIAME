@@ -18,7 +18,7 @@ process out_adapt
 
 # =============================================================================
 
-include ../common_fish_detector_box.pipe
+include ../common_fish_detector_box_only.pipe
 
 connect from in_adapt.image
         to   detector_input.image

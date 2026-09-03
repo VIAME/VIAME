@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Default Fish Detector
+# Title: Common - Default Fish Box Detector
 #
-# Description: Detects a single 'fish' output category via running a 960x1728
-# RF-DETR model on RGB inputs. Produces just a bounding box output.
+# Description: DEIMv2 trained on FishTrack, run on a 1024x1024 resize of each
+# frame. Strongest single fish detector we have measured.
 # =============================================================================
 
 process detector_input
@@ -16,16 +16,13 @@ process detector_input
 
 process detector
   :: image_object_detector
-  :detector:type                               rf_detr
+  :detector:type                               onnx
 
-  block detector:rf_detr
-    :model_size                                large
-    :device                                    auto
-    relativepath weight =                      models/fish_rf_detr_box_1728.pth
-    :num_channels                              3
-    :segmentation                              false
-    :resolution                                960x1728
-    :threshold                                 0.10
+  block detector:onnx
+    relativepath model =                       models/fish_deim_v2_1024.zip
+    :device                                    cuda
+    :score_thresh                              0.10
+    :nms_thresh                                0.50
   endblock
 
 connect from detector_input.image

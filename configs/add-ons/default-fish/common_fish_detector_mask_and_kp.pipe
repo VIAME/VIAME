@@ -1,8 +1,9 @@
 # =============================================================================
-# Title: Default Fish Detector
+# Title: Common - Default Fish Mask and Keypoint Detector
 #
-# Description: Detects a single 'fish' output category via running a 960x1728
-# RF-DETR model on RGB inputs. Produces box + polygon output.
+# Description: RF-DETR large at 960x1728 carrying both a segmentation and a
+# head/tail keypoint head, so each detection comes out with a box, a mask and
+# its two body points.
 # =============================================================================
 
 process detector_input
@@ -21,7 +22,7 @@ process detector
   block detector:rf_detr
     :model_size                                large
     :device                                    auto
-    relativepath weight =                      models/fish_rf_detr_seg_1728.pth
+    relativepath weight =                      models/fish_rf_detr_seg_kp_1728.pth
     :num_channels                              3
     :segmentation                              true
     :resolution                                960x1728
