@@ -73,6 +73,7 @@ set( applet_sources
 )
 
 set( applet_headers
+  applet_attributes.h
   csv.h
   train.h
 )

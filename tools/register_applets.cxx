@@ -12,11 +12,21 @@
 #include <vital/plugin_management/plugin_loader.h>
 #include <vital/applets/applet_registrar.h>
 
+#include "applet_attributes.h"
 #include "csv.h"
 #include "train.h"
 
 namespace viame {
 namespace tools {
+
+// ----------------------------------------------------------------------------
+/// Register an applet that needs no plugins loaded on its behalf.
+template < typename applet_t >
+static void
+register_standalone_tool( kwiver::applet_registrar& reg )
+{
+  reg.register_tool< applet_t >()->add_attribute( SKIP_PLUGIN_PRELOAD, "true" );
+}
 
 // ----------------------------------------------------------------------------
 extern "C"
@@ -32,8 +42,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // -- register applets --
-  reg.register_tool< csv_applet >();
-  reg.register_tool< train_applet >();
+  register_standalone_tool< csv_applet >( reg );
+  register_standalone_tool< train_applet >( reg );
 
   reg.mark_module_as_loaded();
 }
