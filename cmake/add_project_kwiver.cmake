@@ -15,6 +15,14 @@ if( VIAME_ENABLE_PYTHON )
   set( VIAME_KWIVER_DEPS ${VIAME_KWIVER_DEPS} python-deps )
 
   FormatPassdowns( "Python" VIAME_PYTHON_FLAGS )
+
+  # KWIVER generates its vital.algo pybind11 wrappers by parsing headers with
+  # castxml, whose bundled clang cannot read the newest MSVC standard library.
+  # Forward the older toolset to emulate when a platform file names one.
+  if( KWIVER_PYBIND11_CASTXML_COMPILER )
+    list( APPEND VIAME_PYTHON_FLAGS
+      -DKWIVER_PYBIND11_CASTXML_COMPILER:FILEPATH=${KWIVER_PYBIND11_CASTXML_COMPILER} )
+  endif()
 endif()
 
 if( VIAME_ENABLE_CUDA )
