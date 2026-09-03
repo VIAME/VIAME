@@ -5,11 +5,15 @@
 /// \file
 /// \brief Command-line tool for scoring detection/tracking results using evaluate_models
 
+#include "score_results.h"
+
 #include <evaluate_models.h>
+
+#ifdef VIAME_TOOLS_HAVE_OPENCV
 #include <plot_metrics.h>
+#endif
 
 #include <kwiversys/SystemTools.hxx>
-#include <kwiversys/CommandLineArguments.hxx>
 #include <kwiversys/Directory.hxx>
 
 #include <vital/plugin_management/plugin_manager.h>
@@ -35,8 +39,6 @@
 class score_results_params
 {
 public:
-  kwiversys::CommandLineArguments m_args;
-
   // General options
   bool opt_help = false;
   bool opt_verbose = false;
@@ -77,7 +79,6 @@ public:
   virtual ~score_results_params() = default;
 };
 
-static score_results_params g_params;
 static kwiver::vital::logger_handle_t g_logger;
 
 // =============================================================================
@@ -814,201 +815,189 @@ bool write_summary_text( const viame::evaluation_results& results,
 // Main entry point
 // =============================================================================
 
-int main( int argc, char* argv[] )
+namespace viame {
+namespace tools {
+
+// =============================================================================
+void
+score_results_applet
+::add_command_options()
 {
-  // Initialize logger
+  m_cmd_options->add_options()
+    ( "h,help", "Display usage information",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "v,verbose", "Enable verbose output",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "c,computed", "Input computed detection/track file or folder",
+      ::cxxopts::value< std::string >()->default_value( "" ), "path" )
+    ( "t,truth", "Input ground truth file or folder",
+      ::cxxopts::value< std::string >()->default_value( "" ), "path" )
+    ( "input-ext", "File extension filter for folder inputs (default: .csv)",
+      ::cxxopts::value< std::string >()->default_value( "" ), "ext" )
+    ( "iou-threshold", "IoU threshold for matching",
+      ::cxxopts::value< double >()->default_value( "0.5" ), "value" )
+    ( "iou", "IoU threshold for matching",
+      ::cxxopts::value< double >()->default_value( "0.5" ), "value" )
+    ( "confidence-threshold", "Minimum confidence threshold",
+      ::cxxopts::value< double >()->default_value( "0.0" ), "value" )
+    ( "conf", "Minimum confidence threshold",
+      ::cxxopts::value< double >()->default_value( "0.0" ), "value" )
+    ( "per-class", "Compute per-class metrics",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "no-tracking", "Disable tracking metrics computation",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "o,output-metrics", "Output all metrics to JSON file",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "output-summary", "Output summary to text file",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "output-plots", "Output plot data (PR, ROC, confusion) to directory",
+      ::cxxopts::value< std::string >()->default_value( "" ), "dir" )
+    ( "output-pr-csv", "Output precision-recall curve to CSV",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "output-conf-csv", "Output confusion matrix to CSV",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "output-roc-csv", "Output ROC curve to CSV",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "input-format", "Input file format: viame_csv (default) or any kwiver "
+      "reader such as coco, cvat, dive, habcam, yolo",
+      ::cxxopts::value< std::string >()->default_value( "viame_csv" ), "name" )
+    ( "track-detections", "In a VIAME folder holding both *_detections.csv "
+      "and *_tracks.csv, score the detections stored in the track files "
+      "instead of the detection files",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "sweep-thresholds", "Score at a range of confidence thresholds and "
+      "report, per class, the threshold maximising IDF1 and the one "
+      "maximising MOTA",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "sweep-interval", "Number of thresholds in the sweep (default: 100, "
+      "i.e. 0.00 to 0.99)",
+      ::cxxopts::value< int >()->default_value( "100" ), "count" )
+    ( "filter-estimator", "How to turn the swept thresholds into a DIVE "
+      "confidence filter: none, min, avg, avg_minus_1p, idf1, mota",
+      ::cxxopts::value< std::string >()->default_value( "min" ), "name" )
+    ( "output-sweep", "Directory for sweep output: class_metrics.csv and, "
+      "unless the estimator is none, dive.config.json",
+      ::cxxopts::value< std::string >()->default_value( "" ), "dir" )
+    ( "labels", "Class synonym file mapping alternate names onto canonical "
+      "ones, so a model and its groundtruth may use different vocabularies. "
+      "One class per line: 'canonical: alias1, alias2'",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "list", "Text file of frame identifiers, one per line. Only these "
+      "frames are scored, on both sides",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "defaultlabel", "Class name to report for detections that carry none",
+      ::cxxopts::value< std::string >()->default_value( "" ), "name" )
+    ( "aux-confidence", "Rank and threshold on the detection confidence "
+      "column rather than the per-class score",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "top-class", "In per-class scoring consider only each detection's "
+      "highest scoring class, instead of every class it names",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "json-curves", "Include full PR and ROC curve points in the metrics "
+      "JSON. Off by default: curves carry one point per detection, so a "
+      "large run inlines millions",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "no-print", "Suppress printing summary to stdout",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ;
+}
+
+// =============================================================================
+int
+score_results_applet
+::run()
+{
   g_logger = kwiver::vital::get_logger( "viame.tools.score_results" );
 
-  // Setup command line arguments
-  typedef kwiversys::CommandLineArguments argT;
+  auto& cmd_args = command_args();
 
-  g_params.m_args.Initialize( argc, argv );
-
-  // General options
-  g_params.m_args.AddArgument( "--help", argT::NO_ARGUMENT,
-    &g_params.opt_help, "Display usage information" );
-  g_params.m_args.AddArgument( "-h", argT::NO_ARGUMENT,
-    &g_params.opt_help, "Display usage information" );
-  g_params.m_args.AddArgument( "--verbose", argT::NO_ARGUMENT,
-    &g_params.opt_verbose, "Enable verbose output" );
-  g_params.m_args.AddArgument( "-v", argT::NO_ARGUMENT,
-    &g_params.opt_verbose, "Enable verbose output" );
-
-  // Input options
-  g_params.m_args.AddArgument( "--computed", argT::SPACE_ARGUMENT,
-    &g_params.opt_computed, "Input computed detection/track file or folder" );
-  g_params.m_args.AddArgument( "-c", argT::SPACE_ARGUMENT,
-    &g_params.opt_computed, "Input computed detection/track file or folder" );
-  g_params.m_args.AddArgument( "--truth", argT::SPACE_ARGUMENT,
-    &g_params.opt_truth, "Input ground truth file or folder" );
-  g_params.m_args.AddArgument( "-t", argT::SPACE_ARGUMENT,
-    &g_params.opt_truth, "Input ground truth file or folder" );
-  g_params.m_args.AddArgument( "--input-ext", argT::SPACE_ARGUMENT,
-    &g_params.opt_input_ext, "File extension filter for folder inputs (default: .csv)" );
-
-  // Scoring options
-  g_params.m_args.AddArgument( "--iou-threshold", argT::SPACE_ARGUMENT,
-    &g_params.opt_iou_threshold, "IoU threshold for matching (default: 0.5)" );
-  g_params.m_args.AddArgument( "--iou", argT::SPACE_ARGUMENT,
-    &g_params.opt_iou_threshold, "IoU threshold for matching (default: 0.5)" );
-  g_params.m_args.AddArgument( "--confidence-threshold", argT::SPACE_ARGUMENT,
-    &g_params.opt_confidence_threshold, "Minimum confidence threshold (default: 0.0)" );
-  g_params.m_args.AddArgument( "--conf", argT::SPACE_ARGUMENT,
-    &g_params.opt_confidence_threshold, "Minimum confidence threshold (default: 0.0)" );
-  g_params.m_args.AddArgument( "--per-class", argT::NO_ARGUMENT,
-    &g_params.opt_per_class, "Compute per-class metrics" );
-  g_params.m_args.AddArgument( "--no-tracking", argT::NO_ARGUMENT,
-    &g_params.opt_compute_tracking, "Disable tracking metrics computation" );
-
-  // Output options
-  g_params.m_args.AddArgument( "--output-metrics", argT::SPACE_ARGUMENT,
-    &g_params.opt_output_metrics, "Output all metrics to JSON file" );
-  g_params.m_args.AddArgument( "-o", argT::SPACE_ARGUMENT,
-    &g_params.opt_output_metrics, "Output all metrics to JSON file" );
-  g_params.m_args.AddArgument( "--output-summary", argT::SPACE_ARGUMENT,
-    &g_params.opt_output_summary, "Output summary to text file" );
-  g_params.m_args.AddArgument( "--output-plots", argT::SPACE_ARGUMENT,
-    &g_params.opt_output_plots, "Output plot data (PR, ROC, confusion) to directory" );
-  g_params.m_args.AddArgument( "--output-pr-csv", argT::SPACE_ARGUMENT,
-    &g_params.opt_output_pr_csv, "Output precision-recall curve to CSV" );
-  g_params.m_args.AddArgument( "--output-conf-csv", argT::SPACE_ARGUMENT,
-    &g_params.opt_output_conf_csv, "Output confusion matrix to CSV" );
-  g_params.m_args.AddArgument( "--output-roc-csv", argT::SPACE_ARGUMENT,
-    &g_params.opt_output_roc_csv, "Output ROC curve to CSV" );
-  g_params.m_args.AddArgument( "--input-format", argT::SPACE_ARGUMENT,
-    &g_params.opt_input_format,
-    "Input file format: viame_csv (default) or any kwiver reader such as "
-    "coco, cvat, dive, habcam, yolo" );
-
-  g_params.m_args.AddArgument( "--track-detections", argT::NO_ARGUMENT,
-    &g_params.opt_track_detections,
-    "In a VIAME folder holding both *_detections.csv and *_tracks.csv, score "
-    "the detections stored in the track files instead of the detection files" );
-
-  g_params.m_args.AddArgument( "--sweep-thresholds", argT::NO_ARGUMENT,
-    &g_params.opt_sweep,
-    "Score at a range of confidence thresholds and report, per class, the "
-    "threshold maximising IDF1 and the one maximising MOTA" );
-
-  g_params.m_args.AddArgument( "--sweep-interval", argT::SPACE_ARGUMENT,
-    &g_params.opt_sweep_interval,
-    "Number of thresholds in the sweep (default: 100, i.e. 0.00 to 0.99)" );
-
-  g_params.m_args.AddArgument( "--filter-estimator", argT::SPACE_ARGUMENT,
-    &g_params.opt_filter_estimator,
-    "How to turn the swept thresholds into a DIVE confidence filter: none, "
-    "min, avg, avg_minus_1p, idf1, mota (default: min)" );
-
-  g_params.m_args.AddArgument( "--output-sweep", argT::SPACE_ARGUMENT,
-    &g_params.opt_output_sweep,
-    "Directory for sweep output: class_metrics.csv and, unless the estimator "
-    "is none, dive.config.json" );
-
-  g_params.m_args.AddArgument( "--labels", argT::SPACE_ARGUMENT,
-    &g_params.opt_labels,
-    "Class synonym file mapping alternate names onto canonical ones, so a "
-    "model and its groundtruth may use different vocabularies. One class per "
-    "line: 'canonical: alias1, alias2'" );
-
-  g_params.m_args.AddArgument( "--list", argT::SPACE_ARGUMENT,
-    &g_params.opt_frame_list,
-    "Text file of frame identifiers, one per line. Only these frames are "
-    "scored, on both sides" );
-
-  g_params.m_args.AddArgument( "--defaultlabel", argT::SPACE_ARGUMENT,
-    &g_params.opt_default_label,
-    "Class name to report for detections that carry none" );
-
-  g_params.m_args.AddArgument( "--aux-confidence", argT::NO_ARGUMENT,
-    &g_params.opt_aux_confidence,
-    "Rank and threshold on the detection confidence column rather than the "
-    "per-class score" );
-
-  g_params.m_args.AddArgument( "--top-class", argT::NO_ARGUMENT,
-    &g_params.opt_top_class,
-    "In per-class scoring consider only each detection's highest scoring "
-    "class, instead of every class it names" );
-
-  g_params.m_args.AddArgument( "--json-curves", argT::NO_ARGUMENT,
-    &g_params.opt_json_curves,
-    "Include full PR and ROC curve points in the metrics JSON. Off by default: "
-    "curves carry one point per detection, so a large run inlines millions" );
-
-  g_params.m_args.AddArgument( "--no-print", argT::NO_ARGUMENT,
-    &g_params.opt_print_summary, "Suppress printing summary to stdout" );
-
-  // Parse command line
-  if( !g_params.m_args.Parse() )
+  if( cmd_args[ "help" ].as< bool >() )
   {
-    LOG_ERROR( g_logger, "Problem parsing arguments" );
-    return EXIT_FAILURE;
-  }
-
-  // Handle inverted boolean flags
-  for( int i = 1; i < argc; ++i )
-  {
-    std::string arg = argv[i];
-    if( arg == "--no-tracking" )
-    {
-      g_params.opt_compute_tracking = false;
-    }
-    else if( arg == "--no-print" )
-    {
-      g_params.opt_print_summary = false;
-    }
-  }
-
-  // Display help
-  if( g_params.opt_help )
-  {
-    std::cout << "Usage: " << argv[0] << " [options]\n\n"
+    std::cout << "Usage: viame score [options]\n\n"
               << "Score detection and tracking results using the evaluate_models library.\n"
               << "Computes comprehensive metrics including precision, recall, F1, AP,\n"
-              << "MOT metrics (MOTA, MOTP, IDF1), HOTA, and KWANT-style metrics.\n\n"
-              << "Options:\n"
-              << g_params.m_args.GetHelp()
+              << "MOT metrics (MOTA, MOTP, IDF1), HOTA, and KWANT-style metrics.\n"
+              << m_cmd_options->help()
               << "\nExamples:\n"
-              << "  " << argv[0] << " -c detections.csv -t groundtruth.csv\n"
-              << "  " << argv[0] << " -c results/ -t truth/ --iou 0.5 --per-class\n"
-              << "  " << argv[0] << " -c det.csv -t gt.csv -o metrics.json --output-plots plots/\n"
-              << "  " << argv[0] << " -c det.csv -t gt.csv --output-pr-csv pr_curve.csv\n"
+              << "  viame score -c detections.csv -t groundtruth.csv\n"
+              << "  viame score -c results/ -t truth/ --iou 0.5 --per-class\n"
+              << "  viame score -c det.csv -t gt.csv -o metrics.json --output-plots plots/\n"
+              << "  viame score -c det.csv -t gt.csv --output-pr-csv pr_curve.csv\n"
               << std::endl;
     return EXIT_SUCCESS;
   }
 
+  score_results_params params;
+
+  params.opt_verbose = cmd_args[ "verbose" ].as< bool >();
+  params.opt_computed = cmd_args[ "computed" ].as< std::string >();
+  params.opt_truth = cmd_args[ "truth" ].as< std::string >();
+  params.opt_input_ext = cmd_args[ "input-ext" ].as< std::string >();
+
+  // --iou and --iou-threshold are aliases, as are --conf and
+  // --confidence-threshold; take whichever was actually given
+  params.opt_iou_threshold = cmd_args.count( "iou" )
+    ? cmd_args[ "iou" ].as< double >()
+    : cmd_args[ "iou-threshold" ].as< double >();
+  params.opt_confidence_threshold = cmd_args.count( "conf" )
+    ? cmd_args[ "conf" ].as< double >()
+    : cmd_args[ "confidence-threshold" ].as< double >();
+
+  params.opt_per_class = cmd_args[ "per-class" ].as< bool >();
+  params.opt_compute_tracking = !cmd_args[ "no-tracking" ].as< bool >();
+  params.opt_output_metrics = cmd_args[ "output-metrics" ].as< std::string >();
+  params.opt_output_summary = cmd_args[ "output-summary" ].as< std::string >();
+  params.opt_output_plots = cmd_args[ "output-plots" ].as< std::string >();
+  params.opt_output_pr_csv = cmd_args[ "output-pr-csv" ].as< std::string >();
+  params.opt_output_conf_csv = cmd_args[ "output-conf-csv" ].as< std::string >();
+  params.opt_output_roc_csv = cmd_args[ "output-roc-csv" ].as< std::string >();
+  params.opt_input_format = cmd_args[ "input-format" ].as< std::string >();
+  params.opt_track_detections = cmd_args[ "track-detections" ].as< bool >();
+  params.opt_sweep = cmd_args[ "sweep-thresholds" ].as< bool >();
+  params.opt_sweep_interval = cmd_args[ "sweep-interval" ].as< int >();
+  params.opt_filter_estimator = cmd_args[ "filter-estimator" ].as< std::string >();
+  params.opt_output_sweep = cmd_args[ "output-sweep" ].as< std::string >();
+  params.opt_labels = cmd_args[ "labels" ].as< std::string >();
+  params.opt_frame_list = cmd_args[ "list" ].as< std::string >();
+  params.opt_default_label = cmd_args[ "defaultlabel" ].as< std::string >();
+  params.opt_aux_confidence = cmd_args[ "aux-confidence" ].as< bool >();
+  params.opt_top_class = cmd_args[ "top-class" ].as< bool >();
+  params.opt_json_curves = cmd_args[ "json-curves" ].as< bool >();
+  params.opt_print_summary = !cmd_args[ "no-print" ].as< bool >();
+
   // Validate inputs
-  if( g_params.opt_computed.empty() )
+  if( params.opt_computed.empty() )
   {
     LOG_ERROR( g_logger, "No computed file/folder specified. Use --computed or -c option." );
     return EXIT_FAILURE;
   }
 
-  if( g_params.opt_truth.empty() )
+  if( params.opt_truth.empty() )
   {
     LOG_ERROR( g_logger, "No ground truth file/folder specified. Use --truth or -t option." );
     return EXIT_FAILURE;
   }
 
-  if( !kwiversys::SystemTools::FileExists( g_params.opt_computed ) )
+  if( !kwiversys::SystemTools::FileExists( params.opt_computed ) )
   {
-    LOG_ERROR( g_logger, "Computed path does not exist: " << g_params.opt_computed );
+    LOG_ERROR( g_logger, "Computed path does not exist: " << params.opt_computed );
     return EXIT_FAILURE;
   }
 
-  if( !kwiversys::SystemTools::FileExists( g_params.opt_truth ) )
+  if( !kwiversys::SystemTools::FileExists( params.opt_truth ) )
   {
-    LOG_ERROR( g_logger, "Ground truth path does not exist: " << g_params.opt_truth );
+    LOG_ERROR( g_logger, "Ground truth path does not exist: " << params.opt_truth );
     return EXIT_FAILURE;
   }
 
   // Set default extension
-  if( g_params.opt_input_ext.empty() )
+  if( params.opt_input_ext.empty() )
   {
-    g_params.opt_input_ext = ".csv";
+    params.opt_input_ext = ".csv";
   }
-  else if( g_params.opt_input_ext[0] != '.' )
+  else if( params.opt_input_ext[0] != '.' )
   {
-    g_params.opt_input_ext = "." + g_params.opt_input_ext;
+    params.opt_input_ext = "." + params.opt_input_ext;
   }
 
   // Load plugins (needed for CSV readers)
@@ -1016,19 +1005,19 @@ int main( int argc, char* argv[] )
 
   // Collect input files
   auto computed_files = select_track_or_detection_files(
-    collect_files( g_params.opt_computed, g_params.opt_input_ext ),
-    g_params.opt_track_detections );
-  auto truth_files = collect_files( g_params.opt_truth, g_params.opt_input_ext );
+    collect_files( params.opt_computed, params.opt_input_ext ),
+    params.opt_track_detections );
+  auto truth_files = collect_files( params.opt_truth, params.opt_input_ext );
 
   if( computed_files.empty() )
   {
-    LOG_ERROR( g_logger, "No computed files found in: " << g_params.opt_computed );
+    LOG_ERROR( g_logger, "No computed files found in: " << params.opt_computed );
     return EXIT_FAILURE;
   }
 
   if( truth_files.empty() )
   {
-    LOG_ERROR( g_logger, "No ground truth files found in: " << g_params.opt_truth );
+    LOG_ERROR( g_logger, "No ground truth files found in: " << params.opt_truth );
     return EXIT_FAILURE;
   }
 
@@ -1062,7 +1051,7 @@ int main( int argc, char* argv[] )
 
   LOG_INFO( g_logger, "Evaluating " << final_computed.size() << " file pair(s)..." );
 
-  if( g_params.opt_verbose )
+  if( params.opt_verbose )
   {
     for( size_t i = 0; i < final_computed.size(); ++i )
     {
@@ -1072,23 +1061,23 @@ int main( int argc, char* argv[] )
 
   // Configure evaluation
   viame::evaluation_config config;
-  config.iou_threshold = g_params.opt_iou_threshold;
-  config.confidence_threshold = g_params.opt_confidence_threshold;
-  config.compute_tracking_metrics = g_params.opt_compute_tracking;
-  config.compute_per_class_metrics = g_params.opt_per_class;
-  config.use_aux_confidence = g_params.opt_aux_confidence;
-  config.top_class_only = g_params.opt_top_class;
-  config.default_label = g_params.opt_default_label;
-  config.input_format = g_params.opt_input_format;
+  config.iou_threshold = params.opt_iou_threshold;
+  config.confidence_threshold = params.opt_confidence_threshold;
+  config.compute_tracking_metrics = params.opt_compute_tracking;
+  config.compute_per_class_metrics = params.opt_per_class;
+  config.use_aux_confidence = params.opt_aux_confidence;
+  config.top_class_only = params.opt_top_class;
+  config.default_label = params.opt_default_label;
+  config.input_format = params.opt_input_format;
 
-  if( !g_params.opt_labels.empty() &&
-      !load_label_synonyms( g_params.opt_labels, config.label_synonyms ) )
+  if( !params.opt_labels.empty() &&
+      !load_label_synonyms( params.opt_labels, config.label_synonyms ) )
   {
     return EXIT_FAILURE;
   }
 
-  if( !g_params.opt_frame_list.empty() &&
-      !load_frame_list( g_params.opt_frame_list, config.frame_whitelist ) )
+  if( !params.opt_frame_list.empty() &&
+      !load_frame_list( params.opt_frame_list, config.frame_whitelist ) )
   {
     return EXIT_FAILURE;
   }
@@ -1109,10 +1098,10 @@ int main( int argc, char* argv[] )
   }
 
   // Print summary to stdout
-  if( g_params.opt_print_summary )
+  if( params.opt_print_summary )
   {
     print_summary( results );
-    if( g_params.opt_per_class )
+    if( params.opt_per_class )
     {
       print_per_class_metrics( results );
     }
@@ -1124,9 +1113,9 @@ int main( int argc, char* argv[] )
   // Threshold sweep. evaluate() has already loaded the inputs, so each step
   // re-filters that copy rather than re-parsing; cost is thresholds x classes
   // evaluations, which --sweep-interval controls.
-  if( g_params.opt_sweep )
+  if( params.opt_sweep )
   {
-    if( g_params.opt_sweep_interval < 1 )
+    if( params.opt_sweep_interval < 1 )
     {
       LOG_ERROR( g_logger, "--sweep-interval must be at least 1" );
       return EXIT_FAILURE;
@@ -1146,17 +1135,17 @@ int main( int argc, char* argv[] )
 
     std::map< std::string, sweep_result > sweep_scores;
 
-    LOG_INFO( g_logger, "Sweeping " << g_params.opt_sweep_interval
+    LOG_INFO( g_logger, "Sweeping " << params.opt_sweep_interval
               << " thresholds over " << sweep_classes.size() << " class(es)..." );
 
     for( const auto& class_name : sweep_classes )
     {
       sweep_result best;
 
-      for( int i = 0; i < g_params.opt_sweep_interval; ++i )
+      for( int i = 0; i < params.opt_sweep_interval; ++i )
       {
         const double thresh =
-          static_cast< double >( i ) / g_params.opt_sweep_interval;
+          static_cast< double >( i ) / params.opt_sweep_interval;
 
         const auto r = evaluator.evaluate_loaded( thresh, class_name );
 
@@ -1175,10 +1164,10 @@ int main( int argc, char* argv[] )
       sweep_scores[class_name.empty() ? "default" : class_name] = best;
     }
 
-    const std::string sweep_dir = g_params.opt_output_sweep.empty()
-      ? std::string( "." ) : g_params.opt_output_sweep;
+    const std::string sweep_dir = params.opt_output_sweep.empty()
+      ? std::string( "." ) : params.opt_output_sweep;
 
-    if( !g_params.opt_output_sweep.empty() &&
+    if( !params.opt_output_sweep.empty() &&
         !kwiversys::SystemTools::FileIsDirectory( sweep_dir ) &&
         !kwiversys::SystemTools::MakeDirectory( sweep_dir ) )
     {
@@ -1218,22 +1207,22 @@ int main( int argc, char* argv[] )
     }
     std::cout << "\n";
 
-    if( g_params.opt_filter_estimator != "none" )
+    if( params.opt_filter_estimator != "none" )
     {
       success = write_dive_filter( sweep_dir + "/dive.config.json",
                                    sweep_scores,
-                                   g_params.opt_filter_estimator ) && success;
+                                   params.opt_filter_estimator ) && success;
     }
   }
 
   // The metrics JSON carries the confusion matrix, and optionally the curves,
   // so it needs the same pass the plot exports use. Generated once up front and
   // shared, rather than evaluated twice.
-  bool need_plots = !g_params.opt_output_plots.empty() ||
-                    !g_params.opt_output_pr_csv.empty() ||
-                    !g_params.opt_output_conf_csv.empty() ||
-                    !g_params.opt_output_roc_csv.empty() ||
-                    !g_params.opt_output_metrics.empty();
+  bool need_plots = !params.opt_output_plots.empty() ||
+                    !params.opt_output_pr_csv.empty() ||
+                    !params.opt_output_conf_csv.empty() ||
+                    !params.opt_output_roc_csv.empty() ||
+                    !params.opt_output_metrics.empty();
 
   std::unique_ptr< viame::evaluation_plot_data > plot_data_ptr;
 
@@ -1251,16 +1240,16 @@ int main( int argc, char* argv[] )
     }
   }
 
-  if( !g_params.opt_output_metrics.empty() )
+  if( !params.opt_output_metrics.empty() )
   {
-    success = write_metrics_json( results, g_params.opt_output_metrics,
+    success = write_metrics_json( results, params.opt_output_metrics,
                                   plot_data_ptr.get(),
-                                  g_params.opt_json_curves ) && success;
+                                  params.opt_json_curves ) && success;
   }
 
-  if( !g_params.opt_output_summary.empty() )
+  if( !params.opt_output_summary.empty() )
   {
-    success = write_summary_text( results, g_params.opt_output_summary ) && success;
+    success = write_summary_text( results, params.opt_output_summary ) && success;
   }
 
   if( plot_data_ptr )
@@ -1270,21 +1259,21 @@ int main( int argc, char* argv[] )
       const auto& plot_data = *plot_data_ptr;
 
       // Export full plot data to directory
-      if( !g_params.opt_output_plots.empty() )
+      if( !params.opt_output_plots.empty() )
       {
         // Create output directory if needed
-        if( !kwiversys::SystemTools::FileIsDirectory( g_params.opt_output_plots ) &&
-            !kwiversys::SystemTools::MakeDirectory( g_params.opt_output_plots ) )
+        if( !kwiversys::SystemTools::FileIsDirectory( params.opt_output_plots ) &&
+            !kwiversys::SystemTools::MakeDirectory( params.opt_output_plots ) )
         {
           LOG_ERROR( g_logger, "Could not create plot output directory: "
-                     << g_params.opt_output_plots );
+                     << params.opt_output_plots );
           return EXIT_FAILURE;
         }
 
         // Export CSV data files
-        if( viame::model_evaluator::export_plot_data( plot_data, g_params.opt_output_plots ) )
+        if( viame::model_evaluator::export_plot_data( plot_data, params.opt_output_plots ) )
         {
-          LOG_INFO( g_logger, "Plot CSV data written to: " << g_params.opt_output_plots );
+          LOG_INFO( g_logger, "Plot CSV data written to: " << params.opt_output_plots );
         }
         else
         {
@@ -1292,26 +1281,31 @@ int main( int argc, char* argv[] )
           success = false;
         }
 
+#ifdef VIAME_TOOLS_HAVE_OPENCV
         // Render plot images using OpenCV
         LOG_INFO( g_logger, "Rendering plot images..." );
         viame::metrics_plotter plotter;
-        if( plotter.render_all_plots( plot_data, g_params.opt_output_plots ) )
+        if( plotter.render_all_plots( plot_data, params.opt_output_plots ) )
         {
-          LOG_INFO( g_logger, "Plot images rendered to: " << g_params.opt_output_plots );
+          LOG_INFO( g_logger, "Plot images rendered to: " << params.opt_output_plots );
         }
         else
         {
           LOG_WARN( g_logger, "Some plot images could not be rendered" );
         }
+#else
+        LOG_INFO( g_logger, "Plot images need an OpenCV-enabled build; "
+          "wrote the plot data only" );
+#endif
       }
 
       // Export individual plots
-      if( !g_params.opt_output_pr_csv.empty() )
+      if( !params.opt_output_pr_csv.empty() )
       {
         if( viame::model_evaluator::export_pr_curve_csv(
-              plot_data.overall_pr_curve, g_params.opt_output_pr_csv ) )
+              plot_data.overall_pr_curve, params.opt_output_pr_csv ) )
         {
-          LOG_INFO( g_logger, "PR curve written to: " << g_params.opt_output_pr_csv );
+          LOG_INFO( g_logger, "PR curve written to: " << params.opt_output_pr_csv );
         }
         else
         {
@@ -1320,12 +1314,12 @@ int main( int argc, char* argv[] )
         }
       }
 
-      if( !g_params.opt_output_conf_csv.empty() )
+      if( !params.opt_output_conf_csv.empty() )
       {
         if( viame::model_evaluator::export_confusion_matrix_csv(
-              plot_data.confusion_matrix, g_params.opt_output_conf_csv ) )
+              plot_data.confusion_matrix, params.opt_output_conf_csv ) )
         {
-          LOG_INFO( g_logger, "Confusion matrix written to: " << g_params.opt_output_conf_csv );
+          LOG_INFO( g_logger, "Confusion matrix written to: " << params.opt_output_conf_csv );
         }
         else
         {
@@ -1334,10 +1328,10 @@ int main( int argc, char* argv[] )
         }
       }
 
-      if( !g_params.opt_output_roc_csv.empty() )
+      if( !params.opt_output_roc_csv.empty() )
       {
         // Same schema as roc_curve_overall.csv in the plot directory
-        std::ofstream out( g_params.opt_output_roc_csv );
+        std::ofstream out( params.opt_output_roc_csv );
         if( out.is_open() )
         {
           out << "confidence,false_alarms_per_frame,true_positive_rate\n";
@@ -1360,7 +1354,7 @@ int main( int argc, char* argv[] )
           }
 
           out.close();
-          LOG_INFO( g_logger, "ROC curve written to: " << g_params.opt_output_roc_csv );
+          LOG_INFO( g_logger, "ROC curve written to: " << params.opt_output_roc_csv );
         }
         else
         {
@@ -1378,3 +1372,6 @@ int main( int argc, char* argv[] )
 
   return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }
+
+} // namespace tools
+} // namespace viame

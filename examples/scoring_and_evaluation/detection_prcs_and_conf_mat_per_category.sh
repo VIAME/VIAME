@@ -12,7 +12,7 @@ source ${VIAME_INSTALL}/setup_viame.sh
 # The curves are emitted as CSV alongside rendered plots, so they can be
 # replotted or diffed without rerunning the scoring.
 
-viame_score_results \
+viame score \
  --computed detections.csv --truth groundtruth.csv \
  --iou 0.5 --per-class \
  --output-pr-csv output_prc_and_conf_mat_per_class/pr_curve.csv \
