@@ -19,6 +19,12 @@
  *
  *   viame my_pipeline.pipe          # equivalent to: viame runner my_pipeline.pipe
  *
+ * The "run" applet covers both processing data in batch and executing a
+ * single pipeline. Naming a pipe file positionally selects the latter:
+ *
+ *   viame run my_pipeline.pipe      # equivalent to: viame runner my_pipeline.pipe
+ *   viame run -d videos/ -p my.pipe # batch processing, handled by process_video
+ *
  * Similarly, if the first argument is a .conf file, the train applet
  * is automatically invoked:
  *
@@ -73,6 +79,76 @@ static bool ends_with( const std::string& str, const std::string& suffix )
     return false;
   }
   return str.compare( str.size() - suffix.size(), suffix.size(), suffix ) == 0;
+}
+
+// ============================================================================
+/**
+ * Check whether a "run" command names a pipeline file to execute directly.
+ *
+ * The batch driver describes its whole job with flags and takes no positional
+ * arguments, while the pipeline runner's only positional argument is the pipe
+ * file. A bare pipe file is therefore a request for the runner. A value handed
+ * to a flag does not count, and neither does a key=value setting.
+ */
+static bool names_a_pipe_file( const std::vector< std::string >& args )
+{
+  for( size_t i = 1; i < args.size(); ++i )
+  {
+    const std::string& arg = args[i];
+
+    if( arg.empty() || arg[0] == '-' || !ends_with( arg, ".pipe" ) ||
+        arg.find( '=' ) != std::string::npos )
+    {
+      continue;
+    }
+
+    // A preceding flag means this is that flag's value, not a positional
+    if( !args[i - 1].empty() && args[i - 1][0] == '-' )
+    {
+      continue;
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+// ============================================================================
+/**
+ * Check whether the applet arguments ask for help.
+ */
+static bool wants_help( const std::vector< std::string >& args )
+{
+  for( size_t i = 1; i < args.size(); ++i )
+  {
+    if( args[i] == "-h" || args[i] == "--help" )
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// ============================================================================
+/**
+ * Describe the two things "viame run" can do, since the help printed after
+ * this only covers the batch driver.
+ */
+static void print_run_modes()
+{
+  std::cout
+    << "viame run works in two modes, chosen by how you name the pipeline:"
+    << std::endl << std::endl
+    << "  viame run <pipeline.pipe> [options]" << std::endl
+    << "      Execute one pipeline file directly. See \"viame help runner\""
+    << std::endl
+    << "      for the options that mode accepts." << std::endl << std::endl
+    << "  viame run -d <directory> -p <pipeline.pipe> [options]" << std::endl
+    << "      Process a folder, video or image list in batch, using the"
+    << std::endl
+    << "      options listed below." << std::endl << std::endl;
 }
 
 // ============================================================================
@@ -193,6 +269,11 @@ public:
       }
     } // end for
 
+    // "run" covers both the batch driver and running a single pipeline
+    if ( m_applet_name == "run" && names_a_pipe_file( m_applet_args ) )
+    {
+      m_applet_name = "runner";
+    }
   }
 
   // ----------------------
@@ -268,7 +349,8 @@ void tool_runner_usage( [[maybe_unused]] applet_context_t ctxt,
             << "  viame runner my_pipeline.pipe       # Run a pipeline file (explicit)" << std::endl
             << "  viame my_config.conf                # Train with a config file (shorthand)" << std::endl
             << "  viame train -c my_config.conf       # Train with a config file (explicit)" << std::endl
-            << "  viame run -d videos/ -p detector.pipe" << std::endl
+            << "  viame run my_pipeline.pipe          # Run one pipeline (same as runner)" << std::endl
+            << "  viame run -d videos/ -p detector.pipe   # Process a folder in batch" << std::endl
             << "  viame score -c detections.csv -t groundtruth.csv" << std::endl
             << "  viame csv -i detections.csv --print-types" << std::endl
             << "  viame help runner                   # Get help on the runner applet" << std::endl
@@ -314,6 +396,11 @@ int help_applet( const command_line_parser& options,
 
   if( forwards_help == "true" )
   {
+    if( options.m_applet_args[1] == "run" )
+    {
+      print_run_modes();
+    }
+
     tool_context->m_argv = { "viame", "--help" };
     return applet->run();
   }
@@ -671,6 +758,13 @@ int main(int argc, char *argv[])
                                     options.m_applet_args );
       }
     }
+  }
+
+  // The batch driver's own help does not mention the pipeline mode
+  if( options.m_applet_name == "run" &&
+      ( options.m_applet_args.size() < 2 || wants_help( options.m_applet_args ) ) )
+  {
+    print_run_modes();
   }
 
   // ----------------------------------------------------------------------------
