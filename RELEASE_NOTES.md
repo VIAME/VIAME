@@ -1,3 +1,17 @@
+v0.23.0 - 9/02/2026
+===================
+
+
+- UI Updates for multi-camera (EO/IR/UV) registration, droped frames, and joint panning
+
+
+- Drop a number of dependencies (Boost, KWIVER 1.0), move VIVIA GUIs to optional add-on
+
+
+- Updated default training configuration file that chooses detector and tracker
+
+
+
 v0.22.9 - 8/26/2026
 ===================
 
