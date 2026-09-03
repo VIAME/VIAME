@@ -28,7 +28,7 @@ namespace tools {
 
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
 
-VIAME_PYTHON_SCRIPT_APPLET( process_video_applet, "process-video",
+VIAME_PYTHON_SCRIPT_APPLET( process_video_applet, "run",
   "process_video.py", "Process new videos" )
 
 VIAME_PYTHON_SCRIPT_APPLET( add_segmentations_applet, "add-segmentations",

@@ -52,7 +52,7 @@ description each, and `viame help <tool>` prints that tool's own options:
 
 ```
 viame help                                       # list every tool
-viame process-video -d videos/ -p detector.pipe  # run a pipeline over a folder
+viame run -d videos/ -p detector.pipe            # run a pipeline over a folder
 viame train -c train_detector.conf -i labels/    # train a model
 viame score -c detections.csv -t groundtruth.csv # score against groundtruth
 viame csv -i detections.csv --print-types        # inspect a VIAME csv

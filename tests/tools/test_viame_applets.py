@@ -213,20 +213,20 @@ class TestScoreApplet:
 
 class TestPythonScriptApplets:
     def test_shim_runs_the_script(self, viame_env):
-        result = run_viame(viame_env, "process-video", "--help")
+        result = run_viame(viame_env, "run", "--help")
 
         assert result.returncode == 0
         assert "usage: process_video.py" in result.stdout
 
     def test_help_subcommand_matches_script_help(self, viame_env):
-        direct = run_viame(viame_env, "process-video", "--help")
-        forwarded = run_viame(viame_env, "help", "process-video")
+        direct = run_viame(viame_env, "run", "--help")
+        forwarded = run_viame(viame_env, "help", "run")
 
         assert forwarded.returncode == 0
         assert forwarded.stdout == direct.stdout
 
     def test_script_exit_code_is_propagated(self, viame_env):
-        result = run_viame(viame_env, "process-video", "--not-a-real-flag")
+        result = run_viame(viame_env, "run", "--not-a-real-flag")
 
         assert result.returncode != 0
 

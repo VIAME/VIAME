@@ -16,7 +16,7 @@ CSV format. Two example files are provided:
 - ``detections.csv`` -- computed detections with confidence scores
 - ``groundtruth.csv`` -- ground truth annotations
 
-Every script calls the ``viame_score_results`` tool, which computes detection,
+Every script calls the ``viame score`` tool, which computes detection,
 MOT, HOTA and KWANT-style metrics together in one pass. The metrics are
 implemented directly in C++ against VIAME CSV, with no external scoring
 dependency: earlier releases shelled out to KWANT and wrapped kwcoco and
@@ -160,7 +160,7 @@ Scripts:
 | ``detection_and_track_metrics_across_all`` -- All categories scored jointly.
 | ``detection_and_track_metrics_per_category`` -- Each category also scored separately.
 
-These scripts call the ``viame_score_results`` tool, which computes every metric
+These scripts call the ``viame score`` tool, which computes every metric
 family below in a single pass over the data, with no external scoring dependencies.
 It reads the same VIAME CSV inputs as the other scripts.
 
@@ -217,7 +217,7 @@ Scripts:
   optional confidence threshold sweep and DIVE filter file generation.
 
 These scripts report the standard Multiple Object Tracking (MOT) benchmark
-metrics, computed in C++ by ``viame_score_results``. They evaluate how well
+metrics, computed in C++ by ``viame score``. They evaluate how well
 computed tracks match ground truth tracks over time, considering both detection
 quality and identity consistency. The metrics are produced in the same pass as
 the detection metrics, so scoring once yields both.
@@ -295,7 +295,7 @@ KWANT-Style Track and Detection-Level Properties
 
 These properties were historically produced by the external KWANT ``score_tracks``
 tool, which required inputs in the Kitware kw18 format. They are now computed
-directly from VIAME CSV by ``viame_score_results`` (see the all-in-one section
+directly from VIAME CSV by ``viame score`` (see the all-in-one section
 above), and are reported in its summary under "KWANT-style Metrics" and
 "Track Quality".
 

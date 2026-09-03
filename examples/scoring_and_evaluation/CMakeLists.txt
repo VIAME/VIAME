@@ -6,7 +6,7 @@ set( example_files
   detections.csv
   groundtruth.csv )
 
-# The viame_score_results tool, which computes detection, MOT, HOTA and
+# The viame score applet, which computes detection, MOT, HOTA and
 # KWANT-style metrics in one pass, is built alongside the OpenCV plugins
 if( VIAME_ENABLE_OPENCV )
   if( WIN32 )
