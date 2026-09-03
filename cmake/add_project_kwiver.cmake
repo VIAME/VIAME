@@ -19,6 +19,16 @@ endif()
 
 if( VIAME_ENABLE_CUDA )
   FormatPassdowns( "CUDA" VIAME_CUDA_FLAGS )
+
+  # FormatPassdowns only forwards variables whose names begin with "CUDA", so
+  # the CMAKE_CUDA_* language variables never cross on their own. Without them
+  # KWIVER has to work out its own CUDA compiler, and its fallback is a bare
+  # find_package( CUDAToolkit ) that searches the system -- which can select a
+  # different toolkit than the one VIAME configured against. Hand it the same
+  # nvcc and toolkit root we resolved above so there is one source of truth.
+  list( APPEND VIAME_CUDA_FLAGS
+    -DCMAKE_CUDA_COMPILER:FILEPATH=${CUDA_NVCC_EXECUTABLE}
+    -DCUDAToolkit_ROOT:PATH=${CUDA_TOOLKIT_ROOT_DIR} )
 endif()
 
 if( VIAME_ENABLE_CUDNN )
