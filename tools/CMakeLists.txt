@@ -78,6 +78,11 @@ set( applet_headers
   train.h
 )
 
+if( VIAME_ENABLE_PYTHON )
+  set( applet_sources ${applet_sources} python_script_applet.cxx )
+  set( applet_headers ${applet_headers} python_script_applet.h )
+endif()
+
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
 kwiver_add_plugin( viame_tools_applets
@@ -97,6 +102,11 @@ kwiver_add_plugin( viame_tools_applets
                viame_core
                viame_claude
 )
+
+if( VIAME_ENABLE_PYTHON )
+  target_compile_definitions( viame_tools_applets
+    PRIVATE VIAME_TOOLS_ENABLE_PYTHON )
+endif()
 
 kwiver_add_executable( viame_get_configs
     get_configs.cxx

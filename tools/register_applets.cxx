@@ -16,8 +16,19 @@
 #include "csv.h"
 #include "train.h"
 
+#ifdef VIAME_TOOLS_ENABLE_PYTHON
+#include "python_script_applet.h"
+#endif
+
 namespace viame {
 namespace tools {
+
+#ifdef VIAME_TOOLS_ENABLE_PYTHON
+
+VIAME_PYTHON_SCRIPT_APPLET( process_video_applet, "process-video",
+  "process_video.py", "Process new videos" )
+
+#endif
 
 // ----------------------------------------------------------------------------
 /// Register an applet that needs no plugins loaded on its behalf.
@@ -26,6 +37,17 @@ static void
 register_standalone_tool( kwiver::applet_registrar& reg )
 {
   reg.register_tool< applet_t >()->add_attribute( SKIP_PLUGIN_PRELOAD, "true" );
+}
+
+// ----------------------------------------------------------------------------
+/// Register an applet that forwards its whole command line to a script.
+template < typename applet_t >
+static void
+register_script_tool( kwiver::applet_registrar& reg )
+{
+  reg.register_tool< applet_t >()
+    ->add_attribute( SKIP_PLUGIN_PRELOAD, "true" )
+    .add_attribute( FORWARDS_HELP, "true" );
 }
 
 // ----------------------------------------------------------------------------
@@ -44,6 +66,10 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   // -- register applets --
   register_standalone_tool< csv_applet >( reg );
   register_standalone_tool< train_applet >( reg );
+
+#ifdef VIAME_TOOLS_ENABLE_PYTHON
+  register_script_tool< process_video_applet >( reg );
+#endif
 
   reg.mark_module_as_loaded();
 }
