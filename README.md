@@ -43,6 +43,22 @@ but select entries are also listed below broken down by individual functionality
 [Example Plugin Templates](plugins/templates) <>
 [Embedding Algorithms in C++](examples/using_algorithms_in_code)
 
+Command Line Tools
+------------------
+
+After sourcing the setup script in an install, every command line tool is a
+subcommand of the `viame` program. `viame help` lists them with a one line
+description each, and `viame help <tool>` prints that tool's own options:
+
+```
+viame help                                       # list every tool
+viame process-video -d videos/ -p detector.pipe  # run a pipeline over a folder
+viame train -c train_detector.conf -i labels/    # train a model
+viame score -c detections.csv -t groundtruth.csv # score against groundtruth
+viame csv -i detections.csv --print-types        # inspect a VIAME csv
+viame my_pipeline.pipe                           # shorthand for viame runner
+```
+
 Installations
 -------------
 
