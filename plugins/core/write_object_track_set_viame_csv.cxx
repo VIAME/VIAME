@@ -361,12 +361,9 @@ void write_object_track_set_viame_csv
         const kv::detected_object_type_sptr dot =
           ( c_tot_option == "detection" ? det->type() : trk_average_tot );
 
-        if( dot )
+        for( auto name : core::ranked_class_names( dot, c_top_n_classes ) )
         {
-          for( auto name : dot->top_class_names( c_top_n_classes ) )
-          {
-            stream() << c_delimiter << name << c_delimiter << dot->score( name );
-          }
+          stream() << c_delimiter << name << c_delimiter << dot->score( name );
         }
 
         write_detection_info( stream(), det );
@@ -505,12 +502,9 @@ write_object_track_set_viame_csv
               c_tot_option.find( "scaled_by_conf" ) != std::string::npos,
               c_tot_ignore_class ) );
 
-        if( dot )
+        for( auto name : core::ranked_class_names( dot, c_top_n_classes ) )
         {
-          for( auto name : dot->top_class_names( c_top_n_classes ) )
-          {
-            stream() << c_delimiter << name << c_delimiter << dot->score( name );
-          }
+          stream() << c_delimiter << name << c_delimiter << dot->score( name );
         }
 
         write_detection_info( stream(), det );

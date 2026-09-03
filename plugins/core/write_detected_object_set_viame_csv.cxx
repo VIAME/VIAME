@@ -5,6 +5,7 @@
 #include "write_detected_object_set_viame_csv.h"
 
 #include "convert_notes_to_attributes.h"
+#include "utilities_target_clfr.h"
 #include "utilities_segmentation.h"
 
 #include <vital/util/tokenize.h>
@@ -182,13 +183,10 @@ write_detected_object_set_viame_csv
 
     const auto dot = (*det)->type();
 
-    if( dot )
+    for( auto name : core::ranked_class_names( dot, c_top_n_classes ) )
     {
-      for( auto name : dot->top_class_names( c_top_n_classes ) )
-      {
-        // Write out the <name> <score> pair
-        stream() << "," << name << "," << dot->score( name );
-      }
+      // Write out the <name> <score> pair
+      stream() << "," << name << "," << dot->score( name );
     }
 
     // Preferentially write out the explicit polygon

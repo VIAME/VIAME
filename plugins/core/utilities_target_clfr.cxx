@@ -119,6 +119,18 @@ compute_average_classification(
   return std::make_shared< kv::detected_object_type >( names, scores );
 }
 
+std::vector< std::string >
+ranked_class_names( const kv::detected_object_type_sptr& dot,
+                    unsigned top_n )
+{
+  if( !dot )
+  {
+    return std::vector< std::string >();
+  }
+
+  return ( top_n ? dot->top_class_names( top_n ) : dot->class_names() );
+}
+
 } // end namespace core
 
 } // end namespace viame

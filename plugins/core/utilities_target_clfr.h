@@ -58,6 +58,19 @@ compute_average_classification(
   bool scale_by_conf = false,
   const std::string& ignore_class = "" );
 
+/**
+ * Class names of a classification, highest score first.
+ *
+ * \param dot  Classification to list, may be null.
+ * \param top_n  Maximum names to return, or 0 for all of them.
+ *               detected_object_type::top_class_names() cannot express this:
+ *               it reads 0 as a limit of none.
+ * \return Ordered class names, empty if \p dot is null.
+ */
+VIAME_CORE_EXPORT std::vector< std::string >
+ranked_class_names( const kv::detected_object_type_sptr& dot,
+                    unsigned top_n );
+
 } // end namespace core
 
 } // end namespace viame

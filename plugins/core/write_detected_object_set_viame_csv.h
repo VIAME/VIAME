@@ -66,7 +66,7 @@ public:
       20 ),
     PARAM_DEFAULT(
       top_n_classes, unsigned,
-      "Only print out this maximum number of classes (highest score first)",
+      "Maximum number of class labels to output (0 for all)",
       0 )
   )
 
