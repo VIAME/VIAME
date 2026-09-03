@@ -8,6 +8,11 @@ v0.23.1 - Pending
   viame get-configs and viame resample-tracks
 
 
+- "viame run" both processes data in batch and runs a single pipeline file.
+  Naming a pipe file positionally picks the latter, so "viame run x.pipe"
+  matches "viame runner x.pipe"
+
+
 - viame_csv_tool.py removed, use "viame csv" with the same flags
 
 

@@ -46,6 +46,17 @@ def scoring_data():
 
 
 @pytest.fixture(scope="module")
+def a_pipeline():
+    install = find_viame_install()
+    if install is None:
+        pytest.skip("No VIAME install found")
+    path = install / "configs" / "pipelines" / "filter_enhance.pipe"
+    if not path.exists():
+        pytest.skip(f"Missing pipeline: {path}")
+    return path
+
+
+@pytest.fixture(scope="module")
 def detections_csv():
     path = (
         get_viame_source()
@@ -209,6 +220,55 @@ class TestScoreApplet:
         assert result.returncode == 0
         assert metrics.exists()
         assert "precision" in metrics.read_text()
+
+
+class TestRunDispatch:
+    """`run` covers batch processing and executing a single pipeline file."""
+
+    @staticmethod
+    def _mode(result):
+        if "usage: process_video.py" in result.stdout:
+            return "batch"
+        if "pipe-file" in result.stdout:
+            return "pipeline"
+        return "unknown"
+
+    def test_bare_pipe_file_selects_the_pipeline_runner(self, viame_env, a_pipeline):
+        result = run_viame(viame_env, "run", str(a_pipeline), "--help")
+        assert self._mode(result) == "pipeline"
+
+    def test_pipe_file_after_a_setting_is_still_positional(self, viame_env, a_pipeline):
+        result = run_viame(viame_env, "run", "-s", "k=v", str(a_pipeline), "--help")
+        assert self._mode(result) == "pipeline"
+
+    def test_flags_only_selects_the_batch_driver(self, viame_env, tmp_path):
+        result = run_viame(viame_env, "run", "-d", str(tmp_path), "--help")
+        assert self._mode(result) == "batch"
+
+    def test_pipeline_given_as_a_flag_value_selects_the_batch_driver(
+        self, viame_env, a_pipeline
+    ):
+        result = run_viame(viame_env, "run", "-p", str(a_pipeline), "--help")
+        assert self._mode(result) == "batch"
+
+    def test_setting_holding_a_pipe_path_selects_the_batch_driver(
+        self, viame_env, a_pipeline
+    ):
+        result = run_viame(viame_env, "run", "-s", f"x={a_pipeline}", "--help")
+        assert self._mode(result) == "batch"
+
+    def test_help_describes_both_modes(self, viame_env):
+        result = run_viame(viame_env, "run", "--help")
+
+        assert result.returncode == 0
+        assert "two modes" in result.stdout
+        assert "viame help runner" in result.stdout
+
+    def test_pipeline_mode_matches_the_runner_applet(self, viame_env, a_pipeline):
+        through_run = run_viame(viame_env, "run", str(a_pipeline), "--help")
+        through_runner = run_viame(viame_env, "runner", str(a_pipeline), "--help")
+
+        assert through_run.stdout == through_runner.stdout
 
 
 class TestPythonScriptApplets:
