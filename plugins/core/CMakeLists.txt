@@ -37,6 +37,7 @@ set( plugin_headers
   read_transform_homography_json.h
   refine_detections_add_fixed.h
   refine_detections_nms.h
+  refine_tracks_average_tot.h
   utilities_file.h
   utilities_image.h
   utilities_segmentation.h
@@ -88,6 +89,7 @@ set( plugin_sources
   read_transform_homography_json.cxx
   refine_detections_add_fixed.cxx
   refine_detections_nms.cxx
+  refine_tracks_average_tot.cxx
   utilities_file.cxx
   utilities_image.cxx
   utilities_segmentation.cxx

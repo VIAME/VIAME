@@ -34,6 +34,7 @@
 #include "read_transform_homography_json.h"
 #include "refine_detections_add_fixed.h"
 #include "refine_detections_nms.h"
+#include "refine_tracks_average_tot.h"
 #include "windowed_detector.h"
 #include "windowed_refiner.h"
 #include "windowed_trainer.h"
@@ -135,6 +136,8 @@ register_factories( kv::plugin_loader& vpm )
     refine_detections_add_fixed >( vpm );
   register_algorithm< kv::algo::refine_detections,
     refine_detections_nms >( vpm );
+  register_algorithm< kv::algo::refine_tracks,
+    refine_tracks_average_tot >( vpm );
   register_algorithm< kv::algo::image_object_detector,
     windowed_detector >( vpm );
   register_algorithm< kv::algo::refine_detections,
