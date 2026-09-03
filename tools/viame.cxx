@@ -268,6 +268,9 @@ void tool_runner_usage( [[maybe_unused]] applet_context_t ctxt,
             << "  viame runner my_pipeline.pipe       # Run a pipeline file (explicit)" << std::endl
             << "  viame my_config.conf                # Train with a config file (shorthand)" << std::endl
             << "  viame train -c my_config.conf       # Train with a config file (explicit)" << std::endl
+            << "  viame process-video -d videos/ -p detector.pipe" << std::endl
+            << "  viame score -c detections.csv -t groundtruth.csv" << std::endl
+            << "  viame csv -i detections.csv --print-types" << std::endl
             << "  viame help runner                   # Get help on the runner applet" << std::endl
             << "  viame explore-config my.conf        # Explore configuration file" << std::endl
             << std::endl
