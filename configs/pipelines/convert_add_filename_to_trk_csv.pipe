@@ -19,10 +19,16 @@ process track_reader
   :file_name                                             input.csv
   :reader:type                                           viame_csv
 
+process track_tot_averager
+  :: refine_tracks
+  :refiner:type                                          average_tot
+  :refiner:average_tot:tot_option                        weighted_average
+
 process track_writer
   :: write_object_track
   :file_name                                            output.csv
   :writer:type                                           viame_csv
+  :writer:viame_csv:tot_option                           detection
 
 connect from downsampler.output_2
         to   track_reader.image_file_name
@@ -31,5 +37,7 @@ connect from downsampler.output_2
         to   track_writer.image_file_name
 
 connect from track_reader.object_track_set
+        to   track_tot_averager.object_track_set
+connect from track_tot_averager.object_track_set
         to   track_writer.object_track_set
 

@@ -23,7 +23,9 @@ is_valid_tot_option( const std::string& option )
   return option == PASSTHROUGH_OPTION ||
          option == "average" ||
          option == "weighted_average" ||
-         option == "weighted_average_scaled_by_conf";
+         option == "weighted_average_scaled_by_conf" ||
+         // Spelling the gfit trackers configure the writer with
+         option == "weighted_scaled_by_conf";
 }
 
 kv::detected_object_type_sptr

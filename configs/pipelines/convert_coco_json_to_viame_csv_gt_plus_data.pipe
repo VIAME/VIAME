@@ -25,14 +25,22 @@ process detection_reader
   :file_name                                             input.json
   :reader:type                                           coco
 
+process detector_tot_averager
+  :: refine_tracks
+  :refiner:type                                         average_tot
+  :refiner:average_tot:tot_option                       weighted_average
+
 process detector_writer
   :: write_object_track
   :file_name                                            output.csv
   :writer:type                                          viame_csv
+  :writer:viame_csv:tot_option                          detection
 
 connect from downsampler.output_2
         to   detection_reader.image_file_name
 connect from detection_reader.object_track_set
+        to   detector_tot_averager.object_track_set
+connect from detector_tot_averager.object_track_set
         to   detector_writer.object_track_set
 connect from downsampler.output_2
         to   detector_writer.image_file_name
