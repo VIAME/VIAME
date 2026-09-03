@@ -104,7 +104,7 @@ process motion_detector
   block detector:rf_detr
     :model_size                                large
     :device                                    auto
-    relativepath weight =                      models/fish_with_motion_rf_detr.pth
+    relativepath weight =                      models/fish_rf_detr_variance_1728.pth
     :num_channels                              3
     :segmentation                              false
     :resolution                                960x1728

@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Common fish detection and tracking util include file
 #
-# Description: Common fish detection and tracking util include file Uses
-# model: rnn_ml_aim.pt.
+# Description: Common fish detection and tracking util include file. Runs the
+# default fish tracker on each camera.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================
@@ -14,23 +14,16 @@ config _pipeline:_edge
 config _scheduler
   :type                                        pythread_per_process
 
-config srnn
-  :siamese_model_input_size                    224
-  :detection_select_threshold                  0.001
-  :similarity_threshold                        0.300
-  :terminate_track_threshold                   10
-  :add_features_to_detections                  True
-  :IOU_tracker_flag                            True
-  :IOU_accept_threshold                        0.600
-  :IOU_reject_threshold                        0.100
-  :track_search_threshold                      2
-  :gpu_list                                    0
-  :siamese_model_path                          models/siamese_model.pt
-  :targetRNN_AIM_model_path                    models/rnn_f_aim.pt
-  :targetRNN_AIM_V_model_path                  models/rnn_ml_aim.pt
-  :siamese_batch_size                          64
-  :targetRNN_normalized_models                 True
-  :targetRNN_batch_size                        128
+config bytetrack
+  :high_thresh                                 0.75097625
+  :low_thresh                                  0.27399542
+  :match_thresh                                0.98
+  :second_match_thresh                         0.98
+  :unconfirmed_match_thresh                    0.98
+  :track_buffer                                17
+  :new_track_thresh                            0.8049812
+  :std_weight_position                         0.26666666666666666
+  :std_weight_velocity                         0.17804493814764857
 
 # ============================= INPUT FRAME LIST ==============================
 
@@ -42,7 +35,6 @@ include common_stereo_fish_detector.pipe
 
 connect from downsampler.output_1
         to   detector_input1.image
-
 connect from downsampler.output_3
         to   detector_input2.image
 
@@ -50,30 +42,22 @@ connect from downsampler.output_3
 
 process tracker1
   :: track_objects
-  :track_objects:type                          srnn
+  :track_objects:type                          bytetrack
 
-block track_objects:srnn
-  :siamese_model_input_size                    $CONFIG{srnn:siamese_model_input_size}
-  :detection_select_threshold                  $CONFIG{srnn:detection_select_threshold}
-  :similarity_threshold                        $CONFIG{srnn:similarity_threshold}
-  :terminate_track_threshold                   $CONFIG{srnn:terminate_track_threshold}
-  :add_features_to_detections                  $CONFIG{srnn:add_features_to_detections}
-  :IOU_tracker_flag                            $CONFIG{srnn:IOU_tracker_flag}
-  :IOU_accept_threshold                        $CONFIG{srnn:IOU_accept_threshold}
-  :IOU_reject_threshold                        $CONFIG{srnn:IOU_reject_threshold}
-  :track_search_threshold                      $CONFIG{srnn:track_search_threshold}
-  :gpu_list                                    $CONFIG{srnn:gpu_list}
-
-  relativepath siamese_model_path =            $CONFIG{srnn:siamese_model_path}
-  :siamese_batch_size                          $CONFIG{srnn:siamese_batch_size}
-
-  relativepath targetRNN_AIM_model_path =      $CONFIG{srnn:targetRNN_AIM_model_path}
-  relativepath targetRNN_AIM_V_model_path =    $CONFIG{srnn:targetRNN_AIM_V_model_path}
-  :targetRNN_normalized_models                 $CONFIG{srnn:targetRNN_normalized_models}
-  :targetRNN_batch_size                        $CONFIG{srnn:targetRNN_batch_size}
+block track_objects:bytetrack
+  :high_thresh                                 $CONFIG{bytetrack:high_thresh}
+  :low_thresh                                  $CONFIG{bytetrack:low_thresh}
+  :match_thresh                                $CONFIG{bytetrack:match_thresh}
+  :second_match_thresh                         $CONFIG{bytetrack:second_match_thresh}
+  :unconfirmed_match_thresh                    $CONFIG{bytetrack:unconfirmed_match_thresh}
+  :track_buffer                                $CONFIG{bytetrack:track_buffer}
+  :new_track_thresh                            $CONFIG{bytetrack:new_track_thresh}
+  :std_weight_position                         $CONFIG{bytetrack:std_weight_position}
+  :std_weight_velocity                         $CONFIG{bytetrack:std_weight_velocity}
 endblock
 
 # Connect inputs to tracker
+
 connect from downsampler.output_1
         to   tracker1.image
 connect from downsampler.timestamp
@@ -83,9 +67,22 @@ connect from detector_output1.detected_object_set
 
 process tracker2
   :: track_objects
-  :track_objects:type                          srnn
+  :track_objects:type                          bytetrack
+
+block track_objects:bytetrack
+  :high_thresh                                 $CONFIG{bytetrack:high_thresh}
+  :low_thresh                                  $CONFIG{bytetrack:low_thresh}
+  :match_thresh                                $CONFIG{bytetrack:match_thresh}
+  :second_match_thresh                         $CONFIG{bytetrack:second_match_thresh}
+  :unconfirmed_match_thresh                    $CONFIG{bytetrack:unconfirmed_match_thresh}
+  :track_buffer                                $CONFIG{bytetrack:track_buffer}
+  :new_track_thresh                            $CONFIG{bytetrack:new_track_thresh}
+  :std_weight_position                         $CONFIG{bytetrack:std_weight_position}
+  :std_weight_velocity                         $CONFIG{bytetrack:std_weight_velocity}
+endblock
 
 # Connect inputs to tracker
+
 connect from downsampler.output_3
         to   tracker2.image
 connect from downsampler.timestamp
