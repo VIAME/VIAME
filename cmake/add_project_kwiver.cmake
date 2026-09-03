@@ -29,6 +29,17 @@ if( VIAME_ENABLE_CUDA )
   list( APPEND VIAME_CUDA_FLAGS
     -DCMAKE_CUDA_COMPILER:FILEPATH=${CUDA_NVCC_EXECUTABLE}
     -DCUDAToolkit_ROOT:PATH=${CUDA_TOOLKIT_ROOT_DIR} )
+
+  if( WIN32 )
+    # Naming the compiler is not enough under the Visual Studio generator: the
+    # .vcxproj MSBuild writes still needs the CUDA build customizations, which
+    # the toolkit only drops into the Visual Studio versions that were present
+    # when it was installed. Point KWIVER at the copy the toolkit keeps, the
+    # same way darknet does, or enable_language( CUDA ) aborts the configure
+    # with "No CUDA toolset found".
+    set( KWIVER_GENERATOR_OVERRIDE
+      -DCMAKE_GENERATOR_TOOLSET:STRING=cuda=${CUDA_TOOLKIT_ROOT_DIR} )
+  endif()
 endif()
 
 if( VIAME_ENABLE_CUDNN )
@@ -61,6 +72,7 @@ ExternalProject_Add(kwiver
     ${VIAME_CUDA_FLAGS}
     ${VIAME_CUDNN_FLAGS}
     ${VIAME_DOXYGEN_FLAGS}
+    ${KWIVER_GENERATOR_OVERRIDE}
 
     # Required
     -DBUILD_SHARED_LIBS:BOOL=ON
