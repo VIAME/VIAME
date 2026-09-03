@@ -12,7 +12,15 @@ set( Python_INCLUDE_DIR ${VIAME_INSTALL_PREFIX}/include CACHE PATH "Forced" FORC
 
 if( WIN32 )
   set( Python_EXECUTABLE ${VIAME_INSTALL_PREFIX}/bin/python.exe CACHE PATH "Forced" FORCE )
-  set( Python_LIBRARY ${VIAME_INSTALL_PREFIX}/lib/python3.lib CACHE PATH "Forced" FORCE )
+
+  # Use the version specific import library rather than the stable ABI
+  # python3.lib. CMake's FindPython locates the matching runtime DLL from the
+  # library name, and it cannot resolve one for python3.lib, which makes the
+  # Development.Module and Development.Embed components report as missing in
+  # downstream projects such as kwiver.
+  set( Python_LIBRARY
+    ${VIAME_INSTALL_PREFIX}/lib/python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}.lib
+    CACHE PATH "Forced" FORCE )
 else()
   set( Python_EXECUTABLE ${VIAME_INSTALL_PREFIX}/bin/python CACHE PATH "Forced" FORCE )
   set( Python_LIBRARY ${VIAME_INSTALL_PREFIX}/lib/libpython3.so CACHE PATH "Forced" FORCE )
