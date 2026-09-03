@@ -1,3 +1,22 @@
+v0.23.1 - Pending
+================
+
+
+- Command line tools are now applets run through the viame tool, so "viame help"
+  lists every tool. The viame_score_results, viame_get_configs and
+  viame_resample_tracks executables become wrappers onto viame score,
+  viame get-configs and viame resample-tracks
+
+
+- "viame run" both processes data in batch and runs a single pipeline file.
+  Naming a pipe file positionally picks the latter, so "viame run x.pipe"
+  matches "viame runner x.pipe"
+
+
+- viame_csv_tool.py removed, use "viame csv" with the same flags
+
+
+
 v0.23.0 - 9/02/2026
 ===================
 

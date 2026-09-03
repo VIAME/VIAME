@@ -12,7 +12,7 @@ REM
 REM The per-class table reports TP, FP, FN, precision, recall, F1 and average
 REM precision for every category, and the summary reports their mean AP.
 
-viame_score_results.exe ^
+viame.exe score ^
  --computed detections.csv --truth groundtruth.csv ^
  --iou 0.5 --per-class ^
  --output-summary output_metrics_per_category_summary.txt ^

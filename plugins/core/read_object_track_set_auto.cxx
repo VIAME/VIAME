@@ -288,7 +288,22 @@ read_object_track_set_auto
   }
   else if( d->m_detected_format == "viame_csv" )
   {
-    d->m_reader = std::make_shared< read_object_track_set_viame_csv >();
+    auto csv_reader = std::make_shared< read_object_track_set_viame_csv >();
+
+    if( d->m_config )
+    {
+      auto csv_config = csv_reader->get_configuration();
+
+      if( d->m_config->has_value( "viame_csv:batch_load" ) )
+      {
+        csv_config->set_value( "batch_load",
+          d->m_config->get_value< std::string >( "viame_csv:batch_load" ) );
+      }
+
+      csv_reader->set_configuration( csv_config );
+    }
+
+    d->m_reader = csv_reader;
   }
   else
   {

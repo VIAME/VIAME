@@ -19,6 +19,12 @@
  *
  *   viame my_pipeline.pipe          # equivalent to: viame runner my_pipeline.pipe
  *
+ * The "run" applet covers both processing data in batch and executing a
+ * single pipeline. Naming a pipe file positionally selects the latter:
+ *
+ *   viame run my_pipeline.pipe      # equivalent to: viame runner my_pipeline.pipe
+ *   viame run -d videos/ -p my.pipe # batch processing, handled by process_video
+ *
  * Similarly, if the first argument is a .conf file, the train applet
  * is automatically invoked:
  *
@@ -27,6 +33,8 @@
  * It loads all VIAME and KWIVER plugins and dispatches to the appropriate
  * applet based on the subcommand name.
  */
+
+#include "applet_attributes.h"
 
 #include <vital/applets/kwiver_applet.h>
 #include <vital/applets/applet_context.h>
@@ -39,6 +47,7 @@
 #include <vital/plugin_management/plugin_filter_default.h>
 #include <vital/plugin_management/plugin_manager_internal.h>
 #include <vital/util/get_paths.h>
+#include <vital/vital_types.h>
 
 #include <algorithm>
 #include <cstdlib>
@@ -70,6 +79,119 @@ static bool ends_with( const std::string& str, const std::string& suffix )
     return false;
   }
   return str.compare( str.size() - suffix.size(), suffix.size(), suffix ) == 0;
+}
+
+// ============================================================================
+/**
+ * Check whether a "run" command names a pipeline file to execute directly.
+ *
+ * The batch driver describes its whole job with flags and takes no positional
+ * arguments, while the pipeline runner's only positional argument is the pipe
+ * file. A bare pipe file is therefore a request for the runner. A value handed
+ * to a flag does not count, and neither does a key=value setting.
+ */
+static bool names_a_pipe_file( const std::vector< std::string >& args )
+{
+  for( size_t i = 1; i < args.size(); ++i )
+  {
+    const std::string& arg = args[i];
+
+    if( arg.empty() || arg[0] == '-' || !ends_with( arg, ".pipe" ) ||
+        arg.find( '=' ) != std::string::npos )
+    {
+      continue;
+    }
+
+    // A preceding flag means this is that flag's value, not a positional
+    if( !args[i - 1].empty() && args[i - 1][0] == '-' )
+    {
+      continue;
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+// ============================================================================
+/**
+ * Check whether the applet arguments ask for help.
+ */
+static bool wants_help( const std::vector< std::string >& args )
+{
+  for( size_t i = 1; i < args.size(); ++i )
+  {
+    if( args[i] == "-h" || args[i] == "--help" )
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// ============================================================================
+/**
+ * Describe the two things "viame run" can do, since the help printed after
+ * this only covers the batch driver.
+ */
+static void print_run_modes()
+{
+  std::cout
+    << "viame run works in two modes, chosen by how you name the pipeline:"
+    << std::endl << std::endl
+    << "  viame run <pipeline.pipe> [options]" << std::endl
+    << "      Execute one pipeline file directly. See \"viame help runner\""
+    << std::endl
+    << "      for the options that mode accepts." << std::endl << std::endl
+    << "  viame run -d <directory> -p <pipeline.pipe> [options]" << std::endl
+    << "      Process a folder, video or image list in batch, using the"
+    << std::endl
+    << "      options listed below." << std::endl << std::endl;
+}
+
+// ============================================================================
+/**
+ * Check whether a search path entry already points at an applets directory.
+ */
+static bool applet_dir( const std::string& path )
+{
+  const size_t end = path.find_last_not_of( "/\\" );
+
+  if( end == std::string::npos )
+  {
+    return false;
+  }
+
+  const size_t sep = path.find_last_of( "/\\", end );
+
+  const std::string leaf = ( sep == std::string::npos )
+    ? path.substr( 0, end + 1 )
+    : path.substr( sep + 1, end - sep );
+
+  return leaf == "applets";
+}
+
+// ============================================================================
+/**
+ * Build the list of directories holding applet plugins.
+ *
+ * The plugin search path may name either the directory containing the
+ * per-category plugin directories or, as the VIAME setup scripts do, the
+ * category directories themselves.
+ */
+static kwiver::vital::path_list_t
+applet_search_paths( kwiver::vital::plugin_manager_internal& vpm )
+{
+  kwiver::vital::path_list_t dirs;
+
+  for( auto const& path : vpm.search_path() )
+  {
+    dirs.push_back( applet_dir( path ) ? path : path + "/applets" );
+  }
+
+  return dirs;
 }
 
 // ============================================================================
@@ -147,6 +269,11 @@ public:
       }
     } // end for
 
+    // "run" covers both the batch driver and running a single pipeline
+    if ( m_applet_name == "run" && names_a_pipe_file( m_applet_args ) )
+    {
+      m_applet_name = "runner";
+    }
   }
 
   // ----------------------
@@ -177,7 +304,7 @@ void tool_runner_usage( [[maybe_unused]] applet_context_t ctxt,
             << std::endl;
 
   // Get list of factories for implementations of the applet
-  const auto fact_list = vpm.get_factories( typeid( kwiver::tools::kwiver_applet ).name() );
+  const auto fact_list = vpm.get_factories< kwiver::tools::kwiver_applet >();
 
   // Loop over all factories in the list and display name and description
   using help_pair = std::pair< std::string, std::string >;
@@ -222,6 +349,10 @@ void tool_runner_usage( [[maybe_unused]] applet_context_t ctxt,
             << "  viame runner my_pipeline.pipe       # Run a pipeline file (explicit)" << std::endl
             << "  viame my_config.conf                # Train with a config file (shorthand)" << std::endl
             << "  viame train -c my_config.conf       # Train with a config file (explicit)" << std::endl
+            << "  viame run my_pipeline.pipe          # Run one pipeline (same as runner)" << std::endl
+            << "  viame run -d videos/ -p detector.pipe   # Process a folder in batch" << std::endl
+            << "  viame score -c detections.csv -t groundtruth.csv" << std::endl
+            << "  viame csv -i detections.csv --print-types" << std::endl
             << "  viame help runner                   # Get help on the runner applet" << std::endl
             << "  viame explore-config my.conf        # Explore configuration file" << std::endl
             << std::endl
@@ -241,29 +372,43 @@ void tool_runner_usage( [[maybe_unused]] applet_context_t ctxt,
  * If the only arg is "help", then call the function to generate short
  * help for all known applets.
  */
-void help_applet( const command_line_parser& options,
-                  applet_context_t tool_context,
-                  kwiver::vital::plugin_manager& vpm )
+int help_applet( const command_line_parser& options,
+                 applet_context_t tool_context,
+                 kwiver::vital::plugin_manager& vpm )
 {
   if ( options.m_applet_args.size() < 2 )
   {
     tool_runner_usage( tool_context, vpm );
-    return;
+    return EXIT_SUCCESS;
   }
 
   // Create applet based on the name provided
   applet_factory app_fact;
-  std::string buf = "-- Not Set --";
   auto fact = app_fact.find_factory( options.m_applet_args[1] );
-  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
 
   kwiver::tools::kwiver_applet_sptr applet( app_fact.create( options.m_applet_args[1], kwiver::vital::config_block::empty_config() ) );
   tool_context->m_applet_name = options.m_applet_args[1];
   applet->initialize( tool_context.get() );
   applet->add_command_options();
 
+  std::string forwards_help = "false";
+  fact->get_attribute( viame::tools::FORWARDS_HELP, forwards_help );
+
+  if( forwards_help == "true" )
+  {
+    if( options.m_applet_args[1] == "run" )
+    {
+      print_run_modes();
+    }
+
+    tool_context->m_argv = { "viame", "--help" };
+    return applet->run();
+  }
+
   // display help text
   std::cout << applet->m_cmd_options->help();
+
+  return EXIT_SUCCESS;
 }
 
 // ============================================================================
@@ -561,19 +706,20 @@ int main(int argc, char *argv[])
 
   kwiver::vital::plugin_manager_internal& vpm = kwiver::vital::plugin_manager_internal::instance();
 
-  // Add VIAME and KWIVER plugin search paths
+  // Add VIAME and KWIVER plugin search paths, relative to the executable.
+  // Each entry holds the per-category plugin directories.
   const std::string exec_path = kwiver::vital::get_executable_path();
 
-  // VIAME plugin paths (relative to executable)
-  vpm.add_search_path(exec_path + "/../lib/viame/plugins");
-  vpm.add_search_path(exec_path + "/../lib/kwiver/plugins");
+  for( const char* lib_dir : { "/../lib/", "/../lib64/" } )
+  {
+    vpm.add_search_path( exec_path + lib_dir + "viame" );
+    vpm.add_search_path( exec_path + lib_dir + "kwiver/plugins" );
+  }
 
-  // Also check standard locations
-  vpm.add_search_path(exec_path + "/../lib/modules");
-  vpm.add_search_path(exec_path + "/../lib/sprokit");
-
-  // Load all available plugins
-  vpm.load_all_plugins();
+  // Only the applet plugins are needed to look up and dispatch an applet.
+  // Applets that need more load it themselves, or have it loaded for them
+  // below.
+  vpm.load_plugins( applet_search_paths( vpm ) );
 
   // initialize the global context
   tool_context->m_wtb.set_indent_string( "      " );
@@ -582,8 +728,7 @@ int main(int argc, char *argv[])
 
   if ( (options.m_applet_name == "help") || (argc == 1) )
   {
-    help_applet( options, tool_context, vpm );
-    return 0;
+    return help_applet( options, tool_context, vpm );
   } // end help code
 
   // ----------------------------------------------------------------------------
@@ -615,11 +760,28 @@ int main(int argc, char *argv[])
     }
   }
 
+  // The batch driver's own help does not mention the pipeline mode
+  if( options.m_applet_name == "run" &&
+      ( options.m_applet_args.size() < 2 || wants_help( options.m_applet_args ) ) )
+  {
+    print_run_modes();
+  }
+
   // ----------------------------------------------------------------------------
   try
   {
     // Create applet based on the name provided
     applet_factory app_fact;
+    auto fact = app_fact.find_factory( options.m_applet_name );
+
+    std::string skip_preload = "false";
+    fact->get_attribute( viame::tools::SKIP_PLUGIN_PRELOAD, skip_preload );
+
+    if( skip_preload != "true" )
+    {
+      vpm.load_all_plugins();
+    }
+
     kwiver::tools::kwiver_applet_sptr applet( app_fact.create( options.m_applet_name, kwiver::vital::config_block::empty_config() ) );
 
     tool_context->m_applet_name = options.m_applet_name;

@@ -19,7 +19,6 @@ set( PYTHON_SCRIPTS
   process_video.py
   survey_metadata.py
   train_detection_fusion.py
-  viame_csv_tool.py
 )
 
 if( VIAME_ENABLE_OPENCV )
@@ -69,13 +68,25 @@ target_link_libraries( viame
 set( applet_sources
   register_applets.cxx
   csv.cxx
+  get_configs.cxx
+  resample_tracks.cxx
+  score_results.cxx
   train.cxx
 )
 
 set( applet_headers
+  applet_attributes.h
   csv.h
+  get_configs.h
+  resample_tracks.h
+  score_results.h
   train.h
 )
+
+if( VIAME_ENABLE_PYTHON )
+  set( applet_sources ${applet_sources} python_script_applet.cxx )
+  set( applet_headers ${applet_headers} python_script_applet.h )
+endif()
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
@@ -97,46 +108,22 @@ kwiver_add_plugin( viame_tools_applets
                viame_claude
 )
 
-kwiver_add_executable( viame_get_configs
-    get_configs.cxx
-  )
+if( VIAME_ENABLE_PYTHON )
+  target_compile_definitions( viame_tools_applets
+    PRIVATE VIAME_TOOLS_ENABLE_PYTHON )
+endif()
 
-target_link_libraries( viame_get_configs
-  PRIVATE      kwiver::vital
-               kwiver::vital_vpm
-               kwiver::vital_config
-               kwiver::vital_logger
-               kwiver::vital_algo
-               kwiver::kwiversys
-               kwiver::sprokit_pipeline
-  )
-
-kwiver_add_executable( viame_resample_tracks
-    resample_tracks.cxx
-  )
-
-target_link_libraries( viame_resample_tracks
-  PRIVATE      kwiver::vital
-               kwiver::vital_vpm
-               kwiver::vital_config
-               kwiver::vital_logger
-               kwiver::kwiversys
-               viame_core
-  )
-
+# Only the plot image rendering needs OpenCV; the plot data itself is core
 if( VIAME_ENABLE_OPENCV )
-  kwiver_add_executable( viame_score_results
-    score_results.cxx
-  )
+  target_compile_definitions( viame_tools_applets
+    PRIVATE VIAME_TOOLS_HAVE_OPENCV )
+  target_link_libraries( viame_tools_applets
+    PRIVATE viame_opencv )
+endif()
 
-  target_link_libraries( viame_score_results
-    PRIVATE      kwiver::vital
-                 kwiver::vital_vpm
-                 kwiver::vital_logger
-                 kwiver::kwiversys
-                 viame_core
-                 viame_opencv
-    )
+if( VIAME_ENABLE_PYTORCH )
+  target_compile_definitions( viame_tools_applets
+    PRIVATE VIAME_TOOLS_HAVE_PYTORCH )
 endif()
 
 if( VIAME_ENABLE_PYTHON )

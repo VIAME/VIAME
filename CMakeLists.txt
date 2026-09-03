@@ -1118,6 +1118,11 @@ else()
     install( PROGRAMS      ${VIAME_SETUP_SCRIPT}
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
 
+    install( PROGRAMS      ${VIAME_CMAKE_DIR}/viame_score_results.bat
+                           ${VIAME_CMAKE_DIR}/viame_get_configs.bat
+                           ${VIAME_CMAKE_DIR}/viame_resample_tracks.bat
+             DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
+
     if( VIAME_ENABLE_SEAL )
       install( PROGRAMS     "${VIAME_CMAKE_DIR}/launch_seal_interface.bat"
                DESTINATION   ${CMAKE_INSTALL_PREFIX} )
@@ -1154,6 +1159,9 @@ else()
     install( PROGRAMS      ${VIAME_CMAKE_DIR}/limit_train_time_for_viame_web.sh
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
     install( PROGRAMS      ${VIAME_CMAKE_DIR}/viame_train_detector
+                           ${VIAME_CMAKE_DIR}/viame_score_results
+                           ${VIAME_CMAKE_DIR}/viame_get_configs
+                           ${VIAME_CMAKE_DIR}/viame_resample_tracks
              DESTINATION   ${CMAKE_INSTALL_PREFIX}/bin )
 
     if( VIAME_ENABLE_SEAL )

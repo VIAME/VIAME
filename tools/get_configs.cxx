@@ -2,8 +2,9 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
+#include "get_configs.h"
+
 #include <kwiversys/SystemTools.hxx>
-#include <kwiversys/CommandLineArguments.hxx>
 #include <kwiversys/Directory.hxx>
 
 #include <vital/kwiver-include-paths.h>
@@ -74,8 +75,6 @@ class config_extractor_vars
 {
 public:
 
-  kwiversys::CommandLineArguments m_args;
-
   bool opt_help;
   bool opt_all_impls;
   bool opt_include_descriptions;
@@ -97,7 +96,6 @@ public:
 // =======================================================================================
 // Define global variables
 // =======================================================================================
-static config_extractor_vars g_params;
 static kwiver::vital::logger_handle_t g_logger;
 
 // =======================================================================================
@@ -1060,86 +1058,74 @@ void write_json_output( std::ostream& os,
 // =======================================================================================
 // Main entry point
 // =======================================================================================
-int main( int argc, char* argv[] )
+namespace viame {
+namespace tools {
+
+// =======================================================================================
+void
+get_configs_applet
+::add_command_options()
 {
-  // Initialize logger
+  m_cmd_options->add_options()
+    ( "h,help", "Display usage information",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "i,input", "Input .pipe/.conf file or directory",
+      ::cxxopts::value< std::string >()->default_value( "" ), "path" )
+    ( "o,output", "Output .json file (default: stdout)",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
+    ( "a,all-implementations", "Include configs for all registered "
+      "implementations, not just selected ones",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "no-descriptions", "Exclude parameter descriptions from output",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ;
+}
+
+// =======================================================================================
+int
+get_configs_applet
+::run()
+{
   g_logger = kwiver::vital::get_logger( "viame.tools.get_configs" );
 
-  // Setup command line arguments
-  typedef kwiversys::CommandLineArguments argT;
+  auto& cmd_args = command_args();
 
-  g_params.m_args.Initialize( argc, argv );
-
-  g_params.m_args.AddArgument( "--help",          argT::NO_ARGUMENT,
-    &g_params.opt_help, "Display usage information" );
-  g_params.m_args.AddArgument( "-h",              argT::NO_ARGUMENT,
-    &g_params.opt_help, "Display usage information" );
-  g_params.m_args.AddArgument( "--input",         argT::SPACE_ARGUMENT,
-    &g_params.opt_input_path, "Input .pipe/.conf file or directory" );
-  g_params.m_args.AddArgument( "-i",              argT::SPACE_ARGUMENT,
-    &g_params.opt_input_path, "Input .pipe/.conf file or directory" );
-  g_params.m_args.AddArgument( "--output",        argT::SPACE_ARGUMENT,
-    &g_params.opt_output_file, "Output .json file (default: stdout)" );
-  g_params.m_args.AddArgument( "-o",              argT::SPACE_ARGUMENT,
-    &g_params.opt_output_file, "Output .json file (default: stdout)" );
-  g_params.m_args.AddArgument( "--all-implementations", argT::NO_ARGUMENT,
-    &g_params.opt_all_impls,
-    "Include configs for all registered implementations, not just selected ones" );
-  g_params.m_args.AddArgument( "-a",              argT::NO_ARGUMENT,
-    &g_params.opt_all_impls,
-    "Include configs for all registered implementations" );
-  g_params.m_args.AddArgument( "--no-descriptions", argT::NO_ARGUMENT,
-    &g_params.opt_include_descriptions,
-    "Exclude parameter descriptions from output" );
-
-  // Parse command line
-  if( !g_params.m_args.Parse() )
+  if( cmd_args[ "help" ].as< bool >() )
   {
-    LOG_ERROR( g_logger, "Problem parsing arguments" );
-    return EXIT_FAILURE;
-  }
-
-  // Handle special case for --no-descriptions (it's inverted)
-  for( int i = 1; i < argc; ++i )
-  {
-    if( std::string( argv[i] ) == "--no-descriptions" )
-    {
-      g_params.opt_include_descriptions = false;
-      break;
-    }
-  }
-
-  // Display help
-  if( g_params.opt_help )
-  {
-    std::cout << "Usage: " << argv[0] << " [options]\n\n"
+    std::cout << "Usage: viame get-configs [options]\n\n"
               << "Extract configuration parameters from KWIVER pipeline (.pipe) or\n"
               << "training configuration (.conf) files and output them as JSON.\n\n"
               << "The input can be a single file or a directory. When given a directory,\n"
               << "all .pipe files and training .conf files are processed into a single\n"
-              << "JSON output.\n\n"
-              << "Options:\n"
-              << g_params.m_args.GetHelp()
+              << "JSON output.\n"
+              << m_cmd_options->help()
               << "\nExamples:\n"
-              << "  " << argv[0] << " -i detector.pipe -o detector_config.json\n"
-              << "  " << argv[0] << " -i train_detector.conf -o train_config.json\n"
-              << "  " << argv[0] << " -i configs/pipelines/ -o all_configs.json\n"
-              << "  " << argv[0] << " -i detector.pipe -a  # Include all implementations\n"
+              << "  viame get-configs -i detector.pipe -o detector_config.json\n"
+              << "  viame get-configs -i train_detector.conf -o train_config.json\n"
+              << "  viame get-configs -i configs/pipelines/ -o all_configs.json\n"
+              << "  viame get-configs -i detector.pipe -a  # Include all implementations\n"
               << std::endl;
     return EXIT_SUCCESS;
   }
 
+  config_extractor_vars params;
+
+  params.opt_input_path = cmd_args[ "input" ].as< std::string >();
+  params.opt_output_file = cmd_args[ "output" ].as< std::string >();
+  params.opt_all_impls = cmd_args[ "all-implementations" ].as< bool >();
+  params.opt_include_descriptions = !cmd_args[ "no-descriptions" ].as< bool >();
+
   // Validate input
-  if( g_params.opt_input_path.empty() )
+  if( params.opt_input_path.empty() )
   {
     LOG_ERROR( g_logger, "No input specified. Use --input or -i option." );
     return EXIT_FAILURE;
   }
 
   // Check path exists
-  if( !kwiversys::SystemTools::FileExists( g_params.opt_input_path ) )
+  if( !kwiversys::SystemTools::FileExists( params.opt_input_path ) )
   {
-    LOG_ERROR( g_logger, "Input path does not exist: " << g_params.opt_input_path );
+    LOG_ERROR( g_logger, "Input path does not exist: " << params.opt_input_path );
     return EXIT_FAILURE;
   }
 
@@ -1149,13 +1135,13 @@ int main( int argc, char* argv[] )
   // Collect files to process
   std::vector< std::string > files_to_process;
 
-  if( kwiversys::SystemTools::FileIsDirectory( g_params.opt_input_path ) )
+  if( kwiversys::SystemTools::FileIsDirectory( params.opt_input_path ) )
   {
     // Process directory
     kwiversys::Directory dir;
-    if( !dir.Load( g_params.opt_input_path ) )
+    if( !dir.Load( params.opt_input_path ) )
     {
-      LOG_ERROR( g_logger, "Could not read directory: " << g_params.opt_input_path );
+      LOG_ERROR( g_logger, "Could not read directory: " << params.opt_input_path );
       return EXIT_FAILURE;
     }
 
@@ -1167,7 +1153,7 @@ int main( int argc, char* argv[] )
         continue;
       }
 
-      std::string filepath = g_params.opt_input_path + "/" + filename;
+      std::string filepath = params.opt_input_path + "/" + filename;
       std::string ext = kwiversys::SystemTools::GetFilenameLastExtension( filename );
       std::transform( ext.begin(), ext.end(), ext.begin(), ::tolower );
 
@@ -1187,7 +1173,7 @@ int main( int argc, char* argv[] )
   else
   {
     // Single file
-    files_to_process.push_back( g_params.opt_input_path );
+    files_to_process.push_back( params.opt_input_path );
   }
 
   if( files_to_process.empty() )
@@ -1209,11 +1195,11 @@ int main( int argc, char* argv[] )
 
     if( ext == ".pipe" )
     {
-      success = extract_pipe_config( file, config, g_params.opt_all_impls );
+      success = extract_pipe_config( file, config, params.opt_all_impls );
     }
     else if( ext == ".conf" )
     {
-      success = extract_conf_config( file, config, g_params.opt_all_impls );
+      success = extract_conf_config( file, config, params.opt_all_impls );
     }
 
     if( success && !config.params.empty() )
@@ -1236,25 +1222,28 @@ int main( int argc, char* argv[] )
   std::ostream* output = &std::cout;
   std::ofstream file_output;
 
-  if( !g_params.opt_output_file.empty() )
+  if( !params.opt_output_file.empty() )
   {
-    file_output.open( g_params.opt_output_file );
+    file_output.open( params.opt_output_file );
     if( !file_output.is_open() )
     {
-      LOG_ERROR( g_logger, "Could not open output file: " << g_params.opt_output_file );
+      LOG_ERROR( g_logger, "Could not open output file: " << params.opt_output_file );
       return EXIT_FAILURE;
     }
     output = &file_output;
   }
 
   // Write JSON
-  write_json_output( *output, pipelines, g_params.opt_include_descriptions );
+  write_json_output( *output, pipelines, params.opt_include_descriptions );
 
   if( file_output.is_open() )
   {
     file_output.close();
-    LOG_INFO( g_logger, "Configuration written to: " << g_params.opt_output_file );
+    LOG_INFO( g_logger, "Configuration written to: " << params.opt_output_file );
   }
 
   return EXIT_SUCCESS;
 }
+
+} // namespace tools
+} // namespace viame
