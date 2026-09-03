@@ -197,7 +197,24 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
         of.write( filename + "," + format_x( frame_time, show_ms=True ) + "," )
         of.write( str( frame_id ) + "," + str( count ) + "\n" )
 
+USAGE = """Usage: generate_detection_plots <objects> <threshold> <frame_rate> [smooth]
+
+Plot detection counts per frame for the VIAME CSV files in the current
+directory, writing the plots into a "plots" subdirectory.
+
+  objects     comma separated list of categories to plot
+  threshold   detection confidence threshold
+  frame_rate  frame rate of the source video, used to label the time axis
+  smooth      optional smoothing window in frames (default: 1)
+"""
+
 if __name__ == "__main__":
+  if len( sys.argv ) > 1 and sys.argv[1] in ( "-h", "--help" ):
+    print( USAGE )
+    sys.exit( 0 )
+  if len( sys.argv ) < 4:
+    print( USAGE )
+    sys.exit( 1 )
   try:
     smooth = int( sys.argv[4] )
   except IndexError:

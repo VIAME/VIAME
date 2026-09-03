@@ -122,6 +122,11 @@ if( VIAME_ENABLE_OPENCV )
     PRIVATE viame_opencv )
 endif()
 
+if( VIAME_ENABLE_PYTORCH )
+  target_compile_definitions( viame_tools_applets
+    PRIVATE VIAME_TOOLS_HAVE_PYTORCH )
+endif()
+
 if( VIAME_ENABLE_PYTHON )
   install( FILES       ${PYTHON_SCRIPTS}
            DESTINATION configs )
