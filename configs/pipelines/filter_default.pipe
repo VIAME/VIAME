@@ -39,11 +39,6 @@ connect from downsampler.output_1
 connect from downsampler.output_2
         to   image_writer.image_file_name
 
-process track_tot_averager
-  :: refine_tracks
-  :refiner:type                                average_tot
-  :refiner:average_tot:tot_option              weighted_average
-
 process track_writer
   :: write_object_track
   :file_name                                   computed_tracks.csv
@@ -52,8 +47,6 @@ process track_writer
   :writer:viame_csv:tot_option                 detection
 
 connect from downsampler.output_3
-        to   track_tot_averager.object_track_set
-connect from track_tot_averager.object_track_set
         to   track_writer.object_track_set
 connect from downsampler.timestamp
         to   track_writer.timestamp

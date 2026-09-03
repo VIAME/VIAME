@@ -78,11 +78,6 @@ connect from track_reader.object_track_set
         to   track_refiner.object_track_set
 
 # =============================== OUTPUT WRITER ===============================
-process track_tot_averager
-  :: refine_tracks
-  :refiner:type                                average_tot
-  :refiner:average_tot:tot_option              weighted_average
-
 process track_writer
   :: write_object_track
   :file_name                                   computed_tracks.csv
@@ -95,8 +90,6 @@ connect from downsampler.output_2
 connect from downsampler.timestamp
         to   track_writer.timestamp
 connect from track_refiner.object_track_set
-        to   track_tot_averager.object_track_set
-connect from track_tot_averager.object_track_set
         to   track_writer.object_track_set
 
 # -- end of file --

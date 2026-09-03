@@ -59,11 +59,6 @@ connect from ensure_rgb.image
 connect from downsampler.timestamp
         to   detector.timestamp
 # =============================== OUTPUT WRITER ===============================
-process track_tot_averager
-  :: refine_tracks
-  :refiner:type                                average_tot
-  :refiner:average_tot:tot_option              weighted_average
-
 process track_writer
   :: write_object_track
   :file_name                                   computed_detections.csv
@@ -76,8 +71,6 @@ connect from downsampler.output_2
 connect from downsampler.timestamp
         to   track_writer.timestamp
 connect from detector.object_track_set
-        to   track_tot_averager.object_track_set
-connect from track_tot_averager.object_track_set
         to   track_writer.object_track_set
 
 # -- end of file --
