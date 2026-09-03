@@ -17,6 +17,8 @@
 #include <sstream>
 #include <algorithm>
 #include <iomanip>
+#include <regex>
+#include <stdexcept>
 
 #if WIN32 || ( __cplusplus >= 201703L && __has_include(<filesystem>) )
   #include <filesystem>
@@ -126,60 +128,87 @@ static std::vector< std::string > glob_files( const std::string& pattern )
 {
   std::vector< std::string > result;
 
-  // Simple glob implementation for *.csv patterns
-  if( pattern.find( '*' ) != std::string::npos )
+  filesystem::path p( pattern );
+  filesystem::path dir = p.parent_path();
+  const std::string name_pattern = p.filename().string();
+
+  if( dir.empty() )
   {
-    filesystem::path p( pattern );
-    filesystem::path dir = p.parent_path();
-    std::string filename_pattern = p.filename().string();
+    dir = ".";
+  }
 
-    if( dir.empty() )
+  std::string expr;
+
+  for( char c : name_pattern )
+  {
+    if( c == '*' )
     {
-      dir = ".";
+      expr += ".*";
     }
-
-    // Replace * with regex-like matching
-    std::string prefix, suffix;
-    size_t star_pos = filename_pattern.find( '*' );
-    if( star_pos != std::string::npos )
+    else if( c == '?' )
     {
-      prefix = filename_pattern.substr( 0, star_pos );
-      suffix = filename_pattern.substr( star_pos + 1 );
+      expr += '.';
     }
-
-    if( filesystem::exists( dir ) && filesystem::is_directory( dir ) )
+    else
     {
-      for( const auto& entry : filesystem::directory_iterator( dir ) )
+      if( std::string( ".^$|()[]{}+\\" ).find( c ) != std::string::npos )
       {
-        if( entry.is_regular_file() )
-        {
-          std::string fname = entry.path().filename().string();
-          bool matches = true;
+        expr += '\\';
+      }
+      expr += c;
+    }
+  }
 
-          if( !prefix.empty() && fname.find( prefix ) != 0 )
-          {
-            matches = false;
-          }
-          if( !suffix.empty() )
-          {
-            if( fname.size() < suffix.size() ||
-                fname.substr( fname.size() - suffix.size() ) != suffix )
-            {
-              matches = false;
-            }
-          }
+  const std::regex matcher( expr );
 
-          if( matches )
-          {
-            result.push_back( entry.path().string() );
-          }
-        }
+  if( filesystem::exists( dir ) && filesystem::is_directory( dir ) )
+  {
+    for( const auto& entry : filesystem::directory_iterator( dir ) )
+    {
+      if( entry.is_regular_file() &&
+          std::regex_match( entry.path().filename().string(), matcher ) )
+      {
+        result.push_back( entry.path().string() );
       }
     }
   }
 
   std::sort( result.begin(), result.end() );
   return result;
+}
+
+// =======================================================================================
+// Numeric field access that names the offending file and line
+
+[[noreturn]] static void parse_error( const std::string& file, size_t line,
+                                      const std::string& value )
+{
+  throw std::runtime_error( file + ":" + std::to_string( line ) +
+    ": expected a number, got \"" + value + "\"" );
+}
+
+static int to_int( const std::string& value, const std::string& file, size_t line )
+{
+  try
+  {
+    return std::stoi( value );
+  }
+  catch( const std::exception& )
+  {
+    parse_error( file, line, value );
+  }
+}
+
+static double to_double( const std::string& value, const std::string& file, size_t line )
+{
+  try
+  {
+    return std::stod( value );
+  }
+  catch( const std::exception& )
+  {
+    parse_error( file, line, value );
+  }
 }
 
 static void collect_csv_files_recursive( const filesystem::path& dir,
@@ -213,7 +242,8 @@ csv_applet
   m_cmd_options->add_options()
     ( "h,help", "Display usage information",
       ::cxxopts::value< bool >()->default_value( "false" ) )
-    ( "i,input", "Input file or glob pattern to process",
+    ( "i,input", "Input file, directory, or file name pattern to process. "
+      "Wildcards apply to the file name only, not to directories",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "decrease-fid", "Decrease frame IDs in files by 1",
       ::cxxopts::value< bool >()->default_value( "false" ) )
@@ -354,8 +384,12 @@ csv_applet
     }
 
     std::string line;
+    size_t line_number = 0;
+
     while( std::getline( fin, line ) )
     {
+      ++line_number;
+
       auto parsed = split_string( line, ',' );
       if( parsed.size() >= 2 )
       {
@@ -408,8 +442,12 @@ csv_applet
     bool has_non_single = false;
 
     std::string line;
+    size_t line_number = 0;
+
     while( std::getline( fin, line ) )
     {
+      ++line_number;
+
       // Handle comment lines
       if( !line.empty() && ( line[0] == '#' || line.substr( 0, 9 ) == "target_id" ) )
       {
@@ -430,7 +468,7 @@ csv_applet
       // Apply confidence threshold
       if( opt_conf_threshold > 0 && parsed_line.size() > 7 )
       {
-        double conf = std::stod( parsed_line[7] );
+        double conf = to_double( parsed_line[7], input_file, line_number );
         if( conf < opt_conf_threshold )
         {
           if( opt_print_filtered && printed_ids.find( parsed_line[0] ) == printed_ids.end() )
@@ -459,17 +497,19 @@ csv_applet
       // Frame ID adjustment
       if( opt_decrease_fid )
       {
-        parsed_line[2] = std::to_string( std::stoi( parsed_line[2] ) - 1 );
+        parsed_line[2] = std::to_string(
+          to_int( parsed_line[2], input_file, line_number ) - 1 );
       }
 
       if( opt_increase_fid )
       {
-        parsed_line[2] = std::to_string( std::stoi( parsed_line[2] ) + 1 );
+        parsed_line[2] = std::to_string(
+          to_int( parsed_line[2], input_file, line_number ) + 1 );
       }
 
       if( opt_lower_fid > 0 )
       {
-        int fid = std::stoi( parsed_line[2] );
+        int fid = to_int( parsed_line[2], input_file, line_number );
         if( fid < opt_lower_fid )
         {
           continue;
@@ -479,7 +519,7 @@ csv_applet
 
       if( opt_upper_fid > 0 )
       {
-        int fid = std::stoi( parsed_line[2] );
+        int fid = to_int( parsed_line[2], input_file, line_number );
         if( fid > opt_upper_fid - opt_lower_fid )
         {
           continue;
@@ -520,7 +560,7 @@ csv_applet
           }
           if( i + 1 < parsed_line.size() )
           {
-            double score = std::stod( parsed_line[i + 1] );
+            double score = to_double( parsed_line[i + 1], input_file, line_number );
             if( score > top_score )
             {
               top_category = parsed_line[i];
@@ -563,8 +603,10 @@ csv_applet
         // Average box size calculation
         if( opt_average_box_size )
         {
-          double box_width = std::stod( parsed_line[5] ) - std::stod( parsed_line[3] );
-          double box_height = std::stod( parsed_line[6] ) - std::stod( parsed_line[4] );
+          double box_width = to_double( parsed_line[5], input_file, line_number ) -
+                             to_double( parsed_line[3], input_file, line_number );
+          double box_height = to_double( parsed_line[6], input_file, line_number ) -
+                              to_double( parsed_line[4], input_file, line_number );
           type_sizes[ top_category ] += ( box_width * box_height );
         }
 
@@ -809,7 +851,8 @@ csv_applet
     for( const auto& size_pair : type_sizes )
     {
       double avg_size = size_pair.second / type_counts[ size_pair.first ];
-      std::cout << size_pair.first << " " << avg_size << " "
+      std::cout << size_pair.first << " "
+                << std::setprecision( 17 ) << avg_size << " "
                 << type_counts[ size_pair.first ] << std::endl;
     }
   }

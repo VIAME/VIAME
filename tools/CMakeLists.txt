@@ -19,7 +19,6 @@ set( PYTHON_SCRIPTS
   process_video.py
   survey_metadata.py
   train_detection_fusion.py
-  viame_csv_tool.py
 )
 
 if( VIAME_ENABLE_OPENCV )
