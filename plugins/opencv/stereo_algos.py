@@ -142,7 +142,7 @@ class DetectedObject(ub.NiceRepr):
         self.mask = mask
         # keep track of the scale factor from mask to bbox
         self.bbox_factor = 1.0
-        self._special_pts = None
+        self._special_pts = special_keypoints
 
     def __nice__(self):
         return self.bbox.__nice__()
@@ -155,27 +155,31 @@ class DetectedObject(ub.NiceRepr):
         oriented bounding boxes are used as a proxy.
         """
         if self._special_pts is not None:
-            special_pts = self._special_pts
+            return self._special_pts
+        return self.box_proxy_keypoints()
+
+    def box_proxy_keypoints(self):
+        """
+        Corners of the oriented bounding box, used when a detector supplies no
+        keypoints of its own.
+        """
+        box_pts = self.box_points()
+        if False:
+            # Use 4 corners and center to ensure matrix math is good
+            # (hard to debug when ndims == npts, so make npts >> ndims)
+            special_pts = {
+                'hacked_xy0': box_pts[0],  # will be the bottom right
+                'hacked_xy1': box_pts[1],  # next clockwise point
+                'hacked_xy2': box_pts[2],  # topmost point
+                'hacked_xy3': box_pts[4],
+                'hacked_center': self.oriented_bbox().center,
+            }
         else:
-            # This hack returns the corners of the bounding box as proxies for
-            # special keypoints (e.g. the head and tail of a fish).
-            box_pts = self.box_points()
-            if False:
-                # Use 4 corners and center to ensure matrix math is good
-                # (hard to debug when ndims == npts, so make npts >> ndims)
-                special_pts = {
-                    'hacked_xy0': box_pts[0],  # will be the bottom right
-                    'hacked_xy1': box_pts[1],  # next clockwise point
-                    'hacked_xy2': box_pts[2],  # topmost point
-                    'hacked_xy3': box_pts[4],
-                    'hacked_center': self.oriented_bbox().center,
-                }
-            else:
-                # Use only the corners of the bbox
-                special_pts = {
-                    'hacked_xy0': box_pts[0],  # bottom-most point
-                    'hacked_xy2': box_pts[2],  # top-most point
-                }
+            # Use only the corners of the bbox
+            special_pts = {
+                'hacked_xy0': box_pts[0],  # bottom-most point
+                'hacked_xy2': box_pts[2],  # top-most point
+            }
         return special_pts
 
     def center_keypoints(self):
@@ -185,6 +189,10 @@ class DetectedObject(ub.NiceRepr):
         If the _special_pts attriute is not explicitly set, the corners of the
         oriented bounding boxes are used as a proxy.
         """
+        if self._special_pts is not None and \
+           'head' in self._special_pts and 'tail' in self._special_pts:
+            return self._special_pts['head'], self._special_pts['tail']
+
         # This hack returns the corners of the bounding box as proxies for
         # special keypoints (e.g. the head and tail of a fish).
         box_pts = self.box_points()
@@ -775,6 +783,13 @@ class StereoLengthMeasurments(object):
             # reprojection error so we can check if this assumption holds
             pts1 = det1.special_keypoints()
             pts2 = det2.special_keypoints()
+
+            # triangulate() pairs the two views by key name, so a detection
+            # carrying real keypoints cannot be matched against one falling
+            # back to box proxies. Drop both to proxies when they disagree.
+            if sorted(pts1.keys()) != sorted(pts2.keys()):
+                pts1 = det1.box_proxy_keypoints()
+                pts2 = det2.box_proxy_keypoints()
 
             if len(pts1) != 2:
                 raise NotImplementedError('cant handle > 2 points yet')

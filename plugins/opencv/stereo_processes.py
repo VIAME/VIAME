@@ -339,15 +339,18 @@ class MeasureProcess(KwiverProcess):
                     mask = None
                 ct_bbox = ctalgo.BoundingBox(coords)
 
-                # TODO: to measure distances between special keypoint
-                # detections add an additional argument to DetectedObject
-                # >>> special_keypoints = {
-                # ...    'head': [x1, y1],
-                # ...    'tail': [x2, y2],
-                # ... }
-                # >>> ct_det = ctalgo.DetectedObject(
-                # ...     ct_bbox, mask, special_keypoints=special_keypoints)
-                ct_det = ctalgo.DetectedObject(ct_bbox, mask)
+                # Measure between the detector's own head/tail points when it
+                # emits them; otherwise the box proxies are used downstream.
+                kps = vital_det.keypoints
+                special_keypoints = None
+                if kps and 'head' in kps and 'tail' in kps:
+                    special_keypoints = {
+                        name: np.asarray(kps[name].value, dtype=float)
+                        for name in ('head', 'tail')
+                    }
+
+                ct_det = ctalgo.DetectedObject(
+                    ct_bbox, mask, special_keypoints=special_keypoints)
                 yield ct_det
 
         detections1 = list(_detections_from_vital(detection_set1))
