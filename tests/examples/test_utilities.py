@@ -125,8 +125,16 @@ def get_script_path(category, script_name):
     return get_examples_dir(category) / script_name
 
 
-def run_example_script(script_path, working_dir=None, timeout=300, env=None,
-                       timeout_is_success=False):
+# ctest gives each example test EXAMPLE_TEST_TIMEOUT (600s) of wall clock, but
+# this helper used to cap the script itself at 300s, so no example could ever
+# use more than half its budget and the ctest timeout was unreachable. Sit far
+# enough under 600 that the script's own timeout fires first -- that reports
+# which script hung, where a ctest kill only reports that the test did.
+DEFAULT_SCRIPT_TIMEOUT = 540
+
+
+def run_example_script(script_path, working_dir=None, timeout=DEFAULT_SCRIPT_TIMEOUT,
+                       env=None, timeout_is_success=False):
     """
     Run an example shell script and return the result.
 
@@ -240,7 +248,8 @@ def run_example_script(script_path, working_dir=None, timeout=300, env=None,
             raise
 
 
-def assert_script_runs_successfully(script_path, working_dir=None, timeout=300, env=None,
+def assert_script_runs_successfully(script_path, working_dir=None,
+                                   timeout=DEFAULT_SCRIPT_TIMEOUT, env=None,
                                      timeout_is_success=False):
     """
     Assert that a script runs without error and produces non-empty output.
