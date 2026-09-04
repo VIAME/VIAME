@@ -8,7 +8,7 @@ set( Python_VERSION ${VIAME_PYTHON_VERSION} CACHE INTERNAL "Forced" FORCE )
 set( Python_FOUND TRUE CACHE INTERNAL "Forced" FORCE )
 set( Python_SOABI ""   CACHE INTERNAL "Forced" FORCE )
 
-string(REGEX MATCH "^[0-9]+\\.[0-9]+" PY_VER "${VIAME_PYTHON_VERSION}")
+set( PY_VER "${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}" )
 set( Python_INCLUDE_DIR ${VIAME_INSTALL_PREFIX}/include/python${PY_VER} CACHE PATH "Forced" FORCE )
 set( PYTHON_INCLUDE_DIRS ${VIAME_INSTALL_PREFIX}/include/python${PY_VER} CACHE PATH "Forced" FORCE )
 
@@ -20,9 +20,10 @@ if( WIN32 )
   # library name, and it cannot resolve one for python3.lib, which makes the
   # Development.Module and Development.Embed components report as missing in
   # downstream projects such as kwiver.
-  set( Python_LIBRARY
-    ${VIAME_INSTALL_PREFIX}/lib/python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}.lib
-    CACHE PATH "Forced" FORCE )
+  set( PY_LIB_WIN "${VIAME_INSTALL_PREFIX}/lib/python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}.lib" )
+  set( Python_LIBRARY   ${PY_LIB_WIN} CACHE PATH "Forced" FORCE )
+  set( PYTHON_LIBRARY   ${PY_LIB_WIN} CACHE PATH "Forced" FORCE )
+  set( PYTHON_LIBRARIES ${PY_LIB_WIN} CACHE PATH "Forced" FORCE )
 else()
   set( Python_EXECUTABLE ${VIAME_INSTALL_PREFIX}/bin/python CACHE PATH "Forced" FORCE )
   set( Python_LIBRARY ${VIAME_INSTALL_PREFIX}/lib/libpython${PY_VER}.so CACHE PATH "Forced" FORCE )
