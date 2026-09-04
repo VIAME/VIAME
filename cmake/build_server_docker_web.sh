@@ -48,15 +48,28 @@ run_build build_log.txt true
 # Fix libsvm symlink issue
 fix_libsvm_symlink install
 
-# Must run before finalize_docker_install removes /viame and the ctest tree
+# Must run before finalize_docker_install removes /viame and the ctest tree.
+# Only worth running if there is a GPU here: docker build gets the daemon's
+# default runtime, normally runc, so pipelines fall back to the CPU and the
+# heavy ones time out on an image that is fine. measure_via_default_fish takes
+# 52s on a GPU and does not finish in 540s without one. Gate from outside the
+# build instead, where --gpus can be passed.
 CRITICAL_TESTS_STATUS=0
-run_critical_tests /viame/build /viame/build/install || CRITICAL_TESTS_STATUS=$?
+if nvidia-smi -L >/dev/null 2>&1; then
+  run_critical_tests /viame/build /viame/build/install || CRITICAL_TESTS_STATUS=$?
+else
+  echo "No GPU visible to the build, skipping CRITICAL tests"
+  CRITICAL_TESTS_SKIPPED=1
+fi
 
 # Finalize Docker install
 finalize_docker_install /viame/build
 
 # Mark the image rather than fail the RUN, which would discard the whole build
-if [ "$CRITICAL_TESTS_STATUS" -ne 0 ]; then
+if [ -n "${CRITICAL_TESTS_SKIPPED:-}" ]; then
+  echo "CRITICAL_TESTS_SKIPPED" > /opt/noaa/viame/CRITICAL_TESTS_SKIPPED
+  echo "CRITICAL tests skipped, validate this image with --gpus"
+elif [ "$CRITICAL_TESTS_STATUS" -ne 0 ]; then
   echo "CRITICAL_TESTS_FAILED" > /opt/noaa/viame/CRITICAL_TESTS_FAILED
   echo "================================================================"
   echo "CRITICAL tests FAILED -- image is marked broken"
