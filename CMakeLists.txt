@@ -93,9 +93,9 @@ option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 ###
 # Add core user interface enable flags
 ##
+option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               ON )
 option( VIAME_ENABLE_VIVIA          "Enable VIVIA GUIs"             OFF )
 option( VIAME_ENABLE_SEAL           "Enable SEAL GUI"               OFF )
-option( VIAME_ENABLE_DIVE           "Enable DIVE GUI"               ON )
 option( VIAME_ENABLE_KEYPOINT       "Enable Keypoint GUI"           OFF )
 
 mark_as_advanced( VIAME_ENABLE_KEYPOINT )
@@ -103,17 +103,17 @@ mark_as_advanced( VIAME_ENABLE_KEYPOINT )
 ###
 # Add default-enabled algorithmic plugin enable flags
 ##
-option( VIAME_ENABLE_VXL            "Enable VXL plugins"            ON )
-option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         ON )
 option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         ON )
 option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        ON )
+option( VIAME_ENABLE_ONNX           "Enable ONNX runtime plugins"   ON )
+option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         ON )
 option( VIAME_ENABLE_DARKNET        "Enable Darknet (YOLO) plugin"  ON )
 option( VIAME_ENABLE_SVM            "Enable SVM plugins"            ON )
+option( VIAME_ENABLE_VXL            "Enable VXL plugins"            ON )
 
 ###
 # Add secondary algorithm plugin enable flags (non-advanced)
 ##
-option( VIAME_ENABLE_ONNX           "Enable ONNX runtime plugins"   ON )
 option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
 option( VIAME_ENABLE_TENSORRT       "Enable TensorRT plugins"       OFF )
 option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
@@ -123,7 +123,7 @@ option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 ##
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 option( VIAME_ENABLE_SEAGIS         "Enable SEAGIS StereoLib"       OFF )
-option( VIAME_ENABLE_COLMAP         "Enable COLMAP 3D reconstruction (pycolmap)" OFF )
+option( VIAME_ENABLE_COLMAP         "Enable COLMAP regisration"     OFF )
 
 mark_as_advanced( VIAME_ENABLE_GDAL )
 mark_as_advanced( VIAME_ENABLE_SEAGIS )
