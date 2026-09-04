@@ -112,24 +112,21 @@ struct training_data_statistics
   bool has_keypoints = false;
 
   // -------------------------------------------------------------------------
-  // Track presence. Detections carry their track id in index(), zero when the
-  // groundtruth had no track column.
+  // Track presence
   size_t objects_with_tracks = 0;
   double track_fraction = 0;
   bool has_tracks = false;
   double mean_track_length = 0;
 
   // -------------------------------------------------------------------------
-  // Source image geometry, sampled from the training images themselves rather
-  // than inferred from box extents, so a model can be picked by resolution.
+  // Source image geometry, sampled from the images rather than box extents
   std::vector< double > sampled_image_widths;
   std::vector< double > sampled_image_heights;
   double median_image_width = 0;
   double median_image_height = 0;
 
   // -------------------------------------------------------------------------
-  // Recall of the stock generic detector over a sample of training frames.
-  // Negative means the probe did not run.
+  // Recall of the stock generic detector, negative if the probe did not run
   double generic_detector_recall = -1.0;
 
   // -------------------------------------------------------------------------
@@ -314,8 +311,7 @@ training_data_statistics::compute_summary(
     keypoint_fraction = static_cast< double >( objects_with_keypoints ) / n;
     has_keypoints = ( keypoint_fraction > 0.5 );
 
-    // objects_with_tracks is filled in after this runs, so track_fraction and
-    // has_tracks are set alongside mean_track_length instead.
+    // track_fraction and has_tracks are set later, with mean_track_length
   }
 
   // -------------------------------------------------------------------------
@@ -464,8 +460,7 @@ struct trainer_config
   std::string overlap_preference;            // "low", "medium", "high", or empty
   bool prefers_masks = false;
 
-  // Tracker pipeline shape this branch needs, when its detector is not a single
-  // image_object_detector the stock tracker template can slot in.
+  // Tracker template for detectors the stock single-detector one cannot hold
   std::string tracker_pipeline_template;
 
   // Computed preference score
@@ -565,9 +560,7 @@ compute_statistics_from_groundtruth(
 {
   stats = training_data_statistics();  // Reset
 
-  // Track id -> number of states, used below for mean track length. Local to
-  // this pass: the helper is stateless so a second analysis cannot inherit
-  // counts from the first.
+  // Track id -> number of states, for mean track length
   std::map< uint64_t, size_t > track_id_counts;
 
   // We'll estimate image dimensions from bounding boxes if not available
@@ -656,8 +649,7 @@ compute_statistics_from_groundtruth(
           stats.objects_with_keypoints++;
         }
 
-        // index() carries the csv track id. Every row has one, so presence
-        // says nothing; how often an id repeats is what separates tracking
+        // Every csv row has an id, so only repetition separates tracking
         // groundtruth from loose detections.
         track_id_counts[ (*detection)->index() ]++;
 
@@ -760,9 +752,8 @@ compute_statistics_from_groundtruth(
 
 
 // -----------------------------------------------------------------------------
-// Read the header of a spread of training images so a recipe can be chosen by
-// source resolution. Sampled rather than exhaustive: this runs before any
-// training and a full pass over a video corpus is not worth the wall time.
+// Sample source resolution so a recipe can be chosen by it. Not exhaustive:
+// a full pass over a video corpus is not worth the wall time.
 void
 adaptive_detector_trainer::priv::sample_image_dimensions()
 {
@@ -817,10 +808,8 @@ adaptive_detector_trainer::priv::sample_image_dimensions()
 
 
 // -----------------------------------------------------------------------------
-// Measure how well the stock detector already does on this data, so a cheap
-// classifier over its proposals can be preferred to training a detector from
-// scratch. Only worth the inference cost on small problems, which is what
-// generic_probe_max_annotations bounds.
+// Recall of the stock detector on this data, so a classifier over its
+// proposals can be preferred to training a detector from scratch.
 void
 adaptive_detector_trainer::priv::run_generic_detector_probe()
 {
@@ -890,9 +879,7 @@ adaptive_detector_trainer::priv::run_generic_detector_probe()
         continue;
       }
 
-      // Class-agnostic on purpose: the question is whether the stock detector
-      // finds the objects at all. Naming them is what a classifier trained on
-      // top of its proposals would be for.
+      // Class-agnostic on purpose: only whether the objects are found matters
       for( auto det = found->cbegin(); det != found->cend(); ++det )
       {
         if( compute_iou( (*gt)->bounding_box(), (*det)->bounding_box() ) >=
@@ -939,9 +926,7 @@ check_hard_requirements(
     return false;
   }
 
-  // Source resolution, so a high-resolution recipe is not run on small imagery
-  // and vice versa. A zero median means no image could be sampled; treat that
-  // as unknown and let the trainer through rather than silently excluding all.
+  // Zero median means nothing was sampled; treat as unknown, not as a failure
   if( stats.median_image_width > 0 )
   {
     if( tc.required_min_image_width > 0 &&
@@ -979,8 +964,7 @@ check_hard_requirements(
     return false;
   }
 
-  // Recall of the stock detector. A negative recall means the probe never ran,
-  // which fails the requirement: an unmeasured detector is not a good one.
+  // Negative recall means the probe never ran, which fails the requirement
   if( tc.required_min_generic_recall > 0 &&
       stats.generic_detector_recall < tc.required_min_generic_recall )
   {
@@ -1490,10 +1474,8 @@ adaptive_detector_trainer
   d->m_image_sample_count =
     config->get_value< size_t >( "image_sample_count", 25 );
 
-  // Optional, and never fatal: the stock detector's model is an add-on that
-  // may not be installed. Without it the probe is skipped and any trainer
-  // gated on generic recall simply never runs, rather than the whole training
-  // job dying before it starts.
+  // Optional: the stock detector's model is an add-on that may not be
+  // installed, in which case trainers gated on generic recall never run.
   if( !config->get_value< std::string >( "generic_probe_detector:type", "" ).empty() )
   {
     try
@@ -1665,8 +1647,7 @@ adaptive_detector_trainer
     c_rare_class_threshold, c_dominant_class_threshold,
     c_verbose, d->m_logger );
 
-  // Both of these read images off disk, so they only run for the disk-backed
-  // path; add_data_from_memory has no file names to sample.
+  // Disk-backed path only; add_data_from_memory has no file names to sample
   d->sample_image_dimensions();
   d->run_generic_detector_probe();
 

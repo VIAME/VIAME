@@ -16,9 +16,8 @@ if( VIAME_ENABLE_PYTHON )
 
   FormatPassdowns( "Python" VIAME_PYTHON_FLAGS )
 
-  # KWIVER generates its vital.algo pybind11 wrappers by parsing headers with
-  # castxml, whose bundled clang cannot read the newest MSVC standard library.
-  # Forward the older toolset to emulate when a platform file names one.
+  # castxml cannot parse the newest MSVC headers, so a platform file may
+  # name an older toolset for it to emulate
   if( KWIVER_PYBIND11_CASTXML_COMPILER )
     list( APPEND VIAME_PYTHON_FLAGS
       -DKWIVER_PYBIND11_CASTXML_COMPILER:FILEPATH=${KWIVER_PYBIND11_CASTXML_COMPILER} )
@@ -28,23 +27,15 @@ endif()
 if( VIAME_ENABLE_CUDA )
   FormatPassdowns( "CUDA" VIAME_CUDA_FLAGS )
 
-  # FormatPassdowns only forwards variables whose names begin with "CUDA", so
-  # the CMAKE_CUDA_* language variables never cross on their own. Without them
-  # KWIVER has to work out its own CUDA compiler, and its fallback is a bare
-  # find_package( CUDAToolkit ) that searches the system -- which can select a
-  # different toolkit than the one VIAME configured against. Hand it the same
-  # nvcc and toolkit root we resolved above so there is one source of truth.
+  # FormatPassdowns only forwards CUDA_*; without these KWIVER may resolve a
+  # different toolkit on its own
   list( APPEND VIAME_CUDA_FLAGS
     -DCMAKE_CUDA_COMPILER:FILEPATH=${CUDA_NVCC_EXECUTABLE}
     -DCUDAToolkit_ROOT:PATH=${CUDA_TOOLKIT_ROOT_DIR} )
 
   if( WIN32 )
-    # Naming the compiler is not enough under the Visual Studio generator: the
-    # .vcxproj MSBuild writes still needs the CUDA build customizations, which
-    # the toolkit only drops into the Visual Studio versions that were present
-    # when it was installed. Point KWIVER at the copy the toolkit keeps, the
-    # same way darknet does, or enable_language( CUDA ) aborts the configure
-    # with "No CUDA toolset found".
+    # The VS generator also needs the toolkit's CUDA build customizations,
+    # or enable_language( CUDA ) fails with "No CUDA toolset found"
     set( KWIVER_GENERATOR_OVERRIDE
       -DCMAKE_GENERATOR_TOOLSET:STRING=cuda=${CUDA_TOOLKIT_ROOT_DIR} )
   endif()

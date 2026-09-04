@@ -234,9 +234,8 @@ create_viame_csv_detection(
     dob = std::make_shared< kwiver::vital::detected_object >( bbox, conf );
   }
 
-  // Column 0 is the track id for track data and a unique per-detection id
-  // otherwise. Carrying it through lets consumers tell the two apart by how
-  // often an id repeats; detections read as tracks of one.
+  // Column 0 is kept so consumers can tell tracks from loose detections by
+  // whether ids repeat.
   const long long id = atoll( cols[VIAME_CSV_COL_DET_ID].c_str() );
   if( id >= 0 )
   {
@@ -618,9 +617,8 @@ read_detected_object_set_viame_csv::priv
       dob->set_attribute( "length", length );
     }
 
-    // Column 0 is the track id for track data and a unique per-detection id
-    // otherwise. Carrying it through lets consumers tell the two apart by how
-    // often an id repeats; detections read as tracks of one.
+    // Column 0 is kept so consumers can tell tracks from loose detections by
+    // whether ids repeat.
     const long long track_id = atoll( col[COL_DET_ID].c_str() );
     if( track_id >= 0 )
     {

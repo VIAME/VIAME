@@ -790,8 +790,7 @@ static void process_trainer_output(
       continue;
     }
 
-    // A trainer can name the tracker pipeline its detector shape needs, in
-    // place of the one the config asked for. Consumed here, not copied.
+    // Consumed here, not copied through like the other keys
     if( key == "tracker_pipeline_template" && !value.empty() )
     {
       branch_tracker_template = value;
@@ -832,9 +831,8 @@ static void process_trainer_output(
     }
   }
 
-  // Build [-DETECTOR-IMPL-] replacement from full trainer output. Only a
-  // detector fills that slot; a tracker sharing the template would otherwise
-  // substitute itself in as the detector.
+  // Only a detector fills [-DETECTOR-IMPL-]; a tracker sharing the template
+  // would otherwise substitute itself in as the detector.
   if( is_detector )
   {
     std::string impl = generate_detector_impl_replacement(
@@ -944,8 +942,7 @@ static void process_trainer_output(
     std::string output_pipeline = output_directory.empty() ?
       output_pipeline_name : append_path( output_directory, output_pipeline_name );
 
-    // A tracker trains after the detector and completes the pipeline the
-    // detector pass began, rather than starting over from the template.
+    // A tracker continues the pipeline the detector pass wrote, not the template
     const std::string source_template =
       ( fill_into_existing_pipeline && does_file_exist( output_pipeline ) )
         ? output_pipeline : pipeline_template;
@@ -960,13 +957,11 @@ static void process_trainer_output(
       std::cerr << "Warning: failed to generate pipeline from template" << std::endl;
     }
 
-    // A trainer whose detector is a chain of processes needs a tracker pipeline
-    // built around that chain, not the stock single-detector one.
+    // A multi-process detector needs a tracker template built around its chain
     const std::string tracker_template = branch_tracker_template.empty() ?
       secondary_template : branch_tracker_template;
 
-    // Pre-render the pipeline a later training stage will finish, carrying
-    // this stage's substitutions forward
+    // Pre-render the pipeline a later training stage will finish
     if( !tracker_template.empty() && does_file_exist( tracker_template ) &&
         !secondary_pipeline_name.empty() )
     {
@@ -1240,10 +1235,7 @@ train_applet
               << " models will be trained sequentially" << std::endl;
   }
 
-  // Supervision is off unless asked for. Look for claude up front so that in
-  // the opt-in auto mode the offer is made at start up rather than after the
-  // user has already waited through setup. "on" and "off" are taken at face
-  // value.
+  // Resolve claude up front so auto mode can make its offer before setup
   std::string claude_cmd;
   bool llm_supervised = false;
 
@@ -1286,9 +1278,7 @@ train_applet
 
       std::cout << std::endl;
     }
-    // Auto mode with --no-query cannot ask, so it stays off. Use
-    // "--llm-assist on" to enable supervision without being prompted, or
-    // "--llm-assist auto" to be offered it when claude is present.
+    // Auto mode with --no-query cannot ask, so it stays off
   }
 
   // Load KWIVER plugins
@@ -2766,10 +2756,8 @@ train_applet
       train_gt.begin() + validation_pivot, train_gt.end() );
   }
 
-  // Turn on tracker training when the groundtruth is actually tracks. The id in
-  // index() comes from column 0 of the viame csv, which is a track id for track
-  // data and a unique per-detection id otherwise, so presence says nothing and
-  // repetition says everything: loose detections average one state per id.
+  // Train a tracker only when the groundtruth is tracks: every csv row has an
+  // id, so repetition rather than presence is what distinguishes them.
   const std::string auto_tracker =
     config->get_value< std::string >( "auto_train_tracker", "" );
 
@@ -3449,8 +3437,7 @@ train_applet
       std::string current_tracker = training_trackers[ tracker_idx ];
       std::cout << std::endl << "Training tracker: " << current_tracker << std::endl;
 
-      // Start from the run's own configuration rather than the defaults, so a
-      // single -c file can carry both the detector and the tracker it wants.
+      // Merge the run's config so one -c file can carry detector and tracker
       kv::config_block_sptr tracker_config = default_config();
       tracker_config->merge_config( config );
       tracker_config->set_value( "tracker_trainer:type", current_tracker );

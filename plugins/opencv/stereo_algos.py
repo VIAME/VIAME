@@ -784,9 +784,8 @@ class StereoLengthMeasurments(object):
             pts1 = det1.special_keypoints()
             pts2 = det2.special_keypoints()
 
-            # triangulate() pairs the two views by key name, so a detection
-            # carrying real keypoints cannot be matched against one falling
-            # back to box proxies. Drop both to proxies when they disagree.
+            # triangulate() pairs views by key name, so mixed real and proxy
+            # keypoints cannot match; fall back to proxies on both sides.
             if sorted(pts1.keys()) != sorted(pts2.keys()):
                 pts1 = det1.box_proxy_keypoints()
                 pts2 = det2.box_proxy_keypoints()

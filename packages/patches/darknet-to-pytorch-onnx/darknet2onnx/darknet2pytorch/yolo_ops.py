@@ -88,9 +88,7 @@ class Reorg(nn.Module):
         assert (W % stride == 0)
         ws = stride
         hs = stride
-        # Integer division: these are view() shapes, and on Python 3 the
-        # original "/" yields floats, which view() rejects. Only the YOLOv2
-        # passthrough uses this layer, which is why it went unnoticed.
+        # upstream uses "/", which yields floats that view() rejects
         x = x.view(B, C, H // hs, hs, W // ws, ws).transpose(3, 4).contiguous()
         x = x.view(B, C, H // hs * W // ws, hs * ws).transpose(2, 3).contiguous()
         x = x.view(B, C, hs * ws, H // hs, W // ws).transpose(1, 2).contiguous()

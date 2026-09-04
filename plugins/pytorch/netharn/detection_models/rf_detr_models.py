@@ -522,8 +522,6 @@ class RFDETR_Detector(nh.layers.Module):
 
         variant_to_config_cls = {
             'base': rfdetr_config.RFDETRBaseConfig,
-            # The 2026 ViT-S large (patch 16), matching what the rf_detr
-            # lightning trainer calls 'large'
             'large': rfdetr_config.RFDETRLargeConfig,
             'small': rfdetr_config.RFDETRSmallConfig,
             'medium': rfdetr_config.RFDETRMediumConfig,
@@ -538,8 +536,7 @@ class RFDETR_Detector(nh.layers.Module):
             'num_classes': self.num_classes,
             'device': 'cuda' if torch.cuda.is_available() else 'cpu',
             'segmentation_head': self.segmentation_head,
-            # group_detr=1 matches how this wrapper has always built the
-            # model; upstream trains with 13, which changes query shapes
+            # upstream trains with group_detr=13, which changes query shapes
             'group_detr': 1,
         }
         if num_queries is not None:
@@ -551,9 +548,7 @@ class RFDETR_Detector(nh.layers.Module):
         try:
             return variant_to_config_cls[variant](**overrides)
         except Exception as ex:
-            # rfdetr validates resolution divisibility per variant; fall back
-            # to the variant's own default rather than failing on a window
-            # size the variant cannot take, and let rf-detr resize internally
+            # resolution failed the variant's divisibility check; use its default
             if 'resolution' not in overrides:
                 raise
             import warnings
@@ -573,8 +568,6 @@ class RFDETR_Detector(nh.layers.Module):
                                    load_pretrain_weights)
 
         if weight_path is True:
-            # Keep the variant's default weight name, resolved into the
-            # rfdetr cache dir the same way the upstream facade does
             pretrain = model_config.pretrain_weights
             if pretrain and not os.path.dirname(pretrain):
                 cache_dir = get_model_cache_dir()
@@ -589,7 +582,6 @@ class RFDETR_Detector(nh.layers.Module):
         model = build_model_from_config(model_config, train_config)
 
         if model_config.pretrain_weights is not None:
-            # Downloads if missing, aligns class heads, filters mismatches
             load_pretrain_weights(model, model_config)
 
         criterion, postprocess = build_criterion_from_config(

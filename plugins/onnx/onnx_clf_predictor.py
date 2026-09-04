@@ -5,19 +5,11 @@
 """
 ONNX image-classifier inference, via onnxruntime -- no PyTorch.
 
-Companion to :mod:`viame.onnx.onnx_predictor` (detectors). Classification is a
-different enough contract to keep separate: no boxes, no NMS, a dynamic batch
-axis, and a letterbox resize rather than the detectors' squash.
-
 Reads a ``.modelspec.json`` sidecar written by
 :mod:`viame.pytorch.netharn_clf_to_onnx`, whose graph takes ``(N, 3, H, W)`` RGB
-in ``[0, 1]`` and returns ``(N, C)`` softmax probabilities. The netharn
-``InputNorm`` lives inside the graph, so by default this only rescales; a spec
-carrying a non-identity ``normalize_mean``/``normalize_std`` is still honored.
-
-Reproduces the preprocessing of netharn's ``ImageListDataset`` /
-``ClfSamplerDataset``: ``kwimage.imresize(..., letterbox=True)`` -- aspect
-preserved, centered, zero padded -- then ``/ 255``.
+in ``[0, 1]`` and returns ``(N, C)`` softmax probabilities. Preprocessing
+matches netharn's datasets: ``kwimage.imresize(..., letterbox=True)``, then
+``/ 255``.
 
 Requires: onnxruntime, numpy, opencv (cv2).
 """
@@ -30,23 +22,9 @@ from viame.onnx.onnx_predictor import (
 
 
 def letterbox_resize(image, height, width):
-    """Aspect-preserving resize into a zero-padded (height, width) canvas.
-
-    A deliberate, pixel-exact port of ``kwimage.imresize(..., letterbox=True)``,
-    which is what netharn's classifier datasets use. Two details matter and are
-    easy to get wrong:
-
-    * **Interpolation is chosen from the scale.** kwimage defaults to
-      ``INTER_AREA`` when shrinking and ``INTER_LANCZOS4`` when growing. Using
-      ``INTER_LINEAR`` throughout visibly changes a whole-frame classification,
-      where a 1360x1024 frame is shrunk ~6x into 224x224.
-    * **The pad offset is rounded, not floored** -- ``round((target - embed)/2)``
-      -- so an odd leftover puts the extra pixel on the top/left, not the
-      bottom/right. Flooring shifts the content one pixel.
-
-    Chips are rarely square, so this is not interchangeable with the squash
-    resize the detectors use.
-    """
+    """Pixel-exact port of ``kwimage.imresize(..., letterbox=True)``: INTER_AREA
+    when shrinking, INTER_LANCZOS4 when growing, pad offset rounded rather than
+    floored."""
     import cv2
     if image.ndim == 2:
         image = np.repeat(image[..., None], 3, axis=-1)

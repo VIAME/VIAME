@@ -23,10 +23,7 @@ def readme():
 
 
 def get_version():
-    # Python 3.13 (PEP 667) hands exec() a snapshot of the function locals
-    # rather than the live mapping, so a bare exec() writes into a throwaway
-    # dict and the assignment is gone by the time locals() is read again.
-    # Give exec an explicit namespace and read the version back out of it.
+    # Python 3.13 (PEP 667): exec() into locals() no longer sticks
     version_ns = {}
     with open(os.path.join(pwd, version_file), 'r') as f:
         exec(compile(f.read(), version_file, 'exec'), version_ns)

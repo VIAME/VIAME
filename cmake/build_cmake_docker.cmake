@@ -13,9 +13,7 @@ set(VIAME_BUILD_PYTHON_FROM_SOURCE OFF CACHE BOOL "Build Python from source")
 # PyTorch settings for Docker
 set(VIAME_BUILD_LIMIT_NINJA ON CACHE BOOL "Disable Ninja for PyTorch")
 
-# Register the ctest targets so build_server_docker_web.sh can gate the image
-# on the CRITICAL suite. Without this the tests are never even configured,
-# which is how an image that could not run a single pipeline shipped.
+# Needed for the CRITICAL test gate in build_server_docker_web.sh
 set(VIAME_ENABLE_TESTS ON CACHE BOOL "Build VIAME tests")
 
 # Typically disabled in Docker builds

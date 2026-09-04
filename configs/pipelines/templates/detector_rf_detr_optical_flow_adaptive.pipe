@@ -29,12 +29,8 @@ process motion_filter
 
   block filter:ocv_optical_flow
     :output                                    magnitude
-    # Adaptive rather than a fixed 8 px full scale. Magnitude at 5 fps spans
-    # roughly 0.01-1.24 px at the 95th percentile across this corpus, so a fixed
-    # 8 px leaves most sequences encoded into the bottom few percent of the byte
-    # range. Per-frame percentile scaling spends the range on the motion each
-    # frame actually has; the floor keeps genuinely still footage dark instead
-    # of amplifying its noise to full scale.
+    # A fixed full scale buries low-motion footage in the bottom of the byte
+    # range; the min scale keeps still footage from being amplified to noise.
     :normalize                                 adaptive
     :adaptive_percentile                       99.0
     :adaptive_min_scale                        0.5

@@ -5,15 +5,10 @@
 """
 Whole-frame ONNX classifier (kwiver vital algorithm ``onnx_classifier``).
 
-The onnxruntime counterpart of ``netharn_classifier``: same contract, same
-output, no torch. Like that algorithm it abuses the ImageObjectDetector
-interface, since kwiver has no classifier type -- it emits a single detection
-covering the whole frame whose type carries every class probability.
-
-Scores match netharn exactly. netharn decodes with
-``CategoryTree.decision(..., criterion='entropy')``, which for the flat class
-trees these models use reduces to plain argmax / max-probability (verified
-against the torch models), so the frame score here is ``max(probs)``.
+The onnxruntime counterpart of ``netharn_classifier``. kwiver has no classifier
+type, so it emits a single detection covering the whole frame whose type
+carries every class probability; the frame score is ``max(probs)``, which is
+what netharn's entropy decision reduces to for a flat class tree.
 
 Example:
     >>> # xdoctest: +REQUIRES(env:VIAME_SMOKE)

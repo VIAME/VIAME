@@ -20,14 +20,9 @@ namespace viame {
  *
  * \brief Replaces each track state's classification with a track-wide average
  *
- * Performs the same averaging the viame_csv track writer applies via its
- * tot_option parameter, but upstream of the writer so every output format
- * -- csv, coco, kw18, dive -- sees the same track object type.
- *
- * The average needs every state of a track, so it is computed in finalize()
- * over the accumulated stream and emitted as a single trailing batch. Writers
- * key tracks by id and keep the last version they are handed, so that batch
- * supersedes the per-frame sets passed through unmodified by refine().
+ * Computed in finalize() and emitted as one trailing batch, which supersedes
+ * the per-frame sets refine() passes through since writers keep the last
+ * version of each track id.
  */
 class VIAME_CORE_EXPORT refine_tracks_average_tot
   : public kwiver::vital::algo::refine_tracks

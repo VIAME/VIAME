@@ -13,9 +13,7 @@ it is invoked at ctest time rather than at configure time.
 import sys
 from pathlib import Path
 
-# cases.py uses package-relative imports, so it has to be loaded as
-# tests.pipelines.cases even when this file is run as a plain script, which is
-# how the ctest discovery step invokes it.
+# cases.py uses package-relative imports, so load it as tests.pipelines.cases
 if __package__:
     from .cases import discover
 else:
@@ -26,8 +24,7 @@ else:
 def main(categories):
     for category in categories:
         for case in discover(category):
-            # Semicolons and tabs would corrupt the CMake list parsing on
-            # the consuming side, so they are neutralised here.
+            # Semicolons and tabs would break the CMake list parsing
             skip = (case.skip or "").replace("\t", " ").replace("\n", " ")
             skip = skip.replace(";", ",")
             print(f"{category}\t{case.id}\t{skip}")

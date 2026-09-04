@@ -5,28 +5,18 @@
 """
 Convert a darknet YOLO model (``.cfg`` + ``.weights``) to ONNX.
 
-Third of the netharn/darknet exporters, alongside
-:mod:`viame.pytorch.netharn_mmdet_to_onnx` (detectors) and
-:mod:`viame.pytorch.netharn_clf_to_onnx` (classifiers). It uses the bundled
-``darknet2onnx`` package to rebuild the darknet graph in PyTorch, then traces
-that itself (see the note in the export below) and adds the class names, the
-``.modelspec.json`` sidecar and the CLI, so the result drops into
-:mod:`viame.onnx.onnx_detector`.
-
-Two upstream gaps are fixed by VIAME's patch of that package
-(``packages/patches/darknet-to-pytorch-onnx``), without which neither HabCam
-model converts: the YOLOv2 ``[region]`` head was unimplemented, and the
-``[route]`` builder asserted that a multi-way concat lists the preceding layer
-first (YOLOv7-tiny does not).
+Rebuilds the darknet graph in PyTorch with the bundled ``darknet2onnx`` package
+(patched under ``packages/patches/darknet-to-pytorch-onnx`` for the YOLOv2
+``[region]`` head and YOLOv7-tiny routes), traces it, and writes the
+``.modelspec.json`` sidecar for :mod:`viame.onnx.onnx_detector`.
 
 Output contract
 ---------------
 Input ``input`` of shape ``(1, 3, H, W)``; three outputs -- ``boxes``
 ``(1, N, 4)`` as **normalized** ``cxcywh``, ``probs`` ``(1, N, C)`` per-class
-scores, and ``confs`` ``(1, N, 1)`` objectness. That is the ``darknet`` decoder
-of :class:`viame.onnx.onnx_predictor.OnnxPredictor`, which multiplies
-objectness by class score, thresholds and runs NMS host-side -- darknet models
-carry no NMS in the graph.
+scores, and ``confs`` ``(1, N, 1)`` objectness. No NMS in the graph; the
+``darknet`` decoder of :class:`viame.onnx.onnx_predictor.OnnxPredictor`
+applies it host-side.
 
 CLI:
     python -m viame.pytorch.darknet_to_onnx \
@@ -61,15 +51,9 @@ def build_modelspec(net_hw, category_names, score_thresh, nms_thresh, source,
             'normalize_mean': [0.0, 0.0, 0.0],
             'normalize_std': [1.0, 1.0, 1.0],
             'interpolation': 'linear',
-            # 'squash' matches darknet's resize_option=chip (the chip already
-            # is the network size); 'letterbox' matches resize_option=
-            # maintain_ar, where a whole frame is fitted preserving aspect.
+            # squash <-> darknet resize_option=chip, letterbox <-> maintain_ar
             'resize_mode': resize_mode,
-            # BGR, unlike the netharn-derived models: VIAME's C++ darknet
-            # detector hands OpenCV's native BGR straight to the network, so
-            # that is what these weights were trained and are used against.
-            # Feeding RGB silently degrades it -- the boxes stay plausible but
-            # stop matching the darknet detector at all.
+            # VIAME's darknet detector feeds OpenCV BGR frames unconverted
             'channel_order': 'bgr',
         },
         'postprocess': {
@@ -136,11 +120,8 @@ def darknet_to_onnx(cfg_fpath,
     if out_dpath:
         os.makedirs(out_dpath, exist_ok=True)
 
-    # Not darknet2onnx's own export_darknet_to_onnx(): it hardcodes opset 11
-    # and leaves `dynamo` at torch's default, which on torch>=2.9 selects the
-    # dynamo exporter, whose downconvert to 11 dies in onnx's version converter
-    # ("No Adapter From Version 16 for Identity") and silently writes a graph
-    # with no weights. Same TorchScript path and opset as the other exporters.
+    # darknet2onnx's own exporter hardcodes opset 11 and, on torch>=2.9, the
+    # dynamo exporter's downconvert silently writes a graph with no weights.
     dynamic_axes = None
     n_batch = batch_size if batch_size > 0 else 1
     if batch_size <= 0:

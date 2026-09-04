@@ -7,16 +7,9 @@ ONNX detection reclassifier (kwiver vital algorithm ``onnx`` for
 ``refine_detections``).
 
 The onnxruntime counterpart of the ``netharn`` refiner: crops a chip per input
-detection, classifies it, and rewrites the detection's type. Every part of that
-except the forward pass is plain numpy, so the chip geometry, area/border
-filters, target-scale normalization and prior blending here are deliberate
-ports of ``viame.pytorch.netharn_refiner`` rather than reinventions -- the two
-are kept behaviourally identical, and the HabCam pipelines are diffed against
-the netharn path to prove it.
-
-The netharn refiner always has per-class probabilities available (its predictor
-is always built with a coder), so only that branch is reproduced; the ONNX
-graph likewise always returns a full probability vector.
+detection, classifies it, and rewrites the detection's type. Chip geometry,
+filters, target-scale normalization and prior blending are ports of
+``viame.pytorch.netharn_refiner`` and must stay behaviourally identical to it.
 """
 from __future__ import annotations
 
@@ -252,8 +245,7 @@ class OnnxRefiner(RefineDetections):
                 w = self._prior_weight
                 priors = det.type
                 if self._taxonomy:
-                    # Hierarchical: prior mass pools by canonical group and is
-                    # added to each class whose parent group matches.
+                    # hierarchical: pool prior mass by canonical group
                     group_mass = {}
                     for name in priors.class_names():
                         if name == self._prior_ignore_class:
@@ -266,8 +258,7 @@ class OnnxRefiner(RefineDetections):
                         class_scores[j] = class_scores[j] * (1.0 - w) \
                             + w * group_mass.get(g, 0.0)
                 else:
-                    # Flat: matched by name, so mismatched vocabularies
-                    # concatenate rather than blend.
+                    # flat: matched by name, so mismatched vocabularies concatenate
                     for j in range(len(class_scores)):
                         class_scores[j] = class_scores[j] * (1.0 - w)
                     for name in priors.class_names():

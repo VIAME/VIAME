@@ -5,21 +5,16 @@
 """
 Generic ONNX object-detector predictor.
 
-Runs an arbitrary object-detection ONNX graph with onnxruntime -- no PyTorch.
-It is a generalization of the ``kwcoco_detector_kit`` OnnxPredictor (formerly
-vendored under plugins/pytorch, now superseded by this module): that one is
-hard-wired to the DEIMv2/RT-DETR contract (inputs ``images`` +
-``orig_target_sizes``; three outputs ``labels, boxes_xyxy, scores`` with NMS
-baked into the graph). This predictor keeps that as one *decoder* among several
-and drives everything else -- input size, preprocessing, thresholds, class
-names, and the I/O contract -- from a ``.modelspec.json`` sidecar (falling back
-to graph introspection and explicit overrides when the sidecar is absent).
+Runs an object-detection ONNX graph with onnxruntime -- no PyTorch. The
+architecture-specific output contract is one *decoder* among several; input
+size, preprocessing, thresholds and class names come from a ``.modelspec.json``
+sidecar, with graph introspection and explicit overrides as the fallback.
 
 Supported ``postprocess.decoder`` values:
 
 * ``detr`` / ``baked`` (default): the DEIMv2/RT-DETR family. The graph takes an
   ``orig_target_sizes`` input and emits ``(labels, boxes_xyxy_pixels, scores)``
-  with NMS already applied. Byte-for-byte compatible with the kwcoco predictor.
+  with NMS already applied.
 * ``yolo``: a single output of shape ``(1, 4+C, N)`` or ``(1, N, 4+C)`` in
   ``cxcywh`` (model-input pixels); this decodes, thresholds, rescales to the
   original frame, and runs NMS host-side.
@@ -31,16 +26,14 @@ Supported ``postprocess.decoder`` values:
 * ``mmdet``: the mmdet 2.x R-CNN family (Cascade R-CNN, Mask R-CNN ...) as
   written by :mod:`viame.pytorch.netharn_mmdet_to_onnx`. One output of shape
   ``(1, N, 6)`` -- ``[x1, y1, x2, y2, score, label]`` in model-input pixels,
-  with NMS baked into the graph -- so this only thresholds and rescales. This
-  is how the HabCam netharn/bioharn detectors run without mmdet installed.
+  with NMS baked into the graph -- so this only thresholds and rescales.
 
 Adding a new architecture is a new ``_decode_*`` method plus an enum value; the
 preprocessing / spec / detection-assembly code is shared.
 
 Returns, from :meth:`predict_image`, a list of
 ``{'label': int, 'bbox_xyxy': [x0,y0,x1,y1], 'score': float}`` in the ORIGINAL
-image's pixel coordinates -- so an ``ocv_windowed`` wrapper can offset chip
-detections back to the full frame exactly as it does for the other detectors.
+image's pixel coordinates.
 
 Requires: onnxruntime, numpy, opencv (cv2).
 """
@@ -167,10 +160,7 @@ class OnnxPredictor:
             # RGB. The kwiver adapter flips only when this is "bgr", so an RGB
             # model receives the frame in the same order as its torch detector.
             self._channel_order = str(pre.get("channel_order", "bgr")).lower()
-            # "squash" (default) stretches to the eval size; "letterbox"
-            # preserves aspect and pads, which is what darknet's
-            # resize_option=maintain_ar does. Only the darknet decoder maps
-            # boxes back through the letterbox transform.
+            # letterbox is only undone by the darknet decoder
             self._resize_mode = str(pre.get("resize_mode", "squash")).lower()
 
             post = spec.get("postprocess", {})
@@ -381,9 +371,7 @@ class OnnxPredictor:
         model-input pixels, NMS already applied inside the graph.
 
         Boxes come back at the network's fixed input size, so they are scaled
-        back to the frame the caller passed in -- for the HabCam models that
-        frame is an ``ocv_windowed`` chip at the model's native window size, so
-        the scale is 1 and this is exact."""
+        back to the frame the caller passed in."""
         outputs = self._session.run(None, {self._input_names[0]: nchw})
         out = outputs[0][0]
         if out.shape[-1] == 5:
@@ -434,8 +422,7 @@ class OnnxPredictor:
 
         Score is objectness x class probability, which is what darknet itself
         thresholds on. Boxes are normalized to the network input, so scaling by
-        the frame size lands them in the caller's pixels directly -- no
-        eval-size division, unlike the ``yolo`` decoder."""
+        the frame size lands them in the caller's pixels directly."""
         outputs = self._session.run(None, {self._input_names[0]: nchw})
         names = [o.name for o in self._session.get_outputs()]
 
@@ -464,8 +451,7 @@ class OnnxPredictor:
             xyxy[:, 2] = (boxes[:, 0] + boxes[:, 2] / 2) * W
             xyxy[:, 3] = (boxes[:, 1] + boxes[:, 3] / 2) * H
         else:
-            # Boxes are normalized to the padded canvas: back to canvas
-            # pixels, drop the padding, then undo the aspect-preserving scale.
+            # boxes are normalized to the padded canvas
             scale, pad_x, pad_y = letterbox
             cx = boxes[:, 0] * self._eval_w
             cy = boxes[:, 1] * self._eval_h

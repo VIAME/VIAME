@@ -1875,11 +1875,8 @@ class CoreMixin(object):
 
         harn.after_epochs()
 
-        # Snapshot saves (via safer's in-memory buffer) and epoch metrics leave
-        # a few dozen objects per epoch in reference cycles that pin hundreds
-        # of MB. The cycles are too small to ever trip the gen-2 collector on
-        # their own, so RSS grows until the OOM killer fires; collect
-        # explicitly once per epoch.
+        # Per-epoch reference cycles pin hundreds of MB but never trip gen-2
+        # collection on their own
         gc.collect()
 
         # check for termination

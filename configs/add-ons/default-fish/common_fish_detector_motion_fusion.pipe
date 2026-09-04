@@ -2,9 +2,7 @@
 # Title: Common - Default Fish Fusion Detector
 #
 # Description: DEIMv2 on color fused with an RF-DETR run over a motion-infused
-# channel stack. The two disagree in useful ways -- the variance model carries
-# temporal evidence the color model cannot see -- and the pair is the
-# highest-scoring detector configuration we have measured on FishTrack.
+# channel stack.
 # =============================================================================
 
 include common_fish_detector_box_only.pipe

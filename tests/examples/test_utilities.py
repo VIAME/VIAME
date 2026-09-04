@@ -12,6 +12,7 @@ These tests verify that example scripts:
 """
 
 import os
+import re
 import signal
 import shutil
 import subprocess
@@ -125,11 +126,18 @@ def get_script_path(category, script_name):
     return get_examples_dir(category) / script_name
 
 
-# ctest gives each example test EXAMPLE_TEST_TIMEOUT (600s) of wall clock, but
-# this helper used to cap the script itself at 300s, so no example could ever
-# use more than half its budget and the ctest timeout was unreachable. Sit far
-# enough under 600 that the script's own timeout fires first -- that reports
-# which script hung, where a ctest kill only reports that the test did.
+_PIPELINE_REF = re.compile(r"configs[/\\]pipelines[/\\]([^\s\"']+\.pipe)")
+
+
+def missing_pipeline(script_path, viame_install):
+    """First pipeline the script references that the install lacks, or ""."""
+    for name in _PIPELINE_REF.findall(script_path.read_text(errors="replace")):
+        if not (viame_install / "configs" / "pipelines" / name).is_file():
+            return name
+    return ""
+
+
+# Under the 600s ctest timeout so the script's own timeout names the hung script
 DEFAULT_SCRIPT_TIMEOUT = 540
 
 
@@ -188,6 +196,11 @@ def run_example_script(script_path, working_dir=None, timeout=DEFAULT_SCRIPT_TIM
         shell = True
         executable = "/bin/bash"
 
+    missing = missing_pipeline(
+        bat_script if sys.platform == "win32" else script_path, viame_install)
+    if missing:
+        pytest.skip(f"Pipeline not installed: {missing}")
+
     # Merge environment if provided
     run_env = os.environ.copy()
     if env:
@@ -197,11 +210,7 @@ def run_example_script(script_path, working_dir=None, timeout=DEFAULT_SCRIPT_TIM
     # kill the entire process tree. Use Popen with CREATE_NEW_PROCESS_GROUP
     # and explicit taskkill so that timeout_is_success tests don't hang
     # until CTest's own timeout fires.
-    # On POSIX, start_new_session makes the shell a process-group leader so a
-    # timeout can signal the whole group. Killing only the direct child leaves
-    # whatever the script launched -- a trainer holding GiB of GPU memory, say
-    # -- running past the test that started it, and later tests then fail with
-    # CUDA out of memory for reasons that have nothing to do with them.
+    # On POSIX, start_new_session lets a timeout signal the whole process group
     creationflags = 0
     start_new_session = False
     if sys.platform == "win32":

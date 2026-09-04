@@ -7,9 +7,7 @@ from kwiver.vital.algo import MergeDetections
 from kwiver.vital.types import DetectedObjectSet
 
 ##############################################################################
-# Concatenation, the behavior merge_detection_sets had before it could run a
-# merger algorithm. Every detection from every input is emitted unchanged, so
-# overlaps are left for a downstream refiner to resolve.
+# Plain concatenation; overlaps are left for a downstream refiner to resolve.
 ##############################################################################
 
 class MergeDetectionsSimple( MergeDetections ):

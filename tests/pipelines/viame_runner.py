@@ -38,12 +38,8 @@ class ViameRunner:
             for k, v in overrides.items():
                 cmd += ["-s", f"{k}={v}"]
 
-        # start_new_session puts the runner in its own process group so a timeout
-        # can take down everything it spawned. subprocess's own timeout only
-        # signals the direct child: a training pipeline whose kwiver process is
-        # killed leaves its python trainer running, holding several GiB of GPU
-        # memory, and the next tests then fail with CUDA out of memory rather
-        # than for any reason of their own.
+        # Own process group so a timeout can kill everything the pipeline
+        # spawned; an orphaned trainer otherwise holds GPU memory across tests.
         proc = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
             cwd=workdir, env=env, start_new_session=True)

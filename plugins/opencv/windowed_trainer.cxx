@@ -1135,11 +1135,8 @@ ocv_windowed_trainer
     return false;
   }
 
-  // A chip whose Mat does not own its pixels -- one wrapping a vital image's
-  // buffer, as an unscaled frame or a crop of one is -- converts to a vital
-  // image with a null memory (ocv_to_vital only wraps refcounted Mats), and
-  // the vxl writer dereferences that without checking. Give the writer a chip
-  // that owns its pixels.
+  // ocv_to_vital only wraps refcounted Mats; a view into a vital buffer would
+  // reach the vxl writer with null memory.
   const cv::Mat owned =
     ( image.u && image.isContinuous() ) ? image : image.clone();
 

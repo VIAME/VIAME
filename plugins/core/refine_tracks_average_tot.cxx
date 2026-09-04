@@ -124,8 +124,7 @@ refine_tracks_average_tot
       continue;
     }
 
-    // Cloned so the averaged type never feeds back into whatever upstream
-    // stage still holds these detections.
+    // Deep clone so the averaged type does not leak back into upstream holders
     auto trk = trk_pair.second->clone( kv::clone_type::DEEP );
 
     for( auto state : *trk )

@@ -1,11 +1,5 @@
-# Scripts are the one thing in examples that only ever comes from this source
-# tree, so clear any previously installed ones before the install rules put
-# back the current set. A renamed or deleted example script otherwise stays in
-# the install forever, and the example tests enumerate installed scripts -- a
-# leftover becomes a test for an example that no longer exists, failing against
-# configs that are no longer shipped (train_netharn_cfrnn_habcam_csv.sh was
-# doing exactly that). Data directories and generated outputs that live under
-# examples/ are untouched.
+# Installs never remove files, so clear stale example scripts before
+# reinstalling; the example tests enumerate whatever is installed.
 install( CODE "
   file( GLOB_RECURSE _viame_stale_scripts
         \"\${CMAKE_INSTALL_PREFIX}/examples/*.sh\"

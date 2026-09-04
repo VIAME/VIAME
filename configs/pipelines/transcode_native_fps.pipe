@@ -13,10 +13,8 @@ config _pipeline:_edge
 
 include common_default_input.pipe
 
-# Downsampling off, so every native frame and timestamp passes straight
-# through. The downsampler is here for its frame_rate port, which reports the
-# source rate once; video_output reads that port a single time, and the input's
-# per-frame rate would fill the edge and stall the pipeline.
+# Downsampling off; the downsampler is only here for its frame_rate port,
+# which video_output reads once
 process downsampler
   :: downsample
   :target_frame_rate                           -1

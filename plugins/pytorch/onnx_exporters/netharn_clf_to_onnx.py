@@ -5,21 +5,10 @@
 """
 Convert a netharn ``ClfModel`` classifier (``*.zip`` deploy file) to ONNX.
 
-Companion to :mod:`viame.pytorch.netharn_mmdet_to_onnx`, which handles the
-netharn *detectors*. These are the whole-frame classifiers behind the kwiver
-``netharn_classifier`` algorithm and the chip reclassifiers behind
-``refine_detections :refiner:type netharn`` -- in the HabCam add-on, the 22
-substrate classifiers and the two scallop EfficientNet reclassifiers.
-
-A ``ClfModel`` is far simpler than the R-CNNs: an ``InputNorm`` layer followed
-by a stock torchvision backbone (resnet50 / resnext101 / efficientnetv2s /
-efficientnetv2m), returning raw class logits. There is no NMS, no RoIAlign and
-no custom autograd Function, so the ordinary export path works -- none of the
-workarounds ``netharn_mmdet_to_onnx`` needs apply here.
-
-Because the ``InputNorm`` is a layer *inside* the model, the exported graph
-performs the mean/std normalization itself and expects RGB in ``[0, 1]``. The
-sidecar therefore records ``scale = 1/255`` with an identity mean/std.
+Covers the whole-frame classifiers behind ``netharn_classifier`` and the chip
+reclassifiers behind ``refine_detections :refiner:type netharn``. The model's
+``InputNorm`` layer is exported inside the graph, so the graph expects RGB in
+``[0, 1]`` and the sidecar records ``scale = 1/255`` with identity mean/std.
 
 Output contract
 ---------------
@@ -27,11 +16,8 @@ Input ``input`` of shape ``(N, 3, H, W)`` with N dynamic; output ``class_probs``
 of shape ``(N, C)``, softmax already applied, with column order matching
 ``meta.category_names``.
 
-Softmax is baked in deliberately. netharn decodes with
-``CategoryTree.hierarchical_softmax``, which for a flat (single ``idx_groups``)
-tree -- every classifier shipped to date -- is exactly a plain softmax over all
-classes. Models with a real class hierarchy are refused rather than silently
-given the wrong normalization.
+The softmax is baked in: netharn's ``hierarchical_softmax`` reduces to a plain
+softmax for a flat class tree, and models with a real hierarchy are refused.
 
 CLI:
     python -m viame.pytorch.netharn_clf_to_onnx \
@@ -119,8 +105,7 @@ def _check_flat_hierarchy(model):
 
 
 def build_modelspec(model, input_dims, source):
-    # The InputNorm layer is inside the graph, so the caller only rescales to
-    # [0, 1]; folding mean/std into the sidecar too would apply them twice.
+    # InputNorm is in the graph; mean/std in the sidecar would apply twice
     return {
         'input': {
             'shape_hw': [int(input_dims[0]), int(input_dims[1])],
@@ -131,8 +116,7 @@ def build_modelspec(model, input_dims, source):
             'scale': 1.0 / 255.0,
             'normalize_mean': [0.0, 0.0, 0.0],
             'normalize_std': [1.0, 1.0, 1.0],
-            # netharn's dataset resizes with kwimage.imresize(letterbox=True),
-            # i.e. aspect preserved and padded -- not a squash resize.
+            # netharn trains with kwimage.imresize(letterbox=True)
             'resize_mode': 'letterbox',
             'interpolation': 'linear',
             'channel_order': 'rgb',
@@ -197,9 +181,7 @@ def netharn_clf_to_onnx(deployed_fpath,
             export_params=True, do_constant_folding=True, verbose=False,
             opset_version=opset_version,
             dynamic_axes=dynamic_axes,
-            # TorchScript exporter: it honors dynamic_axes, which the dynamo
-            # exporter does not for these graphs (same reason as the stereo
-            # models in plugins/onnx).
+            # the dynamo exporter ignores dynamic_axes for these graphs
             dynamo=False)
 
     if write_modelspec:

@@ -207,10 +207,8 @@ detect_shot_breaks_process::priv
 }
 
 // -----------------------------------------------------------------------------
-// The bar a change score has to clear to count as a shot break. In adaptive
-// mode this tracks the spread of scores already seen in this video, so a noisy
-// camera needs a bigger jump than a locked-off one, and never rises above the
-// configured value.
+// In adaptive mode the threshold tracks the spread of scores already seen, so
+// a noisy camera needs a bigger jump, and never exceeds the configured value.
 double
 detect_shot_breaks_process::priv
 ::effective_threshold( double configured ) const
@@ -229,8 +227,7 @@ detect_shot_breaks_process::priv
 }
 
 // -----------------------------------------------------------------------------
-// Welford, fed only with scores that were not breaks: letting a cut into the
-// baseline inflates the deviation and hides the cuts that follow it.
+// Fed only non-break scores; a cut in the baseline would hide the cuts after it
 void
 detect_shot_breaks_process::priv
 ::update_score_stats( double score )
@@ -495,9 +492,8 @@ detect_shot_breaks_process::priv
   // Create a single feature at the center of the image to extract a global descriptor
   double cx = current_image->width() / 2.0;
   double cy = current_image->height() / 2.0;
-  // feature_d is ( loc, magnitude, scale, angle ): scale has to go in the third
-  // slot. A keypoint under 1px wide makes OpenCV's SIFT descriptor overrun its
-  // own buffers and abort the process on a double free.
+  // Scale goes in the third slot; a keypoint under 1px makes OpenCV's SIFT
+  // descriptor overrun its buffers.
   double scale = std::max(
     std::min( current_image->width(), current_image->height() ) / 2.0, 1.0 );
 

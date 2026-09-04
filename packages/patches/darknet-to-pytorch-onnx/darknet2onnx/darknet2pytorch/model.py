@@ -33,20 +33,9 @@ def get_region_boxes(boxes_and_confs):
 
 
 class RegionLayer(nn.Module):
-    """The YOLOv2 ``[region]`` head.
-
-    Upstream only implements the YOLOv3+ ``[yolo]`` head. YOLOv2 differs in
-    three ways that matter:
-
-    * anchors are expressed in **grid cells**, not network pixels, so widths
-      scale by ``anchor_w * exp(tw) / grid_w`` rather than by ``/ net_width``;
-    * class scores go through a **softmax** over classes (``softmax=1``), not
-      an independent sigmoid per class;
-    * there is a single detection scale, so no anchor mask.
-
-    Emits the same ``(boxes, probs, confs)`` triple as :class:`YoloLayer` --
-    boxes as normalized ``cxcywh`` -- so ``get_region_boxes`` can stack either.
-    """
+    """The YOLOv2 ``[region]`` head: anchors in grid cells rather than network
+    pixels, softmax over classes, single scale with no anchor mask. Emits the
+    same ``(boxes, probs, confs)`` triple as :class:`YoloLayer`."""
 
     def __init__(self):
         super(RegionLayer, self).__init__()
@@ -325,9 +314,7 @@ class Darknet(nn.Module):
                         prev_filters = out_filters[layers[0]] // int(block['groups'])
                         prev_stride = out_strides[layers[0]] // int(block['groups'])
                 elif len(layers) == 2:
-                    # No assert on ordering: YOLOv7-tiny routes do not
-                    # list the preceding layer first, and the filter
-                    # sum below does not depend on the order.
+                    # YOLOv7-tiny routes do not list the preceding layer first
                     prev_filters = out_filters[layers[0]] + out_filters[layers[1]]
                     prev_stride = out_strides[layers[0]]
                 elif len(layers) == 4:

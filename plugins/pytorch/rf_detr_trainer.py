@@ -162,9 +162,7 @@ def model_block_size(model_size, segmentation):
 
     import rfdetr.config as rfdetr_config
 
-    # Resolve by name first: RFDETRLarge leaves _model_config_class pointing at
-    # the abstract base and picks its real config in get_model_config, so the
-    # attribute alone reports no patch size for the one size most often resized.
+    # RFDETRLarge's _model_config_class is the abstract base, so resolve by name
     config_class = getattr(
         rfdetr_config, model_class.__name__ + 'Config',
         getattr(model_class, '_model_config_class', None))

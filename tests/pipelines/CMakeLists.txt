@@ -1,9 +1,8 @@
 # VIAME Pipeline Tests
 #
 # Integration tests that run every DIVE-runnable pipeline the way DIVE runs it.
-# One ctest per pipeline, discovered from the install tree when ctest runs
-# rather than when CMake configures, so add-on pipelines that arrive later as
-# downloaded model packs are covered without being named here.
+# One ctest per pipeline, discovered from the install tree at ctest time so
+# add-on pipelines from downloaded model packs are covered too.
 #
 # To run only pipelines tests:
 #   ctest -L PIPELINES
@@ -21,14 +20,9 @@ if (VIAME_ENABLE_PYTHON)
 
   set( PIPELINE_CATEGORIES detector tracker filter transcode utility measurement )
 
-  # Each generated test runs exactly one pipeline, so the per-category budget
-  # that had to cover dozens of them no longer applies.
   set( PIPELINE_CASE_TIMEOUT 1800 )
 
-  # The generated tests source the install setup script exactly as the bundled
-  # per-category tests did, so their execution model is unchanged. The verb and
-  # the path are kept apart so the template can quote the path itself; baking a
-  # pre-quoted string here produced nested quotes in the generated file.
+  # Kept apart so the template can quote the path itself
   if( WIN32 )
     set( PIPELINE_SETUP_VERB "call" )
     set( PIPELINE_SETUP_SCRIPT "${VIAME_BUILD_INSTALL_PREFIX}/setup_viame.bat" )
@@ -37,8 +31,8 @@ if (VIAME_ENABLE_PYTHON)
     set( PIPELINE_SETUP_SCRIPT "${VIAME_BUILD_INSTALL_PREFIX}/setup_viame.sh" )
   endif()
 
-  # Discovery alone needs a PYTHONPATH: it imports cases.py outside pytest and
-  # so misses the tests/common insertion tests/conftest.py performs.
+  # Discovery imports cases.py outside pytest, so it misses the path
+  # insertion tests/conftest.py performs
   set( _pipeline_site_packages
     "${VIAME_BUILD_INSTALL_PREFIX}/lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages" )
   string( JOIN "${VIAME_TEST_PYPATH_SEP}" PIPELINE_DISCOVERY_PYTHONPATH

@@ -368,16 +368,8 @@ foreach( ID RANGE ${DEP_COUNT} )
   if( "${DEP}" STREQUAL "python-deps" )
     set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} )
     set( CMD ${VIAME_PYTHON_BASIC_DEPS} )
-    # pip --user treats a requirement the interpreter can already import as
-    # satisfied and installs nothing, even when the copy lives outside
-    # PYTHONUSERBASE. Anything the distro happens to ship therefore never
-    # lands in our tree, and the docker images -- which carry only the
-    # install directory into the runtime stage -- ship without it. Installing
-    # clang for the pybind11 generator pulled in llvm-18-tools, which depends
-    # on python3-yaml, and that alone was enough to leave PyYAML and Pygments
-    # out of the ubuntu24.04 web image and break every pipeline that imports
-    # omegaconf or mmcv. Force the basic deps into PYTHONUSERBASE so the
-    # install tree stands on its own no matter what the base image provides.
+    # pip --user skips anything the distro already ships, so force the basic
+    # deps into PYTHONUSERBASE or the docker install tree ends up without them
     set( PYTHON_DEP_IGNORE_INSTALLED "--ignore-installed" )
     # Add PyTorch extra index URL for basic deps that include torch
     if( VIAME_ENABLE_PYTORCH AND NOT VIAME_BUILD_PYTORCH_FROM_SOURCE )

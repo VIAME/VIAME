@@ -2,7 +2,7 @@
 # Title: Common - Default Fish Box Detector
 #
 # Description: DEIMv2 trained on FishTrack, run on a 1024x1024 resize of each
-# frame. Strongest single fish detector we have measured.
+# frame.
 # =============================================================================
 
 process detector_input

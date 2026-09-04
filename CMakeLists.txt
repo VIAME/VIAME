@@ -910,14 +910,8 @@ if( MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "18.00" )
   message( FATAL_ERROR "You must use at least MSVC version 13 or greater" )
 endif()
 
-# KWIVER's pluggable macro magic needs a conforming preprocessor. Under the
-# traditional one every PARAM_DEFAULT silently expands to nothing, so the
-# c_<name> members and get_<name>() accessors it should have written are never
-# declared and each plugin fails with a wall of "undeclared identifier". KWIVER
-# sets this for its own build; the plugins here use the same macros. This is
-# deliberately scoped to the pass that compiles them -- in the superbuild pass
-# CMAKE_CXX_FLAGS is handed to fletch and every other dependency, which have no
-# need of it.
+# KWIVER's pluggable macros expand to nothing under the traditional MSVC
+# preprocessor. Scoped to the plugin pass so fletch does not inherit the flag.
 if( MSVC AND NOT VIAME_BUILD_DEPENDENCIES )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor" )
 endif()

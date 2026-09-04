@@ -62,9 +62,8 @@ compute_average_classification(
  * Class names of a classification, highest score first.
  *
  * \param dot  Classification to list, may be null.
- * \param top_n  Maximum names to return, or 0 for all of them.
- *               detected_object_type::top_class_names() cannot express this:
- *               it reads 0 as a limit of none.
+ * \param top_n  Maximum names to return, or 0 for all; top_class_names()
+ *               reads 0 as none.
  * \return Ordered class names, empty if \p dot is null.
  */
 VIAME_CORE_EXPORT std::vector< std::string >
