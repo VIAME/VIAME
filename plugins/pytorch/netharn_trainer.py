@@ -14,7 +14,7 @@ from kwiver.vital.types import (
     DetectedObjectSet, DetectedObject, DetectedObjectType
 )
 
-from distutils.util import strtobool
+from viame.compat import strtobool
 from shutil import copyfile
 
 import argparse

@@ -7,7 +7,7 @@ from kwiver.vital.algo import RefineDetections
 from kwiver.vital.types import DetectedObjectSet
 from kwiver.vital.types import DetectedObjectType
 
-from distutils.util import strtobool
+from viame.compat import strtobool
 
 import numpy as np
 

@@ -72,4 +72,9 @@ if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_KWIVER )
     ${CMAKE_CURRENT_SOURCE_DIR}/types.py
     .
     types )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/compat.py
+    .
+    compat )
 endif()

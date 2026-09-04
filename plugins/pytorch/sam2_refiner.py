@@ -30,7 +30,7 @@ from viame.core.segmentation_utils import (
     shapely_to_mask,
 )
 
-from distutils.util import strtobool
+from viame.compat import strtobool
 
 
 class Sam2Refiner(RefineDetections):

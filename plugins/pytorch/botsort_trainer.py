@@ -22,7 +22,7 @@ from kwiver.vital.types import (
     BoundingBoxD, DetectedObjectType
 )
 
-from distutils.util import strtobool
+from viame.compat import strtobool
 from pathlib import Path
 
 import os

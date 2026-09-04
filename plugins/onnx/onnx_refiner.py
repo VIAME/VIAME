@@ -91,7 +91,7 @@ class OnnxRefiner(RefineDetections):
         return cfg
 
     def set_configuration(self, cfg_in):
-        from distutils.util import strtobool
+        from viame.compat import strtobool
         cfg = self.get_configuration()
         _vital_config_update(cfg, cfg_in)
         for key in self._config.keys():

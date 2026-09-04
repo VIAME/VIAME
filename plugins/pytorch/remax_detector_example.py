@@ -6,7 +6,7 @@ from collections import namedtuple
 import json
 
 import cv2
-from distutils.util import strtobool
+from viame.compat import strtobool
 from kwiver.vital.algo import ImageObjectDetector
 from kwiver.vital.types import (
     BoundingBoxD,

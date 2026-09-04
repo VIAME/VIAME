@@ -21,7 +21,7 @@ import ubelt as ub
 
 from collections import namedtuple
 from PIL import Image
-from distutils.util import strtobool
+from viame.compat import strtobool
 from pathlib import Path
 from mmcv.runner import load_checkpoint
 from mmdet.utils import collect_env

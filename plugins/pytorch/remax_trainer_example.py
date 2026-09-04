@@ -14,7 +14,7 @@ import torchvision.transforms as transforms
 
 from collections import namedtuple
 
-from distutils.util import strtobool
+from viame.compat import strtobool
 from kwiver.vital.algo import TrainDetector
 
 from viame.pytorch.remax.util.coco import CocoDetection

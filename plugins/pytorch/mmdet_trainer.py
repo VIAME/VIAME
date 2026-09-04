@@ -13,7 +13,7 @@ from kwiver.vital.types import (
 
 from PIL import Image
 
-from distutils.util import strtobool
+from viame.compat import strtobool
 from shutil import copyfile
 
 import argparse

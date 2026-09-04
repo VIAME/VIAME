@@ -12,7 +12,7 @@ import random
 # import ubelt as ub
 from PIL import Image
 import scriptconfig as scfg
-from distutils.util import strtobool
+from viame.compat import strtobool
 
 # from kwiver.vital.types import Image
 from kwiver.vital.types import ImageContainer

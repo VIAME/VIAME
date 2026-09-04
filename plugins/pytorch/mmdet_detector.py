@@ -12,7 +12,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-from distutils.util import strtobool
+from viame.compat import strtobool
 
 from kwiver.vital.algo import ImageObjectDetector
 
