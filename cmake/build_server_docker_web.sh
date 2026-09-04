@@ -48,5 +48,14 @@ run_build build_log.txt true
 # Fix libsvm symlink issue
 fix_libsvm_symlink install
 
+# Gate the image on the CRITICAL tests. This has to happen before
+# finalize_docker_install, which moves the install tree to /opt/noaa/viame and
+# deletes /viame, taking the ctest infrastructure with it -- after that point
+# there is nothing left in the image to test against.
+if ! run_critical_tests /viame/build /viame/build/install; then
+  echo "CRITICAL tests failed, refusing to finalize the image"
+  exit 1
+fi
+
 # Finalize Docker install
 finalize_docker_install /viame/build

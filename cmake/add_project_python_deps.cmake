@@ -368,6 +368,17 @@ foreach( ID RANGE ${DEP_COUNT} )
   if( "${DEP}" STREQUAL "python-deps" )
     set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} )
     set( CMD ${VIAME_PYTHON_BASIC_DEPS} )
+    # pip --user treats a requirement the interpreter can already import as
+    # satisfied and installs nothing, even when the copy lives outside
+    # PYTHONUSERBASE. Anything the distro happens to ship therefore never
+    # lands in our tree, and the docker images -- which carry only the
+    # install directory into the runtime stage -- ship without it. Installing
+    # clang for the pybind11 generator pulled in llvm-18-tools, which depends
+    # on python3-yaml, and that alone was enough to leave PyYAML and Pygments
+    # out of the ubuntu24.04 web image and break every pipeline that imports
+    # omegaconf or mmcv. Force the basic deps into PYTHONUSERBASE so the
+    # install tree stands on its own no matter what the base image provides.
+    set( PYTHON_DEP_IGNORE_INSTALLED "--ignore-installed" )
     # Add PyTorch extra index URL for basic deps that include torch
     if( VIAME_ENABLE_PYTORCH AND NOT VIAME_BUILD_PYTORCH_FROM_SOURCE )
       set( PYTHON_DEP_EXTRA_INDEX "--extra-index-url" "${PYTORCH_ARCHIVE}" )
@@ -378,11 +389,14 @@ foreach( ID RANGE ${DEP_COUNT} )
     set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} python-deps )
     list( GET VIAME_PYTHON_ADV_DEP_CMDS ${ID} CMD )
     set( PYTHON_DEP_EXTRA_INDEX "" )
+    set( PYTHON_DEP_IGNORE_INSTALLED "" )
   endif()
 
-  set( PYTHON_DEP_PIP_CMD pip install --user ${PYTHON_DEP_EXTRA_INDEX} ${CMD} )
+  set( PYTHON_DEP_PIP_CMD pip install --user
+       ${PYTHON_DEP_IGNORE_INSTALLED} ${PYTHON_DEP_EXTRA_INDEX} ${CMD} )
   if( VIAME_BUILD_NO_CACHE_DIR )
-    set( PYTHON_DEP_PIP_CMD pip install --user --no-cache-dir ${PYTHON_DEP_EXTRA_INDEX} ${CMD} )
+    set( PYTHON_DEP_PIP_CMD pip install --user --no-cache-dir
+         ${PYTHON_DEP_IGNORE_INSTALLED} ${PYTHON_DEP_EXTRA_INDEX} ${CMD} )
   endif()
   string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
 
