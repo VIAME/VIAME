@@ -27,7 +27,6 @@ process track_writer
   :: write_object_track
   :file_name                                            output.csv
   :writer:type                                           viame_csv
-  :writer:viame_csv:tot_option                           detection
 
 connect from downsampler.output_2
         to   track_reader.image_file_name

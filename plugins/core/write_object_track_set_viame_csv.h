@@ -67,7 +67,7 @@ public:
       tot_option, std::string,
       "Track object type option: detection, average, weighted_average, "
       "weighted_average_scaled_by_conf",
-      "weighted_average" ),
+      "detection" ),
     PARAM_DEFAULT(
       tot_ignore_class, std::string,
       "Class name to ignore when computing track object type average",

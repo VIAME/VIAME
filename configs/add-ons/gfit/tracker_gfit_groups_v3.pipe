@@ -26,7 +26,7 @@ process track_filter
 connect from tracker.object_track_set
         to   track_filter.object_track_set
 
-process track_tot_averager
+process track_classifier
   :: refine_tracks
   :refiner:type                                average_tot
   :refiner:average_tot:tot_option              weighted_scaled_by_conf
@@ -37,11 +37,10 @@ process track_writer
   :file_name                                   computed_tracks.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:write_time_as_uid          true
-  :writer:viame_csv:tot_option                 detection
 
 connect from track_filter.object_track_set
-        to   track_tot_averager.object_track_set
-connect from track_tot_averager.object_track_set
+        to   track_classifier.object_track_set
+connect from track_classifier.object_track_set
         to   track_writer.object_track_set
 connect from downsampler.timestamp
         to   track_writer.timestamp

@@ -70,7 +70,6 @@ process detector_writer
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:write_time_as_uid          true
-  :writer:viame_csv:tot_option                 detection
 
 connect from downsampler.timestamp
         to   detector_writer.timestamp

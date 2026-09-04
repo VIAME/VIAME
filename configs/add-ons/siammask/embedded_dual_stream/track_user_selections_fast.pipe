@@ -38,7 +38,6 @@ process track_writer_csv
   :file_name                                   [CURRENT_TIME].csv
   :frame_list_output                           [CURRENT_TIME]_images.txt
   :writer:type                                 viame_csv
-  :writer:viame_csv:tot_option                 detection
 
 connect from short_term_tracker.object_track_set
         to   track_writer_csv.object_track_set

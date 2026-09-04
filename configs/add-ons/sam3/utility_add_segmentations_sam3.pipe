@@ -69,7 +69,6 @@ process track_writer
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:mask_to_poly_points        30
-  :writer:viame_csv:tot_option                 detection
 
 connect from downsampler.output_2
         to   track_writer.image_file_name

@@ -98,7 +98,6 @@ process track_writer
   :: write_object_track
   :file_name                                  [INSERT_ME]
   :writer:type                                viame_csv
-  :writer:viame_csv:tot_option                detection
 
 connect from downsampler.timestamp
         to   track_writer.timestamp

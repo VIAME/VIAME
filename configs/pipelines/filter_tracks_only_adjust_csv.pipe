@@ -107,7 +107,6 @@ process track_writer
   :file_name                                   computed_tracks.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:write_time_as_uid          false
-  :writer:viame_csv:tot_option                 detection
 
 connect from downsampler2.output_4
         to   track_writer.object_track_set

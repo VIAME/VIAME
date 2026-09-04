@@ -213,7 +213,7 @@ connect from downsampler.timestamp
 
 # =============================================================================
 
-process optical_tot_averager_csv
+process optical_track_classifier
   :: refine_tracks
   :refiner:type                                average_tot
   :refiner:average_tot:tot_option              weighted_average
@@ -225,11 +225,10 @@ process optical_writer_csv
   :file_name                                   [CURRENT_TIME]_EO.csv
   :frame_list_output                           [CURRENT_TIME]_EO_images.txt
   :writer:type                                 viame_csv
-  :writer:viame_csv:tot_option                 detection
 
 connect from tracker.object_track_set
-        to   optical_tot_averager_csv.object_track_set
-connect from optical_tot_averager_csv.object_track_set
+        to   optical_track_classifier.object_track_set
+connect from optical_track_classifier.object_track_set
         to   optical_writer_csv.object_track_set
 connect from downsampler.timestamp
         to   optical_writer_csv.timestamp

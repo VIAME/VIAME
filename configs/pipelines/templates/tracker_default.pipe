@@ -96,7 +96,7 @@ connect from downsampler.timestamp
 connect from detector_output.detected_object_set
         to   tracker.detected_object_set
 
-process track_tot_averager
+process track_classifier
   :: refine_tracks
   :refiner:type                                average_tot
   :refiner:average_tot:tot_option              weighted_average
@@ -106,11 +106,10 @@ process track_writer
   :file_name                                   computed_tracks.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:stream_identifier          input_list.txt
-  :writer:viame_csv:tot_option                 detection
 
 connect from tracker.object_track_set
-        to   track_tot_averager.object_track_set
-connect from track_tot_averager.object_track_set
+        to   track_classifier.object_track_set
+connect from track_classifier.object_track_set
         to   track_writer.object_track_set
 connect from downsampler.timestamp
         to   track_writer.timestamp

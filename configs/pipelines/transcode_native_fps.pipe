@@ -70,7 +70,6 @@ process track_writer
   :file_name                                   computed_tracks.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:write_time_as_uid          true
-  :writer:viame_csv:tot_option                 detection
 
 connect from track_resampler.object_track_set
         to   track_writer.object_track_set

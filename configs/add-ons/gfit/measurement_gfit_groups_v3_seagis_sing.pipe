@@ -137,7 +137,6 @@ process track_writer1
   :file_name                                   computed_tracks1.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:write_time_as_uid          true
-  :writer:viame_csv:tot_option                 detection
 
 connect from measurer.object_track_set1
         to   track_writer1.object_track_set
@@ -151,7 +150,6 @@ process track_writer2
   :file_name                                   computed_tracks2.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:write_time_as_uid          true
-  :writer:viame_csv:tot_option                 detection
 
 connect from measurer.object_track_set2
         to   track_writer2.object_track_set

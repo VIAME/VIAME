@@ -93,7 +93,6 @@ process track_writer
   :file_name                                   computed_tracks.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:stream_identifier          input_list.txt
-  :writer:viame_csv:tot_option                 detection
 
 # Connect inputs to track writer
 connect from track_merger.object_track_set
