@@ -41,7 +41,6 @@ public:
       false )
   )
 
-  read_detected_object_set_habcam();
   virtual ~read_detected_object_set_habcam();
 
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
@@ -49,6 +48,8 @@ public:
   virtual bool read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name );
 
 private:
+  void initialize() override;
+
   virtual void new_stream();
 
   class priv;

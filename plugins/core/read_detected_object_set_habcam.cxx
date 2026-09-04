@@ -88,8 +88,9 @@ public:
 
 
 // =============================================================================
+void
 read_detected_object_set_habcam
-::read_detected_object_set_habcam()
+::initialize()
 {
   KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
 }

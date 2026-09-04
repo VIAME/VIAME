@@ -45,7 +45,6 @@ public:
       2.25 )
   )
 
-  read_detected_object_set_oceaneyes();
   virtual ~read_detected_object_set_oceaneyes();
 
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
@@ -54,6 +53,8 @@ public:
                          std::string& image_name );
 
 private:
+  void initialize() override;
+
   virtual void new_stream();
 
   class priv;

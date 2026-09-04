@@ -71,8 +71,9 @@ public:
 
 
 // ===================================================================================
+void
 read_detected_object_set_oceaneyes
-::read_detected_object_set_oceaneyes()
+::initialize()
 {
   KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
   attach_logger( "viame.core.read_detected_object_set_oceaneyes" );
