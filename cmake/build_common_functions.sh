@@ -216,16 +216,6 @@ install_deps_apt() {
     libbz2-dev \
     liblzma-dev
 
-  # clang is here for kwiver's pybind11 generator, not to compile VIAME. That
-  # generator drives castxml through pygccxml, which picks a compiler to emulate
-  # by looking for clang++ first and falling back to c++. Emulating GCC 13 on
-  # glibc 2.39 (ubuntu24.04) makes castxml stub out _Float32/_Float64/_Float128
-  # as opaque structs that then fail to match glibc's own float overloads --
-  # 20 errors out of <cmath>/<cwchar>/<cstdlib> and no xml file, which is what
-  # sank the ubuntu24.04 web image. Emulating clang parses the same headers
-  # cleanly, so a clang++ on PATH is all it takes to steer pygccxml there.
-  apt-get install -y clang
-
   # Python system packages
   apt-get install -y \
     python3-dev \
