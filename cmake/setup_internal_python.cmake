@@ -8,25 +8,28 @@ set( Python_VERSION ${VIAME_PYTHON_VERSION} CACHE INTERNAL "Forced" FORCE )
 set( Python_FOUND TRUE CACHE INTERNAL "Forced" FORCE )
 set( Python_SOABI ""   CACHE INTERNAL "Forced" FORCE )
 
-set( PY_VER "${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}" )
-set( Python_INCLUDE_DIR ${VIAME_INSTALL_PREFIX}/include/python${PY_VER} CACHE PATH "Forced" FORCE )
-set( PYTHON_INCLUDE_DIRS ${VIAME_INSTALL_PREFIX}/include/python${PY_VER} CACHE PATH "Forced" FORCE )
+set( PY_VER ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR} )
+set( PY_INCLUDE_DIR ${VIAME_INSTALL_PREFIX}/include/python${PY_VER} )
 
 if( WIN32 )
-  set( Python_EXECUTABLE ${VIAME_INSTALL_PREFIX}/bin/python.exe CACHE PATH "Forced" FORCE )
+  set( PY_EXECUTABLE ${VIAME_INSTALL_PREFIX}/bin/python.exe )
 
   # Use the version specific import library rather than the stable ABI
   # python3.lib. CMake's FindPython locates the matching runtime DLL from the
   # library name, and it cannot resolve one for python3.lib, which makes the
   # Development.Module and Development.Embed components report as missing in
   # downstream projects such as kwiver.
-  set( PY_LIB_WIN "${VIAME_INSTALL_PREFIX}/lib/python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}.lib" )
-  set( Python_LIBRARY   ${PY_LIB_WIN} CACHE PATH "Forced" FORCE )
-  set( PYTHON_LIBRARY   ${PY_LIB_WIN} CACHE PATH "Forced" FORCE )
-  set( PYTHON_LIBRARIES ${PY_LIB_WIN} CACHE PATH "Forced" FORCE )
+  set( PY_LIBRARY
+    ${VIAME_INSTALL_PREFIX}/lib/python${Python_VERSION_MAJOR}${Python_VERSION_MINOR}.lib )
 else()
-  set( Python_EXECUTABLE ${VIAME_INSTALL_PREFIX}/bin/python CACHE PATH "Forced" FORCE )
-  set( Python_LIBRARY ${VIAME_INSTALL_PREFIX}/lib/libpython${PY_VER}.so CACHE PATH "Forced" FORCE )
-  set( PYTHON_LIBRARY ${VIAME_INSTALL_PREFIX}/lib/libpython${PY_VER}.so CACHE PATH "Forced" FORCE )
-  set( PYTHON_LIBRARIES ${VIAME_INSTALL_PREFIX}/lib/libpython${PY_VER}.so CACHE PATH "Forced" FORCE )
+  set( PY_EXECUTABLE ${VIAME_INSTALL_PREFIX}/bin/python )
+  set( PY_LIBRARY ${VIAME_INSTALL_PREFIX}/lib/libpython${PY_VER}.so )
 endif()
+
+set( Python_EXECUTABLE   ${PY_EXECUTABLE}  CACHE PATH "Forced" FORCE )
+set( Python_INCLUDE_DIR  ${PY_INCLUDE_DIR} CACHE PATH "Forced" FORCE )
+set( Python_LIBRARY      ${PY_LIBRARY}     CACHE PATH "Forced" FORCE )
+
+set( PYTHON_INCLUDE_DIRS ${PY_INCLUDE_DIR} CACHE PATH "Forced" FORCE )
+set( PYTHON_LIBRARY      ${PY_LIBRARY}     CACHE PATH "Forced" FORCE )
+set( PYTHON_LIBRARIES    ${PY_LIBRARY}     CACHE PATH "Forced" FORCE )
