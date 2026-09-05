@@ -8,7 +8,7 @@
 # the CPU: measure_via_default_fish takes 52s on a GPU and does not finish in
 # 540s without one, which reports a broken image when nothing is wrong.
 #
-# Usage: build_and_push.sh [--test-only] [--no-push]
+# Usage: build_server_docker_default.sh [--test-only] [--no-push]
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
