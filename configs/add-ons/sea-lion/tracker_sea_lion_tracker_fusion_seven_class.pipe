@@ -53,12 +53,18 @@ connect from detector_fuser_cam1.detected_object_set
 connect from downsampler.timestamp
         to tracker.timestamp
 
+process track_classifier :: refine_tracks
+  refiner:type = average_tot
+  refiner:average_tot:tot_option = weighted_average
+
 process track_writer :: write_object_track
   file_name = tracks.csv
   frame_list_output = track_images.txt
   writer:type = viame_csv
 
 connect from tracker.obj_tracks_1
+        to track_classifier.object_track_set
+connect from track_classifier.object_track_set
         to track_writer.object_track_set
 connect from downsampler.timestamp
         to track_writer.timestamp
