@@ -56,6 +56,25 @@ const unsigned MAX_AUTO_CHIP_THREADS = 32;
 const std::string ocv_windowed_trainer::m_chip_subdirectory = "cached_chips";
 
 // -----------------------------------------------------------------------------
+kv::config_block_sptr
+ocv_windowed_trainer
+::get_configuration() const
+{
+  kv::config_block_sptr config = kv::algo::train_detector::get_configuration();
+
+  kv::config_block_sptr cb = config;
+  CPP_MAGIC_MAP( PARAM_CONFIG_GET_FROM_THIS, CPP_MAGIC_EMPTY, VIAME_OCV_WT_PARAMS )
+
+  kv::get_nested_algo_configuration< kv::algo::image_io >(
+    "image_reader", config, m_image_io );
+  kv::get_nested_algo_configuration< kv::algo::train_detector >(
+    "trainer", config, m_trainer );
+
+  return config;
+}
+
+
+// -----------------------------------------------------------------------------
 void
 ocv_windowed_trainer
 ::initialize()
@@ -123,6 +142,32 @@ ocv_windowed_trainer
   }
 
   m_detect_small = ( !c_small_action.empty() && c_small_action != "none" );
+
+  kv::algo::image_io_sptr io;
+  kv::set_nested_algo_configuration< kv::algo::image_io >(
+    "image_reader", config, io );
+  m_image_io = io;
+
+  // Nested trainers default to their own "deep_training", so left alone a run
+  // scatters across two folders. Hand ours down unless the config names one.
+  const std::string trainer_type =
+    config->get_value< std::string >( "trainer:type", "" );
+
+  if( !trainer_type.empty() )
+  {
+    const std::string trainer_dir_key =
+      "trainer:" + trainer_type + ":train_directory";
+
+    if( !config->has_value( trainer_dir_key ) )
+    {
+      config->set_value( trainer_dir_key, c_train_directory );
+    }
+  }
+
+  kv::algo::train_detector_sptr trainer;
+  kv::set_nested_algo_configuration< kv::algo::train_detector >(
+    "trainer", config, trainer );
+  m_trainer = trainer;
 }
 
 
@@ -181,14 +226,14 @@ ocv_windowed_trainer
       all_labels->add_class( p->first );
     }
 
-    c_trainer->add_data_from_disk(
+    m_trainer->add_data_from_disk(
       all_labels,
       filtered_train_names, filtered_train_truth,
       filtered_test_names, filtered_test_truth );
   }
   else
   {
-    c_trainer->add_data_from_disk(
+    m_trainer->add_data_from_disk(
       labels_without_ignored( object_labels ),
       filtered_train_names, filtered_train_truth,
       filtered_test_names, filtered_test_truth );
@@ -252,7 +297,7 @@ ocv_windowed_trainer
     }
   }
 
-  c_trainer->add_data_from_disk(
+  m_trainer->add_data_from_disk(
     labels_without_ignored( object_labels ),
     filtered_train_names, filtered_train_truth,
     filtered_test_names, filtered_test_truth );
@@ -262,7 +307,7 @@ std::map<std::string, std::string>
 ocv_windowed_trainer
 ::update_model()
 {
-  std::map<std::string, std::string> nested_output = c_trainer->update_model();
+  std::map<std::string, std::string> nested_output = m_trainer->update_model();
 
   const std::string algo = "ocv_windowed";
   const std::string nested_prefix = algo + ":detector:";
@@ -454,7 +499,7 @@ ocv_windowed_trainer
   {
     LOG_INFO( m_logger, "Loading image: " << image_fn );
 
-    vital_image = c_image_reader->load( image_fn );
+    vital_image = m_image_io->load( image_fn );
 
     original_image = ocv::image_container::vital_to_ocv(
       vital_image->get_image(), ocv::image_container::RGB_COLOR );
@@ -1140,7 +1185,7 @@ ocv_windowed_trainer
   const cv::Mat owned =
     ( image.u && image.isContinuous() ) ? image : image.clone();
 
-  c_image_reader->save( filename,
+  m_image_io->save( filename,
     kv::image_container_sptr(
       new ocv::image_container( owned,
         ocv::image_container::RGB_COLOR ) ) );
