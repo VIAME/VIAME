@@ -73,6 +73,9 @@ public:
   bool opt_track_detections = false; // Prefer *_tracks.csv over *_detections.csv
   std::string opt_input_format = "viame_csv";  // Reader for non-CSV inputs
   std::string opt_output_roc_csv;    // Output ROC curve to CSV
+  std::string opt_output_matches;    // Per-object tp/fp/fn assignments as JSON
+  std::string opt_match_mode = "box";  // Geometry used for matching
+  double opt_keypoint_threshold = 0.1; // PCK tolerance, fraction of GT length
   bool opt_print_summary = true;
 
   score_results_params() = default;
@@ -266,6 +269,38 @@ void print_summary( const viame::evaluation_results& results )
     std::cout << "  Avg GT Track Length:    " << results.avg_gt_track_length << " frames\n";
     std::cout << "  Track Completeness:     " << results.track_completeness << "\n";
     std::cout << "  Avg Gap Length:         " << results.avg_gap_length << " frames\n";
+    std::cout << "\n";
+  }
+
+  if( results.polygon_pairs > 0 )
+  {
+    std::cout << "--- Segmentation ---\n";
+    std::cout << "  Polygon Pairs:          " << static_cast< int >( results.polygon_pairs ) << "\n";
+    std::cout << "  Mean Polygon IoU:       " << results.mean_polygon_iou << "\n";
+    std::cout << "  Median Polygon IoU:     " << results.median_polygon_iou << "\n";
+    std::cout << "\n";
+  }
+
+  if( results.keypoint_pairs > 0 || results.length_pairs > 0 )
+  {
+    std::cout << "--- Keypoints and Lengths ---\n";
+    if( results.keypoint_pairs > 0 )
+    {
+      std::cout << "  Keypoint Pairs:         " << static_cast< int >( results.keypoint_pairs ) << "\n";
+      std::cout << "  Head Mean Error:        " << results.head_mean_error << " px\n";
+      std::cout << "  Tail Mean Error:        " << results.tail_mean_error << " px\n";
+      std::cout << "  Head PCK:               " << results.head_pck << "\n";
+      std::cout << "  Tail PCK:               " << results.tail_pck << "\n";
+      std::cout << "  Keypoint PCK:           " << results.keypoint_pck << "\n";
+    }
+    if( results.length_pairs > 0 )
+    {
+      std::cout << "  Length Pairs:           " << static_cast< int >( results.length_pairs ) << "\n";
+      std::cout << "  Length MAE:             " << results.length_mae << "\n";
+      std::cout << "  Length MAPE:            " << results.length_mape << "\n";
+      std::cout << "  Length RMSE:            " << results.length_rmse << "\n";
+      std::cout << "  Length Bias:            " << results.length_bias << "\n";
+    }
     std::cout << "\n";
   }
 
@@ -515,6 +550,62 @@ struct sweep_result
   double mota_thresh = 0.0;
 };
 
+// The metrics recorded at every swept threshold, so a consumer can plot the
+// whole curve and pick its own operating point rather than only the two
+// maxima above.
+const std::vector< std::string > SWEEP_METRICS = {
+  "precision", "recall", "f1_score", "true_positives", "false_positives",
+  "false_negatives", "mota", "motp", "idf1", "hota", "deta", "assa",
+  "id_switches", "fragmentations", "mostly_tracked", "mostly_lost",
+};
+
+struct sweep_curve
+{
+  std::vector< double > thresholds;
+  std::map< std::string, std::vector< double > > metrics;
+  sweep_result best;
+};
+
+using sweep_curves = std::map< std::string, sweep_curve >;
+
+bool write_sweep_curve_csv( const std::string& filepath,
+                            const sweep_curves& curves )
+{
+  std::ofstream out( filepath );
+  if( !out.is_open() )
+  {
+    LOG_ERROR( g_logger, "Could not open sweep curve output: " << filepath );
+    return false;
+  }
+
+  out << std::fixed << std::setprecision( 6 );
+  out << "# class,threshold";
+  for( const auto& name : SWEEP_METRICS )
+  {
+    out << "," << name;
+  }
+  out << "\n";
+
+  for( const auto& kv : curves )
+  {
+    const auto& curve = kv.second;
+    for( size_t i = 0; i < curve.thresholds.size(); ++i )
+    {
+      out << kv.first << "," << curve.thresholds[i];
+      for( const auto& name : SWEEP_METRICS )
+      {
+        auto it = curve.metrics.find( name );
+        out << "," << ( it != curve.metrics.end() && i < it->second.size()
+                        ? it->second[i] : 0.0 );
+      }
+      out << "\n";
+    }
+  }
+
+  LOG_INFO( g_logger, "Sweep curves written to: " << filepath );
+  return true;
+}
+
 // Turn swept thresholds into the per-class confidence filter DIVE applies.
 // "min" is deliberately the conservative choice: it keeps whichever of the two
 // operating points admits more detections, so the filter never hides anything
@@ -595,10 +686,78 @@ bool write_dive_filter( const std::string& filepath,
   return true;
 }
 
+// A non-finite value would be streamed as a bare nan or inf token, which is
+// not valid JSON; emit null instead
+std::string json_value( double value )
+{
+  if( !std::isfinite( value ) )
+  {
+    return "null";
+  }
+
+  std::ostringstream oss;
+  oss << std::fixed << std::setprecision( 6 ) << value;
+  return oss.str();
+}
+
+// Compact tabular form: one frame-name row per (sequence, frame) and one
+// array per object, so a run with many detections stays readable by DIVE
+// without repeating the image name on every line.
+bool write_matches_json( const std::vector< viame::match_record >& matches,
+                         const std::string& filepath )
+{
+  std::ofstream out( filepath );
+  if( !out.is_open() )
+  {
+    LOG_ERROR( g_logger, "Could not open matches file: " << filepath );
+    return false;
+  }
+
+  std::map< std::pair< int, int >, std::string > frame_names;
+  for( const auto& m : matches )
+  {
+    frame_names.emplace( std::make_pair( m.sequence, m.frame_id ), m.frame_name );
+  }
+
+  out << "{\n";
+  out << "  \"columns\": [\"sequence\", \"frame\", \"status\", \"computed_id\", "
+      << "\"gt_id\", \"iou\", \"confidence\", \"computed_class\", \"gt_class\"],\n";
+
+  out << "  \"frame_names\": [";
+  bool first = true;
+  for( const auto& kv : frame_names )
+  {
+    out << ( first ? "\n    [" : ",\n    [" ) << kv.first.first << ", "
+        << kv.first.second << ", \"" << escape_json( kv.second ) << "\"]";
+    first = false;
+  }
+  out << "\n  ],\n";
+
+  out << "  \"rows\": [";
+  first = true;
+  for( const auto& m : matches )
+  {
+    out << ( first ? "\n    [" : ",\n    [" )
+        << m.sequence << ", " << m.frame_id << ", \"" << m.status << "\", "
+        << m.computed_id << ", " << m.gt_id << ", "
+        << json_value( m.iou ) << ", " << json_value( m.confidence ) << ", \""
+        << escape_json( m.computed_class ) << "\", \""
+        << escape_json( m.gt_class ) << "\"]";
+    first = false;
+  }
+  out << "\n  ]\n}\n";
+  out.close();
+
+  LOG_INFO( g_logger, "Match assignments written to: " << filepath );
+  return true;
+}
+
 bool write_metrics_json( const viame::evaluation_results& results,
                          const std::string& filepath,
+                         const score_results_params& params,
                          const viame::evaluation_plot_data* plot_data = nullptr,
-                         bool include_curves = false )
+                         bool include_curves = false,
+                         const sweep_curves* sweep = nullptr )
 {
   std::ofstream out( filepath );
   if( !out.is_open() )
@@ -610,26 +769,65 @@ bool write_metrics_json( const viame::evaluation_results& results,
   out << std::fixed << std::setprecision( 6 );
   out << "{\n";
 
-  // A non-finite value would be streamed as a bare nan or inf token, which is
-  // not valid JSON; emit null instead
-  auto json_value = []( double value ) -> std::string
-  {
-    if( !std::isfinite( value ) )
-    {
-      return "null";
-    }
-
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision( 6 ) << value;
-    return oss.str();
-  };
-
   bool first = true;
   for( const auto& kv : results.all_metrics )
   {
     if( !first ) out << ",\n";
     out << "  \"" << escape_json( kv.first ) << "\": " << json_value( kv.second );
     first = false;
+  }
+
+  // The settings that shaped the numbers travel with them, so a stored result
+  // can be labelled without the command line that produced it
+  out << ",\n  \"config\": {"
+      << "\"iou_threshold\": " << json_value( params.opt_iou_threshold )
+      << ", \"confidence_threshold\": " << json_value( params.opt_confidence_threshold )
+      << ", \"match_mode\": \"" << escape_json( params.opt_match_mode ) << "\""
+      << ", \"keypoint_threshold\": " << json_value( params.opt_keypoint_threshold )
+      << ", \"per_class\": " << ( params.opt_per_class ? "true" : "false" )
+      << ", \"tracking\": " << ( params.opt_compute_tracking ? "true" : "false" )
+      << ", \"top_class\": " << ( params.opt_top_class ? "true" : "false" )
+      << ", \"aux_confidence\": " << ( params.opt_aux_confidence ? "true" : "false" )
+      << "}";
+
+  if( sweep && !sweep->empty() )
+  {
+    out << ",\n  \"sweep\": {\n";
+    out << "    \"interval\": " << params.opt_sweep_interval << ",\n";
+    out << "    \"curves\": {";
+    bool first_curve = true;
+    for( const auto& kv : *sweep )
+    {
+      const auto& curve = kv.second;
+      out << ( first_curve ? "\n" : ",\n" );
+      out << "      \"" << escape_json( kv.first ) << "\": {\n";
+      out << "        \"best\": {\"idf1\": " << json_value( curve.best.idf1 )
+          << ", \"idf1_thresh\": " << json_value( curve.best.idf1_thresh )
+          << ", \"mota\": " << json_value( curve.best.mota )
+          << ", \"mota_thresh\": " << json_value( curve.best.mota_thresh ) << "},\n";
+
+      auto write_array = [&]( const std::string& name,
+                              const std::vector< double >& values )
+      {
+        out << "        \"" << escape_json( name ) << "\": [";
+        for( size_t i = 0; i < values.size(); ++i )
+        {
+          if( i ) out << ", ";
+          out << json_value( values[i] );
+        }
+        out << "]";
+      };
+
+      write_array( "thresholds", curve.thresholds );
+      for( const auto& metric : curve.metrics )
+      {
+        out << ",\n";
+        write_array( metric.first, metric.second );
+      }
+      out << "\n      }";
+      first_curve = false;
+    }
+    out << "\n    }\n  }";
   }
 
   // Add per-class metrics if present
@@ -897,6 +1095,16 @@ score_results_applet
       "JSON. Off by default: curves carry one point per detection, so a "
       "large run inlines millions",
       ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "match-mode", "Geometry used to match computed objects to groundtruth: "
+      "box, or polygon to overlap (poly) outlines where both sides carry one",
+      ::cxxopts::value< std::string >()->default_value( "box" ), "name" )
+    ( "keypoint-threshold", "A head or tail keypoint counts as correct within "
+      "this fraction of the groundtruth length (head-to-tail distance, else "
+      "the length column, else the box diagonal)",
+      ::cxxopts::value< double >()->default_value( "0.1" ), "value" )
+    ( "output-matches", "Write every object's tp/fp/fn assignment at the "
+      "configured threshold to a JSON file, keyed by input ids and frames",
+      ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "no-print", "Suppress printing summary to stdout",
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ;
@@ -963,7 +1171,17 @@ score_results_applet
   params.opt_aux_confidence = cmd_args[ "aux-confidence" ].as< bool >();
   params.opt_top_class = cmd_args[ "top-class" ].as< bool >();
   params.opt_json_curves = cmd_args[ "json-curves" ].as< bool >();
+  params.opt_match_mode = cmd_args[ "match-mode" ].as< std::string >();
+  params.opt_keypoint_threshold = cmd_args[ "keypoint-threshold" ].as< double >();
+  params.opt_output_matches = cmd_args[ "output-matches" ].as< std::string >();
   params.opt_print_summary = !cmd_args[ "no-print" ].as< bool >();
+
+  if( params.opt_match_mode != "box" && params.opt_match_mode != "polygon" )
+  {
+    LOG_ERROR( g_logger, "--match-mode must be box or polygon, not "
+               << params.opt_match_mode );
+    return EXIT_FAILURE;
+  }
 
   // Validate inputs
   if( params.opt_computed.empty() )
@@ -1069,6 +1287,8 @@ score_results_applet
   config.top_class_only = params.opt_top_class;
   config.default_label = params.opt_default_label;
   config.input_format = params.opt_input_format;
+  config.match_mode = params.opt_match_mode;
+  config.keypoint_threshold = params.opt_keypoint_threshold;
 
   if( !params.opt_labels.empty() &&
       !load_label_synonyms( params.opt_labels, config.label_synonyms ) )
@@ -1110,6 +1330,8 @@ score_results_applet
   // Write outputs
   bool success = true;
 
+  sweep_curves swept;
+
   // Threshold sweep. evaluate() has already loaded the inputs, so each step
   // re-filters that copy rather than re-parsing; cost is thresholds x classes
   // evaluations, which --sweep-interval controls.
@@ -1135,11 +1357,27 @@ score_results_applet
 
     std::map< std::string, sweep_result > sweep_scores;
 
-    LOG_INFO( g_logger, "Sweeping " << params.opt_sweep_interval
-              << " thresholds over " << sweep_classes.size() << " class(es)..." );
-
+    // With per-class on, the classes drive the filter file but the aggregate
+    // curve is still the one most people plot, so it is swept too and kept
+    // out of sweep_scores where it would change the written filter.
+    std::vector< std::pair< std::string, std::string > > sweep_jobs;
     for( const auto& class_name : sweep_classes )
     {
+      sweep_jobs.emplace_back( class_name,
+                               class_name.empty() ? "default" : class_name );
+    }
+    if( !sweep_classes.count( std::string() ) )
+    {
+      sweep_jobs.emplace_back( std::string(), "overall" );
+    }
+
+    LOG_INFO( g_logger, "Sweeping " << params.opt_sweep_interval
+              << " thresholds over " << sweep_jobs.size() << " curve(s)..." );
+
+    for( const auto& job : sweep_jobs )
+    {
+      const std::string& class_name = job.first;
+      sweep_curve curve;
       sweep_result best;
 
       for( int i = 0; i < params.opt_sweep_interval; ++i )
@@ -1159,10 +1397,28 @@ score_results_applet
           best.mota = r.mota;
           best.mota_thresh = thresh;
         }
+
+        curve.thresholds.push_back( thresh );
+        for( const auto& name : SWEEP_METRICS )
+        {
+          auto it = r.all_metrics.find( name );
+          curve.metrics[name].push_back(
+            it != r.all_metrics.end() ? it->second : 0.0 );
+        }
       }
 
-      sweep_scores[class_name.empty() ? "default" : class_name] = best;
+      curve.best = best;
+      swept[job.second] = curve;
+      if( job.second != "overall" )
+      {
+        sweep_scores[job.second] = best;
+      }
     }
+
+    // The sweep leaves the evaluator holding its final step; put the
+    // configured operating point back so the plots, confusion matrix and
+    // match export below describe the headline numbers, not threshold 0.99
+    evaluator.evaluate_loaded( params.opt_confidence_threshold );
 
     const std::string sweep_dir = params.opt_output_sweep.empty()
       ? std::string( "." ) : params.opt_output_sweep;
@@ -1194,6 +1450,9 @@ score_results_applet
       LOG_ERROR( g_logger, "Could not open sweep output: " << csv_path );
       success = false;
     }
+
+    success = write_sweep_curve_csv( sweep_dir + "/sweep_curves.csv", swept )
+              && success;
 
     std::cout << "\n--- Threshold Sweep ---\n";
     std::cout << std::fixed << std::setprecision( 4 );
@@ -1242,9 +1501,16 @@ score_results_applet
 
   if( !params.opt_output_metrics.empty() )
   {
-    success = write_metrics_json( results, params.opt_output_metrics,
+    success = write_metrics_json( results, params.opt_output_metrics, params,
                                   plot_data_ptr.get(),
-                                  params.opt_json_curves ) && success;
+                                  params.opt_json_curves,
+                                  swept.empty() ? nullptr : &swept ) && success;
+  }
+
+  if( !params.opt_output_matches.empty() )
+  {
+    success = write_matches_json( evaluator.get_matches(),
+                                  params.opt_output_matches ) && success;
   }
 
   if( !params.opt_output_summary.empty() )

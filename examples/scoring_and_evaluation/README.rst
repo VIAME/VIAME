@@ -66,10 +66,32 @@ Common options accepted by all scripts:
   into a DIVE confidence filter (``none``, ``min``, ``avg``,
   ``avg_minus_1p``, ``idf1``, ``mota``), written with ``class_metrics.csv``
   into the sweep directory.
+| ``--match-mode`` -- ``box`` (default) overlaps bounding boxes; ``polygon``
+  overlaps the ``(poly)`` outlines wherever both sides carry one, falling back
+  to the box for any pair that does not. Every metric downstream of matching,
+  AP included, follows the choice, so this is how segmentations are scored.
+  In either mode the mean and median polygon IoU of matched pairs with
+  outlines on both sides are reported (``mean_polygon_iou``).
+| ``--keypoint-threshold`` (default: 0.1) -- Head and tail keypoints are
+  compared wherever both sides carry them: mean pixel error per point and
+  PCK, the fraction within this fraction of the groundtruth length (its
+  head-to-tail distance, else its length column, else its box diagonal).
+  Lengths are compared too, from the length column or else the head-to-tail
+  distance: MAE, MAPE, RMSE and signed bias (``length_*``).
+| ``--output-matches`` -- Write every object's tp/fp/fn assignment at the
+  configured threshold as JSON, keyed by the ids and frame numbers of the
+  input files, so a viewer can highlight misses and false alarms.
 | ``--output-plots`` -- Render PRC, ROC, confusion matrix and score histograms.
 | ``--output-pr-csv`` / ``--output-roc-csv`` / ``--output-conf-csv`` -- Write the
   underlying curve and matrix data as CSV, so it can be replotted or diffed
   without rescoring.
+
+With ``--sweep-thresholds`` the metrics JSON also carries a ``sweep`` section
+holding, per class and for the aggregate, every swept threshold with the
+precision, recall, F1, MOTA, MOTP, IDF1, HOTA and count metrics at each one,
+and ``sweep_curves.csv`` is written beside ``class_metrics.csv``. DIVE's
+scoring panel plots these to pick an operating point; the aggregate curve
+never feeds the written DIVE filter.
 
 
 ---------------------------
