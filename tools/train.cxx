@@ -580,12 +580,18 @@ static std::vector< std::string > build_child_train_args(
 }
 
 // =======================================================================================
-// Try to instantiate a detector and get its configuration.
-// The output_map is used to pre-configure nested detector types if present.
-// Returns nullptr if the detector cannot be instantiated.
+// Look up the config keys a detector declares, without constructing it.
+//
+// Instantiating instead would run the detector's set_configuration, which for
+// the GPU detectors builds a CUDA context and loads a full set of weights just
+// to read back key names -- and tearing that down inside the embedded
+// interpreter at the end of a training run aborts the process.
+//
+// Returns nullptr when the keys cannot be determined, which includes every
+// python implementation: those register a no-op get_default_config, so an empty
+// block means "unknown", not "no valid keys".
 static kv::config_block_sptr try_get_detector_config(
-    const std::string& algo_type,
-    const std::map< std::string, std::string >& output_map = {} )
+    const std::string& algo_type )
 {
   if( algo_type.empty() )
   {
@@ -594,37 +600,19 @@ static kv::config_block_sptr try_get_detector_config(
 
   try
   {
-    // Use the v2.0 plugin factory API to find and query the detector
     kv::implementation_factory_by_name< kv::algo::image_object_detector > factory;
     kv::plugin_factory_handle_t fact = factory.find_factory( algo_type );
 
-    // Get the default configuration for this detector type
     kv::config_block_sptr config = kv::config_block::empty_config();
     fact->get_default_config( *config );
 
-    // Apply any nested detector type settings from the output map
-    std::string nested_type_key = algo_type + ":detector:type";
-    auto it = output_map.find( nested_type_key );
-    if( it != output_map.end() && !it->second.empty() )
+    if( !config->available_values().empty() )
     {
-      config->set_value( "detector:type", it->second );
-    }
-
-    // Try to instantiate the detector with the config
-    auto detector = std::dynamic_pointer_cast< kv::algo::image_object_detector >(
-      fact->from_config( config ) );
-
-    if( detector )
-    {
-      // Get the full configuration from the instantiated detector
-      return detector->get_configuration();
+      return config;
     }
   }
   catch( ... )
   {
-    // Some detectors (e.g., netharn, mmdet) require model files to be
-    // instantiated and will fail here. This is expected - we'll skip
-    // detailed validation for these detectors.
   }
 
   return nullptr;
@@ -659,15 +647,13 @@ static bool validate_trainer_output_keys(
   }
 
   // Get the outer algorithm's config (e.g., ocv_windowed)
-  // Pass output_map so nested detector type is pre-configured for wrapper types
-  kv::config_block_sptr outer_config = try_get_detector_config( algorithm_type, output_map );
+  kv::config_block_sptr outer_config = try_get_detector_config( algorithm_type );
 
   // Get nested algorithm's config if available
   kv::config_block_sptr nested_config = try_get_detector_config( nested_type );
 
-  // If neither config could be obtained, skip validation silently.
-  // This is expected for Python-based detectors (e.g. netharn) that
-  // cannot be instantiated without a model file.
+  // If neither config could be obtained, skip validation silently. This is
+  // expected for the python detectors, which declare no keys to the factory.
   if( !outer_config && !nested_config )
   {
     return true;
@@ -701,7 +687,8 @@ static bool validate_trainer_output_keys(
       std::string after_prefix = key.substr( nested_prefix.size() );
       std::string expected_start = nested_type + ":";
 
-      if( after_prefix.size() <= expected_start.size() ||
+      if( nested_type.empty() ||
+          after_prefix.size() <= expected_start.size() ||
           after_prefix.substr( 0, expected_start.size() ) != expected_start )
       {
         continue;
@@ -709,26 +696,25 @@ static bool validate_trainer_output_keys(
 
       if( nested_config )
       {
-        std::string nested_key = "detector:" + nested_type + ":" +
-          key.substr( nested_prefix.size() + nested_type.size() + 1 );
+        std::string nested_key = after_prefix.substr( expected_start.size() );
 
         if( !nested_config->has_value( nested_key ) )
         {
-          std::cerr << "Error: Invalid nested key '" << key << "' for algorithm '"
+          std::cerr << "Warning: Invalid nested key '" << key << "' for algorithm '"
                     << nested_type << "'" << std::endl;
           all_valid = false;
         }
       }
-      // else: nested detector couldn't be instantiated, skip validation for this key
+      // else: nested detector declares no keys through its factory, skip it
     }
     else if( key.find( outer_prefix ) == 0 && outer_config )
     {
       // Key like "ocv_windowed:mode" - validate against outer config
-      std::string outer_key = "detector:" + key;
+      std::string outer_key = key.substr( outer_prefix.size() );
 
       if( !outer_config->has_value( outer_key ) )
       {
-        std::cerr << "Error: Invalid key '" << key << "' for algorithm '"
+        std::cerr << "Warning: Invalid key '" << key << "' for algorithm '"
                   << algorithm_type << "'" << std::endl;
         all_valid = false;
       }
@@ -761,14 +747,16 @@ static void process_trainer_output(
     return;
   }
 
-  // Validate output keys against the inference algorithm's config
+  // Validate output keys against the inference algorithm's config. A mismatch
+  // only means the generated pipeline carries a key the detector ignores, so it
+  // is reported and the model is still written out -- discarding a finished
+  // training run over it would be far worse than the bad key.
   if( !algorithm_type.empty() )
   {
     if( !validate_trainer_output_keys( output_map, algorithm_type, is_detector ) )
     {
-      std::cerr << "Error: Trainer output contains invalid keys for algorithm '"
-                << algorithm_type << "'" << std::endl;
-      return;
+      std::cerr << "Warning: trainer output contains keys not declared by "
+                << "algorithm '" << algorithm_type << "'" << std::endl;
     }
   }
 
