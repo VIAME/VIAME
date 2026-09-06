@@ -53,6 +53,19 @@ if( VIAME_DOWNLOAD_MODELS )
     endif()
   endif()
 
+  # EfficientNetV2-L classifier train seed, carried in no model pack
+  if( VIAME_DOWNLOAD_MODELS-EFFICIENTNETV2L )
+    if( VIAME_ENABLE_PYTORCH-NETHARN )
+      DownloadFile(
+        https://download.pytorch.org/models/efficientnet_v2_l-59c71312.pth
+        ${CMAKE_CURRENT_SOURCE_DIR}/models/pytorch_efficientnet_v2_l.pth
+        d59822a1af017c713219c2c715649ee6 )
+    else()
+      message( FATAL_ERROR
+        "VIAME_DOWNLOAD_MODELS-EFFICIENTNETV2L requires VIAME_ENABLE_PYTORCH-NETHARN" )
+    endif()
+  endif()
+
   # Darknet training seed models, consumed by the darknet-yolo add-on configs
   if( VIAME_ENABLE_DARKNET AND VIAME_DOWNLOAD_MODELS-DARKNET-YOLO )
     DownloadAndExtract(

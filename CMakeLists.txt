@@ -162,6 +162,9 @@ if( VIAME_DOWNLOAD_MODELS )
   option( VIAME_DOWNLOAD_MODELS-EFFICIENTNETV2M
     "EfficientNetV2-M classifier training seed model" OFF )
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-EFFICIENTNETV2M )
+  option( VIAME_DOWNLOAD_MODELS-EFFICIENTNETV2L
+    "EfficientNetV2-L classifier training seed model" OFF )
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-EFFICIENTNETV2L )
 else()
   # Force all flags to OFF in the event that the root flag is set
   DisableAllModelDownloads()
