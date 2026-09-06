@@ -199,6 +199,10 @@ class ClfModel(nh.layers.Module):
             from torchvision.models import efficientnet
             model = efficientnet.efficientnet_v2_m(num_classes=num_classes)
             self.backbone_url = "https://download.pytorch.org/models/efficientnet_v2_m-dc08266a.pth"
+        elif arch == 'efficientnetv2l':
+            from torchvision.models import efficientnet
+            model = efficientnet.efficientnet_v2_l(num_classes=num_classes)
+            self.backbone_url = "https://download.pytorch.org/models/efficientnet_v2_l-59c71312.pth"
         elif arch == 'convnextsmall':
             from torchvision.models import convnext_small
             model = convnext_small(num_classes=num_classes)
