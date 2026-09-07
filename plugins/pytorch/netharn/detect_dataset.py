@@ -820,7 +820,7 @@ def worker_init_fn(worker_id):
         self.sampler.dset.connect(readonly=True)
 
     # Make loaders more random
-    kwarray.seed_global(np.random.get_state()[1][0] + worker_id)
+    kwarray.seed_global(int(np.random.get_state()[1][0]) + worker_id)
     if self.augmenter:
         rng = kwarray.ensure_rng(None)
         reseed_(self.augmenter, rng)
