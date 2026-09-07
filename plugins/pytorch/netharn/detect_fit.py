@@ -102,6 +102,14 @@ class DetectFitConfig(scfg.Config):
 
         'bstep': scfg.Value(8, help='num batches before stepping'),
         'lr': scfg.Value(1e-3, help='learning rate'),  # 1e-4,
+
+        'backbone_lr_mult': scfg.Value(0.1, help=(
+            'transformer detectors only: lr multiplier for the pretrained '
+            'vision backbone, which needs a far smaller step than the '
+            'randomly initialized heads')),
+        'stem_lr_mult': scfg.Value(0.01, help=(
+            'transformer detectors only: lr multiplier for the patch-embed '
+            'stem, the slowest group of all')),
         'decay': scfg.Value(1e-4, help='weight decay'),
 
         'schedule': scfg.Value('Exponential-g0.98-s1', help='learning rate / momentum scheduler'),
@@ -1037,6 +1045,9 @@ def setup_harn(cmdline=True, **kw):
     print('initializer_ = {!r}'.format(initializer_))
 
     arch = config['arch']
+
+    # Set by the architectures that need more than one learning rate
+    optim_param_groups = None
     classes = samplers['train'].classes
 
     criterion_ = None
@@ -1188,6 +1199,19 @@ def setup_harn(cmdline=True, **kw):
         )
         model = rf_detr_models.RFDETR_Detector(**initkw)
         model._initkw = initkw
+
+        # A single flat lr across a DETR diverges: the DINOv2 trunk arrives
+        # pretrained and the heads do not. Ordered coarse-to-fine, earlier
+        # groups win, and the trailing catch-all keeps every remaining
+        # parameter in the optimizer.
+        base_lr = float(config['lr'])
+        optim_param_groups = [
+            {'params': r'model\.backbone\.0\.encoder\.encoder\.embeddings\..*',
+             'lr': base_lr * float(config['stem_lr_mult'])},
+            {'params': r'model\.backbone\.0\.encoder\..*',
+             'lr': base_lr * float(config['backbone_lr_mult'])},
+            {'params': r'.*'},
+        ]
     elif arch == 'mit_yolo' or arch.startswith('mityolo'):
         from .detection_models import mit_yolo_models
         # Parse variant from arch name (e.g., 'mityolo_v9c', 'mit_yolo_v9s')
@@ -1225,7 +1249,10 @@ def setup_harn(cmdline=True, **kw):
     scheduler_ = nh.Scheduler.coerce(config)
     print('scheduler_ = {!r}'.format(scheduler_))
 
-    optimizer_ = nh.Optimizer.coerce(config)
+    if optim_param_groups is None:
+        optimizer_ = nh.Optimizer.coerce(config)
+    else:
+        optimizer_ = nh.Optimizer.coerce(config, params=optim_param_groups)
     print('optimizer_ = {!r}'.format(optimizer_))
 
     dynamics_ = nh.Dynamics.coerce(config)

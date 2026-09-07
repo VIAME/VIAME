@@ -67,7 +67,10 @@ class NetHarnTrainer( TrainDetector ):
         self._batch_size = "auto"
         self._bstep = "4"
         self._learning_rate = "auto"
+        self._optimizer = "auto"
         self._scheduler = "auto"
+        self._batches_per_epoch = "auto"
+        self._vali_batches_per_epoch = "auto"
         self._timeout = "1209600"
         self._epoch_ignore_count = "2"
         self._train_workers = "4"
@@ -99,6 +102,9 @@ class NetHarnTrainer( TrainDetector ):
         self._multi_output = False
         self._segmentation_head = False
 
+    def _is_detr_arch( self ):
+        return self._arch.lower().startswith( ( "rfdetr", "rf_detr" ) )
+
     def get_configuration( self ):
         # Inherit from the base class
         cfg = super( TrainDetector, self ).get_configuration()
@@ -126,7 +132,10 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "batch_size", self._batch_size )
         cfg.set_value( "bstep", self._bstep )
         cfg.set_value( "learning_rate", self._learning_rate )
+        cfg.set_value( "optimizer", self._optimizer )
         cfg.set_value( "scheduler", self._scheduler )
+        cfg.set_value( "batches_per_epoch", self._batches_per_epoch )
+        cfg.set_value( "vali_batches_per_epoch", self._vali_batches_per_epoch )
         cfg.set_value( "timeout", self._timeout )
         cfg.set_value( "epoch_ignore_count", self._epoch_ignore_count )
         cfg.set_value( "train_workers", self._train_workers )
@@ -184,8 +193,12 @@ class NetHarnTrainer( TrainDetector ):
         self._max_epochs = str( cfg.get_value( "max_epochs" ) )
         self._batch_size = str( cfg.get_value( "batch_size" ) )
         self._learning_rate = str( cfg.get_value( "learning_rate" ) )
+        self._optimizer = str( cfg.get_value( "optimizer" ) )
         self._bstep = str( cfg.get_value( "bstep" ) )
         self._scheduler = str( cfg.get_value( "scheduler" ) )
+        self._batches_per_epoch = str( cfg.get_value( "batches_per_epoch" ) )
+        self._vali_batches_per_epoch = \
+            str( cfg.get_value( "vali_batches_per_epoch" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
         self._epoch_ignore_count = str( cfg.get_value( "epoch_ignore_count" ) )
         self._train_workers = str( cfg.get_value( "train_workers" ) )
@@ -243,8 +256,11 @@ class NetHarnTrainer( TrainDetector ):
                     self._batch_size = str( 2 * gpu_param_adj )
                 else:
                     self._batch_size = str( 1 * gpu_param_adj )
+            if self._optimizer == "auto":
+                self._optimizer = "adamw" if self._is_detr_arch() else "sgd"
             if self._learning_rate == "auto":
-                self._learning_rate = str( 1e-3 )
+                self._learning_rate = str(
+                  1e-4 if self._optimizer == "adamw" else 1e-3 )
             if self._scheduler == "auto":
                 self._scheduler = "ReduceLROnPlateau-p2-c2"
         elif self._mode == "frame_classifier" or self._mode == "detection_refiner":
@@ -257,6 +273,8 @@ class NetHarnTrainer( TrainDetector ):
                     self._batch_size = str( 16 * gpu_param_adj )
                 else:
                     self._batch_size = str( 8 * gpu_param_adj )
+            if self._optimizer == "auto":
+                self._optimizer = "sgd"
             if self._learning_rate == "auto":
                 self._learning_rate = str(
                   5e-4 * math.sqrt( float( self._batch_size ) / 64.0 ) )
@@ -862,7 +880,9 @@ class NetHarnTrainer( TrainDetector ):
                  "--workers=" + self._train_workers,
                  "--normalize_inputs=True",
                  "--init=noop",
-                 "--optim=sgd",
+                 "--optim=" + self._optimizer,
+                 "--num_batches=" + self._batches_per_epoch,
+                 "--num_vali_batches=" + self._vali_batches_per_epoch,
                  "--augmenter=" + self._augmentation,
                  "--gravity=" + self._gravity,
                  "--max_epoch=" + self._max_epochs,
