@@ -11,7 +11,7 @@ source ${VIAME_INSTALL}/setup_viame.sh
 # MOTA, MOTP, IDF1, identity switches, fragmentation and the HOTA family are
 # all computed in the same pass as the detection metrics.
 
-viame_score_results \
+viame score \
  --computed detections.csv --truth groundtruth.csv \
  --iou 0.5 --conf 0.10 --per-class \
  --output-summary output_mot_stats_per_category.txt \

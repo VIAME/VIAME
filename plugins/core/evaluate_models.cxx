@@ -23,6 +23,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
+#include <cstdint>
 
 namespace viame {
 
@@ -49,6 +50,36 @@ struct detection
   // of them unless top_class_only is set, so a detection hedging across two
   // classes is offered to both rather than silently only to its best.
   std::vector< std::pair< std::string, double > > class_scores;
+
+  int sequence_id = 0;            // Which file pair this object came from
+  int orig_frame_id = -1;         // Frame number before remapping
+  int all_index = -1;             // Position in the unfiltered load
+
+  std::vector< std::pair< double, double > > polygon;  // (poly) outline
+  bool has_head = false;
+  bool has_tail = false;
+  double head_x = 0, head_y = 0;
+  double tail_x = 0, tail_y = 0;
+  double length = -1.0;           // Column 8, negative when absent
+
+  bool has_polygon() const { return polygon.size() >= 3; }
+
+  double keypoint_length() const
+  {
+    if( !has_head || !has_tail )
+    {
+      return -1.0;
+    }
+    const double dx = head_x - tail_x;
+    const double dy = head_y - tail_y;
+    return std::sqrt( dx * dx + dy * dy );
+  }
+
+  /// The length column when present, otherwise the head-to-tail distance
+  double measured_length() const
+  {
+    return ( length > 0.0 ) ? length : keypoint_length();
+  }
 
   /// Score this detection carries for a given class, or -1 if it names none.
   double score_for_class( const std::string& name, bool top_only ) const
@@ -97,6 +128,122 @@ struct track_association
   int computed_track_id = -1;
   int num_matches = 0;
 };
+
+// =============================================================================
+// Polygon overlap
+//
+// Polygons are compared by rasterising both onto a shared grid and counting
+// cells, the same way mask IoU is computed. This handles concave and
+// self-intersecting outlines that exact polygon clipping does not, at a
+// resolution fine enough that the IoU error is well below the thresholds
+// anyone matches at.
+
+namespace {
+
+using polygon_t = std::vector< std::pair< double, double > >;
+
+const int POLYGON_RASTER_SIZE = 256;
+
+void
+rasterize_polygon( const polygon_t& poly, double min_x, double min_y,
+                   double scale, int width, int height,
+                   std::vector< uint8_t >& out )
+{
+  out.assign( static_cast< size_t >( width ) * height, 0 );
+
+  const size_t n = poly.size();
+  std::vector< double > crossings;
+
+  for( int r = 0; r < height; ++r )
+  {
+    const double y = min_y + ( r + 0.5 ) / scale;
+    crossings.clear();
+
+    for( size_t i = 0, j = n - 1; i < n; j = i++ )
+    {
+      const double y0 = poly[j].second;
+      const double y1 = poly[i].second;
+      if( ( y0 <= y ) != ( y1 <= y ) )
+      {
+        const double t = ( y - y0 ) / ( y1 - y0 );
+        crossings.push_back( poly[j].first + t * ( poly[i].first - poly[j].first ) );
+      }
+    }
+
+    std::sort( crossings.begin(), crossings.end() );
+
+    for( size_t k = 0; k + 1 < crossings.size(); k += 2 )
+    {
+      const int c0 = std::max( 0,
+        static_cast< int >( std::ceil( ( crossings[k] - min_x ) * scale - 0.5 ) ) );
+      const int c1 = std::min( width - 1,
+        static_cast< int >( std::floor( ( crossings[k + 1] - min_x ) * scale - 0.5 ) ) );
+      for( int c = c0; c <= c1; ++c )
+      {
+        out[ static_cast< size_t >( r ) * width + c ] = 1;
+      }
+    }
+  }
+}
+
+double
+polygon_iou( const polygon_t& a, const polygon_t& b )
+{
+  if( a.size() < 3 || b.size() < 3 )
+  {
+    return 0.0;
+  }
+
+  double min_x = std::numeric_limits< double >::max();
+  double min_y = std::numeric_limits< double >::max();
+  double max_x = std::numeric_limits< double >::lowest();
+  double max_y = std::numeric_limits< double >::lowest();
+
+  for( const auto* poly : { &a, &b } )
+  {
+    for( const auto& pt : *poly )
+    {
+      min_x = std::min( min_x, pt.first );
+      max_x = std::max( max_x, pt.first );
+      min_y = std::min( min_y, pt.second );
+      max_y = std::max( max_y, pt.second );
+    }
+  }
+
+  const double w = max_x - min_x;
+  const double h = max_y - min_y;
+  if( !( w > 0.0 ) || !( h > 0.0 ) )
+  {
+    return 0.0;
+  }
+
+  const double scale = POLYGON_RASTER_SIZE / std::max( w, h );
+  const int width = std::max( 1, static_cast< int >( std::ceil( w * scale ) ) );
+  const int height = std::max( 1, static_cast< int >( std::ceil( h * scale ) ) );
+
+  std::vector< uint8_t > ra, rb;
+  rasterize_polygon( a, min_x, min_y, scale, width, height, ra );
+  rasterize_polygon( b, min_x, min_y, scale, width, height, rb );
+
+  size_t inter = 0;
+  size_t uni = 0;
+  for( size_t i = 0; i < ra.size(); ++i )
+  {
+    inter += ( ra[i] & rb[i] );
+    uni += ( ra[i] | rb[i] );
+  }
+
+  return uni ? static_cast< double >( inter ) / uni : 0.0;
+}
+
+inline uint64_t
+pair_key( int computed_all_index, int gt_all_index )
+{
+  return ( static_cast< uint64_t >( static_cast< uint32_t >( computed_all_index ) ) << 32 )
+       | static_cast< uint32_t >( gt_all_index );
+}
+
+} // namespace
 
 // =============================================================================
 // Private implementation class
@@ -183,6 +330,26 @@ public:
   // -------------------------------------------------------------------------
   // Matching and caching
 
+  /// Polygon IoU for every same-frame pair whose boxes overlap and which carry
+  /// a polygon on both sides, keyed by the pair's unfiltered indices. Filled
+  /// once per load so that a sweep, which rebuilds the box caches at every
+  /// threshold, never rasterises the same pair twice.
+  std::unordered_map< uint64_t, double > m_polygon_iou;
+
+  void precompute_polygon_ious();
+
+  /// Cached polygon IoU of a matched pair, or -1 when either side has none
+  double polygon_iou_for( const detection& comp, const detection& gt ) const
+  {
+    if( !comp.has_polygon() || !gt.has_polygon() )
+    {
+      return -1.0;
+    }
+    auto it = m_polygon_iou.find( pair_key( comp.all_index, gt.all_index ) );
+    return ( it != m_polygon_iou.end() ) ? it->second : 0.0;
+  }
+
+  double compute_box_iou( const detection& a, const detection& b ) const;
   double compute_iou( const detection& a, const detection& b ) const;
 
   void match_frame_with_matrix(
@@ -363,6 +530,8 @@ model_evaluator::priv::parse_via_kwiver( const std::string& filepath,
       det.x2 = bbox.max_x();
       det.y2 = bbox.max_y();
       det.frame_id = frame_id;
+      det.orig_frame_id = frame_counter - 1;
+      det.sequence_id = sequence_id;
       det.frame_name = image_name;
       det.id = local_id;
       det.track_id = remap_track_id( sequence_id, local_id, is_ground_truth );
@@ -394,6 +563,22 @@ model_evaluator::priv::parse_via_kwiver( const std::string& filepath,
       if( !m_config.use_aux_confidence )
       {
         det.confidence = det.class_confidence;
+      }
+
+      for( const auto& kp : det_sptr->keypoints() )
+      {
+        if( kp.first == "head" )
+        {
+          det.has_head = true;
+          det.head_x = kp.second.value()[0];
+          det.head_y = kp.second.value()[1];
+        }
+        else if( kp.first == "tail" )
+        {
+          det.has_tail = true;
+          det.tail_x = kp.second.value()[0];
+          det.tail_y = kp.second.value()[1];
+        }
       }
 
       if( !std::isfinite( det.x1 ) || !std::isfinite( det.y1 ) ||
@@ -491,7 +676,9 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
 
       // Column 2: Frame number, remapped into the global frame namespace so
       // frame 0 of one sequence is never matched against frame 0 of another
-      det.frame_id = remap_frame_id( sequence_id, std::stoi( tokens[2] ) );
+      det.orig_frame_id = std::stoi( tokens[2] );
+      det.frame_id = remap_frame_id( sequence_id, det.orig_frame_id );
+      det.sequence_id = sequence_id;
 
       // Columns 3-6: Bounding box (x1, y1, x2, y2)
       det.x1 = std::stod( tokens[3] );
@@ -512,7 +699,21 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
         continue;
       }
 
-      // Column 8: Target length (unused)
+      // Column 8: Target length, negative or empty when not measured
+      if( !tokens[8].empty() )
+      {
+        try
+        {
+          const double len = std::stod( tokens[8] );
+          if( std::isfinite( len ) && len > 0.0 )
+          {
+            det.length = len;
+          }
+        }
+        catch( const std::exception& )
+        {
+        }
+      }
 
       // Columns 9+: (class, score) pairs. Take the highest scoring pair as the
       // primary class rather than assuming the first pair is the best.
@@ -561,6 +762,53 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
         if( have_score )
         {
           det.class_confidence = best_score;
+        }
+      }
+
+      // Geometry annotations follow the class pairs: "(poly) x y x y ...",
+      // "(kp) head x y" and "(kp) tail x y". Holes and attributes are ignored.
+      for( size_t t = 9; t < tokens.size(); ++t )
+      {
+        const std::string& tok = tokens[t];
+        if( tok.compare( 0, 6, "(poly)" ) == 0 )
+        {
+          std::istringstream coords( tok.substr( 6 ) );
+          double x, y;
+          std::vector< std::pair< double, double > > poly;
+          while( coords >> x >> y )
+          {
+            if( std::isfinite( x ) && std::isfinite( y ) )
+            {
+              poly.emplace_back( x, y );
+            }
+          }
+          // The first outline wins; a second (poly) on the same row is a
+          // disjoint part which the box already spans.
+          if( poly.size() >= 3 && det.polygon.empty() )
+          {
+            det.polygon = std::move( poly );
+          }
+        }
+        else if( tok.compare( 0, 4, "(kp)" ) == 0 )
+        {
+          std::istringstream kp( tok.substr( 4 ) );
+          std::string name;
+          double x, y;
+          if( kp >> name >> x >> y && std::isfinite( x ) && std::isfinite( y ) )
+          {
+            if( name == "head" )
+            {
+              det.has_head = true;
+              det.head_x = x;
+              det.head_y = y;
+            }
+            else if( name == "tail" )
+            {
+              det.has_tail = true;
+              det.tail_x = x;
+              det.tail_y = y;
+            }
+          }
         }
       }
 
@@ -613,6 +861,20 @@ model_evaluator::priv::parse_viame_csv( const std::string& filepath,
 double
 model_evaluator::priv::compute_iou( const detection& a, const detection& b ) const
 {
+  if( m_config.match_mode == "polygon" )
+  {
+    const double poly = polygon_iou_for( a, b );
+    if( poly >= 0.0 )
+    {
+      return poly;
+    }
+  }
+  return compute_box_iou( a, b );
+}
+
+double
+model_evaluator::priv::compute_box_iou( const detection& a, const detection& b ) const
+{
   // Compute intersection
   double ix1 = std::max( a.x1, b.x1 );
   double iy1 = std::max( a.y1, b.y1 );
@@ -634,6 +896,89 @@ model_evaluator::priv::compute_iou( const detection& a, const detection& b ) con
   }
 
   return intersection / union_area;
+}
+
+// =============================================================================
+// Polygon IoU cache
+
+void
+model_evaluator::priv::precompute_polygon_ious()
+{
+  m_polygon_iou.clear();
+
+  std::map< int, std::vector< size_t > > comp_by_frame;
+  std::map< int, std::vector< size_t > > gt_by_frame;
+  bool any_polygons = false;
+
+  for( size_t i = 0; i < m_computed.size(); ++i )
+  {
+    if( m_computed[i].has_polygon() )
+    {
+      comp_by_frame[m_computed[i].frame_id].push_back( i );
+      any_polygons = true;
+    }
+  }
+  for( size_t i = 0; i < m_groundtruth.size(); ++i )
+  {
+    if( m_groundtruth[i].has_polygon() )
+    {
+      gt_by_frame[m_groundtruth[i].frame_id].push_back( i );
+    }
+  }
+
+  if( !any_polygons || gt_by_frame.empty() )
+  {
+    return;
+  }
+
+  std::vector< int > frames;
+  for( const auto& p : comp_by_frame )
+  {
+    if( gt_by_frame.count( p.first ) )
+    {
+      frames.push_back( p.first );
+    }
+  }
+
+  #ifdef _OPENMP
+  #pragma omp parallel for schedule(dynamic)
+  #endif
+  for( int fi = 0; fi < static_cast< int >( frames.size() ); ++fi )
+  {
+    std::vector< std::pair< uint64_t, double > > local;
+    const auto& comp_indices = comp_by_frame[frames[fi]];
+    const auto& gt_indices = gt_by_frame[frames[fi]];
+
+    for( size_t ci : comp_indices )
+    {
+      for( size_t gi : gt_indices )
+      {
+        const auto& c = m_computed[ci];
+        const auto& g = m_groundtruth[gi];
+        // Outlines live inside their boxes, so disjoint boxes mean disjoint
+        // polygons and the pair can be left out of the cache as a zero
+        if( compute_box_iou( c, g ) <= 0.0 )
+        {
+          continue;
+        }
+        local.emplace_back( pair_key( c.all_index, g.all_index ),
+                            polygon_iou( c.polygon, g.polygon ) );
+      }
+    }
+
+    #ifdef _OPENMP
+    #pragma omp critical
+    #endif
+    {
+      for( const auto& kv : local )
+      {
+        m_polygon_iou[kv.first] = kv.second;
+      }
+    }
+  }
+
+  LOG_INFO( m_logger, "Cached polygon overlaps for " << m_polygon_iou.size()
+            << " candidate pairs" );
 }
 
 // =============================================================================
@@ -1051,6 +1396,15 @@ model_evaluator::priv::compute_localization_metrics( evaluation_results& results
   std::vector< double > ious;
   std::vector< double > center_distances;
   std::vector< double > size_errors;
+  std::vector< double > polygon_ious;
+  std::vector< double > head_errors;
+  std::vector< double > tail_errors;
+  std::vector< double > length_errors;
+  double head_hits = 0.0;
+  double tail_hits = 0.0;
+  double length_ape_sum = 0.0;
+  size_t length_ape_count = 0;
+  size_t keypoint_pairs = 0;
 
   // Reserve space based on expected number of matches
   size_t expected_matches = std::min( m_computed.size(), m_groundtruth.size() );
@@ -1105,7 +1459,112 @@ model_evaluator::priv::compute_localization_metrics( evaluation_results& results
         double size_err = std::abs( comp.area() - gt_area ) / gt_area;
         size_errors.push_back( size_err );
       }
+
+      const double poly_iou = polygon_iou_for( comp, gt );
+      if( poly_iou >= 0.0 )
+      {
+        polygon_ious.push_back( poly_iou );
+      }
+
+      // Keypoints are judged against the groundtruth's own scale so a miss
+      // on a large animal and a small one weigh the same: the head-to-tail
+      // distance when annotated, else the recorded length, else the box
+      double reference = gt.keypoint_length();
+      if( reference <= 0.0 )
+      {
+        reference = ( gt.length > 0.0 )
+          ? gt.length
+          : std::sqrt( gt.width() * gt.width() + gt.height() * gt.height() );
+      }
+      const double tolerance = m_config.keypoint_threshold * reference;
+
+      bool any_keypoint = false;
+      if( comp.has_head && gt.has_head )
+      {
+        const double dx = comp.head_x - gt.head_x;
+        const double dy = comp.head_y - gt.head_y;
+        const double err = std::sqrt( dx * dx + dy * dy );
+        head_errors.push_back( err );
+        head_hits += ( err <= tolerance ) ? 1.0 : 0.0;
+        any_keypoint = true;
+      }
+      if( comp.has_tail && gt.has_tail )
+      {
+        const double dx = comp.tail_x - gt.tail_x;
+        const double dy = comp.tail_y - gt.tail_y;
+        const double err = std::sqrt( dx * dx + dy * dy );
+        tail_errors.push_back( err );
+        tail_hits += ( err <= tolerance ) ? 1.0 : 0.0;
+        any_keypoint = true;
+      }
+      if( any_keypoint )
+      {
+        keypoint_pairs++;
+      }
+
+      const double comp_len = comp.measured_length();
+      const double gt_len = gt.measured_length();
+      if( comp_len > 0.0 && gt_len > 0.0 )
+      {
+        length_errors.push_back( comp_len - gt_len );
+        length_ape_sum += std::abs( comp_len - gt_len ) / gt_len;
+        length_ape_count++;
+      }
     }
+  }
+
+  auto mean_of = []( const std::vector< double >& v ) -> double
+  {
+    return v.empty() ? 0.0
+      : std::accumulate( v.begin(), v.end(), 0.0 ) / v.size();
+  };
+
+  auto median_of = []( std::vector< double > v ) -> double
+  {
+    if( v.empty() )
+    {
+      return 0.0;
+    }
+    std::sort( v.begin(), v.end() );
+    const size_t n = v.size();
+    return ( n % 2 == 0 ) ? ( v[n / 2 - 1] + v[n / 2] ) / 2.0 : v[n / 2];
+  };
+
+  results.polygon_pairs = static_cast< double >( polygon_ious.size() );
+  results.mean_polygon_iou = mean_of( polygon_ious );
+  results.median_polygon_iou = median_of( polygon_ious );
+
+  results.keypoint_pairs = static_cast< double >( keypoint_pairs );
+  results.head_mean_error = mean_of( head_errors );
+  results.tail_mean_error = mean_of( tail_errors );
+  results.head_pck = head_errors.empty() ? 0.0 : head_hits / head_errors.size();
+  results.tail_pck = tail_errors.empty() ? 0.0 : tail_hits / tail_errors.size();
+  {
+    const size_t total = head_errors.size() + tail_errors.size();
+    if( total > 0 )
+    {
+      results.keypoint_mean_error =
+        ( std::accumulate( head_errors.begin(), head_errors.end(), 0.0 ) +
+          std::accumulate( tail_errors.begin(), tail_errors.end(), 0.0 ) ) / total;
+      results.keypoint_pck = ( head_hits + tail_hits ) / total;
+    }
+  }
+
+  results.length_pairs = static_cast< double >( length_errors.size() );
+  if( !length_errors.empty() )
+  {
+    double abs_sum = 0.0;
+    double sq_sum = 0.0;
+    for( double e : length_errors )
+    {
+      abs_sum += std::abs( e );
+      sq_sum += e * e;
+    }
+    results.length_mae = abs_sum / length_errors.size();
+    results.length_rmse = std::sqrt( sq_sum / length_errors.size() );
+    results.length_bias = mean_of( length_errors );
+    results.length_mape =
+      length_ape_count ? length_ape_sum / length_ape_count : 0.0;
   }
 
   // Mean IoU
@@ -2860,6 +3319,23 @@ evaluation_results::populate_all_metrics()
   all_metrics["mean_center_distance"] = mean_center_distance;
   all_metrics["mean_size_error"] = mean_size_error;
 
+  // Segmentation, keypoint and length metrics
+  all_metrics["polygon_pairs"] = polygon_pairs;
+  all_metrics["mean_polygon_iou"] = mean_polygon_iou;
+  all_metrics["median_polygon_iou"] = median_polygon_iou;
+  all_metrics["keypoint_pairs"] = keypoint_pairs;
+  all_metrics["head_mean_error"] = head_mean_error;
+  all_metrics["tail_mean_error"] = tail_mean_error;
+  all_metrics["keypoint_mean_error"] = keypoint_mean_error;
+  all_metrics["head_pck"] = head_pck;
+  all_metrics["tail_pck"] = tail_pck;
+  all_metrics["keypoint_pck"] = keypoint_pck;
+  all_metrics["length_pairs"] = length_pairs;
+  all_metrics["length_mae"] = length_mae;
+  all_metrics["length_mape"] = length_mape;
+  all_metrics["length_rmse"] = length_rmse;
+  all_metrics["length_bias"] = length_bias;
+
   // MOT metrics
   all_metrics["mota"] = mota;
   all_metrics["motp"] = motp;
@@ -2997,9 +3473,20 @@ model_evaluator::evaluate(
             << " computed detections and " << d->m_groundtruth.size()
             << " ground truth annotations" );
 
+  for( size_t i = 0; i < d->m_computed.size(); ++i )
+  {
+    d->m_computed[i].all_index = static_cast< int >( i );
+  }
+  for( size_t i = 0; i < d->m_groundtruth.size(); ++i )
+  {
+    d->m_groundtruth[i].all_index = static_cast< int >( i );
+  }
+
   // Retained so evaluate_loaded() can re-filter without re-parsing
   d->m_computed_all = d->m_computed;
   d->m_groundtruth_all = d->m_groundtruth;
+
+  d->precompute_polygon_ious();
 
   // Build caches for efficient processing
   d->build_caches();
@@ -3743,6 +4230,92 @@ model_evaluator::generate_plot_data()
   }
 
   return result;
+}
+
+std::vector< match_record >
+model_evaluator::get_matches() const
+{
+  std::vector< match_record > out;
+
+  for( const auto& fm_pair : d->m_frame_matches )
+  {
+    const int frame_id = fm_pair.first;
+    const auto& fm = fm_pair.second;
+
+    auto comp_it = d->m_computed_by_frame.find( frame_id );
+    auto gt_it = d->m_gt_by_frame.find( frame_id );
+
+    static const std::vector< size_t > none;
+    const auto& comp_indices =
+      ( comp_it != d->m_computed_by_frame.end() ) ? comp_it->second : none;
+    const auto& gt_indices =
+      ( gt_it != d->m_gt_by_frame.end() ) ? gt_it->second : none;
+
+    auto stamp = []( match_record& rec, const detection& det )
+    {
+      rec.sequence = det.sequence_id;
+      rec.frame_name = det.frame_name;
+      rec.frame_id = det.orig_frame_id;
+    };
+
+    for( const auto& m : fm.matches )
+    {
+      if( m.computed_idx < 0 || m.gt_idx < 0 ||
+          static_cast< size_t >( m.computed_idx ) >= comp_indices.size() ||
+          static_cast< size_t >( m.gt_idx ) >= gt_indices.size() )
+      {
+        continue;
+      }
+      const auto& comp = d->m_computed[comp_indices[m.computed_idx]];
+      const auto& gt = d->m_groundtruth[gt_indices[m.gt_idx]];
+
+      match_record rec;
+      stamp( rec, comp );
+      rec.status = "tp";
+      rec.computed_id = comp.id;
+      rec.gt_id = gt.id;
+      rec.iou = m.iou;
+      rec.confidence = comp.confidence;
+      rec.computed_class = comp.class_name;
+      rec.gt_class = gt.class_name;
+      out.push_back( rec );
+    }
+
+    for( int ci : fm.false_positives )
+    {
+      if( ci < 0 || static_cast< size_t >( ci ) >= comp_indices.size() )
+      {
+        continue;
+      }
+      const auto& comp = d->m_computed[comp_indices[ci]];
+
+      match_record rec;
+      stamp( rec, comp );
+      rec.status = "fp";
+      rec.computed_id = comp.id;
+      rec.confidence = comp.confidence;
+      rec.computed_class = comp.class_name;
+      out.push_back( rec );
+    }
+
+    for( int gi : fm.false_negatives )
+    {
+      if( gi < 0 || static_cast< size_t >( gi ) >= gt_indices.size() )
+      {
+        continue;
+      }
+      const auto& gt = d->m_groundtruth[gt_indices[gi]];
+
+      match_record rec;
+      stamp( rec, gt );
+      rec.status = "fn";
+      rec.gt_id = gt.id;
+      rec.gt_class = gt.class_name;
+      out.push_back( rec );
+    }
+  }
+
+  return out;
 }
 
 // =============================================================================

@@ -63,6 +63,17 @@ struct VIAME_CORE_EXPORT evaluation_config
   /// names a kwiver detected_object_set_input implementation (coco, cvat,
   /// dive, habcam, yolo, ...) and is read through that instead.
   std::string input_format = "viame_csv";
+
+  /// Geometry used to match computed objects to groundtruth: "box" overlaps
+  /// bounding boxes, "polygon" overlaps the (poly) outlines when both sides
+  /// carry one and falls back to the box for any pair that does not. Every
+  /// metric downstream of matching, AP included, follows the choice.
+  std::string match_mode = "box";
+
+  /// A head or tail keypoint counts as correct when it lies within this
+  /// fraction of the groundtruth reference length (its head-to-tail distance,
+  /// else its length column, else its box diagonal) of the true point.
+  double keypoint_threshold = 0.1;
 };
 
 // ----------------------------------------------------------------------------
@@ -122,6 +133,46 @@ struct VIAME_CORE_EXPORT evaluation_results
   double mean_center_distance = 0.0;
   /// Mean relative size error between matched boxes
   double mean_size_error = 0.0;
+
+  // -- Segmentation metrics (matched pairs where both sides carry a polygon) --
+
+  /// Number of matched pairs with polygons on both sides
+  double polygon_pairs = 0.0;
+  /// Mean polygon IoU over those pairs
+  double mean_polygon_iou = 0.0;
+  /// Median polygon IoU over those pairs
+  double median_polygon_iou = 0.0;
+
+  // -- Keypoint metrics (matched pairs where both sides carry the keypoint) --
+
+  /// Matched pairs contributing at least one keypoint comparison
+  double keypoint_pairs = 0.0;
+  /// Mean head keypoint error in pixels
+  double head_mean_error = 0.0;
+  /// Mean tail keypoint error in pixels
+  double tail_mean_error = 0.0;
+  /// Mean keypoint error in pixels, head and tail together
+  double keypoint_mean_error = 0.0;
+  /// Fraction of head keypoints within the configured threshold (PCK)
+  double head_pck = 0.0;
+  /// Fraction of tail keypoints within the configured threshold (PCK)
+  double tail_pck = 0.0;
+  /// Fraction of all keypoints within the configured threshold (PCK)
+  double keypoint_pck = 0.0;
+
+  // -- Length measurement metrics (matched pairs with a length on both sides,
+  //    from the length column or else the head-to-tail distance) --
+
+  /// Matched pairs contributing a length comparison
+  double length_pairs = 0.0;
+  /// Mean absolute length error
+  double length_mae = 0.0;
+  /// Mean absolute percentage length error, relative to groundtruth
+  double length_mape = 0.0;
+  /// Root mean square length error
+  double length_rmse = 0.0;
+  /// Mean signed length error (computed minus groundtruth)
+  double length_bias = 0.0;
 
   // -- MOT tracking metrics --
 
@@ -230,6 +281,25 @@ struct VIAME_CORE_EXPORT evaluation_results
 
   /// Populate the all_metrics map from individual fields
   void populate_all_metrics();
+};
+
+// ----------------------------------------------------------------------------
+/// \brief One computed or groundtruth object's fate under the last matching
+///
+/// Identifiers are the ones read from the input, not the evaluator's internal
+/// remapped keys, so a consumer can find the object again in its own data.
+struct VIAME_CORE_EXPORT match_record
+{
+  int sequence = 0;            ///< Index of the file pair the object came from
+  std::string frame_name;      ///< Image or video identifier
+  int frame_id = -1;           ///< Frame number as it appeared in the input
+  std::string status;          ///< "tp", "fp" or "fn"
+  int computed_id = -1;        ///< Computed track/detection id, -1 for a fn
+  int gt_id = -1;              ///< Groundtruth track/detection id, -1 for a fp
+  double iou = 0.0;            ///< Match overlap, 0 for fp and fn
+  double confidence = 0.0;     ///< Computed confidence, 0 for a fn
+  std::string computed_class;  ///< Empty for a fn
+  std::string gt_class;        ///< Empty for a fp
 };
 
 // ----------------------------------------------------------------------------
@@ -447,6 +517,15 @@ public:
   ///
   /// \returns Container with all plot data
   evaluation_plot_data generate_plot_data();
+
+  /// \brief Every object's status under the most recent matching
+  ///
+  /// Reflects whichever of evaluate() or evaluate_loaded() ran last, so a
+  /// sweep must call this before moving to its next threshold if it wants
+  /// that threshold's assignments.
+  ///
+  /// \returns One record per matched pair, false positive and false negative
+  std::vector< match_record > get_matches() const;
 
   /// \brief Generate precision-recall curve for overall detections
   ///

@@ -12,7 +12,7 @@ REM
 REM The curves are emitted as CSV alongside rendered plots, so they can be
 REM replotted or diffed without rerunning the scoring.
 
-viame_score_results.exe ^
+viame.exe score ^
  --computed detections.csv --truth groundtruth.csv ^
  --iou 0.5 ^
  --output-pr-csv output_prc_and_conf_mat/pr_curve.csv ^

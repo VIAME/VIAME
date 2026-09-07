@@ -1,5 +1,8 @@
-v0.23.0 - 9/02/2026
+v0.23.0 - 9/07/2026
 ===================
+
+
+- Converted some tools to kwiver-style applets
 
 
 - UI Updates for multi-camera (EO/IR/UV) registration, droped frames, and joint panning

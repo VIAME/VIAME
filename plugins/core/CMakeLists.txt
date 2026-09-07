@@ -4,6 +4,7 @@ set( plugin_headers
   adaptive_detector_trainer.h
   adaptive_tracker_trainer.h
   add_timestamp_from_filename.h
+  applet_attributes.h
   auto_detect_transform.h
   average_track_descriptors.h
   camera_io.h
@@ -23,6 +24,7 @@ set( plugin_headers
   equalize_via_percentiles.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
+  python_script_applet.h
   read_detected_object_set_auto.h
   read_detected_object_set_cvat.h
   read_detected_object_set_dive.h
@@ -75,6 +77,7 @@ set( plugin_sources
   equalize_via_percentiles.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
+  python_script_applet.cxx
   read_detected_object_set_auto.cxx
   read_detected_object_set_cvat.cxx
   read_detected_object_set_dive.cxx
@@ -135,6 +138,7 @@ target_include_directories( viame_core PRIVATE
 set( CORE_LINK_LIBRARIES
   kwiver::vital
   kwiver::vital_algo
+  kwiver::vital_applets
   kwiver::vital_config
   kwiver::vital_exceptions
   kwiver::vital_logger

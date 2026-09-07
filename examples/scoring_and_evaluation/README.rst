@@ -16,7 +16,7 @@ CSV format. Two example files are provided:
 - ``detections.csv`` -- computed detections with confidence scores
 - ``groundtruth.csv`` -- ground truth annotations
 
-Every script calls the ``viame_score_results`` tool, which computes detection,
+Every script calls the ``viame score`` tool, which computes detection,
 MOT, HOTA and KWANT-style metrics together in one pass. The metrics are
 implemented directly in C++ against VIAME CSV, with no external scoring
 dependency: earlier releases shelled out to KWANT and wrapped kwcoco and
@@ -66,10 +66,32 @@ Common options accepted by all scripts:
   into a DIVE confidence filter (``none``, ``min``, ``avg``,
   ``avg_minus_1p``, ``idf1``, ``mota``), written with ``class_metrics.csv``
   into the sweep directory.
+| ``--match-mode`` -- ``box`` (default) overlaps bounding boxes; ``polygon``
+  overlaps the ``(poly)`` outlines wherever both sides carry one, falling back
+  to the box for any pair that does not. Every metric downstream of matching,
+  AP included, follows the choice, so this is how segmentations are scored.
+  In either mode the mean and median polygon IoU of matched pairs with
+  outlines on both sides are reported (``mean_polygon_iou``).
+| ``--keypoint-threshold`` (default: 0.1) -- Head and tail keypoints are
+  compared wherever both sides carry them: mean pixel error per point and
+  PCK, the fraction within this fraction of the groundtruth length (its
+  head-to-tail distance, else its length column, else its box diagonal).
+  Lengths are compared too, from the length column or else the head-to-tail
+  distance: MAE, MAPE, RMSE and signed bias (``length_*``).
+| ``--output-matches`` -- Write every object's tp/fp/fn assignment at the
+  configured threshold as JSON, keyed by the ids and frame numbers of the
+  input files, so a viewer can highlight misses and false alarms.
 | ``--output-plots`` -- Render PRC, ROC, confusion matrix and score histograms.
 | ``--output-pr-csv`` / ``--output-roc-csv`` / ``--output-conf-csv`` -- Write the
   underlying curve and matrix data as CSV, so it can be replotted or diffed
   without rescoring.
+
+With ``--sweep-thresholds`` the metrics JSON also carries a ``sweep`` section
+holding, per class and for the aggregate, every swept threshold with the
+precision, recall, F1, MOTA, MOTP, IDF1, HOTA and count metrics at each one,
+and ``sweep_curves.csv`` is written beside ``class_metrics.csv``. DIVE's
+scoring panel plots these to pick an operating point; the aggregate curve
+never feeds the written DIVE filter.
 
 
 ---------------------------
@@ -160,7 +182,7 @@ Scripts:
 | ``detection_and_track_metrics_across_all`` -- All categories scored jointly.
 | ``detection_and_track_metrics_per_category`` -- Each category also scored separately.
 
-These scripts call the ``viame_score_results`` tool, which computes every metric
+These scripts call the ``viame score`` tool, which computes every metric
 family below in a single pass over the data, with no external scoring dependencies.
 It reads the same VIAME CSV inputs as the other scripts.
 
@@ -217,7 +239,7 @@ Scripts:
   optional confidence threshold sweep and DIVE filter file generation.
 
 These scripts report the standard Multiple Object Tracking (MOT) benchmark
-metrics, computed in C++ by ``viame_score_results``. They evaluate how well
+metrics, computed in C++ by ``viame score``. They evaluate how well
 computed tracks match ground truth tracks over time, considering both detection
 quality and identity consistency. The metrics are produced in the same pass as
 the detection metrics, so scoring once yields both.
@@ -295,7 +317,7 @@ KWANT-Style Track and Detection-Level Properties
 
 These properties were historically produced by the external KWANT ``score_tracks``
 tool, which required inputs in the Kitware kw18 format. They are now computed
-directly from VIAME CSV by ``viame_score_results`` (see the all-in-one section
+directly from VIAME CSV by ``viame score`` (see the all-in-one section
 above), and are reported in its summary under "KWANT-style Metrics" and
 "Track Quality".
 
