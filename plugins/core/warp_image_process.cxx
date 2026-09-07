@@ -14,15 +14,12 @@
 #include <sprokit/processes/kwiver_type_traits.h>
 
 #include <vital/algo/transform_2d_io.h>
+#include <vital/algo/warp_image.h>
 #include <vital/algo/algorithm.txx>
 #include <vital/types/homography.h>
 #include <vital/types/image_container.h>
 
-#include <arrows/ocv/image_container.h>
-
-#include <opencv2/core/eigen.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-
+#include <cstring>
 #include <stdexcept>
 
 namespace viame
@@ -41,6 +38,22 @@ create_config_trait( inverse, bool, "false",
 
 create_port_trait( size_image, image, "Image to get output size from." );
 
+namespace
+{
+
+kwiver::vital::image_container_sptr
+blank_canvas( const kwiver::vital::image& source, size_t width, size_t height )
+{
+  kwiver::vital::image output(
+    width, height, source.depth(), true, source.pixel_traits() );
+
+  std::memset( output.memory()->data(), 0, output.memory()->size() );
+
+  return std::make_shared< kwiver::vital::simple_image_container >( output );
+}
+
+} // end anonymous namespace
+
 //------------------------------------------------------------------------------
 // Private implementation class
 class warp_image_process::priv
@@ -52,7 +65,8 @@ public:
   // Configuration values
   kwiver::vital::path_t m_transformation_file;
   bool m_inverse = false;
-  cv::Mat m_warp;
+  kwiver::vital::homography_sptr m_homography;
+  kwiver::vital::algo::warp_image_sptr m_warper;
 };
 
 // =============================================================================
@@ -93,6 +107,11 @@ warp_image_process
     algo_config->set_value( "transform_reader:type", "auto" );
   }
 
+  if( !algo_config->has_value( "warper:type" ) )
+  {
+    algo_config->set_value( "warper:type", "ocv" );
+  }
+
   kwiver::vital::algo::transform_2d_io_sptr reader;
 
   kwiver::vital::set_nested_algo_configuration<
@@ -102,6 +121,15 @@ warp_image_process
   if( !reader )
   {
     throw std::runtime_error( "Unable to create transform_reader" );
+  }
+
+  kwiver::vital::set_nested_algo_configuration<
+    kwiver::vital::algo::warp_image >(
+    "warper", algo_config, d->m_warper );
+
+  if( !d->m_warper )
+  {
+    throw std::runtime_error( "Unable to create warper" );
   }
 
   kwiver::vital::transform_2d_sptr transform =
@@ -114,16 +142,14 @@ warp_image_process
 
   // Image warping needs the full 3x3 matrix, not just point mapping, so
   // only homography transforms (DIVE .json, plain text) are supported.
-  auto homog = std::dynamic_pointer_cast< kwiver::vital::homography >( transform );
+  d->m_homography =
+    std::dynamic_pointer_cast< kwiver::vital::homography >( transform );
 
-  if( !homog )
+  if( !d->m_homography )
   {
     throw std::runtime_error(
       "warp_image requires a homography transform: " + d->m_transformation_file );
   }
-
-  Eigen::Matrix< double, 3, 3 > const matrix = homog->matrix();
-  cv::eigen2cv( matrix, d->m_warp );
 }
 
 
@@ -136,28 +162,23 @@ warp_image_process
 
   image = grab_from_port_using_trait( image );
 
-  cv::Size output_size( image->width(), image->height() );
+  size_t output_width = image->width();
+  size_t output_height = image->height();
 
   if( has_input_port_edge_using_trait( size_image ) )
   {
     size_image = grab_from_port_using_trait( size_image );
 
-    output_size = cv::Size( size_image->width(), size_image->height() );
+    output_width = size_image->width();
+    output_height = size_image->height();
   }
 
   try
   {
-    cv::Mat input = kwiver::arrows::ocv::image_container::vital_to_ocv(
-      image->get_image(),
-      kwiver::arrows::ocv::image_container::BGR_COLOR );
-
-    cv::Mat output;
-    cv::warpPerspective( input, output, d->m_warp, output_size );
-
     push_to_port_using_trait( image,
-      kwiver::vital::image_container_sptr(
-        new kwiver::arrows::ocv::image_container( output,
-          kwiver::arrows::ocv::image_container::BGR_COLOR ) ) );
+      d->m_warper->warp( image,
+        blank_canvas( image->get_image(), output_width, output_height ),
+        d->m_homography ) );
   }
   catch( ... )
   {

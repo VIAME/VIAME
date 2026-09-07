@@ -1160,6 +1160,7 @@ map_keypoints_to_camera
   return m_epipolar_descriptor_type;
 }
 
+#ifdef VIAME_ENABLE_OPENCV
 // -----------------------------------------------------------------------------
 bool
 map_keypoints_to_camera
@@ -1429,6 +1430,7 @@ map_keypoints_to_camera
   LOG_WARN( logger, "Unknown epipolar descriptor type: " << m_epipolar_descriptor_type );
   return false;
 }
+#endif // VIAME_ENABLE_OPENCV
 
 // -----------------------------------------------------------------------------
 void

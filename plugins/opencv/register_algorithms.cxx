@@ -17,6 +17,7 @@
 #include <vital/algo/refine_detections.h>
 #include <vital/algo/split_image.h>
 #include <vital/algo/train_detector.h>
+#include <vital/algo/warp_image.h>
 
 #include "add_keypoints_from_mask.h"
 #include "apply_color_correction.h"
@@ -34,6 +35,7 @@
 #include "split_image_horizontally.h"
 #include "windowed_detector.h"
 #include "windowed_refiner.h"
+#include "warp_image_ocv.h"
 #include "windowed_trainer.h"
 
 namespace viame {
@@ -119,6 +121,10 @@ register_factories( kv::plugin_loader& vpm )
 
   fact = vpm.add_factory< kv::algo::train_detector, ocv_windowed_trainer >(
     ocv_windowed_trainer::plugin_name() );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+
+  fact = vpm.add_factory< kv::algo::warp_image, warp_image_ocv >(
+    warp_image_ocv::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   vpm.mark_module_as_loaded( module_name );

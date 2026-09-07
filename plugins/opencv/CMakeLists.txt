@@ -37,6 +37,7 @@ set( plugin_headers
   refine_detections_watershed.h
   split_image_habcam.h
   split_image_horizontally.h
+  warp_image_ocv.h
   windowed_detector.h
   windowed_refiner.h
   windowed_trainer.h
@@ -71,6 +72,7 @@ set( plugin_sources
   refine_detections_watershed.cxx
   split_image_habcam.cxx
   split_image_horizontally.cxx
+  warp_image_ocv.cxx
   windowed_detector.cxx
   windowed_refiner.cxx
   windowed_trainer.cxx

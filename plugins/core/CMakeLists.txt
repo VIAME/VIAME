@@ -308,9 +308,7 @@ kwiver_add_plugin( viame_processes_core
                    kwiver::vital_vpm
                    Eigen3::Eigen
                    kwiver::kwiver_algo_mvg
-                   kwiver::kwiver_algo_ocv
                    viame_core
-                   viame_opencv
  )
 
 target_include_directories( viame_processes_core PRIVATE
