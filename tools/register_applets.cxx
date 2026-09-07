@@ -12,15 +12,15 @@
 #include <vital/plugin_management/plugin_loader.h>
 #include <vital/applets/applet_registrar.h>
 
-#include "applet_attributes.h"
+#include <applet_attributes.h>
 #include "csv.h"
 #include "get_configs.h"
 #include "resample_tracks.h"
-#include "score_results.h"
+#include "score.h"
 #include "train.h"
 
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
-#include "python_script_applet.h"
+#include <python_script_applet.h>
 #endif
 
 namespace viame {
@@ -149,7 +149,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_standalone_tool< csv_applet >( reg );
   register_standalone_tool< get_configs_applet >( reg );
   register_standalone_tool< resample_tracks_applet >( reg );
-  register_standalone_tool< score_results_applet >( reg );
+  register_standalone_tool< score_applet >( reg );
   register_standalone_tool< train_applet >( reg );
 
 #ifdef VIAME_TOOLS_ENABLE_PYTHON

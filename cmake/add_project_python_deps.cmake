@@ -248,7 +248,7 @@ endif()
 
 # kwcoco is a basic dependency, not a torch one: the COCO readers and writers
 # in plugins/core use it and are built without torch. It is no longer used for
-# scoring -- viame_score_results computes every metric in C++. Formerly:
+# scoring -- viame score computes every metric in C++. Formerly:
 # its eval command, and adding it to the torch-only list left it uninstalled in
 # any build with PyTorch disabled
 if( VIAME_ENABLE_OPENCV OR VIAME_ENABLE_PYTORCH-NETHARN OR

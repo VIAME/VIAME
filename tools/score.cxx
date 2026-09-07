@@ -5,7 +5,7 @@
 /// \file
 /// \brief Command-line tool for scoring detection/tracking results using evaluate_models
 
-#include "score_results.h"
+#include "score.h"
 
 #include <evaluate_models.h>
 
@@ -36,7 +36,7 @@
 // Global variables and parameter class
 // =============================================================================
 
-class score_results_params
+class score_params
 {
 public:
   // General options
@@ -78,8 +78,8 @@ public:
   double opt_keypoint_threshold = 0.1; // PCK tolerance, fraction of GT length
   bool opt_print_summary = true;
 
-  score_results_params() = default;
-  virtual ~score_results_params() = default;
+  score_params() = default;
+  virtual ~score_params() = default;
 };
 
 static kwiver::vital::logger_handle_t g_logger;
@@ -754,7 +754,7 @@ bool write_matches_json( const std::vector< viame::match_record >& matches,
 
 bool write_metrics_json( const viame::evaluation_results& results,
                          const std::string& filepath,
-                         const score_results_params& params,
+                         const score_params& params,
                          const viame::evaluation_plot_data* plot_data = nullptr,
                          bool include_curves = false,
                          const sweep_curves* sweep = nullptr )
@@ -1018,7 +1018,7 @@ namespace tools {
 
 // =============================================================================
 void
-score_results_applet
+score_applet
 ::add_command_options()
 {
   m_cmd_options->add_options()
@@ -1112,10 +1112,10 @@ score_results_applet
 
 // =============================================================================
 int
-score_results_applet
+score_applet
 ::run()
 {
-  g_logger = kwiver::vital::get_logger( "viame.tools.score_results" );
+  g_logger = kwiver::vital::get_logger( "viame.tools.score" );
 
   auto& cmd_args = command_args();
 
@@ -1135,7 +1135,7 @@ score_results_applet
     return EXIT_SUCCESS;
   }
 
-  score_results_params params;
+  score_params params;
 
   params.opt_verbose = cmd_args[ "verbose" ].as< bool >();
   params.opt_computed = cmd_args[ "computed" ].as< std::string >();

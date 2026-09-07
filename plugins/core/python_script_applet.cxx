@@ -17,7 +17,6 @@
 namespace kv = kwiver::vital;
 
 namespace viame {
-namespace tools {
 
 namespace {
 
@@ -105,7 +104,7 @@ int
 python_script_applet
 ::run()
 {
-  kv::logger_handle_t logger = kv::get_logger( "viame.tools.python_script" );
+  kv::logger_handle_t logger = kv::get_logger( "viame.python_script_applet" );
 
   const std::string script = find_script( script_name() );
 
@@ -137,5 +136,4 @@ python_script_applet
   return run_command( args );
 }
 
-} // namespace tools
 } // namespace viame

@@ -4,7 +4,7 @@ v0.23.1 - Pending
 
 - Command line tools are now applets run through the viame tool, so "viame help"
   lists every tool. The viame_score_results, viame_get_configs and
-  viame_resample_tracks executables become wrappers onto viame score,
+  viame_resample_tracks executables are replaced by viame score,
   viame get-configs and viame resample-tracks
 
 

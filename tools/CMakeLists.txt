@@ -62,6 +62,12 @@ target_link_libraries( viame
                kwiver::vital_applets
   )
 
+# Only the applet attribute names are needed from core; linking it would load
+# its every dependency on each viame invocation
+target_include_directories( viame
+  PRIVATE      ${VIAME_SOURCE_DIR}/plugins/core
+  )
+
 ###
 # VIAME tool applets plugin - train and other applets
 ##
@@ -70,23 +76,17 @@ set( applet_sources
   csv.cxx
   get_configs.cxx
   resample_tracks.cxx
-  score_results.cxx
+  score.cxx
   train.cxx
 )
 
 set( applet_headers
-  applet_attributes.h
   csv.h
   get_configs.h
   resample_tracks.h
-  score_results.h
+  score.h
   train.h
 )
-
-if( VIAME_ENABLE_PYTHON )
-  set( applet_sources ${applet_sources} python_script_applet.cxx )
-  set( applet_headers ${applet_headers} python_script_applet.h )
-endif()
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 

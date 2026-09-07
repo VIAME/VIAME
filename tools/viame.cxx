@@ -34,7 +34,7 @@
  * applet based on the subcommand name.
  */
 
-#include "applet_attributes.h"
+#include <applet_attributes.h>
 
 #include <vital/applets/kwiver_applet.h>
 #include <vital/applets/applet_context.h>
@@ -392,7 +392,7 @@ int help_applet( const command_line_parser& options,
   applet->add_command_options();
 
   std::string forwards_help = "false";
-  fact->get_attribute( viame::tools::FORWARDS_HELP, forwards_help );
+  fact->get_attribute( viame::FORWARDS_HELP, forwards_help );
 
   if( forwards_help == "true" )
   {
@@ -775,7 +775,7 @@ int main(int argc, char *argv[])
     auto fact = app_fact.find_factory( options.m_applet_name );
 
     std::string skip_preload = "false";
-    fact->get_attribute( viame::tools::SKIP_PLUGIN_PRELOAD, skip_preload );
+    fact->get_attribute( viame::SKIP_PLUGIN_PRELOAD, skip_preload );
 
     if( skip_preload != "true" )
     {

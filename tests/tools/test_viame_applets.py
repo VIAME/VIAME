@@ -442,30 +442,3 @@ class TestPythonScriptApplets:
         result = run_viame(viame_env, "run", "--not-a-real-flag")
 
         assert result.returncode != 0
-
-
-class TestCompatibilityWrappers:
-    @pytest.mark.parametrize(
-        "wrapper,applet",
-        [
-            ("viame_score_results", "score"),
-            ("viame_get_configs", "get-configs"),
-            ("viame_resample_tracks", "resample-tracks"),
-        ],
-    )
-    def test_wrapper_reaches_the_applet(self, viame_env, wrapper, applet):
-        install = find_viame_install()
-        path = install / "bin" / wrapper
-        if not path.exists():
-            pytest.skip(f"{wrapper} is not installed")
-
-        result = subprocess.run(
-            [str(path), "--help"],
-            env=viame_env,
-            capture_output=True,
-            text=True,
-            timeout=300,
-        )
-
-        assert result.returncode == 0
-        assert f"viame {applet}" in result.stdout

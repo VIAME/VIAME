@@ -2,11 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_TOOLS_APPLET_ATTRIBUTES_H
-#define VIAME_TOOLS_APPLET_ATTRIBUTES_H
+#ifndef VIAME_CORE_APPLET_ATTRIBUTES_H
+#define VIAME_CORE_APPLET_ATTRIBUTES_H
 
 namespace viame {
-namespace tools {
 
 /// Set on applets that need no plugins loaded on their behalf, letting the
 /// tool runner skip the global plugin load. That load pulls in the python
@@ -19,7 +18,6 @@ constexpr char const* SKIP_PLUGIN_PRELOAD = "viame-skip-plugin-preload";
 /// empty option list.
 constexpr char const* FORWARDS_HELP = "viame-forwards-help";
 
-} // namespace tools
 } // namespace viame
 
-#endif // VIAME_TOOLS_APPLET_ATTRIBUTES_H
+#endif // VIAME_CORE_APPLET_ATTRIBUTES_H
