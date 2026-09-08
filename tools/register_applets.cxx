@@ -59,7 +59,7 @@ VIAME_PYTHON_SCRIPT_APPLET( generate_nn_index_applet, "generate-nn-index",
   "Build ITQ LSH index for efficient nearest neighbor search" )
 
 VIAME_PYTHON_SCRIPT_APPLET( launch_annotator_applet, "launch-annotator",
-  "launch_annotation_interface.py", "Launch annotation GUI" )
+  "launch_annotator.py", "Launch annotation GUI" )
 
 VIAME_PYTHON_SCRIPT_APPLET( launch_search_applet, "launch-search",
   "launch_search_interface.py", "Launch Query GUI" )

@@ -13,7 +13,7 @@ set( PYTHON_SCRIPTS
   extract_frames.py
   plot_detections.py
   generate_nn_index.py
-  launch_annotation_interface.py
+  launch_annotator.py
   launch_search_interface.py
   plot_eval_results.py
   process_video.py
