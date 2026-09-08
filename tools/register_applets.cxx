@@ -49,7 +49,7 @@ VIAME_PYTHON_SCRIPT_APPLET( database_applet, "database", "database.py",
   "Initialize, start, stop and index the descriptor database." )
 
 VIAME_PYTHON_SCRIPT_APPLET( extract_frames_applet, "extract-frames",
-  "extract_video_frames.py", "Extract frames from video files" )
+  "extract_frames.py", "Extract frames from video files" )
 
 VIAME_PYTHON_SCRIPT_APPLET( plot_detections_applet, "plot-detections",
   "generate_detection_plots.py", "Plot detection counts per frame" )

@@ -10,7 +10,7 @@ set( PYTHON_SCRIPTS
   convert_cam.py
   convert_itk.py
   database.py
-  extract_video_frames.py
+  extract_frames.py
   generate_detection_plots.py
   generate_nn_index.py
   launch_annotation_interface.py

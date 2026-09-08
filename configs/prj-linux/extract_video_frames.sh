@@ -14,6 +14,6 @@ export METHOD=kwiver
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
-python ${VIAME_INSTALL}/configs/extract_video_frames.py \
+python ${VIAME_INSTALL}/configs/extract_frames.py \
   -d ${INPUT_DIRECTORY} -o ${OUTPUT_DIRECTORY} -r ${FRAME_RATE} \
   -s ${START_TIME} -t ${DURATION} -m ${METHOD}

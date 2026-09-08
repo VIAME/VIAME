@@ -14,7 +14,7 @@ SET METHOD=kwiver
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
-python.exe "%VIAME_INSTALL%\configs\extract_video_frames.py" ^
+python.exe "%VIAME_INSTALL%\configs\extract_frames.py" ^
   -d "%INPUT_DIRECTORY%" -o %OUTPUT_DIRECTORY% -r %FRAME_RATE% ^
   -s %START_TIME% -t %DURATION% -m %METHOD%
 
