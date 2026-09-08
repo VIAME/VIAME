@@ -20,7 +20,15 @@ from viame_env import find_viame_install, get_sourced_env, get_viame_source
 
 
 # Applets the runner must always know about
-CORE_APPLETS = ["csv", "get-configs", "resample-tracks", "score", "train", "runner"]
+CORE_APPLETS = [
+    "csv",
+    "get-configs",
+    "json",
+    "resample-tracks",
+    "score",
+    "train",
+    "runner",
+]
 
 # Longest a lazily dispatched applet may take to print its own help. Loading
 # every plugin costs upwards of ten seconds, so this fails if the applet
@@ -169,6 +177,508 @@ class TestCsvApplet:
 
         assert result.returncode == 0
         assert result.stdout.count("Processing") == 2
+
+
+def dive_doc():
+    """A DIVE v2 document: 3 tracks, 5 states, one grouped track."""
+    return {
+        "version": 2,
+        "fps": 5,
+        "customTopLevel": {"kept": True},
+        "tracks": {
+            "1": {
+                "id": 1,
+                "begin": 0,
+                "end": 3,
+                "confidencePairs": [["fish", 0.9], ["scallop", 0.1]],
+                "attributes": {"quality": "good"},
+                "meta": {"source": "test"},
+                "features": [
+                    {
+                        "frame": 0,
+                        "bounds": [10, 10, 50, 50],
+                        "keyframe": True,
+                        "interpolate": True,
+                        "notes": ["first"],
+                        "geometry": {
+                            "type": "FeatureCollection",
+                            "features": [
+                                {
+                                    "type": "Feature",
+                                    "properties": {"key": ""},
+                                    "geometry": {
+                                        "type": "Polygon",
+                                        "coordinates": [
+                                            [[10, 10], [50, 10], [50, 50], [10, 50], [10, 10]]
+                                        ],
+                                    },
+                                }
+                            ],
+                        },
+                    },
+                    {
+                        "frame": 2,
+                        "bounds": [12, 12, 52, 52],
+                        "keyframe": True,
+                        "attributes": {"tag": "x"},
+                    },
+                    {
+                        "frame": 3,
+                        "bounds": [14, 14, 54, 54],
+                        "keyframe": True,
+                        "head": [20, 20],
+                        "tail": [50, 50],
+                        "fishLength": 42.4,
+                    },
+                ],
+            },
+            "2": {
+                "id": 2,
+                "begin": 0,
+                "end": 0,
+                "confidencePairs": [["fish", 0.7]],
+                "attributes": {},
+                "features": [{"frame": 0, "bounds": [100, 100, 120, 120], "keyframe": True}],
+            },
+            "3": {
+                "id": 3,
+                "begin": 1,
+                "end": 1,
+                "confidencePairs": [["weed", 0.2], ["scallop", 0.4]],
+                "attributes": {},
+                "features": [{"frame": 1, "bounds": [0, 0, 5, 5], "keyframe": True}],
+            },
+        },
+        "groups": {
+            "1": {
+                "id": 1,
+                "begin": 0,
+                "end": 0,
+                "confidencePairs": [["pair", 1.0]],
+                "attributes": {},
+                "members": {"2": {"ranges": [[0, 0]]}},
+            },
+        },
+    }
+
+
+def coco_doc():
+    """A COCO document: 4 annotations over 3 tracks, two of them bare."""
+    return {
+        "info": {"description": "fixture", "year": 2026},
+        "licenses": [],
+        "custom": [1, 2, 3],
+        "categories": [
+            {"id": 1, "name": "fish"},
+            {"id": 2, "name": "scallop", "supercategory": "shellfish"},
+        ],
+        "videos": [{"id": 1, "name": "clip", "annotation_fps": 5}],
+        "tracks": [{"id": 7, "name": "7"}],
+        "images": [
+            {"id": 1, "file_name": "f0.png", "frame_index": 0, "video_id": 1},
+            {"id": 2, "file_name": "f1.png", "frame_index": 1, "video_id": 1},
+        ],
+        "annotations": [
+            {
+                "id": 1,
+                "image_id": 1,
+                "category_id": 1,
+                "bbox": [10, 10, 40, 40],
+                "score": 0.9,
+                "area": 1600,
+                "iscrowd": 0,
+                "track_id": 7,
+                "confidence_pairs": [["fish", 0.9], ["scallop", 0.1]],
+                "prob": [0.9, 0.1],
+                "segmentation": [[10, 10, 50, 10, 50, 50, 10, 50]],
+                "attributes": {"quality": "good"},
+            },
+            {
+                "id": 2,
+                "image_id": 2,
+                "category_id": 1,
+                "bbox": [12, 12, 40, 40],
+                "score": 0.8,
+                "area": 1600,
+                "iscrowd": 0,
+                "track_id": 7,
+                "keypoints": [{"xy": [20, 20], "keypoint_category": "head"}],
+            },
+            {
+                "id": 3,
+                "image_id": 1,
+                "category_id": 2,
+                "bbox": [100, 100, 20, 20],
+                "score": 0.3,
+                "area": 400,
+                "iscrowd": 0,
+            },
+            {
+                "id": 4,
+                "image_id": 2,
+                "category_id": 1,
+                "bbox": [0, 0, 5, 5],
+                "score": 0.6,
+                "area": 25,
+                "iscrowd": 0,
+                "prob": [0.6, 0.0],
+            },
+        ],
+    }
+
+
+def write_json(path, document):
+    path.write_text(json.dumps(document, indent=2))
+    return path
+
+
+def read_json(path):
+    return json.loads(path.read_text())
+
+
+@pytest.fixture
+def dive_json(tmp_path):
+    return write_json(tmp_path / "tracks.json", dive_doc())
+
+
+@pytest.fixture
+def coco_json(tmp_path):
+    return write_json(tmp_path / "annotations.json", coco_doc())
+
+
+@pytest.fixture
+def replace_file(tmp_path):
+    def build(*rows):
+        path = tmp_path / "synonyms.csv"
+        path.write_text("".join(f"{old},{new}\n" for old, new in rows))
+        return str(path)
+
+    return build
+
+
+class TestJsonAppletDive:
+    def test_print_types_uses_the_top_scoring_pair(self, viame_env, dive_json):
+        result = run_viame(viame_env, "json", "-i", str(dive_json), "--print-types")
+
+        assert result.returncode == 0
+        assert "fish" in result.stdout
+        assert "scallop" in result.stdout
+        # track 3 also scores weed, but lower than scallop
+        assert "weed" not in result.stdout
+
+    def test_track_count(self, viame_env, dive_json):
+        result = run_viame(viame_env, "json", "-i", str(dive_json), "--track-count")
+
+        assert result.returncode == 0
+        assert "Track count: 3 , states = 5" in result.stdout
+
+    def test_frame_shift_round_trips(self, viame_env, dive_json):
+        assert run_viame(
+            viame_env, "json", "-i", str(dive_json), "--increase-fid"
+        ).returncode == 0
+
+        shifted = read_json(dive_json)
+        assert shifted["tracks"]["1"]["begin"] == 1
+        assert shifted["tracks"]["1"]["features"][0]["frame"] == 1
+
+        assert run_viame(
+            viame_env, "json", "-i", str(dive_json), "--decrease-fid"
+        ).returncode == 0
+        assert read_json(dive_json) == dive_doc()
+
+    def test_unknown_fields_survive_a_rewrite(self, viame_env, dive_json):
+        assert run_viame(
+            viame_env, "json", "-i", str(dive_json), "--increase-fid"
+        ).returncode == 0
+
+        written = read_json(dive_json)
+        original = dive_doc()
+        track = written["tracks"]["1"]
+
+        assert track["features"][0]["geometry"] == \
+            original["tracks"]["1"]["features"][0]["geometry"]
+        assert track["features"][0]["notes"] == ["first"]
+        assert track["attributes"] == {"quality": "good"}
+        assert track["meta"] == {"source": "test"}
+        assert written["customTopLevel"] == {"kept": True}
+        assert written["groups"]["1"]["members"]["2"]["ranges"] == [[1, 1]]
+
+    def test_frame_range_fixes_extents_and_drops_empty_tracks(self, viame_env, dive_json):
+        result = run_viame(
+            viame_env, "json", "-i", str(dive_json), "--lower-fid", "2", "--upper-fid", "3"
+        )
+
+        assert result.returncode == 0
+        written = read_json(dive_json)
+
+        assert sorted(written["tracks"]) == ["1"]
+        track = written["tracks"]["1"]
+        assert [f["frame"] for f in track["features"]] == [0, 1]
+        assert track["begin"] == 0
+        assert track["end"] == 1
+        # the only group referenced track 2, which no longer exists
+        assert written["groups"] == {}
+
+    def test_filter_single_keeps_only_multi_state_tracks(self, viame_env, dive_json):
+        result = run_viame(viame_env, "json", "-i", str(dive_json), "--filter-single")
+
+        assert result.returncode == 0
+        # tracks 2 and 3 each hold a single feature
+        assert sorted(read_json(dive_json)["tracks"]) == ["1"]
+
+    def test_assign_uid_renumbers_keys_ids_and_groups(self, viame_env, tmp_path):
+        document = dive_doc()
+        document["tracks"] = {}
+        for old, new in (("1", 7), ("2", 2), ("3", 9)):
+            track = dive_doc()["tracks"][old]
+            track["id"] = new
+            document["tracks"][str(new)] = track
+        path = write_json(tmp_path / "renumber.json", document)
+
+        assert run_viame(viame_env, "json", "-i", str(path), "--assign-uid").returncode == 0
+
+        written = read_json(path)
+        assert sorted(written["tracks"]) == ["1", "2", "3"]
+        for key, track in written["tracks"].items():
+            assert str(track["id"]) == key
+        assert list(written["groups"]["1"]["members"]) == ["2"]
+
+    def test_replace_file_collapses_confidence_pairs(
+        self, viame_env, dive_json, replace_file
+    ):
+        result = run_viame(
+            viame_env, "json", "-i", str(dive_json),
+            "--replace-file", replace_file(("fish", "Fish")),
+        )
+
+        assert result.returncode == 0
+        tracks = read_json(dive_json)["tracks"]
+        assert tracks["1"]["confidencePairs"] == [["Fish", 1.0]]
+        assert tracks["2"]["confidencePairs"] == [["Fish", 1.0]]
+        assert tracks["3"]["confidencePairs"] == [["scallop", 1.0]]
+
+    def test_version_one_is_upgraded(self, viame_env, tmp_path):
+        legacy = {}
+        for key, track in dive_doc()["tracks"].items():
+            track["trackId"] = track.pop("id")
+            legacy[key] = track
+        path = write_json(tmp_path / "v1.json", legacy)
+
+        assert run_viame(viame_env, "json", "-i", str(path), "--increase-fid").returncode == 0
+
+        written = read_json(path)
+        assert written["version"] == 2
+        assert sorted(written) == ["groups", "tracks", "version"]
+        assert all("trackId" not in track for track in written["tracks"].values())
+        assert sorted(track["id"] for track in written["tracks"].values()) == [1, 2, 3]
+
+    def test_conf_threshold_reports_without_writing(self, viame_env, dive_json):
+        result = run_viame(
+            viame_env, "json", "-i", str(dive_json),
+            "--conf-threshold", "0.5", "--print-filtered",
+        )
+
+        assert result.returncode == 0
+        # track 3 scores 0.4 on its best pair
+        assert "Id: 3 filtered" in result.stdout
+        assert read_json(dive_json) == dive_doc()
+
+    def test_validate_reports_a_bad_extent(self, viame_env, dive_json):
+        document = dive_doc()
+        document["tracks"]["1"]["end"] = 99
+        write_json(dive_json, document)
+
+        result = run_viame(viame_env, "json", "-i", str(dive_json), "--validate")
+
+        assert result.returncode != 0
+        assert "track 1" in result.stdout
+
+    def test_print_fps(self, viame_env, dive_json, tmp_path):
+        result = run_viame(viame_env, "json", "-i", str(dive_json), "--print-fps")
+        assert result.returncode == 0
+        assert result.stdout.strip().endswith(",5")
+
+        document = dive_doc()
+        del document["fps"]
+        silent = write_json(tmp_path / "nofps.json", document)
+
+        result = run_viame(viame_env, "json", "-i", str(silent), "--print-fps")
+        assert result.returncode == 0
+        assert result.stdout.strip().endswith(",unlisted")
+
+
+class TestJsonAppletCoco:
+    def test_print_types_by_category_name(self, viame_env, coco_json):
+        result = run_viame(
+            viame_env, "json", "-i", str(coco_json), "--print-types", "--track-count"
+        )
+
+        assert result.returncode == 0
+        assert "fish 2" in result.stdout
+        assert "scallop 1" in result.stdout
+
+    def test_track_count_mixes_track_id_and_bare_annotations(self, viame_env, coco_json):
+        result = run_viame(viame_env, "json", "-i", str(coco_json), "--track-count")
+
+        assert result.returncode == 0
+        assert "Track count: 3 , states = 4" in result.stdout
+
+    def test_frame_shift_touches_only_frame_index(self, viame_env, coco_json):
+        assert run_viame(
+            viame_env, "json", "-i", str(coco_json), "--increase-fid"
+        ).returncode == 0
+
+        written = read_json(coco_json)
+        original = coco_doc()
+
+        assert [image["frame_index"] for image in written["images"]] == [1, 2]
+        for key in ("annotations", "info", "licenses", "custom", "categories", "tracks"):
+            assert written[key] == original[key]
+
+    def test_assign_uid_gives_bare_annotations_fresh_ids(self, viame_env, coco_json):
+        assert run_viame(
+            viame_env, "json", "-i", str(coco_json), "--assign-uid"
+        ).returncode == 0
+
+        written = read_json(coco_json)
+        assert [a["track_id"] for a in written["annotations"]] == [1, 1, 2, 3]
+        assert sorted(track["id"] for track in written["tracks"]) == [1, 2, 3]
+
+    def test_replace_file_merges_categories(self, viame_env, coco_json, replace_file):
+        result = run_viame(
+            viame_env, "json", "-i", str(coco_json),
+            "--replace-file", replace_file(("scallop", "fish")),
+        )
+
+        assert result.returncode == 0
+        written = read_json(coco_json)
+
+        assert written["categories"] == [{"id": 1, "name": "fish"}]
+        assert [a["category_id"] for a in written["annotations"]] == [1, 1, 1, 1]
+        assert written["annotations"][0]["confidence_pairs"] == [["fish", 1.0]]
+        assert written["annotations"][0]["prob"] == [1.0]
+        assert written["annotations"][3]["prob"] == [1.0]
+
+    def test_conf_threshold_then_filter_single(self, viame_env, coco_json):
+        result = run_viame(
+            viame_env, "json", "-i", str(coco_json),
+            "--conf-threshold", "0.5", "--filter-single",
+        )
+
+        assert result.returncode == 0
+        # annotation 3 scores 0.3; 4 is then the only state of its track
+        assert [a["id"] for a in read_json(coco_json)["annotations"]] == [1, 2]
+
+    def test_frame_range_drops_images(self, viame_env, coco_json):
+        result = run_viame(
+            viame_env, "json", "-i", str(coco_json), "--lower-fid", "1", "--upper-fid", "1"
+        )
+
+        assert result.returncode == 0
+        written = read_json(coco_json)
+
+        assert [(i["id"], i["frame_index"]) for i in written["images"]] == [(2, 0)]
+        assert [a["id"] for a in written["annotations"]] == [2, 4]
+
+    def test_missing_frame_index_is_an_error(self, viame_env, coco_json):
+        document = coco_doc()
+        del document["images"][0]["frame_index"]
+        write_json(coco_json, document)
+
+        result = run_viame(viame_env, "json", "-i", str(coco_json), "--increase-fid")
+
+        assert result.returncode != 0
+        assert "frame_index" in result.stderr
+        assert str(coco_json.name) in result.stderr
+        assert read_json(coco_json) == document
+
+    def test_validate_reports_a_dangling_image(self, viame_env, coco_json):
+        document = coco_doc()
+        document["annotations"][2]["image_id"] = 99
+        write_json(coco_json, document)
+
+        result = run_viame(viame_env, "json", "-i", str(coco_json), "--validate")
+
+        assert result.returncode != 0
+        assert "annotation" in result.stdout
+
+    def test_print_fps_from_the_video_entry(self, viame_env, coco_json):
+        result = run_viame(viame_env, "json", "-i", str(coco_json), "--print-fps")
+
+        assert result.returncode == 0
+        assert result.stdout.strip().endswith(",5")
+
+
+class TestJsonAppletCommon:
+    def test_malformed_json_names_the_file(self, viame_env, tmp_path):
+        path = tmp_path / "bad.json"
+        path.write_text('{"tracks": [')
+
+        result = run_viame(viame_env, "json", "-i", str(path), "--track-count")
+
+        assert result.returncode != 0
+        assert "bad.json" in result.stderr
+
+    def test_unknown_structure_is_rejected(self, viame_env, tmp_path):
+        path = tmp_path / "odd.json"
+        path.write_text('{"hello": 1}')
+
+        result = run_viame(viame_env, "json", "-i", str(path), "--track-count")
+
+        assert result.returncode != 0
+        assert "format" in result.stderr
+
+    def test_format_override_is_honoured(self, viame_env, coco_json):
+        result = run_viame(
+            viame_env, "json", "-i", str(coco_json), "--format", "dive", "--track-count"
+        )
+
+        assert result.returncode != 0
+        assert "tracks" in result.stderr
+
+    def test_directory_recursion_and_glob(self, viame_env, tmp_path):
+        root = tmp_path / "a"
+        (root / "b").mkdir(parents=True)
+        write_json(root / "x.json", dive_doc())
+        write_json(root / "b" / "y.json", dive_doc())
+        write_json(root / "z.coco.json", coco_doc())
+
+        recursive = run_viame(viame_env, "json", "-i", str(root), "--track-count")
+        assert recursive.returncode == 0
+        assert recursive.stdout.count("Processing") == 3
+        assert "Track count: 9 , states = 14" in recursive.stdout
+
+        globbed = run_viame(
+            viame_env, "json", "-i", str(root / "*.coco.json"), "--track-count"
+        )
+        assert globbed.returncode == 0
+        assert globbed.stdout.count("Processing") == 1
+
+    def test_comp_file_lists_per_file_type_counts(self, viame_env, tmp_path):
+        root = tmp_path / "many"
+        root.mkdir()
+        write_json(root / "one.json", dive_doc())
+        write_json(root / "two.json", dive_doc())
+        report = tmp_path / "out.csv"
+
+        result = run_viame(
+            viame_env, "json", "-i", str(root),
+            "--comp-file", str(report), "--print-types", "--track-count",
+        )
+
+        assert result.returncode == 0
+        rows = [line for line in report.read_text().splitlines() if line]
+        assert rows[0] == "file_name, fish, scallop"
+        assert len(rows) == 3
+        assert all(row.endswith(", 2, 1") for row in rows[1:])
+
+    def test_help_is_lazy(self, viame_env):
+        start = time.monotonic()
+        result = run_viame(viame_env, "json", "--help")
+        elapsed = time.monotonic() - start
+
+        assert result.returncode == 0
+        assert elapsed < LAZY_DISPATCH_SECONDS
 
 
 class TestResampleTracksApplet:

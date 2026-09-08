@@ -15,6 +15,7 @@
 #include <applet_attributes.h>
 #include "csv.h"
 #include "get_configs.h"
+#include "json.h"
 #include "resample_tracks.h"
 #include "score.h"
 #include "train.h"
@@ -148,6 +149,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   // -- register applets --
   register_standalone_tool< csv_applet >( reg );
   register_standalone_tool< get_configs_applet >( reg );
+  register_standalone_tool< json_applet >( reg );
   register_standalone_tool< resample_tracks_applet >( reg );
   register_standalone_tool< score_applet >( reg );
   register_standalone_tool< train_applet >( reg );

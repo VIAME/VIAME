@@ -208,6 +208,16 @@ std::vector< std::string > find_files_in_folder_or_alongside(
 VIAME_CORE_EXPORT
 std::string add_quotes( const std::string& str );
 
+/// List files whose name matches a wildcard pattern
+///
+/// Only the file name portion of the pattern is matched; "*" and "?" are the
+/// supported wildcards and directories are never expanded.
+///
+/// \param pattern Path whose file name may contain wildcards
+/// \returns Sorted vector of matching file paths
+VIAME_CORE_EXPORT
+std::vector< std::string > glob_files( const std::string& pattern );
+
 // =============================================================================
 // String parsing utilities
 // =============================================================================
@@ -237,6 +247,33 @@ bool trim_line( std::string const& line, std::string& trimmed, bool skip_comment
 /// \returns Lowercase version of string
 VIAME_CORE_EXPORT
 std::string to_lower( std::string const& str );
+
+/// Check if a string contains any uppercase character
+///
+/// \param str String to check
+/// \returns true if at least one character is uppercase
+VIAME_CORE_EXPORT
+bool has_uppercase( const std::string& str );
+
+/// Split a string on a single delimiter, keeping empty fields
+///
+/// Unlike string_to_vector, consecutive delimiters yield empty entries, which
+/// is what column-indexed formats such as VIAME CSV require.
+///
+/// \param str Input string
+/// \param delimiter Character to split on
+/// \returns Vector of fields
+VIAME_CORE_EXPORT
+std::vector< std::string > split_string( const std::string& str, char delimiter );
+
+/// Join strings with a delimiter between them
+///
+/// \param values Strings to join
+/// \param delimiter Text placed between consecutive entries
+/// \returns Concatenated string
+VIAME_CORE_EXPORT
+std::string join_strings( const std::vector< std::string >& values,
+                          const std::string& delimiter );
 
 /// Check if string ends with suffix (case-insensitive)
 ///
@@ -290,6 +327,17 @@ VIAME_CORE_EXPORT
 bool load_file_list( const std::string& file,
                      std::vector< std::string >& output );
 
+/// Read a two column csv of "old,new" synonym pairs into a map
+///
+/// Lines with fewer than two fields are reported on stdout and skipped.
+///
+/// \param filename File to read
+/// \param replacements Output map of old name -> new name, added to in place
+/// \returns true on success, false if the file cannot be opened
+VIAME_CORE_EXPORT
+bool load_replacement_file( const std::string& filename,
+                            std::map< std::string, std::string >& replacements );
+
 /// Check if a file contains a specific string
 ///
 /// \param file Filename to search
@@ -331,6 +379,14 @@ bool replace_keywords_in_template_file(
 /// \returns true on success, false if source cannot be read or destination cannot be written
 VIAME_CORE_EXPORT
 bool copy_file( const std::string& source, const std::string& destination );
+
+/// Move a file, replacing the destination if it already exists
+///
+/// \param source Path to move from
+/// \param destination Path to move to
+/// \returns true on success
+VIAME_CORE_EXPORT
+bool move_file( const std::string& source, const std::string& destination );
 
 /// Recursively copy a folder's contents to a destination
 ///

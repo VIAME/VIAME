@@ -11,6 +11,8 @@
 #include <iostream>
 #include <cctype>
 #include <cstring>
+#include <regex>
+#include <system_error>
 #include <ctime>
 #include <vector>
 
@@ -109,7 +111,8 @@ bool list_files_in_folder( std::string location,
       {
         for( unsigned i = 0; i < extensions.size(); i++ )
         {
-          if( file_iter->path().extension() == extensions[i] )
+          if( to_lower( file_iter->path().extension().string() ) ==
+              to_lower( extensions[i] ) )
           {
             filepaths.push_back( file_iter->path().string() );
             break;
@@ -398,6 +401,59 @@ std::vector< std::string > find_files_in_folder_or_alongside(
   return files;
 }
 
+std::vector< std::string > glob_files( const std::string& pattern )
+{
+  std::vector< std::string > result;
+
+  filesystem::path full_path( pattern );
+  filesystem::path dir = full_path.parent_path();
+  const std::string name_pattern = full_path.filename().string();
+
+  if( dir.empty() )
+  {
+    dir = ".";
+  }
+
+  std::string expr;
+
+  for( char c : name_pattern )
+  {
+    if( c == '*' )
+    {
+      expr += ".*";
+    }
+    else if( c == '?' )
+    {
+      expr += '.';
+    }
+    else
+    {
+      if( std::string( ".^$|()[]{}+\\" ).find( c ) != std::string::npos )
+      {
+        expr += '\\';
+      }
+      expr += c;
+    }
+  }
+
+  const std::regex matcher( expr );
+
+  if( filesystem::exists( dir ) && filesystem::is_directory( dir ) )
+  {
+    for( const auto& entry : filesystem::directory_iterator( dir ) )
+    {
+      if( filesystem::is_regular_file( entry ) &&
+          std::regex_match( entry.path().filename().string(), matcher ) )
+      {
+        result.push_back( entry.path().string() );
+      }
+    }
+  }
+
+  std::sort( result.begin(), result.end() );
+  return result;
+}
+
 std::string add_quotes( const std::string& str )
 {
   return "\"" + str + "\"";
@@ -445,6 +501,49 @@ std::string to_lower( std::string const& str )
   {
     result[i] = static_cast< char >( std::tolower( static_cast< unsigned char >( result[i] ) ) );
   }
+  return result;
+}
+
+bool has_uppercase( const std::string& str )
+{
+  for( char c : str )
+  {
+    if( std::isupper( static_cast< unsigned char >( c ) ) )
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+std::vector< std::string > split_string( const std::string& str, char delimiter )
+{
+  std::vector< std::string > tokens;
+  std::stringstream ss( str );
+  std::string token;
+
+  while( std::getline( ss, token, delimiter ) )
+  {
+    tokens.push_back( token );
+  }
+
+  return tokens;
+}
+
+std::string join_strings( const std::vector< std::string >& values,
+                          const std::string& delimiter )
+{
+  std::string result;
+
+  for( size_t i = 0; i < values.size(); ++i )
+  {
+    if( i > 0 )
+    {
+      result += delimiter;
+    }
+    result += values[i];
+  }
+
   return result;
 }
 
@@ -555,6 +654,36 @@ bool load_file_list( const std::string& file,
     std::string line;
     std::getline( fin, line );
     output.push_back( line );
+  }
+
+  fin.close();
+  return true;
+}
+
+bool load_replacement_file( const std::string& filename,
+                            std::map< std::string, std::string >& replacements )
+{
+  std::ifstream fin( filename );
+
+  if( !fin )
+  {
+    return false;
+  }
+
+  std::string line;
+
+  while( std::getline( fin, line ) )
+  {
+    auto parsed = split_string( line, ',' );
+
+    if( parsed.size() >= 2 )
+    {
+      replacements[ trim_string( parsed[0] ) ] = trim_string( parsed[1] );
+    }
+    else if( !trim_string( line ).empty() )
+    {
+      std::cout << "Error parsing line: " << line << std::endl;
+    }
   }
 
   fin.close();
@@ -702,6 +831,13 @@ bool copy_file( const std::string& source, const std::string& destination )
   fout.close();
 
   return true;
+}
+
+bool move_file( const std::string& source, const std::string& destination )
+{
+  std::error_code error;
+  filesystem::rename( source, destination, error );
+  return !error;
 }
 
 bool copy_folder( const std::string& source, const std::string& destination )

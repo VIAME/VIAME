@@ -4,6 +4,8 @@
 
 #include "csv.h"
 
+#include <utilities_file.h>
+
 #include <kwiversys/SystemTools.hxx>
 
 #include <vital/logger/logger.h>
@@ -17,16 +19,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iomanip>
-#include <regex>
 #include <stdexcept>
-
-#if WIN32 || ( __cplusplus >= 201703L && __has_include(<filesystem>) )
-  #include <filesystem>
-  namespace filesystem = std::filesystem;
-#elif __has_include(<experimental/filesystem>)
-  #include <experimental/filesystem>
-  namespace filesystem = std::experimental::filesystem;
-#endif
 
 namespace kv = kwiver::vital;
 
@@ -73,110 +66,6 @@ static double parse_fps( const std::string& line )
   return output.empty() ? -1 : std::stod( output );
 }
 
-static std::vector< std::string > split_string( const std::string& str, char delimiter )
-{
-  std::vector< std::string > tokens;
-  std::stringstream ss( str );
-  std::string token;
-
-  while( std::getline( ss, token, delimiter ) )
-  {
-    tokens.push_back( token );
-  }
-
-  return tokens;
-}
-
-static std::string trim_string( const std::string& str )
-{
-  size_t start = str.find_first_not_of( " \t\r\n" );
-  if( start == std::string::npos )
-  {
-    return "";
-  }
-  size_t end = str.find_last_not_of( " \t\r\n" );
-  return str.substr( start, end - start + 1 );
-}
-
-static std::string join_strings( const std::vector< std::string >& vec, const std::string& delimiter )
-{
-  std::string result;
-  for( size_t i = 0; i < vec.size(); ++i )
-  {
-    if( i > 0 )
-    {
-      result += delimiter;
-    }
-    result += vec[i];
-  }
-  return result;
-}
-
-static bool has_uppercase( const std::string& str )
-{
-  for( char c : str )
-  {
-    if( std::isupper( c ) )
-    {
-      return true;
-    }
-  }
-  return false;
-}
-
-static std::vector< std::string > glob_files( const std::string& pattern )
-{
-  std::vector< std::string > result;
-
-  filesystem::path p( pattern );
-  filesystem::path dir = p.parent_path();
-  const std::string name_pattern = p.filename().string();
-
-  if( dir.empty() )
-  {
-    dir = ".";
-  }
-
-  std::string expr;
-
-  for( char c : name_pattern )
-  {
-    if( c == '*' )
-    {
-      expr += ".*";
-    }
-    else if( c == '?' )
-    {
-      expr += '.';
-    }
-    else
-    {
-      if( std::string( ".^$|()[]{}+\\" ).find( c ) != std::string::npos )
-      {
-        expr += '\\';
-      }
-      expr += c;
-    }
-  }
-
-  const std::regex matcher( expr );
-
-  if( filesystem::exists( dir ) && filesystem::is_directory( dir ) )
-  {
-    for( const auto& entry : filesystem::directory_iterator( dir ) )
-    {
-      if( entry.is_regular_file() &&
-          std::regex_match( entry.path().filename().string(), matcher ) )
-      {
-        result.push_back( entry.path().string() );
-      }
-    }
-  }
-
-  std::sort( result.begin(), result.end() );
-  return result;
-}
-
 // =======================================================================================
 // Numeric field access that names the offending file and line
 
@@ -208,23 +97,6 @@ static double to_double( const std::string& value, const std::string& file, size
   catch( const std::exception& )
   {
     parse_error( file, line, value );
-  }
-}
-
-static void collect_csv_files_recursive( const filesystem::path& dir,
-                                         std::vector< std::string >& files )
-{
-  for( const auto& entry : filesystem::recursive_directory_iterator( dir ) )
-  {
-    if( entry.is_regular_file() )
-    {
-      std::string ext = entry.path().extension().string();
-      std::transform( ext.begin(), ext.end(), ext.begin(), ::tolower );
-      if( ext == ".csv" )
-      {
-        files.push_back( entry.path().string() );
-      }
-    }
   }
 }
 
@@ -335,9 +207,9 @@ csv_applet
   // Collect input files
   std::vector< std::string > input_files;
 
-  if( filesystem::is_directory( opt_input ) )
+  if( does_folder_exist( opt_input ) )
   {
-    collect_csv_files_recursive( opt_input, input_files );
+    list_files_in_folder( opt_input, input_files, true, { ".csv" } );
   }
   else if( opt_input.find( '*' ) != std::string::npos )
   {
@@ -376,31 +248,11 @@ csv_applet
   // Load replacement file if specified
   if( !opt_replace_file.empty() )
   {
-    std::ifstream fin( opt_replace_file );
-    if( !fin )
+    if( !load_replacement_file( opt_replace_file, repl_dict ) )
     {
       std::cout << "Replace file: " << opt_replace_file << " does not exist" << std::endl;
       return EXIT_FAILURE;
     }
-
-    std::string line;
-    size_t line_number = 0;
-
-    while( std::getline( fin, line ) )
-    {
-      ++line_number;
-
-      auto parsed = split_string( line, ',' );
-      if( parsed.size() >= 2 )
-      {
-        repl_dict[ trim_string( parsed[0] ) ] = trim_string( parsed[1] );
-      }
-      else if( !trim_string( line ).empty() )
-      {
-        std::cout << "Error parsing line: " << line << std::endl;
-      }
-    }
-    fin.close();
   }
 
   // Process each input file
@@ -410,7 +262,7 @@ csv_applet
     {
       if( opt_counts_per_frame )
       {
-        std::cout << "# " << filesystem::path( input_file ).filename().string() << std::endl;
+        std::cout << "# " << get_filename_no_path( input_file ) << std::endl;
       }
       else if( opt_print_fps )
       {

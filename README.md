@@ -272,6 +272,7 @@ viame run my_pipeline.pipe                       # run a single pipeline file
 viame train -c train_detector.conf -i labels/    # train a model
 viame score -c detections.csv -t groundtruth.csv # score against groundtruth
 viame csv -i detections.csv --print-types        # inspect a VIAME csv
+viame json -i tracks.json --print-types          # inspect a DIVE or COCO json
 viame my_pipeline.pipe                           # shorthand for the above
 ```
 

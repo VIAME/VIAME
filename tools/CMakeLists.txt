@@ -75,6 +75,7 @@ set( applet_sources
   register_applets.cxx
   csv.cxx
   get_configs.cxx
+  json.cxx
   resample_tracks.cxx
   score.cxx
   train.cxx
@@ -83,6 +84,7 @@ set( applet_sources
 set( applet_headers
   csv.h
   get_configs.h
+  json.h
   resample_tracks.h
   score.h
   train.h
@@ -107,6 +109,15 @@ kwiver_add_plugin( viame_tools_applets
                viame_core
                viame_claude
 )
+
+# The json applet parses with the rapidjson vendored inside KWIVER's cereal,
+# whose headers include each other relative to this directory
+if( NOT KWIVER_SOURCE_DIR )
+  set( KWIVER_SOURCE_DIR "${VIAME_PACKAGES_DIR}/kwiver" )
+endif()
+target_include_directories( viame_tools_applets
+  PRIVATE      ${KWIVER_SOURCE_DIR}/vital/internal
+  )
 
 if( VIAME_ENABLE_PYTHON )
   target_compile_definitions( viame_tools_applets
