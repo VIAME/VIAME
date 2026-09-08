@@ -9,6 +9,8 @@ import warnings
 import torch
 import os
 from viame.pytorch.netharn import util
+from viame.pytorch.netharn.host_parallel import (
+    HostStagedMixin, P2P_MODES, verify_peer_copies)
 import collections.abc as container_abcs
 
 __all__ = ['XPU']
@@ -16,6 +18,7 @@ __all__ = ['XPU']
 # try:
 # minimum memory (MB) needed for auto to resolve to GPU by default
 NETHARN_MIN_MB = int(os.environ.get('NETHARN_MIN_MB', 6000))
+NETHARN_XPU_P2P = os.environ.get('NETHARN_XPU_P2P', 'auto')
 # except Exception:
 #     NETHARN_MIN_MB = 6000
 
@@ -43,6 +46,13 @@ class DataParallel(torch.nn.DataParallel, MountedModel):
     pass
 
 
+class HostStagedDataParallel(HostStagedMixin, DataParallel):
+    """
+    DataParallel whose replica traffic never crosses GPU-to-GPU links
+    """
+    pass
+
+
 class DataSerial(MountedModel):
     """
     Wraper to create consistent API with DataParallel
@@ -62,6 +72,11 @@ class XPU(ub.NiceRepr):
     Args:
         item (None, int, or list): None for cpu, an int for a gpu, or a list of
             ints for multiple gpus.
+        p2p (str): how multi-gpu mounts treat direct GPU-to-GPU copies.
+            'auto' verifies them and stages through host memory on failure,
+            'host' always stages, 'single' drops to the main device on
+            failure, 'require' raises on failure, 'peer' trusts them
+            unchecked. Defaults to envvar NETHARN_XPU_P2P or 'auto'.
     TODO:
         distributed processing
 
@@ -79,10 +94,14 @@ class XPU(ub.NiceRepr):
         >>> with pytest.raises(IndexError):
         >>>     print(str(XPU([], check=False)))
     """
-    def __init__(xpu, item=None, check=True):
+    def __init__(xpu, item=None, check=True, p2p=None):
         xpu._main_device_id = None
         xpu._device_ids = None
         xpu.mode = None
+        xpu.p2p = NETHARN_XPU_P2P if p2p is None else p2p
+        if xpu.p2p not in P2P_MODES:
+            raise ValueError('p2p must be one of {}, got {!r}'.format(
+                P2P_MODES, xpu.p2p))
 
         # For context manager
         xpu._cuda_device = None
@@ -242,12 +261,13 @@ class XPU(ub.NiceRepr):
     of = from_data  # alias
 
     @classmethod
-    def coerce(XPU, item, check=True, **kwargs):
+    def coerce(XPU, item, check=True, p2p=None, **kwargs):
         """
         Converts objects of many different types into an XPU.
 
         Args:
             item : special string, int, list, or None
+            p2p (str | None): see XPU.__init__
 
         Example:
             >>> assert XPU.coerce('0', check=False) == XPU(0, check=False)
@@ -262,52 +282,62 @@ class XPU(ub.NiceRepr):
         if isinstance(item, dict):
             item = item['xpu']  # allow coercion from a configuration dict
         try:
-            if item is None:
-                return XPU(item, check=check)
-            elif isinstance(item, XPU):
-                return item
-            elif isinstance(item, _TENSOR_TYPES):
-                return XPU.from_data(item, check=check)
-            elif isinstance(item, torch.nn.Module):
-                return XPU.from_data(item, check=check)
-            elif isinstance(item, int):
-                return XPU(int(item), check=check)
-            elif isinstance(item, (list, tuple)):
-                return XPU(item, check=check)
-            elif isinstance(item, str):
-                if item == 'auto':
-                    return XPU.from_auto(**kwargs)
-                elif item == 'argv':
-                    return XPU.from_argv(check=check, **kwargs)
-                if item == 'cpu' or item is None:
-                    return XPU(None, check=check)
-                elif item == 'cpu' or item is None:
-                    return XPU(None, check=check)
-                else:
-                    item = item.lower()
-                    item = item.replace('=', '')
-                    item = item.replace('cpu', '')
-                    item = item.replace('gpus', '')
-                    item = item.replace('gpu', '')
-                    item = item.replace('cuda', '')
-                    if item == '':
-                        if torch.cuda.is_available():
-                            item = XPU.default_gpu()
-                        else:
-                            item = None
-                    elif ',' in item:
-                        item = list(map(int, item.split(',')))
-                    elif item == 'none':
-                        item = None
-                    else:
-                        item = int(item)
-                    return XPU(item, check=check)
-            else:
-                ValueError
+            xpu = XPU._coerce(item, check=check, **kwargs)
+            if p2p is not None:
+                if p2p not in P2P_MODES:
+                    raise ValueError('p2p must be one of {}, got {!r}'.format(
+                        P2P_MODES, p2p))
+                xpu.p2p = p2p
+            return xpu
         except Exception as ex:
             raise ValueError(
                 'cannot cast to XPU. item={!r}. Caused by: {!r}'.format(
                     item, ex))
+
+    @classmethod
+    def _coerce(XPU, item, check=True, **kwargs):
+        if item is None:
+            return XPU(item, check=check)
+        elif isinstance(item, XPU):
+            return item
+        elif isinstance(item, _TENSOR_TYPES):
+            return XPU.from_data(item, check=check)
+        elif isinstance(item, torch.nn.Module):
+            return XPU.from_data(item, check=check)
+        elif isinstance(item, int):
+            return XPU(int(item), check=check)
+        elif isinstance(item, (list, tuple)):
+            return XPU(item, check=check)
+        elif isinstance(item, str):
+            if item == 'auto':
+                return XPU.from_auto(**kwargs)
+            elif item == 'argv':
+                return XPU.from_argv(check=check, **kwargs)
+            if item == 'cpu' or item is None:
+                return XPU(None, check=check)
+            elif item == 'cpu' or item is None:
+                return XPU(None, check=check)
+            else:
+                item = item.lower()
+                item = item.replace('=', '')
+                item = item.replace('cpu', '')
+                item = item.replace('gpus', '')
+                item = item.replace('gpu', '')
+                item = item.replace('cuda', '')
+                if item == '':
+                    if torch.cuda.is_available():
+                        item = XPU.default_gpu()
+                    else:
+                        item = None
+                elif ',' in item:
+                    item = list(map(int, item.split(',')))
+                elif item == 'none':
+                    item = None
+                else:
+                    item = int(item)
+                return XPU(item, check=check)
+        else:
+            raise TypeError(type(item))
 
     @classmethod
     def cast(xpu, item, check=True, **kwargs):
@@ -522,12 +552,47 @@ class XPU(ub.NiceRepr):
         # Unwrap the core model if necessary
         model = xpu.raw(model)
         model = xpu.move(model)
-        if xpu._device_ids and len(xpu._device_ids) > 1:
-            model = DataParallel(model, device_ids=xpu._device_ids,
-                                 output_device=xpu._main_device_id)
+        device_ids, host_staged = xpu._plan_parallel()
+        if device_ids and len(device_ids) > 1:
+            cls = HostStagedDataParallel if host_staged else DataParallel
+            model = cls(model, device_ids=device_ids,
+                        output_device=xpu._main_device_id)
         else:
             model = DataSerial(model)
         return model
+
+    def _plan_parallel(xpu):
+        """
+        Decide how to spread a model over this XPU's devices.
+
+        Returns:
+            Tuple[List[int] | None, bool]: device ids to mount on, and whether
+                replica traffic must be staged through host memory.
+        """
+        device_ids = xpu._device_ids
+        if not device_ids or len(device_ids) == 1:
+            return device_ids, False
+        if xpu.p2p == 'peer':
+            return device_ids, False
+        if xpu.p2p == 'host':
+            return device_ids, True
+        failures = verify_peer_copies(device_ids)
+        if not failures:
+            return device_ids, False
+        msg = (
+            'Direct GPU-to-GPU copies are corrupted on this host: ' +
+            ', '.join('{}->{} ({})'.format(*f) for f in failures) + '.'
+        )
+        if xpu.p2p == 'require':
+            raise RuntimeError(msg)
+        if xpu.p2p == 'single':
+            warnings.warn(msg + ' Falling back to GPU({}) only.'.format(
+                xpu._main_device_id))
+            xpu._device_ids = [xpu._main_device_id]
+            xpu.mode = 'gpu'
+            return xpu._device_ids, False
+        warnings.warn(msg + ' Staging replica traffic through host memory.')
+        return device_ids, True
 
     def move(xpu, data, **kwargs):
         """

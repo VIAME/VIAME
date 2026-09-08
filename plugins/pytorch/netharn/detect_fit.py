@@ -36,6 +36,14 @@ class DetectFitConfig(scfg.Config):
         'sampler_workdir': scfg.Path(None, help='workdir for data caches'),
         'workers': scfg.Value(0, help='number of DataLoader processes'),
         'xpu': scfg.Value('argv', help='a CUDA device or a CPU'),
+        'xpu_p2p': scfg.Value('auto', help=ub.paragraph(
+            '''
+            Multi-GPU handling of direct GPU-to-GPU copies, which some hosts
+            silently corrupt. auto: verify at mount and stage through host
+            memory on failure. host: always stage. single: fall back to the
+            main GPU on failure. require: raise on failure. peer: trust
+            them unchecked.
+            ''')),
 
         # Data (the hardest part of machine learning)
         'datasets': scfg.Value(None, help='special dataset key. Mutex with train_dataset, etc..'),
@@ -948,7 +956,7 @@ def setup_harn(cmdline=True, **kw):
     }
 
     from viame.pytorch.netharn.data.data_containers import ContainerXPU
-    xpu = ContainerXPU.coerce(config['xpu'])
+    xpu = ContainerXPU.coerce(config['xpu'], p2p=config['xpu_p2p'])
     print('xpu = {!r}'.format(xpu))
 
     print('make loaders')

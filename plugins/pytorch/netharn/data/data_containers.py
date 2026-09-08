@@ -19,6 +19,8 @@ import torch.nn.functional as F
 # from torch.nn.parallel import DataParallel
 from itertools import chain
 from viame.pytorch.netharn.device import DataParallel, DataSerial, XPU
+from viame.pytorch.netharn.host_parallel import (
+    HostGather, HostScatter, HostStagedMixin)
 from torch.nn.parallel._functions import _get_stream
 from torch.nn.parallel._functions import Scatter as OrigScatter
 from torch.nn.parallel._functions import Gather as OrigGather
@@ -570,7 +572,7 @@ def _collate_else(batch, collate_func):
 # ----
 
 
-def _fn_scatter(input, devices, streams=None):
+def _fn_scatter(input, devices, streams=None, host_staged=False):
     """Scatters tensor across multiple GPUs.
 
     from mmcv.parallel._functions
@@ -582,11 +584,14 @@ def _fn_scatter(input, devices, streams=None):
         chunk_size = (len(input) - 1) // len(devices) + 1
         outputs = [
             _fn_scatter(input[i], [devices[i // chunk_size]],
-                          [streams[i // chunk_size]]) for i in range(len(input))
+                        [streams[i // chunk_size]], host_staged)
+            for i in range(len(input))
         ]
         return outputs
     elif isinstance(input, torch.Tensor):
         output = input.contiguous()
+        if host_staged and output.is_cuda:
+            output = output.cpu()
         # TODO: copy to a pinned buffer first (if copying from CPU)
         stream = streams[0] if output.numel() > 0 else None
         with torch.cuda.device(devices[0]), torch.cuda.stream(stream):
@@ -629,14 +634,14 @@ def get_input_device(input):
 class ContainerScatter(object):
 
     @staticmethod
-    def forward(target_gpus, input):
+    def forward(target_gpus, input, host_staged=False):
         input_device = get_input_device(input)
         streams = None
         if input_device == -1:
             # Perform CPU to GPU copies in a background stream
             streams = [_get_stream(torch.device('cuda', device) if isinstance(device, int) else device) for device in target_gpus]
 
-        outputs = _fn_scatter(input, target_gpus, streams)
+        outputs = _fn_scatter(input, target_gpus, streams, host_staged)
         # Synchronize with the copy stream
         if streams is not None:
             synchronize_stream(outputs, target_gpus, streams)
@@ -727,10 +732,21 @@ class ContainerDataParallel(DataParallel):
         # not part of mmcv's original impl
         return container_gather(outputs, output_device, dim=self.dim)
 
+
+class ContainerHostStagedDataParallel(HostStagedMixin, ContainerDataParallel):
+
+    def scatter(self, inputs, kwargs, device_ids):
+        return container_scatter_kwargs(inputs, kwargs, device_ids,
+                                        dim=self.dim, host_staged=True)
+
+    def gather(self, outputs, output_device):
+        return container_gather(outputs, output_device, dim=self.dim,
+                                host_staged=True)
+
 # ----
 
 
-def container_scatter(inputs, target_gpus, dim=0):
+def container_scatter(inputs, target_gpus, dim=0, host_staged=False):
     """Scatter inputs to target gpus.
 
     from mmcv.parallel.scatter_gather
@@ -739,14 +755,17 @@ def container_scatter(inputs, target_gpus, dim=0):
     :type:`~mmcv.parallel.DataContainer`.
     """
 
+    scatter_fn = HostScatter if host_staged else OrigScatter
+
     def scatter_map(obj):
         if isinstance(obj, torch.Tensor):
-            return OrigScatter.apply(target_gpus, None, dim, obj)
+            return scatter_fn.apply(target_gpus, None, dim, obj)
         if isinstance(obj, BatchContainer):
             if obj.cpu_only:
                 return obj.data
             else:
-                return ContainerScatter.forward(target_gpus, obj.data)
+                return ContainerScatter.forward(target_gpus, obj.data,
+                                                host_staged)
         if isinstance(obj, tuple) and len(obj) > 0:
             return list(zip(*map(scatter_map, obj)))
         if isinstance(obj, list) and len(obj) > 0:
@@ -768,7 +787,8 @@ def container_scatter(inputs, target_gpus, dim=0):
         scatter_map = None
 
 
-def container_scatter_kwargs(inputs, kwargs, target_gpus, dim=0):
+def container_scatter_kwargs(inputs, kwargs, target_gpus, dim=0,
+                             host_staged=False):
     """
     Scatter with support for kwargs dictionary
 
@@ -785,8 +805,8 @@ def container_scatter_kwargs(inputs, kwargs, target_gpus, dim=0):
         >>> target_gpus = [0, 1]
         >>> a1, k1 = container_scatter_kwargs(inputs, kwargs, target_gpus)
     """
-    inputs = container_scatter(inputs, target_gpus, dim) if inputs else []
-    kwargs = container_scatter(kwargs, target_gpus, dim) if kwargs else []
+    inputs = container_scatter(inputs, target_gpus, dim, host_staged) if inputs else []
+    kwargs = container_scatter(kwargs, target_gpus, dim, host_staged) if kwargs else []
 
     if len(inputs) < len(kwargs):
         inputs.extend([() for _ in range(len(kwargs) - len(inputs))])
@@ -808,7 +828,7 @@ def container_scatter_kwargs(inputs, kwargs, target_gpus, dim=0):
     return inputs, kwargs
 
 
-def container_gather(outputs, target_device, dim=0):
+def container_gather(outputs, target_device, dim=0, host_staged=False):
     r"""
     Gathers tensors from different GPUs on a specified device
       (-1 means the CPU).
@@ -847,20 +867,18 @@ def container_gather(outputs, target_device, dim=0):
         >>> gathered = container_gather(outputs, target_device, dim)
         >>> _report_data_shape(gathered)
     """
+    gather_fn = HostGather if host_staged else OrigGather
+
     def gather_map(outputs_):
         out = outputs_[0]
         if isinstance(out, torch.Tensor):
-            # if all(t.dim() == 0 for t in outputs_) and dim == 0:
-            #     # unsqueeze warnings will trigger
-            #     import xdev
-            #     xdev.embed()
-            return OrigGather.apply(target_device, dim, *outputs_)
+            return gather_fn.apply(target_device, dim, *outputs_)
         if isinstance(out, BatchContainer):
             newdata = [d for dc in outputs_ for d in dc.data]
             if not out.cpu_only:
-                from viame.pytorch import netharn as nh
-                target_xpu = nh.XPU(target_device)
-                newdata = target_xpu.move(newdata)
+                if host_staged:
+                    newdata = XPU(None).move(newdata)
+                newdata = XPU(target_device).move(newdata)
             return newdata
         if out is None:
             return None
@@ -911,10 +929,12 @@ class ContainerXPU(XPU):
         # Unwrap the core model if necessary
         model = xpu.raw(model)
         model = xpu.move(model)
-        if xpu._device_ids and len(xpu._device_ids) > 1:
-            model = ContainerDataParallel(
-                model, device_ids=xpu._device_ids,
-                output_device=xpu._main_device_id)
+        device_ids, host_staged = xpu._plan_parallel()
+        if device_ids and len(device_ids) > 1:
+            cls = (ContainerHostStagedDataParallel if host_staged
+                   else ContainerDataParallel)
+            model = cls(model, device_ids=device_ids,
+                        output_device=xpu._main_device_id)
         else:
             model = DataSerial(model)
         return model
