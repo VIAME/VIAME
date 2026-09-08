@@ -283,7 +283,7 @@ def build_index(log_file=""):
 
 
 def print_usage():
-    print("Usage: database_tool.py <command>")
+    print("Usage: database.py <command>")
     print("")
     print("Commands:")
     print("  init, initialize  Initialize a new database")

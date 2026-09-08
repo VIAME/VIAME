@@ -25,7 +25,7 @@ except ImportError:
 
 sys.dont_write_bytecode = True
 
-import database_tool
+import database
 
 # Character short-cuts and global constants
 div = os.path.sep
@@ -180,7 +180,7 @@ def create_dir( dirname, logging=True, recreate=False, prompt=True ):
   if recreate:
     if os.path.exists( dirname ):
       if not prompt or \
-         database_tool.query_yes_no( lb1 + "Reset output folder: " + dirname + "?" ):
+         database.query_yes_no( lb1 + "Reset output folder: " + dirname + "?" ):
         if logging:
           log_info( "Removing " + dirname + lb )
         shutil.rmtree( dirname )
@@ -1224,7 +1224,7 @@ if __name__ == "__main__" :
                                     "database_log.txt" )
     else:
       init_log_file = ""
-    db_is_init, user_select = database_tool.init( log_file=init_log_file, prompt=(not args.no_reset_prompt) )
+    db_is_init, user_select = database.init( log_file=init_log_file, prompt=(not args.no_reset_prompt) )
     if not db_is_init:
       if user_select:
         exit_with_error( "User decided to not initialize new database, shutting down." + lb2 )
@@ -1407,7 +1407,7 @@ if __name__ == "__main__" :
     if args.ball_tree:
       print( "Warning: building a ball tree is deprecated" )
 
-    if not database_tool.build_index( log_file=index_log_file ):
+    if not database.build_index( log_file=index_log_file ):
       exit_with_error( "Unable to build index" )
 
   # Output complete message

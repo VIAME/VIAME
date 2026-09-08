@@ -45,7 +45,7 @@ VIAME_PYTHON_SCRIPT_APPLET( convert_itk_applet,
   "convert-itk", "convert_itk.py",
   "Convert an ITK HDF5 transform into a DIVE camera registration json." )
 
-VIAME_PYTHON_SCRIPT_APPLET( database_applet, "database", "database_tool.py",
+VIAME_PYTHON_SCRIPT_APPLET( database_applet, "database", "database.py",
   "Initialize, start, stop and index the descriptor database." )
 
 VIAME_PYTHON_SCRIPT_APPLET( extract_frames_applet, "extract-frames",

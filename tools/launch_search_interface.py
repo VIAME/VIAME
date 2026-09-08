@@ -18,7 +18,7 @@ import sys
 import tempfile
 import urllib.parse as urlparse
 
-import database_tool
+import database
 
 DIV = '\\' if os.name == 'nt' else '/'
 DEBUG_MODE = False
@@ -224,20 +224,20 @@ if __name__ == "__main__":
         command += _get_import_config_args([_create_constructed_config(args)])
 
     # Make sure database is online
-    sql_dir = database_tool.SQL_DIR
+    sql_dir = database.SQL_DIR
     if not os.path.exists(sql_dir):
         print(f"\nERROR: Database directory \"{sql_dir}\" does not exist.")
         print("Please run create_index first to initialize the database.")
         sys.exit(1)
 
     # Check if server is already running for this database
-    if not database_tool.status(quiet=True):
+    if not database.status(quiet=True):
         # Not running - stop any other PostgreSQL instances that may be holding the port
         print("Stopping any existing database instances...")
-        database_tool.stop(quiet=True)
+        database.stop(quiet=True)
 
         # Wait for port to become available
-        if not database_tool._wait_for_port_available(timeout=10):
+        if not database._wait_for_port_available(timeout=10):
             print("Warning: Port 5432 may still be in use, attempting to start anyway...")
 
         # Clean up any stale lock files from previous sessions
@@ -248,10 +248,10 @@ if __name__ == "__main__":
 
         # Now try to start the database
         print("Starting database...")
-        if not database_tool.start(quiet=False):
+        if not database.start(quiet=False):
             print(f"\nERROR: Database in \"{sql_dir}\" failed to start.")
             print("Check database/SQL_Log_File for details.")
-            print("Try running: database_tool.py init")
+            print("Try running: database.py init")
             sys.exit(1)
 
     print("\nLaunching search GUI. When finished, make sure this console is closed.\n")
