@@ -43,22 +43,6 @@ but select entries are also listed below broken down by individual functionality
 [Example Plugin Templates](plugins/templates) <>
 [Embedding Algorithms in C++](examples/using_algorithms_in_code)
 
-Command Line Tools
-------------------
-
-After sourcing the setup script in an install, every command line tool is a
-subcommand of the `viame` program. `viame help` lists them with a one line
-description each, and `viame help <tool>` prints that tool's own options:
-
-```
-viame help                                       # list every tool
-viame run -d videos/ -p detector.pipe            # run a pipeline over a folder
-viame run my_pipeline.pipe                       # run a single pipeline file
-viame train -c train_detector.conf -i labels/    # train a model
-viame score -c detections.csv -t groundtruth.csv # score against groundtruth
-viame csv -i detections.csv --print-types        # inspect a VIAME csv
-viame my_pipeline.pipe                           # shorthand for the above
-```
 
 Installations
 -------------
@@ -131,6 +115,7 @@ This image is headless (ie, it contains no GUI) and contains a VIAME desktop (no
 installation in the folder /opt/noaa/viame. For links to the VIAME-Web docker containers see the
 above section in the installation documentation. Most add-on models are not included in the
 instance but can be downloaded via running the script download_viame_addons.sh in the bin folder.
+
 
 Quick Build Instructions
 ------------------------
@@ -271,6 +256,24 @@ in the advanced case of running extra manual builds for certain dependencies,
 a recursive module update is required:
 
 	git submodule update --init --recursive
+
+
+Command Line Tool Basics
+------------------------
+
+After sourcing the setup script in an install, every command line tool is a
+subcommand of the `viame` program. `viame help` lists them with a one line
+description each, and `viame help <tool>` prints that tool's own options:
+
+```
+viame help                                       # list every tool
+viame run -d videos/ -p detector.pipe            # run a pipeline over a folder
+viame run my_pipeline.pipe                       # run a single pipeline file
+viame train -c train_detector.conf -i labels/    # train a model
+viame score -c detections.csv -t groundtruth.csv # score against groundtruth
+viame csv -i detections.csv --print-types        # inspect a VIAME csv
+viame my_pipeline.pipe                           # shorthand for the above
+```
 
 
 License, Citations, and Acknowledgements
