@@ -456,6 +456,10 @@ class AlignCamerasProcess(KwiverProcess):
                 result = alignment_core.register_image_pair(
                     matcher, path_a, path_b, options)
             except Exception as e:
+                # Recorded in the JSON, but say it here too: a missing
+                # checkpoint otherwise only surfaces as a pooled fit with
+                # no usable frames.
+                _log('frame %d/%d: matcher error: %s' % (k + 1, len(kept), e))
                 result = {'success': False, 'code': 'error', 'error': str(e)}
             observation = {
                 'imageLeft': os.path.basename(path_a),
