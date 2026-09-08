@@ -197,7 +197,7 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
         of.write( filename + "," + format_x( frame_time, show_ms=True ) + "," )
         of.write( str( frame_id ) + "," + str( count ) + "\n" )
 
-USAGE = """Usage: generate_detection_plots <objects> <threshold> <frame_rate> [smooth]
+USAGE = """Usage: plot_detections <objects> <threshold> <frame_rate> [smooth]
 
 Plot detection counts per frame for the VIAME CSV files in the current
 directory, writing the plots into a "plots" subdirectory.

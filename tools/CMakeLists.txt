@@ -11,7 +11,7 @@ set( PYTHON_SCRIPTS
   convert_itk.py
   database.py
   extract_frames.py
-  generate_detection_plots.py
+  plot_detections.py
   generate_nn_index.py
   launch_annotation_interface.py
   launch_search_interface.py

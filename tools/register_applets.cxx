@@ -52,7 +52,7 @@ VIAME_PYTHON_SCRIPT_APPLET( extract_frames_applet, "extract-frames",
   "extract_frames.py", "Extract frames from video files" )
 
 VIAME_PYTHON_SCRIPT_APPLET( plot_detections_applet, "plot-detections",
-  "generate_detection_plots.py", "Plot detection counts per frame" )
+  "plot_detections.py", "Plot detection counts per frame" )
 
 VIAME_PYTHON_SCRIPT_APPLET( generate_nn_index_applet, "generate-nn-index",
   "generate_nn_index.py",
