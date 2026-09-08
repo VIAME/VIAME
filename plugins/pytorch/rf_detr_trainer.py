@@ -1308,6 +1308,36 @@ class RFDETRTrainer(TrainDetector):
 
         return output
 
+    def _gate_nccl_p2p(self, python, env, n_gpus):
+        """
+        Some hosts silently zero direct GPU-to-GPU copies. NCCL would use that
+        path for every collective, so verify it first and make NCCL stage
+        through host memory if it is broken. Runs in a throwaway subprocess so
+        no CUDA context or NCCL communicator lingers in this one.
+        """
+        if "NCCL_P2P_DISABLE" in env:
+            return
+        cmd = [python, "-m", "viame.pytorch.netharn.host_parallel"]
+        cmd += [str(i) for i in range(n_gpus)]
+        try:
+            result = subprocess.run(cmd, env=env, capture_output=True,
+                                    text=True, timeout=600)
+        except Exception as exc:
+            print(f"[RFDETRTrainer] GPU peer-copy check did not run ({exc}); "
+                  "leaving NCCL peer access enabled", flush=True)
+            return
+        if result.returncode == 0:
+            return
+        if "corrupted across GPUs" not in result.stdout:
+            print("[RFDETRTrainer] GPU peer-copy check failed to run; leaving "
+                  "NCCL peer access enabled\n" + result.stderr.strip()[-2000:],
+                  flush=True)
+            return
+        print("[RFDETRTrainer] Direct GPU-to-GPU copies are corrupted on this "
+              "host; setting NCCL_P2P_DISABLE=1 so DDP stages through host "
+              "memory\n" + result.stdout.strip(), flush=True)
+        env["NCCL_P2P_DISABLE"] = "1"
+
     def _resolve_gpu_count(self, device):
         """Number of GPUs to train on. 'auto' uses all visible GPUs; a pinned
         cuda:N device or a CPU device forces a single-process run."""
@@ -1517,6 +1547,8 @@ class RFDETRTrainer(TrainDetector):
                 seen.add(p)
                 ordered.append(p)
         env["PYTHONPATH"] = os.pathsep.join(ordered)
+
+        self._gate_nccl_p2p(python, env, n_gpus)
 
         print(f"[RFDETRTrainer] Launching {n_gpus}-GPU DDP training: "
               f"{python} {impl}", flush=True)
