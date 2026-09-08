@@ -14,7 +14,7 @@ _this_dir = os.path.dirname(os.path.abspath(__file__))
 _viame_src_dir = os.path.abspath(os.path.join(_this_dir, "..", ".."))
 sys.path.insert(0, os.path.join(_viame_src_dir, "tools"))
 
-from convert_cam_format import (
+from convert_cam import (
     read_zed, read_opencv, read_npz, read_json,
     write_zed, write_opencv, write_npz, write_json,
     StereoCalibration, convert
@@ -142,7 +142,7 @@ def test_json_roundtrip(a_test_data_folder, tmpdir):
 
 def test_auto_format_detection(a_test_data_folder, a_test_zed_conf, tmpdir):
     """Test automatic format detection."""
-    from convert_cam_format import detect_format
+    from convert_cam import detect_format
 
     assert detect_format(a_test_data_folder) == 'opencv'
     assert detect_format(a_test_zed_conf) == 'zed'

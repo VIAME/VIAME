@@ -1124,7 +1124,7 @@ class StereoCalibration(object):
                 "Calibration file '{}' is missing extrinsic parameters "
                 "(R and/or T). Stereo matching requires both intrinsic and "
                 "extrinsic calibration. If this file was converted from "
-                "CamCAL format, re-run convert_cam_format.py with "
+                "CamCAL format, re-run convert_cam.py with "
                 "'--extrinsics-mode derive' and provide a PtsCAL file, or "
                 "use calibrate_cameras.py with stereo images to compute "
                 "a full stereo calibration.".format(cal_fpath))

@@ -37,8 +37,8 @@ VIAME_PYTHON_SCRIPT_APPLET( add_segmentations_applet, "add-segmentations",
   "add_segmentations.py",
   "Add SAM2 segmentation polygons to an existing box-level annotation set." )
 
-VIAME_PYTHON_SCRIPT_APPLET( convert_cam_format_applet, "convert-cam-format",
-  "convert_cam_format.py",
+VIAME_PYTHON_SCRIPT_APPLET( convert_cam_applet, "convert-cam",
+  "convert_cam.py",
   "Convert stereo camera calibration files between different formats." )
 
 VIAME_PYTHON_SCRIPT_APPLET( convert_itk_transform_applet,
@@ -157,7 +157,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
   register_script_tool< process_video_applet >( reg );
   register_script_tool< add_segmentations_applet >( reg );
-  register_script_tool< convert_cam_format_applet >( reg );
+  register_script_tool< convert_cam_applet >( reg );
   register_script_tool< convert_itk_transform_applet >( reg );
   register_script_tool< database_applet >( reg );
   register_script_tool< extract_frames_applet >( reg );
