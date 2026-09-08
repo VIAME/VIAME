@@ -1,8 +1,9 @@
 # =============================================================================
 # Title: GFIT v3 groups classifier
 #
-# Description: Single large classifier over the fused detections. Its output is
-# blended with the detector's own class scores at prior_weight.
+# Description: Two-classifier ensemble over the fused detections. The large
+# classifier's output is blended with the detector's class scores, then the
+# enetv2s pair (large/small chip models split at 7000 px^2) votes on every box.
 # =============================================================================
 
 process classifier_groups_large
@@ -21,6 +22,49 @@ process classifier_groups_large
     :prior_ignore_class                        UNKNOWNFISH
   endblock
 
+process classifier_groups_es_lg
+  :: refine_detections
+  :refiner:type                                netharn
+
+  block refiner:netharn
+    relativepath deployed =                    models/gfit_groups_enetv2s_large.zip
+    :batch_size                                auto
+    :area_pivot                                7000
+    :chip_method                               native_square
+    :chip_width                                224
+    :chip_expansion                            1.3
+    :average_prior                             true
+    :prior_weight                              0.69
+    :prior_ignore_class                        UNKNOWNFISH
+  endblock
+
+connect from downsampler.output_1
+        to   classifier_groups_es_lg.image
+connect from classifier_groups_large.detected_object_set
+        to   classifier_groups_es_lg.detected_object_set
+
+process classifier_groups_es_sm
+  :: refine_detections
+  :refiner:type                                netharn
+
+  block refiner:netharn
+    relativepath deployed =                    models/gfit_groups_enetv2s_small.zip
+    :batch_size                                auto
+    :area_pivot                                -7000
+    :area_lower_bound                          100
+    :chip_method                               native_square
+    :chip_width                                224
+    :chip_expansion                            1.3
+    :average_prior                             true
+    :prior_weight                              0.69
+    :prior_ignore_class                        UNKNOWNFISH
+  endblock
+
+connect from downsampler.output_1
+        to   classifier_groups_es_sm.image
+connect from classifier_groups_es_lg.detected_object_set
+        to   classifier_groups_es_sm.detected_object_set
+
 process classifier_groups_output
   :: refine_detections
   :refiner:type                                nms
@@ -32,7 +76,7 @@ process classifier_groups_output
     :output_scale_factor                       1.0
   endblock
 
-connect from classifier_groups_large.detected_object_set
+connect from classifier_groups_es_sm.detected_object_set
         to   classifier_groups_output.detected_object_set
 
 # -- end of file --
