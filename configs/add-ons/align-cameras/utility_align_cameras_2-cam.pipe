@@ -51,7 +51,7 @@ process register
   :pairs                                       1-2
   :output_directory                            $CONFIG{global:output_directory}
   :output_json_file                            $CONFIG{global:output_json_file}
-  relativepath weights_path =                 models/minima_loftr.ckpt
+  relativepath weights_path =                  models/minima_loftr.ckpt
   :max_frames                                  12
   :ransac_threshold                            2.0   # DIVE_PARAM["RANSAC threshold (px)", range_float, 0.5, 10, 0.1]
   :min_matches                                 100   # DIVE_PARAM["Min matches per frame", range_int, 4, 1000, 1]
