@@ -107,7 +107,7 @@ VIAME_PYTHON_SCRIPT_APPLET( stereo_rectify_applet, "stereo-rectify",
 #ifdef VIAME_TOOLS_HAVE_PYTORCH
 
 VIAME_PYTHON_SCRIPT_APPLET( check_gpu_applet, "check-gpu",
-  "check_gpu_usability.py", "Check GPU properties of the system" )
+  "check_gpu.py", "Check GPU properties of the system" )
 
 #endif
 

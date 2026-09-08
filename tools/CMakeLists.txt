@@ -38,7 +38,7 @@ endif()
 if( VIAME_ENABLE_PYTORCH )
   set( PYTHON_SCRIPTS
     ${PYTHON_SCRIPTS}
-    check_gpu_usability.py
+    check_gpu.py
   )
 endif()
 
