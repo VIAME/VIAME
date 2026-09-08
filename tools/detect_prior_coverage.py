@@ -15,7 +15,7 @@ provenances, output as separate classes so downstream consumers can filter:
 Approach (method "hybrid", the default):
 
   1. Metadata: flight-log rows are linked to images by the per-day trigger
-     counter embedded in SSL filenames (survey_metadata.py); 2025 UAS imagery
+     counter embedded in SSL filenames (metadata.py); 2025 UAS imagery
      uses embedded EXIF GPS instead. Gives per-frame GPS/altitude/attitude.
   2. Within-camera affine registration chains + rig-constant cross-camera
      transforms (cluster consensus) give precise pixel-level geometry for
@@ -67,7 +67,7 @@ import numpy as np
 # Tool scripts are installed side by side; allow running from the source tree.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import survey_metadata as smd
+import metadata as smd
 
 from viame.opencv import registration_utils as _sr
 _sr.import_dependencies()

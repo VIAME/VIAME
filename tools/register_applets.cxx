@@ -67,8 +67,8 @@ VIAME_PYTHON_SCRIPT_APPLET( launch_search_applet, "launch-search",
 VIAME_PYTHON_SCRIPT_APPLET( plot_eval_applet, "plot-eval",
   "plot_eval.py", "Generate plots from VIAME evaluation results" )
 
-VIAME_PYTHON_SCRIPT_APPLET( survey_metadata_applet, "survey-metadata",
-  "survey_metadata.py",
+VIAME_PYTHON_SCRIPT_APPLET( metadata_applet, "metadata",
+  "metadata.py",
   "Dump unified per-image survey metadata for a site folder" )
 
 VIAME_PYTHON_SCRIPT_APPLET( train_fusion_applet, "train-fusion",
@@ -166,7 +166,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_script_tool< launch_annotator_applet >( reg );
   register_script_tool< launch_search_applet >( reg );
   register_script_tool< plot_eval_applet >( reg );
-  register_script_tool< survey_metadata_applet >( reg );
+  register_script_tool< metadata_applet >( reg );
   register_script_tool< train_fusion_applet >( reg );
 
 #ifdef VIAME_TOOLS_HAVE_OPENCV

@@ -17,7 +17,7 @@ set( PYTHON_SCRIPTS
   launch_search.py
   plot_eval.py
   process_video.py
-  survey_metadata.py
+  metadata.py
   train_detection_fusion.py
 )
 

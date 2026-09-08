@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""survey_metadata.py - Unified per-image metadata for multi-camera aerial surveys.
+"""metadata.py - Unified per-image metadata for multi-camera aerial surveys.
 
 Builds one record per image by fusing every metadata source available for the
 SSL survey collections:
@@ -29,7 +29,7 @@ callers can reason about coverage in metres without any image registration.
 
 Can be run standalone to dump a per-image metadata table:
 
-  python survey_metadata.py <site_folder> --flight-logs <dir-or-csv> [--csv out.csv]
+  python metadata.py <site_folder> --flight-logs <dir-or-csv> [--csv out.csv]
 """
 
 import argparse
