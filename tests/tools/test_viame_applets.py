@@ -24,7 +24,7 @@ CORE_APPLETS = [
     "csv",
     "get-configs",
     "json",
-    "resample-tracks",
+    "resample",
     "score",
     "train",
     "runner",
@@ -687,7 +687,7 @@ class TestResampleTracksApplet:
 
         result = run_viame(
             viame_env,
-            "resample-tracks",
+            "resample",
             "-i", str(detections_csv),
             "-o", str(output),
             "--input-rate", "5",
@@ -707,7 +707,7 @@ class TestResampleTracksApplet:
     def test_missing_rates_are_rejected(self, viame_env, detections_csv, tmp_path):
         result = run_viame(
             viame_env,
-            "resample-tracks",
+            "resample",
             "-i", str(detections_csv),
             "-o", str(tmp_path / "out.csv"),
         )

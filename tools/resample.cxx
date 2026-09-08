@@ -5,7 +5,7 @@
 /// \file
 /// \brief Applet for resampling object tracks between frame rates
 
-#include "resample_tracks.h"
+#include "resample.h"
 
 #include <utilities_tracks.h>
 #include <read_object_track_set_auto.h>
@@ -52,7 +52,7 @@ count_states( const kv::object_track_set_sptr& tracks )
 
 // ----------------------------------------------------------------------------
 void
-resample_tracks_applet
+resample_applet
 ::add_command_options()
 {
   m_cmd_options->add_options()
@@ -78,25 +78,25 @@ resample_tracks_applet
 
 // ----------------------------------------------------------------------------
 int
-resample_tracks_applet
+resample_applet
 ::run()
 {
-  kv::logger_handle_t logger = kv::get_logger( "viame.tools.resample_tracks" );
+  kv::logger_handle_t logger = kv::get_logger( "viame.tools.resample" );
 
   auto& cmd_args = command_args();
 
   if( cmd_args[ "help" ].as< bool >() )
   {
-    std::cout << "Usage: viame resample-tracks [options]\n\n"
+    std::cout << "Usage: viame resample [options]\n\n"
               << "Resample object tracks from one video frame rate to another.\n"
               << "Frame numbers are rescaled to the output rate; states missing\n"
               << "at the new rate are filled by interpolating between annotated\n"
               << "states. Track extents are never extrapolated.\n"
               << m_cmd_options->help()
               << "\nExamples:\n"
-              << "  viame resample-tracks -i tracks_5hz.csv -o tracks_10hz.csv"
+              << "  viame resample -i tracks_5hz.csv -o tracks_10hz.csv"
               << " --input-rate 5 --output-rate 10\n"
-              << "  viame resample-tracks -i tracks_30hz.csv -o tracks_5hz.csv"
+              << "  viame resample -i tracks_30hz.csv -o tracks_5hz.csv"
               << " --input-rate 30 --output-rate 5\n"
               << std::endl;
     return EXIT_SUCCESS;

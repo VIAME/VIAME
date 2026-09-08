@@ -76,7 +76,7 @@ set( applet_sources
   csv.cxx
   get_configs.cxx
   json.cxx
-  resample_tracks.cxx
+  resample.cxx
   score.cxx
   train.cxx
 )
@@ -85,7 +85,7 @@ set( applet_headers
   csv.h
   get_configs.h
   json.h
-  resample_tracks.h
+  resample.h
   score.h
   train.h
 )
