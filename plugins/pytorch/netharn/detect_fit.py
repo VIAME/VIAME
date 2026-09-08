@@ -21,7 +21,7 @@ import kwcoco.metrics as metrics  # NOQA
 
 
 class DetectFitConfig(scfg.Config):
-    default = {
+    __default__ = {
         # Personal Preference
         'nice': scfg.Value(None, help=('deprecated use name instead')),
 
@@ -181,7 +181,7 @@ class DetectFitConfig(scfg.Config):
 
     }
 
-    def normalize(self):
+    def __post_init__(self):
         if self['nice'] is not None:
             import warnings
             warnings.warn('Using "nice" is deprecated use "name" instead', DeprecationWarning)

@@ -30,7 +30,7 @@ class UltralyticsConfig(scfg.DataConfig):
 
 
 class UltralyticsDetector(ImageObjectDetector):
-    """
+    r"""
     Implementation of ImageObjectDetector class
 
     References:

@@ -24,7 +24,7 @@ from viame.pytorch.netharn.data import channel_spec  # NOQA
 
 
 class DetectEvaluateConfig(scfg.Config):
-    default = {
+    __default__ = {
 
         'deployed': scfg.Value(None, nargs='+', help='deployed network filepath'),
 
@@ -433,7 +433,7 @@ class DetectEvaluator(object):
         evaluator.dset_tag = removesuffix(evaluator.sampler.dset.tag, '.json')
 
         # Load the trained model
-        pred_keys = set(detect_predict.DetectPredictConfig.default.keys()) - {'verbose'}
+        pred_keys = set(detect_predict.DetectPredictConfig.__default__.keys()) - {'verbose'}
         pred_cfg = ub.dict_subset(evaluator.config, pred_keys)
 
         # if evaluator.config['input_dims'] == 'native':

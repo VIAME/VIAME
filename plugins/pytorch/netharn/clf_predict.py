@@ -13,7 +13,7 @@ import torch_liberator
 
 
 class ClfPredictConfig(scfg.Config):
-    default = {
+    __default__ = {
 
         'deployed': None,
         'batch_size': 4,
@@ -718,7 +718,7 @@ def _cached_clf_predict(predictor, sampler, out_dpath='./cached_clf_out',
 
 
 class ClfPredictCLIConfig(scfg.Config):
-    default = ub.dict_union(ClfPredictConfig.default, {
+    __default__ = ub.dict_union(ClfPredictConfig.__default__, {
         'dataset': scfg.Value(None, type=str, help='mscoco dataset to reclassify'),
         'out_dpath': scfg.Value('./cached_clf_out', help='path to write results'),
         'enable_cache': scfg.Value(True, help='use shelf cachine'),
@@ -746,7 +746,7 @@ def clf_cli():
     import kwcoco
     import ndsampler
     config = ClfPredictCLIConfig(cmdline=True)
-    predict_config = ub.dict_isect(config, ClfPredictConfig.default)
+    predict_config = ub.dict_isect(config, ClfPredictConfig.__default__)
     predictor = ClfPredictor(predict_config)
 
     print('config = {}'.format(ub.urepr(dict(config))))

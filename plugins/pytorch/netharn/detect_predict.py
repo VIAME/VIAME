@@ -50,7 +50,7 @@ ENABLE_BIOHARN_WARNINGS = os.environ.get('ENABLE_BIOHARN_WARNINGS', '')
 
 
 class DetectPredictConfig(scfg.Config):
-    default = {
+    __default__ = {
 
         'deployed': None,
         'batch_size': 4,
@@ -1470,7 +1470,7 @@ def _load_dets_worker(single_pred_fpath):
 
 
 class DetectPredictCLIConfig(scfg.Config):
-    default = ub.dict_union(
+    __default__ = ub.dict_union(
         {
             'dataset': scfg.Value(None, help='coco dataset, path to images or folder of images'),
             'out_dpath': scfg.Path('./out', help='output directory'),
@@ -1482,7 +1482,7 @@ class DetectPredictCLIConfig(scfg.Config):
             'async_buffer': scfg.Value(False, help="I've seen this increase prediction rate from 2.0Hz to 2.3Hz, but it increases instability, unsure of the reason"),
             'gids': scfg.Value(None, help='if specified only predict on these image-ids (only applicable to coco input)'),
         },
-        DetectPredictConfig.default
+        DetectPredictConfig.__default__
     )
 
 
@@ -1519,7 +1519,7 @@ def detect_cli(config={}):
     sampler.frames.prepare(workers=config['workers'], gids=gids)
 
     print('Create predictor')
-    pred_config = ub.dict_subset(config, DetectPredictConfig.default)
+    pred_config = ub.dict_subset(config, DetectPredictConfig.__default__)
     if config['verbose'] < 2:
         pred_config['verbose'] = 0
     predictor = DetectPredictor(pred_config)

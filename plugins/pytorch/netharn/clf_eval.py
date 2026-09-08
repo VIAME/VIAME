@@ -15,7 +15,7 @@ def prototype_eval_clf():
         'workers': 4,
     }
 
-    pred_config = ub.dict_isect(config, clf_predict.ClfPredictConfig.default)
+    pred_config = ub.dict_isect(config, clf_predict.ClfPredictConfig.__default__)
 
     import kwcoco
     import ndsampler

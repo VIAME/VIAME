@@ -24,7 +24,7 @@ class ClfConfig(scfg.Config):
     file. See :module:``scriptconfig`` for details of how to use
     :class:`scriptconfig.Config` objects.
     """
-    default = {
+    __default__ = {
         'name': scfg.Value('clf_example', help='A human readable tag that is "name" for humans'),
         'workdir': scfg.Path('~/work/netharn', help='Dump all results in your workdir'),
 
@@ -120,7 +120,7 @@ class ClfConfig(scfg.Config):
 
     }
 
-    def normalize(self):
+    def __post_init__(self):
         if self['pretrained'] in ['null', 'None']:
             self['pretrained'] = None
 
