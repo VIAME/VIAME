@@ -62,7 +62,7 @@ VIAME_PYTHON_SCRIPT_APPLET( launch_annotator_applet, "launch-annotator",
   "launch_annotator.py", "Launch annotation GUI" )
 
 VIAME_PYTHON_SCRIPT_APPLET( launch_search_applet, "launch-search",
-  "launch_search_interface.py", "Launch Query GUI" )
+  "launch_search.py", "Launch Query GUI" )
 
 VIAME_PYTHON_SCRIPT_APPLET( plot_eval_applet, "plot-eval",
   "plot_eval_results.py", "Generate plots from VIAME evaluation results" )

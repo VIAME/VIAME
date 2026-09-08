@@ -14,7 +14,7 @@ set( PYTHON_SCRIPTS
   plot_detections.py
   generate_nn_index.py
   launch_annotator.py
-  launch_search_interface.py
+  launch_search.py
   plot_eval_results.py
   process_video.py
   survey_metadata.py
