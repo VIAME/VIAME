@@ -41,8 +41,8 @@ VIAME_PYTHON_SCRIPT_APPLET( convert_cam_applet, "convert-cam",
   "convert_cam.py",
   "Convert stereo camera calibration files between different formats." )
 
-VIAME_PYTHON_SCRIPT_APPLET( convert_itk_transform_applet,
-  "convert-itk-transform", "convert_itk_h5_transform.py",
+VIAME_PYTHON_SCRIPT_APPLET( convert_itk_applet,
+  "convert-itk", "convert_itk.py",
   "Convert an ITK HDF5 transform into a DIVE camera registration json." )
 
 VIAME_PYTHON_SCRIPT_APPLET( database_applet, "database", "database_tool.py",
@@ -158,7 +158,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_script_tool< process_video_applet >( reg );
   register_script_tool< add_segmentations_applet >( reg );
   register_script_tool< convert_cam_applet >( reg );
-  register_script_tool< convert_itk_transform_applet >( reg );
+  register_script_tool< convert_itk_applet >( reg );
   register_script_tool< database_applet >( reg );
   register_script_tool< extract_frames_applet >( reg );
   register_script_tool< plot_detections_applet >( reg );

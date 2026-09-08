@@ -38,7 +38,7 @@ auto_detect_transform_io
   {
     throw std::runtime_error(
       "ITK .h5 transforms are no longer supported; convert " + filename +
-      " once with tools/convert_itk_h5_transform.py" );
+      " once with tools/convert_itk.py" );
   }
 
   if( extension == "json" )

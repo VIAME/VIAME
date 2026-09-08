@@ -19,7 +19,7 @@ is its inverse. Composite transforms of multiple affines are composed
 following ITK semantics (the last transform added is applied first).
 
 Example:
-    python convert_itk_h5_transform.py Kotz-2019-Flight-Center.h5 \\
+    python convert_itk.py Kotz-2019-Flight-Center.h5 \\
         --left thermal --right optical -o Kotz-2019-Flight-Center.json
 """
 

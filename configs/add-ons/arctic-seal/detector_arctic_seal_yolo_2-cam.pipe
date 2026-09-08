@@ -6,7 +6,7 @@
 # optical stream; thermal detections are mapped into the optical frame using
 # a camera registration file (DIVE camera registration .json or plain text
 # 3x3 homography; legacy ITK .h5 files must first be converted with
-# tools/convert_itk_h5_transform.py).
+# tools/convert_itk.py).
 #
 # Camera Order: EO, IR
 # Camera 1 is optical and camera 2 is thermal; DIVE matches the dataset's

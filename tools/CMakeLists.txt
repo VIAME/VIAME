@@ -8,7 +8,7 @@
 set( PYTHON_SCRIPTS
   add_segmentations.py
   convert_cam.py
-  convert_itk_h5_transform.py
+  convert_itk.py
   database_tool.py
   extract_video_frames.py
   generate_detection_plots.py
