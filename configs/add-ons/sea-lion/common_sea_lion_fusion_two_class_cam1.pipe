@@ -154,7 +154,7 @@ connect from detector_cam1_3.detected_object_set
         to   nms_refiner_cam1_3.detected_object_set
 
 # ============================== DETECTOR FUSER ===============================
-# Learned by train_detection_fusion.py (WBF). Weight order matches the
+# Learned by train_fusion.py (WBF). Weight order matches the
 # detector port order below.
 
 process detector_fuser_cam1

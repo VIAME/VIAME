@@ -18,7 +18,7 @@ set( PYTHON_SCRIPTS
   plot_eval.py
   process_video.py
   metadata.py
-  train_detection_fusion.py
+  train_fusion.py
 )
 
 if( VIAME_ENABLE_OPENCV )

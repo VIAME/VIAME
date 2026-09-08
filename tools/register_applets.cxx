@@ -72,7 +72,7 @@ VIAME_PYTHON_SCRIPT_APPLET( metadata_applet, "metadata",
   "Dump unified per-image survey metadata for a site folder" )
 
 VIAME_PYTHON_SCRIPT_APPLET( train_fusion_applet, "train-fusion",
-  "train_detection_fusion.py",
+  "train_fusion.py",
   "Learn detection fusion parameters for the nms_fusion merger" )
 
 #ifdef VIAME_TOOLS_HAVE_OPENCV
