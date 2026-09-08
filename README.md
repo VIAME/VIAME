@@ -258,8 +258,8 @@ a recursive module update is required:
 	git submodule update --init --recursive
 
 
-Command Line Tool Basics
-------------------------
+Command Line Interface Basics
+-----------------------------
 
 After sourcing the setup script in an install, every command line tool is a
 subcommand of the `viame` program. `viame help` lists them with a one line
