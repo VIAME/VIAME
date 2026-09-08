@@ -65,7 +65,7 @@ VIAME_PYTHON_SCRIPT_APPLET( launch_search_applet, "launch-search",
   "launch_search.py", "Launch Query GUI" )
 
 VIAME_PYTHON_SCRIPT_APPLET( plot_eval_applet, "plot-eval",
-  "plot_eval_results.py", "Generate plots from VIAME evaluation results" )
+  "plot_eval.py", "Generate plots from VIAME evaluation results" )
 
 VIAME_PYTHON_SCRIPT_APPLET( survey_metadata_applet, "survey-metadata",
   "survey_metadata.py",

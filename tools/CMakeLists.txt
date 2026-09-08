@@ -15,7 +15,7 @@ set( PYTHON_SCRIPTS
   generate_nn_index.py
   launch_annotator.py
   launch_search.py
-  plot_eval_results.py
+  plot_eval.py
   process_video.py
   survey_metadata.py
   train_detection_fusion.py

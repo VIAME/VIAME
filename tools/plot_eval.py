@@ -18,11 +18,11 @@ and generates publication-quality plots including:
 - Summary metric bar charts (MOT, HOTA, detection metrics)
 
 Usage:
-    python plot_eval_results.py -input <input_dir_or_json> [-output <output_dir>]
+    python plot_eval.py -input <input_dir_or_json> [-output <output_dir>]
 
 Example:
-    python plot_eval_results.py -input ./eval_output -output ./plots
-    python plot_eval_results.py -input ./eval_data.json -output ./plots
+    python plot_eval.py -input ./eval_output -output ./plots
+    python plot_eval.py -input ./eval_data.json -output ./plots
 """
 
 import argparse
