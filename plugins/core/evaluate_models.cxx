@@ -931,12 +931,18 @@ model_evaluator::priv::precompute_polygon_ious()
     return;
   }
 
-  std::vector< int > frames;
+  // Resolve both index lists up front. Looking them up inside the parallel
+  // loop meant calling std::map::operator[] -- a mutating member -- on two
+  // shared maps from every thread at once, which is a data race even though
+  // every key is already present.
+  std::vector< std::pair< const std::vector< size_t >*,
+                          const std::vector< size_t >* > > frames;
   for( const auto& p : comp_by_frame )
   {
-    if( gt_by_frame.count( p.first ) )
+    auto gt_it = gt_by_frame.find( p.first );
+    if( gt_it != gt_by_frame.end() )
     {
-      frames.push_back( p.first );
+      frames.emplace_back( &p.second, &gt_it->second );
     }
   }
 
@@ -946,8 +952,8 @@ model_evaluator::priv::precompute_polygon_ious()
   for( int fi = 0; fi < static_cast< int >( frames.size() ); ++fi )
   {
     std::vector< std::pair< uint64_t, double > > local;
-    const auto& comp_indices = comp_by_frame[frames[fi]];
-    const auto& gt_indices = gt_by_frame[frames[fi]];
+    const auto& comp_indices = *frames[fi].first;
+    const auto& gt_indices = *frames[fi].second;
 
     for( size_t ci : comp_indices )
     {
