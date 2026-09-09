@@ -46,3 +46,13 @@ Do:
 - `tests/CMakeLists.txt`: add tests `baseline:registry` and `baseline:pipes` (label `BASELINE`) that run the dump + compare. They run against the install prefix like the other SOURCE_SETUP tests.
 Done when:
 - `ctest -L BASELINE` passes on the current install.
+
+### P0-T06 Merge a CPU-build registry dump into the baseline
+Depends: P0-T05. Independent of phase 1 onward; may run at any time.
+Added by: P0-T04, which recorded a CUDA-only baseline.
+Do:
+- Configure a second build with `VIAME_ENABLE_CUDA=OFF` and `VIAME_ENABLE_CUDNN=OFF`, everything else as the reference build, into its own prefix.
+- `viame registry-dump --json` from it; merge into `tests/baseline/registry.json` as the union of the two, each entry gaining `configs: [gpu]`, `[cpu]` or `[gpu, cpu]`.
+- Teach `compare_registry.py` a `--config {gpu,cpu}` option that only requires the entries carrying that config, so either build can be checked.
+Done when:
+- `compare_registry.py --config cpu` passes against the CPU dump and `--config gpu` against the GPU dump, and both fail when a name of that config is deleted by hand.

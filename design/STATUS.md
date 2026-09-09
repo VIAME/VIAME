@@ -7,21 +7,48 @@ Notes.
 
 ## Current position
 
-- Phase: P0
-- Next task: P0-T01
-- Last clean-configure build verified: never
-- Reference machine: (fill in host, GPU, OS, CUDA)
+- Phase: P1
+- Next task: P0-T06 (independent, may run any time), then P1-T01
+- Last clean-configure build verified: 2026-09-09, P0-T05
+- Reference machine: local workstation, CUDA 12.6, cuDNN 9.12, Ubuntu
+  (kernel 6.8), python 3.10.12, gcc default, 16 cores
+
+### Build arrangement during phases 0 to 1
+
+Phase 1 is what replaces the superbuild, so until then the `lite` checkout
+builds only the VIAME project itself and takes its dependencies from an
+existing `main` superbuild of the same commit:
+
+| What | Where |
+|---|---|
+| Source | `~/Dev/viame-lite/src` (this checkout, branch `lite`) |
+| Build | `~/Dev/viame-lite/build/viame-build` |
+| Install | `~/Dev/viame-lite/build/install` (seeded by copying the reference install) |
+| Initial cache | `~/Dev/viame-lite/build/lite-cache.cmake`, mirroring every `VIAME_*` setting of the reference build |
+| fletch, kwiver, darknet | `~/Dev/viame/build` (reference superbuild, `main` @ 8edfd2f66) |
+
+```
+cmake -S src -B build/viame-build -C build/lite-cache.cmake   # PATH must have nvcc
+cmake --build build/viame-build -j16 && cmake --install build/viame-build
+ctest --test-dir build/viame-build -L BASELINE
+```
+
+`packages/downloads` holds symlinks to the reference checkout's downloads so
+that model packs are not fetched twice, and only the `fletch` submodule is
+checked out (for `CMake/FindCUDNN.cmake`); `KWIVER_SOURCE_DIR` points at the
+reference kwiver source.
 
 ## Tasks
 
 | ID | Task | Depends | Status | Commit | Notes |
 |---|---|---|---|---|---|
 | **Phase 0: baseline and compatibility contract** | `phase-00-baseline.md` | | | | |
-| P0-T01 | Create the `lite` branch | - | todo | | |
-| P0-T02 | `registry-dump` applet | P0-T01 | todo | | |
-| P0-T03 | `pipe-check` applet | P0-T01 | todo | | |
-| P0-T04 | Baseline files and compare scripts | P0-T02, P0-T03 | todo | | |
-| P0-T05 | Wire baseline checks into ctest | P0-T04 | todo | | |
+| P0-T01 | Create the `lite` branch | - | done | 2547f6cb8 | `design/` committed on the new branch |
+| P0-T02 | `registry-dump` applet | P0-T01 | done | 46669f626 | `plugin_map()` is protected, so the applet goes through `plugin_manager_internal`. 58 python-registered algorithms cannot report their config (the pybind trampoline returns the non-copyable `config_block` by copy) and are recorded with an `error` field instead, so their names are covered but not their defaults. Algorithm descriptions end in a registration-ordered option list, which python import order perturbs; the writer sorts it so two runs are byte identical |
+| P0-T03 | `pipe-check` applet | P0-T01 | done | bb08e75a0 | Walks the install tree (`configs/pipelines`, `configs/add-ons`, `examples`) instead of extracting the add-on zips: the build already unpacks add-on pipelines into the install, so this covers them with no zip handling. A pipe names an implementation without its interface, so resolution means "registered under some interface"; that also matches nested non-algorithm keys such as `vxl_average:type = window`, which read as unresolved. Stable, so changes are still caught |
+| P0-T04 | Baseline files and compare scripts | P0-T02, P0-T03 | done | 6711a97bc | Baseline is the CUDA build only, not a GPU/CPU union: see the new P0-T06. 293 files checked, 34 failing today, which is more than the two stale names the task text expected; the failures are recorded as the baseline so a fix is noticed too |
+| P0-T05 | Wire baseline checks into ctest | P0-T04 | done | a6c4a6429 | `ctest -L BASELINE` passes, 17 s for both |
+| P0-T06 | Merge a CPU-build registry dump into the baseline | P0-T05 | todo | | Added by P0-T04 |
 | **Phase 1: single build with code in place** | `phase-01-single-build.md` | | | | |
 | P1-T01 | Inventory the normal-build branch | P0-T05 | todo | | |
 | P1-T02 | New top-level CMakeLists and options file | P1-T01 | todo | | |
@@ -117,7 +144,9 @@ Notes.
 
 | Date | Decision | Chosen by | Where recorded |
 |---|---|---|---|
-| | | | |
+| 2026-09-09 | Phases 0 and 1 build only the VIAME project against the reference `main` superbuild's fletch/kwiver rather than rebuilding the superbuild; phase 1 replaces the arrangement | agent, build cost | STATUS.md "Build arrangement" |
+| 2026-09-09 | `pipe-check --all` reads the install tree rather than extracting add-on zips | agent, P0-T03 | STATUS.md P0-T03 note |
+| 2026-09-09 | Baseline is a CUDA build only; the CPU union is deferred to P0-T06 | agent, P0-T04 | STATUS.md P0-T04 note |
 
 ## Removed names log
 
