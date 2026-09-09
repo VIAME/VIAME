@@ -173,6 +173,7 @@ REPLACEMENTS = {
     "vxl_convert_image": "convert_image",
     "vxl_morphology": "morphology",
     "vxl_threshold": "threshold",
+    "vxl": "core",
 }
 
 

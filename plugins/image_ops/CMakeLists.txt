@@ -15,6 +15,7 @@ set( image_ops_headers
   polygon.h
   resample.h
   statistics.h
+  stretch.h
   temporal.h
   threshold.h
 )

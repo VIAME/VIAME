@@ -10,10 +10,12 @@
 #include "viame_image_processing_plugin_export.h"
 
 #include <vital/algo/image_filter.h>
+#include <vital/algo/image_io.h>
 #include <vital/plugin_management/plugin_loader.h>
 
 #include "average_frames.h"
 #include "color_commonality.h"
+#include "core_image_io.h"
 #include "convert_image.h"
 #include "morphology.h"
 #include "threshold.h"
@@ -52,6 +54,15 @@ register_factories( kv::plugin_loader& vpm )
   VIAME_REGISTER_IMAGE_FILTER( threshold )
 
 #undef VIAME_REGISTER_IMAGE_FILTER
+
+  {
+    auto fact = vpm.add_factory< kv::algo::image_io, core_image_io >(
+      core_image_io::plugin_name() );
+    fact->add_attribute( kvpf::PLUGIN_NAME, core_image_io::plugin_name() )
+      .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
+      .add_attribute( kvpf::PLUGIN_DESCRIPTION,
+                      core_image_io::plugin_description() );
+  }
 
   vpm.mark_module_as_loaded( module_name );
 }

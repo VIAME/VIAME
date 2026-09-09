@@ -1,9 +1,114 @@
 [
   {
     "kind": "algorithm",
+    "interface": "bundle_adjust",
+    "name": "vxl",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
+  },
+  {
+    "kind": "algorithm",
+    "interface": "estimate_canonical_transform",
+    "name": "vxl_plane",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
+  },
+  {
+    "kind": "algorithm",
+    "interface": "estimate_essential_matrix",
+    "name": "vxl",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
+  },
+  {
+    "kind": "algorithm",
+    "interface": "estimate_fundamental_matrix",
+    "name": "vxl",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
+  },
+  {
+    "kind": "algorithm",
+    "interface": "estimate_homography",
+    "name": "vxl",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
+  },
+  {
+    "kind": "algorithm",
+    "interface": "estimate_similarity_transform",
+    "name": "vxl",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
+  },
+  {
+    "kind": "algorithm",
+    "interface": "image_filter",
+    "name": "vxl_aligned_edge_detection",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
+  },
+  {
+    "kind": "algorithm",
+    "interface": "image_filter",
+    "name": "vxl_hashed_image_classifier_filter",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
+  },
+  {
+    "kind": "algorithm",
+    "interface": "image_filter",
+    "name": "vxl_high_pass_filter",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
+  },
+  {
+    "kind": "algorithm",
+    "interface": "image_filter",
+    "name": "vxl_pixel_feature_extractor",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
+  },
+  {
+    "kind": "algorithm",
     "interface": "image_filter",
     "name": "vxl_white_balancing",
     "phase": "P3-T05",
     "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. Its implementation was 682 lines of VXL-specific code in plugins/vxl, so it goes rather than being ported. The equalize_via_percentiles and ocv_enhancer auto_balance paths remain for white balancing."
+  },
+  {
+    "kind": "algorithm",
+    "interface": "match_features",
+    "name": "vxl_constrained",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
+  },
+  {
+    "kind": "algorithm",
+    "interface": "nearest_neighbors",
+    "name": "vxl_kd_tree",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
+  },
+  {
+    "kind": "algorithm",
+    "interface": "optimize_cameras",
+    "name": "vxl",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
+  },
+  {
+    "kind": "algorithm",
+    "interface": "split_image",
+    "name": "vxl",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
+  },
+  {
+    "kind": "algorithm",
+    "interface": "triangulate_landmarks",
+    "name": "vxl",
+    "phase": "P3-T06",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
   }
 ]

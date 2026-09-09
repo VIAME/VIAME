@@ -6,6 +6,7 @@
 set( plugin_headers
   average_frames.h
   color_commonality.h
+  core_image_io.h
   convert_image.h
   morphology.h
   threshold.h
@@ -14,6 +15,7 @@ set( plugin_headers
 set( plugin_sources
   average_frames.cxx
   color_commonality.cxx
+  core_image_io.cxx
   convert_image.cxx
   morphology.cxx
   threshold.cxx
@@ -47,6 +49,7 @@ target_link_libraries( viame_image_processing
                        kwiver::vital_logger
                        kwiver::vital_util
                        viame_image_ops
+                       kwiver::kwiversys
   )
 
 set_target_properties( viame_image_processing PROPERTIES
