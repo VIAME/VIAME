@@ -44,12 +44,41 @@ Do:
 Done when:
 - Golden passes for the srm and white-balance pipelines; names leave `pending.json`.
 
-### P3-T06 `vxl` image_io alias and unreferenced vxl names
+### P3-T06 `core` image_io and unreferenced vxl names
 Depends: P3-T05
+Correction: this task used to say "register `vxl` as an alias of `ocv`
+image_io". That is wrong and would break most pipelines. Measured against the
+recordings:
+- `ocv` image_io declares **no config keys**; `vxl` declares five
+  (`force_byte`, `auto_stretch`, `manual_stretch`, `intensity_range`,
+  `split_channels`). Aliasing drops all five, so `baseline:registry` fails and
+  every pipeline that sets one silently loses it.
+- 56 shipped pipelines set `image_reader:vxl:force_byte true`, and that is one
+  of the two behaviours that actually differ: on the 16-bit fixture `vxl` with
+  `force_byte` returns uint8 while `ocv` returns uint16. `auto_stretch` differs
+  too. 16 of the 18 recorded image_io cases match; those two do not.
 Do:
-- Register `vxl` as alias of `ocv` image_io (both reader and writer paths). Add to `removed.json`: `vxl` bundle_adjust, estimate_canonical_transform, estimate_essential_matrix, estimate_fundamental_matrix, estimate_homography, estimate_similarity, optimize_cameras, split_image, triangulate_landmarks, `vxl_kd_tree`, and `kw_archive_writer` if open decision 3 is "drop" (else task P3-T09).
+- Write `image_io` in VIAME registered as `core`, keeping all five config keys
+  and their defaults. Decode by delegating to a nested image_io (`ocv` until
+  phase 7 brings codecs in-house), then apply the vxl semantics:
+  - `force_byte`: convert to uint8, via `auto_stretch` (min and max mapped to
+    0 and 255), `manual_stretch` (`intensity_range` mapped to 0 and 255), or a
+    plain cast.
+  - without `force_byte`: keep the native type, stretching to the type range
+    when asked, where the destination maximum is extended by `1 - 1e-6` so the
+    top value still truncates to the type maximum.
+  - `split_channels` on load stacks sibling per-plane files as extra planes; on
+    save it writes one file per plane.
+- Add to `removed.json`: `vxl` bundle_adjust, estimate_canonical_transform,
+  estimate_essential_matrix, estimate_fundamental_matrix, estimate_homography,
+  estimate_similarity_transform, optimize_cameras, split_image,
+  triangulate_landmarks, `vxl_plane`, `vxl_constrained`, `vxl_kd_tree`,
+  `vxl_aligned_edge_detection`, `vxl_high_pass_filter`,
+  `vxl_hashed_image_classifier_filter`, `vxl_pixel_feature_extractor`, and
+  `kw_archive_writer` if open decision 3 is "drop" (else task P3-T09).
 Done when:
-- BASELINE passes with `pending.json` empty except `kw_archive_writer` if undecided.
+- All 18 recorded `vxl` image_io cases replay against `core`.
+- BASELINE passes with the removals recorded.
 
 ### P3-T07 Switch VXL off and delete its sources
 Depends: P3-T06
