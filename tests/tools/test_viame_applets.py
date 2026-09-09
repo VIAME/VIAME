@@ -1107,6 +1107,94 @@ class TestRunShorthand:
         assert "neither names a pipeline" in result.stdout
 
 
+@pytest.fixture(scope="module")
+def rf_detr_weights():
+    install = find_viame_install()
+    if install is None:
+        pytest.skip("No VIAME install found")
+    path = install / "configs" / "pipelines" / "models" / "generic_rf_detr_704.pth"
+    if not path.exists():
+        pytest.skip(f"Missing model: {path}")
+    return path
+
+
+class TestRunModelFile:
+    """`run <model file> [input]` wraps bare weights in the default detector."""
+
+    @staticmethod
+    def _run(env, cwd, *args):
+        return run_viame(env, "run", *args, "-o", "out", "--no-reset-prompt", cwd=cwd)
+
+    def test_help_describes_model_files(self, viame_env):
+        result = run_viame(viame_env, "run", "--help")
+        assert "model.pt|.pth|.ckpt|.weights|.onnx|.zip" in result.stdout
+
+    def test_bare_onnx_runs_on_an_image(self, viame_env, circles_image, tmp_path):
+        install = find_viame_install()
+        package = install / "configs" / "pipelines" / "models" / "fish_deim_v2_1024.zip"
+        if not package.exists():
+            pytest.skip(f"Missing model: {package}")
+        with zipfile.ZipFile(package) as zf:
+            for member in zf.namelist():
+                if member.endswith((".onnx", ".modelspec.json")):
+                    (tmp_path / Path(member).name).write_bytes(zf.read(member))
+        onnx = next(tmp_path.glob("*.onnx"))
+        shutil.copy(circles_image, tmp_path / "circles.jpg")
+        result = self._run(viame_env, tmp_path, onnx.name, "circles.jpg")
+
+        assert "ERROR" not in result.stdout, result.stdout
+        assert "ONNX detector package, runs with the onnx detector" in result.stdout
+        assert (tmp_path / "out" / "circles_detections.csv").exists()
+
+    def test_lone_model_file_only_reports_its_kind(self, viame_env, rf_detr_weights, tmp_path):
+        result = self._run(viame_env, tmp_path, str(rf_detr_weights))
+
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert "RF-DETR checkpoint, runs with the rf_detr detector" in result.stdout
+        assert not (tmp_path / "out").exists()
+
+    def test_unrecognized_checkpoint_is_reported(self, viame_env, circles_image, tmp_path):
+        shutil.copy(circles_image, tmp_path / "circles.jpg")
+        (tmp_path / "weights.pt").write_bytes(b"not a checkpoint")
+        result = self._run(viame_env, tmp_path, "weights.pt", "circles.jpg")
+
+        assert "not runnable" in result.stdout
+        assert not (tmp_path / "out").exists()
+
+    def test_zip_with_several_pipelines_needs_a_choice(
+        self, viame_env, circles_image, tmp_path
+    ):
+        shutil.copy(circles_image, tmp_path / "circles.jpg")
+        with zipfile.ZipFile(tmp_path / "pipes.zip", "w") as zf:
+            zf.writestr("detector.pipe", "")
+            zf.writestr("tracker.pipe", "")
+        result = self._run(viame_env, tmp_path, "pipes.zip", "circles.jpg")
+
+        assert "holds several pipelines" in result.stdout
+        assert "1) detector.pipe" in result.stdout
+        assert "2) tracker.pipe" in result.stdout
+
+    def test_rf_detr_checkpoint_runs_on_an_image(
+        self, viame_env, rf_detr_weights, circles_image, tmp_path
+    ):
+        shutil.copy(circles_image, tmp_path / "circles.jpg")
+        result = self._run(viame_env, tmp_path, str(rf_detr_weights), "circles.jpg")
+
+        assert "ERROR" not in result.stdout, result.stdout
+        assert "RF-DETR checkpoint" in result.stdout
+        path = tmp_path / "out" / "circles_detections.csv"
+        assert path.exists(), result.stdout + result.stderr
+
+    def test_input_may_precede_the_model(
+        self, viame_env, rf_detr_weights, circles_image, tmp_path
+    ):
+        shutil.copy(circles_image, tmp_path / "circles.jpg")
+        result = self._run(viame_env, tmp_path, "circles.jpg", str(rf_detr_weights))
+
+        assert "ERROR" not in result.stdout, result.stdout
+        assert (tmp_path / "out" / "circles_detections.csv").exists()
+
+
 class TestPythonScriptApplets:
     def test_shim_runs_the_script(self, viame_env):
         result = run_viame(viame_env, "run", "--help")
@@ -1127,77 +1215,6 @@ class TestPythonScriptApplets:
         assert result.returncode != 0
 
 
-SMALL_PIPE = """\
-config _scheduler
-  type = pythread_per_process
-
-include common_default_input.pipe
-
-process detector
-  :: image_object_detector
-  :detector:type                               netharn
-  block detector:netharn
-    relativepath deployed =                    models/missing.zip
-  endblock
-
-process writer :: detected_object_output
-  file_name = detections.csv  # output
-  writer:type = viame_csv
-
-connect from input.image
-        to   detector.image
-connect from detector.detected_object_set
-        to   writer.detected_object_set
-"""
-
-
-@pytest.fixture
-def small_pipe(tmp_path):
-    install = find_viame_install()
-    if install is None:
-        pytest.skip("No VIAME install found")
-    path = tmp_path / "small.pipe"
-    path.write_text(SMALL_PIPE)
-    return path
-
-
-class TestPipelineApplet:
-    def test_info_lists_processes_from_includes(self, viame_env, small_pipe):
-        result = run_viame(viame_env, "pipeline", "info", "--json", str(small_pipe))
-
-        assert result.returncode == 0
-        info = json.loads(result.stdout)
-        names = {p["name"] for p in info["processes"]}
-        assert {"input", "detector", "writer"} <= names
-        assert info["settings"]["detector:detector:type"]["value"] == "netharn"
-        assert any(c["from"] == "input.image" for c in info["connections"])
-
-    def test_get_reports_values_and_missing_keys(self, viame_env, small_pipe):
-        result = run_viame(
-            viame_env, "pipeline", "get", str(small_pipe),
-            "writer:file_name", "writer:nope",
-        )
-
-        assert result.returncode != 0
-        assert "writer:file_name = detections.csv" in result.stdout
-        assert "writer:nope" in result.stderr
-
-    def test_set_edits_both_syntaxes_in_place(self, viame_env, small_pipe):
-        result = run_viame(
-            viame_env, "pipeline", "set", str(small_pipe),
-            "-s", "detector:detector:type=darknet",
-            "-s", "writer:file_name=out.csv",
-            "-s", "input:video_reader:type=vidl_ffmpeg",
-        )
-
-        assert result.returncode == 0, result.stderr
-        text = small_pipe.read_text()
-        assert ":detector:type                               darknet" in text
-        assert "file_name = out.csv  # output" in text
-        assert "config input\n  video_reader:type = vidl_ffmpeg" in text
-
-    def test_check_finds_bad_connections_and_paths(self, viame_env, small_pipe):
-        small_pipe.write_text(
 class TestAddOnApplet:
     @staticmethod
     def _fake_addon(tmp_path):
@@ -1287,6 +1304,77 @@ class TestAddOnApplet:
         assert 'unknown add-on "NOPE"' in result.stderr
 
 
+SMALL_PIPE = """\
+config _scheduler
+  type = pythread_per_process
+
+include common_default_input.pipe
+
+process detector
+  :: image_object_detector
+  :detector:type                               netharn
+  block detector:netharn
+    relativepath deployed =                    models/missing.zip
+  endblock
+
+process writer :: detected_object_output
+  file_name = detections.csv  # output
+  writer:type = viame_csv
+
+connect from input.image
+        to   detector.image
+connect from detector.detected_object_set
+        to   writer.detected_object_set
+"""
+
+
+@pytest.fixture
+def small_pipe(tmp_path):
+    install = find_viame_install()
+    if install is None:
+        pytest.skip("No VIAME install found")
+    path = tmp_path / "small.pipe"
+    path.write_text(SMALL_PIPE)
+    return path
+
+
+class TestPipelineApplet:
+    def test_info_lists_processes_from_includes(self, viame_env, small_pipe):
+        result = run_viame(viame_env, "pipeline", "info", "--json", str(small_pipe))
+
+        assert result.returncode == 0
+        info = json.loads(result.stdout)
+        names = {p["name"] for p in info["processes"]}
+        assert {"input", "detector", "writer"} <= names
+        assert info["settings"]["detector:detector:type"]["value"] == "netharn"
+        assert any(c["from"] == "input.image" for c in info["connections"])
+
+    def test_get_reports_values_and_missing_keys(self, viame_env, small_pipe):
+        result = run_viame(
+            viame_env, "pipeline", "get", str(small_pipe),
+            "writer:file_name", "writer:nope",
+        )
+
+        assert result.returncode != 0
+        assert "writer:file_name = detections.csv" in result.stdout
+        assert "writer:nope" in result.stderr
+
+    def test_set_edits_both_syntaxes_in_place(self, viame_env, small_pipe):
+        result = run_viame(
+            viame_env, "pipeline", "set", str(small_pipe),
+            "-s", "detector:detector:type=darknet",
+            "-s", "writer:file_name=out.csv",
+            "-s", "input:video_reader:type=vidl_ffmpeg",
+        )
+
+        assert result.returncode == 0, result.stderr
+        text = small_pipe.read_text()
+        assert ":detector:type                               darknet" in text
+        assert "file_name = out.csv  # output" in text
+        assert "config input\n  video_reader:type = vidl_ffmpeg" in text
+
+    def test_check_finds_bad_connections_and_paths(self, viame_env, small_pipe):
+        small_pipe.write_text(
             SMALL_PIPE + "connect from ghost.port\n        to writer.image\n"
         )
         result = run_viame(viame_env, "pipeline", "check", str(small_pipe))

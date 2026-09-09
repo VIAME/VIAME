@@ -25,7 +25,10 @@ public:
   PLUGIN_INFO( "run",
                "Process videos or images, or run a single pipeline file.\n\n"
                "viame run <pipeline.pipe> executes one pipeline; any other "
-               "form is batch processing handled by run_bulk.py." );
+               "form is batch processing handled by run_bulk.py. A model "
+               "file (.pt, .pth, .ckpt, .weights, .onnx or .zip) may stand "
+               "in for the pipeline and is wrapped in the default detector "
+               "or frame classifier." );
 
   int run() override;
 };

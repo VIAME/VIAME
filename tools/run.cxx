@@ -128,7 +128,27 @@ print_run_modes()
     << "      the options listed below. The pipeline may be a bare name"
     << std::endl
     << "      from configs/pipelines, e.g. detector_generic." << std::endl
-    << std::endl;
+    << std::endl
+    << "  viame run <model.pt|.pth|.ckpt|.weights|.onnx|.zip> [<input>]"
+    << std::endl
+    << "      Wrap a bare model file in the default detector pipeline, or a"
+    << std::endl
+    << "      classifier in the frame classifier pipeline, and process the"
+    << std::endl
+    << "      input with it. RF-DETR, Ultralytics, MIT YOLO, LitDet,"
+    << std::endl
+    << "      MMDetection, Detectron2 and Darknet weights are recognized,"
+    << std::endl
+    << "      alone or zipped with their config files, as are netharn"
+    << std::endl
+    << "      deployed detectors and classifiers, ONNX files and packages,"
+    << std::endl
+    << "      and zips holding .pipe files (asking which to run when there"
+    << std::endl
+    << "      are several)."
+    << std::endl
+    << "      Without an input, only reports what the file was recognized as."
+    << std::endl << std::endl;
 }
 
 // ----------------------------------------------------------------------------

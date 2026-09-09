@@ -11,6 +11,7 @@ import shutil
 import math
 import numpy as np
 import argparse
+import atexit
 import contextlib
 import itertools
 import signal
@@ -26,6 +27,7 @@ except ImportError:
 sys.dont_write_bytecode = True
 
 import database
+import model_wrap
 
 # Character short-cuts and global constants
 div = os.path.sep
@@ -288,7 +290,47 @@ def resolve_pipeline( name ):
   return name
 
 def is_pipeline_name( name ):
-  return name.endswith( default_pipe_ext ) or resolve_pipeline( name ) != name
+  return name.endswith( default_pipe_ext ) or resolve_pipeline( name ) != name \
+    or model_wrap.is_model_file( name )
+
+def choose_pipe_in_zip( info ):
+  choices = list( info.pipes )
+  listing = lb.join( "  " + str( i + 1 ) + ") " + c for i, c in enumerate( choices ) )
+  if not sys.stdin.isatty():
+    exit_with_error( os.path.basename( info.path ) + " holds several pipelines" +
+                     " and no terminal is attached to choose one:" + lb + listing )
+  print( os.path.basename( info.path ) + " holds several pipelines:" + lb + listing )
+  while True:
+    answer = input( "Run which one? [1-" + str( len( choices ) ) + "] " ).strip()
+    if answer.isdigit() and 1 <= int( answer ) <= len( choices ):
+      info.pipes = [ choices[ int( answer ) - 1 ] ]
+      return
+    if answer in choices:
+      info.pipes = [ answer ]
+      return
+    print( "Enter a number between 1 and " + str( len( choices ) ) )
+
+def model_id_for( options ):
+  return getattr( options, "model_file", options.pipeline )
+
+def wrap_model_as_pipeline( model_path, has_input ):
+  work_dir = tempfile.mkdtemp( prefix="viame_run_" )
+  atexit.register( shutil.rmtree, work_dir, True )
+  info = model_wrap.identify( model_path, work_dir )
+  if not info.runnable:
+    exit_with_error( info.describe() )
+  if not has_input:
+    log_info( info.describe() + lb )
+    sys.exit( 0 )
+  if len( info.pipes ) > 1:
+    choose_pipe_in_zip( info )
+  pipeline_root = os.path.join( get_script_path(), pipeline_dir )
+  try:
+    pipeline = model_wrap.build_pipeline( info, work_dir, pipeline_root )
+  except Exception as e:
+    exit_with_error( "Unable to wrap " + model_path + ": " + str( e ) )
+  log_info( info.describe() + lb )
+  return pipeline
 
 def rate_from_gt( filename ):
   if not os.path.exists( filename ):
@@ -868,7 +910,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
 
   command += detection_output_settings_list( output_dir, input_id_no_ext,
     input_id if not is_image_list else '', write_timecode, output_images,
-    fps=options.frame_rate, model_id=options.pipeline,
+    fps=options.frame_rate, model_id=model_id_for( options ),
     version_id=options.version_str )
 
   command += homography_output_settings_list( output_dir, input_id_no_ext )
@@ -882,7 +924,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     command += detection_output_settings_list( \
       output_subdir, camera_name, camera_name if not is_image_list else '',
       write_timecode, output_images, camera_id + 1, fps=options.frame_rate,
-      model_id=options.pipeline, version_id=options.version_str )
+      model_id=model_id_for( options ), version_id=options.version_str )
     command += homography_output_settings_list( \
       output_subdir, camera_name, camera_id + 1 )
     command += image_output_settings_list( \
@@ -1225,6 +1267,11 @@ if __name__ == "__main__" :
     args.input = positional[0]
 
   args.pipeline = resolve_pipeline( args.pipeline )
+
+  if model_wrap.is_model_file( args.pipeline ):
+    args.model_file = os.path.abspath( args.pipeline )
+    args.pipeline = wrap_model_as_pipeline( args.pipeline,
+      any( [ args.input, args.input_video, args.input_dir, args.input_list ] ) )
 
   # Assorted error checking up front
   process_data = True
