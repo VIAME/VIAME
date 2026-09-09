@@ -6,7 +6,7 @@
 # Python standalone tools
 ##
 set( PYTHON_SCRIPTS
-  add_on.py
+  add_ons.py
   add_segmentations.py
   convert_cam.py
   convert_itk.py

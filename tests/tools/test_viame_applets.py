@@ -1220,11 +1220,11 @@ class TestAddOnApplet:
 
     def _run(self, env, install, listing, *args):
         return run_viame(
-            env, "add-on", "--install-dir", str(install), "--csv", str(listing), *args
+            env, "add-ons", "--install-dir", str(install), "--csv", str(listing), *args
         )
 
     def test_list_reads_the_install_csv(self, viame_env):
-        result = run_viame(viame_env, "add-on", "list")
+        result = run_viame(viame_env, "add-ons", "list")
 
         assert result.returncode == 0, result.stderr
         assert "GENERIC" in result.stdout

@@ -272,7 +272,7 @@ viame run detector_generic image.jpg             # ... or an image, by pipeline 
 viame run detector.pipe image_list.txt           # ... or a list of images
 viame run -d videos/ -p detector.pipe            # run a pipeline over a folder
 viame run my_pipeline.pipe                       # run a single pipeline file
-viame add-on                                     # list and install model add-ons
+viame add-ons                                    # list and install model add-ons
 viame train -c train_detector.conf -i labels/    # train a model
 viame score -c detections.csv -t groundtruth.csv # score against groundtruth
 viame csv -i detections.csv --print-types        # inspect a VIAME csv

@@ -30,7 +30,7 @@ namespace tools {
 
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
 
-VIAME_PYTHON_SCRIPT_APPLET( add_on_applet, "add-on", "add_on.py",
+VIAME_PYTHON_SCRIPT_APPLET( add_ons_applet, "add-ons", "add_ons.py",
   "List installed add-on model packs and download new ones." )
 
 VIAME_PYTHON_SCRIPT_APPLET( add_segmentations_applet, "add-segmentations",
@@ -159,7 +159,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_script_tool< run_applet >( reg );
 
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
-  register_script_tool< add_on_applet >( reg );
+  register_script_tool< add_ons_applet >( reg );
   register_script_tool< add_segmentations_applet >( reg );
   register_script_tool< convert_cam_applet >( reg );
   register_script_tool< convert_itk_applet >( reg );

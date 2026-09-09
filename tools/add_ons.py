@@ -6,11 +6,11 @@
 """List, check and install VIAME add-on model packs.
 
 Usage:
-  viame add-on                         list add-ons, then pick ones to install
-  viame add-on list [--json]
-  viame add-on install NAME [NAME ...] [--force]
-  viame add-on install --all
-  viame add-on install NAME --from-file ARCHIVE.zip
+  viame add-ons                         list add-ons, then pick ones to install
+  viame add-ons list [--json]
+  viame add-ons install NAME [NAME ...] [--force]
+  viame add-ons install --all
+  viame add-ons install NAME --from-file ARCHIVE.zip
 
 Add-ons come from download_viame_addons.csv in the install's bin folder. Its
 last column names one file, relative to configs/pipelines, that only that
@@ -148,9 +148,9 @@ def download(url, dest):
         raise RuntimeError(
             'this add-on is hosted on Google Drive and cannot be fetched '
             'directly. Download it in a browser from\n  %s\nthen run '
-            'viame add-on install NAME --from-file <archive.zip>' % url)
+            'viame add-ons install NAME --from-file <archive.zip>' % url)
 
-    request = urllib.request.Request(url, headers={'User-Agent': 'viame-add-on'})
+    request = urllib.request.Request(url, headers={'User-Agent': 'viame-add-ons'})
     show_progress = sys.stdout.isatty()
 
     with urllib.request.urlopen(request) as response, open(dest, 'wb') as out:
@@ -230,7 +230,7 @@ def install_addon(install, addon, archive=None, force=False):
     temp_dir = None
     try:
         if archive is None:
-            temp_dir = tempfile.mkdtemp(prefix='viame-add-on-')
+            temp_dir = tempfile.mkdtemp(prefix='viame-add-ons-')
             archive = Path(temp_dir) / (addon.name + '.zip')
             print('Downloading %s' % addon.name)
             print('  from %s' % addon.url)
@@ -316,7 +316,7 @@ def pick_addons(addons, install):
 
 def build_parser():
     p = argparse.ArgumentParser(
-        prog='add_on.py',
+        prog='add_ons.py',
         description='List, check and install VIAME add-on model packs',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__.split('\n\n', 1)[1])
