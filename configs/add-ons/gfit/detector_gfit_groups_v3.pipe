@@ -36,6 +36,7 @@ process detector_writer
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
   :writer:viame_csv:top_n_classes              5
+  :writer:coco:top_n_classes                   5
 
 connect from classifier_groups_output.detected_object_set
         to   detector_writer.detected_object_set
