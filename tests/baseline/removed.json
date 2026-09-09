@@ -131,5 +131,47 @@
     "name": "ffmpeg",
     "phase": "P4-T05",
     "reason": "arrows/ffmpeg's still-image reader, which decoded a single frame through libavcodec. No shipped pipeline or config selects it; image reading is core, ocv and vxl, all of which remain."
+  },
+  {
+    "interface": "metadata_filter",
+    "kind": "algorithm",
+    "name": "apply_child_klv",
+    "phase": "P5-T01",
+    "reason": "arrows/klv. No shipped pipeline, config or VIAME tool names it; it is the only reason the closure reaches arrows/klv, which lite-removals.md section 5 and the phase 5 sanity list both say must not be imported. KLV is full motion video metadata, which VIAME does not read or write."
+  },
+  {
+    "interface": "buffered_metadata_filter",
+    "kind": "algorithm",
+    "name": "update_klv",
+    "phase": "P5-T01",
+    "reason": "arrows/klv, as apply_child_klv above."
+  },
+  {
+    "interface": "metadata_filter",
+    "kind": "algorithm",
+    "name": "derive_corner_points",
+    "phase": "P5-T01",
+    "reason": "arrows/geocalc. No shipped pipeline, config or VIAME tool names it; it derives image corner geo-coordinates from KLV metadata, which VIAME does not read. It is the only reason the closure reaches arrows/geocalc."
+  },
+  {
+    "interface": "integrate_depth_maps",
+    "kind": "algorithm",
+    "name": "cuda",
+    "phase": "P5-T01",
+    "reason": "arrows/cuda. No shipped pipeline, config or VIAME tool names it, and none of the depth or reconstruction configs select it; it is the only reason the closure reaches arrows/cuda. VIAME's own CUDA use is through pytorch, not this."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "template",
+    "phase": "P5-T01",
+    "reason": "sprokit/processes/examples/process_template, which is kwiver's worked example of how to write a process. No shipped pipeline uses it, and it is the only reason the closure reaches sprokit/processes/examples, which is not code to import."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "file_transport_send",
+    "phase": "P5-T01",
+    "reason": "sprokit/processes/transport, which moves serialized data between pipelines over files or zmq. No shipped pipeline uses it, its zmq siblings are not even registered in this build, and serialization went with arrows/serialize. It is the only reason the closure reaches sprokit/processes/transport."
   }
 ]
