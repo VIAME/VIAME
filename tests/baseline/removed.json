@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "kind": "algorithm",
+    "interface": "image_filter",
+    "name": "vxl_white_balancing",
+    "phase": "P3-T05",
+    "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. Its implementation was 682 lines of VXL-specific code in plugins/vxl, so it goes rather than being ported. The equalize_via_percentiles and ocv_enhancer auto_balance paths remain for white balancing."
+  }
+]

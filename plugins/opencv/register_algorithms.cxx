@@ -87,6 +87,16 @@ register_factories( kv::plugin_loader& vpm )
     enhance_images::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
+  // plugins/vxl carried a second class also called viame::enhance_images,
+  // registered as vxl_enhancer. The two had the same mangled symbols, so the
+  // loader bound one definition for both factories and vxl_enhancer ran
+  // whichever plugin happened to load first. They produced identical output
+  // on every recorded case, so the name is kept here as an alias of this one
+  // and the duplicate class is gone.
+  fact = vpm.add_factory< kv::algo::image_filter, enhance_images >(
+    "vxl_enhancer" );
+  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+
   fact = vpm.add_factory< kv::algo::optimize_cameras, optimize_stereo_cameras >(
     optimize_stereo_cameras::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );

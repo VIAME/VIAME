@@ -12,58 +12,12 @@ link_directories( ${VXL_LIBRARY_DIR} )
 # Loadable algorithms
 ##
 
-set( plugin_headers
-  enhance_images.h
-  perform_white_balancing.h
-  )
+# enhance_images moved to plugins/opencv, which had a byte identical twin of
+# it; perform_white_balancing was removed as unused. Only the srm process is
+# left here, and P3-T05 takes that off VXL too.
+set( plugin_headers )
 
-set( plugin_sources
-  enhance_images.cxx
-  perform_white_balancing.cxx
-  )
-
-kwiver_install_headers(
-  SUBDIR     viame
-  ${plugin_headers}
-  )
-
-kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/viame_vxl_export.h
-  NOPATH   SUBDIR     viame
-  )
-
-kwiver_add_library( viame_vxl
-  ${plugin_headers}
-  ${plugin_sources}
-  )
-
-target_include_directories( viame_vxl PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  )
-
-target_link_libraries( viame_vxl
-  PUBLIC               kwiver::vital
-                       kwiver::vital_algo
-                       kwiver::vital_config
-                       kwiver::vital_exceptions
-                       kwiver::vital_logger
-                       kwiver::vital_util
-                       kwiver::kwiver_algo_vxl
-                       vil vil_algo
-  )
-
-set_target_properties( viame_vxl PROPERTIES
-  SOVERSION            ${VIAME_VERSION_MAJOR}
-  )
-
-algorithms_create_plugin( viame_vxl
-  register_algorithms.cxx
-  )
-
-target_link_libraries( viame_vxl_plugin
-  PUBLIC               kwiver::vital_vpm
-  )
+set( plugin_sources )
 
 ###
 # Add process library

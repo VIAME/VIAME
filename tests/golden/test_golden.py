@@ -36,6 +36,24 @@ TOLERANCES = {
 
 
 
+REMOVED_PATH = os.path.join(HERE, "..", "baseline", "removed.json")
+
+
+def removed_names():
+    """Names deliberately removed, from the baseline's removed.json.
+
+    A recording of a name that is gone on purpose is history, not a contract.
+    Skipping here rather than failing keeps the recording available for
+    comparison if the decision is ever revisited.
+    """
+    if not os.path.exists(REMOVED_PATH):
+        return {}
+
+    with open(REMOVED_PATH) as handle:
+        return {entry["name"]: entry.get("reason", "")
+                for entry in json.load(handle)}
+
+
 def load_manifest(group):
     path = os.path.join(HERE, group, "manifest.json")
 
@@ -105,9 +123,16 @@ def run_case(case, impl):
     raise AssertionError("unknown case kind '{}'".format(case["kind"]))
 
 
+REMOVED = removed_names()
+
+
 @pytest.mark.parametrize("item", collect_cases(), ids=case_id)
 def test_golden(item):
     group, case, impl = item
+
+    if case["impl"] in REMOVED:
+        pytest.skip("{} was removed on purpose: {}".format(
+            case["impl"], REMOVED[case["impl"]]))
 
     replacing = impl != case["impl"]
 
