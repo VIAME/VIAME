@@ -25,6 +25,9 @@ public:
   void add_command_options() override;
 
   int run() override;
+
+private:
+  int run_training();
 };
 
 } // namespace tools

@@ -465,7 +465,10 @@ class Monitor:
             log_text = read_text(self.log)
             run_type = self.resolve_type()
             if not self.running(log_text):
-                self.end_report(run_type, log_text)
+                # Give the run's final output a moment to land, then re-read
+                # so the verdict sees its last lines.
+                time.sleep(5)
+                self.end_report(run_type, read_text(self.log))
                 return 0
 
             stage = nh_stage(log_text, self.args.done_pattern)
@@ -537,8 +540,7 @@ def detach(argv, output_dir):
     """Relaunch this script in the background and return the child pid."""
     out_path = os.path.join(output_dir, OUTPUT_FILE)
     out = open(out_path, 'a')
-    kwargs = {'stdin': subprocess.DEVNULL, 'stdout': out, 'stderr': subprocess.STDOUT,
-              'cwd': output_dir}
+    kwargs = {'stdin': subprocess.DEVNULL, 'stdout': out, 'stderr': subprocess.STDOUT}
     if sys.platform == 'win32':
         kwargs['creationflags'] = (subprocess.DETACHED_PROCESS
                                    | subprocess.CREATE_NEW_PROCESS_GROUP)

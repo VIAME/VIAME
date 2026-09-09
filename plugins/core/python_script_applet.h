@@ -11,7 +11,18 @@
 
 #include <string>
 
+#include <vector>
+
 namespace viame {
+
+// ----------------------------------------------------------------------------
+/// Locate an installed tool script (configs/<name>), or return an empty string.
+VIAME_CORE_EXPORT std::string find_tool_script( const std::string& name );
+
+/// Run an installed tool script with the given arguments, sharing this
+/// process's streams, and return its exit code.
+VIAME_CORE_EXPORT int run_tool_script( const std::string& script,
+                                       const std::vector< std::string >& args );
 
 // ----------------------------------------------------------------------------
 /// Runs one of the installed python tools as an applet.
