@@ -9,6 +9,7 @@ set( image_ops_headers
   commonality.h
   convert.h
   dispatch.h
+  homography_overlap.h
   morphology.h
   pixel.h
   polygon.h

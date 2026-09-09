@@ -7,6 +7,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
+#include "close_loops_homography_guided.h"
 #include "viame_core_plugin_export.h"
 #include <vital/plugin_management/plugin_loader.h>
 
@@ -84,6 +85,8 @@ register_factories( kv::plugin_loader& vpm )
     add_timestamp_from_filename >( vpm );
   register_algorithm< kv::algo::transform_2d_io,
     auto_detect_transform_io >( vpm );
+  register_algorithm< kv::algo::close_loops,
+    close_loops_homography_guided >( vpm );
   register_algorithm< kv::algo::refine_detections,
     convert_head_tail_points >( vpm );
   register_algorithm< kv::algo::image_object_detector,
