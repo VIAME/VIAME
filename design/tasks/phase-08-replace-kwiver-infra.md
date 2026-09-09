@@ -7,7 +7,7 @@ lite-build-system.md §3-5.
 ### P8-T01 Hand-written python bindings for `core_types`
 Depends: P6-T06, P7-T09
 Do:
-- `core_types/python/`: pybind11 modules for the types listed in lite-library-layout.md §1 with numpy buffer views for `image`, descriptor, matrices. Preserve the python API surface used by VIAME (`grep -rho "kwiver.vital.types.[A-Za-z_]*" library tools tests | sort -u` is the required list, plus methods used in those files).
+- `core_types/`: pybind11 modules alongside the C++ for the types listed in lite-library-layout.md §1 with numpy buffer views for `image`, descriptor, matrices. Preserve the python API surface used by VIAME (`grep -rho "kwiver.vital.types.[A-Za-z_]*" library tools tests | sort -u` is the required list, plus methods used in those files).
 - Replace the copied `python/kwiver/vital/types` bindings; module names unchanged (`kwiver.vital.types`).
 Done when:
 - pytest for types passes; all python plugins import.
@@ -15,7 +15,7 @@ Done when:
 ### P8-T02 Hand-written algorithm trampolines (castxml gone)
 Depends: P8-T01
 Do:
-- `algorithm_framework/python/algo/`: trampolines for the 18 interfaces python implements (list in lite-removals.md §5 python row; regenerate with `grep -rho "kwiver.vital.algo import [A-Za-z_, ]*"`), plus `algorithm_factory`, `config` bindings. Delete `cmake/kwiver_compat/` castxml logic and `castxml`/`pygccxml` from lock files.
+- `algorithm_framework/algo/`: trampolines for the 18 interfaces python implements (list in lite-removals.md §5 python row; regenerate with `grep -rho "kwiver.vital.algo import [A-Za-z_, ]*"`), plus `algorithm_factory`, `config` bindings. Delete `cmake/kwiver_compat/` castxml logic and `castxml`/`pygccxml` from lock files.
 Done when:
 - Build has no castxml step; every python algorithm registers; BASELINE passes.
 
@@ -75,7 +75,7 @@ Done when:
 ### P8-T10 Lazy python registration and startup budget
 Depends: P8-T03
 Do:
-- Convert every `library/<dir>/python/__init__.py` from eager `__vital_algorithm_register__`/`__sprokit_register__` imports to the declarative list (`lite-build-system.md` §4). Compatibility packages `viame.core`, `viame.pytorch`, `viame.opencv`, `viame.onnx` forward their declarations. `VIAME_PYTHON_PLUGINS` scanning for add-ons.
+- Convert every `library/<dir>/__init__.py` from eager `__vital_algorithm_register__`/`__sprokit_register__` imports to the declarative list (`lite-build-system.md` §4). Compatibility packages `viame.core`, `viame.pytorch`, `viame.opencv`, `viame.onnx` forward their declarations. `VIAME_PYTHON_PLUGINS` scanning for add-ons.
 - Verify no implementation module is imported at registry init: run `viame registry-dump` with `python -X importtime` and assert `torch`, `cv2`, `mmdet` absent.
 - Add ctest `startup:budget`: `viame --version` and `viame runner --help` under 0.5 s wall on the reference machine; `viame registry-dump` under 2 s.
 Done when:

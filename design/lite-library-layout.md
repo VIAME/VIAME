@@ -75,8 +75,9 @@ CMakeLists.txt   viame_add_library(<dir> ...), per-file gating via viame_add_sou
 register.cxx     void register_<dir>(viame::registry&): algorithms, processes, applets, aliases;
                  called from the generated register_builtins() (a dlopen module only in P2-P7)
 *.cxx *.h        C++ (processes keep the _process suffix)
-python/          installed as viame.<dir>; __init__.py declares implementations lazily as
-                 (interface, name, "viame.<dir>.module:Class") without importing them
+*.py             alongside the C++, installed as viame.<dir>; __init__.py declares
+                 implementations lazily as (interface, name, "viame.<dir>.module:Class")
+                 without importing them
 tests/           unit + golden tests for this library
 ```
 
@@ -98,9 +99,9 @@ sideways.
 |---|---|
 | `core_types/` | `vital/types/*` pruned (list in `tasks/phase-05-import-kwiver.md`), `vital/vital_types.h` |
 | `algorithm_framework/config`, `logger`, `exceptions`, `util`, `range`, `io`, `plugin`, `algo`, `applets` | `vital/config`, `vital/logger`+`logger_plugins`, `vital/exceptions`, `vital/util`, `vital/range`, `vital/io`, `vital/plugin_management`, `vital/algo`, `vital/applets`+`applets_plugins` |
-| `algorithm_framework/python`, `core_types/python` | `python/kwiver/vital/{types,algo(generated, replaced in P8),config,util,modules,plugin_management}` |
+| `algorithm_framework/`, `core_types/` (bindings alongside the C++) | `python/kwiver/vital/{types,algo(generated, replaced in P8),config,util,modules,plugin_management}` |
 | `pipeline_framework/` | `sprokit/src/sprokit/pipeline`, `pipeline_util`, `sprokit/src/schedulers`, `sprokit/src/applets/pipeline_runner`, `sprokit/processes/kwiver_type_traits.h` (-> `type_traits.h`), `trait_utils.h`, `sprokit/processes/adapters/*`, `sprokit/processes/core/downsample_process` |
-| `pipeline_framework/python` | `python/kwiver/sprokit/{pipeline,pipeline_util,processes/kwiver_process,schedulers/pythread_per_process,adapters,util}` |
+| `pipeline_framework/` (bindings alongside the C++) | `python/kwiver/sprokit/{pipeline,pipeline_util,processes/kwiver_process,schedulers/pythread_per_process,adapters,util}` |
 | `video_io/` | `arrows/core/video_input_image_list`, `arrows/ocv/image_io` (until P7), `sprokit/processes/core/{video_input,video_output,image_writer,image_file_reader}_process`, `sprokit/processes/ocv/image_viewer_process` (until P7) |
 | `file_io/` | `arrows/core/{detected_object_set_input_kw18,detected_object_set_output_kw18,read_object_track_set_kw18,write_object_track_set_kw18,write_track_descriptor_set_csv}`, `sprokit/processes/core/{detected_object_input,detected_object_output,read_object_track,write_object_track,write_track_descriptor}_process`, `python/kwiver/.../homography_writer.py` |
 | `image_processing/` | `arrows/ocv/{merge_images,split_image,draw_detected_object_set,refine_detections_write_to_disk,estimate_homography,detect_features_SIFT,extract_descriptors_SIFT,match_features_*}` and `arrows/core/compute_ref_homography_core` (all until P7), `sprokit/processes/core/{image_filter,split_image,merge_images,stabilize_image,draw_detected_object_set}_process` |

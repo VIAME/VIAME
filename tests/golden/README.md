@@ -10,6 +10,7 @@ Each group under this directory belongs to one dependency removal:
 | Group | Recorded from | Replaced by |
 |---|---|---|
 | `vxl` | `arrows/vxl` filters and image_io, `plugins/vxl` filters | phase 3 |
+| `video` | `arrows/ffmpeg` `video_input` and `video_output` | phase 4 |
 
 ## Layout
 
@@ -39,10 +40,24 @@ source <install>/setup_viame.sh
 python3 tests/golden/record.py vxl
 ```
 
-`record.py` refuses to overwrite an existing recording without `--force`, so
-a golden cannot be quietly redefined by the code it is meant to be checking.
-Re-record only when a task says the recorded behaviour changes, and say why in
-`design/STATUS.md`.
+The video group is recorded separately, because a decoded 1080p frame is not
+worth committing and would mostly be measuring the codec:
+
+```
+source <install>/setup_viame.sh
+python3 tests/golden/record_video.py
+```
+
+`video/manifest.json` holds, per clip, the frame count, every presentation
+time, and digests of the first, middle and last frame; a decode throughput
+figure measured on a 1080p clip built from the committed fixtures rather than
+committed itself; and, per pipeline that writes a video, what `ffprobe` makes
+of the file.
+
+`record.py` and `record_video.py` both refuse to overwrite an existing
+recording without `--force`, so a golden cannot be quietly redefined by the
+code it is meant to be checking. Re-record only when a task says the recorded
+behaviour changes, and say why in `design/STATUS.md`.
 
 The config variants in `cases.py` are the ones the shipped pipelines use, read
 out of every `.pipe` and `.conf` in the install, plus each implementation's own
@@ -85,3 +100,12 @@ three are VXL bugs found while recording:
 For these the recording pins the shape, dtype and that the configuration is
 accepted, and nothing else. The replacement should be correct rather than
 bug compatible.
+
+The video group has one of its own, in `test_video.py` rather than here
+because it is a whole-file property. The C++ writer muxed its packets with no
+duration, so the mp4 muxer derived each sample's duration from the next
+sample's decode time and gave the last one zero; the track then ends before
+its final sample and every decoder trims it. A pipeline that writes N frames
+produces a file that plays N-1, and `filter_to_video.pipe` over six fixture
+frames writes five. The recording says five, and `WRITER_DIVERGENCE` says a
+replacement writes six.

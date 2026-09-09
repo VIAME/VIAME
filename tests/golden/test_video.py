@@ -1,4 +1,5 @@
-"""Hold the video reader to what the C++ one did before it was replaced.
+"""Hold the video reader and writer to what the C++ ones did before they were
+replaced.
 
 `tests/golden/video/manifest.json` was recorded from `arrows/ffmpeg` while it
 was still the only reader. Every replacement has to reproduce it: the same
@@ -18,6 +19,8 @@ import pytest
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+import pipeline_runner              # noqa: E402
+import video_cases                  # noqa: E402
 import video_runner                 # noqa: E402
 
 MANIFEST = os.path.join(HERE, "video", "manifest.json")
@@ -162,3 +165,71 @@ def test_replacement_keeps_up():
     assert best >= recorded * THROUGHPUT_FRACTION, (
         "pyav decoded at {:.1f} fps, under {:.0%} of the recorded {:.1f}"
         .format(best, THROUGHPUT_FRACTION, recorded))
+
+
+# --------------------------------------------------------------------------
+# The writer
+
+# What a replacement writer is allowed to differ by, with the reason.
+#
+# The C++ writer never set a duration on the packets it muxed, so the mp4
+# muxer derived each sample's duration from the next sample's decode time and
+# gave the last one a duration of zero. The track then ends one frame before
+# its final sample, and every decoder trims that sample: a pipeline that
+# writes N frames produces a file that plays N-1. PyAV sets the duration, so
+# the file holds what was written -- one more frame, and one frame longer.
+#
+# This is a fix, not a divergence to preserve, so it is spelled out per field
+# rather than widened into a tolerance.
+WRITER_DIVERGENCE = {
+    "pyav": "the C++ writer muxed packets with no duration, so the mp4 muxer "
+            "trimmed the final frame; this one writes it",
+}
+
+
+def writer_cases():
+    if not os.path.exists(MANIFEST):
+        return []
+
+    with open(MANIFEST) as handle:
+        recorded = json.load(handle).get("pipelines", {})
+
+    return [(writer, pipeline)
+            for writer in sorted(video_cases.VIDEO_WRITERS)
+            for pipeline in sorted(recorded)]
+
+
+@pytest.mark.parametrize("case", writer_cases(), ids=case_id)
+def test_writer_matches_recording(case):
+    writer, pipeline = case
+
+    if not video_runner.is_registered(writer, interface="video_output"):
+        pytest.skip("{} is not registered in this build".format(writer))
+
+    expected = manifest()["pipelines"][pipeline]
+    written = pipeline_runner.run_video(
+        pipeline, video_cases.VIDEO_WRITERS[writer])
+
+    # Geometry, codec and pixel format are the writer reproducing the stream
+    # it was asked for, and no replacement has a reason to change them
+    for field in ("codec", "width", "height", "pixel_format"):
+        assert written[field] == expected[field], (
+            "{} wrote {} {}, recorded {}".format(
+                writer, field, written[field], expected[field]))
+
+    frames, duration = expected["frames"], expected["duration"]
+    reason = ""
+
+    if writer != manifest()["impl"] and writer in WRITER_DIVERGENCE:
+        reason = "; allowed: " + WRITER_DIVERGENCE[writer]
+        frames = frames + 1
+        duration = pytest.approx(duration * frames / (frames - 1), rel=1e-3)
+
+    assert written["frames"] == frames, (
+        "{} wrote {} frames of {}, recorded {}{}".format(
+            writer, written["frames"], pipeline, expected["frames"], reason))
+
+    assert written["duration"] == duration, (
+        "{} wrote {} s of {}, recorded {} s{}".format(
+            writer, written["duration"], pipeline, expected["duration"],
+            reason))

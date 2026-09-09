@@ -30,6 +30,8 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+import pipeline_runner              # noqa: E402
+import video_cases                  # noqa: E402
 import video_runner                 # noqa: E402
 
 INPUTS = os.path.join(HERE, "inputs")
@@ -112,7 +114,8 @@ def measure_throughput(impl, path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--impl", default="ffmpeg",
-                        help="video_input implementation to record")
+                        help="video_input and video_output implementation "
+                             "to record")
     parser.add_argument("--force", action="store_true",
                         help="overwrite an existing recording")
     args = parser.parse_args()
@@ -155,6 +158,14 @@ def main():
 
     print("throughput: {} fps at {}".format(
         manifest["throughput"]["frames_per_second"], THROUGHPUT_SIZE))
+
+    manifest["pipelines"] = {}
+
+    for pipeline in video_cases.VIDEO_PIPELINES:
+        written = pipeline_runner.run_video(pipeline)
+        manifest["pipelines"][pipeline] = written
+        print("{:24s} {} frames, {} s".format(
+            pipeline, written["frames"], written["duration"]))
 
     with open(manifest_path, "w") as handle:
         json.dump(manifest, handle, indent=2, sort_keys=True)

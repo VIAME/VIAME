@@ -22,7 +22,7 @@ Done when:
 Depends: P6-T02
 Do:
 - Port `vector`, `matrix`, `point`, `rotation`, `covariance`, `homography*`, `transform_2d`, `similarity`, `camera_intrinsics`, `camera_perspective`, `camera_rig`, `camera_perspective_map`, `landmark*`, `feature*`, `bounding_box`, `polygon`, `descriptor` (if it uses Eigen), `essential_matrix`, `fundamental_matrix` (drop if unused after P5-T06). Keep public method names; replace `.array()`, `.cast<>()`, `Eigen::Map` idioms with explicit loops or helpers.
-- Python casters: numpy <-> `vector<N,T>`, `matrix<R,C,T>` via buffer protocol in `core_types/python/casters.h`, replacing `eigen_class.h` usage.
+- Python casters: numpy <-> `vector<N,T>`, `matrix<R,C,T>` via buffer protocol in `core_types/casters.h`, replacing `eigen_class.h` usage.
 Done when:
 - `git grep Eigen:: -- library/core_types` empty; unit tests and python type tests pass.
 

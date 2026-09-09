@@ -95,8 +95,9 @@ git grep -n "libav\|avcodec"     -- library tools   # must be empty after P4
   replacement implementation is not done until its golden test exists.
 - Python that needs OpenCV imports `cv2` from the `opencv-python-headless`
   wheel. C++ never includes OpenCV after Phase 7.
-- Every new python module lives in `library/<dir>/python/` and is picked up
-  by `viame_add_python_package`; no per-file CMake lines.
+- Every new python module lives in `library/<dir>/` alongside that
+  library's C++ and is picked up by `viame_add_python_package`; no per-file
+  CMake lines and no `python/` subdirectory.
 - Built-in code registers statically through its library's `register.cxx`
   (or the package's lazy declaration list for python). Do not add new dlopen
   modules, plugin directories, or plugin-path environment variables; the

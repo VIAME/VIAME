@@ -124,7 +124,7 @@ Used only by `arrows/ffmpeg`: `video_input` impl `ffmpeg` (aliases
 
 ### 3.1 Reader
 
-`video_io/python/pyav_video_input.py`, class registered as `video_input`
+`video_io/pyav_video_input.py`, class registered as `video_input`
 `ffmpeg` (aliases `vidl_ffmpeg`, `pyav`). Config keys copied from the
 kwiver impl: `filter_desc`, `start_at_frame`, `stop_after_frame`,
 `frame_rate` override, `use_misp_timestamps` (ignored, logged), `sync`
@@ -136,7 +136,7 @@ via numpy without copy.
 
 ### 3.2 Writer
 
-`video_io/python/pyav_video_output.py` registered as `video_output`
+`video_io/pyav_video_output.py` registered as `video_output`
 `ffmpeg`. Keys: `codec` (default `h264`), `bit_rate`, `pixel_format`
 (default `yuv420p`), `frame_rate`, container from extension. `_finalize`
 flushes and closes (see the existing writer-finalize note in the tree).
@@ -217,5 +217,5 @@ own and understand, and the remaining vendored sources are those in
 | `vital/applets` | -> `algorithm_framework/applets/` | Kept; `cxxopts` stays vendored |
 | `sprokit/pipeline`, `pipeline_util`, schedulers, adapters, runner | -> `pipeline_framework/` | Trimmed: remove unused process/port flag paths, `process_cluster` only if no `.pipe` uses `cluster` (checked by `pipe-check`), remove `kwiversys`; add pipeline-level alias resolution for process types |
 | `sprokit/processes/core` (37 used) | -> functional dirs | Kept |
-| `python/kwiver/*` bindings | -> `algorithm_framework/python`, `pipeline_framework/python`, `core_types/python` | Rewritten by hand with pybind11 in one extension `viame._core` linking `libviame`: types (numpy buffer views), config, algorithm trampolines for the 18 interfaces python implements, process/datum/port API, `pythread_per_process` scheduler, declarative lazy registration replacing `__vital_algorithm_register__`/`__sprokit_register__` eager imports. castxml/pygccxml gone |
+| `python/kwiver/*` bindings | -> `algorithm_framework/`, `pipeline_framework/`, `core_types/` (alongside the C++) | Rewritten by hand with pybind11 in one extension `viame._core` linking `libviame`: types (numpy buffer views), config, algorithm trampolines for the 18 interfaces python implements, process/datum/port API, `pythread_per_process` scheduler, declarative lazy registration replacing `__vital_algorithm_register__`/`__sprokit_register__` eager imports. castxml/pygccxml gone |
 | kwiver CMake macros | -> `cmake/kwiver_compat/` | Deleted; `viame_*` helpers only |

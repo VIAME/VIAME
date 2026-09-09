@@ -63,13 +63,13 @@ viame_add_library(<name>
   [SOURCES ...] [HEADERS ...]
   [LINK_PUBLIC ...] [LINK_PRIVATE ...]
   [REGISTER register.cxx]        # register_<name>() called from register_builtins() (module only in P2-P7)
-  [PYTHON python]                # installs <dir>/python as viame.<name>
+  [PYTHON]                       # installs <dir>'s .py files as viame.<name>
   [REQUIRES VIAME_ENABLE_X ...]) # whole library skipped if any is OFF
 
 viame_add_sources(<name> CONDITION <expr>
   SOURCES ... [HEADERS ...] [LINK ...] [DEFINITIONS ...])
 
-viame_add_python_package(<name> DIRECTORY python [CONDITION ...] [EXCLUDE_GLOB ...])
+viame_add_python_package(<name> [DIRECTORY <dir>] [CONDITION ...] [EXCLUDE_GLOB ...])
 viame_add_python_extension(<name> MODULE _x SOURCES ... PACKAGE viame.<name>)
 viame_add_applets(<name> SOURCES ...)
 viame_add_test(<name> SOURCES ... | PYTEST file.py [SOURCE_SETUP] LABELS ...)
@@ -142,11 +142,12 @@ dynamic plugin loader goes. Everything built in tree registers statically.
 ## 5. Python build
 
 - `python/CMakeLists.txt` installs `viame/__init__.py`, the `kwiver` shim
-  (P11), and calls `viame_add_python_package` for each library's `python/`.
-- Bindings: `core_types/python` (types with numpy buffer views),
-  `algorithm_framework/python` (config, algorithm trampolines, registry
-  access), `pipeline_framework/python` (process, datum, port, pipeline,
-  scheduler). All compiled into one extension module `viame._core` that
+  (P11), and calls `viame_add_python_package` for each library, whose `.py`
+  files sit alongside its C++ rather than in a `python/` subdirectory.
+- Bindings: `core_types/` (types with numpy buffer views),
+  `algorithm_framework/` (config, algorithm trampolines, registry
+  access), `pipeline_framework/` (process, datum, port, pipeline,
+  scheduler), each alongside the C++ it wraps. All compiled into one extension module `viame._core` that
   links `libviame`, so C++ and python share the registry. Until P8 these
   are the copied kwiver bindings incl. the castxml step; P8 replaces them
   with hand-written pybind11 and deletes castxml.

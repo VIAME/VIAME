@@ -61,10 +61,15 @@ def load_modules():
     modules.load_known_modules()
 
 
-def is_registered(impl):
-    from kwiver.vital.algo import VideoInput
+def is_registered(impl, interface="video_input"):
+    import kwiver.vital.algo as algo
 
-    return impl in VideoInput.registered_names()
+    interfaces = {
+        "video_input": algo.VideoInput,
+        "video_output": algo.VideoOutput,
+    }
+
+    return impl in interfaces[interface].registered_names()
 
 
 def decode_only(impl, config, path):
@@ -98,7 +103,7 @@ def decode_only(impl, config, path):
 
 
 def throughput(impl, config, path):
-    """Frames per second decoding \p path, best of three passes.
+    """Frames per second decoding the clip, best of three passes.
 
     Timed inside this process: spawning one is several seconds, which would
     swamp the measurement on a short clip.

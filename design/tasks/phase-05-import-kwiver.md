@@ -20,7 +20,7 @@ Depends: P5-T01
 Do:
 - Copy listed `vital/types/*` -> `library/core_types/`, the rest of listed `vital/*` -> `library/algorithm_framework/<sub>/` per lite-library-layout.md §2. `vital/kwiversys` -> `third_party/kwiversys`, `vital/internal/cereal` -> `third_party/cereal` (+ its rapidjson to `third_party/rapidjson`), `cxxopts.hpp` -> `third_party/cxxopts`.
 - Rewrite includes in the copied files and in `library/`, `tools/`: `vital/types/X` -> `viame/core_types/X`; other `vital/Y` -> `viame/algorithm_framework/Y`; `kwiversys/` unchanged (third_party include dir); `vital/internal/cereal` -> `cereal/`.
-- `viame_add_library(core_types)`, `viame_add_library(algorithm_framework)` with the kwiver CMake logic for export headers, `vital_config.h` generation, python bindings (`python/kwiver/vital/*` -> `core_types/python`, `algorithm_framework/python`, including the castxml generation step, moved verbatim into `cmake/kwiver_compat/`).
+- `viame_add_library(core_types)`, `viame_add_library(algorithm_framework)` with the kwiver CMake logic for export headers, `vital_config.h` generation, python bindings (`python/kwiver/vital/*` -> `core_types/`, `algorithm_framework/`, alongside the C++ they wrap, including the castxml generation step, moved verbatim into `cmake/kwiver_compat/`).
 - Kwiver still added as subdirectory for sprokit and arrows at this point; its vital is built but nothing links it (temporary duplication for one task).
 Done when:
 - `library/` and `tools/` compile against the copied vital; BASELINE passes.

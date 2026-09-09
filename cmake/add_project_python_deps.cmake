@@ -34,6 +34,13 @@ else()
   list( APPEND VIAME_PYTHON_BASIC_DEPS "numpy>=1.26.0,<=2.0.2" )
 endif()
 
+# Video reading and writing: library/video_io's PyAV implementations are how
+# VIAME decodes and encodes video, so this is a core dependency and not an
+# optional one. It was reaching the install only as a transitive requirement
+# of pytorchvideo, which a CPU build does not have. Phase 1 moves it into
+# python/requirements/base.in with the rest.
+list( APPEND VIAME_PYTHON_BASIC_DEPS "av" )
+
 # Testing infrastructure
 if( VIAME_ENABLE_TESTS )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "pytest" )

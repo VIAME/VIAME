@@ -64,12 +64,17 @@ if( VIAME_ENABLE_PYTHON )
   kwiver_create_python_init( video_io )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/python/__init__.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     video_io
     __init__ )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/python/pyav_video_input.py
+    ${CMAKE_CURRENT_SOURCE_DIR}/pyav_video_input.py
     video_io
     pyav_video_input )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/pyav_video_output.py
+    video_io
+    pyav_video_output )
 endif()

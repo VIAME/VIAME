@@ -29,3 +29,20 @@ VIDEO_INPUTS = {
 VIDEO_REPLACEMENTS = {
     "vidl_ffmpeg": "video_input",
 }
+
+
+# The one shipped pipeline that writes a video and nothing else, so what it
+# produces is entirely the writer's doing. `lite-removals.md` section 3.2
+# asks for its frame count and duration; the recording carries the stream's
+# geometry, codec and rate as well, since those cost nothing to record and
+# are what a player looks at first.
+VIDEO_PIPELINES = (
+    "filter_to_video.pipe",
+)
+
+# The writers that have to reproduce the recording, and the setting that
+# selects each one.
+VIDEO_WRITERS = {
+    "ffmpeg": (),
+    "pyav": ("video_writer:video_writer:type=pyav",),
+}

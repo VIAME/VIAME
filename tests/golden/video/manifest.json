@@ -239,6 +239,18 @@
     }
   },
   "impl": "ffmpeg",
+  "pipelines": {
+    "filter_to_video.pipe": {
+      "codec": "hevc",
+      "duration": 1.0,
+      "file": "output.mp4",
+      "frame_rate": "6/1",
+      "frames": 5,
+      "height": 270,
+      "pixel_format": "yuv420p",
+      "width": 480
+    }
+  },
   "recorded": "2026-09-09T16:25:56Z",
   "throughput": {
     "codec": "h264",

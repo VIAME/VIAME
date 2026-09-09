@@ -14,7 +14,7 @@ Done when:
 ### P4-T02 PyAV `video_input`
 Depends: P4-T01
 Do:
-- `library/video_io/python/pyav_video_input.py` implementing `kwiver.vital.algo.VideoInput`; config keys and semantics per lite-removals.md §3.1 (copy keys from `registry.json` entry for `video_input/ffmpeg`). Register `ffmpeg` (python impl replaces C++ one; the C++ registration is removed in P4-T05) plus aliases `vidl_ffmpeg`, `pyav`. Zero-copy numpy -> `ImageContainer`.
+- `library/video_io/pyav_video_input.py` implementing `kwiver.vital.algo.VideoInput`; config keys and semantics per lite-removals.md §3.1 (copy keys from `registry.json` entry for `video_input/ffmpeg`). Register `ffmpeg` (python impl replaces C++ one; the C++ registration is removed in P4-T05) plus aliases `vidl_ffmpeg`, `pyav`. Zero-copy numpy -> `ImageContainer`.
 - Add `av` to `base.in`/lock. Unit tests: frame count, timestamps within 1 us of golden, md5 match for the three frames, seek to frame k then next_frame equals frame k+1.
 Done when:
 - Tests pass; throughput >= 60 % of the C++ baseline recorded in STATUS.md (target >= 150 fps 1080p on the reference machine; if below, implement P4-T04 before continuing).
@@ -37,6 +37,7 @@ Done when:
 Depends: P4-T03, P4-T04
 Do:
 - `KWIVER_ENABLE_FFMPEG=OFF`; delete `VIAME_ENABLE_FFMPEG*` options, `FindFFMPEG.cmake`, the ffmpeg lines in `viame_dependencies.cmake`; C++ `ffmpeg` registrations gone, python ones own the names. `ldd` of plugins shows no `libav*`.
+- `sprokit/processes/core/video_output_process.cxx` builds its `video_settings` from `arrows::ffmpeg::ffmpeg_video_settings` under `WITH_FFMPEG`, and passes a null pointer without it, which loses the width, height and frame rate the writer needs (found in P4-T03). Use `vital::simple_video_settings` unconditionally and drop the `WITH_FFMPEG` define and the FFmpeg include/link block from that directory's `CMakeLists.txt`.
 - DIVE smoke: open a video dataset, run detector, export video.
 Done when:
 - Build from clean without FFmpeg dev packages installed; BASELINE, CRITICAL, GOLDEN pass; smoke passes.

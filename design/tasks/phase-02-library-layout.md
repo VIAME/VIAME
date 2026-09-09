@@ -8,7 +8,7 @@ References: lite-library-layout.md §1, §3, §4; lite-build-system.md §3-4.
 ### P2-T01 CMake helpers (kwiver-backed)
 Depends: P1-T10
 Do:
-- `cmake/viame_macros.cmake` implementing the signatures in lite-build-system.md §3 on top of `kwiver_add_library`, `kwiver_add_plugin`, `kwiver_add_python_module`, `kwiver_add_python_library`. `viame_add_python_package` globs `python/**/*.py` (excluding `__pycache__`, tests) and installs each preserving relative paths under `viame/<name>/`.
+- `cmake/viame_macros.cmake` implementing the signatures in lite-build-system.md §3 on top of `kwiver_add_library`, `kwiver_add_plugin`, `kwiver_add_python_module`, `kwiver_add_python_library`. `viame_add_python_package` globs the library directory's `**/*.py` (excluding `__pycache__`, tests) and installs each preserving relative paths under `viame/<name>/`; python sits alongside the C++, with no `python/` subdirectory.
 - `viame_add_library(... REGISTER register.cxx)`: `register.cxx` defines `void register_<name>(kwiver::vital::plugin_loader&)` registering algorithms and processes in one function. Transitionally (until P8) the helper also builds a dynamic module `viame_<name>_plugin` whose `register_factories` calls that function, because kwiver's loader is still in use. Write `register.cxx` so it has no dependency on being in a module (no module-static state), so P8 can call it from `register_builtins()` unchanged.
 - Alias support: `viame_register_alias(vpm, interface, name, alias)` helper that adds a second factory for the same class with attribute `viame.alias_of = name`. `registry-dump` emits it under `aliases`.
 Done when:
@@ -25,7 +25,7 @@ Done when:
 ### P2-T03 Skeleton `library/` with empty targets
 Depends: P2-T02
 Do:
-- Create `library/CMakeLists.txt` adding every functional directory in DAG order (lite-library-layout.md §1). Each directory gets a `CMakeLists.txt` calling `viame_add_library` with empty source lists and a stub `register.cxx`, plus `python/__init__.py` with `__viame_register__` / `__sprokit_register__` stubs.
+- Create `library/CMakeLists.txt` adding every functional directory in DAG order (lite-library-layout.md §1). Each directory gets a `CMakeLists.txt` calling `viame_add_library` with empty source lists and a stub `register.cxx`, plus an `__init__.py` beside it with `__viame_register__` / `__sprokit_register__` stubs.
 - Top-level: `add_subdirectory(library)` before `plugins`.
 Done when:
 - Build passes with both trees present (empty libraries link).
@@ -41,7 +41,7 @@ Done when:
 Depends: P2-T04
 Do:
 - As P2-T04. Merge the two `windowed_*` sets now: keep the OpenCV-capable implementation, register both `windowed` and `ocv_windowed` (alias) for detector, refiner, trainer; drop the OpenCV-free copies. Golden: `detector_*windowed*` pipelines unchanged output (bitwise on detections CSV).
-- `plugins/pytorch` detectors/classifiers/segmenters go to `<dir>/python/`; their `VIAME_ENABLE_PYTORCH-*` gating becomes `viame_add_python_package(... CONDITION ...)` per subgroup (split into `python/mmdet/`, `python/sam/`, ... subfolders where a gate applies).
+- `plugins/pytorch` detectors/classifiers/segmenters go to `<dir>/`; their `VIAME_ENABLE_PYTORCH-*` gating becomes `viame_add_python_package(... CONDITION ...)` per subgroup (split into `mmdet/`, `sam/`, ... subfolders where a gate applies).
 Done when:
 - Build + BASELINE + CRITICAL pass.
 
@@ -49,7 +49,7 @@ Done when:
 Depends: P2-T05
 Do:
 - As above. Merge `pair_stereo_detections`/`pair_stereo_tracks` core+opencv variants into `measurement/` (opencv variant is the superset; keep both registered names). Merge `measure_objects_process` (core) and `measure_using_stereo` (opencv) into one process class with two registered names. DB and CSV descriptor processes share one class with a `backend` chosen by registered name.
-- Shared `kalman.py`/`track_state.py` in `object_trackers/python/common/` used by bytetrack, ocsort, deepsort, botsort; `reid_data.py` shared by deepsort/botsort trainers.
+- Shared `kalman.py`/`track_state.py` in `object_trackers/common/` used by bytetrack, ocsort, deepsort, botsort; `reid_data.py` shared by deepsort/botsort trainers.
 Done when:
 - Build + BASELINE + CRITICAL + tracker unit tests pass; `tests/plugins/core/test_pair_stereo_detections.cxx` relocated and passing.
 
