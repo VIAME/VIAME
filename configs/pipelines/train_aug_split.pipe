@@ -30,8 +30,8 @@ connect from downsampler.output_1
 process image_writer
  :: image_writer
  :file_name_template                            frame%06d.png
- :image_writer:type                             vxl
- :image_writer:vxl:split_channels               false
+ :image_writer:type                             core
+ :image_writer:core:split_channels               false
 
 connect from split.left_image
         to   image_writer.image

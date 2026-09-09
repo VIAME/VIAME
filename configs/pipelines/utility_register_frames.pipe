@@ -42,14 +42,14 @@ process stabilizer
 
   feature_matcher:type = ocv_flann_based
 
-  homography_estimator:type = vxl
+  homography_estimator:type = core
 
   ref_homography_computer:type = core
   block ref_homography_computer:core
     backproject_threshold = 4
     allow_ref_frame_regression = false
     min_matches_threshold = 50
-    estimator:type = vxl
+    estimator:type = core
     forget_track_threshold = 5
     inlier_scale = 10
     min_track_length = 1

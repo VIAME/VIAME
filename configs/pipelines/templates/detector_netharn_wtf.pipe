@@ -10,9 +10,9 @@ include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_input_with_downsamp
 
 process detector_input
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
   endblock
 
@@ -42,9 +42,9 @@ connect from detector_input.image
 
 process ensure_color
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :force_three_channel                       true
   endblock
@@ -56,9 +56,9 @@ connect from enhancer.image
 
 process ensure_grey
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :single_channel                            true
   endblock
@@ -68,9 +68,9 @@ connect from detector_input.image
 
 process motion_filter
   :: image_filter
-  :filter:type                                 vxl_average
+  :filter:type                                 average_frames
 
-  block filter:vxl_average
+  block filter:average_frames
     :type                                      window
     :window_size                               20
     :round                                     false
@@ -82,9 +82,9 @@ connect from ensure_grey.image
 
 process float_to_byte
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :scale_factor                              0.50
   endblock

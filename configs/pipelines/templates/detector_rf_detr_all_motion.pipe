@@ -16,18 +16,18 @@ include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_input_with_downsamp
 
 process detector_input
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :force_three_channel                       true
   endblock
 
 process detector_input_grey
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :single_channel                            true
   endblock
@@ -67,9 +67,9 @@ connect from detector_input.image
 
 process diff_to_byte
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :single_channel                            true
     :scale_factor                              4.0
@@ -82,9 +82,9 @@ connect from frame_diff.motion_heat_map
 
 process variance_filter
   :: image_filter
-  :filter:type                                 vxl_average
+  :filter:type                                 average_frames
 
-  block filter:vxl_average
+  block filter:average_frames
     :type                                      window
     :window_size                               20
     :round                                     false
@@ -96,9 +96,9 @@ connect from detector_input_grey.image
 
 process variance_to_byte
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :scale_factor                              0.50
   endblock

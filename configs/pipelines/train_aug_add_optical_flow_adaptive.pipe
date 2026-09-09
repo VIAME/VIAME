@@ -34,9 +34,9 @@ include common_default_input_with_downsampler.pipe
 
 process ensure_color
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :force_three_channel                       true
   endblock
@@ -85,8 +85,8 @@ connect from motion_filter.image
 process image_writer
  :: image_writer
  :file_name_template                            frame%06d.png
- :image_writer:type                             vxl
- :image_writer:vxl:split_channels               false
+ :image_writer:type                             core
+ :image_writer:core:split_channels               false
 
 connect from image_merger.image
         to   image_writer.image

@@ -15,7 +15,7 @@ process input
   :video_filename                                   input_list.txt
   :frame_time                                              0.03333
   :video_reader:type                                    image_list
-  :video_reader:image_list:image_reader:type                   vxl
+  :video_reader:image_list:image_reader:type                   core
 
 process detection_reader
   :: detected_object_input

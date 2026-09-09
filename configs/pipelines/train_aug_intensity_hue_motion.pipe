@@ -20,9 +20,9 @@ include common_default_input_with_downsampler.pipe
 
 process ensure_color
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :random_grayscale                          0.25
     :force_three_channel                       true
@@ -52,9 +52,9 @@ connect from color_convert.image
 
 process ensure_grey
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :single_channel                            true
   endblock
@@ -64,9 +64,9 @@ connect from downsampler.output_1
 
 process motion_filter
   :: image_filter
-  :filter:type                                 vxl_average
+  :filter:type                                 average_frames
 
-  block filter:vxl_average
+  block filter:average_frames
     :type                                      window
     :window_size                               20
     :round                                     false
@@ -78,9 +78,9 @@ connect from ensure_grey.image
 
 process float_to_byte
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :scale_factor                              0.50
   endblock
@@ -106,8 +106,8 @@ connect from float_to_byte.image
 process image_writer
  :: image_writer
  :file_name_template                            frame%06d.png
- :image_writer:type                             vxl
- :image_writer:vxl:split_channels               false
+ :image_writer:type                             core
+ :image_writer:core:split_channels               false
  
 connect from image_merger.image
         to   image_writer.image

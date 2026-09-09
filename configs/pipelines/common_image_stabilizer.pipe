@@ -87,7 +87,7 @@ process stabilizer
       # Must be one of the following options:
       #   - ocv
       #   - vxl
-      homography_estimator:type = vxl
+      homography_estimator:type = core
 
       # The acceptable error distance (in pixels) between warped and measured points
       # to be considered an inlier match.
@@ -100,7 +100,7 @@ process stabilizer
     #   - exhaustive
     #   - keyframe
     #   - multi_method
-    #   - vxl_homography_guided
+    #   - homography_guided
     loop_closer:type = multi_method
 
     # Algorithm to use for 'method1'.
@@ -109,7 +109,7 @@ process stabilizer
     #   - exhaustive
     #   - keyframe
     #   - multi_method
-    #   - vxl_homography_guided
+    #   - homography_guided
     loop_closer:multi_method:method_1:type = bad_frames_only
 
     block loop_closer:multi_method:method_1:bad_frames_only
@@ -157,7 +157,7 @@ process stabilizer
         # Must be one of the following options:
         #   - ocv
         #   - vxl
-        homography_estimator:type = vxl
+        homography_estimator:type = core
 
         # The acceptable error distance (in pixels) between warped and measured points
         # to be considered an inlier match.
@@ -179,10 +179,10 @@ process stabilizer
     #   - exhaustive
     #   - keyframe
     #   - multi_method
-    #   - vxl_homography_guided
-    loop_closer:multi_method:method_2:type                       = vxl_homography_guided
+    #   - homography_guided
+    loop_closer:multi_method:method_2:type                       = homography_guided
 
-    block loop_closer:multi_method:method_2:vxl_homography_guided
+    block loop_closer:multi_method:method_2:homography_guided
       # Is long term loop closure enabled?
       enabled       = true
 
@@ -208,7 +208,7 @@ process stabilizer
       #   - ocv
       #   - vxl
       block feature_matcher:homography_guided
-        homography_estimator:type = vxl
+        homography_estimator:type = core
 
         # Algorithm to use for 'feature_matcher'.
         # Must be one of the following options:
@@ -247,7 +247,7 @@ process stabilizer
         # Must be one of the following options:
         #   - ocv
         #   - vxl
-        estimator:type = vxl
+        estimator:type = core
 
         # After how many frames should we forget all info about a track?
         forget_track_threshold = 5
@@ -282,7 +282,7 @@ process stabilizer
     # Must be one of the following options:
     #   - ocv
     #   - vxl
-    estimator:type = vxl
+    estimator:type = core
 
     # After how many frames should we forget all info about a track?
     forget_track_threshold = 5

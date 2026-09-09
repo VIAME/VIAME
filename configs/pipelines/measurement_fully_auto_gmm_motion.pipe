@@ -22,7 +22,7 @@ process input1
   :video_reader:type                           image_list
 
   block video_reader:image_list
-    :image_reader:type                         vxl
+    :image_reader:type                         core
   endblock
 
   block video_reader:vidl_ffmpeg
@@ -36,7 +36,7 @@ process input2
   :video_reader:type                           image_list
 
   block video_reader:image_list
-    :image_reader:type                         vxl
+    :image_reader:type                         core
   endblock
 
   block video_reader:vidl_ffmpeg

@@ -16,7 +16,7 @@ process out_adapt
 
 process image_reader
  :: image_file_reader
- :image_reader:type                            vxl
+ :image_reader:type                            core
 
 connect from in_adapt.input_file_name
         to   image_reader.image_file_name
@@ -25,9 +25,9 @@ connect from in_adapt.input_file_name
 
 process random_grey
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :random_grayscale                          0.25
     :force_three_channel                       true
@@ -51,9 +51,9 @@ connect from random_grey.image
 
 process color_freq_filter
   :: image_filter
-  :filter:type                                 vxl_color_commonality
+  :filter:type                                 color_commonality
 
-  block filter:vxl_color_commonality
+  block filter:color_commonality
     :color_resolution_per_channel              16
     :internsity_hist_resolution                32
     :output_scale                              512
@@ -64,9 +64,9 @@ connect from random_hue.image
 
 process rgb_to_grey
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :single_channel                            true
   endblock
@@ -76,9 +76,9 @@ connect from image_reader.image
 
 process motion_filter
   :: image_filter
-  :filter:type                                 vxl_average
+  :filter:type                                 average_frames
 
-  block filter:vxl_average
+  block filter:average_frames
     :type                                      window
     :window_size                               20
     :round                                     false
@@ -90,9 +90,9 @@ connect from rgb_to_grey.image
 
 process float_to_byte
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :scale_factor                              0.50
   endblock
@@ -117,8 +117,8 @@ connect from float_to_byte.image
 
 process image_writer
  :: image_writer
- :image_writer:type                             vxl
- :image_writer:vxl:split_channels               true
+ :image_writer:type                             core
+ :image_writer:core:split_channels               true
  
 connect from in_adapt.output_file_name
         to   image_writer.image_file_name

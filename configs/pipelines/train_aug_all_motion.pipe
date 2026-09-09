@@ -34,7 +34,7 @@
 # 'vector' (dx,dy): a flip would have to negate dx, which the augmentation layer
 # does not do, and the channel would be silently corrupted.
 #
-# Note the 20-frame variance window is not configurable: vxl_average ignores
+# Note the 20-frame variance window is not configurable: average_frames ignores
 # window_size in window mode and hardcodes 20 (see arrows/vxl/average_frames.cxx,
 # AVERAGER_window constructs windowed_frame_averager with no arguments).
 #
@@ -57,9 +57,9 @@ include common_default_input_with_downsampler.pipe
 
 process ensure_color
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :force_three_channel                       true
   endblock
@@ -69,9 +69,9 @@ connect from downsampler.output_1
 
 process rgb_to_grey
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :single_channel                            true
   endblock
@@ -124,9 +124,9 @@ connect from ensure_color.image
 
 process diff_to_byte
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :single_channel                            true
     :scale_factor                              4.0
@@ -136,13 +136,13 @@ connect from frame_diff.motion_heat_map
         to   diff_to_byte.image
 
 # ===================== CHANNEL 3: TEMPORAL VARIANCE =========================
-# vxl_average emits a double-precision variance image, so it needs the byte cast.
+# average_frames emits a double-precision variance image, so it needs the byte cast.
 
 process variance_filter
   :: image_filter
-  :filter:type                                 vxl_average
+  :filter:type                                 average_frames
 
-  block filter:vxl_average
+  block filter:average_frames
     :type                                      window
     :window_size                               20
     :round                                     false
@@ -154,9 +154,9 @@ connect from rgb_to_grey.image
 
 process variance_to_byte
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :scale_factor                              0.50
   endblock
@@ -192,8 +192,8 @@ connect from variance_to_byte.image
 process image_writer
  :: image_writer
  :file_name_template                            frame%06d.png
- :image_writer:type                             vxl
- :image_writer:vxl:split_channels               false
+ :image_writer:type                             core
+ :image_writer:core:split_channels               false
 
 connect from image_merger2.image
         to   image_writer.image

@@ -20,9 +20,9 @@ include common_default_input_with_downsampler.pipe
 
 process random_grey
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :random_grayscale                          0.20
     :force_three_channel                       true
@@ -49,8 +49,8 @@ connect from random_grey.image
 process image_writer
  :: image_writer
  :file_name_template                            frame%06d.png
- :image_writer:type                             vxl
- :image_writer:vxl:split_channels               false
+ :image_writer:type                             core
+ :image_writer:core:split_channels               false
  
 connect from random_hue.image
         to   image_writer.image

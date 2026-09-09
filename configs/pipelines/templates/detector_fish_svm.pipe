@@ -16,9 +16,9 @@ include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_input_with_downsamp
 
 process detector_input
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :force_three_channel                       true
   endblock

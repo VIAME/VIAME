@@ -30,7 +30,7 @@ connect from in_adapt.image
 process image_writer
   :: image_writer
   :file_name_template                          output%06d.png
-  :image_writer:type                           vxl
+  :image_writer:type                           core
 
 connect from debayer.image
         to   image_writer.image

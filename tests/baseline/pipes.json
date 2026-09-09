@@ -38,11 +38,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -62,11 +62,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -90,11 +90,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -524,7 +524,7 @@
         "type": "stabilize_image",
         "algos": {
           "homography_generator:core:estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "homography_generator:type": {
@@ -544,7 +544,7 @@
             "resolved": true
           },
           "track_features:core:feature_matcher:homography_guided:homography_estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "track_features:core:feature_matcher:type": {
@@ -556,7 +556,7 @@
             "resolved": true
           },
           "track_features:core:loop_closer:multi_method:method_1:bad_frames_only:feature_matcher:homography_guided:homography_estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "track_features:core:loop_closer:multi_method:method_1:bad_frames_only:feature_matcher:type": {
@@ -567,28 +567,28 @@
             "impl": "bad_frames_only",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:type": {
-            "impl": "vxl_homography_guided",
-            "resolved": true
-          },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:feature_matcher:homography_guided:feature_matcher1:type": {
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:feature_matcher:homography_guided:feature_matcher1:type": {
             "impl": "ocv_flann_based",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:feature_matcher:homography_guided:homography_estimator:type": {
-            "impl": "vxl",
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:feature_matcher:homography_guided:homography_estimator:type": {
+            "impl": "core",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:feature_matcher:type": {
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:feature_matcher:type": {
             "impl": "homography_guided",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:ref_computer:core:estimator:type": {
-            "impl": "vxl",
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:ref_computer:core:estimator:type": {
+            "impl": "core",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:ref_computer:type": {
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:ref_computer:type": {
             "impl": "core",
+            "resolved": true
+          },
+          "track_features:core:loop_closer:multi_method:method_2:type": {
+            "impl": "homography_guided",
             "resolved": true
           },
           "track_features:core:loop_closer:type": {
@@ -612,11 +612,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -640,11 +640,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -889,7 +889,7 @@
         "type": "stabilize_image",
         "algos": {
           "homography_generator:core:estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "homography_generator:type": {
@@ -909,7 +909,7 @@
             "resolved": true
           },
           "track_features:core:feature_matcher:homography_guided:homography_estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "track_features:core:feature_matcher:type": {
@@ -921,7 +921,7 @@
             "resolved": true
           },
           "track_features:core:loop_closer:multi_method:method_1:bad_frames_only:feature_matcher:homography_guided:homography_estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "track_features:core:loop_closer:multi_method:method_1:bad_frames_only:feature_matcher:type": {
@@ -932,28 +932,28 @@
             "impl": "bad_frames_only",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:type": {
-            "impl": "vxl_homography_guided",
-            "resolved": true
-          },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:feature_matcher:homography_guided:feature_matcher1:type": {
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:feature_matcher:homography_guided:feature_matcher1:type": {
             "impl": "ocv_flann_based",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:feature_matcher:homography_guided:homography_estimator:type": {
-            "impl": "vxl",
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:feature_matcher:homography_guided:homography_estimator:type": {
+            "impl": "core",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:feature_matcher:type": {
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:feature_matcher:type": {
             "impl": "homography_guided",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:ref_computer:core:estimator:type": {
-            "impl": "vxl",
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:ref_computer:core:estimator:type": {
+            "impl": "core",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:ref_computer:type": {
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:ref_computer:type": {
             "impl": "core",
+            "resolved": true
+          },
+          "track_features:core:loop_closer:multi_method:method_2:type": {
+            "impl": "homography_guided",
             "resolved": true
           },
           "track_features:core:loop_closer:type": {
@@ -1080,11 +1080,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1097,11 +1097,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1143,11 +1143,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1160,11 +1160,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1188,11 +1188,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1205,11 +1205,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1247,11 +1247,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1264,11 +1264,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1281,11 +1281,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1459,11 +1459,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1476,11 +1476,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1612,11 +1612,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1640,11 +1640,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1704,11 +1704,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1759,11 +1759,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1814,11 +1814,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1842,11 +1842,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -1930,11 +1930,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -2010,11 +2010,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -2065,11 +2065,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -2162,11 +2162,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -2437,11 +2437,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -2555,11 +2555,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -2658,11 +2658,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -2726,11 +2726,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -2897,11 +2897,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -3112,11 +3112,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -3179,11 +3179,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -3216,7 +3216,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -3251,11 +3251,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -3274,13 +3274,13 @@
       "binarize": {
         "type": "image_filter",
         "algos": {
-          "filter:type": {
-            "impl": "vxl_threshold",
-            "resolved": true
-          },
-          "filter:vxl_threshold:type": {
+          "filter:threshold:type": {
             "impl": "absolute",
             "resolved": false
+          },
+          "filter:type": {
+            "impl": "threshold",
+            "resolved": true
           }
         }
       },
@@ -3288,7 +3288,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_morphology",
+            "impl": "morphology",
             "resolved": true
           }
         }
@@ -3306,7 +3306,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -3328,11 +3328,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -3345,7 +3345,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -3363,7 +3363,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_morphology",
+            "impl": "morphology",
             "resolved": true
           }
         }
@@ -3401,11 +3401,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -3456,11 +3456,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -3515,11 +3515,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -3574,11 +3574,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -3664,11 +3664,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -3763,11 +3763,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -3875,11 +3875,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -3952,11 +3952,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -3994,7 +3994,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -4016,11 +4016,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -4088,11 +4088,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -4143,11 +4143,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -4732,7 +4732,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -4741,7 +4741,7 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -4770,7 +4770,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -4797,7 +4797,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -4815,7 +4815,7 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -4862,7 +4862,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -4871,7 +4871,7 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -4895,7 +4895,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -4904,11 +4904,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -4977,11 +4977,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -5010,7 +5010,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -5019,11 +5019,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -5065,11 +5065,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -5098,7 +5098,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -5107,11 +5107,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -5152,11 +5152,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -5398,7 +5398,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -5407,7 +5407,7 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -5436,7 +5436,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -5445,7 +5445,7 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -5474,7 +5474,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -5483,7 +5483,7 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -5530,7 +5530,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -5539,11 +5539,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -5576,11 +5576,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -5635,7 +5635,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -5644,11 +5644,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -5721,7 +5721,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -5730,11 +5730,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -5798,11 +5798,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -5968,11 +5968,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -6119,11 +6119,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -6226,11 +6226,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -6333,11 +6333,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -6462,11 +6462,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -6604,11 +6604,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -6751,11 +6751,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -6884,11 +6884,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -6987,7 +6987,7 @@
     "processes": {},
     "algos": {
       "image_io:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "segment_via_points:type": {
@@ -7076,11 +7076,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7093,11 +7093,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7191,11 +7191,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7208,11 +7208,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7281,11 +7281,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7298,11 +7298,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7379,11 +7379,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7396,11 +7396,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7508,11 +7508,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7525,11 +7525,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7589,11 +7589,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7606,11 +7606,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7713,11 +7713,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7730,11 +7730,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7845,7 +7845,7 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -7858,7 +7858,7 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -8210,11 +8210,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -8227,11 +8227,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -8503,11 +8503,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -8520,11 +8520,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -8784,11 +8784,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -8801,7 +8801,7 @@
         "type": "stabilize_image",
         "algos": {
           "homography_generator:core:estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "homography_generator:type": {
@@ -8821,7 +8821,7 @@
             "resolved": true
           },
           "track_features:core:feature_matcher:homography_guided:homography_estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "track_features:core:feature_matcher:type": {
@@ -8833,7 +8833,7 @@
             "resolved": true
           },
           "track_features:core:loop_closer:multi_method:method_1:bad_frames_only:feature_matcher:homography_guided:homography_estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "track_features:core:loop_closer:multi_method:method_1:bad_frames_only:feature_matcher:type": {
@@ -8844,28 +8844,28 @@
             "impl": "bad_frames_only",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:type": {
-            "impl": "vxl_homography_guided",
-            "resolved": true
-          },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:feature_matcher:homography_guided:feature_matcher1:type": {
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:feature_matcher:homography_guided:feature_matcher1:type": {
             "impl": "ocv_flann_based",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:feature_matcher:homography_guided:homography_estimator:type": {
-            "impl": "vxl",
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:feature_matcher:homography_guided:homography_estimator:type": {
+            "impl": "core",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:feature_matcher:type": {
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:feature_matcher:type": {
             "impl": "homography_guided",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:ref_computer:core:estimator:type": {
-            "impl": "vxl",
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:ref_computer:core:estimator:type": {
+            "impl": "core",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:ref_computer:type": {
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:ref_computer:type": {
             "impl": "core",
+            "resolved": true
+          },
+          "track_features:core:loop_closer:multi_method:method_2:type": {
+            "impl": "homography_guided",
             "resolved": true
           },
           "track_features:core:loop_closer:type": {
@@ -10223,11 +10223,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -10441,7 +10441,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -10467,11 +10467,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -10504,7 +10504,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -10539,7 +10539,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -10548,7 +10548,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -10575,11 +10575,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -10591,26 +10591,26 @@
       "motion_filter1": {
         "type": "image_filter",
         "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
+          "filter:average_frames:type": {
             "impl": "window",
             "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
           }
         }
       },
       "motion_filter2": {
         "type": "image_filter",
         "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
+          "filter:average_frames:type": {
             "impl": "window",
             "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
           }
         }
       }
@@ -10638,7 +10638,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -10682,7 +10682,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -10691,7 +10691,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -10700,7 +10700,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -10718,11 +10718,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -10734,13 +10734,13 @@
       "motion_filter": {
         "type": "image_filter",
         "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
+          "filter:average_frames:type": {
             "impl": "window",
             "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
           }
         }
       }
@@ -10764,7 +10764,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -10799,11 +10799,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -10863,7 +10863,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -10923,7 +10923,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -10961,7 +10961,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -11003,7 +11003,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -11058,7 +11058,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -11127,7 +11127,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -11160,7 +11160,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -11182,7 +11182,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -11191,7 +11191,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -11217,26 +11217,26 @@
       "motion_filter1": {
         "type": "image_filter",
         "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
+          "filter:average_frames:type": {
             "impl": "window",
             "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
           }
         }
       },
       "motion_filter2": {
         "type": "image_filter",
         "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
+          "filter:average_frames:type": {
             "impl": "window",
             "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
           }
         }
       }
@@ -11264,7 +11264,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -11295,7 +11295,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -11304,7 +11304,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -11313,7 +11313,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -11330,13 +11330,13 @@
       "motion_filter": {
         "type": "image_filter",
         "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
+          "filter:average_frames:type": {
             "impl": "window",
             "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
           }
         }
       }
@@ -11401,7 +11401,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -11440,11 +11440,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -11539,11 +11539,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -11765,11 +11765,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -11886,11 +11886,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -12013,11 +12013,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -12065,7 +12065,7 @@
         "type": "stabilize_image",
         "algos": {
           "homography_generator:core:estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "homography_generator:type": {
@@ -12085,7 +12085,7 @@
             "resolved": true
           },
           "track_features:core:feature_matcher:homography_guided:homography_estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "track_features:core:feature_matcher:type": {
@@ -12097,7 +12097,7 @@
             "resolved": true
           },
           "track_features:core:loop_closer:multi_method:method_1:bad_frames_only:feature_matcher:homography_guided:homography_estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "track_features:core:loop_closer:multi_method:method_1:bad_frames_only:feature_matcher:type": {
@@ -12108,28 +12108,28 @@
             "impl": "bad_frames_only",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:type": {
-            "impl": "vxl_homography_guided",
-            "resolved": true
-          },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:feature_matcher:homography_guided:feature_matcher1:type": {
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:feature_matcher:homography_guided:feature_matcher1:type": {
             "impl": "ocv_flann_based",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:feature_matcher:homography_guided:homography_estimator:type": {
-            "impl": "vxl",
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:feature_matcher:homography_guided:homography_estimator:type": {
+            "impl": "core",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:feature_matcher:type": {
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:feature_matcher:type": {
             "impl": "homography_guided",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:ref_computer:core:estimator:type": {
-            "impl": "vxl",
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:ref_computer:core:estimator:type": {
+            "impl": "core",
             "resolved": true
           },
-          "track_features:core:loop_closer:multi_method:method_2:vxl_homography_guided:ref_computer:type": {
+          "track_features:core:loop_closer:multi_method:method_2:homography_guided:ref_computer:type": {
             "impl": "core",
+            "resolved": true
+          },
+          "track_features:core:loop_closer:multi_method:method_2:type": {
+            "impl": "homography_guided",
             "resolved": true
           },
           "track_features:core:loop_closer:type": {
@@ -12219,11 +12219,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -12417,11 +12417,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -12663,11 +12663,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -12779,11 +12779,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -12865,11 +12865,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -14197,11 +14197,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -14321,11 +14321,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -14432,11 +14432,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -14565,11 +14565,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -14690,11 +14690,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -14759,7 +14759,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_color_commonality",
+            "impl": "color_commonality",
             "resolved": true
           }
         }
@@ -14781,7 +14781,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -14790,11 +14790,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -14818,7 +14818,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -14827,7 +14827,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -14854,7 +14854,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -14863,11 +14863,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -14879,26 +14879,26 @@
       "motion_filter1": {
         "type": "image_filter",
         "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
+          "filter:average_frames:type": {
             "impl": "window",
             "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
           }
         }
       },
       "motion_filter2": {
         "type": "image_filter",
         "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
+          "filter:average_frames:type": {
             "impl": "window",
             "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
           }
         }
       },
@@ -14906,7 +14906,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -14926,7 +14926,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -14944,7 +14944,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -14953,11 +14953,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -14969,13 +14969,13 @@
       "motion_filter": {
         "type": "image_filter",
         "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
+          "filter:average_frames:type": {
             "impl": "window",
             "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
           }
         }
       },
@@ -14983,7 +14983,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15009,7 +15009,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15027,7 +15027,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15036,11 +15036,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -15073,7 +15073,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15091,7 +15091,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15100,11 +15100,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -15133,7 +15133,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15146,7 +15146,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15191,7 +15191,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15200,11 +15200,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -15217,7 +15217,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15225,13 +15225,13 @@
       "variance_filter": {
         "type": "image_filter",
         "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
+          "filter:average_frames:type": {
             "impl": "window",
             "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
           }
         }
       },
@@ -15239,7 +15239,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15264,7 +15264,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15273,7 +15273,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15282,7 +15282,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15291,7 +15291,7 @@
         "type": "image_file_reader",
         "algos": {
           "image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15303,13 +15303,13 @@
       "motion_filter": {
         "type": "image_filter",
         "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
+          "filter:average_frames:type": {
             "impl": "window",
             "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
           }
         }
       },
@@ -15317,7 +15317,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15330,7 +15330,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15355,7 +15355,7 @@
         "type": "image_file_reader",
         "algos": {
           "image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15364,7 +15364,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15397,7 +15397,7 @@
         "type": "image_file_reader",
         "algos": {
           "image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15406,7 +15406,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15434,7 +15434,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15443,11 +15443,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -15460,7 +15460,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15485,7 +15485,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_color_commonality",
+            "impl": "color_commonality",
             "resolved": true
           }
         }
@@ -15498,7 +15498,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15507,7 +15507,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15534,7 +15534,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15543,11 +15543,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -15559,13 +15559,13 @@
       "motion_filter": {
         "type": "image_filter",
         "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
+          "filter:average_frames:type": {
             "impl": "window",
             "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
           }
         }
       }
@@ -15590,7 +15590,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15599,7 +15599,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15608,11 +15608,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -15624,13 +15624,13 @@
       "motion_filter": {
         "type": "image_filter",
         "algos": {
-          "filter:type": {
-            "impl": "vxl_average",
-            "resolved": true
-          },
-          "filter:vxl_average:type": {
+          "filter:average_frames:type": {
             "impl": "window",
             "resolved": false
+          },
+          "filter:type": {
+            "impl": "average_frames",
+            "resolved": true
           }
         }
       },
@@ -15638,7 +15638,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -15658,7 +15658,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15667,11 +15667,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -15727,7 +15727,7 @@
         "type": "image_file_reader",
         "algos": {
           "image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15736,7 +15736,7 @@
         "type": "image_writer",
         "algos": {
           "image_writer:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           }
         }
@@ -15781,7 +15781,7 @@
         "resolved": true
       },
       "detector_trainer:adaptive:generic_probe_image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:adaptive:trainer_1:trainer:type": {
@@ -15789,7 +15789,7 @@
         "resolved": true
       },
       "detector_trainer:adaptive:trainer_2:trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:adaptive:trainer_2:trainer:ocv_windowed:trainer:type": {
@@ -15801,7 +15801,7 @@
         "resolved": true
       },
       "detector_trainer:adaptive:trainer_3:trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:adaptive:trainer_3:trainer:ocv_windowed:trainer:type": {
@@ -15813,7 +15813,7 @@
         "resolved": true
       },
       "detector_trainer:adaptive:trainer_4:trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:adaptive:trainer_4:trainer:ocv_windowed:trainer:type": {
@@ -15825,7 +15825,7 @@
         "resolved": true
       },
       "detector_trainer:adaptive:trainer_5:trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:adaptive:trainer_5:trainer:ocv_windowed:trainer:type": {
@@ -15860,7 +15860,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -15887,7 +15887,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -15914,7 +15914,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -15941,7 +15941,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -15968,7 +15968,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -15995,7 +15995,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -16022,7 +16022,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -16092,7 +16092,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -16119,7 +16119,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -16146,7 +16146,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -16173,7 +16173,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -16200,7 +16200,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -16227,7 +16227,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -16254,7 +16254,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -16308,7 +16308,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -16335,7 +16335,7 @@
     "processes": {},
     "algos": {
       "detector_trainer:ocv_windowed:image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       },
       "detector_trainer:ocv_windowed:trainer:type": {
@@ -16489,7 +16489,7 @@
         "resolved": true
       },
       "image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       }
     }
@@ -16508,7 +16508,7 @@
         "resolved": true
       },
       "image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       }
     }
@@ -16527,7 +16527,7 @@
         "resolved": true
       },
       "image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       }
     }
@@ -16546,7 +16546,7 @@
         "resolved": true
       },
       "image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       }
     }
@@ -16565,7 +16565,7 @@
         "resolved": true
       },
       "image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       }
     }
@@ -16584,7 +16584,7 @@
         "resolved": true
       },
       "image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       }
     }
@@ -16622,7 +16622,7 @@
         "resolved": true
       },
       "image_reader:type": {
-        "impl": "vxl",
+        "impl": "core",
         "resolved": true
       }
     }
@@ -16758,11 +16758,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -16804,11 +16804,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -16877,11 +16877,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -16923,11 +16923,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -16991,11 +16991,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -17138,7 +17138,7 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -17253,11 +17253,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -17321,11 +17321,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -17389,11 +17389,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -17462,7 +17462,7 @@
         "type": "image_filter",
         "algos": {
           "filter:type": {
-            "impl": "vxl_convert_image",
+            "impl": "convert_image",
             "resolved": true
           }
         }
@@ -17471,11 +17471,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -17533,11 +17533,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -17550,11 +17550,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -17648,11 +17648,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -17665,11 +17665,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -17755,11 +17755,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -17835,11 +17835,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -17881,11 +17881,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -17940,11 +17940,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -17992,11 +17992,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -18056,11 +18056,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -18088,11 +18088,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -18125,11 +18125,11 @@
             "resolved": true
           },
           "homography_estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "ref_homography_computer:core:estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "ref_homography_computer:type": {
@@ -18165,11 +18165,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -18182,11 +18182,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -18219,11 +18219,11 @@
             "resolved": true
           },
           "homography_estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "ref_homography_computer:core:estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "ref_homography_computer:type": {
@@ -18267,11 +18267,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -18284,11 +18284,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -18301,11 +18301,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -18338,11 +18338,11 @@
             "resolved": true
           },
           "homography_estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "ref_homography_computer:core:estimator:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "ref_homography_computer:type": {
@@ -18402,11 +18402,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -18506,11 +18506,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -18667,11 +18667,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -18769,11 +18769,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -18815,11 +18815,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -18901,11 +18901,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -18947,11 +18947,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -19011,11 +19011,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -19084,11 +19084,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -19161,11 +19161,11 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {
@@ -19313,7 +19313,7 @@
         "type": "video_input",
         "algos": {
           "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
+            "impl": "core",
             "resolved": true
           },
           "video_reader:type": {

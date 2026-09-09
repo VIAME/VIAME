@@ -20,9 +20,9 @@ process detection_reader
 
 process ensure_rgb
   :: image_filter
-  :filter:type                                   vxl_convert_image
+  :filter:type                                   convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                                   byte
     :force_three_channel                                      true
   endblock

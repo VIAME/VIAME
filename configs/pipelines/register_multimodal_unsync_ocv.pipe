@@ -88,7 +88,7 @@ connect from scale_warped.image
 
 process fused_writer
   :: image_writer
-  :image_writer:type                                    vxl
+  :image_writer:type                                    core
 
 connect from align_images.optical_file_name
         to   fused_writer.image_file_name

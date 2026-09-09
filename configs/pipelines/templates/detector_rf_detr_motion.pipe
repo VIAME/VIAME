@@ -16,18 +16,18 @@ include $ENV{VIAME_INSTALL}/configs/pipelines/common_default_input_with_downsamp
 
 process detector_input
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :single_channel                            true
   endblock
 
 process motion_filter1
   :: image_filter
-  :filter:type                                 vxl_average
+  :filter:type                                 average_frames
 
-  block filter:vxl_average
+  block filter:average_frames
     :type                                      window
     :window_size                               5
     :round                                     false
@@ -39,9 +39,9 @@ connect from detector_input.image
 
 process float_to_byte1
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :scale_factor                              0.50
   endblock
@@ -51,9 +51,9 @@ connect from motion_filter1.image
 
 process motion_filter2
   :: image_filter
-  :filter:type                                 vxl_average
+  :filter:type                                 average_frames
 
-  block filter:vxl_average
+  block filter:average_frames
     :type                                      window
     :window_size                               30
     :round                                     false
@@ -65,9 +65,9 @@ connect from detector_input.image
 
 process float_to_byte2
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :scale_factor                              0.50
   endblock

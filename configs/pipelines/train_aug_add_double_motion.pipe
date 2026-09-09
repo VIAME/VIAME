@@ -15,7 +15,7 @@
 # scene and so responds mainly to abrupt motion, and a long one, whose mean is a
 # stable background model and so accumulates slow, low-contrast motion.
 #
-# The window sizes only started doing anything once vxl_average was fixed to pass
+# The window sizes only started doing anything once average_frames was fixed to pass
 # window_size through to the averager (it previously hardcoded 20, so the old 8
 # and 16 here produced the SAME image, differing only by the byte scale factor --
 # ch2 was literally round(3 * ch0), correlation 0.9985). Keep the two windows far
@@ -46,9 +46,9 @@ include common_default_input_with_downsampler.pipe
 
 process rgb_to_grey
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :single_channel                            true
   endblock
@@ -58,9 +58,9 @@ connect from downsampler.output_1
 
 process motion_filter1
   :: image_filter
-  :filter:type                                 vxl_average
+  :filter:type                                 average_frames
 
-  block filter:vxl_average
+  block filter:average_frames
     :type                                      window
     :window_size                               5
     :round                                     false
@@ -72,9 +72,9 @@ connect from rgb_to_grey.image
 
 process float_to_byte1
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :scale_factor                              0.50
   endblock
@@ -84,9 +84,9 @@ connect from motion_filter1.image
 
 process motion_filter2
   :: image_filter
-  :filter:type                                 vxl_average
+  :filter:type                                 average_frames
 
-  block filter:vxl_average
+  block filter:average_frames
     :type                                      window
     :window_size                               30
     :round                                     false
@@ -98,9 +98,9 @@ connect from rgb_to_grey.image
 
 process float_to_byte2
   :: image_filter
-  :filter:type                                 vxl_convert_image
+  :filter:type                                 convert_image
 
-  block filter:vxl_convert_image
+  block filter:convert_image
     :format                                    byte
     :scale_factor                              0.50
   endblock
@@ -136,8 +136,8 @@ connect from float_to_byte2.image
 process image_writer
  :: image_writer
  :file_name_template                            frame%06d.png
- :image_writer:type                             vxl
- :image_writer:vxl:split_channels               false
+ :image_writer:type                             core
+ :image_writer:core:split_channels               false
 
 connect from image_merger2.image
         to   image_writer.image

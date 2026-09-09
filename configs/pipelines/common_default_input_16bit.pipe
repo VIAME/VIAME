@@ -19,17 +19,17 @@ process input
   endblock
 
   block video_reader:image_list
-    :image_reader:type                                  vxl
+    :image_reader:type                                  core
     :skip_bad_images                                    true
 
-    block image_reader:vxl
+    block image_reader:core
       :force_byte                                       false
     endblock
 
     block image_reader:add_timestamp_from_filename
-      :image_reader:type                                vxl
+      :image_reader:type                                core
 
-      block image_reader:vxl
+      block image_reader:core
         :force_byte                                     false
       endblock
     endblock

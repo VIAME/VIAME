@@ -17,7 +17,7 @@ process out_adapt
 
 process image_reader
  :: image_file_reader
- :image_reader:type                            vxl
+ :image_reader:type                            core
 
 connect from in_adapt.input_file_name
         to   image_reader.image_file_name
@@ -80,8 +80,8 @@ connect from filter.image
 
 process image_writer
  :: image_writer
- :image_writer:type                             vxl
- :image_writer:vxl:split_channels               true
+ :image_writer:type                             core
+ :image_writer:core:split_channels               true
 
 connect from in_adapt.output_file_name
         to   image_writer.image_file_name

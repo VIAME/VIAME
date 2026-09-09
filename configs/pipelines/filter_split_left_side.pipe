@@ -17,7 +17,7 @@ process input
   :video_reader:type                           image_list
 
   block video_reader:image_list
-    :image_reader:type                         vxl
+    :image_reader:type                         core
   endblock
 
 # ================================ CROP INPUTS ================================
@@ -34,7 +34,7 @@ connect from input.image
 process image_writer
   :: image_writer
   :file_name_template                          .png
-  :image_writer:type                           vxl
+  :image_writer:type                           core
 
 connect from split.left_image
         to   image_writer.image

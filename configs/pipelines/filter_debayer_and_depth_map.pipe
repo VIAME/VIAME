@@ -17,7 +17,7 @@ process input
   :video_reader:type                           image_list
 
   block video_reader:image_list
-    :image_reader:type                         vxl
+    :image_reader:type                         core
   endblock
 
 process debayer
@@ -52,7 +52,7 @@ connect from debayer.image
 process debayered_writer
   :: image_writer
   :file_name_template                          frame%06d.png
-  :image_writer:type                           vxl
+  :image_writer:type                           core
 
 connect from initial_filter.image
         to   debayered_writer.image
@@ -110,7 +110,7 @@ connect from depth_map.depth_map
 process depth_map_writer
   :: image_writer
   :file_name_template                          depth_map%06d.png
-  :image_writer:type                           vxl
+  :image_writer:type                           core
 
 connect from depth_map_filter.image
         to   depth_map_writer.image

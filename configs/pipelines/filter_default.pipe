@@ -32,7 +32,7 @@ connect from track_reader.object_track_set
 process image_writer
   :: image_writer
   :file_name_template                          frame%06d.jpg
-  :image_writer:type                           vxl
+  :image_writer:type                           core
 
 connect from downsampler.output_1
         to   image_writer.image
