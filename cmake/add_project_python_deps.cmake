@@ -90,7 +90,7 @@ if( VIAME_ENABLE_POSTGRESQL )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "psycopg2-binary" )
 endif()
 
-# For COLMAP structure-from-motion / 3D reconstruction (reconstruct_3d.py).
+# For COLMAP structure-from-motion / 3D reconstruction (the 3d tool).
 # pycolmap provides SfM + (CUDA) MVS. On CUDA builds we swap the CPU-only
 # pycolmap wheel for pycolmap-cuda12, which ships GPU-accelerated feature
 # extraction / matching / MVS. That wheel is installed individually (see the
@@ -99,7 +99,7 @@ endif()
 # cuda-toolkit[cudart,curand] wheels.
 #
 # open3d is deliberately NOT shipped: it is only used for the final
-# point-cloud / Poisson-mesh output of reconstruct_3d.py, and its Linux wheel
+# point-cloud / Poisson-mesh output of the 3d tool, and its Linux wheel
 # is ~427 MB compressed (1.1 GB installed, bundling both CPU and CUDA builds
 # of the library). The tool prints a clear pip-install hint when it is
 # missing; "pip install open3d-cpu" (Linux) or "open3d" (other platforms)

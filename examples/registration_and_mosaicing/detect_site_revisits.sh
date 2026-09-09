@@ -18,7 +18,7 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Identify loop-closure / revisit events (the platform leaves a location and
 # later returns to image the same ground). Revisit detection lives in
-# detect_prior_coverage.py: a geo-referenced ground-occupancy grid flags
+# register.py: a geo-referenced ground-occupancy grid flags
 # frames that re-cover previously seen ground, and land-to-land events are
 # confirmed by direct image registration. Writes revisits.csv and
 # coverage_map.png into ${OUTPUT}. Use "--method metadata" for a fast
@@ -27,5 +27,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 FLIGHT_LOGS_ARG=""
 if [ -n "${FLIGHT_LOGS}" ]; then FLIGHT_LOGS_ARG="--flight-logs ${FLIGHT_LOGS}"; fi
 
-python ${VIAME_INSTALL}/configs/detect_prior_coverage.py "${INPUT}" \
+python ${VIAME_INSTALL}/configs/register.py "${INPUT}" \
   --method hybrid --revisits-only --output "${OUTPUT}" ${FLIGHT_LOGS_ARG}

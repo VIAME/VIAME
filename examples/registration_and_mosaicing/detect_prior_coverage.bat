@@ -40,6 +40,6 @@ REM STAR ^| CENTER ^| PORT with the water class labels overlaid).
 SET FLIGHT_LOGS_ARG=
 IF NOT "%FLIGHT_LOGS%"=="" SET FLIGHT_LOGS_ARG=--flight-logs %FLIGHT_LOGS%
 
-python.exe "%VIAME_INSTALL%\configs\detect_prior_coverage.py" "%INPUT%" --method hybrid --water-method %WATER_METHOD% --output "%OUTPUT%" %FLIGHT_LOGS_ARG%
+python.exe "%VIAME_INSTALL%\configs\register.py" "%INPUT%" --method hybrid --water-method %WATER_METHOD% --output "%OUTPUT%" %FLIGHT_LOGS_ARG%
 
 pause

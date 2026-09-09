@@ -19,7 +19,8 @@ set( PYTHON_SCRIPTS
   plot.py
   run_bulk.py
   metadata.py
-  train_fusion.py
+  ensemble.py
+  monitor.py
 )
 
 if( VIAME_ENABLE_OPENCV )
@@ -29,9 +30,8 @@ if( VIAME_ENABLE_OPENCV )
     depth.py
     disparity.py
     mosaic.py
-    detect_prior_coverage.py
-    ply_utilities.py
-    reconstruct_3d.py
+    register.py
+    3d.py
     rectify.py
   )
 endif()

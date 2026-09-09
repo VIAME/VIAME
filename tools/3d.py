@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-reconstruct_3d.py - Convert UAS drone imagery folders into 3D mesh models.
+3d.py - Convert UAS drone imagery folders into 3D mesh models.
 
 Pipeline:
   1. SIFT feature extraction (pycolmap)
@@ -16,15 +16,15 @@ Multi-camera rigs (PORT/STAR/CENTER subfolders) are auto-detected and
 reconstructed jointly.
 
 NOTE: 2D planar prior-coverage / registration ("--planar" in older versions)
-now lives in detect_prior_coverage.py, which also handles revisit detection,
+now lives in register.py (viame register), which also handles revisit detection,
 cross-camera overlap and rig-constrained SfM coverage (--method sfm-rig).
 This tool is purely for 3D reconstruction.
 
 Usage:
-  python reconstruct_3d.py --install-deps          # check/install dependencies
-  python reconstruct_3d.py <image_folder> [--output <output_dir>] [--scale <0.25>]
-  python reconstruct_3d.py <image_folder> --dense-method mvs   # use COLMAP MVS (GPU)
-  python reconstruct_3d.py --all                    # process all subfolders
+  viame 3d --install-deps          # check/install dependencies
+  viame 3d <image_folder> [--output <output_dir>] [--scale <0.25>]
+  viame 3d <image_folder> --dense-method mvs   # use COLMAP MVS (GPU)
+  viame 3d --all                    # process all subfolders
 """
 
 import os
@@ -78,7 +78,7 @@ def require_colmap():
         print("\nInstall them with pip (pycolmap also ships with "
               "-DVIAME_ENABLE_COLMAP=ON builds; open3d is never bundled "
               "due to its size). "
-              "For 2D planar coverage/registration use detect_prior_coverage.py, "
+              "For 2D planar coverage/registration use viame register, "
               "which does not need COLMAP.")
         sys.exit(1)
 
@@ -379,7 +379,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="UAS Imagery -> 3D Model",
         epilog="For 2D planar prior-coverage, registration and revisit "
-               "detection use detect_prior_coverage.py instead.")
+               "detection use viame register instead.")
     parser.add_argument("folder", nargs="?",
                         help="Path to a folder of images (or use --all with --base-dir)")
     parser.add_argument("--all", action="store_true",

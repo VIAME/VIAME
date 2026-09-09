@@ -113,7 +113,7 @@ Sequential Mappings / Registration
 **********************************
 
 For overhead / benthic surveys (single camera or a PORT/STAR/CENTER multi-camera
-rig), ``detect_prior_coverage.py`` chains frame-to-frame affine registrations from
+rig), ``register.py`` chains frame-to-frame affine registrations from
 an anchor frame to compute, for every frame, the region already observed in
 previous imagery — split into ``prior_coverage_sequential`` (same camera),
 ``prior_coverage_cross_camera`` (adjacent rig camera, via a robust rig-constant
@@ -122,7 +122,7 @@ closures, or earlier sites/days in multi-folder runs) polygon classes, plus a
 ``revisits.csv`` event summary, a footprint map and a thumbnail visualization.
 The ``generate_mappings_sequential`` script invokes it without metadata::
 
-  detect_prior_coverage.py <folder> --method hybrid --output out
+  register.py <folder> --method hybrid --output out
 
 Without GPS the site is pseudo-georeferenced from the registration chains
 (within-site coverage and revisits only), and open-water gaps are bridged by a
@@ -142,7 +142,7 @@ COLMAP rig-constrained structure-from-motion (requires pycolmap; GPU-accelerated
 when available) as an independent cross-check.
 
 (Full 3D structure-from-motion, dense reconstruction and meshing live in
-``reconstruct_3d.py`` and require building with ``VIAME_ENABLE_COLMAP`` set to
+``3d.py`` (``viame 3d``) and require building with ``VIAME_ENABLE_COLMAP`` set to
 ON; the coverage/registration tooling above does not need COLMAP except for
 ``--method sfm-rig``.)
 
@@ -152,7 +152,7 @@ Prior-Coverage Detection: Quick Run Guide
 
 To produce a VIAME detection CSV of previously-observed regions for all
 cameras of a survey folder with the recommended settings, use the
-``detect_prior_coverage`` script (``.sh`` on Linux, ``.bat`` on Windows):
+``detect_prior_coverage`` example script (``.sh`` on Linux, ``.bat`` on Windows):
 
 1. Edit the script and set ``INPUT`` to the site folder — either a single
    folder of images, or a rig folder containing ``PORT``/``STAR``/``CENTER``
@@ -180,12 +180,12 @@ Site Revisit Detection
 **********************
 
 Revisit / loop-closure events — where the platform leaves a location and later
-returns to image the same ground — are detected by ``detect_prior_coverage.py``
+returns to image the same ground — are detected by ``register.py``
 through its ground-occupancy grid; the ``detect_site_revisits`` script runs it
 in ``--revisits-only`` mode, which skips the per-frame coverage CSV and
 thumbnails::
 
-  detect_prior_coverage.py <folder> --method hybrid --revisits-only --output out
+  register.py <folder> --method hybrid --revisits-only --output out
 
 It writes a ``revisits.csv`` listing, for each frame that re-covers previously
 seen ground, the source image / pass / day, the overlapping fraction, and

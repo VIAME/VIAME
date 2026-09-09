@@ -5,8 +5,8 @@
 """Shared registration engine (``viame.opencv.registration_utils``).
 
 Sequential homography-chain registration, GPS / flight-log metadata loading, and
-GPS geo-anchoring, shared by the standalone tools ``reconstruct_3d.py`` and
-``detect_site_revisits.py``. OpenCV-based; this module has NO COLMAP dependency
+GPS geo-anchoring, shared by the standalone tools ``3d.py`` and
+``register.py``. OpenCV-based; this module has NO COLMAP dependency
 (structure-from-motion lives in ``viame.colmap``).
 
 NOTE: ``numpy`` and ``cv2`` are imported lazily via :func:`import_dependencies`
@@ -929,7 +929,7 @@ def _geo_calibrate(chain, cam_images, poses, pairwise_H, force_chir=None):
         # single-heading or 180-degree out-and-back flights (R(2psi) invariant),
         # silently mis-fitting M's rotation on multi-heading sites and breaking
         # the synthesized-M case (see _pixel_to_enu_transform in
-        # detect_prior_coverage.py, which inverts with _rot2(-psi)).
+        # register.py, which inverts with _rot2(-psi)).
         g_cam = _rot2(yaw[j]) @ g
         G.append(g_cam); F.append([H[0, 2], H[1, 2]])
     if len(G) < 3:

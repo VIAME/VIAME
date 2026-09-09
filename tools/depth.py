@@ -15,8 +15,8 @@ import sys
 import cv2
 import numpy as np
 
-from compute_disparity import scaled_disparity
-from ply_utilities import write_ply_file
+from disparity import scaled_disparity
+from viame.core.utilities_ply import write_ply_file
 
 
 def main():

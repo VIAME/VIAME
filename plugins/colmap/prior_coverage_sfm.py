@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""prior_coverage_sfm.py - COLMAP rig-SfM backend for detect_prior_coverage.
+"""prior_coverage_sfm.py - COLMAP rig-SfM backend for the register tool.
 
 Experimental alternative geometry engine (--method sfm-rig): instead of 2D
 registration chains, runs COLMAP incremental SfM with the three rig cameras
@@ -22,7 +22,7 @@ converted to per-image ground-plane homographies:
      back to the metadata footprint transform.
 
 The coverage computation, outputs and visualizations are shared with
-detect_prior_coverage.py.
+register.py (viame register).
 """
 
 import math
@@ -105,15 +105,15 @@ def _fit_similarity_2d(src, dst):
 
 
 def run(args):
-    """Entry point called by detect_prior_coverage.main for --method sfm-rig.
+    """Entry point called by register.main for --method sfm-rig.
 
-    The coverage grid and output writers still live in the detect_prior_coverage
+    The coverage grid and output writers still live in the register
     tool (on sys.path via the calling tool); the registration core and metadata
     reader now live in the viame.opencv plugin. All are imported lazily so this
     module stays importable standalone.
     """
     import pycolmap
-    import detect_prior_coverage as dpc
+    import register as dpc
     from viame.core import survey_metadata as smd
 
     grid = dpc.CoverageGrid(cell_m=args.grid_cell)

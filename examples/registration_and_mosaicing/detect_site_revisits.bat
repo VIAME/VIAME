@@ -18,7 +18,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Identify loop-closure / revisit events (the platform leaves a location and
 REM later returns to image the same ground). Revisit detection lives in
-REM detect_prior_coverage.py: a geo-referenced ground-occupancy grid flags
+REM register.py: a geo-referenced ground-occupancy grid flags
 REM frames that re-cover previously seen ground, and land-to-land events are
 REM confirmed by direct image registration. Writes revisits.csv and
 REM coverage_map.png into %OUTPUT%. Use "--method metadata" for a fast
@@ -27,6 +27,6 @@ REM prior-coverage polygons.
 SET FLIGHT_LOGS_ARG=
 IF NOT "%FLIGHT_LOGS%"=="" SET FLIGHT_LOGS_ARG=--flight-logs %FLIGHT_LOGS%
 
-python.exe "%VIAME_INSTALL%\configs\detect_prior_coverage.py" "%INPUT%" --method hybrid --revisits-only --output "%OUTPUT%" %FLIGHT_LOGS_ARG%
+python.exe "%VIAME_INSTALL%\configs\register.py" "%INPUT%" --method hybrid --revisits-only --output "%OUTPUT%" %FLIGHT_LOGS_ARG%
 
 pause

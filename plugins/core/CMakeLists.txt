@@ -437,6 +437,11 @@ if( VIAME_ENABLE_PYTHON )
     read_object_track_set_coco )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities_ply.py
+    core
+    utilities_ply )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities_coco.py
     core
     utilities_coco )

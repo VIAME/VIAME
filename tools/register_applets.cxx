@@ -71,9 +71,13 @@ VIAME_PYTHON_SCRIPT_APPLET( metadata_applet, "metadata",
   "metadata.py",
   "Dump unified per-image survey metadata for a site folder" )
 
-VIAME_PYTHON_SCRIPT_APPLET( train_fusion_applet, "train-fusion",
-  "train_fusion.py",
-  "Learn detection fusion parameters for the nms_fusion merger" )
+VIAME_PYTHON_SCRIPT_APPLET( ensemble_applet, "ensemble",
+  "ensemble.py",
+  "Learn fusion parameters for ensembling multiple detectors" )
+
+VIAME_PYTHON_SCRIPT_APPLET( monitor_applet, "monitor",
+  "monitor.py",
+  "Monitor a training run and report progress by log or email" )
 
 #ifdef VIAME_TOOLS_HAVE_OPENCV
 
@@ -89,12 +93,11 @@ VIAME_PYTHON_SCRIPT_APPLET( disparity_applet, "disparity",
 VIAME_PYTHON_SCRIPT_APPLET( mosaic_applet, "mosaic",
   "mosaic.py", "Stitch a mosaic from images and their homographies" )
 
-VIAME_PYTHON_SCRIPT_APPLET( detect_prior_coverage_applet,
-  "detect-prior-coverage", "detect_prior_coverage.py",
-  "Detect previously-observed regions in survey imagery" )
+VIAME_PYTHON_SCRIPT_APPLET( register_applet, "register", "register.py",
+  "Register survey imagery and detect previously-observed regions" )
 
-VIAME_PYTHON_SCRIPT_APPLET( reconstruct_3d_applet, "reconstruct-3d",
-  "reconstruct_3d.py", "Build a 3D model from UAS imagery" )
+VIAME_PYTHON_SCRIPT_APPLET( reconstruct_3d_applet, "3d",
+  "3d.py", "Build a 3D model from UAS imagery" )
 
 VIAME_PYTHON_SCRIPT_APPLET( rectify_applet, "rectify",
   "rectify.py",
@@ -166,14 +169,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_script_tool< pipeline_applet >( reg );
   register_script_tool< plot_applet >( reg );
   register_script_tool< metadata_applet >( reg );
-  register_script_tool< train_fusion_applet >( reg );
+  register_script_tool< ensemble_applet >( reg );
+  register_script_tool< monitor_applet >( reg );
 
 #ifdef VIAME_TOOLS_HAVE_OPENCV
   register_script_tool< calibrate_applet >( reg );
   register_script_tool< depth_applet >( reg );
   register_script_tool< disparity_applet >( reg );
   register_script_tool< mosaic_applet >( reg );
-  register_script_tool< detect_prior_coverage_applet >( reg );
+  register_script_tool< register_applet >( reg );
   register_script_tool< reconstruct_3d_applet >( reg );
   register_script_tool< rectify_applet >( reg );
 #endif

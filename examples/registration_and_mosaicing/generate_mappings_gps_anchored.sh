@@ -16,7 +16,7 @@ export FLIGHT_LOGS=
 source ${VIAME_INSTALL}/setup_viame.sh
 
 # Sequential registration + prior coverage WITH GPS anchoring.
-# detect_prior_coverage.py calibrates a metres-to-pixels map from the raw
+# register.py calibrates a metres-to-pixels map from the raw
 # pairwise registrations (bounded by the altitude/focal-length expectation),
 # places featureless open-water frames by GPS dead-reckoning, and tracks all
 # observed ground in a geo-referenced occupancy grid so revisits — later
@@ -28,5 +28,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 FLIGHT_LOGS_ARG=""
 if [ -n "${FLIGHT_LOGS}" ]; then FLIGHT_LOGS_ARG="--flight-logs ${FLIGHT_LOGS}"; fi
 
-python ${VIAME_INSTALL}/configs/detect_prior_coverage.py "${INPUT}" \
+python ${VIAME_INSTALL}/configs/register.py "${INPUT}" \
   --method hybrid --output "${OUTPUT}" ${FLIGHT_LOGS_ARG}

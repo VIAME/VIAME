@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""detect_prior_coverage.py - Per-frame previously-observed image regions.
+"""register.py - Per-frame previously-observed image regions.
 
 For every image of a (multi-camera) aerial survey, identifies the region that
 was already observed in previous imagery and reports it as polygons in the
@@ -38,8 +38,8 @@ multi-camera rig configuration (experimental; requires pycolmap>=3.12).
 Multiple site folders can be processed in one run against a shared coverage
 grid, enabling cross-site / cross-day revisit detection:
 
-  python detect_prior_coverage.py SITE_A [SITE_B ...] --flight-logs <dir>
-  python detect_prior_coverage.py --all <root> --flight-logs <dir>
+  viame register SITE_A [SITE_B ...] --flight-logs <dir>
+  viame register --all <root> --flight-logs <dir>
 
 Outputs per site (in --output, default <site>_coverage):
   prior_coverage.csv       VIAME CSV; one polygon row per PRIOR FRAME whose
