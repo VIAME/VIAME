@@ -80,53 +80,23 @@ connect from downsampler.timestamp
 connect from track_initializer.object_track_set
         to   track_descriptor.object_track_set
 
-process kwa_writer
-  :: kw_archive_writer
-  :output_directory                           [INSERT_ME]
-  :base_filename                              [INSERT_ME]
-  :separate_meta                              true
-  :stream_id                                  [INSERT_ME]
-  :compress_image                             true
-  :static/gsd[ro]                             common:fixed_gsd
-  :static/corner_points[ro]                   0 0 0 0 0 0 0 0
-
-connect from downsampler.timestamp
-        to   kwa_writer.timestamp
-connect from image_filter.image
-        to   kwa_writer.image
-
-process track_writer_db
+process track_writer_index
   :: write_object_track
-  :file_name                                  none
-  :writer:type                                db
-  :writer:db:conn_str                         postgresql:host=localhost;user=postgres
-  :writer:db:video_name                       [INSERT_ME]
+  :file_name                                  [INSERT_ME]
+  :writer:type                                viame_csv
 
 connect from downsampler.timestamp
-        to   track_writer_db.timestamp
+        to   track_writer_index.timestamp
 connect from track_initializer.object_track_set
-        to   track_writer_db.object_track_set
+        to   track_writer_index.object_track_set
 
-process descriptor_writer_db
+process descriptor_writer_index
   :: write_track_descriptor
-  :file_name                                  none
-  :writer:type                                db
-  :writer:db:conn_str                         postgresql:host=localhost;user=postgres
-  :writer:db:video_name                       [INSERT_ME]
+  :file_name                                  [INSERT_ME]
+  :writer:type                                csv
 
 connect from track_descriptor.track_descriptor_set
-        to   descriptor_writer_db.track_descriptor_set
-
-process descriptor_indexer
-  :: ingest_descriptors_db
-  :conn_str                                   postgresql:host=localhost;user=postgres
-  :video_name                                 [INSERT_ME]
-
-connect from track_descriptor.descriptor_set
-        to   descriptor_indexer.descriptor_set
-
-connect from track_descriptor.string_vector
-        to   descriptor_indexer.string_vector
+        to   descriptor_writer_index.track_descriptor_set
 
 # -- end of file --
 

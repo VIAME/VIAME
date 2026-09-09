@@ -34,6 +34,7 @@ References:
 import argparse
 import json
 import os
+import time
 import pickle
 import sys
 from collections import defaultdict
@@ -506,6 +507,364 @@ class CSVDescriptorSource(DescriptorSource):
     def __len__(self):
         all_uids, _ = self._load_all()
         return len(all_uids)
+
+
+class KwiverCsvDescriptorSource(DescriptorSource):
+    """Load descriptors from a KWIVER track-descriptor CSV.
+
+    This is the file the index pipelines' ``write_track_descriptor`` (csv
+    writer) produces, one descriptor per line::
+
+        uid, type, n_track_refs, "id id ...", n_values, "v1 v2 ...", n_hist, "..."
+
+    Lines whose value count is 0 carry no vector (they were stripped after
+    the bundle was built) and are skipped.
+    """
+
+    def __init__(self, file_path):
+        self.file_path = file_path
+        self._cache = None
+
+    @staticmethod
+    def parse_line(line):
+        """Return (uid, values) for one data line, or None."""
+        parts = line.split(',')
+        if len(parts) != 8:
+            return None
+        uid = parts[0].strip()
+        try:
+            count = int(parts[4].strip() or 0)
+        except ValueError:
+            return None
+        if count <= 0:
+            return uid, None
+        try:
+            values = [float(x) for x in parts[5].split()]
+        except ValueError:
+            return None
+        if len(values) != count:
+            return None
+        return uid, values
+
+    def _load_all(self):
+        if self._cache is not None:
+            return self._cache
+        uids = []
+        descriptors = []
+        with open(self.file_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                parsed = self.parse_line(line)
+                if parsed is None or parsed[1] is None:
+                    continue
+                uids.append(parsed[0])
+                descriptors.append(parsed[1])
+        self._cache = (uids, np.array(descriptors, dtype=np.float32)
+                       if descriptors else np.array([], dtype=np.float32))
+        return self._cache
+
+    def get_descriptors(self, max_count=None, uids=None, random_sample=False):
+        all_uids, all_descs = self._load_all()
+        if len(all_descs) == 0:
+            return [], np.array([])
+        if uids is not None:
+            uid_set = set(uids)
+            indices = [i for i, u in enumerate(all_uids) if u in uid_set]
+            return [all_uids[i] for i in indices], all_descs[indices]
+        if max_count is not None and max_count < len(all_uids):
+            if random_sample:
+                indices = np.random.choice(len(all_uids), max_count, replace=False)
+                return [all_uids[i] for i in indices], all_descs[indices]
+            return all_uids[:max_count], all_descs[:max_count]
+        return all_uids, all_descs
+
+    def get_all_uids(self):
+        return self._load_all()[0]
+
+    def __len__(self):
+        return len(self._load_all()[0])
+
+
+# ---------------------------------------------------------------------------
+# File-backed index bundles
+#
+# One set of files per indexed video, all in the index ("database") folder
+# and sharing the video's basename:
+#
+#   <name>.index             JSON manifest; its presence marks an indexed video
+#   <name>_descriptors.csv   track descriptors (uids, track refs, history;
+#                            raw vectors until the bundle is built)
+#   <name>_tracks.csv        object tracks referenced by the descriptors
+#   <name>_descriptors.npy   N x D float32 descriptor matrix
+#   <name>_uids.txt          uid of each row of the matrix
+#   <name>_hashes.npy        N x bits uint8 ITQ codes (0/1) of each row
+#   ITQ/itq.model.*.npy      the one ITQ model shared by every bundle
+# ---------------------------------------------------------------------------
+BUNDLE_MANIFEST_VERSION = 1
+BUNDLE_INDEX_POSTFIX = ".index"
+BUNDLE_DESCRIPTOR_CSV_POSTFIX = "_descriptors.csv"
+BUNDLE_DESCRIPTOR_NPY_POSTFIX = "_descriptors.npy"
+BUNDLE_UIDS_POSTFIX = "_uids.txt"
+BUNDLE_HASHES_POSTFIX = "_hashes.npy"
+
+
+def _model_suffix(bit_length, itq_iterations, random_seed):
+    return "b%d_i%d_r%d" % (bit_length, itq_iterations,
+                            random_seed if random_seed is not None else 0)
+
+
+def _model_hash(itq_dir, suffix):
+    """Short digest of the model files, stored in manifests so bundles hashed
+    with an older model are recognised and rehashed."""
+    import hashlib
+    digest = hashlib.sha1()
+    for kind in ("mean_vec", "rotation"):
+        path = os.path.join(itq_dir, "itq.model.%s.%s.npy" % (suffix, kind))
+        with open(path, 'rb') as f:
+            digest.update(f.read())
+    return digest.hexdigest()[:12]
+
+
+def _model_present(itq_dir, suffix):
+    return all(os.path.exists(os.path.join(itq_dir, "itq.model.%s.%s.npy" % (suffix, kind)))
+               for kind in ("mean_vec", "rotation"))
+
+
+def list_index_bundles(database_dir):
+    """Basenames of every video with a descriptor CSV or array in the folder."""
+    names = set()
+    for filename in os.listdir(database_dir):
+        for postfix in (BUNDLE_DESCRIPTOR_CSV_POSTFIX, BUNDLE_DESCRIPTOR_NPY_POSTFIX):
+            if filename.endswith(postfix):
+                names.add(filename[:-len(postfix)])
+    return sorted(names)
+
+
+def read_bundle_manifest(database_dir, name):
+    path = os.path.join(database_dir, name + BUNDLE_INDEX_POSTFIX)
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path) as f:
+            manifest = json.load(f)
+        return manifest if isinstance(manifest, dict) else None
+    except (OSError, ValueError):
+        return None
+
+
+def _write_atomic(path, writer):
+    """Write through a temp file and rename, so a crash never leaves a
+    truncated array behind the marker that says it is complete."""
+    tmp = path + ".tmp"
+    writer(tmp)
+    os.replace(tmp, path)
+
+
+def strip_csv_vectors(csv_path):
+    """Rewrite a track-descriptor CSV with empty vector columns. The vectors
+    live in the bundle's .npy from then on; uids, track references and
+    history (what result assembly needs) are kept."""
+    tmp = csv_path + ".tmp"
+    with open(csv_path) as src, open(tmp, 'w') as dst:
+        for line in src:
+            stripped = line.rstrip('\n')
+            if not stripped or stripped.startswith('#'):
+                dst.write(line)
+                continue
+            parts = stripped.split(',')
+            if len(parts) == 8:
+                parts[4] = '0'
+                parts[5] = ' '
+                dst.write(','.join(parts) + '\n')
+            else:
+                dst.write(line)
+    os.replace(tmp, csv_path)
+
+
+def convert_bundle_vectors(database_dir, name, verbose=True):
+    """Make sure <name>_descriptors.npy / <name>_uids.txt exist and are
+    current with respect to <name>_descriptors.csv. Returns the row count,
+    or None when the video has no descriptors at all."""
+    csv_path = os.path.join(database_dir, name + BUNDLE_DESCRIPTOR_CSV_POSTFIX)
+    npy_path = os.path.join(database_dir, name + BUNDLE_DESCRIPTOR_NPY_POSTFIX)
+    uid_path = os.path.join(database_dir, name + BUNDLE_UIDS_POSTFIX)
+
+    have_npy = os.path.exists(npy_path) and os.path.exists(uid_path)
+    csv_newer = (os.path.exists(csv_path) and
+                 (not have_npy or os.path.getmtime(csv_path) > os.path.getmtime(npy_path)))
+
+    if have_npy and not csv_newer:
+        return int(np.load(npy_path, mmap_mode='r').shape[0])
+
+    if not os.path.exists(csv_path):
+        return None
+
+    source = KwiverCsvDescriptorSource(csv_path)
+    uids, descs = source.get_descriptors()
+    if len(uids) == 0:
+        if have_npy:
+            # The CSV was stripped after conversion; the array is the truth
+            return int(np.load(npy_path, mmap_mode='r').shape[0])
+        return None
+
+    def write_array(tmp):
+        # A file object keeps np.save from appending .npy to the temp name
+        with open(tmp, 'wb') as f:
+            np.save(f, np.asarray(descs, dtype=np.float32))
+    _write_atomic(npy_path, write_array)
+
+    def write_uids(tmp):
+        with open(tmp, 'w') as f:
+            for uid in uids:
+                f.write(uid + '\n')
+    _write_atomic(uid_path, write_uids)
+
+    if verbose:
+        print("    %s: converted %d descriptors (%d-d) to float32" % (
+            name, len(uids), descs.shape[1]))
+    return len(uids)
+
+
+def build_index_bundles(database_dir, bit_length=256, itq_iterations=100,
+                        random_seed=0, normalize=None, pca_method='cov_eig',
+                        init_method='svd', max_train_descriptors=100000,
+                        retrain=False, strip_vectors=True, verbose=True):
+    """Build or refresh the file-backed index in ``database_dir``.
+
+    1. Every <name>_descriptors.csv is converted to a float32 array bundle.
+    2. The shared ITQ model is trained (on a sample across all bundles)
+       when absent or when ``retrain`` is set.
+    3. Every bundle whose manifest does not name the current model gets
+       its hash codes computed and its manifest written.
+
+    Returns a summary dict: bundles, descriptors, rehashed, trained.
+    """
+    database_dir = os.path.abspath(database_dir)
+    if not os.path.isdir(database_dir):
+        raise ValueError("Index folder does not exist: %s" % database_dir)
+    itq_dir = os.path.join(database_dir, "ITQ")
+    os.makedirs(itq_dir, exist_ok=True)
+
+    if random_seed is not None:
+        np.random.seed(random_seed)
+
+    if verbose:
+        print("  (1/3) Converting descriptor files...")
+    names = list_index_bundles(database_dir)
+    counts = {}
+    for name in names:
+        count = convert_bundle_vectors(database_dir, name, verbose=verbose)
+        if count:
+            counts[name] = count
+    total = sum(counts.values())
+    if verbose:
+        print("    %d video(s), %d descriptors" % (len(counts), total))
+
+    suffix = _model_suffix(bit_length, itq_iterations, random_seed)
+    model = ITQModel(bit_length=bit_length, itq_iterations=itq_iterations,
+                     random_seed=random_seed, normalize=normalize,
+                     pca_method=pca_method, init_method=init_method)
+    trained = False
+
+    if verbose:
+        print("  (2/3) ITQ model...")
+    if not retrain and _model_present(itq_dir, suffix):
+        model.load(itq_dir)
+        if verbose:
+            print("    Using existing model %s" % suffix)
+    else:
+        if total == 0:
+            raise ValueError("No descriptors found in %s to train the ITQ model on"
+                             % database_dir)
+        # Sample training rows proportionally across bundles
+        sample = []
+        budget = max_train_descriptors if max_train_descriptors else total
+        for name, count in counts.items():
+            arr = np.load(os.path.join(database_dir, name + BUNDLE_DESCRIPTOR_NPY_POSTFIX),
+                          mmap_mode='r')
+            take = max(1, int(round(budget * count / float(total)))) if budget < total else count
+            take = min(take, count)
+            rows = (np.sort(np.random.choice(count, take, replace=False))
+                    if take < count else np.arange(count))
+            sample.append(np.asarray(arr[rows], dtype=np.float64))
+        train = np.concatenate(sample, axis=0)
+        if verbose:
+            print("    Training on %d descriptors (%d-d)" % (train.shape[0], train.shape[1]))
+        model.fit(train, verbose=verbose)
+        model.save(itq_dir)
+        trained = True
+        if verbose:
+            print("    Saved model %s to %s" % (suffix, itq_dir))
+
+    model_hash = _model_hash(itq_dir, suffix)
+
+    if verbose:
+        print("  (3/3) Hash codes...")
+    rehashed = 0
+    for name, count in counts.items():
+        manifest = read_bundle_manifest(database_dir, name)
+        hashes_path = os.path.join(database_dir, name + BUNDLE_HASHES_POSTFIX)
+        current = (manifest is not None
+                   and manifest.get("itq_model") == suffix
+                   and manifest.get("itq_model_hash") == model_hash
+                   and manifest.get("count") == count
+                   and os.path.exists(hashes_path))
+        if current:
+            continue
+        arr = np.load(os.path.join(database_dir, name + BUNDLE_DESCRIPTOR_NPY_POSTFIX),
+                      mmap_mode='r')
+        codes = []
+        batch = 10000
+        for start in range(0, count, batch):
+            chunk = np.asarray(arr[start:start + batch], dtype=np.float64)
+            codes.append(model.compute_hashes_bool(chunk).astype(np.uint8))
+        codes = np.concatenate(codes, axis=0) if codes else np.zeros((0, bit_length), np.uint8)
+        def write_codes(tmp, codes=codes):
+            with open(tmp, 'wb') as f:
+                np.save(f, codes)
+        _write_atomic(hashes_path, write_codes)
+
+        manifest = {
+            "version": BUNDLE_MANIFEST_VERSION,
+            "name": name,
+            "count": int(count),
+            "dimension": int(arr.shape[1]),
+            "dtype": str(arr.dtype),
+            "itq_model": suffix,
+            "itq_model_hash": model_hash,
+            "bit_length": int(bit_length),
+            "updated": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        }
+        with open(os.path.join(database_dir, name + BUNDLE_INDEX_POSTFIX) + ".tmp", 'w') as f:
+            json.dump(manifest, f, indent=2)
+        os.replace(os.path.join(database_dir, name + BUNDLE_INDEX_POSTFIX) + ".tmp",
+                   os.path.join(database_dir, name + BUNDLE_INDEX_POSTFIX))
+        rehashed += 1
+        if verbose:
+            print("    %s: %d hash codes" % (name, count))
+
+        if strip_vectors:
+            csv_path = os.path.join(database_dir, name + BUNDLE_DESCRIPTOR_CSV_POSTFIX)
+            if os.path.exists(csv_path):
+                strip_csv_vectors(csv_path)
+
+    return {"bundles": len(counts), "descriptors": total,
+            "rehashed": rehashed, "trained": trained}
+
+
+def remove_index_bundle(database_dir, name):
+    """Delete every file of one indexed video. Returns the removed paths."""
+    removed = []
+    for postfix in (BUNDLE_INDEX_POSTFIX, BUNDLE_DESCRIPTOR_CSV_POSTFIX,
+                    BUNDLE_DESCRIPTOR_NPY_POSTFIX, BUNDLE_UIDS_POSTFIX,
+                    BUNDLE_HASHES_POSTFIX, "_tracks.csv"):
+        path = os.path.join(database_dir, name + postfix)
+        if os.path.exists(path):
+            os.remove(path)
+            removed.append(path)
+    return removed
 
 
 class PostgresDescriptorSource(DescriptorSource):

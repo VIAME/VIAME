@@ -94,6 +94,24 @@ If your ingest was successful, you should get a message saying 'ingest complete"
 errors in your output log. If you get an error, and are unable to decipher it, send a copy
 of your database/Logs folder and console output to 'viame.developers@gmail.com'.
 
+Index Storage
+-------------
+
+By default the index is a set of plain files in the 'database' folder, one group per
+ingested video or image list sharing its basename: '[name].index' (a JSON manifest that
+marks the entry as indexed), '[name]_descriptors.csv' (descriptor ids, track references
+and per-frame history), '[name]_tracks.csv' (the object tracks), '[name]_descriptors.npy'
+(the descriptor vectors as a float32 matrix), '[name]_uids.txt' (the id of each row) and
+'[name]_hashes.npy' (locality-sensitive hash codes of each row). The ITQ hashing model
+shared by every entry lives in 'database/ITQ'. Adding a video re-runs the ingest for it
+and refreshes only its own files; removing one is deleting its files. No server process
+is involved, and the folder can be copied or backed up as-is.
+
+The earlier embedded PostgreSQL store is still available: pass '--index-backend postgres'
+(and '--init-db' on the first build) to 'viame run' / 'run_bulk.py', and
+'--index-backend postgres' to 'launch_search.py'. Both backends use the same ITQ files,
+but a folder holds one or the other, not a mix.
+
 
 Perform an Image Query
 ======================

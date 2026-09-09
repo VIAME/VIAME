@@ -543,16 +543,33 @@ def homography_output_settings_list( output_dir, basename, cid = None ):
     fset( homog_writer_str + 'output=' + homog_file ),
   ))
 
-def search_output_settings_list( output_dir, basename ):
-  return list( itertools.chain(
-    fset( 'track_writer_db:writer:db:video_name=' + basename ),
+# Index (search) output settings. The index pipelines write per-video files
+# by default (the file-backed index that the query pipelines read); with
+# --index-backend postgres the same writers are pointed at the database.
+def search_output_settings_list( output_dir, basename, index_backend='files',
+                                 conn_str=None ):
+  settings = list( itertools.chain(
     fset( 'track_writer_kw18:file_name=' + output_dir + div + basename + '.kw18' ),
-    fset( 'descriptor_writer_db:writer:db:video_name=' + basename ),
     fset( 'track_descriptor:uid_basename=' + basename ),
-    fset( 'kwa_writer:output_directory=' + output_dir ),
-    fset( 'kwa_writer:base_filename=' + basename ),
-    fset( 'kwa_writer:stream_id=' + basename ),
   ))
+  if index_backend == 'postgres':
+    conn_str = conn_str or database.DEFAULT_CONN_STR
+    settings += list( itertools.chain(
+      fset( 'track_writer_index:writer:type=db' ),
+      fset( 'track_writer_index:writer:db:conn_str=' + conn_str ),
+      fset( 'track_writer_index:writer:db:video_name=' + basename ),
+      fset( 'descriptor_writer_index:writer:type=db' ),
+      fset( 'descriptor_writer_index:writer:db:conn_str=' + conn_str ),
+      fset( 'descriptor_writer_index:writer:db:video_name=' + basename ),
+    ))
+  else:
+    settings += list( itertools.chain(
+      fset( 'track_writer_index:file_name=' + output_dir + div + basename
+            + database.TRACK_POSTFIX ),
+      fset( 'descriptor_writer_index:file_name=' + output_dir + div + basename
+            + database.DESCRIPTOR_POSTFIX ),
+    ))
+  return settings
 
 def plot_settings_list( output_dir, basename ):
   return list( itertools.chain(
@@ -914,7 +931,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     version_id=options.version_str )
 
   command += homography_output_settings_list( output_dir, input_id_no_ext )
-  command += search_output_settings_list( output_dir, input_id_no_ext )
+  command += search_output_settings_list( output_dir, input_id_no_ext,
+    options.index_backend )
 
   command += archive_dimension_settings_list( options )
   command += object_detector_settings_list( options )
@@ -1222,6 +1240,12 @@ if __name__ == "__main__" :
   parser.add_argument( "--build-index", dest="build_index", action="store_true",
     help="Build searchable index on completion" )
 
+  parser.add_argument( "--index-backend", dest="index_backend", default="files",
+    choices=[ "files", "postgres" ],
+    help="Where the searchable index keeps descriptors: per-video files in the "
+    "output folder (default) or an embedded PostgreSQL database (requires "
+    "--init-db on the first build)" )
+
   parser.add_argument( "--ball-tree", dest="ball_tree", action="store_true",
     help="Use a ball tree for the searchable index" )
 
@@ -1328,8 +1352,10 @@ if __name__ == "__main__" :
     detection_ext = "_detections" + default_gt_ext
     track_ext = "_tracks" + default_gt_ext
 
-  # Initialize database
-  if args.init_db:
+  # Initialize database (PostgreSQL-backed index only)
+  if args.init_db and args.index_backend != 'postgres':
+    log_info( "Note: --init-db is ignored with the file-backed index" + lb1 )
+  if args.init_db and args.index_backend == 'postgres':
     if len( args.log_directory ) > 0:
       init_log_file = os.path.join( args.output_directory,
                                     args.log_directory,
@@ -1521,7 +1547,9 @@ if __name__ == "__main__" :
     if args.ball_tree:
       print( "Warning: building a ball tree is deprecated" )
 
-    if not database.build_index( log_file=index_log_file ):
+    if not database.build_index( log_file=index_log_file,
+                                 backend=args.index_backend,
+                                 database_dir=args.output_directory ):
       exit_with_error( "Unable to build index" )
 
   # Output complete message

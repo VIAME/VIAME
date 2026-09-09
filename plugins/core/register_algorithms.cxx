@@ -31,6 +31,7 @@
 #include "read_object_track_set_auto.h"
 #include "read_object_track_set_dive.h"
 #include "read_object_track_set_viame_csv.h"
+#include "query_track_descriptor_set_csv.h"
 #include "read_transform_homography_json.h"
 #include "refine_detections_add_fixed.h"
 #include "refine_detections_nms.h"
@@ -110,6 +111,8 @@ register_factories( kv::plugin_loader& vpm )
     read_object_track_set_dive >( vpm );
   register_algorithm< kv::algo::read_object_track_set,
     read_object_track_set_viame_csv >( vpm );
+  register_algorithm< kv::algo::query_track_descriptor_set,
+    query_track_descriptor_set_csv >( vpm );
   register_algorithm< kv::algo::transform_2d_io,
     read_transform_homography_json >( vpm );
   register_algorithm< kv::algo::detected_object_set_output,

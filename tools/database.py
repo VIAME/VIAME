@@ -30,6 +30,13 @@ DEFAULT_DB_PORT = 5432
 DEFAULT_DB_NAME = "postgres"
 DEFAULT_DB_USER = "postgres"
 DEFAULT_TABLE_NAME = "DESCRIPTOR"
+DEFAULT_CONN_STR = "postgresql:host=localhost;user=postgres"
+
+# File-backed index: one set of files per indexed video in the database
+# folder, sharing a basename (see generate_nn_index.build_index_bundles)
+INDEX_POSTFIX = ".index"
+DESCRIPTOR_POSTFIX = "_descriptors.csv"
+TRACK_POSTFIX = "_tracks.csv"
 DEFAULT_UUID_COL = "UID"
 DEFAULT_ELEMENT_COL = "VECTOR_DATA"
 
@@ -210,15 +217,49 @@ def _wait_for_port_available(port=5432, timeout=10):
     return False
 
 
-def build_index(log_file=""):
+def build_index(log_file="", backend="files", database_dir=None):
     """
-    Build ITQ LSH index for efficient nearest neighbor search.
+    Build the ITQ LSH index for efficient nearest neighbor search.
 
-    Uses the generate_nn_index module to create an ITQ index from descriptors
-    stored in the database or a CSV file.
+    With the file-backed index (backend "files", the default) every
+    <name>_descriptors.csv written by an index pipeline into database_dir
+    becomes a bundle: <name>_descriptors.npy, <name>_uids.txt,
+    <name>_hashes.npy and a <name>.index manifest, hashed with one ITQ model
+    kept in database_dir/ITQ (trained on the first build). With backend
+    "postgres" the descriptors are read from the running database instead
+    and a single global hash table is written, as before.
     """
     global _log_file
     _log_file = log_file
+
+    if database_dir is None:
+        database_dir = DATABASE_DIR
+
+    if backend == "files":
+        try:
+            from generate_nn_index import build_index_bundles
+
+            _log("Building file-backed ITQ index...\n")
+            summary = build_index_bundles(
+                database_dir=database_dir,
+                bit_length=256,
+                itq_iterations=100,
+                random_seed=0,
+                max_train_descriptors=100000,
+                strip_vectors=True,
+                verbose=True,
+            )
+            _log("  Indexed %d video(s), %d descriptors (%d rehashed)\n" % (
+                summary["bundles"], summary["descriptors"], summary["rehashed"]))
+            _log("Success\n")
+            return True
+        except Exception as e:
+            _log(f"Failure: {e}\n")
+            if log_file:
+                _log(f"  Check log: {log_file}\n")
+            import traceback
+            traceback.print_exc()
+            return False
 
     try:
         from generate_nn_index import (
@@ -246,7 +287,7 @@ def build_index(log_file=""):
         except Exception as e:
             _log(f"  Database connection failed: {e}\n")
             # Fall back to CSV
-            csv_path = os.path.join(DATABASE_DIR, "descriptors.csv")
+            csv_path = os.path.join(database_dir, "descriptors.csv")
             if os.path.exists(csv_path):
                 source = CSVDescriptorSource(csv_path)
                 _log(f"  Using CSV file: {csv_path}\n")
@@ -254,7 +295,7 @@ def build_index(log_file=""):
                 _log("  No descriptor source found (database or CSV)\n")
                 return False
 
-        output_dir = os.path.join(DATABASE_DIR, "ITQ")
+        output_dir = os.path.join(database_dir, "ITQ")
 
         generate_nn_index(
             descriptor_source=source,
@@ -290,7 +331,7 @@ def print_usage():
     print("  status            Check database status")
     print("  start             Start the database server")
     print("  stop              Stop the database server")
-    print("  index             Build ITQ LSH index for nearest neighbor search")
+    print("  index [files|postgres] [dir]  Build the ITQ LSH index (file bundles by default)")
     sys.exit(0)
 
 
@@ -312,6 +353,10 @@ if __name__ == "__main__":
     elif command == "stop":
         stop()
     elif command in ("index", "build_index"):
-        build_index()
+        # database.py index [files|postgres] [database_dir]
+        backend = sys.argv[2] if len(sys.argv) > 2 else "files"
+        database_dir = sys.argv[3] if len(sys.argv) > 3 else None
+        if not build_index(backend=backend, database_dir=database_dir):
+            sys.exit(1)
     else:
         print_usage()

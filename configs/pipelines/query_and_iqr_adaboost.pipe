@@ -25,7 +25,9 @@ process out_adapt
 
 process query_handler
   :: process_query_adaboost
-  :conn_str                                    postgresql:host=localhost;user=postgres
+  # File-backed descriptor index by default; set conn_str for PostgreSQL.
+  :descriptor_index_dir                        $CONFIG{global:database_folder}
+  #:conn_str                                   postgresql:host=localhost;user=postgres
   :pos_seed_neighbors                          500
   :query_return_size                           500
 

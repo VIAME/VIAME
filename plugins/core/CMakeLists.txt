@@ -36,6 +36,7 @@ set( plugin_headers
   read_object_track_set_auto.h
   read_object_track_set_dive.h
   read_object_track_set_viame_csv.h
+  query_track_descriptor_set_csv.h
   read_transform_homography_json.h
   refine_detections_add_fixed.h
   refine_detections_nms.h
@@ -89,6 +90,7 @@ set( plugin_sources
   read_object_track_set_auto.cxx
   read_object_track_set_dive.cxx
   read_object_track_set_viame_csv.cxx
+  query_track_descriptor_set_csv.cxx
   read_transform_homography_json.cxx
   refine_detections_add_fixed.cxx
   refine_detections_nms.cxx
@@ -508,6 +510,11 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_service.py
     core
     interactive_service )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/query_service.py
+    core
+    query_service )
 
   # Compiled bindings exposing the C++ stereo measurement (compute_stereo_measurement,
   # aggregate_lengths) to Python so the interactive stereo service reuses them rather
