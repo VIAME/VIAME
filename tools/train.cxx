@@ -1316,7 +1316,8 @@ train_applet
     ( "monitor-email", "Launch \"viame monitor\" alongside training, which follows "
       "this run through a copy of its output written to train.log in the output "
       "directory and emails progress, error and completion reports to this address. "
-      "Mail goes through --monitor-smtp when given, otherwise a local sendmail",
+      "Mail goes through --monitor-smtp (or VIAME_SMTP_SERVER) when set, otherwise "
+      "a local sendmail",
       ::cxxopts::value< std::string >()->default_value( "" ), "address" )
     ( "monitor-smtp", "SMTP host[:port] used for --monitor-email reports; the "
       "password, if any, is read from the VIAME_SMTP_PASSWORD environment variable",

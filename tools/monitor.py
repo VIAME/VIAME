@@ -23,9 +23,10 @@ Two training types are recognised (--type, default auto):
 
 The run is considered alive while, in order of preference, its slurm job is
 queued (--job-id), its process exists (--pid), or its log file has changed
-within --stale-minutes. Email goes through an SMTP server (--smtp-server)
-or, on Linux and macOS, a local sendmail; without either the reports are
-only written to the status trail and monitor output file.
+within --stale-minutes. Email goes through an SMTP server (--smtp-server,
+or the VIAME_SMTP_SERVER environment variable) or, on Linux and macOS, a
+local sendmail; without either the reports are only written to the status
+trail and monitor output file.
 
 Examples:
   viame monitor start -o runs/seals -l runs/seals/train.log --job-id 12345 \\
@@ -691,13 +692,17 @@ def build_parser():
                        '(default OUTPUT_DIR/metrics.csv)')
     mail = start.add_argument_group('email reports')
     mail.add_argument('-e', '--email', help='recipient address (omit for trail-only reports)')
-    mail.add_argument('--smtp-server', help='SMTP host[:port] (port 587 STARTTLS by '
-                      'default, 465 for SSL, 25 for plain)')
-    mail.add_argument('--smtp-user', help='SMTP login user')
+    mail.add_argument('--smtp-server', default=os.environ.get('VIAME_SMTP_SERVER') or None,
+                      help='SMTP host[:port] (port 587 STARTTLS by default, 465 for SSL, '
+                           '25 for plain; default from VIAME_SMTP_SERVER)')
+    mail.add_argument('--smtp-user', default=os.environ.get('VIAME_SMTP_USER') or None,
+                      help='SMTP login user (default from VIAME_SMTP_USER)')
     mail.add_argument('--smtp-password-env', default='VIAME_SMTP_PASSWORD',
                       help='environment variable holding the SMTP password '
                            '(default VIAME_SMTP_PASSWORD)')
-    mail.add_argument('--smtp-from', help='sender address (default train-monitor@host)')
+    mail.add_argument('--smtp-from', default=os.environ.get('VIAME_SMTP_FROM') or None,
+                      help='sender address (default from VIAME_SMTP_FROM, else '
+                           'train-monitor@host)')
     mail.add_argument('--sendmail', help='sendmail binary when no SMTP server is given')
     start.add_argument('--foreground', action='store_true',
                        help='run in this terminal instead of detaching')
