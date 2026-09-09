@@ -81,14 +81,14 @@ CentOS
 * A [CUDA-enabled GPU](https://developer.nvidia.com/cuda-gpus) with 8 Gb or more VRAM <br>
 
 **Windows Full Desktop Binaries:** <br>
-* [VIAME v0.22.9 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1nsTcmSlH1UEpk0Wm88b9YOFrlt8R6XXH/view?usp=sharing) <br>
-* [VIAME v0.22.9 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/6a8f2ad992f283f83880062c/download) <br>
+* [VIAME v0.23.0 Windows, GPU Enabled, Mirror1 (.zip)](https://drive.google.com/file/d/1crHfG7oA11x6FvAR75Ecg-EtCfdwlSaE/view?usp=sharing) <br>
+* [VIAME v0.23.0 Windows, GPU Enabled, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/6aa18953e4e527a5aae85bb1/download) <br>
 * [VIAME v0.21.1 Windows, CPU Only, Mirror1 (.zip)](https://drive.google.com/file/d/1WkFHOdMPkxYrow7Utcyx_RTPdG4EbOan/view?usp=sharing) <br>
 * [VIAME v0.21.1 Windows, CPU Only, Mirror2 (.zip)](https://data.kitware.com/api/v1/item/683fbc2bdfcff796fee73cfe/download)
 
 **Linux Full Desktop Binaries:** <br>
-* [VIAME v0.22.9 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1ntYRz6-OKZvlQG5IEeKPig9Pg6n2xYqJ/view?usp=sharing) <br>
-* [VIAME v0.22.9 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/6a8efda992f283f83880061f/download) <br>
+* [VIAME v0.23.0 Linux, GPU Enabled, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1WH44gtLu7TqkTQS7nYf2BrVXiuwgkDkB/view?usp=sharing) <br>
+* [VIAME v0.23.0 Linux, GPU Enabled, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/6aa191f4e4e527a5aae85bb4/download) <br>
 * [VIAME v0.21.1 Linux, CPU Only, Mirror1 (.tar.gz)](https://drive.google.com/file/d/1U2H-AE6IwGkClmNEDw-GAETtJTDfKUuR/view?usp=sharing) <br>
 * [VIAME v0.21.1 Linux, CPU Only, Mirror2 (.tar.gz)](https://data.kitware.com/api/v1/item/683fbc82dfcff796fee73d01/download)
 
@@ -267,17 +267,15 @@ description each, and `viame help <tool>` prints that tool's own options:
 
 ```
 viame help                                       # list every tool
-viame run detector.pipe video.mp4                # run a pipeline on one video
-viame run detector_generic image.jpg             # ... or an image, by pipeline name
-viame run detector.pipe image_list.txt           # ... or a list of images
-viame run -d videos/ -p detector.pipe            # run a pipeline over a folder
-viame run my_pipeline.pipe                       # run a single pipeline file
 viame add-ons                                    # list and install model add-ons
-viame train -c train_detector.conf -i labels/    # train a model
+viame run my_pipeline.pipe                       # run a single pipeline file as-is
+viame run detector.pipe video.mp4                # run a pipeline on one video
+viame run detector.pipe image_list.txt           # ... or a list of images
+viame run -p detector.pipe -d videos/            # run a pipeline over a folder
+viame train -c train_detector.conf -i data/      # train a model
 viame score -c detections.csv -t groundtruth.csv # score against groundtruth
 viame csv -i detections.csv --print-types        # inspect a VIAME csv
 viame json -i tracks.json --print-types          # inspect a DIVE or COCO json
-viame my_pipeline.pipe                           # shorthand for the above
 ```
 
 
