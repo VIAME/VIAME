@@ -79,6 +79,7 @@ set( applet_sources
   csv.cxx
   get_configs.cxx
   json.cxx
+  registry_dump.cxx
   resample.cxx
   run.cxx
   score.cxx
@@ -89,6 +90,7 @@ set( applet_headers
   csv.h
   get_configs.h
   json.h
+  registry_dump.h
   resample.h
   run.h
   score.h
