@@ -15,6 +15,19 @@ def load_modules():
     modules.load_known_modules()
 
 
+def is_registered(kind, impl):
+    """Whether this build has \p impl registered for that kind of case."""
+    if kind == "image_filter":
+        from kwiver.vital.algo import ImageFilter
+        return impl in ImageFilter.registered_names()
+
+    if kind == "image_io":
+        from kwiver.vital.algo import ImageIO
+        return impl in ImageIO.registered_names()
+
+    return True
+
+
 def _configure(algorithm, config):
     if not config:
         return

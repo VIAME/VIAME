@@ -19,6 +19,7 @@ import pytest
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+import cases as case_spec           # noqa: E402
 import imageio_utils                # noqa: E402
 import pipeline_runner              # noqa: E402
 import runner                       # noqa: E402
@@ -55,15 +56,20 @@ def collect_cases():
             continue
 
         for case in manifest["cases"]:
-            cases.append((group, case))
+            cases.append((group, case, case["impl"]))
+
+            replacement = case_spec.REPLACEMENTS.get(case["impl"])
+            if replacement:
+                cases.append((group, case, replacement))
 
     return cases
 
 
 def case_id(item):
-    group, case = item
-    return "{}:{}:{}:{}".format(group, case["kind"], case["impl"],
-                                case["variant"])
+    group, case, impl = item
+    suffix = "" if impl == case["impl"] else "->" + impl
+    return "{}:{}:{}{}:{}".format(group, case["kind"], case["impl"], suffix,
+                                  case["variant"])
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -80,17 +86,17 @@ def input_path(name):
     raise FileNotFoundError("no fixture named '{}'".format(name))
 
 
-def run_case(case):
+def run_case(case, impl):
     if case["kind"] == "image_filter":
         arrays = [imageio_utils.load(input_path(name)) for name in case["inputs"]]
-        return runner.run_image_filter(case["impl"], case["config"], arrays)
+        return runner.run_image_filter(impl, case["config"], arrays)
 
     if case["kind"] == "image_io":
         paths = [input_path(name) for name in case["inputs"]]
-        return runner.run_image_io_load(case["impl"], case["config"], paths)
+        return runner.run_image_io_load(impl, case["config"], paths)
 
     if case["kind"] == "pipeline":
-        outputs = pipeline_runner.run(case["impl"])
+        outputs = pipeline_runner.run(impl)
         missing = sorted(set(case["outputs"]) - set(outputs))
         assert not missing, "{} no longer wrote: {}".format(
             case["impl"], ", ".join(missing))
@@ -101,10 +107,14 @@ def run_case(case):
 
 @pytest.mark.parametrize("item", collect_cases(), ids=case_id)
 def test_golden(item):
-    group, case = item
-    outputs = run_case(case)
+    group, case, impl = item
 
-    max_tol, mean_tol = TOLERANCES.get(case["impl"], TOLERANCES["__default__"])
+    if impl != case["impl"] and not runner.is_registered(case["kind"], impl):
+        pytest.skip("{} is not registered in this build".format(impl))
+
+    outputs = run_case(case, impl)
+
+    max_tol, mean_tol = TOLERANCES.get(impl, TOLERANCES["__default__"])
     unstable = case.get("unstable", {})
 
     names = (list(case["outputs"]) if case["kind"] == "pipeline"

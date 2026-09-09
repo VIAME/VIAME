@@ -162,6 +162,16 @@ PIPELINES_EMBEDDED = (
 PIPELINE_INPUTS = tuple("frame_{:02d}".format(index) for index in range(6))
 
 
+# In-house implementations that replace a recorded one. While both are
+# registered the golden test replays each recorded case twice, once under the
+# recorded name and once under the replacement, and holds both to the same
+# recording. Once the third-party implementation is gone the replacement takes
+# over the old name as an alias and the second replay becomes the only one.
+REPLACEMENTS = {
+    "vxl_convert_image": "convert_image",
+}
+
+
 # Cases whose recorded values cannot be reproduced, and why. Keys are
 # (impl, variant) for a whole case or (impl, variant, input) for one input.
 # The recording still pins the shape, dtype and that the config is accepted;
