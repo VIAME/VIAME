@@ -9,12 +9,12 @@
 /// under tests/golden check the same kernels against what VXL actually did;
 /// these check that what VXL did is what we think it did.
 
-#include <channels.h>
-#include <convert.h>
-#include <pixel.h>
-#include <statistics.h>
-#include <temporal.h>
-#include <threshold.h>
+#include <image_ops/channels.h>
+#include <image_ops/convert.h>
+#include <image_ops/pixel.h>
+#include <image_ops/statistics.h>
+#include <image_ops/temporal.h>
+#include <image_ops/threshold.h>
 
 #include <vital/types/image.h>
 
@@ -293,13 +293,14 @@ TEST ( image_ops, percentile_stretch_clips_outside_the_band )
 }
 
 // ----------------------------------------------------------------------------
-TEST ( image_ops, threshold_above_is_strict )
+TEST ( image_ops, threshold_above_is_inclusive )
 {
+  // A pixel exactly at the threshold is kept, as vil_threshold_above does
   auto const image = make_image< uint8_t >( 3, 1, 1, { 9, 10, 11 } );
   auto const mask = threshold_above< uint8_t >( image, 10 );
 
   EXPECT_FALSE( mask( 0, 0, 0 ) );
-  EXPECT_FALSE( mask( 1, 0, 0 ) );
+  EXPECT_TRUE( mask( 1, 0, 0 ) );
   EXPECT_TRUE( mask( 2, 0, 0 ) );
 }
 
@@ -309,11 +310,12 @@ TEST ( image_ops, threshold_percentile_cuts_at_the_sampled_value )
   auto const image = make_image< uint8_t >(
     5, 1, 1, { 10, 20, 30, 40, 50 } );
 
-  // 0.5 of the last index 4 is index 2, value 30; strictly above keeps 40, 50
+  // 0.5 of the last index 4 is index 2, value 30; at or above keeps 30, 40, 50
   auto const mask = threshold_percentile( image, 0.5, 5 );
 
   EXPECT_FALSE( mask( 0, 0, 0 ) );
-  EXPECT_FALSE( mask( 2, 0, 0 ) );
+  EXPECT_FALSE( mask( 1, 0, 0 ) );
+  EXPECT_TRUE( mask( 2, 0, 0 ) );
   EXPECT_TRUE( mask( 3, 0, 0 ) );
   EXPECT_TRUE( mask( 4, 0, 0 ) );
 }

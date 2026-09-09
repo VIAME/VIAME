@@ -4,11 +4,19 @@
 # registered names and config keys. Nothing here may include OpenCV or VXL.
 
 set( plugin_headers
+  average_frames.h
+  color_commonality.h
   convert_image.h
+  morphology.h
+  threshold.h
   )
 
 set( plugin_sources
+  average_frames.cxx
+  color_commonality.cxx
   convert_image.cxx
+  morphology.cxx
+  threshold.cxx
   )
 
 kwiver_install_headers(

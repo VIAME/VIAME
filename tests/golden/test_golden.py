@@ -109,8 +109,18 @@ def run_case(case, impl):
 def test_golden(item):
     group, case, impl = item
 
-    if impl != case["impl"] and not runner.is_registered(case["kind"], impl):
-        pytest.skip("{} is not registered in this build".format(impl))
+    replacing = impl != case["impl"]
+
+    if replacing:
+        if not runner.is_registered(case["kind"], impl):
+            pytest.skip("{} is not registered in this build".format(impl))
+
+        whole_case = case_spec.divergence_reason(case["impl"], case["variant"])
+
+        if whole_case:
+            # Still run it, so a crash or a refused config is caught
+            run_case(case, impl)
+            pytest.skip("deliberate divergence: {}".format(whole_case))
 
     outputs = run_case(case, impl)
 
@@ -121,6 +131,12 @@ def test_golden(item):
              else case["inputs"])
 
     for name, actual in zip(names, outputs):
+        # A path the recording left uninitialised, which the replacement
+        # deliberately implements properly instead. cases.py says why
+        if replacing and case_spec.divergence_reason(
+                case["impl"], case["variant"], name):
+            continue
+
         record = case["outputs"][name]
         expected = imageio_utils.load(os.path.join(HERE, group, record["file"]))
 

@@ -5,9 +5,9 @@
 #ifndef VIAME_IMAGE_OPS_CONVERT_H
 #define VIAME_IMAGE_OPS_CONVERT_H
 
-#include "channels.h"
-#include "pixel.h"
-#include "statistics.h"
+#include <image_ops/channels.h>
+#include <image_ops/pixel.h>
+#include <image_ops/statistics.h>
 
 #include <vital/types/image.h>
 

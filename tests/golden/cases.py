@@ -168,8 +168,44 @@ PIPELINE_INPUTS = tuple("frame_{:02d}".format(index) for index in range(6))
 # recording. Once the third-party implementation is gone the replacement takes
 # over the old name as an alias and the second replay becomes the only one.
 REPLACEMENTS = {
+    "vxl_average": "average_frames",
+    "vxl_color_commonality": "color_commonality",
     "vxl_convert_image": "convert_image",
+    "vxl_morphology": "morphology",
+    "vxl_threshold": "threshold",
 }
+
+
+# Cases where the replacement deliberately does not reproduce the recording,
+# and why. These are all paths the recorded implementation left partly
+# uninitialised, so there is nothing to be faithful to; the replacement
+# computes what the option describes instead. No shipped pipeline uses any of
+# them. The recorded case still runs under its original name.
+DIVERGENCES = {
+    ("vxl_color_commonality", "grid"):
+        "the recorded grid mode builds its tile regions with the corners in "
+        "the wrong order and leaves most of the output unwritten; the "
+        "replacement computes a real per tile commonality",
+    ("vxl_threshold", "defaults", "rgb8"):
+        "percentile mode on a multi-plane image returned an uninitialised "
+        "one plane buffer; the replacement thresholds every plane and keeps "
+        "the input's plane count, as absolute mode does",
+    ("vxl_threshold", "percentile_0_8", "rgb8"):
+        "percentile mode on a multi-plane image returned an uninitialised "
+        "one plane buffer; the replacement thresholds every plane and keeps "
+        "the input's plane count, as absolute mode does",
+}
+
+
+def divergence_reason(impl, variant, input_name=None):
+    """Why the replacement is not held to the recording, for a whole case or
+    for one of its inputs."""
+    if input_name is not None:
+        reason = DIVERGENCES.get((impl, variant, input_name))
+        if reason:
+            return reason
+
+    return DIVERGENCES.get((impl, variant))
 
 
 # Cases whose recorded values cannot be reproduced, and why. Keys are

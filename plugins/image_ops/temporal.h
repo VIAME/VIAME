@@ -5,7 +5,7 @@
 #ifndef VIAME_IMAGE_OPS_TEMPORAL_H
 #define VIAME_IMAGE_OPS_TEMPORAL_H
 
-#include "pixel.h"
+#include <image_ops/pixel.h>
 
 #include <vital/types/image.h>
 

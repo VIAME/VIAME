@@ -4,9 +4,9 @@
 
 #include "convert_image.h"
 
-#include <channels.h>
-#include <convert.h>
-#include <dispatch.h>
+#include <image_ops/channels.h>
+#include <image_ops/convert.h>
+#include <image_ops/dispatch.h>
 
 #include <vital/types/image_container.h>
 

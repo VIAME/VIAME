@@ -10,9 +10,21 @@
 #include <cstdint>
 #include <sstream>
 #include <stdexcept>
+#include <type_traits>
 
 namespace viame {
 namespace image_ops {
+
+// ----------------------------------------------------------------------------
+/// The pixel type of an `image_of`, so a generic lambda can name it.
+template < typename Image > struct pixel_type_of;
+
+template < typename T >
+struct pixel_type_of< kwiver::vital::image_of< T > > { using type = T; };
+
+template < typename Image >
+using pixel_type_t =
+  typename pixel_type_of< std::decay_t< Image > >::type;
 
 // ----------------------------------------------------------------------------
 /// Call \p functor with the image typed as whatever it actually holds.

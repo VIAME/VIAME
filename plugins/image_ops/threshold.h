@@ -5,7 +5,7 @@
 #ifndef VIAME_IMAGE_OPS_THRESHOLD_H
 #define VIAME_IMAGE_OPS_THRESHOLD_H
 
-#include "statistics.h"
+#include <image_ops/statistics.h>
 
 #include <vital/types/image.h>
 
@@ -16,7 +16,10 @@ namespace viame {
 namespace image_ops {
 
 // ----------------------------------------------------------------------------
-/// Mask of the pixels strictly above \p value.
+/// Mask of the pixels at or above \p value.
+///
+/// Inclusive, matching `vil_threshold_above`: a pixel exactly equal to the
+/// threshold is kept.
 template < typename T >
 kwiver::vital::image_of< bool >
 threshold_above( kwiver::vital::image_of< T > const& image, T value )
@@ -30,7 +33,7 @@ threshold_above( kwiver::vital::image_of< T > const& image, T value )
     {
       for( size_t i = 0; i < image.width(); ++i )
       {
-        result( i, j, plane ) = image( i, j, plane ) > value;
+        result( i, j, plane ) = image( i, j, plane ) >= value;
       }
     }
   }
@@ -39,7 +42,8 @@ threshold_above( kwiver::vital::image_of< T > const& image, T value )
 }
 
 // ----------------------------------------------------------------------------
-/// Mask of the pixels above the value at \p fraction of the distribution.
+/// Mask of the pixels at or above the value at \p fraction of the
+/// distribution.
 ///
 /// \param fraction       Where to cut, in [0, 1]; 0.95 keeps the brightest
 ///                       twentieth.
