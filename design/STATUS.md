@@ -8,7 +8,7 @@ Notes.
 ## Current position
 
 - Phase: P3 (phases 1 and 2 deferred, see the decision below)
-- Next task: P3-T04
+- Next task: P3-T05
 - Last clean-configure build verified: 2026-09-09, P0-T05
 - Reference machine: local workstation, CUDA 12.6, cuDNN 9.12, Ubuntu
   (kernel 6.8), python 3.10.12, gcc default, 16 cores
@@ -80,7 +80,7 @@ for `CMake/FindCUDNN.cmake`, and `kwiver` is checked out and built.
 | P3-T01 | Record VXL golden outputs | P0-T05 | done | 4b46563ba | Dependency changed from P2-T10 by the ordering decision. Recorded through the kwiver python bindings rather than through pipelines, which gives the exact array for every dtype instead of a re-encoded image; whole-pipeline recordings run the shipped `train_aug_*` pipelines, the only shipped pipelines that both use a vxl filter and write images |
 | P3-T02 | `image_ops` v1 kernels | P0-T05 | done | 1205fc963 | Lands in `plugins/image_ops` for now; phase 2 moves it to `library/image_ops`. This commit carries the kernels the conversion, threshold and averaging filters need; the morphology, colour histogram, blur and white balance kernels land with P3-T04 and P3-T05, so each kernel arrives with the golden that checks it. Reproducing VXL exactly turned up two behaviours worth knowing: `vil_math_mean_over_planes` accumulates in the pixel type, so two uint8 planes of 100 and 200 average to 22, and the windowed averager subtracts the *newest* buffered frame rather than the oldest, so a full window is not a sliding mean. Both are pinned by unit tests |
 | P3-T03 | `convert_image` (alias `vxl_convert_image`) | P3-T01, P3-T02 | done | 22eec3036 | Registered as `convert_image` only: the alias waits for P3-T10 to build kwiver with `KWIVER_ENABLE_VXL=OFF`, since `arrows/vxl` holds the name until then. Equivalence is checked instead by replaying every recorded `vxl_convert_image` case against `convert_image`, driven by the new `REPLACEMENTS` map in `tests/golden/cases.py`; all 14 variants match bit for bit on all three input types. `pending.json` does not exist yet, so nothing was removed from it |
-| P3-T04 | `average_frames`, `threshold`, `morphology`, `color_commonality` | P3-T03 | todo | | |
+| P3-T04 | `average_frames`, `threshold`, `morphology`, `color_commonality` | P3-T03 | done | a4069a51a | New names only, aliases still wait for VXL to be off. Two kernels added to `image_ops`: binary morphology and the colour commonality histogram. The structuring element and the morphology border rule were measured from the running implementation rather than read out of VXL sources, which is how the disk radius rule (strict `i*i + j*j < r*r`, so radius 1 is one pixel and 2 is a 3x3 square) and the border rule (the element is clipped, so eroding an all-true image leaves it all true) were pinned. `vil_threshold_above` turned out to be `>=`, not `>`: caught by the golden replay on the one input that has pixels exactly at the threshold, after a unit test had asserted the wrong rule. Two recorded paths are deliberate divergences, both uninitialised in VXL and unused by pipelines: `color_commonality` grid mode (tile regions built with corners in the wrong order) and `threshold` percentile on a multi-plane image |
 | P3-T05 | `white_balance`, `vxl_enhancer`, `format_images_srm` | P3-T04 | todo | | |
 | P3-T06 | `vxl` image_io alias and unreferenced vxl names | P3-T05 | todo | | |
 | P3-T07 | Switch VXL off and delete its sources | P3-T06 | todo | | |
