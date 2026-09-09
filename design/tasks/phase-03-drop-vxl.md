@@ -71,3 +71,24 @@ Do:
 - Reimplement KWA index/data writing with plain streams (format documented in the old `kw_archive_writer_process.cxx`); golden against a recorded archive.
 Done when:
 - `filter_to_kwa.pipe` output byte-identical to golden.
+
+### P3-T10 Build kwiver in the lite tree so its arrows can be switched off
+Depends: P3-T02. Blocks P3-T06 and P3-T07.
+Added by: P3-T03, which found that a replacement cannot register the old name
+while kwiver still does.
+Context: phases 1 and 2 are deferred, so the lite build takes kwiver prebuilt
+from the reference superbuild at `~/Dev/viame/build`. Every `vxl_*` image
+filter and the `vxl` image_io are registered by `arrows/vxl` inside that
+kwiver, so they cannot be replaced or aliased from VIAME's own plugins.
+Do:
+- Check out the `kwiver` submodule in this tree and configure a kwiver build
+  under `build/kwiver-build` with the reference build's options, installing
+  into `build/install`. Confirm `viame registry-dump` is unchanged against
+  `tests/baseline/registry.json` with the rebuilt kwiver in place.
+- Point `kwiver_DIR` and `VIAME_BUILD_KWIVER_DIR` in `build/lite-cache.cmake`
+  at the new build; `KWIVER_SOURCE_DIR` follows the submodule.
+- Add `KWIVER_ENABLE_VXL` to the options the lite build sets, still ON.
+Done when:
+- A clean configure and build of both projects succeeds; `ctest -L BASELINE`
+  and `ctest -L GOLDEN` pass against the rebuilt kwiver, unchanged.
+- `build/lite-cache.cmake` no longer names the reference kwiver build.

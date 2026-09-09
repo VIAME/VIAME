@@ -8,7 +8,7 @@ Notes.
 ## Current position
 
 - Phase: P3 (phases 1 and 2 deferred, see the decision below)
-- Next task: P3-T03
+- Next task: P3-T04
 - Last clean-configure build verified: 2026-09-09, P0-T05
 - Reference machine: local workstation, CUDA 12.6, cuDNN 9.12, Ubuntu
   (kernel 6.8), python 3.10.12, gcc default, 16 cores
@@ -74,13 +74,14 @@ reference kwiver source.
 | **Phase 3: drop VXL** | `phase-03-drop-vxl.md` | | | | |
 | P3-T01 | Record VXL golden outputs | P0-T05 | done | 4b46563ba | Dependency changed from P2-T10 by the ordering decision. Recorded through the kwiver python bindings rather than through pipelines, which gives the exact array for every dtype instead of a re-encoded image; whole-pipeline recordings run the shipped `train_aug_*` pipelines, the only shipped pipelines that both use a vxl filter and write images |
 | P3-T02 | `image_ops` v1 kernels | P0-T05 | done | 1205fc963 | Lands in `plugins/image_ops` for now; phase 2 moves it to `library/image_ops`. This commit carries the kernels the conversion, threshold and averaging filters need; the morphology, colour histogram, blur and white balance kernels land with P3-T04 and P3-T05, so each kernel arrives with the golden that checks it. Reproducing VXL exactly turned up two behaviours worth knowing: `vil_math_mean_over_planes` accumulates in the pixel type, so two uint8 planes of 100 and 200 average to 22, and the windowed averager subtracts the *newest* buffered frame rather than the oldest, so a full window is not a sliding mean. Both are pinned by unit tests |
-| P3-T03 | `convert_image` (alias `vxl_convert_image`) | P3-T01, P3-T02 | todo | | |
+| P3-T03 | `convert_image` (alias `vxl_convert_image`) | P3-T01, P3-T02 | done | 22eec3036 | Registered as `convert_image` only: the alias has to wait for P3-T10, because `vxl_convert_image` is registered by kwiver's `arrows/vxl` and two factories cannot claim one name. Equivalence is checked instead by replaying every recorded `vxl_convert_image` case against `convert_image`, driven by the new `REPLACEMENTS` map in `tests/golden/cases.py`; all 14 variants match bit for bit on all three input types. `pending.json` does not exist yet, so nothing was removed from it |
 | P3-T04 | `average_frames`, `threshold`, `morphology`, `color_commonality` | P3-T03 | todo | | |
 | P3-T05 | `white_balance`, `vxl_enhancer`, `format_images_srm` | P3-T04 | todo | | |
 | P3-T06 | `vxl` image_io alias and unreferenced vxl names | P3-T05 | todo | | |
 | P3-T07 | Switch VXL off and delete its sources | P3-T06 | todo | | |
 | P3-T08 | Migrate pipeline files to new names | P3-T07 | todo | | |
 | P3-T09 | (conditional) `kw_archive_writer` without VXL | P3-T07; only if open decision 3 = keep | todo | | |
+| P3-T10 | Build kwiver in the lite tree so its arrows can be switched off | P3-T02 | todo | | Added by P3-T03; blocks P3-T06 and P3-T07 |
 | **Phase 4: drop FFmpeg** | `phase-04-drop-ffmpeg.md` | | | | |
 | P4-T01 | Record video golden data and benchmark baseline | P3-T08 | todo | | |
 | P4-T02 | PyAV `video_input` | P4-T01 | todo | | |
@@ -148,6 +149,7 @@ reference kwiver source.
 | 2026-09-09 | `pipe-check --all` reads the install tree rather than extracting add-on zips | agent, P0-T03 | STATUS.md P0-T03 note |
 | 2026-09-09 | Baseline is a CUDA build only; the CPU union is deferred to P0-T06 | agent, P0-T04 | STATUS.md P0-T04 note |
 | 2026-09-09 | Dependency removal comes before the restructuring: phase 3 onward runs against the existing `plugins/` tree, and phases 1 and 2 move the resulting code afterwards. Neither phase 1 nor phase 2 removes a dependency, and both are large; going at the dependencies first gets the reduction sooner at the cost of the layout move carrying a little more | user | STATUS.md, this row |
+| 2026-09-09 | VXL cannot actually be switched off until the lite tree builds its own kwiver: `vxl_convert_image` and the rest are registered by `arrows/vxl`, and the current arrangement takes kwiver prebuilt from the reference superbuild. New task P3-T10 stands that up; until then replacements register under their new names and equivalence is checked by replaying the recordings against them | agent, P3-T03 | STATUS.md P3-T03 note, tasks/phase-03 |
 | 2026-09-09 | Golden coverage is the full set: per filter fixtures for every config variant the shipped pipelines use, plus whole pipeline recordings, committed under `tests/golden/` | user | tests/golden/README.md |
 
 ## Removed names log
