@@ -8,7 +8,7 @@ Notes.
 ## Current position
 
 - Phase: P4 (phases 1 and 2 deferred, see the decision below)
-- Next task: P4-T01
+- Next task: P4-T02
 - Last clean-configure build verified: 2026-09-09, P0-T05
 - Reference machine: local workstation, CUDA 12.6, cuDNN 9.12, Ubuntu
   (kernel 6.8), python 3.10.12, gcc default, 16 cores
@@ -90,7 +90,7 @@ for `CMake/FindCUDNN.cmake`, and `kwiver` is checked out and built.
 | P3-T10 | Build kwiver locally so `VIAME_ENABLE_VXL` reaches it | P3-T02 | done | 0e97eb1a0 | Added by P3-T03; blocks P3-T06 and P3-T07. Only needed because phases 1 and 2 are deferred and this tree had been reusing the reference superbuild's kwiver; the flag itself was already wired. Built from the submodule pin, 64d8306. Building instead from the neighbouring checkout's working tree, which is 4 commits ahead, moved 13 `perform_query` and `handle_descriptor_request` entries and failed `baseline:registry` -- the check doing its job. The lite tree builds what its own submodule pins, and BASELINE and GOLDEN pass unchanged against the locally built kwiver |
 | P3-T11 | `close_loops_homography_guided` and its polygon overlap | P3-T02 | done | 3f5201a2a | Added by P3-T10's usage scan: `lite-removals.md` §1 misses this name, which `common_image_stabilizer.pipe` really does select. Registered as `homography_guided`. Its only VXL use was `compute_homography_overlap`, reimplemented as convex polygon clipping and A/B'd against the VXL routine over 52 homographies to within 1e-9 |
 | **Phase 4: drop FFmpeg** | `phase-04-drop-ffmpeg.md` | | | | |
-| P4-T01 | Record video golden data and benchmark baseline | P3-T08 | todo | | |
+| P4-T01 | Record video golden data and benchmark baseline | P3-T08 | done | 8122fea83 | `pipelines_test_data` ships no video at all, so three clips were generated from the committed image fixtures and committed: 8 bit h264, 10 bit h264 and variable frame rate. The 10 bit one decodes to `uint16`, which is the behaviour `lite-removals.md` section 3.1 asks the PyAV reader to keep, and the VFR one has genuinely uneven frame gaps, so a reader that derives timestamps from the frame number fails it. Recorded from the C++ `ffmpeg` reader, which is what phase 4 replaces. The 1080p throughput clip is built at record time rather than committed |
 | P4-T02 | PyAV `video_input` | P4-T01 | todo | | |
 | P4-T03 | PyAV `video_output` | P4-T02 | todo | | |
 | P4-T04 | `ffmpeg_cli` fallback reader | P4-T02 | todo | | |
@@ -202,9 +202,14 @@ an `image_reader` or `image_writer` type, so only the image_io needs to survive.
 
 ## Measurements
 
+The 1080p decode figure is measured through the python bindings, decode plus
+`frame_image` with no pixel conversion, best of three passes. The plan assumed
+a 150 fps reference; the measured number is what the P4-T02 gate of 60 per
+cent is taken against, so that gate is 58 fps.
+
 | What | Value | Task | Date |
 |---|---|---|---|
-| C++ video decode throughput, 1080p h264 (baseline) | | P4-T01 | |
+| C++ video decode throughput, 1080p h264 (baseline) | 95.9 fps | P4-T01 | 2026-09-09 |
 | PyAV decode throughput | | P4-T02 | |
 | kwiver files copied (lines) | | P5-T01 | |
 | core_types + algorithm_framework lines after prune | | P5-T06 | |
