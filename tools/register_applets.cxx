@@ -101,8 +101,8 @@ VIAME_PYTHON_SCRIPT_APPLET( detect_prior_coverage_applet,
 VIAME_PYTHON_SCRIPT_APPLET( reconstruct_3d_applet, "reconstruct-3d",
   "reconstruct_3d.py", "Build a 3D model from UAS imagery" )
 
-VIAME_PYTHON_SCRIPT_APPLET( stereo_rectify_applet, "stereo-rectify",
-  "stereo_rectify.py",
+VIAME_PYTHON_SCRIPT_APPLET( rectify_applet, "rectify",
+  "rectify.py",
   "Rectify a stereo image pair using calibration parameters" )
 
 #endif
@@ -180,7 +180,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_script_tool< create_mosaic_applet >( reg );
   register_script_tool< detect_prior_coverage_applet >( reg );
   register_script_tool< reconstruct_3d_applet >( reg );
-  register_script_tool< stereo_rectify_applet >( reg );
+  register_script_tool< rectify_applet >( reg );
 #endif
 
 #ifdef VIAME_TOOLS_HAVE_PYTORCH

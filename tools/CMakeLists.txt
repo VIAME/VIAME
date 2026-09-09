@@ -32,7 +32,7 @@ if( VIAME_ENABLE_OPENCV )
     detect_prior_coverage.py
     ply_utilities.py
     reconstruct_3d.py
-    stereo_rectify.py
+    rectify.py
   )
 endif()
 
