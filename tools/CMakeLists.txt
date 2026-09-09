@@ -15,6 +15,7 @@ set( PYTHON_SCRIPTS
   generate_nn_index.py
   launch_annotator.py
   launch_search.py
+  pipeline.py
   plot_eval.py
   process_video.py
   metadata.py

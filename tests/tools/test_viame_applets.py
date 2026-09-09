@@ -952,3 +952,125 @@ class TestPythonScriptApplets:
         result = run_viame(viame_env, "run", "--not-a-real-flag")
 
         assert result.returncode != 0
+
+
+SMALL_PIPE = """\
+config _scheduler
+  type = pythread_per_process
+
+include common_default_input.pipe
+
+process detector
+  :: image_object_detector
+  :detector:type                               netharn
+  block detector:netharn
+    relativepath deployed =                    models/missing.zip
+  endblock
+
+process writer :: detected_object_output
+  file_name = detections.csv  # output
+  writer:type = viame_csv
+
+connect from input.image
+        to   detector.image
+connect from detector.detected_object_set
+        to   writer.detected_object_set
+"""
+
+
+@pytest.fixture
+def small_pipe(tmp_path):
+    install = find_viame_install()
+    if install is None:
+        pytest.skip("No VIAME install found")
+    path = tmp_path / "small.pipe"
+    path.write_text(SMALL_PIPE)
+    return path
+
+
+class TestPipelineApplet:
+    def test_info_lists_processes_from_includes(self, viame_env, small_pipe):
+        result = run_viame(viame_env, "pipeline", "info", "--json", str(small_pipe))
+
+        assert result.returncode == 0
+        info = json.loads(result.stdout)
+        names = {p["name"] for p in info["processes"]}
+        assert {"input", "detector", "writer"} <= names
+        assert info["settings"]["detector:detector:type"]["value"] == "netharn"
+        assert any(c["from"] == "input.image" for c in info["connections"])
+
+    def test_get_reports_values_and_missing_keys(self, viame_env, small_pipe):
+        result = run_viame(
+            viame_env, "pipeline", "get", str(small_pipe),
+            "writer:file_name", "writer:nope",
+        )
+
+        assert result.returncode != 0
+        assert "writer:file_name = detections.csv" in result.stdout
+        assert "writer:nope" in result.stderr
+
+    def test_set_edits_both_syntaxes_in_place(self, viame_env, small_pipe):
+        result = run_viame(
+            viame_env, "pipeline", "set", str(small_pipe),
+            "-s", "detector:detector:type=darknet",
+            "-s", "writer:file_name=out.csv",
+            "-s", "input:video_reader:type=vidl_ffmpeg",
+        )
+
+        assert result.returncode == 0, result.stderr
+        text = small_pipe.read_text()
+        assert ":detector:type                               darknet" in text
+        assert "file_name = out.csv  # output" in text
+        assert "config input\n  video_reader:type = vidl_ffmpeg" in text
+
+    def test_check_finds_bad_connections_and_paths(self, viame_env, small_pipe):
+        small_pipe.write_text(
+            SMALL_PIPE + "connect from ghost.port\n        to writer.image\n"
+        )
+        result = run_viame(viame_env, "pipeline", "check", str(small_pipe))
+
+        assert result.returncode != 0
+        assert 'unknown process "ghost"' in result.stdout
+        assert "missing file" in result.stdout
+
+        relaxed = run_viame(
+            viame_env, "pipeline", "check", "--ignore-missing-files",
+            str(small_pipe),
+        )
+        assert 'unknown process "ghost"' in relaxed.stdout
+        assert "warning:" in relaxed.stdout
+
+    def test_flatten_inlines_includes(self, viame_env, small_pipe, tmp_path):
+        out = tmp_path / "flat.pipe"
+        result = run_viame(
+            viame_env, "pipeline", "flatten", str(small_pipe), "-o", str(out)
+        )
+
+        assert result.returncode == 0, result.stderr
+        text = out.read_text()
+        assert not any(
+            line.startswith("include ") for line in text.splitlines()
+        )
+        assert "process input" in text
+        assert "relativepath deployed =" in text
+
+        flat_check = run_viame(
+            viame_env, "pipeline", "check", "--ignore-missing-files", str(out)
+        )
+        assert flat_check.returncode == 0, flat_check.stdout
+
+    def test_multicam_generates_a_connected_pipeline(self, viame_env, tmp_path):
+        result = run_viame(
+            viame_env, "pipeline", "multicam", "--cams", "3",
+            "--mode", "suppressor", "--detector", "sea_lion_fusion_two_class",
+            "--output-dir", str(tmp_path),
+        )
+
+        assert result.returncode == 0, result.stderr
+        out = tmp_path / "suppressor_sea_lion_fusion_two_class_3-cam.pipe"
+        assert out.exists()
+        text = out.read_text()
+        assert "n_input = 3" in text
+        assert "include common_sea_lion_fusion_two_class_cam3.pipe" in text
+        assert "to suppressor.image3" in text
+        assert "homog_writer3" in text

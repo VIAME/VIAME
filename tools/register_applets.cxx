@@ -64,6 +64,9 @@ VIAME_PYTHON_SCRIPT_APPLET( launch_annotator_applet, "launch-annotator",
 VIAME_PYTHON_SCRIPT_APPLET( launch_search_applet, "launch-search",
   "launch_search.py", "Launch Query GUI" )
 
+VIAME_PYTHON_SCRIPT_APPLET( pipeline_applet, "pipeline", "pipeline.py",
+  "Generate, inspect, validate and modify .pipe files" )
+
 VIAME_PYTHON_SCRIPT_APPLET( plot_eval_applet, "plot-eval",
   "plot_eval.py", "Generate plots from VIAME evaluation results" )
 
@@ -165,6 +168,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_script_tool< generate_nn_index_applet >( reg );
   register_script_tool< launch_annotator_applet >( reg );
   register_script_tool< launch_search_applet >( reg );
+  register_script_tool< pipeline_applet >( reg );
   register_script_tool< plot_eval_applet >( reg );
   register_script_tool< metadata_applet >( reg );
   register_script_tool< train_fusion_applet >( reg );
