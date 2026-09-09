@@ -12,6 +12,8 @@ Each group under this directory belongs to one dependency removal:
 | `vxl` | `arrows/vxl` filters and image_io, `plugins/vxl` filters | phase 3 |
 | `video` | `arrows/ffmpeg` `video_input` and `video_output` | phase 4 |
 
+The video group is replayed against every reader and writer registered under it, not just the replacement: `ffmpeg` and `pyav` and `ffmpeg_cli` all have to reproduce the same recording.
+
 ## Layout
 
 ```

@@ -143,9 +143,14 @@ flushes and closes (see the existing writer-finalize note in the tree).
 
 ### 3.3 Fallback
 
-`ffmpeg_cli` video_input: subprocess `ffmpeg -i ... -f rawvideo -pix_fmt rgb24 -`
-using the binary from the `imageio-ffmpeg` wheel. Used only if PyAV import
-fails; logs a warning.
+`ffmpeg_cli` video_input: subprocess `ffmpeg -i ... -f rawvideo -pix_fmt gbrp -`
+using the binary from the `imageio-ffmpeg` wheel. Used if PyAV import fails,
+which logs a warning, or when `use_cli` is set on the PyAV reader. `gbrp`
+rather than `rgb24` because vital stores images planar: handing `Image` an
+interleaved array costs a per-pixel walk (see the finding in STATUS.md).
+The filter chain and its swscale flags are the PyAV reader's, and
+presentation times come from `showinfo`, so the pixels and the times are the
+same through either path.
 
 ### 3.4 If python `av` is not allowed (open decision 1)
 

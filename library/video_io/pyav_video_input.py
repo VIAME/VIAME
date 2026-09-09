@@ -56,6 +56,11 @@ class PyAVVideoInput(VideoInput):
         self._stop_after_frame = 0
         self._output_nth_frame = 1
 
+        # Force the subprocess reader even where PyAV would work, which is
+        # otherwise only reached when `import av` fails
+        self._use_cli = False
+        self._delegate = None
+
         self._container = None
         self._stream = None
         self._frames = None
@@ -86,6 +91,7 @@ class PyAVVideoInput(VideoInput):
         cfg.set_value("start_at_frame", str(int(self._start_at_frame)))
         cfg.set_value("stop_after_frame", str(int(self._stop_after_frame)))
         cfg.set_value("output_nth_frame", str(int(self._output_nth_frame)))
+        cfg.set_value("use_cli", str(bool(self._use_cli)).lower())
         return cfg
 
     def set_configuration(self, cfg_in):
@@ -101,6 +107,7 @@ class PyAVVideoInput(VideoInput):
         self._start_at_frame = int(cfg.get_value("start_at_frame"))
         self._stop_after_frame = int(cfg.get_value("stop_after_frame"))
         self._output_nth_frame = int(cfg.get_value("output_nth_frame"))
+        self._use_cli = _as_bool(cfg.get_value("use_cli"))
 
         if self._use_misp_timestamps:
             logger.warning("use_misp_timestamps is not implemented; frame "
@@ -116,9 +123,15 @@ class PyAVVideoInput(VideoInput):
     # Opening and closing
 
     def open(self, video_name):
-        import av
-
         self.close()
+
+        self._delegate = self._fallback()
+
+        if self._delegate is not None:
+            self._delegate.open(video_name)
+            return
+
+        import av
 
         options = {"format": self._format_name} if self._format_name else {}
         self._container = av.open(video_name, **options)
@@ -145,7 +158,35 @@ class PyAVVideoInput(VideoInput):
 
         self._build_graph()
 
+    def _fallback(self):
+        """The subprocess reader, when this one cannot or should not run.
+
+        PyAV is a wheel, and a build that has not got it still has to read
+        video; `ffmpeg_cli_video_input` drives the binary from the
+        `imageio-ffmpeg` wheel instead. It reproduces the same pixels and
+        the same times, so the only reasons to prefer this reader are speed
+        and not paying for a process per seek.
+        """
+        if not self._use_cli:
+            try:
+                import av                                    # noqa: F401
+                return None
+            except ImportError:
+                logger.warning(
+                    "PyAV is not installed; reading video by running the "
+                    "ffmpeg binary instead, which is slower")
+
+        from viame.video_io.ffmpeg_cli_video_input import FFmpegCliVideoInput
+
+        reader = FFmpegCliVideoInput()
+        reader.set_configuration(self.get_configuration())
+        return reader
+
     def close(self):
+        if self._delegate is not None:
+            self._delegate.close()
+            self._delegate = None
+
         if self._container is not None:
             self._container.close()
 
@@ -166,6 +207,9 @@ class PyAVVideoInput(VideoInput):
     # Stepping
 
     def next_frame(self, timeout=0):
+        if self._delegate is not None:
+            return self._delegate.next_frame(timeout)
+
         if self._frames is None or self._exhausted:
             return False
 
@@ -206,6 +250,9 @@ class PyAVVideoInput(VideoInput):
         it and the one asked for are decoded and dropped. That is what makes
         the frame actually returned the one requested.
         """
+        if self._delegate is not None:
+            return self._delegate.seek_frame(frame_number, timeout)
+
         if self._container is None or frame_number < 1:
             return False
 
@@ -213,6 +260,8 @@ class PyAVVideoInput(VideoInput):
 
         if not rate:
             return False
+
+        self._prime_origin()
 
         target = int((frame_number - 1) / rate / self._stream.time_base)
         self._container.seek(target, stream=self._stream, backward=True)
@@ -232,9 +281,34 @@ class PyAVVideoInput(VideoInput):
         self._frame = None
         return False
 
+    def _prime_origin(self):
+        """Fix the timestamp origin at the first frame of the video.
+
+        Times are reported relative to the start of the video, so seeking
+        before any frame has been read must not make the frame it lands on
+        time zero. The origin has to be a filtered frame's presentation
+        time, because a filter may rescale the time base, so it is learned
+        by decoding the first frame rather than read off the stream.
+        """
+        if self._start_ts is not None:
+            return
+
+        self._container.seek(0, stream=self._stream, backward=True)
+        self._frames = self._container.decode(self._stream)
+
+        frame = self._next_filtered()
+
+        if frame is not None:
+            self._seconds_of(frame)
+
     def seek_time(self, time_usec, timeout=0):
+        if self._delegate is not None:
+            return self._delegate.seek_time(time_usec, timeout)
+
         if self._container is None:
             return False
+
+        self._prime_origin()
 
         target = int(time_usec / MICROSECONDS / self._stream.time_base)
         self._container.seek(target, stream=self._stream, backward=True)
@@ -256,6 +330,9 @@ class PyAVVideoInput(VideoInput):
     # The current frame
 
     def frame_timestamp(self):
+        if self._delegate is not None:
+            return self._delegate.frame_timestamp()
+
         stamp = Timestamp()
 
         if self._frame is None:
@@ -271,6 +348,9 @@ class PyAVVideoInput(VideoInput):
         return stamp
 
     def frame_image(self):
+        if self._delegate is not None:
+            return self._delegate.frame_image()
+
         if self._frame is None:
             return None
 
@@ -346,18 +426,33 @@ class PyAVVideoInput(VideoInput):
         return []
 
     def frame_rate(self):
+        if self._delegate is not None:
+            return self._delegate.frame_rate()
+
         return float(self._average_rate() or -1.0)
 
     def filename(self):
+        if self._delegate is not None:
+            return self._delegate.filename()
+
         return self._filename
 
     def end_of_video(self):
+        if self._delegate is not None:
+            return self._delegate.end_of_video()
+
         return self._exhausted or self._frames is None
 
     def good(self):
+        if self._delegate is not None:
+            return self._delegate.good()
+
         return self._frame is not None
 
     def num_frames(self):
+        if self._delegate is not None:
+            return self._delegate.num_frames()
+
         if self._count is not None:
             return self._count
 

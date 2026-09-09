@@ -6,7 +6,9 @@
 
 
 def __vital_algorithm_register__():
-    from viame.video_io import pyav_video_input, pyav_video_output
+    from viame.video_io import (ffmpeg_cli_video_input, pyav_video_input,
+                                pyav_video_output)
 
     pyav_video_input.__vital_algorithm_register__()
     pyav_video_output.__vital_algorithm_register__()
+    ffmpeg_cli_video_input.__vital_algorithm_register__()

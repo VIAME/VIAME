@@ -37,9 +37,10 @@ endif()
 # Video reading and writing: library/video_io's PyAV implementations are how
 # VIAME decodes and encodes video, so this is a core dependency and not an
 # optional one. It was reaching the install only as a transitive requirement
-# of pytorchvideo, which a CPU build does not have. Phase 1 moves it into
-# python/requirements/base.in with the rest.
-list( APPEND VIAME_PYTHON_BASIC_DEPS "av" )
+# of pytorchvideo, which a CPU build does not have. imageio-ffmpeg carries
+# the ffmpeg binary the ffmpeg_cli reader falls back to when PyAV is missing.
+# Phase 1 moves both into python/requirements/base.in with the rest.
+list( APPEND VIAME_PYTHON_BASIC_DEPS "av" "imageio-ffmpeg" )
 
 # Testing infrastructure
 if( VIAME_ENABLE_TESTS )

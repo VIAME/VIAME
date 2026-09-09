@@ -29,7 +29,7 @@ INPUTS = os.path.join(HERE, "inputs")
 # Implementations that have to reproduce the recording. The recorded one is
 # checked too, so a drift in the thing being replaced is caught while it is
 # still there to compare against.
-IMPLEMENTATIONS = ("ffmpeg", "pyav")
+IMPLEMENTATIONS = ("ffmpeg", "pyav", "ffmpeg_cli")
 
 # A presentation time is a rational converted to seconds, so it is compared
 # with the microsecond tolerance the plan asks for rather than exactly.
@@ -43,8 +43,11 @@ TIME_TOLERANCE = 1e-6
 # rate clip means a difference of at most one tick of the container time base.
 # Constant rate video is unaffected, and every shipped pipeline reads either
 # an image list or constant rate video.
+# Keyed by (implementation, clip): the CLI reader reads its times from
+# libavfilter's showinfo, which reports what the same heuristic produced, so
+# it matches exactly and gets no allowance.
 TIMESTAMP_DIVERGENCE = {
-    "clip_vfr.mp4": (
+    ("pyav", "clip_vfr.mp4"): (
         # One container tick, plus the microsecond the recorded times are
         # rounded to
         1.0 / 10240 + 1e-6,
@@ -112,8 +115,8 @@ def test_reader_matches_recording(case):
     tolerance = TIME_TOLERANCE
     reason = ""
 
-    if impl != manifest()["impl"] and clip in TIMESTAMP_DIVERGENCE:
-        tolerance, reason = TIMESTAMP_DIVERGENCE[clip]
+    if (impl, clip) in TIMESTAMP_DIVERGENCE:
+        tolerance, reason = TIMESTAMP_DIVERGENCE[(impl, clip)]
 
     for index, (actual, want) in enumerate(
             zip(frames, expected["timestamps"])):

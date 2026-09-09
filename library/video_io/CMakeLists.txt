@@ -77,4 +77,9 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/pyav_video_output.py
     video_io
     pyav_video_output )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg_cli_video_input.py
+    video_io
+    ffmpeg_cli_video_input )
 endif()
