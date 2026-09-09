@@ -72,23 +72,56 @@ Do:
 Done when:
 - `filter_to_kwa.pipe` output byte-identical to golden.
 
-### P3-T10 Build kwiver in the lite tree so its arrows can be switched off
+### P3-T10 Build kwiver locally so VIAME_ENABLE_VXL reaches it
 Depends: P3-T02. Blocks P3-T06 and P3-T07.
-Added by: P3-T03, which found that a replacement cannot register the old name
-while kwiver still does.
-Context: phases 1 and 2 are deferred, so the lite build takes kwiver prebuilt
-from the reference superbuild at `~/Dev/viame/build`. Every `vxl_*` image
-filter and the `vxl` image_io are registered by `arrows/vxl` inside that
-kwiver, so they cannot be replaced or aliased from VIAME's own plugins.
+Context: nothing about kwiver is fixed. `cmake/add_project_kwiver.cmake` already
+passes `-DKWIVER_ENABLE_VXL:BOOL=${VIAME_ENABLE_VXL}` down to it, so the
+superbuild turns `arrows/vxl` off with the flag we already own. The only reason
+this is a task at all is the transitional arrangement: phases 1 and 2 are
+deferred, so this tree has been reusing the reference superbuild's already-built
+kwiver rather than building its own. Building fletch and pytorch again to change
+one kwiver flag would cost hours for nothing, so kwiver alone is configured
+directly against the reference fletch, with the same options the superbuild
+passes.
 Do:
-- Check out the `kwiver` submodule in this tree and configure a kwiver build
-  under `build/kwiver-build` with the reference build's options, installing
-  into `build/install`. Confirm `viame registry-dump` is unchanged against
-  `tests/baseline/registry.json` with the rebuilt kwiver in place.
-- Point `kwiver_DIR` and `VIAME_BUILD_KWIVER_DIR` in `build/lite-cache.cmake`
-  at the new build; `KWIVER_SOURCE_DIR` follows the submodule.
-- Add `KWIVER_ENABLE_VXL` to the options the lite build sets, still ON.
+- Check out the `kwiver` submodule and configure it into `build/kwiver-build`
+  with `build/kwiver-cache.cmake`, which mirrors the reference kwiver build's
+  options and exposes `KWIVER_ENABLE_VXL` as the flag phase 3 drives. Install
+  into `build/install`.
+- Point `kwiver_DIR`, `VIAME_BUILD_KWIVER_DIR` and `KWIVER_SOURCE_DIR` in
+  `build/lite-cache.cmake` at this tree's kwiver.
+- Rebuild kwiver with VXL still ON first and confirm nothing moved, so that the
+  later flip is the only change under test.
 Done when:
-- A clean configure and build of both projects succeeds; `ctest -L BASELINE`
-  and `ctest -L GOLDEN` pass against the rebuilt kwiver, unchanged.
+- `ctest -L BASELINE` and `ctest -L GOLDEN` pass against the locally built
+  kwiver, unchanged from the reference-built one.
 - `build/lite-cache.cmake` no longer names the reference kwiver build.
+
+### P3-T11 `close_loops_homography_guided` and its polygon overlap
+Depends: P3-T02. Blocks P3-T07.
+Added by: P3-T10's usage scan, which found this name is used and the removal
+design does not cover it.
+Context: `lite-removals.md` §1 lists five `vxl_*` image filters and the `vxl`
+image_io as the only referenced registrations. It misses a sixth:
+`common_image_stabilizer.pipe` sets
+`loop_closer:multi_method:method_2:type = vxl_homography_guided`, and that file
+is included by `register_using_homographies.pipe` and
+`common_stabilized_iou_tracker.pipe`. So `close_loops` `vxl_homography_guided`
+is a real pipeline dependency, not a candidate for `removed.json`.
+Do:
+- Port `arrows/vxl/algo/close_loops_homography_guided.{h,cxx}` (~300 lines) into
+  VIAME under the same registered name and config keys (`enabled`,
+  `checkpoint_percent_overlap`, `homography_filename`, `max_checkpoint_frames`,
+  plus its nested `feature_matcher`).
+- Its only VXL use is `arrows/vxl/compute_homography_overlap` (~260 lines): the
+  fraction of an ni x nj frame still covered after a 3x3 homography, via vgl
+  convex hull, polygon intersection and area. Reimplement as plain C++ in
+  `image_ops`: Sutherland-Hodgman clip of the warped quad against the frame
+  rectangle, shoelace area, ratio. `vnl_double_3x3` becomes a plain 3x3.
+- Golden: record `overlap()` over a spread of homographies (identity, pure
+  translation partly off frame, rotation, scale up and down, a degenerate
+  projective one) before the port, and hold the replacement to it.
+Done when:
+- `vxl_homography_guided` resolves with VXL off; the recorded overlap values
+  match; `register_using_homographies.pipe` and
+  `common_stabilized_iou_tracker.pipe` still bake in `pipe-check --all`.
