@@ -1,0 +1,3939 @@
+{
+  "cases": [
+    {
+      "config": {},
+      "impl": "vxl_average",
+      "inputs": [
+        "seq_00",
+        "seq_01",
+        "seq_02",
+        "seq_03",
+        "seq_04",
+        "seq_05",
+        "seq_06",
+        "seq_07",
+        "seq_08",
+        "seq_09",
+        "seq_10",
+        "seq_11"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "seq_00": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/defaults/seq_00.png",
+          "sha256": "9ac941edfbe79886",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_01": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/defaults/seq_01.png",
+          "sha256": "e12b064814b49f43",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_02": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/defaults/seq_02.png",
+          "sha256": "f427479ae601ffdf",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_03": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/defaults/seq_03.png",
+          "sha256": "6f3aed76574603fc",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_04": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/defaults/seq_04.png",
+          "sha256": "692d4b0fbb809188",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_05": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/defaults/seq_05.png",
+          "sha256": "be623e60b1508ba5",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_06": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/defaults/seq_06.png",
+          "sha256": "d9a900749e7dfa2b",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_07": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/defaults/seq_07.png",
+          "sha256": "0a1c06c1fe629b55",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_08": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/defaults/seq_08.png",
+          "sha256": "43bdcf5d61608b39",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_09": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/defaults/seq_09.png",
+          "sha256": "b196d4081449caaf",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_10": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/defaults/seq_10.png",
+          "sha256": "a46dbd9785665b99",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_11": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/defaults/seq_11.png",
+          "sha256": "e330152897a15850",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "output_variance": "true",
+        "round": "false",
+        "type": "window",
+        "window_size": "5"
+      },
+      "impl": "vxl_average",
+      "inputs": [
+        "seq_00",
+        "seq_01",
+        "seq_02",
+        "seq_03",
+        "seq_04",
+        "seq_05",
+        "seq_06",
+        "seq_07",
+        "seq_08",
+        "seq_09",
+        "seq_10",
+        "seq_11"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "seq_00": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_5/seq_00.npz",
+          "sha256": "8123c216413f82bb",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_01": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_5/seq_01.npz",
+          "sha256": "67151e55e0f8e89f",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_02": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_5/seq_02.npz",
+          "sha256": "de9b9f18a83fa142",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_03": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_5/seq_03.npz",
+          "sha256": "7d9d797300d6851b",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_04": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_5/seq_04.npz",
+          "sha256": "b4cd26e026654703",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_05": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_5/seq_05.npz",
+          "sha256": "07cc039ec5c06cb6",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_06": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_5/seq_06.npz",
+          "sha256": "d3fdfc2eab98b863",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_07": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_5/seq_07.npz",
+          "sha256": "02e316947a026c90",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_08": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_5/seq_08.npz",
+          "sha256": "0e31e9f92e97b397",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_09": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_5/seq_09.npz",
+          "sha256": "73af5c9dc5884466",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_10": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_5/seq_10.npz",
+          "sha256": "3120d821a85dc7a0",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_11": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_5/seq_11.npz",
+          "sha256": "61f6ad6ffd36c2f6",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "window_5"
+    },
+    {
+      "config": {
+        "output_variance": "true",
+        "round": "false",
+        "type": "window",
+        "window_size": "20"
+      },
+      "impl": "vxl_average",
+      "inputs": [
+        "seq_00",
+        "seq_01",
+        "seq_02",
+        "seq_03",
+        "seq_04",
+        "seq_05",
+        "seq_06",
+        "seq_07",
+        "seq_08",
+        "seq_09",
+        "seq_10",
+        "seq_11"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "seq_00": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_20/seq_00.npz",
+          "sha256": "8123c216413f82bb",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_01": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_20/seq_01.npz",
+          "sha256": "67151e55e0f8e89f",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_02": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_20/seq_02.npz",
+          "sha256": "de9b9f18a83fa142",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_03": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_20/seq_03.npz",
+          "sha256": "7d9d797300d6851b",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_04": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_20/seq_04.npz",
+          "sha256": "b4cd26e026654703",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_05": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_20/seq_05.npz",
+          "sha256": "54e48c17c2f5f7c8",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_06": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_20/seq_06.npz",
+          "sha256": "d8a29f68c692ab9b",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_07": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_20/seq_07.npz",
+          "sha256": "3c2ba56b33fee4d2",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_08": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_20/seq_08.npz",
+          "sha256": "a0460d6922772fa5",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_09": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_20/seq_09.npz",
+          "sha256": "a865927db28289ea",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_10": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_20/seq_10.npz",
+          "sha256": "81d0e9ad96f99790",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_11": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_20/seq_11.npz",
+          "sha256": "4b8a39b3576a2601",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "window_20"
+    },
+    {
+      "config": {
+        "output_variance": "true",
+        "round": "false",
+        "type": "window",
+        "window_size": "30"
+      },
+      "impl": "vxl_average",
+      "inputs": [
+        "seq_00",
+        "seq_01",
+        "seq_02",
+        "seq_03",
+        "seq_04",
+        "seq_05",
+        "seq_06",
+        "seq_07",
+        "seq_08",
+        "seq_09",
+        "seq_10",
+        "seq_11"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "seq_00": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_30/seq_00.npz",
+          "sha256": "8123c216413f82bb",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_01": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_30/seq_01.npz",
+          "sha256": "67151e55e0f8e89f",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_02": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_30/seq_02.npz",
+          "sha256": "de9b9f18a83fa142",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_03": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_30/seq_03.npz",
+          "sha256": "7d9d797300d6851b",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_04": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_30/seq_04.npz",
+          "sha256": "b4cd26e026654703",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_05": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_30/seq_05.npz",
+          "sha256": "54e48c17c2f5f7c8",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_06": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_30/seq_06.npz",
+          "sha256": "d8a29f68c692ab9b",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_07": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_30/seq_07.npz",
+          "sha256": "3c2ba56b33fee4d2",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_08": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_30/seq_08.npz",
+          "sha256": "a0460d6922772fa5",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_09": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_30/seq_09.npz",
+          "sha256": "a865927db28289ea",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_10": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_30/seq_10.npz",
+          "sha256": "81d0e9ad96f99790",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_11": {
+          "dtype": "float64",
+          "file": "image_filter/vxl_average/window_30/seq_11.npz",
+          "sha256": "4b8a39b3576a2601",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "window_30"
+    },
+    {
+      "config": {
+        "output_variance": "false",
+        "round": "false",
+        "type": "window",
+        "window_size": "5"
+      },
+      "impl": "vxl_average",
+      "inputs": [
+        "seq_00",
+        "seq_01",
+        "seq_02",
+        "seq_03",
+        "seq_04",
+        "seq_05",
+        "seq_06",
+        "seq_07",
+        "seq_08",
+        "seq_09",
+        "seq_10",
+        "seq_11"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "seq_00": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_mean/seq_00.png",
+          "sha256": "9ac941edfbe79886",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_01": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_mean/seq_01.png",
+          "sha256": "e12b064814b49f43",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_02": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_mean/seq_02.png",
+          "sha256": "f427479ae601ffdf",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_03": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_mean/seq_03.png",
+          "sha256": "6f3aed76574603fc",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_04": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_mean/seq_04.png",
+          "sha256": "692d4b0fbb809188",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_05": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_mean/seq_05.png",
+          "sha256": "744df2b089251dbc",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_06": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_mean/seq_06.png",
+          "sha256": "cbca99cac86c1b07",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_07": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_mean/seq_07.png",
+          "sha256": "ff95fe99aa7411a4",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_08": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_mean/seq_08.png",
+          "sha256": "cacaa13f9f1908c3",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_09": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_mean/seq_09.png",
+          "sha256": "33151beeb428b06a",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_10": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_mean/seq_10.png",
+          "sha256": "89fadf28d5510a46",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_11": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_mean/seq_11.png",
+          "sha256": "6e749b7986ff3fa9",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "window_5_mean"
+    },
+    {
+      "config": {
+        "output_variance": "false",
+        "round": "true",
+        "type": "window",
+        "window_size": "5"
+      },
+      "impl": "vxl_average",
+      "inputs": [
+        "seq_00",
+        "seq_01",
+        "seq_02",
+        "seq_03",
+        "seq_04",
+        "seq_05",
+        "seq_06",
+        "seq_07",
+        "seq_08",
+        "seq_09",
+        "seq_10",
+        "seq_11"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "seq_00": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_round/seq_00.png",
+          "sha256": "9ac941edfbe79886",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_01": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_round/seq_01.png",
+          "sha256": "939731e34e1649f6",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_02": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_round/seq_02.png",
+          "sha256": "e74ea1cc92305d6a",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_03": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_round/seq_03.png",
+          "sha256": "b693d494a2cb6acd",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_04": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_round/seq_04.png",
+          "sha256": "2c52085dae91d7ae",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_05": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_round/seq_05.png",
+          "sha256": "2f407eb7c99e2057",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_06": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_round/seq_06.png",
+          "sha256": "9e4fa54c4984d1eb",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_07": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_round/seq_07.png",
+          "sha256": "ae59f07f01027052",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_08": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_round/seq_08.png",
+          "sha256": "3d3eee1a95dba859",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_09": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_round/seq_09.png",
+          "sha256": "5a0cc1497c304209",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_10": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_round/seq_10.png",
+          "sha256": "5bebaf111e8133c6",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_11": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/window_5_round/seq_11.png",
+          "sha256": "ecffe27ca0e0a4d1",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "window_5_round"
+    },
+    {
+      "config": {
+        "output_variance": "false",
+        "round": "false",
+        "type": "cumulative"
+      },
+      "impl": "vxl_average",
+      "inputs": [
+        "seq_00",
+        "seq_01",
+        "seq_02",
+        "seq_03",
+        "seq_04",
+        "seq_05",
+        "seq_06",
+        "seq_07",
+        "seq_08",
+        "seq_09",
+        "seq_10",
+        "seq_11"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "seq_00": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/cumulative/seq_00.png",
+          "sha256": "9ac941edfbe79886",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_01": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/cumulative/seq_01.png",
+          "sha256": "e12b064814b49f43",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_02": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/cumulative/seq_02.png",
+          "sha256": "f427479ae601ffdf",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_03": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/cumulative/seq_03.png",
+          "sha256": "6f3aed76574603fc",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_04": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/cumulative/seq_04.png",
+          "sha256": "692d4b0fbb809188",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_05": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/cumulative/seq_05.png",
+          "sha256": "be623e60b1508ba5",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_06": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/cumulative/seq_06.png",
+          "sha256": "d9a900749e7dfa2b",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_07": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/cumulative/seq_07.png",
+          "sha256": "0a1c06c1fe629b55",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_08": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/cumulative/seq_08.png",
+          "sha256": "43bdcf5d61608b39",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_09": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/cumulative/seq_09.png",
+          "sha256": "b196d4081449caaf",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_10": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/cumulative/seq_10.png",
+          "sha256": "3401784130e852c8",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_11": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/cumulative/seq_11.png",
+          "sha256": "e675d7485ccdf9b4",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "cumulative"
+    },
+    {
+      "config": {
+        "exp_weight": "0.3",
+        "output_variance": "false",
+        "round": "false",
+        "type": "exponential"
+      },
+      "impl": "vxl_average",
+      "inputs": [
+        "seq_00",
+        "seq_01",
+        "seq_02",
+        "seq_03",
+        "seq_04",
+        "seq_05",
+        "seq_06",
+        "seq_07",
+        "seq_08",
+        "seq_09",
+        "seq_10",
+        "seq_11"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "seq_00": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/exponential/seq_00.png",
+          "sha256": "9ac941edfbe79886",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_01": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/exponential/seq_01.png",
+          "sha256": "3eec2adee202b70b",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_02": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/exponential/seq_02.png",
+          "sha256": "5e37ca9853a860ab",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_03": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/exponential/seq_03.png",
+          "sha256": "19cbd2af62a2b5ee",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_04": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/exponential/seq_04.png",
+          "sha256": "e56fed784799dec4",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_05": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/exponential/seq_05.png",
+          "sha256": "578e164c1cd8d706",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_06": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/exponential/seq_06.png",
+          "sha256": "81073eb32364e0b6",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_07": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/exponential/seq_07.png",
+          "sha256": "92b168b6e8fd6fe7",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_08": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/exponential/seq_08.png",
+          "sha256": "d272ece8be56e752",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_09": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/exponential/seq_09.png",
+          "sha256": "9a957f064f604e5e",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_10": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/exponential/seq_10.png",
+          "sha256": "ca6873ec5c0421a0",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "seq_11": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_average/exponential/seq_11.png",
+          "sha256": "3febe8be3d20052d",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "exponential"
+    },
+    {
+      "config": {},
+      "impl": "vxl_color_commonality",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_color_commonality/defaults/gray16.png",
+          "sha256": "f89c42f952c27920",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_color_commonality/defaults/gray8.png",
+          "sha256": "88061a632b115e49",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_color_commonality/defaults/rgb8.png",
+          "sha256": "f1ba8d9b9733912f",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "color_resolution_per_channel": "16",
+        "intensity_resolution": "32"
+      },
+      "impl": "vxl_color_commonality",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_color_commonality/res16_hist32/gray16.png",
+          "sha256": "6e3a7e3b9d7d2a01",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_color_commonality/res16_hist32/gray8.png",
+          "sha256": "a9a78e8f98e9b83b",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_color_commonality/res16_hist32/rgb8.png",
+          "sha256": "59f88564e1e453a5",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "res16_hist32"
+    },
+    {
+      "config": {
+        "color_resolution_per_channel": "16",
+        "intensity_resolution": "32",
+        "output_scale": "256"
+      },
+      "impl": "vxl_color_commonality",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_color_commonality/res16_hist32_scale256/gray16.png",
+          "sha256": "f6f7f982855b4842",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_color_commonality/res16_hist32_scale256/gray8.png",
+          "sha256": "741107edb72d1dfc",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_color_commonality/res16_hist32_scale256/rgb8.png",
+          "sha256": "1a5f1bbd268e6672",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "res16_hist32_scale256"
+    },
+    {
+      "config": {
+        "color_resolution_per_channel": "16",
+        "intensity_resolution": "32",
+        "output_scale": "512"
+      },
+      "impl": "vxl_color_commonality",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_color_commonality/res16_hist32_scale512/gray16.png",
+          "sha256": "97078d016a5153f0",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_color_commonality/res16_hist32_scale512/gray8.png",
+          "sha256": "28eee9dd0e0c7fe6",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_color_commonality/res16_hist32_scale512/rgb8.png",
+          "sha256": "55e9100c17946d49",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "res16_hist32_scale512"
+    },
+    {
+      "config": {
+        "grid_image": "true",
+        "grid_resolution_height": "2",
+        "grid_resolution_width": "2"
+      },
+      "impl": "vxl_color_commonality",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_color_commonality/grid/gray16.png",
+          "sha256": "45507eeeabf2b750",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_color_commonality/grid/gray8.png",
+          "sha256": "affae06d3896e9d0",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_color_commonality/grid/rgb8.png",
+          "sha256": "8a9ad840e8d29e17",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "unstable": {
+        "gray16": "grid mode leaves part of its output buffer uninitialised",
+        "gray8": "grid mode leaves part of its output buffer uninitialised",
+        "rgb8": "grid mode leaves part of its output buffer uninitialised"
+      },
+      "variant": "grid"
+    },
+    {
+      "config": {},
+      "impl": "vxl_convert_image",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/defaults/gray16.png",
+          "sha256": "5a7d89c5e6b15bb3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/defaults/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/defaults/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "format": "byte"
+      },
+      "impl": "vxl_convert_image",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte/gray16.png",
+          "sha256": "5a7d89c5e6b15bb3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "byte"
+    },
+    {
+      "config": {
+        "force_three_channel": "true",
+        "format": "byte"
+      },
+      "impl": "vxl_convert_image",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_three_channel/gray16.png",
+          "sha256": "924b1a56ffded1c2",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_three_channel/gray8.png",
+          "sha256": "792b11bf823c1d7d",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_three_channel/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "byte_three_channel"
+    },
+    {
+      "config": {
+        "format": "byte",
+        "single_channel": "true"
+      },
+      "impl": "vxl_convert_image",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_single_channel/gray16.png",
+          "sha256": "5a7d89c5e6b15bb3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_single_channel/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_single_channel/rgb8.png",
+          "sha256": "2f6b4210eda8798d",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "byte_single_channel"
+    },
+    {
+      "config": {
+        "format": "byte",
+        "scale_factor": "0.25"
+      },
+      "impl": "vxl_convert_image",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_0_25/gray16.png",
+          "sha256": "04932a413e656187",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_0_25/gray8.png",
+          "sha256": "334b71ca245c5d93",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_0_25/rgb8.png",
+          "sha256": "f164159dbc4fe34d",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "byte_scale_0_25"
+    },
+    {
+      "config": {
+        "format": "byte",
+        "scale_factor": "0.50"
+      },
+      "impl": "vxl_convert_image",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_0_50/gray16.png",
+          "sha256": "7a7e09a07045cc94",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_0_50/gray8.png",
+          "sha256": "b035dcea32f71e46",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_0_50/rgb8.png",
+          "sha256": "dd51a82371616d0c",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "byte_scale_0_50"
+    },
+    {
+      "config": {
+        "format": "byte",
+        "scale_factor": "0.75"
+      },
+      "impl": "vxl_convert_image",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_0_75/gray16.png",
+          "sha256": "b020f27b8b298fee",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_0_75/gray8.png",
+          "sha256": "28e6d7cc13691f47",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_0_75/rgb8.png",
+          "sha256": "a6b9d4f4eb7689c4",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "byte_scale_0_75"
+    },
+    {
+      "config": {
+        "format": "byte",
+        "scale_factor": "255.0"
+      },
+      "impl": "vxl_convert_image",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_255/gray16.png",
+          "sha256": "15e3fb413fcd7620",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_255/gray8.png",
+          "sha256": "ee42ef10b98c64ea",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_255/rgb8.png",
+          "sha256": "02d2e5521d0a3d62",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "byte_scale_255"
+    },
+    {
+      "config": {
+        "format": "byte",
+        "scale_factor": "4.0",
+        "single_channel": "true"
+      },
+      "impl": "vxl_convert_image",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_4_single/gray16.png",
+          "sha256": "2bc34f284810762b",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_4_single/gray8.png",
+          "sha256": "1909369f177500fe",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_scale_4_single/rgb8.png",
+          "sha256": "7f56e5f1709300a6",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "byte_scale_4_single"
+    },
+    {
+      "config": {
+        "force_three_channel": "true",
+        "format": "byte",
+        "random_grayscale": "0.20"
+      },
+      "impl": "vxl_convert_image",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_three_channel_gray_0_20/gray16.png",
+          "sha256": "924b1a56ffded1c2",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_three_channel_gray_0_20/gray8.png",
+          "sha256": "792b11bf823c1d7d",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_three_channel_gray_0_20/rgb8.png",
+          "sha256": "c9665b82d795fe5b",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {
+        "gray16": "random_grayscale draws from the global RNG",
+        "gray8": "random_grayscale draws from the global RNG",
+        "rgb8": "random_grayscale draws from the global RNG"
+      },
+      "variant": "byte_three_channel_gray_0_20"
+    },
+    {
+      "config": {
+        "force_three_channel": "true",
+        "format": "byte",
+        "random_grayscale": "0.25"
+      },
+      "impl": "vxl_convert_image",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_three_channel_gray_0_25/gray16.png",
+          "sha256": "924b1a56ffded1c2",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_three_channel_gray_0_25/gray8.png",
+          "sha256": "792b11bf823c1d7d",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/byte_three_channel_gray_0_25/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {
+        "gray16": "random_grayscale draws from the global RNG",
+        "gray8": "random_grayscale draws from the global RNG",
+        "rgb8": "random_grayscale draws from the global RNG"
+      },
+      "variant": "byte_three_channel_gray_0_25"
+    },
+    {
+      "config": {
+        "format": "float"
+      },
+      "impl": "vxl_convert_image",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "float32",
+          "file": "image_filter/vxl_convert_image/float/gray16.npz",
+          "sha256": "9210bc256599008e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "float32",
+          "file": "image_filter/vxl_convert_image/float/gray8.npz",
+          "sha256": "e4019443296f33a7",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "float32",
+          "file": "image_filter/vxl_convert_image/float/rgb8.npz",
+          "sha256": "b439d3868f6ffde1",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "float"
+    },
+    {
+      "config": {
+        "format": "uint16"
+      },
+      "impl": "vxl_convert_image",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_convert_image/uint16/gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_convert_image/uint16/gray8.png",
+          "sha256": "86db941f94c3b3f6",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_convert_image/uint16/rgb8.npz",
+          "sha256": "79e071acf0de68ca",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "uint16"
+    },
+    {
+      "config": {
+        "format": "byte",
+        "percentile_norm": "0.02"
+      },
+      "impl": "vxl_convert_image",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/percentile_norm/gray16.png",
+          "sha256": "97048427c30921d7",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/percentile_norm/gray8.png",
+          "sha256": "4796b988d5d77ed3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_convert_image/percentile_norm/rgb8.png",
+          "sha256": "356842abe7815a0b",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "percentile_norm"
+    },
+    {
+      "config": {},
+      "impl": "vxl_enhancer",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_enhancer/defaults/gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/defaults/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/defaults/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "apply_clahe": "true",
+        "clip_limit": "3.0"
+      },
+      "impl": "vxl_enhancer",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "float32",
+          "file": "image_filter/vxl_enhancer/clahe/gray16.npz",
+          "sha256": "b0bb438284e808fb",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/clahe/gray8.png",
+          "sha256": "ca90b6c76195ca39",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/clahe/rgb8.png",
+          "sha256": "761cb881daf2d617",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "clahe"
+    },
+    {
+      "config": {
+        "apply_sharpening": "true",
+        "sharpening_weight": "0.5"
+      },
+      "impl": "vxl_enhancer",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_enhancer/sharpen/gray16.png",
+          "sha256": "fe2768456fdea139",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/sharpen/gray8.png",
+          "sha256": "1fb8d571adf0f763",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/sharpen/rgb8.png",
+          "sha256": "ec47aff3c54bde4e",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "sharpen"
+    },
+    {
+      "config": {
+        "apply_smoothing": "true",
+        "smoothing_kernel": "3"
+      },
+      "impl": "vxl_enhancer",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_enhancer/smooth/gray16.png",
+          "sha256": "5b8794c04c24f2ed",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/smooth/gray8.png",
+          "sha256": "15d4aa878c8d79eb",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/smooth/rgb8.png",
+          "sha256": "667d826523447fb2",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "smooth"
+    },
+    {
+      "config": {
+        "auto_balance": "true",
+        "force_8bit": "true"
+      },
+      "impl": "vxl_enhancer",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/auto_balance_8bit/gray16.png",
+          "sha256": "59de7c46556c77f3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/auto_balance_8bit/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/auto_balance_8bit/rgb8.png",
+          "sha256": "9b1a0a98e77338ae",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "auto_balance_8bit"
+    },
+    {
+      "config": {},
+      "impl": "vxl_morphology",
+      "inputs": [
+        "mask"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "mask": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_morphology/defaults/mask.npz",
+          "sha256": "fe4fcc10270bed76",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "element_shape": "disk",
+        "kernel_radius": "1",
+        "morphology": "open"
+      },
+      "impl": "vxl_morphology",
+      "inputs": [
+        "mask"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "mask": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_morphology/open_disk_1/mask.npz",
+          "sha256": "2010a62d1e18f06a",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "open_disk_1"
+    },
+    {
+      "config": {
+        "element_shape": "disk",
+        "kernel_radius": "4",
+        "morphology": "close"
+      },
+      "impl": "vxl_morphology",
+      "inputs": [
+        "mask"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "mask": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_morphology/close_disk_4/mask.npz",
+          "sha256": "6e590864ee0c4457",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "close_disk_4"
+    },
+    {
+      "config": {
+        "element_shape": "disk",
+        "kernel_radius": "2",
+        "morphology": "erode"
+      },
+      "impl": "vxl_morphology",
+      "inputs": [
+        "mask"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "mask": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_morphology/erode_disk_2/mask.npz",
+          "sha256": "82456442d4084e43",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "erode_disk_2"
+    },
+    {
+      "config": {
+        "element_shape": "disk",
+        "kernel_radius": "2",
+        "morphology": "dilate"
+      },
+      "impl": "vxl_morphology",
+      "inputs": [
+        "mask"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "mask": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_morphology/dilate_disk_2/mask.npz",
+          "sha256": "fe4fcc10270bed76",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "dilate_disk_2"
+    },
+    {
+      "config": {},
+      "impl": "vxl_threshold",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_threshold/defaults/gray16.npz",
+          "sha256": "ed45e865d4a31ec8",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_threshold/defaults/gray8.npz",
+          "sha256": "f2a7784ea075b620",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_threshold/defaults/rgb8.npz",
+          "sha256": "9325adefb6b2bd35",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "unstable": {
+        "rgb8": "percentile mode on a multi-plane image returns an uninitialised buffer: vil_threshold_above resizes the plane view it is handed"
+      },
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "threshold": "15",
+        "type": "absolute"
+      },
+      "impl": "vxl_threshold",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_threshold/absolute_15/gray16.npz",
+          "sha256": "3abcca2cec7274e5",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_threshold/absolute_15/gray8.npz",
+          "sha256": "099cdfdc1b1ee4fc",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_threshold/absolute_15/rgb8.npz",
+          "sha256": "28fc39a2d79d9a00",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "absolute_15"
+    },
+    {
+      "config": {
+        "threshold": "128",
+        "type": "absolute"
+      },
+      "impl": "vxl_threshold",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_threshold/absolute_128/gray16.npz",
+          "sha256": "62afbe0c00e03376",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_threshold/absolute_128/gray8.npz",
+          "sha256": "ac7c7a6481f6dec7",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_threshold/absolute_128/rgb8.npz",
+          "sha256": "683e55a4c7e64c7e",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "absolute_128"
+    },
+    {
+      "config": {
+        "threshold": "0.8",
+        "type": "percentile"
+      },
+      "impl": "vxl_threshold",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_threshold/percentile_0_8/gray16.npz",
+          "sha256": "4318571cbda9130b",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_threshold/percentile_0_8/gray8.npz",
+          "sha256": "5f817fb6d37d1631",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "bool",
+          "file": "image_filter/vxl_threshold/percentile_0_8/rgb8.npz",
+          "sha256": "c055ae7fbf383513",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "unstable": {
+        "rgb8": "percentile mode on a multi-plane image returns an uninitialised buffer: vil_threshold_above resizes the plane view it is handed"
+      },
+      "variant": "percentile_0_8"
+    },
+    {
+      "config": {},
+      "impl": "vxl_white_balancing",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_white_balancing/defaults/gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_white_balancing/defaults/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_white_balancing/defaults/rgb8.png",
+          "sha256": "13c433634932d493",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "black_scale_factor": "0.1",
+        "white_scale_factor": "0.9"
+      },
+      "impl": "vxl_white_balancing",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_white_balancing/scaled/gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_white_balancing/scaled/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_white_balancing/scaled/rgb8.png",
+          "sha256": "5b82c83706dcd060",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "scaled"
+    },
+    {
+      "config": {
+        "matrix_resolution": "32"
+      },
+      "impl": "vxl_white_balancing",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_white_balancing/res32/gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_white_balancing/res32/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_white_balancing/res32/rgb8.png",
+          "sha256": "88bd8844bec09fe4",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "res32"
+    },
+    {
+      "config": {},
+      "impl": "vxl",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_io",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_io/vxl/defaults/gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_io/vxl/defaults/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_io/vxl/defaults/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "force_byte": "true"
+      },
+      "impl": "vxl",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_io",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_io/vxl/force_byte/gray16.png",
+          "sha256": "5a7d89c5e6b15bb3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_io/vxl/force_byte/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_io/vxl/force_byte/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "force_byte"
+    },
+    {
+      "config": {
+        "force_byte": "false"
+      },
+      "impl": "vxl",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_io",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_io/vxl/no_force_byte/gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_io/vxl/no_force_byte/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_io/vxl/no_force_byte/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "no_force_byte"
+    },
+    {
+      "config": {
+        "split_channels": "true"
+      },
+      "impl": "vxl",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_io",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_io/vxl/split_channels/gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_io/vxl/split_channels/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_io/vxl/split_channels/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "split_channels"
+    },
+    {
+      "config": {
+        "split_channels": "false"
+      },
+      "impl": "vxl",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_io",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_io/vxl/no_split_channels/gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_io/vxl/no_split_channels/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_io/vxl/no_split_channels/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "no_split_channels"
+    },
+    {
+      "config": {
+        "auto_stretch": "true"
+      },
+      "impl": "vxl",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_io",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_io/vxl/auto_stretch/gray16.png",
+          "sha256": "5b03b64866595973",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_io/vxl/auto_stretch/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_io/vxl/auto_stretch/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "auto_stretch"
+    },
+    {
+      "config": {},
+      "impl": "train_aug_add_color_freq.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame000001.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_color_freq.pipe/frame000001.png",
+          "sha256": "7408a303b3ec72a3",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000002.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_color_freq.pipe/frame000002.png",
+          "sha256": "6f59b6cbe10be4cb",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000003.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_color_freq.pipe/frame000003.png",
+          "sha256": "7723df067625cc85",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000004.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_color_freq.pipe/frame000004.png",
+          "sha256": "2df9aecb4d45321b",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000005.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_color_freq.pipe/frame000005.png",
+          "sha256": "532cd0e627105640",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000006.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_color_freq.pipe/frame000006.png",
+          "sha256": "88f0210fdd5cb67e",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    },
+    {
+      "config": {},
+      "impl": "train_aug_add_double_motion.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame000001.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_double_motion.pipe/frame000001.png",
+          "sha256": "4798c8ef72622cf9",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000002.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_double_motion.pipe/frame000002.png",
+          "sha256": "155a6f4fb11d19e8",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000003.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_double_motion.pipe/frame000003.png",
+          "sha256": "02f106a417e7c5d0",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000004.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_double_motion.pipe/frame000004.png",
+          "sha256": "f7708616ee45fa32",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000005.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_double_motion.pipe/frame000005.png",
+          "sha256": "d5a4ca878e79d1a9",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000006.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_double_motion.pipe/frame000006.png",
+          "sha256": "471024d822569056",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    },
+    {
+      "config": {},
+      "impl": "train_aug_add_motion.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame000001.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_motion.pipe/frame000001.png",
+          "sha256": "dbc0de3bf886a75f",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000002.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_motion.pipe/frame000002.png",
+          "sha256": "e143e64e8032758c",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000003.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_motion.pipe/frame000003.png",
+          "sha256": "2887ee168e4ac891",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000004.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_motion.pipe/frame000004.png",
+          "sha256": "2bb6a0d5fc953d5d",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000005.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_motion.pipe/frame000005.png",
+          "sha256": "f840ee0e5d397c15",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000006.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_motion.pipe/frame000006.png",
+          "sha256": "36dff28195a6cb37",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    },
+    {
+      "config": {},
+      "impl": "train_aug_add_optical_flow.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame000001.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_optical_flow.pipe/frame000001.png",
+          "sha256": "dbc0de3bf886a75f",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000002.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_optical_flow.pipe/frame000002.png",
+          "sha256": "89b133b93467301a",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000003.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_optical_flow.pipe/frame000003.png",
+          "sha256": "43b0dcb001fec01f",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000004.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_optical_flow.pipe/frame000004.png",
+          "sha256": "ac05213091e55217",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000005.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_optical_flow.pipe/frame000005.png",
+          "sha256": "f8835da3bd24e47d",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000006.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_optical_flow.pipe/frame000006.png",
+          "sha256": "e5b8ee949dc0dee7",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    },
+    {
+      "config": {},
+      "impl": "train_aug_add_optical_flow_adaptive.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame000001.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_optical_flow_adaptive.pipe/frame000001.png",
+          "sha256": "dbc0de3bf886a75f",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000002.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_optical_flow_adaptive.pipe/frame000002.png",
+          "sha256": "e481bd8a85a66ad6",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000003.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_optical_flow_adaptive.pipe/frame000003.png",
+          "sha256": "4e2709bd3efd156c",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000004.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_optical_flow_adaptive.pipe/frame000004.png",
+          "sha256": "fc7d076539db2932",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000005.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_optical_flow_adaptive.pipe/frame000005.png",
+          "sha256": "90d7f3322372e495",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        },
+        "frame000006.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_add_optical_flow_adaptive.pipe/frame000006.png",
+          "sha256": "70422951ff49eb20",
+          "shape": [
+            270,
+            480,
+            4
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    },
+    {
+      "config": {},
+      "impl": "train_aug_all_motion.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame000001.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_all_motion.pipe/frame000001.png",
+          "sha256": "b08e714cf0e740e6",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000002.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_all_motion.pipe/frame000002.png",
+          "sha256": "652a825180e76c06",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000003.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_all_motion.pipe/frame000003.png",
+          "sha256": "7651c6bf45c72249",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000004.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_all_motion.pipe/frame000004.png",
+          "sha256": "c0ecc4b2d9cdc05e",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000005.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_all_motion.pipe/frame000005.png",
+          "sha256": "b5fcc03fb18cc274",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000006.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_all_motion.pipe/frame000006.png",
+          "sha256": "8604e86631362c63",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    },
+    {
+      "config": {},
+      "impl": "train_aug_hue_shifting_only.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame000001.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_hue_shifting_only.pipe/frame000001.png",
+          "sha256": "f95e51b330c93941",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000002.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_hue_shifting_only.pipe/frame000002.png",
+          "sha256": "3ddedc460b1aa5b3",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000003.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_hue_shifting_only.pipe/frame000003.png",
+          "sha256": "516dc55612ea714b",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000004.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_hue_shifting_only.pipe/frame000004.png",
+          "sha256": "2aab205257c1fbc3",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000005.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_hue_shifting_only.pipe/frame000005.png",
+          "sha256": "8cac30c3f75b8492",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000006.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_hue_shifting_only.pipe/frame000006.png",
+          "sha256": "89caf50a1d2dd994",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        }
+      },
+      "unstable": {
+        "frame000001.png": "the pipeline applies vxl_convert_image's random_grayscale, which draws from the global RNG",
+        "frame000002.png": "the pipeline applies vxl_convert_image's random_grayscale, which draws from the global RNG",
+        "frame000003.png": "the pipeline applies vxl_convert_image's random_grayscale, which draws from the global RNG",
+        "frame000004.png": "the pipeline applies vxl_convert_image's random_grayscale, which draws from the global RNG",
+        "frame000005.png": "the pipeline applies vxl_convert_image's random_grayscale, which draws from the global RNG",
+        "frame000006.png": "the pipeline applies vxl_convert_image's random_grayscale, which draws from the global RNG"
+      },
+      "variant": "default"
+    },
+    {
+      "config": {},
+      "impl": "train_aug_intensity_color_freq_motion.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame000001.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_intensity_color_freq_motion.pipe/frame000001.png",
+          "sha256": "0d98f71c21bc4c08",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000002.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_intensity_color_freq_motion.pipe/frame000002.png",
+          "sha256": "80818d8de8a049c8",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000003.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_intensity_color_freq_motion.pipe/frame000003.png",
+          "sha256": "277511d9b784d10a",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000004.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_intensity_color_freq_motion.pipe/frame000004.png",
+          "sha256": "06e284b17c558d4d",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000005.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_intensity_color_freq_motion.pipe/frame000005.png",
+          "sha256": "f11a72e79bcfbd6e",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame000006.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_intensity_color_freq_motion.pipe/frame000006.png",
+          "sha256": "20b02087e9ad2bfb",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    },
+    {
+      "config": {},
+      "impl": "train_aug_motion_only.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame000001.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_motion_only.pipe/frame000001.png",
+          "sha256": "3bd8d3cf878b4daa",
+          "shape": [
+            270,
+            480
+          ]
+        },
+        "frame000002.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_motion_only.pipe/frame000002.png",
+          "sha256": "35f925728cda8950",
+          "shape": [
+            270,
+            480
+          ]
+        },
+        "frame000003.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_motion_only.pipe/frame000003.png",
+          "sha256": "16731d6da9c92e1c",
+          "shape": [
+            270,
+            480
+          ]
+        },
+        "frame000004.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_motion_only.pipe/frame000004.png",
+          "sha256": "537cf8b1292e4177",
+          "shape": [
+            270,
+            480
+          ]
+        },
+        "frame000005.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_motion_only.pipe/frame000005.png",
+          "sha256": "9de1c6afa8994b21",
+          "shape": [
+            270,
+            480
+          ]
+        },
+        "frame000006.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_motion_only.pipe/frame000006.png",
+          "sha256": "5b5e3e1d3ed0dbe0",
+          "shape": [
+            270,
+            480
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    }
+  ],
+  "fixtures": {
+    "frame_00": {
+      "dtype": "uint8",
+      "sha256": "f95e51b330c93941",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_01": {
+      "dtype": "uint8",
+      "sha256": "1c6de71c2e80cd0e",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_02": {
+      "dtype": "uint8",
+      "sha256": "516dc55612ea714b",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_03": {
+      "dtype": "uint8",
+      "sha256": "2aab205257c1fbc3",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_04": {
+      "dtype": "uint8",
+      "sha256": "8cac30c3f75b8492",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_05": {
+      "dtype": "uint8",
+      "sha256": "2bf42c26f732a65b",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "gray16": {
+      "dtype": "uint16",
+      "sha256": "68830aaa86124440",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "gray8": {
+      "dtype": "uint8",
+      "sha256": "95e317223585e847",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "mask": {
+      "dtype": "bool",
+      "sha256": "2010a62d1e18f06a",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "rgb8": {
+      "dtype": "uint8",
+      "sha256": "835f97298ef48c75",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_00": {
+      "dtype": "uint8",
+      "sha256": "9ac941edfbe79886",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_01": {
+      "dtype": "uint8",
+      "sha256": "fa8a0910d17fffb2",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_02": {
+      "dtype": "uint8",
+      "sha256": "bd5cc83de41c5ce6",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_03": {
+      "dtype": "uint8",
+      "sha256": "30a83406911e6497",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_04": {
+      "dtype": "uint8",
+      "sha256": "89a6d5999f5bd8ca",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_05": {
+      "dtype": "uint8",
+      "sha256": "4272fd601873ca1c",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_06": {
+      "dtype": "uint8",
+      "sha256": "6a2f47f8c1e77850",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_07": {
+      "dtype": "uint8",
+      "sha256": "77a642afb8efb555",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_08": {
+      "dtype": "uint8",
+      "sha256": "d84318b825c34750",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_09": {
+      "dtype": "uint8",
+      "sha256": "1d52f0325ea50687",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_10": {
+      "dtype": "uint8",
+      "sha256": "f2e17c1ff4f22798",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_11": {
+      "dtype": "uint8",
+      "sha256": "8a5d2298f319f1d0",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    }
+  },
+  "group": "vxl",
+  "recorded": "2026-09-09T13:15:32Z",
+  "versions": {
+    "install": "/home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install",
+    "viame": "a02be7dcfa83e4efeadc1641bd1b1b82931a319c"
+  }
+}

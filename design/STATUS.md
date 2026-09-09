@@ -7,8 +7,8 @@ Notes.
 
 ## Current position
 
-- Phase: P1
-- Next task: P0-T06 (independent, may run any time), then P1-T01
+- Phase: P3 (phases 1 and 2 deferred, see the decision below)
+- Next task: P3-T02
 - Last clean-configure build verified: 2026-09-09, P0-T05
 - Reference machine: local workstation, CUDA 12.6, cuDNN 9.12, Ubuntu
   (kernel 6.8), python 3.10.12, gcc default, 16 cores
@@ -72,8 +72,8 @@ reference kwiver source.
 | P2-T09 | Relocate tests | P2-T08 | todo | | |
 | P2-T10 | Docs and DIVE smoke | P2-T09 | todo | | |
 | **Phase 3: drop VXL** | `phase-03-drop-vxl.md` | | | | |
-| P3-T01 | Record VXL golden outputs | P2-T10 | todo | | |
-| P3-T02 | `image_ops` v1 kernels | P2-T10 | todo | | |
+| P3-T01 | Record VXL golden outputs | P0-T05 | in-progress | | Dependency changed from P2-T10 by the ordering decision. Recorded through the kwiver python bindings rather than through pipelines, which gives the exact array for every dtype instead of a re-encoded image; whole-pipeline recordings run the shipped `train_aug_*` pipelines, the only shipped pipelines that both use a vxl filter and write images |
+| P3-T02 | `image_ops` v1 kernels | P0-T05 | todo | | Lands under `plugins/` for now; phase 2 moves it to `library/image_ops` |
 | P3-T03 | `convert_image` (alias `vxl_convert_image`) | P3-T01, P3-T02 | todo | | |
 | P3-T04 | `average_frames`, `threshold`, `morphology`, `color_commonality` | P3-T03 | todo | | |
 | P3-T05 | `white_balance`, `vxl_enhancer`, `format_images_srm` | P3-T04 | todo | | |
@@ -147,6 +147,8 @@ reference kwiver source.
 | 2026-09-09 | Phases 0 and 1 build only the VIAME project against the reference `main` superbuild's fletch/kwiver rather than rebuilding the superbuild; phase 1 replaces the arrangement | agent, build cost | STATUS.md "Build arrangement" |
 | 2026-09-09 | `pipe-check --all` reads the install tree rather than extracting add-on zips | agent, P0-T03 | STATUS.md P0-T03 note |
 | 2026-09-09 | Baseline is a CUDA build only; the CPU union is deferred to P0-T06 | agent, P0-T04 | STATUS.md P0-T04 note |
+| 2026-09-09 | Dependency removal comes before the restructuring: phase 3 onward runs against the existing `plugins/` tree, and phases 1 and 2 move the resulting code afterwards. Neither phase 1 nor phase 2 removes a dependency, and both are large; going at the dependencies first gets the reduction sooner at the cost of the layout move carrying a little more | user | STATUS.md, this row |
+| 2026-09-09 | Golden coverage is the full set: per filter fixtures for every config variant the shipped pipelines use, plus whole pipeline recordings, committed under `tests/golden/` | user | tests/golden/README.md |
 
 ## Removed names log
 
