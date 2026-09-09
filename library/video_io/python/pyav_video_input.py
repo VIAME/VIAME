@@ -274,12 +274,8 @@ class PyAVVideoInput(VideoInput):
         if self._frame is None:
             return None
 
-        array = self._frame.to_ndarray()
-
-        if self._graph_deep and array.dtype != np.uint16:
-            array = array.astype(np.uint16)
-
-        return ImageContainer(Image(np.ascontiguousarray(array)))
+        return ImageContainer(Image(_planar_rgb(self._frame,
+                                                self._graph_deep)))
 
     def _build_graph(self):
         """The filter chain every frame passes through.
@@ -310,7 +306,11 @@ class PyAVVideoInput(VideoInput):
             head = _add_chain(graph, head, self._filter_desc)
 
         scale = graph.add("scale", SCALE_FLAGS)
-        fmt = graph.add("format", "rgb48le" if deep else "rgb24")
+
+        # Planar rather than interleaved RGB: vital images are planar, so
+        # handing the interleaved layout to `Image` costs a strided per pixel
+        # copy, which at 1080p is 14 ms a frame against 0.5 for a memcpy
+        fmt = graph.add("format", "gbrp16le" if deep else "gbrp")
         sink = graph.add("buffersink")
 
         head.link_to(scale)
@@ -431,6 +431,36 @@ def _add_chain(graph, head, description):
         head = node
 
     return head
+
+
+def _planar_rgb(frame, deep):
+    """The frame as an (h, w, 3) array laid out the way vital stores images.
+
+    The filter chain emits planar RGB, which ffmpeg orders G, B, R. Copying
+    the three planes into one buffer in R, G, B order and then viewing it
+    transposed gives an array whose strides are exactly vital's own
+    (`w_step` 1, `h_step` width, `d_step` width * height), so constructing
+    the image is a single memcpy rather than a per pixel walk. The planes
+    carry row padding, hence the slice to the real width.
+    """
+    dtype = np.uint16 if deep else np.uint8
+    height, width = frame.height, frame.width
+
+    planes = []
+
+    for plane in frame.planes:
+        row = np.frombuffer(plane, dtype=dtype)
+        stride = plane.line_size // dtype(0).itemsize
+        planes.append(row.reshape(-1, stride)[:height, :width])
+
+    green, blue, red = planes
+
+    planar = np.empty((3, height, width), dtype=dtype)
+    planar[0] = red
+    planar[1] = green
+    planar[2] = blue
+
+    return planar.transpose(1, 2, 0)
 
 
 def _bit_depth(pixel_format):
