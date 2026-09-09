@@ -94,6 +94,36 @@ If your ingest was successful, you should get a message saying 'ingest complete"
 errors in your output log. If you get an error, and are unable to decipher it, send a copy
 of your database/Logs folder and console output to 'viame.developers@gmail.com'.
 
+Managing the Index
+------------------
+
+'viame index' is the tool behind the create_index scripts and the way to maintain an
+index afterwards: 'viame index add -l list.txt' (or '-d videos', '-v video.mp4') ingests
+more media into an existing index, 'viame index list' and 'viame index status [stream]'
+show what is indexed, 'viame index remove [stream]' drops a video, and 'viame index build'
+refreshes the hash codes (with '--retrain' to retrain the ITQ model over everything).
+'viame index hash' is the low-level tool that trains a model and hash codes from an
+arbitrary descriptor file or table.
+
+Index Storage
+-------------
+
+By default the index is a set of plain files in the 'database' folder, one group per
+ingested video or image list sharing its basename: '[name].index' (a JSON manifest that
+marks the entry as indexed), '[name]_descriptors.csv' (descriptor ids, track references
+and per-frame history), '[name]_tracks.csv' (the object tracks), '[name]_descriptors.npy'
+(the descriptor vectors as a float32 matrix), '[name]_uids.txt' (the id of each row) and
+'[name]_hashes.npy' (locality-sensitive hash codes of each row). The ITQ hashing model
+shared by every entry lives in 'database/ITQ'. Adding a video re-runs the ingest for it
+and refreshes only its own files; removing one is deleting its files. No server process
+is involved, and the folder can be copied or backed up as-is.
+
+The earlier embedded PostgreSQL store is still available: pass '--backend postgres' to
+'viame index add' (the database is initialised on the first add) and
+'--index-backend postgres' to 'launch_search.py'. Both backends use the same ITQ files,
+but a folder holds one or the other, not a mix; commands on an existing index detect
+its backend.
+
 
 Perform an Image Query
 ======================

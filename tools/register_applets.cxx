@@ -57,9 +57,9 @@ VIAME_PYTHON_SCRIPT_APPLET( extract_frames_applet, "extract-frames",
 VIAME_PYTHON_SCRIPT_APPLET( plot_detections_applet, "plot-detections",
   "plot_detections.py", "Plot detection counts per frame" )
 
-VIAME_PYTHON_SCRIPT_APPLET( generate_nn_index_applet, "generate-nn-index",
-  "generate_nn_index.py",
-  "Build ITQ LSH index for efficient nearest neighbor search" )
+VIAME_PYTHON_SCRIPT_APPLET( index_applet, "index", "index.py",
+  "Build and manage the video search index: add, remove, build, list, "
+  "status, hash." )
 
 VIAME_PYTHON_SCRIPT_APPLET( launch_annotator_applet, "launch-annotator",
   "launch_annotator.py", "Launch annotation GUI" )
@@ -170,7 +170,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_script_tool< inspect_applet >( reg );
   register_script_tool< extract_frames_applet >( reg );
   register_script_tool< plot_detections_applet >( reg );
-  register_script_tool< generate_nn_index_applet >( reg );
+  register_script_tool< index_applet >( reg );
   register_script_tool< launch_annotator_applet >( reg );
   register_script_tool< launch_search_applet >( reg );
   register_script_tool< pipeline_applet >( reg );

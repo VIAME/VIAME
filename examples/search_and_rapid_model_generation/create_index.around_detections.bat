@@ -10,6 +10,6 @@ REM Run Pipeline
 
 REM To change this script to process a directory of videos, as opposed to images change "-l ingest_list.txt" to "-d videos" if videos is a directory with videos
 
-viame.exe run --init -l ingest_list.txt -p pipelines\index_generic.pipe -o database --build-index -install "%VIAME_INSTALL%"
+viame.exe index add -l ingest_list.txt --method detections -install "%VIAME_INSTALL%"
 
 pause

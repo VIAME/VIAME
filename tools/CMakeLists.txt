@@ -14,7 +14,7 @@ set( PYTHON_SCRIPTS
   extract_frames.py
   inspect.py
   plot_detections.py
-  generate_nn_index.py
+  index.py
   launch_annotator.py
   launch_search.py
   pipeline.py
