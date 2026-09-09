@@ -66,6 +66,32 @@ def a_pipeline():
 
 
 @pytest.fixture(scope="module")
+def hough_pipeline():
+    install = find_viame_install()
+    if install is None:
+        pytest.skip("No VIAME install found")
+    path = install / "configs" / "pipelines" / "detector_simple_hough.pipe"
+    if not path.exists():
+        pytest.skip(f"Missing pipeline: {path}")
+    return path
+
+
+@pytest.fixture(scope="module")
+def circles_image():
+    path = (
+        get_viame_source()
+        / "tests"
+        / "pipelines"
+        / "pipelines_test_data"
+        / "images"
+        / "circles_3.jpg"
+    )
+    if not path.exists():
+        pytest.skip(f"Missing test data: {path}")
+    return path
+
+
+@pytest.fixture(scope="module")
 def detections_csv():
     path = (
         get_viame_source()
@@ -78,10 +104,11 @@ def detections_csv():
     return path
 
 
-def run_viame(env, *args, timeout=300):
+def run_viame(env, *args, timeout=300, cwd=None):
     return subprocess.run(
         ["viame", *args],
         env=env,
+        cwd=cwd,
         capture_output=True,
         text=True,
         timeout=timeout,
@@ -932,6 +959,112 @@ class TestRunDispatch:
         through_runner = run_viame(viame_env, "runner", str(a_pipeline), "--help")
 
         assert through_run.stdout == through_runner.stdout
+
+    def test_pipe_file_with_an_input_selects_the_batch_driver(
+        self, viame_env, a_pipeline, tmp_path
+    ):
+        result = run_viame(viame_env, "run", str(a_pipeline), str(tmp_path), "--help")
+        assert self._mode(result) == "batch"
+
+    def test_help_describes_the_shorthand(self, viame_env):
+        result = run_viame(viame_env, "run", "--help")
+        assert "viame run <pipeline> <video|image|image-list.txt|folder>" in result.stdout
+
+
+class TestRunShorthand:
+    """`run <pipeline> <input>` processes one video, image or image list."""
+
+    @staticmethod
+    def _run(env, cwd, *args):
+        return run_viame(env, "run", *args, "-o", "out", "--no-reset-prompt", cwd=cwd)
+
+    @staticmethod
+    def _detection_rows(cwd, stem):
+        path = cwd / "out" / f"{stem}_detections.csv"
+        assert path.exists(), sorted(p.name for p in (cwd / "out").iterdir())
+        return [
+            line for line in path.read_text().splitlines()
+            if line and not line.startswith("#")
+        ]
+
+    def test_image(self, viame_env, hough_pipeline, circles_image, tmp_path):
+        shutil.copy(circles_image, tmp_path / "circles.jpg")
+        result = self._run(viame_env, tmp_path, str(hough_pipeline), "circles.jpg")
+
+        assert "ERROR" not in result.stdout, result.stdout
+        assert len(self._detection_rows(tmp_path, "circles")) >= 1
+
+    def test_image_list(self, viame_env, hough_pipeline, circles_image, tmp_path):
+        (tmp_path / "list.txt").write_text(f"{circles_image}\n")
+        result = self._run(viame_env, tmp_path, str(hough_pipeline), "list.txt")
+
+        assert "ERROR" not in result.stdout, result.stdout
+        assert len(self._detection_rows(tmp_path, "list")) >= 1
+
+    def test_video(self, viame_env, hough_pipeline, circles_image, tmp_path):
+        if shutil.which("ffmpeg") is None:
+            pytest.skip("ffmpeg not available to build a clip")
+        subprocess.run(
+            [
+                "ffmpeg", "-loglevel", "error", "-y", "-loop", "1",
+                "-i", str(circles_image), "-t", "1", "-r", "5",
+                "-pix_fmt", "yuv420p", str(tmp_path / "clip.mp4"),
+            ],
+            check=True,
+        )
+        result = self._run(viame_env, tmp_path, str(hough_pipeline), "clip.mp4")
+
+        assert "ERROR" not in result.stdout, result.stdout
+        assert len(self._detection_rows(tmp_path, "clip")) >= 1
+
+    def test_bare_pipeline_name(self, viame_env, hough_pipeline, circles_image, tmp_path):
+        shutil.copy(circles_image, tmp_path / "circles.jpg")
+        result = self._run(viame_env, tmp_path, hough_pipeline.stem, "circles.jpg")
+
+        assert "ERROR" not in result.stdout, result.stdout
+        assert len(self._detection_rows(tmp_path, "circles")) >= 1
+
+    def test_input_may_precede_the_pipeline(
+        self, viame_env, hough_pipeline, circles_image, tmp_path
+    ):
+        shutil.copy(circles_image, tmp_path / "circles.jpg")
+        result = self._run(viame_env, tmp_path, "circles.jpg", str(hough_pipeline))
+
+        assert "ERROR" not in result.stdout, result.stdout
+        assert len(self._detection_rows(tmp_path, "circles")) >= 1
+
+    def test_pipeline_flag_takes_a_positional_input(
+        self, viame_env, hough_pipeline, circles_image, tmp_path
+    ):
+        shutil.copy(circles_image, tmp_path / "circles.jpg")
+        result = self._run(
+            viame_env, tmp_path, "-p", str(hough_pipeline), "circles.jpg"
+        )
+
+        assert "ERROR" not in result.stdout, result.stdout
+        assert len(self._detection_rows(tmp_path, "circles")) >= 1
+
+    def test_missing_pipe_file_is_reported(self, viame_env, circles_image, tmp_path):
+        shutil.copy(circles_image, tmp_path / "circles.jpg")
+        result = self._run(viame_env, tmp_path, "no_such.pipe", "circles.jpg")
+
+        assert "Unable to find no_such.pipe" in result.stdout
+
+    def test_too_many_positionals_is_reported(self, viame_env, hough_pipeline, tmp_path):
+        result = self._run(viame_env, tmp_path, str(hough_pipeline), "a.jpg", "b.jpg")
+
+        assert "At most one input" in result.stdout
+
+    def test_two_pipelines_is_reported(self, viame_env, hough_pipeline, a_pipeline, tmp_path):
+        result = self._run(viame_env, tmp_path, str(hough_pipeline), str(a_pipeline))
+
+        assert "both name a pipeline" in result.stdout
+
+    def test_no_pipeline_is_reported(self, viame_env, circles_image, tmp_path):
+        shutil.copy(circles_image, tmp_path / "circles.jpg")
+        result = self._run(viame_env, tmp_path, "circles.jpg", "nothing")
+
+        assert "neither names a pipeline" in result.stdout
 
 
 class TestPythonScriptApplets:

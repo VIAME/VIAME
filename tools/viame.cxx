@@ -20,9 +20,11 @@
  *   viame my_pipeline.pipe          # equivalent to: viame runner my_pipeline.pipe
  *
  * The "run" applet covers both processing data in batch and executing a
- * single pipeline. Naming a pipe file positionally selects the latter:
+ * single pipeline. Naming a pipe file alone selects the latter, while a pipe
+ * file followed by an input is the batch driver's shorthand:
  *
  *   viame run my_pipeline.pipe      # equivalent to: viame runner my_pipeline.pipe
+ *   viame run my.pipe video.mp4     # batch processing, handled by process_video
  *   viame run -d videos/ -p my.pipe # batch processing, handled by process_video
  *
  * Similarly, if the first argument is a .conf file, the train applet
@@ -83,21 +85,21 @@ static bool ends_with( const std::string& str, const std::string& suffix )
 
 // ============================================================================
 /**
- * Check whether a "run" command names a pipeline file to execute directly.
+ * Collect the positional arguments of an applet command line.
  *
- * The batch driver describes its whole job with flags and takes no positional
- * arguments, while the pipeline runner's only positional argument is the pipe
- * file. A bare pipe file is therefore a request for the runner. A value handed
- * to a flag does not count, and neither does a key=value setting.
+ * A value handed to a flag does not count, and neither does a key=value
+ * setting.
  */
-static bool names_a_pipe_file( const std::vector< std::string >& args )
+static std::vector< std::string >
+positional_args( const std::vector< std::string >& args )
 {
+  std::vector< std::string > found;
+
   for( size_t i = 1; i < args.size(); ++i )
   {
     const std::string& arg = args[i];
 
-    if( arg.empty() || arg[0] == '-' || !ends_with( arg, ".pipe" ) ||
-        arg.find( '=' ) != std::string::npos )
+    if( arg.empty() || arg[0] == '-' || arg.find( '=' ) != std::string::npos )
     {
       continue;
     }
@@ -108,10 +110,25 @@ static bool names_a_pipe_file( const std::vector< std::string >& args )
       continue;
     }
 
-    return true;
+    found.push_back( arg );
   }
 
-  return false;
+  return found;
+}
+
+// ============================================================================
+/**
+ * Check whether a "run" command names a pipeline file to execute directly.
+ *
+ * The pipeline runner's only positional argument is the pipe file, so a lone
+ * pipe file is a request for the runner. A pipe file with a companion input
+ * (video, image, image list or folder) is the batch driver's shorthand form.
+ */
+static bool names_a_lone_pipe_file( const std::vector< std::string >& args )
+{
+  const auto positional = positional_args( args );
+
+  return positional.size() == 1 && ends_with( positional[0], ".pipe" );
 }
 
 // ============================================================================
@@ -145,10 +162,15 @@ static void print_run_modes()
     << "      Execute one pipeline file directly. See \"viame help runner\""
     << std::endl
     << "      for the options that mode accepts." << std::endl << std::endl
-    << "  viame run -d <directory> -p <pipeline.pipe> [options]" << std::endl
-    << "      Process a folder, video or image list in batch, using the"
+    << "  viame run <pipeline> <video|image|image-list.txt|folder> [options]"
     << std::endl
-    << "      options listed below." << std::endl << std::endl;
+    << "  viame run -d <directory> -p <pipeline.pipe> [options]" << std::endl
+    << "      Process a video, image, image list or folder in batch, using"
+    << std::endl
+    << "      the options listed below. The pipeline may be a bare name"
+    << std::endl
+    << "      from configs/pipelines, e.g. detector_generic." << std::endl
+    << std::endl;
 }
 
 // ============================================================================
@@ -270,7 +292,7 @@ public:
     } // end for
 
     // "run" covers both the batch driver and running a single pipeline
-    if ( m_applet_name == "run" && names_a_pipe_file( m_applet_args ) )
+    if ( m_applet_name == "run" && names_a_lone_pipe_file( m_applet_args ) )
     {
       m_applet_name = "runner";
     }
@@ -350,6 +372,7 @@ void tool_runner_usage( [[maybe_unused]] applet_context_t ctxt,
             << "  viame my_config.conf                # Train with a config file (shorthand)" << std::endl
             << "  viame train -c my_config.conf       # Train with a config file (explicit)" << std::endl
             << "  viame run my_pipeline.pipe          # Run one pipeline (same as runner)" << std::endl
+            << "  viame run detector.pipe video.mp4   # Process one video, image or list" << std::endl
             << "  viame run -d videos/ -p detector.pipe   # Process a folder in batch" << std::endl
             << "  viame score -c detections.csv -t groundtruth.csv" << std::endl
             << "  viame csv -i detections.csv --print-types" << std::endl

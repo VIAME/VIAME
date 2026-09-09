@@ -267,6 +267,9 @@ description each, and `viame help <tool>` prints that tool's own options:
 
 ```
 viame help                                       # list every tool
+viame run detector.pipe video.mp4                # run a pipeline on one video
+viame run detector_generic image.jpg             # ... or an image, by pipeline name
+viame run detector.pipe image_list.txt           # ... or a list of images
 viame run -d videos/ -p detector.pipe            # run a pipeline over a folder
 viame run my_pipeline.pipe                       # run a single pipeline file
 viame train -c train_detector.conf -i labels/    # train a model

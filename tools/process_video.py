@@ -272,6 +272,24 @@ def find_file( filename, hard_error=True ):
     exit_with_error( "Unable to find " + filename )
   return filename
 
+def resolve_pipeline( name ):
+  if name in [ no_pipeline, auto_pipeline ] or os.path.exists( name ):
+    return name
+  candidates = [ name ]
+  if not name.endswith( default_pipe_ext ):
+    candidates.append( name + default_pipe_ext )
+  if not os.path.dirname( name ):
+    candidates += [ os.path.join( pipeline_dir, c ) for c in candidates ]
+  for candidate in candidates:
+    for base in [ "", get_script_path() ]:
+      path = os.path.join( base, candidate )
+      if os.path.isfile( path ):
+        return path
+  return name
+
+def is_pipeline_name( name ):
+  return name.endswith( default_pipe_ext ) or resolve_pipeline( name ) != name
+
 def rate_from_gt( filename ):
   if not os.path.exists( filename ):
     return ""
@@ -340,6 +358,12 @@ def make_filelist_for_dir( input_dir, output_dir, output_name ):
   for f in files[top_ext]:
     fout.write( os.path.abspath( f + lb1 ) )
   fout.close()
+  return output_file
+
+def make_filelist_for_image( image_file, output_dir, output_name ):
+  output_file = os.path.join( output_dir, output_name + image_list_ext )
+  with open( output_file, "w" ) as fout:
+    fout.write( os.path.abspath( image_file ) + lb1 )
   return output_file
 
 # Other helpers
@@ -791,6 +815,12 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     else:
       gt_files = all_gt_files
 
+  if not is_image_list and \
+     has_valid_ext( input_path, options.image_exts.split( ";" ) ) and \
+     not has_valid_ext( input_path, options.video_exts.split( ";" ) ):
+    input_path = make_filelist_for_image( input_path, output_dir, input_id_no_ext )
+    is_image_list = True
+
   # Begin to formulate external CLI call
 
   # For single camera case
@@ -994,11 +1024,19 @@ def process_using_kwiver( input_path, options, is_image_list=False,
 # Main Function
 if __name__ == "__main__" :
 
-  parser = argparse.ArgumentParser(description="Process new videos",
+  parser = argparse.ArgumentParser(
+     description="Process videos, images, image lists or folders with a pipeline",
+     usage="%(prog)s [pipeline] [input] [options]",
      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
+  parser.add_argument( "positional", nargs="*", metavar="pipeline|input",
+    default=argparse.SUPPRESS,
+    help="Pipeline to run, then the video, image, image list or folder to "
+         "process. The pipeline may be a bare name from configs/pipelines "
+         "such as detector_generic, and is omitted when -p is given." )
+
   parser.add_argument( "-i", dest="input", default="",
-    help="Input folder, video, or input list (autodetect)" )
+    help="Input folder, video, image, or image list (autodetect)" )
 
   parser.add_argument( "-v", dest="input_video", default="",
     help="Input single video to process" )
@@ -1009,8 +1047,9 @@ if __name__ == "__main__" :
   parser.add_argument( "-l", dest="input_list", default="",
     help="Input list of image files to process" )
 
-  parser.add_argument( "-p", dest="pipeline", default=default_pipeline,
-    help="Input pipeline for processing video or image data" )
+  parser.add_argument( "-p", dest="pipeline", default=argparse.SUPPRESS,
+    help="Input pipeline for processing video or image data "
+         "(default: " + default_pipeline + ")" )
 
   parser.add_argument( "-s", dest="extra_settings", action='append', nargs='*',
     help="Extra command line arguments for the pipeline runner" )
@@ -1161,6 +1200,30 @@ if __name__ == "__main__" :
 
   args = parser.parse_args()
 
+  # Positional shorthand: [pipeline] [input], or just [input] with -p
+  positional = getattr( args, "positional", [] )
+
+  if not hasattr( args, "pipeline" ):
+    is_pipe = [ is_pipeline_name( p ) for p in positional ]
+    if len( positional ) == 2 and is_pipe[0] == is_pipe[1]:
+      exit_with_error( "Expected a pipeline and an input, but " +
+        ( "both name" if is_pipe[0] else "neither names" ) + " a pipeline: " +
+        "\"" + positional[0] + "\", \"" + positional[1] + "\"" )
+    if any( is_pipe ):
+      args.pipeline = positional.pop( is_pipe.index( True ) )
+    else:
+      args.pipeline = default_pipeline
+
+  if len( positional ) > 1:
+    exit_with_error( "At most one input can be given positionally, got: " +
+                     ", ".join( positional ) )
+  elif len( positional ) == 1:
+    if args.input or args.input_video or args.input_dir or args.input_list:
+      exit_with_error( "Input given both positionally and with a flag" )
+    args.input = positional[0]
+
+  args.pipeline = resolve_pipeline( args.pipeline )
+
   # Assorted error checking up front
   process_data = True
   call_pipeline = True
@@ -1253,9 +1316,11 @@ if __name__ == "__main__" :
     if len( args.input ) > 0:
       # Auto-identify input source
       if not os.path.exists( args.input ):
-        exit_with_error( "Input folder \"" + args.input + "\" does not exist" )
+        exit_with_error( "Input \"" + args.input + "\" does not exist" )
       if os.path.isfile( args.input ):
-        if args.gt_only:
+        if args.gt_only or \
+           has_valid_ext( args.input, args.image_exts.split( ";" ) ) or \
+           has_valid_ext( args.input, args.video_exts.split( ";" ) ):
           args.input_video = args.input
         else:
           textchars = bytearray( {7,8,9,10,12,13,27} | set( range(0x20, 0x100) ) - {0x7f} )
