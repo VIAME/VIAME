@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
+#include <stdexcept>
 
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
@@ -36,6 +37,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "camera_rig_io.h"
+#include "utilities_target_clfr.h"
 
 #include "measure_objects_process.h"
 #include "add_keypoints_from_mask.h"
@@ -58,6 +60,15 @@ create_config_trait( small_len, double, "150.0",
   "Length threshold (in mm) to switch between small and large error thresholds" );
 create_config_trait( keypoint_method, std::string, "oriented_bbox",
   "Method for computing keypoints from polygon/mask" );
+create_config_trait( average_stereo_classes, bool, "true",
+  "Average class labels across each matched left/right detection pair so both "
+  "cameras report the same classification and confidence" );
+create_config_trait( class_averaging_method, std::string, "weighted_average",
+  "Method for averaging class labels: 'weighted_average' (weight by detection "
+  "confidence), 'simple_average' (equal weight per detection), or "
+  "'weighted_scaled_by_conf' (weighted average scaled by 0.1+0.9*avg_conf)" );
+create_config_trait( class_averaging_ignore_class, std::string, "",
+  "Class name excluded from the average when mixed with other classes" );
 
 // Port traits
 create_port_trait( detected_object_set1, detected_object_set,
@@ -117,6 +128,9 @@ public:
   double m_max_error_large;
   double m_small_len;
   std::string m_keypoint_method;
+  bool m_average_stereo_classes;
+  std::string m_class_averaging_method;
+  std::string m_class_averaging_ignore_class;
 
   // State
   kv::camera_rig_stereo_sptr m_calibration;
@@ -439,6 +453,9 @@ measure_objects_process
   declare_config_using_trait( max_error_large );
   declare_config_using_trait( small_len );
   declare_config_using_trait( keypoint_method );
+  declare_config_using_trait( average_stereo_classes );
+  declare_config_using_trait( class_averaging_method );
+  declare_config_using_trait( class_averaging_ignore_class );
 }
 
 // -----------------------------------------------------------------------------
@@ -452,6 +469,17 @@ measure_objects_process
   d->m_max_error_large = config_value_using_trait( max_error_large );
   d->m_small_len = config_value_using_trait( small_len );
   d->m_keypoint_method = config_value_using_trait( keypoint_method );
+  d->m_average_stereo_classes = config_value_using_trait( average_stereo_classes );
+  d->m_class_averaging_method = config_value_using_trait( class_averaging_method );
+  d->m_class_averaging_ignore_class = config_value_using_trait( class_averaging_ignore_class );
+
+  if( d->m_class_averaging_method != "weighted_average" &&
+      d->m_class_averaging_method != "simple_average" &&
+      d->m_class_averaging_method != "weighted_scaled_by_conf" )
+  {
+    throw std::runtime_error( "Unknown class_averaging_method: " +
+                              d->m_class_averaging_method );
+  }
 
   // Validate keypoint method
   if( !is_valid_keypoint_method( d->m_keypoint_method ) )
@@ -558,6 +586,27 @@ measure_objects_process
     // Set length on detections
     detections1[i1]->set_attribute( "length", match.fishlen );
     detections2[i2]->set_attribute( "length", match.fishlen );
+
+    if( d->m_average_stereo_classes )
+    {
+      auto avg = viame::core::compute_average_classification(
+        { detections1[i1], detections2[i2] },
+        d->m_class_averaging_method != "simple_average",
+        d->m_class_averaging_method == "weighted_scaled_by_conf",
+        d->m_class_averaging_ignore_class );
+
+      if( avg )
+      {
+        std::string top_name;
+        double top_score = 0.0;
+        avg->get_most_likely( top_name, top_score );
+        for( auto& det : { detections1[i1], detections2[i2] } )
+        {
+          det->set_type( avg );
+          det->set_confidence( top_score );
+        }
+      }
+    }
 
     // Add keypoints (already computed with configured method)
     const auto& kp1 = match.keypoints1;

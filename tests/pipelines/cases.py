@@ -232,7 +232,9 @@ OVERRIDES = {
         },
         setup=lambda env_dir: (env_dir / "output" / "depthMap").mkdir(exist_ok=True),
         check=_check_depth_maps),
-    "measurement_default_fish_fully_auto": Case(
+    "measurement_default_fish_fully_auto_tracking": Case(
+        env="env_stereo_fish", params=CALIBRATION_PARAMS, check=STEREO_MIN_2),
+    "measurement_default_fish_fully_auto_no_tracking": Case(
         env="env_stereo_fish", params=CALIBRATION_PARAMS, check=STEREO_MIN_2),
     "measurement_fully_auto_gmm_motion": Case(
         env="env_stereo_fish", params=CALIBRATION_PARAMS,

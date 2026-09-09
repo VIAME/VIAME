@@ -365,11 +365,18 @@ Fully Automatic Measurement Pipelines
 These pipelines perform end-to-end automatic detection and measurement without
 requiring any manual annotations.
 
-**measurement_default_fish_fully_auto.pipe**
-  Fully automatic fish detection and measurement pipeline. Uses a neural network
-  fish detector with windowed processing on both stereo cameras, then performs stereo
-  matching and triangulation to compute fish lengths. Outputs measured tracks to
-  ``computed_tracks2.csv``.
+**measurement_default_fish_fully_auto_tracking.pipe**
+  Fully automatic fish detection, tracking and measurement pipeline. Runs the
+  default fish detector (boxes, masks and head/tail keypoints) and a tracker on
+  both stereo cameras, pairs left and right tracks, averages each pair's
+  classification, and triangulates the head/tail keypoints into lengths that
+  are aggregated per track. Outputs measured tracks to ``computed_tracks1.csv``
+  and ``computed_tracks2.csv``.
+
+**measurement_default_fish_fully_auto_no_tracking.pipe**
+  Same detector without a tracker: left and right detections are paired and
+  measured independently on every frame, each pair sharing one track ID and an
+  averaged classification.
 
 **measurement_fully_auto_gmm_motion.pipe**
   Automatic measurement pipeline using GMM (Gaussian Mixture Model) background
