@@ -1,0 +1,7 @@
+viame_examples:enhance
+viame_examples:measure_via_default_fish
+viame_examples:run_fish_tracker
+viame_examples:run_fish_without_motion
+viame_examples:run_generic_proposals
+viame_examples:run_generic_tracker
+viame_examples:train_netharn_cfrnn_from_viame_csv
