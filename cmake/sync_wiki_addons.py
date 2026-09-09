@@ -46,10 +46,10 @@ GIRDER_ITEM_API = 'https://viame.kitware.com/api/v1/item/%s'
 # Deliberately absent:
 #   ARCTIC-SEAL   the wiki links a different artifact (a data.kitware.com
 #                 Windows/Linux pair), not the package the CSV carries
-#   LEARN         its published URL is dead; syncing would copy a broken link
 #   ALIGN-CAMERAS no section exists on the page yet
 WIKI_SECTIONS = {
     'DEFAULT-FISH':   'Fish Detector and Tracker',
+    'LEARN':          'ConvNext Low-Shot Models',
     'GENERIC':        'Generic Object Proposer',
     'SAM2':           'SAM2 Auto',
     'SAM3':           'SAM3 Text Query',
