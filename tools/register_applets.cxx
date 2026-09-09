@@ -16,6 +16,7 @@
 #include "csv.h"
 #include "get_configs.h"
 #include "json.h"
+#include "pipe_check.h"
 #include "registry_dump.h"
 #include "resample.h"
 #include "run.h"
@@ -157,6 +158,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_standalone_tool< csv_applet >( reg );
   register_standalone_tool< get_configs_applet >( reg );
   register_standalone_tool< json_applet >( reg );
+  register_standalone_tool< pipe_check_applet >( reg );
   register_standalone_tool< registry_dump_applet >( reg );
   register_standalone_tool< resample_applet >( reg );
   register_standalone_tool< score_applet >( reg );

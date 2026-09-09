@@ -79,6 +79,7 @@ set( applet_sources
   csv.cxx
   get_configs.cxx
   json.cxx
+  pipe_check.cxx
   registry_dump.cxx
   resample.cxx
   run.cxx
@@ -90,6 +91,7 @@ set( applet_headers
   csv.h
   get_configs.h
   json.h
+  pipe_check.h
   registry_dump.h
   resample.h
   run.h
@@ -112,6 +114,7 @@ kwiver_add_plugin( viame_tools_applets
                kwiver::kwiversys
                kwiver::vital_applets
                kwiver::sprokit_pipeline
+               kwiver::sprokit_pipeline_util
                kwiver::kwiver_adapter
                viame_core
                viame_claude
@@ -124,6 +127,13 @@ if( NOT KWIVER_SOURCE_DIR )
 endif()
 target_include_directories( viame_tools_applets
   PRIVATE      ${KWIVER_SOURCE_DIR}/vital/internal
+  )
+
+# pipe_bakery.h includes its neighbours by bare name and only some of them
+# are installed, so the sprokit sources have to be reachable that way too
+target_include_directories( viame_tools_applets
+  PRIVATE      ${KWIVER_SOURCE_DIR}/sprokit/src
+               ${KWIVER_SOURCE_DIR}/sprokit/src/sprokit/pipeline_util
   )
 
 if( VIAME_ENABLE_PYTHON )
