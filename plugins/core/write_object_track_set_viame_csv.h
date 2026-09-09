@@ -18,6 +18,7 @@
 #include <ctime>
 #include <map>
 #include <memory>
+#include <set>
 
 namespace viame {
 
@@ -81,6 +82,11 @@ public:
       "Maximum number of class labels to output (0 for all)",
       0 ),
     PARAM_DEFAULT(
+      write_tot_once, bool,
+      "Write species/confidence pairs only on the first state of each track; "
+      "later states omit them",
+      false ),
+    PARAM_DEFAULT(
       mask_to_poly_tol, double,
       "Tolerance for mask to polygon conversion (negative to disable)",
       -1.0 ),
@@ -110,11 +116,15 @@ private:
   void write_header_info( std::ostream& stream );
   void write_detection_info( std::ostream& stream,
                              const kwiver::vital::detected_object_sptr& det );
+  void write_tot( std::ostream& stream,
+                  kwiver::vital::track_id_t trk_id,
+                  const kwiver::vital::detected_object_type_sptr& dot );
 
   kwiver::vital::logger_handle_t m_logger;
   bool m_first;
   std::map< unsigned, kwiver::vital::track_sptr > m_tracks;
   std::map< unsigned, std::string > m_frame_uids;
+  std::set< kwiver::vital::track_id_t > m_tot_written;
   std::time_t m_start_time;
 };
 

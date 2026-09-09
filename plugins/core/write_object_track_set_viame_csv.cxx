@@ -282,6 +282,32 @@ write_object_track_set_viame_csv
 
 
 // -------------------------------------------------------------------------------
+void
+write_object_track_set_viame_csv
+::write_tot( std::ostream& stream,
+             kv::track_id_t trk_id,
+             const kv::detected_object_type_sptr& dot )
+{
+  if( c_write_tot_once && m_tot_written.count( trk_id ) )
+  {
+    return;
+  }
+
+  const auto names = core::ranked_class_names( dot, c_top_n_classes );
+
+  for( auto name : names )
+  {
+    stream << c_delimiter << name << c_delimiter << dot->score( name );
+  }
+
+  if( c_write_tot_once && !names.empty() )
+  {
+    m_tot_written.insert( trk_id );
+  }
+}
+
+
+// -------------------------------------------------------------------------------
 void write_object_track_set_viame_csv
 ::close()
 {
@@ -361,10 +387,7 @@ void write_object_track_set_viame_csv
         const kv::detected_object_type_sptr dot =
           ( c_tot_option == "detection" ? det->type() : trk_average_tot );
 
-        for( auto name : core::ranked_class_names( dot, c_top_n_classes ) )
-        {
-          stream() << c_delimiter << name << c_delimiter << dot->score( name );
-        }
+        write_tot( stream(), trk_ptr->id(), dot );
 
         write_detection_info( stream(), det );
 
@@ -502,10 +525,7 @@ write_object_track_set_viame_csv
               c_tot_option.find( "scaled_by_conf" ) != std::string::npos,
               c_tot_ignore_class ) );
 
-        for( auto name : core::ranked_class_names( dot, c_top_n_classes ) )
-        {
-          stream() << c_delimiter << name << c_delimiter << dot->score( name );
-        }
+        write_tot( stream(), trk_ptr->id(), dot );
 
         write_detection_info( stream(), det );
 

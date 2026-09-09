@@ -32,7 +32,9 @@ public:
     "  - Column(s) 4-7: Img-bbox(TL_x,TL_y,BR_x,BR_y)"
     "  - Column(s) 8: Detection Confidence\n"
     "  - Column(s) 9: Target Length (0 or less if uncomputed)\n"
-    "  - Column(s) 10-11+: Repeated Species, Confidence Pairs\n",
+    "  - Column(s) 10-11+: Repeated Species, Confidence Pairs\n\n"
+    "Species pairs may be present on only some states of a track (e.g. the "
+    "first or last); states without pairs inherit the nearest ones.\n",
     PARAM_DEFAULT(
       delimiter, std::string,
       "The delimiter used in the CSV file.",

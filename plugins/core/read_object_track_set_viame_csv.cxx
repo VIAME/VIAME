@@ -68,6 +68,9 @@ public:
   // Helper function - format tracks for current frame
   track_vector format_tracks( const track_vector& tracks, const frame_id_t frame_id );
 
+  // Helper function - propagate species pairs to states lacking them
+  void fill_missing_types( kwiver::vital::track_sptr trk );
+
   // Map of object tracks indexed by frame number. Each set contains all tracks
   // referenced (active) on that individual frame.
   std::map< frame_id_t, track_vector > m_tracks_by_frame_id;
@@ -432,6 +435,61 @@ read_object_track_set_viame_csv::priv
     {
       m_tracks_by_frame_id[ frame_id ].push_back( trk );
       m_last_idx = std::max( m_last_idx, frame_id );
+    }
+  }
+
+  for( auto& trk_pair : m_all_tracks )
+  {
+    fill_missing_types( trk_pair.second );
+  }
+}
+
+
+// -------------------------------------------------------------------------------
+// Writers may emit species pairs on only some states of a track (e.g. the
+// first only). Typeless states take the last typed state before them, or
+// the first typed state after them if none precedes.
+void
+read_object_track_set_viame_csv::priv
+::fill_missing_types( kwiver::vital::track_sptr trk )
+{
+  std::vector< kwiver::vital::object_track_state* > states;
+  kwiver::vital::detected_object_type_sptr first_type;
+
+  for( auto ts_ptr : *trk )
+  {
+    auto* ts = dynamic_cast< kwiver::vital::object_track_state* >( ts_ptr.get() );
+    if( !ts || !ts->detection() )
+    {
+      continue;
+    }
+    states.push_back( ts );
+
+    auto dot = ts->detection()->type();
+    if( !first_type && dot && dot->size() > 0 )
+    {
+      first_type = dot;
+    }
+  }
+
+  if( !first_type )
+  {
+    return;
+  }
+
+  kwiver::vital::detected_object_type_sptr current = first_type;
+
+  for( auto* ts : states )
+  {
+    auto dot = ts->detection()->type();
+    if( dot && dot->size() > 0 )
+    {
+      current = dot;
+    }
+    else
+    {
+      ts->detection()->set_type(
+        std::make_shared< kwiver::vital::detected_object_type >( *current ) );
     }
   }
 }
