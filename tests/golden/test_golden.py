@@ -61,7 +61,11 @@ def load_manifest(group):
         return None
 
     with open(path) as handle:
-        return json.load(handle)
+        manifest = json.load(handle)
+
+    # Other recordings live here too, such as the video reader data phase 4
+    # consumes; only a manifest with cases is one of these goldens
+    return manifest if isinstance(manifest.get("cases"), list) else None
 
 
 def collect_cases():

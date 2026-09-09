@@ -123,7 +123,6 @@ set( CORE_PIPELINE_FILES
   filter_split_left_side.pipe
   filter_split_right_side.pipe
   filter_stereo_depth_map.pipe
-  filter_to_kwa.pipe
   filter_to_video.pipe
   filter_tracks_only.pipe
   filter_tracks_only_adjust_csv.pipe

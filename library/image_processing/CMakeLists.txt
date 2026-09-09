@@ -5,8 +5,8 @@
 
 set( plugin_headers
   average_frames.h
+  close_loops_homography_guided.h
   color_commonality.h
-  core_image_io.h
   convert_image.h
   morphology.h
   threshold.h
@@ -14,8 +14,8 @@ set( plugin_headers
 
 set( plugin_sources
   average_frames.cxx
+  close_loops_homography_guided.cxx
   color_commonality.cxx
-  core_image_io.cxx
   convert_image.cxx
   morphology.cxx
   threshold.cxx
@@ -64,36 +64,3 @@ target_link_libraries( viame_image_processing_plugin
   PUBLIC               kwiver::vital_vpm
   )
 
-###
-# Process library
-##
-set( process_sources
-  register_processes.cxx
-  format_images_srm_process.cxx
-)
-
-set( process_headers
-  format_images_srm_process.h
-)
-
-kwiver_add_plugin( viame_processes_image_processing
-  SUBDIR           ${viame_plugin_process_subdir}
-  SOURCES          ${process_sources}
-                   ${process_headers}
-  PRIVATE          kwiver::sprokit_pipeline
-                   kwiver::kwiver_algo_core
-                   kwiver::kwiversys
-                   kwiver::kwiver_adapter
-                   kwiver::vital
-                   kwiver::vital_vpm
-                   kwiver::vital_logger
-                   kwiver::vital_config
-                   kwiver::vital_util
-                   kwiver::vital_exceptions
-                   viame_image_ops
- )
-
-target_include_directories( viame_processes_image_processing PRIVATE
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  )

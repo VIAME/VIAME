@@ -73,7 +73,7 @@ convert(
   catch( ... )
   {
     kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger(
-      "viame.core.close_loops_homography_guided" ) );
+      "viame.image_processing.close_loops_homography_guided" ) );
     LOG_ERROR(logger, "Warn: Invalid homography received" );
   }
 
@@ -126,7 +126,7 @@ close_loops_homography_guided
 ::initialize()
 {
   KWIVER_INITIALIZE_UNIQUE_PTR( priv, d );
-  attach_logger( "viame.core.close_loops_homography_guided" );
+  attach_logger( "viame.image_processing.close_loops_homography_guided" );
 }
 
 // ----------------------------------------------------------------------------

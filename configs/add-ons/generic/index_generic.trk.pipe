@@ -79,21 +79,6 @@ connect from downsampler.timestamp
 connect from tracker.object_track_set
         to   track_descriptor.object_track_set
 
-process kwa_writer
-  :: kw_archive_writer
-  :output_directory                           [INSERT_ME]
-  :base_filename                              [INSERT_ME]
-  :separate_meta                              true
-  :stream_id                                  [INSERT_ME]
-  :compress_image                             true
-  :static/gsd[ro]                             common:fixed_gsd
-  :static/corner_points[ro]                   0 0 0 0 0 0 0 0
-
-connect from downsampler.timestamp
-        to   kwa_writer.timestamp
-connect from image_filter.image
-        to   kwa_writer.image
-
 process track_writer
   :: write_object_track
   :file_name                                  [INSERT_ME]

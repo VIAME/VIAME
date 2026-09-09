@@ -98,6 +98,13 @@
     "reason": "No shipped pipeline or config selects it: a scan of all 293 installed .pipe and .conf files finds zero uses. VXL only, so it goes with the dependency rather than being ported."
   },
   {
+    "kind": "process",
+    "interface": "",
+    "name": "kw_archive_writer",
+    "phase": "P3-T07",
+    "reason": "Open decision 3, settled by the user: the KWA archive format is no longer needed. It was the only VXL user left in kwiver's sprokit processes, writing through VXL's vsl binary serialisation, so keeping it would have meant reproducing that format byte for byte. configs/pipelines/filter_to_kwa.pipe existed only to write one and is deleted; the five indexing and query pipelines that also wrote an archive alongside their real work keep working without it."
+  },
+  {
     "kind": "algorithm",
     "interface": "split_image",
     "name": "vxl",

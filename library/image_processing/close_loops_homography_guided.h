@@ -5,10 +5,10 @@
 /// \file
 /// \brief Loop closure guided by ground plane homographies
 
-#ifndef VIAME_CORE_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H
-#define VIAME_CORE_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H
+#ifndef VIAME_IMAGE_PROCESSING_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H
+#define VIAME_IMAGE_PROCESSING_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H
 
-#include "viame_core_export.h"
+#include "viame_image_processing_export.h"
 
 #include <vital/types/feature_track_set.h>
 #include <vital/types/image_container.h>
@@ -23,7 +23,7 @@ namespace viame {
 /// variety of techniques, one of which involves using homographies to
 /// estimate potential match locations in the past, followed up by additional
 /// filtering.
-class VIAME_CORE_EXPORT close_loops_homography_guided
+class VIAME_IMAGE_PROCESSING_EXPORT close_loops_homography_guided
   : public kwiver::vital::algo::close_loops
 {
 public:

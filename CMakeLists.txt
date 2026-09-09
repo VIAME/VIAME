@@ -1082,6 +1082,8 @@ else()
   # Add VIAME subdirs
   ##
   if( VIAME_ENABLE_KWIVER )
+    # Converted code first: plugins/ still depends on some of it
+    add_subdirectory( library )
     add_subdirectory( plugins )
   endif()
 

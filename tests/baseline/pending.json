@@ -1,0 +1,17 @@
+[
+  {
+    "kind": "algorithm",
+    "interface": "video_input",
+    "name": "vidl_ffmpeg",
+    "config_keys": [
+      "output_nth_frame",
+      "start_at_frame",
+      "stop_after_frame",
+      "time_scan_frame_limit",
+      "time_source",
+      "use_metadata"
+    ],
+    "phase": "P4-T02",
+    "reason": "lite-removals.md section 3 treats vidl_ffmpeg as an older name for the ffmpeg reader, and the alias is registered, so the name resolves. The two readers share no config keys, and section 3.1 folds vidl's frame selection and timestamp keys into the PyAV reader that takes over in phase 4. Until then a pipeline or tool that sets one of these under vidl_ffmpeg is silently ignored; plugins/core/utilities_training.cxx sets stop_after_frame this way. tests/golden/video/manifest.json records what the VXL reader did with each of them, taken while it still existed, as the P4-T01 input."
+  }
+]

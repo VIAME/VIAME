@@ -7,7 +7,6 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include "close_loops_homography_guided.h"
 #include "viame_core_plugin_export.h"
 #include <vital/plugin_management/plugin_loader.h>
 
@@ -85,19 +84,6 @@ register_factories( kv::plugin_loader& vpm )
     add_timestamp_from_filename >( vpm );
   register_algorithm< kv::algo::transform_2d_io,
     auto_detect_transform_io >( vpm );
-  register_algorithm< kv::algo::close_loops,
-    close_loops_homography_guided >( vpm );
-
-  // The name arrows/vxl used, kept working now that it is gone
-  {
-    using kvpf = kv::plugin_factory;
-    auto fact = vpm.add_factory< kv::algo::close_loops,
-      close_loops_homography_guided >( "vxl_homography_guided" );
-    fact->add_attribute( kvpf::PLUGIN_NAME, "vxl_homography_guided" )
-      .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
-      .add_attribute( kvpf::PLUGIN_DESCRIPTION,
-        close_loops_homography_guided::plugin_description() );
-  }
   register_algorithm< kv::algo::refine_detections,
     convert_head_tail_points >( vpm );
   register_algorithm< kv::algo::image_object_detector,

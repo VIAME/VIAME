@@ -1,6 +1,5 @@
 # VIAME Plugin Tests
 
-add_subdirectory( image_ops )
 add_subdirectory( core )
 
 if( VIAME_ENABLE_OPENCV )

@@ -9,13 +9,13 @@
 
 #include "viame_image_processing_plugin_export.h"
 
+#include <vital/algo/close_loops.h>
 #include <vital/algo/image_filter.h>
-#include <vital/algo/image_io.h>
 #include <vital/plugin_management/plugin_loader.h>
 
 #include "average_frames.h"
+#include "close_loops_homography_guided.h"
 #include "color_commonality.h"
-#include "core_image_io.h"
 #include "convert_image.h"
 #include "morphology.h"
 #include "threshold.h"
@@ -74,22 +74,26 @@ register_factories( kv::plugin_loader& vpm )
 #undef VIAME_REGISTER_ALIAS
 #undef VIAME_REGISTER_IMAGE_FILTER
 
+  // Loop closure, which the image stabiliser selects. Registered here rather
+  // than with the trackers because it works on frame to frame homographies
   {
-    auto fact = vpm.add_factory< kv::algo::image_io, core_image_io >(
-      core_image_io::plugin_name() );
-    fact->add_attribute( kvpf::PLUGIN_NAME, core_image_io::plugin_name() )
+    auto fact = vpm.add_factory< kv::algo::close_loops,
+      close_loops_homography_guided >(
+        close_loops_homography_guided::plugin_name() );
+    fact->add_attribute( kvpf::PLUGIN_NAME,
+                         close_loops_homography_guided::plugin_name() )
       .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
       .add_attribute( kvpf::PLUGIN_DESCRIPTION,
-                      core_image_io::plugin_description() );
+                      close_loops_homography_guided::plugin_description() );
+
+    fact = vpm.add_factory< kv::algo::close_loops,
+      close_loops_homography_guided >( "vxl_homography_guided" );
+    fact->add_attribute( kvpf::PLUGIN_NAME, "vxl_homography_guided" )
+      .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
+      .add_attribute( kvpf::PLUGIN_DESCRIPTION,
+                      close_loops_homography_guided::plugin_description() );
   }
 
-  {
-    auto fact = vpm.add_factory< kv::algo::image_io, core_image_io >( "vxl" );
-    fact->add_attribute( kvpf::PLUGIN_NAME, "vxl" )
-      .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
-      .add_attribute( kvpf::PLUGIN_DESCRIPTION,
-                      core_image_io::plugin_description() );
-  }
 
   vpm.mark_module_as_loaded( module_name );
 }

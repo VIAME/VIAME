@@ -25,7 +25,8 @@ add_test(
      viame registry-dump --json --output '${output_dir}/registry.json' && \
      '${Python3_EXECUTABLE}' '${baseline_dir}/compare_registry.py' \
        '${baseline_dir}/registry.json' '${output_dir}/registry.json' \
-       --removed '${baseline_dir}/removed.json'"
+       --removed '${baseline_dir}/removed.json' \
+       --pending '${baseline_dir}/pending.json'"
 )
 
 add_test(

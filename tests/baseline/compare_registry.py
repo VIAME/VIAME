@@ -16,8 +16,13 @@ A name may leave in two ways:
 
 Anything else is a failure.
 
+Names and config keys that a later phase restores are listed in
+``pending.json`` instead, with the phase that brings them back. That file is
+the one place the contract is knowingly relaxed, and it is meant to be empty
+again by the end of the phase that fills it.
+
 Usage:
-    compare_registry.py OLD NEW [--removed removed.json]
+    compare_registry.py OLD NEW [--removed removed.json] [--pending pending.json]
 """
 
 import argparse
@@ -43,12 +48,13 @@ def resolve_alias(aliases, name):
     return name
 
 
-def compare_config(old_config, new_config, where, failures):
+def compare_config(old_config, new_config, where, failures, pending_keys):
     for key, old_item in sorted(old_config.items()):
         new_item = new_config.get(key)
 
         if new_item is None:
-            failures.append("{}: config key '{}' is gone".format(where, key))
+            if key not in pending_keys:
+                failures.append("{}: config key '{}' is gone".format(where, key))
             continue
 
         if old_item.get("default") != new_item.get("default"):
@@ -75,8 +81,8 @@ def compare_ports(old_ports, new_ports, where, kind, failures):
             )
 
 
-def compare_entries(kind, old_entries, new_entries, aliases, removed, failures,
-                    interface="", with_ports=False):
+def compare_entries(kind, old_entries, new_entries, aliases, removed, pending,
+                    failures, interface="", with_ports=False):
     for name, old_entry in sorted(old_entries.items()):
         where = "{} '{}'".format(kind, name)
         if interface:
@@ -85,6 +91,8 @@ def compare_entries(kind, old_entries, new_entries, aliases, removed, failures,
         if (kind, interface, name) in removed:
             continue
 
+        pending_entry = pending.get((kind, interface, name), {})
+
         new_entry = new_entries.get(name)
 
         if new_entry is None:
@@ -92,7 +100,8 @@ def compare_entries(kind, old_entries, new_entries, aliases, removed, failures,
             new_entry = new_entries.get(target)
 
         if new_entry is None:
-            failures.append("{} is gone".format(where))
+            if not pending_entry.get("whole_name"):
+                failures.append("{} is gone".format(where))
             continue
 
         # An entry the dump could not introspect carries no config to compare,
@@ -101,7 +110,8 @@ def compare_entries(kind, old_entries, new_entries, aliases, removed, failures,
             continue
 
         compare_config(old_entry.get("config", {}), new_entry.get("config", {}),
-                       where, failures)
+                       where, failures,
+                       set(pending_entry.get("config_keys", [])))
 
         if with_ports:
             compare_ports(old_entry.get("input_ports", {}),
@@ -117,6 +127,8 @@ def main():
     parser.add_argument("old", help="baseline registry dump")
     parser.add_argument("new", help="registry dump to check")
     parser.add_argument("--removed", help="names removed on purpose")
+    parser.add_argument("--pending",
+                        help="names or keys a later phase restores")
     args = parser.parse_args()
 
     old = load(args.old)
@@ -128,6 +140,14 @@ def main():
         for entry in load(args.removed):
             removed.add(removed_key(entry))
 
+    pending = {}
+    if args.pending:
+        for entry in load(args.pending):
+            pending[removed_key(entry)] = {
+                "whole_name": entry.get("config_keys") is None,
+                "config_keys": entry.get("config_keys") or [],
+            }
+
     failures = []
 
     old_algorithms = old.get("algorithms", {})
@@ -136,16 +156,18 @@ def main():
     for interface, old_impls in sorted(old_algorithms.items()):
         compare_entries("algorithm", old_impls,
                         new_algorithms.get(interface, {}),
-                        aliases, removed, failures, interface=interface)
+                        aliases, removed, pending, failures,
+                        interface=interface)
 
     compare_entries("process", old.get("processes", {}), new.get("processes", {}),
-                    aliases, removed, failures, with_ports=True)
+                    aliases, removed, pending, failures, with_ports=True)
     compare_entries("cluster", old.get("clusters", {}), new.get("clusters", {}),
-                    aliases, removed, failures, with_ports=True)
+                    aliases, removed, pending, failures, with_ports=True)
     compare_entries("applet", old.get("applets", {}), new.get("applets", {}),
-                    aliases, removed, failures)
+                    aliases, removed, pending, failures)
     compare_entries("scheduler", old.get("schedulers", {}),
-                    new.get("schedulers", {}), aliases, removed, failures)
+                    new.get("schedulers", {}), aliases, removed, pending,
+                    failures)
 
     if failures:
         print("registry baseline: {} regression(s)".format(len(failures)))

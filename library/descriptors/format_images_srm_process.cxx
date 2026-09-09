@@ -26,7 +26,7 @@
 namespace viame
 {
 
-namespace image_processing
+namespace descriptors
 {
 
 create_config_trait( fix_output_size, bool, "true",
@@ -357,6 +357,6 @@ format_images_srm_process::priv
 }
 
 
-} // end namespace image_processing
+} // end namespace descriptors
 
 } // end namespace viame

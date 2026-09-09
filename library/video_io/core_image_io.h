@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_IMAGE_PROCESSING_CORE_IMAGE_IO_H
-#define VIAME_IMAGE_PROCESSING_CORE_IMAGE_IO_H
+#ifndef VIAME_VIDEO_IO_CORE_IMAGE_IO_H
+#define VIAME_VIDEO_IO_CORE_IMAGE_IO_H
 
-#include "viame_image_processing_export.h"
+#include "viame_video_io_export.h"
 
 #include <vital/algo/image_io.h>
 #include <vital/plugin_management/pluggable_macro_magic.h>
@@ -24,7 +24,7 @@ namespace kv = kwiver::vital;
 /// The plain `ocv` reader is not a substitute for it: that one has no
 /// configuration at all, so `force_byte` and the stretch options would be
 /// silently dropped.
-class VIAME_IMAGE_PROCESSING_EXPORT core_image_io
+class VIAME_VIDEO_IO_EXPORT core_image_io
   : public kv::algo::image_io
 {
 public:
@@ -83,4 +83,4 @@ private:
 
 } // end namespace viame
 
-#endif // VIAME_IMAGE_PROCESSING_CORE_IMAGE_IO_H
+#endif // VIAME_VIDEO_IO_CORE_IMAGE_IO_H

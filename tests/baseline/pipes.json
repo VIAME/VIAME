@@ -124,7 +124,7 @@
   },
   "configs/pipelines/common_empty_tracker.pipe": {
     "status": "error",
-    "message": "A process named 'downsampler' was requested for a connection but it does not exist in the pipeline, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline/pipeline.cxx:660",
+    "message": "A process named 'downsampler' was requested for a connection but it does not exist in the pipeline, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline/pipeline.cxx:660",
     "processes": {},
     "algos": {}
   },
@@ -340,7 +340,7 @@
   },
   "configs/pipelines/common_gfit_classifier_groups_v3.pipe": {
     "status": "error",
-    "message": "A process named 'downsampler' was requested for a connection but it does not exist in the pipeline, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline/pipeline.cxx:660",
+    "message": "A process named 'downsampler' was requested for a connection but it does not exist in the pipeline, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline/pipeline.cxx:660",
     "processes": {},
     "algos": {}
   },
@@ -664,55 +664,55 @@
   },
   "configs/pipelines/common_sea_lion_fusion_seven_class_cam1.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam1.pipe:38, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam1.pipe:38, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_seven_class_cam2.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam2.pipe:38, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam2.pipe:38, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_seven_class_cam3.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam3.pipe:38, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_seven_class_cam3.pipe:38, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_six_class_cam1.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam1.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam1.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_six_class_cam2.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam2.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam2.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_six_class_cam3.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam3.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_six_class_cam3.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_two_class_cam1.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam1.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam1.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_two_class_cam2.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam2.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam2.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/common_sea_lion_fusion_two_class_cam3.pipe": {
     "status": "error",
-    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam3.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
+    "message": "Entry for provider \"CONFIG\" does not have an element \"global:scale\", thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:41 at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/common_sea_lion_fusion_two_class_cam3.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/bakery_base.cxx:200",
     "processes": {},
     "algos": {}
   },
@@ -5564,47 +5564,6 @@
     },
     "algos": {}
   },
-  "configs/pipelines/filter_to_kwa.pipe": {
-    "status": "ok",
-    "message": "",
-    "processes": {
-      "downsampler": {
-        "type": "downsample",
-        "algos": {}
-      },
-      "filter": {
-        "type": "image_filter",
-        "algos": {
-          "filter:type": {
-            "impl": "ocv_enhancer",
-            "resolved": true
-          }
-        }
-      },
-      "input": {
-        "type": "video_input",
-        "algos": {
-          "video_reader:image_list:image_reader:add_timestamp_from_filename:image_reader:type": {
-            "impl": "vxl",
-            "resolved": true
-          },
-          "video_reader:image_list:image_reader:type": {
-            "impl": "vxl",
-            "resolved": true
-          },
-          "video_reader:type": {
-            "impl": "image_list",
-            "resolved": true
-          }
-        }
-      },
-      "kwa_writer": {
-        "type": "kw_archive_writer",
-        "algos": {}
-      }
-    },
-    "algos": {}
-  },
   "configs/pipelines/filter_to_video.pipe": {
     "status": "ok",
     "message": "",
@@ -6173,10 +6132,6 @@
           }
         }
       },
-      "kwa_writer": {
-        "type": "kw_archive_writer",
-        "algos": {}
-      },
       "track_descriptor": {
         "type": "compute_track_descriptors",
         "algos": {
@@ -6283,10 +6238,6 @@
             "resolved": true
           }
         }
-      },
-      "kwa_writer": {
-        "type": "kw_archive_writer",
-        "algos": {}
       },
       "track_descriptor": {
         "type": "compute_track_descriptors",
@@ -6666,10 +6617,6 @@
           }
         }
       },
-      "kwa_writer": {
-        "type": "kw_archive_writer",
-        "algos": {}
-      },
       "nms_refiner": {
         "type": "refine_detections",
         "algos": {
@@ -6949,10 +6896,6 @@
             "resolved": true
           }
         }
-      },
-      "kwa_writer": {
-        "type": "kw_archive_writer",
-        "algos": {}
       },
       "track_descriptor": {
         "type": "compute_track_descriptors",
@@ -7969,13 +7912,13 @@
   },
   "configs/pipelines/measurement_gfit_groups_v3_seagis_dual.pipe": {
     "status": "error",
-    "message": "There is no such process of type 'seagis_measurement' in the registry, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline/process_factory.cxx:125",
+    "message": "There is no such process of type 'seagis_measurement' in the registry, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline/process_factory.cxx:125",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/measurement_gfit_groups_v3_seagis_sing.pipe": {
     "status": "error",
-    "message": "There is no such process of type 'seagis_measurement' in the registry, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline/process_factory.cxx:125",
+    "message": "There is no such process of type 'seagis_measurement' in the registry, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline/process_factory.cxx:125",
     "processes": {},
     "algos": {}
   },
@@ -8690,13 +8633,13 @@
   },
   "configs/pipelines/query_augment_image.pipe": {
     "status": "error",
-    "message": "There is no such process of type 'pytorch_augmentation' in the registry, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline/process_factory.cxx:125",
+    "message": "There is no such process of type 'pytorch_augmentation' in the registry, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline/process_factory.cxx:125",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/query_from_track.pipe": {
     "status": "error",
-    "message": "The port 'track_descriptor_set' on process 'query_handler' does not exist.  Available ports: database_query, iqr_feedback, result_descriptor_scores, result_descriptor_uids, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline/process.cxx:765",
+    "message": "The port 'track_descriptor_set' on process 'query_handler' does not exist.  Available ports: database_query, iqr_feedback, result_descriptor_scores, result_descriptor_uids, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline/process.cxx:765",
     "processes": {},
     "algos": {}
   },
@@ -8756,10 +8699,6 @@
         "type": "input_adapter",
         "algos": {}
       },
-      "kwa_writer": {
-        "type": "kw_archive_writer",
-        "algos": {}
-      },
       "merge_detections": {
         "type": "merge_detection_sets",
         "algos": {}
@@ -8804,7 +8743,7 @@
   },
   "configs/pipelines/query_retrieval_and_iqr.pipe": {
     "status": "error",
-    "message": "The port 'track_descriptor_set' on process 'database_query_handler' does not exist.  Available ports: database_query, iqr_feedback, result_descriptor_scores, result_descriptor_uids, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline/process.cxx:765",
+    "message": "The port 'track_descriptor_set' on process 'database_query_handler' does not exist.  Available ports: database_query, iqr_feedback, result_descriptor_scores, result_descriptor_uids, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline/process.cxx:765",
     "processes": {},
     "algos": {}
   },
@@ -8825,7 +8764,7 @@
   },
   "configs/pipelines/register_multimodal_unsync_ocv.pipe": {
     "status": "error",
-    "message": "There is no such process of type 'ocv_multimodal_registration' in the registry, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline/process_factory.cxx:125",
+    "message": "There is no such process of type 'ocv_multimodal_registration' in the registry, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline/process_factory.cxx:125",
     "processes": {},
     "algos": {}
   },
@@ -10074,13 +10013,13 @@
   },
   "configs/pipelines/templates/detector_16bit.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_16bit.pipe:79, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_16bit.pipe:79, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/detector_default.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_default.pipe:34, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_default.pipe:34, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
     "processes": {},
     "algos": {}
   },
@@ -10878,37 +10817,37 @@
   },
   "configs/pipelines/templates/detector_rf_detr_all_motion.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_all_motion.pipe:133, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_all_motion.pipe:133, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/detector_rf_detr_motion.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_motion.pipe:102, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_motion.pipe:102, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/detector_rf_detr_optical_flow.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_optical_flow.pipe:54, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_optical_flow.pipe:54, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/detector_rf_detr_optical_flow_adaptive.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_optical_flow_adaptive.pipe:59, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/detector_rf_detr_optical_flow_adaptive.pipe:59, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/embedded_16bit.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_16bit.pipe:23, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_16bit.pipe:23, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/embedded_default.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_default.pipe:20, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_default.pipe:20, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
     "processes": {},
     "algos": {}
   },
@@ -11406,25 +11345,25 @@
   },
   "configs/pipelines/templates/embedded_rf_detr_all_motion.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_all_motion.pipe:132, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_all_motion.pipe:132, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/embedded_rf_detr_motion.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_motion.pipe:95, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_motion.pipe:95, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/embedded_rf_detr_optical_flow.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_optical_flow.pipe:47, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_optical_flow.pipe:47, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
     "processes": {},
     "algos": {}
   },
   "configs/pipelines/templates/embedded_rf_detr_optical_flow_adaptive.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_optical_flow_adaptive.pipe:56, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/embedded_rf_detr_optical_flow_adaptive.pipe:56, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
     "processes": {},
     "algos": {}
   },
@@ -11446,7 +11385,7 @@
   },
   "configs/pipelines/templates/tracker_default.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/tracker_default.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"[\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/templates/tracker_default.pipe:36, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
     "processes": {},
     "algos": {}
   },
@@ -15054,7 +14993,7 @@
   },
   "configs/pipelines/train_aug_add_motion_and_color_freq.pipe": {
     "status": "error",
-    "message": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline/process.cxx:765",
+    "message": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline/process.cxx:765",
     "processes": {},
     "algos": {}
   },
@@ -15635,7 +15574,7 @@
   },
   "configs/pipelines/train_aug_intensity_hue_motion.pipe": {
     "status": "error",
-    "message": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline/process.cxx:765",
+    "message": "The port 'image3' on process 'image_merger' does not exist.  Available ports: image1, image2, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline/process.cxx:765",
     "processes": {},
     "algos": {}
   },
@@ -15824,7 +15763,7 @@
   },
   "configs/pipelines/train_aug_warp_ir_to_eo.pipe": {
     "status": "error",
-    "message": "Found unexpected token \"TODO\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/train_aug_warp_ir_to_eo.pipe:7, thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
+    "message": "Found unexpected token \"TODO\" at /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/train_aug_warp_ir_to_eo.pipe:7, thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/pipe_parser.cxx:146",
     "processes": {},
     "algos": {}
   },
@@ -18028,7 +17967,7 @@
   },
   "configs/pipelines/utility_link_detections_default.pipe": {
     "status": "error",
-    "message": "The file does not exist: common_seamap_tracker_v2.5.pipe included from /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/utility_link_detections_default.pipe:28 could not be found in search path., thrown from /home/local/KHQ/matt.dawkins/Dev/viame/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/lex_processor.cxx:503",
+    "message": "The file does not exist: common_seamap_tracker_v2.5.pipe included from /home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install/configs/pipelines/utility_link_detections_default.pipe:28 could not be found in search path., thrown from /home/local/KHQ/matt.dawkins/Dev/viame-lite/src/packages/kwiver/sprokit/src/sprokit/pipeline_util/lex_processor.cxx:503",
     "processes": {},
     "algos": {}
   },

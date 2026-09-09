@@ -12,7 +12,6 @@ set( plugin_headers
   utilities_target_clfr.h
   convert_head_tail_points.h
   convert_notes_to_attributes.h
-  close_loops_homography_guided.h
   convert_polygons_to_mask.h
   detect_shot_breaks.h
   empty_detector.h
@@ -66,7 +65,6 @@ set( plugin_sources
   utilities_target_clfr.cxx
   convert_head_tail_points.cxx
   convert_notes_to_attributes.cxx
-  close_loops_homography_guided.cxx
   convert_polygons_to_mask.cxx
   detect_shot_breaks.cxx
   empty_detector.cxx
