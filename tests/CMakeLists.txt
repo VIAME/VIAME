@@ -18,6 +18,7 @@ include( kwiver-test-setup )
 # Shared pytest -> ctest registration helper, used by examples and pipelines.
 include( "${CMAKE_CURRENT_SOURCE_DIR}/common/add_pytest_test.cmake" )
 
+add_subdirectory( baseline )
 add_subdirectory( plugins )
 add_subdirectory( tools )
 add_subdirectory( examples )
