@@ -2,7 +2,7 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#include "get_configs.h"
+#include "configs.h"
 
 #include <kwiversys/SystemTools.hxx>
 #include <kwiversys/Directory.hxx>
@@ -1063,7 +1063,7 @@ namespace tools {
 
 // =======================================================================================
 void
-get_configs_applet
+configs_applet
 ::add_command_options()
 {
   m_cmd_options->add_options()
@@ -1083,16 +1083,16 @@ get_configs_applet
 
 // =======================================================================================
 int
-get_configs_applet
+configs_applet
 ::run()
 {
-  g_logger = kwiver::vital::get_logger( "viame.tools.get_configs" );
+  g_logger = kwiver::vital::get_logger( "viame.tools.configs" );
 
   auto& cmd_args = command_args();
 
   if( cmd_args[ "help" ].as< bool >() )
   {
-    std::cout << "Usage: viame get-configs [options]\n\n"
+    std::cout << "Usage: viame configs [options]\n\n"
               << "Extract configuration parameters from KWIVER pipeline (.pipe) or\n"
               << "training configuration (.conf) files and output them as JSON.\n\n"
               << "The input can be a single file or a directory. When given a directory,\n"
@@ -1100,10 +1100,10 @@ get_configs_applet
               << "JSON output.\n"
               << m_cmd_options->help()
               << "\nExamples:\n"
-              << "  viame get-configs -i detector.pipe -o detector_config.json\n"
-              << "  viame get-configs -i train_detector.conf -o train_config.json\n"
-              << "  viame get-configs -i configs/pipelines/ -o all_configs.json\n"
-              << "  viame get-configs -i detector.pipe -a  # Include all implementations\n"
+              << "  viame configs -i detector.pipe -o detector_config.json\n"
+              << "  viame configs -i train_detector.conf -o train_config.json\n"
+              << "  viame configs -i configs/pipelines/ -o all_configs.json\n"
+              << "  viame configs -i detector.pipe -a  # Include all implementations\n"
               << std::endl;
     return EXIT_SUCCESS;
   }

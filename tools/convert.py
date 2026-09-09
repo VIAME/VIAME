@@ -35,9 +35,22 @@ import struct
 import sys
 from pathlib import Path
 
-import cv2
 import numpy as np
-from scipy.spatial.transform import Rotation
+
+# cv2 and scipy are only needed for calibration conversion and are imported
+# in _import_calibration_deps() when that path runs; h5py only for ITK
+# transforms (see load_itk_h5).
+cv2 = None
+Rotation = None
+
+
+def _import_calibration_deps():
+    global cv2, Rotation
+    if cv2 is None:
+        import cv2 as _cv2
+        from scipy.spatial.transform import Rotation as _Rotation
+        cv2 = _cv2
+        Rotation = _Rotation
 
 # Shared C++ loader (viame::read_stereo_rig). Optional: the tool still works as
 # a standalone script (with the Python readers below) when it is not importable.
@@ -900,11 +913,19 @@ def write_zed(calib, output_path, camera_mode='HD'):
 # =============================================================================
 
 SUPPORTED_FORMATS = ['npz', 'json', 'opencv', 'yml', 'mat', 'zed', 'cal']
+# ITK HDF5 transform -> DIVE camera registration json (a separate path)
+ITK_FORMAT = 'itk'
+REGISTRATION_FORMAT = 'registration'
+INPUT_FORMATS = SUPPORTED_FORMATS + [ITK_FORMAT]
+OUTPUT_FORMATS = SUPPORTED_FORMATS + [REGISTRATION_FORMAT]
 
 
 def detect_format(path):
     """Auto-detect calibration format from path."""
     path = Path(path)
+
+    if path.suffix.lower() in ('.h5', '.hdf5'):
+        return ITK_FORMAT
 
     if path.is_dir():
         # Check for OpenCV YML files
@@ -1075,11 +1096,115 @@ def convert(input_path, output_path, input_format=None, output_format=None,
 # CLI
 # =============================================================================
 
+# =============================================================================
+# ITK transform -> DIVE camera registration
+# =============================================================================
+def affine_to_matrix(parameters, fixed_parameters):
+    """Homogeneous 3x3 from an ITK AffineTransform_double_2_2 parameter set.
+
+    ITK stores [a11 a12 a21 a22 tx ty] plus a fixed-parameter center c,
+    mapping x -> A(x - c) + c + t.
+    """
+    if len(parameters) != 6:
+        raise ValueError(
+            f"Expected 6 affine parameters, got {len(parameters)}"
+        )
+    a = np.array(parameters[:4], dtype=float).reshape(2, 2)
+    t = np.array(parameters[4:6], dtype=float)
+    c = np.array(fixed_parameters[:2], dtype=float) if len(fixed_parameters) >= 2 \
+        else np.zeros(2)
+    matrix = np.eye(3)
+    matrix[:2, :2] = a
+    matrix[:2, 2] = t + c - a @ c
+    return matrix
+
+
+def load_itk_h5(path):
+    import h5py  # only needed for ITK transforms
+    """Compose the transform(s) in an ITK HDF5 file into one 3x3 matrix."""
+    with h5py.File(path, "r") as h5:
+        if "TransformGroup" not in h5:
+            raise ValueError(f"No TransformGroup in {path}; not an ITK transform file")
+        group = h5["TransformGroup"]
+        indices = sorted(group.keys(), key=int)
+        transforms = []
+        for index in indices:
+            entry = group[index]
+            transform_type = entry["TransformType"][0]
+            if isinstance(transform_type, bytes):
+                transform_type = transform_type.decode()
+            if transform_type.startswith("CompositeTransform"):
+                # Wrapper entry for a composite file; components follow.
+                continue
+            if not transform_type.startswith("AffineTransform_double_2"):
+                raise ValueError(
+                    f"Unsupported transform type {transform_type} in {path}; "
+                    "only 2D affine transforms can be converted"
+                )
+            transforms.append(
+                affine_to_matrix(
+                    np.array(entry["TransformParameters"]),
+                    np.array(entry.get("TransformFixedParameters", [])),
+                )
+            )
+    if not transforms:
+        raise ValueError(f"No affine transforms found in {path}")
+    # ITK composite transforms apply back-to-front: the last transform in
+    # the file is applied to the point first, so the composed matrix is
+    # M0 @ M1 @ ... @ MN.
+    matrix = np.eye(3)
+    for component in transforms:
+        matrix = matrix @ component
+    return matrix
+
+
+def convert_itk_transform(input_path, output_path, left="left", right="right"):
+    """Write an ITK .h5 2D transform as a DIVE camera registration json.
+
+    The h5 transform's forward direction maps the source camera's pixel
+    coordinates into the destination camera's (for the Kotz files: thermal
+    onto optical), which becomes the pair's leftToRight matrix; rightToLeft
+    is its inverse. Composite transforms of multiple affines are composed
+    following ITK semantics (the last transform added is applied first).
+    """
+    matrix = load_itk_h5(input_path)
+    try:
+        inverse = np.linalg.inv(matrix)
+    except np.linalg.LinAlgError:
+        raise ValueError(f"Transform in {input_path} is not invertible")
+
+    registration = {
+        "type": "dive-camera-registration",
+        # v2 is what the DIVE client accepts; its per-image-pair
+        # "observations" are optional, and a converted ITK transform has no
+        # per-frame evidence to record -- just the fitted homography.
+        "version": 2,
+        "pairs": [
+            {
+                "left": left,
+                "right": right,
+                "leftToRight": matrix.tolist(),
+                "rightToLeft": inverse.tolist(),
+                "transformType": "homography",
+            }
+        ],
+    }
+    with open(output_path, "w", encoding="utf-8") as out_file:
+        json.dump(registration, out_file, indent=2)
+
+    print(f"Wrote {output_path}")
+    print(f"  {left} -> {right}:")
+    for row in matrix:
+        print("    [ " + "  ".join(f"{value:12.6f}" for value in row) + " ]")
+
+
+
 def main():
     description = """
-Convert stereo camera calibration files between different formats.
+Convert stereo camera calibration files between formats, or an ITK HDF5
+transform into a DIVE camera registration json.
 
-Supported formats:
+Supported calibration formats:
   npz     - NumPy archive format (calibration.npz)
   json    - KWIVER camera_rig_io compatible JSON format
   opencv  - OpenCV FileStorage format (intrinsics.yml + extrinsics.yml in a directory)
@@ -1111,6 +1236,10 @@ Examples:
   # Convert CamCAL with derived extrinsics from PtsCAL
   %(prog)s --left-cal left.CamCAL --right-cal right.CamCAL \\
     --pts points.PtsCAL --extrinsics-mode derive -o json output.json
+
+  # Convert an ITK .h5 transform (legacy EO/IR registration) for DIVE
+  %(prog)s Kotz-2019-Flight-Center.h5 Kotz-2019-Flight-Center.json \\
+    --left thermal --right optical
 """
 
     parser = argparse.ArgumentParser(
@@ -1121,12 +1250,14 @@ Examples:
     parser.add_argument("input_path", nargs='?', default=None,
                         help="Path to input calibration file or directory "
                              "(not required for cal format)")
-    parser.add_argument("output_path",
-                        help="Path to output calibration file or directory")
+    parser.add_argument("output_path", nargs='?', default=None,
+                        help="Path to output calibration file or directory "
+                             "(for itk input: defaults to the input name with .json)")
 
-    parser.add_argument("-i", "--input-format", choices=SUPPORTED_FORMATS, default=None,
-                        help="Input format (auto-detected if not specified)")
-    parser.add_argument("-o", "--output-format", choices=SUPPORTED_FORMATS, default=None,
+    parser.add_argument("-i", "--input-format", choices=INPUT_FORMATS, default=None,
+                        help="Input format (auto-detected if not specified; "
+                             "itk for .h5 transforms)")
+    parser.add_argument("-o", "--output-format", choices=OUTPUT_FORMATS, default=None,
                         help="Output format (inferred from output path if not specified)")
 
     parser.add_argument("--camera-mode", default="HD", choices=["2K", "FHD", "HD", "VGA"],
@@ -1150,6 +1281,12 @@ Examples:
                                 "skip (intrinsics only), derive (fit R,T from PtsCAL), "
                                 "extract (future, not yet supported) (default: skip)")
 
+    itk_group = parser.add_argument_group('ITK transform options')
+    itk_group.add_argument("--left", default="left",
+                           help="Name of the camera the transform maps FROM (default: left)")
+    itk_group.add_argument("--right", default="right",
+                           help="Name of the camera the transform maps TO (default: right)")
+
     args = parser.parse_args()
 
     # Validate: need either input_path or cal args
@@ -1157,6 +1294,29 @@ Examples:
     if args.input_path is None and not is_cal:
         parser.error("input_path is required unless using --left-cal/--right-cal")
 
+    input_format = args.input_format
+    if input_format is None and args.input_path is not None:
+        try:
+            input_format = detect_format(args.input_path)
+        except ValueError:
+            input_format = None
+
+    # ITK transforms are a separate path with their own (light) dependencies
+    if input_format == ITK_FORMAT or args.output_format == REGISTRATION_FORMAT:
+        if args.input_path is None:
+            parser.error("an ITK .h5 input file is required")
+        output = args.output_path or args.input_path.rsplit(".", 1)[0] + ".json"
+        try:
+            convert_itk_transform(args.input_path, output, args.left, args.right)
+            return 0
+        except Exception as e:
+            print(f"Error: {e}", file=sys.stderr)
+            return 1
+
+    if args.output_path is None:
+        parser.error("output_path is required")
+
+    _import_calibration_deps()
     try:
         convert(
             input_path=args.input_path,

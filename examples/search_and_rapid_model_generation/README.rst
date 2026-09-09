@@ -120,7 +120,7 @@ is involved, and the folder can be copied or backed up as-is.
 
 The earlier embedded PostgreSQL store is still available: pass '--backend postgres' to
 'viame index add' (the database is initialised on the first add) and
-'--index-backend postgres' to 'launch_search.py'. Both backends use the same ITQ files,
+'--index-backend postgres' to 'viame search'. Both backends use the same ITQ files,
 but a folder holds one or the other, not a mix; commands on an existing index detect
 its backend.
 

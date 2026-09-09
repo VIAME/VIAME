@@ -7,18 +7,16 @@
 ##
 set( PYTHON_SCRIPTS
   add_ons.py
-  add_segmentations.py
-  convert_cam.py
-  convert_itk.py
+  segment.py
+  convert.py
   database.py
-  extract_frames.py
-  inspect.py
-  plot_detections.py
+  extract.py
+  inspect_file.py
   index.py
-  launch_annotator.py
-  launch_search.py
+  view.py
+  search.py
   pipeline.py
-  plot_eval.py
+  plot.py
   run_bulk.py
   metadata.py
   train_fusion.py
@@ -27,10 +25,10 @@ set( PYTHON_SCRIPTS
 if( VIAME_ENABLE_OPENCV )
   set( PYTHON_SCRIPTS
     ${PYTHON_SCRIPTS}
-    calibrate_cameras.py
-    compute_depth.py
-    compute_disparity.py
-    create_mosaic.py
+    calibrate.py
+    depth.py
+    disparity.py
+    mosaic.py
     detect_prior_coverage.py
     ply_utilities.py
     reconstruct_3d.py
@@ -41,7 +39,7 @@ endif()
 if( VIAME_ENABLE_PYTORCH )
   set( PYTHON_SCRIPTS
     ${PYTHON_SCRIPTS}
-    check_gpu.py
+    gpu.py
   )
 endif()
 
@@ -77,7 +75,7 @@ target_include_directories( viame
 set( applet_sources
   register_applets.cxx
   csv.cxx
-  get_configs.cxx
+  configs.cxx
   json.cxx
   resample.cxx
   run.cxx
@@ -87,7 +85,7 @@ set( applet_sources
 
 set( applet_headers
   csv.h
-  get_configs.h
+  configs.h
   json.h
   resample.h
   run.h

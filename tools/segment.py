@@ -12,7 +12,7 @@ frame rate each one has to run at, launching them, merging the computed polygons
 back into the original annotations without disturbing the boxes, validating the
 result, and re-segmenting anything that came out wrong.
 
-Sub-commands (run `add_segmentations.py <cmd> --help` for the details):
+Sub-commands (run `viame segment <cmd> --help` for the details):
 
   scan         inventory a data directory -> manifest.json (+ a printed report)
   gen-scripts  emit slurm / bash run scripts for the manifest
@@ -26,11 +26,11 @@ Sub-commands (run `add_segmentations.py <cmd> --help` for the details):
 
 Typical whole-dataset run:
 
-  add_segmentations.py scan      -i /data/FishTrack23 -r ./run
-  add_segmentations.py gen-scripts -r ./run --scheduler slurm
+  viame segment scan      -i /data/FishTrack23 -r ./run
+  viame segment gen-scripts -r ./run --scheduler slurm
   sbatch ./run/run_array.sbatch                 # one unit per array task
-  add_segmentations.py audit     -r ./run
-  add_segmentations.py finalize  -r ./run       # optional: update sources in place
+  viame segment audit     -r ./run
+  viame segment finalize  -r ./run       # optional: update sources in place
 """
 
 import argparse
@@ -1210,7 +1210,7 @@ def cmd_audit(args):
     if totals['weak']:
         print('  weak masks cover under %g of their box; redo them per unit with:'
               % WEAK_FILL)
-        print('    add_segmentations.py reseg -r %s -u <unit> --weak'
+        print('    viame segment reseg -r %s -u <unit> --weak'
               % os.path.relpath(args.run_dir))
 
     if todo:
@@ -1863,7 +1863,7 @@ tools directory. Nothing else is needed.
 
 2. Check
 --------------------------------------------------------------------------
-    add_segmentations.py audit -r {run_dir}
+    viame segment audit -r {run_dir}
 
    Prints per-unit detection counts, polygon coverage and pass/fail. A unit
    passes only if its output has exactly the same detections, in the same order,
@@ -1880,7 +1880,7 @@ tools directory. Nothing else is needed.
    Detections whose mask came back as specks rather than the object are counted
    as "weak". To redo just those, without re-running the whole clip:
 
-       add_segmentations.py reseg -r {run_dir} -u <unit> --weak
+       viame segment reseg -r {run_dir} -u <unit> --weak
 
    reseg re-runs SAM2 on selected detections only, in a window that fully contains
    each box, and rewrites just those polygons. Selectors combine: --weak, --missing
@@ -1890,8 +1890,8 @@ tools directory. Nothing else is needed.
 
 3. Publish
 --------------------------------------------------------------------------
-    add_segmentations.py finalize -r {run_dir} --dry-run   # see what it would do
-    add_segmentations.py finalize -r {run_dir}
+    viame segment finalize -r {run_dir} --dry-run   # see what it would do
+    viame segment finalize -r {run_dir}
 
    Copies each validated output over its source CSV, saving the original next to
    it as <name>.csv.orig. Only units that pass validation are written.

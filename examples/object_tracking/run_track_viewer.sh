@@ -8,4 +8,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run vpView
 
-python ${VIAME_INSTALL}/configs/launch_annotator.py
+python ${VIAME_INSTALL}/configs/view.py

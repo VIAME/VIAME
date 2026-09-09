@@ -18,14 +18,17 @@ and generates publication-quality plots including:
 - Summary metric bar charts (MOT, HOTA, detection metrics)
 
 Usage:
-    python plot_eval.py -input <input_dir_or_json> [-output <output_dir>]
+    viame plot eval -input <input_dir_or_json> [-output <output_dir>]
 
 Example:
-    python plot_eval.py -input ./eval_output -output ./plots
-    python plot_eval.py -input ./eval_data.json -output ./plots
+    viame plot eval -input ./eval_output -output ./plots
+    viame plot eval -input ./eval_data.json -output ./plots
+    viame plot detections fish,shark 0.5 30 -input ./detections -output ./plots
 """
 
 import argparse
+import warnings
+import datetime
 import csv
 import json
 import os
@@ -57,6 +60,192 @@ DEFAULT_FIGSIZE = (8, 6)
 
 
 # -------------------- GENERIC UTILITY FUNCTIONS -----------------------
+
+
+# =============================================================================
+# Detection count plots (viame plot detections)
+# =============================================================================
+def create_dir( dirname ):
+  if not os.path.exists( dirname ):
+    os.makedirs( dirname )
+
+unordered_ext = ".time_ordered.csv"
+ranked_ext = ".max_ordered.csv"
+
+def detection_plot( input_directory, output_directory, objects, threshold, frame_rate,
+                    smooth=1, ext=".csv", net_name="all_fish", top_category_only=False ):
+
+  def format_x( x, pos=0, show_ms=False ):
+    t = datetime.timedelta( seconds = x )
+    split_str = str( t ).split(".")
+    if show_ms:
+      return split_str[0] + ( "." + split_str[1][0] if len( split_str ) > 1 else ".0" )
+    else:
+      return split_str[0]
+
+  warnings.filterwarnings( "ignore" )
+
+  if net_name in objects:
+    print( "Plotting error, net category id can't be in object list" )
+    sys.exit(0)
+  else:
+    objects = [ net_name ] + objects
+
+  if input_directory == output_directory:
+    print( "Plotting error, input and output directories must be different" )
+    sys.exit(0)
+
+  video_max_counts = dict()
+
+  for obj in objects:
+    video_max_counts[obj] = []
+
+  create_dir( output_directory )
+
+  for filename in os.listdir( input_directory ):
+
+    if not filename.endswith( ext ):
+      continue
+
+    filebase = filename.replace( ext, "" )
+
+    # Parse input computed detections file
+    video_objects = dict()
+
+    for obj in objects:
+      video_objects[obj] = dict()
+
+    with open( os.path.join( input_directory, filename ), "r" ) as f:
+      for line in f:
+        line = line.rstrip()
+        if line[0] != "#":
+          columns = line.split(",")
+          frame_id = int( columns[2] )
+          for obj in objects:
+            if frame_id not in video_objects[obj]:
+              video_objects[obj][frame_id] = 0
+
+          detection_columns = columns[9:11] if top_category_only else columns[9:]
+          name = None
+          is_first = True
+          for column in detection_columns:
+            if name is not None:
+              if name in objects:
+                value = float(column)
+                if value >= threshold:
+                  video_objects[name][frame_id] += 1
+                  if is_first:
+                    video_objects[net_name][frame_id] += 1
+                    is_first = False
+              name = None
+            else:
+              name = column
+
+    # Apply smoothing factor
+    for obj in objects:
+      smoothed_video_frames = dict()
+      for frame_id in sorted( video_objects[obj] ):
+        lower_bound = frame_id - smooth // 2
+        upper_bound = lower_bound + smooth
+
+        max_count = video_objects[obj][frame_id]
+        for i in range( lower_bound, upper_bound ):
+          try:
+            val = video_objects[obj][i]
+            if val > max_count:
+              max_count = val
+          except KeyError:
+            pass
+
+        smoothed_video_frames[frame_id] = max_count
+
+      video_objects[obj] = smoothed_video_frames
+
+    # Write out video specific items alongside aggregrate plot
+    video_subdir = os.path.join( output_directory, filebase )
+    create_dir( video_subdir )
+
+    agr_fig, agr_ax = plt.subplots()
+    agr_plot_title = "Aggregate - " + filename
+    agr_ax.xaxis.set_major_formatter( matplotlib.ticker.FuncFormatter( format_x ) )
+    agr_ax.xaxis.set_major_locator( matplotlib.ticker.MaxNLocator( integer=True ) )
+    agr_ax.set( xlabel="Time", ylabel="Object Count", title=agr_plot_title )
+    agr_ax.grid()
+    agr_max_y = 0
+
+    for obj in objects:
+      sorted_frames = list()
+      with open( os.path.join( video_subdir, obj + unordered_ext ), "w" ) as of:
+        of.write( "# video_id, time_id, frame_id, detection_count\n" )
+
+        times = list()
+        object_counts = list()
+
+        for frame_id in sorted( video_objects[obj] ):
+          frame_time = frame_id / frame_rate
+          times.append( frame_time )
+          object_counts.append( video_objects[obj][frame_id] )
+
+          of.write( filename + "," )
+          of.write( format_x(frame_time, show_ms=True) + "," )
+          of.write( str(frame_id) + "," )
+          of.write( str(video_objects[obj][frame_id]) + "\n" )
+
+          sorted_frames.append( (filename, frame_id, video_objects[obj][frame_id]) )
+
+        x = np.array( times )
+        y = np.array( object_counts )
+
+        plot_title = obj + " - " + filename
+
+        fig, ax = plt.subplots()
+        ax.xaxis.set_major_formatter( matplotlib.ticker.FuncFormatter(format_x) )
+        ax.xaxis.set_major_locator( matplotlib.ticker.MaxNLocator(integer=True) )
+        plt.locator_params( axis='x', nbins=6 )
+        ax.set( xlabel="Time", ylabel="Object Count", title=plot_title )
+        ax.grid()
+
+        ax.plot( x, y )
+        ax.set_ylim( ymin = 0 )
+        ax.set_xlim( xmin = 0 )
+        if np.size( y ) > 0 and np.max( y ) < 5:
+          ax.set_ylim( ymax = 5 )
+        ax.locator_params( axis='x', nbins = 7 )
+        fig.savefig( os.path.join( video_subdir, filename + "." + obj + ".png" ) )
+
+        agr_ax.plot( x, y, label=obj )
+        if np.size( y ) > 0:
+          agr_max_y = max( np.max( y ), agr_max_y )
+
+        sorted_frames.sort( key=lambda line: line[2], reverse=True )
+        if len( sorted_frames ) > 0:
+          video_max_counts[obj].append( sorted_frames[0] )
+        with open( os.path.join( video_subdir, obj + ranked_ext ), "w" ) as of:
+          of.write( "# video_id, time_id, frame_id, detection_count\n" )
+          for filename, frame_id, count in sorted_frames:
+            frame_time = frame_id / frame_rate
+            of.write( filename + "," + format_x(frame_time, show_ms=True) + ",")
+            of.write( str(frame_id) + "," + str(count) + "\n" )
+
+    agr_ax.set_ylim( ymin = 0 )
+    agr_ax.set_xlim( xmin = 0 )
+    if agr_max_y < 5:
+      agr_ax.set_ylim( ymax = 5 )
+    agr_ax.locator_params( axis='x', nbins = 7 )
+    lgd = [ agr_ax.legend(loc='center left', bbox_to_anchor=(1, 0.5)) ]
+    agr_fig.set_size_inches( 10, 7 )
+    agr_fig.savefig( os.path.join( output_directory, filename + ".png" ),
+                     dpi=100, bbox_inches="tight", bbox_extra_artists=lgd )
+
+  # Write out aggregate information across all videos
+  for obj in objects:
+    with open( os.path.join( output_directory, "max_counts-" + obj + ".csv" ), "w" ) as of:
+      of.write( "# video_id, time_id, frame_id, detection_count\n" )
+      for filename, frame_id, count in video_max_counts[obj]:
+        frame_time = frame_id / frame_rate
+        of.write( filename + "," + format_x( frame_time, show_ms=True ) + "," )
+        of.write( str( frame_id ) + "," + str( count ) + "\n" )
+
 
 def print_and_exit( msg, code=1 ):
     print( msg )
@@ -771,21 +960,53 @@ def generate_all_plots_from_csv_dir( input_dir, output_dir ):
 
 # -------------------------- MAIN FUNCTION -----------------------------
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description='Generate plots from VIAME evaluation results' )
+def main( argv=None ):
+    global DEFAULT_DPI
 
-    parser.add_argument( '-input', '-i', dest='input', required=True,
+    parser = argparse.ArgumentParser(
+        prog='viame plot',
+        description='Plot detection counts per frame, or VIAME evaluation results.' )
+    sub = parser.add_subparsers( dest='command', metavar='command' )
+    sub.required = True
+
+    p = sub.add_parser( 'detections',
+        help='Plot detection counts per frame for a folder of VIAME CSV files' )
+    p.add_argument( 'objects',
+        help='Comma separated list of categories to plot' )
+    p.add_argument( 'threshold', type=float,
+        help='Detection confidence threshold' )
+    p.add_argument( 'frame_rate', type=float,
+        help='Frame rate of the source video, used to label the time axis' )
+    p.add_argument( 'smooth', type=int, nargs='?', default=1,
+        help='Smoothing window in frames (default: 1)' )
+    p.add_argument( '-input', '-i', dest='input', default='.',
+        help='Folder holding the VIAME CSV files (default: current folder)' )
+    p.add_argument( '-output', '-o', dest='output', default='plots',
+        help='Output folder for the plots (default: plots)' )
+    p.add_argument( '-ext', dest='ext', default='.csv',
+        help='Extension of the detection files (default: .csv)' )
+    p.add_argument( '--top-category-only', dest='top_category_only', action='store_true',
+        help='Count only each detection\'s top category' )
+
+    p = sub.add_parser( 'eval', help='Generate plots from VIAME evaluation results' )
+    p.add_argument( '-input', '-i', dest='input', required=True,
         help='Input directory with CSV files or JSON file' )
-    parser.add_argument( '-output', '-o', dest='output', default='./plots',
+    p.add_argument( '-output', '-o', dest='output', default='./plots',
         help='Output directory for plots (default: ./plots)' )
-    parser.add_argument( '-dpi', type=int, default=DEFAULT_DPI,
+    p.add_argument( '-dpi', type=int, default=DEFAULT_DPI,
         help=f'Output image DPI (default: {DEFAULT_DPI})' )
 
-    args = parser.parse_args()
+    args = parser.parse_args( argv )
 
     if not HAS_MATPLOTLIB:
         print_and_exit( "Error: matplotlib is required. Install with: pip install matplotlib" )
+
+    if args.command == 'detections':
+        detection_plot( args.input, args.output, args.objects.split( "," ),
+                        args.threshold, args.frame_rate, args.smooth,
+                        ext=args.ext, top_category_only=args.top_category_only )
+        print( f"\nPlots saved to: {args.output}" )
+        return 0
 
     DEFAULT_DPI = args.dpi
     input_path = Path( args.input )
@@ -800,3 +1021,8 @@ if __name__ == "__main__":
         print_and_exit( f"Error: {args.input} is not a valid JSON file or directory" )
 
     print( f"\nAll plots saved to: {args.output}" )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit( main() )

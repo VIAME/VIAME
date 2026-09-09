@@ -15,13 +15,13 @@ Mosaic generation
 *****************
 
 The ``generate_mosaic_for_list`` script shows the simplest way to
-generate a mosaic.  The main program it invokes, ``create_mosaic.py``,
+generate a mosaic.  The main program it invokes, ``mosaic.py``,
 also supports additional options and functionality.
 
-A basic invocation of ``create_mosaic.py`` is as follows (assuming
+A basic invocation of ``mosaic.py`` is as follows (assuming
 ``setup_viame.sh`` or ``setup_viame.bat`` has been run)::
 
-  create_mosaic.py --step 1 mosaic.jpg homographies.txt image_list.txt
+  mosaic.py --step 1 mosaic.jpg homographies.txt image_list.txt
 
 This generates a mosaic image named ``mosaic.jpg`` from a file
 containing homographies, here ``homographies.txt``, and a file listing
@@ -65,8 +65,8 @@ which frames are drawn from a 10-frame sequence:
 
 Several options control the drawing process itself.  ``--zoom Z``
 scales the output image by a factor of *Z*.  For example, if after
-some invocation ``create_mosaic.py mosaic.jpg ...``, ``mosaic.jpg``
-would be 20,000 x 10,000 pixels, then ``create_mosaic.py -Z 0.25
+some invocation ``mosaic.py mosaic.jpg ...``, ``mosaic.jpg``
+would be 20,000 x 10,000 pixels, then ``mosaic.py -Z 0.25
 mosaic.jpg ...`` would result in ``mosaic.jpg`` being approximately
 5,000 x 2,500 pixels (it might not be exactly that due to rounding of
 image sizes).  If the full-resolution image is not needed, then
@@ -91,10 +91,10 @@ guaranteed to always compute the same transformation for a given
 input, but in practice the result is usually indistinguishable.
 
 If you have coregistered image sequences, e.g. from a multi-camera
-platform, ``create_mosaic.py`` can also handle that.  The basic form
+platform, ``mosaic.py`` can also handle that.  The basic form
 is::
 
-  create_mosaic.py --step 1 mosaic.jpg homogs1.txt images1.txt homogs2.txt images2.txt
+  mosaic.py --step 1 mosaic.jpg homogs1.txt images1.txt homogs2.txt images2.txt
 
 That is, the homography files and image lists associated with
 additional sequences are added in alternating fashion.  Appropriate

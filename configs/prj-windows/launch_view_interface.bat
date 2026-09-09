@@ -14,5 +14,5 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 REM Set current directory for project folder pipe
 SET VIAME_PROJECT_DIR=%~dp0
 
-python.exe "%VIAME_INSTALL%\configs\launch_annotator.py" -d "%INPUT_DIRECTORY%" -c "%CACHE_DIRECTORY%" -frate %FRAME_RATE%
+python.exe "%VIAME_INSTALL%\configs\view.py" -d "%INPUT_DIRECTORY%" -c "%CACHE_DIRECTORY%" -frate %FRAME_RATE%
 
