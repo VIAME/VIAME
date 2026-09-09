@@ -117,24 +117,15 @@ if( VIAME_ENABLE_POSTGRESQL )
   )
 endif()
 
-if( VIAME_ENABLE_FFMPEG )
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_FFmpeg:BOOL=ON
-    -Dfletch_ENABLE_x264:BOOL=${VIAME_ENABLE_FFMPEG-X264}
-    -Dfletch_ENABLE_x265:BOOL=${VIAME_ENABLE_FFMPEG-X265}
-    -Dfletch_ENABLE_ffnvcodec:BOOL=${VIAME_ENABLE_FFMPEG-FFNV}
-    -DFFmpeg_SELECT_VERSION:STRING=5.1.2
-  )
-else()
-  set( FLETCH_DEP_FLAGS
-    ${FLETCH_DEP_FLAGS}
-    -Dfletch_ENABLE_FFmpeg:BOOL=OFF
-    -Dfletch_ENABLE_x264:BOOL=OFF
-    -Dfletch_ENABLE_x265:BOOL=OFF
-    -Dfletch_ENABLE_ffnvcodec:BOOL=OFF
-  )
-endif()
+# Video is python on PyAV, whose wheel carries its own FFmpeg build, so
+# fletch no longer needs one and neither do the codecs it was built with
+set( FLETCH_DEP_FLAGS
+  ${FLETCH_DEP_FLAGS}
+  -Dfletch_ENABLE_FFmpeg:BOOL=OFF
+  -Dfletch_ENABLE_x264:BOOL=OFF
+  -Dfletch_ENABLE_x265:BOOL=OFF
+  -Dfletch_ENABLE_ffnvcodec:BOOL=OFF
+)
 
 if( EXTERNAL_Qt )
   if( WIN32 )

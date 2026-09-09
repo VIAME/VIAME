@@ -186,7 +186,6 @@ else()
 endif()
 
 # Features always off for MSI builds
-add_option("VIAME_ENABLE_FFMPEG-X264" "OFF")
 add_option("VIAME_ENABLE_ONNX" "OFF")
 
 # Finalize OPTIONS variable

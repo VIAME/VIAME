@@ -21,6 +21,8 @@ reader before it was replaced:
 """
 
 import logging
+import re
+import time
 
 import numpy as np
 
@@ -31,6 +33,13 @@ logger = logging.getLogger(__name__)
 
 # Microseconds, which is the unit vital timestamps carry.
 MICROSECONDS = 1000000
+
+# `time_source` values this reader can honour. The rest of the list the vidl
+# reader accepted -- misp, klv0601, klv0104, klv -- read the frame time out of
+# embedded metadata, which no VIAME video carries and which nothing here
+# decodes; the key's own semantics are a list tried in order until one works,
+# so those are skipped rather than refused.
+TIME_SOURCES = ("start_at_0", "current", "none")
 
 
 class PyAVVideoInput(VideoInput):
@@ -56,6 +65,29 @@ class PyAVVideoInput(VideoInput):
         self._stop_after_frame = 0
         self._output_nth_frame = 1
 
+        # From the C++ ffmpeg reader, whose name this one answers to.
+        # `approximate` is honoured: it drops the exact-rounding swscale
+        # flags, as it did there. The CUDA pair asked libavcodec for a
+        # hardware decoder, and the three KLV keys govern metadata handling,
+        # which nothing here does; all five are accepted and have no effect.
+        self._approximate = False
+        self._cuda_enabled = False
+        self._cuda_device_index = 0
+        self._retain_klv_duration = 5000000
+        self._smooth_klv_packets = False
+        self._unknown_stream_behavior = "ignore"
+
+        # From the vidl reader, whose name this one answers to. The frame
+        # selection keys above are honoured; these three describe where an
+        # absolute frame time comes from. `use_metadata` and
+        # `time_scan_frame_limit` govern reading time codes out of embedded
+        # metadata, which nothing here does, so they are accepted and have
+        # no effect; `time_source` chooses between timing from the first
+        # frame and timing from the wall clock, and is honoured.
+        self._time_source = "start_at_0"
+        self._use_metadata = True
+        self._time_scan_frame_limit = 100
+
         # Force the subprocess reader even where PyAV would work, which is
         # otherwise only reached when `import av` fails
         self._use_cli = False
@@ -71,6 +103,8 @@ class PyAVVideoInput(VideoInput):
         self._exhausted = False
         self._count = None
         self._start_ts = None
+        self._mode = "start_at_0"
+        self._origin = 0
         self._graph = None
         self._graph_source = None
         self._graph_sink = None
@@ -91,6 +125,19 @@ class PyAVVideoInput(VideoInput):
         cfg.set_value("start_at_frame", str(int(self._start_at_frame)))
         cfg.set_value("stop_after_frame", str(int(self._stop_after_frame)))
         cfg.set_value("output_nth_frame", str(int(self._output_nth_frame)))
+        cfg.set_value("approximate", str(bool(self._approximate)).lower())
+        cfg.set_value("cuda_enabled", str(bool(self._cuda_enabled)).lower())
+        cfg.set_value("cuda_device_index", str(int(self._cuda_device_index)))
+        cfg.set_value("retain_klv_duration",
+                      str(int(self._retain_klv_duration)))
+        cfg.set_value("smooth_klv_packets",
+                      str(bool(self._smooth_klv_packets)).lower())
+        cfg.set_value("unknown_stream_behavior",
+                      str(self._unknown_stream_behavior))
+        cfg.set_value("time_source", str(self._time_source))
+        cfg.set_value("use_metadata", str(bool(self._use_metadata)).lower())
+        cfg.set_value("time_scan_frame_limit",
+                      str(int(self._time_scan_frame_limit)))
         cfg.set_value("use_cli", str(bool(self._use_cli)).lower())
         return cfg
 
@@ -107,6 +154,22 @@ class PyAVVideoInput(VideoInput):
         self._start_at_frame = int(cfg.get_value("start_at_frame"))
         self._stop_after_frame = int(cfg.get_value("stop_after_frame"))
         self._output_nth_frame = int(cfg.get_value("output_nth_frame"))
+        self._approximate = _as_bool(cfg.get_value("approximate"))
+        self._cuda_enabled = _as_bool(cfg.get_value("cuda_enabled"))
+        self._cuda_device_index = int(cfg.get_value("cuda_device_index"))
+        self._retain_klv_duration = int(cfg.get_value("retain_klv_duration"))
+        self._smooth_klv_packets = _as_bool(
+            cfg.get_value("smooth_klv_packets"))
+        self._unknown_stream_behavior = str(
+            cfg.get_value("unknown_stream_behavior"))
+
+        if self._cuda_enabled:
+            logger.warning(
+                "cuda_enabled is set, but this reader decodes on the CPU")
+        self._time_source = str(cfg.get_value("time_source"))
+        self._use_metadata = _as_bool(cfg.get_value("use_metadata"))
+        self._time_scan_frame_limit = int(
+            cfg.get_value("time_scan_frame_limit"))
         self._use_cli = _as_bool(cfg.get_value("use_cli"))
 
         if self._use_misp_timestamps:
@@ -155,6 +218,9 @@ class PyAVVideoInput(VideoInput):
 
         declared = self._stream.frames
         self._count = int(declared) if declared else None
+
+        self._mode = self._time_mode()
+        self._origin = self._time_origin()
 
         self._build_graph()
 
@@ -281,6 +347,39 @@ class PyAVVideoInput(VideoInput):
         self._frame = None
         return False
 
+    def _time_origin(self):
+        """Microseconds to add to every frame's offset.
+
+        `start_at_0` measures from the first frame, which is zero, and
+        `current` measures from the wall clock as the video was opened,
+        which is what the vidl reader did: it took the time once and
+        carried it forward by the difference in presentation times.
+        """
+        if self._mode == "current":
+            return int(time.time() * MICROSECONDS)
+
+        return 0
+
+    def _time_mode(self):
+        """The first entry of `time_source` this reader can honour."""
+        for source in re.split(r"[,\s]+", self._time_source.strip()):
+            if not source:
+                continue
+
+            if source in TIME_SOURCES:
+                return source
+
+            if source in ("misp", "klv", "klv0601", "klv0104"):
+                logger.debug("no metadata time source here; skipping '%s'",
+                             source)
+                continue
+
+            raise RuntimeError("unknown time source '{}'".format(source))
+
+        logger.warning("no usable entry in time_source '%s'; timing from "
+                       "the first frame", self._time_source)
+        return "start_at_0"
+
     def _prime_origin(self):
         """Fix the timestamp origin at the first frame of the video.
 
@@ -340,6 +439,9 @@ class PyAVVideoInput(VideoInput):
 
         stamp.set_frame(self._number)
 
+        if self._mode == "none":
+            return stamp
+
         seconds = self._seconds_of(self._frame)
 
         if seconds is not None:
@@ -385,7 +487,7 @@ class PyAVVideoInput(VideoInput):
         if self._filter_desc.strip():
             head = _add_chain(graph, head, self._filter_desc)
 
-        scale = graph.add("scale", SCALE_FLAGS)
+        scale = graph.add("scale", self._scale_flags())
 
         # Planar rather than interleaved RGB: vital images are planar, so
         # handing the interleaved layout to `Image` costs a strided per pixel
@@ -402,6 +504,9 @@ class PyAVVideoInput(VideoInput):
         self._graph_source = source
         self._graph_sink = sink
         self._graph_deep = deep
+
+    def _scale_flags(self):
+        return APPROXIMATE_SCALE_FLAGS if self._approximate else SCALE_FLAGS
 
     def _next_filtered(self):
         """The next frame out of the filter chain, or None at the end."""
@@ -494,7 +599,8 @@ class PyAVVideoInput(VideoInput):
 
         offset = float((frame.pts - self._start_ts) * base)
 
-        return int(offset * MICROSECONDS + 0.5) / MICROSECONDS
+        return (self._origin +
+                int(offset * MICROSECONDS + 0.5)) / MICROSECONDS
 
     def _number_of(self, frame, rate):
         """Frame number, from one, of a frame reached by seeking."""
@@ -508,8 +614,12 @@ class PyAVVideoInput(VideoInput):
 
 # The swscale setup arrows/ffmpeg used: nearest-neighbour chroma, accurate
 # rounding, full chroma interpolation and input, and full-range RGB out.
+# `approximate` drops the two flags that cost time for exactness, which is
+# what it did there.
 SCALE_FLAGS = ("flags=full_chroma_int+full_chroma_inp+accurate_rnd+bitexact"
                "+neighbor:out_range=full")
+APPROXIMATE_SCALE_FLAGS = ("flags=full_chroma_int+full_chroma_inp+neighbor"
+                           ":out_range=full")
 
 
 def _add_chain(graph, head, description):
@@ -569,8 +679,25 @@ def _as_bool(value):
     return str(value).strip().lower() in ("true", "1", "yes", "on")
 
 
+# The names arrows/ffmpeg and arrows/vxl registered their readers under, which
+# every shipped pipeline and every tool that opens a video still asks for. A
+# python implementation is discovered by class, so an alias is a subclass
+# rather than a second registration of the same one, which is the python
+# spelling of what lite-build-system.md section 4 describes for C++.
+class FFmpegVideoInput(PyAVVideoInput):
+    """The name `arrows/ffmpeg` registered its reader under."""
+
+
+class VidlFFmpegVideoInput(PyAVVideoInput):
+    """The name `arrows/vxl` registered its reader under."""
+
+
 def __vital_algorithm_register__():
     from viame.core.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         PyAVVideoInput, "pyav", "Read a video with PyAV")
+    register_vital_algorithm(
+        FFmpegVideoInput, "ffmpeg", "Read a video with PyAV")
+    register_vital_algorithm(
+        VidlFFmpegVideoInput, "vidl_ffmpeg", "Read a video with PyAV")

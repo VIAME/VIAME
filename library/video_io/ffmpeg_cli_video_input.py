@@ -43,6 +43,7 @@ import queue
 import re
 import subprocess
 import threading
+import time
 
 import numpy as np
 
@@ -53,10 +54,20 @@ logger = logging.getLogger(__name__)
 
 MICROSECONDS = 1000000
 
+# `time_source` values this reader can honour. The rest of the list the vidl
+# reader accepted -- misp, klv0601, klv0104, klv -- read the frame time out of
+# embedded metadata, which no VIAME video carries and which nothing here
+# decodes; the key's own semantics are a list tried in order until one works,
+# so those are skipped rather than refused.
+TIME_SOURCES = ("start_at_0", "current", "none")
+
 # The swscale setup arrows/ffmpeg used, spelled for the command line. Same
-# flags as `pyav_video_input.SCALE_FLAGS`.
+# flags as `pyav_video_input.SCALE_FLAGS`, and `approximate` drops the same
+# two.
 SCALE_FLAGS = ("scale=flags=full_chroma_int+full_chroma_inp+accurate_rnd"
                "+bitexact+neighbor:out_range=full")
+APPROXIMATE_SCALE_FLAGS = ("scale=flags=full_chroma_int+full_chroma_inp"
+                           "+neighbor:out_range=full")
 
 # showinfo prints one of these per frame, after the filters have run
 FRAME_LINE = re.compile(r"\bn:\s*(\d+)\s+pts:\s*(-?\d+)\s+pts_time:(\S+)")
@@ -92,6 +103,29 @@ class FFmpegCliVideoInput(VideoInput):
         self._stop_after_frame = 0
         self._output_nth_frame = 1
 
+        # From the C++ ffmpeg reader, whose name this one answers to.
+        # `approximate` is honoured: it drops the exact-rounding swscale
+        # flags, as it did there. The CUDA pair asked libavcodec for a
+        # hardware decoder, and the three KLV keys govern metadata handling,
+        # which nothing here does; all five are accepted and have no effect.
+        self._approximate = False
+        self._cuda_enabled = False
+        self._cuda_device_index = 0
+        self._retain_klv_duration = 5000000
+        self._smooth_klv_packets = False
+        self._unknown_stream_behavior = "ignore"
+
+        # From the vidl reader, whose name this one answers to. The frame
+        # selection keys above are honoured; these three describe where an
+        # absolute frame time comes from. `use_metadata` and
+        # `time_scan_frame_limit` govern reading time codes out of embedded
+        # metadata, which nothing here does, so they are accepted and have
+        # no effect; `time_source` chooses between timing from the first
+        # frame and timing from the wall clock, and is honoured.
+        self._time_source = "start_at_0"
+        self._use_metadata = True
+        self._time_scan_frame_limit = 100
+
         self._filename = ""
         self._process = None
         self._stderr = None
@@ -111,6 +145,8 @@ class FFmpegCliVideoInput(VideoInput):
         self._exhausted = False
         self._start_pts = None
         self._count = None
+        self._mode = "start_at_0"
+        self._origin = 0
 
     # ------------------------------------------------------------------
     # Configuration
@@ -127,6 +163,19 @@ class FFmpegCliVideoInput(VideoInput):
         cfg.set_value("start_at_frame", str(int(self._start_at_frame)))
         cfg.set_value("stop_after_frame", str(int(self._stop_after_frame)))
         cfg.set_value("output_nth_frame", str(int(self._output_nth_frame)))
+        cfg.set_value("approximate", str(bool(self._approximate)).lower())
+        cfg.set_value("cuda_enabled", str(bool(self._cuda_enabled)).lower())
+        cfg.set_value("cuda_device_index", str(int(self._cuda_device_index)))
+        cfg.set_value("retain_klv_duration",
+                      str(int(self._retain_klv_duration)))
+        cfg.set_value("smooth_klv_packets",
+                      str(bool(self._smooth_klv_packets)).lower())
+        cfg.set_value("unknown_stream_behavior",
+                      str(self._unknown_stream_behavior))
+        cfg.set_value("time_source", str(self._time_source))
+        cfg.set_value("use_metadata", str(bool(self._use_metadata)).lower())
+        cfg.set_value("time_scan_frame_limit",
+                      str(int(self._time_scan_frame_limit)))
         return cfg
 
     def set_configuration(self, cfg_in):
@@ -143,6 +192,22 @@ class FFmpegCliVideoInput(VideoInput):
         self._start_at_frame = int(cfg.get_value("start_at_frame"))
         self._stop_after_frame = int(cfg.get_value("stop_after_frame"))
         self._output_nth_frame = int(cfg.get_value("output_nth_frame"))
+        self._approximate = _as_bool(cfg.get_value("approximate"))
+        self._cuda_enabled = _as_bool(cfg.get_value("cuda_enabled"))
+        self._cuda_device_index = int(cfg.get_value("cuda_device_index"))
+        self._retain_klv_duration = int(cfg.get_value("retain_klv_duration"))
+        self._smooth_klv_packets = _as_bool(
+            cfg.get_value("smooth_klv_packets"))
+        self._unknown_stream_behavior = str(
+            cfg.get_value("unknown_stream_behavior"))
+
+        if self._cuda_enabled:
+            logger.warning(
+                "cuda_enabled is set, but this reader decodes on the CPU")
+        self._time_source = str(cfg.get_value("time_source"))
+        self._use_metadata = _as_bool(cfg.get_value("use_metadata"))
+        self._time_scan_frame_limit = int(
+            cfg.get_value("time_scan_frame_limit"))
 
         if self._use_misp_timestamps:
             logger.warning("use_misp_timestamps is not implemented; frame "
@@ -161,6 +226,8 @@ class FFmpegCliVideoInput(VideoInput):
         self.close()
 
         self._filename = video_name
+        self._mode = self._time_mode()
+        self._origin = self._time_origin()
         self._probe(video_name)
         self._launch()
         self._learn_origin()
@@ -315,6 +382,9 @@ class FFmpegCliVideoInput(VideoInput):
 
         stamp.set_frame(self._number)
 
+        if self._mode == "none":
+            return stamp
+
         seconds = self._seconds_of(self._pts)
 
         if seconds is not None:
@@ -440,7 +510,8 @@ class FFmpegCliVideoInput(VideoInput):
 
     def _filters(self):
         chain = [part for part in (self._filter_desc.strip(),) if part]
-        chain += [SCALE_FLAGS, "format=" + self._pixel_format(), "showinfo"]
+        flags = APPROXIMATE_SCALE_FLAGS if self._approximate else SCALE_FLAGS
+        chain += [flags, "format=" + self._pixel_format(), "showinfo"]
         return ",".join(chain)
 
     def _launch(self, seconds=None):
@@ -502,6 +573,39 @@ class FFmpegCliVideoInput(VideoInput):
         return np.frombuffer(buffer, dtype=dtype).reshape(
             3, self._height, self._width)
 
+    def _time_origin(self):
+        """Microseconds to add to every frame's offset.
+
+        `start_at_0` measures from the first frame, which is zero, and
+        `current` measures from the wall clock as the video was opened,
+        which is what the vidl reader did: it took the time once and
+        carried it forward by the difference in presentation times.
+        """
+        if self._mode == "current":
+            return int(time.time() * MICROSECONDS)
+
+        return 0
+
+    def _time_mode(self):
+        """The first entry of `time_source` this reader can honour."""
+        for source in re.split(r"[,\s]+", self._time_source.strip()):
+            if not source:
+                continue
+
+            if source in TIME_SOURCES:
+                return source
+
+            if source in ("misp", "klv", "klv0601", "klv0104"):
+                logger.debug("no metadata time source here; skipping '%s'",
+                             source)
+                continue
+
+            raise RuntimeError("unknown time source '{}'".format(source))
+
+        logger.warning("no usable entry in time_source '%s'; timing from "
+                       "the first frame", self._time_source)
+        return "start_at_0"
+
     def _learn_origin(self):
         """Fix the timestamp origin at the first frame of the video.
 
@@ -548,7 +652,8 @@ class FFmpegCliVideoInput(VideoInput):
         numerator, denominator = base
         offset = (pts - self._start_pts) * numerator / denominator
 
-        return int(offset * MICROSECONDS + 0.5) / MICROSECONDS
+        return (self._origin +
+                int(offset * MICROSECONDS + 0.5)) / MICROSECONDS
 
 
 def _watch(stream, times, state):

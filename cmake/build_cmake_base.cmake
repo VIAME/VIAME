@@ -21,8 +21,6 @@ set(VIAME_ENABLE_OPENCV ON CACHE BOOL "Enable OpenCV")
 set(VIAME_OPENCV_VERSION "4.9.0" CACHE STRING "OpenCV version")
 
 # Video/codec support
-set(VIAME_ENABLE_FFMPEG ON CACHE BOOL "Enable FFmpeg")
-set(VIAME_ENABLE_FFMPEG-X264 ON CACHE BOOL "Enable x264 codec")
 
 # Python support
 set(VIAME_ENABLE_PYTHON ON CACHE BOOL "Enable Python")

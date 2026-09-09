@@ -89,8 +89,9 @@ ExternalProject_Add(kwiver
     -DKWIVER_ENABLE_DBOW2:BOOL=OFF
     -DKWIVER_ENABLE_PROJ:BOOL=OFF
     -DKWIVER_ENABLE_TESTS:BOOL=OFF
-    -DKWIVER_ENABLE_FFMPEG:BOOL=${VIAME_ENABLE_FFMPEG}
-    -DKWIVER_ENABLE_FFMPEG_CUDA:BOOL=OFF
+    # Video is read and written by library/video_io's python implementations
+    # on PyAV, whose wheel carries its own FFmpeg, so nothing in C++ links it
+    -DKWIVER_ENABLE_FFMPEG:BOOL=OFF
     -DCUSTOM_LIBSVM_PATH:PATH=${VIAME_INSTALL_PREFIX}
     -DKWIVER_ENABLE_OPENCV:BOOL=${VIAME_ENABLE_OPENCV}
     -DKWIVER_ENABLE_VXL:BOOL=OFF

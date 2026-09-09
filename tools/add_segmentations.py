@@ -443,7 +443,12 @@ def probe_video(path):
 
 
 def find_ffmpeg():
-    """VIAME's own ffmpeg, else a system one. None if there isn't one.
+    """The build's ffmpeg binary, else a system one. None if there isn't one.
+
+    The binary comes from the imageio-ffmpeg wheel, which is where the rest
+    of VIAME's video stack gets it (library/video_io/ffmpeg_cli_video_input);
+    an ffmpeg installed beside the build is preferred if one is there, and a
+    system one is the last resort.
 
     Deliberately does not fall back to the static ffmpeg bundled under dive/ --
     that one ships with the GUI and is not the build's video stack.
@@ -453,6 +458,13 @@ def find_ffmpeg():
         candidate = os.path.join(install, 'bin', 'ffmpeg')
         if os.path.isfile(candidate) and os.access(candidate, os.X_OK):
             return candidate
+
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        pass
+
     return shutil.which('ffmpeg')
 
 
@@ -1404,10 +1416,10 @@ def cmd_reseg(args):
     else:
         ffmpeg = args.ffmpeg or find_ffmpeg()
         if not ffmpeg:
-            sys.exit('reseg on a video unit needs ffmpeg, and there is none in '
-                     '$VIAME_INSTALL/bin or on PATH. Rebuild VIAME with '
-                     'VIAME_ENABLE_FFMPEG, pass --ffmpeg, or re-run the whole clip '
-                     'with run-unit.')
+            sys.exit('reseg on a video unit needs ffmpeg, and there is none '
+                     'in $VIAME_INSTALL/bin, in the imageio-ffmpeg wheel, or '
+                     'on PATH. Install imageio-ffmpeg, pass --ffmpeg, or '
+                     're-run the whole clip with run-unit.')
         scratch = os.path.join(args.run_dir, 'work', rec['name'] + '_frames')
         os.makedirs(scratch, exist_ok=True)
 

@@ -10,9 +10,7 @@
 #include "viame_video_io_plugin_export.h"
 
 #include <vital/algo/image_io.h>
-#include <vital/algo/video_input.h>
 
-#include <arrows/ffmpeg/algo/ffmpeg_video_input.h>
 #include <vital/plugin_management/plugin_loader.h>
 
 #include "core_image_io.h"
@@ -50,19 +48,8 @@ register_factories( kv::plugin_loader& vpm )
   // 1 first suggested, would have dropped all five of its config keys
   VIAME_REGISTER( kv::algo::image_io, core_image_io, "vxl" )
 
-  // lite-removals.md section 3 treats vidl_ffmpeg as an older name for the
-  // ffmpeg reader, so it is a second registration of that class, which is
-  // how the build design says an alias works before phase 8. Phase 4
-  // replaces the reader with the PyAV one and folds vidl's frame selection
-  // keys into it; until then those keys are not available under this name
-  {
-    auto fact = vpm.add_factory< kv::algo::video_input,
-      kwiver::arrows::ffmpeg::ffmpeg_video_input >( "vidl_ffmpeg" );
-    fact->add_attribute( kvpf::PLUGIN_NAME, "vidl_ffmpeg" )
-      .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
-      .add_attribute( kvpf::PLUGIN_DESCRIPTION,
-                      "Older name for the ffmpeg video reader" );
-  }
+  // The video reader and writer, and the ffmpeg and vidl_ffmpeg names they
+  // answer to, are python: see pyav_video_input.py and pyav_video_output.py
 
 #undef VIAME_REGISTER
 

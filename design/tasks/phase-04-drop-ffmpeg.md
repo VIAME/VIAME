@@ -38,6 +38,11 @@ Depends: P4-T03, P4-T04
 Do:
 - `KWIVER_ENABLE_FFMPEG=OFF`; delete `VIAME_ENABLE_FFMPEG*` options, `FindFFMPEG.cmake`, the ffmpeg lines in `viame_dependencies.cmake`; C++ `ffmpeg` registrations gone, python ones own the names. `ldd` of plugins shows no `libav*`.
 - `sprokit/processes/core/video_output_process.cxx` builds its `video_settings` from `arrows::ffmpeg::ffmpeg_video_settings` under `WITH_FFMPEG`, and passes a null pointer without it, which loses the width, height and frame rate the writer needs (found in P4-T03). Use `vital::simple_video_settings` unconditionally and drop the `WITH_FFMPEG` define and the FFmpeg include/link block from that directory's `CMakeLists.txt`.
+- Fold the six `vidl_ffmpeg` keys in `pending.json` and the six `video_input/ffmpeg` keys the PyAV reader does not yet carry (`approximate`, `cuda_enabled`, `cuda_device_index`, `retain_klv_duration`, `smooth_klv_packets`, `unknown_stream_behavior`) into it with their recorded defaults, then empty `pending.json`. `approximate` is honoured (it drops the exact-rounding swscale flags); `time_source` is honoured for `start_at_0`, `current` and `none`.
+- A python implementation is discovered by class, so each inherited name is a trivial subclass registered under it, not a second registration of one class.
+- `registry-dump` cannot introspect a python implementation's config, so `compare_registry.py` stops enforcing the keys of any name that becomes python. Hold the inherited names' keys and defaults in a unit test against `registry.json` instead.
+- `video_input/ffmpeg_clip` and `image_io/ffmpeg` have no users; they go to `removed.json` rather than being reimplemented.
+- `tools/add_segmentations.py` shells out to `$VIAME_INSTALL/bin/ffmpeg`, which fletch installed; point `find_ffmpeg()` at the `imageio-ffmpeg` binary first.
 - DIVE smoke: open a video dataset, run detector, export video.
 Done when:
 - Build from clean without FFmpeg dev packages installed; BASELINE, CRITICAL, GOLDEN pass; smoke passes.

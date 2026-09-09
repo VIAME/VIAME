@@ -26,10 +26,11 @@ import video_runner                 # noqa: E402
 MANIFEST = os.path.join(HERE, "video", "manifest.json")
 INPUTS = os.path.join(HERE, "inputs")
 
-# Implementations that have to reproduce the recording. The recorded one is
-# checked too, so a drift in the thing being replaced is caught while it is
-# still there to compare against.
-IMPLEMENTATIONS = ("ffmpeg", "pyav", "ffmpeg_cli")
+# Implementations that have to reproduce the recording. Since P4-T05 every
+# one of these is python: `ffmpeg` and `vidl_ffmpeg` are the names the C++
+# arrow and the VXL reader answered to, and they are now aliases of the PyAV
+# reader, which is the point of holding all of them to the C++ recording.
+IMPLEMENTATIONS = ("ffmpeg", "vidl_ffmpeg", "pyav", "ffmpeg_cli")
 
 # A presentation time is a rational converted to seconds, so it is compared
 # with the microsecond tolerance the plan asks for rather than exactly.
@@ -43,18 +44,22 @@ TIME_TOLERANCE = 1e-6
 # rate clip means a difference of at most one tick of the container time base.
 # Constant rate video is unaffected, and every shipped pipeline reads either
 # an image list or constant rate video.
-# Keyed by (implementation, clip): the CLI reader reads its times from
+# Keyed by (implementation, clip). The CLI reader reads its times from
 # libavfilter's showinfo, which reports what the same heuristic produced, so
 # it matches exactly and gets no allowance.
+_VFR = (
+    # One container tick, plus the microsecond the recorded times are
+    # rounded to
+    1.0 / 10240 + 1e-6,
+    "pts rather than best_effort_timestamp; PyAV does not expose the "
+    "latter, and the two differ by at most one container tick on the "
+    "frames the heuristic corrects",
+)
+
 TIMESTAMP_DIVERGENCE = {
-    ("pyav", "clip_vfr.mp4"): (
-        # One container tick, plus the microsecond the recorded times are
-        # rounded to
-        1.0 / 10240 + 1e-6,
-        "pts rather than best_effort_timestamp; PyAV does not expose the "
-        "latter, and the two differ by at most one container tick on the "
-        "frames the heuristic corrects",
-    ),
+    ("pyav", "clip_vfr.mp4"): _VFR,
+    ("ffmpeg", "clip_vfr.mp4"): _VFR,
+    ("vidl_ffmpeg", "clip_vfr.mp4"): _VFR,
 }
 
 # The replacement has to stay within this fraction of the recorded decode
@@ -184,9 +189,12 @@ def test_replacement_keeps_up():
 #
 # This is a fix, not a divergence to preserve, so it is spelled out per field
 # rather than widened into a tolerance.
+_TRIMMED = ("the C++ writer muxed packets with no duration, so the mp4 muxer "
+            "trimmed the final frame; this one writes it")
+
 WRITER_DIVERGENCE = {
-    "pyav": "the C++ writer muxed packets with no duration, so the mp4 muxer "
-            "trimmed the final frame; this one writes it",
+    "pyav": _TRIMMED,
+    "ffmpeg": _TRIMMED,
 }
 
 
@@ -223,7 +231,7 @@ def test_writer_matches_recording(case):
     frames, duration = expected["frames"], expected["duration"]
     reason = ""
 
-    if writer != manifest()["impl"] and writer in WRITER_DIVERGENCE:
+    if writer in WRITER_DIVERGENCE:
         reason = "; allowed: " + WRITER_DIVERGENCE[writer]
         frames = frames + 1
         duration = pytest.approx(duration * frames / (frames - 1), rel=1e-3)

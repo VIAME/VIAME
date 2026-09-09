@@ -415,8 +415,16 @@ def _as_bool(value):
     return str(value).strip().lower() in ("true", "yes", "on", "1")
 
 
+# The name arrows/ffmpeg registered its writer under, which every shipped
+# transcode pipeline asks for; see the note on the reader's aliases.
+class FFmpegVideoOutput(PyAVVideoOutput):
+    """The name `arrows/ffmpeg` registered its writer under."""
+
+
 def __vital_algorithm_register__():
     from viame.core.vital_registration import register_vital_algorithm
 
     register_vital_algorithm(
         PyAVVideoOutput, "pyav", "Write a video with PyAV")
+    register_vital_algorithm(
+        FFmpegVideoOutput, "ffmpeg", "Write a video with PyAV")

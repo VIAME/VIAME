@@ -84,11 +84,10 @@ set( CMAKE_INSTALL_PREFIX           "${VIAME_BUILD_INSTALL_PREFIX}"
      CACHE INTERNAL                 "Synonym for VIAME_BUILD_INSTALL_PREFIX" FORCE )
 
 ###
-# GPU and FFMPEG utilization flags used across projects
+# GPU utilization flags used across projects
 ##
 option( VIAME_ENABLE_CUDA           "Enable CUDA-Dependent Code"    ON )
 option( VIAME_ENABLE_CUDNN          "Enable CUDNN-Dependent Code"   ON )
-option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 
 ###
 # Add core user interface enable flags
@@ -251,19 +250,6 @@ if( VIAME_ENABLE_TENSORFLOW )
 endif()
 
 ###
-# Additional libraries built for ffmpeg
-##
-if( VIAME_ENABLE_FFMPEG )
-  option( VIAME_ENABLE_FFMPEG-X264 "Enable libx264 codec in FFmpeg" ON )
-  option( VIAME_ENABLE_FFMPEG-X265 "Enable libx265 codec in FFmpeg" ON )
-  option( VIAME_ENABLE_FFMPEG-FFNV "Enable ffnv codec in FFmpeg"    OFF )
-
-  mark_as_advanced( VIAME_ENABLE_FFMPEG-X264 )
-  mark_as_advanced( VIAME_ENABLE_FFMPEG-X265 )
-  mark_as_advanced( VIAME_ENABLE_FFMPEG-FFNV )
-endif()
-
-###
 # Core build settings advanced flags
 ##
 
@@ -374,10 +360,6 @@ endif()
 if( VIAME_ENABLE_PYTORCH-LEARN )
   set( VIAME_ENABLE_PYTORCH-DETECTRON2  ON CACHE BOOL "Detectron2 required for project" FORCE )
   set( VIAME_ENABLE_PYTORCH-VIDEO      ON CACHE BOOL "Torch Video required for project" FORCE )
-endif()
-
-if( VIAME_ENABLE_PYTORCH-VIDEO )
-  set( VIAME_ENABLE_FFMPEG  ON CACHE BOOL "FFMpeg required for project" FORCE )
 endif()
 
 if( VIAME_ENABLE_MATLAB )
@@ -855,10 +837,6 @@ if( VIAME_ENABLE_OPENCV )
     message( FATAL_ERROR "GCC compiler version 12 is very new. For compatibility "
       "reasons, VIAME_OPENCV_VERSION should be set to 4.6.0 or greater."  )
   endif()
-endif()
-
-if( VIAME_ENABLE_DIVE AND NOT VIAME_ENABLE_FFMPEG-X264 )
-  message( FATAL_ERROR "VIAME_ENABLE_DIVE requires VIAME_ENABLE_FFMPEG-X264 flag" )
 endif()
 
 if( VIAME_ENABLE_SEAGIS )

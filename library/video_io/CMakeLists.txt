@@ -42,7 +42,6 @@ target_link_libraries( viame_video_io
                        kwiver::vital_util
                        kwiver::kwiversys
                        viame_image_ops
-                       kwiver::kwiver_algo_ffmpeg
   )
 
 set_target_properties( viame_video_io PROPERTIES
