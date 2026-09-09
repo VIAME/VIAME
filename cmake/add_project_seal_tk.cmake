@@ -15,7 +15,7 @@ else()
   set( SEAL_CXX_FLAGS -I${VIAME_BUILD_INSTALL_PREFIX}/include ${CMAKE_CXX_FLAGS} )
 endif()
 
-if( VIAME_ENABLE_VXL )
+if( FALSE )  # VXL is gone; seal-tk is dropped in P1
   set( SEAL_VIDEO_SOURCE vxl )
 else()
   set( SEAL_VIDEO_SOURCE ocv )

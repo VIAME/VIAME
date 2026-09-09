@@ -56,19 +56,15 @@ public:
       "Force the output to be a three channel image", \
       false )
 
-  PLUGGABLE_VARIABLES( VIAME_CONVERT_IMAGE_PARAMS )
-  PLUGGABLE_CONSTRUCTOR( convert_image, VIAME_CONVERT_IMAGE_PARAMS )
-
-  static std::string plugin_name() { return "convert_image"; }
-  static std::string
-  plugin_description()
-  {
-    return "Convert image pixel format, channel count and range";
-  }
-
-  PLUGGABLE_STATIC_FROM_CONFIG( convert_image, VIAME_CONVERT_IMAGE_PARAMS )
-  PLUGGABLE_STATIC_GET_DEFAULT( VIAME_CONVERT_IMAGE_PARAMS )
-  PLUGGABLE_SET_CONFIGURATION( convert_image, VIAME_CONVERT_IMAGE_PARAMS )
+  // PLUGGABLE_IMPL_NAMED rather than the pieces spelled out: it is
+  // the only spelling that also generates get_configuration, without
+  // which a partial config from a pipe file throws on the first key
+  // the file does not set
+  PLUGGABLE_IMPL_NAMED(
+    convert_image,
+    "convert_image",
+    "Convert image pixel format, channel count and range",
+    VIAME_CONVERT_IMAGE_PARAMS )
 
   virtual ~convert_image();
 

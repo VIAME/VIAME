@@ -53,12 +53,39 @@ register_factories( kv::plugin_loader& vpm )
   VIAME_REGISTER_IMAGE_FILTER( morphology )
   VIAME_REGISTER_IMAGE_FILTER( threshold )
 
+  // The names arrows/vxl used to register, kept working now that it is gone.
+  // Every one is checked against a recording of what the VXL implementation
+  // produced; see tests/golden/vxl
+#define VIAME_REGISTER_ALIAS( impl, alias )                              \
+  {                                                                      \
+    auto fact = vpm.add_factory< kv::algo::image_filter, impl >( alias ); \
+    fact->add_attribute( kvpf::PLUGIN_NAME, alias )                      \
+      .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )            \
+      .add_attribute( kvpf::PLUGIN_DESCRIPTION,                          \
+                      impl::plugin_description() );                      \
+  }
+
+  VIAME_REGISTER_ALIAS( average_frames, "vxl_average" )
+  VIAME_REGISTER_ALIAS( color_commonality, "vxl_color_commonality" )
+  VIAME_REGISTER_ALIAS( convert_image, "vxl_convert_image" )
+  VIAME_REGISTER_ALIAS( morphology, "vxl_morphology" )
+  VIAME_REGISTER_ALIAS( threshold, "vxl_threshold" )
+
+#undef VIAME_REGISTER_ALIAS
 #undef VIAME_REGISTER_IMAGE_FILTER
 
   {
     auto fact = vpm.add_factory< kv::algo::image_io, core_image_io >(
       core_image_io::plugin_name() );
     fact->add_attribute( kvpf::PLUGIN_NAME, core_image_io::plugin_name() )
+      .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
+      .add_attribute( kvpf::PLUGIN_DESCRIPTION,
+                      core_image_io::plugin_description() );
+  }
+
+  {
+    auto fact = vpm.add_factory< kv::algo::image_io, core_image_io >( "vxl" );
+    fact->add_attribute( kvpf::PLUGIN_NAME, "vxl" )
       .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
       .add_attribute( kvpf::PLUGIN_DESCRIPTION,
                       core_image_io::plugin_description() );

@@ -109,7 +109,6 @@ option( VIAME_ENABLE_ONNX           "Enable ONNX runtime plugins"   ON )
 option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         ON )
 option( VIAME_ENABLE_DARKNET        "Enable Darknet (YOLO) plugin"  ON )
 option( VIAME_ENABLE_SVM            "Enable SVM plugins"            ON )
-option( VIAME_ENABLE_VXL            "Enable VXL plugins"            ON )
 
 ###
 # Add secondary algorithm plugin enable flags (non-advanced)
@@ -363,7 +362,9 @@ if( VIAME_ENABLE_DARKNET )
 endif()
 
 if( VIAME_ENABLE_VIVIA )
-  set( VIAME_ENABLE_VXL     ON CACHE BOOL "VXL required for other projects"     FORCE )
+  message( FATAL_ERROR "VIAME_ENABLE_VIVIA needs VXL, which VIAME no longer \
+    builds. The image filters and readers it provided are in-house now; see \
+    design/lite-removals.md section 1." )
 endif()
 
 if( VIAME_ENABLE_PYTORCH OR VIAME_ENABLE_TENSORFLOW OR VIAME_ENABLE_SEAL )
@@ -784,15 +785,7 @@ if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
     build in RelWithDebInfo or Release until fixed." )
 endif()
 
-# VXL enabled triggers yasm to be built, requiring at least some python
-if( VIAME_ENABLE_VXL AND NOT VIAME_BUILD_PYTHON_FROM_SOURCE )
-  if( NOT Python_FOUND AND NOT VIAME_BUILD_PYTHON_FROM_SOURCE )
-    message( FATAL_ERROR "If VXL is enabled, there must be some python install \
-      located on the system to build, even if VIAME_ENABLE_PYTHON is turned off \
-      for all other packages. A python binary could not be found. Please install \
-      at least python." )
-  endif()
-endif()
+
 
 if( VIAME_ENABLE_PYTORCH )
   if( VIAME_BUILD_PYTORCH_FROM_SOURCE )

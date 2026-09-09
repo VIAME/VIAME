@@ -41,19 +41,15 @@ public:
       "How to combine the channels afterwards: none, union, intersection", \
       "none" )
 
-  PLUGGABLE_VARIABLES( VIAME_MORPHOLOGY_PARAMS )
-  PLUGGABLE_CONSTRUCTOR( morphology, VIAME_MORPHOLOGY_PARAMS )
-
-  static std::string plugin_name() { return "morphology"; }
-  static std::string
-  plugin_description()
-  {
-    return "Apply a binary morphological operation to a mask";
-  }
-
-  PLUGGABLE_STATIC_FROM_CONFIG( morphology, VIAME_MORPHOLOGY_PARAMS )
-  PLUGGABLE_STATIC_GET_DEFAULT( VIAME_MORPHOLOGY_PARAMS )
-  PLUGGABLE_SET_CONFIGURATION( morphology, VIAME_MORPHOLOGY_PARAMS )
+  // PLUGGABLE_IMPL_NAMED rather than the pieces spelled out: it is
+  // the only spelling that also generates get_configuration, without
+  // which a partial config from a pipe file throws on the first key
+  // the file does not set
+  PLUGGABLE_IMPL_NAMED(
+    morphology,
+    "morphology",
+    "Apply a binary morphological operation to a mask",
+    VIAME_MORPHOLOGY_PARAMS )
 
   virtual ~morphology();
 

@@ -53,19 +53,15 @@ public:
       "with _1, _2 and so on appended", \
       false )
 
-  PLUGGABLE_VARIABLES( VIAME_CORE_IMAGE_IO_PARAMS )
-  PLUGGABLE_CONSTRUCTOR( core_image_io, VIAME_CORE_IMAGE_IO_PARAMS )
-
-  static std::string plugin_name() { return "core"; }
-  static std::string
-  plugin_description()
-  {
-    return "Read and write images with depth and range control";
-  }
-
-  PLUGGABLE_STATIC_FROM_CONFIG( core_image_io, VIAME_CORE_IMAGE_IO_PARAMS )
-  PLUGGABLE_STATIC_GET_DEFAULT( VIAME_CORE_IMAGE_IO_PARAMS )
-  PLUGGABLE_SET_CONFIGURATION( core_image_io, VIAME_CORE_IMAGE_IO_PARAMS )
+  // PLUGGABLE_IMPL_NAMED rather than the pieces spelled out: it is
+  // the only spelling that also generates get_configuration, without
+  // which a partial config from a pipe file throws on the first key
+  // the file does not set
+  PLUGGABLE_IMPL_NAMED(
+    core_image_io,
+    "core",
+    "Read and write images with depth and range control",
+    VIAME_CORE_IMAGE_IO_PARAMS )
 
   virtual ~core_image_io();
 

@@ -54,19 +54,15 @@ public:
       "Number of tile columns when grid_image is set", \
       6 )
 
-  PLUGGABLE_VARIABLES( VIAME_COLOR_COMMONALITY_PARAMS )
-  PLUGGABLE_CONSTRUCTOR( color_commonality, VIAME_COLOR_COMMONALITY_PARAMS )
-
-  static std::string plugin_name() { return "color_commonality"; }
-  static std::string
-  plugin_description()
-  {
-    return "Map each pixel to how common its colour is in the image";
-  }
-
-  PLUGGABLE_STATIC_FROM_CONFIG( color_commonality, VIAME_COLOR_COMMONALITY_PARAMS )
-  PLUGGABLE_STATIC_GET_DEFAULT( VIAME_COLOR_COMMONALITY_PARAMS )
-  PLUGGABLE_SET_CONFIGURATION( color_commonality, VIAME_COLOR_COMMONALITY_PARAMS )
+  // PLUGGABLE_IMPL_NAMED rather than the pieces spelled out: it is
+  // the only spelling that also generates get_configuration, without
+  // which a partial config from a pipe file throws on the first key
+  // the file does not set
+  PLUGGABLE_IMPL_NAMED(
+    color_commonality,
+    "color_commonality",
+    "Map each pixel to how common its colour is in the image",
+    VIAME_COLOR_COMMONALITY_PARAMS )
 
   virtual ~color_commonality();
 

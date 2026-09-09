@@ -39,6 +39,30 @@ def input_path(name):
     raise FileNotFoundError("no fixture named '{}'".format(name))
 
 
+def sourced_environment():
+    """The environment a pipeline gets when the install is sourced.
+
+    Deliberately built from `setup_viame.sh` in a fresh shell rather than
+    inherited: importing the kwiver python package rewrites LD_LIBRARY_PATH,
+    and a golden that shells out must not depend on whether the test process
+    happened to import it first.
+    """
+    script = os.path.join(install_dir(), "setup_viame.sh")
+
+    result = subprocess.run(
+        ["bash", "-c", 'source "{}" >/dev/null 2>&1 && env -0'.format(script)],
+        stdout=subprocess.PIPE, check=True)
+
+    environment = {}
+
+    for entry in result.stdout.decode("utf-8", "replace").split("\0"):
+        key, separator, value = entry.partition("=")
+        if separator:
+            environment[key] = value
+
+    return environment
+
+
 def run(pipeline):
     """Run one pipeline; return {output name: array}, sorted by name.
 
@@ -65,6 +89,7 @@ def run(pipeline):
         # Own process group so a timeout takes the whole pipeline with it
         process = subprocess.Popen(
             command, cwd=workdir, start_new_session=True, text=True,
+            env=sourced_environment(),
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         try:

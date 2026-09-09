@@ -49,19 +49,15 @@ public:
       "will be outputted as either a double or a float image.", \
       false )
 
-  PLUGGABLE_VARIABLES( VIAME_AVERAGE_FRAMES_PARAMS )
-  PLUGGABLE_CONSTRUCTOR( average_frames, VIAME_AVERAGE_FRAMES_PARAMS )
-
-  static std::string plugin_name() { return "average_frames"; }
-  static std::string
-  plugin_description()
-  {
-    return "Compute a running average of the input frames";
-  }
-
-  PLUGGABLE_STATIC_FROM_CONFIG( average_frames, VIAME_AVERAGE_FRAMES_PARAMS )
-  PLUGGABLE_STATIC_GET_DEFAULT( VIAME_AVERAGE_FRAMES_PARAMS )
-  PLUGGABLE_SET_CONFIGURATION( average_frames, VIAME_AVERAGE_FRAMES_PARAMS )
+  // PLUGGABLE_IMPL_NAMED rather than the pieces spelled out: it is
+  // the only spelling that also generates get_configuration, without
+  // which a partial config from a pipe file throws on the first key
+  // the file does not set
+  PLUGGABLE_IMPL_NAMED(
+    average_frames,
+    "average_frames",
+    "Compute a running average of the input frames",
+    VIAME_AVERAGE_FRAMES_PARAMS )
 
   virtual ~average_frames();
 

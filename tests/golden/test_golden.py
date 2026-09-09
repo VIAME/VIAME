@@ -134,12 +134,15 @@ def test_golden(item):
         pytest.skip("{} was removed on purpose: {}".format(
             case["impl"], REMOVED[case["impl"]]))
 
-    replacing = impl != case["impl"]
+    # Once the recorded name is an alias of the replacement, running it under
+    # either name runs our code, so a documented divergence applies to both
+    replacing = ( impl != case["impl"] or
+                  case["impl"] in case_spec.REPLACEMENTS )
+
+    if impl != case["impl"] and not runner.is_registered( case["kind"], impl ):
+        pytest.skip("{} is not registered in this build".format(impl))
 
     if replacing:
-        if not runner.is_registered(case["kind"], impl):
-            pytest.skip("{} is not registered in this build".format(impl))
-
         whole_case = case_spec.divergence_reason(case["impl"], case["variant"])
 
         if whole_case:

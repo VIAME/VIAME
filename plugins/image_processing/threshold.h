@@ -34,19 +34,15 @@ public:
       "Threshold type: absolute or percentile", \
       "percentile" )
 
-  PLUGGABLE_VARIABLES( VIAME_THRESHOLD_PARAMS )
-  PLUGGABLE_CONSTRUCTOR( threshold, VIAME_THRESHOLD_PARAMS )
-
-  static std::string plugin_name() { return "threshold"; }
-  static std::string
-  plugin_description()
-  {
-    return "Threshold an image into a binary mask";
-  }
-
-  PLUGGABLE_STATIC_FROM_CONFIG( threshold, VIAME_THRESHOLD_PARAMS )
-  PLUGGABLE_STATIC_GET_DEFAULT( VIAME_THRESHOLD_PARAMS )
-  PLUGGABLE_SET_CONFIGURATION( threshold, VIAME_THRESHOLD_PARAMS )
+  // PLUGGABLE_IMPL_NAMED rather than the pieces spelled out: it is
+  // the only spelling that also generates get_configuration, without
+  // which a partial config from a pipe file throws on the first key
+  // the file does not set
+  PLUGGABLE_IMPL_NAMED(
+    threshold,
+    "threshold",
+    "Threshold an image into a binary mask",
+    VIAME_THRESHOLD_PARAMS )
 
   virtual ~threshold();
 
