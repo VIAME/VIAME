@@ -431,9 +431,7 @@ static std::string gather_trainable_types()
   return output;
 }
 
-// Newline-separated list of packaged train_*.conf files, as full paths so any
-// suggestion made against this list can be used directly
-static std::string gather_available_train_configs()
+static std::vector< std::string > packaged_config_dirs()
 {
   std::vector< std::string > search_dirs;
 
@@ -448,7 +446,33 @@ static std::string gather_available_train_configs()
   search_dirs.push_back(
     append_path( kv::get_executable_path(), "../configs/pipelines" ) );
 
-  for( const auto& dir : search_dirs )
+  return search_dirs;
+}
+
+static const std::string default_train_config = "train_detector_default.conf";
+
+// Full path of the packaged default training config, or empty if none is
+// installed
+static std::string find_default_train_config()
+{
+  for( const auto& dir : packaged_config_dirs() )
+  {
+    const std::string candidate = append_path( dir, default_train_config );
+
+    if( does_file_exist( candidate ) )
+    {
+      return candidate;
+    }
+  }
+
+  return "";
+}
+
+// Newline-separated list of packaged train_*.conf files, as full paths so any
+// suggestion made against this list can be used directly
+static std::string gather_available_train_configs()
+{
+  for( const auto& dir : packaged_config_dirs() )
   {
     if( !does_folder_exist( dir ) )
     {
@@ -1005,7 +1029,9 @@ train_applet
       "checkpoint when the trainer supports it. A run that already finished "
       "its epoch schedule trains another full round of epochs",
       ::cxxopts::value< bool >()->default_value( "false" ) )
-    ( "c,config", "Input configuration file(s) with parameters",
+    ( "c,config", "Input configuration file(s) with parameters. Defaults to "
+      "the installed " + default_train_config + " when neither this, "
+      "--detector nor --tracker is given",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "i,input", "Input directory containing groundtruth",
       ::cxxopts::value< std::string >()->default_value( "" ), "dir" )
@@ -1185,12 +1211,19 @@ train_applet
     return EXIT_FAILURE;
   }
 
-  // Test for presence of required options (either detector or tracker training)
-  if( opt_config.empty() && opt_detector.empty() &&
-      opt_tracker.empty() )
+  if( opt_config.empty() && opt_detector.empty() && opt_tracker.empty() )
   {
-    std::cerr << "One of --config, --detector, or --tracker must be set." << std::endl;
-    return EXIT_FAILURE;
+    opt_config = find_default_train_config();
+
+    if( opt_config.empty() )
+    {
+      std::cerr << "One of --config, --detector, or --tracker must be set, "
+                << "and no " << default_train_config << " is installed."
+                << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    std::cout << "No config given, using " << opt_config << std::endl;
   }
 
   // Parse comma-separated configs or detectors/trackers for multi-model training
