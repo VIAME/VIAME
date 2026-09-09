@@ -14,7 +14,6 @@ from PIL import Image as PILImage
 
 import numpy as np
 import math
-import delayed_image
 from viame.pytorch.utilities import (
     report_cuda_errors,
     vital_config_update,
@@ -31,6 +30,11 @@ from viame.core.segmentation_utils import (
 )
 
 from viame.compat import strtobool
+
+
+def _load_deps():
+    global delayed_image
+    import delayed_image
 
 
 class Sam2Refiner(RefineDetections):
@@ -91,6 +95,7 @@ class Sam2Refiner(RefineDetections):
 
     def __init__(self):
         RefineDetections.__init__(self)
+        _load_deps()
 
         # kwiver configuration variables
         self._kwiver_config = {
@@ -376,6 +381,7 @@ class Sam2TrackRefiner(RefineTracks):
 
     def __init__(self):
         RefineTracks.__init__(self)
+        _load_deps()
 
         self._kwiver_config = {
             "cfg": "configs/sam2.1/sam2.1_hiera_b+.yaml",

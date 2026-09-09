@@ -13,18 +13,22 @@ from kwiver.vital.types import (
     DetectedObjectType,
 )
 import pickle
-import mmcv
 import numpy as np
-import torch
 import sys
 import ubelt as ub
 
 from collections import namedtuple
 
 
-from viame.pytorch.remax.util.slconfig import SLConfig
-from viame.pytorch.remax.model.dino import build_dino
 from viame.pytorch.utilities import report_cuda_errors
+
+
+def _load_deps():
+    global mmcv, torch, SLConfig, build_dino
+    import mmcv
+    import torch
+    from viame.pytorch.remax.util.slconfig import SLConfig
+    from viame.pytorch.remax.model.dino import build_dino
 
 _Option = namedtuple("_Option", ["attr", "config", "default", "parse"])
 
@@ -52,6 +56,7 @@ class ReMaxDINODetector(ImageObjectDetector):
 
     def __init__(self):
         ImageObjectDetector.__init__(self)
+        _load_deps()
         for opt in self._options:
             setattr(self, opt.attr, opt.default)
 

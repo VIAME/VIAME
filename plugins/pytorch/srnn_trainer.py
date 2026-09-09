@@ -38,7 +38,11 @@ from viame.core.training_data import (build_sequence_maps,
     read_sequence_manifest,
     load_computed_detections, match_to_groundtruth,
     seed_everything)
-from viame.pytorch.srnn.generate_training_files import BoundingBox
+
+
+def _load_deps():
+    global BoundingBox
+    from viame.pytorch.srnn.generate_training_files import BoundingBox
 
 
 def _frame_bounds( track_sets ):
@@ -73,6 +77,7 @@ class SRNNTrainer( TrainTracker ):
     """
     def __init__( self ):
         TrainTracker.__init__( self )
+        _load_deps()
 
         self._identifier = "viame-srnn-tracker"
 

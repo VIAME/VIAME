@@ -15,10 +15,6 @@ import numpy as np
 
 import ast
 
-import contextlib, io
-with contextlib.redirect_stdout(io.StringIO()):
-    from map_boxes import *
-from ensemble_boxes import *
 
 try:
     from viame.core import detection_fusion_core as dfc
@@ -35,8 +31,16 @@ except ImportError:
 bb_intersection_over_union = dfc.bb_intersection_over_union
 find_matching_box = dfc.find_matching_box
 
+
+def _load_deps():
+    global non_maximum_weighted, weighted_boxes_fusion, soft_nms, nms
+    from ensemble_boxes import (
+        non_maximum_weighted, weighted_boxes_fusion, soft_nms, nms,
+    )
+
 def ensemble_box(boxes_list, scores_list, labels_list, weights, iou_thr,
                  skip_box_thr, sigma, fusion_type):
+    _load_deps()
 
     assert len( boxes_list ) == len( weights )
     assert len( boxes_list ) == len( scores_list )

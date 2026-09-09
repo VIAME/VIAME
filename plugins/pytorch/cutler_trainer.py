@@ -2,7 +2,6 @@
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
-import torch
 import pickle
 import os
 import copy
@@ -10,8 +9,6 @@ import signal
 import sys
 import time
 import yaml
-import mmcv
-import mmdet
 import random
 import gc
 import shutil
@@ -23,10 +20,6 @@ from collections import namedtuple
 from PIL import Image
 from viame.compat import strtobool
 from pathlib import Path
-from mmcv.runner import load_checkpoint
-from mmdet.utils import collect_env
-from mmdet.apis import train_detector
-from mmdet.datasets import build_dataset
 from kwiver.vital.algo import DetectedObjectSetOutput, TrainDetector
 from kwiver.vital.types import (
     BoundingBoxD,
@@ -34,14 +27,25 @@ from kwiver.vital.types import (
     DetectedObject,
     DetectedObjectSet,
 )
-import viame.pytorch.learn.mmdet.register_modules
-import torch
-import torch.nn.functional as F
-from mmdet.models.builder import LOSSES
 from functools import partial
 from viame.pytorch.utilities import report_cuda_errors
 
 _Option = namedtuple("_Option", ["attr", "config", "default", "parse", "help"])
+
+
+def _load_deps():
+    global torch, F, mmcv, mmdet, LOSSES
+    global load_checkpoint, collect_env, train_detector, build_dataset
+    import torch
+    import torch.nn.functional as F
+    import mmcv
+    import mmdet
+    import viame.pytorch.learn.mmdet.register_modules
+    from mmcv.runner import load_checkpoint
+    from mmdet.utils import collect_env
+    from mmdet.apis import train_detector
+    from mmdet.datasets import build_dataset
+    from mmdet.models.builder import LOSSES
 
 
 class ConvNextCascadeRCNNTrainer(TrainDetector):
@@ -60,6 +64,7 @@ class ConvNextCascadeRCNNTrainer(TrainDetector):
 
     def __init__(self):
         TrainDetector.__init__(self)
+        _load_deps()
 
         for opt in self._options:
             setattr(self, opt.attr, opt.default)

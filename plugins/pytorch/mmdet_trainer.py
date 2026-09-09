@@ -18,12 +18,16 @@ from shutil import copyfile
 
 import argparse
 import numpy as np
-import torch
 import pickle
 import os
 import signal
 import sys
 from viame.pytorch.utilities import report_cuda_errors
+
+
+def _load_deps():
+    global torch
+    import torch
 
 
 class MMDetTrainer(TrainDetector):
@@ -33,6 +37,7 @@ class MMDetTrainer(TrainDetector):
 
     def __init__(self):
         TrainDetector.__init__(self)
+        _load_deps()
 
         self._config_file = ""
         self._seed_weights = ""

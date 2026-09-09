@@ -4,13 +4,17 @@
 
 import os
 import sys
-import torch
 import argparse
 import re
 import tempfile
 
 from collections import OrderedDict
-from mmcv import Config
+
+
+def _load_deps():
+    global torch, Config
+    import torch
+    from mmcv import Config
 
 def is_head(key):
     valid_head_list = [
@@ -20,6 +24,7 @@ def is_head(key):
     return any(key.startswith(h) for h in valid_head_list)
 
 def parse_config(config_strings):
+    _load_deps()
     temp_file = tempfile.NamedTemporaryFile()
     config_path = f'{temp_file.name}.py'
     with open(config_path, 'w') as f:
@@ -46,6 +51,7 @@ def parse_config(config_strings):
     return is_two_stage, is_ssd, is_retina, reg_cls_agnostic
 
 def reorder_cls_channel(val, num_classes=81):
+    _load_deps()
     # bias
     if val.dim() == 1:
         new_val = torch.cat((val[1:], val[:1]), dim=0)
@@ -68,6 +74,7 @@ def reorder_cls_channel(val, num_classes=81):
 
 
 def truncate_cls_channel(val, num_classes=81):
+    _load_deps()
 
     # bias
     if val.dim() == 1:
@@ -89,6 +96,7 @@ def truncate_cls_channel(val, num_classes=81):
     return new_val
 
 def truncate_reg_channel(val, num_classes=81):
+    _load_deps()
     # bias
     if val.dim() == 1:
         # fc_reg|rpn_reg
@@ -113,6 +121,7 @@ def truncate_reg_channel(val, num_classes=81):
     return new_val
 
 def convert_v1_to_v2_weights(in_file, out_file, num_classes):
+    _load_deps()
     """Convert keys in checkpoints.
 
     There can be some breaking changes during the development of mmdetection,
@@ -177,6 +186,7 @@ def convert_v1_to_v2_weights(in_file, out_file, num_classes):
     torch.save(checkpoint, out_file)
 
 def check_config_compatibility( input_cfg, input_weights, input_template ):
+    _load_deps()
 
     if not os.path.exists( input_cfg ):
         print( "\nInput model config file: " + input_cfg + " does not exist\n" )

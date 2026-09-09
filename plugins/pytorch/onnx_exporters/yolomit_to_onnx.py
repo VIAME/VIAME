@@ -4,14 +4,19 @@ yolo-mit_to_onnx - Convert a pytorch lightning yolov9 model to ONNX.
 """
 from pathlib import Path
 
-import torch
-from hydra import compose, initialize_config_dir
 
-from yolo.model.yolo import create_model
-from yolo.utils.logger import logger
+def _load_deps():
+    global torch, compose, initialize_config_dir, create_model, logger
+    import torch
+    from hydra import compose, initialize_config_dir
+    from yolo.model.yolo import create_model
+    from yolo.utils.logger import logger
+
+
 
 
 def yolomit_to_onnx(model_path: Path, config_path: Path, output_onnx: Path):
+    _load_deps()
     lightning_model = torch.load(model_path, map_location=torch.device("cpu"))
     if "pytorch-lightning_version" not in lightning_model.keys():
         raise ValueError("The provided model is not a PyTorch Lightning checkpoint.")

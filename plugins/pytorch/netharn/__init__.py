@@ -45,91 +45,51 @@ except (AttributeError, Exception):
     pass
 
 
-from .api import (
-    Initializer, Optimizer, Criterion, Loaders, Scheduler, Dynamics,
-    configure_hacks, configure_workdir,
-)
-from .device import (XPU,)
-from .fit_harn import (FitHarn,)
-from .hyperparams import (HyperParams,)
-from .monitor import (Monitor,)
-from .analytic.output_shape_for import (
-    OutputShapeFor, OutputShape, HiddenShapes)
-from .analytic.receptive_field_for import (
-    ReceptiveFieldFor, ReceptiveField, HiddenFields)
+import importlib as _importlib
 
-__extra_all__ = [
-    'Initializer',
-    'Optimizer',
-    'Criterion',
-    'Loaders',
-    'Scheduler',
-    'Dynamics',
-    'configure_hacks',
-    'configure_workdir',
+_ATTRS = {
+    'Initializer': '.api', 'Optimizer': '.api', 'Criterion': '.api',
+    'Loaders': '.api', 'Scheduler': '.api', 'Dynamics': '.api',
+    'configure_hacks': '.api', 'configure_workdir': '.api',
+    'XPU': '.device',
+    'FitHarn': '.fit_harn',
+    'HyperParams': '.hyperparams',
+    'Monitor': '.monitor',
+    'OutputShapeFor': '.analytic.output_shape_for',
+    'OutputShape': '.analytic.output_shape_for',
+    'HiddenShapes': '.analytic.output_shape_for',
+    'ReceptiveFieldFor': '.analytic.receptive_field_for',
+    'ReceptiveField': '.analytic.receptive_field_for',
+    'HiddenFields': '.analytic.receptive_field_for',
+    'analytic_for': '.analytic',
+    'output_shape_for': '.analytic',
+    'receptive_field_for': '.analytic',
+}
 
-    'XPU',
-    'FitHarn',
-    'HyperParams',
-    'Monitor',
-    'Initializer',
-
-    'OutputShapeFor',
-    'OutputShape',
-    'HiddenShapes',
-
-    'ReceptiveFieldFor',
-    'ReceptiveField',
-    'HiddenFields',
+_SUBMODULES = [
+    'api', 'criterions', 'data', 'device', 'exceptions', 'fit_harn',
+    'hyperparams', 'initializers', 'layers', 'mixins', 'models', 'monitor',
+    'optimizers', 'prefit', 'schedulers', 'util', 'analytic',
+    'bio_util', 'compat', 'detection_models', 'io',
+    'clf_dataset', 'clf_eval', 'clf_fit', 'clf_predict',
+    'detect_dataset', 'detect_eval', 'detect_fit', 'detect_predict',
 ]
 
-# Import submodules - core training framework
-from . import api
-from . import criterions
-from . import data
-from . import device
-from . import exceptions
-from . import fit_harn
-from . import hyperparams
-from . import initializers
-from . import layers
-from . import mixins
-from . import models
-from . import monitor
-from . import optimizers
-from . import prefit
-from . import schedulers
-from . import util
-from .analytic import analytic_for
-from .analytic import output_shape_for
-from .analytic import receptive_field_for
+__all__ = sorted(set(_ATTRS) | set(_SUBMODULES))
 
-# Import submodules - detection/classification (from bioharn)
-from . import bio_util
-from . import compat
-from . import detection_models
-from . import io
 
-# Import detection/classification modules
-from . import clf_dataset
-from . import clf_eval
-from . import clf_fit
-from . import clf_predict
-from . import detect_dataset
-from . import detect_eval
-from . import detect_fit
-from . import detect_predict
+# Everything is resolved on first access: the plugin loader imports this
+# package on every viame startup and the eager version cost eight seconds
+def __getattr__(name):
+    if name in _ATTRS:
+        value = getattr(_importlib.import_module(_ATTRS[name], __name__), name)
+    elif name in _SUBMODULES:
+        value = _importlib.import_module('.' + name, __name__)
+    else:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    globals()[name] = value
+    return value
 
-__all__ = ['Criterion', 'Dynamics', 'FitHarn', 'HiddenFields', 'HiddenShapes',
-           'HyperParams', 'Initializer', 'Initializer', 'Loaders', 'Monitor',
-           'Optimizer', 'OutputShape', 'OutputShapeFor', 'ReceptiveField',
-           'ReceptiveFieldFor', 'Scheduler', 'XPU', 'analytic_for', 'api',
-           'configure_hacks', 'configure_workdir', 'criterions', 'data',
-           'device', 'exceptions', 'fit_harn', 'hyperparams',
-           'initializers', 'layers', 'mixins', 'models', 'monitor',
-           'optimizers', 'output_shape_for', 'prefit', 'receptive_field_for',
-           'schedulers', 'util',
-           # Detection/classification modules
-           'bio_util', 'compat', 'detection_models', 'io',
-           'clf_dataset', 'clf_eval', 'clf_fit', 'clf_predict',
-           'detect_dataset', 'detect_eval', 'detect_fit', 'detect_predict']
+
+def __dir__():
+    return sorted(set(globals()) | set(__all__))

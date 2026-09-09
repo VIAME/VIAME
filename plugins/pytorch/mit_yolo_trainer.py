@@ -27,8 +27,12 @@ from viame.pytorch.utilities import vital_config_update, report_cuda_errors
 
 import scriptconfig as scfg
 import ubelt as ub
-from hydra import compose, initialize_config_dir
-from yolo.lazy import main
+
+
+def _load_deps():
+    global compose, initialize_config_dir, main
+    from hydra import compose, initialize_config_dir
+    from yolo.lazy import main
 
 
 class MITYoloConfig(KWCocoTrainDetectorConfig):
@@ -76,6 +80,7 @@ class MITYoloTrainer(KWCocoTrainDetector):
 
     def __init__(self):
         TrainDetector.__init__(self)
+        _load_deps()
         self._config = MITYoloConfig()
 
     def get_configuration(self):

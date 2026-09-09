@@ -16,26 +16,23 @@ from kwiver.vital.types import (
 )
 
 import pickle
-import mmcv
 import numpy as np
-import torch
 import sys
 
 from collections import namedtuple
 from viame.pytorch.utilities import report_cuda_errors
 
-try:
-    import viame.pytorch.learn.mmdet.register_modules
+
+def _load_deps():
+    global mmcv, torch, F, LOSSES, inference_detector, partial
+    import mmcv
     import torch
     import torch.nn.functional as F
+    from functools import partial
+    import viame.pytorch.learn.mmdet.register_modules
     from mmdet.models.builder import LOSSES
     from mmdet.apis import inference_detector
 
-    from functools import partial
-
-    use_learn = True
-except ModuleNotFoundError:
-    use_learn = False
 
 _Option = namedtuple("_Option", ["attr", "config", "default", "parse"])
 
@@ -66,6 +63,7 @@ class ReMaxConvNextDetector(ImageObjectDetector):
 
     def __init__(self):
         ImageObjectDetector.__init__(self)
+        _load_deps()
         for opt in self._options:
             setattr(self, opt.attr, opt.default)
 

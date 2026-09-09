@@ -17,8 +17,12 @@ from kwiver.vital.types import (
     Track,
 )
 
-import viame.pytorch.mdnet.tracker as mdnet
 from viame.pytorch.utilities import report_cuda_errors
+
+
+def _load_deps():
+    global mdnet
+    import viame.pytorch.mdnet.tracker as mdnet
 
 
 class MDNetTrackerConfig(scfg.DataConfig):
@@ -66,6 +70,7 @@ class MDNetTracker(TrackObjects):
 
     def __init__(self):
         TrackObjects.__init__(self)
+        _load_deps()
         self._kwiver_config = MDNetTrackerConfig()
         self._trackers = dict()
         self._tracks = dict()

@@ -5,33 +5,32 @@
 import time
 import os
 import pickle
-import mmcv
 import numpy as np
-import torch
-import scipy
 import sys
-import torchvision.transforms as transforms
 
 from collections import namedtuple
 
 from viame.compat import strtobool
 from kwiver.vital.algo import TrainDetector
 
-from viame.pytorch.remax.util.coco import CocoDetection
 
-from viame.pytorch.remax.ReMax import ReMax
 from viame.pytorch.utilities import report_cuda_errors
 
-try:
-    import viame.pytorch.learn.mmdet.register_modules
+
+
+def _load_deps():
+    global mmcv, torch, F, scipy, transforms, LOSSES, partial
+    global CocoDetection, ReMax
+    import mmcv
     import torch
     import torch.nn.functional as F
-    from mmdet.models.builder import LOSSES
+    import scipy
+    import torchvision.transforms as transforms
     from functools import partial
-
-    use_learn = True
-except ModuleNotFoundError:
-    use_learn = False
+    import viame.pytorch.learn.mmdet.register_modules
+    from mmdet.models.builder import LOSSES
+    from viame.pytorch.remax.util.coco import CocoDetection
+    from viame.pytorch.remax.ReMax import ReMax
 
 _Option = namedtuple("_Option", ["attr", "config", "default", "parse"])
 
@@ -52,6 +51,7 @@ class ReMaxConvNextTrainer(TrainDetector):
 
     def __init__(self):
         TrainDetector.__init__(self)
+        _load_deps()
         for opt in self._options:
             setattr(self, opt.attr, opt.default)
 

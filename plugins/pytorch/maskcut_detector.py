@@ -6,14 +6,10 @@
 # INSERT COPYRIGHT STATEMENT OR DELETE THIS
 #
 
-import torch
 import PIL
-import kwimage
 
 import numpy as np
 
-from scipy import ndimage
-from torchvision import transforms
 from collections import namedtuple
 
 from kwiver.vital.algo import ImageObjectDetector
@@ -27,21 +23,31 @@ from kwiver.vital.types import (
     DetectedObjectType,
 )
 
-from viame.pytorch.learn.cutler.crf import densecrf
-from viame.pytorch.learn.cutler.dino import ViTFeat
-from viame.pytorch.learn.cutler.maskcut import (
-    maskcut_forward,
-    create_annotation_info,
-    category_info,
-    resize_binary_mask,
-)
-
-# modfied by Xudong Wang based on third_party/TokenCut
-from viame.pytorch.learn.tokencut.unsupervised_saliency_detection import utils, metric
-from viame.pytorch.learn.tokencut.unsupervised_saliency_detection.object_discovery import (
-    detect_box,
-)
 from viame.pytorch.utilities import report_cuda_errors
+
+
+def _load_deps():
+    global torch, kwimage, ndimage, transforms, densecrf, ViTFeat
+    global maskcut_forward, create_annotation_info, category_info
+    global resize_binary_mask, utils, metric, detect_box
+    import torch
+    import kwimage
+    from scipy import ndimage
+    from torchvision import transforms
+    from viame.pytorch.learn.cutler.crf import densecrf
+    from viame.pytorch.learn.cutler.dino import ViTFeat
+    from viame.pytorch.learn.cutler.maskcut import (
+        maskcut_forward,
+        create_annotation_info,
+        category_info,
+        resize_binary_mask,
+    )
+    from viame.pytorch.learn.tokencut.unsupervised_saliency_detection import (
+        utils, metric,
+    )
+    from viame.pytorch.learn.tokencut.unsupervised_saliency_detection.object_discovery import (
+        detect_box,
+    )
 
 
 _Option = namedtuple("_Option", ["attr", "config", "default", "parse", "help"])
@@ -72,6 +78,7 @@ class MaskCutDetector(ImageObjectDetector):
 
     def __init__(self):
         ImageObjectDetector.__init__(self)
+        _load_deps()
 
         self.idx = 0
 

@@ -11,9 +11,6 @@ Experimental scripts
 import cv2
 import numpy as np
 import ubelt as ub
-import sklearn.metrics
-import scipy.io
-import pandas as pd
 
 from os.path import expanduser
 from . import stereo_algos as ctalgo
@@ -121,6 +118,7 @@ def compare_results():
         ppts2 = np.array([o.center for o in pdf['obox2']])
         mpts2 = np.array([o.center for o in mdf['obox2']])
 
+        import sklearn.metrics
         dists1 = sklearn.metrics.pairwise.pairwise_distances(ppts1, mpts1)
         dists2 = sklearn.metrics.pairwise.pairwise_distances(ppts2, mpts2)
 
@@ -234,6 +232,7 @@ def compare_results():
 
 def _read_kresimir_results():
     # Load downloaded matlab csv results
+    import scipy.io
     mat = scipy.io.loadmat(expanduser('~/data/opencv_stereo_sample_data/Haul_83/Haul_083_qcresult.mat'))
     header = ub.readfrom(expanduser('~/data/opencv_stereo_sample_data/Haul_83/mat_file_header.csv')).strip().split(',')
     data = mat['lengthsqc']

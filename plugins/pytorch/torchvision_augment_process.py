@@ -3,16 +3,10 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 import sys
-import torch
 import pickle
 
-from torchvision import models, transforms
-from torch.autograd import Variable
-from torch import nn
 
 import numpy as np
-import scipy as sp
-import scipy.optimize
 import threading
 
 from PIL import Image as pilImage
@@ -29,7 +23,11 @@ from timeit import default_timer as timer
 from kwiver.vital.util.VitalPIL import get_pil_image
 
 from viame.pytorch.utilities import Grid, gpu_list_desc, parse_gpu_list
-from viame.pytorch.torchvision.resnet_augmenter import AugmentedResNetFeatureExtractor
+
+
+def _load_deps():
+    global AugmentedResNetFeatureExtractor
+    from viame.pytorch.torchvision.resnet_augmenter import AugmentedResNetFeatureExtractor
 
 def to_vital(raw_data):
     if len(raw_data) == 0:
@@ -46,6 +44,7 @@ class DataAugmentation(KwiverProcess):
     # -------------------------------------------------------------------------------------
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
+        _load_deps()
 
         # GPU list
         #----------------------------------------------------------------------------------

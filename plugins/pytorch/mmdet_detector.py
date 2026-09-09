@@ -7,7 +7,6 @@ from collections import namedtuple
 import logging
 import sys
 import cv2
-import mmcv
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -24,14 +23,19 @@ from kwiver.vital.types import (
 )
 from viame.pytorch.utilities import report_cuda_errors
 
-try:
-    import viame.pytorch.learn.mmdet.register_modules
+
+
+def _load_deps():
+    global mmcv, torch, F, LOSSES, partial
+    import mmcv
     import torch
     import torch.nn.functional as F
-    from mmdet.models.builder import LOSSES
     from functools import partial
-except ModuleNotFoundError:
-    pass
+    try:
+        import viame.pytorch.learn.mmdet.register_modules
+        from mmdet.models.builder import LOSSES
+    except ModuleNotFoundError:
+        pass
 
 _Option = namedtuple("_Option", ["attr", "config", "default", "parse"])
 
@@ -59,6 +63,7 @@ class MMDetDetector(ImageObjectDetector):
 
     def __init__(self):
         ImageObjectDetector.__init__(self)
+        _load_deps()
         for opt in self._options:
             setattr(self, opt.attr, opt.default)
 

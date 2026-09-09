@@ -12,7 +12,13 @@
 #   - utils/fine_matching.py: kornia dependency replaced with local torch ops
 #   - this file: yacs config replaced with the equivalent plain dict
 
-from .loftr import LoFTR
+def __getattr__(name):
+    if name == 'LoFTR':
+        from .loftr import LoFTR
+        return LoFTR
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 
 # Inference config equivalent to LoFTR_minima's lower_config(cvpr_ds_config),
 # with the post-outdoor_ds.ckpt coordinate fix that MINIMA weights require

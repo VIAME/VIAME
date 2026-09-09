@@ -16,17 +16,13 @@ import sys
 import logging
 
 import numpy as np
-import scipy as sp
-import scipy.optimize
 import scriptconfig as scfg
 
-import torch
 
 # Initialize cuDNN early at module import time to prevent
 # CUDNN_STATUS_SUBLIBRARY_LOADING_FAILED when running with other CUDA processes
 from viame.pytorch.utilities import init_cudnn, report_cuda_errors
 
-init_cudnn()
 
 from timeit import default_timer as timer
 from PIL import Image as pilImage
@@ -40,17 +36,24 @@ from kwiver.vital.util.VitalPIL import get_pil_image
 
 from viame.pytorch.utilities import Grid, gpu_list_desc, parse_gpu_list
 
-from viame.pytorch.srnn.track import track_state, track, track_set
-from viame.pytorch.srnn.models import Siamese
-from viame.pytorch.srnn.srnn_matching import SRNNMatching, RnnType
-from viame.pytorch.srnn.siamese_feature_extractor import SiameseFeatureExtractor
-from viame.pytorch.srnn.iou_tracker import IOUTracker
-from viame.pytorch.srnn.gt_bbox import GTBBox, GTFileType
-from viame.pytorch.srnn.models import get_config
-
 logger = logging.getLogger(__name__)
 
-g_config = get_config()
+
+def _load_deps():
+    global sp, torch, track_state, track, track_set, Siamese, SRNNMatching
+    global RnnType, SiameseFeatureExtractor, IOUTracker, GTBBox, GTFileType
+    global g_config
+    import scipy as sp
+    import scipy.optimize
+    import torch
+    from viame.pytorch.srnn.track import track_state, track, track_set
+    from viame.pytorch.srnn.models import Siamese, get_config
+    from viame.pytorch.srnn.srnn_matching import SRNNMatching, RnnType
+    from viame.pytorch.srnn.siamese_feature_extractor import SiameseFeatureExtractor
+    from viame.pytorch.srnn.iou_tracker import IOUTracker
+    from viame.pytorch.srnn.gt_bbox import GTBBox, GTFileType
+    g_config = get_config()
+    init_cudnn()
 
 
 def timing(desc, f):
@@ -213,6 +216,7 @@ class SRNNTracker(TrackObjects):
 
     def __init__(self):
         TrackObjects.__init__(self)
+        _load_deps()
 
         self._config = SRNNTrackerConfig()
 

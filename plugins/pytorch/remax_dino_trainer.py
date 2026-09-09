@@ -6,10 +6,7 @@ import time
 import os
 from pathlib import Path
 import pickle
-import mmcv
 import numpy as np
-import torch
-import scipy
 import sys
 import ubelt as ub
 import yaml
@@ -18,14 +15,22 @@ from collections import namedtuple
 
 from kwiver.vital.algo import TrainDetector
 
-from viame.pytorch.remax.util.slconfig import SLConfig
-from viame.pytorch.remax.model.dino import build_dino
-from viame.pytorch.remax.util.coco import build as build_dataset
 
-from viame.pytorch.remax.util.box_ops import box_xyxy_to_cxcywh
 
-from viame.pytorch.remax.ReMax import ReMax
 from viame.pytorch.utilities import report_cuda_errors
+
+
+def _load_deps():
+    global mmcv, torch, scipy
+    global SLConfig, build_dino, build_dataset, box_xyxy_to_cxcywh, ReMax
+    import mmcv
+    import torch
+    import scipy
+    from viame.pytorch.remax.util.slconfig import SLConfig
+    from viame.pytorch.remax.model.dino import build_dino
+    from viame.pytorch.remax.util.coco import build as build_dataset
+    from viame.pytorch.remax.util.box_ops import box_xyxy_to_cxcywh
+    from viame.pytorch.remax.ReMax import ReMax
 
 _Option = namedtuple("_Option", ["attr", "config", "default", "parse", "help"])
 
@@ -53,6 +58,7 @@ class ReMaxDINOTrainer(TrainDetector):
 
     def __init__(self):
         TrainDetector.__init__(self)
+        _load_deps()
         for opt in self._options:
             setattr(self, opt.attr, opt.default)
 
