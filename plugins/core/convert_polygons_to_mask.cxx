@@ -6,11 +6,9 @@
 
 #include <vital/util/transform_image.h>
 
-#ifdef VIAME_ENABLE_VXL
-#include <vgl/vgl_polygon.h>
-#include <vgl/vgl_polygon_scan_iterator.h>
-#include <vgl/vgl_point_2d.h>
-#endif
+#include <image_ops/polygon.h>
+
+#include <algorithm>
 
 namespace viame
 {
@@ -20,7 +18,6 @@ void convert_polys_to_mask(
   const kwiver::vital::bounding_box_d& bbox,
   kwiver::vital::image_of< uint8_t >& output )
 {
-#ifdef VIAME_ENABLE_VXL
   if( polygons.empty() )
   {
     return;
@@ -47,44 +44,25 @@ void convert_polys_to_mask(
     std::vector< std::string > poly_elements;
     kwiver::vital::tokenize( polygons[i], poly_elements, " ", true );
 
-    // Extract the x, y points from the split text, skipping '(poly)'
-    std::vector< vgl_point_2d< double > > pts;
-    for( unsigned j = 1; j < poly_elements.size(); j+=2 )
+    // Extract the x, y points from the split text, skipping '(poly)', and
+    // shift them into the coordinates of the box
+    viame::image_ops::polygon points;
+
+    for( unsigned j = 1; j + 1 < poly_elements.size(); j += 2 )
     {
-      // Shift these points so they are in the coordinates of the box
-      pts.push_back( vgl_point_2d< double >( std::stoi(poly_elements[j] ) -
-        bbox_min_x, std::stoi( poly_elements[j+1]) - bbox_min_y ) );
+      points.emplace_back(
+        std::stoi( poly_elements[ j ] ) - bbox_min_x,
+        std::stoi( poly_elements[ j + 1 ] ) - bbox_min_y );
     }
-    // Create the polygon of the boundary
-    vgl_polygon< double > poly = vgl_polygon< double >(
-      pts.data(), static_cast< int >( pts.size() ) );
 
-    // Create a scan iterator
-    // x_min, x_max, y_min, y_max
-    // Don't provide points outside this box
-    vgl_box_2d< double > window( 0, bbox_width, 0, bbox_height );
-    vgl_polygon_scan_iterator< double > psi( poly );
-
-    for( psi.reset(); psi.next(); )
-    {
-      int y = psi.scany();
-
-      // Make sure this is within the image
-      if( y < 0 || y >= static_cast< int >( output.height() ) )
-      {
-        continue;
-      }
-
-      int min_x = std::max( 0, psi.startx() );
-      int max_x = std::min( static_cast< int >( output.width() ) - 1, psi.endx() );
-
-      for( int x = min_x; x <= max_x; ++x )
+    viame::image_ops::rasterize_polygon(
+      points, output.width(), output.height(),
+      [ &output ]( int x, int y )
       {
         output( x, y ) = 1;
-      }
-    }
+      } );
   }
-#endif
+
 }
 
 }

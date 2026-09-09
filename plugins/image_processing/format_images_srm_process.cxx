@@ -15,22 +15,18 @@
 #include <vital/types/image_container.h>
 #include <vital/types/homography.h>
 
-#include <arrows/vxl/image_container.h>
+#include <image_ops/channels.h>
+#include <image_ops/dispatch.h>
+#include <image_ops/resample.h>
 
+#include <algorithm>
 #include <vector>
-
-#include <vil/vil_image_view.h>
-#include <vil/vil_copy.h>
-#include <vil/vil_crop.h>
-#include <vil/vil_fill.h>
-#include <vil/vil_plane.h>
-#include <vil/vil_resample_bilin.h>
 
 
 namespace viame
 {
 
-namespace vxl
+namespace image_processing
 {
 
 create_config_trait( fix_output_size, bool, "true",
@@ -87,8 +83,8 @@ public:
 
   // Functions
   template< typename PixType >
-  void filter( const vil_image_view< PixType >& input,
-    std::vector< vil_image_view< PixType > >& output );
+  void filter( const kwiver::vital::image_of< PixType >& input,
+    std::vector< kwiver::vital::image_of< PixType > >& output );
 };
 
 // =============================================================================
@@ -153,36 +149,32 @@ format_images_srm_process
 // -----------------------------------------------------------------------------
 template< typename PixType >
 void format_images_srm_process::priv
-::filter( const vil_image_view< PixType >& raw_input,
-          std::vector< vil_image_view< PixType > >& output )
+::filter( const kwiver::vital::image_of< PixType >& raw_input,
+          std::vector< kwiver::vital::image_of< PixType > >& output )
 {
-  typedef vil_image_view< PixType > image_t;
+  typedef kwiver::vital::image_of< PixType > image_t;
+  namespace io = viame::image_ops;
 
   // Verification of input
-  if( raw_input.ni() == 0 || raw_input.nj() == 0 )
+  if( raw_input.width() == 0 || raw_input.height() == 0 )
   {
     output.push_back( image_t() );
     return;
   }
 
   // Update recorded image properties
-  m_max_input_width = std::max( raw_input.ni(), m_max_input_width );
-  m_max_input_height = std::max( raw_input.nj(), m_max_input_height );
+  m_max_input_width =
+    std::max( static_cast< unsigned >( raw_input.width() ), m_max_input_width );
+  m_max_input_height =
+    std::max( static_cast< unsigned >( raw_input.height() ), m_max_input_height );
 
   // Confirm not RGBA
   image_t input = raw_input;
 
-  if( raw_input.nplanes() == 4 )
+  if( raw_input.depth() == 4 )
   {
-    input = vil_image_view< PixType >( raw_input.ni(), raw_input.nj(), 3 );
-
-    image_t tmp1 = vil_plane( input, 0 );
-    image_t tmp2 = vil_plane( input, 1 );
-    image_t tmp3 = vil_plane( input, 2 );
-
-    vil_copy_reformat( vil_plane( raw_input, 0 ), tmp1 );
-    vil_copy_reformat( vil_plane( raw_input, 1 ), tmp2 );
-    vil_copy_reformat( vil_plane( raw_input, 2 ), tmp3 );
+    // Drop the alpha rather than compositing it, as before
+    input = io::force_three_channels( raw_input );
   }
 
   // Handle correct case
@@ -198,8 +190,8 @@ void format_images_srm_process::priv
     }
     else
     {
-      output_ni = input.ni();
-      output_nj = input.nj();
+      output_ni = input.width();
+      output_nj = input.height();
 
       if( output_ni > m_max_output_width || output_nj > m_max_output_height )
       {
@@ -218,16 +210,13 @@ void format_images_srm_process::priv
       }
     }
 
-    if( input.ni() == output_ni && input.nj() == output_nj )
+    if( input.width() == output_ni && input.height() == output_nj )
     {
       output.push_back( input );
       return;
     }
 
-    vil_image_view< PixType > scaled;
-    vil_resample_bilin( input, scaled, output_ni, output_nj );
-
-    output.push_back( scaled );
+    output.push_back( io::resize_bilinear( input, output_ni, output_nj ) );
   }
   else if( m_resize_option == CROP )
   {
@@ -241,8 +230,10 @@ void format_images_srm_process::priv
     }
     else
     {
-      output_ni = std::min( m_max_output_width, input.ni() );
-      output_nj = std::min( m_max_output_height, input.nj() );
+      output_ni = std::min( m_max_output_width,
+                            static_cast< unsigned >( input.width() ) );
+      output_nj = std::min( m_max_output_height,
+                            static_cast< unsigned >( input.height() ) );
 
       if( !m_first_output_width )
       {
@@ -251,29 +242,19 @@ void format_images_srm_process::priv
       }
     }
 
-    if( input.ni() == output_ni && input.nj() == output_nj )
+    if( input.width() == output_ni && input.height() == output_nj )
     {
       output.push_back( input );
       return;
     }
 
-    if( output_ni > input.ni() || output_nj > input.nj() )
+    if( output_ni > input.width() || output_nj > input.height() )
     {
-      vil_image_view< PixType > padded_crop( output_ni, output_nj, input.nplanes() );
-      vil_fill( padded_crop, static_cast< PixType >( 0 ) );
-
-      unsigned copy_ni = std::min( output_ni, input.ni() );
-      unsigned copy_nj = std::min( output_nj, input.nj() );
-
-      vil_image_view< PixType > dest =
-        vil_crop( padded_crop, 0, copy_ni, 0, copy_nj );
-
-      vil_copy_reformat( vil_crop( input, 0, copy_ni, 0, copy_nj ), dest );
-      output.push_back( padded_crop );
+      output.push_back( io::pad_or_crop( input, output_ni, output_nj ) );
     }
     else
     {
-      output.push_back( vil_crop( input, 0, output_ni, 0, output_nj ) );
+      output.push_back( io::crop( input, 0, 0, output_ni, output_nj ) );
     }
   }
   else // Chip mode
@@ -291,45 +272,33 @@ format_images_srm_process
   kwiver::vital::image_container_sptr input_image =
     grab_from_port_using_trait( image );
 
-  vil_image_view_base_sptr view =
-    kwiver::arrows::vxl::image_container::vital_to_vxl(
-      input_image->get_image() );
+  namespace io = viame::image_ops;
 
-  // Perform different actions based on input type
-#define HANDLE_CASE(T)                                                    \
-  case T:                                                                 \
-    {                                                                     \
-      typedef vil_pixel_format_type_of<T >::component_type pix_t;         \
-      vil_image_view< pix_t > input = view;                               \
-                                                                          \
-      std::vector< vil_image_view< pix_t > > outputs;                     \
-      d->filter( input, outputs );                                        \
-                                                                          \
-      for( auto output : outputs )                                        \
-      {                                                                   \
-        if( output )                                                      \
-        {                                                                 \
-          push_to_port_using_trait( image,                                \
-            std::make_shared< kwiver::arrows::vxl::image_container >(     \
-              output ) );                                                 \
-        }                                                                 \
-        else                                                              \
-        {                                                                 \
-          push_to_port_using_trait( image,                                \
-            kwiver::vital::image_container_sptr() );                      \
-        }                                                                 \
-      }                                                                   \
-    }                                                                     \
-    break;                                                                \
+  std::vector< kwiver::vital::image_container_sptr > results;
 
-  switch( view->pixel_format() )
+  io::dispatch_pixel_type(
+    input_image->get_image(),
+    [ & ]( auto const& typed ) -> int
+    {
+      using pix_t = io::pixel_type_t< decltype( typed ) >;
+
+      std::vector< kwiver::vital::image_of< pix_t > > outputs;
+      d->filter( typed, outputs );
+
+      for( auto const& output : outputs )
+      {
+        results.push_back(
+          output.width() > 0 && output.height() > 0
+          ? std::make_shared< kwiver::vital::simple_image_container >( output )
+          : kwiver::vital::image_container_sptr() );
+      }
+
+      return 0;
+    } );
+
+  for( auto const& result : results )
   {
-    HANDLE_CASE( VIL_PIXEL_FORMAT_BYTE );
-    HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_16 );
-#undef HANDLE_CASE
-
-  default:
-    throw std::runtime_error( "Invalid type received" );
+    push_to_port_using_trait( image, result );
   }
 }
 
@@ -388,6 +357,6 @@ format_images_srm_process::priv
 }
 
 
-} // end namespace vxl
+} // end namespace image_processing
 
 } // end namespace viame

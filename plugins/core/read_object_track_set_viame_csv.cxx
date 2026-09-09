@@ -384,7 +384,6 @@ read_object_track_set_viame_csv::priv
       dob->set_flattened_polygon( poly_floats );
     }
 
-#ifdef VIAME_ENABLE_VXL
     if( m_parent->c_poly_to_mask && found_attribute )
     {
       kwiver::vital::image_of< uint8_t > mask_data;
@@ -396,7 +395,6 @@ read_object_track_set_viame_csv::priv
 
       dob->set_mask( computed_mask );
     }
-#endif
 
     if( found_attribute )
     {

@@ -11,6 +11,8 @@ set( image_ops_headers
   dispatch.h
   morphology.h
   pixel.h
+  polygon.h
+  resample.h
   statistics.h
   temporal.h
   threshold.h

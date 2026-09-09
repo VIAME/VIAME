@@ -349,12 +349,6 @@ read_detected_object_set_viame_csv
     d->m_error_writer.reset( new std::ofstream( c_warning_file.c_str(), std::ios::app ) );
   }
 
-#ifndef VIAME_ENABLE_VXL
-  if( c_poly_to_mask )
-  {
-    throw std::runtime_error( "Must have VXL turned on to use poly_to_mask" );
-  }
-#endif
 }
 
 
@@ -690,7 +684,6 @@ read_detected_object_set_viame_csv::priv
       dob->set_flattened_polygon( poly_floats );
     }
 
-#ifdef VIAME_ENABLE_VXL
     if( m_parent->c_poly_to_mask && found_optional_field )
     {
       kwiver::vital::image_of< uint8_t > mask_data;
@@ -702,7 +695,6 @@ read_detected_object_set_viame_csv::priv
 
       dob->set_mask( computed_mask );
     }
-#endif
 
     if( found_optional_field )
     {
