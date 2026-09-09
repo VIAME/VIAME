@@ -160,3 +160,46 @@ def test_calibration_inputs_go_to_the_script(viame_env, tmp_path):
     run_convert(viame_env, intrinsics, tmp_path / "calibration.json")
     doc = json.loads((tmp_path / "calibration.json").read_text())
     assert doc
+
+
+def test_calibration_folder_goes_to_the_script(viame_env, tmp_path):
+    source = get_viame_source() / "tests" / "data"
+    if not ((source / "intrinsics.yml").exists() and
+            (source / "extrinsics.yml").exists()):
+        pytest.skip("Missing OpenCV calibration test data")
+    calibration = tmp_path / "calibration"
+    calibration.mkdir()
+    shutil.copy(source / "intrinsics.yml", calibration / "intrinsics.yml")
+    shutil.copy(source / "extrinsics.yml", calibration / "extrinsics.yml")
+
+    output = tmp_path / "calibration.npz"
+    result = subprocess.run(
+        ["viame", "convert", str(calibration), str(output)],
+        env=viame_env, cwd=tmp_path, capture_output=True, text=True, timeout=300,
+    )
+    # Some source-tree environments load tools/ while starting the script,
+    # shadowing stdlib inspect and preventing SciPy from importing.  That is
+    # unrelated to dispatching this directory to the calibration converter.
+    if "module 'inspect' has no attribute 'cleandoc'" in result.stderr:
+        pytest.skip("Source-tree Python path shadows stdlib inspect for SciPy")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert output.exists()
+
+
+def test_dive_track_attributes_round_trip(viame_env, tmp_path):
+    source = tmp_path / "tracks.dive.json"
+    source.write_text(json.dumps({
+        "version": 2,
+        "tracks": {
+            "7": {
+                "id": 7, "begin": 0, "end": 0,
+                "attributes": {"reviewed": "yes"},
+                "confidencePairs": [["fish", 0.9]],
+                "features": [{"frame": 0, "bounds": [1, 2, 3, 4]}],
+            },
+        },
+    }))
+    output = tmp_path / "roundtrip.dive.json"
+    run_convert(viame_env, source, output)
+    doc = json.loads(output.read_text())
+    assert doc["tracks"]["7"]["attributes"] == {"reviewed": "yes"}

@@ -284,6 +284,16 @@ convert_applet
     ( kv::has_algorithm_impl_name< kv::algo::read_object_track_set >( input_format ) ||
       kv::has_algorithm_impl_name< kv::algo::detected_object_set_input >( input_format ) );
 
+  // A calibration can be an OpenCV directory containing intrinsics.yml and
+  // extrinsics.yml.  Keep auto-detected annotation folders here, but hand a
+  // directory with no annotation files to convert.py so it can recognize
+  // calibration directories as it did before this became a C++ applet.
+  if( input_is_folder && !explicit_annotation_format &&
+      list_annotation_files( input, std::string() ).empty() )
+  {
+    return run_calibration_converter( applet_args() );
+  }
+
   // Annotation files are converted here, anything else by the script
   if( !input_is_folder && !explicit_annotation_format )
   {

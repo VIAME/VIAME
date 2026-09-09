@@ -172,6 +172,13 @@ read_object_track_set_dive::priv
       // Create a new kwiver track
       auto track = kwiver::vital::track::create();
       track->set_id( dtrack.id );
+      // DIVE keeps attributes on the track as well as on individual
+      // features.  Preserve them so a DIVE round trip does not discard the
+      // attributes that write_object_track_set_dive emits.
+      for( auto const& attribute : dtrack.attributes )
+      {
+        track->set_attribute( attribute.first, attribute.second );
+      }
 
       // Process each feature in the DIVE track
       for( dive_feature const& feature : dtrack.features )
