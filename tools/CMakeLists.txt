@@ -6,6 +6,7 @@
 # Python standalone tools
 ##
 set( PYTHON_SCRIPTS
+  add_on.py
   add_segmentations.py
   convert_cam.py
   convert_itk.py
@@ -19,6 +20,7 @@ set( PYTHON_SCRIPTS
   plot_eval.py
   run_bulk.py
   metadata.py
+  model_wrap.py
   train_fusion.py
 )
 

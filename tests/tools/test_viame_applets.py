@@ -4,11 +4,13 @@
 
 """Tests for the tools exposed as applets of the viame tool runner."""
 
+import hashlib
 import json
 import shutil
 import subprocess
 import sys
 import time
+import zipfile
 
 from pathlib import Path
 
@@ -1196,6 +1198,95 @@ class TestPipelineApplet:
 
     def test_check_finds_bad_connections_and_paths(self, viame_env, small_pipe):
         small_pipe.write_text(
+class TestAddOnApplet:
+    @staticmethod
+    def _fake_addon(tmp_path):
+        install = tmp_path / "install"
+        (install / "bin").mkdir(parents=True)
+        (install / "configs").mkdir()
+
+        archive = tmp_path / "fake.zip"
+        with zipfile.ZipFile(archive, "w") as zf:
+            zf.writestr("configs/pipelines/detector_fake.pipe", "process x :: y\n")
+            zf.writestr("configs/pipelines/models/fake.zip", "weights")
+        md5 = hashlib.md5(archive.read_bytes()).hexdigest()
+
+        listing = tmp_path / "addons.csv"
+        listing.write_text(
+            f"FAKE, file:///nowhere/fake.zip, A fake add-on, {md5}, "
+            f'ALL-PLATFORMS, "PYTORCH", models/fake.zip\n'
+        )
+        return install, archive, listing
+
+    def _run(self, env, install, listing, *args):
+        return run_viame(
+            env, "add-on", "--install-dir", str(install), "--csv", str(listing), *args
+        )
+
+    def test_list_reads_the_install_csv(self, viame_env):
+        result = run_viame(viame_env, "add-on", "list")
+
+        assert result.returncode == 0, result.stderr
+        assert "GENERIC" in result.stdout
+        assert "DEFAULT-FISH" in result.stdout
+
+    def test_install_from_file_and_status(self, viame_env, tmp_path):
+        install, archive, listing = self._fake_addon(tmp_path)
+
+        before = self._run(viame_env, install, listing, "list")
+        assert "FAKE" in before.stdout and "not installed" in before.stdout
+
+        result = self._run(
+            viame_env, install, listing, "install", "FAKE", "--from-file", str(archive)
+        )
+        assert result.returncode == 0, result.stderr
+        assert (install / "configs/pipelines/detector_fake.pipe").exists()
+        assert (install / "configs/pipelines/models/fake.zip").exists()
+
+        after = self._run(viame_env, install, listing, "list", "--json")
+        entry = next(e for e in json.loads(after.stdout) if e["name"] == "FAKE")
+        assert entry["status"] == "installed"
+
+        again = self._run(
+            viame_env, install, listing, "install", "FAKE", "--from-file", str(archive)
+        )
+        assert "already installed" in again.stdout
+
+        (install / "configs/pipelines/models/fake.zip").unlink()
+        removed = self._run(viame_env, install, listing, "list", "--json")
+        entry = next(e for e in json.loads(removed.stdout) if e["name"] == "FAKE")
+        assert entry["status"] == "not installed"
+
+    def test_checksum_mismatch_needs_force(self, viame_env, tmp_path):
+        install, archive, listing = self._fake_addon(tmp_path)
+        listing.write_text(listing.read_text().replace(
+            hashlib.md5(archive.read_bytes()).hexdigest(), "0" * 32))
+
+        refused = self._run(
+            viame_env, install, listing, "install", "FAKE", "--from-file", str(archive)
+        )
+        assert refused.returncode != 0
+        assert "checksum mismatch" in refused.stderr
+        assert not (install / "configs/pipelines/models/fake.zip").exists()
+
+        forced = self._run(
+            viame_env, install, listing, "install", "FAKE", "--from-file",
+            str(archive), "--force",
+        )
+        assert forced.returncode == 0, forced.stderr
+
+        listed = self._run(viame_env, install, listing, "list", "--json")
+        entry = next(e for e in json.loads(listed.stdout) if e["name"] == "FAKE")
+        assert entry["status"] == "installed"
+
+    def test_unknown_add_on_is_reported(self, viame_env, tmp_path):
+        install, _, listing = self._fake_addon(tmp_path)
+        result = self._run(viame_env, install, listing, "install", "NOPE")
+
+        assert result.returncode != 0
+        assert 'unknown add-on "NOPE"' in result.stderr
+
+
             SMALL_PIPE + "connect from ghost.port\n        to writer.image\n"
         )
         result = run_viame(viame_env, "pipeline", "check", str(small_pipe))
