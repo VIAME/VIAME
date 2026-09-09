@@ -13,7 +13,7 @@ import zipfile
 
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "tools"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "plugins", "core"))
 
 import model_wrap  # noqa: E402
 

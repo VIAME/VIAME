@@ -330,6 +330,11 @@ if( VIAME_ENABLE_PYTHON )
     __init__ )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/model_wrap.py
+    core
+    model_wrap )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_tracker.py
     core
     bytetrack_tracker )

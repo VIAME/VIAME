@@ -1195,6 +1195,181 @@ class TestRunModelFile:
         assert (tmp_path / "out" / "circles_detections.csv").exists()
 
 
+class TestInspectApplet:
+    """`viame inspect <path>` names the file type, checks it, and says whether
+    VIAME can run it."""
+
+    @staticmethod
+    def _inspect(env, *args):
+        result = run_viame(env, "inspect", *args, "--json")
+        assert result.stdout.strip(), result.stderr
+        return json.loads(result.stdout), result
+
+    def test_image(self, viame_env, circles_image):
+        [report], result = self._inspect(viame_env, str(circles_image))
+        assert result.returncode == 0
+        assert report["category"] == "image"
+        assert report["format"] == "standard JPEG"
+        assert report["integrity"].startswith("ok")
+        assert report["runnable"] and report["command"].startswith("viame run <pipeline>")
+
+    def test_truncated_image_is_corrupt(self, viame_env, circles_image, tmp_path):
+        data = circles_image.read_bytes()
+        (tmp_path / "cut.jpg").write_bytes(data[: len(data) // 2])
+        [report], result = self._inspect(viame_env, str(tmp_path / "cut.jpg"))
+        assert result.returncode == 1
+        assert report["integrity"].startswith("corrupt")
+        assert not report["runnable"]
+
+    def test_mislabeled_extension_is_flagged(self, viame_env, circles_image, tmp_path):
+        shutil.copy(circles_image, tmp_path / "circles.png")
+        [report], _ = self._inspect(viame_env, str(tmp_path / "circles.png"))
+        assert report["category"] == "image"
+        assert "non-standard" in report["format"] and "JPEG" in report["format"]
+
+    def test_not_an_image_at_all(self, viame_env, tmp_path):
+        (tmp_path / "fake.jpg").write_bytes(b"hello there, not an image at all")
+        [report], _ = self._inspect(viame_env, str(tmp_path / "fake.jpg"))
+        assert report["integrity"].startswith("corrupt")
+
+    def test_video(self, viame_env, circles_image, tmp_path):
+        if shutil.which("ffmpeg") is None:
+            pytest.skip("ffmpeg not available to build a clip")
+        subprocess.run(
+            ["ffmpeg", "-loglevel", "error", "-y", "-loop", "1", "-i", str(circles_image),
+             "-t", "1", "-r", "5", "-pix_fmt", "yuv420p", str(tmp_path / "clip.mp4")],
+            check=True,
+        )
+        [report], _ = self._inspect(viame_env, str(tmp_path / "clip.mp4"))
+        assert report["category"] == "video"
+        assert "h264" in report["detail"]
+        assert report["integrity"].startswith("ok")
+        assert report["runnable"]
+
+    def test_garbage_video_is_corrupt(self, viame_env, tmp_path):
+        (tmp_path / "clip.mp4").write_bytes(b"\x00" * 4096)
+        [report], _ = self._inspect(viame_env, str(tmp_path / "clip.mp4"))
+        assert report["category"] == "video"
+        assert report["integrity"].startswith("corrupt")
+
+    def test_image_list_and_missing_entries(self, viame_env, circles_image, tmp_path):
+        (tmp_path / "list.txt").write_text(f"{circles_image}\n")
+        [report], _ = self._inspect(viame_env, str(tmp_path / "list.txt"))
+        assert report["category"] == "image list"
+        assert report["runnable"]
+
+        (tmp_path / "list.txt").write_text(f"{circles_image}\n/no/such/image.jpg\n")
+        [report], _ = self._inspect(viame_env, str(tmp_path / "list.txt"))
+        assert "missing" in report["integrity"]
+        assert not report["runnable"]
+
+    def test_folder(self, viame_env, circles_image, tmp_path):
+        folder = tmp_path / "images"
+        folder.mkdir()
+        shutil.copy(circles_image, folder / "one.jpg")
+        [report], _ = self._inspect(viame_env, str(folder))
+        assert report["category"] == "folder"
+        assert report["detail"].startswith("1 images")
+        assert report["runnable"]
+
+    def test_complete_pipeline(self, viame_env, hough_pipeline):
+        [report], _ = self._inspect(viame_env, str(hough_pipeline))
+        assert report["category"] == "pipeline"
+        assert report["viame"] == "complete pipeline"
+        assert report["integrity"].startswith("ok")
+        assert report["command"].startswith(f"viame run {hough_pipeline}")
+
+    def test_embedded_pipeline_is_not_runnable_alone(self, viame_env, tmp_path):
+        (tmp_path / "detector.pipe").write_text(
+            "process detector_input\n  :: image_filter\n"
+            "  :filter:type vxl_convert_image\n\n"
+            "process detector_output\n  :: merge_detection_sets\n\n"
+            "connect from detector_input.image\n        to   detector_output.image\n"
+        )
+        [report], _ = self._inspect(viame_env, str(tmp_path / "detector.pipe"))
+        assert report["category"] == "pipeline"
+        assert "embedded" in report["viame"]
+        assert not report["runnable"]
+
+    def test_pipeline_with_a_bad_include(self, viame_env, tmp_path):
+        (tmp_path / "broken.pipe").write_text("include no_such_file.pipe\n")
+        [report], _ = self._inspect(viame_env, str(tmp_path / "broken.pipe"))
+        assert report["integrity"].startswith("corrupt")
+
+    def test_training_config(self, viame_env):
+        install = find_viame_install()
+        conf = install / "configs" / "pipelines" / "train_detector_default.conf"
+        if not conf.exists():
+            pytest.skip("Missing default training config")
+        [report], _ = self._inspect(viame_env, str(conf))
+        assert report["category"] == "training configuration"
+        assert report["command"].startswith("viame train -c")
+
+    def test_viame_csv(self, viame_env, detections_csv):
+        [report], _ = self._inspect(viame_env, str(detections_csv))
+        assert report["category"] == "VIAME CSV annotations"
+        assert "rows" in report["detail"] and "classes" in report["detail"]
+        assert report["integrity"].startswith("ok")
+        assert not report["runnable"]
+
+    def test_broken_csv_row(self, viame_env, detections_csv, tmp_path):
+        text = detections_csv.read_text() + "1,img.png,notanumber,1,2,3,4,0.5,0\n"
+        (tmp_path / "bad.csv").write_text(text)
+        [report], _ = self._inspect(viame_env, str(tmp_path / "bad.csv"))
+        assert report["integrity"].startswith("corrupt")
+
+    def test_dive_and_coco_json(self, viame_env, dive_json, coco_json):
+        [dive, coco], _ = self._inspect(viame_env, str(dive_json), str(coco_json))
+        assert dive["category"] == "DIVE annotations"
+        assert dive["detail"].startswith("2 tracks") or "tracks" in dive["detail"]
+        assert coco["category"] == "COCO annotations"
+        assert "annotations" in coco["detail"]
+
+    def test_invalid_json(self, viame_env, tmp_path):
+        (tmp_path / "bad.json").write_text("{not json")
+        [report], _ = self._inspect(viame_env, str(tmp_path / "bad.json"))
+        assert report["integrity"].startswith("corrupt")
+
+    def test_model_file(self, viame_env, rf_detr_weights):
+        [report], _ = self._inspect(viame_env, str(rf_detr_weights))
+        assert report["category"] == "model"
+        assert report["detail"] == "RF-DETR checkpoint"
+        assert "rf_detr detector" in report["viame"]
+        assert report["runnable"]
+
+    def test_corrupt_checkpoint(self, viame_env, tmp_path):
+        (tmp_path / "weights.pt").write_bytes(b"junk junk junk")
+        [report], _ = self._inspect(viame_env, str(tmp_path / "weights.pt"))
+        assert report["integrity"].startswith("corrupt")
+
+    def test_add_on_pack_and_packaged_pipeline(self, viame_env, tmp_path):
+        with zipfile.ZipFile(tmp_path / "pack.zip", "w") as zf:
+            zf.writestr("configs/pipelines/detector_x.pipe", "")
+            zf.writestr("configs/pipelines/models/x.pth", "")
+        with zipfile.ZipFile(tmp_path / "trained.zip", "w") as zf:
+            zf.writestr("detector.pipe", "")
+            zf.writestr("trained_detector.pth", "")
+        [pack, trained], _ = self._inspect(
+            viame_env, str(tmp_path / "pack.zip"), str(tmp_path / "trained.zip"))
+        assert pack["category"] == "add-on model pack"
+        assert pack["command"].startswith("viame add-ons install")
+        assert trained["category"] == "packaged pipeline"
+        assert trained["command"].startswith("viame run")
+
+    def test_missing_and_unknown_files(self, viame_env, tmp_path):
+        (tmp_path / "notes.md").write_text("hello\n")
+        [missing, unknown], result = self._inspect(
+            viame_env, str(tmp_path / "nope.jpg"), str(tmp_path / "notes.md"))
+        assert result.returncode == 1
+        assert missing["integrity"] == "missing"
+        assert unknown["category"] == "unknown" and unknown["format"] == "text"
+
+    def test_text_output_lists_every_field(self, viame_env, circles_image):
+        result = run_viame(viame_env, "inspect", str(circles_image))
+        for key in ("type:", "format:", "integrity:", "viame:", "runnable:"):
+            assert key in result.stdout
+
+
 class TestPythonScriptApplets:
     def test_shim_runs_the_script(self, viame_env):
         result = run_viame(viame_env, "run", "--help")

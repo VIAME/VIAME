@@ -50,4 +50,16 @@ if( VIAME_ENABLE_PYTHON )
       LABELS "UNIT;CORE"
       TIMEOUT 300
   )
+
+  add_test(
+    NAME viame_plugins:core:model_wrap
+    COMMAND bash -c "source ${VIAME_SETUP_SCRIPT} && \
+      python -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/test_model_wrap.py -v --tb=short"
+    WORKING_DIRECTORY "${VIAME_BUILD_INSTALL_PREFIX}"
+  )
+  set_tests_properties( viame_plugins:core:model_wrap
+    PROPERTIES
+      LABELS "UNIT;CORE"
+      TIMEOUT 300
+  )
 endif()

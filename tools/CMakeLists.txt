@@ -12,6 +12,7 @@ set( PYTHON_SCRIPTS
   convert_itk.py
   database.py
   extract_frames.py
+  inspect.py
   plot_detections.py
   generate_nn_index.py
   launch_annotator.py
@@ -20,7 +21,6 @@ set( PYTHON_SCRIPTS
   plot_eval.py
   run_bulk.py
   metadata.py
-  model_wrap.py
   train_fusion.py
 )
 

@@ -48,6 +48,9 @@ VIAME_PYTHON_SCRIPT_APPLET( convert_itk_applet,
 VIAME_PYTHON_SCRIPT_APPLET( database_applet, "database", "database.py",
   "Initialize, start, stop and index the descriptor database." )
 
+VIAME_PYTHON_SCRIPT_APPLET( inspect_applet, "inspect", "inspect.py",
+  "Identify a file, check it is intact, and say how VIAME can use it." )
+
 VIAME_PYTHON_SCRIPT_APPLET( extract_frames_applet, "extract-frames",
   "extract_frames.py", "Extract frames from video files" )
 
@@ -164,6 +167,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_script_tool< convert_cam_applet >( reg );
   register_script_tool< convert_itk_applet >( reg );
   register_script_tool< database_applet >( reg );
+  register_script_tool< inspect_applet >( reg );
   register_script_tool< extract_frames_applet >( reg );
   register_script_tool< plot_detections_applet >( reg );
   register_script_tool< generate_nn_index_applet >( reg );
