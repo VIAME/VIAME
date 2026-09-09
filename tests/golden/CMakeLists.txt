@@ -7,6 +7,14 @@
 
 if( VIAME_ENABLE_PYTHON )
   viame_add_pytest_test(
+    NAME    "golden:video"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_video.py"
+    LABELS  GOLDEN
+    TIMEOUT 1800
+    SOURCE_SETUP
+  )
+
+  viame_add_pytest_test(
     NAME    "golden:replay"
     TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_golden.py"
     LABELS  GOLDEN

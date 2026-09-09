@@ -56,3 +56,20 @@ algorithms_create_plugin( viame_video_io
 target_link_libraries( viame_video_io_plugin
   PUBLIC               kwiver::vital_vpm
   )
+
+###
+# Python implementations
+##
+if( VIAME_ENABLE_PYTHON )
+  kwiver_create_python_init( video_io )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/__init__.py
+    video_io
+    __init__ )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/pyav_video_input.py
+    video_io
+    pyav_video_input )
+endif()
