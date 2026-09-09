@@ -14,18 +14,13 @@
  *   viame help
  *   viame explore-config my_config.conf
  *
- * As a convenience, if the first argument is a .pipe file, the runner
+ * As a convenience, if the first argument is a .pipe file, the run
  * applet is automatically invoked:
  *
- *   viame my_pipeline.pipe          # equivalent to: viame runner my_pipeline.pipe
+ *   viame my_pipeline.pipe          # equivalent to: viame run my_pipeline.pipe
  *
- * The "run" applet covers both processing data in batch and executing a
- * single pipeline. Naming a pipe file alone selects the latter, while a pipe
- * file followed by an input is the batch driver's shorthand:
- *
- *   viame run my_pipeline.pipe      # equivalent to: viame runner my_pipeline.pipe
- *   viame run my.pipe video.mp4     # batch processing, handled by run_bulk
- *   viame run -d videos/ -p my.pipe # batch processing, handled by run_bulk
+ * The run applet itself decides between executing that one pipeline and
+ * batch processing; see tools/run.cxx.
  *
  * Similarly, if the first argument is a .conf file, the train applet
  * is automatically invoked:
@@ -55,17 +50,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <exception>
-#include <fstream>
 #include <iostream>
 #include <memory>
-#include <sstream>
 #include <utility>
-
-#ifdef _WIN32
-#include <process.h>
-#else
-#include <unistd.h>
-#endif
 
 using applet_factory = kwiver::vital::implementation_factory_by_name< kwiver::tools::kwiver_applet >;
 using applet_context_t = std::shared_ptr< kwiver::tools::applet_context >;
@@ -81,96 +68,6 @@ static bool ends_with( const std::string& str, const std::string& suffix )
     return false;
   }
   return str.compare( str.size() - suffix.size(), suffix.size(), suffix ) == 0;
-}
-
-// ============================================================================
-/**
- * Collect the positional arguments of an applet command line.
- *
- * A value handed to a flag does not count, and neither does a key=value
- * setting.
- */
-static std::vector< std::string >
-positional_args( const std::vector< std::string >& args )
-{
-  std::vector< std::string > found;
-
-  for( size_t i = 1; i < args.size(); ++i )
-  {
-    const std::string& arg = args[i];
-
-    if( arg.empty() || arg[0] == '-' || arg.find( '=' ) != std::string::npos )
-    {
-      continue;
-    }
-
-    // A preceding flag means this is that flag's value, not a positional
-    if( !args[i - 1].empty() && args[i - 1][0] == '-' )
-    {
-      continue;
-    }
-
-    found.push_back( arg );
-  }
-
-  return found;
-}
-
-// ============================================================================
-/**
- * Check whether a "run" command names a pipeline file to execute directly.
- *
- * The pipeline runner's only positional argument is the pipe file, so a lone
- * pipe file is a request for the runner. A pipe file with a companion input
- * (video, image, image list or folder) is the batch driver's shorthand form.
- */
-static bool names_a_lone_pipe_file( const std::vector< std::string >& args )
-{
-  const auto positional = positional_args( args );
-
-  return positional.size() == 1 && ends_with( positional[0], ".pipe" );
-}
-
-// ============================================================================
-/**
- * Check whether the applet arguments ask for help.
- */
-static bool wants_help( const std::vector< std::string >& args )
-{
-  for( size_t i = 1; i < args.size(); ++i )
-  {
-    if( args[i] == "-h" || args[i] == "--help" )
-    {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-// ============================================================================
-/**
- * Describe the two things "viame run" can do, since the help printed after
- * this only covers the batch driver.
- */
-static void print_run_modes()
-{
-  std::cout
-    << "viame run works in two modes, chosen by how you name the pipeline:"
-    << std::endl << std::endl
-    << "  viame run <pipeline.pipe> [options]" << std::endl
-    << "      Execute one pipeline file directly. See \"viame help runner\""
-    << std::endl
-    << "      for the options that mode accepts." << std::endl << std::endl
-    << "  viame run <pipeline> <video|image|image-list.txt|folder> [options]"
-    << std::endl
-    << "  viame run -d <directory> -p <pipeline.pipe> [options]" << std::endl
-    << "      Process a video, image, image list or folder in batch, using"
-    << std::endl
-    << "      the options listed below. The pipeline may be a bare name"
-    << std::endl
-    << "      from configs/pipelines, e.g. detector_generic." << std::endl
-    << std::endl;
 }
 
 // ============================================================================
@@ -223,7 +120,7 @@ applet_search_paths( kwiver::vital::plugin_manager_internal& vpm )
  * for the applet.
  *
  * Special case: if the first non-flag argument looks like a pipeline file
- * (ends with .pipe), automatically use the "runner" applet and treat
+ * (ends with .pipe), automatically use the "run" applet and treat
  * the argument as the pipeline file path.
  *
  * Special case: if the first non-flag argument looks like a config file
@@ -264,8 +161,8 @@ public:
           // Check if this looks like a pipeline file
           if ( ends_with( arg, ".pipe" ) )
           {
-            // Implicit runner mode: treat as "runner <pipeline.pipe>"
-            m_applet_name = "runner";
+            // Implicit run mode: treat as "run <pipeline.pipe>"
+            m_applet_name = "run";
             m_applet_args.push_back( arg );
           }
           // Check if this looks like a config file
@@ -290,12 +187,6 @@ public:
         m_applet_args.push_back( (*p_argv)[i] );
       }
     } // end for
-
-    // "run" covers both the batch driver and running a single pipeline
-    if ( m_applet_name == "run" && names_a_lone_pipe_file( m_applet_args ) )
-    {
-      m_applet_name = "runner";
-    }
   }
 
   // ----------------------
@@ -379,8 +270,8 @@ void tool_runner_usage( [[maybe_unused]] applet_context_t ctxt,
             << "  viame help runner                   # Get help on the runner applet" << std::endl
             << "  viame explore-config my.conf        # Explore configuration file" << std::endl
             << std::endl
-            << "Note: If the first argument ends with .pipe, the runner applet is" << std::endl
-            << "automatically invoked. So 'viame x.pipe' is equivalent to 'viame runner x.pipe'." << std::endl
+            << "Note: If the first argument ends with .pipe, the run applet is" << std::endl
+            << "automatically invoked. So 'viame x.pipe' is equivalent to 'viame run x.pipe'." << std::endl
             << "Similarly, if the first argument ends with .conf, the train applet is" << std::endl
             << "automatically invoked. So 'viame x.conf' is equivalent to 'viame train -c x.conf'." << std::endl
             << std::endl;
@@ -419,301 +310,12 @@ int help_applet( const command_line_parser& options,
 
   if( forwards_help == "true" )
   {
-    if( options.m_applet_args[1] == "run" )
-    {
-      print_run_modes();
-    }
-
     tool_context->m_argv = { "viame", "--help" };
     return applet->run();
   }
 
   // display help text
   std::cout << applet->m_cmd_options->help();
-
-  return EXIT_SUCCESS;
-}
-
-// ============================================================================
-/**
- * Scan a .pipe file for "pipeline stage N:" markers.
- *
- * If markers are found, the file content is split into per-stage pipeline
- * text and returned as a vector (index 0 = stage 1, etc.).  If no markers
- * are found, an empty vector is returned, signalling normal single-pipeline
- * execution.
- */
-static std::vector< std::string >
-scan_for_stages( const std::string& pipe_file_path )
-{
-  std::ifstream ifs( pipe_file_path );
-
-  if( !ifs.is_open() )
-  {
-    return {};
-  }
-
-  // First pass: collect (stage_number, content) pairs
-  struct stage_entry
-  {
-    int number;
-    std::string content;
-  };
-
-  std::vector< stage_entry > entries;
-  std::string line;
-  int current_stage = -1;
-  std::ostringstream current_content;
-
-  while( std::getline( ifs, line ) )
-  {
-    // Check for stage marker: "pipeline stage N:"
-    // Allow leading whitespace.
-    std::string trimmed = line;
-    size_t start = trimmed.find_first_not_of( " \t" );
-
-    if( start != std::string::npos )
-    {
-      trimmed = trimmed.substr( start );
-    }
-
-    const std::string prefix = "pipeline stage ";
-
-    if( trimmed.compare( 0, prefix.size(), prefix ) == 0 )
-    {
-      std::string rest = trimmed.substr( prefix.size() );
-      size_t colon = rest.find( ':' );
-
-      if( colon != std::string::npos )
-      {
-        std::string num_str = rest.substr( 0, colon );
-
-        // Trim whitespace from number
-        size_t ns = num_str.find_first_not_of( " \t" );
-        size_t ne = num_str.find_last_not_of( " \t" );
-
-        if( ns != std::string::npos )
-        {
-          num_str = num_str.substr( ns, ne - ns + 1 );
-        }
-
-        try
-        {
-          int stage_num = std::stoi( num_str );
-
-          // Save previous stage
-          if( current_stage > 0 )
-          {
-            entries.push_back( { current_stage, current_content.str() } );
-            current_content.str( "" );
-            current_content.clear();
-          }
-
-          current_stage = stage_num;
-          continue;
-        }
-        catch( ... )
-        {
-          // Not a valid stage marker, treat as normal content
-        }
-      }
-    }
-
-    if( current_stage > 0 )
-    {
-      current_content << line << "\n";
-    }
-  }
-
-  // Save last stage
-  if( current_stage > 0 )
-  {
-    entries.push_back( { current_stage, current_content.str() } );
-  }
-
-  if( entries.empty() )
-  {
-    return {};
-  }
-
-  // Sort by stage number and validate sequential numbering from 1
-  std::sort( entries.begin(), entries.end(),
-    []( const stage_entry& a, const stage_entry& b )
-    {
-      return a.number < b.number;
-    } );
-
-  std::vector< std::string > result;
-
-  for( size_t i = 0; i < entries.size(); ++i )
-  {
-    if( entries[i].number != static_cast< int >( i + 1 ) )
-    {
-      std::cerr << "viame: Pipeline stages must be numbered sequentially "
-                << "starting from 1.  Found stage " << entries[i].number
-                << " at position " << ( i + 1 ) << "." << std::endl;
-      return {};
-    }
-
-    result.push_back( entries[i].content );
-  }
-
-  return result;
-}
-
-// ============================================================================
-/**
- * Run a multi-stage pipeline.  Each stage is a complete pipeline definition
- * that is built, executed, and torn down before the next stage begins.
- * All command-line settings (-s), config files (-c), and include paths (-I)
- * are applied to every stage.
- *
- * Implementation: for each stage we write a temporary .pipe file and
- * dispatch to a fresh pipeline_runner applet instance via the plugin
- * factory.  This avoids depending on sprokit headers that are not
- * installed by kwiver.
- */
-static int
-run_staged_pipeline(
-  const std::vector< std::string >& stages,
-  const std::string& pipe_file_path,
-  const std::vector< std::string >& applet_args )
-{
-  // Collect forwarded options from the command line (-s, -c, -I).
-  // These are appended to the argument list for every stage.
-  std::vector< std::string > forwarded_args;
-
-  for( size_t i = 0; i < applet_args.size(); ++i )
-  {
-    const std::string& arg = applet_args[i];
-
-    if( ( arg == "-s" || arg == "--setting" ||
-          arg == "-c" || arg == "--config"  ||
-          arg == "-I" || arg == "--include" ) && i + 1 < applet_args.size() )
-    {
-      forwarded_args.push_back( arg );
-      forwarded_args.push_back( applet_args[++i] );
-    }
-    else if( arg.compare( 0, 2, "-s" ) == 0 && arg.size() > 2
-             && arg[2] != '-' )
-    {
-      forwarded_args.push_back( arg );
-    }
-  }
-
-  // Resolve the pipe file directory so that temporary stage files live
-  // alongside the original (for correct relativepath resolution).
-  std::string pipe_dir;
-  {
-    size_t slash = pipe_file_path.find_last_of( "/\\" );
-
-    if( slash != std::string::npos )
-    {
-      pipe_dir = pipe_file_path.substr( 0, slash + 1 );
-    }
-  }
-
-  const auto pid = getpid();
-
-  std::cout << "Running staged pipeline with "
-            << stages.size() << " stage(s)" << std::endl;
-
-  for( size_t i = 0; i < stages.size(); ++i )
-  {
-    std::cout << std::endl << "=== Pipeline stage " << ( i + 1 )
-              << " of " << stages.size() << " ===" << std::endl;
-
-    // Write stage content to a temporary .pipe file next to the original
-    // so that include/relativepath directives resolve correctly.
-    std::ostringstream tmp_name;
-    tmp_name << pipe_dir << ".viame_stage_" << ( i + 1 )
-             << "_" << pid << ".pipe";
-    const std::string tmp_path = tmp_name.str();
-
-    {
-      std::ofstream ofs( tmp_path );
-
-      if( !ofs.is_open() )
-      {
-        std::cerr << "viame: Unable to write temporary pipe file: "
-                  << tmp_path << std::endl;
-        return EXIT_FAILURE;
-      }
-
-      ofs << stages[i];
-    }
-
-    // Build argument list for this stage
-    std::vector< std::string > stage_args;
-    stage_args.push_back( "viame" );    // program name
-    stage_args.push_back( tmp_path );   // pipe file (positional)
-    stage_args.insert( stage_args.end(),
-                       forwarded_args.begin(), forwarded_args.end() );
-
-    int result = EXIT_FAILURE;
-
-    try
-    {
-      applet_factory app_fact;
-      kwiver::tools::kwiver_applet_sptr applet(
-        app_fact.create( "runner", kwiver::vital::config_block::empty_config() ) );
-
-      auto stage_context =
-        std::make_shared< kwiver::tools::applet_context >();
-      stage_context->m_applet_name = "runner";
-      stage_context->m_argv = stage_args;
-
-      applet->initialize( stage_context.get() );
-      applet->add_command_options();
-
-      // Convert args to argv style for cxxopts
-      std::vector< char* > argv_vect( stage_args.size() + 1, nullptr );
-
-      for( size_t a = 0; a < stage_args.size(); ++a )
-      {
-        argv_vect[a] = &stage_args[a][0];
-      }
-
-      int local_argc = static_cast< int >( stage_args.size() );
-      char** local_argv = argv_vect.data();
-
-      cxxopts::ParseResult local_result =
-        applet->m_cmd_options->parse( local_argc, local_argv );
-      stage_context->m_result = &local_result;
-
-      result = applet->run();
-    }
-    catch( const std::exception& e )
-    {
-      std::cerr << "viame: Stage " << ( i + 1 )
-                << " failed: " << e.what() << std::endl;
-      std::remove( tmp_path.c_str() );
-      return EXIT_FAILURE;
-    }
-    catch( ... )
-    {
-      std::cerr << "viame: Stage " << ( i + 1 )
-                << " failed with unknown error." << std::endl;
-      std::remove( tmp_path.c_str() );
-      return EXIT_FAILURE;
-    }
-
-    // Clean up temp file
-    std::remove( tmp_path.c_str() );
-
-    if( result != EXIT_SUCCESS )
-    {
-      std::cerr << "viame: Stage " << ( i + 1 )
-                << " exited with error code " << result << std::endl;
-      return result;
-    }
-
-    std::cout << "Stage " << ( i + 1 ) << " completed successfully."
-              << std::endl;
-  }
-
-  std::cout << std::endl << "All " << stages.size()
-            << " pipeline stage(s) completed successfully." << std::endl;
 
   return EXIT_SUCCESS;
 }
@@ -753,42 +355,6 @@ int main(int argc, char *argv[])
   {
     return help_applet( options, tool_context, vpm );
   } // end help code
-
-  // ----------------------------------------------------------------------------
-  // Check for staged pipeline before normal applet dispatch.
-  // If the pipe file contains "pipeline stage N:" markers, run stages
-  // sequentially instead of dispatching to the runner applet.
-  if( options.m_applet_name == "runner" )
-  {
-    std::string pipe_file;
-
-    for( const auto& arg : options.m_applet_args )
-    {
-      if( ends_with( arg, ".pipe" ) )
-      {
-        pipe_file = arg;
-        break;
-      }
-    }
-
-    if( !pipe_file.empty() )
-    {
-      auto stages = scan_for_stages( pipe_file );
-
-      if( !stages.empty() )
-      {
-        return run_staged_pipeline( stages, pipe_file,
-                                    options.m_applet_args );
-      }
-    }
-  }
-
-  // The batch driver's own help does not mention the pipeline mode
-  if( options.m_applet_name == "run" &&
-      ( options.m_applet_args.size() < 2 || wants_help( options.m_applet_args ) ) )
-  {
-    print_run_modes();
-  }
 
   // ----------------------------------------------------------------------------
   try

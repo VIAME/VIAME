@@ -966,6 +966,34 @@ class TestRunDispatch:
         result = run_viame(viame_env, "run", str(a_pipeline), str(tmp_path), "--help")
         assert self._mode(result) == "batch"
 
+    def test_bare_pipe_shorthand_selects_the_pipeline_runner(self, viame_env, a_pipeline):
+        result = run_viame(viame_env, str(a_pipeline), "--help")
+        assert self._mode(result) == "pipeline"
+
+    def test_staged_pipeline_runs_each_stage(
+        self, viame_env, hough_pipeline, circles_image, tmp_path
+    ):
+        body = hough_pipeline.read_text().replace(
+            "include common_default_input_with_downsampler.pipe",
+            f"include {hough_pipeline.parent}/common_default_input_with_downsampler.pipe",
+        )
+        staged = tmp_path / "staged.pipe"
+        staged.write_text(f"pipeline stage 1:\n{body}\npipeline stage 2:\n{body}\n")
+        (tmp_path / "list.txt").write_text(f"{circles_image}\n")
+
+        result = run_viame(
+            viame_env, "run", str(staged),
+            "-s", "input:video_filename=list.txt",
+            "-s", "detector_writer:file_name=out.csv",
+            cwd=tmp_path,
+        )
+
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert "=== Pipeline stage 2 of 2 ===" in result.stdout
+        assert "All 2 pipeline stage(s) completed successfully" in result.stdout
+        assert (tmp_path / "out.csv").exists()
+        assert not list(tmp_path.glob(".viame_stage_*"))
+
     def test_help_describes_the_shorthand(self, viame_env):
         result = run_viame(viame_env, "run", "--help")
         assert "viame run <pipeline> <video|image|image-list.txt|folder>" in result.stdout

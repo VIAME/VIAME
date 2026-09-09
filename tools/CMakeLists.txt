@@ -78,6 +78,7 @@ set( applet_sources
   get_configs.cxx
   json.cxx
   resample.cxx
+  run.cxx
   score.cxx
   train.cxx
 )
@@ -87,6 +88,7 @@ set( applet_headers
   get_configs.h
   json.h
   resample.h
+  run.h
   score.h
   train.h
 )
