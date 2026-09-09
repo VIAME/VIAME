@@ -29,6 +29,36 @@ def is_registered(impl):
     return impl in VideoInput.registered_names()
 
 
+def decode_only(impl, config, path):
+    """Count frames as fast as the reader will give them.
+
+    No numpy conversion and no hashing: those cost more than the decode on a
+    small frame and would make a throughput figure meaningless.
+    """
+    from kwiver.vital.algo import VideoInput
+
+    algorithm = VideoInput.create(impl)
+
+    if config:
+        block = algorithm.get_configuration()
+        for key, value in sorted(config.items()):
+            block.set_value(key, str(value))
+        algorithm.set_configuration(block)
+
+    algorithm.open(path)
+
+    count = 0
+
+    try:
+        while algorithm.next_frame():
+            algorithm.frame_image()
+            count += 1
+    finally:
+        algorithm.close()
+
+    return count
+
+
 def read(impl, config, path=None):
     """Open the clip and return one record per frame it yields."""
     from kwiver.vital.algo import VideoInput
@@ -63,6 +93,7 @@ def read(impl, config, path=None):
                 "time": round(float(timestamp.get_time_seconds()), 6)
                         if timestamp.has_valid_time() else None,
                 "shape": list(array.shape) if array is not None else None,
+                "dtype": str(array.dtype) if array is not None else None,
                 "sha256": hashlib.sha256(
                     np.ascontiguousarray(array).tobytes()
                 ).hexdigest()[:16] if array is not None else None,
