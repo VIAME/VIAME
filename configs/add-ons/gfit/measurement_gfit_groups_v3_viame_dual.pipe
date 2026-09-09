@@ -202,7 +202,7 @@ connect from downsampler.output_1
 
 # ======================== LEFT CAMERA CLASSIFIER =============================
 
-process classifier_groups_large_l
+process classifier_groups_all_l
   :: refine_detections
   :refiner:type                                netharn
 
@@ -229,13 +229,13 @@ process classifier_groups_output_l
     :output_scale_factor                       1.0
   endblock
 
-connect from classifier_groups_large_l.detected_object_set
+connect from classifier_groups_all_l.detected_object_set
         to   classifier_groups_output_l.detected_object_set
 
 connect from detector_rgb_input_l.image
-        to   classifier_groups_large_l.image
+        to   classifier_groups_all_l.image
 connect from detector_fused_l.detected_object_set
-        to   classifier_groups_large_l.detected_object_set
+        to   classifier_groups_all_l.detected_object_set
 
 # ======================== LEFT CAMERA KP ASSIGNMENT ==========================
 
@@ -489,7 +489,7 @@ connect from downsampler.output_1
 
 # ======================== RIGHT CAMERA CLASSIFIER ============================
 
-process classifier_groups_large_r
+process classifier_groups_all_r
   :: refine_detections
   :refiner:type                                netharn
 
@@ -516,13 +516,13 @@ process classifier_groups_output_r
     :output_scale_factor                       1.0
   endblock
 
-connect from classifier_groups_large_r.detected_object_set
+connect from classifier_groups_all_r.detected_object_set
         to   classifier_groups_output_r.detected_object_set
 
 connect from detector_rgb_input_r.image
-        to   classifier_groups_large_r.image
+        to   classifier_groups_all_r.image
 connect from detector_fused_r.detected_object_set
-        to   classifier_groups_large_r.detected_object_set
+        to   classifier_groups_all_r.detected_object_set
 
 # ======================== RIGHT CAMERA KP ASSIGNMENT =========================
 

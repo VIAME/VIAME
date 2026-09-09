@@ -6,7 +6,7 @@
 # enetv2s pair (large/small chip models split at 7000 px^2) votes on every box.
 # =============================================================================
 
-process classifier_groups_large
+process classifier_groups_all
   :: refine_detections
   :refiner:type                                netharn
 
@@ -40,7 +40,7 @@ process classifier_groups_es_lg
 
 connect from downsampler.output_1
         to   classifier_groups_es_lg.image
-connect from classifier_groups_large.detected_object_set
+connect from classifier_groups_all.detected_object_set
         to   classifier_groups_es_lg.detected_object_set
 
 process classifier_groups_es_sm
