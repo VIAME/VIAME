@@ -8,7 +8,7 @@ Notes.
 ## Current position
 
 - Phase: P3 (phases 1 and 2 deferred, see the decision below)
-- Next task: P3-T02
+- Next task: P3-T03
 - Last clean-configure build verified: 2026-09-09, P0-T05
 - Reference machine: local workstation, CUDA 12.6, cuDNN 9.12, Ubuntu
   (kernel 6.8), python 3.10.12, gcc default, 16 cores
@@ -72,8 +72,8 @@ reference kwiver source.
 | P2-T09 | Relocate tests | P2-T08 | todo | | |
 | P2-T10 | Docs and DIVE smoke | P2-T09 | todo | | |
 | **Phase 3: drop VXL** | `phase-03-drop-vxl.md` | | | | |
-| P3-T01 | Record VXL golden outputs | P0-T05 | in-progress | | Dependency changed from P2-T10 by the ordering decision. Recorded through the kwiver python bindings rather than through pipelines, which gives the exact array for every dtype instead of a re-encoded image; whole-pipeline recordings run the shipped `train_aug_*` pipelines, the only shipped pipelines that both use a vxl filter and write images |
-| P3-T02 | `image_ops` v1 kernels | P0-T05 | todo | | Lands under `plugins/` for now; phase 2 moves it to `library/image_ops` |
+| P3-T01 | Record VXL golden outputs | P0-T05 | done | 4b46563ba | Dependency changed from P2-T10 by the ordering decision. Recorded through the kwiver python bindings rather than through pipelines, which gives the exact array for every dtype instead of a re-encoded image; whole-pipeline recordings run the shipped `train_aug_*` pipelines, the only shipped pipelines that both use a vxl filter and write images |
+| P3-T02 | `image_ops` v1 kernels | P0-T05 | done | 1205fc963 | Lands in `plugins/image_ops` for now; phase 2 moves it to `library/image_ops`. This commit carries the kernels the conversion, threshold and averaging filters need; the morphology, colour histogram, blur and white balance kernels land with P3-T04 and P3-T05, so each kernel arrives with the golden that checks it. Reproducing VXL exactly turned up two behaviours worth knowing: `vil_math_mean_over_planes` accumulates in the pixel type, so two uint8 planes of 100 and 200 average to 22, and the windowed averager subtracts the *newest* buffered frame rather than the oldest, so a full window is not a sliding mean. Both are pinned by unit tests |
 | P3-T03 | `convert_image` (alias `vxl_convert_image`) | P3-T01, P3-T02 | todo | | |
 | P3-T04 | `average_frames`, `threshold`, `morphology`, `color_commonality` | P3-T03 | todo | | |
 | P3-T05 | `white_balance`, `vxl_enhancer`, `format_images_srm` | P3-T04 | todo | | |
