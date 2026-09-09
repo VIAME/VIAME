@@ -4,7 +4,5 @@ export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 
 source ${VIAME_INSTALL}/setup_viame.sh
 
-viame run --init \
-  -l ingest_list.txt \
-  -p pipelines/index_frame.pipe -o database \
-  --build-index -install ${VIAME_INSTALL}
+viame index add -l ingest_list.txt \
+  --method frames -install ${VIAME_INSTALL}

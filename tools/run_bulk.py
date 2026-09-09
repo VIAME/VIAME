@@ -1238,7 +1238,7 @@ if __name__ == "__main__" :
     help="Re-initialize database" )
 
   parser.add_argument( "--build-index", dest="build_index", action="store_true",
-    help="Build searchable index on completion" )
+    help="Build searchable index on completion (viame index add wraps this)" )
 
   parser.add_argument( "--index-backend", dest="index_backend", default="files",
     choices=[ "files", "postgres" ],

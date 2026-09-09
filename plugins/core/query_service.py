@@ -18,7 +18,7 @@ mirroring the protocol the VIQUI (vivia) KIP query session speaks:
                         iqr_model
 
 An "index" is a directory containing the ``database/`` folder produced by
-``run_bulk.py --build-index``. Two storage backends exist:
+``viame index add``. Two storage backends exist:
 
   files (default)  per-video bundles in ``database/`` (``<name>.index``,
                    ``<name>_descriptors.csv/.npy``, ``<name>_uids.txt``,
@@ -219,18 +219,10 @@ def _sql_literal(value: str) -> str:
 BACKEND_FILES = "files"
 BACKEND_POSTGRES = "postgres"
 
-BUNDLE_POSTFIXES = (".index", "_descriptors.csv", "_descriptors.npy",
-                    "_uids.txt", "_hashes.npy", "_tracks.csv")
-
-
 def detect_backend(index_dir: str) -> str:
-    """Guess how an index stores descriptors: postgres when it has an
-    embedded database directory and no file bundles, files otherwise."""
-    database = os.path.join(index_dir, "database")
-    has_sql = os.path.isdir(os.path.join(database, "SQL"))
-    has_bundles = os.path.isdir(database) and any(
-        name.endswith("_descriptors.npy") for name in os.listdir(database))
-    return BACKEND_POSTGRES if has_sql and not has_bundles else BACKEND_FILES
+    """How the index under index_dir/database stores descriptors."""
+    from viame.core import index_descriptors
+    return index_descriptors.detect_backend(os.path.join(index_dir, "database"))
 
 
 def normalize_backend(value: Optional[str], index_dir: str) -> str:
@@ -244,14 +236,11 @@ def normalize_backend(value: Optional[str], index_dir: str) -> str:
 
 def remove_stream_files(index_dir: str, streams: List[str]) -> List[str]:
     """Delete the bundle files of the given streams. Returns removed paths."""
+    from viame.core import index_descriptors
     database = os.path.join(index_dir, "database")
     removed: List[str] = []
     for stream in streams:
-        for postfix in BUNDLE_POSTFIXES:
-            path = os.path.join(database, stream + postfix)
-            if os.path.exists(path):
-                os.remove(path)
-                removed.append(path)
+        removed.extend(index_descriptors.remove_index_bundle(database, stream))
     return removed
 
 

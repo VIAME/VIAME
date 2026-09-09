@@ -94,6 +94,17 @@ If your ingest was successful, you should get a message saying 'ingest complete"
 errors in your output log. If you get an error, and are unable to decipher it, send a copy
 of your database/Logs folder and console output to 'viame.developers@gmail.com'.
 
+Managing the Index
+------------------
+
+'viame index' is the tool behind the create_index scripts and the way to maintain an
+index afterwards: 'viame index add -l list.txt' (or '-d videos', '-v video.mp4') ingests
+more media into an existing index, 'viame index list' and 'viame index status [stream]'
+show what is indexed, 'viame index remove [stream]' drops a video, and 'viame index build'
+refreshes the hash codes (with '--retrain' to retrain the ITQ model over everything).
+'viame index hash' is the low-level tool that trains a model and hash codes from an
+arbitrary descriptor file or table.
+
 Index Storage
 -------------
 
@@ -107,10 +118,11 @@ shared by every entry lives in 'database/ITQ'. Adding a video re-runs the ingest
 and refreshes only its own files; removing one is deleting its files. No server process
 is involved, and the folder can be copied or backed up as-is.
 
-The earlier embedded PostgreSQL store is still available: pass '--index-backend postgres'
-(and '--init-db' on the first build) to 'viame run' / 'run_bulk.py', and
+The earlier embedded PostgreSQL store is still available: pass '--backend postgres' to
+'viame index add' (the database is initialised on the first add) and
 '--index-backend postgres' to 'launch_search.py'. Both backends use the same ITQ files,
-but a folder holds one or the other, not a mix.
+but a folder holds one or the other, not a mix; commands on an existing index detect
+its backend.
 
 
 Perform an Image Query

@@ -516,6 +516,11 @@ if( VIAME_ENABLE_PYTHON )
     core
     query_service )
 
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/index_descriptors.py
+    core
+    index_descriptors )
+
   # Compiled bindings exposing the C++ stereo measurement (compute_stereo_measurement,
   # aggregate_lengths) to Python so the interactive stereo service reuses them rather
   # than duplicating the math. The bindings live at the bottom of measurement_utilities.cxx

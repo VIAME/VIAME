@@ -6,10 +6,13 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 
 """
-Build ITQ (Iterative Quantization) LSH index for efficient nearest neighbor search.
+Descriptor indexing for VIAME video search (viame.core.index_descriptors).
 
-This tool implements ITQ training and hash code computation using only numpy
-and standard Python libraries.
+Implements ITQ (Iterative Quantization) locality-sensitive hashing with only
+numpy, the descriptor sources it can be trained from (CSV, KWIVER descriptor
+CSV, PostgreSQL), and the per-video file bundles that make up the
+file-backed search index. The command line lives in the ``viame index``
+applet (tools/index.py); this module is import-only.
 
 The ITQ algorithm:
 1. Optionally normalizes input descriptors
@@ -18,20 +21,12 @@ The ITQ algorithm:
 4. Iteratively refines a rotation matrix to minimize quantization error
 5. Produces binary hash codes for efficient similarity search
 
-Usage:
-    # Train and compute hashes from CSV file
-    python generate_nn_index.py --descriptor-file descriptors.csv --output-dir database/ITQ
-
-    # Compute hashes only using existing model
-    python generate_nn_index.py --descriptor-file descriptors.csv --model-dir database/ITQ --hash-only
-
 References:
     Gong, Y., & Lazebnik, S. (2011). Iterative quantization: A procrustean approach
     to learning binary codes. In CVPR.
     http://www.cs.unc.edu/~lazebnik/publications/cvpr11_small_code.pdf
 """
 
-import argparse
 import json
 import os
 import time
@@ -632,6 +627,16 @@ def _model_present(itq_dir, suffix):
                for kind in ("mean_vec", "rotation"))
 
 
+def detect_backend(database_dir):
+    """How an index folder stores descriptors: "postgres" when it holds an
+    embedded server (SQL/) and no file bundles, "files" otherwise (including
+    a folder that does not exist yet)."""
+    if not os.path.isdir(database_dir):
+        return "files"
+    has_sql = os.path.isdir(os.path.join(database_dir, "SQL"))
+    return "postgres" if has_sql and not list_index_bundles(database_dir) else "files"
+
+
 def list_index_bundles(database_dir):
     """Basenames of every video with a descriptor CSV or array in the folder."""
     names = set()
@@ -685,8 +690,9 @@ def strip_csv_vectors(csv_path):
 
 def convert_bundle_vectors(database_dir, name, verbose=True):
     """Make sure <name>_descriptors.npy / <name>_uids.txt exist and are
-    current with respect to <name>_descriptors.csv. Returns the row count,
-    or None when the video has no descriptors at all."""
+    current with respect to <name>_descriptors.csv. Returns (row count,
+    converted): the count is None when the video has no descriptors at all,
+    and converted is True when the array was (re)written from the CSV."""
     csv_path = os.path.join(database_dir, name + BUNDLE_DESCRIPTOR_CSV_POSTFIX)
     npy_path = os.path.join(database_dir, name + BUNDLE_DESCRIPTOR_NPY_POSTFIX)
     uid_path = os.path.join(database_dir, name + BUNDLE_UIDS_POSTFIX)
@@ -696,18 +702,18 @@ def convert_bundle_vectors(database_dir, name, verbose=True):
                  (not have_npy or os.path.getmtime(csv_path) > os.path.getmtime(npy_path)))
 
     if have_npy and not csv_newer:
-        return int(np.load(npy_path, mmap_mode='r').shape[0])
+        return int(np.load(npy_path, mmap_mode='r').shape[0]), False
 
     if not os.path.exists(csv_path):
-        return None
+        return None, False
 
     source = KwiverCsvDescriptorSource(csv_path)
     uids, descs = source.get_descriptors()
     if len(uids) == 0:
         if have_npy:
             # The CSV was stripped after conversion; the array is the truth
-            return int(np.load(npy_path, mmap_mode='r').shape[0])
-        return None
+            return int(np.load(npy_path, mmap_mode='r').shape[0]), False
+        return None, False
 
     def write_array(tmp):
         # A file object keeps np.save from appending .npy to the temp name
@@ -724,7 +730,7 @@ def convert_bundle_vectors(database_dir, name, verbose=True):
     if verbose:
         print("    %s: converted %d descriptors (%d-d) to float32" % (
             name, len(uids), descs.shape[1]))
-    return len(uids)
+    return len(uids), True
 
 
 def build_index_bundles(database_dir, bit_length=256, itq_iterations=100,
@@ -754,10 +760,15 @@ def build_index_bundles(database_dir, bit_length=256, itq_iterations=100,
         print("  (1/3) Converting descriptor files...")
     names = list_index_bundles(database_dir)
     counts = {}
+    reconverted = set()
     for name in names:
-        count = convert_bundle_vectors(database_dir, name, verbose=verbose)
+        count, converted = convert_bundle_vectors(database_dir, name, verbose=verbose)
         if count:
             counts[name] = count
+            if converted:
+                # A re-ingested video may keep its descriptor count while its
+                # vectors change, so a fresh array always gets fresh codes.
+                reconverted.add(name)
     total = sum(counts.values())
     if verbose:
         print("    %d video(s), %d descriptors" % (len(counts), total))
@@ -807,6 +818,7 @@ def build_index_bundles(database_dir, bit_length=256, itq_iterations=100,
         manifest = read_bundle_manifest(database_dir, name)
         hashes_path = os.path.join(database_dir, name + BUNDLE_HASHES_POSTFIX)
         current = (manifest is not None
+                   and name not in reconverted
                    and manifest.get("itq_model") == suffix
                    and manifest.get("itq_model_hash") == model_hash
                    and manifest.get("count") == count
@@ -1547,321 +1559,3 @@ def load_config(config_path):
     result['uuids_list_filepath'] = config.get('uuids_list_filepath')
 
     return result
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description='Build ITQ LSH index for efficient nearest neighbor search',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__
-    )
-
-    # Input sources (mutually exclusive)
-    input_group = parser.add_mutually_exclusive_group(required=True)
-    input_group.add_argument(
-        '--config', '-c',
-        help='Path to JSON config file'
-    )
-    input_group.add_argument(
-        '--descriptor-file', '-f',
-        help='Path to CSV file containing descriptors (format: uid,val1,val2,...)'
-    )
-
-    # Database options (when not using config)
-    parser.add_argument(
-        '--db-host',
-        default='localhost',
-        help='PostgreSQL host (default: localhost)'
-    )
-    parser.add_argument(
-        '--db-port',
-        type=int,
-        default=5432,
-        help='PostgreSQL port (default: 5432)'
-    )
-    parser.add_argument(
-        '--db-name',
-        default='postgres',
-        help='PostgreSQL database name (default: postgres)'
-    )
-    parser.add_argument(
-        '--db-user',
-        default='postgres',
-        help='PostgreSQL user (default: postgres)'
-    )
-    parser.add_argument(
-        '--db-pass',
-        default=None,
-        help='PostgreSQL password'
-    )
-    parser.add_argument(
-        '--table-name',
-        default='DESCRIPTOR',
-        help='Table name containing descriptors (default: DESCRIPTOR)'
-    )
-    parser.add_argument(
-        '--uuid-col',
-        default='UID',
-        help='Column name for descriptor UIDs (default: UID)'
-    )
-    parser.add_argument(
-        '--element-col',
-        default='VECTOR_DATA',
-        help='Column name for descriptor data (default: VECTOR_DATA)'
-    )
-
-    # ITQ parameters
-    parser.add_argument(
-        '--bit-length', '-b',
-        type=int,
-        default=256,
-        help='Number of bits in hash code (default: 256)'
-    )
-    parser.add_argument(
-        '--itq-iterations', '-i',
-        type=int,
-        default=100,
-        help='Number of ITQ refinement iterations (default: 100)'
-    )
-    parser.add_argument(
-        '--random-seed', '-r',
-        type=int,
-        default=0,
-        help='Random seed for reproducibility (default: 0)'
-    )
-    parser.add_argument(
-        '--normalize',
-        type=float,
-        default=None,
-        help='Normalization order for input vectors (default: None = no normalization). '
-             'Use 2 for L2 normalization.'
-    )
-    parser.add_argument(
-        '--max-train-descriptors', '-m',
-        type=int,
-        default=100000,
-        help='Maximum descriptors for training (default: 100000)'
-    )
-
-    # Training options
-    parser.add_argument(
-        '--uuids-list',
-        help='Path to file containing UIDs to use for training (one per line).'
-    )
-    parser.add_argument(
-        '--no-random-sample',
-        action='store_true',
-        help='Disable random subsampling when max_train_descriptors < total. '
-             'By default, descriptors are randomly sampled.'
-    )
-
-    # Algorithm options
-    parser.add_argument(
-        '--pca-method',
-        choices=['cov_eig', 'direct_svd'],
-        default='cov_eig',
-        help='PCA computation method (default: cov_eig). '
-             'cov_eig: covariance + eigendecomposition, '
-             'direct_svd: direct SVD (more numerically stable)'
-    )
-    parser.add_argument(
-        '--init-method',
-        choices=['svd', 'qr'],
-        default='svd',
-        help='Rotation initialization method (default: svd). '
-             'svd: SVD orthogonalization, qr: QR decomposition'
-    )
-
-    # Hash-only mode
-    parser.add_argument(
-        '--hash-only',
-        action='store_true',
-        help='Only compute hashes using existing model (skip training)'
-    )
-    parser.add_argument(
-        '--model-dir',
-        help='Directory containing existing model (required for --hash-only)'
-    )
-
-    # Incremental mode
-    parser.add_argument(
-        '--incremental',
-        action='store_true',
-        help='Only process new descriptors (skip already-hashed UIDs). '
-             'Loads existing hash2uuid store and adds only new entries.'
-    )
-
-    # Output
-    parser.add_argument(
-        '--output-dir', '-o',
-        default='database/ITQ',
-        help='Output directory for model and hash mappings (default: database/ITQ)'
-    )
-
-    # Progress reporting
-    parser.add_argument(
-        '--report-interval',
-        type=float,
-        default=1.0,
-        help='Seconds between progress reports (default: 1.0)'
-    )
-
-    # Verbosity
-    parser.add_argument(
-        '--verbose', '-v',
-        action='store_true',
-        default=True,
-        help='Print progress messages (default: True)'
-    )
-    parser.add_argument(
-        '--quiet', '-q',
-        action='store_true',
-        help='Suppress progress messages'
-    )
-
-    args = parser.parse_args()
-
-    verbose = args.verbose and not args.quiet
-
-    # Validate hash-only mode
-    if args.hash_only and not args.model_dir:
-        parser.error("--model-dir is required when using --hash-only")
-
-    try:
-        # Load configuration
-        if args.config:
-            if verbose:
-                print(f"Loading configuration from: {args.config}")
-            config = load_config(args.config)
-
-            bit_length = config.get('bit_length', args.bit_length)
-            itq_iterations = config.get('itq_iterations', args.itq_iterations)
-            random_seed = config.get('random_seed', args.random_seed)
-            normalize = config.get('normalize', args.normalize)
-            max_train = config.get('max_descriptors', args.max_train_descriptors)
-            uuids_list_filepath = config.get('uuids_list_filepath') or args.uuids_list
-
-            if config.get('source_type') == 'postgres':
-                source = PostgresDescriptorSource(
-                    host=config.get('db_host', 'localhost'),
-                    port=config.get('db_port', 5432),
-                    dbname=config.get('db_name', 'postgres'),
-                    user=config.get('db_user', 'postgres'),
-                    password=config.get('db_pass'),
-                    table_name=config.get('table_name', 'descriptor_index'),
-                    uuid_col=config.get('uuid_col', 'uid'),
-                    element_col=config.get('element_col', 'element')
-                )
-            else:
-                raise ValueError("Config does not specify a valid descriptor source")
-        elif args.descriptor_file:
-            source = CSVDescriptorSource(args.descriptor_file)
-            bit_length = args.bit_length
-            itq_iterations = args.itq_iterations
-            random_seed = args.random_seed
-            normalize = args.normalize
-            max_train = args.max_train_descriptors
-            uuids_list_filepath = args.uuids_list
-        else:
-            # Use database with command-line args
-            source = PostgresDescriptorSource(
-                host=args.db_host,
-                port=args.db_port,
-                dbname=args.db_name,
-                user=args.db_user,
-                password=args.db_pass,
-                table_name=args.table_name,
-                uuid_col=args.uuid_col,
-                element_col=args.element_col
-            )
-            bit_length = args.bit_length
-            itq_iterations = args.itq_iterations
-            random_seed = args.random_seed
-            normalize = args.normalize
-            max_train = args.max_train_descriptors
-            uuids_list_filepath = args.uuids_list
-
-        # Load UIDs list if specified
-        train_uids = None
-        if uuids_list_filepath and os.path.isfile(uuids_list_filepath):
-            if verbose:
-                print(f"Loading UIDs list from: {uuids_list_filepath}")
-            train_uids = load_uuids_list(uuids_list_filepath)
-            if verbose:
-                print(f"  Loaded {len(train_uids)} UIDs")
-
-        if args.hash_only:
-            # Hash-only mode
-            hash2uuid, linear_index = compute_hashes_only(
-                descriptor_source=source,
-                model_dir=args.model_dir,
-                output_dir=args.output_dir,
-                bit_length=bit_length,
-                itq_iterations=itq_iterations,
-                random_seed=random_seed,
-                normalize=normalize,
-                incremental=args.incremental,
-                verbose=verbose
-            )
-        else:
-            # Check if model exists to avoid overwriting Baseline copy
-            # Use standard naming convention
-            r_str = random_seed if random_seed is not None else 0
-            suffix = f"b{bit_length}_i{itq_iterations}_r{r_str}"
-            model_path = os.path.join(args.output_dir, f"itq.model.{suffix}.rotation.npy")
-            
-            if os.path.exists(model_path):
-                if verbose:
-                    print(f"  Found existing ITQ model at {model_path}. Skipping training and using existing model.")
-                # Reuse existing model by calling compute_hashes_only
-                hash2uuid, linear_index = compute_hashes_only(
-                    descriptor_source=source,
-                    model_dir=args.output_dir, # Use output_dir as model_dir
-                    output_dir=args.output_dir,
-                    bit_length=bit_length,
-                    itq_iterations=itq_iterations,
-                    random_seed=random_seed,
-                    normalize=normalize,
-                    incremental=args.incremental,
-                    verbose=verbose
-                )
-                model = ITQModel(bit_length, itq_iterations, random_seed, normalize)
-                model.load(args.output_dir)
-            else:
-                # Full train + hash mode
-                model, hash2uuid, linear_index = generate_nn_index(
-                    descriptor_source=source,
-                    output_dir=args.output_dir,
-                    bit_length=bit_length,
-                    itq_iterations=itq_iterations,
-                    random_seed=random_seed,
-                    normalize=normalize,
-                    pca_method=args.pca_method,
-                    init_method=args.init_method,
-                    max_train_descriptors=max_train,
-                    random_sample=not args.no_random_sample,
-                    train_uids=train_uids,
-                    report_interval=args.report_interval,
-                    incremental=args.incremental,
-                    verbose=verbose
-                )
-
-        if verbose:
-            print("\nITQ index build complete!")
-            if not args.hash_only:
-                print(f"  Model files: {args.output_dir}/itq.model.*.npy")
-            print(f"  Hash mapping: {args.output_dir}/hash2uuids.memKvStore.pickle")
-            print(f"  Hash index: {args.output_dir}/linearhashindex.npy")
-
-        return 0
-
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        if verbose:
-            import traceback
-            traceback.print_exc()
-        return 1
-
-
-if __name__ == '__main__':
-    sys.exit(main())
