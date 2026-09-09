@@ -53,6 +53,9 @@ set( plugin_headers
   write_detected_object_set_viame_csv.h
   write_disparity_maps.h
   write_object_track_set_viame_csv.h
+  write_object_track_set_dive.h
+  convert_annotations.h
+  write_detected_object_set_dive.h
 )
 
 set( plugin_sources
@@ -107,6 +110,9 @@ set( plugin_sources
   write_detected_object_set_viame_csv.cxx
   write_disparity_maps.cxx
   write_object_track_set_viame_csv.cxx
+  write_object_track_set_dive.cxx
+  convert_annotations.cxx
+  write_detected_object_set_dive.cxx
 )
 
 kwiver_install_headers(

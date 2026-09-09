@@ -15,6 +15,7 @@
 #include <applet_attributes.h>
 #include "csv.h"
 #include "configs.h"
+#include "convert.h"
 #include "json.h"
 #include "resample.h"
 #include "run.h"
@@ -35,10 +36,6 @@ VIAME_PYTHON_SCRIPT_APPLET( add_ons_applet, "add-ons", "add_ons.py",
 
 VIAME_PYTHON_SCRIPT_APPLET( segment_applet, "segment", "segment.py",
   "Add SAM2 segmentation polygons to an existing box-level annotation set." )
-
-VIAME_PYTHON_SCRIPT_APPLET( convert_applet, "convert", "convert.py",
-  "Convert stereo calibration files between formats, or an ITK HDF5 "
-  "transform into a DIVE camera registration json." )
 
 VIAME_PYTHON_SCRIPT_APPLET( database_applet, "database", "database.py",
   "Initialize, start, stop and index the descriptor database." )
@@ -150,6 +147,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   // -- register applets --
   register_standalone_tool< csv_applet >( reg );
   register_standalone_tool< configs_applet >( reg );
+  register_standalone_tool< convert_applet >( reg );
   register_standalone_tool< json_applet >( reg );
   register_standalone_tool< resample_applet >( reg );
   register_standalone_tool< score_applet >( reg );
@@ -159,7 +157,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
   register_script_tool< add_ons_applet >( reg );
   register_script_tool< segment_applet >( reg );
-  register_script_tool< convert_applet >( reg );
   register_script_tool< database_applet >( reg );
   register_script_tool< inspect_applet >( reg );
   register_script_tool< extract_applet >( reg );

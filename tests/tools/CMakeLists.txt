@@ -8,4 +8,11 @@ if( VIAME_ENABLE_PYTHON )
     TIMEOUT 900
     SOURCE_SETUP
   )
+  viame_add_pytest_test(
+    NAME    "tools:convert"
+    TARGET  "${CMAKE_CURRENT_SOURCE_DIR}/test_convert.py"
+    LABELS  tools
+    TIMEOUT 600
+    SOURCE_SETUP
+  )
 endif()

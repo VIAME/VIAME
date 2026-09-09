@@ -12,18 +12,15 @@
 #include <vital/util/data_stream_reader.h>
 #include <vital/exceptions.h>
 
-#include <vital/internal/cereal/cereal.hpp>
-#include <vital/internal/cereal/archives/json.hpp>
-#include <vital/internal/cereal/types/vector.hpp>
-#include <vital/internal/cereal/types/map.hpp>
-#include <vital/internal/cereal/types/string.hpp>
-#include <vital/internal/cereal/types/utility.hpp>
+#include <vital/internal/cereal/external/rapidjson/document.h>
+#include <vital/internal/cereal/external/rapidjson/error/en.h>
 
 #include <kwiversys/SystemTools.hxx>
 
 #include <map>
 #include <memory>
 #include <sstream>
+#include <iomanip>
 #include <fstream>
 #include <cstdlib>
 #include <iostream>
@@ -32,60 +29,6 @@
 
 namespace viame {
 
-// -----------------------------------------------------------------------------------
-// Internal cereal serialization structures (wrap the exported structs)
-// -----------------------------------------------------------------------------------
-
-namespace {
-
-struct dive_feature_serial
-{
-  dive_feature& ref;
-
-  dive_feature_serial( dive_feature& f ) : ref( f ) {}
-
-  template< class Archive >
-  void serialize( Archive& ar )
-  {
-    try { ar( cereal::make_nvp( "frame", ref.frame ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "bounds", ref.bounds ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "keyframe", ref.keyframe ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "interpolate", ref.interpolate ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "head", ref.head ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "tail", ref.tail ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "fishLength", ref.fishLength ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "attributes", ref.attributes ) ); } catch(...) {}
-  }
-};
-
-struct dive_track_serial
-{
-  dive_track& ref;
-
-  dive_track_serial( dive_track& t ) : ref( t ) {}
-
-  template< class Archive >
-  void serialize( Archive& ar )
-  {
-    try { ar( cereal::make_nvp( "id", ref.id ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "begin", ref.begin ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "end", ref.end ) ); } catch(...) {}
-    try { ar( cereal::make_nvp( "confidencePairs", ref.confidencePairs ) ); } catch(...) {}
-    try
-    {
-      std::vector< dive_feature_serial > features_serial;
-      for( auto& f : ref.features )
-      {
-        features_serial.push_back( dive_feature_serial( f ) );
-      }
-      ar( cereal::make_nvp( "features", features_serial ) );
-    }
-    catch(...) {}
-    try { ar( cereal::make_nvp( "attributes", ref.attributes ) ); } catch(...) {}
-  }
-};
-
-} // anonymous namespace
 
 // ===================================================================================
 // Shared DIVE parsing function implementations
@@ -124,10 +67,347 @@ create_detected_object_from_dive(
   }
 
   // Create detection
-  return std::make_shared< kwiver::vital::detected_object >(
+  auto det = std::make_shared< kwiver::vital::detected_object >(
     bbox, primary_confidence, dot );
+
+  if( feature.head.size() >= 2 )
+  {
+    det->add_keypoint( "head", { feature.head[0], feature.head[1] } );
+  }
+  if( feature.tail.size() >= 2 )
+  {
+    det->add_keypoint( "tail", { feature.tail[0], feature.tail[1] } );
+  }
+  if( feature.fishLength > 0.0 )
+  {
+    det->set_attribute( "length", feature.fishLength );
+  }
+  if( !feature.polygon.empty() )
+  {
+    std::vector< kwiver::vital::vector_2d > polygon;
+    for( auto const& p : feature.polygon )
+    {
+      polygon.emplace_back( p.first, p.second );
+    }
+    det->set_polygon( polygon );
+  }
+  // Attributes travel as ":key=value" notes, the form the CSV writer emits
+  for( auto const& attr : feature.attributes )
+  {
+    det->add_note( ":" + attr.first + "=" + attr.second );
+  }
+  for( auto const& note : feature.notes )
+  {
+    det->add_note( note );
+  }
+  return det;
 }
 
+// -----------------------------------------------------------------------------------
+// The file handed to open() is either a DIVE JSON document itself or, for
+// older configurations, a list of DIVE JSON paths, one per line.
+std::vector< std::string >
+dive_json_files_from_stream( std::istream& stream, std::string const& filename )
+{
+  std::vector< std::string > files;
+  std::string line;
+  kwiver::vital::data_stream_reader stream_reader( stream );
+
+  while( stream_reader.getline( line ) )
+  {
+    size_t start = line.find_first_not_of( " \t\r\n" );
+    if( start == std::string::npos || line[start] == '#' )
+    {
+      continue;
+    }
+    if( line[start] == '{' || line[start] == '[' )
+    {
+      return { filename };
+    }
+    size_t end = line.find_last_not_of( " \t\r\n" );
+    files.push_back( line.substr( start, end - start + 1 ) );
+  }
+  return files;
+}
+
+
+// -----------------------------------------------------------------------------------
+
+namespace {
+
+// -----------------------------------------------------------------------------------
+std::string
+json_scalar_to_string( rapidjson::Value const& value )
+{
+  if( value.IsString() ) { return value.GetString(); }
+  if( value.IsBool() ) { return value.GetBool() ? "true" : "false"; }
+  if( value.IsInt64() ) { return std::to_string( value.GetInt64() ); }
+  if( value.IsNumber() )
+  {
+    std::ostringstream out;
+    out << std::setprecision( 12 ) << value.GetDouble();
+    return out.str();
+  }
+  return {};
+}
+
+// -----------------------------------------------------------------------------------
+std::vector< double >
+json_number_array( rapidjson::Value const& value )
+{
+  std::vector< double > out;
+  if( value.IsArray() )
+  {
+    for( auto const& item : value.GetArray() )
+    {
+      if( item.IsNumber() )
+      {
+        out.push_back( item.GetDouble() );
+      }
+    }
+  }
+  return out;
+}
+
+// -----------------------------------------------------------------------------------
+void
+parse_attributes( rapidjson::Value const& object,
+                  std::map< std::string, std::string >& attributes )
+{
+  if( !object.IsObject() )
+  {
+    return;
+  }
+  for( auto itr = object.MemberBegin(); itr != object.MemberEnd(); ++itr )
+  {
+    if( itr->value.IsString() || itr->value.IsNumber() || itr->value.IsBool() )
+    {
+      attributes[ itr->name.GetString() ] = json_scalar_to_string( itr->value );
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------------
+// GeoJSON features inside a DIVE feature: the first polygon's outer ring,
+// plus head/tail points when the top-level fields are absent
+void
+parse_geometry( rapidjson::Value const& geometry, dive_feature& feature )
+{
+  if( !geometry.IsObject() || !geometry.HasMember( "features" ) ||
+      !geometry[ "features" ].IsArray() )
+  {
+    return;
+  }
+
+  for( auto const& item : geometry[ "features" ].GetArray() )
+  {
+    if( !item.IsObject() || !item.HasMember( "geometry" ) ||
+        !item[ "geometry" ].IsObject() )
+    {
+      continue;
+    }
+    rapidjson::Value const& shape = item[ "geometry" ];
+    if( !shape.HasMember( "type" ) || !shape[ "type" ].IsString() ||
+        !shape.HasMember( "coordinates" ) )
+    {
+      continue;
+    }
+    const std::string type = shape[ "type" ].GetString();
+    std::string key;
+    if( item.HasMember( "properties" ) && item[ "properties" ].IsObject() &&
+        item[ "properties" ].HasMember( "key" ) &&
+        item[ "properties" ][ "key" ].IsString() )
+    {
+      key = item[ "properties" ][ "key" ].GetString();
+    }
+
+    if( type == "Polygon" && feature.polygon.empty() &&
+        shape[ "coordinates" ].IsArray() && !shape[ "coordinates" ].Empty() )
+    {
+      for( auto const& point : shape[ "coordinates" ][ 0 ].GetArray() )
+      {
+        const auto xy = json_number_array( point );
+        if( xy.size() >= 2 )
+        {
+          feature.polygon.emplace_back( xy[0], xy[1] );
+        }
+      }
+      if( feature.polygon.size() > 1 &&
+          feature.polygon.front() == feature.polygon.back() )
+      {
+        feature.polygon.pop_back();
+      }
+    }
+    else if( type == "Point" && ( key == "head" || key == "tail" ) )
+    {
+      const auto xy = json_number_array( shape[ "coordinates" ] );
+      if( xy.size() >= 2 )
+      {
+        auto& target = ( key == "head" ) ? feature.head : feature.tail;
+        if( target.size() < 2 )
+        {
+          target = { xy[0], xy[1] };
+        }
+      }
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------------
+bool
+parse_feature( rapidjson::Value const& value, dive_feature& feature )
+{
+  if( !value.IsObject() || !value.HasMember( "frame" ) ||
+      !value[ "frame" ].IsNumber() )
+  {
+    return false;
+  }
+  feature.frame = value[ "frame" ].GetInt();
+
+  if( value.HasMember( "bounds" ) )
+  {
+    feature.bounds = json_number_array( value[ "bounds" ] );
+  }
+  if( value.HasMember( "keyframe" ) && value[ "keyframe" ].IsBool() )
+  {
+    feature.keyframe = value[ "keyframe" ].GetBool();
+  }
+  if( value.HasMember( "interpolate" ) && value[ "interpolate" ].IsBool() )
+  {
+    feature.interpolate = value[ "interpolate" ].GetBool();
+  }
+  if( value.HasMember( "head" ) )
+  {
+    feature.head = json_number_array( value[ "head" ] );
+  }
+  if( value.HasMember( "tail" ) )
+  {
+    feature.tail = json_number_array( value[ "tail" ] );
+  }
+  if( value.HasMember( "fishLength" ) && value[ "fishLength" ].IsNumber() )
+  {
+    feature.fishLength = value[ "fishLength" ].GetDouble();
+  }
+  if( value.HasMember( "attributes" ) )
+  {
+    parse_attributes( value[ "attributes" ], feature.attributes );
+  }
+  if( value.HasMember( "notes" ) && value[ "notes" ].IsArray() )
+  {
+    for( auto const& note : value[ "notes" ].GetArray() )
+    {
+      if( note.IsString() )
+      {
+        feature.notes.push_back( note.GetString() );
+      }
+    }
+  }
+  if( value.HasMember( "geometry" ) )
+  {
+    parse_geometry( value[ "geometry" ], feature );
+  }
+  return true;
+}
+
+// -----------------------------------------------------------------------------------
+bool
+parse_track( std::string const& key, rapidjson::Value const& value, dive_track& track )
+{
+  if( !value.IsObject() )
+  {
+    return false;
+  }
+
+  // Version 2 files carry "id"; version 1 files carried "trackId"
+  if( value.HasMember( "id" ) && value[ "id" ].IsNumber() )
+  {
+    track.id = value[ "id" ].GetInt();
+  }
+  else if( value.HasMember( "trackId" ) && value[ "trackId" ].IsNumber() )
+  {
+    track.id = value[ "trackId" ].GetInt();
+  }
+  else
+  {
+    try { track.id = std::stoi( key ); } catch( ... ) { return false; }
+  }
+
+  if( value.HasMember( "confidencePairs" ) && value[ "confidencePairs" ].IsArray() )
+  {
+    for( auto const& pair : value[ "confidencePairs" ].GetArray() )
+    {
+      if( pair.IsArray() && pair.Size() >= 2 && pair[0].IsString() && pair[1].IsNumber() )
+      {
+        track.confidencePairs.emplace_back( pair[0].GetString(), pair[1].GetDouble() );
+      }
+    }
+  }
+  if( value.HasMember( "attributes" ) )
+  {
+    parse_attributes( value[ "attributes" ], track.attributes );
+  }
+  if( value.HasMember( "features" ) && value[ "features" ].IsArray() )
+  {
+    for( auto const& item : value[ "features" ].GetArray() )
+    {
+      dive_feature feature;
+      if( parse_feature( item, feature ) )
+      {
+        track.features.push_back( feature );
+      }
+    }
+  }
+
+  std::sort( track.features.begin(), track.features.end(),
+    []( dive_feature const& a, dive_feature const& b ){ return a.frame < b.frame; } );
+
+  if( !track.features.empty() )
+  {
+    track.begin = track.features.front().frame;
+    track.end = track.features.back().frame;
+  }
+  return !track.features.empty();
+}
+
+// -----------------------------------------------------------------------------------
+bool
+parse_dive_document( rapidjson::Document const& doc,
+                     kwiver::vital::logger_handle_t logger,
+                     dive_annotation_file& dive_data )
+{
+  dive_data.tracks.clear();
+  dive_data.version = 1;
+
+  if( !doc.IsObject() )
+  {
+    LOG_ERROR( logger, "DIVE JSON root is not an object" );
+    return false;
+  }
+
+  if( doc.HasMember( "version" ) && doc[ "version" ].IsNumber() )
+  {
+    dive_data.version = doc[ "version" ].GetInt();
+  }
+
+  // Version 2 keeps the tracks under "tracks"; version 1 had them at the root
+  rapidjson::Value const* tracks = &doc;
+  if( doc.HasMember( "tracks" ) && doc[ "tracks" ].IsObject() )
+  {
+    tracks = &doc[ "tracks" ];
+  }
+
+  for( auto itr = tracks->MemberBegin(); itr != tracks->MemberEnd(); ++itr )
+  {
+    dive_track track;
+    if( parse_track( itr->name.GetString(), itr->value, track ) )
+    {
+      dive_data.tracks[ itr->name.GetString() ] = track;
+    }
+  }
+  return true;
+}
+
+} // anonymous namespace
 
 // -----------------------------------------------------------------------------------
 bool
@@ -135,244 +415,16 @@ parse_dive_json_manual( std::string const& content,
                         kwiver::vital::logger_handle_t logger,
                         dive_annotation_file& dive_data )
 {
-  dive_data.tracks.clear();
-
-  // Find "tracks" object
-  size_t tracks_pos = content.find( "\"tracks\"" );
-  if( tracks_pos == std::string::npos )
+  rapidjson::Document doc;
+  doc.Parse( content.c_str() );
+  if( doc.HasParseError() )
   {
-    LOG_WARN( logger, "No 'tracks' object found in DIVE JSON" );
+    LOG_ERROR( logger, "DIVE JSON parse error at offset " << doc.GetErrorOffset()
+                       << ": " << rapidjson::GetParseError_En( doc.GetParseError() ) );
     return false;
   }
-
-  // Find each track by looking for "features" arrays
-  size_t pos = tracks_pos;
-  int track_counter = 0;
-
-  while( ( pos = content.find( "\"features\"", pos ) ) != std::string::npos )
-  {
-    dive_track track;
-    track.id = track_counter++;
-
-    // Find the array start
-    size_t array_start = content.find( '[', pos );
-    if( array_start == std::string::npos )
-    {
-      break;
-    }
-
-    // Find matching array end (handle nested arrays)
-    int bracket_count = 1;
-    size_t array_end = array_start + 1;
-    while( array_end < content.size() && bracket_count > 0 )
-    {
-      if( content[array_end] == '[' )
-      {
-        bracket_count++;
-      }
-      else if( content[array_end] == ']' )
-      {
-        bracket_count--;
-      }
-      array_end++;
-    }
-
-    // Look for track ID before this features array
-    size_t id_search_start = ( pos > 200 ) ? pos - 200 : 0;
-    std::string id_region = content.substr( id_search_start, pos - id_search_start );
-    size_t id_pos = id_region.rfind( "\"id\"" );
-    if( id_pos != std::string::npos )
-    {
-      size_t colon = id_region.find( ':', id_pos );
-      if( colon != std::string::npos )
-      {
-        size_t num_start = id_region.find_first_of( "0123456789", colon );
-        if( num_start != std::string::npos )
-        {
-          size_t num_end = id_region.find_first_not_of( "0123456789", num_start );
-          track.id = std::atoi( id_region.substr( num_start,
-                                                   num_end - num_start ).c_str() );
-        }
-      }
-    }
-
-    // Look for confidencePairs before this features array
-    size_t conf_search_start = ( pos > 500 ) ? pos - 500 : 0;
-    std::string search_region = content.substr( conf_search_start, pos - conf_search_start );
-
-    size_t conf_pos = search_region.rfind( "\"confidencePairs\"" );
-    if( conf_pos != std::string::npos )
-    {
-      // Parse confidence pairs array [[label, conf], ...]
-      size_t pairs_start = search_region.find( '[', conf_pos );
-      if( pairs_start != std::string::npos )
-      {
-        // Find the end of the outer array
-        int outer_bracket = 1;
-        size_t pairs_end = pairs_start + 1;
-        while( pairs_end < search_region.size() && outer_bracket > 0 )
-        {
-          if( search_region[pairs_end] == '[' )
-          {
-            outer_bracket++;
-          }
-          else if( search_region[pairs_end] == ']' )
-          {
-            outer_bracket--;
-          }
-          pairs_end++;
-        }
-
-        std::string pairs_str = search_region.substr( pairs_start, pairs_end - pairs_start );
-
-        // Find each inner pair [label, conf]
-        size_t pair_pos = 0;
-        while( ( pair_pos = pairs_str.find( '[', pair_pos + 1 ) ) != std::string::npos )
-        {
-          size_t pair_end = pairs_str.find( ']', pair_pos );
-          if( pair_end == std::string::npos )
-          {
-            break;
-          }
-
-          std::string pair_content = pairs_str.substr( pair_pos + 1, pair_end - pair_pos - 1 );
-
-          // Parse "label", confidence
-          size_t label_start = pair_content.find( '"' );
-          if( label_start != std::string::npos )
-          {
-            size_t label_end = pair_content.find( '"', label_start + 1 );
-            if( label_end != std::string::npos )
-            {
-              std::string label = pair_content.substr( label_start + 1,
-                                                        label_end - label_start - 1 );
-
-              size_t comma = pair_content.find( ',', label_end );
-              if( comma != std::string::npos )
-              {
-                std::string conf_str = pair_content.substr( comma + 1 );
-                size_t ns = conf_str.find_first_not_of( " \t\n\r" );
-                size_t ne = conf_str.find_last_not_of( " \t\n\r" );
-                if( ns != std::string::npos && ne != std::string::npos )
-                {
-                  conf_str = conf_str.substr( ns, ne - ns + 1 );
-                  try
-                  {
-                    double confidence = std::stod( conf_str );
-                    track.confidencePairs.push_back( std::make_pair( label, confidence ) );
-                  }
-                  catch( ... ) {}
-                }
-              }
-            }
-          }
-
-          pair_pos = pair_end;
-        }
-      }
-    }
-
-    // Parse features in this array
-    std::string features_str = content.substr( array_start, array_end - array_start );
-
-    size_t feat_pos = 0;
-    while( ( feat_pos = features_str.find( "\"frame\"", feat_pos ) ) != std::string::npos )
-    {
-      dive_feature feature;
-
-      // Parse frame number
-      size_t colon = features_str.find( ':', feat_pos );
-      if( colon == std::string::npos )
-      {
-        feat_pos++;
-        continue;
-      }
-
-      size_t num_start = features_str.find_first_of( "0123456789", colon );
-      if( num_start == std::string::npos )
-      {
-        feat_pos++;
-        continue;
-      }
-
-      size_t num_end = features_str.find_first_not_of( "0123456789", num_start );
-      feature.frame = std::atoi( features_str.substr( num_start,
-                                                       num_end - num_start ).c_str() );
-
-      // Find bounds for this feature
-      size_t bounds_pos = features_str.find( "\"bounds\"", feat_pos );
-      if( bounds_pos == std::string::npos || bounds_pos > feat_pos + 200 )
-      {
-        feat_pos = num_end;
-        continue;
-      }
-
-      size_t bounds_array_start = features_str.find( '[', bounds_pos );
-      size_t bounds_array_end = features_str.find( ']', bounds_array_start );
-
-      if( bounds_array_start != std::string::npos &&
-          bounds_array_end != std::string::npos )
-      {
-        std::string bounds_str = features_str.substr(
-          bounds_array_start + 1, bounds_array_end - bounds_array_start - 1 );
-
-        std::stringstream ss( bounds_str );
-        std::string token;
-        while( std::getline( ss, token, ',' ) )
-        {
-          size_t ts = token.find_first_not_of( " \t\n\r" );
-          size_t te = token.find_last_not_of( " \t\n\r" );
-          if( ts != std::string::npos && te != std::string::npos )
-          {
-            try
-            {
-              feature.bounds.push_back( std::stod( token.substr( ts, te - ts + 1 ) ) );
-            }
-            catch( ... ) {}
-          }
-        }
-      }
-
-      // Check for keyframe
-      size_t keyframe_pos = features_str.find( "\"keyframe\"", feat_pos );
-      if( keyframe_pos != std::string::npos && keyframe_pos < feat_pos + 300 )
-      {
-        size_t true_pos = features_str.find( "true", keyframe_pos );
-        if( true_pos != std::string::npos && true_pos < keyframe_pos + 20 )
-        {
-          feature.keyframe = true;
-        }
-      }
-
-      if( feature.bounds.size() >= 4 )
-      {
-        track.features.push_back( feature );
-      }
-
-      feat_pos = num_end;
-    }
-
-    // Update track begin/end from features
-    if( !track.features.empty() )
-    {
-      track.begin = track.features.front().frame;
-      track.end = track.features.back().frame;
-
-      for( auto const& f : track.features )
-      {
-        if( f.frame < track.begin ) track.begin = f.frame;
-        if( f.frame > track.end ) track.end = f.frame;
-      }
-
-      dive_data.tracks[ std::to_string( track.id ) ] = track;
-    }
-
-    pos = array_end;
-  }
-
-  return !dive_data.tracks.empty();
+  return parse_dive_document( doc, logger, dive_data );
 }
-
 
 // -----------------------------------------------------------------------------------
 bool
@@ -380,52 +432,15 @@ parse_dive_json_file( std::string const& filename,
                       kwiver::vital::logger_handle_t logger,
                       dive_annotation_file& dive_data )
 {
-  std::ifstream ifs( filename );
+  std::ifstream ifs( filename, std::ios::binary );
   if( !ifs )
   {
     LOG_ERROR( logger, "Could not open DIVE JSON file: " << filename );
     return false;
   }
-
-  try
-  {
-    cereal::JSONInputArchive archive( ifs );
-
-    // We need custom deserialization since our structs don't have serialize methods
-    std::map< std::string, dive_track > tracks_map;
-
-    // Try to parse the root object
-    try
-    {
-      archive( cereal::make_nvp( "version", dive_data.version ) );
-    }
-    catch( ... ) {}
-
-    // Parse tracks - this is more complex due to cereal limitations
-    // Fall back to manual parsing for now
-    ifs.clear();
-    ifs.seekg( 0 );
-
-    std::stringstream buffer;
-    buffer << ifs.rdbuf();
-    std::string content = buffer.str();
-
-    return parse_dive_json_manual( content, logger, dive_data );
-  }
-  catch( std::exception const& e )
-  {
-    LOG_DEBUG( logger, "Cereal parsing failed: " << e.what()
-               << ", trying manual parser" );
-
-    ifs.clear();
-    ifs.seekg( 0 );
-
-    std::stringstream buffer;
-    buffer << ifs.rdbuf();
-    std::string content = buffer.str();
-
-    return parse_dive_json_manual( content, logger, dive_data );
-  }
+  std::stringstream buffer;
+  buffer << ifs.rdbuf();
+  return parse_dive_json_manual( buffer.str(), logger, dive_data );
 }
 
 
@@ -449,6 +464,7 @@ public:
   void read_all();
 
   read_detected_object_set_dive* m_parent;
+  std::string m_filename;
   bool m_first;
 
   // Current frame index
@@ -488,6 +504,15 @@ read_detected_object_set_dive
   return true;
 }
 
+
+// -----------------------------------------------------------------------------------
+void
+read_detected_object_set_dive
+::open( std::string const& filename )
+{
+  kwiver::vital::algo::detected_object_set_input::open( filename );
+  d->m_filename = filename;
+}
 
 // -----------------------------------------------------------------------------------
 bool
@@ -555,26 +580,9 @@ read_detected_object_set_dive::priv
   m_current_frame = 0;
   m_max_frame = -1;
 
-  // Read the JSON filename from the stream (first non-empty, non-comment line)
-  std::string line;
-  kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
-
-  while( stream_reader.getline( line ) )
+  for( auto const& json_file :
+       dive_json_files_from_stream( m_parent->stream(), m_filename ) )
   {
-    // Trim whitespace
-    size_t start = line.find_first_not_of( " \t\r\n" );
-    if( start == std::string::npos )
-    {
-      continue; // Skip empty lines
-    }
-    if( line[start] == '#' )
-    {
-      continue; // Skip comments
-    }
-
-    size_t end = line.find_last_not_of( " \t\r\n" );
-    std::string json_file = line.substr( start, end - start + 1 );
-
     // Parse the JSON file using shared function
     dive_annotation_file dive_data;
     if( !parse_dive_json_file( json_file, m_parent->logger(), dive_data ) )

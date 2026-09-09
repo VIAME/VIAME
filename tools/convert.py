@@ -37,20 +37,37 @@ from pathlib import Path
 
 import numpy as np
 
-# cv2 and scipy are only needed for calibration conversion and are imported
-# in _import_calibration_deps() when that path runs; h5py only for ITK
-# transforms (see load_itk_h5).
-cv2 = None
-Rotation = None
+# cv2 and scipy are only needed for calibration conversion and load on first
+# use; h5py only for ITK transforms (see load_itk_h5).
+class _LazyModule:
+    """Import a heavy dependency the first time one of its members is used."""
+
+    def __init__(self, loader):
+        self._loader = loader
+        self._module = None
+
+    def _load(self):
+        if self._module is None:
+            self._module = self._loader()
+        return self._module
+
+    def __getattr__(self, name):
+        return getattr(self._load(), name)
+
+
+def _load_rotation():
+    from scipy.spatial.transform import Rotation
+    return Rotation
+
+
+cv2 = _LazyModule(lambda: __import__('cv2'))
+Rotation = _LazyModule(_load_rotation)
 
 
 def _import_calibration_deps():
-    global cv2, Rotation
-    if cv2 is None:
-        import cv2 as _cv2
-        from scipy.spatial.transform import Rotation as _Rotation
-        cv2 = _cv2
-        Rotation = _Rotation
+    """Load OpenCV and SciPy now, so a missing dependency fails up front."""
+    cv2._load()
+    Rotation._load()
 
 # Shared C++ loader (viame::read_stereo_rig). Optional: the tool still works as
 # a standalone script (with the Python readers below) when it is not importable.

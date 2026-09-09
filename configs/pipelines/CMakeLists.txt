@@ -95,17 +95,7 @@ set( CORE_PIPELINE_FILES
   common_stereo_input_with_downsampler.pipe
   common_stereo_input_with_tracks.pipe
   common_train_detector.conf
-  convert_add_filename_to_det_csv.pipe
-  convert_add_filename_to_trk_csv.pipe
-  convert_coco_json_to_viame_csv_gt_plus_data.pipe
-  convert_habcam_to_kw18_gt_plus_data.pipe
-  convert_habcam_to_viame_csv_gt_plus_data.pipe
-  convert_kw18_to_viame_csv_gt_plus_data.pipe
-  convert_oceaneyes_to_viame_csv_gt_plus_data.pipe
   convert_model_to_onnx.pipe
-  convert_viame_csv_to_coco_json_gt_plus_data.pipe
-  convert_viame_csv_to_coco_json_gt_only.pipe
-  convert_viame_csv_to_kw18_gt_plus_data.pipe
   database_apply_svm_models.pipe
   detector_gmm_motion.pipe
   detector_motion_three_frame_diff.pipe

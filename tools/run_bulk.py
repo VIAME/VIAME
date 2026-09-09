@@ -226,6 +226,9 @@ def execute_command( cmd, stdout=None, stderr=None, gpu=None ):
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
 
+def get_viame_cmd():
+  return [ 'viame.exe' ] if os.name == 'nt' else [ 'viame' ]
+
 def get_pipeline_cmd( debug=False ):
   if os.name == 'nt':
     if debug:
@@ -699,7 +702,8 @@ def add_final_list_csv( args, data_list ):
     input_stream.close()
     is_first = False
 
-# Convert a single annotation file without requiring any imagery on disk
+# Convert a single annotation file without requiring any imagery on disk,
+# through the viame convert applet (no pipeline involved)
 def convert_gt_only_using_kwiver( input_path, options, gpu=None, run_pipeline=True ):
 
   multi_threaded = ( options.gpu_count * options.pipes > 1 )
@@ -707,6 +711,7 @@ def convert_gt_only_using_kwiver( input_path, options, gpu=None, run_pipeline=Tr
   input_id = os.path.basename( input_path )
   input_id_no_ext = os.path.splitext( input_id )[0]
   gt_type = options.auto_detect_gt if options.auto_detect_gt else "viame_csv"
+  writer_type = default_writer_type if default_writer_type else "viame_csv"
 
   if multi_threaded:
     log_info( 'Converting: {} on thread {}'.format( input_id, gpu ) + lb1 )
@@ -715,20 +720,13 @@ def convert_gt_only_using_kwiver( input_path, options, gpu=None, run_pipeline=Tr
 
   output_file = output_dir + div + input_id_no_ext + detection_ext
 
-  command = ( get_pipeline_cmd( options.debug ) +
-              [ find_file( options.pipeline, run_pipeline ) ] +
-              fset( 'detection_reader:file_name=' + input_path ) +
-              fset( 'detection_reader:reader:type=' + gt_type ) +
-              # Converters that carry tracks read the same file twice; the
-              # setting is ignored by pipelines without a track reader.
-              fset( 'track_reader:file_name=' + input_path ) +
-              fset( 'track_reader:reader:type=' + gt_type ) +
-              fset( 'detector_writer:file_name=' + output_file ) )
+  command = get_viame_cmd() + [ 'convert', input_path, output_file,
+              '-i', gt_type, '-o', writer_type, '--no-images' ]
 
   try:
     if len( options.extra_settings ) > 0:
       for extra_option in options.extra_settings:
-        command += fset( " ".join( extra_option ) )
+        command += [ '-s', " ".join( extra_option ) ]
   except Exception:
     pass
 
@@ -1226,10 +1224,9 @@ if __name__ == "__main__" :
     help="Automatically pass to pipes GT of this type if present" )
 
   parser.add_argument( "--gt-only", dest="gt_only", action="store_true",
-    help="Process groundtruth annotation files directly without requiring "
-         "the source imagery or videos to be present. Only usable with "
-         "conversion pipelines which read image names from the annotation "
-         "files themselves." )
+    help="Convert groundtruth annotation files directly, without the source "
+         "imagery or videos, through the viame convert applet. Frame names "
+         "and numbers come from the annotation files themselves." )
 
   parser.add_argument( "-lbl-file", dest="label_file", default="",
     help="Pass this label file to pipes" )

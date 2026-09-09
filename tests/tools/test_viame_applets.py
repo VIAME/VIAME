@@ -24,7 +24,8 @@ from viame_env import find_viame_install, get_sourced_env, get_viame_source
 # Applets the runner must always know about
 CORE_APPLETS = [
     "csv",
-    "get-configs",
+    "configs",
+    "convert",
     "json",
     "resample",
     "score",

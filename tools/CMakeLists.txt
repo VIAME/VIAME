@@ -76,6 +76,7 @@ set( applet_sources
   register_applets.cxx
   csv.cxx
   configs.cxx
+  convert.cxx
   json.cxx
   resample.cxx
   run.cxx
@@ -86,6 +87,7 @@ set( applet_sources
 set( applet_headers
   csv.h
   configs.h
+  convert.h
   json.h
   resample.h
   run.h

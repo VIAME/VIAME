@@ -42,6 +42,8 @@
 #include "write_detected_object_set_viame_csv.h"
 #include "write_disparity_maps.h"
 #include "write_object_track_set_viame_csv.h"
+#include "write_object_track_set_dive.h"
+#include "write_detected_object_set_dive.h"
 
 namespace viame {
 
@@ -121,6 +123,10 @@ register_factories( kv::plugin_loader& vpm )
     write_disparity_maps >( vpm );
   register_algorithm< kv::algo::write_object_track_set,
     write_object_track_set_viame_csv >( vpm );
+  register_algorithm< kv::algo::write_object_track_set,
+    write_object_track_set_dive >( vpm );
+  register_algorithm< kv::algo::detected_object_set_output,
+    write_detected_object_set_dive >( vpm );
 
   // Algorithms using PLUGGABLE_IMPL
   register_algorithm< kv::algo::train_tracker,

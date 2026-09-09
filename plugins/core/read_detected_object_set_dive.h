@@ -21,8 +21,10 @@
 
 #include <memory>
 #include <vector>
+#include <iosfwd>
 #include <map>
 #include <string>
+#include <utility>
 
 namespace viame {
 
@@ -41,6 +43,8 @@ struct VIAME_CORE_EXPORT dive_feature
   std::vector< double > tail;
   double fishLength = 0.0;
   std::map< std::string, std::string > attributes;
+  std::vector< std::string > notes;
+  std::vector< std::pair< double, double > > polygon;  // outer ring, unclosed
 };
 
 /// \brief A track in DIVE format containing multiple features
@@ -92,6 +96,12 @@ bool parse_dive_json_manual( std::string const& content,
 /// \param feature The DIVE feature containing bounds
 /// \param confidence_pairs The track's confidence pairs for class labels
 /// \return A detected_object_sptr, or nullptr if feature has no valid bounds
+/// Files to parse for the stream handed to a DIVE reader: the opened file
+/// itself when it is a JSON document, else the paths listed in it
+VIAME_CORE_EXPORT
+std::vector< std::string > dive_json_files_from_stream(
+  std::istream& stream, std::string const& filename );
+
 VIAME_CORE_EXPORT
 kwiver::vital::detected_object_sptr
 create_detected_object_from_dive(
@@ -119,6 +129,8 @@ public:
   virtual ~read_detected_object_set_dive();
 
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+
+  virtual void open( std::string const& filename );
 
   virtual bool read_set( kwiver::vital::detected_object_set_sptr& set,
                          std::string& image_name );

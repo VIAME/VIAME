@@ -61,14 +61,30 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
         if self.file:
             self.file.close()
 
-    def read_set(self):
+    def read_set(self, det_set=None, image_name=None):
+        """Read the next frame's detections.
+
+        Called from Python with no arguments this returns (set, image name),
+        or None at the end. Called from C++ (through the vital trampoline)
+        it gets the caller's set to fill in place and returns whether a
+        frame was read; a non-empty image name selects that frame instead
+        of the next one, the way the CSV reader behaves.
+        """
         self._ensure_loaded()
+        if det_set is not None and image_name:
+            for det in self.read_set_by_path(image_name):
+                det_set.add(det)
+            return True
         if self.frame >= self.stop_frame:
-            return None
+            return None if det_set is None else False
         fname, annots = self.frame_info.get(self.frame, ("", ()))
         det_objs = self.__to_detected_object_set(annots)
         self.frame += 1
-        return det_objs, fname
+        if det_set is None:
+            return det_objs, fname
+        for det in det_objs:
+            det_set.add(det)
+        return True
 
     def read_set_by_path(self, image_path):
         self._ensure_loaded()

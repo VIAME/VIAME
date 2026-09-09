@@ -12,12 +12,12 @@ from test_utilities import get_script_path, assert_script_runs_successfully
 CATEGORY = "detection_file_conversions"
 
 
-class TestBulkConvertGtPlusData:
-    """Tests for bulk_convert_gt_plus_data script."""
+class TestBulkConvert:
+    """Tests for the bulk_convert script (imagery found alongside)."""
 
-    def test_bulk_convert_gt_plus_data(self):
-        """Test that bulk_convert_gt_plus_data runs without error and produces output."""
-        script = get_script_path(CATEGORY, "bulk_convert_gt_plus_data.sh")
+    def test_bulk_convert(self):
+        """Test that bulk_convert runs without error and produces output."""
+        script = get_script_path(CATEGORY, "bulk_convert.sh")
         assert_script_runs_successfully(script)
 
 
