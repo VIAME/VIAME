@@ -23,20 +23,25 @@ existing `main` superbuild of the same commit:
 |---|---|
 | Source | `~/Dev/viame-lite/src` (this checkout, branch `lite`) |
 | Build | `~/Dev/viame-lite/build/viame-build` |
+| kwiver build | `~/Dev/viame-lite/build/kwiver-build`, cache `~/Dev/viame-lite/build/kwiver-cache.cmake` (P3-T10) |
 | Install | `~/Dev/viame-lite/build/install` (seeded by copying the reference install) |
 | Initial cache | `~/Dev/viame-lite/build/lite-cache.cmake`, mirroring every `VIAME_*` setting of the reference build |
-| fletch, kwiver, darknet | `~/Dev/viame/build` (reference superbuild, `main` @ 8edfd2f66) |
+| fletch, darknet | `~/Dev/viame/build` (reference superbuild, `main` @ 8edfd2f66) |
+| kwiver | built here from the submodule pin, so `KWIVER_ENABLE_VXL` is ours to drive |
 
 ```
+# kwiver first; KWIVER_ENABLE_VXL in kwiver-cache.cmake is the phase 3 flag
+cmake -S src/packages/kwiver -B build/kwiver-build -C build/kwiver-cache.cmake
+cmake --build build/kwiver-build -j16 && cmake --install build/kwiver-build
+
 cmake -S src -B build/viame-build -C build/lite-cache.cmake   # PATH must have nvcc
 cmake --build build/viame-build -j16 && cmake --install build/viame-build
 ctest --test-dir build/viame-build -L BASELINE
 ```
 
 `packages/downloads` holds symlinks to the reference checkout's downloads so
-that model packs are not fetched twice, and only the `fletch` submodule is
-checked out (for `CMake/FindCUDNN.cmake`); `KWIVER_SOURCE_DIR` points at the
-reference kwiver source.
+that model packs are not fetched twice. The `fletch` submodule is checked out
+for `CMake/FindCUDNN.cmake`, and `kwiver` is checked out and built.
 
 ## Tasks
 
@@ -81,7 +86,7 @@ reference kwiver source.
 | P3-T07 | Switch VXL off and delete its sources | P3-T06 | todo | | |
 | P3-T08 | Migrate pipeline files to new names | P3-T07 | todo | | |
 | P3-T09 | (conditional) `kw_archive_writer` without VXL | P3-T07; only if open decision 3 = keep | todo | | |
-| P3-T10 | Build kwiver locally so `VIAME_ENABLE_VXL` reaches it | P3-T02 | in-progress | | Added by P3-T03; blocks P3-T06 and P3-T07. Only needed because phases 1 and 2 are deferred and this tree had been reusing the reference superbuild's kwiver; the flag itself was already wired |
+| P3-T10 | Build kwiver locally so `VIAME_ENABLE_VXL` reaches it | P3-T02 | done | 0e97eb1a0 | Added by P3-T03; blocks P3-T06 and P3-T07. Only needed because phases 1 and 2 are deferred and this tree had been reusing the reference superbuild's kwiver; the flag itself was already wired. Built from the submodule pin, 64d8306. Building instead from the neighbouring checkout's working tree, which is 4 commits ahead, moved 13 `perform_query` and `handle_descriptor_request` entries and failed `baseline:registry` -- the check doing its job. The lite tree builds what its own submodule pins, and BASELINE and GOLDEN pass unchanged against the locally built kwiver |
 | P3-T11 | `close_loops_homography_guided` and its polygon overlap | P3-T02 | todo | | Added by P3-T10's usage scan: `lite-removals.md` §1 misses this name, which `common_image_stabilizer.pipe` really does select. Blocks P3-T07 |
 | **Phase 4: drop FFmpeg** | `phase-04-drop-ffmpeg.md` | | | | |
 | P4-T01 | Record video golden data and benchmark baseline | P3-T08 | todo | | |
