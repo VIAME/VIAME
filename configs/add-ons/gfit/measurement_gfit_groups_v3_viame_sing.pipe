@@ -145,6 +145,7 @@ process track_writer1
   :: write_object_track
   :file_name                                   computed_tracks1.csv
   :writer:type                                 viame_csv
+  :writer:viame_csv:top_n_classes              5
   :writer:viame_csv:write_time_as_uid          true
 
 connect from measurer.object_track_set1
@@ -158,6 +159,7 @@ process track_writer2
   :: write_object_track
   :file_name                                   computed_tracks2.csv
   :writer:type                                 viame_csv
+  :writer:viame_csv:top_n_classes              5
   :writer:viame_csv:write_time_as_uid          true
 
 connect from measurer.object_track_set2

@@ -37,6 +37,7 @@ process track_writer
   :: write_object_track
   :file_name                                   computed_tracks.csv
   :writer:type                                           viame_csv
+  :writer:viame_csv:top_n_classes                        5
   :writer:viame_csv:stream_identifier               input_list.txt
 
 connect from tracker.object_track_set
