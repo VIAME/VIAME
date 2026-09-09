@@ -14,7 +14,7 @@ SET DEFAULT_FRAME_RATE=5
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
-python.exe "%VIAME_INSTALL%\configs\process_video.py" ^
+viame.exe run ^
   -i "%INPUT%" -o %OUTPUT% -frate %DEFAULT_FRAME_RATE% ^
   -p "pipelines/filter_default.pipe" ^
   -auto-detect-gt viame_csv

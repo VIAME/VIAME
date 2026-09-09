@@ -17,7 +17,7 @@ set( PYTHON_SCRIPTS
   launch_search.py
   pipeline.py
   plot_eval.py
-  process_video.py
+  run_bulk.py
   metadata.py
   train_fusion.py
 )

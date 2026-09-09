@@ -494,7 +494,7 @@ def load_computed_detections( directory, sequence_name ):
 
     stem = os.path.splitext( sequence_name )[ 0 ]
 
-    # process_video.py writes <stem>_detections.csv and <stem>_tracks.csv, so
+    # viame run writes <stem>_detections.csv and <stem>_tracks.csv, so
     # its output directory can be pointed at directly rather than renamed
     # first. Detections are preferred: the tracks file has been through a
     # tracker, and what is wanted here is what the detector said.

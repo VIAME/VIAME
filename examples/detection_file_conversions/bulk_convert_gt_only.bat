@@ -17,7 +17,7 @@ SET PIPELINE=pipelines\convert_%INPUT_FORMAT%_to_%OUTPUT_FORMAT%_gt_only.pipe
 
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
-python.exe "%VIAME_INSTALL%\configs\process_video.py" ^
+viame.exe run ^
   -i "%INPUT_FOLDER%" -o "%OUTPUT_FOLDER%" ^
   -p %PIPELINE% -output-ext %OUTPUT_EXTENSION% ^
   -auto-detect-gt %INPUT_FORMAT% --gt-only --no-reset-prompt

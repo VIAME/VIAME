@@ -917,7 +917,7 @@ class TestRunDispatch:
 
     @staticmethod
     def _mode(result):
-        if "usage: process_video.py" in result.stdout:
+        if "usage: run_bulk.py" in result.stdout:
             return "batch"
         if "pipe-file" in result.stdout:
             return "pipeline"
@@ -1017,6 +1017,16 @@ class TestRunShorthand:
         assert "ERROR" not in result.stdout, result.stdout
         assert len(self._detection_rows(tmp_path, "clip")) >= 1
 
+    def test_folder(self, viame_env, hough_pipeline, circles_image, tmp_path):
+        folder = tmp_path / "images"
+        folder.mkdir()
+        for name in ("one.jpg", "two.jpg"):
+            shutil.copy(circles_image, folder / name)
+        result = self._run(viame_env, tmp_path, str(hough_pipeline), "images")
+
+        assert "ERROR" not in result.stdout, result.stdout
+        assert len(self._detection_rows(tmp_path, "images")) >= 2
+
     def test_bare_pipeline_name(self, viame_env, hough_pipeline, circles_image, tmp_path):
         shutil.copy(circles_image, tmp_path / "circles.jpg")
         result = self._run(viame_env, tmp_path, hough_pipeline.stem, "circles.jpg")
@@ -1072,7 +1082,7 @@ class TestPythonScriptApplets:
         result = run_viame(viame_env, "run", "--help")
 
         assert result.returncode == 0
-        assert "usage: process_video.py" in result.stdout
+        assert "usage: run_bulk.py" in result.stdout
 
     def test_help_subcommand_matches_script_help(self, viame_env):
         direct = run_viame(viame_env, "run", "--help")

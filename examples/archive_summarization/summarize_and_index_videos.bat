@@ -8,7 +8,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-python.exe "%VIAME_INSTALL%\configs\process_video.py" --init -d INPUT_DIRECTORY ^
+viame.exe run --init -d INPUT_DIRECTORY ^
   --detection-plots ^
   -plot-threshold 0.25 -frate 2 -plot-smooth 2 ^
   -p pipelines\index_generic.pipe --build-index

@@ -24,7 +24,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 REM Set current directory for project folder pipe
 SET VIAME_PROJECT_DIR=%~dp0
 
-python.exe "%VIAME_INSTALL%\configs\process_video.py" ^
+viame.exe run ^
   -l "%INPUT_LIST%" -ifrate %INPUT_FRAME_RATE% -frate %PROCESS_FRAME_RATE% ^
   -p category_models\detector.pipe -o %OUTPUT_DIRECTORY% --no-reset-prompt ^
   -gpus %TOTAL_GPU_COUNT% -pipes-per-gpu %PIPES_PER_GPU%

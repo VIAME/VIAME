@@ -14,7 +14,7 @@ export PIPES_PER_GPU=1
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
-python ${VIAME_INSTALL}/configs/process_video.py --init \
+viame run --init \
   -i ${INPUT} -o database -frate ${FRAME_RATE} \
   -p pipelines/index_generic.pipe \
   -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU} \

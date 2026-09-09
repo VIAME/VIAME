@@ -56,13 +56,6 @@ def get_ffmpeg_cmd():
         return ['ffmpeg']
 
 
-def get_python_cmd():
-    """Get the python command based on platform."""
-    if os.name == 'nt':
-        return ['python.exe']
-    else:
-        return ['python']
-
 
 def main():
     """Main entry point for video frame extraction."""
@@ -108,12 +101,11 @@ def main():
 
             subprocess.call(cmd)
     else:
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        cmd = get_python_cmd()
-        cmd += [os.path.join(script_dir, "process_video.py")]
+        cmd = ["viame", "run"]
         cmd += ["-d", args.input_dir]
         cmd += ["-o", args.output_dir]
         cmd += ["-p", "pipelines/filter_default.pipe"]
+        cmd += ["--no-reset-prompt"]
         cmd += ["-pattern", args.pattern]
         if args.start_time and args.start_time != INVALID_TIME:
             cmd += ["-start-time", args.start_time]

@@ -68,7 +68,7 @@ Bulk Processing Scripts
 Each .sh or .bat script in the example folder is designed to run on either a single sequence
 of data (e.g. one video, one image sequence, or one image list) or alternatively a folder
 or folder of folders containing many sequences. Inside each script is either a call to
-"process_video" (the most common default), "viame", or the "kwiver" executable.
+"viame run" (the most common default), "viame", or the "kwiver" executable.
 The first two are meant for bulk processing multiple sequences, while the latter only
 processes a single sequence.
 
@@ -162,7 +162,7 @@ All of the scripts within examples or project folders call the following exectua
 the hood. These can be called by more advanced users. Running "-?" or "-help" on each script
 shows a list of all potential options.
 
-process_video.py - bulk runs a particular algorithmic pipeline on multiple files
+viame run - bulk runs a particular algorithmic pipeline on multiple files
 
 kwiver - runs a single pipeline on multiple files
 

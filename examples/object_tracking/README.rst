@@ -450,5 +450,5 @@ Batch Processing
 -----------------
 
 ``bulk_run_user_init_tracking.sh`` / ``.bat``
-    Batch-processes multiple sequences using the ``process_video.py`` script with
+    Batch-processes multiple sequences using the ``viame run`` command with
     user-initialized tracking. Reads groundtruth annotations as initializations.

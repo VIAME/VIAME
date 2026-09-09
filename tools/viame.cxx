@@ -24,8 +24,8 @@
  * file followed by an input is the batch driver's shorthand:
  *
  *   viame run my_pipeline.pipe      # equivalent to: viame runner my_pipeline.pipe
- *   viame run my.pipe video.mp4     # batch processing, handled by process_video
- *   viame run -d videos/ -p my.pipe # batch processing, handled by process_video
+ *   viame run my.pipe video.mp4     # batch processing, handled by run_bulk
+ *   viame run -d videos/ -p my.pipe # batch processing, handled by run_bulk
  *
  * Similarly, if the first argument is a .conf file, the train applet
  * is automatically invoked:

@@ -14,7 +14,7 @@ export PIPES_PER_GPU=1
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
-python ${VIAME_INSTALL}/configs/process_video.py \
+viame run \
   -i "${INPUT}" -o "${OUTPUT}" -p auto --mosaic --xcamera-only \
   -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU} \
   -install ${VIAME_INSTALL}

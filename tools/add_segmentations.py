@@ -53,7 +53,7 @@ VIDEO_EXTS = ('.mp4', '.avi', '.mov', '.mpg', '.mpeg', '.mkv', '.wmv', '.m4v')
 IMAGE_EXTS = ('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff')
 
 DEFAULT_PIPELINE = 'utility_add_segmentations_sam2.pipe'
-DEFAULT_FRAME_RATE = 5.0            # process_video's own default, used as last resort
+DEFAULT_FRAME_RATE = 5.0            # viame run's own default, used as last resort
 
 # ocv_windowed chipping parameters, as shipped in the sam2 pipeline. Only used to
 # predict whether an image is large enough to be chipped (see predict_chipping).
@@ -202,9 +202,9 @@ def declared_fps(csv_path):
     """The fps recorded in the CSV header.
 
     DIVE writes both `fps: 5` and `#meta fps=5` depending on its vintage.
-    process_video's rate_from_gt only matches the first form and only looks at the
+    viame run's rate_from_gt only matches the first form and only looks at the
     first two lines, so it misses the second; we accept either, anywhere in the
-    header. (Where it misses, process_video falls back to its -frate default,
+    header. (Where it misses, viame run falls back to its -frate default,
     which is why we always pass -frate explicitly.)
     """
     for line in csv_header(csv_path):
@@ -981,20 +981,6 @@ def cmd_validate(args):
 # run-unit -- the whole per-clip flow, which is what the batch scripts call
 # -----------------------------------------------------------------------------
 
-def find_process_video():
-    """process_video.py: beside this tool (source or install), else the install."""
-    here = os.path.dirname(os.path.abspath(__file__))
-    install = find_viame_install()
-    for candidate in (os.path.join(here, 'process_video.py'),
-                      os.path.join(install, 'configs', 'process_video.py')
-                      if install else '',
-                      shutil.which('process_video.py') or ''):
-        if candidate and os.path.exists(candidate):
-            return candidate
-    sys.exit('Cannot find process_video.py beside this tool, in the VIAME '
-             'install, or on PATH.')
-
-
 def find_viame_install(explicit=None):
     """The VIAME install tree, wherever this tool itself is being run from.
 
@@ -1047,7 +1033,7 @@ def pipeline_candidates(pipeline, install=None):
 
 
 def resolve_pipeline(pipeline, install=None):
-    """process_video wants a path that exists, not a pipeline name."""
+    """viame run is handed a path that exists, not a pipeline name."""
     tried = pipeline_candidates(pipeline, install)
     for candidate in tried:
         if os.path.exists(candidate):
@@ -1104,13 +1090,13 @@ def cmd_run_unit(args):
     os.makedirs(out_dir, exist_ok=True)
 
     command = [
-        sys.executable, find_process_video(),
+        'viame', 'run',
         '-i', input_path,
         '-o', work_dir,
         '-p', resolve_pipeline(args.pipeline),
         '-gt-file', gt_path,
         '-frate', str(rec['fps']),
-        # Without this, process_video stops to ask whether to wipe the output
+        # Without this, viame run stops to ask whether to wipe the output
         # folder, which under a batch scheduler means an EOF and a dead task.
         '--no-reset-prompt',
         # Keep existing polygons, and read them as polygons rather than masks so a
@@ -1129,14 +1115,13 @@ def cmd_run_unit(args):
     print('$ ' + ' '.join(command), flush=True)
     proc = subprocess.run(command)
     if proc.returncode != 0:
-        print('%s: process_video FAILED (exit %d)' % (rec['name'], proc.returncode))
+        print('%s: viame run FAILED (exit %d)' % (rec['name'], proc.returncode))
         return proc.returncode
 
     computed = os.path.join(work_dir, rec['name'] + '_tracks.csv')
     if not os.path.exists(computed):
-        # For a directory input, process_video derives the output name from the
-        # input path relative to itself, which collapses to '.' -- so the tracks
-        # land in '._tracks.csv'. Note glob() would skip that, being a dotfile.
+        # For a directory input, viame run names the output after the folder,
+        # which need not match the unit name.
         found = sorted(f for f in os.listdir(work_dir)
                        if f.endswith('_tracks.csv'))
         if not found:
@@ -1811,7 +1796,7 @@ SLURM = """#!/usr/bin/env bash
 {extra_sbatch}
 # One unit per array task, and only a few at a time. Both matter: on the sea-lion
 # run, several clips sharing one GPU OOM-killed each other, and handing
-# process_video a whole directory made it double-count the units and truncate
+# viame run a whole directory made it double-count the units and truncate
 # outputs it had already finished.
 #
 # To re-run only the units that failed, after `audit` has written rerun.txt:
@@ -2060,7 +2045,7 @@ def main():
     p.add_argument('-u', '--unit', required=True)
     p.add_argument('-p', '--pipeline', default=DEFAULT_PIPELINE)
     p.add_argument('-s', '--setting', action='append',
-                   help='extra process_video -s override')
+                   help='extra viame run -s override')
     p.add_argument('--no-box-fallback', action='store_true',
                    help='leave detections without a polygon rather than falling '
                         'back to the bounding box')

@@ -14,6 +14,6 @@ export PIPELINE=pipelines/utility_track_selections_default_mask.pipe
 
 source ${VIAME_INSTALL}/setup_viame.sh
 
-python ${VIAME_INSTALL}/configs/process_video.py \
+viame run \
   -i ${INPUT_FOLDER} -o ${OUTPUT_FOLDER} -frate ${DEFAULT_FRAME_RATE} \
   -p ${PIPELINE} -auto-detect-gt ${INPUT_FORMAT} --no-reset-prompt

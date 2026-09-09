@@ -29,8 +29,8 @@ namespace tools {
 
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
 
-VIAME_PYTHON_SCRIPT_APPLET( process_video_applet, "run",
-  "process_video.py",
+VIAME_PYTHON_SCRIPT_APPLET( run_bulk_applet, "run",
+  "run_bulk.py",
   "Process videos or images, or run a single pipeline file." )
 
 VIAME_PYTHON_SCRIPT_APPLET( add_segmentations_applet, "add-segmentations",
@@ -158,7 +158,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_standalone_tool< train_applet >( reg );
 
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
-  register_script_tool< process_video_applet >( reg );
+  register_script_tool< run_bulk_applet >( reg );
   register_script_tool< add_segmentations_applet >( reg );
   register_script_tool< convert_cam_applet >( reg );
   register_script_tool< convert_itk_applet >( reg );

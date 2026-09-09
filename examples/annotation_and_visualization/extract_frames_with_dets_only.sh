@@ -24,7 +24,7 @@ else
   PIPELINE="pipelines/filter_tracks_only.pipe"
 fi
 
-python ${VIAME_INSTALL}/configs/process_video.py \
+viame run \
   -i ${INPUT} -o ${OUTPUT} -frate ${DEFAULT_FRAME_RATE} \
   -p ${PIPELINE} \
   -auto-detect-gt viame_csv

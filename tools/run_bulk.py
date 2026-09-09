@@ -726,6 +726,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   if os.path.isdir( input_path ):
     input_dir = os.path.abspath( options.input if options.input else options.input_dir )
     input_id = os.path.relpath( os.path.abspath( input_path ), input_dir )
+    if input_id == ".":
+      input_id = os.path.basename( input_dir )
     if options.build_index:
       input_id = input_id.replace( div, "_" )
       input_id = input_id.replace( " ", "_" )

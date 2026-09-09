@@ -18,7 +18,7 @@ source ${VIAME_INSTALL}/setup_viame.sh
 # Set current directory for project folder pipe
 export VIAME_PROJECT_DIR="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)"
 
-python ${VIAME_INSTALL}/configs/process_video.py \
+viame run \
   -i ${INPUT} -o ${OUTPUT} -frate ${FRAME_RATE} \
   -p category_models/tracker.pipe --no-reset-prompt \
   -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU}

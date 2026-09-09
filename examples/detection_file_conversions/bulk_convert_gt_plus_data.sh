@@ -16,7 +16,7 @@ export PIPELINE=pipelines/convert_${INPUT_FORMAT}_to_${OUTPUT_FORMAT}_gt_plus_da
 
 source ${VIAME_INSTALL}/setup_viame.sh
 
-python ${VIAME_INSTALL}/configs/process_video.py \
+viame run \
   -i ${INPUT_FOLDER} -o ${OUTPUT_FOLDER} -frate ${DEFAULT_FRAME_RATE} \
   -p ${PIPELINE} -output-ext ${OUTPUT_EXTENSION} \
   -auto-detect-gt ${INPUT_FORMAT} --no-reset-prompt

@@ -14,7 +14,7 @@ export DEFAULT_FRAME_RATE=5
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
-python ${VIAME_INSTALL}/configs/process_video.py \
+viame run \
   -i ${INPUT} -o ${OUTPUT} -frate ${DEFAULT_FRAME_RATE} \
   -p "pipelines/filter_default.pipe" \
   -auto-detect-gt viame_csv

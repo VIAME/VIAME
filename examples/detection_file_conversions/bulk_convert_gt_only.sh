@@ -17,7 +17,7 @@ export PIPELINE=pipelines/convert_${INPUT_FORMAT}_to_${OUTPUT_FORMAT}_gt_only.pi
 
 source ${VIAME_INSTALL}/setup_viame.sh
 
-python ${VIAME_INSTALL}/configs/process_video.py \
+viame run \
   -i ${INPUT_FOLDER} -o ${OUTPUT_FOLDER} \
   -p ${PIPELINE} -output-ext ${OUTPUT_EXTENSION} \
   -auto-detect-gt ${INPUT_FORMAT} --gt-only --no-reset-prompt
