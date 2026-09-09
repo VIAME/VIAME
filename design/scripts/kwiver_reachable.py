@@ -14,8 +14,11 @@ set stops growing:
   taking the headers that file includes. Those are reached at run time
   through the plugin loader rather than at compile time, so nothing else
   would find them;
-* the sprokit engine, the pipeline runner and the adapters, which are how a
-  pipeline runs at all and which nothing includes by name.
+* the sprokit engine, the pipeline runner, the adapters and the plugin
+  loader, which are how a pipeline runs at all and which nothing includes by
+  name. The applet base is deliberately not among them: VIAME's own applets
+  include it, so the first rule finds it, and walking that directory would
+  also take kwiver's registration of applets this build does not have.
 
 Tests and worked examples are dropped from the result: they are not what
 gets copied, and anything they use that is really used has come in through
@@ -61,6 +64,17 @@ HEADER_SUFFIXES = (".h", ".hpp", ".hxx", ".txx")
 # root, mirroring the include path kwiver's own targets are built with.
 INCLUDE_ROOTS = ("", "sprokit/src", "sprokit/processes")
 
+# Definitions that no reached file includes, because the declaration lives in
+# one header and the definition in a source file with a different name --
+# `get_logger` is declared in `logger/logger.h` and defined in
+# `logger/kwiver_logger_manager.cxx`. A closure over includes cannot see
+# these; the link does, and each one here was put here by a link error.
+# Listed by header, since a header brings its own sources.
+LINK_ONLY = (
+    "vital/logger/kwiver_logger_manager.h",
+    "vital/logger/default_logger.h",
+)
+
 # Reached only through the plugin loader and the scheduler, so no include
 # points at them.
 ENTRY_POINTS = (
@@ -69,7 +83,6 @@ ENTRY_POINTS = (
     "sprokit/src/schedulers",
     "sprokit/src/applets/pipeline_runner.cxx",
     "sprokit/processes/adapters",
-    "vital/applets",
     "vital/plugin_management",
 )
 
@@ -146,6 +159,29 @@ def read_includes(path):
     return found
 
 
+# Where the phase 5 import moved things, so that a VIAME source already
+# rewritten to the new spelling still points at the kwiver file it came from.
+# Without this the closure shrinks every time the import runs, which looks
+# like the code stopped being used.
+IMPORTED = {
+    "viame/core_types/": ("vital/types/", "vital/"),
+    "viame/algorithm_framework/plugin/": ("vital/plugin_management/",),
+    "viame/algorithm_framework/": ("vital/",),
+    "viame/pipeline_framework/adapters/": ("sprokit/processes/adapters/",),
+    "viame/pipeline_framework/": ("sprokit/pipeline/", "sprokit/pipeline_util/"),
+}
+
+
+def original_specs(spec):
+    """The kwiver paths a spec might name, new spelling or old."""
+    for prefix, olds in IMPORTED.items():
+        if spec.startswith(prefix):
+            rest = spec[len(prefix):]
+            return [old + rest for old in olds]
+
+    return [spec]
+
+
 def resolve(kwiver, spec, origin):
     """The kwiver file an include names, or None if it names something else.
 
@@ -155,12 +191,14 @@ def resolve(kwiver, spec, origin):
     """
     candidates = []
 
-    if origin:
-        candidates.append(os.path.normpath(
-            os.path.join(os.path.dirname(origin), spec)))
+    for option in original_specs(spec):
+        if origin:
+            candidates.append(os.path.normpath(
+                os.path.join(os.path.dirname(origin), option)))
 
-    for root in INCLUDE_ROOTS:
-        candidates.append(os.path.normpath(os.path.join(kwiver, root, spec)))
+        for root in INCLUDE_ROOTS:
+            candidates.append(
+                os.path.normpath(os.path.join(kwiver, root, option)))
 
     for candidate in candidates:
         if (candidate.startswith(kwiver) and os.path.isfile(candidate)
@@ -262,7 +300,8 @@ def registration_roots(kwiver, verbose):
 
 
 def entry_point_roots(kwiver):
-    roots = set()
+    roots = {os.path.join(kwiver, rel) for rel in LINK_ONLY
+             if os.path.isfile(os.path.join(kwiver, rel))}
 
     for entry in ENTRY_POINTS:
         path = os.path.join(kwiver, entry)

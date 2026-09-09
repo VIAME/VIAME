@@ -1,0 +1,385 @@
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
+
+/// \file
+/// \brief Implementation for detected_object class
+
+#include "detected_object.h"
+
+namespace kwiver {
+
+namespace vital {
+
+// ----------------------------------------------------------------------------
+detected_object
+::detected_object(
+  double confidence,
+  detected_object_type_sptr classifications )
+  : m_confidence{ confidence },
+    m_type{ classifications }
+{}
+
+// ----------------------------------------------------------------------------
+detected_object
+::detected_object(
+  bounding_box_d const& bbox,
+  double confidence,
+  detected_object_type_sptr classifications )
+  : m_bounding_box{ bbox },
+    m_confidence{ confidence },
+    m_type{ classifications }
+{}
+
+// ----------------------------------------------------------------------------
+detected_object
+::detected_object(
+  kwiver::vital::geo_point const& gp,
+  double confidence,
+  detected_object_type_sptr classifications )
+  : m_geo_point{ gp },
+    m_confidence{ confidence },
+    m_type{ classifications }
+{}
+
+// ----------------------------------------------------------------------------
+detected_object
+::detected_object( detected_object const& other )
+  : m_geo_point{ other.m_geo_point },
+    m_bounding_box{ other.m_bounding_box },
+    m_confidence{ other.m_confidence },
+    m_mask_image{ other.m_mask_image },
+    m_descriptor{ other.m_descriptor },
+    m_type{ other.m_type },
+    m_index{ other.m_index },
+    m_detector_name{ other.m_detector_name },
+    m_notes{ other.m_notes },
+    m_keypoints{ other.m_keypoints },
+    m_polygon{ other.m_polygon }
+{
+  std::lock_guard< std::mutex > lock( other.m_attrs_mutex );
+  m_attrs = other.m_attrs;
+}
+
+// ----------------------------------------------------------------------------
+detected_object&
+detected_object
+::operator=( detected_object const& other )
+{
+  if( this != &other )
+  {
+    m_geo_point = other.m_geo_point;
+    m_bounding_box = other.m_bounding_box;
+    m_confidence = other.m_confidence;
+    m_mask_image = other.m_mask_image;
+    m_descriptor = other.m_descriptor;
+    m_type = other.m_type;
+    m_index = other.m_index;
+    m_detector_name = other.m_detector_name;
+    m_notes = other.m_notes;
+    m_keypoints = other.m_keypoints;
+    m_polygon = other.m_polygon;
+
+    // Lock both mutexes without risking deadlock, then copy attributes.
+    std::lock( m_attrs_mutex, other.m_attrs_mutex );
+
+    std::lock_guard< std::mutex > this_lock( m_attrs_mutex, std::adopt_lock );
+    std::lock_guard< std::mutex > other_lock(
+      other.m_attrs_mutex, std::adopt_lock );
+    m_attrs = other.m_attrs;
+  }
+  return *this;
+}
+
+// ----------------------------------------------------------------------------
+detected_object_sptr
+detected_object
+::clone() const
+{
+  detected_object_type_sptr new_type;
+  if( this->m_type )
+  {
+    new_type = std::make_shared< detected_object_type >( *this->m_type );
+  }
+
+  auto new_obj = std::make_shared< kwiver::vital::detected_object >(
+    this->m_bounding_box, this->m_confidence, new_type );
+
+  // Be cheap and don't deep copy the image mask or descriptor; we can get away
+  // with this because these can't be modified via the detected object, only
+  // replaced by a different instance
+  new_obj->m_mask_image = this->m_mask_image;
+  new_obj->m_descriptor = this->m_descriptor;
+
+  // Copy everything else (value copies)
+  new_obj->m_index = this->m_index;
+  new_obj->m_detector_name = this->m_detector_name;
+  new_obj->m_geo_point = this->m_geo_point;
+  new_obj->m_keypoints = this->m_keypoints;
+  new_obj->m_notes = this->m_notes;
+  new_obj->m_polygon = this->m_polygon;
+
+  // Deep copy attribute set if present (thread-safe access)
+  {
+    std::lock_guard< std::mutex > lock( m_attrs_mutex );
+    if( this->m_attrs )
+    {
+      new_obj->m_attrs = this->m_attrs->clone();
+    }
+  }
+
+  return new_obj;
+}
+
+// ----------------------------------------------------------------------------
+kwiver::vital::geo_point
+detected_object
+::geo_point() const
+{
+  return m_geo_point;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::set_geo_point( kwiver::vital::geo_point const& gp )
+{
+  m_geo_point = gp;
+}
+
+// ----------------------------------------------------------------------------
+bounding_box_d
+detected_object
+::bounding_box() const
+{
+  return m_bounding_box;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::set_bounding_box( bounding_box_d const& bbox )
+{
+  m_bounding_box = bbox;
+}
+
+// ----------------------------------------------------------------------------
+double
+detected_object
+::confidence() const
+{
+  return m_confidence;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::set_confidence( double d )
+{
+  m_confidence = d;
+}
+
+// ----------------------------------------------------------------------------
+image_container_scptr
+detected_object
+::mask() const
+{
+  return m_mask_image;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::set_mask( image_container_scptr m )
+{
+  m_mask_image = m;
+}
+
+// ----------------------------------------------------------------------------
+detected_object_type_sptr
+detected_object
+::type() const
+{
+  return m_type;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::set_type( detected_object_type_sptr c )
+{
+  m_type = c;
+}
+
+// ----------------------------------------------------------------------------
+uint64_t
+detected_object
+::index() const
+{
+  return m_index;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::set_index( uint64_t idx )
+{
+  m_index = idx;
+}
+
+// ----------------------------------------------------------------------------
+std::string
+detected_object
+::detector_name() const
+{
+  return m_detector_name;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::set_detector_name( std::string const& name )
+{
+  m_detector_name = name;
+}
+
+// ----------------------------------------------------------------------------
+detected_object::descriptor_scptr
+detected_object
+::descriptor() const
+{
+  return m_descriptor;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::set_descriptor( descriptor_scptr d )
+{
+  m_descriptor = d;
+}
+
+// ----------------------------------------------------------------------------
+std::vector< std::string >
+detected_object
+::notes() const
+{
+  return m_notes;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::add_note( std::string const& note )
+{
+  m_notes.push_back( note );
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::clear_notes()
+{
+  m_notes.clear();
+}
+
+// ----------------------------------------------------------------------------
+std::map< std::string, vital::point_2d >
+detected_object
+::keypoints() const
+{
+  return m_keypoints;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::add_keypoint( std::string const& id, vital::point_2d const& p )
+{
+  m_keypoints[ id ] = p;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::clear_keypoints()
+{
+  m_keypoints.clear();
+}
+
+// ----------------------------------------------------------------------------
+std::vector< vector_2d >
+detected_object
+::polygon() const
+{
+  return m_polygon;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::set_polygon( std::vector< vector_2d > const& poly )
+{
+  m_polygon = poly;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::set_flattened_polygon( std::vector< double > const& coords )
+{
+  m_polygon.clear();
+  for( size_t i = 0; i + 1 < coords.size(); i += 2 )
+  {
+    m_polygon.push_back( vector_2d( coords[ i ], coords[ i + 1 ] ) );
+  }
+}
+
+// ----------------------------------------------------------------------------
+std::vector< double >
+detected_object
+::get_flattened_polygon() const
+{
+  std::vector< double > result;
+  for( const auto& pt : m_polygon )
+  {
+    result.push_back( pt[ 0 ] );
+    result.push_back( pt[ 1 ] );
+  }
+  return result;
+}
+
+// ----------------------------------------------------------------------------
+attribute_set_sptr
+detected_object
+::attributes() const
+{
+  std::lock_guard< std::mutex > lock( m_attrs_mutex );
+  return m_attrs;
+}
+
+// ----------------------------------------------------------------------------
+void
+detected_object
+::set_attributes( attribute_set_sptr attrs )
+{
+  std::lock_guard< std::mutex > lock( m_attrs_mutex );
+  m_attrs = attrs;
+}
+
+// ----------------------------------------------------------------------------
+bool
+detected_object
+::has_attribute( std::string const& key ) const
+{
+  std::lock_guard< std::mutex > lock( m_attrs_mutex );
+  if( !m_attrs )
+  {
+    return false;
+  }
+  return m_attrs->has( key );
+}
+
+} // namespace vital
+
+} // namespace kwiver
