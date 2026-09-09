@@ -8,7 +8,7 @@ Notes.
 ## Current position
 
 - Phase: P4 (phases 1 and 2 deferred, see the decision below)
-- Next task: P4-T03, once the throughput question below is settled
+- Next task: P4-T03
 - Last clean-configure build verified: 2026-09-09, P0-T05
 - Reference machine: local workstation, CUDA 12.6, cuDNN 9.12, Ubuntu
   (kernel 6.8), python 3.10.12, gcc default, 16 cores
@@ -91,7 +91,7 @@ for `CMake/FindCUDNN.cmake`, and `kwiver` is checked out and built.
 | P3-T11 | `close_loops_homography_guided` and its polygon overlap | P3-T02 | done | 3f5201a2a | Added by P3-T10's usage scan: `lite-removals.md` §1 misses this name, which `common_image_stabilizer.pipe` really does select. Registered as `homography_guided`. Its only VXL use was `compute_homography_overlap`, reimplemented as convex polygon clipping and A/B'd against the VXL routine over 52 homographies to within 1e-9 |
 | **Phase 4: drop FFmpeg** | `phase-04-drop-ffmpeg.md` | | | | |
 | P4-T01 | Record video golden data and benchmark baseline | P3-T08 | done | 8122fea83 | `pipelines_test_data` ships no video at all, so three clips were generated from the committed image fixtures and committed: 8 bit h264, 10 bit h264 and variable frame rate. The 10 bit one decodes to `uint16`, which is the behaviour `lite-removals.md` section 3.1 asks the PyAV reader to keep, and the VFR one has genuinely uneven frame gaps, so a reader that derives timestamps from the frame number fails it. Recorded from the C++ `ffmpeg` reader, which is what phase 4 replaces. The 1080p throughput clip is built at record time rather than committed |
-| P4-T02 | PyAV `video_input` | P4-T01 | blocked (throughput gate) | df125cce8 | Functionally exact: frame counts, numbering, dtypes and pixel digests match the recording on all three clips, and timestamps match on the constant rate ones. Two things had to be matched rather than assumed. The conversion goes through a libavfilter graph carrying the swscale flags from `arrows/ffmpeg/ffmpeg_convert_image.cxx` (`full_chroma_int+full_chroma_inp+accurate_rnd+bitexact+neighbor`, `out_range=full`); PyAV's `to_ndarray` defaults differ from the C++ reader by up to 3 counts on nearly every pixel. Timestamps are relative to the first frame and rounded to whole microseconds, taken from the frame's own time base because filters rescale it. Two residual differences: variable frame rate timestamps can differ by one container tick, because the C++ reader used libavcodec's `best_effort_timestamp` and PyAV does not expose it, and **throughput is 43 fps against the C++ reader's 94 at 1080p, 46 per cent, under the task's 60 per cent gate**. The task says to implement P4-T04 if that happens, but P4-T04 is a fallback for PyAV being absent, not a faster path, so this needs a decision |
+| P4-T02 | PyAV `video_input` | P4-T01 | done | df125cce8, 5281cfcfa | Functionally exact: frame counts, numbering, dtypes and pixel digests match the recording on all three clips, and timestamps match on the constant rate ones. Two things had to be matched rather than assumed. The conversion goes through a libavfilter graph carrying the swscale flags from `arrows/ffmpeg/ffmpeg_convert_image.cxx` (`full_chroma_int+full_chroma_inp+accurate_rnd+bitexact+neighbor`, `out_range=full`); PyAV's `to_ndarray` defaults differ from the C++ reader by up to 3 counts on nearly every pixel. Timestamps are relative to the first frame and rounded to whole microseconds, taken from the frame's own time base because filters rescale it. Two residual differences: variable frame rate timestamps can differ by one container tick, because the C++ reader used libavcodec's `best_effort_timestamp` and PyAV does not expose it, and throughput, which was 46 per cent of the C++ reader until the cause was found: vital stores images planar, so handing `Image` an interleaved numpy array drops out of `copy_from`'s memcpy path onto a per pixel walk, 14 ms a frame at 1080p against 0.5 for a memcpy. The filter chain now emits planar RGB and the planes are assembled in vital's own layout, giving 82.4 fps against 99.1, or 83 per cent, past the task's 60 per cent gate |
 | P4-T03 | PyAV `video_output` | P4-T02 | todo | | |
 | P4-T04 | `ffmpeg_cli` fallback reader | P4-T02 | todo | | |
 | P4-T05 | Switch FFmpeg off | P4-T03, P4-T04 | todo | | |
@@ -200,16 +200,21 @@ Only the first group moves into VIAME; the second goes to `removed.json`.
 The bare name `vxl` is registered for nine interfaces but only ever selected as
 an `image_reader` or `image_writer` type, so only the image_io needs to survive.
 
-## Open question for P4
+## A finding worth carrying into later phases
 
-The PyAV reader is bit-exact but decodes 1080p at 43 fps against the C++
-reader's 94. The gap is the per frame python round trip, not the filter
-chain: dropping the configured `yadif` changes it by one frame per second.
-Whether that matters depends on what the video path is for. A detector
-pipeline runs well under 43 fps, so decoding is unlikely to be the
-bottleneck; bulk transcoding would feel it. The choices are to accept it and
-record the number, to batch frames across the binding, or to keep a compiled
-reader for the throughput path, which would keep FFmpeg. Not settled here.
+Building a `vital::image` from an interleaved numpy array costs 14 ms for a
+1080p RGB frame, against 0.5 ms for the same data laid out the way vital
+stores it. `new_image_from_numpy` wraps the buffer and calls
+`image::copy_from`, which only memcpys when the source and destination strides
+agree; vital's default is planar (`w_step` 1, `h_step` width, `d_step`
+width * height) while numpy's RGB is interleaved, so every such conversion
+walks pixel by pixel at roughly 390 MB/s.
+
+This is not specific to video. Every python implementation in VIAME that
+returns an image built from a numpy array pays it, which includes the pytorch
+detectors and the segmenters. Phase 5 imports this code, and phase 8 rewrites
+the bindings; either is a chance to make the interleaved case fast rather than
+asking every caller to know about the layout.
 
 ## Measurements
 
@@ -221,7 +226,7 @@ cent is taken against, so that gate is 58 fps.
 | What | Value | Task | Date |
 |---|---|---|---|
 | C++ video decode throughput, 1080p h264 (baseline) | 95.9 fps | P4-T01 | 2026-09-09 |
-| PyAV decode throughput | 43.1 fps (1080p h264, same clip and method as the baseline) | P4-T02 | 2026-09-09 |
+| PyAV decode throughput | 82.4 fps (1080p h264, same clip and method as the baseline; 83 per cent of the C++ reader measured at 99.1 fps in the same run) | P4-T02 | 2026-09-09 |
 | kwiver files copied (lines) | | P5-T01 | |
 | core_types + algorithm_framework lines after prune | | P5-T06 | |
 | pipeline_framework lines after trim | | P8-T07 | |
