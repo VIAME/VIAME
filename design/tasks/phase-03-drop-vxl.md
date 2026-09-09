@@ -154,3 +154,36 @@ Done when:
 - `vxl_homography_guided` resolves with VXL off; the recorded overlap values
   match; `register_using_homographies.pipe` and
   `common_stabilized_iou_tracker.pipe` still bake in `pipe-check --all`.
+
+### P3-T12 `vidl_ffmpeg` video_input bridge
+Depends: P3-T02. Blocks P3-T07.
+Added by: P3-T07, whose registry check found the name missing after the flip.
+Context: `lite-removals.md` §1 does not mention `vidl_ffmpeg`, and neither did
+the usage scan in STATUS.md, which looked for names containing "vxl". It is a
+VXL (`vidl`) video reader and it is the video path of VIAME's own tooling:
+`tools/run_bulk.py`, `tools/launch_annotator.py`, `tools/train.cxx`,
+`plugins/core/utilities_training.cxx` (which sets
+`vidl_ffmpeg:stop_after_frame`) and `plugins/vertex-ai/process_handler.py` all
+select it with `-s input:video_reader:type=vidl_ffmpeg`. No shipped `.pipe`
+names it as a `:type`, which is why the scan missed it; the shipped pipelines
+carry inert `block video_reader:vidl_ffmpeg` settings for when it is selected
+at run time.
+Do not alias it to the `ffmpeg` video_input: the two share **no** config keys.
+`vidl_ffmpeg` has `output_nth_frame`, `start_at_frame`, `stop_after_frame`,
+`time_scan_frame_limit`, `time_source` and `use_metadata`; `ffmpeg` has twelve
+entirely different ones. Aliasing silently drops all six, including the
+`stop_after_frame` the trainer relies on. This is the same trap as the image_io
+in P3-T06.
+Do:
+- Write a video_input in VIAME registered as `vidl_ffmpeg`, keeping those six
+  keys and their defaults, delegating decode to a nested video_input (`ffmpeg`
+  for now; phase 4 replaces it with PyAV) and implementing on top of it:
+  frame selection (`start_at_frame`, `stop_after_frame`, `output_nth_frame`)
+  and the timestamp policy (`time_source`, `use_metadata`,
+  `time_scan_frame_limit`).
+- Golden: record frame count, per frame timestamps and image digests over a
+  short video for each `time_source` value and a couple of frame ranges,
+  before the flip on a VXL build, and hold the replacement to it.
+Done when:
+- `baseline:registry` no longer reports `vidl_ffmpeg` missing.
+- `viame run` over a video produces the same frames and timestamps as recorded.
