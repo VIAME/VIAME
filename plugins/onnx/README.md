@@ -1,11 +1,66 @@
 # VIAME ONNX plugins
 
-Two independent groups of pure-Python, onnxruntime-based tools live here (no
-torch at inference time):
+This directory contains ONNX Runtime object detection, whole-frame
+classification, detection reclassification, and stereo utilities. The detection
+and classification predictors run exported models without PyTorch; KWIVER
+adapters expose them as VIAME pipeline algorithms.
 
-1. **A generic ONNX object detector** (`onnx_predictor.py` + `onnx_detector.py`,
-   registered as the kwiver `onnx` algorithm) — see below.
-2. **Epipolar stereo matching as a single ONNX graph** — the rest of this file.
+## Detection and classification files
+
+| File | Role |
+| --- | --- |
+| [onnx_predictor.py](onnx_predictor.py) | `OnnxPredictor`, the detection inference layer without KWIVER dependencies. Loads model packages and metadata, selects an execution provider, resizes and normalizes images, decodes model outputs, and applies thresholding/NMS where required. Returns dictionaries containing `label`, `bbox_xyxy`, and `score`, with masks for supported RF-DETR exports. Also supplies package-loading and device helpers used by the classifier predictor. |
+| [onnx_detector.py](onnx_detector.py) | `OnnxDetector`, the KWIVER `image_object_detector` implementation named `onnx`. Converts image containers into NumPy arrays, calls the predictor, and builds a `DetectedObjectSet` with class names, bounding boxes, confidence scores, and optional cropped masks. |
+| [onnx_clf_predictor.py](onnx_clf_predictor.py) | `OnnxClassifierPredictor`, the shared batched classification inference layer. Resizes image chips, applies sidecar normalization, runs batches, and returns an image-by-class probability array. Applies softmax when the sidecar says the graph returns logits. Includes `letterbox_resize` to preserve netharn's resize and padding behavior. |
+| [onnx_classifier.py](onnx_classifier.py) | `OnnxClassifier`, the KWIVER `image_object_detector` implementation named `onnx_classifier`. Classifies a whole frame and returns one frame-sized detection carrying all class probabilities. Supports renaming a configured negative class to `no_<model name>`. |
+| [onnx_refiner.py](onnx_refiner.py) | `OnnxRefiner`, the KWIVER `refine_detections` implementation named `onnx`. Extracts chips from existing detections, classifies them in batches, and updates their types. Handles chip sizing and expansion, area/border filters, target-scale normalization, and optional blending with prior classifications or a taxonomy. |
+| [__init__.py](__init__.py) | Package registration entry point. Registers the generic detector and attempts to register the Foundation Stereo adapter when its dependencies are available. The classifier and refiner modules also provide their own registration functions. |
+| [CMakeLists.txt](CMakeLists.txt) | Lists the Python modules installed into `viame.onnx`, including the predictors, KWIVER adapters, and stereo utilities. The parent build enables this directory when both `VIAME_ENABLE_ONNX` and `VIAME_ENABLE_PYTHON` are on. |
+
+For detection, the call path is `OnnxDetector` → `OnnxPredictor` → ONNX
+Runtime. Whole-frame classification and detection refinement both use
+`OnnxClassifierPredictor`; the adapters decide which image or chips to classify
+and how to represent the results in KWIVER. The two algorithms named `onnx`
+serve different interfaces: `image_object_detector` and `refine_detections`.
+
+## Model packages and runtime configuration
+
+Both predictors accept a `.onnx` path, a directory containing an ONNX model,
+or a `.zip` containing a model package. Directory and archive loading selects
+the first `.onnx` path in sorted order, so use one model per package. A model
+named `model.onnx` uses the adjacent `model.modelspec.json` for input shape,
+preprocessing, class names, and output interpretation. Missing sidecars use
+predictor defaults; those defaults must match the exported graph.
+
+Detection and classification inference require `onnxruntime`, `numpy`, and
+OpenCV. The adapters additionally require KWIVER and VIAME Python modules.
+Use `device=cpu`, `cuda`, or `cuda:N`; CUDA requests fall back to CPU with a
+warning if the installed ONNX Runtime has no CUDA execution provider. Direct
+Python callers can pass `providers` to either predictor to select providers
+explicitly.
+
+| Adapter | Main configuration options |
+| --- | --- |
+| `onnx_detector.py` | `model` and `device`; optional `score_thresh`, `nms_thresh`, and `decoder` overrides. Empty overrides retain the model metadata defaults. |
+| `onnx_classifier.py` | `model`, `device`, `batch_size` (default `1`), and `negative_class`. Each `detect` call classifies one frame. |
+| `onnx_refiner.py` | `model`, `device`, and `batch_size` (default `4`); `chip_method`, `chip_width`, and `chip_expansion` control crops. Area bounds and `border_exclude` filter detections; `scale_type_file` controls target-scale normalization; `average_prior`, `prior_weight`, `prior_ignore_class`, and `prior_taxonomy_file` control prior blending. |
+
+The predictors can also be used directly from Python after loading the VIAME
+environment:
+
+```python
+from viame.onnx.onnx_predictor import OnnxPredictor
+from viame.onnx.onnx_clf_predictor import OnnxClassifierPredictor
+
+# frame and chips are HxWx3 uint8 NumPy arrays in the model's channel order.
+detector = OnnxPredictor("models/detector.onnx", device="cpu")
+detections = detector.predict_image(frame)
+
+classifier = OnnxClassifierPredictor(
+    "models/classifier.onnx", device="cpu", batch_size=4)
+probabilities = classifier.predict(chips)  # shape: (len(chips), num_classes)
+class_names = classifier.category_names
+```
 
 ## Generic ONNX object detector
 
@@ -283,7 +338,7 @@ scheme as `simple_camera_intrinsics`.
 ## Build
 
 Built only when `VIAME_ENABLE_ONNX` (and Python) are on; installed as the
-`onnx_stereo` python package. Runtime deps: `onnxruntime`, `numpy`, and either
+`viame.onnx` Python package. Runtime deps: `onnxruntime`, `numpy`, and either
 `opencv` or `Pillow` for image loading (the runner falls back to Pillow if cv2
 is unavailable), optional `scipy` (.mat). Export needs `torch`; method 2
 additionally downloads the DINOv2 backbone via `torch.hub` (or `--dino-weights`
