@@ -34,6 +34,7 @@ if( VIAME_ENABLE_KWIVER AND VIAME_ENABLE_OPENCV )
                kwiver::kwiver_algo_core
                kwiver::kwiver_algo_ocv
                viame_video_io
+               viame_object_detectors
                ${OpenCV_LIBS}
     )
 

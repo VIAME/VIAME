@@ -177,6 +177,100 @@ def deregister(rel, is_process, dry_run):
     return None
 
 
+# Where each moved file went, keyed by the kwiver path an include names it
+# by. Recorded rather than guessed: keying on the base name alone rewrote
+# every `arrows/ocv/image_container.h` to `viame/core_types/image_container.h`,
+# because arrows/ocv's vital bridge and core_types share half a dozen file
+# names.
+LEDGER = os.path.join(ROOT, "design", "lite-kwiver-moves.txt")
+
+
+def read_ledger():
+    moves = {}
+
+    if os.path.isfile(LEDGER):
+        for line in open(LEDGER):
+            line = line.strip()
+
+            if line and not line.startswith("#"):
+                source, target = line.split()
+                moves[source] = target
+
+    return moves
+
+
+def write_ledger(moves):
+    with open(LEDGER, "w") as handle:
+        handle.write(
+            "# Where P5-T04 moved each kwiver file, as an include names it on\n"
+            "# the left and as it is named now on the right. Written by\n"
+            "# design/scripts/move_to_library.py; the record of the split.\n")
+
+        for source in sorted(moves):
+            handle.write("{} {}\n".format(source, moves[source]))
+
+
+def include_spellings(rel, name):
+    """The paths an include could have named a moved file by.
+
+    Kwiver reaches `arrows/ocv/algo/x.h` as itself and, from a sibling, as
+    `x.h`; the second is left alone, because a sibling that moved with it
+    still finds it beside itself.
+    """
+    spellings = {rel}
+
+    if "/algo/" in rel:
+        spellings.add(rel.replace("/algo/", "/"))
+
+    return spellings
+
+
+def rewrite_moved_includes(dry_run):
+    """Point every include of a moved file at where it went."""
+    moves = read_ledger()
+
+    if not moves:
+        return 0
+
+    pattern = re.compile(
+        r'(#\s*include\s*[<"])(' +
+        "|".join(re.escape(k) for k in sorted(moves, key=len, reverse=True)) +
+        r')([">])')
+
+    changed = 0
+
+    for root, directories in ((ROOT, ("library", "plugins", "tools",
+                                      "examples", "tests")),
+                              (KWIVER, ("arrows", "sprokit", "python",
+                                        "vital", "tools"))):
+        for directory in directories:
+            base = os.path.join(root, directory)
+
+            if not os.path.isdir(base):
+                continue
+
+            for walk, dirs, names in os.walk(base):
+                dirs[:] = [d for d in dirs if d != "__pycache__"]
+
+                for name in sorted(names):
+                    if not name.endswith(imp.SOURCE_SUFFIXES):
+                        continue
+
+                    path = os.path.join(walk, name)
+                    text = open(path, errors="surrogateescape").read()
+                    out = pattern.sub(
+                        lambda m: m.group(1) + moves[m.group(2)] + m.group(3),
+                        text)
+
+                    if out != text:
+                        changed += 1
+                        if not dry_run:
+                            open(path, "w",
+                                 errors="surrogateescape").write(out)
+
+    return changed
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("library", help="destination under library/")
@@ -186,6 +280,8 @@ def main():
                         help="these are sprokit processes, not arrow classes")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
+
+    moves = read_ledger()
 
     for rel in args.paths:
         moved = move(args.library, rel, args.process, args.dry_run)
@@ -197,6 +293,14 @@ def main():
         pruned = prune_lists(rel, args.dry_run)
         where = deregister(rel, args.process, args.dry_run)
 
+        for name in moved:
+            if not name.endswith((".h", ".txx")):
+                continue
+
+            for spelling in include_spellings(
+                    os.path.dirname(rel) + "/" + name, name):
+                moves[spelling] = "viame/{}/{}".format(args.library, name)
+
         print("{:52s} -> library/{}  [{}]".format(
             rel, args.library, ", ".join(moved)))
 
@@ -204,6 +308,12 @@ def main():
             print("   no CMakeLists names it", file=sys.stderr)
         if where is None:
             print("   no registration found", file=sys.stderr)
+
+    if not args.dry_run:
+        write_ledger(moves)
+
+    print("{} files had an include of a moved header rewritten".format(
+        rewrite_moved_includes(args.dry_run)))
 
     return 0
 

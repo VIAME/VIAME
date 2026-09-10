@@ -39,6 +39,8 @@ kwiver_add_library( viame_video_io
 target_include_directories( viame_video_io PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  # OpenCV's headers, for the classes imported from arrows/ocv
+  $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
   )
 
 target_link_libraries( viame_video_io
@@ -113,6 +115,8 @@ kwiver_add_plugin( viame_processes_video_io
 target_include_directories( viame_processes_video_io PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  # OpenCV's headers, for the classes imported from arrows/ocv
+  $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
   )
 
 ###

@@ -595,6 +595,34 @@
     "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/mvg is split across the functional libraries in P5-T04 and only what is used comes across."
   },
   {
+    "interface": "analyze_tracks",
+    "kind": "algorithm",
+    "name": "ocv",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "draw_tracks",
+    "kind": "algorithm",
+    "name": "ocv",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "estimate_pnp",
+    "kind": "algorithm",
+    "name": "ocv",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "resection_camera",
+    "kind": "algorithm",
+    "name": "ocv",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
     "interface": "",
     "kind": "process",
     "name": "associate_detections_to_tracks",

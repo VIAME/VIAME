@@ -10,7 +10,17 @@
 #include "viame_image_processing_plugin_export.h"
 
 #include <viame/algorithm_framework/algo/close_loops.h>
+#include <viame/algorithm_framework/algo/compute_ref_homography.h>
+#include <viame/algorithm_framework/algo/detect_features.h>
+#include <viame/algorithm_framework/algo/draw_detected_object_set.h>
+#include <viame/algorithm_framework/algo/estimate_fundamental_matrix.h>
+#include <viame/algorithm_framework/algo/estimate_homography.h>
+#include <viame/algorithm_framework/algo/extract_descriptors.h>
 #include <viame/algorithm_framework/algo/image_filter.h>
+#include <viame/algorithm_framework/algo/match_features.h>
+#include <viame/algorithm_framework/algo/merge_images.h>
+#include <viame/algorithm_framework/algo/refine_detections.h>
+#include <viame/algorithm_framework/algo/split_image.h>
 #include <viame/algorithm_framework/plugin/plugin_loader.h>
 
 #include "average_frames.h"
@@ -19,6 +29,19 @@
 #include "convert_image.h"
 #include "morphology.h"
 #include "threshold.h"
+
+// Imported from arrows/ocv and arrows/core in P5-T04
+#include "compute_ref_homography_core.h"
+#include "draw_detected_object_set.h"
+#include "estimate_fundamental_matrix.h"
+#include "estimate_homography.h"
+#include "feature_detect_extract_SIFT.h"
+#include "feature_detect_extract_SURF.h"
+#include "match_features_flannbased.h"
+#include "merge_images.h"
+#include "refine_detections_write_to_disk.h"
+#include "split_image.h"
+#include "split_image_channels.h"
 
 namespace viame {
 
@@ -93,6 +116,71 @@ register_factories( kv::plugin_loader& vpm )
       .add_attribute( kvpf::PLUGIN_DESCRIPTION,
                       close_loops_homography_guided::plugin_description() );
   }
+
+
+  // Imported from arrows/ocv and arrows/core in P5-T04, under the names
+  // they registered under there.
+#define VIAME_REGISTER_IMPORTED( interface, impl, plugin, blurb )        \
+  {                                                                      \
+    auto fact = vpm.add_factory< interface, impl >( plugin );            \
+    fact->add_attribute( kvpf::PLUGIN_NAME, plugin )                     \
+      .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )            \
+      .add_attribute( kvpf::PLUGIN_DESCRIPTION, blurb );                 \
+  }
+
+  VIAME_REGISTER_IMPORTED( kv::algo::estimate_fundamental_matrix,
+                           kwiver::arrows::ocv::estimate_fundamental_matrix,
+                           "ocv", "Estimate a fundamental matrix with OpenCV" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::estimate_homography,
+                           kwiver::arrows::ocv::estimate_homography,
+                           "ocv", "Estimate a homography with OpenCV" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::draw_detected_object_set,
+                           kwiver::arrows::ocv::draw_detected_object_set,
+                           "ocv", "Draw detected object sets on an image with OpenCV" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::match_features,
+                           kwiver::arrows::ocv::match_features_flannbased,
+                           "ocv_flann_based", "Match features with OpenCV's FLANN matcher" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::detect_features,
+                           kwiver::arrows::ocv::detect_features_SIFT,
+                           "ocv_SIFT", "Detect SIFT features with OpenCV" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::extract_descriptors,
+                           kwiver::arrows::ocv::extract_descriptors_SIFT,
+                           "ocv_SIFT", "Extract SIFT descriptors with OpenCV" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::detect_features,
+                           kwiver::arrows::ocv::detect_features_SURF,
+                           "ocv_SURF", "Detect SURF features with OpenCV" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::extract_descriptors,
+                           kwiver::arrows::ocv::extract_descriptors_SURF,
+                           "ocv_SURF", "Extract SURF descriptors with OpenCV" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::refine_detections,
+                           kwiver::arrows::ocv::refine_detections_write_to_disk,
+                           "ocv_write", "Write detection chips to disk with OpenCV" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::split_image,
+                           kwiver::arrows::ocv::split_image,
+                           "ocv", "Split an image in half with OpenCV" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::split_image,
+                           kwiver::arrows::ocv::split_image_channels,
+                           "ocv_channels", "Split an image into its channels with OpenCV" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::merge_images,
+                           kwiver::arrows::ocv::merge_images,
+                           "ocv", "Merge two images with OpenCV" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::compute_ref_homography,
+                           kwiver::arrows::core::compute_ref_homography_core,
+                           "core", "Compute a homography to a reference frame" )
+
+#undef VIAME_REGISTER_IMPORTED
 
 
   vpm.mark_module_as_loaded( module_name );

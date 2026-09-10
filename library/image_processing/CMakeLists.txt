@@ -10,6 +10,24 @@ set( plugin_headers
   convert_image.h
   morphology.h
   threshold.h
+
+  # Imported from arrows/ocv and arrows/core in P5-T04. Unchanged apart from
+  # their include paths and their export macro, which is this library's now;
+  # the namespace is still kwiver's, and phase 8 is where that changes.
+  compute_ref_homography_core.h
+  detect_features.h
+  draw_detected_object_set.h
+  estimate_fundamental_matrix.h
+  estimate_homography.h
+  extract_descriptors.h
+  feature_detect_extract_SIFT.h
+  feature_detect_extract_SURF.h
+  match_features.h
+  match_features_flannbased.h
+  merge_images.h
+  refine_detections_write_to_disk.h
+  split_image.h
+  split_image_channels.h
   )
 
 set( plugin_sources
@@ -19,6 +37,21 @@ set( plugin_sources
   convert_image.cxx
   morphology.cxx
   threshold.cxx
+
+  compute_ref_homography_core.cxx
+  detect_features.cxx
+  draw_detected_object_set.cxx
+  estimate_fundamental_matrix.cxx
+  estimate_homography.cxx
+  extract_descriptors.cxx
+  feature_detect_extract_SIFT.cxx
+  feature_detect_extract_SURF.cxx
+  match_features.cxx
+  match_features_flannbased.cxx
+  merge_images.cxx
+  refine_detections_write_to_disk.cxx
+  split_image.cxx
+  split_image_channels.cxx
   )
 
 kwiver_install_headers(
@@ -39,6 +72,8 @@ kwiver_add_library( viame_image_processing
 target_include_directories( viame_image_processing PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  # OpenCV's headers, for the classes imported from arrows/ocv
+  $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
   )
 
 target_link_libraries( viame_image_processing
@@ -50,6 +85,21 @@ target_link_libraries( viame_image_processing
                        kwiver::vital_util
                        viame_image_ops
                        kwiver::kwiversys
+  PRIVATE              ${OpenCV_LIBS}
+                       # image_container and the rest of arrows/ocv's vital
+                       # bridge, which moves to this library in P7
+                       kwiver::kwiver_algo_ocv
+                       kwiver::kwiver_algo_core
+  )
+
+# The same guards kwiver set on kwiver_algo_ocv. The SIFT and SURF detectors
+# and descriptors compile out entirely without them, taking ocv_SIFT and
+# ocv_SURF with them; PUBLIC so the separately compiled plugin registration
+# sees the same guard the headers do.
+target_compile_definitions( viame_image_processing
+  PUBLIC KWIVER_OPENCV_VERSION_MAJOR=${KWIVER_OPENCV_VERSION_MAJOR}
+  PUBLIC HAVE_OPENCV_NONFREE
+  PUBLIC HAVE_OPENCV_XFEATURES2D
   )
 
 set_target_properties( viame_image_processing PROPERTIES
@@ -64,3 +114,47 @@ target_link_libraries( viame_image_processing_plugin
   PUBLIC               kwiver::vital_vpm
   )
 
+
+###
+# Processes
+#
+# Imported from sprokit/processes/core in P5-T04.
+##
+set( process_headers
+  draw_detected_object_set_process.h
+  image_filter_process.h
+  merge_images_process.h
+  split_image_process.h
+  stabilize_image_process.h
+  )
+
+set( process_sources
+  register_processes.cxx
+  draw_detected_object_set_process.cxx
+  image_filter_process.cxx
+  merge_images_process.cxx
+  split_image_process.cxx
+  stabilize_image_process.cxx
+  )
+
+kwiver_add_plugin( viame_processes_image_processing
+  SUBDIR           ${viame_plugin_process_subdir}
+  SOURCES          ${process_sources}
+                   ${process_headers}
+  PRIVATE          kwiver::sprokit_pipeline
+                   kwiver::kwiversys
+                   kwiver::vital
+                   kwiver::vital_vpm
+                   kwiver::vital_logger
+                   kwiver::vital_config
+                   kwiver::vital_util
+                   kwiver::vital_exceptions
+                   viame_image_processing
+  )
+
+target_include_directories( viame_processes_image_processing PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  # OpenCV's headers, for the classes imported from arrows/ocv
+  $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
+  )
