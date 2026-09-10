@@ -9,7 +9,7 @@
 
 #include "warp_image_ocv.h"
 
-#include <arrows/ocv/image_container.h>
+#include <viame/opencv_bridge/image_container.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/eigen.hpp>

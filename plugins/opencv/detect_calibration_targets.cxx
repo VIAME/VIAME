@@ -3,7 +3,7 @@
 
 #include <viame/algorithm_framework/algo/algorithm.txx>
 
-#include <arrows/ocv/image_container.h>
+#include <viame/opencv_bridge/image_container.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/calib3d/calib3d.hpp>

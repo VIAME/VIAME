@@ -11,8 +11,8 @@
 
 #include <viame/algorithm_framework/vital_config.h>
 
-#include <arrows/ocv/descriptor_set.h>
-#include <arrows/ocv/match_set.h>
+#include <viame/opencv_bridge/descriptor_set.h>
+#include <viame/opencv_bridge/match_set.h>
 
 using namespace kwiver::vital;
 

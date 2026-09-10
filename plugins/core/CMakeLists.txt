@@ -144,7 +144,7 @@ set( CORE_LINK_LIBRARIES
   kwiver::vital_logger
   kwiver::vital_util
   kwiver::kwiversys
-  kwiver::kwiver_algo_mvg
+  viame_measurement
   kwiver::sprokit_pipeline
   kwiver::kwiver_adapter
   )
@@ -162,7 +162,7 @@ if( VIAME_ENABLE_OPENCV )
   link_directories( "${OpenCV_LIBRARY_DIR}" )
   set( AUX_LINK_LIBRARIES
        ${OpenCV_LIBRARIES}
-       kwiver::kwiver_algo_ocv
+       viame_opencv_bridge
        ${AUX_LINK_LIBRARIES} )
   set( AUX_COMPILE_DEFINITIONS VIAME_ENABLE_OPENCV ${AUX_COMPILE_DEFINITIONS} )
 endif()
@@ -298,12 +298,11 @@ kwiver_add_plugin( viame_processes_core
                    ${private_headers}
   PRIVATE          ${CORE_LINK_LIBRARIES}
                    kwiver::sprokit_pipeline
-                   kwiver::kwiver_algo_core
                    kwiver::kwiver_adapter
                    kwiver::vital_util
                    kwiver::vital_vpm
                    Eigen3::Eigen
-                   kwiver::kwiver_algo_mvg
+                   viame_measurement
                    viame_core
  )
 

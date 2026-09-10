@@ -47,7 +47,6 @@ target_include_directories( viame_svm PUBLIC
 target_link_libraries( viame_svm
   PUBLIC               kwiver::vital
                        kwiver::vital_algo
-                       kwiver::kwiver_algo_core
                        ${OpenCV_LIBS}
   PRIVATE              kwiver::vital_config
                        kwiver::kwiversys

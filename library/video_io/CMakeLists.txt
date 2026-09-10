@@ -56,7 +56,7 @@ target_link_libraries( viame_video_io
                        # image_container, which the imported ocv image_io
                        # converts through; it moves to image_processing with
                        # the rest of arrows/ocv
-                       kwiver::kwiver_algo_ocv
+                       viame_opencv_bridge
   )
 
 set_target_properties( viame_video_io PROPERTIES
@@ -74,10 +74,11 @@ target_link_libraries( viame_video_io_plugin
 ###
 # Processes
 #
-# Imported from sprokit/processes in P5-T04: the four video and image
+# Imported from sprokit/processes in P5-T04: the five video and image
 # processes from `core`, and `image_viewer` from `ocv`.
 ##
 set( process_headers
+  frame_list_process.h
   image_file_reader_process.h
   image_viewer_process.h
   image_writer_process.h
@@ -87,6 +88,7 @@ set( process_headers
 
 set( process_sources
   register_processes.cxx
+  frame_list_process.cxx
   image_file_reader_process.cxx
   image_viewer_process.cxx
   image_writer_process.cxx
@@ -108,8 +110,9 @@ kwiver_add_plugin( viame_processes_video_io
                    kwiver::vital_exceptions
                    viame_video_io
                    ${OpenCV_LIBS}
-                   # image_viewer_process converts through image_container
-                   kwiver::kwiver_algo_ocv
+                   # image_viewer_process and frame_list_process convert
+                   # through image_container
+                   viame_opencv_bridge
   )
 
 target_include_directories( viame_processes_video_io PRIVATE

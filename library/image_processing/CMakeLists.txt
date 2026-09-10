@@ -14,20 +14,29 @@ set( plugin_headers
   # Imported from arrows/ocv and arrows/core in P5-T04. Unchanged apart from
   # their include paths and their export macro, which is this library's now;
   # the namespace is still kwiver's, and phase 8 is where that changes.
+  close_loops_appearance_indexed.h
+  close_loops_bad_frames_only.h
   compute_ref_homography_core.h
   detect_features.h
+  detect_features_filtered.h
   draw_detected_object_set.h
   estimate_fundamental_matrix.h
   estimate_homography.h
   extract_descriptors.h
   feature_detect_extract_SIFT.h
   feature_detect_extract_SURF.h
+  filter_features_nonmax.h
+  filter_tracks.h
   match_features.h
   match_features_flannbased.h
+  match_features_homography.h
+  match_matrix.h
   merge_images.h
   refine_detections_write_to_disk.h
   split_image.h
   split_image_channels.h
+  track_features_core.h
+  track_set_impl.h
   )
 
 set( plugin_sources
@@ -38,20 +47,29 @@ set( plugin_sources
   morphology.cxx
   threshold.cxx
 
+  close_loops_appearance_indexed.cxx
+  close_loops_bad_frames_only.cxx
   compute_ref_homography_core.cxx
   detect_features.cxx
+  detect_features_filtered.cxx
   draw_detected_object_set.cxx
   estimate_fundamental_matrix.cxx
   estimate_homography.cxx
   extract_descriptors.cxx
   feature_detect_extract_SIFT.cxx
   feature_detect_extract_SURF.cxx
+  filter_features_nonmax.cxx
+  filter_tracks.cxx
   match_features.cxx
   match_features_flannbased.cxx
+  match_features_homography.cxx
+  match_matrix.cxx
   merge_images.cxx
   refine_detections_write_to_disk.cxx
   split_image.cxx
   split_image_channels.cxx
+  track_features_core.cxx
+  track_set_impl.cxx
   )
 
 kwiver_install_headers(
@@ -87,12 +105,11 @@ target_link_libraries( viame_image_processing
                        kwiver::kwiversys
   PRIVATE              ${OpenCV_LIBS}
                        # image_container and the rest of arrows/ocv's vital
-                       # bridge, which moves to this library in P7
-                       kwiver::kwiver_algo_ocv
-                       kwiver::kwiver_algo_core
+                       # bridge; phase 7 deletes it
+                       viame_opencv_bridge
   )
 
-# The same guards kwiver set on kwiver_algo_ocv. The SIFT and SURF detectors
+# The same guards kwiver set on its ocv arrow. The SIFT and SURF detectors
 # and descriptors compile out entirely without them, taking ocv_SIFT and
 # ocv_SURF with them; PUBLIC so the separately compiled plugin registration
 # sees the same guard the headers do.

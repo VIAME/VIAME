@@ -20,7 +20,7 @@
 #include <memory>
 #include <opencv2/core/core.hpp>
 
-#include <arrows/ocv/image_container.h>
+#include <viame/opencv_bridge/image_container.h>
 #include <viame/pipeline_framework/type_traits.h>
 
 namespace kv = kwiver::vital;

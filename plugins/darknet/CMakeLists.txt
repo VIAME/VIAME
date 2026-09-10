@@ -20,7 +20,7 @@ set( sources
 set( darknet_linked_libs
   Darknet::dark
   kwiver::kwiversys
-  kwiver::kwiver_algo_ocv
+  viame_opencv_bridge
   ${OpenCV_LIBS} )
 
 add_definitions( -DOPENCV )

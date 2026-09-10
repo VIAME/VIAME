@@ -187,6 +187,51 @@ an artefact of the port:
   1080p frame against 0.5 ms for the same data in vital's own planar layout,
   because `image::copy_from` falls off its memcpy path. Every python
   implementation that returns an image pays it.
+* Kwiver registers `close_loops_appearance_indexed` twice, once as
+  `appearance_indexed` and once as **`multi_method`**; `close_loops_multi_method`
+  exists in the tree and is never registered at all. So
+  `common_image_stabilizer.pipe`, which asks for `loop_closer:type =
+  multi_method` and then configures `method_1` and `method_2` under it, has
+  been getting the appearance-indexed closer, and those two blocks have never
+  done anything. The port keeps the registration exactly as it was --
+  behaviour first -- and `close_loops_multi_method` was dropped with the rest
+  of the unregistered code.
+
+### 1.11 The two-build arrangement fixes which way a dependency can point
+
+Kwiver is configured and built before VIAME, against the same install prefix,
+so a kwiver target can link a kwiver target and VIAME can link either -- but
+nothing left in kwiver can link a VIAME library, and it cannot even see the
+export header of one, because that header is generated in the other build
+tree. This is not a rule anyone wrote down; it is what falls out of P5-T02's
+transitional two-build arrangement.
+
+It decides the order of the P5-T04 moves. `sprokit/processes/examples/process_template`
+had to move to `library/examples` in the same commit that deleted `arrows/ocv`,
+not because the template belongs there yet but because its only remaining
+dependency, the OpenCV bridge, had become a VIAME library. Anything still in
+kwiver that names a moved header has to move with it or lose the dependency.
+
+**For later phases:** when a move leaves something behind in kwiver, check
+what that something links before assuming it can stay.
+
+### 1.12 `library/opencv_bridge` is a transitional library the layout has no row for
+
+`arrows/ocv`'s `image_container`, `mat_image_memory`, `descriptor_set`,
+`feature_set`, `match_set` and `bounding_box` are the `cv::Mat` side of the
+core types. Sixty-four files include one of them. `lite-library-layout.md`'s
+target tree has no home for them, because in the finished tree there are none
+-- P7-T04's "remove `arrows/ocv/image_container.h` uses" is exactly the task
+of deleting them.
+
+They could not stay in kwiver (P5-T05 removes the submodule), and they could
+not go in `image_ops`, which is the code that replaces OpenCV and so must not
+link it. So they are their own directory, `library/opencv_bridge`, whose
+CMakeLists says in its first paragraph that phase 7 deletes it. The layout
+document has a row for it now, marked transitional.
+
+**For later phases:** P7 should end with `git rm -r library/opencv_bridge`,
+not with the directory quietly emptying out.
 
 ## 2. Open questions
 

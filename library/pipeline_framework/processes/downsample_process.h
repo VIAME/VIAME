@@ -5,7 +5,7 @@
 #ifndef _KWIVER_DOWNSAMPLE_PROCESS_H_
 #define _KWIVER_DOWNSAMPLE_PROCESS_H_
 
-#include "viame/pipeline_framework/processes/kwiver_processes_export.h"
+#include "viame_processes_pipeline_framework_export.h"
 
 #include <viame/pipeline_framework/process.h>
 
@@ -14,7 +14,7 @@
 namespace kwiver
 {
 
-class KWIVER_PROCESSES_NO_EXPORT downsample_process
+class VIAME_PROCESSES_PIPELINE_FRAMEWORK_NO_EXPORT downsample_process
   : public sprokit::process
 {
 public:

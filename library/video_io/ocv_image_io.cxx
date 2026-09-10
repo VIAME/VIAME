@@ -7,7 +7,7 @@
 
 #include "ocv_image_io.h"
 
-#include <arrows/ocv/image_container.h>
+#include <viame/opencv_bridge/image_container.h>
 
 #include <viame/core_types/metadata_traits.h>
 

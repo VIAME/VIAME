@@ -623,6 +623,55 @@
     "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
   },
   {
+    "interface": "texture_mesh",
+    "kind": "algorithm",
+    "name": "core",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "uv_unwrap_mesh",
+    "kind": "algorithm",
+    "name": "core",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "kwiver_applet",
+    "kind": "algorithm",
+    "name": "dump-klv",
+    "phase": "P5-T04",
+    "reason": "Reads KLV metadata, which P5-T02 turned off with arrows/klv after P5-T01 found none of its registrations had a user. The applet went with arrows/core when P5-T04 emptied it."
+  },
+  {
+    "interface": "kwiver_applet",
+    "kind": "algorithm",
+    "name": "transcode",
+    "phase": "P5-T04",
+    "reason": "Transcodes with FFmpeg, which phase 4 removed from kwiver, fletch and VIAME. The applet went with arrows/core when P5-T04 emptied it."
+  },
+  {
+    "interface": "kwiver_applet",
+    "kind": "algorithm",
+    "name": "bundle-adjust-tool",
+    "phase": "P5-T04",
+    "reason": "Drives the bundle adjustment and landmark initialisation algorithms P5-T01 removed for having no user; nothing is left for it to run. It went with arrows/mvg when P5-T04 emptied it."
+  },
+  {
+    "interface": "kwiver_applet",
+    "kind": "algorithm",
+    "name": "init-cameras-landmarks",
+    "phase": "P5-T04",
+    "reason": "Drives the camera and landmark initialisation algorithms P5-T01 removed for having no user. It went with arrows/mvg when P5-T04 emptied it."
+  },
+  {
+    "interface": "kwiver_applet",
+    "kind": "algorithm",
+    "name": "track-features",
+    "phase": "P5-T04",
+    "reason": "Drives kwiver's own feature tracking applet chain, which no shipped pipeline or VIAME tool invokes; VIAME stabilises through the `stabilize_image` process instead. It went with arrows/mvg when P5-T04 emptied it."
+  },
+  {
     "interface": "",
     "kind": "process",
     "name": "associate_detections_to_tracks",

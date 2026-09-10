@@ -11,7 +11,7 @@
 
 #include "classify_fish_hierarchical_svm.h"
 
-#include <arrows/ocv/image_container.h>
+#include <viame/opencv_bridge/image_container.h>
 
 #include <fstream>
 #include <iostream>

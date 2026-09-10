@@ -110,10 +110,11 @@ target_link_libraries( viame_opencv
                        kwiver::vital_logger
                        kwiver::vital_util
                        kwiver::kwiversys
-                       kwiver::kwiver_algo_ocv
+                       viame_opencv_bridge
                        ${OpenCV_LIBRARIES}
                        opencv_ml
                        viame_core
+                       viame_measurement
   )
 
 target_include_directories( viame_opencv PUBLIC
@@ -166,8 +167,8 @@ kwiver_add_plugin( viame_processes_opencv
                    kwiver::vital_util
                    kwiver::vital_vpm
                    kwiver::sprokit_pipeline
-                   kwiver::kwiver_algo_ocv
-                   kwiver::kwiver_algo_mvg
+                   viame_opencv_bridge
+                   viame_measurement
                    Eigen3::Eigen
                    ${OpenCV_LIBRARIES}
                    viame_opencv

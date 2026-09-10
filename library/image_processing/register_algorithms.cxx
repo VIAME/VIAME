@@ -16,11 +16,14 @@
 #include <viame/algorithm_framework/algo/estimate_fundamental_matrix.h>
 #include <viame/algorithm_framework/algo/estimate_homography.h>
 #include <viame/algorithm_framework/algo/extract_descriptors.h>
+#include <viame/algorithm_framework/algo/filter_features.h>
+#include <viame/algorithm_framework/algo/filter_tracks.h>
 #include <viame/algorithm_framework/algo/image_filter.h>
 #include <viame/algorithm_framework/algo/match_features.h>
 #include <viame/algorithm_framework/algo/merge_images.h>
 #include <viame/algorithm_framework/algo/refine_detections.h>
 #include <viame/algorithm_framework/algo/split_image.h>
+#include <viame/algorithm_framework/algo/track_features.h>
 #include <viame/algorithm_framework/plugin/plugin_loader.h>
 
 #include "average_frames.h"
@@ -31,17 +34,24 @@
 #include "threshold.h"
 
 // Imported from arrows/ocv and arrows/core in P5-T04
+#include "close_loops_appearance_indexed.h"
+#include "close_loops_bad_frames_only.h"
 #include "compute_ref_homography_core.h"
+#include "detect_features_filtered.h"
+#include "filter_features_nonmax.h"
+#include "filter_tracks.h"
 #include "draw_detected_object_set.h"
 #include "estimate_fundamental_matrix.h"
 #include "estimate_homography.h"
 #include "feature_detect_extract_SIFT.h"
 #include "feature_detect_extract_SURF.h"
 #include "match_features_flannbased.h"
+#include "match_features_homography.h"
 #include "merge_images.h"
 #include "refine_detections_write_to_disk.h"
 #include "split_image.h"
 #include "split_image_channels.h"
+#include "track_features_core.h"
 
 namespace viame {
 
@@ -179,6 +189,39 @@ register_factories( kv::plugin_loader& vpm )
   VIAME_REGISTER_IMPORTED( kv::algo::compute_ref_homography,
                            kwiver::arrows::core::compute_ref_homography_core,
                            "core", "Compute a homography to a reference frame" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::track_features,
+                           kwiver::arrows::core::track_features_core,
+                           "core", "Track features by detecting, describing and matching them" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::match_features,
+                           kwiver::arrows::core::match_features_homography,
+                           "homography_guided",
+                           "Match features and filter the matches by a homography" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::detect_features,
+                           kwiver::arrows::core::detect_features_filtered,
+                           "filtered", "Detect features and filter them" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::filter_features,
+                           kwiver::arrows::core::filter_features_nonmax,
+                           "nonmax", "Filter features by non-maximum suppression" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::filter_tracks,
+                           kwiver::arrows::core::filter_tracks,
+                           "core", "Filter tracks by length and by match matrix importance" )
+
+  VIAME_REGISTER_IMPORTED( kv::algo::close_loops,
+                           kwiver::arrows::core::close_loops_bad_frames_only,
+                           "bad_frames_only", "Close loops over runs of bad frames" )
+
+  // Registered under `multi_method` with the appearance-indexed closer, as
+  // kwiver registered it: see design/lite-findings.md 1.10. The class named
+  // close_loops_multi_method was never registered by anything and did not
+  // come across.
+  VIAME_REGISTER_IMPORTED( kv::algo::close_loops,
+                           kwiver::arrows::core::close_loops_appearance_indexed,
+                           "multi_method", "Close loops by an appearance index" )
 
 #undef VIAME_REGISTER_IMPORTED
 

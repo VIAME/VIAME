@@ -16,6 +16,7 @@
 #include "hough_circle_detector.h"
 #include "detect_heat_map.h"
 #include "detect_motion_3frame_differencing.h"
+#include "example_detector.h"
 
 
 namespace viame {
@@ -54,6 +55,10 @@ register_factories( kv::plugin_loader& vpm )
   VIAME_REGISTER( kv::algo::detect_motion,
                   kwiver::arrows::ocv::detect_motion_3frame_differencing,
                   "ocv_3frame_differencing", "Detect motion by differencing three frames with OpenCV" )
+
+  VIAME_REGISTER( kv::algo::image_object_detector,
+                  kwiver::arrows::core::example_detector,
+                  "example_detector", "Detect a fixed box, for testing a pipeline" )
 
 
 #undef VIAME_REGISTER

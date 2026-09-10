@@ -17,6 +17,7 @@
 #include <viame/pipeline_framework/process_factory.h>
 #include <viame/algorithm_framework/plugin/plugin_loader.h>
 
+#include "frame_list_process.h"
 #include "image_file_reader_process.h"
 #include "image_viewer_process.h"
 #include "image_writer_process.h"
@@ -76,6 +77,11 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   VIAME_REGISTER_PROCESS(
     kwiver::image_viewer_process, "image_viewer",
     "Display input image and delay" )
+
+  VIAME_REGISTER_PROCESS(
+    kwiver::frame_list_process, "frame_list_input",
+    "Reads a list of image file names and generates stream of "
+    "images and associated time stamps." )
 
 #undef VIAME_REGISTER_PROCESS
 

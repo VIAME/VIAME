@@ -11,12 +11,14 @@
 set( plugin_headers
   detect_heat_map.h
   detect_motion_3frame_differencing.h
+  example_detector.h
   hough_circle_detector.h
   )
 
 set( plugin_sources
   detect_heat_map.cxx
   detect_motion_3frame_differencing.cxx
+  example_detector.cxx
   hough_circle_detector.cxx
   )
 
@@ -51,7 +53,7 @@ target_link_libraries( viame_object_detectors
                        kwiver::vital_util
                        kwiver::kwiversys
   PRIVATE              ${OpenCV_LIBS}
-                       kwiver::kwiver_algo_ocv
+                       viame_opencv_bridge
   )
 
 set_target_properties( viame_object_detectors PROPERTIES

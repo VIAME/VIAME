@@ -18,10 +18,10 @@
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/algorithm_framework/util/string.h>
 
-#include <arrows/mvg/triangulate.h>
+#include <viame/measurement/triangulate.h>
 
 #ifdef VIAME_ENABLE_OPENCV
-  #include <arrows/ocv/image_container.h>
+  #include <viame/opencv_bridge/image_container.h>
   #include <opencv2/imgproc/imgproc.hpp>
   #include <opencv2/imgcodecs.hpp>
   #include <opencv2/core/eigen.hpp>

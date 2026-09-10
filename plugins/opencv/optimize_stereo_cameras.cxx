@@ -19,7 +19,7 @@
 #include <viame/algorithm_framework/exceptions.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-#include <arrows/ocv/camera_intrinsics.h>
+#include <viame/measurement/camera_intrinsics.h>
 
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>

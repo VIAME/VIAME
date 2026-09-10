@@ -53,7 +53,7 @@ target_link_libraries( ${PLUGIN_NAME}
                        kwiver::vital_config
                        kwiver::vital_exceptions
                        kwiver::vital_logger
-                       kwiver::kwiver_algo_ocv
+                       viame_opencv_bridge
   )
 
 set_target_properties( ${PLUGIN_NAME}

@@ -27,7 +27,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wreorder"
 #endif
-#include <arrows/mvg/triangulate.h>
+#include <viame/measurement/triangulate.h>
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif

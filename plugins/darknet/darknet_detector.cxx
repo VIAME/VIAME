@@ -10,7 +10,7 @@
 #include <viame/algorithm_framework/config/config_block_formatter.h>
 #include <viame/core_types/detected_object_set_util.h>
 
-#include <arrows/ocv/image_container.h>
+#include <viame/opencv_bridge/image_container.h>
 
 #include <kwiversys/SystemTools.hxx>
 

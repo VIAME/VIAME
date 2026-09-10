@@ -6,7 +6,8 @@
  * \file
  * \brief kw18 detection and track reader and writer registration
  *
- * Imported from arrows/core in P5-T04. The implementations are unchanged and
+ * Imported from arrows/core in P5-T04, along with the feature and descriptor
+ * reader and writer. The implementations are unchanged and
  * are still in kwiver's namespace; what moved is where they are built and
  * where they register.
  */
@@ -15,6 +16,7 @@
 
 #include <viame/algorithm_framework/algo/detected_object_set_input.h>
 #include <viame/algorithm_framework/algo/detected_object_set_output.h>
+#include <viame/algorithm_framework/algo/feature_descriptor_io.h>
 #include <viame/algorithm_framework/algo/read_object_track_set.h>
 #include <viame/algorithm_framework/algo/write_object_track_set.h>
 
@@ -22,6 +24,7 @@
 
 #include "detected_object_set_input_kw18.h"
 #include "detected_object_set_output_kw18.h"
+#include "feature_descriptor_io.h"
 #include "read_object_track_set_kw18.h"
 #include "write_object_track_set_kw18.h"
 
@@ -65,6 +68,10 @@ register_factories( kv::plugin_loader& vpm )
   VIAME_REGISTER( kv::algo::write_object_track_set,
                   kwiver::arrows::core::write_object_track_set_kw18,
                   "kw18", "Write object track sets in kw18 format" )
+
+  VIAME_REGISTER( kv::algo::feature_descriptor_io,
+                  kwiver::arrows::core::feature_descriptor_io,
+                  "core", "Read and write features and descriptors with cereal" )
 
 #undef VIAME_REGISTER
 

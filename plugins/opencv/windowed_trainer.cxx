@@ -12,7 +12,7 @@
 #include <viame/algorithm_framework/util/cpu_timer.h>
 #include <viame/algorithm_framework/algo/image_io.h>
 
-#include <arrows/ocv/image_container.h>
+#include <viame/opencv_bridge/image_container.h>
 #include <viame/core_types/detected_object.h>
 #include <viame/core_types/detected_object_set.h>
 #include <viame/core_types/detected_object_type.h>

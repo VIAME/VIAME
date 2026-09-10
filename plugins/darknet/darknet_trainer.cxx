@@ -13,7 +13,7 @@
 #include <viame/core_types/detected_object_set_util.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-#include <arrows/ocv/image_container.h>
+#include <viame/opencv_bridge/image_container.h>
 
 #include <kwiversys/SystemTools.hxx>
 #include <kwiversys/Directory.hxx>

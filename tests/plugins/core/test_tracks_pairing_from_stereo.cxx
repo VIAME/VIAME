@@ -6,7 +6,7 @@
 #include "detections_pairing_from_stereo.h"
 #include <viame/core_types/track.h>
 #include <viame/core_types/timestamp.h>
-#include <arrows/ocv/image_container.h>
+#include <viame/opencv_bridge/image_container.h>
 
 namespace kv = kwiver::vital;
 using namespace viame::core;

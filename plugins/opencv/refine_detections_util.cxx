@@ -9,7 +9,7 @@
 
 #include <cmath>
 
-#include <arrows/ocv/image_container.h>
+#include <viame/opencv_bridge/image_container.h>
 
 namespace viame {
 

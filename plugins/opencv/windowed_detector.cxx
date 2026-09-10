@@ -12,7 +12,7 @@
 #include <viame/algorithm_framework/exceptions/io.h>
 #include <viame/algorithm_framework/config/config_block_formatter.h>
 
-#include <arrows/ocv/image_container.h>
+#include <viame/opencv_bridge/image_container.h>
 #include <kwiversys/SystemTools.hxx>
 
 #include <opencv2/core/core.hpp>

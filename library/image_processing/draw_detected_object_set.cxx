@@ -13,7 +13,7 @@
 #include <viame/algorithm_framework/vital_config.h>
 #include <viame/core_types/vital_types.h>
 
-#include <arrows/ocv/image_container.h>
+#include <viame/opencv_bridge/image_container.h>
 #include <kwiversys/RegularExpression.hxx>
 
 #include <opencv2/core/core.hpp>

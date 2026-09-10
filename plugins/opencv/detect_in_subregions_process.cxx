@@ -4,7 +4,7 @@
 
 #include "detect_in_subregions_process.h"
 
-#include <arrows/ocv/image_container.h>
+#include <viame/opencv_bridge/image_container.h>
 
 #include <viame/algorithm_framework/algo/image_object_detector.h>
 #include <viame/algorithm_framework/algo/algorithm.txx>
