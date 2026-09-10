@@ -13,7 +13,6 @@
 #include <viame/algorithm_framework/algo/image_object_detector.h>
 #include <viame/algorithm_framework/plugin/plugin_loader.h>
 
-#include "hough_circle_detector.h"
 #include "detect_heat_map.h"
 #include "detect_motion_3frame_differencing.h"
 #include "example_detector.h"
@@ -44,9 +43,8 @@ register_factories( kv::plugin_loader& vpm )
       .add_attribute( kvpf::PLUGIN_DESCRIPTION, blurb );             \
   }
 
-  VIAME_REGISTER( kv::algo::image_object_detector,
-                  kwiver::arrows::ocv::hough_circle_detector,
-                  "hough_circle", "Detect circles with OpenCV's Hough transform" )
+  // `hough_circle` is `hough_circle_detector.py` since P7-T04: the Hough
+  // gradient transform is cv2's, and only the language changed.
 
   VIAME_REGISTER( kv::algo::image_object_detector,
                   kwiver::arrows::ocv::detect_heat_map,

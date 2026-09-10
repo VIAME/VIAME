@@ -3,7 +3,7 @@
 #include <viame/algorithm_framework/config/config_block_io.h>
 #include <viame/opencv_bridge/image_container.h>
 #include <viame/video_io/core_image_io.h>
-#include <viame/object_detectors/hough_circle_detector.h>
+#include <viame/object_detectors/detect_heat_map.h>
 
 #include <string>
 
@@ -26,7 +26,12 @@ int main( int argc, char* argv[] )
   kwiver::vital::image_container_sptr the_image = image_reader->load( filename );
 
   // (4) Create the detector
-  kwiver::vital::algo::image_object_detector_sptr detector( new kwiver::arrows::ocv::hough_circle_detector() );
+  //
+  // Constructed directly rather than through the plugin manager, which is
+  // what this example is for; detector3 shows the other way. It was
+  // `hough_circle` until P7-T04 moved that implementation to python, and a
+  // python implementation has no class to construct here.
+  kwiver::vital::algo::image_object_detector_sptr detector( new kwiver::arrows::ocv::detect_heat_map() );
 
   // (4.1) If there was a config structure, then pass it to the algorithm.
   if (config)

@@ -10,7 +10,6 @@
 
 #include <memory>
 
-#include <opencv2/opencv.hpp>
 
 #include <viame/algorithm_framework/algo/detect_motion.h>
 #include <viame/algorithm_framework/config/config_block.h>

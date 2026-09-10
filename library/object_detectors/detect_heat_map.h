@@ -10,7 +10,6 @@
 
 #include <memory>
 
-#include <opencv2/opencv.hpp>
 
 #include <viame/algorithm_framework/algo/image_object_detector.h>
 #include <viame/algorithm_framework/config/config_block.h>
