@@ -1,0 +1,366 @@
+# Every Eigen use under library/ and tools/, for phase 6
+#
+# Written by the inventory step of P6-T01. Each line is
+# `path:line:source`, grouped by what the line asks Eigen for,
+# because that is what decides how much of `core_types/math` it
+# needs rather than how many lines it is.
+#
+# A type alias or a declaration is a rename; arithmetic is the
+# operators and the three or four named products; map, block and
+# expression idioms are the ones with no one-line replacement; a
+# decomposition is the only category that needs real numerical
+# code, and there are nine lines of it.
+
+## Counts
+
+decomposition                9
+map/block/expression         4
+arithmetic                   1
+type alias or declaration    229
+other                        0
+total                        243
+files                        41
+
+## Files, most uses first
+
+library/measurement/triangulate.cxx                       38  (type alias or declaration 31, decomposition 5, map/block/expression 2)
+library/core_types/rotation.cxx                           22  (type alias or declaration 21, arithmetic 1)
+library/core_types/homography.cxx                         21  (type alias or declaration 21)
+library/core_types/matrix.h                               16  (type alias or declaration 16)
+library/core_types/rotation.h                             14  (type alias or declaration 14)
+library/core_types/camera_intrinsics.cxx                  12  (type alias or declaration 12)
+library/measurement/triangulate.h                          9  (type alias or declaration 9)
+library/core_types/bounding_box.h                          7  (type alias or declaration 7)
+library/core_types/landmark.h                              7  (type alias or declaration 7)
+library/core_types/similarity.cxx                          7  (type alias or declaration 7)
+library/core_types/similarity.h                            7  (type alias or declaration 7)
+library/core_types/vector.h                                7  (type alias or declaration 7)
+library/core_types/essential_matrix.cxx                    6  (type alias or declaration 4, decomposition 2)
+library/algorithm_framework/io/camera_from_metadata.cxx    5  (type alias or declaration 5)
+library/core_types/fundamental_matrix.cxx                  5  (type alias or declaration 3, decomposition 2)
+library/core_types/local_tangent_space.cxx                 5  (type alias or declaration 3, map/block/expression 2)
+library/image_processing/filter_features_nonmax.cxx        5  (type alias or declaration 5)
+library/core_types/feature.h                               4  (type alias or declaration 4)
+library/core_types/homography.h                            4  (type alias or declaration 4)
+library/core_types/pointcloud.h                            4  (type alias or declaration 4)
+library/core_types/camera_rpc.cxx                          3  (type alias or declaration 3)
+library/core_types/camera_rpc.h                            3  (type alias or declaration 3)
+library/core_types/essential_matrix.h                      3  (type alias or declaration 3)
+library/core_types/fundamental_matrix.h                    3  (type alias or declaration 3)
+library/core_types/landmark.cxx                            3  (type alias or declaration 3)
+library/core_types/mesh.h                                  3  (type alias or declaration 3)
+library/core_types/camera_perspective.cxx                  2  (type alias or declaration 2)
+library/core_types/covariance.h                            2  (type alias or declaration 2)
+library/core_types/feature.cxx                             2  (type alias or declaration 2)
+library/core_types/pointcloud.cxx                          2  (type alias or declaration 2)
+library/image_processing/close_loops_homography_guided.cxx   2  (type alias or declaration 2)
+library/algorithm_framework/algo/resection_camera.cxx      1  (type alias or declaration 1)
+library/algorithm_framework/io/camera_from_metadata.h      1  (type alias or declaration 1)
+library/algorithm_framework/io/eigen_io.h                  1  (type alias or declaration 1)
+library/core_types/camera_intrinsics.h                     1  (type alias or declaration 1)
+library/core_types/homography_f2f.cxx                      1  (type alias or declaration 1)
+library/core_types/homography_f2f.h                        1  (type alias or declaration 1)
+library/core_types/local_tangent_space.h                   1  (type alias or declaration 1)
+library/core_types/point.h                                 1  (type alias or declaration 1)
+library/image_processing/compute_ref_homography_core.cxx   1  (type alias or declaration 1)
+library/image_processing/draw_detected_object_set.cxx      1  (type alias or declaration 1)
+
+
+## decomposition (9)
+
+library/core_types/essential_matrix.cxx:40:  Eigen::JacobiSVD< matrix_t > svd( mat, Eigen::ComputeFullU |
+library/core_types/essential_matrix.cxx:41:    Eigen::ComputeFullV );
+library/core_types/fundamental_matrix.cxx:26:  Eigen::JacobiSVD< matrix_t > svd( mat, Eigen::ComputeFullU |
+library/core_types/fundamental_matrix.cxx:27:    Eigen::ComputeFullV );
+library/measurement/triangulate.cxx:74:  Eigen::JacobiSVD< Eigen::Matrix< double, 4, 4 > > svd( design_matrix,
+library/measurement/triangulate.cxx:75:    Eigen::ComputeFullV );
+library/measurement/triangulate.cxx:195:  Eigen::JacobiSVD< data_matrix_t > svd( A, Eigen::ComputeFullU |
+library/measurement/triangulate.cxx:196:    Eigen::ComputeFullV );
+library/measurement/triangulate.cxx:233:  Eigen::JacobiSVD< data_matrix_t > svd( A, Eigen::ComputeFullV );
+
+
+## map/block/expression (4)
+
+library/core_types/local_tangent_space.cxx:132:      vital::rotation_d{ Eigen::Matrix3d{ m_axes.transpose() } };
+library/core_types/local_tangent_space.cxx:137:        vital::rotation_d{ Eigen::Matrix3d{ m_axes.transpose() } };
+library/measurement/triangulate.cxx:247:  Eigen::Array3d curr_scale = cameras[ 0 ].world_scale().array();
+library/measurement/triangulate.cxx:248:  Eigen::Array3d curr_offset = cameras[ 0 ].world_offset().array();
+
+
+## arithmetic (1)
+
+library/core_types/rotation.cxx:121:  const double i = Eigen::Matrix< T, 3, 1 >( q_.x(), q_.y(), q_.z() ).norm();
+
+
+## type alias or declaration (229)
+
+library/algorithm_framework/algo/resection_camera.cxx:40:    Eigen::VectorXd(), width, height );
+library/algorithm_framework/io/camera_from_metadata.cxx:20:Eigen::VectorXd
+library/algorithm_framework/io/camera_from_metadata.cxx:27:  Eigen::VectorXd rslt( vec_length );
+library/algorithm_framework/io/camera_from_metadata.cxx:79:Eigen::VectorXd
+library/algorithm_framework/io/camera_from_metadata.cxx:91:  Eigen::VectorXd result( tokens.size() );
+library/algorithm_framework/io/camera_from_metadata.cxx:183:    Eigen::VectorXd(), image_width, image_height );
+library/algorithm_framework/io/camera_from_metadata.h:28:Eigen::VectorXd
+library/algorithm_framework/io/eigen_io.h:41:                                       "parsing an Eigen::Matrix" );
+library/core_types/bounding_box.h:27:  typedef Eigen::Matrix< T, 2, 1 > vector_type;
+library/core_types/bounding_box.h:51:    m_bbox = Eigen::AlignedBox< T, 2 >( upper_left, lr );
+library/core_types/bounding_box.h:64:    m_bbox = Eigen::AlignedBox< T, 2 >( ul, lr );
+library/core_types/bounding_box.h:146:  Eigen::AlignedBox< T, 2 >& get_eabb()  { return m_bbox; }
+library/core_types/bounding_box.h:147:  Eigen::AlignedBox< T, 2 >
+library/core_types/bounding_box.h:153:  bounding_box( Eigen::AlignedBox< T, 2 > const& b )
+library/core_types/bounding_box.h:176:  Eigen::AlignedBox< T, 2 > m_bbox;
+library/core_types/camera_intrinsics.cxx:97:  const Eigen::VectorXd&  d )
+library/core_types/camera_intrinsics.cxx:132:  const Eigen::Matrix< T, 2, 1 >& pt,
+library/core_types/camera_intrinsics.cxx:133:  const Eigen::VectorXd& d,
+library/core_types/camera_intrinsics.cxx:134:  T& scale, Eigen::Matrix< T, 2, 1 >& offset )
+library/core_types/camera_intrinsics.cxx:141:  offset = Eigen::Matrix< T, 2, 1 >( T( 0 ), T( 0 ) );
+library/core_types/camera_intrinsics.cxx:145:    offset = Eigen::Matrix< T, 2, 1 >(
+library/core_types/camera_intrinsics.cxx:156:  const Eigen::VectorXd&  d )
+library/core_types/camera_intrinsics.cxx:188:Eigen::Matrix< T, 2, 2 >
+library/core_types/camera_intrinsics.cxx:190:  const Eigen::Matrix< T, 2, 1 >& pt,
+library/core_types/camera_intrinsics.cxx:191:  const Eigen::VectorXd& d )
+library/core_types/camera_intrinsics.cxx:199:  Eigen::Matrix< T, 2, 2 > J;
+library/core_types/camera_intrinsics.cxx:425:  Eigen::VectorXd d;
+library/core_types/camera_intrinsics.h:122:  typedef Eigen::VectorXd vector_t;
+library/core_types/camera_perspective.cxx:75:  Eigen::VectorXd d = Eigen::VectorXd::Map( dc.data(), dc.size() );
+library/core_types/camera_perspective.cxx:158:  Eigen::VectorXd d( dValues.size() );
+library/core_types/camera_rpc.cxx:93:Eigen::Matrix< double, 20, 1 >
+library/core_types/camera_rpc.cxx:121:  Eigen::Matrix< double, 20, 1 > retVec;
+library/core_types/camera_rpc.cxx:164:  Eigen::Matrix< double, 20, 1 > pv = this->power_vector( pt );
+library/core_types/camera_rpc.h:27:typedef Eigen::Matrix< double, 4, 20 > rpc_matrix;
+library/core_types/camera_rpc.h:28:typedef Eigen::Matrix< double, 4, 10 > rpc_deriv_matrix;
+library/core_types/camera_rpc.h:55:  static Eigen::Matrix< double, 20, 1 > power_vector( const vector_3d& pt );
+library/core_types/covariance.h:30:  using matrix_type = Eigen::Matrix< T, N, N >;
+library/core_types/covariance.h:108:    Eigen::Matrix< T, N, N > mat;
+library/core_types/essential_matrix.cxx:35:::essential_matrix_( Eigen::Matrix< T, 3, 3 > const& mat )
+library/core_types/essential_matrix.cxx:114:Eigen::Matrix< double, 3, 3 >
+library/core_types/essential_matrix.cxx:123:Eigen::Matrix< double, 3, 3 >
+library/core_types/essential_matrix.cxx:177:  typedef Eigen::Matrix< T, 4, 1 > vector_4;
+library/core_types/essential_matrix.h:78:  typedef Eigen::Matrix< T, 3, 3 > matrix_t;
+library/core_types/essential_matrix.h:79:  typedef Eigen::Matrix< T, 3, 1 > vector_t;
+library/core_types/essential_matrix.h:116:  virtual Eigen::Matrix< double, 3, 3 > matrix() const;
+library/core_types/feature.cxx:44:  Eigen::Matrix< T, 2, 1 > const& loc,
+library/core_types/feature.cxx:96:  Eigen::Matrix< T, 2, 1 > loc;
+library/core_types/feature.h:115:    Eigen::Matrix< T, 2, 1 > const& loc, T mag = 0.0,
+library/core_types/feature.h:130:  Eigen::Matrix< T, 2, 1 > const&
+library/core_types/feature.h:178:  void set_loc( Eigen::Matrix< T, 2, 1 > const& loc ) { loc_ = loc; }
+library/core_types/feature.h:207:  Eigen::Matrix< T, 2, 1 > loc_;
+library/core_types/fundamental_matrix.cxx:24:::fundamental_matrix_( Eigen::Matrix< T, 3, 3 > const& mat )
+library/core_types/fundamental_matrix.cxx:83:Eigen::Matrix< double, 3, 3 >
+library/core_types/fundamental_matrix.cxx:92:Eigen::Matrix< double, 3, 3 >
+library/core_types/fundamental_matrix.h:66:  typedef Eigen::Matrix< T, 3, 3 > matrix_t;
+library/core_types/fundamental_matrix.h:67:  typedef Eigen::Matrix< T, 3, 1 > vector_t;
+library/core_types/fundamental_matrix.h:98:  virtual Eigen::Matrix< double, 3, 3 > matrix() const;
+library/core_types/homography.cxx:25:Eigen::Matrix< T, 2, 1 >
+library/core_types/homography.cxx:27:  Eigen::Matrix< T, 3, 3 > const& h,
+library/core_types/homography.cxx:28:  Eigen::Matrix< T, 2, 1 > const& p )
+library/core_types/homography.cxx:30:  Eigen::Matrix< T, 3, 1 > out_pt = h * Eigen::Matrix< T, 3, 1 >(
+library/core_types/homography.cxx:34:  if( fabs( out_pt[ 2 ] ) <= Eigen::NumTraits< T >::dummy_precision() )
+library/core_types/homography.cxx:38:  return Eigen::Matrix< T, 2, 1 >(
+library/core_types/homography.cxx:57:::homography_( Eigen::Matrix< T, 3, 3 > const& mat )
+library/core_types/homography.cxx:106:Eigen::Matrix< double, 3, 3 >
+library/core_types/homography.cxx:115:Eigen::Matrix< double, 3, 3 >
+library/core_types/homography.cxx:130:  if( fabs( norm( 2, 2 ) ) >= Eigen::NumTraits< T >::dummy_precision() )
+library/core_types/homography.cxx:156:Eigen::Matrix< double, 2, 1 >
+library/core_types/homography.cxx:158:::map( Eigen::Matrix< double, 2, 1 > const& p ) const
+library/core_types/homography.cxx:162:  Eigen::Matrix< double, 3, 3 > m = h_.template cast< double >();
+library/core_types/homography.cxx:169:Eigen::Matrix< double, 2, 1 >
+library/core_types/homography.cxx:171:::map( Eigen::Matrix< double, 2, 1 > const& p ) const
+library/core_types/homography.cxx:198:Eigen::Matrix< T, 2, 1 >
+library/core_types/homography.cxx:200:::map_point( Eigen::Matrix< T, 2, 1 > const& p ) const
+library/core_types/homography.cxx:207:Eigen::Matrix< float, 2, 1 >
+library/core_types/homography.cxx:209:::map_point( Eigen::Matrix< float, 2, 1 > const& p ) const
+library/core_types/homography.cxx:216:Eigen::Matrix< double, 2, 1 >
+library/core_types/homography.cxx:218:::map_point( Eigen::Matrix< double, 2, 1 > const& p ) const
+library/core_types/homography.h:43:  virtual Eigen::Matrix< double, 3, 3 > matrix() const = 0;
+library/core_types/homography.h:79:  typedef Eigen::Matrix< T, 3, 3 > matrix_t;
+library/core_types/homography.h:118:  Eigen::Matrix< double, 3, 3 > matrix() const override;
+library/core_types/homography.h:159:  Eigen::Matrix< T, 2, 1 > map_point( Eigen::Matrix< T, 2, 1 > const& p ) const;
+library/core_types/homography_f2f.cxx:88:  Eigen::Matrix< double, 3, 3 > new_h = this->h_->matrix() * rhs.h_->matrix();
+library/core_types/homography_f2f.h:32:    Eigen::Matrix< T, 3, 3 > const& h,
+library/core_types/landmark.cxx:46:::landmark_( Eigen::Matrix< T, 3, 1 > const& loc, T scale )
+library/core_types/landmark.cxx:88:  Eigen::Matrix< T, 3, 1 > loc;
+library/core_types/landmark.cxx:89:  Eigen::Matrix< T, 3, 1 > normal;
+library/core_types/landmark.h:85:  landmark_( Eigen::Matrix< T, 3, 1 > const& loc, T scale = 1 );
+library/core_types/landmark.h:104:  Eigen::Matrix< T, 3, 1 > const&
+library/core_types/landmark.h:129:  Eigen::Matrix< T, 3, 1 > const&
+library/core_types/landmark.h:161:  void set_loc( Eigen::Matrix< T, 3, 1 > const& loc ) { loc_ = loc; }
+library/core_types/landmark.h:168:  set_normal( Eigen::Matrix< T, 3, 1 > const& normal )
+library/core_types/landmark.h:191:  Eigen::Matrix< T, 3, 1 > loc_;
+library/core_types/landmark.h:195:  Eigen::Matrix< T, 3, 1 > normal_;
+library/core_types/local_tangent_space.cxx:33:Eigen::Matrix3d
+library/core_types/local_tangent_space.cxx:36:  Eigen::Matrix3d axes;
+library/core_types/local_tangent_space.cxx:172:      vital::rotation_d{ Eigen::Matrix3d{
+library/core_types/local_tangent_space.h:77:  Eigen::Matrix3d m_axes;
+library/core_types/matrix.h:18:typedef Eigen::MatrixXd matrix_d;
+library/core_types/matrix.h:19:typedef Eigen::MatrixXf matrix_f;
+library/core_types/matrix.h:21:typedef Eigen::Matrix< double, 2, 2 > matrix_2x2d;
+library/core_types/matrix.h:22:typedef Eigen::Matrix< float, 2, 2 >  matrix_2x2f;
+library/core_types/matrix.h:23:typedef Eigen::Matrix< double, 2, 3 > matrix_2x3d;
+library/core_types/matrix.h:24:typedef Eigen::Matrix< float, 2, 3 >  matrix_2x3f;
+library/core_types/matrix.h:25:typedef Eigen::Matrix< double, 3, 2 > matrix_3x2d;
+library/core_types/matrix.h:26:typedef Eigen::Matrix< float, 3, 2 >  matrix_3x2f;
+library/core_types/matrix.h:27:typedef Eigen::Matrix< double, 3, 3 > matrix_3x3d;
+library/core_types/matrix.h:28:typedef Eigen::Matrix< float, 3, 3 >  matrix_3x3f;
+library/core_types/matrix.h:29:typedef Eigen::Matrix< double, 3, 4 > matrix_3x4d;
+library/core_types/matrix.h:30:typedef Eigen::Matrix< float, 3, 4 >  matrix_3x4f;
+library/core_types/matrix.h:31:typedef Eigen::Matrix< double, 4, 3 > matrix_4x3d;
+library/core_types/matrix.h:32:typedef Eigen::Matrix< float, 4, 3 >  matrix_4x3f;
+library/core_types/matrix.h:33:typedef Eigen::Matrix< double, 4, 4 > matrix_4x4d;
+library/core_types/matrix.h:34:typedef Eigen::Matrix< float, 4, 4 >  matrix_4x4f;
+library/core_types/mesh.h:101:  /// \note Eigen::Matrix<double,2,1> == vector_2d
+library/core_types/mesh.h:102:  ///   and Eigen::Matrix<double,3,1> == vector_3d
+library/core_types/mesh.h:103:  typedef Eigen::Matrix< double, 3, 1 > vert_t;
+library/core_types/point.h:29:  using vector_type = Eigen::Matrix< T, N, 1 >;
+library/core_types/pointcloud.cxx:27:::pointcloud_( std::vector< Eigen::Matrix< T, 3, 1 > > const& pos )
+library/core_types/pointcloud.cxx:62:::set_positions( std::vector< Eigen::Matrix< T, 3, 1 > > const& pos )
+library/core_types/pointcloud.h:75:    std::vector< Eigen::Matrix< T, 3, 1 > > const& positions );
+library/core_types/pointcloud.h:94:  std::vector< Eigen::Matrix< T, 3, 1 > > const&
+library/core_types/pointcloud.h:125:  void set_positions( std::vector< Eigen::Matrix< T, 3, 1 > > const& pos );
+library/core_types/pointcloud.h:135:  std::vector< Eigen::Matrix< T, 3, 1 > > pos_;
+library/core_types/rotation.cxx:26:::rotation_( const Eigen::Matrix< T, 3, 1 >& rvec )
+library/core_types/rotation.cxx:37:    q_ = Eigen::Quaternion< T >( Eigen::AngleAxis< T >( mag, rvec / mag ) );
+library/core_types/rotation.cxx:45:::rotation_( T angle, const Eigen::Matrix< T, 3, 1 >& axis )
+library/core_types/rotation.cxx:46:  : q_( Eigen::Quaternion< T >(
+library/core_types/rotation.cxx:47:      Eigen::AngleAxis< T >(
+library/core_types/rotation.cxx:69:  *this = Eigen::Quaternion< T >{
+library/core_types/rotation.cxx:82:::rotation_( const Eigen::Matrix< T, 3, 3 >& rot )
+library/core_types/rotation.cxx:84:  q_ = Eigen::Quaternion< T >( rot );
+library/core_types/rotation.cxx:89:Eigen::Matrix< T, 3, 3 >
+library/core_types/rotation.cxx:98:Eigen::Matrix< T, 3, 1 >
+library/core_types/rotation.cxx:102:  Eigen::Matrix< T, 3, 1 > dir( q_.x(), q_.y(), q_.z() );
+library/core_types/rotation.cxx:107:    return Eigen::Matrix< T, 3, 1 >( 0, 0, 1 );
+library/core_types/rotation.cxx:140:Eigen::Matrix< T, 3, 1 >
+library/core_types/rotation.cxx:148:    return Eigen::Matrix< T, 3, 1 >( 0, 0, 0 );
+library/core_types/rotation.cxx:186:Eigen::Matrix< T, 3, 1 >
+library/core_types/rotation.cxx:188:::operator*( const Eigen::Matrix< T, 3, 1 >& rhs ) const
+library/core_types/rotation.cxx:207:  Eigen::Matrix< T, 4, 1 > q;
+library/core_types/rotation.cxx:248:  auto axis = Eigen::Matrix< T, 3, 1 >{ 1, 1, 0 };
+library/core_types/rotation.cxx:258:  auto axis = Eigen::Matrix< T, 3, 1 >{ 1, 1, 0 };
+library/core_types/rotation.cxx:269:    Eigen::Quaternion< T >{ 0.5, 0.5, 0.5, 0.5 } };
+library/core_types/rotation.cxx:278:    Eigen::Quaternion< T >{ 0.5, -0.5, -0.5, -0.5 } };
+library/core_types/rotation.h:35:  rotation_( const Eigen::Quaternion< T >& quaternion )
+library/core_types/rotation.h:40:    : q_( static_cast< Eigen::Quaternion< T > >( other.quaternion() ) ) {}
+library/core_types/rotation.h:52:  // Might want to consider using the actual Eigen::Quaternion constructor. This
+library/core_types/rotation.h:54:  explicit rotation_( const Eigen::Matrix< T, 4, 1 >& quaternion )
+library/core_types/rotation.h:65:  explicit rotation_( const Eigen::Matrix< T, 3, 1 >& rvec );
+library/core_types/rotation.h:68:  rotation_( T angle, const Eigen::Matrix< T, 3, 1 >& axis );
+library/core_types/rotation.h:86:  explicit rotation_( const Eigen::Matrix< T, 3, 3 >& rot );
+library/core_types/rotation.h:89:  Eigen::Matrix< T, 3, 3 > matrix() const;
+library/core_types/rotation.h:96:  Eigen::Matrix< T, 3, 1 > axis() const;
+library/core_types/rotation.h:106:  Eigen::Quaternion< T >
+library/core_types/rotation.h:110:  Eigen::Matrix< T, 3, 1 > rodrigues() const;
+library/core_types/rotation.h:136:  Eigen::Matrix< T, 3,
+library/core_types/rotation.h:137:    1 > operator*( const Eigen::Matrix< T, 3, 1 >& rhs ) const;
+library/core_types/rotation.h:165:  Eigen::Quaternion< T > q_;
+library/core_types/similarity.cxx:27:::similarity_( const Eigen::Matrix< T, 4, 4 >& M )
+library/core_types/similarity.cxx:41:  Eigen::Matrix< T, 3, 3 > sr = M.template block< 3, 3 >( 0, 0 );
+library/core_types/similarity.cxx:63:Eigen::Matrix< T, 4, 4 >
+library/core_types/similarity.cxx:67:  Eigen::Matrix< T, 4, 4 > mat = Eigen::Matrix< T, 4, 4 >::Zero();
+library/core_types/similarity.cxx:88:Eigen::Matrix< T, 3, 1 >
+library/core_types/similarity.cxx:90:::operator*( const Eigen::Matrix< T, 3, 1 >& rhs ) const
+library/core_types/similarity.cxx:112:  Eigen::Matrix< T, 3, 1 > tr;
+library/core_types/similarity.h:54:    const Eigen::Matrix< T, 3, 1 >& t )
+library/core_types/similarity.h:65:  explicit similarity_( const Eigen::Matrix< T, 4, 4 >& mat );
+library/core_types/similarity.h:68:  Eigen::Matrix< T, 4, 4 > matrix() const;
+library/core_types/similarity.h:79:  const Eigen::Matrix< T, 3, 1 >&
+library/core_types/similarity.h:104:  Eigen::Matrix< T, 3,
+library/core_types/similarity.h:105:    1 > operator*( const Eigen::Matrix< T, 3, 1 >& rhs ) const;
+library/core_types/similarity.h:129:  Eigen::Matrix< T, 3, 1 > trans_;
+library/core_types/vector.h:18:typedef Eigen::Vector2i vector_2i;
+library/core_types/vector.h:19:typedef Eigen::Vector2d vector_2d;
+library/core_types/vector.h:20:typedef Eigen::Vector2f vector_2f;
+library/core_types/vector.h:21:typedef Eigen::Vector3d vector_3d;
+library/core_types/vector.h:22:typedef Eigen::Vector3f vector_3f;
+library/core_types/vector.h:23:typedef Eigen::Vector4d vector_4d;
+library/core_types/vector.h:24:typedef Eigen::Vector4f vector_4f;
+library/image_processing/close_loops_homography_guided.cxx:65:  Eigen::Matrix< double, 3, 3 >& src2_to_src1 )
+library/image_processing/close_loops_homography_guided.cxx:181:  Eigen::Matrix< double, 3, 3 > tmp;
+library/image_processing/compute_ref_homography_core.cxx:235:        Eigen::Matrix< double, 3, 3 > h_mat = tmp_h->matrix(),
+library/image_processing/draw_detected_object_set.cxx:33:typedef  Eigen::Matrix< unsigned int, 3, 1 > ColorVector;
+library/image_processing/filter_features_nonmax.cxx:30:    Eigen::AlignedBox< double, 2 > feat_bbox,
+library/image_processing/filter_features_nonmax.cxx:154:  Eigen::AlignedBox< double, 2 > m_feat_bbox;
+library/image_processing/filter_features_nonmax.cxx:207:    Eigen::AlignedBox< double, 2 > bbox;
+library/image_processing/filter_features_nonmax.cxx:208:    Eigen::AlignedBox< double, 1 > scale_box;
+library/image_processing/filter_features_nonmax.cxx:214:      scale_box.extend( Eigen::Matrix< double, 1, 1 >( feat->scale() ) );
+library/measurement/triangulate.cxx:99:  Eigen::Matrix< double, 2, 3 > s_matrix;
+library/measurement/triangulate.cxx:102:  const Eigen::Matrix2d e_submatrix = E.topLeftCorner< 2, 2 >();
+library/measurement/triangulate.cxx:132:Eigen::Matrix< T, 3, 1 >
+library/measurement/triangulate.cxx:136:  const Eigen::Matrix< T, 2, 1 >& point0,
+library/measurement/triangulate.cxx:137:  const Eigen::Matrix< T, 2, 1 >& point1 )
+library/measurement/triangulate.cxx:162:Eigen::Matrix< T, 3, 1 >
+library/measurement/triangulate.cxx:165:  const std::vector< Eigen::Matrix< T, 2, 1 > >& points )
+library/measurement/triangulate.cxx:167:  typedef Eigen::Matrix< T, 2, 1 > vector_2;
+library/measurement/triangulate.cxx:168:  typedef Eigen::Matrix< T, 3, 1 > vector_3;
+library/measurement/triangulate.cxx:169:  typedef Eigen::Matrix< T, 3, 3 > matrix_3x3;
+library/measurement/triangulate.cxx:170:  typedef Eigen::Matrix< T, Eigen::Dynamic, 3 > data_matrix_t;
+library/measurement/triangulate.cxx:171:  typedef Eigen::Matrix< T, Eigen::Dynamic, 1 > data_vector_t;
+library/measurement/triangulate.cxx:202:Eigen::Matrix< T, 4, 1 >
+library/measurement/triangulate.cxx:205:  const std::vector< Eigen::Matrix< T, 2, 1 > >& points )
+library/measurement/triangulate.cxx:207:  typedef Eigen::Matrix< T, 2, 1 > vector_2;
+library/measurement/triangulate.cxx:208:  typedef Eigen::Matrix< T, 3, 1 > vector_3;
+library/measurement/triangulate.cxx:209:  typedef Eigen::Matrix< T, 3, 3 > matrix_3x3;
+library/measurement/triangulate.cxx:210:  typedef Eigen::Matrix< T, Eigen::Dynamic, 4 > data_matrix_t;
+library/measurement/triangulate.cxx:239:Eigen::Matrix< T, 3, 1 >
+library/measurement/triangulate.cxx:242:  const std::vector< Eigen::Matrix< T, 2, 1 > >& points )
+library/measurement/triangulate.cxx:249:  Eigen::Array3d min_pos = curr_offset - curr_scale;
+library/measurement/triangulate.cxx:250:  Eigen::Array3d max_pos = curr_offset + curr_scale;
+library/measurement/triangulate.cxx:301:template VIAME_MEASUREMENT_EXPORT Eigen::Matrix< T, 3, 1 >          \
+library/measurement/triangulate.cxx:305:  const Eigen::Matrix< T, 2, 1 >& point0,                         \
+library/measurement/triangulate.cxx:306:  const Eigen::Matrix< T, 2, 1 >& point1 );                       \
+library/measurement/triangulate.cxx:307:template VIAME_MEASUREMENT_EXPORT Eigen::Matrix< T, 4, 1 >          \
+library/measurement/triangulate.cxx:310:  const std::vector< Eigen::Matrix< T, 2, 1 > >& points );        \
+library/measurement/triangulate.cxx:311:template VIAME_MEASUREMENT_EXPORT Eigen::Matrix< T, 3, 1 >          \
+library/measurement/triangulate.cxx:314:  const std::vector< Eigen::Matrix< T, 2, 1 > >& points );        \
+library/measurement/triangulate.cxx:315:template VIAME_MEASUREMENT_EXPORT Eigen::Matrix< T, 3, 1 >          \
+library/measurement/triangulate.cxx:318:  const std::vector< Eigen::Matrix< T, 2, 1 > >& points );
+library/measurement/triangulate.h:35:Eigen::Matrix< T, 3, 1 >
+library/measurement/triangulate.h:38:  const std::vector< Eigen::Matrix< T, 2, 1 > >& points );
+library/measurement/triangulate.h:56:Eigen::Matrix< T, 3, 1 >
+library/measurement/triangulate.h:60:  const Eigen::Matrix< T, 2, 1 >& point0,
+library/measurement/triangulate.h:61:  const Eigen::Matrix< T, 2, 1 >& point1 );
+library/measurement/triangulate.h:75:Eigen::Matrix< T, 4, 1 >
+library/measurement/triangulate.h:78:  const std::vector< Eigen::Matrix< T, 2, 1 > >& points );
+library/measurement/triangulate.h:90:Eigen::Matrix< T, 3, 1 >
+library/measurement/triangulate.h:93:  const std::vector< Eigen::Matrix< T, 2, 1 > >& points );
+
+
+## other (0)
+
+
+
+## The wider surface
+
+`git grep Eigen::` finds only the lines that name it. Vital's math typedefs
+-- `vector_3d`, `matrix_3x3d`, `rotation_d`, `covariance_2d` and the rest --
+are Eigen types under other names, so every line that uses one depends on
+Eigen's operators without saying so. Counting those as well:
+
+  96 files under library/, tools/ and plugins/ touch Eigen or one of the
+  typedefs (excluding plugins/pytorch/learn, which vendors third-party python
+  packages that carry their own copy and become wheels in phase 9)
+
+  847 lines name a typedef
+
+By directory:
+
+    library/algorithm_framework      11
+    library/core_types               48
+    library/image_processing         9
+    library/measurement              4
+    library/opencv_bridge            1
+    plugins/core                     15
+    plugins/opencv                   6
+    plugins/seagis                   1
+    plugins/svm                      1
+
+The member functions those files actually call on a math type, which is the
+real specification for `core_types/math`:
+
+  dot, transpose, inverse, setZero, setIdentity, normalized, normalize, norm,
+  squaredNorm, determinant, cross, head, block, hnormalized
+
+plus the operators, `Identity()`, `Zero()`, `Random()` in one test, and the
+four decompositions in the list above. Nothing reaches for a sparse type, a
+solver, a geometry module beyond `Quaternion`, `AngleAxis` and `AlignedBox`,
+or an expression template that is not a block or a cast.
