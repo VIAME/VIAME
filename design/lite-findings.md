@@ -137,7 +137,21 @@ subclasses of one reader. This is not written down anywhere in the build
 system document, and it is the shape every later python replacement will
 need.
 
-### 1.8 Installing does not delete
+### 1.8 A usage scan has to read the tests as well as the pipelines
+
+Phase 3's scan asked which names the 293 installed `.pipe` and `.conf` files
+select, and that was enough there. It is not enough in general: VIAME's own
+tests build pipelines in their source, and two of the eighty-four names
+P5-T04 was about to drop -- the `frame_list_input` process and the
+`example_detector` image_object_detector -- are used only from
+`tests/plugins/pytorch/test_processes.py`. Dropping them turned four pytorch
+tests red with "no such process in the registry".
+
+**For later phases:** scan `tests/` alongside `configs/` and `examples/`.
+Neither `registry.json` nor `pipes.json` covers a pipeline a test writes at
+run time.
+
+### 1.9 Installing does not delete
 
 `cmake --install` leaves behind the plugin `.so` of anything that stops being
 built. Those get loaded, fail on an undefined symbol from the library that
@@ -148,7 +162,7 @@ phases 3 and 4, and klv, cuda and geocalc in phase 5.
 **For later phases:** after turning an arrow off, delete its plugin and its
 library from the install before running anything.
 
-### 1.9 Defects found in the code being replaced
+### 1.10 Defects found in the code being replaced
 
 Recorded here because each is a real defect in VIAME or kwiver as shipped, not
 an artefact of the port:
@@ -220,7 +234,26 @@ borrows fletch from. Deleting them would break that checkout; leaving them
 means anything that puts the prefix back on the path silently reads a
 different vital.
 
-### 2.5 What did not come across, and whether it should have
+### 2.5 Usage is attributed by name, not by name and interface
+
+The scan that decides what P5-T04 copies asks whether a name appears as a
+`type` value anywhere in the shipped pipelines. Two names -- `ocv` and
+`core` -- are registered for many interfaces each, and are selected for only
+some of them: `ocv` for `image_io`, `draw_detected_object_set`,
+`estimate_fundamental_matrix` and `merge_images`, `core` for `image_io`,
+`compute_ref_homography` and `track_features`. Attributing use by name alone
+therefore keeps eleven implementations nothing selects.
+
+Attributing properly means reading the config key that precedes `:type`,
+which names the nested algorithm rather than the interface, and that mapping
+is a convention rather than a rule: `homography_generator:type = core` and
+`homography_estimator:type = core` both appear, and neither key is an
+interface name. Getting it wrong in the keeping direction costs some code
+that P5-T06 prunes anyway; getting it wrong in the removing direction breaks
+a pipeline silently. So `ocv` and `core` are kept for every interface, and
+the eleven are for P5-T06 to prune by compile with the whole tree in hand.
+
+### 2.6 What did not come across, and whether it should have
 
 The rebase macro reports, per directory, which of kwiver's own file-list
 entries the import did not bring: 87 files in all, among them `geo_MGRS`,
@@ -233,14 +266,14 @@ Four python bindings were dropped outright for the same reason -- `geo_MGRS`,
 are not in `removed.json`, because `registry.json` does not record python
 types; if the contract should cover them, it needs somewhere to record them.
 
-### 2.6 `design/lite-kwiver-files.txt` is a record, not a query
+### 2.7 `design/lite-kwiver-files.txt` is a record, not a query
 
 Once kwiver's vital was deleted, `kwiver_reachable.py` could no longer compute
 a closure over it, and both it and the import script now refuse to run. The
 file they produced is a record of what was imported. Re-running either after
 P5-T03 and P5-T04 will need the same treatment: they are one-shot per group.
 
-### 2.7 The python bindings still live in kwiver
+### 2.8 The python bindings still live in kwiver
 
 They cannot move until kwiver's python package goes, because two
 `kwiver.vital.types` extension modules in one interpreter is a pybind11

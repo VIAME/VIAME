@@ -280,13 +280,6 @@
     "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
   },
   {
-    "interface": "image_object_detector",
-    "kind": "algorithm",
-    "name": "example_detector",
-    "phase": "P5-T04",
-    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
-  },
-  {
     "interface": "close_loops",
     "kind": "algorithm",
     "name": "exhaustive",
@@ -675,13 +668,6 @@
     "interface": "",
     "kind": "process",
     "name": "feature_tracker",
-    "phase": "P5-T04",
-    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
-  },
-  {
-    "interface": "",
-    "kind": "process",
-    "name": "frame_list_input",
     "phase": "P5-T04",
     "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
   },

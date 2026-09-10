@@ -176,8 +176,8 @@ Mirror of `tests/baseline/removed.json` with the task that removed each entry.
 
 | Kind | Interface | Name | Task | Reason |
 |---|---|---|---|---|
-| algorithm | various | 28 `arrows/core`, 20 `arrows/ocv`, 2 `arrows/mvg` registrations | P5-T04 | No shipped pipeline or config selects any of them, and nothing in VIAME's own code names one. The `ocv_*` twenty are OpenCV's feature detectors, descriptors and matchers other than the three VIAME uses |
-| process | | 19 `sprokit/processes/core`, 5 `sprokit/processes/flow` | P5-T04 | No shipped pipeline instantiates any of them |
+| algorithm | various | 27 `arrows/core`, 20 `arrows/ocv`, 2 `arrows/mvg` registrations | P5-T04 | No shipped pipeline, config or test selects any of them, and nothing in VIAME's own code names one. The `ocv_*` twenty are OpenCV's feature detectors, descriptors and matchers other than the three VIAME uses. `example_detector` was in this set until four pytorch tests went red: they build a pipeline in their own source |
+| process | | 18 `sprokit/processes/core`, 5 `sprokit/processes/flow` | P5-T04 | No shipped pipeline, config or test instantiates any of them. `frame_list_input` was in this set for the same reason as `example_detector` |
 | algorithm | bundle_adjust, estimate_canonical_transform, estimate_essential_matrix, estimate_fundamental_matrix, estimate_homography, estimate_similarity_transform, match_features, nearest_neighbors, optimize_cameras, split_image, triangulate_landmarks | `vxl`, `vxl_plane`, `vxl_constrained`, `vxl_kd_tree` | P3-T06 | No shipped pipeline or config selects any of them |
 | algorithm | image_filter | `vxl_aligned_edge_detection`, `vxl_high_pass_filter`, `vxl_hashed_image_classifier_filter`, `vxl_pixel_feature_extractor` | P3-T06 | No shipped pipeline or config selects any of them |
 | algorithm | image_filter | `vxl_white_balancing` | P3-T05 | Zero pipeline uses, 682 lines of VXL |
