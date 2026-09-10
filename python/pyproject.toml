@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=65.6.3,<74", "wheel", "scikit-build", "cmake", "ninja", "pygccxml==3.0.2", "castxml==0.4.5", "pybind11-stubgen"]
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+# Add to get all the output of the tests
+#   "-s",
+]
+minversion = "6.0"
+testpaths = [
+    "python/kwiver/vital/tests",
+    "tools/demo_python_impl_call.py",
+    "python/kwiver/tools/tests",
+]

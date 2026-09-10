@@ -16,7 +16,7 @@ else()
 endif()
 
 ExternalProject_Add(vivia
-  DEPENDS fletch kwiver
+  DEPENDS fletch viame
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/vivia
   USES_TERMINAL_BUILD 1
@@ -24,7 +24,6 @@ ExternalProject_Add(vivia
   CMAKE_CACHE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
-    ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_libkml}
     ${VIAME_ARGS_PROJ4}
     ${VIAME_ARGS_VTK}

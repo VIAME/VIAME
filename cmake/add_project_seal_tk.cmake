@@ -22,7 +22,7 @@ else()
 endif()
 
 ExternalProject_Add( seal_tk
-  DEPENDS fletch kwiver
+  DEPENDS fletch viame
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/seal-tk
   USES_TERMINAL_BUILD 1
@@ -30,7 +30,6 @@ ExternalProject_Add( seal_tk
   CMAKE_CACHE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
-    ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_Qt}
     -DBUILD_SHARED_LIBS:BOOL=ON
     -DNOAA_TRACK_READER:STRING=viame_csv

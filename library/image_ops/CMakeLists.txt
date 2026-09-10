@@ -34,3 +34,10 @@ target_link_libraries( viame_image_ops INTERFACE kwiver::vital )
 
 install( FILES       ${image_ops_headers}
          DESTINATION include/viame/image_ops )
+
+# In the export set, because the libraries that link it are: since P5-T05
+# VIAME installs a config package of its own and every target another one
+# names has to be exportable.
+install( TARGETS     viame_image_ops
+         EXPORT      ${kwiver_export_name} )
+set_property( GLOBAL APPEND PROPERTY kwiver_export_targets viame_image_ops )

@@ -935,18 +935,18 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_darknet )
   endif()
 
-  # Add (usually required) kwiver requirement
-  if( VIAME_ENABLE_KWIVER )
-    include( add_project_kwiver )
-  endif()
+  # Kwiver is no longer an external project: P5-T05 dissolved the submodule
+  # and the VIAME project below builds what was in it. VIVIA and SEAL used to
+  # depend on kwiver having been installed first; they depend on `viame` now,
+  # which is added after them, so their `DEPENDS` is deferred with them.
+  set( VIAME_DEFERRED_PROJECTS )
 
-  # Add other optional libraries
   if( VIAME_ENABLE_VIVIA )
-    include( add_project_vivia )
+    list( APPEND VIAME_DEFERRED_PROJECTS add_project_vivia )
   endif()
 
   if( VIAME_ENABLE_SEAL )
-    include( add_project_seal_tk )
+    list( APPEND VIAME_DEFERRED_PROJECTS add_project_seal_tk )
   endif()
 
   if( VIAME_ENABLE_DIVE )
@@ -977,6 +977,11 @@ if( VIAME_BUILD_DEPENDENCIES )
   if( VIAME_ENABLE_VIAME_PLUGINS )
     include( add_project_viame )
   endif()
+
+  # The projects that used to wait for kwiver and wait for VIAME now
+  foreach( _viame_deferred IN LISTS VIAME_DEFERRED_PROJECTS )
+    include( ${_viame_deferred} )
+  endforeach()
 
   # Fixup installer package
   if( VIAME_FIXUP_BUNDLE )
@@ -1029,72 +1034,28 @@ else()
   endif()
 
   ###
-  # KWIVER, built here rather than found
+  # The imported kwiver code
   ##
-  # P1-T05, pulled forward because P5-T05 needs it: kwiver is a subdirectory
-  # of this build, not a separate project installed beforehand. Its options
-  # are the ones `cmake/add_project_kwiver.cmake` passed down, plus the ones
-  # phases 3, 4 and 5 turned off.
+  # P5-T05 dissolved `packages/kwiver`: `library/`, `python/kwiver` and
+  # `tools/` build what it used to. `cmake/kwiver_compat/` holds its macros,
+  # and the settings the imported code still needs are in
+  # `kwiver_settings.cmake` below, after the macros are included.
   if( VIAME_ENABLE_KWIVER )
-    set( KWIVER_ENABLE_ARROWS            ON  CACHE BOOL "" FORCE )
-    set( KWIVER_ENABLE_SPROKIT           ON  CACHE BOOL "" FORCE )
-    set( KWIVER_ENABLE_PROCESSES         ON  CACHE BOOL "" FORCE )
-    set( KWIVER_ENABLE_TOOLS             ON  CACHE BOOL "" FORCE )
-    set( KWIVER_BUILD_SHARED             ON  CACHE BOOL "" FORCE )
-    set( KWIVER_ENABLE_OPENCV   ${VIAME_ENABLE_OPENCV}  CACHE BOOL "" FORCE )
-    set( KWIVER_ENABLE_PYTHON   ${VIAME_ENABLE_PYTHON}  CACHE BOOL "" FORCE )
-    set( KWIVER_ENABLE_PYTORCH  ${VIAME_ENABLE_PYTORCH} CACHE BOOL "" FORCE )
-    set( KWIVER_ENABLE_C_BINDINGS        ON  CACHE BOOL "" FORCE )
-
-    # Dropped by earlier phases, or never used here
-    foreach( _viame_off
-             CERES CUDA DBOW2 EXAMPLES EXTRAS FFMPEG FFMPEG_CUDA GDAL GEOCALC
-             KLV KPF LOG4CPLUS LOG4CXX MATLAB MVG OPENMP PDAL PROJ PROJ4 QT
-             SERIALIZE_JSON SERIALIZE_PROTOBUF SUPER3D TESTS TRACK_ORACLE
-             UUID VTK VXL ZLIB ZeroMQ )
-      set( KWIVER_ENABLE_${_viame_off} OFF CACHE BOOL "" FORCE )
-    endforeach()
-
-    set( KWIVER_ENABLE_CUDNN         ${VIAME_ENABLE_CUDNN} CACHE BOOL "" FORCE )
-    set( KWIVER_INSTALL_SET_UP_SCRIPT   OFF CACHE BOOL "" FORCE )
-    set( KWIVER_PYTHON_USE_SYS_PATH     OFF CACHE BOOL "" FORCE )
-    set( KWIVER_SYMLINK_PYTHON          OFF CACHE BOOL "" FORCE )
-    set( KWIVER_USE_BUILD_TREE          OFF CACHE BOOL "" FORCE )
-
-    if( VIAME_ENABLE_PYTHON )
-      set( KWIVER_PYTHON_MAJOR_VERSION "3" CACHE STRING "" FORCE )
-      set( KWIVER_PYTHON_VERSION
-        "${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}" CACHE STRING "" FORCE )
-    endif()
-
-    add_subdirectory( packages/kwiver )
-
-    # The roots the imported code is reached through. Kwiver puts them on its
-    # own directory's include path; VIAME's directories need them too, and
-    # SYSTEM because kwiver builds with -Werror=non-virtual-dtor and a couple
-    # of vital's headers trip it.
-    set( VIAME_KWIVER_BINARY_DIR "${VIAME_BINARY_DIR}/packages/kwiver" )
-    include_directories( SYSTEM
-      "${VIAME_KWIVER_BINARY_DIR}/library-include"
-      "${VIAME_KWIVER_BINARY_DIR}/library-generated" )
+    set( KWIVER_ENABLE_PYTHON  ${VIAME_ENABLE_PYTHON}  )
+    set( KWIVER_ENABLE_SPROKIT ON )
+    set( KWIVER_ENABLE_TOOLS   ON )
+    set( KWIVER_BUILD_SHARED   ${BUILD_SHARED_LIBS} )
 
     link_directories( "${VIAME_BINARY_DIR}/lib" )
-    list( INSERT CMAKE_MODULE_PATH 0 "${KWIVER_CMAKE_DIR}" )
 
     # A couple of plugins take their headers from the install prefix rather
     # than from a target -- darknet and libsvm, both of which phase 1 vendors
-    # into third_party/. Until then they ask for the prefix by name; they used
-    # to get it out of the include list kwiver's config package exported.
+    # into third_party/. Until then they ask for the prefix by name.
     set( VIAME_DEPENDENCY_INCLUDE_DIRS
       "${VIAME_BUILD_INSTALL_PREFIX}/include" CACHE INTERNAL
       "Include prefixes of the dependency tree, for the plugins that need them" )
 
-    # Setup python directories before call to import kwiver utils
-    #
-    # This will trigger use of our desired python output paths on latest
     if( VIAME_ENABLE_PYTHON )
-      set( KWIVER_BINARY_DIR "${VIAME_BINARY_DIR}" )
-
       set( kwiver_python_subdir "${VIAME_PYTHON_STRING}" )
       set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/${kwiver_python_subdir}" )
       set( kwiver_python_install_path "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
@@ -1141,6 +1102,10 @@ else()
     # Build system hacks which should eventually be fixed better
     include( windows-ksys-hack )
     include( linux-remove-duplicate-cvs )
+
+    # Wants the macros and the plugin subdirectories above it, and everything
+    # it configures below it.
+    include( kwiver_settings )
   endif()
 
   ###
@@ -1150,6 +1115,10 @@ else()
     # Converted code first: plugins/ still depends on some of it
     add_subdirectory( library )
     add_subdirectory( plugins )
+
+    if( VIAME_ENABLE_PYTHON )
+      add_subdirectory( python )
+    endif()
   endif()
 
   add_subdirectory( examples )
@@ -1160,6 +1129,45 @@ else()
     enable_testing()
     include( CTest )
     add_subdirectory( tests )
+  endif()
+
+  ###
+  # The config package an out-of-tree plugin builds against
+  ##
+  # Kwiver installed one of these until P5-T05; this replaces it. The targets
+  # keep the `kwiver::` namespace they have always had, so a plugin that
+  # linked `kwiver::vital` still does -- phase 11 is what renames them.
+  if( VIAME_ENABLE_KWIVER )
+    set( viame_cmake_install_dir lib${LIB_SUFFIX}/cmake/viame )
+
+    # kwiver_add_plugin and the rest, for the plugin's own CMakeLists.
+    # `kwiver-install-utils` reads the destination out of this name.
+    set( kwiver_cmake_install_dir "${viame_cmake_install_dir}" )
+    include( kwiver-install-utils )
+
+    get_property( viame_libs GLOBAL PROPERTY kwiver_libraries )
+    string( REPLACE ";" " " viame_libs "${viame_libs}" )
+
+    configure_file(
+      "${VIAME_SOURCE_DIR}/cmake/viame-config-install.cmake.in"
+      "${VIAME_BINARY_DIR}/viame-config-install.cmake"
+      @ONLY
+      )
+
+    kwiver_export_targets( "${VIAME_BINARY_DIR}/viame-config-targets.cmake" )
+
+    kwiver_install(
+      FILES       "${VIAME_BINARY_DIR}/viame-config-install.cmake"
+      DESTINATION "${viame_cmake_install_dir}"
+      RENAME      viame-config.cmake
+      )
+
+    kwiver_install(
+      EXPORT      ${kwiver_export_name}
+      NAMESPACE   kwiver::
+      DESTINATION "${viame_cmake_install_dir}"
+      FILE        viame-config-targets.cmake
+      )
   endif()
 
   ###

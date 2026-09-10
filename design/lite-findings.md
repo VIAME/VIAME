@@ -251,6 +251,36 @@ alongside the C++" with the reason. When P8 replaces the generated
 `vital.algo` bindings and P11 drops the `kwiver` package name, the
 collisions go with them.
 
+### 1.14 What a build system move only shows you once
+
+P5-T05 dissolved `packages/kwiver`'s CMake into VIAME's tree. Four things
+were true before it and invisible until then:
+
+* **`viame_lite_rebase` was hiding forty-eight files.** P5-T02's macro
+  rebased kwiver's file lists onto the imported tree and dropped anything that
+  had not come across, reporting a count at configure time. With the
+  CMakeLists beside the files the lists are literal, so what it dropped had to
+  be deleted from them: twelve algorithm interfaces, thirty-one utility
+  headers and sources, five range headers, three types. Nobody would have
+  noticed them in the report.
+* **A python extension module cannot be linked with `-Wl,--no-undefined`.**
+  It leaves the interpreter's symbols undefined and resolves them at import.
+  VIAME sets that flag and kwiver did not, so the bindings only stopped
+  linking when they moved out of kwiver's directory scope.
+* **An export set is all-or-nothing.** `viame_image_ops` is an INTERFACE
+  library that half a dozen others link. That was fine while nothing exported
+  them; the moment VIAME installed a config package of its own, every target
+  in it had to be exportable too.
+* **`examples/plugin_creation` had not compiled in years.** It is written
+  against `kwiver::vital::algorithm_impl<>` and `algo/algorithm_factory.h`,
+  which kwiver 2 replaced with `PLUGGABLE_IMPL`. Nothing built it, so nothing
+  said so. P5-T05's "builds against the new config package" meant porting it
+  first.
+
+**For later phases:** an example that is not built is documentation that is
+not checked. `examples/plugin_creation` is configured and built by hand here;
+it should be a test.
+
 ## 2. Open questions
 
 ### 2.1 An intermittent segfault in `viame train`
@@ -335,7 +365,7 @@ two projects share one configure:
 the third kind, and this branch had not had one since P0. Configure into a
 new tree after any change to how a generated file is produced.
 
-### 2.3 Two copies of kwiversys and cxxopts
+### 2.3 Two copies of kwiversys and cxxopts -- answered
 
 Both were vendored to `third_party/` by the import, and both are still
 present under `packages/kwiver/vital/` -- kwiversys because kwiver's build
@@ -343,8 +373,10 @@ still builds it from there, cxxopts because only `.h`, `.cxx` and `.txx` were
 deleted and it is a `.hpp`. The pairs are byte-identical today, which is the
 dangerous kind of duplicate: editing one is silent.
 
-P5-T05 removes the submodule and settles it. Until then, `third_party/`'s
-copies are the ones on the include path and kwiver's are dead weight.
+P5-T05 settled it. `third_party/kwiversys` is the copy the build compiles
+and kwiver's is deleted; `vital/applets/cxxopts.hpp` is deleted too, and it
+turned out the rebase had been silently dropping it all along -- everything
+had been including `<cxxopts.hpp>` from `third_party/cxxopts` since P5-T02.
 
 ### 2.4 The stale headers in the dependency tree
 

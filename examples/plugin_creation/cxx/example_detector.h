@@ -9,28 +9,34 @@
 
 namespace viame {
 
-class example_detector :
-  public kwiver::vital::algorithm_impl<
-    example_detector, kwiver::vital::algo::image_object_detector >
+// An algorithm is a subclass of the interface it implements. PLUGGABLE_IMPL
+// declares the constructor, the configuration accessors and one member per
+// parameter: `text` below becomes `c_text`, with the default and the
+// description the pipeline's `--help` prints.
+class example_detector
+  : public kwiver::vital::algo::image_object_detector
 {
 public:
-  example_detector();
-  virtual ~example_detector();
+  PLUGGABLE_IMPL(
+    example_detector,
+    "Example externally created plugin.",
 
-  // Get the current configuration (parameters) for this detector
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
+    PARAM_DEFAULT(
+      text, std::string,
+      "Text to display to user.",
+      "External Plugin C++ Example" )
+  );
 
-  // Set configurations automatically parsed from input pipeline and config files
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual ~example_detector() = default;
+
+  // Called once the configuration is in place; the pipeline rejects the
+  // process if this returns false.
+  bool check_configuration(
+    kwiver::vital::config_block_sptr config ) const override;
 
   // Main detection method
-  virtual kwiver::vital::detected_object_set_sptr detect(
-    kwiver::vital::image_container_sptr image_data ) const;
-
-private:
-  class priv;
-  const std::unique_ptr< priv > d;
+  kwiver::vital::detected_object_set_sptr detect(
+    kwiver::vital::image_container_sptr image_data ) const override;
 };
 
 } // end namespace

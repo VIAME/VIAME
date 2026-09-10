@@ -1,7 +1,10 @@
 
+cmake_minimum_required( VERSION 3.15 )
 project( ExampleExternalDetector )
-cmake_minimum_required( VERSION 3.3 )
-set( CMAKE_CXX_STANDARD 11 )
+
+# The imported vital's headers are C++17; the example used to say 11, which
+# CMake 4 will not accept as a minimum any more either.
+set( CMAKE_CXX_STANDARD 17 )
 
 # Make sure we know where the VIAME installation rests
 set( VIAME_DIR "" CACHE PATH "Location of VIAME installation" )
@@ -18,7 +21,11 @@ else()
   message( FATAL_ERROR "VIAME install directory not set" )
 endif()
 
-find_package( KWIVER REQUIRED HINTS "${VIAME_DIR}/lib/cmake/kwiver" )
+# VIAME's config package. It used to be kwiver's, which VIAME installed for
+# it; P5-T05 dissolved the submodule and VIAME installs its own. The target
+# names still carry the `kwiver::` namespace, so a plugin written against the
+# old one keeps working.
+find_package( VIAME REQUIRED HINTS "${VIAME_DIR}/lib/cmake/viame" )
 find_package( OpenCV REQUIRED HINTS "${VIAME_DIR}" )
 
 # Set default paths

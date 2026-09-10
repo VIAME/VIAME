@@ -45,7 +45,6 @@ ExternalProject_Add(viame
   CMAKE_CACHE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
-    ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_darknet}
     ${VIAME_BUILD_FLAGS}
     ${VIAME_DISABLE_FLAGS}
