@@ -180,5 +180,593 @@
     "name": "compare-klv",
     "phase": "P5-T02",
     "reason": "arrows/klv's applet, which compares the KLV metadata streams of two videos. It goes with arrows/klv, whose two registrations P5-T01 already removed for having no user; VIAME neither reads nor writes KLV."
+  },
+  {
+    "interface": "close_loops",
+    "kind": "algorithm",
+    "name": "appearance_indexed",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "track_features",
+    "kind": "algorithm",
+    "name": "augment_keyframes",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "keyframe_selection",
+    "kind": "algorithm",
+    "name": "basic",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "video_input",
+    "kind": "algorithm",
+    "name": "buffered_metadata_filter",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "convert_image",
+    "kind": "algorithm",
+    "name": "bypass",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "image_filter",
+    "kind": "algorithm",
+    "name": "bypass",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "estimate_canonical_transform",
+    "kind": "algorithm",
+    "name": "core_pca",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "image_object_detector",
+    "kind": "algorithm",
+    "name": "create_detection_grid",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detected_object_set_input",
+    "kind": "algorithm",
+    "name": "csv",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detected_object_set_output",
+    "kind": "algorithm",
+    "name": "csv",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "metadata_map_io",
+    "kind": "algorithm",
+    "name": "csv",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "read_track_descriptor_set",
+    "kind": "algorithm",
+    "name": "csv",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "write_track_descriptor_set",
+    "kind": "algorithm",
+    "name": "csv",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "metadata_filter",
+    "kind": "algorithm",
+    "name": "derive_metadata",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "image_object_detector",
+    "kind": "algorithm",
+    "name": "example_detector",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "close_loops",
+    "kind": "algorithm",
+    "name": "exhaustive",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "video_input",
+    "kind": "algorithm",
+    "name": "filter",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "compute_association_matrix",
+    "kind": "algorithm",
+    "name": "from_features",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "match_features",
+    "kind": "algorithm",
+    "name": "fundamental_matrix_guided",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "close_loops",
+    "kind": "algorithm",
+    "name": "keyframe",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "filter_features",
+    "kind": "algorithm",
+    "name": "magnitude",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "metadata_filter",
+    "kind": "algorithm",
+    "name": "merge_metadata_streams",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "video_input",
+    "kind": "algorithm",
+    "name": "metadata_filter",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "dynamic_configuration",
+    "kind": "algorithm",
+    "name": "none",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "video_input",
+    "kind": "algorithm",
+    "name": "pos",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "filter_features",
+    "kind": "algorithm",
+    "name": "scale",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detected_object_set_input",
+    "kind": "algorithm",
+    "name": "simulator",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "video_input",
+    "kind": "algorithm",
+    "name": "splice",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "interpolate_track",
+    "kind": "algorithm",
+    "name": "spline",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "video_input",
+    "kind": "algorithm",
+    "name": "split",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "image_io",
+    "kind": "algorithm",
+    "name": "tiled_multifile",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detected_object_filter",
+    "kind": "algorithm",
+    "name": "transfer_bbox_with_depth_map",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detected_object_filter",
+    "kind": "algorithm",
+    "name": "transform_detected_object_set",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detect_features",
+    "kind": "algorithm",
+    "name": "ocv_AGAST",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "extract_descriptors",
+    "kind": "algorithm",
+    "name": "ocv_BRIEF",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detect_features",
+    "kind": "algorithm",
+    "name": "ocv_BRISK",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "extract_descriptors",
+    "kind": "algorithm",
+    "name": "ocv_BRISK",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "image_filter",
+    "kind": "algorithm",
+    "name": "ocv_CLAHE",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "extract_descriptors",
+    "kind": "algorithm",
+    "name": "ocv_DAISY",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detect_features",
+    "kind": "algorithm",
+    "name": "ocv_FAST",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "extract_descriptors",
+    "kind": "algorithm",
+    "name": "ocv_FREAK",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detect_features",
+    "kind": "algorithm",
+    "name": "ocv_GFTT",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "track_features",
+    "kind": "algorithm",
+    "name": "ocv_KLT",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "extract_descriptors",
+    "kind": "algorithm",
+    "name": "ocv_LATCH",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "extract_descriptors",
+    "kind": "algorithm",
+    "name": "ocv_LUCID",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detect_features",
+    "kind": "algorithm",
+    "name": "ocv_MSD",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detect_features",
+    "kind": "algorithm",
+    "name": "ocv_MSER",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detect_features",
+    "kind": "algorithm",
+    "name": "ocv_ORB",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "extract_descriptors",
+    "kind": "algorithm",
+    "name": "ocv_ORB",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detect_features",
+    "kind": "algorithm",
+    "name": "ocv_STAR",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "match_features",
+    "kind": "algorithm",
+    "name": "ocv_brute_force",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "image_filter",
+    "kind": "algorithm",
+    "name": "ocv_histogram_eq",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "merge_images",
+    "kind": "algorithm",
+    "name": "ocv_inpainting",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detect_motion",
+    "kind": "algorithm",
+    "name": "ocv_mog2",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "detect_features",
+    "kind": "algorithm",
+    "name": "ocv_simple_blob",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/ocv is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "algorithm",
+    "kind": "algorithm",
+    "name": "mvg",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/mvg is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "bundle_adjust",
+    "kind": "algorithm",
+    "name": "mvg",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/mvg is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "integrate_depth_maps",
+    "kind": "algorithm",
+    "name": "mvg",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/mvg is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "triangulate_landmarks",
+    "kind": "algorithm",
+    "name": "mvg",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/mvg is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "algorithm",
+    "kind": "algorithm",
+    "name": "mvg-basic",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline or config selects it, and nothing in VIAME's own code names it. arrows/mvg is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "associate_detections_to_tracks",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "close_loops",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "compute_association_matrix",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "compute_homography",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "deserializer",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "detect_features",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "detect_features_if_keyframe",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "draw_tracks",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "extract_descriptors",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "feature_matcher",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "feature_tracker",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "frame_list_input",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "keyframe_selection",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "print_config",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "read_d_vector",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "read_track_descriptor",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "serializer",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "shift_detected_object_set",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "train_detector",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/core is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "collate",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/flow is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "distribute",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/flow is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "multiplexer",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/flow is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "pass",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/flow is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "sink",
+    "phase": "P5-T04",
+    "reason": "No shipped pipeline instantiates it. sprokit/processes/flow is split across the functional libraries in P5-T04 and only what is used comes across."
   }
 ]
