@@ -16,11 +16,11 @@ if __name__ == "__main__" :
     parser = argparse.ArgumentParser(description="Check GPU properties of the system",
                        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument("--use-pytorch", dest="use_pytorch", action="store_true",
-                        help="Use pytorch for checking gpu properties")
+    parser.add_argument("--use-pytorch", dest="use_pytorch", action="store_true", default=True,
+                        help="Use PyTorch (the default and currently supported backend)")
 
     args = parser.parse_args()
-    use_pytorch = True
+    use_pytorch = args.use_pytorch
 
     print( "" )
     print( "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" )
@@ -39,6 +39,7 @@ if __name__ == "__main__" :
         print( "Usable devices: " + str( gpu_count ) + os.linesep )
         for i in range( gpu_count ):
             gpu_mem = torch.cuda.get_device_properties( i ).total_memory
-            print( "Device #1, usable mem: " + str( gpu_mem ) )
+            print( "Device #{}: {}, total memory: {:.2f} GiB".format(
+                i, torch.cuda.get_device_name(i), gpu_mem / (1024 ** 3) ) )
 
     print( os.linesep + "Exiting" + os.linesep )
