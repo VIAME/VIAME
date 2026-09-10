@@ -31,7 +31,7 @@ def list_files_in_dir(folder):
         raise ValueError(f"Input folder '{folder}' does not exist")
     return [
         os.path.join(folder, f) for f in sorted(os.listdir(folder))
-        if not f.startswith('.')
+        if not f.startswith('.') and os.path.isfile(os.path.join(folder, f))
     ]
 
 
@@ -79,7 +79,10 @@ def main():
                         choices=["kwiver", "ffmpeg"],
                         help="Extraction method to use")
 
+    parser.add_argument('--overwrite', action='store_true',
+                        help='Overwrite frames that already exist')
     args = parser.parse_args()
+    failures = 0
 
     create_dir(args.output_dir)
 
@@ -90,7 +93,7 @@ def main():
             output_folder = os.path.join(args.output_dir, file_no_path)
             create_dir(output_folder)
 
-            cmd = get_ffmpeg_cmd() + ["-i", file_with_path]
+            cmd = get_ffmpeg_cmd() + ["-nostdin", "-y" if args.overwrite else "-n", "-i", file_with_path]
             if args.frame_rate:
                 cmd += ["-r", args.frame_rate]
             if args.start_time and args.start_time != INVALID_TIME:
@@ -99,7 +102,7 @@ def main():
                 cmd += ["-t", args.duration]
             cmd += [os.path.join(output_folder, args.pattern)]
 
-            subprocess.call(cmd)
+            failures += subprocess.call(cmd) != 0
     else:
         cmd = ["viame", "run"]
         cmd += ["-d", args.input_dir]
@@ -112,8 +115,13 @@ def main():
         if args.duration and args.duration != INVALID_TIME:
             cmd += ["-duration", args.duration]
 
-        subprocess.call(cmd)
+        if args.frame_rate:
+            cmd += ["-frate", args.frame_rate]
+        failures += subprocess.call(cmd) != 0
 
+    if failures:
+        print(f"Frame extraction failed for {failures} command(s)", file=sys.stderr)
+        return 1
     print("\n\nFrame extraction complete, exiting.\n\n")
     return 0
 
