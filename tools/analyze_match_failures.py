@@ -22,7 +22,7 @@ against the flight-log GPS, which is independent of the imagery:
     -> the match is false, and we can name the exact frame it matched against.
 
 Inputs are a site folder plus the ``revisits.csv`` that
-``detect_prior_coverage.py`` wrote for it. Phase 1 (metadata only, ~free)
+``register.py`` wrote for it. Phase 1 (metadata only, ~free)
 flags the false/missed matches. Phase 2 (``--visualize``) re-runs SIFT on the
 flagged pairs to record inlier counts and render side-by-side match images, so
 the failure can be eyeballed later.
@@ -42,7 +42,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
 
-from viame.core import survey_metadata as smd
+import metadata as smd
 
 # SVM background-classifier labels -> coarse terrain bucket. On these islands
 # 'all_land' is predominantly tussock grass / low vegetation, which is the
@@ -330,7 +330,7 @@ def main():
     ap.add_argument('--xcam-offset-frac', type=float, default=0.9,
                     help='Across-track cant of PORT/STAR footprints as a '
                          'fraction of footprint width (match '
-                         'detect_prior_coverage.py --xcam-offset-frac)')
+                         'register.py --xcam-offset-frac)')
     ap.add_argument('--visualize', action='store_true',
                     help='Render side-by-side SIFT-match images for flagged pairs')
     ap.add_argument('--vis-limit', type=int, default=12)

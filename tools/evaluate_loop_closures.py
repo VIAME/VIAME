@@ -1,7 +1,7 @@
 # This file is part of VIAME, and is distributed under an OSI-approved #
 # BSD 3-Clause License. See either the root top-level LICENSE file or  #
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
-"""Pseudo-evaluation of ``detect_prior_coverage.py`` loop-closure recall.
+"""Pseudo-evaluation of ``register.py`` loop-closure recall.
 
 Independently derives "expected" loop-closure events for a site from raw
 flight-log GPS + altitude (ground footprint overlap between an image and any
@@ -31,7 +31,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import cv2
 
-from viame.core import survey_metadata as smd
+import metadata as smd
 
 
 def _quad_overlap_frac(a, b):
@@ -53,7 +53,7 @@ def expected_loop_closures(site_folder, flight_logs, overlap_thresh=0.15,
     for images whose GPS/altitude-derived footprint overlaps an earlier
     pass's (or earlier day's, for --all multi-site runs) footprint.
 
-    Footprints come from ``survey_metadata.build_footprints``, which applies the
+    Footprints come from ``metadata.build_footprints``, which applies the
     PORT/STAR across-track cant: those cameras look ~0.9 footprint-widths off
     the aircraft track, so placing their footprint at the aircraft position
     would misplace it by ~95 m and mis-state which frames really share ground.
@@ -168,7 +168,7 @@ def main():
     ap.add_argument('site', help='Site folder')
     ap.add_argument('--flight-logs', default=None)
     ap.add_argument('--revisits-csv', required=True,
-                    help='revisits.csv produced by detect_prior_coverage.py')
+                    help='revisits.csv produced by register.py')
     ap.add_argument('--overlap-thresh', type=float, default=0.15,
                     help='Minimum footprint overlap fraction to count as an '
                     'expected loop-closure/revisit (default 0.15)')

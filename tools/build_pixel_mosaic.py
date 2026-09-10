@@ -4,13 +4,13 @@
 """Build a pixel-stitched mosaic for a survey site without the compiled
 KWIVER stabilization pipeline (``many_image_stabilizer`` / ``kw_write_homography``).
 
-Reuses the same registration engine as ``detect_prior_coverage.py``
+Reuses the same registration engine as ``register.py``
 (``viame.opencv.registration_utils``) to build a per-camera homography chain,
 GPS-anchors/fills frames that failed direct registration, then runs a
 pose-graph optimization pass using ``detect_loop_edges`` /
 ``optimize_pose_graph`` so temporally-distant revisits (loop closures) pull
 the chain back into alignment instead of drifting. The resulting per-camera
-homographies are written in ``create_mosaic.py``'s file format and stitched
+homographies are written in ``mosaic.py``'s file format and stitched
 with it.
 
 Usage::
@@ -29,12 +29,12 @@ import numpy as np
 
 # Source JPEGs in this dataset are slightly truncated (trailing bytes missing,
 # harmless -- OpenCV loads them with just a warning) but PIL/skimage, which
-# create_mosaic.py reads images with, raises OSError on them by default.
+# mosaic.py reads images with, raises OSError on them by default.
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-from viame.core import survey_metadata as smd
-import create_mosaic as cm
+import metadata as smd
+import mosaic as cm
 from viame.opencv import registration_utils as ru
 from viame.opencv.registration_utils import (
     compute_homography_pair,
@@ -52,7 +52,7 @@ def build_camera_chain(site_folder, cam, rels, water_info, args):
     # Affine (not full homography) chains: perspective terms compound over
     # 100+-frame chains and drive the far end's scale toward zero (observed:
     # median frame scale 0.02 on PINNACLE ROCK), which renders as a smear.
-    # detect_prior_coverage.py uses affine for the same reason.
+    # register.py uses affine for the same reason.
     ch, pw = ru._compute_camera_chain(
         site_folder, rels, label=str(cam), water_info=water_info,
         match_ratio=args.match_ratio, min_inliers=args.min_inliers,
@@ -81,8 +81,8 @@ def build_camera_chain(site_folder, cam, rels, water_info, args):
 
 def gps_fill_gaps(chains, cams, poses_by_cam, pairwise_by_cam):
     """Fill frames with no direct registration via GPS dead-reckoning, sharing
-    the rig's metres-to-pixels scale (same approach detect_prior_coverage.py
-    uses), so create_mosaic.py has a full-length homography file per camera.
+    the rig's metres-to-pixels scale (same approach register.py
+    uses), so mosaic.py has a full-length homography file per camera.
     No-op (frames stay dropped) for sites without flight-log/EXIF GPS.
     """
     if not any(poses_by_cam.get(cam) for cam in cams):
@@ -92,8 +92,8 @@ def gps_fill_gaps(chains, cams, poses_by_cam, pairwise_by_cam):
 
 
 def write_homog_file(path, chain, n):
-    """Write chain (index -> H in cv2 x,y convention) in create_mosaic.py's
-    on-disk format. create_mosaic.read_homog_file conjugates each matrix by
+    """Write chain (index -> H in cv2 x,y convention) in mosaic.py's
+    on-disk format. mosaic.read_homog_file conjugates each matrix by
     SWAP_XY on read (``swap_xy @ M_file @ swap_xy``) to get its own internal
     Y,X-ordered representation, so the FILE itself must hold the raw cv2
     x,y-convention matrix unmodified (conjugating twice would cancel out and
@@ -101,7 +101,7 @@ def write_homog_file(path, chain, n):
 
     Frames missing from chain are dropped; caller must also drop the
     matching lines from the image list so indices realign. `tof` is only
-    used by create_mosaic.py as a same-batch consistency tag (across ALL
+    used by mosaic.py as a same-batch consistency tag (across ALL
     cameras of a multi-cam mosaic), not for any computation, so a shared
     constant (0) is used for every line.
 
@@ -144,7 +144,7 @@ def main():
                     'need a small value to keep memory/runtime reasonable)')
     ap.add_argument('--step', type=int, default=1, help='Draw every Nth frame')
     ap.add_argument('--optimize-fit', action='store_true',
-                    help='Apply create_mosaic.py distortion-minimizing global fit. '
+                    help='Apply mosaic.py distortion-minimizing global fit. '
                     'Off by default: its 8-parameter projective search can '
                     'degenerate on long GPS-anchored multi-camera chains.')
     args = ap.parse_args()
