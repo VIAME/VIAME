@@ -71,15 +71,24 @@ def script_dir():
 
 
 def resolve_backend(args):
-    backend = args.backend or index_descriptors.detect_backend(args.database)
+    has_sql = database.has_sql_dir(args.database)
+    has_files = bool(index_descriptors.list_index_bundles(args.database)) if os.path.isdir(args.database) else False
+    if has_sql and has_files:
+        raise SystemExit("Index contains both PostgreSQL and file bundles; use separate index folders")
+    existing = 'postgres' if has_sql else 'files' if has_files else None
+    if existing and args.backend and args.backend != existing:
+        raise SystemExit("Index uses %s; backend changes require a separate folder" % existing)
+    backend = args.backend or existing or 'files'
     if backend not in BACKENDS:
         raise SystemExit("Unknown backend: %s" % backend)
     return backend
 
 
-def ensure_postgres(database_dir, init=False, prompt=True):
+def ensure_postgres(database_dir, init=False, prompt=True, allow_create=False):
     """Make sure the embedded server of a postgres index is running,
     initialising it when the folder has none yet (or when init is set)."""
+    if not database.has_sql_dir(database_dir) and not (init or allow_create):
+        raise SystemExit("No PostgreSQL index exists in %s; use index add to create it" % database_dir)
     if init or not database.has_sql_dir(database_dir):
         ok, _ = database.init(prompt=prompt, database_dir=database_dir)
         if not ok:
@@ -145,7 +154,7 @@ def cmd_add(args):
         raise SystemExit("Give the media to index with -i, -v, -d or -l")
 
     if backend == "postgres":
-        ensure_postgres(database_dir, init=args.init, prompt=not args.yes)
+        ensure_postgres(database_dir, init=args.init, prompt=not args.yes, allow_create=True)
     os.makedirs(database_dir, exist_ok=True)
 
     started = time.time()
