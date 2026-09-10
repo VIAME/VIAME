@@ -39,6 +39,22 @@ def is_registered(kind, impl):
         from kwiver.vital.algo import ImageObjectDetector
         return impl in ImageObjectDetector.registered_names()
 
+    if kind == "features":
+        from kwiver.vital.algo import DetectFeatures
+        return impl in DetectFeatures.registered_names()
+
+    if kind == "matches":
+        from kwiver.vital.algo import MatchFeatures
+        return impl in MatchFeatures.registered_names()
+
+    if kind == "homography":
+        from kwiver.vital.algo import EstimateHomography
+        return impl in EstimateHomography.registered_names()
+
+    if kind == "fundamental":
+        from kwiver.vital.algo import EstimateFundamentalMatrix
+        return impl in EstimateFundamentalMatrix.registered_names()
+
     return True
 
 

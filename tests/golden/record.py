@@ -31,6 +31,8 @@ import calib_cases                  # noqa: E402
 import calib_runner                 # noqa: E402
 import codec_cases                  # noqa: E402
 import codec_fixtures               # noqa: E402
+import feature_cases                # noqa: E402
+import feature_runner               # noqa: E402
 import fixtures                     # noqa: E402
 import opencv_cases                 # noqa: E402
 import opencv_fixtures              # noqa: E402
@@ -503,6 +505,93 @@ def record_opencv_detectors(group_dir, manifest):
                 sum(len(detections) for detections in outputs)))
 
 
+def _record_arrays_case(group_dir, manifest, kind, impl, variant, config,
+                        input_names, results, extra=None):
+    """One case whose outputs are named arrays rather than an image."""
+    case_dir = os.path.join(group_dir, kind, impl, variant)
+    os.makedirs(case_dir, exist_ok=True)
+
+    files = {}
+    for name, arrays in zip(input_names, results):
+        written = feature_runner.save(os.path.join(case_dir, name), **arrays)
+        files[name] = {
+            "file": os.path.relpath(written, group_dir),
+            "members": {
+                member: describe(value)
+                for member, value in sorted(arrays.items())
+            },
+        }
+
+    case = {
+        "kind": kind,
+        "impl": impl,
+        "variant": variant,
+        "config": config,
+        "inputs": list(input_names),
+        "outputs": files,
+        "unstable": {},
+    }
+    case.update(extra or {})
+    manifest["cases"].append(case)
+
+    print("  {} {} {} ({} inputs)".format(kind, impl, variant, len(files)))
+
+
+def record_opencv_features(group_dir, manifest):
+    """`detect_features` and `extract_descriptors` of the same name."""
+    arrays = [imageio_utils.load(input_path(name))
+              for name in feature_cases.IMAGES]
+
+    for impl, variants in sorted(feature_cases.FEATURES.items()):
+        for variant, config in variants:
+            results = [feature_runner.detect_and_extract(impl, config, array)
+                       for array in arrays]
+            _record_arrays_case(group_dir, manifest, "features", impl, variant,
+                                config, feature_cases.IMAGES, results)
+
+
+def record_opencv_matches(group_dir, manifest):
+    pair = feature_cases.PAIR
+    arrays = [imageio_utils.load(input_path(name)) for name in pair]
+    name = "_to_".join(pair)
+
+    for impl, variants in sorted(feature_cases.MATCHERS.items()):
+        for variant, config in variants:
+            for feature_impl in feature_cases.MATCH_FEATURES:
+                result = feature_runner.match(
+                    impl, config, feature_impl, {}, arrays)
+
+                tag = "{}_{}".format(variant, feature_impl)
+                _record_arrays_case(
+                    group_dir, manifest, "matches", impl, tag, config,
+                    [name], [result], extra={"features": feature_impl})
+
+
+def record_opencv_estimators(group_dir, manifest):
+    pair = feature_cases.PAIR
+    arrays = [imageio_utils.load(input_path(name)) for name in pair]
+    name = "_to_".join(pair)
+
+    groups = (
+        ("homography", feature_cases.ESTIMATE_HOMOGRAPHY,
+         feature_runner.estimate_homography),
+        ("fundamental", feature_cases.ESTIMATE_FUNDAMENTAL,
+         feature_runner.estimate_fundamental),
+    )
+
+    for kind, table, estimate in groups:
+        for impl, variants in sorted(table.items()):
+            for variant, config in variants:
+                for scale in feature_cases.INLIER_SCALES:
+                    result = estimate(impl, config, "ocv_SIFT", arrays, scale)
+
+                    tag = "{}_scale_{:g}".format(variant, scale)
+                    _record_arrays_case(
+                        group_dir, manifest, kind, impl, tag, config,
+                        [name], [result],
+                        extra={"features": "ocv_SIFT", "inlier_scale": scale})
+
+
 def record_opencv_pipelines(group_dir, manifest):
     for pipeline in opencv_cases.PIPELINES:
         outputs = pipeline_runner.run(pipeline)
@@ -541,6 +630,9 @@ def record_opencv(group_dir, manifest):
     record_opencv_splits(group_dir, manifest)
     record_opencv_motion(group_dir, manifest)
     record_opencv_detectors(group_dir, manifest)
+    record_opencv_features(group_dir, manifest)
+    record_opencv_matches(group_dir, manifest)
+    record_opencv_estimators(group_dir, manifest)
     record_opencv_pipelines(group_dir, manifest)
 
 

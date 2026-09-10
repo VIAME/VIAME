@@ -25,6 +25,8 @@ import cases as case_spec           # noqa: E402
 import calib_cases                  # noqa: E402
 import calib_runner                 # noqa: E402
 import codec_cases                  # noqa: E402
+import feature_cases                # noqa: E402
+import feature_runner               # noqa: E402
 import imageio_utils                # noqa: E402
 import opencv_cases                 # noqa: E402
 import pipeline_runner              # noqa: E402
@@ -55,6 +57,13 @@ INTERFACE_OF_KIND = {
     "split_image": "split_image",
     "detect_motion": "detect_motion",
     "detect": "image_object_detector",
+    # The feature chain: `features` runs a detect_features and the
+    # extract_descriptors of the same name, so it is keyed on the detector
+    # -- a removal would take both halves together.
+    "features": "detect_features",
+    "matches": "match_features",
+    "homography": "estimate_homography",
+    "fundamental": "estimate_fundamental_matrix",
 }
 
 
@@ -200,6 +209,27 @@ def run_case(case, impl):
         arrays = [imageio_utils.load(input_path(name)) for name in case["inputs"]]
         return runner.run_image_object_detector(impl, case["config"], arrays)
 
+    if case["kind"] == "features":
+        arrays = [imageio_utils.load(input_path(name))
+                  for name in case["inputs"]]
+        return [feature_runner.detect_and_extract(impl, case["config"], array)
+                for array in arrays]
+
+    if case["kind"] == "matches":
+        arrays = [imageio_utils.load(input_path(name))
+                  for name in feature_cases.PAIR]
+        return [feature_runner.match(impl, case["config"], case["features"],
+                                     {}, arrays)]
+
+    if case["kind"] in ("homography", "fundamental"):
+        arrays = [imageio_utils.load(input_path(name))
+                  for name in feature_cases.PAIR]
+        estimate = (feature_runner.estimate_homography
+                    if case["kind"] == "homography"
+                    else feature_runner.estimate_fundamental)
+        return [estimate(impl, case["config"], case["features"], arrays,
+                         case["inlier_scale"])]
+
     if case["kind"] == "calibration":
         return [calib_runner.load_calibration(
                     os.path.join(REPO_ROOT, calib_cases.CALIBRATIONS[name]))
@@ -289,6 +319,48 @@ def check_detections(item, case, outputs, group):
                                   got["types"][label], score))
 
 
+# How far a recorded feature or descriptor may move. Zero: SIFT and SURF are
+# the same OpenCV code before and after the port, so a difference here is a
+# difference in what the wrapper hands them or hands back, which is the only
+# thing the port can get wrong. A tolerance would hide exactly that.
+ARRAY_TOLERANCE = 0.0
+
+
+def check_array_case(item, case, outputs, group):
+    """A recording whose values are named arrays: features, descriptors, matches.
+
+    Each member is compared for shape, dtype and value. Shape first, because
+    a detector that finds a different number of features is a different
+    detector and saying "12 rows, recorded 81" is more use than a value
+    mismatch on row zero.
+    """
+    for name, actual in zip(case["inputs"], outputs):
+        record = case["outputs"][name]
+        expected = feature_runner.load(os.path.join(HERE, group, record["file"]))
+
+        assert sorted(actual) == sorted(expected), (
+            "{} {}: members {} != recorded {}".format(
+                case_id(item), name, sorted(actual), sorted(expected)))
+
+        for member in sorted(expected):
+            got = np.asarray(actual[member])
+            want = np.asarray(expected[member])
+
+            assert got.shape == want.shape, (
+                "{} {} '{}': shape {} != recorded {}".format(
+                    case_id(item), name, member, got.shape, want.shape))
+
+            if want.size == 0:
+                continue
+
+            difference = np.abs(got.astype(np.float64) -
+                                want.astype(np.float64))
+            assert difference.max() <= ARRAY_TOLERANCE, (
+                "{} {} '{}': max difference {} exceeds {}".format(
+                    case_id(item), name, member, difference.max(),
+                    ARRAY_TOLERANCE))
+
+
 def check_json_case(item, case, outputs, group):
     """A recording whose values are parsed structure rather than pixels.
 
@@ -352,6 +424,10 @@ def test_golden(item):
 
     if case["kind"] == "detect":
         check_detections(item, case, outputs, group)
+        return
+
+    if case["kind"] in ("features", "matches", "homography", "fundamental"):
+        check_array_case(item, case, outputs, group)
         return
 
     if case["kind"] in ("calibration", "nodes"):

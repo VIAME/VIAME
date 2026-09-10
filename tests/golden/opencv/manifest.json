@@ -1,5 +1,5 @@
 {
-  "appended": "2026-09-10T22:32:07Z",
+  "appended": "2026-09-10T23:17:10Z",
   "cases": [
     {
       "config": {},
@@ -2016,6 +2016,926 @@
       },
       "unstable": {},
       "variant": "forced_20x20_no_threshold"
+    },
+    {
+      "config": {},
+      "impl": "ocv_SIFT",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "rgb8"
+      ],
+      "kind": "features",
+      "outputs": {
+        "frame_00": {
+          "file": "features/ocv_SIFT/defaults/frame_00.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "10f9c6168d2a554a",
+              "shape": [
+                81,
+                128
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "1f285cd2419be111",
+              "shape": [
+                81,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "1f285cd2419be111",
+              "shape": [
+                81,
+                5
+              ]
+            }
+          }
+        },
+        "frame_01": {
+          "file": "features/ocv_SIFT/defaults/frame_01.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "71c045594ab1666f",
+              "shape": [
+                77,
+                128
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "b6a389b850e8764d",
+              "shape": [
+                77,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "b6a389b850e8764d",
+              "shape": [
+                77,
+                5
+              ]
+            }
+          }
+        },
+        "rgb8": {
+          "file": "features/ocv_SIFT/defaults/rgb8.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "68d4193065b4c724",
+              "shape": [
+                24,
+                128
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "6dc0e36998acead4",
+              "shape": [
+                24,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "6dc0e36998acead4",
+              "shape": [
+                24,
+                5
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "n_features": "20"
+      },
+      "impl": "ocv_SIFT",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "rgb8"
+      ],
+      "kind": "features",
+      "outputs": {
+        "frame_00": {
+          "file": "features/ocv_SIFT/few/frame_00.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "10f9c6168d2a554a",
+              "shape": [
+                81,
+                128
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "1f285cd2419be111",
+              "shape": [
+                81,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "1f285cd2419be111",
+              "shape": [
+                81,
+                5
+              ]
+            }
+          }
+        },
+        "frame_01": {
+          "file": "features/ocv_SIFT/few/frame_01.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "71c045594ab1666f",
+              "shape": [
+                77,
+                128
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "b6a389b850e8764d",
+              "shape": [
+                77,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "b6a389b850e8764d",
+              "shape": [
+                77,
+                5
+              ]
+            }
+          }
+        },
+        "rgb8": {
+          "file": "features/ocv_SIFT/few/rgb8.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "68d4193065b4c724",
+              "shape": [
+                24,
+                128
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "6dc0e36998acead4",
+              "shape": [
+                24,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "6dc0e36998acead4",
+              "shape": [
+                24,
+                5
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "few"
+    },
+    {
+      "config": {
+        "contrast_threshold": "0.08",
+        "n_octave_layers": "2"
+      },
+      "impl": "ocv_SIFT",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "rgb8"
+      ],
+      "kind": "features",
+      "outputs": {
+        "frame_00": {
+          "file": "features/ocv_SIFT/coarse/frame_00.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "10f9c6168d2a554a",
+              "shape": [
+                81,
+                128
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "1f285cd2419be111",
+              "shape": [
+                81,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "1f285cd2419be111",
+              "shape": [
+                81,
+                5
+              ]
+            }
+          }
+        },
+        "frame_01": {
+          "file": "features/ocv_SIFT/coarse/frame_01.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "71c045594ab1666f",
+              "shape": [
+                77,
+                128
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "b6a389b850e8764d",
+              "shape": [
+                77,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "b6a389b850e8764d",
+              "shape": [
+                77,
+                5
+              ]
+            }
+          }
+        },
+        "rgb8": {
+          "file": "features/ocv_SIFT/coarse/rgb8.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "68d4193065b4c724",
+              "shape": [
+                24,
+                128
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "6dc0e36998acead4",
+              "shape": [
+                24,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "6dc0e36998acead4",
+              "shape": [
+                24,
+                5
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "coarse"
+    },
+    {
+      "config": {},
+      "impl": "ocv_SURF",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "rgb8"
+      ],
+      "kind": "features",
+      "outputs": {
+        "frame_00": {
+          "file": "features/ocv_SURF/defaults/frame_00.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "91a5157d86586b94",
+              "shape": [
+                176,
+                64
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "707a2522ddfad902",
+              "shape": [
+                176,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "707a2522ddfad902",
+              "shape": [
+                176,
+                5
+              ]
+            }
+          }
+        },
+        "frame_01": {
+          "file": "features/ocv_SURF/defaults/frame_01.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "ada800b6fef28de2",
+              "shape": [
+                194,
+                64
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "45c098fd9f4b7b2d",
+              "shape": [
+                194,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "45c098fd9f4b7b2d",
+              "shape": [
+                194,
+                5
+              ]
+            }
+          }
+        },
+        "rgb8": {
+          "file": "features/ocv_SURF/defaults/rgb8.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "a3cde33daeddfb51",
+              "shape": [
+                36,
+                64
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "e0a774b23af4e2fe",
+              "shape": [
+                36,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "e0a774b23af4e2fe",
+              "shape": [
+                36,
+                5
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "extended": "true"
+      },
+      "impl": "ocv_SURF",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "rgb8"
+      ],
+      "kind": "features",
+      "outputs": {
+        "frame_00": {
+          "file": "features/ocv_SURF/extended/frame_00.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "91a5157d86586b94",
+              "shape": [
+                176,
+                64
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "707a2522ddfad902",
+              "shape": [
+                176,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "707a2522ddfad902",
+              "shape": [
+                176,
+                5
+              ]
+            }
+          }
+        },
+        "frame_01": {
+          "file": "features/ocv_SURF/extended/frame_01.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "ada800b6fef28de2",
+              "shape": [
+                194,
+                64
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "45c098fd9f4b7b2d",
+              "shape": [
+                194,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "45c098fd9f4b7b2d",
+              "shape": [
+                194,
+                5
+              ]
+            }
+          }
+        },
+        "rgb8": {
+          "file": "features/ocv_SURF/extended/rgb8.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "a3cde33daeddfb51",
+              "shape": [
+                36,
+                64
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "e0a774b23af4e2fe",
+              "shape": [
+                36,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "e0a774b23af4e2fe",
+              "shape": [
+                36,
+                5
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "extended"
+    },
+    {
+      "config": {
+        "hessian_threshold": "500",
+        "upright": "true"
+      },
+      "impl": "ocv_SURF",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "rgb8"
+      ],
+      "kind": "features",
+      "outputs": {
+        "frame_00": {
+          "file": "features/ocv_SURF/upright_500/frame_00.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "91a5157d86586b94",
+              "shape": [
+                176,
+                64
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "707a2522ddfad902",
+              "shape": [
+                176,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "707a2522ddfad902",
+              "shape": [
+                176,
+                5
+              ]
+            }
+          }
+        },
+        "frame_01": {
+          "file": "features/ocv_SURF/upright_500/frame_01.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "ada800b6fef28de2",
+              "shape": [
+                194,
+                64
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "45c098fd9f4b7b2d",
+              "shape": [
+                194,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "45c098fd9f4b7b2d",
+              "shape": [
+                194,
+                5
+              ]
+            }
+          }
+        },
+        "rgb8": {
+          "file": "features/ocv_SURF/upright_500/rgb8.npz",
+          "members": {
+            "descriptors": {
+              "dtype": "float64",
+              "sha256": "a3cde33daeddfb51",
+              "shape": [
+                36,
+                64
+              ]
+            },
+            "detected": {
+              "dtype": "float64",
+              "sha256": "e0a774b23af4e2fe",
+              "shape": [
+                36,
+                5
+              ]
+            },
+            "features": {
+              "dtype": "float64",
+              "sha256": "e0a774b23af4e2fe",
+              "shape": [
+                36,
+                5
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "upright_500"
+    },
+    {
+      "config": {},
+      "features": "ocv_SIFT",
+      "impl": "ocv_flann_based",
+      "inputs": [
+        "frame_00_to_frame_01"
+      ],
+      "kind": "matches",
+      "outputs": {
+        "frame_00_to_frame_01": {
+          "file": "matches/ocv_flann_based/defaults_ocv_SIFT/frame_00_to_frame_01.npz",
+          "members": {
+            "matches": {
+              "dtype": "int64",
+              "sha256": "ffc34599e45de2b8",
+              "shape": [
+                46,
+                2
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "defaults_ocv_SIFT"
+    },
+    {
+      "config": {},
+      "features": "ocv_SURF",
+      "impl": "ocv_flann_based",
+      "inputs": [
+        "frame_00_to_frame_01"
+      ],
+      "kind": "matches",
+      "outputs": {
+        "frame_00_to_frame_01": {
+          "file": "matches/ocv_flann_based/defaults_ocv_SURF/frame_00_to_frame_01.npz",
+          "members": {
+            "matches": {
+              "dtype": "int64",
+              "sha256": "95a9353e7b0ac55d",
+              "shape": [
+                105,
+                2
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "defaults_ocv_SURF"
+    },
+    {
+      "config": {
+        "cross_check": "false"
+      },
+      "features": "ocv_SIFT",
+      "impl": "ocv_flann_based",
+      "inputs": [
+        "frame_00_to_frame_01"
+      ],
+      "kind": "matches",
+      "outputs": {
+        "frame_00_to_frame_01": {
+          "file": "matches/ocv_flann_based/no_cross_check_ocv_SIFT/frame_00_to_frame_01.npz",
+          "members": {
+            "matches": {
+              "dtype": "int64",
+              "sha256": "8666667bcc49d002",
+              "shape": [
+                81,
+                2
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "no_cross_check_ocv_SIFT"
+    },
+    {
+      "config": {
+        "cross_check": "false"
+      },
+      "features": "ocv_SURF",
+      "impl": "ocv_flann_based",
+      "inputs": [
+        "frame_00_to_frame_01"
+      ],
+      "kind": "matches",
+      "outputs": {
+        "frame_00_to_frame_01": {
+          "file": "matches/ocv_flann_based/no_cross_check_ocv_SURF/frame_00_to_frame_01.npz",
+          "members": {
+            "matches": {
+              "dtype": "int64",
+              "sha256": "5dfbd8ed911e4f6d",
+              "shape": [
+                176,
+                2
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "no_cross_check_ocv_SURF"
+    },
+    {
+      "config": {},
+      "features": "ocv_SIFT",
+      "impl": "ocv",
+      "inlier_scale": 1.0,
+      "inputs": [
+        "frame_00_to_frame_01"
+      ],
+      "kind": "homography",
+      "outputs": {
+        "frame_00_to_frame_01": {
+          "file": "homography/ocv/defaults_scale_1/frame_00_to_frame_01.npz",
+          "members": {
+            "matrix": {
+              "dtype": "float64",
+              "sha256": "ecf9e1b4730218e2",
+              "shape": [
+                3,
+                3
+              ]
+            },
+            "points": {
+              "dtype": "int64",
+              "sha256": "6e3989bfdab96750",
+              "shape": []
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "defaults_scale_1"
+    },
+    {
+      "config": {},
+      "features": "ocv_SIFT",
+      "impl": "ocv",
+      "inlier_scale": 10.0,
+      "inputs": [
+        "frame_00_to_frame_01"
+      ],
+      "kind": "homography",
+      "outputs": {
+        "frame_00_to_frame_01": {
+          "file": "homography/ocv/defaults_scale_10/frame_00_to_frame_01.npz",
+          "members": {
+            "matrix": {
+              "dtype": "float64",
+              "sha256": "fb5604e4e4e4ef08",
+              "shape": [
+                3,
+                3
+              ]
+            },
+            "points": {
+              "dtype": "int64",
+              "sha256": "6e3989bfdab96750",
+              "shape": []
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "defaults_scale_10"
+    },
+    {
+      "config": {},
+      "features": "ocv_SIFT",
+      "impl": "ocv",
+      "inlier_scale": 1.0,
+      "inputs": [
+        "frame_00_to_frame_01"
+      ],
+      "kind": "fundamental",
+      "outputs": {
+        "frame_00_to_frame_01": {
+          "file": "fundamental/ocv/defaults_scale_1/frame_00_to_frame_01.npz",
+          "members": {
+            "matrix": {
+              "dtype": "float64",
+              "sha256": "b34745f75dc957ca",
+              "shape": [
+                3,
+                3
+              ]
+            },
+            "points": {
+              "dtype": "int64",
+              "sha256": "6e3989bfdab96750",
+              "shape": []
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "defaults_scale_1"
+    },
+    {
+      "config": {},
+      "features": "ocv_SIFT",
+      "impl": "ocv",
+      "inlier_scale": 10.0,
+      "inputs": [
+        "frame_00_to_frame_01"
+      ],
+      "kind": "fundamental",
+      "outputs": {
+        "frame_00_to_frame_01": {
+          "file": "fundamental/ocv/defaults_scale_10/frame_00_to_frame_01.npz",
+          "members": {
+            "matrix": {
+              "dtype": "float64",
+              "sha256": "94177acf9def4b42",
+              "shape": [
+                3,
+                3
+              ]
+            },
+            "points": {
+              "dtype": "int64",
+              "sha256": "6e3989bfdab96750",
+              "shape": []
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "defaults_scale_10"
+    },
+    {
+      "config": {
+        "confidence_threshold": "0.90"
+      },
+      "features": "ocv_SIFT",
+      "impl": "ocv",
+      "inlier_scale": 1.0,
+      "inputs": [
+        "frame_00_to_frame_01"
+      ],
+      "kind": "fundamental",
+      "outputs": {
+        "frame_00_to_frame_01": {
+          "file": "fundamental/ocv/confidence_90_scale_1/frame_00_to_frame_01.npz",
+          "members": {
+            "matrix": {
+              "dtype": "float64",
+              "sha256": "b34745f75dc957ca",
+              "shape": [
+                3,
+                3
+              ]
+            },
+            "points": {
+              "dtype": "int64",
+              "sha256": "6e3989bfdab96750",
+              "shape": []
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "confidence_90_scale_1"
+    },
+    {
+      "config": {
+        "confidence_threshold": "0.90"
+      },
+      "features": "ocv_SIFT",
+      "impl": "ocv",
+      "inlier_scale": 10.0,
+      "inputs": [
+        "frame_00_to_frame_01"
+      ],
+      "kind": "fundamental",
+      "outputs": {
+        "frame_00_to_frame_01": {
+          "file": "fundamental/ocv/confidence_90_scale_10/frame_00_to_frame_01.npz",
+          "members": {
+            "matrix": {
+              "dtype": "float64",
+              "sha256": "94177acf9def4b42",
+              "shape": [
+                3,
+                3
+              ]
+            },
+            "points": {
+              "dtype": "int64",
+              "sha256": "6e3989bfdab96750",
+              "shape": []
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "confidence_90_scale_10"
     }
   ],
   "fixtures": {
