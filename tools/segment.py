@@ -44,6 +44,7 @@ import shutil
 import struct
 import subprocess
 import sys
+import tempfile
 
 # -----------------------------------------------------------------------------
 # Constants
@@ -90,8 +91,8 @@ def csv_rows(path):
             if line.startswith('#') or not line.strip():
                 continue
             fields = line.rstrip('\n').split(',')
-            if len(fields) < 7:
-                continue
+            if len(fields) < 9:
+                raise ValueError("%s:%d: incomplete VIAME CSV row" % (path, i + 1))
             yield i, line, fields
 
 
@@ -794,6 +795,19 @@ def load_computed_polys(computed_csv):
     return table
 
 
+def write_lines_atomic(path, lines):
+    fd, temporary = tempfile.mkstemp(prefix='.segment-', dir=os.path.dirname(os.path.abspath(path)))
+    try:
+        with os.fdopen(fd, 'w') as stream:
+            stream.writelines(lines)
+        if os.path.exists(path):
+            shutil.copymode(path, temporary)
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
 def merge_polys(original_csv, computed_csv, out_csv, box_fallback=True,
                 clean_specks=True, replace_degenerate=False):
     """Write original_csv with polygons appended, boxes and rows untouched.
@@ -814,6 +828,12 @@ def merge_polys(original_csv, computed_csv, out_csv, box_fallback=True,
     for _, line, fields in csv_rows(original_csv):
         n_rows += 1
 
+        key = (row_frame(fields), row_box(fields))
+        candidates = table.get(key)
+        idx = taken[key]
+        if candidates and idx < len(candidates):
+            taken[key] += 1
+
         # Never overwrite an annotation that already carries a polygon: those are
         # manual, and the pipeline is configured (overwrite_existing=false) not to
         # touch them either. The exception is a polygon that is just the box.
@@ -824,12 +844,8 @@ def merge_polys(original_csv, computed_csv, out_csv, box_fallback=True,
                 continue
             n_replaced += 1
 
-        key = (row_frame(fields), row_box(fields))
-        candidates = table.get(key)
-        idx = taken[key]
         if candidates and idx < len(candidates):
             polys = candidates[idx]
-            taken[key] += 1
             n_added += 1
             if clean_specks:
                 cleaned = drop_specks(polys)
@@ -845,8 +861,7 @@ def merge_polys(original_csv, computed_csv, out_csv, box_fallback=True,
 
         lines.append(','.join(replace_poly_tokens(fields, polys)) + '\n')
 
-    with open(out_csv, 'w') as fout:
-        fout.writelines(lines)
+    write_lines_atomic(out_csv, lines)
 
     return {'rows': n_rows, 'sam2_polys': n_added, 'kept_existing': n_kept,
             'box_fallback': n_fallback, 'no_polygon': n_missing,
@@ -885,7 +900,7 @@ def is_weak(polys, box, threshold=WEAK_FILL):
     return bool(polys) and fill_ratio(polys, box) < threshold
 
 
-def validate_unit(original_csv, output_csv):
+def validate_unit(original_csv, output_csv, allow_replace_degenerate=False):
     """Confirm the output is the input plus polygons, and nothing else.
 
     `errors` are structural -- the annotations themselves changed -- and fail the
@@ -894,7 +909,20 @@ def validate_unit(original_csv, output_csv):
     """
     result = {'ok': True, 'errors': [], 'warnings': [], 'stats': {}}
 
-    orig = [(row_frame(f), row_box(f), f[0]) for _, _, f in csv_rows(original_csv)]
+    original_rows = [f for _, _, f in csv_rows(original_csv)]
+    output_rows = [f for _, _, f in csv_rows(output_csv)]
+    if list(csv_header(original_csv)) != list(csv_header(output_csv)):
+        result['errors'].append('header changed')
+    for index, (before, after) in enumerate(zip(original_rows, output_rows)):
+        unchanged = lambda fields: [f for f in fields if not f.strip().startswith('(poly)')]
+        polygons = lambda fields: [f for f in fields if f.strip().startswith('(poly)')]
+        if unchanged(before) != unchanged(after):
+            result['errors'].append('row %d: non-polygon fields changed' % index)
+        if polygons(before) and polygons(before) != polygons(after):
+            if not (allow_replace_degenerate and polygon_is_degenerate(before)):
+                result['errors'].append('row %d: existing polygon changed' % index)
+    result['ok'] = not result['errors']
+    orig = [(row_frame(f), row_box(f), f[0]) for f in original_rows]
     out = []
     n_poly = n_degenerate = n_outside = n_weak = 0
     area_ratios = []
@@ -1141,7 +1169,8 @@ def cmd_run_unit(args):
              stats['kept_existing'], stats['box_fallback'], stats['no_polygon'],
              stats['specks_dropped'], stats['replaced_boxes']), flush=True)
 
-    result = validate_unit(gt_path, out_csv)
+    result = validate_unit(gt_path, out_csv,
+                           allow_replace_degenerate=bool(rec.get("box_polygons_only")))
     for warn in result['warnings']:
         print('  warning: ' + warn)
     for err in result['errors']:
@@ -1240,7 +1269,8 @@ def cmd_finalize(args):
         if not os.path.exists(out_csv):
             print('SKIP %s: no output' % rec['name'])
             continue
-        result = validate_unit(gt_csv, out_csv)
+        result = validate_unit(gt_csv, out_csv,
+                               allow_replace_degenerate=bool(rec.get("box_polygons_only")))
         if not result['ok']:
             print('SKIP %s: validation failed' % rec['name'])
             continue
@@ -1257,7 +1287,8 @@ def cmd_finalize(args):
         backup = gt_csv + '.orig'
         if not os.path.exists(backup):
             shutil.copy2(gt_csv, backup)
-        shutil.copy2(out_csv, gt_csv)
+        with open(out_csv) as stream:
+            write_lines_atomic(gt_csv, stream)
     print('Wrote %d CSVs in place; originals saved alongside as *.csv.orig'
           % len(pending))
     return 0
@@ -1529,8 +1560,7 @@ def cmd_reseg(args):
                 ','.join(replace_poly_tokens(fields, new_polys[idx])) + '\n')
         else:
             out_lines.append(line)
-    with open(csv_path, 'w') as fout:
-        fout.writelines(out_lines)
+    write_lines_atomic(csv_path, out_lines)
 
     print('%s: re-segmented %d, empty %d -> %s'
           % (rec['name'], n_ok, n_empty, csv_path))
