@@ -16,6 +16,13 @@ import cv2
 import numpy as np
 
 
+def validate_pair(left, right):
+    if left is None or right is None or left.shape != right.shape:
+        raise ValueError("Left and right images must have the same dimensions and channels")
+    if left.ndim not in (2, 3) or min(left.shape[:2]) < 2:
+        raise ValueError("Stereo images must be at least 2 x 2 pixels")
+
+
 def disparity(img_left, img_right, disp_range=(0, 240), block_size=11):
     """Compute disparity for a fixed disparity range using SGBM.
 
@@ -28,11 +35,21 @@ def disparity(img_left, img_right, disp_range=(0, 240), block_size=11):
     Returns:
         Disparity image as floating point values
     """
-    min_disp = int(disp_range[0])
-    num_disp = int(disp_range[1] - disp_range[0])
+    validate_pair(img_left, img_right)
+    if block_size < 1 or block_size % 2 == 0 or block_size > min(img_left.shape[:2]):
+        raise ValueError("Block size must be positive, odd, and fit inside the images")
+    if not np.isfinite(disp_range).all() or disp_range[1] < disp_range[0]:
+        raise ValueError("Disparity range must be finite and ordered")
+    min_disp = int(np.floor(disp_range[0]))
+    num_disp = max(16, int(np.ceil(disp_range[1] - min_disp)))
     # num_disp must be a multiple of 16
     num_disp = ((num_disp + 15) // 16) * 16
 
+    available = ((img_left.shape[1] - max(0, min_disp) - 1) // 16) * 16
+    num_disp = min(num_disp, available)
+    if num_disp < 16:
+        raise ValueError("Image width is too small for the disparity search")
+    channels = 1 if img_left.ndim == 2 else img_left.shape[2]
     disp_alg = cv2.StereoSGBM_create(
         numDisparities=num_disp,
         minDisparity=min_disp,
@@ -40,8 +57,8 @@ def disparity(img_left, img_right, disp_range=(0, 240), block_size=11):
         blockSize=block_size,
         speckleWindowSize=0,
         speckleRange=0,
-        P1=8 * block_size**2,
-        P2=32 * block_size**2
+        P1=8 * channels * block_size**2,
+        P2=32 * channels * block_size**2
     )
     return disp_alg.compute(img_left, img_right).astype('float32') / 16.0
 
@@ -69,14 +86,17 @@ def multipass_disparity(img_left, img_right, outlier_percent=3,
     disp_img = disparity(img_left, img_right)
 
     # Ignore pixels near the border
-    border = 20
-    disp_img = disp_img[border:-border, border:-border]
+    border = min(20, (min(disp_img.shape[:2]) - 1) // 4)
+    if border:
+        disp_img = disp_img[border:-border, border:-border]
 
     # Get a mask of valid disparity pixels
     valid = disp_img >= 0
 
     # Compute a robust range from the valid pixels
     valid_data = disp_img[valid]
+    if not valid_data.size:
+        return np.full(img_left.shape[:2], -1.0, dtype=np.float32)
     low = np.percentile(valid_data, outlier_percent / 2)
     high = np.percentile(valid_data, 100 - outlier_percent / 2)
     pad = (high - low) * range_pad_percent / 100.0
@@ -86,7 +106,7 @@ def multipass_disparity(img_left, img_right, outlier_percent=3,
 
     # Second pass - limit the search range
     disp_img = disparity(img_left, img_right, (low, high))
-    valid = disp_img >= low
+    valid = disp_img >= np.floor(low)
 
     disp_img[np.logical_not(valid)] = -1.0
     return disp_img
@@ -102,6 +122,7 @@ def scaled_disparity(img_left, img_right):
     Returns:
         Disparity image at original resolution
     """
+    validate_pair(img_left, img_right)
     img_size = img_left.shape
     # Scale the images down by 50%
     img_left = cv2.resize(img_left, (0, 0), fx=0.5, fy=0.5)
@@ -129,6 +150,7 @@ def main():
     parser.add_argument("images", nargs='+',
                         help="One side-by-side image or two separate left/right images")
 
+    parser.add_argument("--numeric-output", help="Write unnormalized float disparities as a NumPy .npy file")
     args = parser.parse_args()
 
     if len(args.images) == 2:
@@ -154,16 +176,22 @@ def main():
 
     # Stretch the range of the disparities to [0,255] for display
     valid = disp_img >= 0
-    print(f"disparity range: {np.min(disp_img[valid])} {np.max(disp_img[valid])}")
-    disp_img -= np.min(disp_img[valid])
-    disp_img *= 255.0 / np.max(disp_img[valid])
-
-    # Set the invalid pixels to zero for display
-    disp_img[np.logical_not(valid)] = 0
+    numeric = disp_img.copy()
+    shown = np.zeros(disp_img.shape, dtype=np.uint8)
+    if np.any(valid):
+        low, high = np.min(disp_img[valid]), np.max(disp_img[valid])
+        print(f"disparity range: {low} {high}")
+        shown[valid] = ((disp_img[valid] - low) * 255 / (high - low)).astype(np.uint8) if high > low else 255
+    else:
+        print("No valid disparities found", file=sys.stderr)
+    disp_img = shown
+    if args.numeric_output:
+        np.save(args.numeric_output, numeric)
 
     output_file = f"{basename}-disp.png"
     print(f"saving {output_file}")
-    cv2.imwrite(output_file, disp_img)
+    if not cv2.imwrite(output_file, disp_img):
+        raise ValueError(f"Failed to write disparity image: {output_file}")
 
     return 0
 
