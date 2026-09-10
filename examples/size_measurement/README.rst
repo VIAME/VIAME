@@ -292,7 +292,7 @@ details on the expected contents of each format.
   that produces higher quality depth estimates than traditional SGBM. It is available
   in three model sizes: ``vits`` (small, faster), ``vitb`` (base), and ``vitl`` (large,
   more accurate). The small variant is recommended for most use cases. Foundation Stereo
-  is used by the ``stereo_measure_from_annotations_fdn_stereo_s.pipe`` pipeline and can be
+  is used by the ``stereo_measure_current_annotations_fdn_stereo_s.pipe`` pipeline and can be
   enabled by installing the Foundation Stereo add-on.
 
 
@@ -336,23 +336,23 @@ displayed in the Track Details panel.*
 
 |
 
-**stereo_measure_from_annotations_default.pipe**
+**stereo_measure_current_annotations_default.pipe**
   The default measurement-from-annotations pipeline. Uses Foundation Stereo (if the
   add-on is installed) for disparity estimation and ORB feature matching for stereo
   correspondence. Reads annotation files for both cameras, pairs detections, and
   outputs measured tracks to ``computed_tracks2.csv``.
 
-**stereo_measure_from_annotations_fdn_stereo_s.pipe (Foundation Stereo add-on)**
+**stereo_measure_current_annotations_fdn_stereo_s.pipe (Foundation Stereo add-on)**
   Uses the Foundation Stereo deep learning model (small variant) for high-quality
   disparity estimation. Recommended when the Foundation Stereo add-on is installed,
   as it generally produces more accurate measurements than traditional methods.
 
-**stereo_measure_from_annotations_ncc_dino.pipe (DINO add-on)**
+**stereo_measure_current_annotations_ncc_dino.pipe (DINO add-on)**
   Uses DINO visual features for template matching between left and right camera views,
   with NCC (Normalized Cross-Correlation) as a secondary matching stage. Can produce
   better correspondence in challenging cases where ORB features are insufficient.
 
-**stereo_measure_from_annotations_seagis.pipe (SEAGIS add-on)**
+**stereo_measure_current_annotations_seagis.pipe (SEAGIS add-on)**
   Uses the SEAGIS StereoLibLX library with ``.CamCAL`` calibration files for stereo
   measurement. Supports epipolar template matching as a fallback when only one camera
   has annotated keypoints. Use this pipeline if your calibration data is in the SEAGIS

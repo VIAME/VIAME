@@ -142,7 +142,7 @@ RULES = (
     (r"^transcode_", {}),
     (r"^utility_add_head_tail_keypoints", dict(check=HEAD_TAIL)),
     (r"^utility_add_segmentations", dict(check=POLYGON)),
-    (r"^stereo_measure_from_annotations", dict(params=CALIBRATION_PARAMS, check=STEREO_MIN_2)),
+    (r"^stereo_measure_current_annotations", dict(params=CALIBRATION_PARAMS, check=STEREO_MIN_2)),
 )
 
 

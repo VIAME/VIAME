@@ -189,10 +189,10 @@ covered (the third, the depth-map matcher, is not):
 
 1. **Method 1 — NCC** (`epipolar_template_matching`, the "regular computer
    vision" method in
-   [`stereo_measure_from_annotations_template.pipe`](../../configs/pipelines/stereo_measure_from_annotations_template.pipe)):
+   [`stereo_measure_current_annotations_template.pipe`](../../configs/pipelines/stereo_measure_current_annotations_template.pipe)):
    epipolar candidate generation + NCC template matching.
 2. **Method 2 — DINO + NCC** (`epipolar_descriptor_type=dino` in
-   [`add-ons/dino/stereo_measure_from_annotations_ncc_dino.pipe`](../../configs/add-ons/dino/stereo_measure_from_annotations_ncc_dino.pipe)):
+   [`add-ons/dino/stereo_measure_current_annotations_ncc_dino.pipe`](../../configs/add-ons/dino/stereo_measure_current_annotations_ncc_dino.pipe)):
    the same epipolar matching, but DINOv2 dense features first pick the top-K
    semantically similar candidates and NCC refines among them. The DINOv2 ViT is
    baked into the graph.
