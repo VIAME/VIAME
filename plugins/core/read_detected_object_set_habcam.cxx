@@ -4,10 +4,10 @@
 
 #include "read_detected_object_set_habcam.h"
 
-#include <vital/util/tokenize.h>
-#include <vital/util/data_stream_reader.h>
-#include <vital/logger/logger.h>
-#include <vital/exceptions.h>
+#include <viame/algorithm_framework/util/tokenize.h>
+#include <viame/algorithm_framework/util/data_stream_reader.h>
+#include <viame/algorithm_framework/logger/logger.h>
+#include <viame/algorithm_framework/exceptions.h>
 
 #include <map>
 #include <sstream>

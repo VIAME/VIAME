@@ -127,12 +127,12 @@ target_include_directories( viame_core PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   )
 
-# Add KWIVER internal include path for cereal headers used by camera_rig_io
-if( NOT KWIVER_SOURCE_DIR )
-  set( KWIVER_SOURCE_DIR "${VIAME_PACKAGES_DIR}/kwiver" )
-endif()
+# cereal, for camera_rig_io, and the rapidjson it ships, for
+# read_transform_homography_json. Both were kwiver's `vital/internal` until
+# phase 5 vendored cereal whole.
 target_include_directories( viame_core PRIVATE
-  ${KWIVER_SOURCE_DIR}/vital/internal
+  ${VIAME_SOURCE_DIR}/third_party/cereal
+  ${VIAME_SOURCE_DIR}/third_party/cereal/cereal/external
   )
 
 set( CORE_LINK_LIBRARIES

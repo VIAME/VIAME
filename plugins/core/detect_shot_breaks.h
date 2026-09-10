@@ -12,8 +12,8 @@
 
 #include "viame_core_export.h"
 
-#include <vital/types/image_container.h>
-#include <vital/types/descriptor.h>
+#include <viame/core_types/image_container.h>
+#include <viame/core_types/descriptor.h>
 
 #include <vector>
 

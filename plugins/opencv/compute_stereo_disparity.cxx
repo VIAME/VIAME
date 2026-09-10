@@ -4,10 +4,10 @@
 
 #include "compute_stereo_disparity.h"
 
-#include <vital/vital_config.h>
-#include <vital/types/image_container.h>
-#include <vital/exceptions.h>
-#include <vital/logger/logger.h>
+#include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/image_container.h>
+#include <viame/algorithm_framework/exceptions.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>

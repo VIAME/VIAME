@@ -7,9 +7,9 @@
 
 #include "viame_core_export.h"
 
-#include <vital/algo/transform_2d_io.h>
-#include <vital/types/transform_2d.h>
-#include <vital/plugin_management/pluggable_macro_magic.h>
+#include <viame/algorithm_framework/algo/transform_2d_io.h>
+#include <viame/core_types/transform_2d.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 #include <string>
 

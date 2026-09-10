@@ -14,9 +14,9 @@
 
 #include "measurement_utilities.h"
 
-#include <vital/algo/algorithm.txx>
-#include <vital/logger/logger.h>
-#include <vital/util/string.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/logger/logger.h>
+#include <viame/algorithm_framework/util/string.h>
 
 #include <arrows/mvg/triangulate.h>
 
@@ -4100,8 +4100,8 @@ get_valid_methods()
 
 #include "camera_rig_io.h"
 
-#include <vital/types/camera_perspective.h>
-#include <vital/types/rotation.h>
+#include <viame/core_types/camera_perspective.h>
+#include <viame/core_types/rotation.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>

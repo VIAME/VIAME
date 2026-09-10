@@ -73,6 +73,31 @@ INCLUDE_ROOTS = ("", "sprokit/src", "sprokit/processes")
 LINK_ONLY = (
     "vital/logger/kwiver_logger_manager.h",
     "vital/logger/default_logger.h",
+    # `vital/config_plugins` builds the `format_config` module, which is
+    # registered in this build and stays behind in kwiver when vital moves,
+    # so what it includes has to come across with vital.
+    "vital/config/format_config_block.h",
+    # Likewise `python/kwiver/vital/io`, which binds this one for python.
+    # VIAME reaches neither, and P5-T06 may well prune both again once what
+    # is left of kwiver has gone.
+    "vital/io/camera_from_metadata.h",
+    # A pybind11 helper the camera bindings use, and nothing in C++ does.
+    "vital/overload.h",
+)
+
+# Algorithm interfaces VIAME implements in python and nothing implements in
+# C++. Nothing includes their headers, so the closure cannot see them, but a
+# python implementation is registered against the interface by name and the
+# binding for it has to exist. Regenerate with:
+#
+#   grep -rhoP "from kwiver\.vital\.algo import \K[A-Za-z_, ]+" \
+#     plugins library tools tests --include=*.py
+#
+# converted from CamelCase. The rest of that list is reached through C++
+# anyway; these two are the ones that are not.
+PYTHON_ONLY_INTERFACES = (
+    "vital/algo/perform_text_query.h",
+    "vital/algo/segment_via_points.h",
 )
 
 # Reached only through the plugin loader and the scheduler, so no include
@@ -300,7 +325,8 @@ def registration_roots(kwiver, verbose):
 
 
 def entry_point_roots(kwiver):
-    roots = {os.path.join(kwiver, rel) for rel in LINK_ONLY
+    roots = {os.path.join(kwiver, rel)
+             for rel in LINK_ONLY + PYTHON_ONLY_INTERFACES
              if os.path.isfile(os.path.join(kwiver, rel))}
 
     for entry in ENTRY_POINTS:
@@ -413,6 +439,13 @@ def main():
 
     if not os.path.isdir(kwiver):
         print("no kwiver at {}".format(kwiver), file=sys.stderr)
+        return 1
+
+    if not os.path.isfile(os.path.join(kwiver, "vital", "types", "image.h")):
+        print("kwiver's vital/ is gone: phase 5 moved it into library/, so "
+              "this can no longer compute a closure over it. The list it "
+              "wrote is a record of what was imported, not a live query.",
+              file=sys.stderr)
         return 1
 
     roots = viame_roots(kwiver)

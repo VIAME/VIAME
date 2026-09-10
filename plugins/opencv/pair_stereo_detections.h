@@ -1,9 +1,9 @@
 #ifndef VIAME_OPENCV_PAIR_STEREO_DETECTIONS_H
 #define VIAME_OPENCV_PAIR_STEREO_DETECTIONS_H
 
-#include <vital/types/bounding_box.h>
-#include <vital/types/detected_object.h>
-#include <vital/vital_types.h>
+#include <viame/core_types/bounding_box.h>
+#include <viame/core_types/detected_object.h>
+#include <viame/core_types/vital_types.h>
 
 #include <opencv2/core/core.hpp>
 

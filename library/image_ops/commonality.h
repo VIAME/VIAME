@@ -5,7 +5,7 @@
 #ifndef VIAME_IMAGE_OPS_COMMONALITY_H
 #define VIAME_IMAGE_OPS_COMMONALITY_H
 
-#include <vital/types/image.h>
+#include <viame/core_types/image.h>
 
 #include <cstddef>
 #include <cstdint>

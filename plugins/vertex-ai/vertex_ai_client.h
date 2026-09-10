@@ -9,7 +9,7 @@
 #include <vector>
 #include <memory>
 
-#include <vital/logger/logger.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 namespace viame {
 namespace vertex_ai {

@@ -12,11 +12,11 @@
 #include "convert_notes_to_attributes.h"
 #include "convert_polygons_to_mask.h"
 
-#include <vital/util/tokenize.h>
-#include <vital/util/data_stream_reader.h>
-#include <vital/types/image.h>
-#include <vital/types/image_container.h>
-#include <vital/exceptions.h>
+#include <viame/algorithm_framework/util/tokenize.h>
+#include <viame/algorithm_framework/util/data_stream_reader.h>
+#include <viame/core_types/image.h>
+#include <viame/core_types/image_container.h>
+#include <viame/algorithm_framework/exceptions.h>
 
 #include <kwiversys/SystemTools.hxx>
 

@@ -4,11 +4,11 @@
 
 #include "registry_dump.h"
 
-#include <vital/config/config_block.h>
-#include <vital/logger/logger.h>
-#include <vital/plugin_management/plugin_factory.h>
-#include <vital/plugin_management/plugin_manager.h>
-#include <vital/plugin_management/plugin_manager_internal.h>
+#include <viame/algorithm_framework/config/config_block.h>
+#include <viame/algorithm_framework/logger/logger.h>
+#include <viame/algorithm_framework/plugin/plugin_factory.h>
+#include <viame/algorithm_framework/plugin/plugin_manager.h>
+#include <viame/algorithm_framework/plugin/plugin_manager_internal.h>
 
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_factory.h>

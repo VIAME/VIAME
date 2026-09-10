@@ -9,15 +9,15 @@
 
 #include "read_detected_object_set_dive.h"
 
-#include <vital/util/data_stream_reader.h>
-#include <vital/exceptions.h>
+#include <viame/algorithm_framework/util/data_stream_reader.h>
+#include <viame/algorithm_framework/exceptions.h>
 
-#include <vital/internal/cereal/cereal.hpp>
-#include <vital/internal/cereal/archives/json.hpp>
-#include <vital/internal/cereal/types/vector.hpp>
-#include <vital/internal/cereal/types/map.hpp>
-#include <vital/internal/cereal/types/string.hpp>
-#include <vital/internal/cereal/types/utility.hpp>
+#include <cereal/cereal.hpp>
+#include <cereal/archives/json.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/types/map.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/types/utility.hpp>
 
 #include <kwiversys/SystemTools.hxx>
 

@@ -7,9 +7,9 @@
 
 #include "viame_core_export.h"
 
-#include <vital/types/image.h>
-#include <vital/types/image_container.h>
-#include <vital/types/bounding_box.h>
+#include <viame/core_types/image.h>
+#include <viame/core_types/image_container.h>
+#include <viame/core_types/bounding_box.h>
 
 #include <string>
 #include <vector>

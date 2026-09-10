@@ -4,7 +4,7 @@
 
 #include "convert_polygons_to_mask.h"
 
-#include <vital/util/transform_image.h>
+#include <viame/algorithm_framework/util/transform_image.h>
 
 #include <image_ops/polygon.h>
 

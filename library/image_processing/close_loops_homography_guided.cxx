@@ -14,10 +14,10 @@
 #include <iostream>
 #include <string>
 
-#include <vital/algo/algorithm.txx>
-#include <vital/algo/compute_ref_homography.h>
-#include <vital/algo/match_features.h>
-#include <vital/vital_config.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/compute_ref_homography.h>
+#include <viame/algorithm_framework/algo/match_features.h>
+#include <viame/algorithm_framework/vital_config.h>
 
 #include <image_ops/homography_overlap.h>
 

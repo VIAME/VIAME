@@ -9,20 +9,20 @@
 
 #include <memory>
 
-#include <vital/vital_types.h>
-#include <vital/types/timestamp.h>
-#include <vital/types/timestamp_config.h>
-#include <vital/types/object_track_set.h>
-#include <vital/types/feature_track_set.h>
-#include <vital/types/landmark_map.h>
-#include <vital/types/camera_perspective_map.h>
-#include <vital/types/camera_intrinsics.h>
-#include <vital/algo/resection_camera.h>
-#include <vital/algo/optimize_cameras.h>
-#include <vital/algo/algorithm.txx>
-#include <vital/range/transform.h>
-#include <vital/range/iota.h>
-#include <vital/exceptions.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/core_types/timestamp.h>
+#include <viame/core_types/timestamp_config.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/core_types/feature_track_set.h>
+#include <viame/core_types/landmark_map.h>
+#include <viame/core_types/camera_perspective_map.h>
+#include <viame/core_types/camera_intrinsics.h>
+#include <viame/algorithm_framework/algo/resection_camera.h>
+#include <viame/algorithm_framework/algo/optimize_cameras.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/range/transform.h>
+#include <viame/algorithm_framework/range/iota.h>
+#include <viame/algorithm_framework/exceptions.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <sprokit/pipeline/process_exception.h>

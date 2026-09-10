@@ -11,9 +11,9 @@
 #include "calibrate_single_camera.h"
 #include "camera_rig_io.h"
 
-#include <vital/types/camera_intrinsics.h>
-#include <vital/types/camera_perspective.h>
-#include <vital/types/camera_rig.h>
+#include <viame/core_types/camera_intrinsics.h>
+#include <viame/core_types/camera_perspective.h>
+#include <viame/core_types/camera_rig.h>
 
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>

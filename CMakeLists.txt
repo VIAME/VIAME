@@ -1008,10 +1008,38 @@ else()
   if( VIAME_ENABLE_KWIVER )
     find_package( kwiver REQUIRED )
 
-    include_directories( ${KWIVER_INCLUDE_DIRS} )
+    # Kwiver exports the include prefix of the tree it took its own
+    # dependencies from. That tree also holds an older kwiver's headers, and
+    # phase 5 moved vital out from under them, so a bare `<vital/...>` there
+    # is stale and resolves ahead of the imported one. Drop the prefix: the
+    # dependencies VIAME actually needs headers from -- OpenCV, Eigen,
+    # python -- are found here in their own right.
+    set( _viame_kwiver_includes )
+
+    foreach( _viame_dir IN LISTS KWIVER_INCLUDE_DIRS )
+      if( EXISTS "${_viame_dir}/vital/vital_types.h" OR
+          EXISTS "${_viame_dir}/sprokit/pipeline/process.h" )
+        if( NOT _viame_dir MATCHES "^${VIAME_SOURCE_DIR}|^${VIAME_BINARY_DIR}" )
+          message( STATUS
+            "Ignoring stale kwiver headers under ${_viame_dir}" )
+          list( APPEND VIAME_DEPENDENCY_INCLUDE_DIRS "${_viame_dir}" )
+          continue()
+        endif()
+      endif()
+
+      list( APPEND _viame_kwiver_includes "${_viame_dir}" )
+    endforeach()
+
+    include_directories( ${_viame_kwiver_includes} )
+
+    # The prefix still carries headers a couple of plugins need -- darknet
+    # and libsvm -- which phase 1 vendors properly. Until then they ask for
+    # it by name rather than getting it on every target.
+    set( VIAME_DEPENDENCY_INCLUDE_DIRS
+      "${VIAME_DEPENDENCY_INCLUDE_DIRS}" CACHE INTERNAL
+      "Include prefixes of the dependency tree, for the plugins that need them" )
     link_directories( ${KWIVER_LIBRARY_DIR} )
     list( INSERT CMAKE_MODULE_PATH 0 "${KWIVER_CMAKE_DIR}" )
-    include_directories( "${KWIVER_INCLUDE_DIRS}" )
 
     # Setup python directories before call to import kwiver utils
     #

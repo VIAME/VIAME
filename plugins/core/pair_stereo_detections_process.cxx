@@ -9,7 +9,7 @@
 
 #include "pair_stereo_detections_process.h"
 
-#include <vital/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/algorithm.txx>
 
 #include <algorithm>
 #include <limits>
@@ -17,24 +17,24 @@
 #include <map>
 #include <set>
 
-#include <vital/vital_types.h>
-#include <vital/types/timestamp.h>
-#include <vital/types/timestamp_config.h>
-#include <vital/types/detected_object_set.h>
-#include <vital/types/object_track_set.h>
-#include <vital/types/bounding_box.h>
-#include <vital/types/camera_perspective.h>
-#include <vital/types/image.h>
-#include <vital/types/image_container.h>
-#include <vital/types/feature.h>
-#include <vital/types/feature_set.h>
-#include <vital/types/descriptor_set.h>
-#include <vital/types/match_set.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/core_types/timestamp.h>
+#include <viame/core_types/timestamp_config.h>
+#include <viame/core_types/detected_object_set.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/core_types/bounding_box.h>
+#include <viame/core_types/camera_perspective.h>
+#include <viame/core_types/image.h>
+#include <viame/core_types/image_container.h>
+#include <viame/core_types/feature.h>
+#include <viame/core_types/feature_set.h>
+#include <viame/core_types/descriptor_set.h>
+#include <viame/core_types/match_set.h>
 
-#include <vital/algo/detect_features.h>
-#include <vital/algo/extract_descriptors.h>
-#include <vital/algo/match_features.h>
-#include <vital/algo/estimate_homography.h>
+#include <viame/algorithm_framework/algo/detect_features.h>
+#include <viame/algorithm_framework/algo/extract_descriptors.h>
+#include <viame/algorithm_framework/algo/match_features.h>
+#include <viame/algorithm_framework/algo/estimate_homography.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <sprokit/pipeline/process_exception.h>

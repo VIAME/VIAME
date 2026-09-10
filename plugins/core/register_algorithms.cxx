@@ -8,7 +8,7 @@
  */
 
 #include "viame_core_plugin_export.h"
-#include <vital/plugin_management/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/plugin_loader.h>
 
 #include "adaptive_tracker_trainer.h"
 #include "adaptive_detector_trainer.h"

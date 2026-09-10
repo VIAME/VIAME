@@ -11,11 +11,11 @@
 #include "pair_stereo_tracks.h"
 #include "pair_stereo_detections.h"
 
-#include <vital/vital_types.h>
-#include <vital/types/image_container.h>
-#include <vital/types/timestamp.h>
-#include <vital/types/timestamp_config.h>
-#include <vital/types/object_track_set.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/core_types/image_container.h>
+#include <viame/core_types/timestamp.h>
+#include <viame/core_types/timestamp_config.h>
+#include <viame/core_types/object_track_set.h>
 
 #include <memory>
 #include <opencv2/core/core.hpp>

@@ -8,9 +8,9 @@
  */
 
 #include "viame_@template_lib@_plugin_export.h"
-#include <vital/plugin_management/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/plugin_loader.h>
 
-#include <vital/algo/image_object_detector.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
 
 #include "@template@_detector.h"
 

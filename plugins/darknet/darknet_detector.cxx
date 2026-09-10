@@ -5,10 +5,10 @@
 #include "darknet_detector.h"
 #include "darknet_custom_resize.h"
 
-#include <vital/util/cpu_timer.h>
-#include <vital/exceptions/io.h>
-#include <vital/config/config_block_formatter.h>
-#include <vital/types/detected_object_set_util.h>
+#include <viame/algorithm_framework/util/cpu_timer.h>
+#include <viame/algorithm_framework/exceptions/io.h>
+#include <viame/algorithm_framework/config/config_block_formatter.h>
+#include <viame/core_types/detected_object_set_util.h>
 
 #include <arrows/ocv/image_container.h>
 

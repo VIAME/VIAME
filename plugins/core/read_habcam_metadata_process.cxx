@@ -9,11 +9,11 @@
 
 #include "read_habcam_metadata_process.h"
 
-#include <vital/vital_types.h>
+#include <viame/core_types/vital_types.h>
 
-#include <vital/types/metadata.h>
-#include <vital/types/metadata_traits.h>
-#include <vital/types/rotation.h>
+#include <viame/core_types/metadata.h>
+#include <viame/core_types/metadata_traits.h>
+#include <viame/core_types/rotation.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 

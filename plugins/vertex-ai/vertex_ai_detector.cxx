@@ -7,9 +7,9 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
-#include <vital/types/image_container.h>
-#include <vital/types/detected_object_set.h>
-#include <vital/types/descriptor_set.h>
+#include <viame/core_types/image_container.h>
+#include <viame/core_types/detected_object_set.h>
+#include <viame/core_types/descriptor_set.h>
 
 #include <sstream>
 

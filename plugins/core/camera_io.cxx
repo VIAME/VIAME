@@ -7,7 +7,7 @@
 
 #include <fstream>
 
-#include <vital/exceptions.h>
+#include <viame/algorithm_framework/exceptions.h>
 #include <kwiversys/SystemTools.hxx>
 
 #include "camera_io.h"

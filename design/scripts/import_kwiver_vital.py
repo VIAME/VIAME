@@ -16,7 +16,8 @@ Destinations:
       algo,applets}/                     -> library/algorithm_framework/<sub>/
     the remaining top-level vital files  -> library/algorithm_framework/
     vital/internal/cereal/               -> third_party/cereal/cereal/
-      its external/rapidjson             -> third_party/rapidjson/rapidjson/
+      (whole, as upstream ships it, including its bundled rapidjson: it is a
+       vendored library, and splitting it would mean patching its includes)
     vital/kwiversys/                     -> third_party/kwiversys/
     vital/applets/cxxopts.hpp            -> third_party/cxxopts/cxxopts.hpp
 
@@ -78,12 +79,36 @@ FRAMEWORK_SUBS = {
 # Whole directories that move to third_party as they are.
 VENDORED = (
     ("vital/kwiversys", "third_party/kwiversys"),
+    ("vital/internal/cereal", "third_party/cereal/cereal"),
 )
 
 # VIAME's own sources whose includes are rewritten alongside the copy.
-VIAME_SOURCES = ("library", "plugins", "tools", "examples")
+VIAME_SOURCES = ("library", "plugins", "tools", "examples", "tests")
+
+# What is left of kwiver once vital moves: its arrows, its pipeline engine and
+# its python bindings all include vital by the old paths, and there can be
+# only one copy of vital in a process, so they are rewritten too. See the note
+# on P5-T02 in tasks/phase-05-import-kwiver.md for what happens when there are
+# two.
+KWIVER_SOURCES = (
+    "arrows", "sprokit", "python", "examples", "extras", "tools",
+    # What stays behind in `vital/`: the small plugin modules and the tools
+    # that are not part of the imported subset but still include it.
+    "vital/config_plugins", "vital/logger_plugins", "vital/applets_plugins",
+    "vital/tools", "vital/test_interface",
+)
 
 SOURCE_SUFFIXES = (".h", ".hpp", ".hxx", ".txx", ".cxx", ".cpp", ".c", ".cc")
+
+
+def kwiver_vital_present():
+    """Whether kwiver still has the sources this imports.
+
+    Once the import has landed and kwiver's `vital/` has been deleted,
+    `library/` is the source of truth and running this again would clear the
+    destinations and copy nothing.
+    """
+    return os.path.isfile(os.path.join(KWIVER, "vital", "types", "image.h"))
 
 
 def destination(rel):
@@ -102,13 +127,8 @@ def destination(rel):
         return os.path.join("library", "core_types", *parts[2:])
 
     if parts[1] == "internal" and parts[2] == "cereal":
-        rest = parts[3:]
-
-        if rest[:2] == ["external", "rapidjson"]:
-            return os.path.join("third_party", "rapidjson", "rapidjson",
-                                *rest[2:])
-
-        return os.path.join("third_party", "cereal", "cereal", *rest)
+        # Vendored whole by VENDORED below rather than file by file
+        return None
 
     if rel == "vital/applets/cxxopts.hpp":
         return os.path.join("third_party", "cxxopts", "cxxopts.hpp")
@@ -122,10 +142,6 @@ def destination(rel):
 
 def rewritten(spec):
     """What an include of a kwiver path becomes, or None to leave it alone."""
-    if spec.startswith("vital/internal/cereal/external/rapidjson/"):
-        return "rapidjson/" + spec[len(
-            "vital/internal/cereal/external/rapidjson/"):]
-
     if spec.startswith("vital/internal/cereal/"):
         return "cereal/" + spec[len("vital/internal/cereal/"):]
 
@@ -268,12 +284,12 @@ def copy_vendored(dry_run):
     return copied
 
 
-def rewrite_viame(dry_run):
-    """Point VIAME's own sources at the copy."""
+def rewrite_tree(root, directories, dry_run):
+    """Point a tree's includes at the copy."""
     changed = 0
 
-    for directory in VIAME_SOURCES:
-        base = os.path.join(ROOT, directory)
+    for directory in directories:
+        base = os.path.join(root, directory)
 
         if not os.path.isdir(base):
             continue
@@ -316,6 +332,12 @@ def main():
             os.path.relpath(LIST, ROOT)), file=sys.stderr)
         return 1
 
+    if not kwiver_vital_present():
+        print("kwiver's vital/ is gone: the import has already landed and "
+              "library/ is the source of truth now. Running this again would "
+              "empty the destinations.", file=sys.stderr)
+        return 1
+
     print("{} files cleared from the copy destinations".format(
         clear(args.dry_run)))
 
@@ -333,7 +355,9 @@ def main():
 
     if not args.sources_only:
         print("{} VIAME sources had their includes rewritten".format(
-            rewrite_viame(args.dry_run)))
+            rewrite_tree(ROOT, VIAME_SOURCES, args.dry_run)))
+        print("{} kwiver sources had their includes rewritten".format(
+            rewrite_tree(KWIVER, KWIVER_SOURCES, args.dry_run)))
 
     return 1 if skipped else 0
 

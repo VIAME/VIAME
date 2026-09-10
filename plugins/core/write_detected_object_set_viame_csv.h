@@ -12,8 +12,8 @@
 
 #include "viame_core_export.h"
 
-#include <vital/algo/detected_object_set_output.h>
-#include <vital/plugin_management/pluggable_macro_magic.h>
+#include <viame/algorithm_framework/algo/detected_object_set_output.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 namespace viame
 {

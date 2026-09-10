@@ -7,7 +7,7 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <vital/config/config_block.h>
+#include <viame/algorithm_framework/config/config_block.h>
 
 #include "viame_processes_opencv_export.h"
 

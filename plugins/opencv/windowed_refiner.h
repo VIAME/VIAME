@@ -8,9 +8,9 @@
 
 #include "viame_opencv_export.h"
 
-#include <vital/algo/refine_detections.h>
-#include <vital/algo/algorithm.txx>
-#include <vital/plugin_management/pluggable_macro_magic.h>
+#include <viame/algorithm_framework/algo/refine_detections.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 namespace viame {
 

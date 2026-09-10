@@ -8,12 +8,12 @@
  */
 
 #include "viame_cppdb_plugin_export.h"
-#include <vital/plugin_management/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/plugin_loader.h>
 
-#include <vital/algo/query_track_descriptor_set.h>
-#include <vital/algo/read_object_track_set.h>
-#include <vital/algo/write_object_track_set.h>
-#include <vital/algo/write_track_descriptor_set.h>
+#include <viame/algorithm_framework/algo/query_track_descriptor_set.h>
+#include <viame/algorithm_framework/algo/read_object_track_set.h>
+#include <viame/algorithm_framework/algo/write_object_track_set.h>
+#include <viame/algorithm_framework/algo/write_track_descriptor_set.h>
 
 #include "write_object_track_set_db.h"
 #include "write_track_descriptor_set_db.h"

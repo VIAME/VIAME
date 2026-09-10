@@ -10,8 +10,8 @@
 
 #include <convert_polygons_to_mask.h>
 
-#include <vital/types/bounding_box.h>
-#include <vital/types/image.h>
+#include <viame/core_types/bounding_box.h>
+#include <viame/core_types/image.h>
 
 #include <gtest/gtest.h>
 

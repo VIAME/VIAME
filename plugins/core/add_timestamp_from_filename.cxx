@@ -3,7 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "add_timestamp_from_filename.h"
-#include <vital/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/algorithm.txx>
 
 #include "filename_to_timestamp.h"
 

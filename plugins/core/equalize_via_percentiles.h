@@ -7,7 +7,7 @@
 
 #include "viame_core_export.h"
 
-#include <vital/algo/image_filter.h>
+#include <viame/algorithm_framework/algo/image_filter.h>
 
 namespace viame {
 

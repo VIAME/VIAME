@@ -7,8 +7,8 @@
 
 #include "viame_core_export.h"
 
-#include <vital/algo/merge_detections.h>
-#include <vital/plugin_management/pluggable_macro_magic.h>
+#include <viame/algorithm_framework/algo/merge_detections.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 namespace viame {
 

@@ -4,8 +4,8 @@
 
 #include "equalize_via_percentiles.h"
 
-#include <vital/types/image.h>
-#include <vital/types/image_container.h>
+#include <viame/core_types/image.h>
+#include <viame/core_types/image_container.h>
 
 #include <algorithm>
 #include <cmath>

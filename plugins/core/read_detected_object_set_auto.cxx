@@ -15,9 +15,9 @@
 #include "read_detected_object_set_yolo.h"
 #include "utilities_file.h"
 
-#include <vital/algo/algorithm.txx>
-#include <vital/algo/detected_object_set_input.h>
-#include <vital/exceptions.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/detected_object_set_input.h>
+#include <viame/algorithm_framework/exceptions.h>
 
 #include <kwiversys/SystemTools.hxx>
 

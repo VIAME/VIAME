@@ -1,8 +1,8 @@
 #include "auto_detect_transform.h"
 
-#include <vital/types/homography.h>
+#include <viame/core_types/homography.h>
 
-#include <vital/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/algorithm.txx>
 
 #include <fstream>
 #include <stdexcept>

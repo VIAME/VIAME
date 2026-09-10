@@ -7,8 +7,8 @@
 #include <kwiversys/Process.h>
 #include <kwiversys/SystemTools.hxx>
 
-#include <vital/logger/logger.h>
-#include <vital/util/get_paths.h>
+#include <viame/algorithm_framework/logger/logger.h>
+#include <viame/algorithm_framework/util/get_paths.h>
 
 #include <cstdlib>
 #include <iostream>

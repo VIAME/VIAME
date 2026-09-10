@@ -10,8 +10,8 @@
 #include "read_object_track_set_dive.h"
 #include "read_detected_object_set_dive.h"  // For shared DIVE parsing functions
 
-#include <vital/types/object_track_set.h>
-#include <vital/util/data_stream_reader.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/algorithm_framework/util/data_stream_reader.h>
 
 #include <kwiversys/SystemTools.hxx>
 

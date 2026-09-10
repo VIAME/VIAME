@@ -7,7 +7,7 @@
 
 #include "viame_@template_lib@_export.h"
 
-#include <vital/algo/image_object_detector.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
 
 namespace viame {
 

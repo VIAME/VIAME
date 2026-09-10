@@ -14,8 +14,8 @@
 #include "convert_notes_to_attributes.h"
 #include "convert_polygons_to_mask.h"
 
-#include <vital/util/tokenize.h>
-#include <vital/util/data_stream_reader.h>
+#include <viame/algorithm_framework/util/tokenize.h>
+#include <viame/algorithm_framework/util/data_stream_reader.h>
 
 #include <kwiversys/SystemTools.hxx>
 

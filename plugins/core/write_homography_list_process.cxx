@@ -9,8 +9,8 @@
 
 #include "write_homography_list_process.h"
 
-#include <vital/vital_types.h>
-#include <vital/types/homography.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/core_types/homography.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 

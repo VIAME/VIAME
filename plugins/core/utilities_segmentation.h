@@ -7,7 +7,7 @@
 
 #include "viame_core_export.h"
 
-#include <vital/types/point.h>
+#include <viame/core_types/point.h>
 
 #include <vector>
 #include <cstddef>

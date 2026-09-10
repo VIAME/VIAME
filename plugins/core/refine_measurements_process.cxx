@@ -9,13 +9,13 @@
 
 #include "refine_measurements_process.h"
 
-#include <vital/vital_types.h>
-#include <vital/types/image_container.h>
-#include <vital/types/timestamp.h>
-#include <vital/types/timestamp_config.h>
-#include <vital/types/object_track_set.h>
-#include <vital/types/metadata.h>
-#include <vital/types/metadata_traits.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/core_types/image_container.h>
+#include <viame/core_types/timestamp.h>
+#include <viame/core_types/timestamp_config.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/core_types/metadata.h>
+#include <viame/core_types/metadata_traits.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 

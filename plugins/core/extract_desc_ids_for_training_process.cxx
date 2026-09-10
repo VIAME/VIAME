@@ -9,10 +9,10 @@
 
 #include "extract_desc_ids_for_training_process.h"
 
-#include <vital/vital_types.h>
+#include <viame/core_types/vital_types.h>
 
-#include <vital/types/category_hierarchy.h>
-#include <vital/types/timestamp_config.h>
+#include <viame/core_types/category_hierarchy.h>
+#include <viame/core_types/timestamp_config.h>
 
 #include <fstream>
 #include <iostream>

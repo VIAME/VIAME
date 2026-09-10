@@ -16,8 +16,8 @@
 #include <kwiversys/SystemTools.hxx>
 #include <kwiversys/Directory.hxx>
 
-#include <vital/plugin_management/plugin_manager.h>
-#include <vital/logger/logger.h>
+#include <viame/algorithm_framework/plugin/plugin_manager.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 #include <vector>
 #include <string>

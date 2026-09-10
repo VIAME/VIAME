@@ -7,8 +7,8 @@
 
 #include "viame_core_export.h"
 
-#include <vital/algo/train_tracker.h>
-#include <vital/plugin_management/pluggable_macro_magic.h>
+#include <viame/algorithm_framework/algo/train_tracker.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 #include <map>
 #include <string>

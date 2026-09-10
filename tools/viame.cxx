@@ -33,18 +33,18 @@
 
 #include <applet_attributes.h>
 
-#include <vital/applets/kwiver_applet.h>
-#include <vital/applets/applet_context.h>
-#include <vital/config/config_block.h>
+#include <viame/algorithm_framework/applets/kwiver_applet.h>
+#include <viame/algorithm_framework/applets/applet_context.h>
+#include <viame/algorithm_framework/config/config_block.h>
 
-#include <vital/applets/applet_registrar.h>
-#include <vital/exceptions/base.h>
-#include <vital/plugin_management/plugin_factory.h>
-#include <vital/plugin_management/plugin_filter_category.h>
-#include <vital/plugin_management/plugin_filter_default.h>
-#include <vital/plugin_management/plugin_manager_internal.h>
-#include <vital/util/get_paths.h>
-#include <vital/vital_types.h>
+#include <viame/algorithm_framework/applets/applet_registrar.h>
+#include <viame/algorithm_framework/exceptions/base.h>
+#include <viame/algorithm_framework/plugin/plugin_factory.h>
+#include <viame/algorithm_framework/plugin/plugin_filter_category.h>
+#include <viame/algorithm_framework/plugin/plugin_filter_default.h>
+#include <viame/algorithm_framework/plugin/plugin_manager_internal.h>
+#include <viame/algorithm_framework/util/get_paths.h>
+#include <viame/core_types/vital_types.h>
 
 #include <algorithm>
 #include <cstdlib>

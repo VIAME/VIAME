@@ -9,8 +9,8 @@
 
 #include "read_detected_object_set_cvat.h"
 
-#include <vital/util/data_stream_reader.h>
-#include <vital/exceptions.h>
+#include <viame/algorithm_framework/util/data_stream_reader.h>
+#include <viame/algorithm_framework/exceptions.h>
 
 #include <tinyxml.h>
 

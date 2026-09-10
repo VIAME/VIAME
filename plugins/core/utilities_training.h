@@ -7,8 +7,8 @@
 
 #include "viame_core_export.h"
 
-#include <vital/types/detected_object_set.h>
-#include <vital/types/category_hierarchy.h>
+#include <viame/core_types/detected_object_set.h>
+#include <viame/core_types/category_hierarchy.h>
 
 #include <sprokit/processes/adapters/embedded_pipeline.h>
 

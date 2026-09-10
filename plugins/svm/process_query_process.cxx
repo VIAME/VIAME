@@ -15,10 +15,10 @@
 #include "process_query_process.h"
 #include "iqr_session_svm.h"
 
-#include <vital/vital_types.h>
-#include <vital/types/descriptor.h>
-#include <vital/types/descriptor_set.h>
-#include <vital/logger/logger.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/core_types/descriptor.h>
+#include <viame/core_types/descriptor_set.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 #ifdef VIAME_ENABLE_CPPDB
 #include <cppdb/frontend.h>

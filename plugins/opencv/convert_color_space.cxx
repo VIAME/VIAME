@@ -4,8 +4,8 @@
 
 #include "convert_color_space.h"
 
-#include <vital/exceptions.h>
-#include <vital/types/color_space.h>
+#include <viame/algorithm_framework/exceptions.h>
+#include <viame/core_types/color_space.h>
 
 #include <arrows/ocv/image_container.h>
 

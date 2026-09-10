@@ -4,7 +4,7 @@
 
 #include "query_track_descriptor_set_db.h"
 
-#include <vital/types/object_track_set.h>
+#include <viame/core_types/object_track_set.h>
 
 namespace viame {
 

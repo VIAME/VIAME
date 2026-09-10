@@ -11,12 +11,12 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
-#include <vital/vital_types.h>
+#include <viame/core_types/vital_types.h>
 
-#include <vital/types/timestamp.h>
-#include <vital/types/timestamp_config.h>
-#include <vital/types/image_container.h>
-#include <vital/types/detected_object_set.h>
+#include <viame/core_types/timestamp.h>
+#include <viame/core_types/timestamp_config.h>
+#include <viame/core_types/image_container.h>
+#include <viame/core_types/detected_object_set.h>
 
 #include <sstream>
 #include <iostream>

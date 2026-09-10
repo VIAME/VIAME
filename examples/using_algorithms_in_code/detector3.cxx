@@ -3,10 +3,10 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 
-#include <vital/plugin_management/plugin_manager.h>
-#include <vital/config/config_block_io.h>
-#include <vital/algo/image_object_detector.h>
-#include <vital/algo/algorithm.txx>
+#include <viame/algorithm_framework/plugin/plugin_manager.h>
+#include <viame/algorithm_framework/config/config_block_io.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
 #include <arrows/ocv/image_container.h>
 #include <arrows/ocv/algo/image_io.h>
 

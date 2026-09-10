@@ -7,11 +7,11 @@
 
 #include "viame_opencv_export.h"
 
-#include <vital/algo/train_detector.h>
-#include <vital/algo/image_io.h>
-#include <vital/algo/algorithm.txx>
-#include <vital/plugin_management/pluggable_macro_magic.h>
-#include <vital/types/bounding_box.h>
+#include <viame/algorithm_framework/algo/train_detector.h>
+#include <viame/algorithm_framework/algo/image_io.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
+#include <viame/core_types/bounding_box.h>
 
 #include "windowed_utils.h"
 

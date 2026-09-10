@@ -9,8 +9,8 @@
 
 #include "accumulate_image_statistics_process.h"
 
-#include <vital/vital_types.h>
-#include <vital/types/image_container.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/core_types/image_container.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <sprokit/pipeline/process_exception.h>

@@ -12,22 +12,22 @@
 
 #include "viame_core_export.h"
 
-#include <vital/types/vector.h>
-#include <vital/types/bounding_box.h>
-#include <vital/types/image_container.h>
-#include <vital/types/camera_perspective.h>
-#include <vital/types/detected_object.h>
-#include <vital/types/feature_set.h>
-#include <vital/types/descriptor_set.h>
-#include <vital/types/match_set.h>
-#include <vital/logger/logger.h>
+#include <viame/core_types/vector.h>
+#include <viame/core_types/bounding_box.h>
+#include <viame/core_types/image_container.h>
+#include <viame/core_types/camera_perspective.h>
+#include <viame/core_types/detected_object.h>
+#include <viame/core_types/feature_set.h>
+#include <viame/core_types/descriptor_set.h>
+#include <viame/core_types/match_set.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 #include <functional>
 
-#include <vital/algo/detect_features.h>
-#include <vital/algo/extract_descriptors.h>
-#include <vital/algo/match_features.h>
-#include <vital/algo/estimate_homography.h>
+#include <viame/algorithm_framework/algo/detect_features.h>
+#include <viame/algorithm_framework/algo/extract_descriptors.h>
+#include <viame/algorithm_framework/algo/match_features.h>
+#include <viame/algorithm_framework/algo/estimate_homography.h>
 
 #include <vector>
 #include <utility>

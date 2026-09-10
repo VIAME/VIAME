@@ -9,10 +9,10 @@
 
 #include "read_detected_object_set_yolo.h"
 
-#include <vital/algo/algorithm.txx>
-#include <vital/util/tokenize.h>
-#include <vital/util/data_stream_reader.h>
-#include <vital/exceptions.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/util/tokenize.h>
+#include <viame/algorithm_framework/util/data_stream_reader.h>
+#include <viame/algorithm_framework/exceptions.h>
 
 #include <kwiversys/SystemTools.hxx>
 

@@ -12,7 +12,7 @@
 
 #include "viame_processes_core_export.h"
 
-#include <vital/vital_types.h>
+#include <viame/core_types/vital_types.h>
 
 #include <memory>
 #include <string>

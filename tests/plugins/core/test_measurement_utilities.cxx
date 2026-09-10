@@ -6,8 +6,8 @@
 
 #include "measurement_utilities.h"
 
-#include <vital/types/camera_intrinsics.h>
-#include <vital/types/rotation.h>
+#include <viame/core_types/camera_intrinsics.h>
+#include <viame/core_types/rotation.h>
 
 #include <cmath>
 

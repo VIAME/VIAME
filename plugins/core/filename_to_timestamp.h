@@ -7,7 +7,7 @@
 
 #include "viame_core_export.h"
 
-#include <vital/types/timestamp.h>
+#include <viame/core_types/timestamp.h>
 
 namespace viame
 {

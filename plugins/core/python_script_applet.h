@@ -5,7 +5,7 @@
 #ifndef VIAME_CORE_PYTHON_SCRIPT_APPLET_H
 #define VIAME_CORE_PYTHON_SCRIPT_APPLET_H
 
-#include <vital/applets/kwiver_applet.h>
+#include <viame/algorithm_framework/applets/kwiver_applet.h>
 
 #include "viame_core_export.h"
 

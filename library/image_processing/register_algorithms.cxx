@@ -9,9 +9,9 @@
 
 #include "viame_image_processing_plugin_export.h"
 
-#include <vital/algo/close_loops.h>
-#include <vital/algo/image_filter.h>
-#include <vital/plugin_management/plugin_loader.h>
+#include <viame/algorithm_framework/algo/close_loops.h>
+#include <viame/algorithm_framework/algo/image_filter.h>
+#include <viame/algorithm_framework/plugin/plugin_loader.h>
 
 #include "average_frames.h"
 #include "close_loops_homography_guided.h"

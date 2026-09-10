@@ -9,21 +9,21 @@
 
 #include "write_query_results_as_tracks_process.h"
 
-#include <vital/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/algorithm.txx>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
-#include <vital/vital_types.h>
+#include <viame/core_types/vital_types.h>
 
-#include <vital/types/timestamp.h>
-#include <vital/types/image_container.h>
-#include <vital/types/detected_object.h>
-#include <vital/types/detected_object_set.h>
-#include <vital/types/detected_object_type.h>
-#include <vital/types/object_track_set.h>
-#include <vital/types/query_result_set.h>
-#include <vital/types/track_descriptor.h>
-#include <vital/algo/write_object_track_set.h>
+#include <viame/core_types/timestamp.h>
+#include <viame/core_types/image_container.h>
+#include <viame/core_types/detected_object.h>
+#include <viame/core_types/detected_object_set.h>
+#include <viame/core_types/detected_object_type.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/core_types/query_result_set.h>
+#include <viame/core_types/track_descriptor.h>
+#include <viame/algorithm_framework/algo/write_object_track_set.h>
 
 #include <map>
 

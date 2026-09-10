@@ -9,16 +9,16 @@
 
 #include "seagis_measurement_process.h"
 
-#include <vital/vital_types.h>
-#include <vital/types/timestamp.h>
-#include <vital/types/timestamp_config.h>
-#include <vital/types/object_track_set.h>
-#include <vital/types/image_container.h>
-#include <vital/types/vector.h>
-#include <vital/types/point.h>
-#include <vital/types/bounding_box.h>
-#include <vital/types/track.h>
-#include <vital/util/string.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/core_types/timestamp.h>
+#include <viame/core_types/timestamp_config.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/core_types/image_container.h>
+#include <viame/core_types/vector.h>
+#include <viame/core_types/point.h>
+#include <viame/core_types/bounding_box.h>
+#include <viame/core_types/track.h>
+#include <viame/algorithm_framework/util/string.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 

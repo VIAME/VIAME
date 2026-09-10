@@ -9,14 +9,14 @@
 
 #include "warp_detections_process.h"
 
-#include <vital/vital_types.h>
+#include <viame/core_types/vital_types.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
-#include <vital/algo/transform_2d_io.h>
-#include <vital/algo/algorithm.txx>
-#include <vital/types/detected_object_set.h>
-#include <vital/types/transform_2d.h>
+#include <viame/algorithm_framework/algo/transform_2d_io.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/core_types/detected_object_set.h>
+#include <viame/core_types/transform_2d.h>
 
 #include <algorithm>
 #include <stdexcept>

@@ -16,7 +16,7 @@
 #include <image_ops/temporal.h>
 #include <image_ops/threshold.h>
 
-#include <vital/types/image.h>
+#include <viame/core_types/image.h>
 
 #include <gtest/gtest.h>
 

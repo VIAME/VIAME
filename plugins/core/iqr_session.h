@@ -13,7 +13,7 @@
 
 #include <core/utilities_iqr.h>
 
-#include <vital/logger/logger.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 #include <algorithm>
 #include <cmath>

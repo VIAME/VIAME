@@ -10,11 +10,11 @@
 #ifndef VIAME_CPPDB_WRITE_TRACK_DESCRIPTOR_SET_DB_H
 #define VIAME_CPPDB_WRITE_TRACK_DESCRIPTOR_SET_DB_H
 
-#include <vital/vital_config.h>
+#include <viame/algorithm_framework/vital_config.h>
 #include "viame_cppdb_export.h"
 
-#include <vital/algo/write_track_descriptor_set.h>
-#include <vital/plugin_management/pluggable_macro_magic.h>
+#include <viame/algorithm_framework/algo/write_track_descriptor_set.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 #include <memory>
 

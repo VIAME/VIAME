@@ -7,8 +7,8 @@
 
 #include "viame_core_export.h"
 
-#include <vital/types/detected_object.h>
-#include <vital/types/object_track_set.h>
+#include <viame/core_types/detected_object.h>
+#include <viame/core_types/object_track_set.h>
 
 namespace viame {
 

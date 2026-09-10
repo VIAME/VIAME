@@ -1,8 +1,8 @@
 #ifndef VIAME_OPENCV_PAIR_STEREO_TRACKS_H
 #define VIAME_OPENCV_PAIR_STEREO_TRACKS_H
 
-#include <vital/types/timestamp.h>
-#include <vital/types/object_track_set.h>
+#include <viame/core_types/timestamp.h>
+#include <viame/core_types/object_track_set.h>
 #include "viame_opencv_export.h"
 
 namespace cv {

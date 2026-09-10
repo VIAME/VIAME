@@ -11,12 +11,12 @@
 #include "calibrate_single_camera.h"
 #include "calibrate_stereo_cameras.h"
 
-#include <vital/vital_types.h>
-#include <vital/types/timestamp.h>
-#include <vital/types/timestamp_config.h>
-#include <vital/types/object_track_set.h>
-#include <vital/types/camera_intrinsics.h>
-#include <vital/exceptions.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/core_types/timestamp.h>
+#include <viame/core_types/timestamp_config.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/core_types/camera_intrinsics.h>
+#include <viame/algorithm_framework/exceptions.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 

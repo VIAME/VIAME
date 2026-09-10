@@ -5,10 +5,10 @@
 #include "evaluate_models.h"
 #include "read_detected_object_set_viame_csv.h"
 
-#include <vital/logger/logger.h>
-#include <vital/algo/algorithm.txx>
-#include <vital/algo/detected_object_set_input.h>
-#include <vital/config/config_block.h>
+#include <viame/algorithm_framework/logger/logger.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/detected_object_set_input.h>
+#include <viame/algorithm_framework/config/config_block.h>
 
 #include <filesystem>
 

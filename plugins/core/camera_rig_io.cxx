@@ -14,9 +14,9 @@
 #include <cstring>
 #include <map>
 
-#include <vital/exceptions.h>
-#include <vital/internal/cereal/archives/json.hpp>
-#include <vital/internal/cereal/types/vector.hpp>
+#include <viame/algorithm_framework/exceptions.h>
+#include <cereal/archives/json.hpp>
+#include <cereal/types/vector.hpp>
 
 #include <kwiversys/SystemTools.hxx>
 

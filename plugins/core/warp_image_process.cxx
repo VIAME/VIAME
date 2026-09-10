@@ -9,15 +9,15 @@
 
 #include "warp_image_process.h"
 
-#include <vital/vital_types.h>
+#include <viame/core_types/vital_types.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
-#include <vital/algo/transform_2d_io.h>
-#include <vital/algo/warp_image.h>
-#include <vital/algo/algorithm.txx>
-#include <vital/types/homography.h>
-#include <vital/types/image_container.h>
+#include <viame/algorithm_framework/algo/transform_2d_io.h>
+#include <viame/algorithm_framework/algo/warp_image.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/core_types/homography.h>
+#include <viame/core_types/image_container.h>
 
 #include <cstring>
 #include <stdexcept>

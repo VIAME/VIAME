@@ -4,11 +4,11 @@
 
 #include "adaptive_tracker_trainer.h"
 
-#include <vital/algo/algorithm.txx>
-#include <vital/algo/feature_descriptor_io.h>
-#include <vital/util/cpu_timer.h>
-#include <vital/types/image_container.h>
-#include <vital/types/object_track_set.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/feature_descriptor_io.h>
+#include <viame/algorithm_framework/util/cpu_timer.h>
+#include <viame/core_types/image_container.h>
+#include <viame/core_types/object_track_set.h>
 
 #include <string>
 #include <sstream>

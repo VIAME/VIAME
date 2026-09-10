@@ -6,9 +6,9 @@
 
 #include <arrows/ocv/image_container.h>
 
-#include <vital/algo/image_object_detector.h>
-#include <vital/algo/algorithm.txx>
-#include <vital/util/wall_timer.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/util/wall_timer.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <sprokit/pipeline/process_exception.h>

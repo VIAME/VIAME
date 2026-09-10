@@ -9,14 +9,14 @@
 
 #include "read_object_track_set_auto.h"
 
-#include <vital/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/algorithm.txx>
 
 #include "read_object_track_set_dive.h"
 #include "read_object_track_set_viame_csv.h"
 #include "utilities_file.h"
 
-#include <vital/algo/read_object_track_set.h>
-#include <vital/exceptions.h>
+#include <viame/algorithm_framework/algo/read_object_track_set.h>
+#include <viame/algorithm_framework/exceptions.h>
 
 #include <kwiversys/SystemTools.hxx>
 

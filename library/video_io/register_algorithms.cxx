@@ -9,9 +9,9 @@
 
 #include "viame_video_io_plugin_export.h"
 
-#include <vital/algo/image_io.h>
+#include <viame/algorithm_framework/algo/image_io.h>
 
-#include <vital/plugin_management/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/plugin_loader.h>
 
 #include "core_image_io.h"
 

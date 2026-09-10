@@ -4,8 +4,8 @@
 
 #include "utilities_tracks.h"
 
-#include <vital/types/object_track_set.h>
-#include <vital/types/timestamp.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/core_types/timestamp.h>
 
 #include <algorithm>
 #include <cmath>

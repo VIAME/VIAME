@@ -12,12 +12,12 @@
 
 #include "pair_stereo_detections.h"
 
-#include <vital/types/bounding_box.h>
-#include <vital/types/detected_object.h>
-#include <vital/types/object_track_set.h>
-#include <vital/types/timestamp.h>
-#include <vital/types/camera_intrinsics.h>
-#include <vital/types/rotation.h>
+#include <viame/core_types/bounding_box.h>
+#include <viame/core_types/detected_object.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/core_types/timestamp.h>
+#include <viame/core_types/camera_intrinsics.h>
+#include <viame/core_types/rotation.h>
 
 #include <algorithm>
 #include <limits>

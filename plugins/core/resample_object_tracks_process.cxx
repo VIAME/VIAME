@@ -9,14 +9,14 @@
 
 #include "resample_object_tracks_process.h"
 
-#include <vital/vital_types.h>
-#include <vital/types/timestamp.h>
-#include <vital/types/timestamp_config.h>
-#include <vital/types/object_track_set.h>
-#include <vital/types/detected_object.h>
-#include <vital/types/detected_object_type.h>
-#include <vital/types/bounding_box.h>
-#include <vital/algo/read_object_track_set.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/core_types/timestamp.h>
+#include <viame/core_types/timestamp_config.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/core_types/detected_object.h>
+#include <viame/core_types/detected_object_type.h>
+#include <viame/core_types/bounding_box.h>
+#include <viame/algorithm_framework/algo/read_object_track_set.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <sprokit/pipeline/process_exception.h>

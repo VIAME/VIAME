@@ -8,10 +8,10 @@
  */
 
 #include "viame_svm_plugin_export.h"
-#include <vital/plugin_management/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/plugin_loader.h>
 
-#include <vital/algo/refine_detections.h>
-#include <vital/algo/train_detector.h>
+#include <viame/algorithm_framework/algo/refine_detections.h>
+#include <viame/algorithm_framework/algo/train_detector.h>
 
 #include "refine_detections_svm.h"
 #include "train_detector_svm.h"

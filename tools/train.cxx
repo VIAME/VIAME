@@ -6,23 +6,23 @@
 
 #include <kwiversys/SystemTools.hxx>
 
-#include <vital/plugin_management/plugin_manager.h>
-#include <vital/plugin_management/plugin_factory.h>
-#include <vital/config/config_block.h>
-#include <vital/config/config_block_io.h>
-#include <vital/util/demangle.h>
-#include <vital/util/wrap_text_block.h>
-#include <vital/algo/algorithm.txx>
-#include <vital/algo/train_detector.h>
-#include <vital/algo/train_tracker.h>
-#include <vital/algo/detected_object_set_input.h>
-#include <vital/algo/image_object_detector.h>
-#include <vital/algo/read_object_track_set.h>
-#include <vital/algo/image_io.h>
-#include <vital/types/image_container.h>
-#include <vital/types/object_track_set.h>
-#include <vital/logger/logger.h>
-#include <vital/util/get_paths.h>
+#include <viame/algorithm_framework/plugin/plugin_manager.h>
+#include <viame/algorithm_framework/plugin/plugin_factory.h>
+#include <viame/algorithm_framework/config/config_block.h>
+#include <viame/algorithm_framework/config/config_block_io.h>
+#include <viame/algorithm_framework/util/demangle.h>
+#include <viame/algorithm_framework/util/wrap_text_block.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/train_detector.h>
+#include <viame/algorithm_framework/algo/train_tracker.h>
+#include <viame/algorithm_framework/algo/detected_object_set_input.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
+#include <viame/algorithm_framework/algo/read_object_track_set.h>
+#include <viame/algorithm_framework/algo/image_io.h>
+#include <viame/core_types/image_container.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/algorithm_framework/logger/logger.h>
+#include <viame/algorithm_framework/util/get_paths.h>
 
 #include <sprokit/pipeline/process_exception.h>
 

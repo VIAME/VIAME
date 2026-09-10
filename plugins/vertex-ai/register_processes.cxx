@@ -2,8 +2,8 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#include <vital/vital_config.h>
-#include <vital/plugin_management/plugin_loader.h>
+#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/plugin/plugin_loader.h>
 
 #include <sprokit/pipeline/process_factory.h>
 

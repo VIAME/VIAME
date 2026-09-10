@@ -8,7 +8,7 @@
 #include "utilities_target_clfr.h"
 #include "utilities_segmentation.h"
 
-#include <vital/util/tokenize.h>
+#include <viame/algorithm_framework/util/tokenize.h>
 
 #include <memory>
 #include <vector>

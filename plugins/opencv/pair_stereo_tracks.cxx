@@ -1,4 +1,4 @@
-#include <vital/types/timestamp.h>
+#include <viame/core_types/timestamp.h>
 #include "pair_stereo_tracks.h"
 #include "pair_stereo_detections.h"
 

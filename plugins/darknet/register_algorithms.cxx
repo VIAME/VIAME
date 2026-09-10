@@ -4,10 +4,10 @@
 
 #include "viame_darknet_plugin_export.h"
 
-#include <vital/plugin_management/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/plugin_loader.h>
 
-#include <vital/algo/image_object_detector.h>
-#include <vital/algo/train_detector.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
+#include <viame/algorithm_framework/algo/train_detector.h>
 
 #include "darknet_detector.h"
 #include "darknet_trainer.h"

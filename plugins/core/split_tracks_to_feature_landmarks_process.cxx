@@ -9,11 +9,11 @@
 
 #include "split_tracks_to_feature_landmarks_process.h"
 
-#include <vital/vital_types.h>
-#include <vital/types/detected_object_set.h>
-#include <vital/types/object_track_set.h>
-#include <vital/types/feature_track_set.h>
-#include <vital/types/landmark_map.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/core_types/detected_object_set.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/core_types/feature_track_set.h>
+#include <viame/core_types/landmark_map.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 

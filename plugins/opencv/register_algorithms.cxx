@@ -8,16 +8,16 @@
  */
 
 #include "viame_opencv_plugin_export.h"
-#include <vital/plugin_management/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/plugin_loader.h>
 
-#include <vital/algo/compute_stereo_depth_map.h>
-#include <vital/algo/image_filter.h>
-#include <vital/algo/image_object_detector.h>
-#include <vital/algo/optimize_cameras.h>
-#include <vital/algo/refine_detections.h>
-#include <vital/algo/split_image.h>
-#include <vital/algo/train_detector.h>
-#include <vital/algo/warp_image.h>
+#include <viame/algorithm_framework/algo/compute_stereo_depth_map.h>
+#include <viame/algorithm_framework/algo/image_filter.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
+#include <viame/algorithm_framework/algo/optimize_cameras.h>
+#include <viame/algorithm_framework/algo/refine_detections.h>
+#include <viame/algorithm_framework/algo/split_image.h>
+#include <viame/algorithm_framework/algo/train_detector.h>
+#include <viame/algorithm_framework/algo/warp_image.h>
 
 #include "add_keypoints_from_mask.h"
 #include "apply_color_correction.h"

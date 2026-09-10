@@ -11,14 +11,14 @@
 
 // Pulled in for the vendored rapidjson headers and to route rapidjson
 // assertions to exceptions rather than aborts
-#include <vital/internal/cereal/archives/json.hpp>
-#include <vital/internal/cereal/external/rapidjson/document.h>
-#include <vital/internal/cereal/external/rapidjson/error/en.h>
-#include <vital/internal/cereal/external/rapidjson/filereadstream.h>
-#include <vital/internal/cereal/external/rapidjson/ostreamwrapper.h>
-#include <vital/internal/cereal/external/rapidjson/prettywriter.h>
+#include <cereal/archives/json.hpp>
+#include <rapidjson/document.h>
+#include <rapidjson/error/en.h>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/ostreamwrapper.h>
+#include <rapidjson/prettywriter.h>
 
-#include <vital/logger/logger.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 #include <algorithm>
 #include <cstdio>

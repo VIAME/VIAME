@@ -4,8 +4,8 @@
 #include <opencv2/highgui.hpp>
 #include "tracks_pairing_from_stereo.h"
 #include "detections_pairing_from_stereo.h"
-#include <vital/types/track.h>
-#include <vital/types/timestamp.h>
+#include <viame/core_types/track.h>
+#include <viame/core_types/timestamp.h>
 #include <arrows/ocv/image_container.h>
 
 namespace kv = kwiver::vital;

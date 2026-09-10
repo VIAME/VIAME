@@ -10,14 +10,14 @@
 #include <cmath>
 #include <numeric>
 
-#include <vital/types/object_track_set.h>
-#include <vital/types/camera_perspective_map.h>
-#include <vital/types/camera_intrinsics.h>
-#include <vital/types/feature_track_set.h>
-#include <vital/types/landmark_map.h>
-#include <vital/range/iota.h>
-#include <vital/exceptions.h>
-#include <vital/vital_config.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/core_types/camera_perspective_map.h>
+#include <viame/core_types/camera_intrinsics.h>
+#include <viame/core_types/feature_track_set.h>
+#include <viame/core_types/landmark_map.h>
+#include <viame/algorithm_framework/range/iota.h>
+#include <viame/algorithm_framework/exceptions.h>
+#include <viame/algorithm_framework/vital_config.h>
 
 #include <arrows/ocv/camera_intrinsics.h>
 

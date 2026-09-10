@@ -8,7 +8,7 @@
 
 #include <kwiversys/SystemTools.hxx>
 
-#include <vital/logger/logger.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 #include <vector>
 #include <string>

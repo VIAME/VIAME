@@ -4,7 +4,7 @@
 
 #include "convert_notes_to_attributes.h"
 
-#include <vital/util/tokenize.h>
+#include <viame/algorithm_framework/util/tokenize.h>
 
 namespace viame
 {

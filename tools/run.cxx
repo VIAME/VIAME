@@ -4,9 +4,9 @@
 
 #include "run.h"
 
-#include <vital/applets/applet_context.h>
-#include <vital/config/config_block.h>
-#include <vital/plugin_management/plugin_manager.h>
+#include <viame/algorithm_framework/applets/applet_context.h>
+#include <viame/algorithm_framework/config/config_block.h>
+#include <viame/algorithm_framework/plugin/plugin_manager.h>
 
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
 #include <python_script_applet.h>

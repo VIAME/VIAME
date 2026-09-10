@@ -10,8 +10,8 @@
 
 #include <opencv2/core/core.hpp>
 
-#include <vital/types/bounding_box.h>
-#include <vital/types/detected_object.h>
+#include <viame/core_types/bounding_box.h>
+#include <viame/core_types/detected_object.h>
 
 namespace viame {
 

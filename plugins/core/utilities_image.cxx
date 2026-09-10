@@ -4,7 +4,7 @@
 
 #include "utilities_image.h"
 
-#include <vital/types/image.h>
+#include <viame/core_types/image.h>
 
 namespace viame {
 

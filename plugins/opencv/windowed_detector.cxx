@@ -4,13 +4,13 @@
 
 #include "windowed_detector.h"
 
-#include <vital/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/algorithm.txx>
 
 #include "windowed_utils.h"
 
-#include <vital/util/wall_timer.h>
-#include <vital/exceptions/io.h>
-#include <vital/config/config_block_formatter.h>
+#include <viame/algorithm_framework/util/wall_timer.h>
+#include <viame/algorithm_framework/exceptions/io.h>
+#include <viame/algorithm_framework/config/config_block_formatter.h>
 
 #include <arrows/ocv/image_container.h>
 #include <kwiversys/SystemTools.hxx>

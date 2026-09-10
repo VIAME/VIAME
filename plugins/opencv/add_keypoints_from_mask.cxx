@@ -9,7 +9,7 @@
 
 #include "add_keypoints_from_mask.h"
 
-#include <vital/types/point.h>
+#include <viame/core_types/point.h>
 
 #include <arrows/ocv/image_container.h>
 

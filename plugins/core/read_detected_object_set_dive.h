@@ -12,12 +12,12 @@
 
 #include "viame_core_export.h"
 
-#include <vital/algo/detected_object_set_input.h>
-#include <vital/plugin_management/pluggable_macro_magic.h>
-#include <vital/types/detected_object.h>
-#include <vital/types/detected_object_type.h>
-#include <vital/types/bounding_box.h>
-#include <vital/logger/logger.h>
+#include <viame/algorithm_framework/algo/detected_object_set_input.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
+#include <viame/core_types/detected_object.h>
+#include <viame/core_types/detected_object_type.h>
+#include <viame/core_types/bounding_box.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 #include <memory>
 #include <vector>

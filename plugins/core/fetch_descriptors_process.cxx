@@ -9,9 +9,9 @@
 
 #include "fetch_descriptors_process.h"
 
-#include <vital/vital_types.h>
-#include <vital/types/descriptor.h>
-#include <vital/types/descriptor_set.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/core_types/descriptor.h>
+#include <viame/core_types/descriptor_set.h>
 
 #include <fstream>
 #include <iostream>

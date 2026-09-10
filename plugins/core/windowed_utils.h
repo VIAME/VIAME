@@ -9,9 +9,9 @@
 
 #include <map>
 
-#include <vital/types/image_container.h>
-#include <vital/algo/image_object_detector.h>
-#include <vital/util/enum_converter.h>
+#include <viame/core_types/image_container.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
+#include <viame/algorithm_framework/util/enum_converter.h>
 
 namespace viame {
 

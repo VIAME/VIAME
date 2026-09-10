@@ -1,8 +1,8 @@
 
 
-#include <vital/algorithm_plugin_manager.h>
-#include <vital/config/config_block_io.h>
-#include <vital/algo/image_object_detector.h>
+#include <viame/algorithm_framework/algorithm_plugin_manager.h>
+#include <viame/algorithm_framework/config/config_block_io.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
 #include <arrows/ocv/image_container.h>
 #include <arrows/ocv/image_io.h>
 

@@ -9,9 +9,9 @@
 
 #include "object_track_descriptors_db_process.h"
 
-#include <vital/vital_types.h>
-#include <vital/types/descriptor.h>
-#include <vital/types/object_track_set.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/core_types/descriptor.h>
+#include <viame/core_types/object_track_set.h>
 
 #include <cppdb/frontend.h>
 

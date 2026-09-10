@@ -9,8 +9,8 @@
 
 #include "train_svm_models_process.h"
 
-#include <vital/vital_types.h>
-#include <vital/logger/logger.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 

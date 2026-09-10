@@ -7,8 +7,8 @@
 
 #include "viame_core_export.h"
 
-#include <vital/algo/compute_track_descriptors.h>
-#include <vital/plugin_management/pluggable_macro_magic.h>
+#include <viame/algorithm_framework/algo/compute_track_descriptors.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 #include <deque>
 #include <map>

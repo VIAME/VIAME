@@ -173,5 +173,12 @@
     "name": "file_transport_send",
     "phase": "P5-T01",
     "reason": "sprokit/processes/transport, which moves serialized data between pipelines over files or zmq. No shipped pipeline uses it, its zmq siblings are not even registered in this build, and serialization went with arrows/serialize. It is the only reason the closure reaches sprokit/processes/transport."
+  },
+  {
+    "interface": "kwiver_applet",
+    "kind": "algorithm",
+    "name": "compare-klv",
+    "phase": "P5-T02",
+    "reason": "arrows/klv's applet, which compares the KLV metadata streams of two videos. It goes with arrows/klv, whose two registrations P5-T01 already removed for having no user; VIAME neither reads nor writes KLV."
   }
 ]

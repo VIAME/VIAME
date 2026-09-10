@@ -7,7 +7,7 @@
  * \brief Register algorithms
  */
 
-#include <vital/algo/algorithm_factory.h>
+#include <viame/algorithm_framework/algo/algorithm_factory.h>
 
 #include "example_detector.h"
 

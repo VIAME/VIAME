@@ -16,8 +16,8 @@
 
 #include "viame_opencv_export.h"
 
-#include <vital/types/object_track_set.h>
-#include <vital/logger/logger.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 #include <opencv2/core/core.hpp>
 

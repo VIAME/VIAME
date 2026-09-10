@@ -13,10 +13,10 @@
 
 #include <kwiversys/SystemTools.hxx>
 
-#include <vital/config/config_block.h>
-#include <vital/logger/logger.h>
-#include <vital/plugin_management/plugin_manager.h>
-#include <vital/types/object_track_set.h>
+#include <viame/algorithm_framework/config/config_block.h>
+#include <viame/algorithm_framework/logger/logger.h>
+#include <viame/algorithm_framework/plugin/plugin_manager.h>
+#include <viame/core_types/object_track_set.h>
 
 #include <iostream>
 #include <memory>

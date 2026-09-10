@@ -12,8 +12,8 @@
 
 #include "viame_opencv_export.h"
 
-#include <vital/algo/optimize_cameras.h>
-#include <vital/plugin_management/pluggable_macro_magic.h>
+#include <viame/algorithm_framework/algo/optimize_cameras.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 #include "calibrate_stereo_cameras.h"
 #include "filter_stereo_feature_tracks.h"

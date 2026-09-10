@@ -8,10 +8,10 @@
  */
 
 #include "viame_examples_plugin_export.h"
-#include <vital/plugin_management/plugin_loader.h>
+#include <viame/algorithm_framework/plugin/plugin_loader.h>
 
-#include <vital/algo/image_object_detector.h>
-#include <vital/algo/image_filter.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
+#include <viame/algorithm_framework/algo/image_filter.h>
 
 #include "hello_world_detector.h"
 #include "hello_world_filter.h"

@@ -10,7 +10,7 @@
 #include "calibrate_single_camera.h"
 #include "calibrate_stereo_cameras.h"
 
-#include <vital/range/transform.h>
+#include <viame/algorithm_framework/range/transform.h>
 
 #include <opencv2/calib3d/calib3d.hpp>
 

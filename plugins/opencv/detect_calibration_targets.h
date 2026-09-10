@@ -3,8 +3,8 @@
 
 #include "viame_opencv_export.h"
 
-#include <vital/algo/image_object_detector.h>
-#include <vital/plugin_management/pluggable_macro_magic.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 #include "calibrate_stereo_cameras.h"
 

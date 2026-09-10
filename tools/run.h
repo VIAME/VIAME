@@ -5,7 +5,7 @@
 #ifndef VIAME_TOOLS_RUN_H
 #define VIAME_TOOLS_RUN_H
 
-#include <vital/applets/kwiver_applet.h>
+#include <viame/algorithm_framework/applets/kwiver_applet.h>
 
 #include "viame_tools_applets_export.h"
 

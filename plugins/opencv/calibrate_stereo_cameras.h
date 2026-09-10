@@ -16,8 +16,8 @@
 
 #include "viame_opencv_export.h"
 
-#include <vital/types/camera_perspective.h>
-#include <vital/logger/logger.h>
+#include <viame/core_types/camera_perspective.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 #include <opencv2/core/core.hpp>
 

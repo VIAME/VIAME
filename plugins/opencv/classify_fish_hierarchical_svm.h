@@ -15,8 +15,8 @@
 
 #include "viame_opencv_export.h"
 
-#include <vital/algo/refine_detections.h>
-#include <vital/plugin_management/pluggable_macro_magic.h>
+#include <viame/algorithm_framework/algo/refine_detections.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>

@@ -7,7 +7,7 @@
 
 #include "viame_darknet_export.h"
 
-#include <vital/algo/image_object_detector.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
 
 #include <opencv2/core/core.hpp>
 

@@ -4,12 +4,12 @@
 
 #include "adaptive_detector_trainer.h"
 
-#include <vital/algo/algorithm.txx>
-#include <vital/algo/image_io.h>
-#include <vital/util/cpu_timer.h>
-#include <vital/types/image_container.h>
-#include <vital/algo/image_io.h>
-#include <vital/algo/image_object_detector.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/image_io.h>
+#include <viame/algorithm_framework/util/cpu_timer.h>
+#include <viame/core_types/image_container.h>
+#include <viame/algorithm_framework/algo/image_io.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
 
 #include <string>
 #include <sstream>

@@ -39,6 +39,9 @@ kwiver_add_library( viame_svm
 target_include_directories( viame_svm PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+   # darknet's and libsvm's headers, which come from the dependency tree
+  # this build takes fletch from; phase 1 vendors them
+  $<BUILD_INTERFACE:${VIAME_DEPENDENCY_INCLUDE_DIRS}>
   )
 
 target_link_libraries( viame_svm

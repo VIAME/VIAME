@@ -16,8 +16,8 @@
 
 #include "viame_core_export.h"
 
-#include <vital/types/detected_object.h>
-#include <vital/types/detected_object_type.h>
+#include <viame/core_types/detected_object.h>
+#include <viame/core_types/detected_object_type.h>
 
 #include <string>
 #include <vector>

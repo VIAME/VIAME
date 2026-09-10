@@ -12,10 +12,10 @@
 
 #include "viame_opencv_export.h"
 
-#include <vital/algo/refine_detections.h>
-#include <vital/types/detected_object.h>
-#include <vital/types/bounding_box.h>
-#include <vital/plugin_management/pluggable_macro_magic.h>
+#include <viame/algorithm_framework/algo/refine_detections.h>
+#include <viame/core_types/detected_object.h>
+#include <viame/core_types/bounding_box.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 #include <opencv2/core/core.hpp>
 

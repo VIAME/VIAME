@@ -9,8 +9,8 @@
 
 #include "viame_tools_applets_export.h"
 
-#include <vital/plugin_management/plugin_loader.h>
-#include <vital/applets/applet_registrar.h>
+#include <viame/algorithm_framework/plugin/plugin_loader.h>
+#include <viame/algorithm_framework/applets/applet_registrar.h>
 
 #include <applet_attributes.h>
 #include "csv.h"

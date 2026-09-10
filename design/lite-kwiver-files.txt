@@ -551,6 +551,8 @@ packages/kwiver/vital/algo/metadata_map_io.cxx
 packages/kwiver/vital/algo/metadata_map_io.h
 packages/kwiver/vital/algo/optimize_cameras.cxx
 packages/kwiver/vital/algo/optimize_cameras.h
+packages/kwiver/vital/algo/perform_text_query.cxx
+packages/kwiver/vital/algo/perform_text_query.h
 packages/kwiver/vital/algo/query_track_descriptor_set.cxx
 packages/kwiver/vital/algo/query_track_descriptor_set.h
 packages/kwiver/vital/algo/read_object_track_set.cxx
@@ -563,6 +565,8 @@ packages/kwiver/vital/algo/refine_tracks.cxx
 packages/kwiver/vital/algo/refine_tracks.h
 packages/kwiver/vital/algo/resection_camera.cxx
 packages/kwiver/vital/algo/resection_camera.h
+packages/kwiver/vital/algo/segment_via_points.cxx
+packages/kwiver/vital/algo/segment_via_points.h
 packages/kwiver/vital/algo/split_image.cxx
 packages/kwiver/vital/algo/split_image.h
 packages/kwiver/vital/algo/texture_mesh.cxx
@@ -616,6 +620,7 @@ packages/kwiver/vital/config/config_difference.h
 packages/kwiver/vital/config/config_helpers.txx
 packages/kwiver/vital/config/config_parser.cxx
 packages/kwiver/vital/config/config_parser.h
+packages/kwiver/vital/config/format_config_block.h
 packages/kwiver/vital/config/token_type_config.cxx
 packages/kwiver/vital/config/token_type_config.h
 packages/kwiver/vital/context.h
@@ -643,6 +648,8 @@ packages/kwiver/vital/exceptions/serialize.cxx
 packages/kwiver/vital/exceptions/serialize.h
 packages/kwiver/vital/exceptions/video.cxx
 packages/kwiver/vital/exceptions/video.h
+packages/kwiver/vital/io/camera_from_metadata.cxx
+packages/kwiver/vital/io/camera_from_metadata.h
 packages/kwiver/vital/io/camera_io.cxx
 packages/kwiver/vital/io/camera_io.h
 packages/kwiver/vital/io/eigen_io.h
@@ -664,6 +671,7 @@ packages/kwiver/vital/logger/location_info.h
 packages/kwiver/vital/logger/logger.h
 packages/kwiver/vital/math_constants.h
 packages/kwiver/vital/noncopyable.h
+packages/kwiver/vital/overload.h
 packages/kwiver/vital/plugin_management/pluggable.h
 packages/kwiver/vital/plugin_management/pluggable_macro_magic.h
 packages/kwiver/vital/plugin_management/pluggable_macro_testing.h

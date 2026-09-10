@@ -1,7 +1,7 @@
 #include "detect_calibration_targets.h"
 #include "calibrate_stereo_cameras.h"
 
-#include <vital/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/algorithm.txx>
 
 #include <arrows/ocv/image_container.h>
 

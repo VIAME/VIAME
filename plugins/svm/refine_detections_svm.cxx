@@ -19,9 +19,9 @@
 
 #include <filesystem>
 
-#include <vital/vital_config.h>
-#include <vital/logger/logger.h>
-#include <vital/exceptions/io.h>
+#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/logger/logger.h>
+#include <viame/algorithm_framework/exceptions/io.h>
 
 #include <kwiversys/SystemTools.hxx>
 

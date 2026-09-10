@@ -9,9 +9,9 @@
 
 #include "train_detector_svm.h"
 
-#include <vital/vital_config.h>
-#include <vital/logger/logger.h>
-#include <vital/algo/detected_object_set_output.h>
+#include <viame/algorithm_framework/vital_config.h>
+#include <viame/algorithm_framework/logger/logger.h>
+#include <viame/algorithm_framework/algo/detected_object_set_output.h>
 
 #include <filesystem>
 

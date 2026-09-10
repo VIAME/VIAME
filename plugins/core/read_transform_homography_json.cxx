@@ -4,9 +4,9 @@
 
 #include "read_transform_homography_json.h"
 
-#include <vital/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/algorithm.txx>
 
-#include <vital/types/homography.h>
+#include <viame/core_types/homography.h>
 
 // homography.h only brings in Eigen/Core; determinant() and inverse()
 // live in the LU module
@@ -14,9 +14,9 @@
 
 // Pulled in for the vendored rapidjson headers and to route rapidjson
 // assertions to exceptions rather than aborts
-#include <vital/internal/cereal/archives/json.hpp>
-#include <vital/internal/cereal/external/rapidjson/ostreamwrapper.h>
-#include <vital/internal/cereal/external/rapidjson/prettywriter.h>
+#include <cereal/archives/json.hpp>
+#include <rapidjson/ostreamwrapper.h>
+#include <rapidjson/prettywriter.h>
 
 #include <cmath>
 #include <fstream>

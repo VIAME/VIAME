@@ -10,8 +10,8 @@
 #include "pair_stereo_detections.h"
 #include "measurement_utilities.h"
 
-#include <vital/types/image.h>
-#include <vital/types/feature.h>
+#include <viame/core_types/image.h>
+#include <viame/core_types/feature.h>
 
 #include <algorithm>
 #include <limits>

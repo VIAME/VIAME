@@ -4,14 +4,14 @@
 
 #include "darknet_trainer.h"
 
-#include <vital/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/algorithm.txx>
 
 #include "darknet_custom_resize.h"
 
-#include <vital/algo/image_io.h>
-#include <vital/util/cpu_timer.h>
-#include <vital/types/detected_object_set_util.h>
-#include <vital/vital_config.h>
+#include <viame/algorithm_framework/algo/image_io.h>
+#include <viame/algorithm_framework/util/cpu_timer.h>
+#include <viame/core_types/detected_object_set_util.h>
+#include <viame/algorithm_framework/vital_config.h>
 
 #include <arrows/ocv/image_container.h>
 

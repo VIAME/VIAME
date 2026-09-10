@@ -7,7 +7,7 @@
 
 #include <image_ops/pixel.h>
 
-#include <vital/types/image.h>
+#include <viame/core_types/image.h>
 
 #include <cmath>
 #include <cstddef>

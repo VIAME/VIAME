@@ -10,8 +10,8 @@
 #include "pair_stereo_detections_process.h"
 #include "pair_stereo_detections.h"
 
-#include <vital/vital_types.h>
-#include <vital/types/detected_object_set.h>
+#include <viame/core_types/vital_types.h>
+#include <viame/core_types/detected_object_set.h>
 
 #include <memory>
 

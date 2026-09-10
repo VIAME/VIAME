@@ -7,7 +7,7 @@
 #include "read_object_track_set_viame_csv.h"
 #include "write_object_track_set_viame_csv.h"
 
-#include <vital/types/object_track_set.h>
+#include <viame/core_types/object_track_set.h>
 
 #include <filesystem>
 #include <fstream>

@@ -7,7 +7,7 @@
 
 #include "viame_opencv_export.h"
 
-#include <vital/registrar.h>
+#include <viame/algorithm_framework/registrar.h>
 
 namespace viame {
 

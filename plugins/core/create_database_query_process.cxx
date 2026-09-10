@@ -11,11 +11,11 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
-#include <vital/vital_types.h>
+#include <viame/core_types/vital_types.h>
 
-#include <vital/types/database_query.h>
-#include <vital/types/track_descriptor_set.h>
-#include <vital/types/uid.h>
+#include <viame/core_types/database_query.h>
+#include <viame/core_types/track_descriptor_set.h>
+#include <viame/core_types/uid.h>
 
 #include <sstream>
 

@@ -8,10 +8,10 @@
 #include <image_ops/dispatch.h>
 #include <image_ops/stretch.h>
 
-#include <vital/config/config_block.h>
-#include <vital/plugin_management/plugin_manager.h>
-#include <vital/types/image_container.h>
-#include <vital/util/tokenize.h>
+#include <viame/algorithm_framework/config/config_block.h>
+#include <viame/algorithm_framework/plugin/plugin_manager.h>
+#include <viame/core_types/image_container.h>
+#include <viame/algorithm_framework/util/tokenize.h>
 
 #include <kwiversys/SystemTools.hxx>
 

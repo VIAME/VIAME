@@ -6,15 +6,15 @@
 #include "windowed_utils.h"
 #include "utilities_file.h"
 
-#include <vital/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/algorithm.txx>
 
-#include <vital/util/cpu_timer.h>
-#include <vital/algo/image_io.h>
-#include <vital/types/image_container.h>
-#include <vital/types/detected_object.h>
-#include <vital/types/detected_object_set.h>
-#include <vital/types/detected_object_type.h>
-#include <vital/types/bounding_box.h>
+#include <viame/algorithm_framework/util/cpu_timer.h>
+#include <viame/algorithm_framework/algo/image_io.h>
+#include <viame/core_types/image_container.h>
+#include <viame/core_types/detected_object.h>
+#include <viame/core_types/detected_object_set.h>
+#include <viame/core_types/detected_object_type.h>
+#include <viame/core_types/bounding_box.h>
 
 #include <kwiversys/SystemTools.hxx>
 

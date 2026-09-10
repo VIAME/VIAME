@@ -12,8 +12,8 @@
 
 #include "viame_svm_export.h"
 
-#include <vital/algo/train_detector.h>
-#include <vital/plugin_management/pluggable_macro_magic.h>
+#include <viame/algorithm_framework/algo/train_detector.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 #include <map>
 #include <memory>

@@ -7,7 +7,7 @@
 #include <image_ops/commonality.h>
 #include <image_ops/dispatch.h>
 
-#include <vital/types/image_container.h>
+#include <viame/core_types/image_container.h>
 
 #include <stdexcept>
 

@@ -5,7 +5,7 @@
 #ifndef VIAME_EXAMPLE_DETECTOR_H
 #define VIAME_EXAMPLE_DETECTOR_H
 
-#include <vital/algo/image_object_detector.h>
+#include <viame/algorithm_framework/algo/image_object_detector.h>
 
 namespace viame {
 
