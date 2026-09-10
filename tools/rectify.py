@@ -34,16 +34,19 @@ def main():
 
     args = parser.parse_args()
 
-    img = cv2.imread(args.input_image)
+    img = cv2.imread(args.input_image, cv2.IMREAD_UNCHANGED)
     if img is None:
         raise ValueError(f"Failed to read image: {args.input_image}")
+
+    if img.shape[1] % 2:
+        raise ValueError("Stitched stereo image width must be even")
 
     left_img = img[:, 0:img.shape[1] // 2]
     right_img = img[:, img.shape[1] // 2:]
 
     if args.bayer:
-        left_img = cv2.cvtColor(left_img[:, :, 0], cv2.COLOR_BayerBG2BGR)
-        right_img = cv2.cvtColor(right_img[:, :, 0], cv2.COLOR_BayerBG2BGR)
+        left_img = cv2.cvtColor(left_img if left_img.ndim == 2 else left_img[:, :, 0], cv2.COLOR_BayerBG2BGR)
+        right_img = cv2.cvtColor(right_img if right_img.ndim == 2 else right_img[:, :, 0], cv2.COLOR_BayerBG2BGR)
 
     img_shape = left_img.shape[1::-1]
 
@@ -73,6 +76,15 @@ def main():
         if mat is None:
             raise ValueError(f"Matrix {name} not found in calibration files")
 
+    for name, mat, shape in [("M1", M1, (3, 3)), ("M2", M2, (3, 3)),
+                              ("R1", R1, (3, 3)), ("R2", R2, (3, 3)),
+                              ("P1", P1, (3, 4)), ("P2", P2, (3, 4))]:
+        if mat.shape != shape or not np.isfinite(mat).all():
+            raise ValueError(f"{name} must be a finite {shape} matrix")
+    for name, mat in [("D1", D1), ("D2", D2)]:
+        if mat.size not in (4, 5, 8, 12, 14) or not np.isfinite(mat).all():
+            raise ValueError(f"Invalid distortion coefficients: {name}")
+
     # Compute rectification maps
     map11, map12 = cv2.initUndistortRectifyMap(M1, D1, R1, P1, img_shape, cv2.CV_16SC2)
     map21, map22 = cv2.initUndistortRectifyMap(M2, D2, R2, P2, img_shape, cv2.CV_16SC2)
@@ -83,7 +95,8 @@ def main():
 
     # Save rectified pair
     rect_pair = np.hstack((left_rect, right_rect))
-    cv2.imwrite(args.output_image, rect_pair)
+    if not cv2.imwrite(args.output_image, rect_pair):
+        raise ValueError(f"Failed to write rectified image: {args.output_image}")
 
     print(f"Saved rectified image to {args.output_image}")
     return 0
