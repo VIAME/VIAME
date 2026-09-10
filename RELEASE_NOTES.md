@@ -1,3 +1,17 @@
+v0.23.1 - 9/11/2026
+===================
+
+
+- Release a number of new DIVE beta features (review, queries, etc...)
+
+
+- Rename Measurement => Stereo pipeline group in CLI and interfaces
+
+
+- Default fish model algorithm tweaks
+
+
+
 v0.23.0 - 9/07/2026
 ===================
 
