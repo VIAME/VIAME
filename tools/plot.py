@@ -83,7 +83,8 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
     else:
       return split_str[0]
 
-  warnings.filterwarnings( "ignore" )
+  if not np.isfinite(frame_rate) or frame_rate <= 0 or smooth < 1:
+    raise ValueError("Frame rate must be finite and positive, and smoothing at least 1")
 
   if net_name in objects:
     print( "Plotting error, net category id can't be in object list" )
@@ -118,7 +119,7 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
     with open( os.path.join( input_directory, filename ), "r" ) as f:
       for line in f:
         line = line.rstrip()
-        if line[0] != "#":
+        if line and line[0] != "#":
           columns = line.split(",")
           frame_id = int( columns[2] )
           for obj in objects:
@@ -129,6 +130,8 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
           name = None
           is_first = True
           for column in detection_columns:
+            if column.strip().startswith("("):
+              break
             if name is not None:
               if name in objects:
                 value = float(column)
@@ -213,6 +216,7 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
         ax.locator_params( axis='x', nbins = 7 )
         fig.savefig( os.path.join( video_subdir, filename + "." + obj + ".png" ) )
 
+        plt.close(fig)
         agr_ax.plot( x, y, label=obj )
         if np.size( y ) > 0:
           agr_max_y = max( np.max( y ), agr_max_y )
@@ -236,6 +240,7 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
     agr_fig.set_size_inches( 10, 7 )
     agr_fig.savefig( os.path.join( output_directory, filename + ".png" ),
                      dpi=100, bbox_inches="tight", bbox_extra_artists=lgd )
+    plt.close(agr_fig)
 
   # Write out aggregate information across all videos
   for obj in objects:
@@ -326,29 +331,17 @@ def load_confusion_matrix_csv( filepath ):
     return class_names, np.array( matrix )
 
 
-def load_roc_curve_csv( filepath ):
-    """Load ROC curve data from CSV file."""
-    points = []
-    auc = 0.0
-
-    with open( filepath, 'r' ) as f:
-        header = f.readline().strip().split( ',' )
-        for line in f:
-            parts = line.strip().split( ',' )
-            if len( parts ) >= 3:
-                points.append( {
-                    'confidence': float( parts[0] ),
-                    'fpr': float( parts[1] ),
-                    'tpr': float( parts[2] ),
-                } )
-
-    # Compute AUC using trapezoidal rule
-    if len( points ) > 1:
-        fprs = [p['fpr'] for p in points]
-        tprs = [p['tpr'] for p in points]
-        auc = compute_auc( fprs, tprs )
-
-    return { 'points': points, 'auc': auc }
+def load_roc_curve_csv(filepath):
+    with open(filepath, newline='') as stream:
+        reader = csv.DictReader(stream)
+        headers = reader.fieldnames or []
+        if len(headers) < 3:
+            raise ValueError('ROC CSV must contain confidence, x and recall columns')
+        x_key = headers[1]
+        points = [{'confidence': float(row[headers[0]]),
+                   'false_alarms_per_frame' if x_key == 'false_alarms_per_frame' else 'fpr': float(row[headers[1]]),
+                   'true_positive_rate': float(row[headers[2]])} for row in reader]
+    return {'points': points}
 
 
 def compute_auc( fprs, tprs ):
@@ -517,40 +510,28 @@ def plot_confusion_matrix( class_names, matrix, output_path,
     print( f"Saved: {output_path}" )
 
 
-def plot_roc_curve( roc_data, output_path, title="ROC Curve" ):
-    """Generate ROC curve plot."""
+def plot_roc_curve(roc_data, output_path, title="ROC Curve"):
     if not HAS_MATPLOTLIB:
         return
-
-    fig, ax = plt.subplots( figsize=DEFAULT_FIGSIZE )
-
-    if isinstance( roc_data, dict ) and 'points' in roc_data:
-        points = roc_data['points']
-        if points:
-            fprs = [p['fpr'] for p in points]
-            tprs = [p['tpr'] for p in points]
-            auc = roc_data.get( 'auc', 0 )
-            ax.plot( fprs, tprs, 'b-', linewidth=2, label=f'AUC = {auc:.3f}' )
-            ax.legend( loc='lower right' )
-    elif isinstance( roc_data, list ):
-        fprs = [p['fpr'] for p in roc_data]
-        tprs = [p['tpr'] for p in roc_data]
-        ax.plot( fprs, tprs, 'b-', linewidth=2 )
-
-    # Diagonal line (random classifier)
-    ax.plot( [0, 1], [0, 1], 'k--', linewidth=1, alpha=0.5 )
-
-    ax.set_xlabel( 'False Positive Rate', fontsize=12 )
-    ax.set_ylabel( 'True Positive Rate (Recall)', fontsize=12 )
-    ax.set_title( title, fontsize=14 )
-    ax.set_xlim( [0, 1] )
-    ax.set_ylim( [0, 1] )
-    ax.grid( True, alpha=0.3 )
-
-    plt.tight_layout()
-    plt.savefig( output_path, dpi=DEFAULT_DPI, bbox_inches='tight' )
-    plt.close()
-    print( f"Saved: {output_path}" )
+    points = roc_data.get('points', []) if isinstance(roc_data, dict) else roc_data
+    per_frame = any('false_alarms_per_frame' in p for p in points)
+    x = [p.get('false_alarms_per_frame', p.get('fpr', 0)) for p in points]
+    y = [p.get('true_positive_rate', p.get('tpr', 0)) for p in points]
+    fig, ax = plt.subplots(figsize=DEFAULT_FIGSIZE)
+    ax.plot(x, y, 'b-', linewidth=2)
+    if not per_frame:
+        ax.plot([0, 1], [0, 1], 'k--', linewidth=1, alpha=0.5)
+    ax.set_xlabel('False alarms per frame' if per_frame else 'False Positive Rate', fontsize=12)
+    ax.set_ylabel('True Positive Rate (Recall)', fontsize=12)
+    ax.set_title(title, fontsize=14)
+    finite_x = [v for v in x if v is not None and np.isfinite(v)]
+    ax.set_xlim(0, max(1, max(finite_x, default=0) * 1.05) if per_frame else 1)
+    ax.set_ylim(0, 1)
+    ax.grid(True, alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=DEFAULT_DPI, bbox_inches='tight')
+    plt.close(fig)
+    print(f"Saved: {output_path}")
 
 
 def plot_histogram( data, output_path, title, xlabel, ylabel='Count',
@@ -841,6 +822,13 @@ def plot_track_quality_summary( metrics, output_path ):
 def generate_all_plots_from_json( json_path, output_dir ):
     """Generate all plots from JSON data file."""
     data = load_json_data( json_path )
+    # Accept both the evaluator export and the score applet's metrics JSON.
+    if 'pr_curve' in data:
+        data['overall_pr_curve'] = data['pr_curve']
+    if 'roc_curve' in data:
+        data['overall_roc_curve'] = data['roc_curve']
+    if 'metrics' not in data:
+        data['metrics'] = {k: v for k, v in data.items() if isinstance(v, (int, float))}
     make_dir_if_not_exist( output_dir )
 
     # Overall PR curve
