@@ -54,6 +54,40 @@ round_pixel( double value )
 }
 
 // ----------------------------------------------------------------------------
+/// Convert a real value to \p Out, rounding half away from zero and clamping.
+///
+/// The saturating counterpart of `round_pixel`, which is what OpenCV's
+/// `saturate_cast` does and what a colour conversion needs: L*a*b* and HSV
+/// both have coordinates outside the RGB gamut, so a round trip through
+/// either produces values below zero and above the top of the type, and
+/// wrapping them is a black pixel where a white one belongs.
+///
+/// `round_pixel` stays unclamped because the VXL recordings depend on it.
+template < typename Out >
+Out
+saturate_pixel( double value )
+{
+  if constexpr( std::is_floating_point< Out >::value )
+  {
+    return static_cast< Out >( value );
+  }
+  else
+  {
+    constexpr auto low =
+      static_cast< double >( std::numeric_limits< Out >::lowest() );
+    constexpr auto high =
+      static_cast< double >( std::numeric_limits< Out >::max() );
+
+    value = value > 0.0 ? value + 0.5 : value - 0.5;
+
+    if( value <= low ) { return std::numeric_limits< Out >::lowest(); }
+    if( value >= high ) { return std::numeric_limits< Out >::max(); }
+
+    return static_cast< Out >( value );
+  }
+}
+
+// ----------------------------------------------------------------------------
 /// The largest value \p T holds, as a double.
 template < typename T >
 constexpr double

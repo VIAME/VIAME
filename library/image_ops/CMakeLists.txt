@@ -6,6 +6,7 @@
 
 set( image_ops_headers
   channels.h
+  color.h
   commonality.h
   convert.h
   dispatch.h

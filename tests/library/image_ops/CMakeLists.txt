@@ -15,3 +15,14 @@ kwiver_discover_gtests( viame homography_overlap
   LIBRARIES viame_image_ops
             kwiver::vital
             GTest::gtest )
+
+# The colour conversions, against a recording of what OpenCV computed for the
+# same pixels. Reading a file rather than calling OpenCV is what lets the
+# test outlive it.
+kwiver_discover_gtests( viame color
+  LIBRARIES viame_image_ops
+            kwiver::vital
+            GTest::gtest )
+
+target_compile_definitions( test-viame-color PRIVATE
+  "VIAME_GOLDEN_IMAGE_OPS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../../golden/image_ops\"" )
