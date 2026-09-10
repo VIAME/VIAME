@@ -24,5 +24,13 @@ kwiver_discover_gtests( viame color
             kwiver::vital
             GTest::gtest )
 
-target_compile_definitions( test-viame-color PRIVATE
-  "VIAME_GOLDEN_IMAGE_OPS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../../golden/image_ops\"" )
+# The convolution kernels, against the same recording.
+kwiver_discover_gtests( viame filter
+  LIBRARIES viame_image_ops
+            kwiver::vital
+            GTest::gtest )
+
+foreach( test IN ITEMS color filter )
+  target_compile_definitions( test-viame-${test} PRIVATE
+    "VIAME_GOLDEN_IMAGE_OPS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../../golden/image_ops\"" )
+endforeach()

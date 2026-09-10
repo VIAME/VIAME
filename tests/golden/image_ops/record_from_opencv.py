@@ -136,6 +136,72 @@ def record():
     add("demosaic_bg", bayer, cv2.cvtColor(bayer, cv2.COLOR_BayerRG2RGB), 1,
         margin=2)
 
+    # ------------------------------------------------------------------
+    # filter.h
+    #
+    # OpenCV's default border for all of these is BORDER_REFLECT_101, which
+    # is what `filter.h` defaults to. The margins are the kernel radius: the
+    # window's own edge is not the image's, and the recording is a window.
+    # ------------------------------------------------------------------
+
+    add("gaussian_blur_3", gray,
+        cv2.GaussianBlur(gray, (3, 3), 0), 1, margin=1)
+    add("gaussian_blur_5", gray,
+        cv2.GaussianBlur(gray, (5, 5), 0), 1, margin=2)
+    add("gaussian_blur_5_rgb", rgb,
+        cv2.GaussianBlur(rgb, (5, 5), 0), 1, margin=2)
+    add("gaussian_blur_5_sigma_2", gray,
+        cv2.GaussianBlur(gray, (5, 5), 2.0), 1, margin=2)
+
+    add("box_blur_3", gray, cv2.blur(gray, (3, 3)), 1, margin=1)
+    add("box_blur_5", gray, cv2.blur(gray, (5, 5)), 1, margin=2)
+
+    # A gradient has a sign, so these are recorded as CV_16S and shifted by
+    # 32768 to survive the unsigned JSON round trip; the C++ side shifts back.
+    def signed16(array):
+        return (array.astype(np.int32) + 32768).astype(np.uint16)
+
+    add("sobel_dx_3", gray,
+        signed16(cv2.Sobel(gray, cv2.CV_16S, 1, 0, ksize=3)), 1, margin=1)
+    add("sobel_dy_3", gray,
+        signed16(cv2.Sobel(gray, cv2.CV_16S, 0, 1, ksize=3)), 1, margin=1)
+    add("sobel_dx_5", gray,
+        signed16(cv2.Sobel(gray, cv2.CV_16S, 1, 0, ksize=5)), 1, margin=2)
+    add("sobel_dxx_3", gray,
+        signed16(cv2.Sobel(gray, cv2.CV_16S, 2, 0, ksize=3)), 1, margin=1)
+
+    # filter2D with a kernel that is neither symmetric nor separable, so a
+    # flipped kernel or a transposed walk shows up
+    corner = np.array([[0.0, -1.0, 0.0],
+                       [-1.0, 5.0, -1.0],
+                       [0.0, 0.0, 1.0]], dtype=np.float64)
+    add("filter2d_sharpen", gray,
+        cv2.filter2D(gray, -1, corner,
+                     borderType=cv2.BORDER_REFLECT_101), 1, margin=1)
+
+    # The border rules, on a kernel wide enough that the edge dominates.
+    #
+    # These are the one group that has to run on the *window* rather than on
+    # the whole fixture: the point of the case is what happens where the
+    # image stops, and on the whole fixture the window's edge is not where it
+    # stops. So OpenCV is given the crop and the comparison keeps every
+    # pixel -- margin 0 is meant here, unlike everywhere else.
+    line = np.ones((1, 9), dtype=np.float64) / 9.0
+    window = crop(gray)
+    for name, flag in (("replicate", cv2.BORDER_REPLICATE),
+                       ("reflect", cv2.BORDER_REFLECT),
+                       ("reflect101", cv2.BORDER_REFLECT_101),
+                       ("constant", cv2.BORDER_CONSTANT)):
+        cases.append(dict(
+            {"name": "border_" + name, "tolerance": 1, "margin": 0},
+            **flat("input", window),
+            **flat("expected",
+                   cv2.filter2D(window, -1, line, borderType=flag))))
+
+    add("add_weighted", gray,
+        cv2.addWeighted(gray, 1.5, cv2.GaussianBlur(gray, (5, 5), 0),
+                        -0.5, 0.0), 2, margin=2)
+
     return {
         "recorded": datetime.datetime.now(datetime.timezone.utc)
                             .strftime("%Y-%m-%dT%H:%M:%SZ"),

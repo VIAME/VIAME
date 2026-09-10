@@ -17,196 +17,17 @@
 
 #include <viame/core_types/image.h>
 
-#include "../golden_json.h"
+#include "golden_image.h"
 
 #include <gtest/gtest.h>
 
-#include <cmath>
 #include <cstdint>
-#include <iostream>
 #include <string>
-#include <vector>
 
 namespace io = viame::image_ops;
 namespace kv = kwiver::vital;
 
-using viame::testing::golden_json;
-
-namespace {
-
-/// The recording's directory, compiled in by CMake and overridable by the
-/// environment so that a copy of the tree can be checked against another.
-std::string
-golden_path()
-{
-  char const* dir = std::getenv( "VIAME_GOLDEN_IMAGE_OPS_DIR" );
-
-  if( !dir )
-  {
-    dir = VIAME_GOLDEN_IMAGE_OPS_DIR;
-  }
-
-  return std::string( dir ) + "/opencv.json";
-}
-
-/// One recorded image, as vital lays it out.
-///
-/// The recording is (row, column, plane) because that is numpy's order;
-/// `image_of` is indexed (column, row, plane), so the walk transposes.
-kv::image_of< uint8_t >
-image_from( std::string const& object, std::string const& prefix )
-{
-  auto const width =
-    static_cast< size_t >( golden_json::number( object, prefix + "_width" ) );
-  auto const height =
-    static_cast< size_t >( golden_json::number( object, prefix + "_height" ) );
-  auto const planes =
-    static_cast< size_t >( golden_json::number( object, prefix + "_planes" ) );
-
-  auto const data = golden_json::numbers( object, prefix + "_data" );
-
-  EXPECT_EQ( width * height * planes, data.size() ) << prefix;
-
-  kv::image_of< uint8_t > out( width, height, planes );
-
-  size_t at = 0;
-  for( size_t j = 0; j < height; ++j )
-  {
-    for( size_t i = 0; i < width; ++i )
-    {
-      for( size_t p = 0; p < planes; ++p )
-      {
-        out( i, j, p ) = static_cast< uint8_t >( data[ at++ ] );
-      }
-    }
-  }
-
-  return out;
-}
-
-/// Every recorded case, by name.
-std::vector< std::string > const&
-cases()
-{
-  static std::vector< std::string > const all =
-    golden_json( golden_path() ).section( "cases" );
-  return all;
-}
-
-std::string
-case_named( std::string const& name )
-{
-  for( auto const& object : cases() )
-  {
-    if( golden_json::text( object, "name" ) == name )
-    {
-      return object;
-    }
-  }
-
-  ADD_FAILURE() << "no recorded case called '" << name << "'";
-  return {};
-}
-
-/// Compare against the recording at the tolerance the recording states.
-void
-expect_matches( std::string const& name,
-                kv::image_of< uint8_t > const& actual )
-{
-  auto const object = case_named( name );
-
-  if( object.empty() )
-  {
-    return;
-  }
-
-  auto const expected = image_from( object, "expected" );
-  auto const tolerance = golden_json::number( object, "tolerance" );
-
-  // How many pixels of border the recording says to skip. OpenCV ran on the
-  // whole fixture and the recording is a window of the result, so a kernel
-  // that reads its neighbours sees this window's edge where OpenCV saw real
-  // pixels. The recorder states the margin per case; only the neighbourhood
-  // kernels have one.
-  auto const margin =
-    static_cast< size_t >( golden_json::number( object, "margin" ) );
-
-  ASSERT_EQ( expected.width(), actual.width() ) << name;
-  ASSERT_EQ( expected.height(), actual.height() ) << name;
-  ASSERT_EQ( expected.depth(), actual.depth() ) << name;
-
-  double worst = 0.0;
-  double total = 0.0;
-
-  size_t counted = 0;
-
-  for( size_t j = margin; j + margin < expected.height(); ++j )
-  {
-    for( size_t i = margin; i + margin < expected.width(); ++i )
-    {
-      for( size_t p = 0; p < expected.depth(); ++p )
-      {
-        ++counted;
-
-        auto const difference =
-          std::abs( static_cast< double >( actual( i, j, p ) ) -
-                    static_cast< double >( expected( i, j, p ) ) );
-
-        if( difference > worst )
-        {
-          worst = difference;
-        }
-
-        total += difference;
-
-        EXPECT_LE( difference, tolerance )
-          << name << " at (" << i << ", " << j << ", " << p << "): "
-          << int( actual( i, j, p ) ) << " against recorded "
-          << int( expected( i, j, p ) );
-      }
-    }
-  }
-
-  // Printed rather than asserted on: a case that passes is more useful with
-  // its margin visible, because a tolerance that is never approached is a
-  // tolerance that could come down.
-  ASSERT_GT( counted, 0u ) << name << ": the margin left nothing to compare";
-
-  std::cout << "[          ] " << name << ": max " << worst << ", mean "
-            << total / static_cast< double >( counted ) << " over " << counted
-            << " values, tolerance " << tolerance
-            << ( margin ? ", margin " + std::to_string( margin ) : "" )
-            << std::endl;
-}
-
-/// The window the recording covers, taken out of a whole-image result.
-///
-/// The recorder runs each conversion on the whole fixture and records a crop,
-/// so that a kernel reading its neighbours sees real ones. The test does the
-/// same on its side.
-constexpr size_t crop_left = 16;
-constexpr size_t crop_top = 16;
-
-kv::image_of< uint8_t >
-cropped( kv::image_of< uint8_t > const& image, size_t width, size_t height )
-{
-  kv::image_of< uint8_t > out( width, height, image.depth() );
-
-  for( size_t j = 0; j < height; ++j )
-  {
-    for( size_t i = 0; i < width; ++i )
-    {
-      for( size_t p = 0; p < image.depth(); ++p )
-      {
-        out( i, j, p ) = image( crop_left + i, crop_top + j, p );
-      }
-    }
-  }
-
-  return out;
-}
-
-} // namespace
+namespace golden_image = viame::testing::golden_image;
 
 // ----------------------------------------------------------------------------
 int
@@ -220,57 +41,50 @@ main( int argc, char** argv )
 /// The recorded input is the crop, so a per-pixel conversion needs no more.
 TEST ( color, rgb_to_gray_matches_opencv )
 {
-  auto const object = case_named( "rgb_to_gray" );
-  auto const input = image_from( object, "input" );
-  expect_matches( "rgb_to_gray", io::rgb_to_gray( input ) );
+  golden_image::expect_matches(
+    "rgb_to_gray", io::rgb_to_gray( golden_image::input( "rgb_to_gray" ) ) );
 }
 
 // ----------------------------------------------------------------------------
 TEST ( color, gray_to_rgb_matches_opencv )
 {
-  auto const object = case_named( "gray_to_rgb" );
-  auto const input = image_from( object, "input" );
-  expect_matches( "gray_to_rgb", io::gray_to_rgb( input ) );
+  golden_image::expect_matches(
+    "gray_to_rgb", io::gray_to_rgb( golden_image::input( "gray_to_rgb" ) ) );
 }
 
 // ----------------------------------------------------------------------------
 TEST ( color, swap_rb_matches_opencv )
 {
-  auto const object = case_named( "swap_rb" );
-  auto const input = image_from( object, "input" );
-  expect_matches( "swap_rb", io::swap_rb( input ) );
+  golden_image::expect_matches(
+    "swap_rb", io::swap_rb( golden_image::input( "swap_rb" ) ) );
 }
 
 // ----------------------------------------------------------------------------
 TEST ( color, rgb_to_hsv_matches_opencv )
 {
-  auto const object = case_named( "rgb_to_hsv" );
-  auto const input = image_from( object, "input" );
-  expect_matches( "rgb_to_hsv", io::rgb_to_hsv( input ) );
+  golden_image::expect_matches(
+    "rgb_to_hsv", io::rgb_to_hsv( golden_image::input( "rgb_to_hsv" ) ) );
 }
 
 // ----------------------------------------------------------------------------
 TEST ( color, rgb_to_lab_matches_opencv )
 {
-  auto const object = case_named( "rgb_to_lab" );
-  auto const input = image_from( object, "input" );
-  expect_matches( "rgb_to_lab", io::rgb_to_lab( input ) );
+  golden_image::expect_matches(
+    "rgb_to_lab", io::rgb_to_lab( golden_image::input( "rgb_to_lab" ) ) );
 }
 
 // ----------------------------------------------------------------------------
 TEST ( color, hsv_to_rgb_matches_opencv )
 {
-  auto const object = case_named( "hsv_to_rgb" );
-  auto const input = image_from( object, "input" );
-  expect_matches( "hsv_to_rgb", io::hsv_to_rgb( input ) );
+  golden_image::expect_matches(
+    "hsv_to_rgb", io::hsv_to_rgb( golden_image::input( "hsv_to_rgb" ) ) );
 }
 
 // ----------------------------------------------------------------------------
 TEST ( color, lab_to_rgb_matches_opencv )
 {
-  auto const object = case_named( "lab_to_rgb" );
-  auto const input = image_from( object, "input" );
-  expect_matches( "lab_to_rgb", io::lab_to_rgb( input ) );
+  golden_image::expect_matches(
+    "lab_to_rgb", io::lab_to_rgb( golden_image::input( "lab_to_rgb" ) ) );
 }
 
 // ----------------------------------------------------------------------------
@@ -279,11 +93,10 @@ TEST ( color, lab_to_rgb_matches_opencv )
 /// demosaic runs on that, and the same window is compared.
 TEST ( color, demosaic_matches_opencv )
 {
-  auto const object = case_named( "demosaic_bg" );
-  auto const mosaic = image_from( object, "input" );
-
-  expect_matches( "demosaic_bg",
-                  io::demosaic( mosaic, io::bayer_pattern::BG ) );
+  golden_image::expect_matches(
+    "demosaic_bg",
+    io::demosaic( golden_image::input( "demosaic_bg" ),
+                  io::bayer_pattern::BG ) );
 }
 
 // ----------------------------------------------------------------------------
