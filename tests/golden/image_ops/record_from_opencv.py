@@ -407,6 +407,82 @@ def record():
         "contours": measured,
     })
 
+    # ------------------------------------------------------------------
+    # match.h and layout.h
+    #
+    # Template matching is recorded as a float surface, scaled and offset
+    # into the unsigned recording: the scores run -1 to 1 and the recording
+    # carries integers, so a score of s becomes round((s + 1) * 10000).
+    # The tolerance is then in ten-thousandths.
+    # ------------------------------------------------------------------
+
+    def as_scores(surface):
+        return np.round((surface.astype(np.float64) + 1.0) * 10000.0
+                        ).astype(np.int32)
+
+    patch = window[6:14, 9:19]      # a piece of the window, so it matches
+    surface = cv2.matchTemplate(window, patch, cv2.TM_CCOEFF_NORMED)
+    add_windowed("match_ncc", window, as_scores(surface), 3)
+    cases[-1]["pattern_left"] = 9
+    cases[-1]["pattern_top"] = 6
+    cases[-1]["pattern_width"] = 10
+    cases[-1]["pattern_height"] = 8
+
+    # A colour version, where OpenCV uses every channel together
+    patch_rgb = window_rgb[6:14, 9:19]
+    surface_rgb = cv2.matchTemplate(window_rgb, patch_rgb,
+                                    cv2.TM_CCOEFF_NORMED)
+    add_windowed("match_ncc_rgb", window_rgb, as_scores(surface_rgb), 3)
+    cases[-1]["pattern_left"] = 9
+    cases[-1]["pattern_top"] = 6
+    cases[-1]["pattern_width"] = 10
+    cases[-1]["pattern_height"] = 8
+
+    add_windowed("hconcat", window,
+                 cv2.hconcat([window, window[:, ::-1]]), 0)
+    add_windowed("vconcat", window,
+                 cv2.vconcat([window, window[::-1, :]]), 0)
+
+    # ------------------------------------------------------------------
+    # draw.h
+    #
+    # The geometry, which matches: rectangles, lines, circles and filled
+    # polygons. Not text -- `font_5x7.h` is a bitmap font and OpenCV's is
+    # Hershey's, so the glyph shapes differ by construction and there is
+    # nothing to compare. LINE_8 because that is what every VIAME caller
+    # asks for and what OpenCV defaults to.
+    # ------------------------------------------------------------------
+
+    def blank():
+        return np.zeros((24, 32), dtype=np.uint8)
+
+    canvas = blank()
+    cv2.rectangle(canvas, (4, 3), (20, 15), 200, 1, cv2.LINE_8)
+    add_windowed("draw_rect", blank(), canvas, 0)
+
+    canvas = blank()
+    cv2.rectangle(canvas, (4, 3), (20, 15), 200, -1, cv2.LINE_8)
+    add_windowed("draw_rect_filled", blank(), canvas, 0)
+
+    canvas = blank()
+    for (a, b) in (((1, 1), (30, 22)), ((30, 2), (2, 20)),
+                   ((0, 12), (31, 12)), ((16, 0), (16, 23))):
+        cv2.line(canvas, a, b, 180, 1, cv2.LINE_8)
+    add_windowed("draw_lines", blank(), canvas, 0)
+
+    canvas = blank()
+    cv2.circle(canvas, (16, 12), 9, 220, 1, cv2.LINE_8)
+    add_windowed("draw_circle", blank(), canvas, 0)
+
+    canvas = blank()
+    cv2.circle(canvas, (16, 12), 9, 220, -1, cv2.LINE_8)
+    add_windowed("draw_circle_filled", blank(), canvas, 0)
+
+    canvas = blank()
+    poly = np.array([[(5, 3), (28, 8), (20, 21), (8, 17)]], dtype=np.int32)
+    cv2.fillPoly(canvas, poly, 150, cv2.LINE_8)
+    add_windowed("draw_polygon", blank(), canvas, 0)
+
     return {
         "shapes_width": int(shapes.shape[1]),
         "shapes_height": int(shapes.shape[0]),

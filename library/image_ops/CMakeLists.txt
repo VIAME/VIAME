@@ -11,9 +11,13 @@ set( image_ops_headers
   contours.h
   convert.h
   dispatch.h
+  draw.h
   filter.h
+  font_5x7.h
   histogram.h
   homography_overlap.h
+  layout.h
+  match.h
   morphology.h
   pixel.h
   polygon.h
