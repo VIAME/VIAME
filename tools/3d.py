@@ -420,7 +420,7 @@ def main():
     if args.install_deps:
         target = args.deps_target or _get_viame_site_packages()
         ensure_dependencies(install=True, target_dir=target)
-        return
+        return 0
 
     # --- Import dependencies (after --install-deps check) ---
     import_dependencies()
@@ -431,7 +431,7 @@ def main():
         from viame.colmap import reconstruction as _cr
         _cr.import_dependencies()
         _cr.view_file(os.path.abspath(args.view))
-        return
+        return 0
 
     folders = []
     base_dir = args.base_dir or os.getcwd()
@@ -472,13 +472,18 @@ def main():
     results = {}
     for folder in folders:
         name = os.path.basename(folder.rstrip('/'))
-        out = args.output or os.path.join(base_dir, "3d_models", name)
-        ok = process_folder(folder, out, scale=args.scale,
-                            max_pairs_per_image=args.max_pairs,
-                            dense=not args.no_dense,
-                            dense_method=args.dense_method,
-                            multicam=args.multicam,
-                            sfm_matching=args.sfm_matching)
+        out = (os.path.join(args.output, name) if args.output and args.all
+               else args.output or os.path.join(base_dir, "3d_models", name))
+        try:
+            ok = process_folder(folder, out, scale=args.scale,
+                                max_pairs_per_image=args.max_pairs,
+                                dense=not args.no_dense,
+                                dense_method=args.dense_method,
+                                multicam=args.multicam,
+                                sfm_matching=args.sfm_matching)
+        except Exception as exc:
+            print(f"ERROR: {folder}: {exc}", file=sys.stderr)
+            ok = False
         results[name] = ok
 
     dt = time.time() - t_total
@@ -490,5 +495,8 @@ def main():
     print(f"{'='*70}")
 
 
+    return 0 if all(results.values()) else 1
+
+
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
