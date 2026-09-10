@@ -127,8 +127,8 @@ set( CORE_PIPELINE_FILES
   interactive_text_query_default.conf
   interactive_stereo_default.conf
   interactive_stereo_template.conf
-  stereo_measure_current_annotations_default.pipe
-  stereo_measure_current_annotations_template.pipe
+  stereo_measure_current_annots_default.pipe
+  stereo_measure_current_annots_template.pipe
   stereo_detect_and_measure_gmm_motion.pipe
   query_from_track.pipe
   query_retrieval_and_iqr.pipe

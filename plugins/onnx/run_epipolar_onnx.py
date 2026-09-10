@@ -10,7 +10,7 @@ file (any format read_stereo_rig supports), loads the left/right images and a
 set of left-image keypoints, feeds them to onnxruntime, applies the score
 threshold and uniqueness-ratio test, and triangulates the matched pairs.
 
-It reproduces the relevant config of stereo_measure_current_annotations_template.pipe
+It reproduces the relevant config of stereo_measure_current_annots_template.pipe
 (:template_matching_threshold, :uniqueness_ratio, :epipolar_min/max_disparity
 or depth, :template_size baked into the model at export).
 

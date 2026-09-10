@@ -7,4 +7,4 @@
 # Requires Calibration: True
 # =============================================================================
 
-include stereo_measure_current_annotations_template.pipe
+include stereo_measure_current_annots_template.pipe

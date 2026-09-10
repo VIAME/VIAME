@@ -2,9 +2,9 @@
 # Title: Measurement from annotations pipeline
 #
 # Description: Default measurement from annotations pipeline.
-# Outputs to computed_tracks2.csv.
+# Outputs to computed_tracks.csv.
 #
 # Requires Calibration: True
 # =============================================================================
 
-include stereo_measure_current_annotations_fdn_stereo_s.pipe
+include stereo_measure_current_annots_template.pipe
