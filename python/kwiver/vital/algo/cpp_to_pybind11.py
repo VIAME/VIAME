@@ -21,6 +21,7 @@ This script was derived from https://gitlab.kitware.com/cmb/smtk/-/blob/master/u
 import argparse
 import configparser
 import os
+import shutil
 import sys
 from pathlib import Path
 import logging
@@ -310,11 +311,45 @@ def create_class_implementation(
     stream("#undef KWIVER_PYBIND11_INCLUDE")
 
 
+def copy_handwritten_trampoline(filename, directory, destination):
+    """Use a hand-written trampoline instead of generating one.
+
+    `PYBIND11_OVERLOAD` passes every argument to python by value. That is
+    right for an input, and wrong for the in/out parameters three of these
+    interfaces have -- `extract_descriptors` may replace the feature set it
+    is given, and both estimators fill an inlier flag per point. A python
+    implementation of any of the three can set those all it likes and the
+    C++ caller sees nothing, which is silent and total: a `match_features`
+    filtered by inliers keeps none of its matches.
+
+    Expressing that in the generator would mean teaching it a convention for
+    what a python method returns when the C++ signature has an out
+    parameter, for the three cases in the tree that have one. A file per
+    interface, written once, says it more plainly. Phase 8 replaces the
+    generator wholesale (P8-T02); until then this is where the difference
+    lives.
+
+    Returns True if one was copied.
+    """
+    if not directory:
+        return False
+
+    source = Path(directory) / (Path(filename).stem + "_trampoline.txx")
+
+    if not source.exists():
+        return False
+
+    logger.debug(f"hand-written trampoline: {source}")
+    shutil.copyfile(source, destination)
+    return True
+
+
 def parse_file(
     algo_namespace,
     filename,
     project_source_directory,
     output_basename,
+    handwritten_trampoline_directory="",
 ):
     """
     Entry point for parsing a file
@@ -325,16 +360,22 @@ def parse_file(
     class_header = output_basename + ".h"
     class_impl = output_basename + ".cxx"
     class_trampoline = output_basename + "_trampoline.txx"
-    with open(class_header, "w") as h, open(class_impl, "w") as cxx, open(
-        class_trampoline, "w"
-    ) as tramp:
+
+    handwritten = copy_handwritten_trampoline(
+        filename, handwritten_trampoline_directory, class_trampoline
+    )
+
+    with open(class_header, "w") as h, open(class_impl, "w") as cxx:
         stream_header = stream_with_line_breaks(h)
         stream_impl = stream_with_line_breaks(cxx)
-        stream_tramp = stream_with_line_breaks(tramp)
 
-        create_trampoline(
-            filename, project_source_directory, algo_namespace, stream_tramp
-        )
+        if not handwritten:
+            with open(class_trampoline, "w") as tramp:
+                create_trampoline(
+                    filename, project_source_directory, algo_namespace,
+                    stream_with_line_breaks(tramp)
+                )
+
         create_class_header(filename, project_source_directory, stream_header)
         create_class_implementation(
             filename,
@@ -682,6 +723,14 @@ def parse_arguments():
         "--compiler-path",
         help="Path to native compiler, required if run-external-castxml is selected",
     )
+    arg_parser.add_argument(
+        "--handwritten-trampoline-directory",
+        help="Directory of hand-written <class>_trampoline.txx files. One "
+             "found there is copied in place of the generated trampoline, "
+             "for the interfaces whose signature the generator cannot "
+             "express -- an in/out parameter, say.",
+        default="",
+    )
 
     arg_parser.add_argument(
         "-v", "--verbose", help="Print out generated wrapping code", action="store_true"
@@ -787,4 +836,6 @@ if __name__ == "__main__":
             filename=str(filename),
             project_source_directory=sd,
             output_basename=str(output),
+            handwritten_trampoline_directory=(
+                args.handwritten_trampoline_directory),
         )

@@ -195,6 +195,24 @@ file(GENERATE
   INPUT  ${CMAKE_CURRENT_BINARY_DIR}/config.ini.in)
 
 
+# Interfaces whose trampoline is written by hand rather than generated: the
+# generator passes every argument to python by value, which is wrong for the
+# in/out parameters these three have. See trampolines/README.md.
+set(handwritten_trampolines)
+foreach( class IN LISTS classes )
+  set( _tramp
+    "${CMAKE_CURRENT_SOURCE_DIR}/trampolines/${class}_trampoline.txx" )
+  if( EXISTS "${_tramp}" )
+    list( APPEND handwritten_trampolines "${_tramp}" )
+  endif()
+endforeach()
+unset( _tramp )
+
+if( handwritten_trampolines )
+  message( STATUS "vital.algo bindings: hand-written trampolines: "
+                  "${handwritten_trampolines}" )
+endif()
+
 # files to generate
 set(algo_sources)
 kwiver_expand_pybind_class_list("${classes}" algo_sources)
@@ -224,7 +242,10 @@ add_custom_command(OUTPUT ${algo_sources}
           ${Python_EXECUTABLE}
           "${CMAKE_CURRENT_SOURCE_DIR}/cpp_to_pybind11.py"
           -c "${CMAKE_CURRENT_BINARY_DIR}/config.ini"
+          --handwritten-trampoline-directory
+          "${CMAKE_CURRENT_SOURCE_DIR}/trampolines"
   DEPENDS ${vital_algo_dependencies}
+          ${handwritten_trampolines}
           "${CMAKE_CURRENT_BINARY_DIR}/config.ini"
           "${CMAKE_CURRENT_SOURCE_DIR}/cpp_to_pybind11.py"
   COMMENT "Generating pybind11 wrappings of algorithm classes"
@@ -251,6 +272,10 @@ string(APPEND _kwiver_python_algo_all_modules_includes
   "#include <python/kwiver/vital/algo/extract_descriptors_extras.h>\n")
 string(APPEND _kwiver_python_algo_all_modules_load_algos
   "   extract_descriptors_extras(m);\n")
+string(APPEND _kwiver_python_algo_all_modules_includes
+  "#include <python/kwiver/vital/algo/estimator_extras.h>\n")
+string(APPEND _kwiver_python_algo_all_modules_load_algos
+  "   estimator_extras(m);\n")
 
 set(_kwiver_python_algo_all_modules_content)
 string(CONCAT _kwiver_python_algo_all_modules_content
@@ -280,7 +305,10 @@ set(module_sources
   algorithm.cxx
   algorithm_capabilities.cxx
   algorithm_trampoline.txx
+  out_parameter.txx
   extract_descriptors_extras.cxx
+  estimator_extras.cxx
+  ${handwritten_trampolines}
   "${CMAKE_CURRENT_BINARY_DIR}/algorithm_module.cxx"
   ${algo_sources}
 )

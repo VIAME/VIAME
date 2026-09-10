@@ -67,10 +67,90 @@ MATCHERS = {
         ("defaults", {}),
         ("no_cross_check", {"cross_check": "false"}),
     ],
+    # C++, and staying C++ -- but it nests `estimate_homography` and keeps
+    # only the matches that estimator calls inliers, so it is the one case
+    # that can see the `inliers` out parameter at all. Recorded here, with
+    # the OpenCV estimator underneath, it is what says the out parameter
+    # still arrives once that estimator is python: if it does not, every
+    # match is dropped and the recorded count goes to zero.
+    "homography_guided": [
+        ("ocv_estimator", {
+            "feature_matcher1:type": "ocv_flann_based",
+            "homography_estimator:type": "ocv",
+            "inlier_scale": "10",
+        }),
+    ],
+    # `match_features:fundamental_matrix_guided` would be the same test for
+    # `estimate_fundamental_matrix`, but P5-T04 removed it -- nothing
+    # selects it. That estimator has no C++ consumer left in the tree, so
+    # its out parameter is checked by a unit test rather than by a golden.
 }
 
 # Which detector's descriptors the matcher and the estimators run over.
 MATCH_FEATURES = ("ocv_SIFT", "ocv_SURF")
+
+# `track_features:core` over the pair, which is what the shipped stabilizer
+# runs. It is here because it is the only C++ caller of
+# `extract_descriptors` in the tree: it hands the detector's feature set to
+# the extractor and then indexes the descriptors by the feature set that
+# comes back. If a python extractor cannot replace that set, every descriptor
+# is paired with the wrong feature and the tracks are nonsense -- which is
+# invisible to a `features` case, where python is the caller and gets the
+# replacement back as a return value.
+TRACKERS = {
+    "core": [
+        ("ocv_SIFT", {
+            "feature_detector:type": "ocv_SIFT",
+            "descriptor_extractor:type": "ocv_SIFT",
+            "feature_matcher:type": "ocv_flann_based",
+        }),
+        ("ocv_SURF", {
+            "feature_detector:type": "ocv_SURF",
+            "descriptor_extractor:type": "ocv_SURF",
+            "feature_matcher:type": "ocv_flann_based",
+        }),
+    ],
+}
+
+# ----------------------------------------------------------------------------
+# The two estimators
+# ----------------------------------------------------------------------------
+#
+# On synthetic correspondences rather than on matched features. Both are
+# RANSAC, and RANSAC in OpenCV is deterministic for a given input -- its
+# sampler has a fixed seed -- so a fixed correspondence set makes these exact
+# recordings. Feeding them `ocv_flann_based` matches instead does not: the
+# FLANN matcher is randomised (see UNSTABLE below), one match in or out
+# changes which points RANSAC sees, and the estimated matrix moved by 29% for
+# the homography and 52% for the fundamental matrix between runs of the same
+# code. A recording that loose says nothing about a port.
+#
+# It also puts the estimator on its own, which is what wants testing here:
+# the matcher already has cases of its own.
+SYNTHETIC_SEED = 20260910
+
+# A planar scene: points on a plane, mapped by a known homography, with every
+# fifth correspondence displaced to make an outlier RANSAC has to reject.
+HOMOGRAPHY_POINTS = 60
+HOMOGRAPHY_OUTLIER_STRIDE = 5
+HOMOGRAPHY_OUTLIER_SPREAD = 40.0
+HOMOGRAPHY_TRUE = (
+    (1.02, -0.03, 7.0),
+    (0.015, 0.99, -4.0),
+    (2e-5, -1e-5, 1.0),
+)
+
+# A non-planar scene, because a fundamental matrix is degenerate on a plane:
+# 3D points in a box, seen by two cameras that differ by a small rotation and
+# a mostly sideways translation.
+FUNDAMENTAL_POINTS = 80
+FUNDAMENTAL_DEPTH = 5.0
+FUNDAMENTAL_FOCAL = 500.0
+FUNDAMENTAL_CENTRE = (240.0, 135.0)
+FUNDAMENTAL_ROTATION = (0.02, 0.03, 0.01)
+FUNDAMENTAL_TRANSLATION = (0.5, 0.05, 0.1)
+FUNDAMENTAL_OUTLIER_STRIDE = 8
+FUNDAMENTAL_OUTLIER_SPREAD = 30.0
 
 ESTIMATE_HOMOGRAPHY = {
     "ocv": [
@@ -85,10 +165,52 @@ ESTIMATE_FUNDAMENTAL = {
     ],
 }
 
-# The estimators take an error tolerance rather than a config key for it.
+# The estimators take an error tolerance rather than a config key for it. One
+# tight enough to reject the outliers and one loose enough to admit them.
 INLIER_SCALES = (1.0, 10.0)
 
 
+# ----------------------------------------------------------------------------
+# What cannot be recorded exactly
+# ----------------------------------------------------------------------------
+#
+# `cv::FlannBasedMatcher` builds randomised KD-trees, and OpenCV seeds them
+# from the clock, so `ocv_flann_based` gives a different answer on every call
+# -- 45 or 46 matches out of the same 81 descriptors, within one process.
+# Everything downstream of it inherits that.
+#
+# So these cases are contracts on agreement rather than on bytes. The
+# thresholds are what eight runs of the recorded code stayed inside, with
+# room: the matcher agreed with its own recording on 97.8% of pairs at worst
+# and never moved the count by more than one.
+UNSTABLE = {
+    ("matches", "ocv_flann_based"):
+        "cv::FlannBasedMatcher builds randomised KD-trees seeded from the "
+        "clock, so the match set differs run to run",
+    ("matches", "homography_guided"):
+        "its nested feature_matcher1 is ocv_flann_based, which is randomised",
+    ("tracks", "core"):
+        "its feature_matcher is ocv_flann_based, which is randomised; the "
+        "feature locations are exact and only the linking varies",
+}
+
+# For an unstable `matches` case: how far the count may move, and how much of
+# the recorded set must still be there.
+MATCH_COUNT_TOLERANCE = 0.10
+MATCH_AGREEMENT = 0.90
+
+# For an unstable `tracks` case: the (frame, x, y) locations are the
+# detector's and must be exact -- they are also what a mis-paired descriptor
+# would leave untouched -- while how many of them link into a two-frame track
+# is the matcher's and may move.
+TRACK_LENGTH_TOLERANCE = 0.10
+
+
+def unstable(kind, impl):
+    """Why this case cannot be compared exactly, or None."""
+    return UNSTABLE.get((kind, impl))
+
+
 def unstable_reason(impl, variant, name=None):
-    """Nothing here is unstable; the signature matches the other case files."""
+    """The per-input hook the other case files have; nothing uses it here."""
     return None

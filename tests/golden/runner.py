@@ -47,6 +47,10 @@ def is_registered(kind, impl):
         from kwiver.vital.algo import MatchFeatures
         return impl in MatchFeatures.registered_names()
 
+    if kind == "tracks":
+        from kwiver.vital.algo import TrackFeatures
+        return impl in TrackFeatures.registered_names()
+
     if kind == "homography":
         from kwiver.vital.algo import EstimateHomography
         return impl in EstimateHomography.registered_names()

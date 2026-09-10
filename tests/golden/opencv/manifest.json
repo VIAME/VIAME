@@ -1,5 +1,5 @@
 {
-  "appended": "2026-09-10T23:17:10Z",
+  "appended": "2026-09-10T23:35:39Z",
   "cases": [
     {
       "config": {},
@@ -2742,30 +2742,149 @@
       "variant": "no_cross_check_ocv_SURF"
     },
     {
-      "config": {},
+      "config": {
+        "feature_matcher1:type": "ocv_flann_based",
+        "homography_estimator:type": "ocv",
+        "inlier_scale": "10"
+      },
       "features": "ocv_SIFT",
-      "impl": "ocv",
-      "inlier_scale": 1.0,
+      "impl": "homography_guided",
       "inputs": [
         "frame_00_to_frame_01"
       ],
-      "kind": "homography",
+      "kind": "matches",
       "outputs": {
         "frame_00_to_frame_01": {
-          "file": "homography/ocv/defaults_scale_1/frame_00_to_frame_01.npz",
+          "file": "matches/homography_guided/ocv_estimator_ocv_SIFT/frame_00_to_frame_01.npz",
           "members": {
+            "matches": {
+              "dtype": "int64",
+              "sha256": "f5a1fb29d5d0bff0",
+              "shape": [
+                44,
+                2
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "ocv_estimator_ocv_SIFT"
+    },
+    {
+      "config": {
+        "feature_matcher1:type": "ocv_flann_based",
+        "homography_estimator:type": "ocv",
+        "inlier_scale": "10"
+      },
+      "features": "ocv_SURF",
+      "impl": "homography_guided",
+      "inputs": [
+        "frame_00_to_frame_01"
+      ],
+      "kind": "matches",
+      "outputs": {
+        "frame_00_to_frame_01": {
+          "file": "matches/homography_guided/ocv_estimator_ocv_SURF/frame_00_to_frame_01.npz",
+          "members": {
+            "matches": {
+              "dtype": "int64",
+              "sha256": "5293b834d543d504",
+              "shape": [
+                94,
+                2
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "ocv_estimator_ocv_SURF"
+    },
+    {
+      "config": {
+        "descriptor_extractor:type": "ocv_SIFT",
+        "feature_detector:type": "ocv_SIFT",
+        "feature_matcher:type": "ocv_flann_based"
+      },
+      "impl": "core",
+      "inputs": [
+        "frame_00_to_frame_01"
+      ],
+      "kind": "tracks",
+      "outputs": {
+        "frame_00_to_frame_01": {
+          "file": "tracks/core/ocv_SIFT/frame_00_to_frame_01.npz",
+          "members": {
+            "states": {
+              "dtype": "float64",
+              "sha256": "4cf7e747a070d847",
+              "shape": [
+                158,
+                4
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "ocv_SIFT"
+    },
+    {
+      "config": {
+        "descriptor_extractor:type": "ocv_SURF",
+        "feature_detector:type": "ocv_SURF",
+        "feature_matcher:type": "ocv_flann_based"
+      },
+      "impl": "core",
+      "inputs": [
+        "frame_00_to_frame_01"
+      ],
+      "kind": "tracks",
+      "outputs": {
+        "frame_00_to_frame_01": {
+          "file": "tracks/core/ocv_SURF/frame_00_to_frame_01.npz",
+          "members": {
+            "states": {
+              "dtype": "float64",
+              "sha256": "e799b65bd2be3d39",
+              "shape": [
+                370,
+                4
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "ocv_SURF"
+    },
+    {
+      "config": {},
+      "impl": "ocv",
+      "inlier_scale": 1.0,
+      "inputs": [
+        "synthetic"
+      ],
+      "kind": "homography",
+      "outputs": {
+        "synthetic": {
+          "file": "homography/ocv/defaults_scale_1/synthetic.npz",
+          "members": {
+            "inliers": {
+              "dtype": "int64",
+              "sha256": "987cb47a4b09fd0b",
+              "shape": [
+                60
+              ]
+            },
             "matrix": {
               "dtype": "float64",
-              "sha256": "ecf9e1b4730218e2",
+              "sha256": "5629761bab86e5fe",
               "shape": [
                 3,
                 3
               ]
-            },
-            "points": {
-              "dtype": "int64",
-              "sha256": "6e3989bfdab96750",
-              "shape": []
             }
           }
         }
@@ -2775,29 +2894,30 @@
     },
     {
       "config": {},
-      "features": "ocv_SIFT",
       "impl": "ocv",
       "inlier_scale": 10.0,
       "inputs": [
-        "frame_00_to_frame_01"
+        "synthetic"
       ],
       "kind": "homography",
       "outputs": {
-        "frame_00_to_frame_01": {
-          "file": "homography/ocv/defaults_scale_10/frame_00_to_frame_01.npz",
+        "synthetic": {
+          "file": "homography/ocv/defaults_scale_10/synthetic.npz",
           "members": {
+            "inliers": {
+              "dtype": "int64",
+              "sha256": "e33bd2d365b1d86b",
+              "shape": [
+                60
+              ]
+            },
             "matrix": {
               "dtype": "float64",
-              "sha256": "fb5604e4e4e4ef08",
+              "sha256": "ff49aaf669595c4c",
               "shape": [
                 3,
                 3
               ]
-            },
-            "points": {
-              "dtype": "int64",
-              "sha256": "6e3989bfdab96750",
-              "shape": []
             }
           }
         }
@@ -2807,29 +2927,30 @@
     },
     {
       "config": {},
-      "features": "ocv_SIFT",
       "impl": "ocv",
       "inlier_scale": 1.0,
       "inputs": [
-        "frame_00_to_frame_01"
+        "synthetic"
       ],
       "kind": "fundamental",
       "outputs": {
-        "frame_00_to_frame_01": {
-          "file": "fundamental/ocv/defaults_scale_1/frame_00_to_frame_01.npz",
+        "synthetic": {
+          "file": "fundamental/ocv/defaults_scale_1/synthetic.npz",
           "members": {
+            "inliers": {
+              "dtype": "int64",
+              "sha256": "268770cb4f407e73",
+              "shape": [
+                80
+              ]
+            },
             "matrix": {
               "dtype": "float64",
-              "sha256": "b34745f75dc957ca",
+              "sha256": "05092e7179931441",
               "shape": [
                 3,
                 3
               ]
-            },
-            "points": {
-              "dtype": "int64",
-              "sha256": "6e3989bfdab96750",
-              "shape": []
             }
           }
         }
@@ -2839,29 +2960,30 @@
     },
     {
       "config": {},
-      "features": "ocv_SIFT",
       "impl": "ocv",
       "inlier_scale": 10.0,
       "inputs": [
-        "frame_00_to_frame_01"
+        "synthetic"
       ],
       "kind": "fundamental",
       "outputs": {
-        "frame_00_to_frame_01": {
-          "file": "fundamental/ocv/defaults_scale_10/frame_00_to_frame_01.npz",
+        "synthetic": {
+          "file": "fundamental/ocv/defaults_scale_10/synthetic.npz",
           "members": {
+            "inliers": {
+              "dtype": "int64",
+              "sha256": "77cd462b9f41b3a7",
+              "shape": [
+                80
+              ]
+            },
             "matrix": {
               "dtype": "float64",
-              "sha256": "94177acf9def4b42",
+              "sha256": "aad87f2c56a85de4",
               "shape": [
                 3,
                 3
               ]
-            },
-            "points": {
-              "dtype": "int64",
-              "sha256": "6e3989bfdab96750",
-              "shape": []
             }
           }
         }
@@ -2873,29 +2995,30 @@
       "config": {
         "confidence_threshold": "0.90"
       },
-      "features": "ocv_SIFT",
       "impl": "ocv",
       "inlier_scale": 1.0,
       "inputs": [
-        "frame_00_to_frame_01"
+        "synthetic"
       ],
       "kind": "fundamental",
       "outputs": {
-        "frame_00_to_frame_01": {
-          "file": "fundamental/ocv/confidence_90_scale_1/frame_00_to_frame_01.npz",
+        "synthetic": {
+          "file": "fundamental/ocv/confidence_90_scale_1/synthetic.npz",
           "members": {
+            "inliers": {
+              "dtype": "int64",
+              "sha256": "268770cb4f407e73",
+              "shape": [
+                80
+              ]
+            },
             "matrix": {
               "dtype": "float64",
-              "sha256": "b34745f75dc957ca",
+              "sha256": "05092e7179931441",
               "shape": [
                 3,
                 3
               ]
-            },
-            "points": {
-              "dtype": "int64",
-              "sha256": "6e3989bfdab96750",
-              "shape": []
             }
           }
         }
@@ -2907,29 +3030,30 @@
       "config": {
         "confidence_threshold": "0.90"
       },
-      "features": "ocv_SIFT",
       "impl": "ocv",
       "inlier_scale": 10.0,
       "inputs": [
-        "frame_00_to_frame_01"
+        "synthetic"
       ],
       "kind": "fundamental",
       "outputs": {
-        "frame_00_to_frame_01": {
-          "file": "fundamental/ocv/confidence_90_scale_10/frame_00_to_frame_01.npz",
+        "synthetic": {
+          "file": "fundamental/ocv/confidence_90_scale_10/synthetic.npz",
           "members": {
+            "inliers": {
+              "dtype": "int64",
+              "sha256": "77cd462b9f41b3a7",
+              "shape": [
+                80
+              ]
+            },
             "matrix": {
               "dtype": "float64",
-              "sha256": "94177acf9def4b42",
+              "sha256": "aad87f2c56a85de4",
               "shape": [
                 3,
                 3
               ]
-            },
-            "points": {
-              "dtype": "int64",
-              "sha256": "6e3989bfdab96750",
-              "shape": []
             }
           }
         }

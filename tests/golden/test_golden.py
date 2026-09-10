@@ -62,6 +62,7 @@ INTERFACE_OF_KIND = {
     # -- a removal would take both halves together.
     "features": "detect_features",
     "matches": "match_features",
+    "tracks": "track_features",
     "homography": "estimate_homography",
     "fundamental": "estimate_fundamental_matrix",
 }
@@ -221,14 +222,16 @@ def run_case(case, impl):
         return [feature_runner.match(impl, case["config"], case["features"],
                                      {}, arrays)]
 
-    if case["kind"] in ("homography", "fundamental"):
+    if case["kind"] == "tracks":
         arrays = [imageio_utils.load(input_path(name))
                   for name in feature_cases.PAIR]
+        return [feature_runner.track(impl, case["config"], arrays)]
+
+    if case["kind"] in ("homography", "fundamental"):
         estimate = (feature_runner.estimate_homography
                     if case["kind"] == "homography"
                     else feature_runner.estimate_fundamental)
-        return [estimate(impl, case["config"], case["features"], arrays,
-                         case["inlier_scale"])]
+        return [estimate(impl, case["config"], case["inlier_scale"])]
 
     if case["kind"] == "calibration":
         return [calib_runner.load_calibration(
@@ -342,9 +345,19 @@ def check_array_case(item, case, outputs, group):
             "{} {}: members {} != recorded {}".format(
                 case_id(item), name, sorted(actual), sorted(expected)))
 
+        unstable = feature_cases.unstable(case["kind"], case["impl"])
+
         for member in sorted(expected):
             got = np.asarray(actual[member])
             want = np.asarray(expected[member])
+
+            if unstable:
+                problems = feature_runner.compare_unstable(
+                    case["kind"], member, got, want)
+                assert not problems, "{} {} '{}' ({}): {}".format(
+                    case_id(item), name, member, unstable,
+                    "; ".join(problems))
+                continue
 
             assert got.shape == want.shape, (
                 "{} {} '{}': shape {} != recorded {}".format(
@@ -426,7 +439,8 @@ def test_golden(item):
         check_detections(item, case, outputs, group)
         return
 
-    if case["kind"] in ("features", "matches", "homography", "fundamental"):
+    if case["kind"] in ("features", "matches", "tracks", "homography",
+                        "fundamental"):
         check_array_case(item, case, outputs, group)
         return
 

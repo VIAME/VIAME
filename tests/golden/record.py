@@ -567,11 +567,19 @@ def record_opencv_matches(group_dir, manifest):
                     [name], [result], extra={"features": feature_impl})
 
 
-def record_opencv_estimators(group_dir, manifest):
+def record_opencv_tracks(group_dir, manifest):
     pair = feature_cases.PAIR
     arrays = [imageio_utils.load(input_path(name)) for name in pair]
     name = "_to_".join(pair)
 
+    for impl, variants in sorted(feature_cases.TRACKERS.items()):
+        for variant, config in variants:
+            result = feature_runner.track(impl, config, arrays)
+            _record_arrays_case(group_dir, manifest, "tracks", impl, variant,
+                                config, [name], [result])
+
+
+def record_opencv_estimators(group_dir, manifest):
     groups = (
         ("homography", feature_cases.ESTIMATE_HOMOGRAPHY,
          feature_runner.estimate_homography),
@@ -583,13 +591,13 @@ def record_opencv_estimators(group_dir, manifest):
         for impl, variants in sorted(table.items()):
             for variant, config in variants:
                 for scale in feature_cases.INLIER_SCALES:
-                    result = estimate(impl, config, "ocv_SIFT", arrays, scale)
+                    result = estimate(impl, config, scale)
 
                     tag = "{}_scale_{:g}".format(variant, scale)
                     _record_arrays_case(
                         group_dir, manifest, kind, impl, tag, config,
-                        [name], [result],
-                        extra={"features": "ocv_SIFT", "inlier_scale": scale})
+                        ["synthetic"], [result],
+                        extra={"inlier_scale": scale})
 
 
 def record_opencv_pipelines(group_dir, manifest):
@@ -632,6 +640,7 @@ def record_opencv(group_dir, manifest):
     record_opencv_detectors(group_dir, manifest)
     record_opencv_features(group_dir, manifest)
     record_opencv_matches(group_dir, manifest)
+    record_opencv_tracks(group_dir, manifest)
     record_opencv_estimators(group_dir, manifest)
     record_opencv_pipelines(group_dir, manifest)
 
