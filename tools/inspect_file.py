@@ -525,20 +525,26 @@ def inspect_json(path, report):
         return
     report.integrity = 'ok, parses'
     if isinstance(doc, dict) and isinstance(doc.get('tracks'), dict):
+        if not isinstance(doc.get('groups', {}) or {}, (dict, list)):
+            report.corrupt('DIVE groups must be an object or array')
+            return
         report.category = 'DIVE annotations'
         report.format = 'DIVE JSON version %s' % doc.get('version', '?')
         report.detail = '%d tracks, %d groups' % (
             len(doc['tracks']), len(doc.get('groups', {}) or {}))
         report.relation = 'annotations; read by DIVE, viame json, scoring and training'
-        report.notes.append('viame json --help lists the edits available')
+        report.notes.append('JSON parses; run viame json --validate for structural validation')
     elif isinstance(doc, dict) and 'images' in doc and 'annotations' in doc:
+        if not all(isinstance(doc.get(key, []), list) for key in ('images', 'annotations', 'categories')):
+            report.corrupt('COCO images, annotations and categories must be arrays')
+            return
         report.category = 'COCO annotations'
         report.format = 'MS-COCO JSON'
         report.detail = '%d images, %d annotations, %d categories' % (
             len(doc.get('images', [])), len(doc.get('annotations', [])),
             len(doc.get('categories', [])))
         report.relation = 'annotations; read by viame json, training and DIVE import'
-        report.notes.append('viame json --help lists the edits available')
+        report.notes.append('JSON parses; run viame json --validate for structural validation')
     elif isinstance(doc, dict) and 'cameras' in doc or (
             isinstance(doc, dict) and any(k in doc for k in ('camera_left', 'camera_right'))):
         report.category = 'camera calibration'
@@ -550,7 +556,7 @@ def inspect_json(path, report):
 
 
 # -----------------------------------------------------------------------------
-def inspect_path(path):
+def _inspect_path(path):
     report = Report(path)
     if not os.path.exists(path):
         report.corrupt('does not exist')
@@ -586,6 +592,15 @@ def inspect_path(path):
         report.format = 'binary' if any(b < 9 for b in head[:8]) else 'text'
         report.integrity = 'ok, readable'
     return report
+
+
+def inspect_path(path):
+    try:
+        return _inspect_path(path)
+    except Exception as exc:
+        report = Report(path)
+        report.corrupt('could not inspect: %s' % exc)
+        return report
 
 
 def main(argv=None):
