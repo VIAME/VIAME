@@ -354,7 +354,64 @@ def record():
     engine = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(4, 4))
     add_windowed("clahe_odd_size", odd_window, engine.apply(odd_window), 2)
 
+    # ------------------------------------------------------------------
+    # contours.h
+    #
+    # These produce numbers rather than images, so they are recorded as
+    # their own section. `shapes` is a mask with an L, a ring, a diagonal
+    # bar and a single pixel: shapes whose bounding box, area, hull and
+    # minimum-area rectangle are all different from each other, and one
+    # that eight-connectivity joins and four-connectivity does not.
+    # ------------------------------------------------------------------
+    shapes = np.zeros((24, 32), dtype=np.uint8)
+    shapes[3:12, 3:6] = 255                    # the upright of an L
+    shapes[9:12, 3:14] = 255                   # its foot
+    shapes[3:12, 20:29] = 255                  # a filled square...
+    shapes[5:10, 22:27] = 0                    # ...hollowed into a ring
+    for step in range(10):                     # a diagonal bar
+        shapes[15 + step // 2, 4 + step] = 255
+    shapes[20, 28] = 255                       # a single pixel
+    # two squares touching only at a corner: eight joins them, four does not
+    shapes[16:19, 20:23] = 255
+    shapes[19:22, 23:26] = 255
+
+    shape_cases = []
+
+    for how, flag in (("four", 4), ("eight", 8)):
+        count, labels = cv2.connectedComponents(shapes, connectivity=flag)
+        shape_cases.append({
+            "name": "components_" + how,
+            "components": int(count - 1),
+            "labels": [int(v) for v in labels.reshape(-1)],
+        })
+
+    contours, _ = cv2.findContours(shapes, cv2.RETR_EXTERNAL,
+                                   cv2.CHAIN_APPROX_NONE)
+    measured = []
+    for c in contours:
+        pts = c.reshape(-1, 2)          # (x, y) == (i, j)
+        x, y, w, h = cv2.boundingRect(c)
+        rr = cv2.minAreaRect(c)
+        measured.append({
+            "points": [int(v) for v in pts.reshape(-1)],
+            "area": float(cv2.contourArea(c)),
+            "bounds": [int(x), int(y), int(x + w), int(y + h)],
+            "hull": [int(v) for v in
+                     cv2.convexHull(c).reshape(-1)],
+            "min_rect_area": float(rr[1][0] * rr[1][1]),
+        })
+
+    shape_cases.append({
+        "name": "contours",
+        "count": len(measured),
+        "contours": measured,
+    })
+
     return {
+        "shapes_width": int(shapes.shape[1]),
+        "shapes_height": int(shapes.shape[0]),
+        "shapes_data": [int(v) for v in shapes.reshape(-1)],
+        "shapes": shape_cases,
         "recorded": datetime.datetime.now(datetime.timezone.utc)
                             .strftime("%Y-%m-%dT%H:%M:%SZ"),
         "opencv": cv2.__version__,

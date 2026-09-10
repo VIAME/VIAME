@@ -8,6 +8,7 @@ set( image_ops_headers
   channels.h
   color.h
   commonality.h
+  contours.h
   convert.h
   dispatch.h
   filter.h

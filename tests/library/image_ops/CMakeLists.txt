@@ -42,7 +42,13 @@ kwiver_discover_gtests( viame histogram
             kwiver::vital
             GTest::gtest )
 
-foreach( test IN ITEMS color filter warp histogram )
+# Connected components and contours, against the same recording.
+kwiver_discover_gtests( viame contours
+  LIBRARIES viame_image_ops
+            kwiver::vital
+            GTest::gtest )
+
+foreach( test IN ITEMS color filter warp histogram contours )
   target_compile_definitions( test-viame-${test} PRIVATE
     "VIAME_GOLDEN_IMAGE_OPS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../../golden/image_ops\"" )
 endforeach()
