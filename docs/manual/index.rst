@@ -44,6 +44,12 @@ types of documentation:
 Contents
 ========
 
+The object types and the pipeline architecture two of the entries below link to
+are VIAME's own code now -- ``library/core_types``, ``library/algorithm_framework``
+and ``library/pipeline_framework`` -- but the description is still accurate and
+still lives in KWIVER's manual, which is why those links stay. A third, to
+KWIVER's arrows, is gone: VIAME no longer has any.
+
 .. toctree::
    :maxdepth: 1
 
@@ -66,11 +72,9 @@ Contents
    sections/archive_summarization
    Core C++/Python Object Types <http://kwiver.readthedocs.io/en/latest/vital/architecture.html>
    Core Pipelining Architecture <http://kwiver.readthedocs.io/en/latest/sprokit/architecture.html>
-   Basic Pipeline Nodes <http://kwiver.readthedocs.io/en/latest/arrows/architecture.html>
    sections/example_pipeline
    sections/plugin_creation
    sections/using_algorithms_in_code
-   KWIVER Full Manual <http://kwiver.readthedocs.io/en/latest/>
 
 Example Capabilities
 ====================
