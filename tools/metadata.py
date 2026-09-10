@@ -324,7 +324,7 @@ def load_imagelog(site_folder):
 
 
 def link_imagelog(site_folder, image_list, log_recs, read_exif=True,
-                  match_window=60, max_match_m=25.0):
+                  match_window=60, max_match_m=25.0, exif_cache=None):
     """Associate each image with its imagelog pose record.
 
     The on-disk files are renamed (``<date>_<SITE>_<seq>.jpg``) and there are
@@ -334,7 +334,7 @@ def link_imagelog(site_folder, image_list, log_recs, read_exif=True,
     scanning FORWARD from the last match (monotonic capture order) so a revisit
     of the same ground pairs with the right pass rather than an earlier one.
 
-    Falls back to plain order-pairing for images that lack EXIF GPS. Returns
+    Falls back to plain order-pairing only for images that lack EXIF GPS. Returns
     ``({rel_path: record}, stats)``.
     """
     if not log_recs:
@@ -347,8 +347,13 @@ def link_imagelog(site_folder, image_list, log_recs, read_exif=True,
     for rel in image_list:
         exif = (load_exif_meta(os.path.join(site_folder, rel))
                 if read_exif else {})
+        if exif_cache is not None:
+            exif_cache[rel] = exif
         rec = None
-        if exif.get('lat') is not None and j < n:
+        best_d = None
+        has_gps = exif.get('lat') is not None and exif.get('lon') is not None
+        match_method = 'gps-unmatched' if has_gps else 'unmatched'
+        if has_gps and j < n:
             hi = min(n, j + match_window)
             best_k, best_d = None, None
             for k in range(j, hi):
@@ -361,12 +366,15 @@ def link_imagelog(site_folder, image_list, log_recs, read_exif=True,
             if best_k is not None and best_d <= max_match_m:
                 rec = dict(log_recs[best_k])
                 j = best_k + 1
+                match_method = 'gps'
                 by_pos += 1
                 resid.append(best_d)
-        if rec is None:              # order fallback (no/failed EXIF match)
-            if j < n:
+        if rec is None:
+            # A rejected GPS match is evidence against an order match.
+            if not has_gps and j < n:
                 rec = dict(log_recs[j])
                 j += 1
+                match_method = 'order'
                 by_order += 1
             else:
                 rec = {}
@@ -377,7 +385,9 @@ def link_imagelog(site_folder, image_list, log_recs, read_exif=True,
             rec['lat'], rec['lon'] = exif['lat'], exif['lon']
             if exif.get('alt') is not None:
                 rec['alt_agl'] = exif['alt']
-        if not rec.get('lat'):
+        rec['match_method'] = match_method
+        rec['match_residual_m'] = best_d
+        if rec.get('lat') is None:
             continue
         out[rel] = rec
     stats = {'matched': len(out), 'by_position': by_pos, 'by_order': by_order,
@@ -442,11 +452,12 @@ def build_image_records(site_folder, flight_logs=None, read_exif=True,
     # Auto-detected (no --flight-logs needed); linked to the renamed image
     # files by GPS position. Only meaningful for a single-camera collection.
     imagelog = {}
+    exif_cache = {}
     if len(cams) == 1 and None in cams and not log:
         il_recs = load_imagelog(site_folder)
         if il_recs:
             imagelog, il_stats = link_imagelog(
-                site_folder, cams[None], il_recs, read_exif=read_exif)
+                site_folder, cams[None], il_recs, read_exif=read_exif, exif_cache=exif_cache)
             if verbose:
                 mr = il_stats.get('median_resid_m')
                 mrtxt = f', {mr:.1f} m median EXIF match' if mr is not None else ''
@@ -468,7 +479,8 @@ def build_image_records(site_folder, flight_logs=None, read_exif=True,
                        'alt_agl': il.get('alt_agl'), 'yaw': il.get('yaw'),
                        'pitch': il.get('pitch'), 'roll': il.get('roll'),
                        'site': info['site'], 'pass': 1, 'frame': info['frame'],
-                       'source': 'imagelog'}
+                       'source': 'imagelog', 'match_method': il.get('match_method'),
+                       'match_residual_m': il.get('match_residual_m')}
                 n_imagelog += 1
             row = (log.get(info['frame'])
                    if info['frame'] is not None and rec.get('lat') is None
@@ -476,8 +488,9 @@ def build_image_records(site_folder, flight_logs=None, read_exif=True,
             if row is not None:
                 rec = dict(row)
                 n_log += 1
-            exif = (load_exif_meta(os.path.join(site_folder, rel))
-                    if read_exif else {})
+            exif = exif_cache.get(rel)
+            if exif is None:
+                exif = load_exif_meta(os.path.join(site_folder, rel)) if read_exif else {}
             if exif.get('lat') is not None and rec.get('lat') is None:
                 rec.update({'lat': exif['lat'], 'lon': exif['lon'],
                             'alt_agl': exif.get('alt'),
@@ -709,7 +722,7 @@ def main():
 
     cols = ['image', 'camera', 'frame', 'time_utc', 'lat', 'lon', 'alt_agl',
             'roll', 'pitch', 'yaw', 'site', 'pass', 'source',
-            'focal35_mm', 'width', 'height']
+            'focal35_mm', 'width', 'height', 'match_method', 'match_residual_m']
     rows = []
     for cam in cams:
         for rel in cams[cam]:
