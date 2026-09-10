@@ -365,7 +365,7 @@ Fully Automatic Measurement Pipelines
 These pipelines perform end-to-end automatic detection and measurement without
 requiring any manual annotations.
 
-**stereo_measure_default_fish_fully_auto_tracking.pipe**
+**stereo_track_and_measure_default_fish.pipe**
   Fully automatic fish detection, tracking and measurement pipeline. Runs the
   default fish detector (boxes, masks and head/tail keypoints) and a tracker on
   both stereo cameras, pairs left and right tracks, averages each pair's
@@ -373,12 +373,12 @@ requiring any manual annotations.
   are aggregated per track. Outputs measured tracks to ``computed_tracks1.csv``
   and ``computed_tracks2.csv``.
 
-**stereo_measure_default_fish_fully_auto_no_tracking.pipe**
+**stereo_detect_and_measure_default_fish.pipe**
   Same detector without a tracker: left and right detections are paired and
   measured independently on every frame, each pair sharing one track ID and an
   averaged classification.
 
-**stereo_measure_fully_auto_gmm_motion.pipe**
+**stereo_detect_and_measure_gmm_motion.pipe**
   Automatic measurement pipeline using GMM (Gaussian Mixture Model) background
   subtraction to detect moving objects. Computes oriented bounding boxes for
   measurement. Best suited for stationary camera setups where fish swim through

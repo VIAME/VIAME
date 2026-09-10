@@ -232,11 +232,11 @@ OVERRIDES = {
         },
         setup=lambda env_dir: (env_dir / "output" / "depthMap").mkdir(exist_ok=True),
         check=_check_depth_maps),
-    "stereo_measure_default_fish_fully_auto_tracking": Case(
+    "stereo_track_and_measure_default_fish": Case(
         env="env_stereo_fish", params=CALIBRATION_PARAMS, check=STEREO_MIN_2),
-    "stereo_measure_default_fish_fully_auto_no_tracking": Case(
+    "stereo_detect_and_measure_default_fish": Case(
         env="env_stereo_fish", params=CALIBRATION_PARAMS, check=STEREO_MIN_2),
-    "stereo_measure_fully_auto_gmm_motion": Case(
+    "stereo_detect_and_measure_gmm_motion": Case(
         env="env_stereo_fish", params=CALIBRATION_PARAMS,
         check=csv(expected_detections=0, comparison_detection="min", is_stereo=True)),
 }
