@@ -25,6 +25,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <stdexcept>
 #include <vector>
 
 namespace viame {
@@ -109,17 +110,29 @@ has_foreign_options( std::vector< std::string > const& applet_args )
       "--setting", "--list-formats", "--calibration-help",
       "-h", "-i", "-o", "-s" };
 
+  static const std::set< std::string > calibration =
+    { "--camera-mode", "--image-width", "--image-height", "--left-cal",
+      "--right-cal", "--pts", "--extrinsics-mode", "--left", "--right" };
+  static const std::set< std::string > flags =
+    { "--help", "-h", "--no-images", "--list-formats", "--calibration-help" };
   for( std::size_t i = 1; i < applet_args.size(); ++i )
   {
-    const std::string& arg = applet_args[i];
-    if( arg.size() < 2 || arg[0] != '-' || arg == "-" )
-    {
-      continue;
-    }
-    std::string name = arg.substr( 0, arg.find( '=' ) );
+    const auto& arg = applet_args[i];
+    if( arg == "--" ) { break; }
+    if( arg.size() < 2 || arg[0] != '-' ) { continue; }
+    const auto equals = arg.find( '=' );
+    const auto name = arg.substr( 0, equals );
+    if( calibration.count( name ) ) { return true; }
     if( !known.count( name ) )
     {
-      return true;
+      // Short options may carry their value without a space.
+      if( arg.size() > 2 && arg[1] != '-' &&
+          (arg[1] == 'i' || arg[1] == 'o' || arg[1] == 's') ) { continue; }
+      throw std::runtime_error( "Unknown conversion option: " + name );
+    }
+    if( !flags.count( name ) && equals == std::string::npos )
+    {
+      ++i; // A value such as -1 is not another option.
     }
   }
   return false;

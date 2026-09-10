@@ -1311,6 +1311,11 @@ Examples:
     if args.input_path is None and not is_cal:
         parser.error("input_path is required unless using --left-cal/--right-cal")
 
+    # With CamCAL flags there is no positional input: a lone positional
+    # argument is the output, as shown in the help examples.
+    if is_cal and args.output_path is None and args.input_path is not None:
+        args.output_path, args.input_path = args.input_path, None
+
     input_format = args.input_format
     if input_format is None and args.input_path is not None:
         try:
