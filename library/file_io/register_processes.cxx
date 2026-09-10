@@ -1,0 +1,80 @@
+/* This file is part of VIAME, and is distributed under an OSI-approved *
+ * BSD 3-Clause License. See either the root top-level LICENSE file or  *
+ * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
+
+/**
+ * \file
+ * \brief Detection and track file process registration
+ *
+ * Imported from `sprokit/processes/core` in P5-T04. The processes are
+ * unchanged and are still in kwiver's namespace; what moved is where they
+ * are built and where they register.
+ */
+
+#include "viame_processes_file_io_export.h"
+
+#include <viame/pipeline_framework/process_factory.h>
+#include <viame/algorithm_framework/plugin/plugin_loader.h>
+
+#include "detected_object_input_process.h"
+#include "detected_object_output_process.h"
+#include "read_object_track_process.h"
+#include "write_object_track_process.h"
+#include "write_track_descriptor_process.h"
+
+extern "C"
+VIAME_PROCESSES_FILE_IO_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
+{
+  static auto const module_name =
+    kwiver::vital::plugin_manager::module_t( "viame_processes_file_io" );
+
+  if( sprokit::is_process_module_loaded( vpm, module_name ) )
+  {
+    return;
+  }
+
+  using kvpf = kwiver::vital::plugin_factory;
+
+// The parameters are spelled unusually because `typeid( x ).name()` is in
+// the body: a parameter called `name` would be substituted inside it.
+#define VIAME_REGISTER_PROCESS( process_type, plugin, blurb )             \
+  {                                                                      \
+    auto* fact = new sprokit::cpp_process_factory(                       \
+      typeid( process_type ).name(),                                     \
+      sprokit::process::interface_name(),                                \
+      sprokit::create_new_process< process_type > );                     \
+                                                                         \
+    fact->add_attribute( kvpf::PLUGIN_NAME, plugin )                     \
+      .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )            \
+      .add_attribute( kvpf::PLUGIN_DESCRIPTION, blurb )                  \
+      .add_attribute( kvpf::PLUGIN_VERSION, "1.0" );                     \
+                                                                         \
+    vpm.add_factory( fact );                                             \
+  }
+
+  VIAME_REGISTER_PROCESS(
+    kwiver::detected_object_input_process, "detected_object_input",
+    "Reads detected object sets from an input file." )
+
+  VIAME_REGISTER_PROCESS(
+    kwiver::detected_object_output_process, "detected_object_output",
+    "Writes detected object sets to an output file." )
+
+  VIAME_REGISTER_PROCESS(
+    kwiver::read_object_track_process, "read_object_track",
+    "Reads object track sets from an input file." )
+
+  VIAME_REGISTER_PROCESS(
+    kwiver::write_object_track_process, "write_object_track",
+    "Writes object track sets to an output file." )
+
+  VIAME_REGISTER_PROCESS(
+    kwiver::write_track_descriptor_process, "write_track_descriptor",
+    "Writes track descriptor sets to an output file." )
+
+#undef VIAME_REGISTER_PROCESS
+
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
+}
