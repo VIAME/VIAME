@@ -22,6 +22,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 
 from collections import OrderedDict
 from pathlib import Path
@@ -164,7 +165,7 @@ def load(path, doc=None, seen=None, depth=0):
     if path in seen:
         doc.errors.append(f'{path}: include cycle')
         return doc
-    seen.add(path)
+    seen = seen | {path}
     doc.files.append(path)
     try:
         entries = parse(path.read_text())
@@ -205,7 +206,17 @@ def write_output(text, out):
     if out in (None, '-'):
         sys.stdout.write(text)
     else:
-        Path(out).write_text(text)
+        target = Path(out)
+        fd, temporary = tempfile.mkstemp(prefix='.' + target.name + '.', dir=target.resolve().parent)
+        try:
+            with os.fdopen(fd, 'w') as stream:
+                stream.write(text)
+            if target.exists():
+                os.chmod(temporary, target.stat().st_mode)
+            os.replace(temporary, target)
+        finally:
+            if os.path.exists(temporary):
+                os.unlink(temporary)
 
 
 # ---------------------------------------------------------------------------
@@ -283,6 +294,8 @@ def replace_value(entry, value):
 def cmd_set(args):
     path = Path(args.pipe)
     doc = load(path)
+    if doc.errors:
+        raise SystemExit("error: " + "; ".join(doc.errors))
     entries = doc.entries[path.resolve()]
     by_key = {}
     for e in entries:
@@ -293,8 +306,8 @@ def cmd_set(args):
         scopes.update(e.key for e in es if e.kind in ('config', 'cluster'))
         scopes.update(e.scope for e in es if e.scope)
     overrides = OrderedDict()
-    for text in args.settings:
-        key, value = parse_assignment(text)
+    assignments = OrderedDict(parse_assignment(text) for text in args.settings)
+    for key, value in assignments.items():
         if key in by_key:
             by_key[key].raw = replace_value(by_key[key], value)
             continue
