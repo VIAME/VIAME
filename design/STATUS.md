@@ -16,17 +16,18 @@ Notes.
 - Reference machine: local workstation, CUDA 12.6, cuDNN 9.12, Ubuntu
   (kernel 6.8), python 3.10.12, gcc default, 16 cores
 
-### Build arrangement during phases 0 to 1
+### Build arrangement until phase 1 finishes
 
-Phase 1 is what replaces the superbuild, so until then the `lite` checkout
-builds only the VIAME project itself and takes its dependencies from an
-existing `main` superbuild of the same commit:
+P1-T05 landed early, so this is one configure now. What is still missing from
+phase 1 is the superbuild's replacement: the `lite` checkout builds only the
+VIAME project itself and takes fletch, darknet and the python environment
+from an existing `main` superbuild of the same commit.
 
 | What | Where |
 |---|---|
 | Source | `~/Dev/viame-lite/src` (this checkout, branch `lite`) |
-| Build | `~/Dev/viame-lite/build/merged-build` (one configure, since P1-T05) |
-| kwiver build | none since P1-T05: kwiver is a subdirectory of the build above. `build/kwiver-build`, `build/viame-build` and `build/kwiver-cache.cmake` are dead |
+| Build | `~/Dev/viame-lite/build/merged-build`, and `build/clean-build` for the from-scratch check |
+| kwiver build | none: P1-T05 made kwiver a subdirectory and P5-T05 removed it entirely. `build/kwiver-build`, `build/viame-build` and `build/kwiver-cache.cmake` are dead |
 | Install | `~/Dev/viame-lite/build/install` (seeded by copying the reference install) |
 | Initial cache | `~/Dev/viame-lite/build/lite-cache.cmake`, mirroring every `VIAME_*` setting of the reference build |
 | fletch, darknet | `~/Dev/viame/build` (reference superbuild, `main` @ 8edfd2f66) |
