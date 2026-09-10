@@ -10,7 +10,8 @@ Notes.
 - Phase: P5 (phases 1 and 2 deferred, see the decision below). Phase 3 and
   phase 4 are complete: VXL and FFmpeg are both gone from kwiver, fletch and
   VIAME, and video is python on PyAV
-- Next task: P5-T05
+- Next task: P1-T05, then the rest of P5-T05 (see finding 2.2: the last
+  pieces of kwiver cannot move while it is a separate build)
 - Last clean-configure build verified: 2026-09-09, P0-T05
 - Reference machine: local workstation, CUDA 12.6, cuDNN 9.12, Ubuntu
   (kernel 6.8), python 3.10.12, gcc default, 16 cores
@@ -61,7 +62,7 @@ for `CMake/FindCUDNN.cmake`, and `kwiver` is checked out and built.
 | P1-T02 | New top-level CMakeLists and options file | P1-T01 | todo | | |
 | P1-T03 | `third_party/` for the small libraries | P1-T02 | todo | | |
 | P1-T04 | `viame_dependencies.cmake` | P1-T03 | todo | | |
-| P1-T05 | Kwiver as a subdirectory | P1-T04 | todo | | |
+| P1-T05 | Kwiver as a subdirectory | P1-T04 | todo | | Pulled forward: P5-T05 cannot finish without it, and in the transitional build it needs only the four changes listed in finding 2.2, not the rest of phase 1 |
 | P1-T06 | Plugins, tools, tests inside the same build | P1-T05 | todo | | |
 | P1-T07 | Python dependency step | P1-T06 | todo | | |
 | P1-T08 | Remove dead trees and submodules | P1-T07 | todo | | |

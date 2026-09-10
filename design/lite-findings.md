@@ -273,9 +273,36 @@ and it was the cheapest way to get to one vital, but the arrangement is odd
 enough to be worth naming.
 
 P1-T05 ("kwiver as a subdirectory") is what makes it right, and P5-T05
-(removing the submodule) is what makes it moot. Whether to do P1-T05 before
-P5-T03 is an open call: doing it first is cleaner, doing it later is less
-work now.
+(removing the submodule) is what makes it moot. It is no longer an open call:
+**P5-T05 cannot finish without P1-T05.** What is left in the submodule --
+kwiversys, the CMake that builds `library/` and `python/kwiver`, the sprokit
+example and cluster processes and the schedulers, the tool runner, kwiver's
+config files and its macro library -- is all either linked by something else
+in kwiver or the thing doing the linking. Finding 1.11 says nothing left in
+kwiver can link a VIAME library, so none of it can move one piece at a time
+the way the arrows did: kwiversys is linked by every kwiver target, so it
+would have to move last, and it cannot move last because after it there is
+nothing left to move it into.
+
+So the order from here is P1-T05, then the rest of P5-T05. P1-T05 in this
+transitional setting is smaller than the phase 1 task text: the build already
+configures VIAME directly rather than through the superbuild, and the
+`KWIVER_ENABLE_*` values are already written down in
+`build/kwiver-cache.cmake`. What it needs is (a) kwiver's top-level
+`KWIVER_CMAKE_DIR`, `KWIVER_SOURCE_DIR` and `KWIVER_BINARY_DIR` taken off
+`CMAKE_SOURCE_DIR`/`CMAKE_BINARY_DIR` and put on the `CURRENT` pair, (b)
+VIAME setting those cache values and calling `add_subdirectory( packages/kwiver )`
+where it now calls `find_package( kwiver )`, (c) a `cmake/kwiver_aliases.cmake`
+giving `kwiver::vital`, `kwiver::vital_algo`, `kwiver::vital_applets`,
+`kwiver::vital_config`, `kwiver::vital_exceptions`, `kwiver::vital_logger`,
+`kwiver::vital_util`, `kwiver::vital_vpm`, `kwiver::kwiversys`,
+`kwiver::sprokit_pipeline`, `kwiver::sprokit_pipeline_util` and
+`kwiver::kwiver_adapter` as `ALIAS` targets -- that is the whole list VIAME
+names -- and (d) VIAME's `kwiver_export_name` and `kwiver_plugin_*_subdir`
+assignments moved after the `add_subdirectory` so they stay in VIAME's
+directory scope and kwiver's own stay in kwiver's. The superbuild path
+(`cmake/add_project_kwiver.cmake`) is untouched until phase 1 proper deletes
+it.
 
 ### 2.3 Two copies of kwiversys and cxxopts
 
