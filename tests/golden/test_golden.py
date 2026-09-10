@@ -241,6 +241,14 @@ def check_refusals(item, case, impl):
             run_case(probe, impl)
 
 
+# How far a recorded detection score may move. The geometry is integer
+# valued and has to be exact; a score is a float sum, and OpenCV accumulates
+# a box filter in float where `image_ops` accumulates in double, so the two
+# agree to about seven digits rather than to the bit. Relative, because the
+# scores here range from a fraction to seventy.
+SCORE_TOLERANCE = 1e-6
+
+
 def check_detections(item, case, outputs, group):
     """A recording whose values are detections rather than pixels."""
     for name, actual in zip(case["inputs"], outputs):
@@ -257,10 +265,28 @@ def check_detections(item, case, outputs, group):
             assert sorted(got) == sorted(want), (
                 "{} {} detection {}: fields {} != recorded {}".format(
                     case_id(item), name, index, sorted(got), sorted(want)))
-            for key in sorted(want):
-                assert got[key] == want[key], (
-                    "{} {} detection {}: {} is {!r}, recorded {!r}".format(
-                        case_id(item), name, index, key, got[key], want[key]))
+
+            # The box: exact, because it is a pixel rectangle
+            assert got["bbox"] == want["bbox"], (
+                "{} {} detection {}: bbox is {!r}, recorded {!r}".format(
+                    case_id(item), name, index, got["bbox"], want["bbox"]))
+
+            def close(a, b):
+                return abs(a - b) <= SCORE_TOLERANCE * max(1.0, abs(b))
+
+            assert close(got["confidence"], want["confidence"]), (
+                "{} {} detection {}: confidence is {!r}, recorded "
+                "{!r}".format(case_id(item), name, index, got["confidence"],
+                              want["confidence"]))
+
+            for label, score in sorted(want.get("types", {}).items()):
+                assert label in got.get("types", {}), (
+                    "{} {} detection {}: no score for '{}'".format(
+                        case_id(item), name, index, label))
+                assert close(got["types"][label], score), (
+                    "{} {} detection {} type '{}': {!r}, recorded "
+                    "{!r}".format(case_id(item), name, index, label,
+                                  got["types"][label], score))
 
 
 def check_json_case(item, case, outputs, group):

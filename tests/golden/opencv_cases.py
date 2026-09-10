@@ -136,6 +136,30 @@ DETECTORS = {
                                "class_name": "motion"}),
             ("threshold_100_small", {"threshold": "100", "min_area": "20",
                                      "min_fill_fraction": "0.05"}),
+
+            # The fixed-size path, which no shipped pipeline selects --
+            # every one of them sets `force_bbox_width: -1`. Recorded
+            # anyway, and before it is ported: it is two hundred lines of
+            # window placement, and the only moment there is anything to
+            # record it against is while OpenCV is still here.
+            #
+            # `get_bbox_fixed_size_dense` is not among them: it is in the
+            # file and nothing calls it.
+            ("forced_24x16", {"force_bbox_width": "24",
+                              "force_bbox_height": "16",
+                              "bbox_buffer": "4",
+                              "threshold": "100",
+                              "class_name": "motion"}),
+            ("forced_16x12_buffer_2", {"force_bbox_width": "16",
+                                       "force_bbox_height": "12",
+                                       "bbox_buffer": "2",
+                                       "threshold": "100",
+                                       "class_name": "motion"}),
+            ("forced_20x20_no_threshold", {"force_bbox_width": "20",
+                                           "force_bbox_height": "20",
+                                           "bbox_buffer": "0",
+                                           "max_boxes": "4",
+                                           "class_name": "motion"}),
         ],
     },
 }

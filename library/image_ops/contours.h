@@ -247,8 +247,11 @@ label_components( kwiver::vital::image_of< T > const& mask,
 /// which looks clockwise on screen because j runs downwards. A single pixel
 /// component is a contour of one point.
 ///
-/// The contours come out in the order their first pixel is met in a raster
-/// scan, which is OpenCV's order too.
+/// The contours come out in **reverse** raster order of their first pixel,
+/// which is the order `cv::findContours` returns them in. It is worth
+/// matching rather than sorting afterwards: a caller that takes the first
+/// few, or that writes them out in order, sees a different answer otherwise,
+/// and `detect_heat_map` is one.
 template < typename T >
 std::vector< std::vector< point > >
 find_contours( kwiver::vital::image_of< T > const& mask )
@@ -371,6 +374,9 @@ find_contours( kwiver::vital::image_of< T > const& mask )
 
     contours.push_back( std::move( contour ) );
   }
+
+  // Reverse raster order, as `cv::findContours` gives
+  std::reverse( contours.begin(), contours.end() );
 
   return contours;
 }

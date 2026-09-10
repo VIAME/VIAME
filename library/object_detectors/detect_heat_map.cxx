@@ -13,16 +13,23 @@
 #include <viame/core_types/detected_object_type.h>
 #include <viame/algorithm_framework/util/wall_timer.h>
 
-#include <viame/opencv_bridge/image_container.h>
+#include <image_ops/contours.h>
+#include <image_ops/filter.h>
+#include <image_ops/histogram.h>
+#include <image_ops/pixel.h>
+#include <image_ops/warp.h>
 
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/opencv.hpp>
+#include <viame/core_types/image_container.h>
+
 
 namespace kwiver {
 
 namespace arrows {
 
 namespace ocv {
+
+namespace io = viame::image_ops;
+namespace kv = kwiver::vital;
 
 using namespace kwiver::vital;
 
@@ -97,34 +104,43 @@ template < class T >
 std::tuple< int, int, int, int >
 static
 mask_bounding_box(
-  const cv::Mat image, double threshold = 0, int first_row = 0,
+  kv::image_of< T > const& image, double threshold = 0, int first_row = 0,
   int last_row = -1, int first_col = 0, int last_col = -1 )
 {
-  if( image.channels() > 1 )
+  if( image.depth() > 1 )
   {
     VITAL_THROW( vital::invalid_data, "image must be single channel." );
   }
+
+  auto const rows = static_cast< int >( image.height() );
+  auto const cols = static_cast< int >( image.width() );
 
   // Find the first/last non-zero rows and columns where we should consider
   // centering a bounding box.
   if( last_row == -1 )
   {
-    last_row = image.rows;
+    last_row = rows;
   }
   if( last_col == -1 )
   {
-    last_col = image.cols;
+    last_col = cols;
   }
 
   --last_col;
   --last_row;
 
-  bool done = false;
-  while( first_row < image.rows )
+  auto const at = [ & ]( int row, int col )
   {
-    for( int j = 0; j < image.cols; j++ )
+    return static_cast< double >(
+      image( static_cast< size_t >( col ), static_cast< size_t >( row ), 0 ) );
+  };
+
+  bool done = false;
+  while( first_row < rows )
+  {
+    for( int j = 0; j < cols; j++ )
     {
-      if( image.at< T >( first_row, j ) >= threshold )
+      if( at( first_row, j ) >= threshold )
       {
         done = true;
         break;
@@ -140,9 +156,9 @@ mask_bounding_box(
   done = false;
   while( last_row > first_row )
   {
-    for( int j = 0; j < image.cols; j++ )
+    for( int j = 0; j < cols; j++ )
     {
-      if( image.at< T >( last_row, j ) >= threshold )
+      if( at( last_row, j ) >= threshold )
       {
         done = true;
         break;
@@ -156,11 +172,11 @@ mask_bounding_box(
   }
 
   done = false;
-  while( first_col < image.cols )
+  while( first_col < cols )
   {
-    for( int i = 0; i < image.rows; i++ )
+    for( int i = 0; i < rows; i++ )
     {
-      if( image.at< T >( i, first_col ) >= threshold )
+      if( at( i, first_col ) >= threshold )
       {
         done = true;
         break;
@@ -176,9 +192,9 @@ mask_bounding_box(
   done = false;
   while( last_col > first_col )
   {
-    for( int i = 0; i < image.rows; i++ )
+    for( int i = 0; i < rows; i++ )
     {
-      if( image.at< T >( i, last_col ) >= threshold )
+      if( at( i, last_col ) >= threshold )
       {
         done = true;
         break;
@@ -256,15 +272,14 @@ public:
 
   // --------------------------------------------------------------------------
   detected_object_set_sptr
-  get_bounding_boxes( cv::Mat const& heat_map )
+  get_bounding_boxes( kv::image_of< uint8_t > const& heat_map )
   {
     if( m_force_bbox_size )
     {
       if( m_threshold() != -1 )
       {
-        cv::Mat mask;
-        cv::threshold( heat_map, mask, m_threshold(), 1, cv::THRESH_BINARY );
-        return get_bbox_fixed_size( mask );
+        return get_bbox_fixed_size( threshold_binary( heat_map,
+                                                      m_threshold() ) );
       }
       else
       {
@@ -278,155 +293,36 @@ public:
   }
 
   // --------------------------------------------------------------------------
-  /// Consider windows on a dense, fixed grid, removing empty ones.
-  detected_object_set_sptr
-  get_bbox_fixed_size_dense( cv::Mat const& heat_map )
+  /// `cv::threshold` with `THRESH_BINARY` and a max value of one.
+  ///
+  /// Strictly greater than, which is what OpenCV's THRESH_BINARY is: a pixel
+  /// equal to the threshold is background. That is why a `threshold` of 0
+  /// keeps only the non-zero pixels rather than everything.
+  static kv::image_of< uint8_t >
+  threshold_binary( kv::image_of< uint8_t > const& image, double level )
   {
-    int hmap_w = heat_map.cols;
-    int hmap_h = heat_map.rows;
+    kv::image_of< uint8_t > out( image.width(), image.height(), 1 );
 
-    LOG_TRACE(
-      m_logger, "Creating bounding boxes of fixed size (" <<
-        std::to_string( m_force_bbox_width() ) << " x " <<
-        std::to_string( m_force_bbox_height() ) << ")" );
-
-    if( heat_map.rows < m_force_bbox_height() ||
-        heat_map.cols < m_force_bbox_width() )
+    for( size_t j = 0; j < image.height(); ++j )
     {
-      VITAL_THROW(
-        invalid_value, std::string( "Forced bounding box size exceeds" ) +
-        "provided image size (" + std::to_string( hmap_w ) +
-        " x " + std::to_string( hmap_h ) + ")" );
-    }
-
-    // For a bounding box 'centered' on pixel indices (x,y), the upper left
-    // corner coordinates will be (x-hr1f, y-vr1f), and the lower right corner
-    // will have coordinates (x+hr2f, y+vr2f) inclusive.
-    int hr1f = m_force_bbox_width() / 2;
-    int vr1f = m_force_bbox_height() / 2;
-    int hr2f = m_force_bbox_width() - 1 - hr1f;
-    int vr2f = m_force_bbox_height() - 1 - vr1f;
-
-    // Width and height of the reduced-size one that is used to accommodate
-    // bbox_buffer. For this reduced version of the bounding box 'centered' on
-    // pixel indices (x,y), the upper left corner coordinates will be
-    // (x-hr1, y-vr1), and the lower right corner will have coordinates
-    // (x+hr2, y+vr2)
-    int bbox_w_red = m_force_bbox_width() - m_bbox_buffer();
-    int bbox_h_red = m_force_bbox_height() - m_bbox_buffer();
-    int hr1 = bbox_w_red / 2;
-    int vr1 = bbox_h_red / 2;
-    // int hr2 = bbox_w_red-1-hr1;
-    // int vr2 = bbox_h_red-1-vr1;
-    cv::Size ksize( bbox_w_red, bbox_h_red );
-
-    // When the kernel size is even, the center is ambiguous. Let's explicitly
-    // round the center up to the nearest integer.
-    cv::Point anchor( hr1, vr1 );
-
-    // We are searching locations to place the bounding boxes that maximize the
-    // enclosed sum value from heat_map. Therefore, we can use a box blur filter
-    // to efficiently calculate this. The kernel size is equal to the bounding
-    // box size minus the bounding box buffer. This way, we only consider the
-    // inner useful region of the bounding box when looking for optimal
-    // placement. The value of the filtered image is equal to the sum of the
-    // heat map value within a bounding box centered at that pixel.
-    cv::Mat conv_map;
-    cv::boxFilter(
-      heat_map, conv_map, CV_32F, ksize, anchor, true,
-      cv::BORDER_CONSTANT );
-
-    // The mask will indicate potential locations on which to center bounding
-    // boxes.
-    cv::Mat mask;
-    cv::threshold( heat_map, mask, 0, 1, cv::THRESH_BINARY );
-    mask.convertTo( mask, CV_8U );
-
-    int first_row, last_row, first_col, last_col;
-    std::tie(
-      first_row, last_row, first_col,
-      last_col ) = mask_bounding_box< uchar >( mask );
-
-    // All 'on' locations within the heat map live inside a bound box with:
-    int num_on_rows = ( last_row - first_row );
-    int num_on_cols = ( last_col - first_col );
-
-    // last_row and last_col are actually one greater than the index for the
-    // last row/col.
-    --last_row;
-    --last_col;
-
-    // Require this many bounding boxes to cover all 'on'Z pixels
-    int num_bboxes_high = ( num_on_rows + bbox_h_red - 1 ) / bbox_h_red;
-    int num_bboxes_wide = ( num_on_cols + bbox_w_red - 1 ) / bbox_w_red;
-
-    // The above looked at non-zero pixels, but you can more conservatively hit
-    // those pixels with a bbox completely contained within the image.
-    first_row += vr1f;
-    last_row -= vr2f;
-    first_col += hr1f;
-    last_col -= hr2f;
-
-    if( last_row < first_row )
-    {
-      // Only one bounding box will fit vertically
-      first_row = last_row;
-    }
-
-    if( last_col < first_col )
-    {
-      // Only one bounding box will fit horizontally
-      first_col = last_col;
-    }
-
-    // col_inds and row_inds represent the center coordinate for each bounding
-    // box.
-    std::vector< int > col_inds = linspace(
-      first_col, last_col,
-      num_bboxes_wide );
-    std::vector< int > row_inds = linspace(
-      first_row, last_row,
-      num_bboxes_high );
-
-    auto detected_objects = std::make_shared< detected_object_set >();
-    for( int row : row_inds )
-    {
-      for( int col : col_inds )
+      for( size_t i = 0; i < image.width(); ++i )
       {
-        // vital::bounding_box lower-right point is not inclusive, so must add
-        // 1.
-        kwiver::vital::bounding_box_d bbox( col - hr1f, row - vr1f,
-          col + hr2f + 1, row + vr2f + 1 );
-
-        auto val = conv_map.at< float >( row, col );
-        if( val > 0 )
-        {
-          LOG_TRACE(
-            m_logger, "Creating bounding box (" <<
-              std::to_string( bbox.min_x() ) << ", " <<
-              std::to_string( bbox.max_x() ) << ", " <<
-              std::to_string( bbox.min_y() ) << ", " <<
-              std::to_string( bbox.max_y() ) << ")" );
-
-          auto dot = std::make_shared< detected_object_type >();
-          dot->set_score( m_class_name(), val );
-          detected_objects->add(
-            std::make_shared< kwiver::vital::detected_object >(
-              bbox, val,
-              dot ) );
-        }
+        out( i, j, 0 ) =
+          ( static_cast< double >( image( i, j, 0 ) ) > level ) ? 1 : 0;
       }
     }
 
-    return detected_objects;
+    return out;
   }
 
   // --------------------------------------------------------------------------
-  /// Find optimal tiling of bounding boxes with fixed size
+  /// Place fixed-size windows greedily, brightest first.
+  ///
+  /// `get_bbox_fixed_size_dense` was beside this one and nothing called it;
+  /// P7-T04 deleted it rather than porting two hundred lines of dead code.
   detected_object_set_sptr
-  get_bbox_fixed_size( cv::Mat const& heat_map0 )
+  get_bbox_fixed_size( kv::image_of< uint8_t > const& heat_map0 )
   {
-    cv::Mat heat_map;
     int bbox_height = m_force_bbox_height();
     int bbox_width = m_force_bbox_width();
     int bbox_buffer_w = m_bbox_buffer();
@@ -437,31 +333,43 @@ public:
         std::to_string( bbox_width ) << " x " <<
         std::to_string( bbox_height ) << ")" );
 
-    if( heat_map0.rows < bbox_height ||
-        heat_map0.cols < bbox_width )
+    if( static_cast< int >( heat_map0.height() ) < bbox_height ||
+        static_cast< int >( heat_map0.width() ) < bbox_width )
     {
       VITAL_THROW(
         invalid_value, std::string( "Forced bounding box size exceeds " ) +
         "provided image size (" +
-        std::to_string( heat_map0.cols ) + " x " +
-        std::to_string( heat_map0.rows ) + ")" );
+        std::to_string( heat_map0.width() ) + " x " +
+        std::to_string( heat_map0.height() ) + ")" );
     }
 
     double bbox_out_width_rescale = 1;
     double bbox_out_height_rescale = 1;
 
+    kv::image_of< uint8_t > heat_map;
+
     m_timer.start();
+
     // Reduce heat map by 2^pyr_levels and consider coarser placement of bboxes
     if( m_pyr_red_levels() > 0 )
     {
-      cv::normalize( heat_map0, heat_map, 0, 255, cv::NORM_MINMAX, CV_8UC1 );
+      heat_map = io::normalize_min_max( heat_map0, 0.0, 255.0 );
+
       for( int i = 0; i < m_pyr_red_levels(); ++i )
       {
-        cv::pyrDown( heat_map, heat_map );
+        heat_map = pyr_down( heat_map );
       }
 
-      double scale_width = heat_map0.cols / heat_map.cols;
-      double scale_height = heat_map0.rows / heat_map.rows;
+      // Integer division, as it was: the scale is a whole number or it is
+      // one, and a 15 pixel image reduced once scales by 1 rather than by
+      // 1.875
+      double scale_width =
+        static_cast< int >( heat_map0.width() ) /
+        static_cast< int >( heat_map.width() );
+      double scale_height =
+        static_cast< int >( heat_map0.height() ) /
+        static_cast< int >( heat_map.height() );
+
       bbox_out_width_rescale = scale_width;
       bbox_out_height_rescale = scale_height;
       bbox_height /= scale_height;
@@ -471,17 +379,27 @@ public:
     }
     else
     {
-      heat_map = heat_map0;
+      // A deep copy: the search below erases each box it takes, and
+      // `vital::image` copies share their memory
+      heat_map = kv::image_of< uint8_t >( heat_map0.width(),
+                                          heat_map0.height(), 1 );
+
+      for( size_t j = 0; j < heat_map0.height(); ++j )
+      {
+        for( size_t i = 0; i < heat_map0.width(); ++i )
+        {
+          heat_map( i, j, 0 ) = heat_map0( i, j, 0 );
+        }
+      }
     }
 
-    // heat_map0.copyTo( heat_map0, heat_map );
     m_timer.stop();
     LOG_DEBUG(
       m_logger,
       "Image pyramiding elapsed time: " << m_timer.elapsed() );
 
-    int hmap_w = heat_map.cols;
-    int hmap_h = heat_map.rows;
+    int hmap_w = static_cast< int >( heat_map.width() );
+    int hmap_h = static_cast< int >( heat_map.height() );
 
     // For a bounding box 'centered' on pixel indices (x,y), the upper left
     // corner coordinates will be (x-hr1f, y-vr1f), and the lower right corner
@@ -498,64 +416,59 @@ public:
     // (x+hr2, y+vr2)
     int bbox_w_red = bbox_width - bbox_buffer_w * 2;
     int bbox_h_red = bbox_height - bbox_buffer_h * 2;
-    int hr1 = bbox_w_red / 2;
-    int vr1 = bbox_h_red / 2;
-    // int hr2 = bbox_w_red-1-hr1;
-    // int vr2 = bbox_h_red-1-vr1;
     LOG_TRACE( m_logger, "kernel size: " << bbox_w_red << " x " << bbox_h_red );
 
-    cv::Size ksize( bbox_w_red, bbox_h_red );
+    // The mean over the reduced box, which is what `cv::boxFilter` with
+    // `normalize` computes. The anchor is the kernel's centre, and
+    // `filter_2d` puts it at `size / 2` -- the same "round the centre up"
+    // that the original spelled out for an even kernel.
+    //
+    // BORDER_CONSTANT, so a box hanging off the edge is averaged against
+    // zeros and scores lower than one wholly inside. That is what makes the
+    // placement pull away from the border.
+    io::kernel box;
+    box.width = static_cast< size_t >( bbox_w_red );
+    box.height = static_cast< size_t >( bbox_h_red );
+    box.weights.assign(
+      box.width * box.height,
+      1.0 / static_cast< double >( box.width * box.height ) );
 
-    // When the kernel size is even, the center is ambiguous. Let's explicitly
-    // round the center up to the nearest integer.
-    cv::Point anchor( hr1, vr1 );
-
-    cv::Mat conv_map;
-    double min_val, max_val;
-    cv::Point max_loc;
     auto detected_objects = std::make_shared< detected_object_set >();
     int x1, x2, y1, y2, x1t, x2t, y1t, y2t, dx, dy;
     int cntr = 0;
+
     while( true )
     {
       // We are searching locations to place the bounding boxes that maximize
-      // the
-      // enclosed sum value from heat_map. Therefore, we can use a box blur
-      // filter
-      // to efficiently calculate this. The kernel size is equal to the bounding
-      // box size minus the bounding box buffer. This way, we only consider the
-      // inner useful region of the bounding box when looking for optimal
-      // placement. The value of the filtered image is equal to the sum of the
-      // heat map value within a bounding box centered at that pixel.
-      cv::boxFilter(
-        heat_map, conv_map, CV_32F, ksize, anchor, true,
-        cv::BORDER_CONSTANT );
+      // the enclosed sum value from heat_map. Therefore, we can use a box
+      // blur filter to efficiently calculate this. The kernel size is equal
+      // to the bounding box size minus the bounding box buffer. This way, we
+      // only consider the inner useful region of the bounding box when
+      // looking for optimal placement.
+      auto const conv_map = io::filter_2d< float >(
+        heat_map, box, io::border_mode::CONSTANT );
 
-      if( false )
-      {
-        if( cntr == 0 )
-        {
-          cv::Mat output;
-          cv::normalize( conv_map, output, 0, 255, cv::NORM_MINMAX, CV_8UC1 );
-          cv::imwrite( "/home/mattb/debug_output/output.tif", output );
-          cv::normalize( heat_map, output, 0, 255, cv::NORM_MINMAX, CV_8UC1 );
-          cv::imwrite( "/home/mattb/debug_output/latest_heat_map.tif", output );
-        }
-      }
+      io::extremum lowest;
+      io::extremum highest;
+      io::min_max( conv_map, lowest, highest );
 
-      cv::minMaxLoc( conv_map, &min_val, &max_val, nullptr, &max_loc );
+      auto const max_val = highest.value;
+
       if( max_val == 0 )
       {
         // No above-threshold regions left.
         break;
       }
 
+      auto max_x = static_cast< int >( highest.i );
+      auto max_y = static_cast< int >( highest.j );
+
       // Define the bounding box
       // vital::bounding_box lower-right point is not inclusive, so must add 1.
-      x1 = max_loc.x - hr1f;
-      y1 = max_loc.y - vr1f;
-      x2 = max_loc.x + hr2f + 1;
-      y2 = max_loc.y + vr2f + 1;
+      x1 = max_x - hr1f;
+      y1 = max_y - vr1f;
+      x2 = max_x + hr2f + 1;
+      y2 = max_y + vr2f + 1;
       dx = -std::min( 0, x1 ) - std::max( 0, x2 - hmap_w );
       dy = -std::min( 0, y1 ) - std::max( 0, y2 - hmap_h );
       x1 += dx;
@@ -567,25 +480,25 @@ public:
       // box to still covers all elements, the above approach picks the first
       // one found, which is often not ideal. Ideally, the enclosed elements
       // would be centered in the bounding box.
-      std::tie( y1t, y2t, x1t, x2t ) = mask_bounding_box< uchar >(
+      std::tie( y1t, y2t, x1t, x2t ) = mask_bounding_box< uint8_t >(
         heat_map,
         1, y1, y2,
         x1, x2 );
 
       if( x2t > x1t )
       {
-        max_loc.x = ( x1t + x2t ) / 2;
+        max_x = ( x1t + x2t ) / 2;
       }
       if( y2t > y1t )
       {
-        max_loc.y = ( y1t + y2t ) / 2;
+        max_y = ( y1t + y2t ) / 2;
       }
 
       // vital::bounding_box lower-right point is not inclusive, so must add 1.
-      y1 = max_loc.y - vr1f;
-      y2 = max_loc.y + vr2f + 1;
-      x1 = max_loc.x - hr1f;
-      x2 = max_loc.x + hr2f + 1;
+      y1 = max_y - vr1f;
+      y2 = max_y + vr2f + 1;
+      x1 = max_x - hr1f;
+      x2 = max_x + hr2f + 1;
 
       // Reposition, if necessary, so that the bounding box is completely
       // within the image.
@@ -614,10 +527,15 @@ public:
         std::make_shared< kwiver::vital::detected_object >(
           bbox, max_val, dot ) );
 
-      // Make CV rect for bbox so that we can remove it from consideration
-      // during next iteration.
-      cv::Rect cv_bbox( x1, y1, x2 - x1, y2 - y1 );
-      heat_map( cv_bbox ) = 0;
+      // Erase the region so the next iteration looks elsewhere.
+      for( int j = y1; j < y2; ++j )
+      {
+        for( int i = x1; i < x2; ++i )
+        {
+          heat_map( static_cast< size_t >( i ),
+                    static_cast< size_t >( j ), 0 ) = 0;
+        }
+      }
 
       ++cntr;
       if( cntr == m_max_boxes() )
@@ -630,43 +548,85 @@ public:
   }
 
   // --------------------------------------------------------------------------
+  /// Halve the image, which is `cv::pyrDown`.
+  ///
+  /// A five by five Gaussian and then every second pixel, and the kernel is
+  /// OpenCV's own: (1, 4, 6, 4, 1) / 16 in each axis. The output is
+  /// `(width + 1) / 2` by `(height + 1) / 2`, again as OpenCV's is.
+  static kv::image_of< uint8_t >
+  pyr_down( kv::image_of< uint8_t > const& image )
+  {
+    std::vector< double > const line{ 1.0 / 16.0, 4.0 / 16.0, 6.0 / 16.0,
+                                      4.0 / 16.0, 1.0 / 16.0 };
+
+    auto const blurred = io::filter_2d(
+      image, io::separable_kernel( line, line ),
+      io::border_mode::REFLECT_101 );
+
+    auto const width = ( image.width() + 1 ) / 2;
+    auto const height = ( image.height() + 1 ) / 2;
+
+    kv::image_of< uint8_t > out( width, height, image.depth() );
+
+    for( size_t plane = 0; plane < image.depth(); ++plane )
+    {
+      for( size_t j = 0; j < height; ++j )
+      {
+        for( size_t i = 0; i < width; ++i )
+        {
+          out( i, j, plane ) = blurred( i * 2, j * 2, plane );
+        }
+      }
+    }
+
+    return out;
+  }
+
+  // --------------------------------------------------------------------------
   /// Threshold image and find connected components of binary image
   detected_object_set_sptr
-  get_bbox_ccomponents( cv::Mat const& heat_map )
+  get_bbox_ccomponents( kv::image_of< uint8_t > const& heat_map )
   {
-    cv::Mat mask;
-    cv::threshold( heat_map, mask, m_threshold(), 1, cv::THRESH_BINARY );
+    auto mask = threshold_binary( heat_map, m_threshold() );
 
     auto detected_objects = std::make_shared< detected_object_set >();
 
-    std::vector< std::vector< cv::Point > > contours;
-
     // Remove outer border of pixels because findContours has trouble with
     // regions connected to the edge of the image.
-    mask.row( 0 ) = 0;
-    mask.col( 0 ) = 0;
-    mask.row( mask.rows - 1 ) = 0;
-    mask.col( mask.cols - 1 ) = 0;
-    cv::findContours(
-      mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE,
-      cv::Point( 0, 0 ) );
+    for( size_t i = 0; i < mask.width(); ++i )
+    {
+      mask( i, 0, 0 ) = 0;
+      mask( i, mask.height() - 1, 0 ) = 0;
+    }
+
+    for( size_t j = 0; j < mask.height(); ++j )
+    {
+      mask( 0, j, 0 ) = 0;
+      mask( mask.width() - 1, j, 0 ) = 0;
+    }
+
+    auto const contours = io::find_contours( mask );
 
     auto dot = std::make_shared< detected_object_type >();
     dot->set_score( m_class_name(), m_fixed_score() );
 
-    for( size_t j = 0; j < contours.size(); ++j )
+    for( auto const& contour : contours )
     {
-      // LOG_DEBUG( logger(), "Contour " << j << ": " <<
-      // std::to_string(contourArea(contours[j], false)));
-      double area = cv::contourArea( contours[ j ] );
+      // Note that this area is the polygon through the pixel *centres*, not
+      // the count of pixels inside it -- `cv::contourArea` answers the same
+      // and `min_area` has always been read against that.
+      double const area = io::contour_area( contour );
+
       if( area >= m_min_area() && area <= m_max_area() )
       {
-        cv::Rect cv_bbox = cv::boundingRect( contours[ j ] );
-        if( area >= cv_bbox.width * cv_bbox.height * m_min_fill_fraction() )
+        auto const bounds = io::bounding_rect( contour );
+
+        if( area >= static_cast< double >( bounds.width() ) *
+                    static_cast< double >( bounds.height() ) *
+                    m_min_fill_fraction() )
         {
-          kwiver::vital::bounding_box_d bbox( cv_bbox.x, cv_bbox.y,
-            cv_bbox.x + cv_bbox.width,
-            cv_bbox.y + cv_bbox.height );
+          kwiver::vital::bounding_box_d bbox( bounds.left, bounds.top,
+                                              bounds.right, bounds.bottom );
 
           detected_objects->add(
             std::make_shared< kwiver::vital::detected_object >(
@@ -676,6 +636,7 @@ public:
         }
       }
     }
+
     LOG_TRACE( m_logger, "Finished creating bounding boxes" );
     return detected_objects;
   }
@@ -810,19 +771,16 @@ detect_heat_map
   }
   LOG_TRACE( logger(), "Received image" );
 
-  const cv::Mat cv_src =
-    ocv::image_container::vital_to_ocv(
-      image_data->get_image(),
-      ocv::image_container::BGR_COLOR );
+  auto const source = image_data->get_image();
 
-  if( cv_src.channels() > 1 )
+  if( source.depth() > 1 )
   {
     VITAL_THROW(
       vital::invalid_data,
       "Heat map image must be single channel." );
   }
 
-  return d_->get_bounding_boxes( cv_src );
+  return d_->get_bounding_boxes( kv::image_of< uint8_t >( source ) );
 }
 
 } // end namespace ocv

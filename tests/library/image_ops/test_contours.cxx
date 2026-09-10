@@ -10,10 +10,11 @@
 /// from each other, and one that eight-connectivity joins and
 /// four-connectivity does not.
 ///
-/// Contours are matched by their bounding box rather than by index:
-/// `findContours` returns them in its own order and this traces in raster
-/// order, and which order they come in is not a contract either library
-/// documents.
+/// Contours are matched by their bounding box rather than by index, so that
+/// a failure names the shape it is about rather than a position. The order
+/// is checked separately, and it is a contract: `findContours` returns them
+/// in reverse raster order of their first pixel, and a caller that takes the
+/// first few sees a different answer if that changes.
 
 #include <image_ops/contours.h>
 
@@ -316,6 +317,28 @@ TEST ( contours, contour_measurements_match_opencv )
   }
 
   EXPECT_EQ( mine.size(), matched );
+}
+
+// ----------------------------------------------------------------------------
+/// The order, which `cv::findContours` fixes: reverse raster of the first
+/// pixel. `detect_heat_map` writes its detections out in this order.
+TEST ( contours, are_returned_in_reverse_raster_order )
+{
+  auto const mine = io::find_contours( shapes() );
+  auto const recorded = recorded_contours();
+
+  ASSERT_EQ( recorded.size(), mine.size() );
+
+  for( size_t at = 0; at < mine.size(); ++at )
+  {
+    auto const bounds = recorded_bounds( recorded[ at ] );
+    auto const b = io::bounding_rect( mine[ at ] );
+
+    EXPECT_EQ( bounds.left, b.left ) << "contour " << at;
+    EXPECT_EQ( bounds.top, b.top ) << "contour " << at;
+    EXPECT_EQ( bounds.right, b.right ) << "contour " << at;
+    EXPECT_EQ( bounds.bottom, b.bottom ) << "contour " << at;
+  }
 }
 
 // ----------------------------------------------------------------------------

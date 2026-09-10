@@ -1,4 +1,5 @@
 {
+  "appended": "2026-09-10T22:32:07Z",
   "cases": [
     {
       "config": {},
@@ -1946,6 +1947,75 @@
       },
       "unstable": {},
       "variant": "default"
+    },
+    {
+      "config": {
+        "bbox_buffer": "4",
+        "class_name": "motion",
+        "force_bbox_height": "16",
+        "force_bbox_width": "24",
+        "threshold": "100"
+      },
+      "impl": "detect_heat_map",
+      "inputs": [
+        "heat"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "heat": {
+          "detections": 9,
+          "file": "detect/detect_heat_map/forced_24x16/heat.json",
+          "sha256": "878ffb224b6c46bf"
+        }
+      },
+      "unstable": {},
+      "variant": "forced_24x16"
+    },
+    {
+      "config": {
+        "bbox_buffer": "2",
+        "class_name": "motion",
+        "force_bbox_height": "12",
+        "force_bbox_width": "16",
+        "threshold": "100"
+      },
+      "impl": "detect_heat_map",
+      "inputs": [
+        "heat"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "heat": {
+          "detections": 15,
+          "file": "detect/detect_heat_map/forced_16x12_buffer_2/heat.json",
+          "sha256": "7642e792dbb98731"
+        }
+      },
+      "unstable": {},
+      "variant": "forced_16x12_buffer_2"
+    },
+    {
+      "config": {
+        "bbox_buffer": "0",
+        "class_name": "motion",
+        "force_bbox_height": "20",
+        "force_bbox_width": "20",
+        "max_boxes": "4"
+      },
+      "impl": "detect_heat_map",
+      "inputs": [
+        "heat"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "heat": {
+          "detections": 4,
+          "file": "detect/detect_heat_map/forced_20x20_no_threshold/heat.json",
+          "sha256": "481104d76ef9e955"
+        }
+      },
+      "unstable": {},
+      "variant": "forced_20x20_no_threshold"
     }
   ],
   "fixtures": {

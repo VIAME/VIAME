@@ -586,13 +586,28 @@ def main():
                         help="recording group")
     parser.add_argument("--force", action="store_true",
                         help="overwrite an existing recording")
+    parser.add_argument("--append", action="store_true",
+                        help="record only the cases the manifest does not "
+                             "have yet, leaving every existing one alone")
     args = parser.parse_args()
 
     group_dir = os.path.join(HERE, args.group)
     manifest_path = os.path.join(group_dir, "manifest.json")
 
-    if os.path.exists(manifest_path) and not args.force:
-        print("{} already recorded; pass --force to re-record".format(args.group))
+    existing = None
+
+    if os.path.exists(manifest_path):
+        if args.append:
+            with open(manifest_path) as handle:
+                existing = json.load(handle)
+        elif not args.force:
+            print("{} already recorded; pass --force to re-record, or "
+                  "--append to add the cases it does not have".format(
+                      args.group))
+            return 1
+
+    if args.append and existing is None:
+        print("{} has no recording to append to".format(args.group))
         return 1
 
     runner.load_modules()
@@ -625,6 +640,31 @@ def main():
     }
 
     GROUPS[args.group](group_dir, manifest)
+
+    if existing is not None:
+        # Append only. A recorder must never be run against the code it is
+        # meant to be checking, and by the time a group is being extended
+        # some of it usually has been replaced -- so an existing case keeps
+        # the values it was recorded with, whatever this run produced.
+        already = {(case["kind"], case["impl"], case["variant"])
+                   for case in existing["cases"]}
+
+        added = [case for case in manifest["cases"]
+                 if (case["kind"], case["impl"], case["variant"])
+                 not in already]
+
+        for key in manifest:
+            if key not in ("cases", "recorded"):
+                existing.setdefault(key, manifest[key])
+
+        existing["cases"].extend(added)
+        existing["appended"] = datetime.datetime.now(datetime.timezone.utc) \
+                                       .strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        print("appended {} case(s); {} already recorded and left alone"
+              .format(len(added), len(manifest["cases"]) - len(added)))
+
+        manifest = existing
 
     with open(manifest_path, "w") as handle:
         json.dump(manifest, handle, indent=2, sort_keys=True)
