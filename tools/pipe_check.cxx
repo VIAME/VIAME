@@ -11,9 +11,9 @@
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 #include <viame/algorithm_framework/plugin/plugin_manager_internal.h>
 
-#include <sprokit/pipeline/pipeline.h>
-#include <sprokit/pipeline/process.h>
-#include <sprokit/pipeline_util/pipeline_builder.h>
+#include <viame/pipeline_framework/pipeline.h>
+#include <viame/pipeline_framework/process.h>
+#include <viame/pipeline_framework/pipeline_builder.h>
 
 #include <algorithm>
 #include <cstdlib>

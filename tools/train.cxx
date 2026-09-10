@@ -24,7 +24,7 @@
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/algorithm_framework/util/get_paths.h>
 
-#include <sprokit/pipeline/process_exception.h>
+#include <viame/pipeline_framework/process_exception.h>
 
 #include <plugins/core/utilities_file.h>
 #include <plugins/core/utilities_image.h>

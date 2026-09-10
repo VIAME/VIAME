@@ -12,8 +12,8 @@
 #include <viame/core_types/vital_types.h>
 #include <viame/core_types/image_container.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
-#include <sprokit/pipeline/process_exception.h>
+#include <viame/pipeline_framework/type_traits.h>
+#include <viame/pipeline_framework/process_exception.h>
 
 #include <memory>
 

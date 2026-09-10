@@ -24,7 +24,7 @@
 #include <viame/core_types/track.h>
 #include <viame/algorithm_framework/util/string.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 #include "measure_objects_process.h"
 #include "measurement_utilities.h"

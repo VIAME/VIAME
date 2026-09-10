@@ -5,7 +5,7 @@
 #include <viame/algorithm_framework/vital_config.h>
 #include <viame/algorithm_framework/plugin/plugin_loader.h>
 
-#include <sprokit/pipeline/process_factory.h>
+#include <viame/pipeline_framework/process_factory.h>
 
 #include "vertex_ai_detector.h"
 #include "vertex_ai_trainer.h"

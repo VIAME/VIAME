@@ -5,7 +5,7 @@
 #include "vertex_ai_detector.h"
 #include "vertex_ai_client.h"
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 #include <viame/core_types/image_container.h>
 #include <viame/core_types/detected_object_set.h>

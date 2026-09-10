@@ -11,7 +11,7 @@
 
 #include <viame/core_types/vital_types.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 #include <viame/algorithm_framework/algo/transform_2d_io.h>
 #include <viame/algorithm_framework/algo/algorithm.txx>

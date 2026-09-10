@@ -5,7 +5,7 @@
 #ifndef VIAME_VERTEX_AI_DETECTOR_H
 #define VIAME_VERTEX_AI_DETECTOR_H
 
-#include <sprokit/pipeline/process.h>
+#include <viame/pipeline_framework/process.h>
 
 #include <memory>
 

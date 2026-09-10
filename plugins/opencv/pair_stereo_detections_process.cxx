@@ -16,7 +16,7 @@
 #include <memory>
 
 #include <arrows/ocv/image_container.h>
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 namespace kv = kwiver::vital;
 

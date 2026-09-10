@@ -15,7 +15,7 @@
 #include <viame/core_types/feature_track_set.h>
 #include <viame/core_types/landmark_map.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 #include "convert_notes_to_attributes.h"
 

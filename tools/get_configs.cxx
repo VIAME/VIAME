@@ -15,8 +15,8 @@
 #include <viame/algorithm_framework/config/config_block_io.h>
 #include <viame/algorithm_framework/logger/logger.h>
 
-#include <sprokit/pipeline/process_factory.h>
-#include <sprokit/pipeline/process.h>
+#include <viame/pipeline_framework/process_factory.h>
+#include <viame/pipeline_framework/process.h>
 
 #include <vector>
 #include <string>

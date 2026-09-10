@@ -7,8 +7,8 @@
 
 #include <kwiversys/SystemTools.hxx>
 
-#include <sprokit/pipeline/process_exception.h>
-#include <sprokit/processes/adapters/adapter_types.h>
+#include <viame/pipeline_framework/process_exception.h>
+#include <viame/pipeline_framework/adapters/adapter_types.h>
 
 #include <algorithm>
 #include <fstream>

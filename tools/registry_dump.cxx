@@ -10,8 +10,8 @@
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 #include <viame/algorithm_framework/plugin/plugin_manager_internal.h>
 
-#include <sprokit/pipeline/process.h>
-#include <sprokit/pipeline/process_factory.h>
+#include <viame/pipeline_framework/process.h>
+#include <viame/pipeline_framework/process_factory.h>
 
 #include <algorithm>
 #include <cstdlib>

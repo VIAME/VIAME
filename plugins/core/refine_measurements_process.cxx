@@ -17,7 +17,7 @@
 #include <viame/core_types/metadata.h>
 #include <viame/core_types/metadata_traits.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 #include <Eigen/Core>
 

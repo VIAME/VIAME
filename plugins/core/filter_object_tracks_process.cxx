@@ -15,7 +15,7 @@
 #include <viame/core_types/timestamp_config.h>
 #include <viame/core_types/object_track_set.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 
 namespace kv = kwiver::vital;

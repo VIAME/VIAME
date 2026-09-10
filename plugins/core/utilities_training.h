@@ -10,7 +10,7 @@
 #include <viame/core_types/detected_object_set.h>
 #include <viame/core_types/category_hierarchy.h>
 
-#include <sprokit/processes/adapters/embedded_pipeline.h>
+#include <viame/pipeline_framework/adapters/embedded_pipeline.h>
 
 #include <string>
 #include <vector>

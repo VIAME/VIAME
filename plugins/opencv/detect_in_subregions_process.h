@@ -5,7 +5,7 @@
 #ifndef VIAME_OPENCV_DETECT_IN_SUBREGIONS_PROCESS_H
 #define VIAME_OPENCV_DETECT_IN_SUBREGIONS_PROCESS_H
 
-#include <sprokit/pipeline/process.h>
+#include <viame/pipeline_framework/process.h>
 
 #include <viame/algorithm_framework/config/config_block.h>
 

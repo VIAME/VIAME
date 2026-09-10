@@ -18,8 +18,8 @@
 #include <viame/core_types/bounding_box.h>
 #include <viame/algorithm_framework/algo/read_object_track_set.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
-#include <sprokit/pipeline/process_exception.h>
+#include <viame/pipeline_framework/type_traits.h>
+#include <viame/pipeline_framework/process_exception.h>
 
 #include <algorithm>
 #include <map>

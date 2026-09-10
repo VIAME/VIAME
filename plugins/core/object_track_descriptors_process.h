@@ -10,11 +10,11 @@
 #ifndef VIAME_CORE_OBJECT_TRACK_DESCRIPTORS_PROCESS_H
 #define VIAME_CORE_OBJECT_TRACK_DESCRIPTORS_PROCESS_H
 
-#include <sprokit/pipeline/process.h>
+#include <viame/pipeline_framework/process.h>
 
 #include "viame_processes_core_export.h"
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 #include <memory>
 

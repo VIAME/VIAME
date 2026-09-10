@@ -10,7 +10,7 @@
 #ifndef VIAME_OPENCV_CALIBRATE_SINGLE_CAMERA_PROCESS_H
 #define VIAME_OPENCV_CALIBRATE_SINGLE_CAMERA_PROCESS_H
 
-#include <sprokit/pipeline/process.h>
+#include <viame/pipeline_framework/process.h>
 
 #include "viame_processes_opencv_export.h"
 

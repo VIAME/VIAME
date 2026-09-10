@@ -10,11 +10,11 @@
 #ifndef VIAME_DESCRIPTORS_FORMAT_IMAGES_SRM_PROCESS_H
 #define VIAME_DESCRIPTORS_FORMAT_IMAGES_SRM_PROCESS_H
 
-#include <sprokit/pipeline/process.h>
+#include <viame/pipeline_framework/process.h>
 
 #include "viame_processes_descriptors_export.h"
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 #include <viame/core_types/image_container.h>
 #include <viame/core_types/timestamp.h>

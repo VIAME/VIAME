@@ -36,8 +36,8 @@
 #include <viame/algorithm_framework/algo/match_features.h>
 #include <viame/algorithm_framework/algo/estimate_homography.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
-#include <sprokit/pipeline/process_exception.h>
+#include <viame/pipeline_framework/type_traits.h>
+#include <viame/pipeline_framework/process_exception.h>
 
 #include "pair_stereo_detections.h"
 #include "pair_stereo_tracks.h"

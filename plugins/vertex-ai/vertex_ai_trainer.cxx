@@ -5,7 +5,7 @@
 #include "vertex_ai_trainer.h"
 #include "vertex_ai_client.h"
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 #include <sstream>
 

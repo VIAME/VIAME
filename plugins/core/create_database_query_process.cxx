@@ -9,7 +9,7 @@
 
 #include "create_database_query_process.h"
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 #include <viame/core_types/vital_types.h>
 

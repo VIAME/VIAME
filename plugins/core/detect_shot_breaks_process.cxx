@@ -27,7 +27,7 @@
 #include <viame/algorithm_framework/algo/extract_descriptors.h>
 #include <viame/algorithm_framework/algo/match_features.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 #include <cmath>
 #include <algorithm>

@@ -10,7 +10,7 @@
 #ifndef VIAME_OPENCV_MEASURE_OBJECTS_PROCESS_H
 #define VIAME_OPENCV_MEASURE_OBJECTS_PROCESS_H
 
-#include <sprokit/pipeline/process.h>
+#include <viame/pipeline_framework/process.h>
 
 #include "viame_opencv_export.h"
 

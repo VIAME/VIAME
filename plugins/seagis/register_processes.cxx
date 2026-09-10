@@ -3,7 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "viame_processes_seagis_export.h"
-#include <sprokit/pipeline/process_factory.h>
+#include <viame/pipeline_framework/process_factory.h>
 #include <viame/algorithm_framework/plugin/plugin_loader.h>
 
 #include "seagis_measurement_process.h"

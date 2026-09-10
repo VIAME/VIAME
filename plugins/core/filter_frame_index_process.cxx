@@ -15,8 +15,8 @@
 #include <viame/core_types/image_container.h>
 #include <viame/core_types/detected_object_set.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
-#include <sprokit/pipeline/process_exception.h>
+#include <viame/pipeline_framework/type_traits.h>
+#include <viame/pipeline_framework/process_exception.h>
 
 namespace kv = kwiver::vital;
 

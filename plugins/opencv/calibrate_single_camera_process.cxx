@@ -18,7 +18,7 @@
 #include <viame/core_types/camera_intrinsics.h>
 #include <viame/algorithm_framework/exceptions.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/calib3d/calib3d.hpp>

@@ -20,7 +20,7 @@
 #include <viame/core_types/track.h>
 #include <viame/algorithm_framework/util/string.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 #include "../core/measurement_utilities.h"
 #include "../core/pair_stereo_detections.h"

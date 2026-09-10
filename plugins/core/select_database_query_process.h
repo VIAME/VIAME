@@ -10,7 +10,7 @@
 #ifndef VIAME_CORE_SELECT_DATABASE_QUERY_PROCESS_H
 #define VIAME_CORE_SELECT_DATABASE_QUERY_PROCESS_H
 
-#include <sprokit/pipeline/process.h>
+#include <viame/pipeline_framework/process.h>
 
 #include "viame_processes_core_export.h"
 

@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
-"""Copy the used part of kwiver's `vital` into `library/`.
+"""Move a group of kwiver's code into `library/`.
 
-Phase 5's second task. The files are the ones `kwiver_reachable.py` found;
-this puts each where `lite-library-layout.md` section 2 says it goes and
-rewrites the include paths inside it to match. The code itself is not
-touched: phases 6 to 8 rewrite it, this only moves it.
+Phase 5. Each group is one run: the files go where
+`lite-library-layout.md` section 2 says they go, every include of them is
+rewritten to match, and kwiver's copies are deleted in the same change so
+that only one of each library is ever built. Two copies of identical code
+carry two copies of the static state and do not survive teardown; see
+`lite-findings.md` section 1.1.
 
-Destinations:
+The code itself is not touched. Phases 6 to 8 rewrite it; this only moves it.
 
+Groups:
+
+  vital (P5-T02, done)
     vital/types/*, vital/vital_types.h   -> library/core_types/
     the top-level vital headers that
       vital/types includes               -> library/core_types/
@@ -21,22 +26,38 @@ Destinations:
     vital/kwiversys/                     -> third_party/kwiversys/
     vital/applets/cxxopts.hpp            -> third_party/cxxopts/cxxopts.hpp
 
-Includes are rewritten the same way, so `<vital/types/image.h>` becomes
-`<viame/core_types/image.h>` everywhere, in the copied files and in VIAME's
-own sources.
+  sprokit (P5-T03)
+    sprokit/src/sprokit/pipeline/*       -> library/pipeline_framework/
+    sprokit/src/sprokit/pipeline_util/*  -> library/pipeline_framework/
+      (both flatten: the two directories share no file name, and the layout
+       lists the engine and the .pipe parser as one thing)
+    sprokit/src/schedulers/*             -> library/pipeline_framework/schedulers/
+    sprokit/src/applets/*                -> library/pipeline_framework/applets/
+    sprokit/processes/adapters/*         -> library/pipeline_framework/adapters/
+    sprokit/processes/kwiver_type_traits.h
+                                         -> library/pipeline_framework/type_traits.h
+    sprokit/processes/trait_utils.h      -> library/pipeline_framework/trait_utils.h
+    the four generic processes           -> library/pipeline_framework/processes/
 
-The generated headers -- the export headers, `vital_config.h`, `version.h`
-and `kwiver-include-paths.h` -- are not copied. `library/algorithm_framework`
-generates them, from kwiver's own templates and with kwiver's macro and guard
-names, into the build tree where they belong; one of them carries absolute
-paths from this build and has no business in the source tree.
+Unlike vital, the sprokit directories come across whole rather than as the
+subset `kwiver_reachable.py` found. They are complete libraries that kwiver
+builds as units, and the closure's blind spots -- registration by type, most
+of all -- are exactly what would be lost. `sprokit/processes/core` is the
+one place a subset is taken, and only the processes the layout assigns here;
+the rest go to the functional directories in P5-T04.
 
-Keeping the guard names matters: kwiver's sprokit and arrows headers still
-name the old paths, so a translation unit can reach both copies of a header,
-and identical guards are what make that one definition rather than two.
+The generated headers -- the export headers, `vital_config.h`, `version.h`,
+`kwiver-include-paths.h` -- are not copied. Kwiver's build generates them,
+from its own templates and with its own macro and guard names, into the
+build tree where they belong; one of them carries absolute paths from the
+build and has no business in the source tree.
+
+A group is one-shot: once kwiver's copies are gone there is nothing left to
+read, and running it again would empty the destinations. Each group refuses
+to run when its source is already gone.
 
 Usage:
-    import_kwiver_vital.py [--dry-run] [--sources-only]
+    import_kwiver.py <group> [--dry-run] [--sources-only]
 """
 
 import argparse
@@ -101,19 +122,68 @@ KWIVER_SOURCES = (
 SOURCE_SUFFIXES = (".h", ".hpp", ".hxx", ".txx", ".cxx", ".cpp", ".c", ".cc")
 
 
-def kwiver_vital_present():
-    """Whether kwiver still has the sources this imports.
+# Where each sprokit directory lands under `library/pipeline_framework`.
+# `pipeline` and `pipeline_util` both flatten: they share no file name, and
+# the layout lists the engine and the .pipe parser as one thing.
+SPROKIT_SUBS = {
+    "sprokit/src/sprokit/pipeline": "",
+    "sprokit/src/sprokit/pipeline_util": "",
+    "sprokit/src/schedulers": "schedulers",
+    "sprokit/src/applets": "applets",
+    "sprokit/processes/adapters": "adapters",
+}
 
-    Once the import has landed and kwiver's `vital/` has been deleted,
-    `library/` is the source of truth and running this again would clear the
-    destinations and copy nothing.
-    """
-    return os.path.isfile(os.path.join(KWIVER, "vital", "types", "image.h"))
+# Single files, and the one rename the task asks for.
+SPROKIT_FILES = {
+    "sprokit/processes/kwiver_type_traits.h":
+        "library/pipeline_framework/type_traits.h",
+    "sprokit/processes/trait_utils.h":
+        "library/pipeline_framework/trait_utils.h",
+}
+
+# The generic processes the layout assigns to the pipeline framework. Only
+# one of the four it names is kwiver's: `filter_frame`, `filter_frame_index`
+# and `image_to_image_set` are VIAME's own, and move with `plugins/core` in
+# phase 2.
+SPROKIT_PROCESSES = (
+    "sprokit/processes/core/downsample_process.h",
+    "sprokit/processes/core/downsample_process.cxx",
+)
+
+
+def sprokit_destination(rel):
+    """Where a `sprokit/...` path goes, relative to the repository root."""
+    if rel in SPROKIT_FILES:
+        return SPROKIT_FILES[rel]
+
+    if rel in SPROKIT_PROCESSES:
+        return os.path.join("library", "pipeline_framework", "processes",
+                            os.path.basename(rel))
+
+    for source, sub in SPROKIT_SUBS.items():
+        prefix = source + "/"
+
+        if not rel.startswith(prefix):
+            continue
+
+        rest = rel[len(prefix):]
+
+        # Nothing below the directory itself: the tests and the worked
+        # examples are not what gets copied.
+        if "/" in rest:
+            return None
+
+        return os.path.join("library", "pipeline_framework", sub, rest)
+
+    return None
 
 
 def destination(rel):
-    """Where a `vital/...` path goes, relative to the repository root."""
+    """Where a kwiver path goes, relative to the repository root."""
     parts = rel.split("/")
+
+    if parts[0] == "sprokit":
+        return sprokit_destination(rel)
 
     if parts[0] != "vital":
         return None
@@ -148,6 +218,18 @@ def rewritten(spec):
     if spec == "vital/applets/cxxopts.hpp":
         return "cxxopts.hpp"
 
+    if spec.startswith("sprokit/"):
+        # An include names the header the way kwiver's include path reaches
+        # it -- `sprokit/pipeline/x.h`, not `sprokit/src/sprokit/pipeline/x.h`
+        # -- so put the source root back before looking it up.
+        for candidate in ("sprokit/src/" + spec, spec):
+            target = destination(candidate)
+
+            if target is not None:
+                return "/".join(["viame"] + target.split(os.sep)[1:])
+
+        return None
+
     if not spec.startswith("vital/"):
         return None
 
@@ -168,13 +250,23 @@ def rewritten(spec):
 # A generated export header included by its bare name, resolved against the
 # including file's own directory. That no longer works once the header is
 # generated into its own root, so it is spelled out like the rest.
-BARE_EXPORT = re.compile(r"^vital_[a-z_]*export\.h$")
+BARE_EXPORT = re.compile(r"^(vital|sprokit|kwiver)_[a-z_0-9]*export\.h$")
+
+# Bare names that kwiver reached through a directory on its include path
+# rather than through a path of their own.
+BARE_MOVED = {
+    "kwiver_type_traits.h": "viame/pipeline_framework/type_traits.h",
+    "trait_utils.h": "viame/pipeline_framework/trait_utils.h",
+}
 
 
 def rewrite_text(text, here=None):
     def replace(match):
         spec = match.group(2)
         target = rewritten(spec)
+
+        if target is None:
+            target = BARE_MOVED.get(spec)
 
         if target is None and here and BARE_EXPORT.match(spec):
             target = here + "/" + spec
@@ -210,19 +302,15 @@ def copy(source, target, dry_run, here=None):
         handle.write(rewrite_text(text, here))
 
 
-# Cleared before each copy, so a file that stops being reachable stops being
-# here. Anything not written by the copy -- the CMakeLists, in particular --
-# is left alone.
-COPY_TARGETS = (
-    os.path.join("library", "core_types"),
-    os.path.join("library", "algorithm_framework"),
-)
+def clear(targets, dry_run):
+    """Empty a group's destinations before copying into them.
 
-
-def clear(dry_run):
+    A file that stops being part of the group stops being here. Anything the
+    copy does not write -- the CMakeLists, in particular -- is left alone.
+    """
     removed = 0
 
-    for directory in COPY_TARGETS:
+    for directory in targets:
         base = os.path.join(ROOT, directory)
 
         if not os.path.isdir(base):
@@ -244,10 +332,10 @@ def clear(dry_run):
     return removed
 
 
-def copy_sources(dry_run):
+def copy_sources(sources, dry_run):
     copied, skipped = 0, []
 
-    for rel in listed_vital_files():
+    for rel in sources:
         target = destination(rel)
 
         if target is None:
@@ -264,10 +352,10 @@ def copy_sources(dry_run):
     return copied, skipped
 
 
-def copy_vendored(dry_run):
+def copy_vendored(vendored, dry_run):
     copied = 0
 
-    for source_rel, target_rel in VENDORED:
+    for source_rel, target_rel in vendored:
         source = os.path.join(KWIVER, source_rel)
         target = os.path.join(ROOT, target_rel)
 
@@ -320,38 +408,89 @@ def rewrite_tree(root, directories, dry_run):
     return changed
 
 
+def sprokit_sources():
+    """Every file the sprokit group moves, kwiver-relative.
+
+    Whole directories, unlike vital: these are complete libraries that
+    kwiver builds as units, and what a closure over includes cannot see --
+    registration by type, most of all -- is exactly what would be lost. See
+    `lite-findings.md` section 1.4.
+    """
+    found = list(SPROKIT_FILES) + list(SPROKIT_PROCESSES)
+
+    for source in SPROKIT_SUBS:
+        base = os.path.join(KWIVER, source)
+
+        if not os.path.isdir(base):
+            continue
+
+        for name in sorted(os.listdir(base)):
+            if name.endswith(SOURCE_SUFFIXES):
+                found.append(source + "/" + name)
+
+    return [rel for rel in found
+            if os.path.isfile(os.path.join(KWIVER, rel))]
+
+
+GROUPS = {
+    "vital": {
+        "task": "P5-T02",
+        # Gone once the group has landed, so the run is refused rather than
+        # emptying the destinations
+        "sentinel": "vital/types/image.h",
+        "sources": listed_vital_files,
+        "clear": (os.path.join("library", "core_types"),
+                  os.path.join("library", "algorithm_framework")),
+        "vendored": VENDORED,
+    },
+    "sprokit": {
+        "task": "P5-T03",
+        "sentinel": "sprokit/src/sprokit/pipeline/process.h",
+        "sources": sprokit_sources,
+        "clear": (os.path.join("library", "pipeline_framework"),),
+        "vendored": (),
+    },
+}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("group", choices=sorted(GROUPS),
+                        help="which group of kwiver code to move")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--sources-only", action="store_true",
                         help="do not rewrite VIAME's own includes")
     args = parser.parse_args()
+
+    group = GROUPS[args.group]
 
     if not os.path.isfile(LIST):
         print("no {}; run kwiver_reachable.py first".format(
             os.path.relpath(LIST, ROOT)), file=sys.stderr)
         return 1
 
-    if not kwiver_vital_present():
-        print("kwiver's vital/ is gone: the import has already landed and "
+    if not os.path.isfile(os.path.join(KWIVER, group["sentinel"])):
+        print("kwiver no longer has the {} sources: {} has landed and "
               "library/ is the source of truth now. Running this again would "
-              "empty the destinations.", file=sys.stderr)
+              "empty the destinations.".format(args.group, group["task"]),
+              file=sys.stderr)
         return 1
 
     print("{} files cleared from the copy destinations".format(
-        clear(args.dry_run)))
+        clear(group["clear"], args.dry_run)))
 
-    copied, skipped = copy_sources(args.dry_run)
-    print("{} vital files copied".format(copied))
+    copied, skipped = copy_sources(group["sources"](), args.dry_run)
+    print("{} {} files copied".format(copied, args.group))
 
     if skipped:
-        print("\n{} listed vital files had no destination:".format(
+        print("\n{} listed files had no destination:".format(
             len(skipped)), file=sys.stderr)
         for rel in skipped[:20]:
             print("  {}".format(rel), file=sys.stderr)
 
-    print("{} vendored files copied to third_party".format(
-        copy_vendored(args.dry_run)))
+    if group["vendored"]:
+        print("{} vendored files copied to third_party".format(
+            copy_vendored(group["vendored"], args.dry_run)))
 
     if not args.sources_only:
         print("{} VIAME sources had their includes rewritten".format(

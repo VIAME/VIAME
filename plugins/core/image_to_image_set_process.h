@@ -12,7 +12,7 @@
 
 #include <plugins/core/viame_processes_core_export.h>
 
-#include <sprokit/pipeline/process.h>
+#include <viame/pipeline_framework/process.h>
 
 #include <memory>
 

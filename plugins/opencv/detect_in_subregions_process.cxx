@@ -10,8 +10,8 @@
 #include <viame/algorithm_framework/algo/algorithm.txx>
 #include <viame/algorithm_framework/util/wall_timer.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
-#include <sprokit/pipeline/process_exception.h>
+#include <viame/pipeline_framework/type_traits.h>
+#include <viame/pipeline_framework/process_exception.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>

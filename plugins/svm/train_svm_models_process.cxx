@@ -12,7 +12,7 @@
 #include <viame/core_types/vital_types.h>
 #include <viame/algorithm_framework/logger/logger.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 #include <svm.h>
 

@@ -3,7 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "viame_processes_descriptors_export.h"
-#include <sprokit/pipeline/process_factory.h>
+#include <viame/pipeline_framework/process_factory.h>
 #include <viame/algorithm_framework/plugin/plugin_loader.h>
 
 #include "format_images_srm_process.h"

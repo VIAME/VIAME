@@ -20,7 +20,7 @@
 #include <viame/core_types/bounding_box.h>
 #include <viame/core_types/camera_perspective.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
+#include <viame/pipeline_framework/type_traits.h>
 
 // Suppress warnings from external headers
 #if defined(__GNUC__) && !defined(__clang__)
