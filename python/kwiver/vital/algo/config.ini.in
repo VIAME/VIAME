@@ -1,0 +1,13 @@
+# see ./scripts/cpp_to_pybind11.py for detail documentation
+[Defaults]
+list_delimiter=;
+include_dirs=@KWIVER_PYBIND11_PARSER_INCLUDE_DIRS@$<TARGET_PROPERTY:vital_algo,INCLUDE_DIRECTORIES>
+classes=@KWIVER_PYBIND11_ALGO@
+# The interfaces live in VIAME's library/ since phase 5, reached through the
+# `viame` include root. The generator builds both the input paths and the
+# `#include` lines in what it writes by joining these two, so they are what
+# put `viame/algorithm_framework/algo/x.h` in the generated headers.
+project_source_directory=@VIAME_LITE_SOURCE_INCLUDE_DIR@
+working_directory=.
+common_namespace=kwiver::vital::algo
+base_directory_for_input=viame/algorithm_framework/algo

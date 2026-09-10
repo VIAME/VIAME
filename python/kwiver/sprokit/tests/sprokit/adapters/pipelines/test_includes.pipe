@@ -1,0 +1,4 @@
+include simple_input_adapter.pipe
+
+process oa  :: output_adapter
+connect from ia.port1  to  oa.port1

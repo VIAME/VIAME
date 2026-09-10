@@ -1,0 +1,3 @@
+class Pluggable:
+    @staticmethod
+    def interface_name() -> str: ...
