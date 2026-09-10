@@ -351,14 +351,15 @@ int main(int argc, char *argv[])
 
   command_line_parser options( argc, &argv );
 
-  if ( (options.m_applet_name == "help") || (argc == 1) )
-  {
-    return help_applet( options, tool_context, vpm );
-  } // end help code
-
-  // ----------------------------------------------------------------------------
   try
   {
+    if( options.m_applet_name == "help" || argc == 1 ||
+        (options.m_applet_name.empty() && argc == 2 &&
+         (std::string(argv[1]) == "--help" || std::string(argv[1]) == "-h")) )
+    {
+      return help_applet( options, tool_context, vpm );
+    }
+
     // Create applet based on the name provided
     applet_factory app_fact;
     auto fact = app_fact.find_factory( options.m_applet_name );
