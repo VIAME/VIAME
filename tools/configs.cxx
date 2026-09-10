@@ -3,6 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "configs.h"
+#include "atomic_output.h"
 
 #include <kwiversys/SystemTools.hxx>
 #include <kwiversys/Directory.hxx>
@@ -544,6 +545,8 @@ parse_pipe_file_for_processes( const std::string& pipe_file )
 // =======================================================================================
 // Extract process parameters and add to flat list
 // =======================================================================================
+std::vector< std::string > extraction_errors;
+
 void extract_process_params(
   const std::string& proc_name,
   const std::string& proc_type,
@@ -561,6 +564,7 @@ void extract_process_params(
 
     if( !proc )
     {
+      extraction_errors.push_back("Could not create process: " + proc_name + " (" + proc_type + ")");
       LOG_WARN( g_logger, "Could not create process: " << proc_type );
       return;
     }
@@ -700,6 +704,7 @@ void extract_process_params(
   }
   catch( const std::exception& e )
   {
+    extraction_errors.push_back("Process " + proc_name + ": " + e.what());
     LOG_WARN( g_logger, "Error extracting config for process " << proc_name
               << " (" << proc_type << "): " << e.what() );
   }
@@ -1052,6 +1057,17 @@ void write_json_output( std::ostream& os,
     os << "\n";
   }
 
+  if( !extraction_errors.empty() )
+  {
+    if( !pipelines.empty() ) { os << ",\n"; }
+    os << "  \"_errors\": [";
+    for( size_t i = 0; i < extraction_errors.size(); ++i )
+    {
+      if( i ) { os << ", "; }
+      os << "\"" << escape_json_string(extraction_errors[i]) << "\"";
+    }
+    os << "]\n";
+  }
   os << "}\n";
 }
 
@@ -1075,6 +1091,8 @@ configs_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "a,all-implementations", "Include configs for all registered "
       "implementations, not just selected ones",
+      ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "strict", "Fail without writing output if any extraction is incomplete",
       ::cxxopts::value< bool >()->default_value( "false" ) )
     ( "no-descriptions", "Exclude parameter descriptions from output",
       ::cxxopts::value< bool >()->default_value( "false" ) )
@@ -1108,6 +1126,7 @@ configs_applet
     return EXIT_SUCCESS;
   }
 
+  extraction_errors.clear();
   config_extractor_vars params;
 
   params.opt_input_path = cmd_args[ "input" ].as< std::string >();
@@ -1208,6 +1227,7 @@ configs_applet
     }
     else
     {
+      extraction_errors.push_back(file + ": no configurations extracted");
       LOG_WARN( g_logger, "Skipping file (no params extracted): " << file );
     }
   }
@@ -1218,28 +1238,23 @@ configs_applet
     return EXIT_FAILURE;
   }
 
-  // Write output
-  std::ostream* output = &std::cout;
-  std::ofstream file_output;
-
-  if( !params.opt_output_file.empty() )
+  if( cmd_args["strict"].as<bool>() && !extraction_errors.empty() )
   {
-    file_output.open( params.opt_output_file );
-    if( !file_output.is_open() )
-    {
-      LOG_ERROR( g_logger, "Could not open output file: " << params.opt_output_file );
-      return EXIT_FAILURE;
-    }
-    output = &file_output;
+    LOG_ERROR(g_logger, "Configuration extraction was incomplete");
+    return EXIT_FAILURE;
   }
-
-  // Write JSON
-  write_json_output( *output, pipelines, params.opt_include_descriptions );
-
-  if( file_output.is_open() )
+  if( params.opt_output_file.empty() )
   {
-    file_output.close();
-    LOG_INFO( g_logger, "Configuration written to: " << params.opt_output_file );
+    write_json_output(std::cout, pipelines, params.opt_include_descriptions);
+    std::cout.flush();
+    if( !std::cout ) { return EXIT_FAILURE; }
+  }
+  else
+  {
+    atomic_output(params.opt_output_file, [&](std::ostream& out)
+    {
+      write_json_output(out, pipelines, params.opt_include_descriptions);
+    });
   }
 
   return EXIT_SUCCESS;
