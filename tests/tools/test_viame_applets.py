@@ -920,7 +920,7 @@ class TestRunDispatch:
 
     @staticmethod
     def _mode(result):
-        if "usage: run_bulk.py" in result.stdout:
+        if "usage: run.py" in result.stdout:
             return "batch"
         if "pipe-file" in result.stdout:
             return "pipeline"
@@ -1376,7 +1376,7 @@ class TestPythonScriptApplets:
         result = run_viame(viame_env, "run", "--help")
 
         assert result.returncode == 0
-        assert "usage: run_bulk.py" in result.stdout
+        assert "usage: run.py" in result.stdout
 
     def test_help_subcommand_matches_script_help(self, viame_env):
         direct = run_viame(viame_env, "run", "--help")

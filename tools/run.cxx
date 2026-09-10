@@ -455,7 +455,7 @@ run_staged_pipeline(
 
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
 
-VIAME_PYTHON_SCRIPT_APPLET( run_bulk_applet, "run-bulk", "run_bulk.py",
+VIAME_PYTHON_SCRIPT_APPLET( run_bulk_applet, "run-bulk", "run.py",
   "Process videos or images in batch" )
 
 #endif

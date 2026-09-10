@@ -17,7 +17,7 @@ namespace tools {
 ///
 /// A lone pipe file is executed directly through the pipeline runner, with
 /// "pipeline stage N:" markers run as a sequence of pipelines. Any other
-/// command line is forwarded to the run_bulk.py batch driver.
+/// command line is forwarded to the run.py batch driver.
 class VIAME_TOOLS_APPLETS_EXPORT run_applet
   : public kwiver::tools::kwiver_applet
 {
@@ -25,7 +25,7 @@ public:
   PLUGIN_INFO( "run",
                "Process videos or images, or run a single pipeline file.\n\n"
                "viame run <pipeline.pipe> executes one pipeline; any other "
-               "form is batch processing handled by run_bulk.py. A model "
+               "form is batch processing handled by run.py. A model "
                "file (.pt, .pth, .ckpt, .weights, .onnx or .zip) may stand "
                "in for the pipeline and is wrapped in the default detector "
                "or frame classifier." );

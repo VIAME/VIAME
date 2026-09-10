@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-spec = importlib.util.spec_from_file_location("review_run_bulk", Path(__file__).resolve().parents[2] / "tools" / "run_bulk.py")
+spec = importlib.util.spec_from_file_location("review_run_bulk", Path(__file__).resolve().parents[2] / "tools" / "run.py")
 m = importlib.util.module_from_spec(spec)
 import sys, types
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools'))

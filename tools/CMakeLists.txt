@@ -17,7 +17,7 @@ set( PYTHON_SCRIPTS
   search.py
   pipeline.py
   plot.py
-  run_bulk.py
+  run.py
   metadata.py
   ensemble.py
   monitor.py

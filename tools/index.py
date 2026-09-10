@@ -158,7 +158,7 @@ def cmd_add(args):
     os.makedirs(database_dir, exist_ok=True)
 
     started = time.time()
-    command = [sys.executable, os.path.join(script_dir(), "run_bulk.py"),
+    command = [sys.executable, os.path.join(script_dir(), "run.py"),
                "--no-reset-prompt", "-p", pipeline, "-o", database_dir,
                "--index-backend", backend]
     for flag, value in inputs:
