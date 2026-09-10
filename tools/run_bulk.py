@@ -12,6 +12,7 @@ import math
 import numpy as np
 import argparse
 import atexit
+import copy
 import contextlib
 import itertools
 import signal
@@ -249,14 +250,39 @@ def get_python_cmd():
 
 def exit_with_error( error_str, force=False ):
   log_info( lb1 + 'ERROR: ' + error_str + lb2 )
-  # Kill this process to end all threads
-  if not isinstance( threading.current_thread(), threading._MainThread ):
-    if os.name == 'nt':
-      os.kill( os.getpid(), signal.SIGTERM )
-    else:
-      os.kill( os.getpid(), signal.SIGKILL )
-  # Default exit case, if main thread
-  sys.exit(0)
+  raise SystemExit(1)
+
+
+def run_jobs(entries, process, worker_ids):
+  """Collect every worker result, including exceptions, before reporting failure."""
+  jobs = queue.Queue()
+  failures = queue.Queue()
+  for entry in entries:
+    jobs.put(entry)
+
+  def worker(gpu, cpu):
+    while True:
+      try:
+        entry = jobs.get_nowait()
+      except queue.Empty:
+        return
+      try:
+        result = process(entry, gpu, cpu)
+        if result not in (None, 0):
+          failures.put((entry, str(result)))
+      except (Exception, SystemExit) as exc:
+        failures.put((entry, str(exc)))
+      finally:
+        jobs.task_done()
+
+  threads = [threading.Thread(target=worker, args=ids) for ids in worker_ids]
+  if not threads:
+    raise ValueError("At least one worker is required")
+  for thread in threads:
+    thread.start()
+  for thread in threads:
+    thread.join()
+  return list(failures.queue)
 
 @contextlib.contextmanager
 def get_log_output_files( output_prefix ):
@@ -743,26 +769,11 @@ def convert_gt_only_using_kwiver( input_path, options, gpu=None, run_pipeline=Tr
   else:
     return_id = 0
 
-  global any_video_complete
-
-  if return_id == 0:
-    if multi_threaded:
-      log_info( 'Completed: {}'.format( input_id ) + lb1 )
-    else:
-      log_info( 'Success' + lb1 )
-    any_video_complete = True
+  if return_id:
+    log_info('Failure: {} (exit {}), log {}'.format(input_path, return_id, log_base) + lb1)
   else:
-    if multi_threaded:
-      log_info( 'Failure: {}'.format( input_id ) + lb1 )
-    else:
-      log_info( 'Failure' + lb1 )
-    if not any_video_complete:
-      if len( log_base ) > 0:
-        exit_with_error( 'Processing failed, check ' + log_base + '.txt, terminating.' )
-      else:
-        exit_with_error( 'Processing failed, terminating.' )
-    elif len( log_base ) > 0:
-      log_info( lb1 + 'Check ' + log_base + '.txt for error messages' + lb2 )
+    log_info('Completed: ' + input_path + lb1)
+  return return_id
 
 # Process a single data item (image list, folder, or video)
 def process_using_kwiver( input_path, options, is_image_list=False,
@@ -1004,7 +1015,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
   # Generate optional mosaic for sequence
   if options.mosaic:
     log_info( "Building mosaic... " )
-    import create_mosaic
+    import mosaic as create_mosaic
     mosaic_args = []
     frame_id_ranges = []
     if len( input_paths ) == 0:
@@ -1038,48 +1049,18 @@ def process_using_kwiver( input_path, options, is_image_list=False,
       except Exception as e:
         log_info( "Critical error computing mosaic starting on frame " + str( fid_pair[0] ) + lb )
         log_info( "Error: " + str( e ) + lb )
+        return_id = 1
     if any_mosaic_attempted:
       log_info( lb )
     else:
       return_id = 1234
 
-  if return_id == 0:
-    if multi_threaded:
-      log_info( 'Completed: {} on GPU {}'.format( input_id, gpu ) + lb1 )
-    else:
-      log_info( 'Success' + lb1 )
-    any_video_complete = True
+  if return_id:
+    log_info('Failure: {} (exit {})'.format(input_path, return_id) + lb1)
   else:
-    if multi_threaded:
-      log_info( 'Failure: {} on GPU {} Failed'.format( input_id, gpu ) + lb1 )
-    else:
-      log_info( 'Failure' + lb1 )
+    log_info('Completed: ' + input_path + lb1)
+  return return_id
 
-    if return_id == 1234: # Mosaic failure hack
-      return
-
-    if return_id == -11:
-      s = os.statvfs( output_dir )
-
-      if s.f_bavail * s.f_frsize < 100000000:
-        exit_with_error( lb1 + 'Out of disk space. Clean up space and then re-run.' )
-
-      log_info( lb1 + 'Pipeline failed with code 11. This is typically indicative of an '
-        'issue with system resources, e.g. low disk space or running out of '
-        'memory, but could be indicative of a pipeline issue. It\'s also possible '
-        'the pipeline you are running just had a shutdown issue. Attempting to '
-        'continue processing.' + lb1 )
-
-      any_video_complete = True
-
-    if not any_video_complete:
-      if len( log_base ) > 0:
-        exit_with_error( 'Processing failed, check ' + log_base + '.txt, terminating.' )
-      else:
-        exit_with_error( 'Processing failed, terminating.' )
-    elif len( log_base ) > 0:
-      log_info( lb1 + 'Check ' + log_base + '.txt for error messages' + lb2 )
-    
 
 # Main Function
 if __name__ == "__main__" :
@@ -1264,6 +1245,8 @@ if __name__ == "__main__" :
          "viame binaries are already in our path." )
 
   args = parser.parse_args()
+  if args.gpu_count < 1 or args.pipes < 1:
+    parser.error("GPU count and pipes per GPU must be positive")
 
   # Positional shorthand: [pipeline] [input], or just [input] with -p
   positional = getattr( args, "positional", [] )
@@ -1359,7 +1342,8 @@ if __name__ == "__main__" :
                                     "database_log.txt" )
     else:
       init_log_file = ""
-    db_is_init, user_select = database.init( log_file=init_log_file, prompt=(not args.no_reset_prompt) )
+    db_is_init, user_select = database.init( log_file=init_log_file, prompt=(not args.no_reset_prompt),
+                                            database_dir=args.output_directory )
     if not db_is_init:
       if user_select:
         exit_with_error( "User decided to not initialize new database, shutting down." + lb2 )
@@ -1467,7 +1451,7 @@ if __name__ == "__main__" :
       if os.path.isfile( video_name ) or os.path.isdir( video_name ):
         data_queue.put( video_name )
       else:
-        log_info( "Skipping unknown input: " + video_name + lb )
+        exit_with_error( "Unknown input: " + video_name )
 
     # Automatically determine pipe when needed
     auto_select_pipe = ( args.pipeline == auto_pipeline )
@@ -1475,29 +1459,20 @@ if __name__ == "__main__" :
     if auto_select_pipe and not args.mosaic:
       exit_with_error( "Auto-pipeline selection only valid for mosaicing" )
 
-    def process_on_thread( gpu, cpu ):
-      while True:
-        try:
-          entry_name = data_queue.get_nowait()
-        except queue.Empty:
-          break
-        if auto_select_pipe:
-          args.pipeline = auto_select_registration_pipe( entry_name )
-        if args.gt_only:
-          convert_gt_only_using_kwiver( entry_name, args, gpu=gpu, run_pipeline=call_pipeline )
-        else:
-          process_using_kwiver( entry_name, args, is_image_list, cpu=cpu, gpu=gpu, run_pipeline=call_pipeline )
+    def process_entry(entry_name, gpu, cpu):
+      options = copy.copy(args)
+      if auto_select_pipe:
+        options.pipeline = auto_select_registration_pipe(entry_name)
+      if options.gt_only:
+        return convert_gt_only_using_kwiver(entry_name, options, gpu=gpu, run_pipeline=call_pipeline)
+      return process_using_kwiver(entry_name, options, is_image_list, cpu=cpu, gpu=gpu, run_pipeline=call_pipeline)
 
-    gpu_thread_list = [ i for i in range( args.gpu_count ) for _ in range( args.pipes ) ]
-    cpu_thread_list = list( range( args.pipes ) ) * args.gpu_count
-
-    threads = [ threading.Thread( target = process_on_thread, args = (gpu,cpu,) )
-                for gpu, cpu in zip( gpu_thread_list, cpu_thread_list ) ]
-
-    for thread in threads:
-      thread.start()
-    for thread in threads:
-      thread.join()
+    failures = run_jobs(list(data_queue.queue), process_entry,
+                       [(gpu, cpu) for gpu in range(args.gpu_count) for cpu in range(args.pipes)])
+    if failures:
+      for entry, error in failures:
+        log_info('Failed {}: {}'.format(entry, error) + lb1)
+      exit_with_error('{} item(s) failed'.format(len(failures)))
 
     if is_image_list:
       if args.gpu_count > 1: # Each thread outputs 1 list, add multiple
@@ -1505,8 +1480,6 @@ if __name__ == "__main__" :
         for image_list in data_list: # Clean up after split_image_list
           os.unlink( image_list )
 
-    if not data_queue.empty():
-      exit_with_error( "Some videos were not processed!" )
 
   # Build out detection vs time plots for both detections and tracks
   if args.detection_plots:
