@@ -1,0 +1,249 @@
+# What the work has taught, and what is still open
+
+`STATUS.md` records what each task did. This records what the doing of it
+taught that the plan did not know, and what is still unresolved. A finding
+here is one that changes how a *later* phase should be done; anything that
+only mattered to the task it came from stays in that task's ledger note.
+
+Written after phases 3 and 4 and the first half of phase 5.
+
+## 1. Findings
+
+### 1.1 One copy of a library per process, or it will not exit
+
+Phase 5's P5-T02 said to copy `vital` into `library/` and leave kwiver
+building its own for its arrows and its pipeline engine -- "temporary
+duplication for one task". Both copies then load: kwiver's through sprokit,
+the copy through VIAME's own libraries. The code is identical and so are the
+namespace and the include guards, so it compiles, links, and produces correct
+output. What it does not do is exit. Every `kwiver runner` process aborted in
+`__run_exit_handlers` with a double free, eight times out of eight; taking the
+copied library out of the install stopped it, three times out of three.
+
+Identical code is not identical state. Each shared object carries its own
+copy of every file-scope static, and tearing down two sets of them corrupts
+the exit-handler chain. The symptom is at exit, after the work is done, which
+makes it easy to mistake for a harmless nuisance -- the pipeline output was
+correct in every case.
+
+**For later phases:** an import replaces the original, it does not sit beside
+it. P5-T03 and P5-T04 move sprokit and the arrows the same way vital moved:
+delete kwiver's copy in the same change that builds VIAME's.
+
+### 1.2 CMake allows a cycle only between static libraries
+
+`core_types` and `algorithm_framework` name each other: the types need
+configuration, logging and errors, and the algorithm interfaces are written in
+terms of the types. Two shared libraries that link each other are rejected
+outright by CMake, whatever the linker would make of it.
+
+Kwiver cut the same code into eight libraries to keep the graph acyclic
+(`logger` and `exceptions` at the bottom, then `util`, then `config`, then
+`types`, then `algo`/`vpm`/`applets`/`io` on top). That split is preserved for
+now because the imported code is built through kwiver's own CMakeLists.
+Whether it is worth keeping is phase 8's question. `library/`'s own
+CMakeLists, unused at present, folds both directories into one library and
+aliases `viame_core_types` to it.
+
+**For later phases:** the layout document's DAG describes directories, not
+shared objects. Do not assume one library per directory.
+
+### 1.3 The registry contract stops being enforced when an implementation
+moves to python
+
+`registry-dump` cannot introspect a python implementation's configuration:
+the pybind trampoline returns the non-copyable `config_block` by copy, so the
+dump records an `error` instead of the keys. `compare_registry.py` skips
+config comparison for any entry with an `error`, in either direction. So the
+moment a C++ implementation becomes a python one, its keys and defaults stop
+being checked and nothing says so.
+
+This bit in phase 4, where `video_input/ffmpeg` and `video_output/ffmpeg`
+became python. The contract for those names is held instead by
+`tests/library/video_io/test_pyav_video_input.py`, which reads the recorded
+keys and defaults straight out of `tests/baseline/registry.json` and asserts
+them against the live algorithm.
+
+**For later phases:** every phase that moves a registered C++ implementation
+to python needs the same test. Phase 7 moves several (`stabilize_image`,
+`estimate_homography`, SIFT, `detect_calibration_targets`), and phase 6 moves
+the stereo calibration processes.
+
+### 1.4 What a closure over `#include` lines cannot see
+
+`design/scripts/kwiver_reachable.py` computes which kwiver files VIAME
+reaches. Five kinds of edge are invisible to it, and each one was found by a
+build failure rather than by reading:
+
+* **Registration by type.** Processes are registered as
+  `reg.register_process< frame_list_process >()`, with the name coming off the
+  class, so matching registered names against file contents finds nothing.
+  Before the script also matched `<name>_process`, the list contained no
+  processes at all -- which is most of what VIAME runs.
+* **Interfaces only python implements.** `segment_via_points` and
+  `perform_text_query` have no C++ implementation and no C++ includes;
+  VIAME's python registers against them by name, and the binding has to
+  exist. The script carries a list of these, regenerated from
+  `from kwiver.vital.algo import ...` across the python sources.
+* **Definitions in a differently-named source.** `get_logger` is declared in
+  `logger/logger.h` and defined in `logger/kwiver_logger_manager.cxx`, which
+  nothing includes. The script carries a short list of these, each one put
+  there by a link error.
+* **Generated headers.** `vital_config.h` and the export headers do not exist
+  in the source tree, so they resolve to nothing and are simply absent from
+  the closure.
+* **Vendored libraries.** cereal is taken whole rather than file by file. A
+  closure would have taken the reached subset and left the rest, and the
+  arrows that use a different archive format would not build.
+
+**For later phases:** the same script drives P5-T03 and P5-T04 for sprokit and
+the arrows. Expect the same classes of miss, and expect the build to be what
+finds them.
+
+### 1.5 Generated code has two paths, and they are not the same path
+
+The `kwiver.vital.algo` bindings are generated by castxml from the interface
+headers. The generator uses one setting for both the directory it reads the
+headers from and the prefix it writes into the `#include` lines of what it
+generates. Those were the same string while both lived in kwiver; they are not
+any more, and conflating them produced generated sources that included
+themselves from a directory that does not exist.
+
+**For later phases:** phase 8 rewrites these bindings by hand. Until then, any
+move of an interface header has to touch both halves.
+
+### 1.6 `-I` beats `-isystem`, and imported targets are `-isystem`
+
+The tree this transitional build takes fletch from also holds an older
+kwiver's installed headers. Once vital moved, those became stale, and they
+won: CMake marks an imported target's interface includes as SYSTEM, GCC
+searches every `-I` before any `-isystem`, and the dependency prefix arrived
+as a plain `-I`. The compiler read `<vital/types/image.h>` from a tree nobody
+was building.
+
+The fix was to drop the prefix from the include path and have the two plugins
+that genuinely needed a header from it name it themselves.
+
+**For later phases:** phase 1 replaces this arrangement with a single build
+and system dependencies, at which point the problem goes away. Until then, a
+header that resolves to `~/Dev/viame/build/install/include` is a bug.
+
+### 1.7 Aliases in python are subclasses
+
+A C++ alias is a second `add_factory` call for the same class. Python
+implementations are discovered by walking `Pluggable.__subclasses__`, so a
+name is a class: `ffmpeg`, `vidl_ffmpeg` and `pyav` are three trivial
+subclasses of one reader. This is not written down anywhere in the build
+system document, and it is the shape every later python replacement will
+need.
+
+### 1.8 Installing does not delete
+
+`cmake --install` leaves behind the plugin `.so` of anything that stops being
+built. Those get loaded, fail on an undefined symbol from the library that
+also stopped being built, and the failure looks like a build error rather than
+stale state. This has now happened three times: the vxl and ffmpeg plugins in
+phases 3 and 4, and klv, cuda and geocalc in phase 5.
+
+**For later phases:** after turning an arrow off, delete its plugin and its
+library from the install before running anything.
+
+### 1.9 Defects found in the code being replaced
+
+Recorded here because each is a real defect in VIAME or kwiver as shipped, not
+an artefact of the port:
+
+* The C++ FFmpeg writer **loses the last frame of every video it writes**. It
+  muxed packets with no duration, so the mp4 muxer gave the final sample
+  duration zero; the track then ends before its last sample and every decoder
+  trims it. `filter_to_video.pipe` over six frames writes five.
+* `video_output_process` built its `video_settings` only under `WITH_FFMPEG`
+  and passed a null pointer otherwise, so the writer would have had no
+  geometry or frame rate at all once FFmpeg went.
+* Both video readers took the timestamp origin from the first frame they
+  happened to see, so seeking before reading made the frame seeked to time
+  zero and every later time wrong.
+* `vxl_threshold` in percentile mode on a multi-plane image returns an
+  uninitialised buffer; `vxl_color_commonality` in grid mode leaves part of
+  its output unwritten. Both recorded in `tests/golden/README.md`.
+* `viame::enhance_images` was defined twice, in `plugins/vxl` and
+  `plugins/opencv`, with identical mangled symbols; the loader bound one for
+  both factories, load-order dependent.
+* Building a `vital::image` from an interleaved numpy array costs 14 ms for a
+  1080p frame against 0.5 ms for the same data in vital's own planar layout,
+  because `image::copy_from` falls off its memcpy path. Every python
+  implementation that returns an image pays it.
+
+## 2. Open questions
+
+### 2.1 An intermittent segfault in `viame train`
+
+`viame_examples:train_netharn_cfrnn_from_viame_csv` segfaulted once, in the
+run before the one that recorded P5-T02, and has passed every time since,
+including a clean 25 of 25. It did not reproduce in isolation, under gdb, or
+on a rerun of the same ctest selection. Given that phase 5 is precisely about
+duplicated state, it is worth watching rather than dismissing: if it recurs,
+the first thing to check is whether anything is loading two copies of
+something.
+
+### 2.2 Phase ordering: phase 5 wants phase 1's build
+
+The user's ordering puts dependency removal before restructuring, and phases
+3 and 4 fit that well. Phase 5 does not: importing kwiver's core into VIAME
+while kwiver is a separately-configured project means the imported sources are
+compiled by kwiver's build rather than VIAME's, which is backwards. It works,
+and it was the cheapest way to get to one vital, but the arrangement is odd
+enough to be worth naming.
+
+P1-T05 ("kwiver as a subdirectory") is what makes it right, and P5-T05
+(removing the submodule) is what makes it moot. Whether to do P1-T05 before
+P5-T03 is an open call: doing it first is cleaner, doing it later is less
+work now.
+
+### 2.3 Two copies of kwiversys and cxxopts
+
+Both were vendored to `third_party/` by the import, and both are still
+present under `packages/kwiver/vital/` -- kwiversys because kwiver's build
+still builds it from there, cxxopts because only `.h`, `.cxx` and `.txx` were
+deleted and it is a `.hpp`. The pairs are byte-identical today, which is the
+dangerous kind of duplicate: editing one is silent.
+
+P5-T05 removes the submodule and settles it. Until then, `third_party/`'s
+copies are the ones on the include path and kwiver's are dead weight.
+
+### 2.4 The stale headers in the dependency tree
+
+`~/Dev/viame/build/install/include` holds an older kwiver's `vital/`,
+`sprokit/` and `arrows/`. They are off VIAME's include path now, but they are
+still there, and they belong to another checkout's install that this build
+borrows fletch from. Deleting them would break that checkout; leaving them
+means anything that puts the prefix back on the path silently reads a
+different vital.
+
+### 2.5 What did not come across, and whether it should have
+
+The rebase macro reports, per directory, which of kwiver's own file-list
+entries the import did not bring: 87 files in all, among them `geo_MGRS`,
+`ground_control_point`, `mesh_io`, the `text_codec` family, and eight
+algorithm interfaces. P5-T06 prunes by compile and should reach the same set;
+if it does not, one of the two is wrong. The list is worth diffing then.
+
+Four python bindings were dropped outright for the same reason -- `geo_MGRS`,
+`geo_covariance`, `homography_f2w`, `mesh` -- and nothing imports them. They
+are not in `removed.json`, because `registry.json` does not record python
+types; if the contract should cover them, it needs somewhere to record them.
+
+### 2.6 `design/lite-kwiver-files.txt` is a record, not a query
+
+Once kwiver's vital was deleted, `kwiver_reachable.py` could no longer compute
+a closure over it, and both it and the import script now refuse to run. The
+file they produced is a record of what was imported. Re-running either after
+P5-T03 and P5-T04 will need the same treatment: they are one-shot per group.
+
+### 2.7 The python bindings still live in kwiver
+
+They cannot move until kwiver's python package goes, because two
+`kwiver.vital.types` extension modules in one interpreter is a pybind11
+duplicate-registration error. That makes P5-T05 the task that moves them, not
+P5-T02 as the plan had it. It also means P5-T05 is larger than its text
+suggests.

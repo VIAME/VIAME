@@ -6,6 +6,9 @@ the compatibility checks green.
 
 ## Operating loop
 
+0. Read `lite-findings.md` before starting a phase. It records what the work
+   so far has taught that the plan did not know, and every entry there is
+   something that already cost a debugging session once.
 1. Read `STATUS.md`. Pick the first task whose status is `todo` and whose
    `Depends` are all `done`. Do not skip ahead within a phase unless the
    task says it is independent.
@@ -22,6 +25,9 @@ the compatibility checks green.
 5. Commit: one task per commit, subject `lite: <task id> <short summary>`,
    body of at most three lines. No `Co-Authored-By` trailers. Do not push
    unless asked.
+5b. If the work taught something a later phase needs to know, add it to
+   `lite-findings.md`. The bar is: would someone doing a later task get this
+   wrong without it?
 6. Update `STATUS.md`: status, commit hash, one-line note (what was
    different from the task text, decisions taken, follow-ups added).
 7. Stop after one task unless instructed to continue for N tasks or a

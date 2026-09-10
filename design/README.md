@@ -16,6 +16,7 @@ and a source tree organised by function under `library/`.
 | [lite-dependencies.md](lite-dependencies.md) | Every current dependency with its disposition and the end-state list of what remains vendored |
 | [lite-library-layout.md](lite-library-layout.md) | Target `library/` tree and source-to-destination mapping for `plugins/` and retained kwiver code |
 | [lite-build-system.md](lite-build-system.md) | CMake design: options, helper functions, registration and aliases, python packaging, install layout, setup scripts |
+| [lite-findings.md](lite-findings.md) | What doing the work has taught that the plan did not know, and what is still unresolved. Read before starting a phase |
 | [lite-install-size.md](lite-install-size.md) | Install size audit (14 GB breakdown), why triton is 697 MB, and a ranked list of size-reduction candidates with verification steps |
 
 Reference docs (`lite-*.md`) describe the end state and the reasoning.
