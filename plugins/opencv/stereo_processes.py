@@ -45,11 +45,11 @@ from kwiver.vital.types import (
 
 from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from kwiver.sprokit.pipeline import process
-from kwiver.sprokit.pipeline import datum  # NOQA
 
 import ubelt as ub
 import os
 import itertools as it
+import cv2
 
 from . import stereo_algos as ctalgo
 
@@ -444,6 +444,403 @@ class MeasureProcess(KwiverProcess):
 
         self.push_to_port_using_trait('object_track_set1', track_set1)
         self.push_to_port_using_trait('object_track_set2', track_set2)
+        self._base_step()
+
+@tmp_sprokit_register_process(name='unrectified_keypoint_stereo_measure',
+                              doc='Measure length using head/tail keypoints + stereoscopic image pairs')
+class UnrectifiedKeypointStereoMeasureProcess(KwiverProcess):
+    def __init__(self, conf):
+        KwiverProcess.__init__(self, conf)
+        self.add_config_trait('calibration_file', 'calibration_file', '', 'Calibration file')
+        self.add_config_trait('search_radius', 'search_radius', '15', 'Circle radius (pixels) to search for around keypoints')
+        self.add_config_trait('disparity_percentile', 'disparity_percentile', '95', 'Disparity percentile')
+        self.add_config_trait('matching_tolerance', 'matching_tolerance', '60.0', 'Max verticale tolerance for matching')
+        self.add_config_trait('num_disparities', 'num_disparities', '240', 'Maximum disparity minus minimum disparity. Must be divisible by 16.')
+        self.add_config_trait('block_size', 'block_size', '11', 'Block size for SGBM algorithm')
+        self.add_config_trait('samples', 'samples', '11', 'Number of depth samples along head/tail axis')
+        self.add_config_trait('max_outliers', 'max_outliers', '3', 'Maximum number of outliers to compute length')
+
+        self.declare_config_using_trait('calibration_file')
+        self.declare_config_using_trait('search_radius')
+        self.declare_config_using_trait('disparity_percentile')
+        self.declare_config_using_trait('matching_tolerance')
+        self.declare_config_using_trait('num_disparities')
+        self.declare_config_using_trait('block_size')
+        self.declare_config_using_trait('samples')
+        self.declare_config_using_trait('max_outliers')
+
+        required = process.PortFlags()
+        required.add(self.flag_required)
+
+        self.add_port_trait('image1', 'image', 'Image from camera1')
+        self.add_port_trait('image2', 'image', 'Image from camera2')
+        self.declare_input_port_using_trait('image1', required)
+        self.declare_input_port_using_trait('image2', required)
+
+        self.add_port_trait('object_track_set1', 'object_track_set', 'Tracks from camera1')
+        self.add_port_trait('object_track_set2', 'object_track_set', 'Tracks from camera2')
+        self.add_port_trait('timestamp', 'timestamp', 'timestamp')
+
+        self.add_port_trait('object_track_set_out1', 'object_track_set', 'Output tracks for camera1')
+        self.add_port_trait('object_track_set_out2', 'object_track_set', 'Output tracks for camera2')
+
+        self.declare_input_port_using_trait('object_track_set1', required)
+        self.declare_input_port_using_trait('object_track_set2', required)
+        self.declare_input_port_using_trait('timestamp', required)
+
+        self.declare_output_port_using_trait('object_track_set_out1', process.PortFlags())
+        self.declare_output_port_using_trait('object_track_set_out2', process.PortFlags())
+
+        self.Q = None
+
+        self.right_track_memory = set()
+        self.locked_matches = {}
+        self.ID_OFFSET = 1000000
+
+    def _configure(self):
+        cal_path = self.config_value('calibration_file')
+        if not cal_path:
+            raise ValueError("calibration_file is required.")
+
+        self.search_radius = int(self.config_value('search_radius'))
+        self.disparity_percentile = float(self.config_value('disparity_percentile'))
+        self.matching_tolerance = float(self.config_value('matching_tolerance'))
+        self.num_disp = int(self.config_value('num_disparities'))
+        self.block_size = int(self.config_value('block_size'))
+        self.samples = int(self.config_value('samples'))
+        self.max_outliers = int(self.config_value('max_outliers'))
+
+        self.cal = ctalgo.StereoCalibration.from_file(cal_path)
+
+        self.K1, self.K2 = self.cal.intrinsic_matrices()
+        self.D1 = self.cal.data['left']['intrinsic']['kc']
+        self.D2 = self.cal.data['right']['intrinsic']['kc']
+
+        om_right = self.cal.data['right']['extrinsic']['om']
+        T_right = self.cal.data['right']['extrinsic']['T']
+
+        self.R, _ = cv2.Rodrigues(om_right)
+        self.T = T_right.reshape(3, 1)
+
+        Tx = np.array([
+            [0, -self.T[2,0], self.T[1,0]],
+            [self.T[2,0], 0, -self.T[0,0]],
+            [-self.T[1,0], self.T[0,0], 0]
+        ])
+        E = Tx @ self.R
+
+        K2_inv_T = np.linalg.inv(self.K2).T
+        K1_inv = np.linalg.inv(self.K1)
+        self.F = K2_inv_T @ E @ K1_inv
+
+        self._base_configure()
+
+    def extract_head_tail(self, detection: DetectedObject):
+        kpts = detection.keypoints
+        if not kpts:
+            return None, None
+
+        head_pt = kpts.get('head', None)
+        tail_pt = kpts.get('tail', None)
+        if head_pt is None or tail_pt is None:
+            return None, None
+
+        return np.array([head_pt.value[0], head_pt.value[1]]), np.array([tail_pt.value[0], tail_pt.value[1]])
+
+    def rectify_point(self, pt_unrectified, K, D, R, P):
+        pt_cv = np.array([[[pt_unrectified[0], pt_unrectified[1]]]], dtype=np.float64)
+        pt_rect = cv2.undistortPoints(pt_cv, K, D, R=R, P=P)
+        return pt_rect[0, 0]
+
+    def compute_epipolar_distance(self, pt1, pt2):
+        p1 = np.array([pt1[0], pt1[1], 1.0])
+        l2 = self.F @ p1
+        a, b, c = l2[0], l2[1], l2[2]
+        dist = abs(a * pt2[0] + b * pt2[1] + c) / np.sqrt(a**2 + b**2)
+        return dist
+
+
+    def get_sample_3d(self, sample_pt_rect, disp_map):
+        sx, sy = int(round(sample_pt_rect[0])), int(round(sample_pt_rect[1]))
+        h, w = disp_map.shape
+
+        if sx < 0 or sx >= w or sy < 0 or sy >= h:
+            return None, None
+
+        mask = np.zeros((h, w), dtype=np.uint8)
+        cv2.circle(mask, (sx, sy), radius=self.search_radius, color=255, thickness=-1)
+
+        circle_disp = disp_map[mask == 255]
+        valid_disp = circle_disp[circle_disp > 0.5]
+
+        if len(valid_disp) < (0.50 * len(circle_disp)):
+            return None, None
+
+        best_disp = np.percentile(valid_disp, self.disparity_percentile)
+        if best_disp < 1.0:
+            return None, None
+
+        pt3d_hom = self.Q @ np.array([sx, sy, best_disp, 1.0])
+        pt3d = pt3d_hom[:3] / pt3d_hom[3]
+
+        return pt3d.flatten(), best_disp
+
+    def _step(self):
+        img_c1 = self.grab_input_using_trait('image1')
+        img_c2 = self.grab_input_using_trait('image2')
+        img1 = img_c1.asarray()
+        img2 = img_c2.asarray()
+
+        if len(img1.shape) == 3: img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+        if len(img2.shape) == 3: img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+
+        track_set1: ObjectTrackSet = self.grab_input_using_trait('object_track_set1')
+        track_set2: ObjectTrackSet = self.grab_input_using_trait('object_track_set2')
+        out_track_set1 = [d for d in track_set1.tracks()]
+        out_track_set2 = [d for d in track_set2.tracks()]
+
+        if self.Q is None:
+            h, w = img1.shape[:2]
+            self.R1, self.R2, self.P1, self.P2, self.Q, _, _ = cv2.stereoRectify(
+                self.K1, self.D1, self.K2, self.D2, (w, h), self.R, self.T
+            )
+            self.map1x, self.map1y = cv2.initUndistortRectifyMap(self.K1, self.D1, self.R1, self.P1, (w, h), cv2.CV_32FC1)
+            self.map2x, self.map2y = cv2.initUndistortRectifyMap(self.K2, self.D2, self.R2, self.P2, (w, h), cv2.CV_32FC1)
+
+            self.stereo_left = cv2.StereoSGBM_create(
+                minDisparity=0, numDisparities=self.num_disp, blockSize=self.block_size,
+                P1=8 * self.block_size**2, P2=32 * self.block_size**2,
+                disp12MaxDiff=1, uniquenessRatio=10, speckleWindowSize=100, speckleRange=32
+            )
+            self.stereo_right = cv2.ximgproc.createRightMatcher(self.stereo_left)
+            self.wls_filter = cv2.ximgproc.createDisparityWLSFilter(matcher_left=self.stereo_left)
+            self.wls_filter.setLambda(8000.0)
+            self.wls_filter.setSigmaColor(1.5)
+            self.white_mask = np.ones(img1.shape[:2], dtype=np.uint8) * 255
+
+        rect1 = cv2.remap(img1, self.map1x, self.map1y, cv2.INTER_LINEAR)
+        rect2 = cv2.remap(img2, self.map2x, self.map2y, cv2.INTER_LINEAR)
+
+        valid_roi_mask = cv2.remap(self.white_mask, self.map1x, self.map1y, cv2.INTER_LINEAR)
+
+        disp_left_raw = self.stereo_left.compute(rect1, rect2)
+        disp_right_raw = self.stereo_right.compute(rect2, rect1)
+
+        disp_left_filtered = self.wls_filter.filter(disp_left_raw, rect1, None, disp_right_raw)
+
+        # Double strict mask: reject SGBM failures and artificial black borders
+        invalid_sgbm_mask = disp_left_raw <= 0
+        invalid_border_mask = valid_roi_mask < 200
+
+        disp_left_filtered[invalid_sgbm_mask] = -16
+        disp_left_filtered[invalid_border_mask] = -16
+
+        disp_left = disp_left_filtered.astype(np.float32) / 16.0
+
+        ts_datum = self.grab_from_port('timestamp')
+        frame_index = ts_datum.datum.get_timestamp().get_frame()
+
+        # Debug image preparation
+        disp_vis = np.clip(disp_left, 0, self.num_disp)
+        disp_vis = (disp_vis / self.num_disp * 255).astype(np.uint8)
+        disp_color = cv2.applyColorMap(disp_vis, cv2.COLORMAP_JET)
+        disp_color[disp_left <= 0] = [0, 0, 0]
+
+        rect_dets2 = []
+        for j, track2 in enumerate(out_track_set2):
+            frame_ids = list(track2.all_frame_ids())
+            if not frame_ids:
+                continue
+
+            first_frame_id = min(frame_ids)
+            first_state = track2.find_state(first_frame_id)
+            if first_state is None:
+                continue
+
+            first_det = first_state.detection()
+
+            orig_id = None
+            for note in first_det.notes:
+                if note.startswith("orig_id_"):
+                    orig_id = int(note.split("_")[2])
+                    break
+
+            if orig_id is None:
+                orig_id = track2.id
+                first_det.add_note(f"orig_id_{orig_id}")
+
+                track2.id = orig_id + self.ID_OFFSET
+
+            if orig_id in self.locked_matches:
+                track2.id = self.locked_matches[orig_id]
+
+            state2 = track2.find_state(frame_index)
+            if state2 is None: continue
+            h2, t2 = self.extract_head_tail(state2.detection())
+            if h2 is None or t2 is None: continue
+
+            h2_r = self.rectify_point(h2, self.K2, self.D2, self.R2, self.P2)
+            t2_r = self.rectify_point(t2, self.K2, self.D2, self.R2, self.P2)
+
+            rect_dets2.append({
+                'idx': j, 'track': track2, 'det': state2.detection(), 'orig_id': orig_id,
+                'h': h2, 't': t2, 'h_r': h2_r, 't_r': t2_r
+            })
+
+        matched_j = set()
+
+        for i, track1 in enumerate(out_track_set1):
+            state1 = track1.find_state(frame_index)
+            if state1 is None: continue
+            det1 = state1.detection()
+            h1, t1 = self.extract_head_tail(det1)
+            if h1 is None or t1 is None: continue
+
+            h1_r = self.rectify_point(h1, self.K1, self.D1, self.R1, self.P1)
+            t1_r = self.rectify_point(t1, self.K1, self.D1, self.R1, self.P1)
+
+            best_j = -1
+            min_err = float('inf')
+            best_det2 = None
+
+            for det2_info in rect_dets2:
+                if det2_info['idx'] in matched_j:
+                    continue
+
+                y_err_head = abs(h1_r[1] - det2_info['h_r'][1])
+                y_err_tail = abs(t1_r[1] - det2_info['t_r'][1])
+                total_y_err = y_err_head + y_err_tail
+
+                disp_head = h1_r[0] - det2_info['h_r'][0]
+                if total_y_err < self.matching_tolerance and disp_head > -30 and total_y_err < min_err:
+                    min_err = total_y_err
+                    best_j = det2_info['idx']
+                    best_det2 = det2_info
+
+            if best_j != -1:
+                matched_j.add(best_j)
+
+                det2 = best_det2['det']
+                track2: Track = best_det2['track']
+                orig_id = best_det2['orig_id']
+
+                if orig_id not in self.locked_matches:
+                    self.locked_matches[orig_id] = track1.id
+                    track2.id = track1.id
+
+                vector = t1_r - h1_r
+                num_samples = self.samples
+                samples = []
+
+                for idx in range(num_samples):
+                    f = idx / float(num_samples - 1)
+                    sample_pt_2d = h1_r + f * vector
+                    pt3d, disp = self.get_sample_3d(sample_pt_2d, disp_left)
+
+                    if pt3d is not None:
+                        samples.append({ 'f': f, 'pt2d': sample_pt_2d, 'pt3d': pt3d, 'disp': disp })
+
+                if len(samples) >= 3:
+                    # Theil-Sen Estimator
+                    slopes = []
+                    for idx1 in range(len(samples)):
+                        for idx2 in range(idx1 + 1, len(samples)):
+                            df = samples[idx2]['f'] - samples[idx1]['f']
+                            if df > 0:
+                                dz = samples[idx2]['pt3d'][2] - samples[idx1]['pt3d'][2]
+                                slopes.append(dz / df)
+
+                    robust_slope_z = np.median(slopes) if slopes else 0
+
+                    intercepts = [s['pt3d'][2] - robust_slope_z * s['f'] for s in samples]
+                    robust_intercept_z = np.median(intercepts)
+
+                    for s in samples:
+                        predicted_z = robust_slope_z * s['f'] + robust_intercept_z
+                        s['error'] = abs(s['pt3d'][2] - predicted_z)
+
+                    errors = [s['error'] for s in samples]
+                    q1, q3 = np.percentile(errors, 25), np.percentile(errors, 75)
+                    iqr_error = q3 - q1
+
+                    median_z = np.median([s['pt3d'][2] for s in samples])
+                    error_tolerance = max(1.2 * iqr_error, 0.05 * median_z)
+
+                    for s in samples:
+                        s['is_inlier'] = (s['error'] <= error_tolerance)
+
+                    inliers = [s for s in samples if s['error'] <= error_tolerance]
+                    outliers = [s for s in samples if s['error'] > error_tolerance]
+
+                    if len(outliers) <= self.max_outliers:
+                        F_vals = np.array([s['f'] for s in inliers])
+                        X_vals = np.array([s['pt3d'][0] for s in inliers])
+                        Y_vals = np.array([s['pt3d'][1] for s in inliers])
+                        Z_vals = np.array([s['pt3d'][2] for s in inliers])
+
+                        poly_x = np.polyfit(F_vals, X_vals, 1)
+                        poly_y = np.polyfit(F_vals, Y_vals, 1)
+                        poly_z = np.polyfit(F_vals, Z_vals, 1)
+
+                        head_3d_robust = np.array([poly_x[1], poly_y[1], poly_z[1]])
+                        tail_3d_robust = np.array([poly_x[0] + poly_x[1], poly_y[0] + poly_y[1], poly_z[0] + poly_z[1]])
+
+                        track2.id = track1.id
+                        final_length = float(np.linalg.norm(head_3d_robust - tail_3d_robust))
+
+                        track1.set_attribute("length", final_length)
+                        track2.set_attribute("length", final_length)
+
+                        final_length_display = f"{final_length:.2f}"
+                        det1.add_note(f"(atr) length {final_length_display}")
+                        det2.add_note(f"(atr) length {final_length_display}")
+
+                        # --- DEBUG DRAWING ---
+                        cv2.line(disp_color, (int(h1_r[0]), int(h1_r[1])), (int(t1_r[0]), int(t1_r[1])), (255, 255, 255), 1)
+
+                        for s in samples:
+                            pt = (int(s['pt2d'][0]), int(s['pt2d'][1]))
+                            color = (0, 255, 0) if s['is_inlier'] else (0, 0, 255)
+                            thick = 1 if s['is_inlier'] else 2
+                            cv2.circle(disp_color, pt, self.search_radius, color, thick)
+
+                        font = cv2.FONT_HERSHEY_SIMPLEX
+                        info_text = f"ID:{track1.id} Len:{final_length:.2f}m ({len(inliers)}/{num_samples} inliers)"
+
+                        val_width_est = 35
+                        spacing = 5
+                        box_width = max(250, num_samples * (val_width_est + spacing)) + 10
+                        box_height = 40
+                        bx = int(h1_r[0]) - (box_width // 2)
+                        by = int(h1_r[1]) - box_height - self.search_radius - 10
+                        bx = max(5, min(bx, disp_color.shape[1] - box_width - 5))
+                        by = max(5, min(by, disp_color.shape[0] - box_height - 5))
+                        overlay = disp_color.copy()
+                        cv2.rectangle(overlay, (bx, by), (bx + box_width, by + box_height), (0, 0, 0), -1)
+                        cv2.addWeighted(overlay, 0.6, disp_color, 0.4, 0, disp_color)
+                        cv2.rectangle(disp_color, (bx, by), (bx + box_width, by + box_height), (255, 255, 255), 1)
+                        cv2.putText(disp_color, info_text, (bx + 5, by + 15), font, 0.45, (255, 255, 255), 1)
+                        cx = bx + 5
+                        cy = by + 32
+                        for s in samples:
+                            val_text = f"{s['disp']:.1f}"
+                            color = (0, 255, 0) if s['is_inlier'] else (0, 0, 255)
+                            cv2.putText(disp_color, val_text, (cx, cy), font, 0.4, color, 1)
+                            cx += val_width_est + spacing
+
+                        continue
+
+            track1.set_attribute("length", 0)
+            det1.add_note("(atr) length 0")
+            if best_j != -1:
+                track2.set_attribute("length", 0)
+                det2.add_note("(atr) length 0")
+
+        os.mkdir("debugDisparity")
+        cv2.imwrite(f"debugDisparity/disp_frame_{frame_index:06d}.png", disp_color)
+
+        self.push_to_port_using_trait('object_track_set_out1', ObjectTrackSet(out_track_set1))
+        self.push_to_port_using_trait('object_track_set_out2', ObjectTrackSet(out_track_set2))
         self._base_step()
 
 def __sprokit_register__():

@@ -1,0 +1,70 @@
+# =============================================================================
+# Title: Head/Tail Measure
+#
+# Description: Measure fish length using head tail keypoints and disparity map.
+#
+# Requires Calibration: True
+# Input: HEAD-TAIL
+# Output: HEAD-TAIL
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+config _scheduler
+  :type                                        pythread_per_process
+
+# ================================ DATA INPUTS ================================
+
+include common_stereo_input_with_tracks.pipe
+
+# ================================ PROCESSES ================================
+
+process measurer
+  :: unrectified_keypoint_stereo_measure
+  :calibration_file                            ./calibration_matrices.npz
+  :search_radius                               15      # DIVE_PARAM["Head/Tail Search Radius", strictly_positive_int]
+  :disparity_percentile                        95      # DIVE_PARAM["Disparity Percentile", range_float, 0, 100, 0.1]
+  :matching_tolerance                          60.0    # DIVE_PARAM["Matching Tolerance", range_float, 0, 100, 0.1]
+  :num_disparities                             240     # DIVE_PARAM["Num Disparities", strictly_positive_int]
+  :block_size                                  11      # DIVE_PARAM["Block Size", strictly_positive_int]
+  :samples                                     11      # DIVE_PARAM["Samples", range_int, 2, 20]
+  :max_outliers                                3       # DIVE_PARAM["Max Outliers", strictly_positive_int]
+
+connect from downsampler.output_1
+        to   measurer.image1
+connect from downsampler.output_3
+        to   measurer.image2
+
+connect from track_reader1.object_track_set
+        to   measurer.object_track_set1
+connect from track_reader2.object_track_set
+        to   measurer.object_track_set2
+connect from downsampler.timestamp
+        to   measurer.timestamp
+
+process track_writer1
+  :: write_object_track
+  :file_name                                   computed_tracks1.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        25
+
+connect from measurer.object_track_set_out1
+        to   track_writer1.object_track_set
+connect from downsampler.timestamp
+        to   track_writer1.timestamp
+connect from downsampler.output_2
+        to   track_writer1.image_file_name
+
+process track_writer2
+  :: write_object_track
+  :file_name                                   computed_tracks2.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        25
+
+connect from measurer.object_track_set_out2
+        to   track_writer2.object_track_set
+connect from downsampler.timestamp
+        to   track_writer2.timestamp
+connect from downsampler.output_4
+        to   track_writer2.image_file_name

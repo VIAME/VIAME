@@ -130,6 +130,7 @@ set( CORE_PIPELINE_FILES
   measurement_from_annotations_default.pipe
   measurement_from_annotations_template.pipe
   measurement_fully_auto_gmm_motion.pipe
+  measurement_from_head_tail_disparity.pipe
   query_from_track.pipe
   query_retrieval_and_iqr.pipe
   query_video_exemplar.pipe
