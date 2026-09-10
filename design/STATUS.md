@@ -10,9 +10,9 @@ Notes.
 - Phase: P5 (phases 1 and 2 deferred, see the decision below). Phase 3 and
   phase 4 are complete: VXL and FFmpeg are both gone from kwiver, fletch and
   VIAME, and video is python on PyAV
-- Next task: P1-T05, then the rest of P5-T05 (see finding 2.2: the last
-  pieces of kwiver cannot move while it is a separate build)
-- Last clean-configure build verified: 2026-09-09, P0-T05
+- Next task: the rest of P5-T05, now that P1-T05 has landed
+- Last clean-configure build verified: 2026-09-10, P1-T05 (a fresh
+  `build/merged-build`, 25 of 25 tests)
 - Reference machine: local workstation, CUDA 12.6, cuDNN 9.12, Ubuntu
   (kernel 6.8), python 3.10.12, gcc default, 16 cores
 
@@ -25,22 +25,22 @@ existing `main` superbuild of the same commit:
 | What | Where |
 |---|---|
 | Source | `~/Dev/viame-lite/src` (this checkout, branch `lite`) |
-| Build | `~/Dev/viame-lite/build/viame-build` |
-| kwiver build | `~/Dev/viame-lite/build/kwiver-build`, cache `~/Dev/viame-lite/build/kwiver-cache.cmake` (P3-T10) |
+| Build | `~/Dev/viame-lite/build/merged-build` (one configure, since P1-T05) |
+| kwiver build | none since P1-T05: kwiver is a subdirectory of the build above. `build/kwiver-build`, `build/viame-build` and `build/kwiver-cache.cmake` are dead |
 | Install | `~/Dev/viame-lite/build/install` (seeded by copying the reference install) |
 | Initial cache | `~/Dev/viame-lite/build/lite-cache.cmake`, mirroring every `VIAME_*` setting of the reference build |
 | fletch, darknet | `~/Dev/viame/build` (reference superbuild, `main` @ 8edfd2f66) |
-| kwiver | built here from the submodule pin, so `KWIVER_ENABLE_VXL` is ours to drive |
+| kwiver | a subdirectory of the build above; every `KWIVER_ENABLE_*` is set by VIAME's top-level CMakeLists |
 
 ```
-# kwiver first; KWIVER_ENABLE_VXL in kwiver-cache.cmake is the phase 3 flag
-cmake -S src/packages/kwiver -B build/kwiver-build -C build/kwiver-cache.cmake
-cmake --build build/kwiver-build -j16 && cmake --install build/kwiver-build
-
-cmake -S src -B build/viame-build -C build/lite-cache.cmake   # PATH must have nvcc
-cmake --build build/viame-build -j16 && cmake --install build/viame-build
-ctest --test-dir build/viame-build -L BASELINE
+cmake -S src -B build/merged-build -C build/lite-cache.cmake  # PATH must have nvcc
+cmake --build build/merged-build -j16 && cmake --install build/merged-build
+ctest --test-dir build/merged-build -L BASELINE
 ```
+
+Before P1-T05 this was two configures, kwiver's first, with the flag phase 3
+drove (`KWIVER_ENABLE_VXL`) in `build/kwiver-cache.cmake`. VIAME's top-level
+sets every `KWIVER_ENABLE_*` itself now.
 
 `packages/downloads` holds symlinks to the reference checkout's downloads so
 that model packs are not fetched twice. The `fletch` submodule is checked out
@@ -62,7 +62,7 @@ for `CMake/FindCUDNN.cmake`, and `kwiver` is checked out and built.
 | P1-T02 | New top-level CMakeLists and options file | P1-T01 | todo | | |
 | P1-T03 | `third_party/` for the small libraries | P1-T02 | todo | | |
 | P1-T04 | `viame_dependencies.cmake` | P1-T03 | todo | | |
-| P1-T05 | Kwiver as a subdirectory | P1-T04 | todo | | Pulled forward: P5-T05 cannot finish without it, and in the transitional build it needs only the four changes listed in finding 2.2, not the rest of phase 1 |
+| P1-T05 | Kwiver as a subdirectory | P1-T04 | in-progress | this commit | Pulled forward out of order: P5-T05 cannot finish without it. Only the `add_subdirectory` half of the task is done -- the superbuild path in `cmake/add_project_kwiver.cmake` is untouched, and P1-T02 to P1-T04 (new top-level CMakeLists, `third_party/` targets, `viame_dependencies.cmake`) are still todo -- so this row stays open until phase 1 proper. One `cmake` and one `make` now build kwiver, `library/`, `python/kwiver`, `plugins/` and `tools/` together; `build/merged-build` is the build tree and `build/kwiver-build` plus `build/viame-build` are no longer needed. Six changes in kwiver and four in VIAME, each of them about the difference between being the project and being a subdirectory of one. Three were not obvious. Kwiver's warning flags reach VIAME through the global `kwiver_warnings` property, so VIAME compiled with `-Werror=non-virtual-dtor` and `-Werror=zero-as-null-pointer-constant` for the first time and its own code and TinyXML's header both failed; VIAME clears the property before reading it. The python package the bindings install into came from `CMAKE_PROJECT_NAME`, so the whole `kwiver.vital` tree installed a second time as `viame.vital` and the duplicate pybind11 modules aborted the registry dump. And `version.h`, which `kwiver_configure_file` writes at build time, was being copied at configure time by P5-T02's republishing macro -- it had only ever worked because the file was left over from the previous build. 25 of 25 tests pass |
 | P1-T06 | Plugins, tools, tests inside the same build | P1-T05 | todo | | |
 | P1-T07 | Python dependency step | P1-T06 | todo | | |
 | P1-T08 | Remove dead trees and submodules | P1-T07 | todo | | |

@@ -46,9 +46,15 @@ endif()
 ###
 # Add script folders for cmake functions
 ##
+# Kwiver's macro library, which VIAME's own CMakeLists use as well. Kwiver
+# sets KWIVER_CMAKE_DIR itself when it is added as a subdirectory, but that is
+# much further down and these are needed before then.
+set( KWIVER_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/packages/kwiver/CMake" )
+
 list( INSERT CMAKE_MODULE_PATH 0
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
-      "${KWIVER_CMAKE_DIR}" )
+      "${KWIVER_CMAKE_DIR}"
+      "${KWIVER_CMAKE_DIR}/utils" )
 
 ###
 # Helper macros used across all cmakelists files in this project
@@ -1014,43 +1020,69 @@ else()
   endif()
 
   ###
-  # KWIVER configuration variables
+  # KWIVER, built here rather than found
   ##
+  # P1-T05, pulled forward because P5-T05 needs it: kwiver is a subdirectory
+  # of this build, not a separate project installed beforehand. Its options
+  # are the ones `cmake/add_project_kwiver.cmake` passed down, plus the ones
+  # phases 3, 4 and 5 turned off.
   if( VIAME_ENABLE_KWIVER )
-    find_package( kwiver REQUIRED )
+    set( KWIVER_ENABLE_ARROWS            ON  CACHE BOOL "" FORCE )
+    set( KWIVER_ENABLE_SPROKIT           ON  CACHE BOOL "" FORCE )
+    set( KWIVER_ENABLE_PROCESSES         ON  CACHE BOOL "" FORCE )
+    set( KWIVER_ENABLE_TOOLS             ON  CACHE BOOL "" FORCE )
+    set( KWIVER_BUILD_SHARED             ON  CACHE BOOL "" FORCE )
+    set( KWIVER_ENABLE_OPENCV   ${VIAME_ENABLE_OPENCV}  CACHE BOOL "" FORCE )
+    set( KWIVER_ENABLE_PYTHON   ${VIAME_ENABLE_PYTHON}  CACHE BOOL "" FORCE )
+    set( KWIVER_ENABLE_PYTORCH  ${VIAME_ENABLE_PYTORCH} CACHE BOOL "" FORCE )
+    set( KWIVER_ENABLE_C_BINDINGS        ON  CACHE BOOL "" FORCE )
 
-    # Kwiver exports the include prefix of the tree it took its own
-    # dependencies from. That tree also holds an older kwiver's headers, and
-    # phase 5 moved vital out from under them, so a bare `<vital/...>` there
-    # is stale and resolves ahead of the imported one. Drop the prefix: the
-    # dependencies VIAME actually needs headers from -- OpenCV, Eigen,
-    # python -- are found here in their own right.
-    set( _viame_kwiver_includes )
-
-    foreach( _viame_dir IN LISTS KWIVER_INCLUDE_DIRS )
-      if( EXISTS "${_viame_dir}/vital/vital_types.h" OR
-          EXISTS "${_viame_dir}/sprokit/pipeline/process.h" )
-        if( NOT _viame_dir MATCHES "^${VIAME_SOURCE_DIR}|^${VIAME_BINARY_DIR}" )
-          message( STATUS
-            "Ignoring stale kwiver headers under ${_viame_dir}" )
-          list( APPEND VIAME_DEPENDENCY_INCLUDE_DIRS "${_viame_dir}" )
-          continue()
-        endif()
-      endif()
-
-      list( APPEND _viame_kwiver_includes "${_viame_dir}" )
+    # Dropped by earlier phases, or never used here
+    foreach( _viame_off
+             CERES CUDA DBOW2 EXAMPLES EXTRAS FFMPEG FFMPEG_CUDA GDAL GEOCALC
+             KLV KPF LOG4CPLUS LOG4CXX MATLAB MVG OPENMP PDAL PROJ PROJ4 QT
+             SERIALIZE_JSON SERIALIZE_PROTOBUF SUPER3D TESTS TRACK_ORACLE
+             UUID VTK VXL ZLIB ZeroMQ )
+      set( KWIVER_ENABLE_${_viame_off} OFF CACHE BOOL "" FORCE )
     endforeach()
 
-    include_directories( ${_viame_kwiver_includes} )
+    set( KWIVER_ENABLE_CUDNN         ${VIAME_ENABLE_CUDNN} CACHE BOOL "" FORCE )
+    set( KWIVER_INSTALL_SET_UP_SCRIPT   OFF CACHE BOOL "" FORCE )
+    set( KWIVER_PYTHON_USE_SYS_PATH     OFF CACHE BOOL "" FORCE )
+    set( KWIVER_SYMLINK_PYTHON          OFF CACHE BOOL "" FORCE )
+    set( KWIVER_USE_BUILD_TREE          OFF CACHE BOOL "" FORCE )
 
-    # The prefix still carries headers a couple of plugins need -- darknet
-    # and libsvm -- which phase 1 vendors properly. Until then they ask for
-    # it by name rather than getting it on every target.
-    set( VIAME_DEPENDENCY_INCLUDE_DIRS
-      "${VIAME_DEPENDENCY_INCLUDE_DIRS}" CACHE INTERNAL
-      "Include prefixes of the dependency tree, for the plugins that need them" )
-    link_directories( ${KWIVER_LIBRARY_DIR} )
+    if( VIAME_ENABLE_PYTHON )
+      set( KWIVER_PYTHON_MAJOR_VERSION "3" CACHE STRING "" FORCE )
+      set( KWIVER_PYTHON_VERSION
+        "${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}" CACHE STRING "" FORCE )
+    endif()
+
+    add_subdirectory( packages/kwiver )
+
+    # VIAME names kwiver's targets with the namespace the installed config
+    # package used to give them.
+    include( kwiver_aliases )
+
+    # The roots the imported code is reached through. Kwiver puts them on its
+    # own directory's include path; VIAME's directories need them too, and
+    # SYSTEM because kwiver builds with -Werror=non-virtual-dtor and a couple
+    # of vital's headers trip it.
+    set( VIAME_KWIVER_BINARY_DIR "${VIAME_BINARY_DIR}/packages/kwiver" )
+    include_directories( SYSTEM
+      "${VIAME_KWIVER_BINARY_DIR}/library-include"
+      "${VIAME_KWIVER_BINARY_DIR}/library-generated" )
+
+    link_directories( "${VIAME_BINARY_DIR}/lib" )
     list( INSERT CMAKE_MODULE_PATH 0 "${KWIVER_CMAKE_DIR}" )
+
+    # A couple of plugins take their headers from the install prefix rather
+    # than from a target -- darknet and libsvm, both of which phase 1 vendors
+    # into third_party/. Until then they ask for the prefix by name; they used
+    # to get it out of the include list kwiver's config package exported.
+    set( VIAME_DEPENDENCY_INCLUDE_DIRS
+      "${VIAME_BUILD_INSTALL_PREFIX}/include" CACHE INTERNAL
+      "Include prefixes of the dependency tree, for the plugins that need them" )
 
     # Setup python directories before call to import kwiver utils
     #
@@ -1071,6 +1103,13 @@ else()
     ###
     # System specific compiler flags
     ##
+    # `kwiver_warnings` is a global property, and kwiver's own configure check
+    # has just filled it with kwiver's list, which is stricter than VIAME's --
+    # `-Werror=non-virtual-dtor` and `-Werror=zero-as-null-pointer-constant`
+    # among them. VIAME compiled against an installed kwiver never saw those.
+    # Start from empty so that `viame-flags` yields VIAME's own set.
+    set_property( GLOBAL PROPERTY kwiver_warnings )
+
     include( viame-flags )
 
     ##

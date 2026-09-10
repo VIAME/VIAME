@@ -284,8 +284,8 @@ the way the arrows did: kwiversys is linked by every kwiver target, so it
 would have to move last, and it cannot move last because after it there is
 nothing left to move it into.
 
-So the order from here is P1-T05, then the rest of P5-T05. P1-T05 in this
-transitional setting is smaller than the phase 1 task text: the build already
+**P1-T05 has since landed** and the rest of P5-T05 can proceed. What it took
+in this transitional setting was smaller than the phase 1 task text: the build already
 configures VIAME directly rather than through the superbuild, and the
 `KWIVER_ENABLE_*` values are already written down in
 `build/kwiver-cache.cmake`. What it needs is (a) kwiver's top-level
@@ -303,6 +303,37 @@ assignments moved after the `add_subdirectory` so they stay in VIAME's
 directory scope and kwiver's own stay in kwiver's. The superbuild path
 (`cmake/add_project_kwiver.cmake`) is untouched until phase 1 proper deletes
 it.
+
+Three things that list did not predict, each of which only shows up once the
+two projects share one configure:
+
+* **Kwiver's warning flags are global, not scoped.** `kwiver_warnings` is a
+  `define_property(GLOBAL ...)` list that both projects' `*-flags-gnu.cmake`
+  append to and both read at the end. Kwiver appends first, so VIAME compiled
+  with `-Werror=non-virtual-dtor` and
+  `-Werror=zero-as-null-pointer-constant` for the first time; `viame.cxx` and
+  `downsample_process.cxx` failed on them, and so did the `try_compile` that
+  `FindTinyXML` uses to decide whether tinyxml was built with STL support --
+  which silently turned `TIXML_USE_STL` off and broke a header VIAME's CVAT
+  reader includes. VIAME clears the property before reading it.
+* **The python package name came from the top-level project.**
+  `kwiver-utils-python.cmake` derived it from `CMAKE_PROJECT_NAME`, so the
+  whole `kwiver.vital` and `kwiver.sprokit` tree installed a second time as
+  `viame.vital` and `viame.sprokit`, `viame/__init__.py` was overwritten with
+  kwiver's, and the two copies of each extension module aborted every process
+  that loaded them with "generic_type: type ConfigKeys is already
+  registered". There is a `kwiver_python_package` variable now, set in
+  kwiver's own scope.
+* **A configure-time copy of a build-time file.** P5-T02's
+  `viame_lite_generated` macro republishes a generated header with
+  `configure_file(... COPYONLY)`. That cannot work for `version.h`, which
+  `kwiver_configure_file` writes with the `kwiver_configure` target at build
+  time; it had only ever worked because the file was left over from the
+  previous build, and the first configure in a fresh tree failed on it.
+
+**For later phases:** a fresh build directory is the only thing that catches
+the third kind, and this branch had not had one since P0. Configure into a
+new tree after any change to how a generated file is produced.
 
 ### 2.3 Two copies of kwiversys and cxxopts
 
