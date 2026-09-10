@@ -196,6 +196,15 @@ an artefact of the port:
   done anything. The port keeps the registration exactly as it was --
   behaviour first -- and `close_loops_multi_method` was dropped with the rest
   of the unregistered code.
+* `ocv_random_hue_shift` **throws about half the time** on a single channel
+  image, and returns it untouched the other half. It draws
+  `rand() / (RAND_MAX + 1.0)` against `trigger_percent` and returns early when
+  the draw misses; when it hits, it converts BGR to HSV, which needs three
+  channels. Nothing about the input decides it. Measured at 15 failures in 30
+  calls on `gray16` and 14 in 30 on `gray8`. Two shipped pipelines select it,
+  both on colour, so it has never fired in practice -- but a pipeline is one
+  `split_image_channels` away from it. `tests/golden/opencv` records the
+  refusal without asserting it, since nothing can assert a coin flip.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 

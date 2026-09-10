@@ -5,6 +5,7 @@ Shared by the recorder and the golden test. The pipelines read
 so a fresh directory per run is all the isolation needed.
 """
 
+import hashlib
 import json
 import os
 import shutil
@@ -64,11 +65,13 @@ def sourced_environment():
     return environment
 
 
-def _execute(pipeline, workdir, settings=()):
+def _execute(pipeline, workdir, settings=(), before=None):
     """Run the pipeline in `workdir` over the fixture frames.
 
     Returns the names of the files it was given, so a caller can tell its
-    inputs from what the pipeline wrote.
+    inputs from what the pipeline wrote. If `before` is given it is filled
+    with each input's digest, so a caller can tell an input the pipeline
+    overwrote from one it left alone.
     """
     listing = []
     for name in case_spec.PIPELINE_INPUTS:
@@ -76,6 +79,9 @@ def _execute(pipeline, workdir, settings=()):
         target = os.path.join(workdir, os.path.basename(source))
         shutil.copyfile(source, target)
         listing.append(target)
+
+        if before is not None:
+            before[os.path.basename(target)] = _digest(target)
 
     with open(os.path.join(workdir, "input_list.txt"), "w") as handle:
         handle.write("\n".join(listing) + "\n")
@@ -106,27 +112,45 @@ def _execute(pipeline, workdir, settings=()):
     return {os.path.basename(path) for path in listing} | {"input_list.txt"}
 
 
+def _digest(path):
+    with open(path, "rb") as handle:
+        return hashlib.sha256(handle.read()).hexdigest()
+
+
+IMAGE_SUFFIXES = (".png", ".tif", ".tiff", ".jpg")
+
+
 def run(pipeline):
     """Run one pipeline; return {output name: array}, sorted by name.
 
     Outputs are whatever image files the pipeline wrote, which is what the
     recording compares. A pipeline that writes nothing is a failure: it means
     the wiring changed.
+
+    Several of the shipped filter pipelines connect `input.file_name` to the
+    writer's `image_file_name`, so they write **over** their input rather than
+    to a new name. Those are found by digesting the fixtures on the way in and
+    keeping the ones whose bytes changed; without that they look like a
+    pipeline that wrote nothing.
     """
     workdir = tempfile.mkdtemp(prefix="golden_pipe_")
 
     try:
-        inputs = _execute(pipeline, workdir)
+        before = {}
+        inputs = _execute(pipeline, workdir, before=before)
 
         outputs = {}
 
         for name in sorted(os.listdir(workdir)):
-            if name in inputs:
-                continue
-            if not name.lower().endswith((".png", ".tif", ".tiff", ".jpg")):
+            path = os.path.join(workdir, name)
+
+            if not name.lower().endswith(IMAGE_SUFFIXES):
                 continue
 
-            outputs[name] = imageio_utils.load(os.path.join(workdir, name))
+            if name in inputs and before.get(name) == _digest(path):
+                continue
+
+            outputs[name] = imageio_utils.load(path)
 
         if not outputs:
             raise AssertionError("{} wrote no images".format(pipeline))

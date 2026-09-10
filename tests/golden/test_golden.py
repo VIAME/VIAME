@@ -18,11 +18,15 @@ import numpy as np
 import pytest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
 sys.path.insert(0, HERE)
 
 import cases as case_spec           # noqa: E402
+import calib_cases                  # noqa: E402
+import calib_runner                 # noqa: E402
 import codec_cases                  # noqa: E402
 import imageio_utils                # noqa: E402
+import opencv_cases                 # noqa: E402
 import pipeline_runner              # noqa: E402
 import runner                       # noqa: E402
 
@@ -48,6 +52,9 @@ INTERFACE_OF_KIND = {
     "image_io": "image_io",
     "decode": "image_io",
     "round_trip": "image_io",
+    "split_image": "split_image",
+    "detect_motion": "detect_motion",
+    "detect": "image_object_detector",
 }
 
 
@@ -140,6 +147,14 @@ def container_path(name):
     raise FileNotFoundError("no codec fixture named '{}'".format(name))
 
 
+def _first_index(recorded_names):
+    """Order the split inputs the way the recording lists their pieces."""
+    order = {}
+    for position, name in enumerate(recorded_names):
+        order.setdefault(name.rsplit("_", 1)[0], position)
+    return lambda name: order[name]
+
+
 def run_case(case, impl):
     if case["kind"] == "image_filter":
         arrays = [imageio_utils.load(input_path(name)) for name in case["inputs"]]
@@ -159,6 +174,32 @@ def run_case(case, impl):
             return runner.run_image_io_save_load(
                 impl, case["config"], arrays, case["extension"], work_dir)
 
+    if case["kind"] == "split_image":
+        arrays = [imageio_utils.load(input_path(name))
+                  for name in sorted({name.rsplit("_", 1)[0]
+                                      for name in case["inputs"]},
+                                     key=_first_index(case["inputs"]))]
+        split = runner.run_split_image(impl, case["config"], arrays)
+        return [piece for pieces in split for piece in pieces]
+
+    if case["kind"] == "detect_motion":
+        arrays = [imageio_utils.load(input_path(name)) for name in case["inputs"]]
+        return runner.run_detect_motion(impl, case["config"], arrays)
+
+    if case["kind"] == "detect":
+        arrays = [imageio_utils.load(input_path(name)) for name in case["inputs"]]
+        return runner.run_image_object_detector(impl, case["config"], arrays)
+
+    if case["kind"] == "calibration":
+        return [calib_runner.load_calibration(
+                    os.path.join(REPO_ROOT, calib_cases.CALIBRATIONS[name]))
+                for name in case["inputs"]]
+
+    if case["kind"] == "nodes":
+        return [calib_runner.dump_document(
+                    os.path.join(REPO_ROOT, calib_cases.DOCUMENTS[name]))
+                for name in case["inputs"]]
+
     if case["kind"] == "pipeline":
         outputs = pipeline_runner.run(impl)
         missing = sorted(set(case["outputs"]) - set(outputs))
@@ -167,6 +208,76 @@ def run_case(case, impl):
         return [outputs[name] for name in case["outputs"]]
 
     raise AssertionError("unknown case kind '{}'".format(case["kind"]))
+
+
+def check_refusals(item, case, impl):
+    """An input the recording says the implementation rejects must still be.
+
+    A replacement that quietly started accepting a single channel image where
+    the recorded one threw would be a change in behaviour that no output
+    comparison could see, because there is no output to compare.
+    """
+    refuses = case.get("refuses") or {}
+
+    if not refuses:
+        return
+
+    if not opencv_cases.refusal_is_reliable(case["impl"], case["variant"]):
+        return
+
+    for name, reason in sorted(refuses.items()):
+        probe = dict(case, inputs=[name], outputs={})
+        with pytest.raises(Exception):
+            run_case(probe, impl)
+
+
+def check_detections(item, case, outputs, group):
+    """A recording whose values are detections rather than pixels."""
+    for name, actual in zip(case["inputs"], outputs):
+        record = case["outputs"][name]
+
+        with open(os.path.join(HERE, group, record["file"])) as handle:
+            expected = json.load(handle)
+
+        assert len(actual) == len(expected), (
+            "{} {}: {} detections, recorded {}".format(
+                case_id(item), name, len(actual), len(expected)))
+
+        for index, (got, want) in enumerate(zip(actual, expected)):
+            assert sorted(got) == sorted(want), (
+                "{} {} detection {}: fields {} != recorded {}".format(
+                    case_id(item), name, index, sorted(got), sorted(want)))
+            for key in sorted(want):
+                assert got[key] == want[key], (
+                    "{} {} detection {}: {} is {!r}, recorded {!r}".format(
+                        case_id(item), name, index, key, got[key], want[key]))
+
+
+def check_json_case(item, case, outputs, group):
+    """A recording whose values are parsed structure rather than pixels.
+
+    Compared exactly: these are text files holding decimal literals, so a
+    parser that rounds differently is a parser that is wrong. Compared
+    structurally rather than by digest, so a failure says which node moved.
+    """
+    for name, actual in zip(case["inputs"], outputs):
+        record = case["outputs"][name]
+
+        with open(os.path.join(HERE, group, record["file"])) as handle:
+            expected = json.load(handle)
+
+        if case["kind"] == "calibration":
+            actual = {key: value.tolist() for key, value in actual.items()}
+            actual = {key: actual[key] for key in calib_cases.CALIBRATION_KEYS}
+
+        assert sorted(actual) == sorted(expected), (
+            "{} {}: nodes {} != recorded {}".format(
+                case_id(item), name, sorted(actual), sorted(expected)))
+
+        for key in sorted(expected):
+            assert actual[key] == expected[key], (
+                "{} {}: node '{}' is {!r}, recorded {!r}".format(
+                    case_id(item), name, key, actual[key], expected[key]))
 
 
 REMOVED = removed_names()
@@ -199,7 +310,17 @@ def test_golden(item):
             run_case(case, impl)
             pytest.skip("deliberate divergence: {}".format(whole_case))
 
+    check_refusals(item, case, impl)
+
     outputs = run_case(case, impl)
+
+    if case["kind"] == "detect":
+        check_detections(item, case, outputs, group)
+        return
+
+    if case["kind"] in ("calibration", "nodes"):
+        check_json_case(item, case, outputs, group)
+        return
 
     max_tol, mean_tol = TOLERANCES.get(impl, TOLERANCES["__default__"])
     unstable = case.get("unstable", {})

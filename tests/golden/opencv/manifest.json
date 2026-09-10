@@ -1,0 +1,2179 @@
+{
+  "cases": [
+    {
+      "config": {},
+      "impl": "ocv_color_correction",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/defaults/gray16.png",
+          "sha256": "59de7c46556c77f3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/defaults/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/defaults/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {},
+      "impl": "ocv_convert_color",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_convert_color/defaults/rgb8.png",
+          "sha256": "63896ce24c24a373",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {
+        "gray16": "cvtColor is asked for a three or four channel source",
+        "gray8": "cvtColor is asked for a three or four channel source"
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {},
+      "impl": "ocv_enhancer",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/ocv_enhancer/defaults/gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/defaults/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/defaults/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "force_8bit": "true"
+      },
+      "impl": "ocv_enhancer",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/force_8bit/gray16.png",
+          "sha256": "59de7c46556c77f3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/force_8bit/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/force_8bit/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "force_8bit"
+    },
+    {
+      "config": {
+        "apply_clahe": "true",
+        "apply_denoising": "false",
+        "apply_smoothing": "false",
+        "clip_limit": "3"
+      },
+      "impl": "ocv_enhancer",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "float32",
+          "file": "image_filter/ocv_enhancer/clahe_3/gray16.npz",
+          "sha256": "b0bb438284e808fb",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/clahe_3/gray8.png",
+          "sha256": "ca90b6c76195ca39",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/clahe_3/rgb8.png",
+          "sha256": "761cb881daf2d617",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "clahe_3"
+    },
+    {
+      "config": {
+        "apply_clahe": "true",
+        "apply_denoising": "false",
+        "apply_smoothing": "false",
+        "clip_limit": "20"
+      },
+      "impl": "ocv_enhancer",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "float32",
+          "file": "image_filter/ocv_enhancer/clahe_20/gray16.npz",
+          "sha256": "5e6bbfa2ae6a95b9",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/clahe_20/gray8.png",
+          "sha256": "70919c2db8121202",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/clahe_20/rgb8.png",
+          "sha256": "4d33e35d661cb0e3",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "clahe_20"
+    },
+    {
+      "config": {
+        "apply_clahe": "true",
+        "auto_balance": "true",
+        "clip_limit": "3"
+      },
+      "impl": "ocv_enhancer",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "float32",
+          "file": "image_filter/ocv_enhancer/clahe_3_balance/gray16.npz",
+          "sha256": "b0bb438284e808fb",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/clahe_3_balance/gray8.png",
+          "sha256": "ca90b6c76195ca39",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/clahe_3_balance/rgb8.png",
+          "sha256": "0524e3cd5b68cc80",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "clahe_3_balance"
+    },
+    {
+      "config": {
+        "saturation": "1.20"
+      },
+      "impl": "ocv_enhancer",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/ocv_enhancer/saturation_1_20/gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/saturation_1_20/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/saturation_1_20/rgb8.png",
+          "sha256": "f867634c7457b12b",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "saturation_1_20"
+    },
+    {
+      "config": {
+        "apply_smoothing": "true",
+        "smooth_kernel": "3"
+      },
+      "impl": "ocv_enhancer",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/ocv_enhancer/smooth_3/gray16.png",
+          "sha256": "5b8794c04c24f2ed",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/smooth_3/gray8.png",
+          "sha256": "15d4aa878c8d79eb",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/smooth_3/rgb8.png",
+          "sha256": "667d826523447fb2",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "smooth_3"
+    },
+    {
+      "config": {
+        "apply_denoising": "true",
+        "denoise_coeff": "2",
+        "denoise_kernel": "3"
+      },
+      "impl": "ocv_enhancer",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_enhancer/denoise_3_2/rgb8.png",
+          "sha256": "ecdf57e5a6c116cd",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {
+        "gray16": "the enhancer refuses denoising on anything but 8 bit",
+        "gray8": "fastNlMeansDenoisingColored wants CV_8UC3 or CV_8UC4"
+      },
+      "unstable": {},
+      "variant": "denoise_3_2"
+    },
+    {
+      "config": {},
+      "impl": "ocv_random_hue_shift",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_random_hue_shift/defaults/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {
+        "gray16": "cvtColor BGR2HSV is asked for a three channel source -- but only when the trigger draw fires, so this throws about half the time",
+        "gray8": "cvtColor BGR2HSV is asked for a three channel source -- but only when the trigger draw fires, so this throws about half the time"
+      },
+      "unstable": {
+        "rgb8": "the hue offset is drawn from the global RNG on every call"
+      },
+      "variant": "defaults"
+    },
+    {
+      "config": {},
+      "impl": "vxl_enhancer",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "image_filter/vxl_enhancer/defaults/gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/defaults/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/defaults/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "apply_clahe": "true",
+        "clip_limit": "3"
+      },
+      "impl": "vxl_enhancer",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "float32",
+          "file": "image_filter/vxl_enhancer/clahe_3/gray16.npz",
+          "sha256": "b0bb438284e808fb",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/clahe_3/gray8.png",
+          "sha256": "ca90b6c76195ca39",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/vxl_enhancer/clahe_3/rgb8.png",
+          "sha256": "761cb881daf2d617",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "clahe_3"
+    },
+    {
+      "config": {
+        "force_8bit": "true",
+        "pattern": "BG"
+      },
+      "impl": "ocv_debayer",
+      "inputs": [
+        "bayer_bg"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "bayer_bg": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_debayer/bg_force_8bit/bayer_bg.png",
+          "sha256": "e8c84b06cfca14d3",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "bg_force_8bit"
+    },
+    {
+      "config": {
+        "force_8bit": "false",
+        "pattern": "BG"
+      },
+      "impl": "ocv_debayer",
+      "inputs": [
+        "bayer_bg"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "bayer_bg": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_debayer/bg/bayer_bg.png",
+          "sha256": "e8c84b06cfca14d3",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "bg"
+    },
+    {
+      "config": {},
+      "impl": "ocv_optical_flow",
+      "inputs": [
+        "seq_00",
+        "seq_01",
+        "seq_02",
+        "seq_03",
+        "seq_04",
+        "seq_05",
+        "seq_06",
+        "seq_07",
+        "seq_08",
+        "seq_09",
+        "seq_10",
+        "seq_11"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "seq_00": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_optical_flow/defaults/seq_00.png",
+          "sha256": "fd9243e1ba57263e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_01": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_optical_flow/defaults/seq_01.png",
+          "sha256": "96b0135b8edf4e2c",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_02": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_optical_flow/defaults/seq_02.png",
+          "sha256": "74ab8eae53a635e9",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_03": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_optical_flow/defaults/seq_03.png",
+          "sha256": "87bc4f208d09aab8",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_04": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_optical_flow/defaults/seq_04.png",
+          "sha256": "61406319be33e089",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_05": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_optical_flow/defaults/seq_05.png",
+          "sha256": "8743cb2a34c88fb3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_06": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_optical_flow/defaults/seq_06.png",
+          "sha256": "ad08c2ce424a60e2",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_07": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_optical_flow/defaults/seq_07.png",
+          "sha256": "8af7f4c5c29e09b3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_08": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_optical_flow/defaults/seq_08.png",
+          "sha256": "2dd7bd2a57a6fd5d",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_09": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_optical_flow/defaults/seq_09.png",
+          "sha256": "5f0f788c6b1ca129",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_10": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_optical_flow/defaults/seq_10.png",
+          "sha256": "9fc09c79adb2bec8",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_11": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_optical_flow/defaults/seq_11.png",
+          "sha256": "2ae6ac8827dcab91",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {},
+      "impl": "habcam",
+      "inputs": [
+        "rgb8_0",
+        "gray8_0",
+        "gray16_0"
+      ],
+      "kind": "split_image",
+      "outputs": {
+        "gray16_0": {
+          "dtype": "uint16",
+          "file": "split_image/habcam/defaults/gray16_0.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8_0": {
+          "dtype": "uint8",
+          "file": "split_image/habcam/defaults/gray8_0.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8_0": {
+          "dtype": "uint8",
+          "file": "split_image/habcam/defaults/rgb8_0.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {},
+      "impl": "ocv",
+      "inputs": [
+        "rgb8_0",
+        "rgb8_1",
+        "gray8_0",
+        "gray8_1",
+        "gray16_0",
+        "gray16_1"
+      ],
+      "kind": "split_image",
+      "outputs": {
+        "gray16_0": {
+          "dtype": "uint16",
+          "file": "split_image/ocv/defaults/gray16_0.png",
+          "sha256": "65a50bd2c2c8a057",
+          "shape": [
+            64,
+            48,
+            1
+          ]
+        },
+        "gray16_1": {
+          "dtype": "uint16",
+          "file": "split_image/ocv/defaults/gray16_1.png",
+          "sha256": "cff7eb9351b697f4",
+          "shape": [
+            64,
+            48,
+            1
+          ]
+        },
+        "gray8_0": {
+          "dtype": "uint8",
+          "file": "split_image/ocv/defaults/gray8_0.png",
+          "sha256": "85a221f7feb1f4cc",
+          "shape": [
+            64,
+            48,
+            1
+          ]
+        },
+        "gray8_1": {
+          "dtype": "uint8",
+          "file": "split_image/ocv/defaults/gray8_1.png",
+          "sha256": "8e697c62d0d886b3",
+          "shape": [
+            64,
+            48,
+            1
+          ]
+        },
+        "rgb8_0": {
+          "dtype": "uint8",
+          "file": "split_image/ocv/defaults/rgb8_0.png",
+          "sha256": "697fe862600dc36f",
+          "shape": [
+            64,
+            48,
+            3
+          ]
+        },
+        "rgb8_1": {
+          "dtype": "uint8",
+          "file": "split_image/ocv/defaults/rgb8_1.png",
+          "sha256": "3f87ab3b9e56d9e2",
+          "shape": [
+            64,
+            48,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {},
+      "impl": "ocv_channels",
+      "inputs": [
+        "rgb8_0",
+        "rgb8_1",
+        "rgb8_2",
+        "gray8_0",
+        "gray16_0"
+      ],
+      "kind": "split_image",
+      "outputs": {
+        "gray16_0": {
+          "dtype": "uint16",
+          "file": "split_image/ocv_channels/defaults/gray16_0.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8_0": {
+          "dtype": "uint8",
+          "file": "split_image/ocv_channels/defaults/gray8_0.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8_0": {
+          "dtype": "uint8",
+          "file": "split_image/ocv_channels/defaults/rgb8_0.png",
+          "sha256": "b17766d4308f86c5",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8_1": {
+          "dtype": "uint8",
+          "file": "split_image/ocv_channels/defaults/rgb8_1.png",
+          "sha256": "ce1cb0b1ac997a22",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8_2": {
+          "dtype": "uint8",
+          "file": "split_image/ocv_channels/defaults/rgb8_2.png",
+          "sha256": "e2efd4cde519a115",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {},
+      "impl": "ocv_horizontally",
+      "inputs": [
+        "rgb8_0",
+        "rgb8_1",
+        "gray8_0",
+        "gray8_1",
+        "gray16_0",
+        "gray16_1"
+      ],
+      "kind": "split_image",
+      "outputs": {
+        "gray16_0": {
+          "dtype": "uint16",
+          "file": "split_image/ocv_horizontally/defaults/gray16_0.png",
+          "sha256": "65a50bd2c2c8a057",
+          "shape": [
+            64,
+            48,
+            1
+          ]
+        },
+        "gray16_1": {
+          "dtype": "uint16",
+          "file": "split_image/ocv_horizontally/defaults/gray16_1.png",
+          "sha256": "cff7eb9351b697f4",
+          "shape": [
+            64,
+            48,
+            1
+          ]
+        },
+        "gray8_0": {
+          "dtype": "uint8",
+          "file": "split_image/ocv_horizontally/defaults/gray8_0.png",
+          "sha256": "85a221f7feb1f4cc",
+          "shape": [
+            64,
+            48,
+            1
+          ]
+        },
+        "gray8_1": {
+          "dtype": "uint8",
+          "file": "split_image/ocv_horizontally/defaults/gray8_1.png",
+          "sha256": "8e697c62d0d886b3",
+          "shape": [
+            64,
+            48,
+            1
+          ]
+        },
+        "rgb8_0": {
+          "dtype": "uint8",
+          "file": "split_image/ocv_horizontally/defaults/rgb8_0.png",
+          "sha256": "697fe862600dc36f",
+          "shape": [
+            64,
+            48,
+            3
+          ]
+        },
+        "rgb8_1": {
+          "dtype": "uint8",
+          "file": "split_image/ocv_horizontally/defaults/rgb8_1.png",
+          "sha256": "3f87ab3b9e56d9e2",
+          "shape": [
+            64,
+            48,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {},
+      "impl": "ocv_3frame_differencing",
+      "inputs": [
+        "seq_00",
+        "seq_01",
+        "seq_02",
+        "seq_03",
+        "seq_04",
+        "seq_05",
+        "seq_06",
+        "seq_07",
+        "seq_08",
+        "seq_09",
+        "seq_10",
+        "seq_11"
+      ],
+      "kind": "detect_motion",
+      "outputs": {
+        "seq_00": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/defaults/seq_00.png",
+          "sha256": "fd9243e1ba57263e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_01": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/defaults/seq_01.png",
+          "sha256": "fbc1c7998bdd28ec",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_02": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/defaults/seq_02.png",
+          "sha256": "0525be52e43e09e4",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_03": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/defaults/seq_03.png",
+          "sha256": "40ff1618ae164503",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_04": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/defaults/seq_04.png",
+          "sha256": "4b08c085437fe57c",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_05": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/defaults/seq_05.png",
+          "sha256": "99d6dbe13e80775e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_06": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/defaults/seq_06.png",
+          "sha256": "46adf97da4f62f53",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_07": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/defaults/seq_07.png",
+          "sha256": "7b87b68ea1eeeec7",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_08": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/defaults/seq_08.png",
+          "sha256": "94e34e1e9e02689c",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_09": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/defaults/seq_09.png",
+          "sha256": "89ea21aa53d00d1e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_10": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/defaults/seq_10.png",
+          "sha256": "fcaf98a77c81584d",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_11": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/defaults/seq_11.png",
+          "sha256": "0f164d5063242aa4",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "frame_separation": "1",
+        "jitter_radius": "1",
+        "max_foreground_fract": "0.15",
+        "max_foreground_fract_thresh": "10"
+      },
+      "impl": "ocv_3frame_differencing",
+      "inputs": [
+        "seq_00",
+        "seq_01",
+        "seq_02",
+        "seq_03",
+        "seq_04",
+        "seq_05",
+        "seq_06",
+        "seq_07",
+        "seq_08",
+        "seq_09",
+        "seq_10",
+        "seq_11"
+      ],
+      "kind": "detect_motion",
+      "outputs": {
+        "seq_00": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/shipped/seq_00.png",
+          "sha256": "fd9243e1ba57263e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_01": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/shipped/seq_01.png",
+          "sha256": "fd9243e1ba57263e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_02": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/shipped/seq_02.png",
+          "sha256": "fd9243e1ba57263e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_03": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/shipped/seq_03.png",
+          "sha256": "fd9243e1ba57263e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_04": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/shipped/seq_04.png",
+          "sha256": "fd9243e1ba57263e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_05": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/shipped/seq_05.png",
+          "sha256": "fd9243e1ba57263e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_06": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/shipped/seq_06.png",
+          "sha256": "fd9243e1ba57263e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_07": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/shipped/seq_07.png",
+          "sha256": "fd9243e1ba57263e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_08": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/shipped/seq_08.png",
+          "sha256": "fd9243e1ba57263e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_09": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/shipped/seq_09.png",
+          "sha256": "fd9243e1ba57263e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_10": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/shipped/seq_10.png",
+          "sha256": "fd9243e1ba57263e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "seq_11": {
+          "dtype": "uint8",
+          "file": "detect_motion/ocv_3frame_differencing/shipped/seq_11.png",
+          "sha256": "fd9243e1ba57263e",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "shipped"
+    },
+    {
+      "config": {
+        "class_name": "motion",
+        "force_bbox_height": "-1",
+        "force_bbox_width": "-1",
+        "max_area": "400000",
+        "min_area": "100",
+        "min_fill_fraction": "0.05",
+        "threshold": "0"
+      },
+      "impl": "detect_heat_map",
+      "inputs": [
+        "heat"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "heat": {
+          "detections": 1,
+          "file": "detect/detect_heat_map/shipped/heat.json",
+          "sha256": "28e2de6cfaf00763"
+        }
+      },
+      "unstable": {},
+      "variant": "shipped"
+    },
+    {
+      "config": {
+        "class_name": "motion",
+        "max_area": "400000",
+        "min_area": "100",
+        "min_fill_fraction": "0.05",
+        "threshold": "100"
+      },
+      "impl": "detect_heat_map",
+      "inputs": [
+        "heat"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "heat": {
+          "detections": 2,
+          "file": "detect/detect_heat_map/threshold_100/heat.json",
+          "sha256": "a4786867a58cf81e"
+        }
+      },
+      "unstable": {},
+      "variant": "threshold_100"
+    },
+    {
+      "config": {
+        "min_area": "20",
+        "min_fill_fraction": "0.05",
+        "threshold": "100"
+      },
+      "impl": "detect_heat_map",
+      "inputs": [
+        "heat"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "heat": {
+          "detections": 4,
+          "file": "detect/detect_heat_map/threshold_100_small/heat.json",
+          "sha256": "864e27dd506a7cd7"
+        }
+      },
+      "unstable": {},
+      "variant": "threshold_100_small"
+    },
+    {
+      "config": {
+        "dp": "1",
+        "max_radius": "20",
+        "min_dist": "10",
+        "min_radius": "3",
+        "param1": "200",
+        "param2": "20"
+      },
+      "impl": "hough_circle",
+      "inputs": [
+        "circles_rgb"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "circles_rgb": {
+          "detections": 4,
+          "file": "detect/hough_circle/shipped/circles_rgb.json",
+          "sha256": "c632926fb0ba2d66"
+        }
+      },
+      "unstable": {},
+      "variant": "shipped"
+    },
+    {
+      "config": {},
+      "impl": "filter_debayer.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame_00.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_debayer.pipe/frame_00.png",
+          "sha256": "f95e51b330c93941",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_01.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_debayer.pipe/frame_01.png",
+          "sha256": "1c6de71c2e80cd0e",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_02.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_debayer.pipe/frame_02.png",
+          "sha256": "516dc55612ea714b",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_03.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_debayer.pipe/frame_03.png",
+          "sha256": "2aab205257c1fbc3",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_04.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_debayer.pipe/frame_04.png",
+          "sha256": "8cac30c3f75b8492",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_05.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_debayer.pipe/frame_05.png",
+          "sha256": "2bf42c26f732a65b",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    },
+    {
+      "config": {},
+      "impl": "filter_debayer_and_enhance.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame_00.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_debayer_and_enhance.pipe/frame_00.png",
+          "sha256": "02ac7e4c9301df4b",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_01.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_debayer_and_enhance.pipe/frame_01.png",
+          "sha256": "1b941416a227941c",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_02.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_debayer_and_enhance.pipe/frame_02.png",
+          "sha256": "ef307200b5467008",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_03.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_debayer_and_enhance.pipe/frame_03.png",
+          "sha256": "bba445ccc4b9f994",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_04.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_debayer_and_enhance.pipe/frame_04.png",
+          "sha256": "edc1199098f66916",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_05.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_debayer_and_enhance.pipe/frame_05.png",
+          "sha256": "da04b7f7a5ee1d3d",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    },
+    {
+      "config": {},
+      "impl": "filter_enhance.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame_00.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_enhance.pipe/frame_00.png",
+          "sha256": "02ac7e4c9301df4b",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_01.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_enhance.pipe/frame_01.png",
+          "sha256": "1b941416a227941c",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_02.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_enhance.pipe/frame_02.png",
+          "sha256": "ef307200b5467008",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_03.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_enhance.pipe/frame_03.png",
+          "sha256": "bba445ccc4b9f994",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_04.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_enhance.pipe/frame_04.png",
+          "sha256": "edc1199098f66916",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        },
+        "frame_05.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_enhance.pipe/frame_05.png",
+          "sha256": "da04b7f7a5ee1d3d",
+          "shape": [
+            270,
+            480,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    },
+    {
+      "config": {},
+      "impl": "filter_split_and_debayer.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame_00.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_and_debayer.pipe/frame_00.png",
+          "sha256": "db1b5de16615092e",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_01.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_and_debayer.pipe/frame_01.png",
+          "sha256": "f1edc3c96dd493b8",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_02.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_and_debayer.pipe/frame_02.png",
+          "sha256": "d3f5a8dd07e1e55f",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_03.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_and_debayer.pipe/frame_03.png",
+          "sha256": "23a3eae66c26a3bc",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_04.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_and_debayer.pipe/frame_04.png",
+          "sha256": "6f686531a342bbaa",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_05.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_and_debayer.pipe/frame_05.png",
+          "sha256": "8ff805496c2e6259",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    },
+    {
+      "config": {},
+      "impl": "filter_split_left_side.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame_00.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_left_side.pipe/frame_00.png",
+          "sha256": "7f8b2dcd3cbb2279",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_01.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_left_side.pipe/frame_01.png",
+          "sha256": "72f4507641b2276a",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_02.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_left_side.pipe/frame_02.png",
+          "sha256": "aab9dbf8307e2ef4",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_03.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_left_side.pipe/frame_03.png",
+          "sha256": "48fcbc227b0a524c",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_04.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_left_side.pipe/frame_04.png",
+          "sha256": "350ef57c1a3b6a1c",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_05.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_left_side.pipe/frame_05.png",
+          "sha256": "6721c1ce45f20cd0",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    },
+    {
+      "config": {},
+      "impl": "filter_split_right_side.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame_00.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_right_side.pipe/frame_00.png",
+          "sha256": "363833cb0fef09fb",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_01.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_right_side.pipe/frame_01.png",
+          "sha256": "2b60548ad27c80fd",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_02.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_right_side.pipe/frame_02.png",
+          "sha256": "102c6eaf2488c033",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_03.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_right_side.pipe/frame_03.png",
+          "sha256": "4ec079eec6665ef9",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_04.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_right_side.pipe/frame_04.png",
+          "sha256": "5ef6e1efb956bd7d",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame_05.png": {
+          "dtype": "uint8",
+          "file": "pipeline/filter_split_right_side.pipe/frame_05.png",
+          "sha256": "5e27de6dc6a34694",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    },
+    {
+      "config": {},
+      "impl": "train_aug_split.pipe",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "pipeline",
+      "outputs": {
+        "frame000001.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_split.pipe/frame000001.png",
+          "sha256": "7f8b2dcd3cbb2279",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame000002.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_split.pipe/frame000002.png",
+          "sha256": "72f4507641b2276a",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame000003.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_split.pipe/frame000003.png",
+          "sha256": "aab9dbf8307e2ef4",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame000004.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_split.pipe/frame000004.png",
+          "sha256": "48fcbc227b0a524c",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame000005.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_split.pipe/frame000005.png",
+          "sha256": "350ef57c1a3b6a1c",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        },
+        "frame000006.png": {
+          "dtype": "uint8",
+          "file": "pipeline/train_aug_split.pipe/frame000006.png",
+          "sha256": "6721c1ce45f20cd0",
+          "shape": [
+            270,
+            240,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "default"
+    }
+  ],
+  "fixtures": {
+    "bayer_bg": {
+      "dtype": "uint8",
+      "sha256": "778ca8d041b448ec",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "circles_rgb": {
+      "dtype": "uint8",
+      "sha256": "16db4f53dd8fd216",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "frame_00": {
+      "dtype": "uint8",
+      "sha256": "f95e51b330c93941",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_01": {
+      "dtype": "uint8",
+      "sha256": "1c6de71c2e80cd0e",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_02": {
+      "dtype": "uint8",
+      "sha256": "516dc55612ea714b",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_03": {
+      "dtype": "uint8",
+      "sha256": "2aab205257c1fbc3",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_04": {
+      "dtype": "uint8",
+      "sha256": "8cac30c3f75b8492",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_05": {
+      "dtype": "uint8",
+      "sha256": "2bf42c26f732a65b",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "gray16": {
+      "dtype": "uint16",
+      "sha256": "68830aaa86124440",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "gray8": {
+      "dtype": "uint8",
+      "sha256": "95e317223585e847",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "heat": {
+      "dtype": "uint8",
+      "sha256": "e4d463b84cdf7d3a",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "mask": {
+      "dtype": "bool",
+      "sha256": "2010a62d1e18f06a",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "rgb8": {
+      "dtype": "uint8",
+      "sha256": "835f97298ef48c75",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_00": {
+      "dtype": "uint8",
+      "sha256": "9ac941edfbe79886",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_01": {
+      "dtype": "uint8",
+      "sha256": "fa8a0910d17fffb2",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_02": {
+      "dtype": "uint8",
+      "sha256": "bd5cc83de41c5ce6",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_03": {
+      "dtype": "uint8",
+      "sha256": "30a83406911e6497",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_04": {
+      "dtype": "uint8",
+      "sha256": "89a6d5999f5bd8ca",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_05": {
+      "dtype": "uint8",
+      "sha256": "4272fd601873ca1c",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_06": {
+      "dtype": "uint8",
+      "sha256": "6a2f47f8c1e77850",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_07": {
+      "dtype": "uint8",
+      "sha256": "77a642afb8efb555",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_08": {
+      "dtype": "uint8",
+      "sha256": "d84318b825c34750",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_09": {
+      "dtype": "uint8",
+      "sha256": "1d52f0325ea50687",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_10": {
+      "dtype": "uint8",
+      "sha256": "f2e17c1ff4f22798",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_11": {
+      "dtype": "uint8",
+      "sha256": "8a5d2298f319f1d0",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    }
+  },
+  "group": "opencv",
+  "recorded": "2026-09-10T20:18:48Z",
+  "versions": {
+    "install": "/home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install",
+    "viame": "52fcaedbaf239190442e7a0944bda050b6e7a669"
+  }
+}

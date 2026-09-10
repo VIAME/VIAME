@@ -1,0 +1,93 @@
+{
+  "cases": [
+    {
+      "config": {},
+      "impl": "read_stereo_rig",
+      "inputs": [
+        "ifremer_dir",
+        "ifremer_npz",
+        "size_measurement_npz",
+        "tests_data_dir",
+        "tests_data_yml"
+      ],
+      "kind": "calibration",
+      "outputs": {
+        "ifremer_dir": {
+          "file": "calibration/ifremer_dir.json",
+          "sha256": "84cbcdd8246f24aa",
+          "source": "configs/add-ons/ifremer/models"
+        },
+        "ifremer_npz": {
+          "file": "calibration/ifremer_npz.json",
+          "sha256": "84cbcdd8246f24aa",
+          "source": "configs/add-ons/ifremer/models/calibration.npz"
+        },
+        "size_measurement_npz": {
+          "file": "calibration/size_measurement_npz.json",
+          "sha256": "78b24595a8901084",
+          "source": "examples/size_measurement/calibration_matrices.npz"
+        },
+        "tests_data_dir": {
+          "file": "calibration/tests_data_dir.json",
+          "sha256": "84cbcdd8246f24aa",
+          "source": "tests/data"
+        },
+        "tests_data_yml": {
+          "file": "calibration/tests_data_yml.json",
+          "sha256": "bea110b2e96eea66",
+          "source": "tests/data/intrinsics.yml"
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {},
+      "impl": "FileStorage",
+      "inputs": [
+        "extrinsics_yml",
+        "ifremer_extrinsics_yml",
+        "ifremer_intrinsics_yml",
+        "intrinsics_yml",
+        "model_svm_xml"
+      ],
+      "kind": "nodes",
+      "outputs": {
+        "extrinsics_yml": {
+          "file": "nodes/extrinsics_yml.json",
+          "sha256": "f85fac9f0d446d04",
+          "source": "tests/data/extrinsics.yml"
+        },
+        "ifremer_extrinsics_yml": {
+          "file": "nodes/ifremer_extrinsics_yml.json",
+          "sha256": "f85fac9f0d446d04",
+          "source": "configs/add-ons/ifremer/models/extrinsics.yml"
+        },
+        "ifremer_intrinsics_yml": {
+          "file": "nodes/ifremer_intrinsics_yml.json",
+          "sha256": "de91e4b7d2803d42",
+          "source": "configs/add-ons/ifremer/models/intrinsics.yml"
+        },
+        "intrinsics_yml": {
+          "file": "nodes/intrinsics_yml.json",
+          "sha256": "de91e4b7d2803d42",
+          "source": "tests/data/intrinsics.yml"
+        },
+        "model_svm_xml": {
+          "file": "nodes/model_svm_xml.json",
+          "sha256": "de447b291b3c1b59",
+          "source": "configs/add-ons/uw-fish/models/Model_SVM.xml"
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    }
+  ],
+  "fixtures": {},
+  "group": "calib",
+  "recorded": "2026-09-10T20:03:57Z",
+  "versions": {
+    "install": "/home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install",
+    "viame": "52fcaedbaf239190442e7a0944bda050b6e7a669"
+  }
+}

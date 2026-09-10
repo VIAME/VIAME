@@ -27,9 +27,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import cases as case_spec           # noqa: E402
+import calib_cases                  # noqa: E402
+import calib_runner                 # noqa: E402
 import codec_cases                  # noqa: E402
 import codec_fixtures               # noqa: E402
 import fixtures                     # noqa: E402
+import opencv_cases                 # noqa: E402
+import opencv_fixtures              # noqa: E402
 import imageio_utils                # noqa: E402
 import pipeline_runner              # noqa: E402
 import runner                       # noqa: E402
@@ -55,6 +59,7 @@ def describe(array):
     }
 
 
+REPO_ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
 TEST_DATA_DIR = os.path.join(HERE, "..", "pipelines", "pipelines_test_data")
 
 
@@ -64,6 +69,7 @@ def write_inputs():
     written = []
 
     images = dict(fixtures.build())
+    images.update(opencv_fixtures.build())
 
     if not all(_fixture_exists(name) for name in case_spec.PIPELINE_INPUTS):
         images.update(dict(fixtures.pipeline_frames(TEST_DATA_DIR)))
@@ -312,6 +318,237 @@ def record_codec_round_trip(group_dir, manifest):
                     impl, tag, len(outputs)))
 
 
+def _write_json(path, payload):
+    with open(path, "w") as handle:
+        json.dump(payload, handle, indent=2, sort_keys=True)
+        handle.write("\n")
+    return path
+
+
+def record_calibrations(group_dir, manifest):
+    case_dir = os.path.join(group_dir, "calibration")
+    os.makedirs(case_dir, exist_ok=True)
+
+    files = {}
+    for name, source in sorted(calib_cases.CALIBRATIONS.items()):
+        loaded = calib_runner.load_calibration(
+            os.path.join(REPO_ROOT, source))
+        payload = {key: loaded[key].tolist()
+                   for key in calib_cases.CALIBRATION_KEYS}
+        written = _write_json(os.path.join(case_dir, name + ".json"), payload)
+        files[name] = {
+            "file": os.path.relpath(written, group_dir),
+            "source": source,
+            "sha256": file_digest(written),
+        }
+        print("  calibration {} ({} keys)".format(name, len(payload)))
+
+    manifest["cases"].append({
+        "kind": "calibration",
+        "impl": "read_stereo_rig",
+        "variant": "defaults",
+        "config": {},
+        "inputs": sorted(calib_cases.CALIBRATIONS),
+        "outputs": files,
+        "unstable": {},
+    })
+
+
+def record_documents(group_dir, manifest):
+    case_dir = os.path.join(group_dir, "nodes")
+    os.makedirs(case_dir, exist_ok=True)
+
+    files = {}
+    for name, source in sorted(calib_cases.DOCUMENTS.items()):
+        payload = calib_runner.dump_document(os.path.join(REPO_ROOT, source))
+        written = _write_json(os.path.join(case_dir, name + ".json"), payload)
+        files[name] = {
+            "file": os.path.relpath(written, group_dir),
+            "source": source,
+            "sha256": file_digest(written),
+        }
+        print("  nodes {} ({} top level nodes)".format(name, len(payload)))
+
+    manifest["cases"].append({
+        "kind": "nodes",
+        "impl": "FileStorage",
+        "variant": "defaults",
+        "config": {},
+        "inputs": sorted(calib_cases.DOCUMENTS),
+        "outputs": files,
+        "unstable": {},
+    })
+
+
+def _record_array_case(group_dir, manifest, kind, impl, variant, config,
+                       input_names, outputs, spec, refuses=None):
+    """One case whose outputs are one array per input."""
+    case_dir = os.path.join(group_dir, kind, impl, variant)
+    os.makedirs(case_dir, exist_ok=True)
+
+    files = {}
+    for name, output in zip(input_names, outputs):
+        written = imageio_utils.save(os.path.join(case_dir, name), output)
+        files[name] = {
+            "file": os.path.relpath(written, group_dir),
+            **describe(output),
+        }
+
+    manifest["cases"].append({
+        "kind": kind,
+        "impl": impl,
+        "variant": variant,
+        "config": config,
+        "inputs": list(input_names),
+        "outputs": files,
+        "unstable": {
+            name: reason
+            for name in input_names
+            for reason in [spec.unstable_reason(impl, variant, name)]
+            if reason
+        },
+        "refuses": refuses or {},
+    })
+    print("  {} {} {} ({} inputs{})".format(
+        kind, impl, variant, len(outputs),
+        ", {} refused".format(len(refuses)) if refuses else ""))
+
+
+def record_opencv_filters(group_dir, manifest):
+    groups = (
+        (opencv_cases.IMAGE_FILTERS, None),
+        (opencv_cases.BAYER_FILTERS, opencv_cases.BAYER),
+        (opencv_cases.TEMPORAL_FILTERS, opencv_cases.SEQUENCE),
+    )
+
+    for table, fixed_inputs in groups:
+        for impl, variants in sorted(table.items()):
+            for variant, config in variants:
+                input_names = (fixed_inputs or
+                               opencv_cases.filter_inputs(impl, variant))
+                arrays = [imageio_utils.load(input_path(name))
+                          for name in input_names]
+
+                outputs = runner.run_image_filter(impl, config, arrays)
+                _record_array_case(group_dir, manifest, "image_filter", impl,
+                                   variant, config, input_names, outputs,
+                                   opencv_cases,
+                                   refuses=opencv_cases.refusals(impl, variant))
+
+
+def record_opencv_splits(group_dir, manifest):
+    input_names = opencv_cases.STILLS
+    arrays = [imageio_utils.load(input_path(name)) for name in input_names]
+
+    for impl, variants in sorted(opencv_cases.SPLIT_IMAGES.items()):
+        for variant, config in variants:
+            split = runner.run_split_image(impl, config, arrays)
+
+            # One input becomes several images, so the recorded names carry
+            # the piece index.
+            names, outputs = [], []
+            for name, pieces in zip(input_names, split):
+                for index, piece in enumerate(pieces):
+                    names.append("{}_{}".format(name, index))
+                    outputs.append(piece)
+
+            _record_array_case(group_dir, manifest, "split_image", impl,
+                               variant, config, names, outputs, opencv_cases)
+
+
+def record_opencv_motion(group_dir, manifest):
+    input_names = opencv_cases.SEQUENCE
+    arrays = [imageio_utils.load(input_path(name)) for name in input_names]
+
+    for impl, variants in sorted(opencv_cases.DETECT_MOTION.items()):
+        for variant, config in variants:
+            outputs = runner.run_detect_motion(impl, config, arrays)
+            _record_array_case(group_dir, manifest, "detect_motion", impl,
+                               variant, config, input_names, outputs,
+                               opencv_cases)
+
+
+def record_opencv_detectors(group_dir, manifest):
+    for impl, spec in sorted(opencv_cases.DETECTORS.items()):
+        input_names = spec["inputs"]
+        arrays = [imageio_utils.load(input_path(name)) for name in input_names]
+
+        for variant, config in spec["variants"]:
+            outputs = runner.run_image_object_detector(impl, config, arrays)
+
+            case_dir = os.path.join(group_dir, "detect", impl, variant)
+            os.makedirs(case_dir, exist_ok=True)
+
+            files = {}
+            for name, detections in zip(input_names, outputs):
+                written = _write_json(
+                    os.path.join(case_dir, name + ".json"), detections)
+                files[name] = {
+                    "file": os.path.relpath(written, group_dir),
+                    "detections": len(detections),
+                    "sha256": file_digest(written),
+                }
+
+            manifest["cases"].append({
+                "kind": "detect",
+                "impl": impl,
+                "variant": variant,
+                "config": config,
+                "inputs": list(input_names),
+                "outputs": files,
+                "unstable": {},
+            })
+            print("  detect {} {} ({} detections)".format(
+                impl, variant,
+                sum(len(detections) for detections in outputs)))
+
+
+def record_opencv_pipelines(group_dir, manifest):
+    for pipeline in opencv_cases.PIPELINES:
+        outputs = pipeline_runner.run(pipeline)
+
+        case_dir = os.path.join(group_dir, "pipeline", pipeline)
+        os.makedirs(case_dir, exist_ok=True)
+
+        files = {}
+        for name, output in sorted(outputs.items()):
+            stem = os.path.splitext(name)[0]
+            written = imageio_utils.save(os.path.join(case_dir, stem), output)
+            files[name] = {
+                "file": os.path.relpath(written, group_dir),
+                **describe(output),
+            }
+
+        manifest["cases"].append({
+            "kind": "pipeline",
+            "impl": pipeline,
+            "variant": "default",
+            "config": {},
+            "inputs": list(case_spec.PIPELINE_INPUTS),
+            "outputs": files,
+            "unstable": {
+                name: reason
+                for name in files
+                for reason in [opencv_cases.unstable_reason(pipeline, "default")]
+                if reason
+            },
+        })
+        print("  pipeline {} ({} frames)".format(pipeline, len(files)))
+
+
+def record_opencv(group_dir, manifest):
+    record_opencv_filters(group_dir, manifest)
+    record_opencv_splits(group_dir, manifest)
+    record_opencv_motion(group_dir, manifest)
+    record_opencv_detectors(group_dir, manifest)
+    record_opencv_pipelines(group_dir, manifest)
+
+
+def record_calib(group_dir, manifest):
+    record_calibrations(group_dir, manifest)
+    record_documents(group_dir, manifest)
+
+
 def record_codecs(group_dir, manifest):
     # The containers are the fixture here, and they are bytes rather than
     # arrays: digest the files, so that a re-recording against a different
@@ -338,6 +575,8 @@ def record_vxl(group_dir, manifest):
 GROUPS = {
     "vxl": record_vxl,
     "codecs": record_codecs,
+    "calib": record_calib,
+    "opencv": record_opencv,
 }
 
 
@@ -358,9 +597,10 @@ def main():
 
     runner.load_modules()
 
-    written = write_inputs()
-    if written:
-        print("wrote fixtures: {}".format(", ".join(written)))
+    if args.group != "calib":
+        written = write_inputs()
+        if written:
+            print("wrote fixtures: {}".format(", ".join(written)))
 
     if args.group == "codecs":
         written = write_codec_inputs()
@@ -374,11 +614,12 @@ def main():
         "recorded": datetime.datetime.now(datetime.timezone.utc)
                             .strftime("%Y-%m-%dT%H:%M:%SZ"),
         "versions": source_versions(),
-        "fixtures": {
+        "fixtures": {} if args.group == "calib" else {
             name: describe(imageio_utils.load(input_path(name)))
             for name in sorted(set(case_spec.STILLS) | set(case_spec.SEQUENCE)
                                | set(case_spec.MASKS)
-                               | set(case_spec.PIPELINE_INPUTS))
+                               | set(case_spec.PIPELINE_INPUTS)
+                               | set(opencv_fixtures.build()))
         },
         "cases": [],
     }

@@ -12,6 +12,8 @@ Each group under this directory belongs to one dependency removal:
 | `vxl` | `arrows/vxl` filters and image_io, `plugins/vxl` filters | phase 3 |
 | `video` | `arrows/ffmpeg` `video_input` and `video_output` | phase 4 |
 | `codecs` | the `ocv` image_io, decoding and writing every container | phase 7 |
+| `calib` | `viame::read_stereo_rig`, and `cv::FileStorage` on every calibration document | phase 7 |
+| `opencv` | the `ocv_*` filters, splits, motion detector and detectors, and the pipelines that use them | phase 7 |
 
 The video group is replayed against every reader and writer registered under it, not just the replacement: `ffmpeg` and `pyav` and `ffmpeg_cli` all have to reproduce the same recording.
 
@@ -73,6 +75,33 @@ the image_io and reads it back with the same one, which is what catches a
 writer that changes channel order or bit depth on the way out -- the BMP
 round trip records 16 bit gray coming back as 8 bit, because that is what BMP
 can hold.
+
+The calibration group records two things. `calibration` is what
+`viame::read_stereo_rig` -- through
+`viame.core._measurement.load_stereo_calibration` -- makes of each committed
+calibration source, which is the contract every VIAME caller sees. `nodes` is
+one level below: every node of each OpenCV YAML and XML document as
+`cv::FileStorage` parses it, which is what `library/file_io/opencv_yaml` has
+to reproduce in P7-T05, including the nodes VIAME does not read yet. Both are
+JSON and are compared exactly -- these are text files holding decimal
+literals, so a parser that rounds differently is wrong.
+
+The OpenCV group covers five kinds of case: `image_filter` and `split_image`
+and `detect_motion` as arrays, `detect` as the detections themselves -- a box
+moving by a pixel is what a golden should say, not a few thousand changed
+pixels -- and `pipeline` end to end. Three fixtures are its own, in
+`opencv_fixtures.py`: clean circles for the Hough detector, a heat map with
+blobs either side of the shipped `min_area`, and a BG Bayer mosaic of the
+shared RGB fixture. The VXL fixtures are gradients, bars and a disc, which is
+enough for a per-pixel filter and says nothing about a detector.
+
+It also records what each implementation **refuses**. `ocv_convert_color`
+rejects a single channel image and `ocv_enhancer`'s denoising rejects
+anything but 8 bit colour; a replacement that quietly started accepting them
+would be a change no output comparison could see, because there is no output
+to compare. `opencv_cases.REFUSES` says which and why, and the replay asserts
+that they still raise -- except where the refusal is not deterministic, which
+`UNSTABLE_REFUSAL` names.
 
 `record.py` and `record_video.py` both refuse to overwrite an existing
 recording without `--force`, so a golden cannot be quietly redefined by the

@@ -27,6 +27,18 @@ def is_registered(kind, impl):
         from kwiver.vital.algo import ImageIO
         return impl in ImageIO.registered_names()
 
+    if kind == "split_image":
+        from kwiver.vital.algo import SplitImage
+        return impl in SplitImage.registered_names()
+
+    if kind == "detect_motion":
+        from kwiver.vital.algo import DetectMotion
+        return impl in DetectMotion.registered_names()
+
+    if kind == "detect":
+        from kwiver.vital.algo import ImageObjectDetector
+        return impl in ImageObjectDetector.registered_names()
+
     return True
 
 
@@ -69,6 +81,101 @@ def run_image_filter(impl, config, arrays):
         outputs.append(np.array(result.image().asarray(), copy=True))
 
     return outputs
+
+
+def run_split_image(impl, config, arrays):
+    """Split each array, returning the pieces of every input in order."""
+    from kwiver.vital.algo import SplitImage
+    from kwiver.vital.types import Image, ImageContainer
+
+    algorithm = SplitImage.create(impl)
+
+    if algorithm is None:
+        raise RuntimeError("split_image '{}' is not registered".format(impl))
+
+    _configure(algorithm, config)
+
+    outputs = []
+    for array in arrays:
+        pieces = algorithm.split(
+            ImageContainer(Image(np.ascontiguousarray(array))))
+        outputs.append([np.array(piece.image().asarray(), copy=True)
+                        for piece in pieces])
+
+    return outputs
+
+
+def run_detect_motion(impl, config, arrays):
+    """Run a detect_motion over `arrays` in order, returning one mask each.
+
+    Order matters: three-frame differencing carries the previous frames.
+    """
+    from kwiver.vital.algo import DetectMotion
+    from kwiver.vital.types import Image, ImageContainer, Timestamp
+
+    algorithm = DetectMotion.create(impl)
+
+    if algorithm is None:
+        raise RuntimeError("detect_motion '{}' is not registered".format(impl))
+
+    _configure(algorithm, config)
+
+    outputs = []
+    for index, array in enumerate(arrays):
+        timestamp = Timestamp()
+        timestamp.set_frame(index)
+        timestamp.set_time_seconds(index / 30.0)
+        result = algorithm.process_image(
+            timestamp, ImageContainer(Image(np.ascontiguousarray(array))),
+            False)
+        outputs.append(np.array(result.image().asarray(), copy=True))
+
+    return outputs
+
+
+def describe_detections(detections):
+    """A detected_object_set as plain values, ordered as the set is.
+
+    Recorded rather than the drawn image, because a box moving by a pixel is
+    what a golden should say, not a few thousand changed pixels.
+    """
+    out = []
+
+    for detection in detections:
+        box = detection.bounding_box
+        entry = {
+            "bbox": [box.min_x(), box.min_y(), box.max_x(), box.max_y()],
+            "confidence": detection.confidence,
+        }
+
+        detected_type = detection.type
+        names = list(detected_type.class_names()) if detected_type else []
+        if names:
+            entry["types"] = {name: detected_type.score(name)
+                              for name in sorted(names)}
+
+        out.append(entry)
+
+    return out
+
+
+def run_image_object_detector(impl, config, arrays):
+    """Detect on each array, returning one list of detections per input."""
+    from kwiver.vital.algo import ImageObjectDetector
+    from kwiver.vital.types import Image, ImageContainer
+
+    algorithm = ImageObjectDetector.create(impl)
+
+    if algorithm is None:
+        raise RuntimeError(
+            "image_object_detector '{}' is not registered".format(impl))
+
+    _configure(algorithm, config)
+
+    return [describe_detections(
+                algorithm.detect(
+                    ImageContainer(Image(np.ascontiguousarray(array)))))
+            for array in arrays]
 
 
 def run_image_io_save_load(impl, config, arrays, extension, work_dir):
