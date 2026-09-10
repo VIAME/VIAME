@@ -787,7 +787,7 @@ def load_algorithms_from_config(config_path, plugin_paths: List[str] = None, dev
         Tuple of (segment_via_points_algo, perform_text_query_algo, image_io_algo, service_config)
     """
     from kwiver.vital.algo import SegmentViaPoints, PerformTextQuery, ImageIO
-    from kwiver.vital.config import config as vital_config
+    import kwiver.vital.config as vital_config
     from kwiver.vital.modules import modules as vital_modules
 
     # Load plugin modules

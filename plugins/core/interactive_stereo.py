@@ -1456,7 +1456,7 @@ def load_algorithm_from_config(config_path: str, plugin_paths: List[str] = None)
     Returns:
         Tuple of (compute_stereo_depth_map_algo, epipolar_matcher, service_config)
     """
-    from kwiver.vital.config import config as vital_config
+    import kwiver.vital.config as vital_config
     from kwiver.vital.modules import modules as vital_modules
 
     # Load plugin modules
