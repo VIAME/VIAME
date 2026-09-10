@@ -7,14 +7,17 @@ Notes.
 
 ## Current position
 
-- Phase: P6 is complete. VXL, FFmpeg and Eigen are gone from kwiver, fletch
-  and VIAME (P3, P4, P6), video is python on PyAV, and the kwiver submodule
-  is gone: `library/`, `python/` and `tools/` are what it was. Phases 1 and 2
-  are still deferred apart from P1-T05, which P5-T05 needed
-- Next task: P7-T03, and P0-T06, P1-T01 to P1-T04 and P1-T06 onward,
-  which phase 5 left behind
+- Phase: P7 is under way. VXL, FFmpeg and Eigen are gone from kwiver, fletch
+  and VIAME (P3, P4, P6), video is python on PyAV, the kwiver submodule is
+  gone, and OpenCV's codecs are replaced (P7-T02) with `image_ops` grown to
+  cover the rest of what it is used for (P7-T03). Phases 1 and 2 are still
+  deferred apart from P1-T05, which P5-T05 needed
+- Next task: P7-T04, which is the first to have `image_ops` v2 replace an
+  OpenCV implementation rather than sit beside one; then P7-T05 onward, and
+  P0-T06, P1-T01 to P1-T04 and P1-T06, which phase 5 left behind
 - Last clean-configure build verified: 2026-09-10, P5-T05 (a fresh
-  `build/merged-build`, 25 of 25 tests)
+  `build/merged-build`, 25 of 25 tests). Since then the incremental tree has
+  stayed at 25 of 25 through P6 and P7-T01 to T03
 - Reference machine: local workstation, CUDA 12.6, cuDNN 9.12, Ubuntu
   (kernel 6.8), python 3.10.12, gcc default, 16 cores
 
