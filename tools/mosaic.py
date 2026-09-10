@@ -85,7 +85,14 @@ def optimize_homog_fit(homogs, im_size):
 def get_extreme_coordinates(homogs, im_size):
     """Return a pair of the UL and BR coordinates"""
     box = get_image_box(im_size)
+    if not np.isfinite(homogs).all() or np.any(np.abs(np.linalg.det(homogs)) < 1e-12):
+        raise ValueError("Homographies must be finite and nonsingular")
+    denominator = (homogs[:, None, 2, :2] * box[None, :, :]).sum(-1) + homogs[:, None, 2, 2]
+    if np.any((denominator.min(1) <= 0) & (denominator.max(1) >= 0)):
+        raise ValueError("A homography crosses infinity inside the image")
     transformed = transform_homog(homogs[:, np.newaxis], box)
+    if not np.isfinite(transformed).all() or np.max(np.abs(transformed)) > 1e12:
+        raise ValueError("Homography bounds are not safely representable")
     min_yx = np.floor(transformed.min((0, 1))).astype(int)
     max_yx = np.ceil(transformed.max((0, 1))).astype(int)
     return tuple(min_yx), tuple(max_yx)
@@ -135,14 +142,17 @@ def paste(dest, src, src_to_dest):
     dest_slice = dest[tuple(slice(ul, br + 1) for ul, br in zip(trans_ul, trans_br))]
     np.copyto(dest_slice, trans, where=mask[..., np.newaxis])
 
-def paste_many(homogs, ims, im0):
+def paste_many(homogs, ims, im0, max_pixels=100000000):
     """Given a sequence of homographies, an iterable of images, and a
     template image, produce a mosaic image
 
     """
     im_size = im0.shape[:2]
     ul, br = get_extreme_coordinates(homogs, im_size)
-    dest = np.zeros(tuple(np.array(br) - ul + 1) + (im0.shape[2],), dtype=im0.dtype)
+    shape = tuple(int(b) - int(a) + 1 for a, b in zip(ul, br))
+    if min(shape) <= 0 or shape[0] * shape[1] > max_pixels:
+        raise ValueError(f"Mosaic canvas {shape} exceeds --max-pixels ({max_pixels})")
+    dest = np.zeros(shape + (im0.shape[2],), dtype=im0.dtype)
     for hom, im in zip(homogs, ims):
         assert im.shape[:2] == im_size
         hom = translator(tuple(-x for x in ul)) @ hom
@@ -164,7 +174,7 @@ def main(out_file, homogs_and_image_lists, **kwargs):
 def main_multi(
         out_file, homogs_and_lists, *, optimize_fit=None, zoom=None,
         frames=None, start=None, stop=None, step=None, reverse=None,
-        warp_to_pivot=None,
+        warp_to_pivot=None, max_pixels=100000000,
 ):
     def read_image_list(path):
         with open(path) as f:
@@ -173,14 +183,25 @@ def main_multi(
         read_image_list(image_list),
         *read_homog_file(homog_file),
     ) for homog_file, image_list in homogs_and_lists)
+    images_homogs_refs = list(images_homogs_refs)
+    if not images_homogs_refs or any(len(images) != len(homogs) for images, homogs, _ in images_homogs_refs):
+        raise ValueError("Each image list must match its homography count")
+    if zoom is not None and (not np.isfinite(zoom) or zoom <= 0):
+        raise ValueError("Zoom must be finite and positive")
+    if max_pixels < 1:
+        raise ValueError("max_pixels must be positive")
     images_homogs_refs = [tuple(
         x[start:stop] for x in ihr
     ) for ihr in images_homogs_refs]
     length = min(len(x) for ihr in images_homogs_refs for x in ihr)
+    if length == 0:
+        raise ValueError("No frames selected")
+    if frames is not None and frames < 1 or step is not None and step < 1:
+        raise ValueError("frames and step must be positive")
     if (frames is None) == (step is None):
         raise ValueError("Exactly one of frames and step must be specified")
     if frames is not None:
-        frame_numbers = [(length - 1) * i // (frames - 1) for i in range(frames)]
+        frame_numbers = [0] if frames == 1 else [(length - 1) * i // (frames - 1) for i in range(frames)]
     else:
         frame_numbers = range(0, length, step)
     if reverse:
@@ -209,7 +230,7 @@ def main_multi(
         rel_homogs = fit_homog @ rel_homogs
     if zoom is not None:
         rel_homogs = np.diag([zoom, zoom, 1]) @ rel_homogs
-    skio.imsave(out_file, paste_many(rel_homogs, images, im0))
+    skio.imsave(out_file, paste_many(rel_homogs, images, im0, max_pixels=max_pixels))
     () = images  # Finally move the progress bar to 100%
 
 def create_parser():
@@ -219,6 +240,7 @@ def create_parser():
                    help='Even-length list of alternating paths to'
                    ' homography files and paths to files with'
                    ' newline-separated image paths, one pair per camera')
+    p.add_argument('--max-pixels', type=int, default=100000000, help='Maximum canvas pixels to allocate')
     p.add_argument('--frames', type=int, help='Number of frames represented in output')
     p.add_argument('--start', type=int, metavar='N', help='Ignore first N frames')
     p.add_argument('--stop', type=int, metavar='N', help='Ignore frames after the Nth')
