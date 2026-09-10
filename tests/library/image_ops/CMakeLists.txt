@@ -30,7 +30,13 @@ kwiver_discover_gtests( viame filter
             kwiver::vital
             GTest::gtest )
 
-foreach( test IN ITEMS color filter )
+# The geometric transforms, against the same recording.
+kwiver_discover_gtests( viame warp
+  LIBRARIES viame_image_ops
+            kwiver::vital
+            GTest::gtest )
+
+foreach( test IN ITEMS color filter warp )
   target_compile_definitions( test-viame-${test} PRIVATE
     "VIAME_GOLDEN_IMAGE_OPS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/../../golden/image_ops\"" )
 endforeach()

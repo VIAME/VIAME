@@ -202,6 +202,102 @@ def record():
         cv2.addWeighted(gray, 1.5, cv2.GaussianBlur(gray, (5, 5), 0),
                         -0.5, 0.0), 2, margin=2)
 
+    # ------------------------------------------------------------------
+    # warp.h
+    #
+    # These run on the window rather than on the whole fixture, like the
+    # border cases and for the same reason: a resize or a warp of a window is
+    # not a window of the resize, so the only way to compare is to give both
+    # implementations the same picture. `add_windowed` records the window as
+    # the input and OpenCV's result on it as the expectation, at whatever
+    # size that result comes out.
+    # ------------------------------------------------------------------
+
+    window = crop(gray)
+    window_rgb = crop(rgb)
+
+    def add_windowed(name, source, expected, tolerance, margin=0):
+        cases.append(dict(
+            {"name": name, "tolerance": tolerance, "margin": margin},
+            **flat("input", source),
+            **flat("expected", expected)))
+
+    # Resize, up and down, in each of the three modes. The sizes are not
+    # multiples of the source, so the sample grid has to be right rather than
+    # merely consistent.
+    for tag, size in (("half", (16, 12)), ("double", (64, 48)),
+                      ("odd", (21, 17))):
+        add_windowed("resize_bilinear_" + tag, window,
+                     cv2.resize(window, size,
+                                interpolation=cv2.INTER_LINEAR), 1)
+        add_windowed("resize_nearest_" + tag, window,
+                     cv2.resize(window, size,
+                                interpolation=cv2.INTER_NEAREST), 0)
+        add_windowed("resize_area_" + tag, window,
+                     cv2.resize(window, size,
+                                interpolation=cv2.INTER_AREA), 1)
+
+    add_windowed("resize_bilinear_rgb", window_rgb,
+                 cv2.resize(window_rgb, (20, 15),
+                            interpolation=cv2.INTER_LINEAR), 1)
+
+    # The bilinear warps agree to about four counts rather than one, and the
+    # difference is OpenCV's rather than ours: `warpPerspective`,
+    # `warpAffine` and `remap` interpolate in fixed point. INTER_BITS is 5,
+    # so the fractional position is quantised to a thirty-second of a pixel
+    # and the weights to a 2048th, and on a high-contrast edge that costs a
+    # few counts. `image_ops` interpolates in double, which is nearer the
+    # exact answer -- `test_warp.cxx` checks that claim rather than asserting
+    # it -- so matching OpenCV exactly here would mean deliberately
+    # reproducing a quantisation that loses accuracy. The tolerance says 5
+    # instead, and this comment says why.
+    #
+    # The nearest-neighbour warps have no interpolation to quantise and are
+    # exact.
+    WARP_TOLERANCE = 5
+
+    # A perspective warp with real perspective in it, so a homography that is
+    # secretly affine cannot pass
+    homography = np.array([[1.10, 0.15, -3.0],
+                           [-0.08, 0.95, 2.0],
+                           [0.0012, 0.0008, 1.0]], dtype=np.float64)
+    add_windowed("warp_perspective", window,
+                 cv2.warpPerspective(window, homography,
+                                     (window.shape[1], window.shape[0]),
+                                     flags=cv2.INTER_LINEAR,
+                                     borderMode=cv2.BORDER_CONSTANT,
+                                     borderValue=0), WARP_TOLERANCE)
+    add_windowed("warp_perspective_replicate", window,
+                 cv2.warpPerspective(window, homography,
+                                     (window.shape[1], window.shape[0]),
+                                     flags=cv2.INTER_LINEAR,
+                                     borderMode=cv2.BORDER_REPLICATE),
+                 WARP_TOLERANCE)
+    add_windowed("warp_perspective_nearest", window,
+                 cv2.warpPerspective(window, homography,
+                                     (window.shape[1], window.shape[0]),
+                                     flags=cv2.INTER_NEAREST,
+                                     borderMode=cv2.BORDER_CONSTANT,
+                                     borderValue=0), 0)
+
+    # An affine warp, and the rotation matrix builder that feeds it
+    rotation = cv2.getRotationMatrix2D((15.5, 11.5), 20.0, 1.15)
+    add_windowed("warp_affine_rotate", window,
+                 cv2.warpAffine(window, rotation,
+                                (window.shape[1], window.shape[0]),
+                                flags=cv2.INTER_LINEAR,
+                                borderMode=cv2.BORDER_CONSTANT,
+                                borderValue=0), WARP_TOLERANCE)
+
+    # remap, with maps that are neither a resize nor a warp
+    ys, xs = np.mgrid[0:window.shape[0], 0:window.shape[1]]
+    map_x = (xs + 3.0 * np.sin(ys / 4.0)).astype(np.float32)
+    map_y = (ys + 2.0 * np.cos(xs / 5.0)).astype(np.float32)
+    add_windowed("remap_wave", window,
+                 cv2.remap(window, map_x, map_y, cv2.INTER_LINEAR,
+                           borderMode=cv2.BORDER_CONSTANT,
+                           borderValue=0), WARP_TOLERANCE)
+
     return {
         "recorded": datetime.datetime.now(datetime.timezone.utc)
                             .strftime("%Y-%m-%dT%H:%M:%SZ"),

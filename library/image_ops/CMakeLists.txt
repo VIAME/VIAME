@@ -10,6 +10,7 @@ set( image_ops_headers
   commonality.h
   convert.h
   dispatch.h
+  filter.h
   homography_overlap.h
   morphology.h
   pixel.h
@@ -19,6 +20,7 @@ set( image_ops_headers
   stretch.h
   temporal.h
   threshold.h
+  warp.h
 )
 
 add_library( viame_image_ops INTERFACE )

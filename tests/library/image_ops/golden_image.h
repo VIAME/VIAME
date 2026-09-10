@@ -120,6 +120,21 @@ input( std::string const& name )
   return read< uint8_t >( find( name ), "input" );
 }
 
+/// The width the case's expectation has, which a resize has to be asked for.
+inline size_t
+expected_width( std::string const& name )
+{
+  return static_cast< size_t >(
+    golden_json::number( find( name ), "expected_width" ) );
+}
+
+inline size_t
+expected_height( std::string const& name )
+{
+  return static_cast< size_t >(
+    golden_json::number( find( name ), "expected_height" ) );
+}
+
 // ----------------------------------------------------------------------------
 /// Compare \p actual against the recording, at the tolerance it states.
 ///
