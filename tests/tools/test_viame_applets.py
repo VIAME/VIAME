@@ -1450,7 +1450,7 @@ class TestAddOnApplet:
         entry = next(e for e in json.loads(removed.stdout) if e["name"] == "FAKE")
         assert entry["status"] == "not installed"
 
-    def test_checksum_mismatch_needs_force(self, viame_env, tmp_path):
+    def test_checksum_mismatch_needs_explicit_override(self, viame_env, tmp_path):
         install, archive, listing = self._fake_addon(tmp_path)
         listing.write_text(listing.read_text().replace(
             hashlib.md5(archive.read_bytes()).hexdigest(), "0" * 32))
@@ -1464,7 +1464,7 @@ class TestAddOnApplet:
 
         forced = self._run(
             viame_env, install, listing, "install", "FAKE", "--from-file",
-            str(archive), "--force",
+            str(archive), "--ignore-checksum",
         )
         assert forced.returncode == 0, forced.stderr
 

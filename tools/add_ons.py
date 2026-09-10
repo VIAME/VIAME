@@ -28,7 +28,7 @@ import tempfile
 import urllib.request
 import zipfile
 
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 CSV_NAME = 'download_viame_addons.csv'
 PIPELINES_DIR = Path('configs') / 'pipelines'
@@ -178,6 +178,8 @@ def content_prefix(names):
     extracts an archive, and return the prefix they form."""
     prefix = ''
     while True:
+        if prefix.rstrip('/').split('/')[-2:] == ['configs', 'pipelines']:
+            return prefix
         entries = set()
         for name in names:
             if not name.startswith(prefix):
@@ -203,30 +205,90 @@ def destination_for(prefix):
 
 
 def install_archive(install, archive):
+    install = Path(install).resolve()
     written = []
-    with zipfile.ZipFile(archive) as zf:
-        members = [info for info in zf.infolist() if not info.is_dir()]
-        prefix = content_prefix([info.filename for info in members])
-        dest = install / destination_for(prefix)
-
-        for info in members:
-            rel = info.filename[len(prefix):]
-            parts = rel.split('/')
-            if not rel or rel.startswith('/') or '..' in parts:
-                continue
-            target = dest / rel
-            target.parent.mkdir(parents=True, exist_ok=True)
-            with zf.open(info) as src, open(target, 'wb') as out:
-                shutil.copyfileobj(src, out)
-            mode = (info.external_attr >> 16) & 0o777
-            if mode & 0o111:
-                os.chmod(target, mode)
-            written.append(target.relative_to(install).as_posix())
-
+    with tempfile.TemporaryDirectory(prefix='.viame-addon-', dir=install) as staging:
+        staging = Path(staging)
+        plans = []
+        with zipfile.ZipFile(archive) as zf:
+            members = []
+            for info in zf.infolist():
+                name = info.filename.replace('\\', '/')
+                if name.startswith('/') or PureWindowsPath(name).drive or '..' in name.split('/'):
+                    raise ValueError('Unsafe archive path: ' + info.filename)
+                if (info.external_attr >> 16) & 0o170000 == 0o120000:
+                    raise ValueError('Archive symlinks are not supported: ' + name)
+                if not info.is_dir():
+                    members.append((info, name))
+            if not members:
+                raise ValueError('Archive contains no files')
+            prefix = content_prefix([name for _, name in members])
+            dest = install / destination_for(prefix)
+            seen = set()
+            for i, (info, name) in enumerate(members):
+                target = dest / name[len(prefix):]
+                resolved = target.resolve()
+                if install not in resolved.parents or resolved in seen:
+                    raise ValueError('Unsafe or duplicate archive destination: ' + name)
+                if target.exists() and not target.is_file():
+                    raise ValueError('Archive destination is not a file: ' + str(target))
+                seen.add(resolved)
+                payload = staging / ('payload-%d' % i)
+                with zf.open(info) as src, open(payload, 'wb') as out:
+                    shutil.copyfileobj(src, out)  # verifies CRC before installation
+                mode = (info.external_attr >> 16) & 0o777
+                if mode:
+                    os.chmod(payload, mode)
+                backup = None
+                if target.exists() or target.is_symlink():
+                    backup = staging / ('backup-%d' % i)
+                    shutil.copy2(target, backup, follow_symlinks=False)
+                plans.append((target, payload, backup))
+        installed = []
+        created_dirs = []
+        try:
+            for target, payload, backup in plans:
+                missing = []
+                parent = target.parent
+                while not parent.exists():
+                    missing.append(parent)
+                    parent = parent.parent
+                for parent in reversed(missing):
+                    parent.mkdir()
+                    created_dirs.append(parent)
+                os.replace(payload, target)
+                installed.append((target, backup))
+                written.append(target.relative_to(install).as_posix())
+        except Exception:
+            rollback_errors = []
+            for target, backup in reversed(installed):
+                try:
+                    if backup is not None:
+                        os.replace(backup, target)
+                    else:
+                        target.unlink()
+                except OSError as exc:
+                    rollback_errors.append(str(exc))
+            for directory in reversed(created_dirs):
+                try:
+                    directory.rmdir()
+                except OSError as exc:
+                    rollback_errors.append(str(exc))
+            if rollback_errors:
+                # Keep backups available even when a permissions or filesystem
+                # failure prevents automatic recovery.
+                recovery = staging.with_name(staging.name + '-recovery')
+                (staging / 'recovery.json').write_text(json.dumps([
+                    {'target': str(target), 'backup': backup.name if backup else None}
+                    for target, _, backup in plans], indent=2))
+                staging.rename(recovery)
+                raise RuntimeError('Installation rollback incomplete; backups retained at %s: %s'
+                                   % (recovery, '; '.join(rollback_errors)))
+            raise
     return written
 
 
-def install_addon(install, addon, archive=None, force=False):
+def install_addon(install, addon, archive=None, force=False, ignore_checksum=False):
     temp_dir = None
     try:
         if archive is None:
@@ -242,8 +304,8 @@ def install_addon(install, addon, archive=None, force=False):
         if addon.md5 and actual != addon.md5:
             message = ('checksum mismatch for %s: expected %s, got %s'
                        % (addon.name, addon.md5, actual))
-            if not force:
-                raise RuntimeError(message + ' (use --force to install anyway)')
+            if not ignore_checksum:
+                raise RuntimeError(message + ' (use --ignore-checksum to install anyway)')
             print('warning: ' + message, file=sys.stderr)
 
         print('Installing %s into %s' % (addon.name, install))
@@ -338,7 +400,9 @@ def build_parser():
     s.add_argument('--from-file', metavar='ARCHIVE',
                    help='Install a single named add-on from a downloaded archive')
     s.add_argument('--force', action='store_true',
-                   help='Reinstall an installed add-on, and accept a checksum mismatch')
+                   help='Reinstall an installed add-on')
+    s.add_argument('--ignore-checksum', action='store_true',
+                   help='Accept an archive whose checksum differs from the catalog')
     return p
 
 
@@ -400,6 +464,7 @@ def main(argv=None):
         if not chosen:
             return 0
         args.force = False
+        args.ignore_checksum = False
         args.from_file = None
 
     failures = 0
@@ -409,7 +474,8 @@ def main(argv=None):
             print('%s is already installed (use --force to reinstall)' % addon.name)
             continue
         try:
-            install_addon(install, addon, archive=args.from_file, force=args.force)
+            install_addon(install, addon, archive=args.from_file, force=args.force,
+                          ignore_checksum=args.ignore_checksum)
         except Exception as e:
             print('error: %s: %s' % (addon.name, e), file=sys.stderr)
             failures += 1
