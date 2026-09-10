@@ -11,6 +11,7 @@ set( image_ops_headers
   convert.h
   dispatch.h
   filter.h
+  histogram.h
   homography_overlap.h
   morphology.h
   pixel.h

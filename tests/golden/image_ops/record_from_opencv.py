@@ -298,6 +298,62 @@ def record():
                            borderMode=cv2.BORDER_CONSTANT,
                            borderValue=0), WARP_TOLERANCE)
 
+    # ------------------------------------------------------------------
+    # histogram.h
+    #
+    # Windowed, like the warps: an equalisation is over the whole picture it
+    # is given, so a window of the result is not the result on the window.
+    # ------------------------------------------------------------------
+
+    add_windowed("normalize_min_max", window,
+                 cv2.normalize(window, None, 0, 255,
+                               cv2.NORM_MINMAX).astype(np.uint8), 1)
+
+    add_windowed("equalize_hist", window, cv2.equalizeHist(window), 0)
+
+    # An image with a large flat background, where the textbook mapping and
+    # OpenCV's differ across the whole range rather than at the ends
+    flatish = window.copy()
+    flatish[:8, :] = 40
+    add_windowed("equalize_hist_flat_background", flatish,
+                 cv2.equalizeHist(flatish), 0)
+
+    for tag, clip, tiles in (("clip_3_2x2", 3.0, (2, 2)),
+                             ("clip_20_2x2", 20.0, (2, 2)),
+                             ("clip_3_4x4", 3.0, (4, 4)),
+                             ("clip_40_8x8", 40.0, (8, 8))):
+        engine = cv2.createCLAHE(clipLimit=clip, tileGridSize=tiles)
+        # CLAHE interpolates between tile mappings and the redistribution of
+        # clipped counts is done slightly differently here, so a few counts
+        # is what the plan asks for and what this allows.
+        add_windowed("clahe_" + tag, window, engine.apply(window), 2)
+
+    # A flat image, where the clipping and the redistribution are the whole
+    # answer: every count is in one bin, so what comes out says exactly how
+    # the clipped remainder was given back. OpenCV gives 85 at clip 3 with
+    # two tiles and 255 at clip 40 with eight, which are different answers to
+    # the same question and worth pinning rather than guessing at.
+    # `flat` would shadow the `flat()` helper in this scope, so it is spelled
+    # out: python decides a name is local for the whole function.
+    uniform = np.full((16, 16), 33, dtype=np.uint8)
+    for tag, clip, tiles in (("flat_clip_3_2x2", 3.0, (2, 2)),
+                             ("flat_clip_40_8x8", 40.0, (8, 8))):
+        engine = cv2.createCLAHE(clipLimit=clip, tileGridSize=tiles)
+        add_windowed("clahe_" + tag, uniform, engine.apply(uniform), 0)
+
+    # A size that does not divide by the tile grid, which is what a real
+    # frame is. OpenCV pads when *either* dimension fails to divide and then
+    # pads *both* by `tiles - (extent % tiles)`, so a dimension that already
+    # divides gains a whole extra tile; `histogram.h` reproduces that rather
+    # than rounding up, and this is the case that says so.
+    odd = np.full((13, 17), 33, dtype=np.uint8)
+    engine = cv2.createCLAHE(clipLimit=40.0, tileGridSize=(4, 4))
+    add_windowed("clahe_flat_odd_size", odd, engine.apply(odd), 0)
+
+    odd_window = crop(gray)[:23, :31]
+    engine = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(4, 4))
+    add_windowed("clahe_odd_size", odd_window, engine.apply(odd_window), 2)
+
     return {
         "recorded": datetime.datetime.now(datetime.timezone.utc)
                             .strftime("%Y-%m-%dT%H:%M:%SZ"),
