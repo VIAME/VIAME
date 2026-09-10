@@ -91,6 +91,15 @@ TILED = {
     "tiff_rgb8_tiled": ("rgb8", ".tif", "16x16"),
 }
 
+# Also ImageMagick, for the same reason: Pillow always writes predictor 1.
+# Horizontal differencing is what makes LZW worth using on a 16 bit image and
+# is the one TIFF feature here that a reader can get subtly wrong -- undo it
+# per row and per sample or the picture is a smear.
+PREDICTED = {
+    "tiff_gray16_lzw_predictor": ("gray16", ".tif", 16),
+    "tiff_rgb8_lzw_predictor": ("rgb8", ".tif", 8),
+}
+
 
 def _pillow_mode(array):
     if array.ndim == 2:
@@ -110,6 +119,19 @@ def build(target_dir):
         array = sources[source]
         path = os.path.join(target_dir, name + extension)
         Image.fromarray(array, mode=_pillow_mode(array)).save(path, **options)
+        written.append((name, path))
+
+    for name, (source, extension, depth) in sorted(PREDICTED.items()):
+        array = sources[source]
+        path = os.path.join(target_dir, name + extension)
+        staging = os.path.join(target_dir, "." + name + ".png")
+        Image.fromarray(array, mode=_pillow_mode(array)).save(staging)
+        subprocess.run(
+            ["convert", staging, "-depth", str(depth),
+             "-define", "tiff:predictor=2",
+             "-compress", "lzw", path],
+            check=True)
+        os.remove(staging)
         written.append((name, path))
 
     for name, (source, extension, geometry) in sorted(TILED.items()):
@@ -132,6 +154,8 @@ def paths(target_dir):
     """[(name, path)] for the containers as committed, without writing any."""
     out = []
     for name, (_, extension, _) in sorted(CONTAINERS.items()):
+        out.append((name, os.path.join(target_dir, name + extension)))
+    for name, (_, extension, _) in sorted(PREDICTED.items()):
         out.append((name, os.path.join(target_dir, name + extension)))
     for name, (_, extension, _) in sorted(TILED.items()):
         out.append((name, os.path.join(target_dir, name + extension)))

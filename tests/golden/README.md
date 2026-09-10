@@ -12,6 +12,7 @@ Each group under this directory belongs to one dependency removal:
 | `vxl` | `arrows/vxl` filters and image_io, `plugins/vxl` filters | phase 3 |
 | `video` | `arrows/ffmpeg` `video_input` and `video_output` | phase 4 |
 | `codecs` | the `ocv` image_io, decoding and writing every container | phase 7 |
+
 | `calib` | `viame::read_stereo_rig`, and `cv::FileStorage` on every calibration document | phase 7 |
 | `opencv` | the `ocv_*` filters, splits, motion detector and detectors, and the pipelines that use them | phase 7 |
 
@@ -75,6 +76,21 @@ the image_io and reads it back with the same one, which is what catches a
 writer that changes channel order or bit depth on the way out -- the BMP
 round trip records 16 bit gray coming back as 8 bit, because that is what BMP
 can hold.
+
+Since P7-T02 the codec group is replayed twice, once under each name, and
+both run the same code: `core` decodes through `library/video_io/codecs` --
+stb for PNG, JPEG and BMP, in house for TIFF -- and hands anything those
+decline to the python `pil` image_io, and `ocv` is an alias of it now that
+`arrows/ocv`'s reader is gone. The replacement table for a group is
+`REPLACEMENTS_BY_GROUP` in `test_golden.py`, keyed by group because `ocv` is
+an image_io here and a split_image and a merge_images elsewhere.
+
+Three things in that recording are what a self-consistent implementation
+would have got wrong, and are worth knowing before changing a codec:
+OpenCV **saturates** when narrowing 16 bit to 8, rather than shifting or
+rescaling; a gray BMP is palettised 8 bit, not replicated 24 bit BGR; and a
+palettised BMP decodes to one plane, not to the three that expanding the
+palette gives.
 
 The calibration group records two things. `calibration` is what
 `viame::read_stereo_rig` -- through

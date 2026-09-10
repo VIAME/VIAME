@@ -21,6 +21,8 @@
         "tiff_rgb8_lzw",
         "tiff_rgb8_packbits",
         "tiff_rgb8_raw",
+        "tiff_gray16_lzw_predictor",
+        "tiff_rgb8_lzw_predictor",
         "tiff_rgb8_tiled"
       ],
       "kind": "decode",
@@ -125,6 +127,16 @@
             1
           ]
         },
+        "tiff_gray16_lzw_predictor": {
+          "dtype": "uint16",
+          "file": "decode/ocv/defaults/tiff_gray16_lzw_predictor.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
         "tiff_gray16_raw": {
           "dtype": "uint16",
           "file": "decode/ocv/defaults/tiff_gray16_raw.png",
@@ -168,6 +180,16 @@
         "tiff_rgb8_lzw": {
           "dtype": "uint8",
           "file": "decode/ocv/defaults/tiff_rgb8_lzw.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "tiff_rgb8_lzw_predictor": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/tiff_rgb8_lzw_predictor.png",
           "sha256": "835f97298ef48c75",
           "shape": [
             64,
@@ -396,6 +418,11 @@
       "file": "codecs/tiff_gray16_lzw.tif",
       "sha256": "52fbafcadcf565fb"
     },
+    "tiff_gray16_lzw_predictor": {
+      "bytes": 16126,
+      "file": "codecs/tiff_gray16_lzw_predictor.tif",
+      "sha256": "40345b8880b6a3b9"
+    },
     "tiff_gray16_raw": {
       "bytes": 12410,
       "file": "codecs/tiff_gray16_raw.tif",
@@ -421,6 +448,11 @@
       "file": "codecs/tiff_rgb8_lzw.tif",
       "sha256": "5c72c216c39b0de1"
     },
+    "tiff_rgb8_lzw_predictor": {
+      "bytes": 21926,
+      "file": "codecs/tiff_rgb8_lzw_predictor.tif",
+      "sha256": "cfce3901f9e4a437"
+    },
     "tiff_rgb8_packbits": {
       "bytes": 18766,
       "file": "codecs/tiff_rgb8_packbits.tif",
@@ -438,6 +470,23 @@
     }
   },
   "fixtures": {
+    "bayer_bg": {
+      "dtype": "uint8",
+      "sha256": "778ca8d041b448ec",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "circles_rgb": {
+      "dtype": "uint8",
+      "sha256": "16db4f53dd8fd216",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
     "frame_00": {
       "dtype": "uint8",
       "sha256": "f95e51b330c93941",
@@ -503,6 +552,14 @@
     "gray8": {
       "dtype": "uint8",
       "sha256": "95e317223585e847",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "heat": {
+      "dtype": "uint8",
+      "sha256": "e4d463b84cdf7d3a",
       "shape": [
         64,
         96
@@ -635,9 +692,9 @@
     }
   },
   "group": "codecs",
-  "recorded": "2026-09-10T19:55:51Z",
+  "recorded": "2026-09-10T20:47:16Z",
   "versions": {
     "install": "/home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install",
-    "viame": "975ac4ff884415506ab7ee287216b40bd8458c19"
+    "viame": "68ff216368533082fc57e702c6111939cba8712c"
   }
 }

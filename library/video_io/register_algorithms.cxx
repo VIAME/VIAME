@@ -15,7 +15,6 @@
 #include <viame/algorithm_framework/plugin/plugin_loader.h>
 
 #include "core_image_io.h"
-#include "ocv_image_io.h"
 #include "video_input_image_list.h"
 
 namespace viame {
@@ -50,24 +49,20 @@ register_factories( kv::plugin_loader& vpm )
   // is gone. Aliasing it to the plain ocv reader, as lite-removals.md section
   // 1 first suggested, would have dropped all five of its config keys
   VIAME_REGISTER( kv::algo::image_io, core_image_io, "vxl" )
+  // And the name arrows/ocv used, since P7-T02: `core_image_io` decodes
+  // through `codecs/` now, and `tests/golden/codecs` says it reproduces what
+  // the OpenCV reader produced for all twenty containers -- exactly for
+  // every lossless one, within the decoder tolerance for JPEG
+  VIAME_REGISTER( kv::algo::image_io, core_image_io, "ocv" )
 
   // The video reader and writer, and the ffmpeg and vidl_ffmpeg names they
   // answer to, are python: see pyav_video_input.py and pyav_video_output.py
 
 #undef VIAME_REGISTER
 
-  // Imported from kwiver in P5-T04. These two register the way kwiver's
-  // arrows did, by class rather than through the macro above, because they
-  // are still in kwiver's namespace and carry no plugin_name().
-  {
-    auto fact = vpm.add_factory< kv::algo::image_io,
-      kwiver::arrows::ocv::image_io >( "ocv" );
-    fact->add_attribute( kvpf::PLUGIN_NAME, "ocv" )
-      .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
-      .add_attribute( kvpf::PLUGIN_DESCRIPTION,
-                      "Read and write images using OpenCV" );
-  }
-
+  // Imported from kwiver in P5-T04. Registers the way kwiver's arrows did,
+  // by class rather than through the macro above, because it is still in
+  // kwiver's namespace and carries no plugin_name().
   {
     auto fact = vpm.add_factory< kv::algo::video_input,
       kwiver::arrows::core::video_input_image_list >( "image_list" );

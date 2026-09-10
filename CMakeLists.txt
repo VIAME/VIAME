@@ -1055,9 +1055,22 @@ else()
     if( VIAME_ENABLE_PYTHON )
       set( kwiver_python_subdir "${VIAME_PYTHON_STRING}" )
       set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/${kwiver_python_subdir}" )
-      set( kwiver_python_install_path "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
 
-      set( viame_python_install_path "${kwiver_python_install_path}" )
+      # Two names for two different things, which used to be one name for
+      # both. `kwiver_python_install_path` is where kwiver's macros put a
+      # package -- `${it}/viame/video_io/x.py` -- so it has to be the
+      # site-packages directory itself; `kwiver_python_output_path` already
+      # builds into `${it}/${python_sitename}/...` and the two have to agree.
+      # `viame_python_install_path` is the directory above, which is what
+      # VIAME's own callers append `site-packages` to.
+      #
+      # They were the same before, which put every VIAME python module one
+      # directory above site-packages, where nothing imports it. It worked
+      # only because an older install had left a copy in the right place.
+      set( viame_python_install_path
+        "${VIAME_BUILD_INSTALL_PREFIX}/lib/${kwiver_python_subdir}" )
+      set( kwiver_python_install_path
+        "${viame_python_install_path}/${python_sitename}" )
     endif()
 
     ###

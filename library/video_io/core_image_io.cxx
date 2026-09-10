@@ -4,6 +4,8 @@
 
 #include "core_image_io.h"
 
+#include "codecs/image_codec.h"
+
 #include <image_ops/convert.h>
 #include <image_ops/dispatch.h>
 #include <image_ops/stretch.h>
@@ -11,6 +13,8 @@
 #include <viame/algorithm_framework/config/config_block.h>
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
 #include <viame/core_types/image_container.h>
+#include <viame/core_types/metadata.h>
+#include <viame/core_types/metadata_traits.h>
 #include <viame/algorithm_framework/util/tokenize.h>
 
 #include <kwiversys/SystemTools.hxx>
@@ -29,11 +33,13 @@ namespace io = viame::image_ops;
 typedef kwiversys::SystemTools ST;
 
 // ----------------------------------------------------------------------------
-/// Which image_io actually touches the file.
+/// Which image_io handles the formats `codecs/` does not.
 ///
-/// Decoding stays borrowed until the codecs come in-house; everything this
-/// class is for happens to the pixels afterwards.
-constexpr char const* decoder_name = "ocv";
+/// PNG, JPEG, BMP and baseline TIFF are decoded in `codecs/`; anything else
+/// -- and a TIFF outside the baseline subset, a tiled one above all -- goes
+/// to this one, which is python on Pillow. `design/lite-removals.md` 2.2 has
+/// the split, and `codecs::can_read` is what decides which side a file is on.
+constexpr char const* fallback_name = "pil";
 
 // ----------------------------------------------------------------------------
 /// `<dir>/<stem>_<index><ext>`, or the plain name for index 0.
@@ -99,25 +105,77 @@ public:
 
   core_image_io& m_parent;
 
-  /// The borrowed decoder, made once and kept.
+  /// The fallback image_io, made on first use and kept.
+  ///
+  /// Made lazily rather than in `initialize`, because a build without python
+  /// has no `pil` and most reads never need it; a missing fallback should
+  /// only be an error for the file that actually wanted one.
   kwiver::vital::algo::image_io_sptr
-  decoder() const
+  fallback( std::string const& filename, std::string const& reason ) const
   {
-    if( !m_decoder )
+    if( !m_fallback )
     {
       kwiver::vital::implementation_factory_by_name<
         kwiver::vital::algo::image_io > factory;
-      m_decoder = factory.create(
-        decoder_name, kwiver::vital::config_block::empty_config() );
+      m_fallback = factory.create(
+        fallback_name, kwiver::vital::config_block::empty_config() );
 
-      if( !m_decoder )
+      if( !m_fallback )
       {
         throw std::runtime_error(
-          std::string( "image_io '" ) + decoder_name + "' is not registered" );
+          filename + ": " + reason + ", and the '" + fallback_name +
+          "' image_io that would handle it is not registered" );
       }
     }
 
-    return m_decoder;
+    return m_fallback;
+  }
+
+  /// Read one file, in house where possible and through the fallback where
+  /// not.
+  kwiver::vital::image_container_sptr
+  decode( std::string const& filename ) const
+  {
+    std::string reason;
+
+    if( viame::codecs::can_read( filename, reason ) )
+    {
+      auto out = std::make_shared< kwiver::vital::simple_image_container >(
+        viame::codecs::read( filename ) );
+
+      auto md = std::make_shared< kwiver::vital::metadata >();
+      md->add< kwiver::vital::VITAL_META_IMAGE_URI >( filename );
+      out->set_metadata( md );
+
+      return out;
+    }
+
+    LOG_DEBUG( m_parent.logger(),
+               filename << ": " << reason << "; reading it with '"
+                        << fallback_name << "'" );
+
+    return fallback( filename, reason )->load( filename );
+  }
+
+  /// Write one file, in house where possible and through the fallback where
+  /// not.
+  void
+  encode( std::string const& filename,
+          kwiver::vital::image_container_sptr data ) const
+  {
+    std::string reason;
+
+    if( viame::codecs::can_write( filename, data->get_image(), reason ) )
+    {
+      viame::codecs::write( filename, data->get_image() );
+      return;
+    }
+
+    LOG_DEBUG( m_parent.logger(),
+               filename << ": " << reason << "; writing it with '"
+                        << fallback_name << "'" );
+
+    fallback( filename, reason )->save( filename, data );
   }
 
   /// The two numbers of intensity_range, as the pixel type.
@@ -191,7 +249,7 @@ public:
   }
 
 private:
-  mutable kwiver::vital::algo::image_io_sptr m_decoder;
+  mutable kwiver::vital::algo::image_io_sptr m_fallback;
 };
 
 // ----------------------------------------------------------------------------
@@ -239,7 +297,7 @@ kv::image_container_sptr
 core_image_io
 ::load_( std::string const& filename ) const
 {
-  auto const loaded = d->decoder()->load( filename );
+  auto const loaded = d->decode( filename );
 
   if( !loaded )
   {
@@ -268,7 +326,7 @@ core_image_io
             break;
           }
 
-          auto const plane = d->decoder()->load( plane_file );
+          auto const plane = d->decode( plane_file );
           kv::image_of< pixel_t > typed_plane( plane->get_image() );
 
           if( typed_plane.width() != typed.width() ||
@@ -324,7 +382,7 @@ core_image_io
 
   if( !get_split_channels() || converted.depth() == 1 )
   {
-    d->decoder()->save(
+    d->encode(
       filename,
       std::make_shared< kv::simple_image_container >( converted ) );
     return;
@@ -348,7 +406,7 @@ core_image_io
           }
         }
 
-        d->decoder()->save(
+        d->encode(
           plane_filename( filename, static_cast< unsigned >( plane ) ),
           std::make_shared< kv::simple_image_container >( single ) );
       }

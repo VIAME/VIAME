@@ -357,6 +357,38 @@ question, and finding 1.3 again in a different place. Anywhere a name is used
 as a key, ask what it is a name *of*. `compare_registry.py` gets this right;
 the golden replay did not, and the two read the same file.
 
+### 1.17 VIAME's python modules were installed where nothing imports them
+
+`kwiver_python_install_path` is where kwiver's macros put a package: they
+write `${it}/${project}/${modpath}/x.py`, so it has to be the site-packages
+directory itself, and `kwiver_python_output_path` builds into
+`${it}/${python_sitename}/...` to match. VIAME's top level set it to
+`lib/python3.10` -- one directory above -- and set
+`viame_python_install_path` to the same string. But those two names mean
+different things: `cmake/linux-remove-duplicate-cvs.cmake` appends
+`site-packages` to `viame_python_install_path` itself, so the VIAME one is
+the directory above by design.
+
+The result was that every VIAME python module installed to
+`install/lib/python3.10/viame/`, which is not on `sys.path`, while
+`install/lib/python3.10/site-packages/viame/` held an older copy that is. So
+`import viame.video_io` worked and got whatever the last install to that path
+had left -- one of the files there still has a `.bak_prepatch` suffix from
+before this branch existed.
+
+It surfaced in P7-T02, when a new module (`video_io/pil_image_io.py`) was
+added and simply could not be imported: the build tree had it, the install
+had it, and python could not see it. The fix is to give the two names their
+two meanings.
+
+**For later phases:** this is the third variant of the same shape -- finding
+1.15, open question 2.4, and now this. Something is installed to a path that
+is not the path being read, and a stale copy at the read path hides it for as
+long as nothing changes. The tell each time was a change that *added*
+something rather than modifying it: an addition has no stale copy to hide
+behind. Phase 9 rebuilds the python packaging; a fresh install prefix, not an
+incremental one, is what would have caught this on day one.
+
 ## 2. Open questions
 
 ### 2.1 An intermittent segfault in `viame train`

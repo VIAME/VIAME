@@ -51,6 +51,21 @@ TOLERANCES = {
 }
 
 
+# The in-house implementation that replaces a recorded one. While both are
+# registered the golden test replays each recorded case twice, once under the
+# recorded name and once under the replacement, and holds both to the same
+# recording.
+#
+# `core` is `library/video_io/core_image_io`, which since P7-T02 decodes
+# through `library/video_io/codecs` -- stb for PNG, JPEG and BMP, in house for
+# TIFF -- and falls back to the python `pil` image_io for anything those
+# decline. Its range handling is off by default, so on these cases it is the
+# codecs and nothing else that is being compared.
+REPLACEMENTS = {
+    "ocv": "core",
+}
+
+
 # Containers a replacement is allowed not to decode itself, with what is
 # expected instead.
 FALLBACK = {

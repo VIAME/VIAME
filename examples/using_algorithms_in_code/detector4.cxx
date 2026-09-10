@@ -4,7 +4,7 @@
 #include <viame/algorithm_framework/config/config_block_io.h>
 #include <viame/algorithm_framework/algo/image_object_detector.h>
 #include <viame/opencv_bridge/image_container.h>
-#include <viame/video_io/ocv_image_io.h>
+#include <viame/video_io/core_image_io.h>
 
 #include <string>
 
@@ -24,7 +24,7 @@ int main( int argc, char* argv[] )
   config = kwiver::vital::read_config_file( argv[2] );
 
   // (5) create image reader
-  kwiver::vital::algo::image_io_sptr image_reader( new kwiver::arrows::ocv::image_io() );
+  kwiver::vital::algo::image_io_sptr image_reader( new viame::core_image_io() );
 
   // (6) Read the image
   kwiver::vital::image_container_sptr the_image = image_reader->load( filename );

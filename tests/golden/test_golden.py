@@ -94,6 +94,14 @@ def load_manifest(group):
     return manifest if isinstance(manifest.get("cases"), list) else None
 
 
+# The replacement table each group uses. Keyed by group because a name means
+# different things in different ones: `ocv` is the image_io the codecs group
+# records, and the same string is a split_image and a merge_images elsewhere.
+REPLACEMENTS_BY_GROUP = {
+    "codecs": codec_cases.REPLACEMENTS,
+}
+
+
 def collect_cases():
     cases = []
 
@@ -103,10 +111,12 @@ def collect_cases():
         if manifest is None:
             continue
 
+        replacements = REPLACEMENTS_BY_GROUP.get(group, case_spec.REPLACEMENTS)
+
         for case in manifest["cases"]:
             cases.append((group, case, case["impl"]))
 
-            replacement = case_spec.REPLACEMENTS.get(case["impl"])
+            replacement = replacements.get(case["impl"])
             if replacement:
                 cases.append((group, case, replacement))
 
@@ -296,8 +306,8 @@ def test_golden(item):
 
     # Once the recorded name is an alias of the replacement, running it under
     # either name runs our code, so a documented divergence applies to both
-    replacing = ( impl != case["impl"] or
-                  case["impl"] in case_spec.REPLACEMENTS )
+    replacements = REPLACEMENTS_BY_GROUP.get(group, case_spec.REPLACEMENTS)
+    replacing = ( impl != case["impl"] or case["impl"] in replacements )
 
     if impl != case["impl"] and not runner.is_registered( case["kind"], impl ):
         pytest.skip("{} is not registered in this build".format(impl))

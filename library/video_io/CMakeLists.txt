@@ -11,19 +11,30 @@
 # kwiver's, and phase 8 is where that changes.
 set( plugin_headers
   core_image_io.h
-  ocv_image_io.h
   video_input_image_list.h
+  )
+
+set( codec_headers
+  codecs/image_codec.h
+  codecs/tiff.h
   )
 
 set( plugin_sources
   core_image_io.cxx
-  ocv_image_io.cxx
   video_input_image_list.cxx
+  codecs/image_codec.cxx
+  codecs/tiff.cxx
   )
 
 kwiver_install_headers(
   SUBDIR     viame/video_io
   ${plugin_headers}
+  )
+
+kwiver_install_headers(
+  SUBDIR     viame/video_io/codecs
+  NOPATH
+  ${codec_headers}
   )
 
 kwiver_install_headers(
@@ -33,6 +44,7 @@ kwiver_install_headers(
 
 kwiver_add_library( viame_video_io
   ${plugin_headers}
+  ${codec_headers}
   ${plugin_sources}
   )
 
@@ -41,6 +53,12 @@ target_include_directories( viame_video_io PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   # OpenCV's headers, for the classes imported from arrows/ocv
   $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
+  )
+
+# The vendored stb headers, which only `codecs/image_codec.cxx` compiles.
+# SYSTEM: they are third-party code and warn under VIAME's flags.
+target_include_directories( viame_video_io SYSTEM PRIVATE
+  $<BUILD_INTERFACE:${VIAME_SOURCE_DIR}/third_party/stb>
   )
 
 target_link_libraries( viame_video_io
@@ -147,4 +165,10 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg_cli_video_input.py
     video_io
     ffmpeg_cli_video_input )
+
+  # The image_io the in-house codecs fall back to; see codecs/image_codec.h
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/pil_image_io.py
+    video_io
+    pil_image_io )
 endif()

@@ -217,9 +217,9 @@ endif()
 add_custom_command(OUTPUT ${algo_sources}
   COMMAND  ${CMAKE_COMMAND} -E env
           # castxml's entry point imports its own python module, so the
-          # site-packages directory itself is what belongs on the path;
-          # `kwiver_python_install_path` is the directory above it.
-          "PYTHONPATH=${kwiver_python_install_path}/${python_sitename}"
+          # site-packages directory is what belongs on the path, which is
+          # what `kwiver_python_install_path` is.
+          "PYTHONPATH=${kwiver_python_install_path}"
           "PATH=${_kwiver_pybind11_path}"
           ${Python_EXECUTABLE}
           "${CMAKE_CURRENT_SOURCE_DIR}/cpp_to_pybind11.py"
