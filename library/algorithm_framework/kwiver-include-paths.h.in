@@ -1,0 +1,15 @@
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
+
+#ifndef KWIVER_VITAL_PLUGIN_MODULE_PATHS_H_H_
+#define KWIVER_VITAL_PLUGIN_MODULE_PATHS_H_H_
+
+#define DEFAULT_MODULE_PATHS "@VITAL_MODULE_PATH@"
+#define SHARED_LIB_SUFFIX    "@CMAKE_SHARED_MODULE_SUFFIX@"
+#define PATH_SEPARATOR_CHAR  '@path_sep@'
+
+#define DEFAULT_CLUSTER_PATHS      "@SPROKIT_DEFAULT_CLUSTER_PATHS@"
+#define DEFAULT_PIPE_INCLUDE_PATHS "@SPROKIT_DEFAULT_PIPE_INCLUDE_PATHS@"
+
+#endif

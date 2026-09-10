@@ -1,0 +1,60 @@
+// This file is part of KWIVER, and is distributed under the
+// OSI-approved BSD 3-Clause License. See top-level LICENSE file or
+// https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
+
+#ifndef KWIVER_VERSION_H
+#define KWIVER_VERSION_H
+
+/**
+ * \file version.h
+ *
+ * \brief Version information for KWIVER.
+ */
+
+/// The major version.
+#define KWIVER_VERSION_MAJOR  @KWIVER_VERSION_MAJOR@
+/// The minor version.
+#define KWIVER_VERSION_MINOR  @KWIVER_VERSION_MINOR@
+/// The patch version.
+#define KWIVER_VERSION_PATCH  @KWIVER_VERSION_PATCH@
+/// The full version as a string.
+#define KWIVER_VERSION        "@KWIVER_VERSION@"
+
+/**
+ * \brief Check whether KWIVER is built with at least some minimum version.
+ *
+ * \param major The major version to check.
+ * \param minor The minor version to check.
+ * \param patch The patch version to check.
+ */
+#define KWIVER_VERSION_CHECK(major, minor, patch) \
+     (((major) <  KWIVER_VERSION_MAJOR)           \
+  || (((major) == KWIVER_VERSION_MAJOR)           \
+   && ((minor) <  KWIVER_VERSION_MINOR))          \
+  || (((major) == KWIVER_VERSION_MAJOR)           \
+   && ((minor) == KWIVER_VERSION_MINOR)           \
+   && ((patch) <= KWIVER_VERSION_PATCH)))
+
+#cmakedefine KWIVER_BUILT_FROM_GIT
+/// The full git hash of the build.
+#define KWIVER_GIT_HASH       "@kwiver_git_hash@"
+/// A short, unique (at the time of creation) hash prefix.
+#define KWIVER_GIT_HASH_SHORT "@kwiver_git_hash_short@"
+/// A string describing the 'dirty' state of the build tree.
+#define KWIVER_GIT_DIRTY      "@kwiver_git_dirty@"
+/// The git version information.
+#define KWIVER_GIT_VERSION    KWIVER_GIT_HASH KWIVER_GIT_DIRTY
+
+/**
+ * \def KWIVER_VERSION_FULL
+ *
+ * \brief The full version string.
+ */
+
+#ifdef KWIVER_BUILT_FROM_GIT
+#define KWIVER_VERSION_FULL   KWIVER_VERSION ".git" KWIVER_GIT_VERSION
+#else
+#define KWIVER_VERSION_FULL   KWIVER_VERSION
+#endif
+
+#endif // KWIVER_VERSION_H

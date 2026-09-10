@@ -7,7 +7,7 @@
 
 #include <viame/algorithm_framework/config/format_config_block.h>
 #include <viame/algorithm_framework/plugin/plugin_manager.h>
-#include <vital/test_interface/say.h>
+#include <viame/algorithm_framework/test_interface/say.h>
 
 namespace py = pybind11;
 namespace kv = kwiver::vital;
