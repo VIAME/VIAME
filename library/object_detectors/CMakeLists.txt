@@ -52,6 +52,10 @@ target_link_libraries( viame_object_detectors
                        kwiver::vital_logger
                        kwiver::vital_util
                        kwiver::kwiversys
+                       viame_image_ops
+                       # codecs/, for the debug frames the motion detector
+                       # saves when a debug_dir is configured
+                       viame_video_io
   PRIVATE              ${OpenCV_LIBS}
                        viame_opencv_bridge
   )

@@ -14,10 +14,15 @@
 #include <viame/core_types/matrix.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-#include <viame/opencv_bridge/image_container.h>
+#include <image_ops/morphology.h>
+#include <image_ops/pixel.h>
 
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/opencv.hpp>
+#include <viame/core_types/image_container.h>
+#include <viame/video_io/codecs/image_codec.h>
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
 
 namespace kwiver {
 
@@ -27,44 +32,60 @@ namespace ocv {
 
 using namespace kwiver::vital;
 
-// ----------------------------------------------------------------------------
+namespace io = viame::image_ops;
+namespace kv = kwiver::vital;
+
+namespace {
+
+/// A difference image, kept in float because the jittered path needs it.
 ///
-/// @brief Converts a multi-channel image into a single channel image
+/// The unjittered path does not: `cv::absdiff` on two byte images gives a
+/// byte image, and the sum that follows is byte arithmetic that **saturates**
+/// at 255 and clamps at 0. That saturation is part of the answer -- a bright
+/// enough three-frame difference is clipped rather than wrapped -- so the
+/// eight bit path is kept eight bit rather than being widened for tidiness.
+using plane_f = kv::image_of< float >;
+
+/// Root mean square over the planes, as `rms_over_channels` computed it.
 ///
-/// Replace multi-channel image with a single channel image equal to the root
-/// mean square over the channels.
-///
-/// @param src first image
-/// @param dst second image
-static
-void
-rms_over_channels( const cv::Mat& src, cv::Mat& dst )
+/// Each plane's square is divided by nine before summing -- the comment in
+/// the original says "3^2 so that the difference has the same scale as a
+/// mono image" -- and the result is rounded into a byte the way
+/// `cv::Mat::convertTo` rounds, which is half to even.
+template < typename T >
+kv::image_of< uint8_t >
+rms_over_planes( kv::image_of< T > const& source )
 {
-  cv::Mat* src_split = new cv::Mat[ src.channels() ];
-  cv::split( src, src_split );
+  kv::image_of< uint8_t > out( source.width(), source.height(), 1 );
 
-  cv::Mat accum = cv::Mat( src.rows, src.cols, CV_32F, cv::Scalar( 0 ) );
-  for( int i = 0; i < src.channels(); ++i )
+  for( size_t j = 0; j < source.height(); ++j )
   {
-    cv::Mat temp;
-    src_split[ i ].convertTo( temp, CV_32F );
+    for( size_t i = 0; i < source.width(); ++i )
+    {
+      double total = 0.0;
 
-    // Divide the result by 3^2 so that the difference has the same scale as
-    // a mono image
-    cv::multiply( temp, temp, temp, 1 / 3.0 );
-    accum += temp;
+      for( size_t p = 0; p < source.depth(); ++p )
+      {
+        auto const value = static_cast< double >( source( i, j, p ) );
+        total += value * value / 3.0;
+      }
+
+      out( i, j, 0 ) = io::saturate_pixel_even< uint8_t >(
+        std::sqrt( total ) );
+    }
   }
-  cv::sqrt( accum, accum );
-  accum.convertTo( dst, CV_8UC1 );
-  delete[] src_split;
+
+  return out;
 }
+
+} // namespace
 
 // ----------------------------------------------------------------------------
 /// Private implementation class
 class detect_motion_3frame_differencing::priv
 {
-  cv::Mat m_jitter_struct_el;
-  std::deque< cv::Mat > m_frames;
+  io::structuring_element m_jitter_struct_el;
+  std::deque< kv::image_of< uint8_t > > m_frames;
   int m_debug_counter = 0;
   detect_motion_3frame_differencing& parent;
 
@@ -101,82 +122,188 @@ public:
   }
 
   ///
-  /// @brief Calculates a jittered difference img1 and img2
+  /// @brief Calculates a jittered difference between img1 and img2
   ///
   /// For each pixel in img1, the minimum absolute difference ||img1-b|| is
   /// calculated, where b is drawn from a neighborhood (defined by
   /// m_jitter_radius) around the equivalent pixel in img2.
   ///
+  /// Following "Detecting and Tracking All Moving Objects in Wide-Area
+  /// Aerial Video", equation 2.
+  ///
+  /// The result is float, and so is the arithmetic that follows it. The
+  /// unjittered path is byte instead -- see `difference_bytes`.
+  ///
   /// @param img1 first image
   /// @param img2 second image
-  /// @param img_diff difference image
-  void
-  image_difference(
-    const cv::Mat& img1, const cv::Mat& img2,
-    cv::Mat& img_diff )
+  kv::image_of< float >
+  jittered_difference( kv::image_of< uint8_t > const& img1,
+                       kv::image_of< uint8_t > const& img2 )
   {
-    if( m_jitter_radius() == 0 )
+    if( m_jitter_struct_el.empty() )
     {
-      cv::absdiff( img1, img2, img_diff );
+      auto const side = 2 * m_jitter_radius() + 1;
+      m_jitter_struct_el = io::rect_element( side, side );
     }
-    else
+
+    auto const local_max = io::grey_dilate( img2, m_jitter_struct_el );
+    auto const local_min = io::grey_erode( img2, m_jitter_struct_el );
+
+    kv::image_of< float > out( img1.width(), img1.height(), img1.depth() );
+
+    for( size_t p = 0; p < img1.depth(); ++p )
     {
-      if( m_jitter_struct_el.empty() )
+      for( size_t j = 0; j < img1.height(); ++j )
       {
-        cv::Size el_size( 2 * m_jitter_radius() + 1,
-          2 * m_jitter_radius() + 1 );
-        m_jitter_struct_el = cv::getStructuringElement(
-          cv::MORPH_RECT,
-          el_size );
+        for( size_t i = 0; i < img1.width(); ++i )
+        {
+          auto const one = static_cast< float >( img1( i, j, p ) );
+
+          // Negatives clipped to zero, which is what THRESH_TOZERO did
+          auto const below =
+            std::max( 0.0f,
+                      static_cast< float >( local_min( i, j, p ) ) - one );
+          auto const above =
+            std::max( 0.0f,
+                      one - static_cast< float >( local_max( i, j, p ) ) );
+
+          out( i, j, p ) = std::max( below, above );
+        }
       }
+    }
 
-      cv::Mat local_max, local_min;
-      cv::dilate( img2, local_max, m_jitter_struct_el );
-      cv::erode( img2, local_min, m_jitter_struct_el );
+    return out;
+  }
 
-      // Following the reference "Detecting and Tracking All Moving Objects in
-      // Wide-Area Aerial Video" equation 2
-      cv::Mat img2_min_minus_img1, img1_minus_img2_max;
-      cv::subtract(
-        local_min, img1, img2_min_minus_img1, cv::noArray(),
-        CV_32F );
-      cv::subtract(
-        img1, local_max, img1_minus_img2_max, cv::noArray(),
-        CV_32F );
+  /// The unjittered difference, which is `cv::absdiff` on two byte images.
+  static kv::image_of< uint8_t >
+  difference_bytes( kv::image_of< uint8_t > const& img1,
+                    kv::image_of< uint8_t > const& img2 )
+  {
+    kv::image_of< uint8_t > out( img1.width(), img1.height(), img1.depth() );
 
-      // Set negative values to zero
-      cv::threshold(
-        img2_min_minus_img1, img2_min_minus_img1, 0, 1,
-        cv::THRESH_TOZERO );
-      cv::threshold(
-        img1_minus_img2_max, img1_minus_img2_max, 0, 1,
-        cv::THRESH_TOZERO );
+    for( size_t p = 0; p < img1.depth(); ++p )
+    {
+      for( size_t j = 0; j < img1.height(); ++j )
+      {
+        for( size_t i = 0; i < img1.width(); ++i )
+        {
+          auto const a = static_cast< int >( img1( i, j, p ) );
+          auto const b = static_cast< int >( img2( i, j, p ) );
+          out( i, j, p ) = static_cast< uint8_t >( std::abs( a - b ) );
+        }
+      }
+    }
 
-      img_diff = cv::max( img2_min_minus_img1, img1_minus_img2_max );
+    return out;
+  }
+
+  /// The foreground mask, before the plane reduction.
+  ///
+  /// `| |A - C| + |C - B| - |A - B| |`, and the type it is computed in
+  /// matters: the unjittered path is byte arithmetic that **saturates** at
+  /// 255 on the addition and clamps at 0 on the subtraction, exactly as
+  /// OpenCV's byte `Mat` arithmetic does. Widening it would change the
+  /// answer wherever the three-frame difference is bright.
+  kv::image_of< uint8_t >
+  combine_bytes( kv::image_of< uint8_t > const& ac,
+                 kv::image_of< uint8_t > const& cb,
+                 kv::image_of< uint8_t > const& ab )
+  {
+    kv::image_of< uint8_t > out( ac.width(), ac.height(), ac.depth() );
+
+    for( size_t p = 0; p < ac.depth(); ++p )
+    {
+      for( size_t j = 0; j < ac.height(); ++j )
+      {
+        for( size_t i = 0; i < ac.width(); ++i )
+        {
+          auto const sum = std::min(
+            255, static_cast< int >( ac( i, j, p ) ) +
+                 static_cast< int >( cb( i, j, p ) ) );
+
+          auto const difference =
+            std::max( 0, sum - static_cast< int >( ab( i, j, p ) ) );
+
+          // `cv::abs` on an unsigned result is the identity; kept for the
+          // shape of the formula rather than because it can do anything
+          out( i, j, p ) = static_cast< uint8_t >( difference );
+        }
+      }
+    }
+
+    return out;
+  }
+
+  kv::image_of< float >
+  combine_floats( kv::image_of< float > const& ac,
+                  kv::image_of< float > const& cb,
+                  kv::image_of< float > const& ab )
+  {
+    kv::image_of< float > out( ac.width(), ac.height(), ac.depth() );
+
+    for( size_t p = 0; p < ac.depth(); ++p )
+    {
+      for( size_t j = 0; j < ac.height(); ++j )
+      {
+        for( size_t i = 0; i < ac.width(); ++i )
+        {
+          out( i, j, p ) = std::abs(
+            ac( i, j, p ) + cb( i, j, p ) - ab( i, j, p ) );
+        }
+      }
+    }
+
+    return out;
+  }
+
+  /// Write one debug frame, if a debug directory was configured.
+  void
+  save_debug( kv::image const& image, char const* what )
+  {
+    auto const name = m_debug_dir() + "/" +
+                      std::to_string( m_debug_counter ) + what + ".tif";
+
+    try
+    {
+      viame::codecs::write( name, image );
+    }
+    catch( std::exception const& e )
+    {
+      LOG_WARN( m_logger, "Could not write " << name << ": " << e.what() );
     }
   }
 
-  void
-  process_image( cv::Mat& cv_src, cv::Mat& fgmask )
+  kv::image_of< uint8_t >
+  process_image( kv::image_of< uint8_t > const& source )
   {
     // Images are in temporal order A (oldest), B, C (newest).
-    cv::Mat imgA, imgB, imgC;
-    cv_src.copyTo( imgC );
-    m_frames.push_front( imgC );
+    m_frames.push_front( source );
 
     if( m_frames.size() < 2 * m_frame_separation() )
     {
       LOG_TRACE(
         m_logger, "Haven't collected enough frames yet, so setting "
                   "foreground mask to all zeros." );
-      fgmask = cv::Mat( cv_src.rows, cv_src.cols, CV_8UC1, cv::Scalar( 0 ) );
-      return;
+
+      kv::image_of< uint8_t > empty( source.width(), source.height(), 1 );
+
+      for( size_t j = 0; j < empty.height(); ++j )
+      {
+        for( size_t i = 0; i < empty.width(); ++i )
+        {
+          empty( i, j, 0 ) = 0;
+        }
+      }
+
+      return empty;
     }
 
     LOG_TRACE( m_logger, "Getting frame from end of queue" );
-    imgA = m_frames.back();
+    auto const imgA = m_frames.back();
     LOG_TRACE( m_logger, "Getting frame at index frame_separation" );
-    imgB = m_frames[ m_frame_separation() ];
+    auto const imgB = m_frames[ m_frame_separation() ];
+    auto const imgC = m_frames.front();
 
     if( m_frames.size() > 2 * m_frame_separation() )
     {
@@ -184,81 +311,101 @@ public:
       m_frames.pop_back();
     }
 
-    // unsigned_sum (default)
-    ///  = | | A - C | + | C - B | - | A - B | |
-    cv::Mat AminusC, CminusB, AminusB;
-    image_difference( imgA, imgC, AminusC );
-    image_difference( imgC, imgB, CminusB );
-    image_difference( imgA, imgB, AminusB );
+    kv::image_of< uint8_t > fgmask;
 
-    fgmask = cv::abs( AminusC + CminusB - AminusB );
-
-    if( m_output_to_debug_dir )
+    if( m_jitter_radius() == 0 )
     {
-      std::string fname;
-      cv::Mat img;
-      imgA.convertTo( img, CV_8UC1 );
-      fname = m_debug_dir() + "/" + std::to_string( m_debug_counter ) + "imgA" +
-              ".tif";
-      cv::imwrite( fname, img );
-      imgB.convertTo( img, CV_8UC1 );
-      fname = m_debug_dir() + "/" + std::to_string( m_debug_counter ) + "imgB" +
-              ".tif";
-      cv::imwrite( fname, img );
-      imgC.convertTo( img, CV_8UC1 );
-      fname = m_debug_dir() + "/" + std::to_string( m_debug_counter ) + "imgC" +
-              ".tif";
-      cv::imwrite( fname, img );
-      AminusC.convertTo( img, CV_8UC1 );
-      fname = m_debug_dir() + "/" + std::to_string( m_debug_counter ) +
-              "AminusC" + ".tif";
-      cv::imwrite( fname, img );
-      CminusB.convertTo( img, CV_8UC1 );
-      fname = m_debug_dir() + "/" + std::to_string( m_debug_counter ) +
-              "CminusB" + ".tif";
-      cv::imwrite( fname, img );
-      AminusB.convertTo( img, CV_8UC1 );
-      fname = m_debug_dir() + "/" + std::to_string( m_debug_counter ) +
-              "AminusB" + ".tif";
-      cv::imwrite( fname, img );
-      fgmask.convertTo( img, CV_8UC1 );
-      fname = m_debug_dir() + "/" + std::to_string( m_debug_counter ) +
-              "fgmask" +
-              ".tif";
-      cv::imwrite( fname, img );
-      ++m_debug_counter;
+      auto const ac = difference_bytes( imgA, imgC );
+      auto const cb = difference_bytes( imgC, imgB );
+      auto const ab = difference_bytes( imgA, imgB );
+
+      auto const combined = combine_bytes( ac, cb, ab );
+
+      if( m_output_to_debug_dir )
+      {
+        save_debug( kv::image( imgA ), "imgA" );
+        save_debug( kv::image( imgB ), "imgB" );
+        save_debug( kv::image( imgC ), "imgC" );
+        save_debug( kv::image( ac ), "AminusC" );
+        save_debug( kv::image( cb ), "CminusB" );
+        save_debug( kv::image( ab ), "AminusB" );
+        save_debug( kv::image( combined ), "fgmask" );
+        ++m_debug_counter;
+      }
+
+      fgmask = ( combined.depth() > 1 ) ? rms_over_planes( combined )
+                                        : combined;
     }
-
-    if( fgmask.channels() > 1 )
+    else
     {
-      LOG_TRACE(
-        m_logger, "Converting multichannel foreground mask to single "
-                  "channel" );
-      rms_over_channels( fgmask, fgmask );
+      auto const ac = jittered_difference( imgA, imgC );
+      auto const cb = jittered_difference( imgC, imgB );
+      auto const ab = jittered_difference( imgA, imgB );
+
+      auto const combined = combine_floats( ac, cb, ab );
+
+      if( m_output_to_debug_dir )
+      {
+        save_debug( kv::image( imgA ), "imgA" );
+        save_debug( kv::image( imgB ), "imgB" );
+        save_debug( kv::image( imgC ), "imgC" );
+        ++m_debug_counter;
+      }
+
+      if( combined.depth() > 1 )
+      {
+        LOG_TRACE(
+          m_logger, "Converting multichannel foreground mask to single "
+                    "channel" );
+      }
+
+      fgmask = rms_over_planes( combined );
     }
 
     if( IS_TRACE_ENABLED( m_logger ) )
     {
-      double min_val, max_val;
-      cv::minMaxLoc( fgmask, &min_val, &max_val );
+      int lowest = 255;
+      int highest = 0;
+
+      for( size_t j = 0; j < fgmask.height(); ++j )
+      {
+        for( size_t i = 0; i < fgmask.width(); ++i )
+        {
+          auto const value = static_cast< int >( fgmask( i, j, 0 ) );
+          lowest = std::min( lowest, value );
+          highest = std::max( highest, value );
+        }
+      }
+
       LOG_TRACE(
-        m_logger, "heat map min: " + std::to_string( min_val ) +
-        " max: " + std::to_string( max_val ) );
+        m_logger, "heat map min: " + std::to_string( lowest ) +
+        " max: " + std::to_string( highest ) );
     }
 
     if( m_max_foreground_fract() < 1 )
     {
-      int total_pixels = fgmask.rows * fgmask.cols;
-      int max_fg_pixels = total_pixels * m_max_foreground_fract();
-      cv::Mat mask;
-      cv::threshold(
-        fgmask, mask, m_max_foreground_fract_thresh(), 1,
-        cv::THRESH_BINARY );
+      auto const total_pixels = fgmask.width() * fgmask.height();
+      auto const max_fg_pixels = static_cast< size_t >(
+        static_cast< double >( total_pixels ) * m_max_foreground_fract() );
 
-      int nonzero_pixels = cv::sum( mask ).val[ 0 ];
+      size_t nonzero_pixels = 0;
+
+      for( size_t j = 0; j < fgmask.height(); ++j )
+      {
+        for( size_t i = 0; i < fgmask.width(); ++i )
+        {
+          if( static_cast< double >( fgmask( i, j, 0 ) ) >
+              m_max_foreground_fract_thresh() )
+          {
+            ++nonzero_pixels;
+          }
+        }
+      }
+
       LOG_TRACE(
         m_logger, ( double ) nonzero_pixels / ( double ) total_pixels * 100 <<
           "% foreground pixels." );
+
       if( nonzero_pixels > max_fg_pixels )
       {
         LOG_DEBUG(
@@ -269,9 +416,18 @@ public:
         // Reset background model, but wait until next iteration to start
         // updating it because the current frame might be bad.
         reset();
-        fgmask = cv::Scalar( 0 );
+
+        for( size_t j = 0; j < fgmask.height(); ++j )
+        {
+          for( size_t i = 0; i < fgmask.width(); ++i )
+          {
+            fgmask( i, j, 0 ) = 0;
+          }
+        }
       }
     }
+
+    return fgmask;
   }
 
   /// Set up debug directory
@@ -387,16 +543,10 @@ detect_motion_3frame_differencing
     d_->reset();
   }
 
-  cv::Mat cv_src, fgmask;
-  cv_src = image_container::vital_to_ocv(
-    image->get_image(),
-    image_container::BGR_COLOR );
+  kv::image_of< uint8_t > const source( image->get_image() );
 
-  d_->process_image( cv_src, fgmask );
-
-  return std::make_shared< ocv::image_container >(
-    fgmask,
-    image_container::BGR_COLOR );
+  return std::make_shared< vital::simple_image_container >(
+    vital::image( d_->process_image( source ) ) );
 }
 
 } // end namespace ocv

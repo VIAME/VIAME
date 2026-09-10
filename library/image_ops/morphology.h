@@ -7,6 +7,8 @@
 
 #include <viame/core_types/image.h>
 
+#include <algorithm>
+
 #include <cstddef>
 #include <utility>
 #include <vector>
@@ -77,6 +79,105 @@ line_j_element( double radius )
   }
 
   return element;
+}
+
+// ----------------------------------------------------------------------------
+/// Every offset in a \p width by \p height rectangle, centred.
+///
+/// `cv::getStructuringElement( cv::MORPH_RECT, ... )` with the default
+/// anchor, which is the shape the jittered frame differencing uses.
+inline structuring_element
+rect_element( int width, int height )
+{
+  structuring_element element;
+
+  auto const half_i = width / 2;
+  auto const half_j = height / 2;
+
+  for( int j = -half_j; j < height - half_j; ++j )
+  {
+    for( int i = -half_i; i < width - half_i; ++i )
+    {
+      element.emplace_back( i, j );
+    }
+  }
+
+  return element;
+}
+
+// ----------------------------------------------------------------------------
+/// The smallest or largest value under \p element, per pixel and per plane.
+///
+/// Greyscale erosion and dilation, which is what `cv::erode` and `cv::dilate`
+/// compute on anything that is not a binary mask. The binary `erode` and
+/// `dilate` below are the same operation on `bool`, and are kept separate
+/// because they are what the VXL recordings are held to.
+///
+/// The element is clipped to the image rather than reading a border value,
+/// which is what OpenCV's default border does: its `borderValue` is the
+/// extreme of the type, so an out-of-image neighbour can never be the
+/// minimum of a dilation or the maximum of an erosion.
+template < typename T, typename Combine >
+kwiver::vital::image_of< T >
+grey_morphology( kwiver::vital::image_of< T > const& image,
+                 structuring_element const& element, Combine combine )
+{
+  kwiver::vital::image_of< T > out( image.width(), image.height(),
+                                    image.depth() );
+
+  auto const width = static_cast< long >( image.width() );
+  auto const height = static_cast< long >( image.height() );
+
+  for( size_t plane = 0; plane < image.depth(); ++plane )
+  {
+    for( long j = 0; j < height; ++j )
+    {
+      for( long i = 0; i < width; ++i )
+      {
+        auto best = image( static_cast< size_t >( i ),
+                           static_cast< size_t >( j ), plane );
+
+        for( auto const& offset : element )
+        {
+          auto const x = i + offset.first;
+          auto const y = j + offset.second;
+
+          if( x < 0 || y < 0 || x >= width || y >= height )
+          {
+            continue;
+          }
+
+          best = combine( best, image( static_cast< size_t >( x ),
+                                       static_cast< size_t >( y ), plane ) );
+        }
+
+        out( static_cast< size_t >( i ), static_cast< size_t >( j ), plane ) =
+          best;
+      }
+    }
+  }
+
+  return out;
+}
+
+/// The smallest value under \p element, which is `cv::erode`.
+template < typename T >
+kwiver::vital::image_of< T >
+grey_erode( kwiver::vital::image_of< T > const& image,
+            structuring_element const& element )
+{
+  return grey_morphology( image, element,
+                          []( T a, T b ) { return std::min( a, b ); } );
+}
+
+/// The largest value under \p element, which is `cv::dilate`.
+template < typename T >
+kwiver::vital::image_of< T >
+grey_dilate( kwiver::vital::image_of< T > const& image,
+             structuring_element const& element )
+{
+  return grey_morphology( image, element,
+                          []( T a, T b ) { return std::max( a, b ); } );
 }
 
 namespace detail {
