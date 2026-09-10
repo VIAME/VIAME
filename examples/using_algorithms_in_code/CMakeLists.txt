@@ -33,6 +33,7 @@ if( VIAME_ENABLE_KWIVER AND VIAME_ENABLE_OPENCV )
                kwiver::vital_util
                kwiver::kwiver_algo_core
                kwiver::kwiver_algo_ocv
+               viame_video_io
                ${OpenCV_LIBS}
     )
 
@@ -50,6 +51,7 @@ if( VIAME_ENABLE_KWIVER AND VIAME_ENABLE_OPENCV )
                kwiver::vital_vpm
                kwiver::kwiver_algo_core
                kwiver::kwiver_algo_ocv
+               viame_video_io
                ${OpenCV_LIBS}
     )
 

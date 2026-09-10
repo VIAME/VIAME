@@ -8,7 +8,7 @@
 #include <viame/algorithm_framework/algo/image_object_detector.h>
 #include <viame/algorithm_framework/algo/algorithm.txx>
 #include <arrows/ocv/image_container.h>
-#include <arrows/ocv/algo/image_io.h>
+#include <viame/video_io/ocv_image_io.h>
 
 #include <string>
 

@@ -10,10 +10,13 @@
 #include "viame_video_io_plugin_export.h"
 
 #include <viame/algorithm_framework/algo/image_io.h>
+#include <viame/algorithm_framework/algo/video_input.h>
 
 #include <viame/algorithm_framework/plugin/plugin_loader.h>
 
 #include "core_image_io.h"
+#include "ocv_image_io.h"
+#include "video_input_image_list.h"
 
 namespace viame {
 
@@ -52,6 +55,27 @@ register_factories( kv::plugin_loader& vpm )
   // answer to, are python: see pyav_video_input.py and pyav_video_output.py
 
 #undef VIAME_REGISTER
+
+  // Imported from kwiver in P5-T04. These two register the way kwiver's
+  // arrows did, by class rather than through the macro above, because they
+  // are still in kwiver's namespace and carry no plugin_name().
+  {
+    auto fact = vpm.add_factory< kv::algo::image_io,
+      kwiver::arrows::ocv::image_io >( "ocv" );
+    fact->add_attribute( kvpf::PLUGIN_NAME, "ocv" )
+      .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
+      .add_attribute( kvpf::PLUGIN_DESCRIPTION,
+                      "Read and write images using OpenCV" );
+  }
+
+  {
+    auto fact = vpm.add_factory< kv::algo::video_input,
+      kwiver::arrows::core::video_input_image_list >( "image_list" );
+    fact->add_attribute( kvpf::PLUGIN_NAME, "image_list" )
+      .add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name )
+      .add_attribute( kvpf::PLUGIN_DESCRIPTION,
+                      "Read a video as a list of image files" );
+  }
 
   vpm.mark_module_as_loaded( module_name );
 }

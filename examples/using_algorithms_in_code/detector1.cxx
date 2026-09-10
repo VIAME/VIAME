@@ -2,7 +2,7 @@
 
 #include <viame/algorithm_framework/config/config_block_io.h>
 #include <arrows/ocv/image_container.h>
-#include <arrows/ocv/algo/image_io.h>
+#include <viame/video_io/ocv_image_io.h>
 #include <arrows/ocv/algo/hough_circle_detector.h>
 
 #include <string>
