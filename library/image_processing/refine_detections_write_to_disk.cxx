@@ -3,7 +3,11 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation of OCV refine detections draw debugging algorithm
+/// \brief Write a chip per detection to disk, for debugging
+///
+/// Was `cv::imwrite` on a `cv::Mat` region of interest; since P7-T04 it is
+/// `image_ops::crop` and `codecs::write`, so the extension in the pattern
+/// still chooses the format and nothing goes through OpenCV.
 
 #include "refine_detections_write_to_disk.h"
 
@@ -20,13 +24,14 @@
 
 #include <kwiversys/SystemTools.hxx>
 
-#include <viame/opencv_bridge/image_container.h>
+#include <image_ops/dispatch.h>
+#include <image_ops/resample.h>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <viame/video_io/codecs/image_codec.h>
 
 using namespace kwiver::vital;
+
+namespace io = viame::image_ops;
 
 namespace kwiver {
 
@@ -66,9 +71,7 @@ refine_detections_write_to_disk
     return detections;
   }
 
-  cv::Mat img = ocv::image_container::vital_to_ocv(
-    image_data->get_image(),
-    ocv::image_container::BGR_COLOR );
+  auto const img = image_data->get_image();
 
   // Get input filename if it's in the vital_metadata
   std::string filename;
@@ -86,9 +89,11 @@ refine_detections_write_to_disk
   {
     vital::bounding_box_d bbox = det->bounding_box();
 
-    cv::Size s = img.size();
-    vital::bounding_box_d bounds( vital::bounding_box_d::vector_type( 0, 0 ),
-      vital::bounding_box_d::vector_type( s.width, s.height ) );
+    vital::bounding_box_d bounds(
+      vital::bounding_box_d::vector_type( 0, 0 ),
+      vital::bounding_box_d::vector_type(
+        static_cast< double >( img.width() ),
+        static_cast< double >( img.height() ) ) );
 
     // Clip detection box to image bounds.
     bbox = intersection( bounds, bbox );
@@ -142,13 +147,29 @@ refine_detections_write_to_disk
       return detections;
     }
 
-    // Output image to file
-    // Make CV rect for out bbox coordinates
-    cv::Rect r( bbox.upper_left()[ 0 ], bbox.upper_left()[ 1 ],
-      bbox.width(), bbox.height() );
+    // Output image to file. The chip is cropped out and encoded in house
+    // since P7-T04; the extension in the pattern is what chooses the format,
+    // as it did when this was `cv::imwrite`.
+    auto const chip = io::dispatch_pixel_type(
+      img,
+      [ & ]( auto const& typed ) -> vital::image
+      {
+        return vital::image( io::crop(
+          typed,
+          static_cast< size_t >( bbox.upper_left()[ 0 ] ),
+          static_cast< size_t >( bbox.upper_left()[ 1 ] ),
+          static_cast< size_t >( bbox.width() ),
+          static_cast< size_t >( bbox.height() ) ) );
+      } );
 
-    cv::Mat crop = img( r );
-    cv::imwrite( ofn, crop );
+    try
+    {
+      viame::codecs::write( ofn, chip );
+    }
+    catch( std::exception const& e )
+    {
+      LOG_ERROR( logger(), "Could not write " << ofn << ": " << e.what() );
+    }
   } // end for
 
   return detections;

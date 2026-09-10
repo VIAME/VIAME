@@ -98,6 +98,8 @@ target_link_libraries( viame_image_processing
                        kwiver::vital_logger
                        kwiver::vital_util
                        viame_image_ops
+                       # codecs/, for the detection chips ocv_write saves
+                       viame_video_io
                        kwiver::kwiversys
   PRIVATE              ${OpenCV_LIBS}
                        # image_container and the rest of arrows/ocv's vital

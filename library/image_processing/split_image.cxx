@@ -3,16 +3,22 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation of OCV split image algorithm
+/// \brief Split an image in half, left and right
+///
+/// Was `cv::Mat`'s region-of-interest and a clone; since P7-T04 it is
+/// `image_ops::crop`, which does the same thing on a `vital::image` and
+/// leaves nothing for the OpenCV bridge to convert.
 
 #include "split_image.h"
 
-#include <viame/opencv_bridge/image_container.h>
+#include <image_ops/dispatch.h>
+#include <image_ops/resample.h>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <viame/core_types/image_container.h>
 
 using namespace kwiver::vital;
+
+namespace io = viame::image_ops;
 
 namespace kwiver {
 
@@ -31,25 +37,32 @@ split_image
 ::split( kwiver::vital::image_container_sptr image ) const
 {
   std::vector< kwiver::vital::image_container_sptr > output;
-  cv::Mat cv_image = ocv::image_container::vital_to_ocv(
-    image->get_image(),
-    ocv::image_container::RGB_COLOR );
-  cv::Mat left_image = cv_image(
-    cv::Rect(
-      0, 0, cv_image.cols / 2,
-      cv_image.rows ) );
-  cv::Mat right_image = cv_image(
-    cv::Rect(
-      cv_image.cols / 2, 0,
-      cv_image.cols / 2, cv_image.rows ) );
-  output.push_back(
-    image_container_sptr(
-      new ocv::image_container(
-        left_image.clone(), ocv::image_container::RGB_COLOR ) ) );
-  output.push_back(
-    image_container_sptr(
-      new ocv::image_container(
-        right_image.clone(), ocv::image_container::RGB_COLOR ) ) );
+
+  if( !image )
+  {
+    return output;
+  }
+
+  auto const source = image->get_image();
+
+  // An odd width loses its middle column, which is what the integer halving
+  // did before: both halves are `width / 2` wide.
+  auto const half = source.width() / 2;
+
+  for( size_t piece = 0; piece < 2; ++piece )
+  {
+    auto const cropped = io::dispatch_pixel_type(
+      source,
+      [ & ]( auto const& typed ) -> vital::image
+      {
+        return vital::image(
+          io::crop( typed, piece * half, 0, half, source.height() ) );
+      } );
+
+    output.push_back(
+      std::make_shared< vital::simple_image_container >( cropped ) );
+  }
+
   return output;
 }
 

@@ -14,11 +14,13 @@
 #include <viame/core_types/vector.h>
 #include <viame/core_types/vital_types.h>
 
-#include <viame/opencv_bridge/image_container.h>
+#include <image_ops/channels.h>
+#include <image_ops/draw.h>
+#include <image_ops/filter.h>
+
+#include <viame/core_types/image_container.h>
 #include <kwiversys/RegularExpression.hxx>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 
 #include <sstream>
 
@@ -32,6 +34,9 @@ namespace ocv {
 static const int MULTI_LABEL_OFFSET( 15 );
 
 typedef  kwiver::vital::vector_< 3, unsigned int > ColorVector;
+
+namespace io = viame::image_ops;
+namespace kv = kwiver::vital;
 
 // ----------------------------------------------------------------------------
 /// @brief
@@ -107,29 +112,47 @@ public:
   ///            more than one label for a detection.
   void
   draw_box(
-    cv::Mat&                     image,
+    kv::image_of< uint8_t >&     image,
     const vital::detected_object_sptr dos,
     std::string label,
     double prob,
     bool just_text = false,
     int offset_index = 0 ) const
   {
-    cv::Mat overlay;
+    // A copy to draw on, blended back at the end so that the alpha shading
+    // is over the frame rather than over the previous box. `vital::image`
+    // copies share their memory, so this is a deep one.
+    kv::image_of< uint8_t > overlay( image.width(), image.height(),
+                                     image.depth() );
 
-    image.copyTo( overlay );
+    for( size_t j = 0; j < image.height(); ++j )
+    {
+      for( size_t i = 0; i < image.width(); ++i )
+      {
+        for( size_t p = 0; p < image.depth(); ++p )
+        {
+          overlay( i, j, p ) = image( i, j, p );
+        }
+      }
+    }
 
     vital::bounding_box_d bbox = dos->bounding_box();
     if( m_clip_box_to_image() )
     {
-      cv::Size s = image.size();
-      vital::bounding_box_d img( vital::bounding_box_d::vector_type( 0, 0 ),
-        vital::bounding_box_d::vector_type( s.width, s.height ) );
+      vital::bounding_box_d img(
+        vital::bounding_box_d::vector_type( 0, 0 ),
+        vital::bounding_box_d::vector_type(
+          static_cast< double >( image.width() ),
+          static_cast< double >( image.height() ) ) );
       bbox = intersection( img, bbox );
     }
 
-    // Make CV rect for out bbox coordinates
-    cv::Rect r( bbox.upper_left()[ 0 ], bbox.upper_left()[ 1 ], bbox.width(),
-      bbox.height() );
+    auto const left = static_cast< long >( bbox.upper_left()[ 0 ] );
+    auto const top = static_cast< long >( bbox.upper_left()[ 1 ] );
+
+    io::rect const r{ left, top,
+                      left + static_cast< long >( bbox.width() ),
+                      top + static_cast< long >( bbox.height() ) };
     std::string p = std::to_string( static_cast< long double >( prob ) ); // convert
                                                                           // value
                                                                           // to
@@ -158,34 +181,52 @@ public:
     // Add text to an existing box
     if( !just_text )
     {
-      cv::Scalar color( bbp->color[ 0 ], bbp->color[ 1 ], bbp->color[ 2 ] );
-      cv::rectangle( overlay, r, color, bbp->thickness );
+      // Reversed on purpose. The config calls this triple RGB and its
+      // default is "0 0 255", but it was handed to `cv::Scalar` over a BGR
+      // image, so what was actually drawn was (B, G, R) -- the default drew
+      // a *red* box while the documentation said blue, and the example in
+      // `custom_class_color` said the opposite of what it did.
+      //
+      // Reproducing that here keeps every existing pipeline and every
+      // screenshot the same. Correcting the documentation instead of the
+      // code is a decision for someone who knows which users are relying on
+      // which; see lite-findings.md 1.10.
+      io::colour const colour{ static_cast< double >( bbp->color[ 2 ] ),
+                               static_cast< double >( bbp->color[ 1 ] ),
+                               static_cast< double >( bbp->color[ 0 ] ) };
+
+      io::draw_rect( overlay, r, colour,
+                     static_cast< long >( bbp->thickness ) );
     }
 
     if( m_draw_text() )
     {
-      int fontface = cv::FONT_HERSHEY_SIMPLEX;
-      double scale = m_text_scale();
-      int thickness = m_text_thickness();
-      int baseline = 0;
-      cv::Point pt( r.tl() + cv::Point(
-        0,
-        MULTI_LABEL_OFFSET * offset_index ) );
+      // The text scale was a fraction for Hershey's vector font and is a
+      // whole multiple for the bitmap one, so it is rounded up rather than
+      // truncated: a configured 0.5 means "small", and the smallest this
+      // font goes is one.
+      auto const scale = std::max(
+        1L, static_cast< long >( std::lround( m_text_scale() ) ) );
 
-      cv::Size text = cv::getTextSize(
-        txt, fontface, scale, thickness,
-        &baseline );
-      cv::rectangle(
-        overlay, pt + cv::Point( 0, baseline ), pt +
-        cv::Point( text.width, -text.height ), cv::Scalar( 0, 0, 0 ),
-        cv::FILLED );
+      auto const pen_i = r.left;
+      auto const pen_j = r.top + MULTI_LABEL_OFFSET * offset_index;
 
-      cv::putText(
-        overlay, txt, pt, fontface, scale,
-        cv::Scalar( 255, 255, 255 ), thickness, 8 );
+      auto const size = io::text_size( txt, scale );
+
+      // A filled black plate behind the label, as before. Placed from the
+      // pen downwards rather than up from a baseline: `draw_text` takes the
+      // top left, since a bitmap font has no baseline to hang from.
+      io::draw_rect( overlay,
+                     io::rect{ pen_i, pen_j, pen_i + size.right,
+                               pen_j + size.bottom },
+                     io::colour{ 0.0, 0.0, 0.0 }, -1 );
+
+      io::draw_text( overlay, txt, pen_i, pen_j,
+                     io::colour{ 255.0, 255.0, 255.0 }, scale );
     }
 
-    cv::addWeighted( overlay, alpha_wight, image, 1 - alpha_wight, 0, image );
+    image = io::add_weighted( overlay, alpha_wight, image,
+                              1.0 - alpha_wight );
   } // draw_box
 
   // --------------------------------------------------------------------------
@@ -205,9 +246,11 @@ public:
     vital::image_container_sptr image_data,
     vital::detected_object_set_sptr in_set ) const
   {
-    cv::Mat image = image_container_to_ocv_matrix(
-      *image_data,
-      arrows::ocv::image_container::BGR_COLOR ).clone();
+    // Three planes and eight bit, whatever came in: the overlay is drawn in
+    // colour and a grey frame would have nowhere to put it.
+    kv::image_of< uint8_t > image =
+      io::force_three_channels( kv::image_of< uint8_t >(
+        image_data->get_image() ) );
 
     // process the detection set
     auto ie = in_set->cend();
@@ -250,10 +293,8 @@ public:
       }
     } // end foreach
 
-    return vital::image_container_sptr(
-      new arrows::ocv::image_container(
-        image,
-        arrows::ocv::image_container::BGR_COLOR ) );
+    return std::make_shared< vital::simple_image_container >(
+      vital::image( image ) );
   } // end draw_detections
 
 // ----------------------------------------------------------------------------

@@ -3,16 +3,21 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Implementation of OCV split image channels algorithm
+/// \brief Split an image into one image per plane
+///
+/// Was `cv::split`; since P7-T04 it copies the planes out directly, which on
+/// a `vital::image` is what `cv::split` was doing anyway once the bridge had
+/// interleaved them on the way in and the way out again.
 
 #include "split_image_channels.h"
 
-#include <viame/opencv_bridge/image_container.h>
+#include <image_ops/dispatch.h>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <viame/core_types/image_container.h>
 
 using namespace kwiver::vital;
+
+namespace io = viame::image_ops;
 
 namespace kwiver {
 
@@ -32,18 +37,36 @@ split_image_channels
 {
   std::vector< kwiver::vital::image_container_sptr > output;
 
-  cv::Mat cv_image = ocv::image_container::vital_to_ocv(
-    image->get_image(), ocv::image_container::RGB_COLOR );
-
-  std::vector< cv::Mat > channels;
-  cv::split( cv_image, channels );
-
-  for( auto const& channel : channels )
+  if( !image )
   {
+    return output;
+  }
+
+  auto const source = image->get_image();
+
+  for( size_t plane = 0; plane < source.depth(); ++plane )
+  {
+    auto const single = io::dispatch_pixel_type(
+      source,
+      [ & ]( auto const& typed ) -> vital::image
+      {
+        using pixel_t = io::pixel_type_t< decltype( typed ) >;
+
+        vital::image_of< pixel_t > out( typed.width(), typed.height(), 1 );
+
+        for( size_t j = 0; j < typed.height(); ++j )
+        {
+          for( size_t i = 0; i < typed.width(); ++i )
+          {
+            out( i, j, 0 ) = typed( i, j, plane );
+          }
+        }
+
+        return vital::image( out );
+      } );
+
     output.push_back(
-      image_container_sptr(
-        new ocv::image_container(
-          channel.clone(), ocv::image_container::RGB_COLOR ) ) );
+      std::make_shared< vital::simple_image_container >( single ) );
   }
 
   return output;

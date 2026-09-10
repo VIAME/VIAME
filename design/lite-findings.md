@@ -196,6 +196,14 @@ an artefact of the port:
   done anything. The port keeps the registration exactly as it was --
   behaviour first -- and `close_loops_multi_method` was dropped with the rest
   of the unregistered code.
+* `draw_detected_object_set`'s colour configuration means the opposite of
+  what it says. `default_color` is documented "(RGB)" and defaults to
+  `"0 0 255"`, and `custom_class_color`'s example is `person/3/255 0 0` with
+  "Color is in RGB" beside it -- but the triple went into a `cv::Scalar` over
+  a **BGR** image, so the default drew a red box and the example would have
+  drawn blue. P7-T04 reproduces the behaviour rather than the documentation,
+  because every existing pipeline and screenshot depends on it; which of the
+  two to correct is a decision for someone who knows who is relying on which.
 * `ocv_random_hue_shift` **throws about half the time** on a single channel
   image, and returns it untouched the other half. It draws
   `rand() / (RAND_MAX + 1.0)` against `trigger_percent` and returns early when
