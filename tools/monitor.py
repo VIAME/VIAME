@@ -41,6 +41,7 @@ import argparse
 import csv
 import datetime
 import json
+import math
 import os
 import re
 import shutil
@@ -189,11 +190,12 @@ def nh_stage(log_text, done_pattern):
 
 def nh_epoch(log_text):
     epoch = -1
-    for match in NH_EPOCH_RE.finditer(log_text):
-        try:
-            epoch = max(epoch, int(match.group(1)))
-        except ValueError:
-            pass
+    for line in log_text.splitlines():
+        if re.search(r'max(?:imum|_)?\s*epochs?|max_epochs|epoch.*(?:limit|maximum)', line, re.I):
+            continue
+        match = NH_EPOCH_RE.search(line)
+        if match:
+            epoch = int(match.group(1))
     return epoch
 
 
@@ -353,6 +355,27 @@ class Monitor:
         self.host = socket.gethostname()
         self.notifier = Notifier(args, self.status_log)
         self.job_label = self.job_description()
+        self._log_offset = 0
+        self._log_identity = None
+        self._log_tail = ''
+
+    def read_log(self):
+        try:
+            stat = os.stat(self.log)
+            identity = (stat.st_dev, stat.st_ino)
+            if identity != self._log_identity or stat.st_size < self._log_offset:
+                self._log_offset = 0
+                self._log_tail = ''
+            with open(self.log, 'rb') as stream:
+                # Bound both the initial read and bursts of new output.
+                stream.seek(max(self._log_offset, stat.st_size - 2 * 1024 * 1024))
+                chunk = stream.read()
+                self._log_offset = stream.tell()
+            self._log_identity = identity
+            self._log_tail = (self._log_tail + chunk.decode(errors='replace').replace('\r', '\n'))[-2 * 1024 * 1024:]
+        except OSError:
+            pass
+        return self._log_tail
 
     # -- run identity ----------------------------------------------------
     def job_description(self):
@@ -446,7 +469,7 @@ class Monitor:
     # -- main loop -------------------------------------------------------
     def run(self):
         os.makedirs(self.output_dir, exist_ok=True)
-        log_text = read_text(self.log)
+        log_text = self.read_log()
         run_type = self.resolve_type()
         stage = nh_stage(log_text, self.args.done_pattern)
         append_status(self.status_log, 'monitor started for %s (type %s); %s' % (
@@ -463,13 +486,13 @@ class Monitor:
         interval = max(1, self.args.epoch_interval)
 
         while True:
-            log_text = read_text(self.log)
+            log_text = self.read_log()
             run_type = self.resolve_type()
             if not self.running(log_text):
                 # Give the run's final output a moment to land, then re-read
                 # so the verdict sees its last lines.
                 time.sleep(5)
-                self.end_report(run_type, read_text(self.log))
+                self.end_report(run_type, self.read_log())
                 return 0
 
             stage = nh_stage(log_text, self.args.done_pattern)
@@ -537,6 +560,40 @@ def read_pid(output_dir):
         return None
 
 
+def process_identity(pid):
+    """Creation identity prevents a stale PID file from targeting a reused PID."""
+    try:
+        if sys.platform.startswith('linux'):
+            with open('/proc/%d/stat' % pid) as stream:
+                start = stream.read().rsplit(')', 1)[1].split()[19]
+            with open('/proc/sys/kernel/random/boot_id') as stream:
+                return stream.read().strip() + ':' + start
+        if sys.platform == 'win32':
+            cmd = ['powershell', '-NoProfile', '-Command',
+                   '(Get-Process -Id %d).StartTime.ToUniversalTime().Ticks' % pid]
+        else:
+            cmd = ['ps', '-p', str(pid), '-o', 'lstart=']
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        return result.stdout.strip() if result.returncode == 0 else None
+    except (OSError, subprocess.TimeoutExpired, IndexError):
+        return None
+
+
+def record_identity(output_dir, pid):
+    with open(os.path.join(output_dir, 'monitor.identity.json'), 'w') as stream:
+        json.dump({'pid': pid, 'identity': process_identity(pid)}, stream)
+
+
+def owns_pid(output_dir, pid):
+    try:
+        with open(os.path.join(output_dir, 'monitor.identity.json')) as stream:
+            record = json.load(stream)
+        identity = process_identity(pid)
+        return bool(identity and record.get('pid') == pid and record.get('identity') == identity)
+    except (OSError, ValueError, AttributeError):
+        return False
+
+
 def detach(argv, output_dir):
     """Relaunch this script in the background and return the child pid."""
     out_path = os.path.join(output_dir, OUTPUT_FILE)
@@ -560,6 +617,7 @@ def cmd_start(args, raw_argv):
     if args.foreground:
         with open(pid_path(output_dir), 'w') as fout:
             fout.write('%d\n' % os.getpid())
+        record_identity(output_dir, os.getpid())
         try:
             return Monitor(args).run()
         except KeyboardInterrupt:
@@ -584,6 +642,7 @@ def cmd_start(args, raw_argv):
     pid = detach([a for a in raw_argv if a != '--foreground'] + ['--foreground'], output_dir)
     with open(pid_path(output_dir), 'w') as fout:
         fout.write('%d\n' % pid)
+    record_identity(output_dir, pid)
     notifier = Notifier(args, os.path.join(output_dir, DEFAULT_STATUS_LOG))
     print('Monitor started (pid %d): %s' % (pid, notifier.describe()))
     print('Status trail: %s' % (args.status_log or os.path.join(output_dir, DEFAULT_STATUS_LOG)))
@@ -634,13 +693,16 @@ def cmd_stop(args, _raw_argv):
     if not pid_running(pid):
         print('Monitor pid %d is not running' % pid)
     else:
+        if not owns_pid(output_dir, pid):
+            print('Refusing to stop pid %d: monitor process identity cannot be verified' % pid, file=sys.stderr)
+            return 1
         try:
             if sys.platform == 'win32':
                 subprocess.run(['taskkill', '/PID', str(pid), '/F'],
-                               capture_output=True, timeout=30)
+                               capture_output=True, timeout=30, check=True)
             else:
                 os.kill(pid, signal.SIGTERM)
-        except OSError as err:
+        except (OSError, subprocess.SubprocessError) as err:
             print('Could not stop pid %d: %s' % (pid, err), file=sys.stderr)
             return 1
         print('Stopped monitor pid %d' % pid)
@@ -722,7 +784,15 @@ def build_parser():
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if args.command == 'start':
+        for name in ('poll_seconds', 'stale_minutes', 'epoch_interval', 'heartbeat_polls'):
+            value = getattr(args, name)
+            if not math.isfinite(value) or value <= 0:
+                parser.error(name.replace('_', '-') + ' must be finite and positive')
+        if args.pid is not None and args.pid <= 0:
+            parser.error('pid must be positive')
     return args.func(args, argv)
 
 
