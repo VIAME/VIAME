@@ -6,7 +6,7 @@
 /// \brief Applet for filtering and analyzing DIVE and COCO JSON files
 
 #include "json.h"
-#include "atomic_output.h"
+#include <atomic_output.h>
 
 #include <utilities_file.h>
 
@@ -1618,7 +1618,7 @@ load_document( const std::string& filename )
 void
 save_document( const std::string& filename, const json_doc& doc )
 {
-  atomic_output( filename, [&]( std::ostream& fout )
+  viame::atomic_output( filename, [&]( std::ostream& fout )
   {
     rapidjson::OStreamWrapper wrapper( fout );
     rapidjson::PrettyWriter< rapidjson::OStreamWrapper > writer( wrapper );

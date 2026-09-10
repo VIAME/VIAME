@@ -3,7 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "csv.h"
-#include "atomic_output.h"
+#include <atomic_output.h>
 
 #include <utilities_file.h>
 
@@ -607,7 +607,7 @@ csv_applet
     // Write output file
     if( write_output )
     {
-      atomic_output( input_file, [&]( std::ostream& fout )
+      viame::atomic_output( input_file, [&]( std::ostream& fout )
       {
         for( const auto& out_line : output )
         {

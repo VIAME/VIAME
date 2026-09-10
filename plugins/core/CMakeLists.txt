@@ -5,6 +5,7 @@ set( plugin_headers
   adaptive_tracker_trainer.h
   add_timestamp_from_filename.h
   applet_attributes.h
+  atomic_output.h
   auto_detect_transform.h
   average_track_descriptors.h
   camera_io.h

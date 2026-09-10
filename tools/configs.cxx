@@ -3,7 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "configs.h"
-#include "atomic_output.h"
+#include <atomic_output.h>
 
 #include <kwiversys/SystemTools.hxx>
 #include <kwiversys/Directory.hxx>
@@ -1251,7 +1251,7 @@ configs_applet
   }
   else
   {
-    atomic_output(params.opt_output_file, [&](std::ostream& out)
+    viame::atomic_output(params.opt_output_file, [&](std::ostream& out)
     {
       write_json_output(out, pipelines, params.opt_include_descriptions);
     });

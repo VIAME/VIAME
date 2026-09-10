@@ -1,6 +1,6 @@
 // This file is part of VIAME, distributed under the BSD 3-Clause License.
-#ifndef VIAME_TOOLS_ATOMIC_OUTPUT_H
-#define VIAME_TOOLS_ATOMIC_OUTPUT_H
+#ifndef VIAME_CORE_ATOMIC_OUTPUT_H
+#define VIAME_CORE_ATOMIC_OUTPUT_H
 
 #include <filesystem>
 #include <fstream>
@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace viame { namespace tools {
+namespace viame {
 
 // Stage beside the destination so rename stays on one filesystem. An
 // exclusively created directory isolates simultaneous writers and symlinks.
@@ -58,5 +58,5 @@ void atomic_output( const std::string& filename, Write write )
   fs::remove_all( staging, ignored );
 }
 
-} }
+} // namespace viame
 #endif
