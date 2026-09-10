@@ -1,8 +1,9 @@
 # =============================================================================
-# Title: YOLO Detector With Temporal Features (WTF)
+# Title: YOLO Temporal Features Detector Template
 #
-# Description: YOLO Detector With Temporal Features (WTF) Outputs to
-# computed_detections.csv.
+# Description: Darknet detector on RGB merged with a color-commonality map and a
+# 20-frame motion variance image. Model slots are filled at train time; frames
+# must be in temporal order.
 # =============================================================================
 
 process input

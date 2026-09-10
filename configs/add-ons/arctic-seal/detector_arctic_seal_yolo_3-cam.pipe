@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: Detector - Arctic Seal YOLO 3-cam
+# Title: Arctic Seal YOLO Three-Camera Detector
 #
 # Description: Three camera arctic seal detector for synchronized optical,
 # thermal, and ultraviolet imagery. The thermal detector triggers subregion

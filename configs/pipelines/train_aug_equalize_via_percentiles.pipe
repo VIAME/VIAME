@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Training - Aug Percentile Normalization
+# Title: Percentile Normalization Augmentation
 #
-# Description: Training augmentation pipeline that applies percentile-based
-# normalization to convert non-8-bit imagery (16-bit, float, etc.) to 8-bit.
-# Uses the C++ implementation of the equalize_via_percentiles filter.
+# Description: Percentile-based normalization converting non-8-bit imagery
+# (16-bit, float) to 8-bit, using the C++ filter implementation.
 # =============================================================================
 
 config _pipeline:_edge

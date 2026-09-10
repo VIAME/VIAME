@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: SVM Classifier on Generic Object Proposals
+# Title: Embedded Generic Proposal SVM Classifier Template
 #
-# Description: SVM Classifier on Generic Object Proposals
+# Description: Generic RF-DETR proposals, default descriptor and trained SVM
+# refiner.
 # =============================================================================
 
 process detector_input

@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Sea Lion Water Suppression
+# Title: Suppress Detections in Water Frames
 #
-# Description: Utility pipeline for data processing operations.
+# Description: Classifies each frame's background, then drops detections in
+# open-water frames and halves the scores of those in seaweed-water frames.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: OCV target Detector Pipeline
+# Title: Calibration Target Detector
 #
-# Description: Runs automated ocv target detection on image Outputs to
-# computed_detections.csv.
+# Description: Detects chessboard calibration target corners with OpenCV and
+# writes each corner as a detection.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================

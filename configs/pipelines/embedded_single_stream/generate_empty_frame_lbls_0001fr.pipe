@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Generate Empty Frame Lbls 0001fr
+# Title: Empty Frame Labels per Frame
 #
-# Description: Pipeline configuration file.
+# Description: Emits one full-frame 'unannotated_frame' track per frame, marking
+# frames as empty.
 # =============================================================================
 
 config _pipeline:_edge

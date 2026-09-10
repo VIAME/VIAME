@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Arctic Seal EO Tiny YOLO Detector
 #
-# Description: Configured for arctic seal aerial survey imagery. Uses
-# YOLO-based detection.
+# Description: Embedded tiny darknet seal detector; detections are emitted as
+# single-frame tracks.
 # =============================================================================
 
 config _pipeline:_edge

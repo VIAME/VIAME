@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Arctic Seal YOLO IR To Tiny EO Region Tigger
+# Title: Arctic Seal YOLO IR To Tiny EO Region Trigger
 #
-# Description: Configured for arctic seal aerial survey imagery. Uses
-# YOLO-based detection.
+# Description: Thermal hotspots are warped onto the optical frame and the tiny
+# optical detector runs only in 640 px windows around them.
 # =============================================================================
 
 config _pipeline:_edge

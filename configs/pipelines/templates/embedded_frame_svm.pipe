@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: ResNet Classifier
+# Title: Embedded SVM Frame Classifier Template
 #
-# Description: Pipeline configuration file.
+# Description: Scores each whole frame with the default descriptor and trained
+# SVM models.
 # =============================================================================
 
 process detector_input

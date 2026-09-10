@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Reads image from an arbitrary input source then dumps them out again
+# Title: Transcode Detected Frames Only
 #
-# Description: Transcodes input video or images to a different format.
+# Description: Encodes only frames that have detections in the input CSV to MP4,
+# renumbering the tracks to match.
 # =============================================================================
 
 config _pipeline:_edge

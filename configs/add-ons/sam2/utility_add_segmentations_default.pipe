@@ -1,7 +1,7 @@
 # =============================================================================
-# Title: Utility - Add Segmentations Default
+# Title: Default Add Segmentations
 #
-# Description: Adds segmentation masks to existing detections.
+# Description: Default choice: the SAM2 segmentation generator.
 # Input: BBOX
 # Output: MASK
 # =============================================================================

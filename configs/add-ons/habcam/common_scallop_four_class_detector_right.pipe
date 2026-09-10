@@ -1,8 +1,9 @@
 # =============================================================================
-# Title: Common - Scallop Four Class Detector Right
+# Title: Right Four-Class Scallop Detector
 #
-# Description: Shared detector configuration that can be included by other
-# pipelines. Uses model: scallop_yolo_v7_one_class.weights.
+# Description: Cascade R-CNN, HRNet and YOLOv7 scallop detectors with an
+# EfficientNet reclassifier, fused by NMS into live, swimming, dead and clapper
+# classes.
 # =============================================================================
 
 # ============================== INPUT FORMATTER ==============================

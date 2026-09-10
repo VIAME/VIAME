@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Arctic Seal YOLO EO Only
 #
-# Description: Configured for arctic seal aerial survey imagery. Uses
-# YOLO-based detection.
+# Description: Darknet seal detector (two alternating-frame instances,
+# NMS-merged) on the optical stream only.
 # =============================================================================
 
 config _pipeline:_edge

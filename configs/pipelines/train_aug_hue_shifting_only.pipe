@@ -1,7 +1,7 @@
 # =============================================================================
-# Title: Training - Aug Hue Shifting Only
+# Title: Hue Shift Augmentation
 #
-# Description: Training pipeline for model optimization.
+# Description: Random grayscale and hue shift on each RGB frame.
 # =============================================================================
 
 config _pipeline:_edge

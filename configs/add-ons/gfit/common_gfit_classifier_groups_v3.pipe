@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: GFIT v3 groups classifier
+# Title: GFIT v3 Groups Classifier
 #
 # Description: Two-classifier ensemble over the fused detections. The large
 # classifier's output is blended with the detector's class scores, then the

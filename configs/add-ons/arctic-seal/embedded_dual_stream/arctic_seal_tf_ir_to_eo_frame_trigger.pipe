@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Arctic Seal TF IR To EO Frame Trigger
 #
-# Description: Configured for arctic seal aerial survey imagery. Uses
-# TensorFlow-based models.
+# Description: TensorFlow hotspot detector on every thermal frame; the optical
+# detector runs only on frames whose thermal pair had a hit.
 # =============================================================================
 
 config _pipeline:_edge

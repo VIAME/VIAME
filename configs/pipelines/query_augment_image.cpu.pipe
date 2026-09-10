@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Query Augment Image.cpu
+# Title: Query Image Augmentation (CPU)
 #
-# Description: Pipeline configuration file.
+# Description: Embedded handler generating extra positive and negative query
+# descriptors from the exemplar image, on the CPU.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Pipe file to write out images with annotations drawn on them
+# Title: Transcode with Drawn Detections
 #
-# Description: Transcodes input video or images to a different format.
+# Description: Draws detections from a VIAME CSV onto each frame and encodes the
+# result to MP4.
 # =============================================================================
 
 config _pipeline:_edge

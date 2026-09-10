@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Arctic Seal YOLO IR Only
 #
-# Description: Configured for arctic seal aerial survey imagery. Uses
-# YOLO-based detection.
+# Description: Tiny darknet hotspot detector on the thermal stream only; the
+# optical stream is ignored.
 # =============================================================================
 
 config _pipeline:_edge

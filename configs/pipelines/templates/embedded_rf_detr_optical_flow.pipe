@@ -1,10 +1,9 @@
 # =============================================================================
-# Title: RF-DETR Detector Template with Optical-Flow Infusion
+# Title: Embedded RF-DETR Optical Flow Detector Template
 #
-# Description: Runs an RF-DETR detector on 4-channel imagery -- RGB plus a
-# background-compensated optical-flow magnitude channel, matching the channel
-# layout produced by train_aug_add_optical_flow during training
-# ([ R, G, B, flow_magnitude ]). Requires temporally ordered input frames.
+# Description: RF-DETR on RGB plus a background-compensated optical-flow
+# channel, matching the optical-flow training augmentation. Frames must be in
+# temporal order.
 # =============================================================================
 
 process detector_input

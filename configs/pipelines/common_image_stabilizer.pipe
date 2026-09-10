@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Based on Kwiver's stabilize_images.pipe
+# Title: Image Stabilizer
 #
-# Description: Based on Kwiver's stabilize_images.pipe
+# Description: SURF-based image stabilizer producing a frame-to-reference
+# homography.
 # =============================================================================
 
 process stabilizer

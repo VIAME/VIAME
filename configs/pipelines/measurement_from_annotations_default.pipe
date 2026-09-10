@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Measurement from annotations pipeline
+# Title: Default Stereo Measurement from Annotations
 #
-# Description: Default measurement from annotations pipeline.
-# Outputs to computed_tracks.csv.
+# Description: Matches annotated keypoints across the stereo pair by epipolar
+# template matching, triangulates them and writes lengths to the output tracks.
 #
 # Requires Calibration: True
 # =============================================================================

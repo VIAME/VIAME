@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: SVM Classifier on top of Generic Object Detections
+# Title: SVM Classifier Over Generic Proposals Template
 #
-# Description: SVM Classifier on top of Generic Object Detections Outputs to
-# computed_detections.csv.
+# Description: Generic RF-DETR proposals, default descriptor and trained SVM
+# refiner (models next to this file), then NMS.
 # =============================================================================
 
 config _pipeline:_edge

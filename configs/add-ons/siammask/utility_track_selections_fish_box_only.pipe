@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Example simple tracker pipeline
+# Title: Track User Selections With SiamRPN Fish Model
 #
-# Description: Utility pipeline for data processing operations.
+# Description: Extends user-selected boxes into box-only tracks with the
+# SiamRPN++ fish model, merging in existing tracks.
 # =============================================================================
 
 config _pipeline:_edge

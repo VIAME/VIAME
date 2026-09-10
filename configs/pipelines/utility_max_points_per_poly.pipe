@@ -1,7 +1,7 @@
 # =============================================================================
-# Title: Set input Detections to contain at most N output polygon points per mask
+# Title: Limit Polygon Points per Mask
 #
-# Description: Utility pipeline for data processing operations.
+# Description: Rewrites each mask polygon to at most N points (default 10).
 # Input: MASK
 # Output: MASK
 # =============================================================================

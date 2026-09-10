@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: HabCam Input Configuration
+# Title: HabCam Stereo Image Input
 #
-# Description: Shared input configuration for reading images or video frames.
-# Configured for HabCam underwater survey imagery.
+# Description: Left HabCam input plus debayering and enhancement of the right
+# half.
 # =============================================================================
 
 # ============================= INPUT FRAME LIST ==============================

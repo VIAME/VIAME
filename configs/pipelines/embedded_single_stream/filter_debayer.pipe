@@ -1,7 +1,7 @@
 # =============================================================================
-# Title: Filter - Debayer
+# Title: Embedded Debayer Filter
 #
-# Description: Applies filtering operations to input data.
+# Description: Debayers each frame (BG pattern) to 8-bit.
 # =============================================================================
 
 config _pipeline:_edge

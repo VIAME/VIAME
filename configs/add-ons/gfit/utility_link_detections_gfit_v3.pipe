@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Link or re-link detections into tracks using the default tracker
+# Title: GFIT v3 Detection Linker
 #
-# Description: Utility pipeline for data processing operations.
+# Description: Links existing detections into tracks with the GFIT ByteTrack
+# tracker without re-running detection.
 # =============================================================================
 
 config _pipeline:_edge

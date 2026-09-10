@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Community Fish Tracker
 #
-# Description: Runs the cfd_yolov12x ultralytics model for fish detection
-# with ByteTrack multi-object tracking. Outputs to computed_tracks.csv.
+# Description: Community fish YOLOv12x detector followed by ByteTrack
+# multi-object tracking.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================

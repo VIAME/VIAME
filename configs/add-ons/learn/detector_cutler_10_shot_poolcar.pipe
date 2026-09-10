@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: MMDet Cascade Faster R-CNN Detector
+# Title: CutLER 10-Shot Poolcar Detector
 #
-# Description: MMDet Cascade Faster R-CNN Detector Uses model:
-# poolcar_10_shot.pt. Outputs to computed_detections.csv.
+# Description: ConvNeXt-XL Cascade R-CNN fine-tuned from CutLER on 10 poolcar
+# shots, run in adaptive windows with NMS.
 # =============================================================================
 
 config _pipeline:_edge

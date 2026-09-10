@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Pipeline nodes
+# Title: Stabilized IoU Tracker
 #
-# Description: Shared tracker configuration that can be included by other
-# pipelines.
+# Description: Image stabilizer plus an IoU tracker that links detections in the
+# stabilized frame.
 # =============================================================================
 
 include common_image_stabilizer.pipe

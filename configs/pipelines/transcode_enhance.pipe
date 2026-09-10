@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Reads image from an arbitrary input source then dumps them out again
+# Title: Enhanced Video Transcode
 #
-# Description: Transcodes input video or images to a different format.
+# Description: Applies white balance, CLAHE and optional smoothing or denoising
+# to each frame and encodes the result to MP4.
 # =============================================================================
 
 config _pipeline:_edge

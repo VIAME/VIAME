@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Process the left image (or full image if non-stitched pair)
+# Title: One-Class Scallop Detector with Stereo Measurement
 #
-# Description: Runs object detection pipeline on input imagery. Uses habcam
-# input configuration. Outputs results to computed_detections_right.csv.
-# Configured for scallop detection in benthic imagery.
+# Description: One-class scallop ensemble on both halves of a stitched pair,
+# with sizes computed by stereo measurement. Writes a detection file per side.
 # =============================================================================
 
 config _pipeline:_edge

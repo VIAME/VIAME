@@ -1,8 +1,9 @@
 # =============================================================================
-# Title: Atlantic Substrate Classifier from HABCAM Vehicles
+# Title: HabCam Atlantic Substrate Classifier
 #
-# Description: Runs object detection pipeline on input imagery. Uses habcam
-# input left configuration. Outputs results to computed_detections.csv.
+# Description: Whole-frame ONNX classifiers for substrate types (boulder,
+# gravel, sand waves, shell, sponges, scallop bed, ...) merged into one
+# detection set.
 # =============================================================================
 
 # global pipeline config

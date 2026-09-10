@@ -1,9 +1,8 @@
 # =============================================================================
-# Title: Common - Default Tracker
+# Title: Default SRNN Tracker
 #
-# Description: Current incumbent is a modified version of "Tracking the
-# Untrackable" implemented in pytorch, trained on assorted fish data. Uses
-# model: rnn_ml_aim.pt.
+# Description: Tracking-the-Untrackable style SRNN tracker using Siamese
+# appearance features and RNN association with IoU gating.
 # =============================================================================
 
 process tracker

@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Local Deep Detector With Def Tracker
+# Title: Embedded Local Deep Detector with ByteTrack
 #
-# Description: Runs object detection pipeline on input imagery. Uses category
-# models/detector configuration.
+# Description: Locally trained detector followed by the default ByteTrack
+# tracker.
 # =============================================================================
 
 config _pipeline:_edge

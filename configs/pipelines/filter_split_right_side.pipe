@@ -1,7 +1,7 @@
 # =============================================================================
-# Title: Filters input images via debayering them and running basic image filtering
+# Title: Split Right Side Filter
 #
-# Description: Applies filtering operations to input data.
+# Description: Splits side-by-side frames and writes only the right half.
 # =============================================================================
 
 config _pipeline:_edge

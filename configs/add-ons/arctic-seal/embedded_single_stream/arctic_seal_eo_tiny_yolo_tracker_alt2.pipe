@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Arctic Seal EO Tiny YOLO Tracker Alt2
+# Title: Arctic Seal EO Tiny YOLO Appearance Tracker
 #
-# Description: Runs object tracking on detected objects across video frames.
-# Configured for arctic seal aerial survey imagery. Uses YOLO-based detection.
+# Description: Embedded tiny darknet seal detector followed by ResNet50
+# appearance track association.
 # =============================================================================
 
 config _pipeline:_edge

@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Remax Novelty Detection
+# Title: ReMax ConvNeXt Novelty Detector
 #
-# Description: Remax Novelty Detection Uses model: convnext_xview_base.pt.
-# Outputs to computed_detections.csv.
+# Description: ConvNeXt xView detector with a ReMax novelty model scoring
+# detections as known or novel.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

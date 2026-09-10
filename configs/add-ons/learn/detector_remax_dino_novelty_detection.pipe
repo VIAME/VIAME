@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Remax Novelty Detection
+# Title: ReMax DINO Novelty Detector
 #
-# Description: Remax Novelty Detection Uses model: pytorch_dino.pt. Outputs to
-# computed_detections.csv.
+# Description: DINO Swin xView detector with a ReMax novelty model scoring
+# detections as known or novel.
 # =============================================================================
 
 # ============================= GLOBAL PROPERTIES =============================

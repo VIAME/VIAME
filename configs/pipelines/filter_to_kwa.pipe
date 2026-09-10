@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Filters input images via debayering them and running basic image filtering
+# Title: Enhance and Write KW Archive
 #
-# Description: Applies filtering operations to input data.
+# Description: Enhances frames and writes them to a KW archive; the output
+# directory and stream name must be set.
 # =============================================================================
 
 config _pipeline:_edge

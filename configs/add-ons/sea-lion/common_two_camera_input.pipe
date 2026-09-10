@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: :video_reader:type to be vidl_ffmpeg for videos
+# Title: Two-Camera Input
 #
-# Description: By default, this is an image list reader, but this can be
-# over-riden by changing :video_reader:type to be vidl_ffmpeg for videos
+# Description: Image list readers for two cameras; switch the reader type for
+# video input.
 # =============================================================================
 
 process input1

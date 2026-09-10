@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Remove detections in regions indicated by fixed type string(s)
+# Title: Remove Detections in Ignore Regions (3-Cam)
 #
-# Description: Utility pipeline for data processing operations.
+# Description: Three-camera variant of the ignore-region filter. Writes a
+# detection file per camera.
 # =============================================================================
 
 config _pipeline:_edge

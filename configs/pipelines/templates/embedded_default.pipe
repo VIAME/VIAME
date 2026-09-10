@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Default Detector Template
+# Title: Default Embedded Detector Template
 #
-# Description: Runs object detection pipeline on input imagery from memory
+# Description: Embedded detector template whose detector slot is filled by
+# training.
 # =============================================================================
 
 process detector_input

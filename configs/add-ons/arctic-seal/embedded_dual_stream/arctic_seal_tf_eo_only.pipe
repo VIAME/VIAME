@@ -1,8 +1,8 @@
 # =============================================================================
 # Title: Arctic Seal TF EO Only
 #
-# Description: Configured for arctic seal aerial survey imagery. Uses
-# TensorFlow-based models.
+# Description: TensorFlow seal detector on the optical stream only; the thermal
+# stream is ignored.
 # =============================================================================
 
 config _pipeline:_edge

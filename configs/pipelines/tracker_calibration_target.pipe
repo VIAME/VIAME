@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: OCV target Tracker Pipeline
+# Title: Calibration Target Tracker
 #
-# Description: Runs automated ocv target detection on image then generate
-# corners tracks Outputs to computed_tracks.csv.
+# Description: Detects chessboard calibration target corners and accumulates
+# them into per-corner tracks.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================

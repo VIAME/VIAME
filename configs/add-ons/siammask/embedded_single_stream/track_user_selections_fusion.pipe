@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Track User Selections Fusion
+# Title: Embedded Fusion User Selection Tracker
 #
-# Description: Pipeline configuration file.
+# Description: Embedded SiamRPN++ short-term tracker combined with an MDNet
+# mid-term tracker under a track conductor.
 # =============================================================================
 
 config _pipeline:_edge

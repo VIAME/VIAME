@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Query database using tracks from CSV file
+# Title: Query Database from Track CSV
 #
-# Description: Pipeline configuration file.
+# Description: Computes descriptors for tracks read from a CSV, queries the
+# database with them and writes the results as tracks.
 # =============================================================================
 
 config _pipeline:_edge

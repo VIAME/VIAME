@@ -1,7 +1,7 @@
 # =============================================================================
 # Title: Local Trained EO Detector
 #
-# Description: Pipeline configuration file.
+# Description: Embedded run of the locally trained detector on the EO stream.
 # =============================================================================
 
 config _pipeline:_edge

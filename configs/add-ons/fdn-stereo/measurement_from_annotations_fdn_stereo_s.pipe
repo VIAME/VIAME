@@ -1,8 +1,9 @@
 # =============================================================================
-# Title: Measurement from annotations pipeline
+# Title: Foundation Stereo Measurement from Annotations
 #
-# Description: Measurement from annotations pipeline Uses model: foundation_stereo_s.pth.
-# Outputs to computed_tracks2.csv.
+# Description: Stereo lengths from annotated head/tail keypoints. A dense
+# Foundation Stereo disparity map places the right-camera keypoint where only
+# the left view is annotated.
 #
 # Requires Calibration: True
 # =============================================================================

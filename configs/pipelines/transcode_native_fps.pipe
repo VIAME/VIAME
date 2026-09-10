@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: Transcode video at native FPS with upsampled tracks
+# Title: Native FPS Transcode with Track Resampling
 #
 # Description: Reads a video at native frame rate (no downsampling), resamples
 # existing tracks from a downsampled rate to the native rate via bounding box

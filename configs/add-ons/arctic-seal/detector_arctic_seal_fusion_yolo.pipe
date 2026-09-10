@@ -1,8 +1,9 @@
 # =============================================================================
-# Title: Run detectors on unsynchronous co-collected optical and thermal imagery
+# Title: Arctic Seal Fusion YOLO Detector
 #
-# Description: Run detectors on unsynchronous co-collected optical and thermal
-# imagery Outputs to output_result%06d.jpg.
+# Description: Time-aligns unsynchronized optical and thermal imagery, detects
+# hotspots in thermal frames and runs the optical detector only on frames with a
+# thermal hit. Writes annotated images rather than a detection file.
 # Input: IMAGE
 # Output: BBOX
 # =============================================================================

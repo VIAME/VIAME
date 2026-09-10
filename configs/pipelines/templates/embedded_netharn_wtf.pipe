@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Cascade Faster R-CNN Detector with Motion Infusion
+# Title: Embedded NetHarn Temporal Features Detector Template
 #
-# Description: Cascade Faster R-CNN Detector with Motion Infusion
+# Description: Trained NetHarn detector on enhanced RGB plus a temporal variance
+# channel.
 # =============================================================================
 
 process detector_input

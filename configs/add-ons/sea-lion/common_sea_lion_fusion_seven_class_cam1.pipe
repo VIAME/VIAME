@@ -1,17 +1,9 @@
 # =============================================================================
-# Title: Common - Sea Lion Fusion Seven Class Cam1
+# Title: Sea Lion Seven-Class Fusion Detector (Cam 1)
 #
-# Description: Shared configuration module that can be included by other
-# pipelines. Configured for sea lion survey imagery. Fuses the DEIMv2 6-class
-# lifestage detector (ONNX, 640px) with the RF-DETR 8-class detector (1008px)
-# by weighted box fusion, keeping dead pup as its own seventh class rather than
-# folding it into pup. The DEIMv2 model has no dead-pup category, so the dead
-# pup label comes entirely from the RF-DETR 8-class model; DEIMv2 adds box
-# recall for the other six classes.
-#
-# Output classes: bull (B), sub-adult male (S), female (F), juvenile (J),
-# pup (P), northern fur seal (NFS), dead pup (DP). dead nonpup (DN) is omitted
-# so those detections are dropped.
+# Description: Weighted box fusion of the DEIMv2 six-class and RF-DETR
+# eight-class detectors for camera 1. Classes: B, S, F, J, P, NFS, DP; dead
+# nonpup (DN) is dropped.
 # =============================================================================
 
 # ============================== INPUT FORMATTER ==============================

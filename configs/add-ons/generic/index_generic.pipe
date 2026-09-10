@@ -1,7 +1,8 @@
 # =============================================================================
-# Title: Ingest video pipeline using pytorch descriptors
+# Title: Generic Proposal Index
 #
-# Description: Pipeline configuration file.
+# Description: Indexes video for image queries: generic proposals with per-box
+# descriptors, written to a KWA archive and the database.
 # =============================================================================
 
 config _pipeline:_edge

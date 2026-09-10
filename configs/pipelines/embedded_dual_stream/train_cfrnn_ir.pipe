@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Training - CFRNN IR
+# Title: CFRNN IR Detector Training
 #
-# Description: Training pipeline for model optimization. Uses Cascade R-CNN
-# detection.
+# Description: Embedded NetHarn Cascade R-CNN training on the IR stream,
+# producing an embedded detector.
 # =============================================================================
 
 config _pipeline:_edge

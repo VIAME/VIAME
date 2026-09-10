@@ -1,8 +1,8 @@
 # =============================================================================
-# Title: Arctic Seal EO Tiny YOLO Tracker Alt3
+# Title: Arctic Seal EO Tiny YOLO ByteTrack Tracker
 #
-# Description: Runs object tracking on detected objects across video frames.
-# Configured for arctic seal aerial survey imagery. Uses YOLO-based detection.
+# Description: Embedded tiny darknet seal detector followed by the default
+# ByteTrack tracker.
 # =============================================================================
 
 config _pipeline:_edge
