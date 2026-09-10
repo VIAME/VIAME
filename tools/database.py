@@ -81,7 +81,11 @@ def _setup_log_stream():
 def _execute_cmd(cmd, args):
     all_args = [_format_cmd(cmd)] + args
     log = _setup_log_stream()
-    subprocess.check_call(all_args, stdout=log, stderr=log)
+    try:
+        subprocess.check_call(all_args, stdout=log, stderr=log)
+    finally:
+        if log is not None:
+            log.close()
 
 
 def _find_file(filename):
@@ -128,18 +132,19 @@ def init(log_file="", prompt=True, database_dir=None):
     database_dir = database_dir or DATABASE_DIR
 
     try:
+        if os.path.exists(database_dir) and prompt and not query_yes_no(
+                f'\nYou are about to reset "{database_dir}", continue?'):
+            return [False, True]
         # Stop any existing database first (before removing log file,
         # since pg_ctl may still hold the log file open)
-        stop(quiet=True, database_dir=database_dir)
+        if has_sql_dir(database_dir) and not stop(quiet=True, database_dir=database_dir):
+            raise RuntimeError("Could not stop the selected database; refusing to reset it")
 
         if log_file and os.path.exists(log_file):
             os.remove(log_file)
 
         # Remove existing database directory
         if os.path.exists(database_dir):
-            if prompt and not query_yes_no(
-                    f"\nYou are about to reset \"{database_dir}\", continue?"):
-                return [False, True]
             shutil.rmtree(database_dir)
         else:
             _log("\n")
@@ -190,32 +195,26 @@ def start(quiet=False, database_dir=None):
 
 
 def stop(quiet=False, database_dir=None):
-    """Stop the database server."""
+    """Stop only the selected server; never terminate unrelated PostgreSQL processes."""
     global _log_file
     original = _log_file
     _log_file = "NULL" if quiet else _log_file
 
     try:
         _execute_cmd("pg_ctl", ["-D", sql_dir(database_dir), "-m", "fast", "stop"])
+        return True
     except subprocess.CalledProcessError:
-        pass
-
-    try:
-        if _is_windows():
-            # Kill any running postgres processes on Windows
-            subprocess.call(["taskkill", "/F", "/IM", "postgres.exe"],
-                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        else:
-            # Kill any postgres processes more aggressively
-            subprocess.call(["pkill", "-9", "postgres"],
-                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except Exception:
-        pass
-
-    # Wait for port to be released before returning
-    _wait_for_port_available(DEFAULT_DB_PORT, timeout=10)
-
-    _log_file = original
+        # pg_ctl status uses 3 for a server that is not running. Other
+        # failures (permissions, invalid data directory) are not proof of that.
+        try:
+            _execute_cmd("pg_ctl", ["-D", sql_dir(database_dir), "status"])
+        except subprocess.CalledProcessError as exc:
+            return exc.returncode == 3
+        return False
+    except OSError:
+        return False
+    finally:
+        _log_file = original
 
 
 def _wait_for_port_available(port=5432, timeout=10):
