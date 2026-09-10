@@ -72,6 +72,25 @@ target_include_directories( viame
   )
 
 ###
+# The kwiver tool runner
+#
+# Imported from kwiver's `tools/` in P5-T05, unchanged. `kwiver runner` is
+# what the golden pipeline runner and the annotator launcher invoke, so the
+# executable and its name have to survive the submodule.
+##
+kwiver_add_executable( kwiver
+    kwiver_tool_runner.cxx
+  )
+
+target_link_libraries( kwiver
+  PRIVATE      kwiver::vital
+               kwiver::vital_vpm
+               kwiver::vital_logger
+               kwiver::kwiversys
+               kwiver::vital_applets
+  )
+
+###
 # VIAME tool applets plugin - train and other applets
 ##
 set( applet_sources

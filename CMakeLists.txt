@@ -49,7 +49,7 @@ endif()
 # Kwiver's macro library, which VIAME's own CMakeLists use as well. Kwiver
 # sets KWIVER_CMAKE_DIR itself when it is added as a subdirectory, but that is
 # much further down and these are needed before then.
-set( KWIVER_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/packages/kwiver/CMake" )
+set( KWIVER_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake/kwiver_compat" )
 
 list( INSERT CMAKE_MODULE_PATH 0
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake"

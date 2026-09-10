@@ -1,0 +1,51 @@
+set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS 1000)
+set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
+
+list(APPEND CTEST_CUSTOM_WARNING_MATCH
+  "{standard input}:[0-9][0-9]*: Warning: ")
+
+list(APPEND CTEST_CUSTOM_WARNING_EXCEPTION
+  # Deprecation warnings from Python bindings. See #3.
+  "python/.* warning: .*-Wdeprecated-declarations"
+
+  # Notes about deprecated APIs.
+  "note: declared here"
+
+  # Suppress `tempnam` usage warning. See #4.
+  "warning: the use of .tempnam. is dangerous"
+
+  # Suppress notes from template instantiation backtraces.
+  "note: see reference to (class|function) template instantiation"
+  "note: while compiling class template member function"
+
+  # This is secondary output from clang, not indicating the warning per se.
+  "[0-9]* warnings? generated"
+  "note: \\(skipping [0-9]* expansions in backtrace"
+  "note: expanded from (here|macro)"
+
+  # This is secondary output from MSVC, not indicate the warning per se.
+  "note: see declaration of"
+  "note: see previous definition of"
+
+  # Ignore macro expansion lines from GCC
+  "note: in expansion of macro"
+
+  # Warning notes from Xcode.
+  "/Applications/Xcode.*: note:"
+  )
+
+list(APPEND CTEST_CUSTOM_ERROR_EXCEPTION
+  # FutureWarning from python bist_wheel. See #84
+  "FutureWarning: The 'wheel' package is no"
+  )
+
+set(cdash_show_third_party_warnings "@KWIVER_ENABLE_CDASH_THIRD_PARTY_WARNINGS@")
+if (NOT cdash_show_third_party_warnings)
+  list(APPEND CTEST_CUSTOM_WARNING_EXCEPTION
+    # Timeout errors of SCCACHE are common cases for long builds such as VTK+VTKm+CUDA
+    "sccache: warning: The server looks like it shut down unexpectedly, compiling locally instead"
+  )
+endif ()
+
+list(APPEND CTEST_CUSTOM_COVERAGE_EXCLUDE
+  )

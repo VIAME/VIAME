@@ -219,11 +219,11 @@ add_custom_command(OUTPUT ${algo_sources}
           "PYTHONPATH=${kwiver_python_install_path}"
           "PATH=${_kwiver_pybind11_path}"
           ${Python_EXECUTABLE}
-          "${KWIVER_SOURCE_DIR}/scripts/cpp_to_pybind11.py"
+          "${CMAKE_CURRENT_SOURCE_DIR}/cpp_to_pybind11.py"
           -c "${CMAKE_CURRENT_BINARY_DIR}/config.ini"
   DEPENDS ${vital_algo_dependencies}
           "${CMAKE_CURRENT_BINARY_DIR}/config.ini"
-          "${KWIVER_SOURCE_DIR}/scripts/cpp_to_pybind11.py"
+          "${CMAKE_CURRENT_SOURCE_DIR}/cpp_to_pybind11.py"
   COMMENT "Generating pybind11 wrappings of algorithm classes"
   WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
   VERBATIM

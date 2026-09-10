@@ -1,0 +1,67 @@
+# Handle our dependencies
+set(fletch_DIR "@fletch_DIR@" CACHE PATH
+  "The directory containing a CMake configuration file for fletch."
+  )
+set(Eigen3_DIR "@Eigen3_DIR@" CACHE PATH
+  "The directory containing a CMake configuration file for Eigen3."
+  )
+
+include(CMakeFindDependencyMacro)
+find_dependency(Eigen3 NO_MODULE)
+
+# Include the library targets
+include("${CMAKE_CURRENT_LIST_DIR}/kwiver-config-targets.cmake")
+
+# Build the appropriate include directory
+# This file currently being installed to: {install_root}/lib/cmake/kwiver/
+set(KWIVER_LIBRARIES            @kwiver_libs@)
+
+set(KWIVER_BUILT_SHARED  @BUILD_SHARED_LIBS@)
+
+# KWIVER version
+set(KWIVER_VERSION_MAJOR @KWIVER_VERSION_MAJOR@)
+set(KWIVER_VERSION_MINOR @KWIVER_VERSION_MINOR@)
+set(KWIVER_VERSION_PATCH @KWIVER_VERSION_PATCH@)
+set(KWIVER_VERSION "@KWIVER_VERSION@")
+set(KWIVER_ENABLE_PYTHON "@KWIVER_ENABLE_PYTHON@")
+set(KWIVER_PYTHON_VERSION  "@KWIVER_PYTHON_VERSION@")
+
+if (WIN32)
+  set(libdir "bin")
+  add_definitions(-DBOOST_ALL_NO_LIB)
+  add_definitions(-DBOOST_PROGRAM_OPTIONS_DYN_LINK)
+  if(${MSVC_VERSION} GREATER_EQUAL 1915)
+    # You must acknowledge that you understand MSVC
+    # resolved a byte alignment issue in this compiler.
+    # We get this due to using Eigen objects and
+    # allocating those objects with make_shared
+    add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE)
+  endif()
+else ()
+  set(libdir "lib@LIB_SUFFIX@")
+endif ()
+
+# kwiver include directory
+set(KWIVER_INCLUDE_DIR        "@CMAKE_INSTALL_PREFIX@/include")
+set(KWIVER_INCLUDE_DIRS "${KWIVER_INCLUDE_DIR}")
+foreach(incdir @KWIVER_INCLUDE_DIRS@)
+  list(APPEND KWIVER_INCLUDE_DIRS "${incdir}")
+endforeach()
+set(KWIVER_DEFAULT_LIBRARY_DIR "@KWIVER_DEFAULT_LIBRARY_DIR@")
+set(KWIVER_LIBRARY_DIR        "@CMAKE_INSTALL_PREFIX@/@KWIVER_DEFAULT_LIBRARY_DIR@@LIB_SUFFIX@")
+set(KWIVER_LIBRARY_DIRS       "${KWIVER_LIBRARY_DIR}")
+foreach(libdir @KWIVER_LIBRARY_DIRS@)
+  list(APPEND KWIVER_LIBRARY_DIRS "${libdir}")
+endforeach()
+set(KWIVER_MODULE_DIR         "${KWIVER_LIBRARY_DIR}/modules")
+set(KWIVER_DOCUMENTATION_DIR  "@CMAKE_INSTALL_PREFIX@/share/doc/kwiver-@KWIVER_VERSION@")
+set(KWIVER_CMAKE_DIR          "${KWIVER_LIBRARY_DIR}/cmake/kwiver")
+
+# Extend module path for KWIVER utils
+set(CMAKE_MODULE_PATH "${KWIVER_CMAKE_DIR}" "${CMAKE_MODULE_PATH}")
+
+set(KWIVER_DIR "@CMAKE_INSTALL_PREFIX@")
+
+#set(KWIVER_PIPE_INSTALL_PATH  "@CMAKE_INSTALL_PREFIX@/share/kwiver/pipelines")
+#set(KWIVER_PIPE_INCLUDE_INSTALL_PATH  "${KWIVER_PIPE_INSTALL_PATH}/include")
+#set(KWIVER_PIPE_CLUSTER_INSTALL_PATH  "${KWIVER_PIPE_INSTALL_PATH}/clusters")
