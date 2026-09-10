@@ -11,6 +11,7 @@ Each group under this directory belongs to one dependency removal:
 |---|---|---|
 | `vxl` | `arrows/vxl` filters and image_io, `plugins/vxl` filters | phase 3 |
 | `video` | `arrows/ffmpeg` `video_input` and `video_output` | phase 4 |
+| `codecs` | the `ocv` image_io, decoding and writing every container | phase 7 |
 
 The video group is replayed against every reader and writer registered under it, not just the replacement: `ffmpeg` and `pyav` and `ffmpeg_cli` all have to reproduce the same recording.
 
@@ -18,6 +19,7 @@ The video group is replayed against every reader and writer registered under it,
 
 ```
 inputs/                     committed fixture images, never regenerated
+inputs/codecs/              committed encoded containers, never regenerated
 <group>/manifest.json       every case: impl, config, inputs, output digests
 <group>/<kind>/<impl>/<variant>/<input>.png|.npz
 ```
@@ -55,6 +57,22 @@ time, and digests of the first, middle and last frame; a decode throughput
 figure measured on a 1080p clip built from the committed fixtures rather than
 committed itself; and, per pipeline that writes a video, what `ffprobe` makes
 of the file.
+
+The codec group's inputs are encoded files rather than arrays -- PNG at 8 and
+16 bit, gray, RGB and RGBA; JPEG at 4:2:0 and 4:4:4; BMP; TIFF stripped at 8
+and 16 bit, uncompressed, LZW and PackBits; and one tiled TIFF, which is the
+case `lite-removals.md` 2.2 expects the in-house reader to hand off rather
+than decode. They wrap the same pixels as the still fixtures, so a decoded
+PNG can be compared against `inputs/rgb8.png` directly. `codec_fixtures.py`
+generates them and needs ImageMagick's `convert` for the tiled one: Pillow
+writes strips only.
+
+Two kinds of case are recorded per container set. `decode` is what the
+image_io reads each container as. `round_trip` writes a fixture out through
+the image_io and reads it back with the same one, which is what catches a
+writer that changes channel order or bit depth on the way out -- the BMP
+round trip records 16 bit gray coming back as 8 bit, because that is what BMP
+can hold.
 
 `record.py` and `record_video.py` both refuse to overwrite an existing
 recording without `--force`, so a golden cannot be quietly redefined by the

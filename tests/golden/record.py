@@ -19,6 +19,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 
 import numpy as np
 
@@ -26,16 +27,24 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import cases as case_spec           # noqa: E402
+import codec_cases                  # noqa: E402
+import codec_fixtures               # noqa: E402
 import fixtures                     # noqa: E402
 import imageio_utils                # noqa: E402
 import pipeline_runner              # noqa: E402
 import runner                       # noqa: E402
 
 INPUTS_DIR = os.path.join(HERE, "inputs")
+CODEC_INPUTS_DIR = os.path.join(INPUTS_DIR, codec_cases.INPUT_SUBDIR)
 
 
 def digest(array):
     return hashlib.sha256(np.ascontiguousarray(array).tobytes()).hexdigest()[:16]
+
+
+def file_digest(path):
+    with open(path, "rb") as handle:
+        return hashlib.sha256(handle.read()).hexdigest()[:16]
 
 
 def describe(array):
@@ -208,9 +217,134 @@ def record_pipelines(group_dir, manifest):
         print("  pipeline {} ({} frames)".format(pipeline, len(files)))
 
 
+def write_codec_inputs():
+    """Write the encoded containers, leaving any that already exist alone."""
+    existing = {name for name, path in codec_fixtures.paths(CODEC_INPUTS_DIR)
+                if os.path.exists(path)}
+
+    if len(existing) == len(codec_fixtures.paths(CODEC_INPUTS_DIR)):
+        return []
+
+    if existing:
+        raise RuntimeError(
+            "inputs/{} is half written: {} present. Delete the directory and "
+            "record again rather than mixing two generations of fixture."
+            .format(codec_cases.INPUT_SUBDIR, ", ".join(sorted(existing))))
+
+    return [name for name, _ in codec_fixtures.build(CODEC_INPUTS_DIR)]
+
+
+def codec_input_path(name):
+    for candidate, path in codec_fixtures.paths(CODEC_INPUTS_DIR):
+        if candidate == name:
+            return path
+
+    raise FileNotFoundError("no codec fixture named '{}'".format(name))
+
+
+def record_codec_decode(group_dir, manifest):
+    for impl, variants in sorted(codec_cases.IMAGE_IO.items()):
+        containers = codec_cases.CONTAINERS
+        paths = [codec_input_path(name) for name in containers]
+
+        for variant, config in variants:
+            outputs = runner.run_image_io_load(impl, config, paths)
+
+            case_dir = os.path.join(group_dir, "decode", impl, variant)
+            os.makedirs(case_dir, exist_ok=True)
+
+            files = {}
+            for name, output in zip(containers, outputs):
+                written = imageio_utils.save(os.path.join(case_dir, name), output)
+                files[name] = {
+                    "file": os.path.relpath(written, group_dir),
+                    **describe(output),
+                }
+
+            manifest["cases"].append({
+                "kind": "decode",
+                "impl": impl,
+                "variant": variant,
+                "config": config,
+                "inputs": list(containers),
+                "outputs": files,
+                "unstable": {},
+            })
+            print("  decode {} {} ({} containers)".format(
+                impl, variant, len(outputs)))
+
+
+def record_codec_round_trip(group_dir, manifest):
+    sources = codec_cases.WRITE_SOURCES
+    arrays = [imageio_utils.load(input_path(name)) for name in sources]
+
+    for impl, variants in sorted(codec_cases.IMAGE_IO.items()):
+        for variant, config in variants:
+            for extension in codec_cases.WRITE_EXTENSIONS:
+                with tempfile.TemporaryDirectory() as work_dir:
+                    outputs = runner.run_image_io_save_load(
+                        impl, config, arrays, extension, work_dir)
+
+                tag = variant + extension.replace(".", "_")
+                case_dir = os.path.join(group_dir, "round_trip", impl, tag)
+                os.makedirs(case_dir, exist_ok=True)
+
+                files = {}
+                for name, output in zip(sources, outputs):
+                    written = imageio_utils.save(
+                        os.path.join(case_dir, name), output)
+                    files[name] = {
+                        "file": os.path.relpath(written, group_dir),
+                        **describe(output),
+                    }
+
+                manifest["cases"].append({
+                    "kind": "round_trip",
+                    "impl": impl,
+                    "variant": tag,
+                    "config": config,
+                    "extension": extension,
+                    "inputs": list(sources),
+                    "outputs": files,
+                    "unstable": {},
+                })
+                print("  round_trip {} {} ({} sources)".format(
+                    impl, tag, len(outputs)))
+
+
+def record_codecs(group_dir, manifest):
+    # The containers are the fixture here, and they are bytes rather than
+    # arrays: digest the files, so that a re-recording against a different
+    # generation of them is visible in the diff.
+    manifest["containers"] = {
+        name: {
+            "file": os.path.relpath(path, INPUTS_DIR),
+            "bytes": os.path.getsize(path),
+            "sha256": file_digest(path),
+        }
+        for name, path in codec_fixtures.paths(CODEC_INPUTS_DIR)
+    }
+
+    record_codec_decode(group_dir, manifest)
+    record_codec_round_trip(group_dir, manifest)
+
+
+def record_vxl(group_dir, manifest):
+    record_image_filters(group_dir, manifest)
+    record_image_io(group_dir, manifest)
+    record_pipelines(group_dir, manifest)
+
+
+GROUPS = {
+    "vxl": record_vxl,
+    "codecs": record_codecs,
+}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("group", help="recording group, e.g. vxl")
+    parser.add_argument("group", choices=sorted(GROUPS),
+                        help="recording group")
     parser.add_argument("--force", action="store_true",
                         help="overwrite an existing recording")
     args = parser.parse_args()
@@ -228,6 +362,11 @@ def main():
     if written:
         print("wrote fixtures: {}".format(", ".join(written)))
 
+    if args.group == "codecs":
+        written = write_codec_inputs()
+        if written:
+            print("wrote codec containers: {}".format(", ".join(written)))
+
     os.makedirs(group_dir, exist_ok=True)
 
     manifest = {
@@ -244,9 +383,7 @@ def main():
         "cases": [],
     }
 
-    record_image_filters(group_dir, manifest)
-    record_image_io(group_dir, manifest)
-    record_pipelines(group_dir, manifest)
+    GROUPS[args.group](group_dir, manifest)
 
     with open(manifest_path, "w") as handle:
         json.dump(manifest, handle, indent=2, sort_keys=True)

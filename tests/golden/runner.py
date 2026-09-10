@@ -5,6 +5,8 @@ implementation exactly the same way. Nothing here knows which implementation
 is the old one and which is the replacement: that is the point.
 """
 
+import os
+
 import numpy as np
 
 
@@ -21,7 +23,7 @@ def is_registered(kind, impl):
         from kwiver.vital.algo import ImageFilter
         return impl in ImageFilter.registered_names()
 
-    if kind == "image_io":
+    if kind in ("image_io", "decode", "round_trip"):
         from kwiver.vital.algo import ImageIO
         return impl in ImageIO.registered_names()
 
@@ -65,6 +67,34 @@ def run_image_filter(impl, config, arrays):
     for array in arrays:
         result = algorithm.filter(ImageContainer(Image(np.ascontiguousarray(array))))
         outputs.append(np.array(result.image().asarray(), copy=True))
+
+    return outputs
+
+
+def run_image_io_save_load(impl, config, arrays, extension, work_dir):
+    """Write each array out through the image_io and read it back.
+
+    A decode case says the reader agrees with the recording; this says the
+    writer and the reader still agree with each other, which is what catches
+    a writer that changes channel order or bit depth on the way out.
+    """
+    from kwiver.vital.algo import ImageIO
+    from kwiver.vital.types import Image, ImageContainer
+
+    algorithm = ImageIO.create(impl)
+
+    if algorithm is None:
+        raise RuntimeError("image_io '{}' is not registered".format(impl))
+
+    _configure(algorithm, config)
+
+    outputs = []
+    for index, array in enumerate(arrays):
+        path = os.path.join(work_dir, "roundtrip_{}{}".format(index, extension))
+        algorithm.save(path,
+                       ImageContainer(Image(np.ascontiguousarray(array))))
+        outputs.append(
+            np.array(algorithm.load(path).image().asarray(), copy=True))
 
     return outputs
 

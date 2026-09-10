@@ -1,0 +1,643 @@
+{
+  "cases": [
+    {
+      "config": {},
+      "impl": "ocv",
+      "inputs": [
+        "bmp_gray8",
+        "bmp_rgb8",
+        "jpg_gray8",
+        "jpg_rgb8",
+        "jpg_rgb8_444",
+        "png_gray16",
+        "png_gray8",
+        "png_rgb8",
+        "png_rgba8",
+        "tiff_gray16_lzw",
+        "tiff_gray16_raw",
+        "tiff_gray8_lzw",
+        "tiff_gray8_packbits",
+        "tiff_gray8_raw",
+        "tiff_rgb8_lzw",
+        "tiff_rgb8_packbits",
+        "tiff_rgb8_raw",
+        "tiff_rgb8_tiled"
+      ],
+      "kind": "decode",
+      "outputs": {
+        "bmp_gray8": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/bmp_gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "bmp_rgb8": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/bmp_rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "jpg_gray8": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/jpg_gray8.png",
+          "sha256": "e55c1532dae10a91",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "jpg_rgb8": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/jpg_rgb8.png",
+          "sha256": "c05d4f0540edfecb",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "jpg_rgb8_444": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/jpg_rgb8_444.png",
+          "sha256": "75b74a096e3be526",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "png_gray16": {
+          "dtype": "uint16",
+          "file": "decode/ocv/defaults/png_gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "png_gray8": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/png_gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "png_rgb8": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/png_rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "png_rgba8": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/png_rgba8.png",
+          "sha256": "cbb8023440a3a595",
+          "shape": [
+            64,
+            96,
+            4
+          ]
+        },
+        "tiff_gray16_lzw": {
+          "dtype": "uint16",
+          "file": "decode/ocv/defaults/tiff_gray16_lzw.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "tiff_gray16_raw": {
+          "dtype": "uint16",
+          "file": "decode/ocv/defaults/tiff_gray16_raw.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "tiff_gray8_lzw": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/tiff_gray8_lzw.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "tiff_gray8_packbits": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/tiff_gray8_packbits.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "tiff_gray8_raw": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/tiff_gray8_raw.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "tiff_rgb8_lzw": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/tiff_rgb8_lzw.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "tiff_rgb8_packbits": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/tiff_rgb8_packbits.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "tiff_rgb8_raw": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/tiff_rgb8_raw.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        },
+        "tiff_rgb8_tiled": {
+          "dtype": "uint8",
+          "file": "decode/ocv/defaults/tiff_rgb8_tiled.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {},
+      "extension": ".png",
+      "impl": "ocv",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "round_trip",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "round_trip/ocv/defaults_png/gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "round_trip/ocv/defaults_png/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "round_trip/ocv/defaults_png/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "defaults_png"
+    },
+    {
+      "config": {},
+      "extension": ".bmp",
+      "impl": "ocv",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "round_trip",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "round_trip/ocv/defaults_bmp/gray16.png",
+          "sha256": "0be523c0ef88d2f6",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "round_trip/ocv/defaults_bmp/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "round_trip/ocv/defaults_bmp/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "defaults_bmp"
+    },
+    {
+      "config": {},
+      "extension": ".tif",
+      "impl": "ocv",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "round_trip",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint16",
+          "file": "round_trip/ocv/defaults_tif/gray16.png",
+          "sha256": "68830aaa86124440",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "round_trip/ocv/defaults_tif/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "round_trip/ocv/defaults_tif/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "unstable": {},
+      "variant": "defaults_tif"
+    }
+  ],
+  "containers": {
+    "bmp_gray8": {
+      "bytes": 7222,
+      "file": "codecs/bmp_gray8.bmp",
+      "sha256": "a0473e14add6fb66"
+    },
+    "bmp_rgb8": {
+      "bytes": 18486,
+      "file": "codecs/bmp_rgb8.bmp",
+      "sha256": "b35b5c4a2952b93d"
+    },
+    "jpg_gray8": {
+      "bytes": 3508,
+      "file": "codecs/jpg_gray8.jpg",
+      "sha256": "ec316c4ada0e19d6"
+    },
+    "jpg_rgb8": {
+      "bytes": 4215,
+      "file": "codecs/jpg_rgb8.jpg",
+      "sha256": "5583149e7922d0e9"
+    },
+    "jpg_rgb8_444": {
+      "bytes": 7505,
+      "file": "codecs/jpg_rgb8_444.jpg",
+      "sha256": "960450bc9924c0cd"
+    },
+    "png_gray16": {
+      "bytes": 11472,
+      "file": "codecs/png_gray16.png",
+      "sha256": "1d1fe869573c902d"
+    },
+    "png_gray8": {
+      "bytes": 5202,
+      "file": "codecs/png_gray8.png",
+      "sha256": "c23fe7b5f9d4dac2"
+    },
+    "png_rgb8": {
+      "bytes": 15300,
+      "file": "codecs/png_rgb8.png",
+      "sha256": "b210ef3846c5d8b0"
+    },
+    "png_rgba8": {
+      "bytes": 18518,
+      "file": "codecs/png_rgba8.png",
+      "sha256": "cb3741377e331521"
+    },
+    "tiff_gray16_lzw": {
+      "bytes": 16738,
+      "file": "codecs/tiff_gray16_lzw.tif",
+      "sha256": "52fbafcadcf565fb"
+    },
+    "tiff_gray16_raw": {
+      "bytes": 12410,
+      "file": "codecs/tiff_gray16_raw.tif",
+      "sha256": "34f89db45fcd0a18"
+    },
+    "tiff_gray8_lzw": {
+      "bytes": 7786,
+      "file": "codecs/tiff_gray8_lzw.tif",
+      "sha256": "a517e62986b70570"
+    },
+    "tiff_gray8_packbits": {
+      "bytes": 6328,
+      "file": "codecs/tiff_gray8_packbits.tif",
+      "sha256": "75cecb01b0e50f0d"
+    },
+    "tiff_gray8_raw": {
+      "bytes": 6266,
+      "file": "codecs/tiff_gray8_raw.tif",
+      "sha256": "6e73ae589a6d7f60"
+    },
+    "tiff_rgb8_lzw": {
+      "bytes": 23718,
+      "file": "codecs/tiff_rgb8_lzw.tif",
+      "sha256": "5c72c216c39b0de1"
+    },
+    "tiff_rgb8_packbits": {
+      "bytes": 18766,
+      "file": "codecs/tiff_rgb8_packbits.tif",
+      "sha256": "195a67f2a59b01aa"
+    },
+    "tiff_rgb8_raw": {
+      "bytes": 18572,
+      "file": "codecs/tiff_rgb8_raw.tif",
+      "sha256": "f1bbec695785e36c"
+    },
+    "tiff_rgb8_tiled": {
+      "bytes": 18852,
+      "file": "codecs/tiff_rgb8_tiled.tif",
+      "sha256": "6139ae8dde991754"
+    }
+  },
+  "fixtures": {
+    "frame_00": {
+      "dtype": "uint8",
+      "sha256": "f95e51b330c93941",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_01": {
+      "dtype": "uint8",
+      "sha256": "1c6de71c2e80cd0e",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_02": {
+      "dtype": "uint8",
+      "sha256": "516dc55612ea714b",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_03": {
+      "dtype": "uint8",
+      "sha256": "2aab205257c1fbc3",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_04": {
+      "dtype": "uint8",
+      "sha256": "8cac30c3f75b8492",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_05": {
+      "dtype": "uint8",
+      "sha256": "2bf42c26f732a65b",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "gray16": {
+      "dtype": "uint16",
+      "sha256": "68830aaa86124440",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "gray8": {
+      "dtype": "uint8",
+      "sha256": "95e317223585e847",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "mask": {
+      "dtype": "bool",
+      "sha256": "2010a62d1e18f06a",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "rgb8": {
+      "dtype": "uint8",
+      "sha256": "835f97298ef48c75",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_00": {
+      "dtype": "uint8",
+      "sha256": "9ac941edfbe79886",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_01": {
+      "dtype": "uint8",
+      "sha256": "fa8a0910d17fffb2",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_02": {
+      "dtype": "uint8",
+      "sha256": "bd5cc83de41c5ce6",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_03": {
+      "dtype": "uint8",
+      "sha256": "30a83406911e6497",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_04": {
+      "dtype": "uint8",
+      "sha256": "89a6d5999f5bd8ca",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_05": {
+      "dtype": "uint8",
+      "sha256": "4272fd601873ca1c",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_06": {
+      "dtype": "uint8",
+      "sha256": "6a2f47f8c1e77850",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_07": {
+      "dtype": "uint8",
+      "sha256": "77a642afb8efb555",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_08": {
+      "dtype": "uint8",
+      "sha256": "d84318b825c34750",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_09": {
+      "dtype": "uint8",
+      "sha256": "1d52f0325ea50687",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_10": {
+      "dtype": "uint8",
+      "sha256": "f2e17c1ff4f22798",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_11": {
+      "dtype": "uint8",
+      "sha256": "8a5d2298f319f1d0",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    }
+  },
+  "group": "codecs",
+  "recorded": "2026-09-10T19:55:51Z",
+  "versions": {
+    "install": "/home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install",
+    "viame": "975ac4ff884415506ab7ee287216b40bd8458c19"
+  }
+}

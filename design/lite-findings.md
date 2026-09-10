@@ -326,6 +326,28 @@ include path is a prefix that can win, so a prefix that is not a target should
 be SYSTEM. Phase 1 vendoring darknet and libsvm into `third_party/` removes
 the last two callers.
 
+### 1.16 The golden replay was skipping cases by name alone
+
+`test_golden.py` skipped any recording whose implementation name appeared in
+`tests/baseline/removed.json`. The name was the whole key, and a name means
+nothing on its own: `ocv` is registered for eleven interfaces and `vxl` for
+nine, and phase 5 removed some of each while others stayed. So a `vxl`
+`bundle_adjust` nobody used, removed in P5-T04, silently turned off the twelve
+`vxl` **image_io** cases -- the reader that is still registered, still aliased
+to `core`, and still supposed to reproduce its phase 3 recording.
+
+Sixteen of 105 cases were being skipped for this reason when P7-T01 noticed
+it: the twelve VXL reader cases and, immediately, the four new codec cases,
+because `ocv` too is a removed name for four interfaces. Keying on
+(name, interface), which is what `removed.json` already records, brought the
+suite from 84 passing to 100. Every one of the sixteen passes, so nothing was
+hiding behind the skip -- but nothing was checking either.
+
+**For later phases:** this is open question 2.5 as a defect rather than a
+question, and finding 1.3 again in a different place. Anywhere a name is used
+as a key, ask what it is a name *of*. `compare_registry.py` gets this right;
+the golden replay did not, and the two read the same file.
+
 ## 2. Open questions
 
 ### 2.1 An intermittent segfault in `viame train`

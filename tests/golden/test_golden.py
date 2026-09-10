@@ -12,6 +12,7 @@ Re-record:       see tests/golden/README.md
 import json
 import os
 import sys
+import tempfile
 
 import numpy as np
 import pytest
@@ -20,6 +21,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import cases as case_spec           # noqa: E402
+import codec_cases                  # noqa: E402
 import imageio_utils                # noqa: E402
 import pipeline_runner              # noqa: E402
 import runner                       # noqa: E402
@@ -39,18 +41,35 @@ TOLERANCES = {
 REMOVED_PATH = os.path.join(HERE, "..", "baseline", "removed.json")
 
 
+# The algorithm interface each kind of case exercises. A pipeline is not an
+# algorithm and has no interface, which is why it is absent rather than None.
+INTERFACE_OF_KIND = {
+    "image_filter": "image_filter",
+    "image_io": "image_io",
+    "decode": "image_io",
+    "round_trip": "image_io",
+}
+
+
 def removed_names():
-    """Names deliberately removed, from the baseline's removed.json.
+    """Implementations deliberately removed, from the baseline's removed.json.
 
     A recording of a name that is gone on purpose is history, not a contract.
     Skipping here rather than failing keeps the recording available for
     comparison if the decision is ever revisited.
+
+    Keyed by (name, interface), not by name. A name means nothing on its own:
+    `ocv` is registered for eleven interfaces and `vxl` for nine, and phase 5
+    removed some of each while others stayed. Keying by name alone silently
+    skipped the twelve `vxl` image_io cases -- the reader that is still
+    registered and still has to reproduce its recording -- because a `vxl`
+    bundle_adjust nobody used had been removed.
     """
     if not os.path.exists(REMOVED_PATH):
         return {}
 
     with open(REMOVED_PATH) as handle:
-        return {entry["name"]: entry.get("reason", "")
+        return {(entry["name"], entry["interface"]): entry.get("reason", "")
                 for entry in json.load(handle)}
 
 
@@ -108,6 +127,19 @@ def input_path(name):
     raise FileNotFoundError("no fixture named '{}'".format(name))
 
 
+def container_path(name):
+    """A codec fixture: an encoded file rather than an array."""
+    import codec_fixtures
+
+    directory = os.path.join(HERE, "inputs", codec_cases.INPUT_SUBDIR)
+
+    for candidate, path in codec_fixtures.paths(directory):
+        if candidate == name:
+            return path
+
+    raise FileNotFoundError("no codec fixture named '{}'".format(name))
+
+
 def run_case(case, impl):
     if case["kind"] == "image_filter":
         arrays = [imageio_utils.load(input_path(name)) for name in case["inputs"]]
@@ -116,6 +148,16 @@ def run_case(case, impl):
     if case["kind"] == "image_io":
         paths = [input_path(name) for name in case["inputs"]]
         return runner.run_image_io_load(impl, case["config"], paths)
+
+    if case["kind"] == "decode":
+        paths = [container_path(name) for name in case["inputs"]]
+        return runner.run_image_io_load(impl, case["config"], paths)
+
+    if case["kind"] == "round_trip":
+        arrays = [imageio_utils.load(input_path(name)) for name in case["inputs"]]
+        with tempfile.TemporaryDirectory() as work_dir:
+            return runner.run_image_io_save_load(
+                impl, case["config"], arrays, case["extension"], work_dir)
 
     if case["kind"] == "pipeline":
         outputs = pipeline_runner.run(impl)
@@ -134,9 +176,12 @@ REMOVED = removed_names()
 def test_golden(item):
     group, case, impl = item
 
-    if case["impl"] in REMOVED:
-        pytest.skip("{} was removed on purpose: {}".format(
-            case["impl"], REMOVED[case["impl"]]))
+    interface = INTERFACE_OF_KIND.get(case["kind"])
+    removal = REMOVED.get((case["impl"], interface)) if interface else None
+
+    if removal:
+        pytest.skip("{} was removed as an {} on purpose: {}".format(
+            case["impl"], interface, removal))
 
     # Once the recorded name is an alias of the replacement, running it under
     # either name runs our code, so a documented divergence applies to both
@@ -168,6 +213,11 @@ def test_golden(item):
         if replacing and case_spec.divergence_reason(
                 case["impl"], case["variant"], name):
             continue
+
+        # A lossy container is compared decoder to decoder, at the tolerance
+        # codec_cases states for it, rather than at this implementation's.
+        if case["kind"] == "decode":
+            max_tol, mean_tol = codec_cases.tolerance(name)
 
         record = case["outputs"][name]
         expected = imageio_utils.load(os.path.join(HERE, group, record["file"]))
