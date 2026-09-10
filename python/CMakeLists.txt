@@ -1,5 +1,13 @@
 # The python bindings
 #
+# The package these install into. It used to come from the top-level project's
+# name, which made a second copy of every extension module once kwiver was a
+# subdirectory of VIAME and every VIAME module land in the `kwiver` package
+# once it was not -- see design/lite-findings.md. Set here, in the one
+# directory whose modules belong to it.
+set( kwiver_python_package "kwiver" )
+
+#
 # A python extension module leaves the interpreter's symbols undefined and
 # resolves them at import, so `-Wl,--no-undefined` cannot apply here. VIAME
 # builds with it and kwiver did not, which is why this only became true when

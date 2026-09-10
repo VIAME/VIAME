@@ -216,7 +216,10 @@ endif()
 # of the C++ parser is high
 add_custom_command(OUTPUT ${algo_sources}
   COMMAND  ${CMAKE_COMMAND} -E env
-          "PYTHONPATH=${kwiver_python_install_path}"
+          # castxml's entry point imports its own python module, so the
+          # site-packages directory itself is what belongs on the path;
+          # `kwiver_python_install_path` is the directory above it.
+          "PYTHONPATH=${kwiver_python_install_path}/${python_sitename}"
           "PATH=${_kwiver_pybind11_path}"
           ${Python_EXECUTABLE}
           "${CMAKE_CURRENT_SOURCE_DIR}/cpp_to_pybind11.py"

@@ -51,6 +51,13 @@ endif()
 # much further down and these are needed before then.
 set( KWIVER_CMAKE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake/kwiver_compat" )
 
+# Kwiver's macros read these. They used to be the submodule's own directories;
+# they are VIAME's since P5-T05, and `kwiver-setup-python` derives the python
+# output path from the binary one, so they have to be set before the macros
+# are included rather than with the rest of the settings.
+set( KWIVER_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" )
+set( KWIVER_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}" )
+
 list( INSERT CMAKE_MODULE_PATH 0
       "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
       "${KWIVER_CMAKE_DIR}"
@@ -1055,6 +1062,11 @@ else()
       "${VIAME_BUILD_INSTALL_PREFIX}/include" CACHE INTERNAL
       "Include prefixes of the dependency tree, for the plugins that need them" )
 
+    include( kwiver-cmake-future )
+    include( kwiver-utils )
+
+    # After the macros: `kwiver-utils` pulls in `kwiver-setup-python`, which
+    # computes an output path of its own from KWIVER_BINARY_DIR.
     if( VIAME_ENABLE_PYTHON )
       set( kwiver_python_subdir "${VIAME_PYTHON_STRING}" )
       set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/${kwiver_python_subdir}" )
@@ -1062,9 +1074,6 @@ else()
 
       set( viame_python_install_path "${kwiver_python_install_path}" )
     endif()
-
-    include( kwiver-cmake-future )
-    include( kwiver-utils )
 
     ###
     # System specific compiler flags

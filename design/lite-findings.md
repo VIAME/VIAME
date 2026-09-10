@@ -253,7 +253,7 @@ collisions go with them.
 
 ### 1.14 What a build system move only shows you once
 
-P5-T05 dissolved `packages/kwiver`'s CMake into VIAME's tree. Four things
+P5-T05 dissolved `packages/kwiver`'s CMake into VIAME's tree. Several things
 were true before it and invisible until then:
 
 * **`viame_lite_rebase` was hiding forty-eight files.** P5-T02's macro
@@ -277,9 +277,27 @@ were true before it and invisible until then:
   said so. P5-T05's "builds against the new config package" meant porting it
   first.
 
+Two more that only a fresh build directory showed, after the incremental one
+had been green:
+
+* **`kwiver_python_package` cannot be global.** Set at VIAME's top level it
+  put every VIAME python module into the `kwiver` package, which the
+  incremental tree hid because the files were already where they belonged. It
+  belongs in `python/`, the one directory whose modules are kwiver's.
+* **The order of `kwiver-utils` and the python paths matters.**
+  `kwiver-utils` pulls in `kwiver-setup-python`, which computes an output path
+  from `KWIVER_BINARY_DIR`; VIAME's own assignment has to come after it, and
+  `KWIVER_BINARY_DIR` itself before it.
+* **`kwiver_python_install_path` is the directory above site-packages.** The
+  castxml command that generates the algorithm bindings put it on PYTHONPATH
+  and then could not import castxml's own module. Incrementally the generated
+  files were already there and the command never ran.
+
 **For later phases:** an example that is not built is documentation that is
 not checked. `examples/plugin_creation` is configured and built by hand here;
-it should be a test.
+it should be a test. And configure into a fresh tree before calling a
+build-system change done -- three of the six things in this finding only
+appear there.
 
 ## 2. Open questions
 

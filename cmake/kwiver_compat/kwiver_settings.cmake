@@ -23,9 +23,6 @@ set( KWIVER_VERSION_MAJOR "${CMAKE_MATCH_1}" )
 set( KWIVER_VERSION_MINOR "${CMAKE_MATCH_2}" )
 set( KWIVER_VERSION_PATCH "${CMAKE_MATCH_3}" )
 
-set( KWIVER_SOURCE_DIR "${VIAME_SOURCE_DIR}" )
-set( KWIVER_BINARY_DIR "${VIAME_BINARY_DIR}" )
-
 set( KWIVER_DEFAULT_LIBRARY_DIR "lib" CACHE STRING
      "Default library directory for kwiver" )
 mark_as_advanced( KWIVER_DEFAULT_LIBRARY_DIR )
@@ -35,11 +32,6 @@ set( LIB_SUFFIX "" CACHE STRING
 mark_as_advanced( LIB_SUFFIX )
 
 set( kwiver_config_subdir share/kwiver/${KWIVER_VERSION}/config )
-
-# The python package the imported bindings install into. It used to be the
-# top-level project's name, which made a second copy of every extension
-# module once kwiver was a subdirectory -- see design/lite-findings.md.
-set( kwiver_python_package "kwiver" )
 
 add_definitions( -DKWIVER_DEFAULT_PLUGIN_ORGANIZATION="Kitware Inc." )
 
