@@ -1,5 +1,5 @@
 import json
-from .tool_regression_helpers import tool_env, run_viame
+from .tool_test_helpers import tool_env, run_viame
 
 
 def test_partial_extraction_is_explicit(tool_env, tmp_path):

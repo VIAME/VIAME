@@ -1,5 +1,5 @@
 import pytest
-from .tool_regression_helpers import tool_env, run_viame
+from .tool_test_helpers import tool_env, run_viame
 
 
 @pytest.mark.parametrize('rate', ['nan', 'inf', '-inf'])

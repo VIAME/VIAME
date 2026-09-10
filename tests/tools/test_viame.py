@@ -1,4 +1,4 @@
-from .tool_regression_helpers import tool_env, run_viame
+from .tool_test_helpers import tool_env, run_viame
 
 
 def test_unknown_help_is_normal_error(tool_env):

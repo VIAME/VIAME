@@ -1,4 +1,4 @@
-from .tool_regression_helpers import tool_env, run_viame
+from .tool_test_helpers import tool_env, run_viame
 
 
 def test_filter_before_renumber(tool_env, tmp_path):

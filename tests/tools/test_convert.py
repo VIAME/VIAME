@@ -13,6 +13,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "common"))
 
 from viame_env import find_viame_install, get_sourced_env, get_viame_source
+from .tool_test_helpers import tool_env, run_viame
 
 CSV_HEADER = (
     "# 1: Detection or Track-id,2: Video or Image Identifier,"
@@ -203,3 +204,26 @@ def test_dive_track_attributes_round_trip(viame_env, tmp_path):
     run_convert(viame_env, source, output)
     doc = json.loads(output.read_text())
     assert doc["tracks"]["7"]["attributes"] == {"reviewed": "yes"}
+
+
+def test_camcal_lone_positional_is_output():
+    import importlib.util
+    from unittest.mock import patch
+
+    spec = importlib.util.spec_from_file_location(
+        "convert_tool", Path(__file__).resolve().parents[2] / "tools" / "convert.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    with patch.object(m.sys, 'argv', ['convert', '--left-cal', 'left.CamCAL', '-o', 'json', 'output.json']), patch.object(m, '_import_calibration_deps'), patch.object(m, 'convert') as convert:
+        assert m.main() == 0
+    assert convert.call_args.kwargs['input_path'] is None
+    assert convert.call_args.kwargs['output_path'] == 'output.json'
+
+
+def test_negative_frame_offset_is_annotation_option(tool_env, tmp_path):
+    p, out = tmp_path / 'in.csv', tmp_path / 'out.csv'
+    p.write_text('7,a.png,1,0,0,10,10,1,-1,fish,1\n')
+    r = run_viame(tool_env, 'convert', str(p), str(out), '--frame-offset', '-1', '--no-images')
+    assert r.returncode == 0, r.stderr
+    rows = [line.split(',') for line in out.read_text().splitlines() if line and not line.startswith('#')]
+    assert rows[0][2].strip() == '0'

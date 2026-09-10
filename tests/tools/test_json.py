@@ -4,7 +4,7 @@ import signal
 import subprocess
 
 import pytest
-from .tool_regression_helpers import tool_env, run_viame
+from .tool_test_helpers import tool_env, run_viame
 
 
 @pytest.mark.skipif(os.name != 'posix', reason='Requires POSIX file-size limits')
