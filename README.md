@@ -178,6 +178,15 @@ is useful for a faster build though if you get an error it can be difficult to s
 it, in which case running just 'make' might be more helpful. For Windows,
 currently VS2019 is the most tested compiler.
 
+For development, `VIAME_BUILD_FLETCH_ALWAYS` controls whether the superbuild runs
+Fletch's incremental build step every time. It defaults to `ON`. To reuse completed
+Fletch dependency builds while working on VIAME or KWIVER, configure with
+`-DVIAME_BUILD_FLETCH_ALWAYS=OFF -DVIAME_BUILD_FORCE_REBUILD=OFF`. These are advanced
+CMake options. The first build still builds Fletch; later builds use CMake's external
+project stamps. If you edit Fletch or its dependency sources, turn the option back
+on so those changes are picked up. `VIAME_BUILD_FORCE_REBUILD=ON` continues to force
+all supported subprojects, including Fletch, regardless of this option.
+
 There are several optional arguments to viame which control which plugins get built,
 such as those listed below. If a plugin is enabled that depends on another dependency
 such as OpenCV) then the dependency flag will be forced to on. If uncertain what to turn
