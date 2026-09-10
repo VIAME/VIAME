@@ -7,4 +7,4 @@
 # Requires Calibration: True
 # =============================================================================
 
-include measurement_from_annotations_template.pipe
+include stereo_measure_from_annotations_template.pipe

@@ -127,9 +127,9 @@ set( CORE_PIPELINE_FILES
   interactive_text_query_default.conf
   interactive_stereo_default.conf
   interactive_stereo_template.conf
-  measurement_from_annotations_default.pipe
-  measurement_from_annotations_template.pipe
-  measurement_fully_auto_gmm_motion.pipe
+  stereo_measure_from_annotations_default.pipe
+  stereo_measure_from_annotations_template.pipe
+  stereo_measure_fully_auto_gmm_motion.pipe
   query_from_track.pipe
   query_retrieval_and_iqr.pipe
   query_video_exemplar.pipe
@@ -230,10 +230,10 @@ endif()
 if( VIAME_ENABLE_OPENCV )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     detector_calibration_target.pipe
-    measurement_calibrate_cameras_default.pipe
-    measurement_calibrate_cameras_fast.pipe
-    measurement_compute_rectified_disparity.pipe
-    measurement_detect_calibration_target.pipe
+    stereo_calibrate_cameras_default.pipe
+    stereo_calibrate_cameras_fast.pipe
+    stereo_compute_rectified_disparity.pipe
+    stereo_detect_calibration_target.pipe
     register_multimodal_unsync_ocv.pipe
     register_using_homographies.pipe
     tracker_calibration_target.pipe

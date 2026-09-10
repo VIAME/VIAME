@@ -1549,7 +1549,7 @@ def create_default_config(output_path: str):
     """
     config = """# Interactive Stereo Service Configuration
 # This config uses epipolar template matching (same approach as
-# measurement_from_annotations_template.pipe). No GPU required.
+# stereo_measure_from_annotations_template.pipe). No GPU required.
 
 matching_method = epipolar_template_matching
 

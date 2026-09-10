@@ -18,7 +18,7 @@ if (VIAME_ENABLE_PYTHON)
     ${VIAME_DOWNLOAD_DIR}/pipelines_test_data.zip
     ${CMAKE_CURRENT_SOURCE_DIR} )
 
-  set( PIPELINE_CATEGORIES detector tracker filter transcode utility measurement )
+  set( PIPELINE_CATEGORIES detector tracker filter transcode utility stereo )
 
   set( PIPELINE_CASE_TIMEOUT 1800 )
 
