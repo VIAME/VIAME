@@ -60,6 +60,7 @@ list( INSERT CMAKE_MODULE_PATH 0
 # Helper macros used across all cmakelists files in this project
 ##
 include( common_macros )
+include( viame_lite_import )
 include( old_version_checks )
 
 ###
@@ -1127,6 +1128,10 @@ else()
     set( kwiver_plugin_module_subdir                  ${kwiver_plugin_subdir}/modules )
     set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/modules/plugin_explorer )
     set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/modules )
+    # Kwiver set this one itself; the applets imported in P5-T05 -- sprokit's
+    # runner, pipe-config and pipe-to-dot, and vital's config explorer -- are
+    # built in VIAME's scope now and would otherwise land in `lib/` itself.
+    set( kwiver_plugin_applets_subdir                 ${kwiver_plugin_subdir}/applets )
 
     ##
     # Build system hacks which should eventually be fixed better

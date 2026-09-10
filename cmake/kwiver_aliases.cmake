@@ -5,8 +5,11 @@
 # subdirectory's targets have no namespace. VIAME's CMakeLists name them the
 # way they always did, so each gets an alias.
 #
-# This is the whole list VIAME names. Adding one here without a `kwiver::` use
-# somewhere is how the list stops meaning anything.
+# This is the whole list VIAME names out of what `packages/kwiver` still
+# builds. `sprokit_pipeline`, `sprokit_pipeline_util` and `kwiver_adapter`
+# are VIAME's own targets since P5-T05 and alias themselves where they are
+# defined, in `library/pipeline_framework`. Adding a name here without a
+# `kwiver::` use somewhere is how the list stops meaning anything.
 
 foreach( _viame_kwiver_target
          kwiversys
@@ -17,10 +20,7 @@ foreach( _viame_kwiver_target
          vital_exceptions
          vital_logger
          vital_util
-         vital_vpm
-         sprokit_pipeline
-         sprokit_pipeline_util
-         kwiver_adapter )
+         vital_vpm )
   if( NOT TARGET "${_viame_kwiver_target}" )
     message( FATAL_ERROR
       "kwiver did not define the target ${_viame_kwiver_target}" )

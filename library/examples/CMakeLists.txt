@@ -9,6 +9,11 @@
 # `algo_wrapper_process.{h,cxx}` did not come across: kwiver's own CMakeLists
 # never named them, so they had not compiled in years.
 
+# Sprokit's own worked examples: twenty-one processes and two clusters, all
+# of them in the registry baseline. Imported from `sprokit/src/processes` in
+# P5-T05.
+add_subdirectory( processes )
+
 set( process_headers
   template_algo_wrapper.h
   template_process.h
