@@ -16,14 +16,11 @@ set( public_headers
   demangle.h
   directed_graph.h
   get_paths.h
-  hex_dump.h
   rational.h
-  simple_stats.h
   source_location.h
   streamable.h
   string.h
   string_editor.h
-  thread_pool.h
   timer.h
   token_expander.h
   token_type.h
@@ -39,9 +36,6 @@ set( public_headers
 
 # ----------------------
 set( private_headers
-  thread_pool_builtin_backend.h
-  thread_pool_gcd_backend.h
-  thread_pool_sync_backend.h
   )
 
 # ----------------------
@@ -51,10 +45,8 @@ set( sources
   source_location.cxx
 
   data_stream_reader.cxx
-  hex_dump.cxx
   string.cxx
   string_editor.cxx
-  thread_pool.cxx
   token_expander.cxx
   token_type.cxx
   token_type_env.cxx

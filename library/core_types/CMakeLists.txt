@@ -19,7 +19,6 @@ set( vital_types_public_headers
   landmark_map.h
   match_set.h
   matrix.h
-  mesh_container.h
   metadata_map.h
   metadata_tags.h
   query_result_set.h
@@ -58,20 +57,15 @@ set( vital_types_classes
   geodesy
   geo_point
   geo_polygon
-  ground_control_point
   homography
   homography_f2f
   image_container_set_simple
-  tiled_image_container
-  tiled_image_container_simple
   image
   iqr_feedback
   landmark
   local_tangent_space
   mesh
   metadata
-  metadata_stream
-  metadata_stream_from_map
   metadata_traits
   object_track_set
   pointcloud

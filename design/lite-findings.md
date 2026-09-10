@@ -405,7 +405,7 @@ borrows fletch from. Deleting them would break that checkout; leaving them
 means anything that puts the prefix back on the path silently reads a
 different vital.
 
-### 2.5 Usage is attributed by name, not by name and interface
+### 2.5 Usage is attributed by name, not by name and interface -- mostly answered
 
 The scan that decides what P5-T04 copies asks whether a name appears as a
 `type` value anywhere in the shipped pipelines. Two names -- `ocv` and
@@ -423,6 +423,27 @@ interface name. Getting it wrong in the keeping direction costs some code
 that P5-T06 prunes anyway; getting it wrong in the removing direction breaks
 a pipeline silently. So `ocv` and `core` are kept for every interface, and
 the eleven are for P5-T06 to prune by compile with the whole tree in hand.
+
+**P5-T06's answer: one of the eleven.** With every `:type = ocv` and
+`:type = core` in the shipped configs read with its key -- there are only
+twelve distinct keys -- and each remaining implementation checked for a
+nested user in the C++, `filter_tracks:core` is the only one nothing reaches:
+no config names a `filter_tracks` key and no algorithm that came across nests
+one. It is gone, and its interface with it, being the only implementation.
+
+The other ten stay, each for a reason worth writing down rather than
+re-deriving. `image_io` is selected as both `ocv` and `core`.
+`compute_ref_homography:core` is what `ref_homography_computer`,
+`ref_computer` and `homography_generator` name, and `track_features:core` and
+`estimate_fundamental_matrix:ocv` are named directly.
+`estimate_homography:ocv` is nested by `match_features_homography`,
+`compute_ref_homography_core` and VIAME's own
+`pair_stereo_detections_process`; `feature_descriptor_io:core` is nested by
+`track_features_core`; `handle_descriptor_request:core` is the only
+implementation the process in `query_retrieval_and_iqr.pipe` can get.
+`draw_detected_object_set:ocv`, `merge_images:ocv`, `split_image:ocv` and
+`warp_image:ocv` are not named by any config, but each is the sort of thing a
+DIVE workflow or an add-on selects, and phase 7 rewrites all four anyway.
 
 ### 2.6 What did not come across, and whether it should have
 

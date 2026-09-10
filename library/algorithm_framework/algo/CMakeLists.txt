@@ -6,46 +6,27 @@
 set( public_headers
   algorithm.h
   algorithm.txx
-  analyze_tracks.h
   associate_detections_to_tracks.h
-  buffered_metadata_filter.h
-  bundle_adjust.h
   close_loops.h
-  compute_association_matrix.h
   compute_ref_homography.h
   compute_stereo_depth_map.h
   compute_track_descriptors.h
-  convert_image.h
-  data_serializer.h
   detect_features.h
   detect_motion.h
   detected_object_filter.h
   detected_object_set_input.h
   detected_object_set_output.h
   draw_detected_object_set.h
-  draw_tracks.h
-  dynamic_configuration.h
-  estimate_canonical_transform.h
-  estimate_essential_matrix.h
   estimate_fundamental_matrix.h
   estimate_homography.h
-  estimate_pnp.h
-  estimate_similarity_transform.h
   extract_descriptors.h
   feature_descriptor_io.h
   filter_features.h
-  filter_tracks.h
   handle_descriptor_request.h
   image_filter.h
   image_io.h
   image_object_detector.h
-  initialize_cameras_landmarks.h
   initialize_object_tracks.h
-  integrate_depth_maps.h
-  interpolate_track.h
-  keyframe_selection.h
-  metadata_filter.h
-  metadata_map_io.h
   match_descriptor_sets.h
   match_features.h
   merge_detections.h
@@ -60,14 +41,11 @@ set( public_headers
   resection_camera.h
   segment_via_points.h
   split_image.h
-  texture_mesh.h
   track_features.h
   track_objects.h
   train_detector.h
   train_tracker.h
   transform_2d_io.h
-  triangulate_landmarks.h
-  uv_unwrap_mesh.h
   video_input.h
   video_output.h
   warp_image.h
@@ -77,46 +55,27 @@ set( public_headers
 
 set( sources
   algorithm.cxx
-  analyze_tracks.cxx
   associate_detections_to_tracks.cxx
-  buffered_metadata_filter.cxx
-  bundle_adjust.cxx
   close_loops.cxx
-  compute_association_matrix.cxx
   compute_ref_homography.cxx
   compute_stereo_depth_map.cxx
   compute_track_descriptors.cxx
-  convert_image.cxx
-  data_serializer.cxx
   detect_features.cxx
   detect_motion.cxx
   detected_object_filter.cxx
   detected_object_set_input.cxx
   detected_object_set_output.cxx
   draw_detected_object_set.cxx
-  draw_tracks.cxx
-  dynamic_configuration.cxx
-  estimate_canonical_transform.cxx
-  estimate_essential_matrix.cxx
   estimate_fundamental_matrix.cxx
   estimate_homography.cxx
-  estimate_pnp.cxx
-  estimate_similarity_transform.cxx
   extract_descriptors.cxx
   feature_descriptor_io.cxx
   filter_features.cxx
-  filter_tracks.cxx
   handle_descriptor_request.cxx
   image_filter.cxx
   image_io.cxx
   image_object_detector.cxx
   initialize_object_tracks.cxx
-  initialize_cameras_landmarks.cxx
-  integrate_depth_maps.cxx
-  interpolate_track.cxx
-  keyframe_selection.cxx
-  metadata_filter.cxx
-  metadata_map_io.cxx
   match_descriptor_sets.cxx
   match_features.cxx
   merge_detections.cxx
@@ -131,14 +90,11 @@ set( sources
   resection_camera.cxx
   segment_via_points.cxx
   split_image.cxx
-  texture_mesh.cxx
   track_features.cxx
   track_objects.cxx
   train_detector.cxx
   train_tracker.cxx
   transform_2d_io.cxx
-  triangulate_landmarks.cxx
-  uv_unwrap_mesh.cxx
   video_input.cxx
   video_output.cxx
   warp_image.cxx

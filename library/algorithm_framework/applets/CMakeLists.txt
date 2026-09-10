@@ -3,14 +3,11 @@
 #
 
 set(public_headers
-  applet_config.h
   applet_context.h
-  config_validation.cxx
   kwiver_applet.h
   )
 
 set(source_files
-  config_validation.cxx
   kwiver_applet.cxx
   )
 

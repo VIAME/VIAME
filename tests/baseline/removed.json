@@ -672,6 +672,13 @@
     "reason": "Drives kwiver's own feature tracking applet chain, which no shipped pipeline or VIAME tool invokes; VIAME stabilises through the `stabilize_image` process instead. It went with arrows/mvg when P5-T04 emptied it."
   },
   {
+    "interface": "filter_tracks",
+    "kind": "algorithm",
+    "name": "core",
+    "phase": "P5-T06",
+    "reason": "No shipped pipeline or config names a `filter_tracks` key, and no algorithm that came across nests one. It was kept through P5-T04 because the usage scan attributes a name without its interface and `core` is selected for others (finding 2.5); with the whole tree in hand it has no user. The interface goes with it, being the only implementation."
+  },
+  {
     "interface": "",
     "kind": "process",
     "name": "associate_detections_to_tracks",

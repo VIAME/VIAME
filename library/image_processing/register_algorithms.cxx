@@ -17,7 +17,6 @@
 #include <viame/algorithm_framework/algo/estimate_homography.h>
 #include <viame/algorithm_framework/algo/extract_descriptors.h>
 #include <viame/algorithm_framework/algo/filter_features.h>
-#include <viame/algorithm_framework/algo/filter_tracks.h>
 #include <viame/algorithm_framework/algo/image_filter.h>
 #include <viame/algorithm_framework/algo/match_features.h>
 #include <viame/algorithm_framework/algo/merge_images.h>
@@ -39,7 +38,6 @@
 #include "compute_ref_homography_core.h"
 #include "detect_features_filtered.h"
 #include "filter_features_nonmax.h"
-#include "filter_tracks.h"
 #include "draw_detected_object_set.h"
 #include "estimate_fundamental_matrix.h"
 #include "estimate_homography.h"
@@ -207,9 +205,6 @@ register_factories( kv::plugin_loader& vpm )
                            kwiver::arrows::core::filter_features_nonmax,
                            "nonmax", "Filter features by non-maximum suppression" )
 
-  VIAME_REGISTER_IMPORTED( kv::algo::filter_tracks,
-                           kwiver::arrows::core::filter_tracks,
-                           "core", "Filter tracks by length and by match matrix importance" )
 
   VIAME_REGISTER_IMPORTED( kv::algo::close_loops,
                            kwiver::arrows::core::close_loops_bad_frames_only,

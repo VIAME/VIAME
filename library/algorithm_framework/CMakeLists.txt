@@ -114,12 +114,9 @@ set( vital_framework_headers
 
   io/camera_from_metadata.h
   io/camera_io.h
-  io/camera_map_io.h
   io/eigen_io.h
-  io/landmark_map_io.h
   io/mesh_io.h
   io/metadata_io.h
-  io/track_set_io.h
 )
 
 set( vital_sources
@@ -127,11 +124,8 @@ set( vital_sources
 
   io/camera_from_metadata.cxx
   io/camera_io.cxx
-  io/camera_map_io.cxx
-  io/landmark_map_io.cxx
   io/mesh_io.cxx
   io/metadata_io.cxx
-  io/track_set_io.cxx
 )
 
 # The imported tree already has the shape it should install with, so it is

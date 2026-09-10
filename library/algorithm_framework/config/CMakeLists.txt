@@ -13,7 +13,6 @@ set( vital_config_public_headers
   config_block_io.h
   config_block_types.h
   config_difference.h
-  config_camera_helpers.txx
   config_helpers.txx
   token_type_config.h
 )

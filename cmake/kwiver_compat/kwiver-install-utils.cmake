@@ -1,4 +1,8 @@
-# Installation logic for kwiver CMake utilities
+# Installation logic for the CMake utilities an out-of-tree plugin needs
+#
+# The list is what `viame-config.cmake` puts on a consumer's module path.
+# P5-T06 took the finders for dependencies that are gone -- FFmpeg, log4cxx,
+# PROJ -- out of it.
 #
 # Variables that modify function:
 #
@@ -20,9 +24,6 @@ if(NOT SKBUILD)
           "${utils_dir}/kwiver-cmake-future.cmake"
           "${utils_dir}/kwiver-setup-python.cmake"
           "${utils_dir}/CommonFindMacros.cmake"
-          "${utils_dir}/FindFFMPEG.cmake"
-          "${utils_dir}/FindLog4cxx.cmake"
-          "${utils_dir}/FindPROJ.cmake"
           "${utils_dir}/FindSphinx.cmake"
     DESTINATION "${kwiver_cmake_install_dir}"
     )

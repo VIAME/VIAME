@@ -26,11 +26,9 @@ set( plugin_headers
   feature_detect_extract_SIFT.h
   feature_detect_extract_SURF.h
   filter_features_nonmax.h
-  filter_tracks.h
   match_features.h
   match_features_flannbased.h
   match_features_homography.h
-  match_matrix.h
   merge_images.h
   refine_detections_write_to_disk.h
   split_image.h
@@ -59,11 +57,9 @@ set( plugin_sources
   feature_detect_extract_SIFT.cxx
   feature_detect_extract_SURF.cxx
   filter_features_nonmax.cxx
-  filter_tracks.cxx
   match_features.cxx
   match_features_flannbased.cxx
   match_features_homography.cxx
-  match_matrix.cxx
   merge_images.cxx
   refine_detections_write_to_disk.cxx
   split_image.cxx
