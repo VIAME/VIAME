@@ -7,12 +7,11 @@
 #include "filter_features_nonmax.h"
 
 #include <viame/core_types/image.h>
+#include <viame/core_types/math/aligned_box.h>
 #include <viame/algorithm_framework/util/transform_image.h>
 
 #include <algorithm>
 #include <cmath>
-#include <Eigen/Geometry>
-
 using namespace kwiver::vital;
 
 namespace kwiver {
@@ -27,15 +26,15 @@ public:
   // constructor
   nonmax_suppressor(
     const double suppression_radius,
-    Eigen::AlignedBox< double, 2 > feat_bbox,
+    aligned_box< double, 2 > feat_bbox,
     const double scale_min,
     const size_t scale_steps,
     const size_t resolution )
     : m_resolution( resolution ),
       m_radius( suppression_radius / resolution ),
       m_feat_bbox( feat_bbox ),
-      m_offset( -( feat_bbox.min() / m_radius ).array() + 0.5 ),
-      m_range( ( feat_bbox.sizes() / m_radius ).array() + 0.5 ),
+      m_offset( ( -( feat_bbox.min() / m_radius ) ).cwisePlus( 0.5 ) ),
+      m_range( ( feat_bbox.sizes() / m_radius ).cwisePlus( 0.5 ) ),
       m_scale_min( scale_min )
   {
     masks.reserve( scale_steps );
@@ -100,8 +99,8 @@ public:
   set_radius( double r )
   {
     m_radius = r / m_resolution;
-    m_offset = -( m_feat_bbox.min() / m_radius ).array() + 0.5;
-    m_range = ( m_feat_bbox.sizes() / m_radius ).array() + 0.5;
+    m_offset = ( -( m_feat_bbox.min() / m_radius ) ).cwisePlus( 0.5 );
+    m_range = ( m_feat_bbox.sizes() / m_radius ).cwisePlus( 0.5 );
 
     auto scale_steps = masks.size();
     for( size_t s = 0; s < scale_steps; ++s )
@@ -151,7 +150,7 @@ private:
   std::vector< std::vector< ptrdiff_t > > disks;
   size_t m_resolution;
   double m_radius;
-  Eigen::AlignedBox< double, 2 > m_feat_bbox;
+  aligned_box< double, 2 > m_feat_bbox;
   vector_2d m_offset;
   vector_2d m_range;
   double m_scale_min;
@@ -204,14 +203,14 @@ public:
     std::vector< ud_pair > indices;
     indices.reserve( feat_vec.size() );
 
-    Eigen::AlignedBox< double, 2 > bbox;
-    Eigen::AlignedBox< double, 1 > scale_box;
+    aligned_box< double, 2 > bbox;
+    aligned_box< double, 1 > scale_box;
     for( size_t i = 0; i < feat_vec.size(); i++ )
     {
       auto const& feat = feat_vec[ i ];
       indices.push_back( std::make_pair( i, feat->magnitude() ) );
       bbox.extend( feat->loc() );
-      scale_box.extend( Eigen::Matrix< double, 1, 1 >( feat->scale() ) );
+      scale_box.extend( vector_< 1, double >( feat->scale() ) );
     }
 
     const double scale_min = std::log2( scale_box.min()[ 0 ] );

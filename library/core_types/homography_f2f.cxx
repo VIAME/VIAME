@@ -85,7 +85,7 @@ f2f_homography
       "Homography frame identifiers do not match up" );
   }
 
-  Eigen::Matrix< double, 3, 3 > new_h = this->h_->matrix() * rhs.h_->matrix();
+  matrix_< 3, 3, double > new_h = this->h_->matrix() * rhs.h_->matrix();
   return f2f_homography( new_h, rhs.from_id(), this->to_id() );
 }
 

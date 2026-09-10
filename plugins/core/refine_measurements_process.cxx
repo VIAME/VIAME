@@ -9,6 +9,9 @@
 
 #include "refine_measurements_process.h"
 
+#include <viame/core_types/math/quaternion.h>
+#include <viame/core_types/matrix.h>
+#include <viame/core_types/vector.h>
 #include <viame/core_types/vital_types.h>
 #include <viame/core_types/image_container.h>
 #include <viame/core_types/timestamp.h>
@@ -18,9 +21,6 @@
 #include <viame/core_types/metadata_traits.h>
 
 #include <viame/pipeline_framework/type_traits.h>
-
-#include <Eigen/Core>
-
 #include <cmath>
 
 
@@ -74,7 +74,7 @@ public:
   double m_exp_factor;
   unsigned m_border_factor;
   double m_percentile;
-  Eigen::Matrix3d m_intrinsics;
+  kv::matrix_3x3d m_intrinsics;
 
   // Internal variables
   double m_last_gsd;
@@ -140,9 +140,9 @@ refine_measurements_process::priv
 }
 
 point_t
-compute_ground_position( const point_t& pos, const Eigen::MatrixXd& inv )
+compute_ground_position( const point_t& pos, const kv::matrix_3x3d& inv )
 {
-  Eigen::Vector3d unadj = inv * Eigen::Vector3d( pos.first, pos.second, 1.0 );  
+  kv::vector_3d unadj = inv * kv::vector_3d( pos.first, pos.second, 1.0 );  
 
   if( unadj( 2 ) > 0 )
   {
@@ -152,18 +152,29 @@ compute_ground_position( const point_t& pos, const Eigen::MatrixXd& inv )
   return point_t( 0.0, 0.0 );
 }
 
-void
-remove_column( Eigen::MatrixXd& matrix, unsigned int col )
+// Drop one column of the 3x4 camera matrix, shifting the ones after it left.
+// Eigen did this in place with an overlapping block assignment followed by a
+// conservativeResize; the sizes are known here, so the result is a 3x3.
+kv::matrix_3x3d
+remove_column( const kv::matrix_< 3, 4, double >& matrix, unsigned int col )
 {
-  unsigned int rows = matrix.rows();
-  unsigned int cols = matrix.cols()-1;
+  kv::matrix_3x3d out;
 
-  if( col < cols )
+  for( unsigned int c = 0, o = 0; c < 4; ++c )
   {
-    matrix.block( 0, col, rows, cols-col ) = matrix.block( 0, col+1, rows, cols-col );
+    if( c == col )
+    {
+      continue;
+    }
+
+    for( unsigned int r = 0; r < 3; ++r )
+    {
+      out( r, o ) = matrix( r, c );
+    }
+    ++o;
   }
 
-  matrix.conservativeResize( rows, cols );
+  return out;
 }
 
 
@@ -464,22 +475,29 @@ refine_measurements_process
       goto output_objs;
     }
 
-    Eigen::AngleAxisd roll_angle( roll * 0.017453, Eigen::Vector3d::UnitZ() );
-    Eigen::AngleAxisd yaw_angle( yaw * 0.017453, Eigen::Vector3d::UnitY() );
-    Eigen::AngleAxisd pitch_angle( pitch * 0.017453, Eigen::Vector3d::UnitX() );
+    kv::quaternion_< double > roll_angle = kv::quaternion_< double >::from_axis_angle(
+      roll * 0.017453, kv::vector_3d::UnitZ() );
+    kv::quaternion_< double > yaw_angle = kv::quaternion_< double >::from_axis_angle(
+      yaw * 0.017453, kv::vector_3d::UnitY() );
+    kv::quaternion_< double > pitch_angle = kv::quaternion_< double >::from_axis_angle(
+      pitch * 0.017453, kv::vector_3d::UnitX() );
 
-    Eigen::Quaternion<double> q = roll_angle * yaw_angle * pitch_angle;
+    kv::quaternion_< double > q = roll_angle * yaw_angle * pitch_angle;
 
-    Eigen::Matrix3d rotation_matrix = q.matrix();
-    Eigen::Vector3d translation_matrix( 0, 0, alt * 1000 );
+    kv::matrix_3x3d rotation_matrix = q.toRotationMatrix();
+    kv::vector_3d translation_matrix( 0, 0, alt * 1000 );
 
-    Eigen::MatrixXd perspective( 3, 4 );
-    perspective << rotation_matrix, translation_matrix;
+    // [ R | t ], which Eigen's comma initialiser took a block at a time.
+    kv::matrix_< 3, 4, double > perspective;
+    perspective.set_block( 0, 0, rotation_matrix );
 
-    Eigen::MatrixXd camera = d->m_intrinsics * perspective;
-    remove_column( camera, 2 );
+    for( unsigned int r = 0; r < 3; ++r )
+    {
+      perspective( r, 3 ) = translation_matrix( r );
+    }
 
-    Eigen::MatrixXd inverse = camera.inverse();
+    kv::matrix_< 3, 4, double > camera = d->m_intrinsics * perspective;
+    kv::matrix_3x3d inverse = remove_column( camera, 2 ).inverse();
 
     for( auto det : *input_dets )
     {

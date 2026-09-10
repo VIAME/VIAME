@@ -4,8 +4,6 @@
 
 /// \file
 /// \brief Implementation of \link kwiver::vital::mesh mesh \endlink class
-
-#include <Eigen/Geometry>
 #include <viame/algorithm_framework/logger/logger.h>
 #include <viame/core_types/mesh.h>
 

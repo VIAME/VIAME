@@ -13,8 +13,9 @@
 
 #include <viame/core_types/vital_types_export.h>
 
+#include <viame/core_types/math/quaternion.h>
+
 #include "vector.h"
-#include <Eigen/Geometry>
 #include <viame/core_types/matrix.h>
 
 namespace kwiver {
@@ -32,12 +33,12 @@ public:
   rotation_() : q_( 1, 0, 0, 0 ) {}
 
   /// Constructor - from an Eigen Quaternion
-  rotation_( const Eigen::Quaternion< T >& quaternion )
+  rotation_( const quaternion_< T >& quaternion )
     : q_( quaternion ) {}
 
   /// Copy Constructor from another type
   template < typename U > explicit rotation_( const rotation_< U >& other )
-    : q_( static_cast< Eigen::Quaternion< T > >( other.quaternion() ) ) {}
+    : q_( static_cast< quaternion_< T > >( other.quaternion() ) ) {}
 
   /// Constructor - from a 4D quaternion vector (x,y,z,w)
   ///
@@ -51,7 +52,7 @@ public:
   // It will remain so. This can cause problems when converting to other types.
   // Might want to consider using the actual Eigen::Quaternion constructor. This
   // will also resolve the strange order of the coefficients.
-  explicit rotation_( const Eigen::Matrix< T, 4, 1 >& quaternion )
+  explicit rotation_( const vector_< 4, T >& quaternion )
     : q_( quaternion ) {}
 
   /// Constructor - from a Rodrigues vector
@@ -62,10 +63,10 @@ public:
   /// This representation is closely related to the tangent space on
   /// the manifold of the group of rotations.
   /// \param rvec Rodrigues vector to construct from.
-  explicit rotation_( const Eigen::Matrix< T, 3, 1 >& rvec );
+  explicit rotation_( const vector_< 3, T >& rvec );
 
   /// Constructor - from rotation angle and axis
-  rotation_( T angle, const Eigen::Matrix< T, 3, 1 >& axis );
+  rotation_( T angle, const vector_< 3, T >& axis );
 
   /// Constructor - from yaw, pitch, and roll (radians)
   ///
@@ -83,17 +84,17 @@ public:
   ///
   /// requires orthonormal matrix with +1 determinant
   /// \param rot orthonormal matrix to construct from
-  explicit rotation_( const Eigen::Matrix< T, 3, 3 >& rot );
+  explicit rotation_( const matrix_< 3, 3, T >& rot );
 
   /// Convert to a 3x3 matrix
-  Eigen::Matrix< T, 3, 3 > matrix() const;
+  matrix_< 3, 3, T > matrix() const;
 
   /// Returns the axis of rotation
   ///
   /// \note axis is undefined for the identity rotation,
   ///       returns (0,0,1) in this case.
   /// \sa angle()
-  Eigen::Matrix< T, 3, 1 > axis() const;
+  vector_< 3, T > axis() const;
 
   /// Returns the angle of the rotation in radians about the axis
   ///
@@ -103,11 +104,11 @@ public:
   /// Access the quaternion as a 4-vector
   ///
   /// The first component is real, the last 3 are imaginary (i,j,k)
-  Eigen::Quaternion< T >
+  quaternion_< T >
   quaternion() const { return q_; }
 
   /// Return the rotation as a Rodrigues vector
-  Eigen::Matrix< T, 3, 1 > rodrigues() const;
+  vector_< 3, T > rodrigues() const;
 
   /// Convert to yaw, pitch, and roll (radians)
   ///
@@ -133,8 +134,7 @@ public:
   /// \note for a large number of vectors, it is more efficient to
   ///       create a rotation matrix and use matrix multiplication
   /// \param rhs right-hand side vector to operate against
-  Eigen::Matrix< T, 3,
-    1 > operator*( const Eigen::Matrix< T, 3, 1 >& rhs ) const;
+  vector_< 3, T > operator*( const vector_< 3, T >& rhs ) const;
 
   inline bool
   operator==( const rotation_< T >& rhs ) const
@@ -162,7 +162,7 @@ public:
 
 protected:
   /// rotation stored internally as a quaternion vector
-  Eigen::Quaternion< T > q_;
+  quaternion_< T > q_;
 };
 
 /// Double-precision rotation_ type

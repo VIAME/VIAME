@@ -27,9 +27,6 @@
 #include <viame/core_types/vector.h>
 
 #include <viame/algorithm_framework/io/eigen_io.h>
-
-#include <Eigen/Geometry>
-
 namespace kwiver {
 
 namespace vital {

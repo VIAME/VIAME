@@ -299,6 +299,33 @@ it should be a test. And configure into a fresh tree before calling a
 build-system change done -- three of the six things in this finding only
 appear there.
 
+### 1.15 The install prefix on the include path shadows the tree being built
+
+`plugins/svm` and `plugins/darknet` take their third-party headers by prefix
+rather than from a target: `VIAME_DEPENDENCY_INCLUDE_DIRS`, which is
+`${VIAME_BUILD_INSTALL_PREFIX}/include`. That is the same prefix VIAME
+installs its **own** headers into. As a plain `target_include_directories`
+entry it becomes an `-I`, and every `-I` beats the `-isystem` an imported
+target contributes (finding 1.6), so those two plugins were compiling against
+whatever `viame/core_types/*.h` the previous `make install` had left in the
+prefix rather than against `library/core_types` in the source tree.
+
+Nothing said so while the two agreed. It surfaced in P6-T06, when the source
+tree stopped including `<Eigen/Geometry>` and the installed copy still did:
+`refine_detections_svm.cxx` failed on a header that no longer exists in the
+tree it was supposedly building.
+
+The fix is `target_include_directories( <target> SYSTEM PUBLIC ... )`, which
+turns the prefix into an `-isystem` and puts it after every `-I`. That is also
+the honest description of it -- it is a third-party prefix.
+
+**For later phases:** this is open question 2.4 with the roles reversed. 2.4
+worries about *another* checkout's stale kwiver headers; the same prefix
+mechanism was serving *this* build its own stale headers. Any prefix on the
+include path is a prefix that can win, so a prefix that is not a target should
+be SYSTEM. Phase 1 vendoring darknet and libsvm into `third_party/` removes
+the last two callers.
+
 ## 2. Open questions
 
 ### 2.1 An intermittent segfault in `viame train`
@@ -404,6 +431,11 @@ still there, and they belong to another checkout's install that this build
 borrows fletch from. Deleting them would break that checkout; leaving them
 means anything that puts the prefix back on the path silently reads a
 different vital.
+
+**Since P6-T06:** the same shape bit for real, from VIAME's own install
+prefix rather than the borrowed one -- see finding 1.15. The rule that came
+out of it applies to both: a prefix that is not a target belongs behind
+`SYSTEM`.
 
 ### 2.5 Usage is attributed by name, not by name and interface -- mostly answered
 

@@ -903,13 +903,6 @@ endif()
 if( MSVC AND NOT VIAME_BUILD_DEPENDENCIES )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor" )
 endif()
-# if we have a 32 bit build, turn off Eigen alignment for more information see:
-# http://eigen.tuxfamily.org/dox/group__TopicUnalignedArrayAssert.html
-if( CMAKE_SIZEOF_VOID_P EQUAL 4 )
-  set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT")
-endif()
-
 ###
 # Main build loop for when we are building both VIAME and all dependencies
 ##
@@ -1013,14 +1006,6 @@ else()
     find_package( fletch NO_MODULE )
     list( APPEND CMAKE_PREFIX_PATH  "${fletch_DIR}" )
   endif()
-
-  ###
-  # Eigen, which the imported vital is written in terms of
-  #
-  # Kwiver used to find it and export the target through its config package;
-  # since P1-T05 it is found here, before anything that links it.
-  ##
-  find_package( Eigen3 REQUIRED NO_MODULE )
 
   ###
   # Require OpenCV if enabled

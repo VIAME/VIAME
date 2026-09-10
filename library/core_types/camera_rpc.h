@@ -24,8 +24,8 @@ namespace kwiver {
 
 namespace vital {
 
-typedef Eigen::Matrix< double, 4, 20 > rpc_matrix;
-typedef Eigen::Matrix< double, 4, 10 > rpc_deriv_matrix;
+typedef matrix_< 4, 20, double > rpc_matrix;
+typedef matrix_< 4, 10, double > rpc_deriv_matrix;
 
 /// forward declaration of rpc camera class
 class camera_rpc;
@@ -52,7 +52,7 @@ public:
   ///
   /// {1, x, y, z, xy, xz, yz, xx, yy, zz, xyz, xxx, xyy, xzz, xxy, yyy, yzz,
   /// xxz, yyz, zzz}
-  static Eigen::Matrix< double, 20, 1 > power_vector( const vector_3d& pt );
+  static vector_< 20, double > power_vector( const vector_3d& pt );
 
   /// Create a clone of this camera_rpc object
   virtual camera_sptr clone() const = 0;

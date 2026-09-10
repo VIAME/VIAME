@@ -14,9 +14,6 @@
 #include <memory>
 #include <set>
 #include <vector>
-
-#include <Eigen/LU>
-
 using namespace kwiver::vital;
 
 namespace kwiver {
@@ -232,7 +229,7 @@ public:
       try
       {
         // Invertible test
-        Eigen::Matrix< double, 3, 3 > h_mat = tmp_h->matrix(),
+        matrix_< 3, 3, double > h_mat = tmp_h->matrix(),
           i_mat = tmp_h->inverse()->matrix();
         if( !( h_mat.allFinite() && i_mat.allFinite() ) )
         {

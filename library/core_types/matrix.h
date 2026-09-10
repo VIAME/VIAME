@@ -3,39 +3,16 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 /// \file
-/// \brief Typedefs for Eigen matrices
+/// \brief Matrix typedefs
+///
+/// The types were Eigen's until phase 6; they are `core_types/math`'s now and
+/// the names are unchanged. `matrix_d` and `matrix_f`, which were Eigen's
+/// dynamically sized matrices, are `dynamic_matrix`.
 
 #ifndef VITAL_TYPES_MATRIX_H_
 #define VITAL_TYPES_MATRIX_H_
 
-#include <Eigen/Core>
-
-namespace kwiver {
-
-namespace vital {
-
-/// \cond DoxygenSuppress
-typedef Eigen::MatrixXd matrix_d;
-typedef Eigen::MatrixXf matrix_f;
-
-typedef Eigen::Matrix< double, 2, 2 > matrix_2x2d;
-typedef Eigen::Matrix< float, 2, 2 >  matrix_2x2f;
-typedef Eigen::Matrix< double, 2, 3 > matrix_2x3d;
-typedef Eigen::Matrix< float, 2, 3 >  matrix_2x3f;
-typedef Eigen::Matrix< double, 3, 2 > matrix_3x2d;
-typedef Eigen::Matrix< float, 3, 2 >  matrix_3x2f;
-typedef Eigen::Matrix< double, 3, 3 > matrix_3x3d;
-typedef Eigen::Matrix< float, 3, 3 >  matrix_3x3f;
-typedef Eigen::Matrix< double, 3, 4 > matrix_3x4d;
-typedef Eigen::Matrix< float, 3, 4 >  matrix_3x4f;
-typedef Eigen::Matrix< double, 4, 3 > matrix_4x3d;
-typedef Eigen::Matrix< float, 4, 3 >  matrix_4x3f;
-typedef Eigen::Matrix< double, 4, 4 > matrix_4x4d;
-typedef Eigen::Matrix< float, 4, 4 >  matrix_4x4f;
-/// \endcond
-
-} // namespace vital
-
-}   // end namespace vital
+#include <viame/core_types/math/dynamic_matrix.h>
+#include <viame/core_types/math/matrix.h>
 
 #endif // VITAL_TYPES_MATRIX_H_

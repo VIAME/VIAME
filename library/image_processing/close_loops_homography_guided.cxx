@@ -62,7 +62,7 @@ bool
 convert(
   const f2f_homography_sptr& src1_to_ref,
   const f2f_homography_sptr& src2_to_ref,
-  Eigen::Matrix< double, 3, 3 >& src2_to_src1 )
+  matrix_< 3, 3, double >& src2_to_src1 )
 {
   try
   {
@@ -178,7 +178,7 @@ close_loops_homography_guided
   // Determine if this is a new checkpoint frame. Either the buffer is empty
   // and this is a new frame, this is a homography for a new reference frame,
   // or the overlap with the last checkpoint was less than a specified amount.
-  Eigen::Matrix< double, 3, 3 > tmp;
+  matrix_< 3, 3, double > tmp;
 
   if( d->buffer.empty() ||
       !convert( d->buffer.back().src_to_ref, homog, tmp ) ||

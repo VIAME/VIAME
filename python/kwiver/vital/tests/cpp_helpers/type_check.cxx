@@ -5,7 +5,7 @@
 #include <viame/core_types/metadata_map.h>
 
 #include <memory>
-#include <pybind11/eigen.h>
+#include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 namespace py = pybind11;

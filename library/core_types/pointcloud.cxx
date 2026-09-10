@@ -24,7 +24,7 @@ pointcloud_< T >
 template < typename T >
 pointcloud_< T >
 
-::pointcloud_( std::vector< Eigen::Matrix< T, 3, 1 > > const& pos )
+::pointcloud_( std::vector< vector_< 3, T > > const& pos )
   : pos_( pos )
 {}
 
@@ -59,7 +59,7 @@ pointcloud_< T >
 template < typename T >
 void
 pointcloud_< T >
-::set_positions( std::vector< Eigen::Matrix< T, 3, 1 > > const& pos )
+::set_positions( std::vector< vector_< 3, T > > const& pos )
 {
   pos_.assign( pos.begin(), pos.end() );
 }

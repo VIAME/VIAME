@@ -28,7 +28,7 @@ bool is_near(double a, double b, double tol) {
   return std::abs(a - b) < tol;
 }
 
-bool is_near(const Eigen::Matrix<double, 2, 1> &actual, const Eigen::Matrix<double, 2, 1> &expected, double pix_tol) {
+bool is_near(const kv::vector_< 2, double > &actual, const kv::vector_< 2, double > &expected, double pix_tol) {
   return is_near(actual.x(), expected.x(), pix_tol) && is_near(actual.y(), expected.y(), pix_tol);
 }
 

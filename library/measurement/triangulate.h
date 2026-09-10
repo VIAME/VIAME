@@ -32,10 +32,10 @@ namespace mvg {
 ///  \return a 3D triangulated point location
 template < typename T >
 VIAME_MEASUREMENT_EXPORT
-Eigen::Matrix< T, 3, 1 >
+vital::vector_< 3, T >
 triangulate_inhomog(
   const std::vector< vital::simple_camera_perspective >& cameras,
-  const std::vector< Eigen::Matrix< T, 2, 1 > >& points );
+  const std::vector< vital::vector_< 2, T > >& points );
 
 /// Triangulate a 3D point from a set of cameras and 2D image points
 ///
@@ -53,12 +53,12 @@ triangulate_inhomog(
 /// \return a 3D triangulated point location
 template < typename T >
 VIAME_MEASUREMENT_EXPORT
-Eigen::Matrix< T, 3, 1 >
+vital::vector_< 3, T >
 triangulate_fast_two_view(
   const vital::simple_camera_perspective& camera0,
   const vital::simple_camera_perspective& camera1,
-  const Eigen::Matrix< T, 2, 1 >& point0,
-  const Eigen::Matrix< T, 2, 1 >& point1 );
+  const vital::vector_< 2, T >& point0,
+  const vital::vector_< 2, T >& point1 );
 
 /// Triangulate a homogeneous 3D point from a set of cameras and 2D image points
 ///
@@ -72,10 +72,10 @@ triangulate_fast_two_view(
 ///  \return a homogeneous 3D triangulated point location
 template < typename T >
 VIAME_MEASUREMENT_EXPORT
-Eigen::Matrix< T, 4, 1 >
+vital::vector_< 4, T >
 triangulate_homog(
   const std::vector< vital::simple_camera_perspective >& cameras,
-  const std::vector< Eigen::Matrix< T, 2, 1 > >& points );
+  const std::vector< vital::vector_< 2, T > >& points );
 
 /// Triangulate a 3D point from a set of RPC cameras and 2D image points
 ///
@@ -87,10 +87,10 @@ triangulate_homog(
 ///  \return a 3D triangulated point location
 template < typename T >
 VIAME_MEASUREMENT_EXPORT
-Eigen::Matrix< T, 3, 1 >
+vital::vector_< 3, T >
 triangulate_rpc(
   const std::vector< vital::simple_camera_rpc >& cameras,
-  const std::vector< Eigen::Matrix< T, 2, 1 > >& points );
+  const std::vector< vital::vector_< 2, T > >& points );
 
 } // end namespace mvg
 

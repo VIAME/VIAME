@@ -31,7 +31,10 @@ endif()
 
 set( FLETCH_DEP_FLAGS
   ${FLETCH_DEP_FLAGS}
-  -Dfletch_ENABLE_Eigen:BOOL=ON
+  # Phase 6 replaced Eigen with core_types/math, and the only other thing in
+  # the enabled fletch set that wanted it was OpenCV's optional interop
+  # (WITH_EIGEN, i.e. opencv2/core/eigen.hpp), which nothing calls now.
+  -Dfletch_ENABLE_Eigen:BOOL=OFF
   -Dfletch_ENABLE_TinyXML1:BOOL=ON
   -Dfletch_BUILD_WITH_CUDA:BOOL=${VIAME_ENABLE_CUDA}
   -Dfletch_BUILD_WITH_CUDNN:BOOL=${VIAME_ENABLE_CUDNN}

@@ -8,7 +8,7 @@
 #include "estimate_homography.h"
 
 #include <opencv2/calib3d/calib3d.hpp>
-#include <opencv2/core/eigen.hpp>
+#include <viame/opencv_bridge/matrix.h>
 
 #if KWIVER_OPENCV_VERSION_MAJOR >= 3
 #define OPENCV_METHOD_RANSAC cv::RANSAC
@@ -74,7 +74,7 @@ estimate_homography
   }
 
   vital::matrix_3x3d H_mat;
-  cv2eigen( H, H_mat );
+  mat_to_matrix( H, H_mat );
   return vital::homography_sptr( new vital::homography_< double >( H_mat ) );
 }
 

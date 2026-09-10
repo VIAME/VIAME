@@ -134,9 +134,6 @@ target_link_libraries( viame_opencv_plugin
   PUBLIC               kwiver::vital_vpm
   )
 
-# Eigen is required for MVG triangulation
-find_package( Eigen3 REQUIRED NO_MODULE )
-
 # Add process library
 set( process_headers
   calibrate_single_camera_process.h
@@ -169,7 +166,6 @@ kwiver_add_plugin( viame_processes_opencv
                    kwiver::sprokit_pipeline
                    viame_opencv_bridge
                    viame_measurement
-                   Eigen3::Eigen
                    ${OpenCV_LIBRARIES}
                    viame_opencv
 )

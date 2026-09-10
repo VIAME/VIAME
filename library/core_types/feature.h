@@ -112,7 +112,7 @@ public:
 
   /// Constructor for a feature
   feature_(
-    Eigen::Matrix< T, 2, 1 > const& loc, T mag = 0.0,
+    vector_< 2, T > const& loc, T mag = 0.0,
     T scale = 1.0, T angle = 0.0,
     rgb_color const& color = rgb_color() );
 
@@ -127,7 +127,7 @@ public:
   data_type() const override { return typeid( T ); }
 
   /// Accessor for the image coordinates using underlying data type
-  Eigen::Matrix< T, 2, 1 > const&
+  vector_< 2, T > const&
   get_loc() const { return loc_; }
 
   /// Accessor for the image coordinates
@@ -175,7 +175,7 @@ public:
   color() const override { return color_; }
 
   /// Set the feature position in image space
-  void set_loc( Eigen::Matrix< T, 2, 1 > const& loc ) { loc_ = loc; }
+  void set_loc( vector_< 2, T > const& loc ) { loc_ = loc; }
 
   /// Set the magnitude of the feature response
   void set_magnitude( T magnitude ) { magnitude_ = magnitude; }
@@ -204,7 +204,7 @@ public:
 
 protected:
   /// location of feature
-  Eigen::Matrix< T, 2, 1 > loc_;
+  vector_< 2, T > loc_;
   /// magnitude of feature
   T magnitude_;
   /// scale of feature

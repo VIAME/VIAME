@@ -75,8 +75,8 @@ class VITAL_TYPES_EXPORT essential_matrix_
 {
 public:
   typedef T value_type;
-  typedef Eigen::Matrix< T, 3, 3 > matrix_t;
-  typedef Eigen::Matrix< T, 3, 1 > vector_t;
+  typedef matrix_< 3, 3, T > matrix_t;
+  typedef vector_< 3, T > vector_t;
 
   /// Construct from a provided matrix by projection.
   ///
@@ -113,7 +113,7 @@ public:
   /// Get a double-typed copy of the underlying matrix
   ///
   /// \return A copy of the matrix represented in the double type.
-  virtual Eigen::Matrix< double, 3, 3 > matrix() const;
+  virtual matrix_< 3, 3, double > matrix() const;
 
   /// Return the one of two possible 3D rotations that can parameterize E
   virtual rotation_d rotation() const;

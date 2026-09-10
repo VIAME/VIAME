@@ -4,7 +4,7 @@
 
 #include <viame/core_types/covariance.h>
 
-#include <pybind11/eigen.h>
+#include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
@@ -24,7 +24,7 @@ declare_covariance( py::module& m, std::string const& typestr )
   py::class_< Class, std::shared_ptr< Class > >( m, pyclass_name.c_str() )
     .def( py::init<>() )
     .def( py::init< const T& >() )
-    .def( py::init< const Eigen::Matrix< T, N, N >& >() )
+    .def( py::init< kwiver::vital::matrix_< N, N, T > const& >() )
     .def( "matrix", &Class::matrix )
     .def(
       "__setitem__", []( Class& self, py::tuple idx, T value ){

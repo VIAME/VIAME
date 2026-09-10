@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <iostream>
 #include <limits>
+#include <random>
 #include <stdexcept>
 #include <vector>
 
@@ -39,6 +40,22 @@ public:
   static constexpr unsigned col_count = C;
 
   constexpr matrix_() : d_{} {}
+
+  /// A column vector is a one-column matrix, and the code that came from
+  /// Eigen moves between the two without saying so.
+  matrix_( vector_< R, T > const& v )
+  {
+    static_assert( C == 1, "only a one-column matrix is a vector" );
+    for( unsigned i = 0; i < R; ++i ) { d_[ i ] = v[ i ]; }
+  }
+
+  operator vector_< R, T >() const
+  {
+    static_assert( C == 1, "only a one-column matrix is a vector" );
+    vector_< R, T > out;
+    for( unsigned i = 0; i < R; ++i ) { out[ i ] = d_[ i ]; }
+    return out;
+  }
 
   explicit matrix_( T value )
   { for( unsigned i = 0; i < R * C; ++i ) { d_[ i ] = value; } }
@@ -76,6 +93,32 @@ public:
   // The named constructors
   static matrix_ Zero() { return matrix_(); }
   static matrix_ Constant( T value ) { return matrix_( value ); }
+
+  /// A matrix of values drawn uniformly from [-1, 1].
+  ///
+  /// Eigen's `Random()`, which one binding exposes so that a python test can
+  /// make an arbitrary homography. Deterministic across a process because the
+  /// generator is a function-local static seeded once; Eigen's is too.
+  static matrix_ Random()
+  {
+    static std::mt19937 rng( 20260910 );
+    std::uniform_real_distribution< double > uniform( -1.0, 1.0 );
+
+    matrix_ out;
+    for( unsigned i = 0; i < R * C; ++i )
+    {
+      out.data()[ i ] = static_cast< T >( uniform( rng ) );
+    }
+    return out;
+  }
+
+  /// The size is fixed; the arguments say what it already is.
+  static matrix_ Random( unsigned rows, unsigned cols )
+  {
+    ( void ) rows;
+    ( void ) cols;
+    return Random();
+  }
 
   static matrix_ Identity()
   {
@@ -219,6 +262,92 @@ public:
   T determinant() const;
   matrix_ inverse() const;
 
+  /// The x with `*this * x == b`.
+  ///
+  /// Eigen's callers spell this `ldlt().solve( b )` or
+  /// `colPivHouseholderQr().solve( b )`, choosing a factorisation. Every one
+  /// of them in VIAME is two by two, where the inverse is a closed form and
+  /// as accurate as any factorisation would be. `decomp.h` has the
+  /// least-squares solve for the overdetermined case.
+  vector_< R, T > solve( vector_< R, T > const& b ) const
+  {
+    static_assert( R == C, "a solve needs a square matrix" );
+    return inverse() * b;
+  }
+
+  // --------------------------------------------------------------------------
+  // Coefficient-wise operations, which Eigen spells through `.array()`
+  matrix_ cwiseProduct( matrix_ const& o ) const
+  {
+    matrix_ out;
+    for( unsigned i = 0; i < R * C; ++i )
+    {
+      out.data()[ i ] = d_[ i ] * o.data()[ i ];
+    }
+    return out;
+  }
+
+  matrix_ cwiseQuotient( matrix_ const& o ) const
+  {
+    matrix_ out;
+    for( unsigned i = 0; i < R * C; ++i )
+    {
+      out.data()[ i ] = d_[ i ] / o.data()[ i ];
+    }
+    return out;
+  }
+
+  matrix_ cwiseAbs() const
+  {
+    matrix_ out;
+    for( unsigned i = 0; i < R * C; ++i )
+    {
+      out.data()[ i ] = d_[ i ] < T( 0 ) ? -d_[ i ] : d_[ i ];
+    }
+    return out;
+  }
+
+  bool allFinite() const
+  {
+    for( unsigned i = 0; i < R * C; ++i )
+    {
+      if( !std::isfinite( d_[ i ] ) ) { return false; }
+    }
+    return true;
+  }
+
+  // --------------------------------------------------------------------------
+  /// Filling a matrix a row at a time: `m << a, b, c, d;`
+  ///
+  /// Eigen's comma initialiser, in row order, kept because the alternative is
+  /// rewriting every literal matrix in VIAME into nine assignments and losing
+  /// the shape on the page. It is a proxy so that the commas can chain; it
+  /// writes as it goes rather than at the end, so an incomplete list leaves
+  /// the rest of the matrix as it was.
+  class comma_initializer
+  {
+  public:
+    comma_initializer( matrix_& m, T first ) : m_( m ), at_( 0 )
+    { operator,( first ); }
+
+    comma_initializer& operator,( T value )
+    {
+      if( at_ < R * C )
+      {
+        m_( at_ / C, at_ % C ) = value;
+        ++at_;
+      }
+      return *this;
+    }
+
+  private:
+    matrix_& m_;
+    unsigned at_;
+  };
+
+  comma_initializer operator<<( T first )
+  { return comma_initializer( *this, first ); }
+
   bool isApprox( matrix_ const& o,
                  T tolerance = std::numeric_limits< T >::epsilon() *
                                T( 100 ) ) const
@@ -316,18 +445,15 @@ std::ostream& operator<<( std::ostream& os, matrix_< R, C, T > const& m )
   return os;
 }
 
-template < unsigned R, unsigned C, typename T >
-std::istream& operator>>( std::istream& is, matrix_< R, C, T >& m )
-{
-  for( unsigned r = 0; r < R; ++r )
-  {
-    for( unsigned c = 0; c < C; ++c ) { is >> m( r, c ); }
-  }
-  return is;
-}
 
 // ----------------------------------------------------------------------------
 // The vector members that need a matrix to state
+template < unsigned N, typename T >
+vector_< N, T >::vector_( matrix_< N, 1, T > const& m ) : d_{}
+{
+  for( unsigned i = 0; i < N; ++i ) { d_[ i ] = m( i, 0 ); }
+}
+
 template < unsigned N, typename T >
 matrix_< N, 1, T > vector_< N, T >::asMatrix() const
 {

@@ -43,9 +43,9 @@
 /// \brief Implementation of triangulation function
 
 #include "triangulate.h"
-#include <viame/measurement/epipolar_geometry.h>
-#include <Eigen/SVD>
+#include <viame/core_types/math/decomp.h>
 
+#include <viame/measurement/epipolar_geometry.h>
 namespace kwiver {
 
 namespace arrows {
@@ -70,10 +70,12 @@ Triangulate_DLT(
   design_matrix.row( 2 ) = point2[ 0 ] * pose2.row( 2 ) - pose2.row( 0 );
   design_matrix.row( 3 ) = point2[ 1 ] * pose2.row( 2 ) - pose2.row( 1 );
 
-  // Extract nullspace.
-  Eigen::JacobiSVD< Eigen::Matrix< double, 4, 4 > > svd( design_matrix,
-    Eigen::ComputeFullV );
-  triangulated_point = svd.matrixV().rightCols< 1 >();
+  // Extract nullspace: the column of V for the smallest singular value.
+  vital::jacobi_svd< double > const svd{
+    vital::dynamic_matrix< double >( design_matrix ) };
+  auto const null = svd.null_vector();
+  triangulated_point =
+    kwiver::vital::vector_4d( null[ 0 ], null[ 1 ], null[ 2 ], null[ 3 ] );
 }
 
 // Given either a fundamental or essential matrix and two corresponding images
@@ -96,19 +98,20 @@ find_optimal_image_points(
   vital::vector_3d point2_homog = point2.homogeneous();
 
   // A helper matrix to isolate certain coordinates.
-  Eigen::Matrix< double, 2, 3 > s_matrix;
+  vital::matrix_< 2, 3, double > s_matrix;
   s_matrix << 1, 0, 0, 0, 1, 0;
 
-  const Eigen::Matrix2d e_submatrix = E.topLeftCorner< 2, 2 >();
+  const vital::matrix_2x2d e_submatrix = E.block< 2, 2 >( 0, 0 );
 
   // The epipolar line from one image point in the other image.
   vital::vector_2d epipolar_line1 = s_matrix * E * point2_homog;
   vital::vector_2d epipolar_line2 = s_matrix * E.transpose() * point1_homog;
 
-  const double a = epipolar_line1.transpose() * e_submatrix * epipolar_line2;
+  const double a =
+    epipolar_line1.dot( e_submatrix * epipolar_line2 );
   const double b =
     ( epipolar_line1.squaredNorm() + epipolar_line2.squaredNorm() ) / 2.0;
-  const double c = point1_homog.transpose() * E * point2_homog;
+  const double c = point1_homog.dot( E * point2_homog );
 
   const double d = sqrt( b * b - a * c );
 
@@ -129,12 +132,12 @@ find_optimal_image_points(
 }
 
 template < typename T >
-Eigen::Matrix< T, 3, 1 >
+vital::vector_< 3, T >
 triangulate_fast_two_view(
   const vital::simple_camera_perspective& camera0,
   const vital::simple_camera_perspective& camera1,
-  const Eigen::Matrix< T, 2, 1 >& point0,
-  const Eigen::Matrix< T, 2, 1 >& point1 )
+  const vital::vector_< 2, T >& point0,
+  const vital::vector_< 2, T >& point1 )
 {
   // code modified from code found at
   // https://github.com/sweeneychris/TheiaSfM/blob/master/src/theia/sfm/triangulation/triangulation.cc
@@ -159,20 +162,19 @@ triangulate_fast_two_view(
 
 /// Triangulate a 3D point from a set of cameras and 2D image points
 template < typename T >
-Eigen::Matrix< T, 3, 1 >
+vital::vector_< 3, T >
 triangulate_inhomog(
   const std::vector< vital::simple_camera_perspective >& cameras,
-  const std::vector< Eigen::Matrix< T, 2, 1 > >& points )
+  const std::vector< vital::vector_< 2, T > >& points )
 {
-  typedef Eigen::Matrix< T, 2, 1 > vector_2;
-  typedef Eigen::Matrix< T, 3, 1 > vector_3;
-  typedef Eigen::Matrix< T, 3, 3 > matrix_3x3;
-  typedef Eigen::Matrix< T, Eigen::Dynamic, 3 > data_matrix_t;
-  typedef Eigen::Matrix< T, Eigen::Dynamic, 1 > data_vector_t;
+  typedef vital::vector_< 2, T > vector_2;
+  typedef vital::vector_< 3, T > vector_3;
+  typedef vital::matrix_< 3, 3, T > matrix_3x3;
+  typedef vital::dynamic_matrix< T > data_matrix_t;
 
   auto const num_rows = 2 * points.size();
-  data_matrix_t A( num_rows, 3 );
-  data_vector_t b( num_rows );
+  data_matrix_t A( static_cast< unsigned >( num_rows ), 3 );
+  std::vector< T > b( num_rows );
   for( size_t i = 0; i < points.size(); ++i )
   {
     // the camera
@@ -192,25 +194,24 @@ triangulate_inhomog(
     b[ 2 * i + 1 ] = t.z() * pt.y() - t.y();
   }
 
-  Eigen::JacobiSVD< data_matrix_t > svd( A, Eigen::ComputeFullU |
-    Eigen::ComputeFullV );
-  return svd.solve( b );
+  auto const x = vital::solve_least_squares( A, b );
+  return vector_3( x[ 0 ], x[ 1 ], x[ 2 ] );
 }
 
 /// Triangulate a homogeneous 3D point from a set of cameras and 2D image points
 template < typename T >
-Eigen::Matrix< T, 4, 1 >
+vital::vector_< 4, T >
 triangulate_homog(
   const std::vector< vital::simple_camera_perspective >& cameras,
-  const std::vector< Eigen::Matrix< T, 2, 1 > >& points )
+  const std::vector< vital::vector_< 2, T > >& points )
 {
-  typedef Eigen::Matrix< T, 2, 1 > vector_2;
-  typedef Eigen::Matrix< T, 3, 1 > vector_3;
-  typedef Eigen::Matrix< T, 3, 3 > matrix_3x3;
-  typedef Eigen::Matrix< T, Eigen::Dynamic, 4 > data_matrix_t;
+  typedef vital::vector_< 2, T > vector_2;
+  typedef vital::vector_< 3, T > vector_3;
+  typedef vital::matrix_< 3, 3, T > matrix_3x3;
+  typedef vital::dynamic_matrix< T > data_matrix_t;
 
   auto const num_rows = 2 * points.size();
-  data_matrix_t A( num_rows, 4 );
+  data_matrix_t A( static_cast< unsigned >( num_rows ), 4 );
   for( size_t i = 0; i < points.size(); ++i )
   {
     // the camera
@@ -230,33 +231,36 @@ triangulate_homog(
     A( 2 * i + 1, 3 ) = t.y()  - pt.y() * t.z();
   }
 
-  Eigen::JacobiSVD< data_matrix_t > svd( A, Eigen::ComputeFullV );
-  return svd.matrixV().col( 3 );
+  vital::jacobi_svd< T > const svd( A );
+  auto const null = svd.null_vector();
+  return vital::vector_< 4, T >( null[ 0 ], null[ 1 ], null[ 2 ], null[ 3 ] );
 }
 
 /// Triangulate a 3D point from a set of RPC cameras and 2D image points
 template < typename T >
-Eigen::Matrix< T, 3, 1 >
+vital::vector_< 3, T >
 triangulate_rpc(
   const std::vector< vital::simple_camera_rpc >& cameras,
-  const std::vector< Eigen::Matrix< T, 2, 1 > >& points )
+  const std::vector< vital::vector_< 2, T > >& points )
 {
   // Get the pairs of points to define the rays
   std::vector< std::pair< vital::vector_3d, vital::vector_3d > > pts;
 
-  Eigen::Array3d curr_scale = cameras[ 0 ].world_scale().array();
-  Eigen::Array3d curr_offset = cameras[ 0 ].world_offset().array();
-  Eigen::Array3d min_pos = curr_offset - curr_scale;
-  Eigen::Array3d max_pos = curr_offset + curr_scale;
+  // Eigen spelled these `Array3d` so that the arithmetic would be
+  // element-wise; on a vector it already is.
+  vital::vector_3d curr_scale = cameras[ 0 ].world_scale();
+  vital::vector_3d curr_offset = cameras[ 0 ].world_offset();
+  vital::vector_3d min_pos = curr_offset - curr_scale;
+  vital::vector_3d max_pos = curr_offset + curr_scale;
 
   for( size_t i = 0; i < points.size(); ++i )
   {
     // Get world offset and scale to set normalization and sample heights
-    curr_scale = cameras[ i ].world_scale().array();
-    curr_offset = cameras[ i ].world_offset().array();
+    curr_scale = cameras[ i ].world_scale();
+    curr_offset = cameras[ i ].world_offset();
 
-    min_pos = min_pos.min( curr_offset - curr_scale );
-    max_pos = max_pos.max( curr_offset + curr_scale );
+    min_pos = min_pos.cwiseMin( curr_offset - curr_scale );
+    max_pos = max_pos.cwiseMax( curr_offset + curr_scale );
 
     double h1 = ( curr_offset - curr_scale )[ 2 ];
     double h2 = ( curr_offset + curr_scale )[ 2 ];
@@ -270,8 +274,8 @@ triangulate_rpc(
   }
 
   // Get normalization factors for full point set
-  vital::vector_3d scale = 0.5 * ( max_pos.matrix() - min_pos.matrix() );
-  vital::vector_3d offset = 0.5 * ( max_pos.matrix() + min_pos.matrix() );
+  vital::vector_3d scale = 0.5 * ( max_pos - min_pos );
+  vital::vector_3d offset = 0.5 * ( max_pos + min_pos );
 
   vital::matrix_3x3d M = vital::matrix_3x3d::Zero();
   vital::vector_3d v( 0., 0., 0. );
@@ -293,29 +297,29 @@ triangulate_rpc(
 
   // Un-normalize before return
   return ( scale.cwiseProduct(
-    M.colPivHouseholderQr().solve( v ) ) + offset ).cast< T >();
+    M.solve( v ) ) + offset ).cast< T >();
 }
 
 /// \cond DoxygenSuppress
 #define INSTANTIATE_TRIANGULATE( T )                              \
-template VIAME_MEASUREMENT_EXPORT Eigen::Matrix< T, 3, 1 >          \
+template VIAME_MEASUREMENT_EXPORT vital::vector_< 3, T >          \
 triangulate_fast_two_view(                                        \
   const vital::simple_camera_perspective& camera0,                \
   const vital::simple_camera_perspective& camera1,                \
-  const Eigen::Matrix< T, 2, 1 >& point0,                         \
-  const Eigen::Matrix< T, 2, 1 >& point1 );                       \
-template VIAME_MEASUREMENT_EXPORT Eigen::Matrix< T, 4, 1 >          \
+  const vital::vector_< 2, T >& point0,                         \
+  const vital::vector_< 2, T >& point1 );                       \
+template VIAME_MEASUREMENT_EXPORT vital::vector_< 4, T >          \
 triangulate_homog(                                                \
   const std::vector< vital::simple_camera_perspective >& cameras, \
-  const std::vector< Eigen::Matrix< T, 2, 1 > >& points );        \
-template VIAME_MEASUREMENT_EXPORT Eigen::Matrix< T, 3, 1 >          \
+  const std::vector< vital::vector_< 2, T > >& points );        \
+template VIAME_MEASUREMENT_EXPORT vital::vector_< 3, T >          \
 triangulate_inhomog(                                              \
   const std::vector< vital::simple_camera_perspective >& cameras, \
-  const std::vector< Eigen::Matrix< T, 2, 1 > >& points );        \
-template VIAME_MEASUREMENT_EXPORT Eigen::Matrix< T, 3, 1 >          \
+  const std::vector< vital::vector_< 2, T > >& points );        \
+template VIAME_MEASUREMENT_EXPORT vital::vector_< 3, T >          \
 triangulate_rpc(                                                  \
   const std::vector< vital::simple_camera_rpc >& cameras,         \
-  const std::vector< Eigen::Matrix< T, 2, 1 > >& points );
+  const std::vector< vital::vector_< 2, T > >& points );
 
 INSTANTIATE_TRIANGULATE( double );
 INSTANTIATE_TRIANGULATE( float );

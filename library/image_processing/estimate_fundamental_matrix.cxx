@@ -8,7 +8,7 @@
 #include "estimate_fundamental_matrix.h"
 
 #include <opencv2/calib3d/calib3d.hpp>
-#include <opencv2/core/eigen.hpp>
+#include <viame/opencv_bridge/matrix.h>
 
 namespace kwiver {
 
@@ -97,7 +97,7 @@ estimate_fundamental_matrix
   }
 
   vital::matrix_3x3d F_mat;
-  cv2eigen( F, F_mat );
+  mat_to_matrix( F, F_mat );
   return vital::fundamental_matrix_sptr(
     new vital::fundamental_matrix_< double >( F_mat ) );
 }

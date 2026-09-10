@@ -30,10 +30,10 @@ assert_valid( local_tangent_space const& space )
 }
 
 // ----------------------------------------------------------------------------
-Eigen::Matrix3d
+matrix_3x3d
 axes_at_point( vital::geo_point const& point )
 {
-  Eigen::Matrix3d axes;
+  matrix_3x3d axes;
 
   if( point.is_empty() )
   {
@@ -129,12 +129,12 @@ local_tangent_space
       rotation =
         rotation *
         vital::rotation_d{ axes_at_point( global_point ) } *
-      vital::rotation_d{ Eigen::Matrix3d{ m_axes.transpose() } };
+      vital::rotation_d{ matrix_3x3d{ m_axes.transpose() } };
       break;
     case SRID::ECEF_WGS84:
       rotation =
         rotation *
-        vital::rotation_d{ Eigen::Matrix3d{ m_axes.transpose() } };
+        vital::rotation_d{ matrix_3x3d{ m_axes.transpose() } };
       break;
     default:
       throw std::runtime_error( "Unsupported CRS" );
@@ -169,7 +169,7 @@ local_tangent_space
       rotation =
         rotation *
         vital::rotation_d{ m_axes } *
-      vital::rotation_d{ Eigen::Matrix3d{
+      vital::rotation_d{ matrix_3x3d{
                            axes_at_point( global_point ).transpose() } };
       break;
     case SRID::ECEF_WGS84:

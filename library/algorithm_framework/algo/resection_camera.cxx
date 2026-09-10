@@ -37,7 +37,7 @@ resection_camera
   auto cal = std::make_shared< simple_camera_intrinsics >(
     ( width + height ) * 0.5,
     principal_point, 1.0, 0.0,
-    Eigen::VectorXd(), width, height );
+    vector_d(), width, height );
 
   // Resection using guessed calibration.
   return resection( frame_id, landmarks, tracks, cal, inliers );

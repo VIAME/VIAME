@@ -3,10 +3,7 @@
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
 #include <viame/core_types/homography.h>
-
-#include <Eigen/Core>
-
-#include <pybind11/eigen.h>
+#include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
@@ -27,7 +24,7 @@ void
 declare_homogaphy( py::module& m, std::string const& typestr )
 {
   using Class = kv::homography_< T >;
-  using matrix_t = Eigen::Matrix< T, 3, 3 >;
+  using matrix_t = kwiver::vital::matrix_< 3, 3, T >;
 
   const std::string pyclass_name = std::string( "Homography" ) + typestr;
 

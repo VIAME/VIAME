@@ -24,7 +24,7 @@
   #include <viame/opencv_bridge/image_container.h>
   #include <opencv2/imgproc/imgproc.hpp>
   #include <opencv2/imgcodecs.hpp>
-  #include <opencv2/core/eigen.hpp>
+  #include <viame/opencv_bridge/matrix.h>
 #endif
 
 #include <algorithm>
@@ -1691,8 +1691,8 @@ triangulate_point(
   const kv::vector_2d& left_point,
   const kv::vector_2d& right_point )
 {
-  Eigen::Matrix<double, 2, 1> left_pt( left_point.x(), left_point.y() );
-  Eigen::Matrix<double, 2, 1> right_pt( right_point.x(), right_point.y() );
+  kv::vector_< 2, double > left_pt( left_point.x(), left_point.y() );
+  kv::vector_< 2, double > right_pt( right_point.x(), right_point.y() );
 
   auto point_3d = kwiver::arrows::mvg::triangulate_fast_two_view(
     left_cam, right_cam, left_pt, right_pt );
@@ -3008,10 +3008,10 @@ map_keypoints_to_camera
   cv::Mat K1, K2, D1, D2, R, T;
 
   // Camera matrices
-  Eigen::Matrix3d K1_eigen = left_intrinsics->as_matrix();
-  Eigen::Matrix3d K2_eigen = right_intrinsics->as_matrix();
-  cv::eigen2cv( K1_eigen, K1 );
-  cv::eigen2cv( K2_eigen, K2 );
+  kv::matrix_3x3d K1_mat = left_intrinsics->as_matrix();
+  kv::matrix_3x3d K2_mat = right_intrinsics->as_matrix();
+  kwiver::arrows::ocv::matrix_to_mat( K1_mat, K1 );
+  kwiver::arrows::ocv::matrix_to_mat( K2_mat, K2 );
 
   // Distortion coefficients
   D1 = cv::Mat::zeros( 5, 1, CV_64F );
@@ -3036,15 +3036,15 @@ map_keypoints_to_camera
 
   // Compute rotation and translation from left camera frame to right camera frame
   // X_right = R_relative * X_left + t_relative
-  Eigen::Matrix3d R_left = left_cam.rotation().matrix();
-  Eigen::Matrix3d R_right = right_cam.rotation().matrix();
-  Eigen::Matrix3d R_relative = R_right * R_left.transpose();
+  kv::matrix_3x3d R_left = left_cam.rotation().matrix();
+  kv::matrix_3x3d R_right = right_cam.rotation().matrix();
+  kv::matrix_3x3d R_relative = R_right * R_left.transpose();
 
   // Translation: t = R_right * (C_left - C_right)
-  Eigen::Vector3d t_relative = R_right * ( left_cam.center() - right_cam.center() );
+  kv::vector_3d t_relative = R_right * ( left_cam.center() - right_cam.center() );
 
-  cv::eigen2cv( R_relative, R );
-  cv::eigen2cv( t_relative, T );
+  kwiver::arrows::ocv::matrix_to_mat( R_relative, R );
+  kwiver::arrows::ocv::vector_to_mat( t_relative, T );
 
   // Compute rectification transforms
   cv::Mat Q;

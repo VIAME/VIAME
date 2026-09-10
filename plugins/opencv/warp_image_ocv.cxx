@@ -12,7 +12,7 @@
 #include <viame/opencv_bridge/image_container.h>
 
 #include <opencv2/core/core.hpp>
-#include <opencv2/core/eigen.hpp>
+#include <viame/opencv_bridge/matrix.h>
 #include <opencv2/imgproc/imgproc.hpp>
 
 namespace viame {
@@ -59,9 +59,10 @@ warp_image_ocv
       dst_image->get_image(), ocv::image_container::BGR_COLOR ).clone() :
     cv::Mat::zeros( source.size(), source.type() );
 
-  Eigen::Matrix< double, 3, 3 > const eigen_matrix = homography->matrix();
+  kwiver::vital::matrix_< 3, 3, double > const homog_matrix =
+    homography->matrix();
   cv::Mat matrix;
-  cv::eigen2cv( eigen_matrix, matrix );
+  ocv::matrix_to_mat( homog_matrix, matrix );
 
   cv::Mat warped;
   cv::warpPerspective( source, warped, matrix, dest.size() );

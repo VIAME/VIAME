@@ -32,6 +32,18 @@ namespace vital {
 template < unsigned R, unsigned C, typename T > class matrix_;
 
 // ----------------------------------------------------------------------------
+/// The tolerance below which a value counts as zero, by element type.
+///
+/// Eigen calls this `NumTraits< T >::dummy_precision()` and the values are
+/// its: 1e-12 for a double, 1e-5 for a float. Kept because the two callers
+/// compare a homography's bottom-right entry against it, and changing the
+/// threshold would change which homographies are called affine.
+template < typename T > constexpr T math_dummy_precision();
+
+template <> constexpr double math_dummy_precision< double >() { return 1e-12; }
+template <> constexpr float math_dummy_precision< float >() { return 1e-5f; }
+
+// ----------------------------------------------------------------------------
 /// A column vector of \p N elements of \p T.
 template < unsigned N, typename T >
 class vector_
@@ -220,6 +232,94 @@ public:
     return out;
   }
 
+  // --------------------------------------------------------------------------
+  // Coefficient-wise operations
+  //
+  // Eigen spells these through `.array()`, which turns a vector into an
+  // expression whose operators are element-wise. There is no expression type
+  // here, so the named forms are what remain.
+  vector_ cwiseProduct( vector_ const& o ) const
+  {
+    vector_ out;
+    for( unsigned i = 0; i < N; ++i ) { out[ i ] = d_[ i ] * o[ i ]; }
+    return out;
+  }
+
+  vector_ cwiseQuotient( vector_ const& o ) const
+  {
+    vector_ out;
+    for( unsigned i = 0; i < N; ++i ) { out[ i ] = d_[ i ] / o[ i ]; }
+    return out;
+  }
+
+  vector_ cwiseAbs() const
+  {
+    vector_ out;
+    for( unsigned i = 0; i < N; ++i )
+    {
+      out[ i ] = d_[ i ] < T( 0 ) ? -d_[ i ] : d_[ i ];
+    }
+    return out;
+  }
+
+  vector_ cwiseMin( vector_ const& o ) const
+  {
+    vector_ out;
+    for( unsigned i = 0; i < N; ++i )
+    {
+      out[ i ] = d_[ i ] < o[ i ] ? d_[ i ] : o[ i ];
+    }
+    return out;
+  }
+
+  vector_ cwiseMax( vector_ const& o ) const
+  {
+    vector_ out;
+    for( unsigned i = 0; i < N; ++i )
+    {
+      out[ i ] = d_[ i ] > o[ i ] ? d_[ i ] : o[ i ];
+    }
+    return out;
+  }
+
+  /// Element-wise, with a scalar added to each.
+  vector_ cwisePlus( T s ) const
+  {
+    vector_ out;
+    for( unsigned i = 0; i < N; ++i ) { out[ i ] = d_[ i ] + s; }
+    return out;
+  }
+
+  bool allFinite() const
+  {
+    for( unsigned i = 0; i < N; ++i )
+    {
+      if( !std::isfinite( d_[ i ] ) ) { return false; }
+    }
+    return true;
+  }
+
+  /// Every element within \p tolerance of zero.
+  bool isZero( T tolerance = std::numeric_limits< T >::epsilon() *
+                             T( 100 ) ) const
+  {
+    for( unsigned i = 0; i < N; ++i )
+    {
+      T const x = d_[ i ] < T( 0 ) ? -d_[ i ] : d_[ i ];
+      if( x > tolerance ) { return false; }
+    }
+    return true;
+  }
+
+  /// The first \p M elements, with the count known at run time; the caller
+  /// must ask for no more than there are.
+  vector_ head( unsigned m ) const
+  {
+    vector_ out;
+    for( unsigned i = 0; i < m && i < N; ++i ) { out[ i ] = d_[ i ]; }
+    return out;
+  }
+
   /// The first \p M elements.
   template < unsigned M >
   vector_< M, T > head() const
@@ -248,6 +348,46 @@ public:
     for( unsigned i = 0; i < M; ++i ) { out[ i ] = d_[ start + i ]; }
     return out;
   }
+
+  /// From a one-column matrix, which is the same thing.
+  vector_( matrix_< N, 1, T > const& m );
+
+  /// From the first \p N elements of a run-time-length vector.
+  ///
+  /// Eigen assigned a `VectorXd` straight into a `Vector3d` and checked the
+  /// length at run time; this has to be asked for, and it is asked for in the
+  /// three places that read a fixed-length thing out of metadata.
+  template < typename Dynamic >
+  static vector_ from_dynamic( Dynamic const& d )
+  {
+    vector_ out;
+    for( unsigned i = 0; i < N && i < d.size(); ++i ) { out[ i ] = d[ i ]; }
+    return out;
+  }
+
+  // --------------------------------------------------------------------------
+  /// Filling a vector an element at a time: `v << a, b, c;`
+  ///
+  /// Eigen's comma initialiser. See `matrix.h` for why it is kept.
+  class comma_initializer
+  {
+  public:
+    comma_initializer( vector_& v, T first ) : v_( v ), at_( 0 )
+    { operator,( first ); }
+
+    comma_initializer& operator,( T value )
+    {
+      if( at_ < N ) { v_[ at_++ ] = value; }
+      return *this;
+    }
+
+  private:
+    vector_& v_;
+    unsigned at_;
+  };
+
+  comma_initializer operator<<( T first )
+  { return comma_initializer( *this, first ); }
 
   /// As a one-column matrix, which a product with a row vector needs.
   matrix_< N, 1, T > asMatrix() const;
@@ -311,12 +451,6 @@ std::ostream& operator<<( std::ostream& os, vector_< N, T > const& v )
   return os;
 }
 
-template < unsigned N, typename T >
-std::istream& operator>>( std::istream& is, vector_< N, T >& v )
-{
-  for( unsigned i = 0; i < N; ++i ) { is >> v[ i ]; }
-  return is;
-}
 
 /// \cond DoxygenSuppress
 typedef vector_< 2, int >    vector_2i;

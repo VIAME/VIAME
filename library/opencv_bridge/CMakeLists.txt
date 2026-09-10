@@ -20,6 +20,7 @@ set( plugin_headers
   image_container.h
   mat_image_memory.h
   match_set.h
+  matrix.h
   )
 
 set( plugin_sources

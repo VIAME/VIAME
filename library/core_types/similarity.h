@@ -51,7 +51,7 @@ public:
   /// \param t the translation vector
   similarity_(
     const T& s, const rotation_< T >& r,
-    const Eigen::Matrix< T, 3, 1 >& t )
+    const vector_< 3, T >& t )
     : scale_( s ),
       rot_( r ),
       trans_( t )
@@ -62,10 +62,10 @@ public:
   /// requires a matrix which represents a similarity tranformation
   /// in homogeneous coordinates
   /// \param mat Transform in matrix form to initialize from.
-  explicit similarity_( const Eigen::Matrix< T, 4, 4 >& mat );
+  explicit similarity_( const matrix_< 4, 4, T >& mat );
 
   /// Convert to a 4x4 matrix
-  Eigen::Matrix< T, 4, 4 > matrix() const;
+  matrix_< 4, 4, T > matrix() const;
 
   /// Return scale factor
   const T&
@@ -76,7 +76,7 @@ public:
   rotation() const { return rot_; }
 
   /// Return the translation vector
-  const Eigen::Matrix< T, 3, 1 >&
+  const vector_< 3, T >&
   translation() const { return trans_; }
 
   /// Compute the inverse similarity
@@ -101,8 +101,7 @@ public:
   /// \note for a large number of vectors, it is more efficient to
   ///       create a transform matrix and use matrix multiplication
   /// \param rhs vector to transform.
-  Eigen::Matrix< T, 3,
-    1 > operator*( const Eigen::Matrix< T, 3, 1 >& rhs ) const;
+  vector_< 3, T > operator*( const vector_< 3, T >& rhs ) const;
 
   /// Equality operator
   inline bool
@@ -126,7 +125,7 @@ protected:
   /// rotation
   rotation_< T > rot_;
   /// translation
-  Eigen::Matrix< T, 3, 1 > trans_;
+  vector_< 3, T > trans_;
 
   kwiver::vital::logger_handle_t m_logger;
 };

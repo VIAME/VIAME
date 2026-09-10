@@ -5,8 +5,6 @@
 /// \file
 /// \brief Implementation of \link kwiver::vital::camera_perspective
 /// camera_perspective \endlink class
-
-#include <Eigen/Geometry>
 #include <viame/algorithm_framework/io/eigen_io.h>
 #include <viame/core_types/camera_perspective.h>
 #include <viame/core_types/matrix.h>
@@ -72,7 +70,7 @@ operator<<( std::ostream& s, const camera_perspective& c )
   using std::setprecision;
 
   std::vector< double > dc = c.intrinsics()->dist_coeffs();
-  Eigen::VectorXd d = Eigen::VectorXd::Map( dc.data(), dc.size() );
+  vector_d d = vector_d::Map( dc.data(), dc.size() );
   // if no distortion coefficients, create a zero entry as a place holder
   if( d.rows() == 0 )
   {
@@ -155,7 +153,7 @@ operator>>( std::istream& s, simple_camera_perspective& k )
     dValues.push_back( dVal );
   }
 
-  Eigen::VectorXd d( dValues.size() );
+  vector_d d( dValues.size() );
 
   for( size_t i = 0; i < dValues.size(); ++i )
   {

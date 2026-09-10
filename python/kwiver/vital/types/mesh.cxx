@@ -5,7 +5,7 @@
 #include <viame/algorithm_framework/io/mesh_io.h>
 #include <viame/core_types/mesh.h>
 
-#include <pybind11/eigen.h>
+#include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 

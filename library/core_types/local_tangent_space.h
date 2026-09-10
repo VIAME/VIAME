@@ -74,7 +74,7 @@ public:
 
 private:
   geo_point m_origin;
-  Eigen::Matrix3d m_axes;
+  matrix_3x3d m_axes;
 };
 
 // ----------------------------------------------------------------------------

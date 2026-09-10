@@ -5,8 +5,6 @@
 /// \file
 /// \brief Implementation of \link kwiver::vital::camera_rpc
 /// camera_rpc \endlink class
-
-#include <Eigen/Geometry>
 #include <viame/algorithm_framework/io/eigen_io.h>
 #include <viame/core_types/camera_rpc.h>
 
@@ -68,7 +66,11 @@ camera_rpc
     3 ) ) * norm_pt[ 1 ] -
            ( rpc_coeffs()( 2, 0 ) + norm_elev * rpc_coeffs()( 2, 3 ) );
 
-  rslt.head( 2 ) = A.colPivHouseholderQr().solve( b );
+  // `head( 2 )` was an assignable block in Eigen; here it is a value, so the
+  // two elements go in by name.
+  vector_2d const first = A.solve( b );
+  rslt[ 0 ] = first[ 0 ];
+  rslt[ 1 ] = first[ 1 ];
 
   // Apply gradient descendent until convergence. Should converge
   // in a few interations.
@@ -79,8 +81,9 @@ camera_rpc
 
     this->jacobian( rslt, J, pt );
 
-    vector_2d step = J.colPivHouseholderQr().solve( norm_pt - pt );
-    rslt.head( 2 ) += step;
+    vector_2d step = J.solve( norm_pt - pt );
+    rslt[ 0 ] += step[ 0 ];
+    rslt[ 1 ] += step[ 1 ];
     if( step.cwiseAbs().maxCoeff() < 1.e-16 )
     {
       break;
@@ -90,7 +93,7 @@ camera_rpc
   return rslt.cwiseProduct( this->world_scale() ) + this->world_offset();
 }
 
-Eigen::Matrix< double, 20, 1 >
+vector_< 20, double >
 camera_rpc
 ::power_vector( const vector_3d& pt )
 {
@@ -118,7 +121,7 @@ camera_rpc
   double zzz = zz * z;
 
   // Fill in vector
-  Eigen::Matrix< double, 20, 1 > retVec;
+  vector_< 20, double > retVec;
   retVec << w, x, y, z, xy, xz, yz, xx, yy, zz,
     xyz, xxx, xyy, xzz, xxy, yyy, yzz, xxz, yyz, zzz;
   return retVec;
@@ -161,10 +164,10 @@ void
 simple_camera_rpc
 ::jacobian( const vector_3d& pt, matrix_2x2d& J, vector_2d& norm_pt ) const
 {
-  Eigen::Matrix< double, 20, 1 > pv = this->power_vector( pt );
+  vector_< 20, double > pv = this->power_vector( pt );
   vector_4d ply = this->rpc_coeffs() * pv;
-  vector_4d dx_ply = this->dx_coeffs_ * pv.head( 10 );
-  vector_4d dy_ply = this->dy_coeffs_ * pv.head( 10 );
+  vector_4d dx_ply = this->dx_coeffs_ * pv.head< 10 >();
+  vector_4d dy_ply = this->dy_coeffs_ * pv.head< 10 >();
 
   J(
     0,

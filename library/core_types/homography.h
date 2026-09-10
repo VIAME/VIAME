@@ -40,7 +40,7 @@ public:
   ///
   /// \return A copy of the transformation matrix represented in the double
   ///         type.
-  virtual Eigen::Matrix< double, 3, 3 > matrix() const = 0;
+  virtual matrix_< 3, 3, double > matrix() const = 0;
 
   /// Get a new \p homography that has been normalized
   ///
@@ -76,7 +76,7 @@ class VITAL_TYPES_EXPORT homography_
 {
 public:
   typedef T value_type;
-  typedef Eigen::Matrix< T, 3, 3 > matrix_t;
+  typedef matrix_< 3, 3, T > matrix_t;
 
   /// Construct an identity homography
   homography_();
@@ -115,7 +115,7 @@ public:
   ///
   /// \return A copy of the transformation matrix represented in the double
   ///         type.
-  Eigen::Matrix< double, 3, 3 > matrix() const override;
+  matrix_< 3, 3, double > matrix() const override;
 
   /// Get a new \p homography that has been normalized
   ///
@@ -156,7 +156,7 @@ public:
   /// \tparam T Point vector data type
   /// \param p Point to map against this homography
   /// \return New point in the projected coordinate system.
-  Eigen::Matrix< T, 2, 1 > map_point( Eigen::Matrix< T, 2, 1 > const& p ) const;
+  vector_< 2, T > map_point( vector_< 2, T > const& p ) const;
 
   /// Custom multiplication operator that multiplies the underlying matrices
   ///

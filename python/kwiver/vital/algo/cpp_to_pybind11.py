@@ -282,7 +282,7 @@ def create_class_implementation(
     stream(COMMAND_STRING)
     stream("")
     stream("#define KWIVER_PYBIND11_INCLUDE")
-    stream("#include <pybind11/eigen.h>")
+    stream("#include <viame/core_types/casters.h>")
     stream("#include <pybind11/pybind11.h>")
 
     stream("")

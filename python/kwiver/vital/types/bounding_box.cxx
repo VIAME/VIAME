@@ -4,10 +4,7 @@
 
 #include <string.h>
 #include <viame/core_types/bounding_box.h>
-
-#include <Eigen/Core>
-
-#include <pybind11/eigen.h>
+#include <viame/core_types/casters.h>
 #include <pybind11/embed.h>
 #include <pybind11/pybind11.h>
 
@@ -51,10 +48,10 @@ bounding_box( py::module& m, const char* typestr )
 
     )" )
     .def(
-    py::init< Eigen::Matrix< T, 2, 1 >, Eigen::Matrix< T, 2, 1 > >(),
+    py::init< kwiver::vital::vector_< 2, T >, kwiver::vital::vector_< 2, T > >(),
     py::arg( "upper_left" ), py::arg( "lower_right" ) )
     .def(
-      py::init< Eigen::Matrix< T, 2, 1 >, T, T >(), py::arg( "upper_left" ),
+      py::init< kwiver::vital::vector_< 2, T >, T, T >(), py::arg( "upper_left" ),
       py::arg( "width" ), py::arg( "height" ) )
     .def(
       py::init< T, T, T, T >(),

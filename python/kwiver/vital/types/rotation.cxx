@@ -4,7 +4,7 @@
 
 #include <viame/core_types/rotation.h>
 
-#include <pybind11/eigen.h>
+#include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -58,11 +58,11 @@ declare_rotation(
     .def( py::init() )
     .def( py::init< const kv::rotation_< float >& >() )
     .def( py::init< const kv::rotation_< double >& >() )
-    .def( py::init< const Eigen::Matrix< T, 4, 1 >& >() )
-    .def( py::init< const Eigen::Matrix< T, 3, 1 >& >() )
-    .def( py::init< T, const Eigen::Matrix< T, 3, 1 >& >() )
+    .def( py::init< const kwiver::vital::vector_< 4, T >& >() )
+    .def( py::init< const kwiver::vital::vector_< 3, T >& >() )
+    .def( py::init< T, const kwiver::vital::vector_< 3, T >& >() )
     .def( py::init< const T&, const T&, const T& >() )
-    .def( py::init< const Eigen::Matrix< T, 3, 3 >& >() )
+    .def( py::init< const kwiver::vital::matrix_< 3, 3, T >& >() )
     .def( "matrix", &Class::matrix )
     .def( "axis", &Class::axis )
     .def( "angle", &Class::angle )
@@ -92,7 +92,7 @@ declare_rotation(
         return self * other;
       } )
     .def(
-      "__mul__", []( const Class& self, const Eigen::Matrix< T, 3, 1 >& rhs ){
+      "__mul__", []( const Class& self, const kwiver::vital::vector_< 3, T >& rhs ){
         return self * rhs;
       } )
     .def(

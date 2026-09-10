@@ -39,8 +39,14 @@ kwiver_add_library( viame_svm
 target_include_directories( viame_svm PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-   # darknet's and libsvm's headers, which come from the dependency tree
-  # this build takes fletch from; phase 1 vendors them
+  )
+
+# darknet's and libsvm's headers, which come from the dependency tree this
+# build takes fletch from; phase 1 vendors them. SYSTEM, so that the prefix
+# reaches the compiler as -isystem and lands after every -I: VIAME installs
+# its own headers into the same prefix, and an -I would let the copy left
+# there by the last install shadow the tree being built.
+target_include_directories( viame_svm SYSTEM PUBLIC
   $<BUILD_INTERFACE:${VIAME_DEPENDENCY_INCLUDE_DIRS}>
   )
 

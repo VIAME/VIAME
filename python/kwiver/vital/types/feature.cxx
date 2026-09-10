@@ -4,7 +4,7 @@
 
 #include <viame/core_types/feature.h>
 
-#include <pybind11/eigen.h>
+#include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 
 #include <sstream>
@@ -35,7 +35,7 @@ declare_feature( py::module& m, std::string const& typestr )
     .def( py::init<>() )
     .def( py::init< kv::feature const& >() )
     .def(
-      py::init< Eigen::Matrix< T, 2, 1 > const&, T, T, T,
+      py::init< kwiver::vital::vector_< 2, T > const&, T, T, T,
         kv::rgb_color const& >(),
       py::arg( "loc" ),
       py::arg( "mag" ) = 0.0,

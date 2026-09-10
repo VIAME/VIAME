@@ -82,7 +82,7 @@ public:
   ///
   /// \param loc 3D location of the landmark
   /// \param scale optional scale of the landmark (default of 1)
-  landmark_( Eigen::Matrix< T, 3, 1 > const& loc, T scale = 1 );
+  landmark_( vector_< 3, T > const& loc, T scale = 1 );
 
   /// Constructor for a landmark_ from a base class landmark
   explicit landmark_( landmark const& f );
@@ -101,7 +101,7 @@ public:
   data_type() const { return typeid( T ); }
 
   /// Accessor for the world coordinates using underlying data type
-  Eigen::Matrix< T, 3, 1 > const&
+  vector_< 3, T > const&
   get_loc() const { return loc_; }
 
   /// Accessor for the cosine of the maximum observation angle using underlying
@@ -126,7 +126,7 @@ public:
   scale() const { return static_cast< double >( scale_ ); }
 
   /// Accessor for the landmark normal using underlying data type
-  Eigen::Matrix< T, 3, 1 > const&
+  vector_< 3, T > const&
   get_normal() const { return normal_; }
 
   /// Accessor for the landmark normal
@@ -158,14 +158,14 @@ public:
   observations() const { return observations_; }
 
   /// Set the landmark position in world coordinates
-  void set_loc( Eigen::Matrix< T, 3, 1 > const& loc ) { loc_ = loc; }
+  void set_loc( vector_< 3, T > const& loc ) { loc_ = loc; }
 
   /// Set the scale of the landmark
   void set_scale( T scale ) { scale_ = scale; }
 
   /// Set the landmark normal
   void
-  set_normal( Eigen::Matrix< T, 3, 1 > const& normal )
+  set_normal( vector_< 3, T > const& normal )
   {
     normal_ = normal;
   }
@@ -188,11 +188,11 @@ public:
 
 protected:
   /// A vector representing the 3D position of the landmark
-  Eigen::Matrix< T, 3, 1 > loc_;
+  vector_< 3, T > loc_;
   /// The scale of the landmark in 3D
   T scale_;
   /// A vector representing the normal of the landmark
-  Eigen::Matrix< T, 3, 1 > normal_;
+  vector_< 3, T > normal_;
   /// Covariance representing uncertainty in the estimate of 3D position
   covariance_< 3, T > covar_;
   /// The RGB color associated with the landmark

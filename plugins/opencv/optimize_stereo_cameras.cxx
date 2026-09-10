@@ -22,7 +22,7 @@
 #include <viame/measurement/camera_intrinsics.h>
 
 #include <opencv2/calib3d/calib3d.hpp>
-#include <opencv2/core/eigen.hpp>
+#include <viame/opencv_bridge/matrix.h>
 #include <opencv2/core/persistence.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -238,12 +238,12 @@ optimize_stereo_cameras
   kv::matrix_3x3d K1;
   auto res_cam1 = std::make_shared< kv::simple_camera_perspective >();
 
-  Eigen::VectorXd dist_eig1( dist_coeffs.cols );
+  kv::vector_d dist_eig1( dist_coeffs.cols );
   for( auto const i : kv::range::iota( dist_coeffs.cols ) )
   {
     dist_eig1[static_cast< int >( i )] = dist_coeffs.at< double >( i );
   }
-  cv::cv2eigen( cv_K1, K1 );
+  kwiver::arrows::ocv::mat_to_matrix( cv_K1, K1 );
 
   kv::camera_intrinsics_sptr cal1;
   cal1 = std::make_shared< kv::simple_camera_intrinsics >( K1, dist_eig1 );
@@ -324,12 +324,12 @@ optimize_stereo_cameras
   // Get mono camera calibration params
   kv::matrix_3x3d K1 = cam1->intrinsics()->as_matrix();
   cv::Mat cv_K1;
-  eigen2cv( K1, cv_K1 );
+  kwiver::arrows::ocv::matrix_to_mat( K1, cv_K1 );
   auto dist_coeffs1 = kwiver::arrows::ocv::get_ocv_dist_coeffs( cam1->intrinsics() );
 
   kv::matrix_3x3d K2 = cam2->intrinsics()->as_matrix();
   cv::Mat cv_K2;
-  eigen2cv( K2, cv_K2 );
+  kwiver::arrows::ocv::matrix_to_mat( K2, cv_K2 );
   auto dist_coeffs2 = kwiver::arrows::ocv::get_ocv_dist_coeffs( cam2->intrinsics() );
 
   LOG_INFO( logger(), "Running stereo calibration..." );
@@ -426,12 +426,12 @@ optimize_stereo_cameras
   auto res_cam1 = std::make_shared< kv::simple_camera_perspective >();
   auto const dc_size1 = dist_coeffs1.size();
 
-  Eigen::VectorXd dist_eig1( dist_coeffs1.size() );
+  kv::vector_d dist_eig1( dist_coeffs1.size() );
   for( auto const i : kv::range::iota( dc_size1 ) )
   {
     dist_eig1[static_cast< int >( i )] = dist_coeffs1.at( i );
   }
-  cv::cv2eigen( cv_K1, K1 );
+  kwiver::arrows::ocv::mat_to_matrix( cv_K1, K1 );
 
   kv::camera_intrinsics_sptr cal1;
   cal1 = std::make_shared< kv::simple_camera_intrinsics >( K1, dist_eig1 );
@@ -441,17 +441,17 @@ optimize_stereo_cameras
   cv::Mat rvec2;
   auto res_cam2 = std::make_shared< kv::simple_camera_perspective >();
   cv::Rodrigues( cv_R, rvec2 );
-  Eigen::Vector3d rvec_eig2, tvec_eig2;
+  kv::vector_3d rvec_eig2, tvec_eig2;
   auto const dc_size2 = dist_coeffs2.size();
 
-  Eigen::VectorXd dist_eig2( dist_coeffs2.size() );
+  kv::vector_d dist_eig2( dist_coeffs2.size() );
   for( auto const i : kv::range::iota( dc_size2 ) )
   {
     dist_eig2[static_cast< int >( i )] = dist_coeffs2[i];
   }
-  cv::cv2eigen( rvec2, rvec_eig2 );
-  cv::cv2eigen( cv_T, tvec_eig2 );
-  cv::cv2eigen( cv_K2, K2 );
+  kwiver::arrows::ocv::mat_to_vector( rvec2, rvec_eig2 );
+  kwiver::arrows::ocv::mat_to_vector( cv_T, tvec_eig2 );
+  kwiver::arrows::ocv::mat_to_matrix( cv_K2, K2 );
   kv::rotation_d rot2{ rvec_eig2 };
   res_cam2->set_rotation( rot2 );
   res_cam2->set_translation( tvec_eig2 );

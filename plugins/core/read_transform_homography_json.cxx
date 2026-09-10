@@ -8,10 +8,6 @@
 
 #include <viame/core_types/homography.h>
 
-// homography.h only brings in Eigen/Core; determinant() and inverse()
-// live in the LU module
-#include <Eigen/LU>
-
 // Pulled in for the vendored rapidjson headers and to route rapidjson
 // assertions to exceptions rather than aborts
 #include <cereal/archives/json.hpp>
@@ -40,14 +36,14 @@ struct registration_pair
   std::string right;
   bool has_left_to_right = false;
   bool has_right_to_left = false;
-  Eigen::Matrix< double, 3, 3 > left_to_right;
-  Eigen::Matrix< double, 3, 3 > right_to_left;
+  kwiver::vital::matrix_< 3, 3, double > left_to_right;
+  kwiver::vital::matrix_< 3, 3, double > right_to_left;
 };
 
 // Read a row-major 3x3 matrix stored as [ [ a, b, c ], ... ]; false when the
 // value is null or otherwise not a numeric 3x3
 bool read_matrix3( rapidjson::Value const& value,
-                   Eigen::Matrix< double, 3, 3 >& output )
+                   kwiver::vital::matrix_< 3, 3, double >& output )
 {
   if( !value.IsArray() || value.Size() != 3 )
   {
@@ -77,8 +73,8 @@ bool read_matrix3( rapidjson::Value const& value,
   return true;
 }
 
-Eigen::Matrix< double, 3, 3 >
-invert_homography( Eigen::Matrix< double, 3, 3 > const& matrix,
+kwiver::vital::matrix_< 3, 3, double >
+invert_homography( kwiver::vital::matrix_< 3, 3, double > const& matrix,
                    std::string const& filename )
 {
   if( std::abs( matrix.determinant() ) <= 1e-12 )
@@ -169,7 +165,7 @@ parse_registration_file( std::string const& filename )
 
 // Resolve the selected pair to a from->to matrix, inverting the stored
 // direction when only the opposite one was fitted
-Eigen::Matrix< double, 3, 3 >
+kwiver::vital::matrix_< 3, 3, double >
 forward_matrix( registration_pair const& pair, std::string const& filename )
 {
   if( pair.has_left_to_right )
@@ -180,7 +176,7 @@ forward_matrix( registration_pair const& pair, std::string const& filename )
   return invert_homography( pair.right_to_left, filename );
 }
 
-Eigen::Matrix< double, 3, 3 >
+kwiver::vital::matrix_< 3, 3, double >
 reverse_matrix( registration_pair const& pair, std::string const& filename )
 {
   if( pair.has_right_to_left )
@@ -209,7 +205,7 @@ read_transform_homography_json
 {
   auto const pairs = parse_registration_file( filename );
 
-  Eigen::Matrix< double, 3, 3 > matrix;
+  kwiver::vital::matrix_< 3, 3, double > matrix;
 
   if( c_from_camera.empty() && c_to_camera.empty() )
   {
@@ -265,7 +261,7 @@ read_transform_homography_json
       "Only homography transforms can be saved in DIVE format" );
   }
 
-  Eigen::Matrix< double, 3, 3 > const matrix = homog->matrix();
+  kwiver::vital::matrix_< 3, 3, double > const matrix = homog->matrix();
 
   std::string const left =
     c_from_camera.empty() ? "left" : c_from_camera;
@@ -280,7 +276,7 @@ read_transform_homography_json
     rapidjson::Value( registration_file_type.c_str(), alloc ), alloc );
   document.AddMember( "version", 2, alloc );
 
-  auto make_matrix = [&alloc]( Eigen::Matrix< double, 3, 3 > const& m )
+  auto make_matrix = [&alloc]( kwiver::vital::matrix_< 3, 3, double > const& m )
   {
     rapidjson::Value rows( rapidjson::kArrayType );
     for( unsigned r = 0; r < 3; ++r )
@@ -303,7 +299,7 @@ read_transform_homography_json
   if( std::abs( matrix.determinant() ) > 1e-12 )
   {
     pair.AddMember( "rightToLeft",
-      make_matrix( Eigen::Matrix< double, 3, 3 >( matrix.inverse() ) ), alloc );
+      make_matrix( kwiver::vital::matrix_< 3, 3, double >( matrix.inverse() ) ), alloc );
   }
   else
   {

@@ -81,8 +81,8 @@ struct MatchData
   double dz;                // Z difference between keypoints
   std::pair<cv::Point2d, cv::Point2d> keypoints1;  // head/tail for detection 1
   std::pair<cv::Point2d, cv::Point2d> keypoints2;  // head/tail for detection 2
-  Eigen::Vector3f world_pt1;  // 3D world point for head
-  Eigen::Vector3f world_pt2;  // 3D world point for tail
+  kv::vector_3f world_pt1;  // 3D world point for head
+  kv::vector_3f world_pt2;  // 3D world point for tail
 };
 
 // =============================================================================
@@ -99,7 +99,7 @@ public:
     const kv::simple_camera_perspective& right_cam,
     const cv::Point2d& pt1,
     const cv::Point2d& pt2,
-    Eigen::Vector3f& world_pt );
+    kv::vector_3f& world_pt );
 
   // Find optimal matching between detection sets
   std::vector< MatchData > find_matches(
@@ -160,11 +160,11 @@ measure_objects_process::priv
   const kv::simple_camera_perspective& right_cam,
   const cv::Point2d& pt1,
   const cv::Point2d& pt2,
-  Eigen::Vector3f& world_pt )
+  kv::vector_3f& world_pt )
 {
-  // Convert to Eigen format
-  Eigen::Matrix< float, 2, 1 > left_pt( static_cast< float >( pt1.x ), static_cast< float >( pt1.y ) );
-  Eigen::Matrix< float, 2, 1 > right_pt( static_cast< float >( pt2.x ), static_cast< float >( pt2.y ) );
+  // Convert to vital format
+  kv::vector_< 2, float > left_pt( static_cast< float >( pt1.x ), static_cast< float >( pt1.y ) );
+  kv::vector_< 2, float > right_pt( static_cast< float >( pt2.x ), static_cast< float >( pt2.y ) );
 
   // Triangulate using kwiver's fast two-view method
   world_pt = kwiver::arrows::mvg::triangulate_fast_two_view(
@@ -323,7 +323,7 @@ measure_objects_process::priv
       const auto& kp2 = kpts2[j];
 
       // Triangulate both keypoints
-      Eigen::Vector3f world_pt_head, world_pt_tail;
+      kv::vector_3f world_pt_head, world_pt_tail;
 
       double err_head = triangulate_and_error(
         left_cam, right_cam, kp1.first, kp2.first, world_pt_head );

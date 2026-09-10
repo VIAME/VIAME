@@ -4,7 +4,7 @@
 
 #include <viame/core_types/fundamental_matrix.h>
 
-#include <pybind11/eigen.h>
+#include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 
 #include <cctype>
@@ -27,7 +27,7 @@ declare_fundamental_matrix(
 
   const std::string pyclass_name = std::string( "FundamentalMatrix" ) +
                                    class_typestr;
-  typedef Eigen::Matrix< T, 3, 3 > matrix_t;
+  typedef kwiver::vital::matrix_< 3, 3, T > matrix_t;
 
   py::class_< Class, std::shared_ptr< Class >, kv::fundamental_matrix >(
     m,

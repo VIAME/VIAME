@@ -119,7 +119,7 @@ class VITAL_TYPES_EXPORT simple_camera_intrinsics
 {
 public:
   /// typedef for Eigen dynamic vector
-  typedef Eigen::VectorXd vector_t;
+  typedef vector_d vector_t;
 
   /// Default Constructor
   simple_camera_intrinsics()

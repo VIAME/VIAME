@@ -1,9 +1,10 @@
 #ifndef VIAME_OPENCV_FILTER_STEREO_FEATURE_TRACKS_H
 #define VIAME_OPENCV_FILTER_STEREO_FEATURE_TRACKS_H
 
+#include <opencv2/core.hpp>
+
 #include <viame/core_types/feature_track_set.h>
 #include <viame/core_types/landmark_map.h>
-#include <opencv2/core/eigen.hpp>
 #include "viame_opencv_export.h"
 
 namespace viame {

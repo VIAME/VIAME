@@ -6,8 +6,6 @@
 /// \brief Implementation of \link kwiver::vital::camera_intrinsics_
 ///        camera_intrinsics_<T> \endlink class
 ///        for \c T = { \c float, \c double }
-
-#include <Eigen/Dense>
 #include <viame/algorithm_framework/io/eigen_io.h>
 #include <viame/core_types/math_constants.h>
 #include <viame/core_types/camera_intrinsics.h>
@@ -94,7 +92,7 @@ template < typename T >
 T
 radial_distortion_scale(
   const T r2,
-  const Eigen::VectorXd&  d )
+  const vector_d&  d )
 {
   T scale = T( 1 );
 
@@ -129,20 +127,20 @@ radial_distortion_scale(
 template < typename T >
 void
 distortion_scale_offset(
-  const Eigen::Matrix< T, 2, 1 >& pt,
-  const Eigen::VectorXd& d,
-  T& scale, Eigen::Matrix< T, 2, 1 >& offset )
+  const vector_< 2, T >& pt,
+  const vector_d& d,
+  T& scale, vector_< 2, T >& offset )
 {
   const T x2 = pt.x() * pt.x();
   const T y2 = pt.y() * pt.y();
   const T r2 = x2 + y2;
 
   scale = radial_distortion_scale( r2, d );
-  offset = Eigen::Matrix< T, 2, 1 >( T( 0 ), T( 0 ) );
+  offset = vector_< 2, T >( T( 0 ), T( 0 ) );
   if( d.rows() > 3 )
   {
     const T two_xy = 2 * pt.x() * pt.y();
-    offset = Eigen::Matrix< T, 2, 1 >(
+    offset = vector_< 2, T >(
       d[ 2 ] * two_xy + d[ 3 ] * ( r2 + 2 * x2 ),
       d[ 3 ] * two_xy + d[ 2 ] * ( r2 + 2 * y2 ) );
   }
@@ -153,7 +151,7 @@ template < typename T >
 T
 radial_distortion_deriv(
   const T r2,
-  const Eigen::VectorXd&  d )
+  const vector_d&  d )
 {
   T deriv = T( 0 );
 
@@ -185,10 +183,10 @@ radial_distortion_deriv(
 
 /// Compute the Jacobian of the distortion at a point
 template < typename T >
-Eigen::Matrix< T, 2, 2 >
+matrix_< 2, 2, T >
 distortion_jacobian(
-  const Eigen::Matrix< T, 2, 1 >& pt,
-  const Eigen::VectorXd& d )
+  const vector_< 2, T >& pt,
+  const vector_d& d )
 {
   const T x2 = pt.x() * pt.x();
   const T y2 = pt.y() * pt.y();
@@ -196,7 +194,7 @@ distortion_jacobian(
   const T r2 = x2 + y2;
   const T d_scale = 2 * radial_distortion_deriv( r2, d );
   const T scale = radial_distortion_scale( r2, d );
-  Eigen::Matrix< T, 2, 2 > J;
+  matrix_< 2, 2, T > J;
 
   J << d_scale * x2 + scale, d_scale* xy,
     d_scale* xy, d_scale* y2 + scale;
@@ -266,7 +264,7 @@ simple_camera_intrinsics
     {
       break;
     }
-    norm_pt -= J.ldlt().solve( residual );
+    norm_pt -= J.solve( residual );
   }
   return norm_pt;
 }
@@ -422,7 +420,7 @@ std::istream&
 operator>>( std::istream& s, simple_camera_intrinsics& k )
 {
   matrix_3x3d K;
-  Eigen::VectorXd d;
+  vector_d d;
 
   s >> K >> d;
   // a single 0 in d is used as a place holder,

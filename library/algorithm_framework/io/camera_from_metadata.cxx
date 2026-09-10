@@ -17,14 +17,14 @@ namespace kwiver {
 namespace vital {
 
 /// Extract scale or offset metadata to a vector
-Eigen::VectorXd
+vector_d
 tags_to_vector(
   metadata_sptr const& md,
   std::vector< vital_metadata_tag > tags )
 {
   auto vec_length = tags.size();
 
-  Eigen::VectorXd rslt( vec_length );
+  vector_d rslt( vec_length );
 
   for( size_t i = 0; i < vec_length; ++i )
   {
@@ -62,7 +62,9 @@ tags_to_matrix(
   {
     if( auto& mdi = md->find( tags[ i ] ) )
     {
-      rslt.row( i ) = string_to_vector( mdi.as_string() );
+      // `row()` was an assignable block in Eigen and is a value here.
+      rslt.set_row( i, vector_< 20, double >::from_dynamic(
+                         string_to_vector( mdi.as_string() ) ) );
     }
     else
     {
@@ -76,7 +78,7 @@ tags_to_matrix(
 }
 
 /// Convert space separated strings to Eigen vector
-Eigen::VectorXd
+vector_d
 VITAL_EXPORT
 string_to_vector( std::string const& s )
 {
@@ -88,7 +90,7 @@ string_to_vector( std::string const& s )
     tokens.push_back( token );
   }
 
-  Eigen::VectorXd result( tokens.size() );
+  vector_d result( tokens.size() );
   for( size_t i = 0; i < tokens.size(); ++i )
   {
     result[ i ] = std::stod( tokens[ i ] );
@@ -110,23 +112,23 @@ camera_from_metadata( metadata_sptr const& md )
     VITAL_META_RPC_LONG_SCALE,
     VITAL_META_RPC_LAT_SCALE,
     VITAL_META_RPC_HEIGHT_SCALE };
-  world_scale = tags_to_vector( md, world_scale_tags );
+  world_scale = vector_3d::from_dynamic( tags_to_vector( md, world_scale_tags ) );
 
   std::vector< vital_metadata_tag > world_offset_tags = {
     VITAL_META_RPC_LONG_OFFSET,
     VITAL_META_RPC_LAT_OFFSET,
     VITAL_META_RPC_HEIGHT_OFFSET };
-  world_offset = tags_to_vector( md, world_offset_tags );
+  world_offset = vector_3d::from_dynamic( tags_to_vector( md, world_offset_tags ) );
 
   std::vector< vital_metadata_tag > image_scale_tags = {
     VITAL_META_RPC_ROW_SCALE,
     VITAL_META_RPC_COL_SCALE };
-  image_scale = tags_to_vector( md, image_scale_tags );
+  image_scale = vector_2d::from_dynamic( tags_to_vector( md, image_scale_tags ) );
 
   std::vector< vital_metadata_tag > image_offset_tags = {
     VITAL_META_RPC_ROW_OFFSET,
     VITAL_META_RPC_COL_OFFSET };
-  image_offset = tags_to_vector( md, image_offset_tags );
+  image_offset = vector_2d::from_dynamic( tags_to_vector( md, image_offset_tags ) );
 
   std::vector< vital_metadata_tag > rpc_coeffs_tags = {
     VITAL_META_RPC_ROW_NUM_COEFF,
@@ -180,7 +182,7 @@ intrinsics_from_metadata(
   vector_2d pp( 0.5 * im_w, 0.5 * im_h );
   return std::make_shared< simple_camera_intrinsics >(
     focal_len, pp, 1.0, 0.0,
-    Eigen::VectorXd(), image_width, image_height );
+    vector_d(), image_width, image_height );
 }
 
 /// Use a sequence of metadata objects to initialize a sequence of cameras

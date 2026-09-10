@@ -28,7 +28,9 @@ add_definitions(-DWINDOWS_EXTRA_LEAN)
 if(${MSVC_VERSION} GREATER_EQUAL 1915)
   # You must acknowledge that you understand MSVC
   # resolved a byte alignment issue in this compiler.
-  # We get this due to using Eigen objects and
-  # allocating those objects with make_shared
+  # We got this from allocating over-aligned objects with make_shared. Eigen
+  # was what asked for the alignment; phase 6 replaced it with
+  # core_types/math, which asks for none, so this is here for anything else
+  # that might.
   add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE)
 endif()

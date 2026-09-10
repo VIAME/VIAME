@@ -18,7 +18,7 @@
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/features2d.hpp>
-#include <opencv2/core/eigen.hpp>
+#include <viame/opencv_bridge/matrix.h>
 
 #include <fstream>
 #include <algorithm>
@@ -880,10 +880,12 @@ rig_to_calibration_result(
     return out;
   };
 
-  cv::eigen2cv( kv::matrix_3x3d( left->intrinsics()->as_matrix() ),
-                result.left.camera_matrix );
-  cv::eigen2cv( kv::matrix_3x3d( right->intrinsics()->as_matrix() ),
-                result.right.camera_matrix );
+  kwiver::arrows::ocv::matrix_to_mat(
+    kv::matrix_3x3d( left->intrinsics()->as_matrix() ),
+    result.left.camera_matrix );
+  kwiver::arrows::ocv::matrix_to_mat(
+    kv::matrix_3x3d( right->intrinsics()->as_matrix() ),
+    result.right.camera_matrix );
   result.left.dist_coeffs = to_dist( left->intrinsics() );
   result.right.dist_coeffs = to_dist( right->intrinsics() );
 
@@ -894,8 +896,8 @@ rig_to_calibration_result(
   kv::matrix_3x3d const rotation = r_right * r_left.transpose();
   kv::vector_3d const translation = r_right * ( left->center() - right->center() );
 
-  cv::eigen2cv( rotation, result.R );
-  cv::eigen2cv( kv::vector_3d( translation ), result.T );
+  kwiver::arrows::ocv::matrix_to_mat( rotation, result.R );
+  kwiver::arrows::ocv::vector_to_mat( kv::vector_3d( translation ), result.T );
 
   result.left.success = !result.left.camera_matrix.empty();
   result.right.success = !result.right.camera_matrix.empty();
@@ -1055,8 +1057,8 @@ calibrate_stereo_cameras::to_kwiver_intrinsics(
   double cx = K.at<double>( 0, 2 );
   double cy = K.at<double>( 1, 2 );
 
-  // Convert distortion coefficients to Eigen vector
-  Eigen::VectorXd dist( D.rows );
+  // Convert distortion coefficients to a vital vector
+  kv::vector_d dist( D.rows );
   for( int i = 0; i < D.rows; ++i )
   {
     dist[i] = D.at<double>( i );
@@ -1093,17 +1095,17 @@ calibrate_stereo_cameras::to_kwiver_cameras(
   // Right camera: with rotation R and translation T
   right_camera = std::make_shared<kv::simple_camera_perspective>();
 
-  // Convert R to Eigen matrix
-  Eigen::Matrix3d R_eigen;
-  cv::cv2eigen( result.R, R_eigen );
-  kv::rotation_d rotation( R_eigen );
+  // Convert R to a vital matrix
+  kv::matrix_3x3d R_mat;
+  kwiver::arrows::ocv::mat_to_matrix( result.R, R_mat );
+  kv::rotation_d rotation( R_mat );
 
-  // Convert T to Eigen vector
-  Eigen::Vector3d T_eigen;
-  cv::cv2eigen( result.T, T_eigen );
+  // Convert T to a vital vector
+  kv::vector_3d T_vec;
+  kwiver::arrows::ocv::mat_to_vector( result.T, T_vec );
 
   right_camera->set_rotation( rotation );
-  right_camera->set_translation( T_eigen );
+  right_camera->set_translation( T_vec );
   right_camera->set_intrinsics( to_kwiver_intrinsics( result.right ) );
 }
 

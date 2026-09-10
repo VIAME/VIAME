@@ -69,8 +69,8 @@ kwiver::vital::bounding_box_d
 viame::pair_stereo_detections
 ::mask_rect_to_bbox( const cv::Rect& rect )
 {
-  return { { rect.tl().x, rect.tl().y },
-           { rect.br().x, rect.br().y } };
+  return { kwiver::vital::vector_2d( rect.tl().x, rect.tl().y ),
+           kwiver::vital::vector_2d( rect.br().x, rect.br().y ) };
 }
 
 
@@ -111,7 +111,7 @@ inline void print( const kwiver::vital::bounding_box_d& bbox, const std::string&
             << bbox.lower_right().y() << "})" << std::endl;
 }
 
-inline void print( const Eigen::Matrix< double, 2, 1 >& mat, const std::string& context )
+inline void print( const kwiver::vital::vector_< 2, double >& mat, const std::string& context )
 {
   std::cout << context << " {" << mat.x() << ", " << mat.y() << "}" << std::endl;
 }
@@ -345,9 +345,9 @@ viame::pair_stereo_detections
                       const cv::Mat& pos_3d_map,
                       float score ) const
 {
-  const auto saturate_corner = [&pos_3d_map]( const Eigen::Matrix< double, 2, 1 >& corner )
+  const auto saturate_corner = [&pos_3d_map]( const kwiver::vital::vector_< 2, double >& corner )
   {
-    return Eigen::Matrix< double, 2, 1 >{
+    return kwiver::vital::vector_< 2, double >{
       std::max( 0., std::min( pos_3d_map.size().width - 1., corner.x() ) ),
       std::max( 0., std::min( pos_3d_map.size().height - 1., corner.y() ) ) };
   };
@@ -420,12 +420,12 @@ viame::pair_stereo_detections
 ::project_to_right_image( const kwiver::vital::bounding_box_d& bbox,
                           const cv::Mat& pos_3d_map ) const
 {
-  auto saturate_pos = [&pos_3d_map]( const Eigen::Matrix< double, 2, 1 >& corner )
+  auto saturate_pos = [&pos_3d_map]( const kwiver::vital::vector_< 2, double >& corner )
   {
     auto x = std::min( std::max( corner.x(), 0. ), pos_3d_map.size().width - 1. );
     auto y = std::min( std::max( corner.y(), 0. ), pos_3d_map.size().height - 1. );
 
-    return Eigen::Matrix< double, 2, 1 >{ x, y };
+    return kwiver::vital::vector_< 2, double >{ x, y };
   };
 
   // Saturate upper left and lower right coordinates to image coordinates
@@ -516,17 +516,17 @@ viame::pair_stereo_detections
 ::iou_distance( const kwiver::vital::bounding_box_d& bbox1,
                 const kwiver::vital::bounding_box_d& bbox2 )
 {
-  Eigen::AlignedBox< double, 2 > bbox1_eig{ bbox1.upper_left(), bbox1.lower_right() };
-  Eigen::AlignedBox< double, 2 > bbox2_eig{ bbox2.upper_left(), bbox2.lower_right() };
+  kwiver::vital::aligned_box< double, 2 > bbox1_box{ bbox1.upper_left(), bbox1.lower_right() };
+  kwiver::vital::aligned_box< double, 2 > bbox2_box{ bbox2.upper_left(), bbox2.lower_right() };
 
   // Early return if the input bounding boxes are invalid or don't intersect
-  if( !bbox1.is_valid() || !bbox2.is_valid() || !bbox1_eig.intersects( bbox2_eig ) )
+  if( !bbox1.is_valid() || !bbox2.is_valid() || !bbox1_box.intersects( bbox2_box ) )
   {
     return 0;
   }
 
-  auto bbox_intersection = bbox1_eig.intersection( bbox2_eig ).volume();
-  auto bbox_union = bbox1_eig.volume() + bbox2_eig.volume() - bbox_intersection;
+  auto bbox_intersection = bbox1_box.intersection( bbox2_box ).volume();
+  auto bbox_union = bbox1_box.volume() + bbox2_box.volume() - bbox_intersection;
   return bbox_intersection / bbox_union;
 }
 
@@ -639,7 +639,7 @@ viame::pair_stereo_detections
   ProcessTracker< size_t > tracker;
 
   const auto most_probable_right_detection = [&right_detections, &tracker](
-      const Eigen::Matrix< double, 2, 1 >& left_point, const std::string& left_class )
+      const kwiver::vital::vector_< 2, double >& left_point, const std::string& left_class )
   {
     int i_best = -1;
     auto dist_best = std::numeric_limits< double >::max();

@@ -10,9 +10,6 @@
 #include <cmath>
 
 #include <viame/algorithm_framework/exceptions/math.h>
-
-#include <Eigen/LU>
-
 namespace kwiver {
 
 namespace vital {
@@ -22,20 +19,20 @@ namespace // anonymous
 
 /// Private helper method for point transformation via homography matrix
 template < typename T >
-Eigen::Matrix< T, 2, 1 >
+vector_< 2, T >
 h_map_point(
-  Eigen::Matrix< T, 3, 3 > const& h,
-  Eigen::Matrix< T, 2, 1 > const& p )
+  matrix_< 3, 3, T > const& h,
+  vector_< 2, T > const& p )
 {
-  Eigen::Matrix< T, 3, 1 > out_pt = h * Eigen::Matrix< T, 3, 1 >(
+  vector_< 3, T > out_pt = h * vector_< 3, T >(
     p[ 0 ],
     p[ 1 ], 1.0 );
 
-  if( fabs( out_pt[ 2 ] ) <= Eigen::NumTraits< T >::dummy_precision() )
+  if( fabs( out_pt[ 2 ] ) <= math_dummy_precision< T >() )
   {
     VITAL_THROW( point_maps_to_infinity );
   }
-  return Eigen::Matrix< T, 2, 1 >(
+  return vector_< 2, T >(
     out_pt[ 0 ] / out_pt[ 2 ],
     out_pt[ 1 ] / out_pt[ 2 ] );
 }
@@ -54,7 +51,7 @@ homography_< T >
 template < typename T >
 homography_< T >
 
-::homography_( Eigen::Matrix< T, 3, 3 > const& mat )
+::homography_( matrix_< 3, 3, T > const& mat )
   : h_( mat )
 {}
 
@@ -103,7 +100,7 @@ homography_< T >
 
 /// Get a double-typed copy of the underlying matrix transformation
 template < typename T >
-Eigen::Matrix< double, 3, 3 >
+matrix_< 3, 3, double >
 homography_< T >
 ::matrix() const
 {
@@ -112,7 +109,7 @@ homography_< T >
 
 /// Specialization for homographies with native double type
 template <>
-Eigen::Matrix< double, 3, 3 >
+matrix_< 3, 3, double >
 homography_< double >
 ::matrix() const
 {
@@ -127,7 +124,7 @@ homography_< T >
 {
   matrix_t norm = this->get_matrix();
 
-  if( fabs( norm( 2, 2 ) ) >= Eigen::NumTraits< T >::dummy_precision() )
+  if( fabs( norm( 2, 2 ) ) >= math_dummy_precision< T >() )
   {
     norm /= norm( 2, 2 );
   }
@@ -140,35 +137,36 @@ homography_sptr
 homography_< T >
 ::inverse() const
 {
-  matrix_t inv;
-  bool isvalid;
-
-  this->h_.computeInverseWithCheck( inv, isvalid );
-  if( !isvalid )
+  // Eigen answered this with `computeInverseWithCheck`, which is the
+  // determinant against the same threshold.
+  T const det = this->h_.determinant();
+  if( !( std::abs( det ) > math_dummy_precision< T >() ) )
   {
     VITAL_THROW( non_invertible );
   }
+
+  matrix_t const inv = this->h_.inverse();
   return std::make_shared< homography_< T > >( inv );
 }
 
 /// Map a 2D double-type point using this homography
 template < typename T >
-Eigen::Matrix< double, 2, 1 >
+vector_< 2, double >
 homography_< T >
-::map( Eigen::Matrix< double, 2, 1 > const& p ) const
+::map( vector_< 2, double > const& p ) const
 {
   // Explicitly refer to templated version of method so as to not infinitely
   // recurse.
-  Eigen::Matrix< double, 3, 3 > m = h_.template cast< double >();
+  matrix_< 3, 3, double > m = h_.template cast< double >();
 
   return h_map_point( m, p );
 }
 
 /// Map a 2D double-type point using this homography -- double specialization
 template <>
-Eigen::Matrix< double, 2, 1 >
+vector_< 2, double >
 homography_< double >
-::map( Eigen::Matrix< double, 2, 1 > const& p ) const
+::map( vector_< 2, double > const& p ) const
 {
   return h_map_point( h_, p );
 }
@@ -195,27 +193,27 @@ homography_< T >
 
 /// Map a 2D point using this homography -- generic version
 template < typename T >
-Eigen::Matrix< T, 2, 1 >
+vector_< 2, T >
 homography_< T >
-::map_point( Eigen::Matrix< T, 2, 1 > const& p ) const
+::map_point( vector_< 2, T > const& p ) const
 {
   return h_map_point< T >( h_.template cast< T >(), p );
 }
 
 /// Map a 2D point using this homography -- float specialization
 template <>
-Eigen::Matrix< float, 2, 1 >
+vector_< 2, float >
 homography_< float >
-::map_point( Eigen::Matrix< float, 2, 1 > const& p ) const
+::map_point( vector_< 2, float > const& p ) const
 {
   return h_map_point( h_, p );
 }
 
 /// Map a 2D point using this homography -- double specialization
 template <>
-Eigen::Matrix< double, 2, 1 >
+vector_< 2, double >
 homography_< double >
-::map_point( Eigen::Matrix< double, 2, 1 > const& p ) const
+::map_point( vector_< 2, double > const& p ) const
 {
   return h_map_point( h_, p );
 }

@@ -29,7 +29,7 @@ public:
   /// \param to_id
   /// \tparam T Data type for the underlying homography transformation
   template < typename T > explicit f2f_homography(
-    Eigen::Matrix< T, 3, 3 > const& h,
+    matrix_< 3, 3, T > const& h,
     frame_id_t const from_id,
     frame_id_t const to_id )
     : h_( homography_sptr( new homography_< T >( h ) ) ),

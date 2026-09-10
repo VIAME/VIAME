@@ -4,7 +4,7 @@
 
 #include <viame/core_types/point.h>
 
-#include <pybind11/eigen.h>
+#include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 
 #include <sstream>
@@ -20,7 +20,7 @@ void
 declare_point( py::module& m, std::string const& typestr )
 {
   using Class = kv::point< N, T >;
-  using vector_type = Eigen::Matrix< T, N, 1 >;
+  using vector_type = kv::vector_< N, T >;
   using covariance_type = kv::covariance_< N, float >;
 
   py::module::import( "kwiver.vital.types.covariance" );
@@ -57,7 +57,7 @@ void
 declare_point2( py::module& m, std::string const& typestr )
 {
   using Class = kv::point< 2, T >;
-  using vector_type = Eigen::Matrix< T, 2, 1 >;
+  using vector_type = kwiver::vital::vector_< 2, T >;
   using covariance_type = kv::covariance_< 2, float >;
 
   py::module::import( "kwiver.vital.types.covariance" );

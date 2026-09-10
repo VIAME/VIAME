@@ -226,7 +226,7 @@ class intrinsics_builder
 private:
   bool valid_;
   double fx_, fy_, cx_, cy_;
-  Eigen::VectorXd dist_;
+  kwiver::vital::vector_d dist_;
 
 public:
   intrinsics_builder(): valid_(false) {}
@@ -234,7 +234,7 @@ public:
                       double fy,                // focal point y
                       double cx,                // principal point x
                       double cy,                // principal point y
-                      const Eigen::VectorXd& dist ) // distortion parameters
+                      const kwiver::vital::vector_d& dist ) // distortion parameters
     : valid_(true), fx_(fx), fy_(fy), cx_(cx), cy_(cy), dist_(dist)
   {}
 
@@ -644,7 +644,7 @@ read_stereo_rig_json( path_t const& FN )
     ar ( cereal::make_nvp( "cy_" + name, cy) );
 
     // Read distortion coefficients: k1, k2, p1, p2, k3
-    Eigen::VectorXd dist(5);
+    vector_d dist(5);
     dist.setZero();
     ar( cereal::make_nvp( "k1_" + name, dist[0] ) );
     ar( cereal::make_nvp( "k2_" + name, dist[1] ) );
@@ -676,7 +676,7 @@ read_stereo_rig_json( path_t const& FN )
   }
 
   ar( CEREAL_NVP(R) );
-  Eigen::Matrix<double,3,3> rm;
+  matrix_< 3, 3, double > rm;
   unsigned k=0;
   for (int i=0; i<n; ++i)
   {
@@ -757,8 +757,8 @@ read_stereo_rig_yaml( path_t const& FN )
   double cy_right = M2->at( 1, 2 );
 
   // Extract distortion coefficients (k1, k2, p1, p2, k3)
-  Eigen::VectorXd dist_left( 5 );
-  Eigen::VectorXd dist_right( 5 );
+  vector_d dist_left( 5 );
+  vector_d dist_right( 5 );
   dist_left.setZero();
   dist_right.setZero();
 
@@ -792,7 +792,7 @@ read_stereo_rig_yaml( path_t const& FN )
   );
 
   // Build right camera with rotation and translation relative to left
-  Eigen::Matrix<double, 3, 3> rm;
+  matrix_< 3, 3, double > rm;
   rm.setIdentity();
 
   if( R && R->is_valid() && R->rows == 3 && R->cols == 3 )
@@ -898,8 +898,8 @@ read_stereo_rig_from_ocv_dir( path_t const& dir_path )
   double cy_right = M2->at( 1, 2 );
 
   // Extract distortion
-  Eigen::VectorXd dist_left( 5 );
-  Eigen::VectorXd dist_right( 5 );
+  vector_d dist_left( 5 );
+  vector_d dist_right( 5 );
   dist_left.setZero();
   dist_right.setZero();
 
@@ -933,7 +933,7 @@ read_stereo_rig_from_ocv_dir( path_t const& dir_path )
   );
 
   // Build right camera
-  Eigen::Matrix<double, 3, 3> rm;
+  matrix_< 3, 3, double > rm;
   rm.setIdentity();
 
   if( R && R->is_valid() && R->rows == 3 && R->cols == 3 )
@@ -1020,8 +1020,8 @@ read_stereo_rig_npz( path_t const& FN )
   double cy_right = (*K2_arr)[5];
 
   // Extract distortion coefficients (k1, k2, p1, p2, k3)
-  Eigen::VectorXd dist_left(5);
-  Eigen::VectorXd dist_right(5);
+  vector_d dist_left(5);
+  vector_d dist_right(5);
   dist_left.setZero();
   dist_right.setZero();
 
@@ -1055,7 +1055,7 @@ read_stereo_rig_npz( path_t const& FN )
   );
 
   // Extract rotation matrix (3x3, row-major)
-  Eigen::Matrix<double, 3, 3> rm;
+  matrix_< 3, 3, double > rm;
   for( int i = 0; i < 3; ++i )
   {
     for( int j = 0; j < 3; ++j )
@@ -1368,7 +1368,7 @@ read_stereo_rig_mat( path_t const& FN )
       double const fy = fc.size() > 1 ? fc[ 1 ] : fc[ 0 ];
       double const cx = cc[ 0 ];
       double const cy = cc.size() > 1 ? cc[ 1 ] : 0.0;
-      Eigen::VectorXd dist( 5 ); dist.setZero();
+      vector_d dist( 5 ); dist.setZero();
       auto it = vars.find( kc_key );
       if( it != vars.end() )
       {
@@ -1476,8 +1476,8 @@ write_stereo_rig_json( camera_rig_stereo_sptr rig, std::string const & FN )
     32, cereal::JSONOutputArchive::Options::IndentChar::space, 2 );
   cereal::JSONOutputArchive ar( of, opt );
   std::vector< std::string > names = { "left", "right" };
-  Eigen::Matrix<double,3,3> Rl;
-  Eigen::Matrix<double,3,1> cl;
+  matrix_< 3, 3, double > Rl;
+  vector_< 3, double > cl;
   for ( auto const & name : names )
   {
     try

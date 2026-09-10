@@ -11,9 +11,6 @@
 
 #include <cassert>
 #include <cmath>
-
-#include <Eigen/LU>
-
 #include <viame/algorithm_framework/io/eigen_io.h>
 
 namespace kwiver {
@@ -24,7 +21,7 @@ namespace vital {
 template < typename T >
 similarity_< T >
 
-::similarity_( const Eigen::Matrix< T, 4, 4 >& M )
+::similarity_( const matrix_< 4, 4, T >& M )
   : m_logger( kwiver::vital::get_logger( "vital.similarity" ) )
 {
   if( ( M( 3, 0 ) != T( 0 ) ) ||
@@ -38,7 +35,7 @@ similarity_< T >
     return;
   }
 
-  Eigen::Matrix< T, 3, 3 > sr = M.template block< 3, 3 >( 0, 0 );
+  matrix_< 3, 3, T > sr = M.template block< 3, 3 >( 0, 0 );
   this->scale_ = sr.determinant();
   if( this->scale_ <= T( 0 ) )
   {
@@ -60,11 +57,11 @@ similarity_< T >
 
 /// Convert to a 4x4 matrix
 template < typename T >
-Eigen::Matrix< T, 4, 4 >
+matrix_< 4, 4, T >
 similarity_< T >
 ::matrix() const
 {
-  Eigen::Matrix< T, 4, 4 > mat = Eigen::Matrix< T, 4, 4 >::Zero();
+  matrix_< 4, 4, T > mat = matrix_< 4, 4, T >::Zero();
   mat( 3, 3 ) = 1;
   mat.template block< 3, 3 >( 0, 0 ) = this->scale_ * this->rot_.matrix();
   mat.template block< 3, 1 >( 0, 3 ) = this->trans_;
@@ -85,9 +82,9 @@ similarity_< T >
 
 /// Transform a vector
 template < typename T >
-Eigen::Matrix< T, 3, 1 >
+vector_< 3, T >
 similarity_< T >
-::operator*( const Eigen::Matrix< T, 3, 1 >& rhs ) const
+::operator*( const vector_< 3, T >& rhs ) const
 {
   return this->scale_ * ( this->rot_ * rhs ) + this->trans_;
 }
@@ -109,7 +106,7 @@ operator>>( std::istream& s, similarity_< T >& t )
   T sc;
 
   rotation_< T > ro;
-  Eigen::Matrix< T, 3, 1 > tr;
+  vector_< 3, T > tr;
   s >> sc >> ro >> tr;
   t = similarity_< T >( sc, ro, tr );
   return s;

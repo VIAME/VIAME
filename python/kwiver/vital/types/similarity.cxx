@@ -4,7 +4,7 @@
 
 #include <viame/core_types/similarity.h>
 
-#include <pybind11/eigen.h>
+#include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 
 #include <memory>
@@ -35,8 +35,8 @@ declare_similarity(
     .def( py::init< kv::similarity_< double > const& >() )
     .def(
       py::init< T const&, kv::rotation_< T > const&,
-        Eigen::Matrix< T, 3, 1 > const& >() )
-    .def( py::init< Eigen::Matrix< T, 4, 4 > const& >() )
+        kwiver::vital::vector_< 3, T > const& >() )
+    .def( py::init< kwiver::vital::matrix_< 4, 4, T > const& >() )
     .def( "matrix", &Class::matrix )
     .def( "inverse", &Class::inverse )
     .def(
@@ -44,7 +44,7 @@ declare_similarity(
         return self * other;
       } )
     .def(
-      "__mul__", []( Class const& self, Eigen::Matrix< T, 3, 1 > const& rhs ){
+      "__mul__", []( Class const& self, kwiver::vital::vector_< 3, T > const& rhs ){
         return self * rhs;
       } )
     .def(

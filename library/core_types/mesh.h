@@ -11,6 +11,7 @@
 #ifndef VITAL_MESH_H_
 #define VITAL_MESH_H_
 
+#include <algorithm>
 #include <cassert>
 #include <memory>
 #include <set>
@@ -98,9 +99,9 @@ class mesh_vertex_array : public mesh_vertex_array_base
 {
   /// typedef for d-dimensional point
   ///
-  /// \note Eigen::Matrix<double,2,1> == vector_2d
-  ///   and Eigen::Matrix<double,3,1> == vector_3d
-  typedef Eigen::Matrix< double, 3, 1 > vert_t;
+  /// \note vector_< 2, double > == vector_2d
+  ///   and vector_< 3, double > == vector_3d
+  typedef vector_< 3, double > vert_t;
 
   /// vector of d-dimensional points
   std::vector< vert_t > verts_;

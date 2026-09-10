@@ -23,7 +23,7 @@ namespace vital {
 template < typename T >
 rotation_< T >
 
-::rotation_( const Eigen::Matrix< T, 3, 1 >& rvec )
+::rotation_( const vector_< 3, T >& rvec )
 {
   T mag = rvec.norm();
 
@@ -34,7 +34,7 @@ rotation_< T >
   }
   else
   {
-    q_ = Eigen::Quaternion< T >( Eigen::AngleAxis< T >( mag, rvec / mag ) );
+    q_ = quaternion_< T >::from_axis_angle( mag, rvec / mag );
   }
 }
 
@@ -42,11 +42,8 @@ rotation_< T >
 template < typename T >
 rotation_< T >
 
-::rotation_( T angle, const Eigen::Matrix< T, 3, 1 >& axis )
-  : q_( Eigen::Quaternion< T >(
-      Eigen::AngleAxis< T >(
-        angle,
-        axis.normalized() ) ) )
+::rotation_( T angle, const vector_< 3, T >& axis )
+  : q_( quaternion_< T >::from_axis_angle( angle, axis.normalized() ) )
 {}
 
 /// Constructor - from yaw, pitch, and roll (radians)
@@ -66,7 +63,7 @@ rotation_< T >
   T const cos_y = std::cos( half_y );
   T const sin_z = std::sin( half_z );
   T const cos_z = std::cos( half_z );
-  *this = Eigen::Quaternion< T >{
+  *this = quaternion_< T >{
     cos_x* cos_y* cos_z + sin_x * sin_y * sin_z,
     sin_x* cos_y* cos_z - cos_x * sin_y * sin_z,
     cos_x* sin_y* cos_z + sin_x * cos_y * sin_z,
@@ -79,14 +76,14 @@ rotation_< T >
 template < typename T >
 rotation_< T >
 
-::rotation_( const Eigen::Matrix< T, 3, 3 >& rot )
+::rotation_( const matrix_< 3, 3, T >& rot )
 {
-  q_ = Eigen::Quaternion< T >( rot );
+  q_ = quaternion_< T >( rot );
 }
 
 /// Convert to a 3x3 matrix
 template < typename T >
-Eigen::Matrix< T, 3, 3 >
+matrix_< 3, 3, T >
 rotation_< T >
 ::matrix() const
 {
@@ -95,16 +92,16 @@ rotation_< T >
 
 /// Returns the axis of rotation
 template < typename T >
-Eigen::Matrix< T, 3, 1 >
+vector_< 3, T >
 rotation_< T >
 ::axis() const
 {
-  Eigen::Matrix< T, 3, 1 > dir( q_.x(), q_.y(), q_.z() );
+  vector_< 3, T > dir( q_.x(), q_.y(), q_.z() );
   T mag = dir.norm();
 
   if( mag == T( 0 ) )
   {
-    return Eigen::Matrix< T, 3, 1 >( 0, 0, 1 );
+    return vector_< 3, T >( 0, 0, 1 );
   }
   return dir / mag;
 }
@@ -118,7 +115,7 @@ rotation_< T >
   static const T _pi = static_cast< T >( pi );
   static const T _two_pi = static_cast< T >( 2.0 * pi );
 
-  const double i = Eigen::Matrix< T, 3, 1 >( q_.x(), q_.y(), q_.z() ).norm();
+  const double i = vector_< 3, T >( q_.x(), q_.y(), q_.z() ).norm();
   const double r = q_.w();
   T a = static_cast< T >( 2.0 * std::atan2( i, r ) );
 
@@ -137,7 +134,7 @@ rotation_< T >
 
 /// Return the rotation as a Rodrigues vector
 template < typename T >
-Eigen::Matrix< T, 3, 1 >
+vector_< 3, T >
 rotation_< T >
 ::rodrigues() const
 {
@@ -145,7 +142,7 @@ rotation_< T >
 
   if( angle == 0.0 )
   {
-    return Eigen::Matrix< T, 3, 1 >( 0, 0, 0 );
+    return vector_< 3, T >( 0, 0, 0 );
   }
   return this->axis() * angle;
 }
@@ -183,9 +180,9 @@ rotation_< T >
 /// \note for a large number of vectors, it is more efficient to
 /// create a rotation matrix and use matrix multiplcation
 template < typename T >
-Eigen::Matrix< T, 3, 1 >
+vector_< 3, T >
 rotation_< T >
-::operator*( const Eigen::Matrix< T, 3, 1 >& rhs ) const
+::operator*( const vector_< 3, T >& rhs ) const
 {
   return q_ * rhs;
 }
@@ -204,7 +201,7 @@ template < typename T >
 std::istream&
 operator>>( std::istream& s, rotation_< T >& r )
 {
-  Eigen::Matrix< T, 4, 1 > q;
+  vector_< 4, T > q;
 
   s >> q;
   r = rotation_< T >( q );
@@ -245,7 +242,7 @@ template < typename T >
 rotation_< T >
 ned_to_enu( rotation_< T > const& r )
 {
-  auto axis = Eigen::Matrix< T, 3, 1 >{ 1, 1, 0 };
+  auto axis = vector_< 3, T >{ 1, 1, 0 };
   auto angle = T{ -pi };
   auto adjustment = rotation_< T >{ angle, axis };
   return adjustment * r;
@@ -255,7 +252,7 @@ template < typename T >
 rotation_< T >
 enu_to_ned( rotation_< T > const& r )
 {
-  auto axis = Eigen::Matrix< T, 3, 1 >{ 1, 1, 0 };
+  auto axis = vector_< 3, T >{ 1, 1, 0 };
   auto angle = T{ pi };
   auto adjustment = rotation_< T >{ angle, axis };
   return adjustment * r;
@@ -266,7 +263,7 @@ rotation_< T >
 sensor_to_camera( rotation_< T > const& r )
 {
   static const rotation_< T > conversion{
-    Eigen::Quaternion< T >{ 0.5, 0.5, 0.5, 0.5 } };
+    quaternion_< T >{ 0.5, 0.5, 0.5, 0.5 } };
   return ( r * conversion ).inverse();
 }
 
@@ -275,7 +272,7 @@ rotation_< T >
 camera_to_sensor( rotation_< T > const& r )
 {
   static const rotation_< T > conversion{
-    Eigen::Quaternion< T >{ 0.5, -0.5, -0.5, -0.5 } };
+    quaternion_< T >{ 0.5, -0.5, -0.5, -0.5 } };
   return r.inverse() * conversion;
 }
 

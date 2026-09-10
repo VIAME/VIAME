@@ -7,12 +7,11 @@
 
 #include "essential_matrix.h"
 
+#include <viame/core_types/math/decomp.h>
+
 #include <cmath>
 
 #include <viame/algorithm_framework/exceptions/math.h>
-
-#include <Eigen/SVD>
-
 namespace kwiver {
 
 namespace vital {
@@ -32,15 +31,16 @@ essential_matrix
 template < typename T >
 essential_matrix_< T >
 
-::essential_matrix_( Eigen::Matrix< T, 3, 3 > const& mat )
+::essential_matrix_( matrix_< 3, 3, T > const& mat )
 {
-  const matrix_t W = ( matrix_t() << T( 0 ), T( -1 ), T( 0 ),
-                       T( 1 ), T( 0 ), T( 0 ),
-                       T( 0 ), T( 0 ), T( 1 ) ).finished();
-  Eigen::JacobiSVD< matrix_t > svd( mat, Eigen::ComputeFullU |
-    Eigen::ComputeFullV );
-  const matrix_t& U = svd.matrixU();
-  const matrix_t& V = svd.matrixV();
+  matrix_t W;
+  W( 0, 0 ) = T( 0 ); W( 0, 1 ) = T( -1 ); W( 0, 2 ) = T( 0 );
+  W( 1, 0 ) = T( 1 ); W( 1, 1 ) = T( 0 );  W( 1, 2 ) = T( 0 );
+  W( 2, 0 ) = T( 0 ); W( 2, 1 ) = T( 0 );  W( 2, 2 ) = T( 1 );
+
+  jacobi_svd< T > const svd{ dynamic_matrix< T >( mat ) };
+  matrix_t const U = svd.matrixU().template block< 3, 3 >( 0, 0 );
+  matrix_t const V = svd.matrixV().template block< 3, 3 >( 0, 0 );
   trans_ = U.col( 2 );
 
   matrix_t R = U * W * V.transpose();
@@ -111,7 +111,7 @@ essential_matrix_< T >
 
 /// Get a double-typed copy of the underlying matrix
 template < typename T >
-Eigen::Matrix< double, 3, 3 >
+matrix_< 3, 3, double >
 essential_matrix_< T >
 ::matrix() const
 {
@@ -120,7 +120,7 @@ essential_matrix_< T >
 
 /// Specialization for matrices with native double type
 template <>
-Eigen::Matrix< double, 3, 3 >
+matrix_< 3, 3, double >
 essential_matrix_< double >
 ::matrix() const
 {
@@ -162,9 +162,13 @@ essential_matrix_< T >
 ::compute_matrix() const
 {
   matrix_t t_cross;
-  t_cross << T( 0 ), -trans_[ 2 ], trans_[ 1 ],
-    trans_[ 2 ], T( 0 ), -trans_[ 0 ],
-    -trans_[ 1 ], trans_[ 0 ], T( 0 );
+  t_cross( 0, 0 ) = T( 0 );        t_cross( 0, 1 ) = -trans_[ 2 ];
+  t_cross( 0, 2 ) = trans_[ 1 ];
+  t_cross( 1, 0 ) = trans_[ 2 ];   t_cross( 1, 1 ) = T( 0 );
+  t_cross( 1, 2 ) = -trans_[ 0 ];
+  t_cross( 2, 0 ) = -trans_[ 1 ];  t_cross( 2, 1 ) = trans_[ 0 ];
+  t_cross( 2, 2 ) = T( 0 );
+
   return t_cross * matrix_t( rot_.matrix() );
 }
 
@@ -174,7 +178,7 @@ rotation_< T >
 essential_matrix_< T >
 ::compute_twisted_rotation() const
 {
-  typedef Eigen::Matrix< T, 4, 1 > vector_4;
+  typedef vector_< 4, T > vector_4;
 
   // The quaternion representation of a 180 degree rotation about
   // unit vector [X,Y,Z] is simply [X, Y, Z, 0]

@@ -7,12 +7,11 @@
 
 #include "fundamental_matrix.h"
 
+#include <viame/core_types/math/decomp.h>
+
 #include <cmath>
 
 #include <viame/algorithm_framework/exceptions/math.h>
-
-#include <Eigen/SVD>
-
 namespace kwiver {
 
 namespace vital {
@@ -21,18 +20,23 @@ namespace vital {
 template < typename T >
 fundamental_matrix_< T >
 
-::fundamental_matrix_( Eigen::Matrix< T, 3, 3 > const& mat )
+::fundamental_matrix_( matrix_< 3, 3, T > const& mat )
 {
-  Eigen::JacobiSVD< matrix_t > svd( mat, Eigen::ComputeFullU |
-    Eigen::ComputeFullV );
-  auto S = svd.singularValues();
-  const matrix_t& U = svd.matrixU();
-  const matrix_t& V = svd.matrixV();
+  jacobi_svd< T > const svd{ dynamic_matrix< T >( mat ) };
+  matrix_t const U = svd.matrixU().template block< 3, 3 >( 0, 0 );
+  matrix_t const V = svd.matrixV().template block< 3, 3 >( 0, 0 );
 
-  // clear the last singular value
-  S[ 2 ] = T( 0 );
-  S /= S.norm();
-  mat_ = U * S.asDiagonal() * V.transpose();
+  // Clear the last singular value: a fundamental matrix has rank two.
+  vector_< 3, T > S( svd.singularValues()[ 0 ], svd.singularValues()[ 1 ],
+                     T( 0 ) );
+  S = S / S.norm();
+
+  matrix_t diagonal;
+  diagonal( 0, 0 ) = S[ 0 ];
+  diagonal( 1, 1 ) = S[ 1 ];
+  diagonal( 2, 2 ) = S[ 2 ];
+
+  mat_ = U * diagonal * V.transpose();
 }
 
 /// Conversion Copy constructor -- float specialization
@@ -80,7 +84,7 @@ fundamental_matrix_< T >
 
 /// Get a double-typed copy of the underlying matrix
 template < typename T >
-Eigen::Matrix< double, 3, 3 >
+matrix_< 3, 3, double >
 fundamental_matrix_< T >
 ::matrix() const
 {
@@ -89,7 +93,7 @@ fundamental_matrix_< T >
 
 /// Specialization for matrices with native double type
 template <>
-Eigen::Matrix< double, 3, 3 >
+matrix_< 3, 3, double >
 fundamental_matrix_< double >
 ::matrix() const
 {

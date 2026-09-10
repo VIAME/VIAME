@@ -4,7 +4,7 @@
 
 #include <viame/core_types/essential_matrix.h>
 
-#include <pybind11/eigen.h>
+#include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 
 #include <sstream>
@@ -26,8 +26,8 @@ declare_essential_matrix(
 
   const std::string pyclass_name = std::string( "EssentialMatrix" ) +
                                    class_typestr;
-  typedef Eigen::Matrix< T, 3, 3 > matrix_t;
-  typedef Eigen::Matrix< T, 3, 1 > vector_t;
+  typedef kwiver::vital::matrix_< 3, 3, T > matrix_t;
+  typedef kwiver::vital::vector_< 3, T > vector_t;
 
   py::class_< Class, std::shared_ptr< Class >, kv::essential_matrix >(
     m,

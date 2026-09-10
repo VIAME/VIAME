@@ -25,7 +25,7 @@ namespace vital {
 /// \param s The string to be converted.
 /// \return The converted vector.
 VITAL_EXPORT
-Eigen::VectorXd
+vector_d
 string_to_vector( std::string const& s );
 
 /// Produce RPC camera from metadata

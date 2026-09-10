@@ -4,7 +4,7 @@
 
 #include <viame/core_types/local_tangent_space.h>
 
-#include <pybind11/eigen.h>
+#include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 
 #include <memory>

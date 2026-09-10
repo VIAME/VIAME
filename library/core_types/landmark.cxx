@@ -43,7 +43,7 @@ landmark_< T >
 template < typename T >
 landmark_< T >
 
-::landmark_( Eigen::Matrix< T, 3, 1 > const& loc, T scale )
+::landmark_( vector_< 3, T > const& loc, T scale )
   : loc_( loc ),
     scale_( scale ),
     normal_( 0, 0, 0 ),
@@ -85,8 +85,8 @@ std::istream&
 operator>>( std::istream& s, landmark_< T >& m )
 {
   // TODO include covariance once stream operators are defined
-  Eigen::Matrix< T, 3, 1 > loc;
-  Eigen::Matrix< T, 3, 1 > normal;
+  vector_< 3, T > loc;
+  vector_< 3, T > normal;
   T scale;
   rgb_color color;
   size_t observations;

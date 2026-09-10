@@ -11,6 +11,7 @@
 #include <viame/algorithm_framework/util/string.h>
 #include <viame/algorithm_framework/util/tokenize.h>
 #include <viame/algorithm_framework/vital_config.h>
+#include <viame/core_types/vector.h>
 #include <viame/core_types/vital_types.h>
 
 #include <viame/opencv_bridge/image_container.h>
@@ -30,7 +31,7 @@ namespace ocv {
 // Constant for offsetting drawn labels
 static const int MULTI_LABEL_OFFSET( 15 );
 
-typedef  Eigen::Matrix< unsigned int, 3, 1 > ColorVector;
+typedef  kwiver::vital::vector_< 3, unsigned int > ColorVector;
 
 // ----------------------------------------------------------------------------
 /// @brief

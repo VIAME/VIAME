@@ -149,9 +149,6 @@ set( CORE_LINK_LIBRARIES
   kwiver::kwiver_adapter
   )
 
-# Eigen is used by metadata parsers
-find_package( Eigen3 REQUIRED NO_MODULE )
-
 # The polygon rasterisation the CSV parsers use is in-house now
 set( AUX_LINK_LIBRARIES viame_image_ops ${AUX_LINK_LIBRARIES} )
 
@@ -301,7 +298,6 @@ kwiver_add_plugin( viame_processes_core
                    kwiver::kwiver_adapter
                    kwiver::vital_util
                    kwiver::vital_vpm
-                   Eigen3::Eigen
                    viame_measurement
                    viame_core
  )

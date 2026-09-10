@@ -2,7 +2,7 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
-#include <pybind11/eigen.h>
+#include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 #include <viame/core_types/landmark.h>
 #include <viame/algorithm_framework/util/demangle.h>
@@ -34,7 +34,7 @@ define_landmark( PyClass& pyclass )
   pyclass
     .def( py::init() )
     .def(
-      py::init< Eigen::Matrix< T, 3, 1 > const&, T >(), py::arg( "loc" ),
+      py::init< kwiver::vital::vector_< 3, T > const&, T >(), py::arg( "loc" ),
       py::arg( "scale" ) = 1 )
     .def( py::init< kv::landmark const& >(), py::arg( "other" ) )
     .def_property_readonly(

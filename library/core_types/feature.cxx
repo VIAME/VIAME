@@ -41,7 +41,7 @@ template < typename T >
 feature_< T >
 
 ::feature_(
-  Eigen::Matrix< T, 2, 1 > const& loc,
+  vector_< 2, T > const& loc,
   T mag, T scale, T angle,
   rgb_color const& color )
   : loc_( loc ),
@@ -93,7 +93,7 @@ std::istream&
 operator>>( std::istream& s, feature_< T >& f )
 {
   // TODO include covariance once stream operators are defined
-  Eigen::Matrix< T, 2, 1 > loc;
+  vector_< 2, T > loc;
   T magnitude;
   T scale;
   T angle;

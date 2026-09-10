@@ -114,8 +114,7 @@ target_link_libraries( vital_types
   PRIVATE
             vital_logger
             vital_util
-  PUBLIC    Eigen3::Eigen
-            vital_config
+  PUBLIC    vital_config
   )
 
 # Republished under the prefix the imported sources use.

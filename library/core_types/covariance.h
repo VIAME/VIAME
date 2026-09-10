@@ -11,6 +11,7 @@
 #include <viame/core_types/vital_types_export.h>
 
 #include <cassert>
+#include <cstring>
 #include <iostream>
 
 #include <viame/core_types/matrix.h>
@@ -27,7 +28,7 @@ public:
   /// Number of unique values in a NxN symmetric matrix
   static auto const data_size = N * ( N + 1 ) / 2;
   using data_type = T;
-  using matrix_type = Eigen::Matrix< T, N, N >;
+  using matrix_type = matrix_< N, N, T >;
 
   /// Default Constructor - Initialize to identity
   covariance_()
@@ -105,7 +106,7 @@ public:
   matrix_type
   matrix() const
   {
-    Eigen::Matrix< T, N, N > mat;
+    matrix_< N, N, T > mat;
     size_t n = 0;
     for( size_t j = 0; j < N; ++j )
     {

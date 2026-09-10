@@ -72,7 +72,7 @@ public:
   ///
   /// \param positions positions of the pointcloud
   pointcloud_(
-    std::vector< Eigen::Matrix< T, 3, 1 > > const& positions );
+    std::vector< vector_< 3, T > > const& positions );
 
   /// Constructor for a pointcloud_ from a base class pointcloud
   explicit pointcloud_( pointcloud const& f );
@@ -91,7 +91,7 @@ public:
   data_type() const { return typeid( T ); }
 
   /// Accessor for the world coordinates using underlying data type
-  std::vector< Eigen::Matrix< T, 3, 1 > > const&
+  std::vector< vector_< 3, T > > const&
   get_positions() const { return pos_; }
 
   /// Accessor for the world coordinates
@@ -122,7 +122,7 @@ public:
   has_intensities() const { return !inten_.empty(); }
 
   /// Set the point cloud positions
-  void set_positions( std::vector< Eigen::Matrix< T, 3, 1 > > const& pos );
+  void set_positions( std::vector< vector_< 3, T > > const& pos );
 
   /// Set the RGB colors of the point cloud
   void set_color( std::vector< rgb_color > const& colors );
@@ -132,7 +132,7 @@ public:
 
 protected:
   /// A vector representing the 3D position of the pointcloud
-  std::vector< Eigen::Matrix< T, 3, 1 > > pos_;
+  std::vector< vector_< 3, T > > pos_;
   /// The RGB color associated with the pointcloud
   std::vector< rgb_color > colors_;
   /// The intensities associated with the pointcloud

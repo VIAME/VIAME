@@ -11,12 +11,6 @@
 project( vital )
 set(CMAKE_FOLDER "Vital")
 
-###
-# Vital requirements
-# TODO: Eigen (find_package_once? kwiver_find_package?
-#       - to allow the creation of standard "depends" like current, but avoid
-#         monolithic include at the project root.)
-
 # ==============================================================================
 # KWSys
 #---------------------------------------------------------------------
@@ -174,7 +168,6 @@ target_link_libraries( vital
                   vital_types
                   vital_vpm
                   vital_applets
-                  Eigen3::Eigen
   )
 
 ###

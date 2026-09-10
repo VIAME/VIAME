@@ -4,12 +4,10 @@
 
 #include <viame/core_types/homography_f2f.h>
 
-#include <pybind11/eigen.h>
+#include <viame/core_types/casters.h>
 #include <pybind11/pybind11.h>
 #include <viame/core_types/homography.h>
 #include <viame/core_types/vital_types.h>
-
-#include <Eigen/Core>
 #include <sstream>
 #include <stdexcept>
 
@@ -17,8 +15,8 @@ namespace kv = kwiver::vital;
 namespace py = pybind11;
 
 using f2f_homography = kv::f2f_homography;
-using float_mat_t = Eigen::Matrix< float,  3, 3 >;
-using double_mat_t = Eigen::Matrix< double, 3, 3 >;
+using float_mat_t = kwiver::vital::matrix_< 3, 3, float >;
+using double_mat_t = kwiver::vital::matrix_< 3, 3, double >;
 
 PYBIND11_MODULE( homography_f2f, m )
 {

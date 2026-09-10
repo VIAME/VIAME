@@ -4,8 +4,7 @@
 
 #ifndef KWIVER_VITAL_TYPES_BOUNDING_BOX_H
 #define KWIVER_VITAL_TYPES_BOUNDING_BOX_H
-
-#include <Eigen/Geometry>
+#include <viame/core_types/math/aligned_box.h>
 #include <viame/core_types/vector.h>
 
 namespace kwiver {
@@ -24,7 +23,7 @@ template < typename T >
 class bounding_box
 {
 public:
-  typedef Eigen::Matrix< T, 2, 1 > vector_type;
+  typedef vector_< 2, T > vector_type;
 
   /// @brief Create box from two corner points.
   ///
@@ -48,7 +47,7 @@ public:
     vector_type lr( upper_left );
     lr.x() += width;
     lr.y() += height;
-    m_bbox = Eigen::AlignedBox< T, 2 >( upper_left, lr );
+    m_bbox = aligned_box< T, 2 >( upper_left, lr );
   }
 
   /// @brief Create a box from four coordinates.
@@ -61,7 +60,7 @@ public:
   {
     vector_type ul( xmin, ymin );
     vector_type lr( xmax, ymax );
-    m_bbox = Eigen::AlignedBox< T, 2 >( ul, lr );
+    m_bbox = aligned_box< T, 2 >( ul, lr );
   }
 
   /// @brief Create default (invalid) box.
@@ -143,14 +142,14 @@ protected:
   //
   //
   //  @return Underlying data type.
-  Eigen::AlignedBox< T, 2 >& get_eabb()  { return m_bbox; }
-  Eigen::AlignedBox< T, 2 >
+  aligned_box< T, 2 >& get_eabb()  { return m_bbox; }
+  aligned_box< T, 2 >
   get_eabb() const { return m_bbox; }
 
 private:
   // Note that this class is implemented using Eigen types.
   // There is no guarantee of this in the future.
-  bounding_box( Eigen::AlignedBox< T, 2 > const& b )
+  bounding_box( aligned_box< T, 2 > const& b )
     : m_bbox( b )
   {}
 
@@ -173,7 +172,7 @@ private:
     bounding_box< T2 > const& one,
     bounding_box< T2 > const& other );
 
-  Eigen::AlignedBox< T, 2 > m_bbox;
+  aligned_box< T, 2 > m_bbox;
 };
 
 /// @brief Equality operator for bounding box

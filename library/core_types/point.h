@@ -26,7 +26,7 @@ template < unsigned N, typename T >
 class VITAL_TYPES_EXPORT point
 {
 public:
-  using vector_type = Eigen::Matrix< T, N, 1 >;
+  using vector_type = vector_< N, T >;
   using covariance_type = covariance_< N, float >;
   using data_type = T;
 
