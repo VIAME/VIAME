@@ -10,6 +10,9 @@
 set( viame_plugin_subdir           viame )
 set( viame_plugin_process_subdir   ${viame_plugin_subdir}/processes )
 
+# Vital first: everything below links it, and `core_types` is a subdirectory
+# of `algorithm_framework` in the build even though it is a sibling here.
+add_subdirectory( algorithm_framework )
 add_subdirectory( pipeline_framework )
 add_subdirectory( opencv_bridge )
 add_subdirectory( image_ops )

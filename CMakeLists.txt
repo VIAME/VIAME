@@ -1003,6 +1003,14 @@ else()
   endif()
 
   ###
+  # Eigen, which the imported vital is written in terms of
+  #
+  # Kwiver used to find it and export the target through its config package;
+  # since P1-T05 it is found here, before anything that links it.
+  ##
+  find_package( Eigen3 REQUIRED NO_MODULE )
+
+  ###
   # Require OpenCV if enabled
   ##
   if( VIAME_ENABLE_OPENCV )
@@ -1060,10 +1068,6 @@ else()
     endif()
 
     add_subdirectory( packages/kwiver )
-
-    # VIAME names kwiver's targets with the namespace the installed config
-    # package used to give them.
-    include( kwiver_aliases )
 
     # The roots the imported code is reached through. Kwiver puts them on its
     # own directory's include path; VIAME's directories need them too, and
