@@ -3,6 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "train.h"
+#include "train_sequences.h"
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -50,6 +51,7 @@
 #include <atomic>
 #include <algorithm>
 #include <cstdio>
+#include <cmath>
 
 #ifdef _WIN32
 #include <io.h>
@@ -2056,9 +2058,10 @@ train_applet
     return EXIT_FAILURE;
   }
 
-  if( percent_validation < 0.0 || percent_validation > 1.0 )
+  if( !std::isfinite(percent_validation) || percent_validation < 0.0 || percent_validation >= 1.0 ||
+      (percent_validation > 0.0 && validation_burst_frame_count == 0) )
   {
-    std::cerr << "Percent validation must be [0.0,1.0]" << std::endl;
+    std::cerr << "Percent validation must be finite and in [0.0,1.0); validation burst must be positive" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -2438,6 +2441,9 @@ train_applet
     all_data.insert( all_data.end(), videos.begin(), videos.end() );
   }
 
+  const int validation_sequence_pivot = validation_pivot;
+  validation_pivot = -1; // Frame boundary, populated while consuming sequences.
+
   // Load groundtruth for all image files in all folders using reader class
   std::vector< std::string > train_image_fn;
   std::vector< kv::detected_object_set_sptr > train_gt;
@@ -2715,7 +2721,7 @@ train_applet
   // sets, and nothing else says which frames belong to which set: the two are
   // filtered independently here, so their counts need not even match. Recorded
   // so the association can be written out rather than guessed at downstream.
-  std::vector< size_t > item_frame_counts( all_data.size(), 0 );
+  std::vector< std::vector< std::string > > item_frame_paths( all_data.size() );
 
   for( unsigned i = 0; i < all_data.size(); i++ )
   {
@@ -2734,7 +2740,7 @@ train_applet
 
     // If train/validation partition divide already set, updated from
     // data sequence to image id level.
-    if( validation_pivot == static_cast< int >( i ) )
+    if( validation_sequence_pivot == static_cast< int >( i ) )
     {
       validation_pivot = train_image_fn.size();
     }
@@ -3084,7 +3090,7 @@ train_applet
       gt_reader->close();
     }
 
-    item_frame_counts[i] = train_image_fn.size() - frames_before_item;
+    item_frame_paths[i].assign(train_image_fn.begin() + frames_before_item, train_image_fn.end());
 
     if( max_frame_count > 0 && train_image_fn.size() > max_frame_count )
     {
@@ -3098,7 +3104,7 @@ train_applet
     shared_augmentation_pipe->wait();
   }
 
-  if( validation_pivot > 0 )
+  if( validation_pivot >= 0 )
   {
     validation_image_fn.insert( validation_image_fn.begin(),
       train_image_fn.begin() + validation_pivot, train_image_fn.end() );
@@ -3308,10 +3314,11 @@ train_applet
   {
     unsigned total_images = train_image_fn.size();
 
-    unsigned total_segment = static_cast< unsigned >( validation_burst_frame_count / percent_validation );
+    unsigned total_segment = static_cast< unsigned >( std::min<double>(
+      total_images, validation_burst_frame_count / percent_validation) );
     unsigned train_segment = total_segment - validation_burst_frame_count;
 
-    if( total_images < total_segment )
+    if( total_images <= total_segment )
     {
       total_segment = total_images;
       train_segment = total_images - static_cast< unsigned >( percent_validation * total_images );
@@ -3374,7 +3381,7 @@ train_applet
     if( !train_image_fn.empty() &&
        ( validation_image_fn.empty() || invalid_validation_set ) )
     {
-      for( unsigned i = 0; i < train_image_fn.size() - 1; i++ )
+      while( train_image_fn.size() > 1 )
       {
         validation_image_fn.push_back( train_image_fn.back() );
         validation_gt.push_back( train_gt.back() );
@@ -3610,6 +3617,9 @@ train_applet
     std::vector< unsigned > train_track_items;
     std::vector< unsigned > validation_track_items;
 
+    const auto train_sequences = partition_sequences(item_frame_paths, train_image_fn);
+    const auto validation_sequences = partition_sequences(item_frame_paths, validation_image_fn);
+
     // Configure track reader
     kv::set_nested_algo_configuration< kv::algo::read_object_track_set >
       ( "track_reader", config, track_reader );
@@ -3622,8 +3632,8 @@ train_applet
       for( unsigned i = 0; i < all_data.size(); i++ )
       {
         std::string data_item = all_data[i];
-        bool is_validation = ( validation_pivot >= 0 &&
-                               static_cast< int >( i ) >= validation_pivot );
+        const bool has_training = train_sequences.count[i] > 0;
+        const bool has_validation = validation_sequences.count[i] > 0;
 
         // Find groundtruth file for this data entry
         std::vector< std::string > gt_files;
@@ -3659,12 +3669,12 @@ train_applet
               std::cout << "Read " << tracks->size() << " tracks from "
                         << gt_file << std::endl;
 
-              if( is_validation )
+              if( has_validation )
               {
                 validation_tracks.push_back( tracks );
                 validation_track_items.push_back( i );
               }
-              else
+              if( has_training )
               {
                 train_tracks.push_back( tracks );
                 train_track_items.push_back( i );
@@ -3693,7 +3703,7 @@ train_applet
       auto write_manifest =
         [&]( const std::string& path,
              const std::vector< unsigned >& track_items,
-             size_t frame_offset ) -> bool
+             const sequence_frames& sequences ) -> bool
       {
         // output_directory need not exist yet -- the trainers create their
         // own -- and an ofstream into a missing directory just fails
@@ -3718,33 +3728,11 @@ train_applet
                  << std::endl;
         manifest << "# track_set first_frame frame_count source" << std::endl;
 
-        // Where each item's frames begin in the flat list
-        std::vector< size_t > item_offsets( all_data.size(), 0 );
-        size_t running = 0;
-
-        for( size_t item = 0; item < all_data.size(); item++ )
-        {
-          item_offsets[ item ] = running;
-          running += item_frame_counts[ item ];
-        }
-
         for( size_t set = 0; set < track_items.size(); set++ )
         {
           const unsigned item = track_items[ set ];
-          size_t first = item_offsets[ item ];
-          size_t count = item_frame_counts[ item ];
-
-          // Ranges are relative to the list the trainer is handed, which for
-          // validation starts at the split
-          if( first >= frame_offset )
-          {
-            first -= frame_offset;
-          }
-          else
-          {
-            first = 0;
-            count = 0;
-          }
+          const size_t first = sequences.first[item];
+          const size_t count = sequences.count[item];
 
           manifest << set << " " << first << " " << count << " "
                    << all_data[ item ] << std::endl;
@@ -3753,9 +3741,6 @@ train_applet
         return true;
       };
 
-      const size_t split = ( validation_pivot > 0 ?
-        static_cast< size_t >( validation_pivot ) : 0 );
-
       // output_directory defaults to empty, meaning the working directory
       const std::string manifest_dir =
         ( output_directory.empty() ? std::string( "." ) : output_directory );
@@ -3763,7 +3748,7 @@ train_applet
       sequence_manifest_file =
         append_path( manifest_dir, "train_sequence_manifest.txt" );
 
-      if( !write_manifest( sequence_manifest_file, train_track_items, 0 ) )
+      if( !write_manifest( sequence_manifest_file, train_track_items, train_sequences ) )
       {
         sequence_manifest_file.clear();
       }
@@ -3774,7 +3759,7 @@ train_applet
           append_path( manifest_dir, "validation_sequence_manifest.txt" );
 
         if( !write_manifest( validation_manifest_file,
-                             validation_track_items, split ) )
+                             validation_track_items, validation_sequences ) )
         {
           validation_manifest_file.clear();
         }
@@ -3839,7 +3824,7 @@ train_applet
       try
       {
         tracker_trainer->add_data_from_disk( model_labels,
-          train_image_fn, train_tracks, validation_image_fn, validation_tracks );
+          train_sequences.images, train_tracks, validation_sequences.images, validation_tracks );
 
         std::map< std::string, std::string > trainer_output =
           tracker_trainer->update_model();
