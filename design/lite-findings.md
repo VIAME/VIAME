@@ -233,6 +233,24 @@ document has a row for it now, marked transitional.
 **For later phases:** P7 should end with `git rm -r library/opencv_bridge`,
 not with the directory quietly emptying out.
 
+### 1.13 The bindings cannot sit beside the code they bind yet
+
+`lite-library-layout.md` mapped `python/kwiver/vital/types` onto
+`library/core_types` "alongside the C++", which is what the user asked for
+and what VIAME's own python implementations already do. It does not work
+here. 48 of the 67 files under `python/kwiver/vital/types` have the same
+name as the vital source they bind -- `image.cxx` binds `image.cxx` -- and
+`import kwiver.vital.types` needs an `__init__.py` at every level of a tree
+three deep, which one flat directory cannot provide.
+
+So P5-T05 moved the package to VIAME's `python/kwiver`, which is where the
+layout document's own target tree puts it ("`python/`: `viame` package root,
+`kwiver` shim (P11)"). The two rows disagreed; the `python/` row is the one
+that is achievable now, and the mapping row now says "until P11, then
+alongside the C++" with the reason. When P8 replaces the generated
+`vital.algo` bindings and P11 drops the `kwiver` package name, the
+collisions go with them.
+
 ## 2. Open questions
 
 ### 2.1 An intermittent segfault in `viame train`
