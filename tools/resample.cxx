@@ -19,6 +19,9 @@
 #include <vital/types/object_track_set.h>
 
 #include <iostream>
+#include <cmath>
+#include <limits>
+#include <iomanip>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -70,6 +73,8 @@ resample_applet
     ( "no-interpolate", "Copy the nearest annotated state instead of "
       "interpolating boxes",
       ::cxxopts::value< bool >()->default_value( "false" ) )
+    ( "max-output-states", "Maximum expanded states allowed (default: 10000000)",
+      ::cxxopts::value< unsigned long long >()->default_value("10000000") )
     ( "max-gap", "Maximum gap between annotated states, in input frames, to "
       "fill with new states (default: 0 = unlimited)",
       ::cxxopts::value< int >()->default_value( "0" ), "value" )
@@ -115,7 +120,8 @@ resample_applet
     return EXIT_FAILURE;
   }
 
-  if( opt_input_rate <= 0.0 || opt_output_rate <= 0.0 )
+  if( !std::isfinite(opt_input_rate) || !std::isfinite(opt_output_rate) ||
+      opt_input_rate <= 0.0 || opt_output_rate <= 0.0 )
   {
     LOG_ERROR( logger, "Both --input-rate and --output-rate must be "
                        "specified and positive" );
@@ -181,6 +187,24 @@ resample_applet
   LOG_INFO( logger, "Read " << input->size() << " track(s) with "
             << count_states( input ) << " state(s) from " << opt_input );
 
+  const auto limit = cmd_args["max-output-states"].as<unsigned long long>();
+  long double estimated = 0;
+  const long double ratio = static_cast<long double>(opt_output_rate) / opt_input_rate;
+  for( const auto& track : input_tracks )
+  {
+    if( !track || track->empty() ) { continue; }
+    const long double first = track->first_frame();
+    const long double last = track->last_frame();
+    estimated += std::max<long double>(1, std::ceil((last - first) * ratio) + 1);
+    if( !std::isfinite(estimated) || estimated > limit ||
+        std::abs(first * ratio) >= std::numeric_limits<kv::frame_id_t>::max() ||
+        std::abs(last * ratio) >= std::numeric_limits<kv::frame_id_t>::max() )
+    {
+      LOG_ERROR(logger, "Resampling exceeds frame limits or --max-output-states");
+      return EXIT_FAILURE;
+    }
+  }
+
   kv::object_track_set_sptr output = viame::resample_object_tracks(
     input,
     opt_input_rate,
@@ -193,7 +217,7 @@ resample_applet
     viame::write_object_track_set_viame_csv writer;
 
     std::ostringstream fps;
-    fps << opt_output_rate;
+    fps << std::setprecision(std::numeric_limits<double>::max_digits10) << opt_output_rate;
 
     kv::config_block_sptr writer_config = kv::config_block::empty_config();
     writer_config->set_value( "frame_rate", fps.str() );
