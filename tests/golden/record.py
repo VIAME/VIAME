@@ -37,6 +37,8 @@ import fixtures                     # noqa: E402
 import opencv_cases                 # noqa: E402
 import opencv_fixtures              # noqa: E402
 import imageio_utils                # noqa: E402
+import measurement_cases            # noqa: E402
+import measurement_fixtures         # noqa: E402
 import pipeline_runner              # noqa: E402
 import runner                       # noqa: E402
 
@@ -72,6 +74,7 @@ def write_inputs():
 
     images = dict(fixtures.build())
     images.update(opencv_fixtures.build())
+    images.update(measurement_fixtures.build())
 
     if not all(_fixture_exists(name) for name in case_spec.PIPELINE_INPUTS):
         images.update(dict(fixtures.pipeline_frames(TEST_DATA_DIR)))
@@ -646,6 +649,58 @@ def record_opencv(group_dir, manifest):
     record_opencv_pipelines(group_dir, manifest)
 
 
+def record_measurement_disparity(group_dir, manifest):
+    left, right = (imageio_utils.load(input_path(name))
+                   for name in measurement_cases.STEREO)
+
+    for impl, variants in sorted(measurement_cases.DISPARITY.items()):
+        for variant, config in variants:
+            depth = runner.run_stereo_depth_map(impl, config, left, right)
+            _record_array_case(group_dir, manifest, "disparity", impl,
+                               variant, config, ["stereo"], [depth],
+                               measurement_cases)
+
+
+def record_measurement_targets(group_dir, manifest):
+    input_names = measurement_cases.TARGETS
+    arrays = [imageio_utils.load(input_path(name)) for name in input_names]
+
+    for impl, variants in sorted(measurement_cases.CALIBRATION_TARGETS.items()):
+        for variant, config in variants:
+            outputs = runner.run_image_object_detector(impl, config, arrays)
+
+            case_dir = os.path.join(group_dir, "detect", impl, variant)
+            os.makedirs(case_dir, exist_ok=True)
+
+            files = {}
+            for name, detections in zip(input_names, outputs):
+                written = _write_json(
+                    os.path.join(case_dir, name + ".json"), detections)
+                files[name] = {
+                    "file": os.path.relpath(written, group_dir),
+                    "detections": len(detections),
+                    "sha256": file_digest(written),
+                }
+
+            manifest["cases"].append({
+                "kind": "detect",
+                "impl": impl,
+                "variant": variant,
+                "config": config,
+                "inputs": list(input_names),
+                "outputs": files,
+                "unstable": {},
+            })
+            print("  detect {} {} ({} corners)".format(
+                impl, variant,
+                sum(len(detections) for detections in outputs)))
+
+
+def record_measurement(group_dir, manifest):
+    record_measurement_disparity(group_dir, manifest)
+    record_measurement_targets(group_dir, manifest)
+
+
 def record_calib(group_dir, manifest):
     record_calibrations(group_dir, manifest)
     record_documents(group_dir, manifest)
@@ -679,6 +734,7 @@ GROUPS = {
     "codecs": record_codecs,
     "calib": record_calib,
     "opencv": record_opencv,
+    "measurement": record_measurement,
 }
 
 
@@ -736,7 +792,8 @@ def main():
             for name in sorted(set(case_spec.STILLS) | set(case_spec.SEQUENCE)
                                | set(case_spec.MASKS)
                                | set(case_spec.PIPELINE_INPUTS)
-                               | set(opencv_fixtures.build()))
+                               | set(opencv_fixtures.build())
+                               | set(measurement_fixtures.build()))
         },
         "cases": [],
     }

@@ -28,6 +28,7 @@ import codec_cases                  # noqa: E402
 import feature_cases                # noqa: E402
 import feature_runner               # noqa: E402
 import imageio_utils                # noqa: E402
+import measurement_cases            # noqa: E402
 import opencv_cases                 # noqa: E402
 import pipeline_runner              # noqa: E402
 import runner                       # noqa: E402
@@ -60,6 +61,7 @@ INTERFACE_OF_KIND = {
     # The feature chain: `features` runs a detect_features and the
     # extract_descriptors of the same name, so it is keyed on the detector
     # -- a removal would take both halves together.
+    "disparity": "compute_stereo_depth_map",
     "features": "detect_features",
     "matches": "match_features",
     "tracks": "track_features",
@@ -116,6 +118,7 @@ REPLACEMENTS_BY_GROUP = {
 # ones phase 3 found; the feature chain's are in `feature_cases.py`, beside
 # the cases themselves.
 DIVERGENCES_OF_KIND = {
+    "disparity": measurement_cases,
     "features": feature_cases,
     "matches": feature_cases,
     "tracks": feature_cases,
@@ -226,6 +229,11 @@ def run_case(case, impl):
     if case["kind"] == "detect":
         arrays = [imageio_utils.load(input_path(name)) for name in case["inputs"]]
         return runner.run_image_object_detector(impl, case["config"], arrays)
+
+    if case["kind"] == "disparity":
+        left, right = (imageio_utils.load(input_path(name))
+                       for name in measurement_cases.STEREO)
+        return [runner.run_stereo_depth_map(impl, case["config"], left, right)]
 
     if case["kind"] == "features":
         arrays = [imageio_utils.load(input_path(name))

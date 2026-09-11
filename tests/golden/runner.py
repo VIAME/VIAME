@@ -39,6 +39,10 @@ def is_registered(kind, impl):
         from kwiver.vital.algo import ImageObjectDetector
         return impl in ImageObjectDetector.registered_names()
 
+    if kind == "disparity":
+        from kwiver.vital.algo import ComputeStereoDepthMap
+        return impl in ComputeStereoDepthMap.registered_names()
+
     if kind == "features":
         from kwiver.vital.algo import DetectFeatures
         return impl in DetectFeatures.registered_names()
@@ -196,6 +200,26 @@ def run_image_object_detector(impl, config, arrays):
                 algorithm.detect(
                     ImageContainer(Image(np.ascontiguousarray(array)))))
             for array in arrays]
+
+
+def run_stereo_depth_map(impl, config, left, right):
+    """One depth map from a stereo pair."""
+    from kwiver.vital.algo import ComputeStereoDepthMap
+    from kwiver.vital.types import Image, ImageContainer
+
+    algorithm = ComputeStereoDepthMap.create(impl)
+
+    if algorithm is None:
+        raise RuntimeError(
+            "compute_stereo_depth_map '{}' is not registered".format(impl))
+
+    _configure(algorithm, config)
+
+    depth = algorithm.compute(
+        ImageContainer(Image(np.ascontiguousarray(left))),
+        ImageContainer(Image(np.ascontiguousarray(right))))
+
+    return depth.asarray()
 
 
 def run_image_io_save_load(impl, config, arrays, extension, work_dir):

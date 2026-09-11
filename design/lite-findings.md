@@ -271,6 +271,18 @@ an artefact of the port:
   seconds there. The same shape of problem as the interleaved image copy
   above, and the same remedy when it matters -- a buffer protocol on
   `descriptor`, which phase 8 is the place for.
+* `ocv_detect_calibration_targets` compares `target_type` against
+  **`checkerboard`**, and an unrecognised value turns both detectors off and
+  returns nothing rather than complaining. `chessboard` -- the word the
+  OpenCV function it wraps is named after, and the one a user would write --
+  is such a value. `tests/golden/measurement` records both, side by side, so
+  the difference is visible.
+* The same detector's dot path ignores `target_width` and `target_height`:
+  `detect_dots` takes area and circularity limits and no grid size at all,
+  so a board configured 9 by 7 returns the same 35 dots a board configured 7
+  by 5 does. The checkerboard path does use them, and returns nothing at the
+  wrong size, so the two halves of one algorithm disagree about whether the
+  configured grid is a requirement.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 

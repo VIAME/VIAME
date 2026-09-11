@@ -1,0 +1,619 @@
+{
+  "cases": [
+    {
+      "config": {},
+      "impl": "ocv_stereo_disparity",
+      "inputs": [
+        "stereo"
+      ],
+      "kind": "disparity",
+      "outputs": {
+        "stereo": {
+          "dtype": "int16",
+          "file": "disparity/ocv_stereo_disparity/defaults/stereo.npz",
+          "sha256": "589c3dabbc3a8abc",
+          "shape": [
+            240,
+            320,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "algorithm": "BM"
+      },
+      "impl": "ocv_stereo_disparity",
+      "inputs": [
+        "stereo"
+      ],
+      "kind": "disparity",
+      "outputs": {
+        "stereo": {
+          "dtype": "int16",
+          "file": "disparity/ocv_stereo_disparity/bm/stereo.npz",
+          "sha256": "8c478ef506122ab2",
+          "shape": [
+            240,
+            320,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "bm"
+    },
+    {
+      "config": {
+        "block_size": "3"
+      },
+      "impl": "ocv_stereo_disparity",
+      "inputs": [
+        "stereo"
+      ],
+      "kind": "disparity",
+      "outputs": {
+        "stereo": {
+          "dtype": "int16",
+          "file": "disparity/ocv_stereo_disparity/block_size_3/stereo.npz",
+          "sha256": "dbb03d6664e8510f",
+          "shape": [
+            240,
+            320,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "block_size_3"
+    },
+    {
+      "config": {
+        "num_disparities": "64"
+      },
+      "impl": "ocv_stereo_disparity",
+      "inputs": [
+        "stereo"
+      ],
+      "kind": "disparity",
+      "outputs": {
+        "stereo": {
+          "dtype": "int16",
+          "file": "disparity/ocv_stereo_disparity/disparities_64/stereo.npz",
+          "sha256": "17f0569aa3bc2b37",
+          "shape": [
+            240,
+            320,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "disparities_64"
+    },
+    {
+      "config": {
+        "min_disparity": "16",
+        "num_disparities": "64"
+      },
+      "impl": "ocv_stereo_disparity",
+      "inputs": [
+        "stereo"
+      ],
+      "kind": "disparity",
+      "outputs": {
+        "stereo": {
+          "dtype": "int16",
+          "file": "disparity/ocv_stereo_disparity/min_disparity_16/stereo.npz",
+          "sha256": "9e66406a3113dede",
+          "shape": [
+            240,
+            320,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "min_disparity_16"
+    },
+    {
+      "config": {
+        "output_format": "float32"
+      },
+      "impl": "ocv_stereo_disparity",
+      "inputs": [
+        "stereo"
+      ],
+      "kind": "disparity",
+      "outputs": {
+        "stereo": {
+          "dtype": "float32",
+          "file": "disparity/ocv_stereo_disparity/float32/stereo.npz",
+          "sha256": "53e1a3c09e9c34e2",
+          "shape": [
+            240,
+            320,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "float32"
+    },
+    {
+      "config": {
+        "output_format": "uint16_scaled"
+      },
+      "impl": "ocv_stereo_disparity",
+      "inputs": [
+        "stereo"
+      ],
+      "kind": "disparity",
+      "outputs": {
+        "stereo": {
+          "dtype": "uint16",
+          "file": "disparity/ocv_stereo_disparity/uint16_scaled/stereo.png",
+          "sha256": "76a4f3e2d940821d",
+          "shape": [
+            240,
+            320,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "uint16_scaled"
+    },
+    {
+      "config": {
+        "speckle_window_size": "0"
+      },
+      "impl": "ocv_stereo_disparity",
+      "inputs": [
+        "stereo"
+      ],
+      "kind": "disparity",
+      "outputs": {
+        "stereo": {
+          "dtype": "int16",
+          "file": "disparity/ocv_stereo_disparity/no_speckle_filter/stereo.npz",
+          "sha256": "589c3dabbc3a8abc",
+          "shape": [
+            240,
+            320,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "no_speckle_filter"
+    },
+    {
+      "config": {},
+      "impl": "ocv_detect_calibration_targets",
+      "inputs": [
+        "chessboard",
+        "dot_grid"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "chessboard": {
+          "detections": 35,
+          "file": "detect/ocv_detect_calibration_targets/defaults/chessboard.json",
+          "sha256": "53df8ac4b52fb3dc"
+        },
+        "dot_grid": {
+          "detections": 35,
+          "file": "detect/ocv_detect_calibration_targets/defaults/dot_grid.json",
+          "sha256": "a37d03100c3e452b"
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "target_type": "checkerboard"
+      },
+      "impl": "ocv_detect_calibration_targets",
+      "inputs": [
+        "chessboard",
+        "dot_grid"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "chessboard": {
+          "detections": 35,
+          "file": "detect/ocv_detect_calibration_targets/checkerboard/chessboard.json",
+          "sha256": "53df8ac4b52fb3dc"
+        },
+        "dot_grid": {
+          "detections": 0,
+          "file": "detect/ocv_detect_calibration_targets/checkerboard/dot_grid.json",
+          "sha256": "37517e5f3dc66819"
+        }
+      },
+      "unstable": {},
+      "variant": "checkerboard"
+    },
+    {
+      "config": {
+        "target_type": "dots"
+      },
+      "impl": "ocv_detect_calibration_targets",
+      "inputs": [
+        "chessboard",
+        "dot_grid"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "chessboard": {
+          "detections": 12,
+          "file": "detect/ocv_detect_calibration_targets/dots/chessboard.json",
+          "sha256": "a68c5c5a3be4cf15"
+        },
+        "dot_grid": {
+          "detections": 35,
+          "file": "detect/ocv_detect_calibration_targets/dots/dot_grid.json",
+          "sha256": "a37d03100c3e452b"
+        }
+      },
+      "unstable": {},
+      "variant": "dots"
+    },
+    {
+      "config": {
+        "target_type": "chessboard"
+      },
+      "impl": "ocv_detect_calibration_targets",
+      "inputs": [
+        "chessboard",
+        "dot_grid"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "chessboard": {
+          "detections": 0,
+          "file": "detect/ocv_detect_calibration_targets/unknown_target_type/chessboard.json",
+          "sha256": "37517e5f3dc66819"
+        },
+        "dot_grid": {
+          "detections": 0,
+          "file": "detect/ocv_detect_calibration_targets/unknown_target_type/dot_grid.json",
+          "sha256": "37517e5f3dc66819"
+        }
+      },
+      "unstable": {},
+      "variant": "unknown_target_type"
+    },
+    {
+      "config": {
+        "target_height": "7",
+        "target_width": "9"
+      },
+      "impl": "ocv_detect_calibration_targets",
+      "inputs": [
+        "chessboard",
+        "dot_grid"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "chessboard": {
+          "detections": 12,
+          "file": "detect/ocv_detect_calibration_targets/wrong_grid/chessboard.json",
+          "sha256": "a68c5c5a3be4cf15"
+        },
+        "dot_grid": {
+          "detections": 35,
+          "file": "detect/ocv_detect_calibration_targets/wrong_grid/dot_grid.json",
+          "sha256": "a37d03100c3e452b"
+        }
+      },
+      "unstable": {},
+      "variant": "wrong_grid"
+    },
+    {
+      "config": {
+        "roi_x1": "0",
+        "roi_x2": "200",
+        "roi_y1": "0",
+        "roi_y2": "320"
+      },
+      "impl": "ocv_detect_calibration_targets",
+      "inputs": [
+        "chessboard",
+        "dot_grid"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "chessboard": {
+          "detections": 0,
+          "file": "detect/ocv_detect_calibration_targets/roi_left_half/chessboard.json",
+          "sha256": "37517e5f3dc66819"
+        },
+        "dot_grid": {
+          "detections": 20,
+          "file": "detect/ocv_detect_calibration_targets/roi_left_half/dot_grid.json",
+          "sha256": "5cae7ce0791c4893"
+        }
+      },
+      "unstable": {},
+      "variant": "roi_left_half"
+    }
+  ],
+  "fixtures": {
+    "bayer_bg": {
+      "dtype": "uint8",
+      "sha256": "778ca8d041b448ec",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "chessboard": {
+      "dtype": "uint8",
+      "sha256": "6e0aa946537e25be",
+      "shape": [
+        320,
+        400,
+        3
+      ]
+    },
+    "circles_rgb": {
+      "dtype": "uint8",
+      "sha256": "16db4f53dd8fd216",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "dot_grid": {
+      "dtype": "uint8",
+      "sha256": "2eecfaeea3b546ab",
+      "shape": [
+        290,
+        390,
+        3
+      ]
+    },
+    "frame_00": {
+      "dtype": "uint8",
+      "sha256": "f95e51b330c93941",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_01": {
+      "dtype": "uint8",
+      "sha256": "1c6de71c2e80cd0e",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_02": {
+      "dtype": "uint8",
+      "sha256": "516dc55612ea714b",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_03": {
+      "dtype": "uint8",
+      "sha256": "2aab205257c1fbc3",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_04": {
+      "dtype": "uint8",
+      "sha256": "8cac30c3f75b8492",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_05": {
+      "dtype": "uint8",
+      "sha256": "2bf42c26f732a65b",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "gray16": {
+      "dtype": "uint16",
+      "sha256": "68830aaa86124440",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "gray8": {
+      "dtype": "uint8",
+      "sha256": "95e317223585e847",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "heat": {
+      "dtype": "uint8",
+      "sha256": "e4d463b84cdf7d3a",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "mask": {
+      "dtype": "bool",
+      "sha256": "2010a62d1e18f06a",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "rgb8": {
+      "dtype": "uint8",
+      "sha256": "835f97298ef48c75",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_00": {
+      "dtype": "uint8",
+      "sha256": "9ac941edfbe79886",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_01": {
+      "dtype": "uint8",
+      "sha256": "fa8a0910d17fffb2",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_02": {
+      "dtype": "uint8",
+      "sha256": "bd5cc83de41c5ce6",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_03": {
+      "dtype": "uint8",
+      "sha256": "30a83406911e6497",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_04": {
+      "dtype": "uint8",
+      "sha256": "89a6d5999f5bd8ca",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_05": {
+      "dtype": "uint8",
+      "sha256": "4272fd601873ca1c",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_06": {
+      "dtype": "uint8",
+      "sha256": "6a2f47f8c1e77850",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_07": {
+      "dtype": "uint8",
+      "sha256": "77a642afb8efb555",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_08": {
+      "dtype": "uint8",
+      "sha256": "d84318b825c34750",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_09": {
+      "dtype": "uint8",
+      "sha256": "1d52f0325ea50687",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_10": {
+      "dtype": "uint8",
+      "sha256": "f2e17c1ff4f22798",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_11": {
+      "dtype": "uint8",
+      "sha256": "8a5d2298f319f1d0",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "stereo_left": {
+      "dtype": "uint8",
+      "sha256": "14791a3116a98c02",
+      "shape": [
+        240,
+        320,
+        3
+      ]
+    },
+    "stereo_right": {
+      "dtype": "uint8",
+      "sha256": "180248c73356b360",
+      "shape": [
+        240,
+        320,
+        3
+      ]
+    }
+  },
+  "group": "measurement",
+  "recorded": "2026-09-11T01:14:53Z",
+  "versions": {
+    "install": "/home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install",
+    "viame": "d4d75f0a3f8221e87d74a03ae141d60a9a085591"
+  }
+}
