@@ -901,6 +901,34 @@ TEST_F( measurement_utilities_test, segment_configuration_is_opt_in_and_validate
   EXPECT_NO_THROW( utilities->configure( settings ) );
 }
 
+TEST_F( measurement_utilities_test, segment_sampling_preserves_legacy_defaults )
+{
+  // Existing Foundation Stereo pipelines enable endpoint refinement only.
+  map_keypoints_to_camera_settings settings;
+  settings.refine_keypoints_with_disparity = true;
+  utilities->configure( settings );
+  kv::image_of< float > disparity( 400, 3 );
+  for( unsigned y = 0; y < 3; ++y )
+  {
+    for( unsigned x = 0; x < 400; ++x )
+    {
+      disparity( x, y ) = 125.0 - 0.25 * x;
+    }
+  }
+  auto map = std::make_shared< kv::simple_image_container >( disparity );
+  kv::vector_2d right;
+  ASSERT_TRUE( utilities->find_corresponding_point_external_disparity(
+    map, kv::vector_2d( 100, 1 ), right, 0 ) );
+  // Preserve the pre-existing byte-stride interpretation outside segment mode.
+  EXPECT_DOUBLE_EQ( right.x(), 6.25 );
+
+  settings.refine_disparity_segment = true;
+  utilities->configure( settings );
+  ASSERT_TRUE( utilities->find_corresponding_point_external_disparity(
+    map, kv::vector_2d( 100, 1 ), right, 0 ) );
+  EXPECT_DOUBLE_EQ( right.x(), 0.0 );
+}
+
 TEST_F( measurement_utilities_test, segment_disparity_formats_and_reversed_endpoints )
 {
   map_keypoints_to_camera_settings settings;

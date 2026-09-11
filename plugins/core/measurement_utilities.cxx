@@ -4073,8 +4073,11 @@ map_keypoints_to_camera
     return false;
   }
 
-  // KWIVER image strides count pixels, so apply them to typed pointers.
-  const void* img_data = img.first_pixel();
+  // Preserve legacy endpoint-sampling behavior for existing pipelines.
+  // Segment refinement opts into correct pixel-to-byte stride conversion.
+  const char* img_data = reinterpret_cast<const char*>( img.first_pixel() );
+  const ptrdiff_t stride_bytes = m_refine_disparity_segment ?
+    static_cast< ptrdiff_t >( img.pixel_traits().num_bytes ) : 1;
 
   // Helper lambda: read disparity at (px, py), returns <= 0 if invalid
   auto read_disparity = [&]( int px, int py ) -> double
@@ -4082,15 +4085,15 @@ map_keypoints_to_camera
     if( img.pixel_traits().type == kv::image_pixel_traits::UNSIGNED &&
         img.pixel_traits().num_bytes == 2 )
     {
-      const uint16_t* ptr = reinterpret_cast<const uint16_t*>( img_data ) +
-        py * img.h_step() + px * img.w_step();
+      const uint16_t* ptr = reinterpret_cast<const uint16_t*>(
+        img_data + ( py * img.h_step() + px * img.w_step() ) * stride_bytes );
       return static_cast< double >( *ptr ) / 256.0;
     }
     else if( img.pixel_traits().type == kv::image_pixel_traits::SIGNED &&
              img.pixel_traits().num_bytes == 2 )
     {
-      const int16_t* ptr = reinterpret_cast<const int16_t*>( img_data ) +
-        py * img.h_step() + px * img.w_step();
+      const int16_t* ptr = reinterpret_cast<const int16_t*>(
+        img_data + ( py * img.h_step() + px * img.w_step() ) * stride_bytes );
       int16_t raw_val = *ptr;
       if( raw_val < 0 )
       {
@@ -4101,8 +4104,8 @@ map_keypoints_to_camera
     else if( img.pixel_traits().type == kv::image_pixel_traits::FLOAT &&
              img.pixel_traits().num_bytes == 4 )
     {
-      const float* ptr = reinterpret_cast<const float*>( img_data ) +
-        py * img.h_step() + px * img.w_step();
+      const float* ptr = reinterpret_cast<const float*>(
+        img_data + ( py * img.h_step() + px * img.w_step() ) * stride_bytes );
       return static_cast< double >( *ptr );
     }
     return -1.0;

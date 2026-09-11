@@ -395,12 +395,6 @@ the endpoint correspondences, and uses the existing triangulation, stereo track
 pairing, CSV output, and median track-length aggregation. Length units follow
 the calibration translation vector.
 
-The same refinement is available in
-**stereo_measure_current_annots_fdn_stereo_s.pipe** by setting
-``measurer:refine_disparity_segment=true``. It is disabled by default there.
-Other disparity backends can use this option if they return rectified pixel
-disparities; the measurement process supplies the rectified input images.
-
 The default fit uses 11 samples and permits at most 3 invalid or outlier
 samples, with a maximum disparity residual of 1 pixel. These are controlled by
 ``disparity_segment_samples``, ``disparity_segment_max_outliers``, and
