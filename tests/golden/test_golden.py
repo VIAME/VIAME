@@ -30,6 +30,7 @@ import feature_runner               # noqa: E402
 import imageio_utils                # noqa: E402
 import measurement_cases            # noqa: E402
 import measurement_runner           # noqa: E402
+import measurement_fixtures         # noqa: E402
 import opencv_cases                 # noqa: E402
 import pipeline_runner              # noqa: E402
 import refine_cases                 # noqa: E402
@@ -285,6 +286,10 @@ def run_case(case, impl):
         outputs = measurement_runner.run_stereo_pipeline(
             impl, left, right, tuple(case["settings"]))
         return [measurement_runner.calibration_arrays(outputs)]
+
+    if case["kind"] == "measurement":
+        return [measurement_runner.run_measurement_pipeline(
+            impl, tuple(case["settings"]), case.get("paired", False))]
 
     if case["kind"] == "mono_calibration":
         names = measurement_cases.mono_calibration_view_names()
@@ -545,6 +550,42 @@ def check_mono_calibration_truth(item, arrays):
                 case_id(item), key, worst))
 
 
+def check_measurement_truth(item, case, arrays):
+    """The measured lengths against the segments the scene actually holds.
+
+    The scene draws five segments of known length on a plane at a known
+    depth, so this says "and the recording was right" as well as "and the
+    port reproduced it". Finding 1.20 is what it is for: every length on
+    this branch was zero, and no recording existed to say so.
+
+    `measurement_cases.MEASUREMENT_LENGTH_TOLERANCE` gives `None` for a
+    method that is not supposed to be accurate -- `depth_projection` is told
+    the wrong depth by construction -- and those are checked only for being
+    a positive number of the right order, which still catches zero.
+    """
+    truth = measurement_fixtures.measurement_truth()
+    tolerance = measurement_cases.MEASUREMENT_LENGTH_TOLERANCE.get(
+        case["variant"], None)
+
+    ids = [int(round(value)) for value in arrays["track_ids"].reshape(-1)]
+    lengths = arrays["length"].reshape(-1)
+
+    for identifier, length in zip(ids, lengths):
+        expected = truth[identifier]["length_mm"]
+
+        assert length > 0.0, (
+            "{} track {}: measured {}, and the segment is {:.1f} mm "
+            "long".format(case_id(item), identifier, length, expected))
+
+        if tolerance is None:
+            continue
+
+        assert abs(length - expected) <= tolerance * expected, (
+            "{} track {}: measured {:.3f} mm against a true {:.3f}, more "
+            "than {:.1%} out".format(
+                case_id(item), identifier, length, expected, tolerance))
+
+
 def check_json_case(item, case, outputs, group):
     """A recording whose values are parsed structure rather than pixels.
 
@@ -616,6 +657,11 @@ def test_golden(item):
 
     if case["kind"] == "mono_calibration":
         check_mono_calibration_truth(item, outputs[0])
+        check_array_case(item, case, outputs, group)
+        return
+
+    if case["kind"] == "measurement":
+        check_measurement_truth(item, case, outputs[0])
         check_array_case(item, case, outputs, group)
         return
 

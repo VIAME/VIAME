@@ -458,6 +458,22 @@ an artefact of the port:
   reproduces it and a decision to fix it is visible as a change to that
   recording.
 
+* A right-camera track file has to be **named after the left image**.
+  `common_stereo_input_with_tracks.pipe` connects `downsampler.output_2` --
+  camera one's file name -- to both `track_reader1` and `track_reader2`, and
+  `read_object_track` returns only the rows whose image identifier matches
+  what it was handed. So a second-camera CSV that names the second camera's
+  frames reads as empty, silently, and every track becomes left-only. Found
+  building the measurement golden, which had to write its right track file
+  under the left frame's name to get `input_pairs_only` to see anything.
+* `input_pairs_only` **does nothing on its own**. `measure_objects_process`
+  deliberately refuses to pair left and right by track id -- two independent
+  trackers can reuse one -- so with no `detection_pairing_method` configured
+  every track is left-only, and the process short-circuits the matching
+  entirely when `input_pairs_only` is the only method. The shipped template
+  leaves `detection_pairing_method` empty, so `matching_methods` of
+  `input_pairs_only` measures nothing at all rather than using the pairs it
+  was given. The golden's case sets `keypoint_projection` to get past it.
 * `pair_stereo_tracks_pytorch` **cannot have been run**.
   `_get_track_descriptor_at_frame` writes `det = state.detection` where the
   binding makes `detection` a method, so `det` is a bound method, the
@@ -467,6 +483,24 @@ an artefact of the port:
   one add-on selects the C++ `ocv_pair_stereo_tracks` instead. Fixed in
   passing while porting the single camera calibration, which hit the same
   binding.
+
+* `compute_disparity` **saturates its own disparity map**. The shipped
+  measurement config turns the WLS filter on, and `ocv_stereo_disparity`'s
+  `raw` output format writes the filtered disparity back as sixteenths in an
+  **int16**. The filter fills the regions the matcher left invalid, and those
+  fill values overflow: the map's maximum is 32767, which is 2047 pixels of
+  disparity on a rig whose real disparity is 45. The consumer,
+  `find_corresponding_point_external_disparity`, rejects only values at or
+  below zero, so it takes them, and the right keypoints land four hundred
+  pixels off the left edge of the image. On the golden scene the method
+  measures three of five targets at a tenth of their true length while every
+  other method lands within two per cent. It reproduces on the reference
+  build of `main` -- the python port of `ocv_stereo_disparity` is bit
+  identical to the C++ on all three WLS configurations, checked -- so this is
+  upstream rather than a phase 7 regression. It is latent in the shipped
+  pipelines, whose `matching_methods` does not list `compute_disparity`.
+  Recorded as a `measurement` case so that the port reproduces it and a fix
+  shows up as a change to the recording.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 

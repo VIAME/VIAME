@@ -1,5 +1,5 @@
 {
-  "appended": "2026-09-11T06:15:47Z",
+  "appended": "2026-09-11T07:29:16Z",
   "cases": [
     {
       "config": {},
@@ -904,6 +904,475 @@
       ],
       "unstable": {},
       "variant": "frames_6"
+    },
+    {
+      "config": {},
+      "impl": "measurement_from_annotations_default.pipe",
+      "inputs": [
+        "scene"
+      ],
+      "kind": "measurement",
+      "outputs": {
+        "scene": {
+          "file": "measurement/measurement_from_annotations_default.pipe/input_pairs_only/scene.npz",
+          "members": {
+            "length": {
+              "dtype": "float64",
+              "sha256": "1cca98ff075ed529",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "midpoint": {
+              "dtype": "float64",
+              "sha256": "ab5b5453bab9a67f",
+              "shape": [
+                5,
+                3
+              ]
+            },
+            "range": {
+              "dtype": "float64",
+              "sha256": "cf32333c0c9e7834",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "right_head": {
+              "dtype": "float64",
+              "sha256": "04b2a22981f0fb22",
+              "shape": [
+                5,
+                2
+              ]
+            },
+            "right_tail": {
+              "dtype": "float64",
+              "sha256": "d5538abd87de32b0",
+              "shape": [
+                5,
+                2
+              ]
+            },
+            "rms": {
+              "dtype": "float64",
+              "sha256": "af8060f3c161c349",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "track_ids": {
+              "dtype": "float64",
+              "sha256": "2e56f28a9e0f9491",
+              "shape": [
+                5,
+                1
+              ]
+            }
+          }
+        }
+      },
+      "paired": true,
+      "settings": [
+        "measurer:matching_methods=input_pairs_only",
+        "measurer:detection_pairing_method=keypoint_projection"
+      ],
+      "unstable": {},
+      "variant": "input_pairs_only"
+    },
+    {
+      "config": {},
+      "impl": "measurement_from_annotations_default.pipe",
+      "inputs": [
+        "scene"
+      ],
+      "kind": "measurement",
+      "outputs": {
+        "scene": {
+          "file": "measurement/measurement_from_annotations_default.pipe/epipolar_template_matching/scene.npz",
+          "members": {
+            "length": {
+              "dtype": "float64",
+              "sha256": "a9cf2365c0cb13ea",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "midpoint": {
+              "dtype": "float64",
+              "sha256": "4dd00767d94ad57f",
+              "shape": [
+                5,
+                3
+              ]
+            },
+            "range": {
+              "dtype": "float64",
+              "sha256": "8253013b38b98f44",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "right_head": {
+              "dtype": "float64",
+              "sha256": "74c80b3c84e04a8b",
+              "shape": [
+                5,
+                2
+              ]
+            },
+            "right_tail": {
+              "dtype": "float64",
+              "sha256": "02cf6d7ca31d151a",
+              "shape": [
+                5,
+                2
+              ]
+            },
+            "rms": {
+              "dtype": "float64",
+              "sha256": "7edf881ad7358386",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "track_ids": {
+              "dtype": "float64",
+              "sha256": "2e56f28a9e0f9491",
+              "shape": [
+                5,
+                1
+              ]
+            }
+          }
+        }
+      },
+      "paired": false,
+      "settings": [
+        "measurer:matching_methods=epipolar_template_matching"
+      ],
+      "unstable": {},
+      "variant": "epipolar_template_matching"
+    },
+    {
+      "config": {},
+      "impl": "measurement_from_annotations_default.pipe",
+      "inputs": [
+        "scene"
+      ],
+      "kind": "measurement",
+      "outputs": {
+        "scene": {
+          "file": "measurement/measurement_from_annotations_default.pipe/template_matching/scene.npz",
+          "members": {
+            "length": {
+              "dtype": "float64",
+              "sha256": "8ac863fb9b0db0c6",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "midpoint": {
+              "dtype": "float64",
+              "sha256": "4c1ee55e2f3447d6",
+              "shape": [
+                5,
+                3
+              ]
+            },
+            "range": {
+              "dtype": "float64",
+              "sha256": "2abd7a2b7c7afdfd",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "right_head": {
+              "dtype": "float64",
+              "sha256": "fe5a2006497c53e6",
+              "shape": [
+                5,
+                2
+              ]
+            },
+            "right_tail": {
+              "dtype": "float64",
+              "sha256": "d75d19a05f8d880c",
+              "shape": [
+                5,
+                2
+              ]
+            },
+            "rms": {
+              "dtype": "float64",
+              "sha256": "dab530254b9e950e",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "track_ids": {
+              "dtype": "float64",
+              "sha256": "2e56f28a9e0f9491",
+              "shape": [
+                5,
+                1
+              ]
+            }
+          }
+        }
+      },
+      "paired": false,
+      "settings": [
+        "measurer:matching_methods=template_matching"
+      ],
+      "unstable": {},
+      "variant": "template_matching"
+    },
+    {
+      "config": {},
+      "impl": "measurement_from_annotations_default.pipe",
+      "inputs": [
+        "scene"
+      ],
+      "kind": "measurement",
+      "outputs": {
+        "scene": {
+          "file": "measurement/measurement_from_annotations_default.pipe/compute_disparity/scene.npz",
+          "members": {
+            "length": {
+              "dtype": "float64",
+              "sha256": "9af2bb056d12c9fc",
+              "shape": [
+                3,
+                1
+              ]
+            },
+            "midpoint": {
+              "dtype": "float64",
+              "sha256": "d216f6a04c904857",
+              "shape": [
+                3,
+                3
+              ]
+            },
+            "range": {
+              "dtype": "float64",
+              "sha256": "1dc42b2ff49a2b4b",
+              "shape": [
+                3,
+                1
+              ]
+            },
+            "right_head": {
+              "dtype": "float64",
+              "sha256": "adb87ac36b8e6c35",
+              "shape": [
+                3,
+                2
+              ]
+            },
+            "right_tail": {
+              "dtype": "float64",
+              "sha256": "7e9b58f290f3cd97",
+              "shape": [
+                3,
+                2
+              ]
+            },
+            "rms": {
+              "dtype": "float64",
+              "sha256": "6a7af0cd5e9c08fd",
+              "shape": [
+                3,
+                1
+              ]
+            },
+            "track_ids": {
+              "dtype": "float64",
+              "sha256": "2b4b8a31ad969909",
+              "shape": [
+                3,
+                1
+              ]
+            }
+          }
+        }
+      },
+      "paired": false,
+      "settings": [
+        "measurer:matching_methods=compute_disparity"
+      ],
+      "unstable": {},
+      "variant": "compute_disparity"
+    },
+    {
+      "config": {},
+      "impl": "measurement_from_annotations_default.pipe",
+      "inputs": [
+        "scene"
+      ],
+      "kind": "measurement",
+      "outputs": {
+        "scene": {
+          "file": "measurement/measurement_from_annotations_default.pipe/depth_projection/scene.npz",
+          "members": {
+            "length": {
+              "dtype": "float64",
+              "sha256": "3033e5d0dbe97d96",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "midpoint": {
+              "dtype": "float64",
+              "sha256": "3ececbd02f04571f",
+              "shape": [
+                5,
+                3
+              ]
+            },
+            "range": {
+              "dtype": "float64",
+              "sha256": "48b6458544c82b6e",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "right_head": {
+              "dtype": "float64",
+              "sha256": "d355cad98742d227",
+              "shape": [
+                5,
+                2
+              ]
+            },
+            "right_tail": {
+              "dtype": "float64",
+              "sha256": "f28cbb138f45d0f8",
+              "shape": [
+                5,
+                2
+              ]
+            },
+            "rms": {
+              "dtype": "float64",
+              "sha256": "8f2a8f9db269e441",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "track_ids": {
+              "dtype": "float64",
+              "sha256": "2e56f28a9e0f9491",
+              "shape": [
+                5,
+                1
+              ]
+            }
+          }
+        }
+      },
+      "paired": false,
+      "settings": [
+        "measurer:matching_methods=depth_projection"
+      ],
+      "unstable": {},
+      "variant": "depth_projection"
+    },
+    {
+      "config": {
+        "use_wls_filter": "true",
+        "wls_lambda": "8000.0",
+        "wls_sigma": "1.5"
+      },
+      "impl": "ocv_stereo_disparity",
+      "inputs": [
+        "stereo"
+      ],
+      "kind": "disparity",
+      "outputs": {
+        "stereo": {
+          "dtype": "int16",
+          "file": "disparity/ocv_stereo_disparity/wls/stereo.npz",
+          "sha256": "231971c752f054fa",
+          "shape": [
+            240,
+            320,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "wls"
+    },
+    {
+      "config": {
+        "output_format": "float32",
+        "use_wls_filter": "true",
+        "wls_lambda": "8000.0",
+        "wls_sigma": "1.5"
+      },
+      "impl": "ocv_stereo_disparity",
+      "inputs": [
+        "stereo"
+      ],
+      "kind": "disparity",
+      "outputs": {
+        "stereo": {
+          "dtype": "float32",
+          "file": "disparity/ocv_stereo_disparity/wls_float32/stereo.npz",
+          "sha256": "136d036b7102a546",
+          "shape": [
+            240,
+            320,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "wls_float32"
+    },
+    {
+      "config": {
+        "algorithm": "BM",
+        "use_wls_filter": "true",
+        "wls_lambda": "8000.0",
+        "wls_sigma": "1.5"
+      },
+      "impl": "ocv_stereo_disparity",
+      "inputs": [
+        "stereo"
+      ],
+      "kind": "disparity",
+      "outputs": {
+        "stereo": {
+          "dtype": "int16",
+          "file": "disparity/ocv_stereo_disparity/wls_bm/stereo.npz",
+          "sha256": "84cc58a3ab7eaba8",
+          "shape": [
+            240,
+            320,
+            1
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "wls_bm"
     }
   ],
   "fixtures": {
@@ -913,6 +1382,198 @@
       "shape": [
         64,
         96
+      ]
+    },
+    "calib_left_00": {
+      "dtype": "uint8",
+      "sha256": "bba8da40812ecbd4",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_01": {
+      "dtype": "uint8",
+      "sha256": "51f4cf24aa706792",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_02": {
+      "dtype": "uint8",
+      "sha256": "b35e756fa5edbb5d",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_03": {
+      "dtype": "uint8",
+      "sha256": "a315f75dcc0126ca",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_04": {
+      "dtype": "uint8",
+      "sha256": "4f4091a636069ebb",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_05": {
+      "dtype": "uint8",
+      "sha256": "1ddda10fd8a033d8",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_06": {
+      "dtype": "uint8",
+      "sha256": "74d37e7ef5922100",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_07": {
+      "dtype": "uint8",
+      "sha256": "c1cabe6b50350971",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_08": {
+      "dtype": "uint8",
+      "sha256": "4e5f8044e48b4d0c",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_09": {
+      "dtype": "uint8",
+      "sha256": "0829d0c64f82b644",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_10": {
+      "dtype": "uint8",
+      "sha256": "4a690346489fdf97",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_11": {
+      "dtype": "uint8",
+      "sha256": "dda71b7724c274cf",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_00": {
+      "dtype": "uint8",
+      "sha256": "fc1aff51bc527952",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_01": {
+      "dtype": "uint8",
+      "sha256": "efcef35d3c3892ab",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_02": {
+      "dtype": "uint8",
+      "sha256": "95fb5ac90d36cebd",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_03": {
+      "dtype": "uint8",
+      "sha256": "e80d77099ab4f9be",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_04": {
+      "dtype": "uint8",
+      "sha256": "1831f0c17aec8a2b",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_05": {
+      "dtype": "uint8",
+      "sha256": "df12ed093960dfe7",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_06": {
+      "dtype": "uint8",
+      "sha256": "9552f12be7252b30",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_07": {
+      "dtype": "uint8",
+      "sha256": "b32c86fa1fe13ae5",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_08": {
+      "dtype": "uint8",
+      "sha256": "870f5d6225501eff",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_09": {
+      "dtype": "uint8",
+      "sha256": "df524549facf861d",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_10": {
+      "dtype": "uint8",
+      "sha256": "3e7b485632a55038",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_11": {
+      "dtype": "uint8",
+      "sha256": "4fc7d6277145201c",
+      "shape": [
+        480,
+        640
       ]
     },
     "chessboard": {
@@ -1026,6 +1687,22 @@
       "shape": [
         64,
         96
+      ]
+    },
+    "measure_left_00": {
+      "dtype": "uint8",
+      "sha256": "67efef457155a20b",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "measure_right_00": {
+      "dtype": "uint8",
+      "sha256": "214baf3831345be0",
+      "shape": [
+        480,
+        640
       ]
     },
     "rgb8": {

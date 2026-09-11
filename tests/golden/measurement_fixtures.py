@@ -367,6 +367,204 @@ def calibration_views():
     return out
 
 
+# ----------------------------------------------------------------------------
+# The measurement scene
+# ----------------------------------------------------------------------------
+#
+# `compute_measurements` takes two stereo frames, a track set carrying head
+# and tail keypoints, and a calibration; it matches each keypoint into the
+# right frame, triangulates, and reports a length. None of that had a
+# recording, and `measurement_cases.py` said why: the pipelines need
+# annotated input that is not in the tree.
+#
+# This is what closes it, and it costs two images. A **textured plane** at a
+# known depth, viewed through the rig the calibration fixture already
+# defines: a plane through a pinhole is a homography, so both views are exact
+# inverse warps of one texture and there is no rendering error to argue
+# about. Segments drawn on that plane have lengths known to the millimetre,
+# so this case has a right answer the way the calibration case does.
+#
+# The texture is white noise, lightly smoothed. Noise rather than structure
+# because normalised cross-correlation wants an autocorrelation with one
+# sharp peak, and a repeating pattern is exactly what makes a stereo matcher
+# pick the wrong period.
+MEASURE_DEPTH_MM = 2200.0
+MEASURE_EXTENT_U_MM = 3000.0
+MEASURE_EXTENT_V_MM = 2400.0
+
+# About a third of a pixel per millimetre, chosen so the warp into the image
+# is close to one to one: the plane sits at 2200 mm with a 600 pixel focal
+# length, so an image pixel is about 3.7 mm and the texture is minified by
+# about 1.2. A texture much finer than that would alias, and aliasing is
+# indistinguishable from a matcher that has gone wrong.
+MEASURE_PIXELS_PER_MM = 0.3
+
+MEASURE_SEED = 777
+
+# The plane's in-plane axes, tilted a little out of fronto-parallel so that
+# the two views differ by more than a shift.
+MEASURE_AXIS_U = (1.0, 0.0, 0.06)
+MEASURE_AXIS_V = (0.0, 1.0, -0.04)
+
+# Segments on the plane, in millimetres from its origin along those axes.
+# Spread across the frame and in orientation: two near-horizontal, one
+# near-vertical, two diagonal. The lengths come out 300 to 400 mm, which is
+# fish-sized for a rig with a 120 mm baseline.
+MEASURE_TARGETS = (
+    ((700.0, 700.0), (1000.0, 900.0)),
+    ((1500.0, 600.0), (1900.0, 620.0)),
+    ((900.0, 1500.0), (1150.0, 1750.0)),
+    ((1800.0, 1400.0), (1820.0, 1750.0)),
+    ((1200.0, 1100.0), (1500.0, 1100.0)),
+)
+
+
+def _measure_plane():
+    """The plane's orthonormal frame and origin, in left camera millimetres."""
+    u = np.asarray(MEASURE_AXIS_U, dtype=np.float64)
+    u /= np.linalg.norm(u)
+
+    v = np.asarray(MEASURE_AXIS_V, dtype=np.float64)
+    v -= v.dot(u) * u
+    v /= np.linalg.norm(v)
+
+    origin = (np.array([0.0, 0.0, MEASURE_DEPTH_MM]) -
+              u * MEASURE_EXTENT_U_MM / 2.0 -
+              v * MEASURE_EXTENT_V_MM / 2.0)
+
+    return u, v, origin
+
+
+def _measure_texture():
+    rng = np.random.default_rng(MEASURE_SEED)
+
+    width = int(MEASURE_EXTENT_U_MM * MEASURE_PIXELS_PER_MM)
+    height = int(MEASURE_EXTENT_V_MM * MEASURE_PIXELS_PER_MM)
+
+    noise = rng.integers(0, 256, size=(height, width)).astype(np.float64)
+
+    # A three by three mean, so bilinear resampling has something continuous
+    # to work with without flattening the correlation peak.
+    padded = np.pad(noise, 1, mode="edge")
+    smoothed = sum(padded[i:i + height, j:j + width]
+                   for i in range(3) for j in range(3)) / 9.0
+
+    return smoothed.astype(np.uint8)
+
+
+def _measure_homography(intrinsics, rotation, translation):
+    """Plane millimetres to image pixels, for one camera."""
+    u, v, origin = _measure_plane()
+
+    return np.asarray(intrinsics, dtype=np.float64) @ np.column_stack(
+        [rotation @ u, rotation @ v, rotation @ origin + translation])
+
+
+def _measure_view(intrinsics, rotation, translation, texture):
+    """One view of the plane, by inverse warp through the exact homography."""
+    homography = _measure_homography(intrinsics, rotation, translation)
+
+    to_texture = np.array([[MEASURE_PIXELS_PER_MM, 0.0, 0.0],
+                           [0.0, MEASURE_PIXELS_PER_MM, 0.0],
+                           [0.0, 0.0, 1.0]])
+
+    inverse = to_texture @ np.linalg.inv(homography)
+
+    ys, xs = np.mgrid[0:CALIBRATION_IMAGE_HEIGHT, 0:CALIBRATION_IMAGE_WIDTH]
+    points = np.stack([xs.ravel().astype(np.float64),
+                       ys.ravel().astype(np.float64),
+                       np.ones(xs.size)])
+
+    mapped = inverse @ points
+    texture_x = mapped[0] / mapped[2]
+    texture_y = mapped[1] / mapped[2]
+
+    height, width = texture.shape
+    out = np.zeros(xs.size)
+
+    inside = ((texture_x >= 0) & (texture_x <= width - 1) &
+              (texture_y >= 0) & (texture_y <= height - 1) & (mapped[2] > 0))
+
+    x0 = np.floor(texture_x[inside]).astype(int)
+    y0 = np.floor(texture_y[inside]).astype(int)
+    fx = texture_x[inside] - x0
+    fy = texture_y[inside] - y0
+    x1 = np.minimum(x0 + 1, width - 1)
+    y1 = np.minimum(y0 + 1, height - 1)
+
+    values = texture.astype(np.float64)
+    out[inside] = (values[y0, x0] * (1 - fx) * (1 - fy) +
+                   values[y0, x1] * fx * (1 - fy) +
+                   values[y1, x0] * (1 - fx) * fy +
+                   values[y1, x1] * fx * fy)
+
+    return np.clip(out.reshape(CALIBRATION_IMAGE_HEIGHT,
+                               CALIBRATION_IMAGE_WIDTH), 0, 255).astype(np.uint8)
+
+
+def measurement_rig():
+    """`(K_left, K_right, rotation, translation)` for the scene's rig.
+
+    The same rig the calibration fixture renders its board through, so the
+    calibration case and the measurement case are about one piece of
+    hardware rather than two.
+    """
+    return (np.asarray(CALIBRATION_K_LEFT, dtype=np.float64),
+            np.asarray(CALIBRATION_K_RIGHT, dtype=np.float64),
+            _rodrigues(CALIBRATION_ROTATION_VECTOR),
+            np.asarray(CALIBRATION_TRANSLATION_MM, dtype=np.float64))
+
+
+def measurement_truth():
+    """One entry per target: where it is, and how long it is.
+
+    `left` and `right` are the exact pixel positions of the head and tail in
+    each view; `length_mm` and `midpoint_mm` are the answer a correct
+    measurement gives.
+    """
+    k_left, k_right, rotation, translation = measurement_rig()
+
+    left_h = _measure_homography(k_left, np.eye(3), np.zeros(3))
+    right_h = _measure_homography(k_right, rotation, translation)
+
+    u, v, origin = _measure_plane()
+
+    def project(homography, point):
+        mapped = homography @ np.array([point[0], point[1], 1.0])
+        return (float(mapped[0] / mapped[2]), float(mapped[1] / mapped[2]))
+
+    def world(point):
+        return origin + u * point[0] + v * point[1]
+
+    out = []
+
+    for head, tail in MEASURE_TARGETS:
+        head_3d = world(head)
+        tail_3d = world(tail)
+
+        out.append({
+            "left": (project(left_h, head), project(left_h, tail)),
+            "right": (project(right_h, head), project(right_h, tail)),
+            "length_mm": float(np.linalg.norm(tail_3d - head_3d)),
+            "midpoint_mm": tuple((head_3d + tail_3d) / 2.0),
+        })
+
+    return out
+
+
+def measurement_scene():
+    """`{name: image}` for the two frames of the measurement scene."""
+    k_left, k_right, rotation, translation = measurement_rig()
+    texture = _measure_texture()
+
+    return {
+        "measure_left_00": _measure_view(
+            k_left, np.eye(3), np.zeros(3), texture),
+        "measure_right_00": _measure_view(
+            k_right, rotation, translation, texture),
+    }
+
+
 def build():
     """Return {name: image} for the measurement group's own fixtures."""
     rng = np.random.default_rng(SEED)
@@ -380,5 +578,6 @@ def build():
         "dot_grid": dot_grid(rng),
     }
     images.update(calibration_views())
+    images.update(measurement_scene())
 
     return images

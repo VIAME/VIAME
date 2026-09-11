@@ -804,11 +804,27 @@ def record_measurement_mono_calibration(group_dir, manifest):
                             extra={"settings": list(settings)})
 
 
+def record_measurement_from_annotations(group_dir, manifest):
+    pipeline = measurement_cases.MEASUREMENT_PIPELINE
+
+    for variant, settings in measurement_cases.MEASUREMENT_VARIANTS:
+        paired = variant in measurement_cases.MEASUREMENT_PAIRED_VARIANTS
+
+        arrays = measurement_runner.run_measurement_pipeline(
+            pipeline, settings, paired)
+
+        _record_arrays_case(group_dir, manifest, "measurement",
+                            pipeline, variant, {}, ["scene"], [arrays],
+                            extra={"settings": list(settings),
+                                   "paired": paired})
+
+
 def record_measurement(group_dir, manifest):
     record_measurement_disparity(group_dir, manifest)
     record_measurement_targets(group_dir, manifest)
     record_measurement_calibration(group_dir, manifest)
     record_measurement_mono_calibration(group_dir, manifest)
+    record_measurement_from_annotations(group_dir, manifest)
 
 
 def record_calib(group_dir, manifest):
@@ -934,8 +950,18 @@ def main():
                  not in already]
 
         for key in manifest:
-            if key not in ("cases", "recorded"):
-                existing.setdefault(key, manifest[key])
+            if key in ("cases", "recorded"):
+                continue
+
+            # A group that gains a case usually gains the fixture it runs
+            # on, and an existing fixture's digest must not move, so the two
+            # maps are merged rather than one replacing the other.
+            if key == "fixtures" and isinstance(existing.get(key), dict):
+                for name, described in manifest[key].items():
+                    existing[key].setdefault(name, described)
+                continue
+
+            existing.setdefault(key, manifest[key])
 
         for case in added:
             for record in case["outputs"].values():

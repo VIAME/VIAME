@@ -53,6 +53,25 @@ DISPARITY = {
         # Speckle filtering, which removes small inconsistent regions and is
         # what makes a disparity map usable on real data.
         ("no_speckle_filter", {"speckle_window_size": "0"}),
+        # The WLS filter, which the shipped measurement config turns on and
+        # which nothing here covered. It is where finding 1.21 lives: the
+        # filter fills the invalid regions, and `raw` writes the result back
+        # as sixteenths in an int16, where those fills saturate at 32767.
+        #
+        # **How these three were recorded.** Not by `record.py` against the
+        # C++ -- P7-T06 had already replaced `compute_stereo_disparity.cxx`
+        # by the time the gap was found. Instead the python implementation
+        # was run against the **reference build of `main` at 8edfd2f66**,
+        # which still has the C++, on the same inputs: all three are bit
+        # identical, zero difference over the whole map. That is the same
+        # contract a recording gives, obtained the only way left. Said out
+        # loud here because it is the one exception in this framework.
+        ("wls", {"use_wls_filter": "true", "wls_lambda": "8000.0",
+                 "wls_sigma": "1.5"}),
+        ("wls_float32", {"use_wls_filter": "true", "wls_lambda": "8000.0",
+                         "wls_sigma": "1.5", "output_format": "float32"}),
+        ("wls_bm", {"algorithm": "BM", "use_wls_filter": "true",
+                    "wls_lambda": "8000.0", "wls_sigma": "1.5"}),
     ],
 }
 
@@ -236,6 +255,100 @@ MONO_CALIBRATION_TRUTH = {
 def mono_calibration_view_names():
     """The fixture names of the left calibration views, in order."""
     return calibration_view_names()[0]
+
+
+# ----------------------------------------------------------------------------
+# Measurement from annotations, end to end
+# ----------------------------------------------------------------------------
+#
+# `compute_measurements` over `measurement_fixtures.measurement_scene()`: a
+# textured plane at a known depth through the rig the calibration fixture
+# defines, with five segments of known length drawn on it. The track file the
+# pipeline reads is generated from the exact left projections, so what the
+# recording measures is the matching, the triangulation and the aggregation
+# rather than an annotator's aim.
+#
+# Like the calibration case it has a **right answer**: the lengths are 300 to
+# 400 mm and known to the millimetre. That is what caught finding 1.20, where
+# every one of them came back zero.
+MEASUREMENT_PIPELINE = "measurement_from_annotations_default.pipe"
+
+# The variants, one per matching method that is deterministic. Each reaches a
+# different part of the OpenCV surface P7-T06 has to replace:
+#
+# * `input_pairs_only` takes the right keypoints from the track file, so it
+#   is triangulation and nothing else -- and with the true right points in
+#   the file it should land on the truth to a fraction of a millimetre.
+# * `epipolar_template_matching` samples the epipolar curve in the
+#   **unrectified** right image: `projectPoints` and `undistortPoints`, plus
+#   NCC on a strip. It is the shipped default.
+# * `template_matching` rectifies both images first: `stereoRectify`,
+#   `initUndistortRectifyMap` and `remap` as well.
+# * `compute_disparity` runs SGBM over the rectified pair and looks the
+#   disparity up at each keypoint. It is recorded **broken**: it measures
+#   three of the five targets at a tenth of their length and puts their right
+#   keypoints hundreds of pixels off the left edge of the image. The cause is
+#   upstream and reproduces on the reference build of `main`: the shipped
+#   config turns the WLS filter on, and `ocv_stereo_disparity` writes its
+#   `raw` output back as sixteenths in an **int16**, where the filter's
+#   fill-in values saturate at 32767 -- 2047 pixels of disparity on a rig
+#   whose real disparity is 45. `find_corresponding_point_external_disparity`
+#   rejects only values at or below zero, so it takes them. Finding 1.21.
+# * `depth_projection` uses no image content at all -- it puts the right
+#   point where `default_depth` says it would be -- so it is pure projection
+#   geometry, and its answers are wrong by the ratio of that default to the
+#   real depth. Recorded because a port has to reproduce the projection, not
+#   because the numbers are good.
+#
+# `feature_descriptor` and `ransac_feature` are left out: they go through
+# `ocv_flann_based`, which seeds its KD-trees from the clock and returns a
+# different number of matches from one run to the next.
+MEASUREMENT_VARIANTS = (
+    # `detection_pairing_method` as well, and it has to be there: the
+    # process deliberately does **not** pair left and right by track id --
+    # two independent trackers can reuse one -- so with no pairing method
+    # every track is left-only and `input_pairs_only` has nothing to take.
+    ("input_pairs_only", ("measurer:matching_methods=input_pairs_only",
+                          "measurer:detection_pairing_method="
+                          "keypoint_projection")),
+    ("epipolar_template_matching",
+     ("measurer:matching_methods=epipolar_template_matching",)),
+    ("template_matching", ("measurer:matching_methods=template_matching",)),
+    ("compute_disparity", ("measurer:matching_methods=compute_disparity",)),
+    ("depth_projection", ("measurer:matching_methods=depth_projection",)),
+)
+
+# Which variants are given the true right keypoints in the second track file.
+# Only the one that consumes them; for the rest the file is empty, so the
+# method under test is the only thing that can produce a match.
+MEASUREMENT_PAIRED_VARIANTS = ("input_pairs_only",)
+
+
+def measurement_settings(variant):
+    for name, settings in MEASUREMENT_VARIANTS:
+        if name == variant:
+            return settings
+
+    raise KeyError(variant)
+
+
+# How far a measured length may be from the true one, per variant, as a
+# fraction. These are contracts on the **method**, not on the port -- the
+# recording is what holds the port -- so they are set where a method that has
+# stopped working fails and a method that is working does not.
+#
+# `input_pairs_only` is given the exact right points, so half a per cent is
+# all the triangulation's own first order correction costs -- it lands within
+# 0.12%.
+# The matchers land within a couple of per cent. `depth_projection` is not
+# checked against truth at all: it is told the wrong depth by construction.
+MEASUREMENT_LENGTH_TOLERANCE = {
+    "input_pairs_only": 0.005,
+    "epipolar_template_matching": 0.10,
+    "template_matching": 0.05,
+    "compute_disparity": None,
+    "depth_projection": None,
+}
 
 
 # ----------------------------------------------------------------------------
