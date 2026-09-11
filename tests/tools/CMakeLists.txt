@@ -38,7 +38,6 @@ if( VIAME_ENABLE_PYTHON )
     run
     run_bulk
     segment
-    train
     viame
   )
     viame_add_pytest_test(

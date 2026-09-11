@@ -3,7 +3,6 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "train.h"
-#include "train_sequences.h"
 
 #include <kwiversys/SystemTools.hxx>
 

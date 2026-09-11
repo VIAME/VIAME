@@ -14,6 +14,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <stdexcept>
 #include <cstdlib>
 
 #if WIN32 || ( __cplusplus >= 201703L && __has_include(<filesystem>) )
@@ -25,6 +26,47 @@
 #endif
 
 namespace viame {
+
+// =============================================================================
+// Training sequence utilities
+// =============================================================================
+
+sequence_frames partition_sequences(
+  const std::vector< std::vector< std::string > >& sources,
+  const std::vector< std::string >& selected )
+{
+  std::map< std::string, std::size_t > owner;
+  for( std::size_t i = 0; i < sources.size(); ++i )
+  {
+    for( const auto& file : sources[i] )
+    {
+      const auto entry = owner.emplace( file, i );
+      if( !entry.second && entry.first->second != i )
+      {
+        throw std::runtime_error(
+          "Frame belongs to multiple training sequences: " + file );
+      }
+    }
+  }
+  std::vector< std::vector< std::string > > grouped( sources.size() );
+  for( const auto& file : selected )
+  {
+    auto it = owner.find( file );
+    if( it == owner.end() )
+    {
+      throw std::runtime_error( "Frame has no training sequence: " + file );
+    }
+    grouped[it->second].push_back( file );
+  }
+  sequence_frames result;
+  for( const auto& group : grouped )
+  {
+    result.first.push_back( result.images.size() );
+    result.count.push_back( group.size() );
+    result.images.insert( result.images.end(), group.begin(), group.end() );
+  }
+  return result;
+}
 
 // =============================================================================
 // Detection set utilities
