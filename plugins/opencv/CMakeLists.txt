@@ -15,7 +15,6 @@ set( plugin_headers
   debayer_filter.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
-  plot_metrics.h
   random_hue_shift.h
   split_image_habcam.h
   split_image_horizontally.h
@@ -33,7 +32,6 @@ set( plugin_sources
   debayer_filter.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
-  plot_metrics.cxx
   random_hue_shift.cxx
   split_image_habcam.cxx
   split_image_horizontally.cxx

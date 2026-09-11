@@ -4339,6 +4339,16 @@ model_evaluator::export_pr_curve_csv(
     return false;
   }
 
+  // The curve's own summary statistics, which a renderer annotates the plot
+  // with. They cannot be recovered from the points: `average_precision` is
+  // all-point interpolated by the evaluator, and anything recomputing it from
+  // a sampled curve gets a different number.
+  file << "# average_precision=" << std::fixed << std::setprecision( 6 )
+       << curve.average_precision
+       << ",max_f1=" << curve.max_f1
+       << ",best_threshold=" << curve.best_threshold
+       << "\n";
+
   file << "confidence,recall,precision,f1,tp,fp,fn\n";
   for( const auto& pt : curve.points )
   {
@@ -4486,6 +4496,27 @@ model_evaluator::export_plot_data(
       {
         file << pair.first << "," << pair.second << "\n";
       }
+
+      // Track purity and continuity, ten bins of ten percent each. The
+      // renderer used to take these straight from the struct, so they were
+      // never written down; one reading this directory needs them here.
+      auto write_percent_histogram =
+        [ &file ]( const char* name, const std::vector< int >& histogram )
+        {
+          file << "\n" << name << "\n";
+          file << "bin_start,bin_end,count\n";
+
+          for( size_t i = 0; i < histogram.size(); i++ )
+          {
+            file << ( i * 10 ) << "," << ( ( i + 1 ) * 10 ) << ","
+                 << histogram[i] << "\n";
+          }
+        };
+
+      write_percent_histogram( "track_purity_histogram",
+                               plot_data.track_purity_histogram );
+      write_percent_histogram( "track_continuity_histogram",
+                               plot_data.track_continuity_histogram );
 
       file.close();
     }

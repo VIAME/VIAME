@@ -160,12 +160,12 @@ if( VIAME_ENABLE_PYTHON )
     PRIVATE VIAME_TOOLS_ENABLE_PYTHON )
 endif()
 
-# Only the plot image rendering needs OpenCV; the plot data itself is core
+# The applets this gates are python scripts that import cv2, a wheel; nothing
+# on the C++ side of the tools links OpenCV any more, since `viame score`
+# handed its plot rendering to matplotlib in P7-T07
 if( VIAME_ENABLE_OPENCV )
   target_compile_definitions( viame_tools_applets
     PRIVATE VIAME_TOOLS_HAVE_OPENCV )
-  target_link_libraries( viame_tools_applets
-    PRIVATE viame_opencv )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )

@@ -36,6 +36,7 @@ if( VIAME_ENABLE_PYTHON )
     resample
     run
     run_bulk
+    score
     segment
     viame
   )

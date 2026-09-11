@@ -264,28 +264,61 @@ def make_dir_if_not_exist( dirname ):
 
 # -------------------- DATA LOADING FUNCTIONS --------------------------
 
+def load_pr_curve_summary( line ):
+    """Parse the `# key=value,...` line the evaluator writes above the header.
+
+    The summary cannot be recovered from the points below it: the evaluator
+    interpolates average precision at every point, and recomputing it from a
+    sampled curve gives a different number. Absent, the caller falls back to
+    that recomputation, which is what a curve from an older VIAME gets.
+    """
+    summary = {}
+
+    for field in line.lstrip( '#' ).strip().split( ',' ):
+        if '=' not in field:
+            continue
+        key, _, value = field.partition( '=' )
+        try:
+            summary[key.strip()] = float( value )
+        except ValueError:
+            pass
+
+    return summary
+
+
 def load_pr_curve_csv( filepath ):
     """Load PR curve data from CSV file."""
     points = []
     ap = 0.0
     max_f1 = 0.0
     best_threshold = 0.0
+    summary = {}
 
     with open( filepath, 'r' ) as f:
-        header = f.readline().strip().split( ',' )
         for line in f:
+            if line.startswith( '#' ):
+                summary.update( load_pr_curve_summary( line ) )
+                continue
+
             parts = line.strip().split( ',' )
-            if len( parts ) >= 4:
+            if len( parts ) < 4:
+                continue
+
+            try:
                 point = {
                     'confidence': float( parts[0] ),
                     'recall': float( parts[1] ),
                     'precision': float( parts[2] ),
                     'f1': float( parts[3] ),
                 }
-                points.append( point )
-                if point['f1'] > max_f1:
-                    max_f1 = point['f1']
-                    best_threshold = point['confidence']
+            except ValueError:
+                # The column header
+                continue
+
+            points.append( point )
+            if point['f1'] > max_f1:
+                max_f1 = point['f1']
+                best_threshold = point['confidence']
 
     # Compute AP using 11-point interpolation
     if points:
@@ -295,9 +328,9 @@ def load_pr_curve_csv( filepath ):
 
     return {
         'points': points,
-        'average_precision': ap,
-        'max_f1': max_f1,
-        'best_threshold': best_threshold
+        'average_precision': summary.get( 'average_precision', ap ),
+        'max_f1': summary.get( 'max_f1', max_f1 ),
+        'best_threshold': summary.get( 'best_threshold', best_threshold )
     }
 
 
@@ -360,6 +393,50 @@ def compute_auc( fprs, tprs ):
     return auc
 
 
+def load_histograms_csv( filepath ):
+    """Load the sections of the evaluator's histograms.csv.
+
+    The file is several small tables in one: a bare section name, a column
+    header, then rows, separated by blank lines. Returns each section under
+    its own name -- a list of counts for the fixed-bin histograms, and a
+    length to count mapping for the track lengths, which have no fixed bins.
+    """
+    sections = {}
+    name = None
+    header = None
+
+    with open( filepath, 'r' ) as f:
+        for raw in f:
+            line = raw.strip()
+
+            if not line:
+                name = None
+                header = None
+                continue
+
+            if name is None:
+                name = line
+                sections[name] = {} if name == 'track_length_histogram' else []
+                continue
+
+            if header is None:
+                header = line.split( ',' )
+                continue
+
+            parts = line.split( ',' )
+
+            try:
+                if name == 'track_length_histogram':
+                    sections[name][int( parts[0] )] = int( parts[1] )
+                else:
+                    # bin_start, bin_end, count
+                    sections[name].append( int( parts[-1] ) )
+            except ( ValueError, IndexError ):
+                continue
+
+    return sections
+
+
 def load_metrics_csv( filepath ):
     """Load metrics from CSV file."""
     metrics = {}
@@ -396,8 +473,13 @@ def plot_pr_curve( pr_data, output_path, title="Precision-Recall Curve" ):
             precisions = [p['precision'] for p in points]
             ap = pr_data.get( 'average_precision', 0 )
             max_f1 = pr_data.get( 'max_f1', 0 )
-            ax.plot( recalls, precisions, 'b-', linewidth=2,
-                     label=f'AP = {ap:.3f}, Max F1 = {max_f1:.3f}' )
+            # The confidence the max F1 is reached at is the operating point
+            # a user sets their detector to, so it belongs on the curve
+            best = pr_data.get( 'best_threshold' )
+            label = f'AP = {ap:.3f}, Max F1 = {max_f1:.3f}'
+            if best is not None:
+                label += f' @ conf = {best:.2f}'
+            ax.plot( recalls, precisions, 'b-', linewidth=2, label=label )
             ax.legend( loc='lower left' )
     elif isinstance( pr_data, list ):
         recalls = [p['recall'] for p in pr_data]
@@ -855,7 +937,7 @@ def generate_all_plots_from_json( json_path, output_dir ):
     # ROC curve
     if 'overall_roc_curve' in data:
         plot_roc_curve( data['overall_roc_curve'],
-                        os.path.join( output_dir, 'roc_curve.png' ) )
+                        os.path.join( output_dir, 'roc_curve_overall.png' ) )
 
     # IoU histogram
     if 'iou_histogram' in data:
@@ -928,7 +1010,31 @@ def generate_all_plots_from_csv_dir( input_dir, output_dir ):
     roc_file = input_path / 'roc_curve_overall.csv'
     if roc_file.exists():
         data = load_roc_curve_csv( roc_file )
-        plot_roc_curve( data, os.path.join( output_dir, 'roc_curve.png' ) )
+        plot_roc_curve( data, os.path.join( output_dir, 'roc_curve_overall.png' ) )
+
+    # Histograms, which share one file
+    histograms_file = input_path / 'histograms.csv'
+    if histograms_file.exists():
+        sections = load_histograms_csv( histograms_file )
+
+        if sections.get( 'iou_histogram' ):
+            plot_iou_histogram( sections['iou_histogram'],
+                                os.path.join( output_dir, 'iou_histogram.png' ) )
+
+        if sections.get( 'track_length_histogram' ):
+            plot_track_length_histogram(
+                sections['track_length_histogram'],
+                os.path.join( output_dir, 'track_length_histogram.png' ) )
+
+        if sections.get( 'track_purity_histogram' ):
+            plot_track_purity_histogram(
+                sections['track_purity_histogram'],
+                os.path.join( output_dir, 'track_purity_histogram.png' ) )
+
+        if sections.get( 'track_continuity_histogram' ):
+            plot_track_continuity_histogram(
+                sections['track_continuity_histogram'],
+                os.path.join( output_dir, 'track_continuity_histogram.png' ) )
 
     # Metrics file
     metrics_file = input_path / 'metrics.csv'

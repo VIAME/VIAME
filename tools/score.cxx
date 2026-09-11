@@ -8,10 +8,7 @@
 #include "score.h"
 
 #include <evaluate_models.h>
-
-#ifdef VIAME_TOOLS_HAVE_OPENCV
-#include <plot_metrics.h>
-#endif
+#include <python_script_applet.h>
 
 #include <kwiversys/SystemTools.hxx>
 #include <kwiversys/Directory.hxx>
@@ -1547,22 +1544,40 @@ score_applet
           success = false;
         }
 
-#ifdef VIAME_TOOLS_HAVE_OPENCV
-        // Render plot images using OpenCV
-        LOG_INFO( g_logger, "Rendering plot images..." );
-        viame::metrics_plotter plotter;
-        if( plotter.render_all_plots( plot_data, params.opt_output_plots ) )
+        // The pictures are matplotlib's, drawn by `viame plot` from the
+        // files just written. Going through the directory rather than the
+        // in-memory data means the plots a user regenerates by hand are the
+        // same plots, from the same numbers, as the ones scoring produced.
+        const std::string plot_script = viame::find_tool_script( "plot.py" );
+
+        if( plot_script.empty() )
         {
-          LOG_INFO( g_logger, "Plot images rendered to: " << params.opt_output_plots );
+          LOG_INFO( g_logger, "Plot images need an installed VIAME tree; "
+            "wrote the plot data only. Render them later with: "
+            "viame plot eval -i " << params.opt_output_plots );
         }
         else
         {
-          LOG_WARN( g_logger, "Some plot images could not be rendered" );
+          LOG_INFO( g_logger, "Rendering plot images..." );
+
+          const int status = viame::run_tool_script( plot_script,
+            { "eval", "-i", params.opt_output_plots,
+                      "-o", params.opt_output_plots } );
+
+          if( status == 0 )
+          {
+            LOG_INFO( g_logger, "Plot images rendered to: "
+                      << params.opt_output_plots );
+          }
+          else
+          {
+            // matplotlib absent is the usual reason, and it is not a
+            // scoring failure: the numbers are already on disk
+            LOG_WARN( g_logger, "Plot images could not be rendered; the plot "
+              "data was written. Install matplotlib and run: viame plot eval "
+              "-i " << params.opt_output_plots );
+          }
         }
-#else
-        LOG_INFO( g_logger, "Plot images need an OpenCV-enabled build; "
-          "wrote the plot data only" );
-#endif
       }
 
       // Export individual plots

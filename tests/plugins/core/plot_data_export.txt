@@ -34,7 +34,34 @@ length,count
 2,1
 4,2
 
+track_purity_histogram
+bin_start,bin_end,count
+0,10,0
+10,20,0
+20,30,0
+30,40,0
+40,50,0
+50,60,0
+60,70,0
+70,80,0
+80,90,0
+90,100,3
+
+track_continuity_histogram
+bin_start,bin_end,count
+0,10,0
+10,20,0
+20,30,0
+30,40,0
+40,50,0
+50,60,0
+60,70,0
+70,80,0
+80,90,0
+90,100,4
+
 === pr_curve_fish.csv ===
+# average_precision=0.950000,max_f1=0.888889,best_threshold=0.550000
 confidence,recall,precision,f1,tp,fp,fn
 0.950000,0.250000,1.000000,0.400000,1,0,3
 0.900000,0.500000,1.000000,0.666667,2,0,2
@@ -44,6 +71,7 @@ confidence,recall,precision,f1,tp,fp,fn
 0.500000,1.000000,0.666667,0.800000,4,2,0
 
 === pr_curve_overall.csv ===
+# average_precision=0.818182,max_f1=0.900000,best_threshold=0.550000
 confidence,recall,precision,f1,tp,fp,fn
 0.950000,0.090909,1.000000,0.166667,1,0,10
 0.900000,0.181818,1.000000,0.307692,2,0,9
@@ -58,6 +86,7 @@ confidence,recall,precision,f1,tp,fp,fn
 0.450000,0.818182,0.818182,0.818182,9,2,2
 
 === pr_curve_scallop.csv ===
+# average_precision=0.571429,max_f1=0.727273,best_threshold=0.650000
 confidence,recall,precision,f1,tp,fp,fn
 0.800000,0.142857,1.000000,0.250000,1,0,6
 0.750000,0.285714,1.000000,0.444444,2,0,5
