@@ -60,6 +60,21 @@ TOLERANCES = {
     "ocv_convert_color": (1.0, 0.5),
 }
 
+# The same, for a name that means different things in different kinds. `ocv`
+# is a split_image, a merge_images, a draw and an image_io as well as a warp,
+# and only the warp needs any room at all.
+TOLERANCES_BY_KIND = {
+    # `cv::warpPerspective` interpolates in fixed point at INTER_BITS 5,
+    # quantising the sample position to a thirty-second of a pixel, where
+    # `image_ops` interpolates in double. P7-T03 measured both against the
+    # exact bilinear answer and found `image_ops` the more accurate of the
+    # two -- 0.254 mean error against OpenCV's 0.366 -- so the tolerance is
+    # here rather than in a reproduction of the quantisation. Measured over
+    # the eight recorded warps: 4 at worst, 0.21 mean, and the four cases
+    # whose homography is an integer translation are exact.
+    ( "warp", "ocv" ): (4.0, 0.25),
+}
+
 
 
 REMOVED_PATH = os.path.join(HERE, "..", "baseline", "removed.json")
@@ -570,7 +585,9 @@ def test_golden(item):
         check_json_case(item, case, outputs, group)
         return
 
-    max_tol, mean_tol = TOLERANCES.get(impl, TOLERANCES["__default__"])
+    max_tol, mean_tol = TOLERANCES_BY_KIND.get(
+        ( case["kind"], impl ),
+        TOLERANCES.get(impl, TOLERANCES["__default__"]))
     unstable = case.get("unstable", {})
 
     names = (list(case["outputs"]) if case["kind"] == "pipeline"

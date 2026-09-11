@@ -347,6 +347,29 @@ an artefact of the port:
   that case to a relative tolerance and to ground truth instead of to its
   bytes. Worth knowing before treating a calibration file as a record of
   what its inputs were.
+* **`warp_image_ocv`'s alpha blend is wrong on every channel but the
+  first.** It computes
+
+  ```cpp
+  cv::Mat blended = warped_float.mul( weights ) +
+                    dest_float.mul( 1.0 - weights );
+  ```
+
+  and `1.0 - weights`, with a `double` on the left of a `Mat`, is
+  `cv::Scalar( 1, 0, 0, 0 ) - weights`. Subtracting a Scalar from a three
+  channel Mat is per channel, so the expression is `[ 1 - w, -w, -w ]`: only
+  the first channel blends, and the other two compute
+  `warped * w - dest * w`. On a colour image that is visible garbage rather
+  than a rounding difference -- 80 counts of mean error against a correct
+  blend, measured.
+
+  Latent: the only caller of `warp_image` in the tree,
+  `plugins/core/warp_image_process`, never passes an alpha mask. So it takes
+  the same answer as `vxl_threshold`'s percentile mode did in phase 3 -- the
+  replacement is correct rather than bug compatible, and the recording stays
+  as evidence of what the old one did. `tests/golden/warp_cases.py` declares
+  the two affected cases as divergences with the reason.
+
 * **`cv::cvtColor`'s HSV and HLS disagree about where to wrap a negative
   hue.** A hue comes out slightly negative whenever the maximum channel is
   red and green is just below blue; the conversion then has to bring it into

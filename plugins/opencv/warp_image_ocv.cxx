@@ -4,39 +4,92 @@
 
 /**
  * \file
- * \brief Implementation of OCV warp image algorithm
+ * \brief Implementation of image warping onto another image
+ *
+ * `cv::warpPerspective` until P7-T04b; `image_ops::warp_perspective` since.
+ * The bridge was asked for a `BGR_COLOR` mat on the way in and the result
+ * was wrapped as one on the way out, so the two swaps cancelled and the warp
+ * always ran on the vital image's own plane order.
+ *
+ * The two paths are the C++'s. With an alpha mask the warped image and the
+ * destination are blended in float by the warped mask; without one, a
+ * full-value plane is warped by nearest neighbour to say which pixels the
+ * source covers, and only those are written. The second is not the same as
+ * blending by a binary mask: it leaves the destination untouched where the
+ * source does not reach, rather than multiplying it by one.
  */
 
 #include "warp_image_ocv.h"
 
-#include <viame/opencv_bridge/image_container.h>
+#include <image_ops/dispatch.h>
+#include <image_ops/pixel.h>
+#include <image_ops/warp.h>
 
-#include <opencv2/core/core.hpp>
-#include <viame/opencv_bridge/matrix.h>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <viame/core_types/image_container.h>
+
+#include <algorithm>
+#include <cmath>
+
+namespace io = viame::image_ops;
 
 namespace viame {
 
 namespace kv = kwiver::vital;
-namespace ocv = kwiver::arrows::ocv;
 
 namespace {
 
+// ----------------------------------------------------------------------------
+/// The value a full-scale sample of this type has, which is what an alpha
+/// mask is divided by. `depth_max_value` in the C++, by pixel type rather
+/// than by `cv::Mat` depth.
+template < typename T >
 double
-depth_max_value( int depth )
+full_scale()
 {
-  switch( depth )
+  if constexpr( std::is_same< T, int8_t >::value ) { return 127.0; }
+  else if constexpr( std::is_same< T, int16_t >::value ) { return 32767.0; }
+  else if constexpr( std::is_integral< T >::value )
   {
-    case CV_8U:  return 255.0;
-    case CV_8S:  return 127.0;
-    case CV_16U: return 65535.0;
-    case CV_16S: return 32767.0;
-    default:     return 1.0;
+    return static_cast< double >( io::pixel_max< T >() );
   }
+  else { return 1.0; }
 }
 
-} // end anonymous namespace
+// ----------------------------------------------------------------------------
+/// The alpha mask as a float weight in [0, 1], warped onto the destination.
+kv::image_of< float >
+warped_weight( kv::image const& mask, kv::matrix_3x3d const& transform,
+               size_t width, size_t height )
+{
+  auto const weight = io::dispatch_pixel_type(
+    mask,
+    [ & ]( auto const& typed ) -> kv::image
+    {
+      using pixel_t = std::decay_t< decltype( typed( 0, 0, 0 ) ) >;
 
+      kv::image_of< float > out( typed.width(), typed.height(), 1 );
+      auto const scale = full_scale< pixel_t >();
+
+      for( size_t j = 0; j < typed.height(); ++j )
+      {
+        for( size_t i = 0; i < typed.width(); ++i )
+        {
+          out( i, j, 0 ) =
+            static_cast< float >( static_cast< double >( typed( i, j, 0 ) ) /
+                                  scale );
+        }
+      }
+
+      return kv::image( out );
+    } );
+
+  return io::warp_perspective( kv::image_of< float >( weight ), transform,
+                               width, height );
+}
+
+} // namespace
+
+// ----------------------------------------------------------------------------
 /// Warp image
 kv::image_container_sptr
 warp_image_ocv
@@ -50,64 +103,119 @@ warp_image_ocv
     return dst_image;
   }
 
-  cv::Mat source =
-    ocv::image_container::vital_to_ocv(
-      src_image->get_image(), ocv::image_container::BGR_COLOR );
+  auto const source = src_image->get_image();
+  auto const transform = homography->matrix();
 
-  cv::Mat dest = dst_image ?
-    ocv::image_container::vital_to_ocv(
-      dst_image->get_image(), ocv::image_container::BGR_COLOR ).clone() :
-    cv::Mat::zeros( source.size(), source.type() );
+  auto const width = dst_image ? dst_image->width() : source.width();
+  auto const height = dst_image ? dst_image->height() : source.height();
 
-  kwiver::vital::matrix_< 3, 3, double > const homog_matrix =
-    homography->matrix();
-  cv::Mat matrix;
-  ocv::matrix_to_mat( homog_matrix, matrix );
+  auto const weight = alpha_mask
+                      ? warped_weight( alpha_mask->get_image(), transform,
+                                       width, height )
+                      : kv::image_of< float >();
 
-  cv::Mat warped;
-  cv::warpPerspective( source, warped, matrix, dest.size() );
+  auto const result = io::dispatch_pixel_type(
+    source,
+    [ & ]( auto const& typed ) -> kv::image
+    {
+      using pixel_t = std::decay_t< decltype( typed( 0, 0, 0 ) ) >;
 
-  if( warped.depth() != dest.depth() )
-  {
-    warped.convertTo( warped, dest.depth() );
-  }
+      auto const warped = io::warp_perspective( typed, transform, width,
+                                                height );
 
-  if( alpha_mask )
-  {
-    cv::Mat mask =
-      ocv::image_container::vital_to_ocv(
-        alpha_mask->get_image(), ocv::image_container::BGR_COLOR );
+      kv::image_of< pixel_t > destination(
+        width, height, warped.depth() );
 
-    cv::Mat weight;
-    mask.convertTo( weight, CV_32F, 1.0 / depth_max_value( mask.depth() ) );
+      if( dst_image )
+      {
+        auto const given = kv::image_of< pixel_t >( dst_image->get_image() );
 
-    cv::Mat warped_weight;
-    cv::warpPerspective( weight, warped_weight, matrix, dest.size() );
+        for( size_t plane = 0; plane < destination.depth(); ++plane )
+        {
+          for( size_t j = 0; j < height; ++j )
+          {
+            for( size_t i = 0; i < width; ++i )
+            {
+              destination( i, j, plane ) =
+                given( i, j, std::min( plane, given.depth() - 1 ) );
+            }
+          }
+        }
+      }
+      else
+      {
+        // `cv::Mat::zeros` when there is no destination
+        for( size_t plane = 0; plane < destination.depth(); ++plane )
+        {
+          for( size_t j = 0; j < height; ++j )
+          {
+            for( size_t i = 0; i < width; ++i )
+            {
+              destination( i, j, plane ) = pixel_t{};
+            }
+          }
+        }
+      }
 
-    cv::Mat weights;
-    cv::merge( std::vector< cv::Mat >( dest.channels(), warped_weight ), weights );
+      if( alpha_mask )
+      {
+        for( size_t plane = 0; plane < destination.depth(); ++plane )
+        {
+          for( size_t j = 0; j < height; ++j )
+          {
+            for( size_t i = 0; i < width; ++i )
+            {
+              auto const alpha =
+                static_cast< double >( weight( i, j, 0 ) );
 
-    cv::Mat warped_float, dest_float;
-    warped.convertTo( warped_float, CV_32F );
-    dest.convertTo( dest_float, CV_32F );
+              auto const blended =
+                static_cast< double >( warped( i, j, plane ) ) * alpha +
+                static_cast< double >( destination( i, j, plane ) ) *
+                  ( 1.0 - alpha );
 
-    cv::Mat blended =
-      warped_float.mul( weights ) + dest_float.mul( 1.0 - weights );
+              // `convertTo` back to the destination type, which rounds.
+              destination( i, j, plane ) =
+                io::saturate_pixel< pixel_t >( blended );
+            }
+          }
+        }
 
-    blended.convertTo( dest, dest.type() );
-  }
-  else
-  {
-    cv::Mat covered;
-    cv::warpPerspective(
-      cv::Mat( source.size(), CV_8UC1, cv::Scalar( 255 ) ),
-      covered, matrix, dest.size(), cv::INTER_NEAREST );
+        return kv::image( destination );
+      }
 
-    warped.copyTo( dest, covered );
-  }
+      // No mask: a full-value plane warped by nearest neighbour says which
+      // pixels the source reaches, and only those are written.
+      kv::image_of< uint8_t > full( source.width(), source.height(), 1 );
 
-  return std::make_shared< ocv::image_container >(
-    dest, ocv::image_container::BGR_COLOR );
+      for( size_t j = 0; j < full.height(); ++j )
+      {
+        for( size_t i = 0; i < full.width(); ++i )
+        {
+          full( i, j, 0 ) = 255;
+        }
+      }
+
+      auto const covered = io::warp_perspective(
+        full, transform, width, height, io::interpolation::NEAREST );
+
+      for( size_t plane = 0; plane < destination.depth(); ++plane )
+      {
+        for( size_t j = 0; j < height; ++j )
+        {
+          for( size_t i = 0; i < width; ++i )
+          {
+            if( covered( i, j, 0 ) )
+            {
+              destination( i, j, plane ) = warped( i, j, plane );
+            }
+          }
+        }
+      }
+
+      return kv::image( destination );
+    } );
+
+  return std::make_shared< kv::simple_image_container >( result );
 }
 
 } // end namespace viame

@@ -61,5 +61,33 @@ def unstable_reason(impl, variant, name=None):
     return None
 
 
+# **The recorded alpha blend is wrong**, and the port does not reproduce it.
+#
+# `dest_float.mul( 1.0 - weights )` looks like "one minus the weight", and in
+# OpenCV a `double` on the left of a `Mat` becomes `Scalar( 1, 0, 0, 0 )`.
+# Subtracting a Scalar from a three channel Mat is per channel, so
+# `1.0 - weights` is `[ 1 - w, -w, -w ]`: only the first channel blends, and
+# the other two compute `warped * w - dest * w`. On a colour image that is
+# visible garbage, not a rounding difference -- 80 counts of mean error
+# against a correct blend.
+#
+# Latent: the only caller of `warp_image` in the tree,
+# `plugins/core/warp_image_process`, never passes an alpha mask. So this is
+# the same situation as `vxl_threshold`'s percentile mode in P3 -- a bug on a
+# path nothing uses -- and takes the same answer: the replacement is correct
+# rather than bug compatible, and the recording stays as evidence of what the
+# old one did. `design/lite-findings.md` records it.
+DIVERGENCES = {
+    ("ocv", "translate_alpha"):
+        "the recorded alpha blend subtracts the weight from channels 1 and 2 "
+        "instead of blending them, because OpenCV reads `1.0 - weights` as "
+        "`Scalar( 1, 0, 0, 0 ) - weights`; the port blends every channel",
+    ("ocv", "perspective_alpha"):
+        "the recorded alpha blend subtracts the weight from channels 1 and 2 "
+        "instead of blending them, because OpenCV reads `1.0 - weights` as "
+        "`Scalar( 1, 0, 0, 0 ) - weights`; the port blends every channel",
+}
+
+
 def divergence_reason(impl, variant, input_name=None):
-    return None
+    return DIVERGENCES.get((impl, variant))
