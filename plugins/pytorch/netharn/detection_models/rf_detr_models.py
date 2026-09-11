@@ -430,6 +430,9 @@ class RFDETR_Detector(nh.layers.Module):
     """
 
     __BUILTIN_CRITERION__ = True
+    # SetCriterion already normalizes each replica's loss. Average across GPUs
+    # and accumulated batches so neither multiplies the gradient scale.
+    __LOSS_REDUCTION__ = 'mean'
     __DEPLOY_SUPPORTED__ = False  # RF-DETR doesn't support torch_liberator deployment
 
     # ImageNet normalization stats used by RF-DETR
@@ -674,10 +677,8 @@ class RFDETR_Detector(nh.layers.Module):
                     weighted_loss = v * weight_dict[k]
                     loss_parts[k] = weighted_loss.mean().unsqueeze(0)
 
-            # Compute total loss
-            total_loss = sum(loss_parts.values())
-            loss_parts['loss_total'] = total_loss.unsqueeze(0) if total_loss.dim() == 0 else total_loss
-
+            # FitHarn sums these components for backward(). Including their
+            # total here would count every loss (and its gradient) twice.
             outputs['loss_parts'] = loss_parts
 
         if return_result:

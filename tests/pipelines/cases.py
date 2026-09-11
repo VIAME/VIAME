@@ -115,7 +115,7 @@ DEFAULTS = {
     "filter": Case(env="env_fish", params=MONO_PARAMS, check=frames()),
     "transcode": Case(env="env_fish", params=MONO_PARAMS, check=video(min_size=100)),
     "utility": Case(env="env_fish_with_detections", params=MONO_PARAMS, check=SMOKE),
-    "measurement": Case(env="env_stereo_fish_with_polygons", params=STEREO_PARAMS, check=STEREO),
+    "stereo": Case(env="env_stereo_fish_with_polygons", params=STEREO_PARAMS, check=STEREO),
 }
 
 # Families of pipelines that share a fixture and expectation. Every matching
@@ -141,7 +141,7 @@ RULES = (
     (r"^transcode_", {}),
     (r"^utility_add_head_tail_keypoints", dict(check=HEAD_TAIL)),
     (r"^utility_add_segmentations", dict(check=POLYGON)),
-    (r"^measurement_from_annotations", dict(params=CALIBRATION_PARAMS, check=STEREO_MIN_2)),
+    (r"^stereo_measure_current_annots", dict(params=CALIBRATION_PARAMS, check=STEREO_MIN_2)),
 )
 
 
@@ -209,13 +209,13 @@ OVERRIDES = {
         env="env_fish_sequence", params={"homog_writer:output": "output/homogs.txt"},
         check=_check_homographies),
     "utility_remove_dets_in_ignore_regions": Case(env="env_fish_sequence"),
-    "measurement_calibrate_cameras_default": Case(
+    "stereo_calibrate_cameras_default": Case(
         env="env_stereo_checkerboards", check=_check_calibrated),
-    "measurement_calibrate_cameras_fast": Case(
+    "stereo_calibrate_cameras_fast": Case(
         env="env_stereo_checkerboards", check=_check_calibrated),
-    "measurement_detect_calibration_target": Case(
+    "stereo_detect_calibration_target": Case(
         env="env_stereo_checkerboards", check=csv(expected_detections=CHECKERBOARD_CORNERS, is_stereo=True)),
-    "measurement_compute_rectified_disparity": Case(
+    "stereo_compute_rectified_disparity": Case(
         env="env_stereo_fish",
         params=CALIBRATION_PARAMS | {
             "depth_map:computer:ocv_stereo_disparity:calibration_file": "./",
@@ -223,9 +223,11 @@ OVERRIDES = {
         },
         setup=lambda env_dir: (env_dir / "output" / "depthMap").mkdir(exist_ok=True),
         check=_check_depth_maps),
-    "measurement_default_fish_fully_auto": Case(
+    "stereo_track_and_measure_default_fish": Case(
         env="env_stereo_fish", params=CALIBRATION_PARAMS, check=STEREO_MIN_2),
-    "measurement_fully_auto_gmm_motion": Case(
+    "stereo_detect_and_measure_default_fish": Case(
+        env="env_stereo_fish", params=CALIBRATION_PARAMS, check=STEREO_MIN_2),
+    "stereo_detect_and_measure_gmm_motion": Case(
         env="env_stereo_fish", params=CALIBRATION_PARAMS,
         check=csv(expected_detections=0, comparison_detection="min", is_stereo=True)),
 }

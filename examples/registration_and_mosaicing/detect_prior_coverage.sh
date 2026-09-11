@@ -40,6 +40,6 @@ source ${VIAME_INSTALL}/setup_viame.sh
 FLIGHT_LOGS_ARG=""
 if [ -n "${FLIGHT_LOGS}" ]; then FLIGHT_LOGS_ARG="--flight-logs ${FLIGHT_LOGS}"; fi
 
-python ${VIAME_INSTALL}/configs/detect_prior_coverage.py "${INPUT}" \
+python ${VIAME_INSTALL}/configs/register.py "${INPUT}" \
   --method hybrid --water-method ${WATER_METHOD} \
   --output "${OUTPUT}" ${FLIGHT_LOGS_ARG}

@@ -2,7 +2,7 @@
 # COLMAP structure-from-motion / dense reconstruction + survey-registration
 # plugin (Python-only).
 #
-# Provides viame.colmap.reconstruction (used by the reconstruct_3d tool for the
+# Provides viame.colmap.reconstruction (used by the 3d tool for the
 # non-planar SfM / dense modes; requires pycolmap + open3d) and the
 # colmap_registration sprokit process (multi-camera survey registration; no
 # pycolmap dependency). This package is registered as a sprokit python process

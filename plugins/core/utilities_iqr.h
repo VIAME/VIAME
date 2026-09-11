@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <filesystem>
 #include <fstream>
 #include <limits>
 #include <queue>
@@ -200,9 +201,16 @@ public:
     std::string header( header_len, '\0' );
     file.read( &header[0], header_len );
 
-    // Parse dtype to check for complex128
+    // Parse dtype: float64 (f8) and complex128 (c16, real part kept) are
+    // what the ITQ model files use; float32 (f4) is what per-video
+    // descriptor bundles store to halve their size.
     std::string dtype = parse_dtype( header );
     bool is_complex128 = ( dtype == "c16" );
+    bool is_float32 = ( dtype == "f4" );
+    if( !is_complex128 && !is_float32 && dtype != "f8" )
+    {
+      return false;
+    }
 
     // Parse shape from header (simple parsing for common cases)
     out_shape.clear();
@@ -248,6 +256,14 @@ public:
         out_data[i] = raw_data[i * 2];  // Take only real part, skip imaginary
       }
     }
+    else if( is_float32 )
+    {
+      // float32: 4 bytes per element, widened to double
+      std::vector< float > raw_data( total_elements );
+      file.read( reinterpret_cast< char* >( raw_data.data() ),
+                 total_elements * sizeof( float ) );
+      out_data.assign( raw_data.begin(), raw_data.end() );
+    }
     else
     {
       // float64: 8 bytes per element
@@ -257,6 +273,37 @@ public:
     }
 
     return file.good() || file.eof();
+  }
+
+  /// Read the uid list that accompanies a descriptor or hash array: one uid
+  /// per line, in row order.
+  static bool read_uid_list( const std::string& filepath,
+                             std::vector< std::string >& out_uids )
+  {
+    std::ifstream uid_file( filepath );
+    if( !uid_file.is_open() )
+    {
+      return false;
+    }
+    std::string line;
+    while( std::getline( uid_file, line ) )
+    {
+      line.erase( 0, line.find_first_not_of( " \t\r\n" ) );
+      line.erase( line.find_last_not_of( " \t\r\n" ) + 1 );
+      if( !line.empty() )
+      {
+        out_uids.push_back( line );
+      }
+    }
+    return true;
+  }
+
+  /// True when `filename` ends with `postfix`.
+  static bool ends_with( const std::string& filename, const std::string& postfix )
+  {
+    return filename.size() >= postfix.size() &&
+      filename.compare( filename.size() - postfix.size(),
+                        postfix.size(), postfix ) == 0;
   }
 
   static bool read_uint8_array( const std::string& filepath,
@@ -347,78 +394,128 @@ public:
              const std::string& rotation_file,
              unsigned bit_length )
   {
-    m_bit_length = bit_length;
+    if( !load_model( mean_vec_file, rotation_file, bit_length ) )
+    {
+      return false;
+    }
+    if( !append_hashes( hash_codes_file, hash_uids_file ) )
+    {
+      return false;
+    }
+    finalize();
+    return is_loaded();
+  }
 
+  /// Load the ITQ model and every per-video hash file
+  /// (`<name><hashes_postfix>` + `<name><uids_postfix>`) found in `dir`.
+  /// Returns false when the model is unreadable or no hash file was found.
+  bool load_from_dir( const std::string& dir,
+                      const std::string& hashes_postfix,
+                      const std::string& uids_postfix,
+                      const std::string& mean_vec_file,
+                      const std::string& rotation_file,
+                      unsigned bit_length )
+  {
+    if( !load_model( mean_vec_file, rotation_file, bit_length ) )
+    {
+      return false;
+    }
+    std::vector< std::string > hash_files;
+    if( std::filesystem::is_directory( dir ) )
+    {
+      for( auto const& entry : std::filesystem::directory_iterator( dir ) )
+      {
+        if( entry.is_regular_file() &&
+            numpy_array_reader::ends_with( entry.path().filename().string(),
+                                           hashes_postfix ) )
+        {
+          hash_files.push_back( entry.path().string() );
+        }
+      }
+    }
+    // Deterministic order so uid indices are stable between runs
+    std::sort( hash_files.begin(), hash_files.end() );
+    for( auto const& hash_file : hash_files )
+    {
+      std::string uid_file =
+        hash_file.substr( 0, hash_file.size() - hashes_postfix.size() ) + uids_postfix;
+      if( !append_hashes( hash_file, uid_file ) )
+      {
+        return false;
+      }
+    }
+    finalize();
+    return !hash_files.empty() && is_loaded();
+  }
+
+  /// Load the ITQ mean vector and rotation matrix, resetting any hash codes.
+  bool load_model( const std::string& mean_vec_file,
+                   const std::string& rotation_file,
+                   unsigned bit_length )
+  {
+    m_bit_length = bit_length;
+    m_hash_codes.clear();
+    m_uids.clear();
+    m_num_descriptors = 0;
     // Load ITQ mean vector
     std::vector< size_t > mean_shape;
     if( !numpy_array_reader::read_float64_array( mean_vec_file, m_mean_vec, mean_shape ) )
     {
       return false;
     }
-
     // Load ITQ rotation matrix
     std::vector< size_t > rotation_shape;
     if( !numpy_array_reader::read_float64_array( rotation_file, m_rotation, rotation_shape ) )
     {
       return false;
     }
-
     if( rotation_shape.size() != 2 )
     {
       return false;
     }
     m_feature_dim = rotation_shape[0];
     m_rotation_cols = rotation_shape[1];
+    return true;
+  }
 
-    // Load hash codes
+  /// Append one hash code array (N x bit_length uint8) and its uid list.
+  bool append_hashes( const std::string& hash_codes_file,
+                      const std::string& hash_uids_file )
+  {
+    std::vector< uint8_t > codes;
     std::vector< size_t > hash_shape;
-    if( !numpy_array_reader::read_uint8_array( hash_codes_file, m_hash_codes, hash_shape ) )
+    if( !numpy_array_reader::read_uint8_array( hash_codes_file, codes, hash_shape ) )
     {
       return false;
     }
-
-    if( hash_shape.size() != 2 || hash_shape[1] != bit_length )
+    if( hash_shape.size() != 2 || hash_shape[1] != m_bit_length )
     {
       return false;
     }
-    m_num_descriptors = hash_shape[0];
-
-    // Load UIDs
-    std::ifstream uid_file( hash_uids_file );
-    if( !uid_file.is_open() )
+    std::vector< std::string > uids;
+    if( !numpy_array_reader::read_uid_list( hash_uids_file, uids ) )
     {
       return false;
     }
-
-    m_uids.clear();
-    m_uids.reserve( m_num_descriptors );
-    std::string line;
-    while( std::getline( uid_file, line ) )
-    {
-      if( !line.empty() )
-      {
-        // Trim whitespace
-        line.erase( 0, line.find_first_not_of( " \t\r\n" ) );
-        line.erase( line.find_last_not_of( " \t\r\n" ) + 1 );
-        if( !line.empty() )
-        {
-          m_uids.push_back( line );
-        }
-      }
-    }
-
-    if( m_uids.size() != m_num_descriptors )
+    if( uids.size() != hash_shape[0] )
     {
       return false;
     }
+    m_hash_codes.insert( m_hash_codes.end(), codes.begin(), codes.end() );
+    m_uids.insert( m_uids.end(), uids.begin(), uids.end() );
+    m_num_descriptors += hash_shape[0];
+    return true;
+  }
 
+  /// Rebuild the lookup maps once every hash code has been appended.
+  void finalize()
+  {
     // Build UID to index map for fast lookups
     m_uid_to_index.clear();
     for( size_t i = 0; i < m_uids.size(); ++i )
     {
       m_uid_to_index[m_uids[i]] = i;
     }
-
     // Build hash-to-UIDs mapping (groups UIDs by their hash code)
     // This groups all UIDs that have the same hash code
     m_hash_to_uids.clear();
@@ -430,12 +527,9 @@ public:
       {
         hash[j] = m_hash_codes[i * m_bit_length + j];
       }
-
       std::string hash_key = hash_to_string( hash );
       m_hash_to_uids[hash_key].push_back( m_uids[i] );
     }
-
-    return true;
   }
 
   bool is_loaded() const

@@ -15,13 +15,13 @@ Mosaic generation
 *****************
 
 The ``generate_mosaic_for_list`` script shows the simplest way to
-generate a mosaic.  The main program it invokes, ``create_mosaic.py``,
+generate a mosaic.  The main program it invokes, ``mosaic.py``,
 also supports additional options and functionality.
 
-A basic invocation of ``create_mosaic.py`` is as follows (assuming
+A basic invocation of ``mosaic.py`` is as follows (assuming
 ``setup_viame.sh`` or ``setup_viame.bat`` has been run)::
 
-  create_mosaic.py --step 1 mosaic.jpg homographies.txt image_list.txt
+  mosaic.py --step 1 mosaic.jpg homographies.txt image_list.txt
 
 This generates a mosaic image named ``mosaic.jpg`` from a file
 containing homographies, here ``homographies.txt``, and a file listing
@@ -65,8 +65,8 @@ which frames are drawn from a 10-frame sequence:
 
 Several options control the drawing process itself.  ``--zoom Z``
 scales the output image by a factor of *Z*.  For example, if after
-some invocation ``create_mosaic.py mosaic.jpg ...``, ``mosaic.jpg``
-would be 20,000 x 10,000 pixels, then ``create_mosaic.py -Z 0.25
+some invocation ``mosaic.py mosaic.jpg ...``, ``mosaic.jpg``
+would be 20,000 x 10,000 pixels, then ``mosaic.py -Z 0.25
 mosaic.jpg ...`` would result in ``mosaic.jpg`` being approximately
 5,000 x 2,500 pixels (it might not be exactly that due to rounding of
 image sizes).  If the full-resolution image is not needed, then
@@ -91,10 +91,10 @@ guaranteed to always compute the same transformation for a given
 input, but in practice the result is usually indistinguishable.
 
 If you have coregistered image sequences, e.g. from a multi-camera
-platform, ``create_mosaic.py`` can also handle that.  The basic form
+platform, ``mosaic.py`` can also handle that.  The basic form
 is::
 
-  create_mosaic.py --step 1 mosaic.jpg homogs1.txt images1.txt homogs2.txt images2.txt
+  mosaic.py --step 1 mosaic.jpg homogs1.txt images1.txt homogs2.txt images2.txt
 
 That is, the homography files and image lists associated with
 additional sequences are added in alternating fashion.  Appropriate
@@ -113,7 +113,7 @@ Sequential Mappings / Registration
 **********************************
 
 For overhead / benthic surveys (single camera or a PORT/STAR/CENTER multi-camera
-rig), ``detect_prior_coverage.py`` chains frame-to-frame affine registrations from
+rig), ``register.py`` chains frame-to-frame affine registrations from
 an anchor frame to compute, for every frame, the region already observed in
 previous imagery — split into ``prior_coverage_sequential`` (same camera),
 ``prior_coverage_cross_camera`` (adjacent rig camera, via a robust rig-constant
@@ -122,7 +122,7 @@ closures, or earlier sites/days in multi-folder runs) polygon classes, plus a
 ``revisits.csv`` event summary, a footprint map and a thumbnail visualization.
 The ``generate_mappings_sequential`` script invokes it without metadata::
 
-  detect_prior_coverage.py <folder> --method hybrid --output out
+  register.py <folder> --method hybrid --output out
 
 Without GPS the site is pseudo-georeferenced from the registration chains
 (within-site coverage and revisits only), and open-water gaps are bridged by a
@@ -142,7 +142,7 @@ COLMAP rig-constrained structure-from-motion (requires pycolmap; GPU-accelerated
 when available) as an independent cross-check.
 
 (Full 3D structure-from-motion, dense reconstruction and meshing live in
-``reconstruct_3d.py`` and require building with ``VIAME_ENABLE_COLMAP`` set to
+``3d.py`` (``viame 3d``) and require building with ``VIAME_ENABLE_COLMAP`` set to
 ON; the coverage/registration tooling above does not need COLMAP except for
 ``--method sfm-rig``.)
 
@@ -152,7 +152,7 @@ Prior-Coverage Detection: Quick Run Guide
 
 To produce a VIAME detection CSV of previously-observed regions for all
 cameras of a survey folder with the recommended settings, use the
-``detect_prior_coverage`` script (``.sh`` on Linux, ``.bat`` on Windows):
+``detect_prior_coverage`` example script (``.sh`` on Linux, ``.bat`` on Windows):
 
 1. Edit the script and set ``INPUT`` to the site folder — either a single
    folder of images, or a rig folder containing ``PORT``/``STAR``/``CENTER``
@@ -180,12 +180,12 @@ Site Revisit Detection
 **********************
 
 Revisit / loop-closure events — where the platform leaves a location and later
-returns to image the same ground — are detected by ``detect_prior_coverage.py``
+returns to image the same ground — are detected by ``register.py``
 through its ground-occupancy grid; the ``detect_site_revisits`` script runs it
 in ``--revisits-only`` mode, which skips the per-frame coverage CSV and
 thumbnails::
 
-  detect_prior_coverage.py <folder> --method hybrid --revisits-only --output out
+  register.py <folder> --method hybrid --revisits-only --output out
 
 It writes a ``revisits.csv`` listing, for each frame that re-covers previously
 seen ground, the source image / pass / day, the overlapping fraction, and

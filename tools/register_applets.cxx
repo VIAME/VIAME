@@ -14,7 +14,8 @@
 
 #include <applet_attributes.h>
 #include "csv.h"
-#include "get_configs.h"
+#include "configs.h"
+#include "convert.h"
 #include "json.h"
 #include "pipe_check.h"
 #include "registry_dump.h"
@@ -35,76 +36,67 @@ namespace tools {
 VIAME_PYTHON_SCRIPT_APPLET( add_ons_applet, "add-ons", "add_ons.py",
   "List installed add-on model packs and download new ones." )
 
-VIAME_PYTHON_SCRIPT_APPLET( add_segmentations_applet, "add-segmentations",
-  "add_segmentations.py",
+VIAME_PYTHON_SCRIPT_APPLET( segment_applet, "segment", "segment.py",
   "Add SAM2 segmentation polygons to an existing box-level annotation set." )
-
-VIAME_PYTHON_SCRIPT_APPLET( convert_cam_applet, "convert-cam",
-  "convert_cam.py",
-  "Convert stereo camera calibration files between different formats." )
-
-VIAME_PYTHON_SCRIPT_APPLET( convert_itk_applet,
-  "convert-itk", "convert_itk.py",
-  "Convert an ITK HDF5 transform into a DIVE camera registration json." )
 
 VIAME_PYTHON_SCRIPT_APPLET( database_applet, "database", "database.py",
   "Initialize, start, stop and index the descriptor database." )
 
-VIAME_PYTHON_SCRIPT_APPLET( inspect_applet, "inspect", "inspect.py",
+// The script is not named inspect.py: a tool run from the configs folder
+// would otherwise shadow the standard library inspect module for its imports.
+VIAME_PYTHON_SCRIPT_APPLET( inspect_applet, "inspect", "inspect_file.py",
   "Identify a file, check it is intact, and say how VIAME can use it." )
 
-VIAME_PYTHON_SCRIPT_APPLET( extract_frames_applet, "extract-frames",
-  "extract_frames.py", "Extract frames from video files" )
+VIAME_PYTHON_SCRIPT_APPLET( extract_applet, "extract",
+  "extract.py", "Extract frames from video files" )
 
-VIAME_PYTHON_SCRIPT_APPLET( plot_detections_applet, "plot-detections",
-  "plot_detections.py", "Plot detection counts per frame" )
+VIAME_PYTHON_SCRIPT_APPLET( index_applet, "index", "index.py",
+  "Build and manage the video search index: add, remove, build, list, "
+  "status, hash." )
 
-VIAME_PYTHON_SCRIPT_APPLET( generate_nn_index_applet, "generate-nn-index",
-  "generate_nn_index.py",
-  "Build ITQ LSH index for efficient nearest neighbor search" )
+VIAME_PYTHON_SCRIPT_APPLET( view_applet, "view",
+  "view.py", "Launch the annotation and viewing GUI" )
 
-VIAME_PYTHON_SCRIPT_APPLET( launch_annotator_applet, "launch-annotator",
-  "launch_annotator.py", "Launch annotation GUI" )
-
-VIAME_PYTHON_SCRIPT_APPLET( launch_search_applet, "launch-search",
-  "launch_search.py", "Launch Query GUI" )
+VIAME_PYTHON_SCRIPT_APPLET( search_applet, "search",
+  "search.py", "Launch the video search (query) GUI" )
 
 VIAME_PYTHON_SCRIPT_APPLET( pipeline_applet, "pipeline", "pipeline.py",
   "Generate, inspect, validate and modify .pipe files" )
 
-VIAME_PYTHON_SCRIPT_APPLET( plot_eval_applet, "plot-eval",
-  "plot_eval.py", "Generate plots from VIAME evaluation results" )
+VIAME_PYTHON_SCRIPT_APPLET( plot_applet, "plot", "plot.py",
+  "Plot detection counts per frame, or evaluation results." )
 
 VIAME_PYTHON_SCRIPT_APPLET( metadata_applet, "metadata",
   "metadata.py",
   "Dump unified per-image survey metadata for a site folder" )
 
-VIAME_PYTHON_SCRIPT_APPLET( train_fusion_applet, "train-fusion",
-  "train_fusion.py",
-  "Learn detection fusion parameters for the nms_fusion merger" )
+VIAME_PYTHON_SCRIPT_APPLET( ensemble_applet, "ensemble",
+  "ensemble.py",
+  "Learn fusion parameters for ensembling multiple detectors" )
+
+VIAME_PYTHON_SCRIPT_APPLET( monitor_applet, "monitor",
+  "monitor.py",
+  "Monitor a training run and report progress by log or email" )
 
 #ifdef VIAME_TOOLS_HAVE_OPENCV
 
-VIAME_PYTHON_SCRIPT_APPLET( calibrate_cameras_applet, "calibrate-cameras",
-  "calibrate_cameras.py",
+VIAME_PYTHON_SCRIPT_APPLET( calibrate_applet, "calibrate", "calibrate.py",
   "Estimate stereo calibration from calibration target images." )
 
-VIAME_PYTHON_SCRIPT_APPLET( compute_depth_applet, "compute-depth",
-  "compute_depth.py", "Estimate depth from a pair of rectified images" )
+VIAME_PYTHON_SCRIPT_APPLET( depth_applet, "depth",
+  "depth.py", "Estimate depth from a pair of rectified images" )
 
-VIAME_PYTHON_SCRIPT_APPLET( compute_disparity_applet, "compute-disparity",
-  "compute_disparity.py",
-  "Estimate disparity between a pair of rectified images" )
+VIAME_PYTHON_SCRIPT_APPLET( disparity_applet, "disparity",
+  "disparity.py", "Estimate disparity between a pair of rectified images" )
 
-VIAME_PYTHON_SCRIPT_APPLET( create_mosaic_applet, "create-mosaic",
-  "create_mosaic.py", "Stitch a mosaic from images and their homographies" )
+VIAME_PYTHON_SCRIPT_APPLET( mosaic_applet, "mosaic",
+  "mosaic.py", "Stitch a mosaic from images and their homographies" )
 
-VIAME_PYTHON_SCRIPT_APPLET( detect_prior_coverage_applet,
-  "detect-prior-coverage", "detect_prior_coverage.py",
-  "Detect previously-observed regions in survey imagery" )
+VIAME_PYTHON_SCRIPT_APPLET( register_applet, "register", "register.py",
+  "Register survey imagery and detect previously-observed regions" )
 
-VIAME_PYTHON_SCRIPT_APPLET( reconstruct_3d_applet, "reconstruct-3d",
-  "reconstruct_3d.py", "Build a 3D model from UAS imagery" )
+VIAME_PYTHON_SCRIPT_APPLET( reconstruct_3d_applet, "3d",
+  "3d.py", "Build a 3D model from UAS imagery" )
 
 VIAME_PYTHON_SCRIPT_APPLET( rectify_applet, "rectify",
   "rectify.py",
@@ -114,8 +106,8 @@ VIAME_PYTHON_SCRIPT_APPLET( rectify_applet, "rectify",
 
 #ifdef VIAME_TOOLS_HAVE_PYTORCH
 
-VIAME_PYTHON_SCRIPT_APPLET( check_gpu_applet, "check-gpu",
-  "check_gpu.py", "Check GPU properties of the system" )
+VIAME_PYTHON_SCRIPT_APPLET( gpu_applet, "gpu",
+  "gpu.py", "Check GPU properties of the system" )
 
 #endif
 
@@ -156,7 +148,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   // -- register applets --
   register_standalone_tool< csv_applet >( reg );
-  register_standalone_tool< get_configs_applet >( reg );
+  register_standalone_tool< configs_applet >( reg );
+  register_standalone_tool< convert_applet >( reg );
   register_standalone_tool< json_applet >( reg );
   register_standalone_tool< pipe_check_applet >( reg );
   register_standalone_tool< registry_dump_applet >( reg );
@@ -167,33 +160,31 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
   register_script_tool< add_ons_applet >( reg );
-  register_script_tool< add_segmentations_applet >( reg );
-  register_script_tool< convert_cam_applet >( reg );
-  register_script_tool< convert_itk_applet >( reg );
+  register_script_tool< segment_applet >( reg );
   register_script_tool< database_applet >( reg );
   register_script_tool< inspect_applet >( reg );
-  register_script_tool< extract_frames_applet >( reg );
-  register_script_tool< plot_detections_applet >( reg );
-  register_script_tool< generate_nn_index_applet >( reg );
-  register_script_tool< launch_annotator_applet >( reg );
-  register_script_tool< launch_search_applet >( reg );
+  register_script_tool< extract_applet >( reg );
+  register_script_tool< index_applet >( reg );
+  register_script_tool< view_applet >( reg );
+  register_script_tool< search_applet >( reg );
   register_script_tool< pipeline_applet >( reg );
-  register_script_tool< plot_eval_applet >( reg );
+  register_script_tool< plot_applet >( reg );
   register_script_tool< metadata_applet >( reg );
-  register_script_tool< train_fusion_applet >( reg );
+  register_script_tool< ensemble_applet >( reg );
+  register_script_tool< monitor_applet >( reg );
 
 #ifdef VIAME_TOOLS_HAVE_OPENCV
-  register_script_tool< calibrate_cameras_applet >( reg );
-  register_script_tool< compute_depth_applet >( reg );
-  register_script_tool< compute_disparity_applet >( reg );
-  register_script_tool< create_mosaic_applet >( reg );
-  register_script_tool< detect_prior_coverage_applet >( reg );
+  register_script_tool< calibrate_applet >( reg );
+  register_script_tool< depth_applet >( reg );
+  register_script_tool< disparity_applet >( reg );
+  register_script_tool< mosaic_applet >( reg );
+  register_script_tool< register_applet >( reg );
   register_script_tool< reconstruct_3d_applet >( reg );
   register_script_tool< rectify_applet >( reg );
 #endif
 
 #ifdef VIAME_TOOLS_HAVE_PYTORCH
-  register_script_tool< check_gpu_applet >( reg );
+  register_script_tool< gpu_applet >( reg );
 #endif
 #endif
 

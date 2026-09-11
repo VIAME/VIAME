@@ -878,7 +878,8 @@ class NetHarnTrainer( TrainDetector ):
                  "--schedule=" + self._scheduler,
                  "--ignore_first_epochs=" + self._epoch_ignore_count,
                  "--workers=" + self._train_workers,
-                 "--normalize_inputs=True",
+                 "--normalize_inputs=" + (
+                   "imagenet" if self._is_detr_arch() else "True" ),
                  "--init=noop",
                  "--optim=" + self._optimizer,
                  "--num_batches=" + self._batches_per_epoch,
@@ -890,6 +891,11 @@ class NetHarnTrainer( TrainDetector ):
                  "--lr=" + self._learning_rate,
                  "--timeout=" + self._timeout,
                  "--sampler_backend=none" ]
+
+        if self._mode == "detector" and self._is_detr_arch():
+            # Match RF-DETR TrainConfig.clip_max_norm. The generic detector
+            # default (35) permits gradients 350 times larger.
+            cmd.append( "--grad_norm_max=0.1" )
 
         if len( self._seed_model ) > 0:
             cmd.append( "--pretrained=" + self._seed_model )

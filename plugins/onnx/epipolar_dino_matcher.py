@@ -7,7 +7,7 @@ DINO + NCC fused epipolar stereo matching as a single ONNX graph.
 
 This is stereo measurement method (2): the two-stage matcher selected by
 ``epipolar_descriptor_type=dino`` in
-``configs/add-ons/dino/measurement_from_annotations_ncc_dino.pipe``. Per source
+``configs/add-ons/dino/stereo_measure_current_annots_ncc_dino.pipe``. Per source
 keypoint it does:
 
   1. Generate epipolar candidates from calibration (identical to method 1).

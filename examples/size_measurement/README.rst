@@ -215,13 +215,13 @@ and right camera views.*
 
 |
 
-**measurement_calibrate_cameras_default.pipe**
+**stereo_calibrate_cameras_default.pipe**
   Stereo camera calibration from separate left and right camera inputs. Detects
   chessboard corners in both views, accumulates correspondences across frames, and
   computes stereo calibration matrices. Outputs ``calibration_matrices.json``. This
   is the recommended pipeline for most stereo calibration tasks.
 
-**measurement_calibrate_cameras_fast.pipe**
+**stereo_calibrate_cameras_fast.pipe**
   A faster variant of the stereo calibration pipeline that uses fewer frames
   (threshold of 25 vs. the default). Use this when you have a large number of
   calibration frames and want quicker results at the cost of slightly reduced accuracy.
@@ -248,7 +248,7 @@ To run a calibration pipeline from the command line, for example::
 
 For stereo calibration with separate camera inputs::
 
-  kwiver runner configs/pipelines/measurement_calibrate_cameras_default.pipe \
+  kwiver runner configs/pipelines/stereo_calibrate_cameras_default.pipe \
     -s input1:video_filename=cam1_images.txt \
     -s input2:video_filename=cam2_images.txt \
     -s global:square_size=25.0
@@ -277,7 +277,7 @@ output by the VIAME calibration pipelines), NPZ (numpy archive), MAT (MATLAB), a
 ``.CamCAL`` (SEAGIS) files. See the `Calibration File Format`_ section below for
 details on the expected contents of each format.
 
-**measurement_compute_rectified_disparity.pipe**
+**stereo_compute_rectified_disparity.pipe**
   Computes rectified stereo disparity maps using the SGBM (Semi-Global Block Matching)
   algorithm with WLS filtering. Requires a pre-computed camera calibration file.
   Useful for visualizing depth or feeding into custom measurement workflows.
@@ -292,7 +292,7 @@ details on the expected contents of each format.
   that produces higher quality depth estimates than traditional SGBM. It is available
   in three model sizes: ``vits`` (small, faster), ``vitb`` (base), and ``vitl`` (large,
   more accurate). The small variant is recommended for most use cases. Foundation Stereo
-  is used by the ``measurement_from_annotations_fdn_stereo_s.pipe`` pipeline and can be
+  is used by the ``stereo_measure_current_annots_fdn_stereo_s.pipe`` pipeline and can be
   enabled by installing the Foundation Stereo add-on.
 
 
@@ -336,23 +336,23 @@ displayed in the Track Details panel.*
 
 |
 
-**measurement_from_annotations_default.pipe**
+**stereo_measure_current_annots_default.pipe**
   The default measurement-from-annotations pipeline. Uses Foundation Stereo (if the
   add-on is installed) for disparity estimation and ORB feature matching for stereo
   correspondence. Reads annotation files for both cameras, pairs detections, and
   outputs measured tracks to ``computed_tracks2.csv``.
 
-**measurement_from_annotations_fdn_stereo_s.pipe (Foundation Stereo add-on)**
+**stereo_measure_current_annots_fdn_stereo_s.pipe (Foundation Stereo add-on)**
   Uses the Foundation Stereo deep learning model (small variant) for high-quality
   disparity estimation. Recommended when the Foundation Stereo add-on is installed,
   as it generally produces more accurate measurements than traditional methods.
 
-**measurement_from_annotations_ncc_dino.pipe (DINO add-on)**
+**stereo_measure_current_annots_ncc_dino.pipe (DINO add-on)**
   Uses DINO visual features for template matching between left and right camera views,
   with NCC (Normalized Cross-Correlation) as a secondary matching stage. Can produce
   better correspondence in challenging cases where ORB features are insufficient.
 
-**measurement_from_annotations_seagis.pipe (SEAGIS add-on)**
+**stereo_measure_current_annots_seagis.pipe (SEAGIS add-on)**
   Uses the SEAGIS StereoLibLX library with ``.CamCAL`` calibration files for stereo
   measurement. Supports epipolar template matching as a fallback when only one camera
   has annotated keypoints. Use this pipeline if your calibration data is in the SEAGIS
@@ -365,13 +365,20 @@ Fully Automatic Measurement Pipelines
 These pipelines perform end-to-end automatic detection and measurement without
 requiring any manual annotations.
 
-**measurement_default_fish_fully_auto.pipe**
-  Fully automatic fish detection and measurement pipeline. Uses a neural network
-  fish detector with windowed processing on both stereo cameras, then performs stereo
-  matching and triangulation to compute fish lengths. Outputs measured tracks to
-  ``computed_tracks2.csv``.
+**stereo_track_and_measure_default_fish.pipe**
+  Fully automatic fish detection, tracking and measurement pipeline. Runs the
+  default fish detector (boxes, masks and head/tail keypoints) and a tracker on
+  both stereo cameras, pairs left and right tracks, averages each pair's
+  classification, and triangulates the head/tail keypoints into lengths that
+  are aggregated per track. Outputs measured tracks to ``computed_tracks1.csv``
+  and ``computed_tracks2.csv``.
 
-**measurement_fully_auto_gmm_motion.pipe**
+**stereo_detect_and_measure_default_fish.pipe**
+  Same detector without a tracker: left and right detections are paired and
+  measured independently on every frame, each pair sharing one track ID and an
+  averaged classification.
+
+**stereo_detect_and_measure_gmm_motion.pipe**
   Automatic measurement pipeline using GMM (Gaussian Mixture Model) background
   subtraction to detect moving objects. Computes oriented bounding boxes for
   measurement. Best suited for stationary camera setups where fish swim through

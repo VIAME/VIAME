@@ -1,0 +1,98 @@
+# =============================================================================
+# Title: Fully automatic fish measurement pipeline
+#
+# Description: Fully automatic fish measurement pipeline with tracking. Runs
+# the stereo detector (boxes, masks and head/tail keypoints) on both cameras,
+# tracks each camera independently, then pairs left/right tracks, averages
+# their classifications and triangulates head/tail points into lengths.
+# Outputs to computed_tracks1.csv and computed_tracks2.csv.
+#
+# Requires Calibration: True
+# =============================================================================
+
+# ========================= DETECTOR, TRACKER, INPUT ==========================
+
+include common_stereo_fish_tracker.pipe
+
+# ================================= MEASURER ==================================
+
+process measurer
+  :: compute_measurements
+  :calibration_file                            ./calibration_matrices.npz
+  :min_track_states                            0
+
+  # Per-camera tracker IDs are independent, so left/right tracks are paired by
+  # projecting the detector's head/tail keypoints across cameras.
+  :detection_pairing_method                    keypoint_projection
+  :detection_pairing_threshold                 50.0
+  :detection_pairing_require_class_match       false
+
+  :max_stereo_rms                              20.0
+  :max_bbox_y_center_offset                    -1.0
+  :max_bbox_area_ratio                         3.0
+
+  # Accumulate pairings over the whole stream and resolve once at the end so
+  # output track IDs never shift mid-run.
+  :accumulate_track_pairings                   true
+  :pairing_resolution_method                   most_likely
+  :output_unmatched                            true
+  :average_stereo_classes                      true
+  :class_averaging_method                      weighted_scaled_by_conf
+  :length_aggregation_method                   median
+
+connect from tracker1.object_track_set
+        to   measurer.object_track_set1
+connect from tracker2.object_track_set
+        to   measurer.object_track_set2
+connect from downsampler.output_1
+        to   measurer.image1
+connect from downsampler.output_3
+        to   measurer.image2
+connect from downsampler.timestamp
+        to   measurer.timestamp
+
+# ================================== WRITER ===================================
+
+# Stereo pairs already share an averaged classification; this covers tracks
+# seen by only one camera.
+process track_classifier1
+  :: refine_tracks
+  :refiner:type                                average_tot
+  :refiner:average_tot:tot_option              weighted_average
+
+process track_writer1
+  :: write_object_track
+  :file_name                                   computed_tracks1.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        30
+
+connect from measurer.object_track_set1
+        to   track_classifier1.object_track_set
+connect from track_classifier1.object_track_set
+        to   track_writer1.object_track_set
+connect from downsampler.timestamp
+        to   track_writer1.timestamp
+connect from downsampler.output_2
+        to   track_writer1.image_file_name
+
+process track_classifier2
+  :: refine_tracks
+  :refiner:type                                average_tot
+  :refiner:average_tot:tot_option              weighted_average
+
+process track_writer2
+  :: write_object_track
+  :file_name                                   computed_tracks2.csv
+  :writer:type                                 viame_csv
+  :writer:viame_csv:mask_to_poly_points        30
+
+connect from measurer.object_track_set2
+        to   track_classifier2.object_track_set
+connect from track_classifier2.object_track_set
+        to   track_writer2.object_track_set
+connect from downsampler.timestamp
+        to   track_writer2.timestamp
+connect from downsampler.output_4
+        to   track_writer2.image_file_name
+
+# -- end of file --

@@ -8,6 +8,6 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-viame.exe run --init -l ingest_list.txt -id input_detections.csv -p pipelines\index_existing.pipe -o database --build-index -install "%VIAME_INSTALL%"
+viame.exe index add -l ingest_list.txt -id input_detections.csv --method existing -install "%VIAME_INSTALL%"
 
 pause

@@ -3,6 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "csv.h"
+#include <atomic_output.h>
 
 #include <utilities_file.h>
 
@@ -277,8 +278,7 @@ csv_applet
     std::ifstream fin( input_file );
     if( !fin )
     {
-      std::cerr << "Could not open file: " << input_file << std::endl;
-      continue;
+      throw std::runtime_error( "Could not open file: " + input_file );
     }
 
     std::vector< std::string > output;
@@ -312,9 +312,15 @@ csv_applet
       }
 
       auto parsed_line = split_string( trim_string( line ), ',' );
-      if( parsed_line.size() < 2 )
+      if( trim_string( line ).empty() )
       {
         continue;
+      }
+
+      if( parsed_line.size() < 9 || parsed_line.size() == 10 )
+      {
+        throw std::runtime_error( input_file + ":" + std::to_string( line_number ) +
+          ": incomplete VIAME CSV row" );
       }
 
       // Apply confidence threshold
@@ -375,20 +381,6 @@ csv_applet
         if( fid > opt_upper_fid - opt_lower_fid )
         {
           continue;
-        }
-      }
-
-      // Filter single state tracks
-      if( opt_filter_single )
-      {
-        if( id_states.find( parsed_line[0] ) == id_states.end() )
-        {
-          id_states[ parsed_line[0] ] = 1;
-        }
-        else
-        {
-          id_states[ parsed_line[0] ]++;
-          has_non_single = true;
         }
       }
 
@@ -490,20 +482,9 @@ csv_applet
         }
       }
 
-      // Assign unique IDs
-      if( opt_assign_uid )
+      if( opt_filter_single )
       {
-        if( id_mappings.find( parsed_line[0] ) != id_mappings.end() )
-        {
-          parsed_line[0] = id_mappings[ parsed_line[0] ];
-          has_non_single = true;
-        }
-        else
-        {
-          id_mappings[ parsed_line[0] ] = std::to_string( id_counter );
-          parsed_line[0] = std::to_string( id_counter );
-          id_counter++;
-        }
+        has_non_single = (++id_states[ parsed_line[0] ] > 1) || has_non_single;
       }
 
       // Store output line
@@ -565,7 +546,7 @@ csv_applet
       std::vector< std::string > filtered_output;
       for( const auto& out_line : output )
       {
-        if( out_line.empty() || out_line[0] == '#' )
+        if( out_line.empty() || out_line[0] == '#' || out_line.rfind( "target_id", 0 ) == 0 )
         {
           filtered_output.push_back( out_line );
           continue;
@@ -578,6 +559,35 @@ csv_applet
         }
       }
       output = filtered_output;
+    }
+
+    if( opt_assign_uid )
+    {
+      for( auto& out_line : output )
+      {
+        if( out_line.empty() || out_line[0] == '#' || out_line.rfind( "target_id", 0 ) == 0 )
+        {
+          continue;
+        }
+        auto parsed_line = split_string( out_line, ',' );
+      // Assign unique IDs
+      if( opt_assign_uid )
+      {
+        if( id_mappings.find( parsed_line[0] ) != id_mappings.end() )
+        {
+          parsed_line[0] = id_mappings[ parsed_line[0] ];
+          has_non_single = true;
+        }
+        else
+        {
+          id_mappings[ parsed_line[0] ] = std::to_string( id_counter );
+          parsed_line[0] = std::to_string( id_counter );
+          id_counter++;
+        }
+      }
+
+        out_line = join_strings( parsed_line, "," );
+      }
     }
 
     // Print counts per frame
@@ -597,19 +607,13 @@ csv_applet
     // Write output file
     if( write_output )
     {
-      std::ofstream fout( input_file );
-      if( fout )
+      viame::atomic_output( input_file, [&]( std::ostream& fout )
       {
         for( const auto& out_line : output )
         {
           fout << out_line << "\n";
         }
-        fout.close();
-      }
-      else
-      {
-        std::cerr << "Could not write to file: " << input_file << std::endl;
-      }
+      } );
     }
   }
 

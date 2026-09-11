@@ -21,6 +21,10 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <set>
+#include <filesystem>
+#include <random>
+#include <regex>
 
 #ifdef _WIN32
 #include <process.h>
@@ -45,6 +49,18 @@ ends_with( const std::string& str, const std::string& suffix )
 }
 
 // ----------------------------------------------------------------------------
+bool
+option_takes_value( const std::string& arg )
+{
+  const std::set<std::string> flags =
+    {"-h", "--help", "-D", "--dump-pipe", "--debug", "--no-reset-prompt",
+     "--build-index", "--mosaic", "--gt-only", "--recursive"};
+  return !arg.empty() && arg[0] == '-' && !flags.count(arg) &&
+    arg.find('=') == std::string::npos &&
+    !(arg.size() > 2 && (arg[1] == 's' || arg[1] == 'c' || arg[1] == 'I' || arg[1] == 'S'));
+}
+
+// ----------------------------------------------------------------------------
 /// Positional arguments of a command line whose element zero is the program.
 ///
 /// A value handed to a flag does not count, and neither does a key=value
@@ -54,23 +70,21 @@ positional_args( const std::vector< std::string >& args )
 {
   std::vector< std::string > found;
 
+  bool positional_only = false;
   for( size_t i = 1; i < args.size(); ++i )
   {
-    const std::string& arg = args[i];
-
-    if( arg.empty() || arg[0] == '-' || arg.find( '=' ) != std::string::npos )
+    const auto& arg = args[i];
+    if( arg == "--" && !positional_only ) { positional_only = true; continue; }
+    if( !positional_only && !arg.empty() && arg[0] == '-' )
     {
+      if( option_takes_value(arg) ) { ++i; }
       continue;
     }
-
-    if( !args[i - 1].empty() && args[i - 1][0] == '-' )
+    if( !arg.empty() && (positional_only || arg.find('=') == std::string::npos) )
     {
-      continue;
+      found.push_back(arg);
     }
-
-    found.push_back( arg );
   }
-
   return found;
 }
 
@@ -309,8 +323,8 @@ scan_for_stages( const std::string& pipe_file_path )
 /// failure. Settings (-s), config files (-c) and include paths (-I) from the
 /// command line apply to every stage.
 ///
-/// Each stage is written to a temporary pipe file beside the original so
-/// that include and relativepath directives resolve the same way.
+/// Stages live in a temporary directory; include paths and relativepath
+/// directives retain the original pipeline's directory as their base.
 int
 run_staged_pipeline(
   const std::vector< std::string >& stages,
@@ -319,35 +333,33 @@ run_staged_pipeline(
 {
   std::vector< std::string > forwarded_args;
 
-  for( size_t i = 0; i < applet_args.size(); ++i )
+  for( size_t i = 1; i < applet_args.size(); ++i )
   {
-    const std::string& arg = applet_args[i];
-
-    if( ( arg == "-s" || arg == "--setting" ||
-          arg == "-c" || arg == "--config"  ||
-          arg == "-I" || arg == "--include" ) && i + 1 < applet_args.size() )
+    const auto& arg = applet_args[i];
+    if( arg == pipe_file_path || arg == "--" ) { continue; }
+    forwarded_args.push_back(arg);
+    if( option_takes_value(arg) && i + 1 < applet_args.size() )
     {
-      forwarded_args.push_back( arg );
-      forwarded_args.push_back( applet_args[++i] );
-    }
-    else if( arg.compare( 0, 2, "-s" ) == 0 && arg.size() > 2
-             && arg[2] != '-' )
-    {
-      forwarded_args.push_back( arg );
+      forwarded_args.push_back(applet_args[++i]);
     }
   }
 
-  std::string pipe_dir;
+  namespace fs = std::filesystem;
+  const auto pipe_dir = fs::absolute(pipe_file_path).parent_path();
+  std::random_device random;
+  fs::path temporary_dir;
+  for( unsigned attempt = 0; attempt < 100; ++attempt )
   {
-    size_t slash = pipe_file_path.find_last_of( "/\\" );
-
-    if( slash != std::string::npos )
-    {
-      pipe_dir = pipe_file_path.substr( 0, slash + 1 );
-    }
+    auto candidate = fs::temp_directory_path() /
+      ("viame-stage-" + std::to_string(random()) + "-" + std::to_string(random()));
+    if( fs::create_directory(candidate) ) { temporary_dir = candidate; break; }
   }
-
-  const auto pid = getpid();
+  if( temporary_dir.empty() ) { throw std::runtime_error("Cannot create stage directory"); }
+  struct cleanup
+  {
+    fs::path path;
+    ~cleanup() { std::error_code ignored; fs::remove_all(path, ignored); }
+  } guard{temporary_dir};
 
   std::cout << "Running staged pipeline with "
             << stages.size() << " stage(s)" << std::endl;
@@ -357,10 +369,7 @@ run_staged_pipeline(
     std::cout << std::endl << "=== Pipeline stage " << ( i + 1 )
               << " of " << stages.size() << " ===" << std::endl;
 
-    std::ostringstream tmp_name;
-    tmp_name << pipe_dir << ".viame_stage_" << ( i + 1 )
-             << "_" << pid << ".pipe";
-    const std::string tmp_path = tmp_name.str();
+    const std::string tmp_path = (temporary_dir / (std::to_string(i + 1) + ".pipe")).string();
 
     {
       std::ofstream ofs( tmp_path );
@@ -372,12 +381,35 @@ run_staged_pipeline(
         return EXIT_FAILURE;
       }
 
-      ofs << stages[i];
+      // Relativepath values in the stage belong to the original pipe.
+      // Includes get the original directory as their first search path.
+      const std::regex relative(R"(^(\s*)relativepath\s+(\S+\s*=\s*)(.*)$)");
+      std::istringstream lines(stages[i]);
+      std::string line;
+      while( std::getline(lines, line) )
+      {
+        std::smatch match;
+        if( std::regex_match(line, match, relative) )
+        {
+          std::string value = match[3];
+          const auto comment = value.find(" #");
+          const std::string suffix = comment == std::string::npos ? "" : value.substr(comment);
+          if( comment != std::string::npos ) { value.resize(comment); }
+          const auto end = value.find_last_not_of(" \t");
+          value = end == std::string::npos ? "" : value.substr(0, end + 1);
+          ofs << match[1] << match[2] << (pipe_dir / value).lexically_normal().generic_string() << suffix << "\n";
+        }
+        else { ofs << line << "\n"; }
+      }
+      ofs.close();
+      if( !ofs ) { throw std::runtime_error("Could not write stage pipeline"); }
     }
 
     std::vector< std::string > stage_args;
     stage_args.push_back( applet_args[0] );
     stage_args.push_back( tmp_path );
+    stage_args.push_back("-I");
+    stage_args.push_back(pipe_dir.string());
     stage_args.insert( stage_args.end(),
                        forwarded_args.begin(), forwarded_args.end() );
 
@@ -423,7 +455,7 @@ run_staged_pipeline(
 
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
 
-VIAME_PYTHON_SCRIPT_APPLET( run_bulk_applet, "run-bulk", "run_bulk.py",
+VIAME_PYTHON_SCRIPT_APPLET( run_bulk_applet, "run-bulk", "run.py",
   "Process videos or images in batch" )
 
 #endif
@@ -441,6 +473,7 @@ run_applet
 
   if( !pipe_file.empty() )
   {
+    if( wants_help(args) ) { return run_pipeline(args); }
     const auto stages = scan_for_stages( pipe_file );
 
     if( !stages.empty() )

@@ -8,6 +8,6 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\measurement_default_fish_fully_auto.pipe"
+kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\stereo_track_and_measure_default_fish.pipe"
 
 pause

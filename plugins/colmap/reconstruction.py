@@ -4,7 +4,7 @@
 # https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    #
 """COLMAP structure-from-motion + dense reconstruction (``viame.colmap``).
 
-Extracted from ``reconstruct_3d.py``; used only for the non-planar SfM / dense
+Extracted from the ``3d.py`` tool; used only for the non-planar SfM / dense
 (MVS) modes, which require COLMAP. Built only when VIAME is configured with
 ``VIAME_ENABLE_COLMAP=ON``. The planar registration path does NOT use this.
 

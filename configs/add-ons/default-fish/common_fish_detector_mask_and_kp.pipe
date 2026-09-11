@@ -33,9 +33,16 @@ connect from detector_input.image
         to   detector.image
 
 process detector_output
-  :: merge_detection_sets
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
 
 connect from detector.detected_object_set
-        to   detector_output.detected_object_set1
+        to   detector_output.detected_object_set
 
 # -- end of file --

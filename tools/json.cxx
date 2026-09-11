@@ -6,6 +6,7 @@
 /// \brief Applet for filtering and analyzing DIVE and COCO JSON files
 
 #include "json.h"
+#include <atomic_output.h>
 
 #include <utilities_file.h>
 
@@ -1617,27 +1618,17 @@ load_document( const std::string& filename )
 void
 save_document( const std::string& filename, const json_doc& doc )
 {
-  const std::string temporary = filename + ".tmp";
-
+  viame::atomic_output( filename, [&]( std::ostream& fout )
   {
-    std::ofstream fout( temporary );
-
-    if( !fout )
-    {
-      throw std::runtime_error( temporary + ": could not open for writing" );
-    }
-
     rapidjson::OStreamWrapper wrapper( fout );
     rapidjson::PrettyWriter< rapidjson::OStreamWrapper > writer( wrapper );
     writer.SetIndent( ' ', 2 );
-    doc.Accept( writer );
+    if( !doc.Accept( writer ) )
+    {
+      throw std::runtime_error( filename + ": could not serialize JSON" );
+    }
     fout << "\n";
-  }
-
-  if( !move_file( temporary, filename ) )
-  {
-    throw std::runtime_error( filename + ": could not replace the original file" );
-  }
+  } );
 }
 
 // =======================================================================================

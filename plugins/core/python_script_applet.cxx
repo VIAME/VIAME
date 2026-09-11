@@ -100,6 +100,32 @@ run_command( const std::vector< std::string >& args )
 } // namespace
 
 // ----------------------------------------------------------------------------
+std::string
+find_tool_script( const std::string& name )
+{
+  return find_script( name );
+}
+
+// ----------------------------------------------------------------------------
+int
+run_tool_script( const std::string& script,
+                 const std::vector< std::string >& args )
+{
+  std::vector< std::string > command;
+
+#ifdef _WIN32
+  command.push_back( "python.exe" );
+#else
+  command.push_back( "python" );
+#endif
+
+  command.push_back( script );
+  command.insert( command.end(), args.begin(), args.end() );
+
+  return run_command( command );
+}
+
+// ----------------------------------------------------------------------------
 int
 python_script_applet
 ::run()
@@ -115,25 +141,11 @@ python_script_applet
     return EXIT_FAILURE;
   }
 
-  std::vector< std::string > args;
-
-#ifdef _WIN32
-  args.push_back( "python.exe" );
-#else
-  args.push_back( "python" );
-#endif
-
-  args.push_back( script );
-
   // Element zero is this program's name, the rest belong to the script
   const auto& forwarded = applet_args();
 
-  for( size_t i = 1; i < forwarded.size(); ++i )
-  {
-    args.push_back( forwarded[i] );
-  }
-
-  return run_command( args );
+  return run_tool_script( script,
+    std::vector< std::string >( forwarded.begin() + 1, forwarded.end() ) );
 }
 
 } // namespace viame

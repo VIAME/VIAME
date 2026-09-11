@@ -5,7 +5,7 @@ region detection.
 Registers a (multi-camera) aerial survey and produces, for every image, a
 pixel->reference transform placing it in a common frame (local ENU metres when
 GPS/flight-log metadata is available, else pseudo-ENU from the registration
-chains). Both the detect_prior_coverage.py tool and the in-pipeline VIAME
+chains). Both the viame register tool and the in-pipeline VIAME
 registration node (viame.opencv.colmap_registration) build on this, so the
 node needs nothing from the tool.
 

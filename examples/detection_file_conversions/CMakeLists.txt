@@ -8,12 +8,12 @@ set( EXAMPLE_INSTALL_FILES
 if( WIN32 )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       bulk_convert_gt_plus_data.bat
+       bulk_convert.bat
        bulk_convert_gt_only.bat )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       bulk_convert_gt_plus_data.sh
+       bulk_convert.sh
        bulk_convert_gt_only.sh )
 endif()
 

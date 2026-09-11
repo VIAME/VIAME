@@ -30,6 +30,7 @@
 #include <plugins/core/utilities_image.h>
 #include <plugins/core/utilities_training.h>
 #include <plugins/core/manipulate_pipelines.h>
+#include <plugins/core/python_script_applet.h>
 #include <plugins/claude/train_supervisor.h>
 
 #include <vector>
@@ -48,6 +49,17 @@
 #include <thread>
 #include <atomic>
 #include <algorithm>
+#include <cstdio>
+#include <cmath>
+
+#ifdef _WIN32
+#include <io.h>
+#include <fcntl.h>
+#include <process.h>
+#else
+#include <unistd.h>
+#include <fcntl.h>
+#endif
 
 #if WIN32 || ( __cplusplus >= 201703L && __has_include(<filesystem>) )
   #include <filesystem>
@@ -527,6 +539,223 @@ static std::string gather_config_text( kv::config_block_sptr config )
   return result;
 }
 
+// =======================================================================================
+// Copy of everything this process (and its children) write to stdout/stderr
+// into a log file, so `viame monitor` can follow a run that was started from a
+// terminal. Both file descriptors are pointed at a pipe drained by a thread
+// which forwards the bytes to the original console and the log.
+class output_tee
+{
+public:
+  explicit output_tee( const std::string& log_path )
+  {
+    log_.open( log_path, std::ios::out | std::ios::trunc | std::ios::binary );
+
+    if( !log_ )
+    {
+      return;
+    }
+
+    int fds[2];
+
+#ifdef _WIN32
+    if( _pipe( fds, 65536, _O_BINARY ) != 0 )
+    {
+      return;
+    }
+#else
+    if( ::pipe( fds ) != 0 )
+    {
+      return;
+    }
+    ::fcntl( fds[0], F_SETFD, FD_CLOEXEC );
+#endif
+
+    std::fflush( stdout );
+    std::fflush( stderr );
+    std::cout.flush();
+    std::cerr.flush();
+
+    saved_stdout_ = tee_dup( 1 );
+    saved_stderr_ = tee_dup( 2 );
+    read_fd_ = fds[0];
+
+    // The pump writes to the saved console descriptors; keep them out of
+    // child processes so a lingering child cannot hold the console open.
+#ifndef _WIN32
+    ::fcntl( saved_stdout_, F_SETFD, FD_CLOEXEC );
+    ::fcntl( saved_stderr_, F_SETFD, FD_CLOEXEC );
+#endif
+
+    pump_ = std::thread( [this]{ pump(); } );
+
+    tee_dup2( fds[1], 1 );
+    tee_dup2( fds[1], 2 );
+    tee_close( fds[1] );
+
+    // stdout is now a pipe, which would otherwise switch it to full buffering
+#ifdef _WIN32
+    std::setvbuf( stdout, nullptr, _IONBF, 0 );
+#else
+    std::setvbuf( stdout, nullptr, _IOLBF, 0 );
+#endif
+
+    active_ = true;
+  }
+
+  ~output_tee()
+  {
+    if( !active_ )
+    {
+      return;
+    }
+
+    std::fflush( stdout );
+    std::fflush( stderr );
+    std::cout.flush();
+    std::cerr.flush();
+
+    // Restoring the console closes our copies of the pipe's write end, so the
+    // pump sees end-of-file once every child that inherited it has exited.
+    tee_dup2( saved_stdout_, 1 );
+    tee_dup2( saved_stderr_, 2 );
+    pump_.join();
+
+    tee_close( saved_stdout_ );
+    tee_close( saved_stderr_ );
+    tee_close( read_fd_ );
+    log_.close();
+  }
+
+  bool active() const { return active_; }
+
+private:
+  void pump()
+  {
+    char buffer[ 4096 ];
+
+    for(;;)
+    {
+      const int count = tee_read( read_fd_, buffer, sizeof( buffer ) );
+
+      if( count <= 0 )
+      {
+        break;
+      }
+
+      tee_write( saved_stdout_, buffer, count );
+      log_.write( buffer, count );
+      log_.flush();
+    }
+  }
+
+#ifdef _WIN32
+  static int tee_dup( int fd ) { return _dup( fd ); }
+  static int tee_dup2( int fd, int to ) { return _dup2( fd, to ); }
+  static int tee_close( int fd ) { return _close( fd ); }
+  static int tee_read( int fd, char* buf, size_t n )
+    { return _read( fd, buf, static_cast< unsigned >( n ) ); }
+  static void tee_write( int fd, const char* buf, int n )
+    { _write( fd, buf, static_cast< unsigned >( n ) ); }
+#else
+  static int tee_dup( int fd ) { return ::dup( fd ); }
+  static int tee_dup2( int fd, int to ) { return ::dup2( fd, to ); }
+  static int tee_close( int fd ) { return ::close( fd ); }
+  static int tee_read( int fd, char* buf, size_t n )
+    { return static_cast< int >( ::read( fd, buf, n ) ); }
+  static void tee_write( int fd, const char* buf, int n )
+  {
+    int written = 0;
+    while( written < n )
+    {
+      const ssize_t r = ::write( fd, buf + written, n - written );
+      if( r <= 0 ) { break; }
+      written += static_cast< int >( r );
+    }
+  }
+#endif
+
+  std::ofstream log_;
+  std::thread pump_;
+  int saved_stdout_ = -1;
+  int saved_stderr_ = -1;
+  int read_fd_ = -1;
+  bool active_ = false;
+};
+
+// Tee active for the current run, when --monitor-email is in use
+static std::unique_ptr< output_tee > s_monitor_tee;
+
+// Line the monitor looks for to know a run finished (its default done pattern)
+static const std::string monitor_done_prefix = "TRAIN DONE (exit ";
+
+// =======================================================================================
+// Keep the previous log of a re-run (e.g. --continue) rather than overwriting it
+static void rotate_log( const std::string& log_path )
+{
+  if( kwiversys::SystemTools::FileExists( log_path, true ) )
+  {
+    const std::string previous = log_path + ".old";
+    kwiversys::SystemTools::RemoveFile( previous );
+    std::rename( log_path.c_str(), previous.c_str() );
+  }
+}
+
+// =======================================================================================
+// Start a detached `viame monitor` following this process and the given log.
+static bool launch_training_monitor( const std::string& output_dir,
+                                     const std::string& log_path,
+                                     const std::string& email,
+                                     const std::string& smtp_server,
+                                     const std::string& smtp_user,
+                                     const std::string& poll_seconds,
+                                     const std::string& name )
+{
+  const std::string script = find_tool_script( "monitor.py" );
+
+  if( script.empty() )
+  {
+    std::cerr << "Unable to locate monitor.py; --monitor-email requires an "
+              << "installed VIAME tree" << std::endl;
+    return false;
+  }
+
+#ifdef _WIN32
+  const int pid = _getpid();
+#else
+  const int pid = static_cast< int >( ::getpid() );
+#endif
+
+  std::vector< std::string > args =
+    { "start", "-o", output_dir, "-l", log_path,
+      "--pid", std::to_string( pid ), "--email", email,
+      "--poll-seconds", poll_seconds };
+
+  if( !smtp_server.empty() )
+  {
+    args.push_back( "--smtp-server" );
+    args.push_back( smtp_server );
+  }
+  if( !smtp_user.empty() )
+  {
+    args.push_back( "--smtp-user" );
+    args.push_back( smtp_user );
+  }
+  if( !name.empty() )
+  {
+    args.push_back( "--name" );
+    args.push_back( name );
+  }
+
+  if( run_tool_script( script, args ) != EXIT_SUCCESS )
+  {
+    std::cerr << "Failed to start the training monitor" << std::endl;
+    return false;
+  }
+
+  return true;
+}
+
 // Rebuild the argument list used to relaunch this tool as a monitored training
 // child. All model selection, settings file and LLM options are stripped, since
 // the supervisor supplies its own; queries are disabled so the child never
@@ -537,7 +766,8 @@ static std::vector< std::string > build_child_train_args(
 {
   static const std::set< std::string > dropped_long_options =
     { "config", "detector", "settings-file", "llm-assist", "llm-poll",
-      "llm-max-restarts", "llm-model", "llm-cmd" };
+      "llm-max-restarts", "llm-model", "llm-cmd", "monitor-email",
+      "monitor-smtp", "monitor-smtp-user", "monitor-poll" };
 
   std::vector< std::string > output;
   output.push_back( applet_name );
@@ -1084,6 +1314,19 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "name" )
     ( "llm-cmd", "Claude executable used by --llm-assist",
       ::cxxopts::value< std::string >()->default_value( "claude" ), "path" )
+    ( "monitor-email", "Launch \"viame monitor\" alongside training, which follows "
+      "this run through a copy of its output written to train.log in the output "
+      "directory and emails progress, error and completion reports to this address. "
+      "Mail goes through --monitor-smtp (or VIAME_SMTP_SERVER) when set, otherwise "
+      "a local sendmail",
+      ::cxxopts::value< std::string >()->default_value( "" ), "address" )
+    ( "monitor-smtp", "SMTP host[:port] used for --monitor-email reports; the "
+      "password, if any, is read from the VIAME_SMTP_PASSWORD environment variable",
+      ::cxxopts::value< std::string >()->default_value( "" ), "host" )
+    ( "monitor-smtp-user", "SMTP login user for --monitor-smtp",
+      ::cxxopts::value< std::string >()->default_value( "" ), "user" )
+    ( "monitor-poll", "Seconds between training monitor checks",
+      ::cxxopts::value< std::string >()->default_value( "1200" ), "seconds" )
     ;
 }
 
@@ -1091,6 +1334,37 @@ train_applet
 int
 train_applet
 ::run()
+{
+  int result = EXIT_FAILURE;
+
+  try
+  {
+    result = run_training();
+  }
+  catch( ... )
+  {
+    if( s_monitor_tee )
+    {
+      std::cout << monitor_done_prefix << EXIT_FAILURE << ")" << std::endl;
+      s_monitor_tee.reset();
+    }
+    throw;
+  }
+
+  if( s_monitor_tee )
+  {
+    // Lands in train.log for the monitor before this process exits
+    std::cout << monitor_done_prefix << result << ")" << std::endl;
+    s_monitor_tee.reset();
+  }
+
+  return result;
+}
+
+// =======================================================================================
+int
+train_applet
+::run_training()
 {
   // Get logger
   kv::logger_handle_t logger = kv::get_logger( "viame.tools.train" );
@@ -1114,6 +1388,10 @@ train_applet
   bool opt_emb_pipe = cmd_args[ "embedded-pipe" ].as< bool >();
   bool opt_gt_only = cmd_args[ "gt-frames-only" ].as< bool >();
   bool opt_continue = cmd_args[ "continue" ].as< bool >();
+  std::string opt_monitor_email = cmd_args[ "monitor-email" ].as< std::string >();
+  std::string opt_monitor_smtp = cmd_args[ "monitor-smtp" ].as< std::string >();
+  std::string opt_monitor_smtp_user = cmd_args[ "monitor-smtp-user" ].as< std::string >();
+  std::string opt_monitor_poll = cmd_args[ "monitor-poll" ].as< std::string >();
 
   std::string opt_config = cmd_args[ "config" ].as< std::string >();
   std::string opt_input_dir = cmd_args[ "input" ].as< std::string >();
@@ -1623,6 +1901,63 @@ train_applet
   std::string output_pipeline_name =
     config->get_value< std::string >( "output_pipeline_name" );
 
+  // Start the training monitor once the output location is known. Under LLM
+  // supervision the supervisor already logs the training output, so the
+  // monitor follows that file; otherwise a copy of this process's output is
+  // written to train.log for it.
+  if( !opt_monitor_email.empty() )
+  {
+    const std::string monitor_dir =
+      output_directory.empty() ? std::string( "." ) : output_directory;
+
+    create_folder( monitor_dir );
+
+    std::string monitor_log;
+
+    if( llm_supervised )
+    {
+      monitor_log = append_path(
+        append_path( monitor_dir, "llm_supervisor" ), "training_output.log" );
+    }
+    else
+    {
+      monitor_log = append_path( monitor_dir, "train.log" );
+      rotate_log( monitor_log );
+      s_monitor_tee.reset( new output_tee( monitor_log ) );
+
+      if( !s_monitor_tee->active() )
+      {
+        std::cerr << "Unable to write " << monitor_log
+                  << " for the training monitor" << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+
+    // Report label: the last two components of the output location, e.g.
+    // "seals_2026/category_models", falling back to the detector type
+    std::string monitor_name = opt_detector;
+    {
+      const std::string full =
+        kwiversys::SystemTools::CollapseFullPath( monitor_dir );
+      const std::string parent = kwiversys::SystemTools::GetFilenamePath( full );
+      const std::string leaf = kwiversys::SystemTools::GetFilenameName( full );
+      const std::string parent_leaf =
+        kwiversys::SystemTools::GetFilenameName( parent );
+
+      if( !leaf.empty() )
+      {
+        monitor_name = parent_leaf.empty() ? leaf : parent_leaf + "/" + leaf;
+      }
+    }
+
+    if( !launch_training_monitor( monitor_dir, monitor_log, opt_monitor_email,
+          opt_monitor_smtp, opt_monitor_smtp_user, opt_monitor_poll,
+          monitor_name ) )
+    {
+      return EXIT_FAILURE;
+    }
+  }
+
   // Command line override for output_file
   if( !opt_output_file.empty() )
   {
@@ -1722,9 +2057,10 @@ train_applet
     return EXIT_FAILURE;
   }
 
-  if( percent_validation < 0.0 || percent_validation > 1.0 )
+  if( !std::isfinite(percent_validation) || percent_validation < 0.0 || percent_validation >= 1.0 ||
+      (percent_validation > 0.0 && validation_burst_frame_count == 0) )
   {
-    std::cerr << "Percent validation must be [0.0,1.0]" << std::endl;
+    std::cerr << "Percent validation must be finite and in [0.0,1.0); validation burst must be positive" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -2104,6 +2440,9 @@ train_applet
     all_data.insert( all_data.end(), videos.begin(), videos.end() );
   }
 
+  const int validation_sequence_pivot = validation_pivot;
+  validation_pivot = -1; // Frame boundary, populated while consuming sequences.
+
   // Load groundtruth for all image files in all folders using reader class
   std::vector< std::string > train_image_fn;
   std::vector< kv::detected_object_set_sptr > train_gt;
@@ -2381,7 +2720,7 @@ train_applet
   // sets, and nothing else says which frames belong to which set: the two are
   // filtered independently here, so their counts need not even match. Recorded
   // so the association can be written out rather than guessed at downstream.
-  std::vector< size_t > item_frame_counts( all_data.size(), 0 );
+  std::vector< std::vector< std::string > > item_frame_paths( all_data.size() );
 
   for( unsigned i = 0; i < all_data.size(); i++ )
   {
@@ -2400,7 +2739,7 @@ train_applet
 
     // If train/validation partition divide already set, updated from
     // data sequence to image id level.
-    if( validation_pivot == static_cast< int >( i ) )
+    if( validation_sequence_pivot == static_cast< int >( i ) )
     {
       validation_pivot = train_image_fn.size();
     }
@@ -2750,7 +3089,7 @@ train_applet
       gt_reader->close();
     }
 
-    item_frame_counts[i] = train_image_fn.size() - frames_before_item;
+    item_frame_paths[i].assign(train_image_fn.begin() + frames_before_item, train_image_fn.end());
 
     if( max_frame_count > 0 && train_image_fn.size() > max_frame_count )
     {
@@ -2764,7 +3103,7 @@ train_applet
     shared_augmentation_pipe->wait();
   }
 
-  if( validation_pivot > 0 )
+  if( validation_pivot >= 0 )
   {
     validation_image_fn.insert( validation_image_fn.begin(),
       train_image_fn.begin() + validation_pivot, train_image_fn.end() );
@@ -2974,10 +3313,11 @@ train_applet
   {
     unsigned total_images = train_image_fn.size();
 
-    unsigned total_segment = static_cast< unsigned >( validation_burst_frame_count / percent_validation );
+    unsigned total_segment = static_cast< unsigned >( std::min<double>(
+      total_images, validation_burst_frame_count / percent_validation) );
     unsigned train_segment = total_segment - validation_burst_frame_count;
 
-    if( total_images < total_segment )
+    if( total_images <= total_segment )
     {
       total_segment = total_images;
       train_segment = total_images - static_cast< unsigned >( percent_validation * total_images );
@@ -3040,7 +3380,7 @@ train_applet
     if( !train_image_fn.empty() &&
        ( validation_image_fn.empty() || invalid_validation_set ) )
     {
-      for( unsigned i = 0; i < train_image_fn.size() - 1; i++ )
+      while( train_image_fn.size() > 1 )
       {
         validation_image_fn.push_back( train_image_fn.back() );
         validation_gt.push_back( train_gt.back() );
@@ -3276,6 +3616,9 @@ train_applet
     std::vector< unsigned > train_track_items;
     std::vector< unsigned > validation_track_items;
 
+    const auto train_sequences = partition_sequences(item_frame_paths, train_image_fn);
+    const auto validation_sequences = partition_sequences(item_frame_paths, validation_image_fn);
+
     // Configure track reader
     kv::set_nested_algo_configuration< kv::algo::read_object_track_set >
       ( "track_reader", config, track_reader );
@@ -3288,8 +3631,8 @@ train_applet
       for( unsigned i = 0; i < all_data.size(); i++ )
       {
         std::string data_item = all_data[i];
-        bool is_validation = ( validation_pivot >= 0 &&
-                               static_cast< int >( i ) >= validation_pivot );
+        const bool has_training = train_sequences.count[i] > 0;
+        const bool has_validation = validation_sequences.count[i] > 0;
 
         // Find groundtruth file for this data entry
         std::vector< std::string > gt_files;
@@ -3325,12 +3668,12 @@ train_applet
               std::cout << "Read " << tracks->size() << " tracks from "
                         << gt_file << std::endl;
 
-              if( is_validation )
+              if( has_validation )
               {
                 validation_tracks.push_back( tracks );
                 validation_track_items.push_back( i );
               }
-              else
+              if( has_training )
               {
                 train_tracks.push_back( tracks );
                 train_track_items.push_back( i );
@@ -3359,7 +3702,7 @@ train_applet
       auto write_manifest =
         [&]( const std::string& path,
              const std::vector< unsigned >& track_items,
-             size_t frame_offset ) -> bool
+             const sequence_frames& sequences ) -> bool
       {
         // output_directory need not exist yet -- the trainers create their
         // own -- and an ofstream into a missing directory just fails
@@ -3384,33 +3727,11 @@ train_applet
                  << std::endl;
         manifest << "# track_set first_frame frame_count source" << std::endl;
 
-        // Where each item's frames begin in the flat list
-        std::vector< size_t > item_offsets( all_data.size(), 0 );
-        size_t running = 0;
-
-        for( size_t item = 0; item < all_data.size(); item++ )
-        {
-          item_offsets[ item ] = running;
-          running += item_frame_counts[ item ];
-        }
-
         for( size_t set = 0; set < track_items.size(); set++ )
         {
           const unsigned item = track_items[ set ];
-          size_t first = item_offsets[ item ];
-          size_t count = item_frame_counts[ item ];
-
-          // Ranges are relative to the list the trainer is handed, which for
-          // validation starts at the split
-          if( first >= frame_offset )
-          {
-            first -= frame_offset;
-          }
-          else
-          {
-            first = 0;
-            count = 0;
-          }
+          const size_t first = sequences.first[item];
+          const size_t count = sequences.count[item];
 
           manifest << set << " " << first << " " << count << " "
                    << all_data[ item ] << std::endl;
@@ -3419,9 +3740,6 @@ train_applet
         return true;
       };
 
-      const size_t split = ( validation_pivot > 0 ?
-        static_cast< size_t >( validation_pivot ) : 0 );
-
       // output_directory defaults to empty, meaning the working directory
       const std::string manifest_dir =
         ( output_directory.empty() ? std::string( "." ) : output_directory );
@@ -3429,7 +3747,7 @@ train_applet
       sequence_manifest_file =
         append_path( manifest_dir, "train_sequence_manifest.txt" );
 
-      if( !write_manifest( sequence_manifest_file, train_track_items, 0 ) )
+      if( !write_manifest( sequence_manifest_file, train_track_items, train_sequences ) )
       {
         sequence_manifest_file.clear();
       }
@@ -3440,7 +3758,7 @@ train_applet
           append_path( manifest_dir, "validation_sequence_manifest.txt" );
 
         if( !write_manifest( validation_manifest_file,
-                             validation_track_items, split ) )
+                             validation_track_items, validation_sequences ) )
         {
           validation_manifest_file.clear();
         }
@@ -3505,7 +3823,7 @@ train_applet
       try
       {
         tracker_trainer->add_data_from_disk( model_labels,
-          train_image_fn, train_tracks, validation_image_fn, validation_tracks );
+          train_sequences.images, train_tracks, validation_sequences.images, validation_tracks );
 
         std::map< std::string, std::string > trainer_output =
           tracker_trainer->update_model();

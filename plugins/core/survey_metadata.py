@@ -631,7 +631,7 @@ def footprint_quad_enu(x, y, alt_agl, heading_deg, focal35_mm=85.0,
 
 
 # Across-track cant of the rig cameras, as a fraction of the ground footprint
-# width, matching ``detect_prior_coverage.py --xcam-offset-frac`` (default 0.9).
+# width, matching ``viame register --xcam-offset-frac`` (default 0.9).
 # The PORT/STAR optical axes point away from nadir, so their ground footprints
 # sit ~0.9 footprint-widths either side of the aircraft track. Using the raw
 # aircraft position for these cameras misplaces their footprint by ~95 m, which

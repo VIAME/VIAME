@@ -12,6 +12,7 @@
 
 #include <viame/pipeline_framework/adapters/embedded_pipeline.h>
 
+#include <cstddef>
 #include <string>
 #include <vector>
 #include <unordered_set>
@@ -25,6 +26,29 @@ namespace kv = kwiver::vital;
 // Pipeline type alias
 // =============================================================================
 typedef std::unique_ptr< kwiver::embedded_pipeline > pipeline_t;
+
+// =============================================================================
+// Training sequence utilities
+// =============================================================================
+
+/// Selected frames grouped by source sequence, with a range for every source.
+struct sequence_frames
+{
+  std::vector< std::string > images;
+  std::vector< std::size_t > first;
+  std::vector< std::size_t > count;
+};
+
+/// Rebuild sequence ranges from the final filtered training or validation split.
+///
+/// Frames are grouped in source-sequence order, preserving selected-frame order
+/// within each sequence. Empty sequences retain a zero-length range.
+/// Throws std::runtime_error if a frame belongs to multiple source sequences
+/// or a selected frame has no source sequence.
+VIAME_CORE_EXPORT
+sequence_frames partition_sequences(
+  const std::vector< std::vector< std::string > >& sources,
+  const std::vector< std::string >& selected );
 
 // =============================================================================
 // Detection set utilities

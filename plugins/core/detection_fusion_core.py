@@ -6,7 +6,7 @@
 
 This module contains the pure-numpy math used both by the runtime
 'nms_fusion' merger (merge_detections_nms_fusion.py) and by the offline
-parameter learning tool (tools/train_fusion.py):
+parameter learning tool (tools/ensemble.py, ``viame ensemble``):
 
   - IoU / box matching helpers
   - ProbEn-style probabilistic ensembling of full class distributions

@@ -8,5 +8,5 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-python.exe "%VIAME_INSTALL%\configs\launch_search.py" ^
+python.exe "%VIAME_INSTALL%\configs\search.py" ^
   -qp pipelines\query_retrieval_and_iqr.pipe

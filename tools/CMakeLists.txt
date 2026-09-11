@@ -7,33 +7,31 @@
 ##
 set( PYTHON_SCRIPTS
   add_ons.py
-  add_segmentations.py
-  convert_cam.py
-  convert_itk.py
+  segment.py
+  convert.py
   database.py
-  extract_frames.py
-  inspect.py
-  plot_detections.py
-  generate_nn_index.py
-  launch_annotator.py
-  launch_search.py
+  extract.py
+  inspect_file.py
+  index.py
+  view.py
+  search.py
   pipeline.py
-  plot_eval.py
-  run_bulk.py
+  plot.py
+  run.py
   metadata.py
-  train_fusion.py
+  ensemble.py
+  monitor.py
 )
 
 if( VIAME_ENABLE_OPENCV )
   set( PYTHON_SCRIPTS
     ${PYTHON_SCRIPTS}
-    calibrate_cameras.py
-    compute_depth.py
-    compute_disparity.py
-    create_mosaic.py
-    detect_prior_coverage.py
-    ply_utilities.py
-    reconstruct_3d.py
+    calibrate.py
+    depth.py
+    disparity.py
+    mosaic.py
+    register.py
+    3d.py
     rectify.py
   )
 endif()
@@ -41,7 +39,7 @@ endif()
 if( VIAME_ENABLE_PYTORCH )
   set( PYTHON_SCRIPTS
     ${PYTHON_SCRIPTS}
-    check_gpu.py
+    gpu.py
   )
 endif()
 
@@ -96,7 +94,8 @@ target_link_libraries( kwiver
 set( applet_sources
   register_applets.cxx
   csv.cxx
-  get_configs.cxx
+  configs.cxx
+  convert.cxx
   json.cxx
   pipe_check.cxx
   registry_dump.cxx
@@ -108,7 +107,8 @@ set( applet_sources
 
 set( applet_headers
   csv.h
-  get_configs.h
+  configs.h
+  convert.h
   json.h
   pipe_check.h
   registry_dump.h

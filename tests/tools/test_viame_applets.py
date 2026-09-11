@@ -24,7 +24,8 @@ from viame_env import find_viame_install, get_sourced_env, get_viame_source
 # Applets the runner must always know about
 CORE_APPLETS = [
     "csv",
-    "get-configs",
+    "configs",
+    "convert",
     "json",
     "resample",
     "score",
@@ -919,7 +920,7 @@ class TestRunDispatch:
 
     @staticmethod
     def _mode(result):
-        if "usage: run_bulk.py" in result.stdout:
+        if "usage: run.py" in result.stdout:
             return "batch"
         if "pipe-file" in result.stdout:
             return "pipeline"
@@ -1375,7 +1376,7 @@ class TestPythonScriptApplets:
         result = run_viame(viame_env, "run", "--help")
 
         assert result.returncode == 0
-        assert "usage: run_bulk.py" in result.stdout
+        assert "usage: run.py" in result.stdout
 
     def test_help_subcommand_matches_script_help(self, viame_env):
         direct = run_viame(viame_env, "run", "--help")
@@ -1449,7 +1450,7 @@ class TestAddOnApplet:
         entry = next(e for e in json.loads(removed.stdout) if e["name"] == "FAKE")
         assert entry["status"] == "not installed"
 
-    def test_checksum_mismatch_needs_force(self, viame_env, tmp_path):
+    def test_checksum_mismatch_needs_explicit_override(self, viame_env, tmp_path):
         install, archive, listing = self._fake_addon(tmp_path)
         listing.write_text(listing.read_text().replace(
             hashlib.md5(archive.read_bytes()).hexdigest(), "0" * 32))
@@ -1463,7 +1464,7 @@ class TestAddOnApplet:
 
         forced = self._run(
             viame_env, install, listing, "install", "FAKE", "--from-file",
-            str(archive), "--force",
+            str(archive), "--ignore-checksum",
         )
         assert forced.returncode == 0, forced.stderr
 

@@ -8,5 +8,5 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-python.exe "%VIAME_INSTALL%\configs\launch_annotator.py"
+python.exe "%VIAME_INSTALL%\configs\view.py"
 

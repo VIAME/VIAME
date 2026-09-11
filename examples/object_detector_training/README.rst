@@ -96,6 +96,51 @@ If no ``labels.txt`` is provided, all unique labels in the groundtruth are used.
 
 
 ***********************
+Monitoring Training Runs
+***********************
+
+Long training runs can report their progress by email. Adding ``--monitor-email``
+to ``viame train`` starts a background monitor next to the run::
+
+    viame train -i training_data -c train_detector_default.conf --threshold 0.0 \
+        --monitor-email you@example.com
+
+The monitor sends a test message when it starts, then reports on detected errors
+or deadlocks, training stage changes, validation statistics every few epochs, a
+periodic heartbeat during long stages, and finally whether the run finished
+normally, ended with an error, or stopped unexpectedly. A copy of the training
+output is written to ``train.log`` in the output directory (``category_models``
+by default), alongside a ``monitor_status.log`` trail of every check.
+
+Mail is sent through an SMTP server given by ``--monitor-smtp host[:port]`` (with
+``--monitor-smtp-user`` and the ``VIAME_SMTP_PASSWORD`` environment variable when
+the server needs a login), or through a local ``sendmail`` on Linux when no server
+is configured. The server, user and sender address can also be set once through
+the ``VIAME_SMTP_SERVER``, ``VIAME_SMTP_USER`` and ``VIAME_SMTP_FROM`` environment
+variables, which is how the DIVE desktop and web training dialogs deliver mail
+when an address is entered there. With neither an SMTP server nor ``sendmail``
+available, the reports are still written to the status trail. ``--monitor-poll``
+changes how often the run is checked (every 20 minutes by default).
+
+The same monitor can follow a run that was started some other way, for example
+a slurm job or a run under ``nohup``, using the ``viame monitor`` tool directly::
+
+    viame monitor start -o category_models -l train.log --job-id 12345 \
+        --email you@example.com
+    viame monitor start -o category_models -l train.log --pid 4242 \
+        --email you@example.com --smtp-server smtp.example.com:587
+    viame monitor status category_models
+    viame monitor stop category_models
+
+The run is considered alive while its slurm job is queued, its process exists,
+or, when neither is given, its log keeps changing (``--stale-minutes``). RF-DETR
+runs are recognised by the ``metrics.csv`` they write and report validation mAP,
+precision and recall; other trainers report the current stage and latest epoch
+line parsed from the log. Run ``viame monitor start --help`` for the full list of
+options, including the report interval and the pattern that marks a finished run.
+
+
+***********************
 Available Trainers
 ***********************
 

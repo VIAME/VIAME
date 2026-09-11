@@ -11,8 +11,26 @@
 # Usage: build_server_docker_default.sh [--test-only] [--no-push]
 set -u
 
+# Path to a VIAME source checkout. Leave empty when this script runs from its
+# place in cmake/ inside a checkout; set it when the script is copied anywhere
+# else, e.g. VIAME_INSTALL=/data/src/VIAME. Only docker/ (the two Dockerfiles,
+# which clone VIAME from GitHub themselves) and tests/ (the CRITICAL gate) are
+# read from it, so it does not need to be built. May also be given in the
+# environment. This is a source tree, not an /opt/noaa/viame install prefix.
+VIAME_INSTALL="${VIAME_INSTALL:-}"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SRC_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+if [ -n "$VIAME_INSTALL" ]; then
+  SRC_DIR="$(cd "$VIAME_INSTALL" 2>/dev/null && pwd)" \
+    || { echo "VIAME_INSTALL does not exist: $VIAME_INSTALL"; exit 2; }
+else
+  SRC_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+fi
+if [ ! -f "$SRC_DIR/docker/viame_gpu_web.docker" ] || [ ! -d "$SRC_DIR/tests" ]; then
+  echo "No VIAME source tree at $SRC_DIR (need docker/ and tests/)."
+  echo "Set VIAME_INSTALL at the top of this script, or in the environment, to a VIAME checkout."
+  exit 2
+fi
 # Overridable so the gate can be exercised against a scratch tag.
 WEB=${VIAME_WEB_IMAGE:-kitware/viame:gpu-algorithms-web}
 DEFAULT=${VIAME_DEFAULT_IMAGE:-kitware/viame:gpu-algorithms-default}

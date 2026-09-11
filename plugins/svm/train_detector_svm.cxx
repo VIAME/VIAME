@@ -580,7 +580,7 @@ train_detector_svm::priv
     return false;
   }
 
-  // Construct model file paths using the same naming convention as generate_nn_index.py
+  // Construct model file paths using the same naming convention as viame index build (viame.core.index_descriptors)
   std::ostringstream suffix;
   suffix << "b" << lsh_bit_length << "_i" << lsh_itq_iterations << "_r" << lsh_random_seed;
 

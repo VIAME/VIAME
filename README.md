@@ -117,6 +117,27 @@ above section in the installation documentation. Most add-on models are not incl
 instance but can be downloaded via running the script download_viame_addons.sh in the bin folder.
 
 
+Command Line Interface Basics
+-----------------------------
+
+After sourcing the setup script in an install, every command line tool is a
+subcommand of the `viame` program. `viame help` lists them with a one line
+description each, and `viame help <tool>` prints that tool's own options:
+
+```
+viame help                                       # list every tool
+viame add-ons                                    # list and install model add-ons
+viame run my_pipeline.pipe                       # run a single pipeline file as-is
+viame run detector.pipe video.mp4                # run a pipeline on one video
+viame run detector.pipe image_list.txt           # ... or a list of images
+viame run -p detector.pipe -d videos/            # run a pipeline over a folder
+viame train -c train_detector.conf -i data/      # train a model
+viame score -c detections.csv -t groundtruth.csv # score against groundtruth
+viame csv -i detections.csv --print-types        # inspect a VIAME csv
+viame json -i tracks.json --print-types          # inspect a DIVE or COCO json
+```
+
+
 Quick Build Instructions
 ------------------------
 
@@ -256,29 +277,6 @@ in the advanced case of running extra manual builds for certain dependencies,
 a recursive module update is required:
 
 	git submodule update --init --recursive
-
-
-Command Line Interface Basics
------------------------------
-
-After sourcing the setup script in an install, every command line tool is a
-subcommand of the `viame` program. `viame help` lists them with a one line
-description each, and `viame help <tool>` prints that tool's own options:
-
-```
-viame help                                       # list every tool
-viame run detector.pipe video.mp4                # run a pipeline on one video
-viame run detector_generic image.jpg             # ... or an image, by pipeline name
-viame run detector.pipe image_list.txt           # ... or a list of images
-viame run -d videos/ -p detector.pipe            # run a pipeline over a folder
-viame run my_pipeline.pipe                       # run a single pipeline file
-viame add-ons                                    # list and install model add-ons
-viame train -c train_detector.conf -i labels/    # train a model
-viame score -c detections.csv -t groundtruth.csv # score against groundtruth
-viame csv -i detections.csv --print-types        # inspect a VIAME csv
-viame json -i tracks.json --print-types          # inspect a DIVE or COCO json
-viame my_pipeline.pipe                           # shorthand for the above
-```
 
 
 License, Citations, and Acknowledgements

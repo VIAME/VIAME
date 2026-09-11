@@ -6,13 +6,21 @@ Detection File Formats and Conversions
 This document corresponds to the 'Detection File Conversions' example folder within a
 VIAME desktop installation. This folder contains examples of different formats which VIAME
 supports, and additionally how to convert between textual formats representing object
-detections, tracks, results, etc. There are multiple ways to perform format conversions,
-either using KWIVER pipelines with reader/writer nodes (e.g. see the bulk_convert scripts)
-or using quick standalone scripts (see standalone_utils). Conversion pipelines are simple,
-containing a detection input node (reader) and output node (writer). Two variants exist:
-bulk_convert_gt_plus_data requires the source imagery or videos alongside the input
-annotation files, while bulk_convert_gt_only converts annotation files alone, using
-the image names or timestamps stored within them.
+detections, tracks, results, etc. Conversions are performed with the ``viame convert``
+tool, which reads any registered annotation format and writes any other, one file or a
+whole folder at a time::
+
+    viame convert annotations.csv annotations.json          # VIAME CSV to COCO
+    viame convert annotations.csv annotations.dive.json     # VIAME CSV to DIVE
+    viame convert results.json results.csv                  # COCO or DIVE to VIAME CSV
+    viame convert training_data output_folder -o coco       # every file under a folder
+
+The input format is recognised from each file's extension and content, and the output
+format from the output extension or the ``-o`` flag. When the imagery an annotation file
+belongs to sits next to it (images in the same folder, or a video), the tool uses it for
+the frame names, frame count and timing of the output; ``--no-images`` converts from the
+annotation files alone, and ``--images`` points at imagery kept elsewhere. See the
+`Example Conversions`_ section below and the ``bulk_convert`` scripts in this folder.
 
 .. _Detection File Conversions: https://github.com/VIAME/VIAME/tree/master/examples/detection_file_conversions
 
@@ -168,8 +176,12 @@ https://kitware.github.io/dive/DataFormats/
 
 The DIVE JSON reader can be specified in config files using 'dive'.
 
-Currently only readers are provided (no writers). To export DIVE JSON, use
-the DIVE interface directly or convert from another supported format.
+Both a reader and a writer are provided. The writer emits version 2 documents
+with one feature per frame carrying the box, keyframe flag, head and tail
+points, polygon geometry, fish length, notes and per-detection attributes;
+class labels become the track's confidence pairs. Files named ``*.dive.json``
+are recognised as DIVE by the auto reader and the convert tool, and plain
+``.json`` files are told apart from COCO by their content.
 
 ****************************
 Auto - Format Auto-Detection
@@ -239,8 +251,41 @@ you don't use it for anything.
 Example Conversions
 *******************
 
-There are multiple ways to perform format conversions, either using KWIVER pipelines
-with reader/writer nodes (e.g. see pipelines directory in this example directory) or
-using quick standalone scripts (see scripts). Conversion pipelines are simple,
-containing a detection input node (reader) and output node (writer) and can be run 
-with the 'viame' command line tool.
+The ``viame convert`` tool converts between every registered reader and writer
+directly, without a pipeline. Tracks are carried across when both formats hold
+them, otherwise per-frame detections. Run ``viame convert --list-formats`` to see
+what is available; ``viame convert --help`` lists the options.
+
+Single files::
+
+    viame convert groundtruth.csv groundtruth.json           # to COCO
+    viame convert groundtruth.csv groundtruth.dive.json      # to DIVE
+    viame convert groundtruth.kw18 groundtruth.csv           # KW18 to VIAME CSV
+    viame convert habcam.csv habcam_viame.csv -i habcam      # HabCam CSV to VIAME CSV
+    viame convert results.json results.csv -o viame_csv      # COCO or DIVE to VIAME CSV
+
+Folders, mirroring the input layout into the output folder with the new extension::
+
+    viame convert training_data converted -o coco
+    viame convert training_data converted -o dive --no-images
+
+Imagery alongside the annotations is used automatically: an image folder gives the
+frame names and count (so empty frames are recorded too, as COCO expects), and a
+video gives the frame count and timestamps. ``--frame-rate`` sets the rate the
+frames of a video are numbered at, matching the ``-frate`` used when the
+annotations were produced, and applies timestamps to image sequences::
+
+    viame convert clip.csv clip.json --frame-rate 5          # clip.mp4 found alongside
+    viame convert annotations.csv out.json --images frames/  # imagery kept elsewhere
+
+Reader and writer settings are passed as ``-s key=value``, prefixed by ``reader:``
+or ``writer:`` when the two share a key::
+
+    viame convert in.csv out.csv -s writer:tot_option=average
+
+``viame run --gt-only`` also converts annotation folders through the same tool, for
+batch runs that already use the run applet, and the ``bulk_convert`` scripts in this
+folder show both the with-data and annotation-only forms.
+
+The ``standalone_utils`` folder keeps older single-purpose scripts for formats that
+are not registered readers (Scallop-TK, PVO and similar).

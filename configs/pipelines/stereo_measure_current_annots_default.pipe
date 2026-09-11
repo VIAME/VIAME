@@ -1,0 +1,10 @@
+# =============================================================================
+# Title: Measurement from annotations pipeline
+#
+# Description: Default measurement from annotations pipeline.
+# Outputs to computed_tracks.csv.
+#
+# Requires Calibration: True
+# =============================================================================
+
+include stereo_measure_current_annots_template.pipe

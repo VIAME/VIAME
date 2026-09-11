@@ -87,15 +87,31 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
     # Reading
     # ------------------------------------------------------------------
 
-    def read_set(self):
+    def read_set(self, track_set=None):
+        """Read the next track set.
+
+        Called from Python with no argument this returns the set, or None
+        at the end. Called from C++ (through the vital trampoline) it gets
+        the caller's set to fill in place and returns whether anything was
+        read, matching the C++ read_set(set) contract.
+        """
+        tracks = self._next_tracks()
+        if track_set is None:
+            return None if tracks is None else vt.ObjectTrackSet(tracks)
+        if tracks is None:
+            return False
+        for track in tracks:
+            track_set.insert(track)
+        return True
+
+    def _next_tracks(self):
         self._ensure_loaded()
 
         if self.batch_load:
             if self._batch_returned:
                 return None
             self._batch_returned = True
-            tracks = list(self._all_tracks.values())
-            return vt.ObjectTrackSet(tracks)
+            return list(self._all_tracks.values())
 
         if self._stream_idx >= len(self._frame_order):
             return None
@@ -110,8 +126,7 @@ class ReadObjectTrackSetCoco(ReadObjectTrackSet):
             if tid not in seen:
                 seen.add(tid)
                 tracks.append(self._all_tracks[tid])
-
-        return vt.ObjectTrackSet(tracks)
+        return tracks
 
     # ------------------------------------------------------------------
     # Internal

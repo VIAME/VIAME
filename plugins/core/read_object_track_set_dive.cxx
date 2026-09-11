@@ -152,26 +152,9 @@ read_object_track_set_dive::priv
   m_current_frame = 0;
   m_max_frame = -1;
 
-  // Read the JSON filename from the stream (first non-empty, non-comment line)
-  std::string line;
-  kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
-
-  while( stream_reader.getline( line ) )
+  for( auto const& json_file :
+       dive_json_files_from_stream( m_parent->stream(), m_filename ) )
   {
-    // Trim whitespace
-    size_t start = line.find_first_not_of( " \t\r\n" );
-    if( start == std::string::npos )
-    {
-      continue; // Skip empty lines
-    }
-    if( line[start] == '#' )
-    {
-      continue; // Skip comments
-    }
-
-    size_t end = line.find_last_not_of( " \t\r\n" );
-    std::string json_file = line.substr( start, end - start + 1 );
-
     // Parse the JSON file using shared function from detection reader
     dive_annotation_file dive_data;
     if( !parse_dive_json_file( json_file, m_parent->logger(), dive_data ) )
@@ -189,6 +172,13 @@ read_object_track_set_dive::priv
       // Create a new kwiver track
       auto track = kwiver::vital::track::create();
       track->set_id( dtrack.id );
+      // DIVE keeps attributes on the track as well as on individual
+      // features.  Preserve them so a DIVE round trip does not discard the
+      // attributes that write_object_track_set_dive emits.
+      for( auto const& attribute : dtrack.attributes )
+      {
+        track->set_attribute( attribute.first, attribute.second );
+      }
 
       // Process each feature in the DIVE track
       for( dive_feature const& feature : dtrack.features )

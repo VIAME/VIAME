@@ -33,10 +33,17 @@ connect from detector_input1.image
         to   detector1.image
 
 process detector_output1
-  :: merge_detection_sets
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
 
 connect from detector1.detected_object_set
-        to   detector_output1.detected_object_set1
+        to   detector_output1.detected_object_set
 
 # =============================================================================
 
@@ -67,9 +74,16 @@ connect from detector_input2.image
         to   detector2.image
 
 process detector_output2
-  :: merge_detection_sets
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
 
 connect from detector2.detected_object_set
-        to   detector_output2.detected_object_set1
+        to   detector_output2.detected_object_set
 
 # -- end of file --

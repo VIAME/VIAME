@@ -1,0 +1,72 @@
+# =============================================================================
+# Title: Add head tail keypoints from the default fish model to existing boxes
+#
+# Description: Runs the backbone of the default fish RF-DETR once per frame,
+# then runs only its keypoint head on the existing boxes. Frames whose
+# detections already all have keypoints are passed through untouched.
+# Input: BBOX
+# Output: HEAD-TAIL
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                                      5
+
+# ============================= INPUT FRAME LIST ==============================
+process input
+  :: video_input
+  :video_filename                                   input_list.txt
+  :frame_time                                              0.03333
+  :video_reader:type                                    image_list
+  :video_reader:image_list:image_reader:type                   vxl
+
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+process detection_reader
+  :: detected_object_input
+  :file_name                                        detections.csv
+  :reader:type                                           viame_csv
+  :reader:viame_csv:poly_to_mask                              true
+
+process add_head_tail
+  :: refine_detections
+  :refiner:type                                rf_detr
+
+  block refiner:rf_detr
+    :model_size                                large
+    :device                                    auto
+    relativepath weight =                      models/fish_rf_detr_seg_kp_1728.pth
+    :num_channels                              3
+    :segmentation                              true
+    :resolution                                960x1728
+    :add_masks                                 false
+    :add_keypoints                             true
+    :overwrite_existing                        false
+    :keypoint_vis_thresh                       0.5
+  endblock
+
+process detector_writer
+  :: detected_object_output
+  :file_name                               computed_detections.csv
+  :writer:type                                           viame_csv
+  :writer:viame_csv:mask_to_poly_points                         30
+
+connect from input.image
+        to   detector_input.image
+connect from detector_input.image
+        to   add_head_tail.image
+connect from input.file_name
+        to   detector_writer.image_file_name
+connect from input.timestamp
+        to   detector_writer.timestamp
+
+connect from detection_reader.detected_object_set
+        to   add_head_tail.detected_object_set
+connect from add_head_tail.detected_object_set
+        to   detector_writer.detected_object_set

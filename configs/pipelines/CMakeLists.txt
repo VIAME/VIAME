@@ -95,17 +95,7 @@ set( CORE_PIPELINE_FILES
   common_stereo_input_with_downsampler.pipe
   common_stereo_input_with_tracks.pipe
   common_train_detector.conf
-  convert_add_filename_to_det_csv.pipe
-  convert_add_filename_to_trk_csv.pipe
-  convert_coco_json_to_viame_csv_gt_plus_data.pipe
-  convert_habcam_to_kw18_gt_plus_data.pipe
-  convert_habcam_to_viame_csv_gt_plus_data.pipe
-  convert_kw18_to_viame_csv_gt_plus_data.pipe
-  convert_oceaneyes_to_viame_csv_gt_plus_data.pipe
   convert_model_to_onnx.pipe
-  convert_viame_csv_to_coco_json_gt_plus_data.pipe
-  convert_viame_csv_to_coco_json_gt_only.pipe
-  convert_viame_csv_to_kw18_gt_plus_data.pipe
   database_apply_svm_models.pipe
   detector_gmm_motion.pipe
   detector_motion_three_frame_diff.pipe
@@ -136,9 +126,9 @@ set( CORE_PIPELINE_FILES
   interactive_text_query_default.conf
   interactive_stereo_default.conf
   interactive_stereo_template.conf
-  measurement_from_annotations_default.pipe
-  measurement_from_annotations_template.pipe
-  measurement_fully_auto_gmm_motion.pipe
+  stereo_measure_current_annots_default.pipe
+  stereo_measure_current_annots_template.pipe
+  stereo_detect_and_measure_gmm_motion.pipe
   query_from_track.pipe
   query_retrieval_and_iqr.pipe
   query_video_exemplar.pipe
@@ -239,10 +229,10 @@ endif()
 if( VIAME_ENABLE_OPENCV )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     detector_calibration_target.pipe
-    measurement_calibrate_cameras_default.pipe
-    measurement_calibrate_cameras_fast.pipe
-    measurement_compute_rectified_disparity.pipe
-    measurement_detect_calibration_target.pipe
+    stereo_calibrate_cameras_default.pipe
+    stereo_calibrate_cameras_fast.pipe
+    stereo_compute_rectified_disparity.pipe
+    stereo_detect_calibration_target.pipe
     register_multimodal_unsync_ocv.pipe
     register_using_homographies.pipe
     tracker_calibration_target.pipe

@@ -7,6 +7,15 @@
 if( VIAME_ENABLE_PYTHON )
   set( VIAME_INSTALL_DIR "${VIAME_BUILD_INSTALL_PREFIX}" )
 
+  viame_add_pytest_test(
+    NAME viame_plugins:pytorch:netharn_rfdetr_training
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_netharn_rfdetr_training.py"
+    LABELS UNIT PYTORCH
+    TIMEOUT 300
+    SOURCE_SETUP
+    WORKING_DIRECTORY "${VIAME_INSTALL_DIR}"
+  )
+
   # SRNN Tracker and Descriptor Tests
   viame_add_pytest_test(
     NAME viame_plugins:pytorch:srnn_tracker

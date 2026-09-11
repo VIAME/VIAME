@@ -8,7 +8,7 @@ Epipolar template-matching stereo correspondence as a single ONNX graph.
 This module reimplements, in pure PyTorch (and therefore exportable to a single
 self-contained ``.onnx`` file), the "regular computer vision" stereo matching
 method from ``plugins/core/measurement_utilities.cxx`` -- the one selected by
-``epipolar_template_matching`` in ``measurement_from_annotations_template.pipe``.
+``epipolar_template_matching`` in ``stereo_measure_current_annots_template.pipe``.
 
 The C++ pipeline does, per source keypoint:
 

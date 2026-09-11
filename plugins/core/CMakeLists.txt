@@ -5,6 +5,7 @@ set( plugin_headers
   adaptive_tracker_trainer.h
   add_timestamp_from_filename.h
   applet_attributes.h
+  atomic_output.h
   auto_detect_transform.h
   average_track_descriptors.h
   camera_io.h
@@ -36,6 +37,7 @@ set( plugin_headers
   read_object_track_set_auto.h
   read_object_track_set_dive.h
   read_object_track_set_viame_csv.h
+  query_track_descriptor_set_csv.h
   read_transform_homography_json.h
   refine_detections_add_fixed.h
   refine_detections_nms.h
@@ -52,6 +54,9 @@ set( plugin_headers
   write_detected_object_set_viame_csv.h
   write_disparity_maps.h
   write_object_track_set_viame_csv.h
+  write_object_track_set_dive.h
+  convert_annotations.h
+  write_detected_object_set_dive.h
 )
 
 set( plugin_sources
@@ -89,6 +94,7 @@ set( plugin_sources
   read_object_track_set_auto.cxx
   read_object_track_set_dive.cxx
   read_object_track_set_viame_csv.cxx
+  query_track_descriptor_set_csv.cxx
   read_transform_homography_json.cxx
   refine_detections_add_fixed.cxx
   refine_detections_nms.cxx
@@ -105,6 +111,9 @@ set( plugin_sources
   write_detected_object_set_viame_csv.cxx
   write_disparity_maps.cxx
   write_object_track_set_viame_csv.cxx
+  write_object_track_set_dive.cxx
+  convert_annotations.cxx
+  write_detected_object_set_dive.cxx
 )
 
 kwiver_install_headers(
@@ -418,6 +427,11 @@ if( VIAME_ENABLE_PYTHON )
     read_object_track_set_coco )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities_ply.py
+    core
+    utilities_ply )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities_coco.py
     core
     utilities_coco )
@@ -491,6 +505,16 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_service.py
     core
     interactive_service )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/query_service.py
+    core
+    query_service )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/index_descriptors.py
+    core
+    index_descriptors )
 
   # Compiled bindings exposing the C++ stereo measurement (compute_stereo_measurement,
   # aggregate_lengths) to Python so the interactive stereo service reuses them rather

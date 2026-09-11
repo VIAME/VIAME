@@ -11,6 +11,9 @@
 
 #include <cppdb/frontend.h>
 
+#include <iomanip>
+#include <sstream>
+
 #include <time.h>
 
 
@@ -135,6 +138,14 @@ write_track_descriptor_set_db
   delete_td_stmt.exec();
   delete_td_stmt.reset();
 
+  // The raw vectors of this video are rewritten by write_set as well
+  cppdb::statement delete_d_stmt = d->m_conn.create_statement( "DELETE FROM DESCRIPTOR "
+    "WHERE VIDEO_NAME = ?"
+  );
+  delete_d_stmt.bind( 1, d->m_video_name );
+  delete_d_stmt.exec();
+  delete_d_stmt.reset();
+
   d->m_commit_frame_counter = 0;
 
   d->m_tran.reset( new cppdb::transaction( d->m_conn ) );
@@ -187,14 +198,52 @@ write_track_descriptor_set_db
     ") VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   );
 
+  // Raw descriptor vectors go to the DESCRIPTOR table (what the query
+  // engine loads), so a pipeline needs no separate ingest process to build
+  // a searchable database.
+  cppdb::statement insert_d_stmt = d->m_conn.create_prepared_statement( "INSERT INTO DESCRIPTOR("
+    "UID, "
+    "VIDEO_NAME, "
+    "VECTOR_DATA, "
+    "VECTOR_SIZE"
+    ") VALUES(?, ?, ?, ?)"
+  );
+
   for( auto td : *set )
   {
+    std::string const video_name = ( source_id.empty() ? d->m_video_name : source_id );
+
     insert_td_stmt.bind( 1, td->get_uid().value() );
     insert_td_stmt.bind( 2, td->get_type() );
-    insert_td_stmt.bind( 3, ( source_id.empty() ? d->m_video_name : source_id ) );
+    insert_td_stmt.bind( 3, video_name );
 
     insert_td_stmt.exec();
     insert_td_stmt.reset();
+
+    auto const raw = td->get_descriptor();
+    if( raw && raw->size() > 0 )
+    {
+      // PostgreSQL array literal: {val1,val2,...}
+      std::ostringstream vec;
+      vec << std::setprecision( 9 ) << "{";
+      auto const values = raw->as_double();
+      for( size_t i = 0; i < values.size(); ++i )
+      {
+        if( i > 0 ) vec << ",";
+        vec << values[i];
+      }
+      vec << "}";
+      // cppdb binds strings by reference until exec(), so the literal (and
+      // the uid) must outlive the statement execution below.
+      std::string const vec_literal = vec.str();
+      std::string const uid = td->get_uid().value();
+      insert_d_stmt.bind( 1, uid );
+      insert_d_stmt.bind( 2, video_name );
+      insert_d_stmt.bind( 3, vec_literal );
+      insert_d_stmt.bind( 4, static_cast< int >( values.size() ) );
+      insert_d_stmt.exec();
+      insert_d_stmt.reset();
+    }
 
     for( uint64_t track_id : td->get_track_ids() )
     {
