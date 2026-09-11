@@ -106,6 +106,36 @@ rect_element( int width, int height )
 }
 
 // ----------------------------------------------------------------------------
+/// The plus-shaped offset set `cv::MORPH_CROSS` gives, at \p width by
+/// \p height.
+///
+/// The row and the column through the anchor, which for a 3 by 3 is the
+/// five-pixel plus the morphological skeleton thins with.
+inline structuring_element
+cross_element( int width, int height )
+{
+  structuring_element element;
+
+  auto const half_i = width / 2;
+  auto const half_j = height / 2;
+
+  for( int j = -half_j; j < height - half_j; ++j )
+  {
+    element.emplace_back( 0, j );
+  }
+
+  for( int i = -half_i; i < width - half_i; ++i )
+  {
+    if( i != 0 )
+    {
+      element.emplace_back( i, 0 );
+    }
+  }
+
+  return element;
+}
+
+// ----------------------------------------------------------------------------
 /// The smallest or largest value under \p element, per pixel and per plane.
 ///
 /// Greyscale erosion and dilation, which is what `cv::erode` and `cv::dilate`

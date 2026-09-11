@@ -5,6 +5,11 @@
 /**
  * \file
  * \brief Algorithm and utility functions for adding keypoints to detections from masks
+ *
+ * OpenCV until P7-T04b; `image_ops` since. The utilities are still here
+ * rather than in python because `measure_objects_process` calls
+ * `compute_keypoints` and `is_valid_keypoint_method` directly, and one
+ * implementation reached from both is better than two that have to agree.
  */
 
 #ifndef VIAME_OPENCV_ADD_KEYPOINTS_FROM_MASK_H
@@ -17,7 +22,7 @@
 #include <viame/core_types/bounding_box.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
-#include <opencv2/core/core.hpp>
+#include <viame/core_types/vector.h>
 
 #include <vector>
 #include <utility>
@@ -34,7 +39,7 @@ namespace viame
 /// \param det The detection to extract mask points from
 /// \return Vector of points in image coordinates, empty if no mask
 VIAME_OPENCV_EXPORT
-std::vector< cv::Point >
+std::vector< kwiver::vital::vector_2d >
 get_mask_points( kwiver::vital::detected_object_sptr det );
 
 /// Compute oriented bounding box corner points from a detection's mask or bounding box.
@@ -46,7 +51,7 @@ get_mask_points( kwiver::vital::detected_object_sptr det );
 /// \param det The detection to compute box points for
 /// \return Vector of 4 corner points in image coordinates
 VIAME_OPENCV_EXPORT
-std::vector< cv::Point2d >
+std::vector< kwiver::vital::vector_2d >
 compute_box_points( kwiver::vital::detected_object_sptr det );
 
 /// Compute head and tail keypoints from oriented bounding box points.
@@ -58,8 +63,8 @@ compute_box_points( kwiver::vital::detected_object_sptr det );
 /// \param box_points Vector of 4 corner points
 /// \return Pair of (head, tail) points where head has max x and tail has min x
 VIAME_OPENCV_EXPORT
-std::pair< cv::Point2d, cv::Point2d >
-center_keypoints( const std::vector< cv::Point2d >& box_points );
+std::pair< kwiver::vital::vector_2d, kwiver::vital::vector_2d >
+center_keypoints( const std::vector< kwiver::vital::vector_2d >& box_points );
 
 /// Add head and tail keypoints to a detection based on its mask or bounding box.
 ///
@@ -79,7 +84,7 @@ add_keypoints_from_box( kwiver::vital::detected_object_sptr det );
 /// \param det The detection to compute keypoints for
 /// \return Pair of (head, tail) points where head has max x
 VIAME_OPENCV_EXPORT
-std::pair< cv::Point2d, cv::Point2d >
+std::pair< kwiver::vital::vector_2d, kwiver::vital::vector_2d >
 compute_keypoints_oriented_bbox( kwiver::vital::detected_object_sptr det );
 
 /// Compute keypoints using Principal Component Analysis.
@@ -90,7 +95,7 @@ compute_keypoints_oriented_bbox( kwiver::vital::detected_object_sptr det );
 /// \param det The detection to compute keypoints for
 /// \return Pair of (head, tail) points where head has max x
 VIAME_OPENCV_EXPORT
-std::pair< cv::Point2d, cv::Point2d >
+std::pair< kwiver::vital::vector_2d, kwiver::vital::vector_2d >
 compute_keypoints_pca( kwiver::vital::detected_object_sptr det );
 
 /// Compute keypoints using farthest points method.
@@ -101,7 +106,7 @@ compute_keypoints_pca( kwiver::vital::detected_object_sptr det );
 /// \param det The detection to compute keypoints for
 /// \return Pair of (head, tail) points where head has max x
 VIAME_OPENCV_EXPORT
-std::pair< cv::Point2d, cv::Point2d >
+std::pair< kwiver::vital::vector_2d, kwiver::vital::vector_2d >
 compute_keypoints_farthest( kwiver::vital::detected_object_sptr det );
 
 /// Compute keypoints using convex hull extremes method.
@@ -112,7 +117,7 @@ compute_keypoints_farthest( kwiver::vital::detected_object_sptr det );
 /// \param det The detection to compute keypoints for
 /// \return Pair of (head, tail) points where head has max x
 VIAME_OPENCV_EXPORT
-std::pair< cv::Point2d, cv::Point2d >
+std::pair< kwiver::vital::vector_2d, kwiver::vital::vector_2d >
 compute_keypoints_hull_extremes( kwiver::vital::detected_object_sptr det );
 
 /// Compute keypoints using skeleton/medial axis method.
@@ -124,7 +129,7 @@ compute_keypoints_hull_extremes( kwiver::vital::detected_object_sptr det );
 /// \param det The detection to compute keypoints for
 /// \return Pair of (head, tail) points where head has max x
 VIAME_OPENCV_EXPORT
-std::pair< cv::Point2d, cv::Point2d >
+std::pair< kwiver::vital::vector_2d, kwiver::vital::vector_2d >
 compute_keypoints_skeleton( kwiver::vital::detected_object_sptr det );
 
 /// Compute keypoints using specified method.
@@ -136,7 +141,7 @@ compute_keypoints_skeleton( kwiver::vital::detected_object_sptr det );
 /// \param method Method name: "oriented_bbox", "pca", "farthest", "hull_extremes", or "skeleton"
 /// \return Pair of (head, tail) points where head has max x
 VIAME_OPENCV_EXPORT
-std::pair< cv::Point2d, cv::Point2d >
+std::pair< kwiver::vital::vector_2d, kwiver::vital::vector_2d >
 compute_keypoints( kwiver::vital::detected_object_sptr det, const std::string& method );
 
 /// Clip a point to the nearest point on a detection's mask boundary.
@@ -152,8 +157,8 @@ compute_keypoints( kwiver::vital::detected_object_sptr det, const std::string& m
 /// \param det The detection containing the mask
 /// \return The nearest point on the mask boundary (in image coordinates)
 VIAME_OPENCV_EXPORT
-cv::Point2d
-clip_point_to_mask_boundary( const cv::Point2d& target,
+kwiver::vital::vector_2d
+clip_point_to_mask_boundary( const kwiver::vital::vector_2d& target,
                              kwiver::vital::detected_object_sptr det );
 
 /// Check if a keypoint method string is valid.

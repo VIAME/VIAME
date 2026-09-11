@@ -347,6 +347,18 @@ an artefact of the port:
   that case to a relative tolerance and to ground truth instead of to its
   bytes. Worth knowing before treating a calibration file as a record of
   what its inputs were.
+* A minimum-area rectangle over a symmetric shape is achieved at **several
+  orientations**, and which one comes back is a tie-break rather than a
+  result. `cv::rotatingCalipers` keeps the **last** edge achieving the
+  minimum (`area <= minarea`), and `image_ops::min_area_rect` kept the first
+  until P7-T04b. On the golden's elliptical mask both give 462 exactly and
+  they differ by 90 degrees, which moved `add_keypoints_from_mask`'s head
+  and tail six pixels -- and those keypoints are what the stereo measurement
+  triangulates, so six pixels is a different fish length. One character, and
+  only a recording of a *symmetric* shape would ever have found it: P7-T03's
+  own test compared the area alone, noting that "the orientation is
+  ambiguous".
+
 * **`ocv_color_correction`'s `water_type` does nothing.** The filter has a
   `set_water_type_presets()` that would set the three attenuation
   coefficients from `oceanic`, `coastal` or `turbid`, and **nothing calls

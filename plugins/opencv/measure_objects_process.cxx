@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
+#include <vector>
 
 #include <viame/core_types/vital_types.h>
 #include <viame/core_types/timestamp.h>
@@ -32,9 +33,6 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-
 #include "camera_rig_io.h"
 
 #include "measure_objects_process.h"
@@ -44,6 +42,49 @@ namespace kv = kwiver::vital;
 
 namespace viame
 {
+
+namespace {
+
+// ----------------------------------------------------------------------------
+/// A dense row-major matrix of doubles.
+///
+/// The cost matrix was a `cv::Mat` of `CV_64F` until P7-T04b, used only for
+/// `at< double >` and `zeros`. Sixteen lines here against a dependency on
+/// all of OpenCV's core.
+class cost_grid
+{
+public:
+  cost_grid( int rows, int cols )
+    : rows_( rows ), cols_( cols ),
+      values_( static_cast< size_t >( rows ) * static_cast< size_t >( cols ),
+               0.0 )
+  {}
+
+  int rows() const { return rows_; }
+  int cols() const { return cols_; }
+
+  double& at( int row, int col )
+  {
+    return values_[ static_cast< size_t >( row ) *
+                    static_cast< size_t >( cols_ ) +
+                    static_cast< size_t >( col ) ];
+  }
+
+  double at( int row, int col ) const
+  {
+    return values_[ static_cast< size_t >( row ) *
+                    static_cast< size_t >( cols_ ) +
+                    static_cast< size_t >( col ) ];
+  }
+
+private:
+  int rows_;
+  int cols_;
+  std::vector< double > values_;
+};
+
+} // namespace
+
 
 // Config traits
 create_config_trait( calibration_file, std::string, "",
@@ -79,8 +120,8 @@ struct MatchData
   double range;             // Average Z distance
   double error;             // Reprojection error
   double dz;                // Z difference between keypoints
-  std::pair<cv::Point2d, cv::Point2d> keypoints1;  // head/tail for detection 1
-  std::pair<cv::Point2d, cv::Point2d> keypoints2;  // head/tail for detection 2
+  std::pair< kv::vector_2d, kv::vector_2d > keypoints1;  // head/tail for detection 1
+  std::pair< kv::vector_2d, kv::vector_2d > keypoints2;  // head/tail for detection 2
   kv::vector_3f world_pt1;  // 3D world point for head
   kv::vector_3f world_pt2;  // 3D world point for tail
 };
@@ -97,8 +138,8 @@ public:
   double triangulate_and_error(
     const kv::simple_camera_perspective& left_cam,
     const kv::simple_camera_perspective& right_cam,
-    const cv::Point2d& pt1,
-    const cv::Point2d& pt2,
+    const kwiver::vital::vector_2d& pt1,
+    const kwiver::vital::vector_2d& pt2,
     kv::vector_3f& world_pt );
 
   // Find optimal matching between detection sets
@@ -108,7 +149,7 @@ public:
 
   // Hungarian algorithm for minimum weight assignment
   std::vector< std::pair< int, int > > minimum_weight_assignment(
-    const cv::Mat& cost_matrix );
+    const cost_grid& costs );
 
   // Configuration values
   std::string m_calibration_file;
@@ -158,13 +199,13 @@ measure_objects_process::priv
 ::triangulate_and_error(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
-  const cv::Point2d& pt1,
-  const cv::Point2d& pt2,
+  const kv::vector_2d& pt1,
+  const kv::vector_2d& pt2,
   kv::vector_3f& world_pt )
 {
   // Convert to vital format
-  kv::vector_< 2, float > left_pt( static_cast< float >( pt1.x ), static_cast< float >( pt1.y ) );
-  kv::vector_< 2, float > right_pt( static_cast< float >( pt2.x ), static_cast< float >( pt2.y ) );
+  kv::vector_< 2, float > left_pt( static_cast< float >( pt1.x() ), static_cast< float >( pt1.y() ) );
+  kv::vector_< 2, float > right_pt( static_cast< float >( pt2.x() ), static_cast< float >( pt2.y() ) );
 
   // Triangulate using kwiver's fast two-view method
   world_pt = kwiver::arrows::mvg::triangulate_fast_two_view(
@@ -177,8 +218,8 @@ measure_objects_process::priv
   kv::vector_2d proj1 = left_cam.project( world_pt_d );
   kv::vector_2d proj2 = right_cam.project( world_pt_d );
 
-  double err1 = std::pow( proj1.x() - pt1.x, 2 ) + std::pow( proj1.y() - pt1.y, 2 );
-  double err2 = std::pow( proj2.x() - pt2.x, 2 ) + std::pow( proj2.y() - pt2.y, 2 );
+  double err1 = std::pow( proj1.x() - pt1.x(), 2 ) + std::pow( proj1.y() - pt1.y(), 2 );
+  double err2 = std::pow( proj2.x() - pt2.x(), 2 ) + std::pow( proj2.y() - pt2.y(), 2 );
 
   return ( err1 + err2 ) / 2.0;
 }
@@ -186,21 +227,21 @@ measure_objects_process::priv
 // -----------------------------------------------------------------------------
 std::vector< std::pair< int, int > >
 measure_objects_process::priv
-::minimum_weight_assignment( const cv::Mat& cost_matrix )
+::minimum_weight_assignment( const cost_grid& costs )
 {
-  int n1 = cost_matrix.rows;
-  int n2 = cost_matrix.cols;
+  int n1 = costs.rows();
+  int n2 = costs.cols();
   int n = std::max( n1, n2 );
 
   // Embed in padded square matrix
-  cv::Mat padded = cv::Mat::zeros( n, n, CV_64F );
+  cost_grid padded( n, n );
   double large_val = 0;
 
   for( int i = 0; i < n1; ++i )
   {
     for( int j = 0; j < n2; ++j )
     {
-      double val = cost_matrix.at< double >( i, j );
+      double val = costs.at( i, j );
       if( std::isfinite( val ) && val > 0 )
       {
         large_val += val;
@@ -215,12 +256,12 @@ measure_objects_process::priv
     {
       if( i < n1 && j < n2 )
       {
-        double val = cost_matrix.at< double >( i, j );
-        padded.at< double >( i, j ) = std::isfinite( val ) ? val : large_val;
+        double val = costs.at( i, j );
+        padded.at( i, j ) = std::isfinite( val ) ? val : large_val;
       }
       else
       {
-        padded.at< double >( i, j ) = large_val;
+        padded.at( i, j ) = large_val;
       }
     }
   }
@@ -241,9 +282,9 @@ measure_objects_process::priv
       for( int j = 0; j < n; ++j )
       {
         if( col_used[j] ) continue;
-        if( padded.at< double >( i, j ) < min_val )
+        if( padded.at( i, j ) < min_val )
         {
-          min_val = padded.at< double >( i, j );
+          min_val = padded.at( i, j );
           min_i = i;
           min_j = j;
         }
@@ -290,7 +331,7 @@ measure_objects_process::priv
     dynamic_cast< kv::simple_camera_perspective& >( *( m_calibration->right() ) ) );
 
   // Pre-compute keypoints for all detections using configured method
-  std::vector< std::pair< cv::Point2d, cv::Point2d > > kpts1( n1 ), kpts2( n2 );
+  std::vector< std::pair< kv::vector_2d, kv::vector_2d > > kpts1( n1 ), kpts2( n2 );
   for( size_t i = 0; i < n1; ++i )
   {
     kpts1[i] = compute_keypoints( detections1[i], m_keypoint_method );
@@ -300,7 +341,7 @@ measure_objects_process::priv
     kpts2[j] = compute_keypoints( detections2[j], m_keypoint_method );
   }
 
-  cv::Mat cost_errors = cv::Mat::zeros( static_cast< int >( n1 ), static_cast< int >( n2 ), CV_64F );
+  cost_grid cost_errors( static_cast< int >( n1 ), static_cast< int >( n2 ) );
   std::map< std::pair< int, int >, MatchData > cand_data;
 
   // Initialize with infinity
@@ -308,7 +349,7 @@ measure_objects_process::priv
   {
     for( size_t j = 0; j < n2; ++j )
     {
-      cost_errors.at< double >( static_cast< int >( i ), static_cast< int >( j ) ) =
+      cost_errors.at( static_cast< int >( i ), static_cast< int >( j ) ) =
         std::numeric_limits< double >::infinity();
     }
   }
@@ -370,7 +411,7 @@ measure_objects_process::priv
         continue;
       }
 
-      cost_errors.at< double >( static_cast< int >( i ), static_cast< int >( j ) ) = error;
+      cost_errors.at( static_cast< int >( i ), static_cast< int >( j ) ) = error;
     }
   }
 
@@ -528,10 +569,10 @@ measure_objects_process
                        << match.dz << ",";
 
       // Keypoints as string (head;tail for each camera)
-      d->m_output_file << "[" << match.keypoints1.first.x << ";" << match.keypoints1.first.y << "];"
-                       << "[" << match.keypoints1.second.x << ";" << match.keypoints1.second.y << "],";
-      d->m_output_file << "[" << match.keypoints2.first.x << ";" << match.keypoints2.first.y << "];"
-                       << "[" << match.keypoints2.second.x << ";" << match.keypoints2.second.y << "]\n";
+      d->m_output_file << "[" << match.keypoints1.first.x() << ";" << match.keypoints1.first.y() << "];"
+                       << "[" << match.keypoints1.second.x() << ";" << match.keypoints1.second.y() << "],";
+      d->m_output_file << "[" << match.keypoints2.first.x() << ";" << match.keypoints2.first.y() << "];"
+                       << "[" << match.keypoints2.second.x() << ";" << match.keypoints2.second.y() << "]\n";
     }
 
     if( !matches.empty() )
@@ -563,10 +604,10 @@ measure_objects_process
     const auto& kp1 = match.keypoints1;
     const auto& kp2 = match.keypoints2;
 
-    detections1[i1]->add_keypoint( "head", kv::point_2d( kp1.first.x, kp1.first.y ) );
-    detections1[i1]->add_keypoint( "tail", kv::point_2d( kp1.second.x, kp1.second.y ) );
-    detections2[i2]->add_keypoint( "head", kv::point_2d( kp2.first.x, kp2.first.y ) );
-    detections2[i2]->add_keypoint( "tail", kv::point_2d( kp2.second.x, kp2.second.y ) );
+    detections1[i1]->add_keypoint( "head", kv::point_2d( kp1.first.x(), kp1.first.y() ) );
+    detections1[i1]->add_keypoint( "tail", kv::point_2d( kp1.second.x(), kp1.second.y() ) );
+    detections2[i2]->add_keypoint( "head", kv::point_2d( kp2.first.x(), kp2.first.y() ) );
+    detections2[i2]->add_keypoint( "tail", kv::point_2d( kp2.second.x(), kp2.second.y() ) );
 
     // Create tracks with same ID for matched pairs
     auto state1 = std::make_shared< kv::object_track_state >( timestamp, detections1[i1] );

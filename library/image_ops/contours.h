@@ -24,6 +24,7 @@
 #include <viame/core_types/image.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -72,6 +73,37 @@ struct rotated_rect
   double angle = 0.0;
 
   double area() const { return width * height; }
+
+  /// The four corners, in perimeter order.
+  ///
+  /// `cv::RotatedRect::points`' formula, applied to these parameters. It
+  /// gives the same four points OpenCV's does, since the rectangle is the
+  /// same rectangle, but it may start at a different corner or go the other
+  /// way round: OpenCV normalises its angle into [0, 90) and swaps width
+  /// and height to suit, and `min_area_rect` here keeps the edge it found.
+  ///
+  /// Adjacent entries are adjacent corners, which is what every caller
+  /// needs -- "which pair of opposite edges is the longer" and "the edge
+  /// midpoint furthest left" are both answered from any perimeter order.
+  std::array< std::pair< double, double >, 4 > corners() const
+  {
+    auto const radians = angle * 3.14159265358979323846 / 180.0;
+    auto const b = std::cos( radians ) * 0.5;
+    auto const a = std::sin( radians ) * 0.5;
+
+    std::array< std::pair< double, double >, 4 > out;
+
+    out[ 0 ] = { centre_i - a * height - b * width,
+                 centre_j + b * height - a * width };
+    out[ 1 ] = { centre_i + a * height - b * width,
+                 centre_j - b * height - a * width };
+    out[ 2 ] = { 2.0 * centre_i - out[ 0 ].first,
+                 2.0 * centre_j - out[ 0 ].second };
+    out[ 3 ] = { 2.0 * centre_i - out[ 1 ].first,
+                 2.0 * centre_j - out[ 1 ].second };
+
+    return out;
+  }
 };
 
 // ----------------------------------------------------------------------------
@@ -577,7 +609,13 @@ min_area_rect( std::vector< point > const& points )
     auto const h = max_across - min_across;
     auto const area = w * h;
 
-    if( best_area < 0.0 || area < best_area )
+    // `<=`, not `<`: the **last** edge achieving the minimum wins, which is
+    // what `cv::rotatingCalipers` does. It decides nothing when there is one
+    // minimum and everything when there are several, and several is the
+    // normal case -- an ellipse's minimum-area rectangle is achieved at four
+    // orientations exactly. Keeping the first instead put the keypoints of
+    // `add_keypoints_from_mask` six pixels away from where OpenCV put them.
+    if( best_area < 0.0 || area <= best_area )
     {
       best_area = area;
 
