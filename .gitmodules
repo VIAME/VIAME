@@ -92,3 +92,6 @@
 [submodule "packages/pytorch-libs/fast-foundation-stereo"]
 	path = packages/pytorch-libs/fast-foundation-stereo
 	url = https://github.com/NVlabs/Fast-FoundationStereo.git
+[submodule "packages/pytorch-libs/sleap-nn"]
+	path = packages/pytorch-libs/sleap-nn
+	url = https://github.com/talmolab/sleap-nn.git

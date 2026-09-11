@@ -1,0 +1,57 @@
+# Add trained SLEAP-NN keypoints to the detections for each input frame.
+# Input: input_list.txt and detections.csv, with corresponding frame order.
+# Output: computed_detections.csv. Boxes, classes, and detection IDs are retained.
+
+config _pipeline:_edge
+  :capacity                                    5
+
+process input
+  :: video_input
+  :video_filename                              input_list.txt
+  :frame_time                                  0.03333
+  :video_reader:type                           image_list
+  :video_reader:image_list:image_reader:type    vxl
+
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+process detection_reader
+  :: detected_object_input
+  :file_name                                   detections.csv
+  :reader:type                                 viame_csv
+
+process add_keypoints
+  :: refine_detections
+  :refiner:type                                sleap
+
+  block refiner:sleap
+    relativepath weight =                      category_models/trained_keypoints.pt
+    :device                                    auto
+    :batch_size                                16
+    :keypoint_threshold                        0.2
+    :overwrite_existing                        false
+  endblock
+
+process detector_writer
+  :: detected_object_output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from input.image
+        to   detector_input.image
+connect from detector_input.image
+        to   add_keypoints.image
+connect from detection_reader.detected_object_set
+        to   add_keypoints.detected_object_set
+connect from add_keypoints.detected_object_set
+        to   detector_writer.detected_object_set
+connect from input.file_name
+        to   detector_writer.image_file_name
+connect from input.timestamp
+        to   detector_writer.timestamp

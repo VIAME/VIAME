@@ -261,6 +261,12 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
     train_detector_rf_detr_l_seg_kp_1728.conf )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-SLEAP )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    train_reclassifier_sleap_head_tail.conf
+    utility_add_keypoints_sleap.pipe )
+endif()
+
 if( VIAME_ENABLE_PYTORCH-LITDET )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     train_detector_litdet_frcnn.conf

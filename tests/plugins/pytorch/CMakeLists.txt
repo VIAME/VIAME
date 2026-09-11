@@ -34,6 +34,17 @@ if( VIAME_ENABLE_PYTHON )
     WORKING_DIRECTORY "${VIAME_INSTALL_DIR}"
   )
 
+  if( VIAME_ENABLE_PYTORCH-SLEAP )
+    viame_add_pytest_test(
+      NAME viame_plugins:pytorch:sleap_keypoints
+      TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_sleap_keypoints.py"
+      LABELS UNIT PYTORCH SLEAP
+      TIMEOUT 300
+      SOURCE_SETUP
+      WORKING_DIRECTORY "${VIAME_INSTALL_DIR}"
+    )
+  endif()
+
   # SRNN Tracker and Descriptor Tests
   viame_add_pytest_test(
     NAME viame_plugins:pytorch:srnn_tracker

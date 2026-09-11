@@ -394,3 +394,12 @@ if( VIAME_ENABLE_PYTORCH-VISION )
     pytorch
     pair_stereo_tracks )
 endif()
+
+if( VIAME_ENABLE_PYTORCH-SLEAP )
+  foreach( MODULE sleap_common sleap_trainer sleap_launcher sleap_refiner )
+    kwiver_add_python_module(
+      ${CMAKE_CURRENT_SOURCE_DIR}/${MODULE}.py
+      pytorch
+      ${MODULE} )
+  endforeach()
+endif()

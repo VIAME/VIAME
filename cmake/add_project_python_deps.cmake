@@ -285,6 +285,21 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
     "packaging" "typing-extensions" "tqdm" )
 endif()
 
+# SLEAP-NN's training/inference runtime. Notebook applications are not needed by
+# the wrappers. OpenCV is supplied by fletch; do not install a competing wheel.
+if( VIAME_ENABLE_PYTORCH-SLEAP )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS
+    "setuptools-scm" "sleap-io>=0.9.2,<0.10.0" "skia-python>=87.0,<=138.0"
+    "jsonpickle" "scipy" "attrs" "omegaconf" "wandb<=0.25.0" "matplotlib"
+    "seaborn" "rich" "textual>=0.40.0" "loguru" "psutil" "scikit-image"
+    "hydra-core" "pyzmq" "rich-click>=1.9.5" "pykalman>=0.11.0" )
+  list( APPEND VIAME_PYTHON_DEPS_REQ_TORCH
+    "lightning>=2.6,<3,!=2.6.2,!=2.6.3"
+    "pytorch_lightning>=2.6,<3,!=2.6.2,!=2.6.3"
+    "lightning-utilities>=0.10.0" "torchmetrics>=1.2" "fsspec" "pyyaml"
+    "packaging" "typing-extensions" "tqdm" )
+endif()
+
 # ------------------------------ ADD ANY ADV PYTHON DEPS HERE ------------------------------------
 # Advanced python dependencies are installed individually due to special reqs
 

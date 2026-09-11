@@ -253,6 +253,86 @@ Continue training from a checkpoint::
         -s detector_trainer:ocv_windowed:trainer:netharn:seed_model=category_models/trained_detector.zip \
         --threshold 0.0
 
+SLEAP-NN head/tail keypoints on existing detections
+--------------------------------------------------
+
+``train_reclassifier_sleap_head_tail.conf`` trains a small SLEAP-NN U-Net to
+predict head/tail points inside each supplied detection box. Inference runs as
+``refine_detections`` with ``refiner:type=sleap``; it preserves the detections'
+boxes, classes, confidence, and other metadata while attaching named keypoints.
+It does not require an OpenMMLab package or pretrained model download.
+
+Build with ``VIAME_ENABLE_PYTORCH-SLEAP=ON``. The submodule at
+``packages/pytorch-libs/sleap-nn`` is pinned to v0.3.3 and requires Python
+3.11--3.13, PyTorch/TorchVision, and OpenCV. The superbuild installs the native
+training/inference runtime; SLEAP's notebook applications are not required.
+Python 3.10 and 3.14 builds must leave this optional feature disabled.
+
+Training::
+
+    viame train -i training_data \
+        -c train_reclassifier_sleap_head_tail.conf --threshold 0.0
+
+Use the usual VIAME training directory layout with bounding boxes and CSV
+``(kp) head x y`` / ``(kp) tail x y`` attributes, or equivalent named COCO
+keypoints. Names match case-insensitively. Each retained training/validation
+crop needs at least one visible configured point; missing points occupy NaN
+slots in SLEAP labels. Frames are split before cropping, so crops from the same
+frame cannot appear in both training and validation. Supply enough annotated
+frames for both splits.
+
+Training and inference use the same aspect-preserving affine crop, with
+``crop_padding=1.25`` and 256x256 RGB inputs by default. The training data
+contains one target instance per crop, even when neighboring animals appear
+in the image. This uses SLEAP's ``single_instance`` model on box crops, avoiding
+its centered-instance trainer's recentering around labeled landmarks. Rotation,
+scale, translation, brightness, and contrast augmentation are enabled during
+training. Do not wrap this trainer in OpenCV windowed scaling/chipping: those
+operations do not consistently transform named keypoints.
+
+Training produces ``category_models/trained_keypoints.pt``, a generated
+pipeline, and ``keypoint_metrics.json``. The model is self-contained: it records
+its native architecture, weights, ordered names, and crop settings. Detailed
+native checkpoints and logs remain under ``deep_training/sleap-*/model/training``.
+Each invocation uses a fresh run directory. To fine-tune an exported model::
+
+    viame train -i training_data -c train_reclassifier_sleap_head_tail.conf \
+        -s detector_trainer:sleap:seed_model=/absolute/path/to/trained_keypoints.pt \
+        --threshold 0.0
+
+The seed must match the configured architecture and keypoint order. This is
+weight initialization, not optimizer/epoch resumption. To train more landmarks,
+set ``detector_trainer:sleap:keypoint_names=head,tail,dorsal`` and provide the
+corresponding named annotations; adding output slots requires a fresh model.
+
+Inference on existing detections::
+
+    viame run -i input_list.txt -p utility_add_keypoints_sleap.pipe \
+        -s detection_reader:file_name=detections.csv \
+        -s add_keypoints:refiner:sleap:weight=category_models/trained_keypoints.pt \
+        -s detector_writer:file_name=computed_detections.csv
+
+The image list and detections must have corresponding frame order. Output goes
+to ``computed_detections.csv``. ``batch_size`` controls crops per inference call.
+``overwrite_existing=false`` fills only missing configured slots; true replaces
+those slots while preserving unrelated points. Low-scoring and out-of-image
+predictions are omitted. ``keypoint_threshold=0.2`` thresholds native heatmap
+peak scores, which are not calibrated visibility probabilities.
+
+The validation report includes labeled/predicted counts, mean point error
+normalized by the unpadded box diagonal, and PCK@0.05 (fraction of labeled
+points predicted within 5% of that diagonal). Missing predictions count as
+failures in PCK. To evaluate another exported model against the retained
+validation crops::
+
+    python -m viame.pytorch.sleap_launcher deep_training/sleap-RUN/request.json \
+        --evaluate category_models/trained_keypoints.pt --output keypoint_metrics.json
+
+The default trainer uses one selected GPU (or CPU). Increasing inference batch
+size is supported; distributed training and mask prediction are outside this
+wrapper's current scope.
+
+
 Netharn RF-DETR masks, keypoints, and native checkpoints
 ------------------------------------------------------
 

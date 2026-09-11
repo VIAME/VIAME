@@ -88,6 +88,10 @@ if( VIAME_ENABLE_PYTORCH-RF-DETR )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} rf-detr )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-SLEAP )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} sleap-nn )
+endif()
+
 if( VIAME_ENABLE_PYTORCH-LITDET )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} litdet )
 endif()
@@ -338,6 +342,18 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( PIP_CMD "${PIP_CMD} --no-deps" )
     string( REPLACE " " ";" PIP_CMD "${PIP_CMD}" )
     set( LIBRARY_PIP_INSTALL_CMD ${Python_EXECUTABLE} -m ${PIP_CMD} )
+  elseif( "${LIB}" STREQUAL "sleap-nn" )
+    if( VIAME_PYTHON_SYMLINK )
+      set( LIBRARY_PIP_BUILD_CMD "" )
+      set( LIBRARY_PIP_INSTALL_CMD ${Python_EXECUTABLE} -m pip install
+        --no-build-isolation --no-deps --user -e . )
+    else()
+      set( LIBRARY_PIP_BUILD_CMD ${Python_EXECUTABLE} -m pip wheel
+        --no-build-isolation --no-deps --no-cache-dir
+        --wheel-dir ${LIBRARY_PIP_BUILD_DIR} ${LIBRARY_LOCATION} )
+      set( LIBRARY_PIP_INSTALL_CMD "" )
+      set( USE_BUILD_SCRIPT_FOR_INSTALL TRUE )
+    endif()
   elseif( VIAME_PYTHON_SYMLINK )
     if( "${LIB}" STREQUAL "mit-yolo" OR "${LIB}" STREQUAL "rf-detr" OR
         "${LIB}" STREQUAL "litdet" OR "${LIB}" STREQUAL "sam3" OR
@@ -558,6 +574,9 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       -DPython_EXECUTABLE=${Python_EXECUTABLE}
       -DPIP_INSTALL_SCRIPT=${VIAME_CMAKE_DIR}/pip_install_with_lock.cmake
       -DNO_CACHE_DIR=${VIAME_BUILD_NO_CACHE_DIR} )
+    if( "${LIB}" STREQUAL "sleap-nn" )
+      list( APPEND CONDITIONAL_BUILD_CMD -DNO_DEPS=TRUE )
+    endif()
   endif()
 
   # mmdeploy has additional C++ build steps
