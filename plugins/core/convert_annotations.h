@@ -13,7 +13,7 @@
 
 #include "viame_core_export.h"
 
-#include <vital/logger/logger.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 #include <cstddef>
 #include <string>

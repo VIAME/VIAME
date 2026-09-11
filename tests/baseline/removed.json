@@ -838,5 +838,131 @@
     "name": "sink",
     "phase": "P5-T04",
     "reason": "No shipped pipeline instantiates it. sprokit/processes/flow is split across the functional libraries in P5-T04 and only what is used comes across."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "add-segmentations",
+    "phase": "upstream 9f44a8e70",
+    "reason": "Renamed upstream, not removed here: it is `viame segment` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "calibrate-cameras",
+    "phase": "upstream 9f44a8e70",
+    "reason": "Renamed upstream, not removed here: it is `viame calibrate` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "check-gpu",
+    "phase": "upstream 9f44a8e70",
+    "reason": "Renamed upstream, not removed here: it is `viame gpu` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "compute-depth",
+    "phase": "upstream 9f44a8e70",
+    "reason": "Renamed upstream, not removed here: it is `viame depth` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "compute-disparity",
+    "phase": "upstream 9f44a8e70",
+    "reason": "Renamed upstream, not removed here: it is `viame disparity` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "convert-cam",
+    "phase": "upstream 9f44a8e70",
+    "reason": "Renamed upstream, not removed here: it is `viame convert` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "convert-itk",
+    "phase": "upstream 9f44a8e70",
+    "reason": "Renamed upstream, not removed here: it is `viame convert` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "create-mosaic",
+    "phase": "upstream 9f44a8e70",
+    "reason": "Renamed upstream, not removed here: it is `viame mosaic` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "detect-prior-coverage",
+    "phase": "upstream 5fbad6140",
+    "reason": "Renamed upstream, not removed here: it is `viame register` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "extract-frames",
+    "phase": "upstream 9f44a8e70",
+    "reason": "Renamed upstream, not removed here: it is `viame extract` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "generate-nn-index",
+    "phase": "upstream baf0b67e5",
+    "reason": "Renamed upstream, not removed here: it is `viame index hash` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "get-configs",
+    "phase": "upstream 9f44a8e70",
+    "reason": "Renamed upstream, not removed here: it is `viame configs` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "launch-annotator",
+    "phase": "upstream 9f44a8e70",
+    "reason": "Renamed upstream, not removed here: it is `viame view` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "launch-search",
+    "phase": "upstream 9f44a8e70",
+    "reason": "Renamed upstream, not removed here: it is `viame search` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "plot-detections",
+    "phase": "upstream 9f44a8e70",
+    "reason": "Renamed upstream, not removed here: it is `viame plot detections` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "plot-eval",
+    "phase": "upstream 9f44a8e70",
+    "reason": "Renamed upstream, not removed here: it is `viame plot eval` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "reconstruct-3d",
+    "phase": "upstream 5fbad6140",
+    "reason": "Renamed upstream, not removed here: it is `viame 3d` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "train-fusion",
+    "phase": "upstream 5fbad6140",
+    "reason": "Renamed upstream, not removed here: it is `viame ensemble` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
   }
 ]

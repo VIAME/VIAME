@@ -10,16 +10,16 @@
 #include "write_object_track_set_dive.h"
 #include "utilities_target_clfr.h"
 
-#include <vital/types/object_track_set.h>
-#include <vital/types/detected_object.h>
-#include <vital/types/detected_object_type.h>
-#include <vital/types/attribute_set.h>
-#include <vital/logger/logger.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/core_types/detected_object.h>
+#include <viame/core_types/detected_object_type.h>
+#include <viame/core_types/attribute_set.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
-#include <vital/internal/cereal/external/rapidjson/document.h>
-#include <vital/internal/cereal/external/rapidjson/prettywriter.h>
-#include <vital/internal/cereal/external/rapidjson/writer.h>
-#include <vital/internal/cereal/external/rapidjson/ostreamwrapper.h>
+#include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/ostreamwrapper.h>
 
 #include <algorithm>
 #include <cmath>

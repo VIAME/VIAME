@@ -12,8 +12,8 @@
 
 #include "viame_core_export.h"
 
-#include <vital/algo/query_track_descriptor_set.h>
-#include <vital/plugin_management/pluggable_macro_magic.h>
+#include <viame/algorithm_framework/algo/query_track_descriptor_set.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 #include <memory>
 

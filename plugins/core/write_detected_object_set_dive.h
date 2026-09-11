@@ -12,9 +12,9 @@
 
 #include "viame_core_export.h"
 
-#include <vital/algo/detected_object_set_output.h>
-#include <vital/plugin_management/pluggable_macro_magic.h>
-#include <vital/types/track.h>
+#include <viame/algorithm_framework/algo/detected_object_set_output.h>
+#include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
+#include <viame/core_types/track.h>
 
 #include <vector>
 

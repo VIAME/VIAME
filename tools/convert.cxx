@@ -8,13 +8,13 @@
 #include <plugins/core/python_script_applet.h>
 #include <plugins/core/utilities_file.h>
 
-#include <vital/algo/algorithm.txx>
-#include <vital/algo/detected_object_set_input.h>
-#include <vital/algo/detected_object_set_output.h>
-#include <vital/algo/read_object_track_set.h>
-#include <vital/algo/write_object_track_set.h>
-#include <vital/plugin_management/plugin_manager.h>
-#include <vital/logger/logger.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/detected_object_set_input.h>
+#include <viame/algorithm_framework/algo/detected_object_set_output.h>
+#include <viame/algorithm_framework/algo/read_object_track_set.h>
+#include <viame/algorithm_framework/algo/write_object_track_set.h>
+#include <viame/algorithm_framework/plugin/plugin_manager.h>
+#include <viame/algorithm_framework/logger/logger.h>
 
 #include <kwiversys/SystemTools.hxx>
 

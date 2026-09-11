@@ -354,14 +354,14 @@
     },
     {
       "config": {},
-      "impl": "measurement_calibrate_cameras_default.pipe",
+      "impl": "stereo_calibrate_cameras_default.pipe",
       "inputs": [
         "stereo_rig"
       ],
       "kind": "calibration_pipeline",
       "outputs": {
         "stereo_rig": {
-          "file": "calibration_pipeline/measurement_calibrate_cameras_default.pipe/all_frames/stereo_rig.npz",
+          "file": "calibration_pipeline/stereo_calibrate_cameras_default.pipe/all_frames/stereo_rig.npz",
           "members": {
             "D1": {
               "dtype": "float64",
@@ -469,14 +469,14 @@
     },
     {
       "config": {},
-      "impl": "measurement_calibrate_cameras_default.pipe",
+      "impl": "stereo_calibrate_cameras_default.pipe",
       "inputs": [
         "stereo_rig"
       ],
       "kind": "calibration_pipeline",
       "outputs": {
         "stereo_rig": {
-          "file": "calibration_pipeline/measurement_calibrate_cameras_default.pipe/frames_6/stereo_rig.npz",
+          "file": "calibration_pipeline/stereo_calibrate_cameras_default.pipe/frames_6/stereo_rig.npz",
           "members": {
             "D1": {
               "dtype": "float64",
@@ -907,14 +907,14 @@
     },
     {
       "config": {},
-      "impl": "measurement_from_annotations_default.pipe",
+      "impl": "stereo_measure_current_annots_default.pipe",
       "inputs": [
         "scene"
       ],
       "kind": "measurement",
       "outputs": {
         "scene": {
-          "file": "measurement/measurement_from_annotations_default.pipe/input_pairs_only/scene.npz",
+          "file": "measurement/stereo_measure_current_annots_default.pipe/input_pairs_only/scene.npz",
           "members": {
             "length": {
               "dtype": "float64",
@@ -985,14 +985,14 @@
     },
     {
       "config": {},
-      "impl": "measurement_from_annotations_default.pipe",
+      "impl": "stereo_measure_current_annots_default.pipe",
       "inputs": [
         "scene"
       ],
       "kind": "measurement",
       "outputs": {
         "scene": {
-          "file": "measurement/measurement_from_annotations_default.pipe/epipolar_template_matching/scene.npz",
+          "file": "measurement/stereo_measure_current_annots_default.pipe/epipolar_template_matching/scene.npz",
           "members": {
             "length": {
               "dtype": "float64",
@@ -1062,14 +1062,14 @@
     },
     {
       "config": {},
-      "impl": "measurement_from_annotations_default.pipe",
+      "impl": "stereo_measure_current_annots_default.pipe",
       "inputs": [
         "scene"
       ],
       "kind": "measurement",
       "outputs": {
         "scene": {
-          "file": "measurement/measurement_from_annotations_default.pipe/template_matching/scene.npz",
+          "file": "measurement/stereo_measure_current_annots_default.pipe/template_matching/scene.npz",
           "members": {
             "length": {
               "dtype": "float64",
@@ -1139,14 +1139,14 @@
     },
     {
       "config": {},
-      "impl": "measurement_from_annotations_default.pipe",
+      "impl": "stereo_measure_current_annots_default.pipe",
       "inputs": [
         "scene"
       ],
       "kind": "measurement",
       "outputs": {
         "scene": {
-          "file": "measurement/measurement_from_annotations_default.pipe/compute_disparity/scene.npz",
+          "file": "measurement/stereo_measure_current_annots_default.pipe/compute_disparity/scene.npz",
           "members": {
             "length": {
               "dtype": "float64",
@@ -1216,14 +1216,14 @@
     },
     {
       "config": {},
-      "impl": "measurement_from_annotations_default.pipe",
+      "impl": "stereo_measure_current_annots_default.pipe",
       "inputs": [
         "scene"
       ],
       "kind": "measurement",
       "outputs": {
         "scene": {
-          "file": "measurement/measurement_from_annotations_default.pipe/depth_projection/scene.npz",
+          "file": "measurement/stereo_measure_current_annots_default.pipe/depth_projection/scene.npz",
           "members": {
             "length": {
               "dtype": "float64",

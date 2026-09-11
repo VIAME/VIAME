@@ -116,7 +116,7 @@ CALIBRATION_TARGETS = {
 # recording was correct". `CALIBRATION_TOLERANCES` is what the recorded
 # implementation achieved, with room -- OpenCV recovered the focal lengths to
 # about 0.2% and the baseline to 0.006%.
-CALIBRATION_PIPELINE = "measurement_calibrate_cameras_default.pipe"
+CALIBRATION_PIPELINE = "stereo_calibrate_cameras_default.pipe"
 
 # The board is 30 mm, and the shipped config says 80; a calibration scales
 # its translation by whatever it is told, so the fixture's own value has to
@@ -271,7 +271,7 @@ def mono_calibration_view_names():
 # Like the calibration case it has a **right answer**: the lengths are 300 to
 # 400 mm and known to the millimetre. That is what caught finding 1.20, where
 # every one of them came back zero.
-MEASUREMENT_PIPELINE = "measurement_from_annotations_default.pipe"
+MEASUREMENT_PIPELINE = "stereo_measure_current_annots_default.pipe"
 
 # The variants, one per matching method that is deterministic. Each reaches a
 # different part of the OpenCV surface P7-T06 has to replace:

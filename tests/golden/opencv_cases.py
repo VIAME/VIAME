@@ -384,7 +384,7 @@ PIPELINES_SKIPPED = {
         "stereo: the disparity computer waits on a second image stream and "
         "the pipeline never finishes on a single one",
     "filter_stereo_depth_map.pipe": "stereo, as above",
-    "measurement_compute_rectified_disparity.pipe":
+    "stereo_compute_rectified_disparity.pipe":
         "needs a calibration file beside the frames: the disparity computer "
         "refuses to start without `calibration_matrices.npz`",
     "train_aug_split_and_stereo.pipe": "stereo, as above",

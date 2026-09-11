@@ -10,7 +10,7 @@
 #include "write_detected_object_set_dive.h"
 #include "write_object_track_set_dive.h"
 
-#include <vital/types/object_track_set.h>
+#include <viame/core_types/object_track_set.h>
 
 namespace viame {
 

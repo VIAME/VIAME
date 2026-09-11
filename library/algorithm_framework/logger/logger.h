@@ -100,7 +100,7 @@
 /// <h2>Example</h2>
 ///
 /// \code
-/// #include <vital/logger/logger.h>
+/// #include <viame/algorithm_framework/logger/logger.h>
 /// #include <iostream>
 ///
 /// kwiver::vital::logger_handle_t m_logger;

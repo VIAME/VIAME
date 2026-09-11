@@ -10,20 +10,20 @@
 #include "convert_annotations.h"
 #include "utilities_file.h"
 
-#include <vital/algo/algorithm.txx>
-#include <vital/algo/detected_object_set_input.h>
-#include <vital/algo/detected_object_set_output.h>
-#include <vital/algo/read_object_track_set.h>
-#include <vital/algo/write_object_track_set.h>
-#include <vital/algo/video_input.h>
-#include <vital/config/config_block.h>
-#include <vital/types/detected_object_set.h>
-#include <vital/types/object_track_set.h>
-#include <vital/types/timestamp.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/detected_object_set_input.h>
+#include <viame/algorithm_framework/algo/detected_object_set_output.h>
+#include <viame/algorithm_framework/algo/read_object_track_set.h>
+#include <viame/algorithm_framework/algo/write_object_track_set.h>
+#include <viame/algorithm_framework/algo/video_input.h>
+#include <viame/algorithm_framework/config/config_block.h>
+#include <viame/core_types/detected_object_set.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/core_types/timestamp.h>
 
 #include <kwiversys/SystemTools.hxx>
 
-#include <vital/internal/cereal/external/rapidjson/document.h>
+#include <rapidjson/document.h>
 
 #include <algorithm>
 #include <cmath>

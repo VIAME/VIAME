@@ -35,7 +35,8 @@ add_test(
     "${baseline_setup} && \
      viame pipe-check --all --json --output '${output_dir}/pipes.json' && \
      '${Python3_EXECUTABLE}' '${baseline_dir}/compare_pipes.py' \
-       '${baseline_dir}/pipes.json' '${output_dir}/pipes.json'"
+       '${baseline_dir}/pipes.json' '${output_dir}/pipes.json' \
+       --removed '${baseline_dir}/removed_pipes.json'"
 )
 
 set_property( TEST "baseline:registry" PROPERTY LABELS BASELINE )

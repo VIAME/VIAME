@@ -9,12 +9,12 @@
 
 #include "query_track_descriptor_set_csv.h"
 
-#include <vital/algo/algorithm.txx>
-#include <vital/algo/read_object_track_set.h>
-#include <vital/algo/read_track_descriptor_set.h>
-#include <vital/logger/logger.h>
-#include <vital/types/object_track_set.h>
-#include <vital/types/timestamp.h>
+#include <viame/algorithm_framework/algo/algorithm.txx>
+#include <viame/algorithm_framework/algo/read_object_track_set.h>
+#include <viame/algorithm_framework/algo/read_track_descriptor_set.h>
+#include <viame/algorithm_framework/logger/logger.h>
+#include <viame/core_types/object_track_set.h>
+#include <viame/core_types/timestamp.h>
 
 #include <filesystem>
 #include <map>

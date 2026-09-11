@@ -1,0 +1,25 @@
+[
+  "configs/pipelines/convert_add_filename_to_det_csv.pipe",
+  "configs/pipelines/convert_add_filename_to_trk_csv.pipe",
+  "configs/pipelines/convert_coco_json_to_viame_csv_gt_plus_data.pipe",
+  "configs/pipelines/convert_habcam_to_kw18_gt_plus_data.pipe",
+  "configs/pipelines/convert_habcam_to_viame_csv_gt_plus_data.pipe",
+  "configs/pipelines/convert_kw18_to_viame_csv_gt_plus_data.pipe",
+  "configs/pipelines/convert_oceaneyes_to_viame_csv_gt_plus_data.pipe",
+  "configs/pipelines/convert_viame_csv_to_coco_json_gt_only.pipe",
+  "configs/pipelines/convert_viame_csv_to_coco_json_gt_plus_data.pipe",
+  "configs/pipelines/convert_viame_csv_to_kw18_gt_plus_data.pipe",
+
+  "configs/pipelines/measurement_calibrate_cameras_default.pipe",
+  "configs/pipelines/measurement_calibrate_cameras_fast.pipe",
+  "configs/pipelines/measurement_compute_rectified_disparity.pipe",
+  "configs/pipelines/measurement_default_fish_fully_auto.pipe",
+  "configs/pipelines/measurement_detect_calibration_target.pipe",
+  "configs/pipelines/measurement_from_annotations_default.pipe",
+  "configs/pipelines/measurement_from_annotations_template.pipe",
+  "configs/pipelines/measurement_fully_auto_gmm_motion.pipe",
+  "configs/pipelines/measurement_gfit_groups_v3_seagis_dual.pipe",
+  "configs/pipelines/measurement_gfit_groups_v3_seagis_sing.pipe",
+  "configs/pipelines/measurement_gfit_groups_v3_viame_dual.pipe",
+  "configs/pipelines/measurement_gfit_groups_v3_viame_sing.pipe"
+]
