@@ -178,6 +178,16 @@ def describe_detections(detections):
             entry["types"] = {name: detected_type.score(name)
                               for name in sorted(names)}
 
+        # Only when there are any, so a detector that has never set one keeps
+        # the shape its recording already has. `ocv_detect_calibration_targets`
+        # puts the corner's world position here, as `:stereo3d_x=` and its
+        # two fellows, and that is what the calibration downstream consumes --
+        # a recording without it would say nothing about the half of the
+        # detector that matters most.
+        notes = list(detection.notes) if detection.notes else []
+        if notes:
+            entry["notes"] = notes
+
         out.append(entry)
 
     return out

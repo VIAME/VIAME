@@ -326,6 +326,14 @@ an artefact of the port:
   offset traded against it. Worth knowing before reading a calibration's
   numbers, and worth reproducing rather than improving: a port that fits the
   full model will disagree with every calibration file VIAME has written.
+* `detect_calibration_targets` converts to grey with **red and blue
+  swapped**. It asks the bridge for an `RGB_COLOR` mat -- the only caller in
+  the tree that does; every other one asks for `BGR_COLOR` -- and then hands
+  it to `to_grayscale`, which takes `COLOR_BGR2GRAY`. So the two swaps do
+  not cancel and the luminance weights land the wrong way round. It makes no
+  difference to a grey target and moves a corner by a fraction of a pixel on
+  a coloured one; the port reproduces it, because changing it would change
+  every calibration the tree has produced.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 

@@ -99,3 +99,32 @@ target_include_directories( viame_processes_measurement PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   )
+
+###
+# Python implementations
+#
+# `ocv_stereo_disparity` was `plugins/opencv/compute_stereo_disparity.cxx`
+# until P7-T06: block matching, the WLS filter and `stereoRectify` are
+# calib3d and ximgproc rather than image_ops primitives, so the algorithm
+# stays cv2's and only the language changes.
+##
+if( VIAME_ENABLE_PYTHON )
+  kwiver_create_python_init( measurement )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+    measurement
+    __init__ )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_stereo_disparity.py
+    measurement
+    ocv_stereo_disparity )
+
+  # `ocv_detect_calibration_targets`, and the four detection helpers it used
+  # from `calibrate_stereo_cameras`.
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_calibration_targets.py
+    measurement
+    ocv_calibration_targets )
+endif()

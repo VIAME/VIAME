@@ -16,10 +16,8 @@ set( plugin_headers
   calibrate_stereo_cameras.h
   canny_edge_detector.h
   classify_fish_hierarchical_svm.h
-  compute_stereo_disparity.h
   convert_color_space.h
   debayer_filter.h
-  detect_calibration_targets.h
   diff_of_gauss_detector.h
   ellipse_proposal.h
   enhance_images.h
@@ -53,10 +51,8 @@ set( plugin_sources
   calibrate_stereo_cameras.cxx
   canny_edge_detector.cxx
   classify_fish_hierarchical_svm.cxx
-  compute_stereo_disparity.cxx
   convert_color_space.cxx
   debayer_filter.cxx
-  detect_calibration_targets.cxx
   diff_of_gauss_detector.cxx
   enhance_images.cxx
   filter_stereo_feature_tracks.cxx

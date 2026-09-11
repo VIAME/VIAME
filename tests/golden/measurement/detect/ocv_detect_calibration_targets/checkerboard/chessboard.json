@@ -7,6 +7,11 @@
       81.99482727050781
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=0.000000",
+      ":stereo3d_y=0.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -19,6 +24,11 @@
       81.9968490600586
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=1.000000",
+      ":stereo3d_y=0.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -31,6 +41,11 @@
       82.00456237792969
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=2.000000",
+      ":stereo3d_y=0.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -43,6 +58,11 @@
       82.00296020507812
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=3.000000",
+      ":stereo3d_y=0.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -55,6 +75,11 @@
       82.00566101074219
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=4.000000",
+      ":stereo3d_y=0.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -67,6 +92,11 @@
       82.00059509277344
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=5.000000",
+      ":stereo3d_y=0.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -79,6 +109,11 @@
       82.00687408447266
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=6.000000",
+      ":stereo3d_y=0.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -91,6 +126,11 @@
       122.00048065185547
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=0.000000",
+      ":stereo3d_y=1.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -103,6 +143,11 @@
       122.00053405761719
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=1.000000",
+      ":stereo3d_y=1.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -115,6 +160,11 @@
       121.99988555908203
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=2.000000",
+      ":stereo3d_y=1.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -127,6 +177,11 @@
       121.9968032836914
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=3.000000",
+      ":stereo3d_y=1.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -139,6 +194,11 @@
       121.99910736083984
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=4.000000",
+      ":stereo3d_y=1.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -151,6 +211,11 @@
       121.99440002441406
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=5.000000",
+      ":stereo3d_y=1.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -163,6 +228,11 @@
       121.99541473388672
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=6.000000",
+      ":stereo3d_y=1.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -175,6 +245,11 @@
       162.00303649902344
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=0.000000",
+      ":stereo3d_y=2.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -187,6 +262,11 @@
       162.00038146972656
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=1.000000",
+      ":stereo3d_y=2.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -199,6 +279,11 @@
       161.9962921142578
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=2.000000",
+      ":stereo3d_y=2.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -211,6 +296,11 @@
       161.99803161621094
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=3.000000",
+      ":stereo3d_y=2.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -223,6 +313,11 @@
       162.00021362304688
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=4.000000",
+      ":stereo3d_y=2.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -235,6 +330,11 @@
       162.00582885742188
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=5.000000",
+      ":stereo3d_y=2.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -247,6 +347,11 @@
       162.00823974609375
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=6.000000",
+      ":stereo3d_y=2.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -259,6 +364,11 @@
       201.9979705810547
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=0.000000",
+      ":stereo3d_y=3.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -271,6 +381,11 @@
       201.99813842773438
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=1.000000",
+      ":stereo3d_y=3.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -283,6 +398,11 @@
       202.00039672851562
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=2.000000",
+      ":stereo3d_y=3.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -295,6 +415,11 @@
       201.9976348876953
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=3.000000",
+      ":stereo3d_y=3.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -307,6 +432,11 @@
       201.99969482421875
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=4.000000",
+      ":stereo3d_y=3.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -319,6 +449,11 @@
       201.9998016357422
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=5.000000",
+      ":stereo3d_y=3.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -331,6 +466,11 @@
       202.01181030273438
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=6.000000",
+      ":stereo3d_y=3.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -343,6 +483,11 @@
       241.98915100097656
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=0.000000",
+      ":stereo3d_y=4.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -355,6 +500,11 @@
       242.00723266601562
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=1.000000",
+      ":stereo3d_y=4.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -367,6 +517,11 @@
       241.99862670898438
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=2.000000",
+      ":stereo3d_y=4.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -379,6 +534,11 @@
       241.99378967285156
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=3.000000",
+      ":stereo3d_y=4.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -391,6 +551,11 @@
       241.99411010742188
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=4.000000",
+      ":stereo3d_y=4.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -403,6 +568,11 @@
       242.0010986328125
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=5.000000",
+      ":stereo3d_y=4.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
@@ -415,6 +585,11 @@
       242.0035400390625
     ],
     "confidence": 1.0,
+    "notes": [
+      ":stereo3d_x=6.000000",
+      ":stereo3d_y=4.000000",
+      ":stereo3d_z=0.000000"
+    ],
     "types": {
       "unknown": 1.0
     }
