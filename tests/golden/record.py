@@ -41,7 +41,11 @@ import measurement_cases            # noqa: E402
 import measurement_fixtures         # noqa: E402
 import measurement_runner           # noqa: E402
 import pipeline_runner              # noqa: E402
+import refine_cases                 # noqa: E402
+import refine_runner                # noqa: E402
 import runner                       # noqa: E402
+import warp_cases                   # noqa: E402
+import warp_runner                  # noqa: E402
 
 INPUTS_DIR = os.path.join(HERE, "inputs")
 CODEC_INPUTS_DIR = os.path.join(INPUTS_DIR, codec_cases.INPUT_SUBDIR)
@@ -647,7 +651,33 @@ def record_opencv(group_dir, manifest):
     record_opencv_matches(group_dir, manifest)
     record_opencv_tracks(group_dir, manifest)
     record_opencv_estimators(group_dir, manifest)
+    record_opencv_refiners(group_dir, manifest)
+    record_opencv_warps(group_dir, manifest)
     record_opencv_pipelines(group_dir, manifest)
+
+
+def record_opencv_warps(group_dir, manifest):
+    source = imageio_utils.load(input_path(warp_cases.SOURCE))
+    destination = imageio_utils.load(input_path(warp_cases.DESTINATION))
+    mask = imageio_utils.load(input_path(warp_cases.MASK))
+
+    for variant, _, _, _ in warp_cases.WARPS:
+        warped = warp_runner.run(warp_cases.IMPLEMENTATION, variant,
+                                 source, destination, mask)
+
+        _record_array_case(group_dir, manifest, "warp",
+                           warp_cases.IMPLEMENTATION, variant, {},
+                           [warp_cases.SOURCE], [warped], warp_cases)
+
+
+def record_opencv_refiners(group_dir, manifest):
+    array = imageio_utils.load(input_path(refine_cases.IMAGE))
+
+    for impl, variants in sorted(refine_cases.REFINERS.items()):
+        for variant, config in variants:
+            result = refine_runner.run(impl, config, array)
+            _record_arrays_case(group_dir, manifest, "refine", impl, variant,
+                                config, [refine_cases.IMAGE], [result])
 
 
 def record_measurement_disparity(group_dir, manifest):

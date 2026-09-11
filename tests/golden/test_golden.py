@@ -32,6 +32,10 @@ import measurement_cases            # noqa: E402
 import measurement_runner           # noqa: E402
 import opencv_cases                 # noqa: E402
 import pipeline_runner              # noqa: E402
+import refine_cases                 # noqa: E402
+import refine_runner                # noqa: E402
+import warp_cases                   # noqa: E402
+import warp_runner                  # noqa: E402
 import runner                       # noqa: E402
 
 
@@ -76,6 +80,8 @@ INTERFACE_OF_KIND = {
     # -- a removal would take both halves together.
     "disparity": "compute_stereo_depth_map",
     "features": "detect_features",
+    "refine": "refine_detections",
+    "warp": "warp_image",
     "matches": "match_features",
     "tracks": "track_features",
     "homography": "estimate_homography",
@@ -141,6 +147,8 @@ UNSTABLE_OF_KIND = {
 
 DIVERGENCES_OF_KIND = {
     "disparity": measurement_cases,
+    "refine": refine_cases,
+    "warp": warp_cases,
     "features": feature_cases,
     "matches": feature_cases,
     "tracks": feature_cases,
@@ -262,6 +270,17 @@ def run_case(case, impl):
         outputs = measurement_runner.run_stereo_pipeline(
             impl, left, right, tuple(case["settings"]))
         return [measurement_runner.calibration_arrays(outputs)]
+
+    if case["kind"] == "warp":
+        source = imageio_utils.load(input_path(warp_cases.SOURCE))
+        destination = imageio_utils.load(input_path(warp_cases.DESTINATION))
+        mask = imageio_utils.load(input_path(warp_cases.MASK))
+        return [warp_runner.run(impl, case["variant"], source, destination,
+                                mask)]
+
+    if case["kind"] == "refine":
+        array = imageio_utils.load(input_path(refine_cases.IMAGE))
+        return [refine_runner.run(impl, case["config"], array)]
 
     if case["kind"] == "features":
         arrays = [imageio_utils.load(input_path(name))
@@ -543,7 +562,7 @@ def test_golden(item):
         return
 
     if case["kind"] in ("features", "matches", "tracks", "homography",
-                        "fundamental"):
+                        "fundamental", "refine"):
         check_array_case(item, case, outputs, group)
         return
 

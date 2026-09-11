@@ -43,6 +43,14 @@ def is_registered(kind, impl):
         from kwiver.vital.algo import ComputeStereoDepthMap
         return impl in ComputeStereoDepthMap.registered_names()
 
+    if kind == "warp":
+        from kwiver.vital.algo import WarpImage
+        return impl in WarpImage.registered_names()
+
+    if kind == "refine":
+        from kwiver.vital.algo import RefineDetections
+        return impl in RefineDetections.registered_names()
+
     if kind == "features":
         from kwiver.vital.algo import DetectFeatures
         return impl in DetectFeatures.registered_names()

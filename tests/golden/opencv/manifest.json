@@ -1,5 +1,5 @@
 {
-  "appended": "2026-09-11T03:04:06Z",
+  "appended": "2026-09-11T03:48:14Z",
   "cases": [
     {
       "config": {},
@@ -3242,6 +3242,1085 @@
       "refuses": {},
       "unstable": {},
       "variant": "hls_to_bgr"
+    },
+    {
+      "config": {},
+      "impl": "add_keypoints_from_mask",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "refine",
+      "outputs": {
+        "rgb8": {
+          "file": "refine/add_keypoints_from_mask/defaults/rgb8.npz",
+          "members": {
+            "boxes": {
+              "dtype": "float64",
+              "sha256": "ff47aded09a38d2d",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "confidences": {
+              "dtype": "float64",
+              "sha256": "29b10b64df4ae8e5",
+              "shape": [
+                3
+              ]
+            },
+            "keypoints": {
+              "dtype": "float64",
+              "sha256": "13dbd7b437158020",
+              "shape": [
+                4,
+                4
+              ]
+            },
+            "mask_0": {
+              "dtype": "int64",
+              "sha256": "4dae183daa73a1f5",
+              "shape": [
+                28,
+                29
+              ]
+            },
+            "mask_1": {
+              "dtype": "int64",
+              "sha256": "9cf08be1adbc6291",
+              "shape": [
+                22,
+                28
+              ]
+            },
+            "mask_present": {
+              "dtype": "int64",
+              "sha256": "2dab308cb068a699",
+              "shape": [
+                3
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "clip_to_mask": "true"
+      },
+      "impl": "add_keypoints_from_mask",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "refine",
+      "outputs": {
+        "rgb8": {
+          "file": "refine/add_keypoints_from_mask/clip_to_mask/rgb8.npz",
+          "members": {
+            "boxes": {
+              "dtype": "float64",
+              "sha256": "ff47aded09a38d2d",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "confidences": {
+              "dtype": "float64",
+              "sha256": "29b10b64df4ae8e5",
+              "shape": [
+                3
+              ]
+            },
+            "keypoints": {
+              "dtype": "float64",
+              "sha256": "13dbd7b437158020",
+              "shape": [
+                4,
+                4
+              ]
+            },
+            "mask_0": {
+              "dtype": "int64",
+              "sha256": "4dae183daa73a1f5",
+              "shape": [
+                28,
+                29
+              ]
+            },
+            "mask_1": {
+              "dtype": "int64",
+              "sha256": "9cf08be1adbc6291",
+              "shape": [
+                22,
+                28
+              ]
+            },
+            "mask_present": {
+              "dtype": "int64",
+              "sha256": "2dab308cb068a699",
+              "shape": [
+                3
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "clip_to_mask"
+    },
+    {
+      "config": {
+        "method": "pca"
+      },
+      "impl": "add_keypoints_from_mask",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "refine",
+      "outputs": {
+        "rgb8": {
+          "file": "refine/add_keypoints_from_mask/pca/rgb8.npz",
+          "members": {
+            "boxes": {
+              "dtype": "float64",
+              "sha256": "ff47aded09a38d2d",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "confidences": {
+              "dtype": "float64",
+              "sha256": "29b10b64df4ae8e5",
+              "shape": [
+                3
+              ]
+            },
+            "keypoints": {
+              "dtype": "float64",
+              "sha256": "2a1f047526c430aa",
+              "shape": [
+                4,
+                4
+              ]
+            },
+            "mask_0": {
+              "dtype": "int64",
+              "sha256": "4dae183daa73a1f5",
+              "shape": [
+                28,
+                29
+              ]
+            },
+            "mask_1": {
+              "dtype": "int64",
+              "sha256": "9cf08be1adbc6291",
+              "shape": [
+                22,
+                28
+              ]
+            },
+            "mask_present": {
+              "dtype": "int64",
+              "sha256": "2dab308cb068a699",
+              "shape": [
+                3
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "pca"
+    },
+    {
+      "config": {
+        "method": "farthest"
+      },
+      "impl": "add_keypoints_from_mask",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "refine",
+      "outputs": {
+        "rgb8": {
+          "file": "refine/add_keypoints_from_mask/farthest/rgb8.npz",
+          "members": {
+            "boxes": {
+              "dtype": "float64",
+              "sha256": "ff47aded09a38d2d",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "confidences": {
+              "dtype": "float64",
+              "sha256": "29b10b64df4ae8e5",
+              "shape": [
+                3
+              ]
+            },
+            "keypoints": {
+              "dtype": "float64",
+              "sha256": "941cab4bd448b65d",
+              "shape": [
+                4,
+                4
+              ]
+            },
+            "mask_0": {
+              "dtype": "int64",
+              "sha256": "4dae183daa73a1f5",
+              "shape": [
+                28,
+                29
+              ]
+            },
+            "mask_1": {
+              "dtype": "int64",
+              "sha256": "9cf08be1adbc6291",
+              "shape": [
+                22,
+                28
+              ]
+            },
+            "mask_present": {
+              "dtype": "int64",
+              "sha256": "2dab308cb068a699",
+              "shape": [
+                3
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "farthest"
+    },
+    {
+      "config": {
+        "method": "hull_extremes"
+      },
+      "impl": "add_keypoints_from_mask",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "refine",
+      "outputs": {
+        "rgb8": {
+          "file": "refine/add_keypoints_from_mask/hull_extremes/rgb8.npz",
+          "members": {
+            "boxes": {
+              "dtype": "float64",
+              "sha256": "ff47aded09a38d2d",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "confidences": {
+              "dtype": "float64",
+              "sha256": "29b10b64df4ae8e5",
+              "shape": [
+                3
+              ]
+            },
+            "keypoints": {
+              "dtype": "float64",
+              "sha256": "13dbd7b437158020",
+              "shape": [
+                4,
+                4
+              ]
+            },
+            "mask_0": {
+              "dtype": "int64",
+              "sha256": "4dae183daa73a1f5",
+              "shape": [
+                28,
+                29
+              ]
+            },
+            "mask_1": {
+              "dtype": "int64",
+              "sha256": "9cf08be1adbc6291",
+              "shape": [
+                22,
+                28
+              ]
+            },
+            "mask_present": {
+              "dtype": "int64",
+              "sha256": "2dab308cb068a699",
+              "shape": [
+                3
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "hull_extremes"
+    },
+    {
+      "config": {
+        "method": "skeleton"
+      },
+      "impl": "add_keypoints_from_mask",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "refine",
+      "outputs": {
+        "rgb8": {
+          "file": "refine/add_keypoints_from_mask/skeleton/rgb8.npz",
+          "members": {
+            "boxes": {
+              "dtype": "float64",
+              "sha256": "ff47aded09a38d2d",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "confidences": {
+              "dtype": "float64",
+              "sha256": "29b10b64df4ae8e5",
+              "shape": [
+                3
+              ]
+            },
+            "keypoints": {
+              "dtype": "float64",
+              "sha256": "4e175889f7ea6897",
+              "shape": [
+                4,
+                4
+              ]
+            },
+            "mask_0": {
+              "dtype": "int64",
+              "sha256": "4dae183daa73a1f5",
+              "shape": [
+                28,
+                29
+              ]
+            },
+            "mask_1": {
+              "dtype": "int64",
+              "sha256": "9cf08be1adbc6291",
+              "shape": [
+                22,
+                28
+              ]
+            },
+            "mask_present": {
+              "dtype": "int64",
+              "sha256": "2dab308cb068a699",
+              "shape": [
+                3
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "skeleton"
+    },
+    {
+      "config": {},
+      "impl": "ocv_grabcut",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "refine",
+      "outputs": {
+        "rgb8": {
+          "file": "refine/ocv_grabcut/defaults/rgb8.npz",
+          "members": {
+            "boxes": {
+              "dtype": "float64",
+              "sha256": "ff47aded09a38d2d",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "confidences": {
+              "dtype": "float64",
+              "sha256": "29b10b64df4ae8e5",
+              "shape": [
+                3
+              ]
+            },
+            "keypoints": {
+              "dtype": "float64",
+              "sha256": "e3b0c44298fc1c14",
+              "shape": [
+                0,
+                4
+              ]
+            },
+            "mask_0": {
+              "dtype": "int64",
+              "sha256": "2a112d85ef25c6ba",
+              "shape": [
+                28,
+                29
+              ]
+            },
+            "mask_1": {
+              "dtype": "int64",
+              "sha256": "bbaef9bdb7566704",
+              "shape": [
+                22,
+                28
+              ]
+            },
+            "mask_2": {
+              "dtype": "int64",
+              "sha256": "180729b9da7f6458",
+              "shape": [
+                26,
+                30
+              ]
+            },
+            "mask_present": {
+              "dtype": "int64",
+              "sha256": "605390e5a369ee56",
+              "shape": [
+                3
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "seed_with_existing_masks": "false"
+      },
+      "impl": "ocv_grabcut",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "refine",
+      "outputs": {
+        "rgb8": {
+          "file": "refine/ocv_grabcut/no_seed/rgb8.npz",
+          "members": {
+            "boxes": {
+              "dtype": "float64",
+              "sha256": "ff47aded09a38d2d",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "confidences": {
+              "dtype": "float64",
+              "sha256": "29b10b64df4ae8e5",
+              "shape": [
+                3
+              ]
+            },
+            "keypoints": {
+              "dtype": "float64",
+              "sha256": "e3b0c44298fc1c14",
+              "shape": [
+                0,
+                4
+              ]
+            },
+            "mask_0": {
+              "dtype": "int64",
+              "sha256": "2a112d85ef25c6ba",
+              "shape": [
+                28,
+                29
+              ]
+            },
+            "mask_1": {
+              "dtype": "int64",
+              "sha256": "89f568fbb9127296",
+              "shape": [
+                22,
+                28
+              ]
+            },
+            "mask_2": {
+              "dtype": "int64",
+              "sha256": "180729b9da7f6458",
+              "shape": [
+                26,
+                30
+              ]
+            },
+            "mask_present": {
+              "dtype": "int64",
+              "sha256": "605390e5a369ee56",
+              "shape": [
+                3
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "no_seed"
+    },
+    {
+      "config": {
+        "iter_count": "5"
+      },
+      "impl": "ocv_grabcut",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "refine",
+      "outputs": {
+        "rgb8": {
+          "file": "refine/ocv_grabcut/iter_5/rgb8.npz",
+          "members": {
+            "boxes": {
+              "dtype": "float64",
+              "sha256": "ff47aded09a38d2d",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "confidences": {
+              "dtype": "float64",
+              "sha256": "29b10b64df4ae8e5",
+              "shape": [
+                3
+              ]
+            },
+            "keypoints": {
+              "dtype": "float64",
+              "sha256": "e3b0c44298fc1c14",
+              "shape": [
+                0,
+                4
+              ]
+            },
+            "mask_0": {
+              "dtype": "int64",
+              "sha256": "2a112d85ef25c6ba",
+              "shape": [
+                28,
+                29
+              ]
+            },
+            "mask_1": {
+              "dtype": "int64",
+              "sha256": "bbaef9bdb7566704",
+              "shape": [
+                22,
+                28
+              ]
+            },
+            "mask_2": {
+              "dtype": "int64",
+              "sha256": "180729b9da7f6458",
+              "shape": [
+                26,
+                30
+              ]
+            },
+            "mask_present": {
+              "dtype": "int64",
+              "sha256": "605390e5a369ee56",
+              "shape": [
+                3
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "iter_5"
+    },
+    {
+      "config": {
+        "context_scale_factor": "1"
+      },
+      "impl": "ocv_grabcut",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "refine",
+      "outputs": {
+        "rgb8": {
+          "file": "refine/ocv_grabcut/no_context/rgb8.npz",
+          "members": {
+            "boxes": {
+              "dtype": "float64",
+              "sha256": "ff47aded09a38d2d",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "confidences": {
+              "dtype": "float64",
+              "sha256": "29b10b64df4ae8e5",
+              "shape": [
+                3
+              ]
+            },
+            "keypoints": {
+              "dtype": "float64",
+              "sha256": "e3b0c44298fc1c14",
+              "shape": [
+                0,
+                4
+              ]
+            },
+            "mask_0": {
+              "dtype": "int64",
+              "sha256": "9bf7c9e6229b4e8b",
+              "shape": [
+                28,
+                29
+              ]
+            },
+            "mask_1": {
+              "dtype": "int64",
+              "sha256": "1ae23cf07d1bc616",
+              "shape": [
+                22,
+                28
+              ]
+            },
+            "mask_2": {
+              "dtype": "int64",
+              "sha256": "3e32f016e81754ce",
+              "shape": [
+                26,
+                30
+              ]
+            },
+            "mask_present": {
+              "dtype": "int64",
+              "sha256": "605390e5a369ee56",
+              "shape": [
+                3
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "no_context"
+    },
+    {
+      "config": {},
+      "impl": "ocv_watershed",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "refine",
+      "outputs": {
+        "rgb8": {
+          "file": "refine/ocv_watershed/defaults/rgb8.npz",
+          "members": {
+            "boxes": {
+              "dtype": "float64",
+              "sha256": "ff47aded09a38d2d",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "confidences": {
+              "dtype": "float64",
+              "sha256": "29b10b64df4ae8e5",
+              "shape": [
+                3
+              ]
+            },
+            "keypoints": {
+              "dtype": "float64",
+              "sha256": "e3b0c44298fc1c14",
+              "shape": [
+                0,
+                4
+              ]
+            },
+            "mask_0": {
+              "dtype": "int64",
+              "sha256": "f47b1f3aadf85a29",
+              "shape": [
+                28,
+                29
+              ]
+            },
+            "mask_1": {
+              "dtype": "int64",
+              "sha256": "0f7500d5801aecbf",
+              "shape": [
+                22,
+                28
+              ]
+            },
+            "mask_2": {
+              "dtype": "int64",
+              "sha256": "62f8987595f15eb3",
+              "shape": [
+                26,
+                30
+              ]
+            },
+            "mask_present": {
+              "dtype": "int64",
+              "sha256": "605390e5a369ee56",
+              "shape": [
+                3
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "seed_with_existing_masks": "false"
+      },
+      "impl": "ocv_watershed",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "refine",
+      "outputs": {
+        "rgb8": {
+          "file": "refine/ocv_watershed/no_seed/rgb8.npz",
+          "members": {
+            "boxes": {
+              "dtype": "float64",
+              "sha256": "ff47aded09a38d2d",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "confidences": {
+              "dtype": "float64",
+              "sha256": "29b10b64df4ae8e5",
+              "shape": [
+                3
+              ]
+            },
+            "keypoints": {
+              "dtype": "float64",
+              "sha256": "e3b0c44298fc1c14",
+              "shape": [
+                0,
+                4
+              ]
+            },
+            "mask_0": {
+              "dtype": "int64",
+              "sha256": "c8643b4416f0015c",
+              "shape": [
+                28,
+                29
+              ]
+            },
+            "mask_1": {
+              "dtype": "int64",
+              "sha256": "fe517493a05c00ca",
+              "shape": [
+                22,
+                28
+              ]
+            },
+            "mask_2": {
+              "dtype": "int64",
+              "sha256": "62f8987595f15eb3",
+              "shape": [
+                26,
+                30
+              ]
+            },
+            "mask_present": {
+              "dtype": "int64",
+              "sha256": "605390e5a369ee56",
+              "shape": [
+                3
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "no_seed"
+    },
+    {
+      "config": {
+        "seed_scale_factor": "0.1"
+      },
+      "impl": "ocv_watershed",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "refine",
+      "outputs": {
+        "rgb8": {
+          "file": "refine/ocv_watershed/tight_seed/rgb8.npz",
+          "members": {
+            "boxes": {
+              "dtype": "float64",
+              "sha256": "ff47aded09a38d2d",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "confidences": {
+              "dtype": "float64",
+              "sha256": "29b10b64df4ae8e5",
+              "shape": [
+                3
+              ]
+            },
+            "keypoints": {
+              "dtype": "float64",
+              "sha256": "e3b0c44298fc1c14",
+              "shape": [
+                0,
+                4
+              ]
+            },
+            "mask_0": {
+              "dtype": "int64",
+              "sha256": "f47b1f3aadf85a29",
+              "shape": [
+                28,
+                29
+              ]
+            },
+            "mask_1": {
+              "dtype": "int64",
+              "sha256": "0f7500d5801aecbf",
+              "shape": [
+                22,
+                28
+              ]
+            },
+            "mask_2": {
+              "dtype": "int64",
+              "sha256": "c3114dd51acdc674",
+              "shape": [
+                26,
+                30
+              ]
+            },
+            "mask_present": {
+              "dtype": "int64",
+              "sha256": "605390e5a369ee56",
+              "shape": [
+                3
+              ]
+            }
+          }
+        }
+      },
+      "unstable": {},
+      "variant": "tight_seed"
+    },
+    {
+      "config": {},
+      "impl": "ocv",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "warp",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "warp/ocv/identity/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "identity"
+    },
+    {
+      "config": {},
+      "impl": "ocv",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "warp",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "warp/ocv/translate/rgb8.png",
+          "sha256": "b66fbc0f1e5fcbdc",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "translate"
+    },
+    {
+      "config": {},
+      "impl": "ocv",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "warp",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "warp/ocv/translate_no_dest/rgb8.png",
+          "sha256": "77cbce4e09126b74",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "translate_no_dest"
+    },
+    {
+      "config": {},
+      "impl": "ocv",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "warp",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "warp/ocv/scale_rotate/rgb8.png",
+          "sha256": "abd3b5254b3544c4",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "scale_rotate"
+    },
+    {
+      "config": {},
+      "impl": "ocv",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "warp",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "warp/ocv/perspective/rgb8.png",
+          "sha256": "9591aca71e8f02f5",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "perspective"
+    },
+    {
+      "config": {},
+      "impl": "ocv",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "warp",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "warp/ocv/off_frame/rgb8.png",
+          "sha256": "0b231f996882eb36",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "off_frame"
+    },
+    {
+      "config": {},
+      "impl": "ocv",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "warp",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "warp/ocv/translate_alpha/rgb8.png",
+          "sha256": "34565519d079bcb8",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "translate_alpha"
+    },
+    {
+      "config": {},
+      "impl": "ocv",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "warp",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "warp/ocv/perspective_alpha/rgb8.png",
+          "sha256": "7ddcdd3623a208e7",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "perspective_alpha"
     }
   ],
   "fixtures": {

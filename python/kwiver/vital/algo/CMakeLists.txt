@@ -96,6 +96,9 @@ set( classes
   uv_unwrap_mesh
   video_input
   video_output
+  # VIAME's own, which kwiver's list does not carry: `warp_image:ocv` is
+  # phase 7's to replace and has no way to be recorded without a binding.
+  warp_image
   write_object_track_set
   write_track_descriptor_set
 )
