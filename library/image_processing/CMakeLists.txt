@@ -134,6 +134,12 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_estimators.py
     image_processing
     ocv_estimators )
+
+  # `ocv_grabcut` and `ocv_watershed`, which set a detection's mask.
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_segmenters.py
+    image_processing
+    ocv_segmenters )
 endif()
 
 ###

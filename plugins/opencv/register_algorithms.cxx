@@ -26,8 +26,6 @@
 #include "debayer_filter.h"
 #include "enhance_images.h"
 #include "random_hue_shift.h"
-#include "refine_detections_grabcut.h"
-#include "refine_detections_watershed.h"
 #include "split_image_habcam.h"
 #include "split_image_horizontally.h"
 #include "windowed_detector.h"
@@ -75,6 +73,9 @@ register_factories( kv::plugin_loader& vpm )
     debayer_filter::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
+  // `ocv_grabcut` and `ocv_watershed` are
+  // `library/image_processing/ocv_segmenters.py` since P7-T04b.
+
   // `ocv_detect_calibration_targets` is
   // `library/measurement/ocv_calibration_targets.py` since P7-T06.
 
@@ -99,14 +100,6 @@ register_factories( kv::plugin_loader& vpm )
 
   fact = vpm.add_factory< kv::algo::image_filter, random_hue_shift >(
     random_hue_shift::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::refine_detections, refine_detections_grabcut >(
-    refine_detections_grabcut::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  fact = vpm.add_factory< kv::algo::refine_detections, refine_detections_watershed >(
-    refine_detections_watershed::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
   fact = vpm.add_factory< kv::algo::split_image, split_image_habcam >(

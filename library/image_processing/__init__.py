@@ -7,8 +7,9 @@
 
 def __vital_algorithm_register__():
     from viame.image_processing import (ocv_estimators, ocv_flann_matcher,
-                                        ocv_sift_surf)
+                                        ocv_segmenters, ocv_sift_surf)
 
     ocv_sift_surf.__vital_algorithm_register__()
     ocv_flann_matcher.__vital_algorithm_register__()
     ocv_estimators.__vital_algorithm_register__()
+    ocv_segmenters.__vital_algorithm_register__()
