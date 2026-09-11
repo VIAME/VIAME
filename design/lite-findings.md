@@ -708,6 +708,70 @@ and sharing only the part that fills the block in. An inherited method is
 fine: the guard compares code objects, and a subclass that inherits
 `_Detector.get_configuration` has the same one.
 
+### 1.20 Assigning to `block()` compiles and does nothing
+
+Eigen's `block()`, `row()`, `col()`, `head()` and their fellows return
+**writable proxies**, so code written against Eigen is full of
+
+```cpp
+P.block< 3, 3 >( 0, 0 ) = R;
+design_matrix.row( 0 ) = point[ 0 ] * pose.row( 2 ) - pose.row( 0 );
+```
+
+P6's `core_types/math` returns **values** from all of them and offers
+`set_block`, `set_row`, `set_col` for writing. Assigning to a value compiles
+without a warning: it copy-assigns to a temporary, which is then destroyed.
+The statement does nothing, and nothing says so.
+
+Ten of those shipped. Two of them mattered:
+
+* `camera_perspective::pose_matrix()` and `::as_matrix()` filled nothing, so
+  **every camera in VIAME had a zero projection matrix**.
+* `Triangulate_DLT` filled none of its four rows, so the design matrix was
+  zero, its null vector was `(0, 0, 0, 1)` and every triangulated point came
+  back as the origin.
+
+Together: **every stereo measurement VIAME computed on this branch came out
+zero.** `measurement_from_annotations_default.pipe` wrote `length=0.000000`
+for every track, on real data and on synthetic. The reference build of `main`
+gives 361.14 mm where this gave 0. It had been that way since P6.
+
+`similarity_::matrix()` was a third: it set its corner to 1 and left the
+rotation and translation blocks zero, so every similarity transform was the
+zero map.
+
+**The fix is the guard, not the ten call sites.** `matrix_` and `vector_`
+now declare their copy, move and compound assignment operators with an
+lvalue ref qualifier (`operator=( matrix_ const& ) &`), which makes assigning
+to a temporary a compile error. That turned the remaining silent no-ops into
+build failures immediately -- `similarity.cxx` was found that way, not by
+reading.
+
+**Two reasons it survived this long, and both are fixed here.**
+
+`tests/plugins/core/test_measurement_utilities.cxx` has a
+`compute_stereo_measurement_full` case that fails on this. It was never run:
+`kwiver_discover_gtests` passed no `LABELS` to `gtest_discover_tests`, so
+every discovered gtest in the tree carried **no label at all** and
+`ctest -L UNIT` selected none of them. The label set this work verifies
+against went from 29 tests to 300 by adding one line to the helper. A second
+failure surfaced the moment it did: `color.demosaic_keeps_the_measured_sample`
+had been asserting the border rule P7-T04b deliberately changed, and had been
+failing, unnoticed, since.
+
+And the measurement chain had no golden. P7-T01 recorded the filters and the
+detectors; `measurement_cases.py` says in its own docstring that the
+`measurement_*` pipelines were left out because they need annotated input
+that is not in the tree. What closed it is a synthetic scene -- a textured
+plane at a known depth, viewed through the rig the calibration fixture
+already defines, with segments of known length on it -- which is the same
+trick the calibration fixture uses and costs two images.
+
+**For later phases:** any time an Eigen expression type is replaced by a
+value type, ref-qualify the assignment operators **first**. The compiler
+will then find every site. Doing it the other way round -- porting, then
+looking -- is how ten of these got through.
+
 ## 2. Open questions
 
 ### 2.1 An intermittent segfault in `viame train`

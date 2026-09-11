@@ -236,7 +236,8 @@ TEST ( color, flat_mosaic_demosaics_flat )
 }
 
 // ----------------------------------------------------------------------------
-/// A demosaic must return the sample it was given at the site that holds it.
+/// A demosaic returns the sample it was given at the site that holds it --
+/// in the interior. The outermost ring is a different rule, below.
 TEST ( color, demosaic_keeps_the_measured_sample )
 {
   kv::image_of< uint8_t > mosaic( 6, 6, 1 );
@@ -252,14 +253,63 @@ TEST ( color, demosaic_keeps_the_measured_sample )
 
   auto const rgb = io::demosaic( mosaic, io::bayer_pattern::BG );
 
-  // BG: blue at (0,0), red at (1,1)
-  EXPECT_EQ( mosaic( 0, 0, 0 ), rgb( 0, 0, 2 ) );
+  // BG: blue at an even site, red at an odd one, green at the mixed pair
   EXPECT_EQ( mosaic( 2, 2, 0 ), rgb( 2, 2, 2 ) );
+  EXPECT_EQ( mosaic( 4, 4, 0 ), rgb( 4, 4, 2 ) );
   EXPECT_EQ( mosaic( 1, 1, 0 ), rgb( 1, 1, 0 ) );
   EXPECT_EQ( mosaic( 3, 3, 0 ), rgb( 3, 3, 0 ) );
-  // and green at the other two corners
-  EXPECT_EQ( mosaic( 1, 0, 0 ), rgb( 1, 0, 1 ) );
-  EXPECT_EQ( mosaic( 0, 1, 0 ), rgb( 0, 1, 1 ) );
+  EXPECT_EQ( mosaic( 2, 1, 0 ), rgb( 2, 1, 1 ) );
+  EXPECT_EQ( mosaic( 1, 2, 0 ), rgb( 1, 2, 1 ) );
+}
+
+// ----------------------------------------------------------------------------
+/// And the outermost ring does **not** keep it.
+///
+/// `cv::cvtColor` computes the interior and then copies the first and last
+/// interior row and column outwards, rows before columns, so the sample the
+/// sensor actually measured at (0, 0) is overwritten and the corner ends up
+/// holding its diagonal neighbour. P7-T04b measured that against OpenCV --
+/// this test used to assert the opposite and had been failing since, unrun,
+/// because a discovered gtest carried no label. See finding 1.20.
+TEST ( color, demosaic_replicates_the_outermost_ring )
+{
+  kv::image_of< uint8_t > mosaic( 6, 6, 1 );
+  uint8_t value = 7;
+
+  for( size_t j = 0; j < mosaic.height(); ++j )
+  {
+    for( size_t i = 0; i < mosaic.width(); ++i )
+    {
+      mosaic( i, j, 0 ) = static_cast< uint8_t >( value = ( value * 5 + 3 ) );
+    }
+  }
+
+  auto const rgb = io::demosaic( mosaic, io::bayer_pattern::BG );
+
+  auto const last = mosaic.width() - 1;
+
+  for( size_t plane = 0; plane < 3; ++plane )
+  {
+    for( size_t i = 1; i + 1 < rgb.width(); ++i )
+    {
+      EXPECT_EQ( rgb( i, 0, plane ), rgb( i, 1, plane ) )
+        << "top edge at column " << i << ", plane " << plane;
+      EXPECT_EQ( rgb( i, last, plane ), rgb( i, last - 1, plane ) )
+        << "bottom edge at column " << i << ", plane " << plane;
+    }
+
+    for( size_t j = 0; j < rgb.height(); ++j )
+    {
+      EXPECT_EQ( rgb( 0, j, plane ), rgb( 1, j, plane ) )
+        << "left edge at row " << j << ", plane " << plane;
+      EXPECT_EQ( rgb( last, j, plane ), rgb( last - 1, j, plane ) )
+        << "right edge at row " << j << ", plane " << plane;
+    }
+
+    // Rows before columns, so a corner holds its diagonal neighbour
+    EXPECT_EQ( rgb( 0, 0, plane ), rgb( 1, 1, plane ) );
+    EXPECT_EQ( rgb( last, last, plane ), rgb( last - 1, last - 1, plane ) );
+  }
 }
 
 // ----------------------------------------------------------------------------

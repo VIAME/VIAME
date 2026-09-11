@@ -128,6 +128,26 @@ public:
     return out;
   }
 
+
+  // --------------------------------------------------------------------------
+  /// Assignment, to an lvalue only.
+  ///
+  /// The `&` is the whole point. Eigen's `block()`, `row()`, `col()`,
+  /// `head()` and their fellows return **writable proxies**, so code ported
+  /// from Eigen is full of `m.block< 3, 3 >( 0, 0 ) = r;`. These return
+  /// values, and assigning to a value compiles: it copy-assigns to a
+  /// temporary which is then destroyed, so the statement does nothing at all
+  /// and nothing says so. P6 shipped four of those, and one of them left
+  /// `camera_perspective::pose_matrix()` returning a zero matrix -- which
+  /// made every stereo measurement VIAME computed come out zero.
+  ///
+  /// With the ref qualifier, assigning to a temporary is a compile error.
+  /// Use `set_block`, `set_row` and `set_col` instead. See finding 1.20.
+  matrix_& operator=( matrix_ const& ) & = default;
+  matrix_& operator=( matrix_&& ) & = default;
+  matrix_( matrix_ const& ) = default;
+  matrix_( matrix_&& ) = default;
+
   void setZero() { for( unsigned i = 0; i < R * C; ++i ) { d_[ i ] = T( 0 ); } }
 
   void setIdentity()
@@ -205,16 +225,16 @@ public:
     return out;
   }
 
-  matrix_& operator+=( matrix_ const& o )
+  matrix_& operator+=( matrix_ const& o ) &
   { for( unsigned i = 0; i < R * C; ++i ) { d_[ i ] += o.data()[ i ]; } return *this; }
 
-  matrix_& operator-=( matrix_ const& o )
+  matrix_& operator-=( matrix_ const& o ) &
   { for( unsigned i = 0; i < R * C; ++i ) { d_[ i ] -= o.data()[ i ]; } return *this; }
 
-  matrix_& operator*=( T s )
+  matrix_& operator*=( T s ) &
   { for( unsigned i = 0; i < R * C; ++i ) { d_[ i ] *= s; } return *this; }
 
-  matrix_& operator/=( T s )
+  matrix_& operator/=( T s ) &
   { for( unsigned i = 0; i < R * C; ++i ) { d_[ i ] /= s; } return *this; }
 
   // --------------------------------------------------------------------------

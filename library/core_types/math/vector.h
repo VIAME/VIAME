@@ -123,6 +123,18 @@ public:
 
   // --------------------------------------------------------------------------
   // The named constructors
+  // --------------------------------------------------------------------------
+  /// Assignment, to an lvalue only.
+  ///
+  /// `head()`, `tail()` and `segment()` are values here where Eigen made them
+  /// writable proxies, so `v.head< 3 >() = w;` would compile, assign to a
+  /// temporary and do nothing. The ref qualifier makes it a compile error.
+  /// See `matrix_`'s copy of this note and finding 1.20.
+  vector_& operator=( vector_ const& ) & = default;
+  vector_& operator=( vector_&& ) & = default;
+  vector_( vector_ const& ) = default;
+  vector_( vector_&& ) = default;
+
   static vector_ Zero()     { return vector_(); }
   static vector_ Ones()     { return vector_( T( 1 ) ); }
   static vector_ Constant( T value ) { return vector_( value ); }
@@ -151,16 +163,16 @@ public:
     return out;
   }
 
-  vector_& operator+=( vector_ const& o )
+  vector_& operator+=( vector_ const& o ) &
   { for( unsigned i = 0; i < N; ++i ) { d_[ i ] += o[ i ]; } return *this; }
 
-  vector_& operator-=( vector_ const& o )
+  vector_& operator-=( vector_ const& o ) &
   { for( unsigned i = 0; i < N; ++i ) { d_[ i ] -= o[ i ]; } return *this; }
 
-  vector_& operator*=( T s )
+  vector_& operator*=( T s ) &
   { for( unsigned i = 0; i < N; ++i ) { d_[ i ] *= s; } return *this; }
 
-  vector_& operator/=( T s )
+  vector_& operator/=( T s ) &
   { for( unsigned i = 0; i < N; ++i ) { d_[ i ] /= s; } return *this; }
 
   // --------------------------------------------------------------------------

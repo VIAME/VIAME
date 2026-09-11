@@ -63,8 +63,9 @@ similarity_< T >
 {
   matrix_< 4, 4, T > mat = matrix_< 4, 4, T >::Zero();
   mat( 3, 3 ) = 1;
-  mat.template block< 3, 3 >( 0, 0 ) = this->scale_ * this->rot_.matrix();
-  mat.template block< 3, 1 >( 0, 3 ) = this->trans_;
+  mat.template set_block< 3, 3 >( 0, 0, this->scale_ * this->rot_.matrix() );
+  mat.template set_block< 3, 1 >(
+    0, 3, matrix_< 3, 1, T >( this->trans_ ) );
   return mat;
 }
 

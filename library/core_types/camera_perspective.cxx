@@ -29,8 +29,8 @@ camera_perspective
   matrix_3x3d R( this->rotation().matrix() );
   matrix_3x3d K( this->intrinsics()->as_matrix() );
   vector_3d t( this->translation() );
-  P.block< 3, 3 >( 0, 0 ) = R;
-  P.block< 3, 1 >( 0, 3 ) = t;
+  P.set_block< 3, 3 >( 0, 0, R );
+  P.set_block< 3, 1 >( 0, 3, matrix_< 3, 1, double >( t ) );
   return K * P;
 }
 
@@ -42,8 +42,8 @@ camera_perspective
   matrix_3x4d P;
   matrix_3x3d R( this->rotation().matrix() );
   vector_3d t( this->translation() );
-  P.block< 3, 3 >( 0, 0 ) = R;
-  P.block< 3, 1 >( 0, 3 ) = t;
+  P.set_block< 3, 3 >( 0, 0, R );
+  P.set_block< 3, 1 >( 0, 3, matrix_< 3, 1, double >( t ) );
   return P;
 }
 

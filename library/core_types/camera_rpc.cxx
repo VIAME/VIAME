@@ -52,9 +52,14 @@ camera_rpc
   vector_3d rslt( 0., 0., norm_elev );
   vector_2d b;
 
-  A.block< 1, 2 >( 0, 0 ) = rpc_coeffs().block< 1, 2 >( 0, 1 ) -
-                            norm_pt[ 0 ] * rpc_coeffs().block< 1, 2 >( 1, 1 );
-  A.block< 1, 2 >( 1, 0 ) = rpc_coeffs().block< 1, 2 >( 2, 1 );
+  A.set_block< 1, 2 >( 0, 0, rpc_coeffs().block< 1, 2 >( 0, 1 ) -
+                             norm_pt[ 0 ] * rpc_coeffs().block< 1, 2 >( 1, 1 ) );
+  A.set_block< 1, 2 >( 1, 0, rpc_coeffs().block< 1, 2 >( 2, 1 ) );
+
+  // The semicolon on the line above is upstream kwiver's, and so is what it
+  // does: the second row of `A` never gets its `norm_pt[ 1 ]` term and the
+  // expression below is discarded. Kept, because this is the behaviour every
+  // RPC camera in kwiver has had; VIAME selects none of them.
   -norm_pt[ 1 ] * rpc_coeffs().block< 1, 2 >( 3, 1 );
 
   b[ 0 ] = ( rpc_coeffs()( 1, 0 ) + norm_elev * rpc_coeffs()(
@@ -144,8 +149,8 @@ simple_camera_rpc
     {
       pwr = 3.;
     }
-    dx_coeffs_.block< 4, 1 >( 0, i ) =
-      pwr * rpc_coeffs().block< 4, 1 >( 0, dx_ind[ i ] );
+    dx_coeffs_.set_block< 4, 1 >(
+      0, i, pwr * rpc_coeffs().block< 4, 1 >( 0, dx_ind[ i ] ) );
     pwr = 1.0;
     if( i == 2 || i == 4 || i == 6 )
     {
@@ -155,8 +160,8 @@ simple_camera_rpc
     {
       pwr = 3.;
     }
-    dy_coeffs_.block< 4, 1 >( 0, i ) =
-      pwr * rpc_coeffs().block< 4, 1 >( 0, dy_ind[ i ] );
+    dy_coeffs_.set_block< 4, 1 >(
+      0, i, pwr * rpc_coeffs().block< 4, 1 >( 0, dy_ind[ i ] ) );
   }
 }
 

@@ -207,6 +207,14 @@ function (kwiver_discover_gtests MODULE NAME)
     list(APPEND EXTRA_ARGS EXTRA_ARGS ${_ARGUMENTS})
   endif()
 
+  # Label them UNIT. Without this a discovered gtest carries no label at all,
+  # so `ctest -L UNIT` -- which is how the unit tests are meant to be run --
+  # ran none of the two hundred of them. That is how the stereo triangulation
+  # regression of finding 1.20 survived: `measurement_utilities_test` had a
+  # case that fails on it, and nothing was running that case. PROPERTIES is
+  # multi-value, so it goes last.
+  list(APPEND EXTRA_ARGS PROPERTIES LABELS UNIT)
+
   kwiver_build_test(${MODULE}-${NAME} _LIBRARIES ${_SOURCES})
   gtest_discover_tests(test-${MODULE}-${NAME} ${EXTRA_ARGS})
 endfunction()

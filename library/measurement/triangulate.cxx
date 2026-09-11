@@ -65,10 +65,10 @@ Triangulate_DLT(
   // https://github.com/sweeneychris/TheiaSfM/blob/master/src/theia/sfm/triangulation/triangulation.h
 
   kwiver::vital::matrix_4x4d design_matrix;
-  design_matrix.row( 0 ) = point1[ 0 ] * pose1.row( 2 ) - pose1.row( 0 );
-  design_matrix.row( 1 ) = point1[ 1 ] * pose1.row( 2 ) - pose1.row( 1 );
-  design_matrix.row( 2 ) = point2[ 0 ] * pose2.row( 2 ) - pose2.row( 0 );
-  design_matrix.row( 3 ) = point2[ 1 ] * pose2.row( 2 ) - pose2.row( 1 );
+  design_matrix.set_row( 0, point1[ 0 ] * pose1.row( 2 ) - pose1.row( 0 ) );
+  design_matrix.set_row( 1, point1[ 1 ] * pose1.row( 2 ) - pose1.row( 1 ) );
+  design_matrix.set_row( 2, point2[ 0 ] * pose2.row( 2 ) - pose2.row( 0 ) );
+  design_matrix.set_row( 3, point2[ 1 ] * pose2.row( 2 ) - pose2.row( 1 ) );
 
   // Extract nullspace: the column of V for the smallest singular value.
   vital::jacobi_svd< double > const svd{
