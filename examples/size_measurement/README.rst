@@ -385,6 +385,35 @@ requiring any manual annotations.
   the field of view.
 
 
+Robust Disparity Segment Measurement
+------------------------------------
+
+**stereo_measure_current_annots_sgbm.pipe** measures existing head-tail
+annotations using OpenCV SGBM/WLS and the shared ``compute_measurements``
+process. It fits a disparity profile along each annotated segment, reconstructs
+the endpoint correspondences, and uses the existing triangulation, stereo track
+pairing, CSV output, and median track-length aggregation. Length units follow
+the calibration translation vector.
+
+The same refinement is available in
+**stereo_measure_current_annots_fdn_stereo_s.pipe** by setting
+``measurer:refine_disparity_segment=true``. It is disabled by default there.
+Other disparity backends can use this option if they return rectified pixel
+disparities; the measurement process supplies the rectified input images.
+
+The default fit uses 11 samples and permits at most 3 invalid or outlier
+samples, with a maximum disparity residual of 1 pixel. These are controlled by
+``disparity_segment_samples``, ``disparity_segment_max_outliers``, and
+``disparity_segment_max_error`` on the measurer. The neighborhood radius for
+each sample is ``refine_keypoints_disparity_window`` (default 7 pixels).
+The fit requires at least three inliers, a strict majority of the requested
+samples, and support spanning at least half the segment. Insufficient support
+skips that measurement; existing valid track measurements remain available
+for aggregation. The model assumes a straight 3D head-tail segment and fits
+in disparity space to account for perspective when its endpoints have
+different depths.
+
+
 .. _Calibration File Format:
 
 Calibration File Format

@@ -49,6 +49,14 @@ process measurer
   :refine_keypoints_with_disparity             true
   :refine_keypoints_disparity_window           7
 
+  # Optional robust profile fit, shared with the SGBM measurement pipeline.
+  # Works with foundation_stereo and fast_foundation_stereo disparity backends.
+  # Invalid samples and outliers must leave >=3 samples and a strict majority.
+  :refine_disparity_segment                    false   # DIVE_PARAM["Robust Segment Fit", bool]
+  :disparity_segment_samples                   11      # DIVE_PARAM["Segment Samples", range_int, 3, 101]
+  :disparity_segment_max_outliers              3       # DIVE_PARAM["Max Invalid or Outlier Samples", range_int, 0, 49]
+  :disparity_segment_max_error                 1.0     # DIVE_PARAM["Max Disparity Residual (px)", range_float, 0.1, 10, 0.1]
+
   # Feature detector configuration (for feature-based methods if needed)
   # Options: ocv_BRISK, ocv_FAST, ocv_GFTT, ocv_ORB, ocv_SIFT, ocv_SURF, etc.
   feature_detector:type                        = ocv_ORB
