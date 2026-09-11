@@ -272,11 +272,26 @@ bool dino_ensure_initialized(
 /// interleaved, which is what `cv::Mat::data` was and what the python side
 /// reads. `vital::image` is planar, so this is the one place the two layouts
 /// have to be spelled out rather than aliased.
+///
+/// **In BGR**, and that is not decoration. `viame.pytorch.dino_matcher`
+/// names its parameter `img_bgr` and reverses the last axis before
+/// normalising, so it wants the order the bridge used to produce. This is
+/// the one place in the port where the swap the bridge did has to be done by
+/// hand rather than cancelled out, because the consumer is on the other side
+/// of a byte buffer and cannot be asked.
 std::vector< uint8_t >
 interleaved( const kv::image_of< uint8_t >& image )
 {
   std::vector< uint8_t > out;
   out.reserve( image.width() * image.height() * image.depth() );
+
+  // Three planes reverse to BGR, four to BGRA -- alpha stays last, which is
+  // what `cv::cvtColor`'s `RGBA2BGRA` does -- and one is a grey image the
+  // python side stacks for itself.
+  auto const source_plane = [ & ]( size_t plane )
+  {
+    return ( image.depth() >= 3 && plane < 3 ) ? 2 - plane : plane;
+  };
 
   for( size_t j = 0; j < image.height(); ++j )
   {
@@ -284,7 +299,7 @@ interleaved( const kv::image_of< uint8_t >& image )
     {
       for( size_t plane = 0; plane < image.depth(); ++plane )
       {
-        out.push_back( image( i, j, plane ) );
+        out.push_back( image( i, j, source_plane( plane ) ) );
       }
     }
   }

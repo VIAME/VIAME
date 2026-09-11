@@ -23,12 +23,14 @@ Notes.
   `plugins/` has five: two CSV writers (recorded, unported), `plot_metrics`
   (a rewrite), and open decision 6's two model classifiers -- plus
   `plugins/darknet`, which is P7-T08's
-- Last clean-configure build verified: 2026-09-10, P5-T05 (a fresh
-  `build/merged-build`, 25 of 25 tests). Since then the incremental tree has
-  stayed green through P6 and all of P7 so far, now **300 of 300** -- the
-  jump from 29 is `kwiver_discover_gtests` finally labelling what it
-  discovers, see finding 1.20. The command is
-  `ctest -L "BASELINE|GOLDEN|UNIT|CRITICAL|CORE"`
+- Last clean-configure build verified: 2026-09-11, after P7-T06. A fresh
+  `build/clean-build` configured and compiled the whole tree with **no
+  errors**, which is the check a warm tree cannot give: a header that is only
+  found because an old copy sits in the install prefix, or a target whose
+  dependency is satisfied by a stale object, shows up here and nowhere else.
+  The incremental tree is at **305 of 305** -- the jump from 29 is
+  `kwiver_discover_gtests` finally labelling what it discovers, see finding
+  1.20. The command is `ctest -L "BASELINE|GOLDEN|UNIT|CRITICAL|CORE"`
 - Reference machine: local workstation, CUDA 12.6, cuDNN 9.12, Ubuntu
   (kernel 6.8), python 3.10.12, gcc default, 16 cores
 
