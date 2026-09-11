@@ -25,7 +25,6 @@
 #include "convert_color_space.h"
 #include "debayer_filter.h"
 #include "enhance_images.h"
-#include "optimize_stereo_cameras.h"
 #include "random_hue_shift.h"
 #include "refine_detections_grabcut.h"
 #include "refine_detections_watershed.h"
@@ -93,9 +92,10 @@ register_factories( kv::plugin_loader& vpm )
     "vxl_enhancer" );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
-  fact = vpm.add_factory< kv::algo::optimize_cameras, optimize_stereo_cameras >(
-    optimize_stereo_cameras::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+  // `ocv_optimize_stereo_cameras` is
+  // `library/measurement/ocv_optimize_stereo_cameras.py` since P7-T06, with
+  // `filter_stereo_feature_tracks` and `kmedians` beside it as
+  // `stereo_frame_selection.py`.
 
   fact = vpm.add_factory< kv::algo::image_filter, random_hue_shift >(
     random_hue_shift::plugin_name() );

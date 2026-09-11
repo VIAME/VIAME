@@ -127,4 +127,17 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_calibration_targets.py
     measurement
     ocv_calibration_targets )
+
+  # `filter_stereo_feature_tracks` and `kmedians`, which turn the target's
+  # tracks into the point sets a calibration takes.
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/stereo_frame_selection.py
+    measurement
+    stereo_frame_selection )
+
+  # `ocv_optimize_stereo_cameras`, the calibration itself.
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_optimize_stereo_cameras.py
+    measurement
+    ocv_optimize_stereo_cameras )
 endif()

@@ -118,6 +118,15 @@ REPLACEMENTS_BY_GROUP = {
 # Where a documented divergence is declared, per kind. `cases.py` holds the
 # ones phase 3 found; the feature chain's are in `feature_cases.py`, beside
 # the cases themselves.
+# Where an unstable case's reason and comparison live, per kind. A module
+# here provides `unstable(kind, impl, variant)` and `compare_unstable`.
+UNSTABLE_OF_KIND = {
+    "matches": (feature_cases, feature_runner),
+    "tracks": (feature_cases, feature_runner),
+    "calibration_pipeline": (measurement_cases, measurement_cases),
+}
+
+
 DIVERGENCES_OF_KIND = {
     "disparity": measurement_cases,
     "features": feature_cases,
@@ -377,14 +386,18 @@ def check_array_case(item, case, outputs, group):
             "{} {}: members {} != recorded {}".format(
                 case_id(item), name, sorted(actual), sorted(expected)))
 
-        unstable = feature_cases.unstable(case["kind"], case["impl"])
+        cases_module, runner_module = UNSTABLE_OF_KIND.get(
+            case["kind"], (None, None))
+        unstable = (cases_module.unstable(case["kind"], case["impl"],
+                                          case["variant"])
+                    if cases_module else None)
 
         for member in sorted(expected):
             got = np.asarray(actual[member])
             want = np.asarray(expected[member])
 
             if unstable:
-                problems = feature_runner.compare_unstable(
+                problems = runner_module.compare_unstable(
                     case["kind"], member, got, want)
                 assert not problems, "{} {} '{}' ({}): {}".format(
                     case_id(item), name, member, unstable,

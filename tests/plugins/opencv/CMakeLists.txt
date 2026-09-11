@@ -12,7 +12,6 @@ include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 set( test_libraries viame_opencv GTest::gtest_main )
 
-kwiver_discover_gtests( viame_opencv filter_stereo_feature_tracks
-  LIBRARIES ${test_libraries} )
-# TODO: Enable when ocv_kmedians.h is implemented
-# kwiver_discover_gtests( viame_opencv kmedians LIBRARIES ${test_libraries} )
+# `filter_stereo_feature_tracks` and `kmedians` moved to python in P7-T06;
+# their tests are `tests/library/measurement/test_stereo_frame_selection.py`
+# now, and they say rather more than the three smoke tests that were here.

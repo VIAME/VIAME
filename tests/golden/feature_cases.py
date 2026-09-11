@@ -206,7 +206,7 @@ MATCH_AGREEMENT = 0.90
 TRACK_LENGTH_TOLERANCE = 0.10
 
 
-def unstable(kind, impl):
+def unstable(kind, impl, variant=None):
     """Why this case cannot be compared exactly, or None."""
     return UNSTABLE.get((kind, impl))
 

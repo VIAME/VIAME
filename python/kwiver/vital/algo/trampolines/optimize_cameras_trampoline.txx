@@ -21,6 +21,7 @@
 #include <python/kwiver/vital/algo/algorithm_trampoline.txx>
 #include <python/kwiver/vital/algo/out_parameter.txx>
 #include <viame/algorithm_framework/algo/optimize_cameras.h>
+#include <viame/core_types/camera_map.h>
 
 namespace kwiver::vital::python {
 
@@ -71,7 +72,11 @@ public:
       return;
     }
 
-    cameras = result.cast< kwiver::vital::camera_map_sptr >();
+    // `simple_camera_map`, not `camera_map`: python's `CameraMap` is bound
+    // as the concrete class with no base declared, so pybind cannot hand it
+    // over as the interface pointer. The upcast is free once it is in C++,
+    // and `simple_camera_map` is the only camera map python can build.
+    cameras = result.cast< std::shared_ptr< kwiver::vital::simple_camera_map > >();
   }
 
   /// Optimize one camera against parallel feature and landmark vectors.

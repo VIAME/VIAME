@@ -63,7 +63,7 @@ def descriptors_to_array(descriptor_set):
 # Comparing a case whose implementation is not deterministic
 # ----------------------------------------------------------------------------
 
-def compare_unstable(kind, member, got, want):
+def compare_unstable(kind, member, got, want):  # noqa: C901
     """Problems with an unstable case's member, as a list of strings.
 
     `ocv_flann_based` builds randomised KD-trees, so a match set and anything

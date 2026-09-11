@@ -7,7 +7,9 @@
 
 def __vital_algorithm_register__():
     from viame.measurement import (ocv_calibration_targets,
+                                   ocv_optimize_stereo_cameras,
                                    ocv_stereo_disparity)
 
     ocv_stereo_disparity.__vital_algorithm_register__()
     ocv_calibration_targets.__vital_algorithm_register__()
+    ocv_optimize_stereo_cameras.__vital_algorithm_register__()

@@ -334,6 +334,28 @@ an artefact of the port:
   difference to a grey target and moves a corner by a fraction of a pixel on
   a coloured one; the port reproduces it, because changing it would change
   every calibration the tree has produced.
+* `kmedians` seeds itself with `cv::kmeans`, which draws from
+  `cv::theRNG()` -- a **thread-local** generator whose state depends on what
+  else has used OpenCV on that thread and not on anything the algorithm was
+  given. Each implementation is reproducible within itself and they disagree
+  with each other: from the same twelve calibration frames the C++ selected
+  {0, 1, 4, 6, 8, 11} and the python port {0, 1, 4, 6, 9, 11}. Seeding the
+  generator by hand across thirty values gives exactly those two selections
+  and no others, which is what says the difference is the seed rather than
+  the port. So a calibration made with `frame_count_threshold` set is not
+  reproducible across implementations, and `tests/golden/measurement` holds
+  that case to a relative tolerance and to ground truth instead of to its
+  bytes. Worth knowing before treating a calibration file as a record of
+  what its inputs were.
+* `filter_stereo_feature_tracks`'s extent matrix has sixteen columns and
+  uses four. `get_world_point_corner_values` takes the bounds of the world
+  points from the **first point of each frame** rather than from all of
+  them, so on a board whose corner order is fixed -- which is every board a
+  chessboard detector produces -- all four "corners" collapse to that one
+  point and only the first extent pair is ever written. The clustering
+  therefore groups frames by where one corner landed, not by the board's
+  pose. It is not obviously wrong, since that corner's position does vary
+  with pose, but it is not what the code reads as doing.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 

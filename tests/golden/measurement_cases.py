@@ -192,8 +192,67 @@ def calibration_view_names():
             ["calib_right_%02d" % index for index in range(count)])
 
 
+# ----------------------------------------------------------------------------
+# What cannot be recorded exactly
+# ----------------------------------------------------------------------------
+#
+# `kmedians` seeds itself with `cv::kmeans`, which draws from `cv::theRNG()`
+# -- a thread-local generator whose state depends on what else has used
+# OpenCV on that thread, and not on anything the algorithm was given. Each
+# implementation is deterministic within itself (three runs each, identical
+# to nine digits) and they disagree with each other: from the same twelve
+# frames the C++ selected {0, 1, 4, 6, 8, 11} and the python port
+# {0, 1, 4, 6, 9, 11}, one frame apart. Seeding the generator by hand across
+# thirty values gives those two selections and no others.
+#
+# So a matrix from this case is not a contract on its bytes. It is still a
+# contract on two things worth more: that the calibration lands within
+# `RELATIVE_TOLERANCE` of the recorded one -- a different sixth frame costs
+# 0.22%, and anything actually broken costs far more -- and that it still
+# recovers the ground truth, which `check_calibration_truth` checks and
+# which does not care how the frames were chosen.
+UNSTABLE = {
+    ("calibration_pipeline", CALIBRATION_PIPELINE, "frames_6"):
+        "kmedians seeds from cv::theRNG(), whose state is not an input to "
+        "the algorithm, so which six of the twelve frames are selected "
+        "differs between implementations",
+}
+
+RELATIVE_TOLERANCE = 0.01
+
+
+def unstable(kind, impl, variant=None):
+    """Why this case cannot be compared exactly, or None."""
+    return UNSTABLE.get((kind, impl, variant))
+
+
+def compare_unstable(kind, member, got, want):
+    """Problems with an unstable case's member, as a list of strings.
+
+    Relative to the member's own scale, since a rotation matrix and a
+    projection matrix in the same document are four orders of magnitude
+    apart and one absolute tolerance cannot serve both.
+    """
+    import numpy as np
+
+    if got.shape != want.shape:
+        return ["shape {} != recorded {}".format(got.shape, want.shape)]
+
+    if want.size == 0:
+        return []
+
+    scale = max(1e-9, float(np.abs(want).max()))
+    relative = float(np.abs(got - want).max()) / scale
+
+    if relative > RELATIVE_TOLERANCE:
+        return ["{:.2%} apart at most, more than {:.0%}".format(
+            relative, RELATIVE_TOLERANCE)]
+
+    return []
+
+
 def unstable_reason(impl, variant, name=None):
-    """Nothing here is unstable; the signature matches the other case files."""
+    """The per-input hook the other case files have; nothing uses it here."""
     return None
 
 

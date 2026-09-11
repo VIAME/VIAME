@@ -21,12 +21,9 @@ set( plugin_headers
   diff_of_gauss_detector.h
   ellipse_proposal.h
   enhance_images.h
-  filter_stereo_feature_tracks.h
   gabor_features.h
   hog_features.h
-  kmedians.h
   opencv_yaml_matrix.h
-  optimize_stereo_cameras.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
   plot_metrics.h
@@ -55,11 +52,8 @@ set( plugin_sources
   debayer_filter.cxx
   diff_of_gauss_detector.cxx
   enhance_images.cxx
-  filter_stereo_feature_tracks.cxx
   gabor_features.cxx
   hog_features.cxx
-  kmedians.cxx
-  optimize_stereo_cameras.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
   plot_metrics.cxx
