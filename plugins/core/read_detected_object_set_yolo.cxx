@@ -8,6 +8,8 @@
  */
 
 #include "read_detected_object_set_yolo.h"
+#include "utilities_file.h"
+#include <vital/types/category_hierarchy.h>
 
 #include <vital/algo/algorithm.txx>
 #include <vital/util/tokenize.h>
@@ -258,24 +260,36 @@ read_detected_object_set_yolo::priv
 {
   m_class_names.clear();
 
-  std::ifstream ifs( filename );
-  if( !ifs )
+  try
   {
-    LOG_WARN( m_parent->logger(), "Could not open classes file: " << filename );
-    return false;
-  }
-
-  std::string line;
-  while( std::getline( ifs, line ) )
-  {
-    // Trim whitespace
-    size_t start = line.find_first_not_of( " \t\r\n" );
-    if( start == std::string::npos )
+    const auto extension = kwiversys::SystemTools::GetFilenameLastExtension( filename );
+    if( extension == ".names" )
     {
-      continue; // Empty line
+      // Native Darknet .names files remain one literal class name per line.
+      std::ifstream ifs( filename );
+      if( !ifs ) { throw std::runtime_error( "Could not open classes file" ); }
+      std::string line;
+      while( std::getline( ifs, line ) )
+      {
+        const auto first = line.find_first_not_of( " \t\r\n" );
+        if( first != std::string::npos )
+        {
+          const auto last = line.find_last_not_of( " \t\r\n" );
+          m_class_names.push_back( line.substr( first, last - first + 1 ) );
+        }
+      }
     }
-    size_t end = line.find_last_not_of( " \t\r\n" );
-    m_class_names.push_back( line.substr( start, end - start + 1 ) );
+    else
+    {
+      const kwiver::vital::category_hierarchy labels( filename );
+      m_class_names = labels.all_class_names();
+    }
+  }
+  catch( const std::exception& e )
+  {
+    LOG_ERROR( m_parent->logger(), "Could not read classes file " << filename
+      << ": " << e.what() );
+    return false;
   }
 
   LOG_DEBUG( m_parent->logger(), "Loaded " << m_class_names.size() << " class names from " << filename );
@@ -290,20 +304,13 @@ read_detected_object_set_yolo::priv
 {
   std::string image_dir = kwiversys::SystemTools::GetFilenamePath( image_path );
 
-  // Strategy 1: labels.txt in same directory as images
-  std::string classes_path = image_dir + "/labels.txt";
-  if( kwiversys::SystemTools::FileExists( classes_path ) )
+  const std::string parent_dir = kwiversys::SystemTools::GetFilenamePath( image_dir );
+  for( const auto& directory : { image_dir, parent_dir } )
   {
-    return classes_path;
+    const auto path = find_labels_file( directory );
+    if( !path.empty() ) { return path; }
   }
-
-  // Strategy 2: labels.txt in parent directory
-  std::string parent_dir = kwiversys::SystemTools::GetFilenamePath( image_dir );
-  classes_path = parent_dir + "/labels.txt";
-  if( kwiversys::SystemTools::FileExists( classes_path ) )
-  {
-    return classes_path;
-  }
+  std::string classes_path;
 
   // Strategy 3: classes.txt in same directory (alternative name)
   classes_path = image_dir + "/classes.txt";

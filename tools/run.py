@@ -148,13 +148,18 @@ def gt_file_extension( gt_format ):
     return '.' + gt_format
   return gt_format
 
-def auto_identify_gt_files( folder, gt_format ):
+def is_labels_file( filename, selected="" ):
+  return os.path.basename(filename) in ("labels.txt", "labels.csv", "labels.json") or \
+    bool(selected and os.path.abspath(filename) == os.path.abspath(selected))
+
+def auto_identify_gt_files( folder, gt_format, label_file="" ):
   gt_ext = gt_file_extension( gt_format )
   entries = []
   for root, dirs, files in os.walk( folder ):
     dirs[:] = [ d for d in dirs if not d.startswith( '.' ) ]
     for f in sorted( files ):
-      if f.endswith( gt_ext ) and not f.startswith( '.' ):
+      if f.endswith( gt_ext ) and not f.startswith( '.' ) and \
+         not is_labels_file( os.path.join(root, f), label_file ):
         entries.append( os.path.join( root, f ) )
   print( os.linesep + "Found " + str( len( entries ) ) + " annotation files for possible processing" + os.linesep )
   for i in entries:
@@ -671,9 +676,12 @@ def groundtruth_reader_settings_list( options, gt_files, basename, gpu_id, gt_ty
     if options.label_file:
       lbl_file = options.label_file
     else:
-      lbl_file = options.input_dir + "/labels.txt"
-      if not os.path.exists( lbl_file ):
-        lbl_file = "labels.txt"
+      lbl_file = next(
+        (os.path.join(directory, "labels" + extension)
+         for directory in (options.input_dir, ".")
+         for extension in (".txt", ".csv", ".json")
+         if os.path.isfile(os.path.join(directory, "labels" + extension))),
+        "labels.txt")
 
     output += fset( 'detection_reader:file_name=' + gt_files[0] )
     output += fset( 'detection_reader:reader:type=' + gt_type )
@@ -856,7 +864,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     return
   elif os.path.isdir( input_path ):
     if auto_detect_gt:
-      gt_files = list_files_in_dir_w_ext( input_path, gt_ext )
+      gt_files = [f for f in list_files_in_dir_w_ext( input_path, gt_ext )
+                  if not is_labels_file(f, options.label_file)]
     if is_multi_cam:
       for camera_folder in camera_folders:
         camera_name = os.path.basename( camera_folder )
@@ -875,7 +884,8 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     is_image_list = True
   elif auto_detect_gt:
     gt_search_path = os.path.dirname( os.path.abspath( input_path ) )
-    all_gt_files = list_files_in_dir_w_ext( gt_search_path, gt_ext )
+    all_gt_files = [f for f in list_files_in_dir_w_ext( gt_search_path, gt_ext )
+                    if not is_labels_file(f, options.label_file)]
     better_fit = [ i for i in all_gt_files if input_id_no_ext in i ]
     best_fit = [ i for i in better_fit if input_id_no_ext + ".csv" == os.path.basename(i) ]
     if len( best_fit ) > 0:
@@ -1210,7 +1220,7 @@ if __name__ == "__main__" :
          "and numbers come from the annotation files themselves." )
 
   parser.add_argument( "-lbl-file", dest="label_file", default="",
-    help="Pass this label file to pipes" )
+    help="Pass this label file (.txt, .csv, or .json) to pipes" )
 
   parser.add_argument( "--init-db", dest="init_db", action="store_true",
     help="Re-initialize database" )
@@ -1397,7 +1407,7 @@ if __name__ == "__main__" :
       is_image_list = True
     elif len( args.input_dir ) > 0:
       if args.gt_only:
-        data_list = auto_identify_gt_files( args.input_dir, args.auto_detect_gt )
+        data_list = auto_identify_gt_files( args.input_dir, args.auto_detect_gt, args.label_file )
       else:
         data_list = auto_identify_data( args.input_dir, \
           args.video_exts, args.image_exts, not args.recursive )

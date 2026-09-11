@@ -46,6 +46,24 @@ bool does_folder_exist( const std::string& location )
          filesystem::is_directory( location );
 }
 
+std::string find_labels_file( const std::string& directory )
+{
+  for( const std::string extension : { ".txt", ".csv", ".json" } )
+  {
+    const auto path = ( filesystem::path( directory ) / ( "labels" + extension ) ).string();
+    if( does_file_exist( path ) ) { return path; }
+  }
+  return "";
+}
+
+bool is_labels_file( const std::string& filename, const std::string& selected )
+{
+  const auto name = filesystem::path( filename ).filename().string();
+  return name == "labels.txt" || name == "labels.csv" || name == "labels.json" ||
+    ( !selected.empty() && filesystem::absolute( filename ).lexically_normal() ==
+                          filesystem::absolute( selected ).lexically_normal() );
+}
+
 bool list_all_subfolders( const std::string& location,
                           std::vector< std::string >& subfolders )
 {

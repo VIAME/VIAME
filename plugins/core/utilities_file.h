@@ -25,6 +25,17 @@ namespace viame {
 VIAME_CORE_EXPORT
 bool does_file_exist( const std::string& location );
 
+/// Find labels.txt, labels.csv, or labels.json in a directory, in that order.
+/// Return an empty string if none exists.
+VIAME_CORE_EXPORT
+std::string find_labels_file( const std::string& directory );
+
+/// Recognize default label filenames or an explicitly selected label file.
+/// Used to exclude category definitions from annotation discovery.
+VIAME_CORE_EXPORT
+bool is_labels_file( const std::string& filename,
+                     const std::string& selected = "" );
+
 /// Check if a folder exists at the given location
 ///
 /// \param location Path to check

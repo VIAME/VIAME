@@ -65,34 +65,87 @@ Supported video formats include: .mp4, .mpg, .mpeg, .avi, .wmv, .mov, .webm, .og
 Labels Files
 ************
 
-The ``labels.txt`` file controls which categories are trained, allows synonyms for the
-same category, and supports class hierarchies.
+The label file controls which categories are trained, allows synonyms for the
+same category, and supports class hierarchies. ``viame train --labels FILE``
+accepts ``.txt``, ``.csv``, and ``.json`` files. Without ``--labels``, training
+looks for ``labels.txt``, ``labels.csv``, then ``labels.json`` in the input
+directory, using the first file found.
 
-**Synonyms:** Multiple names on the same line are treated as the same output class. The
-first name becomes the output label::
+**TXT synonyms and spaces:** Multiple names on the same line are treated as the
+same output class. The first name becomes the output label. Put names containing
+spaces in double or single quotes::
 
-    speciesA speciesB speciesC
-    speciesD
+    "sport glove" "athletic glove"
+    glove
 
-This trains a model with two output classes: ``speciesA`` (which also matches
-``speciesB`` and ``speciesC`` annotations) and ``speciesD``.
+This trains two output classes: ``sport glove`` (also matching ``athletic glove``
+annotations) and ``glove``. Unquoted spaces still separate synonyms, so
+``sport glove`` without quotes means the category ``sport`` with synonym ``glove``.
+Annotation names themselves need no changes. ``#`` starts a comment outside quotes.
+Inside quotes, escape a quote with a backslash or double it.
 
-**Filtering:** Categories omitted from ``labels.txt`` are excluded from training::
+**Filtering:** Categories and synonyms omitted from the label file are excluded
+from training. If no label file is supplied or discovered, training can use all
+unique labels from the groundtruth.
 
-    speciesA
-    speciesC
-    speciesD
+**Hierarchies:** Parent-child relationships are separate from synonyms. A synonym
+maps annotations onto the canonical output class; a parent remains a distinct
+class, with its relationship available to trainers supporting hierarchical
+classification. Parents may be declared after their children::
 
-This produces three output classes; any ``speciesB`` annotations are ignored.
+    "sport glove" "athletic glove" :parent="sport equipment"
+    glove
+    "sport equipment" gear
 
-**Hierarchies:** Parent-child relationships can be specified for frameworks that
-support hierarchical classification::
+More than one ``:parent=`` field may be specified for a category.
 
-    genusA
-    speciesC :parent=genusA
-    speciesD
+**CSV:** Use one row per category, with the canonical name in the first field,
+followed by synonyms and optional ``:parent=`` fields. There is no header row.
+Spaces inside fields do not split names. The equivalent CSV file is::
 
-If no ``labels.txt`` is provided, all unique labels in the groundtruth are used.
+    sport glove,athletic glove,:parent=sport equipment
+    glove
+    sport equipment,gear
+
+Use CSV double quotes around fields containing commas or quotes; double an
+embedded quote. Leading and trailing whitespace outside quoted fields is ignored.
+
+**JSON:** Use a ``categories`` array with ``name`` and optional ``synonyms``,
+``id``, and hierarchy fields. This follows DIVE's COCO hierarchy convention:
+``supercategory`` names a parent, while ``parents`` supports multiple parents
+when no nonempty ``supercategory`` is supplied::
+
+    {
+      "categories": [
+        {
+          "name": "sport glove",
+          "synonyms": ["athletic glove"],
+          "supercategory": "sport equipment"
+        },
+        {"name": "glove"},
+        {"name": "sport equipment", "synonyms": ["gear"]}
+      ]
+    }
+
+DIVE's ``typeHierarchy`` child-to-parent mapping can also supply the hierarchy
+(with or without a ``categories`` array)::
+
+    {
+      "categories": [
+        {"name": "sport glove", "synonyms": ["athletic glove"]},
+        "glove",
+        {"name": "sport equipment", "synonyms": ["gear"]}
+      ],
+      "typeHierarchy": {"sport glove": "sport equipment"}
+    }
+
+The ``synonyms`` array adds training aliases to the DIVE-compatible category
+records. JSON also accepts a bare category array, including a simple list such as
+``["sport glove", "glove"]``. Explicit integer IDs determine category ordering;
+otherwise categories receive IDs in file order. Hierarchy-only nodes referenced
+by JSON are added after the listed categories, as DIVE permits parents without
+category records. Duplicate category/synonym names and cyclic hierarchies are
+rejected.
 
 
 ***********************

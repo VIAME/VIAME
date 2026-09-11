@@ -1269,7 +1269,7 @@ train_applet
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "input-truth", "Input list containing training truth",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
-    ( "labels", "Input label file for train categories",
+    ( "labels", "Input label file for train categories (.txt, .csv, or .json)",
       ::cxxopts::value< std::string >()->default_value( "" ), "file" )
     ( "v,validation", "Optional validation input directory",
       ::cxxopts::value< std::string >()->default_value( "" ), "dir" )
@@ -2071,7 +2071,7 @@ train_applet
   string_to_set( secondary_frame_labels_str, secondary_frame_labels, "\n\t\v,;" );
   string_to_set( hard_negative_categories_str, hard_negative_categories, "\n\t\v,;" );
 
-  // Load labels.txt file
+  // Load the category and synonym file.
   std::string label_fn;
 
   if( !opt_label_file.empty() )
@@ -2080,7 +2080,7 @@ train_applet
   }
   else if( !opt_input_dir.empty() )
   {
-    label_fn = append_path( opt_input_dir, "labels.txt" );
+    label_fn = find_labels_file( opt_input_dir );
   }
 
   kv::category_hierarchy_sptr model_labels;
@@ -2088,7 +2088,12 @@ train_applet
 
   if( !does_file_exist( label_fn ) && opt_out_config.empty() )
   {
-    std::cout << "Label file (labels.txt) does not exist in input folder" << std::endl;
+    if( !opt_label_file.empty() )
+    {
+      std::cerr << "Label file does not exist: " << opt_label_file << std::endl;
+      return EXIT_FAILURE;
+    }
+    std::cout << "No labels.txt, labels.csv, or labels.json in input folder" << std::endl;
     std::cout << std::endl << "Would you like to train over all category labels? (y/n) ";
 
     if( !opt_no_query )
@@ -2098,7 +2103,7 @@ train_applet
 
       if( response != "y" && response != "Y" && response != "yes" && response != "Yes" )
       {
-        std::cout << std::endl << "Exiting training due to no labels.txt" << std::endl;
+        std::cout << std::endl << "Exiting training without a label file" << std::endl;
         return EXIT_FAILURE;
       }
     }
@@ -2111,7 +2116,7 @@ train_applet
     }
     catch( const std::exception& e )
     {
-      std::cerr << "Error reading labels.txt: " << e.what() << std::endl;
+      std::cerr << "Error reading " << label_fn << ": " << e.what() << std::endl;
       return EXIT_FAILURE;
     }
   }
@@ -2236,6 +2241,23 @@ train_applet
   std::vector< std::string > all_truth; // Corresponding list of groundtruth files
   int validation_pivot = -1;            // Validation index start, if manually set
   bool auto_detect_truth = false;       // Auto-detect truth if not manually specified
+
+  auto find_truth_files = [&]( const std::string& data_item )
+  {
+    auto files = find_files_in_folder_or_alongside( data_item, groundtruth_exts );
+    files.erase( std::remove_if( files.begin(), files.end(),
+      [&]( const std::string& path ) { return is_labels_file( path, label_fn ); } ), files.end() );
+    // A label file inside the folder must not prevent the alongside fallback.
+    if( files.empty() && !groundtruth_exts.empty() )
+    {
+      const auto alongside = add_ext_unto( data_item, groundtruth_exts[0] );
+      if( does_file_exist( alongside ) && !is_labels_file( alongside, label_fn ) )
+      {
+        files.push_back( alongside );
+      }
+    }
+    return files;
+  };
 
   // Option 1: a typical training data directory is input
   if( !opt_input_dir.empty() )
@@ -2567,7 +2589,7 @@ train_applet
     }
     else if( !ctx.is_video && auto_detect_truth )
     {
-      ctx.gt_files = find_files_in_folder_or_alongside( ctx.data_item, groundtruth_exts );
+      ctx.gt_files = find_truth_files( ctx.data_item );
 
       // Handle multiple groundtruth files: allow if different extensions, select by priority
       if( !one_file_per_image && ctx.gt_files.size() > 1 )
@@ -3049,7 +3071,7 @@ train_applet
                       gt_class ) == mentioned_warnings.end() )
                 {
                   *data_warning_writer << "Observed class: "
-                    << gt_class << " not in input labels.txt" << std::endl;
+                    << gt_class << " not in input label file" << std::endl;
 
                   mentioned_warnings.push_back( gt_class );
                 }
@@ -3205,7 +3227,7 @@ train_applet
                     gt_class ) == mentioned_warnings.end() )
           {
             *data_warning_writer << "Observed class: "
-               << gt_class << " not in input labels.txt" << std::endl;
+               << gt_class << " not in input label file" << std::endl;
 
             mentioned_warnings.push_back( gt_class );
           }
@@ -3244,7 +3266,7 @@ train_applet
     }
     else // Not okay
     {
-      std::cout << "Error: input labels.txt contains multiple classes, but supplied "
+      std::cout << "Error: input label file contains multiple classes, but supplied "
                 << "truth files do not contain the training classes of interest, or "
                 << "there was an error reading them from the input annotations."
                 << std::endl;
@@ -3648,7 +3670,7 @@ train_applet
         }
         else if( !is_video && auto_detect_truth )
         {
-          gt_files = find_files_in_folder_or_alongside( data_item, groundtruth_exts );
+          gt_files = find_truth_files( data_item );
         }
         else if( i < all_truth.size() )
         {
