@@ -14,9 +14,31 @@ Each group under this directory belongs to one dependency removal:
 | `codecs` | the `ocv` image_io, decoding and writing every container | phase 7 |
 
 | `calib` | `viame::read_stereo_rig`, and `cv::FileStorage` on every calibration document | phase 7 |
-| `opencv` | the `ocv_*` filters, splits, motion detector and detectors, and the pipelines that use them | phase 7 |
+| `opencv` | the `ocv_*` filters, splits, motion detector and detectors, the SIFT/SURF/FLANN feature chain, and the pipelines that use them | phase 7 |
+| `measurement` | the stereo disparity matcher, the calibration target detector, and the stereo calibration pipeline end to end | phase 7 |
 
 The video group is replayed against every reader and writer registered under it, not just the replacement: `ffmpeg` and `pyav` and `ffmpeg_cli` all have to reproduce the same recording.
+
+## Kinds of case
+
+A case's `kind` says what shape its outputs have and which runner produces
+them. Most are one array per input; four are not.
+
+| Kind | Output | Compared |
+|---|---|---|
+| `image_filter`, `image_io`, `decode`, `round_trip`, `split_image`, `detect_motion`, `disparity`, `pipeline` | one image per input | shape, dtype and values, at the implementation's tolerance |
+| `detect` | a list of detections as JSON | box exactly, scores to 1e-6 relative, notes exactly |
+| `features`, `matches`, `tracks`, `homography`, `fundamental` | named arrays in an `.npz` | exactly, or on agreement where the implementation is randomised |
+| `calibration`, `nodes` | parsed structure as JSON | exactly |
+| `calibration_pipeline` | the calibration a stereo pipeline wrote | against the recording **and** against the rig the fixtures were rendered through |
+
+`calibration_pipeline` is the only case with a right answer rather than only
+a previous answer. `measurement_fixtures.py` renders twelve views of a
+chessboard through a stereo rig whose parameters are known exactly -- a
+planar target through a pinhole camera is a homography, so the rendering is
+exact -- and `check_calibration_truth` holds the result to it. A failure can
+then say not merely "this differs from the recording" but "and the recording
+was correct".
 
 ## Layout
 
@@ -146,6 +168,15 @@ tolerance for that implementation in `test_golden.py`, which is exact by
 default; a replacement that genuinely cannot be bit exact adds its own entry
 there with the reason and the measured numbers.
 
+## Where the recorder and the replay differ
+
+They do not, with one exception, and the exception is written into
+`calib_runner.py`. Everywhere else a golden works because one *registered
+name* changes implementation underneath and both calls stay identical. A file
+format has no registry to change, so the `nodes` case records through
+`cv::FileStorage` (`dump_document_reference`) and replays through
+`library/file_io/opencv_yaml` (`dump_document`).
+
 ## Cases whose values are not a contract
 
 `cases.py` lists five, with reasons. Two are `vxl_convert_image`'s
@@ -174,3 +205,43 @@ its final sample and every decoder trims it. A pipeline that writes N frames
 produces a file that plays N-1, and `filter_to_video.pipe` over six fixture
 frames writes five. The recording says five, and `WRITER_DIVERGENCE` says a
 replacement writes six.
+
+## Implementations whose values move run to run
+
+Not a bug in the replacement and not a divergence to document: some
+implementations are randomised, and a recording of one can only be a contract
+on agreement.
+
+`ocv_flann_based` builds randomised KD-trees and OpenCV seeds them from the
+clock, so it gives 45 or 46 matches from the same 81 descriptors twice in one
+process. `feature_cases.UNSTABLE` names it and everything downstream, and
+`feature_runner.compare_unstable` says what is still held: a match set keeps
+its size to within 10% and 90% of its recorded pairs, and a track set's
+feature locations are exact -- those are the detector's, and the detector is
+deterministic -- while how many of them link into a two-frame track may move
+by 10%.
+
+Both halves matter together. A port that lost the extractor's replaced
+feature set would leave the locations untouched and make the linking
+nonsense, so the exact half catches what the loose half cannot.
+
+## Recording something the framework has no runner for
+
+Four files, in the order they are needed:
+
+1. `<group>_fixtures.py`, if the existing fixtures will not do. Say in its
+   docstring why they will not: the 96 by 64 gradient is enough for a
+   per-pixel filter and says nothing about a stereo matcher.
+2. `<group>_cases.py`, holding the implementations, the variants and the
+   reasons each variant exists. This is the specification; a reader should be
+   able to tell from it what is covered and what is not.
+3. `<group>_runner.py`, if driving it needs more than `runner.py` has.
+   Whatever the recorder and the replay share goes here, so neither can drift.
+4. A `record_<group>` function in `record.py` and a branch in
+   `run_case`/`is_registered`.
+
+Then record once, against an install that still has the old implementation,
+and commit the result before touching the implementation. `record.py
+--append` adds only the cases the manifest does not have, which is what to
+use once part of a group has already been replaced -- a recorder must never
+be run against the code it is meant to be checking.

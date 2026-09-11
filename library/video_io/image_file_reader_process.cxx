@@ -31,13 +31,6 @@
 #include <fstream>
 #include <string>
 
-// -- DEBUG
-#if defined DEBUG
-#include <viame/opencv_bridge/image_container.h>
-#include <opencv2/highgui/highgui.hpp>
-using namespace cv;
-#endif
-
 namespace algo = kwiver::vital::algo;
 
 namespace kwiver {
@@ -189,16 +182,6 @@ void image_file_reader_process
     // This call returns a *new* image container. This is good since
     // we are going to pass it downstream using the sptr.
     img_c = d->m_image_reader->load( resolved_file );
-
-    // --- debug
-#if defined DEBUG
-    cv::Mat image = arrows::ocv::image_container::vital_to_ocv( img_c->get_image() );
-    namedWindow( "Display window", cv::WINDOW_NORMAL );// Create a window for display.
-    imshow( "Display window", image );                   // Show our image inside it.
-
-    waitKey(0);                 // Wait for a keystroke in the window
-#endif
-    // -- end debug
 
     frame_ts = kwiver::vital::timestamp( d->m_frame_time, d->m_frame_number );
 

@@ -24,13 +24,6 @@
 #include <stdint.h>
 #include <fstream>
 
-// -- DEBUG
-#if defined DEBUG
-#include <viame/opencv_bridge/image_container.h>
-#include <opencv2/highgui/highgui.hpp>
-using namespace cv;
-#endif
-
 //+ TODO this process is obsoleted by the image_list_reader
 // implementation of the video_input algorithm
 
@@ -184,16 +177,6 @@ void frame_list_process
     // This call returns a *new* image container. This is good since
     // we are going to pass it downstream using the sptr.
     auto img_c = d->m_image_reader->load( a_file );
-
-    // --- debug
-#if defined DEBUG
-    cv::Mat image = arrows::ocv::image_container::vital_to_ocv( img_c->get_image() );
-    namedWindow( "Display window", cv::WINDOW_NORMAL );// Create a window for display.
-    imshow( "Display window", image );                   // Show our image inside it.
-
-    waitKey(0);                 // Wait for a keystroke in the window
-#endif
-    // -- end debug
 
     kwiver::vital::timestamp frame_ts( d->m_frame_time, d->m_frame_number );
 

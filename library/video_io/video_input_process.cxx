@@ -17,13 +17,6 @@
 #include <viame/pipeline_framework/process_exception.h>
 #include <viame/pipeline_framework/datum.h>
 
-// -- DEBUG
-#if defined DEBUG
-#include <viame/opencv_bridge/image_container.h>
-#include <opencv2/highgui/highgui.hpp>
-using namespace cv;
-#endif
-
 namespace algo = kwiver::vital::algo;
 
 namespace kwiver {
@@ -191,16 +184,6 @@ void video_input_process
       {
         frame = d->m_video_reader->frame_image();
       }
-
-      // --- debug
-#if defined DEBUG
-      cv::Mat image = arrows::ocv::image_container::vital_to_ocv( frame->get_image() );
-      namedWindow( "Display window", cv::WINDOW_NORMAL ); // Create a window for display.
-      imshow( "Display window", image ); // Show our image inside it.
-
-      waitKey(0);                 // Wait for a keystroke in the window
-#endif
-      // -- end debug
 
       // update timestamp
       //

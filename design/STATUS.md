@@ -241,6 +241,22 @@ detectors and the segmenters. Phase 5 imports this code, and phase 8 rewrites
 the bindings; either is a chance to make the interleaved case fast rather than
 asking every caller to know about the layout.
 
+## Where phase 7's OpenCV removal stands
+
+Every `#include <opencv2/` left in `library/`, as of P7-T06, and what each is
+waiting for. `plugins/` is not in this list: phase 2 moves those directories
+and P7-T07 to P7-T09 are what empty them.
+
+| File | Why it is still there |
+|---|---|
+| `library/opencv_bridge/*` (8 files) | The bridge itself, transitional since P5-T04 (finding 1.12). It goes when its last caller does, which is P7-T09 |
+| `library/video_io/image_viewer_process.cxx` | `cv::imshow` and `cv::putText`. `lite-removals.md` 2.6 offers python or `removed.json` and does not decide; one pipeline selects it |
+| `library/examples/template_process.cxx` | The process template a new plugin is copied from. It shows `cv::Mat` in and out because that is what an author wants; what it should show once OpenCV is gone is a question for P7-T09 |
+
+Four files came off this list in P7-T06 for a reason worth knowing: their
+OpenCV was inside `#if defined DEBUG`, which no build has ever defined. Dead
+code that made `library/video_io` look like it needed OpenCV when it did not.
+
 ## Measurements
 
 The 1080p decode figure is measured through the python bindings, decode plus
