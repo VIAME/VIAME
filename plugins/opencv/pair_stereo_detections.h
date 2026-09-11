@@ -10,7 +10,7 @@
 
 #include <viame/measurement/projection.h>
 
-#include "../core/windowed_utils.h"
+#include <object_detectors/windowed_utils.h>
 
 #include "viame_opencv_export.h"
 

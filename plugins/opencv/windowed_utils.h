@@ -8,7 +8,7 @@
 // Include core windowed utilities for shared types and functions
 // This provides: rescale_option, window_settings, image_rect, windowed_region_prop,
 // and all detection manipulation functions (rescale_detections, scale_detections, etc.)
-#include "../core/windowed_utils.h"
+#include <object_detectors/windowed_utils.h>
 
 #include "viame_opencv_export.h"
 
@@ -75,7 +75,7 @@ crop_region(
   const kwiver::vital::image& image,
   const image_rect& rect );
 
-// `prepare_image_regions` is declared by `../core/windowed_utils.h`, above,
+// `prepare_image_regions` is declared by `object_detectors/windowed_utils.h`, above,
 // and defined once -- there. Declaring it here as well gave one symbol two
 // definitions in two libraries; see the note where the definition used to be.
 

@@ -2,17 +2,17 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_DARKNET_DETECTOR_H
-#define VIAME_DARKNET_DETECTOR_H
+#ifndef VIAME_OBJECT_DETECTORS_DARKNET_DETECTOR_H
+#define VIAME_OBJECT_DETECTORS_DARKNET_DETECTOR_H
 
-#include "viame_darknet_export.h"
+#include "viame_object_detectors_darknet_export.h"
 
 #include <viame/algorithm_framework/algo/image_object_detector.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
 namespace viame {
 
-class VIAME_DARKNET_EXPORT darknet_detector :
+class VIAME_OBJECT_DETECTORS_DARKNET_EXPORT darknet_detector :
   public kwiver::vital::algo::image_object_detector
 {
 public:
@@ -98,4 +98,4 @@ private:
 
 } // end namespace
 
-#endif /* VIAME_DARKNET_DETECTOR_H */
+#endif /* VIAME_OBJECT_DETECTORS_DARKNET_DETECTOR_H */

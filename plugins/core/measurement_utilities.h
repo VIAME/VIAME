@@ -32,7 +32,7 @@
 #include <viame/core_types/matrix.h>
 #include <viame/measurement/projection.h>
 
-#include "windowed_utils.h"
+#include <object_detectors/windowed_utils.h>
 
 #include <string>
 #include <vector>

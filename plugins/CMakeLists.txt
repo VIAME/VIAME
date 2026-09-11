@@ -43,10 +43,6 @@ if( VIAME_ENABLE_ONNX AND VIAME_ENABLE_PYTHON )
   add_subdirectory( onnx )
 endif()
 
-if( VIAME_ENABLE_DARKNET )
-  add_subdirectory( darknet )
-endif()
-
 if( VIAME_ENABLE_SVM )
   add_subdirectory( svm )
 endif()

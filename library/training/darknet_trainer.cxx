@@ -6,7 +6,7 @@
 
 #include <viame/algorithm_framework/algo/algorithm.txx>
 
-#include "../core/windowed_utils.h"
+#include <object_detectors/windowed_utils.h>
 
 #include <viame/algorithm_framework/algo/image_io.h>
 #include <viame/algorithm_framework/util/cpu_timer.h>

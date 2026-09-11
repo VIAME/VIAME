@@ -10,7 +10,7 @@
 #include <viame/algorithm_framework/algo/refine_detections.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
 
-#include "windowed_utils.h"
+#include <object_detectors/windowed_utils.h>
 
 namespace viame {
 

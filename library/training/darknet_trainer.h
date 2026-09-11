@@ -2,10 +2,10 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
-#ifndef VIAME_DARKNET_TRAINER_H
-#define VIAME_DARKNET_TRAINER_H
+#ifndef VIAME_TRAINING_DARKNET_TRAINER_H
+#define VIAME_TRAINING_DARKNET_TRAINER_H
 
-#include "viame_darknet_export.h"
+#include "viame_training_export.h"
 
 #include <viame/algorithm_framework/algo/train_detector.h>
 #include <viame/algorithm_framework/plugin/pluggable_macro_magic.h>
@@ -15,7 +15,7 @@
 
 namespace viame {
 
-class VIAME_DARKNET_EXPORT darknet_trainer :
+class VIAME_TRAINING_EXPORT darknet_trainer :
   public kwiver::vital::algo::train_detector
 {
 public:
@@ -161,4 +161,4 @@ private:
 
 } // end namespace
 
-#endif /* VIAME_DARKNET_TRAINER_H */
+#endif /* VIAME_TRAINING_DARKNET_TRAINER_H */

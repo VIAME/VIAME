@@ -18,6 +18,7 @@
 #include "example_detector.h"
 
 
+
 namespace viame {
 
 namespace kv = kwiver::vital;
@@ -57,7 +58,6 @@ register_factories( kv::plugin_loader& vpm )
   VIAME_REGISTER( kv::algo::image_object_detector,
                   kwiver::arrows::core::example_detector,
                   "example_detector", "Detect a fixed box, for testing a pipeline" )
-
 
 #undef VIAME_REGISTER
 

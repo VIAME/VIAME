@@ -3,7 +3,7 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "windowed_refiner.h"
-#include "windowed_utils.h"
+#include <object_detectors/windowed_utils.h>
 
 #include <viame/algorithm_framework/algo/algorithm.txx>
 

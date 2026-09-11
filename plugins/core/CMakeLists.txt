@@ -50,7 +50,6 @@ set( plugin_headers
   windowed_detector.h
   windowed_refiner.h
   windowed_trainer.h
-  windowed_utils.h
   write_detected_object_set_viame_csv.h
   write_disparity_maps.h
   write_object_track_set_viame_csv.h
@@ -107,7 +106,6 @@ set( plugin_sources
   windowed_detector.cxx
   windowed_refiner.cxx
   windowed_trainer.cxx
-  windowed_utils.cxx
   write_detected_object_set_viame_csv.cxx
   write_disparity_maps.cxx
   write_object_track_set_viame_csv.cxx
@@ -154,6 +152,10 @@ set( CORE_LINK_LIBRARIES
   kwiver::vital_util
   kwiver::kwiversys
   viame_measurement
+  # `windowed_utils` moved to `library/object_detectors` when darknet did:
+  # `library/` cannot reach up into `plugins/`, and darknet's detector needs
+  # the chipping
+  viame_object_detectors
   kwiver::sprokit_pipeline
   kwiver::kwiver_adapter
   )

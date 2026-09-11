@@ -207,7 +207,7 @@ format_image( const kv::image& src, kv::image& dst, rescale_option option,
 // There is one definition now, core's, and it is the one the seven
 // `ocv_windowed` golden cases have been reproducing all along -- exactly,
 // including `black_pad` once the padding was fixed. The declaration comes in
-// through `../core/windowed_utils.h`, which this header already includes.
+// through `object_detectors/windowed_utils.h`, which this header already includes.
 //
 // The other three helpers here do not collide: core's `scale_image_maintaining_ar`
 // and `format_image` return the image and take the scale as an out parameter,
