@@ -9,18 +9,12 @@ include_directories( "${OpenCV_INCLUDE_DIRS}" )
 link_directories( "${OpenCV_LIBRARY_DIR}" )
 
 set( plugin_headers
-  adaboost_classifier.h
   add_keypoints_from_mask.h
   calibrate_single_camera.h
   calibrate_stereo_cameras.h
-  canny_edge_detector.h
   classify_fish_hierarchical_svm.h
   convert_color_space.h
   debayer_filter.h
-  diff_of_gauss_detector.h
-  ellipse_proposal.h
-  gabor_features.h
-  hog_features.h
   opencv_yaml_matrix.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
@@ -37,17 +31,12 @@ set( plugin_headers
 )
 
 set( plugin_sources
-  adaboost_classifier.cxx
   add_keypoints_from_mask.cxx
   calibrate_single_camera.cxx
   calibrate_stereo_cameras.cxx
-  canny_edge_detector.cxx
   classify_fish_hierarchical_svm.cxx
   convert_color_space.cxx
   debayer_filter.cxx
-  diff_of_gauss_detector.cxx
-  gabor_features.cxx
-  hog_features.cxx
   pair_stereo_detections.cxx
   pair_stereo_tracks.cxx
   plot_metrics.cxx
