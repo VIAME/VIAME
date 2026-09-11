@@ -33,19 +33,18 @@ kwiver_add_plugin( viame_processes_examples
   PRIVATE          kwiver::sprokit_pipeline
                    kwiver::kwiversys
                    kwiver::vital
+                   kwiver::vital_algo
                    kwiver::vital_vpm
                    kwiver::vital_logger
                    kwiver::vital_config
                    kwiver::vital_util
                    kwiver::vital_exceptions
-                   viame_opencv_bridge
-                   ${OpenCV_LIBS}
+                   viame_image_ops
   )
 
 target_include_directories( viame_processes_examples PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
   )
 
 install( FILES       README.rst

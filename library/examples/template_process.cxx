@@ -16,9 +16,14 @@
 #include <viame/pipeline_framework/type_traits.h>
 #include <viame/core_types/timestamp.h>
 #include <viame/algorithm_framework/vital_config.h>
-#include <viame/opencv_bridge/image_container.h>
+#include <viame/core_types/image.h>
+#include <viame/core_types/image_container.h>
 
-#include <opencv2/core/core.hpp>
+//++ `image_ops` is VIAME's own image processing: colour conversion, filters,
+//++ morphology, geometry, drawing. It is header only and templated on the
+//++ pixel type. Include what you use; `pixel.h` here is only for the
+//++ saturating cast, and a process that does real work will want more.
+#include <image_ops/pixel.h>
 
 //++ You can put all of your processes in the same namespace
 namespace group_ns {
@@ -72,7 +77,14 @@ public:
   priv();
   ~priv();
 
-  cv::Mat process_image( cv::Mat img ) { return img; }
+  //++ Your work goes here. `vital::image_of< T >` indexes as
+  //++ `image( column, row, plane )` and its planes are separate, which is
+  //++ what every VIAME process and every `image_ops` function expects.
+  kwiver::vital::image_of< uint8_t >
+  process_image( kwiver::vital::image_of< uint8_t > const& img )
+  {
+    return img;
+  }
 
   // Configuration values
   std::string m_header;
@@ -144,14 +156,16 @@ template_process
     scoped_step_instrumentation();
 
     LOG_DEBUG( logger(), "Processing frame " << frame_time );
-    using namespace kwiver::arrows::ocv;
 
-    cv::Mat in_image = image_container::vital_to_ocv( img->get_image(),
-                                                      image_container::RGB_COLOR );
+    //++ `image_of< T >` is a view of the container's image at a known pixel
+    //++ type; constructing it from an image of a different type throws, so a
+    //++ process that must take whatever arrives uses
+    //++ `image_ops::dispatch_pixel_type` instead.
+    kwiver::vital::image_of< uint8_t > const in_image( img->get_image() );
 
     //++ Here is where the process does its work.
-    out_image = std::make_shared<image_container>( d->process_image( in_image ),
-                                                   image_container::RGB_COLOR );
+    out_image = std::make_shared< kwiver::vital::simple_image_container >(
+      kwiver::vital::image( d->process_image( in_image ) ) );
   }
 
   push_to_port_using_trait( image, out_image );

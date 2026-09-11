@@ -258,13 +258,20 @@ asking every caller to know about the layout.
 ## Where phase 7's OpenCV removal stands
 
 Every `#include <opencv2/` left in the tree as of P7-T07, and what each is
-waiting for. Nineteen files, of which eight are the bridge.
+waiting for. Eighteen files, of which eight are the bridge.
+
+`library/examples/template_process.cxx` came off this list without needing
+P7-T09's decision after all. It showed `cv::Mat` in and out because that was
+what an author of a new process wanted; now that every process in the tree
+takes `vital::image` and reaches for `image_ops`, showing `cv::Mat` is
+telling a new author to do what nothing else does. The template shows the
+plain thing instead, and says where `dispatch_pixel_type` comes in for a
+process that takes whatever pixel type arrives.
 
 | File | Why it is still there |
 |---|---|
 | `library/opencv_bridge/*` (8 files) | The bridge itself, transitional since P5-T04 (finding 1.12). It goes when its last caller does, which is P7-T09 |
 | `library/video_io/image_viewer_process.cxx` | `cv::imshow` and `cv::putText`. `lite-removals.md` 2.6 offers python or `removed.json` and does not decide; one pipeline selects it |
-| `library/examples/template_process.cxx` | The process template a new plugin is copied from. It shows `cv::Mat` in and out because that is what an author wants; what it should show once OpenCV is gone is a question for P7-T09 |
 | `plugins/opencv/plot_metrics.{h,cxx}` | 1115 lines of drawing. The plan's replacement is python matplotlib called from `viame score`, which is a rewrite with a different picture at the end rather than a port. P7-T07 |
 | `plugins/opencv/classify_fish_hierarchical_svm.h` | `cv::FileStorage` for its own model index, not a calibration. `lite-removals.md` 2.6 open decision 6 |
 | `plugins/opencv/iqr_session_adaboost.h` | OpenCV's `ml` module. Open decision 6, as above |

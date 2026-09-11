@@ -17,7 +17,7 @@
 #include <viame/pipeline_framework/process_exception.h>
 #include <viame/core_types/timestamp.h>
 #include <viame/algorithm_framework/vital_config.h>
-#include <viame/opencv_bridge/image_container.h>
+#include <viame/core_types/image_container.h>
 
 //++ include definition of abstract base algorithm.
 #include <viame/algorithm_framework/algo/image_object_detector.h>
