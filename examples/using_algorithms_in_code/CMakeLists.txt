@@ -13,10 +13,11 @@ install( FILES       detector1.cxx
 
 
 # Build select files
-if( VIAME_ENABLE_KWIVER AND VIAME_ENABLE_OPENCV )
-
-  find_package( OpenCV REQUIRED )
-  include_directories( SYSTEM ${OpenCV_INCLUDE_DIRS} )
+#
+# No OpenCV: these were written when the image container was the bridge's,
+# and none of them ever used a `cv::` type -- the include and the link were
+# left behind by P7.
+if( VIAME_ENABLE_KWIVER )
 
   ###
   # Add first detector example
@@ -28,10 +29,8 @@ if( VIAME_ENABLE_KWIVER AND VIAME_ENABLE_OPENCV )
                kwiver::vital_config
                kwiver::vital_logger
                kwiver::vital_util
-               viame_opencv_bridge
                viame_video_io
                viame_object_detectors
-               ${OpenCV_LIBS}
     )
 
 
@@ -46,9 +45,7 @@ if( VIAME_ENABLE_KWIVER AND VIAME_ENABLE_OPENCV )
                kwiver::vital_logger
                kwiver::vital_util
                kwiver::vital_vpm
-               viame_opencv_bridge
                viame_video_io
-               ${OpenCV_LIBS}
     )
 
 endif()

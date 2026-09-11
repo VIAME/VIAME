@@ -26,7 +26,6 @@ endif()
 # names still carry the `kwiver::` namespace, so a plugin written against the
 # old one keeps working.
 find_package( VIAME REQUIRED HINTS "${VIAME_DIR}/lib/cmake/viame" )
-find_package( OpenCV REQUIRED HINTS "${VIAME_DIR}" )
 
 # Set default paths
 set( CMAKE_INSTALL_PREFIX "${VIAME_DIR}" CACHE PATH "Default install dir" FORCE )
@@ -60,7 +59,6 @@ target_link_libraries( ${PLUGIN_NAME}
                        kwiver::vital_config
                        kwiver::vital_exceptions
                        kwiver::vital_logger
-                       viame_opencv_bridge
   )
 
 set_target_properties( ${PLUGIN_NAME}

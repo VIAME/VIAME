@@ -1,6 +1,5 @@
 # Build/install plugin for SVM support
 
-find_package( OpenCV REQUIRED )
 
 # Find libsvm in the install prefix (lib on Linux, bin or lib on Windows)
 find_library( SVM_LIBRARY
@@ -53,7 +52,6 @@ target_include_directories( viame_svm SYSTEM PUBLIC
 target_link_libraries( viame_svm
   PUBLIC               kwiver::vital
                        kwiver::vital_algo
-                       ${OpenCV_LIBS}
   PRIVATE              kwiver::vital_config
                        kwiver::kwiversys
                        ${SVM_LIBRARY}

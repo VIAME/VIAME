@@ -3,7 +3,6 @@
 #include <viame/algorithm_framework/algorithm_plugin_manager.h>
 #include <viame/algorithm_framework/config/config_block_io.h>
 #include <viame/algorithm_framework/algo/image_object_detector.h>
-#include <viame/opencv_bridge/image_container.h>
 #include <viame/video_io/core_image_io.h>
 
 #include <string>

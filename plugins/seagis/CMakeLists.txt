@@ -34,13 +34,6 @@ if( NOT VIAME_BUILD_SEAGIS_TEST_LIB )
   list( APPEND SEAGIS_LINK_LIBRARIES ${SEAGIS_LIBRARY} )
 endif()
 
-# OpenCV for epipolar template matching
-if( VIAME_ENABLE_OPENCV )
-  find_package( OpenCV REQUIRED )
-  include_directories( "${OpenCV_INCLUDE_DIRS}" )
-  list( APPEND SEAGIS_LINK_LIBRARIES ${OpenCV_LIBRARIES} viame_opencv_bridge )
-endif()
-
 kwiver_add_plugin( viame_processes_seagis
   SUBDIR           ${viame_plugin_process_subdir}
   SOURCES          ${process_sources}

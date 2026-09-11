@@ -290,7 +290,7 @@ process that takes whatever pixel type arrives.
 
 | File | Why it is still there |
 |---|---|
-| `library/opencv_bridge/*` (8 files) | The bridge itself, transitional since P5-T04 (finding 1.12). It goes when its last caller does, which is P7-T09 |
+| `library/opencv_bridge/*` (8 files) | The bridge itself, transitional since P5-T04 (finding 1.12). Its last two callers are the row below; the examples, `plugins/seagis` and `plugins/svm` were carrying an include and a link they had stopped using, and those are gone |
 | `plugins/opencv/classify_fish_hierarchical_svm.h` | `cv::FileStorage` for its own model index, not a calibration. `lite-removals.md` 2.6 open decision 6 |
 | `plugins/opencv/iqr_session_adaboost.h` | OpenCV's `ml` module. Open decision 6, as above |
 | `tests/plugins/core/test_tracks_pairing_from_stereo.cxx` | Not built -- its `kwiver_discover_gtests` line is commented out, waiting on `tracks_pairing_from_stereo.h` |
