@@ -441,6 +441,23 @@ an artefact of the port:
   pose. It is not obviously wrong, since that corner's position does vary
   with pose, but it is not what the code reads as doing.
 
+* `ocv_calibrate_single_camera` **never sees the image, and guesses its
+  size**. The process is fed an object track set of corners and nothing
+  else, so `estimate_image_size_from_tracks` takes the furthest corner,
+  adds half a box, adds 100 and rounds down to the next hundred. On the
+  golden's 640 by 480 views that returns **700 by 400** -- too wide by 60
+  and too short by 80 -- and that pair is what goes into `calibration.json`
+  and `intrinsics.yml` as `image_width` and `image_height`. Anything that
+  builds a rectification map from the file builds it at the wrong size, and
+  a height that is short by 80 cannot even cover the image. The fit itself
+  survives, because `cv::calibrateCamera` only uses the size for its initial
+  principal point guess and the recorded run still recovers 319.25, 239.51
+  against a true 319.5, 239.5; it is the written file that is wrong. The
+  stereo pipeline does not have this problem -- it reads the frames itself.
+  Recorded as `mono_calibration` in `tests/golden/measurement`, so the port
+  reproduces it and a decision to fix it is visible as a change to that
+  recording.
+
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 
 Kwiver is configured and built before VIAME, against the same install prefix,

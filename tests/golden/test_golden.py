@@ -286,6 +286,11 @@ def run_case(case, impl):
             impl, left, right, tuple(case["settings"]))
         return [measurement_runner.calibration_arrays(outputs)]
 
+    if case["kind"] == "mono_calibration":
+        names = measurement_cases.mono_calibration_view_names()
+        return [measurement_runner.run_mono_pipeline(
+            impl, names, tuple(case["settings"]))]
+
     if case["kind"] == "warp":
         source = imageio_utils.load(input_path(warp_cases.SOURCE))
         destination = imageio_utils.load(input_path(warp_cases.DESTINATION))
@@ -511,6 +516,35 @@ def check_calibration_truth(item, arrays):
                 case_id(item), key, worst))
 
 
+def check_mono_calibration_truth(item, arrays):
+    """The single camera calibration against the rig its views came from.
+
+    The left half of `check_calibration_truth`, on the same synthetic views
+    and at the same tolerances. There is no baseline and no second camera, so
+    what is left is the intrinsics and the "no distortion on a distortion
+    free rig" check.
+    """
+    truth = measurement_cases.MONO_CALIBRATION_TRUTH
+    tolerances = measurement_cases.CALIBRATION_TOLERANCES
+
+    def close(name, actual, expected, tolerance):
+        assert abs(actual - expected) <= tolerance * abs(expected), (
+            "{} {}: {} against a true {}, more than {:.1%} out".format(
+                case_id(item), name, actual, expected, tolerance))
+
+    for key in ("fx", "fy"):
+        close(key, float(arrays[key][0][0]), truth[key], tolerances["focal"])
+
+    for key in ("cx", "cy"):
+        close(key, float(arrays[key][0][0]), truth[key], tolerances["centre"])
+
+    for key in ("k1", "k2", "k3", "p1", "p2"):
+        worst = float(np.abs(arrays[key]).max())
+        assert worst <= measurement_cases.CALIBRATION_MAX_DISTORTION, (
+            "{} {}: distortion of {} on a distortion free rig".format(
+                case_id(item), key, worst))
+
+
 def check_json_case(item, case, outputs, group):
     """A recording whose values are parsed structure rather than pixels.
 
@@ -577,6 +611,11 @@ def test_golden(item):
 
     if case["kind"] == "calibration_pipeline":
         check_calibration_truth(item, outputs[0])
+        check_array_case(item, case, outputs, group)
+        return
+
+    if case["kind"] == "mono_calibration":
+        check_mono_calibration_truth(item, outputs[0])
         check_array_case(item, case, outputs, group)
         return
 

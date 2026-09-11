@@ -112,3 +112,67 @@ def calibration_arrays(outputs):
                 int(value["rows"]), int(value["cols"]))
 
     return arrays
+
+
+def run_mono_pipeline(pipeline, names, settings=()):
+    """Run a single camera calibration pipeline; return what it wrote.
+
+    One image list rather than two, and a JSON summary beside the YAML. Both
+    come back as one flat `{key: array}` so that a scalar the JSON carries
+    and a matrix the YAML carries are checked the same way -- the JSON's
+    `image_width` is the one the rectification downstream is built at, so it
+    is as much part of the answer as `M1` is.
+    """
+    import json
+
+    from viame.file_io import _opencv_yaml
+
+    workdir = tempfile.mkdtemp(prefix="golden_mono_")
+
+    try:
+        _write_list(workdir, names, "input_list.txt")
+
+        command = ["kwiver", "runner",
+                   pipeline_runner.pipeline_path(pipeline)]
+
+        for setting in settings:
+            command += ["-s", setting]
+
+        process = subprocess.Popen(
+            command, cwd=workdir, start_new_session=True, text=True,
+            env=pipeline_runner.sourced_environment(),
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        try:
+            _, stderr = process.communicate(timeout=pipeline_runner.TIMEOUT)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            raise AssertionError("{} did not finish within {}s".format(
+                pipeline, pipeline_runner.TIMEOUT))
+
+        if process.returncode != 0:
+            raise AssertionError("{} exited {}:\n{}".format(
+                pipeline, process.returncode, stderr[-4000:]))
+
+        arrays = {}
+
+        for name in sorted(os.listdir(workdir)):
+            path = os.path.join(workdir, name)
+
+            if name.endswith((".yml", ".yaml")):
+                arrays.update(calibration_arrays(
+                    {name: _opencv_yaml.read(path)}))
+            elif name.endswith(".json"):
+                with open(path) as handle:
+                    summary = json.load(handle)
+
+                for key, value in sorted(summary.items()):
+                    arrays[key] = np.asarray([[float(value)]])
+
+        if not arrays:
+            raise AssertionError(
+                "{} wrote no calibration".format(pipeline))
+
+        return arrays
+    finally:
+        shutil.rmtree(workdir, ignore_errors=True)

@@ -193,6 +193,52 @@ def calibration_view_names():
 
 
 # ----------------------------------------------------------------------------
+# Single camera calibration, end to end
+# ----------------------------------------------------------------------------
+#
+# `ocv_calibrate_single_camera` is the other half of the calibration chain and
+# the one a user reaches through DIVE's "calibrate camera" button. It has the
+# same right answer available to it as the stereo case -- the left views of
+# the same synthetic rig -- so the same two checks apply: against the
+# recording, and against the rig.
+#
+# `square_size` is set per process for the reason the stereo case states:
+# `-s global:square_size=30` does not reach `$CONFIG{global:square_size}`.
+MONO_CALIBRATION_PIPELINE = "utility_calibrate_single_camera.pipe"
+
+MONO_CALIBRATION_VARIANTS = (
+    ("all_frames", ("camera_calibration:frame_count_threshold=0",)),
+    # The frame selection, as in the stereo case
+    ("frames_6", ("camera_calibration:frame_count_threshold=6",)),
+)
+
+
+def mono_calibration_settings(variant):
+    """Every `-s` a single camera calibration variant needs."""
+    detector = tuple(
+        "detector:detector:ocv_detect_calibration_targets:" + setting
+        for setting in ("auto_detect_grid=false", "target_width=8",
+                        "target_height=5", "square_size=30"))
+
+    for name, extra in MONO_CALIBRATION_VARIANTS:
+        if name == variant:
+            return detector + ("camera_calibration:square_size=30",) + extra
+
+    raise KeyError(variant)
+
+
+# The left half of `CALIBRATION_TRUTH`, and the same tolerances.
+MONO_CALIBRATION_TRUTH = {
+    "fx": 600.0, "fy": 600.0, "cx": 319.5, "cy": 239.5,
+}
+
+
+def mono_calibration_view_names():
+    """The fixture names of the left calibration views, in order."""
+    return calibration_view_names()[0]
+
+
+# ----------------------------------------------------------------------------
 # What cannot be recorded exactly
 # ----------------------------------------------------------------------------
 #

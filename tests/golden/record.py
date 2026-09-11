@@ -17,6 +17,7 @@ import datetime
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -788,10 +789,26 @@ def record_measurement_calibration(group_dir, manifest):
                             extra={"settings": list(settings)})
 
 
+def record_measurement_mono_calibration(group_dir, manifest):
+    pipeline = measurement_cases.MONO_CALIBRATION_PIPELINE
+    names = measurement_cases.mono_calibration_view_names()
+
+    for variant, _ in measurement_cases.MONO_CALIBRATION_VARIANTS:
+        settings = measurement_cases.mono_calibration_settings(variant)
+
+        arrays = measurement_runner.run_mono_pipeline(
+            pipeline, names, settings)
+
+        _record_arrays_case(group_dir, manifest, "mono_calibration",
+                            pipeline, variant, {}, ["camera"], [arrays],
+                            extra={"settings": list(settings)})
+
+
 def record_measurement(group_dir, manifest):
     record_measurement_disparity(group_dir, manifest)
     record_measurement_targets(group_dir, manifest)
     record_measurement_calibration(group_dir, manifest)
+    record_measurement_mono_calibration(group_dir, manifest)
 
 
 def record_calib(group_dir, manifest):
@@ -875,6 +892,17 @@ def main():
 
     os.makedirs(group_dir, exist_ok=True)
 
+    # Append runs re-run every recorder, since a recorder is a function of the
+    # whole group rather than of one case. Their **files** must not land in
+    # the group directory though: an existing case would be rewritten with
+    # whatever this run produced while the manifest kept the digest it was
+    # recorded with, so a case that is genuinely unstable -- the kmedians
+    # frame selection seeds from `cv::theRNG()` -- would silently change on
+    # disk. So an append writes into a scratch directory and only the new
+    # cases' files are copied across.
+    scratch = tempfile.mkdtemp(prefix="golden_append_") if args.append else None
+    write_dir = scratch or group_dir
+
     manifest = {
         "group": args.group,
         "recorded": datetime.datetime.now(datetime.timezone.utc)
@@ -891,7 +919,7 @@ def main():
         "cases": [],
     }
 
-    GROUPS[args.group](group_dir, manifest)
+    GROUPS[args.group](write_dir, manifest)
 
     if existing is not None:
         # Append only. A recorder must never be run against the code it is
@@ -909,6 +937,13 @@ def main():
             if key not in ("cases", "recorded"):
                 existing.setdefault(key, manifest[key])
 
+        for case in added:
+            for record in case["outputs"].values():
+                source = os.path.join(write_dir, record["file"])
+                target = os.path.join(group_dir, record["file"])
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                shutil.copyfile(source, target)
+
         existing["cases"].extend(added)
         existing["appended"] = datetime.datetime.now(datetime.timezone.utc) \
                                        .strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -921,6 +956,9 @@ def main():
     with open(manifest_path, "w") as handle:
         json.dump(manifest, handle, indent=2, sort_keys=True)
         handle.write("\n")
+
+    if scratch:
+        shutil.rmtree(scratch, ignore_errors=True)
 
     print("recorded {} cases into {}".format(len(manifest["cases"]), group_dir))
     return 0

@@ -1,5 +1,5 @@
 {
-  "appended": "2026-09-11T02:05:00Z",
+  "appended": "2026-09-11T06:15:47Z",
   "cases": [
     {
       "config": {},
@@ -579,6 +579,328 @@
         "detector2:detector:ocv_detect_calibration_targets:target_height=5",
         "detector2:detector:ocv_detect_calibration_targets:square_size=30",
         "cameras_calibration:frame_count_threshold=6"
+      ],
+      "unstable": {},
+      "variant": "frames_6"
+    },
+    {
+      "config": {},
+      "impl": "utility_calibrate_single_camera.pipe",
+      "inputs": [
+        "camera"
+      ],
+      "kind": "mono_calibration",
+      "outputs": {
+        "camera": {
+          "file": "mono_calibration/utility_calibrate_single_camera.pipe/all_frames/camera.npz",
+          "members": {
+            "D1": {
+              "dtype": "float64",
+              "sha256": "2c34ce1df23b838c",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "M1": {
+              "dtype": "float64",
+              "sha256": "b38e77e85525c83d",
+              "shape": [
+                3,
+                3
+              ]
+            },
+            "cx": {
+              "dtype": "float64",
+              "sha256": "1437af2e390b418d",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "cy": {
+              "dtype": "float64",
+              "sha256": "a1c7628385c656fe",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "fx": {
+              "dtype": "float64",
+              "sha256": "8c36e0d86a9d694b",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "fy": {
+              "dtype": "float64",
+              "sha256": "4135021e27e266a0",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "grid_height": {
+              "dtype": "float64",
+              "sha256": "a7ca1349517e14c0",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "grid_width": {
+              "dtype": "float64",
+              "sha256": "2d311251337c35e4",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "image_height": {
+              "dtype": "float64",
+              "sha256": "d23ed22dfc38d6df",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "image_width": {
+              "dtype": "float64",
+              "sha256": "379786eafb8b68f5",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "k1": {
+              "dtype": "float64",
+              "sha256": "af5570f5a1810b7a",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "k2": {
+              "dtype": "float64",
+              "sha256": "af5570f5a1810b7a",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "k3": {
+              "dtype": "float64",
+              "sha256": "af5570f5a1810b7a",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "p1": {
+              "dtype": "float64",
+              "sha256": "af5570f5a1810b7a",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "p2": {
+              "dtype": "float64",
+              "sha256": "af5570f5a1810b7a",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "rms_error": {
+              "dtype": "float64",
+              "sha256": "714f9c3ff1ed232d",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "square_size_mm": {
+              "dtype": "float64",
+              "sha256": "a6eb657cf3aab7d4",
+              "shape": [
+                1,
+                1
+              ]
+            }
+          }
+        }
+      },
+      "settings": [
+        "detector:detector:ocv_detect_calibration_targets:auto_detect_grid=false",
+        "detector:detector:ocv_detect_calibration_targets:target_width=8",
+        "detector:detector:ocv_detect_calibration_targets:target_height=5",
+        "detector:detector:ocv_detect_calibration_targets:square_size=30",
+        "camera_calibration:square_size=30",
+        "camera_calibration:frame_count_threshold=0"
+      ],
+      "unstable": {},
+      "variant": "all_frames"
+    },
+    {
+      "config": {},
+      "impl": "utility_calibrate_single_camera.pipe",
+      "inputs": [
+        "camera"
+      ],
+      "kind": "mono_calibration",
+      "outputs": {
+        "camera": {
+          "file": "mono_calibration/utility_calibrate_single_camera.pipe/frames_6/camera.npz",
+          "members": {
+            "D1": {
+              "dtype": "float64",
+              "sha256": "2c34ce1df23b838c",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "M1": {
+              "dtype": "float64",
+              "sha256": "3babd102bd4c2280",
+              "shape": [
+                3,
+                3
+              ]
+            },
+            "cx": {
+              "dtype": "float64",
+              "sha256": "50cf36e21191d5f9",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "cy": {
+              "dtype": "float64",
+              "sha256": "3705d770ea590bcd",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "fx": {
+              "dtype": "float64",
+              "sha256": "cb071bc197f39c0f",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "fy": {
+              "dtype": "float64",
+              "sha256": "6c5ae4e319d8d734",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "grid_height": {
+              "dtype": "float64",
+              "sha256": "a7ca1349517e14c0",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "grid_width": {
+              "dtype": "float64",
+              "sha256": "2d311251337c35e4",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "image_height": {
+              "dtype": "float64",
+              "sha256": "d23ed22dfc38d6df",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "image_width": {
+              "dtype": "float64",
+              "sha256": "379786eafb8b68f5",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "k1": {
+              "dtype": "float64",
+              "sha256": "af5570f5a1810b7a",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "k2": {
+              "dtype": "float64",
+              "sha256": "af5570f5a1810b7a",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "k3": {
+              "dtype": "float64",
+              "sha256": "af5570f5a1810b7a",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "p1": {
+              "dtype": "float64",
+              "sha256": "af5570f5a1810b7a",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "p2": {
+              "dtype": "float64",
+              "sha256": "af5570f5a1810b7a",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "rms_error": {
+              "dtype": "float64",
+              "sha256": "0a6e2474926ace78",
+              "shape": [
+                1,
+                1
+              ]
+            },
+            "square_size_mm": {
+              "dtype": "float64",
+              "sha256": "a6eb657cf3aab7d4",
+              "shape": [
+                1,
+                1
+              ]
+            }
+          }
+        }
+      },
+      "settings": [
+        "detector:detector:ocv_detect_calibration_targets:auto_detect_grid=false",
+        "detector:detector:ocv_detect_calibration_targets:target_width=8",
+        "detector:detector:ocv_detect_calibration_targets:target_height=5",
+        "detector:detector:ocv_detect_calibration_targets:square_size=30",
+        "camera_calibration:square_size=30",
+        "camera_calibration:frame_count_threshold=6"
       ],
       "unstable": {},
       "variant": "frames_6"
