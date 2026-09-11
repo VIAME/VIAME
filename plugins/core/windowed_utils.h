@@ -52,6 +52,17 @@ struct VIAME_CORE_EXPORT image_rect
     : x( x_ ), y( y_ ), width( w_ ), height( h_ ) {}
 };
 
+/// Whether (\p px, \p py) lies in \p rect
+///
+/// `cv::Rect::contains`: the top and left edges are inside and the bottom and
+/// right edges are not.
+inline bool
+contains( const image_rect& rect, int px, int py )
+{
+  return rect.x <= px && px < rect.x + rect.width &&
+         rect.y <= py && py < rect.y + rect.height;
+}
+
 // =============================================================================
 // Window settings configuration
 // =============================================================================

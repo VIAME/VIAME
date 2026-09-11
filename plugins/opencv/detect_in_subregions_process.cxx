@@ -4,7 +4,7 @@
 
 #include "detect_in_subregions_process.h"
 
-#include <viame/opencv_bridge/image_container.h>
+#include "windowed_utils.h"
 
 #include <viame/algorithm_framework/algo/image_object_detector.h>
 #include <viame/algorithm_framework/algo/algorithm.txx>
@@ -12,9 +12,6 @@
 
 #include <viame/pipeline_framework/type_traits.h>
 #include <viame/pipeline_framework/process_exception.h>
-
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 
 namespace viame
 {
@@ -83,8 +80,11 @@ public:
             kv::detected_object_set_sptr &dets_out_sptr )
   {
     kv::wall_timer timer;
-    cv::Mat cv_src = kwiver::arrows::ocv::image_container::vital_to_ocv(
-      src_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+
+    // The bridge was asked for a BGR mat here and handed one straight back to
+    // the nested detector, so the round trip never reordered anything and
+    // there is nothing to preserve on the way out.
+    kv::image const source = src_image->get_image();
 
     kv::detected_object::vector_t dets_out;
 
@@ -95,9 +95,10 @@ public:
     }
 
     // Define the bound box representing the entire image.
-    cv::Size s = cv_src.size();
     kv::bounding_box_d img( kv::bounding_box_d::vector_type( 0, 0 ),
-                               kv::bounding_box_d::vector_type( s.width, s.height ) );
+                            kv::bounding_box_d::vector_type(
+                              static_cast< double >( source.width() ),
+                              static_cast< double >( source.height() ) ) );
 
     kv::image_container_sptr windowed_image;
 
@@ -105,7 +106,7 @@ public:
 
     int processed_count = 0;
 
-    std::vector< cv::Rect > previous_regions;
+    std::vector< image_rect > previous_regions;
 
     auto ordered_dets = dets_in->select( m_threshold );
 
@@ -141,7 +142,7 @@ public:
 
         for( auto region : previous_regions )
         {
-          if( region.contains( cv::Point( cx, cy ) ) )
+          if( contains( region, cx, cy ) )
           {
             intersect_found = true;
             break;
@@ -176,17 +177,13 @@ public:
                  std::to_string(x) + "," + std::to_string(y) + ") of size (" +
                  std::to_string(w) + "x" + std::to_string(h) + ")" );
 
-      // TODO: ocv is only used to crop the image. This can be replaced by a
-      // vital image cropping utility once that becomes available, and then this
-      // can be moved to a core process.
+      image_rect roi( x, y, w, h );
 
-      // Make CV rect for bbox
-      cv::Rect roi( x, y, w, h );
-
-      // Detect within the region of interest.
+      // Detect within the region of interest. The TODO this replaces asked
+      // for exactly this -- "ocv is only used to crop the image ... then this
+      // can be moved to a core process" -- and moving it is phase 2's job.
       windowed_image = kv::image_container_sptr(
-        new kwiver::arrows::ocv::image_container(
-          cv_src( roi ), kwiver::arrows::ocv::image_container::BGR_COLOR ) );
+        new kv::simple_image_container( crop_region( source, roi ) ) );
 
       auto dets = m_detector->detect( windowed_image );
 
