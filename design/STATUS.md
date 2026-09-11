@@ -191,6 +191,23 @@ for `CMake/FindCUDNN.cmake`, and `kwiver` is checked out and built.
 | 2026-09-09 | Python modules live beside the C++ of the library they belong to rather than in a `library/<dir>/python/` subdirectory. `library/video_io/python/` was flattened and the layout, build system, agent guide and phase 2, 4, 5, 6 and 8 task documents updated to match | user | design/lite-library-layout.md, design/AGENT_GUIDE.md |
 | 2026-09-09 | Golden coverage is the full set: per filter fixtures for every config variant the shipped pipelines use, plus whole pipeline recordings, committed under `tests/golden/` | user | tests/golden/README.md |
 
+## Decisions needed to finish phase 7
+
+Everything in phase 7 that is *work* is done or has a clear next step. What
+is left is four questions, and P7-T09 -- switching OpenCV off -- cannot
+finish until they are answered. Each has a recommendation, so answering can
+be as short as "yes" four times.
+
+| # | Question | Recommendation | Cost of the alternative |
+|---|---|---|---|
+| 1 | **`plot_metrics`** (1115 lines of OpenCV drawing, `plugins/opencv`). `lite-removals.md` 2.6 says python matplotlib in `evaluation/python`, with `viame score` shelling to it. That is a rewrite: the plots will not look the same, so no recording can hold it and the contract becomes "the same numbers, drawn" | Take the plan's answer. Matplotlib is already a dependency and the output is a picture a person looks at once, not an artefact anything downstream reads | Porting the drawing to `image_ops` instead keeps the layout but not the text -- the fonts are Hershey's and `image_ops` has one bitmap font -- so the plot changes either way, and the `image_ops` route costs more and ends somewhere worse |
+| 2 | **`classify_fish_hierarchical_svm`** (`cv::FileStorage` for its own model index) and **`iqr_session_adaboost`** (`cv::ml::Boost`). `lite-removals.md` 2.6 open decision 6: a python port under the same name, or `removed.json`. The SVM classifier is in **no** pipeline; the adaboost one is in one, `database_apply_svm_models.pipe`, which also needs PostgreSQL | Remove both, with `removed.json` entries. Nothing in the tree exercises either and the adaboost path needs a database that is off by default; a python port would be code no test runs, which is the category P5 and P7-T04b already removed several times | A python port is `sklearn` for the boosting and a small reader for the index. Not hard, but it is a feature nobody has asked to keep, and keeping it means carrying its model files too |
+| 3 | **`image_viewer` process** (`cv::imshow`, `cv::putText`, `library/video_io`). One pipeline selects it. `lite-removals.md` 2.6 offers python or `removed.json` | Python. `cv2.imshow` in a python process is a dozen lines and the process is interactive by nature, so a person is already in the loop; removing it would take a working display away from that one pipeline | Removing it costs `display_annotations.pipe` its only output |
+| 4 | **darknet** (P7-T08). The fork is built with `ENABLE_OPENCV=ON` in the reference superbuild, which is what makes `Detector::detect( cv::Mat )` exist. The plan says build it `OFF` and feed `image_ops`-resized buffers to the `image_t` overload, which exists either way | Do it, but **only once there is a test**. No `detector_darknet*` case runs in this build -- they need a downloaded model -- so the port would be unverifiable, which is the one thing this phase has refused to do | Leaving darknet on OpenCV means `libopencv_*` stays in the install, so P7-T09's "no `libopencv_*` in `ldd`" cannot pass |
+
+The bridge itself (`library/opencv_bridge`, eight files) needs no decision:
+it goes when its last caller does, which is what 1 to 4 decide.
+
 ## Removed names log
 
 Mirror of `tests/baseline/removed.json` with the task that removed each entry.
