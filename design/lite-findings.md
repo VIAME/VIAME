@@ -699,6 +699,29 @@ an artefact of the port:
   `NO_DEFAULT_PATH`, as do the TinyXML and Darknet lookups; a second build
   into its own prefix fails at configure until that prefix has been populated
   by the superbuild. Removing that coupling is what P1's single build is for.
+* **Correction to the `viame_iqr` rationale.** The commit that added it said
+  the session was kept out of `viame_core` so that the library everything
+  links stays free of libpython. `viame_core` already links libpython and has
+  for a long time: `plugins/core/CMakeLists.txt` adds `${PYTHON_LIBRARIES}`
+  for DINOv3 feature matching through the Python C API. The separate library
+  is still the right shape -- it isolates the scikit-learn dependency, and
+  `viame_processes_core` is a MODULE which CMake refuses to let a test link
+  -- but the stated reason was wrong, and a later reader would have drawn the
+  wrong conclusion from it.
+* **An optional dependency inside a widely linked library reaches further
+  than it looks.** Moving darknet's detector into `viame_object_detectors`
+  compiled and installed cleanly, and then a gtest that touches none of it
+  failed to start: `libdarknet.so` drags OpenCV behind it, and
+  `viame_object_detectors` is what `plugins/core` links for the chipping, so
+  libdarknet and `libopencv_highgui` landed on the load path of everything
+  linking `viame_core`. The detector is `viame_object_detectors_darknet` now,
+  its own library behind its own plugin, and `viame_core` needs neither.
+* **Finding 1.9 again, and it distorts a dependency count.** The install had
+  `libviame_cppdb.so` and `libviame_darknet.so` in it long after both were
+  deleted from the tree, because installing does not delete. Reading the
+  install's link graph to answer "what does VIAME still depend on" gave
+  CppDB as a live dependency of a plugin that no longer exists. The real set,
+  after clearing them, is six libraries and CppDB is not one.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 
