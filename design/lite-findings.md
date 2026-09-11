@@ -606,6 +606,32 @@ an artefact of the port:
     `adaptive_latch`, which the golden runner records the way it records
     everything -- one algorithm, then the inputs in order -- so the recording
     carries the latch rather than describing it.
+* **`image_ops::resize` had OpenCV's sample grid but not its arithmetic**,
+  and for an 8-bit image those are different answers. OpenCV resizes bytes in
+  fixed point -- eleven-bit coefficients, and a vertical pass whose 8-bit
+  specialisation shifts twice rather than casting once -- where `image_ops`
+  interpolated in double and rounded. On natural imagery about **an eighth of
+  the pixels** come out one count apart, which is why the recording carried a
+  tolerance of one rather than zero.
+  A count is noise to most callers and is not noise to a caller feeding a
+  neural network: the same frame resized the two ways gives `darknet` **37
+  detections one way and 35 the other**, with confidences moving in the
+  second decimal. So the fixed point is reproduced exactly now, and the
+  recorded tolerance for `resize_bilinear_*` is zero.
+  Two details decide it and neither is guessable. The vertical pass is
+  `((b0 * (S0 >> 4)) >> 16) + ((b1 * (S1 >> 4)) >> 16) + 2) >> 2`, not the
+  generic fixed-point cast the template names -- there is a specialisation
+  for `uchar` that overrides it. And OpenCV's two axes **clamp differently**:
+  the horizontal setup pins a sample that falls outside the image to the edge
+  and zeroes its fraction, the vertical setup leaves the coefficients alone
+  and clamps only the row index when it reads. Clamping both the same way is
+  wrong by a count along the first and last row, and only along those, which
+  is how it was found.
+  `plugins/core/windowed_utils` takes the same path now, so the shipped
+  windowed detector chips the way OpenCV chipped. Its `ocv_windowed`
+  recording could not have caught this: it runs `example_detector`, which
+  returns a fixed box per image, so the recording is of the chip geometry and
+  never of a chip's pixels.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 

@@ -30,7 +30,10 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <stdexcept>
+#include <type_traits>
+#include <vector>
 
 namespace viame {
 namespace image_ops {
@@ -123,12 +126,214 @@ sample_nearest( kwiver::vital::image_of< T > const& image, double x, double y,
 /// enlarging as well as shrinking. OpenCV's documentation says it is
 /// "similar to INTER_NEAREST" when enlarging; it is not, and treating it as
 /// nearest disagrees by up to eighty counts.
+namespace detail {
+
+// ----------------------------------------------------------------------------
+/// `cv::resize`'s fixed-point coefficients for one axis.
+///
+/// OpenCV does bilinear resizing of an 8-bit image in fixed point, not in
+/// floating point, and the two do not agree: on natural imagery about an
+/// eighth of the pixels come out one count apart. For most callers that is
+/// noise. For one handing the result to a neural network it is not -- the
+/// same frame resized the two ways gives `darknet` 37 detections one way and
+/// 35 the other -- so this reproduces the fixed point exactly.
+///
+/// The coefficients are eleven-bit: `alpha0 + alpha1` is 2048.
+///
+/// \p clamp_ends is the one place OpenCV's two axes differ, and it is not
+/// cosmetic. The horizontal setup pins a sample that would fall outside the
+/// image to the edge **and drops its fraction**; the vertical setup leaves
+/// both alone and clamps only the row index when it reads. Since the
+/// vertical accumulation shifts twice rather than once, feeding it
+/// `(2048, 0)` where OpenCV feeds it `(114, 1934)` changes the answer, and
+/// clamping both axes the same way is wrong by a count along the first and
+/// last row.
+struct linear_axis
+{
+  std::vector< long > offset;
+  std::vector< int > alpha0;
+  std::vector< int > alpha1;
+};
+
+// ----------------------------------------------------------------------------
+/// `cvRound`, which is round-half-to-even rather than round-half-away.
+inline int
+round_to_even( float value )
+{
+  return static_cast< int >( std::lrint( value ) );
+}
+
+// ----------------------------------------------------------------------------
+inline linear_axis
+byte_linear_axis( size_t dst_size, size_t src_size, double scale,
+                  bool clamp_ends )
+{
+  // INTER_RESIZE_COEF_BITS is 11
+  constexpr float coefficient_scale = 2048.0f;
+
+  linear_axis axis;
+  axis.offset.resize( dst_size );
+  axis.alpha0.resize( dst_size );
+  axis.alpha1.resize( dst_size );
+
+  auto const last = static_cast< long >( src_size ) - 1;
+
+  for( size_t d = 0; d < dst_size; ++d )
+  {
+    // Single precision, because that is what OpenCV computes it in and the
+    // difference reaches the eleventh bit
+    auto fraction = static_cast< float >(
+      ( static_cast< double >( d ) + 0.5 ) * scale - 0.5 );
+
+    auto source = static_cast< long >( std::floor( fraction ) );
+    fraction -= static_cast< float >( source );
+
+    if( clamp_ends )
+    {
+      if( source < 0 )
+      {
+        fraction = 0.0f;
+        source = 0;
+      }
+
+      if( source >= last )
+      {
+        fraction = 0.0f;
+        source = last;
+      }
+    }
+
+    axis.offset[d] = source;
+    axis.alpha0[d] = round_to_even( ( 1.0f - fraction ) * coefficient_scale );
+    axis.alpha1[d] = round_to_even( fraction * coefficient_scale );
+  }
+
+  return axis;
+}
+
+// ----------------------------------------------------------------------------
+/// `cv::resize` with `INTER_LINEAR` on an 8-bit image, to the count.
+///
+/// Horizontally into an integer buffer in units of 1/2048, then vertically
+/// through the shifts `VResizeLinear`'s 8-bit specialisation uses -- which
+/// are **not** the generic fixed-point cast, and that is where the count
+/// comes from.
+inline kwiver::vital::image_of< uint8_t >
+resize_byte_linear( kwiver::vital::image_of< uint8_t > const& image,
+                    size_t width, size_t height )
+{
+  auto const src_width = image.width();
+  auto const src_height = image.height();
+  auto const depth = image.depth();
+
+  auto const scale_x =
+    static_cast< double >( src_width ) / static_cast< double >( width );
+  auto const scale_y =
+    static_cast< double >( src_height ) / static_cast< double >( height );
+
+  auto const horizontal =
+    byte_linear_axis( width, src_width, scale_x, true );
+  auto const vertical =
+    byte_linear_axis( height, src_height, scale_y, false );
+
+  // The horizontal pass, every source row, in units of 1/2048
+  std::vector< int > buffer( src_height * width * depth );
+
+  auto const clamp_column =
+    [ src_width ]( long column ) -> size_t
+    {
+      if( column < 0 ) { return 0; }
+      if( column >= static_cast< long >( src_width ) )
+      {
+        return src_width - 1;
+      }
+      return static_cast< size_t >( column );
+    };
+
+  for( size_t plane = 0; plane < depth; ++plane )
+  {
+    for( size_t row = 0; row < src_height; ++row )
+    {
+      int* out = buffer.data() + ( plane * src_height + row ) * width;
+
+      for( size_t column = 0; column < width; ++column )
+      {
+        auto const first = clamp_column( horizontal.offset[ column ] );
+        auto const second = clamp_column( horizontal.offset[ column ] + 1 );
+
+        out[ column ] =
+          static_cast< int >( image( first, row, plane ) ) *
+            horizontal.alpha0[ column ] +
+          static_cast< int >( image( second, row, plane ) ) *
+            horizontal.alpha1[ column ];
+      }
+    }
+  }
+
+  kwiver::vital::image_of< uint8_t > out( width, height, depth );
+
+  auto const clamp_row =
+    [ src_height ]( long row ) -> size_t
+    {
+      if( row < 0 ) { return 0; }
+      if( row >= static_cast< long >( src_height ) )
+      {
+        return src_height - 1;
+      }
+      return static_cast< size_t >( row );
+    };
+
+  for( size_t plane = 0; plane < depth; ++plane )
+  {
+    int const* rows = buffer.data() + plane * src_height * width;
+
+    for( size_t j = 0; j < height; ++j )
+    {
+      int const* first = rows + clamp_row( vertical.offset[j] ) * width;
+      int const* second = rows + clamp_row( vertical.offset[j] + 1 ) * width;
+
+      auto const beta0 = vertical.alpha0[j];
+      auto const beta1 = vertical.alpha1[j];
+
+      for( size_t i = 0; i < width; ++i )
+      {
+        auto const value =
+          ( ( ( beta0 * ( first[i] >> 4 ) ) >> 16 ) +
+            ( ( beta1 * ( second[i] >> 4 ) ) >> 16 ) + 2 ) >> 2;
+
+        out( i, j, plane ) =
+          static_cast< uint8_t >( std::min( 255, std::max( 0, value ) ) );
+      }
+    }
+  }
+
+  return out;
+}
+
+} // namespace detail
+
 template < typename T >
 kwiver::vital::image_of< T >
 resize( kwiver::vital::image_of< T > const& image, size_t width,
         size_t height, interpolation how = interpolation::BILINEAR,
         border_mode mode = border_mode::REPLICATE )
 {
+  // 8-bit bilinear is OpenCV's fixed point, which the floating point below
+  // disagrees with by a count on about an eighth of the pixels. That is
+  // noise to most callers and not to one feeding a network, so the exact
+  // path is the one taken -- it is also what every caller replacing a
+  // `cv::resize` on bytes was written against.
+  if constexpr( std::is_same_v< T, uint8_t > )
+  {
+    if( how == interpolation::BILINEAR &&
+        mode == border_mode::REPLICATE &&
+        width != 0 && height != 0 &&
+        image.width() != 0 && image.height() != 0 )
+    {
+      return detail::resize_byte_linear( image, width, height );
+    }
+  }
+
   if( width == 0 || height == 0 )
   {
     throw std::invalid_argument( "resize: the target has no area" );

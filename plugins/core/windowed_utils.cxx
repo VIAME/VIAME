@@ -4,6 +4,8 @@
 
 #include "windowed_utils.h"
 
+#include <image_ops/warp.h>
+
 #include <cmath>
 #include <cstring>
 #include <algorithm>
@@ -285,7 +287,14 @@ resize_image_bilinear(
   {
     switch( traits.num_bytes )
     {
-      case 1: return resize_image_typed< uint8_t >( src, dst_width, dst_height );
+      // Eight bit goes through `image_ops`, which reproduces `cv::resize`'s
+      // fixed point exactly. The floating point below has OpenCV's sample
+      // grid but not its arithmetic, and the two differ by a count on about
+      // an eighth of the pixels of a natural image -- which is invisible in
+      // a chipping recording made with `example_detector` and is not
+      // invisible to the detector the chips are actually handed to.
+      case 1: return kv::image( image_ops::resize(
+                kv::image_of< uint8_t >( src ), dst_width, dst_height ) );
       case 2: return resize_image_typed< uint16_t >( src, dst_width, dst_height );
       case 4: return resize_image_typed< uint32_t >( src, dst_width, dst_height );
       case 8: return resize_image_typed< uint64_t >( src, dst_width, dst_height );
@@ -361,8 +370,14 @@ scale_image_maintaining_ar(
     scale_out = std::min( scale_out, width / original_width );
   }
 
-  size_t new_width = static_cast< size_t >( std::round( original_width * scale_out ) );
-  size_t new_height = static_cast< size_t >( std::round( original_height * scale_out ) );
+  // `cv::resize` given a scale rather than a size computes the size with
+  // `saturate_cast< int >`, which is `cvRound` -- round half to **even**,
+  // not half away from zero. It matters only on an exact half, and an exact
+  // half is what a scale like 0.5 or 0.25 produces all the time.
+  size_t new_width = static_cast< size_t >(
+    std::lrint( original_width * scale_out ) );
+  size_t new_height = static_cast< size_t >(
+    std::lrint( original_height * scale_out ) );
 
   kv::image resized = resize_image_bilinear( src, new_width, new_height );
 
@@ -439,9 +454,9 @@ format_image(
     else
     {
       size_t new_width = static_cast< size_t >(
-        std::round( src.width() * scale_factor ) );
+        std::lrint( src.width() * scale_factor ) );
       size_t new_height = static_cast< size_t >(
-        std::round( src.height() * scale_factor ) );
+        std::lrint( src.height() * scale_factor ) );
 
       scale_out = scale_factor;
       return resize_image_bilinear( src, new_width, new_height );

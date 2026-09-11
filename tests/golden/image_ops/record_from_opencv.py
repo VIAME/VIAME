@@ -227,9 +227,13 @@ def record():
     # merely consistent.
     for tag, size in (("half", (16, 12)), ("double", (64, 48)),
                       ("odd", (21, 17))):
+        # Zero, not one: `resize` reproduces OpenCV's fixed point for an
+        # 8-bit image exactly since P7-T08 needed it to. A count of slack
+        # was enough for everything before darknet, whose network turns a
+        # one-count difference into two fewer detections.
         add_windowed("resize_bilinear_" + tag, window,
                      cv2.resize(window, size,
-                                interpolation=cv2.INTER_LINEAR), 1)
+                                interpolation=cv2.INTER_LINEAR), 0)
         add_windowed("resize_nearest_" + tag, window,
                      cv2.resize(window, size,
                                 interpolation=cv2.INTER_NEAREST), 0)
@@ -239,7 +243,7 @@ def record():
 
     add_windowed("resize_bilinear_rgb", window_rgb,
                  cv2.resize(window_rgb, (20, 15),
-                            interpolation=cv2.INTER_LINEAR), 1)
+                            interpolation=cv2.INTER_LINEAR), 0)
 
     # The bilinear warps agree to about four counts rather than one, and the
     # difference is OpenCV's rather than ours: `warpPerspective`,
