@@ -1,0 +1,110 @@
+[
+  {
+    "bbox": [
+      0.0,
+      0.0,
+      200.0,
+      200.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      0.0,
+      20.0,
+      200.0,
+      220.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      0.0,
+      40.0,
+      200.0,
+      240.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      35.0,
+      0.0,
+      235.0,
+      200.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      35.0,
+      20.0,
+      235.0,
+      220.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      35.0,
+      40.0,
+      235.0,
+      240.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      70.0,
+      0.0,
+      270.0,
+      200.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      70.0,
+      20.0,
+      270.0,
+      220.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      70.0,
+      40.0,
+      270.0,
+      240.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  }
+]

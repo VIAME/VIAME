@@ -20,7 +20,6 @@ set( plugin_headers
   pair_stereo_tracks.h
   plot_metrics.h
   random_hue_shift.h
-  refine_detections_util.h
   split_image_habcam.h
   split_image_horizontally.h
   warp_image_ocv.h
@@ -41,7 +40,6 @@ set( plugin_sources
   pair_stereo_tracks.cxx
   plot_metrics.cxx
   random_hue_shift.cxx
-  refine_detections_util.cxx
   split_image_habcam.cxx
   split_image_horizontally.cxx
   warp_image_ocv.cxx

@@ -12,11 +12,9 @@
 #include <viame/algorithm_framework/exceptions/io.h>
 #include <viame/algorithm_framework/config/config_block_formatter.h>
 
-#include <viame/opencv_bridge/image_container.h>
+#include <viame/core_types/image_container.h>
 #include <kwiversys/SystemTools.hxx>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 
 #include <algorithm>
 #include <string>
@@ -27,7 +25,6 @@
 namespace viame {
 
 namespace kv = kwiver::vital;
-namespace ocv = kwiver::arrows::ocv;
 
 // =============================================================================
 // =============================================================================
@@ -55,10 +52,11 @@ ocv_windowed_detector
     return std::make_shared< kv::detected_object_set >();
   }
 
-  cv::Mat cv_image = ocv::image_container::vital_to_ocv(
-    image_data->get_image(), ocv::image_container::RGB_COLOR );
+  // `RGB_COLOR` both ways, so the bridge never swapped a channel: the mat
+  // was the vital image and is now the vital image.
+  auto const cv_image = image_data->get_image();
 
-  if( cv_image.rows == 0 || cv_image.cols == 0 )
+  if( cv_image.height() == 0 || cv_image.width() == 0 )
   {
     LOG_WARN( logger(), "Input image is empty." );
     return std::make_shared< kv::detected_object_set >();
@@ -82,7 +80,7 @@ ocv_windowed_detector
   settings.black_pad = c_black_pad;
 
   // Prepare image regions using utility function
-  std::vector< cv::Mat > regions_to_process;
+  std::vector< kwiver::vital::image > regions_to_process;
   std::vector< windowed_region_prop > region_properties;
 
   prepare_image_regions( cv_image, settings, regions_to_process, region_properties );
@@ -103,8 +101,8 @@ ocv_windowed_detector
     {
       imgs.push_back(
         kv::image_container_sptr(
-          new ocv::image_container( regions_to_process[i+j],
-            ocv::image_container::RGB_COLOR ) ) );
+          new kwiver::vital::simple_image_container(
+            regions_to_process[i+j] ) ) );
     }
 
     std::vector< kv::detected_object_set_sptr > out =

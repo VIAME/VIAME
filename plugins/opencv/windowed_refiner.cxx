@@ -12,11 +12,9 @@
 #include <viame/algorithm_framework/exceptions/io.h>
 #include <viame/algorithm_framework/config/config_block_formatter.h>
 
-#include <viame/opencv_bridge/image_container.h>
+#include <viame/core_types/image_container.h>
 #include <kwiversys/SystemTools.hxx>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 
 #include <algorithm>
 #include <string>
@@ -28,7 +26,6 @@
 namespace viame {
 
 namespace kv = kwiver::vital;
-namespace ocv = kwiver::arrows::ocv;
 
 // =============================================================================
 ocv_windowed_refiner::~ocv_windowed_refiner() = default;
@@ -135,10 +132,11 @@ ocv_windowed_refiner
     return std::make_shared< kv::detected_object_set >();
   }
 
-  cv::Mat cv_image = ocv::image_container::vital_to_ocv(
-    image_data->get_image(), ocv::image_container::RGB_COLOR );
+  // `RGB_COLOR` both ways, so the bridge never swapped a channel: the mat
+  // was the vital image and is now the vital image.
+  auto const cv_image = image_data->get_image();
 
-  if( cv_image.rows == 0 || cv_image.cols == 0 )
+  if( cv_image.height() == 0 || cv_image.width() == 0 )
   {
     LOG_WARN( logger(), "Input image is empty." );
     return std::make_shared< kv::detected_object_set >();
@@ -163,7 +161,7 @@ ocv_windowed_refiner
   settings.black_pad = c_black_pad;
 
   // Prepare image regions using utility function
-  std::vector< cv::Mat > regions_to_process;
+  std::vector< kwiver::vital::image > regions_to_process;
   std::vector< windowed_region_prop > region_properties;
 
   prepare_image_regions( cv_image, settings, regions_to_process, region_properties );
@@ -203,8 +201,8 @@ ocv_windowed_refiner
       if( c_process_empty )
       {
         kv::image_container_sptr region_image(
-          new ocv::image_container( regions_to_process[i],
-            ocv::image_container::RGB_COLOR ) );
+          new kwiver::vital::simple_image_container(
+            regions_to_process[i] ) );
 
         kv::detected_object_set_sptr region_refined =
           c_refiner->refine( region_image,
@@ -260,8 +258,10 @@ ocv_windowed_refiner
         touches_boundary =
           ( bbox.min_x() <= 0.0 ) ||
           ( bbox.min_y() <= 0.0 ) ||
-          ( bbox.max_x() >= regions_to_process[i].cols - 1 ) ||
-          ( bbox.max_y() >= regions_to_process[i].rows - 1 );
+          ( bbox.max_x() >=
+            static_cast< double >( regions_to_process[i].width() ) - 1 ) ||
+          ( bbox.max_y() >=
+            static_cast< double >( regions_to_process[i].height() ) - 1 );
       }
 
       if( touches_boundary )
@@ -293,8 +293,8 @@ ocv_windowed_refiner
     {
       // Convert region to image container
       kv::image_container_sptr region_image(
-        new ocv::image_container( regions_to_process[i],
-          ocv::image_container::RGB_COLOR ) );
+        new kwiver::vital::simple_image_container(
+          regions_to_process[i] ) );
 
       // Refine detections in this region
       kv::detected_object_set_sptr region_refined =
@@ -327,7 +327,8 @@ ocv_windowed_refiner
   {
     refined_detections = merge_tile_boundary_detections(
       det_tile_list, c_mask_overlap_thresh,
-      cv_image.cols, cv_image.rows );
+      static_cast< int >( cv_image.width() ),
+      static_cast< int >( cv_image.height() ) );
   }
 
   const int min_dim = settings.min_detection_dim;

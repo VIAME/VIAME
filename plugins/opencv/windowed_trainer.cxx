@@ -12,16 +12,12 @@
 #include <viame/algorithm_framework/util/cpu_timer.h>
 #include <viame/algorithm_framework/algo/image_io.h>
 
-#include <viame/opencv_bridge/image_container.h>
 #include <viame/core_types/detected_object.h>
 #include <viame/core_types/detected_object_set.h>
 #include <viame/core_types/detected_object_type.h>
 #include <viame/core_types/bounding_box.h>
 
 #include <kwiversys/SystemTools.hxx>
-
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 
 #include <string>
 #include <sstream>
@@ -39,7 +35,6 @@
 namespace viame {
 
 namespace kv = kwiver::vital;
-namespace ocv = kwiver::arrows::ocv;
 
 #ifdef WIN32
   const std::string div = "\\";
@@ -264,8 +259,7 @@ ocv_windowed_trainer
   {
     for( unsigned i = 0; i < train_images.size(); ++i )
     {
-      cv::Mat image = ocv::image_container::vital_to_ocv(
-        train_images[i]->get_image(), ocv::image_container::RGB_COLOR );
+      auto const image = train_images[i]->get_image();
       std::mt19937 rng( static_cast< uint64_t >( i ) * 2654435761ull + 1ull );
 
       if( c_random_validation > 0.0 &&
@@ -286,8 +280,7 @@ ocv_windowed_trainer
     }
     for( unsigned i = 0; i < test_images.size(); ++i )
     {
-      cv::Mat image = ocv::image_container::vital_to_ocv(
-        test_images[i]->get_image(), ocv::image_container::RGB_COLOR );
+      auto const image = test_images[i]->get_image();
       std::mt19937 rng( static_cast< uint64_t >( i ) * 2654435761ull + 7ull );
 
       format_image_from_memory(
@@ -489,7 +482,7 @@ ocv_windowed_trainer
   // Scale and break up image according to settings
   kv::image_container_sptr vital_image;
   kv::bounding_box_d image_dims;
-  cv::Mat original_image;
+  kv::image original_image;
   kv::detected_object_set_sptr filtered_truth;
 
   rescale_option format_mode = m_settings.mode;
@@ -501,11 +494,10 @@ ocv_windowed_trainer
 
     vital_image = m_image_io->load( image_fn );
 
-    original_image = ocv::image_container::vital_to_ocv(
-      vital_image->get_image(), ocv::image_container::RGB_COLOR );
+    original_image = vital_image->get_image();
 
     image_dims = kv::bounding_box_d( 0, 0,
-      original_image.cols, original_image.rows );
+      original_image.width(), original_image.height() );
   }
   catch( const kv::vital_exception& e )
   {
@@ -516,14 +508,16 @@ ocv_windowed_trainer
   // Early exit don't need to read all images every iteration
   if( format_mode == ADAPTIVE )
   {
-    if( ( original_image.rows * original_image.cols ) < m_settings.chip_adaptive_thresh )
+    if( ( original_image.height() * original_image.width() ) < m_settings.chip_adaptive_thresh )
     {
       if( c_always_write_image ||
           ( m_settings.original_to_chip_size &&
-            ( original_image.cols > m_settings.chip_width ||
-              original_image.rows > m_settings.chip_height ) ) ||
+            ( static_cast< int >( original_image.width() ) >
+                m_settings.chip_width ||
+              static_cast< int >( original_image.height() ) >
+                m_settings.chip_height ) ) ||
           ( c_ensure_standard &&
-            ( original_image.channels() != 3 ||
+            ( original_image.depth() != 3 ||
              !( ext == "jpg" || ext == "png" || ext == "jpeg" ) ) ) )
       {
         format_mode = MAINTAIN_AR;
@@ -546,8 +540,10 @@ ocv_windowed_trainer
   }
   else if( format_mode == ORIGINAL_AND_RESIZED )
   {
-    if( original_image.rows <= m_settings.chip_height &&
-        original_image.cols <= m_settings.chip_width )
+    if( static_cast< int >( original_image.height() ) <=
+          m_settings.chip_height &&
+        static_cast< int >( original_image.width() ) <=
+          m_settings.chip_width )
     {
       if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
       {
@@ -560,7 +556,7 @@ ocv_windowed_trainer
 
     format_mode = MAINTAIN_AR;
 
-    if( ( original_image.rows * original_image.cols ) >= m_settings.chip_adaptive_thresh )
+    if( ( original_image.height() * original_image.width() ) >= m_settings.chip_adaptive_thresh )
     {
       if( filter_detections_in_roi( groundtruth[fid], image_dims, filtered_truth ) )
       {
@@ -581,7 +577,7 @@ ocv_windowed_trainer
 void
 ocv_windowed_trainer
 ::format_image_from_memory(
-  const cv::Mat& image,
+  const kv::image& image,
   kv::detected_object_set_sptr groundtruth,
   const rescale_option format_method,
   std::vector< std::string >& formatted_names,
@@ -591,7 +587,7 @@ ocv_windowed_trainer
 {
   int chip_idx = 0;
   std::uniform_real_distribution< double > unif( 0.0, 1.0 );
-  cv::Mat resized_image;
+  kv::image resized_image;
   kv::detected_object_set_sptr scaled_groundtruth = groundtruth->clone();
   kv::detected_object_set_sptr filtered_truth;
 
@@ -613,7 +609,7 @@ ocv_windowed_trainer
 
   if( format_method != CHIP && format_method != CHIP_AND_ORIGINAL )
   {
-    kv::bounding_box_d roi_box( 0, 0, resized_image.cols, resized_image.rows );
+    kv::bounding_box_d roi_box( 0, 0, static_cast< int >( resized_image.width() ), static_cast< int >( resized_image.height() ) );
 
     if( filter_detections_in_roi( scaled_groundtruth, roi_box, filtered_truth ) )
     {
@@ -629,18 +625,18 @@ ocv_windowed_trainer
   else
   {
     int annotated_chips = 0;
-    std::vector< cv::Rect > background_rois;
+    std::vector< image_rect > background_rois;
 
     // Chip up and process scaled image
     for( int i = 0;
-         i < resized_image.cols - m_settings.chip_width + m_settings.chip_step_width;
+         i < static_cast< int >( resized_image.width() ) - m_settings.chip_width + m_settings.chip_step_width;
          i += m_settings.chip_step_width )
     {
       int cw = i + m_settings.chip_width;
 
-      if( cw > resized_image.cols )
+      if( cw > static_cast< int >( resized_image.width() ) )
       {
-        cw = resized_image.cols - i;
+        cw = static_cast< int >( resized_image.width() ) - i;
       }
       else
       {
@@ -648,7 +644,7 @@ ocv_windowed_trainer
       }
 
       for( int j = 0;
-           j < resized_image.rows - m_settings.chip_height + m_settings.chip_step_height;
+           j < static_cast< int >( resized_image.height() ) - m_settings.chip_height + m_settings.chip_step_height;
            j += m_settings.chip_step_height )
       {
         // random downsampling
@@ -660,9 +656,9 @@ ocv_windowed_trainer
 
         int ch = j + m_settings.chip_height;
 
-        if( ch > resized_image.rows )
+        if( ch > static_cast< int >( resized_image.height() ) )
         {
-          ch = resized_image.rows - j;
+          ch = static_cast< int >( resized_image.height() ) - j;
         }
         else
         {
@@ -675,7 +671,7 @@ ocv_windowed_trainer
           continue;
         }
 
-        cv::Rect roi( i, j, cw, ch );
+        image_rect roi( i, j, cw, ch );
 
         kv::bounding_box_d roi_box( i, j, i + m_settings.chip_width,
           j + m_settings.chip_height );
@@ -685,8 +681,8 @@ ocv_windowed_trainer
         if( filter_detections_in_roi( scaled_groundtruth, roi_box,
               filtered_truth, &overlapped ) )
         {
-          cv::Mat cropped_image = resized_image( roi );
-          cv::Mat resized_crop;
+          auto const cropped_image = crop_region( resized_image, roi );
+          kv::image resized_crop;
 
           scale_image_maintaining_ar( cropped_image,
             resized_crop, m_settings.chip_width, m_settings.chip_height,
@@ -720,8 +716,9 @@ ocv_windowed_trainer
 
       for( int n = 0; n < target; ++n )
       {
-        cv::Mat cropped_image = resized_image( background_rois[n] );
-        cv::Mat resized_crop;
+        auto const cropped_image =
+          crop_region( resized_image, background_rois[n] );
+        kv::image resized_crop;
 
         scale_image_maintaining_ar( cropped_image,
           resized_crop, m_settings.chip_width, m_settings.chip_height,
@@ -740,7 +737,7 @@ ocv_windowed_trainer
     // Process full sized image if enabled
     if( format_method == CHIP_AND_ORIGINAL )
     {
-      cv::Mat scaled_original;
+      kv::image scaled_original;
 
       double scaled_original_scale = scale_image_maintaining_ar( image,
         scaled_original, m_settings.chip_width, m_settings.chip_height,
@@ -749,7 +746,8 @@ ocv_windowed_trainer
       kv::detected_object_set_sptr scaled_original_dets_ptr = groundtruth->clone();
       scaled_original_dets_ptr->scale( scaled_original_scale );
 
-      kv::bounding_box_d roi_box( 0, 0, scaled_original.cols, scaled_original.rows );
+      kv::bounding_box_d roi_box( 0, 0,
+        scaled_original.width(), scaled_original.height() );
 
       if( filter_detections_in_roi( scaled_original_dets_ptr, roi_box, filtered_truth ) )
       {
@@ -1172,23 +1170,19 @@ ocv_windowed_trainer
 
 bool
 ocv_windowed_trainer
-::write_chip_to_disk( const std::string& filename, const cv::Mat& image )
+::write_chip_to_disk( const std::string& filename,
+                      const kv::image& image )
 {
-  if( image.empty() || image.cols <= 0 || image.rows <= 0 )
+  if( image.width() == 0 || image.height() == 0 )
   {
     LOG_WARN( m_logger, "Skipping empty chip " << filename );
     return false;
   }
 
-  // ocv_to_vital only wraps refcounted Mats; a view into a vital buffer would
-  // reach the vxl writer with null memory.
-  const cv::Mat owned =
-    ( image.u && image.isContinuous() ) ? image : image.clone();
-
+  // `io::crop` and `io::resize` both allocate, so every chip that reaches
+  // here owns its memory; the `cv::Mat` version had to clone views.
   m_image_io->save( filename,
-    kv::image_container_sptr(
-      new ocv::image_container( owned,
-        ocv::image_container::RGB_COLOR ) ) );
+    kv::image_container_sptr( new kv::simple_image_container( image ) ) );
 
   return true;
 }

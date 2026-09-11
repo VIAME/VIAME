@@ -178,6 +178,48 @@ DETECTORS = {
                          "max_radius": "20"}),
         ],
     },
+    # `ocv_windowed` chips an image and runs another detector on each chip,
+    # then maps the boxes back. `example_detector` is the nested one because
+    # it is deterministic and returns a fixed box per image, which makes the
+    # recording a record of the **chipping geometry** -- where each chip was
+    # taken from and how its boxes came back -- rather than of a detector.
+    "ocv_windowed": {
+        "inputs": ("rgb8",),
+        "variants": [
+            ("disabled", {"detector:type": "example_detector",
+                          "mode": "disabled"}),
+            ("chip", {"detector:type": "example_detector", "mode": "chip",
+                      "chip_width": "32", "chip_height": "24",
+                      "chip_step_width": "16", "chip_step_height": "12"}),
+            ("chip_and_original", {"detector:type": "example_detector",
+                                   "mode": "chip_and_original",
+                                   "chip_width": "32", "chip_height": "24",
+                                   "chip_step_width": "16",
+                                   "chip_step_height": "12"}),
+            ("original_and_resized", {"detector:type": "example_detector",
+                                      "mode": "original_and_resized",
+                                      "chip_width": "32",
+                                      "chip_height": "24"}),
+            # A chip that does not divide the image, so the last column and
+            # row are partial -- which is where a crop goes wrong.
+            ("uneven_chips", {"detector:type": "example_detector",
+                              "mode": "chip",
+                              "chip_width": "40", "chip_height": "25",
+                              "chip_step_width": "35",
+                              "chip_step_height": "20"}),
+            # Padding rather than stretching a partial chip.
+            ("black_pad", {"detector:type": "example_detector",
+                           "mode": "chip", "black_pad": "true",
+                           "chip_width": "40", "chip_height": "25",
+                           "chip_step_width": "35",
+                           "chip_step_height": "20"}),
+            # A scale other than one, which resizes before chipping.
+            ("scaled", {"detector:type": "example_detector", "mode": "chip",
+                        "scale": "2", "chip_width": "32",
+                        "chip_height": "24", "chip_step_width": "16",
+                        "chip_step_height": "12"}),
+        ],
+    },
     "detect_heat_map": {
         "inputs": HEAT,
         "variants": [

@@ -223,7 +223,7 @@ private:
     std::vector< kwiver::vital::detected_object_set_sptr >& truth );
 
   void format_image_from_memory(
-    const cv::Mat& image,
+    const kwiver::vital::image& image,
     kwiver::vital::detected_object_set_sptr groundtruth,
     const rescale_option format_method,
     std::vector< std::string >& formatted_names,
@@ -239,7 +239,8 @@ private:
 
   std::string generate_filename( const std::string& frame_tag, int chip_idx );
 
-  bool write_chip_to_disk( const std::string& filename, const cv::Mat& image );
+  bool write_chip_to_disk( const std::string& filename,
+                           const kwiver::vital::image& image );
 
   // Chip-cache (manifest) helpers
   std::string frame_tag_for( unsigned fid, const std::string& image_fn );

@@ -1,5 +1,5 @@
 {
-  "appended": "2026-09-11T04:40:05Z",
+  "appended": "2026-09-11T05:31:07Z",
   "cases": [
     {
       "config": {},
@@ -4901,6 +4901,170 @@
       "refuses": {},
       "unstable": {},
       "variant": "readme_example"
+    },
+    {
+      "config": {
+        "detector:type": "example_detector",
+        "mode": "disabled"
+      },
+      "impl": "ocv_windowed",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "rgb8": {
+          "detections": 1,
+          "file": "detect/ocv_windowed/disabled/rgb8.json",
+          "sha256": "94fc5cb694e38d1f"
+        }
+      },
+      "unstable": {},
+      "variant": "disabled"
+    },
+    {
+      "config": {
+        "chip_height": "24",
+        "chip_step_height": "12",
+        "chip_step_width": "16",
+        "chip_width": "32",
+        "detector:type": "example_detector",
+        "mode": "chip"
+      },
+      "impl": "ocv_windowed",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "rgb8": {
+          "detections": 25,
+          "file": "detect/ocv_windowed/chip/rgb8.json",
+          "sha256": "da2a32a92599d3f4"
+        }
+      },
+      "unstable": {},
+      "variant": "chip"
+    },
+    {
+      "config": {
+        "chip_height": "24",
+        "chip_step_height": "12",
+        "chip_step_width": "16",
+        "chip_width": "32",
+        "detector:type": "example_detector",
+        "mode": "chip_and_original"
+      },
+      "impl": "ocv_windowed",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "rgb8": {
+          "detections": 26,
+          "file": "detect/ocv_windowed/chip_and_original/rgb8.json",
+          "sha256": "a7c947ba66042b27"
+        }
+      },
+      "unstable": {},
+      "variant": "chip_and_original"
+    },
+    {
+      "config": {
+        "chip_height": "24",
+        "chip_width": "32",
+        "detector:type": "example_detector",
+        "mode": "original_and_resized"
+      },
+      "impl": "ocv_windowed",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "rgb8": {
+          "detections": 1,
+          "file": "detect/ocv_windowed/original_and_resized/rgb8.json",
+          "sha256": "86928e94c7ed3b00"
+        }
+      },
+      "unstable": {},
+      "variant": "original_and_resized"
+    },
+    {
+      "config": {
+        "chip_height": "25",
+        "chip_step_height": "20",
+        "chip_step_width": "35",
+        "chip_width": "40",
+        "detector:type": "example_detector",
+        "mode": "chip"
+      },
+      "impl": "ocv_windowed",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "rgb8": {
+          "detections": 9,
+          "file": "detect/ocv_windowed/uneven_chips/rgb8.json",
+          "sha256": "500c4c39f0b07a7a"
+        }
+      },
+      "unstable": {},
+      "variant": "uneven_chips"
+    },
+    {
+      "config": {
+        "black_pad": "true",
+        "chip_height": "25",
+        "chip_step_height": "20",
+        "chip_step_width": "35",
+        "chip_width": "40",
+        "detector:type": "example_detector",
+        "mode": "chip"
+      },
+      "impl": "ocv_windowed",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "rgb8": {
+          "detections": 9,
+          "file": "detect/ocv_windowed/black_pad/rgb8.json",
+          "sha256": "500c4c39f0b07a7a"
+        }
+      },
+      "unstable": {},
+      "variant": "black_pad"
+    },
+    {
+      "config": {
+        "chip_height": "24",
+        "chip_step_height": "12",
+        "chip_step_width": "16",
+        "chip_width": "32",
+        "detector:type": "example_detector",
+        "mode": "chip",
+        "scale": "2"
+      },
+      "impl": "ocv_windowed",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "rgb8": {
+          "detections": 110,
+          "file": "detect/ocv_windowed/scaled/rgb8.json",
+          "sha256": "18df0107492ccdb5"
+        }
+      },
+      "unstable": {},
+      "variant": "scaled"
     }
   ],
   "fixtures": {
