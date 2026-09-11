@@ -20,7 +20,6 @@
 #include <viame/algorithm_framework/algo/warp_image.h>
 
 #include "add_keypoints_from_mask.h"
-#include "apply_color_correction.h"
 #include "classify_fish_hierarchical_svm.h"
 #include "convert_color_space.h"
 #include "debayer_filter.h"
@@ -53,9 +52,8 @@ register_factories( kv::plugin_loader& vpm )
     add_keypoints_from_mask::plugin_name() );
   fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
 
-  fact = vpm.add_factory< kv::algo::image_filter, apply_color_correction >(
-    apply_color_correction::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+  // `ocv_color_correction` is
+  // `library/image_processing/ocv_color_correction.py` since P7-T04b.
 
   fact = vpm.add_factory< kv::algo::refine_detections, classify_fish_hierarchical_svm >(
     classify_fish_hierarchical_svm::plugin_name() );

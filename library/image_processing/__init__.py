@@ -6,12 +6,13 @@
 
 
 def __vital_algorithm_register__():
-    from viame.image_processing import (ocv_enhancer, ocv_estimators,
-                                        ocv_flann_matcher, ocv_segmenters,
-                                        ocv_sift_surf)
+    from viame.image_processing import (ocv_color_correction, ocv_enhancer,
+                                        ocv_estimators, ocv_flann_matcher,
+                                        ocv_segmenters, ocv_sift_surf)
 
     ocv_sift_surf.__vital_algorithm_register__()
     ocv_enhancer.__vital_algorithm_register__()
+    ocv_color_correction.__vital_algorithm_register__()
     ocv_flann_matcher.__vital_algorithm_register__()
     ocv_estimators.__vital_algorithm_register__()
     ocv_segmenters.__vital_algorithm_register__()

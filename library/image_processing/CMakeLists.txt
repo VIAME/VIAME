@@ -147,6 +147,13 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_enhancer.py
     image_processing
     ocv_enhancer )
+
+  # `ocv_color_correction`, likewise python: a chain of primitives rather
+  # than one of them.
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_color_correction.py
+    image_processing
+    ocv_color_correction )
 endif()
 
 ###

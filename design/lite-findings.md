@@ -347,6 +347,29 @@ an artefact of the port:
   that case to a relative tolerance and to ground truth instead of to its
   bytes. Worth knowing before treating a calibration file as a record of
   what its inputs were.
+* **`ocv_color_correction`'s `water_type` does nothing.** The filter has a
+  `set_water_type_presets()` that would set the three attenuation
+  coefficients from `oceanic`, `coastal` or `turbid`, and **nothing calls
+  it** -- not the constructor, not `set_configuration`, not the filter. The
+  coefficients always come from `red_attenuation`, `green_attenuation` and
+  `blue_attenuation`. `examples/image_enhancement/README.rst` documents all
+  three presets with their numbers, and its own worked example asks for
+  `coastal`.
+
+  The recording settles it: `underwater_coastal` and `underwater_turbid`
+  are byte-identical to the default, while a manual attenuation moves the
+  image by 12 counts. Reproduced rather than fixed, because a user who has
+  been getting oceanic coefficients while asking for turbid ones has tuned
+  around it.
+* `ocv_color_correction`'s fusion path sets `c_gamma = 0.7` around its
+  shadow-recovery pass and restores it after -- and `apply_gamma_correction`
+  overwrites `gamma` from the histogram whenever `gamma_auto` is set, so
+  with `gamma_auto` on that 0.7 is ignored and the pass uses the automatic
+  gamma of an image that has already been gamma corrected once. Eight counts
+  of difference from doing what the code appears to say, and only the
+  combined case in the recording shows it: gamma and fusion each agree on
+  their own.
+
 * **`warp_image_ocv`'s alpha blend is wrong on every channel but the
   first.** It computes
 

@@ -11,7 +11,6 @@ link_directories( "${OpenCV_LIBRARY_DIR}" )
 set( plugin_headers
   adaboost_classifier.h
   add_keypoints_from_mask.h
-  apply_color_correction.h
   calibrate_single_camera.h
   calibrate_stereo_cameras.h
   canny_edge_detector.h
@@ -40,7 +39,6 @@ set( plugin_headers
 set( plugin_sources
   adaboost_classifier.cxx
   add_keypoints_from_mask.cxx
-  apply_color_correction.cxx
   calibrate_single_camera.cxx
   calibrate_stereo_cameras.cxx
   canny_edge_detector.cxx
