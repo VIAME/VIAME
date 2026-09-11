@@ -114,19 +114,44 @@ CALIBRATION_PIPELINE = "measurement_calibrate_cameras_default.pipe"
 # inside the 8 by 5 board on one camera's first view and a correct 8 by 5 on
 # the other, and the calibration then refused a pair whose corner counts
 # disagreed. A real calibration setup states its board.
-CALIBRATION_SETTINGS = tuple(
-    setting
-    for detector in ("detector1", "detector2")
-    for setting in (
+def _detector_settings():
+    return tuple(
+        setting
+        for detector in ("detector1", "detector2")
+        for setting in (
         "{}:detector:ocv_detect_calibration_targets:"
         "auto_detect_grid=false".format(detector),
         "{}:detector:ocv_detect_calibration_targets:"
         "target_width=8".format(detector),
         "{}:detector:ocv_detect_calibration_targets:"
         "target_height=5".format(detector),
-        "{}:detector:ocv_detect_calibration_targets:"
-        "square_size=30".format(detector),
-    ))
+            "{}:detector:ocv_detect_calibration_targets:"
+            "square_size=30".format(detector),
+        ))
+
+
+# The variants. `all_frames` is the shipped configuration, which has
+# `frame_count_threshold` at 0 and so uses every view. `frames_6` turns the
+# k-medians frame selection on, and it is here because that is the only way
+# to reach `filter_stereo_feature_tracks::select_points_maximizing_variance`
+# at all: at the shipped default it short-circuits, so a port of it would
+# otherwise be code no test runs. It is deterministic across runs, checked.
+CALIBRATION_VARIANTS = (
+    ("all_frames", ()),
+    ("frames_6", ("cameras_calibration:frame_count_threshold=6",)),
+)
+
+
+def calibration_settings(variant):
+    """Every `-s` a calibration variant needs."""
+    for name, extra in CALIBRATION_VARIANTS:
+        if name == variant:
+            return _detector_settings() + extra
+
+    raise KeyError(variant)
+
+
+CALIBRATION_SETTINGS = _detector_settings()
 
 # Ground truth, from `measurement_fixtures.py`. Repeated here rather than
 # imported so that a case file reads as the specification it is.
@@ -142,8 +167,12 @@ CALIBRATION_TRUTH = {
 # The recorded implementation came within 0.3% on every one of them, so
 # these have a factor of three in hand; they are here to catch a port that
 # is wrong, not to measure one that is right.
+# Two per cent on a focal length rather than one: selecting six of the twelve
+# views costs accuracy, as it should -- `all_frames` lands within 0.3% and
+# `frames_6` within 0.9%. A port that is broken will be far worse than two
+# per cent, so this still catches what it is for.
 CALIBRATION_TOLERANCES = {
-    "focal": 0.01,
+    "focal": 0.02,
     "centre": 0.005,
     "baseline": 0.01,
 }

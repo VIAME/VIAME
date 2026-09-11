@@ -701,16 +701,17 @@ def record_measurement_calibration(group_dir, manifest):
     pipeline = measurement_cases.CALIBRATION_PIPELINE
     left, right = measurement_cases.calibration_view_names()
 
-    outputs = measurement_runner.run_stereo_pipeline(
-        pipeline, left, right, measurement_cases.CALIBRATION_SETTINGS)
+    for variant, _ in measurement_cases.CALIBRATION_VARIANTS:
+        settings = measurement_cases.calibration_settings(variant)
 
-    arrays = measurement_runner.calibration_arrays(outputs)
+        outputs = measurement_runner.run_stereo_pipeline(
+            pipeline, left, right, settings)
 
-    _record_arrays_case(group_dir, manifest, "calibration_pipeline",
-                        pipeline,
-                        "synthetic_rig", {}, ["stereo_rig"], [arrays],
-                        extra={"settings": list(
-                            measurement_cases.CALIBRATION_SETTINGS)})
+        arrays = measurement_runner.calibration_arrays(outputs)
+
+        _record_arrays_case(group_dir, manifest, "calibration_pipeline",
+                            pipeline, variant, {}, ["stereo_rig"], [arrays],
+                            extra={"settings": list(settings)})
 
 
 def record_measurement(group_dir, manifest):
