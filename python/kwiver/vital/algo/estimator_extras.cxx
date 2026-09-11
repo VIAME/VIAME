@@ -12,6 +12,7 @@
 
 #include <viame/algorithm_framework/algo/estimate_fundamental_matrix.h>
 #include <viame/algorithm_framework/algo/estimate_homography.h>
+#include <viame/algorithm_framework/algo/optimize_cameras.h>
 
 #include <pybind11/stl.h>
 
@@ -99,6 +100,61 @@ estimator_extras( py::module& m )
   bind_estimator< kwiver::vital::algo::estimate_fundamental_matrix,
                   kwiver::vital::fundamental_matrix_sptr >(
     m, "EstimateFundamentalMatrix" );
+}
+
+// ----------------------------------------------------------------------------
+/// Give `optimize_cameras`'s two overloads two python names.
+///
+/// The generated binding exposes both as `optimize`, and python has one name
+/// for the two, so a caller reaching for the single-camera form gets the map
+/// form's argument check. The map form keeps `optimize` and returns the
+/// optimised map rather than writing into the argument -- the interface
+/// returns void, so from python it would otherwise return nothing at all --
+/// and the single-camera form becomes `optimize_camera`, which is the name
+/// the hand-written trampoline looks for on the implementing side.
+void
+optimize_cameras_extras( py::module& m )
+{
+  using algorithm = kwiver::vital::algo::optimize_cameras;
+
+  py::object cls = m.attr( "OptimizeCameras" );
+
+  cls.attr( "optimize" ) = py::cpp_function(
+    []( algorithm const& self,
+        kwiver::vital::camera_map_sptr cameras,
+        kwiver::vital::feature_track_set_sptr tracks,
+        kwiver::vital::landmark_map_sptr landmarks,
+        kwiver::vital::sfm_constraints_sptr constraints )
+    {
+      self.optimize( cameras, tracks, landmarks, constraints );
+      return cameras;
+    },
+    py::is_method( cls ),
+    py::doc( "Optimize a map of cameras. Returns the optimised map; the "
+             "C++ signature takes it as an in/out parameter, which python "
+             "cannot see." ),
+    py::arg( "cameras" ),
+    py::arg( "tracks" ),
+    py::arg( "landmarks" ),
+    py::arg( "constraints" ) = py::none() );
+
+  cls.attr( "optimize_camera" ) = py::cpp_function(
+    []( algorithm const& self,
+        kwiver::vital::camera_perspective_sptr camera,
+        std::vector< kwiver::vital::feature_sptr > const& features,
+        std::vector< kwiver::vital::landmark_sptr > const& landmarks,
+        kwiver::vital::sfm_constraints_sptr constraints )
+    {
+      self.optimize( camera, features, landmarks, constraints );
+      return camera;
+    },
+    py::is_method( cls ),
+    py::doc( "Optimize one camera against parallel feature and landmark "
+             "vectors. Returns the optimised camera." ),
+    py::arg( "camera" ),
+    py::arg( "features" ),
+    py::arg( "landmarks" ),
+    py::arg( "constraints" ) = py::none() );
 }
 
 } // namespace kwiver::vital::python

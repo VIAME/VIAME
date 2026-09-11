@@ -276,6 +276,8 @@ string(APPEND _kwiver_python_algo_all_modules_includes
   "#include <python/kwiver/vital/algo/estimator_extras.h>\n")
 string(APPEND _kwiver_python_algo_all_modules_load_algos
   "   estimator_extras(m);\n")
+string(APPEND _kwiver_python_algo_all_modules_load_algos
+  "   optimize_cameras_extras(m);\n")
 
 set(_kwiver_python_algo_all_modules_content)
 string(CONCAT _kwiver_python_algo_all_modules_content

@@ -14,6 +14,7 @@ moves to python:
 | `extract_descriptors` | `feature_set_sptr& features` | The extractor may reorder or drop features to line up with its descriptors; a caller left holding the old set pairs each descriptor with the wrong feature |
 | `estimate_homography` | `std::vector<bool>& inliers` | `match_features_homography` and `compute_ref_homography_core` keep only the inlier matches, so an empty vector keeps none |
 | `estimate_fundamental_matrix` | `std::vector<bool>& inliers` | `match_features_fundamental_matrix`, the same way |
+| `optimize_cameras` | `camera_map_sptr& cameras` | The entire result -- the method returns void -- so a python implementation of it optimises nothing anyone can see |
 
 A file here named `<interface>_trampoline.txx` is copied in place of the
 generated one. The convention it establishes, for these three and for any
@@ -43,6 +44,12 @@ So the second overload looks for `estimate_matches`, the name
 C++ body when python does not define it. A python implementation therefore
 writes `estimate` alone and gets the feature-set form for free, which is what
 the C++ ones do.
+
+`optimize_cameras` has the same shape and takes the same treatment: the map
+form stays `optimize` and the single-camera form is `optimize_camera`, on
+both sides. Its out parameter is the whole answer rather than half of it, so
+the tuple convention collapses to "return what you would have written into
+the parameter".
 
 P8-T02 replaces the generator with hand-written trampolines throughout. This
 is that task's first three files, brought forward because P7-T04 cannot move
