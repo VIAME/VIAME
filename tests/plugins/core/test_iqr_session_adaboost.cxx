@@ -27,13 +27,16 @@
 
 #include <gtest/gtest.h>
 
-#include "iqr_session_adaboost.h"
+#include "core/iqr_session_adaboost.h"
+
+#include <pybind11/embed.h>
 
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include <random>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -56,12 +59,28 @@ expected_path()
 constexpr size_t DIMENSION = 16;
 constexpr unsigned SEED = 20260911;
 
+// Half a standard deviation on six of the sixteen dimensions: the classes
+// genuinely overlap, so the weak learners disagree and the margin is a range
+// rather than its two endpoints.
+constexpr double OFFSET = 0.5;
+
+// Per side. Twenty a side is enough for the area under the ROC curve below
+// to mean something and few enough to read in the recording.
+constexpr size_t PROBES = 20;
+
 // ----------------------------------------------------------------------------
 /// Two overlapping clusters: a class boundary a booster can find and not
 /// trivially, which is what makes the ranking say something.
 ///
 /// The mean differs on the first six dimensions only, so ten of the sixteen
 /// are noise a split on them would be wrong to take.
+///
+/// The offset is small on purpose. Clusters far enough apart to be linearly
+/// separable make **every** weak learner agree on **every** sample, and then
+/// the ensemble margin saturates at its extreme for all of them -- which
+/// looks exactly like the two-valued score this test exists to rule out. A
+/// fixture that cannot tell a graded score from a constant one is no test of
+/// a ranking.
 std::vector< viame::iqr::descriptor_element >
 make_cluster( const std::string& prefix, size_t count, double offset,
               std::mt19937& rng )
@@ -100,13 +119,13 @@ build_scenario()
   std::mt19937 rng( SEED );
 
   scenario out;
-  out.positives = make_cluster( "pos", 24, 1.5, rng );
-  out.negatives = make_cluster( "neg", 24, -1.5, rng );
+  out.positives = make_cluster( "pos", 40, OFFSET, rng );
+  out.negatives = make_cluster( "neg", 40, -OFFSET, rng );
 
-  // Held-out probes, alternating sides, so a recording of the scores says
+  // Held-out probes, positives first, so a recording of the scores says
   // which way the ranking points as well as what the numbers are
-  auto probe_positive = make_cluster( "probe_pos", 5, 1.5, rng );
-  auto probe_negative = make_cluster( "probe_neg", 5, -1.5, rng );
+  auto probe_positive = make_cluster( "probe_pos", PROBES, OFFSET, rng );
+  auto probe_negative = make_cluster( "probe_neg", PROBES, -OFFSET, rng );
 
   out.probes = probe_positive;
   out.probes.insert( out.probes.end(),
@@ -166,7 +185,59 @@ const std::vector< variant > VARIANTS = {
   { "no_trim", "gentle", 100, 1, 0.0 },
 };
 
+// ----------------------------------------------------------------------------
+/// The session trains and scores through `viame.core.iqr_adaboost`, so the
+/// test has to provide an interpreter the way a VIAME pipeline does -- there
+/// the plugin loader brings python up before any process runs, and a bare
+/// gtest has nobody to do that. Without one the session reports no model and
+/// every assertion below falls through to the similarity fallback, which is
+/// correct behaviour and no test of anything.
+class python_environment : public ::testing::Environment
+{
+public:
+  void SetUp() override
+  {
+    if( Py_IsInitialized() == 0 )
+    {
+      m_interpreter =
+        std::make_unique< pybind11::scoped_interpreter >();
+    }
+
+#ifdef VIAME_PYTHON_PACKAGES
+    // ctest runs a discovered gtest straight, without sourcing the install's
+    // setup script, so `viame.core` is not on the path the way it is for
+    // every python test and for anything running in a VIAME pipeline. Put
+    // the install's site-packages on it rather than teach the whole gtest
+    // harness about environments for one test's sake.
+    pybind11::module_::import( "sys" ).attr( "path" ).attr( "insert" )(
+      0, VIAME_PYTHON_PACKAGES );
+#endif
+  }
+
+  void TearDown() override
+  {
+    // Deliberately **not** finalised. `Py_Finalize` with numpy and
+    // scikit-learn's extension modules loaded segfaults on the way out --
+    // the test passes and the process dies afterwards, which ctest reports
+    // as a failure of the test. Leaking an interpreter that is about to be
+    // torn down by exit costs nothing.
+    ( void ) m_interpreter.release();
+  }
+
+private:
+  std::unique_ptr< pybind11::scoped_interpreter > m_interpreter;
+};
+
 } // namespace
+
+// ----------------------------------------------------------------------------
+int
+main( int argc, char** argv )
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  ::testing::AddGlobalTestEnvironment( new python_environment() );
+  return RUN_ALL_TESTS();
+}
 
 // ----------------------------------------------------------------------------
 class iqr_adaboost_test : public ::testing::Test
@@ -205,46 +276,86 @@ TEST_F( iqr_adaboost_test, refining_trains_a_model )
   EXPECT_TRUE( session->is_model_valid() );
 }
 
-// DISABLED against `cv::ml::Boost`, and this is the reason.
-//
-// `predict_distance` asks for `cv::ml::StatModel::RAW_OUTPUT`, meaning to get
-// the weighted sum over the weak classifiers. On a `cv::ml::Boost` that flag
-// alone does not do that: it returns the **class label**. So every descriptor
-// scores either 0 or 1, `predict_score` returns either 0.5 or 0.731059, and
-// the recording beside this file is two values repeated.
-//
-// A two-valued score cannot rank. `ordered_results()` scores every item in
-// the working index and sorts, which is the whole job of the process, and
-// with two values the order within each half is whatever the hash map
-// happened to give. One of the five positive probes lands on the negative
-// value outright, which is what fails this test.
-//
-// P7-T09's sklearn session returns a real margin from `decision_function`,
-// so the port enables this.
-TEST_F( iqr_adaboost_test, DISABLED_the_model_separates_the_two_clusters )
+// ----------------------------------------------------------------------------
+/// The area under the ROC curve of a ranking: the probability that a
+/// randomly chosen positive outranks a randomly chosen negative.
+///
+/// The right measure for this session, because the process sorts by score
+/// and returns the top of the list -- what matters is the order, not where
+/// the scores sit.
+double
+ranking_auc( const std::vector< double >& positives,
+             const std::vector< double >& negatives )
+{
+  size_t better = 0;
+  size_t tied = 0;
+
+  for( const double p : positives )
+  {
+    for( const double n : negatives )
+    {
+      if( p > n ) { ++better; }
+      else if( p == n ) { ++tied; }
+    }
+  }
+
+  const double pairs =
+    static_cast< double >( positives.size() * negatives.size() );
+
+  return ( static_cast< double >( better ) + 0.5 * tied ) / pairs;
+}
+
+TEST_F( iqr_adaboost_test, the_model_ranks_positives_above_negatives )
 {
   auto session = refined_session( m_data, "gentle", 100, 1, 0.95 );
   ASSERT_TRUE( session->refine() );
 
-  // The five positive probes all outscore the five negative ones. This is
-  // the property the whole process exists for; an implementation that lost
-  // it would be useless however closely it matched a recording.
-  double worst_positive = 1.0;
-  double best_negative = 0.0;
+  std::vector< double > positives;
+  std::vector< double > negatives;
 
-  for( size_t i = 0; i < 5; ++i )
+  for( size_t i = 0; i < PROBES; ++i )
   {
-    worst_positive = std::min( worst_positive,
-      session->predict_score( m_data.probes[i].vector ) );
+    positives.push_back( session->predict_score( m_data.probes[i].vector ) );
   }
 
-  for( size_t i = 5; i < 10; ++i )
+  for( size_t i = PROBES; i < m_data.probes.size(); ++i )
   {
-    best_negative = std::max( best_negative,
-      session->predict_score( m_data.probes[i].vector ) );
+    negatives.push_back( session->predict_score( m_data.probes[i].vector ) );
   }
 
-  EXPECT_GT( worst_positive, best_negative );
+  // Not "every positive beats every negative": the clusters overlap on
+  // purpose and a probe drawn from the wrong tail is the data, not a defect.
+  // What has to hold is that the ordering is strongly right.
+  EXPECT_GT( ranking_auc( positives, negatives ), 0.9 );
+}
+
+// The defect this port fixes, pinned as a test.
+//
+// `cv::ml::Boost::predict` was asked for `cv::ml::StatModel::RAW_OUTPUT`
+// meaning to get the weighted sum over the weak classifiers. That flag alone
+// returns the **class label** instead -- `DTrees::PREDICT_SUM` is what asks
+// for the sum, and nothing passed it. So `predict_distance` returned 0 or 1,
+// `predict_score` returned 0.5 or 0.731059, and `ordered_results()`, whose
+// whole job is to score the working index and sort it, had two values to
+// sort by. The order within each half was whatever the hash map gave.
+//
+// scikit-learn's `decision_function` returns a real margin.
+TEST_F( iqr_adaboost_test, the_score_is_graded_rather_than_two_valued )
+{
+  auto session = refined_session( m_data, "gentle", 100, 1, 0.95 );
+  ASSERT_TRUE( session->refine() );
+
+  std::set< double > distinct;
+
+  for( const auto& probe : m_data.probes )
+  {
+    distinct.insert( session->predict_score( probe.vector ) );
+  }
+
+  // Forty probes over overlapping classes: a ranking worth the name puts
+  // them at many different heights, not two.
+  EXPECT_GT( distinct.size(), 2u );
+  EXPECT_GT( distinct.size(), m_data.probes.size() / 2 );
 }
 
 TEST_F( iqr_adaboost_test, a_model_round_trips_through_its_bytes )

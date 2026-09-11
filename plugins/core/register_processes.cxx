@@ -33,6 +33,7 @@
 #include "select_database_query_process.h"
 #include "image_to_image_set_process.h"
 #include "resample_object_tracks_process.h"
+#include "process_query_process_adaboost.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Registers processes
@@ -400,6 +401,21 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Resample object tracks from one downsample rate to another" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+  vpm.add_factory( fact );
+
+  // `process_query_adaboost` was registered by `viame_processes_opencv`
+  // until P7-T09 took its session from `cv::ml::Boost` to scikit-learn.
+  fact = new sprokit::cpp_process_factory(
+    typeid( viame::process_query_process_adaboost ).name(),
+    sprokit::process::interface_name(),
+    sprokit::create_new_process< viame::process_query_process_adaboost > );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "process_query_adaboost" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Process query descriptors using IQR and AdaBoost ranking" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
   vpm.add_factory( fact );
 

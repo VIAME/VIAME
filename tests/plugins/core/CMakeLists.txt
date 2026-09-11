@@ -53,19 +53,31 @@ kwiver_discover_gtests( viame_core plot_data_export
 target_compile_definitions( test-viame_core-plot_data_export PRIVATE
   "VIAME_PLOT_DATA_EXPORT_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"" )
 
-# The IQR AdaBoost session, recorded before P7-T09 takes it from
-# `cv::ml::Boost` to sklearn. The assertions hold for either; the recording
-# is where the behaviour change shows itself.
+# The IQR AdaBoost session. The assertions hold for any implementation of
+# the interface; the recording beside them is the numbers, and its diff is
+# where P7-T09's move from `cv::ml::Boost` to scikit-learn showed itself.
 #
-# `iqr_session_adaboost.h` is header only, so the test needs the header and
-# OpenCV rather than a library to link. Both go when the port lands.
+# The session is its own library, `viame_iqr`, because it is the only thing
+# in the tree that calls the interpreter from C++ and `viame_core` stays
+# free of libpython.
 kwiver_discover_gtests( viame_core iqr_session_adaboost
-  LIBRARIES ${test_libraries} ${OpenCV_LIBS} )
+  LIBRARIES ${test_libraries} viame_iqr )
 
-target_include_directories( test-viame_core-iqr_session_adaboost SYSTEM PRIVATE
-  ${VIAME_SOURCE_DIR}/plugins
-  ${VIAME_SOURCE_DIR}/plugins/opencv
-  ${OpenCV_INCLUDE_DIRS} )
+target_include_directories( test-viame_core-iqr_session_adaboost PRIVATE
+  ${VIAME_SOURCE_DIR}/plugins )
+
+# The test brings the interpreter up itself; see the note on
+# `python_environment`. It defines its own `main` for that, so the gtest
+# main is not wanted.
+if( VIAME_ENABLE_PYTHON )
+  find_package( pybind11 REQUIRED )
+
+  target_link_libraries( test-viame_core-iqr_session_adaboost
+    PRIVATE ${PYTHON_LIBRARIES} pybind11::embed )
+
+  target_compile_definitions( test-viame_core-iqr_session_adaboost PRIVATE
+    "VIAME_PYTHON_PACKAGES=\"${VIAME_PYTHON_PACKAGES}\"" )
+endif()
 
 target_compile_definitions( test-viame_core-iqr_session_adaboost PRIVATE
   "VIAME_IQR_ADABOOST_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"" )

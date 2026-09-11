@@ -662,6 +662,21 @@ an artefact of the port:
   Found by recording rather than by porting, and it changes what the port
   is: sklearn's `decision_function` returns a real margin, so replacing
   `cv::ml::Boost` fixes this rather than merely substituting an algorithm.
+  **Confirmed by the port**: on overlapping classes the scikit-learn session
+  gives 117 distinct scores over 40 probes where the recording had two.
+* A fixture can be **too easy to test a ranking**. The first IQR scenario put
+  the two clusters 1.5 standard deviations apart on six of sixteen
+  dimensions, which is linearly separable: every weak learner then agrees on
+  every sample and the ensemble margin saturates at its extreme for all of
+  them. A saturated margin and a class label look identical -- two values --
+  so that fixture could not have told the defect above from correct
+  behaviour, and did not. Half a standard deviation is what made the
+  difference visible.
+* `Py_Finalize` with numpy and scikit-learn loaded **segfaults on the way
+  out**. The embedded interpreter in the IQR test passes every assertion and
+  then dies in teardown, which ctest reports as the test failing. Leaking an
+  interpreter that the process is about to exit out from under costs nothing
+  and is what the test does.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 

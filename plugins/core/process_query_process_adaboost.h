@@ -12,7 +12,7 @@
 
 #include <viame/pipeline_framework/process.h>
 
-#include "viame_processes_opencv_export.h"
+#include "viame_processes_core_export.h"
 
 #include <viame/pipeline_framework/type_traits.h>
 
@@ -38,7 +38,7 @@ namespace viame
  * - Feedback descriptors for active learning
  * - Serializable AdaBoost model support
  */
-class VIAME_PROCESSES_OPENCV_NO_EXPORT process_query_process_adaboost
+class VIAME_PROCESSES_CORE_NO_EXPORT process_query_process_adaboost
   : public sprokit::process
 {
 public:

@@ -248,6 +248,7 @@ set( process_headers
   measure_objects_process.h
   object_track_descriptors_process.h
   pair_stereo_detections_process.h
+  process_query_process_adaboost.h
   read_habcam_metadata_process.h
   refine_measurements_process.h
   resample_object_tracks_process.h
@@ -280,6 +281,7 @@ set( process_sources
   measure_objects_process.cxx
   object_track_descriptors_process.cxx
   pair_stereo_detections_process.cxx
+  process_query_process_adaboost.cxx
   read_habcam_metadata_process.cxx
   refine_measurements_process.cxx
   resample_object_tracks_process.cxx
@@ -310,7 +312,63 @@ kwiver_add_plugin( viame_processes_core
 target_include_directories( viame_processes_core PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  # `iqr_session.h` reaches its neighbours as `core/...`, which is how it
+  # was written for the plugins that include it from outside
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/plugins>
   )
+
+###
+# The IQR AdaBoost session
+#
+# Its own library, and the only thing in VIAME that calls the interpreter
+# from C++: it trains and scores through `viame.core.iqr_adaboost`, which is
+# scikit-learn. Kept out of `viame_core` on purpose -- the library
+# everything links stays free of libpython, and only what needs the model
+# picks the dependency up.
+#
+# Without python it compiles to a stub that reports no model, and the base
+# class falls back to similarity scoring against the positive exemplars, so
+# the query still returns ranked results.
+##
+kwiver_install_headers(
+  SUBDIR     viame
+  iqr_session_adaboost.h
+  )
+
+kwiver_add_library( viame_iqr
+  iqr_session_adaboost.h
+  iqr_session_adaboost.cxx
+  )
+
+target_include_directories( viame_iqr PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/plugins>
+  )
+
+target_link_libraries( viame_iqr
+  PUBLIC               kwiver::vital
+                       kwiver::vital_logger
+                       viame_core
+  )
+
+set_target_properties( viame_iqr PROPERTIES
+  SOVERSION            ${VIAME_VERSION_MAJOR}
+  )
+
+if( VIAME_ENABLE_PYTHON )
+  find_package( pybind11 REQUIRED )
+
+  target_compile_definitions( viame_iqr PRIVATE VIAME_CORE_HAVE_PYTHON )
+
+  # `${PYTHON_LIBRARIES}` as well as pybind11: VIAME links with
+  # `-Wl,--no-undefined`, so leaving the interpreter symbols to be resolved
+  # at load time does not link at all here.
+  target_link_libraries( viame_iqr
+    PRIVATE ${PYTHON_LIBRARIES} pybind11::pybind11 )
+endif()
+
+target_link_libraries( viame_processes_core PRIVATE viame_iqr )
 
 if( VIAME_ENABLE_PYTHON )
 
@@ -325,6 +383,13 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/model_wrap.py
     core
     model_wrap )
+
+  # The model behind `process_query_adaboost`, called from
+  # `iqr_session_adaboost.cxx`
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/iqr_adaboost.py
+    core
+    iqr_adaboost )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/bytetrack_tracker.py

@@ -106,7 +106,6 @@ set( process_headers
   measure_objects_process.h
   pair_stereo_detections_process.h
   pair_stereo_tracks_process.h
-  process_query_process_adaboost.h
 )
 
 set( process_sources
@@ -115,7 +114,6 @@ set( process_sources
   measure_objects_process.cxx
   pair_stereo_detections_process.cxx
   pair_stereo_tracks_process.cxx
-  process_query_process_adaboost.cxx
 )
 
 kwiver_add_plugin( viame_processes_opencv
