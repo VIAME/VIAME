@@ -26,10 +26,6 @@
 #include "../core/pair_stereo_detections.h"
 #include "../core/pair_stereo_tracks.h"
 
-#ifdef VIAME_ENABLE_OPENCV
-  #include <viame/opencv_bridge/image_container.h>
-  #include <opencv2/imgproc/imgproc.hpp>
-#endif
 
 #include <LX_StereoInterface.h>
 
@@ -949,17 +945,13 @@ seagis_measurement_process
     core::add_measurement_attributes( det2, measurement );
   }
 
-#ifdef VIAME_ENABLE_OPENCV
   // Epipolar matching for detections where only one camera has keypoints
   if( d->m_enable_epipolar_matching && input_images.size() >= 2 )
   {
-    // Convert input images to BGR cv::Mat (shared method handles grayscale internally)
-    cv::Mat left_bgr = kwiver::arrows::ocv::image_container::vital_to_ocv(
-      input_images[0]->get_image(),
-      kwiver::arrows::ocv::image_container::BGR_COLOR );
-    cv::Mat right_bgr = kwiver::arrows::ocv::image_container::vital_to_ocv(
-      input_images[1]->get_image(),
-      kwiver::arrows::ocv::image_container::BGR_COLOR );
+    // The shared matcher takes the frames as they are and derives grey
+    // internally; it was `cv::Mat` until P7-T06.
+    kv::image_of< uint8_t > const left_bgr( input_images[0]->get_image() );
+    kv::image_of< uint8_t > const right_bgr( input_images[1]->get_image() );
 
     d->m_utilities.clear_feature_cache();
 
@@ -1052,7 +1044,6 @@ seagis_measurement_process
       }
     }
   }
-#endif
 
   // Ensure output track sets exist
   if( !input_tracks[0] )

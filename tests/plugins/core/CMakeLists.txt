@@ -34,6 +34,14 @@ kwiver_discover_gtests( viame_core viame_csv_tot_once
 kwiver_discover_gtests( viame_core convert_polygons_to_mask
   LIBRARIES ${test_libraries} )
 
+# The CSV writers' mask-to-polygon conversion, recorded before P7-T07 ports
+# it off `cv::findContours` and `cv::approxPolyDP`.
+kwiver_discover_gtests( viame_core mask_polygon_csv
+  LIBRARIES ${test_libraries} )
+
+target_compile_definitions( test-viame_core-mask_polygon_csv PRIVATE
+  "VIAME_MASK_POLYGON_CSV_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"" )
+
 # TODO: Enable when tracks_pairing_from_stereo.h is implemented
 # kwiver_discover_gtests( viame_core tracks_pairing_from_stereo LIBRARIES ${test_libraries} )
 # target_compile_features( test-viame_core-tracks_pairing_from_stereo PRIVATE cxx_std_17 )
