@@ -1,16 +1,12 @@
 # Build/install plugin for SVM support
 
 
-# Find libsvm in the install prefix (lib on Linux, bin or lib on Windows)
-find_library( SVM_LIBRARY
-  NAMES svm libsvm svm.2 libsvm.so.2
-  PATHS ${VIAME_INSTALL_PREFIX}/lib ${VIAME_INSTALL_PREFIX}/bin
-  NO_DEFAULT_PATH
-)
-
-if( NOT SVM_LIBRARY )
-  message( FATAL_ERROR "Could not find libsvm library in ${VIAME_INSTALL_PREFIX}" )
-endif()
+# libsvm is vendored in `third_party/libsvm` -- two files, and not stock:
+# the `HISTOGRAM` and `NMI` kernels both callers here select are VIAME's own
+# and have never existed upstream. It was looked up in the install prefix
+# with `NO_DEFAULT_PATH` until P1-T03 brought it into the tree, which is one
+# of the couplings that made a second build configuration impossible to
+# configure.
 
 set( headers
   refine_detections_svm.h
@@ -54,7 +50,7 @@ target_link_libraries( viame_svm
                        kwiver::vital_algo
   PRIVATE              kwiver::vital_config
                        kwiver::kwiversys
-                       ${SVM_LIBRARY}
+                       viame::libsvm
   )
 
 set_target_properties( viame_svm PROPERTIES
@@ -90,7 +86,7 @@ kwiver_add_plugin( viame_processes_svm
                    kwiver::vital_util
                    kwiver::vital_vpm
                    kwiver::sprokit_pipeline
-                   ${SVM_LIBRARY}
+                   viame::libsvm
  )
 
 target_include_directories( viame_processes_svm PRIVATE

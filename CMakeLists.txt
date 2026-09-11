@@ -1045,6 +1045,28 @@ else()
       "${VIAME_BUILD_INSTALL_PREFIX}/include" CACHE INTERNAL
       "Include prefixes of the dependency tree, for the plugins that need them" )
 
+    ###
+    # Vendored third party
+    #
+    # Small enough to carry, and carried minimally -- only the files VIAME
+    # compiles or includes, never a distribution. `third_party/README.md`
+    # says what was left behind in each case and why.
+    #
+    # This is P1-T03 arriving ahead of the rest of phase 1: it does not need
+    # the new top-level CMakeLists, and every package that moves here is one
+    # fletch no longer has to build.
+    ##
+    add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/tinyxml" third_party/tinyxml )
+
+    if( VIAME_ENABLE_PYTHON )
+      add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/pybind11"
+                        third_party/pybind11 )
+    endif()
+
+    if( VIAME_ENABLE_SVM )
+      add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/libsvm" third_party/libsvm )
+    endif()
+
     include( kwiver-cmake-future )
     include( kwiver-utils )
 

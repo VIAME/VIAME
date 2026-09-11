@@ -129,7 +129,8 @@ if( VIAME_ENABLE_PYTHON )
     file_io
     __init__ )
 
-  find_package( pybind11 REQUIRED )
+  # pybind11 is vendored in `third_party/pybind11`; the targets it used to
+  # come from are defined there
 
   kwiver_add_python_library( _opencv_yaml
     file_io

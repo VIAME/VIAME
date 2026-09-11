@@ -12,15 +12,15 @@ Legend: **vendor** = source copied into `third_party/` and built here;
 | OpenCV (+contrib ximgproc) | 4.9.0 | arrows/ocv, plugins/opencv, darknet, svm, core | **temp** `find_package` P1..P6, **drop** in P7 (`image_ops`, codecs, python ports); `opencv-python-headless` stays **pip** |
 | FFmpeg + x264/x265 | 5.1.2 | arrows/ffmpeg | **temp** `find_package` P1..P3, **drop** in P4 (PyAV); `av` wheel **pip** |
 | VXL | git | arrows/vxl, plugins/vxl | **drop** in P3 (`image_ops` v1 + aliases) |
-| TinyXML1 | 2.6.2 | CVAT reader | **vendor** (4 files) or replace with a 200-line XML subset reader in P8; decision at P8 |
-| pybind11 | 2.13.6 | python bindings | **vendor** header-only, permanent |
-| libsvm | 3.11 (+HISTOGRAM kernel patch) | svm, IQR | **vendor** 2 files, permanent |
+| TinyXML1 | 2.6.2 | CVAT reader | **vendored**, 4 files, `third_party/tinyxml`. Whether P8 replaces it with a subset reader of our own is still open; vendoring did not decide that |
+| pybind11 | 2.13.6 | python bindings | **vendored**, `third_party/pybind11`: 28 of the 36 headers, the transitive closure of what VIAME includes. Permanent |
+| libsvm | 3.10 (+HISTOGRAM and NMI kernels) | svm, IQR | **vendored**, 2 files, `third_party/libsvm`. Permanent, and it has to be vendored rather than found: the extra kernels are VIAME's and a system libsvm would refuse every shipped model |
 | CppDB, PostgreSQL client | 0.3.0 / 10.23 | cppdb plugin | **vendor** cppdb behind `VIAME_ENABLE_POSTGRESQL`; libpq from system when enabled (open decision 5) |
 | ZLib | 1.2.11 | `camera_rig_io` NPZ, OpenCV, FFmpeg | **temp**; after P7 NPZ reading uses a vendored `miniz` (single file) or moves to python; decide in P7 |
 | libjpeg-turbo, libtiff, libpng, libgeotiff | | OpenCV/VXL | **drop** with them; codecs are stb + own TIFF |
 | PROJ, SQLite3, GDAL, openjpeg | | VXL/GDAL paths | **drop** (P1: not found, not needed) |
 | CPython | 3.12.12 | desktop builds | not built here; system python, or python-build-standalone download on Windows/desktop (P10) |
-| GTest | 1.8.1 | tests | **vendor** via FetchContent, tests only |
+| GTest | 1.8.1 | tests | **found**, not vendored -- user's call. Only tests link it and tests are not in a release, so carrying the source would add to the repository something that never ships |
 | OpenBLAS, Boost, log4cplus/log4cxx, Protobuf, Qt, qtExtensions, libkml, GeographicLib, VTK, libxml2, libjson | | pytorch-from-source, vivia, seal, tf | **drop** in P1 |
 | CUDA / cuDNN | user-provided | darknet, torch wheels | `find_package(CUDAToolkit)` only while `third_party/darknet` exists; torch wheels carry their own |
 | OpenMP, Threads | | evaluate_models, sprokit | system, permanent (no library to ship) |
@@ -55,7 +55,7 @@ plan. Summary of what is never copied:
 
 | Path | Disposition |
 |---|---|
-| `packages/darknet` | `third_party/darknet` via `add_subdirectory`, optional (open decision 2) |
+| `packages/darknet` | **vendor** -- `third_party/darknet` via `add_subdirectory`, optional. Confirmed by the user; the submodule move is the remaining piece |
 | `packages/dive` | not built; release download as today; submodule only for `VIAME_BUILD_DIVE_FROM_SOURCE` |
 | `packages/vivia`, `seal-tk`, `itk-modules/*`, `tensorrt`, `tensorflow-libs` | **drop** in P1 |
 | `packages/pytorch-libs/*`, `packages/python-utils/pyav` | **pip** wheels from the index built by the wheel CI (P9); submodules leave `lite` in P9 |

@@ -189,13 +189,6 @@ if( OpenMP_CXX_FOUND )
        ${AUX_LINK_LIBRARIES} )
 endif()
 
-# TinyXML is used for CVAT XML parsing
-find_package( TinyXML REQUIRED )
-include_directories( SYSTEM ${TinyXML_INCLUDE_DIR} )
-set( AUX_LINK_LIBRARIES
-     ${TinyXML_LIBRARY}
-     ${AUX_LINK_LIBRARIES} )
-
 # Python is used for DINOv3 feature matching via Python C API
 if( VIAME_ENABLE_PYTHON )
   include_directories( SYSTEM ${PYTHON_INCLUDE_DIRS} )
@@ -209,6 +202,11 @@ endif()
 target_link_libraries( viame_core
   PUBLIC               ${CORE_LINK_LIBRARIES}
                        ${AUX_LINK_LIBRARIES}
+  # TinyXML is `read_detected_object_set_cvat.cxx`'s and nothing else's, so
+  # it is private: a static library linked PUBLIC would have to join the
+  # export set and become part of what an out-of-tree consumer links.
+  # Vendored in `third_party/tinyxml`, four files, built here not found.
+  PRIVATE              viame::tinyxml
   )
 
 if( VIAME_ENABLE_PYTHON )
@@ -359,7 +357,8 @@ set_target_properties( viame_iqr PROPERTIES
   )
 
 if( VIAME_ENABLE_PYTHON )
-  find_package( pybind11 REQUIRED )
+  # pybind11 is vendored in `third_party/pybind11`; the targets it used to
+  # come from are defined there
 
   target_compile_definitions( viame_iqr PRIVATE VIAME_CORE_HAVE_PYTHON )
 
@@ -588,7 +587,8 @@ if( VIAME_ENABLE_PYTHON )
   # than duplicating the math. The bindings live at the bottom of measurement_utilities.cxx
   # guarded by VIAME_MEASUREMENT_PYTHON_BINDINGS; defining it here makes this build of the
   # file emit only the module (linking viame_core for the implementations).
-  find_package( pybind11 REQUIRED )
+  # pybind11 is vendored in `third_party/pybind11`; the targets it used to
+  # come from are defined there
   kwiver_add_python_library( _measurement
     core
     SOURCES measurement_utilities.cxx )
