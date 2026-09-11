@@ -361,6 +361,7 @@ double get_file_frame_rate( const std::string& file );
 ///
 /// Reads the input file, replaces all occurrences of each keyword with its
 /// corresponding value, and writes the result to the output file.
+/// Line endings are normalized to LF on every platform.
 ///
 /// \param input_file Path to template file
 /// \param output_file Path to write result
@@ -398,6 +399,7 @@ VIAME_CORE_EXPORT
 bool copy_folder( const std::string& source, const std::string& destination );
 
 /// Replace keywords in a template and return the result as a string
+/// with line endings normalized to LF.
 ///
 /// \param input_file Path to template file
 /// \param replacements Map of keyword->value pairs to replace

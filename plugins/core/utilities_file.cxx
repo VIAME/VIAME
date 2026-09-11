@@ -769,33 +769,14 @@ bool replace_keywords_in_template_file(
     const std::string& output_file,
     const std::map< std::string, std::string >& replacements )
 {
-  std::ifstream fin( input_file );
-  if( !fin )
+  std::string content;
+  if( !replace_keywords_in_template_to_string( input_file, replacements, content ) )
   {
-    std::cerr << "Unable to open template file: " << input_file << std::endl;
     return false;
   }
 
-  std::stringstream buffer;
-  buffer << fin.rdbuf();
-  fin.close();
-
-  std::string content = buffer.str();
-
-  for( const auto& pair : replacements )
-  {
-    const std::string& keyword = pair.first;
-    const std::string& value = pair.second;
-
-    size_t pos = 0;
-    while( ( pos = content.find( keyword, pos ) ) != std::string::npos )
-    {
-      content.replace( pos, keyword.length(), value );
-      pos += value.length();
-    }
-  }
-
-  std::ofstream fout( output_file );
+  // Preserve LF endings on Windows as well as Unix.
+  std::ofstream fout( output_file, std::ios::binary );
   if( !fout )
   {
     std::cerr << "Unable to write output file: " << output_file << std::endl;
@@ -905,7 +886,7 @@ bool replace_keywords_in_template_to_string(
     const std::map< std::string, std::string >& replacements,
     std::string& result )
 {
-  std::ifstream fin( input_file );
+  std::ifstream fin( input_file, std::ios::binary );
   if( !fin )
   {
     std::cerr << "Unable to open template file: " << input_file << std::endl;
@@ -930,6 +911,27 @@ bool replace_keywords_in_template_to_string(
       pos += value.length();
     }
   }
+
+  // Normalize template and replacement line endings, including mixed endings,
+  // so loose pipelines and pipelines stored in zip files have identical text.
+  std::string normalized;
+  normalized.reserve( result.size() );
+  for( std::size_t i = 0; i < result.size(); ++i )
+  {
+    if( result[i] == '\r' )
+    {
+      if( i + 1 < result.size() && result[i + 1] == '\n' )
+      {
+        ++i;
+      }
+      normalized += '\n';
+    }
+    else
+    {
+      normalized += result[i];
+    }
+  }
+  result.swap( normalized );
 
   return true;
 }

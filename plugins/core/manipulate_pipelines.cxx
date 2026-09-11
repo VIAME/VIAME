@@ -195,7 +195,8 @@ std::string format_output_as_pipe_blocks(
         }
 
         std::string full_line = block_indent + line_content;
-        std::size_t pad = ( full_line.size() < align_col )
+        // Keep paths free of alignment padding for downstream model readers.
+        std::size_t pad = ( !e.is_file && full_line.size() < align_col )
             ? ( align_col - full_line.size() ) : 1;
 
         out << "\n" << block_indent << line_content
