@@ -212,10 +212,16 @@ revert`. What is left:
 | # | Question | Recommendation | Cost of the alternative |
 |---|---|---|---|
 | 1 | **`iqr_session_adaboost`** is what is left of `lite-removals.md` 2.6's open decision 6. It survived the PostgreSQL removal -- upstream made `process_query_adaboost` work against the file index -- and `query_and_iqr_adaboost.pipe` selects it. 273 lines around `cv::ml::Boost`: train, predict, and a model blob it saves and loads as OpenCV XML | **This one needs an answer rather than a recommendation**, because all three ways out change behaviour. `cv::ml::Boost` is DISCRETE/REAL/LOGIT/GENTLE AdaBoost over CART trees, and `sklearn`'s `AdaBoostClassifier` is SAMME -- a different algorithm that would not reproduce a recording, and would change the persisted model format besides. Writing boosted stumps by hand has the same problem. Removing `process_query_adaboost` and its pipeline leaves `query_and_iqr.pipe`, which is the same search without the learned re-ranking | Whichever is not chosen. Porting means a query session that ranks differently than it used to and a model file that older VIAME cannot read; removing means `query_and_iqr_adaboost.pipe` goes |
-| 2 | **darknet** (P7-T08). The fork is built with `ENABLE_OPENCV=ON` in the reference superbuild, which is what makes `Detector::detect( cv::Mat )` exist; the `detect( image_t )` overload exists either way, so VIAME's side can be ported before the fork is rebuilt | In hand rather than open: the user pointed at the add-ons, and the yolo-generic add-on's `generic_detector.cfg/.weights/.lbl` **is** installed here, so a golden can be recorded before anything is touched | Leaving darknet on OpenCV means `libopencv_*` stays in the install, so P7-T09's "no `libopencv_*` in `ldd`" cannot pass |
+
+darknet is no longer on this list: P7-T08 is done, recorded and exact, and
+`plugins/darknet` has no OpenCV.
 
 The bridge itself (`library/opencv_bridge`, eight files) needs no decision:
-it goes when its last caller does, which is what 1 to 4 decide.
+it goes when its last caller does, and that caller is now the one row above.
+So **this single answer unblocks P7-T09, and P7-T09 gates all of phase 8**,
+which gates phases 10 and 11. What is unblocked without it is P0-T06 and
+phase 1's build restructure; phase 9 waits on open decision 9, which is
+where wheels get published.
 
 ## Removed names log
 
