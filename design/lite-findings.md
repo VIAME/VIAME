@@ -512,6 +512,34 @@ an artefact of the port:
   rectangle outright instead, which is what the code reads as doing and
   gives the same answer on every surface NCC can produce.
 
+* `ocv_pair_stereo_detections` reports every 3D position **sixteen times
+  too close**. It hands the disparity map straight to
+  `cv::reprojectImageTo3D`, which documents that a 16-bit signed disparity
+  "is assumed to have no fractional bits"; SGBM's has four. On the golden
+  scene, whose plane sits at a known 2200 mm, every `stereo3d_z` comes out
+  at about 137. The `pair_stereo` cases record the ratio rather than the
+  value, so the day someone divides by sixteen the recording says so loudly
+  instead of drifting.
+* `write_detected_object_set_viame_csv` numbered its detections from a
+  **function-local `static std::atomic< unsigned >`**, so every writer in
+  the process shared one counter. A stereo pipeline has two, in their own
+  threads, and their ids interleaved by whatever order the scheduler
+  happened to deliver frames in: three runs of the same pipeline over the
+  same data gave `1 5 7 8 9` once and `1 4 7 8 9` twice, and neither file's
+  ids were contiguous. Fixed here -- the counter is a member -- because a
+  recording of it is a recording of the thread scheduler. A single-writer
+  pipeline is unchanged, since one writer counting from zero is what it
+  already got.
+* `ocv_stereo_disparity`'s **`calibration_file` path could not run at all**
+  after P7-T06 moved it to python. `load_stereo_calibration` hands every
+  matrix back flat, because the binding takes and returns
+  `std::vector< double >` to stay clear of pybind11's Eigen caster, and the
+  python implementation passed the nine element vector straight to
+  `cv2.stereoRectify`, which fails inside `cvConvertScale` with an assertion
+  nowhere near the cause. Introduced by the port and found by this case,
+  which is the first to configure a rectifying disparity. The eight recorded
+  `disparity` cases all run unrectified, which is why they did not.
+
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 
 Kwiver is configured and built before VIAME, against the same install prefix,

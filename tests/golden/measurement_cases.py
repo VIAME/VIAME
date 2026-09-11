@@ -377,6 +377,58 @@ MEASUREMENT_LENGTH_TOLERANCE = {
 
 
 # ----------------------------------------------------------------------------
+# Stereo detection pairing
+# ----------------------------------------------------------------------------
+#
+# `ocv_pair_stereo_detections` over the same synthetic scene: a real
+# disparity map from `ocv_stereo_disparity`, rectified through the same
+# calibration the pairing reads, and boxes around the five segments in each
+# camera. The four pipelines that select the process are add-ons whose
+# detector needs a downloaded model, so the detections are read from a file.
+#
+# The disparity has to be real rather than a stand-in, because `PAIRING_3D`
+# is a lookup into it: the process reprojects the left detection's box
+# through `Q` and compares the result to the right detection's.
+#
+# **It is recorded wrong, and the scene is what proves it.** Every
+# `stereo3d_z` comes out at about 137 where the plane is at 2200 -- a factor
+# of sixteen, which is SGBM's fixed point. `cv::reprojectImageTo3D` documents
+# that a 16-bit signed disparity is taken to have no fractional bits, and
+# nothing divides by sixteen on the way in. Finding 1.10.
+PAIR_STEREO_PIPELINE = "pair_stereo_detections.pipe"
+
+PAIR_STEREO_VARIANTS = (
+    ("pairing_3d", ()),
+    # The other method: rectify both boxes and compare their overlap, which
+    # never touches the disparity values and so is not affected by the
+    # defect above.
+    ("rectified_iou", ("stereo_pairing:pairing_method="
+                       "PAIRING_RECTIFIED_IOU",)),
+    # A threshold high enough to reject everything, which is the path that
+    # decides a detection has no partner.
+    ("strict_iou", ("stereo_pairing:pairing_method=PAIRING_RECTIFIED_IOU",
+                    "stereo_pairing:iou_pair_threshold=0.99")),
+)
+
+
+def pair_stereo_settings(variant):
+    for name, settings in PAIR_STEREO_VARIANTS:
+        if name == variant:
+            return settings
+
+    raise KeyError(variant)
+
+
+# The truth the scene gives: the plane sits at this depth, so a `stereo3d_z`
+# should be about this and is about a sixteenth of it. Checked as a ratio
+# rather than a value, so the day someone fixes the scaling this says so
+# loudly instead of drifting.
+PAIR_STEREO_TRUE_DEPTH_MM = 2200.0
+PAIR_STEREO_DEPTH_RATIO = 16.0
+PAIR_STEREO_DEPTH_RATIO_TOLERANCE = 0.10
+
+
+# ----------------------------------------------------------------------------
 # What cannot be recorded exactly
 # ----------------------------------------------------------------------------
 #

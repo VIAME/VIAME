@@ -253,8 +253,21 @@ class ComputeStereoDisparity(ComputeStereoDepthMap):
             loaded = _measurement.load_stereo_calibration(
                 self._calibration_file)
 
+            # The binding hands every matrix back **flat**, because it takes
+            # and returns `std::vector< double >` to stay clear of pybind11's
+            # Eigen caster. cv2 wants them shaped, and passing a nine element
+            # vector where a 3 by 3 belongs fails inside `stereoRectify` with
+            # an assertion about `cvConvertScale`, nowhere near the cause.
+            shapes = {
+                "k_left": (3, 3), "k_right": (3, 3),
+                "rotation": (3, 3),
+                "dist_left": (1, -1), "dist_right": (1, -1),
+                "translation": (3, 1),
+            }
+
             self._calibration = {
-                key: np.asarray(value, dtype=np.float64)
+                key: np.asarray(value, dtype=np.float64).reshape(
+                    shapes.get(key, (-1,)))
                 for key, value in loaded.items()
             }
 

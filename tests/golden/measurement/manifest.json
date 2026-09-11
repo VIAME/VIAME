@@ -1,5 +1,5 @@
 {
-  "appended": "2026-09-11T07:29:16Z",
+  "appended": "2026-09-11T08:47:42Z",
   "cases": [
     {
       "config": {},
@@ -1373,6 +1373,257 @@
       "refuses": {},
       "unstable": {},
       "variant": "wls_bm"
+    },
+    {
+      "config": {},
+      "impl": "pair_stereo_detections.pipe",
+      "inputs": [
+        "scene"
+      ],
+      "kind": "pair_stereo",
+      "outputs": {
+        "scene": {
+          "file": "pair_stereo/pair_stereo_detections.pipe/pairing_3d/scene.npz",
+          "members": {
+            "bbox_1": {
+              "dtype": "float64",
+              "sha256": "8f574caf5c07250c",
+              "shape": [
+                5,
+                4
+              ]
+            },
+            "bbox_2": {
+              "dtype": "float64",
+              "sha256": "35a545e4eae53cca",
+              "shape": [
+                5,
+                4
+              ]
+            },
+            "ids_1": {
+              "dtype": "float64",
+              "sha256": "2e56f28a9e0f9491",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "ids_2": {
+              "dtype": "float64",
+              "sha256": "2e56f28a9e0f9491",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "position_1": {
+              "dtype": "float64",
+              "sha256": "0f1d394a0b61b30a",
+              "shape": [
+                5,
+                3
+              ]
+            },
+            "position_2": {
+              "dtype": "float64",
+              "sha256": "6e67e161b7f36fa2",
+              "shape": [
+                5,
+                3
+              ]
+            },
+            "score_1": {
+              "dtype": "float64",
+              "sha256": "4374e0ec35c3937d",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "score_2": {
+              "dtype": "float64",
+              "sha256": "6ac5e13d00b63c56",
+              "shape": [
+                5,
+                1
+              ]
+            }
+          }
+        }
+      },
+      "settings": [],
+      "unstable": {},
+      "variant": "pairing_3d"
+    },
+    {
+      "config": {},
+      "impl": "pair_stereo_detections.pipe",
+      "inputs": [
+        "scene"
+      ],
+      "kind": "pair_stereo",
+      "outputs": {
+        "scene": {
+          "file": "pair_stereo/pair_stereo_detections.pipe/rectified_iou/scene.npz",
+          "members": {
+            "bbox_1": {
+              "dtype": "float64",
+              "sha256": "8f574caf5c07250c",
+              "shape": [
+                5,
+                4
+              ]
+            },
+            "bbox_2": {
+              "dtype": "float64",
+              "sha256": "35a545e4eae53cca",
+              "shape": [
+                5,
+                4
+              ]
+            },
+            "ids_1": {
+              "dtype": "float64",
+              "sha256": "2e56f28a9e0f9491",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "ids_2": {
+              "dtype": "float64",
+              "sha256": "2e56f28a9e0f9491",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "position_1": {
+              "dtype": "float64",
+              "sha256": "0f1d394a0b61b30a",
+              "shape": [
+                5,
+                3
+              ]
+            },
+            "position_2": {
+              "dtype": "float64",
+              "sha256": "6e67e161b7f36fa2",
+              "shape": [
+                5,
+                3
+              ]
+            },
+            "score_1": {
+              "dtype": "float64",
+              "sha256": "4374e0ec35c3937d",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "score_2": {
+              "dtype": "float64",
+              "sha256": "6ac5e13d00b63c56",
+              "shape": [
+                5,
+                1
+              ]
+            }
+          }
+        }
+      },
+      "settings": [
+        "stereo_pairing:pairing_method=PAIRING_RECTIFIED_IOU"
+      ],
+      "unstable": {},
+      "variant": "rectified_iou"
+    },
+    {
+      "config": {},
+      "impl": "pair_stereo_detections.pipe",
+      "inputs": [
+        "scene"
+      ],
+      "kind": "pair_stereo",
+      "outputs": {
+        "scene": {
+          "file": "pair_stereo/pair_stereo_detections.pipe/strict_iou/scene.npz",
+          "members": {
+            "bbox_1": {
+              "dtype": "float64",
+              "sha256": "8f574caf5c07250c",
+              "shape": [
+                5,
+                4
+              ]
+            },
+            "bbox_2": {
+              "dtype": "float64",
+              "sha256": "35a545e4eae53cca",
+              "shape": [
+                5,
+                4
+              ]
+            },
+            "ids_1": {
+              "dtype": "float64",
+              "sha256": "2e56f28a9e0f9491",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "ids_2": {
+              "dtype": "float64",
+              "sha256": "2e56f28a9e0f9491",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "position_1": {
+              "dtype": "float64",
+              "sha256": "0f1d394a0b61b30a",
+              "shape": [
+                5,
+                3
+              ]
+            },
+            "position_2": {
+              "dtype": "float64",
+              "sha256": "6e67e161b7f36fa2",
+              "shape": [
+                5,
+                3
+              ]
+            },
+            "score_1": {
+              "dtype": "float64",
+              "sha256": "4374e0ec35c3937d",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "score_2": {
+              "dtype": "float64",
+              "sha256": "6ac5e13d00b63c56",
+              "shape": [
+                5,
+                1
+              ]
+            }
+          }
+        }
+      },
+      "settings": [
+        "stereo_pairing:pairing_method=PAIRING_RECTIFIED_IOU",
+        "stereo_pairing:iou_pair_threshold=0.99"
+      ],
+      "unstable": {},
+      "variant": "strict_iou"
     }
   ],
   "fixtures": {

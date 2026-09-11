@@ -83,6 +83,16 @@ private:
   // Runtime state (not config)
   bool m_first;
   int m_frame_number;
+
+  /// The detection id column, counted per writer.
+  ///
+  /// It was a function-local `static std::atomic< unsigned >`, so every
+  /// writer in the process shared one counter. A stereo pipeline has two,
+  /// running in their own threads, and their ids interleaved by whatever
+  /// order the scheduler happened to deliver frames in -- different from one
+  /// run to the next, and not a contiguous sequence in either file. See
+  /// finding 1.10.
+  unsigned m_detection_id;
 };
 
 } // end namespace

@@ -819,12 +819,25 @@ def record_measurement_from_annotations(group_dir, manifest):
                                    "paired": paired})
 
 
+def record_measurement_pair_stereo(group_dir, manifest):
+    pipeline = measurement_cases.PAIR_STEREO_PIPELINE
+
+    for variant, settings in measurement_cases.PAIR_STEREO_VARIANTS:
+        arrays = measurement_runner.run_pair_stereo_pipeline(
+            pipeline, settings)
+
+        _record_arrays_case(group_dir, manifest, "pair_stereo",
+                            pipeline, variant, {}, ["scene"], [arrays],
+                            extra={"settings": list(settings)})
+
+
 def record_measurement(group_dir, manifest):
     record_measurement_disparity(group_dir, manifest)
     record_measurement_targets(group_dir, manifest)
     record_measurement_calibration(group_dir, manifest)
     record_measurement_mono_calibration(group_dir, manifest)
     record_measurement_from_annotations(group_dir, manifest)
+    record_measurement_pair_stereo(group_dir, manifest)
 
 
 def record_calib(group_dir, manifest):

@@ -292,6 +292,10 @@ def run_case(case, impl):
         return [measurement_runner.run_measurement_pipeline(
             impl, tuple(case["settings"]), case.get("paired", False))]
 
+    if case["kind"] == "pair_stereo":
+        return [measurement_runner.run_pair_stereo_pipeline(
+            impl, tuple(case["settings"]))]
+
     if case["kind"] == "mono_calibration":
         names = measurement_cases.mono_calibration_view_names()
         return [measurement_runner.run_mono_pipeline(
@@ -472,8 +476,23 @@ def check_array_case(item, case, outputs, group):
             if want.size == 0:
                 continue
 
-            difference = np.abs(got.astype(np.float64) -
-                                want.astype(np.float64))
+            got_values = got.astype(np.float64)
+            want_values = want.astype(np.float64)
+
+            # A member can be legitimately absent -- the pairing writes no
+            # 3D position on the camera it projected **into** -- and the
+            # runner records that as NaN. Two NaNs are the same absence, so
+            # they compare equal here rather than failing the way `!=` would.
+            missing = np.isnan(got_values) & np.isnan(want_values)
+
+            assert bool(np.all(np.isnan(got_values) == np.isnan(want_values))), (
+                "{} {} '{}': {} of {} values are absent, recorded {}".format(
+                    case_id(item), name, member, int(np.isnan(got_values).sum()),
+                    got_values.size, int(np.isnan(want_values).sum())))
+
+            difference = np.where(missing, 0.0,
+                                  np.abs(np.nan_to_num(got_values) -
+                                         np.nan_to_num(want_values)))
 
             # Zero unless the case's own module says otherwise. The
             # `measurement` kind's two rectified variants do, and
@@ -484,7 +503,7 @@ def check_array_case(item, case, outputs, group):
 
             allowed = np.maximum(
                 ARRAY_TOLERANCE,
-                relative * np.maximum(1.0, np.abs(want.astype(np.float64))))
+                relative * np.maximum(1.0, np.abs(np.nan_to_num(want_values))))
 
             assert bool(np.all(difference <= allowed)), (
                 "{} {} '{}': max difference {} exceeds {}".format(
@@ -599,6 +618,34 @@ def check_measurement_truth(item, case, arrays):
                 case_id(item), identifier, length, expected, tolerance))
 
 
+def check_pair_stereo_depth(item, arrays):
+    """Where the pairing puts the plane, against where the plane is.
+
+    The scene's plane is at a known depth, and the pairing reports about a
+    **sixteenth** of it, because `cv::reprojectImageTo3D` takes a 16-bit
+    disparity to have no fractional bits and SGBM's has four. So this checks
+    the **ratio** rather than the value: it holds the defect in place and it
+    fails loudly on the day someone divides by sixteen, which is what a
+    recording of a defect should do. Finding 1.10.
+    """
+    truth = measurement_cases.PAIR_STEREO_TRUE_DEPTH_MM
+    ratio = measurement_cases.PAIR_STEREO_DEPTH_RATIO
+    tolerance = measurement_cases.PAIR_STEREO_DEPTH_RATIO_TOLERANCE
+
+    depths = arrays["position_1"][:, 2]
+    depths = depths[np.isfinite(depths) & (depths > 0.0)]
+
+    if depths.size == 0:
+        return
+
+    found = float(np.median(depths))
+
+    assert abs( truth / found - ratio ) <= tolerance * ratio, (
+        "{}: the plane is at {:.0f} mm and the pairing reports {:.1f}, a "
+        "factor of {:.2f} rather than the recorded {:.0f}".format(
+            case_id(item), truth, found, truth / found, ratio))
+
+
 def check_json_case(item, case, outputs, group):
     """A recording whose values are parsed structure rather than pixels.
 
@@ -675,6 +722,11 @@ def test_golden(item):
 
     if case["kind"] == "measurement":
         check_measurement_truth(item, case, outputs[0])
+        check_array_case(item, case, outputs, group)
+        return
+
+    if case["kind"] == "pair_stereo":
+        check_pair_stereo_depth(item, outputs[0])
         check_array_case(item, case, outputs, group)
         return
 

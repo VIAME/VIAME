@@ -1,0 +1,118 @@
+# =============================================================================
+# Title: `ocv_pair_stereo_detections`, for the golden recording
+#
+# Not a shipped pipeline. The four that select the process are add-ons whose
+# detector needs a downloaded model, so this drives it on the synthetic
+# measurement scene with detections read from a file instead: the same
+# textured plane, the same rig, and boxes around the five segments of known
+# length that `measurement_fixtures.measurement_truth()` places on it.
+#
+# The disparity is real -- `ocv_stereo_disparity` over the pair, rectified
+# through the same calibration the pairing reads -- because the pairing's
+# `PAIRING_3D` method is a lookup into it and recording a pairing over a
+# disparity map of zeros would say nothing.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+# `ocv_stereo_disparity` is a python algorithm since P7-T06.
+config _scheduler
+  :type                                        pythread_per_process
+
+process input1
+  :: video_input
+  :video_filename                              cam1_images.txt
+  :frame_time                                  1
+  :exit_on_invalid                             false
+  :video_reader:type                           image_list
+
+  block video_reader:image_list
+    :image_reader:type                         core
+    :skip_bad_images                           true
+  endblock
+
+process input2
+  :: video_input
+  :video_filename                              cam2_images.txt
+  :frame_time                                  1
+  :exit_on_invalid                             false
+  :video_reader:type                           image_list
+
+  block video_reader:image_list
+    :image_reader:type                         core
+    :skip_bad_images                           true
+  endblock
+
+process depth_map
+  :: compute_stereo_depth_map
+  :computer:type                               ocv_stereo_disparity
+
+  block computer:ocv_stereo_disparity
+    :algorithm                                 SGBM
+    :min_disparity                             0
+    :num_disparities                           64
+    :block_size                                11
+    :speckle_window_size                       0
+    :speckle_range                             0
+    :calibration_file                          calibration_matrices.npz
+  endblock
+
+process detection_reader1
+  :: detected_object_input
+  :file_name                                   detections1.csv
+  :reader:type                                 viame_csv
+
+process detection_reader2
+  :: detected_object_input
+  :file_name                                   detections2.csv
+  :reader:type                                 viame_csv
+
+process stereo_pairing
+  :: ocv_pair_stereo_detections
+  :calibration_file                            calibration_matrices.npz
+  :pairing_method                              PAIRING_3D
+  :iou_pair_threshold                          0.1
+
+process writer1
+  :: detected_object_output
+  :file_name                                   paired_detections1.csv
+  :writer:type                                 viame_csv
+
+process writer2
+  :: detected_object_output
+  :file_name                                   paired_detections2.csv
+  :writer:type                                 viame_csv
+
+connect from input1.image
+        to   depth_map.left_image
+connect from input2.image
+        to   depth_map.right_image
+
+connect from input1.file_name
+        to   detection_reader1.image_file_name
+connect from input1.file_name
+        to   detection_reader2.image_file_name
+
+connect from depth_map.depth_map
+        to   stereo_pairing.depth_map
+connect from detection_reader1.detected_object_set
+        to   stereo_pairing.detected_object_set1
+connect from detection_reader2.detected_object_set
+        to   stereo_pairing.detected_object_set2
+
+connect from stereo_pairing.detected_object_set_out1
+        to   writer1.detected_object_set
+connect from input1.file_name
+        to   writer1.image_file_name
+connect from input1.timestamp
+        to   writer1.timestamp
+
+connect from stereo_pairing.detected_object_set_out2
+        to   writer2.detected_object_set
+connect from input1.file_name
+        to   writer2.image_file_name
+connect from input1.timestamp
+        to   writer2.timestamp
+
+# -- end of file --

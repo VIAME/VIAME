@@ -351,3 +351,101 @@ def run_measurement_pipeline(pipeline, settings=(), paired=False):
         }
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
+
+
+def run_pair_stereo_pipeline(pipeline, settings=()):
+    """Run the detection pairing pipeline over the synthetic scene.
+
+    Returns `{key: array}`: which detections came out of each camera and the
+    3D position and score the pairing attached to them.
+    """
+    import measurement_fixtures
+
+    truth = measurement_fixtures.measurement_truth()
+    k_left, k_right, rotation, translation = \
+        measurement_fixtures.measurement_rig()
+
+    workdir = tempfile.mkdtemp(prefix="golden_pair_")
+
+    try:
+        left = _write_list(workdir, ["measure_left_00"], "cam1_images.txt")
+        _write_list(workdir, ["measure_right_00"], "cam2_images.txt")
+
+        # Both readers are handed camera one's file name, so both files have
+        # to be written under it. See the note in `run_measurement_pipeline`.
+        name = os.path.basename(left[0])
+
+        for index, side in ((1, "left"), (2, "right")):
+            rows = [VIAME_CSV_HEADER]
+
+            for identifier, target in enumerate(truth):
+                (head_x, head_y), (tail_x, tail_y) = target[side]
+
+                rows.append(
+                    "{},{},0,{:.6f},{:.6f},{:.6f},{:.6f},1,0,fish,1".format(
+                        identifier, name,
+                        min(head_x, tail_x) - TRACK_BOX_MARGIN,
+                        min(head_y, tail_y) - TRACK_BOX_MARGIN,
+                        max(head_x, tail_x) + TRACK_BOX_MARGIN,
+                        max(head_y, tail_y) + TRACK_BOX_MARGIN))
+
+            with open(os.path.join(workdir,
+                                   "detections{}.csv".format(index)),
+                      "w") as handle:
+                handle.write("\n".join(rows) + "\n")
+
+        np.savez(os.path.join(workdir, "calibration_matrices.npz"),
+                 cameraMatrixL=k_left, cameraMatrixR=k_right,
+                 distCoeffsL=np.zeros((1, 5)), distCoeffsR=np.zeros((1, 5)),
+                 R=rotation, T=translation.reshape(3, 1))
+
+        command = ["kwiver", "runner",
+                   pipeline_runner.pipeline_path(pipeline)]
+
+        for setting in settings:
+            command += ["-s", setting]
+
+        process = subprocess.Popen(
+            command, cwd=workdir, start_new_session=True, text=True,
+            env=pipeline_runner.sourced_environment(),
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        try:
+            _, stderr = process.communicate(timeout=pipeline_runner.TIMEOUT)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            raise AssertionError("{} did not finish within {}s".format(
+                pipeline, pipeline_runner.TIMEOUT))
+
+        if process.returncode != 0:
+            raise AssertionError("{} exited {}:\n{}".format(
+                pipeline, process.returncode, stderr[-4000:]))
+
+        arrays = {}
+
+        for index in (1, 2):
+            written = _parse_track_csv(os.path.join(
+                workdir, "paired_detections{}.csv".format(index)))
+
+            ids = sorted(written)
+
+            def attribute(identifier, key):
+                value = written[identifier]["attributes"].get(key)
+                return float(value) if value is not None else float("nan")
+
+            arrays["ids_{}".format(index)] = np.asarray(
+                ids, dtype=np.float64).reshape(-1, 1)
+            arrays["bbox_{}".format(index)] = np.asarray(
+                [written[i]["bbox"] for i in ids],
+                dtype=np.float64).reshape(-1, 4)
+            arrays["position_{}".format(index)] = np.asarray(
+                [[attribute(i, "stereo3d_x"), attribute(i, "stereo3d_y"),
+                  attribute(i, "stereo3d_z")] for i in ids],
+                dtype=np.float64).reshape(-1, 3)
+            arrays["score_{}".format(index)] = np.asarray(
+                [attribute(i, "score") for i in ids],
+                dtype=np.float64).reshape(-1, 1)
+
+        return arrays
+    finally:
+        shutil.rmtree(workdir, ignore_errors=True)

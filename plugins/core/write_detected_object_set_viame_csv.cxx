@@ -38,6 +38,7 @@ write_detected_object_set_viame_csv
 {
   m_first = true;
   m_frame_number = 0;
+  m_detection_id = 0;
 }
 
 
@@ -128,8 +129,7 @@ write_detected_object_set_viame_csv
   {
     const kwiver::vital::bounding_box_d bbox( (*det)->bounding_box() );
 
-    static std::atomic<unsigned> id_counter( 0 );
-    const unsigned det_id = id_counter++;
+    const unsigned det_id = m_detection_id++;
 
     std::string video_id;
     if( !c_stream_identifier.empty() )
