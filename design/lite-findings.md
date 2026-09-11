@@ -347,6 +347,22 @@ an artefact of the port:
   that case to a relative tolerance and to ground truth instead of to its
   bytes. Worth knowing before treating a calibration file as a record of
   what its inputs were.
+* **`ocv_debayer` swaps red and blue.** OpenCV's Bayer constants name the
+  pattern the other way round from everyone else -- the constant that
+  correctly decodes a blue-at-(0, 0) mosaic is `COLOR_BayerRG2*`, not
+  `BayerBG2*` -- and `debayer_filter` passes its config letter straight
+  through to the constant of the same name. So `pattern: BG` on a BG mosaic
+  decodes as though red were at (0, 0), and every debayered image VIAME has
+  produced has its red and blue channels exchanged.
+
+  Measured rather than argued: the recorded output of `ocv_debayer` on a
+  mosaic sampled from `rgb8.png` is 255 counts from that source image and
+  within 138 of it once its channels are reversed, 138 being the demosaic's
+  own interpolation error on a synthetic high-frequency fixture. P7-T04b's
+  port reverses the letters on the way in so it reproduces this exactly; the
+  decision of whether to correct it belongs to whoever knows how many models
+  were trained on images that came out of it. Two shipped pipelines debayer,
+  and `filter_debayer.pipe` is one of the seven recorded end to end.
 * `filter_stereo_feature_tracks`'s extent matrix has sixteen columns and
   uses four. `get_world_point_corner_values` takes the bounds of the world
   points from the **first point of each frame** rather than from all of

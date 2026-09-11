@@ -106,6 +106,8 @@ target_link_libraries( viame_opencv
                        opencv_ml
                        viame_core
                        viame_measurement
+                       # the in-house kernels the ported filters run on
+                       viame_image_ops
                        # the calibration writers, since P7-T05 replaced
                        # cv::FileStorage with library/file_io/opencv_yaml
                        viame_file_io

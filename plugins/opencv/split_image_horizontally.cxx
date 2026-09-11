@@ -4,20 +4,26 @@
 
 /**
  * \file
- * \brief Implementation of OCV split image horizontally algorithm
+ * \brief Implementation of split image horizontally algorithm
+ *
+ * Was a `cv::Mat` region of interest and a clone; since P7-T04b it is
+ * `image_ops::crop`, which does the same thing on a `vital::image`. The
+ * bridge was asked for an `RGB_COLOR` mat both ways, so it never swapped a
+ * channel and there was nothing here for it to do but copy.
  */
 
 #include "split_image_horizontally.h"
 
-#include <viame/opencv_bridge/image_container.h>
+#include <image_ops/dispatch.h>
+#include <image_ops/resample.h>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <viame/core_types/image_container.h>
+
+namespace io = viame::image_ops;
 
 namespace viame {
 
 namespace kv = kwiver::vital;
-namespace ocv = kwiver::arrows::ocv;
 
 /// Split image
 std::vector< kv::image_container_sptr >
@@ -26,23 +32,24 @@ split_image_horizontally
 {
   std::vector< kv::image_container_sptr > output;
 
-  cv::Mat cv_image =
-    ocv::image_container::vital_to_ocv(
-      image->get_image(), ocv::image_container::RGB_COLOR );
+  auto const source = image->get_image();
 
-  cv::Mat left_image =
-    cv_image(
-      cv::Rect( 0, 0, cv_image.cols/2, cv_image.rows ) );
-  cv::Mat right_image =
-    cv_image(
-      cv::Rect( cv_image.cols/2, 0, cv_image.cols/2, cv_image.rows ) );
+  // An odd width loses its middle column, as the integer halving did.
+  auto const half = source.width() / 2;
 
-  output.push_back(
-    kv::image_container_sptr(
-      new ocv::image_container( left_image.clone(), ocv::image_container::RGB_COLOR ) ) );
-  output.push_back(
-    kv::image_container_sptr(
-      new ocv::image_container( right_image.clone(), ocv::image_container::RGB_COLOR ) ) );
+  for( size_t piece = 0; piece < 2; ++piece )
+  {
+    auto const cropped = io::dispatch_pixel_type(
+      source,
+      [ & ]( auto const& typed ) -> kv::image
+      {
+        return kv::image(
+          io::crop( typed, piece * half, 0, half, source.height() ) );
+      } );
+
+    output.push_back(
+      std::make_shared< kv::simple_image_container >( cropped ) );
+  }
 
   return output;
 }

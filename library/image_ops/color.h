@@ -506,11 +506,13 @@ lab_to_rgb( kwiver::vital::image_of< T > const& image )
 /// **OpenCV's constants read the other way round.** `cv::COLOR_BayerBG2RGB`
 /// on a mosaic with blue at (0, 0) returns the channels reversed; the one
 /// that decodes it correctly to RGB is `COLOR_BayerRG2RGB`, and
-/// `COLOR_BayerBG2BGR` gives the same pixels in BGR. `debayer_filter` used
-/// `COLOR_BayerBG2BGR` for `pattern: BG` and the OpenCV bridge swapped the
-/// channels on the way into `vital::image`, so the two cancelled and the
-/// config letter meant what it says. This enum keeps that meaning -- the
-/// letter is the mosaic, not OpenCV's spelling of it.
+/// `COLOR_BayerBG2BGR` gives the same pixels in BGR. Here the letter is the
+/// **mosaic** -- `BG` means blue at (0, 0) -- not OpenCV's spelling of it,
+/// so `bayer_pattern::BG` is `COLOR_BayerRG2RGB`.
+///
+/// `debayer_filter`'s config letter follows OpenCV's spelling rather than
+/// this one, and so decodes the wrong pattern; it maps its letters across
+/// on the way in, and says why. Do not assume the two agree.
 enum class bayer_pattern
 {
   BG,
@@ -664,6 +666,34 @@ demosaic( kwiver::vital::image_of< T > const& image, bayer_pattern pattern )
       out( i, j, 0 ) = saturate_pixel< T >( red );
       out( i, j, 1 ) = saturate_pixel< T >( green );
       out( i, j, 2 ) = saturate_pixel< T >( blue );
+    }
+  }
+
+  // The outermost ring is replicated from the pixel beside it rather than
+  // interpolated, which is what `cv::cvtColor` does: its Bayer conversions
+  // compute the interior and then copy the first and last interior row and
+  // column outwards. Rows before columns, so a corner ends up holding its
+  // diagonal neighbour -- checked against the recording, which has
+  // `out(0, 0) == out(1, 1)` exactly.
+  //
+  // Reflection is still what the interior reads through: a pixel at index
+  // one reaches index minus one, and that read is part of the value the
+  // recording agrees with.
+  if( out.width() >= 3 && out.height() >= 3 )
+  {
+    for( size_t plane = 0; plane < 3; ++plane )
+    {
+      for( size_t i = 0; i < out.width(); ++i )
+      {
+        out( i, 0, plane ) = out( i, 1, plane );
+        out( i, out.height() - 1, plane ) = out( i, out.height() - 2, plane );
+      }
+
+      for( size_t j = 0; j < out.height(); ++j )
+      {
+        out( 0, j, plane ) = out( 1, j, plane );
+        out( out.width() - 1, j, plane ) = out( out.width() - 2, j, plane );
+      }
     }
   }
 

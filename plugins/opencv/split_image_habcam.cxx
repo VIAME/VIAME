@@ -5,14 +5,21 @@
 /**
  * \file
  * \brief Implementation of habcam split image horizontally algorithm
+ *
+ * Was a `cv::Mat` region of interest and a clone; since P7-T04b it is
+ * `image_ops::crop`. The image passes straight through when it is not wide
+ * enough to be a side-by-side pair, which is what makes this habcam's
+ * rather than the plain horizontal split.
  */
 
 #include "split_image_habcam.h"
 
-#include <viame/opencv_bridge/image_container.h>
+#include <image_ops/dispatch.h>
+#include <image_ops/resample.h>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <viame/core_types/image_container.h>
+
+namespace io = viame::image_ops;
 
 namespace kv = kwiver::vital;
 
@@ -27,26 +34,22 @@ split_image_habcam
 
   if( image->width() >= c_required_width_factor * image->height() )
   {
-    cv::Mat cv_image =
-      kwiver::arrows::ocv::image_container::vital_to_ocv(
-        image->get_image(),
-        kwiver::arrows::ocv::image_container::RGB_COLOR );
+    auto const source = image->get_image();
+    auto const half = source.width() / 2;
 
-    cv::Mat left_image =
-      cv_image(
-        cv::Rect( 0, 0, cv_image.cols / 2, cv_image.rows ) );
-    cv::Mat right_image =
-      cv_image(
-        cv::Rect( cv_image.cols / 2, 0, cv_image.cols / 2, cv_image.rows ) );
+    for( size_t piece = 0; piece < 2; ++piece )
+    {
+      auto const cropped = io::dispatch_pixel_type(
+        source,
+        [ & ]( auto const& typed ) -> kv::image
+        {
+          return kv::image(
+            io::crop( typed, piece * half, 0, half, source.height() ) );
+        } );
 
-    output.push_back(
-      kwiver::vital::image_container_sptr(
-        new kwiver::arrows::ocv::image_container( left_image.clone(),
-        kwiver::arrows::ocv::image_container::RGB_COLOR ) ) );
-    output.push_back(
-      kwiver::vital::image_container_sptr(
-        new kwiver::arrows::ocv::image_container( right_image.clone(),
-        kwiver::arrows::ocv::image_container::RGB_COLOR ) ) );
+      output.push_back(
+        std::make_shared< kv::simple_image_container >( cropped ) );
+    }
   }
   else
   {
