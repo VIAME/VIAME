@@ -3,10 +3,9 @@
 # Loadable algorithms
 ##
 
-find_package( OpenCV REQUIRED )
-
-include_directories( "${OpenCV_INCLUDE_DIRS}" )
-link_directories( "${OpenCV_LIBRARY_DIR}" )
+# No OpenCV. The directory keeps its name until phase 2 moves what is in it
+# into `library/`; what it holds now is the habcam and stereo pieces, the
+# colour filters and the windowed wrappers, all on `image_ops`.
 
 set( plugin_headers
   add_keypoints_from_mask.h
@@ -55,14 +54,6 @@ kwiver_add_library( viame_opencv
   ${plugin_sources}
   )
 
-get_target_property( results viame_opencv COMPILE_DEFINITIONS )
-
-if( "${OpenCV_VERSION}" VERSION_LESS "3.0.0" )
-  target_compile_definitions( viame_opencv PRIVATE -DVIAME_OPENCV_VER_2 )
-endif()
-
-get_target_property( results viame_opencv COMPILE_DEFINITIONS )
-
 target_link_libraries( viame_opencv
   PUBLIC               kwiver::vital
                        kwiver::vital_algo
@@ -71,9 +62,6 @@ target_link_libraries( viame_opencv
                        kwiver::vital_logger
                        kwiver::vital_util
                        kwiver::kwiversys
-                       viame_opencv_bridge
-                       ${OpenCV_LIBRARIES}
-                       opencv_ml
                        viame_core
                        viame_measurement
                        # the in-house kernels the ported filters run on
@@ -126,9 +114,7 @@ kwiver_add_plugin( viame_processes_opencv
                    kwiver::vital_util
                    kwiver::vital_vpm
                    kwiver::sprokit_pipeline
-                   viame_opencv_bridge
                    viame_measurement
-                   ${OpenCV_LIBRARIES}
                    viame_opencv
 )
 

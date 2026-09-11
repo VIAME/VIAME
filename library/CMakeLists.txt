@@ -14,7 +14,6 @@ set( viame_plugin_process_subdir   ${viame_plugin_subdir}/processes )
 # of `algorithm_framework` in the build even though it is a sibling here.
 add_subdirectory( algorithm_framework )
 add_subdirectory( pipeline_framework )
-add_subdirectory( opencv_bridge )
 add_subdirectory( image_ops )
 add_subdirectory( classifiers )
 add_subdirectory( image_processing )

@@ -1007,22 +1007,21 @@ else()
   endif()
 
   ###
-  # Require OpenCV if enabled
+  # OpenCV is not required
+  #
+  # `find_package( OpenCV REQUIRED )` stood here, with a version check
+  # feeding `KWIVER_OPENCV_VERSION_MAJOR` to the 2-versus-3 branches the
+  # code imported from `arrows/ocv` carried. P7 replaced all of it: nothing
+  # in VIAME's C++ includes an OpenCV header any more, and that macro has no
+  # readers left.
+  #
+  # `VIAME_ENABLE_OPENCV` stays, and now means what it had quietly come to
+  # mean: cv2 in python. It gates the `viame` applets that import it --
+  # calibrate, depth, disparity, mosaic, register, 3d, rectify -- the
+  # pipelines and examples that use them, and the wheel in the python
+  # requirements. The user's call, recorded in `design/STATUS.md`: a wheel is
+  # not a build dependency.
   ##
-  if( VIAME_ENABLE_OPENCV )
-    find_package( OpenCV REQUIRED )
-
-    # The code imported from arrows/ocv in P5-T04 still carries OpenCV 2 and
-    # 3 branches behind this guard, which kwiver used to set for it. Kwiver
-    # requires 3.0 or newer and so does this.
-    if( OpenCV_VERSION VERSION_LESS "3.0" )
-      message( FATAL_ERROR "OpenCV version must be at least 3.0" )
-    elseif( OpenCV_VERSION VERSION_GREATER_EQUAL "4.0" )
-      set( KWIVER_OPENCV_VERSION_MAJOR 4 )
-    else()
-      set( KWIVER_OPENCV_VERSION_MAJOR 3 )
-    endif()
-  endif()
 
   ###
   # The imported kwiver code

@@ -51,8 +51,6 @@ kwiver_add_library( viame_measurement
 target_include_directories( viame_measurement PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  # OpenCV's headers, for camera_intrinsics
-  $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
   )
 
 target_link_libraries( viame_measurement
@@ -63,7 +61,6 @@ target_link_libraries( viame_measurement
                        kwiver::vital_logger
                        kwiver::vital_util
                        kwiver::kwiversys
-  PRIVATE              ${OpenCV_LIBS}
   )
 
 set_target_properties( viame_measurement PROPERTIES
