@@ -325,6 +325,44 @@ UNSTABLE_REFUSAL = {
 # `image_file_name`, so they write over their input rather than to a new name.
 # `pipeline_runner` digests the fixtures on the way in and keeps the ones
 # whose bytes changed, which is what makes them recordable at all.
+# Processes whose output is a detected object set rather than an image, driven
+# through a golden-local pipeline because no shipped one can be run here.
+#
+# `detect_in_subregions` is selected by four arctic-seal add-on pipelines, all
+# of which need a downloaded YOLO model and two or three cameras. The local
+# pipeline drives it on the fixture frames with `ocv_windowed` over
+# `example_detector` for its input regions, which is deterministic and spreads
+# half a dozen overlapping boxes across the frame.
+PROCESS_PIPELINES = {
+    "detect_in_subregions": {
+        "pipeline": "detect_in_subregions.pipe",
+        "variants": [
+            ("detection_box", ()),
+            # Square regions about each input box's centre instead
+            ("fixed_size", ("subregions:method=fixed_size",
+                            "subregions:fixed_size=64")),
+            # A fixed size large enough that later centres fall inside an
+            # earlier region, which is the de-duplication path
+            ("fixed_size_dedup", ("subregions:method=fixed_size",
+                                  "subregions:fixed_size=400")),
+            ("include_input_dets", ("subregions:include_input_dets=true",)),
+            ("max_subregions", ("subregions:max_subregion_count=2",)),
+            # Regions that run off the right and bottom edges, so the clip to
+            # the image is what decides the crop
+            ("edge_clipped", (
+                "proposals:detector:ocv_windowed:detector:"
+                "example_detector:center_x=150",
+                "proposals:detector:ocv_windowed:detector:"
+                "example_detector:center_y=120",
+                "proposals:detector:ocv_windowed:detector:"
+                "example_detector:width=120",
+                "proposals:detector:ocv_windowed:detector:"
+                "example_detector:height=100")),
+        ],
+    },
+}
+
+
 PIPELINES = (
     "filter_debayer.pipe",
     "filter_debayer_and_enhance.pipe",

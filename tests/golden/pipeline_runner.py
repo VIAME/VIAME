@@ -41,6 +41,22 @@ def input_path(name):
     raise FileNotFoundError("no fixture named '{}'".format(name))
 
 
+# Pipelines that are not shipped, kept beside the golden because the shipped
+# ones that select the same process cannot be run here -- they need a
+# downloaded model, a second camera or annotated input. Named by file, and
+# resolved before the install so that a name collision is a local one.
+LOCAL_PIPELINES = os.path.join(HERE, "pipelines")
+
+
+def pipeline_path(pipeline):
+    local = os.path.join(LOCAL_PIPELINES, pipeline)
+
+    if os.path.exists(local):
+        return local
+
+    return os.path.join(install_dir(), "configs", "pipelines", pipeline)
+
+
 def sourced_environment():
     """The environment a pipeline gets when the install is sourced.
 
@@ -86,8 +102,7 @@ def _execute(pipeline, workdir, settings=(), before=None):
     with open(os.path.join(workdir, "input_list.txt"), "w") as handle:
         handle.write("\n".join(listing) + "\n")
 
-    command = ["kwiver", "runner",
-               os.path.join(install_dir(), "configs", "pipelines", pipeline)]
+    command = ["kwiver", "runner", pipeline_path(pipeline)]
 
     for setting in settings:
         command += ["-s", setting]
@@ -219,3 +234,82 @@ def describe_video(path, name):
         "frames": int(stream["nb_read_frames"]),
         "duration": round(float(stream["duration"]), 6),
     }
+
+
+DETECTION_CSV = "computed_detections.csv"
+
+
+def _parse_viame_csv(path):
+    """A viame_csv file as `{image name: [detection, ...]}`.
+
+    The same per-detection shape `runner.describe_detections` produces, so a
+    process recorded through a pipeline and an algorithm recorded directly
+    compare with one function. Rows keep their file order, which is the order
+    the process pushed them.
+    """
+    detections = {}
+
+    with open(path) as handle:
+        for line in handle:
+            line = line.strip()
+
+            if not line or line.startswith("#"):
+                continue
+
+            fields = line.split(",")
+
+            if len(fields) < 9:
+                raise AssertionError(
+                    "short row in {}: {!r}".format(path, line))
+
+            image = fields[1]
+            entry = {
+                "bbox": [float(value) for value in fields[3:7]],
+                "confidence": float(fields[7]),
+            }
+
+            types = {}
+            rest = fields[9:]
+
+            for index in range(0, len(rest) - 1, 2):
+                label = rest[index]
+
+                # Attributes follow the pairs and are not pairs themselves
+                if label.startswith("("):
+                    break
+
+                types[label] = float(rest[index + 1])
+
+            if types:
+                entry["types"] = types
+
+            detections.setdefault(image, []).append(entry)
+
+    return detections
+
+
+def run_detections(pipeline, settings=()):
+    """Run a pipeline that writes detections; return them per input frame.
+
+    The counterpart of `run` for a process whose output is a detected object
+    set rather than an image. What comes back is keyed by the frame the
+    detections belong to, so a case records one list per fixture frame the
+    way a detector case does.
+    """
+    workdir = tempfile.mkdtemp(prefix="golden_dets_")
+
+    try:
+        _execute(pipeline, workdir, settings)
+
+        written = os.path.join(workdir, DETECTION_CSV)
+
+        if not os.path.exists(written):
+            raise AssertionError(
+                "{} wrote no {}".format(pipeline, DETECTION_CSV))
+
+        found = _parse_viame_csv(written)
+
+        return [found.get(os.path.basename(input_path(name)), [])
+                for name in case_spec.PIPELINE_INPUTS]
+    finally:
+        shutil.rmtree(workdir, ignore_errors=True)

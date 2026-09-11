@@ -1,0 +1,93 @@
+# =============================================================================
+# Title: `detect_in_subregions`, for the golden recording
+#
+# Not a shipped pipeline. The four that select `detect_in_subregions` are all
+# arctic-seal add-ons that need a downloaded YOLO model and a second camera,
+# so none of them can be recorded here; this drives the process on the golden
+# fixture frames with deterministic pieces instead.
+#
+# `ocv_windowed` in chip mode over `example_detector` is what produces the
+# input detections: it lays a fixed box in each chip and maps it back, so the
+# process gets half a dozen overlapping regions spread across the frame --
+# which is what exercises the clipping, the centre de-duplication and the
+# region ordering. Both pieces are recorded in their own right, so a change in
+# either shows up as itself rather than as a mystery here.
+# =============================================================================
+
+config _pipeline:_edge
+  :capacity                                    5
+
+process input
+  :: video_input
+  :video_filename                              input_list.txt
+  :frame_time                                  1
+  :exit_on_invalid                             false
+  :video_reader:type                           image_list
+
+  block video_reader:image_list
+    :image_reader:type                         core
+    :skip_bad_images                           true
+
+    block image_reader:core
+      :force_byte                              true
+    endblock
+  endblock
+
+# The regions the process is asked to look in
+process proposals
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :mode                                      chip
+    :chip_width                                160
+    :chip_height                               135
+    :chip_step_width                           160
+    :chip_step_height                          135
+    :detector:type                             example_detector
+
+    block detector:example_detector
+      :center_x                                50
+      :center_y                                40
+      :width                                   60
+      :height                                  50
+    endblock
+  endblock
+
+connect from input.image
+        to   proposals.image
+
+process subregions
+  :: detect_in_subregions
+  :method                                      detection_box
+  :max_subregion_count                         -1
+  :fixed_size                                  0
+  :threshold                                   0.0
+  :include_input_dets                          false
+  :detector:type                               example_detector
+
+  block detector:example_detector
+    :center_x                                  20
+    :center_y                                  15
+    :width                                     24
+    :height                                    18
+  endblock
+
+connect from input.image
+        to   subregions.image
+connect from proposals.detected_object_set
+        to   subregions.detected_object_set
+
+process writer
+  :: detected_object_output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from input.file_name
+        to   writer.image_file_name
+connect from input.timestamp
+        to   writer.timestamp
+connect from subregions.detected_object_set
+        to   writer.detected_object_set
+
+# -- end of file --

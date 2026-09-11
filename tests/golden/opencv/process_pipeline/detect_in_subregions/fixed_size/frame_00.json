@@ -1,0 +1,74 @@
+[
+  {
+    "bbox": [
+      26.0,
+      14.0,
+      50.0,
+      32.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      26.0,
+      149.0,
+      50.0,
+      167.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      186.0,
+      14.0,
+      210.0,
+      32.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      186.0,
+      149.0,
+      210.0,
+      167.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      346.0,
+      14.0,
+      370.0,
+      32.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      346.0,
+      149.0,
+      370.0,
+      167.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  }
+]

@@ -330,6 +330,10 @@ def run_case(case, impl):
                     os.path.join(REPO_ROOT, calib_cases.DOCUMENTS[name]))
                 for name in case["inputs"]]
 
+    if case["kind"] == "process_pipeline":
+        return pipeline_runner.run_detections(
+            case["pipeline"], case.get("settings", ()))
+
     if case["kind"] == "pipeline":
         outputs = pipeline_runner.run(impl)
         missing = sorted(set(case["outputs"]) - set(outputs))
@@ -567,7 +571,7 @@ def test_golden(item):
 
     outputs = run_case(case, impl)
 
-    if case["kind"] == "detect":
+    if case["kind"] in ("detect", "process_pipeline"):
         check_detections(item, case, outputs, group)
         return
 

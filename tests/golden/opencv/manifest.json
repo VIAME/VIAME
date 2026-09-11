@@ -1,5 +1,5 @@
 {
-  "appended": "2026-09-11T05:31:07Z",
+  "appended": "2026-09-11T05:53:00Z",
   "cases": [
     {
       "config": {},
@@ -5065,6 +5065,315 @@
       },
       "unstable": {},
       "variant": "scaled"
+    },
+    {
+      "config": {},
+      "impl": "detect_in_subregions",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "process_pipeline",
+      "outputs": {
+        "frame_00": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/detection_box/frame_00.json",
+          "sha256": "c738ac8b30dc66c9"
+        },
+        "frame_01": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/detection_box/frame_01.json",
+          "sha256": "c738ac8b30dc66c9"
+        },
+        "frame_02": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/detection_box/frame_02.json",
+          "sha256": "c738ac8b30dc66c9"
+        },
+        "frame_03": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/detection_box/frame_03.json",
+          "sha256": "c738ac8b30dc66c9"
+        },
+        "frame_04": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/detection_box/frame_04.json",
+          "sha256": "c738ac8b30dc66c9"
+        },
+        "frame_05": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/detection_box/frame_05.json",
+          "sha256": "c738ac8b30dc66c9"
+        }
+      },
+      "pipeline": "detect_in_subregions.pipe",
+      "settings": [],
+      "unstable": {},
+      "variant": "detection_box"
+    },
+    {
+      "config": {},
+      "impl": "detect_in_subregions",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "process_pipeline",
+      "outputs": {
+        "frame_00": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/fixed_size/frame_00.json",
+          "sha256": "274f41d45f714d24"
+        },
+        "frame_01": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/fixed_size/frame_01.json",
+          "sha256": "274f41d45f714d24"
+        },
+        "frame_02": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/fixed_size/frame_02.json",
+          "sha256": "274f41d45f714d24"
+        },
+        "frame_03": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/fixed_size/frame_03.json",
+          "sha256": "274f41d45f714d24"
+        },
+        "frame_04": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/fixed_size/frame_04.json",
+          "sha256": "274f41d45f714d24"
+        },
+        "frame_05": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/fixed_size/frame_05.json",
+          "sha256": "274f41d45f714d24"
+        }
+      },
+      "pipeline": "detect_in_subregions.pipe",
+      "settings": [
+        "subregions:method=fixed_size",
+        "subregions:fixed_size=64"
+      ],
+      "unstable": {},
+      "variant": "fixed_size"
+    },
+    {
+      "config": {},
+      "impl": "detect_in_subregions",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "process_pipeline",
+      "outputs": {
+        "frame_00": {
+          "detections": 1,
+          "file": "process_pipeline/detect_in_subregions/fixed_size_dedup/frame_00.json",
+          "sha256": "28933b6010d545b4"
+        },
+        "frame_01": {
+          "detections": 1,
+          "file": "process_pipeline/detect_in_subregions/fixed_size_dedup/frame_01.json",
+          "sha256": "28933b6010d545b4"
+        },
+        "frame_02": {
+          "detections": 1,
+          "file": "process_pipeline/detect_in_subregions/fixed_size_dedup/frame_02.json",
+          "sha256": "28933b6010d545b4"
+        },
+        "frame_03": {
+          "detections": 1,
+          "file": "process_pipeline/detect_in_subregions/fixed_size_dedup/frame_03.json",
+          "sha256": "28933b6010d545b4"
+        },
+        "frame_04": {
+          "detections": 1,
+          "file": "process_pipeline/detect_in_subregions/fixed_size_dedup/frame_04.json",
+          "sha256": "28933b6010d545b4"
+        },
+        "frame_05": {
+          "detections": 1,
+          "file": "process_pipeline/detect_in_subregions/fixed_size_dedup/frame_05.json",
+          "sha256": "28933b6010d545b4"
+        }
+      },
+      "pipeline": "detect_in_subregions.pipe",
+      "settings": [
+        "subregions:method=fixed_size",
+        "subregions:fixed_size=400"
+      ],
+      "unstable": {},
+      "variant": "fixed_size_dedup"
+    },
+    {
+      "config": {},
+      "impl": "detect_in_subregions",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "process_pipeline",
+      "outputs": {
+        "frame_00": {
+          "detections": 12,
+          "file": "process_pipeline/detect_in_subregions/include_input_dets/frame_00.json",
+          "sha256": "cca4159673d1fafc"
+        },
+        "frame_01": {
+          "detections": 12,
+          "file": "process_pipeline/detect_in_subregions/include_input_dets/frame_01.json",
+          "sha256": "cca4159673d1fafc"
+        },
+        "frame_02": {
+          "detections": 12,
+          "file": "process_pipeline/detect_in_subregions/include_input_dets/frame_02.json",
+          "sha256": "cca4159673d1fafc"
+        },
+        "frame_03": {
+          "detections": 12,
+          "file": "process_pipeline/detect_in_subregions/include_input_dets/frame_03.json",
+          "sha256": "cca4159673d1fafc"
+        },
+        "frame_04": {
+          "detections": 12,
+          "file": "process_pipeline/detect_in_subregions/include_input_dets/frame_04.json",
+          "sha256": "cca4159673d1fafc"
+        },
+        "frame_05": {
+          "detections": 12,
+          "file": "process_pipeline/detect_in_subregions/include_input_dets/frame_05.json",
+          "sha256": "cca4159673d1fafc"
+        }
+      },
+      "pipeline": "detect_in_subregions.pipe",
+      "settings": [
+        "subregions:include_input_dets=true"
+      ],
+      "unstable": {},
+      "variant": "include_input_dets"
+    },
+    {
+      "config": {},
+      "impl": "detect_in_subregions",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "process_pipeline",
+      "outputs": {
+        "frame_00": {
+          "detections": 2,
+          "file": "process_pipeline/detect_in_subregions/max_subregions/frame_00.json",
+          "sha256": "2ae1fcd569b37d46"
+        },
+        "frame_01": {
+          "detections": 2,
+          "file": "process_pipeline/detect_in_subregions/max_subregions/frame_01.json",
+          "sha256": "2ae1fcd569b37d46"
+        },
+        "frame_02": {
+          "detections": 2,
+          "file": "process_pipeline/detect_in_subregions/max_subregions/frame_02.json",
+          "sha256": "2ae1fcd569b37d46"
+        },
+        "frame_03": {
+          "detections": 2,
+          "file": "process_pipeline/detect_in_subregions/max_subregions/frame_03.json",
+          "sha256": "2ae1fcd569b37d46"
+        },
+        "frame_04": {
+          "detections": 2,
+          "file": "process_pipeline/detect_in_subregions/max_subregions/frame_04.json",
+          "sha256": "2ae1fcd569b37d46"
+        },
+        "frame_05": {
+          "detections": 2,
+          "file": "process_pipeline/detect_in_subregions/max_subregions/frame_05.json",
+          "sha256": "2ae1fcd569b37d46"
+        }
+      },
+      "pipeline": "detect_in_subregions.pipe",
+      "settings": [
+        "subregions:max_subregion_count=2"
+      ],
+      "unstable": {},
+      "variant": "max_subregions"
+    },
+    {
+      "config": {},
+      "impl": "detect_in_subregions",
+      "inputs": [
+        "frame_00",
+        "frame_01",
+        "frame_02",
+        "frame_03",
+        "frame_04",
+        "frame_05"
+      ],
+      "kind": "process_pipeline",
+      "outputs": {
+        "frame_00": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/edge_clipped/frame_00.json",
+          "sha256": "0f9f6f5ae8fbd52e"
+        },
+        "frame_01": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/edge_clipped/frame_01.json",
+          "sha256": "0f9f6f5ae8fbd52e"
+        },
+        "frame_02": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/edge_clipped/frame_02.json",
+          "sha256": "0f9f6f5ae8fbd52e"
+        },
+        "frame_03": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/edge_clipped/frame_03.json",
+          "sha256": "0f9f6f5ae8fbd52e"
+        },
+        "frame_04": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/edge_clipped/frame_04.json",
+          "sha256": "0f9f6f5ae8fbd52e"
+        },
+        "frame_05": {
+          "detections": 6,
+          "file": "process_pipeline/detect_in_subregions/edge_clipped/frame_05.json",
+          "sha256": "0f9f6f5ae8fbd52e"
+        }
+      },
+      "pipeline": "detect_in_subregions.pipe",
+      "settings": [
+        "proposals:detector:ocv_windowed:detector:example_detector:center_x=150",
+        "proposals:detector:ocv_windowed:detector:example_detector:center_y=120",
+        "proposals:detector:ocv_windowed:detector:example_detector:width=120",
+        "proposals:detector:ocv_windowed:detector:example_detector:height=100"
+      ],
+      "unstable": {},
+      "variant": "edge_clipped"
     }
   ],
   "fixtures": {

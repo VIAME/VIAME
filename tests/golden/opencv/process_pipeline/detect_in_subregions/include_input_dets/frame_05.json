@@ -1,0 +1,146 @@
+[
+  {
+    "bbox": [
+      20.0,
+      15.0,
+      80.0,
+      65.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      20.0,
+      150.0,
+      80.0,
+      200.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      180.0,
+      15.0,
+      240.0,
+      65.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      180.0,
+      150.0,
+      240.0,
+      200.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      340.0,
+      15.0,
+      400.0,
+      65.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      340.0,
+      150.0,
+      400.0,
+      200.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      28.0,
+      21.0,
+      52.0,
+      39.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      28.0,
+      156.0,
+      52.0,
+      174.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      188.0,
+      21.0,
+      212.0,
+      39.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      188.0,
+      156.0,
+      212.0,
+      174.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      348.0,
+      21.0,
+      372.0,
+      39.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  },
+  {
+    "bbox": [
+      348.0,
+      156.0,
+      372.0,
+      174.0
+    ],
+    "confidence": 1.0,
+    "types": {
+      "detection": 1.0
+    }
+  }
+]

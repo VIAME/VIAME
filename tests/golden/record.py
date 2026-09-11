@@ -642,6 +642,49 @@ def record_opencv_pipelines(group_dir, manifest):
         print("  pipeline {} ({} frames)".format(pipeline, len(files)))
 
 
+def record_opencv_process_pipelines(group_dir, manifest):
+    """Processes recorded through a golden-local pipeline.
+
+    The output is a detected object set rather than an image, so the case
+    lands in the same JSON-per-frame shape a detector case has and
+    `check_detections` compares it.
+    """
+    for impl, spec in sorted(opencv_cases.PROCESS_PIPELINES.items()):
+        pipeline = spec["pipeline"]
+
+        for variant, settings in spec["variants"]:
+            outputs = pipeline_runner.run_detections(pipeline, settings)
+
+            case_dir = os.path.join(group_dir, "process_pipeline", impl,
+                                    variant)
+            os.makedirs(case_dir, exist_ok=True)
+
+            files = {}
+            for name, detections in zip(case_spec.PIPELINE_INPUTS, outputs):
+                written = _write_json(
+                    os.path.join(case_dir, name + ".json"), detections)
+                files[name] = {
+                    "file": os.path.relpath(written, group_dir),
+                    "detections": len(detections),
+                    "sha256": file_digest(written),
+                }
+
+            manifest["cases"].append({
+                "kind": "process_pipeline",
+                "impl": impl,
+                "variant": variant,
+                "config": {},
+                "pipeline": pipeline,
+                "settings": list(settings),
+                "inputs": list(case_spec.PIPELINE_INPUTS),
+                "outputs": files,
+                "unstable": {},
+            })
+            print("  process_pipeline {} {} ({} detections)".format(
+                impl, variant,
+                sum(len(detections) for detections in outputs)))
+
+
 def record_opencv(group_dir, manifest):
     record_opencv_filters(group_dir, manifest)
     record_opencv_splits(group_dir, manifest)
@@ -654,6 +697,7 @@ def record_opencv(group_dir, manifest):
     record_opencv_refiners(group_dir, manifest)
     record_opencv_warps(group_dir, manifest)
     record_opencv_pipelines(group_dir, manifest)
+    record_opencv_process_pipelines(group_dir, manifest)
 
 
 def record_opencv_warps(group_dir, manifest):
