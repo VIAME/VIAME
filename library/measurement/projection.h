@@ -70,6 +70,44 @@ project_point(
   distortion_t const& coefficients );
 
 // ----------------------------------------------------------------------------
+/// `cv::projectPoints` with a full pose: rotate, translate, then project.
+VIAME_MEASUREMENT_EXPORT
+kwiver::vital::vector_2d
+project_point(
+  kwiver::vital::vector_3d const& point,
+  kwiver::vital::matrix_3x3d const& rotation,
+  kwiver::vital::vector_3d const& translation,
+  kwiver::vital::matrix_3x3d const& intrinsics,
+  distortion_t const& coefficients );
+
+// ----------------------------------------------------------------------------
+/// A disparity map as a field of 3D points, which is
+/// `cv::reprojectImageTo3D` with `handleMissingValues` false.
+///
+/// \p disparity is one plane and the result is three: x, y and z in the left
+/// rectified camera's frame. Note what OpenCV documents and what every
+/// caller in VIAME forgets: a **16-bit signed** disparity is taken to have
+/// no fractional bits, and SGBM's has four.
+VIAME_MEASUREMENT_EXPORT
+kwiver::vital::image_of< float >
+reproject_to_3d(
+  kwiver::vital::image const& disparity,
+  kwiver::vital::matrix_4x4d const& disparity_to_depth );
+
+// ----------------------------------------------------------------------------
+/// A rotation matrix from an axis-angle vector, and the inverse.
+///
+/// `cv::Rodrigues`, both directions. Exported because the stereo pairing
+/// needs the vector form to hand to `project_point`.
+VIAME_MEASUREMENT_EXPORT
+kwiver::vital::matrix_3x3d
+rodrigues( kwiver::vital::vector_3d const& vector );
+
+VIAME_MEASUREMENT_EXPORT
+kwiver::vital::vector_3d
+inverse_rodrigues( kwiver::vital::matrix_3x3d const& matrix );
+
+// ----------------------------------------------------------------------------
 /// Undo the lens, rotate, and project through a new matrix.
 ///
 /// `cv::undistortPoints( src, dst, intrinsics, coefficients, rotation,

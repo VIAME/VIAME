@@ -3,13 +3,19 @@
 
 #include <viame/core_types/bounding_box.h>
 #include <viame/core_types/detected_object.h>
+#include <viame/core_types/image.h>
+#include <viame/core_types/matrix.h>
+#include <viame/core_types/vector.h>
 #include <viame/core_types/vital_types.h>
 
-#include <opencv2/core/core.hpp>
+#include <viame/measurement/projection.h>
+
+#include "../core/windowed_utils.h"
 
 #include "viame_opencv_export.h"
 
 #include <memory>
+#include <vector>
 
 namespace viame {
 
@@ -17,8 +23,8 @@ namespace viame {
 /// coordinates
 struct VIAME_OPENCV_EXPORT Detections3DPositions
 {
-  cv::Point3f center3d{};
-  cv::Point2f center3d_proj_to_right_image{};
+  kwiver::vital::vector_3d center3d{ 0.0, 0.0, 0.0 };
+  kwiver::vital::vector_2d center3d_proj_to_right_image{ 0.0, 0.0 };
   kwiver::vital::bounding_box_d rectified_left_bbox{};
   kwiver::vital::bounding_box_d left_bbox_proj_to_right_image{};
   float score{};
@@ -46,11 +52,19 @@ public:
   // Camera depth information. The rectification transforms are mutable because
   // single-file calibrations do not store them; they are derived on first use,
   // when an image size is finally available.
-  cv::Mat m_K1, m_D1, m_K2, m_D2, m_R, m_Rvec, m_T;
-  mutable cv::Mat m_Q, m_R1, m_P1, m_R2, m_P2;
+  kwiver::vital::matrix_3x3d m_K1, m_K2, m_R;
+  viame::measurement::distortion_t m_D1, m_D2;
+  kwiver::vital::vector_3d m_Rvec{ 0.0, 0.0, 0.0 };
+  kwiver::vital::vector_3d m_T{ 0.0, 0.0, 0.0 };
 
-  /// @brief Project depth map as 3 channel 3D image
-  cv::Mat reproject_3d_depth_map( const cv::Mat& cv_disparity_left ) const;
+  mutable bool m_rectified{ false };
+  mutable kwiver::vital::matrix_4x4d m_Q;
+  mutable kwiver::vital::matrix_3x3d m_R1, m_R2;
+  mutable kwiver::vital::matrix_3x4d m_P1, m_P2;
+
+  /// @brief Project depth map as 3 plane 3D image
+  kwiver::vital::image_of< float > reproject_3d_depth_map(
+    const kwiver::vital::image& disparity_left ) const;
 
   /// @brief Load matrix calibration from the configured calibration file
   void load_camera_calibration();
@@ -58,18 +72,19 @@ public:
   /// @brief Derive the rectification transforms if the calibration lacked them
   /// No-op once they are populated. Called for the first disparity map, which
   /// is the earliest point an image size is known.
-  void ensure_rectification( const cv::Size& image_size ) const;
+  void ensure_rectification( size_t width, size_t height ) const;
 
   /// @brief Compute median of input vector of values. Returns 0 if empty.
   static float compute_median( std::vector< float > values, bool is_sorted = false );
 
-  /// @brief Convert input kwiver bounding box to OpenCV Rect format
-  static cv::Rect bbox_to_mask_rect( kwiver::vital::bounding_box_d const& bbox );
-  static kwiver::vital::bounding_box_d mask_rect_to_bbox( const cv::Rect& rect );
+  /// @brief Convert input kwiver bounding box to an integer rectangle
+  static image_rect bbox_to_mask_rect( kwiver::vital::bounding_box_d const& bbox );
+  static kwiver::vital::bounding_box_d mask_rect_to_bbox( const image_rect& rect );
 
   /// @brief Get mask from input detection object
   ///     Copied from kwiver/arrows/ocv/refine_detections_util.cxx to include bbox used for the mask
-  static cv::Mat get_standard_mask( kwiver::vital::detected_object_sptr const& det );
+  static kwiver::vital::image_of< uint8_t > get_standard_mask(
+    kwiver::vital::detected_object_sptr const& det );
 
   /// @brief Estimate 3D position for input detection. If the detection contains a mask and that mask is contained
   /// within the left camera image, calculates position given mask bounds.
@@ -77,7 +92,7 @@ public:
   /// Set bbox_crop_ratio to 1.0 to use full bbox for 3D estimation.
   viame::Detections3DPositions
   estimate_3d_position_from_detection( const kwiver::vital::detected_object_sptr& detection,
-                                       const cv::Mat& pos_3d_map,
+                                       const kwiver::vital::image_of< float >& pos_3d_map,
                                        bool do_undistort_points,
                                        float bbox_crop_ratio ) const;
 
@@ -86,17 +101,19 @@ public:
                                                     bool is_left_image ) const;
 
   /// @brief Undistort input point coordinate
-  cv::Point2d undistort_point( const cv::Point2d& point, bool is_left_image ) const;
+  kwiver::vital::vector_2d undistort_point( const kwiver::vital::vector_2d& point,
+                                            bool is_left_image ) const;
 
   /// @brief Unistort input point coordinates
-  std::vector< cv::Point2d > undistort_point( const std::vector< cv::Point2d >& point,
-                                              bool is_left_image ) const;
+  std::vector< kwiver::vital::vector_2d > undistort_point(
+    const std::vector< kwiver::vital::vector_2d >& point,
+    bool is_left_image ) const;
 
   /// @return True if 3D point is valid (not infinite and Z positive)
   static bool point_is_valid( float x, float y, float z );
 
   /// @return True if 3D point is valid (not infinite and Z positive)
-  static bool point_is_valid( const cv::Vec3f& pt );
+  static bool point_is_valid( const kwiver::vital::vector_3d& pt );
 
   /// @brief Estimates 3D positions from input Bounding box and 3D map.
   /// @param bbox: Bounding box in left image on which to extract the 3D position
@@ -107,7 +124,7 @@ public:
   ///     provided bounding box coordinates directly.
   viame::Detections3DPositions
   estimate_3d_position_from_bbox( const kwiver::vital::bounding_box_d& bbox,
-                                  const cv::Mat& pos_3d_map,
+                                  const kwiver::vital::image_of< float >& pos_3d_map,
                                   float crop_ratio,
                                   bool do_undistort_points ) const;
 
@@ -120,8 +137,8 @@ public:
   ///     provided mask coordinates directly.
   viame::Detections3DPositions
   estimate_3d_position_from_unrectified_mask( const kwiver::vital::bounding_box_d& bbox,
-                                              const cv::Mat& pos_3d_map,
-                                              const cv::Mat& mask,
+                                              const kwiver::vital::image_of< float >& pos_3d_map,
+                                              const kwiver::vital::image_of< uint8_t >& mask,
                                               bool do_undistort_points ) const;
 
 
@@ -131,8 +148,8 @@ public:
   /// @param pos_3d_map: 3D coordinate image with the same dimensions as the left image
   Detections3DPositions
   estimate_3d_position_from_point_coordinates( const kwiver::vital::bounding_box_d& rectified_bbox,
-                                               const std::vector< cv::Point2d >& undistorted_mask_coords,
-                                               const cv::Mat& pos_3d_map ) const;
+                                               const std::vector< kwiver::vital::vector_2d >& undistorted_mask_coords,
+                                               const kwiver::vital::image_of< float >& pos_3d_map ) const;
 
   /// @brief Creates 3D position from input X, Y, Z vectors.
   Detections3DPositions
@@ -140,28 +157,30 @@ public:
                       const std::vector< float >& ys,
                       const std::vector< float >& zs,
                       const kwiver::vital::bounding_box_d& bbox,
-                      const cv::Mat& pos_3d_map,
+                      const kwiver::vital::image_of< float >& pos_3d_map,
                       float score ) const;
 
   /// @brief Projects the input left BBox to right image using 3D coordinates
   kwiver::vital::bounding_box_d
   project_to_right_image( const kwiver::vital::bounding_box_d& bbox,
-                          const cv::Mat& pos_3d_map ) const;
+                          const kwiver::vital::image_of< float >& pos_3d_map ) const;
 
   /// @brief Projects the input left coordinates to right image using 3D coordinates
-  kwiver::vital::bounding_box_d project_to_right_image( const std::vector< cv::Vec3f >& points_3d ) const;
+  kwiver::vital::bounding_box_d project_to_right_image(
+    const std::vector< kwiver::vital::vector_3d >& points_3d ) const;
 
   /// @brief Projects the input left coordinates to right image using 3D coordinates
-  cv::Point2f project_to_right_image( const cv::Point3f& points_3d ) const;
+  kwiver::vital::vector_2d project_to_right_image(
+    const kwiver::vital::vector_3d& points_3d ) const;
 
   /// @brief Update 3D tracks positions given a list of tracks and tracks disparity map
   std::vector< viame::Detections3DPositions >
   update_left_detections_3d_positions( const std::vector< kwiver::vital::detected_object_sptr >& detections,
-                                       const cv::Mat& cv_disparity_map ) const;
+                                       const kwiver::vital::image& disparity_map ) const;
 
   viame::Detections3DPositions
   update_left_detection_3d_position( const kwiver::vital::detected_object_sptr& detection,
-                                     const cv::Mat& cv_pos_3d_map ) const;
+                                     const kwiver::vital::image_of< float >& pos_3d_map ) const;
 
 
   /// @brief Calculates intersection over union for two bounding boxes

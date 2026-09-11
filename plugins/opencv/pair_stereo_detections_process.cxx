@@ -15,7 +15,6 @@
 
 #include <memory>
 
-#include <viame/opencv_bridge/image_container.h>
 #include <viame/pipeline_framework/type_traits.h>
 
 namespace kv = kwiver::vital;
@@ -107,10 +106,8 @@ pair_stereo_detections_process
   auto right_detected_object_set = grab_from_port_using_trait( detected_object_set2 );
   auto depth_map = grab_from_port_using_trait( depth_map );
 
-  // Split input disparity into left / right disparity maps
-  auto cv_disparity_left = kwiver::arrows::ocv::image_container::vital_to_ocv(
-    depth_map->get_image(),
-    kwiver::arrows::ocv::image_container::BGR_COLOR );
+  // The disparity map, as it came off the port
+  auto const disparity_left = depth_map->get_image();
 
   // Format detection sets as detection object vectors
   std::vector< kwiver::vital::detected_object_sptr > left_detections, right_detections;
@@ -125,7 +122,7 @@ pair_stereo_detections_process
   }
 
   // Estimate 3D positions in left image with disparity
-  auto left_3d_pos = d->update_left_detections_3d_positions( left_detections, cv_disparity_left );
+  auto left_3d_pos = d->update_left_detections_3d_positions( left_detections, disparity_left );
 
   // Pair right and left tracks
   auto pairings = d->pair_left_right_detections( left_detections, left_3d_pos, right_detections );

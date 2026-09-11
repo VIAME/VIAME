@@ -344,8 +344,18 @@ MEASUREMENT_ARRAY_TOLERANCE = {
 }
 
 
-def array_tolerance(impl, variant):
-    """The relative tolerance a `measurement` case's arrays are held to."""
+# The pairing's own, and the same cause: every one of its variants runs
+# through `stereo_rectify`, so its 3D positions carry the float-versus-double
+# difference of about a part in ten million. 1.5e-5 mm at a reported depth of
+# 137, measured.
+PAIR_STEREO_ARRAY_TOLERANCE = 1e-6
+
+
+def array_tolerance(kind, impl, variant):
+    """The relative tolerance a case's recorded arrays are held to."""
+    if kind == "pair_stereo":
+        return PAIR_STEREO_ARRAY_TOLERANCE
+
     return MEASUREMENT_ARRAY_TOLERANCE.get(variant, 0.0)
 
 

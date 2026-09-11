@@ -18,9 +18,7 @@
 #include <viame/core_types/object_track_set.h>
 
 #include <memory>
-#include <opencv2/core/core.hpp>
 
-#include <viame/opencv_bridge/image_container.h>
 #include <viame/pipeline_framework/type_traits.h>
 
 namespace kv = kwiver::vital;
@@ -142,13 +140,11 @@ pair_stereo_tracks_process
   kv::timestamp timestamp = grab_from_port_using_trait( timestamp );
   kv::image_container_sptr depth_map = grab_from_port_using_trait( depth_map );
 
-  // Split input disparity into left / right disparity maps
-  cv::Mat cv_disparity_left = kwiver::arrows::ocv::image_container::vital_to_ocv(
-    depth_map->get_image(),
-    kwiver::arrows::ocv::image_container::BGR_COLOR );
+  // The disparity map, as it came off the port
+  auto const disparity_left = depth_map->get_image();
 
   // Estimate 3D positions in left image with disparity
-  auto tracks_and_pos1 = d->update_left_tracks_3d_position( input_tracks1->tracks(), cv_disparity_left, timestamp );
+  auto tracks_and_pos1 = d->update_left_tracks_3d_position( input_tracks1->tracks(), disparity_left, timestamp );
   auto left_tracks = std::get< 0 >( tracks_and_pos1 );
   auto left_3d_pos = std::get< 1 >( tracks_and_pos1 );
 

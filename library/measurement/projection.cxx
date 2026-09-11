@@ -146,7 +146,7 @@ undistort( double u, double v, std::array< double, 14 > const& k,
 // ----------------------------------------------------------------------------
 /// A rotation vector to a rotation matrix, which is `cv::Rodrigues`.
 kv::matrix_3x3d
-rodrigues( kv::vector_3d const& vector )
+rodrigues_impl( kv::vector_3d const& vector )
 {
   double const angle = vector.norm();
 
@@ -174,7 +174,7 @@ rodrigues( kv::vector_3d const& vector )
 /// clamping rather than by a special case, since a calibration's relative
 /// rotation is always small.
 kv::vector_3d
-inverse_rodrigues( kv::matrix_3x3d const& matrix )
+inverse_rodrigues_impl( kv::matrix_3x3d const& matrix )
 {
   kv::vector_3d axis( matrix( 2, 1 ) - matrix( 1, 2 ),
                       matrix( 0, 2 ) - matrix( 2, 0 ),
@@ -285,6 +285,94 @@ rectangles( kv::matrix_3x3d const& intrinsics,
 } // namespace
 
 // ----------------------------------------------------------------------------
+kv::matrix_3x3d
+rodrigues( kv::vector_3d const& vector )
+{
+  return rodrigues_impl( vector );
+}
+
+// ----------------------------------------------------------------------------
+kv::vector_3d
+inverse_rodrigues( kv::matrix_3x3d const& matrix )
+{
+  return inverse_rodrigues_impl( matrix );
+}
+
+// ----------------------------------------------------------------------------
+kv::vector_2d
+project_point( kv::vector_3d const& point,
+               kv::matrix_3x3d const& rotation,
+               kv::vector_3d const& translation,
+               kv::matrix_3x3d const& intrinsics,
+               distortion_t const& coefficients )
+{
+  return project_point( kv::vector_3d( rotation * point + translation ),
+                        kv::matrix_3x3d::Identity(), intrinsics,
+                        coefficients );
+}
+
+// ----------------------------------------------------------------------------
+kv::image_of< float >
+reproject_to_3d( kv::image const& disparity,
+                 kv::matrix_4x4d const& q )
+{
+  kv::image_of< float > out( disparity.width(), disparity.height(), 3 );
+
+  auto const& traits = disparity.pixel_traits();
+
+  auto value_at = [ & ]( size_t i, size_t j ) -> double
+  {
+    if( traits.type == kv::image_pixel_traits::FLOAT && traits.num_bytes == 4 )
+    {
+      return kv::image_of< float >( disparity )( i, j, 0 );
+    }
+
+    if( traits.type == kv::image_pixel_traits::SIGNED && traits.num_bytes == 2 )
+    {
+      return kv::image_of< int16_t >( disparity )( i, j, 0 );
+    }
+
+    if( traits.type == kv::image_pixel_traits::UNSIGNED &&
+        traits.num_bytes == 1 )
+    {
+      return kv::image_of< uint8_t >( disparity )( i, j, 0 );
+    }
+
+    if( traits.type == kv::image_pixel_traits::SIGNED && traits.num_bytes == 4 )
+    {
+      return kv::image_of< int32_t >( disparity )( i, j, 0 );
+    }
+
+    throw std::invalid_argument(
+      "reproject_to_3d: a disparity map is 8 bit unsigned, 16 or 32 bit "
+      "signed, or 32 bit float" );
+  };
+
+  for( size_t j = 0; j < disparity.height(); ++j )
+  {
+    for( size_t i = 0; i < disparity.width(); ++i )
+    {
+      double const x = static_cast< double >( i );
+      double const y = static_cast< double >( j );
+      double const d = value_at( i, j );
+
+      double const wx = q( 0, 0 ) * x + q( 0, 1 ) * y + q( 0, 2 ) * d + q( 0, 3 );
+      double const wy = q( 1, 0 ) * x + q( 1, 1 ) * y + q( 1, 2 ) * d + q( 1, 3 );
+      double const wz = q( 2, 0 ) * x + q( 2, 1 ) * y + q( 2, 2 ) * d + q( 2, 3 );
+      double const w  = q( 3, 0 ) * x + q( 3, 1 ) * y + q( 3, 2 ) * d + q( 3, 3 );
+
+      double const scale = w != 0.0 ? 1.0 / w : std::numeric_limits< double >::infinity();
+
+      out( i, j, 0 ) = static_cast< float >( wx * scale );
+      out( i, j, 1 ) = static_cast< float >( wy * scale );
+      out( i, j, 2 ) = static_cast< float >( wz * scale );
+    }
+  }
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
 kv::vector_2d
 project_point( kv::vector_3d const& point,
                kv::matrix_3x3d const& intrinsics,
@@ -379,8 +467,8 @@ stereo_rectify( kv::matrix_3x3d const& left_intrinsics,
 
   // Rotate each camera half way toward the other, so the pair ends up
   // symmetric about the original baseline.
-  kv::vector_3d const half = inverse_rodrigues( rotation ) * -0.5;
-  kv::matrix_3x3d const half_rotation = rodrigues( half );
+  kv::vector_3d const half = inverse_rodrigues_impl( rotation ) * -0.5;
+  kv::matrix_3x3d const half_rotation = rodrigues_impl( half );
 
   kv::vector_3d t = half_rotation * translation;
 
@@ -408,7 +496,7 @@ stereo_rectify( kv::matrix_3x3d const& left_intrinsics,
     ww *= std::acos( std::abs( c ) / nt ) / nw;
   }
 
-  kv::matrix_3x3d const w_rotation = rodrigues( ww );
+  kv::matrix_3x3d const w_rotation = rodrigues_impl( ww );
 
   rectification out;
   out.left_rotation = w_rotation * half_rotation.transpose();

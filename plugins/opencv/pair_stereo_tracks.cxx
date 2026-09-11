@@ -20,11 +20,11 @@ std::tuple< std::vector< kwiver::vital::track_sptr >, std::vector< viame::Detect
 viame::pair_stereo_tracks
 ::update_left_tracks_3d_position(
     const std::vector< kwiver::vital::track_sptr >& tracks,
-    const cv::Mat& cv_disparity_map,
+    const kwiver::vital::image& disparity_map,
     const kwiver::vital::timestamp& timestamp )
 {
   m_detection_pairing->m_verbose = m_verbose;
-  const auto cv_pos_3d_map = m_detection_pairing->reproject_3d_depth_map( cv_disparity_map );
+  const auto pos_3d_map = m_detection_pairing->reproject_3d_depth_map( disparity_map );
 
   std::vector< kwiver::vital::track_sptr > filtered_tracks;
   std::vector< Detections3DPositions > tracks_positions;
@@ -57,7 +57,7 @@ viame::pair_stereo_tracks
     }
 
     // Process 3D coordinates for frame matching the current depth image
-    auto position = m_detection_pairing->update_left_detection_3d_position( state->detection(), cv_pos_3d_map );
+    auto position = m_detection_pairing->update_left_detection_3d_position( state->detection(), pos_3d_map );
 
     // Update state information to tracks 3D and push tracks to output
     tracks_3d->append( state );

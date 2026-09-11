@@ -10,11 +10,9 @@ link_directories( "${OpenCV_LIBRARY_DIR}" )
 
 set( plugin_headers
   add_keypoints_from_mask.h
-  calibrate_stereo_cameras.h
   classify_fish_hierarchical_svm.h
   convert_color_space.h
   debayer_filter.h
-  opencv_yaml_matrix.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
   plot_metrics.h
@@ -30,7 +28,6 @@ set( plugin_headers
 
 set( plugin_sources
   add_keypoints_from_mask.cxx
-  calibrate_stereo_cameras.cxx
   classify_fish_hierarchical_svm.cxx
   convert_color_space.cxx
   debayer_filter.cxx

@@ -69,7 +69,7 @@ public:
   /// @brief Update 3D tracks positions given a list of tracks and tracks disparity map
   std::tuple< std::vector< kwiver::vital::track_sptr >, std::vector< viame::Detections3DPositions > >
   update_left_tracks_3d_position( const std::vector< kwiver::vital::track_sptr >& tracks,
-                                  const cv::Mat& cv_disparity_map,
+                                  const kwiver::vital::image& disparity_map,
                                   const kwiver::vital::timestamp& timestamp );
 
   /// @brief Filter input tracks to keep only tracks with detection in the current frame.

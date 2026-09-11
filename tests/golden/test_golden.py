@@ -495,11 +495,12 @@ def check_array_case(item, case, outputs, group):
                                          np.nan_to_num(want_values)))
 
             # Zero unless the case's own module says otherwise. The
-            # `measurement` kind's two rectified variants do, and
+            # measurement kinds' rectified variants do, and
             # `measurement_cases.py` says why.
             relative = (measurement_cases.array_tolerance(
-                            case["impl"], case["variant"])
-                        if case["kind"] == "measurement" else 0.0)
+                            case["kind"], case["impl"], case["variant"])
+                        if case["kind"] in ("measurement", "pair_stereo")
+                        else 0.0)
 
             allowed = np.maximum(
                 ARRAY_TOLERANCE,
