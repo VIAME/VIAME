@@ -51,8 +51,6 @@ kwiver_add_library( viame_video_io
 target_include_directories( viame_video_io PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  # OpenCV's headers, for the classes imported from arrows/ocv
-  $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
   )
 
 # The vendored stb headers, which only `codecs/image_codec.cxx` compiles.
@@ -70,11 +68,6 @@ target_link_libraries( viame_video_io
                        kwiver::vital_util
                        kwiver::kwiversys
                        viame_image_ops
-  PRIVATE              ${OpenCV_LIBS}
-                       # image_container, which the imported ocv image_io
-                       # converts through; it moves to image_processing with
-                       # the rest of arrows/ocv
-                       viame_opencv_bridge
   )
 
 set_target_properties( viame_video_io PROPERTIES
@@ -93,12 +86,13 @@ target_link_libraries( viame_video_io_plugin
 # Processes
 #
 # Imported from sprokit/processes in P5-T04: the five video and image
-# processes from `core`, and `image_viewer` from `ocv`.
+# processes from `core`. `image_viewer` came from `ocv` and is python now --
+# it is the one process that opens a GUI, which is highgui and has no
+# `image_ops` counterpart.
 ##
 set( process_headers
   frame_list_process.h
   image_file_reader_process.h
-  image_viewer_process.h
   image_writer_process.h
   video_input_process.h
   video_output_process.h
@@ -108,7 +102,6 @@ set( process_sources
   register_processes.cxx
   frame_list_process.cxx
   image_file_reader_process.cxx
-  image_viewer_process.cxx
   image_writer_process.cxx
   video_input_process.cxx
   video_output_process.cxx
@@ -127,17 +120,11 @@ kwiver_add_plugin( viame_processes_video_io
                    kwiver::vital_util
                    kwiver::vital_exceptions
                    viame_video_io
-                   ${OpenCV_LIBS}
-                   # image_viewer_process and frame_list_process convert
-                   # through image_container
-                   viame_opencv_bridge
   )
 
 target_include_directories( viame_processes_video_io PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  # OpenCV's headers, for the classes imported from arrows/ocv
-  $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
   )
 
 ###
@@ -150,6 +137,13 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     video_io
     __init__ )
+
+  # `image_viewer`, a sprokit process rather than an algorithm, so it is
+  # registered through `__sprokit_register__`.
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/image_viewer.py
+    video_io
+    image_viewer )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/pyav_video_input.py

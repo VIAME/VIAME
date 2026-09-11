@@ -19,7 +19,6 @@
 
 #include "frame_list_process.h"
 #include "image_file_reader_process.h"
-#include "image_viewer_process.h"
 #include "image_writer_process.h"
 #include "video_input_process.h"
 #include "video_output_process.h"
@@ -73,10 +72,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   VIAME_REGISTER_PROCESS(
     kwiver::image_file_reader_process, "image_file_reader",
     "Reads an image file given the file name." )
-
-  VIAME_REGISTER_PROCESS(
-    kwiver::image_viewer_process, "image_viewer",
-    "Display input image and delay" )
 
   VIAME_REGISTER_PROCESS(
     kwiver::frame_list_process, "frame_list_input",

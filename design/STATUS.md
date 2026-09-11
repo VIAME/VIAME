@@ -196,16 +196,14 @@ for `CMake/FindCUDNN.cmake`, and `kwiver` is checked out and built.
 
 ## Decisions needed to finish phase 7
 
-Everything in phase 7 that is *work* is done or has a clear next step. What
-is left is four questions, and P7-T09 -- switching OpenCV off -- cannot
-finish until they are answered. Each has a recommendation, so answering can
-be as short as "yes" four times.
+Three of the original four are answered. PostgreSQL is removed, `plot_metrics`
+goes to matplotlib, and `image_viewer` is python -- and answering that last
+one took `library/` down to the bridge alone. What is left:
 
 | # | Question | Recommendation | Cost of the alternative |
 |---|---|---|---|
-| 2 | **`classify_fish_hierarchical_svm`** (`cv::FileStorage`, for its own model index rather than a calibration) is the only part of the old decision 6 left: PostgreSQL is answered and gone, which took `iqr_session_adaboost` with it. It is in **no** pipeline | Remove it, with a `removed.json` entry, on the same "used, nothing extra" rule that removed `vxl_white_balancing` and the six unregistered OpenCV files of P7-T04b | Porting it is a small reader for its index plus libsvm, which is already a dependency. The question is only whether anyone wants a classifier no pipeline selects |
-| 1 | **`image_viewer` process** (`cv::imshow`, `cv::putText`, `library/video_io`). One pipeline selects it. `lite-removals.md` 2.6 offers python or `removed.json` | Python. `cv2.imshow` in a python process is a dozen lines and the process is interactive by nature, so a person is already in the loop; removing it would take a working display away from that one pipeline | Removing it costs `display_annotations.pipe` its only output |
-| 3 | **darknet** (P7-T08). The fork is built with `ENABLE_OPENCV=ON` in the reference superbuild, which is what makes `Detector::detect( cv::Mat )` exist. The plan says build it `OFF` and feed `image_ops`-resized buffers to the `image_t` overload, which exists either way | Do it, but **only once there is a test**. No `detector_darknet*` case runs in this build -- they need a downloaded model -- so the port would be unverifiable, which is the one thing this phase has refused to do | Leaving darknet on OpenCV means `libopencv_*` stays in the install, so P7-T09's "no `libopencv_*` in `ldd`" cannot pass |
+| 1 | **`classify_fish_hierarchical_svm`** (`cv::FileStorage`, for its own model index rather than a calibration) is the only part of the old decision 6 left: PostgreSQL is answered and gone, which took `iqr_session_adaboost` with it. It is in **no** pipeline | Remove it, with a `removed.json` entry, on the same "used, nothing extra" rule that removed `vxl_white_balancing` and the six unregistered OpenCV files of P7-T04b | Porting it is a small reader for its index plus libsvm, which is already a dependency. The question is only whether anyone wants a classifier no pipeline selects |
+| 2 | **darknet** (P7-T08). The fork is built with `ENABLE_OPENCV=ON` in the reference superbuild, which is what makes `Detector::detect( cv::Mat )` exist; the `detect( image_t )` overload exists either way, so VIAME's side can be ported before the fork is rebuilt | In hand rather than open: the user pointed at the add-ons, and the yolo-generic add-on's `generic_detector.cfg/.weights/.lbl` **is** installed here, so a golden can be recorded before anything is touched | Leaving darknet on OpenCV means `libopencv_*` stays in the install, so P7-T09's "no `libopencv_*` in `ldd`" cannot pass |
 
 The bridge itself (`library/opencv_bridge`, eight files) needs no decision:
 it goes when its last caller does, which is what 1 to 4 decide.
@@ -276,8 +274,9 @@ asking every caller to know about the layout.
 
 ## Where phase 7's OpenCV removal stands
 
-Every `#include <opencv2/` left in the tree as of P7-T07, and what each is
-waiting for. Eighteen files, of which eight are the bridge.
+Every `#include <opencv2/` left in the tree as of P7-T09, and what each is
+waiting for. Seventeen files, of which eight are the bridge. **`library/` is
+down to the bridge itself.**
 
 `library/examples/template_process.cxx` came off this list without needing
 P7-T09's decision after all. It showed `cv::Mat` in and out because that was
@@ -290,7 +289,6 @@ process that takes whatever pixel type arrives.
 | File | Why it is still there |
 |---|---|
 | `library/opencv_bridge/*` (8 files) | The bridge itself, transitional since P5-T04 (finding 1.12). It goes when its last caller does, which is P7-T09 |
-| `library/video_io/image_viewer_process.cxx` | `cv::imshow` and `cv::putText`. `lite-removals.md` 2.6 offers python or `removed.json` and does not decide; one pipeline selects it |
 | `plugins/opencv/plot_metrics.{h,cxx}` | 1115 lines of drawing. The plan's replacement is python matplotlib called from `viame score`, which is a rewrite with a different picture at the end rather than a port. P7-T07 |
 | `plugins/opencv/classify_fish_hierarchical_svm.h` | `cv::FileStorage` for its own model index, not a calibration. `lite-removals.md` 2.6 open decision 6 |
 | `plugins/opencv/iqr_session_adaboost.h` | OpenCV's `ml` module. Open decision 6, as above |

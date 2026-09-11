@@ -7,6 +7,11 @@
 config _pipeline:_edge
   :capacity                                    10
 
+# `image_viewer` is a python process since P7-T09, and the default scheduler
+# refuses to run one.
+config _scheduler
+  :type                                        pythread_per_process
+
 # =============================================================================
 
 include common_default_input.pipe

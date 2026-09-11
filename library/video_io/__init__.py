@@ -13,3 +13,9 @@ def __vital_algorithm_register__():
     pyav_video_output.__vital_algorithm_register__()
     ffmpeg_cli_video_input.__vital_algorithm_register__()
     pil_image_io.__vital_algorithm_register__()
+
+
+def __sprokit_register__():
+    from viame.video_io import image_viewer
+
+    image_viewer.__sprokit_register__()
