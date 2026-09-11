@@ -195,166 +195,24 @@ format_image( const kv::image& src, kv::image& dst, rescale_option option,
 }
 
 // ----------------------------------------------------------------------------
-void
-prepare_image_regions(
-  const kv::image& image,
-  const window_settings& settings,
-  std::vector< kv::image >& regions_to_process,
-  std::vector< windowed_region_prop >& region_properties )
-{
-  regions_to_process.clear();
-  region_properties.clear();
-
-  auto const rows = static_cast< int >( image.height() );
-  auto const cols = static_cast< int >( image.width() );
-
-  rescale_option mode = settings.mode;
-
-  if( mode == ADAPTIVE )
-  {
-    if( ( rows * cols ) >= settings.chip_adaptive_thresh )
-    {
-      mode = CHIP_AND_ORIGINAL;
-    }
-    else if( settings.original_to_chip_size )
-    {
-      mode = MAINTAIN_AR;
-    }
-    else
-    {
-      mode = DISABLED;
-    }
-  }
-
-  kv::image resized_image;
-  double scale_factor = 1.0;
-
-  if( mode != DISABLED )
-  {
-    scale_factor = format_image( image, resized_image,
-      ( mode == ORIGINAL_AND_RESIZED ? SCALE : mode ),
-      settings.scale, settings.chip_width, settings.chip_height );
-  }
-  else
-  {
-    resized_image = image;
-  }
-
-  image_rect original_dims( 0, 0, cols, rows );
-
-  if( mode == ORIGINAL_AND_RESIZED )
-  {
-    kv::image scaled_original;
-
-    if( rows <= settings.chip_height && cols <= settings.chip_width )
-    {
-      regions_to_process.push_back( image );
-      region_properties.push_back(
-        windowed_region_prop( original_dims, 1.0 ) );
-    }
-    else
-    {
-      if( ( rows * cols ) >= settings.chip_adaptive_thresh )
-      {
-        regions_to_process.push_back( resized_image );
-        region_properties.push_back(
-          windowed_region_prop( original_dims, 1.0 / scale_factor ) );
-      }
-
-      double scaled_original_scale = scale_image_maintaining_ar( image,
-        scaled_original, settings.chip_width, settings.chip_height,
-        settings.black_pad );
-
-      regions_to_process.push_back( scaled_original );
-      region_properties.push_back(
-        windowed_region_prop( original_dims, 1.0 / scaled_original_scale ) );
-    }
-  }
-  else if( mode != CHIP && mode != CHIP_AND_ORIGINAL )
-  {
-    regions_to_process.push_back( resized_image );
-    region_properties.push_back(
-      windowed_region_prop( original_dims, 1.0 / scale_factor ) );
-  }
-  else
-  {
-    auto const resized_cols = static_cast< int >( resized_image.width() );
-    auto const resized_rows = static_cast< int >( resized_image.height() );
-
-    // Chip up scaled image
-    for( int li = 0;
-         li < resized_cols - settings.chip_width + settings.chip_step_width;
-         li += settings.chip_step_width )
-    {
-      int ti = std::min( li + settings.chip_width, resized_cols );
-
-      for( int lj = 0;
-           lj < resized_rows - settings.chip_height + settings.chip_step_height;
-           lj += settings.chip_step_height )
-      {
-        int tj = std::min( lj + settings.chip_height, resized_rows );
-
-        if( tj - lj < 0 || ti - li < 0 )
-        {
-          continue;
-        }
-
-        image_rect original_roi(
-          static_cast< int >( li / scale_factor ),
-          static_cast< int >( lj / scale_factor ),
-          static_cast< int >( ( ti - li ) / scale_factor ),
-          static_cast< int >( ( tj - lj ) / scale_factor ) );
-
-        auto const cropped_chip =
-          cropped( resized_image, li, lj, ti - li, tj - lj );
-
-        kv::image scaled_crop;
-
-        double scaled_crop_scale = scale_image_maintaining_ar(
-          cropped_chip, scaled_crop, settings.chip_width,
-          settings.chip_height, settings.black_pad );
-
-        regions_to_process.push_back( scaled_crop );
-
-        region_properties.push_back(
-          windowed_region_prop( original_roi,
-            settings.chip_edge_filter,
-            ( li + settings.chip_step_width ) >=
-              ( resized_cols - settings.chip_width +
-                settings.chip_step_width ),
-            ( lj + settings.chip_step_height ) >=
-              ( resized_rows - settings.chip_height +
-                settings.chip_step_height ),
-            1.0 / scaled_crop_scale,
-            li, lj,
-            1.0 / scale_factor ) );
-      }
-    }
-
-    // Extract full sized image chip if enabled
-    if( mode == CHIP_AND_ORIGINAL )
-    {
-      kv::image scaled_original;
-
-      if( settings.original_to_chip_size )
-      {
-        double scaled_original_scale = scale_image_maintaining_ar( image,
-          scaled_original, settings.chip_width, settings.chip_height,
-          settings.black_pad );
-
-        regions_to_process.push_back( scaled_original );
-        region_properties.push_back(
-          windowed_region_prop( original_dims,
-                                1.0 / scaled_original_scale ) );
-      }
-      else
-      {
-        regions_to_process.push_back( image );
-        region_properties.push_back(
-          windowed_region_prop( original_dims, 1.0 ) );
-      }
-    }
-  }
-}
+// `prepare_image_regions` was here.
+//
+// Upstream added `plugins/core/windowed_utils` -- an OpenCV-free windowed
+// detector, refiner and trainer registered as `windowed` -- and it declares
+// a `prepare_image_regions` with the **same signature in the same
+// namespace** as this one. Two definitions of one symbol in two libraries:
+// the loader binds whichever it sees first and every caller in both gets
+// that one, which is `viame::enhance_images` again (finding 1.10).
+//
+// There is one definition now, core's, and it is the one the seven
+// `ocv_windowed` golden cases have been reproducing all along -- exactly,
+// including `black_pad` once the padding was fixed. The declaration comes in
+// through `../core/windowed_utils.h`, which this header already includes.
+//
+// The other three helpers here do not collide: core's `scale_image_maintaining_ar`
+// and `format_image` return the image and take the scale as an out parameter,
+// and its `crop_image` aliases where `crop_region` copies, which the chip
+// writer depends on. Collapsing the rest of the `ocv_windowed` and `windowed`
+// duplication belongs to the restructuring, with the trainer recorded first.
 
 } // end namespace viame

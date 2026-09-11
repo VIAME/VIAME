@@ -39,6 +39,19 @@ add_test(
        --removed '${baseline_dir}/removed_pipes.json'"
 )
 
+# One symbol, one definition. Two libraries defining the same mangled name
+# link and load without a word, and the loader hands one of them to every
+# caller in both -- which is how `ocv_windowed` came to be running
+# `plugins/core`'s chipping, and `enhance_images` before it.
+add_test(
+  NAME "baseline:symbols"
+  COMMAND "${Python3_EXECUTABLE}" "${baseline_dir}/check_symbols.py"
+          "${install_dir}/lib"
+)
+
+set_property( TEST "baseline:symbols" PROPERTY LABELS BASELINE )
+set_property( TEST "baseline:symbols" PROPERTY TIMEOUT 300 )
+
 set_property( TEST "baseline:registry" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:pipes" PROPERTY LABELS BASELINE )
 set_property( TEST "baseline:registry" PROPERTY TIMEOUT 900 )

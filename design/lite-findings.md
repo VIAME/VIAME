@@ -539,6 +539,44 @@ an artefact of the port:
   nowhere near the cause. Introduced by the port and found by this case,
   which is the first to configure a rectifying disparity. The eight recorded
   `disparity` cases all run unrectified, which is why they did not.
+* `viame score --output-plots` wrote **eight pictures and the data for six of
+  them**. The renderer drew the track purity and continuity histograms
+  straight from the in-memory struct, and `export_plot_data` never wrote
+  either one to disk, so the directory it left behind could not reproduce its
+  own contents. Invisible for as long as one implementation did both jobs;
+  the moment the drawing moved to a separate program reading that directory,
+  two of the eight pictures had nothing to draw from.
+* The same directory **lost the average precision** it was scored with. The
+  PR curve CSV carries points and nothing else, so `viame plot eval` recovered
+  AP by recomputing it from the sampled curve with **eleven-point
+  interpolation**, where the evaluator interpolates at every point. Those are
+  different definitions and give different numbers -- 0.9455 against 0.95 on
+  the per-class curve of the new recording -- so a plot of a score disagreed
+  with the score printed beside it. The curve's `average_precision`, `max_f1`
+  and `best_threshold` are now a comment line above the header, and the
+  reader falls back to recomputation only for a file that predates it.
+* **`ocv_windowed` had been running somebody else's chipping since the
+  merge, and it segfaulted.** Upstream added `plugins/core/windowed_utils` --
+  an OpenCV-free windowed detector, refiner and trainer under the new name
+  `windowed` -- and its `prepare_image_regions` matches the one P7-T04b left
+  in `plugins/opencv/windowed_utils` signature for signature, in the same
+  namespace. One mangled name, two definitions, two libraries: the loader
+  binds one and hands it to every caller in both. `viame::enhance_images`
+  again, and nothing warns at any stage.
+  The implementation it silently switched to writes out of bounds when
+  `black_pad` is set. Its padding loop pairs the row index with the **column**
+  stride, the column index with the **plane** stride and the plane index with
+  the **row** stride -- all three rotated by one. On a 40 by 25 three-plane
+  chip the column stride it uses is 1000, so the third column of the first
+  row is already past a 3000 byte allocation. The `black_pad` golden case
+  recorded at P7-T04b went from passing to a segfault with no source change
+  on either side of it; the merge reconciliation had no way to see it,
+  because nothing in either file changed.
+  Both are fixed here, and the collision is fixed by deletion: there is one
+  `prepare_image_regions` now, core's, and it reproduces all seven
+  `ocv_windowed` recordings exactly. `tests/baseline/check_symbols.py` is the
+  standing guard -- no two VIAME libraries may define the same symbol -- so
+  the next one is found on purpose rather than by a crash.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 

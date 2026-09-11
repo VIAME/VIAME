@@ -383,6 +383,11 @@ scale_image_maintaining_ar(
     const size_t copy_width = std::min( resized.width(), static_cast< size_t >( width ) );
     const size_t copy_height = std::min( resized.height(), static_cast< size_t >( height ) );
 
+    // A column steps by `w_step`, a row by `h_step` and a plane by `d_step`.
+    // Pairing them the other way walks off the end of the allocation rather
+    // than transposing: on a 40 by 25 chip the column index would stride by
+    // `d_step`, which is 1000, and the third column is already past the
+    // image.
     for( size_t y = 0; y < copy_height; ++y )
     {
       for( size_t x = 0; x < copy_width; ++x )
@@ -391,9 +396,11 @@ scale_image_maintaining_ar(
         {
           std::memcpy(
             reinterpret_cast< char* >( padded.first_pixel() ) +
-              ( y * padded.w_step() + x * padded.d_step() + c * padded.h_step() ) * traits.num_bytes,
+              ( x * padded.w_step() + y * padded.h_step() +
+                c * padded.d_step() ) * traits.num_bytes,
             reinterpret_cast< const char* >( resized.first_pixel() ) +
-              ( y * resized.w_step() + x * resized.d_step() + c * resized.h_step() ) * traits.num_bytes,
+              ( x * resized.w_step() + y * resized.h_step() +
+                c * resized.d_step() ) * traits.num_bytes,
             traits.num_bytes );
         }
       }

@@ -75,23 +75,9 @@ crop_region(
   const kwiver::vital::image& image,
   const image_rect& rect );
 
-/// Prepare image regions for windowed processing
-///
-/// This function breaks up an image into regions based on window settings
-/// and returns both the image regions and their properties for detection
-/// coordinate transformation.
-///
-/// \param image Input image
-/// \param settings Window settings configuration
-/// \param regions_to_process Output vector of image regions
-/// \param region_properties Output vector of region properties for coordinate transforms
-VIAME_OPENCV_EXPORT
-void
-prepare_image_regions(
-  const kwiver::vital::image& image,
-  const window_settings& settings,
-  std::vector< kwiver::vital::image >& regions_to_process,
-  std::vector< windowed_region_prop >& region_properties );
+// `prepare_image_regions` is declared by `../core/windowed_utils.h`, above,
+// and defined once -- there. Declaring it here as well gave one symbol two
+// definitions in two libraries; see the note where the definition used to be.
 
 } // end namespace viame
 
