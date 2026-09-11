@@ -7,17 +7,23 @@ Notes.
 
 ## Current position
 
-- Phase: P7 is under way. VXL, FFmpeg and Eigen are gone from kwiver, fletch
-  and VIAME (P3, P4, P6), video is python on PyAV, the kwiver submodule is
-  gone, and OpenCV's codecs are replaced (P7-T02) with `image_ops` grown to
-  cover the rest of what it is used for (P7-T03). Phases 1 and 2 are still
-  deferred apart from P1-T05, which P5-T05 needed
-- Next task: P7-T04, which is the first to have `image_ops` v2 replace an
-  OpenCV implementation rather than sit beside one; then P7-T05 onward, and
-  P0-T06, P1-T01 to P1-T04 and P1-T06, which phase 5 left behind
+- Phase: P7 is most of the way through. VXL, FFmpeg and Eigen are gone from
+  kwiver, fletch and VIAME (P3, P4, P6), video is python on PyAV, the kwiver
+  submodule is gone, OpenCV's codecs are replaced (P7-T02) and `image_ops`
+  has grown to cover the rest of what it was used for (P7-T03). P7-T04 and
+  P7-T05 are done; P7-T06's calibration chain is done and reproduces the C++
+  bit for bit. Phases 1 and 2 are still deferred apart from P1-T05, which
+  P5-T05 needed
+- Next task: P7-T04b, the image filters still in `plugins/opencv`. Three of
+  its eight are done; the row says what each of the rest needs, and two of
+  them -- the denoiser and the optical flow -- are decisions rather than
+  work. Then P7-T06's remaining processes, P7-T07 to P7-T09, and P0-T06,
+  P1-T01 to P1-T04 and P1-T06, which phase 5 left behind
+- `library/` has three OpenCV includes left, all of them waiting on a
+  decision rather than on work; see "Where phase 7's OpenCV removal stands"
 - Last clean-configure build verified: 2026-09-10, P5-T05 (a fresh
   `build/merged-build`, 25 of 25 tests). Since then the incremental tree has
-  stayed at 25 of 25 through P6 and P7-T01 to T03
+  stayed green through P6 and all of P7 so far, now 29 of 29
 - Reference machine: local workstation, CUDA 12.6, cuDNN 9.12, Ubuntu
   (kernel 6.8), python 3.10.12, gcc default, 16 cores
 
