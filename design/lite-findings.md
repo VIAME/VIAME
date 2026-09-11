@@ -647,6 +647,21 @@ an artefact of the port:
   `image_ops::resize_by_scale` is the one that takes a scale now, and all
   twenty-four reproduce exactly -- every box and every confidence, through a
   neural network.
+* **The IQR AdaBoost ranking has two values, so it does not rank.**
+  `iqr_session_adaboost::predict_distance` asks `cv::ml::Boost::predict` for
+  `cv::ml::StatModel::RAW_OUTPUT`, meaning to get the weighted sum over the
+  weak classifiers. That flag on its own does not do that on a boosted
+  model -- it returns the **class label**. Getting the sum needs
+  `DTrees::PREDICT_SUM` alongside it, which nothing passes.
+  So every descriptor scores 0 or 1, `predict_score` -- a sigmoid of that --
+  returns 0.5 or 0.731059 and nothing else, and `ordered_results()`, whose
+  entire job is to score the working index and sort it, produces an order
+  that within each half is whatever the hash map happened to give. The
+  recording made before the port is those two numbers repeated down every
+  column, for all four boosting types.
+  Found by recording rather than by porting, and it changes what the port
+  is: sklearn's `decision_function` returns a real margin, so replacing
+  `cv::ml::Boost` fixes this rather than merely substituting an algorithm.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 

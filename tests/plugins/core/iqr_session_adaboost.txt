@@ -1,0 +1,105 @@
+=== shipped ===
+boost_type=gentle weak_count=100 max_depth=1 weight_trim_rate=0.950000
+refined=true model_valid=true
+probe,distance,score
+probe_pos_0,1.000000,0.731059
+probe_pos_1,0.000000,0.500000
+probe_pos_2,1.000000,0.731059
+probe_pos_3,1.000000,0.731059
+probe_pos_4,1.000000,0.731059
+probe_neg_0,0.000000,0.500000
+probe_neg_1,0.000000,0.500000
+probe_neg_2,0.000000,0.500000
+probe_neg_3,0.000000,0.500000
+probe_neg_4,0.000000,0.500000
+
+=== discrete ===
+boost_type=discrete weak_count=100 max_depth=1 weight_trim_rate=0.950000
+refined=true model_valid=true
+probe,distance,score
+probe_pos_0,1.000000,0.731059
+probe_pos_1,0.000000,0.500000
+probe_pos_2,1.000000,0.731059
+probe_pos_3,1.000000,0.731059
+probe_pos_4,1.000000,0.731059
+probe_neg_0,0.000000,0.500000
+probe_neg_1,0.000000,0.500000
+probe_neg_2,0.000000,0.500000
+probe_neg_3,0.000000,0.500000
+probe_neg_4,0.000000,0.500000
+
+=== real ===
+boost_type=real weak_count=100 max_depth=1 weight_trim_rate=0.950000
+refined=true model_valid=true
+probe,distance,score
+probe_pos_0,1.000000,0.731059
+probe_pos_1,0.000000,0.500000
+probe_pos_2,1.000000,0.731059
+probe_pos_3,1.000000,0.731059
+probe_pos_4,1.000000,0.731059
+probe_neg_0,0.000000,0.500000
+probe_neg_1,0.000000,0.500000
+probe_neg_2,0.000000,0.500000
+probe_neg_3,0.000000,0.500000
+probe_neg_4,0.000000,0.500000
+
+=== logit ===
+boost_type=logit weak_count=100 max_depth=1 weight_trim_rate=0.950000
+refined=true model_valid=true
+probe,distance,score
+probe_pos_0,1.000000,0.731059
+probe_pos_1,0.000000,0.500000
+probe_pos_2,1.000000,0.731059
+probe_pos_3,1.000000,0.731059
+probe_pos_4,1.000000,0.731059
+probe_neg_0,0.000000,0.500000
+probe_neg_1,0.000000,0.500000
+probe_neg_2,0.000000,0.500000
+probe_neg_3,0.000000,0.500000
+probe_neg_4,0.000000,0.500000
+
+=== weak_count_10 ===
+boost_type=gentle weak_count=10 max_depth=1 weight_trim_rate=0.950000
+refined=true model_valid=true
+probe,distance,score
+probe_pos_0,1.000000,0.731059
+probe_pos_1,0.000000,0.500000
+probe_pos_2,1.000000,0.731059
+probe_pos_3,1.000000,0.731059
+probe_pos_4,1.000000,0.731059
+probe_neg_0,0.000000,0.500000
+probe_neg_1,0.000000,0.500000
+probe_neg_2,0.000000,0.500000
+probe_neg_3,0.000000,0.500000
+probe_neg_4,0.000000,0.500000
+
+=== max_depth_3 ===
+boost_type=gentle weak_count=100 max_depth=3 weight_trim_rate=0.950000
+refined=true model_valid=true
+probe,distance,score
+probe_pos_0,1.000000,0.731059
+probe_pos_1,0.000000,0.500000
+probe_pos_2,1.000000,0.731059
+probe_pos_3,1.000000,0.731059
+probe_pos_4,1.000000,0.731059
+probe_neg_0,0.000000,0.500000
+probe_neg_1,0.000000,0.500000
+probe_neg_2,0.000000,0.500000
+probe_neg_3,0.000000,0.500000
+probe_neg_4,0.000000,0.500000
+
+=== no_trim ===
+boost_type=gentle weak_count=100 max_depth=1 weight_trim_rate=0.000000
+refined=true model_valid=true
+probe,distance,score
+probe_pos_0,1.000000,0.731059
+probe_pos_1,0.000000,0.500000
+probe_pos_2,1.000000,0.731059
+probe_pos_3,1.000000,0.731059
+probe_pos_4,1.000000,0.731059
+probe_neg_0,0.000000,0.500000
+probe_neg_1,0.000000,0.500000
+probe_neg_2,0.000000,0.500000
+probe_neg_3,0.000000,0.500000
+probe_neg_4,0.000000,0.500000
+

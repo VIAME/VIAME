@@ -53,6 +53,23 @@ kwiver_discover_gtests( viame_core plot_data_export
 target_compile_definitions( test-viame_core-plot_data_export PRIVATE
   "VIAME_PLOT_DATA_EXPORT_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"" )
 
+# The IQR AdaBoost session, recorded before P7-T09 takes it from
+# `cv::ml::Boost` to sklearn. The assertions hold for either; the recording
+# is where the behaviour change shows itself.
+#
+# `iqr_session_adaboost.h` is header only, so the test needs the header and
+# OpenCV rather than a library to link. Both go when the port lands.
+kwiver_discover_gtests( viame_core iqr_session_adaboost
+  LIBRARIES ${test_libraries} ${OpenCV_LIBS} )
+
+target_include_directories( test-viame_core-iqr_session_adaboost SYSTEM PRIVATE
+  ${VIAME_SOURCE_DIR}/plugins
+  ${VIAME_SOURCE_DIR}/plugins/opencv
+  ${OpenCV_INCLUDE_DIRS} )
+
+target_compile_definitions( test-viame_core-iqr_session_adaboost PRIVATE
+  "VIAME_IQR_ADABOOST_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"" )
+
 
 # TODO: Enable when tracks_pairing_from_stereo.h is implemented
 # kwiver_discover_gtests( viame_core tracks_pairing_from_stereo LIBRARIES ${test_libraries} )
