@@ -12,6 +12,10 @@
 
 #include <viame/algorithm_framework/range/transform.h>
 
+#include "opencv_yaml_matrix.h"
+
+#include <viame/file_io/opencv_yaml.h>
+
 #include <opencv2/calib3d/calib3d.hpp>
 
 #include <fstream>
@@ -213,19 +217,26 @@ write_mono_calibration_opencv(
   std::string output_dir = output_directory.empty() ? "." : output_directory;
   std::string intrinsics_file = output_dir + "/intrinsics.yml";
 
-  cv::FileStorage fs( intrinsics_file, cv::FileStorage::WRITE );
-  if( !fs.isOpened() )
+  // `library/file_io/opencv_yaml` since P7-T05, which writes the same bytes
+  // FileStorage did -- `tests/library/file_io` holds it to that.
+  try
+  {
+    viame::file_io::write(
+      intrinsics_file,
+      viame::file_io::node::map_of( {
+        { "M1", viame::opencv::mat_to_node( result.camera_matrix ) },
+        { "D1", viame::opencv::mat_to_node( result.dist_coeffs ) },
+      } ) );
+  }
+  catch( std::exception const& e )
   {
     if( logger )
     {
-      LOG_ERROR( logger, "Failed to open " << intrinsics_file << " for writing" );
+      LOG_ERROR( logger, "Failed to write " << intrinsics_file << ": "
+                                            << e.what() );
     }
     return false;
   }
-
-  fs << "M1" << result.camera_matrix;
-  fs << "D1" << result.dist_coeffs;
-  fs.release();
 
   if( logger )
   {

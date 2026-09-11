@@ -149,8 +149,9 @@ set( CORE_LINK_LIBRARIES
   kwiver::kwiver_adapter
   )
 
-# The polygon rasterisation the CSV parsers use is in-house now
-set( AUX_LINK_LIBRARIES viame_image_ops ${AUX_LINK_LIBRARIES} )
+# The polygon rasterisation the CSV parsers use is in-house now, and so is
+# the OpenCV YAML `camera_rig_io` reads calibrations with (P7-T05)
+set( AUX_LINK_LIBRARIES viame_image_ops viame_file_io ${AUX_LINK_LIBRARIES} )
 
 # OpenCV is used in some parsers for aux functionality if enabled
 if( VIAME_ENABLE_OPENCV )

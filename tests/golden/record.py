@@ -362,7 +362,8 @@ def record_documents(group_dir, manifest):
 
     files = {}
     for name, source in sorted(calib_cases.DOCUMENTS.items()):
-        payload = calib_runner.dump_document(os.path.join(REPO_ROOT, source))
+        payload = calib_runner.dump_document_reference(
+            os.path.join(REPO_ROOT, source))
         written = _write_json(os.path.join(case_dir, name + ".json"), payload)
         files[name] = {
             "file": os.path.relpath(written, group_dir),

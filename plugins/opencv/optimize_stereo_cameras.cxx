@@ -31,6 +31,10 @@
 
 #include "optimize_stereo_cameras.h"
 
+#include "opencv_yaml_matrix.h"
+
+#include <viame/file_io/opencv_yaml.h>
+
 namespace kv = kwiver::vital;
 
 namespace viame {
@@ -48,29 +52,41 @@ optimize_stereo_cameras
   // Use current directory if output directory not specified
   std::string output_dir = c_output_calibration_directory.empty() ? "." : c_output_calibration_directory;
 
-  auto fs = cv::FileStorage( output_dir + "/intrinsics.yml", cv::FileStorage::Mode::WRITE );
-  if( fs.isOpened() )
-  {
-    fs.write( "M1", M1 );
-    fs.write( "M2", M2 );
-    fs.write( "D1", cv::Mat( D1 ) );
-    fs.write( "D2", cv::Mat( D2 ) );
-  }
-  fs.release();
+  // `library/file_io/opencv_yaml` since P7-T05. The key order and the
+  // distortion coefficients' shape are FileStorage's: `cv::Mat( D1 )` of a
+  // vector is one column, which is what the existing files hold.
+  namespace fio = viame::file_io;
+  using viame::opencv::mat_to_node;
 
-  // write extrinsic file
-  fs = cv::FileStorage( output_dir + "/extrinsics.yml", cv::FileStorage::Mode::WRITE );
-  if( fs.isOpened() )
+  try
   {
-    fs.write( "R", R );
-    fs.write( "T", T );
-    fs.write( "R1", R1 );
-    fs.write( "R2", R2 );
-    fs.write( "P1", P1 );
-    fs.write( "P2", P2 );
-    fs.write( "Q", Q );
+    fio::write(
+      output_dir + "/intrinsics.yml",
+      fio::node::map_of( {
+        { "M1", mat_to_node( M1 ) },
+        { "M2", mat_to_node( M2 ) },
+        { "D1", mat_to_node( cv::Mat( D1 ) ) },
+        { "D2", mat_to_node( cv::Mat( D2 ) ) },
+      } ) );
+
+    fio::write(
+      output_dir + "/extrinsics.yml",
+      fio::node::map_of( {
+        { "R", mat_to_node( R ) },
+        { "T", mat_to_node( T ) },
+        { "R1", mat_to_node( R1 ) },
+        { "R2", mat_to_node( R2 ) },
+        { "P1", mat_to_node( P1 ) },
+        { "P2", mat_to_node( P2 ) },
+        { "Q", mat_to_node( Q ) },
+      } ) );
   }
-  fs.release();
+  catch( std::exception const& e )
+  {
+    LOG_ERROR( logger(), "Could not write the calibration to " << output_dir
+                                                               << ": "
+                                                               << e.what() );
+  }
 }
 
 

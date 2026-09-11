@@ -11,6 +11,10 @@
 #include "calibrate_single_camera.h"
 #include "camera_rig_io.h"
 
+#include "opencv_yaml_matrix.h"
+
+#include <viame/file_io/opencv_yaml.h>
+
 #include <viame/core_types/camera_intrinsics.h>
 #include <viame/core_types/camera_perspective.h>
 #include <viame/core_types/camera_rig.h>
@@ -799,38 +803,53 @@ calibrate_stereo_cameras::write_calibration_opencv(
     return false;
   }
 
-  // Write intrinsics
+  // `library/file_io/opencv_yaml` since P7-T05. The key order is
+  // FileStorage's, since that is the order the shipped calibration files
+  // are in and a regenerated one should diff cleanly against them.
+  namespace fio = viame::file_io;
+  using viame::opencv::mat_to_node;
+
   std::string intrinsics_file = output_directory + "/intrinsics.yml";
-  cv::FileStorage fs_intr( intrinsics_file, cv::FileStorage::WRITE );
-  if( !fs_intr.isOpened() )
-  {
-    LOG_ERROR( d->m_logger, "Cannot open intrinsics file: " << intrinsics_file );
-    return false;
-  }
-
-  fs_intr << "M1" << result.left.camera_matrix;
-  fs_intr << "D1" << result.left.dist_coeffs;
-  fs_intr << "M2" << result.right.camera_matrix;
-  fs_intr << "D2" << result.right.dist_coeffs;
-  fs_intr.release();
-
-  // Write extrinsics
   std::string extrinsics_file = output_directory + "/extrinsics.yml";
-  cv::FileStorage fs_extr( extrinsics_file, cv::FileStorage::WRITE );
-  if( !fs_extr.isOpened() )
+
+  try
   {
-    LOG_ERROR( d->m_logger, "Cannot open extrinsics file: " << extrinsics_file );
+    fio::write(
+      intrinsics_file,
+      fio::node::map_of( {
+        { "M1", mat_to_node( result.left.camera_matrix ) },
+        { "D1", mat_to_node( result.left.dist_coeffs ) },
+        { "M2", mat_to_node( result.right.camera_matrix ) },
+        { "D2", mat_to_node( result.right.dist_coeffs ) },
+      } ) );
+  }
+  catch( std::exception const& e )
+  {
+    LOG_ERROR( d->m_logger, "Cannot write intrinsics file: "
+                              << intrinsics_file << ": " << e.what() );
     return false;
   }
 
-  fs_extr << "R" << result.R;
-  fs_extr << "T" << result.T;
-  fs_extr << "R1" << result.R1;
-  fs_extr << "R2" << result.R2;
-  fs_extr << "P1" << result.P1;
-  fs_extr << "P2" << result.P2;
-  fs_extr << "Q" << result.Q;
-  fs_extr.release();
+  try
+  {
+    fio::write(
+      extrinsics_file,
+      fio::node::map_of( {
+        { "R", mat_to_node( result.R ) },
+        { "T", mat_to_node( result.T ) },
+        { "R1", mat_to_node( result.R1 ) },
+        { "R2", mat_to_node( result.R2 ) },
+        { "P1", mat_to_node( result.P1 ) },
+        { "P2", mat_to_node( result.P2 ) },
+        { "Q", mat_to_node( result.Q ) },
+      } ) );
+  }
+  catch( std::exception const& e )
+  {
+    LOG_ERROR( d->m_logger, "Cannot write extrinsics file: "
+                              << extrinsics_file << ": " << e.what() );
+    return false;
+  }
 
   LOG_DEBUG( d->m_logger, "Wrote OpenCV calibration to: " << output_directory );
   return true;

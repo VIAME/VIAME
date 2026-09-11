@@ -27,6 +27,7 @@ set( plugin_headers
   gabor_features.h
   hog_features.h
   kmedians.h
+  opencv_yaml_matrix.h
   optimize_stereo_cameras.h
   pair_stereo_detections.h
   pair_stereo_tracks.h
@@ -115,6 +116,9 @@ target_link_libraries( viame_opencv
                        opencv_ml
                        viame_core
                        viame_measurement
+                       # the calibration writers, since P7-T05 replaced
+                       # cv::FileStorage with library/file_io/opencv_yaml
+                       viame_file_io
   )
 
 target_include_directories( viame_opencv PUBLIC

@@ -15,6 +15,7 @@
 #include <map>
 
 #include <viame/algorithm_framework/exceptions.h>
+#include <viame/file_io/opencv_yaml.h>
 #include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>
 
@@ -105,111 +106,57 @@ struct ocv_yaml_matrix
 
 // Parse OpenCV YAML file and extract matrices by name
 // Returns a map of matrix name -> ocv_yaml_matrix
+//
+// This was a hand-rolled line scanner until P7-T05, which gave
+// `library/file_io/opencv_yaml` the job of reading this format for the whole
+// tree. The scanner it replaces read matrices and nothing else -- it skipped
+// every line until an `!!opencv-matrix` tag and resumed skipping after one,
+// so a scalar or a nested map was invisible to it -- and it kept a matrix
+// only if `rows * cols` matched the values it found, silently dropping any
+// that did not. Both behaviours are kept here, at this boundary, because
+// every caller below is written around "the matrices, by name".
 std::map<std::string, ocv_yaml_matrix> parse_ocv_yaml_file( const std::string& filename )
 {
   std::map<std::string, ocv_yaml_matrix> matrices;
 
-  std::ifstream file( filename );
-  if( !file.is_open() )
+  viame::file_io::node document;
+
+  try
   {
+    document = viame::file_io::read( filename );
+  }
+  catch( std::exception const& )
+  {
+    // An unreadable or missing file gives no matrices, which is what the
+    // scanner did and what `read_stereo_rig_yaml` reports on.
     return matrices;
   }
 
-  std::string line;
-  std::string current_matrix_name;
-  ocv_yaml_matrix current_matrix;
-  bool in_matrix = false;
-  std::string data_buffer;
-  bool collecting_data = false;
-
-  while( std::getline( file, line ) )
+  for( auto const& entry : document.entries() )
   {
-    std::string trimmed = trim( line );
-
-    // Skip YAML header and comments
-    if( trimmed.empty() || trimmed[0] == '%' || trimmed[0] == '#' || trimmed == "---" )
+    if( !entry.second.is_matrix() )
     {
       continue;
     }
 
-    // Check for new matrix definition (name followed by !!opencv-matrix)
-    if( trimmed.find( "!!opencv-matrix" ) != std::string::npos )
+    ocv_yaml_matrix matrix;
+
+    try
     {
-      // Save previous matrix if valid
-      if( in_matrix && !current_matrix_name.empty() && current_matrix.is_valid() )
-      {
-        matrices[current_matrix_name] = current_matrix;
-      }
-
-      // Start new matrix
-      size_t colon_pos = trimmed.find( ':' );
-      if( colon_pos != std::string::npos )
-      {
-        current_matrix_name = trim( trimmed.substr( 0, colon_pos ) );
-      }
-      current_matrix = ocv_yaml_matrix();
-      in_matrix = true;
-      collecting_data = false;
-      data_buffer.clear();
-      continue;
+      matrix.rows = entry.second.matrix_rows();
+      matrix.cols = entry.second.matrix_cols();
+      matrix.dtype = entry.second.matrix_type();
+      matrix.data = entry.second.matrix_data();
     }
-
-    if( !in_matrix )
+    catch( std::exception const& )
     {
       continue;
     }
 
-    // Parse matrix properties
-    size_t colon_pos = trimmed.find( ':' );
-    if( colon_pos != std::string::npos )
+    if( matrix.is_valid() )
     {
-      std::string key = trim( trimmed.substr( 0, colon_pos ) );
-      std::string value = trim( trimmed.substr( colon_pos + 1 ) );
-
-      if( key == "rows" )
-      {
-        current_matrix.rows = std::stoi( value );
-      }
-      else if( key == "cols" )
-      {
-        current_matrix.cols = std::stoi( value );
-      }
-      else if( key == "dt" )
-      {
-        current_matrix.dtype = value;
-      }
-      else if( key == "data" )
-      {
-        // Data might start on this line or continue on next lines
-        collecting_data = true;
-        if( !value.empty() )
-        {
-          data_buffer = value;
-          // Check if data is complete (ends with ])
-          if( value.find( ']' ) != std::string::npos )
-          {
-            current_matrix.data = parse_double_array( data_buffer );
-            collecting_data = false;
-          }
-        }
-      }
+      matrices[ entry.first ] = matrix;
     }
-    else if( collecting_data )
-    {
-      // Continue collecting data array
-      data_buffer += " " + trimmed;
-      if( trimmed.find( ']' ) != std::string::npos )
-      {
-        current_matrix.data = parse_double_array( data_buffer );
-        collecting_data = false;
-      }
-    }
-  }
-
-  // Save last matrix if valid
-  if( in_matrix && !current_matrix_name.empty() && current_matrix.is_valid() )
-  {
-    matrices[current_matrix_name] = current_matrix;
   }
 
   return matrices;

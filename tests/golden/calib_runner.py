@@ -1,9 +1,17 @@
 """Read a calibration source and an OpenCV FileStorage document.
 
-Shared by the recorder and the golden test, so both go through exactly the
-same call. `load_stereo_calibration` is VIAME's own reader; `dump_document`
-is `cv::FileStorage` itself, which is what the in-house YAML reader has to
-agree with.
+`load_stereo_calibration` is VIAME's own reader, and the recorder and the
+golden test go through the same call for it.
+
+The document readers are the one place in this framework where they
+deliberately do not. `dump_document_reference` is `cv::FileStorage` itself,
+which is the definition of the format and what the recording was taken
+through; `dump_document` is `library/file_io/opencv_yaml`, which replaced it
+in P7-T05. The recorder calls the reference and the replay calls ours, so
+the recording says "this is what OpenCV parsed" and the test says "and this
+reader agrees". Everywhere else in the framework one registered name changes
+implementation underneath and the two calls stay identical; a file format
+reader has no registry to change, so the asymmetry is written out instead.
 """
 
 import numpy as np
@@ -54,7 +62,22 @@ def _node(node):
 
 
 def dump_document(path):
-    """Every top level node of an OpenCV YAML or XML file."""
+    """Every top level node, through VIAME's own reader.
+
+    `viame.file_io._opencv_yaml` is `library/file_io/opencv_yaml` -- the
+    same C++ the calibration algorithms read and write with.
+    """
+    from viame.file_io import _opencv_yaml
+
+    return _opencv_yaml.read(str(path))
+
+
+def dump_document_reference(path):
+    """Every top level node, through `cv::FileStorage`.
+
+    What the recording is taken through. Kept after the port because cv2
+    stays available to python, so a re-recording is still possible.
+    """
     import cv2
 
     storage = cv2.FileStorage(str(path), cv2.FILE_STORAGE_READ)

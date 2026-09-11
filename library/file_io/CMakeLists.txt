@@ -8,11 +8,15 @@
 #
 # VIAME's own file readers and writers -- viame_csv, coco, dive, cvat and the
 # rest -- are still in plugins/core and join this in phase 2.
+#
+# `opencv_yaml` is not imported: it is P7-T05's replacement for
+# `cv::FileStorage`, the reader and writer for the calibration file format.
 
 set( plugin_headers
   detected_object_set_input_kw18.h
   detected_object_set_output_kw18.h
   feature_descriptor_io.h
+  opencv_yaml.h
   read_object_track_set_kw18.h
   write_object_track_set_kw18.h
   )
@@ -21,6 +25,7 @@ set( plugin_sources
   detected_object_set_input_kw18.cxx
   detected_object_set_output_kw18.cxx
   feature_descriptor_io.cxx
+  opencv_yaml.cxx
   read_object_track_set_kw18.cxx
   write_object_track_set_kw18.cxx
   )
@@ -108,3 +113,31 @@ target_include_directories( viame_processes_file_io PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   )
+
+###
+# Python bindings
+#
+# Only `opencv_yaml`, and only so the golden recording of what
+# `cv::FileStorage` parsed can be replayed against the reader that replaced
+# it. See `tests/golden/calib_runner.py`.
+##
+if( VIAME_ENABLE_PYTHON )
+  kwiver_create_python_init( file_io )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+    file_io
+    __init__ )
+
+  find_package( pybind11 REQUIRED )
+
+  kwiver_add_python_library( _opencv_yaml
+    file_io
+    SOURCES opencv_yaml_python.cxx )
+
+  # `${PYTHON_LIBRARIES}` as well as pybind11: VIAME links with
+  # `-Wl,--no-undefined`, so an extension module that leaves the interpreter
+  # symbols to be resolved at load time does not link at all here.
+  target_link_libraries( python-file_io-_opencv_yaml
+    PRIVATE ${PYTHON_LIBRARIES} pybind11::pybind11 viame_file_io )
+endif()
