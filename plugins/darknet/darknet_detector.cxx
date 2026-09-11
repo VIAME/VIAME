@@ -3,29 +3,106 @@
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
 #include "darknet_detector.h"
-#include "darknet_custom_resize.h"
 
 #include <viame/algorithm_framework/util/cpu_timer.h>
 #include <viame/algorithm_framework/exceptions/io.h>
 #include <viame/algorithm_framework/config/config_block_formatter.h>
 #include <viame/core_types/detected_object_set_util.h>
 
-#include <viame/opencv_bridge/image_container.h>
+// The chipping, the aspect-preserving fit and the crop, all of which this
+// shared with `ocv_windowed` and none of which was ever OpenCV's arithmetic.
+// `darknet_custom_resize` was a second copy of the first two and is gone.
+#include "../core/windowed_utils.h"
+
+#include <image_ops/color.h>
+#include <image_ops/warp.h>
 
 #include <kwiversys/SystemTools.hxx>
-
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 
 #include <string>
 #include <sstream>
 #include <fstream>
 #include <exception>
 #include <limits>
+#include <vector>
 
 #include "darknet/yolo_v2_class.hpp"
 
 namespace viame {
+
+namespace {
+
+namespace kv = kwiver::vital;
+
+// ----------------------------------------------------------------------------
+/// The `image_t` darknet's own `cv::Mat` overload would have built.
+///
+/// `Detector::detect( cv::Mat )` is three steps and this is the same three:
+/// resize to the network's input with `cv::resize`, which `image_ops::resize`
+/// reproduces to the count for an 8-bit image; convert to **BGR**, which is
+/// `RGB2BGR` for three channels, `GRAY2BGR` for one and `RGBA2BGR` for four,
+/// so in a planar image it is the planes in reverse; and transpose into
+/// planes of floats over [0, 1].
+///
+/// Going straight to `image_t` is also what lets the darknet fork be built
+/// with `ENABLE_OPENCV=OFF`, since `detect( cv::Mat )` only exists when it is
+/// on -- `detect( image_t )` is there either way.
+///
+/// The storage is the caller's: darknet's `detect` reads the buffer and does
+/// not take it.
+class darknet_image
+{
+public:
+  darknet_image( kv::image const& source, int net_width, int net_height )
+  {
+    auto const width = static_cast< size_t >( net_width );
+    auto const height = static_cast< size_t >( net_height );
+
+    kv::image_of< uint8_t > bytes( source );
+
+    auto const fitted =
+      ( bytes.width() == width && bytes.height() == height )
+        ? bytes
+        : image_ops::resize( bytes, width, height );
+
+    auto const depth = fitted.depth();
+
+    m_data.resize( width * height * 3 );
+
+    for( size_t plane = 0; plane < 3; ++plane )
+    {
+      // One channel is replicated; three or four are reversed, which is what
+      // the conversion to BGR amounts to. A fourth channel is dropped, the
+      // way `RGBA2BGR` drops it.
+      auto const source_plane = ( depth == 1 ) ? 0 : ( 2 - plane );
+
+      float* out = m_data.data() + plane * width * height;
+
+      for( size_t row = 0; row < height; ++row )
+      {
+        for( size_t column = 0; column < width; ++column )
+        {
+          out[ row * width + column ] =
+            static_cast< float >( fitted( column, row, source_plane ) ) /
+            255.0f;
+        }
+      }
+    }
+
+    m_image.w = net_width;
+    m_image.h = net_height;
+    m_image.c = 3;
+    m_image.data = m_data.data();
+  }
+
+  image_t& get() { return m_image; }
+
+private:
+  std::vector< float > m_data;
+  image_t m_image{};
+};
+
+} // anonymous namespace
 
 // =============================================================================
 
@@ -74,18 +151,18 @@ public:
   // Helper functions
   struct region_info
   {
-    explicit region_info( cv::Rect r, double s1 )
+    explicit region_info( image_rect r, double s1 )
      : original_roi( r ), edge_filter( 0 ),
        scale1( s1 ), shiftx( 0 ), shifty( 0 ), scale2( 1.0 )
     {}
 
-    explicit region_info( cv::Rect r, int ef,
+    explicit region_info( image_rect r, int ef,
       double s1, int sx, int sy, double s2 )
      : original_roi( r ), edge_filter( ef ),
        scale1( s1 ), shiftx( sx ), shifty( sy ), scale2( s2 )
     {}
 
-    cv::Rect original_roi;
+    image_rect original_roi;
     int edge_filter;
     double scale1;
     int shiftx, shifty;
@@ -93,7 +170,7 @@ public:
   };
 
   std::vector< kwiver::vital::detected_object_set_sptr > process_images(
-    const std::vector< cv::Mat >& cv_image );
+    const std::vector< kwiver::vital::image >& images );
 
   kwiver::vital::detected_object_set_sptr scale_detections(
     const kwiver::vital::detected_object_set_sptr detections,
@@ -222,17 +299,19 @@ darknet_detector
     return std::make_shared< kwiver::vital::detected_object_set >();
   }
 
-  cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
-    image_data->get_image(), kwiver::arrows::ocv::image_container::RGB_COLOR );
+  const kwiver::vital::image source_image = image_data->get_image();
 
-  if( cv_image.rows == 0 || cv_image.cols == 0 )
+  const int image_width = static_cast< int >( source_image.width() );
+  const int image_height = static_cast< int >( source_image.height() );
+
+  if( image_width == 0 || image_height == 0 )
   {
     LOG_WARN( d->m_logger, "Input image is empty." );
     return std::make_shared< kwiver::vital::detected_object_set >();
   }
   else if( d->m_resize_option == "adaptive" )
   {
-    if( ( cv_image.rows * cv_image.cols ) >= d->m_chip_adaptive_thresh )
+    if( ( image_height * image_width ) >= d->m_chip_adaptive_thresh )
     {
       d->m_resize_option = "chip_and_original";
     }
@@ -242,7 +321,7 @@ darknet_detector
     }
   }
 
-  cv::Mat cv_resized_image;
+  kwiver::vital::image resized_image;
 
   kwiver::vital::detected_object_set_sptr detections;
 
@@ -251,33 +330,41 @@ darknet_detector
 
   if( d->m_resize_option != "disabled" )
   {
-    scale_factor = format_image( cv_image, cv_resized_image,
-      d->m_resize_option, d->m_scale,
-      d->m_net->get_net_width(), d->m_net->get_net_height() );
+    rescale_option_converter converter;
+
+    resized_image = format_image( source_image,
+      converter.from_string( d->m_resize_option ), d->m_scale,
+      d->m_net->get_net_width(), d->m_net->get_net_height(),
+      true, scale_factor );
   }
   else
   {
-    cv_resized_image = cv_image;
+    resized_image = source_image;
   }
 
-  if( d->m_gs_to_rgb && cv_resized_image.channels() == 1 )
+  // The conversion darknet's own `mat_to_image` would do anyway, since it
+  // takes `GRAY2BGR` on a single channel whatever arrives. Kept because the
+  // configuration key is still there and still means this.
+  if( d->m_gs_to_rgb && resized_image.depth() == 1 )
   {
-    cv::Mat color_image;
-    cv::cvtColor( cv_resized_image, color_image, cv::COLOR_GRAY2RGB );
-    cv_resized_image = color_image;
+    resized_image = kwiver::vital::image( image_ops::gray_to_rgb(
+      kwiver::vital::image_of< uint8_t >( resized_image ) ) );
   }
 
   // Run detector
   detections = std::make_shared< kwiver::vital::detected_object_set >();
 
-  cv::Rect original_dims( 0, 0, cv_image.cols, cv_image.rows );
+  image_rect original_dims( 0, 0, image_width, image_height );
 
-  std::vector< cv::Mat > regions_to_process;
+  std::vector< kwiver::vital::image > regions_to_process;
   std::vector< priv::region_info > region_properties;
+
+  const int resized_width = static_cast< int >( resized_image.width() );
+  const int resized_height = static_cast< int >( resized_image.height() );
 
   if( d->m_resize_option != "chip" && d->m_resize_option != "chip_and_original" )
   {
-    regions_to_process.push_back( cv_resized_image );
+    regions_to_process.push_back( resized_image );
 
     region_properties.push_back(
       priv::region_info( original_dims, 1.0 / scale_factor ) );
@@ -286,28 +373,31 @@ darknet_detector
   {
     // Chip up scaled image
     for( int li = 0;
-         li < cv_resized_image.cols - d->m_net->get_net_width() + d->m_chip_step;
+         li < resized_width - d->m_net->get_net_width() + d->m_chip_step;
          li += d->m_chip_step )
     {
-      int ti = std::min( li + d->m_net->get_net_width(), cv_resized_image.cols );
+      int ti = std::min( li + d->m_net->get_net_width(), resized_width );
 
       for( int lj = 0;
-           lj < cv_resized_image.rows - d->m_net->get_net_height() + d->m_chip_step;
+           lj < resized_height - d->m_net->get_net_height() + d->m_chip_step;
            lj += d->m_chip_step )
       {
-        int tj = std::min( lj + d->m_net->get_net_height(), cv_resized_image.rows );
+        int tj = std::min( lj + d->m_net->get_net_height(), resized_height );
 
-        cv::Rect resized_roi( li, lj, ti-li, tj-lj );
-        cv::Rect original_roi( li / scale_factor,
-                               lj / scale_factor,
-                               (ti-li) / scale_factor,
-                               (tj-lj) / scale_factor );
+        image_rect resized_roi( li, lj, ti-li, tj-lj );
+        image_rect original_roi( li / scale_factor,
+                                 lj / scale_factor,
+                                 (ti-li) / scale_factor,
+                                 (tj-lj) / scale_factor );
 
-        cv::Mat cropped_chip = cv_resized_image( resized_roi );
-        cv::Mat scaled_crop, tmp_cropped;
+        kwiver::vital::image cropped_chip =
+          crop_image( resized_image, resized_roi );
 
-        double scaled_crop_scale = scale_image_maintaining_ar(
-          cropped_chip, scaled_crop, d->m_net->get_net_width(), d->m_net->get_net_height() );
+        double scaled_crop_scale = 1.0;
+
+        kwiver::vital::image scaled_crop = scale_image_maintaining_ar(
+          cropped_chip, d->m_net->get_net_width(), d->m_net->get_net_height(),
+          true, scaled_crop_scale );
 
         regions_to_process.push_back( scaled_crop );
 
@@ -323,16 +413,16 @@ darknet_detector
     // Extract full sized image chip if enabled
     if( d->m_resize_option == "chip_and_original" )
     {
-      cv::Mat scaled_original;
+      double scaled_original_scale = 1.0;
 
-      double scaled_original_scale = scale_image_maintaining_ar( cv_image,
-        scaled_original, d->m_net->get_net_width(), d->m_net->get_net_height() );
+      kwiver::vital::image scaled_original = scale_image_maintaining_ar(
+        source_image, d->m_net->get_net_width(), d->m_net->get_net_height(),
+        true, scaled_original_scale );
 
-      if( d->m_gs_to_rgb && scaled_original.channels() == 1 )
+      if( d->m_gs_to_rgb && scaled_original.depth() == 1 )
       {
-        cv::Mat color_image;
-        cv::cvtColor( scaled_original, color_image, cv::COLOR_GRAY2RGB );
-        scaled_original = color_image;
+        scaled_original = kwiver::vital::image( image_ops::gray_to_rgb(
+          kwiver::vital::image_of< uint8_t >( scaled_original ) ) );
       }
 
       regions_to_process.push_back( scaled_original );
@@ -350,7 +440,7 @@ darknet_detector
     unsigned batch_size = std::min( max_count,
       static_cast< unsigned >( regions_to_process.size() ) - i );
 
-    std::vector< cv::Mat > imgs;
+    std::vector< kwiver::vital::image > imgs;
 
     for( unsigned j = 0; j < batch_size; j++ )
     {
@@ -372,13 +462,37 @@ darknet_detector
 // -----------------------------------------------------------------------------
 std::vector< kwiver::vital::detected_object_set_sptr >
 darknet_detector::priv
-::process_images( const std::vector< cv::Mat >& cv_images )
+::process_images( const std::vector< kwiver::vital::image >& images )
 {
   std::vector< kwiver::vital::detected_object_set_sptr > output;
 
-  for( unsigned i = 0; i < cv_images.size(); i++ )
+  for( unsigned i = 0; i < images.size(); i++ )
   {
-    auto darknet_output = m_net->detect( cv_images[i], m_thresh );
+    // `Detector::detect( cv::Mat )`, unrolled: build the `image_t` that
+    // overload would have built, detect on it, and scale the boxes back from
+    // the network's input to the region's own size the way `detect_resized`
+    // does. The `cv::Mat` overload exists only when darknet is built with
+    // OpenCV; this one is there either way.
+    darknet_image prepared( images[i],
+      m_net->get_net_width(), m_net->get_net_height() );
+
+    auto darknet_output = m_net->detect( prepared.get(), m_thresh );
+
+    const float width_ratio =
+      static_cast< float >( images[i].width() ) /
+      static_cast< float >( m_net->get_net_width() );
+    const float height_ratio =
+      static_cast< float >( images[i].height() ) /
+      static_cast< float >( m_net->get_net_height() );
+
+    for( auto& box : darknet_output )
+    {
+      box.x = static_cast< unsigned >( box.x * width_ratio );
+      box.w = static_cast< unsigned >( box.w * width_ratio );
+      box.y = static_cast< unsigned >( box.y * height_ratio );
+      box.h = static_cast< unsigned >( box.h * height_ratio );
+    }
+
     auto detected_objects = std::make_shared< kwiver::vital::detected_object_set >();
 
     for( const auto& det : darknet_output )
@@ -428,7 +542,7 @@ darknet_detector::priv
     return dets;
   }
 
-  const cv::Rect& roi = info.original_roi;
+  const image_rect& roi = info.original_roi;
 
   std::vector< kwiver::vital::detected_object_sptr > filtered_dets;
 

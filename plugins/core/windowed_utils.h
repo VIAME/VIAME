@@ -128,6 +128,13 @@ struct VIAME_CORE_EXPORT windowed_region_prop
 /// \returns Resized image
 VIAME_CORE_EXPORT
 kv::image
+resize_image_by_scale(
+  const kv::image& src,
+  double scale );
+
+/// Resize to an exact size
+VIAME_CORE_EXPORT
+kv::image
 resize_image_bilinear(
   const kv::image& src,
   size_t dst_width,

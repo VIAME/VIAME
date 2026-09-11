@@ -6,24 +6,28 @@ list( INSERT CMAKE_MODULE_PATH 0 "${VIAME_PACKAGES_DIR}/fletch/CMake" )
 find_package( Darknet REQUIRED )
 
 set( headers
-  darknet_custom_resize.h
   darknet_detector.h
   darknet_trainer.h
 )
 
 set( sources
-  darknet_custom_resize.cxx
   darknet_detector.cxx
   darknet_trainer.cxx
 )
 
+# `darknet_custom_resize` is gone: it was a second copy of
+# `plugins/core/windowed_utils`'s aspect-preserving fit and scale, which
+# `ocv_windowed` already had and which is not OpenCV's arithmetic anyway.
 set( darknet_linked_libs
   Darknet::dark
   kwiver::kwiversys
-  viame_opencv_bridge
-  ${OpenCV_LIBS} )
+  viame_core
+  viame_image_ops )
 
-add_definitions( -DOPENCV )
+# OPENCV is darknet's own switch, and it is what puts `detect( cv::Mat )` in
+# `yolo_v2_class.hpp`. Nothing here calls that overload any more -- the
+# `image_t` is built directly -- so the fork can be built with
+# `ENABLE_OPENCV=OFF` and this side does not change.
 
 if( VIAME_ENABLE_CUDA )
   include_directories( ${CUDA_TOOLKIT_ROOT_DIR}/include )

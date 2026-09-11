@@ -6,21 +6,18 @@
 
 #include <viame/algorithm_framework/algo/algorithm.txx>
 
-#include "darknet_custom_resize.h"
+#include "../core/windowed_utils.h"
 
 #include <viame/algorithm_framework/algo/image_io.h>
 #include <viame/algorithm_framework/util/cpu_timer.h>
 #include <viame/core_types/detected_object_set_util.h>
 #include <viame/algorithm_framework/vital_config.h>
 
-#include <viame/opencv_bridge/image_container.h>
+#include <image_ops/color.h>
+#include <image_ops/pixel.h>
 
 #include <kwiversys/SystemTools.hxx>
 #include <kwiversys/Directory.hxx>
-
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
 
 #include <string>
 #include <sstream>
@@ -146,10 +143,10 @@ public:
     std::vector< kv::detected_object_set_sptr > groundtruth,
     kv::category_hierarchy_sptr object_labels );
 
-  void format_mat_image(
+  void format_loaded_image(
     std::string folder,
     std::string prefix,
-    const cv::Mat& image,
+    const kv::image& image,
     kv::detected_object_set_sptr groundtruth,
     kv::category_hierarchy_sptr object_labels );
 
@@ -165,7 +162,7 @@ public:
 
   void save_chip(
     std::string filename,
-    cv::Mat image );
+    const kv::image& image );
 
   int filter_count(
     int nclasses );
@@ -353,21 +350,21 @@ darknet_trainer
 
   if( !d->m_skip_format )
   {
+    // The bridge used to be asked for a BGR matrix here and handed one back
+    // on the way out, so the two swaps cancelled and every step in between
+    // -- a resize, a crop, a scalar multiply -- is channel order agnostic
+    // anyway. Both are gone and the image stays as it arrived.
     for( unsigned i = 0; i < train_images.size(); ++i )
     {
-      cv::Mat image = kwiver::arrows::ocv::image_container::vital_to_ocv(
-        train_images[i]->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-
-      d->format_mat_image( d->m_train_directory, "train",
-        image, train_groundtruth[i], d->m_object_labels );
+      d->format_loaded_image( d->m_train_directory, "train",
+        train_images[i]->get_image(), train_groundtruth[i],
+        d->m_object_labels );
     }
     for( unsigned i = 0; i < test_images.size(); ++i )
     {
-      cv::Mat image = kwiver::arrows::ocv::image_container::vital_to_ocv(
-        test_images[i]->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-
-      d->format_mat_image( d->m_train_directory, "test",
-        image, test_groundtruth[i], d->m_object_labels );
+      d->format_loaded_image( d->m_train_directory, "test",
+        test_images[i]->get_image(), test_groundtruth[i],
+        d->m_object_labels );
     }
   }
 }
@@ -850,14 +847,13 @@ darknet_trainer::priv
 
     // Scale and break up image according to settings
     kv::image_container_sptr vital_image;
-    cv::Mat original_image;
+    kv::image original_image;
 
     try
     {
       vital_image = m_image_io->load( image_fn );
 
-      original_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
-        vital_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+      original_image = vital_image->get_image();
     }
     catch( const kv::vital_exception& e )
     {
@@ -875,7 +871,8 @@ darknet_trainer::priv
       }
     }
 
-    format_mat_image( folder, prefix, original_image, groundtruth[fid], object_labels );
+    format_loaded_image( folder, prefix, original_image, groundtruth[fid],
+      object_labels );
   }
 }
 
@@ -883,18 +880,17 @@ darknet_trainer::priv
 // -----------------------------------------------------------------------------
 void
 darknet_trainer::priv
-::format_mat_image( std::string folder, std::string prefix,
-  const cv::Mat& image,
+::format_loaded_image( std::string folder, std::string prefix,
+  const kv::image& image,
   kv::detected_object_set_sptr groundtruth,
   kv::category_hierarchy_sptr object_labels )
 {
-  cv::Mat original_image, resized_image;
+  kv::image original_image, resized_image;
 
-  if( m_gs_to_rgb && image.channels() == 1 )
+  if( m_gs_to_rgb && image.depth() == 1 )
   {
-    cv::Mat color_image;
-    cv::cvtColor( image, color_image, cv::COLOR_GRAY2RGB );
-    original_image = color_image;
+    original_image = kv::image(
+      image_ops::gray_to_rgb( kv::image_of< uint8_t >( image ) ) );
   }
   else
   {
@@ -904,9 +900,9 @@ darknet_trainer::priv
   if( !m_image_loaded_successfully )
   {
     m_image_loaded_successfully = true;
-    m_channel_count = original_image.channels();
+    m_channel_count = static_cast< unsigned >( original_image.depth() );
   }
-  else if( m_channel_count != static_cast< unsigned >( original_image.channels() ) )
+  else if( m_channel_count != static_cast< unsigned >( original_image.depth() ) )
   {
     LOG_ERROR( m_logger, "All input images do not have the same number of channels" );
     return;
@@ -920,8 +916,11 @@ darknet_trainer::priv
 
   if( m_resize_option != "disabled" )
   {
-    resized_scale = format_image( original_image, resized_image,
-      m_resize_option, m_scale, m_resize_width, m_resize_height );
+    rescale_option_converter converter;
+
+    resized_image = format_image( original_image,
+      converter.from_string( m_resize_option ), m_scale,
+      m_resize_width, m_resize_height, true, resized_scale );
 
     kv::scale_detections( scaled_groundtruth, resized_scale );
   }
@@ -936,7 +935,9 @@ darknet_trainer::priv
     std::string img_file, gt_file;
     generate_fn( image_folder, img_file, gt_file );
 
-    kv::bounding_box_d roi_box( 0, 0, resized_image.cols, resized_image.rows );
+    kv::bounding_box_d roi_box( 0, 0,
+      static_cast< double >( resized_image.width() ),
+      static_cast< double >( resized_image.height() ) );
     if( print_detections( gt_file, scaled_groundtruth, roi_box, object_labels ) )
     {
       save_chip( img_file, resized_image );
@@ -945,26 +946,29 @@ darknet_trainer::priv
   else
   {
     // Chip up and process scaled image
-    for( int i = 0; i < resized_image.cols - m_resize_width + m_chip_step; i += m_chip_step )
+    const int resized_width = static_cast< int >( resized_image.width() );
+    const int resized_height = static_cast< int >( resized_image.height() );
+
+    for( int i = 0; i < resized_width - m_resize_width + m_chip_step; i += m_chip_step )
     {
       int cw = i + m_resize_width;
 
-      if( cw > resized_image.cols )
+      if( cw > resized_width )
       {
-        cw = resized_image.cols - i;
+        cw = resized_width - i;
       }
       else
       {
         cw = m_resize_width;
       }
 
-      for( int j = 0; j < resized_image.rows - m_resize_height + m_chip_step; j += m_chip_step )
+      for( int j = 0; j < resized_height - m_resize_height + m_chip_step; j += m_chip_step )
       {
         int ch = j + m_resize_height;
 
-        if( ch > resized_image.rows )
+        if( ch > resized_height )
         {
-          ch = resized_image.rows - j;
+          ch = resized_height - j;
         }
         else
         {
@@ -977,11 +981,14 @@ darknet_trainer::priv
           continue;
         }
 
-        cv::Mat cropped_image = resized_image( cv::Rect( i, j, cw, ch ) );
-        cv::Mat resized_crop;
+        kv::image cropped_image =
+          crop_image( resized_image, image_rect( i, j, cw, ch ) );
 
-        scale_image_maintaining_ar( cropped_image,
-          resized_crop, m_resize_width, m_resize_height );
+        double cropped_scale = 1.0;
+
+        kv::image resized_crop = scale_image_maintaining_ar(
+          cropped_image, m_resize_width, m_resize_height, true,
+          cropped_scale );
 
         std::string img_file, gt_file;
         generate_fn( image_folder, img_file, gt_file );
@@ -997,10 +1004,10 @@ darknet_trainer::priv
     // Process full sized image if enabled
     if( m_resize_option == "chip_and_original" )
     {
-      cv::Mat scaled_original;
+      double scaled_original_scale = 1.0;
 
-      double scaled_original_scale = scale_image_maintaining_ar( original_image,
-        scaled_original, m_resize_width, m_resize_height );
+      kv::image scaled_original = scale_image_maintaining_ar( original_image,
+        m_resize_width, m_resize_height, true, scaled_original_scale );
 
       kv::detected_object_set_sptr scaled_original_dets_ptr = groundtruth->clone();
       kv::scale_detections( scaled_original_dets_ptr, scaled_original_scale );
@@ -1009,7 +1016,8 @@ darknet_trainer::priv
       generate_fn( image_folder, img_file, gt_file );
 
       kv::bounding_box_d roi_box( 0, 0,
-        scaled_original.cols, scaled_original.rows );
+        static_cast< double >( scaled_original.width() ),
+        static_cast< double >( scaled_original.height() ) );
 
       if( print_detections( gt_file, scaled_original_dets_ptr, roi_box, object_labels ) )
       {
@@ -1156,8 +1164,10 @@ darknet_trainer::priv
 // -----------------------------------------------------------------------------
 void
 darknet_trainer::priv
-::save_chip( std::string filename, cv::Mat image )
+::save_chip( std::string filename, const kv::image& image )
 {
+  kv::image to_save = image;
+
   if( m_random_int_shift > 0.0 )
   {
     double rand_uniform = rand() / ( RAND_MAX + 1.0 );
@@ -1165,20 +1175,31 @@ darknet_trainer::priv
 
     double sf = start + 2 * m_random_int_shift * rand_uniform;
 
-    cv::Mat scaled_image = image * sf;
+    // `cv::Mat * double` rounds and saturates, which is `convertTo` with an
+    // alpha and no beta rather than a truncating multiply
+    kv::image_of< uint8_t > source( image );
+    kv::image_of< uint8_t > scaled(
+      source.width(), source.height(), source.depth() );
 
-    m_image_io->save( filename,
-      kv::image_container_sptr(
-        new kwiver::arrows::ocv::image_container( scaled_image,
-          kwiver::arrows::ocv::image_container::BGR_COLOR ) ) );
+    for( size_t plane = 0; plane < source.depth(); ++plane )
+    {
+      for( size_t row = 0; row < source.height(); ++row )
+      {
+        for( size_t column = 0; column < source.width(); ++column )
+        {
+          scaled( column, row, plane ) =
+            image_ops::saturate_pixel< uint8_t >(
+              static_cast< double >( source( column, row, plane ) ) * sf );
+        }
+      }
+    }
+
+    to_save = kv::image( scaled );
   }
-  else
-  {
-    m_image_io->save( filename,
-      kv::image_container_sptr(
-        new kwiver::arrows::ocv::image_container( image,
-          kwiver::arrows::ocv::image_container::BGR_COLOR ) ) );
-  }
+
+  m_image_io->save( filename,
+    kv::image_container_sptr(
+      new kv::simple_image_container( to_save ) ) );
 
   m_output_chip_counter++;
 }

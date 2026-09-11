@@ -220,16 +220,12 @@ byte_linear_axis( size_t dst_size, size_t src_size, double scale,
 /// comes from.
 inline kwiver::vital::image_of< uint8_t >
 resize_byte_linear( kwiver::vital::image_of< uint8_t > const& image,
-                    size_t width, size_t height )
+                    size_t width, size_t height,
+                    double scale_x, double scale_y )
 {
   auto const src_width = image.width();
   auto const src_height = image.height();
   auto const depth = image.depth();
-
-  auto const scale_x =
-    static_cast< double >( src_width ) / static_cast< double >( width );
-  auto const scale_y =
-    static_cast< double >( src_height ) / static_cast< double >( height );
 
   auto const horizontal =
     byte_linear_axis( width, src_width, scale_x, true );
@@ -330,7 +326,12 @@ resize( kwiver::vital::image_of< T > const& image, size_t width,
         width != 0 && height != 0 &&
         image.width() != 0 && image.height() != 0 )
     {
-      return detail::resize_byte_linear( image, width, height );
+      return detail::resize_byte_linear(
+        image, width, height,
+        static_cast< double >( image.width() ) /
+          static_cast< double >( width ),
+        static_cast< double >( image.height() ) /
+          static_cast< double >( height ) );
     }
   }
 
@@ -429,6 +430,56 @@ resize( kwiver::vital::image_of< T > const& image, size_t width,
   }
 
   return out;
+}
+
+// ----------------------------------------------------------------------------
+/// `cv::resize` given **scale factors** rather than a size.
+///
+/// This is not the same operation as working out the size and calling
+/// `resize` with it, and the difference is large rather than subtle. OpenCV
+/// sizes the output with `saturate_cast< int >( source * scale )` but goes on
+/// sampling on the grid the **requested** scale defines, not the grid the
+/// rounded size implies. Scaling a 1000 by 800 image by 0.704 gives 704 by
+/// 563; sampling that at 800/563 instead of at 1/0.704 moves pixels by up to
+/// twenty-eight counts, which is visible rather than arithmetic.
+///
+/// Only the 8-bit path is exact, as with `resize`; everything else falls
+/// through to the size-based routine.
+///
+/// @param image the source
+/// @param scale_x the horizontal scale, output over input
+/// @param scale_y the vertical scale
+template < typename T >
+kwiver::vital::image_of< T >
+resize_by_scale( kwiver::vital::image_of< T > const& image,
+                 double scale_x, double scale_y,
+                 interpolation how = interpolation::BILINEAR,
+                 border_mode mode = border_mode::REPLICATE )
+{
+  if( !( scale_x > 0.0 ) || !( scale_y > 0.0 ) )
+  {
+    throw std::invalid_argument( "resize_by_scale: the scale must be positive" );
+  }
+
+  // `saturate_cast< int >` is `cvRound`, which is half to even
+  auto const width = static_cast< size_t >( std::lrint(
+    static_cast< double >( image.width() ) * scale_x ) );
+  auto const height = static_cast< size_t >( std::lrint(
+    static_cast< double >( image.height() ) * scale_y ) );
+
+  if constexpr( std::is_same_v< T, uint8_t > )
+  {
+    if( how == interpolation::BILINEAR &&
+        mode == border_mode::REPLICATE &&
+        width != 0 && height != 0 &&
+        image.width() != 0 && image.height() != 0 )
+    {
+      return detail::resize_byte_linear(
+        image, width, height, 1.0 / scale_x, 1.0 / scale_y );
+    }
+  }
+
+  return resize( image, width, height, how, mode );
 }
 
 // ----------------------------------------------------------------------------

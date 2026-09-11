@@ -632,6 +632,21 @@ an artefact of the port:
   recording could not have caught this: it runs `example_detector`, which
   returns a fixed box per image, so the recording is of the chip geometry and
   never of a chip's pixels.
+* **`cv::resize` given a scale is not `cv::resize` given the size that scale
+  works out to**, and the difference is visible rather than arithmetic.
+  OpenCV sizes the output with `saturate_cast< int >( source * scale )` and
+  then goes on sampling on the grid the **requested** scale defines, not the
+  grid the rounded size implies. Fitting a 1000 by 800 image to 704 by 704
+  scales by 0.704 and gives 704 by 563; sampling that at 800/563 rather than
+  at 1/0.704 moves pixels by up to **twenty-eight counts**.
+  `plugins/core/windowed_utils` rounded first and resized to the size, so the
+  shipped `windowed` detector and every `maintain_ar` fit in the tree had
+  been on the wrong grid. Found by the darknet recording: seventeen of its
+  twenty-four cases reproduced the moment the port compiled, and the seven
+  that did not were `maintain_ar` and the three options that reach it.
+  `image_ops::resize_by_scale` is the one that takes a scale now, and all
+  twenty-four reproduce exactly -- every box and every confidence, through a
+  neural network.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 

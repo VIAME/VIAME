@@ -325,6 +325,38 @@ resize_image_bilinear(
 
 // -----------------------------------------------------------------------------
 kv::image
+resize_image_by_scale(
+  const kv::image& src,
+  double scale )
+{
+  if( scale == 1.0 )
+  {
+    return src;
+  }
+
+  const auto& traits = src.pixel_traits();
+
+  // `cv::resize` handed a scale rather than a size keeps sampling on the grid
+  // that scale defines, and only rounds when it works out how big the output
+  // is. Rounding first and then sampling at `source / rounded` is a different
+  // picture -- up to twenty-eight counts different on a 0.704 fit -- so the
+  // eight bit path is told the scale.
+  if( traits.type == kv::image_pixel_traits::UNSIGNED && traits.num_bytes == 1 )
+  {
+    return kv::image( image_ops::resize_by_scale(
+      kv::image_of< uint8_t >( src ), scale, scale ) );
+  }
+
+  const size_t new_width = static_cast< size_t >(
+    std::lrint( src.width() * scale ) );
+  const size_t new_height = static_cast< size_t >(
+    std::lrint( src.height() * scale ) );
+
+  return resize_image_bilinear( src, new_width, new_height );
+}
+
+// -----------------------------------------------------------------------------
+kv::image
 crop_image(
   const kv::image& src,
   const image_rect& roi )
@@ -370,16 +402,7 @@ scale_image_maintaining_ar(
     scale_out = std::min( scale_out, width / original_width );
   }
 
-  // `cv::resize` given a scale rather than a size computes the size with
-  // `saturate_cast< int >`, which is `cvRound` -- round half to **even**,
-  // not half away from zero. It matters only on an exact half, and an exact
-  // half is what a scale like 0.5 or 0.25 produces all the time.
-  size_t new_width = static_cast< size_t >(
-    std::lrint( original_width * scale_out ) );
-  size_t new_height = static_cast< size_t >(
-    std::lrint( original_height * scale_out ) );
-
-  kv::image resized = resize_image_bilinear( src, new_width, new_height );
+  kv::image resized = resize_image_by_scale( src, scale_out );
 
   if( pad && ( resized.width() != static_cast< size_t >( width ) ||
                resized.height() != static_cast< size_t >( height ) ) )
@@ -453,13 +476,8 @@ format_image(
     }
     else
     {
-      size_t new_width = static_cast< size_t >(
-        std::lrint( src.width() * scale_factor ) );
-      size_t new_height = static_cast< size_t >(
-        std::lrint( src.height() * scale_factor ) );
-
       scale_out = scale_factor;
-      return resize_image_bilinear( src, new_width, new_height );
+      return resize_image_by_scale( src, scale_factor );
     }
   }
   else
