@@ -1020,5 +1020,12 @@
     "name": "database",
     "phase": "P7 (user decision)",
     "reason": "The PostgreSQL backend is removed: upstream 0cdefae0f made the search index per-video files with PostgreSQL as one optional backend, and this branch keeps only the files. Nothing is lost that the file index does not do -- `viame index` writes it and `process_query` reads it."
+  },
+  {
+    "interface": "refine_detections",
+    "kind": "algorithm",
+    "name": "hierarchical_svm",
+    "phase": "P7-T07",
+    "reason": "No shipped pipeline or config selects it: the only mention in the tree is a commented-out block in configs/add-ons/uw-fish/detector_matlab_camtrawl.pipe. 1860 lines whose replacement would need cv::ml::SVM, cv::PCA, cv::HOGDescriptor, cv::dft, cv::calcHist, cv::calcBackProject, cv::floodFill, cv::moments and cv::minAreaRect -- none of which image_ops has, and none of which would gain a second caller. Removed rather than ported, on the rule that removed vxl_white_balancing in P3-T05."
   }
 ]

@@ -10,7 +10,6 @@ link_directories( "${OpenCV_LIBRARY_DIR}" )
 
 set( plugin_headers
   add_keypoints_from_mask.h
-  classify_fish_hierarchical_svm.h
   convert_color_space.h
   debayer_filter.h
   pair_stereo_detections.h
@@ -27,7 +26,6 @@ set( plugin_headers
 
 set( plugin_sources
   add_keypoints_from_mask.cxx
-  classify_fish_hierarchical_svm.cxx
   convert_color_space.cxx
   debayer_filter.cxx
   pair_stereo_detections.cxx

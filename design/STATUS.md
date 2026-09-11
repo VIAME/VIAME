@@ -200,11 +200,18 @@ for `CMake/FindCUDNN.cmake`, and `kwiver` is checked out and built.
 
 Three of the original four are answered. PostgreSQL is removed, `plot_metrics`
 goes to matplotlib, and `image_viewer` is python -- and answering that last
-one took `library/` down to the bridge alone. What is left:
+one took `library/` down to the bridge alone. Half of the fourth is answered
+too: **`classify_fish_hierarchical_svm` is removed**, on the agent's own
+judgement and the rule that removed `vxl_white_balancing`, because its only
+mention in the tree is a commented-out block and its 1860 lines would need
+`cv::ml::SVM`, `cv::PCA`, `cv::HOGDescriptor`, `cv::dft`, `cv::calcHist`,
+`cv::calcBackProject`, `cv::floodFill`, `cv::moments` and `cv::minAreaRect`
+between them, none of which anything else wants. Restoring it is one `git
+revert`. What is left:
 
 | # | Question | Recommendation | Cost of the alternative |
 |---|---|---|---|
-| 1 | `lite-removals.md` 2.6's open decision 6, what is left of it. **`classify_fish_hierarchical_svm`** (`cv::FileStorage`, for its own model index rather than a calibration) is in **no** pipeline. **`iqr_session_adaboost`** (`cv::ml::Boost`) survived the PostgreSQL removal -- upstream made `process_query_adaboost` work against the file index -- and `query_and_iqr_adaboost.pipe` selects it | Remove the SVM classifier, on the "used, nothing extra" rule that removed `vxl_white_balancing`. Port the adaboost session: `sklearn`'s `AdaBoostClassifier` is the same algorithm and the process is already the kind of thing that would rather be python | Keeping the SVM classifier means porting a reader nothing exercises. Removing the adaboost one costs `query_and_iqr_adaboost.pipe`, which is the boosted alternative to `query_and_iqr.pipe` |
+| 1 | **`iqr_session_adaboost`** is what is left of `lite-removals.md` 2.6's open decision 6. It survived the PostgreSQL removal -- upstream made `process_query_adaboost` work against the file index -- and `query_and_iqr_adaboost.pipe` selects it. 273 lines around `cv::ml::Boost`: train, predict, and a model blob it saves and loads as OpenCV XML | **This one needs an answer rather than a recommendation**, because all three ways out change behaviour. `cv::ml::Boost` is DISCRETE/REAL/LOGIT/GENTLE AdaBoost over CART trees, and `sklearn`'s `AdaBoostClassifier` is SAMME -- a different algorithm that would not reproduce a recording, and would change the persisted model format besides. Writing boosted stumps by hand has the same problem. Removing `process_query_adaboost` and its pipeline leaves `query_and_iqr.pipe`, which is the same search without the learned re-ranking | Whichever is not chosen. Porting means a query session that ranks differently than it used to and a model file that older VIAME cannot read; removing means `query_and_iqr_adaboost.pipe` goes |
 | 2 | **darknet** (P7-T08). The fork is built with `ENABLE_OPENCV=ON` in the reference superbuild, which is what makes `Detector::detect( cv::Mat )` exist; the `detect( image_t )` overload exists either way, so VIAME's side can be ported before the fork is rebuilt | In hand rather than open: the user pointed at the add-ons, and the yolo-generic add-on's `generic_detector.cfg/.weights/.lbl` **is** installed here, so a golden can be recorded before anything is touched | Leaving darknet on OpenCV means `libopencv_*` stays in the install, so P7-T09's "no `libopencv_*` in `ldd`" cannot pass |
 
 The bridge itself (`library/opencv_bridge`, eight files) needs no decision:
@@ -291,7 +298,6 @@ process that takes whatever pixel type arrives.
 | File | Why it is still there |
 |---|---|
 | `library/opencv_bridge/*` (8 files) | The bridge itself, transitional since P5-T04 (finding 1.12). Its last two callers are the row below; the examples, `plugins/seagis` and `plugins/svm` were carrying an include and a link they had stopped using, and those are gone |
-| `plugins/opencv/classify_fish_hierarchical_svm.h` | `cv::FileStorage` for its own model index, not a calibration. `lite-removals.md` 2.6 open decision 6 |
 | `plugins/opencv/iqr_session_adaboost.h` | OpenCV's `ml` module. Open decision 6, as above |
 | `tests/plugins/core/test_tracks_pairing_from_stereo.cxx` | Not built -- its `kwiver_discover_gtests` line is commented out, waiting on `tracks_pairing_from_stereo.h` |
 
