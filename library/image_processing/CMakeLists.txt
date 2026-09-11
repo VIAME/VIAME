@@ -17,17 +17,9 @@ set( plugin_headers
   close_loops_appearance_indexed.h
   close_loops_bad_frames_only.h
   compute_ref_homography_core.h
-  detect_features.h
   detect_features_filtered.h
   draw_detected_object_set.h
-  estimate_fundamental_matrix.h
-  estimate_homography.h
-  extract_descriptors.h
-  feature_detect_extract_SIFT.h
-  feature_detect_extract_SURF.h
   filter_features_nonmax.h
-  match_features.h
-  match_features_flannbased.h
   match_features_homography.h
   merge_images.h
   refine_detections_write_to_disk.h
@@ -48,17 +40,9 @@ set( plugin_sources
   close_loops_appearance_indexed.cxx
   close_loops_bad_frames_only.cxx
   compute_ref_homography_core.cxx
-  detect_features.cxx
   detect_features_filtered.cxx
   draw_detected_object_set.cxx
-  estimate_fundamental_matrix.cxx
-  estimate_homography.cxx
-  extract_descriptors.cxx
-  feature_detect_extract_SIFT.cxx
-  feature_detect_extract_SURF.cxx
   filter_features_nonmax.cxx
-  match_features.cxx
-  match_features_flannbased.cxx
   match_features_homography.cxx
   merge_images.cxx
   refine_detections_write_to_disk.cxx
@@ -86,8 +70,6 @@ kwiver_add_library( viame_image_processing
 target_include_directories( viame_image_processing PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  # OpenCV's headers, for the classes imported from arrows/ocv
-  $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
   )
 
 target_link_libraries( viame_image_processing
@@ -101,21 +83,8 @@ target_link_libraries( viame_image_processing
                        # codecs/, for the detection chips ocv_write saves
                        viame_video_io
                        kwiver::kwiversys
-  PRIVATE              ${OpenCV_LIBS}
-                       # image_container and the rest of arrows/ocv's vital
-                       # bridge; phase 7 deletes it
-                       viame_opencv_bridge
   )
 
-# The same guards kwiver set on its ocv arrow. The SIFT and SURF detectors
-# and descriptors compile out entirely without them, taking ocv_SIFT and
-# ocv_SURF with them; PUBLIC so the separately compiled plugin registration
-# sees the same guard the headers do.
-target_compile_definitions( viame_image_processing
-  PUBLIC KWIVER_OPENCV_VERSION_MAJOR=${KWIVER_OPENCV_VERSION_MAJOR}
-  PUBLIC HAVE_OPENCV_NONFREE
-  PUBLIC HAVE_OPENCV_XFEATURES2D
-  )
 
 set_target_properties( viame_image_processing PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
@@ -129,6 +98,43 @@ target_link_libraries( viame_image_processing_plugin
   PUBLIC               kwiver::vital_vpm
   )
 
+
+###
+# Python implementations
+##
+if( VIAME_ENABLE_PYTHON )
+  kwiver_create_python_init( image_processing )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+    image_processing
+    __init__ )
+
+  # `library/opencv_bridge`'s feature, descriptor and match conversions, in
+  # python, for the implementations below.
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_feature_types.py
+    image_processing
+    ocv_feature_types )
+
+  # `ocv_SIFT` and `ocv_SURF`, detection and description, C++ until P7-T04.
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_sift_surf.py
+    image_processing
+    ocv_sift_surf )
+
+  # `ocv_flann_based`.
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_flann_matcher.py
+    image_processing
+    ocv_flann_matcher )
+
+  # `estimate_homography:ocv` and `estimate_fundamental_matrix:ocv`.
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_estimators.py
+    image_processing
+    ocv_estimators )
+endif()
 
 ###
 # Processes
@@ -170,6 +176,4 @@ kwiver_add_plugin( viame_processes_image_processing
 target_include_directories( viame_processes_image_processing PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-  # OpenCV's headers, for the classes imported from arrows/ocv
-  $<BUILD_INTERFACE:${OpenCV_INCLUDE_DIRS}>
   )

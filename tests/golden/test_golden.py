@@ -112,6 +112,23 @@ REPLACEMENTS_BY_GROUP = {
 }
 
 
+# Where a documented divergence is declared, per kind. `cases.py` holds the
+# ones phase 3 found; the feature chain's are in `feature_cases.py`, beside
+# the cases themselves.
+DIVERGENCES_OF_KIND = {
+    "features": feature_cases,
+    "matches": feature_cases,
+    "tracks": feature_cases,
+    "homography": feature_cases,
+    "fundamental": feature_cases,
+}
+
+
+def divergence_reason(case, input_name=None):
+    source = DIVERGENCES_OF_KIND.get(case["kind"], case_spec)
+    return source.divergence_reason(case["impl"], case["variant"], input_name)
+
+
 def collect_cases():
     cases = []
 
@@ -415,21 +432,20 @@ def test_golden(item):
         pytest.skip("{} was removed as an {} on purpose: {}".format(
             case["impl"], interface, removal))
 
-    # Once the recorded name is an alias of the replacement, running it under
-    # either name runs our code, so a documented divergence applies to both
-    replacements = REPLACEMENTS_BY_GROUP.get(group, case_spec.REPLACEMENTS)
-    replacing = ( impl != case["impl"] or case["impl"] in replacements )
-
     if impl != case["impl"] and not runner.is_registered( case["kind"], impl ):
         pytest.skip("{} is not registered in this build".format(impl))
 
-    if replacing:
-        whole_case = case_spec.divergence_reason(case["impl"], case["variant"])
+    # A divergence is declared by hand and only ever for a case the port
+    # deliberately does not reproduce, so it applies whether the port runs
+    # under the recorded name or under a replacement's. `replacing` used to
+    # gate this, which meant a name reimplemented in place rather than
+    # aliased -- ocv_SIFT, since P7-T04 -- could not declare one.
+    whole_case = divergence_reason(case)
 
-        if whole_case:
-            # Still run it, so a crash or a refused config is caught
-            run_case(case, impl)
-            pytest.skip("deliberate divergence: {}".format(whole_case))
+    if whole_case:
+        # Still run it, so a crash or a refused config is caught
+        run_case(case, impl)
+        pytest.skip("deliberate divergence: {}".format(whole_case))
 
     check_refusals(item, case, impl)
 
@@ -457,8 +473,7 @@ def test_golden(item):
     for name, actual in zip(names, outputs):
         # A path the recording left uninitialised, which the replacement
         # deliberately implements properly instead. cases.py says why
-        if replacing and case_spec.divergence_reason(
-                case["impl"], case["variant"], name):
+        if divergence_reason(case, name):
             continue
 
         # A lossy container is compared decoder to decoder, at the tolerance

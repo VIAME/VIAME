@@ -39,11 +39,6 @@
 #include "detect_features_filtered.h"
 #include "filter_features_nonmax.h"
 #include "draw_detected_object_set.h"
-#include "estimate_fundamental_matrix.h"
-#include "estimate_homography.h"
-#include "feature_detect_extract_SIFT.h"
-#include "feature_detect_extract_SURF.h"
-#include "match_features_flannbased.h"
 #include "match_features_homography.h"
 #include "merge_images.h"
 #include "refine_detections_write_to_disk.h"
@@ -136,37 +131,14 @@ register_factories( kv::plugin_loader& vpm )
       .add_attribute( kvpf::PLUGIN_DESCRIPTION, blurb );                 \
   }
 
-  VIAME_REGISTER_IMPORTED( kv::algo::estimate_fundamental_matrix,
-                           kwiver::arrows::ocv::estimate_fundamental_matrix,
-                           "ocv", "Estimate a fundamental matrix with OpenCV" )
-
-  VIAME_REGISTER_IMPORTED( kv::algo::estimate_homography,
-                           kwiver::arrows::ocv::estimate_homography,
-                           "ocv", "Estimate a homography with OpenCV" )
+  // `estimate_fundamental_matrix:ocv` and `estimate_homography:ocv` are
+  // `ocv_estimators.py` since P7-T04, and `ocv_flann_based`, `ocv_SIFT` and
+  // `ocv_SURF` are python beside them: RANSAC, FLANN and the two scale-space
+  // detectors are not image_ops primitives, so they stay cv2's.
 
   VIAME_REGISTER_IMPORTED( kv::algo::draw_detected_object_set,
                            kwiver::arrows::ocv::draw_detected_object_set,
                            "ocv", "Draw detected object sets on an image with OpenCV" )
-
-  VIAME_REGISTER_IMPORTED( kv::algo::match_features,
-                           kwiver::arrows::ocv::match_features_flannbased,
-                           "ocv_flann_based", "Match features with OpenCV's FLANN matcher" )
-
-  VIAME_REGISTER_IMPORTED( kv::algo::detect_features,
-                           kwiver::arrows::ocv::detect_features_SIFT,
-                           "ocv_SIFT", "Detect SIFT features with OpenCV" )
-
-  VIAME_REGISTER_IMPORTED( kv::algo::extract_descriptors,
-                           kwiver::arrows::ocv::extract_descriptors_SIFT,
-                           "ocv_SIFT", "Extract SIFT descriptors with OpenCV" )
-
-  VIAME_REGISTER_IMPORTED( kv::algo::detect_features,
-                           kwiver::arrows::ocv::detect_features_SURF,
-                           "ocv_SURF", "Detect SURF features with OpenCV" )
-
-  VIAME_REGISTER_IMPORTED( kv::algo::extract_descriptors,
-                           kwiver::arrows::ocv::extract_descriptors_SURF,
-                           "ocv_SURF", "Extract SURF descriptors with OpenCV" )
 
   VIAME_REGISTER_IMPORTED( kv::algo::refine_detections,
                            kwiver::arrows::ocv::refine_detections_write_to_disk,

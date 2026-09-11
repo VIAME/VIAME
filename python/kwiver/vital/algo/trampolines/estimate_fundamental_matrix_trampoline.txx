@@ -40,11 +40,18 @@ public:
     ::std::vector< bool >& inliers,
     double inlier_scale ) const override
   {
+    // The two C++ overloads share one python name, so a python
+    // implementation that defines `estimate` means the *points* overload:
+    // it is the pure one, and the only one an implementation has to write.
+    // This overload has a C++ body that turns features and matches into
+    // points and calls that one, which is what should run unless python
+    // has deliberately overridden it -- under a name of its own, the same
+    // `estimate_matches` a python caller sees.
     pybind11::gil_scoped_acquire gil;
     pybind11::function overload =
       pybind11::get_override(
         static_cast< kwiver::vital::algo::estimate_fundamental_matrix const* >( this ),
-        "estimate" );
+        "estimate_matches" );
 
     if( !overload )
     {
@@ -54,7 +61,7 @@ public:
 
     return unpack_out_parameters< kwiver::vital::fundamental_matrix_sptr >(
       overload( feat1, feat2, matches, inlier_scale ),
-      "estimate_fundamental_matrix.estimate", inliers );
+      "estimate_fundamental_matrix.estimate_matches", inliers );
   }
 
   kwiver::vital::fundamental_matrix_sptr

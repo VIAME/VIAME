@@ -25,8 +25,24 @@ logs -- because that is what an implementation written before this existed
 does, and a silent tuple requirement would be its own trap.
 
 Callers are unaffected: the *calling* side of these methods is bound
-separately (see `extract_descriptors_extras.cxx`) and keeps its own
-signature. Only implementing one in python is what this changes.
+separately (see `extract_descriptors_extras.cxx` and
+`estimator_extras.cxx`) and keeps its own signature. Only implementing one
+in python is what this changes.
+
+## One python name, two C++ overloads
+
+Both estimators declare `estimate` twice: once taking point lists, which is
+pure virtual, and once taking feature sets and a match set, which has a C++
+body that reduces to the first. Python has one name for the two, so the
+generated trampoline sent both to whatever `estimate` the implementation
+defined -- and an implementation that reasonably wrote the pure one got
+called with the other one's arguments.
+
+So the second overload looks for `estimate_matches`, the name
+`estimator_extras.cxx` gives it on the calling side, and falls back to the
+C++ body when python does not define it. A python implementation therefore
+writes `estimate` alone and gets the feature-set form for free, which is what
+the C++ ones do.
 
 P8-T02 replaces the generator with hand-written trampolines throughout. This
 is that task's first three files, brought forward because P7-T04 cannot move

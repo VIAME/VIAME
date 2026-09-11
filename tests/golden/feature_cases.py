@@ -211,6 +211,54 @@ def unstable(kind, impl):
     return UNSTABLE.get((kind, impl))
 
 
+# ----------------------------------------------------------------------------
+# Where the port deliberately does not reproduce the recording
+# ----------------------------------------------------------------------------
+#
+# **The C++ SIFT and SURF wrappers ignored their configuration.** All five of
+# each one's config keys, silently: every non-default variant recorded here
+# came out byte-identical to `defaults` -- 81 SIFT features whether
+# `n_features` says 0 or 20, 64-wide SURF descriptors with `extended` set.
+#
+# The cause is one line, repeated in all four wrappers:
+#
+#     detector.constCast< cv::FeatureDetector >() = create( ... );
+#
+# `cv::Ptr::constCast` returns a new `Ptr` by value, so the assignment
+# replaces a temporary and the freshly built detector is destroyed on the
+# next line. The wrapper reran it before every call, and every call used the
+# detector built at construction from the defaults.
+#
+# The port honours the configuration. Reproducing the defect would mean
+# implementing five documented keys per algorithm that do nothing, and
+# nothing can be depending on them doing nothing: `common_image_stabilizer`
+# and `utility_register_frames_3-cam` both ask for `hessian_threshold =
+# 5000` and `upright = true` and have been getting 100 and false. The `few`
+# and `coarse` variants are what the recorded code should have produced and
+# the port does.
+#
+# `defaults` is held to the recording exactly, which is what says the port is
+# the same algorithm.
+DIVERGENCES = {
+    ("ocv_SIFT", "few"):
+        "the recorded wrapper ignored n_features; the port applies it",
+    ("ocv_SIFT", "coarse"):
+        "the recorded wrapper ignored n_octave_layers and "
+        "contrast_threshold; the port applies them",
+    ("ocv_SURF", "extended"):
+        "the recorded wrapper ignored extended, so its descriptors stayed 64 "
+        "wide; the port applies it and they are 128",
+    ("ocv_SURF", "upright_500"):
+        "the recorded wrapper ignored upright and hessian_threshold; the "
+        "port applies them",
+}
+
+
+def divergence_reason(impl, variant, input_name=None):
+    """Why the port is not held to the recording for this case, or None."""
+    return DIVERGENCES.get((impl, variant))
+
+
 def unstable_reason(impl, variant, name=None):
     """The per-input hook the other case files have; nothing uses it here."""
     return None

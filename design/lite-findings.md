@@ -213,6 +213,64 @@ an artefact of the port:
   both on colour, so it has never fired in practice -- but a pipeline is one
   `split_image_channels` away from it. `tests/golden/opencv` records the
   refusal without asserting it, since nothing can assert a coin flip.
+* **The C++ `ocv_SIFT` and `ocv_SURF` wrappers ignored their configuration
+  entirely.** All five keys of each, silently. The cause is one line,
+  repeated in all four wrappers (detector and extractor, SIFT and SURF):
+
+  ```cpp
+  detector.constCast< cv::FeatureDetector >() = create( ... );
+  ```
+
+  `cv::Ptr::constCast` returns a **new `Ptr` by value**, so the assignment
+  replaces a temporary and the freshly configured detector is destroyed on
+  the next line. The wrapper reran it before every call, and every call used
+  the detector built at construction from the defaults. The recording proves
+  it: every non-default variant of `features` came out byte-identical to
+  `defaults` -- 81 SIFT features whether `n_features` says 0 or 20, 64-wide
+  SURF descriptors with `extended` set. Two shipped pipelines,
+  `common_image_stabilizer.pipe` and `utility_register_frames_3-cam.pipe`,
+  ask for `hessian_threshold = 5000` and `upright = true` and have been
+  getting 100 and false -- which on a 4K frame is tens of thousands of
+  features where the author wanted hundreds. The python port applies the
+  configuration; `tests/golden/feature_cases.py` records the four cases that
+  diverge from the recording, and why.
+* `common_image_stabilizer.pipe` configures SURF with `n_octave_layers`,
+  which is not a registered key: the wrappers registered `n_octaves_layers`,
+  with the extra s. Latent while the config was being ignored; now that it is
+  not, the key still does nothing, and the misspelling is in the pipeline
+  rather than in the code. The registered name is kept, since
+  `registry.json` records it.
+* **`cv::FlannBasedMatcher` is not deterministic.** It builds randomised
+  KD-trees and OpenCV seeds them from the clock, so `ocv_flann_based` gives a
+  different answer on every call -- 45 or 46 matches out of the same 81
+  descriptors, twice in one process. Nothing downstream of it can be recorded
+  exactly either, which is why `tests/golden/opencv`'s `matches` and `tracks`
+  cases are contracts on agreement rather than on bytes, and why the two
+  estimators are recorded on synthetic correspondences instead of on matched
+  features: one match in or out moved the estimated homography by 29% and the
+  fundamental matrix by 52%.
+* `register_using_homographies.pipe` **has never configured**, and neither
+  has anything else that includes `common_image_stabilizer.pipe`. It asks for
+  `homography_estimator:type = core`, and `estimate_homography` has only ever
+  had `ocv` and `vxl` -- the P0 baseline registry, taken before any of this
+  work, has no `core`. `pipe-config` prints the key, and the runner reports
+  it unresolvable and refuses the process. Not caused by the port and not
+  fixed by it: which implementation the author meant is a question for
+  someone who knows what the pipeline was for. `baseline:pipes` passes
+  because it records which config keys resolve to a name, not whether the
+  name exists.
+* `ocv_SURF` needs a cv2 built with the **non-free** modules
+  (`cv2.xfeatures2d.SURF_create`). The build VIAME ships has them; the
+  `opencv-python-headless` wheel that `lite-removals.md` section 2.7 leaves
+  in the lock files does not. The python port registers the name either way,
+  so it never silently disappears from the registry, and says what is missing
+  when asked to run. Open question 2.9.
+* Building a `vital::descriptor` in python costs about 0.7 ms per 128 float
+  values, because there is no bulk assignment: `new_descriptor` then one
+  `__setitem__` per element. A frame with five thousand features spends three
+  seconds there. The same shape of problem as the interleaved image copy
+  above, and the same remedy when it matters -- a buffer protocol on
+  `descriptor`, which phase 8 is the place for.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 
@@ -397,6 +455,63 @@ something rather than modifying it: an addition has no stale copy to hide
 behind. Phase 9 rebuilds the python packaging; a fresh install prefix, not an
 incremental one, is what would have caught this on day one.
 
+### 1.18 The generated pybind11 trampolines cannot carry an output parameter
+
+`cpp_to_pybind11.py` writes every trampoline method as a
+`PYBIND11_OVERLOAD`, which passes each argument to python **by value**. For
+an input that is right. For an output it is silently total: a python
+implementation can fill the parameter all it likes and the C++ caller sees
+what it passed in.
+
+Three interfaces in this tree have one, and phase 7 moves all three to
+python:
+
+| Interface | Parameter | What an empty one costs |
+|---|---|---|
+| `extract_descriptors` | `feature_set_sptr& features` | The extractor may reorder or drop features to line up with its descriptors; a caller left holding the old set pairs each descriptor with the wrong feature |
+| `estimate_homography` | `std::vector<bool>& inliers` | `match_features_homography` keeps only the inlier matches, so it keeps none |
+| `estimate_fundamental_matrix` | `std::vector<bool>& inliers` | The same, for its own matcher |
+
+The calling side had the same hole from the other direction: a python
+*caller* of either estimator could not obtain the inliers at all.
+
+Both are fixed by hand: the generator now prefers a trampoline written by
+hand when one exists in `python/kwiver/vital/algo/trampolines/`, and an
+extras file re-binds the calling side, as `extract_descriptors_extras.cxx`
+already did for the feature set. The convention, stated in that directory's
+README: a python implementation returns a tuple of the return value followed
+by each output parameter, and the trampoline writes them back; returning the
+bare value still works and warns.
+
+A second thing the same work turned up: **two C++ overloads can share one
+python name**. Both estimators declare `estimate` twice, once taking point
+lists (pure virtual) and once taking feature sets and a match set (with a
+C++ body that reduces to the first). The generated trampoline sent both to
+whatever `estimate` python defined, so an implementation that wrote the pure
+one got called with the other one's arguments. The hand-written trampoline
+looks for `estimate_matches` for the second and falls back to the C++ body,
+which is what should happen.
+
+This is P8-T02's territory -- "hand-written algorithm trampolines" -- brought
+forward three files at a time, the way P6-T06 brought `opencv_bridge/matrix.h`
+forward and P5-T05 brought P1-T05's `add_subdirectory` forward. Phase 8
+should start from these three rather than from the generator.
+
+### 1.19 A python override cannot call its C++ base from a helper
+
+pybind11 stops an override calling itself by comparing the *calling python
+frame* with the override it is about to dispatch to. So
+`super( Interface, self ).get_configuration()` reaches C++ only when it is
+written inside the override itself. Move it one frame down -- into a mixin's
+`_get_configuration( base )`, say, to share it between four wrapper classes
+-- and the guard does not fire, `get_configuration` calls itself, and the
+stack runs out. The failure is a `RecursionError` with no hint of why.
+
+What works is keeping the `super()` call in the method that is the override
+and sharing only the part that fills the block in. An inherited method is
+fine: the guard compares code objects, and a subclass that inherits
+`_Detector.get_configuration` has the same one.
+
 ## 2. Open questions
 
 ### 2.1 An intermittent segfault in `viame train`
@@ -575,3 +690,26 @@ They cannot move until kwiver's python package goes, because two
 duplicate-registration error. That makes P5-T05 the task that moves them, not
 P5-T02 as the plan had it. It also means P5-T05 is larger than its text
 suggests.
+
+### 2.9 Where python's cv2 comes from after phase 7
+
+`lite-removals.md` section 2.7 says `opencv-python-headless` stays in the
+python lock files once the C++ build drops OpenCV. Today it does not come
+from there: cv2 is fletch's own OpenCV build, configured with the non-free
+modules, and the python and C++ sides are the same library.
+
+Two things depend on which it becomes.
+
+`ocv_SURF` is `cv2.xfeatures2d.SURF_create`, which the headless wheel does
+not carry -- it is built without the non-free modules for licensing reasons.
+On the wheel the name registers and fails when run. SURF is what
+`common_image_stabilizer.pipe` selects by default, so if the wheel is the
+answer then either that pipeline's default changes to `ocv_SIFT` (free since
+OpenCV 4.4, and in every build) or `ocv_SURF` goes to `removed.json`. Both
+are decisions about what VIAME offers, not about how it is built.
+
+And the goldens in `tests/golden/opencv` were recorded against fletch's
+build. A different OpenCV is a different implementation, and the exactness
+these recordings are held to -- byte-identical descriptors -- will not
+survive a version change. Whoever makes the switch should re-record and diff,
+rather than loosening the tolerances to make it pass.
