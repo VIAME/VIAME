@@ -22,7 +22,7 @@
 #include <kwiversys/SystemTools.hxx>
 
 #ifdef VIAME_ENABLE_ZLIB
-#include <zlib.h>
+#include <miniz.h>
 #include <cstring>
 #include <map>
 #endif

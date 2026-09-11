@@ -17,7 +17,7 @@
 #include <vector>
 
 #ifdef VIAME_ENABLE_ZLIB
-#include <zlib.h>
+#include <miniz.h>
 #endif
 
 #if WIN32 || ( __cplusplus >= 201703L && __has_include(<filesystem>) )

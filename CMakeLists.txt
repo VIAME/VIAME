@@ -1057,6 +1057,7 @@ else()
     # fletch no longer has to build.
     ##
     add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/tinyxml" third_party/tinyxml )
+    add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/miniz" third_party/miniz )
 
     if( VIAME_ENABLE_PYTHON )
       add_subdirectory( "${VIAME_SOURCE_DIR}/third_party/pybind11"

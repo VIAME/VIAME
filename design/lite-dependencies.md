@@ -16,7 +16,7 @@ Legend: **vendor** = source copied into `third_party/` and built here;
 | pybind11 | 2.13.6 | python bindings | **vendored**, `third_party/pybind11`: 28 of the 36 headers, the transitive closure of what VIAME includes. Permanent |
 | libsvm | 3.10 (+HISTOGRAM and NMI kernels) | svm, IQR | **vendored**, 2 files, `third_party/libsvm`. Permanent, and it has to be vendored rather than found: the extra kernels are VIAME's and a system libsvm would refuse every shipped model |
 | CppDB, PostgreSQL client | 0.3.0 / 10.23 | cppdb plugin | **vendor** cppdb behind `VIAME_ENABLE_POSTGRESQL`; libpq from system when enabled (open decision 5) |
-| ZLib | 1.2.11 | `camera_rig_io` NPZ, OpenCV, FFmpeg | **temp**; after P7 NPZ reading uses a vendored `miniz` (single file) or moves to python; decide in P7 |
+| ZLib | 1.2.11 | `camera_rig_io` NPZ, `utilities_file` NPZ writing | **vendored** as `miniz`, `third_party/miniz`, user's call and measured: +61 KB in `libviame_core`, -121 KB of `libz.so`. Stripped to deflate, inflate and crc32; the archive APIs, stdio and time are off. OpenCV and FFmpeg also wanted zlib and both are gone |
 | libjpeg-turbo, libtiff, libpng, libgeotiff | | OpenCV/VXL | **drop** with them; codecs are stb + own TIFF |
 | PROJ, SQLite3, GDAL, openjpeg | | VXL/GDAL paths | **drop** (P1: not found, not needed) |
 | CPython | 3.12.12 | desktop builds | not built here; system python, or python-build-standalone download on Windows/desktop (P10) |

@@ -171,15 +171,12 @@ set( AUX_LINK_LIBRARIES
 # now. The `find_package` and the `VIAME_ENABLE_OPENCV` definition that stood
 # here are gone with it.
 
-# ZLIB is used for reading NPZ files in camera_rig_io
-find_package( ZLIB )
-if( ZLIB_FOUND )
-  set( AUX_LINK_LIBRARIES
-       ${ZLIB_LIBRARIES}
-       ${AUX_LINK_LIBRARIES} )
-  include_directories( ${ZLIB_INCLUDE_DIRS} )
-  set( AUX_COMPILE_DEFINITIONS VIAME_ENABLE_ZLIB ${AUX_COMPILE_DEFINITIONS} )
-endif()
+# NPZ, which `camera_rig_io` reads and `utilities_file` writes. It was zlib,
+# found or not found; it is `third_party/miniz` now and always there, so
+# `VIAME_ENABLE_ZLIB` is set unconditionally. The guards it gates in those
+# two files are vestigial and left alone: removing them edits working code
+# for no gain.
+set( AUX_COMPILE_DEFINITIONS VIAME_ENABLE_ZLIB ${AUX_COMPILE_DEFINITIONS} )
 
 # OpenMP is used for parallel evaluation in evaluate_models
 find_package( OpenMP )
@@ -207,6 +204,7 @@ target_link_libraries( viame_core
   # export set and become part of what an out-of-tree consumer links.
   # Vendored in `third_party/tinyxml`, four files, built here not found.
   PRIVATE              viame::tinyxml
+                       viame::miniz
   )
 
 if( VIAME_ENABLE_PYTHON )
