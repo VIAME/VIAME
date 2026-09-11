@@ -1,5 +1,5 @@
 {
-  "appended": "2026-09-11T03:48:14Z",
+  "appended": "2026-09-11T04:40:05Z",
   "cases": [
     {
       "config": {},
@@ -4321,6 +4321,586 @@
       "refuses": {},
       "unstable": {},
       "variant": "perspective_alpha"
+    },
+    {
+      "config": {
+        "apply_gamma": "true",
+        "gamma": "1.8"
+      },
+      "impl": "ocv_color_correction",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/gamma_fixed/gray16.png",
+          "sha256": "92743407fd02795f",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/gamma_fixed/gray8.png",
+          "sha256": "014ed7106774c6fc",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/gamma_fixed/rgb8.png",
+          "sha256": "1c5ace96ddab5bf3",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "gamma_fixed"
+    },
+    {
+      "config": {
+        "apply_gamma": "true",
+        "gamma_auto": "true"
+      },
+      "impl": "ocv_color_correction",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/gamma_auto/gray16.png",
+          "sha256": "59de7c46556c77f3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/gamma_auto/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/gamma_auto/rgb8.png",
+          "sha256": "835f97298ef48c75",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "gamma_auto"
+    },
+    {
+      "config": {
+        "apply_gray_world": "true"
+      },
+      "impl": "ocv_color_correction",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/gray_world/gray16.png",
+          "sha256": "59de7c46556c77f3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/gray_world/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/gray_world/rgb8.png",
+          "sha256": "9b1a0a98e77338ae",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "gray_world"
+    },
+    {
+      "config": {
+        "apply_gray_world": "true",
+        "gray_world_sat_threshold": "0.6"
+      },
+      "impl": "ocv_color_correction",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/gray_world_loose/gray16.png",
+          "sha256": "59de7c46556c77f3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/gray_world_loose/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/gray_world_loose/rgb8.png",
+          "sha256": "3b9a61e008049ab9",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "gray_world_loose"
+    },
+    {
+      "config": {
+        "apply_underwater": "true"
+      },
+      "impl": "ocv_color_correction",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_simple/gray16.png",
+          "sha256": "59de7c46556c77f3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_simple/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_simple/rgb8.png",
+          "sha256": "0ad7a467e07bae8a",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "underwater_simple"
+    },
+    {
+      "config": {
+        "apply_underwater": "true",
+        "backscatter_removal": "false"
+      },
+      "impl": "ocv_color_correction",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_no_backscatter/gray16.png",
+          "sha256": "59de7c46556c77f3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_no_backscatter/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_no_backscatter/rgb8.png",
+          "sha256": "878f1f031b608cc8",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "underwater_no_backscatter"
+    },
+    {
+      "config": {
+        "apply_underwater": "true",
+        "water_type": "coastal"
+      },
+      "impl": "ocv_color_correction",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_coastal/gray16.png",
+          "sha256": "59de7c46556c77f3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_coastal/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_coastal/rgb8.png",
+          "sha256": "0ad7a467e07bae8a",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "underwater_coastal"
+    },
+    {
+      "config": {
+        "apply_underwater": "true",
+        "water_type": "turbid"
+      },
+      "impl": "ocv_color_correction",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_turbid/gray16.png",
+          "sha256": "59de7c46556c77f3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_turbid/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_turbid/rgb8.png",
+          "sha256": "0ad7a467e07bae8a",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "underwater_turbid"
+    },
+    {
+      "config": {
+        "apply_underwater": "true",
+        "blue_attenuation": "0.15",
+        "green_attenuation": "0.35",
+        "red_attenuation": "0.65",
+        "water_type": "custom"
+      },
+      "impl": "ocv_color_correction",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_manual/gray16.png",
+          "sha256": "59de7c46556c77f3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_manual/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_manual/rgb8.png",
+          "sha256": "7aeeff6b5fcd68ab",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "underwater_manual"
+    },
+    {
+      "config": {
+        "apply_underwater": "true",
+        "use_auto_depth": "false"
+      },
+      "impl": "ocv_color_correction",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_no_depth/gray16.png",
+          "sha256": "59de7c46556c77f3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_no_depth/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_no_depth/rgb8.png",
+          "sha256": "896fbad8acd29ad1",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "underwater_no_depth"
+    },
+    {
+      "config": {
+        "apply_underwater": "true",
+        "underwater_method": "fusion"
+      },
+      "impl": "ocv_color_correction",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_fusion/gray16.png",
+          "sha256": "59de7c46556c77f3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_fusion/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/underwater_fusion/rgb8.png",
+          "sha256": "da0d16d268db7763",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "underwater_fusion"
+    },
+    {
+      "config": {
+        "apply_gamma": "true",
+        "apply_underwater": "true",
+        "gamma_auto": "true",
+        "underwater_method": "fusion",
+        "water_type": "coastal"
+      },
+      "impl": "ocv_color_correction",
+      "inputs": [
+        "rgb8",
+        "gray8",
+        "gray16"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "gray16": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/readme_example/gray16.png",
+          "sha256": "59de7c46556c77f3",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "gray8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/readme_example/gray8.png",
+          "sha256": "95e317223585e847",
+          "shape": [
+            64,
+            96,
+            1
+          ]
+        },
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_color_correction/readme_example/rgb8.png",
+          "sha256": "de57ec236868449a",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "readme_example"
     }
   ],
   "fixtures": {

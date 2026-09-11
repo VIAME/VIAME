@@ -77,7 +77,41 @@ IMAGE_FILTERS = {
                         "output_color_space": "bgr"}),
     ],
     "ocv_color_correction": [
+        # The defaults turn every stage off, so this one records that the
+        # filter leaves an image alone -- which is worth pinning, but says
+        # nothing about the four hundred lines behind the switches.
         ("defaults", {}),
+        # Every stage, and every branch inside one. The settings are the
+        # ones `examples/image_enhancement/README.rst` documents: no
+        # shipped pipeline selects this filter, but the README gives it a
+        # worked example, so it is a documented feature rather than dead
+        # code.
+        ("gamma_fixed", {"apply_gamma": "true", "gamma": "1.8"}),
+        ("gamma_auto", {"apply_gamma": "true", "gamma_auto": "true"}),
+        ("gray_world", {"apply_gray_world": "true"}),
+        ("gray_world_loose", {"apply_gray_world": "true",
+                              "gray_world_sat_threshold": "0.6"}),
+        ("underwater_simple", {"apply_underwater": "true"}),
+        ("underwater_no_backscatter", {"apply_underwater": "true",
+                                       "backscatter_removal": "false"}),
+        ("underwater_coastal", {"apply_underwater": "true",
+                                "water_type": "coastal"}),
+        ("underwater_turbid", {"apply_underwater": "true",
+                               "water_type": "turbid"}),
+        ("underwater_manual", {"apply_underwater": "true",
+                               "water_type": "custom",
+                               "red_attenuation": "0.65",
+                               "green_attenuation": "0.35",
+                               "blue_attenuation": "0.15"}),
+        ("underwater_no_depth", {"apply_underwater": "true",
+                                 "use_auto_depth": "false"}),
+        ("underwater_fusion", {"apply_underwater": "true",
+                               "underwater_method": "fusion"}),
+        # The README's own example, which is three stages at once.
+        ("readme_example", {"apply_gamma": "true", "gamma_auto": "true",
+                            "apply_underwater": "true",
+                            "underwater_method": "fusion",
+                            "water_type": "coastal"}),
     ],
     # Values are not reproducible -- see UNSTABLE -- but the shape, the dtype
     # and the config being accepted are.
