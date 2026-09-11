@@ -504,6 +504,11 @@ if( VIAME_ENABLE_PYTHON )
     interactive_segmentation )
 
   kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/curved_measurement.py
+    core
+    curved_measurement )
+
+  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/interactive_stereo.py
     core
     interactive_stereo )

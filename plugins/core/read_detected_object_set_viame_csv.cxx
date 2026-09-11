@@ -242,6 +242,23 @@ create_viame_csv_detection(
     dob->set_index( static_cast< uint64_t >( id ) );
   }
 
+  for( size_t i = optional_start; i < cols.size(); ++i )
+  {
+    if( cols[i].compare( 0, 5, "(kp) " ) != 0 ) continue;
+    std::vector< std::string > tokens;
+    kwiver::vital::tokenize( cols[i], tokens, " ", true );
+    if( tokens.size() < 4 ) continue;
+    try
+    {
+      const double x = std::stod( tokens[tokens.size() - 2] );
+      const double y = std::stod( tokens.back() );
+      std::string name = tokens[1];
+      for( size_t j = 2; j + 2 < tokens.size(); ++j ) name += " " + tokens[j];
+      dob->add_keypoint( name, kwiver::vital::point_2d( x, y ) );
+    }
+    catch( std::exception const& ) {}
+  }
+
   // Preserve every polygon piece for training and CSV round trips.
   dob->set_flattened_polygons( extract_viame_csv_polygons( cols, optional_start ) );
 

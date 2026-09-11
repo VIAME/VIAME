@@ -7,6 +7,8 @@
  * \brief Implementation of detected object set csv output
  */
 
+#include <iomanip>
+#include <limits>
 #include "write_object_track_set_viame_csv.h"
 
 #include "utilities_target_clfr.h"
@@ -272,7 +274,10 @@ write_object_track_set_viame_csv
     for( const auto& kp : det->keypoints() )
     {
       stream << c_delimiter << "(kp) " << kp.first;
-      stream << " " << kp.second.value()[0] << " " << kp.second.value()[1];
+      const auto old_precision = stream.precision();
+      stream << std::setprecision( std::numeric_limits<double>::max_digits10 )
+             << " " << kp.second.value()[0] << " " << kp.second.value()[1];
+      stream.precision( old_precision );
     }
   }
 

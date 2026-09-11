@@ -423,3 +423,125 @@ For the mat file, format the root structure should be a dict with the key
 |    alpha_c_right: skew
 |    kc_right: distortion coefficients for the right camera
 |
+
+Curved fish measurement (opt-in)
+-------------------------------
+
+The Python stereo service supports a separate ``measure_curve`` command. It
+uses dense disparity from FoundationStereo, Fast FoundationStereo, or another
+configured disparity backend. Existing line measurements and pipelines keep
+working as before. This is a service/API and offline utility; the annotation UI
+does not automatically generate or display these curves.
+
+Inputs must already be rectified, with masks, curves, disparity and calibration
+all on the same full-resolution image grid. Use the intrinsics produced by
+rectification, not the original distorted camera intrinsics. The supported
+rectified model has shared ``fx``, ``fy`` and ``cy``, potentially different
+horizontal principal points, and a positive horizontal baseline. Lengths use
+the baseline's units. Underwater measurements require calibration appropriate
+to the camera housing and medium.
+
+After enabling the dense stereo service and waiting for ``disparity_ready``,
+send a request such as::
+
+  {
+    "command": "measure_curve",
+    "left_image_path": "/data/left.png",
+    "right_image_path": "/data/right.png",
+    "rectified_calibration": {
+      "rectified": true,
+      "fx": 1000, "fy": 1000,
+      "cx_left": 640, "cx_right": 640, "cy": 360,
+      "baseline": 0.12
+    },
+    "left_curve": [[300, 300], [340, 280], [390, 285], [440, 320]],
+    "right_curve": [[260, 300], [300, 280], [350, 285], [400, 320]],
+    "options": {
+      "mode": "bidirectional",
+      "samples": 32,
+      "smoothing": 0.5,
+      "consistency_px": 1.5,
+      "centerline_tolerance_px": 5.0,
+      "max_length_disagreement": 0.1,
+      "max_depth_ratio": 2.0
+    }
+  }
+
+Frame paths must identify the current frame; for video, also supply its current
+``frame_time``. Requests before disparity is ready fail and can be retried.
+The command is also routed by the unified interactive service.
+
+The modes are:
+
+* ``left`` (default): resample the left centerline and transfer each point using
+  dense disparity. A supplied right centerline constrains the transfer by
+  proximity; equal fractions of two independently drawn curves are not assumed
+  to correspond.
+* ``bidirectional``: additionally compute independent right-reference disparity
+  by swapping and horizontally flipping the stereo images, then unflipping the
+  result. Both centerlines are sampled independently, with a round-trip disparity
+  check at every sample. Average the two reconstructed lengths only if their
+  relative disagreement is within the configured threshold. This adds one model
+  inference per request; the reverse result is not cached. The backend must
+  support normal horizontal rectified stereo and output disparity, not depth.
+
+Instead of ``left_curve`` or ``right_curve``, supply ``left_mask_path`` or
+``right_mask_path`` and the corresponding ``left_endpoints`` or
+``right_endpoints`` as ``[[head_x, head_y], [tail_x, tail_y]]``. Masks are binary
+full-image rasters (nonzero means fish), for example exported SAM2 masks;
+bounding-box-local masks must first be placed on the full-image grid. Endpoint
+anchors can come from SLEAP. Mask extraction requires scikit-image, included in
+PyTorch builds. The shortest connected skeleton path between anchor locations
+removes side branches such as fins. Disconnected anchor paths fail. Masks can
+also accompany explicit curves to check that every matched sample stays inside
+the fish.
+
+``smoothing`` is the 2D spline fit tolerance in pixels; endpoints are retained.
+The reported length is the sum of 3D segment lengths between sampled points,
+not a spline integral. More samples are not necessarily more accurate: depth
+noise can inflate length, while too few samples underestimate sharp bends.
+Defaults are starting points for validation, not calibrated uncertainty bounds.
+Silhouette centerlines and visible surface disparity approximate the anatomical
+midline, especially when fish roll or bend out of the image plane. Bidirectional
+agreement alone does not establish anatomical accuracy. Define the tail landmark
+consistently (base, fork or tip), and validate against known lengths and poses.
+
+Responses contain ``curved_length``, ``straight_length``, ``curvature_ratio``,
+per-direction 3D points and transferred image points, and round-trip/length
+agreement diagnostics. Invalid or out-of-image disparity, mask violations,
+inconsistent matches or excessive depth range produce ``success: false`` with
+no top-level curved length. Missing samples are never bridged or replaced by a
+straight-line result. Existing detection length fields are not overwritten.
+
+Offline processing of saved disparity maps is also available::
+
+  python -m viame.core.curved_measurement request.json --output measurement.json
+
+Use the same JSON fields as above, adding ``left_disparity_path`` and, for
+bidirectional mode, ``right_disparity_path`` to NumPy ``.npy`` maps. Offline maps
+must already be computed; this utility does not load a model. Set
+``disparity_scale`` to 256 for VIAME uint16 disparity, or 1 (default) for floating
+point pixel disparity. Both maps represent the positive quantity
+``x_left - x_right``, indexed on their respective source image grids; a negated
+right disparity map must be converted first. All paths are resolved against the
+working directory. Independent right disparity also enables round-trip checking
+in offline ``left`` mode.
+
+Editable DIVE centerlines
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The matching DIVE ``feature/curved-headtail-lines`` branch extends the existing
+line editor with segment midpoint handles. Interior vertices use named keypoints
+``spine_001``, ``spine_002``, etc., between ``head`` and ``tail``. VIAME's CSV and
+DIVE JSON readers/writers preserve these markers and subpixel coordinates; JSON
+uses the existing ``HeadTails`` LineString. No new KWIVER geometry type is required.
+
+``measure_curve`` responses also provide ``left_keypoints`` and
+``right_keypoints`` dictionaries containing named points for export through these
+writers. In DIVE, editing a multi-point line invokes ``measure_line`` with an
+ordered array of vertices per camera. The service detects this form and rematches
+samples along the polyline before summing triangulated segment lengths. Vertex
+indices across independently edited camera views are never assumed to match.
+The original two-endpoint request keeps its existing behavior. The editor path
+uses a polyline (no spline smoothing), while ``measure_curve`` retains its
+configurable smoothing and bidirectional options.

@@ -285,3 +285,46 @@ TEST( viame_csv, multiple_polygon_pieces_roundtrip )
   reader.close();
   fs::remove( path );
 }
+
+#include "read_detected_object_set_dive.h"
+#include "write_object_track_set_dive.h"
+#include <sstream>
+
+TEST( viame_csv_tot_once, centerline_dive_roundtrip )
+{
+  auto tracks = make_tracks( 1 );
+  auto state = std::dynamic_pointer_cast< kv::object_track_state >( *tracks[0]->begin() );
+  auto det = state->detection();
+  det->add_keypoint( "head", { 10.123456789, 20 } );
+  det->add_keypoint( "spine_010", { 28, 28 } );
+  det->add_keypoint( "spine_002", { 22, 30.123456789 } );
+  det->add_keypoint( "tail", { 30, 20 } );
+  det->add_keypoint( "eye", { 12, 21 } );
+  std::ostringstream json;
+  viame::write_dive_json( json, tracks, {} );
+  viame::dive_annotation_file parsed;
+  ASSERT_TRUE( viame::parse_dive_json_manual( json.str(), kv::get_logger( "test" ), parsed ) );
+  const auto& feature = parsed.tracks.at( "1" ).features[0];
+  ASSERT_EQ( feature.centerline.size(), 4 );
+  EXPECT_DOUBLE_EQ( feature.centerline[1][1], 30.123456789 );
+  auto restored = viame::create_detected_object_from_dive( feature, {} );
+  ASSERT_EQ( restored->keypoints().size(), 5 );
+  EXPECT_DOUBLE_EQ( restored->keypoints().at( "head" ).value()[0], 10.123456789 );
+  EXPECT_DOUBLE_EQ( restored->keypoints().at( "spine_001" ).value()[1], 30.123456789 );
+  EXPECT_TRUE( restored->keypoints().count( "eye" ) );
+  const auto csv_path = fs::temp_directory_path() / "viame_centerline_roundtrip.csv";
+  viame::write_object_track_set_viame_csv writer;
+  writer.set_active_writing( false );
+  writer.open( csv_path.string() );
+  writer.write_set( std::make_shared< kv::object_track_set >( tracks ), kv::timestamp( 0, 0 ), "img.png" );
+  writer.close();
+  viame::read_object_track_set_viame_csv reader;
+  reader.set_batch_load( true );
+  reader.open( csv_path.string() );
+  kv::object_track_set_sptr loaded;
+  ASSERT_TRUE( reader.read_set( loaded ) );
+  auto first = std::dynamic_pointer_cast< kv::object_track_state >( *loaded->tracks()[0]->begin() );
+  EXPECT_DOUBLE_EQ( first->detection()->keypoints().at( "spine_002" ).value()[1], 30.123456789 );
+  EXPECT_DOUBLE_EQ( first->detection()->keypoints().at( "head" ).value()[0], 10.123456789 );
+  fs::remove( csv_path );
+}

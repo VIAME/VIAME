@@ -44,7 +44,8 @@ Protocol:
     - "cancel": Cancel current disparity computation
     - "get_status": Get current status (enabled, computing, ready)
     - "transfer_line": Transfer a line from left to right image using disparity
-    - "transfer_points": Transfer multiple points from left to right image
+    - "measure_curve": Measure a curved fish using rectified dense disparity
+    - "transfer_points": Transfer points between stereo images (left to right by default)
     - "shutdown": Gracefully terminate the service
 """
 
@@ -740,6 +741,8 @@ class InteractiveStereoService:
 
         self._cancel_computation()
         self._current_disparity = None
+        self._right_reference_key = None
+        self._right_reference_map = None
         self._disparity_ready = False
         self._disparity_event.clear()
         self._current_left_path = None
@@ -998,6 +1001,9 @@ class InteractiveStereoService:
             if not points:
                 raise ValueError("points is required")
 
+            if request.get('strict') or request.get('source_camera', 'left') != 'left':
+                return self._transfer_points_checked(request)
+
             if self._use_epipolar:
                 transferred_points = []
                 disparity_values = []
@@ -1047,6 +1053,86 @@ class InteractiveStereoService:
                 "original_points": points,
                 "disparity_values": disparity_values,
             }
+
+    def _right_reference_disparity(self):
+        """Cache one reverse map per stereo frame; caller holds _compute_lock."""
+        from kwiver.vital.types import Image, ImageContainer
+        key = (self._current_left_path, self._current_right_path,
+               getattr(self, '_current_frame_time', None))
+        if getattr(self, '_right_reference_key', None) == key:
+            return self._right_reference_map
+        config = self._stereo_algo.get_configuration()
+        if config.has_value('output_mode') and config.get_value('output_mode') != 'disparity':
+            raise ValueError('Point transfer requires disparity output')
+        left = self._load_image(key[0], key[2]).image().asarray()
+        right = self._load_image(key[1], key[2]).image().asarray()
+        result = self._stereo_algo.compute(
+            ImageContainer(Image(np.ascontiguousarray(right[:, ::-1]))),
+            ImageContainer(Image(np.ascontiguousarray(left[:, ::-1]))))
+        if result is None:
+            raise ValueError('Reverse disparity computation failed')
+        disparity = result.image().asarray()
+        if disparity.ndim == 3 and disparity.shape[2] == 1:
+            disparity = disparity[:, :, 0]
+        scale = 256.0 if disparity.dtype == np.uint16 else 1.0
+        disparity = disparity[:, ::-1].astype(float) / scale
+        if disparity.shape != self._current_disparity.shape:
+            raise ValueError('Reverse disparity does not match the source image grid')
+        self._right_reference_key, self._right_reference_map = key, disparity
+        return disparity
+
+    def _transfer_points_checked(self, request):
+        """Direction-aware point transfer. Invalid matches never become annotations."""
+        import copy
+        from viame.core.curved_measurement import sample_map
+        points = np.asarray(request['points'], dtype=float)
+        side = request.get('source_camera', 'left')
+        if side not in ('left', 'right'):
+            raise ValueError('source_camera must be left or right')
+        if points.ndim != 2 or points.shape[1] != 2 or not 1 <= len(points) <= 4096 or not np.isfinite(points).all():
+            raise ValueError('points must contain 1..4096 finite [x,y] positions')
+        if request.get('left_image_path') is not None:
+            if (request['left_image_path'] != self._current_left_path or
+                    request.get('right_image_path') != self._current_right_path or
+                    request.get('frame_time') != getattr(self, '_current_frame_time', None)):
+                raise ValueError('Point transfer request no longer matches the current frame')
+        if self._use_epipolar:
+            matcher = self._epipolar_matcher
+            source, target = self._left_gray, self._right_gray
+            if side == 'right':
+                matcher = copy.copy(matcher)
+                matcher._K_left, matcher._K_right = matcher._K_right, matcher._K_left
+                matcher._K_left_inv = np.linalg.inv(matcher._K_left)
+                matcher._R = matcher._R.T
+                matcher._T = -matcher._R @ matcher._T
+                # Forward DINO image features cannot be used for the reversed pair.
+                matcher._dino_available = False
+                source, target = target, source
+            matched = [matcher.match_point(source, target, p) for p in points]
+            h, w = target.shape[:2]
+            hs, ws = source.shape[:2]
+            valid = [p is not None and np.isfinite(p).all() and
+                     0 <= p[0] < w and 0 <= p[1] < h and
+                     0 <= original[0] < ws and 0 <= original[1] < hs
+                     for original, p in zip(points, matched)]
+        else:
+            if self._current_disparity is None:
+                raise ValueError('Disparity not ready')
+            disparity = self._current_disparity if side == 'left' else self._right_reference_disparity()
+            d = sample_map(np.where(np.isfinite(disparity) & (disparity > 0), disparity, np.nan), points)
+            matched = points.copy()
+            matched[:, 0] += d if side == 'right' else -d
+            h, w = disparity.shape
+            valid = (np.isfinite(d) & (d > 0) & (matched[:, 0] >= 0) &
+                     (matched[:, 0] < w) & (matched[:, 1] >= 0) & (matched[:, 1] < h)).tolist()
+        values = [float((p[0] - q[0]) if side == 'left' else (q[0] - p[0])) if ok else 0.0
+                  for p, q, ok in zip(points, matched, valid)]
+        return dict(success=all(valid), original_points=points.tolist(),
+                    transferred_points=[np.asarray(q, dtype=float).tolist() if ok else None
+                                        for q, ok in zip(matched, valid)],
+                    valid_matches=[bool(v) for v in valid], disparity_values=values,
+                    num_matched=sum(valid),
+                    error=None if all(valid) else 'No valid correspondence for one or more points')
 
     def _deferred_transfer(self, request_id, handler, request):
         """Wait for disparity in a background thread, then send the response."""
@@ -1104,7 +1190,14 @@ class InteractiveStereoService:
 
     def handle_transfer_points(self, request: Dict[str, Any]):
         """
-        Transfer multiple points from left image to right image using disparity.
+        Transfer points using dense disparity or epipolar matching.
+
+        Optional source_camera is 'left' (default) or 'right'. With strict=True,
+        invalid matches return null coordinates and valid_matches=False rather
+        than legacy fallback positions. Right-camera requests always use this
+        checked path. Dense right-to-left transfer computes a cached reverse map.
+        Optional left_image_path, right_image_path and frame_time identify the
+        expected frame and reject requests superseded during deferred processing.
 
         If disparity is not yet ready, defers the response until it is.
         """
@@ -1144,10 +1237,10 @@ class InteractiveStereoService:
 
         left_line = request.get("left_line")
         right_line = request.get("right_line")
-        if (not left_line or len(left_line) != 2
-                or not right_line or len(right_line) != 2):
-            raise ValueError(
-                "left_line and right_line must each be two [x, y] points")
+        if not left_line or not right_line or min(len(left_line), len(right_line)) < 2:
+            raise ValueError("left_line and right_line need at least two points")
+        if len(left_line) > 2 or len(right_line) > 2:
+            return self._measure_edited_centerline(left_line, right_line)
 
         lp1, lp2 = left_line[0], left_line[1]
         rp1, rp2 = right_line[0], right_line[1]
@@ -1174,6 +1267,91 @@ class InteractiveStereoService:
             "length": measurement["length"],
             "measurement": measurement,
         }
+
+    def _measure_edited_centerline(self, left_line, right_line):
+        """Re-match edited centerlines; vertex indices are not stereo matches."""
+        from viame.core.curved_measurement import resample_polyline, sample_map
+        from scipy.spatial import cKDTree
+        left = resample_polyline(left_line, 32)
+        right = resample_polyline(right_line, 512)
+        with self._compute_lock:
+            if not self._disparity_ready:
+                raise ValueError("Disparity not ready for curved measurement")
+            if self._use_epipolar:
+                matches = [self._epipolar_matcher.match_point(self._left_gray, self._right_gray, p)
+                           for p in left]
+                if any(p is None for p in matches):
+                    return {"success": False, "error": "Incomplete centerline correspondence"}
+                matched = np.asarray(matches, dtype=float)
+            else:
+                disparity = self._current_disparity
+                if disparity is None:
+                    raise ValueError("Disparity not ready for curved measurement")
+                disp = sample_map(np.where(disparity > 0, disparity, np.nan), left)
+                matched = left.copy()
+                matched[:, 0] -= disp
+                h, w = disparity.shape
+                if (not np.isfinite(disp).all() or (disp <= 0).any() or
+                        (matched[:, 0] < 0).any() or (matched[:, 0] >= w).any() or
+                        (matched[:, 1] < 0).any() or (matched[:, 1] >= h).any()):
+                    return {"success": False, "error": "Invalid centerline disparity"}
+            if not np.isfinite(matched).all() or (cKDTree(right).query(matched)[0] > 5).any():
+                return {"success": False, "error": "Matched points disagree with the edited right curve"}
+            def segment(i, j):
+                if self._use_epipolar:
+                    return self._epipolar_matcher.compute_measurement(left[i], matched[i], left[j], matched[j])
+                return self._dense_measurement(left[i], left[i, 0] - matched[i, 0],
+                                               left[j], left[j, 0] - matched[j, 0])
+            pieces = [segment(i, i + 1) for i in range(len(left) - 1)]
+            chord = segment(0, -1)
+        if (chord is None or chord['length'] <= 0 or
+                any(p is None or not np.isfinite(p['length']) or p['length'] <= 0 or
+                    p.get('stereo_rms', 0) > 5 for p in pieces)):
+            return {"success": False, "error": "Invalid reconstructed centerline"}
+        length = float(sum(p['length'] for p in pieces))
+        measurement = dict(chord, length=length, curved_length=length,
+                           straight_length=chord['length'], curvature_ratio=length / chord['length'],
+                           stereo_rms=max(p.get('stereo_rms', 0) for p in pieces))
+        return {"success": True, "length": length, "measurement": measurement,
+                "sampled_points": left.tolist(), "matched_points": matched.tolist()}
+
+    def handle_measure_curve(self, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Opt-in curved measurement on the current rectified disparity grid.
+
+        Bidirectional mode runs a second inference on horizontally flipped,
+        swapped images, then unflips the output into right-reference disparity.
+        Explicit frame paths prevent accidentally measuring stale frame data.
+        """
+        from viame.core.curved_measurement import request_measurement
+        if not self._enabled or self._use_epipolar:
+            raise ValueError("measure_curve requires an enabled dense stereo backend")
+        with self._compute_lock:
+            if not self._disparity_ready or self._current_disparity is None:
+                raise ValueError("Wait for disparity_ready before measure_curve")
+            if (request.get('left_image_path') != self._current_left_path or
+                    request.get('right_image_path') != self._current_right_path or
+                    request.get('frame_time') != getattr(self, '_current_frame_time', None)):
+                raise ValueError("Curve request must identify the current stereo frame")
+            config = self._stereo_algo.get_configuration()
+            if config.has_value('output_mode') and config.get_value('output_mode') != 'disparity':
+                raise ValueError("measure_curve requires disparity output, not depth")
+            reverse = None
+            if request.get('options', {}).get('mode', 'left') == 'bidirectional':
+                from kwiver.vital.types import Image, ImageContainer
+                frame_time = getattr(self, '_current_frame_time', None)
+                left = self._load_image(self._current_left_path, frame_time).image().asarray()
+                right = self._load_image(self._current_right_path, frame_time).image().asarray()
+                result = self._stereo_algo.compute(
+                    ImageContainer(Image(np.ascontiguousarray(right[:, ::-1]))),
+                    ImageContainer(Image(np.ascontiguousarray(left[:, ::-1]))))
+                if result is None:
+                    raise ValueError("Reverse stereo inference failed")
+                reverse = result.image().asarray()
+                if reverse.ndim == 3 and reverse.shape[2] == 1:
+                    reverse = reverse[:, :, 0]
+                scale = 256.0 if reverse.dtype == np.uint16 else 1.0
+                reverse = reverse[:, ::-1].astype(float) / scale
+            return request_measurement(request, self._current_disparity, reverse)
 
     def handle_aggregate_lengths(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Aggregate per-detection lengths along a track into a single value.
@@ -1388,6 +1566,7 @@ class InteractiveStereoService:
             "transfer_line": self.handle_transfer_line,
             "transfer_points": self.handle_transfer_points,
             "measure_line": self.handle_measure_line,
+            "measure_curve": self.handle_measure_curve,
             "aggregate_lengths": self.handle_aggregate_lengths,
         }
 

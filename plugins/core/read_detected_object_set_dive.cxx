@@ -78,6 +78,22 @@ create_detected_object_from_dive(
   {
     det->add_keypoint( "tail", { feature.tail[0], feature.tail[1] } );
   }
+  for( auto const& kp : feature.keypoints )
+  {
+    if( !feature.centerline.empty() && kp.first.compare( 0, 6, "spine_" ) == 0 ) continue;
+    if( kp.second.size() >= 2 )
+      det->add_keypoint( kp.first, { kp.second[0], kp.second[1] } );
+  }
+  if( feature.centerline.size() >= 2 )
+  {
+    for( size_t i = 0; i < feature.centerline.size(); ++i )
+    {
+      std::string name = i == 0 ? "head" :
+        ( i + 1 == feature.centerline.size() ? "tail" : "spine_" +
+          std::string( std::to_string( i ).size() < 3 ? 3 - std::to_string( i ).size() : 0, '0' ) + std::to_string( i ) );
+      det->add_keypoint( name, { feature.centerline[i][0], feature.centerline[i][1] } );
+    }
+  }
   if( feature.fishLength > 0.0 )
   {
     det->set_attribute( "length", feature.fishLength );
@@ -238,11 +254,24 @@ parse_geometry( rapidjson::Value const& geometry, dive_feature& feature )
         feature.polygon.pop_back();
       }
     }
-    else if( type == "Point" && ( key == "head" || key == "tail" ) )
+    else if( type == "LineString" && key == "HeadTails" && shape[ "coordinates" ].IsArray() )
+    {
+      std::vector< std::vector< double > > curve;
+      for( auto const& point : shape[ "coordinates" ].GetArray() )
+      {
+        auto xy = json_number_array( point );
+        if( xy.size() < 2 ) { curve.clear(); break; }
+        curve.push_back( { xy[0], xy[1] } );
+      }
+      if( curve.size() >= 2 ) feature.centerline = std::move( curve );
+    }
+    else if( type == "Point" && !key.empty() )
     {
       const auto xy = json_number_array( shape[ "coordinates" ] );
       if( xy.size() >= 2 )
       {
+        feature.keypoints[key] = { xy[0], xy[1] };
+        if( key != "head" && key != "tail" ) continue;
         auto& target = ( key == "head" ) ? feature.head : feature.tail;
         if( target.size() < 2 )
         {

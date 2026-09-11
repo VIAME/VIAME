@@ -72,3 +72,12 @@ if( VIAME_ENABLE_PYTHON )
       TIMEOUT 300
   )
 endif()
+
+if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_OPENCV )
+  add_test(
+    NAME viame_plugins:core:curved_measurement
+    COMMAND bash -c "source ${VIAME_SETUP_SCRIPT} && python -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/test_curved_measurement.py ${CMAKE_CURRENT_SOURCE_DIR}/test_interactive_stereo_points.py -q"
+    WORKING_DIRECTORY "${VIAME_BUILD_INSTALL_PREFIX}" )
+  set_tests_properties( viame_plugins:core:curved_measurement
+    PROPERTIES LABELS "UNIT;CORE" TIMEOUT 300 )
+endif()

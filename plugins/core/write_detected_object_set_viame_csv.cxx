@@ -2,6 +2,8 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
+#include <iomanip>
+#include <limits>
 #include "write_detected_object_set_viame_csv.h"
 
 #include "convert_notes_to_attributes.h"
@@ -267,7 +269,10 @@ write_detected_object_set_viame_csv
       for( const auto& kp : (*det)->keypoints() )
       {
         stream() << "," << "(kp) " << kp.first;
-        stream() << " " << kp.second.value()[0] << " " << kp.second.value()[1];
+        const auto old_precision = stream().precision();
+        stream() << std::setprecision( std::numeric_limits<double>::max_digits10 )
+                 << " " << kp.second.value()[0] << " " << kp.second.value()[1];
+        stream().precision( old_precision );
       }
     }
 

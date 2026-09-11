@@ -203,10 +203,28 @@ feature_json( kv::object_track_state const& state,
     json_value coords = point_json( tail->second[0], tail->second[1], alloc );
     geometry_features.PushBack( geojson_feature( "Point", "tail", coords, alloc ), alloc );
   }
+  std::map< unsigned long, kv::vector_2d > spine;
+  for( auto const& kp : keypoints )
+  {
+    if( kp.first != "head" && kp.first != "tail" )
+    {
+      json_value coords = point_json( kp.second[0], kp.second[1], alloc );
+      geometry_features.PushBack( geojson_feature( "Point", kp.first, coords, alloc ), alloc );
+    }
+    const std::string suffix = kp.first.size() > 6 ? kp.first.substr( 6 ) : "";
+    if( kp.first.compare( 0, 6, "spine_" ) == 0 && !suffix.empty() &&
+        suffix.find_first_not_of( "0123456789" ) == std::string::npos )
+    {
+      try { const auto index = std::stoul( suffix ); if( index > 0 ) spine[index] = kp.second.value(); }
+      catch( std::exception const& ) {}
+    }
+  }
   if( head != keypoints.end() && tail != keypoints.end() )
   {
     json_value line( rapidjson::kArrayType );
     line.PushBack( point_json( head->second[0], head->second[1], alloc ), alloc );
+    for( auto const& kp : spine )
+      line.PushBack( point_json( kp.second[0], kp.second[1], alloc ), alloc );
     line.PushBack( point_json( tail->second[0], tail->second[1], alloc ), alloc );
     geometry_features.PushBack( geojson_feature( "LineString", "HeadTails", line, alloc ), alloc );
   }
