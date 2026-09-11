@@ -336,7 +336,9 @@ class DetectHarn(nh.FitHarn):
                 if isinstance(outputs['batch_results'], BatchContainer):
                     outputs['batch_results'] = outputs['batch_results'].data
             # Criterion was computed in the forward pass
-            loss_parts = {k: v.sum() for k, v in outputs['loss_parts'].items()}
+            reduction = getattr(harn.raw_model, '__LOSS_REDUCTION__', 'sum')
+            loss_parts = {k: getattr(v, reduction)()
+                          for k, v in outputs['loss_parts'].items()}
 
         else:
             inputs = batch['inputs']

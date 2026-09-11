@@ -2524,13 +2524,18 @@ class CoreCallbacks(object):
             batch (object): the current batch
             loss (Tensor): the loss computed in `run_batch`.
         """
-        loss.backward()
+        # Models returning a mean loss need a mean across accumulated batches
+        # too. Keep the reported loss unscaled and preserve legacy sum behavior.
+        bstep = harn.dynamics['batch_step']
+        if getattr(harn.raw_model, '__LOSS_REDUCTION__', 'sum') == 'mean':
+            (loss / bstep).backward()
+        else:
+            loss.backward()
 
         if profiler.IS_PROFILING:
             torch.cuda.synchronize()
 
         # approximates a batch size of (bsize * bstep) if step > 1,
-        bstep = harn.dynamics['batch_step']
         if (bx + 1) % bstep == 0:
 
             tag = harn.current_tag
