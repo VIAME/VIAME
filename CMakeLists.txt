@@ -288,6 +288,11 @@ mark_as_advanced( VIAME_BUILD_PLUGINS_DIR )
 option( VIAME_BUILD_FORCE_REBUILD "Enable force-building of all subpackages" OFF )
 mark_as_advanced( VIAME_BUILD_FORCE_REBUILD )
 
+# Keep Fletch's existing incremental build behavior by default. Developers can
+# disable this and the global force flag to reuse completed dependency builds.
+option( VIAME_BUILD_FLETCH_ALWAYS "Run Fletch's build step on every superbuild" ON )
+mark_as_advanced( VIAME_BUILD_FLETCH_ALWAYS )
+
 # Control the number of parallel build threads for subprojects like PyTorch.
 # Set this to limit the number of concurrent compilation jobs (e.g., 4 or 8).
 set( VIAME_BUILD_MAX_THREADS "" CACHE STRING "Parallel threads for subprojects (empty = auto)" )
