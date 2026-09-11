@@ -677,6 +677,28 @@ an artefact of the port:
   then dies in teardown, which ctest reports as the test failing. Leaking an
   interpreter that the process is about to exit out from under costs nothing
   and is what the test does.
+* **The CPU and GPU builds register the same things**, which P0-T04 assumed
+  they would not. Nothing in VIAME registers conditionally on CUDA -- not one
+  `#if` in any `register_algorithms.cxx` or `register_processes.cxx`, and the
+  only CUDA macros in the tree are compile definitions inside
+  `plugins/darknet` and the vendored `remax` extension, neither of which
+  gates a factory. The two pipelines the build swaps between configurations
+  differ by one config **value**, `gpu_list` 0 against None. Dumping the
+  registry with `CUDA_VISIBLE_DEVICES=` empty gives 642 registrations either
+  way, nothing lost and nothing gained.
+  So the union baseline and the `--config` switch P0-T06 specifies would be
+  machinery for a distinction that does not exist. What replaces them is
+  cheaper and catches the real risk: `baseline:registry:no_gpu` and
+  `baseline:pipes:no_gpu` run the same comparison with the GPU hidden, which
+  is what would fail the day a registration goes behind a CUDA guard or a
+  python implementation probes the device while importing -- and that second
+  one no build flag controls.
+* **A second build configuration cannot be built at all right now**, which is
+  its own finding. `VIAME_INSTALL_PREFIX` is forced equal to the install
+  directory, and `plugins/svm` resolves libsvm out of it with
+  `NO_DEFAULT_PATH`, as do the TinyXML and Darknet lookups; a second build
+  into its own prefix fails at configure until that prefix has been populated
+  by the superbuild. Removing that coupling is what P1's single build is for.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 
