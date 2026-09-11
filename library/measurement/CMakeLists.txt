@@ -13,12 +13,14 @@
 set( plugin_headers
   camera_intrinsics.h
   epipolar_geometry.h
+  projection.h
   triangulate.h
   )
 
 set( plugin_sources
   camera_intrinsics.cxx
   epipolar_geometry.cxx
+  projection.cxx
   triangulate.cxx
   )
 
