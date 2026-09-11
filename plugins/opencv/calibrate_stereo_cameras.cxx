@@ -8,7 +8,6 @@
  */
 
 #include "calibrate_stereo_cameras.h"
-#include "calibrate_single_camera.h"
 #include "camera_rig_io.h"
 
 #include "opencv_yaml_matrix.h"

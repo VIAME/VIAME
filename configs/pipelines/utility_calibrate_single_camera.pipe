@@ -7,6 +7,11 @@
 config _pipeline:_edge
   :capacity                                    5
 
+# `ocv_calibrate_single_camera` is a python process since P7-T06, and the
+# default scheduler refuses to run one.
+config _scheduler
+  :type                                        pythread_per_process
+
 config global
    :output_directory                           ./
    :output_json_file                           calibration.json

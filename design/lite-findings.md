@@ -458,6 +458,16 @@ an artefact of the port:
   reproduces it and a decision to fix it is visible as a change to that
   recording.
 
+* `pair_stereo_tracks_pytorch` **cannot have been run**.
+  `_get_track_descriptor_at_frame` writes `det = state.detection` where the
+  binding makes `detection` a method, so `det` is a bound method, the
+  `is not None` test passes and `det.descriptor` raises `AttributeError` on
+  the first state it looks at. Every path through the process reaches it. No
+  pipeline in the tree selects it, which is presumably why nobody noticed;
+  one add-on selects the C++ `ocv_pair_stereo_tracks` instead. Fixed in
+  passing while porting the single camera calibration, which hit the same
+  binding.
+
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 
 Kwiver is configured and built before VIAME, against the same install prefix,

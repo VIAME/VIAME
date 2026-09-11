@@ -184,7 +184,10 @@ class PairStereoTracks(KwiverProcess):
         """Extract descriptor from a track's detection at the given frame."""
         for state in track:
             if state.frame_id == frame_id:
-                det = state.detection
+                # `detection` is a method on the binding, not a property;
+                # without the call this raised AttributeError on the first
+                # frame it was given. See finding 1.10.
+                det = state.detection()
                 if det is not None and det.descriptor is not None:
                     desc = det.descriptor
                     arr = np.array(desc.todoublearray())

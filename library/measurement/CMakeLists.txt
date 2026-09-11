@@ -140,4 +140,12 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_optimize_stereo_cameras.py
     measurement
     ocv_optimize_stereo_cameras )
+
+  # The `ocv_calibrate_single_camera` process, which is the same fit over one
+  # camera. A sprokit process rather than an algorithm, so it is registered
+  # through `__sprokit_register__` rather than `__vital_algorithm_register__`.
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_calibrate_single_camera.py
+    measurement
+    ocv_calibrate_single_camera )
 endif()

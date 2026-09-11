@@ -10,7 +10,6 @@ link_directories( "${OpenCV_LIBRARY_DIR}" )
 
 set( plugin_headers
   add_keypoints_from_mask.h
-  calibrate_single_camera.h
   calibrate_stereo_cameras.h
   classify_fish_hierarchical_svm.h
   convert_color_space.h
@@ -31,7 +30,6 @@ set( plugin_headers
 
 set( plugin_sources
   add_keypoints_from_mask.cxx
-  calibrate_single_camera.cxx
   calibrate_stereo_cameras.cxx
   classify_fish_hierarchical_svm.cxx
   convert_color_space.cxx
@@ -111,7 +109,6 @@ target_link_libraries( viame_opencv_plugin
 
 # Add process library
 set( process_headers
-  calibrate_single_camera_process.h
   detect_in_subregions_process.h
   measure_objects_process.h
   pair_stereo_detections_process.h
@@ -121,7 +118,6 @@ set( process_headers
 
 set( process_sources
   register_processes.cxx
-  calibrate_single_camera_process.cxx
   detect_in_subregions_process.cxx
   measure_objects_process.cxx
   pair_stereo_detections_process.cxx

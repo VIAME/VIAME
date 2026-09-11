@@ -13,3 +13,9 @@ def __vital_algorithm_register__():
     ocv_stereo_disparity.__vital_algorithm_register__()
     ocv_calibration_targets.__vital_algorithm_register__()
     ocv_optimize_stereo_cameras.__vital_algorithm_register__()
+
+
+def __sprokit_register__():
+    from viame.measurement import ocv_calibrate_single_camera
+
+    ocv_calibrate_single_camera.__sprokit_register__()
