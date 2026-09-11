@@ -577,6 +577,35 @@ an artefact of the port:
   `ocv_windowed` recordings exactly. `tests/baseline/check_symbols.py` is the
   standing guard -- no two VIAME libraries may define the same symbol -- so
   the next one is found on purpose rather than by a crash.
+* **`darknet`, recorded before P7-T08 touches it, and five defects out of
+  it.** All five are in shipped code and none needed the port to find them;
+  the recording found them.
+  * **A `chip_step` at or above the image's own height throws an OpenCV
+    assertion.** The chipping loop runs while `li < cols - net_width +
+    chip_step`, which with a large step lets the start walk past the image,
+    and the region of interest is then negative. On the 1000 by 800 fixture
+    every step from 800 up fails, out of `cv::Mat`'s ROI constructor with
+    `0 <= roi.width` -- no message about the configuration that caused it.
+  * **An image smaller than the network detects nothing, silently.** The same
+    bound is negative when `cols` is under `net_width`, so the loop body never
+    runs, no region is produced and the set comes back empty. A 96 by 64 frame
+    gives six detections with resizing disabled and **zero** in `chip` mode.
+    Every VIAME pipeline that wraps this detector configures chipping.
+  * **`nms_threshold` does nothing.** It is declared with a default and a
+    description, copied out of the config into `m_nms_threshold`, and never
+    read again. 0.10 and 0.90 give byte-identical output.
+  * **`gs_to_rgb` does nothing either**, though for a better reason: darknet's
+    own `mat_to_image` converts a one-channel matrix with `GRAY2BGR` whatever
+    VIAME did first, so the flag only decides who does the conversion. True
+    and false give byte-identical output.
+  * **`adaptive` latches on the first frame.** `detect` is a const method that
+    writes its choice back into the private state, so the first image's pixel
+    count decides the mode for every image after it. The same 900 by 750 frame
+    under the same configuration gives **31** detections on a fresh detector
+    and **135** after one larger frame has gone through it. Pinned by
+    `adaptive_latch`, which the golden runner records the way it records
+    everything -- one algorithm, then the inputs in order -- so the recording
+    carries the latch rather than describing it.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 

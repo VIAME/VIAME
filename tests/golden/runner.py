@@ -74,6 +74,37 @@ def is_registered(kind, impl):
     return True
 
 
+def install_dir():
+    """The VIAME install this is running against, or None."""
+    return os.environ.get("VIAME_INSTALL")
+
+
+def expand_config_value(value):
+    """Expand `{models}` in a recorded configuration value.
+
+    A case that needs a model file has to name it, and an absolute path
+    cannot be committed: the recording would only replay on the machine it
+    was made on. So the committed config says
+    `{models}/generic_detector.weights` and this turns it into the install's
+    own path, at record time and at replay time alike, through the one place
+    both of them configure an algorithm.
+    """
+    text = str(value)
+
+    if "{models}" not in text:
+        return text
+
+    install = install_dir()
+
+    if not install:
+        raise RuntimeError(
+            "this case needs a model file and VIAME_INSTALL is not set; "
+            "source the install's setup script")
+
+    return text.replace(
+        "{models}", os.path.join(install, "configs", "pipelines", "models"))
+
+
 def _configure(algorithm, config):
     if not config:
         return
@@ -81,7 +112,7 @@ def _configure(algorithm, config):
     block = algorithm.get_configuration()
 
     for key, value in sorted(config.items()):
-        block.set_value(key, str(value))
+        block.set_value(key, expand_config_value(value))
 
     algorithm.set_configuration(block)
 

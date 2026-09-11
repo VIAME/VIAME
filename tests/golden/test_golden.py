@@ -12,6 +12,7 @@ Re-record:       see tests/golden/README.md
 import json
 import os
 import sys
+import subprocess
 import tempfile
 
 import numpy as np
@@ -677,9 +678,64 @@ def check_json_case(item, case, outputs, group):
 REMOVED = removed_names()
 
 
+def model_files(case):
+    """The `{models}` paths a case's configuration names, expanded."""
+    return [runner.expand_config_value(value)
+            for value in case.get("config", {}).values()
+            if isinstance(value, str) and "{models}" in value]
+
+
+def skip_without_model(case):
+    """Skip rather than fail when the case's model or its GPU is absent.
+
+    `darknet` is the one implementation here whose recording depends on
+    something that is not in the repository: `generic_detector.weights` comes
+    from the `yolo-generic` add-on, which an install may or may not have. And
+    the fork is built with CUDA, so `gpu_index` names a real device -- there
+    is no CPU path to fall back to, the library aborts the process on a bad
+    ordinal rather than returning an error.
+    """
+    if not os.environ.get("VIAME_INSTALL"):
+        needed = [value for value in case.get("config", {}).values()
+                  if isinstance(value, str) and "{models}" in value]
+        if needed:
+            pytest.skip("VIAME_INSTALL is not set, so the model cannot be "
+                        "found")
+        return
+
+    missing = [path for path in model_files(case) if not os.path.exists(path)]
+
+    if missing:
+        pytest.skip("this install has no {}; it comes from the yolo-generic "
+                    "add-on".format(os.path.basename(missing[0])))
+
+    if not model_files(case):
+        return
+
+    gpu = case.get("config", {}).get("gpu_index")
+
+    if gpu is not None and int(gpu) >= 0 and not _has_cuda_device():
+        pytest.skip("this machine has no CUDA device and the darknet fork "
+                    "is built with CUDA")
+
+
+def _has_cuda_device():
+    """Whether `nvidia-smi` lists at least one device."""
+    try:
+        result = subprocess.run(
+            ["nvidia-smi", "--list-gpus"],
+            capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+    return result.returncode == 0 and bool(result.stdout.strip())
+
+
 @pytest.mark.parametrize("item", collect_cases(), ids=case_id)
 def test_golden(item):
     group, case, impl = item
+
+    skip_without_model(case)
 
     interface = INTERFACE_OF_KIND.get(case["kind"])
     removal = REMOVED.get((case["impl"], interface)) if interface else None

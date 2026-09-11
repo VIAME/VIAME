@@ -40,6 +40,8 @@ import opencv_fixtures              # noqa: E402
 import imageio_utils                # noqa: E402
 import measurement_cases            # noqa: E402
 import measurement_fixtures         # noqa: E402
+import detection_cases              # noqa: E402
+import detection_fixtures           # noqa: E402
 import measurement_runner           # noqa: E402
 import pipeline_runner              # noqa: E402
 import refine_cases                 # noqa: E402
@@ -81,6 +83,7 @@ def write_inputs():
     images = dict(fixtures.build())
     images.update(opencv_fixtures.build())
     images.update(measurement_fixtures.build())
+    images.update(detection_fixtures.build())
 
     if not all(_fixture_exists(name) for name in case_spec.PIPELINE_INPUTS):
         images.update(dict(fixtures.pipeline_frames(TEST_DATA_DIR)))
@@ -868,8 +871,73 @@ def record_vxl(group_dir, manifest):
     record_pipelines(group_dir, manifest)
 
 
+def record_detection(group_dir, manifest):
+    """`darknet`, over the scene built for it.
+
+    Every case carries the model in its own config, as `{models}/...`, which
+    `runner.expand_config_value` turns into this install's path. Recorded in
+    the config rather than injected at replay so the manifest says plainly
+    what the boxes came from.
+    """
+    model = {
+        "net_config": "{models}/generic_detector.cfg",
+        "weight_file": "{models}/generic_detector.weights",
+        "class_names": "{models}/generic_detector.lbl",
+        # The darknet fork here is built with CUDA and rejects -1 outright,
+        # with a stack trace and no detections
+        "gpu_index": "0",
+    }
+
+    groups = [
+        (detection_cases.SCENE,
+         detection_cases.DETECTORS["darknet"]["variants"]),
+        (detection_cases.GRAY, detection_cases.GRAY_VARIANTS),
+        (detection_cases.SMALL, detection_cases.SMALL_VARIANTS),
+        (detection_cases.LATCH, detection_cases.LATCH_VARIANTS),
+        (detection_cases.MEDIUM, detection_cases.MEDIUM_VARIANTS),
+    ]
+
+    for input_names, variants in groups:
+        arrays = [imageio_utils.load(input_path(name)) for name in input_names]
+
+        for variant, variant_config in variants:
+            config = dict(model)
+            config.update(variant_config)
+
+            outputs = runner.run_image_object_detector("darknet", config,
+                                                       arrays)
+
+            case_dir = os.path.join(group_dir, "detect", "darknet", variant)
+            os.makedirs(case_dir, exist_ok=True)
+
+            files = {}
+            for name, detections in zip(input_names, outputs):
+                written = _write_json(
+                    os.path.join(case_dir, name + ".json"), detections)
+                files[name] = {
+                    "file": os.path.relpath(written, group_dir),
+                    "detections": len(detections),
+                    "sha256": file_digest(written),
+                }
+
+            manifest["cases"].append({
+                "kind": "detect",
+                "impl": "darknet",
+                "variant": variant,
+                "config": config,
+                "inputs": list(input_names),
+                "outputs": files,
+                "unstable": {},
+            })
+            print("  detect darknet {} ({} detections)".format(
+                variant, sum(len(d) for d in outputs)))
+
+    manifest["model"] = detection_cases.MODEL
+
+
 GROUPS = {
     "vxl": record_vxl,
+    "detection": record_detection,
     "codecs": record_codecs,
     "calib": record_calib,
     "opencv": record_opencv,
@@ -943,7 +1011,8 @@ def main():
                                | set(case_spec.MASKS)
                                | set(case_spec.PIPELINE_INPUTS)
                                | set(opencv_fixtures.build())
-                               | set(measurement_fixtures.build()))
+                               | set(measurement_fixtures.build())
+                               | set(detection_fixtures.build()))
         },
         "cases": [],
     }

@@ -1,0 +1,1083 @@
+{
+  "appended": "2026-09-11T16:51:10Z",
+  "cases": [
+    {
+      "config": {
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 37,
+          "file": "detect/darknet/defaults/detect_scene.json",
+          "sha256": "0ab2e79c88727197"
+        }
+      },
+      "unstable": {},
+      "variant": "defaults"
+    },
+    {
+      "config": {
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "thresh": "0.10",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 69,
+          "file": "detect/darknet/thresh_0_10/detect_scene.json",
+          "sha256": "6f4638bf34625725"
+        }
+      },
+      "unstable": {},
+      "variant": "thresh_0_10"
+    },
+    {
+      "config": {
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "thresh": "0.50",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 21,
+          "file": "detect/darknet/thresh_0_50/detect_scene.json",
+          "sha256": "ee5565e28b9a0305"
+        }
+      },
+      "unstable": {},
+      "variant": "thresh_0_50"
+    },
+    {
+      "config": {
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "maintain_ar",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 23,
+          "file": "detect/darknet/maintain_ar/detect_scene.json",
+          "sha256": "02e2cd603ac6e2ad"
+        }
+      },
+      "unstable": {},
+      "variant": "maintain_ar"
+    },
+    {
+      "config": {
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "scale",
+        "scale": "0.5",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 12,
+          "file": "detect/darknet/scale_0_50/detect_scene.json",
+          "sha256": "29156f0305e20a6e"
+        }
+      },
+      "unstable": {},
+      "variant": "scale_0_50"
+    },
+    {
+      "config": {
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "scale",
+        "scale": "1.5",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 30,
+          "file": "detect/darknet/scale_1_50/detect_scene.json",
+          "sha256": "de285e97b403a293"
+        }
+      },
+      "unstable": {},
+      "variant": "scale_1_50"
+    },
+    {
+      "config": {
+        "chip_step": "200",
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "chip",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 155,
+          "file": "detect/darknet/chip/detect_scene.json",
+          "sha256": "b7e20c5219bf0231"
+        }
+      },
+      "unstable": {},
+      "variant": "chip"
+    },
+    {
+      "config": {
+        "chip_step": "400",
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "chip",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 119,
+          "file": "detect/darknet/chip_step_400/detect_scene.json",
+          "sha256": "9a25167a629e272f"
+        }
+      },
+      "unstable": {},
+      "variant": "chip_step_400"
+    },
+    {
+      "config": {
+        "chip_step": "700",
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "chip",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 75,
+          "file": "detect/darknet/chip_step_700/detect_scene.json",
+          "sha256": "ffebd1e5de8781fc"
+        }
+      },
+      "unstable": {},
+      "variant": "chip_step_700"
+    },
+    {
+      "config": {
+        "chip_step": "200",
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "chip",
+        "scale": "0.75",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 39,
+          "file": "detect/darknet/chip_scaled/detect_scene.json",
+          "sha256": "4a8f8a2b099abd2a"
+        }
+      },
+      "unstable": {},
+      "variant": "chip_scaled"
+    },
+    {
+      "config": {
+        "chip_edge_filter": "20",
+        "chip_step": "200",
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "chip",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 136,
+          "file": "detect/darknet/chip_edge_filter_20/detect_scene.json",
+          "sha256": "836dd5dfb6b21d07"
+        }
+      },
+      "unstable": {},
+      "variant": "chip_edge_filter_20"
+    },
+    {
+      "config": {
+        "chip_step": "200",
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "chip_and_original",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 178,
+          "file": "detect/darknet/chip_and_original/detect_scene.json",
+          "sha256": "9a0d4aea2eb5b33b"
+        }
+      },
+      "unstable": {},
+      "variant": "chip_and_original"
+    },
+    {
+      "config": {
+        "chip_adaptive_thresh": "500000",
+        "chip_step": "200",
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "adaptive",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 178,
+          "file": "detect/darknet/adaptive_chips/detect_scene.json",
+          "sha256": "9a0d4aea2eb5b33b"
+        }
+      },
+      "unstable": {},
+      "variant": "adaptive_chips"
+    },
+    {
+      "config": {
+        "chip_adaptive_thresh": "2000000",
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "adaptive",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 23,
+          "file": "detect/darknet/adaptive_whole/detect_scene.json",
+          "sha256": "02e2cd603ac6e2ad"
+        }
+      },
+      "unstable": {},
+      "variant": "adaptive_whole"
+    },
+    {
+      "config": {
+        "chip_step": "200",
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "nms_threshold": "0.10",
+        "resize_option": "chip",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 155,
+          "file": "detect/darknet/nms_0_10/detect_scene.json",
+          "sha256": "b7e20c5219bf0231"
+        }
+      },
+      "unstable": {},
+      "variant": "nms_0_10"
+    },
+    {
+      "config": {
+        "chip_step": "200",
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "nms_threshold": "0.90",
+        "resize_option": "chip",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 155,
+          "file": "detect/darknet/nms_0_90/detect_scene.json",
+          "sha256": "b7e20c5219bf0231"
+        }
+      },
+      "unstable": {},
+      "variant": "nms_0_90"
+    },
+    {
+      "config": {
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene_gray"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene_gray": {
+          "detections": 29,
+          "file": "detect/darknet/gray_defaults/detect_scene_gray.json",
+          "sha256": "744b670637a09d01"
+        }
+      },
+      "unstable": {},
+      "variant": "gray_defaults"
+    },
+    {
+      "config": {
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "gs_to_rgb": "false",
+        "net_config": "{models}/generic_detector.cfg",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene_gray"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene_gray": {
+          "detections": 29,
+          "file": "detect/darknet/gray_no_rgb/detect_scene_gray.json",
+          "sha256": "744b670637a09d01"
+        }
+      },
+      "unstable": {},
+      "variant": "gray_no_rgb"
+    },
+    {
+      "config": {
+        "chip_step": "200",
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "chip_and_original",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene_gray"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene_gray": {
+          "detections": 151,
+          "file": "detect/darknet/gray_chip_and_original/detect_scene_gray.json",
+          "sha256": "92bb2c3bcda65f4e"
+        }
+      },
+      "unstable": {},
+      "variant": "gray_chip_and_original"
+    },
+    {
+      "config": {
+        "chip_step": "100",
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "chip",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "rgb8": {
+          "detections": 0,
+          "file": "detect/darknet/small_image_chip/rgb8.json",
+          "sha256": "37517e5f3dc66819"
+        }
+      },
+      "unstable": {},
+      "variant": "small_image_chip"
+    },
+    {
+      "config": {
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "disabled",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "rgb8": {
+          "detections": 6,
+          "file": "detect/darknet/small_image_disabled/rgb8.json",
+          "sha256": "f0867f1ec9568a06"
+        }
+      },
+      "unstable": {},
+      "variant": "small_image_disabled"
+    },
+    {
+      "config": {
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "maintain_ar",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "rgb8": {
+          "detections": 1,
+          "file": "detect/darknet/small_image_maintain_ar/rgb8.json",
+          "sha256": "51f2a30ee6cea339"
+        }
+      },
+      "unstable": {},
+      "variant": "small_image_maintain_ar"
+    },
+    {
+      "config": {
+        "chip_adaptive_thresh": "700000",
+        "chip_step": "200",
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "adaptive",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene",
+        "detect_scene_medium"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene": {
+          "detections": 178,
+          "file": "detect/darknet/adaptive_latch/detect_scene.json",
+          "sha256": "9a0d4aea2eb5b33b"
+        },
+        "detect_scene_medium": {
+          "detections": 135,
+          "file": "detect/darknet/adaptive_latch/detect_scene_medium.json",
+          "sha256": "07ce287e3c11fb85"
+        }
+      },
+      "unstable": {},
+      "variant": "adaptive_latch"
+    },
+    {
+      "config": {
+        "chip_adaptive_thresh": "700000",
+        "chip_step": "200",
+        "class_names": "{models}/generic_detector.lbl",
+        "gpu_index": "0",
+        "net_config": "{models}/generic_detector.cfg",
+        "resize_option": "adaptive",
+        "weight_file": "{models}/generic_detector.weights"
+      },
+      "impl": "darknet",
+      "inputs": [
+        "detect_scene_medium"
+      ],
+      "kind": "detect",
+      "outputs": {
+        "detect_scene_medium": {
+          "detections": 31,
+          "file": "detect/darknet/adaptive_medium_alone/detect_scene_medium.json",
+          "sha256": "8e4871ba06a0f465"
+        }
+      },
+      "unstable": {},
+      "variant": "adaptive_medium_alone"
+    }
+  ],
+  "fixtures": {
+    "bayer_bg": {
+      "dtype": "uint8",
+      "sha256": "778ca8d041b448ec",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "calib_left_00": {
+      "dtype": "uint8",
+      "sha256": "bba8da40812ecbd4",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_01": {
+      "dtype": "uint8",
+      "sha256": "51f4cf24aa706792",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_02": {
+      "dtype": "uint8",
+      "sha256": "b35e756fa5edbb5d",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_03": {
+      "dtype": "uint8",
+      "sha256": "a315f75dcc0126ca",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_04": {
+      "dtype": "uint8",
+      "sha256": "4f4091a636069ebb",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_05": {
+      "dtype": "uint8",
+      "sha256": "1ddda10fd8a033d8",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_06": {
+      "dtype": "uint8",
+      "sha256": "74d37e7ef5922100",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_07": {
+      "dtype": "uint8",
+      "sha256": "c1cabe6b50350971",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_08": {
+      "dtype": "uint8",
+      "sha256": "4e5f8044e48b4d0c",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_09": {
+      "dtype": "uint8",
+      "sha256": "0829d0c64f82b644",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_10": {
+      "dtype": "uint8",
+      "sha256": "4a690346489fdf97",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_left_11": {
+      "dtype": "uint8",
+      "sha256": "dda71b7724c274cf",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_00": {
+      "dtype": "uint8",
+      "sha256": "fc1aff51bc527952",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_01": {
+      "dtype": "uint8",
+      "sha256": "efcef35d3c3892ab",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_02": {
+      "dtype": "uint8",
+      "sha256": "95fb5ac90d36cebd",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_03": {
+      "dtype": "uint8",
+      "sha256": "e80d77099ab4f9be",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_04": {
+      "dtype": "uint8",
+      "sha256": "1831f0c17aec8a2b",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_05": {
+      "dtype": "uint8",
+      "sha256": "df12ed093960dfe7",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_06": {
+      "dtype": "uint8",
+      "sha256": "9552f12be7252b30",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_07": {
+      "dtype": "uint8",
+      "sha256": "b32c86fa1fe13ae5",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_08": {
+      "dtype": "uint8",
+      "sha256": "870f5d6225501eff",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_09": {
+      "dtype": "uint8",
+      "sha256": "df524549facf861d",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_10": {
+      "dtype": "uint8",
+      "sha256": "3e7b485632a55038",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "calib_right_11": {
+      "dtype": "uint8",
+      "sha256": "4fc7d6277145201c",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "chessboard": {
+      "dtype": "uint8",
+      "sha256": "6e0aa946537e25be",
+      "shape": [
+        320,
+        400,
+        3
+      ]
+    },
+    "circles_rgb": {
+      "dtype": "uint8",
+      "sha256": "16db4f53dd8fd216",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "detect_scene": {
+      "dtype": "uint8",
+      "sha256": "8e6809f5327792e5",
+      "shape": [
+        800,
+        1000,
+        3
+      ]
+    },
+    "detect_scene_gray": {
+      "dtype": "uint8",
+      "sha256": "5d77ff6205e5fb9d",
+      "shape": [
+        800,
+        1000
+      ]
+    },
+    "detect_scene_medium": {
+      "dtype": "uint8",
+      "sha256": "e61198e534cb82ef",
+      "shape": [
+        750,
+        900,
+        3
+      ]
+    },
+    "dot_grid": {
+      "dtype": "uint8",
+      "sha256": "2eecfaeea3b546ab",
+      "shape": [
+        290,
+        390,
+        3
+      ]
+    },
+    "frame_00": {
+      "dtype": "uint8",
+      "sha256": "f95e51b330c93941",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_01": {
+      "dtype": "uint8",
+      "sha256": "1c6de71c2e80cd0e",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_02": {
+      "dtype": "uint8",
+      "sha256": "516dc55612ea714b",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_03": {
+      "dtype": "uint8",
+      "sha256": "2aab205257c1fbc3",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_04": {
+      "dtype": "uint8",
+      "sha256": "8cac30c3f75b8492",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "frame_05": {
+      "dtype": "uint8",
+      "sha256": "2bf42c26f732a65b",
+      "shape": [
+        270,
+        480,
+        3
+      ]
+    },
+    "gray16": {
+      "dtype": "uint16",
+      "sha256": "68830aaa86124440",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "gray8": {
+      "dtype": "uint8",
+      "sha256": "95e317223585e847",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "heat": {
+      "dtype": "uint8",
+      "sha256": "e4d463b84cdf7d3a",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "mask": {
+      "dtype": "bool",
+      "sha256": "2010a62d1e18f06a",
+      "shape": [
+        64,
+        96
+      ]
+    },
+    "measure_left_00": {
+      "dtype": "uint8",
+      "sha256": "67efef457155a20b",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "measure_right_00": {
+      "dtype": "uint8",
+      "sha256": "214baf3831345be0",
+      "shape": [
+        480,
+        640
+      ]
+    },
+    "rgb8": {
+      "dtype": "uint8",
+      "sha256": "835f97298ef48c75",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_00": {
+      "dtype": "uint8",
+      "sha256": "9ac941edfbe79886",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_01": {
+      "dtype": "uint8",
+      "sha256": "fa8a0910d17fffb2",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_02": {
+      "dtype": "uint8",
+      "sha256": "bd5cc83de41c5ce6",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_03": {
+      "dtype": "uint8",
+      "sha256": "30a83406911e6497",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_04": {
+      "dtype": "uint8",
+      "sha256": "89a6d5999f5bd8ca",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_05": {
+      "dtype": "uint8",
+      "sha256": "4272fd601873ca1c",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_06": {
+      "dtype": "uint8",
+      "sha256": "6a2f47f8c1e77850",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_07": {
+      "dtype": "uint8",
+      "sha256": "77a642afb8efb555",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_08": {
+      "dtype": "uint8",
+      "sha256": "d84318b825c34750",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_09": {
+      "dtype": "uint8",
+      "sha256": "1d52f0325ea50687",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_10": {
+      "dtype": "uint8",
+      "sha256": "f2e17c1ff4f22798",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "seq_11": {
+      "dtype": "uint8",
+      "sha256": "8a5d2298f319f1d0",
+      "shape": [
+        64,
+        96,
+        3
+      ]
+    },
+    "stereo_left": {
+      "dtype": "uint8",
+      "sha256": "14791a3116a98c02",
+      "shape": [
+        240,
+        320,
+        3
+      ]
+    },
+    "stereo_right": {
+      "dtype": "uint8",
+      "sha256": "180248c73356b360",
+      "shape": [
+        240,
+        320,
+        3
+      ]
+    }
+  },
+  "group": "detection",
+  "model": "models/generic_detector",
+  "recorded": "2026-09-11T16:47:46Z",
+  "versions": {
+    "install": "/home/local/KHQ/matt.dawkins/Dev/viame-lite/build/install",
+    "viame": "42d0788e2f1d305e3c71bbcdf849d6c34442f8fe"
+  }
+}
