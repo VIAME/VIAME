@@ -13,6 +13,7 @@
 #endif
 
 #include "measurement_utilities.h"
+#include "disparity_segment.h"
 
 #include <vital/algo/algorithm.txx>
 #include <vital/logger/logger.h>
@@ -440,6 +441,10 @@ map_keypoints_to_camera_settings
   , uniqueness_ratio( 0.85 )
   , record_stereo_method( true )
   , refine_keypoints_with_disparity( false )
+  , refine_disparity_segment( false )
+  , disparity_segment_samples( 11 )
+  , disparity_segment_max_outliers( 3 )
+  , disparity_segment_max_error( 1.0 )
   , refine_keypoints_disparity_window( 7 )
   , refine_keypoints_reject_inconsistent( false )
   , refine_keypoints_max_distance( 0.25 )
@@ -632,7 +637,8 @@ map_keypoints_to_camera_settings
     "input_kps_partial_disparity_refined, disparity_inconsistent_rejected, "
     "template_matching, epipolar_template_matching, feature_descriptor, "
     "ransac_feature, depth_projection, external_disparity, or "
-    "compute_disparity." );
+    "compute_disparity, compute_disparity_segment, input_kps_disparity_segment, "
+    "or disparity_segment_rejected." );
 
   config->set_value( "refine_keypoints_with_disparity", refine_keypoints_with_disparity,
     "If true and a stereo_disparity algorithm is configured, snap right "
@@ -641,11 +647,24 @@ map_keypoints_to_camera_settings
     "when disparity is invalid at the query location. Tracks that lacked "
     "a right keypoint are unaffected." );
 
+  config->set_value( "refine_disparity_segment", refine_disparity_segment,
+    "Fit a robust disparity profile along head-tail instead of independently "
+    "sampling endpoints. Requires a stereo_disparity backend and OpenCV "
+    "rectification. Applies to paired tracks and compute_disparity matching. "
+    "Insufficient support skips measurement, without falling back to input "
+    "keypoints. Disabled by default." );
+  config->set_value( "disparity_segment_samples", disparity_segment_samples,
+    "Number of uniformly spaced segment samples (3 to 101)." );
+  config->set_value( "disparity_segment_max_outliers", disparity_segment_max_outliers,
+    "Maximum invalid or rejected segment samples. Must leave at least three "
+    "inliers and a strict majority. Inliers must span at least half the segment." );
+  config->set_value( "disparity_segment_max_error", disparity_segment_max_error,
+    "Maximum disparity residual in pixels for a segment inlier; finite and > 0." );
+
   config->set_value( "refine_keypoints_disparity_window", refine_keypoints_disparity_window,
     "Half-width (in pixels) of the neighborhood sampled when reading the "
     "disparity map for keypoint refinement (median over (2w+1)^2). Set to "
-    "0 for single-pixel lookup. Only applies when "
-    "refine_keypoints_with_disparity is true." );
+    "0 for single-pixel lookup. Also used by refine_disparity_segment." );
 
   config->set_value( "refine_keypoints_reject_inconsistent", refine_keypoints_reject_inconsistent,
     "If true, compare each tracker-provided right keypoint to its "
@@ -768,6 +787,10 @@ map_keypoints_to_camera_settings
   uniqueness_ratio = config->get_value< double >( "uniqueness_ratio", uniqueness_ratio );
   record_stereo_method = config->get_value< bool >( "record_stereo_method", record_stereo_method );
   refine_keypoints_with_disparity = config->get_value< bool >( "refine_keypoints_with_disparity", refine_keypoints_with_disparity );
+  refine_disparity_segment = config->get_value< bool >( "refine_disparity_segment", refine_disparity_segment );
+  disparity_segment_samples = config->get_value< int >( "disparity_segment_samples", disparity_segment_samples );
+  disparity_segment_max_outliers = config->get_value< int >( "disparity_segment_max_outliers", disparity_segment_max_outliers );
+  disparity_segment_max_error = config->get_value< double >( "disparity_segment_max_error", disparity_segment_max_error );
   refine_keypoints_disparity_window = config->get_value< int >( "refine_keypoints_disparity_window", refine_keypoints_disparity_window );
   refine_keypoints_reject_inconsistent = config->get_value< bool >( "refine_keypoints_reject_inconsistent", refine_keypoints_reject_inconsistent );
   refine_keypoints_max_distance = config->get_value< double >( "refine_keypoints_max_distance", refine_keypoints_max_distance );
@@ -927,7 +950,12 @@ map_keypoints_to_camera_settings
 // -----------------------------------------------------------------------------
 map_keypoints_to_camera
 ::map_keypoints_to_camera()
-  : m_default_depth( 5.0 )
+  : m_refine_disparity_segment( false )
+  , m_disparity_segment_samples( 11 )
+  , m_disparity_segment_max_outliers( 3 )
+  , m_disparity_segment_max_error( 1.0 )
+  , m_disparity_segment_window( 7 )
+  , m_default_depth( 5.0 )
   , m_template_size( 31 )
   , m_search_range( 128 )
   , m_template_matching_threshold( 0.2 )
@@ -1115,6 +1143,27 @@ void
 map_keypoints_to_camera
 ::configure( const map_keypoints_to_camera_settings& settings )
 {
+  if( settings.refine_disparity_segment &&
+      ( settings.disparity_segment_samples < 3 ||
+        settings.disparity_segment_samples > 101 ||
+        settings.disparity_segment_max_outliers < 0 ||
+        settings.disparity_segment_max_outliers >=
+          ( settings.disparity_segment_samples + 1 ) / 2 ||
+        settings.disparity_segment_samples - settings.disparity_segment_max_outliers < 3 ||
+        !std::isfinite( settings.disparity_segment_max_error ) ||
+        settings.disparity_segment_max_error <= 0.0 ||
+        settings.refine_keypoints_disparity_window < 0 ) )
+  {
+    throw std::invalid_argument( "Invalid disparity segment settings: require 3..101 "
+      "samples, at least three and a strict majority of inliers, a positive "
+      "finite residual threshold, and a nonnegative sampling window" );
+  }
+  m_refine_disparity_segment = settings.refine_disparity_segment;
+  m_disparity_segment_samples = settings.disparity_segment_samples;
+  m_disparity_segment_max_outliers = settings.disparity_segment_max_outliers;
+  m_disparity_segment_max_error = settings.disparity_segment_max_error;
+  m_disparity_segment_window = settings.refine_keypoints_disparity_window;
+
   set_default_depth( settings.default_depth );
   set_template_params( settings.template_size, settings.search_range,
                        settings.template_matching_threshold,
@@ -2244,10 +2293,19 @@ map_keypoints_to_camera
 
         kv::vector_2d right_head_rect, right_tail_rect;
 
-        head_found = find_corresponding_point_external_disparity(
-          m_cached_compute_disparity, left_head_rect, right_head_rect, 7 );
-        tail_found = find_corresponding_point_external_disparity(
-          m_cached_compute_disparity, left_tail_rect, right_tail_rect, 7 );
+        if( m_refine_disparity_segment )
+        {
+          head_found = tail_found = find_corresponding_segment_external_disparity(
+            m_cached_compute_disparity, left_head_rect, left_tail_rect,
+            right_head_rect, right_tail_rect );
+        }
+        else
+        {
+          head_found = find_corresponding_point_external_disparity(
+            m_cached_compute_disparity, left_head_rect, right_head_rect, 7 );
+          tail_found = find_corresponding_point_external_disparity(
+            m_cached_compute_disparity, left_tail_rect, right_tail_rect, 7 );
+        }
 
         if( head_found || tail_found )
         {
@@ -2256,7 +2314,8 @@ map_keypoints_to_camera
             result.right_head = unrectify_point( right_head_rect, true, right_cam );
           if( tail_found )
             result.right_tail = unrectify_point( right_tail_rect, true, right_cam );
-          result.method_used = "compute_disparity";
+          result.method_used = m_refine_disparity_segment ?
+            "compute_disparity_segment" : "compute_disparity";
         }
         else
         {
@@ -2902,6 +2961,78 @@ map_keypoints_to_camera
 #else
   (void)left_cam; (void)right_cam; (void)left_image; (void)right_image;
   return nullptr;
+#endif
+}
+
+// -----------------------------------------------------------------------------
+bool
+map_keypoints_to_camera
+::find_corresponding_segment_external_disparity(
+  const kv::image_container_sptr& disparity_map,
+  const kv::vector_2d& left_head, const kv::vector_2d& left_tail,
+  kv::vector_2d& right_head, kv::vector_2d& right_tail ) const
+{
+  if( m_disparity_segment_samples < 3 || m_disparity_segment_samples > 101 ||
+      !disparity_map || !left_head.allFinite() || !left_tail.allFinite() ||
+      ( left_tail - left_head ).norm() < m_disparity_segment_samples - 1 )
+  {
+    return false;
+  }
+
+  std::vector< std::pair< double, double > > samples;
+  for( int i = 0; i < m_disparity_segment_samples; ++i )
+  {
+    const double f = static_cast< double >( i ) / ( m_disparity_segment_samples - 1 );
+    const kv::vector_2d point = left_head + f * ( left_tail - left_head );
+    kv::vector_2d match;
+    if( find_corresponding_point_external_disparity(
+          disparity_map, point, match, m_disparity_segment_window ) )
+    {
+      // The existing sampler returns a correspondence at the original
+      // subpixel query coordinate; the disparity remains in pixel units.
+      samples.emplace_back( f, point.x() - match.x() );
+    }
+  }
+  double head_disparity, tail_disparity;
+  if( !fit_disparity_segment( samples, m_disparity_segment_samples,
+        m_disparity_segment_max_outliers, m_disparity_segment_max_error,
+        head_disparity, tail_disparity ) )
+  {
+    return false;
+  }
+  right_head = kv::vector_2d( left_head.x() - head_disparity, left_head.y() );
+  right_tail = kv::vector_2d( left_tail.x() - tail_disparity, left_tail.y() );
+  return true;
+}
+
+// -----------------------------------------------------------------------------
+bool
+map_keypoints_to_camera
+::refine_right_segment_with_disparity(
+  const kv::image_container_sptr& disparity_map,
+  const kv::vector_2d& left_head, const kv::vector_2d& left_tail,
+  const kv::simple_camera_perspective& right_cam,
+  kv::vector_2d& right_head, kv::vector_2d& right_tail ) const
+{
+#ifdef VIAME_ENABLE_OPENCV
+  if( !m_rectification_computed ) { return false; }
+  kv::vector_2d head_rect, tail_rect;
+  if( !find_corresponding_segment_external_disparity(
+        disparity_map, rectify_point( left_head, false ),
+        rectify_point( left_tail, false ), head_rect, tail_rect ) )
+  {
+    return false;
+  }
+  const auto head = unrectify_point( head_rect, true, right_cam );
+  const auto tail = unrectify_point( tail_rect, true, right_cam );
+  if( !head.allFinite() || !tail.allFinite() ) { return false; }
+  right_head = head;
+  right_tail = tail;
+  return true;
+#else
+  (void)disparity_map; (void)left_head; (void)left_tail;
+  (void)right_cam; (void)right_head; (void)right_tail;
+  return false;
 #endif
 }
 
@@ -3942,8 +4073,11 @@ map_keypoints_to_camera
     return false;
   }
 
-  // Cast to char* for pointer arithmetic (void* arithmetic is undefined)
+  // Preserve legacy endpoint-sampling behavior for existing pipelines.
+  // Segment refinement opts into correct pixel-to-byte stride conversion.
   const char* img_data = reinterpret_cast<const char*>( img.first_pixel() );
+  const ptrdiff_t stride_bytes = m_refine_disparity_segment ?
+    static_cast< ptrdiff_t >( img.pixel_traits().num_bytes ) : 1;
 
   // Helper lambda: read disparity at (px, py), returns <= 0 if invalid
   auto read_disparity = [&]( int px, int py ) -> double
@@ -3952,14 +4086,14 @@ map_keypoints_to_camera
         img.pixel_traits().num_bytes == 2 )
     {
       const uint16_t* ptr = reinterpret_cast<const uint16_t*>(
-        img_data + py * img.h_step() + px * img.w_step() );
+        img_data + ( py * img.h_step() + px * img.w_step() ) * stride_bytes );
       return static_cast< double >( *ptr ) / 256.0;
     }
     else if( img.pixel_traits().type == kv::image_pixel_traits::SIGNED &&
              img.pixel_traits().num_bytes == 2 )
     {
       const int16_t* ptr = reinterpret_cast<const int16_t*>(
-        img_data + py * img.h_step() + px * img.w_step() );
+        img_data + ( py * img.h_step() + px * img.w_step() ) * stride_bytes );
       int16_t raw_val = *ptr;
       if( raw_val < 0 )
       {
@@ -3971,7 +4105,7 @@ map_keypoints_to_camera
              img.pixel_traits().num_bytes == 4 )
     {
       const float* ptr = reinterpret_cast<const float*>(
-        img_data + py * img.h_step() + px * img.w_step() );
+        img_data + ( py * img.h_step() + px * img.w_step() ) * stride_bytes );
       return static_cast< double >( *ptr );
     }
     return -1.0;

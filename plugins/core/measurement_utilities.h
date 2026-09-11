@@ -344,6 +344,14 @@ public:
   /// compute_disparity is in matching_methods).
   bool refine_keypoints_with_disparity;
 
+  /// Opt-in robust disparity fit along the entire rectified head-tail segment.
+  /// Applies to already-paired keypoints and the compute_disparity method.
+  /// A failed fit skips measurement instead of falling back to input points.
+  bool refine_disparity_segment;
+  int disparity_segment_samples;
+  int disparity_segment_max_outliers;
+  double disparity_segment_max_error;
+
   /// Half-width (in pixels) of the neighborhood used when sampling the
   /// disparity map for keypoint refinement. The median of valid disparity
   /// values in a (2*w+1)x(2*w+1) window is used. Set to 0 for a
@@ -673,6 +681,21 @@ public:
     int search_window = 7,
     bool* refined = nullptr ) const;
 
+  /// Fit the head-tail disparity profile and unrectify the fitted right
+  /// endpoints. Requires rectification maps; outputs are unchanged on failure.
+  bool refine_right_segment_with_disparity(
+    const kv::image_container_sptr& disparity_map,
+    const kv::vector_2d& left_head, const kv::vector_2d& left_tail,
+    const kv::simple_camera_perspective& right_cam,
+    kv::vector_2d& right_head, kv::vector_2d& right_tail ) const;
+
+  /// Fit a rectified segment using the same disparity formats and median
+  /// neighborhood sampler as single-keypoint refinement. No OpenCV required.
+  bool find_corresponding_segment_external_disparity(
+    const kv::image_container_sptr& disparity_map,
+    const kv::vector_2d& left_head, const kv::vector_2d& left_tail,
+    kv::vector_2d& right_head, kv::vector_2d& right_tail ) const;
+
   /// Get the cached rectified left image (if available)
   /// This returns the rectified left image from the last stereo processing call
   kv::image_container_sptr get_cached_rectified_left() const;
@@ -790,6 +813,11 @@ public:
 
 private:
   // Configuration
+  bool m_refine_disparity_segment;
+  int m_disparity_segment_samples;
+  int m_disparity_segment_max_outliers;
+  double m_disparity_segment_max_error;
+  int m_disparity_segment_window;
   double m_default_depth;
   int m_template_size;
   int m_search_range;

@@ -1,0 +1,42 @@
+# =============================================================================
+# Title: Measure current annotations using SGBM disparity
+#
+# Description: Measure head-tail lengths from stereo images and existing
+# annotations using OpenCV SGBM/WLS disparity. Robustly fit disparity along
+# each head-tail segment; reject insufficient or inconsistent samples.
+# Uses the shared measurement, stereo pairing, and length aggregation code.
+#
+# Requires Calibration: True
+# Calibration Keys: measurer:calibration_file
+# =============================================================================
+
+include stereo_measure_current_annots_template.pipe
+
+block measurer
+  :matching_methods                            input_pairs_only,compute_disparity
+  :refine_keypoints_with_disparity              true
+  :refine_disparity_segment                     true    # DIVE_PARAM["Robust Segment Fit", bool]
+  :refine_keypoints_disparity_window            7       # DIVE_PARAM["Disparity Sample Radius", range_int, 0, 30]
+  :disparity_segment_samples                    11      # DIVE_PARAM["Segment Samples", range_int, 3, 101]
+  :disparity_segment_max_outliers               3       # DIVE_PARAM["Max Invalid or Outlier Samples", range_int, 0, 49]
+  :disparity_segment_max_error                  1.0     # DIVE_PARAM["Max Disparity Residual (px)", range_float, 0.1, 10, 0.1]
+  :detection_pairing_method                     disparity_projection
+  :detection_pairing_threshold                  50.0
+  :accumulate_track_pairings                    true
+  :length_aggregation_method                   median
+
+  :stereo_disparity:type                        ocv_stereo_disparity
+  block stereo_disparity:ocv_stereo_disparity
+    :algorithm                                 SGBM
+    :min_disparity                             0
+    :num_disparities                           240
+    :block_size                                11
+    :speckle_window_size                       100
+    :speckle_range                              32
+    :use_wls_filter                            true
+    # compute_measurements supplies rectified images and expects pixel disparity.
+    :compute_depth                             false
+    :output_rectified                          true
+    :output_format                             float32
+  endblock
+endblock

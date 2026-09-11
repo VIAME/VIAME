@@ -272,6 +272,17 @@ measure_objects_process
 
   LOG_INFO( logger(), "Matching methods (in order): " + d->m_settings.matching_methods );
 
+  if( d->m_settings.refine_disparity_segment )
+  {
+#ifndef VIAME_ENABLE_OPENCV
+    throw std::runtime_error( "Segment disparity refinement requires OpenCV rectification" );
+#endif
+    if( !d->m_settings.stereo_depth_map_algorithm )
+    {
+      throw std::runtime_error( "Segment disparity refinement requires stereo_disparity:type" );
+    }
+  }
+
   // Configure utilities from settings
   d->m_utilities.configure( d->m_settings );
 
@@ -725,7 +736,8 @@ measure_objects_process
   // algorithm is configured we can snap each right keypoint to the
   // disparity-implied match of its left counterpart for L/R consistency.
   kv::image_container_sptr refine_disparity;
-  if( d->m_settings.refine_keypoints_with_disparity &&
+  if( ( d->m_settings.refine_keypoints_with_disparity ||
+        d->m_settings.refine_disparity_segment ) &&
       d->m_settings.stereo_depth_map_algorithm &&
       !fully_matched_ids.empty() &&
       input_images.size() >= 2 &&
@@ -759,7 +771,22 @@ measure_objects_process
     bool head_refined = false, tail_refined = false;
     kv::vector_2d refined_head = right_head;
     kv::vector_2d refined_tail = right_tail;
-    if( refine_disparity )
+    if( d->m_settings.refine_disparity_segment )
+    {
+      if( !d->m_utilities.refine_right_segment_with_disparity(
+            refine_disparity, left_head, left_tail, right_cam,
+            refined_head, refined_tail ) )
+      {
+        if( d->m_settings.record_stereo_method )
+        {
+          det1->add_note( ":stereo_method=disparity_segment_rejected" );
+          det2->add_note( ":stereo_method=disparity_segment_rejected" );
+        }
+        continue;
+      }
+      head_refined = tail_refined = true;
+    }
+    else if( refine_disparity )
     {
       const int win = d->m_settings.refine_keypoints_disparity_window;
       refined_head = d->m_utilities.refine_right_point_with_disparity(
@@ -839,6 +866,7 @@ measure_objects_process
       left_cam, right_cam, left_head, right_head, left_tail, right_tail );
 
     const std::string method_tag =
+      d->m_settings.refine_disparity_segment ? "input_kps_disparity_segment" :
       ( head_refined && tail_refined ) ? "input_kps_disparity_refined" :
       ( head_refined || tail_refined ) ? "input_kps_partial_disparity_refined"
                                        : "input_kps_used";
@@ -948,7 +976,8 @@ measure_objects_process
       // object should have similar depths (ratio close to 1.0).
       double max_depth_ratio = d->m_settings.depth_consistency_max_ratio;
 
-      if( max_depth_ratio > 0 && result.head_found && result.tail_found )
+      if( max_depth_ratio > 0 && result.head_found && result.tail_found &&
+          result.method_used != "compute_disparity_segment" )
       {
         auto head_3d = viame::core::triangulate_point(
           left_cam, right_cam, result.left_head, result.right_head );

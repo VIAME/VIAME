@@ -233,6 +233,7 @@ if( VIAME_ENABLE_OPENCV )
     stereo_calibrate_cameras_default.pipe
     stereo_calibrate_cameras_fast.pipe
     stereo_compute_rectified_disparity.pipe
+    stereo_measure_current_annots_sgbm.pipe
     stereo_detect_calibration_target.pipe
     register_multimodal_unsync_ocv.pipe
     register_using_homographies.pipe
