@@ -65,3 +65,35 @@ def test_failed_rollback_retains_backups(tmp_path):
     recovery, = tmp_path.glob('.viame-addon-*-recovery')
     assert (recovery / 'backup-0').read_text() == 'old'
     assert (recovery / 'recovery.json').exists()
+
+
+def test_machine_progress_covers_download_and_extraction(tmp_path, monkeypatch, capsys):
+    import io
+    import json
+    archive = tmp_path / 'source.zip'
+    with zipfile.ZipFile(archive, 'w') as z:
+        z.writestr('configs/pipelines/models/fish.pt', b'x' * (2 << 20))
+    content = archive.read_bytes()
+    response = io.BytesIO(content)
+    response.headers = {'Content-Length': str(len(content))}
+    monkeypatch.setenv('VIAME_ADDON_PROGRESS', '1')
+    monkeypatch.setattr(m.urllib.request, 'urlopen', lambda *args, **kwargs: response)
+    addon = m.Addon('fish', 'https://example.test/fish.zip', '', '', '', [], '')
+    m.install_addon(tmp_path, addon)
+    events = [json.loads(line.split(' ', 1)[1]) for line in capsys.readouterr().out.splitlines()
+              if line.startswith('VIAME_ADDON_PROGRESS ')]
+    assert [event['phase'] for event in events][0] == 'download'
+    assert any(event['phase'] == 'verify' for event in events)
+    assert any(event['phase'] == 'download' and event['done'] == len(content)
+               and event['total'] == len(content) for event in events)
+    assert events[-1] == {'phase': 'install', 'done': 100, 'total': 100}
+    assert (tmp_path / 'configs/pipelines/models/fish.pt').stat().st_size == 2 << 20
+
+
+def test_incomplete_download_is_an_error(tmp_path, monkeypatch):
+    import io
+    response = io.BytesIO(b'too short')
+    response.headers = {'Content-Length': '1000'}
+    monkeypatch.setattr(m.urllib.request, 'urlopen', lambda *args, **kwargs: response)
+    with pytest.raises(RuntimeError, match='Incomplete download'):
+        m.download('https://example.test/file.zip', tmp_path / 'file.zip')

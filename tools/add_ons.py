@@ -25,6 +25,7 @@ import os
 import shutil
 import sys
 import tempfile
+import time
 import urllib.request
 import zipfile
 
@@ -135,6 +136,21 @@ def status_of(install, addon):
 # Download and extraction
 # -----------------------------------------------------------------------------
 
+_last_progress = (None, 0.0)
+
+
+def report_progress(phase, done=None, total=None):
+    """Optional newline-delimited progress for desktop clients; normal CLI output is unchanged."""
+    global _last_progress
+    if os.environ.get('VIAME_ADDON_PROGRESS') != '1':
+        return
+    now = time.monotonic()
+    if phase == _last_progress[0] and done != total and now - _last_progress[1] < 0.1:
+        return
+    _last_progress = (phase, now)
+    print('VIAME_ADDON_PROGRESS ' + json.dumps(dict(phase=phase, done=done, total=total)), flush=True)
+
+
 def md5_of(path):
     h = hashlib.md5()
     with open(path, 'rb') as f:
@@ -153,15 +169,17 @@ def download(url, dest):
     request = urllib.request.Request(url, headers={'User-Agent': 'viame-add-ons'})
     show_progress = sys.stdout.isatty()
 
-    with urllib.request.urlopen(request) as response, open(dest, 'wb') as out:
+    with urllib.request.urlopen(request, timeout=60) as response, open(dest, 'wb') as out:
         total = int(response.headers.get('Content-Length') or 0)
         done = 0
+        report_progress('download', 0, total or None)
         while True:
             chunk = response.read(1 << 20)
             if not chunk:
                 break
             out.write(chunk)
             done += len(chunk)
+            report_progress('download', done, total or None)
             if show_progress:
                 if total:
                     sys.stdout.write('\r  %3d%%  %d / %d MB' %
@@ -169,6 +187,9 @@ def download(url, dest):
                 else:
                     sys.stdout.write('\r  %d MB' % (done >> 20))
                 sys.stdout.flush()
+        if total and done != total:
+            raise RuntimeError('Incomplete download: received %d of %d bytes' % (done, total))
+        report_progress('download', done, done)
         if show_progress:
             sys.stdout.write('\n')
 
@@ -225,6 +246,9 @@ def install_archive(install, archive):
             prefix = content_prefix([name for _, name in members])
             dest = install / destination_for(prefix)
             seen = set()
+            total_bytes = sum(info.file_size for info, _ in members)
+            extracted_bytes = 0
+            report_progress('install', 0, 100)
             for i, (info, name) in enumerate(members):
                 target = dest / name[len(prefix):]
                 resolved = target.resolve()
@@ -235,7 +259,13 @@ def install_archive(install, archive):
                 seen.add(resolved)
                 payload = staging / ('payload-%d' % i)
                 with zf.open(info) as src, open(payload, 'wb') as out:
-                    shutil.copyfileobj(src, out)  # verifies CRC before installation
+                    while True:
+                        chunk = src.read(1 << 20)  # verifies CRC before installation
+                        if not chunk:
+                            break
+                        out.write(chunk)
+                        extracted_bytes += len(chunk)
+                        report_progress('install', 90 * extracted_bytes / max(total_bytes, 1), 100)
                 mode = (info.external_attr >> 16) & 0o777
                 if mode:
                     os.chmod(payload, mode)
@@ -259,6 +289,7 @@ def install_archive(install, archive):
                 os.replace(payload, target)
                 installed.append((target, backup))
                 written.append(target.relative_to(install).as_posix())
+                report_progress('install', 90 + 10 * len(written) / len(plans), 100)
         except Exception:
             rollback_errors = []
             for target, backup in reversed(installed):
@@ -300,6 +331,7 @@ def install_addon(install, addon, archive=None, force=False, ignore_checksum=Fal
         else:
             archive = Path(archive)
 
+        report_progress('verify')
         actual = md5_of(archive)
         if addon.md5 and actual != addon.md5:
             message = ('checksum mismatch for %s: expected %s, got %s'
