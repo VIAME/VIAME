@@ -133,6 +133,9 @@ class DetectFitConfig(scfg.Config):
 
         'backbone_init': scfg.Value('url', help='path to backbone weights for mmdetection initialization'),
         'segmentation_head': scfg.Value(False, help='enable segmentation head for models that support it (e.g. rf_detr)'),
+        'keypoints': scfg.Value(False, help='train the RF-DETR keypoint head'),
+        'keypoint_names': scfg.Value('head,tail', help='ordered keypoint slot names'),
+        'native_seed_model': scfg.Path(None, help='native RF-DETR checkpoint for weight-only fine-tuning'),
         'anchors': scfg.Value('auto', help='how to choose anchor boxes'),
 
         # Loss Terms
@@ -940,12 +943,13 @@ def setup_harn(cmdline=True, **kw):
 
         samplers[tag] = sampler
 
-    from .detect_dataset import DetectFitDataset
+    from .detect_dataset import DetectFitDataset, _validate_keypoint_training_data
     torch_datasets = {
         tag: DetectFitDataset(
             sampler,
             classes_of_interest=config['classes_of_interest'],
-            with_mask='mask' in config['arch'].lower() and config['with_mask'],
+            with_mask=('mask' in config['arch'].lower() or config['segmentation_head']) and config['with_mask'],
+            keypoint_names=config['keypoint_names'] if config['keypoints'] else None,
             input_dims=config['input_dims'],
             window_dims=config['window_dims'],
             window_overlap=config['window_overlap'] if (tag == 'train') else 0.0,
@@ -957,6 +961,10 @@ def setup_harn(cmdline=True, **kw):
         )
         for tag, sampler in samplers.items()
     }
+
+    if config['keypoints']:
+        _validate_keypoint_training_data(
+            subsets['train'], torch_datasets['train'].keypoint_names)
 
     from viame.pytorch.netharn.data.data_containers import ContainerXPU
     xpu = ContainerXPU.coerce(config['xpu'], p2p=config['xpu_p2p'])
@@ -1051,6 +1059,14 @@ def setup_harn(cmdline=True, **kw):
         input_stats = None
 
     print('input_stats = {!r}'.format(input_stats))
+
+    if config['native_seed_model']:
+        if not config['arch'].lower().startswith(('rfdetr', 'rf_detr')):
+            raise ValueError('native_seed_model requires RF-DETR')
+        if config['pretrained']:
+            raise ValueError('native_seed_model and pretrained are mutually exclusive')
+        if not os.path.isfile(config['native_seed_model']):
+            raise FileNotFoundError(config['native_seed_model'])
 
     initializer_ = nh.Initializer.coerce(
         config, leftover='kaiming_normal', association='isomorphism')
@@ -1184,12 +1200,15 @@ def setup_harn(cmdline=True, **kw):
         variant = 'base'
         if '_' in arch:
             parts = arch.lower().split('_')
-            if len(parts) > 1 and parts[-1] in ['base', 'large', 'small', 'medium', 'nano']:
+            if len(parts) > 1 and parts[-1] in ['base', 'large', 'small', 'medium', 'nano', 'xlarge', '2xlarge']:
                 variant = parts[-1]
         # Handle backbone_init: 'url' means auto-download (True), other strings are paths
         backbone_init = config.get('backbone_init', True)
         if backbone_init == 'url':
             backbone_init = True
+        if config['native_seed_model']:
+            backbone_init = config['native_seed_model']
+            initializer_ = (nh.initializers.NoOp, {})
         # Get segmentation_head setting
         segmentation_head = config.get('segmentation_head', False)
         # Positional encoding for the actual training window, not the variant's
@@ -1207,6 +1226,7 @@ def setup_harn(cmdline=True, **kw):
             model_variant=variant,
             weight_path=backbone_init,
             segmentation_head=segmentation_head,
+            keypoint_names=config['keypoint_names'] if config['keypoints'] else None,
             resolution=resolution,
         )
         model = rf_detr_models.RFDETR_Detector(**initkw)

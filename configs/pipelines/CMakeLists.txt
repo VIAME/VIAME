@@ -281,6 +281,7 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     train_detector_netharn_cfrnn.grid_only.40ep.conf
     train_detector_netharn_cfrnn.grid_only.conf
     train_detector_netharn_rf_detr_l_1728.conf
+    train_detector_netharn_rf_detr_l_seg_kp_1728.conf
     train_frame_classifier_netharn_efficientnet.conf
     train_frame_classifier_netharn_resnet.conf
     train_reclassifier_netharn_efficientnet.conf

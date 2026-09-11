@@ -53,7 +53,7 @@ class RFDETR_Coder:
         >>> assert len(dets[0]) == 2
     """
 
-    def __init__(self, classes, score_thresh=0.0):
+    def __init__(self, classes, score_thresh=0.0, keypoint_names=None):
         """
         Args:
             classes: List of class names or kwcoco.CategoryTree
@@ -62,6 +62,7 @@ class RFDETR_Coder:
         import kwcoco
         self.classes = kwcoco.CategoryTree.coerce(classes)
         self.score_thresh = score_thresh
+        self.keypoint_names = keypoint_names
 
     def decode_batch(self, outputs):
         """
@@ -118,153 +119,68 @@ class RFDETR_Coder:
                     class_idxs=labels,
                     classes=self.classes
                 )
+                if 'masks' in result:
+                    masks = result['masks'].detach().cpu().numpy()[keep]
+                    det.data['segmentations'] = kwimage.SegmentationList([
+                        kwimage.Segmentation.coerce(
+                            kwimage.Mask(mask.reshape(mask.shape[-2:]).astype(np.uint8), 'c_mask'))
+                        for mask in masks])
+                if 'keypoints' in result:
+                    points = result['keypoints'].detach().cpu().numpy()[keep]
+                    det.data['keypoints'] = kwimage.PointsList([
+                        kwimage.Points(xy=p[:, :2], visible=p[:, 2],
+                                       class_idxs=np.arange(len(p)),
+                                       classes=self.keypoint_names)
+                        for p in points])
             batch_dets.append(det)
 
         return batch_dets
 
 
 def _batch_to_rfdetr_targets(batch, image_size, device=None):
-    """
-    Convert netharn-style batch labels to RF-DETR target format.
-
-    RF-DETR expects targets as a list of dicts, one per image:
-        - 'labels': Tensor of shape [num_targets] with class indices
-        - 'boxes': Tensor of shape [num_targets, 4] in normalized cxcywh format
-
-    Args:
-        batch: Netharn batch dict with 'label' key containing:
-            - 'tlbr' or 'cxywh': BatchContainer of boxes
-            - 'class_idxs': BatchContainer of class indices
-            - 'weight': Optional BatchContainer of weights
-        image_size: Tuple (H, W) for normalizing boxes
-        device: Device to place tensors on
-
-    Returns:
-        List of dicts, one per image
-    """
-    if 'label' not in batch:
+    """Convert scattered or collated labels, keeping all annotation rows aligned."""
+    label = batch.get('label', {})
+    box_key = 'tlbr' if 'tlbr' in label else 'cxywh'
+    if box_key not in label:
         return []
+    h, w = image_size
 
-    label = batch['label']
-    H, W = image_size
+    def rows(container):
+        if isinstance(container, data_containers.BatchContainer):
+            container = container.data
+        result = []
+        for part in container:
+            result.extend(part if isinstance(part, (list, tuple)) else [part])
+        return result
 
-    # Get boxes container - prefer tlbr, fall back to cxywh
-    box_format = None
-    if 'tlbr' in label:
-        boxes_container = label['tlbr']
-        box_format = 'tlbr'
-    elif 'cxywh' in label:
-        boxes_container = label['cxywh']
-        box_format = 'cxywh'
-    else:
-        return []
-
-    class_container = label['class_idxs']
-    weight_container = label.get('weight', None)
-
-    # Unwrap containers (after scatter, these may already be plain lists)
-    _BC = data_containers.BatchContainer
-    boxes_data = (boxes_container.data if isinstance(boxes_container, _BC)
-                  else boxes_container)
-    class_data = (class_container.data if isinstance(class_container, _BC)
-                  else class_container)
-    if weight_container is not None:
-        weight_data = (weight_container.data
-                       if isinstance(weight_container, _BC)
-                       else weight_container)
-    else:
-        weight_data = None
-
-    all_boxes_lists = []
-    all_cidxs_lists = []
-    all_weights_lists = []
-
-    for device_idx, (device_data_boxes, device_data_cidxs) in enumerate(
-            zip(boxes_data, class_data)):
-        if isinstance(device_data_boxes, (list, tuple)):
-            all_boxes_lists.extend(device_data_boxes)
-            all_cidxs_lists.extend(device_data_cidxs)
-            if weight_data is not None:
-                if device_idx < len(weight_data):
-                    device_weights = weight_data[device_idx]
-                    if isinstance(device_weights, (list, tuple)):
-                        all_weights_lists.extend(device_weights)
-                    else:
-                        all_weights_lists.append(device_weights)
-        else:
-            all_boxes_lists.append(device_data_boxes)
-            all_cidxs_lists.append(device_data_cidxs)
-            if weight_data is not None and device_idx < len(weight_data):
-                all_weights_lists.append(weight_data[device_idx])
-
-    # Build target list
+    fields = {key: rows(label[key]) for key in
+              (box_key, 'class_idxs', 'weight', 'class_masks', 'has_mask', 'keypoints')
+              if key in label}
     targets = []
-    for bx in range(len(all_boxes_lists)):
-        boxes = all_boxes_lists[bx]
-        cidxs = all_cidxs_lists[bx]
-
-        if boxes is None or len(boxes) == 0:
-            targets.append({
-                'labels': torch.zeros(0, dtype=torch.long, device=device),
-                'boxes': torch.zeros(0, 4, dtype=torch.float32, device=device),
-            })
-            continue
-
-        # Convert to tensor if needed
-        if not isinstance(boxes, torch.Tensor):
-            boxes = torch.tensor(boxes, dtype=torch.float32, device=device)
-        else:
-            boxes = boxes.to(device=device, dtype=torch.float32)
-
-        if not isinstance(cidxs, torch.Tensor):
-            cidxs = torch.tensor(cidxs, dtype=torch.long, device=device)
-        else:
-            cidxs = cidxs.to(device=device, dtype=torch.long)
-
-        # Apply weight filtering if available
-        if weight_container is not None and bx < len(all_weights_lists):
-            weights = all_weights_lists[bx]
-            if weights is not None:
-                if not isinstance(weights, torch.Tensor):
-                    weights = torch.tensor(weights, device=device)
-                else:
-                    weights = weights.to(device=device)
-                valid_mask = weights >= 0.1
-                boxes = boxes[valid_mask]
-                cidxs = cidxs[valid_mask]
-
-        if len(boxes) == 0:
-            targets.append({
-                'labels': torch.zeros(0, dtype=torch.long, device=device),
-                'boxes': torch.zeros(0, 4, dtype=torch.float32, device=device),
-            })
-            continue
-
-        # Convert boxes to normalized cxcywh format
-        if box_format == 'tlbr':
-            # tlbr (x1, y1, x2, y2) -> cxcywh
-            x1, y1, x2, y2 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
-            cx = (x1 + x2) / 2.0 / W
-            cy = (y1 + y2) / 2.0 / H
-            w = (x2 - x1) / W
-            h = (y2 - y1) / H
-            boxes = torch.stack([cx, cy, w, h], dim=1)
-        elif box_format == 'cxywh':
-            # cxywh -> normalized cxcywh
-            cx = boxes[:, 0] / W
-            cy = boxes[:, 1] / H
-            w = boxes[:, 2] / W
-            h = boxes[:, 3] / H
-            boxes = torch.stack([cx, cy, w, h], dim=1)
-
-        # Clamp to valid range
-        boxes = boxes.clamp(0, 1)
-
-        targets.append({
-            'labels': cidxs,
-            'boxes': boxes,
-        })
-
+    for i, boxes in enumerate(fields[box_key]):
+        boxes = torch.as_tensor(boxes, dtype=torch.float32, device=device).reshape(-1, 4)
+        labels = torch.as_tensor(fields['class_idxs'][i], dtype=torch.long, device=device)
+        keep = torch.ones(len(boxes), dtype=torch.bool, device=device)
+        if 'weight' in fields:
+            keep &= torch.as_tensor(fields['weight'][i], device=device) >= 0.1
+        if box_key == 'tlbr':
+            boxes = torch.cat(((boxes[:, :2] + boxes[:, 2:]) / 2,
+                               boxes[:, 2:] - boxes[:, :2]), dim=1)
+        boxes = (boxes / boxes.new_tensor([w, h, w, h])).clamp(0, 1)
+        target = {'labels': labels[keep], 'boxes': boxes[keep]}
+        if 'class_masks' in fields:
+            if 'has_mask' in fields:
+                valid = torch.as_tensor(fields['has_mask'][i], device=device)
+                if (valid[keep] <= 0).any():
+                    raise ValueError('RF-DETR segmentation requires a mask for every non-ignored object')
+            target['masks'] = torch.as_tensor(
+                fields['class_masks'][i], device=device, dtype=torch.bool)[keep]
+        if 'keypoints' in fields:
+            points = torch.as_tensor(fields['keypoints'][i], device=device,
+                                     dtype=torch.float32)[keep].clone()
+            points[..., :2] /= points.new_tensor([w, h])
+            target['keypoints'] = points
+        targets.append(target)
     return targets
 
 
@@ -441,7 +357,8 @@ class RFDETR_Detector(nh.layers.Module):
 
     def __init__(self, classes, channels='rgb', input_stats=None,
                  model_variant='base', weight_path=None, score_thresh=0.0,
-                 num_queries=300, resolution=None, segmentation_head=False):
+                 num_queries=None, resolution=None, segmentation_head=False,
+                 keypoint_names=None):
         """
         Args:
             classes: List of class names or kwcoco.CategoryTree
@@ -451,15 +368,23 @@ class RFDETR_Detector(nh.layers.Module):
             model_variant: RF-DETR variant name (base, large, small, medium, nano)
             weight_path: Path to pretrained weights, True to auto-download, False/None for none
             score_thresh: Score threshold for detections (default 0.0)
-            num_queries: Number of detection queries (default 300)
+            num_queries: Number of detection queries (None uses variant default)
             resolution: Input resolution (uses variant default if None)
-            segmentation_head: Enable segmentation head for instance masks (default False)
+            segmentation_head: Use the RFDETRSeg architecture and mask losses
+            keypoint_names: Ordered names enabling the optional keypoint head
         """
         super().__init__()
         import kwcoco
 
         # Store segmentation head setting
         self.segmentation_head = segmentation_head
+        if isinstance(keypoint_names, str):
+            keypoint_names = keypoint_names.split(',')
+        self.keypoint_names = [n.strip().lower() for n in (keypoint_names or [])]
+        if keypoint_names is not None and (not self.keypoint_names or
+                not all(self.keypoint_names) or
+                len(set(self.keypoint_names)) != len(self.keypoint_names)):
+            raise ValueError('keypoint_names must contain unique, nonempty names')
 
         # Store initialization kwargs for serialization
         self._initkw = {
@@ -472,6 +397,7 @@ class RFDETR_Detector(nh.layers.Module):
             'num_queries': num_queries,
             'resolution': resolution,
             'segmentation_head': segmentation_head,
+            'keypoint_names': self.keypoint_names or None,
         }
 
         # Setup classes
@@ -517,7 +443,8 @@ class RFDETR_Detector(nh.layers.Module):
         )
 
         # Output decoder
-        self.coder = RFDETR_Coder(self.classes, score_thresh=score_thresh)
+        self.coder = RFDETR_Coder(self.classes, score_thresh=score_thresh,
+                                  keypoint_names=self.keypoint_names)
 
     def _get_variant_config(self, variant, num_queries, resolution):
         """Build the pydantic ModelConfig for a model variant."""
@@ -531,6 +458,16 @@ class RFDETR_Detector(nh.layers.Module):
             'nano': rfdetr_config.RFDETRNanoConfig,
         }
 
+        if self.segmentation_head:
+            variant_to_config_cls = {
+                'nano': rfdetr_config.RFDETRSegNanoConfig,
+                'small': rfdetr_config.RFDETRSegSmallConfig,
+                'medium': rfdetr_config.RFDETRSegMediumConfig,
+                'large': rfdetr_config.RFDETRSegLargeConfig,
+                'xlarge': rfdetr_config.RFDETRSegXLargeConfig,
+                '2xlarge': rfdetr_config.RFDETRSeg2XLargeConfig,
+            }
+
         if variant not in variant_to_config_cls:
             raise ValueError(f"Unknown variant: {variant}. "
                              f"Available: {list(variant_to_config_cls.keys())}")
@@ -539,6 +476,8 @@ class RFDETR_Detector(nh.layers.Module):
             'num_classes': self.num_classes,
             'device': 'cuda' if torch.cuda.is_available() else 'cpu',
             'segmentation_head': self.segmentation_head,
+            'keypoint_head': bool(self.keypoint_names),
+            'num_keypoints': len(self.keypoint_names) or 2,
             # upstream trains with group_detr=13, which changes query shapes
             'group_detr': 1,
         }
@@ -548,24 +487,13 @@ class RFDETR_Detector(nh.layers.Module):
         if resolution is not None:
             overrides['resolution'] = resolution
 
-        try:
-            return variant_to_config_cls[variant](**overrides)
-        except Exception as ex:
-            # resolution failed the variant's divisibility check; use its default
-            if 'resolution' not in overrides:
-                raise
-            import warnings
-            warnings.warn(
-                'resolution %r rejected for variant %r (%s); using the '
-                'variant default' % (resolution, variant, ex))
-            del overrides['resolution']
-            return variant_to_config_cls[variant](**overrides)
+        return variant_to_config_cls[variant](**overrides)
 
     def _build_model(self, model_config, weight_path):
         """Build the RF-DETR model, criterion, and postprocessor."""
         import os
         from rfdetr.assets.model_weights import get_model_cache_dir
-        from rfdetr.config import TrainConfig
+        from rfdetr.config import TrainConfig, SegmentationTrainConfig
         from rfdetr.models import (build_criterion_from_config,
                                    build_model_from_config,
                                    load_pretrain_weights)
@@ -581,11 +509,18 @@ class RFDETR_Detector(nh.layers.Module):
         else:
             model_config.pretrain_weights = weight_path
 
-        train_config = TrainConfig(dataset_dir='.', output_dir='.')
+        config_cls = SegmentationTrainConfig if self.segmentation_head else TrainConfig
+        train_config = config_cls(dataset_dir='.', output_dir='.')
         model = build_model_from_config(model_config, train_config)
 
         if model_config.pretrain_weights is not None:
-            load_pretrain_weights(model, model_config)
+            seed_classes = load_pretrain_weights(model, model_config)
+            if seed_classes and list(seed_classes) != list(self.classes):
+                import warnings
+                warnings.warn('RF-DETR seed class names/order differ from the training '
+                              'classes. The checkpoint loader aligns head sizes, '
+                              'but does not remap class names: seed=%r, training=%r' %
+                              (seed_classes, list(self.classes)))
 
         criterion, postprocess = build_criterion_from_config(
             model_config, train_config)
@@ -642,6 +577,15 @@ class RFDETR_Detector(nh.layers.Module):
 
         device = images.device
         B, C, H, W = images.shape
+
+        if return_loss:
+            for target in targets:
+                if getattr(self, 'segmentation_head', False) and 'masks' not in target:
+                    if len(target['labels']):
+                        raise ValueError('RF-DETR segmentation requires mask annotations')
+                    target['masks'] = torch.zeros((0, H, W), dtype=torch.bool, device=device)
+                if getattr(self, 'keypoint_names', None) and 'keypoints' not in target:
+                    raise ValueError('RF-DETR keypoint training requires keypoint targets')
 
         # Move model components to device if needed
         first_param = next(self.model.parameters(), None)

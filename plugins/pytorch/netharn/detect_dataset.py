@@ -76,7 +76,7 @@ class DetectFitDataset(torch.utils.data.Dataset):
                  factor=32, with_mask=True, gravity=0.0,
                  classes_of_interest=None, channels='rgb',
                  blackout_ignore=True, segmentation_bootstrap=None,
-                 cat_mapping=None):
+                 cat_mapping=None, keypoint_names=None):
         super(DetectFitDataset, self).__init__()
 
         self.sampler = sampler
@@ -97,6 +97,13 @@ class DetectFitDataset(torch.utils.data.Dataset):
                 input_dims = (ub.peek(heights), ub.peek(widths))
 
         self.with_mask = with_mask
+        if isinstance(keypoint_names, str):
+            keypoint_names = keypoint_names.split(',')
+        self.keypoint_names = [n.strip().lower() for n in (keypoint_names or [])]
+        if keypoint_names is not None and (not self.keypoint_names or
+                not all(self.keypoint_names) or
+                len(set(self.keypoint_names)) != len(self.keypoint_names)):
+            raise ValueError('keypoint_names must contain unique, nonempty names')
         self.channels = ChannelSpec.coerce(channels)
 
         self.factor = factor  # downsample factor of yolo grid
@@ -400,6 +407,9 @@ class DetectFitDataset(torch.utils.data.Dataset):
             if sseg_method == 'kpts':
                 with_annots += ['keypoints']
 
+        if self.keypoint_names and 'keypoints' not in with_annots:
+            with_annots += ['keypoints']
+
         # NOTE: using the gdal backend samples HABCAM images in 16ms, and no
         # backend samples clocks in at 72ms. The disparity speedup is about 2x
         tr['pad'] = pad
@@ -526,6 +536,10 @@ class DetectFitDataset(torch.utils.data.Dataset):
             'orig_sizes': ItemContainer(orig_size, stack=False),
             'bg_weights': ItemContainer(bg_weight, stack=False),
         }
+        if self.keypoint_names:
+            label['keypoints'] = ItemContainer(
+                _keypoint_targets(dets, self.keypoint_names, chw01.shape[1:]),
+                stack=False)
         _debug('label = {!r}'.format(label))
 
         if self.blackout_ignore:
@@ -1637,3 +1651,37 @@ class DetectionAugmentor(object):
                              output_dims=output_dims)
 
         return imdata, dets, aux_components
+
+
+def _keypoint_targets(dets, names, image_size):
+    """Pack transformed sparse kwimage points into fixed, absolute COCO slots."""
+    h, w = image_size
+    result = torch.zeros((len(dets), len(names), 3), dtype=torch.float32)
+    slots = {name: i for i, name in enumerate(names)}
+    for row, points in enumerate(dets.data.get('keypoints', [None] * len(dets))):
+        if points is None or len(points) == 0:
+            continue
+        classes = points.meta.get('classes')
+        if classes is None or points.data.get('class_idxs') is None:
+            raise ValueError('Keypoint annotations must include named category metadata')
+        visibility = points.data.get('visible', np.full(len(points), 2))
+        for xy, cidx, visible in zip(points.xy, points.data['class_idxs'], visibility):
+            slot = slots.get(str(classes[cidx]).lower())
+            x, y = xy
+            if slot is not None and visible > 0 and 0 <= x < w and 0 <= y < h:
+                result[row, slot] = torch.tensor([float(x), float(y), float(visible)])
+    return result
+
+
+def _validate_keypoint_training_data(dset, names):
+    """Fail early when a keypoint run has no visible annotations in its slots."""
+    for ann in dset.anns.values():
+        if not ann.get('keypoints') or ann.get('weight', 1) < 0.1:
+            continue
+        dets = kwimage.Detections.from_coco_annots([ann], dset=dset)
+        img = dset.imgs[ann['image_id']]
+        points = _keypoint_targets(dets, names, (img['height'], img['width']))
+        if (points[..., 2] > 0).any():
+            return
+    raise ValueError('keypoints=True but no visible training keypoints match '
+                     'keypoint_names=%r; check annotations and augmentation cache' % names)

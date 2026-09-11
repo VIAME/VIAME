@@ -101,6 +101,9 @@ class NetHarnTrainer( TrainDetector ):
         self._scale_type_file = ""
         self._multi_output = False
         self._segmentation_head = False
+        self._keypoints = False
+        self._keypoint_names = "head,tail"
+        self._native_seed_model = ""
 
     def _is_detr_arch( self ):
         return self._arch.lower().startswith( ( "rfdetr", "rf_detr" ) )
@@ -162,6 +165,9 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "scale_type_file", self._scale_type_file )
         cfg.set_value( "multi_output", str( self._multi_output ) )
         cfg.set_value( "segmentation_head", str( self._segmentation_head ) )
+        cfg.set_value( "keypoints", str( self._keypoints ) )
+        cfg.set_value( "keypoint_names", self._keypoint_names )
+        cfg.set_value( "native_seed_model", self._native_seed_model )
 
         return cfg
 
@@ -225,6 +231,9 @@ class NetHarnTrainer( TrainDetector ):
         self._scale_type_file = str( cfg.get_value( "scale_type_file" ) )
         self._multi_output = strtobool( cfg.get_value( "multi_output" ) )
         self._segmentation_head = strtobool( cfg.get_value( "segmentation_head" ) )
+        self._keypoints = strtobool( cfg.get_value( "keypoints" ) )
+        self._keypoint_names = str( cfg.get_value( "keypoint_names" ) )
+        self._native_seed_model = str( cfg.get_value( "native_seed_model" ) )
 
         # Check GPU-related variables
         gpu_memory_available = 0
@@ -896,6 +905,19 @@ class NetHarnTrainer( TrainDetector ):
             # Match RF-DETR TrainConfig.clip_max_norm. The generic detector
             # default (35) permits gradients 350 times larger.
             cmd.append( "--grad_norm_max=0.1" )
+
+        if self._native_seed_model:
+            if not self._is_detr_arch() or self._mode != "detector":
+                raise ValueError("native_seed_model requires an RF-DETR detector")
+            if self._seed_model:
+                raise ValueError("Use either seed_model or native_seed_model, not both")
+            if not os.path.isfile(self._native_seed_model):
+                raise FileNotFoundError(self._native_seed_model)
+            cmd.append("--native_seed_model=" + self._native_seed_model)
+
+        if self._keypoints:
+            cmd.append("--keypoints=True")
+            cmd.append("--keypoint_names=" + self._keypoint_names)
 
         if len( self._seed_model ) > 0:
             cmd.append( "--pretrained=" + self._seed_model )

@@ -200,6 +200,64 @@ Continue training from a checkpoint::
         -s detector_trainer:ocv_windowed:trainer:netharn:seed_model=category_models/trained_detector.zip \
         --threshold 0.0
 
+Netharn RF-DETR masks, keypoints, and native checkpoints
+------------------------------------------------------
+
+Use ``train_detector_netharn_rf_detr_l_seg_kp_1728.conf`` for boxes, masks,
+and head/tail keypoints. It uses 1728x960 network inputs and inherits the
+netharn box recipe's data split. The recipe disables outer OpenCV scaling
+(which does not transform
+keypoints) and uses a separate cache; netharn samples windows and transforms
+all annotation types together. When enabling keypoints in another config,
+also set the outer trainer's ``mode=disabled``.
+It uses the native RFDETRSegLarge architecture,
+including its 12-pixel patches, five decoder layers, and 200 queries.
+The netharn wrapper retains its single query group and netharn optimizer,
+scheduler, augmentation, and checkpointing; this is not an identical native
+RF-DETR training schedule.
+
+To fine-tune a native RF-DETR segmentation checkpoint with netharn::
+
+    viame train -i training_data \
+        -c train_detector_netharn_rf_detr_l_seg_kp_1728.conf \
+        -s detector_trainer:ocv_windowed:trainer:netharn:native_seed_model=/absolute/path/to/model.pth \
+        --threshold 0.0
+
+``native_seed_model`` accepts a native RF-DETR checkpoint (including exported
+``.pth``/``.pt`` weights or a Lightning ``.ckpt``). It uses RF-DETR's weight
+loader to adapt query embeddings, positional embeddings, and class-head sizes.
+It starts a new netharn optimization run; optimizer, epoch, scheduler, and EMA
+state are not resumed. Use a fresh training directory/identifier to avoid
+netharn automatically resuming an existing run. ``seed_model`` remains the
+option for netharn seeds; the two seed options are mutually exclusive, and a
+missing native seed path is an error.
+
+Match ``arch`` and ``segmentation_head`` to the seed architecture. Adding a
+keypoint head to a segmentation seed is supported: the new head starts fresh.
+A detection Large checkpoint and a SegLarge checkpoint have different backbones
+and decoder shapes and are not interchangeable. Preserve class order and,
+for an existing keypoint head, keypoint slot order. The loader adapts class
+counts but does not remap class names; a class-name/order mismatch emits a warning.
+
+The following options can also be applied to the existing netharn RF-DETR recipe
+under ``detector_trainer:ocv_windowed:trainer:netharn``:
+
+- ``segmentation_head=True`` selects a segmentation architecture and mask losses.
+- ``keypoints=True`` enables keypoint coordinate and visibility losses, with or
+  without segmentation.
+- ``keypoint_names=head,tail`` defines ordered, case-insensitive point names.
+- ``native_seed_model=/path/to/checkpoint.pth`` initializes from a native run.
+
+Mask training requires a polygon or mask for every non-ignored object. Keypoints
+use the CSV ``(kp) head x y`` / ``(kp) tail x y`` attributes (or equivalent COCO
+annotations). Missing or cropped-out points get visibility zero. A run with no
+visible training points matching the configured names is rejected. Regenerate
+an existing augmentation cache if it predates the mask/keypoint annotations.
+Use the VIAME build's COCO writer that preserves polygons and named keypoints.
+Netharn's existing validation metrics remain box-based; this recipe does not add
+COCO mask AP or keypoint OKS evaluation.
+
+
 Netharn CFRNN Grid (Tiling Mode)
 ---------------------------------
 
