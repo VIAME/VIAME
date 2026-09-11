@@ -74,6 +74,22 @@ require_planes( kwiver::vital::image_of< T > const& image, size_t wanted,
   }
 }
 
+// ----------------------------------------------------------------------------
+/// A signed hue in degrees, as the halved degrees an 8 bit image holds.
+///
+/// Halve, round half up, and only then wrap a negative into range. That is
+/// the order `cv::cvtColor`'s **HSV** conversion uses, and the order
+/// matters: a hue of -0.98 degrees wrapped first becomes 180 after halving,
+/// which is outside the range, and halved first becomes 0. Its **HLS**
+/// conversion wraps first and does produce the 180, so `rgb_to_hls` does not
+/// call this. The two disagreeing is OpenCV's, not a choice made here.
+inline double
+wrapped_half( double hue )
+{
+  auto const half = std::floor( hue * 0.5 + 0.5 );
+  return half < 0.0 ? half + 180.0 : half;
+}
+
 } // namespace detail
 
 // ----------------------------------------------------------------------------
@@ -222,10 +238,6 @@ rgb_to_hsv( kwiver::vital::image_of< T > const& image )
           hue = 240.0 + 60.0 * ( red - green ) / span;
         }
 
-        if( hue < 0.0 )
-        {
-          hue += 360.0;
-        }
       }
 
       auto const saturation = ( high > 0.0 ) ? span / high : 0.0;
@@ -233,16 +245,178 @@ rgb_to_hsv( kwiver::vital::image_of< T > const& image )
       if constexpr( integral )
       {
         // Halved degrees so hue fits a byte, which is OpenCV's 8 bit
-        // convention and what every caller here expects
-        out( i, j, 0 ) = saturate_pixel< T >( hue * 0.5 );
+        // convention and what every caller here expects.
+        //
+        // The wrap comes **after** the halving, which is OpenCV's order and
+        // not the obvious one. A hue of -0.98 degrees wrapped first is
+        // 359.02, and halved and rounded that is 180 -- outside the range
+        // entirely. Halved first it is -0.49, which rounds to zero and needs
+        // no wrap. One pixel in six thousand of a real image lands there.
+        out( i, j, 0 ) = saturate_pixel< T >( detail::wrapped_half( hue ) );
         out( i, j, 1 ) = saturate_pixel< T >( saturation * top );
         out( i, j, 2 ) = saturate_pixel< T >( high );
       }
       else
       {
-        out( i, j, 0 ) = static_cast< T >( hue );
+        out( i, j, 0 ) = static_cast< T >( hue < 0.0 ? hue + 360.0 : hue );
         out( i, j, 1 ) = static_cast< T >( saturation );
         out( i, j, 2 ) = static_cast< T >( high );
+      }
+    }
+  }
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+/// RGB to HLS: hue, lightness, saturation.
+///
+/// `cv::COLOR_RGB2HLS`. The hue is the same angle HSV uses and is halved for
+/// an integral type the same way; the lightness is the midpoint of the
+/// extremes rather than the maximum, and the saturation is measured against
+/// how far that midpoint is from the middle of the range. The plane order is
+/// hue, **lightness**, saturation -- not the HSV order with two of them
+/// exchanged, which is the mistake this is easiest to make.
+template < typename T >
+kwiver::vital::image_of< T >
+rgb_to_hls( kwiver::vital::image_of< T > const& image )
+{
+  detail::require_planes( image, 3, "rgb_to_hls" );
+
+  constexpr bool integral = std::is_integral< T >::value;
+  auto const top = static_cast< double >( pixel_max< T >() );
+
+  kwiver::vital::image_of< T > out( image.width(), image.height(), 3 );
+
+  for( size_t j = 0; j < image.height(); ++j )
+  {
+    for( size_t i = 0; i < image.width(); ++i )
+    {
+      auto const scale = integral ? top : 1.0;
+
+      auto const red = static_cast< double >( image( i, j, 0 ) ) / scale;
+      auto const green = static_cast< double >( image( i, j, 1 ) ) / scale;
+      auto const blue = static_cast< double >( image( i, j, 2 ) ) / scale;
+
+      auto const high = std::max( { red, green, blue } );
+      auto const low = std::min( { red, green, blue } );
+      auto const span = high - low;
+      auto const lightness = ( high + low ) * 0.5;
+
+      double hue = 0.0;
+      double saturation = 0.0;
+
+      if( span > 0.0 )
+      {
+        saturation = ( lightness < 0.5 )
+                     ? span / ( high + low )
+                     : span / ( 2.0 - high - low );
+
+        if( high == red )
+        {
+          hue = 60.0 * ( green - blue ) / span;
+        }
+        else if( high == green )
+        {
+          hue = 120.0 + 60.0 * ( blue - red ) / span;
+        }
+        else
+        {
+          hue = 240.0 + 60.0 * ( red - green ) / span;
+        }
+
+      }
+
+      // **Wrapped before halving, unlike HSV above.** `cv::cvtColor`'s two
+      // conversions disagree about the order, and on the one pixel of the
+      // recorded fixture where the hue comes out slightly negative they give
+      // 0 for HSV and 180 for HLS. Not a difference anyone would predict,
+      // and only a recording finds it.
+      if( hue < 0.0 )
+      {
+        hue += 360.0;
+      }
+
+      if constexpr( integral )
+      {
+        out( i, j, 0 ) = saturate_pixel< T >( hue * 0.5 );
+        out( i, j, 1 ) = saturate_pixel< T >( lightness * top );
+        out( i, j, 2 ) = saturate_pixel< T >( saturation * top );
+      }
+      else
+      {
+        out( i, j, 0 ) = static_cast< T >( hue );
+        out( i, j, 1 ) = static_cast< T >( lightness );
+        out( i, j, 2 ) = static_cast< T >( saturation );
+      }
+    }
+  }
+
+  return out;
+}
+
+// ----------------------------------------------------------------------------
+/// HLS back to RGB, undoing `rgb_to_hls` in the same scaling.
+template < typename T >
+kwiver::vital::image_of< T >
+hls_to_rgb( kwiver::vital::image_of< T > const& image )
+{
+  detail::require_planes( image, 3, "hls_to_rgb" );
+
+  constexpr bool integral = std::is_integral< T >::value;
+  auto const top = static_cast< double >( pixel_max< T >() );
+
+  kwiver::vital::image_of< T > out( image.width(), image.height(), 3 );
+
+  for( size_t j = 0; j < image.height(); ++j )
+  {
+    for( size_t i = 0; i < image.width(); ++i )
+    {
+      auto hue = static_cast< double >( image( i, j, 0 ) );
+      auto lightness = static_cast< double >( image( i, j, 1 ) );
+      auto saturation = static_cast< double >( image( i, j, 2 ) );
+
+      if constexpr( integral )
+      {
+        hue *= 2.0;
+        lightness /= top;
+        saturation /= top;
+      }
+
+      auto const chroma = ( 1.0 - std::abs( 2.0 * lightness - 1.0 ) ) *
+                          saturation;
+      auto const sector = hue / 60.0;
+      auto const second = chroma *
+                          ( 1.0 - std::abs( std::fmod( sector, 2.0 ) - 1.0 ) );
+      auto const lift = lightness - chroma * 0.5;
+
+      double red = 0.0;
+      double green = 0.0;
+      double blue = 0.0;
+
+      switch( static_cast< int >( std::floor( sector ) ) % 6 )
+      {
+        case 0: red = chroma; green = second; break;
+        case 1: red = second; green = chroma; break;
+        case 2: green = chroma; blue = second; break;
+        case 3: green = second; blue = chroma; break;
+        case 4: red = second; blue = chroma; break;
+        default: red = chroma; blue = second; break;
+      }
+
+      auto const scale = integral ? top : 1.0;
+
+      if constexpr( integral )
+      {
+        out( i, j, 0 ) = saturate_pixel< T >( ( red + lift ) * scale );
+        out( i, j, 1 ) = saturate_pixel< T >( ( green + lift ) * scale );
+        out( i, j, 2 ) = saturate_pixel< T >( ( blue + lift ) * scale );
+      }
+      else
+      {
+        out( i, j, 0 ) = static_cast< T >( red + lift );
+        out( i, j, 1 ) = static_cast< T >( green + lift );
+        out( i, j, 2 ) = static_cast< T >( blue + lift );
       }
     }
   }

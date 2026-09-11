@@ -1,5 +1,5 @@
 {
-  "appended": "2026-09-10T23:35:39Z",
+  "appended": "2026-09-11T03:04:06Z",
   "cases": [
     {
       "config": {},
@@ -3060,6 +3060,188 @@
       },
       "unstable": {},
       "variant": "confidence_90_scale_10"
+    },
+    {
+      "config": {
+        "input_color_space": "rgb",
+        "output_color_space": "hsv"
+      },
+      "impl": "ocv_convert_color",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_convert_color/rgb_to_hsv/rgb8.png",
+          "sha256": "ad6bd4c521ee427b",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "rgb_to_hsv"
+    },
+    {
+      "config": {
+        "input_color_space": "rgb",
+        "output_color_space": "lab"
+      },
+      "impl": "ocv_convert_color",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_convert_color/rgb_to_lab/rgb8.png",
+          "sha256": "399ac2cadcf49bdd",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "rgb_to_lab"
+    },
+    {
+      "config": {
+        "input_color_space": "hls",
+        "output_color_space": "rgb"
+      },
+      "impl": "ocv_convert_color",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_convert_color/hls_to_rgb/rgb8.png",
+          "sha256": "882076991a7a6f84",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "hls_to_rgb"
+    },
+    {
+      "config": {
+        "input_color_space": "hsv",
+        "output_color_space": "rgb"
+      },
+      "impl": "ocv_convert_color",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_convert_color/hsv_to_rgb/rgb8.png",
+          "sha256": "90514ef296e387c7",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "hsv_to_rgb"
+    },
+    {
+      "config": {
+        "input_color_space": "lab",
+        "output_color_space": "rgb"
+      },
+      "impl": "ocv_convert_color",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_convert_color/lab_to_rgb/rgb8.png",
+          "sha256": "60d43a8fad1163a9",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "lab_to_rgb"
+    },
+    {
+      "config": {
+        "input_color_space": "bgr",
+        "output_color_space": "hls"
+      },
+      "impl": "ocv_convert_color",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_convert_color/bgr_to_hls/rgb8.png",
+          "sha256": "6c82367fd6e77c7f",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "bgr_to_hls"
+    },
+    {
+      "config": {
+        "input_color_space": "hls",
+        "output_color_space": "bgr"
+      },
+      "impl": "ocv_convert_color",
+      "inputs": [
+        "rgb8"
+      ],
+      "kind": "image_filter",
+      "outputs": {
+        "rgb8": {
+          "dtype": "uint8",
+          "file": "image_filter/ocv_convert_color/hls_to_bgr/rgb8.png",
+          "sha256": "d06f9707fe17aa49",
+          "shape": [
+            64,
+            96,
+            3
+          ]
+        }
+      },
+      "refuses": {},
+      "unstable": {},
+      "variant": "hls_to_bgr"
     }
   ],
   "fixtures": {

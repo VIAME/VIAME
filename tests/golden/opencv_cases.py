@@ -50,7 +50,31 @@ IMAGE_FILTERS = {
         ("clahe_3", {"apply_clahe": "true", "clip_limit": "3"}),
     ],
     "ocv_convert_color": [
+        # The shipped one, and the only pair any config selects:
+        # `train_aug_intensity_hue_motion.pipe` asks for rgb to hls, which
+        # is also the default.
         ("defaults", {}),
+        # The pairs P7-T04b keeps beside it, recorded so the port is held to
+        # them rather than to reasoning. Round trips as well as forward
+        # conversions, since the inverse is where a scale factor goes
+        # missing.
+        ("rgb_to_hsv", {"input_color_space": "rgb",
+                        "output_color_space": "hsv"}),
+        ("rgb_to_lab", {"input_color_space": "rgb",
+                        "output_color_space": "lab"}),
+        ("hls_to_rgb", {"input_color_space": "hls",
+                        "output_color_space": "rgb"}),
+        ("hsv_to_rgb", {"input_color_space": "hsv",
+                        "output_color_space": "rgb"}),
+        ("lab_to_rgb", {"input_color_space": "lab",
+                        "output_color_space": "rgb"}),
+        # BGR in and out, which OpenCV serves with its own constants rather
+        # than by swapping, and which a port that only implements RGB has to
+        # get right by swapping.
+        ("bgr_to_hls", {"input_color_space": "bgr",
+                        "output_color_space": "hls"}),
+        ("hls_to_bgr", {"input_color_space": "hls",
+                        "output_color_space": "bgr"}),
     ],
     "ocv_color_correction": [
         ("defaults", {}),

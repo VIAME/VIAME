@@ -42,6 +42,18 @@ import runner                       # noqa: E402
 # with the reason, rather than loosening the default for everyone.
 TOLERANCES = {
     "__default__": (0.0, 0.0),
+    # `ocv_convert_color` since P7-T04b. OpenCV's colour conversions work in
+    # fixed point for an 8 bit image -- a hue through a reciprocal table, an
+    # L*a*b* through a cube-root table -- where `image_ops` works in double,
+    # so the two round apart on the last count. Measured over the eight
+    # recorded pairs: never more than 1 count, and 0.33 mean at worst
+    # (hsv_to_rgb, where the inverse of a quantised hue lands between two
+    # bytes on a third of the pixels). Two of the eight are exact.
+    #
+    # Reproducing the tables instead was considered in P7-T03 and not done:
+    # they are a precision compromise for speed, and a port that is more
+    # accurate than what it replaces is the better of the two to keep.
+    "ocv_convert_color": (1.0, 0.5),
 }
 
 

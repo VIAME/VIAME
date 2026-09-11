@@ -347,6 +347,16 @@ an artefact of the port:
   that case to a relative tolerance and to ground truth instead of to its
   bytes. Worth knowing before treating a calibration file as a record of
   what its inputs were.
+* **`cv::cvtColor`'s HSV and HLS disagree about where to wrap a negative
+  hue.** A hue comes out slightly negative whenever the maximum channel is
+  red and green is just below blue; the conversion then has to bring it into
+  range and halve it to fit a byte. `RGB2HSV` halves first and wraps after,
+  so -0.98 degrees becomes 0; `RGB2HLS` wraps first and halves after, so the
+  same pixel becomes 180 -- outside the range the hue is documented to have.
+  One pixel of the 6144 in `rgb8.png` lands there, which is enough to make a
+  golden fail and not enough to make anyone suspect it. `image_ops` does
+  each one the way its own conversion does.
+
 * **`ocv_debayer` swaps red and blue.** OpenCV's Bayer constants name the
   pattern the other way round from everyone else -- the constant that
   correctly decodes a blue-at-(0, 0) mosaic is `COLOR_BayerRG2*`, not

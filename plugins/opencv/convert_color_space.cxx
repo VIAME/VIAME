@@ -2,136 +2,116 @@
  * BSD 3-Clause License. See either the root top-level LICENSE file or  *
  * https://github.com/VIAME/VIAME/blob/main/LICENSE.txt for details.    */
 
+/**
+ * \file
+ * \brief Implementation of colour space conversion filter
+ *
+ * `cv::cvtColor` until P7-T04b; `image_ops::color` since. The bridge was
+ * asked for an `RGB_COLOR` mat both ways, so the vital image's planes went
+ * into `cvtColor` and came back out untouched -- which is why an `input` of
+ * `bgr` means "these planes hold BGR" rather than anything the bridge did.
+ *
+ * **Three of the C++'s colour spaces are gone: XYZ, YCrCb and Luv.** No
+ * shipped pipeline or config asks for any of them -- the only use of this
+ * filter in the tree is `train_aug_intensity_hue_motion.pipe`, which asks
+ * for rgb to hls, and that is also the registered default. Carrying three
+ * more conversion pairs that nothing selects is the "extra" this branch has
+ * been removing everywhere else. Asking for one is a configuration error
+ * naming the space, as an unavailable pair already was.
+ */
+
 #include "convert_color_space.h"
 
-#include <viame/algorithm_framework/exceptions.h>
+#include <image_ops/color.h>
+#include <image_ops/dispatch.h>
+
+#include <viame/algorithm_framework/exceptions/algorithm.h>
 #include <viame/core_types/color_space.h>
+#include <viame/core_types/image_container.h>
 
-#include <viame/opencv_bridge/image_container.h>
+#include <string>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+namespace io = viame::image_ops;
 
 namespace viame {
 
-namespace
+namespace {
+
+namespace kv = kwiver::vital;
+
+// ----------------------------------------------------------------------------
+/// Whether a space is one of the two plane orders rather than a conversion.
+bool
+is_channel_order( kv::color_space space )
 {
-
-typedef int cv_convert_code;
-
-static const cv_convert_code CV_Invalid = -1;
-
-/// \brief Is there an opencv conversion method between these 2 spaces?
-cv_convert_code lookup_cv_conversion_code(
-  kwiver::vital::color_space space1, kwiver::vital::color_space space2 )
-{
-  switch( space1 )
-  {
-    case kwiver::vital::RGB:
-      switch( space2 )
-      {
-        case kwiver::vital::XYZ:
-          return cv::COLOR_RGB2XYZ;
-        case kwiver::vital::YCrCb:
-          return cv::COLOR_RGB2YCrCb;
-        case kwiver::vital::HSV:
-          return cv::COLOR_RGB2HSV;
-        case kwiver::vital::HLS:
-          return cv::COLOR_RGB2HLS;
-        case kwiver::vital::Lab:
-          return cv::COLOR_RGB2Lab;
-        case kwiver::vital::Luv:
-          return cv::COLOR_RGB2Luv;
-        default:
-          return CV_Invalid;
-      }
-    case kwiver::vital::BGR:
-      switch( space2 )
-      {
-        case kwiver::vital::XYZ:
-          return cv::COLOR_BGR2XYZ;
-        case kwiver::vital::YCrCb:
-          return cv::COLOR_BGR2YCrCb;
-        case kwiver::vital::HSV:
-          return cv::COLOR_BGR2HSV;
-        case kwiver::vital::HLS:
-          return cv::COLOR_BGR2HLS;
-        case kwiver::vital::Lab:
-          return cv::COLOR_BGR2Lab;
-        case kwiver::vital::Luv:
-          return cv::COLOR_BGR2Luv;
-        default:
-          return CV_Invalid;
-      }
-    case kwiver::vital::HSV:
-      switch( space2 )
-      {
-        case kwiver::vital::RGB:
-          return cv::COLOR_HSV2RGB;
-        case kwiver::vital::BGR:
-          return cv::COLOR_HSV2BGR;
-        default:
-          return CV_Invalid;
-      }
-    case kwiver::vital::HLS:
-      switch( space2 )
-      {
-        case kwiver::vital::RGB:
-          return cv::COLOR_HLS2RGB;
-        case kwiver::vital::BGR:
-          return cv::COLOR_HLS2BGR;
-        default:
-          return CV_Invalid;
-      }
-    case kwiver::vital::XYZ:
-      switch( space2 )
-      {
-        case kwiver::vital::RGB:
-          return cv::COLOR_XYZ2RGB;
-        case kwiver::vital::BGR:
-          return cv::COLOR_XYZ2BGR;
-        default:
-          return CV_Invalid;
-      }
-    case kwiver::vital::Lab:
-      switch( space2 )
-      {
-        case kwiver::vital::RGB:
-          return cv::COLOR_Lab2RGB;
-        case kwiver::vital::BGR:
-          return cv::COLOR_Lab2BGR;
-        default:
-          return CV_Invalid;
-      }
-    case kwiver::vital::Luv:
-      switch( space2 )
-      {
-        case kwiver::vital::RGB:
-          return cv::COLOR_Luv2RGB;
-        case kwiver::vital::BGR:
-          return cv::COLOR_Luv2BGR;
-        default:
-          return CV_Invalid;
-      }
-    case kwiver::vital::YCrCb:
-      switch( space2 )
-      {
-        case kwiver::vital::RGB:
-          return cv::COLOR_YCrCb2RGB;
-        case kwiver::vital::BGR:
-          return cv::COLOR_YCrCb2BGR;
-        default:
-          return CV_Invalid;
-      }
-    default:
-      return CV_Invalid;
-  }
-  return CV_Invalid;
+  return space == kv::RGB || space == kv::BGR;
 }
 
-} // end anonymous namespace
+// ----------------------------------------------------------------------------
+/// Whether this build converts to and from \p space.
+bool
+is_supported( kv::color_space space )
+{
+  return is_channel_order( space ) || space == kv::HSV ||
+         space == kv::HLS || space == kv::Lab;
+}
 
-// --------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+/// The planes in the other order, which is what BGR and RGB differ by.
+template < typename T >
+kwiver::vital::image_of< T >
+swap_channels( kwiver::vital::image_of< T > const& image )
+{
+  return io::swap_rb( image );
+}
+
+// ----------------------------------------------------------------------------
+template < typename T >
+kwiver::vital::image_of< T >
+convert( kwiver::vital::image_of< T > const& image,
+         kv::color_space from, kv::color_space to )
+{
+  // One of the two ends is always a channel order: the C++ had no pair that
+  // converted one colour space straight into another, and nothing asks for
+  // one.
+  if( is_channel_order( from ) )
+  {
+    auto const rgb = ( from == kv::BGR ) ? swap_channels( image ) : image;
+
+    switch( to )
+    {
+      case kv::HSV: return io::rgb_to_hsv( rgb );
+      case kv::HLS: return io::rgb_to_hls( rgb );
+      case kv::Lab: return io::rgb_to_lab( rgb );
+      default: break;
+    }
+  }
+  else if( is_channel_order( to ) )
+  {
+    kwiver::vital::image_of< T > rgb;
+
+    switch( from )
+    {
+      case kv::HSV: rgb = io::hsv_to_rgb( image ); break;
+      case kv::HLS: rgb = io::hls_to_rgb( image ); break;
+      case kv::Lab: rgb = io::lab_to_rgb( image ); break;
+      default: break;
+    }
+
+    if( rgb.size() )
+    {
+      return ( to == kv::BGR ) ? swap_channels( rgb ) : rgb;
+    }
+  }
+
+  throw kv::algorithm_configuration_exception(
+    "convert_color_space", "ocv_convert_color",
+    "No conversion available between specified color spaces" );
+}
+
+} // namespace
+
+// ----------------------------------------------------------------------------
 void
 convert_color_space
 ::initialize()
@@ -139,7 +119,7 @@ convert_color_space
   resolve_conversion_code();
 }
 
-// --------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void
 convert_color_space
 ::set_configuration_internal(
@@ -148,19 +128,21 @@ convert_color_space
   resolve_conversion_code();
 }
 
-// --------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void
 convert_color_space
 ::resolve_conversion_code()
 {
-  kwiver::vital::color_space input_cs =
-    kwiver::vital::string_to_color_space( c_input_color_space );
-  kwiver::vital::color_space output_cs =
-    kwiver::vital::string_to_color_space( c_output_color_space );
+  auto const input = kwiver::vital::string_to_color_space(
+    c_input_color_space );
+  auto const output = kwiver::vital::string_to_color_space(
+    c_output_color_space );
 
-  m_conversion_code = lookup_cv_conversion_code( input_cs, output_cs );
+  auto const usable =
+    is_supported( input ) && is_supported( output ) &&
+    ( is_channel_order( input ) != is_channel_order( output ) );
 
-  if( m_conversion_code == CV_Invalid )
+  if( !usable )
   {
     throw kwiver::vital::algorithm_configuration_exception(
       "convert_color_space", this->impl_name(),
@@ -168,12 +150,14 @@ convert_color_space
   }
 }
 
+// ----------------------------------------------------------------------------
 bool
 convert_color_space
 ::check_configuration( kwiver::vital::config_block_sptr config ) const
 {
   if( kwiver::vital::string_to_color_space(
-    config->get_value< std::string >( "input_color_space" ) ) == kwiver::vital::INVALID_CS )
+    config->get_value< std::string >( "input_color_space" ) ) ==
+      kwiver::vital::INVALID_CS )
   {
     throw kwiver::vital::algorithm_configuration_exception(
       "convert_color_space", this->impl_name(),
@@ -181,7 +165,8 @@ convert_color_space
       config->get_value< std::string >( "input_color_space" ) );
   }
   if( kwiver::vital::string_to_color_space(
-    config->get_value< std::string >( "output_color_space" ) ) == kwiver::vital::INVALID_CS )
+    config->get_value< std::string >( "output_color_space" ) ) ==
+      kwiver::vital::INVALID_CS )
   {
     throw kwiver::vital::algorithm_configuration_exception(
       "convert_color_space", this->impl_name(),
@@ -192,6 +177,7 @@ convert_color_space
   return true;
 }
 
+// ----------------------------------------------------------------------------
 // Perform color conversion
 kwiver::vital::image_container_sptr
 convert_color_space
@@ -202,15 +188,20 @@ convert_color_space
     return kwiver::vital::image_container_sptr();
   }
 
-  cv::Mat cv_output, cv_input =
-    kwiver::arrows::ocv::image_container::vital_to_ocv(
-      image_data->get_image(), kwiver::arrows::ocv::image_container::RGB_COLOR );
+  auto const input = kwiver::vital::string_to_color_space(
+    c_input_color_space );
+  auto const output = kwiver::vital::string_to_color_space(
+    c_output_color_space );
 
-  cv::cvtColor( cv_input, cv_output, m_conversion_code );
+  auto const converted = io::dispatch_pixel_type(
+    image_data->get_image(),
+    [ & ]( auto const& typed ) -> kwiver::vital::image
+    {
+      return kwiver::vital::image( convert( typed, input, output ) );
+    } );
 
-  return kwiver::vital::image_container_sptr(
-    new kwiver::arrows::ocv::image_container( cv_output,
-      kwiver::arrows::ocv::image_container::RGB_COLOR ) );
+  return std::make_shared< kwiver::vital::simple_image_container >(
+    converted );
 }
 
 } // end namespace viame
