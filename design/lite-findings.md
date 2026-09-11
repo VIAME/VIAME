@@ -283,6 +283,49 @@ an artefact of the port:
   by 5 does. The checkerboard path does use them, and returns nothing at the
   wrong size, so the two halves of one algorithm disagree about whether the
   configured grid is a requirement.
+* **The shipped stereo calibration cannot calibrate a board with an odd
+  number of corners**, which includes its own default. `optimize_stereo_cameras`
+  checks
+
+  ```cpp
+  auto features_half_size = trks.size() / 2;
+  auto landmarks_half_size = lms.size() / 2;
+  if( features_half_size % 2 || landmarks_half_size % 2 ) { ... return; }
+  ```
+
+  and one track per corner per camera means `trks.size()` is twice the
+  corner count, so this asks the **corner count** to be even. The default
+  target is 7 by 5, which is thirty-five, and the optimiser logs
+  "Inconsistant features or landmarks number" and returns without
+  calibrating -- no error, no output files, and the pipeline exits zero. The
+  check it meant to make is `trks.size() % 2`, that the tracks divide evenly
+  between the two cameras. `tests/golden/measurement`'s fixture uses an 8 by
+  5 board so the rest of the chain can be recorded at all.
+* **`-s global:key=value` does not reach `$CONFIG{global:key}`.** The
+  override is appended as a second `config global` block after the
+  substitutions have been resolved against the first, so
+  `measurement_calibrate_cameras_default.pipe` run with
+  `-s global:square_size=30` silently calibrates with the shipped 80 and
+  returns a baseline scaled by 80/30. `pipe-config` shows both blocks, the
+  first still holding the original value. The key is marked `DIVE_PARAM` in
+  the pipeline, so anything that sets it this way is affected. The golden
+  sets the four per-detector keys instead.
+* OpenCV's chessboard auto-detection will match a **sub-grid**: with
+  `auto_detect_grid` on, an 8 by 5 board was detected as 6 by 5 on one
+  camera's first view and correctly on the other, and the calibration then
+  refused a pair whose corner counts disagreed. Not a defect so much as the
+  nature of the function -- a smaller grid inside a chessboard is also a
+  chessboard -- but it means `auto_detect_grid` is not safe to leave on for
+  a stereo pair, since the two cameras latch independently.
+* The calibrators fit **progressively**: full model first, then fixing the
+  aspect ratio, then the principal point, then each distortion coefficient
+  in turn, keeping every constraint that does not worsen the error past a
+  threshold. On clean data every constraint holds, so the principal point
+  ends up pinned at the image centre whatever it really was -- a rig
+  decentred by five pixels came back with its focal length 2% out, the
+  offset traded against it. Worth knowing before reading a calibration's
+  numbers, and worth reproducing rather than improving: a port that fits the
+  full model will disagree with every calibration file VIAME has written.
 
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 

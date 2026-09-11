@@ -39,6 +39,7 @@ import opencv_fixtures              # noqa: E402
 import imageio_utils                # noqa: E402
 import measurement_cases            # noqa: E402
 import measurement_fixtures         # noqa: E402
+import measurement_runner           # noqa: E402
 import pipeline_runner              # noqa: E402
 import runner                       # noqa: E402
 
@@ -696,9 +697,26 @@ def record_measurement_targets(group_dir, manifest):
                 sum(len(detections) for detections in outputs)))
 
 
+def record_measurement_calibration(group_dir, manifest):
+    pipeline = measurement_cases.CALIBRATION_PIPELINE
+    left, right = measurement_cases.calibration_view_names()
+
+    outputs = measurement_runner.run_stereo_pipeline(
+        pipeline, left, right, measurement_cases.CALIBRATION_SETTINGS)
+
+    arrays = measurement_runner.calibration_arrays(outputs)
+
+    _record_arrays_case(group_dir, manifest, "calibration_pipeline",
+                        pipeline,
+                        "synthetic_rig", {}, ["stereo_rig"], [arrays],
+                        extra={"settings": list(
+                            measurement_cases.CALIBRATION_SETTINGS)})
+
+
 def record_measurement(group_dir, manifest):
     record_measurement_disparity(group_dir, manifest)
     record_measurement_targets(group_dir, manifest)
+    record_measurement_calibration(group_dir, manifest)
 
 
 def record_calib(group_dir, manifest):

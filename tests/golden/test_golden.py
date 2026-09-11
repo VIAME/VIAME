@@ -29,6 +29,7 @@ import feature_cases                # noqa: E402
 import feature_runner               # noqa: E402
 import imageio_utils                # noqa: E402
 import measurement_cases            # noqa: E402
+import measurement_runner           # noqa: E402
 import opencv_cases                 # noqa: E402
 import pipeline_runner              # noqa: E402
 import runner                       # noqa: E402
@@ -235,6 +236,12 @@ def run_case(case, impl):
                        for name in measurement_cases.STEREO)
         return [runner.run_stereo_depth_map(impl, case["config"], left, right)]
 
+    if case["kind"] == "calibration_pipeline":
+        left, right = measurement_cases.calibration_view_names()
+        outputs = measurement_runner.run_stereo_pipeline(
+            impl, left, right, tuple(case["settings"]))
+        return [measurement_runner.calibration_arrays(outputs)]
+
     if case["kind"] == "features":
         arrays = [imageio_utils.load(input_path(name))
                   for name in case["inputs"]]
@@ -399,6 +406,48 @@ def check_array_case(item, case, outputs, group):
                     ARRAY_TOLERANCE))
 
 
+def check_calibration_truth(item, arrays):
+    """The calibration against the rig the views were rendered through.
+
+    The one case in this framework with a right answer rather than only a
+    previous answer: `measurement_fixtures.py` renders the views through a
+    known stereo rig, so this can say not merely "different from the
+    recording" but "and the recording was correct". A port that reproduces
+    the recording exactly and a port that is right are the same thing here,
+    and if they ever stop being, this is what says which broke.
+    """
+    truth = measurement_cases.CALIBRATION_TRUTH
+    tolerances = measurement_cases.CALIBRATION_TOLERANCES
+
+    def close(name, actual, expected, tolerance):
+        assert abs(actual - expected) <= tolerance * abs(expected), (
+            "{} {}: {} against a true {}, more than {:.1%} out".format(
+                case_id(item), name, actual, expected, tolerance))
+
+    for side, key in (("left", "M1"), ("right", "M2")):
+        matrix = arrays[key]
+
+        close("fx_" + side, matrix[0][0], truth["fx_" + side],
+              tolerances["focal"])
+        close("fy_" + side, matrix[1][1], truth["fy_" + side],
+              tolerances["focal"])
+        close("cx_" + side, matrix[0][2], truth["cx_" + side],
+              tolerances["centre"])
+        close("cy_" + side, matrix[1][2], truth["cy_" + side],
+              tolerances["centre"])
+
+    baseline = float(np.linalg.norm(arrays["T"]))
+    close("baseline", baseline, truth["baseline"], tolerances["baseline"])
+
+    # The rig has no lens distortion, so a calibration that finds some is
+    # fitting noise or has its model wrong.
+    for key in ("D1", "D2"):
+        worst = float(np.abs(arrays[key]).max())
+        assert worst <= measurement_cases.CALIBRATION_MAX_DISTORTION, (
+            "{} {}: distortion up to {} on a distortion free rig".format(
+                case_id(item), key, worst))
+
+
 def check_json_case(item, case, outputs, group):
     """A recording whose values are parsed structure rather than pixels.
 
@@ -461,6 +510,11 @@ def test_golden(item):
 
     if case["kind"] == "detect":
         check_detections(item, case, outputs, group)
+        return
+
+    if case["kind"] == "calibration_pipeline":
+        check_calibration_truth(item, outputs[0])
+        check_array_case(item, case, outputs, group)
         return
 
     if case["kind"] in ("features", "matches", "tracks", "homography",

@@ -1,4 +1,5 @@
 {
+  "appended": "2026-09-11T01:23:16Z",
   "cases": [
     {
       "config": {},
@@ -350,6 +351,121 @@
       },
       "unstable": {},
       "variant": "roi_left_half"
+    },
+    {
+      "config": {},
+      "impl": "measurement_calibrate_cameras_default.pipe",
+      "inputs": [
+        "stereo_rig"
+      ],
+      "kind": "calibration_pipeline",
+      "outputs": {
+        "stereo_rig": {
+          "file": "calibration_pipeline/measurement_calibrate_cameras_default.pipe/synthetic_rig/stereo_rig.npz",
+          "members": {
+            "D1": {
+              "dtype": "float64",
+              "sha256": "2c34ce1df23b838c",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "D2": {
+              "dtype": "float64",
+              "sha256": "2c34ce1df23b838c",
+              "shape": [
+                5,
+                1
+              ]
+            },
+            "M1": {
+              "dtype": "float64",
+              "sha256": "9f7c73b1654a45dc",
+              "shape": [
+                3,
+                3
+              ]
+            },
+            "M2": {
+              "dtype": "float64",
+              "sha256": "fed2666c0214cef0",
+              "shape": [
+                3,
+                3
+              ]
+            },
+            "P1": {
+              "dtype": "float64",
+              "sha256": "6dfa5a3ec8e1d46a",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "P2": {
+              "dtype": "float64",
+              "sha256": "1c37a2003b76c55b",
+              "shape": [
+                3,
+                4
+              ]
+            },
+            "Q": {
+              "dtype": "float64",
+              "sha256": "602ef4457e34a7fa",
+              "shape": [
+                4,
+                4
+              ]
+            },
+            "R": {
+              "dtype": "float64",
+              "sha256": "f5a6eee145efda21",
+              "shape": [
+                3,
+                3
+              ]
+            },
+            "R1": {
+              "dtype": "float64",
+              "sha256": "123653b90e920f01",
+              "shape": [
+                3,
+                3
+              ]
+            },
+            "R2": {
+              "dtype": "float64",
+              "sha256": "ca9d1807fee2d842",
+              "shape": [
+                3,
+                3
+              ]
+            },
+            "T": {
+              "dtype": "float64",
+              "sha256": "dd2bb8bf7bbfcb94",
+              "shape": [
+                3,
+                1
+              ]
+            }
+          }
+        }
+      },
+      "settings": [
+        "detector1:detector:ocv_detect_calibration_targets:auto_detect_grid=false",
+        "detector1:detector:ocv_detect_calibration_targets:target_width=8",
+        "detector1:detector:ocv_detect_calibration_targets:target_height=5",
+        "detector1:detector:ocv_detect_calibration_targets:square_size=30",
+        "detector2:detector:ocv_detect_calibration_targets:auto_detect_grid=false",
+        "detector2:detector:ocv_detect_calibration_targets:target_width=8",
+        "detector2:detector:ocv_detect_calibration_targets:target_height=5",
+        "detector2:detector:ocv_detect_calibration_targets:square_size=30"
+      ],
+      "unstable": {},
+      "variant": "synthetic_rig"
     }
   ],
   "fixtures": {
