@@ -17,6 +17,50 @@ from torch.autograd import Function
 P2P_MODES = ('auto', 'host', 'single', 'require', 'peer')
 
 
+def probe_peer_copies(device_ids, timeout=60):
+    """Check peer transfers in a fresh process, bounded by ``timeout`` seconds.
+
+    CUDA hangs cannot safely be interrupted inside the training process.
+    Use the same interpreter and inherited CUDA visibility, but execute this
+    file directly to avoid importing the training package in the child.
+    A crash, timeout, or unreadable result is treated as an unsafe peer path.
+    """
+    import json
+    import os
+    import subprocess
+    import sys
+
+    ids = list(device_ids)
+    if len(ids) < 2:
+        return []
+    command = [sys.executable, os.path.abspath(__file__), '--probe-json']
+    command.extend(str(i) for i in ids)
+    try:
+        result = subprocess.run(command, capture_output=True, text=True,
+                                timeout=timeout, check=False)
+    except subprocess.TimeoutExpired:
+        reason = 'peer probe timed out after {} seconds'.format(timeout)
+    except OSError as ex:
+        reason = 'peer probe could not start: {}'.format(ex)
+    else:
+        if result.returncode:
+            reason = 'peer probe exited with status {}: {}'.format(
+                result.returncode, result.stderr[-1000:].strip())
+        else:
+            try:
+                failures = json.loads(result.stdout)
+                if not isinstance(failures, list) or any(
+                    not isinstance(f, list) or len(f) != 3
+                    or f[0] not in ids or f[1] not in ids
+                    or not isinstance(f[2], str) for f in failures
+                ):
+                    raise ValueError('unexpected result structure')
+                return failures
+            except (ValueError, TypeError):
+                reason = 'peer probe returned an invalid result'
+    return [(ids[0], ids[1], reason)]
+
+
 def verify_peer_copies(device_ids, numel=1 << 20):
     """
     Round-trip a known pattern between every ordered pair of devices along
@@ -315,8 +359,13 @@ if __name__ == '__main__':
     python -m viame.pytorch.netharn.host_parallel [device ids...]
     """
     import sys
+    if '--probe-json' in sys.argv:
+        import json
+        ids = [int(a) for a in sys.argv[2:]]
+        print(json.dumps(verify_peer_copies(ids)))
+        sys.exit(0)
     ids = [int(a) for a in sys.argv[1:]] or list(range(torch.cuda.device_count()))
-    failures = verify_peer_copies(ids)
+    failures = probe_peer_copies(ids)
     for src, dst, path in failures:
         print('FAIL {}->{} ({})'.format(src, dst, path))
     print('{} of {} peer transfers corrupted across GPUs {}'.format(

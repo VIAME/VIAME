@@ -621,6 +621,7 @@ class InitializeMixin(object):
 
         harn.debug('make XPU')
         harn.xpu = harn.hyper.make_xpu()
+        harn.xpu.prepare_parallel()
         harn.debug('harn.xpu = {!r}'.format(harn.xpu))
         harn.xpu.set_as_default()
 

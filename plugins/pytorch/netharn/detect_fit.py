@@ -36,11 +36,12 @@ class DetectFitConfig(scfg.Config):
         'sampler_workdir': scfg.Path(None, help='workdir for data caches'),
         'workers': scfg.Value(0, help='number of DataLoader processes'),
         'xpu': scfg.Value('argv', help='a CUDA device or a CPU'),
-        'xpu_p2p': scfg.Value('auto', help=ub.paragraph(
+        'xpu_p2p': scfg.Value(None, help=ub.paragraph(
             '''
             Multi-GPU handling of direct GPU-to-GPU copies, which some hosts
-            silently corrupt. auto: verify at mount and stage through host
-            memory on failure. host: always stage. single: fall back to the
+            silently corrupt. Defaults to NETHARN_XPU_P2P, or auto if unset.
+            auto: verify in a subprocess with a 60-second timeout and stage
+            through host memory on failure. host: always stage. single: fall back to the
             main GPU on failure. require: raise on failure. peer: trust
             them unchecked.
             ''')),
@@ -959,6 +960,7 @@ def setup_harn(cmdline=True, **kw):
 
     from viame.pytorch.netharn.data.data_containers import ContainerXPU
     xpu = ContainerXPU.coerce(config['xpu'], p2p=config['xpu_p2p'])
+    xpu.prepare_parallel()
     print('xpu = {!r}'.format(xpu))
 
     print('make loaders')

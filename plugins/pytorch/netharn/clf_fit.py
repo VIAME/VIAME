@@ -30,7 +30,7 @@ class ClfConfig(scfg.Config):
 
         'workers': scfg.Value(2, help='number of parallel dataloading jobs'),
         'xpu': scfg.Value('auto', help='See netharn.XPU for details. can be auto/cpu/xpu/cuda0/0,1,2,3)'),
-        'xpu_p2p': scfg.Value('auto', help='See netharn.XPU for details. can be auto/host/single/require/peer'),
+        'xpu_p2p': scfg.Value(None, help='Defaults to NETHARN_XPU_P2P or auto. Can be auto/host/single/require/peer'),
 
         'pin_memory': scfg.Value(True, help='see torch DataLoader docs'),
         'sharing_strategy': scfg.Value('auto', help='torch sharing strategy. Can be file_system or descriptor on linux systems'),
