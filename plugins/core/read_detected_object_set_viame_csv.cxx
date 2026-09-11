@@ -156,46 +156,46 @@ size_t parse_viame_csv_species(
   return cols.size();
 }
 
+std::vector< std::vector< double > > extract_viame_csv_polygons(
+  std::vector< std::string > const& cols, size_t start_col )
+{
+  std::vector< std::vector< double > > polygons;
+  for( size_t i = start_col; i < cols.size(); ++i )
+  {
+    if( cols[i].compare( 0, 6, "(poly)" ) != 0 &&
+        cols[i].compare( 0, 7, "(+poly)" ) != 0 )
+    {
+      continue;
+    }
+    std::vector< std::string > vertices;
+    kwiver::vital::tokenize( cols[i], vertices, " ", true );
+    std::vector< double > poly;
+    try
+    {
+      for( size_t j = 1; j < vertices.size(); ++j )
+      {
+        poly.push_back( std::stod( vertices[j] ) );
+      }
+    }
+    catch( ... )
+    {
+      continue;
+    }
+    if( poly.size() >= 6 && poly.size() % 2 == 0 )
+    {
+      polygons.push_back( poly );
+    }
+  }
+  return polygons;
+}
+
 bool extract_viame_csv_polygon(
   std::vector< std::string > const& cols,
   size_t start_col,
   std::vector< double >& polygon )
 {
-  polygon.clear();
-
-  // Find polygon field
-  std::string poly_string;
-  for( size_t i = start_col; i < cols.size(); ++i )
-  {
-    if( ( cols[i].size() >= 6 && cols[i].substr( 0, 6 ) == "(poly)" ) ||
-        ( cols[i].size() >= 7 && cols[i].substr( 0, 7 ) == "(+poly)" ) )
-    {
-      poly_string = cols[i];
-      break;
-    }
-  }
-
-  if( poly_string.empty() )
-  {
-    return false;
-  }
-
-  // Parse polygon vertices
-  std::vector< std::string > vertices;
-  kwiver::vital::tokenize( poly_string, vertices, " ", true );
-
-  for( size_t i = 1; i < vertices.size(); ++i )
-  {
-    try
-    {
-      polygon.push_back( std::stof( vertices[i] ) );
-    }
-    catch( ... )
-    {
-      // Skip invalid values
-    }
-  }
-
+  auto polygons = extract_viame_csv_polygons( cols, start_col );
+  polygon = polygons.empty() ? std::vector< double >{} : polygons.front();
   return !polygon.empty();
 }
 
@@ -242,12 +242,8 @@ create_viame_csv_detection(
     dob->set_index( static_cast< uint64_t >( id ) );
   }
 
-  // Extract polygon if present
-  std::vector< double > polygon;
-  if( extract_viame_csv_polygon( cols, optional_start, polygon ) )
-  {
-    dob->set_flattened_polygon( polygon );
-  }
+  // Preserve every polygon piece for training and CSV round trips.
+  dob->set_flattened_polygons( extract_viame_csv_polygons( cols, optional_start ) );
 
   return dob;
 }
@@ -676,19 +672,7 @@ read_detected_object_set_viame_csv::priv
       }
     }
 
-    std::vector< std::string > poly_string_vertices;
-    std::vector< double > poly_floats;
-
-    if( !poly_strings.empty() )
-    {
-      // Only use the first polygon
-      kwiver::vital::tokenize( poly_strings[0], poly_string_vertices, " ", true );
-      for( size_t i = 1; i < poly_string_vertices.size(); ++i )
-      {
-        poly_floats.push_back( std::stof( poly_string_vertices[ i ] ) );
-      }
-      dob->set_flattened_polygon( poly_floats );
-    }
+    dob->set_flattened_polygons( extract_viame_csv_polygons( poly_strings, 0 ) );
 
 #ifdef VIAME_ENABLE_VXL
     if( m_parent->c_poly_to_mask && found_optional_field )

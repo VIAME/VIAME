@@ -861,13 +861,13 @@ ocv_windowed_trainer
       auto odet = (*detection)->clone();
       odet->set_bounding_box( bbox );
 
-      // Carry the segmentation polygon onto the chip: translate it into chip
+      // Carry every segmentation polygon onto the chip: translate it into chip
       // coordinates (matching the bbox) and clamp to the chip bounds so the
       // rasterized mask stays inside the tile. clone() already copied the
-      // (already-scaled) polygon, so we only translate + clamp here.
-      auto poly = (*detection)->get_flattened_polygon();
+      // (already-scaled) polygons, so we only translate + clamp here.
+      auto polygons = (*detection)->get_flattened_polygons();
 
-      if( !poly.empty() )
+      for( auto& poly : polygons )
       {
         for( size_t pi = 0; pi + 1 < poly.size(); pi += 2 )
         {
@@ -876,8 +876,8 @@ ocv_windowed_trainer
           poly[pi] = std::max( 0.0, std::min( px, region.width() ) );
           poly[pi + 1] = std::max( 0.0, std::min( py, region.height() ) );
         }
-        odet->set_flattened_polygon( poly );
       }
+      odet->set_flattened_polygons( polygons );
 
       if( m_detect_small && det_box.area() < c_small_box_area )
       {
@@ -976,6 +976,12 @@ ocv_windowed_trainer
     return false;
   }
 
+  std::string version;
+  if( !std::getline( ifs, version ) || version != "VIAME_CHIP_MANIFEST 2" )
+  {
+    return false;
+  }
+
   std::vector< std::string > tmp_names;
   std::vector< kv::detected_object_set_sptr > tmp_truth;
 
@@ -1030,30 +1036,34 @@ ocv_windowed_trainer
       auto dobj = std::make_shared< kv::detected_object >(
         kv::bounding_box_d( minx, miny, maxx, maxy ), score, dot );
 
-      // Optional trailing polygon: P <npts> x1 y1 x2 y2 ...
+      // Each piece has its own P record on the detection line.
+      std::vector< std::vector< double > > polygons;
       std::string ptag;
-      if( ls >> ptag && ptag == "P" )
+      while( ls >> ptag )
       {
+        if( ptag != "P" )
+        {
+          return false;
+        }
         int npts = 0;
-        ls >> npts;
-
+        if( !( ls >> npts ) || npts < 3 )
+        {
+          return false;
+        }
         std::vector< double > poly;
-        poly.reserve( npts * 2 );
-
-        for( int pk = 0; pk < npts * 2; ++pk )
+        for( int pk = 0; pk < npts; ++pk )
         {
-          double v;
-          if( ls >> v )
+          double x, y;
+          if( !( ls >> x >> y ) )
           {
-            poly.push_back( v );
+            return false;
           }
+          poly.push_back( x );
+          poly.push_back( y );
         }
-
-        if( !poly.empty() )
-        {
-          dobj->set_flattened_polygon( poly );
-        }
+        polygons.push_back( poly );
       }
+      dobj->set_flattened_polygons( polygons );
 
       cur->add( dobj );
       --remaining;
@@ -1112,6 +1122,8 @@ ocv_windowed_trainer
     return;
   }
 
+  ofs << "VIAME_CHIP_MANIFEST 2\n";
+
   for( size_t i = 0; i < names.size(); ++i )
   {
     kv::detected_object_set_sptr dos = truth[i];
@@ -1149,19 +1161,22 @@ ocv_windowed_trainer
         cat = "_";
       }
 
-      // Append the segmentation polygon as: P <npts> x1 y1 x2 y2 ...
-      // (kept on the same line; backward compatible with P-less manifests).
-      auto poly = (*det)->get_flattened_polygon();
-
       ofs << "D " << cat << " "
           << bb.min_x() << " " << bb.min_y() << " "
           << bb.max_x() << " " << bb.max_y() << " "
-          << score
-          << " P " << ( poly.size() / 2 );
+          << score;
 
-      for( double v : poly )
+      for( const auto& poly : (*det)->get_flattened_polygons() )
       {
-        ofs << " " << v;
+        if( poly.size() < 6 )
+        {
+          continue;
+        }
+        ofs << " P " << ( poly.size() / 2 );
+        for( double v : poly )
+        {
+          ofs << " " << v;
+        }
       }
 
       ofs << "\n";

@@ -200,11 +200,13 @@ write_object_track_set_viame_csv
           c_mask_to_poly_points < 0 ) ||
         !det->mask() ) )
   {
-    stream << c_delimiter << "(poly)";
-    auto poly = det->polygon();
-    for( auto&& p : poly )
+    for( const auto& poly : det->get_flattened_polygons() )
     {
-      stream << " " << p[0] << " " << p[1];
+      stream << c_delimiter << "(poly)";
+      for( double v : poly )
+      {
+        stream << " " << v;
+      }
     }
   }
 #ifdef VIAME_ENABLE_OPENCV

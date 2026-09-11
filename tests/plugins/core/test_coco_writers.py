@@ -559,3 +559,15 @@ def test_track_writer_counts_frames_without_a_timestamp(tmp_path):
     assert [(image["frame_index"], image["file_name"]) for image in doc["images"]] == [
         (0, "a.png"), (1, "b.png")]
     assert "videos" not in doc
+
+
+@requires_kwiver
+def test_multiple_polygon_pieces_roundtrip():
+    pieces = [[10., 20., 20., 20., 20., 30., 10., 30.],
+              [40., 50., 50., 50., 50., 60., 40., 60.]]
+    det = _detection(10, 20, 40, 40, "fish")
+    uc._apply_segmentation(det, pieces)
+    assert det.get_flattened_polygons() == pieces
+    ann = uc.detection_to_annotation(det, 1, {}, 1, False)
+    assert ann['segmentation'] == pieces
+    assert ann['area'] == 200.

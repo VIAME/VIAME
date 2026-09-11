@@ -16,6 +16,15 @@ if( VIAME_ENABLE_PYTHON )
     WORKING_DIRECTORY "${VIAME_INSTALL_DIR}"
   )
 
+  viame_add_pytest_test(
+    NAME viame_plugins:pytorch:rfdetr_multipolygon
+    TARGET "${CMAKE_CURRENT_SOURCE_DIR}/test_rfdetr_multipolygon.py"
+    LABELS UNIT PYTORCH
+    TIMEOUT 300
+    SOURCE_SETUP
+    WORKING_DIRECTORY "${VIAME_INSTALL_DIR}"
+  )
+
   # SRNN Tracker and Descriptor Tests
   viame_add_pytest_test(
     NAME viame_plugins:pytorch:srnn_tracker

@@ -256,7 +256,7 @@ def detection_to_annotation(det, image_id, categories, category_start_id,
 
     Handles:
 
-    - Segmentation masks (written as RLE) and single polygons
+    - Segmentation masks and multiple polygon pieces
     - Keypoints (written in kwcoco dict-list format)
     - Custom attributes from notes (JSON-encoded dicts are unpacked as
       top-level annotation keys; plain strings go into a ``notes`` list)
@@ -276,9 +276,9 @@ def detection_to_annotation(det, image_id, categories, category_start_id,
     # directly as RLE would produce a mask whose size is the box rather than
     # the image, which is not what any COCO reader expects.
     segmentation = None
-    polygon = det.get_flattened_polygon()
-    if polygon:
-        segmentation = [[int(round(p)) for p in polygon]]
+    polygons = det.get_flattened_polygons()
+    if polygons:
+        segmentation = [[int(round(p)) for p in poly] for poly in polygons]
     else:
         mask = det.mask
         if mask is not None:
@@ -451,9 +451,9 @@ def annotation_to_detection(ann, categories, image_dims=None,
 
 
 def _apply_segmentation(det, seg, image_dims=None):
-    """Attach a segmentation outline to a DetectedObject as a polygon.
+    """Attach all segmentation exteriors to a DetectedObject.
 
-    The polygon is stored via set_flattened_polygon so it can be carried
+    The pieces are stored via set_flattened_polygons so they can be carried
     through the training chip pipeline (windowed_trainer) and written to the
     COCO segmentation field. We deliberately do NOT rasterize a per-annotation
     full-image mask here: it is unused downstream (the chipper consumes the
@@ -461,8 +461,8 @@ def _apply_segmentation(det, seg, image_dims=None):
     prohibitively large on imagery with hundreds of objects per frame.
 
     Handles: flat polygon [x1,y1,...]; list of polygon contours
-    [[x1,y1,...], ...]; and kwcoco exterior/interior dicts. The first valid
-    exterior contour (>=3 points) is used. RLE masks are skipped (no polygon).
+    [[x1,y1,...], ...]; and kwcoco exterior/interior dicts. All valid
+    exterior contours (>=3 points) are used. RLE masks and holes are skipped.
     """
     # Flat list of numbers -> a single polygon
     if isinstance(seg, list) and seg and isinstance(seg[0], (int, float)):
@@ -478,17 +478,17 @@ def _apply_segmentation(det, seg, image_dims=None):
         return
 
     # List of polygon contours and/or kwcoco {exterior, interiors} dicts.
-    # Use the first valid exterior contour.
+    polygons = []
     for p in seg:
         if isinstance(p, dict):
             ext = p.get('exterior')
             if isinstance(ext, list) and len(ext) >= 3:
                 flat = [float(v) for pt in ext for v in pt]
-                det.set_flattened_polygon(flat)
-                return
+                polygons.append(flat)
         elif isinstance(p, list) and len(p) % 2 == 0 and len(p) >= 6:
-            det.set_flattened_polygon([float(v) for v in p])
-            return
+            polygons.append([float(v) for v in p])
+    if polygons:
+        det.set_flattened_polygons(polygons)
 
 
 def _apply_keypoints(det, kps, kp_cat_names=None):

@@ -949,16 +949,14 @@ class RFDETRTrainer(TrainDetector):
                         "iscrowd": 0,
                     }
 
-                    # For a segmentation run, attach the chip-space polygon
-                    # (carried through by the windowed trainer) as the COCO
-                    # segmentation; RF-DETR's loader rasterizes it to a mask.
+                    # Each disconnected piece belongs to the same instance.
+                    # RF-DETR rasterizes the union of these COCO polygons.
                     if seg_enabled:
-                        poly = list(det.get_flattened_polygon())
-                        if len(poly) >= 6:
-                            ann["segmentation"] = [poly]
-                            area = polygon_area(poly)
-                            if area > 0:
-                                ann["area"] = area
+                        polygons = [list(poly) for poly in det.get_flattened_polygons()
+                                    if len(poly) >= 6 and polygon_area(poly) > 0]
+                        if polygons:
+                            ann["segmentation"] = polygons
+                            ann["area"] = sum(polygon_area(poly) for poly in polygons)
 
                     # For a keypoint run, write the detection's named keypoints
                     # (head/tail, ...) to the COCO keypoints field in the fixed

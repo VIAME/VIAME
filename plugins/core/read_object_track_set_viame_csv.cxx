@@ -370,19 +370,7 @@ read_object_track_set_viame_csv::priv
       }
     }
 
-    std::vector< std::string > poly_string_vertices;
-    std::vector< double > poly_floats;
-
-    if( !poly_strings.empty() )
-    {
-      // Only use the first polygon
-      kwiver::vital::tokenize( poly_strings[0], poly_string_vertices, " ", true );
-      for( size_t i = 1; i < poly_string_vertices.size(); ++i )
-      {
-        poly_floats.push_back( std::stof( poly_string_vertices[ i ] ) );
-      }
-      dob->set_flattened_polygon( poly_floats );
-    }
+    dob->set_flattened_polygons( extract_viame_csv_polygons( poly_strings, 0 ) );
 
 #ifdef VIAME_ENABLE_VXL
     if( m_parent->c_poly_to_mask && found_attribute )

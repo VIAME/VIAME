@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include "read_object_track_set_viame_csv.h"
+#include "read_detected_object_set_viame_csv.h"
 #include "write_object_track_set_viame_csv.h"
 
 #include <vital/types/object_track_set.h>
@@ -210,3 +211,77 @@ TEST_F( viame_csv_tmpdir, reader_fills_from_first_or_last_row )
 }
 
 INSTANTIATE_TEST_CASE_P( modes, viame_csv_tot_once, ::testing::Bool() );
+
+TEST_F( viame_csv_tmpdir, polygons_preserve_other_optional_fields )
+{
+  const auto path = m_dir / "mixed_fields.csv";
+  {
+    std::ofstream out( path );
+    out << "1,image.png,0,10,20,30,40,0.5,12.5,fish,0.9,"
+        << "(atr) source image001.png,(poly) 10 20 15 20 15 25,"
+        << "(kp) head 12 22,(atr) score 7.5,(+poly) 25 35 30 35 30 40,"
+        << "(note) reviewed fish,(atr) verified\n";
+  }
+  const auto check = []( kv::detected_object_sptr const& det ) {
+    EXPECT_EQ( det->get_flattened_polygons().size(), 2 );
+    EXPECT_DOUBLE_EQ( det->get_attribute< double >( "length" ), 12.5 );
+    EXPECT_DOUBLE_EQ( det->type()->score( "fish" ), 0.9 );
+    EXPECT_EQ( det->notes(), ( std::vector< std::string >{
+      ":source=image001.png", ":score=7.5", "reviewed fish", ":verified=true" } ) );
+    ASSERT_EQ( det->keypoints().count( "head" ), 1 );
+    EXPECT_DOUBLE_EQ( det->keypoints().at( "head" ).value()[0], 12 );
+    EXPECT_DOUBLE_EQ( det->keypoints().at( "head" ).value()[1], 22 );
+  };
+  viame::read_detected_object_set_viame_csv detections;
+  detections.open( path.string() );
+  kv::detected_object_set_sptr set;
+  std::string image_name;
+  ASSERT_TRUE( detections.read_set( set, image_name ) );
+  ASSERT_EQ( set->size(), 1 );
+  check( *set->begin() );
+  detections.close();
+
+  viame::read_object_track_set_viame_csv tracks;
+  tracks.set_batch_load( true );
+  tracks.open( path.string() );
+  kv::object_track_set_sptr track_set;
+  ASSERT_TRUE( tracks.read_set( track_set ) );
+  ASSERT_EQ( track_set->tracks().size(), 1 );
+  auto state = std::dynamic_pointer_cast< kv::object_track_state >(
+    *track_set->tracks()[0]->begin() );
+  ASSERT_TRUE( state );
+  check( state->detection() );
+  tracks.close();
+}
+
+TEST( viame_csv, multiple_polygon_pieces_roundtrip )
+{
+  const auto path = fs::temp_directory_path() / "viame_csv_multipolygon_tracks.csv";
+  auto tracks = make_tracks( 1 );
+  const std::vector< std::vector< double > > polygons = {
+    { 10, 20, 15, 20, 15, 25, 10, 25 },
+    { 25, 35, 30, 35, 30, 40, 25, 40 } };
+  for( auto const& track : tracks )
+  {
+    auto state = std::dynamic_pointer_cast< kv::object_track_state >( *track->begin() );
+    state->detection()->set_flattened_polygons( polygons );
+  }
+  viame::write_object_track_set_viame_csv writer;
+  writer.open( path.string() );
+  writer.write_set( std::make_shared< kv::object_track_set >( tracks ),
+                    kv::timestamp( 0, 0 ), "image.png" );
+  writer.close();
+  viame::read_object_track_set_viame_csv reader;
+  reader.set_batch_load( true );
+  reader.open( path.string() );
+  kv::object_track_set_sptr result;
+  ASSERT_TRUE( reader.read_set( result ) );
+  ASSERT_EQ( tracks.size(), result->tracks().size() );
+  for( auto const& track : result->tracks() )
+  {
+    auto state = std::dynamic_pointer_cast< kv::object_track_state >( *track->begin() );
+    EXPECT_EQ( polygons, state->detection()->get_flattened_polygons() );
+  }
+  reader.close();
+  fs::remove( path );
+}
