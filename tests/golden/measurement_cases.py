@@ -324,6 +324,31 @@ MEASUREMENT_VARIANTS = (
 MEASUREMENT_PAIRED_VARIANTS = ("input_pairs_only",)
 
 
+# How far a recorded value may move, per variant, as a fraction.
+#
+# Zero for every method that does not rectify: `input_pairs_only`,
+# `epipolar_template_matching` and `depth_projection` reproduce the recording
+# **exactly** after the port. The two that rectify cannot, and the reason is
+# stated at `library/measurement/projection.cxx`: `cv::stereoRectify` samples
+# the image border through `CV_32FC2` points, so the inscribed rectangle it
+# scales the rectified focal length to fit carries about seven significant
+# digits, and this works in double. That moves the rectified focal length by
+# a part in ten million, the rectified images by a ten-thousandth of a pixel,
+# and the measured lengths by the amounts here -- 1.4e-6 for
+# `template_matching`, and 1.2e-3 for `compute_disparity`, whose disparity
+# lookup is an integer index into a map and so quantises the difference up.
+# `compute_disparity` is not in this table at all; it is **unstable**, below,
+# and the reason is finding 1.21 rather than the port.
+MEASUREMENT_ARRAY_TOLERANCE = {
+    "template_matching": 1e-5,
+}
+
+
+def array_tolerance(impl, variant):
+    """The relative tolerance a `measurement` case's arrays are held to."""
+    return MEASUREMENT_ARRAY_TOLERANCE.get(variant, 0.0)
+
+
 def measurement_settings(variant):
     for name, settings in MEASUREMENT_VARIANTS:
         if name == variant:
@@ -371,6 +396,25 @@ MEASUREMENT_LENGTH_TOLERANCE = {
 # recovers the ground truth, which `check_calibration_truth` checks and
 # which does not care how the frames were chosen.
 UNSTABLE = {
+    # `compute_disparity` reads its depth out of the **saturated** disparity
+    # map of finding 1.21: the WLS filter's fill values reach 32767, which is
+    # 2047 pixels of disparity on a rig whose real disparity is 45, and
+    # neighbouring pixels of such a map hold wildly different numbers. So a
+    # rectification that differs in its seventh significant digit -- which is
+    # exactly what `library/measurement/projection` differs by, since OpenCV
+    # samples its image border in float and this works in double -- lands the
+    # lookup on a different pixel and moves a right keypoint by ten.
+    #
+    # There is no tolerance that makes that a byte contract, and pretending
+    # otherwise would be recording noise. What is still contractual is below
+    # in `compare_unstable`: the same tracks get a measurement, and their
+    # lengths are still an order of magnitude short of the truth, which is
+    # the defect this case exists to pin. A method that started working would
+    # fail this -- and should, because it would be a change worth noticing.
+    ("measurement", MEASUREMENT_PIPELINE, "compute_disparity"):
+        "the disparity map it reads is saturated (finding 1.21), so a "
+        "rectification differing in the seventh digit moves a keypoint by "
+        "ten pixels",
     ("calibration_pipeline", CALIBRATION_PIPELINE, "frames_6"):
         "kmedians seeds from cv::theRNG(), whose state is not an input to "
         "the algorithm, so which six of the twelve frames are selected "
@@ -383,6 +427,18 @@ RELATIVE_TOLERANCE = 0.01
 def unstable(kind, impl, variant=None):
     """Why this case cannot be compared exactly, or None."""
     return UNSTABLE.get((kind, impl, variant))
+
+
+# How far an unstable `measurement` member may move. `track_ids` is exact --
+# the same tracks have to get a measurement -- and `length` keeps a wide band
+# that still separates "the broken method, reproduced" from "the method
+# started working", which would be ten times larger. The keypoints and the
+# midpoints are checked for shape alone, since those are the values the
+# saturated map moves around.
+MEASUREMENT_UNSTABLE_TOLERANCE = {
+    "track_ids": 0.0,
+    "length": 0.3,
+}
 
 
 def compare_unstable(kind, member, got, want):
@@ -398,6 +454,21 @@ def compare_unstable(kind, member, got, want):
         return ["shape {} != recorded {}".format(got.shape, want.shape)]
 
     if want.size == 0:
+        return []
+
+    if kind == "measurement":
+        allowed = MEASUREMENT_UNSTABLE_TOLERANCE.get(member)
+
+        if allowed is None:
+            return []
+
+        scale = np.maximum(1.0, np.abs(want))
+        worst = float((np.abs(got - want) / scale).max())
+
+        if worst > allowed:
+            return ["{:.2%} apart at most, more than {:.0%}".format(
+                worst, allowed)]
+
         return []
 
     scale = max(1e-9, float(np.abs(want).max()))

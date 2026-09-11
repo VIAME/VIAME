@@ -20,12 +20,16 @@
 
 #include <viame/measurement/triangulate.h>
 
-#ifdef VIAME_ENABLE_OPENCV
-  #include <viame/opencv_bridge/image_container.h>
-  #include <opencv2/imgproc/imgproc.hpp>
-  #include <opencv2/imgcodecs.hpp>
-  #include <viame/opencv_bridge/matrix.h>
-#endif
+#include <viame/measurement/projection.h>
+
+#include <image_ops/color.h>
+#include <image_ops/draw.h>
+#include <image_ops/layout.h>
+#include <image_ops/match.h>
+#include <image_ops/resample.h>
+#include <image_ops/warp.h>
+
+#include <viame/video_io/codecs/image_codec.h>
 
 #include <algorithm>
 #include <chrono>
@@ -105,18 +109,78 @@ parse_stereo_rms_from_notes( const kv::detected_object_sptr& det )
 // DINOv3 Python C API helpers
 // =============================================================================
 
-#ifdef VIAME_ENABLE_OPENCV
-
 namespace
 {
 
 static auto logger = kwiver::vital::get_logger( "viame.core.measurement_utilities" );
 
+namespace io = viame::image_ops;
+
+/// The greyscale of a colour image.
+///
+/// `cv::cvtColor`'s `BGR2GRAY` on the BGR mat the bridge used to build,
+/// which is `rgb_to_gray` on the RGB image that mat came from: the same
+/// BT.601 weights on the same channels. An image that is already one plane
+/// comes back unchanged, and a fourth plane is dropped, as `BGRA2GRAY` did.
+kv::image_of< uint8_t >
+to_gray( kv::image_of< uint8_t > const& image )
+{
+  if( image.depth() == 1 )
+  {
+    return image;
+  }
+
+  return io::rgb_to_gray( image );
+}
+
+/// Three planes whatever came in: one plane is replicated, four are cut
+/// down. `cv::cvtColor`'s `GRAY2BGR` and `BGRA2BGR`, on RGB.
+kv::image_of< uint8_t >
+to_three_planes( kv::image_of< uint8_t > const& image )
+{
+  if( image.depth() == 1 )
+  {
+    return io::gray_to_rgb( image );
+  }
+
+  if( image.depth() == 3 )
+  {
+    return image;
+  }
+
+  kv::image_of< uint8_t > out( image.width(), image.height(), 3 );
+
+  for( size_t plane = 0; plane < 3; ++plane )
+  {
+    for( size_t j = 0; j < image.height(); ++j )
+    {
+      for( size_t i = 0; i < image.width(); ++i )
+      {
+        out( i, j, plane ) = image( i, j, plane );
+      }
+    }
+  }
+
+  return out;
+}
+
+/// A region of an image, which was `image( cv::Rect( ... ) )`.
+///
+/// `io::crop` copies where OpenCV aliased. Every caller here either reads
+/// the region or hands it to a matcher, so the copy costs a patch and buys
+/// not having to think about lifetimes.
+kv::image_of< uint8_t >
+region( kv::image_of< uint8_t > const& image, image_rect const& rect )
+{
+  return io::crop( image, static_cast< size_t >( rect.x ),
+                   static_cast< size_t >( rect.y ),
+                   static_cast< size_t >( rect.width ),
+                   static_cast< size_t >( rect.height ) );
+}
+
 } // end anonymous namespace (logger)
 
-#endif // VIAME_ENABLE_OPENCV
-
-#if defined( VIAME_ENABLE_PYTHON ) && defined( VIAME_ENABLE_OPENCV )
+#ifdef VIAME_ENABLE_PYTHON
 
 namespace
 {
@@ -204,8 +268,33 @@ bool dino_ensure_initialized(
   return true;
 }
 
+/// The bytes a `numpy` array of this image would hold: row major, channels
+/// interleaved, which is what `cv::Mat::data` was and what the python side
+/// reads. `vital::image` is planar, so this is the one place the two layouts
+/// have to be spelled out rather than aliased.
+std::vector< uint8_t >
+interleaved( const kv::image_of< uint8_t >& image )
+{
+  std::vector< uint8_t > out;
+  out.reserve( image.width() * image.height() * image.depth() );
+
+  for( size_t j = 0; j < image.height(); ++j )
+  {
+    for( size_t i = 0; i < image.width(); ++i )
+    {
+      for( size_t plane = 0; plane < image.depth(); ++plane )
+      {
+        out.push_back( image( i, j, plane ) );
+      }
+    }
+  }
+
+  return out;
+}
+
 /// Call set_images_from_bytes to load a new stereo image pair
-bool dino_set_images( const cv::Mat& left, const cv::Mat& right )
+bool dino_set_images( const kv::image_of< uint8_t >& left,
+                      const kv::image_of< uint8_t >& right )
 {
   if( !s_dino_module )
   {
@@ -214,18 +303,17 @@ bool dino_set_images( const cv::Mat& left, const cv::Mat& right )
 
   python_gil_guard gil;
 
-  // Ensure images are contiguous
-  cv::Mat left_cont = left.isContinuous() ? left : left.clone();
-  cv::Mat right_cont = right.isContinuous() ? right : right.clone();
+  auto const left_cont = interleaved( left );
+  auto const right_cont = interleaved( right );
 
   // Create Python bytes objects wrapping the image data
   PyObject* left_bytes = PyBytes_FromStringAndSize(
-    reinterpret_cast< const char* >( left_cont.data ),
-    static_cast< Py_ssize_t >( left_cont.total() * left_cont.elemSize() ) );
+    reinterpret_cast< const char* >( left_cont.data() ),
+    static_cast< Py_ssize_t >( left_cont.size() ) );
 
   PyObject* right_bytes = PyBytes_FromStringAndSize(
-    reinterpret_cast< const char* >( right_cont.data ),
-    static_cast< Py_ssize_t >( right_cont.total() * right_cont.elemSize() ) );
+    reinterpret_cast< const char* >( right_cont.data() ),
+    static_cast< Py_ssize_t >( right_cont.size() ) );
 
   if( !left_bytes || !right_bytes )
   {
@@ -240,8 +328,11 @@ bool dino_set_images( const cv::Mat& left, const cv::Mat& right )
     s_dino_module,
     "set_images_from_bytes",
     "OiiiOiii",
-    left_bytes, left_cont.rows, left_cont.cols, left_cont.channels(),
-    right_bytes, right_cont.rows, right_cont.cols, right_cont.channels() );
+    left_bytes, static_cast< int >( left.height() ),
+    static_cast< int >( left.width() ), static_cast< int >( left.depth() ),
+    right_bytes, static_cast< int >( right.height() ),
+    static_cast< int >( right.width() ),
+    static_cast< int >( right.depth() ) );
 
   Py_DECREF( left_bytes );
   Py_DECREF( right_bytes );
@@ -402,7 +493,7 @@ std::vector< int > dino_get_top_k_indices(
 
 } // anonymous namespace
 
-#endif // VIAME_ENABLE_PYTHON && VIAME_ENABLE_OPENCV
+#endif // VIAME_ENABLE_PYTHON
 
 // =============================================================================
 // map_keypoints_to_camera_settings implementation
@@ -960,11 +1051,10 @@ map_keypoints_to_camera
   , m_dino_top_k( 100 )
   , m_dino_crop_max_area_ratio( 0.05 )
   , m_cached_frame_id( -1 )
-#ifdef VIAME_ENABLE_OPENCV
   , m_dino_full_images_set( false )
   , m_dino_crop_active( false )
   , m_rectification_computed( false )
-#endif
+  , m_rectification_valid( false )
 {
 }
 
@@ -1160,13 +1250,12 @@ map_keypoints_to_camera
   return m_epipolar_descriptor_type;
 }
 
-#ifdef VIAME_ENABLE_OPENCV
 // -----------------------------------------------------------------------------
 bool
 map_keypoints_to_camera
 ::find_corresponding_point_epipolar(
-  const cv::Mat& source_bgr,
-  const cv::Mat& target_bgr,
+  const kv::image_of< uint8_t >& source_colour,
+  const kv::image_of< uint8_t >& target_colour,
   const kv::vector_2d& source_point,
   const std::vector< kv::vector_2d >& epipolar_points,
   kv::vector_2d& target_point )
@@ -1176,21 +1265,8 @@ map_keypoints_to_camera
 
   if( m_epipolar_descriptor_type == "ncc" )
   {
-    cv::Mat source_gray, target_gray;
-
-    if( source_bgr.channels() == 3 )
-      cv::cvtColor( source_bgr, source_gray, cv::COLOR_BGR2GRAY );
-    else if( source_bgr.channels() == 4 )
-      cv::cvtColor( source_bgr, source_gray, cv::COLOR_BGRA2GRAY );
-    else
-      source_gray = source_bgr;
-
-    if( target_bgr.channels() == 3 )
-      cv::cvtColor( target_bgr, target_gray, cv::COLOR_BGR2GRAY );
-    else if( target_bgr.channels() == 4 )
-      cv::cvtColor( target_bgr, target_gray, cv::COLOR_BGRA2GRAY );
-    else
-      target_gray = target_bgr;
+    auto const source_gray = to_gray( source_colour );
+    auto const target_gray = to_gray( target_colour );
 
     auto t_ncc_start = std::chrono::steady_clock::now();
 
@@ -1207,21 +1283,8 @@ map_keypoints_to_camera
   }
   else if( m_epipolar_descriptor_type == "ncc_strip" )
   {
-    cv::Mat source_gray, target_gray;
-
-    if( source_bgr.channels() == 3 )
-      cv::cvtColor( source_bgr, source_gray, cv::COLOR_BGR2GRAY );
-    else if( source_bgr.channels() == 4 )
-      cv::cvtColor( source_bgr, source_gray, cv::COLOR_BGRA2GRAY );
-    else
-      source_gray = source_bgr;
-
-    if( target_bgr.channels() == 3 )
-      cv::cvtColor( target_bgr, target_gray, cv::COLOR_BGR2GRAY );
-    else if( target_bgr.channels() == 4 )
-      cv::cvtColor( target_bgr, target_gray, cv::COLOR_BGRA2GRAY );
-    else
-      target_gray = target_bgr;
+    auto const source_gray = to_gray( source_colour );
+    auto const target_gray = to_gray( target_colour );
 
     auto t_strip_start = std::chrono::steady_clock::now();
 
@@ -1246,28 +1309,17 @@ map_keypoints_to_camera
         "Ensure viame.pytorch.dino_matcher is installed and PyTorch is available." );
     }
 
-    int dino_img_w = source_bgr.cols;
-    int dino_img_h = source_bgr.rows;
-    int dino_right_img_w = target_bgr.cols;
-    int dino_right_img_h = target_bgr.rows;
+    int dino_img_w = static_cast< int >( source_colour.width() );
+    int dino_img_h = static_cast< int >( source_colour.height() );
+    int dino_right_img_w = static_cast< int >( target_colour.width() );
+    int dino_right_img_h = static_cast< int >( target_colour.height() );
 
     // Prepare grayscale images for NCC refinement (when using top-K)
-    cv::Mat source_gray, target_gray;
+    kv::image_of< uint8_t > source_gray, target_gray;
     if( m_dino_top_k > 0 )
     {
-      if( source_bgr.channels() == 3 )
-        cv::cvtColor( source_bgr, source_gray, cv::COLOR_BGR2GRAY );
-      else if( source_bgr.channels() == 4 )
-        cv::cvtColor( source_bgr, source_gray, cv::COLOR_BGRA2GRAY );
-      else
-        source_gray = source_bgr;
-
-      if( target_bgr.channels() == 3 )
-        cv::cvtColor( target_bgr, target_gray, cv::COLOR_BGR2GRAY );
-      else if( target_bgr.channels() == 4 )
-        cv::cvtColor( target_bgr, target_gray, cv::COLOR_BGRA2GRAY );
-      else
-        target_gray = target_bgr;
+      source_gray = to_gray( source_colour );
+      target_gray = to_gray( target_colour );
     }
 
     int crop_pad = m_template_size / 2 + 16;
@@ -1275,7 +1327,7 @@ map_keypoints_to_camera
 
     // Compute per-keypoint crop regions
     bool kp_crop_active = false;
-    cv::Rect kp_left_crop, kp_right_crop;
+    image_rect kp_left_crop, kp_right_crop;
 
     if( m_dino_crop_max_area_ratio > 0.0 )
     {
@@ -1319,8 +1371,8 @@ map_keypoints_to_camera
         rx1 = std::min( dino_right_img_w, rx0 + rw );
         ry1 = std::min( dino_right_img_h, ry0 + rh );
 
-        kp_left_crop = cv::Rect( lx0, ly0, lx1 - lx0, ly1 - ly0 );
-        kp_right_crop = cv::Rect( rx0, ry0, rx1 - rx0, ry1 - ry0 );
+        kp_left_crop = image_rect( lx0, ly0, lx1 - lx0, ly1 - ly0 );
+        kp_right_crop = image_rect( rx0, ry0, rx1 - rx0, ry1 - ry0 );
         kp_crop_active = true;
       }
     }
@@ -1329,10 +1381,10 @@ map_keypoints_to_camera
     // for this frame (across keypoints and detections)
     if( kp_crop_active || !m_dino_full_images_set )
     {
-      cv::Mat dino_left = kp_crop_active ?
-        source_bgr( kp_left_crop ).clone() : source_bgr;
-      cv::Mat dino_right = kp_crop_active ?
-        target_bgr( kp_right_crop ).clone() : target_bgr;
+      auto const dino_left = kp_crop_active
+        ? region( source_colour, kp_left_crop ) : source_colour;
+      auto const dino_right = kp_crop_active
+        ? region( target_colour, kp_right_crop ) : target_colour;
 
       auto t_dino_start = std::chrono::steady_clock::now();
       bool ok = dino_set_images( dino_left, dino_right );
@@ -1341,15 +1393,15 @@ map_keypoints_to_camera
       LOG_INFO( logger, "DINO extraction: "
         << std::chrono::duration_cast< std::chrono::milliseconds >(
              t_dino_end - t_dino_start ).count() << "ms (L="
-        << dino_left.cols << "x" << dino_left.rows
-        << " R=" << dino_right.cols << "x" << dino_right.rows
+        << dino_left.width() << "x" << dino_left.height()
+        << " R=" << dino_right.width() << "x" << dino_right.height()
         << ( kp_crop_active ? " per-kp crop" : " full" ) << ")" );
 
       if( !ok )
       {
         LOG_WARN( logger, "DINO set_images failed (L="
-          << dino_left.cols << "x" << dino_left.rows
-          << " R=" << dino_right.cols << "x" << dino_right.rows
+          << dino_left.width() << "x" << dino_left.height()
+          << " R=" << dino_right.width() << "x" << dino_right.height()
           << ( kp_crop_active ? " per-kp crop" : " full" )
           << "). Skipping this keypoint." );
         return false;
@@ -1383,8 +1435,8 @@ map_keypoints_to_camera
         << ") crop_src=(" << dino_src_x << "," << dino_src_y
         << ") epi_pts=" << dino_epi.size()
         << " top_k=" << indices.size()
-        << " left_img=" << source_bgr.cols << "x" << source_bgr.rows
-        << " right_img=" << target_bgr.cols << "x" << target_bgr.rows
+        << " left_img=" << source_colour.width() << "x" << source_colour.height()
+        << " right_img=" << target_colour.width() << "x" << target_colour.height()
         << " cached=" << ( m_dino_full_images_set ? "yes" : "no" ) );
 
       if( indices.empty() )
@@ -1401,8 +1453,8 @@ map_keypoints_to_camera
 
       LOG_INFO( logger, "NCC result: " << ( ncc_ok ? "MATCHED" : "REJECTED" )
         << " src=(" << source_point.x() << "," << source_point.y() << ")"
-        << " gray_type=" << source_gray.type()
-        << " gray_size=" << source_gray.cols << "x" << source_gray.rows );
+        << " gray_planes=" << source_gray.depth()
+        << " gray_size=" << source_gray.width() << "x" << source_gray.height() );
 
       return ncc_ok;
     }
@@ -1430,18 +1482,15 @@ map_keypoints_to_camera
   LOG_WARN( logger, "Unknown epipolar descriptor type: " << m_epipolar_descriptor_type );
   return false;
 }
-#endif // VIAME_ENABLE_OPENCV
 
 // -----------------------------------------------------------------------------
 void
 map_keypoints_to_camera
 ::clear_dino_crop_info()
 {
-#ifdef VIAME_ENABLE_OPENCV
   m_dino_crop_active = false;
-  m_dino_left_cropped = cv::Mat();
-  m_dino_right_cropped = cv::Mat();
-#endif
+  m_dino_left_cropped = kv::image_of< uint8_t >();
+  m_dino_right_cropped = kv::image_of< uint8_t >();
 }
 
 // -----------------------------------------------------------------------------
@@ -1455,7 +1504,6 @@ map_keypoints_to_camera
   const kv::image_container_sptr& left_image,
   const kv::image_container_sptr& right_image )
 {
-#ifdef VIAME_ENABLE_OPENCV
   m_dino_crop_active = false;
 
   if( m_dino_crop_max_area_ratio <= 0.0 || !left_image || !right_image )
@@ -1539,7 +1587,7 @@ map_keypoints_to_camera
   int patch_size = 14;
 
   auto align_crop = [&]( double mn_x, double mn_y, double mx_x, double mx_y,
-                         int iw, int ih ) -> cv::Rect
+                         int iw, int ih ) -> image_rect
   {
     int x0 = static_cast< int >( std::floor( mn_x ) ) - pad;
     int y0 = static_cast< int >( std::floor( mn_y ) ) - pad;
@@ -1571,14 +1619,14 @@ map_keypoints_to_camera
       else y0 = std::max( 0, y0 - extra );
     }
 
-    return cv::Rect( x0, y0, x1 - x0, y1 - y0 );
+    return image_rect( x0, y0, x1 - x0, y1 - y0 );
   };
 
-  cv::Rect left_crop = align_crop( left_min_x, left_min_y, left_max_x, left_max_y, img_w, img_h );
+  image_rect left_crop = align_crop( left_min_x, left_min_y, left_max_x, left_max_y, img_w, img_h );
 
   int right_img_w = static_cast< int >( right_image->width() );
   int right_img_h = static_cast< int >( right_image->height() );
-  cv::Rect right_crop = align_crop( right_min_x, right_min_y, right_max_x, right_max_y,
+  image_rect right_crop = align_crop( right_min_x, right_min_y, right_max_x, right_max_y,
                                      right_img_w, right_img_h );
 
   // Check area ratio
@@ -1594,21 +1642,18 @@ map_keypoints_to_camera
   }
 
   // Extract cropped images
-  cv::Mat left_bgr = kwiver::arrows::ocv::image_container::vital_to_ocv(
-    left_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-  cv::Mat right_bgr = kwiver::arrows::ocv::image_container::vital_to_ocv(
-    right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+  kv::image_of< uint8_t > const left_full( left_image->get_image() );
+  kv::image_of< uint8_t > const right_full( right_image->get_image() );
 
   m_dino_left_crop = left_crop;
   m_dino_right_crop = right_crop;
-  m_dino_left_cropped = left_bgr( left_crop ).clone();
-  m_dino_right_cropped = right_bgr( right_crop ).clone();
+  m_dino_left_cropped = region( left_full, left_crop );
+  m_dino_right_cropped = region( right_full, right_crop );
   m_dino_crop_active = true;
 
   LOG_INFO( logger, "DINO crop: left " << left_crop.width << "x" << left_crop.height
     << " right " << right_crop.width << "x" << right_crop.height
     << " (avg ratio " << avg_ratio << ")" );
-#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -2159,7 +2204,6 @@ map_keypoints_to_camera
   bool head_found = false;
   bool tail_found = false;
 
-#ifdef VIAME_ENABLE_OPENCV
   // Prepare stereo images if needed
   bool has_images = ( left_image && right_image );
   if( has_images )
@@ -2167,7 +2211,6 @@ map_keypoints_to_camera
     m_cached_stereo_images = prepare_stereo_images(
       methods, left_cam, right_cam, left_image, right_image );
   }
-#endif
 
   for( const auto& method : methods )
   {
@@ -2212,22 +2255,18 @@ map_keypoints_to_camera
         tail_found = false;
       }
     }
-#ifdef VIAME_ENABLE_OPENCV
     else if( method == "compute_disparity" && m_stereo_depth_map_algorithm &&
              m_cached_stereo_images.rectified_available )
     {
       // Compute disparity map using the configured algorithm if not cached for this frame
       if( !m_cached_compute_disparity )
       {
-        // Convert rectified cv::Mat images to ImageContainers using OCV wrapper
         kv::image_container_sptr left_rect_container =
-          std::make_shared< kwiver::arrows::ocv::image_container >(
-            m_cached_stereo_images.left_rectified,
-            kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
+          std::make_shared< kv::simple_image_container >(
+            m_cached_stereo_images.left_rectified );
         kv::image_container_sptr right_rect_container =
-          std::make_shared< kwiver::arrows::ocv::image_container >(
-            m_cached_stereo_images.right_rectified,
-            kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
+          std::make_shared< kv::simple_image_container >(
+            m_cached_stereo_images.right_rectified );
 
         // Compute disparity using the configured algorithm
         m_cached_compute_disparity = m_stereo_depth_map_algorithm->compute(
@@ -2271,8 +2310,8 @@ map_keypoints_to_camera
       kv::vector_2d left_tail_rect = rectify_point( result.left_tail, false );
 
       // Pass disparity map for SGBM hint if available
-      const cv::Mat& disp_hint = m_cached_stereo_images.disparity_available ?
-        m_cached_stereo_images.disparity_map : cv::Mat();
+      auto const disp_hint = m_cached_stereo_images.disparity_available
+        ? m_cached_stereo_images.disparity_map : nullptr;
 
       kv::vector_2d right_head_rect, right_tail_rect;
       head_found = find_corresponding_point_template_matching(
@@ -2319,11 +2358,8 @@ map_keypoints_to_camera
         left_cam, right_cam, result.left_tail,
         eff_min_depth, eff_max_depth, m_epipolar_num_samples );
 
-      // Convert images to BGR cv::Mat and delegate to the shared method
-      cv::Mat left_bgr = kwiver::arrows::ocv::image_container::vital_to_ocv(
-        left_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-      cv::Mat right_bgr = kwiver::arrows::ocv::image_container::vital_to_ocv(
-        right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+      kv::image_of< uint8_t > const left_bgr( left_image->get_image() );
+      kv::image_of< uint8_t > const right_bgr( right_image->get_image() );
 
       head_found = find_corresponding_point_epipolar(
         left_bgr, right_bgr, result.left_head, epipolar_head, result.right_head );
@@ -2336,20 +2372,13 @@ map_keypoints_to_camera
       // Debug: write images with epipolar curves overlaid
       if( descriptor_available && !m_debug_epipolar_directory.empty() )
       {
-        cv::Mat left_color = kwiver::arrows::ocv::image_container::vital_to_ocv(
-          left_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-        cv::Mat right_color = kwiver::arrows::ocv::image_container::vital_to_ocv(
-          right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-
-        if( left_color.channels() == 1 )
-          cv::cvtColor( left_color, left_color, cv::COLOR_GRAY2BGR );
-        else if( left_color.channels() == 4 )
-          cv::cvtColor( left_color, left_color, cv::COLOR_BGRA2BGR );
-
-        if( right_color.channels() == 1 )
-          cv::cvtColor( right_color, right_color, cv::COLOR_GRAY2BGR );
-        else if( right_color.channels() == 4 )
-          cv::cvtColor( right_color, right_color, cv::COLOR_BGRA2BGR );
+        // Three planes whatever came in, so the overlay colours below mean
+        // what they say. RGB rather than the BGR the bridge used to hand
+        // back, so the triples are written in that order.
+        auto const left_color = to_three_planes(
+          kv::image_of< uint8_t >( left_image->get_image() ) );
+        auto const right_color = to_three_planes(
+          kv::image_of< uint8_t >( right_image->get_image() ) );
 
         struct debug_kp
         {
@@ -2369,54 +2398,76 @@ map_keypoints_to_camera
         {
           const auto& kp = keypoints[ki];
 
-          cv::Mat left_draw = left_color.clone();
-          cv::Mat right_draw = right_color.clone();
+          auto left_draw = left_color;
+          auto right_draw = right_color;
 
-          cv::Point src_px( static_cast<int>( kp.src_pt.x() + 0.5 ),
-                            static_cast<int>( kp.src_pt.y() + 0.5 ) );
-          cv::circle( left_draw, src_px, 8, cv::Scalar( 255, 255, 0 ), 2 );
-          cv::line( left_draw, src_px - cv::Point( 12, 0 ),
-                    src_px + cv::Point( 12, 0 ), cv::Scalar( 255, 255, 0 ), 1 );
-          cv::line( left_draw, src_px - cv::Point( 0, 12 ),
-                    src_px + cv::Point( 0, 12 ), cv::Scalar( 255, 255, 0 ), 1 );
+          long const src_x = static_cast< long >( kp.src_pt.x() + 0.5 );
+          long const src_y = static_cast< long >( kp.src_pt.y() + 0.5 );
+
+          io::colour const cyan{ 0, 255, 255 };
+          io::colour const green{ 0, 255, 0 };
+          io::colour const orange{ 255, 200, 0 };
+          io::colour const magenta{ 200, 0, 255 };
+          io::colour const red{ 255, 0, 0 };
+
+          io::draw_circle( left_draw, src_x, src_y, 8, cyan, 2 );
+          io::draw_line( left_draw, src_x - 12, src_y, src_x + 12, src_y, cyan );
+          io::draw_line( left_draw, src_x, src_y - 12, src_x, src_y + 12, cyan );
 
           if( kp.epi_pts.size() >= 2 )
           {
-            std::vector< cv::Point > poly;
-            poly.reserve( kp.epi_pts.size() );
-            for( const auto& ep : kp.epi_pts )
+            // `cv::polylines` over the sampled curve, which is a run of
+            // segments between consecutive samples.
+            for( size_t i = 1; i < kp.epi_pts.size(); ++i )
             {
-              poly.emplace_back( static_cast<int>( ep.x() + 0.5 ),
-                                 static_cast<int>( ep.y() + 0.5 ) );
+              io::draw_line(
+                right_draw,
+                static_cast< long >( kp.epi_pts[ i - 1 ].x() + 0.5 ),
+                static_cast< long >( kp.epi_pts[ i - 1 ].y() + 0.5 ),
+                static_cast< long >( kp.epi_pts[ i ].x() + 0.5 ),
+                static_cast< long >( kp.epi_pts[ i ].y() + 0.5 ), green, 2 );
             }
-            cv::polylines( right_draw, poly, false, cv::Scalar( 0, 255, 0 ), 2 );
-            cv::circle( right_draw, poly.front(), 6, cv::Scalar( 0, 200, 255 ), 2 );
-            cv::circle( right_draw, poly.back(), 6, cv::Scalar( 255, 0, 200 ), 2 );
+
+            io::draw_circle(
+              right_draw,
+              static_cast< long >( kp.epi_pts.front().x() + 0.5 ),
+              static_cast< long >( kp.epi_pts.front().y() + 0.5 ), 6,
+              orange, 2 );
+            io::draw_circle(
+              right_draw,
+              static_cast< long >( kp.epi_pts.back().x() + 0.5 ),
+              static_cast< long >( kp.epi_pts.back().y() + 0.5 ), 6,
+              magenta, 2 );
           }
 
           if( kp.found )
           {
-            cv::Point match_px( static_cast<int>( kp.match_pt.x() + 0.5 ),
-                                static_cast<int>( kp.match_pt.y() + 0.5 ) );
-            cv::circle( right_draw, match_px, 8, cv::Scalar( 0, 0, 255 ), 2 );
-            cv::line( right_draw, match_px - cv::Point( 12, 0 ),
-                      match_px + cv::Point( 12, 0 ), cv::Scalar( 0, 0, 255 ), 1 );
-            cv::line( right_draw, match_px - cv::Point( 0, 12 ),
-                      match_px + cv::Point( 0, 12 ), cv::Scalar( 0, 0, 255 ), 1 );
+            long const match_x = static_cast< long >( kp.match_pt.x() + 0.5 );
+            long const match_y = static_cast< long >( kp.match_pt.y() + 0.5 );
+
+            io::draw_circle( right_draw, match_x, match_y, 8, red, 2 );
+            io::draw_line( right_draw, match_x - 12, match_y,
+                           match_x + 12, match_y, red );
+            io::draw_line( right_draw, match_x, match_y - 12,
+                           match_x, match_y + 12, red );
           }
 
-          cv::Mat canvas;
-          cv::hconcat( left_draw, right_draw, canvas );
+          auto canvas = io::horizontal_concat< uint8_t >(
+            { left_draw, right_draw } );
 
           std::string status = kp.found ? "MATCHED" : "NO MATCH";
           std::string label = descriptor_label + " " + kp.label + " - " + status +
             " (" + std::to_string( kp.epi_pts.size() ) + " samples)";
-          cv::putText( canvas, label, cv::Point( 10, 30 ),
-                       cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar( 0, 255, 255 ), 2 );
 
+          // The bitmap font of `image_ops`, not Hershey's, so the glyphs
+          // differ; this is a debug overlay nothing is held to.
+          io::draw_text( canvas, label, 10, 24, cyan, 2 );
+
+          // PNG rather than JPEG: the writer is `library/video_io`'s now and
+          // a lossless overlay is what a person looking at one wants.
           std::string filename = m_debug_epipolar_directory + "/epipolar_" +
-            std::to_string( m_debug_frame_counter ) + "_" + kp.label + ".jpg";
-          cv::imwrite( filename, canvas );
+            std::to_string( m_debug_frame_counter ) + "_" + kp.label + ".png";
+          viame::codecs::write( filename, kv::image( canvas ) );
         }
 
         m_debug_frame_counter++;
@@ -2432,7 +2483,6 @@ map_keypoints_to_camera
         tail_found = false;
       }
     }
-#endif
     else if( method == "feature_descriptor" && left_image && right_image )
     {
       kv::vector_2d left_head_copy = result.left_head;
@@ -2493,7 +2543,6 @@ map_keypoints_to_camera
   return result;
 }
 
-#ifdef VIAME_ENABLE_OPENCV
 // -----------------------------------------------------------------------------
 map_keypoints_to_camera::stereo_image_data
 map_keypoints_to_camera
@@ -2528,51 +2577,32 @@ map_keypoints_to_camera
     return data;
   }
 
-  // Convert to OpenCV format
-  cv::Mat left_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
-    left_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-  cv::Mat right_cv = kwiver::arrows::ocv::image_container::vital_to_ocv(
-    right_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
-
-  // Convert to grayscale (handle each image independently since they may have different channel counts)
-  if( left_cv.channels() == 3 )
-  {
-    cv::cvtColor( left_cv, left_cv, cv::COLOR_BGR2GRAY );
-  }
-  else if( left_cv.channels() == 4 )
-  {
-    cv::cvtColor( left_cv, left_cv, cv::COLOR_BGRA2GRAY );
-  }
-  // If already 1 channel, no conversion needed
-
-  if( right_cv.channels() == 3 )
-  {
-    cv::cvtColor( right_cv, right_cv, cv::COLOR_BGR2GRAY );
-  }
-  else if( right_cv.channels() == 4 )
-  {
-    cv::cvtColor( right_cv, right_cv, cv::COLOR_BGRA2GRAY );
-  }
-  // If already 1 channel, no conversion needed
+  // Grey, each image independently since they may have different plane
+  // counts
+  auto const left_grey = to_gray( kv::image_of< uint8_t >(
+    left_image->get_image() ) );
+  auto const right_grey = to_gray( kv::image_of< uint8_t >(
+    right_image->get_image() ) );
 
   // Compute rectification maps if needed
-  compute_rectification_maps( left_cam, right_cam, left_cv.size() );
+  compute_rectification_maps( left_cam, right_cam, left_grey.width(),
+                              left_grey.height() );
 
   // Rectify images
-  data.left_rectified = rectify_image( left_cv, false );
-  data.right_rectified = rectify_image( right_cv, true );
+  data.left_rectified = rectify_image( left_grey, false );
+  data.right_rectified = rectify_image( right_grey, true );
   data.rectified_available = true;
 
   // Compute disparity if needed for template matching disparity hint
   if( m_use_disparity_hint && m_stereo_depth_map_algorithm )
   {
-    data.disparity_map = compute_sgbm_disparity( data.left_rectified, data.right_rectified );
-    data.disparity_available = !data.disparity_map.empty();
+    data.disparity_map = compute_sgbm_disparity( data.left_rectified,
+                                                 data.right_rectified );
+    data.disparity_available = ( data.disparity_map != nullptr );
   }
 
   return data;
 }
-#endif
 
 // -----------------------------------------------------------------------------
 bool
@@ -2831,9 +2861,7 @@ map_keypoints_to_camera
   m_cached_right_descriptors.reset();
   m_cached_matches.reset();
   m_cached_compute_disparity.reset();
-#ifdef VIAME_ENABLE_OPENCV
   m_dino_full_images_set = false;
-#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -2869,7 +2897,6 @@ map_keypoints_to_camera
   {
     return m_cached_compute_disparity;
   }
-#ifdef VIAME_ENABLE_OPENCV
   if( !m_stereo_depth_map_algorithm || !left_image || !right_image )
   {
     return nullptr;
@@ -2887,22 +2914,16 @@ map_keypoints_to_camera
   }
 
   kv::image_container_sptr left_rect_container =
-    std::make_shared< kwiver::arrows::ocv::image_container >(
-      m_cached_stereo_images.left_rectified,
-      kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
+    std::make_shared< kv::simple_image_container >(
+      m_cached_stereo_images.left_rectified );
   kv::image_container_sptr right_rect_container =
-    std::make_shared< kwiver::arrows::ocv::image_container >(
-      m_cached_stereo_images.right_rectified,
-      kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
+    std::make_shared< kv::simple_image_container >(
+      m_cached_stereo_images.right_rectified );
 
   m_cached_compute_disparity = m_stereo_depth_map_algorithm->compute(
     left_rect_container, right_rect_container );
 
   return m_cached_compute_disparity;
-#else
-  (void)left_cam; (void)right_cam; (void)left_image; (void)right_image;
-  return nullptr;
-#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -2923,7 +2944,6 @@ map_keypoints_to_camera
     return original_right_point;
   }
 
-#ifdef VIAME_ENABLE_OPENCV
   if( !m_rectification_computed )
   {
     return original_right_point;
@@ -2945,10 +2965,6 @@ map_keypoints_to_camera
 
   if( refined ) { *refined = true; }
   return right_unrect;
-#else
-  (void)right_cam; (void)search_window;
-  return original_right_point;
-#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -2956,15 +2972,13 @@ kv::image_container_sptr
 map_keypoints_to_camera
 ::get_cached_rectified_left() const
 {
-#ifdef VIAME_ENABLE_OPENCV
   if( m_cached_stereo_images.rectified_available &&
-      !m_cached_stereo_images.left_rectified.empty() )
+      m_cached_stereo_images.left_rectified.size() > 0 )
   {
-    return std::make_shared< kwiver::arrows::ocv::image_container >(
-      m_cached_stereo_images.left_rectified,
-      kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
+    return std::make_shared< kv::simple_image_container >(
+      m_cached_stereo_images.left_rectified );
   }
-#endif
+
   return nullptr;
 }
 
@@ -2973,19 +2987,15 @@ kv::image_container_sptr
 map_keypoints_to_camera
 ::get_cached_rectified_right() const
 {
-#ifdef VIAME_ENABLE_OPENCV
   if( m_cached_stereo_images.rectified_available &&
-      !m_cached_stereo_images.right_rectified.empty() )
+      m_cached_stereo_images.right_rectified.size() > 0 )
   {
-    return std::make_shared< kwiver::arrows::ocv::image_container >(
-      m_cached_stereo_images.right_rectified,
-      kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
+    return std::make_shared< kv::simple_image_container >(
+      m_cached_stereo_images.right_rectified );
   }
-#endif
+
   return nullptr;
 }
-
-#ifdef VIAME_ENABLE_OPENCV
 
 // -----------------------------------------------------------------------------
 void
@@ -2993,7 +3003,7 @@ map_keypoints_to_camera
 ::compute_rectification_maps(
   const kv::simple_camera_perspective& left_cam,
   const kv::simple_camera_perspective& right_cam,
-  const cv::Size& image_size )
+  size_t width, size_t height )
 {
   if( m_rectification_computed )
   {
@@ -3004,33 +3014,25 @@ map_keypoints_to_camera
   auto left_intrinsics = left_cam.get_intrinsics();
   auto right_intrinsics = right_cam.get_intrinsics();
 
-  // Convert to OpenCV matrices
-  cv::Mat K1, K2, D1, D2, R, T;
+  m_K1 = left_intrinsics->as_matrix();
+  m_K2 = right_intrinsics->as_matrix();
 
-  // Camera matrices
-  kv::matrix_3x3d K1_mat = left_intrinsics->as_matrix();
-  kv::matrix_3x3d K2_mat = right_intrinsics->as_matrix();
-  kwiver::arrows::ocv::matrix_to_mat( K1_mat, K1 );
-  kwiver::arrows::ocv::matrix_to_mat( K2_mat, K2 );
-
-  // Distortion coefficients
-  D1 = cv::Mat::zeros( 5, 1, CV_64F );
-  D2 = cv::Mat::zeros( 5, 1, CV_64F );
+  m_D1.assign( 5, 0.0 );
+  m_D2.assign( 5, 0.0 );
 
   if( m_use_distortion )
   {
     std::vector< double > left_dist = left_intrinsics->dist_coeffs();
     std::vector< double > right_dist = right_intrinsics->dist_coeffs();
 
-    // Convert distortion coefficients to OpenCV format
-    for( size_t i = 0; i < std::min( left_dist.size(), size_t(5) ); ++i )
+    for( size_t i = 0; i < std::min( left_dist.size(), size_t( 5 ) ); ++i )
     {
-      D1.at< double >( static_cast< int >( i ), 0 ) = left_dist[i];
+      m_D1[ i ] = left_dist[ i ];
     }
 
-    for( size_t i = 0; i < std::min( right_dist.size(), size_t(5) ); ++i )
+    for( size_t i = 0; i < std::min( right_dist.size(), size_t( 5 ) ); ++i )
     {
-      D2.at< double >( static_cast< int >( i ), 0 ) = right_dist[i];
+      m_D2[ i ] = right_dist[ i ];
     }
   }
 
@@ -3043,27 +3045,24 @@ map_keypoints_to_camera
   // Translation: t = R_right * (C_left - C_right)
   kv::vector_3d t_relative = R_right * ( left_cam.center() - right_cam.center() );
 
-  kwiver::arrows::ocv::matrix_to_mat( R_relative, R );
-  kwiver::arrows::ocv::vector_to_mat( t_relative, T );
-
   // Compute rectification transforms
-  cv::Mat Q;
-  cv::stereoRectify( K1, D1, K2, D2, image_size, R, T,
-                     m_R1, m_R2, m_P1, m_P2, Q,
-                     cv::CALIB_ZERO_DISPARITY, 0 );
+  auto const rectified = viame::measurement::stereo_rectify(
+    m_K1, m_D1, m_K2, m_D2, width, height, R_relative, t_relative );
 
-  // Store camera matrices and distortion coefficients
-  m_K1 = K1.clone();
-  m_K2 = K2.clone();
-  m_D1 = D1.clone();
-  m_D2 = D2.clone();
+  m_R1 = rectified.left_rotation;
+  m_R2 = rectified.right_rotation;
+  m_P1 = rectified.left_projection;
+  m_P2 = rectified.right_projection;
 
   // Compute rectification maps
-  cv::initUndistortRectifyMap( K1, D1, m_R1, m_P1, image_size, CV_32FC1,
+  viame::measurement::rectification_maps(
+    m_K1, m_D1, m_R1, m_P1, width, height,
     m_rectification_map_left_x, m_rectification_map_left_y );
-  cv::initUndistortRectifyMap( K2, D2, m_R2, m_P2, image_size, CV_32FC1,
+  viame::measurement::rectification_maps(
+    m_K2, m_D2, m_R2, m_P2, width, height,
     m_rectification_map_right_x, m_rectification_map_right_y );
 
+  m_rectification_valid = true;
   m_rectification_computed = true;
 }
 
@@ -3087,22 +3086,17 @@ map_keypoints_to_camera
     return original_point;
   }
 
-  const cv::Mat& K = is_right_camera ? m_K2 : m_K1;
-  const cv::Mat& D = is_right_camera ? m_D2 : m_D1;
-  const cv::Mat& R = is_right_camera ? m_R2 : m_R1;
-  const cv::Mat& P = is_right_camera ? m_P2 : m_P1;
-
-  if( K.empty() || R.empty() || P.empty() )
+  if( !m_rectification_valid )
   {
     return original_point;
   }
 
-  std::vector< cv::Point2f > pts_in = { cv::Point2f( original_point.x(), original_point.y() ) };
-  std::vector< cv::Point2f > pts_out;
+  auto const& K = is_right_camera ? m_K2 : m_K1;
+  auto const& D = is_right_camera ? m_D2 : m_D1;
+  auto const& R = is_right_camera ? m_R2 : m_R1;
+  auto const& P = is_right_camera ? m_P2 : m_P1;
 
-  cv::undistortPoints( pts_in, pts_out, K, D, R, P );
-
-  return pts_out.empty() ? original_point : kv::vector_2d( pts_out[0].x, pts_out[0].y );
+  return viame::measurement::undistort_point( original_point, K, D, R, P );
 }
 
 // -----------------------------------------------------------------------------
@@ -3118,61 +3112,52 @@ map_keypoints_to_camera
     return rectified_point;
   }
 
-  const cv::Mat& R = is_right_camera ? m_R2 : m_R1;
-  const cv::Mat& P = is_right_camera ? m_P2 : m_P1;
-  const cv::Mat& K = is_right_camera ? m_K2 : m_K1;
-  const cv::Mat& D = is_right_camera ? m_D2 : m_D1;
+  auto const& R = is_right_camera ? m_R2 : m_R1;
+  auto const& P = is_right_camera ? m_P2 : m_P1;
+  auto const& K = is_right_camera ? m_K2 : m_K1;
+  auto const& D = is_right_camera ? m_D2 : m_D1;
 
   // Extract rectified camera intrinsics from P (3x4 projection matrix)
-  double fx_rect = P.at< double >( 0, 0 );
-  double fy_rect = P.at< double >( 1, 1 );
-  double cx_rect = P.at< double >( 0, 2 );
-  double cy_rect = P.at< double >( 1, 2 );
+  double fx_rect = P( 0, 0 );
+  double fy_rect = P( 1, 1 );
+  double cx_rect = P( 0, 2 );
+  double cy_rect = P( 1, 2 );
 
   // Convert rectified pixel to normalized rectified coordinates
   double x_norm_rect = ( rectified_point.x() - cx_rect ) / fx_rect;
   double y_norm_rect = ( rectified_point.y() - cy_rect ) / fy_rect;
 
   // Apply inverse rectification rotation to get normalized original coordinates
-  cv::Mat pt_rect = ( cv::Mat_<double>( 3, 1 ) << x_norm_rect, y_norm_rect, 1.0 );
-  cv::Mat pt_orig = R.t() * pt_rect;
+  kv::vector_3d const pt_orig =
+    R.transpose() * kv::vector_3d( x_norm_rect, y_norm_rect, 1.0 );
 
-  double x_norm = pt_orig.at< double >( 0, 0 ) / pt_orig.at< double >( 2, 0 );
-  double y_norm = pt_orig.at< double >( 1, 0 ) / pt_orig.at< double >( 2, 0 );
+  double x_norm = pt_orig[ 0 ] / pt_orig[ 2 ];
+  double y_norm = pt_orig[ 1 ] / pt_orig[ 2 ];
 
-  // Apply distortion and camera matrix using projectPoints with identity pose
-  std::vector< cv::Point3f > pts_3d = { cv::Point3f( x_norm, y_norm, 1.0f ) };
-  std::vector< cv::Point2f > pts_2d;
-  cv::Mat rvec = cv::Mat::zeros( 3, 1, CV_64F );
-  cv::Mat tvec = cv::Mat::zeros( 3, 1, CV_64F );
-
-  cv::projectPoints( pts_3d, rvec, tvec, K, D, pts_2d );
-
-  return pts_2d.empty() ? rectified_point : kv::vector_2d( pts_2d[0].x, pts_2d[0].y );
+  // Apply distortion and camera matrix, which is `cv::projectPoints` with an
+  // identity pose
+  return viame::measurement::project_point(
+    kv::vector_3d( x_norm, y_norm, 1.0 ), K, D );
 }
 
 // -----------------------------------------------------------------------------
-cv::Mat
+kv::image_of< uint8_t >
 map_keypoints_to_camera
-::rectify_image( const cv::Mat& image, bool is_right_camera ) const
+::rectify_image( const kv::image_of< uint8_t >& image,
+                 bool is_right_camera ) const
 {
   if( !m_rectification_computed )
   {
-    return image.clone();
+    return image;
   }
 
-  cv::Mat rectified;
-  if( is_right_camera )
-  {
-    cv::remap( image, rectified, m_rectification_map_right_x,
-               m_rectification_map_right_y, cv::INTER_LINEAR );
-  }
-  else
-  {
-    cv::remap( image, rectified, m_rectification_map_left_x,
-               m_rectification_map_left_y, cv::INTER_LINEAR );
-  }
-  return rectified;
+  auto const& map_x = is_right_camera ? m_rectification_map_right_x
+                                      : m_rectification_map_left_x;
+  auto const& map_y = is_right_camera ? m_rectification_map_right_y
+                                      : m_rectification_map_left_y;
+
+  return io::remap( image, map_x, map_y, io::interpolation::BILINEAR,
+                    io::border_mode::CONSTANT, 0.0 );
 }
 
 // -----------------------------------------------------------------------------
@@ -3180,26 +3165,31 @@ map_keypoints_to_camera
 // Census transform compares each pixel to its neighbors, creating a binary pattern
 // that is robust to illumination changes
 namespace {
-cv::Mat compute_census_transform( const cv::Mat& input, int window_radius = 2 )
+kv::image_of< int32_t >
+compute_census_transform( const kv::image_of< uint8_t >& input,
+                         int window_radius = 2 )
 {
-  cv::Mat gray;
-  if( input.channels() == 3 )
+  auto const gray = to_gray( input );
+
+  kv::image_of< int32_t > census( gray.width(), gray.height(), 1 );
+
+  for( size_t j = 0; j < census.height(); ++j )
   {
-    cv::cvtColor( input, gray, cv::COLOR_BGR2GRAY );
-  }
-  else
-  {
-    gray = input;
+    for( size_t i = 0; i < census.width(); ++i )
+    {
+      census( i, j, 0 ) = 0;
+    }
   }
 
-  cv::Mat census( gray.size(), CV_32S, cv::Scalar( 0 ) );
+  auto const rows = static_cast< int >( gray.height() );
+  auto const cols = static_cast< int >( gray.width() );
 
-  for( int y = window_radius; y < gray.rows - window_radius; ++y )
+  for( int y = window_radius; y < rows - window_radius; ++y )
   {
-    for( int x = window_radius; x < gray.cols - window_radius; ++x )
+    for( int x = window_radius; x < cols - window_radius; ++x )
     {
       unsigned int census_val = 0;
-      uchar center = gray.at< uchar >( y, x );
+      uint8_t center = gray( x, y, 0 );
       int bit_pos = 0;
 
       for( int dy = -window_radius; dy <= window_radius; ++dy )
@@ -3208,14 +3198,14 @@ cv::Mat compute_census_transform( const cv::Mat& input, int window_radius = 2 )
         {
           if( dx == 0 && dy == 0 ) continue;  // Skip center
 
-          if( gray.at< uchar >( y + dy, x + dx ) < center )
+          if( gray( x + dx, y + dy, 0 ) < center )
           {
             census_val |= ( 1u << bit_pos );
           }
           ++bit_pos;
         }
       }
-      census.at< int >( y, x ) = static_cast< int >( census_val );
+      census( x, y, 0 ) = static_cast< int32_t >( census_val );
     }
   }
 
@@ -3238,8 +3228,8 @@ int census_hamming_distance( int a, int b )
 // Template matching using census transform (sum of Hamming distances)
 // Returns correlation-like score (higher is better, normalized to 0-1 range)
 double census_template_match(
-  const cv::Mat& census_template,
-  const cv::Mat& census_search,
+  const kv::image_of< int32_t >& census_template,
+  const kv::image_of< int32_t >& census_search,
   int search_x, int search_y,
   int template_width, int template_height )
 {
@@ -3250,8 +3240,8 @@ double census_template_match(
   {
     for( int tx = 0; tx < template_width; ++tx )
     {
-      int t_val = census_template.at< int >( ty, tx );
-      int s_val = census_search.at< int >( search_y + ty, search_x + tx );
+      int t_val = census_template( tx, ty, 0 );
+      int s_val = census_search( search_x + tx, search_y + ty, 0 );
       total_distance += census_hamming_distance( t_val, s_val );
     }
   }
@@ -3265,35 +3255,43 @@ double census_template_match(
 bool
 map_keypoints_to_camera
 ::prepare_source_template(
-  const cv::Mat& source_image, int x, int y,
+  const kv::image_of< uint8_t >& source_image, int x, int y,
   prepared_template& tmpl ) const
 {
   tmpl.valid = false;
   int half_template = m_template_size / 2;
   int margin = m_use_census_transform ? half_template + 2 : half_template;
 
-  if( x < margin || x >= source_image.cols - margin ||
-      y < margin || y >= source_image.rows - margin )
+  auto const cols = static_cast< int >( source_image.width() );
+  auto const rows = static_cast< int >( source_image.height() );
+
+  if( x < margin || x >= cols - margin ||
+      y < margin || y >= rows - margin )
   {
     return false;
   }
 
   // Extract NCC template
-  cv::Rect template_rect( x - half_template, y - half_template,
-                          m_template_size, m_template_size );
-  tmpl.ncc_template = source_image( template_rect ).clone();
+  tmpl.ncc_template = region(
+    source_image, image_rect( x - half_template, y - half_template,
+                              m_template_size, m_template_size ) );
 
   if( m_use_census_transform )
   {
     int census_margin = 2;
-    cv::Rect template_rect_ext( x - half_template - census_margin,
-                                 y - half_template - census_margin,
-                                 m_template_size + 2 * census_margin,
-                                 m_template_size + 2 * census_margin );
-    cv::Mat template_region = source_image( template_rect_ext );
-    cv::Mat census_full = compute_census_transform( template_region, census_margin );
-    cv::Rect valid_rect( census_margin, census_margin, m_template_size, m_template_size );
-    tmpl.census_template = census_full( valid_rect ).clone();
+    auto const template_region = region(
+      source_image,
+      image_rect( x - half_template - census_margin,
+                  y - half_template - census_margin,
+                  m_template_size + 2 * census_margin,
+                  m_template_size + 2 * census_margin ) );
+    auto const census_full =
+      compute_census_transform( template_region, census_margin );
+    tmpl.census_template = io::crop(
+      census_full, static_cast< size_t >( census_margin ),
+      static_cast< size_t >( census_margin ),
+      static_cast< size_t >( m_template_size ),
+      static_cast< size_t >( m_template_size ) );
   }
 
   tmpl.valid = true;
@@ -3305,13 +3303,16 @@ double
 map_keypoints_to_camera
 ::score_template_at_point(
   const prepared_template& tmpl,
-  const cv::Mat& target_image, int x, int y ) const
+  const kv::image_of< uint8_t >& target_image, int x, int y ) const
 {
   int half_template = m_template_size / 2;
   int margin = m_use_census_transform ? half_template + 2 : half_template;
 
-  if( x < margin || x >= target_image.cols - margin ||
-      y < margin || y >= target_image.rows - margin )
+  auto const cols = static_cast< int >( target_image.width() );
+  auto const rows = static_cast< int >( target_image.height() );
+
+  if( x < margin || x >= cols - margin ||
+      y < margin || y >= rows - margin )
   {
     return -1.0;
   }
@@ -3319,12 +3320,14 @@ map_keypoints_to_camera
   if( m_use_census_transform )
   {
     int census_margin = 2;
-    cv::Rect target_rect_ext( x - half_template - census_margin,
-                               y - half_template - census_margin,
-                               m_template_size + 2 * census_margin,
-                               m_template_size + 2 * census_margin );
-    cv::Mat target_region = target_image( target_rect_ext );
-    cv::Mat census_target = compute_census_transform( target_region, census_margin );
+    auto const target_region = region(
+      target_image,
+      image_rect( x - half_template - census_margin,
+                  y - half_template - census_margin,
+                  m_template_size + 2 * census_margin,
+                  m_template_size + 2 * census_margin ) );
+    auto const census_target =
+      compute_census_transform( target_region, census_margin );
 
     return census_template_match( tmpl.census_template, census_target,
                                    census_margin, census_margin,
@@ -3332,13 +3335,13 @@ map_keypoints_to_camera
   }
   else
   {
-    cv::Rect target_rect( x - half_template, y - half_template,
-                          m_template_size, m_template_size );
-    cv::Mat target_patch = target_image( target_rect );
+    auto const target_patch = region(
+      target_image, image_rect( x - half_template, y - half_template,
+                                m_template_size, m_template_size ) );
 
-    cv::Mat result;
-    cv::matchTemplate( target_patch, tmpl.ncc_template, result, cv::TM_CCOEFF_NORMED );
-    return static_cast< double >( result.at< float >( 0, 0 ) );
+    auto const result = io::match_template_ncc( target_patch,
+                                                tmpl.ncc_template );
+    return static_cast< double >( result( 0, 0, 0 ) );
   }
 }
 
@@ -3346,12 +3349,15 @@ map_keypoints_to_camera
 bool
 map_keypoints_to_camera
 ::find_corresponding_point_template_matching(
-  const cv::Mat& left_image_rect,
-  const cv::Mat& right_image_rect,
+  const kv::image_of< uint8_t >& left_image_rect,
+  const kv::image_of< uint8_t >& right_image_rect,
   const kv::vector_2d& left_point_rect,
   kv::vector_2d& right_point_rect,
-  const cv::Mat& disparity_map ) const
+  const kv::image_container_sptr& disparity_map ) const
 {
+  auto const right_cols = static_cast< int >( right_image_rect.width() );
+  auto const right_rows = static_cast< int >( right_image_rect.height() );
+
   int half_template = m_template_size / 2;
   int x_left = static_cast< int >( left_point_rect.x() );
   int y_left = static_cast< int >( left_point_rect.y() );
@@ -3376,10 +3382,13 @@ map_keypoints_to_camera
     // Use explicitly configured disparity
     expected_disparity = m_template_matching_disparity;
   }
-  else if( m_use_disparity_hint && !disparity_map.empty() )
+  else if( m_use_disparity_hint && disparity_map )
   {
     // Sample SGBM disparity map near the query point
     // Average over a small window for robustness
+    auto const& hint = disparity_map->get_image();
+    kv::image_of< int16_t > const disparity( hint );
+
     int window_size = 5;
     int half_window = window_size / 2;
     double disparity_sum = 0.0;
@@ -3392,10 +3401,12 @@ map_keypoints_to_camera
         int sample_x = x_left + dx;
         int sample_y = y_left + dy;
 
-        if( sample_x >= 0 && sample_x < disparity_map.cols &&
-            sample_y >= 0 && sample_y < disparity_map.rows )
+        if( sample_x >= 0 &&
+            sample_x < static_cast< int >( disparity.width() ) &&
+            sample_y >= 0 &&
+            sample_y < static_cast< int >( disparity.height() ) )
         {
-          short disp_raw = disparity_map.at< short >( sample_y, sample_x );
+          int16_t disp_raw = disparity( sample_x, sample_y, 0 );
           // SGBM returns fixed-point values scaled by 16, invalid values are negative
           if( disp_raw > 0 )
           {
@@ -3410,16 +3421,16 @@ map_keypoints_to_camera
     {
       expected_disparity = disparity_sum / valid_count;
     }
-    else if( !m_P2.empty() && m_default_depth > 0 )
+    else if( m_rectification_valid && m_default_depth > 0 )
     {
       // Fall back to default depth computation
-      expected_disparity = -m_P2.at< double >( 0, 3 ) / m_default_depth;
+      expected_disparity = -m_P2( 0, 3 ) / m_default_depth;
     }
   }
-  else if( !m_P2.empty() && m_default_depth > 0 )
+  else if( m_rectification_valid && m_default_depth > 0 )
   {
     // Compute disparity from default depth using camera parameters
-    expected_disparity = -m_P2.at< double >( 0, 3 ) / m_default_depth;
+    expected_disparity = -m_P2( 0, 3 ) / m_default_depth;
   }
 
   // Compute expected right x position based on disparity
@@ -3429,7 +3440,7 @@ map_keypoints_to_camera
   // Use half the search range on each side of expected position for efficiency
   int half_search = m_search_range / 2;
   int search_min_x = std::max( margin, expected_right_x - half_search );
-  int search_max_x = std::min( right_image_rect.cols - margin, expected_right_x + half_search );
+  int search_max_x = std::min( right_cols - margin, expected_right_x + half_search );
 
   // Ensure we don't search past the left point (disparity is always positive in standard stereo)
   search_max_x = std::min( search_max_x, x_left );
@@ -3445,7 +3456,7 @@ map_keypoints_to_camera
 
   // Clamp to valid image bounds
   search_min_y = std::max( margin, search_min_y );
-  search_max_y = std::min( right_image_rect.rows - margin, search_max_y );
+  search_max_y = std::min( right_rows - margin, search_max_y );
 
   if( search_max_y < search_min_y )
   {
@@ -3453,7 +3464,8 @@ map_keypoints_to_camera
   }
 
   double max_val = -1.0;
-  cv::Point max_loc( 0, 0 );
+  int max_loc_x = 0;
+  int max_loc_y = 0;
 
   if( m_use_census_transform )
   {
@@ -3461,21 +3473,23 @@ map_keypoints_to_camera
     int census_margin = 2;
 
     // Compute census transform of search region
-    cv::Rect search_rect_ext( search_min_x - half_template - census_margin,
-                               search_min_y - half_template - census_margin,
-                               ( search_max_x - search_min_x ) + m_template_size + 2 * census_margin,
-                               ( search_max_y - search_min_y ) + m_template_size + 2 * census_margin );
+    image_rect search_rect_ext(
+      search_min_x - half_template - census_margin,
+      search_min_y - half_template - census_margin,
+      ( search_max_x - search_min_x ) + m_template_size + 2 * census_margin,
+      ( search_max_y - search_min_y ) + m_template_size + 2 * census_margin );
 
     // Bounds check
     if( search_rect_ext.x < 0 || search_rect_ext.y < 0 ||
-        search_rect_ext.x + search_rect_ext.width > right_image_rect.cols ||
-        search_rect_ext.y + search_rect_ext.height > right_image_rect.rows )
+        search_rect_ext.x + search_rect_ext.width > right_cols ||
+        search_rect_ext.y + search_rect_ext.height > right_rows )
     {
       return false;
     }
 
-    cv::Mat search_region = right_image_rect( search_rect_ext );
-    cv::Mat census_search = compute_census_transform( search_region, census_margin );
+    auto const search_region = region( right_image_rect, search_rect_ext );
+    auto const census_search =
+      compute_census_transform( search_region, census_margin );
 
     // Search over the valid region
     int result_width = search_max_x - search_min_x + 1;
@@ -3491,16 +3505,16 @@ map_keypoints_to_camera
         if( score > max_val )
         {
           max_val = score;
-          max_loc.x = sx;
-          max_loc.y = sy;
+          max_loc_x = sx;
+          max_loc_y = sy;
         }
       }
     }
 
-    // Convert max_loc to image coordinates
+    // Convert the best location to image coordinates
     right_point_rect = kv::vector_2d(
-      search_min_x + max_loc.x,
-      search_min_y + max_loc.y );
+      search_min_x + max_loc_x,
+      search_min_y + max_loc_y );
   }
   else
   {
@@ -3508,84 +3522,95 @@ map_keypoints_to_camera
 
     // Define search region including epipolar band
     int search_height = ( search_max_y - search_min_y ) + m_template_size;
-    cv::Rect search_rect( search_min_x - half_template,
-                          search_min_y - half_template,
-                          search_max_x - search_min_x + m_template_size,
-                          search_height );
+    image_rect search_rect( search_min_x - half_template,
+                            search_min_y - half_template,
+                            search_max_x - search_min_x + m_template_size,
+                            search_height );
 
     // Check search rect validity
     if( search_rect.x < 0 || search_rect.y < 0 ||
-        search_rect.x + search_rect.width > right_image_rect.cols ||
-        search_rect.y + search_rect.height > right_image_rect.rows )
+        search_rect.x + search_rect.width > right_cols ||
+        search_rect.y + search_rect.height > right_rows )
     {
       return false;
     }
 
-    cv::Mat search_region = right_image_rect( search_rect );
-    cv::Mat result;
+    auto const search_region = region( right_image_rect, search_rect );
+    auto const result = io::match_template_ncc( search_region,
+                                                tmpl.ncc_template );
 
-    if( m_use_multires_search && search_rect.width > m_template_size + m_multires_coarse_step * 4 )
+    auto const result_cols = static_cast< int >( result.width() );
+    auto const result_rows = static_cast< int >( result.height() );
+
+    if( m_use_multires_search &&
+        search_rect.width > m_template_size + m_multires_coarse_step * 4 )
     {
       // Multi-resolution search: coarse pass then fine pass
-      cv::matchTemplate( search_region, tmpl.ncc_template, result, cv::TM_CCOEFF_NORMED );
-
-      // Find best match in coarse grid
       double coarse_max_val = -1.0;
-      cv::Point coarse_max_loc( 0, 0 );
+      int coarse_max_x = 0;
+      int coarse_max_y = 0;
 
-      for( int ry = 0; ry < result.rows; ++ry )
+      for( int ry = 0; ry < result_rows; ++ry )
       {
-        for( int rx = 0; rx < result.cols; rx += m_multires_coarse_step )
+        for( int rx = 0; rx < result_cols; rx += m_multires_coarse_step )
         {
-          double val = result.at< float >( ry, rx );
+          double val = result( rx, ry, 0 );
           if( val > coarse_max_val )
           {
             coarse_max_val = val;
-            coarse_max_loc.x = rx;
-            coarse_max_loc.y = ry;
+            coarse_max_x = rx;
+            coarse_max_y = ry;
           }
         }
       }
 
       // Fine pass: search around the coarse best match
       int fine_half_range = m_multires_coarse_step * 2;
-      int fine_min_x = std::max( 0, coarse_max_loc.x - fine_half_range );
-      int fine_max_x = std::min( result.cols - 1, coarse_max_loc.x + fine_half_range );
-      int fine_min_y = std::max( 0, coarse_max_loc.y - fine_half_range );
-      int fine_max_y = std::min( result.rows - 1, coarse_max_loc.y + fine_half_range );
+      int fine_min_x = std::max( 0, coarse_max_x - fine_half_range );
+      int fine_max_x = std::min( result_cols - 1, coarse_max_x + fine_half_range );
+      int fine_min_y = std::max( 0, coarse_max_y - fine_half_range );
+      int fine_max_y = std::min( result_rows - 1, coarse_max_y + fine_half_range );
 
       max_val = coarse_max_val;
-      max_loc = coarse_max_loc;
+      max_loc_x = coarse_max_x;
+      max_loc_y = coarse_max_y;
 
       for( int ry = fine_min_y; ry <= fine_max_y; ++ry )
       {
         for( int rx = fine_min_x; rx <= fine_max_x; ++rx )
         {
-          double val = result.at< float >( ry, rx );
+          double val = result( rx, ry, 0 );
           if( val > max_val )
           {
             max_val = val;
-            max_loc.x = rx;
-            max_loc.y = ry;
+            max_loc_x = rx;
+            max_loc_y = ry;
           }
         }
       }
     }
     else
     {
-      // Standard single-pass template matching
-      cv::matchTemplate( search_region, tmpl.ncc_template, result, cv::TM_CCOEFF_NORMED );
-
-      // Find best match
-      double min_val;
-      cv::Point min_loc;
-      cv::minMaxLoc( result, &min_val, &max_val, &min_loc, &max_loc );
+      // Standard single-pass template matching, and `cv::minMaxLoc` over it
+      for( int ry = 0; ry < result_rows; ++ry )
+      {
+        for( int rx = 0; rx < result_cols; ++rx )
+        {
+          double val = result( rx, ry, 0 );
+          if( val > max_val )
+          {
+            max_val = val;
+            max_loc_x = rx;
+            max_loc_y = ry;
+          }
+        }
+      }
     }
 
-    // Convert max_loc to image coordinates
+    // Convert the best location to image coordinates
     right_point_rect = kv::vector_2d(
-      search_rect.x + max_loc.x + half_template,
-      search_rect.y + max_loc.y + half_template );
+      search_rect.x + max_loc_x + half_template,
+      search_rect.y + max_loc_y + half_template );
   }
 
   // Use a threshold for match quality
@@ -3601,8 +3626,8 @@ map_keypoints_to_camera
 bool
 map_keypoints_to_camera
 ::find_corresponding_point_epipolar_template_matching(
-  const cv::Mat& source_image,
-  const cv::Mat& target_image,
+  const kv::image_of< uint8_t >& source_image,
+  const kv::image_of< uint8_t >& target_image,
   const kv::vector_2d& source_point,
   const std::vector< kv::vector_2d >& epipolar_points,
   kv::vector_2d& target_point ) const
@@ -3700,8 +3725,8 @@ map_keypoints_to_camera
 bool
 map_keypoints_to_camera
 ::find_corresponding_point_epipolar_strip_ncc(
-  const cv::Mat& source_image,
-  const cv::Mat& target_image,
+  const kv::image_of< uint8_t >& source_image,
+  const kv::image_of< uint8_t >& target_image,
   const kv::vector_2d& source_point,
   const std::vector< kv::vector_2d >& epipolar_points,
   kv::vector_2d& target_point ) const
@@ -3745,8 +3770,8 @@ map_keypoints_to_camera
   // Clamp to image bounds
   strip_x = std::max( 0, strip_x );
   strip_y = std::max( 0, strip_y );
-  strip_x2 = std::min( target_image.cols - 1, strip_x2 );
-  strip_y2 = std::min( target_image.rows - 1, strip_y2 );
+  strip_x2 = std::min( static_cast< int >( target_image.width() ) - 1, strip_x2 );
+  strip_y2 = std::min( static_cast< int >( target_image.height() ) - 1, strip_y2 );
 
   int strip_w = strip_x2 - strip_x + 1;
   int strip_h = strip_y2 - strip_y + 1;
@@ -3757,17 +3782,34 @@ map_keypoints_to_camera
     return false;
   }
 
-  // Extract strip subimage and run matchTemplate
-  cv::Rect strip_rect( strip_x, strip_y, strip_w, strip_h );
-  cv::Mat strip = target_image( strip_rect );
+  // Extract strip subimage and correlate the template over it
+  auto const strip = region( target_image,
+                             image_rect( strip_x, strip_y, strip_w, strip_h ) );
 
-  cv::Mat result;
-  cv::matchTemplate( strip, tmpl.ncc_template, result, cv::TM_CCOEFF_NORMED );
+  auto const result = io::match_template_ncc( strip, tmpl.ncc_template );
 
-  // Find maximum in result
-  double max_val;
-  cv::Point max_loc;
-  cv::minMaxLoc( result, nullptr, &max_val, nullptr, &max_loc );
+  auto const result_cols = static_cast< int >( result.width() );
+  auto const result_rows = static_cast< int >( result.height() );
+
+  // `cv::minMaxLoc` over the correlation surface
+  double max_val = -std::numeric_limits< double >::max();
+  int max_loc_x = 0;
+  int max_loc_y = 0;
+
+  for( int ry = 0; ry < result_rows; ++ry )
+  {
+    for( int rx = 0; rx < result_cols; ++rx )
+    {
+      double const val = result( rx, ry, 0 );
+
+      if( val > max_val )
+      {
+        max_val = val;
+        max_loc_x = rx;
+        max_loc_y = ry;
+      }
+    }
+  }
 
   if( max_val < m_template_matching_threshold )
   {
@@ -3779,18 +3821,26 @@ map_keypoints_to_camera
   {
     // Suppress the neighborhood around the best match
     int suppress_radius = m_template_size;
-    int sr_x1 = std::max( 0, max_loc.x - suppress_radius );
-    int sr_y1 = std::max( 0, max_loc.y - suppress_radius );
-    int sr_x2 = std::min( result.cols - 1, max_loc.x + suppress_radius );
-    int sr_y2 = std::min( result.rows - 1, max_loc.y + suppress_radius );
+    int sr_x1 = std::max( 0, max_loc_x - suppress_radius );
+    int sr_y1 = std::max( 0, max_loc_y - suppress_radius );
+    int sr_x2 = std::min( result_cols - 1, max_loc_x + suppress_radius );
+    int sr_y2 = std::min( result_rows - 1, max_loc_y + suppress_radius );
 
-    // Create a copy and zero-out the best region
-    cv::Mat result_copy = result.clone();
-    cv::Rect suppress_rect( sr_x1, sr_y1, sr_x2 - sr_x1 + 1, sr_y2 - sr_y1 + 1 );
-    result_copy( suppress_rect ).setTo( -1.0 );
+    double second_max_val = -std::numeric_limits< double >::max();
 
-    double second_max_val;
-    cv::minMaxLoc( result_copy, nullptr, &second_max_val, nullptr, nullptr );
+    for( int ry = 0; ry < result_rows; ++ry )
+    {
+      for( int rx = 0; rx < result_cols; ++rx )
+      {
+        if( rx >= sr_x1 && rx <= sr_x2 && ry >= sr_y1 && ry <= sr_y2 )
+        {
+          continue;
+        }
+
+        second_max_val = std::max< double >( second_max_val,
+                                             result( rx, ry, 0 ) );
+      }
+    }
 
     if( second_max_val > 0 && max_val > 0 )
     {
@@ -3803,9 +3853,9 @@ map_keypoints_to_camera
   }
 
   // Convert result location to image coordinates
-  // matchTemplate result offset is top-left of the template placement
-  double match_x = strip_x + max_loc.x + half_template;
-  double match_y = strip_y + max_loc.y + half_template;
+  // the correlation surface's offset is the top left of the template placement
+  double match_x = strip_x + max_loc_x + half_template;
+  double match_y = strip_y + max_loc_y + half_template;
 
   // Snap to the nearest epipolar point for geometric consistency
   double best_dist_sq = std::numeric_limits< double >::max();
@@ -3828,60 +3878,54 @@ map_keypoints_to_camera
 }
 
 // -----------------------------------------------------------------------------
-cv::Mat
+kv::image_container_sptr
 map_keypoints_to_camera
 ::compute_sgbm_disparity(
-  const cv::Mat& left_image_rect,
-  const cv::Mat& right_image_rect )
+  const kv::image_of< uint8_t >& left_image_rect,
+  const kv::image_of< uint8_t >& right_image_rect )
 {
   if( !m_stereo_depth_map_algorithm )
   {
-    // Algorithm not configured, return empty
-    return cv::Mat();
+    // Algorithm not configured, return nothing
+    return nullptr;
   }
 
-  // Convert cv::Mat to ImageContainers
   kv::image_container_sptr left_container =
-    std::make_shared< kwiver::arrows::ocv::image_container >(
-      left_image_rect, kwiver::arrows::ocv::image_container::BGR_COLOR );
+    std::make_shared< kv::simple_image_container >( left_image_rect );
   kv::image_container_sptr right_container =
-    std::make_shared< kwiver::arrows::ocv::image_container >(
-      right_image_rect, kwiver::arrows::ocv::image_container::BGR_COLOR );
+    std::make_shared< kv::simple_image_container >( right_image_rect );
 
-  // Compute disparity using the algorithm
-  kv::image_container_sptr disparity_container =
-    m_stereo_depth_map_algorithm->compute( left_container, right_container );
-
-  if( !disparity_container )
-  {
-    return cv::Mat();
-  }
-
-  // Convert result back to cv::Mat
-  return kwiver::arrows::ocv::image_container::vital_to_ocv(
-    disparity_container->get_image(),
-    kwiver::arrows::ocv::image_container::BGR_COLOR );
+  return m_stereo_depth_map_algorithm->compute( left_container,
+                                                right_container );
 }
 
 // -----------------------------------------------------------------------------
 bool
 map_keypoints_to_camera
 ::find_corresponding_point_sgbm(
-  const cv::Mat& disparity_map,
+  const kv::image_container_sptr& disparity_map,
   const kv::vector_2d& left_point_rect,
   kv::vector_2d& right_point_rect ) const
 {
+  if( !disparity_map )
+  {
+    return false;
+  }
+
+  kv::image_of< int16_t > const disparity_image( disparity_map->get_image() );
+
   int x = static_cast< int >( left_point_rect.x() + 0.5 );
   int y = static_cast< int >( left_point_rect.y() + 0.5 );
 
   // Check bounds
-  if( x < 0 || x >= disparity_map.cols || y < 0 || y >= disparity_map.rows )
+  if( x < 0 || x >= static_cast< int >( disparity_image.width() ) ||
+      y < 0 || y >= static_cast< int >( disparity_image.height() ) )
   {
     return false;
   }
 
   // Get disparity value (SGBM returns fixed-point values scaled by 16)
-  short disp_raw = disparity_map.at< short >( y, x );
+  int16_t disp_raw = disparity_image( x, y, 0 );
 
   // Check for invalid disparity (OpenCV marks invalid as negative values)
   if( disp_raw < 0 )
@@ -3899,7 +3943,7 @@ map_keypoints_to_camera
 }
 
 // -----------------------------------------------------------------------------
-const cv::Mat&
+const kv::image_of< float >&
 map_keypoints_to_camera
 ::get_rectification_map_x( bool is_right_camera ) const
 {
@@ -3907,14 +3951,12 @@ map_keypoints_to_camera
 }
 
 // -----------------------------------------------------------------------------
-const cv::Mat&
+const kv::image_of< float >&
 map_keypoints_to_camera
 ::get_rectification_map_y( bool is_right_camera ) const
 {
   return is_right_camera ? m_rectification_map_right_y : m_rectification_map_left_y;
 }
-
-#endif // VIAME_ENABLE_OPENCV
 
 // -----------------------------------------------------------------------------
 bool

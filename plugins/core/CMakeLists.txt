@@ -151,7 +151,9 @@ set( CORE_LINK_LIBRARIES
 
 # The polygon rasterisation the CSV parsers use is in-house now, and so is
 # the OpenCV YAML `camera_rig_io` reads calibrations with (P7-T05)
-set( AUX_LINK_LIBRARIES viame_image_ops viame_file_io ${AUX_LINK_LIBRARIES} )
+# ... and the image writer the epipolar debug overlay uses (P7-T06)
+set( AUX_LINK_LIBRARIES
+     viame_image_ops viame_file_io viame_video_io ${AUX_LINK_LIBRARIES} )
 
 # OpenCV is used in some parsers for aux functionality if enabled
 if( VIAME_ENABLE_OPENCV )

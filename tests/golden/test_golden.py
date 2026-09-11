@@ -158,6 +158,7 @@ UNSTABLE_OF_KIND = {
     "matches": (feature_cases, feature_runner),
     "tracks": (feature_cases, feature_runner),
     "calibration_pipeline": (measurement_cases, measurement_cases),
+    "measurement": (measurement_cases, measurement_cases),
 }
 
 
@@ -473,10 +474,22 @@ def check_array_case(item, case, outputs, group):
 
             difference = np.abs(got.astype(np.float64) -
                                 want.astype(np.float64))
-            assert difference.max() <= ARRAY_TOLERANCE, (
+
+            # Zero unless the case's own module says otherwise. The
+            # `measurement` kind's two rectified variants do, and
+            # `measurement_cases.py` says why.
+            relative = (measurement_cases.array_tolerance(
+                            case["impl"], case["variant"])
+                        if case["kind"] == "measurement" else 0.0)
+
+            allowed = np.maximum(
+                ARRAY_TOLERANCE,
+                relative * np.maximum(1.0, np.abs(want.astype(np.float64))))
+
+            assert bool(np.all(difference <= allowed)), (
                 "{} {} '{}': max difference {} exceeds {}".format(
                     case_id(item), name, member, difference.max(),
-                    ARRAY_TOLERANCE))
+                    float(np.max(allowed))))
 
 
 def check_calibration_truth(item, arrays):

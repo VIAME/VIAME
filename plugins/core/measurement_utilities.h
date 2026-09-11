@@ -28,10 +28,11 @@
 #include <viame/algorithm_framework/algo/estimate_fundamental_matrix.h>
 #include <viame/algorithm_framework/algo/compute_stereo_depth_map.h>
 
-#ifdef VIAME_ENABLE_OPENCV
-  #include <opencv2/core/core.hpp>
-  #include <opencv2/calib3d/calib3d.hpp>
-#endif
+#include <viame/core_types/image.h>
+#include <viame/core_types/matrix.h>
+#include <viame/measurement/projection.h>
+
+#include "windowed_utils.h"
 
 #include <string>
 #include <vector>
@@ -566,13 +567,17 @@ public:
     const kv::image_container_sptr& right_image,
     const kv::image_container_sptr& external_disparity = nullptr );
 
-#ifdef VIAME_ENABLE_OPENCV
   /// Prepare stereo images for matching (convert to grayscale, rectify, compute disparity)
+  ///
+  /// `cv::Mat` until P7-T06, `vital::image` since; the images are RGB where
+  /// they used to be BGR, because the bridge swapped on the way in and back
+  /// on the way out and nothing in between depended on the order except the
+  /// greyscale conversion, which `image_ops` spells `rgb_to_gray`.
   struct stereo_image_data
   {
-    cv::Mat left_rectified;
-    cv::Mat right_rectified;
-    cv::Mat disparity_map;
+    kv::image_of< uint8_t > left_rectified;
+    kv::image_of< uint8_t > right_rectified;
+    kv::image_container_sptr disparity_map;
     bool rectified_available;
     bool disparity_available;
   };
@@ -584,7 +589,6 @@ public:
     const kv::simple_camera_perspective& right_cam,
     const kv::image_container_sptr& left_image,
     const kv::image_container_sptr& right_image );
-#endif
 
   // -------------------------------------------------------------------------
   // Feature-based matching functions
@@ -681,16 +685,19 @@ public:
   /// This returns the rectified right image from the last stereo processing call
   kv::image_container_sptr get_cached_rectified_right() const;
 
-#ifdef VIAME_ENABLE_OPENCV
   // -------------------------------------------------------------------------
-  // OpenCV-based matching functions
+  // Rectified and epipolar matching
+  //
+  // OpenCV's calib3d until P7-T06; `library/measurement/projection` since,
+  // which is that arithmetic step for step and is held to a recording of
+  // what OpenCV answered for four rigs.
   // -------------------------------------------------------------------------
 
   /// Compute rectification maps for stereo images
   void compute_rectification_maps(
     const kv::simple_camera_perspective& left_cam,
     const kv::simple_camera_perspective& right_cam,
-    const cv::Size& image_size );
+    size_t width, size_t height );
 
   /// Check if rectification maps have been computed
   bool rectification_computed() const;
@@ -707,18 +714,19 @@ public:
     const kv::simple_camera_perspective& camera ) const;
 
   /// Rectify an image using precomputed maps
-  cv::Mat rectify_image( const cv::Mat& image, bool is_right_camera ) const;
+  kv::image_of< uint8_t > rectify_image(
+    const kv::image_of< uint8_t >& image, bool is_right_camera ) const;
 
   /// Find corresponding point in right image using template matching
   /// Returns true if match found, false otherwise
   /// If disparity_map is provided and use_disparity_hint is enabled,
   /// it will be used to estimate initial disparity for search centering.
   bool find_corresponding_point_template_matching(
-    const cv::Mat& left_image_rect,
-    const cv::Mat& right_image_rect,
+    const kv::image_of< uint8_t >& left_image_rect,
+    const kv::image_of< uint8_t >& right_image_rect,
     const kv::vector_2d& left_point_rect,
     kv::vector_2d& right_point_rect,
-    const cv::Mat& disparity_map = cv::Mat() ) const;
+    const kv::image_container_sptr& disparity_map = nullptr ) const;
 
   /// Find corresponding point by template matching along an arbitrary epipolar line.
   /// Works on unrectified images with epipolar points from any source.
@@ -726,8 +734,8 @@ public:
   /// for the best NCC match at each epipolar point in target_image.
   /// Supports census transform via configured settings.
   bool find_corresponding_point_epipolar_template_matching(
-    const cv::Mat& source_image,
-    const cv::Mat& target_image,
+    const kv::image_of< uint8_t >& source_image,
+    const kv::image_of< uint8_t >& target_image,
     const kv::vector_2d& source_point,
     const std::vector< kv::vector_2d >& epipolar_points,
     kv::vector_2d& target_point ) const;
@@ -736,8 +744,8 @@ public:
   /// the configured descriptor type (ncc, ncc_strip, or dino+ncc).
   /// Takes BGR images; derives grayscale internally when needed for NCC.
   bool find_corresponding_point_epipolar(
-    const cv::Mat& source_bgr,
-    const cv::Mat& target_bgr,
+    const kv::image_of< uint8_t >& source_colour,
+    const kv::image_of< uint8_t >& target_colour,
     const kv::vector_2d& source_point,
     const std::vector< kv::vector_2d >& epipolar_points,
     kv::vector_2d& target_point );
@@ -751,28 +759,29 @@ public:
   /// This is significantly faster than point-by-point NCC for large
   /// candidate sets and does not require Python/DINO.
   bool find_corresponding_point_epipolar_strip_ncc(
-    const cv::Mat& source_image,
-    const cv::Mat& target_image,
+    const kv::image_of< uint8_t >& source_image,
+    const kv::image_of< uint8_t >& target_image,
     const kv::vector_2d& source_point,
     const std::vector< kv::vector_2d >& epipolar_points,
     kv::vector_2d& target_point ) const;
 
   /// Compute SGBM disparity map
-  cv::Mat compute_sgbm_disparity(
-    const cv::Mat& left_image_rect,
-    const cv::Mat& right_image_rect );
+  kv::image_container_sptr compute_sgbm_disparity(
+    const kv::image_of< uint8_t >& left_image_rect,
+    const kv::image_of< uint8_t >& right_image_rect );
 
   /// Find corresponding point using SGBM disparity
   /// Returns true if valid disparity found, false otherwise
   bool find_corresponding_point_sgbm(
-    const cv::Mat& disparity_map,
+    const kv::image_container_sptr& disparity_map,
     const kv::vector_2d& left_point_rect,
     kv::vector_2d& right_point_rect ) const;
 
   /// Get rectification map for a given camera (for external use)
-  const cv::Mat& get_rectification_map_x( bool is_right_camera ) const;
-  const cv::Mat& get_rectification_map_y( bool is_right_camera ) const;
-#endif
+  const kv::image_of< float >& get_rectification_map_x(
+    bool is_right_camera ) const;
+  const kv::image_of< float >& get_rectification_map_y(
+    bool is_right_camera ) const;
 
   // -------------------------------------------------------------------------
   // External disparity functions (no OpenCV required)
@@ -845,7 +854,6 @@ private:
   kv::match_set_sptr m_cached_matches;
   kv::frame_id_t m_cached_frame_id;
 
-#ifdef VIAME_ENABLE_OPENCV
   // DINO full-image feature cache: when true, dino_set_images has already been
   // called for the full (uncropped) images this frame and can be reused across
   // keypoints and detections. Reset by clear_feature_cache() on each new frame.
@@ -853,26 +861,29 @@ private:
 
   // DINO crop state (computed per frame by precompute_dino_crops)
   bool m_dino_crop_active;
-  cv::Rect m_dino_left_crop;
-  cv::Rect m_dino_right_crop;
-  cv::Mat m_dino_left_cropped;
-  cv::Mat m_dino_right_cropped;
+  image_rect m_dino_left_crop;
+  image_rect m_dino_right_crop;
+  kv::image_of< uint8_t > m_dino_left_cropped;
+  kv::image_of< uint8_t > m_dino_right_cropped;
 
   // Rectification maps
   bool m_rectification_computed;
-  cv::Mat m_rectification_map_left_x;
-  cv::Mat m_rectification_map_left_y;
-  cv::Mat m_rectification_map_right_x;
-  cv::Mat m_rectification_map_right_y;
+  kv::image_of< float > m_rectification_map_left_x;
+  kv::image_of< float > m_rectification_map_left_y;
+  kv::image_of< float > m_rectification_map_right_x;
+  kv::image_of< float > m_rectification_map_right_y;
 
   // Rectification matrices for unrectifying points
-  cv::Mat m_K1, m_K2, m_R1, m_R2, m_P1, m_P2, m_D1, m_D2;
+  bool m_rectification_valid;
+  kv::matrix_3x3d m_K1, m_K2, m_R1, m_R2;
+  kv::matrix_3x4d m_P1, m_P2;
+  viame::measurement::distortion_t m_D1, m_D2;
 
   // Template matching helpers
   struct prepared_template
   {
-    cv::Mat ncc_template;
-    cv::Mat census_template;
+    kv::image_of< uint8_t > ncc_template;
+    kv::image_of< int32_t > census_template;
     bool valid;
     prepared_template() : valid( false ) {}
   };
@@ -880,7 +891,7 @@ private:
   /// Prepare a source template for matching (bounds check + extraction + census)
   /// Returns false if template can't be extracted (point too close to edge)
   bool prepare_source_template(
-    const cv::Mat& source_image, int x, int y,
+    const kv::image_of< uint8_t >& source_image, int x, int y,
     prepared_template& tmpl ) const;
 
   /// Score a candidate point against a prepared template
@@ -888,11 +899,10 @@ private:
   /// Returns -1.0 if the candidate point is too close to the image edge
   double score_template_at_point(
     const prepared_template& tmpl,
-    const cv::Mat& target_image, int x, int y ) const;
+    const kv::image_of< uint8_t >& target_image, int x, int y ) const;
 
   // Cached stereo image data
   stereo_image_data m_cached_stereo_images;
-#endif
 };
 
 } // end namespace core

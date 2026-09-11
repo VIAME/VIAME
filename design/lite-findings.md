@@ -502,6 +502,16 @@ an artefact of the port:
   Recorded as a `measurement` case so that the port reproduces it and a fix
   shows up as a change to the recording.
 
+* `find_corresponding_point_epipolar_strip_ncc`'s uniqueness test **zeroes
+  the wrong thing**. It suppresses the neighbourhood of the best peak by
+  writing `-1` into a copy and taking the maximum of what is left, which is
+  right; but `cv::minMaxLoc` over the copy still sees the suppressed region,
+  and `-1` is a legitimate correlation value, so on a correlation surface
+  whose second peak is below -1 -- which cannot happen -- the test would
+  pass. Harmless as written, and the port keeps it: it skips the suppressed
+  rectangle outright instead, which is what the code reads as doing and
+  gives the same answer on every surface NCC can produce.
+
 ### 1.11 The two-build arrangement fixes which way a dependency can point
 
 Kwiver is configured and built before VIAME, against the same install prefix,
