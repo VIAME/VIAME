@@ -24,7 +24,6 @@
 #include "classify_fish_hierarchical_svm.h"
 #include "convert_color_space.h"
 #include "debayer_filter.h"
-#include "enhance_images.h"
 #include "random_hue_shift.h"
 #include "split_image_habcam.h"
 #include "split_image_horizontally.h"
@@ -79,19 +78,9 @@ register_factories( kv::plugin_loader& vpm )
   // `ocv_detect_calibration_targets` is
   // `library/measurement/ocv_calibration_targets.py` since P7-T06.
 
-  fact = vpm.add_factory< kv::algo::image_filter, enhance_images >(
-    enhance_images::plugin_name() );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
-
-  // plugins/vxl carried a second class also called viame::enhance_images,
-  // registered as vxl_enhancer. The two had the same mangled symbols, so the
-  // loader bound one definition for both factories and vxl_enhancer ran
-  // whichever plugin happened to load first. They produced identical output
-  // on every recorded case, so the name is kept here as an alias of this one
-  // and the duplicate class is gone.
-  fact = vpm.add_factory< kv::algo::image_filter, enhance_images >(
-    "vxl_enhancer" );
-  fact->add_attribute( kvpf::PLUGIN_MODULE_NAME, module_name );
+  // `ocv_enhancer` and `vxl_enhancer` are
+  // `library/image_processing/ocv_enhancer.py` since P7-T04b; they were
+  // already one implementation under two names before phase 3.
 
   // `ocv_optimize_stereo_cameras` is
   // `library/measurement/ocv_optimize_stereo_cameras.py` since P7-T06, with

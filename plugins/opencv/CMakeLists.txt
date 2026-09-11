@@ -20,7 +20,6 @@ set( plugin_headers
   debayer_filter.h
   diff_of_gauss_detector.h
   ellipse_proposal.h
-  enhance_images.h
   gabor_features.h
   hog_features.h
   opencv_yaml_matrix.h
@@ -49,7 +48,6 @@ set( plugin_sources
   convert_color_space.cxx
   debayer_filter.cxx
   diff_of_gauss_detector.cxx
-  enhance_images.cxx
   gabor_features.cxx
   hog_features.cxx
   pair_stereo_detections.cxx

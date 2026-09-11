@@ -140,6 +140,13 @@ if( VIAME_ENABLE_PYTHON )
     ${CMAKE_CURRENT_SOURCE_DIR}/ocv_segmenters.py
     image_processing
     ocv_segmenters )
+
+  # `ocv_enhancer` and its second name `vxl_enhancer`. Python rather than
+  # image_ops for one step of it, the non-local means denoiser.
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_enhancer.py
+    image_processing
+    ocv_enhancer )
 endif()
 
 ###
