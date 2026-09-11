@@ -103,7 +103,8 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
                 self.categories,
                 image_dims=dims,
                 ordered_names=self.ordered_names,
-                kp_cat_names=self._kp_cat_names,
+                kp_cat_names=self._category_keypoints.get(ann.get("category_id")) or self._kp_cat_names,
+                kp_id_names=self._kp_id_names,
             )
             det_objs.append(det)
         return vt.DetectedObjectSet(det_objs)
@@ -168,6 +169,8 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
                 image_dims[im["id"]] = (w, h)
 
         # Keypoint category names for decoding COCO flat-format keypoints
+        category_keypoints = {c["id"]: c.get("keypoints") for c in data.get("categories", [])}
+        kp_id_names = {c["id"]: c["name"] for c in data.get("keypoint_categories", [])}
         kp_cat_names = None
         kp_cats = data.get("keypoint_categories", [])
         if kp_cats:
@@ -185,6 +188,8 @@ class ReadDetectedObjectSetCoco(DetectedObjectSetInput):
         self.frame_info_by_video = frame_info_by_video
         self._image_dims = image_dims
         self._kp_cat_names = kp_cat_names
+        self._category_keypoints = category_keypoints
+        self._kp_id_names = kp_id_names
         self.loaded = True
 
 

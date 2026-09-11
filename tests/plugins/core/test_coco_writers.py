@@ -571,3 +571,51 @@ def test_multiple_polygon_pieces_roundtrip():
     ann = uc.detection_to_annotation(det, 1, {}, 1, False)
     assert ann['segmentation'] == pieces
     assert ann['area'] == 200.
+
+
+@requires_kwiver
+@pytest.mark.parametrize('named', [False, True])
+@pytest.mark.parametrize('tracked', [False, True])
+def test_centerline_coco_read_write(tmp_path, named, tracked):
+    """Both reader/writer pairs retain DIVE centerlines and ignore absent slots."""
+    from viame.core.read_detected_object_set_coco import ReadDetectedObjectSetCoco
+    from viame.core.read_object_track_set_coco import ReadObjectTrackSetCoco
+    from viame.core.write_detected_object_set_coco import WriteDetectedObjectSetCoco
+    from viame.core.write_object_track_set_coco import WriteObjectTrackSetCoco
+
+    labels = ['tail', 'spine_010', 'head', 'spine_002', 'spine_003']
+    triples = [[90.5, 20.25, 2], [60.1, 35.2, 2], [10.25, 20.5, 2],
+               [30.75, 40.125, 1], [0, 0, 0]]
+    points = [v for triple in triples for v in triple]
+    if named:
+        points = [{'keypoint_category_id': 10 + i * 3, 'xy': p[:2], 'visible': p[2]}
+                  for i, p in enumerate(triples)]
+    doc = {'images': [{'id': 1, 'file_name': 'fish.png', 'frame_index': 0}],
+           'categories': [{'id': 7, 'name': 'fish', 'keypoints': labels}],
+           'keypoint_categories': ([{'id': 10 + i * 3, 'name': k} for i, k in enumerate(labels)]
+                                   if named else [{'id': 99, 'name': 'unrelated'}]),
+           'annotations': [{'id': 1, 'image_id': 1, 'category_id': 7, 'track_id': 9,
+                            'bbox': [0, 0, 100, 50], 'keypoints': points}]}
+    path = str(tmp_path / 'curve.json')
+    with open(path, 'w') as handle:
+        json.dump(doc, handle)
+    reader = ReadObjectTrackSetCoco() if tracked else ReadDetectedObjectSetCoco()
+    reader.set_configuration(reader.get_configuration())
+    reader.open(path)
+    objects = reader.read_set() if tracked else reader.read_set()[0]
+    writer = WriteObjectTrackSetCoco() if tracked else WriteDetectedObjectSetCoco()
+    writer.set_configuration(writer.get_configuration())
+    output = str(tmp_path / 'out.json')
+    writer.open(output)
+    if tracked:
+        writer.write_set(objects, vital_types.Timestamp(0, 0), 'fish.png')
+    else:
+        writer.write_set(objects, 'fish.png')
+        writer.complete()
+    writer.close()
+    reader.close()
+    result = _load(output)
+    categories = {k['id']: k['name'] for k in result['keypoint_categories']}
+    actual = {categories[k['keypoint_category_id']]: k['xy']
+              for k in result['annotations'][0]['keypoints']}
+    assert actual == {k: p[:2] for k, p in zip(labels, triples) if p[2] > 0}

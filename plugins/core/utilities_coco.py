@@ -385,7 +385,7 @@ def confidence_pairs_from_annotation(ann, ordered_names=None):
 
 
 def annotation_to_detection(ann, categories, image_dims=None,
-                            kp_cat_names=None, ordered_names=None):
+                            kp_cat_names=None, ordered_names=None, kp_id_names=None):
     """Convert a COCO annotation dict to a DetectedObject.
 
     Parameters
@@ -399,7 +399,9 @@ def annotation_to_detection(ann, categories, image_dims=None,
         segmentations to masks.
     kp_cat_names : list of str, optional
         Keypoint category names ordered by ID, for decoding COCO
-        flat-format keypoints.
+        flat-format keypoints (category keypoints order takes precedence).
+    kp_id_names : dict, optional
+        Document keypoint-category IDs mapped to names for KWCOCO named points.
     """
     import kwiver.vital.types as vt
 
@@ -426,7 +428,7 @@ def annotation_to_detection(ann, categories, image_dims=None,
 
     # Keypoints
     if 'keypoints' in ann:
-        _apply_keypoints(det, ann['keypoints'], kp_cat_names)
+        _apply_keypoints(det, ann['keypoints'], kp_cat_names, kp_id_names)
 
     # Attributes and notes come from their own keys; anything else unknown is
     # kept as a JSON note so nothing on the annotation is silently dropped. A
@@ -491,8 +493,14 @@ def _apply_segmentation(det, seg, image_dims=None):
         det.set_flattened_polygons(polygons)
 
 
-def _apply_keypoints(det, kps, kp_cat_names=None):
-    """Apply keypoint data to a DetectedObject."""
+def _apply_keypoints(det, kps, kp_cat_names=None, kp_id_names=None):
+    """Apply named points, including head/spine_N/tail centerline vertices.
+
+    Standard COCO triples use the annotation category's keypoints order;
+    KWCOCO IDs resolve through the document keypoint_categories table.
+    Absent (visibility zero) slots must not create vertices at the origin.
+    The writers already retain all named keypoints and subpixel coordinates.
+    """
     import kwiver.vital.types as vt
 
     if isinstance(kps, list):
@@ -501,14 +509,19 @@ def _apply_keypoints(det, kps, kp_cat_names=None):
         if isinstance(kps[0], dict):
             # kwcoco dict-list format
             for kp in kps:
+                if kp.get('visible', 2) <= 0:
+                    continue
                 xy = kp.get('xy', [0, 0])
                 name = kp.get('keypoint_category',
-                              str(kp.get('keypoint_category_id', '')))
+                              (kp_id_names or {}).get(kp.get('keypoint_category_id'),
+                                                     str(kp.get('keypoint_category_id', ''))))
                 det.add_keypoint(str(name),
                                  vt.Point2d(float(xy[0]), float(xy[1])))
         elif isinstance(kps[0], (int, float)):
             # COCO flat format: [x1,y1,v1, x2,y2,v2, ...]
             for i in range(0, len(kps) - 2, 3):
+                if kps[i + 2] <= 0:
+                    continue
                 idx = i // 3
                 if kp_cat_names and idx < len(kp_cat_names):
                     name = kp_cat_names[idx]
