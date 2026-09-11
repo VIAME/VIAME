@@ -155,17 +155,10 @@ set( CORE_LINK_LIBRARIES
 set( AUX_LINK_LIBRARIES
      viame_image_ops viame_file_io viame_video_io ${AUX_LINK_LIBRARIES} )
 
-# OpenCV is used in some parsers for aux functionality if enabled
-if( VIAME_ENABLE_OPENCV )
-  find_package( OpenCV REQUIRED )
-  include_directories( "${OpenCV_INCLUDE_DIRS}" )
-  link_directories( "${OpenCV_LIBRARY_DIR}" )
-  set( AUX_LINK_LIBRARIES
-       ${OpenCV_LIBRARIES}
-       viame_opencv_bridge
-       ${AUX_LINK_LIBRARIES} )
-  set( AUX_COMPILE_DEFINITIONS VIAME_ENABLE_OPENCV ${AUX_COMPILE_DEFINITIONS} )
-endif()
+# `plugins/core` has no OpenCV left as of P7-T07: the CSV writers' polygon
+# conversion was the last of it, and `image_ops::find_borders` is what it is
+# now. The `find_package` and the `VIAME_ENABLE_OPENCV` definition that stood
+# here are gone with it.
 
 # ZLIB is used for reading NPZ files in camera_rig_io
 find_package( ZLIB )

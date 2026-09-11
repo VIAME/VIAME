@@ -4,6 +4,8 @@
 
 #include "utilities_segmentation.h"
 
+#include <image_ops/contours.h>
+
 #include <algorithm>
 #include <cmath>
 #include <queue>
@@ -145,6 +147,79 @@ simplify_polygon( std::vector< kwiver::vital::point_2d > const& curve,
                   size_t max_points )
 {
   return simplify_polygon_impl< kwiver::vital::point_2d, double >( curve, max_points );
+}
+
+// ----------------------------------------------------------------------------
+std::vector< mask_contour >
+mask_to_contours( kwiver::vital::image const& mask,
+                  double tolerance, int max_points )
+{
+  namespace io = viame::image_ops;
+
+  std::vector< mask_contour > out;
+
+  if( mask.width() == 0 || mask.height() == 0 )
+  {
+    return out;
+  }
+
+  kwiver::vital::image_of< uint8_t > const typed( mask );
+
+  for( auto const& traced : io::find_borders( typed ) )
+  {
+    auto const contour = io::simplify_chain( traced.points );
+
+    if( contour.empty() )
+    {
+      continue;
+    }
+
+    // The tolerance is relative to the shorter side of this contour's own
+    // bounding box, which is what the writers computed.
+    long x_min = contour[ 0 ].i, x_max = contour[ 0 ].i;
+    long y_min = contour[ 0 ].j, y_max = contour[ 0 ].j;
+
+    for( auto const& at : contour )
+    {
+      x_min = std::min( x_min, at.i );
+      x_max = std::max( x_max, at.i );
+      y_min = std::min( y_min, at.j );
+      y_max = std::max( y_max, at.j );
+    }
+
+    std::vector< kwiver::vital::point_2i > simplified;
+
+    if( tolerance >= 0 )
+    {
+      double const scale =
+        static_cast< double >( std::min( x_max - x_min + 1,
+                                         y_max - y_min + 1 ) );
+
+      for( auto const& at : io::approx_poly( contour, tolerance * scale ) )
+      {
+        simplified.emplace_back( static_cast< int >( at.i ),
+                                 static_cast< int >( at.j ) );
+      }
+    }
+    else
+    {
+      std::vector< kwiver::vital::point_2i > points;
+      points.reserve( contour.size() );
+
+      for( auto const& at : contour )
+      {
+        points.emplace_back( static_cast< int >( at.i ),
+                             static_cast< int >( at.j ) );
+      }
+
+      simplified = simplify_polygon(
+        points, static_cast< size_t >( std::max( 0, max_points ) ) );
+    }
+
+    out.push_back( mask_contour{ std::move( simplified ), traced.is_hole } );
+  }
+
+  return out;
 }
 
 } // end namespace viame

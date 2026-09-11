@@ -17,13 +17,6 @@
 #include <sstream>
 #include <iomanip>
 
-#ifdef VIAME_ENABLE_OPENCV
-#include <viame/opencv_bridge/image_container.h>
-
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#endif
-
 namespace viame {
 
 namespace kv = kwiver::vital;
@@ -82,13 +75,9 @@ write_object_track_set_viame_csv
         "At most one of use mask_to_poly_tol and mask_to_poly_points "
         "can be enabled (nonnegative)" );
   }
-#ifndef VIAME_ENABLE_OPENCV
-  if( c_mask_to_poly_tol >= 0 || c_mask_to_poly_points >= 0 )
-  {
-    throw std::runtime_error(
-      "Must have OpenCV enabled to use mask_to_poly_tol or mask_to_poly_points" );
-  }
-#endif
+
+  // The "must have OpenCV enabled" refusal that stood here is gone with the
+  // OpenCV: `mask_to_contours` is `image_ops` now and is always available.
 }
 
 
@@ -207,63 +196,25 @@ write_object_track_set_viame_csv
       stream << " " << p[0] << " " << p[1];
     }
   }
-#ifdef VIAME_ENABLE_OPENCV
   else if( det->mask() && ( c_mask_to_poly_tol >= 0 ||
                             c_mask_to_poly_points >= 0 ) )
   {
-    using ic = kwiver::arrows::ocv::image_container;
     auto ref_x = static_cast< int >( bbox.min_x() );
     auto ref_y = static_cast< int >( bbox.min_y() );
-    cv::Mat mask = ic::vital_to_ocv( det->mask()->get_image(),
-                                     ic::OTHER_COLOR );
-    std::vector< std::vector< cv::Point > > contours;
-    std::vector< cv::Vec4i > hierarchy;
-    // Pre-3.2 OpenCV may modify the passed image, so we clone it.
-    cv::findContours( mask.clone(), contours, hierarchy,
-                      cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE );
-    for( size_t i = 0; i < contours.size(); ++i )
+
+    for( auto const& contour : mask_to_contours(
+           det->mask()->get_image(), c_mask_to_poly_tol,
+           c_mask_to_poly_points ) )
     {
-      auto& contour = contours[i];
-      int x_min, x_max, y_min, y_max;
-      x_min = x_max = contour[0].x;
-      y_min = y_max = contour[0].y;
-      for( size_t j = 1; j < contour.size(); ++j )
-      {
-        x_min = std::min( x_min, contour[j].x );
-        x_max = std::max( x_max, contour[j].x );
-        y_min = std::min( y_min, contour[j].y );
-        y_max = std::max( y_max, contour[j].y );
-      }
-      std::vector< kwiver::vital::point_2i > simp_contour;
-      if( c_mask_to_poly_tol >= 0 )
-      {
-        double tol = c_mask_to_poly_tol * std::min( x_max - x_min + 1,
-                                                    y_max - y_min + 1 );
-        std::vector< cv::Point > approx;
-        cv::approxPolyDP( contour, approx, tol, /*closed:*/ true );
-        for( auto const& p : approx )
-        {
-          simp_contour.emplace_back( p.x, p.y );
-        }
-      }
-      else
-      {
-        std::vector< kwiver::vital::point_2i > kwiver_contour;
-        kwiver_contour.reserve( contour.size() );
-        for( auto const& p : contour )
-        {
-          kwiver_contour.emplace_back( p.x, p.y );
-        }
-        simp_contour = simplify_polygon( kwiver_contour, c_mask_to_poly_points );
-      }
-      stream << ( hierarchy[i][3] < 0 ? c_delimiter  + "(poly)" : c_delimiter  + "(hole)" );
-      for( auto const& p : simp_contour )
+      stream << c_delimiter << ( contour.is_hole ? "(hole)" : "(poly)" );
+
+      for( auto const& p : contour.points )
       {
         stream << " " << p[ 0 ] + ref_x << " " << p[ 1 ] + ref_y;
       }
     }
   }
-#endif
+
 
   if( !det->keypoints().empty() )
   {

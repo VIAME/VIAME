@@ -616,7 +616,6 @@ measure_objects_process
           LOG_WARN( logger(),
             "disparity_projection: no disparity this frame; skipping" );
         }
-#ifdef VIAME_ENABLE_OPENCV
         else
         {
           auto rectify_left =
@@ -636,7 +635,6 @@ measure_objects_process
             disparity, rectify_left, unrectify_right,
             opts, logger() );
         }
-#endif
       }
       else
       {
