@@ -45,6 +45,14 @@ kwiver_discover_gtests( viame_core mask_polygon_csv
 target_compile_definitions( test-viame_core-mask_polygon_csv PRIVATE
   "VIAME_MASK_POLYGON_CSV_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"" )
 
+# What `viame score --output-plots` writes beside its images, recorded before
+# P7-T07 handed the drawing to matplotlib. The pictures change; these do not.
+kwiver_discover_gtests( viame_core plot_data_export
+  LIBRARIES ${test_libraries} )
+
+target_compile_definitions( test-viame_core-plot_data_export PRIVATE
+  "VIAME_PLOT_DATA_EXPORT_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"" )
+
 
 # TODO: Enable when tracks_pairing_from_stereo.h is implemented
 # kwiver_discover_gtests( viame_core tracks_pairing_from_stereo LIBRARIES ${test_libraries} )
