@@ -603,6 +603,7 @@ BUNDLE_DESCRIPTOR_CSV_POSTFIX = "_descriptors.csv"
 BUNDLE_DESCRIPTOR_NPY_POSTFIX = "_descriptors.npy"
 BUNDLE_UIDS_POSTFIX = "_uids.txt"
 BUNDLE_HASHES_POSTFIX = "_hashes.npy"
+BUNDLE_TRACKS_POSTFIX = "_tracks.csv"
 
 
 def _model_suffix(bit_length, itq_iterations, random_seed):
@@ -625,16 +626,6 @@ def _model_hash(itq_dir, suffix):
 def _model_present(itq_dir, suffix):
     return all(os.path.exists(os.path.join(itq_dir, "itq.model.%s.%s.npy" % (suffix, kind)))
                for kind in ("mean_vec", "rotation"))
-
-
-def detect_backend(database_dir):
-    """How an index folder stores descriptors: "postgres" when it holds an
-    embedded server (SQL/) and no file bundles, "files" otherwise (including
-    a folder that does not exist yet)."""
-    if not os.path.isdir(database_dir):
-        return "files"
-    has_sql = os.path.isdir(os.path.join(database_dir, "SQL"))
-    return "postgres" if has_sql and not list_index_bundles(database_dir) else "files"
 
 
 def list_index_bundles(database_dir):
@@ -871,148 +862,12 @@ def remove_index_bundle(database_dir, name):
     removed = []
     for postfix in (BUNDLE_INDEX_POSTFIX, BUNDLE_DESCRIPTOR_CSV_POSTFIX,
                     BUNDLE_DESCRIPTOR_NPY_POSTFIX, BUNDLE_UIDS_POSTFIX,
-                    BUNDLE_HASHES_POSTFIX, "_tracks.csv"):
+                    BUNDLE_HASHES_POSTFIX, BUNDLE_TRACKS_POSTFIX):
         path = os.path.join(database_dir, name + postfix)
         if os.path.exists(path):
             os.remove(path)
             removed.append(path)
     return removed
-
-
-class PostgresDescriptorSource(DescriptorSource):
-    """Load descriptors from PostgreSQL database."""
-
-    def __init__(self, host="localhost", port=5432, dbname="postgres",
-                 user="postgres", password=None, table_name="DESCRIPTOR",
-                 uuid_col="UID", element_col="VECTOR_DATA"):
-        """
-        Initialize PostgreSQL descriptor source.
-
-        Args:
-            host: Database host
-            port: Database port
-            dbname: Database name
-            user: Database user
-            password: Database password (optional)
-            table_name: Table containing descriptors
-            uuid_col: Column name for UIDs (default: "uid")
-            element_col: Column name for descriptor data (default: "element")
-        """
-        self.host = host
-        self.port = port
-        self.dbname = dbname
-        self.user = user
-        self.password = password
-        self.table_name = table_name
-        self.uuid_col = uuid_col
-        self.element_col = element_col
-        self._conn = None
-        self._count = None
-
-    def _connect(self):
-        """Establish database connection."""
-        if self._conn is not None:
-            return self._conn
-
-        try:
-            import psycopg2
-        except ImportError:
-            raise ImportError(
-                "psycopg2 is required for PostgreSQL support. "
-                "Install with: pip install psycopg2-binary"
-            )
-
-        conn_params = {
-            'host': self.host,
-            'port': self.port,
-            'dbname': self.dbname,
-            'user': self.user,
-        }
-        if self.password:
-            conn_params['password'] = self.password
-
-        self._conn = psycopg2.connect(**conn_params)
-        return self._conn
-
-    def get_descriptors(self, max_count=None, uids=None, random_sample=False):
-        conn = self._connect()
-        cursor = conn.cursor()
-
-        if uids is not None:
-            # Fetch specific UIDs
-            placeholders = ','.join(['%s'] * len(uids))
-            query = f"SELECT {self.uuid_col}, {self.element_col} FROM {self.table_name} WHERE {self.uuid_col} IN ({placeholders})"
-            cursor.execute(query, uids)
-        elif max_count is not None:
-            if random_sample:
-                # Random sampling using ORDER BY RANDOM()
-                query = f"SELECT {self.uuid_col}, {self.element_col} FROM {self.table_name} ORDER BY RANDOM() LIMIT %s"
-            else:
-                query = f"SELECT {self.uuid_col}, {self.element_col} FROM {self.table_name} LIMIT %s"
-            cursor.execute(query, (max_count,))
-        else:
-            query = f"SELECT {self.uuid_col}, {self.element_col} FROM {self.table_name}"
-            cursor.execute(query)
-
-        uids_list = []
-        descriptors = []
-
-        for row in cursor:
-            uid, element = row
-            # element is typically a pickled numpy array or list
-            if isinstance(element, (bytes, memoryview)):
-                try:
-                    values = pickle.loads(bytes(element))
-                    if hasattr(values, 'tolist'):
-                        values = values.tolist()
-                except:
-                    continue
-            elif isinstance(element, str):
-                # CSV or PostgreSQL array format
-                try:
-                    # Remove curly braces if present (PostgreSQL array format)
-                    element = element.strip()
-                    if element.startswith('{') and element.endswith('}'):
-                        element = element[1:-1]
-                    values = [float(x) for x in element.split(',') if x.strip()]
-                except ValueError:
-                    continue
-            elif isinstance(element, (list, tuple)):
-                # PostgreSQL array already parsed by psycopg2
-                values = list(element)
-            else:
-                values = element
-
-            if values:
-                uids_list.append(uid)
-                descriptors.append(values)
-
-        cursor.close()
-        return uids_list, np.array(descriptors) if descriptors else np.array([])
-
-    def get_all_uids(self):
-        conn = self._connect()
-        cursor = conn.cursor()
-
-        query = f"SELECT {self.uuid_col} FROM {self.table_name}"
-        cursor.execute(query)
-
-        uids = [row[0] for row in cursor]
-        cursor.close()
-        return uids
-
-    def __len__(self):
-        if self._count is not None:
-            return self._count
-
-        conn = self._connect()
-        cursor = conn.cursor()
-
-        query = f"SELECT COUNT(*) FROM {self.table_name}"
-        cursor.execute(query)
-        self._count = cursor.fetchone()[0]
-        cursor.close()
-        return self._count
 
 
 class Hash2UUIDStore:
@@ -1524,33 +1379,9 @@ def load_config(config_path):
             result['random_seed'] = itq.get('random_seed', 0)
             result['normalize'] = itq.get('normalize')
 
-    # Descriptor source
-    if 'descriptor_index' in config:
-        di = config['descriptor_index']
-        if di.get('type') == 'PostgresDescriptorIndex':
-            pg = di.get('PostgresDescriptorIndex', {})
-            result['source_type'] = 'postgres'
-            result['db_host'] = pg.get('db_host', 'localhost')
-            result['db_port'] = pg.get('db_port', 5432)
-            result['db_name'] = pg.get('db_name', 'postgres')
-            result['db_user'] = pg.get('db_user', 'postgres')
-            result['db_pass'] = pg.get('db_pass')
-            result['table_name'] = pg.get('table_name', 'DESCRIPTOR')
-            result['uuid_col'] = pg.get('uuid_col', 'UID')
-            result['element_col'] = pg.get('element_col', 'VECTOR_DATA')
-    elif 'plugins' in config and 'descriptor_index' in config['plugins']:
-        di = config['plugins']['descriptor_index']
-        if di.get('type') == 'PostgresDescriptorIndex':
-            pg = di.get('PostgresDescriptorIndex', {})
-            result['source_type'] = 'postgres'
-            result['db_host'] = pg.get('db_host', 'localhost')
-            result['db_port'] = pg.get('db_port', 5432)
-            result['db_name'] = pg.get('db_name', 'postgres')
-            result['db_user'] = pg.get('db_user', 'postgres')
-            result['db_pass'] = pg.get('db_pass')
-            result['table_name'] = pg.get('table_name', 'DESCRIPTOR')
-            result['uuid_col'] = pg.get('uuid_col', 'UID')
-            result['element_col'] = pg.get('element_col', 'VECTOR_DATA')
+    # The descriptor source a config named was always a
+    # `PostgresDescriptorIndex`; that backend is gone, so a config carries
+    # only the ITQ parameters now.
 
     # Max descriptors for training
     result['max_descriptors'] = config.get('max_descriptors', 100000)

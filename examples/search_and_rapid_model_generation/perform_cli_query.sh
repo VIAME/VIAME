@@ -58,9 +58,6 @@ echo "Input images:  ${INPUT_LIST}"
 echo "Output file:   ${OUTPUT_FILE}"
 echo ""
 
-# Start the database if not running
-python ${VIAME_INSTALL}/configs/database.py start 2>/dev/null || true
-
 # Run the query pipeline
 if viame ${VIAME_INSTALL}/configs/pipelines/query_from_track.pipe \
          -s input:video_filename=${INPUT_LIST} \

@@ -9,7 +9,6 @@ set( PYTHON_SCRIPTS
   add_ons.py
   segment.py
   convert.py
-  database.py
   extract.py
   inspect_file.py
   index.py

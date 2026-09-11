@@ -18,7 +18,6 @@ import sys
 import tempfile
 import urllib.parse as urlparse
 
-import database
 
 DIV = '\\' if os.name == 'nt' else '/'
 DEBUG_MODE = False
@@ -196,10 +195,6 @@ if __name__ == "__main__":
                         help="GUI theme settings file")
     parser.add_argument("--no-reconfig", dest="no_reconfig", action="store_true",
                         help="Do not run any reconfiguration of the GUI")
-    parser.add_argument("--index-backend", dest="index_backend", default="files",
-                        choices=["files", "postgres"],
-                        help="How the index stores descriptors: per-video files "
-                             "(default) or an embedded PostgreSQL database")
     parser.add_argument("--debug", dest="debug", action="store_true",
                         help="Run with debugger attached to process")
 
@@ -227,39 +222,7 @@ if __name__ == "__main__":
         command += "--ui engineering " if args.engineer_mode else "--ui analyst "
         command += _get_import_config_args([_create_constructed_config(args)])
 
-    # Make sure database is online (PostgreSQL-backed indexes only; the
-    # file-backed index needs no server)
-    sql_dir = database.SQL_DIR
-    if args.index_backend == "files":
-        sql_dir = None
-    elif not os.path.exists(sql_dir):
-        print(f"\nERROR: Database directory \"{sql_dir}\" does not exist.")
-        print("Please run create_index first to initialize the database.")
-        sys.exit(1)
-
-    # Check if server is already running for this database
-    if sql_dir is not None and not database.status(quiet=True):
-        # Not running - stop any other PostgreSQL instances that may be holding the port
-        print("Stopping any existing database instances...")
-        database.stop(quiet=True)
-
-        # Wait for port to become available
-        if not database._wait_for_port_available(timeout=10):
-            print("Warning: Port 5432 may still be in use, attempting to start anyway...")
-
-        # Clean up any stale lock files from previous sessions
-        postmaster_pid = os.path.join(sql_dir, "postmaster.pid")
-        if os.path.exists(postmaster_pid):
-            print("Cleaning up stale database lock files...")
-            os.remove(postmaster_pid)
-
-        # Now try to start the database
-        print("Starting database...")
-        if not database.start(quiet=False):
-            print(f"\nERROR: Database in \"{sql_dir}\" failed to start.")
-            print("Check database/SQL_Log_File for details.")
-            print("Try running: database.py init")
-            sys.exit(1)
+    # The index is per-video files; there is no server to start.
 
     print("\nLaunching search GUI. When finished, make sure this console is closed.\n")
     _execute_command(command)

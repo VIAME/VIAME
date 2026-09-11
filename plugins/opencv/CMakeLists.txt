@@ -144,12 +144,6 @@ target_include_directories( viame_processes_opencv PRIVATE
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/plugins>
   )
 
-# Optionally link CppDB for database backend support in process_query_adaboost
-if( VIAME_ENABLE_POSTGRESQL )
-  target_compile_definitions( viame_processes_opencv PRIVATE VIAME_ENABLE_CPPDB )
-  target_link_libraries( viame_processes_opencv PRIVATE viame_cppdb )
-endif()
-
 if( VIAME_ENABLE_PYTHON )
   set( _rel_modnames
     __init__

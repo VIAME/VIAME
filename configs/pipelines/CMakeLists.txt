@@ -96,7 +96,6 @@ set( CORE_PIPELINE_FILES
   common_stereo_input_with_tracks.pipe
   common_train_detector.conf
   convert_model_to_onnx.pipe
-  database_apply_svm_models.pipe
   detector_gmm_motion.pipe
   detector_motion_three_frame_diff.pipe
   detector_simple_hough.pipe
@@ -332,7 +331,6 @@ endif()
 ##
 if( VIAME_ENABLE_WEB_EXCLUDES )
   set( VIAME_WEB_FILES_TO_IGNORE
-    database_apply_svm_models.pipe
     detector_simple_hough.pipe
     frame_classifier_svm.pipe
   )

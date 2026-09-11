@@ -21,7 +21,6 @@ if( VIAME_ENABLE_PYTHON )
     add_ons
     configs
     csv
-    database
     disparity
     ensemble
     extract

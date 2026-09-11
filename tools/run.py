@@ -27,7 +27,6 @@ except ImportError:
 
 sys.dont_write_bytecode = True
 
-import database
 from viame.core import model_wrap
 
 # Character short-cuts and global constants
@@ -177,13 +176,30 @@ def log_info( msg ):
   sys.stdout.flush()
 
 # Create a directory if it doesn't exist
+# Was `database.query_yes_no`; the database tool went with the PostgreSQL
+# backend and this is the only thing `run.py` wanted from it.
+def query_yes_no( question, default="yes" ):
+  valid = { "yes": True, "y": True, "ye": True, "no": False, "n": False }
+  prompt = " [Y/n] " if default == "yes" else \
+           " [y/N] " if default == "no" else " [y/n] "
+
+  while True:
+    sys.stdout.write( question + prompt )
+    choice = input().lower()
+    sys.stdout.write( os.linesep )
+    if default is not None and choice == '':
+      return valid[ default ]
+    if choice in valid:
+      return valid[ choice ]
+    sys.stdout.write( "Please respond with 'yes' or 'no' (or 'y' or 'n').\n" )
+
 def create_dir( dirname, logging=True, recreate=False, prompt=True ):
   if dirname == '.' or dirname == "":
     return
   if recreate:
     if os.path.exists( dirname ):
       if not prompt or \
-         database.query_yes_no( lb1 + "Reset output folder: " + dirname + "?" ):
+         query_yes_no( lb1 + "Reset output folder: " + dirname + "?" ):
         if logging:
           log_info( "Removing " + dirname + lb )
         shutil.rmtree( dirname )
@@ -572,33 +588,19 @@ def homography_output_settings_list( output_dir, basename, cid = None ):
     fset( homog_writer_str + 'output=' + homog_file ),
   ))
 
-# Index (search) output settings. The index pipelines write per-video files
-# by default (the file-backed index that the query pipelines read); with
-# --index-backend postgres the same writers are pointed at the database.
-def search_output_settings_list( output_dir, basename, index_backend='files',
-                                 conn_str=None ):
-  settings = list( itertools.chain(
+# Index (search) output settings. The index pipelines write the per-video
+# files the query pipelines read.
+def search_output_settings_list( output_dir, basename ):
+  from viame.core import index_descriptors
+
+  return list( itertools.chain(
     fset( 'track_writer_kw18:file_name=' + output_dir + div + basename + '.kw18' ),
     fset( 'track_descriptor:uid_basename=' + basename ),
+    fset( 'track_writer_index:file_name=' + output_dir + div + basename
+          + index_descriptors.BUNDLE_TRACKS_POSTFIX ),
+    fset( 'descriptor_writer_index:file_name=' + output_dir + div + basename
+          + index_descriptors.BUNDLE_DESCRIPTOR_CSV_POSTFIX ),
   ))
-  if index_backend == 'postgres':
-    conn_str = conn_str or database.DEFAULT_CONN_STR
-    settings += list( itertools.chain(
-      fset( 'track_writer_index:writer:type=db' ),
-      fset( 'track_writer_index:writer:db:conn_str=' + conn_str ),
-      fset( 'track_writer_index:writer:db:video_name=' + basename ),
-      fset( 'descriptor_writer_index:writer:type=db' ),
-      fset( 'descriptor_writer_index:writer:db:conn_str=' + conn_str ),
-      fset( 'descriptor_writer_index:writer:db:video_name=' + basename ),
-    ))
-  else:
-    settings += list( itertools.chain(
-      fset( 'track_writer_index:file_name=' + output_dir + div + basename
-            + database.TRACK_POSTFIX ),
-      fset( 'descriptor_writer_index:file_name=' + output_dir + div + basename
-            + database.DESCRIPTOR_POSTFIX ),
-    ))
-  return settings
 
 def plot_settings_list( output_dir, basename ):
   return list( itertools.chain(
@@ -940,8 +942,7 @@ def process_using_kwiver( input_path, options, is_image_list=False,
     version_id=options.version_str )
 
   command += homography_output_settings_list( output_dir, input_id_no_ext )
-  command += search_output_settings_list( output_dir, input_id_no_ext,
-    options.index_backend )
+  command += search_output_settings_list( output_dir, input_id_no_ext )
 
   command += archive_dimension_settings_list( options )
   command += object_detector_settings_list( options )
@@ -1212,17 +1213,8 @@ if __name__ == "__main__" :
   parser.add_argument( "-lbl-file", dest="label_file", default="",
     help="Pass this label file to pipes" )
 
-  parser.add_argument( "--init-db", dest="init_db", action="store_true",
-    help="Re-initialize database" )
-
   parser.add_argument( "--build-index", dest="build_index", action="store_true",
     help="Build searchable index on completion (viame index add wraps this)" )
-
-  parser.add_argument( "--index-backend", dest="index_backend", default="files",
-    choices=[ "files", "postgres" ],
-    help="Where the searchable index keeps descriptors: per-video files in the "
-    "output folder (default) or an embedded PostgreSQL database (requires "
-    "--init-db on the first build)" )
 
   parser.add_argument( "--ball-tree", dest="ball_tree", action="store_true",
     help="Use a ball tree for the searchable index" )
@@ -1332,35 +1324,12 @@ if __name__ == "__main__" :
     detection_ext = "_detections" + default_gt_ext
     track_ext = "_tracks" + default_gt_ext
 
-  # Initialize database (PostgreSQL-backed index only)
-  if args.init_db and args.index_backend != 'postgres':
-    log_info( "Note: --init-db is ignored with the file-backed index" + lb1 )
-  if args.init_db and args.index_backend == 'postgres':
-    if len( args.log_directory ) > 0:
-      init_log_file = os.path.join( args.output_directory,
-                                    args.log_directory,
-                                    "database_log.txt" )
-    else:
-      init_log_file = ""
-    db_is_init, user_select = database.init( log_file=init_log_file, prompt=(not args.no_reset_prompt),
-                                            database_dir=args.output_directory )
-    if not db_is_init:
-      if user_select:
-        exit_with_error( "User decided to not initialize new database, shutting down." + lb2 )
-      elif len( args.log_directory ) > 0:
-        exit_with_error( "Unable to initialize database, check " + init_log_file + lb2 +
-         "You may have another database running on your system, or ran "
-         "a failed operation in the past and need to re-log or restart." )
-      else:
-        exit_with_error( "Unable to initialize database" )
-    log_info( lb1 )
-
   # Call processing pipelines on all input data
   if process_data:
 
     # Handle output directory creation if necessary
     if len( args.output_directory ) > 0:
-      recreate_dir = ( not args.init_db and not args.no_reset_prompt and call_pipeline )
+      recreate_dir = ( not args.no_reset_prompt and call_pipeline )
       prompt_user = ( not args.no_reset_prompt and call_pipeline )
       create_dir( args.output_directory, logging=False, recreate=recreate_dir, prompt=prompt_user )
 
@@ -1411,8 +1380,7 @@ if __name__ == "__main__" :
         exit_with_error( "No annotation files found in given folder, exiting." )
       exit_with_error( "No videos found for ingest in given folder, exiting." )
     elif not is_image_list:
-      if not args.init_db:
-        log_info( lb1 )
+      log_info( lb1 )
       video_str = " file" if args.gt_only else " video"
       video_str += "" if len( data_list ) == 1 else "s"
       log_info( "Processing " + str( len( data_list ) ) + video_str + lb2 )
@@ -1517,10 +1485,16 @@ if __name__ == "__main__" :
     if args.ball_tree:
       print( "Warning: building a ball tree is deprecated" )
 
-    if not database.build_index( log_file=index_log_file,
-                                 backend=args.index_backend,
-                                 database_dir=args.output_directory ):
-      exit_with_error( "Unable to build index" )
+    try:
+      from viame.core.index_descriptors import build_index_bundles
+
+      summary = build_index_bundles( database_dir=args.output_directory,
+                                     strip_vectors=True, verbose=True )
+      log_info( "  Indexed %d video(s), %d descriptors (%d rehashed)%s" % (
+        summary[ "bundles" ], summary[ "descriptors" ], summary[ "rehashed" ],
+        lb1 ) )
+    except Exception as e:
+      exit_with_error( "Unable to build index: " + str( e ) )
 
   # Output complete message
   if os.name == 'nt':

@@ -964,5 +964,61 @@
     "name": "train-fusion",
     "phase": "upstream 5fbad6140",
     "reason": "Renamed upstream, not removed here: it is `viame ensemble` now. The baseline was recorded at the fork point 8edfd2f66 and these eighteen applets were renamed between then and 8e887ceca, which the merge brought in. Listed so the registry contract keeps catching what this branch drops rather than what upstream renamed."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "ingest_descriptors_db",
+    "phase": "P7 (user decision)",
+    "reason": "The PostgreSQL backend is removed: upstream 0cdefae0f made the search index per-video files with PostgreSQL as one optional backend, and this branch keeps only the files. Nothing is lost that the file index does not do -- `viame index` writes it and `process_query` reads it."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "fetch_descriptors_db",
+    "phase": "P7 (user decision)",
+    "reason": "The PostgreSQL backend is removed: upstream 0cdefae0f made the search index per-video files with PostgreSQL as one optional backend, and this branch keeps only the files. Nothing is lost that the file index does not do -- `viame index` writes it and `process_query` reads it."
+  },
+  {
+    "interface": "",
+    "kind": "process",
+    "name": "object_track_descriptors_db",
+    "phase": "P7 (user decision)",
+    "reason": "The PostgreSQL backend is removed: upstream 0cdefae0f made the search index per-video files with PostgreSQL as one optional backend, and this branch keeps only the files. Nothing is lost that the file index does not do -- `viame index` writes it and `process_query` reads it."
+  },
+  {
+    "interface": "query_track_descriptor_set",
+    "kind": "algorithm",
+    "name": "db",
+    "phase": "P7 (user decision)",
+    "reason": "The PostgreSQL backend is removed: upstream 0cdefae0f made the search index per-video files with PostgreSQL as one optional backend, and this branch keeps only the files. Nothing is lost that the file index does not do -- `viame index` writes it and `process_query` reads it."
+  },
+  {
+    "interface": "read_object_track_set",
+    "kind": "algorithm",
+    "name": "db",
+    "phase": "P7 (user decision)",
+    "reason": "The PostgreSQL backend is removed: upstream 0cdefae0f made the search index per-video files with PostgreSQL as one optional backend, and this branch keeps only the files. Nothing is lost that the file index does not do -- `viame index` writes it and `process_query` reads it."
+  },
+  {
+    "interface": "write_object_track_set",
+    "kind": "algorithm",
+    "name": "db",
+    "phase": "P7 (user decision)",
+    "reason": "The PostgreSQL backend is removed: upstream 0cdefae0f made the search index per-video files with PostgreSQL as one optional backend, and this branch keeps only the files. Nothing is lost that the file index does not do -- `viame index` writes it and `process_query` reads it."
+  },
+  {
+    "interface": "write_track_descriptor_set",
+    "kind": "algorithm",
+    "name": "db",
+    "phase": "P7 (user decision)",
+    "reason": "The PostgreSQL backend is removed: upstream 0cdefae0f made the search index per-video files with PostgreSQL as one optional backend, and this branch keeps only the files. Nothing is lost that the file index does not do -- `viame index` writes it and `process_query` reads it."
+  },
+  {
+    "interface": "",
+    "kind": "applet",
+    "name": "database",
+    "phase": "P7 (user decision)",
+    "reason": "The PostgreSQL backend is removed: upstream 0cdefae0f made the search index per-video files with PostgreSQL as one optional backend, and this branch keeps only the files. Nothing is lost that the file index does not do -- `viame index` writes it and `process_query` reads it."
   }
 ]

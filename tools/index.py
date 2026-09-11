@@ -17,10 +17,8 @@ or image list ("stream"), a set of files sharing its basename:
   <name>_hashes.npy        N x bits uint8 ITQ hash codes of each row
   ITQ/itq.model.*.npy      the one ITQ model shared by every stream
 
-That file-backed layout is the default backend. The embedded PostgreSQL
-backend (--backend postgres) keeps descriptors and tracks in a database
-under <folder>/SQL instead, with the same ITQ files; a folder holds one or
-the other, never both.
+That file-backed layout is the only one. The embedded PostgreSQL backend
+upstream keeps as an option was removed here.
 
 Commands:
   add      Run the ingest pipeline on videos or images and refresh the hashes
@@ -48,7 +46,6 @@ import subprocess
 import sys
 import time
 
-import database
 from viame.core import index_descriptors
 
 lb1 = os.linesep
@@ -60,43 +57,12 @@ METHOD_PIPELINES = {
     "frames": "pipelines/index_frame.pipe",
 }
 
-BACKENDS = ("files", "postgres")
-
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 def script_dir():
     return os.path.dirname(os.path.realpath(__file__))
 
-
-def resolve_backend(args):
-    has_sql = database.has_sql_dir(args.database)
-    has_files = bool(index_descriptors.list_index_bundles(args.database)) if os.path.isdir(args.database) else False
-    if has_sql and has_files:
-        raise SystemExit("Index contains both PostgreSQL and file bundles; use separate index folders")
-    existing = 'postgres' if has_sql else 'files' if has_files else None
-    if existing and args.backend and args.backend != existing:
-        raise SystemExit("Index uses %s; backend changes require a separate folder" % existing)
-    backend = args.backend or existing or 'files'
-    if backend not in BACKENDS:
-        raise SystemExit("Unknown backend: %s" % backend)
-    return backend
-
-
-def ensure_postgres(database_dir, init=False, prompt=True, allow_create=False):
-    """Make sure the embedded server of a postgres index is running,
-    initialising it when the folder has none yet (or when init is set)."""
-    if not database.has_sql_dir(database_dir) and not (init or allow_create):
-        raise SystemExit("No PostgreSQL index exists in %s; use index add to create it" % database_dir)
-    if init or not database.has_sql_dir(database_dir):
-        ok, _ = database.init(prompt=prompt, database_dir=database_dir)
-        if not ok:
-            raise SystemExit("Unable to initialize the database in %s" % database_dir)
-        return
-    if not database.status(quiet=True, database_dir=database_dir):
-        if not database.start(quiet=False, database_dir=database_dir):
-            raise SystemExit("Unable to start the database in %s" % database_dir)
 
 
 def model_summary(database_dir):
@@ -137,7 +103,6 @@ def print_table(rows, headers):
 # ---------------------------------------------------------------------------
 def cmd_add(args):
     database_dir = os.path.abspath(args.database)
-    backend = resolve_backend(args)
     install = args.install or os.environ.get("VIAME_INSTALL", "")
 
     if args.pipeline:
@@ -153,14 +118,11 @@ def cmd_add(args):
     if not inputs:
         raise SystemExit("Give the media to index with -i, -v, -d or -l")
 
-    if backend == "postgres":
-        ensure_postgres(database_dir, init=args.init, prompt=not args.yes, allow_create=True)
     os.makedirs(database_dir, exist_ok=True)
 
     started = time.time()
     command = [sys.executable, os.path.join(script_dir(), "run.py"),
-               "--no-reset-prompt", "-p", pipeline, "-o", database_dir,
-               "--index-backend", backend]
+               "--no-reset-prompt", "-p", pipeline, "-o", database_dir]
     for flag, value in inputs:
         command += [flag, value]
     if args.input_detections:
@@ -173,7 +135,7 @@ def cmd_add(args):
         command += ["-gpus", args.gpu_count]
     command += args.extra
 
-    print("Ingesting with %s (%s backend)" % (os.path.basename(pipeline), backend) + lb1)
+    print("Ingesting with %s" % os.path.basename(pipeline) + lb1)
     result = subprocess.call(command)
     if result != 0:
         raise SystemExit("Ingest failed (exit code %d); see %s" % (
@@ -183,13 +145,12 @@ def cmd_add(args):
         print("Skipping hash refresh (--no-hash); run 'viame index build' later")
         return 0
 
-    summary = refresh_index(database_dir, backend, args)
-    if backend == "files":
-        added = [name for name, manifest in file_streams(database_dir)
-                 if manifest and manifest_time(manifest) >= started - 1]
-        print(lb1 + "Indexed stream(s): " + (", ".join(added) if added else "none new")
-              + "  (%d stream(s), %d descriptors in total)" % (
-                  summary["bundles"], summary["descriptors"]))
+    summary = refresh_index(database_dir, args)
+    added = [name for name, manifest in file_streams(database_dir)
+             if manifest and manifest_time(manifest) >= started - 1]
+    print(lb1 + "Indexed stream(s): " + (", ".join(added) if added else "none new")
+          + "  (%d stream(s), %d descriptors in total)" % (
+              summary["bundles"], summary["descriptors"]))
     return 0
 
 
@@ -200,13 +161,8 @@ def manifest_time(manifest):
         return 0
 
 
-def refresh_index(database_dir, backend, args):
-    """Convert, train and hash for the files backend; regenerate the global
-    hash table for postgres. Returns the bundle summary for files."""
-    if backend == "postgres":
-        if not database.build_index(backend="postgres", database_dir=database_dir):
-            raise SystemExit("Unable to build the hash index")
-        return {"bundles": 0, "descriptors": 0, "rehashed": 0, "trained": False}
+def refresh_index(database_dir, args):
+    """Convert, train and hash. Returns the bundle summary."""
     summary = index_descriptors.build_index_bundles(
         database_dir=database_dir,
         bit_length=args.bit_length,
@@ -227,26 +183,15 @@ def cmd_build(args):
     database_dir = os.path.abspath(args.database)
     if not os.path.isdir(database_dir):
         raise SystemExit("Index folder does not exist: %s" % database_dir)
-    backend = resolve_backend(args)
-    if backend == "postgres":
-        ensure_postgres(database_dir)
-    summary = refresh_index(database_dir, backend, args)
-    if backend == "files":
-        print("%d stream(s), %d descriptors; %d rehashed; model %s" % (
-            summary["bundles"], summary["descriptors"], summary["rehashed"],
-            "trained" if summary["trained"] else "reused"))
+    summary = refresh_index(database_dir, args)
+    print("%d stream(s), %d descriptors; %d rehashed; model %s" % (
+        summary["bundles"], summary["descriptors"], summary["rehashed"],
+        "trained" if summary["trained"] else "reused"))
     return 0
 
 
 def cmd_remove(args):
     database_dir = os.path.abspath(args.database)
-    backend = resolve_backend(args)
-    if backend == "postgres":
-        ensure_postgres(database_dir)
-        database.remove_streams(args.streams)
-        for name in args.streams:
-            print("Removed %s" % name)
-        return 0
     missing = 0
     for name in args.streams:
         removed = index_descriptors.remove_index_bundle(database_dir, name)
@@ -260,15 +205,6 @@ def cmd_remove(args):
 
 def cmd_list(args):
     database_dir = os.path.abspath(args.database)
-    backend = resolve_backend(args)
-    if backend == "postgres":
-        ensure_postgres(database_dir)
-        rows = [(name, count) for name, count in database.list_streams()]
-        if not rows:
-            print("No streams indexed")
-            return 0
-        print_table(rows, ("stream", "descriptors"))
-        return 0
     streams = file_streams(database_dir)
     if not streams:
         print("No streams indexed in %s" % database_dir)
@@ -292,16 +228,7 @@ def cmd_list(args):
 
 def cmd_status(args):
     database_dir = os.path.abspath(args.database)
-    backend = resolve_backend(args)
     if args.stream:
-        if backend == "postgres":
-            ensure_postgres(database_dir)
-            counts = dict(database.list_streams())
-            if args.stream not in counts:
-                raise SystemExit("No such stream: %s" % args.stream)
-            print(json.dumps({"name": args.stream, "count": counts[args.stream],
-                              "backend": "postgres"}, indent=2))
-            return 0
         manifest = index_descriptors.read_bundle_manifest(database_dir, args.stream)
         if manifest is None:
             raise SystemExit("No manifest for stream: %s" % args.stream)
@@ -313,18 +240,10 @@ def cmd_status(args):
         print(json.dumps(manifest, indent=2))
         return 0
 
-    info = {"folder": database_dir, "backend": backend,
-            "model": model_summary(database_dir)}
-    if backend == "postgres":
-        info["server_running"] = database.status(quiet=True, database_dir=database_dir)
-        if info["server_running"]:
-            streams = database.list_streams()
-            info["streams"] = len(streams)
-            info["descriptors"] = sum(c for _, c in streams)
-    else:
-        streams = file_streams(database_dir)
-        info["streams"] = len(streams)
-        info["descriptors"] = sum((m or {}).get("count", 0) for _, m in streams)
+    info = {"folder": database_dir, "model": model_summary(database_dir)}
+    streams = file_streams(database_dir)
+    info["streams"] = len(streams)
+    info["descriptors"] = sum((m or {}).get("count", 0) for _, m in streams)
     print(json.dumps(info, indent=2))
     return 0
 
@@ -354,27 +273,16 @@ def cmd_hash(args):
         normalize = config.get("normalize", normalize)
         max_train = config.get("max_descriptors", max_train)
         uuids_list_filepath = config.get("uuids_list_filepath") or uuids_list_filepath
-        if config.get("source_type") != "postgres":
-            raise SystemExit("Config does not specify a valid descriptor source")
-        source = index_descriptors.PostgresDescriptorSource(
-            host=config.get("db_host", "localhost"),
-            port=config.get("db_port", 5432),
-            dbname=config.get("db_name", "postgres"),
-            user=config.get("db_user", "postgres"),
-            password=config.get("db_pass"),
-            table_name=config.get("table_name", "descriptor_index"),
-            uuid_col=config.get("uuid_col", "uid"),
-            element_col=config.get("element_col", "element"))
+        raise SystemExit(
+            "A config file only ever named a PostgreSQL source, and that "
+            "backend is gone; give the descriptor file with -d instead")
     elif args.descriptor_file:
         if args.kwiver_csv:
             source = index_descriptors.KwiverCsvDescriptorSource(args.descriptor_file)
         else:
             source = index_descriptors.CSVDescriptorSource(args.descriptor_file)
     else:
-        source = index_descriptors.PostgresDescriptorSource(
-            host=args.db_host, port=args.db_port, dbname=args.db_name,
-            user=args.db_user, password=args.db_pass, table_name=args.table_name,
-            uuid_col=args.uuid_col, element_col=args.element_col)
+        raise SystemExit("Give the descriptor file to hash with -d")
 
     train_uids = None
     if uuids_list_filepath and os.path.isfile(uuids_list_filepath):
@@ -419,10 +327,6 @@ def cmd_hash(args):
 def add_common(parser):
     parser.add_argument("--database", "-o", dest="database", default="database",
                         help="Index folder (default: database)")
-    parser.add_argument("--backend", dest="backend", default=None, choices=BACKENDS,
-                        help="Storage backend: per-video files (default for new "
-                             "indexes) or embedded PostgreSQL; an existing index "
-                             "keeps the backend it was built with")
 
 
 def add_hash_options(parser):
@@ -473,10 +377,6 @@ def build_parser():
     p.add_argument("-gpus", dest="gpu_count", default="", help="GPUs to use")
     p.add_argument("-install", dest="install", default="",
                    help="VIAME install folder (default: $VIAME_INSTALL)")
-    p.add_argument("--init", dest="init", action="store_true",
-                   help="PostgreSQL: reset the database before ingesting")
-    p.add_argument("--yes", "-y", dest="yes", action="store_true",
-                   help="Do not prompt before resetting a database")
     p.add_argument("--no-hash", dest="no_hash", action="store_true",
                    help="Ingest only; do not refresh the hashes")
     add_hash_options(p)
@@ -518,14 +418,6 @@ def build_parser():
                    help="Read --descriptor-file as a kwiver track-descriptor CSV")
     p.add_argument("--output-dir", "-o", dest="output_dir", default="database/ITQ",
                    help="Where the model and hash files go")
-    p.add_argument("--db-host", default="localhost")
-    p.add_argument("--db-port", type=int, default=5432)
-    p.add_argument("--db-name", default="postgres")
-    p.add_argument("--db-user", default="postgres")
-    p.add_argument("--db-pass", default=None)
-    p.add_argument("--table-name", default="DESCRIPTOR")
-    p.add_argument("--uuid-col", default="UID")
-    p.add_argument("--element-col", default="VECTOR_DATA")
     p.add_argument("--bit-length", "-b", dest="bit_length", type=int, default=256)
     p.add_argument("--itq-iterations", "-i", dest="itq_iterations", type=int, default=100)
     p.add_argument("--random-seed", "-r", dest="random_seed", type=int, default=0)

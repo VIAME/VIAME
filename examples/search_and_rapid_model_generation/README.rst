@@ -118,11 +118,8 @@ shared by every entry lives in 'database/ITQ'. Adding a video re-runs the ingest
 and refreshes only its own files; removing one is deleting its files. No server process
 is involved, and the folder can be copied or backed up as-is.
 
-The earlier embedded PostgreSQL store is still available: pass '--backend postgres' to
-'viame index add' (the database is initialised on the first add) and
-'--index-backend postgres' to 'viame search'. Both backends use the same ITQ files,
-but a folder holds one or the other, not a mix; commands on an existing index detect
-its backend.
+The embedded PostgreSQL store upstream keeps as an alternative is not built here:
+this version has the file-backed index and nothing else.
 
 
 Perform an Image Query

@@ -20,9 +20,6 @@
 #include <viame/core_types/descriptor_set.h>
 #include <viame/algorithm_framework/logger/logger.h>
 
-#ifdef VIAME_ENABLE_CPPDB
-#include <cppdb/frontend.h>
-#endif
 
 #include <algorithm>
 #include <filesystem>
@@ -73,7 +70,7 @@ create_port_trait( result_model, uchar_vector,
 // Config traits
 //
 // The descriptor index can come from one of three stores, checked in this
-// order: a PostgreSQL database (conn_str), a folder of per-video bundles
+// order: a folder of per-video bundles
 // (descriptor_index_dir, the default file-backed index), or a single CSV
 // file (descriptor_index_file).
 create_config_trait( descriptor_index_dir, std::string, "",
@@ -86,11 +83,14 @@ create_config_trait( descriptor_uids_postfix, std::string, "_uids.txt",
   "Postfix of the per-video uid list files in descriptor_index_dir" );
 create_config_trait( descriptor_index_file, std::string, "",
   "Path to a single CSV file (uid,val1,...,valN per line) holding the "
-  "searchable descriptor index; used when neither conn_str nor "
-  "descriptor_index_dir is set" );
+  "searchable descriptor index; used when descriptor_index_dir is not set" );
+// Kept, declared and refused. The PostgreSQL backend is gone, and a
+// configuration that still names it should say so rather than quietly read
+// a different index; the key stays so that every pipeline and every
+// registry consumer that knows about it keeps working.
 create_config_trait( conn_str, std::string, "",
-  "Database connection string (e.g., postgresql:host=localhost;user=postgres). "
-  "If set, descriptors are loaded from the DESCRIPTOR table instead of files." );
+  "Removed: the PostgreSQL backend is gone. Setting this is an error; use "
+  "descriptor_index_dir, which is what `viame index` writes." );
 create_config_trait( pos_seed_neighbors, unsigned, "500",
   "Number of nearest neighbors to retrieve for each positive example" );
 create_config_trait( query_return_size, unsigned, "500",
@@ -243,20 +243,12 @@ public:
 
   void load_descriptor_index()
   {
-#ifdef VIAME_ENABLE_CPPDB
-    if( !m_conn_str.empty() )
-    {
-      load_descriptor_index_from_db();
-      return;
-    }
-#else
     if( !m_conn_str.empty() )
     {
       throw std::runtime_error(
-        "conn_str is set but this build has no database support "
-        "(VIAME_ENABLE_POSTGRESQL); use descriptor_index_dir instead" );
+        "conn_str is set, and the PostgreSQL backend was removed; use "
+        "descriptor_index_dir, which is what `viame index` writes" );
     }
-#endif
 
     if( !m_descriptor_index_dir.empty() )
     {
@@ -335,7 +327,7 @@ public:
     if( m_descriptor_index_file.empty() )
     {
       throw std::runtime_error(
-        "Either descriptor_index_file or conn_str must be provided" );
+        "descriptor_index_file or descriptor_index_dir must be provided" );
     }
 
     std::ifstream file( m_descriptor_index_file );
@@ -373,53 +365,6 @@ public:
     m_index_loaded = true;
   }
 
-#ifdef VIAME_ENABLE_CPPDB
-  void load_descriptor_index_from_db()
-  {
-    ::cppdb::session conn( m_conn_str );
-
-    // Query all descriptors from the DESCRIPTOR table
-    ::cppdb::result res = conn.create_statement(
-      "SELECT UID, VECTOR_DATA FROM DESCRIPTOR" ).query();
-
-    while( res.next() )
-    {
-      std::string uid;
-      std::string vector_data;
-
-      res.fetch( 0, uid );
-      res.fetch( 1, vector_data );
-
-      // Parse PostgreSQL array format: {val1,val2,val3,...}
-      // Remove curly braces if present
-      if( !vector_data.empty() && vector_data.front() == '{' )
-      {
-        vector_data = vector_data.substr( 1 );
-      }
-      if( !vector_data.empty() && vector_data.back() == '}' )
-      {
-        vector_data.pop_back();
-      }
-
-      std::vector< double > values;
-      std::istringstream ss( vector_data );
-      std::string value_str;
-      while( std::getline( ss, value_str, ',' ) )
-      {
-        try { values.push_back( std::stod( value_str ) ); }
-        catch( const std::exception& ) {}
-      }
-
-      if( !values.empty() )
-      {
-        m_descriptor_index[uid] = std::move( values );
-      }
-    }
-
-    conn.close();
-    m_index_loaded = true;
-  }
-#endif
 };
 
 // ===============================================================================

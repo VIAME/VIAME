@@ -99,8 +99,10 @@ process query_handler
   :unused_descriptors_as_negative             false
   :use_tracks_for_history                     true
   :merge_duplicate_results                    true
-  :descriptor_query:type                      db
-  :descriptor_query:db:conn_str               postgresql:host=localhost;user=postgres
+  # Result assembly (uid -> video, track, history) reads the per-video
+  # <name>_descriptors.csv / <name>_tracks.csv files of the file-backed index.
+  :descriptor_query:type                      csv
+  :descriptor_query:csv:database_folder       database
 
 connect from create_query.database_query
         to   query_handler.database_query

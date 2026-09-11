@@ -145,15 +145,13 @@ else()
   add_option("VIAME_ENABLE_PYTORCH-STEREO" "OFF")
 endif()
 
-# Apply Extra CPP settings (Darknet, SVM, PostgreSQL)
+# Apply Extra CPP settings (Darknet, SVM)
 if(ENABLE_EXTRA_CPP)
   add_option("VIAME_ENABLE_DARKNET" "ON")
   add_option("VIAME_ENABLE_SVM" "ON")
-  add_option("VIAME_ENABLE_POSTGRESQL" "ON")
 else()
   add_option("VIAME_ENABLE_DARKNET" "OFF")
   add_option("VIAME_ENABLE_SVM" "OFF")
-  add_option("VIAME_ENABLE_POSTGRESQL" "OFF")
 endif()
 
 # Apply VIVIA settings

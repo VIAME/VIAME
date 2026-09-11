@@ -60,7 +60,6 @@ echo Output file:   %OUTPUT_FILE%
 echo.
 
 REM Start the database if not running
-python.exe "%VIAME_INSTALL%\configs\database.py" start 2>nul
 
 REM Run the query pipeline
 kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\query_from_track.pipe" ^

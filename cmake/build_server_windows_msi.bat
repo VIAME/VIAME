@@ -5,7 +5,7 @@ REM Builds VIAME in stages to create separate installable packages:
 REM   1. Core        - fletch + kwiver + vxl + opencv + python (CPU only)
 REM   2. CUDA        - adds CUDA/cuDNN support + DLLs
 REM   3. PyTorch     - adds PyTorch + all pytorch-libs
-REM   4. Extra-CPP   - adds Darknet, SVM, PostgreSQL
+REM   4. Extra-CPP   - adds Darknet and SVM
 REM   5. DIVE        - adds DIVE GUI
 REM   6. VIVIA       - adds VIVIA interface (Qt, VTK, GDAL)
 REM   7. SEAL        - adds SEAL toolkit
@@ -196,11 +196,11 @@ IF %START_STAGE% LEQ 3 (
 )
 
 REM --------------------------------------------------------------------------
-REM Stage 4 - Extra-CPP (adds Darknet, SVM, PostgreSQL)
+REM Stage 4 - Extra-CPP (adds Darknet and SVM)
 REM --------------------------------------------------------------------------
 
 IF %START_STAGE% LEQ 4 (
-    CALL :BuildStage extra-cpp "Extra CPP (Darknet, SVM, PostgreSQL)"
+    CALL :BuildStage extra-cpp "Extra CPP (Darknet and SVM)"
     IF ERRORLEVEL 1 GOTO :BuildFailed
 
     CALL :DiffFiles files-pytorch.txt files-extra-cpp.txt diff-extra-cpp.lst
@@ -338,7 +338,7 @@ ECHO Generated packages:
 ECHO   - VIAME-Core.zip        (fletch + kwiver + vxl + opencv + python, CPU only)
 ECHO   - VIAME-CUDA.zip        (CUDA/cuDNN support + DLLs)
 ECHO   - VIAME-PyTorch.zip     (PyTorch + all pytorch-libs)
-ECHO   - VIAME-Extra-CPP.zip   (Darknet, SVM, PostgreSQL)
+ECHO   - VIAME-Extra-CPP.zip   (Darknet and SVM)
 ECHO   - VIAME-DIVE.zip        (DIVE GUI)
 ECHO   - VIAME-VIVIA.zip       (VIVIA interface with Qt, VTK, GDAL)
 ECHO   - VIAME-SEAL.zip        (SEAL toolkit)
@@ -412,8 +412,7 @@ IF ERRORLEVEL 1 EXIT /B 1
 GOTO :EOF
 
 :SnapshotFiles
-REM Create a file list snapshot, excluding include and
-REM share directories (except share\postgresql)
+REM Create a file list snapshot, excluding include and share directories
 REM %1 = output filename
 powershell.exe -NoProfile -Command ^
     "Get-ChildItem -Recurse" ^
@@ -421,14 +420,12 @@ powershell.exe -NoProfile -Command ^
     "| Resolve-Path -Relative" ^
     "| Where-Object {" ^
     "$_ -notmatch 'install\\include' -and" ^
-    "($_ -notmatch 'install\\share'" ^
-    "-or $_ -match 'install\\share\\postgresql')" ^
+    "$_ -notmatch 'install\\share'" ^
     "}" > %~1
 GOTO :EOF
 
 :SnapshotDevHeaders
-REM Create a file list snapshot of ONLY include and
-REM share directories (except share\postgresql)
+REM Create a file list snapshot of ONLY include and share directories
 REM %1 = output filename
 powershell.exe -NoProfile -Command ^
     "Get-ChildItem -Recurse" ^
@@ -436,8 +433,7 @@ powershell.exe -NoProfile -Command ^
     "| Resolve-Path -Relative" ^
     "| Where-Object {" ^
     "$_ -match 'install\\include' -or" ^
-    "($_ -match 'install\\share'" ^
-    "-and $_ -notmatch 'install\\share\\postgresql')" ^
+    "$_ -match 'install\\share'" ^
     "}" > %~1
 GOTO :EOF
 

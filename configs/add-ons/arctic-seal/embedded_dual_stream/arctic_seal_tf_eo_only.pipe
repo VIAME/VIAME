@@ -79,7 +79,6 @@ connect from downsampler.timestamp
 #  :: write_object_track
 #  :file_name                                   none
 #  :writer:type                                 db
-#  :writer:db:conn_str                          postgresql:host=localhost;user=postgres
 #  :writer:db:video_name                        optical_stream
 
 #connect from in_adapt.timestamp

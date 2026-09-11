@@ -101,8 +101,10 @@ target_include_directories( viame_processes_svm PRIVATE
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/plugins>
   )
 
-# Optionally link CppDB for database backend support in process_query
-if( VIAME_ENABLE_POSTGRESQL )
-  target_compile_definitions( viame_processes_svm PRIVATE VIAME_ENABLE_CPPDB )
-  target_link_libraries( viame_processes_svm PRIVATE viame_cppdb )
-endif()
+# libsvm's headers, as `viame_svm` above takes them and for the same reason.
+# They used to arrive here through `viame_cppdb`, which is gone with the
+# PostgreSQL backend, so this says what it needs rather than inheriting it.
+target_include_directories( viame_processes_svm SYSTEM PRIVATE
+  $<BUILD_INTERFACE:${VIAME_DEPENDENCY_INCLUDE_DIRS}>
+  )
+

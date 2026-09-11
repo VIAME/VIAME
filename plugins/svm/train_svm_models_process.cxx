@@ -16,9 +16,6 @@
 
 #include <svm.h>
 
-#ifdef VIAME_ENABLE_CPPDB
-#include <cppdb/frontend.h>
-#endif
 
 #include <algorithm>
 #include <bitset>
@@ -29,6 +26,7 @@
 #include <queue>
 #include <random>
 #include <sstream>
+#include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -52,11 +50,14 @@ namespace svm
 
 // Config traits
 create_config_trait( descriptor_index_file, std::string, "",
-  "Path to CSV file containing descriptor index (uid,v1,v2,...). "
-  "Used if conn_str is empty." );
+  "Path to CSV file containing descriptor index (uid,v1,v2,...)." );
+// Kept, declared and refused. The PostgreSQL backend is gone, and a
+// configuration that still names it should say so rather than quietly read
+// a different index; the key stays so that every pipeline and every
+// registry consumer that knows about it keeps working.
 create_config_trait( conn_str, std::string, "",
-  "Database connection string (e.g., postgresql:host=localhost;user=postgres). "
-  "If set, descriptors are loaded from the DESCRIPTOR table instead of CSV file." );
+  "Removed: the PostgreSQL backend is gone. Setting this is an error; use "
+  "descriptor_index_file, which is what `viame index` writes." );
 create_config_trait( label_folder, std::string, "database",
   "Folder containing label files with descriptor UIDs per category" );
 create_config_trait( label_extension, std::string, "lbl",
@@ -224,9 +225,6 @@ public:
   // Helper functions
   void load_descriptor_index();
   void load_descriptor_index_from_csv();
-#ifdef VIAME_ENABLE_CPPDB
-  void load_descriptor_index_from_db();
-#endif
   std::unordered_set< std::string > load_uid_file( const std::string& filepath );
   void train_all_models();
   void train_svm_model(
@@ -307,13 +305,6 @@ void
 train_svm_models_process::priv
 ::load_descriptor_index()
 {
-#ifdef VIAME_ENABLE_CPPDB
-  if( !m_conn_str.empty() )
-  {
-    load_descriptor_index_from_db();
-    return;
-  }
-#endif
 
   load_descriptor_index_from_csv();
 }
@@ -326,7 +317,7 @@ train_svm_models_process::priv
 {
   if( m_descriptor_index_file.empty() )
   {
-    LOG_ERROR( m_logger, "Either descriptor_index_file or conn_str must be provided" );
+    LOG_ERROR( m_logger, "descriptor_index_file must be provided" );
     return;
   }
 
@@ -371,62 +362,6 @@ train_svm_models_process::priv
 }
 
 
-#ifdef VIAME_ENABLE_CPPDB
-// -----------------------------------------------------------------------------
-void
-train_svm_models_process::priv
-::load_descriptor_index_from_db()
-{
-  ::cppdb::session conn( m_conn_str );
-
-  // Query all descriptors from the DESCRIPTOR table
-  ::cppdb::result res = conn.create_statement(
-    "SELECT UID, VECTOR_DATA FROM DESCRIPTOR" ).query();
-
-  while( res.next() )
-  {
-    std::string uid;
-    std::string vector_data;
-
-    res.fetch( 0, uid );
-    res.fetch( 1, vector_data );
-
-    // Parse PostgreSQL array format: {val1,val2,val3,...}
-    // Remove curly braces if present
-    if( !vector_data.empty() && vector_data.front() == '{' )
-    {
-      vector_data = vector_data.substr( 1 );
-    }
-    if( !vector_data.empty() && vector_data.back() == '}' )
-    {
-      vector_data.pop_back();
-    }
-
-    std::vector< double > values;
-    std::istringstream ss( vector_data );
-    std::string value_str;
-    while( std::getline( ss, value_str, ',' ) )
-    {
-      try
-      {
-        values.push_back( std::stod( value_str ) );
-      }
-      catch( const std::exception& )
-      {
-        // Skip malformed values
-      }
-    }
-
-    if( !values.empty() )
-    {
-      m_descriptor_index[uid] = std::move( values );
-    }
-  }
-
-  conn.close();
-  LOG_INFO( m_logger, "Loaded " << m_descriptor_index.size() << " descriptors from database" );
-}
-#endif
 
 
 // -----------------------------------------------------------------------------
@@ -2065,6 +2000,13 @@ train_svm_models_process
 {
   d->m_descriptor_index_file = config_value_using_trait( descriptor_index_file );
   d->m_conn_str = config_value_using_trait( conn_str );
+
+  if( !d->m_conn_str.empty() )
+  {
+    throw std::runtime_error(
+      "conn_str is set, and the PostgreSQL backend was removed; use "
+      "descriptor_index_file, which is what `viame index` writes" );
+  }
   d->m_label_folder = config_value_using_trait( label_folder );
   d->m_label_extension = config_value_using_trait( label_extension );
   d->m_output_directory = config_value_using_trait( output_directory );

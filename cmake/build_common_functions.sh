@@ -866,17 +866,11 @@ prepare_linux_desktop_install() {
     fi
   done
 
-  # Move share directory but preserve share/postgresql in the package
+  # Move share directory. The dance that used to preserve share/postgresql
+  # went with the PostgreSQL backend.
   if [ -d "$install_dir/share" ]; then
-    if [ -d "$install_dir/share/postgresql" ]; then
-      mv "$install_dir/share/postgresql" "$install_dir/postgresql_temp"
-    fi
     mv "$install_dir/share" "$excluded_dir/share"
-    if [ -d "$install_dir/postgresql_temp" ]; then
-      mkdir -p "$install_dir/share"
-      mv "$install_dir/postgresql_temp" "$install_dir/share/postgresql"
-    fi
-    echo "  Moved share (preserved share/postgresql)"
+    echo "  Moved share"
   fi
 
   # Copy LICENSE.txt to install root

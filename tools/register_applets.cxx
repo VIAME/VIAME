@@ -39,8 +39,6 @@ VIAME_PYTHON_SCRIPT_APPLET( add_ons_applet, "add-ons", "add_ons.py",
 VIAME_PYTHON_SCRIPT_APPLET( segment_applet, "segment", "segment.py",
   "Add SAM2 segmentation polygons to an existing box-level annotation set." )
 
-VIAME_PYTHON_SCRIPT_APPLET( database_applet, "database", "database.py",
-  "Initialize, start, stop and index the descriptor database." )
 
 // The script is not named inspect.py: a tool run from the configs folder
 // would otherwise shadow the standard library inspect module for its imports.
@@ -161,7 +159,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 #ifdef VIAME_TOOLS_ENABLE_PYTHON
   register_script_tool< add_ons_applet >( reg );
   register_script_tool< segment_applet >( reg );
-  register_script_tool< database_applet >( reg );
   register_script_tool< inspect_applet >( reg );
   register_script_tool< extract_applet >( reg );
   register_script_tool< index_applet >( reg );

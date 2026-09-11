@@ -25,11 +25,9 @@ process out_adapt
 
 process query_handler
   :: process_query
-  # Descriptor store: the file-backed index (per-video <name>_descriptors.npy
-  # bundles in the database folder) is the default. To read descriptors from
-  # a PostgreSQL database instead, set conn_str (it takes precedence).
+  # Descriptor store: the file-backed index, per-video
+  # <name>_descriptors.npy bundles in the database folder.
   :descriptor_index_dir                        $CONFIG{global:database_folder}
-  #:conn_str                                   postgresql:host=localhost;user=postgres
   :pos_seed_neighbors                          500
   :query_return_size                           500
 

@@ -18,24 +18,15 @@ mirroring the protocol the VIQUI (vivia) KIP query session speaks:
                         iqr_model
 
 An "index" is a directory containing the ``database/`` folder produced by
-``viame index add``. Two storage backends exist:
-
-  files (default)  per-video bundles in ``database/`` (``<name>.index``,
-                   ``<name>_descriptors.csv/.npy``, ``<name>_uids.txt``,
-                   ``<name>_hashes.npy``, ``<name>_tracks.csv``) plus the
-                   shared ITQ model in ``database/ITQ``; no server process.
-  postgres         embedded PostgreSQL data at ``database/SQL`` holding the
-                   descriptors and track tables (ITQ/LSH files as above);
-                   the service starts and stops the instance per index.
-
-The backend is chosen per ``open_index`` request (``backend`` field) and
-otherwise detected from the index directory.
+``viame index add``: per-video bundles in ``database/`` (``<name>.index``,
+``<name>_descriptors.csv/.npy``, ``<name>_uids.txt``, ``<name>_hashes.npy``,
+``<name>_tracks.csv``) plus the shared ITQ model in ``database/ITQ``. There
+is no server process.
 
 FEDERATED SEARCH: multiple indexes may be opened at once. The first becomes
-the primary session (default postgres port, full pipeline including the
-exemplar descriptor path); the rest are secondary sessions running a reduced
-query-only pipeline against their own postgres instance on an incremented
-port. A query formulates exemplar descriptors once on the primary and fans
+the primary session (full pipeline, including the exemplar descriptor path);
+the rest are secondary sessions running a reduced query-only pipeline. A
+query formulates exemplar descriptors once on the primary and fans
 the similarity query out to every session; results are merged by relevancy.
 Refinement feedback routes to the session that owns each result; sessions
 without any accumulated feedback are re-scored with the canonical model (the
@@ -44,12 +35,11 @@ model from the most-adjudicated session), keeping scores comparable.
 Protocol: newline-delimited JSON requests on stdin, JSON responses on stdout,
 each response echoing the request ``id``. Commands:
 
-  open_index      {index_dir | index_dirs: [dir, ...], backend?: files|postgres}
+  open_index      {index_dir | index_dirs: [dir, ...], backend?: files}
   close_index     {}
   remove_streams  {index_dir, streams: [video_name, ...], backend?}
       Removes every stored descriptor and track of the given streams (e.g.
-      when a video is removed from the index): the stream's bundle files
-      with the file backend, its database rows with postgres.
+      when a video is removed from the index) by deleting its bundle files.
   status          {}
   formulate_query {image_path, boxes?: [[x1,y1,x2,y2],...]}
   process_query   {threshold?, iqr_model_b64?}
@@ -98,140 +88,23 @@ def _exe(cmd: str) -> str:
 
 
 # --------------------------------------------------------------------------
-# Embedded PostgreSQL lifecycle (per-index database/SQL data directory).
-#
-# Intentionally NOT reusing database_tool.stop(), which pkill -9's every
-# postgres process on the machine; a desktop service must only touch the
-# instances belonging to its own index directories.
-# --------------------------------------------------------------------------
-def _port_is_free(port: int) -> bool:
-    import socket
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        sock.bind(("127.0.0.1", port))
-        return True
-    except OSError:
-        return False
-    finally:
-        sock.close()
-
-
-class PostgresInstance:
-    def __init__(self, index_dir: str):
-        self.index_dir = index_dir
-        self.port: Optional[int] = None
-        # True when an already-running server was adopted rather than started
-        self.adopted = False
-        self.sql_dir = os.path.join(index_dir, "database", "SQL")
-        self.log_file = os.path.join(index_dir, "database", "SQL_Log_File")
-
-    def _pg_ctl(self, args: List[str]) -> subprocess.CompletedProcess:
-        return subprocess.run(
-            [_exe("pg_ctl"), "-D", self.sql_dir] + args,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-
-    def is_running(self) -> bool:
-        return self._pg_ctl(["status"]).returncode == 0
-
-    def _running_port(self) -> Optional[int]:
-        """Port of the live server for this data directory, if any (line 4
-        of postmaster.pid)."""
-        if not self.is_running():
-            return None
-        pid_file = os.path.join(self.sql_dir, "postmaster.pid")
-        try:
-            with open(pid_file) as f:
-                lines = f.read().splitlines()
-            return int(lines[3])
-        except Exception:
-            return None
-
-    def ensure_started(self, avoid_ports: List[int]) -> int:
-        """Start (or adopt) the postgres instance for this index and return
-        the port it listens on. An instance left running by a previous index
-        build or session is adopted at whatever port it already uses;
-        otherwise the first free port not in ``avoid_ports`` is chosen."""
-        running = self._running_port()
-        if running is not None:
-            _log(f"Adopting running postgres for {self.index_dir} "
-                 f"on port {running}")
-            self.port = running
-            self.adopted = True
-            return running
-
-        port = BASE_DB_PORT
-        while port in avoid_ports or not _port_is_free(port):
-            port += 1
-        self.port = port
-
-        start_args = ["-w", "-t", "20", "-l", self.log_file,
-                      "-o", f"-p {port}", "start"]
-        # Recover from a previous unclean shutdown (stale postmaster.pid with
-        # no live server behind it); pg_ctl start handles most cases itself,
-        # but a pid file pointing at a recycled pid can block startup.
-        pid_file = os.path.join(self.sql_dir, "postmaster.pid")
-        result = self._pg_ctl(start_args)
-        if result.returncode != 0 and os.path.exists(pid_file):
-            _log("postgres start failed; removing stale postmaster.pid "
-                 "and retrying")
-            os.remove(pid_file)
-            result = self._pg_ctl(start_args)
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"Unable to start postgres for {self.index_dir}: "
-                f"{result.stdout}")
-        return port
-
-    def stop(self) -> None:
-        self._pg_ctl(["-m", "fast", "stop"])
-        self._wait_for_port_available()
-
-    def _wait_for_port_available(self, timeout: float = 10.0) -> bool:
-        deadline = time.time() + timeout
-        while time.time() < deadline:
-            if self.port is None or _port_is_free(self.port):
-                return True
-            time.sleep(0.5)
-        return False
-
-
-# Removes every row belonging to one stream (video/sequence identifier).
-# Child tables (keyed by UID only) go first. The descriptor vectors and
-# track geometry all key on VIDEO_NAME.
-REMOVE_STREAM_SQL = (
-    "DELETE FROM TRACK_DESCRIPTOR_TRACK WHERE UID IN "
-    "(SELECT UID FROM TRACK_DESCRIPTOR WHERE VIDEO_NAME = {stream});\n"
-    "DELETE FROM TRACK_DESCRIPTOR_HISTORY WHERE UID IN "
-    "(SELECT UID FROM TRACK_DESCRIPTOR WHERE VIDEO_NAME = {stream});\n"
-    "DELETE FROM TRACK_DESCRIPTOR WHERE VIDEO_NAME = {stream};\n"
-    "DELETE FROM DESCRIPTOR WHERE VIDEO_NAME = {stream};\n"
-    "DELETE FROM OBJECT_TRACK WHERE VIDEO_NAME = {stream};"
-)
-
-
-def _sql_literal(value: str) -> str:
-    return "'" + value.replace("'", "''") + "'"
-
-
-# --------------------------------------------------------------------------
 # Index storage backends
 # --------------------------------------------------------------------------
+# The index is per-video files. The embedded PostgreSQL backend upstream
+# keeps as an alternative is not built here, so there is nothing to select.
 BACKEND_FILES = "files"
-BACKEND_POSTGRES = "postgres"
-
-def detect_backend(index_dir: str) -> str:
-    """How the index under index_dir/database stores descriptors."""
-    from viame.core import index_descriptors
-    return index_descriptors.detect_backend(os.path.join(index_dir, "database"))
 
 
 def normalize_backend(value: Optional[str], index_dir: str) -> str:
+    """Accept the one backend there is, and say so about any other."""
     if not value:
-        return detect_backend(index_dir)
+        return BACKEND_FILES
     value = str(value).lower()
-    if value not in (BACKEND_FILES, BACKEND_POSTGRES):
-        raise ValueError(f"Unknown index backend: {value}")
-    return value
+    if value != BACKEND_FILES:
+        raise ValueError(
+            f"Unknown index backend: {value}; this build has the file-backed "
+            "index only")
+    return BACKEND_FILES
 
 
 def remove_stream_files(index_dir: str, streams: List[str]) -> List[str]:
@@ -247,7 +120,6 @@ def remove_stream_files(index_dir: str, streams: List[str]) -> List[str]:
 # --------------------------------------------------------------------------
 # Pipe templating for secondary sessions
 # --------------------------------------------------------------------------
-DEFAULT_CONN_STR = "postgresql:host=localhost;user=postgres"
 
 SECONDARY_OUTER_PIPE = """# Generated by viame.core.query_service -- do not edit.
 # Reduced query pipeline for a secondary (federated) index session: no
@@ -289,37 +161,13 @@ connect from database_query_handler.iqr_model
 """
 
 
-def _select_descriptor_store(pipe_text: str, backend: str,
-                              conn_str: str) -> str:
-    """Point the process_query descriptor store at the session's backend.
-    The installed pipe carries the file-backed lines active and the postgres
-    line commented out; postgres sessions flip that and add their port."""
-    if backend != BACKEND_POSTGRES:
-        return pipe_text
-    lines = []
-    for line in pipe_text.splitlines():
-        stripped = line.strip()
-        if stripped.startswith(":conn_str") or stripped.startswith("#:conn_str"):
-            # One active conn_str line, whether the installed pipe had it
-            # active (older layouts) or commented out (file-backed default)
-            lines.append("  :conn_str                                    " + conn_str)
-        else:
-            lines.append(line)
-    return "\n".join(lines) + "\n"
-
-
-def _descriptor_query_lines(backend: str, database_folder: str,
-                            conn_str: str) -> str:
-    """perform_query's descriptor_query configuration for a backend."""
-    if backend == BACKEND_POSTGRES:
-        return ("  :descriptor_query:type                        db\n"
-                "  :descriptor_query:db:conn_str                 " + conn_str)
+def _descriptor_query_lines(database_folder: str) -> str:
+    """perform_query's descriptor_query configuration."""
     return ("  :descriptor_query:type                        csv\n"
             "  :descriptor_query:csv:database_folder         " + database_folder)
 
 
-def _select_result_store(pipe_text: str, backend: str, database_folder: str,
-                         conn_str: str) -> str:
+def _select_result_store(pipe_text: str, database_folder: str) -> str:
     """Rewrite perform_query's descriptor_query lines in the installed
     outer pipe for the session's backend."""
     lines = []
@@ -330,7 +178,7 @@ def _select_result_store(pipe_text: str, backend: str, database_folder: str,
             continue
         lines.append(line)
         if stripped.startswith(":unused_descriptors_as_negative"):
-            lines.append(_descriptor_query_lines(backend, database_folder, conn_str))
+            lines.append(_descriptor_query_lines(database_folder))
     return "\n".join(lines) + "\n"
 
 
@@ -339,22 +187,20 @@ def _write_session_pipes(index_dir: str, port: Optional[int],
                          backend: str = BACKEND_FILES) -> str:
     """Generate CWD-independent pipeline files for a session: an outer pipe
     plus a copy of the inner query_and_iqr.pipe, all with absolute index
-    paths and, for postgres sessions, the session's port. The primary
-    session gets the full installed pipeline (including the exemplar
-    descriptor path); secondaries get a reduced query-only pipeline so heavy
-    formulation models load once. Returns the outer pipe path."""
+    paths. The primary session gets the full installed pipeline (including
+    the exemplar descriptor path); secondaries get a reduced query-only
+    pipeline so heavy formulation models load once. Returns the outer pipe
+    path."""
     session_dir = os.path.join(index_dir, ".session")
     os.makedirs(session_dir, exist_ok=True)
 
     installed_dir = os.path.dirname(installed_pipe)
     database_folder = os.path.join(index_dir, "database")
-    conn_str = f"{DEFAULT_CONN_STR};port={port}" if port else DEFAULT_CONN_STR
 
-    # Inner pipe: absolute database folder + descriptor store
+    # Inner pipe: absolute database folder
     inner_src = os.path.join(installed_dir, "query_and_iqr.pipe")
     with open(inner_src) as f:
         inner = f.read()
-    inner = _select_descriptor_store(inner, backend, conn_str)
     inner = inner.replace(
         ":database_folder                             database",
         f":database_folder                             {database_folder}")
@@ -367,7 +213,7 @@ def _write_session_pipes(index_dir: str, port: Optional[int],
         # Full installed pipeline, rewritten to be CWD/port independent
         with open(installed_pipe) as f:
             outer = f.read()
-        outer = _select_result_store(outer, backend, database_folder, conn_str)
+        outer = _select_result_store(outer, database_folder)
         outer = outer.replace(
             ":database_folder                             database",
             f":database_folder                             {database_folder}")
@@ -389,8 +235,7 @@ def _write_session_pipes(index_dir: str, port: Optional[int],
             f.write(SECONDARY_OUTER_PIPE.format(
                 inner_pipe=inner_path,
                 database_folder=database_folder,
-                descriptor_query=_descriptor_query_lines(
-                    backend, database_folder, conn_str),
+                descriptor_query=_descriptor_query_lines(database_folder),
             ))
     return outer_path
 
@@ -426,21 +271,16 @@ class QuerySession:
                 f"{index_dir} does not contain a built search index "
                 "(missing database/ITQ)")
 
-        # Only a postgres-backed index needs a server; file bundles are
-        # read directly by the pipeline processes.
-        self._postgres: Optional[PostgresInstance] = None
+        # File bundles are read directly by the pipeline processes; there
+        # is no server to start.
         self.port: Optional[int] = None
-        if backend == BACKEND_POSTGRES:
-            self._postgres = PostgresInstance(self.index_dir)
-            self.port = self._postgres.ensure_started(avoid_ports)
 
         pipe_path = _write_session_pipes(
             self.index_dir, self.port, pipeline_file, primary, backend)
         pipe_dir = os.path.dirname(pipe_path)
 
         _log(f"Building query pipeline for {self.index_dir} "
-             f"({backend}, port {self.port}, "
-             f"{'primary' if primary else 'secondary'})")
+             f"({'primary' if primary else 'secondary'})")
         self._pipeline = embedded_pipeline.EmbeddedPipeline()
         # def_dir anchors `relativepath` config entries (e.g. the inner
         # query_and_iqr.pipe) to the pipe file rather than the CWD.
@@ -559,8 +399,6 @@ class QuerySession:
             self._pipeline.stop()
         except Exception:
             pass
-        if self._postgres is not None:
-            self._postgres.stop()
         _log(f"Index closed: {self.index_dir}")
 
 
@@ -817,63 +655,27 @@ class QueryService:
 
     def _remove_streams(self, index_dir: str, streams: List[str],
                         backend: Optional[str] = None) -> Dict[str, Any]:
-        """Remove the given streams from an index. With the file backend
-        their bundle files are deleted; with postgres their database rows
-        are, against the open session's server when the index is open or a
-        temporary instance otherwise. An open session on the index is closed
-        either way, since its in-memory descriptor index still holds the
-        removed vectors."""
+        """Remove the given streams from an index: their bundle files are
+        deleted. An open session on the index is closed, since its in-memory
+        descriptor index still holds the removed vectors."""
         index_dir = os.path.abspath(index_dir)
         if not streams:
             return {"success": True, "closed_session": False}
 
         open_session = next(
             (s for s in self._sessions if s.index_dir == index_dir), None)
-        backend = normalize_backend(
+        normalize_backend(
             backend or (open_session.backend if open_session else None), index_dir)
 
-        if backend == BACKEND_FILES:
-            removed = remove_stream_files(index_dir, streams)
-            closed = False
-            if open_session is not None:
-                self._close_all()
-                closed = True
-            _log(f"Removed streams {streams} from {index_dir} "
-                 f"({len(removed)} files)")
-            return {"success": True, "closed_session": closed,
-                    "removed_files": removed}
-
-        temp_pg: Optional[PostgresInstance] = None
-        if open_session is not None:
-            port = open_session.port
-        else:
-            temp_pg = PostgresInstance(index_dir)
-            port = temp_pg.ensure_started(
-                [s.port for s in self._sessions])
-
-        sql = "\n".join(
-            REMOVE_STREAM_SQL.format(stream=_sql_literal(s)) for s in streams)
-        try:
-            result = subprocess.run(
-                [_exe("psql"), "-h", "localhost", "-p", str(port),
-                 "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-c", sql],
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-            if result.returncode != 0:
-                raise RuntimeError(
-                    f"Stream removal failed: {result.stdout}")
-        finally:
-            # Only stop a server this call started itself
-            if temp_pg is not None and not temp_pg.adopted:
-                temp_pg.stop()
-
+        removed = remove_stream_files(index_dir, streams)
         closed = False
         if open_session is not None:
-            # The open sessions cached descriptors in memory; close so the
-            # next query reopens against the pruned database.
             self._close_all()
             closed = True
-        _log(f"Removed streams {streams} from {index_dir}")
-        return {"success": True, "closed_session": closed}
+        _log(f"Removed streams {streams} from {index_dir} "
+             f"({len(removed)} files)")
+        return {"success": True, "closed_session": closed,
+                "removed_files": removed}
 
     def _status(self) -> Dict[str, Any]:
         return {
@@ -961,7 +763,7 @@ class QueryService:
                 self._respond({"id": request_id, "success": False,
                                "error": str(e)})
 
-        # Always release the pipelines (and any postgres) on exit (including stdin
+        # Always release the pipelines on exit (including stdin
         # EOF when the parent process dies without sending shutdown).
         try:
             self._close_all()

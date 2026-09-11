@@ -145,7 +145,6 @@ mark_as_advanced( VIAME_ENABLE_COLMAP )
 # Add core utilities enable flags
 ##
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
-option( VIAME_ENABLE_POSTGRESQL     "Enable PostgreSQL plugins"     OFF )
 
 if( WIN32 )
   option( VIAME_ENABLE_WIN32GUI     "Enable WIN32 GUI dependency"   ON )

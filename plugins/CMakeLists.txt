@@ -47,10 +47,6 @@ if( VIAME_ENABLE_DARKNET )
   add_subdirectory( darknet )
 endif()
 
-if( VIAME_ENABLE_POSTGRESQL )
-  add_subdirectory( cppdb )
-endif()
-
 if( VIAME_ENABLE_SVM )
   add_subdirectory( svm )
 endif()

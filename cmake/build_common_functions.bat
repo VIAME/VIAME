@@ -293,38 +293,11 @@ FOR %%D IN (sbin qml include mkspecs etc doc) DO (
         ECHO [OK] Moved %%D/
     )
 )
+REM Move share. The dance that used to preserve postgresql's files went with
+REM the PostgreSQL backend.
 IF EXIST "%~3\VIAME\share" (
-    REM Move share but preserve postgresql files in the package
-    IF EXIST "%~3\VIAME\share\postgres.bki" (
-        MKDIR "%~3\VIAME\postgresql_temp"
-        FOR %%F IN (postgres.bki postgres.description postgres.shdescription
-                    conversion_create.sql information_schema.sql snowball_create.sql
-                    sql_features.txt system_views.sql
-                    pg_hba.conf.sample pg_ident.conf.sample pg_service.conf.sample
-                    postgresql.conf.sample psqlrc.sample recovery.conf.sample) DO (
-            IF EXIST "%~3\VIAME\share\%%F" (
-                MOVE "%~3\VIAME\share\%%F" "%~3\VIAME\postgresql_temp\%%F" >NUL 2>&1
-            )
-        )
-        FOR %%D IN (timezone timezonesets tsearch_data extension) DO (
-            IF EXIST "%~3\VIAME\share\%%D" (
-                MOVE "%~3\VIAME\share\%%D" "%~3\VIAME\postgresql_temp\%%D" >NUL 2>&1
-            )
-        )
-        MOVE "%~3\VIAME\share" "!EXCLUDED_DIR!\share" >NUL 2>&1
-        MKDIR "%~3\VIAME\share"
-        FOR /D %%D IN ("%~3\VIAME\postgresql_temp\*") DO (
-            MOVE "%%D" "%~3\VIAME\share\%%~nxD" >NUL 2>&1
-        )
-        FOR %%F IN ("%~3\VIAME\postgresql_temp\*") DO (
-            MOVE "%%F" "%~3\VIAME\share\%%~nxF" >NUL 2>&1
-        )
-        RMDIR /S /Q "%~3\VIAME\postgresql_temp" >NUL 2>&1
-        ECHO [OK] Moved share/ (preserved postgresql files)
-    ) ELSE (
-        MOVE "%~3\VIAME\share" "!EXCLUDED_DIR!\share" >NUL 2>&1
-        ECHO [OK] Moved share/
-    )
+    MOVE "%~3\VIAME\share" "!EXCLUDED_DIR!\share" >NUL 2>&1
+    ECHO [OK] Moved share/
 )
 
 ECHO Creating zip archive (this may take a while)...
@@ -339,27 +312,37 @@ FOR %%D IN (sbin qml include mkspecs etc doc) DO (
     )
 )
 IF EXIST "!EXCLUDED_DIR!\share" (
-    REM Move postgresql files out of share temporarily before restoring full share
-    IF EXIST "%~3\VIAME\share" (
-        MKDIR "%~3\VIAME\postgresql_temp" >NUL 2>&1
-        FOR /D %%D IN ("%~3\VIAME\share\*") DO (
-            MOVE "%%D" "%~3\VIAME\postgresql_temp\%%~nxD" >NUL 2>&1
-        )
-        FOR %%F IN ("%~3\VIAME\share\*") DO (
-            MOVE "%%F" "%~3\VIAME\postgresql_temp\%%~nxF" >NUL 2>&1
-        )
-        RMDIR /S /Q "%~3\VIAME\share"
-    )
     MOVE "!EXCLUDED_DIR!\share" "%~3\VIAME\share" >NUL 2>&1
-    IF EXIST "%~3\VIAME\postgresql_temp" (
-        FOR /D %%D IN ("%~3\VIAME\postgresql_temp\*") DO (
-            MOVE "%%D" "%~3\VIAME\share\%%~nxD" >NUL 2>&1
-        )
-        FOR %%F IN ("%~3\VIAME\postgresql_temp\*") DO (
-            MOVE "%%F" "%~3\VIAME\share\%%~nxF" >NUL 2>&1
-        )
-        RMDIR /S /Q "%~3\VIAME\postgresql_temp" >NUL 2>&1
+)
+IF EXIST "!EXCLUDED_DIR!" RMDIR /S /Q "!EXCLUDED_DIR!"
+MKDIR "!EXCLUDED_DIR!"
+ECHO Moving development folders out to reduce package size...
+FOR %%D IN (sbin qml include mkspecs etc doc) DO (
+    IF EXIST "%~3\VIAME\%%D" (
+        MOVE "%~3\VIAME\%%D" "!EXCLUDED_DIR!\%%D" >NUL 2>&1
+        ECHO [OK] Moved %%D/
     )
+)
+REM Move share. The dance that used to preserve postgresql's files went with
+REM the PostgreSQL backend.
+IF EXIST "%~3\VIAME\share" (
+    MOVE "%~3\VIAME\share" "!EXCLUDED_DIR!\share" >NUL 2>&1
+    ECHO [OK] Moved share/
+)
+
+ECHO Creating zip archive (this may take a while)...
+"%~5\7z.exe" a -tzip "%~3\%~4" "%~3\VIAME"
+SET "ZIP_RESULT=!ERRORLEVEL!"
+
+REM Restore excluded directories back into VIAME
+ECHO Restoring development folders...
+FOR %%D IN (sbin qml include mkspecs etc doc) DO (
+    IF EXIST "!EXCLUDED_DIR!\%%D" (
+        MOVE "!EXCLUDED_DIR!\%%D" "%~3\VIAME\%%D" >NUL 2>&1
+    )
+)
+IF EXIST "!EXCLUDED_DIR!\share" (
+    MOVE "!EXCLUDED_DIR!\share" "%~3\VIAME\share" >NUL 2>&1
 )
 IF EXIST "!EXCLUDED_DIR!" RMDIR /S /Q "!EXCLUDED_DIR!"
 ECHO [OK] Development folders restored

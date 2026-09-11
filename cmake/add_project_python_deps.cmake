@@ -93,11 +93,6 @@ if( VIAME_ENABLE_PYTORCH-SAM3 )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "decord" )
 endif()
 
-# For PostgreSQL database support (used by native ITQ indexer, etc.)
-if( VIAME_ENABLE_POSTGRESQL )
-  list( APPEND VIAME_PYTHON_BASIC_DEPS "psycopg2-binary" )
-endif()
-
 # For COLMAP structure-from-motion / 3D reconstruction (the 3d tool).
 # pycolmap provides SfM + (CUDA) MVS. On CUDA builds we swap the CPU-only
 # pycolmap wheel for pycolmap-cuda12, which ships GPU-accelerated feature
